@@ -1922,6 +1922,7 @@ button, .button {
     justify-content: center;
   }
 
+  .card-sheets,
   .print-deck { page: cards; }
 
   .game-card:nth-child(9n + 1),
