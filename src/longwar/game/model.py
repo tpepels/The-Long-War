@@ -55,6 +55,12 @@ class SchemeState:
 
 
 @dataclass
+class StratagemState:
+    card_id: str
+    revealed: bool = False
+
+
+@dataclass
 class PlayerState:
     deck: list[str]
     hand: list[str]
@@ -86,11 +92,17 @@ def empty_schemes() -> list[list[SchemeState | None]]:
     return [[None for _ in range(3)] for _ in range(2)]
 
 
+def empty_stratagems() -> list[StratagemState | None]:
+    return [None, None]
+
+
 @dataclass
 class GameState:
     players: list[PlayerState]
     board: list[list[list[Slot]]] = field(default_factory=empty_board)
     schemes: list[list[SchemeState | None]] = field(default_factory=empty_schemes)
+    stratagems: list[StratagemState | None] = field(default_factory=empty_stratagems)
+    stratagem_used: list[bool] = field(default_factory=lambda: [False, False])
     active_player: int = 0
     battle: int = 1
     phase: Phase = Phase.BATTLE
@@ -109,6 +121,9 @@ class GameState:
 
     def scheme(self, player: int, front: Front) -> SchemeState | None:
         return self.schemes[player][int(front)]
+
+    def stratagem(self, player: int) -> StratagemState | None:
+        return self.stratagems[player]
 
     def observe_hidden_delta(
         self,
