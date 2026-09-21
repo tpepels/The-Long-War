@@ -5,7 +5,7 @@ import json
 import math
 import random
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from .agents.heuristic_agent import HeuristicAgent
@@ -22,6 +22,7 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase, Position, Rank
+from .mccfr_core import CFRNode, external_sampling_traverse
 
 
 def _counter_view(cards: list[str]) -> list[list[Any]]:
@@ -138,45 +139,6 @@ def information_set_id(state: GameState, player: int) -> str:
         separators=(",", ":"),
     ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
-
-
-@dataclass
-class CFRNode:
-    regret_sum: dict[str, float] = field(default_factory=dict)
-    strategy_sum: dict[str, float] = field(default_factory=dict)
-    visits: int = 0
-    average_visits: int = 0
-
-    def ensure_actions(self, keys: list[str]) -> None:
-        for key in keys:
-            self.regret_sum.setdefault(key, 0.0)
-            self.strategy_sum.setdefault(key, 0.0)
-
-    def strategy(self, keys: list[str]) -> dict[str, float]:
-        self.ensure_actions(keys)
-        positives = {key: max(0.0, self.regret_sum[key]) for key in keys}
-        total = sum(positives.values())
-        if total > 0:
-            return {key: positives[key] / total for key in keys}
-        probability = 1.0 / len(keys)
-        return {key: probability for key in keys}
-
-    def accumulate_average(self, strategy: dict[str, float]) -> None:
-        for key, probability in strategy.items():
-            self.strategy_sum[key] = self.strategy_sum.get(key, 0.0) + probability
-        self.average_visits += 1
-
-    def average_strategy(self, keys: list[str] | None = None) -> dict[str, float]:
-        keys = keys or list(self.strategy_sum)
-        if not keys:
-            return {}
-        total = sum(max(0.0, self.strategy_sum.get(key, 0.0)) for key in keys)
-        if total <= 0:
-            return self.strategy(keys)
-        return {
-            key: max(0.0, self.strategy_sum.get(key, 0.0)) / total
-            for key in keys
-        }
 
 
 @dataclass(frozen=True)
@@ -299,75 +261,33 @@ class MCCFRTrainer:
         *,
         depth: int,
     ) -> float:
-        if state.phase is Phase.COMPLETE:
-            return 1.0 if state.winner == traverser else -1.0
+        def next_state(current: GameState, action: Action) -> GameState:
+            child = current.clone()
+            self.engine.apply(child, action)
+            return child
 
-        if depth >= self.max_depth:
-            return self._leaf_value(state, traverser)
-
-        actor = state.active_player
-        actions = self.engine.legal_actions(state)
-        if not actions:
-            raise RuntimeError("Non-terminal state has no legal actions")
-
-        keys = [action_key(action) for action in actions]
-        if len(keys) != len(set(keys)):
-            raise RuntimeError("Action serialization collision inside information set")
-
-        info_id = information_set_id(state, actor)
-        node = self.nodes.setdefault(info_id, CFRNode())
-        node.ensure_actions(keys)
-        node.visits += 1
-        strategy = node.strategy(keys)
-
-        action_by_key = dict(zip(keys, actions))
-
-        if actor == traverser:
-            action_utilities: dict[str, float] = {}
-            node_utility = 0.0
-
-            for key in keys:
-                child = state.clone()
-                self.engine.apply(child, action_by_key[key])
-                utility = self._traverse(
-                    child,
-                    traverser,
-                    depth=depth + 1,
-                )
-                action_utilities[key] = utility
-                node_utility += strategy[key] * utility
-
-            for key in keys:
-                node.regret_sum[key] += action_utilities[key] - node_utility
-
-            return node_utility
-
-        # In external sampling, the non-traversing player's action is sampled.
-        # Average-policy accumulation therefore occurs on the sampled path.
-        node.accumulate_average(strategy)
-        sampled_key = self._sample(strategy)
-        child = state.clone()
-        self.engine.apply(child, action_by_key[sampled_key])
-        return self._traverse(
-            child,
+        return external_sampling_traverse(
+            state,
             traverser,
-            depth=depth + 1,
+            depth=depth,
+            max_depth=self.max_depth,
+            nodes=self.nodes,
+            rng=self.rng,
+            is_terminal=lambda current: current.phase is Phase.COMPLETE,
+            terminal_utility=lambda current, player: (
+                1.0 if current.winner == player else -1.0
+            ),
+            current_player=lambda current: current.active_player,
+            legal_actions=self.engine.legal_actions,
+            action_key=action_key,
+            information_set_id=information_set_id,
+            next_state=next_state,
+            leaf_value=self._leaf_value,
         )
 
     def _leaf_value(self, state: GameState, traverser: int) -> float:
         raw = self._leaf_agent.evaluate(self.engine, state, traverser)
         return math.tanh(raw / self.leaf_scale)
-
-    def _sample(self, probabilities: dict[str, float]) -> str:
-        threshold = self.rng.random()
-        cumulative = 0.0
-        last = next(iter(probabilities))
-        for key, probability in probabilities.items():
-            last = key
-            cumulative += probability
-            if threshold <= cumulative:
-                return key
-        return last
 
     def policy_payload(self) -> dict[str, Any]:
         infosets: dict[str, Any] = {}
@@ -410,6 +330,6 @@ class MCCFRTrainer:
                 ],
                 "note": "This is an imperfect-recall state abstraction, not an exact perfect-recall game tree.",
             },
-            "average_policy": "visit-weighted sampled-path average strategy",
+            "average_policy": "own-reach-weighted external-sampling average strategy",
             "infosets": infosets,
         }
