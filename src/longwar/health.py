@@ -1,0 +1,223 @@
+from __future__ import annotations
+
+from collections import Counter, defaultdict
+from math import sqrt
+from statistics import mean, pstdev
+from typing import Any
+
+
+def wilson_interval(successes: int, trials: int, z: float = 1.96) -> tuple[float | None, float | None]:
+    if trials <= 0:
+        return (None, None)
+    p = successes / trials
+    d = 1.0 + (z * z) / trials
+    c = (p + (z * z) / (2.0 * trials)) / d
+    h = z * sqrt((p * (1.0 - p) / trials) + (z * z) / (4.0 * trials * trials)) / d
+    return (max(0.0, c - h), min(1.0, c + h))
+
+
+def _z(value: float | None, values: list[float]) -> float | None:
+    if value is None or len(values) < 2:
+        return None
+    sd = pstdev(values)
+    return 0.0 if sd == 0 else (value - mean(values)) / sd
+
+
+def _flag(code: str, severity: str, message: str, value: float | None = None) -> dict[str, Any]:
+    row = {"code": code, "severity": severity, "message": message}
+    if value is not None:
+        row["value"] = value
+    return row
+
+
+def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) -> dict[str, Any]:
+    telemetry = simulation["telemetry"]
+    meta = {card["id"]: card for card in card_data["cards"]}
+    games = int(simulation["games"])
+
+    fp = int(simulation["first_player_wins"])
+    fp_rate = fp / games
+    fp_ci = wilson_interval(fp, games)
+    global_flags: list[dict[str, Any]] = []
+    if fp_ci[0] is not None:
+        if fp_ci[0] > 0.55 or fp_ci[1] < 0.45:
+            global_flags.append(_flag("first_player_bias", "high", "95% interval lies outside the 45–55% design band.", fp_rate))
+        elif fp_ci[0] > 0.50 or fp_ci[1] < 0.50:
+            global_flags.append(_flag("first_player_signal", "watch", "95% interval excludes 50%.", fp_rate))
+
+    swings: dict[str, list[float]] = defaultdict(list)
+    for card_id, stats in telemetry["cards"].items():
+        value = stats.get("mean_immediate_front_swing")
+        if value is not None and int(stats.get("plays", 0)) >= 20:
+            swings[meta[card_id]["type"]].append(float(value))
+
+    counts: Counter[str] = Counter()
+    cards: list[dict[str, Any]] = []
+    for card_id, stats in telemetry["cards"].items():
+        card = meta[card_id]
+        played_n = int(stats.get("games_played", 0))
+        played_w = int(stats.get("wins_when_played", 0))
+        drawn_n = int(stats.get("games_drawn", 0))
+        drawn_w = int(stats.get("wins_when_drawn", 0))
+        played_ci = wilson_interval(played_w, played_n)
+        drawn_ci = wilson_interval(drawn_w, drawn_n)
+
+        draws = int(stats.get("draws", 0))
+        plays = int(stats.get("plays", 0))
+        held = int(stats.get("turns_in_hand", 0))
+        held_pass = int(stats.get("held_on_pass", 0))
+        play_rate = stats.get("play_rate_per_draw")
+        dead = stats.get("unplayable_turn_rate")
+        dead_pass = stats.get("dead_on_pass_rate")
+        swing = stats.get("mean_immediate_front_swing")
+        swing_z = _z(float(swing) if swing is not None else None, swings[card["type"]])
+        flags: list[dict[str, Any]] = []
+
+        if draws >= 100 and play_rate is not None:
+            if play_rate >= 0.90:
+                flags.append(_flag("auto_play", "watch", "Played on at least 90% of draws.", float(play_rate)))
+            elif play_rate <= 0.35:
+                flags.append(_flag("low_conversion", "watch", "Played on at most 35% of draws.", float(play_rate)))
+
+        if held >= 200 and dead is not None and dead >= 0.30:
+            flags.append(_flag("dead_draw", "high" if dead >= 0.50 else "watch", "Frequently held while no legal play exists.", float(dead)))
+
+        if held_pass >= 40 and dead_pass is not None and dead_pass >= 0.25:
+            flags.append(_flag("dead_on_pass", "watch", "Often still unplayable when its controller passes.", float(dead_pass)))
+
+        if plays >= 80 and swing_z is not None and abs(swing_z) >= 1.75:
+            flags.append(_flag("board_swing_outlier", "watch", "Immediate Front swing is an outlier within this card type.", swing_z))
+
+        if played_n >= 100 and played_ci[0] is not None:
+            if played_ci[0] > 0.56:
+                flags.append(_flag("positive_outcome_association", "high", "Lower 95% win bound when played exceeds 56%.", float(stats["win_rate_when_played"])))
+            elif played_ci[1] < 0.44:
+                flags.append(_flag("negative_outcome_association", "high", "Upper 95% win bound when played is below 44%.", float(stats["win_rate_when_played"])))
+
+        for flag in flags:
+            counts[flag["severity"]] += 1
+
+        cards.append({
+            "id": card_id,
+            "title": card["title"],
+            "type": card["type"],
+            "draws": draws,
+            "plays": plays,
+            "play_rate_per_draw": play_rate,
+            "unplayable_turn_rate": dead,
+            "dead_on_pass_rate": dead_pass,
+            "mean_immediate_front_swing": swing,
+            "front_swing_z_within_type": swing_z,
+            "win_rate_when_drawn": stats.get("win_rate_when_drawn"),
+            "win_rate_when_drawn_95": list(drawn_ci),
+            "win_rate_when_played": stats.get("win_rate_when_played"),
+            "win_rate_when_played_95": list(played_ci),
+            "flags": flags,
+        })
+
+    combo_stats = telemetry.get("legend_combinations", {})
+    combo_strengths = [
+        float(s["mean_strength_at_completion"])
+        for s in combo_stats.values()
+        if s.get("mean_strength_at_completion") is not None and int(s.get("completions", 0)) >= 10
+    ]
+    legends: list[dict[str, Any]] = []
+    for key, stats in combo_stats.items():
+        seen = int(stats.get("games_seen", 0))
+        wins = int(stats.get("wins_when_seen", 0))
+        ci = wilson_interval(wins, seen)
+        strength = stats.get("mean_strength_at_completion")
+        strength_z = _z(float(strength) if strength is not None else None, combo_strengths)
+        flags: list[dict[str, Any]] = []
+
+        if seen >= 50 and ci[0] is not None:
+            if ci[0] > 0.60:
+                flags.append(_flag("combo_positive_association", "high", "Legend's lower 95% win bound exceeds 60%.", float(stats["win_rate_when_seen"])))
+            elif ci[1] < 0.40:
+                flags.append(_flag("combo_negative_association", "high", "Legend's upper 95% win bound is below 40%.", float(stats["win_rate_when_seen"])))
+
+        if int(stats.get("completions", 0)) >= 30 and strength_z is not None and strength_z >= 2.0:
+            flags.append(_flag("combo_strength_outlier", "watch", "Completion Strength is at least two standard deviations high.", strength_z))
+
+        for flag in flags:
+            counts[flag["severity"]] += 1
+
+        subject, link, name = key.split(" | ")
+        legends.append({
+            "id": key,
+            "title": " — ".join(meta[x]["title"] for x in (subject, link, name)),
+            "completions": int(stats.get("completions", 0)),
+            "games_seen": seen,
+            "mean_strength_at_completion": strength,
+            "completion_strength_z": strength_z,
+            "win_rate_when_seen": stats.get("win_rate_when_seen"),
+            "win_rate_when_seen_95": list(ci),
+            "flags": flags,
+        })
+
+    for flag in global_flags:
+        counts[flag["severity"]] += 1
+
+    cards.sort(key=lambda r: (-sum(2 if f["severity"] == "high" else 1 for f in r["flags"]), r["title"]))
+    legends.sort(key=lambda r: (-sum(2 if f["severity"] == "high" else 1 for f in r["flags"]), -r["games_seen"], r["title"]))
+
+    return {
+        "schema_version": 1,
+        "source": {"games": games, "agents": simulation["agents"], "wins": simulation["wins"]},
+        "global": {
+            "first_player_win_rate": fp_rate,
+            "first_player_win_rate_95": list(fp_ci),
+            "mean_actions": simulation["mean_turns"],
+            "max_actions": simulation["max_turns"],
+            "passes": telemetry["passes"],
+            "battles": telemetry["battles"],
+            "flags": global_flags,
+        },
+        "summary": {
+            "cards_analyzed": len(cards),
+            "legends_observed": len(legends),
+            "flags_high": counts["high"],
+            "flags_watch": counts["watch"],
+        },
+        "cards": cards,
+        "legends": legends,
+        "methodology": {
+            "win_intervals": "Wilson score interval, 95%",
+            "notes": [
+                "Conditional win rates are observational rather than causal values.",
+                "Board-swing z-scores are computed within card type.",
+                "Flags identify cases for inspection; they are not automatic nerf/buff instructions.",
+                "MCCFR and counterfactual replacement experiments are the next stronger causal layer.",
+            ],
+        },
+    }
+
+
+def render_markdown(report: dict[str, Any]) -> str:
+    g = report["global"]
+    s = report["summary"]
+    low, high = g["first_player_win_rate_95"]
+    lines = [
+        "# The Long War — Balance Health Report",
+        "",
+        f"Games: **{report['source']['games']}** · Agents: **{' vs '.join(report['source']['agents'])}**  ",
+        f"First-player win: **{100*g['first_player_win_rate']:.1f}%** "
+        f"(95% Wilson {100*low:.1f}%–{100*high:.1f}%)  ",
+        f"High flags: **{s['flags_high']}** · Watch flags: **{s['flags_watch']}**",
+        "",
+        "## Flagged cards",
+        "",
+    ]
+    for row in [r for r in report["cards"] if r["flags"]]:
+        lines.append(f"- **{row['title']}** ({row['type']}): " + ", ".join(f["code"] for f in row["flags"]))
+    lines += ["", "## Flagged Legends", ""]
+    for row in [r for r in report["legends"] if r["flags"]][:30]:
+        lines.append(f"- **{row['title']}**: " + ", ".join(f["code"] for f in row["flags"]))
+    lines += [
+        "",
+        "## Interpretation",
+        "",
+        "These flags are diagnostics, not balance verdicts. Wilson intervals reduce small-sample overconfidence; later MCCFR and counterfactual replacement experiments will estimate stronger causal values.",
+        "",
+    ]
+    return "\n".join(lines)

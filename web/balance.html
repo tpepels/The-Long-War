@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Balance Lab — The Long War</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="screen-toolbar">
+    <a href="index.html">The Long War</a>
+    <div><span>Balance Lab</span></div>
+  </header>
+  <main class="balance-dashboard">
+    <p class="eyebrow">Automated playtest telemetry</p>
+    <h1>Balance Lab</h1>
+    <p class="dashboard-lede">Heuristic self-play diagnostics. Flags identify cards and Legends worth inspecting; they are not automatic balance verdicts.</p>
+
+    <section id="overview" class="metric-grid" aria-live="polite"></section>
+
+    <section class="dashboard-section">
+      <div class="section-heading">
+        <div><p class="eyebrow">Cards</p><h2>Card health</h2></div>
+        <select id="card-filter" aria-label="Filter cards">
+          <option value="flagged">Flagged first</option>
+          <option value="all">All cards</option>
+          <option value="subject">Subjects</option>
+          <option value="link">Links</option>
+          <option value="name">Names</option>
+          <option value="plot">Plots</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table class="balance-table">
+          <thead><tr><th>Card</th><th>Type</th><th>Play / draw</th><th>Dead turns</th><th>Front swing</th><th>Win when played</th><th>Flags</th></tr></thead>
+          <tbody id="card-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <div class="section-heading"><div><p class="eyebrow">Legends</p><h2>Observed combinations</h2></div></div>
+      <div class="table-wrap">
+        <table class="balance-table">
+          <thead><tr><th>Legend</th><th>Completions</th><th>Games seen</th><th>Strength</th><th>Win rate</th><th>Flags</th></tr></thead>
+          <tbody id="legend-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="dashboard-section methodology">
+      <p class="eyebrow">Method</p><h2>How to read this</h2><div id="methodology"></div>
+    </section>
+  </main>
+  <script src="balance.js"></script>
+</body>
+</html>
