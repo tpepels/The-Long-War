@@ -257,6 +257,41 @@ class MCCFRTrainer:
             mean_sampled_utility_p1=utility_sum[1] / iterations,
         )
 
+    def train_from_state(
+        self,
+        root: GameState,
+        iterations: int,
+    ) -> TrainingSummary:
+        """Train repeatedly from one fully specified state.
+
+        This is useful for deterministic algorithm tests and is also the
+        primitive needed for future online re-solving. Both players are used
+        as traverser on every iteration, exactly as in root-deal training.
+        """
+        if iterations <= 0:
+            raise ValueError("iterations must be positive")
+        if root.phase is Phase.COMPLETE:
+            raise ValueError("Cannot train from a terminal state")
+
+        utility_sum = [0.0, 0.0]
+        for _ in range(iterations):
+            for traverser in (0, 1):
+                utility_sum[traverser] += self._traverse(
+                    root.clone(),
+                    traverser,
+                    depth=0,
+                )
+            self.iterations += 1
+
+        return TrainingSummary(
+            iterations=self.iterations,
+            traversals=self.iterations * 2,
+            information_sets=len(self.nodes),
+            max_depth=self.max_depth,
+            mean_sampled_utility_p0=utility_sum[0] / iterations,
+            mean_sampled_utility_p1=utility_sum[1] / iterations,
+        )
+
     def _traverse(
         self,
         state: GameState,
