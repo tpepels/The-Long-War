@@ -61,6 +61,7 @@ class Telemetry:
         self.pass_events: list[dict[str, Any]] = []
         self.battle_records: list[dict[str, Any]] = []
         self.decision_stats: dict[str, DecisionStats] = defaultdict(DecisionStats)
+        self.policy_sources: Counter[str] = Counter()
 
         self._drawn_this_game: list[set[str]] = [set(), set()]
         self._played_this_game: list[set[str]] = [set(), set()]
@@ -143,6 +144,9 @@ class Telemetry:
                 decision_info.get("candidate_count", 0)
             )
             stats.score_gap_total += float(decision_info.get("score_gap", 0.0))
+            policy_source = decision_info.get("policy_source")
+            if policy_source is not None:
+                self.policy_sources[str(policy_source)] += 1
 
         return before
 
@@ -314,6 +318,7 @@ class Telemetry:
             "cards": cards,
             "legend_combinations": combos,
             "decisions": decisions,
+            "policy_sources": dict(sorted(self.policy_sources.items())),
         }
 
     def _record_draw(self, player: int, card_id: str) -> None:
