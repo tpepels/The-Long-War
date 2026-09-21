@@ -109,7 +109,7 @@ button, .button {
   display: grid;
   grid-template-columns: repeat(3, 63mm);
   grid-auto-rows: 88mm;
-  gap: 5mm 3mm;
+  gap: 5mm 2.5mm;
   justify-content: center;
 }
 
@@ -279,7 +279,7 @@ button, .button {
     margin: 0;
     grid-template-columns: repeat(3, 63mm);
     grid-auto-rows: 88mm;
-    gap: 5mm 3mm;
+    gap: 5mm 2.5mm;
     justify-content: center;
   }
 
