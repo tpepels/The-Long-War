@@ -7,88 +7,114 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="play.css">
 </head>
-<body>
-  <header class="screen-toolbar">
-    <a href="index.html">The Long War</a>
-    <div><span id="engine-status">Loading Python rules engine…</span></div>
-  </header>
+<body class="game-body">
+  <div class="game-chrome">
+    <header class="game-masthead">
+      <a class="game-mark" href="index.html">
+        <span>THE</span>
+        <strong>LONG WAR</strong>
+      </a>
+      <nav>
+        <a href="rulebook.html">Rulebook</a>
+        <a href="playmat.html">Battlefield guide</a>
+        <button type="button" id="restart-top">New match</button>
+      </nav>
+      <span id="engine-status" class="engine-lamp">Loading the game…</span>
+    </header>
 
-  <main class="play-client">
-    <section class="play-setup" id="play-setup">
-      <p class="eyebrow">v0.1 browser playtest</p>
-      <h1>Play The Long War</h1>
-      <p>The browser runs the same Python <code>GameEngine</code> used by tests and simulations.</p>
-      <form id="new-game-form">
-        <label>Opponent
-          <select id="mode" disabled>
-            <option value="heuristic" selected>Human vs heuristic agent</option>
-            <option value="online_mccfr">Human vs online MCCFR</option>
-            <option value="hotseat">Human vs Human · hot-seat</option>
-          </select>
-        </label>
-        <label>Replay seed
-          <span class="seed-control">
-            <input id="seed" type="number" min="1" max="2147483647" disabled>
-            <button id="randomize-seed" class="seed-randomize" type="button" disabled>New</button>
-          </span>
-        </label>
-        <button id="start-game" type="submit" disabled>Start match</button>
-      </form>
-      <p class="muted" id="setup-note">A fresh seed is chosen for every new match. Keep it if you want to replay the exact deal.</p>
-    </section>
+    <main class="play-client">
+      <section class="play-setup" id="play-setup">
+        <div class="setup-emblem" aria-hidden="true">III</div>
+        <p class="setup-kicker">A contest of position, memory, and restraint</p>
+        <h1>Begin a campaign</h1>
+        <p class="setup-intro">Fight across three Fronts. Build Legends where they matter. Spend only what the Battle is worth.</p>
 
-    <section id="game" class="play-game" hidden>
-      <div class="play-status-bar">
-        <div id="match-strip" class="match-strip"></div>
-        <button type="button" id="pass-button" class="pass-button" hidden>Pass</button>
-      </div>
-
-      <div id="privacy-gate" class="privacy-gate" hidden></div>
-
-      <div class="interaction-strip" id="interaction-strip">
-        <div>
-          <p class="eyebrow">Action</p>
-          <strong id="interaction-title">Choose a card</strong>
-          <span id="interaction-hint">Select a card in your hand, then choose its destination on the battlefield.</span>
-        </div>
-        <button type="button" id="cancel-selection" class="small-button" hidden>Cancel</button>
-      </div>
-
-      <div id="choice-tray" class="choice-tray" hidden></div>
-
-      <div id="battlefield" class="digital-battlefield"></div>
-
-      <section class="public-zones" id="public-zones"></section>
-
-      <section class="play-panel">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Hand</p>
-            <h2 id="hand-title">Your hand</h2>
-          </div>
-          <label class="explain-toggle">
-            <input type="checkbox" id="show-reasons">
-            Explain legal moves
+        <form id="new-game-form">
+          <label>Opponent
+            <select id="mode" disabled>
+              <option value="heuristic" selected>Heuristic opponent</option>
+              <option value="online_mccfr">Online MCCFR opponent</option>
+              <option value="hotseat">Two players · hot-seat</option>
+            </select>
           </label>
-        </div>
-        <p class="hand-note">Identical copies are stacked as ×N during play. They are strategically interchangeable; the opening mulligan still lets you select individual copies.</p>
-        <div id="hand" class="digital-hand"></div>
-        <div id="turn-actions" class="turn-actions"></div>
+          <label>Replay seed
+            <span class="seed-control">
+              <input id="seed" type="number" min="1" max="2147483647" disabled>
+              <button id="randomize-seed" class="seed-randomize" type="button" disabled>New</button>
+            </span>
+          </label>
+          <button id="start-game" type="submit" disabled>Begin Battle I</button>
+        </form>
+        <p id="setup-note">A fresh seed is chosen for every new campaign. Keep it only if you want to replay the same deal.</p>
       </section>
 
-      <details class="play-panel action-log">
-        <summary>Action history</summary>
-        <ol id="history"></ol>
-      </details>
+      <section id="game" class="play-game" hidden>
+        <div id="privacy-gate" class="privacy-gate" hidden></div>
 
-      <div class="play-controls">
-        <button type="button" id="restart">New match</button>
-        <a class="button secondary" href="playtest-kit.html">Print playtest kit</a>
-        <a class="button secondary" href="rulebook.html">Rules</a>
-      </div>
-    </section>
-  </main>
+        <section class="campaign-hud">
+          <div id="match-strip" class="match-strip"></div>
+          <button type="button" id="pass-button" class="pass-button" hidden>Pass</button>
+        </section>
+
+        <section class="war-table">
+          <div class="war-table-ornament top" aria-hidden="true"><span></span><b>✦</b><span></span></div>
+
+          <div class="orders-ribbon" id="interaction-strip">
+            <div>
+              <small>YOUR DECISION</small>
+              <strong id="interaction-title">Choose a card</strong>
+              <span id="interaction-hint">Select a card in your hand, then choose where its story enters the war.</span>
+            </div>
+            <button type="button" id="cancel-selection" hidden>Cancel</button>
+          </div>
+
+          <div id="choice-tray" class="choice-tray" hidden></div>
+          <div id="battlefield" class="digital-battlefield"></div>
+
+          <div class="war-table-ornament bottom" aria-hidden="true"><span></span><b>✦</b><span></span></div>
+        </section>
+
+        <section class="hand-dock">
+          <header>
+            <div>
+              <span>YOUR HAND</span>
+              <h2 id="hand-title">Your hand</h2>
+            </div>
+            <label class="explain-toggle">
+              <input type="checkbox" id="show-reasons">
+              rules hints
+            </label>
+          </header>
+          <div id="hand" class="digital-hand"></div>
+          <div id="turn-actions" class="turn-actions"></div>
+        </section>
+
+        <section class="campaign-drawers">
+          <details>
+            <summary>Campaign state</summary>
+            <div class="public-zones" id="public-zones"></div>
+          </details>
+
+          <details class="action-log">
+            <summary>Chronicle</summary>
+            <ol id="history"></ol>
+          </details>
+
+          <div class="campaign-links">
+            <button type="button" id="restart">New match</button>
+            <a href="rulebook.html">Read the rules</a>
+            <a href="playtest-kit.html">Print cards</a>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
 
   <script type="module" src="play.js"></script>
+  <script>
+    document.getElementById("restart-top").addEventListener("click", function () {
+      document.getElementById("restart").click();
+    });
+  </script>
 </body>
 </html>
