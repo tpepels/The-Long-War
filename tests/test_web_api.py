@@ -118,3 +118,41 @@ def test_snapshot_exposes_front_control() -> None:
     snapshot = session.snapshot(session.state.active_player)
 
     assert snapshot["front_control"] == [None, None, None]
+
+
+def test_stratagem_action_is_free_and_hidden_from_opponent() -> None:
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    finish_hotseat_mulligan(session)
+    active = session.state.active_player
+    opponent = 1 - active
+
+    # Preserve the 30-card partition while forcing a Stratagem into the hand.
+    player = session.state.players[active]
+    if "the-storm-broke" in player.deck:
+        player.deck.remove("the-storm-broke")
+        player.hand.append("the-storm-broke")
+    elif "the-storm-broke" not in player.hand:
+        raise AssertionError("Expected Stratagem in the player's private zones")
+
+    before = session.snapshot(active)
+    set_action = next(
+        action
+        for action in before["legal_actions"]
+        if action["kind"] == "SetStratagem"
+        and action["card_id"] == "the-storm-broke"
+    )
+    result = session.act(set_action["key"], active)
+
+    assert result["viewer"] == active
+    assert result["active_player"] == active
+    assert result["stratagems"][active]["card_id"] == "the-storm-broke"
+    assert result["stratagems"][active]["revealed"] is False
+    assert any(action["kind"] == "Pass" for action in result["legal_actions"])
+
+    hidden = session.snapshot(opponent)
+    assert hidden["stratagems"][active] == {
+        "hidden": True,
+        "card_id": None,
+        "revealed": False,
+    }
