@@ -409,23 +409,34 @@ function renderBattlefield() {
   bindBoardTargets();
 }
 
+function victoryPips(count) {
+  return '<span class="victory-pips">' +
+    [0, 1].map((index) => '<i class="' + (index < count ? "won" : "") + '"></i>').join("") +
+  '</span>';
+}
+
 function renderStrip() {
   if (state.phase === "mulligan") {
     $("match-strip").innerHTML =
-      "<strong>Opening mulligan</strong>" +
-      "<span>Player " + (state.active_player + 1) + "</span>" +
-      "<span>Select up to 2 cards to return</span>";
+      '<div class="battle-medallion"><small>Opening</small><strong>Mulligan</strong></div>' +
+      '<div class="turn-marker">Player ' + (state.active_player + 1) + ' · choose up to 2 returns</div>';
     $("pass-button").hidden = true;
     return;
   }
+
+  const viewer = currentViewer();
+  const opponent = opponentOf(viewer);
   const winnerText = state.winner == null ? "" : " · Player " + (state.winner + 1) + " wins";
+
   $("match-strip").innerHTML =
-    "<strong>Battle " + state.battle + "</strong>" +
-    "<span>P1 victories " + state.players[0].victories + "/2</span>" +
-    "<span>P2 victories " + state.players[1].victories + "/2</span>" +
-    "<span>Turn · Player " + (state.active_player + 1) + winnerText + "</span>" +
-    "<span>Hands " + state.players[0].hand_count + " / " + state.players[1].hand_count + "</span>" +
-    "<span>Seed " + state.seed + "</span>";
+    '<div class="score-player ' + (state.active_player === opponent ? "active" : "") + '">' +
+      '<span>P' + (opponent + 1) + '</span>' + victoryPips(state.players[opponent].victories) +
+    '</div>' +
+    '<div class="battle-medallion"><small>Battle</small><strong>' + state.battle + '</strong></div>' +
+    '<div class="turn-marker">Turn · Player ' + (state.active_player + 1) + winnerText + '</div>' +
+    '<div class="score-player ' + (state.active_player === viewer ? "active" : "") + '">' +
+      '<span>P' + (viewer + 1) + '</span>' + victoryPips(state.players[viewer].victories) +
+    '</div>';
 
   const pass = actionForPass();
   const button = $("pass-button");
@@ -457,6 +468,13 @@ function renderOpponentRack() {
   $("opponent-piles").innerHTML =
     '<div class="rack-pile deck-pile"><span>Deck</span><b>' + ps.deck_count + '</b></div>' +
     '<div class="rack-pile discard-pile"><span>Discard</span><b>' + esc(topDiscard) + '</b><small>' + discard.length + ' cards</small></div>';
+
+  const own = state.players[viewer];
+  const ownDiscard = own.discard || [];
+  const ownTopDiscard = ownDiscard.length ? cardTitle(ownDiscard[ownDiscard.length - 1]) : "Empty";
+  $("player-piles").innerHTML =
+    '<div class="rack-pile deck-pile"><span>Deck</span><b>' + own.deck_count + '</b></div>' +
+    '<div class="rack-pile discard-pile"><span>Discard</span><b>' + esc(ownTopDiscard) + '</b><small>' + ownDiscard.length + ' cards</small></div>';
 }
 
 function renderPrivacy() {
