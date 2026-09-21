@@ -1,6 +1,6 @@
 # The Long War
 
-A head-to-head card game about building Subject–Bond–Name stories across a physical battlefield.
+A two-player card game fought across three Fronts. Subjects occupy the line; Bonds and Names build on them; cards left in hand carry into later Battles.
 
 The core grammar is:
 
