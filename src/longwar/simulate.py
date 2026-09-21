@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .agents import HeuristicAgent, OnlineMCCFRAgent, RandomAgent
+from .agents import HeuristicAgent, RandomAgent
+from .agents.online_mccfr_agent import OnlineMCCFRAgent
 from .agents.mccfr_agent import MCCFRAgent
 from .game.engine import GameEngine
 from .game.model import Phase
