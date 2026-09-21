@@ -14,12 +14,11 @@
         <span>THE</span>
         <strong>LONG WAR</strong>
       </a>
+      <span id="engine-status" class="engine-lamp">Loading the game…</span>
       <nav>
-        <a href="rulebook.html">Rulebook</a>
-        <a href="playmat.html">Battlefield guide</a>
+        <a href="rulebook.html">Rules</a>
         <button type="button" id="restart-top">New match</button>
       </nav>
-      <span id="engine-status" class="engine-lamp">Loading the game…</span>
     </header>
 
     <main class="play-client">
@@ -51,58 +50,68 @@
       <section id="game" class="play-game" hidden>
         <div id="privacy-gate" class="privacy-gate" hidden></div>
 
-        <section class="campaign-hud">
-          <div id="match-strip" class="match-strip"></div>
-          <button type="button" id="pass-button" class="pass-button" hidden>Pass</button>
-        </section>
-
-        <section class="war-table">
-          <div class="war-table-ornament top" aria-hidden="true"><span></span><b>✦</b><span></span></div>
-
-          <div class="orders-ribbon" id="interaction-strip">
-            <div>
-              <small>YOUR DECISION</small>
-              <strong id="interaction-title">Choose a card</strong>
-              <span id="interaction-hint">Select a card in your hand, then choose where its story enters the war.</span>
-            </div>
-            <button type="button" id="cancel-selection" hidden>Cancel</button>
+        <section class="tabletop-shell" aria-label="The Long War tabletop">
+          <div class="campaign-hud">
+            <div id="match-strip" class="match-strip"></div>
           </div>
 
-          <div id="choice-tray" class="choice-tray" hidden></div>
-          <div id="battlefield" class="digital-battlefield"></div>
-
-          <div class="war-table-ornament bottom" aria-hidden="true"><span></span><b>✦</b><span></span></div>
-        </section>
-
-        <section class="hand-dock">
-          <header>
-            <div>
-              <span>YOUR HAND</span>
-              <h2 id="hand-title">Your hand</h2>
+          <section class="opponent-rack" aria-label="Opponent area">
+            <div class="rack-player">
+              <span>OPPONENT</span>
+              <strong id="opponent-label">Player 2</strong>
             </div>
-            <label class="explain-toggle">
-              <input type="checkbox" id="show-reasons">
-              rules hints
-            </label>
-          </header>
-          <div id="hand" class="digital-hand"></div>
-          <div id="turn-actions" class="turn-actions"></div>
+            <div id="opponent-hand" class="opponent-hand" aria-label="Opponent hand"></div>
+            <div id="opponent-piles" class="rack-piles"></div>
+          </section>
+
+          <section class="war-table" aria-label="Battlefield">
+            <div class="table-surface-mark top" aria-hidden="true">LEFT · CENTER · RIGHT</div>
+
+            <div class="orders-ribbon" id="interaction-strip">
+              <div>
+                <small>YOUR DECISION</small>
+                <strong id="interaction-title">Choose a card</strong>
+                <span id="interaction-hint">Select a card from your hand, then place it on the lit part of the table.</span>
+              </div>
+              <button type="button" id="cancel-selection" hidden>Cancel</button>
+            </div>
+
+            <div id="choice-tray" class="choice-tray" hidden></div>
+            <div id="battlefield" class="digital-battlefield"></div>
+          </section>
+
+          <section class="hand-dock" aria-label="Your hand">
+            <header>
+              <div>
+                <span>YOUR HAND</span>
+                <h2 id="hand-title">Your hand</h2>
+              </div>
+              <div id="player-piles" class="rack-piles player-piles"></div>
+              <div class="hand-controls">
+                <label class="explain-toggle">
+                  <input type="checkbox" id="show-reasons">
+                  rules hints
+                </label>
+                <button type="button" id="pass-button" class="pass-button" hidden>Pass</button>
+              </div>
+            </header>
+            <div id="hand" class="digital-hand"></div>
+            <div id="turn-actions" class="turn-actions"></div>
+          </section>
         </section>
 
         <section class="campaign-drawers">
           <details>
-            <summary>Campaign state</summary>
+            <summary>Decks & discards</summary>
             <div class="public-zones" id="public-zones"></div>
           </details>
-
           <details class="action-log">
             <summary>Chronicle</summary>
             <ol id="history"></ol>
           </details>
-
           <div class="campaign-links">
             <button type="button" id="restart">New match</button>
-            <a href="rulebook.html">Read the rules</a>
+            <a href="rulebook.html">Rules</a>
             <a href="playtest-kit.html">Print cards</a>
           </div>
         </section>

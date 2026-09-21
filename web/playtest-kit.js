@@ -30,6 +30,34 @@ function typeLabel(card) {
   return TYPE_LABELS[card.type] ?? card.type;
 }
 
+
+function cardDensity(card) {
+  const length = String(card.text || "").replace(/\*\*/g, "").replace(/\*/g, "").length;
+  if (length >= 220) return " card-density-max";
+  if (length >= 160) return " card-density-dense";
+  if (length >= 120) return " card-density-medium";
+  return "";
+}
+
+function cardMotif(card) {
+  let hash = 0;
+  for (const char of card.id) hash = ((hash * 33) ^ char.charCodeAt(0)) >>> 0;
+  return " motif-" + (hash % 6);
+}
+
+function cardSymbol(card) {
+  if (card.type === "plot") return card.veiled ? "◐" : "⌁";
+  return { subject: "◆", link: "⛓", name: "✦", stratagem: "⚑" }[card.type] || "•";
+}
+
+function cardArtMarkup(card) {
+  return '<div class="card-art ' + cardMotif(card) + '" aria-hidden="true">' +
+    '<span class="card-art-sigil">' + cardSymbol(card) + '</span>' +
+    '<span class="card-art-name">' + esc(card.title) + '</span>' +
+    '<span class="card-art-mark"></span>' +
+  '</div>';
+}
+
 function propertyLabel(card) {
   const values = [];
   if (card.type === "subject" && card.role) values.push(titleCase(card.role));
@@ -50,10 +78,12 @@ function cardMarkup(card, deckLabel) {
     ? '<div class="strength" aria-label="Strength">' + card.strength + "</div>"
     : "";
   const unique = card.unique ? '<span class="unique"><em>Unique</em></span>' : "";
-  return '<article class="game-card deck-card card-' + card.type + (card.hero ? " card-hero" : "") + '">' +
+  return '<article class="game-card deck-card card-' + card.type +
+    (card.veiled ? " card-veiled" : "") +
+    (card.hero ? " card-hero" : "") + cardDensity(card) + '">' +
     '<header class="card-header"><div><div class="card-type">' + esc(typeLabel(card)) +
     '</div><h2>' + esc(card.title) + '</h2>' + propertyLabel(card) + '</div>' + strength + '</header>' +
-    '<div class="card-art" aria-hidden="true"><span>' + esc(card.title) + '</span></div>' +
+    cardArtMarkup(card) +
     '<div class="card-rule"><p>' + (card.text ? formatGameText(card.text) : "&nbsp;") + '</p></div>' +
     '<footer class="card-footer"><span>' + unique + '</span><span>' + esc(deckLabel) + '</span></footer>' +
     '</article>';
@@ -72,7 +102,7 @@ async function main() {
 
   document.getElementById("playtest-decks").innerHTML = labels.map((label) =>
     '<section class="print-deck">' +
-      '<header class="deck-sheet-heading"><strong>The Long War · v0.3</strong>' +
+      '<header class="deck-sheet-heading"><strong>The Long War · v0.4</strong>' +
       '<span>' + label + ' · ' + deckData.name + ' · 30 cards</span></header>' +
       '<div class="deck-card-grid">' +
       deckData.cards.map((id) => cardMarkup(index[id], label)).join("") +
