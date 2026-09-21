@@ -496,6 +496,191 @@
       "balance": {
         "dynamic": true
       }
+    },
+    {
+      "id": "the-storm-broke",
+      "title": "The Storm Broke",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "weather",
+        "sea"
+      ],
+      "text": "Reveal when either player plays an *Archer* or *Ship*. While revealed, *Ships* get +2 **Strength** and *Archers* get -2 **Strength**.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "subject_played",
+            "actor": "either",
+            "roles": [
+              "archer",
+              "ship"
+            ]
+          },
+          "continuous": {
+            "role_strength_modifiers": {
+              "ship": 2,
+              "archer": -2
+            }
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      }
+    },
+    {
+      "id": "the-tide-rose",
+      "title": "The Tide Rose",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "sea",
+        "tide"
+      ],
+      "text": "Reveal when either player **Passes**. While revealed, *Ships* get +1 **Strength** and **Line Defense** provides no bonus.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "pass",
+            "actor": "either"
+          },
+          "continuous": {
+            "role_strength_modifiers": {
+              "ship": 1
+            },
+            "disable_line_defense": true
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      }
+    },
+    {
+      "id": "the-ground-gave-way",
+      "title": "The Ground Gave Way",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "terrain",
+        "hazard"
+      ],
+      "text": "Reveal when either player plays a **Subject** in the **Rear**. While revealed, **Rear Subjects** get +1 **Strength** and **Frontline Subjects** get -1 **Strength**.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "subject_played",
+            "actor": "either",
+            "ranks": [
+              "rear"
+            ]
+          },
+          "continuous": {
+            "rank_strength_modifiers": {
+              "rear": 1,
+              "front": -1
+            }
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      }
+    },
+    {
+      "id": "the-bronze-teeth",
+      "title": "The Bronze Teeth",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "weapon",
+        "preparation"
+      ],
+      "text": "Reveal when your opponent plays a **Subject** in the **Frontline**. That **Subject** gets -2 **Strength** for this **Battle**. While revealed, your **Frontline Subjects** get -1 **Strength**.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "subject_played",
+            "actor": "opponent",
+            "ranks": [
+              "front"
+            ]
+          },
+          "reveal_effect": {
+            "effect": "penalize_trigger_subject",
+            "amount": 2
+          },
+          "continuous": {
+            "controller_rank_strength_modifiers": {
+              "front": -1
+            }
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      }
+    },
+    {
+      "id": "the-false-muster",
+      "title": "The False Muster",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "misinformation",
+        "deception"
+      ],
+      "text": "Reveal when your opponent plays an immediate **Story**. Cancel that **Story**. For the rest of this **Battle**, you cannot play immediate **Stories**. *Veiled* **Stories** are unaffected.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "immediate_story_played",
+            "actor": "opponent"
+          },
+          "reveal_effect": {
+            "cancel_story": true
+          },
+          "continuous": {
+            "controller_immediate_story_lock": true
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      }
+    },
+    {
+      "id": "the-wooden-gift",
+      "title": "The Wooden Gift",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "deception",
+        "preparation"
+      ],
+      "text": "Reveal when your opponent plays a **Name**. While revealed, every **Subject** with a **Name** gets -2 **Strength**, and every **Subject** without a **Name** gets +1 **Strength**.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "name_played",
+            "actor": "opponent"
+          },
+          "continuous": {
+            "named_subject_modifier": -2,
+            "unnamed_subject_modifier": 1
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      }
     }
   ]
 }
