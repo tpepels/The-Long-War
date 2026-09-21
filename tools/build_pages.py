@@ -11,6 +11,7 @@ WEB = ROOT / "web"
 DIST = ROOT / "dist"
 RULEBOOK = ROOT / "rules" / "rulebook.md"
 CARDS = ROOT / "cards" / "cards.json"
+BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
 
 
 def main() -> None:
@@ -21,6 +22,8 @@ def main() -> None:
     data_dir = DIST / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(CARDS, data_dir / "cards.json")
+    if BALANCE_HEALTH.exists():
+        shutil.copy2(BALANCE_HEALTH, data_dir / "balance-health.json")
 
     rulebook_md = RULEBOOK.read_text(encoding="utf-8")
     rulebook_html = markdown.markdown(
@@ -34,7 +37,8 @@ def main() -> None:
     (DIST / "rulebook.template.html").unlink(missing_ok=True)
 
     card_data = json.loads(CARDS.read_text(encoding="utf-8"))
-    print(f"Built Pages site with {len(card_data['cards'])} cards at {DIST}")
+    balance = "with balance data" if BALANCE_HEALTH.exists() else "without balance data"
+    print(f"Built Pages site with {len(card_data['cards'])} cards ({balance}) at {DIST}")
 
 
 if __name__ == "__main__":
