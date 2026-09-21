@@ -8,6 +8,7 @@ from .actions import (
     PlayPlot,
     PlayScheme,
     PlaySubject,
+    SetStratagem,
 )
 from .engine import GameEngine, IllegalAction
 from .model import Front, GameState, Phase, Position, Rank
@@ -27,6 +28,7 @@ __all__ = [
     "PlayPlot",
     "PlayScheme",
     "PlaySubject",
+    "SetStratagem",
     "Position",
     "Rank",
 ]
