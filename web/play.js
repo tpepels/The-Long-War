@@ -100,6 +100,7 @@ function cardType(card) {
     return card.veiled ? form + " · Veiled Story" : form + " · Story";
   }
   if (card.type === "link") return "Bond";
+  if (card.type === "stratagem") return "Stratagem";
   if (card.type === "subject" && card.hero) return "Hero · Subject";
   return card.type[0].toUpperCase() + card.type.slice(1);
 }
@@ -132,7 +133,7 @@ function cardVisual(cardId, compact = false) {
   const mark = cardInitials(card.title);
   const symbol = card.type === "plot"
     ? (card.veiled ? "◐" : "⌁")
-    : { subject: "◆", link: "⛓", name: "✦" }[card.type] || "•";
+    : { subject: "◆", link: "⛓", name: "✦", stratagem: "⚑" }[card.type] || "•";
   return '<div class="play-card-art' + (compact ? " compact" : "") + '">' +
     '<svg viewBox="0 0 100 62" aria-hidden="true">' +
       '<circle cx="' + x + '" cy="' + y + '" r="' + r + '"></circle>' +
@@ -307,6 +308,23 @@ function renderScheme(owner, front) {
     esc(cardTitle(scheme.card_id)) + (scheme.revealed ? " · revealed" : "") + "</div>";
 }
 
+function renderStratagem(owner) {
+  const stratagem = state.stratagems?.[owner] || null;
+  const classes = ["stratagem-marker"];
+  let label = "No Stratagem set";
+  if (stratagem?.hidden) {
+    classes.push("hidden");
+    label = "Face-down Stratagem";
+  } else if (stratagem?.card_id) {
+    if (!stratagem.revealed) classes.push("hidden", "known");
+    label = cardTitle(stratagem.card_id) + (stratagem.revealed ? " · revealed" : " · face-down");
+  }
+  return '<div class="battle-stratagem-row">' +
+    '<span>Player ' + (owner + 1) + ' · Battle Stratagem</span>' +
+    '<div class="' + classes.join(" ") + '">' + esc(label) + '</div>' +
+  '</div>';
+}
+
 function controlClass(front, viewer) {
   const owner = state.front_control[front];
   if (owner == null) return "front-tied";
@@ -321,7 +339,7 @@ function renderBattlefield() {
   }
   const bottom = currentViewer();
   const top = opponentOf(bottom);
-  $("battlefield").innerHTML = frontNames.map((name, front) => {
+  const fronts = frontNames.map((name, front) => {
     const p0 = state.front_strengths[0][front];
     const p1 = state.front_strengths[1][front];
     const topScore = top === 0 ? p0 : p1;
@@ -338,6 +356,10 @@ function renderBattlefield() {
         renderSlot(bottom, front, "front") + renderSlot(bottom, front, "rear") + renderScheme(bottom, front) +
       "</div></section>";
   }).join("");
+  $("battlefield").innerHTML =
+    renderStratagem(top) +
+    '<div class="digital-front-grid">' + fronts + '</div>' +
+    renderStratagem(bottom);
   bindBoardTargets();
 }
 
@@ -414,6 +436,7 @@ function interactionHintFor(card) {
   if (actions.some((a) => a.kind === "PlayLink")) return "Choose one of your Subjects without a Bond.";
   if (actions.some((a) => a.kind === "PlayName")) return "Choose an open Bond. If movement is possible, you will choose it next.";
   if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Front to set this Veiled Story face-down.";
+  if (actions.some((a) => a.kind === "SetStratagem")) return "Set this face-down in your Battle-wide Stratagem slot. You still take your normal action.";
   if (actions.some((a) => a.kind === "PlayPlot")) {
     if (stagedPlotSource) return "Now choose the destination for " + card.title + ".";
     return actions.some((a) => a.targets.length === 2)
@@ -496,7 +519,8 @@ function renderChoiceTray() {
   let actions = choiceActions;
   if (!actions.length && selectedCardId) {
     const direct = selectedActions().filter((a) =>
-      a.kind === "PlayPlot" && a.targets.length === 0
+      (a.kind === "PlayPlot" && a.targets.length === 0) ||
+      a.kind === "SetStratagem"
     );
     if (direct.length === 1) actions = direct;
   }
