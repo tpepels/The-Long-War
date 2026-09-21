@@ -102,6 +102,12 @@ def main() -> None:
         f"mean hand={passes['mean_hand_size']}"
     )
 
+    policy_sources = report.telemetry.get("policy_sources", {})
+    if policy_sources:
+        print("Policy sources:")
+        for source, count in sorted(policy_sources.items()):
+            print(f"  {source}: {count}")
+
     most_played = sorted(
         report.telemetry["cards"].items(),
         key=lambda item: item[1]["plays"],
