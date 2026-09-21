@@ -21,6 +21,8 @@ jobs:
         run: make test-fast
       - name: Algorithm learning tests
         run: make test-algorithm
+      - name: Formal MCCFR verification
+        run: python tools/verify_mccfr.py --iterations 30000
       - name: Integration tests
         run: make test-integration
       - name: Static balance report
@@ -31,5 +33,7 @@ jobs:
         run: python tools/analyze_telemetry.py --simulation artifacts/simulation-report.json
       - name: MCCFR smoke training
         run: make mccfr-smoke
+      - name: Build lab aggregate
+        run: python tools/build_lab_report.py
       - name: Build Pages
         run: python tools/build_pages.py
