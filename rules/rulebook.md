@@ -24,7 +24,7 @@ On the battlefield, position matters. **Subjects** stand in the **Frontline** or
 
 <div class="rulebook-kicker">THE GAME IN BRIEF</div>
 
-## What are you trying to do? {#learn}
+## Objective {#learn}
 
 Every Battle is divided into three **Fronts**.
 
