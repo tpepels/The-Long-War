@@ -16,6 +16,7 @@ from .actions import (
     PlayPlot,
     PlayScheme,
     PlaySubject,
+    SetStratagem,
 )
 from .model import (
     Front,
@@ -26,6 +27,7 @@ from .model import (
     Rank,
     SchemeState,
     Slot,
+    StratagemState,
 )
 
 
@@ -172,8 +174,14 @@ class GameEngine:
             elif card_type == "plot":
                 if card.get("veiled", False):
                     actions.extend(self._scheme_actions(state, player, card))
-                else:
+                elif not self._immediate_story_locked(state, player):
                     actions.extend(self._plot_actions(state, player, card))
+            elif card_type == "stratagem":
+                if (
+                    not state.stratagem_used[player]
+                    and state.stratagem(player) is None
+                ):
+                    actions.append(SetStratagem(card_id))
 
         return actions
 
@@ -206,6 +214,13 @@ class GameEngine:
                 front=action.position.front,
                 position=action.position,
             )
+            self._resolve_stratagem_event(
+                state,
+                event="subject_played",
+                actor=actor,
+                card_id=action.card_id,
+                position=action.position,
+            )
 
         elif isinstance(action, PlayLink):
             self._take_from_hand(state, actor, action.card_id)
@@ -234,26 +249,46 @@ class GameEngine:
                 action.position,
                 move_to=action.move_to,
             )
+            self._resolve_stratagem_event(
+                state,
+                event="name_played",
+                actor=actor,
+                card_id=action.card_id,
+                position=action.move_to or action.position,
+            )
 
         elif isinstance(action, PlayPlot):
             self._take_from_hand(state, actor, action.card_id)
             plot_targets = tuple(action.targets)
-            self._resolve_plot(state, actor, action)
+            cancelled = self._resolve_pre_story_stratagem(state, actor=actor)
+            if not cancelled:
+                self._resolve_plot(state, actor, action)
+                self._resolve_plot_target_schemes(
+                    state,
+                    actor=actor,
+                    targets=plot_targets,
+                )
             self._discard_card(state, actor, action.card_id)
-            self._resolve_plot_target_schemes(
-                state,
-                actor=actor,
-                targets=plot_targets,
-            )
 
         elif isinstance(action, PlayScheme):
             self._take_from_hand(
                 state,
                 actor,
                 action.card_id,
-                reveal_identity=False,
+                hidden_kind="scheme",
             )
             state.schemes[actor][int(action.front)] = SchemeState(action.card_id)
+
+        elif isinstance(action, SetStratagem):
+            self._take_from_hand(
+                state,
+                actor,
+                action.card_id,
+                hidden_kind="stratagem",
+            )
+            state.stratagems[actor] = StratagemState(action.card_id)
+            state.stratagem_used[actor] = True
+            return
 
         else:
             raise TypeError(f"Unhandled action type: {type(action)!r}")
@@ -274,7 +309,7 @@ class GameEngine:
         subject = self.cards[slot.subject]
         value = int(subject["strength"]) + slot.temporary_strength
 
-        if position.rank is Rank.FRONT:
+        if position.rank is Rank.FRONT and not self._line_defense_disabled(state):
             value += LINE_DEFENSE_BONUS
 
         value += self._role_strength_bonus(
@@ -326,6 +361,13 @@ class GameEngine:
                 ):
                     value += int(rank_bonus.get("amount", 0))
 
+        value += self._stratagem_strength_modifier(
+            state,
+            player,
+            position,
+            subject,
+            named=slot.name is not None,
+        )
         return max(0, value)
 
     def front_strength(self, state: GameState, player: int, front: Front) -> int:
