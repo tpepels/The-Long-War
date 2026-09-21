@@ -25,6 +25,11 @@ def main() -> None:
     if BALANCE_HEALTH.exists():
         shutil.copy2(BALANCE_HEALTH, data_dir / "balance-health.json")
 
+    artifacts_dir = ROOT / "artifacts"
+    if artifacts_dir.exists():
+        for artifact in artifacts_dir.glob("*.json"):
+            shutil.copy2(artifact, data_dir / artifact.name)
+
     rulebook_md = RULEBOOK.read_text(encoding="utf-8")
     rulebook_html = markdown.markdown(
         rulebook_md,
