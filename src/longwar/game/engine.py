@@ -393,6 +393,57 @@ class GameEngine:
 
         return value
 
+    def _revealed_stratagem_rules(
+        self,
+        state: GameState,
+    ) -> Iterable[tuple[int, dict[str, Any]]]:
+        for controller in range(2):
+            stratagem = state.stratagem(controller)
+            if stratagem is None or not stratagem.revealed:
+                continue
+            rules = self.cards[stratagem.card_id].get("rules", {}).get(
+                "stratagem", {}
+            )
+            yield controller, rules
+
+    def _line_defense_disabled(self, state: GameState) -> bool:
+        return any(
+            bool(rules.get("continuous", {}).get("disable_line_defense"))
+            for _, rules in self._revealed_stratagem_rules(state)
+        )
+
+    def _stratagem_strength_modifier(
+        self,
+        state: GameState,
+        player: int,
+        position: Position,
+        subject: dict[str, Any],
+        *,
+        named: bool,
+    ) -> int:
+        value = 0
+        role = subject.get("role")
+        rank = position.rank.value
+        for controller, rules in self._revealed_stratagem_rules(state):
+            continuous = rules.get("continuous", {})
+            value += int(
+                continuous.get("role_strength_modifiers", {}).get(role, 0)
+            )
+            value += int(
+                continuous.get("rank_strength_modifiers", {}).get(rank, 0)
+            )
+            if controller == player:
+                value += int(
+                    continuous.get(
+                        "controller_rank_strength_modifiers", {}
+                    ).get(rank, 0)
+                )
+            if named:
+                value += int(continuous.get("named_subject_modifier", 0))
+            else:
+                value += int(continuous.get("unnamed_subject_modifier", 0))
+        return value
+
     def _role_strength_bonus(
         self,
         state: GameState,
@@ -604,6 +655,156 @@ class GameEngine:
         for front in Front:
             if state.schemes[player][int(front)] is None:
                 yield PlayScheme(card["id"], front)
+
+    def _immediate_story_locked(
+        self,
+        state: GameState,
+        player: int,
+    ) -> bool:
+        for controller, rules in self._revealed_stratagem_rules(state):
+            if controller != player:
+                continue
+            if rules.get("continuous", {}).get(
+                "controller_immediate_story_lock"
+            ):
+                return True
+        return False
+
+    def _stratagem_trigger_matches(
+        self,
+        state: GameState,
+        *,
+        controller: int,
+        rules: dict[str, Any],
+        event: str,
+        actor: int,
+        card_id: str | None = None,
+        position: Position | None = None,
+    ) -> bool:
+        trigger = rules.get("trigger", {})
+        if trigger.get("event") != event:
+            return False
+
+        actor_scope = trigger.get("actor", "either")
+        if actor_scope == "opponent" and actor == controller:
+            return False
+        if actor_scope == "controller" and actor != controller:
+            return False
+
+        roles = trigger.get("roles")
+        if roles is not None:
+            if card_id is None or self.cards[card_id].get("role") not in roles:
+                return False
+
+        ranks = trigger.get("ranks")
+        if ranks is not None:
+            if position is None or position.rank.value not in ranks:
+                return False
+
+        return True
+
+    def _reveal_stratagem(
+        self,
+        state: GameState,
+        controller: int,
+        *,
+        reason: str,
+    ) -> dict[str, Any]:
+        stratagem = state.stratagem(controller)
+        if stratagem is None:
+            return {}
+        if not stratagem.revealed:
+            stratagem.revealed = True
+            state.observe_reveal(
+                viewer=1 - controller,
+                owner=controller,
+                card_id=stratagem.card_id,
+                zone="stratagem",
+                reason=reason,
+            )
+        return self.cards[stratagem.card_id].get("rules", {}).get(
+            "stratagem", {}
+        )
+
+    def _resolve_stratagem_event(
+        self,
+        state: GameState,
+        *,
+        event: str,
+        actor: int,
+        card_id: str | None = None,
+        position: Position | None = None,
+    ) -> None:
+        for controller in (actor, 1 - actor):
+            stratagem = state.stratagem(controller)
+            if stratagem is None or stratagem.revealed:
+                continue
+            rules = self.cards[stratagem.card_id].get("rules", {}).get(
+                "stratagem", {}
+            )
+            if not self._stratagem_trigger_matches(
+                state,
+                controller=controller,
+                rules=rules,
+                event=event,
+                actor=actor,
+                card_id=card_id,
+                position=position,
+            ):
+                continue
+
+            revealed = self._reveal_stratagem(
+                state,
+                controller,
+                reason=f"{event}_triggered",
+            )
+            effect = revealed.get("reveal_effect", {})
+            if effect.get("effect") == "penalize_trigger_subject":
+                if position is not None:
+                    slot = state.slot(actor, position)
+                    if slot.subject is not None:
+                        slot.temporary_strength -= int(effect.get("amount", 0))
+
+    def _resolve_pre_story_stratagem(
+        self,
+        state: GameState,
+        *,
+        actor: int,
+    ) -> bool:
+        controller = 1 - actor
+        stratagem = state.stratagem(controller)
+        if stratagem is None or stratagem.revealed:
+            return False
+        rules = self.cards[stratagem.card_id].get("rules", {}).get(
+            "stratagem", {}
+        )
+        if not self._stratagem_trigger_matches(
+            state,
+            controller=controller,
+            rules=rules,
+            event="immediate_story_played",
+            actor=actor,
+        ):
+            return False
+        revealed = self._reveal_stratagem(
+            state,
+            controller,
+            reason="immediate_story_played_triggered",
+        )
+        return bool(revealed.get("reveal_effect", {}).get("cancel_story"))
+
+    def _reveal_unrevealed_stratagems_at_battle_end(
+        self,
+        state: GameState,
+    ) -> None:
+        for controller in range(2):
+            stratagem = state.stratagem(controller)
+            if stratagem is not None and not stratagem.revealed:
+                self._reveal_stratagem(
+                    state,
+                    controller,
+                    reason="battle_end",
+                )
 
     def _resolve_plot(
         self,
@@ -998,6 +1199,11 @@ class GameEngine:
     def _pass(self, state: GameState, player: int) -> None:
         state.players[player].passed = True
         state.pass_order.append(player)
+        self._resolve_stratagem_event(
+            state,
+            event="pass",
+            actor=player,
+        )
         self._resolve_pass_schemes(state, actor=player)
 
         opponent = 1 - player
@@ -1043,6 +1249,7 @@ class GameEngine:
         state.players[winner].victories += 1
         loser = 1 - winner
 
+        self._reveal_unrevealed_stratagems_at_battle_end(state)
         self._discard_battlefield(state)
 
         if state.players[winner].victories >= 2:
@@ -1053,6 +1260,7 @@ class GameEngine:
 
         state.battle += 1
         state.discarded_this_battle = [0, 0]
+        state.stratagem_used = [False, False]
         state.pass_order.clear()
         for player in range(2):
             state.players[player].passed = False
@@ -1076,6 +1284,11 @@ class GameEngine:
                 if scheme is not None:
                     state.players[player].discard.append(scheme.card_id)
                     state.schemes[player][int(front)] = None
+
+            stratagem = state.stratagem(player)
+            if stratagem is not None:
+                state.players[player].discard.append(stratagem.card_id)
+                state.stratagems[player] = None
 
     def _advance_turn(self, state: GameState) -> None:
         opponent = 1 - state.active_player
