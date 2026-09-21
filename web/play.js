@@ -19,10 +19,10 @@ function updateStartAvailability() {
   $("randomize-seed").disabled = !ready;
   $("start-game").disabled = !ready;
   $("engine-status").textContent = ready
-    ? "Rules engine + card catalogue ready"
+    ? "Game ready"
     : engineReady
-      ? "Loading card catalogue…"
-      : "Loading Python rules engine…";
+      ? "Loading cards…"
+      : "Loading game…";
 }
 const frontNames = ["Left", "Center", "Right"];
 
@@ -511,12 +511,12 @@ function selectCard(cardId) {
 
 function interactionHintFor(card) {
   const actions = selectedActions();
-  if (!actions.length) return "This card has no legal play right now.";
+  if (!actions.length) return "No legal play for this card right now.";
   if (actions.some((a) => a.kind === "PlaySubject")) return "Choose an empty battlefield position.";
   if (actions.some((a) => a.kind === "PlayLink")) return "Choose one of your Subjects without a Bond.";
   if (actions.some((a) => a.kind === "PlayName")) return "Choose an open Bond. If movement is possible, you will choose it next.";
   if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Front to set this Veiled Story face-down.";
-  if (actions.some((a) => a.kind === "SetStratagem")) return "Set this face-down in your Battle-wide Stratagem slot. You still take your normal action.";
+  if (actions.some((a) => a.kind === "SetStratagem")) return "Set this face-down in your Stratagem space, then take your normal action.";
   if (actions.some((a) => a.kind === "PlayPlot")) {
     if (stagedPlotSource) return "Now choose the destination for " + card.title + ".";
     return actions.some((a) => a.targets.length === 2)
@@ -537,8 +537,8 @@ function renderInteraction() {
       title.textContent = "Hidden opening hand";
       hint.textContent = "Pass the device, then reveal the next player's opening hand.";
     } else {
-      title.textContent = "Opening mulligan";
-      hint.textContent = "Select up to two cards to shuffle back, then confirm. You draw the same number of replacements.";
+      title.textContent = "Mulligan";
+      hint.textContent = "Select up to two cards to shuffle back. You draw the same number of replacements.";
     }
     cancel.hidden = true;
     tray.hidden = true;
@@ -564,8 +564,8 @@ function renderInteraction() {
   if (!selectedCardId) {
     const choose = state.legal_actions.filter((a) => a.kind === "ChooseFirst");
     if (choose.length) {
-      title.textContent = "Choose the next first player";
-      hint.textContent = "You lost the previous Battle, so you choose who takes initiative.";
+      title.textContent = "Choose who starts the next Battle";
+      hint.textContent = "The loser of the previous Battle chooses the first player.";
     } else {
       title.textContent = "Choose a card";
       hint.textContent = "Click a card, or drag it onto a highlighted position. Press P to Pass.";
@@ -871,12 +871,12 @@ function render() {
 
 async function runBusy(fn) {
   document.body.classList.add("is-busy");
-  $("engine-status").textContent = "Resolving turn…";
+  $("engine-status").textContent = "Resolving…";
   try {
     await fn();
-    $("engine-status").textContent = "Rules engine ready";
+    $("engine-status").textContent = "Game ready";
   } catch (error) {
-    $("engine-status").textContent = "Action failed";
+    $("engine-status").textContent = "Could not resolve action";
     window.alert(error.message);
   } finally {
     document.body.classList.remove("is-busy");
