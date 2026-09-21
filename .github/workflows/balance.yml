@@ -12,6 +12,7 @@ on:
       - "src/longwar/**"
       - "tools/balance_report.py"
       - "tools/simulate.py"
+      - "tools/analyze_telemetry.py"
       - ".github/workflows/balance.yml"
 
 jobs:
@@ -33,6 +34,8 @@ jobs:
           --agent-a heuristic
           --agent-b heuristic
           --output artifacts/heuristic-selfplay.json
+      - name: Build balance health report
+        run: python tools/analyze_telemetry.py --simulation artifacts/heuristic-selfplay.json
       - name: Heuristic vs random
         run: >
           python tools/simulate.py
