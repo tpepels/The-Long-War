@@ -94,15 +94,17 @@ function renderCards(lab) {
 }
 
 function renderLegends(lab) {
-  const rows = [...lab.health.legends];
-  document.getElementById("legend-count").textContent = `${rows.length} rows`;
+  const rows = [...(lab.all_legends || lab.health.legends)];
+  const observed = rows.filter((row) => row.observed !== false).length;
+  document.getElementById("legend-count").textContent = `${rows.length} possible · ${observed} observed`;
   document.getElementById("legend-table").innerHTML = rows.map((row) => `
     <tr class="${row.flags.length ? "flagged-row" : ""}">
       <td><strong>${esc(row.title)}</strong></td>
       <td>${row.completions}</td>
       <td>${row.games_seen}</td>
       <td>${num(row.mean_strength_at_completion, 1)}</td>
-      <td>${num(row.completion_strength_z, 2)}</td>
+      <td>${row.static_strength ?? "—"}</td>
+      <td>${num(row.static_z, 2)}</td>
       <td>${pct(row.win_rate_when_seen)}</td>
       <td>${interval(row.win_rate_when_seen_95)}</td>
       <td class="flags-cell">${flagMarkup(row.flags)}</td>
