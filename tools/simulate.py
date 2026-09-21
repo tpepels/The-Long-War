@@ -66,8 +66,9 @@ def main() -> None:
     payload["win_rates"] = report.win_rates
     payload["first_player_win_rate"] = report.first_player_win_rate
 
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(
+    output = args.output if args.output.is_absolute() else ROOT / args.output
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
         json.dumps(payload, indent=2) + "\n",
         encoding="utf-8",
     )
@@ -99,7 +100,7 @@ def main() -> None:
             f"swing={stats['mean_immediate_front_swing']}"
         )
 
-    print(f"Wrote {args.output.relative_to(ROOT)}")
+    print(f"Wrote {output.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
