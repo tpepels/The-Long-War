@@ -101,3 +101,13 @@ def test_paired_estimate_is_deterministic_and_reports_sample_count() -> None:
     assert first.samples == len(values)
     assert first.mean == pytest.approx(sum(values) / len(values))
     assert first.ci95[0] <= first.mean <= first.ci95[1]
+
+
+def test_scheme_baseline_preserves_scheme_commitment() -> None:
+    card_data = data()
+    index = {card["id"]: card for card in card_data["cards"]}
+    baseline = baseline_card(index["the-lamps-went-dark"])
+
+    assert baseline["type"] == "plot"
+    assert baseline["keywords"] == ["scheme"]
+    assert baseline["rules"]["scheme"]["trigger"] == "never"

@@ -10,6 +10,7 @@ from ..game.actions import (
     Pass,
     PlayLink,
     PlayName,
+    PlayScheme,
 )
 from ..game.engine import GameEngine, all_positions
 from ..game.model import Front, GameState, Phase
@@ -117,6 +118,12 @@ class HeuristicAgent:
         if isinstance(action, PlayName):
             score += 0.75
 
+        # A face-down Scheme is delayed option value rather than immediate
+        # Strength. Keep this modest so the heuristic does not carpet every
+        # Front with Schemes merely because they exist.
+        if isinstance(action, PlayScheme):
+            score += 0.45
+
         return score
 
     def _score_pass(
@@ -205,6 +212,13 @@ class HeuristicAgent:
             state, opponent
         )
         score += 1.5 * complete_delta
+
+        scheme_delta = sum(
+            state.scheme(player, front) is not None for front in Front
+        ) - sum(
+            state.scheme(opponent, front) is not None for front in Front
+        )
+        score += 0.75 * scheme_delta
 
         # Open Links are intentionally valued using only the acting player's
         # own hand. This lets the agent invest in a Link despite zero immediate

@@ -43,6 +43,18 @@ python tools/train_mccfr.py --iterations 50 --depth 3
 python tools/build_pages.py
 ```
 
+## v0.1 playtest build
+
+The repository now publishes a playable first human-test build:
+
+- **Browser play:** `play.html` runs the canonical Python `GameEngine` in the browser through Pyodide. Modes are hot-seat Human vs Human, Human vs heuristic, and Human vs online MCCFR.
+- **Hot-seat privacy:** hands stay hidden between turns until the next player explicitly reveals their hand.
+- **Printable kit:** `playtest-kit.html` prints two complete 30-card reference decks.
+- **Battlefield/reference:** `playmat.html` is an A4-landscape battlefield with the six Subject positions, Scheme spaces, Battle line, scoring summary, and Victory boxes.
+- **Four initial Schemes:** The Lamps Went Dark, The Road Was Cut, The Hidden Oars, and The Witness Lied.
+
+The browser UI does not duplicate game rules in JavaScript. Pages publishes the tested Python package as a source bundle and Pyodide imports that package directly, so `GameEngine.legal_actions()`, `GameEngine.apply()`, scoring, Scheme triggers, and AI play are shared with CI and simulation.
+
 ## Testing
 
 Install the development dependencies once:

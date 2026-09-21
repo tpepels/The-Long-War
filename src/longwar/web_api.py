@@ -1,0 +1,345 @@
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from .agents.heuristic_agent import HeuristicAgent
+from .agents.online_mccfr_agent import OnlineMCCFRAgent
+from .game.actions import (
+    Action,
+    BoardTarget,
+    ChooseFirst,
+    Pass,
+    PlayLink,
+    PlayName,
+    PlayPlot,
+    PlayScheme,
+    PlaySubject,
+)
+from .game.engine import GameEngine, all_positions
+from .game.model import Front, Phase, Position, Rank
+from .mccfr import action_key
+
+
+FRONT_NAMES = {
+    Front.LEFT: "Left",
+    Front.CENTER: "Center",
+    Front.RIGHT: "Right",
+}
+RANK_NAMES = {
+    Rank.FRONT: "Frontline",
+    Rank.REAR: "Rear",
+}
+
+
+class PlaySession:
+    """Small JSON adapter around the canonical Python game engine."""
+
+    def __init__(
+        self,
+        card_data_json: str,
+        deck_json: str,
+        mode: str = "hotseat",
+        seed: int = 1,
+    ):
+        if mode not in {"hotseat", "heuristic", "online_mccfr"}:
+            raise ValueError(f"Unsupported play mode: {mode}")
+
+        card_data = json.loads(card_data_json)
+        deck_payload = json.loads(deck_json)
+        deck = (
+            list(deck_payload["cards"])
+            if isinstance(deck_payload, dict)
+            else list(deck_payload)
+        )
+
+        self.engine = GameEngine(card_data)
+        self.cards = self.engine.cards
+        self.deck = deck
+        self.mode = mode
+        self.seed = int(seed)
+        self.human_players = {0, 1} if mode == "hotseat" else {0}
+        self.log: list[str] = []
+
+        self.state = self.engine.new_game(
+            deck,
+            deck,
+            seed=self.seed,
+            first_player=None,
+        )
+        self.agents: dict[int, Any] = {}
+        if mode == "heuristic":
+            self.agents[1] = HeuristicAgent(self.seed + 20_001, exploration=0.0)
+        elif mode == "online_mccfr":
+            self.agents[1] = OnlineMCCFRAgent(
+                self.engine,
+                self.seed + 30_001,
+                iterations=4,
+                max_depth=2,
+                deterministic=True,
+            )
+
+        self.log.append(
+            f"Battle I begins. Player {self.state.active_player + 1} goes first."
+        )
+        self._run_ai_until_human()
+
+    def snapshot_json(self, viewer: int | None = None) -> str:
+        return json.dumps(self.snapshot(viewer), separators=(",", ":"))
+
+    def act_json(self, key: str, viewer: int) -> str:
+        return json.dumps(self.act(key, viewer), separators=(",", ":"))
+
+    def act(self, key: str, viewer: int) -> dict[str, Any]:
+        if viewer not in self.human_players:
+            raise ValueError("That player is not human-controlled")
+        if self.state.phase is Phase.COMPLETE:
+            raise ValueError("The match is already complete")
+        if self.state.active_player != viewer:
+            raise ValueError("It is not that player's turn")
+
+        legal = self.engine.legal_actions(self.state)
+        action = next((item for item in legal if action_key(item) == key), None)
+        if action is None:
+            raise ValueError("That action is no longer legal")
+
+        self._apply_with_log(action)
+        self._run_ai_until_human()
+
+        next_viewer: int | None
+        if self.mode == "hotseat":
+            next_viewer = None
+        else:
+            next_viewer = 0
+        return self.snapshot(next_viewer)
+
+    def snapshot(self, viewer: int | None = None) -> dict[str, Any]:
+        state = self.state
+        if viewer is not None and viewer not in (0, 1):
+            raise ValueError("viewer must be 0, 1, or null")
+
+        players = []
+        for player, ps in enumerate(state.players):
+            players.append({
+                "victories": ps.victories,
+                "passed": ps.passed,
+                "hand_count": len(ps.hand),
+                "deck_count": len(ps.deck),
+                "discard": list(ps.discard),
+            })
+
+        board: list[list[dict[str, Any]]] = [[], []]
+        for owner in range(2):
+            for position in all_positions():
+                slot = state.slot(owner, position)
+                board[owner].append({
+                    "front": int(position.front),
+                    "front_name": FRONT_NAMES[position.front],
+                    "rank": position.rank.value,
+                    "rank_name": RANK_NAMES[position.rank],
+                    "subject": slot.subject,
+                    "link": slot.link,
+                    "name": slot.name,
+                    "complete": slot.complete,
+                    "strength": self.engine.position_strength(
+                        state, owner, position
+                    ),
+                })
+
+        schemes: list[list[dict[str, Any] | None]] = [[], []]
+        for owner in range(2):
+            for front in Front:
+                scheme = state.scheme(owner, front)
+                if scheme is None:
+                    schemes[owner].append(None)
+                elif viewer == owner or scheme.revealed:
+                    schemes[owner].append({
+                        "hidden": False,
+                        "card_id": scheme.card_id,
+                        "revealed": scheme.revealed,
+                    })
+                else:
+                    schemes[owner].append({
+                        "hidden": True,
+                        "card_id": None,
+                        "revealed": False,
+                    })
+
+        front_strengths = [
+            [
+                self.engine.front_strength(state, player, front)
+                for front in Front
+            ]
+            for player in range(2)
+        ]
+
+        hand: list[str] = []
+        legal_actions: list[dict[str, Any]] = []
+        if (
+            viewer is not None
+            and viewer == state.active_player
+            and viewer in self.human_players
+            and state.phase is not Phase.COMPLETE
+        ):
+            hand = list(state.players[viewer].hand)
+            legal_actions = [
+                self._action_view(action)
+                for action in self.engine.legal_actions(state)
+            ]
+
+        return {
+            "mode": self.mode,
+            "seed": self.seed,
+            "battle": state.battle,
+            "phase": state.phase.value,
+            "active_player": state.active_player,
+            "chooser": state.chooser,
+            "winner": state.winner,
+            "viewer": viewer,
+            "needs_reveal": (
+                self.mode == "hotseat"
+                and viewer is None
+                and state.phase is not Phase.COMPLETE
+            ),
+            "players": players,
+            "board": board,
+            "schemes": schemes,
+            "front_strengths": front_strengths,
+            "hand": hand,
+            "legal_actions": legal_actions,
+            "log": self.log[-40:],
+        }
+
+    def _run_ai_until_human(self) -> None:
+        safety = 0
+        while (
+            self.state.phase is not Phase.COMPLETE
+            and self.state.active_player not in self.human_players
+        ):
+            safety += 1
+            if safety > 200:
+                raise RuntimeError("AI loop exceeded 200 actions")
+            actor = self.state.active_player
+            action = self.agents[actor].choose(self.engine, self.state)
+            self._apply_with_log(action)
+
+    def _apply_with_log(self, action: Action) -> None:
+        actor = self.state.active_player
+        battle_before = self.state.battle
+        observations_before = len(self.state.observations)
+        label = self._describe_action(action, actor)
+
+        self.engine.apply(self.state, action)
+        self.log.append(label)
+
+        for event in self.state.observations[observations_before:]:
+            if event.kind != "reveal":
+                continue
+            title = self.cards[event.card_id]["title"]
+            self.log.append(f"Scheme revealed: {title}.")
+
+        if self.state.phase is Phase.COMPLETE:
+            self.log.append(
+                f"Player {self.state.winner + 1} wins the match."
+            )
+        elif self.state.battle != battle_before:
+            self.log.append(
+                f"Battle {self._roman(self.state.battle)} begins. "
+                f"Player {self.state.chooser + 1} chooses who starts."
+            )
+
+    def _action_view(self, action: Action) -> dict[str, Any]:
+        card_id = getattr(action, "card_id", None)
+        return {
+            "key": action_key(action),
+            "kind": type(action).__name__,
+            "card_id": card_id,
+            "label": self._describe_action(action, self.state.active_player, private=True),
+            "reason": self._legal_reason(action),
+        }
+
+    def _describe_action(
+        self,
+        action: Action,
+        actor: int,
+        *,
+        private: bool = False,
+    ) -> str:
+        prefix = f"Player {actor + 1}"
+        if isinstance(action, Pass):
+            return f"{prefix} Passes."
+        if isinstance(action, ChooseFirst):
+            return (
+                f"{prefix} chooses Player {action.player + 1} "
+                "to start the next Battle."
+            )
+        if isinstance(action, PlaySubject):
+            return (
+                f"{prefix} plays {self.cards[action.card_id]['title']} "
+                f"to {FRONT_NAMES[action.position.front]} "
+                f"{RANK_NAMES[action.position.rank]}."
+            )
+        if isinstance(action, PlayLink):
+            return (
+                f"{prefix} attaches {self.cards[action.card_id]['title']} "
+                f"in {FRONT_NAMES[action.position.front]}."
+            )
+        if isinstance(action, PlayName):
+            move = ""
+            if action.move_to is not None:
+                move = (
+                    f" and moves the Legend to "
+                    f"{FRONT_NAMES[action.move_to.front]} "
+                    f"{RANK_NAMES[action.move_to.rank]}"
+                )
+            return (
+                f"{prefix} completes a Legend with "
+                f"{self.cards[action.card_id]['title']} "
+                f"in {FRONT_NAMES[action.position.front]}{move}."
+            )
+        if isinstance(action, PlayScheme):
+            if private:
+                return (
+                    f"Set {self.cards[action.card_id]['title']} face-down "
+                    f"in {FRONT_NAMES[action.front]}."
+                )
+            return (
+                f"{prefix} sets a face-down Scheme "
+                f"in {FRONT_NAMES[action.front]}."
+            )
+        if isinstance(action, PlayPlot):
+            title = self.cards[action.card_id]["title"]
+            if not action.targets:
+                return f"{prefix} plays {title}."
+            targets = ", ".join(self._target_label(target) for target in action.targets)
+            return f"{prefix} plays {title} targeting {targets}."
+        return repr(action)
+
+    def _legal_reason(self, action: Action) -> str:
+        if isinstance(action, Pass):
+            return "Pass is always legal while you are still active in the Battle."
+        if isinstance(action, ChooseFirst):
+            return "The previous Battle loser chooses who takes the first turn."
+        if isinstance(action, PlaySubject):
+            return "This is an empty legal Subject position."
+        if isinstance(action, PlayLink):
+            return "This Subject has no Link yet."
+        if isinstance(action, PlayName):
+            return "This Subject has an open Link that this Name may complete."
+        if isinstance(action, PlayScheme):
+            return "You have no Scheme in this Front."
+        if isinstance(action, PlayPlot):
+            return "The Plot has all targets required by its rules text."
+        return "Legal according to the canonical game engine."
+
+    @staticmethod
+    def _target_label(target: BoardTarget) -> str:
+        return (
+            f"Player {target.player + 1} "
+            f"{FRONT_NAMES[target.position.front]} "
+            f"{RANK_NAMES[target.position.rank]}"
+        )
+
+    @staticmethod
+    def _roman(value: int) -> str:
+        return {1: "I", 2: "II", 3: "III"}.get(value, str(value))

@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_card_file_is_valid() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    assert len(data["cards"]) == 18
+    assert len(data["cards"]) == 22
 
 
 def test_every_name_is_unique() -> None:

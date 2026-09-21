@@ -5,6 +5,13 @@ const TYPE_LABELS = {
   plot: "Plot",
 };
 
+function typeLabel(card) {
+  if (card.type === "plot" && (card.keywords || []).includes("scheme")) {
+    return "Plot · Scheme";
+  }
+  return TYPE_LABELS[card.type] ?? card.type;
+}
+
 function cardMarkup(card) {
   const strength = Number.isInteger(card.strength)
     ? `<div class="strength" aria-label="Strength">${card.strength}</div>`
@@ -16,7 +23,7 @@ function cardMarkup(card) {
     <article class="game-card card-${card.type}">
       <header class="card-header">
         <div>
-          <div class="card-type">${TYPE_LABELS[card.type] ?? card.type}</div>
+          <div class="card-type">${typeLabel(card)}</div>
           <h2>${card.title}</h2>
         </div>
         ${strength}

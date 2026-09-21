@@ -62,9 +62,18 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
     elif card_type == "name":
         result["strength"] = 2
     elif card_type == "plot":
-        # A no-op Plot preserves the card/turn cost and universal playability
-        # of a Plot while removing the card-specific effect.
-        result["rules"] = {}
+        if "scheme" in card.get("keywords", []):
+            # Preserve the face-down Scheme commitment/bluff structure while
+            # removing the specific trigger/effect.
+            result["keywords"] = ["scheme"]
+            result["text"] = "Scheme — Experimental matched baseline. It has no trigger."
+            result["rules"] = {
+                "scheme": {"trigger": "never", "effect": "none"}
+            }
+        else:
+            # A no-op Plot preserves the card/turn cost and universal playability
+            # of a Plot while removing the card-specific effect.
+            result["rules"] = {}
     else:
         raise ValueError(f"Unsupported card type: {card_type}")
 

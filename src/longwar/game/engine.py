@@ -180,6 +180,13 @@ class GameEngine:
             self._take_from_hand(state, actor, action.card_id)
             slot = state.slot(actor, action.position)
             slot.subject = action.card_id
+            self._resolve_triggered_schemes(
+                state,
+                actor=actor,
+                event="opponent_plays_subject",
+                front=action.position.front,
+                position=action.position,
+            )
 
         elif isinstance(action, PlayLink):
             self._take_from_hand(state, actor, action.card_id)
@@ -190,6 +197,13 @@ class GameEngine:
                 "temporary_strength", 0
             )
             slot.temporary_strength += int(bonus)
+            self._resolve_triggered_schemes(
+                state,
+                actor=actor,
+                event="opponent_plays_link",
+                front=action.position.front,
+                position=action.position,
+            )
 
         elif isinstance(action, PlayName):
             self._take_from_hand(state, actor, action.card_id)
@@ -204,8 +218,14 @@ class GameEngine:
 
         elif isinstance(action, PlayPlot):
             self._take_from_hand(state, actor, action.card_id)
+            plot_targets = tuple(action.targets)
             self._resolve_plot(state, actor, action)
             self._discard_card(state, actor, action.card_id)
+            self._resolve_plot_target_schemes(
+                state,
+                actor=actor,
+                targets=plot_targets,
+            )
 
         elif isinstance(action, PlayScheme):
             self._take_from_hand(
@@ -461,6 +481,168 @@ class GameEngine:
 
         raise NotImplementedError(f"Unsupported plot effect: {effect}")
 
+    def _resolve_triggered_schemes(
+        self,
+        state: GameState,
+        *,
+        actor: int,
+        event: str,
+        front: Front,
+        position: Position | None = None,
+    ) -> None:
+        for controller in (actor, 1 - actor):
+            scheme = state.scheme(controller, front)
+            if scheme is None:
+                continue
+            rules = self.cards[scheme.card_id].get("rules", {}).get("scheme", {})
+            if rules.get("trigger") != event:
+                continue
+            if actor == controller:
+                continue
+            if rules.get("requires_own_subject") and not self._front_has_subject(
+                state, controller, front
+            ):
+                continue
+            self._reveal_and_resolve_scheme(
+                state,
+                controller=controller,
+                front=front,
+                actor=actor,
+                position=position,
+            )
+
+    def _resolve_plot_target_schemes(
+        self,
+        state: GameState,
+        *,
+        actor: int,
+        targets: tuple[BoardTarget, ...],
+    ) -> None:
+        opponent = 1 - actor
+        targeted_fronts = {
+            target.position.front
+            for target in targets
+            if target.player == opponent
+        }
+        for front in sorted(targeted_fronts, key=int):
+            scheme = state.scheme(opponent, front)
+            if scheme is None:
+                continue
+            rules = self.cards[scheme.card_id].get("rules", {}).get("scheme", {})
+            if rules.get("trigger") != "opponent_plot_targets_your_card":
+                continue
+            if rules.get("requires_own_subject") and not self._front_has_subject(
+                state, opponent, front
+            ):
+                continue
+            self._reveal_and_resolve_scheme(
+                state,
+                controller=opponent,
+                front=front,
+                actor=actor,
+            )
+
+    def _resolve_pass_schemes(
+        self,
+        state: GameState,
+        *,
+        actor: int,
+    ) -> None:
+        opponent = 1 - actor
+        for front in Front:
+            scheme = state.scheme(opponent, front)
+            if scheme is None:
+                continue
+            rules = self.cards[scheme.card_id].get("rules", {}).get("scheme", {})
+            if rules.get("trigger") != "opponent_passes":
+                continue
+            if rules.get("requires_own_subject") and not self._front_has_subject(
+                state, opponent, front
+            ):
+                continue
+            self._reveal_and_resolve_scheme(
+                state,
+                controller=opponent,
+                front=front,
+                actor=actor,
+            )
+
+    def _reveal_and_resolve_scheme(
+        self,
+        state: GameState,
+        *,
+        controller: int,
+        front: Front,
+        actor: int,
+        position: Position | None = None,
+    ) -> None:
+        scheme = state.scheme(controller, front)
+        if scheme is None:
+            return
+
+        if not scheme.revealed:
+            scheme.revealed = True
+            state.observe_reveal(
+                viewer=1 - controller,
+                owner=controller,
+                card_id=scheme.card_id,
+                zone="scheme",
+                reason="scheme_triggered",
+            )
+
+        card_id = scheme.card_id
+        rules = self.cards[card_id].get("rules", {}).get("scheme", {})
+        effect = rules.get("effect")
+        amount = int(rules.get("amount", 0))
+
+        if effect == "penalize_played_subject":
+            if position is not None:
+                slot = state.slot(actor, position)
+                if slot.subject is not None:
+                    slot.temporary_strength -= amount
+
+        elif effect == "discard_played_link":
+            if position is not None:
+                slot = state.slot(actor, position)
+                if slot.link is not None:
+                    self._remove_link(state, actor, position)
+
+        elif effect == "reinforce_front":
+            target = self._preferred_subject_position(state, controller, front)
+            if target is not None:
+                state.slot(controller, target).temporary_strength += amount
+
+        elif effect in (None, "none"):
+            pass
+
+        else:
+            raise NotImplementedError(f"Unsupported Scheme effect: {effect}")
+
+        state.schemes[controller][int(front)] = None
+        self._discard_card(state, controller, card_id)
+
+    def _front_has_subject(
+        self,
+        state: GameState,
+        player: int,
+        front: Front,
+    ) -> bool:
+        return self._preferred_subject_position(state, player, front) is not None
+
+    @staticmethod
+    def _preferred_subject_position(
+        state: GameState,
+        player: int,
+        front: Front,
+    ) -> Position | None:
+        frontline = Position(front, Rank.FRONT)
+        if state.slot(player, frontline).subject is not None:
+            return frontline
+        rear = Position(front, Rank.REAR)
+        if state.slot(player, rear).subject is not None:
+            return rear
+        return None
+
     def _name_protected_from_plot(self, slot: Slot) -> bool:
         if not slot.complete:
             return False
@@ -623,6 +805,7 @@ class GameEngine:
     def _pass(self, state: GameState, player: int) -> None:
         state.players[player].passed = True
         state.pass_order.append(player)
+        self._resolve_pass_schemes(state, actor=player)
 
         opponent = 1 - player
         if state.players[opponent].passed:

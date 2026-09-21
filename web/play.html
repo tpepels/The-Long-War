@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Play — The Long War</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="screen-toolbar">
+    <a href="index.html">The Long War</a>
+    <div><span id="engine-status">Loading Python rules engine…</span></div>
+  </header>
+  <main class="play-client">
+    <section class="play-setup" id="play-setup">
+      <p class="eyebrow">v0.1 browser playtest</p>
+      <h1>Play The Long War</h1>
+      <p>The browser runs the same Python <code>GameEngine</code> used by tests and simulations.</p>
+      <form id="new-game-form">
+        <label>Opponent
+          <select id="mode" disabled>
+            <option value="hotseat">Human vs Human · hot-seat</option>
+            <option value="heuristic">Human vs heuristic agent</option>
+            <option value="online_mccfr">Human vs online MCCFR</option>
+          </select>
+        </label>
+        <label>Seed
+          <input id="seed" type="number" min="0" max="2147483647" value="1701" disabled>
+        </label>
+        <button id="start-game" type="submit" disabled>Start match</button>
+      </form>
+      <p class="muted" id="setup-note">The first load downloads Pyodide; game state remains local in your browser.</p>
+    </section>
+    <section id="game" class="play-game" hidden>
+      <div id="match-strip" class="match-strip"></div>
+      <div id="privacy-gate" class="privacy-gate" hidden></div>
+      <div id="battlefield" class="digital-battlefield"></div>
+      <section class="play-panel">
+        <div class="section-heading">
+          <div><p class="eyebrow">Hand</p><h2 id="hand-title">Your hand</h2></div>
+          <label class="explain-toggle"><input type="checkbox" id="show-reasons"> Explain legal moves</label>
+        </div>
+        <div id="hand" class="digital-hand"></div>
+        <div id="turn-actions" class="turn-actions"></div>
+      </section>
+      <details class="play-panel action-log" open>
+        <summary>Action history</summary>
+        <ol id="history"></ol>
+      </details>
+      <div class="play-controls">
+        <button type="button" id="restart">New match</button>
+        <a class="button secondary" href="playtest-kit.html">Print playtest kit</a>
+        <a class="button secondary" href="rulebook.html">Rules</a>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="play.js"></script>
+</body>
+</html>

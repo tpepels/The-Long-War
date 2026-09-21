@@ -11,6 +11,8 @@ WEB = ROOT / "web"
 DIST = ROOT / "dist"
 RULEBOOK = ROOT / "rules" / "rulebook.md"
 CARDS = ROOT / "cards" / "cards.json"
+REFERENCE_DECK = ROOT / "decks" / "reference.json"
+PYTHON_SOURCE = ROOT / "src"
 BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
 
 
@@ -22,6 +24,16 @@ def main() -> None:
     data_dir = DIST / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(CARDS, data_dir / "cards.json")
+    shutil.copy2(REFERENCE_DECK, data_dir / "reference-deck.json")
+
+    python_bundle = {
+        str(path.relative_to(PYTHON_SOURCE)): path.read_text(encoding="utf-8")
+        for path in sorted((PYTHON_SOURCE / "longwar").rglob("*.py"))
+    }
+    (data_dir / "python-bundle.json").write_text(
+        json.dumps(python_bundle),
+        encoding="utf-8",
+    )
     if BALANCE_HEALTH.exists():
         shutil.copy2(BALANCE_HEALTH, data_dir / "balance-health.json")
 
@@ -43,7 +55,10 @@ def main() -> None:
 
     card_data = json.loads(CARDS.read_text(encoding="utf-8"))
     balance = "with balance data" if BALANCE_HEALTH.exists() else "without balance data"
-    print(f"Built Pages site with {len(card_data['cards'])} cards ({balance}) at {DIST}")
+    print(
+        f"Built Pages site with {len(card_data['cards'])} cards, "
+        f"{len(python_bundle)} Python engine files ({balance}) at {DIST}"
+    )
 
 
 if __name__ == "__main__":

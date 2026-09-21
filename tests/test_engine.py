@@ -14,6 +14,7 @@ from longwar.game import (
     PlayLink,
     PlayName,
     PlayPlot,
+    PlayScheme,
     PlaySubject,
     Position,
     Rank,
@@ -187,3 +188,80 @@ def test_defied_reduces_opposing_front_strength() -> None:
 
     assert engine.front_strength(state, 0, Front.LEFT) == 9
     assert engine.front_strength(state, 1, Front.LEFT) == 2
+
+
+def test_lamps_scheme_penalizes_played_subject() -> None:
+    engine, state = fresh_state(first_player=1)
+    state.players[1].hand = ["the-lamps-went-dark"]
+    state.players[0].hand = ["the-fifty-men"]
+
+    engine.apply(state, PlayScheme("the-lamps-went-dark", Front.CENTER))
+    engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
+
+    assert state.scheme(1, Front.CENTER) is None
+    assert "the-lamps-went-dark" in state.players[1].discard
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 2
+
+
+def test_road_cut_discards_link_as_scheme_trigger() -> None:
+    engine, state = fresh_state(first_player=1)
+    state.players[1].hand = ["the-road-was-cut"]
+    state.players[0].hand = ["followed"]
+    state.slot(0, CENTER_FRONT).subject = "the-fifty-men"
+
+    engine.apply(state, PlayScheme("the-road-was-cut", Front.CENTER))
+    engine.apply(state, PlayLink("followed", CENTER_FRONT))
+
+    assert state.slot(0, CENTER_FRONT).link is None
+    assert "followed" in state.players[0].discard
+    assert "the-road-was-cut" in state.players[1].discard
+
+
+def test_hidden_oars_resolves_before_second_pass_scores_battle() -> None:
+    engine, state = fresh_state(first_player=1)
+    state.players[1].hand = ["the-hidden-oars"]
+    state.slot(1, CENTER_FRONT).subject = "the-fifty-men"
+
+    engine.apply(state, PlayScheme("the-hidden-oars", Front.CENTER))
+    engine.apply(state, Pass())
+
+    assert state.scheme(1, Front.CENTER) is None
+    assert engine.position_strength(state, 1, CENTER_FRONT) == 6
+
+
+def test_witness_lied_triggers_only_when_plot_targets_own_front() -> None:
+    engine, state = fresh_state(first_player=1)
+    state.players[1].hand = ["the-witness-lied"]
+    state.players[0].hand = ["the-story-is-false"]
+    state.slot(1, CENTER_FRONT).subject = "the-fifty-men"
+    state.slot(1, CENTER_FRONT).link = "followed"
+
+    engine.apply(state, PlayScheme("the-witness-lied", Front.CENTER))
+    engine.apply(
+        state,
+        PlayPlot(
+            "the-story-is-false",
+            (BoardTarget(1, CENTER_FRONT),),
+        ),
+    )
+
+    assert state.scheme(1, Front.CENTER) is None
+    assert engine.position_strength(state, 1, CENTER_FRONT) == 6
+
+
+def test_teyra_reveals_scheme_without_resolving_it() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.schemes[1][int(Front.CENTER)] = __import__(
+        "longwar.game.model", fromlist=["SchemeState"]
+    ).SchemeState("the-lamps-went-dark")
+    slot = state.slot(0, CENTER_FRONT)
+    slot.subject = "the-fifty-men"
+    slot.link = "followed"
+    state.players[0].hand = ["teyra"]
+
+    engine.apply(state, PlayName("teyra", CENTER_FRONT))
+
+    scheme = state.scheme(1, Front.CENTER)
+    assert scheme is not None
+    assert scheme.revealed is True
+    assert scheme.card_id == "the-lamps-went-dark"

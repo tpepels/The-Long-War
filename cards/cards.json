@@ -20,10 +20,17 @@
       "text": "While in the Rear, this Subject has +1 Strength.",
       "rules": {
         "strength_modifiers": [
-          {"amount": 1, "when": {"rank": "rear"}}
+          {
+            "amount": 1,
+            "when": {
+              "rank": "rear"
+            }
+          }
         ]
       },
-      "balance": {"dynamic": true}
+      "balance": {
+        "dynamic": true
+      }
     },
     {
       "id": "those-who-came-back",
@@ -34,10 +41,17 @@
       "text": "This Subject has +1 Strength while your discard pile contains at least five cards.",
       "rules": {
         "strength_modifiers": [
-          {"amount": 1, "when": {"own_discard_at_least": 5}}
+          {
+            "amount": 1,
+            "when": {
+              "own_discard_at_least": 5
+            }
+          }
         ]
       },
-      "balance": {"dynamic": true}
+      "balance": {
+        "dynamic": true
+      }
     },
     {
       "id": "the-house-at-orra",
@@ -48,10 +62,17 @@
       "text": "This Subject has +1 Strength while an adjacent position contains a complete Legend.",
       "rules": {
         "strength_modifiers": [
-          {"amount": 1, "when": {"adjacent_complete_legend": true}}
+          {
+            "amount": 1,
+            "when": {
+              "adjacent_complete_legend": true
+            }
+          }
         ]
       },
-      "balance": {"dynamic": true}
+      "balance": {
+        "dynamic": true
+      }
     },
     {
       "id": "the-children-of-the-salt-road",
@@ -61,9 +82,13 @@
       "unique": false,
       "text": "When you attach a Link here, this Subject gains +1 Strength until the end of the Battle.",
       "rules": {
-        "on_link_attached": {"temporary_strength": 1}
+        "on_link_attached": {
+          "temporary_strength": 1
+        }
       },
-      "balance": {"dynamic": true}
+      "balance": {
+        "dynamic": true
+      }
     },
     {
       "id": "the-three-brothers-of-avar",
@@ -73,11 +98,12 @@
       "unique": false,
       "text": "Frontline only.",
       "rules": {
-        "placement": {"rank": "front"}
+        "placement": {
+          "rank": "front"
+        }
       },
       "balance": {}
     },
-
     {
       "id": "followed",
       "title": "Followed",
@@ -87,7 +113,9 @@
       "rules": {
         "complete_strength_bonus": 3
       },
-      "balance": {"complete_strength_bonus": 3}
+      "balance": {
+        "complete_strength_bonus": 3
+      }
     },
     {
       "id": "swore-to",
@@ -99,7 +127,10 @@
         "complete_strength_bonus": 5,
         "on_name_leaves": "discard_subject"
       },
-      "balance": {"complete_strength_bonus": 5, "dynamic": true}
+      "balance": {
+        "complete_strength_bonus": 5,
+        "dynamic": true
+      }
     },
     {
       "id": "defied",
@@ -111,7 +142,10 @@
         "complete_strength_bonus": 2,
         "opposing_front_modifier": -2
       },
-      "balance": {"complete_strength_bonus": 2, "dynamic": true}
+      "balance": {
+        "complete_strength_bonus": 2,
+        "dynamic": true
+      }
     },
     {
       "id": "carried",
@@ -123,7 +157,10 @@
         "complete_strength_bonus": 2,
         "protect_name_from_plot_target": true
       },
-      "balance": {"complete_strength_bonus": 2, "dynamic": true}
+      "balance": {
+        "complete_strength_bonus": 2,
+        "dynamic": true
+      }
     },
     {
       "id": "avenged",
@@ -132,11 +169,15 @@
       "unique": false,
       "text": "While complete, its Subject has +1 Strength for each of your cards discarded this Battle, to a maximum of +4.",
       "rules": {
-        "discard_strength_bonus": {"per_card": 1, "maximum": 4}
+        "discard_strength_bonus": {
+          "per_card": 1,
+          "maximum": 4
+        }
       },
-      "balance": {"dynamic": true}
+      "balance": {
+        "dynamic": true
+      }
     },
-
     {
       "id": "namar",
       "title": "Namar",
@@ -145,9 +186,15 @@
       "unique": true,
       "text": "If Namar completes Followed, that Subject gains +2 additional Strength.",
       "rules": {
-        "link_strength_bonus": {"followed": 2}
+        "link_strength_bonus": {
+          "followed": 2
+        }
       },
-      "balance": {"link_strength_bonus": {"followed": 2}}
+      "balance": {
+        "link_strength_bonus": {
+          "followed": 2
+        }
+      }
     },
     {
       "id": "iria",
@@ -159,7 +206,9 @@
       "rules": {
         "on_complete": "move_adjacent_optional"
       },
-      "balance": {"dynamic": true}
+      "balance": {
+        "dynamic": true
+      }
     },
     {
       "id": "oren",
@@ -181,9 +230,10 @@
       "rules": {
         "on_complete": "reveal_enemy_scheme"
       },
-      "balance": {"dynamic": true}
+      "balance": {
+        "dynamic": true
+      }
     },
-
     {
       "id": "the-story-is-false",
       "title": "The Story Is False",
@@ -193,7 +243,9 @@
       "rules": {
         "effect": "discard_link"
       },
-      "balance": {"dynamic": true}
+      "balance": {
+        "dynamic": true
+      }
     },
     {
       "id": "he-never-came",
@@ -204,7 +256,9 @@
       "rules": {
         "effect": "return_name"
       },
-      "balance": {"dynamic": true}
+      "balance": {
+        "dynamic": true
+      }
     },
     {
       "id": "they-chose-another",
@@ -215,7 +269,90 @@
       "rules": {
         "effect": "move_name"
       },
-      "balance": {"dynamic": true}
+      "balance": {
+        "dynamic": true
+      }
+    },
+    {
+      "id": "the-lamps-went-dark",
+      "title": "The Lamps Went Dark",
+      "type": "plot",
+      "unique": false,
+      "keywords": [
+        "scheme"
+      ],
+      "text": "Scheme — When your opponent plays a Subject in this Front, reveal this. That Subject gets -2 Strength until the end of the Battle.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_plays_subject",
+          "effect": "penalize_played_subject",
+          "amount": 2
+        }
+      },
+      "balance": {
+        "dynamic": true
+      }
+    },
+    {
+      "id": "the-road-was-cut",
+      "title": "The Road Was Cut",
+      "type": "plot",
+      "unique": false,
+      "keywords": [
+        "scheme"
+      ],
+      "text": "Scheme — When your opponent plays a Link in this Front, reveal this. Discard that Link.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_plays_link",
+          "effect": "discard_played_link"
+        }
+      },
+      "balance": {
+        "dynamic": true
+      }
+    },
+    {
+      "id": "the-hidden-oars",
+      "title": "The Hidden Oars",
+      "type": "plot",
+      "unique": false,
+      "keywords": [
+        "scheme"
+      ],
+      "text": "Scheme — When your opponent Passes, if you have a Subject in this Front, reveal this. One of your Subjects here gains +2 Strength until the end of the Battle.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_passes",
+          "effect": "reinforce_front",
+          "amount": 2,
+          "requires_own_subject": true
+        }
+      },
+      "balance": {
+        "dynamic": true
+      }
+    },
+    {
+      "id": "the-witness-lied",
+      "title": "The Witness Lied",
+      "type": "plot",
+      "unique": false,
+      "keywords": [
+        "scheme"
+      ],
+      "text": "Scheme — When your opponent plays a Plot targeting one of your cards in this Front, reveal this. One of your Subjects here gains +2 Strength until the end of the Battle.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_plot_targets_your_card",
+          "effect": "reinforce_front",
+          "amount": 2,
+          "requires_own_subject": true
+        }
+      },
+      "balance": {
+        "dynamic": true
+      }
     }
   ]
 }
