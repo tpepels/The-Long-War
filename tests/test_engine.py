@@ -689,3 +689,164 @@ def test_untriggered_stratagem_reveals_and_discards_at_battle_end() -> None:
         and event.reason == "battle_end"
         for event in state.observations
     )
+
+
+def test_setting_stratagem_is_free_and_one_opportunity_per_battle() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.players[0].hand = ["the-storm-broke", "the-tide-rose"]
+    turn_number = state.turn_number
+
+    engine.apply(state, SetStratagem("the-storm-broke"))
+
+    assert state.active_player == 0
+    assert state.turn_number == turn_number
+    assert state.stratagem_used[0] is True
+    assert state.stratagem(0) is not None
+    assert state.stratagem(0).card_id == "the-storm-broke"
+
+    # The opportunity is spent, not merely the physical slot. Even if a future
+    # effect ever cleared the slot, a second Stratagem would remain illegal.
+    state.stratagems[0] = None
+    assert not any(
+        isinstance(action, SetStratagem)
+        for action in engine.legal_actions(state)
+    )
+
+
+def test_unrevealed_stratagem_is_revealed_after_scoring_then_reset() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.players[0].hand = ["the-storm-broke"]
+
+    engine.apply(state, SetStratagem("the-storm-broke"))
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.battle == 2
+    assert state.stratagem(0) is None
+    assert state.stratagem_used == [False, False]
+    assert "the-storm-broke" in state.players[0].discard
+    assert any(
+        event.kind == "reveal"
+        and event.zone == "stratagem"
+        and event.card_id == "the-storm-broke"
+        and event.reason == "battle_end"
+        for event in state.observations
+    )
+
+
+def test_storm_reveals_on_ship_and_changes_ship_and_archer_strength() -> None:
+    engine, state = fresh_state(first_player=0)
+    rear = Position(Front.CENTER, Rank.REAR)
+    archer_rear = Position(Front.LEFT, Rank.REAR)
+    state.players[0].hand = ["the-storm-broke", "seven-black-ships"]
+
+    engine.apply(state, SetStratagem("the-storm-broke"))
+    engine.apply(state, PlaySubject("seven-black-ships", rear))
+
+    assert state.stratagem(0).revealed is True
+    assert engine.position_strength(state, 0, rear) == 7
+
+    state.slot(0, archer_rear).subject = "the-children-of-the-salt-road"
+    assert engine.position_strength(state, 0, archer_rear) == 1
+
+
+def test_tide_reveals_on_pass_and_disables_line_defense() -> None:
+    engine, state = fresh_state(first_player=0)
+    rear = Position(Front.LEFT, Rank.REAR)
+    state.players[0].hand = ["the-tide-rose"]
+    state.slot(0, CENTER_FRONT).subject = "the-fifty-men"
+    state.slot(0, rear).subject = "seven-black-ships"
+
+    engine.apply(state, SetStratagem("the-tide-rose"))
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 6
+
+    engine.apply(state, Pass())
+
+    assert state.stratagem(0).revealed is True
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 5
+    assert engine.position_strength(state, 0, rear) == 6
+
+
+def test_ground_gave_way_rewards_rear_and_penalizes_frontline() -> None:
+    engine, state = fresh_state(first_player=0)
+    rear = Position(Front.CENTER, Rank.REAR)
+    front = Position(Front.LEFT, Rank.FRONT)
+    state.players[0].hand = ["the-ground-gave-way", "the-fifty-men"]
+
+    engine.apply(state, SetStratagem("the-ground-gave-way"))
+    engine.apply(state, PlaySubject("the-fifty-men", rear))
+    state.slot(0, front).subject = "the-fifty-men"
+
+    assert state.stratagem(0).revealed is True
+    assert engine.position_strength(state, 0, rear) == 5
+    assert engine.position_strength(state, 0, front) == 5
+
+
+def test_bronze_teeth_punishes_trigger_subject_but_costs_controller() -> None:
+    engine, state = fresh_state(first_player=0)
+    own_front = Position(Front.LEFT, Rank.FRONT)
+    enemy_front = Position(Front.CENTER, Rank.FRONT)
+    state.players[0].hand = ["the-bronze-teeth"]
+    state.players[1].hand = ["the-fifty-men"]
+    state.slot(0, own_front).subject = "the-fifty-men"
+
+    engine.apply(state, SetStratagem("the-bronze-teeth"))
+    engine.apply(state, Pass())
+    engine.apply(state, PlaySubject("the-fifty-men", enemy_front))
+
+    assert state.stratagem(0).revealed is True
+    assert engine.position_strength(state, 1, enemy_front) == 4
+    assert engine.position_strength(state, 0, own_front) == 5
+
+
+def test_false_muster_cancels_immediate_story_and_locks_own_stories() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.players[0].hand = ["the-false-muster", "the-fifty-men"]
+    state.players[1].hand = ["he-never-came"]
+
+    engine.apply(state, SetStratagem("the-false-muster"))
+    engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
+    engine.apply(
+        state,
+        PlayPlot(
+            "he-never-came",
+            (BoardTarget(0, CENTER_FRONT),),
+        ),
+    )
+
+    assert state.stratagem(0).revealed is True
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 6
+    assert "he-never-came" in state.players[1].discard
+
+    state.players[0].hand = ["the-story-is-false", "the-lamps-went-dark"]
+    actions = engine.legal_actions(state)
+    assert not any(
+        isinstance(action, PlayPlot)
+        and action.card_id == "the-story-is-false"
+        for action in actions
+    )
+    assert any(
+        isinstance(action, PlayScheme)
+        and action.card_id == "the-lamps-went-dark"
+        for action in actions
+    )
+
+
+def test_wooden_gift_penalizes_named_and_rewards_unnamed_subjects() -> None:
+    engine, state = fresh_state(first_player=0)
+    own_front = Position(Front.LEFT, Rank.FRONT)
+    enemy_front = Position(Front.CENTER, Rank.FRONT)
+    state.players[0].hand = ["the-wooden-gift", "the-fifty-men"]
+    state.players[1].hand = ["namar"]
+
+    engine.apply(state, SetStratagem("the-wooden-gift"))
+    engine.apply(state, PlaySubject("the-fifty-men", own_front))
+
+    enemy = state.slot(1, enemy_front)
+    enemy.subject = "the-fifty-men"
+    enemy.link = "followed"
+    engine.apply(state, PlayName("namar", enemy_front))
+
+    assert state.stratagem(0).revealed is True
+    assert engine.position_strength(state, 0, own_front) == 7
+    assert engine.position_strength(state, 1, enemy_front) == 11
