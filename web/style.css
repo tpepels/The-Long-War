@@ -1627,7 +1627,7 @@ button, .button {
 
 
 /* v0.4 playtest card system -------------------------------------------------
-   Larger cards, responsive rules density, and visual families. */
+   Larger cards with one fixed layout and visual families. */
 .card-sheets,
 .playtest-decks {
   width: min(100%, 297mm);
@@ -1651,7 +1651,7 @@ button, .button {
   --card-deep: #332d24;
   width: 68mm;
   height: 96mm;
-  grid-template-rows: auto 27mm minmax(0, 1fr) auto;
+  grid-template-rows: 20mm 22mm 47.5mm 6.5mm;
   border: .45mm solid var(--card-deep);
   border-radius: 3.2mm;
   background:
@@ -1751,7 +1751,7 @@ button, .button {
 .card-art {
   position: relative;
   min-height: 0;
-  margin: 2.6mm 3.2mm 0;
+  margin: 1.8mm 3.2mm 0;
   padding: 0;
   overflow: hidden;
   border: .3mm solid color-mix(in srgb, var(--card-deep) 78%, transparent);
@@ -1840,8 +1840,8 @@ button, .button {
   min-height: 0;
   padding: 2.7mm 3.3mm 2.2mm;
   overflow: hidden;
-  font-size: 3.15mm;
-  line-height: 1.28;
+  font-size: 2.85mm;
+  line-height: 1.22;
   display: flex;
   align-items: flex-start;
 }
@@ -1859,41 +1859,6 @@ button, .button {
   border-top: .25mm solid color-mix(in srgb, var(--card-accent) 45%, #1c1914);
   background: color-mix(in srgb, var(--card-accent) 7%, transparent);
   font-size: 1.95mm;
-}
-
-.card-density-medium {
-  grid-template-rows: auto 23mm minmax(0, 1fr) auto;
-}
-.card-density-medium .card-rule {
-  font-size: 3mm;
-  line-height: 1.25;
-}
-
-.card-density-dense {
-  grid-template-rows: auto 19mm minmax(0, 1fr) auto;
-}
-.card-density-dense .card-header h2 { font-size: 4.7mm; }
-.card-density-dense .card-rule {
-  padding-top: 2.35mm;
-  font-size: 2.8mm;
-  line-height: 1.22;
-}
-
-.card-density-max {
-  grid-template-rows: auto 13.5mm minmax(0, 1fr) auto;
-}
-.card-density-max .card-header {
-  padding-top: 2.7mm;
-  padding-bottom: 2mm;
-}
-.card-density-max .card-header h2 { font-size: 4.5mm; }
-.card-density-max .card-properties { margin-top: .8mm; font-size: 1.95mm; }
-.card-density-max .card-art-name { display: none; }
-.card-density-max .card-art-sigil { font-size: 5.5mm; top: 1.8mm; }
-.card-density-max .card-rule {
-  padding: 2.1mm 3mm 1.8mm;
-  font-size: 2.6mm;
-  line-height: 1.18;
 }
 
 .card-hero {
