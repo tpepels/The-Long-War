@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 from collections import Counter
 from dataclasses import dataclass
+from typing import Protocol
 
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState
@@ -12,38 +13,165 @@ class BeliefStateError(ValueError):
     pass
 
 
+class DeckPrior(Protocol):
+    def sample_deck(
+        self,
+        required: Counter[str],
+        rng: random.Random,
+    ) -> list[str]:
+        ...
+
+
 @dataclass(frozen=True)
-class BeliefDiagnostics:
-    viewer: int
-    opponent: int
-    public_opponent_cards: int
-    hidden_hand_cards: int
-    hidden_deck_cards: int
-    hidden_schemes: int
+class DeckHypothesis:
+    cards: tuple[str, ...]
+    weight: float = 1.0
+    label: str | None = None
 
 
-class BeliefSampler:
-    """Sample hidden states consistent with one player's observable state.
+class HypothesisDeckPrior:
+    """Discrete prior over candidate decklists, conditioned on hard evidence."""
 
-    The opponent's registered deck list is treated as known. Public opponent
-    cards are subtracted from that deck, then the remaining multiset is sampled
-    across hidden hand, deck, and unrevealed Scheme slots. The viewer's future
-    deck order is also resampled because its order is unknown.
+    def __init__(
+        self,
+        engine: GameEngine,
+        hypotheses: list[DeckHypothesis],
+    ):
+        if not hypotheses:
+            raise ValueError("At least one deck hypothesis is required")
+        self.engine = engine
+        self.hypotheses = list(hypotheses)
+        for hypothesis in self.hypotheses:
+            if hypothesis.weight <= 0:
+                raise ValueError("Deck hypothesis weights must be positive")
+            self.engine.validate_deck(list(hypothesis.cards))
 
-    This deliberately does not inspect the actual opponent hand or deck stored
-    in GameState. It therefore cannot accidentally determinize from privileged
-    simulator information.
+    def posterior(
+        self,
+        required: Counter[str],
+    ) -> list[tuple[DeckHypothesis, float]]:
+        compatible = [
+            hypothesis
+            for hypothesis in self.hypotheses
+            if self._contains(Counter(hypothesis.cards), required)
+        ]
+        if not compatible:
+            raise BeliefStateError("No deck hypothesis is compatible with observed cards")
+        total = sum(h.weight for h in compatible)
+        return [(h, h.weight / total) for h in compatible]
+
+    def sample_deck(
+        self,
+        required: Counter[str],
+        rng: random.Random,
+    ) -> list[str]:
+        posterior = self.posterior(required)
+        threshold = rng.random()
+        cumulative = 0.0
+        selected = posterior[-1][0]
+        for hypothesis, probability in posterior:
+            cumulative += probability
+            if threshold <= cumulative:
+                selected = hypothesis
+                break
+        return list(selected.cards)
+
+    @staticmethod
+    def _contains(deck: Counter[str], required: Counter[str]) -> bool:
+        return all(deck[card_id] >= count for card_id, count in required.items())
+
+
+class CardPoolDeckPrior:
+    """Deck-construction prior derived only from the legal card pool.
+
+    Required observed cards are conditioned in exactly. Remaining slots are
+    sampled from legal remaining copy capacity. Optional per-card weights can
+    encode an external metagame prior without revealing the true decklist.
     """
 
     def __init__(
         self,
         engine: GameEngine,
-        decklists: tuple[list[str], list[str]],
+        *,
+        deck_size: int = 30,
+        card_weights: dict[str, float] | None = None,
     ):
         self.engine = engine
-        self.decklists = (list(decklists[0]), list(decklists[1]))
-        self.engine.validate_deck(self.decklists[0])
-        self.engine.validate_deck(self.decklists[1])
+        self.deck_size = deck_size
+        self.card_weights = dict(card_weights or {})
+
+    def sample_deck(
+        self,
+        required: Counter[str],
+        rng: random.Random,
+    ) -> list[str]:
+        if sum(required.values()) > self.deck_size:
+            raise BeliefStateError("Observed cards exceed deck size")
+
+        capacities: dict[str, int] = {}
+        for card_id, card in self.engine.cards.items():
+            maximum = 1 if card["unique"] else 2
+            if required[card_id] > maximum:
+                raise BeliefStateError(
+                    f"Observed {required[card_id]} copies of {card_id}, maximum is {maximum}"
+                )
+            capacities[card_id] = maximum - required[card_id]
+
+        slots = self.deck_size - sum(required.values())
+        if sum(capacities.values()) < slots:
+            raise BeliefStateError(
+                "Card pool cannot construct a legal deck consistent with observations"
+            )
+
+        deck = [
+            card_id
+            for card_id, count in required.items()
+            for _ in range(count)
+        ]
+
+        for _ in range(slots):
+            candidates = [
+                card_id for card_id, capacity in capacities.items()
+                if capacity > 0
+            ]
+            weights = [
+                capacities[card_id] * self.card_weights.get(card_id, 1.0)
+                for card_id in candidates
+            ]
+            if not candidates or sum(weights) <= 0:
+                raise BeliefStateError("No legal card remains for deck prior")
+            selected = rng.choices(candidates, weights=weights, k=1)[0]
+            deck.append(selected)
+            capacities[selected] -= 1
+
+        rng.shuffle(deck)
+        self.engine.validate_deck(deck)
+        return deck
+
+
+@dataclass(frozen=True)
+class BeliefDiagnostics:
+    viewer: int
+    opponent: int
+    public_opponent_cards: int
+    known_hidden_hand_cards: int
+    hidden_hand_cards: int
+    hidden_deck_cards: int
+    hidden_schemes: int
+    prior_type: str
+
+
+class BeliefSampler:
+    """Sample hidden states consistent with the player's full observation state."""
+
+    def __init__(
+        self,
+        engine: GameEngine,
+        priors: tuple[DeckPrior, DeckPrior] | None = None,
+    ):
+        self.engine = engine
+        default = CardPoolDeckPrior(engine)
+        self.priors = priors or (default, default)
 
     def diagnostics(self, state: GameState, viewer: int) -> BeliefDiagnostics:
         self._validate_viewer(viewer)
@@ -57,13 +185,16 @@ class BeliefSampler:
             )
         )
         public = self._public_opponent_cards(state, opponent)
+        known = state.known_hidden_cards(viewer, opponent, "hand")
         return BeliefDiagnostics(
             viewer=viewer,
             opponent=opponent,
             public_opponent_cards=len(public),
+            known_hidden_hand_cards=len(known),
             hidden_hand_cards=len(state.players[opponent].hand),
             hidden_deck_cards=len(state.players[opponent].deck),
             hidden_schemes=hidden_schemes,
+            prior_type=type(self.priors[opponent]).__name__,
         )
 
     def sample(
@@ -76,23 +207,40 @@ class BeliefSampler:
         opponent = 1 - viewer
         sampled = state.clone()
 
-        # The viewer knows the remaining cards in their own deck, but not order.
+        # The viewer knows their own remaining deck composition, never its order.
         rng.shuffle(sampled.players[viewer].deck)
 
         public_cards = self._public_opponent_cards(state, opponent)
-        remaining = Counter(self.decklists[opponent])
+        known_hand = state.known_hidden_cards(viewer, opponent, "hand")
+        hand_count = len(state.players[opponent].hand)
+        deck_count = len(state.players[opponent].deck)
+
+        if len(known_hand) > hand_count:
+            raise BeliefStateError("Known opponent hand cards exceed hand size")
+
+        required = Counter(public_cards)
+        required.update(known_hand)
+        sampled_full_deck = self.priors[opponent].sample_deck(required, rng)
+        remaining = Counter(sampled_full_deck)
+
         for card_id in public_cards:
             remaining[card_id] -= 1
             if remaining[card_id] < 0:
                 raise BeliefStateError(
-                    f"Public opponent card {card_id!r} exceeds known deck copies"
+                    f"Sampled deck lacks observed public card {card_id!r}"
+                )
+        for card_id in known_hand:
+            remaining[card_id] -= 1
+            if remaining[card_id] < 0:
+                raise BeliefStateError(
+                    f"Sampled deck lacks known hidden hand card {card_id!r}"
                 )
 
-        unknown_pool: list[str] = []
-        for card_id, count in sorted(remaining.items()):
-            if count < 0:
-                raise BeliefStateError(f"Negative remaining count for {card_id}")
-            unknown_pool.extend([card_id] * count)
+        unknown_pool = [
+            card_id
+            for card_id, count in sorted(remaining.items())
+            for _ in range(count)
+        ]
 
         hidden_scheme_fronts = [
             front
@@ -102,17 +250,7 @@ class BeliefSampler:
                 and not state.scheme(opponent, front).revealed
             )
         ]
-        hand_count = len(state.players[opponent].hand)
-        deck_count = len(state.players[opponent].deck)
-        expected = hand_count + deck_count + len(hidden_scheme_fronts)
-        if len(unknown_pool) != expected:
-            raise BeliefStateError(
-                "Observed public/hidden zone counts are inconsistent with the "
-                f"known opponent deck: remaining={len(unknown_pool)} expected={expected}"
-            )
 
-        # Hidden Scheme identities are constrained to cards that can legally be
-        # Schemes. Sample them before the unconstrained hand/deck partition.
         for front in hidden_scheme_fronts:
             eligible = [
                 index
@@ -121,19 +259,26 @@ class BeliefSampler:
             ]
             if not eligible:
                 raise BeliefStateError(
-                    "Hidden Scheme slot exists but no Scheme-capable card "
-                    "remains in the opponent belief pool"
+                    "Hidden Scheme exists but no Scheme-capable card remains "
+                    "under the sampled deck hypothesis"
                 )
             index = rng.choice(eligible)
-            card_id = unknown_pool.pop(index)
-            sampled.schemes[opponent][int(front)].card_id = card_id
+            sampled.schemes[opponent][int(front)].card_id = unknown_pool.pop(index)
+
+        unknown_hand_slots = hand_count - len(known_hand)
+        expected = unknown_hand_slots + deck_count
+        if len(unknown_pool) != expected:
+            raise BeliefStateError(
+                "Sampled deck/public-zone accounting mismatch: "
+                f"remaining={len(unknown_pool)} expected={expected}"
+            )
 
         rng.shuffle(unknown_pool)
-        sampled.players[opponent].hand = list(unknown_pool[:hand_count])
-        sampled.players[opponent].deck = list(unknown_pool[hand_count:])
-        if len(sampled.players[opponent].deck) != deck_count:
-            raise BeliefStateError("Belief deck partition produced wrong size")
-
+        sampled.players[opponent].hand = (
+            list(known_hand) + list(unknown_pool[:unknown_hand_slots])
+        )
+        rng.shuffle(sampled.players[opponent].hand)
+        sampled.players[opponent].deck = list(unknown_pool[unknown_hand_slots:])
         return sampled
 
     def _public_opponent_cards(

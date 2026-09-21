@@ -16,7 +16,7 @@ Example: **The Fifty Men → Followed → Namar**
 - `src/longwar/game/` — deterministic rules engine.
 - `src/longwar/agents/` — random, heuristic, and MCCFR policy agents.
 - `src/longwar/mccfr.py` — external-sampling Monte Carlo CFR trainer and information abstraction.
-- `src/longwar/belief.py` — hidden-state belief sampling from known decklists and public observations.
+- `src/longwar/belief.py` — observation-conditioned hidden-state and deck-construction priors.
 - `src/longwar/online_mccfr.py` — online information-set re-solving across sampled beliefs.
 - `src/longwar/telemetry.py` — game, card, pass, and Legend telemetry.
 - `src/longwar/health.py` — confidence-aware balance flags and health analysis.
@@ -119,23 +119,36 @@ The online agent does not depend on an offline table matching the current privat
 hand. Before every non-forced decision it:
 
 1. conditions on the acting player's public observation and own private cards;
-2. subtracts public opponent cards from the known opponent deck list;
-3. samples a fresh compatible opponent hand/deck partition (and hidden Scheme
-   identities when present);
-4. reshuffles the acting player's unknown future deck order;
-5. repeats external-sampling MCCFR over those determinizations while merging
+2. replays retained observation knowledge, including publicly seen cards that
+   later returned to a hidden hand;
+3. conditions a deck prior on public cards plus guaranteed hidden-card facts;
+4. samples a legal opponent deck composition, then a compatible hidden
+   hand/deck/Scheme partition;
+5. reshuffles the acting player's unknown future deck order;
+6. repeats external-sampling MCCFR over those determinizations while merging
    them at the same root information set;
-6. selects from the locally solved average root strategy, then discards the
+7. selects from the locally solved average root strategy, then discards the
    local regret table.
 
 This gives root policy coverage by construction instead of hoping an offline
 table has previously encountered the exact information set.
 
-The present belief model assumes decklists are known. Because the engine does
-not yet retain observation history, a card that was publicly revealed and then
-returned to a hidden zone is currently treated as exchangeable with other
-remaining hidden cards. Tests explicitly verify that the sampler never reads
-the simulator's privileged opponent-hand identities.
+The default online belief model no longer receives the opponent's true
+decklist. It uses a legal card-pool prior derived from deck-construction rules.
+A weighted `HypothesisDeckPrior` is also available for an externally supplied
+metagame distribution. Incompatible deck hypotheses are eliminated by observed
+card counts.
+
+`GameState` now retains epistemic observation events. If a public Name is
+returned to a hand, the opponent remembers that guaranteed hidden card until
+public play or another observable transition invalidates the certainty. These
+facts are part of the information-set hash and are enforced in every sampled
+determinization.
+
+Face-down actions are updated conservatively from public information only: the
+knowledge tracker never consults the simulator's actual hidden identity to
+decide what the opponent should know. Tests compare states with different true
+hidden partitions to enforce this non-leakage property.
 
 Run an online benchmark with:
 
@@ -200,14 +213,15 @@ The automated stack is now:
 6. **depth-limited external-sampling MCCFR**;
 7. exact-reference MCCFR verification on Kuhn poker using the shared solver core;
 8. MCCFR-policy evaluation against the heuristic baseline;
-9. online MCCFR re-solving with hidden-state belief sampling;
-10. full Balance Lab aggregation and Pages publication.
+9. online MCCFR re-solving with observation-history-aware hidden-state beliefs;
+10. deck-uncertainty priors with weighted hypothesis conditioning;
+11. full Balance Lab aggregation and Pages publication.
 
 Planned next layers:
 
-11. observation-history-aware Bayesian beliefs for revealed/returned cards;
-12. double-oracle deck/meta search;
-13. counterfactual card replacement experiments;
-14. marginal/Shapley interaction analysis.
+12. action-likelihood learning for richer posterior deck/archetype inference;
+13. double-oracle deck/meta search;
+14. counterfactual card replacement experiments;
+15. marginal/Shapley interaction analysis.
 
 Static outliers, conditional win rates, heuristic values, and shallow MCCFR policies are diagnostics, not automatic balance verdicts.

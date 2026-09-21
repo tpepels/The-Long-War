@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 
+from ..belief import DeckPrior
 from ..game.actions import Action
 from ..game.engine import GameEngine
 from ..game.model import GameState
@@ -15,9 +16,9 @@ class OnlineMCCFRAgent:
     def __init__(
         self,
         engine: GameEngine,
-        decklists: tuple[list[str], list[str]],
         seed: int,
         *,
+        priors: tuple[DeckPrior, DeckPrior] | None = None,
         iterations: int = 16,
         max_depth: int = 2,
         deterministic: bool = False,
@@ -26,7 +27,7 @@ class OnlineMCCFRAgent:
         self.deterministic = deterministic
         self.resolver = OnlineMCCFRResolver(
             engine,
-            decklists,
+            priors=priors,
             seed=seed,
             iterations=iterations,
             max_depth=max_depth,
@@ -46,6 +47,8 @@ class OnlineMCCFRAgent:
                 "resolver_iterations": 0,
                 "belief_samples": 0,
                 "resolver_information_sets": 0,
+                "known_hidden_cards": 0,
+                "belief_prior": "none",
             }
             return actions[0]
 
@@ -84,6 +87,8 @@ class OnlineMCCFRAgent:
             "resolver_iterations": result.iterations,
             "belief_samples": result.belief_samples,
             "resolver_information_sets": result.information_sets,
+            "known_hidden_cards": result.known_hidden_cards,
+            "belief_prior": result.belief_prior,
         }
         return action_map[selected_key]
 

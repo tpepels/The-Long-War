@@ -208,7 +208,12 @@ class GameEngine:
             self._discard_card(state, actor, action.card_id)
 
         elif isinstance(action, PlayScheme):
-            self._take_from_hand(state, actor, action.card_id)
+            self._take_from_hand(
+                state,
+                actor,
+                action.card_id,
+                reveal_identity=False,
+            )
             state.schemes[actor][int(action.front)] = SchemeState(action.card_id)
 
         else:
@@ -479,9 +484,17 @@ class GameEngine:
         effect = name.get("rules", {}).get("on_complete")
 
         if effect == "reveal_enemy_scheme":
-            enemy_scheme = state.scheme(1 - player, position.front)
-            if enemy_scheme is not None:
+            owner = 1 - player
+            enemy_scheme = state.scheme(owner, position.front)
+            if enemy_scheme is not None and not enemy_scheme.revealed:
                 enemy_scheme.revealed = True
+                state.observe_reveal(
+                    viewer=player,
+                    owner=owner,
+                    card_id=enemy_scheme.card_id,
+                    zone="scheme",
+                    reason="revealed_by_name",
+                )
 
         if effect == "move_adjacent_optional" and move_to is not None:
             self._move_legend(state, player, position, move_to)
@@ -541,7 +554,12 @@ class GameEngine:
         if link_id is not None:
             self._discard_card(state, player, link_id)
         if name_id is not None:
-            state.players[player].hand.append(name_id)
+            self._return_public_card_to_hand(
+                state,
+                player,
+                name_id,
+                reason="link_removed",
+            )
 
     def _remove_name(
         self,
@@ -560,7 +578,12 @@ class GameEngine:
         slot.name = None
 
         if to_hand:
-            state.players[player].hand.append(name_id)
+            self._return_public_card_to_hand(
+                state,
+                player,
+                name_id,
+                reason="name_returned",
+            )
         else:
             self._discard_card(state, player, name_id)
 
@@ -590,7 +613,12 @@ class GameEngine:
         if link_id is not None:
             self._discard_card(state, player, link_id)
         if name_id is not None:
-            state.players[player].hand.append(name_id)
+            self._return_public_card_to_hand(
+                state,
+                player,
+                name_id,
+                reason="subject_removed",
+            )
 
     def _pass(self, state: GameState, player: int) -> None:
         state.players[player].passed = True
@@ -678,8 +706,65 @@ class GameEngine:
         if not state.players[opponent].passed:
             state.active_player = opponent
 
-    def _take_from_hand(self, state: GameState, player: int, card_id: str) -> None:
+    def _take_from_hand(
+        self,
+        state: GameState,
+        player: int,
+        card_id: str,
+        *,
+        reveal_identity: bool = True,
+    ) -> None:
+        viewer = 1 - player
+        if reveal_identity:
+            if state.known_hidden_count(viewer, player, card_id, "hand") > 0:
+                state.observe_hidden_delta(
+                    viewer=viewer,
+                    owner=player,
+                    card_id=card_id,
+                    zone="hand",
+                    delta=-1,
+                    reason="public_play_from_known_hand",
+                )
+        else:
+            # A face-down play cannot reveal which exact known card left.
+            # Reduce only guaranteed knowledge for card identities that could
+            # legally be the hidden card, without consulting simulator truth.
+            known = state.known_hidden_counter(viewer, player, "hand")
+            for known_id, count in list(known.items()):
+                card = self.cards[known_id]
+                can_be_scheme = (
+                    card["type"] == "plot"
+                    and "scheme" in card.get("keywords", [])
+                )
+                if count > 0 and can_be_scheme:
+                    state.observe_hidden_delta(
+                        viewer=viewer,
+                        owner=player,
+                        card_id=known_id,
+                        zone="hand",
+                        delta=-1,
+                        reason="possible_face_down_play",
+                    )
+
         state.players[player].hand.remove(card_id)
+
+    def _return_public_card_to_hand(
+        self,
+        state: GameState,
+        player: int,
+        card_id: str,
+        *,
+        reason: str,
+    ) -> None:
+        state.players[player].hand.append(card_id)
+        state.observe_hidden_delta(
+            viewer=1 - player,
+            owner=player,
+            card_id=card_id,
+            zone="hand",
+            delta=1,
+            reason=reason,
+        )
 
     def _discard_card(self, state: GameState, player: int, card_id: str) -> None:
         state.players[player].discard.append(card_id)

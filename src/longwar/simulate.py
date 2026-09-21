@@ -33,7 +33,6 @@ class SimulationReport:
 def make_agent(
     name: str,
     engine: GameEngine,
-    decklists: tuple[list[str], list[str]],
     seed: int,
     *,
     policy: dict[str, Any] | None = None,
@@ -51,7 +50,6 @@ def make_agent(
     if name == "online_mccfr":
         return OnlineMCCFRAgent(
             engine,
-            decklists,
             seed,
             iterations=online_iterations,
             max_depth=online_depth,
@@ -80,7 +78,6 @@ def simulate_games(
     total_turns = 0
     maximum_turns = 0
     telemetry = Telemetry()
-    decklists = (list(deck_a), list(deck_b))
 
     for game_index in range(games):
         first_player = game_index % 2
@@ -94,7 +91,6 @@ def simulate_games(
             make_agent(
                 agent_names[0],
                 engine,
-                decklists,
                 seed * 10_000 + game_index * 2 + 1,
                 policy=agent_policies[0],
                 online_iterations=online_iterations,
@@ -103,7 +99,6 @@ def simulate_games(
             make_agent(
                 agent_names[1],
                 engine,
-                decklists,
                 seed * 10_000 + game_index * 2 + 2,
                 policy=agent_policies[1],
                 online_iterations=online_iterations,

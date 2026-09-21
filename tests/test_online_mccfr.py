@@ -23,12 +23,11 @@ def setup():
     return GameEngine(data), deck
 
 
-def test_online_resolver_has_root_coverage_by_construction() -> None:
+def test_online_resolver_has_root_coverage_without_true_opponent_deck() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=12, first_player=0)
     resolver = OnlineMCCFRResolver(
         engine,
-        (deck, deck),
         seed=44,
         iterations=4,
         max_depth=1,
@@ -41,9 +40,10 @@ def test_online_resolver_has_root_coverage_by_construction() -> None:
     assert result.root_average_visits > 0
     assert set(result.strategy) == legal_keys
     assert sum(result.strategy.values()) == pytest.approx(1.0)
+    assert result.belief_prior == "CardPoolDeckPrior"
 
 
-def test_online_resolver_learns_immediate_winning_pass() -> None:
+def test_online_resolver_learns_immediate_winning_pass_with_unknown_deck() -> None:
     engine, deck = setup()
 
     p0_hidden = list(deck)
@@ -73,7 +73,6 @@ def test_online_resolver_learns_immediate_winning_pass() -> None:
 
     resolver = OnlineMCCFRResolver(
         engine,
-        (deck, deck),
         seed=123,
         iterations=50,
         max_depth=1,

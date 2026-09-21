@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 
-from .belief import BeliefSampler
+from .belief import BeliefSampler, DeckPrior
 from .game.actions import Action
 from .game.engine import GameEngine
 from .game.model import GameState, Phase
@@ -20,6 +20,8 @@ class OnlineResolveResult:
     root_average_visits: int
     strategy: dict[str, float]
     action_count: int
+    belief_prior: str
+    known_hidden_cards: int
 
     @property
     def root_coverage(self) -> float:
@@ -27,18 +29,13 @@ class OnlineResolveResult:
 
 
 class OnlineMCCFRResolver:
-    """Depth-limited MCCFR re-solving from the current information set.
-
-    Each iteration samples a fresh hidden-state determinization from the
-    player's belief, while all samples share the same root information set.
-    The local regret table is discarded after the decision.
-    """
+    """Depth-limited MCCFR re-solving from the current information set."""
 
     def __init__(
         self,
         engine: GameEngine,
-        decklists: tuple[list[str], list[str]],
         *,
+        priors: tuple[DeckPrior, DeckPrior] | None = None,
         seed: int = 1701,
         iterations: int = 16,
         max_depth: int = 2,
@@ -47,12 +44,11 @@ class OnlineMCCFRResolver:
         if iterations <= 0:
             raise ValueError("iterations must be positive")
         self.engine = engine
-        self.decklists = (list(decklists[0]), list(decklists[1]))
         self.iterations = iterations
         self.max_depth = max_depth
         self.leaf_scale = leaf_scale
         self.rng = random.Random(seed)
-        self.belief = BeliefSampler(engine, self.decklists)
+        self.belief = BeliefSampler(engine, priors=priors)
 
     def solve(
         self,
@@ -69,14 +65,15 @@ class OnlineMCCFRResolver:
         legal = self.engine.legal_actions(state)
         keys = [action_key(action) for action in legal]
         root_id = information_set_id(state, viewer)
+        diagnostics = self.belief.diagnostics(state, viewer)
 
         trainer_seed = self.rng.randrange(0, 2**31)
         belief_seed = self.rng.randrange(0, 2**31)
         belief_rng = random.Random(belief_seed)
         trainer = MCCFRTrainer(
             self.engine,
-            self.decklists[0],
-            self.decklists[1],
+            None,
+            None,
             seed=trainer_seed,
             max_depth=self.max_depth,
             leaf_scale=self.leaf_scale,
@@ -105,4 +102,6 @@ class OnlineMCCFRResolver:
             root_average_visits=node.average_visits,
             strategy=strategy,
             action_count=len(legal),
+            belief_prior=diagnostics.prior_type,
+            known_hidden_cards=diagnostics.known_hidden_hand_cards,
         )

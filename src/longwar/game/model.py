@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
@@ -62,6 +63,18 @@ class PlayerState:
     passed: bool = False
 
 
+@dataclass(frozen=True)
+class ObservationEvent:
+    turn_number: int
+    kind: str
+    viewer: int
+    owner: int
+    card_id: str
+    zone: str
+    delta: int = 0
+    reason: str = ""
+
+
 def empty_board() -> list[list[list[Slot]]]:
     return [
         [[Slot(), Slot()] for _ in range(3)],
@@ -86,6 +99,7 @@ class GameState:
     chooser: int | None = None
     winner: int | None = None
     turn_number: int = 1
+    observations: list[ObservationEvent] = field(default_factory=list)
 
     def clone(self) -> "GameState":
         return deepcopy(self)
@@ -95,3 +109,90 @@ class GameState:
 
     def scheme(self, player: int, front: Front) -> SchemeState | None:
         return self.schemes[player][int(front)]
+
+    def observe_hidden_delta(
+        self,
+        *,
+        viewer: int,
+        owner: int,
+        card_id: str,
+        zone: str,
+        delta: int,
+        reason: str,
+    ) -> None:
+        if delta == 0:
+            return
+        self.observations.append(
+            ObservationEvent(
+                turn_number=self.turn_number,
+                kind="hidden_knowledge",
+                viewer=viewer,
+                owner=owner,
+                card_id=card_id,
+                zone=zone,
+                delta=delta,
+                reason=reason,
+            )
+        )
+
+    def observe_reveal(
+        self,
+        *,
+        viewer: int,
+        owner: int,
+        card_id: str,
+        zone: str,
+        reason: str,
+    ) -> None:
+        self.observations.append(
+            ObservationEvent(
+                turn_number=self.turn_number,
+                kind="reveal",
+                viewer=viewer,
+                owner=owner,
+                card_id=card_id,
+                zone=zone,
+                reason=reason,
+            )
+        )
+
+    def known_hidden_counter(
+        self,
+        viewer: int,
+        owner: int,
+        zone: str = "hand",
+    ) -> Counter[str]:
+        counts: Counter[str] = Counter()
+        for event in self.observations:
+            if (
+                event.kind == "hidden_knowledge"
+                and event.viewer == viewer
+                and event.owner == owner
+                and event.zone == zone
+            ):
+                counts[event.card_id] += event.delta
+                if counts[event.card_id] <= 0:
+                    del counts[event.card_id]
+        return counts
+
+    def known_hidden_cards(
+        self,
+        viewer: int,
+        owner: int,
+        zone: str = "hand",
+    ) -> list[str]:
+        counts = self.known_hidden_counter(viewer, owner, zone)
+        return [
+            card_id
+            for card_id, count in sorted(counts.items())
+            for _ in range(count)
+        ]
+
+    def known_hidden_count(
+        self,
+        viewer: int,
+        owner: int,
+        card_id: str,
+        zone: str = "hand",
+    ) -> int:
+        return self.known_hidden_counter(viewer, owner, zone).get(card_id, 0)

@@ -127,6 +127,9 @@ def information_set_observation(state: GameState, player: int) -> dict[str, Any]
         "own_deck": _counter_view(own.deck),
         "own_discard": list(own.discard),
         "opponent_hand_count": len(other.hand),
+        "known_opponent_hand": _counter_view(
+            state.known_hidden_cards(player, opponent, "hand")
+        ),
         "opponent_deck_count": len(other.deck),
         "opponent_discard": list(other.discard),
     }
@@ -166,8 +169,8 @@ class MCCFRTrainer:
     def __init__(
         self,
         engine: GameEngine,
-        deck_a: list[str],
-        deck_b: list[str],
+        deck_a: list[str] | None,
+        deck_b: list[str] | None,
         *,
         seed: int = 1701,
         max_depth: int = 3,
@@ -176,10 +179,12 @@ class MCCFRTrainer:
         if max_depth < 1:
             raise ValueError("max_depth must be at least 1")
         self.engine = engine
-        self.deck_a = list(deck_a)
-        self.deck_b = list(deck_b)
-        self.engine.validate_deck(self.deck_a)
-        self.engine.validate_deck(self.deck_b)
+        self.deck_a = list(deck_a) if deck_a is not None else None
+        self.deck_b = list(deck_b) if deck_b is not None else None
+        if self.deck_a is not None:
+            self.engine.validate_deck(self.deck_a)
+        if self.deck_b is not None:
+            self.engine.validate_deck(self.deck_b)
         self.rng = random.Random(seed)
         self.seed = seed
         self.max_depth = max_depth
@@ -191,6 +196,8 @@ class MCCFRTrainer:
     def train(self, iterations: int) -> TrainingSummary:
         if iterations <= 0:
             raise ValueError("iterations must be positive")
+        if self.deck_a is None or self.deck_b is None:
+            raise ValueError("Root-deal training requires both concrete decklists")
 
         utility_sum = [0.0, 0.0]
         for _ in range(iterations):

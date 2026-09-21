@@ -116,7 +116,7 @@ function renderMatchups(lab) {
   const rows = Object.entries(lab.matchups || {}).filter(([, value]) => value);
   document.getElementById("matchups").innerHTML = `
     <table class="balance-table">
-      <thead><tr><th>Run</th><th>Agents</th><th>Games</th><th>Wins</th><th>Win rates</th><th>First-player win</th><th>Mean actions</th><th>Policy sources</th></tr></thead>
+      <thead><tr><th>Run</th><th>Agents</th><th>Games</th><th>Wins</th><th>Win rates</th><th>First-player win</th><th>Mean actions</th><th>Policy sources</th><th>Online belief / resolve</th></tr></thead>
       <tbody>
         ${rows.map(([name, row]) => `
           <tr>
@@ -128,6 +128,9 @@ function renderMatchups(lab) {
             <td>${pct(row.first_player_win_rate)}</td>
             <td>${num(row.mean_turns, 1)}</td>
             <td><code>${esc(JSON.stringify(row.policy_sources || {}))}</code></td>
+            <td>${row.online_resolution && row.online_resolution.decisions
+              ? `${pct(row.online_resolution.mean_root_coverage)} root coverage · ${num(row.online_resolution.mean_belief_samples,1)} samples · ${num(row.online_resolution.mean_information_sets,1)} infosets · known hidden ${num(row.online_resolution.mean_known_hidden_cards,2)} · <code>${esc(JSON.stringify(row.online_resolution.belief_priors || {}))}</code>`
+              : "—"}</td>
           </tr>
         `).join("")}
       </tbody>

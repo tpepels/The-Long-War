@@ -1,0 +1,95 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from longwar.cards import load_card_file
+from longwar.game import BoardTarget, Front, GameEngine, PlayName, PlayPlot, Position, Rank
+from longwar.game.model import GameState, PlayerState
+from longwar.mccfr import information_set_id
+
+ROOT = Path(__file__).resolve().parents[1]
+CENTER = Position(Front.CENTER, Rank.FRONT)
+
+
+def setup_return_state():
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data)
+
+    p0_deck = list(deck)
+    for card_id in ("the-fifty-men", "followed", "namar"):
+        p0_deck.remove(card_id)
+
+    p1_deck = list(deck)
+    p1_deck.remove("he-never-came")
+
+    state = GameState(
+        players=[
+            PlayerState(deck=p0_deck, hand=[]),
+            PlayerState(deck=p1_deck, hand=["he-never-came"]),
+        ],
+        active_player=1,
+    )
+    slot = state.slot(0, CENTER)
+    slot.subject = "the-fifty-men"
+    slot.link = "followed"
+    slot.name = "namar"
+    return engine, deck, state
+
+
+def test_returned_public_name_remains_known_in_hidden_hand() -> None:
+    engine, _, state = setup_return_state()
+
+    engine.apply(
+        state,
+        PlayPlot(
+            "he-never-came",
+            (BoardTarget(0, CENTER),),
+        ),
+    )
+
+    assert state.players[0].hand == ["namar"]
+    assert state.known_hidden_cards(1, 0, "hand") == ["namar"]
+    assert any(
+        event.card_id == "namar"
+        and event.kind == "hidden_knowledge"
+        and event.delta == 1
+        for event in state.observations
+    )
+
+
+def test_known_hidden_card_is_consumed_when_played_publicly() -> None:
+    engine, _, state = setup_return_state()
+    engine.apply(
+        state,
+        PlayPlot(
+            "he-never-came",
+            (BoardTarget(0, CENTER),),
+        ),
+    )
+    assert state.active_player == 0
+    assert state.known_hidden_count(1, 0, "namar") == 1
+
+    engine.apply(state, PlayName("namar", CENTER))
+
+    assert state.known_hidden_count(1, 0, "namar") == 0
+
+
+def test_information_set_distinguishes_remembered_hidden_card() -> None:
+    engine, _, state = setup_return_state()
+    engine.apply(
+        state,
+        PlayPlot(
+            "he-never-came",
+            (BoardTarget(0, CENTER),),
+        ),
+    )
+
+    remembered = information_set_id(state, 1)
+    forgotten = state.clone()
+    forgotten.observations.clear()
+
+    assert information_set_id(forgotten, 1) != remembered

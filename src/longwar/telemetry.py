@@ -68,7 +68,9 @@ class Telemetry:
             "belief_samples_total": 0.0,
             "information_sets_total": 0.0,
             "root_coverage_total": 0.0,
+            "known_hidden_total": 0.0,
         }
+        self.online_prior_counts: Counter[str] = Counter()
 
         self._drawn_this_game: list[set[str]] = [set(), set()]
         self._played_this_game: list[set[str]] = [set(), set()]
@@ -168,6 +170,12 @@ class Telemetry:
                 self.online_resolution["root_coverage_total"] += float(
                     decision_info.get("root_coverage", 0.0)
                 )
+                self.online_resolution["known_hidden_total"] += float(
+                    decision_info.get("known_hidden_cards", 0)
+                )
+                prior = decision_info.get("belief_prior")
+                if prior is not None:
+                    self.online_prior_counts[str(prior)] += 1
 
         return before
 
@@ -351,6 +359,11 @@ class Telemetry:
                 self.online_resolution["root_coverage_total"],
                 online_decisions,
             ),
+            "mean_known_hidden_cards": self._ratio(
+                self.online_resolution["known_hidden_total"],
+                online_decisions,
+            ),
+            "belief_priors": dict(sorted(self.online_prior_counts.items())),
         }
 
         return {
