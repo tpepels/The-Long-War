@@ -1190,3 +1190,38 @@ body.game-body::before {
 .play-card-rules em {
   font-style: italic;
 }
+
+
+.play-card-properties {
+  min-height: 18px;
+  margin: -2px 9px 4px;
+  color: color-mix(in srgb, var(--card-accent) 70%, #1d1913);
+  font: 700 7px/1.2 system-ui, sans-serif;
+  letter-spacing: .035em;
+}
+
+.play-card.card-hero {
+  border-color: #b9924a;
+  box-shadow:
+    0 0 0 2px rgba(185,146,74,.45),
+    0 3px 0 #76644a,
+    0 10px 22px rgba(0,0,0,.38);
+}
+
+.play-card.card-hero::after {
+  content: "HERO";
+  position: absolute;
+  right: 8px;
+  bottom: 33px;
+  padding: 3px 5px;
+  border: 1px solid #7c5d23;
+  background: rgba(217,199,164,.88);
+  color: #6c4e18;
+  font: 800 7px/1 system-ui, sans-serif;
+  letter-spacing: .08em;
+}
+
+.board-card.card-hero {
+  border-color: #9b7736;
+  box-shadow: 0 0 0 1px rgba(185,146,74,.45), 0 2px 0 rgba(0,0,0,.35);
+}

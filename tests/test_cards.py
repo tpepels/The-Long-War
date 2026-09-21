@@ -1,13 +1,46 @@
+from __future__ import annotations
+
+import json
+import re
 from pathlib import Path
 
-from longwar.cards import cards_by_type, load_card_file
+from longwar.cards import (
+    STORY_FORMS,
+    SUBJECT_ROLES,
+    cards_by_type,
+    load_card_file,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_card_file_is_valid() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    assert len(data["cards"]) == 22
+    assert len(data["cards"]) == 24
+
+
+def test_every_card_has_world_classifications() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    for card in data["cards"]:
+        assert card["classes"]
+        assert len(card["classes"]) == len(set(card["classes"]))
+
+    represented = {
+        classification
+        for card in data["cards"]
+        for classification in card["classes"]
+    }
+    assert {"human", "god", "king", "ship"} <= represented
+
+
+def test_every_subject_has_a_supported_role() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    subjects = cards_by_type(data, "subject")
+    assert subjects
+    assert all(card["role"] in SUBJECT_ROLES for card in subjects)
+    assert {"swordsman", "spearman", "archer", "healer"} <= {
+        card["role"] for card in subjects
+    }
 
 
 def test_every_name_is_unique() -> None:
@@ -15,28 +48,45 @@ def test_every_name_is_unique() -> None:
     assert all(card["unique"] for card in cards_by_type(data, "name"))
 
 
-def test_card_rules_text_avoids_obsolete_composite_jargon() -> None:
+def test_stories_have_named_forms_and_veiled_state() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    stories = cards_by_type(data, "plot")
+    assert {card["story_form"] for card in stories} == STORY_FORMS
+    assert all(isinstance(card["veiled"], bool) for card in stories)
+
+
+def test_reference_deck_has_exactly_one_hero() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    cards = {card["id"]: card for card in data["cards"]}
+    deck = json.loads(
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+    )["cards"]
+
+    heroes = [card_id for card_id in deck if cards[card_id].get("hero", False)]
+    assert len(deck) == 30
+    assert heroes == ["avaros-the-bronze-king"]
+
+
+def test_player_facing_card_text_avoids_old_technical_terms() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     for card in data["cards"]:
-        text = card.get("text", "").lower()
-        assert "legend" not in text
-        assert "complete" not in text
+        text = card.get("text", "")
+        assert "complete" not in text.lower()
+        assert not re.search(r"\b(?:link|plot|scheme)s?\b", text, re.IGNORECASE)
 
 
-def test_all_links_have_immediate_game_value() -> None:
+def test_all_bonds_have_immediate_game_value() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     for card in cards_by_type(data, "link"):
         assert int(card.get("rules", {}).get("strength_bonus", 0)) > 0
 
 
 def test_card_rules_text_uses_canonical_typography() -> None:
-    import re
-
     data = load_card_file(ROOT / "cards" / "cards.json")
     concepts = re.compile(
-        r"\b(?:Subjects?|Links?|Names?|Strength|Fronts?|Frontline|Rear|"
-        r"Schemes?|Plots?|Battles?|Pass(?:es|ed)?|Discard(?:ed)?|"
-        r"Return(?:ed)?|Move(?:d)?|adjacent|discard pile)\b",
+        r"\b(?:Subjects?|Bonds?|Names?|Stories?|Strength|Fronts?|Frontline|Rear|"
+        r"Battles?|Pass(?:es|ed)?|Discard(?:ed)?|Return(?:ed)?|Move(?:d)?|"
+        r"adjacent|discard pile|Veiled Story|Hero|Line Defense)\b",
         re.IGNORECASE,
     )
 
@@ -44,15 +94,12 @@ def test_card_rules_text_uses_canonical_typography() -> None:
     for card in data["cards"]:
         text = card.get("text", "")
 
-        # Bold spans are the only place defined game terms/actions should occur.
         without_bold = re.sub(r"\*\*[^*]+\*\*", "", text)
-        # Italic properties such as *Frontline only.* are deliberately exempt.
         without_markup = re.sub(r"\*[^*]+\*", "", without_bold)
         assert not concepts.search(without_markup), (
             f"{card['title']} has an unformatted game concept: {text}"
         )
 
-        # Any explicit reference to a card title must be italicized.
         text_without_italics = re.sub(r"\*[^*]+\*", "", text)
         for title in titles:
             assert title not in text_without_italics, (

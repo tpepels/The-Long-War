@@ -87,6 +87,10 @@ def test_action_payload_exposes_structured_board_targets() -> None:
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
     active = session.state.active_player
+    session.state.players[active].hand = [
+        "the-fifty-men",
+        "the-lamps-went-dark",
+    ]
     snapshot = session.snapshot(active)
 
     subject = next(

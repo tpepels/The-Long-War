@@ -17,7 +17,7 @@ def test_fifty_men_followed_namar_static_strength_before_position_bonus() -> Non
     assert score.static_strength == 9
 
 
-def test_all_subject_link_name_combinations_are_analyzed() -> None:
+def test_all_subject_bond_name_combinations_are_analyzed() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     report = build_report(data)
-    assert report["legend_count"] == 6 * 5 * 4
+    assert report["legend_count"] == 8 * 5 * 4

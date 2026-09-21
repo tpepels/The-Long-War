@@ -286,7 +286,7 @@ class PlaySession:
 
         for event in self.state.observations[observations_before:]:
             if event.kind == "reveal":
-                self.log.append(f"Scheme revealed: {self.cards[event.card_id]['title']}.")
+                self.log.append(f"Veiled Story revealed: {self.cards[event.card_id]['title']}.")
 
         battle_winner = next(
             (
@@ -367,7 +367,7 @@ class PlaySession:
             )
         if isinstance(action, PlayLink):
             return (
-                f"{prefix} attaches {self.cards[action.card_id]['title']} "
+                f"{prefix} attaches the Bond {self.cards[action.card_id]['title']} "
                 f"in {FRONT_NAMES[action.position.front]}."
             )
         if isinstance(action, PlayName):
@@ -387,7 +387,7 @@ class PlaySession:
                     f"Set {self.cards[action.card_id]['title']} face-down "
                     f"in {FRONT_NAMES[action.front]}."
                 )
-            return f"{prefix} sets a face-down Scheme in {FRONT_NAMES[action.front]}."
+            return f"{prefix} sets a face-down Story in {FRONT_NAMES[action.front]}."
         if isinstance(action, PlayPlot):
             title = self.cards[action.card_id]["title"]
             if not action.targets:
@@ -404,13 +404,13 @@ class PlaySession:
         if isinstance(action, PlaySubject):
             return "This is an empty legal Subject position."
         if isinstance(action, PlayLink):
-            return "This Subject has no Link yet."
+            return "This Subject has no Bond yet."
         if isinstance(action, PlayName):
-            return "This Subject has a Link and no Name attached yet."
+            return "This Subject has a Bond and no Name attached yet."
         if isinstance(action, PlayScheme):
-            return "You have no Scheme in this Front."
+            return "You have no Veiled Story in this Front."
         if isinstance(action, PlayPlot):
-            return "The Plot has all targets required by its rules text."
+            return "The Story has all targets required by its rules text."
         return "Legal according to the canonical game engine."
 
     @staticmethod

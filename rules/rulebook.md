@@ -1,28 +1,29 @@
 # The Long War
 
-*An ancient war is not won in a single clash. It is won by knowing where to commit, what to preserve, and when to stop.*
+*An ancient war is not won in a single clash. It is won by knowing where to commit, how to form your line, and when to stop.*
 
 <div class="rulebook-opening">
 
-**The Long War** is a two-player card game about fighting a campaign across three **Fronts**. You do not attack opposing units and there is no combat phase. Instead, both players build positions one card at a time, trying to make two of the three Fronts theirs **without spending more of their hand than the Battle is worth**.
+**The Long War** is a two-player card game fought across three **Fronts**. You do not attack opposing units and there is no combat phase. Instead, both players build formations one card at a time, trying to control two Fronts **without spending more of their hand than the Battle is worth**.
 
-A match can last up to three **Battles**. Your battlefield is cleared after each Battle, but your **hand is not**. Every card you commit now is a card you cannot use later.
+A match can last up to three **Battles**. The battlefield is cleared after each Battle, but your **hand is not**. Every card you commit now is a card you cannot use later.
 
-The game is therefore about three questions:
+The game revolves around four questions:
 
 1. **Where do I commit?** — **Left**, **Center**, or **Right**?
-2. **How deeply do I commit?** — Is a **Subject** enough, or is this position worth adding a **Link** and **Name**?
-3. **When do I stop?** — Do I spend another card to steal this Battle, or **Pass** and preserve my hand for the next one?
+2. **Where does this Subject belong?** — **Frontline** or **Rear**, beside whom, and with what behind or in front of it?
+3. **How deeply do I commit?** — Is the Subject enough, or is this position worth a **Bond** and **Name**?
+4. **When do I stop?** — Do I spend another card, or **Pass** and preserve my hand?
 
 </div>
 
-> **First game?** Read through **A Battle, from beginning to end**. At that point you know enough to start playing. The Reference section exists for questions that come up during play; it is not homework.
+> **First game?** Read through **A Battle, from beginning to end**. At that point you know enough to start. The Reference section is for questions that arise during play.
 
 ### How rules text is written
 
-**Bold** words are defined game concepts or rules actions, such as **Subject**, **Link**, **Name**, **Strength**, **Front**, **Pass**, **discard**, **return**, and **move**.
+**Bold** words are defined game concepts or rules actions, such as **Subject**, **Bond**, **Name**, **Story**, **Strength**, **Front**, **Pass**, **discard**, **return**, and **move**.
 
-*Italic* words are specific card titles or printed card properties, such as *Namar* or *Frontline only*.
+*Italic* words are card titles or printed card properties, such as *Namar*, *Swordsman*, *Human*, *Hero*, *Myth*, or *Frontline only*.
 
 ---
 
@@ -32,66 +33,59 @@ The game is therefore about three questions:
 
 Every **Battle** is fought over three independent **Fronts**: **Left**, **Center**, and **Right**.
 
-You and your opponent place cards into those Fronts. Each Front has its own **Strength** total. When both players have **Passed**, you compare the three Fronts.
+Each Front contains your **Frontline** and **Rear** position, opposed by the same two positions on your opponent's side.
 
-- Higher Strength controls a Front.
-- Control **2 of the 3 Fronts** and you win the Battle.
-- Win **2 Battles** and you win the match.
+When both players have **Passed**:
 
-That sounds simple. The difficulty is that you cannot win every Front with every card.
+- higher **Strength** controls a Front;
+- control **2 of the 3 Fronts** to win the Battle;
+- win **2 Battles** to win the match.
 
-If your opponent builds 12 Strength on the Left, you might spend three cards trying to catch up. Or you might decide that Left is lost, spend nothing more there, and win Center and Right instead. Both can be correct.
+The strongest single position does not win the Battle by itself. If your opponent commits 13 Strength to Center, it can be correct to abandon Center and spend your cards taking Left and Right instead.
 
 <div class="rulebook-big-rule">
   <span>3</span><small>Fronts divide every Battle</small>
-  <span>2</span><small>Fronts are enough to win it</small>
+  <span>2</span><small>Fronts win the Battle</small>
   <span>2</span><small>Battle wins take the match</small>
 </div>
 
-### Cards carry over between Battles
+### Cards carry over
 
-At the end of a Battle, everything on the battlefield is **discarded**. **Cards still in your hand stay in your hand**, and then you draw only 3 more cards.
+At the end of a Battle, cards on the battlefield are **discarded**. Cards still in your hand remain there, and then you draw only 3 more cards.
 
-So winning Battle I after spending eight cards can be worse than losing it after spending three.
+Winning Battle I after spending eight cards can therefore be worse than losing it after spending three.
 
-*The Long War* is not simply “make the biggest number.” It is a game of **position and card economy**.
+*The Long War* is a game of **position and card economy**, not simply a contest to make the largest number.
 
-## What does a turn mean? {#turn}
+## What happens on a turn? {#turn}
 
-Players alternate turns. On your turn you make one commitment:
+Players alternate turns. On your turn:
 
 - **play exactly one card**, or
 - **Pass**.
 
-That is the whole turn structure.
+Then the other player acts.
 
-There is no attack step. **Subjects** do not strike each other. Damage is not exchanged. The board changes because you add cards, attach **Links** and **Names**, play **Plots**, reveal **Schemes**, or **move**, **discard**, and **return** cards through effects.
-
-When you play a card, you are usually doing one of four strategic things:
+There is no attack step. Subjects do not exchange damage. The board changes because you place **Subjects**, attach **Bonds** and **Names**, play **Stories**, set **Veiled Stories**, and **move**, **discard**, or **return** cards.
 
 <div class="decision-grid">
-  <div><b>Claim</b><span>Put Strength into an empty part of the battlefield with a Subject.</span></div>
-  <div><b>Deepen</b><span>Add a Link or Name to make one Subject more valuable.</span></div>
-  <div><b>Disrupt</b><span>Discard, return, or move something that has already been built.</span></div>
-  <div><b>Threaten</b><span>Place a face-down Scheme that changes what your opponent dares to do.</span></div>
+  <div><b>Claim</b><span>Put a Subject into a useful position.</span></div>
+  <div><b>Form</b><span>Use Frontline, Rear, adjacency, and roles to make the line stronger.</span></div>
+  <div><b>Deepen</b><span>Add a Bond or Name to invest further in one Subject.</span></div>
+  <div><b>Disrupt</b><span>Use Stories to break, weaken, return, or relocate cards.</span></div>
 </div>
 
-The fifth option—**Pass**—is as important as any card.
+The fifth option—**Pass**—is as important as any card. Passing says: *I am willing to score the Battle from here.*
 
-Passing says: *I am willing to score the Battle from this position.* Once you Pass, you cannot play again during that Battle.
+Once you Pass, you cannot play again during that Battle.
 
-Your opponent may continue playing alone. If they spend three cards to overturn your position, that may win this Battle—but you have made them pay three cards for it.
+---
 
-## How the battlefield works {#battlefield}
+<div class="rulebook-kicker">THE BATTLEFIELD</div>
 
-The battlefield is three vertical contests side by side.
+## Frontline and Rear are not equal {#battlefield}
 
-Each **Front** contains two **Subject** positions for each player:
-
-- **Frontline** — closest to the battle line.
-- **Rear** — behind the Frontline.
-
-There is no universal bonus for Frontline or Rear. The distinction exists because cards can care about rank, movement, adjacency, being behind another card, and so on.
+Each player has six Subject positions:
 
 ```text
                          OPPONENT
@@ -109,15 +103,77 @@ There is no universal bonus for Frontline or Rear. The distinction exists becaus
                            YOU
 ```
 
-A **Front** is the whole column: your Frontline + your Rear versus the opponent's Frontline + Rear.
+Only **Subjects** occupy these six positions. A **Bond** and **Name** attach to a Subject and remain in its position.
 
-If you have 4 Strength in Left Frontline and 3 in Left Rear, your Left Front has **7 Strength**.
+### Line Defense
 
-Only **Subjects** occupy those six positions. A **Link** and **Name** attach to a Subject rather than taking their own space. A **Scheme** sits face-down beside one Front.
+Every Subject in the **Frontline** gets **+1 Strength**.
 
-## Why the cards read like a sentence {#cards}
+This is **Line Defense**. It represents a Subject actively holding the battle line, so an otherwise identical Subject counts more in the Frontline than in the Rear.
 
-The central construction in *The Long War* is deliberately grammatical:
+Line Defense is applied automatically; it is not printed on every card.
+
+## Subject roles {#roles}
+
+Every Subject has a printed *role*. Roles create standard positional rules.
+
+| Role | Positional rule |
+| --- | --- |
+| *Swordsman* | +1 Strength while in the **Frontline**. |
+| *Spearman* | +1 Strength while in the **Frontline** if a friendly Subject is directly **behind** it in the Rear. |
+| *Archer* | +2 Strength while in the **Rear** if a friendly Subject is directly **in front of** it. |
+| *Healer* | Played in the Rear; the friendly Subject directly **in front of** it gets +2 Strength. |
+| *Ship* | +1 Strength while in the **Rear**. |
+| *Stronghold* | +1 Strength while in the **Rear**. |
+
+These bonuses are in addition to **Line Defense**.
+
+This creates formation choices. A Swordsman usually wants to hold the line. An Archer wants protection in front. A Spearman becomes stronger when the line has depth. A Healer is weak by itself but makes the Frontline harder to break.
+
+### Adjacent, in front of, behind
+
+**Adjacent** means immediately left or right in the same rank on your side.
+
+A Subject is **in front of** the Rear position in the same Front.
+
+A Rear Subject is **behind** the Frontline position in the same Front.
+
+These relationships are always determined from the current board. If a Subject moves, its positional bonuses change immediately.
+
+## Classifications {#classifications}
+
+Cards also have one or more printed *classifications* such as *Human*, *God*, *King*, *Ship*, *Fleet*, *Warband*, or *Stronghold*.
+
+Classifications describe what a card is in the world. They do not create a rule by themselves unless a card specifically refers to that classification.
+
+A card can have several classifications. For example, a Hero might be *Human · King · Hero*.
+
+This is separate from a Subject's *role*: classification is identity; role determines formation behavior.
+
+## Heroes {#heroes}
+
+Every 30-card deck contains **exactly one Hero**.
+
+A Hero is a unique Subject designed to be stronger than an ordinary Subject. Heroes have higher printed Strength and a special rule, but still occupy a normal Subject position and can be affected like other Subjects unless their card says otherwise.
+
+The reference deck's Hero is *Avaros, the Bronze King*:
+
+- printed Strength 6;
+- *Swordsman*, so he benefits from Frontline positioning;
+- *Human · King · Hero*;
+- while in the **Frontline**, adjacent Subjects you control get +1 Strength.
+
+With **Line Defense** and the Swordsman role, *Avaros* is already 8 Strength in the Frontline before his adjacency effect matters.
+
+The Hero is therefore powerful, but committing it to one Front still does not win the other two.
+
+---
+
+<div class="rulebook-kicker">BUILDING STORIES ON SUBJECTS</div>
+
+## Subject — Bond — Name {#cards}
+
+The central construction in *The Long War* is grammatical:
 
 <div class="legend-sentence">
   <span class="subject"><em>The Fifty Men</em></span><i>—</i>
@@ -125,83 +181,118 @@ The central construction in *The Long War* is deliberately grammatical:
   <span class="name"><em>Namar</em></span>
 </div>
 
-Read aloud, the cards form a sentence: *The Fifty Men followed Namar.*
+Read aloud: *The Fifty Men followed Namar.*
 
-There is no extra rules object for the three-card line. The attached cards remain a **Subject**, **Link**, and **Name**, and card text refers to those real parts directly.
+The cards remain three separate objects: a **Subject**, a **Bond**, and a **Name**.
 
 ### Subject — who or what is here?
 
-A **Subject** is the physical presence on the battlefield: people, ships, a house, a returning company.
+A Subject is the physical presence occupying the battlefield: people, ships, a stronghold, a warband.
 
-You play it into an empty Subject position. Its printed **Strength** immediately counts in that Front.
+Its printed Strength, **Line Defense**, role, attached cards, and other modifiers determine its final Strength.
 
-A Subject can stand alone. Sometimes that is all you need.
+### Bond — what connects this Subject to a Name?
 
-### Link — what connects the Subject to a Name?
-
-A **Link** attaches to one of your Subjects.
+A **Bond** attaches to one of your Subjects.
 
 *The Fifty Men — Followed*
 
-A Link has an effect as soon as it is played. Many Links become stronger while they also have a **Name** attached.
+A Bond has an effect immediately. Many Bonds become stronger while a **Name** is also attached.
 
-This means playing a Link is no longer a dead intermediate turn: it helps now, but also creates room for a later Name.
+A Bond without a Name is an **open Bond**.
 
-A Link without a Name is called an **open Link**.
+### Name — who enters the sentence?
 
-### Name — who completes the sentence?
-
-A **Name** attaches to one of your open Links.
+A **Name** attaches to an open Bond.
 
 *The Fifty Men — Followed — Namar*
 
-The Name adds its printed Strength, and any text that cares about a Link having a Name now applies.
+The Name adds its printed Strength and its own rules. Any Bond text that cares about having a Name also becomes active.
 
-Every Name is *Unique*: you may include only one copy of that card title in your deck.
+Every Name is *Unique*.
 
-### Plot — change the board immediately
+## Stories {#stories}
 
-A **Plot** is a one-shot action. Reveal it, resolve its text, then **discard** it.
+A **Story** is a one-shot narrative card. Some resolve immediately; others are *Veiled* and wait face-down in a Front.
 
-Plots let you break **Links**, **return** attached cards, **move Subjects**, weaken positions, and otherwise interfere with what is already on the table.
+Each Story also has a printed *form*. The current set uses:
 
-### Scheme — make the opponent play around uncertainty
+- *Myth*
+- *Legend*
+- *Saga*
+- *Omen*
+- *Warning*
+- *Prophecy*
+- *Conspiracy*
 
-A **Scheme** is a Plot with the Scheme keyword.
+The form is a card property. It has no universal rule unless a card specifically refers to it.
 
-Instead of resolving immediately, it is placed face-down in one **Front**. Its identity is hidden. The current Scheme cards each give you **+1 Strength** in that Front while they remain face-down. When a Scheme is revealed, that face-down bonus ends.
+### Immediate Stories
 
-When its printed trigger happens, reveal it, resolve it, then **discard** it.
+An ordinary Story is revealed, resolved, then discarded.
 
-A Scheme therefore matters before it ever triggers: it changes the visible Strength in a Front and hides a second effect your opponent has to play around.
+Examples:
 
-## Why add all three cards? {#three-card-line}
+- *The Story Is False* is a *Myth*.
+- *He Never Came* is a *Legend*.
+- *They Chose Another* is a *Saga*.
 
-Because a **Subject — Link — Name** sequence can concentrate several cards' effects into one position.
+### Veiled Stories
 
-Take this sequence in the **Frontline**:
+A Story printed *Veiled* is played face-down in a Front. You may have at most one Veiled Story in each Front.
 
-| Your turns | What is in Center Frontline | Strength |
+While one of the current Veiled Stories remains face-down, it gives **+1 Strength** in that Front. When its trigger occurs:
+
+1. reveal it;
+2. its face-down +1 ends;
+3. resolve its effect;
+4. discard it.
+
+The reference set includes:
+
+- *The Lamps Went Dark* — *Omen*
+- *The Road Was Cut* — *Warning*
+- *The Hidden Oars* — *Prophecy*
+- *The Witness Lied* — *Conspiracy*
+
+Your opponent knows which Front contains a Veiled Story but not its identity.
+
+---
+
+<div class="rulebook-kicker">A POSITION, STEP BY STEP</div>
+
+## Building one Frontline Subject {#three-card-line}
+
+Suppose you play *The Fifty Men* in Center Frontline.
+
+*The Fifty Men* are *Swordsmen*.
+
+| Step | Calculation | Strength |
 | --- | --- | ---: |
-| Play *The Fifty Men* | *The Fifty Men* | 4 |
-| Attach *Followed* | *The Fifty Men — Followed* | 5 |
-| Attach *Namar* | *The Fifty Men — Followed — Namar* | **11** |
+| Printed Strength | *The Fifty Men* | 4 |
+| Line Defense | Frontline | +1 |
+| *Swordsman* | Frontline role bonus | +1 |
+| **Current total** | | **6** |
 
-The final 11 comes from:
+Attach *Followed*:
 
-- *The Fifty Men*: 4
-- *Followed*: +1 immediately
-- *Followed* while it has a Name: +2 more
-- *Namar*: +2
-- *Namar* while attached in the Frontline: +2
+| Addition | Strength |
+| --- | ---: |
+| Existing Subject | 6 |
+| *Followed* immediate Bond bonus | +1 |
+| **Current total** | **7** |
 
-The important decision is not merely “11 is good.”
+Then attach *Namar*:
 
-You spent **three cards and three turns** to create it.
+- *Namar*: +2;
+- *Followed* has a Name: +2 additional;
+- *Namar* is attached in the Frontline: +2 additional.
 
-If 7 Strength would already have secured Center, the extra investment may be wasteful. If your opponent abandons Center and wins Left and Right, the 11 Strength did not win the Battle at all.
+The final position reaches **13 Strength**.
 
-That is the central positional tension: **power in one Front does not automatically become power somewhere else.**
+That is powerful—but it took three cards and three turns, and all 13 Strength still occupy only Center.
+
+If your opponent concedes Center and wins Left and Right, the position loses the Battle despite its size.
 
 ---
 
@@ -209,92 +300,67 @@ That is the central positional tension: **power in one Front does not automatica
 
 ## Follow one Battle {#walkthrough}
 
-Imagine Player 1 and Player 2 have just drawn their opening hands.
+### Turn 1 — Player 1 forms Center
 
-### Turn 1 — Player 1 claims Center
+Player 1 puts *The Fifty Men* in Center Frontline.
 
-Player 1 plays *The Fifty Men* to **Center Frontline**.
+Because they are *Swordsmen*, they count as 6 Strength there: 4 printed +1 Line Defense +1 role bonus.
 
-Center is now 4–0.
+### Turn 2 — Player 2 uses the Rear
 
-Player 1 has not “attacked” anything. They have simply announced: *if this Battle ended now, Center would be mine.*
+Player 2 puts *Seven Black Ships* in Right Rear.
 
-### Turn 2 — Player 2 claims Right instead of contesting Center
+Ships get +1 in the Rear, so the card contributes 5 Strength.
 
-Player 2 plays *Seven Black Ships* to **Right Rear**.
+The two players are already solving different positional problems: Player 1 is holding the line; Player 2 is using a rear-positioned fleet.
 
-Because *Seven Black Ships* gets +1 Strength in the Rear, it currently contributes 5 Strength.
+### Turn 3 — Player 1 places an Archer
 
-The board is now split:
+Player 1 plays *The Children of the Salt Road* in Center Rear.
 
-- Center favors Player 1.
-- Right favors Player 2.
-- Left is empty.
+They are *Archers*. Because *The Fifty Men* are directly in front of them, they receive +2 Strength.
 
-Already the real question is visible: **who will spend cards on the third Front, and who will force the other player to respond?**
+Center now has both depth and role synergy.
 
-### Turn 3 — Player 1 adds a Link
+### Turn 4 — Player 2 sets an Omen
+
+Player 2 plays *The Lamps Went Dark* face-down in Center.
+
+It is an *Omen* and *Veiled*. While face-down it adds +1 Strength to Center, but Player 1 does not know its trigger.
+
+### Turn 5 — Player 1 deepens the Frontline
 
 Player 1 attaches *Followed* to *The Fifty Men*.
 
-The Subject immediately rises from 4 to 5 Strength. The Link is useful now, even before a Name arrives.
+The Bond adds Strength immediately and leaves room for a Name later.
 
-It also creates an open Link that can accept a Name later.
+### Turn 6 — Player 2 develops another Front
 
-### Turn 4 — Player 2 places uncertainty on Center
+Rather than trying to overpower Center, Player 2 commits a Subject to Left.
 
-Player 2 sets a **Scheme** face-down in Center.
+That is often the right response to a highly developed formation: let it win one Front and make the other two decide the Battle.
 
-Player 1 knows there is a threat in Center but not which Scheme it is.
+### Later — someone Passes
 
-Adding another card to Center may still be correct—but it is no longer a decision made with perfect information.
+Suppose Player 1 controls Center and narrowly controls Left, then **Passes**.
 
-### Turn 5 — Player 1 attaches Namar
+Player 2 must decide whether the cards needed to steal Left are worth spending. If not, they may Pass, lose this Battle cheaply, and carry a larger hand into Battle II.
 
-Player 1 plays *Namar* on *Followed*.
+That decision—not an attack calculation—is the heart of the game.
 
-Because this Subject is in the Frontline, *Namar* contributes its normal 2 Strength and another +2 from its ability. *Followed* also gains its additional +2 because it now has a Name.
+## Passing {#passing}
 
-The position reaches 11 Strength.
+When you **Pass**, you take no more turns that Battle.
 
-Center looks overwhelming.
+The opponent may keep playing one card per turn until they also Pass.
 
-But that does **not** mean Player 1 is winning the Battle. They currently control only one Front.
+Passing:
 
-### Turn 6 — Player 2 plays Left
-
-Player 2 commits a Subject to Left rather than fighting the 11 Strength in Center.
-
-This is often the correct response to an overbuilt position: **let it win one Front and make the other two matter.**
-
-### What happens next?
-
-Player 1 must decide whether to contest Left or Right. Player 2 must decide whether another card is worth spending. Either player can eventually Pass.
-
-Suppose Player 1 controls Center and narrowly takes Left, then **Passes**.
-
-Player 2 now has a choice:
-
-- spend cards trying to steal Left and win this Battle, or
-- accept the loss, Pass immediately, and enter Battle II with more cards in hand.
-
-That decision—**not a combat calculation**—is the heart of the game.
-
-## Passing ends your participation in this Battle {#passing}
-
-When you **Pass**, you take no more turns in that Battle.
-
-The other player may continue playing as many turns as they want, one card per turn, because you are no longer taking turns between theirs.
-
-When they also Pass, score immediately.
-
-Passing therefore does three things at once:
-
-1. protects the cards still in your hand;
+1. preserves your remaining hand;
 2. gives the opponent freedom to improve the board;
-3. forces the opponent to decide how much your current position is worth chasing.
+3. forces the opponent to decide how many cards your position is worth.
 
-A good Pass can lose a Battle and still improve your chances of winning the match.
+A good Pass can lose a Battle and still improve your chance of winning the match.
 
 ---
 
@@ -302,57 +368,48 @@ A good Pass can lose a Battle and still improve your chances of winning the matc
 
 ## Set up your first match {#setup}
 
-1. Each player takes a legal **30-card deck** and shuffles it.
-2. Draw **10 cards**.
-3. You may choose up to **2 cards** from your opening hand, shuffle them back, then draw the same number of replacements.
+1. Each player takes a legal **30-card deck** containing **exactly one Hero**.
+2. Shuffle and draw **10 cards**.
+3. You may choose up to **2 cards**, shuffle them back, then draw the same number.
 4. Randomly choose who takes the first turn of Battle I.
-5. Keep your deck and hand hidden. Keep your discard pile face-up and visible.
+5. Keep deck and hand hidden. Keep discard piles face-up and visible.
 
 Then alternate turns: **play one card or Pass**.
 
-> There is no automatic start-of-turn draw. Your opening hand must last. Between Battles you draw only 3 new cards.
+> There is no automatic start-of-turn draw. Between Battles you draw only 3 new cards.
 
-## When both players Pass, score {#scoring}
+## Score the Battle {#scoring}
 
-Add your Frontline and Rear Strength separately in each Front.
+When both players have Passed, calculate each Front's total Strength:
 
-Example:
+1. determine each Subject's Strength, including Line Defense, role bonuses, attached Bond/Name, and temporary modifiers;
+2. add Frontline + Rear;
+3. add Front-level modifiers such as a face-down Veiled Story.
 
-| Front | Player 1 | Player 2 | Result |
-| --- | ---: | ---: | --- |
-| Left | 7 | 4 | Player 1 controls Left |
-| Center | 3 | 5 | Player 2 controls Center |
-| Right | 2 | 2 | Nobody controls Right |
+Then compare Fronts.
 
-Neither player controls two Fronts, so use the first tiebreaker: total Strength.
+Use these tiebreakers in order:
 
-- Player 1 total: **12**
-- Player 2 total: **11**
-
-Player 1 wins the Battle.
-
-Use this order every time:
-
-1. **Control 2 of 3 Fronts.**
-2. If neither player does, compare **total Strength**.
-3. If still tied, the player who **Passed first** wins.
+1. control **2 of 3 Fronts**;
+2. if neither player does, higher **total Strength** across all three Fronts;
+3. if still tied, the player who **Passed first**.
 
 ## After the Battle {#after-battle}
 
-The Battle winner takes 1 Victory marker.
+The winner takes 1 Victory marker.
 
 Then:
 
-1. **discard** all cards still on the battlefield, including Schemes;
-2. **keep every card still in your hand**;
-3. each player draws 3 cards;
-4. the player who lost the Battle chooses who takes the first turn next.
+1. discard all battlefield cards, including face-down Stories;
+2. keep cards still in hand;
+3. draw 3 each;
+4. the Battle loser chooses who takes the first turn next.
 
-The first player to win 2 Battles wins the match.
+First to 2 Battle wins takes the match.
 
 <div class="start-playing-box">
   <b>You know enough.</b>
-  <span>Set up the battlefield and play. Read the rest only when the game gives you a reason to.</span>
+  <span>Set up the battlefield and play. Use the Reference only when a question comes up.</span>
 </div>
 
 ---
@@ -361,29 +418,30 @@ The first player to win 2 Battles wins the match.
 
 ## Strength {#reference}
 
-Each occupied **Subject** position has one **Strength** total. A card may also modify the Strength of an entire **Front**; apply those Front-level modifiers after adding its Frontline and Rear positions.
+For each occupied Subject position:
 
-Start with the **Subject's** printed Strength. Then:
+1. start with printed Strength;
+2. add **Line Defense** if it is in the Frontline;
+3. apply its *role*;
+4. apply positional support from cards behind, in front, or adjacent;
+5. apply the attached Bond's immediate bonus;
+6. if a Name is attached, add its Strength and any Bond/Name conditional effects;
+7. apply temporary and card-specific modifiers.
 
-1. apply the attached **Link's** immediate Strength modifier, if any;
-2. if a **Name** is attached, add its printed Strength;
-3. apply any additional Link or Name effects whose conditions are true;
-4. apply other temporary or positional modifiers.
+A Front's Strength is Frontline + Rear + Front-level modifiers.
 
-- A Front's Strength is the sum of its Frontline and Rear positions.
-- Empty positions contribute 0.
-- A position's final Strength cannot be lower than 0 unless a card explicitly says otherwise.
+Final Subject Strength cannot fall below 0 unless a card explicitly says otherwise.
 
 ## Position language
 
 **Front**  
-One whole Left, Center, or Right column, including both players' positions there.
+One whole Left, Center, or Right column.
 
 **Frontline**  
-The Subject position nearest the battle line.
+The Subject position nearest the battle line. It receives Line Defense.
 
 **Rear**  
-The Subject position behind the Frontline in the same Front.
+The Subject position behind the Frontline.
 
 **Adjacent**  
 Immediately left or right in the same rank on the same player's side.
@@ -397,120 +455,82 @@ The Frontline position in the same Front.
 **Opposing**  
 On the opponent's side of the same Front.
 
-**Open Link**  
-A Link attached to a Subject with no Name attached.
+**Open Bond**  
+A Bond attached to a Subject without a Name.
 
-A Link and Name inherit their Subject's Front and rank for effects that care about position.
+A Bond and Name inherit their Subject's Front and rank.
 
 ## Playing cards precisely
 
 ### Subjects
 
-Choose a legal empty Subject position. Unless a card says otherwise, a Subject may be played in either rank and any Front.
+Choose a legal empty Subject position.
 
-### Links
+Unless the card says otherwise, a Subject may be played in either rank. Its role bonuses update automatically when its position changes.
 
-Choose one of your Subjects without a Link and attach the Link to it.
+### Bonds
 
-A Subject can have at most one Link. The Link's immediate effect applies as soon as it is played.
+Choose one of your Subjects without a Bond and attach the Bond.
+
+A Subject can have at most one Bond.
 
 ### Names
 
-Choose one of your open Links and attach the Name.
+Choose one of your open Bonds and attach the Name.
 
-A Link can have at most one Name. Every Name is *Unique*.
+A Bond can have at most one Name. Every Name is *Unique*.
 
-The Name's printed Strength and continuous text become active immediately. Any Link text that says “while this Link has a Name” also becomes active.
+### Stories
 
-### Plots
+For an immediate Story, choose all required legal targets, resolve the Story in written order, then discard it.
 
-Choose all required legal targets, then resolve the Plot in the order written and discard it.
+For a *Veiled* Story, choose a Front with no Veiled Story on your side and play it face-down.
 
-If an instruction cannot do everything it asks, do as much as possible unless the card states a requirement that makes the play illegal.
-
-### Schemes
-
-Play a Scheme face-down in one Front. You may have at most one face-down Scheme in each Front.
-
-You may inspect your own Schemes at any time. Your opponent may not.
-
-When its trigger occurs:
-
-1. finish resolving the triggering card or action unless the Scheme says otherwise;
-2. reveal the Scheme;
-3. resolve it;
-4. discard it.
-
-If simultaneous triggered effects would matter, the active player resolves their effects first, then the other player resolves theirs. Each player chooses the order of their own simultaneous effects.
-
-> **Card text beats the general rules.** If a card directly contradicts a rule here, follow the card.
+You may inspect your own face-down Stories at any time. Your opponent may not.
 
 ## What happens when attached cards leave?
 
-The cards remain separate objects. Removing one part does not automatically mean all three cards go to the same place.
-
 | What happens? | Result |
 | --- | --- |
-| A **Subject** is discarded | Discard its Link too. Return its Name to its owner's hand. |
-| A **Link** is discarded | The Subject stays. Return its Name to its owner's hand. |
-| An open **Link** is returned | The Subject stays. Put the Link into its owner's hand. |
-| A **Name** is returned or discarded | The Subject and Link stay. The Link becomes open. |
-| A **Subject** moves | Its Link and Name move with it. |
-| A **Link** moves | Its Name moves with it. The original Subject stays. |
-
-A returned card goes to its owner's hand. A discarded card goes face-up to its owner's discard pile.
-
-## Passing and Battle end
-
-Once you Pass, you take no more turns that Battle.
-
-When both players have Passed:
-
-1. resolve effects that explicitly happen at Battle end;
-2. score each Front;
-3. determine the Battle winner;
-4. award a Victory marker;
-5. discard the battlefield;
-6. draw 3 each;
-7. the loser chooses who starts next.
-
-If fewer than three cards remain in your deck, draw as many as possible. Running out of cards does not itself make you lose.
+| A **Subject** is discarded | Discard its Bond too. Return its Name to its owner's hand. |
+| A **Bond** is discarded | The Subject stays. Return its Name to its owner's hand. |
+| An open **Bond** is returned | The Subject stays. Put the Bond into its owner's hand. |
+| A **Name** is returned or discarded | Subject and Bond stay. The Bond becomes open. |
+| A **Subject** moves | Its Bond and Name move with it. |
 
 ## Timing
 
-The player taking the current turn is the **active player**.
+Resolve the card being played completely before resolving triggered Veiled Stories unless card text explicitly says otherwise.
 
-Resolve the played card completely before resolving effects it triggered unless that card says otherwise.
+If both players have effects waiting at the same time, the active player's effects resolve first, then the other player's. Each player chooses the order of their own simultaneous effects.
 
-After that, resolve triggered Schemes, then other triggered effects.
-
-If both players have effects waiting at the same time, the active player's effects resolve first, then the other player's.
-
-At Battle end, the player who Passed second counts as the active player for simultaneous end-of-Battle effects.
+At Battle end, the player who Passed second counts as active for simultaneous end-of-Battle effects.
 
 ## Hidden and public information
 
-**Hidden information**
+**Hidden**
 
 - cards in hand;
-- identity of an unrevealed Scheme.
+- identity of an unrevealed Veiled Story.
 
-**Public information**
+**Public**
 
-- number of cards in each hand;
-- number of cards remaining in each deck;
-- both discard piles;
+- hand size;
+- deck size;
+- discard piles;
 - all face-up battlefield cards;
-- which Front contains each face-down Scheme.
+- the Front containing each face-down Story;
+- all printed classifications and roles of visible cards.
 
 ## Deck construction
 
 A deck contains exactly **30 cards**.
 
-- Maximum 2 copies of a card with the same title.
+- Exactly **1 Hero**.
+- Maximum 2 copies of a non-Unique card title.
 - Maximum 1 copy of each *Unique* card.
 - Every Name is *Unique*.
-- Subjects, Links, Names, and Plots all use the same deck.
+- Subjects, Bonds, Names, and Stories share one deck.
 
 ---
 
@@ -518,44 +538,41 @@ A deck contains exactly **30 cards**.
 
 ## Glossary {#glossary}
 
-**Active player**  
-The player whose turn or effect sequence is currently being resolved.
-
 **Battle**  
-One scoring period. A Battle ends when both players have Passed.
+One scoring period. It ends when both players have Passed.
 
-**Discard**  
-Move a card to its owner's face-up discard pile.
+**Bond**  
+A card attached to a Subject. A Bond without a Name is an open Bond.
 
-**Front**  
-One of the three vertical contests: Left, Center, or Right.
+**Classification**  
+A printed identity property such as *Human*, *God*, *King*, *Ship*, or *Stronghold*.
 
-**Link**  
-A card attached to a Subject. A Link is open when it has no Name.
+**Hero**  
+A unique, stronger Subject. Every deck contains exactly one Hero.
+
+**Line Defense**  
+The universal +1 Strength gained by an occupied Frontline Subject.
 
 **Name**  
-A *Unique* card attached to a Link.
-
-**Open Link**  
-A Link attached to a Subject without a Name.
+A Unique card attached to a Bond.
 
 **Pass**  
 End your participation in the current Battle.
 
-**Plot**  
-A card that resolves an immediate effect and is then discarded, unless it is played as a Scheme.
+**Role**  
+A printed Subject property such as *Swordsman*, *Spearman*, *Archer*, or *Healer* that supplies a standard positional rule.
 
-**Return**  
-Move a card to its owner's hand.
-
-**Scheme**  
-A Plot played face-down into a Front and revealed when its trigger occurs.
-
-**Strength**  
-The value used to determine control of a position and Front.
+**Story**  
+A one-shot narrative card. Its printed form may be *Myth*, *Legend*, *Saga*, *Omen*, *Warning*, *Prophecy*, or *Conspiracy*.
 
 **Subject**  
-The only card type that occupies one of the six battlefield positions.
+The only card type that occupies a battlefield position.
+
+**Veiled Story**  
+A Story with the *Veiled* property, played face-down into a Front until its trigger reveals it.
+
+**Strength**  
+The value used to determine control of positions and Fronts.
 
 *Unique*  
-A printed card property allowing only one copy of that card title in a deck.
+A printed property limiting that title to one copy per deck.

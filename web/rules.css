@@ -936,3 +936,45 @@
     break-inside: avoid;
   }
 }
+
+
+.role-reference {
+  margin-top: 5mm;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2mm;
+}
+.role-reference span {
+  min-height: 14mm;
+  padding: 2.5mm 3mm;
+  border: .3mm solid #181714;
+  display: grid;
+  align-content: center;
+  gap: 1mm;
+  background: #f2eadb;
+}
+.role-reference b {
+  font: 800 2.2mm/1 system-ui, sans-serif;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.role-reference em {
+  font: 2.15mm/1.25 Georgia, serif;
+}
+
+.rulebook table td:first-child em,
+.rulebook table td:first-child strong {
+  white-space: nowrap;
+}
+
+@media (max-width: 950px) {
+  .role-reference {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media print {
+  .role-reference {
+    break-inside: avoid;
+  }
+}

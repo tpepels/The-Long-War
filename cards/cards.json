@@ -7,9 +7,16 @@
       "type": "subject",
       "strength": 4,
       "unique": false,
+      "classes": [
+        "human",
+        "warband"
+      ],
+      "role": "swordsman",
       "text": "",
       "rules": {},
-      "balance": {}
+      "balance": {
+        "dynamic": true
+      }
     },
     {
       "id": "seven-black-ships",
@@ -17,17 +24,13 @@
       "type": "subject",
       "strength": 4,
       "unique": false,
-      "text": "While this **Subject** is in the **Rear**, it gets +1 **Strength**.",
-      "rules": {
-        "strength_modifiers": [
-          {
-            "amount": 1,
-            "when": {
-              "rank": "rear"
-            }
-          }
-        ]
-      },
+      "classes": [
+        "ship",
+        "fleet"
+      ],
+      "role": "ship",
+      "text": "",
+      "rules": {},
       "balance": {
         "dynamic": true
       }
@@ -38,6 +41,11 @@
       "type": "subject",
       "strength": 3,
       "unique": false,
+      "classes": [
+        "human",
+        "veteran"
+      ],
+      "role": "spearman",
       "text": "While your **discard pile** contains at least 5 cards, this **Subject** gets +1 **Strength**.",
       "rules": {
         "strength_modifiers": [
@@ -59,7 +67,12 @@
       "type": "subject",
       "strength": 4,
       "unique": false,
-      "text": "While an **adjacent** **Subject** you control has both a **Link** and a **Name**, this **Subject** gets +1 **Strength**.",
+      "classes": [
+        "place",
+        "stronghold"
+      ],
+      "role": "stronghold",
+      "text": "While an **adjacent Subject** you control has both a **Bond** and a **Name**, this **Subject** gets +1 **Strength**.",
       "rules": {
         "strength_modifiers": [
           {
@@ -80,7 +93,12 @@
       "type": "subject",
       "strength": 3,
       "unique": false,
-      "text": "When you play a **Link** on this **Subject**, it gets +1 **Strength** for this **Battle**.",
+      "classes": [
+        "human",
+        "company"
+      ],
+      "role": "archer",
+      "text": "When you play a **Bond** on this **Subject**, it gets +1 **Strength** for this **Battle**.",
       "rules": {
         "on_link_attached": {
           "temporary_strength": 1
@@ -96,20 +114,75 @@
       "type": "subject",
       "strength": 5,
       "unique": false,
+      "classes": [
+        "human",
+        "noble"
+      ],
+      "role": "swordsman",
       "text": "*Frontline only.*",
       "rules": {
         "placement": {
           "rank": "front"
         }
       },
-      "balance": {}
+      "balance": {
+        "dynamic": true
+      }
+    },
+    {
+      "id": "the-white-hands-of-elara",
+      "title": "The White Hands of Elara",
+      "type": "subject",
+      "strength": 2,
+      "unique": false,
+      "classes": [
+        "human",
+        "healer"
+      ],
+      "role": "healer",
+      "text": "*Rear only.*",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      }
+    },
+    {
+      "id": "avaros-the-bronze-king",
+      "title": "Avaros, the Bronze King",
+      "type": "subject",
+      "strength": 6,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "king",
+        "hero"
+      ],
+      "role": "swordsman",
+      "text": "*Hero.* While this **Subject** is in the **Frontline**, **adjacent Subjects** you control get +1 **Strength**.",
+      "rules": {
+        "adjacent_strength_aura": 1,
+        "aura_requires_rank": "front"
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      }
     },
     {
       "id": "followed",
       "title": "Followed",
       "type": "link",
       "unique": false,
-      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +2 additional **Strength**.",
+      "classes": [
+        "loyalty"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +2 additional **Strength**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 2
@@ -124,7 +197,10 @@
       "title": "Swore To",
       "type": "link",
       "unique": false,
-      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +3 additional **Strength**.",
+      "classes": [
+        "oath"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +3 additional **Strength**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 3
@@ -139,7 +215,10 @@
       "title": "Defied",
       "type": "link",
       "unique": false,
-      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +1 additional **Strength** and the opponent has -2 **Strength** in this **Front**.",
+      "classes": [
+        "feud"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** and the opponent has -2 **Strength** in this **Front**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 1,
@@ -156,7 +235,10 @@
       "title": "Carried",
       "type": "link",
       "unique": false,
-      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +1 additional **Strength** and that **Subject** cannot be chosen by an opponent's **Plot**.",
+      "classes": [
+        "burden"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** and that **Subject** cannot be chosen by an opponent's **Story**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 1,
@@ -174,7 +256,10 @@
       "title": "Avenged",
       "type": "link",
       "unique": false,
-      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +1 additional **Strength** for each of your cards **discarded** this **Battle**, up to +3.",
+      "classes": [
+        "vengeance"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** for each of your cards **discarded** this **Battle**, up to +3.",
       "rules": {
         "strength_bonus": 1,
         "discard_strength_bonus": {
@@ -193,6 +278,10 @@
       "type": "name",
       "strength": 2,
       "unique": true,
+      "classes": [
+        "human",
+        "king"
+      ],
       "text": "While *Namar* is attached to a **Subject** in the **Frontline**, that **Subject** gets +2 **Strength**.",
       "rules": {
         "rank_strength_bonus": {
@@ -210,6 +299,10 @@
       "type": "name",
       "strength": 1,
       "unique": true,
+      "classes": [
+        "human",
+        "seer"
+      ],
       "text": "When you play *Iria*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position.",
       "rules": {
         "on_name_attached": "move_adjacent_optional"
@@ -224,6 +317,10 @@
       "type": "name",
       "strength": 3,
       "unique": true,
+      "classes": [
+        "human",
+        "warrior"
+      ],
       "text": "",
       "rules": {},
       "balance": {}
@@ -234,7 +331,11 @@
       "type": "name",
       "strength": 2,
       "unique": true,
-      "text": "When you play *Teyra*, reveal the enemy **Scheme** in this **Front**, if there is one.",
+      "classes": [
+        "god",
+        "oracle"
+      ],
+      "text": "When you play *Teyra*, reveal the enemy **Veiled Story** in this **Front**, if there is one.",
       "rules": {
         "on_name_attached": "reveal_enemy_scheme"
       },
@@ -247,7 +348,13 @@
       "title": "The Story Is False",
       "type": "plot",
       "unique": false,
-      "text": "Choose an opponent's **Subject**. If it has a **Link**, **discard** that **Link**. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**.",
+      "classes": [
+        "rumour",
+        "deception"
+      ],
+      "story_form": "myth",
+      "veiled": false,
+      "text": "Choose an opponent's **Subject**. If it has a **Bond**, **discard** that **Bond**. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**.",
       "rules": {
         "effect": "discredit_subject"
       },
@@ -260,6 +367,12 @@
       "title": "He Never Came",
       "type": "plot",
       "unique": false,
+      "classes": [
+        "absence",
+        "memory"
+      ],
+      "story_form": "legend",
+      "veiled": false,
       "text": "Choose an opponent's **Subject**. If it has a **Name**, **return** that **Name** to its owner's hand. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**.",
       "rules": {
         "effect": "return_name_or_weaken"
@@ -273,6 +386,12 @@
       "title": "They Chose Another",
       "type": "plot",
       "unique": false,
+      "classes": [
+        "choice",
+        "exile"
+      ],
+      "story_form": "saga",
+      "veiled": false,
       "text": "**Move** one of your **Subjects**, together with all cards attached to it, to any legal empty position on your side.",
       "rules": {
         "effect": "move_subject"
@@ -286,10 +405,13 @@
       "title": "The Lamps Went Dark",
       "type": "plot",
       "unique": false,
-      "keywords": [
-        "scheme"
+      "classes": [
+        "darkness",
+        "omen"
       ],
-      "text": "**Scheme** — While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Subject** here, reveal this. That **Subject** gets -3 **Strength** for this **Battle**.",
+      "story_form": "omen",
+      "veiled": true,
+      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Subject** here, reveal this. That **Subject** gets -3 **Strength** for this **Battle**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_subject",
@@ -307,10 +429,13 @@
       "title": "The Road Was Cut",
       "type": "plot",
       "unique": false,
-      "keywords": [
-        "scheme"
+      "classes": [
+        "ambush",
+        "warning"
       ],
-      "text": "**Scheme** — While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Link** here, reveal this. **Discard** that **Link**.",
+      "story_form": "warning",
+      "veiled": true,
+      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Bond** here, reveal this. **Discard** that **Bond**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_link",
@@ -327,10 +452,13 @@
       "title": "The Hidden Oars",
       "type": "plot",
       "unique": false,
-      "keywords": [
-        "scheme"
+      "classes": [
+        "sea",
+        "prophecy"
       ],
-      "text": "**Scheme** — While this is face-down, you have +1 **Strength** in this **Front**. When your opponent **Passes**, if you control a **Subject** here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
+      "story_form": "prophecy",
+      "veiled": true,
+      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. When your opponent **Passes**, if you control a **Subject** here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
       "rules": {
         "scheme": {
           "trigger": "opponent_passes",
@@ -349,10 +477,13 @@
       "title": "The Witness Lied",
       "type": "plot",
       "unique": false,
-      "keywords": [
-        "scheme"
+      "classes": [
+        "deception",
+        "conspiracy"
       ],
-      "text": "**Scheme** — While this is face-down, you have +1 **Strength** in this **Front**. After an opponent's **Plot** targets a card you control here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
+      "story_form": "conspiracy",
+      "veiled": true,
+      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. After an opponent's **Story** targets a card you control here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plot_targets_your_card",

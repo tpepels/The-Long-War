@@ -55,13 +55,13 @@ def test_links_help_immediately_and_namar_rewards_frontline() -> None:
 
     engine.apply(state, Pass())
     engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 4
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 6
 
     engine.apply(state, PlayLink("followed", CENTER_FRONT))
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 5
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 7
 
     engine.apply(state, PlayName("namar", CENTER_FRONT))
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 11
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 13
 
 
 def test_iria_can_move_subject_with_attachments_to_adjacent_position() -> None:
@@ -119,7 +119,7 @@ def test_story_is_false_weakens_bare_subject() -> None:
 
     assert slot.subject == "the-fifty-men"
     assert slot.link is None
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 2
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 4
 
 
 def test_story_is_false_does_not_trigger_old_swore_to_penalty() -> None:
@@ -185,7 +185,7 @@ def test_he_never_came_weakens_subject_when_no_name_is_attached() -> None:
     assert slot.subject == "the-fifty-men"
     assert slot.link == "followed"
     assert slot.name is None
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 3
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 5
 
 
 def test_he_never_came_is_useful_against_bare_subject() -> None:
@@ -203,7 +203,7 @@ def test_he_never_came_is_useful_against_bare_subject() -> None:
     )
 
     assert slot.subject == "the-fifty-men"
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 2
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 4
 
 
 def test_carried_protects_its_subject_from_opponent_plot() -> None:
@@ -235,7 +235,7 @@ def test_children_gain_temporary_strength_when_link_played() -> None:
     )
     engine.apply(state, PlayLink("followed", CENTER_FRONT))
 
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 5
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 6
 
 
 def test_battle_scoring_and_loser_chooses_next_first_player() -> None:
@@ -268,8 +268,8 @@ def test_defied_reduces_opposing_front_strength() -> None:
     left1 = state.slot(1, LEFT_FRONT)
     left1.subject = "the-fifty-men"
 
-    assert engine.front_strength(state, 0, Front.LEFT) == 9
-    assert engine.front_strength(state, 1, Front.LEFT) == 2
+    assert engine.front_strength(state, 0, Front.LEFT) == 11
+    assert engine.front_strength(state, 1, Front.LEFT) == 4
 
 
 def test_they_chose_another_moves_subject_and_all_attachments() -> None:
@@ -350,7 +350,7 @@ def test_lamps_scheme_penalizes_played_subject() -> None:
 
     assert state.scheme(1, Front.CENTER) is None
     assert "the-lamps-went-dark" in state.players[1].discard
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 1
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 3
 
 
 def test_road_cut_discards_link_as_scheme_trigger() -> None:
@@ -376,7 +376,7 @@ def test_hidden_oars_resolves_before_second_pass_scores_battle() -> None:
     engine.apply(state, Pass())
 
     assert state.scheme(1, Front.CENTER) is None
-    assert engine.position_strength(state, 1, CENTER_FRONT) == 7
+    assert engine.position_strength(state, 1, CENTER_FRONT) == 9
 
 
 def test_witness_lied_triggers_only_when_plot_targets_own_front() -> None:
@@ -396,7 +396,7 @@ def test_witness_lied_triggers_only_when_plot_targets_own_front() -> None:
     )
 
     assert state.scheme(1, Front.CENTER) is None
-    assert engine.position_strength(state, 1, CENTER_FRONT) == 7
+    assert engine.position_strength(state, 1, CENTER_FRONT) == 9
 
 
 def test_teyra_reveals_scheme_without_resolving_it() -> None:
@@ -415,3 +415,105 @@ def test_teyra_reveals_scheme_without_resolving_it() -> None:
     assert scheme is not None
     assert scheme.revealed is True
     assert scheme.card_id == "the-lamps-went-dark"
+
+
+
+def test_line_defense_and_swordsman_role_stack() -> None:
+    engine, state = fresh_state()
+    front = Position(Front.CENTER, Rank.FRONT)
+    rear = Position(Front.CENTER, Rank.REAR)
+
+    state.slot(0, front).subject = "the-fifty-men"
+    assert engine.position_strength(state, 0, front) == 6
+
+    state.slot(0, front).subject = None
+    state.slot(0, rear).subject = "the-fifty-men"
+    assert engine.position_strength(state, 0, rear) == 4
+
+
+def test_spearman_rewards_a_subject_behind_it() -> None:
+    engine, state = fresh_state()
+    front = Position(Front.CENTER, Rank.FRONT)
+    rear = Position(Front.CENTER, Rank.REAR)
+    state.slot(0, front).subject = "those-who-came-back"
+
+    assert engine.position_strength(state, 0, front) == 4
+    state.slot(0, rear).subject = "the-house-at-orra"
+    assert engine.position_strength(state, 0, front) == 5
+
+
+def test_archer_rewards_a_subject_in_front() -> None:
+    engine, state = fresh_state()
+    front = Position(Front.CENTER, Rank.FRONT)
+    rear = Position(Front.CENTER, Rank.REAR)
+    state.slot(0, rear).subject = "the-children-of-the-salt-road"
+
+    assert engine.position_strength(state, 0, rear) == 3
+    state.slot(0, front).subject = "the-fifty-men"
+    assert engine.position_strength(state, 0, rear) == 5
+
+
+def test_healer_strengthens_subject_directly_in_front() -> None:
+    engine, state = fresh_state()
+    front = Position(Front.CENTER, Rank.FRONT)
+    rear = Position(Front.CENTER, Rank.REAR)
+    state.slot(0, front).subject = "the-fifty-men"
+    state.slot(0, rear).subject = "the-white-hands-of-elara"
+
+    assert engine.position_strength(state, 0, rear) == 2
+    assert engine.position_strength(state, 0, front) == 8
+
+
+def test_healer_is_rear_only() -> None:
+    engine, state = fresh_state()
+    state.players[0].hand = ["the-white-hands-of-elara"]
+
+    actions = engine.legal_actions(state)
+    healer_actions = [
+        action
+        for action in actions
+        if isinstance(action, PlaySubject)
+        and action.card_id == "the-white-hands-of-elara"
+    ]
+    assert healer_actions
+    assert all(action.position.rank is Rank.REAR for action in healer_actions)
+
+
+def test_ship_and_stronghold_prefer_rear() -> None:
+    engine, state = fresh_state()
+    rear = Position(Front.CENTER, Rank.REAR)
+
+    state.slot(0, rear).subject = "seven-black-ships"
+    assert engine.position_strength(state, 0, rear) == 5
+
+    state.slot(0, rear).subject = "the-house-at-orra"
+    assert engine.position_strength(state, 0, rear) == 5
+
+
+def test_hero_is_strong_and_buffs_adjacent_subjects() -> None:
+    engine, state = fresh_state()
+    hero_position = Position(Front.CENTER, Rank.FRONT)
+    adjacent = Position(Front.LEFT, Rank.FRONT)
+    state.slot(0, hero_position).subject = "avaros-the-bronze-king"
+    state.slot(0, adjacent).subject = "the-fifty-men"
+
+    assert engine.position_strength(state, 0, hero_position) == 8
+    assert engine.position_strength(state, 0, adjacent) == 7
+
+
+def test_deck_requires_exactly_one_hero() -> None:
+    from longwar.game.engine import InvalidDeck
+
+    engine, deck = engine_and_deck()
+    engine.validate_deck(deck)
+
+    without_hero = list(deck)
+    without_hero.remove("avaros-the-bronze-king")
+    without_hero.append("seven-black-ships")
+
+    try:
+        engine.validate_deck(without_hero)
+    except InvalidDeck as exc:
+        assert "exactly one Hero" in str(exc)
+    else:
+        raise AssertionError("Deck without a Hero should be invalid")

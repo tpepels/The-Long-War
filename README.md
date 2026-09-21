@@ -1,10 +1,10 @@
 # The Long War
 
-A head-to-head card game about building Subject–Link–Name stories across a physical battlefield.
+A head-to-head card game about building Subject–Bond–Name stories across a physical battlefield.
 
 The core grammar is:
 
-**Subject → Link → Name**
+**Subject → Bond → Name**
 
 Example: **The Fifty Men → Followed → Namar**
 
@@ -18,7 +18,7 @@ Example: **The Fifty Men → Followed → Namar**
 - `src/longwar/mccfr.py` — external-sampling Monte Carlo CFR trainer and information abstraction.
 - `src/longwar/belief.py` — observation-conditioned hidden-state and deck-construction priors.
 - `src/longwar/online_mccfr.py` — online information-set re-solving across sampled beliefs.
-- `src/longwar/telemetry.py` — game, card, pass, and Subject–Link–Name telemetry.
+- `src/longwar/telemetry.py` — game, card, pass, and Subject–Bond–Name telemetry.
 - `src/longwar/health.py` — confidence-aware balance flags and health analysis.
 - `src/longwar/balance.py` — static balance diagnostics.
 - `src/longwar/simulate.py` — repeated game simulation.
@@ -50,10 +50,10 @@ The repository now publishes a playable first human-test build:
 - **Browser play:** `play.html` runs the canonical Python `GameEngine` in the browser through Pyodide. Modes are hot-seat Human vs Human, Human vs heuristic, and Human vs online MCCFR.
 - **Hot-seat privacy:** hands stay hidden between turns until the next player explicitly reveals their hand.
 - **Printable kit:** `playtest-kit.html` prints two complete 30-card reference decks.
-- **Battlefield/reference:** `playmat.html` is an A4-landscape battlefield with the six Subject positions, Scheme spaces, Battle line, scoring summary, and Victory boxes.
-- **Four initial Schemes:** The Lamps Went Dark, The Road Was Cut, The Hidden Oars, and The Witness Lied.
+- **Battlefield/reference:** `playmat.html` is an A4-landscape battlefield with the six Subject positions, Veiled Story spaces, Line Defense/role reference, scoring summary, and Victory boxes.
+- **Four initial Veiled Storys:** The Lamps Went Dark, The Road Was Cut, The Hidden Oars, and The Witness Lied.
 
-The browser UI does not duplicate game rules in JavaScript. Pages publishes the tested Python package as a source bundle and Pyodide imports that package directly, so `GameEngine.legal_actions()`, `GameEngine.apply()`, scoring, Scheme triggers, and AI play are shared with CI and simulation.
+The browser UI does not duplicate game rules in JavaScript. Pages publishes the tested Python package as a source bundle and Pyodide imports that package directly, so `GameEngine.legal_actions()`, `GameEngine.apply()`, scoring, Veiled Story triggers, formation rules, and AI play are shared with CI and simulation.
 
 ## Testing
 
@@ -107,7 +107,7 @@ For every sampled root deal:
 5. sampled-path opponent strategies are accumulated into the exported average policy;
 6. at the configured depth frontier, the public-information heuristic state evaluator supplies a bounded continuation value.
 
-The information set contains public battlefield/discard information, the acting player's own hand and remaining-deck multiset, public hand/deck counts, and only information the player is allowed to know about Schemes. It never contains opponent hand identities or deck order.
+The information set contains public battlefield/discard information, the acting player's own hand and remaining-deck multiset, public hand/deck counts, and only information the player is allowed to know about Veiled Storys. It never contains opponent hand identities or deck order.
 
 ### Explicit approximations
 
@@ -137,7 +137,7 @@ hand. Before every non-forced decision it:
    later returned to a hidden hand;
 3. conditions a deck prior on public cards plus guaranteed hidden-card facts;
 4. samples a legal opponent deck composition, then a compatible hidden
-   hand/deck/Scheme partition;
+   hand/deck/Veiled-Story partition;
 5. reshuffles the acting player's unknown future deck order;
 6. repeats external-sampling MCCFR over those determinizations while merging
    them at the same root information set;
@@ -187,7 +187,7 @@ python tools/simulate.py \
 
 ## Heuristic agent
 
-The heuristic player performs one-ply lookahead across every legal action. Its evaluation uses Front control, Strength margins, Victory markers, public hand-size advantage, Subjects with both a Link and a Name, own-hand completion potential, and pass/card-conservation value. It never evaluates the identities of cards in the opponent's hand.
+The heuristic player performs one-ply lookahead across every legal action. Its evaluation uses Front control, Strength margins, Victory markers, public hand-size advantage, Subjects with both a Bond and a Name, own-hand completion potential, and pass/card-conservation value. It never evaluates the identities of cards in the opponent's hand.
 
 The same public-information evaluator is used only at MCCFR depth frontiers.
 
@@ -227,9 +227,9 @@ identical.
 Experimental baselines are never added to the printable card set:
 
 - Subject: vanilla 4 Strength;
-- Link: +1 Strength immediately and +2 more while it has a Name;
+- Bond: +1 Strength immediately and +2 more while it has a Name;
 - Name: vanilla 2 Strength;
-- Plot: universally playable no-op Plot.
+- Story: universally playable no-op Story.
 
 For card `c`, the reported causal effect is:
 
@@ -243,7 +243,7 @@ Pair interactions use the second-order factorial contrast:
 I(a,b) = f(ab) - f(a0) - f(0b) + f(00)
 ```
 
-Subject–Link–Name triples use the corresponding third-order factorial
+Subject–Bond–Name triples use the corresponding third-order factorial
 contrast. Confidence intervals are paired percentile-bootstrap intervals over
 per-game contrasts, so common random numbers reduce noise rather than comparing
 two unrelated win-rate samples.
@@ -264,7 +264,7 @@ equilibrium value.
 ## Targeted online-MCCFR validation
 
 The broad heuristic counterfactual sweep is intentionally cheap enough to test
-all cards, all 153 pairs, and all 120 Subject–Link–Name triples. Online MCCFR
+all cards, all 153 pairs, and all 120 Subject–Bond–Name triples. Online MCCFR
 is not run automatically afterward; enable the targeted stage only after the
 heuristic sweep has identified candidates that merit stronger validation.
 
@@ -302,7 +302,7 @@ python tools/targeted_online_counterfactual.py \
 
 ## Telemetry and Balance Lab
 
-Simulations record card playability, immediate board swing, pass behavior, Subjects with both a Link and a Name, conditional outcomes, and decision statistics. The health analyzer adds Wilson 95% intervals, minimum-evidence thresholds, within-type z-scores, and diagnostic flags.
+Simulations record card playability, immediate board swing, pass behavior, Subjects with both a Bond and a Name, conditional outcomes, and decision statistics. The health analyzer adds Wilson 95% intervals, minimum-evidence thresholds, within-type z-scores, and diagnostic flags.
 
 GitHub Pages publishes:
 
@@ -314,10 +314,10 @@ The Balance Lab includes:
 
 - every card with a five-level balance grade: red, orange, yellow, green, or dark green;
 - paired per-card causal Δ win probability with 95% intervals;
-- pairwise factorial interaction estimates and Subject–Link–Name triple interactions;
+- pairwise factorial interaction estimates and Subject–Bond–Name triple interactions;
 - targeted online-MCCFR validation for suspicious card/pair/triple effects, with confirmation status;
 - draws, plays, dead-turn rate, pass-deadness, board/control swing, conditional win rates, confidence intervals, static marginal strength, and diagnostic flags per card;
-- all 120 possible Subject–Link–Name Subject–Link–Name sequences, including combinations not observed in the current simulation sample;
+- all 120 possible Subject–Bond–Name Subject–Bond–Name sequences, including combinations not observed in the current simulation sample;
 - static Strength-space diagnostics;
 - action, pass, Battle, and decision telemetry;
 - heuristic/random and MCCFR/heuristic matchup summaries;
@@ -331,7 +331,7 @@ Card grades are diagnostic rather than prescriptive: **dark green** requires bot
 
 The routine automated stack is:
 
-1. static Subject–Link–Name combinatorial analysis;
+1. static Subject–Bond–Name combinatorial analysis;
 2. deterministic full-match engine;
 3. heuristic self-play;
 4. extended telemetry;

@@ -112,6 +112,20 @@ def test_scheme_baseline_preserves_scheme_commitment() -> None:
     baseline = baseline_card(index["the-lamps-went-dark"])
 
     assert baseline["type"] == "plot"
-    assert baseline["keywords"] == ["scheme"]
+    assert baseline["story_form"] == "omen"
+    assert baseline["veiled"] is True
     assert baseline["rules"]["scheme"]["trigger"] == "never"
     assert baseline["rules"]["scheme"]["face_down_front_bonus"] == 1
+
+
+
+def test_hero_baseline_preserves_hero_deck_constraint() -> None:
+    card_data = data()
+    index = {card["id"]: card for card in card_data["cards"]}
+    baseline = baseline_card(index["avaros-the-bronze-king"])
+
+    assert baseline["hero"] is True
+    assert baseline["unique"] is True
+    assert baseline["role"] == "swordsman"
+    assert "hero" in baseline["classes"]
+    assert baseline["strength"] == 6

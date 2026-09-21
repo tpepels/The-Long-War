@@ -1596,3 +1596,24 @@ button, .button {
 .unique em {
   font-style: italic;
 }
+
+
+.card-properties {
+  margin-top: 1mm;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1mm 1.5mm;
+  font: 2mm/1.15 system-ui, sans-serif;
+  opacity: .65;
+}
+
+.card-hero {
+  box-shadow:
+    inset 0 0 0 .7mm #8f6d2d,
+    0 1.2mm 3mm rgba(24,23,20,.14);
+}
+
+.card-hero .card-type,
+.card-hero .strength {
+  color: #7d5a1e;
+}

@@ -122,17 +122,57 @@ class CardPoolDeckPrior:
                 )
             capacities[card_id] = maximum - required[card_id]
 
-        slots = self.deck_size - sum(required.values())
-        if sum(capacities.values()) < slots:
-            raise BeliefStateError(
-                "Card pool cannot construct a legal deck consistent with observations"
-            )
-
         deck = [
             card_id
             for card_id, count in required.items()
             for _ in range(count)
         ]
+
+        observed_heroes = sum(
+            count
+            for card_id, count in required.items()
+            if self.engine.cards[card_id].get("hero", False)
+        )
+        if observed_heroes > 1:
+            raise BeliefStateError("Observed cards contain more than one Hero")
+
+        hero_ids = [
+            card_id
+            for card_id, card in self.engine.cards.items()
+            if card.get("hero", False)
+            and not card.get("experimental", False)
+        ]
+
+        if observed_heroes == 0:
+            hero_candidates = [
+                card_id
+                for card_id in hero_ids
+                if capacities.get(card_id, 0) > 0
+            ]
+            if not hero_candidates:
+                raise BeliefStateError("Card pool has no legal Hero available")
+            hero_weights = [
+                capacities[card_id] * self.card_weights.get(card_id, 1.0)
+                for card_id in hero_candidates
+            ]
+            selected_hero = rng.choices(
+                hero_candidates,
+                weights=hero_weights,
+                k=1,
+            )[0]
+            deck.append(selected_hero)
+            capacities[selected_hero] -= 1
+
+        # Exactly one Hero is legal, so no additional Hero may enter the deck.
+        for card_id in list(capacities):
+            if self.engine.cards[card_id].get("hero", False):
+                capacities[card_id] = 0
+
+        slots = self.deck_size - len(deck)
+        if sum(capacities.values()) < slots:
+            raise BeliefStateError(
+                "Card pool cannot construct a legal deck consistent with observations"
+            )
 
         for _ in range(slots):
             candidates = [
@@ -310,7 +350,7 @@ class BeliefSampler:
 
     def _is_scheme_card(self, card_id: str) -> bool:
         card = self.engine.cards[card_id]
-        return card["type"] == "plot" and "scheme" in card.get("keywords", [])
+        return card["type"] == "plot" and card.get("veiled", False)
 
     @staticmethod
     def _validate_viewer(viewer: int) -> None:

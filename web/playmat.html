@@ -20,21 +20,21 @@
     <section class="battlefield-overview-page">
       <header class="overview-title">
         <span>THE LONG WAR · BATTLEFIELD OVERVIEW</span>
-        <h1>Read the board before you read the rules.</h1>
-        <p>You are not moving armies toward each other. You are building three simultaneous claims and deciding which two are worth winning.</p>
+        <h1>Form the line. Win two Fronts.</h1>
+        <p>Frontline and Rear now have different jobs. Subjects gain power from their role, from who stands in front or behind them, and from who stands adjacent.</p>
       </header>
 
       <div class="overview-layout">
         <aside class="overview-notes left-notes">
-          <article><b>1</b><h2>Three Fronts</h2><p><strong>Left</strong>, <strong>Center</strong>, and <strong>Right</strong> are three separate contests. Winning one <strong>Front</strong> does nothing by itself; you normally need two.</p></article>
-          <article><b>2</b><h2>Two positions per Front</h2><p>Each player has a <strong>Frontline</strong> and <strong>Rear</strong> position. Together they make that player's <strong>Strength</strong> in the <strong>Front</strong>.</p></article>
-          <article><b>3</b><h2>No attack step</h2><p>Cards do not march across the line and fight. You add <strong>Strength</strong>, attach <strong>Links</strong> and <strong>Names</strong>, disrupt cards, and eventually choose to <strong>Pass</strong>.</p></article>
+          <article><b>1</b><h2>Three Fronts</h2><p><strong>Left</strong>, <strong>Center</strong>, and <strong>Right</strong> are separate contests. You normally need two.</p></article>
+          <article><b>2</b><h2>Line Defense</h2><p>Every occupied <strong>Frontline</strong> gets +1 <strong>Strength</strong>. The front card therefore counts more than the same card in the Rear.</p></article>
+          <article><b>3</b><h2>Front and Rear cooperate</h2><p>*Archers* want a Subject in front. *Spearmen* want support behind. *Healers* strengthen the Subject directly in front.</p></article>
         </aside>
 
         <section class="overview-board">
           <div class="overview-player top">
             <span>OPPONENT</span>
-            <small>hand · deck · discard are kept outside the battlefield</small>
+            <small>hand · deck · discard stay outside the battlefield</small>
           </div>
 
           <div class="overview-front-labels">
@@ -42,34 +42,50 @@
           </div>
 
           <div class="overview-side opponent">
-            <div class="overview-front"><div class="ov-rear">Rear</div><div class="ov-front">Frontline</div><div class="ov-scheme">Scheme</div></div>
-            <div class="overview-front example-front">
+            <div class="overview-front">
               <div class="ov-rear">Rear</div>
-              <div class="ov-front example-card"><small><strong>Subject</strong></small><strong><em>Seven Black Ships</em></strong><em>5</em></div>
+              <div class="ov-front">Frontline <small>+1 Line Defense</small></div>
+              <div class="ov-scheme">Veiled Story</div>
+            </div>
+            <div class="overview-front example-front">
+              <div class="ov-rear example-card"><small><em>Ship</em></small><strong><em>Seven Black Ships</em></strong><em>5</em></div>
+              <div class="ov-front">Frontline <small>+1 Line Defense</small></div>
               <div class="ov-scheme hidden">?</div>
             </div>
-            <div class="overview-front"><div class="ov-rear">Rear</div><div class="ov-front">Frontline</div><div class="ov-scheme">Scheme</div></div>
+            <div class="overview-front">
+              <div class="ov-rear">Rear</div>
+              <div class="ov-front">Frontline <small>+1 Line Defense</small></div>
+              <div class="ov-scheme">Veiled Story</div>
+            </div>
           </div>
 
-          <div class="overview-battle-line"><span>BATTLE LINE</span><small>It separates the two sides; cards do not cross it unless an effect says so.</small></div>
+          <div class="overview-battle-line"><span>BATTLE LINE</span><small>Frontline Subjects hold this line; cards do not attack across it.</small></div>
 
           <div class="overview-side you">
             <div class="overview-front">
-              <div class="ov-front">Frontline</div><div class="ov-rear">Rear</div><div class="ov-scheme">Scheme</div>
+              <div class="ov-front">Frontline <small>+1 Line Defense</small></div>
+              <div class="ov-rear">Rear</div>
+              <div class="ov-scheme">Veiled Story</div>
             </div>
             <div class="overview-front example-front">
               <div class="ov-front example-legend">
-                <small><strong>Subject + Link + Name</strong></small>
+                <small><em>Swordsman · Human</em></small>
                 <strong><em>The Fifty Men</em></strong>
-                <span><em>Followed</em></span>
-                <span><em>Namar</em></span>
-                <em>11</em>
+                <span><em>Followed</em> · Bond</span>
+                <span><em>Namar</em> · Name</span>
+                <em>13</em>
               </div>
-              <div class="ov-rear">Rear</div>
-              <div class="ov-scheme">Scheme</div>
+              <div class="ov-rear example-card">
+                <small><em>Archer · Human</em></small>
+                <strong><em>The Children of the Salt Road</em></strong>
+                <em>5</em>
+              </div>
+              <div class="ov-scheme">Veiled Story</div>
             </div>
             <div class="overview-front">
-              <div class="ov-front">Frontline</div><div class="ov-rear">Rear</div><div class="ov-scheme">Scheme</div>
+              <div class="ov-front">Frontline <small>+1 Line Defense</small></div>
+              <div class="ov-rear">Rear</div>
+              <div class="ov-scheme">Veiled Story</div>
             </div>
           </div>
 
@@ -79,22 +95,24 @@
 
           <div class="overview-player bottom">
             <span>YOU</span>
-            <small><strong>Subjects</strong> occupy spaces; <strong>Links</strong> and <strong>Names</strong> attach to them.</small>
+            <small><strong>Subjects</strong> occupy spaces; <strong>Bonds</strong> and <strong>Names</strong> attach to them.</small>
           </div>
         </section>
 
         <aside class="overview-notes right-notes">
-          <article><b>4</b><h2>Attachments stay with their Subject</h2><p>A <strong>Link</strong> and <strong>Name</strong> attach to one <strong>Subject</strong> space. A heavily built Subject can dominate one <strong>Front</strong>, but it cannot win the other two for you.</p></article>
-          <article><b>5</b><h2>Schemes create uncertainty</h2><p>A face-down <strong>Scheme</strong> belongs to one <strong>Front</strong>. In the current set it also adds +1 <strong>Strength</strong> there until revealed.</p></article>
-          <article><b>6</b><h2>Strength decides control</h2><p>Add <strong>Frontline</strong> + <strong>Rear</strong> in each <strong>Front</strong>. Higher <strong>Strength</strong> controls that Front. Control two Fronts to win the <strong>Battle</strong>.</p></article>
+          <article><b>4</b><h2>Adjacent means sideways</h2><p>Adjacent Subjects are immediately left or right in the same rank. The Hero *Avaros* rewards this formation.</p></article>
+          <article><b>5</b><h2>One Hero</h2><p>Every deck has exactly one <strong>Hero</strong>. Heroes are stronger Subjects with special rules, but still occupy a normal position.</p></article>
+          <article><b>6</b><h2>Stories change the formation</h2><p>*Myths, Legends,* and *Sagas* resolve immediately. *Veiled Omens, Warnings, Prophecies,* and *Conspiracies* wait face-down.</p></article>
         </aside>
       </div>
 
-      <div class="overview-example">
-        <div><span>LEFT</span><b>7–4</b><em>You control</em></div>
-        <div><span>CENTER</span><b>11–5</b><em>You control</em></div>
-        <div><span>RIGHT</span><b>0–6</b><em>Opponent controls</em></div>
-        <p><strong>You win the Battle 2 Fronts to 1.</strong> The 11 <strong>Strength</strong> in <strong>Center</strong> is impressive, but you would have won Center with much less. That is why card economy matters.</p>
+      <div class="role-reference">
+        <span><b>Swordsman</b><em>Frontline +1</em></span>
+        <span><b>Spearman</b><em>Frontline +1 with Subject behind</em></span>
+        <span><b>Archer</b><em>Rear +2 with Subject in front</em></span>
+        <span><b>Healer</b><em>Subject in front +2</em></span>
+        <span><b>Ship</b><em>Rear +1</em></span>
+        <span><b>Stronghold</b><em>Rear +1</em></span>
       </div>
     </section>
 
@@ -102,14 +120,14 @@
       <header class="quick-page-title">
         <span>THE LONG WAR · FIRST-GAME REFERENCE</span>
         <h1>What do I do now?</h1>
-        <p>Keep this page beside the board. It is a sequence of decisions, not a miniature rulebook.</p>
+        <p>Keep this page beside the board. Read the formation first, then decide whether another card is worth spending.</p>
       </header>
 
       <div class="quick-flow-grid">
         <section class="quick-step">
           <b>SETUP</b>
-          <h2>Start with a hand, not a battlefield</h2>
-          <p>Shuffle 30 cards. Draw 10. Mulligan up to 2. Randomly choose the first player.</p>
+          <h2>Bring one Hero</h2>
+          <p>30 cards · exactly 1 <strong>Hero</strong> · draw 10 · mulligan up to 2 · random first player.</p>
         </section>
 
         <section class="quick-step emphasized">
@@ -120,21 +138,26 @@
         </section>
 
         <section class="quick-step">
-          <b>WHEN PLAYING A CARD</b>
+          <b>WHEN PLACING A SUBJECT</b>
+          <p><strong>Frontline:</strong> +1 Line Defense. Then apply the Subject's *role*.</p>
+          <p><strong>Rear:</strong> no Line Defense, but *Archers, Healers, Ships,* and *Strongholds* prefer it.</p>
+        </section>
+
+        <section class="quick-step">
+          <b>OTHER CARD TYPES</b>
           <div class="quick-card-types">
-            <span><i>◆</i><strong>Subject</strong><small>claim a position</small></span>
-            <span><i>↔</i><strong>Link</strong><small>deepen a Subject</small></span>
-            <span><i>✦</i><strong>Name</strong><small>attach to a Link</small></span>
-            <span><i>⌁</i><strong>Plot</strong><small>change the board now</small></span>
-            <span><i>◐</i><strong>Scheme</strong><small>+1 now, hidden trigger later</small></span>
+            <span><i>⛓</i><strong>Bond</strong><small>attach to a Subject</small></span>
+            <span><i>✦</i><strong>Name</strong><small>attach to an open Bond</small></span>
+            <span><i>⌁</i><strong>Story</strong><small>resolve now</small></span>
+            <span><i>◐</i><strong>Veiled Story</strong><small>+1 Front Strength while hidden</small></span>
           </div>
         </section>
 
         <section class="quick-step pass-step">
           <b>PASS</b>
           <h2>You are done with this Battle</h2>
-          <p>You cannot play again this <strong>Battle</strong>. Your opponent may continue alone until they also <strong>Pass</strong>.</p>
-          <small>Passing saves cards but gives up the chance to improve your board.</small>
+          <p>Your opponent may keep playing until they also <strong>Pass</strong>.</p>
+          <small>Passing saves cards but gives up your chance to improve the formation.</small>
         </section>
 
         <section class="quick-step score-step">
@@ -142,29 +165,29 @@
           <h2>Score in this order</h2>
           <ol>
             <li>Who controls <strong>2 of 3 Fronts</strong>?</li>
-            <li>If neither: who has more <strong>total Strength</strong>?</li>
-            <li>If still tied: the <strong>first passer</strong> wins.</li>
+            <li>If neither: higher <strong>total Strength</strong>.</li>
+            <li>If still tied: <strong>first passer</strong>.</li>
           </ol>
         </section>
 
         <section class="quick-step">
           <b>BETWEEN BATTLES</b>
           <h2>Reset the board, not your hand</h2>
-          <p><strong>Discard</strong> the battlefield. Keep your hand. Draw 3. The <strong>Battle</strong> loser chooses who starts next.</p>
+          <p><strong>Discard</strong> the battlefield. Keep your hand. Draw 3. Battle loser chooses who starts next.</p>
         </section>
       </div>
 
       <div class="quick-bottom-line">
-        <div><strong>SUBJECT — LINK — NAME</strong><span>forms a readable sentence</span></div>
+        <div><strong>SUBJECT — BOND — NAME</strong><span>forms the sentence</span></div>
         <div><strong>2 FRONTS</strong><span>win a Battle</span></div>
         <div><strong>2 BATTLES</strong><span>win the match</span></div>
       </div>
 
       <div class="quick-reminders">
+        <span>FRONTLINE = +1 LINE DEFENSE</span>
+        <span>POSITIONAL ROLE BONUSES STACK</span>
         <span>PASS IS PERMANENT FOR THE BATTLE</span>
-        <span>LINKS HELP IMMEDIATELY; NAMES CAN ADD MORE</span>
         <span>CARDS IN HAND CARRY OVER</span>
-        <span>CARD TEXT OVERRIDES GENERAL RULES</span>
       </div>
     </section>
   </main>

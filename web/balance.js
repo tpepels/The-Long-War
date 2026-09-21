@@ -20,6 +20,38 @@ function formatGameText(value) {
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
+function titleCase(value) {
+  return String(value ?? "")
+    .split(/[-_ ]+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function displayCardType(row) {
+  if (row.type === "plot") {
+    const form = titleCase(row.story_form);
+    return row.veiled ? form + " · Veiled Story" : form + " · Story";
+  }
+  if (row.type === "link") return "Bond";
+  if (row.type === "subject" && row.hero) return "Hero · Subject";
+  return titleCase(row.type);
+}
+
+function displayProperties(row) {
+  const values = [];
+  if (row.role) values.push(titleCase(row.role));
+  for (const value of row.classes || []) {
+    if (value === "hero") continue;
+    const label = titleCase(value);
+    if (!values.includes(label)) values.push(label);
+  }
+  if (!values.length) return "";
+  return '<div class="muted">' +
+    values.map((value) => "<em>" + esc(value) + "</em>").join(" · ") +
+    "</div>";
+}
+
 function flagMarkup(flags) {
   if (!flags || !flags.length) return '<span class="muted">—</span>';
   return flags.map((flag) =>
@@ -51,7 +83,7 @@ function renderOverview(lab) {
     metric("First-player win", pct(g.first_player_win_rate), `95% ${interval(g.first_player_win_rate_95)}`),
     metric("Mean actions", num(g.mean_actions, 1), `max ${g.max_actions}`),
     metric("Cards", s.cards_analyzed, `${s.flags_high} high · ${s.flags_watch} watch flags`),
-    metric("Three-card sequences observed", s.legends_observed, `of ${lab.static.legend_count} possible Subject–Link–Name sequences`),
+    metric("Three-card sequences observed", s.legends_observed, `of ${lab.static.legend_count} possible Subject–Bond–Name sequences`),
     metric("MCCFR verification", verification ? (verification.passed ? "PASS" : "FAIL") : "—",
       verification ? `exploitability ${num(verification.exploitability, 4)}` : "not generated"),
   ].join("");
@@ -80,9 +112,10 @@ function renderCards(lab) {
         <td>${grade(row)}</td>
         <td>
           <strong>${esc(row.title)}</strong>
+          ${displayProperties(row)}
           <div class="card-rule-inline">${formatGameText(row.text)}</div>
         </td>
-        <td>${esc(row.type)}${row.unique ? ' <span class="muted"><em>Unique</em></span>' : ""}</td>
+        <td>${esc(displayCardType(row))}${row.unique ? ' <span class="muted"><em>Unique</em></span>' : ""}</td>
         <td>${row.strength ?? "—"}</td>
         <td>${row.draws} / ${row.plays}</td>
         <td>${pct(row.play_rate_per_draw)}</td>
@@ -297,7 +330,7 @@ function renderMccfr(lab) {
 function staticTable(rows) {
   return `
     <table class="mini-table">
-      <thead><tr><th>Subject · Link · Name</th><th>Strength</th><th>z</th></tr></thead>
+      <thead><tr><th>Subject · Bond · Name</th><th>Strength</th><th>z</th></tr></thead>
       <tbody>
         ${rows.map((r) => `<tr><td><code>${esc([r.subject,r.link,r.name].join(" · "))}</code></td><td>${r.static_strength}</td><td>${num(r.z_score,2)}</td></tr>`).join("")}
       </tbody>
@@ -308,7 +341,7 @@ function staticTable(rows) {
 function renderStatic(lab) {
   const s = lab.static;
   document.getElementById("static-overview").innerHTML = [
-    metric("Static combinations", s.legend_count, "Subject × Link × Name"),
+    metric("Static combinations", s.legend_count, "Subject × Bond × Name"),
     metric("Mean Strength", num(s.static_strength.mean, 2), `σ ${num(s.static_strength.population_sd, 2)}`),
     metric("Range", `${s.static_strength.min}–${s.static_strength.max}`, "static Strength only"),
   ].join("");

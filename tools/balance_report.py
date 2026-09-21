@@ -20,9 +20,9 @@ def main() -> None:
 
     stats = report["static_strength"]
     print(f"Validated {len(data['cards'])} cards")
-    print(f"Evaluated {report['legend_count']} Subject–Link–Name combinations")
+    print(f"Evaluated {report['legend_count']} Subject–Bond–Name combinations")
     print(
-        "Static Subject–Link–Name Strength: "
+        "Static Subject–Bond–Name Strength: "
         f"mean={stats['mean']:.2f}, sd={stats['population_sd']:.2f}, "
         f"range={stats['min']}–{stats['max']}"
     )

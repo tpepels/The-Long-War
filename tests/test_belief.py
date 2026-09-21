@@ -154,3 +154,18 @@ def test_card_pool_prior_excludes_unobserved_experimental_cards() -> None:
 
     assert not any(card_id.startswith("__cf_baseline__") for card_id in sampled)
     assert baseline_id("namar") not in sampled
+
+
+
+def test_card_pool_prior_always_samples_exactly_one_hero() -> None:
+    engine, _, _ = setup()
+    prior = CardPoolDeckPrior(engine)
+
+    for seed in range(12):
+        deck = prior.sample_deck(Counter(), random.Random(seed))
+        heroes = [
+            card_id
+            for card_id in deck
+            if engine.cards[card_id].get("hero", False)
+        ]
+        assert heroes == ["avaros-the-bronze-king"]

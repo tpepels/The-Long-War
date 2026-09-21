@@ -44,6 +44,25 @@ function plainGameText(value) {
   return String(value ?? "").replace(/\*\*|\*/g, "");
 }
 
+function titleCase(value) {
+  return String(value ?? "")
+    .split(/[-_ ]+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function cardProperties(card) {
+  const values = [];
+  if (card.type === "subject" && card.role) values.push(titleCase(card.role));
+  for (const value of card.classes || []) {
+    if (value === "hero") continue;
+    const label = titleCase(value);
+    if (!values.includes(label)) values.push(label);
+  }
+  return values;
+}
+
 function request(payload) {
   return new Promise((resolve, reject) => {
     const id = ++requestId;
@@ -76,7 +95,12 @@ function cardTitle(cardId) {
 }
 
 function cardType(card) {
-  if (card.type === "plot" && (card.keywords || []).includes("scheme")) return "Scheme";
+  if (card.type === "plot") {
+    const form = titleCase(card.story_form);
+    return card.veiled ? form + " · Veiled Story" : form + " · Story";
+  }
+  if (card.type === "link") return "Bond";
+  if (card.type === "subject" && card.hero) return "Hero · Subject";
   return card.type[0].toUpperCase() + card.type.slice(1);
 }
 
@@ -106,9 +130,9 @@ function cardVisual(cardId, compact = false) {
   const y = 15 + ((hash >>> 7) % 35);
   const r = 10 + ((hash >>> 13) % 18);
   const mark = cardInitials(card.title);
-  const symbol = (card.keywords || []).includes("scheme")
-    ? "◐"
-    : { subject: "◆", link: "↔", name: "✦", plot: "⌁" }[card.type] || "•";
+  const symbol = card.type === "plot"
+    ? (card.veiled ? "◐" : "⌁")
+    : { subject: "◆", link: "⛓", name: "✦" }[card.type] || "•";
   return '<div class="play-card-art' + (compact ? " compact" : "") + '">' +
     '<svg viewBox="0 0 100 62" aria-hidden="true">' +
       '<circle cx="' + x + '" cy="' + y + '" r="' + r + '"></circle>' +
@@ -125,7 +149,8 @@ function playCardMarkup(cardId, options = {}) {
   const card = cards[cardId];
   const count = options.count || 1;
   const classes = ["play-card", "card-" + card.type];
-  if ((card.keywords || []).includes("scheme")) classes.push("card-scheme");
+  if (card.veiled) classes.push("card-scheme");
+  if (card.hero) classes.push("card-hero");
   if (options.playable) classes.push("playable");
   if (options.selected) classes.push("selected");
   if (options.mulligan) classes.push("mulligan-card");
@@ -141,6 +166,9 @@ function playCardMarkup(cardId, options = {}) {
   return '<article class="' + classes.join(" ") + '" ' + (options.attrs || "") + '>' +
     '<div class="play-card-meta"><span>' + esc(cardType(card)) + '</span>' + badge + '</div>' +
     '<h3>' + esc(card.title) + '</h3>' +
+    (cardProperties(card).length
+      ? '<div class="play-card-properties">' + cardProperties(card).map((value) => '<em>' + esc(value) + '</em>').join(' · ') + '</div>'
+      : '') +
     strength +
     cardVisual(cardId) +
     '<div class="play-card-rules">' +
@@ -154,7 +182,7 @@ function boardCardMarkup(cardId, role) {
   if (!cardId) return "";
   const card = cards[cardId];
   return '<div class="board-card board-card-' + role + ' card-' + card.type +
-    ((card.keywords || []).includes("scheme") ? " card-scheme" : "") + '">' +
+    (card.veiled ? " card-scheme" : "") + (card.hero ? " card-hero" : "") + '">' +
     cardVisual(cardId, true) +
     '<span class="board-card-type">' + esc(cardType(card)) + '</span>' +
     '<strong>' + esc(card.title) + '</strong>' +
@@ -255,7 +283,8 @@ function renderSlot(owner, front, rank) {
   }
 
   return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
-    '<span class="slot-rank">' + esc(slot.rank_name) + '</span>' +
+    '<span class="slot-rank">' + esc(slot.rank_name) +
+      (rank === "front" ? " · Line Defense +1" : "") + '</span>' +
     '<div class="board-legend">' +
       boardCardMarkup(slot.subject, "subject") +
       (slot.link ? '<div class="board-attachment link">' + boardCardMarkup(slot.link, "link") + '</div>' : "") +
@@ -272,8 +301,8 @@ function renderScheme(owner, front) {
   if (!scheme) classes.push("empty");
   if (scheme?.hidden) classes.push("hidden");
   const attrs = 'data-scheme-owner="' + owner + '" data-scheme-front="' + front + '"';
-  if (!scheme) return '<div class="' + classes.join(" ") + '" ' + attrs + ">Scheme space</div>";
-  if (scheme.hidden) return '<div class="' + classes.join(" ") + '" ' + attrs + ">Face-down Scheme</div>";
+  if (!scheme) return '<div class="' + classes.join(" ") + '" ' + attrs + ">Veiled Story space</div>";
+  if (scheme.hidden) return '<div class="' + classes.join(" ") + '" ' + attrs + ">Face-down Story</div>";
   return '<div class="' + classes.join(" ") + '" ' + attrs + ">" +
     esc(cardTitle(scheme.card_id)) + (scheme.revealed ? " · revealed" : "") + "</div>";
 }
@@ -382,9 +411,9 @@ function interactionHintFor(card) {
   const actions = selectedActions();
   if (!actions.length) return "This card has no legal play right now.";
   if (actions.some((a) => a.kind === "PlaySubject")) return "Choose an empty battlefield position.";
-  if (actions.some((a) => a.kind === "PlayLink")) return "Choose one of your Subjects without a Link.";
-  if (actions.some((a) => a.kind === "PlayName")) return "Choose an open Link. If movement is possible, you will choose it next.";
-  if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Front to set this Scheme face-down.";
+  if (actions.some((a) => a.kind === "PlayLink")) return "Choose one of your Subjects without a Bond.";
+  if (actions.some((a) => a.kind === "PlayName")) return "Choose an open Bond. If movement is possible, you will choose it next.";
+  if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Front to set this Veiled Story face-down.";
   if (actions.some((a) => a.kind === "PlayPlot")) {
     if (stagedPlotSource) return "Now choose the destination for " + card.title + ".";
     return actions.some((a) => a.targets.length === 2)

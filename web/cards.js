@@ -14,46 +14,58 @@ function formatGameText(value) {
 
 const TYPE_LABELS = {
   subject: "Subject",
-  link: "Link",
+  link: "Bond",
   name: "Name",
-  plot: "Plot",
 };
 
+const titleCase = (value) =>
+  String(value ?? "")
+    .split(/[-_ ]+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(" ");
+
 function typeLabel(card) {
-  if (card.type === "plot" && (card.keywords || []).includes("scheme")) {
-    return "Plot · Scheme";
+  if (card.type === "plot") {
+    const form = titleCase(card.story_form);
+    return card.veiled ? form + " · Veiled Story" : form + " · Story";
   }
+  if (card.type === "subject" && card.hero) return "Hero · Subject";
   return TYPE_LABELS[card.type] ?? card.type;
+}
+
+function propertyLabel(card) {
+  const values = [];
+  if (card.type === "subject" && card.role) values.push(titleCase(card.role));
+  for (const value of card.classes || []) {
+    if (value === "hero") continue;
+    const label = titleCase(value);
+    if (!values.includes(label)) values.push(label);
+  }
+  return values.length
+    ? '<div class="card-properties">' +
+      values.map((value) => "<em>" + esc(value) + "</em>").join(" · ") +
+      "</div>"
+    : "";
 }
 
 function cardMarkup(card) {
   const strength = Number.isInteger(card.strength)
-    ? `<div class="strength" aria-label="Strength">${card.strength}</div>`
+    ? '<div class="strength" aria-label="Strength">' + card.strength + "</div>"
     : "";
 
   const unique = card.unique ? '<span class="unique"><em>Unique</em></span>' : "";
 
-  return `
-    <article class="game-card card-${card.type}">
-      <header class="card-header">
-        <div>
-          <div class="card-type">${typeLabel(card)}</div>
-          <h2>${esc(card.title)}</h2>
-        </div>
-        ${strength}
-      </header>
-      <div class="card-art" aria-hidden="true">
-        <span>${esc(card.title)}</span>
-      </div>
-      <div class="card-rule">
-        <p>${card.text ? formatGameText(card.text) : "&nbsp;"}</p>
-      </div>
-      <footer class="card-footer">
-        ${unique}
-        <span class="card-id">${card.id}</span>
-      </footer>
-    </article>
-  `;
+  return '<article class="game-card card-' + card.type + (card.hero ? " card-hero" : "") + '">' +
+    '<header class="card-header"><div>' +
+      '<div class="card-type">' + esc(typeLabel(card)) + "</div>" +
+      "<h2>" + esc(card.title) + "</h2>" +
+      propertyLabel(card) +
+    "</div>" + strength + "</header>" +
+    '<div class="card-art" aria-hidden="true"><span>' + esc(card.title) + "</span></div>" +
+    '<div class="card-rule"><p>' + (card.text ? formatGameText(card.text) : "&nbsp;") + "</p></div>" +
+    '<footer class="card-footer">' + unique + '<span class="card-id">' + esc(card.id) + "</span></footer>" +
+    "</article>";
 }
 
 async function main() {
@@ -62,7 +74,7 @@ async function main() {
   const data = await response.json();
   const cards = data.cards;
 
-  document.getElementById("card-count").textContent = `${cards.length} cards`;
+  document.getElementById("card-count").textContent = cards.length + " cards";
   document.getElementById("cards").innerHTML = cards.map(cardMarkup).join("");
 }
 

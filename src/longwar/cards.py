@@ -6,6 +6,25 @@ from typing import Any
 
 CARD_TYPES = {"subject", "link", "name", "plot"}
 
+SUBJECT_ROLES = {
+    "swordsman",
+    "spearman",
+    "archer",
+    "healer",
+    "ship",
+    "stronghold",
+}
+
+STORY_FORMS = {
+    "legend",
+    "myth",
+    "saga",
+    "omen",
+    "prophecy",
+    "warning",
+    "conspiracy",
+}
+
 
 def load_card_file(path: str | Path) -> dict[str, Any]:
     path = Path(path)
@@ -41,6 +60,39 @@ def validate_card_data(data: dict[str, Any]) -> None:
             raise ValueError(f"{card_id}: invalid card type {card_type!r}")
         if not isinstance(card.get("unique"), bool):
             raise ValueError(f"{card_id}: unique must be boolean")
+
+        classes = card.get("classes")
+        if (
+            not isinstance(classes, list)
+            or not classes
+            or any(not isinstance(value, str) or not value for value in classes)
+        ):
+            raise ValueError(f"{card_id}: classes must be a non-empty list of strings")
+        if len(classes) != len(set(classes)):
+            raise ValueError(f"{card_id}: classes must not contain duplicates")
+
+        hero = card.get("hero", False)
+        if not isinstance(hero, bool):
+            raise ValueError(f"{card_id}: hero must be boolean when present")
+        if hero:
+            if card_type != "subject":
+                raise ValueError(f"{card_id}: only Subjects may be Heroes")
+            if card.get("unique") is not True:
+                raise ValueError(f"{card_id}: every Hero must be Unique")
+            if "hero" not in classes:
+                raise ValueError(f"{card_id}: Hero classification is required")
+
+        if card_type == "subject":
+            role = card.get("role")
+            if role not in SUBJECT_ROLES:
+                raise ValueError(f"{card_id}: invalid Subject role {role!r}")
+
+        if card_type == "plot":
+            form = card.get("story_form")
+            if form not in STORY_FORMS:
+                raise ValueError(f"{card_id}: invalid Story form {form!r}")
+            if not isinstance(card.get("veiled"), bool):
+                raise ValueError(f"{card_id}: Story veiled must be boolean")
 
         if card_type in {"subject", "name"}:
             strength = card.get("strength")

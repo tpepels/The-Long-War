@@ -45,7 +45,8 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         "id": baseline_id(card["id"]),
         "title": f"Counterfactual baseline — {card['title']}",
         "type": card_type,
-        "unique": card_type == "name",
+        "unique": bool(card["unique"]),
+        "classes": list(card.get("classes", ["experimental"])),
         "text": "Experimental matched baseline.",
         "rules": {},
         "balance": {},
@@ -54,11 +55,13 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
     }
 
     if card_type == "subject":
-        result["strength"] = 4
+        result["role"] = card["role"]
+        result["hero"] = bool(card.get("hero", False))
+        result["strength"] = 6 if result["hero"] else 4
     elif card_type == "link":
         result["text"] = (
             "Experimental matched baseline. Its **Subject** gets +1 **Strength**. "
-            "While this **Link** has a **Name**, its Subject gets +2 additional Strength."
+            "While this **Bond** has a **Name**, its **Subject** gets +2 additional **Strength**."
         )
         result["rules"] = {
             "strength_bonus": 1,
@@ -71,12 +74,13 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
     elif card_type == "name":
         result["strength"] = 2
     elif card_type == "plot":
-        if "scheme" in card.get("keywords", []):
-            # Preserve the face-down Scheme commitment/bluff structure while
+        result["story_form"] = card["story_form"]
+        result["veiled"] = bool(card.get("veiled", False))
+        if result["veiled"]:
+            # Preserve the face-down Story commitment/bluff structure while
             # removing the specific trigger/effect.
-            result["keywords"] = ["scheme"]
             result["text"] = (
-                "**Scheme** — Experimental matched baseline. While this is face-down, "
+                "*Veiled.* Experimental matched baseline. While this is face-down, "
                 "you have +1 **Strength** in this **Front**. It has no trigger."
             )
             result["rules"] = {
@@ -87,8 +91,8 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
                 }
             }
         else:
-            # A no-op Plot preserves the card/turn cost and universal playability
-            # of a Plot while removing the card-specific effect.
+            # A no-op Story preserves the card/turn cost and universal
+            # playability while removing the card-specific effect.
             result["rules"] = {}
     else:
         raise ValueError(f"Unsupported card type: {card_type}")

@@ -37,6 +37,17 @@ class InvalidDeck(ValueError):
     pass
 
 
+LINE_DEFENSE_BONUS = 1
+
+ROLE_POSITION_RULES = {
+    "swordsman": {"front_bonus": 1},
+    "spearman": {"front_with_rear_bonus": 1},
+    "archer": {"rear_with_front_bonus": 2},
+    "ship": {"rear_bonus": 1},
+    "stronghold": {"rear_bonus": 1},
+}
+
+
 def all_positions() -> tuple[Position, ...]:
     return tuple(
         Position(front, rank)
@@ -59,6 +70,7 @@ class GameEngine:
             raise InvalidDeck(f"A deck must contain exactly 30 cards, got {len(deck)}")
 
         counts = Counter(deck)
+        hero_count = 0
         for card_id, count in counts.items():
             if card_id not in self.cards:
                 raise InvalidDeck(f"Unknown card: {card_id}")
@@ -68,6 +80,13 @@ class GameEngine:
                 raise InvalidDeck(
                     f"{card['title']} appears {count} times; maximum is {maximum}"
                 )
+            if card.get("hero", False):
+                hero_count += count
+
+        if hero_count != 1:
+            raise InvalidDeck(
+                f"A deck must contain exactly one Hero, got {hero_count}"
+            )
 
     def new_game(
         self,
@@ -151,7 +170,7 @@ class GameEngine:
             elif card_type == "name":
                 actions.extend(self._name_actions(state, player, card))
             elif card_type == "plot":
-                if "scheme" in card.get("keywords", []):
+                if card.get("veiled", False):
                     actions.extend(self._scheme_actions(state, player, card))
                 else:
                     actions.extend(self._plot_actions(state, player, card))
@@ -255,6 +274,26 @@ class GameEngine:
         subject = self.cards[slot.subject]
         value = int(subject["strength"]) + slot.temporary_strength
 
+        if position.rank is Rank.FRONT:
+            value += LINE_DEFENSE_BONUS
+
+        value += self._role_strength_bonus(
+            state,
+            player,
+            position,
+            subject,
+        )
+        value += self._support_strength_bonus(
+            state,
+            player,
+            position,
+        )
+        value += self._adjacent_aura_bonus(
+            state,
+            player,
+            position,
+        )
+
         for modifier in subject.get("rules", {}).get("strength_modifiers", []):
             if self._condition_matches(state, player, position, modifier.get("when", {})):
                 value += int(modifier["amount"])
@@ -310,6 +349,71 @@ class GameEngine:
                 enemy_link.get("rules", {}).get("opposing_front_modifier", 0)
             )
 
+        return value
+
+    def _role_strength_bonus(
+        self,
+        state: GameState,
+        player: int,
+        position: Position,
+        subject: dict[str, Any],
+    ) -> int:
+        role = subject.get("role")
+        rules = ROLE_POSITION_RULES.get(role, {})
+        value = 0
+
+        if position.rank is Rank.FRONT:
+            value += int(rules.get("front_bonus", 0))
+            if rules.get("front_with_rear_bonus"):
+                rear = state.slot(player, Position(position.front, Rank.REAR))
+                if rear.subject is not None:
+                    value += int(rules["front_with_rear_bonus"])
+        else:
+            value += int(rules.get("rear_bonus", 0))
+            if rules.get("rear_with_front_bonus"):
+                frontline = state.slot(player, Position(position.front, Rank.FRONT))
+                if frontline.subject is not None:
+                    value += int(rules["rear_with_front_bonus"])
+
+        return value
+
+    def _support_strength_bonus(
+        self,
+        state: GameState,
+        player: int,
+        position: Position,
+    ) -> int:
+        if position.rank is not Rank.FRONT:
+            return 0
+
+        rear = state.slot(player, Position(position.front, Rank.REAR))
+        if rear.subject is None:
+            return 0
+
+        supporter = self.cards[rear.subject]
+        if supporter.get("role") == "healer":
+            return 2
+        return 0
+
+    def _adjacent_aura_bonus(
+        self,
+        state: GameState,
+        player: int,
+        position: Position,
+    ) -> int:
+        value = 0
+        for adjacent in self._adjacent_positions(position):
+            slot = state.slot(player, adjacent)
+            if slot.subject is None:
+                continue
+            source = self.cards[slot.subject]
+            aura = int(source.get("rules", {}).get("adjacent_strength_aura", 0))
+            if not aura:
+                continue
+            required_rank = source.get("rules", {}).get("aura_requires_rank")
+            if required_rank is not None and adjacent.rank.value != required_rank:
+                continue
+            value += aura
         return value
 
     def _condition_matches(
