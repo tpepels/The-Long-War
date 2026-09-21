@@ -1,10 +1,8 @@
 {
-  "name": "Reference Deck v0.2",
+  "name": "Reference Deck v0.3",
   "cards": [
     "the-fifty-men",
-    "the-fifty-men",
     "seven-black-ships",
-    "those-who-came-back",
     "those-who-came-back",
     "the-house-at-orra",
     "the-children-of-the-salt-road",
@@ -12,10 +10,7 @@
     "the-white-hands-of-elara",
     "avaros-the-bronze-king",
     "followed",
-    "followed",
     "swore-to",
-    "swore-to",
-    "defied",
     "defied",
     "carried",
     "avenged",
@@ -24,12 +19,17 @@
     "oren",
     "teyra",
     "the-story-is-false",
-    "the-story-is-false",
     "he-never-came",
     "they-chose-another",
     "the-lamps-went-dark",
     "the-road-was-cut",
     "the-hidden-oars",
-    "the-witness-lied"
+    "the-witness-lied",
+    "the-storm-broke",
+    "the-tide-rose",
+    "the-ground-gave-way",
+    "the-bronze-teeth",
+    "the-false-muster",
+    "the-wooden-gift"
   ]
 }
