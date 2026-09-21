@@ -19,5 +19,5 @@ jobs:
       - run: pip install -e '.[dev]'
       - run: pytest
       - run: python tools/balance_report.py
-      - run: python tools/simulate.py --games 100 --seed 1701
+      - run: python tools/simulate.py --games 50 --seed 1701 --agent-a heuristic --agent-b heuristic
       - run: python tools/build_pages.py

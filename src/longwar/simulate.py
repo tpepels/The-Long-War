@@ -1,19 +1,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
-from .agents import RandomAgent
+from .agents import HeuristicAgent, RandomAgent
 from .game.engine import GameEngine
 from .game.model import Phase
+from .telemetry import Telemetry
 
 
 @dataclass(frozen=True)
 class SimulationReport:
     games: int
+    agents: tuple[str, str]
     wins: tuple[int, int]
     first_player_wins: int
     mean_turns: float
     max_turns: int
+    telemetry: dict[str, Any]
 
     @property
     def win_rates(self) -> tuple[float, float]:
@@ -24,6 +28,14 @@ class SimulationReport:
         return self.first_player_wins / self.games
 
 
+def make_agent(name: str, seed: int):
+    if name == "random":
+        return RandomAgent(seed)
+    if name == "heuristic":
+        return HeuristicAgent(seed)
+    raise ValueError(f"Unknown agent: {name}")
+
+
 def simulate_games(
     engine: GameEngine,
     deck_a: list[str],
@@ -32,6 +44,7 @@ def simulate_games(
     games: int,
     seed: int = 0,
     max_actions: int = 500,
+    agent_names: tuple[str, str] = ("heuristic", "heuristic"),
 ) -> SimulationReport:
     if games <= 0:
         raise ValueError("games must be positive")
@@ -40,6 +53,7 @@ def simulate_games(
     first_player_wins = 0
     total_turns = 0
     maximum_turns = 0
+    telemetry = Telemetry()
 
     for game_index in range(games):
         first_player = game_index % 2
@@ -50,9 +64,10 @@ def simulate_games(
             first_player=first_player,
         )
         agents = [
-            RandomAgent(seed * 10_000 + game_index * 2 + 1),
-            RandomAgent(seed * 10_000 + game_index * 2 + 2),
+            make_agent(agent_names[0], seed * 10_000 + game_index * 2 + 1),
+            make_agent(agent_names[1], seed * 10_000 + game_index * 2 + 2),
         ]
+        telemetry.start_game(state)
 
         action_count = 0
         while state.phase is not Phase.COMPLETE:
@@ -60,15 +75,32 @@ def simulate_games(
                 raise RuntimeError(
                     f"Simulation exceeded {max_actions} actions in game {game_index}"
                 )
+
             actor = state.active_player
-            action = agents[actor].choose(engine, state)
+            agent = agents[actor]
+            action = agent.choose(engine, state)
+
+            decision_info = getattr(agent, "last_decision", None)
+            if decision_info is not None:
+                decision_info = dict(decision_info)
+                decision_info["agent"] = agent_names[actor]
+
+            before = telemetry.before_action(
+                engine,
+                state,
+                actor,
+                action,
+                decision_info,
+            )
             engine.apply(state, action)
+            telemetry.after_action(engine, before, state, actor, action)
             action_count += 1
 
         winner = state.winner
         if winner is None:
             raise RuntimeError("Completed game has no winner")
 
+        telemetry.finish_game(winner)
         wins[winner] += 1
         if winner == first_player:
             first_player_wins += 1
@@ -77,8 +109,10 @@ def simulate_games(
 
     return SimulationReport(
         games=games,
+        agents=agent_names,
         wins=(wins[0], wins[1]),
         first_player_wins=first_player_wins,
         mean_turns=total_turns / games,
         max_turns=maximum_turns,
+        telemetry=telemetry.summary(),
     )

@@ -25,7 +25,30 @@ jobs:
           cache: pip
       - run: pip install -e .
       - run: python tools/balance_report.py
-      - run: python tools/simulate.py --games 2000 --seed 1701
+      - name: Heuristic self-play
+        run: >
+          python tools/simulate.py
+          --games 500
+          --seed 1701
+          --agent-a heuristic
+          --agent-b heuristic
+          --output artifacts/heuristic-selfplay.json
+      - name: Heuristic vs random
+        run: >
+          python tools/simulate.py
+          --games 300
+          --seed 2701
+          --agent-a heuristic
+          --agent-b random
+          --output artifacts/heuristic-vs-random.json
+      - name: Random vs heuristic
+        run: >
+          python tools/simulate.py
+          --games 300
+          --seed 3701
+          --agent-a random
+          --agent-b heuristic
+          --output artifacts/random-vs-heuristic.json
       - uses: actions/upload-artifact@v4
         with:
           name: balance-reports
