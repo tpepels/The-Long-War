@@ -1,4 +1,4 @@
-.PHONY: install test test-fast test-algorithm test-integration check mccfr-smoke simulate-smoke pages
+.PHONY: install test test-fast test-algorithm test-integration check mccfr-smoke verify-mccfr simulate-smoke pages
 
 install:
 	python -m pip install -e '.[dev]'
@@ -15,7 +15,7 @@ test-algorithm:
 test-integration:
 	python -m pytest -q -m integration --durations=10
 
-check: test-fast test-algorithm test-integration
+check: test-fast test-algorithm test-integration verify-mccfr
 	python tools/balance_report.py
 	python tools/simulate.py --games 50 --seed 1701 --agent-a heuristic --agent-b heuristic
 	python tools/analyze_telemetry.py --simulation artifacts/simulation-report.json
@@ -24,6 +24,9 @@ check: test-fast test-algorithm test-integration
 mccfr-smoke:
 	python tools/train_mccfr.py --iterations 5 --depth 2 --output artifacts/mccfr-smoke.json
 	python tools/simulate.py --games 5 --seed 4401 --agent-a mccfr --policy-a artifacts/mccfr-smoke.json --agent-b heuristic --output artifacts/mccfr-smoke-match.json
+
+verify-mccfr:
+	python tools/verify_mccfr.py --iterations 30000
 
 simulate-smoke:
 	python tools/simulate.py --games 25 --seed 99 --agent-a heuristic --agent-b heuristic
