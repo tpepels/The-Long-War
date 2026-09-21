@@ -1544,3 +1544,45 @@ button, .button {
     flex-direction: column;
   }
 }
+
+
+.mulligan-placeholder {
+  grid-column: 1 / -1;
+  min-height: 260px;
+  border: 1px dashed #181714;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      transparent 0 18px,
+      rgba(24,23,20,.035) 18px 19px
+    ),
+    #e7e1d5;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.mulligan-placeholder strong {
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.mulligan-placeholder span {
+  max-width: 480px;
+  font: 13px/1.4 system-ui, sans-serif;
+  opacity: .6;
+}
+
+.mulligan-card {
+  cursor: pointer;
+}
+
+.mulligan-card.selected {
+  background: #fde7e2;
+  box-shadow:
+    inset 0 4px 0 #a82323,
+    0 0 0 2px #a82323,
+    0 11px 0 rgba(168,35,35,.12);
+}

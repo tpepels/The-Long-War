@@ -17,24 +17,49 @@ def payloads() -> tuple[str, str]:
     return json.dumps(cards), json.dumps(deck)
 
 
-def test_hotseat_snapshot_hides_hand_until_revealed() -> None:
+def finish_hotseat_mulligan(session: PlaySession) -> None:
+    session.mulligan([], 0)
+    session.mulligan([], 1)
+
+
+def test_hotseat_snapshot_hides_opening_hand_until_revealed() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
 
     public = session.snapshot(None)
+    assert public["phase"] == "mulligan"
+    assert public["active_player"] == 0
     assert public["needs_reveal"] is True
     assert public["hand"] == []
     assert public["legal_actions"] == []
 
-    active = public["active_player"]
-    private = session.snapshot(active)
+    private = session.snapshot(0)
     assert len(private["hand"]) == 10
-    assert any(action["key"] == "pass" for action in private["legal_actions"])
+    assert private["mulligan_available"] is True
+    assert private["legal_actions"] == []
+
+
+def test_hotseat_mulligans_are_private_and_then_start_match() -> None:
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+
+    first = session.mulligan([0, 1], 0)
+    assert first["viewer"] is None
+    assert first["phase"] == "mulligan"
+    assert first["active_player"] == 1
+    assert first["needs_reveal"] is True
+
+    second = session.mulligan([], 1)
+    assert second["viewer"] is None
+    assert second["phase"] == "battle"
+    assert second["needs_reveal"] is True
+    assert session.setup_complete is True
 
 
 def test_hotseat_action_returns_to_privacy_gate() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    finish_hotseat_mulligan(session)
     active = session.state.active_player
 
     result = session.act("pass", active)
@@ -44,20 +69,23 @@ def test_hotseat_action_returns_to_privacy_gate() -> None:
     assert result["hand"] == []
 
 
-def test_heuristic_mode_returns_control_to_human() -> None:
+def test_heuristic_mode_mulligan_then_returns_control_to_human() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="heuristic", seed=1701)
+    assert session.snapshot(0)["phase"] == "mulligan"
 
-    assert session.state.phase.value == "complete" or session.state.active_player == 0
-    snapshot = session.snapshot(0)
-    if snapshot["phase"] != "complete":
-        assert snapshot["viewer"] == 0
-        assert snapshot["legal_actions"]
+    result = session.mulligan([], 0)
+
+    assert result["phase"] == "complete" or result["active_player"] == 0
+    if result["phase"] != "complete":
+        assert result["viewer"] == 0
+        assert result["legal_actions"]
 
 
 def test_action_payload_exposes_structured_board_targets() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    finish_hotseat_mulligan(session)
     active = session.state.active_player
     snapshot = session.snapshot(active)
 
@@ -82,6 +110,7 @@ def test_action_payload_exposes_structured_board_targets() -> None:
 def test_snapshot_exposes_front_control() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    finish_hotseat_mulligan(session)
     snapshot = session.snapshot(session.state.active_player)
 
     assert snapshot["front_control"] == [None, None, None]

@@ -33,7 +33,7 @@ RANK_NAMES = {
 
 
 class PlaySession:
-    """Small JSON adapter around the canonical Python game engine."""
+    """JSON adapter around the canonical Python game engine."""
 
     def __init__(
         self,
@@ -47,11 +47,7 @@ class PlaySession:
 
         card_data = json.loads(card_data_json)
         deck_payload = json.loads(deck_json)
-        deck = (
-            list(deck_payload["cards"])
-            if isinstance(deck_payload, dict)
-            else list(deck_payload)
-        )
+        deck = list(deck_payload["cards"]) if isinstance(deck_payload, dict) else list(deck_payload)
 
         self.engine = GameEngine(card_data)
         self.cards = self.engine.cards
@@ -61,12 +57,12 @@ class PlaySession:
         self.human_players = {0, 1} if mode == "hotseat" else {0}
         self.log: list[str] = []
 
-        self.state = self.engine.new_game(
-            deck,
-            deck,
-            seed=self.seed,
-            first_player=None,
-        )
+        # Preview state exposes the reproducible opening hands before mulligans.
+        self.state = self.engine.new_game(deck, deck, seed=self.seed, first_player=None)
+        self.setup_complete = False
+        self.mulligan_player = 0
+        self.mulligan_choices: dict[int, tuple[int, ...]] = {}
+
         self.agents: dict[int, Any] = {}
         if mode == "heuristic":
             self.agents[1] = HeuristicAgent(self.seed + 20_001, exploration=0.0)
@@ -79,18 +75,63 @@ class PlaySession:
                 deterministic=True,
             )
 
-        self.log.append(
-            f"Battle I begins. Player {self.state.active_player + 1} goes first."
-        )
-        self._run_ai_until_human()
-
     def snapshot_json(self, viewer: int | None = None) -> str:
         return json.dumps(self.snapshot(viewer), separators=(",", ":"))
 
     def act_json(self, key: str, viewer: int) -> str:
         return json.dumps(self.act(key, viewer), separators=(",", ":"))
 
+    def mulligan_json(self, indices: list[int], viewer: int) -> str:
+        return json.dumps(self.mulligan(indices, viewer), separators=(",", ":"))
+
+    def mulligan(self, indices: list[int], viewer: int) -> dict[str, Any]:
+        if self.setup_complete:
+            raise ValueError("The mulligan is already complete")
+        if viewer not in self.human_players:
+            raise ValueError("That player is not human-controlled")
+        if viewer != self.mulligan_player:
+            raise ValueError("It is not that player's mulligan")
+
+        normalized = tuple(sorted(int(index) for index in indices))
+        if len(normalized) > 2 or len(set(normalized)) != len(normalized):
+            raise ValueError("Choose at most two distinct cards")
+        hand = self.state.players[viewer].hand
+        if any(index < 0 or index >= len(hand) for index in normalized):
+            raise ValueError("Mulligan selection is outside the opening hand")
+
+        self.mulligan_choices[viewer] = normalized
+
+        if self.mode == "hotseat" and viewer == 0:
+            self.mulligan_player = 1
+            return self.snapshot(None)
+
+        if self.mode != "hotseat":
+            self.mulligan_choices[1] = ()
+
+        self._finish_mulligans()
+        return self.snapshot(None if self.mode == "hotseat" else 0)
+
+    def _finish_mulligans(self) -> None:
+        choices = (
+            self.mulligan_choices.get(0, ()),
+            self.mulligan_choices.get(1, ()),
+        )
+        self.state = self.engine.new_game(
+            self.deck,
+            self.deck,
+            seed=self.seed,
+            first_player=None,
+            mulligan_indices=choices,
+        )
+        self.setup_complete = True
+        self.log.append(
+            f"Battle I begins. Player {self.state.active_player + 1} goes first."
+        )
+        self._run_ai_until_human()
+
     def act(self, key: str, viewer: int) -> dict[str, Any]:
+        if not self.setup_complete:
+            raise ValueError("Complete the opening mulligan first")
         if viewer not in self.human_players:
             raise ValueError("That player is not human-controlled")
         if self.state.phase is Phase.COMPLETE:
@@ -105,21 +146,18 @@ class PlaySession:
 
         self._apply_with_log(action)
         self._run_ai_until_human()
-
-        next_viewer: int | None
-        if self.mode == "hotseat":
-            next_viewer = None
-        else:
-            next_viewer = 0
-        return self.snapshot(next_viewer)
+        return self.snapshot(None if self.mode == "hotseat" else 0)
 
     def snapshot(self, viewer: int | None = None) -> dict[str, Any]:
         state = self.state
         if viewer is not None and viewer not in (0, 1):
             raise ValueError("viewer must be 0, 1, or null")
 
+        display_active = self.mulligan_player if not self.setup_complete else state.active_player
+        display_phase = "mulligan" if not self.setup_complete else state.phase.value
+
         players = []
-        for player, ps in enumerate(state.players):
+        for ps in state.players:
             players.append({
                 "victories": ps.victories,
                 "passed": ps.passed,
@@ -141,9 +179,7 @@ class PlaySession:
                     "link": slot.link,
                     "name": slot.name,
                     "complete": slot.complete,
-                    "strength": self.engine.position_strength(
-                        state, owner, position
-                    ),
+                    "strength": self.engine.position_strength(state, owner, position),
                 })
 
         schemes: list[list[dict[str, Any] | None]] = [[], []]
@@ -166,48 +202,53 @@ class PlaySession:
                     })
 
         front_strengths = [
-            [
-                self.engine.front_strength(state, player, front)
-                for front in Front
-            ]
+            [self.engine.front_strength(state, player, front) for front in Front]
             for player in range(2)
         ]
         front_control = []
         for front in Front:
             p0 = front_strengths[0][int(front)]
             p1 = front_strengths[1][int(front)]
-            front_control.append(
-                0 if p0 > p1 else 1 if p1 > p0 else None
-            )
+            front_control.append(0 if p0 > p1 else 1 if p1 > p0 else None)
 
         hand: list[str] = []
         legal_actions: list[dict[str, Any]] = []
-        if (
+        if not self.setup_complete:
+            if (
+                viewer is not None
+                and viewer == self.mulligan_player
+                and viewer in self.human_players
+            ):
+                hand = list(state.players[viewer].hand)
+        elif (
             viewer is not None
             and viewer == state.active_player
             and viewer in self.human_players
             and state.phase is not Phase.COMPLETE
         ):
             hand = list(state.players[viewer].hand)
-            legal_actions = [
-                self._action_view(action)
-                for action in self.engine.legal_actions(state)
-            ]
+            legal_actions = [self._action_view(action) for action in self.engine.legal_actions(state)]
 
         return {
             "mode": self.mode,
             "seed": self.seed,
             "battle": state.battle,
-            "phase": state.phase.value,
-            "active_player": state.active_player,
-            "chooser": state.chooser,
+            "phase": display_phase,
+            "active_player": display_active,
+            "chooser": state.chooser if self.setup_complete else None,
             "winner": state.winner,
             "viewer": viewer,
             "needs_reveal": (
                 self.mode == "hotseat"
                 and viewer is None
-                and state.phase is not Phase.COMPLETE
+                and (not self.setup_complete or state.phase is not Phase.COMPLETE)
             ),
+            "mulligan_available": (
+                not self.setup_complete
+                and viewer is not None
+                and viewer == self.mulligan_player
+            ),
+            "mulligan_limit": 2,
             "players": players,
             "board": board,
             "schemes": schemes,
@@ -219,6 +260,8 @@ class PlaySession:
         }
 
     def _run_ai_until_human(self) -> None:
+        if not self.setup_complete:
+            return
         safety = 0
         while (
             self.state.phase is not Phase.COMPLETE
@@ -234,6 +277,7 @@ class PlaySession:
     def _apply_with_log(self, action: Action) -> None:
         actor = self.state.active_player
         battle_before = self.state.battle
+        victories_before = [player.victories for player in self.state.players]
         observations_before = len(self.state.observations)
         label = self._describe_action(action, actor)
 
@@ -241,15 +285,24 @@ class PlaySession:
         self.log.append(label)
 
         for event in self.state.observations[observations_before:]:
-            if event.kind != "reveal":
-                continue
-            title = self.cards[event.card_id]["title"]
-            self.log.append(f"Scheme revealed: {title}.")
+            if event.kind == "reveal":
+                self.log.append(f"Scheme revealed: {self.cards[event.card_id]['title']}.")
+
+        battle_winner = next(
+            (
+                player
+                for player in range(2)
+                if self.state.players[player].victories > victories_before[player]
+            ),
+            None,
+        )
+        if battle_winner is not None:
+            self.log.append(
+                f"Player {battle_winner + 1} wins Battle {self._roman(battle_before)}."
+            )
 
         if self.state.phase is Phase.COMPLETE:
-            self.log.append(
-                f"Player {self.state.winner + 1} wins the match."
-            )
+            self.log.append(f"Player {self.state.winner + 1} wins the match.")
         elif self.state.battle != battle_before:
             self.log.append(
                 f"Battle {self._roman(self.state.battle)} begins. "
@@ -262,11 +315,7 @@ class PlaySession:
             "key": action_key(action),
             "kind": type(action).__name__,
             "card_id": card_id,
-            "label": self._describe_action(
-                action,
-                self.state.active_player,
-                private=True,
-            ),
+            "label": self._describe_action(action, self.state.active_player, private=True),
             "reason": self._legal_reason(action),
             "position": None,
             "front": None,
@@ -277,25 +326,17 @@ class PlaySession:
 
         if isinstance(action, (PlaySubject, PlayLink, PlayName)):
             payload["position"] = self._position_payload(action.position)
-
         if isinstance(action, PlayName) and action.move_to is not None:
             payload["move_to"] = self._position_payload(action.move_to)
-
         if isinstance(action, PlayScheme):
             payload["front"] = int(action.front)
-
         if isinstance(action, PlayPlot):
             payload["targets"] = [
-                {
-                    "player": target.player,
-                    **self._position_payload(target.position),
-                }
+                {"player": target.player, **self._position_payload(target.position)}
                 for target in action.targets
             ]
-
         if isinstance(action, ChooseFirst):
             payload["choose_player"] = action.player
-
         return payload
 
     @staticmethod
@@ -318,15 +359,11 @@ class PlaySession:
         if isinstance(action, Pass):
             return f"{prefix} Passes."
         if isinstance(action, ChooseFirst):
-            return (
-                f"{prefix} chooses Player {action.player + 1} "
-                "to start the next Battle."
-            )
+            return f"{prefix} chooses Player {action.player + 1} to start the next Battle."
         if isinstance(action, PlaySubject):
             return (
                 f"{prefix} plays {self.cards[action.card_id]['title']} "
-                f"to {FRONT_NAMES[action.position.front]} "
-                f"{RANK_NAMES[action.position.rank]}."
+                f"to {FRONT_NAMES[action.position.front]} {RANK_NAMES[action.position.rank]}."
             )
         if isinstance(action, PlayLink):
             return (
@@ -338,12 +375,10 @@ class PlaySession:
             if action.move_to is not None:
                 move = (
                     f" and moves the Legend to "
-                    f"{FRONT_NAMES[action.move_to.front]} "
-                    f"{RANK_NAMES[action.move_to.rank]}"
+                    f"{FRONT_NAMES[action.move_to.front]} {RANK_NAMES[action.move_to.rank]}"
                 )
             return (
-                f"{prefix} completes a Legend with "
-                f"{self.cards[action.card_id]['title']} "
+                f"{prefix} completes a Legend with {self.cards[action.card_id]['title']} "
                 f"in {FRONT_NAMES[action.position.front]}{move}."
             )
         if isinstance(action, PlayScheme):
@@ -352,10 +387,7 @@ class PlaySession:
                     f"Set {self.cards[action.card_id]['title']} face-down "
                     f"in {FRONT_NAMES[action.front]}."
                 )
-            return (
-                f"{prefix} sets a face-down Scheme "
-                f"in {FRONT_NAMES[action.front]}."
-            )
+            return f"{prefix} sets a face-down Scheme in {FRONT_NAMES[action.front]}."
         if isinstance(action, PlayPlot):
             title = self.cards[action.card_id]["title"]
             if not action.targets:
@@ -385,8 +417,7 @@ class PlaySession:
     def _target_label(target: BoardTarget) -> str:
         return (
             f"Player {target.player + 1} "
-            f"{FRONT_NAMES[target.position.front]} "
-            f"{RANK_NAMES[target.position.rank]}"
+            f"{FRONT_NAMES[target.position.front]} {RANK_NAMES[target.position.rank]}"
         )
 
     @staticmethod

@@ -31,7 +31,7 @@ async function boot() {
   pyodide.globals.set("CARD_DATA_JSON", cardsText);
   pyodide.globals.set("DECK_JSON", deckText);
   await pyodide.runPythonAsync(
-    'import sys\nsys.path.insert(0, "/game")\nfrom longwar.web_api import PlaySession\nsession = None'
+    'import sys, json\nsys.path.insert(0, "/game")\nfrom longwar.web_api import PlaySession\nsession = None'
   );
   initialized = true;
 }
@@ -61,6 +61,15 @@ async function handle(message) {
     pyodide.globals.set("VIEWER_JS", Number(message.viewer));
     const result = await pyodide.runPythonAsync(
       'session.act_json(str(KEY_JS), int(VIEWER_JS))'
+    );
+    return JSON.parse(result);
+  }
+
+  if (message.type === "mulligan") {
+    pyodide.globals.set("INDICES_JSON_JS", JSON.stringify(message.indices || []));
+    pyodide.globals.set("VIEWER_JS", Number(message.viewer));
+    const result = await pyodide.runPythonAsync(
+      'session.mulligan_json(json.loads(str(INDICES_JSON_JS)), int(VIEWER_JS))'
     );
     return JSON.parse(result);
   }

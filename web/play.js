@@ -6,6 +6,7 @@ let state = null;
 let selectedCardId = null;
 let stagedPlotSource = null;
 let choiceActions = [];
+let mulliganSelection = new Set();
 
 const $ = (id) => document.getElementById(id);
 const frontNames = ["Left", "Center", "Right"];
@@ -83,7 +84,8 @@ function selectedActions() {
 }
 
 function actionForPass() {
-  return state?.legal_actions.find((action) => action.kind === "Pass") || null;
+  if (!state || state.phase === "mulligan") return null;
+  return state.legal_actions.find((action) => action.kind === "Pass") || null;
 }
 
 function targetActionsForSlot(owner, front, rank) {
@@ -176,6 +178,11 @@ function controlClass(front, viewer) {
 }
 
 function renderBattlefield() {
+  if (state.phase === "mulligan") {
+    $("battlefield").innerHTML =
+      '<div class="mulligan-placeholder"><strong>Opening mulligan</strong><span>The battlefield stays hidden until both opening hands are settled.</span></div>';
+    return;
+  }
   const bottom = currentViewer();
   const top = opponentOf(bottom);
   $("battlefield").innerHTML = frontNames.map((name, front) => {
@@ -199,6 +206,14 @@ function renderBattlefield() {
 }
 
 function renderStrip() {
+  if (state.phase === "mulligan") {
+    $("match-strip").innerHTML =
+      "<strong>Opening mulligan</strong>" +
+      "<span>Player " + (state.active_player + 1) + "</span>" +
+      "<span>Select up to 2 cards to return</span>";
+    $("pass-button").hidden = true;
+    return;
+  }
   const winnerText = state.winner == null ? "" : " · Player " + (state.winner + 1) + " wins";
   $("match-strip").innerHTML =
     "<strong>Battle " + state.battle + "</strong>" +
@@ -223,9 +238,12 @@ function renderPrivacy() {
   }
   gate.hidden = false;
   clearSelection();
+  const opening = state.phase === "mulligan";
   gate.innerHTML =
-    "<p>Pass the device to <strong>Player " + (state.active_player + 1) + "</strong>.</p>" +
-    '<button type="button" id="reveal-hand">Reveal Player ' + (state.active_player + 1) + " hand</button>";
+    "<p>Pass the device to <strong>Player " + (state.active_player + 1) + "</strong>" +
+    (opening ? " for the opening mulligan." : ".") + "</p>" +
+    '<button type="button" id="reveal-hand">Reveal Player ' + (state.active_player + 1) +
+    (opening ? " opening hand" : " hand") + "</button>";
   $("reveal-hand").addEventListener("click", async () => {
     await runBusy(async () => {
       state = await request({ type: "view", viewer: state.active_player });
@@ -238,6 +256,7 @@ function clearSelection() {
   selectedCardId = null;
   stagedPlotSource = null;
   choiceActions = [];
+  mulliganSelection = new Set();
 }
 
 function selectCard(cardId) {
@@ -272,6 +291,19 @@ function renderInteraction() {
   const hint = $("interaction-hint");
   const cancel = $("cancel-selection");
   const tray = $("choice-tray");
+
+  if (state.phase === "mulligan") {
+    if (state.viewer == null) {
+      title.textContent = "Hidden opening hand";
+      hint.textContent = "Pass the device, then reveal the next player's opening hand.";
+    } else {
+      title.textContent = "Opening mulligan";
+      hint.textContent = "Select up to two cards to shuffle back, then confirm. You draw the same number of replacements.";
+    }
+    cancel.hidden = true;
+    tray.hidden = true;
+    return;
+  }
 
   if (state.phase === "complete") {
     title.textContent = "Match complete";
@@ -358,6 +390,43 @@ function renderHand() {
     return;
   }
 
+  if (state.phase === "mulligan") {
+    $("hand-title").textContent =
+      "Player " + (state.viewer + 1) + " opening hand · choose up to " + state.mulligan_limit;
+    hand.innerHTML = state.hand.map((cardId, index) => {
+      const card = cards[cardId];
+      const selected = mulliganSelection.has(index);
+      const classes = ["hand-card", "mulligan-card", "card-" + card.type];
+      if (selected) classes.push("selected");
+      return '<article class="' + classes.join(" ") + '" data-mulligan-index="' + index + '">' +
+        "<header><span>" + esc(cardType(card)) + "</span><strong>" + esc(card.title) + "</strong>" +
+        (Number.isInteger(card.strength) ? "<b>" + card.strength + "</b>" : "") + "</header>" +
+        "<p>" + esc(card.text || "No rules text.") + "</p>" +
+        "<footer><span>" + (selected ? "Return this card" : "Keep") + "</span></footer></article>";
+    }).join("");
+
+    hand.querySelectorAll("[data-mulligan-index]").forEach((cardEl) => {
+      cardEl.addEventListener("click", () => {
+        const index = Number(cardEl.dataset.mulliganIndex);
+        if (mulliganSelection.has(index)) {
+          mulliganSelection.delete(index);
+        } else if (mulliganSelection.size < state.mulligan_limit) {
+          mulliganSelection.add(index);
+        }
+        renderHand();
+        renderInteraction();
+      });
+    });
+
+    const count = mulliganSelection.size;
+    actions.innerHTML =
+      '<button type="button" class="initiative-button" id="confirm-mulligan">' +
+      (count ? "Return " + count + " card" + (count === 1 ? "" : "s") : "Keep this hand") +
+      "</button>";
+    $("confirm-mulligan").addEventListener("click", submitMulligan);
+    return;
+  }
+
   $("hand-title").textContent = "Player " + (state.viewer + 1) + " hand · " + state.hand.length + " cards";
   const grouped = new Map();
   for (const cardId of state.hand) grouped.set(cardId, (grouped.get(cardId) || 0) + 1);
@@ -410,6 +479,10 @@ function renderHand() {
 }
 
 function renderPublicZones() {
+  if (state.phase === "mulligan") {
+    $("public-zones").innerHTML = "";
+    return;
+  }
   const viewer = currentViewer();
   const order = [viewer, opponentOf(viewer)];
   $("public-zones").innerHTML = order.map((player) => {
@@ -511,6 +584,20 @@ function renderInteractiveState() {
   renderInteraction();
 }
 
+async function submitMulligan() {
+  if (!state || state.phase !== "mulligan" || state.viewer == null) return;
+  const indices = [...mulliganSelection].sort((a, b) => a - b);
+  await runBusy(async () => {
+    state = await request({
+      type: "mulligan",
+      indices,
+      viewer: state.viewer,
+    });
+    clearSelection();
+    render();
+  });
+}
+
 async function executeAction(action) {
   if (!action || state.viewer == null) return;
   await runBusy(async () => {
@@ -591,6 +678,14 @@ $("pass-button").addEventListener("click", () => {
 
 document.addEventListener("keydown", (event) => {
   if (!state || state.viewer == null || state.phase === "complete") return;
+  if (state.phase === "mulligan") {
+    if (event.key === "Escape") {
+      mulliganSelection = new Set();
+      renderHand();
+      renderInteraction();
+    }
+    return;
+  }
   if (event.key === "Escape") {
     clearSelection();
     renderInteractiveState();
