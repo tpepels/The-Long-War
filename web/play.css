@@ -2023,14 +2023,6 @@ body.game-body {
   font-size: 6.5px;
 }
 
-.play-card.card-density-medium .play-card-art { flex-basis: 62px; height: 62px; }
-.play-card.card-density-medium .play-card-rules { font-size: 10.8px; line-height: 1.2; }
-.play-card.card-density-dense .play-card-art { flex-basis: 48px; height: 48px; }
-.play-card.card-density-dense .play-card-rules { padding-top: 7px; font-size: 10.2px; line-height: 1.17; }
-.play-card.card-density-max .play-card-art { flex-basis: 30px; height: 30px; margin-top: 6px; }
-.play-card.card-density-max .play-card-art b { display: none; }
-.play-card.card-density-max .play-card-symbol { font-size: 14px; }
-.play-card.card-density-max .play-card-rules { padding-top: 6px; font-size: 9.5px; line-height: 1.13; }
 
 .turn-actions {
   max-width: 980px;
