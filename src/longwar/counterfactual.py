@@ -56,9 +56,18 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
     if card_type == "subject":
         result["strength"] = 4
     elif card_type == "link":
-        result["text"] = "Experimental matched baseline. While complete, its Subject has +3 Strength."
-        result["rules"] = {"complete_strength_bonus": 3}
-        result["balance"] = {"complete_strength_bonus": 3}
+        result["text"] = (
+            "Experimental matched baseline. Its **Subject** gets +1 **Strength**. "
+            "While this **Link** has a **Name**, its Subject gets +2 additional Strength."
+        )
+        result["rules"] = {
+            "strength_bonus": 1,
+            "named_strength_bonus": 2,
+        }
+        result["balance"] = {
+            "strength_bonus": 1,
+            "named_strength_bonus": 2,
+        }
     elif card_type == "name":
         result["strength"] = 2
     elif card_type == "plot":
@@ -66,7 +75,7 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
             # Preserve the face-down Scheme commitment/bluff structure while
             # removing the specific trigger/effect.
             result["keywords"] = ["scheme"]
-            result["text"] = "Scheme — Experimental matched baseline. It has no trigger."
+            result["text"] = "**Scheme** — Experimental matched baseline. It has no trigger."
             result["rules"] = {
                 "scheme": {"trigger": "never", "effect": "none"}
             }
@@ -550,7 +559,7 @@ def run_counterfactual_experiment(
         "total_matches": len(samples) * len(required_conditions),
         "baseline_definition": {
             "subject": "Vanilla Subject, 4 Strength",
-            "link": "Vanilla Link, +3 Strength while complete",
+            "link": "Vanilla Link, +1 Strength immediately and +2 more while it has a Name",
             "name": "Vanilla Name, 2 Strength",
             "plot": "Universally playable no-op Plot",
         },

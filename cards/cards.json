@@ -17,7 +17,7 @@
       "type": "subject",
       "strength": 4,
       "unique": false,
-      "text": "While in the Rear, this Subject has +1 Strength.",
+      "text": "While this **Subject** is in the **Rear**, it gets +1 **Strength**.",
       "rules": {
         "strength_modifiers": [
           {
@@ -38,7 +38,7 @@
       "type": "subject",
       "strength": 3,
       "unique": false,
-      "text": "This Subject has +1 Strength while your discard pile contains at least five cards.",
+      "text": "While your **discard pile** contains at least 5 cards, this **Subject** gets +1 **Strength**.",
       "rules": {
         "strength_modifiers": [
           {
@@ -59,13 +59,13 @@
       "type": "subject",
       "strength": 4,
       "unique": false,
-      "text": "This Subject has +1 Strength while an adjacent position contains a complete Legend.",
+      "text": "While an **adjacent** **Subject** you control has both a **Link** and a **Name**, this **Subject** gets +1 **Strength**.",
       "rules": {
         "strength_modifiers": [
           {
             "amount": 1,
             "when": {
-              "adjacent_complete_legend": true
+              "adjacent_subject_has_name": true
             }
           }
         ]
@@ -80,7 +80,7 @@
       "type": "subject",
       "strength": 3,
       "unique": false,
-      "text": "When you attach a Link here, this Subject gains +1 Strength until the end of the Battle.",
+      "text": "When you play a **Link** on this **Subject**, it gets +1 **Strength** for this **Battle**.",
       "rules": {
         "on_link_attached": {
           "temporary_strength": 1
@@ -96,7 +96,7 @@
       "type": "subject",
       "strength": 5,
       "unique": false,
-      "text": "Frontline only.",
+      "text": "*Frontline only.*",
       "rules": {
         "placement": {
           "rank": "front"
@@ -109,12 +109,14 @@
       "title": "Followed",
       "type": "link",
       "unique": false,
-      "text": "While complete, its Subject has +3 Strength.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +2 additional **Strength**.",
       "rules": {
-        "complete_strength_bonus": 3
+        "strength_bonus": 1,
+        "named_strength_bonus": 2
       },
       "balance": {
-        "complete_strength_bonus": 3
+        "strength_bonus": 1,
+        "named_strength_bonus": 2
       }
     },
     {
@@ -122,14 +124,14 @@
       "title": "Swore To",
       "type": "link",
       "unique": false,
-      "text": "While complete, its Subject has +5 Strength. If the Name leaves this Legend, discard the Subject.",
+      "text": "Its **Subject** gets +2 **Strength**. While this **Link** has a **Name**, its **Subject** gets +2 additional **Strength**.",
       "rules": {
-        "complete_strength_bonus": 5,
-        "on_name_leaves": "discard_subject"
+        "strength_bonus": 2,
+        "named_strength_bonus": 2
       },
       "balance": {
-        "complete_strength_bonus": 5,
-        "dynamic": true
+        "strength_bonus": 2,
+        "named_strength_bonus": 2
       }
     },
     {
@@ -137,13 +139,15 @@
       "title": "Defied",
       "type": "link",
       "unique": false,
-      "text": "While complete, its Subject has +2 Strength and the opposing Front has -2 Strength.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +1 additional **Strength** and the opponent has -2 **Strength** in this **Front**.",
       "rules": {
-        "complete_strength_bonus": 2,
+        "strength_bonus": 1,
+        "named_strength_bonus": 1,
         "opposing_front_modifier": -2
       },
       "balance": {
-        "complete_strength_bonus": 2,
+        "strength_bonus": 1,
+        "named_strength_bonus": 1,
         "dynamic": true
       }
     },
@@ -152,13 +156,15 @@
       "title": "Carried",
       "type": "link",
       "unique": false,
-      "text": "While complete, its Subject has +2 Strength. Its Name cannot be chosen as the target of a Plot.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +1 additional **Strength** and that **Name** cannot be chosen by a **Plot**.",
       "rules": {
-        "complete_strength_bonus": 2,
+        "strength_bonus": 1,
+        "named_strength_bonus": 1,
         "protect_name_from_plot_target": true
       },
       "balance": {
-        "complete_strength_bonus": 2,
+        "strength_bonus": 1,
+        "named_strength_bonus": 1,
         "dynamic": true
       }
     },
@@ -167,14 +173,16 @@
       "title": "Avenged",
       "type": "link",
       "unique": false,
-      "text": "While complete, its Subject has +1 Strength for each of your cards discarded this Battle, to a maximum of +4.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +1 additional **Strength** for each of your cards **discarded** this **Battle**, up to +3.",
       "rules": {
+        "strength_bonus": 1,
         "discard_strength_bonus": {
           "per_card": 1,
-          "maximum": 4
+          "maximum": 3
         }
       },
       "balance": {
+        "strength_bonus": 1,
         "dynamic": true
       }
     },
@@ -184,16 +192,15 @@
       "type": "name",
       "strength": 2,
       "unique": true,
-      "text": "If Namar completes Followed, that Subject gains +2 additional Strength.",
+      "text": "While *Namar* is attached to a **Subject** in the **Frontline**, that **Subject** gets +2 **Strength**.",
       "rules": {
-        "link_strength_bonus": {
-          "followed": 2
+        "rank_strength_bonus": {
+          "rank": "front",
+          "amount": 2
         }
       },
       "balance": {
-        "link_strength_bonus": {
-          "followed": 2
-        }
+        "dynamic": true
       }
     },
     {
@@ -202,9 +209,9 @@
       "type": "name",
       "strength": 1,
       "unique": true,
-      "text": "When Iria completes a Legend, you may move that Legend to an adjacent legal position.",
+      "text": "When you play *Iria*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position.",
       "rules": {
-        "on_complete": "move_adjacent_optional"
+        "on_name_attached": "move_adjacent_optional"
       },
       "balance": {
         "dynamic": true
@@ -226,9 +233,9 @@
       "type": "name",
       "strength": 2,
       "unique": true,
-      "text": "When Teyra completes a Legend, reveal the enemy Scheme in this Front, if any.",
+      "text": "When you play *Teyra*, reveal the enemy **Scheme** in this **Front**, if there is one.",
       "rules": {
-        "on_complete": "reveal_enemy_scheme"
+        "on_name_attached": "reveal_enemy_scheme"
       },
       "balance": {
         "dynamic": true
@@ -239,7 +246,7 @@
       "title": "The Story Is False",
       "type": "plot",
       "unique": false,
-      "text": "Discard one Link.",
+      "text": "**Discard** a **Link**. If it has a **Name**, **return** that **Name** to its owner's hand.",
       "rules": {
         "effect": "discard_link"
       },
@@ -252,9 +259,9 @@
       "title": "He Never Came",
       "type": "plot",
       "unique": false,
-      "text": "Return one Name to its owner's hand.",
+      "text": "Choose a **Subject** with a **Link**. If it has a **Name**, **return** that **Name** to its owner's hand. Otherwise, **return** its **Link** to its owner's hand.",
       "rules": {
-        "effect": "return_name"
+        "effect": "return_outer_attachment"
       },
       "balance": {
         "dynamic": true
@@ -265,9 +272,9 @@
       "title": "They Chose Another",
       "type": "plot",
       "unique": false,
-      "text": "Move one of your Names to another legal open Link you control.",
+      "text": "**Move** one of your **Links**, together with its **Name** if it has one, to another **Subject** you control that has no **Link**.",
       "rules": {
-        "effect": "move_name"
+        "effect": "move_link"
       },
       "balance": {
         "dynamic": true
@@ -281,12 +288,12 @@
       "keywords": [
         "scheme"
       ],
-      "text": "Scheme — When your opponent plays a Subject in this Front, reveal this. That Subject gets -2 Strength until the end of the Battle.",
+      "text": "**Scheme** — When your opponent plays a **Subject** in this **Front**, reveal this. That **Subject** gets -3 **Strength** for this **Battle**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_subject",
           "effect": "penalize_played_subject",
-          "amount": 2
+          "amount": 3
         }
       },
       "balance": {
@@ -301,7 +308,7 @@
       "keywords": [
         "scheme"
       ],
-      "text": "Scheme — When your opponent plays a Link in this Front, reveal this. Discard that Link.",
+      "text": "**Scheme** — When your opponent plays a **Link** in this **Front**, reveal this. **Discard** that **Link**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_link",
@@ -320,12 +327,12 @@
       "keywords": [
         "scheme"
       ],
-      "text": "Scheme — When your opponent Passes, if you have a Subject in this Front, reveal this. One of your Subjects here gains +2 Strength until the end of the Battle.",
+      "text": "**Scheme** — When your opponent **Passes**, if you control a **Subject** in this **Front**, reveal this. One of your **Subjects** here gets +3 **Strength** for this **Battle**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_passes",
           "effect": "reinforce_front",
-          "amount": 2,
+          "amount": 3,
           "requires_own_subject": true
         }
       },
@@ -341,12 +348,12 @@
       "keywords": [
         "scheme"
       ],
-      "text": "Scheme — When your opponent plays a Plot targeting one of your cards in this Front, reveal this. One of your Subjects here gains +2 Strength until the end of the Battle.",
+      "text": "**Scheme** — After an opponent's **Plot** targets a card you control in this **Front**, reveal this. One of your **Subjects** here gets +3 **Strength** for this **Battle**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plot_targets_your_card",
           "effect": "reinforce_front",
-          "amount": 2,
+          "amount": 3,
           "requires_own_subject": true
         }
       },

@@ -14,6 +14,12 @@ const esc = (value) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
+function formatGameText(value) {
+  return esc(value)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+}
+
 function flagMarkup(flags) {
   if (!flags || !flags.length) return '<span class="muted">—</span>';
   return flags.map((flag) =>
@@ -45,7 +51,7 @@ function renderOverview(lab) {
     metric("First-player win", pct(g.first_player_win_rate), `95% ${interval(g.first_player_win_rate_95)}`),
     metric("Mean actions", num(g.mean_actions, 1), `max ${g.max_actions}`),
     metric("Cards", s.cards_analyzed, `${s.flags_high} high · ${s.flags_watch} watch flags`),
-    metric("Legends observed", s.legends_observed, `of ${lab.static.legend_count} static combinations`),
+    metric("Three-card sequences observed", s.legends_observed, `of ${lab.static.legend_count} possible Subject–Link–Name sequences`),
     metric("MCCFR verification", verification ? (verification.passed ? "PASS" : "FAIL") : "—",
       verification ? `exploitability ${num(verification.exploitability, 4)}` : "not generated"),
   ].join("");
@@ -74,9 +80,9 @@ function renderCards(lab) {
         <td>${grade(row)}</td>
         <td>
           <strong>${esc(row.title)}</strong>
-          <div class="card-rule-inline">${esc(row.text)}</div>
+          <div class="card-rule-inline">${formatGameText(row.text)}</div>
         </td>
-        <td>${esc(row.type)}${row.unique ? ' <span class="muted">unique</span>' : ""}</td>
+        <td>${esc(row.type)}${row.unique ? ' <span class="muted"><em>Unique</em></span>' : ""}</td>
         <td>${row.strength ?? "—"}</td>
         <td>${row.draws} / ${row.plays}</td>
         <td>${pct(row.play_rate_per_draw)}</td>
@@ -184,7 +190,7 @@ function renderTargetedCounterfactual(lab) {
   `;
 }
 
-function renderLegends(lab) {
+function renderSequences(lab) {
   const rows = [...(lab.all_legends || lab.health.legends)];
   const observed = rows.filter((row) => row.observed !== false).length;
   document.getElementById("legend-count").textContent = `${rows.length} possible · ${observed} observed`;
@@ -291,7 +297,7 @@ function renderMccfr(lab) {
 function staticTable(rows) {
   return `
     <table class="mini-table">
-      <thead><tr><th>Legend IDs</th><th>Strength</th><th>z</th></tr></thead>
+      <thead><tr><th>Subject · Link · Name</th><th>Strength</th><th>z</th></tr></thead>
       <tbody>
         ${rows.map((r) => `<tr><td><code>${esc([r.subject,r.link,r.name].join(" · "))}</code></td><td>${r.static_strength}</td><td>${num(r.z_score,2)}</td></tr>`).join("")}
       </tbody>
@@ -337,7 +343,7 @@ async function main() {
   renderCards(lab);
   renderCounterfactual(lab);
   renderTargetedCounterfactual(lab);
-  renderLegends(lab);
+  renderSequences(lab);
   renderMatchups(lab);
   renderTelemetry(lab);
   renderMccfr(lab);

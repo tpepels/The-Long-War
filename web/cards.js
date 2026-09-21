@@ -1,3 +1,17 @@
+function esc(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function formatGameText(value) {
+  return esc(value)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+}
+
 const TYPE_LABELS = {
   subject: "Subject",
   link: "Link",
@@ -17,22 +31,22 @@ function cardMarkup(card) {
     ? `<div class="strength" aria-label="Strength">${card.strength}</div>`
     : "";
 
-  const unique = card.unique ? '<span class="unique">Unique</span>' : "";
+  const unique = card.unique ? '<span class="unique"><em>Unique</em></span>' : "";
 
   return `
     <article class="game-card card-${card.type}">
       <header class="card-header">
         <div>
           <div class="card-type">${typeLabel(card)}</div>
-          <h2>${card.title}</h2>
+          <h2>${esc(card.title)}</h2>
         </div>
         ${strength}
       </header>
       <div class="card-art" aria-hidden="true">
-        <span>${card.title}</span>
+        <span>${esc(card.title)}</span>
       </div>
       <div class="card-rule">
-        <p>${card.text || "&nbsp;"}</p>
+        <p>${card.text ? formatGameText(card.text) : "&nbsp;"}</p>
       </div>
       <footer class="card-footer">
         ${unique}

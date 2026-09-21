@@ -6,7 +6,7 @@ from longwar.cards import card_index, load_card_file
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_fifty_men_followed_namar_static_strength() -> None:
+def test_fifty_men_followed_namar_static_strength_before_position_bonus() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     cards = card_index(data)
     score = score_static_legend(
@@ -14,10 +14,10 @@ def test_fifty_men_followed_namar_static_strength() -> None:
         cards["followed"],
         cards["namar"],
     )
-    assert score.static_strength == 11
+    assert score.static_strength == 9
 
 
-def test_all_current_legend_combinations_are_analyzed() -> None:
+def test_all_subject_link_name_combinations_are_analyzed() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     report = build_report(data)
     assert report["legend_count"] == 6 * 5 * 4

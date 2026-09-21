@@ -1181,3 +1181,12 @@ body.game-body::before {
     grid-template-columns: 1fr;
   }
 }
+
+
+.play-card-rules strong {
+  font-weight: 700;
+}
+
+.play-card-rules em {
+  font-style: italic;
+}

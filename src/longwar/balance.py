@@ -27,9 +27,9 @@ def score_static_legend(
     link_balance = link.get("balance", {})
     name_balance = name.get("balance", {})
 
-    strength += int(link_balance.get("complete_strength_bonus", 0))
+    strength += int(link_balance.get("strength_bonus", 0))
+    strength += int(link_balance.get("named_strength_bonus", 0))
     strength += int(name["strength"])
-    strength += int(name_balance.get("link_strength_bonus", {}).get(link["id"], 0))
 
     dynamic = any(
         bool(card.get("balance", {}).get("dynamic"))

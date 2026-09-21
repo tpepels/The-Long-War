@@ -1586,3 +1586,13 @@ button, .button {
     0 0 0 2px #a82323,
     0 11px 0 rgba(168,35,35,.12);
 }
+
+
+.card-rule strong {
+  font-weight: 700;
+}
+
+.card-rule em,
+.unique em {
+  font-style: italic;
+}

@@ -1,6 +1,6 @@
 # The Long War
 
-A head-to-head card game about building legends across a physical battlefield.
+A head-to-head card game about building Subject–Link–Name stories across a physical battlefield.
 
 The core grammar is:
 
@@ -18,7 +18,7 @@ Example: **The Fifty Men → Followed → Namar**
 - `src/longwar/mccfr.py` — external-sampling Monte Carlo CFR trainer and information abstraction.
 - `src/longwar/belief.py` — observation-conditioned hidden-state and deck-construction priors.
 - `src/longwar/online_mccfr.py` — online information-set re-solving across sampled beliefs.
-- `src/longwar/telemetry.py` — game, card, pass, and Legend telemetry.
+- `src/longwar/telemetry.py` — game, card, pass, and Subject–Link–Name telemetry.
 - `src/longwar/health.py` — confidence-aware balance flags and health analysis.
 - `src/longwar/balance.py` — static balance diagnostics.
 - `src/longwar/simulate.py` — repeated game simulation.
@@ -185,7 +185,7 @@ python tools/simulate.py \
 
 ## Heuristic agent
 
-The heuristic player performs one-ply lookahead across every legal action. Its evaluation uses Front control, Strength margins, Victory markers, public hand-size advantage, completed Legends, own-hand completion potential, and pass/card-conservation value. It never evaluates the identities of cards in the opponent's hand.
+The heuristic player performs one-ply lookahead across every legal action. Its evaluation uses Front control, Strength margins, Victory markers, public hand-size advantage, Subjects with both a Link and a Name, own-hand completion potential, and pass/card-conservation value. It never evaluates the identities of cards in the opponent's hand.
 
 The same public-information evaluator is used only at MCCFR depth frontiers.
 
@@ -219,7 +219,7 @@ identical.
 Experimental baselines are never added to the printable card set:
 
 - Subject: vanilla 4 Strength;
-- Link: vanilla +3 Strength while complete;
+- Link: +1 Strength immediately and +2 more while it has a Name;
 - Name: vanilla 2 Strength;
 - Plot: universally playable no-op Plot.
 
@@ -293,7 +293,7 @@ python tools/targeted_online_counterfactual.py \
 
 ## Telemetry and Balance Lab
 
-Simulations record card playability, immediate board swing, pass behavior, completed Legends, conditional outcomes, and decision statistics. The health analyzer adds Wilson 95% intervals, minimum-evidence thresholds, within-type z-scores, and diagnostic flags.
+Simulations record card playability, immediate board swing, pass behavior, Subjects with both a Link and a Name, conditional outcomes, and decision statistics. The health analyzer adds Wilson 95% intervals, minimum-evidence thresholds, within-type z-scores, and diagnostic flags.
 
 GitHub Pages publishes:
 
@@ -308,7 +308,7 @@ The Balance Lab includes:
 - pairwise factorial interaction estimates and Subject–Link–Name triple interactions;
 - targeted online-MCCFR validation for suspicious card/pair/triple effects, with confirmation status;
 - draws, plays, dead-turn rate, pass-deadness, board/control swing, conditional win rates, confidence intervals, static marginal strength, and diagnostic flags per card;
-- all 120 possible Subject–Link–Name Legends, including combinations not observed in the current simulation sample;
+- all 120 possible Subject–Link–Name Subject–Link–Name sequences, including combinations not observed in the current simulation sample;
 - static Strength-space diagnostics;
 - action, pass, Battle, and decision telemetry;
 - heuristic/random and MCCFR/heuristic matchup summaries;

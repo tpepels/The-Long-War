@@ -209,7 +209,7 @@ class GameEngine:
             self._take_from_hand(state, actor, action.card_id)
             slot = state.slot(actor, action.position)
             slot.name = action.card_id
-            self._on_name_completed(
+            self._on_name_attached(
                 state,
                 actor,
                 action.position,
@@ -259,27 +259,33 @@ class GameEngine:
             if self._condition_matches(state, player, position, modifier.get("when", {})):
                 value += int(modifier["amount"])
 
-        if slot.complete:
+        if slot.link is not None:
             link = self.cards[slot.link]
-            name = self.cards[slot.name]
             link_rules = link.get("rules", {})
-            name_rules = name.get("rules", {})
+            value += int(link_rules.get("strength_bonus", 0))
 
-            value += int(link_rules.get("complete_strength_bonus", 0))
+            if slot.name is not None:
+                name = self.cards[slot.name]
+                name_rules = name.get("rules", {})
+                value += int(link_rules.get("named_strength_bonus", 0))
 
-            discard_bonus = link_rules.get("discard_strength_bonus")
-            if discard_bonus:
-                per_card = int(discard_bonus.get("per_card", 1))
-                maximum = int(discard_bonus.get("maximum", 0))
-                value += min(
-                    state.discarded_this_battle[player] * per_card,
-                    maximum,
-                )
+                discard_bonus = link_rules.get("discard_strength_bonus")
+                if discard_bonus:
+                    per_card = int(discard_bonus.get("per_card", 1))
+                    maximum = int(discard_bonus.get("maximum", 0))
+                    value += min(
+                        state.discarded_this_battle[player] * per_card,
+                        maximum,
+                    )
 
-            value += int(name["strength"])
-            value += int(
-                name_rules.get("link_strength_bonus", {}).get(slot.link, 0)
-            )
+                value += int(name["strength"])
+
+                rank_bonus = name_rules.get("rank_strength_bonus")
+                if (
+                    rank_bonus
+                    and position.rank.value == rank_bonus.get("rank")
+                ):
+                    value += int(rank_bonus.get("amount", 0))
 
         return max(0, value)
 
@@ -319,9 +325,9 @@ class GameEngine:
         ):
             return False
 
-        if condition.get("adjacent_complete_legend"):
+        if condition.get("adjacent_subject_has_name"):
             if not any(
-                state.slot(player, adjacent).complete
+                state.slot(player, adjacent).name is not None
                 for adjacent in self._adjacent_positions(position)
             ):
                 return False
@@ -364,7 +370,7 @@ class GameEngine:
             if slot.subject is None or slot.link is None or slot.name is not None:
                 continue
 
-            on_complete = card.get("rules", {}).get("on_complete")
+            on_complete = card.get("rules", {}).get("on_name_attached")
             if on_complete == "move_adjacent_optional":
                 yield PlayName(card["id"], position, None)
                 for destination in self._adjacent_positions(position):
@@ -391,11 +397,13 @@ class GameEngine:
                         )
             return
 
-        if effect == "return_name":
+        if effect == "return_outer_attachment":
             for target_player in range(2):
                 for position in all_positions():
                     slot = state.slot(target_player, position)
-                    if slot.name is None or self._name_protected_from_plot(slot):
+                    if slot.link is None:
+                        continue
+                    if slot.name is not None and self._name_protected_from_plot(slot):
                         continue
                     yield PlayPlot(
                         card["id"],
@@ -403,10 +411,10 @@ class GameEngine:
                     )
             return
 
-        if effect == "move_name":
+        if effect == "move_link":
             for source in all_positions():
                 source_slot = state.slot(player, source)
-                if source_slot.name is None:
+                if source_slot.link is None:
                     continue
                 for destination in all_positions():
                     if destination == source:
@@ -414,8 +422,7 @@ class GameEngine:
                     destination_slot = state.slot(player, destination)
                     if (
                         destination_slot.subject is not None
-                        and destination_slot.link is not None
-                        and destination_slot.name is None
+                        and destination_slot.link is None
                     ):
                         yield PlayPlot(
                             card["id"],
@@ -455,20 +462,27 @@ class GameEngine:
             self._remove_link(state, target.player, target.position)
             return
 
-        if effect == "return_name":
+        if effect == "return_outer_attachment":
             target = action.targets[0]
-            self._remove_name(
-                state,
-                target.player,
-                target.position,
-                to_hand=True,
-                trigger_name_leaves=True,
-            )
+            slot = state.slot(target.player, target.position)
+            if slot.name is not None:
+                self._remove_name(
+                    state,
+                    target.player,
+                    target.position,
+                    to_hand=True,
+                )
+            else:
+                self._return_link_to_hand(
+                    state,
+                    target.player,
+                    target.position,
+                )
             return
 
-        if effect == "move_name":
+        if effect == "move_link":
             source, destination = action.targets
-            self._move_name(
+            self._move_link(
                 state,
                 actor,
                 source.position,
@@ -651,7 +665,7 @@ class GameEngine:
             link.get("rules", {}).get("protect_name_from_plot_target")
         )
 
-    def _on_name_completed(
+    def _on_name_attached(
         self,
         state: GameState,
         player: int,
@@ -663,7 +677,7 @@ class GameEngine:
         if slot.name is None:
             return
         name = self.cards[slot.name]
-        effect = name.get("rules", {}).get("on_complete")
+        effect = name.get("rules", {}).get("on_name_attached")
 
         if effect == "reveal_enemy_scheme":
             owner = 1 - player
@@ -697,7 +711,28 @@ class GameEngine:
         self._copy_slot(source_slot, destination_slot)
         self._clear_slot(source_slot)
 
-    def _move_name(
+    def _return_link_to_hand(
+        self,
+        state: GameState,
+        player: int,
+        position: Position,
+    ) -> None:
+        slot = state.slot(player, position)
+        link_id = slot.link
+        if link_id is None:
+            raise IllegalAction("Position has no Link")
+        if slot.name is not None:
+            raise IllegalAction("Cannot return a Link while a Name is attached")
+
+        slot.link = None
+        self._return_public_card_to_hand(
+            state,
+            player,
+            link_id,
+            reason="link_returned",
+        )
+
+    def _move_link(
         self,
         state: GameState,
         player: int,
@@ -706,20 +741,18 @@ class GameEngine:
     ) -> None:
         source_slot = state.slot(player, source)
         destination_slot = state.slot(player, destination)
-        name_id = source_slot.name
-        if name_id is None:
-            raise IllegalAction("Source has no Name")
 
+        if source_slot.link is None:
+            raise IllegalAction("Source has no Link")
+        if destination_slot.subject is None:
+            raise IllegalAction("Destination has no Subject")
+        if destination_slot.link is not None:
+            raise IllegalAction("Destination already has a Link")
+
+        destination_slot.link = source_slot.link
+        destination_slot.name = source_slot.name
+        source_slot.link = None
         source_slot.name = None
-        source_link_id = source_slot.link
-
-        if source_link_id is not None:
-            source_link = self.cards[source_link_id]
-            if source_link.get("rules", {}).get("on_name_leaves") == "discard_subject":
-                self._discard_subject(state, player, source)
-
-        destination_slot.name = name_id
-        self._on_name_completed(state, player, destination)
 
     def _remove_link(
         self,
@@ -750,7 +783,6 @@ class GameEngine:
         position: Position,
         *,
         to_hand: bool,
-        trigger_name_leaves: bool,
     ) -> str:
         slot = state.slot(player, position)
         name_id = slot.name
@@ -768,12 +800,6 @@ class GameEngine:
             )
         else:
             self._discard_card(state, player, name_id)
-
-        link_id = slot.link
-        if trigger_name_leaves and link_id is not None:
-            link = self.cards[link_id]
-            if link.get("rules", {}).get("on_name_leaves") == "discard_subject":
-                self._discard_subject(state, player, position)
 
         return name_id
 

@@ -34,6 +34,16 @@ function esc(value) {
     .replaceAll('"', "&quot;");
 }
 
+function formatGameText(value) {
+  return esc(value)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+}
+
+function plainGameText(value) {
+  return String(value ?? "").replace(/\*\*|\*/g, "");
+}
+
 function request(payload) {
   return new Promise((resolve, reject) => {
     const id = ++requestId;
@@ -134,7 +144,7 @@ function playCardMarkup(cardId, options = {}) {
     strength +
     cardVisual(cardId) +
     '<div class="play-card-rules">' +
-      (card.text ? esc(card.text) : '<em>No special rules.</em>') +
+      (card.text ? formatGameText(card.text) : '<em>No special rules.</em>') +
     '</div>' +
     '<footer>' + footer + '</footer>' +
   '</article>';
@@ -219,7 +229,7 @@ function targetActionsForFront(front) {
 function cardTooltip(cardId) {
   const card = cards[cardId];
   if (!card) return "";
-  return [card.title, card.text || ""].filter(Boolean).join(" — ");
+  return [card.title, plainGameText(card.text || "")].filter(Boolean).join(" — ");
 }
 
 function component(cardId, cls) {
@@ -446,8 +456,8 @@ function renderInteraction() {
 
 function choiceLabel(action) {
   if (action.kind === "PlayName") {
-    if (!action.move_to) return "Complete here · stay";
-    return "Complete here · move to " + action.move_to.front_name + " " + action.move_to.rank_name;
+    if (!action.move_to) return "Attach the Name here · stay";
+    return "Attach the Name here · move the Subject to " + action.move_to.front_name + " " + action.move_to.rank_name;
   }
   return action.label;
 }

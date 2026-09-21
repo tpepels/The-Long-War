@@ -374,12 +374,12 @@ class PlaySession:
             move = ""
             if action.move_to is not None:
                 move = (
-                    f" and moves the Legend to "
+                    f" and moves that Subject and its attachments to "
                     f"{FRONT_NAMES[action.move_to.front]} {RANK_NAMES[action.move_to.rank]}"
                 )
             return (
-                f"{prefix} completes a Legend with {self.cards[action.card_id]['title']} "
-                f"in {FRONT_NAMES[action.position.front]}{move}."
+                f"{prefix} attaches {self.cards[action.card_id]['title']} "
+                f"as the Name in {FRONT_NAMES[action.position.front]}{move}."
             )
         if isinstance(action, PlayScheme):
             if private:
@@ -406,7 +406,7 @@ class PlaySession:
         if isinstance(action, PlayLink):
             return "This Subject has no Link yet."
         if isinstance(action, PlayName):
-            return "This Subject has an open Link that this Name may complete."
+            return "This Subject has a Link and no Name attached yet."
         if isinstance(action, PlayScheme):
             return "You have no Scheme in this Front."
         if isinstance(action, PlayPlot):

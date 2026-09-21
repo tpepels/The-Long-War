@@ -48,22 +48,23 @@ def test_setup_draws_ten_and_keeps_twenty_in_deck() -> None:
     assert state.phase is Phase.BATTLE
 
 
-def test_build_fifty_men_followed_namar() -> None:
+def test_links_help_immediately_and_namar_rewards_frontline() -> None:
     engine, state = fresh_state(first_player=1)
     state.players[0].hand = ["the-fifty-men", "followed", "namar"]
     state.players[1].hand = []
 
     engine.apply(state, Pass())
     engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
-    engine.apply(state, PlayLink("followed", CENTER_FRONT))
-    engine.apply(state, PlayName("namar", CENTER_FRONT))
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 4
 
-    slot = state.slot(0, CENTER_FRONT)
-    assert slot.complete
+    engine.apply(state, PlayLink("followed", CENTER_FRONT))
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 5
+
+    engine.apply(state, PlayName("namar", CENTER_FRONT))
     assert engine.position_strength(state, 0, CENTER_FRONT) == 11
 
 
-def test_iria_can_move_completed_legend_to_adjacent_position() -> None:
+def test_iria_can_move_subject_with_attachments_to_adjacent_position() -> None:
     engine, state = fresh_state(first_player=1)
     state.players[0].hand = ["the-fifty-men", "followed", "iria"]
     state.players[1].hand = []
@@ -102,7 +103,30 @@ def test_story_is_false_breaks_link_and_returns_name() -> None:
     assert "followed" in state.players[0].discard
 
 
-def test_swore_to_discards_subject_when_name_leaves() -> None:
+def test_story_is_false_does_not_trigger_old_swore_to_penalty() -> None:
+    engine, state = fresh_state(first_player=1)
+    slot = state.slot(0, CENTER_FRONT)
+    slot.subject = "the-fifty-men"
+    slot.link = "swore-to"
+    slot.name = "namar"
+    state.players[1].hand = ["the-story-is-false"]
+
+    engine.apply(
+        state,
+        PlayPlot(
+            "the-story-is-false",
+            (BoardTarget(0, CENTER_FRONT),),
+        ),
+    )
+
+    assert slot.subject == "the-fifty-men"
+    assert slot.link is None
+    assert slot.name is None
+    assert "swore-to" in state.players[0].discard
+    assert "namar" in state.players[0].hand
+
+
+def test_he_never_came_returns_name_but_leaves_subject_and_link() -> None:
     engine, state = fresh_state(first_player=1)
     slot = state.slot(0, CENTER_FRONT)
     slot.subject = "the-fifty-men"
@@ -118,10 +142,30 @@ def test_swore_to_discards_subject_when_name_leaves() -> None:
         ),
     )
 
-    assert not slot.occupied
+    assert slot.subject == "the-fifty-men"
+    assert slot.link == "swore-to"
+    assert slot.name is None
     assert "namar" in state.players[0].hand
-    assert "the-fifty-men" in state.players[0].discard
-    assert "swore-to" in state.players[0].discard
+
+
+def test_he_never_came_returns_open_link_when_no_name_is_attached() -> None:
+    engine, state = fresh_state(first_player=1)
+    slot = state.slot(0, CENTER_FRONT)
+    slot.subject = "the-fifty-men"
+    slot.link = "followed"
+    state.players[1].hand = ["he-never-came"]
+
+    engine.apply(
+        state,
+        PlayPlot(
+            "he-never-came",
+            (BoardTarget(0, CENTER_FRONT),),
+        ),
+    )
+
+    assert slot.subject == "the-fifty-men"
+    assert slot.link is None
+    assert "followed" in state.players[0].hand
 
 
 def test_carried_name_cannot_be_plot_target() -> None:
@@ -141,7 +185,7 @@ def test_carried_name_cannot_be_plot_target() -> None:
     )
 
 
-def test_children_gain_temporary_strength_when_link_attached() -> None:
+def test_children_gain_temporary_strength_when_link_played() -> None:
     engine, state = fresh_state(first_player=1)
     state.players[0].hand = ["the-children-of-the-salt-road", "followed"]
     state.players[1].hand = []
@@ -153,7 +197,7 @@ def test_children_gain_temporary_strength_when_link_attached() -> None:
     )
     engine.apply(state, PlayLink("followed", CENTER_FRONT))
 
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 4
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 5
 
 
 def test_battle_scoring_and_loser_chooses_next_first_player() -> None:
@@ -190,6 +234,46 @@ def test_defied_reduces_opposing_front_strength() -> None:
     assert engine.front_strength(state, 1, Front.LEFT) == 2
 
 
+def test_they_chose_another_moves_link_and_attached_name() -> None:
+    engine, state = fresh_state(first_player=0)
+    source = state.slot(0, LEFT_FRONT)
+    destination = state.slot(0, CENTER_FRONT)
+    source.subject = "the-fifty-men"
+    source.link = "followed"
+    source.name = "oren"
+    destination.subject = "the-house-at-orra"
+    state.players[0].hand = ["they-chose-another"]
+
+    engine.apply(
+        state,
+        PlayPlot(
+            "they-chose-another",
+            (
+                BoardTarget(0, LEFT_FRONT),
+                BoardTarget(0, CENTER_FRONT),
+            ),
+        ),
+    )
+
+    assert source.subject == "the-fifty-men"
+    assert source.link is None
+    assert source.name is None
+    assert destination.subject == "the-house-at-orra"
+    assert destination.link == "followed"
+    assert destination.name == "oren"
+
+
+def test_namar_frontline_bonus_does_not_apply_in_rear() -> None:
+    engine, state = fresh_state()
+    rear = Position(Front.CENTER, Rank.REAR)
+    slot = state.slot(0, rear)
+    slot.subject = "the-fifty-men"
+    slot.link = "followed"
+    slot.name = "namar"
+
+    assert engine.position_strength(state, 0, rear) == 9
+
+
 def test_lamps_scheme_penalizes_played_subject() -> None:
     engine, state = fresh_state(first_player=1)
     state.players[1].hand = ["the-lamps-went-dark"]
@@ -200,7 +284,7 @@ def test_lamps_scheme_penalizes_played_subject() -> None:
 
     assert state.scheme(1, Front.CENTER) is None
     assert "the-lamps-went-dark" in state.players[1].discard
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 2
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 1
 
 
 def test_road_cut_discards_link_as_scheme_trigger() -> None:
@@ -226,7 +310,7 @@ def test_hidden_oars_resolves_before_second_pass_scores_battle() -> None:
     engine.apply(state, Pass())
 
     assert state.scheme(1, Front.CENTER) is None
-    assert engine.position_strength(state, 1, CENTER_FRONT) == 6
+    assert engine.position_strength(state, 1, CENTER_FRONT) == 7
 
 
 def test_witness_lied_triggers_only_when_plot_targets_own_front() -> None:
@@ -246,7 +330,7 @@ def test_witness_lied_triggers_only_when_plot_targets_own_front() -> None:
     )
 
     assert state.scheme(1, Front.CENTER) is None
-    assert engine.position_strength(state, 1, CENTER_FRONT) == 6
+    assert engine.position_strength(state, 1, CENTER_FRONT) == 7
 
 
 def test_teyra_reveals_scheme_without_resolving_it() -> None:

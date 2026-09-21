@@ -37,7 +37,10 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
         assert baseline["experimental"] is True
 
     assert baseline_card(index["the-fifty-men"])["strength"] == 4
-    assert baseline_card(index["followed"])["rules"]["complete_strength_bonus"] == 3
+    assert baseline_card(index["followed"])["rules"] == {
+        "strength_bonus": 1,
+        "named_strength_bonus": 2,
+    }
     assert baseline_card(index["namar"])["strength"] == 2
     assert baseline_card(index["he-never-came"])["rules"] == {}
 

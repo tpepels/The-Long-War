@@ -4,19 +4,25 @@
 
 <div class="rulebook-opening">
 
-**The Long War** is a two-player card game about fighting a campaign across three Fronts. You do not attack opposing units and there is no combat phase. Instead, both players build positions one card at a time, trying to make two of the three Fronts theirs **without spending more of their hand than the Battle is worth**.
+**The Long War** is a two-player card game about fighting a campaign across three **Fronts**. You do not attack opposing units and there is no combat phase. Instead, both players build positions one card at a time, trying to make two of the three Fronts theirs **without spending more of their hand than the Battle is worth**.
 
-A match can last up to three Battles. Your battlefield is cleared after each Battle, but your **hand is not**. That means a Battle is never an isolated round: every card you commit now is a card you cannot use later.
+A match can last up to three **Battles**. Your battlefield is cleared after each Battle, but your **hand is not**. Every card you commit now is a card you cannot use later.
 
 The game is therefore about three questions:
 
-1. **Where do I commit?** — Left, Center, or Right?
-2. **How deeply do I commit?** — Is a simple Subject enough, or do I build it into a powerful Legend?
-3. **When do I stop?** — Do I spend another card to steal this Battle, or Pass and preserve my hand for the next one?
+1. **Where do I commit?** — **Left**, **Center**, or **Right**?
+2. **How deeply do I commit?** — Is a **Subject** enough, or is this position worth adding a **Link** and **Name**?
+3. **When do I stop?** — Do I spend another card to steal this Battle, or **Pass** and preserve my hand for the next one?
 
 </div>
 
 > **First game?** Read through **A Battle, from beginning to end**. At that point you know enough to start playing. The Reference section exists for questions that come up during play; it is not homework.
+
+### How rules text is written
+
+**Bold** words are defined game concepts or rules actions, such as **Subject**, **Link**, **Name**, **Strength**, **Front**, **Pass**, **discard**, **return**, and **move**.
+
+*Italic* words are specific card titles or printed card properties, such as *Namar* or *Frontline only*.
 
 ---
 
@@ -24,9 +30,9 @@ The game is therefore about three questions:
 
 ## What are you trying to do? {#learn}
 
-Every Battle is fought over **three independent Fronts: Left, Center, and Right**.
+Every **Battle** is fought over three independent **Fronts**: **Left**, **Center**, and **Right**.
 
-You and your opponent place cards into those Fronts. Each Front has its own Strength total. When both players have Passed, you compare the three Fronts.
+You and your opponent place cards into those Fronts. Each Front has its own **Strength** total. When both players have **Passed**, you compare the three Fronts.
 
 - Higher Strength controls a Front.
 - Control **2 of the 3 Fronts** and you win the Battle.
@@ -34,7 +40,7 @@ You and your opponent place cards into those Fronts. Each Front has its own Stre
 
 That sounds simple. The difficulty is that you cannot win every Front with every card.
 
-If your opponent has built a 12-Strength Legend on the Left, you might spend three cards trying to catch up. Or you might decide that Left is lost, spend nothing more there, and win Center and Right instead. Both can be correct.
+If your opponent builds 12 Strength on the Left, you might spend three cards trying to catch up. Or you might decide that Left is lost, spend nothing more there, and win Center and Right instead. Both can be correct.
 
 <div class="rulebook-big-rule">
   <span>3</span><small>Fronts divide every Battle</small>
@@ -42,15 +48,15 @@ If your opponent has built a 12-Strength Legend on the Left, you might spend thr
   <span>2</span><small>Battle wins take the match</small>
 </div>
 
-### The important part: cards carry over
+### Cards carry over between Battles
 
-At the end of a Battle, everything on the battlefield is discarded. **Cards still in your hand remain in your hand**, and then you draw only 3 more cards.
+At the end of a Battle, everything on the battlefield is **discarded**. **Cards still in your hand stay in your hand**, and then you draw only 3 more cards.
 
 So winning Battle I after spending eight cards can be worse than losing it after spending three.
 
 *The Long War* is not simply “make the biggest number.” It is a game of **position and card economy**.
 
-## What does a turn actually mean? {#turn}
+## What does a turn mean? {#turn}
 
 Players alternate turns. On your turn you make one commitment:
 
@@ -59,14 +65,14 @@ Players alternate turns. On your turn you make one commitment:
 
 That is the whole turn structure.
 
-There is no attack step. Subjects do not strike each other. Damage is not exchanged. The board changes because you add cards, complete Legends, play Plots, reveal Schemes, or move and remove cards through effects.
+There is no attack step. **Subjects** do not strike each other. Damage is not exchanged. The board changes because you add cards, attach **Links** and **Names**, play **Plots**, reveal **Schemes**, or **move**, **discard**, and **return** cards through effects.
 
 When you play a card, you are usually doing one of four strategic things:
 
 <div class="decision-grid">
-  <div><b>Claim</b><span>Put Strength into an empty part of the battlefield.</span></div>
-  <div><b>Deepen</b><span>Invest another card into a Subject to make that position harder to beat.</span></div>
-  <div><b>Disrupt</b><span>Break or move something your opponent has built.</span></div>
+  <div><b>Claim</b><span>Put Strength into an empty part of the battlefield with a Subject.</span></div>
+  <div><b>Deepen</b><span>Add a Link or Name to make one Subject more valuable.</span></div>
+  <div><b>Disrupt</b><span>Discard, return, or move something that has already been built.</span></div>
   <div><b>Threaten</b><span>Place a face-down Scheme that changes what your opponent dares to do.</span></div>
 </div>
 
@@ -80,12 +86,12 @@ Your opponent may continue playing alone. If they spend three cards to overturn 
 
 The battlefield is three vertical contests side by side.
 
-Each Front contains two Subject positions for each player:
+Each **Front** contains two **Subject** positions for each player:
 
 - **Frontline** — closest to the battle line.
 - **Rear** — behind the Frontline.
 
-There is no universal bonus for being Frontline or Rear. The distinction exists because cards can care about rank, movement, adjacency, being behind another card, and so on.
+There is no universal bonus for Frontline or Rear. The distinction exists because cards can care about rank, movement, adjacency, being behind another card, and so on.
 
 ```text
                          OPPONENT
@@ -107,88 +113,91 @@ A **Front** is the whole column: your Frontline + your Rear versus the opponent'
 
 If you have 4 Strength in Left Frontline and 3 in Left Rear, your Left Front has **7 Strength**.
 
-Only Subjects occupy those six positions. Links and Names attach to a Subject rather than taking their own space. Schemes sit face-down beside a Front.
+Only **Subjects** occupy those six positions. A **Link** and **Name** attach to a Subject rather than taking their own space. A **Scheme** sits face-down beside one Front.
 
-## Why cards form sentences {#cards}
+## Why the cards read like a sentence {#cards}
 
-The central structure in *The Long War* is the **Legend**.
-
-A Legend is not a pile of unrelated upgrades. It is a sentence:
+The central construction in *The Long War* is deliberately grammatical:
 
 <div class="legend-sentence">
-  <span class="subject">The Fifty Men</span><i>—</i>
-  <span class="link">Followed</span><i>—</i>
-  <span class="name">Namar</span>
+  <span class="subject"><em>The Fifty Men</em></span><i>—</i>
+  <span class="link"><em>Followed</em></span><i>—</i>
+  <span class="name"><em>Namar</em></span>
 </div>
 
-The three card types have different jobs.
+Read aloud, the cards form a sentence: *The Fifty Men followed Namar.*
+
+There is no extra rules object for the three-card line. The attached cards remain a **Subject**, **Link**, and **Name**, and card text refers to those real parts directly.
 
 ### Subject — who or what is here?
 
-A Subject is the physical presence on the battlefield: people, ships, a house, a returning company.
+A **Subject** is the physical presence on the battlefield: people, ships, a house, a returning company.
 
-You play it into an empty Subject position. Its printed Strength immediately counts in that Front.
+You play it into an empty Subject position. Its printed **Strength** immediately counts in that Front.
 
 A Subject can stand alone. Sometimes that is all you need.
 
-### Link — what is happening to them?
+### Link — what connects the Subject to a Name?
 
-A Link attaches to one of your Subjects.
+A **Link** attaches to one of your Subjects.
 
-**The Fifty Men — Followed**
+*The Fifty Men — Followed*
 
-At this point the Link is **open** because the sentence has not named *whom* they followed. Unless a card says otherwise, an open Link's normal effect is inactive.
+A Link has an effect as soon as it is played. Many Links become stronger while they also have a **Name** attached.
 
-This is intentionally risky. You have spent a card and a turn on a relationship that is not yet fully paying you back.
+This means playing a Link is no longer a dead intermediate turn: it helps now, but also creates room for a later Name.
 
-### Name — who makes the story matter?
+A Link without a Name is called an **open Link**.
 
-A Name attaches to an open Link and completes the Legend.
+### Name — who completes the sentence?
 
-**The Fifty Men — Followed — Namar**
+A **Name** attaches to one of your open Links.
 
-Now the Name adds its Strength and the complete Link usually becomes active. Particular Names and Links can also interact.
+*The Fifty Men — Followed — Namar*
 
-A complete Legend can become extremely efficient in one board position—but it required several cards and several turns to build. Your opponent saw it coming.
+The Name adds its printed Strength, and any text that cares about a Link having a Name now applies.
 
-### Plot — change the story immediately
+Every Name is *Unique*: you may include only one copy of that card title in your deck.
 
-A Plot is a one-shot action. Reveal it, resolve its text, then discard it.
+### Plot — change the board immediately
 
-Plots let you break Links, return Names, move pieces of a Legend, and otherwise interfere with what is already on the table.
+A **Plot** is a one-shot action. Reveal it, resolve its text, then **discard** it.
+
+Plots let you break Links, return Names, move relationships between Subjects, and otherwise interfere with what is already on the table.
 
 ### Scheme — make the opponent play around uncertainty
 
-A Scheme is a Plot with the **Scheme** keyword.
+A **Scheme** is a Plot with the Scheme keyword.
 
-Instead of resolving immediately, it is placed face-down in one Front. Its identity is hidden. When its printed trigger happens, it is revealed and resolved.
+Instead of resolving immediately, it is placed face-down in one Front. Its identity is hidden. When its printed trigger happens, reveal it, resolve it, then discard it.
 
 A Scheme matters before it ever triggers. If there is a face-down Scheme in Center, your opponent has to decide whether playing into Center is worth the risk.
 
-## Why build a Legend at all? {#legends}
+## Why add all three cards? {#three-card-line}
 
-Because a Legend lets several cards concentrate power into one position.
+Because a **Subject — Link — Name** sequence can concentrate several cards' effects into one position.
 
-Take this sequence:
+Take this sequence in the **Frontline**:
 
-| Your turns | What is now in Center Frontline | Strength |
+| Your turns | What is in Center Frontline | Strength |
 | --- | --- | ---: |
-| Play **The Fifty Men** | The Fifty Men | 4 |
-| Attach **Followed** | The Fifty Men — Followed | 4 |
-| Add **Namar** | The Fifty Men — Followed — Namar | **11** |
+| Play *The Fifty Men* | *The Fifty Men* | 4 |
+| Attach *Followed* | *The Fifty Men — Followed* | 5 |
+| Attach *Namar* | *The Fifty Men — Followed — Namar* | **11** |
 
 The final 11 comes from:
 
-- The Fifty Men: 4
-- Namar: +2
-- Followed while complete: +3
-- Namar's special bonus for completing Followed: +2
+- *The Fifty Men*: 4
+- *Followed*: +1 immediately
+- *Followed* while it has a Name: +2 more
+- *Namar*: +2
+- *Namar* while attached in the Frontline: +2
 
 The important decision is not merely “11 is good.”
 
 You spent **three cards and three turns** to create it.
 
-If 7 Strength would already have secured Center, the extra investment may be wasteful. If your opponent abandons Center and wins Left and Right, the 11-Strength Legend did not win the Battle at all.
+If 7 Strength would already have secured Center, the extra investment may be wasteful. If your opponent abandons Center and wins Left and Right, the 11 Strength did not win the Battle at all.
 
 That is the central positional tension: **power in one Front does not automatically become power somewhere else.**
 
@@ -202,7 +211,7 @@ Imagine Player 1 and Player 2 have just drawn their opening hands.
 
 ### Turn 1 — Player 1 claims Center
 
-Player 1 plays **The Fifty Men** to Center Frontline.
+Player 1 plays *The Fifty Men* to **Center Frontline**.
 
 Center is now 4–0.
 
@@ -210,9 +219,9 @@ Player 1 has not “attacked” anything. They have simply announced: *if this B
 
 ### Turn 2 — Player 2 claims Right instead of contesting Center
 
-Player 2 plays **Seven Black Ships** to Right Rear.
+Player 2 plays *Seven Black Ships* to **Right Rear**.
 
-Because Seven Black Ships is stronger in the Rear, it currently contributes 5 Strength.
+Because *Seven Black Ships* gets +1 Strength in the Rear, it currently contributes 5 Strength.
 
 The board is now split:
 
@@ -222,27 +231,29 @@ The board is now split:
 
 Already the real question is visible: **who will spend cards on the third Front, and who will force the other player to respond?**
 
-### Turn 3 — Player 1 deepens Center
+### Turn 3 — Player 1 adds a Link
 
-Player 1 attaches **Followed** to The Fifty Men.
+Player 1 attaches *Followed* to *The Fifty Men*.
 
-Nothing happens to its Strength yet. Followed is open.
+The Subject immediately rises from 4 to 5 Strength. The Link is useful now, even before a Name arrives.
 
-This is a commitment. Player 1 has spent a turn and a card saying: *I expect to finish this story later.*
+It also creates an open Link that can accept a Name later.
 
 ### Turn 4 — Player 2 places uncertainty on Center
 
-Player 2 sets a Scheme face-down in Center.
+Player 2 sets a **Scheme** face-down in Center.
 
 Player 1 knows there is a threat in Center but not which Scheme it is.
 
-Now finishing the Legend may still be correct—but it is no longer a decision made with perfect information.
+Adding another card to Center may still be correct—but it is no longer a decision made with perfect information.
 
-### Turn 5 — Player 1 completes the Legend
+### Turn 5 — Player 1 attaches Namar
 
-Player 1 attaches **Namar**.
+Player 1 plays *Namar* on *Followed*.
 
-The Fifty Men — Followed — Namar becomes a complete Legend at 11 Strength.
+Because this Subject is in the Frontline, *Namar* contributes its normal 2 Strength and another +2 from its ability. *Followed* also gains its additional +2 because it now has a Name.
+
+The position reaches 11 Strength.
 
 Center looks overwhelming.
 
@@ -252,13 +263,13 @@ But that does **not** mean Player 1 is winning the Battle. They currently contro
 
 Player 2 commits a Subject to Left rather than fighting the 11 Strength in Center.
 
-This is often the correct response to a huge Legend: **let it win one Front and make the other two matter.**
+This is often the correct response to an overbuilt position: **let it win one Front and make the other two matter.**
 
 ### What happens next?
 
 Player 1 must decide whether to contest Left or Right. Player 2 must decide whether another card is worth spending. Either player can eventually Pass.
 
-Suppose Player 1 controls Center and narrowly takes Left, then Passes.
+Suppose Player 1 controls Center and narrowly takes Left, then **Passes**.
 
 Player 2 now has a choice:
 
@@ -267,9 +278,9 @@ Player 2 now has a choice:
 
 That decision—**not a combat calculation**—is the heart of the game.
 
-## Passing ends your campaign in this Battle {#passing}
+## Passing ends your participation in this Battle {#passing}
 
-When you Pass, you take no more turns in that Battle.
+When you **Pass**, you take no more turns in that Battle.
 
 The other player may continue playing as many turns as they want, one card per turn, because you are no longer taking turns between theirs.
 
@@ -330,7 +341,7 @@ The Battle winner takes 1 Victory marker.
 
 Then:
 
-1. discard all cards still on the battlefield, including Schemes;
+1. **discard** all cards still on the battlefield, including Schemes;
 2. **keep every card still in your hand**;
 3. each player draws 3 cards;
 4. the player who lost the Battle chooses who takes the first turn next.
@@ -350,9 +361,13 @@ The first player to win 2 Battles wins the match.
 
 Each occupied Subject position has one Strength total.
 
-Start with the Subject's printed Strength. Add the attached Name's printed Strength. Then apply modifiers from complete Links and other card effects.
+Start with the **Subject's** printed Strength. Then:
 
-- An open Link contributes nothing unless it explicitly says otherwise.
+1. apply the attached **Link's** immediate Strength modifier, if any;
+2. if a **Name** is attached, add its printed Strength;
+3. apply any additional Link or Name effects whose conditions are true;
+4. apply other temporary or positional modifiers.
+
 - A Front's Strength is the sum of its Frontline and Rear positions.
 - Empty positions contribute 0.
 - A position's final Strength cannot be lower than 0 unless a card explicitly says otherwise.
@@ -380,6 +395,9 @@ The Frontline position in the same Front.
 **Opposing**  
 On the opponent's side of the same Front.
 
+**Open Link**  
+A Link attached to a Subject with no Name attached.
+
 A Link and Name inherit their Subject's Front and rank for effects that care about position.
 
 ## Playing cards precisely
@@ -392,15 +410,15 @@ Choose a legal empty Subject position. Unless a card says otherwise, a Subject m
 
 Choose one of your Subjects without a Link and attach the Link to it.
 
-A Subject can have at most one Link.
+A Subject can have at most one Link. The Link's immediate effect applies as soon as it is played.
 
 ### Names
 
-Choose one of your open Links that the Name can legally complete.
+Choose one of your open Links and attach the Name.
 
-Every Name is **Unique**. A Link can have at most one Name.
+A Link can have at most one Name. Every Name is *Unique*.
 
-The Name's Strength and continuous text become active immediately. Then resolve any effect caused by completing the Legend.
+The Name's printed Strength and continuous text become active immediately. Any Link text that says “while this Link has a Name” also becomes active.
 
 ### Plots
 
@@ -416,7 +434,7 @@ You may inspect your own Schemes at any time. Your opponent may not.
 
 When its trigger occurs:
 
-1. finish resolving the triggering card or action;
+1. finish resolving the triggering card or action unless the Scheme says otherwise;
 2. reveal the Scheme;
 3. resolve it;
 4. discard it.
@@ -425,17 +443,18 @@ If simultaneous triggered effects would matter, the active player resolves their
 
 > **Card text beats the general rules.** If a card directly contradicts a rule here, follow the card.
 
-## Breaking a Legend
+## What happens when attached cards leave?
 
-Treat the three parts of a Legend separately unless an effect says to discard the **entire Legend**.
+The cards remain separate objects. Removing one part does not automatically mean all three cards go to the same place.
 
-| What leaves? | What happens? |
+| What happens? | Result |
 | --- | --- |
-| **Subject** | Discard its Link. Return its Name to its owner's hand. |
-| **Link** | Subject stays. Return its Name to its owner's hand. |
-| **Name** | Subject and Link stay. The Link becomes open. |
-| **Subject moves** | Its Link and Name move with it. |
-| **Entire Legend** | Discard Subject, Link, and Name together. |
+| A **Subject** is discarded | Discard its Link too. Return its Name to its owner's hand. |
+| A **Link** is discarded | The Subject stays. Return its Name to its owner's hand. |
+| An open **Link** is returned | The Subject stays. Put the Link into its owner's hand. |
+| A **Name** is returned or discarded | The Subject and Link stay. The Link becomes open. |
+| A **Subject** moves | Its Link and Name move with it. |
+| A **Link** moves | Its Name moves with it. The original Subject stays. |
 
 A returned card goes to its owner's hand. A discarded card goes face-up to its owner's discard pile.
 
@@ -487,8 +506,8 @@ At Battle end, the player who Passed second counts as the active player for simu
 A deck contains exactly **30 cards**.
 
 - Maximum 2 copies of a card with the same title.
-- Maximum 1 copy of each **Unique** card.
-- Every Name is Unique.
+- Maximum 1 copy of each *Unique* card.
+- Every Name is *Unique*.
 - Subjects, Links, Names, and Plots all use the same deck.
 
 ---
@@ -503,20 +522,17 @@ The player whose turn or effect sequence is currently being resolved.
 **Battle**  
 One scoring period. A Battle ends when both players have Passed.
 
-**Complete Legend**  
-A Subject with one Link and one Name attached in that order.
-
 **Discard**  
 Move a card to its owner's face-up discard pile.
 
 **Front**  
 One of the three vertical contests: Left, Center, or Right.
 
-**Legend**  
-The connected structure built around a Subject. A complete Legend is Subject — Link — Name.
+**Link**  
+A card attached to a Subject. A Link is open when it has no Name.
 
 **Name**  
-A Unique card that completes an open Link.
+A *Unique* card attached to a Link.
 
 **Open Link**  
 A Link attached to a Subject without a Name.
@@ -539,5 +555,5 @@ The value used to determine control of a position and Front.
 **Subject**  
 The only card type that occupies one of the six battlefield positions.
 
-**Unique**  
-A deck-building restriction allowing only one copy of that card title in a deck.
+*Unique*  
+A printed card property allowing only one copy of that card title in a deck.
