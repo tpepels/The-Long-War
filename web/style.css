@@ -1624,3 +1624,332 @@ button, .button {
     repeating-linear-gradient(45deg, transparent 0 5mm, rgba(0,0,0,.045) 5mm 5.5mm),
     linear-gradient(180deg, rgba(120,92,45,.08), transparent 60%);
 }
+
+
+/* v0.4 playtest card system -------------------------------------------------
+   Larger cards, responsive rules density, and visual families. */
+.card-sheets,
+.playtest-decks {
+  width: min(100%, 297mm);
+}
+
+.card-sheets {
+  grid-template-columns: repeat(4, 68mm);
+  grid-auto-rows: 96mm;
+  gap: 4mm 3mm;
+}
+
+.deck-card-grid {
+  grid-template-columns: repeat(4, 68mm);
+  grid-auto-rows: 96mm;
+  gap: 4mm 3mm;
+}
+
+.game-card {
+  --card-accent: #6d6250;
+  --card-wash: #efe3ca;
+  --card-deep: #332d24;
+  width: 68mm;
+  height: 96mm;
+  grid-template-rows: auto 27mm minmax(0, 1fr) auto;
+  border: .45mm solid var(--card-deep);
+  border-radius: 3.2mm;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.35), transparent 25%),
+    var(--card-wash);
+  box-shadow:
+    inset 0 0 0 .65mm rgba(255,255,255,.22),
+    0 1.2mm 2.8mm rgba(24,23,20,.18);
+  color: #1c1914;
+}
+
+.game-card::after {
+  content: "";
+  position: absolute;
+  inset: 1.6mm;
+  border: .22mm solid color-mix(in srgb, var(--card-accent) 58%, transparent);
+  border-radius: 2mm;
+  pointer-events: none;
+}
+
+.game-card.card-subject {
+  --card-accent: #8b6337;
+  --card-wash: #eee0c2;
+  --card-deep: #4a3827;
+}
+
+.game-card.card-link {
+  --card-accent: #536d78;
+  --card-wash: #e2e8e5;
+  --card-deep: #2f4249;
+}
+
+.game-card.card-name {
+  --card-accent: #59705a;
+  --card-wash: #e4ead7;
+  --card-deep: #334934;
+}
+
+.game-card.card-plot {
+  --card-accent: #8a5148;
+  --card-wash: #eee0da;
+  --card-deep: #56342f;
+}
+
+.game-card.card-veiled {
+  --card-accent: #65587f;
+  --card-wash: #e5e0ed;
+  --card-deep: #403a54;
+}
+
+.game-card.card-stratagem {
+  --card-accent: #8a6e3f;
+  --card-wash: #e9dfc8;
+  --card-deep: #4e4029;
+}
+
+.card-header {
+  min-height: 0;
+  padding: 3.1mm 3.4mm 2.4mm;
+  border-bottom: .35mm solid color-mix(in srgb, var(--card-accent) 68%, #1c1914);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 17%, transparent), transparent 70%);
+}
+
+.card-header h2 {
+  max-width: 48mm;
+  margin: 1.2mm 0 0;
+  font-size: 5mm;
+  line-height: .98;
+  letter-spacing: -.015em;
+}
+
+.card-type {
+  color: var(--card-deep);
+  font-size: 2.35mm;
+}
+
+.card-properties {
+  margin-top: 1.25mm;
+  gap: .8mm 1.4mm;
+  font-size: 2.15mm;
+  line-height: 1.15;
+  opacity: .72;
+}
+
+.strength {
+  width: 10.5mm;
+  height: 10.5mm;
+  flex-basis: 10.5mm;
+  border: .45mm solid var(--card-deep);
+  background: color-mix(in srgb, var(--card-wash) 72%, white);
+  color: var(--card-deep);
+  font-size: 5mm;
+  box-shadow: inset 0 0 0 .7mm color-mix(in srgb, var(--card-accent) 18%, transparent);
+}
+
+.card-art {
+  position: relative;
+  min-height: 0;
+  margin: 2.6mm 3.2mm 0;
+  padding: 0;
+  overflow: hidden;
+  border: .3mm solid color-mix(in srgb, var(--card-deep) 78%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--card-accent) 18%, transparent), transparent 55%),
+    repeating-linear-gradient(0deg, transparent 0 4mm, rgba(28,25,20,.045) 4mm 4.25mm),
+    color-mix(in srgb, var(--card-wash) 78%, white);
+}
+
+.card-art::before,
+.card-art::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.card-art::before {
+  width: 28mm;
+  height: 28mm;
+  left: -6mm;
+  top: -8mm;
+  border: .45mm solid color-mix(in srgb, var(--card-accent) 65%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    15mm 9mm 0 -7mm color-mix(in srgb, var(--card-accent) 13%, transparent),
+    35mm 4mm 0 -5mm color-mix(in srgb, var(--card-deep) 8%, transparent);
+}
+
+.card-art::after {
+  inset: auto -8mm -12mm 15mm;
+  height: 26mm;
+  border-top: .45mm solid color-mix(in srgb, var(--card-deep) 40%, transparent);
+  transform: rotate(-12deg);
+}
+
+.card-art.motif-1::before { left: 34mm; top: -7mm; }
+.card-art.motif-1::after { transform: rotate(11deg); inset: auto 14mm -13mm -7mm; }
+.card-art.motif-2 { background-image:
+  linear-gradient(45deg, transparent 46%, color-mix(in srgb, var(--card-accent) 18%, transparent) 47% 49%, transparent 50%),
+  repeating-linear-gradient(90deg, transparent 0 7mm, rgba(28,25,20,.04) 7mm 7.3mm);
+}
+.card-art.motif-3::before { border-radius: 0; transform: rotate(45deg); top: -14mm; left: 3mm; }
+.card-art.motif-4 { background-image:
+  radial-gradient(circle at 72% 30%, color-mix(in srgb, var(--card-accent) 22%, transparent) 0 7mm, transparent 7.3mm),
+  repeating-linear-gradient(135deg, transparent 0 5mm, rgba(28,25,20,.038) 5mm 5.25mm);
+}
+.card-art.motif-5::after { transform: rotate(0); bottom: 8mm; left: -4mm; right: -4mm; height: 0; border-top-width: 1mm; }
+
+.card-art-sigil {
+  position: absolute;
+  left: 3mm;
+  top: 2.5mm;
+  z-index: 2;
+  color: var(--card-deep);
+  font: 700 7mm/1 Georgia, serif;
+  opacity: .88;
+}
+
+.card-art-name {
+  position: absolute;
+  left: 3mm;
+  right: 3mm;
+  bottom: 2.4mm;
+  z-index: 2;
+  max-width: none;
+  color: var(--card-deep);
+  font: italic 3.1mm/1.05 Georgia, serif;
+}
+
+.card-art-mark {
+  position: absolute;
+  right: 3mm;
+  top: 3mm;
+  width: 7mm;
+  height: 7mm;
+  border: .3mm solid var(--card-accent);
+  border-radius: 50%;
+  opacity: .48;
+}
+
+.card-link .card-art { border-style: dashed; }
+.card-name .card-art { border-radius: 12mm 12mm 1mm 1mm; }
+.card-stratagem .card-art { border-style: double; border-width: .7mm; }
+
+.card-rule {
+  min-height: 0;
+  padding: 2.7mm 3.3mm 2.2mm;
+  overflow: hidden;
+  font-size: 3.15mm;
+  line-height: 1.28;
+  display: flex;
+  align-items: flex-start;
+}
+
+.card-rule p { width: 100%; }
+
+.card-rule strong {
+  color: var(--card-deep);
+  font-weight: 800;
+}
+
+.card-footer {
+  min-height: 6.5mm;
+  padding: 1.4mm 3mm;
+  border-top: .25mm solid color-mix(in srgb, var(--card-accent) 45%, #1c1914);
+  background: color-mix(in srgb, var(--card-accent) 7%, transparent);
+  font-size: 1.95mm;
+}
+
+.card-density-medium {
+  grid-template-rows: auto 23mm minmax(0, 1fr) auto;
+}
+.card-density-medium .card-rule {
+  font-size: 3mm;
+  line-height: 1.25;
+}
+
+.card-density-dense {
+  grid-template-rows: auto 19mm minmax(0, 1fr) auto;
+}
+.card-density-dense .card-header h2 { font-size: 4.7mm; }
+.card-density-dense .card-rule {
+  padding-top: 2.35mm;
+  font-size: 2.8mm;
+  line-height: 1.22;
+}
+
+.card-density-max {
+  grid-template-rows: auto 13.5mm minmax(0, 1fr) auto;
+}
+.card-density-max .card-header {
+  padding-top: 2.7mm;
+  padding-bottom: 2mm;
+}
+.card-density-max .card-header h2 { font-size: 4.5mm; }
+.card-density-max .card-properties { margin-top: .8mm; font-size: 1.95mm; }
+.card-density-max .card-art-name { display: none; }
+.card-density-max .card-art-sigil { font-size: 5.5mm; top: 1.8mm; }
+.card-density-max .card-rule {
+  padding: 2.1mm 3mm 1.8mm;
+  font-size: 2.6mm;
+  line-height: 1.18;
+}
+
+.card-hero {
+  box-shadow:
+    inset 0 0 0 .85mm #9b762f,
+    0 1.4mm 3mm rgba(24,23,20,.2);
+}
+
+@page cards {
+  size: A4 landscape;
+  margin: 6mm;
+}
+
+@media print {
+  .card-sheets,
+  .playtest-decks {
+    width: auto;
+    margin: 0;
+  }
+
+  .card-sheets,
+  .deck-card-grid {
+    grid-template-columns: repeat(4, 68mm);
+    grid-auto-rows: 96mm;
+    gap: 4mm 3mm;
+    justify-content: center;
+  }
+
+  .print-deck { page: cards; }
+
+  .game-card:nth-child(9n + 1),
+  .deck-card:nth-child(9n + 1) {
+    break-before: auto;
+  }
+
+  .game-card:nth-child(8n + 1),
+  .deck-card:nth-child(8n + 1) {
+    break-before: page;
+  }
+
+  .game-card:first-child,
+  .deck-card:first-child {
+    break-before: auto;
+  }
+}
+
+@media (max-width: 920px) {
+  .card-sheets,
+  .deck-card-grid {
+    grid-template-columns: repeat(2, 68mm);
+  }
+}
+
+@media (max-width: 580px) {
+  .card-sheets,
+  .deck-card-grid {
+    grid-template-columns: 68mm;
+  }
+}
