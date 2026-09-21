@@ -21,7 +21,7 @@ The game revolves around four questions:
 
 ### How rules text is written
 
-**Bold** words are defined game concepts or rules actions, such as **Subject**, **Bond**, **Name**, **Story**, **Strength**, **Front**, **Pass**, **discard**, **return**, and **move**.
+**Bold** words are defined game concepts or rules actions, such as **Subject**, **Bond**, **Name**, **Story**, **Stratagem**, **Strength**, **Front**, **Pass**, **set**, **discard**, **return**, and **move**.
 
 *Italic* words are card titles or printed card properties, such as *Namar*, *Swordsman*, *Human*, *Hero*, *Myth*, or *Frontline only*.
 
@@ -59,14 +59,14 @@ Winning Battle I after spending eight cards can therefore be worse than losing i
 
 ## What happens on a turn? {#turn}
 
-Players alternate turns. On your turn:
+Players alternate turns. On your turn, there are two steps:
 
-- **play exactly one card**, or
-- **Pass**.
+1. **Before your normal action**, if you have not already set a **Stratagem** this Battle, you may **set one Stratagem face-down**. This is optional and does not use your normal action.
+2. Then **play exactly one card**, or **Pass**.
 
-Then the other player acts.
+After your normal action, the other player acts. You cannot set a Stratagem after playing a card or Passing, and there is no interrupt or response window between the opponent's actions.
 
-There is no attack step. Subjects do not exchange damage. The board changes because you place **Subjects**, attach **Bonds** and **Names**, play **Stories**, set **Veiled Stories**, and **move**, **discard**, or **return** cards.
+There is no attack step. Subjects do not exchange damage. The board changes because you place **Subjects**, attach **Bonds** and **Names**, play **Stories**, set **Veiled Stories** and **Stratagems**, and **move**, **discard**, or **return** cards.
 
 <div class="decision-grid">
   <div><b>Claim</b><span>Put a Subject into a useful position.</span></div>
@@ -257,6 +257,36 @@ The reference set includes:
 
 Your opponent knows which Front contains a Veiled Story but not its identity.
 
+## Stratagems {#stratagems}
+
+A **Stratagem** is a hidden Battle-wide condition, preparation, weapon, deception, or plan. It is not a Story and it does not belong to a Front.
+
+Each player may set **at most one Stratagem per Battle**. On your own turn, before your normal card play or **Pass**, you may set a Stratagem from your hand face-down in your Stratagem space. Setting it is a special free deployment: **you still take your normal action that turn**.
+
+Once you have set a Stratagem, that is your one opportunity for the Battle. Revealing it does not open the space for another. The card remains in play until the Battle ends.
+
+A Stratagem has a printed reveal condition. When that condition occurs:
+
+1. reveal the Stratagem;
+2. resolve any one-time reveal effect;
+3. leave it face-up in play;
+4. apply its continuing rule for the rest of the Battle.
+
+If its reveal condition never occurs, reveal it only **after the Battle has already been scored**, then discard it with the rest of the battlefield. An unrevealed Stratagem therefore cannot change the score merely because the Battle ended.
+
+Two players may have Stratagems at the same time. Additive Strength modifiers from both revealed Stratagems stack normally. A rule that switches something off—such as *The Tide Rose* disabling **Line Defense**—is simply off while that Stratagem is revealed; revealing a second copy does not make the disabled rule negative.
+
+The initial Stratagem cycle demonstrates different kinds of tension:
+
+- *The Storm Broke* helps *Ships* but hinders *Archers* for both players.
+- *The Tide Rose* helps *Ships* but removes **Line Defense** from every Frontline.
+- *The Ground Gave Way* favors the Rear while weakening the Frontline.
+- *The Bronze Teeth* punishes an opposing Frontline arrival, but then weakens your own Frontline.
+- *The False Muster* cancels one opposing immediate Story, but prevents you from playing immediate Stories afterward.
+- *The Wooden Gift* punishes Subjects with Names while strengthening unnamed Subjects.
+
+Because these effects can help both sides or impose a cost on their controller, knowing what you set is useful; simply having a hidden Stratagem is not an unconditional bonus.
+
 ---
 
 <div class="rulebook-kicker">A POSITION, STEP BY STEP</div>
@@ -374,7 +404,7 @@ A good Pass can lose a Battle and still improve your chance of winning the match
 4. Randomly choose who takes the first turn of Battle I.
 5. Keep deck and hand hidden. Keep discard piles face-up and visible.
 
-Then alternate turns: **play one card or Pass**.
+Then alternate turns. Before your normal action you may set your one **Stratagem** for the Battle; then **play one card or Pass**.
 
 > There is no automatic start-of-turn draw. Between Battles you draw only 3 new cards.
 
@@ -382,7 +412,7 @@ Then alternate turns: **play one card or Pass**.
 
 When both players have Passed, calculate each Front's total Strength:
 
-1. determine each Subject's Strength, including Line Defense, role bonuses, attached Bond/Name, and temporary modifiers;
+1. determine each Subject's Strength, including Line Defense, role bonuses, attached Bond/Name, revealed Stratagem effects, and temporary modifiers;
 2. add Frontline + Rear;
 3. add Front-level modifiers such as a face-down Veiled Story.
 
@@ -400,10 +430,11 @@ The winner takes 1 Victory marker.
 
 Then:
 
-1. discard all battlefield cards, including face-down Stories;
-2. keep cards still in hand;
-3. draw 3 each;
-4. the Battle loser chooses who takes the first turn next.
+1. reveal any Stratagem that remained face-down, without changing the already determined result;
+2. discard all battlefield cards, including Veiled Stories and Stratagems;
+3. keep cards still in hand;
+4. draw 3 each;
+5. the Battle loser chooses who takes the first turn next.
 
 First to 2 Battle wins takes the match.
 
@@ -488,6 +519,12 @@ For a *Veiled* Story, choose a Front with no Veiled Story on your side and play 
 
 You may inspect your own face-down Stories at any time. Your opponent may not.
 
+### Stratagems
+
+Before your normal action, if you have not set a Stratagem during this Battle, you may set one from your hand face-down in your single Battle-wide Stratagem space. Do not advance the turn: you must still play one card or **Pass**.
+
+A revealed Stratagem remains face-up and active until Battle end. You cannot set a second Stratagem that Battle even if the first has revealed.
+
 ## What happens when attached cards leave?
 
 | What happens? | Result |
@@ -500,18 +537,31 @@ You may inspect your own face-down Stories at any time. Your opponent may not.
 
 ## Timing
 
-Resolve the card being played completely before resolving triggered Veiled Stories unless card text explicitly says otherwise.
+There is no reaction stack. A Stratagem can only be set on its controller's own turn, before that player's normal action.
 
-If both players have effects waiting at the same time, the active player's effects resolve first, then the other player's. Each player chooses the order of their own simultaneous effects.
+For a normal card play:
 
-At Battle end, the player who Passed second counts as active for simultaneous end-of-Battle effects.
+1. announce the card and all required targets;
+2. if an opposing hidden Stratagem specifically cancels that play, reveal and resolve it now;
+3. otherwise resolve the played card completely;
+4. resolve Veiled Stories triggered by that play;
+5. check and reveal Stratagems triggered by that play.
+
+*The False Muster* is currently the only Stratagem that uses step 2. It can cancel an immediate Story, but never a Veiled Story.
+
+When a player **Passes**, mark that player as Passed, then resolve Pass-triggered Stratagems, then Pass-triggered Veiled Stories. If both players have Passed, score the Battle after those effects.
+
+If both players' hidden Stratagems trigger from the same event, the active player's Stratagem reveals first, then the opponent's. Continuing effects from all revealed Stratagems then apply together.
+
+At Battle end, the player who Passed second counts as active for other simultaneous end-of-Battle effects. Any Stratagem still face-down is revealed only after scoring and cannot alter that Battle's result.
 
 ## Hidden and public information
 
 **Hidden**
 
 - cards in hand;
-- identity of an unrevealed Veiled Story.
+- identity of an unrevealed Veiled Story;
+- identity of an unrevealed Stratagem.
 
 **Public**
 
@@ -520,6 +570,8 @@ At Battle end, the player who Passed second counts as active for simultaneous en
 - discard piles;
 - all face-up battlefield cards;
 - the Front containing each face-down Story;
+- whether each player has set a face-down Stratagem;
+- whether a player has already used their one Stratagem opportunity this Battle;
 - all printed classifications and roles of visible cards.
 
 ## Deck construction
@@ -530,7 +582,7 @@ A deck contains exactly **30 cards**.
 - Maximum 2 copies of a non-Unique card title.
 - Maximum 1 copy of each *Unique* card.
 - Every Name is *Unique*.
-- Subjects, Bonds, Names, and Stories share one deck.
+- Subjects, Bonds, Names, Stories, and Stratagems share one deck.
 
 ---
 
@@ -564,6 +616,9 @@ A printed Subject property such as *Swordsman*, *Spearman*, *Archer*, or *Healer
 
 **Story**  
 A one-shot narrative card. Its printed form may be *Myth*, *Legend*, *Saga*, *Omen*, *Warning*, *Prophecy*, or *Conspiracy*.
+
+**Stratagem**  
+A Battle-wide hidden card set before your normal action. Each player may set at most one per Battle. It remains in play after revealing and is discarded at Battle end.
 
 **Subject**  
 The only card type that occupies a battlefield position.
