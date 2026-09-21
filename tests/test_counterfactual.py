@@ -114,3 +114,4 @@ def test_scheme_baseline_preserves_scheme_commitment() -> None:
     assert baseline["type"] == "plot"
     assert baseline["keywords"] == ["scheme"]
     assert baseline["rules"]["scheme"]["trigger"] == "never"
+    assert baseline["rules"]["scheme"]["face_down_front_bonus"] == 1

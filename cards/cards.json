@@ -124,14 +124,14 @@
       "title": "Swore To",
       "type": "link",
       "unique": false,
-      "text": "Its **Subject** gets +2 **Strength**. While this **Link** has a **Name**, its **Subject** gets +2 additional **Strength**.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +3 additional **Strength**.",
       "rules": {
-        "strength_bonus": 2,
-        "named_strength_bonus": 2
+        "strength_bonus": 1,
+        "named_strength_bonus": 3
       },
       "balance": {
-        "strength_bonus": 2,
-        "named_strength_bonus": 2
+        "strength_bonus": 1,
+        "named_strength_bonus": 3
       }
     },
     {
@@ -156,11 +156,11 @@
       "title": "Carried",
       "type": "link",
       "unique": false,
-      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +1 additional **Strength** and that **Name** cannot be chosen by a **Plot**.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Link** has a **Name**, its **Subject** gets +1 additional **Strength** and that **Subject** cannot be chosen by an opponent's **Plot**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 1,
-        "protect_name_from_plot_target": true
+        "protect_subject_from_opponent_plot": true
       },
       "balance": {
         "strength_bonus": 1,
@@ -259,9 +259,9 @@
       "title": "He Never Came",
       "type": "plot",
       "unique": false,
-      "text": "Choose a **Subject** with a **Link**. If it has a **Name**, **return** that **Name** to its owner's hand. Otherwise, **return** its **Link** to its owner's hand.",
+      "text": "Choose a **Subject**. **Return** its **Name** to its owner's hand. If it has no **Name**, **return** its **Link** instead. If it has neither, **return** the **Subject** itself.",
       "rules": {
-        "effect": "return_outer_attachment"
+        "effect": "return_outer_card"
       },
       "balance": {
         "dynamic": true
@@ -272,9 +272,9 @@
       "title": "They Chose Another",
       "type": "plot",
       "unique": false,
-      "text": "**Move** one of your **Links**, together with its **Name** if it has one, to another **Subject** you control that has no **Link**.",
+      "text": "**Move** one of your **Subjects**, together with all cards attached to it, to any legal empty position on your side.",
       "rules": {
-        "effect": "move_link"
+        "effect": "move_subject"
       },
       "balance": {
         "dynamic": true
@@ -288,12 +288,13 @@
       "keywords": [
         "scheme"
       ],
-      "text": "**Scheme** — When your opponent plays a **Subject** in this **Front**, reveal this. That **Subject** gets -3 **Strength** for this **Battle**.",
+      "text": "**Scheme** — While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Subject** here, reveal this. That **Subject** gets -3 **Strength** for this **Battle**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_subject",
           "effect": "penalize_played_subject",
-          "amount": 3
+          "amount": 3,
+          "face_down_front_bonus": 1
         }
       },
       "balance": {
@@ -308,11 +309,12 @@
       "keywords": [
         "scheme"
       ],
-      "text": "**Scheme** — When your opponent plays a **Link** in this **Front**, reveal this. **Discard** that **Link**.",
+      "text": "**Scheme** — While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Link** here, reveal this. **Discard** that **Link**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_link",
-          "effect": "discard_played_link"
+          "effect": "discard_played_link",
+          "face_down_front_bonus": 1
         }
       },
       "balance": {
@@ -327,13 +329,14 @@
       "keywords": [
         "scheme"
       ],
-      "text": "**Scheme** — When your opponent **Passes**, if you control a **Subject** in this **Front**, reveal this. One of your **Subjects** here gets +3 **Strength** for this **Battle**.",
+      "text": "**Scheme** — While this is face-down, you have +1 **Strength** in this **Front**. When your opponent **Passes**, if you control a **Subject** here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
       "rules": {
         "scheme": {
           "trigger": "opponent_passes",
           "effect": "reinforce_front",
           "amount": 3,
-          "requires_own_subject": true
+          "requires_own_subject": true,
+          "face_down_front_bonus": 1
         }
       },
       "balance": {
@@ -348,13 +351,14 @@
       "keywords": [
         "scheme"
       ],
-      "text": "**Scheme** — After an opponent's **Plot** targets a card you control in this **Front**, reveal this. One of your **Subjects** here gets +3 **Strength** for this **Battle**.",
+      "text": "**Scheme** — While this is face-down, you have +1 **Strength** in this **Front**. After an opponent's **Plot** targets a card you control here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plot_targets_your_card",
           "effect": "reinforce_front",
           "amount": 3,
-          "requires_own_subject": true
+          "requires_own_subject": true,
+          "face_down_front_bonus": 1
         }
       },
       "balance": {

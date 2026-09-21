@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from math import sqrt
-from statistics import mean, pstdev
+from statistics import mean, median, pstdev
 from typing import Any
 
 
@@ -21,6 +21,12 @@ def _z(value: float | None, values: list[float]) -> float | None:
         return None
     sd = pstdev(values)
     return 0.0 if sd == 0 else (value - mean(values)) / sd
+
+
+def _playability_family(card: dict[str, Any]) -> str:
+    if card["type"] == "plot" and "scheme" in card.get("keywords", []):
+        return "scheme"
+    return str(card["type"])
 
 
 def _flag(code: str, severity: str, message: str, value: float | None = None) -> dict[str, Any]:
@@ -51,6 +57,33 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         if value is not None and int(stats.get("plays", 0)) >= 20:
             swings[meta[card_id]["type"]].append(float(value))
 
+    family_values: dict[str, dict[str, list[float]]] = defaultdict(
+        lambda: {"play_rate": [], "dead": [], "dead_pass": []}
+    )
+    for card_id, stats in telemetry["cards"].items():
+        card = meta[card_id]
+        family = _playability_family(card)
+        draws = int(stats.get("draws", 0))
+        held = int(stats.get("turns_in_hand", 0))
+        held_pass = int(stats.get("held_on_pass", 0))
+        play_rate = stats.get("play_rate_per_draw")
+        dead = stats.get("unplayable_turn_rate")
+        dead_pass = stats.get("dead_on_pass_rate")
+        if draws >= 100 and play_rate is not None:
+            family_values[family]["play_rate"].append(float(play_rate))
+        if held >= 200 and dead is not None:
+            family_values[family]["dead"].append(float(dead))
+        if held_pass >= 40 and dead_pass is not None:
+            family_values[family]["dead_pass"].append(float(dead_pass))
+
+    family_baselines = {
+        family: {
+            metric: (median(values) if values else None)
+            for metric, values in metrics.items()
+        }
+        for family, metrics in family_values.items()
+    }
+
     counts: Counter[str] = Counter()
     cards: list[dict[str, Any]] = []
     for card_id, stats in telemetry["cards"].items():
@@ -73,17 +106,56 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         swing_z = _z(float(swing) if swing is not None else None, swings[card["type"]])
         flags: list[dict[str, Any]] = []
 
-        if draws >= 100 and play_rate is not None:
-            if play_rate >= 0.90:
-                flags.append(_flag("auto_play", "watch", "Played on at least 90% of draws.", float(play_rate)))
-            elif play_rate <= 0.35:
-                flags.append(_flag("low_conversion", "watch", "Played on at most 35% of draws.", float(play_rate)))
+        family = _playability_family(card)
+        baseline = family_baselines.get(family, {})
+        family_play_rate = baseline.get("play_rate")
+        family_dead = baseline.get("dead")
+        family_dead_pass = baseline.get("dead_pass")
 
-        if held >= 200 and dead is not None and dead >= 0.30:
-            flags.append(_flag("dead_draw", "high" if dead >= 0.50 else "watch", "Frequently held while no legal play exists.", float(dead)))
+        if draws >= 100 and play_rate is not None and family_play_rate is not None:
+            if play_rate >= 0.90 and play_rate >= family_play_rate + 0.12:
+                flags.append(_flag(
+                    "auto_play",
+                    "watch",
+                    "Played unusually often compared with cards in the same rules family.",
+                    float(play_rate),
+                ))
+            elif play_rate <= 0.35 and play_rate <= family_play_rate - 0.15:
+                flags.append(_flag(
+                    "low_conversion",
+                    "watch",
+                    "Played unusually rarely compared with cards in the same rules family.",
+                    float(play_rate),
+                ))
 
-        if held_pass >= 40 and dead_pass is not None and dead_pass >= 0.25:
-            flags.append(_flag("dead_on_pass", "watch", "Often still unplayable when its controller passes.", float(dead_pass)))
+        if (
+            held >= 200
+            and dead is not None
+            and family_dead is not None
+            and dead >= 0.30
+            and dead >= family_dead + 0.15
+        ):
+            severity = "high" if dead >= family_dead + 0.25 else "watch"
+            flags.append(_flag(
+                "dead_draw",
+                severity,
+                "Unplayable substantially more often than cards in the same rules family.",
+                float(dead),
+            ))
+
+        if (
+            held_pass >= 40
+            and dead_pass is not None
+            and family_dead_pass is not None
+            and dead_pass >= 0.25
+            and dead_pass >= family_dead_pass + 0.15
+        ):
+            flags.append(_flag(
+                "dead_on_pass",
+                "watch",
+                "Still unplayable on Pass substantially more often than its rules family.",
+                float(dead_pass),
+            ))
 
         if plays >= 80 and swing_z is not None and abs(swing_z) >= 1.75:
             flags.append(_flag("board_swing_outlier", "watch", "Immediate Front swing is an outlier within this card type.", swing_z))
@@ -151,6 +223,10 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "balance_label": balance_label,
             "balance_direction": balance_direction,
             "evidence_strong": evidence_strong,
+            "playability_family": family,
+            "family_play_rate_median": family_play_rate,
+            "family_unplayable_turn_rate_median": family_dead,
+            "family_dead_on_pass_rate_median": family_dead_pass,
             "draws": draws,
             "plays": plays,
             "turns_in_hand": held,
@@ -190,12 +266,12 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
 
         if seen >= 50 and ci[0] is not None:
             if ci[0] > 0.60:
-                flags.append(_flag("combo_positive_association", "high", "Legend's lower 95% win bound exceeds 60%.", float(stats["win_rate_when_seen"])))
+                flags.append(_flag("combo_positive_association", "high", "Three-card sequence's lower 95% win bound exceeds 60%.", float(stats["win_rate_when_seen"])))
             elif ci[1] < 0.40:
-                flags.append(_flag("combo_negative_association", "high", "Legend's upper 95% win bound is below 40%.", float(stats["win_rate_when_seen"])))
+                flags.append(_flag("combo_negative_association", "high", "Three-card sequence's upper 95% win bound is below 40%.", float(stats["win_rate_when_seen"])))
 
         if int(stats.get("completions", 0)) >= 30 and strength_z is not None and strength_z >= 2.0:
-            flags.append(_flag("combo_strength_outlier", "watch", "Completion Strength is at least two standard deviations high.", strength_z))
+            flags.append(_flag("combo_strength_outlier", "watch", "Three-card sequence Strength is at least two standard deviations high.", strength_z))
 
         for flag in flags:
             counts[flag["severity"]] += 1
@@ -245,6 +321,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "notes": [
                 "Conditional win rates are observational rather than causal values.",
                 "Board-swing z-scores are computed within card type.",
+                "Playability flags compare each card with the median of its rules family (Subject, Link, Name, ordinary Plot, or Scheme), so normal structural gating is not mistaken for an individual card defect.",
                 "Flags identify cases for inspection; they are not automatic nerf/buff instructions.",
                 "Counterfactual replacement estimates are merged into the Balance Lab when available; MCCFR remains the strategic solver layer.",
             ],
@@ -269,7 +346,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     ]
     for row in [r for r in report["cards"] if r["flags"]]:
         lines.append(f"- **{row['title']}** ({row['type']}): " + ", ".join(f["code"] for f in row["flags"]))
-    lines += ["", "## Flagged Legends", ""]
+    lines += ["", "## Flagged Subject–Link–Name sequences", ""]
     for row in [r for r in report["legends"] if r["flags"]][:30]:
         lines.append(f"- **{row['title']}**: " + ", ".join(f["code"] for f in row["flags"]))
     lines += [

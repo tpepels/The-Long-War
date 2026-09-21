@@ -75,9 +75,16 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
             # Preserve the face-down Scheme commitment/bluff structure while
             # removing the specific trigger/effect.
             result["keywords"] = ["scheme"]
-            result["text"] = "**Scheme** — Experimental matched baseline. It has no trigger."
+            result["text"] = (
+                "**Scheme** — Experimental matched baseline. While this is face-down, "
+                "you have +1 **Strength** in this **Front**. It has no trigger."
+            )
             result["rules"] = {
-                "scheme": {"trigger": "never", "effect": "none"}
+                "scheme": {
+                    "trigger": "never",
+                    "effect": "none",
+                    "face_down_front_bonus": 1,
+                }
             }
         else:
             # A no-op Plot preserves the card/turn cost and universal playability

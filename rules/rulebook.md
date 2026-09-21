@@ -169,9 +169,11 @@ Plots let you break Links, return Names, move relationships between Subjects, an
 
 A **Scheme** is a Plot with the Scheme keyword.
 
-Instead of resolving immediately, it is placed face-down in one Front. Its identity is hidden. When its printed trigger happens, reveal it, resolve it, then discard it.
+Instead of resolving immediately, it is placed face-down in one **Front**. Its identity is hidden. The current Scheme cards each give you **+1 Strength** in that Front while they remain face-down. When a Scheme is revealed, that face-down bonus ends.
 
-A Scheme matters before it ever triggers. If there is a face-down Scheme in Center, your opponent has to decide whether playing into Center is worth the risk.
+When its printed trigger happens, reveal it, resolve it, then **discard** it.
+
+A Scheme therefore matters before it ever triggers: it changes the visible Strength in a Front and hides a second effect your opponent has to play around.
 
 ## Why add all three cards? {#three-card-line}
 
@@ -359,7 +361,7 @@ The first player to win 2 Battles wins the match.
 
 ## Strength {#reference}
 
-Each occupied Subject position has one Strength total.
+Each occupied **Subject** position has one **Strength** total. A card may also modify the Strength of an entire **Front**; apply those Front-level modifiers after adding its Frontline and Rear positions.
 
 Start with the **Subject's** printed Strength. Then:
 

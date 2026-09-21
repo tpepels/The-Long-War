@@ -168,7 +168,25 @@ def test_he_never_came_returns_open_link_when_no_name_is_attached() -> None:
     assert "followed" in state.players[0].hand
 
 
-def test_carried_name_cannot_be_plot_target() -> None:
+def test_he_never_came_returns_bare_subject_when_no_attachments_exist() -> None:
+    engine, state = fresh_state(first_player=1)
+    slot = state.slot(0, CENTER_FRONT)
+    slot.subject = "the-fifty-men"
+    state.players[1].hand = ["he-never-came"]
+
+    engine.apply(
+        state,
+        PlayPlot(
+            "he-never-came",
+            (BoardTarget(0, CENTER_FRONT),),
+        ),
+    )
+
+    assert not slot.occupied
+    assert "the-fifty-men" in state.players[0].hand
+
+
+def test_carried_protects_its_subject_from_opponent_plot() -> None:
     engine, state = fresh_state(first_player=1)
     slot = state.slot(0, CENTER_FRONT)
     slot.subject = "the-fifty-men"
@@ -234,14 +252,14 @@ def test_defied_reduces_opposing_front_strength() -> None:
     assert engine.front_strength(state, 1, Front.LEFT) == 2
 
 
-def test_they_chose_another_moves_link_and_attached_name() -> None:
+def test_they_chose_another_moves_subject_and_all_attachments() -> None:
     engine, state = fresh_state(first_player=0)
     source = state.slot(0, LEFT_FRONT)
-    destination = state.slot(0, CENTER_FRONT)
+    destination_position = Position(Front.RIGHT, Rank.REAR)
+    destination = state.slot(0, destination_position)
     source.subject = "the-fifty-men"
     source.link = "followed"
     source.name = "oren"
-    destination.subject = "the-house-at-orra"
     state.players[0].hand = ["they-chose-another"]
 
     engine.apply(
@@ -250,17 +268,31 @@ def test_they_chose_another_moves_link_and_attached_name() -> None:
             "they-chose-another",
             (
                 BoardTarget(0, LEFT_FRONT),
-                BoardTarget(0, CENTER_FRONT),
+                BoardTarget(0, destination_position),
             ),
         ),
     )
 
-    assert source.subject == "the-fifty-men"
-    assert source.link is None
-    assert source.name is None
-    assert destination.subject == "the-house-at-orra"
+    assert not source.occupied
+    assert destination.subject == "the-fifty-men"
     assert destination.link == "followed"
     assert destination.name == "oren"
+
+
+def test_they_chose_another_respects_frontline_only_subjects() -> None:
+    engine, state = fresh_state(first_player=0)
+    source = state.slot(0, LEFT_FRONT)
+    source.subject = "the-three-brothers-of-avar"
+    state.players[0].hand = ["they-chose-another"]
+
+    actions = engine.legal_actions(state)
+    assert not any(
+        isinstance(action, PlayPlot)
+        and action.card_id == "they-chose-another"
+        and len(action.targets) == 2
+        and action.targets[1].position.rank is Rank.REAR
+        for action in actions
+    )
 
 
 def test_namar_frontline_bonus_does_not_apply_in_rear() -> None:
@@ -272,6 +304,20 @@ def test_namar_frontline_bonus_does_not_apply_in_rear() -> None:
     slot.name = "namar"
 
     assert engine.position_strength(state, 0, rear) == 9
+
+
+def test_face_down_scheme_adds_front_strength_until_revealed() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.players[0].hand = ["the-lamps-went-dark"]
+
+    assert engine.front_strength(state, 0, Front.CENTER) == 0
+    engine.apply(state, PlayScheme("the-lamps-went-dark", Front.CENTER))
+    assert engine.front_strength(state, 0, Front.CENTER) == 1
+
+    scheme = state.scheme(0, Front.CENTER)
+    assert scheme is not None
+    scheme.revealed = True
+    assert engine.front_strength(state, 0, Front.CENTER) == 0
 
 
 def test_lamps_scheme_penalizes_played_subject() -> None:
