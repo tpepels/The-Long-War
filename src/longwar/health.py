@@ -104,6 +104,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         dead_pass = stats.get("dead_on_pass_rate")
         swing = stats.get("mean_immediate_front_swing")
         swing_z = _z(float(swing) if swing is not None else None, swings[card["type"]])
+        delayed_utility = bool(card.get("balance", {}).get("delayed_utility"))
         flags: list[dict[str, Any]] = []
 
         family = _playability_family(card)
@@ -157,8 +158,18 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
                 float(dead_pass),
             ))
 
-        if plays >= 80 and swing_z is not None and abs(swing_z) >= 1.75:
-            flags.append(_flag("board_swing_outlier", "watch", "Immediate Front swing is an outlier within this card type.", swing_z))
+        if (
+            not delayed_utility
+            and plays >= 80
+            and swing_z is not None
+            and abs(swing_z) >= 1.75
+        ):
+            flags.append(_flag(
+                "board_swing_outlier",
+                "watch",
+                "Immediate Front swing is an outlier within this card type.",
+                swing_z,
+            ))
 
         if played_n >= 100 and played_ci[0] is not None:
             if played_ci[0] > 0.56:
@@ -223,6 +234,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "balance_label": balance_label,
             "balance_direction": balance_direction,
             "evidence_strong": evidence_strong,
+            "delayed_utility": delayed_utility,
             "playability_family": family,
             "family_play_rate_median": family_play_rate,
             "family_unplayable_turn_rate_median": family_dead,
@@ -320,10 +332,10 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "win_intervals": "Wilson score interval, 95%",
             "notes": [
                 "Conditional win rates are observational rather than causal values.",
-                "Board-swing z-scores are computed within card type.",
+                "Board-swing z-scores are computed within card type; cards explicitly marked as delayed utility are not graded on immediate swing.",
                 "Playability flags compare each card with the median of its rules family (Subject, Link, Name, ordinary Plot, or Scheme), so normal structural gating is not mistaken for an individual card defect.",
                 "Flags identify cases for inspection; they are not automatic nerf/buff instructions.",
-                "Counterfactual replacement estimates are merged into the Balance Lab when available; MCCFR remains the strategic solver layer.",
+                "Counterfactual and MCCFR reports are merged when explicitly run; neither is required for routine health analysis.",
             ],
         },
     }
@@ -353,7 +365,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         "## Interpretation",
         "",
-        "These flags are diagnostics, not balance verdicts. Wilson intervals reduce small-sample overconfidence; later MCCFR and counterfactual replacement experiments will estimate stronger causal values.",
+        "These flags are diagnostics, not balance verdicts. Wilson intervals reduce small-sample overconfidence; optional counterfactual or MCCFR validation can be run when a stable candidate merits deeper analysis.",
         "",
     ]
     return "\n".join(lines)

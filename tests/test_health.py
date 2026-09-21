@@ -93,3 +93,64 @@ def test_health_flags_dead_card_and_strong_outcome() -> None:
     report = analyze_simulation(simulation, cards)
     codes = {flag["code"] for flag in report["cards"][0]["flags"]}
     assert {"low_conversion", "dead_draw", "dead_on_pass", "positive_outcome_association"} <= codes
+
+
+
+def test_delayed_utility_is_not_judged_by_immediate_swing() -> None:
+    card_rows = []
+    telemetry_cards = {}
+    for index, swing in enumerate([0.0, 3.0, 3.0, 3.0, 3.0]):
+        card_id = f"link-{index}"
+        card_rows.append({
+            "id": card_id,
+            "title": f"Link {index}",
+            "type": "link",
+            "unique": False,
+            "text": "",
+            "rules": {},
+            "balance": {"delayed_utility": index == 0},
+        })
+        telemetry_cards[card_id] = {
+            "draws": 200,
+            "plays": 120,
+            "turns_in_hand": 300,
+            "playable_turns": 240,
+            "unplayable_turns": 60,
+            "held_on_pass": 80,
+            "dead_on_pass": 20,
+            "mean_immediate_front_swing": swing,
+            "mean_immediate_control_swing": 0.5,
+            "games_drawn": 180,
+            "wins_when_drawn": 90,
+            "games_played": 120,
+            "wins_when_played": 60,
+            "play_rate_per_draw": 2 / 3,
+            "unplayable_turn_rate": 0.2,
+            "dead_on_pass_rate": 0.25,
+            "win_rate_when_drawn": 0.5,
+            "win_rate_when_played": 0.5,
+        }
+
+    report = analyze_simulation(
+        {
+            "games": 200,
+            "agents": ["heuristic", "heuristic"],
+            "wins": [100, 100],
+            "first_player_wins": 100,
+            "mean_turns": 30.0,
+            "max_turns": 42,
+            "telemetry": {
+                "passes": {},
+                "battles": {},
+                "cards": telemetry_cards,
+                "legend_combinations": {},
+            },
+        },
+        {"schema_version": 1, "cards": card_rows},
+    )
+
+    delayed = next(row for row in report["cards"] if row["id"] == "link-0")
+    assert delayed["delayed_utility"] is True
+    assert "board_swing_outlier" not in {
+        flag["code"] for flag in delayed["flags"]
+    }

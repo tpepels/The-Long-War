@@ -165,7 +165,8 @@
       "balance": {
         "strength_bonus": 1,
         "named_strength_bonus": 1,
-        "dynamic": true
+        "dynamic": true,
+        "delayed_utility": true
       }
     },
     {
