@@ -1990,8 +1990,8 @@ body.game-body {
 }
 
 .play-card-art {
-  flex: 0 0 75px;
-  height: 75px;
+  flex: 0 0 66px;
+  height: 66px;
   margin: 8px 10px 0;
   border: 1px solid color-mix(in srgb, var(--card-accent) 60%, #201b15);
   background:
@@ -2006,7 +2006,7 @@ body.game-body {
   padding: 9px 11px 7px;
   overflow: hidden;
   color: #201b15;
-  font: 11.2px/1.24 Georgia, serif;
+  font: 10.8px/1.22 Georgia, serif;
 }
 
 .play-card-rules strong {
@@ -2080,11 +2080,6 @@ body.game-body {
     justify-content: flex-start;
   }
 
-  .play-card {
-    flex-basis: 184px;
-    width: 184px;
-    height: 258px;
-  }
 }
 
 @media (max-width: 700px) {
@@ -2139,17 +2134,6 @@ body.game-body {
     padding-inline: 10px;
   }
 
-  .play-card {
-    flex-basis: 168px;
-    width: 168px;
-    height: 236px;
-    margin-left: -30px;
-  }
-
-  .play-card.playable:hover,
-  .play-card.selected {
-    margin-left: -30px;
-  }
 
   .campaign-drawers {
     grid-template-columns: 1fr;
