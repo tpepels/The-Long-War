@@ -63,6 +63,16 @@ function cardProperties(card) {
   return values;
 }
 
+function cardThemeClasses(card) {
+  const values = ["card-" + card.type];
+  if (card.veiled) values.push("card-veiled");
+  if (card.hero) values.push("card-hero");
+  if (card.role) values.push("role-" + card.role);
+  if (card.story_form) values.push("story-" + card.story_form);
+  for (const value of card.classes || []) values.push("class-" + value);
+  return values;
+}
+
 function request(payload) {
   return new Promise((resolve, reject) => {
     const id = ++requestId;
@@ -149,9 +159,9 @@ function cardVisual(cardId, compact = false) {
 function playCardMarkup(cardId, options = {}) {
   const card = cards[cardId];
   const count = options.count || 1;
-  const classes = ["play-card", "card-" + card.type];
+  const classes = ["play-card", ...cardThemeClasses(card)];
   if (card.veiled) classes.push("card-scheme");
-  if (card.hero) classes.push("card-hero");
+  if (options.preview) classes.push("preview-card");
   if (options.playable) classes.push("playable");
   if (options.selected) classes.push("selected");
   if (options.mulligan) classes.push("mulligan-card");
@@ -182,17 +192,60 @@ function playCardMarkup(cardId, options = {}) {
 function boardCardMarkup(cardId, role) {
   if (!cardId) return "";
   const card = cards[cardId];
-  return '<div class="board-card board-card-' + role + ' card-' + card.type +
-    (card.veiled ? " card-scheme" : "") + (card.hero ? " card-hero" : "") + '">' +
-    cardVisual(cardId, true) +
-    '<span class="board-card-type">' + esc(cardType(card)) + '</span>' +
+  const classes = ["table-card-mini", "table-card-" + role, ...cardThemeClasses(card)];
+  return '<div class="' + classes.join(" ") + '" data-inspect-card="' + esc(cardId) +
+    '" title="' + esc(cardTooltip(cardId)) + '">' +
+    '<div class="mini-card-type">' + esc(cardType(card)) + '</div>' +
     '<strong>' + esc(card.title) + '</strong>' +
+    cardVisual(cardId, true) +
     (Number.isInteger(card.strength)
-      ? '<span class="board-card-strength">' + card.strength + '</span>'
+      ? '<span class="mini-card-strength">' + card.strength + '</span>'
       : "") +
   '</div>';
 }
 
+function cardBackMarkup(index = 0) {
+  return '<span class="card-back" style="--back-index:' + index + '"><i>THE</i><b>LONG WAR</b></span>';
+}
+
+function zoneStackMarkup(label, count, kind, topCard = null) {
+  const top = topCard
+    ? '<span class="zone-top-card" data-inspect-card="' + esc(topCard) + '">' + esc(cardTitle(topCard)) + '</span>'
+    : (count > 0 ? cardBackMarkup(0) : '<span class="zone-empty">empty</span>');
+  return '<div class="table-zone table-zone-' + kind + '">' +
+    '<small>' + esc(label) + '</small>' + top +
+    '<strong>' + count + '</strong>' +
+  '</div>';
+}
+
+function victoryMarkers(count) {
+  return '<div class="victory-markers" aria-label="' + count + ' victories">' +
+    [0, 1].map((index) => '<span class="' + (index < count ? "earned" : "") + '">✦</span>').join("") +
+  '</div>';
+}
+
+function renderPlayerRail(player, opponent) {
+  const ps = state.players[player];
+  const discard = [...ps.discard].reverse();
+  const visibleBacks = Math.min(ps.hand_count, 10);
+  const hand = opponent
+    ? '<div class="opponent-hand-fan">' +
+      Array.from({ length: visibleBacks }, (_, index) => cardBackMarkup(index)).join("") +
+      '<span class="hand-count">' + ps.hand_count + ' cards</span></div>'
+    : '<div class="you-label">Your cards are in the hand below</div>';
+  return '<section class="player-table-rail ' + (opponent ? "opponent-rail" : "player-rail") + '">' +
+    '<div class="player-table-id"><small>' + (opponent ? "OPPONENT" : "YOU") + '</small>' +
+      '<strong>Player ' + (player + 1) + '</strong>' + victoryMarkers(ps.victories) +
+      (ps.passed ? '<span class="passed-token">PASSED</span>' : '') +
+    '</div>' +
+    hand +
+    '<div class="table-zones">' +
+      zoneStackMarkup("Deck", ps.deck_count, "deck") +
+      zoneStackMarkup("Discard", discard.length, "discard", discard[0] || null) +
+      renderStratagem(player) +
+    '</div>' +
+  '</section>';
+}
 function currentViewer() {
   if (!state) return 0;
   return state.viewer == null ? state.active_player : state.viewer;
@@ -310,21 +363,22 @@ function renderScheme(owner, front) {
 
 function renderStratagem(owner) {
   const stratagem = state.stratagems?.[owner] || null;
-  const classes = ["stratagem-marker"];
-  let label = "No Stratagem set";
+  const classes = ["table-zone", "table-zone-stratagem", "stratagem-marker"];
+  let label = "No Stratagem";
+  let body = '<span class="zone-empty">empty</span>';
   if (stratagem?.hidden) {
     classes.push("hidden");
-    label = "Face-down Stratagem";
+    label = "Stratagem";
+    body = cardBackMarkup(0);
   } else if (stratagem?.card_id) {
     if (!stratagem.revealed) classes.push("hidden", "known");
-    label = cardTitle(stratagem.card_id) + (stratagem.revealed ? " · revealed" : " · face-down");
+    label = "Stratagem";
+    body = '<span class="zone-top-card" data-inspect-card="' + esc(stratagem.card_id) + '">' +
+      esc(cardTitle(stratagem.card_id)) + '</span>';
   }
-  return '<div class="battle-stratagem-row">' +
-    '<span>Player ' + (owner + 1) + ' · Battle Stratagem</span>' +
-    '<div class="' + classes.join(" ") + '">' + esc(label) + '</div>' +
-  '</div>';
+  return '<div class="' + classes.join(" ") + '"><small>' + label + '</small>' +
+    body + '<strong>' + (stratagem?.revealed ? "REVEALED" : stratagem ? "SET" : "—") + '</strong></div>';
 }
-
 function controlClass(front, viewer) {
   const owner = state.front_control[front];
   if (owner == null) return "front-tied";
@@ -334,7 +388,7 @@ function controlClass(front, viewer) {
 function renderBattlefield() {
   if (state.phase === "mulligan") {
     $("battlefield").innerHTML =
-      '<div class="mulligan-placeholder"><strong>Opening mulligan</strong><span>The battlefield stays hidden until both opening hands are settled.</span></div>';
+      '<div class="mulligan-placeholder"><strong>Opening mulligan</strong><span>The table opens after both starting hands are settled.</span></div>';
     return;
   }
   const bottom = currentViewer();
@@ -344,25 +398,34 @@ function renderBattlefield() {
     const p1 = state.front_strengths[1][front];
     const topScore = top === 0 ? p0 : p1;
     const bottomScore = bottom === 0 ? p0 : p1;
+    const control = state.front_control[front] == null
+      ? "Tied"
+      : state.front_control[front] === bottom ? "You control" : "Opponent controls";
     return '<section class="digital-front ' + controlClass(front, bottom) + '" data-front="' + front + '">' +
-      "<header><div><strong>" + name + "</strong><small>" +
-      (state.front_control[front] == null ? "Tied" : state.front_control[front] === bottom ? "You control" : "Opponent controls") +
-      "</small></div><span>P" + (top + 1) + " " + topScore + " · P" + (bottom + 1) + " " + bottomScore + "</span></header>" +
-      '<div class="front-side opponent-side"><div class="side-label">Player ' + (top + 1) + "</div>" +
-        renderScheme(top, front) + renderSlot(top, front, "rear") + renderSlot(top, front, "front") +
-      "</div>" +
-      '<div class="battle-line">battle line</div>' +
-      '<div class="front-side player-side"><div class="side-label">Player ' + (bottom + 1) + "</div>" +
-        renderSlot(bottom, front, "front") + renderSlot(bottom, front, "rear") + renderScheme(bottom, front) +
-      "</div></section>";
+      '<header><div><strong>' + name + '</strong><small>' + control + '</small></div>' +
+      '<div class="front-score"><span>' + topScore + '</span><i>—</i><span>' + bottomScore + '</span></div></header>' +
+      '<div class="front-side opponent-side">' +
+        renderScheme(top, front) +
+        renderSlot(top, front, "rear") +
+        renderSlot(top, front, "front") +
+      '</div>' +
+      '<div class="battle-line"><span></span><b>BATTLE LINE</b><span></span></div>' +
+      '<div class="front-side player-side">' +
+        renderSlot(bottom, front, "front") +
+        renderSlot(bottom, front, "rear") +
+        renderScheme(bottom, front) +
+      '</div>' +
+    '</section>';
   }).join("");
-  $("battlefield").innerHTML =
-    renderStratagem(top) +
-    '<div class="digital-front-grid">' + fronts + '</div>' +
-    renderStratagem(bottom);
-  bindBoardTargets();
-}
 
+  $("battlefield").innerHTML =
+    renderPlayerRail(top, true) +
+    '<div class="digital-front-grid">' + fronts + '</div>' +
+    renderPlayerRail(bottom, false);
+
+  bindBoardTargets();
+  bindCardInspectors();
+}
 function renderStrip() {
   if (state.phase === "mulligan") {
     $("match-strip").innerHTML =
@@ -665,6 +728,22 @@ function renderPublicZones() {
 
 function renderHistory() {
   $("history").innerHTML = state.log.map((line) => "<li>" + esc(line) + "</li>").join("");
+}
+
+function bindCardInspectors() {
+  const preview = $("card-preview");
+  if (!preview) return;
+  document.querySelectorAll("[data-inspect-card]").forEach((el) => {
+    const cardId = el.dataset.inspectCard;
+    el.addEventListener("mouseenter", () => {
+      preview.innerHTML = playCardMarkup(cardId, { preview: true, footer: "IN PLAY" });
+      preview.hidden = false;
+    });
+    el.addEventListener("mouseleave", () => {
+      preview.hidden = true;
+      preview.innerHTML = "";
+    });
+  });
 }
 
 function bindBoardTargets() {
