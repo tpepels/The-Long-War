@@ -19,6 +19,7 @@ from .game.actions import (
     PlayPlot,
     PlayScheme,
     PlaySubject,
+    SetStratagem,
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase, Position, Rank
@@ -57,6 +58,8 @@ def action_key(action: Action) -> str:
         )
     if isinstance(action, PlayScheme):
         return f"scheme:{action.card_id}:{int(action.front)}"
+    if isinstance(action, SetStratagem):
+        return f"stratagem:{action.card_id}"
     if isinstance(action, PlayPlot):
         targets = ";".join(
             f"{target.player}:{int(target.position.front)}:{target.position.rank.value}"
@@ -72,6 +75,15 @@ def _scheme_view(state: GameState, viewer: int, owner: int, front: Front) -> Any
         return None
     if owner == viewer or scheme.revealed:
         return [scheme.card_id, bool(scheme.revealed)]
+    return ["hidden", False]
+
+
+def _stratagem_view(state: GameState, viewer: int, owner: int) -> Any:
+    stratagem = state.stratagem(owner)
+    if stratagem is None:
+        return None
+    if owner == viewer or stratagem.revealed:
+        return [stratagem.card_id, bool(stratagem.revealed)]
     return ["hidden", False]
 
 
@@ -123,6 +135,11 @@ def information_set_observation(state: GameState, player: int) -> dict[str, Any]
         "discarded_this_battle": list(state.discarded_this_battle),
         "board": board,
         "schemes": schemes,
+        "stratagems": [
+            _stratagem_view(state, player, owner)
+            for owner in range(2)
+        ],
+        "stratagem_used": list(state.stratagem_used),
         "own_hand": _counter_view(own.hand),
         "own_deck": _counter_view(own.deck),
         "own_discard": list(own.discard),
