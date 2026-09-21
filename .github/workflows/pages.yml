@@ -8,9 +8,7 @@ on:
       - "rules/**"
       - "web/**"
       - "src/longwar/**"
-      - "tools/build_pages.py"
-      - "tools/analyze_telemetry.py"
-      - "tools/simulate.py"
+      - "tools/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -33,15 +31,63 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -e .
-      - name: Generate dashboard telemetry
+      - name: Static balance
+        run: python tools/balance_report.py
+      - name: Heuristic self-play
         run: >
           python tools/simulate.py
-          --games 200
+          --games 300
           --seed 91021
           --agent-a heuristic
           --agent-b heuristic
-          --output artifacts/pages-selfplay.json
-      - run: python tools/analyze_telemetry.py --simulation artifacts/pages-selfplay.json
+          --output artifacts/heuristic-selfplay.json
+      - name: Health analysis
+        run: python tools/analyze_telemetry.py --simulation artifacts/heuristic-selfplay.json
+      - name: Formal MCCFR verification
+        run: python tools/verify_mccfr.py --iterations 30000
+      - name: Train MCCFR policy
+        run: >
+          python tools/train_mccfr.py
+          --iterations 50
+          --depth 3
+          --seed 6401
+          --output artifacts/mccfr-policy.json
+      - name: MCCFR vs heuristic
+        run: >
+          python tools/simulate.py
+          --games 60
+          --seed 7401
+          --agent-a mccfr
+          --policy-a artifacts/mccfr-policy.json
+          --agent-b heuristic
+          --output artifacts/mccfr-vs-heuristic.json
+      - name: Heuristic vs MCCFR
+        run: >
+          python tools/simulate.py
+          --games 60
+          --seed 8401
+          --agent-a heuristic
+          --agent-b mccfr
+          --policy-b artifacts/mccfr-policy.json
+          --output artifacts/heuristic-vs-mccfr.json
+      - name: Heuristic vs random
+        run: >
+          python tools/simulate.py
+          --games 100
+          --seed 2701
+          --agent-a heuristic
+          --agent-b random
+          --output artifacts/heuristic-vs-random.json
+      - name: Random vs heuristic
+        run: >
+          python tools/simulate.py
+          --games 100
+          --seed 3701
+          --agent-a random
+          --agent-b heuristic
+          --output artifacts/random-vs-heuristic.json
+      - name: Aggregate Balance Lab
+        run: python tools/build_lab_report.py
       - run: python tools/build_pages.py
       - uses: actions/upload-pages-artifact@v4
         with:
