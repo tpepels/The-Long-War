@@ -31,13 +31,6 @@ function typeLabel(card) {
 }
 
 
-function cardDensity(card) {
-  const length = String(card.text || "").replace(/\*\*/g, "").replace(/\*/g, "").length;
-  if (length >= 220) return " card-density-max";
-  if (length >= 160) return " card-density-dense";
-  if (length >= 120) return " card-density-medium";
-  return "";
-}
 
 function cardMotif(card) {
   let hash = 0;
@@ -80,7 +73,7 @@ function cardMarkup(card, deckLabel) {
   const unique = card.unique ? '<span class="unique"><em>Unique</em></span>' : "";
   return '<article class="game-card deck-card card-' + card.type +
     (card.veiled ? " card-veiled" : "") +
-    (card.hero ? " card-hero" : "") + cardDensity(card) + '">' +
+    (card.hero ? " card-hero" : "") + '">' +
     '<header class="card-header"><div><div class="card-type">' + esc(typeLabel(card)) +
     '</div><h2>' + esc(card.title) + '</h2>' + propertyLabel(card) + '</div>' + strength + '</header>' +
     cardArtMarkup(card) +

@@ -63,13 +63,6 @@ function cardProperties(card) {
   return values;
 }
 
-function cardDensityClass(card) {
-  const length = plainGameText(card.text || "").length;
-  if (length >= 220) return " card-density-max";
-  if (length >= 160) return " card-density-dense";
-  if (length >= 120) return " card-density-medium";
-  return "";
-}
 
 function request(payload) {
   return new Promise((resolve, reject) => {
@@ -163,7 +156,6 @@ function playCardMarkup(cardId, options = {}) {
   if (options.playable) classes.push("playable");
   if (options.selected) classes.push("selected");
   if (options.mulligan) classes.push("mulligan-card");
-  classes.push(cardDensityClass(card).trim());
 
   const strength = Number.isInteger(card.strength)
     ? '<span class="play-card-strength">' + card.strength + '</span>'
