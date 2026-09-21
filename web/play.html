@@ -11,6 +11,7 @@
     <a href="index.html">The Long War</a>
     <div><span id="engine-status">Loading Python rules engine…</span></div>
   </header>
+
   <main class="play-client">
     <section class="play-setup" id="play-setup">
       <p class="eyebrow">v0.1 browser playtest</p>
@@ -31,22 +32,50 @@
       </form>
       <p class="muted" id="setup-note">The first load downloads Pyodide; game state remains local in your browser.</p>
     </section>
+
     <section id="game" class="play-game" hidden>
-      <div id="match-strip" class="match-strip"></div>
+      <div class="play-status-bar">
+        <div id="match-strip" class="match-strip"></div>
+        <button type="button" id="pass-button" class="pass-button" hidden>Pass</button>
+      </div>
+
       <div id="privacy-gate" class="privacy-gate" hidden></div>
+
+      <div class="interaction-strip" id="interaction-strip">
+        <div>
+          <p class="eyebrow">Action</p>
+          <strong id="interaction-title">Choose a card</strong>
+          <span id="interaction-hint">Select a card in your hand, then choose its destination on the battlefield.</span>
+        </div>
+        <button type="button" id="cancel-selection" class="small-button" hidden>Cancel</button>
+      </div>
+
+      <div id="choice-tray" class="choice-tray" hidden></div>
+
       <div id="battlefield" class="digital-battlefield"></div>
+
+      <section class="public-zones" id="public-zones"></section>
+
       <section class="play-panel">
         <div class="section-heading">
-          <div><p class="eyebrow">Hand</p><h2 id="hand-title">Your hand</h2></div>
-          <label class="explain-toggle"><input type="checkbox" id="show-reasons"> Explain legal moves</label>
+          <div>
+            <p class="eyebrow">Hand</p>
+            <h2 id="hand-title">Your hand</h2>
+          </div>
+          <label class="explain-toggle">
+            <input type="checkbox" id="show-reasons">
+            Explain legal moves
+          </label>
         </div>
         <div id="hand" class="digital-hand"></div>
         <div id="turn-actions" class="turn-actions"></div>
       </section>
-      <details class="play-panel action-log" open>
+
+      <details class="play-panel action-log">
         <summary>Action history</summary>
         <ol id="history"></ol>
       </details>
+
       <div class="play-controls">
         <button type="button" id="restart">New match</button>
         <a class="button secondary" href="playtest-kit.html">Print playtest kit</a>
@@ -54,6 +83,7 @@
       </div>
     </section>
   </main>
+
   <script type="module" src="play.js"></script>
 </body>
 </html>

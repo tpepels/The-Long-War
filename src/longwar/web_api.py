@@ -172,6 +172,13 @@ class PlaySession:
             ]
             for player in range(2)
         ]
+        front_control = []
+        for front in Front:
+            p0 = front_strengths[0][int(front)]
+            p1 = front_strengths[1][int(front)]
+            front_control.append(
+                0 if p0 > p1 else 1 if p1 > p0 else None
+            )
 
         hand: list[str] = []
         legal_actions: list[dict[str, Any]] = []
@@ -205,6 +212,7 @@ class PlaySession:
             "board": board,
             "schemes": schemes,
             "front_strengths": front_strengths,
+            "front_control": front_control,
             "hand": hand,
             "legal_actions": legal_actions,
             "log": self.log[-40:],
@@ -250,12 +258,53 @@ class PlaySession:
 
     def _action_view(self, action: Action) -> dict[str, Any]:
         card_id = getattr(action, "card_id", None)
-        return {
+        payload: dict[str, Any] = {
             "key": action_key(action),
             "kind": type(action).__name__,
             "card_id": card_id,
-            "label": self._describe_action(action, self.state.active_player, private=True),
+            "label": self._describe_action(
+                action,
+                self.state.active_player,
+                private=True,
+            ),
             "reason": self._legal_reason(action),
+            "position": None,
+            "front": None,
+            "targets": [],
+            "move_to": None,
+            "choose_player": None,
+        }
+
+        if isinstance(action, (PlaySubject, PlayLink, PlayName)):
+            payload["position"] = self._position_payload(action.position)
+
+        if isinstance(action, PlayName) and action.move_to is not None:
+            payload["move_to"] = self._position_payload(action.move_to)
+
+        if isinstance(action, PlayScheme):
+            payload["front"] = int(action.front)
+
+        if isinstance(action, PlayPlot):
+            payload["targets"] = [
+                {
+                    "player": target.player,
+                    **self._position_payload(target.position),
+                }
+                for target in action.targets
+            ]
+
+        if isinstance(action, ChooseFirst):
+            payload["choose_player"] = action.player
+
+        return payload
+
+    @staticmethod
+    def _position_payload(position: Position) -> dict[str, Any]:
+        return {
+            "front": int(position.front),
+            "front_name": FRONT_NAMES[position.front],
+            "rank": position.rank.value,
+            "rank_name": RANK_NAMES[position.rank],
         }
 
     def _describe_action(

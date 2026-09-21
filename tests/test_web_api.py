@@ -53,3 +53,35 @@ def test_heuristic_mode_returns_control_to_human() -> None:
     if snapshot["phase"] != "complete":
         assert snapshot["viewer"] == 0
         assert snapshot["legal_actions"]
+
+
+def test_action_payload_exposes_structured_board_targets() -> None:
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    active = session.state.active_player
+    snapshot = session.snapshot(active)
+
+    subject = next(
+        action
+        for action in snapshot["legal_actions"]
+        if action["kind"] == "PlaySubject"
+    )
+    assert subject["position"]["front"] in (0, 1, 2)
+    assert subject["position"]["rank"] in ("front", "rear")
+    assert subject["targets"] == []
+
+    scheme = next(
+        action
+        for action in snapshot["legal_actions"]
+        if action["kind"] == "PlayScheme"
+    )
+    assert scheme["front"] in (0, 1, 2)
+    assert scheme["position"] is None
+
+
+def test_snapshot_exposes_front_control() -> None:
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    snapshot = session.snapshot(session.state.active_player)
+
+    assert snapshot["front_control"] == [None, None, None]
