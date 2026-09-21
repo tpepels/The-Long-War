@@ -4,19 +4,10 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "17 3 * * 1"
-  push:
-    branches: [main]
-    paths:
-      - "cards/**"
-      - "decks/**"
-      - "src/longwar/**"
-      - "tools/balance_report.py"
-      - "tools/simulate.py"
-      - "tools/analyze_telemetry.py"
-      - "tools/train_mccfr.py"
-      - "tools/verify_mccfr.py"
-      - "tools/build_lab_report.py"
-      - ".github/workflows/balance.yml"
+
+concurrency:
+  group: balance-diagnostics
+  cancel-in-progress: true
 
 jobs:
   analyze:
