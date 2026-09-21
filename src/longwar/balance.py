@@ -88,6 +88,10 @@ def build_report(data: dict[str, Any]) -> dict[str, Any]:
             "min": min(values),
             "max": max(values),
         },
+        "all_static_legends": [
+            {**asdict(item), "z_score": z(item.static_strength)}
+            for item in ranked
+        ],
         "highest_static_legends": [
             {**asdict(item), "z_score": z(item.static_strength)}
             for item in ranked[:10]
