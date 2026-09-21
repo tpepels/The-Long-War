@@ -1,0 +1,30 @@
+name: Balance diagnostics
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - "cards/**"
+      - "src/longwar/**"
+      - "tools/balance_report.py"
+      - ".github/workflows/balance.yml"
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - run: python tools/balance_report.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-report
+          path: artifacts/balance-report.json
+          retention-days: 30

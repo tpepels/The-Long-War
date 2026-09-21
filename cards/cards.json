@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "cards": [
+    {
+      "id": "the-fifty-men",
+      "title": "The Fifty Men",
+      "type": "subject",
+      "strength": 4,
+      "unique": false,
+      "text": "",
+      "balance": {}
+    },
+    {
+      "id": "seven-black-ships",
+      "title": "Seven Black Ships",
+      "type": "subject",
+      "strength": 4,
+      "unique": false,
+      "text": "While in the Rear, this Subject has +1 Strength.",
+      "balance": {"dynamic": true}
+    },
+    {
+      "id": "those-who-came-back",
+      "title": "Those Who Came Back",
+      "type": "subject",
+      "strength": 3,
+      "unique": false,
+      "text": "This Subject has +1 Strength while your discard pile contains at least five cards.",
+      "balance": {"dynamic": true}
+    },
+    {
+      "id": "the-house-at-orra",
+      "title": "The House at Orra",
+      "type": "subject",
+      "strength": 4,
+      "unique": false,
+      "text": "This Subject has +1 Strength while an adjacent position contains a complete Legend.",
+      "balance": {"dynamic": true}
+    },
+    {
+      "id": "the-children-of-the-salt-road",
+      "title": "The Children of the Salt Road",
+      "type": "subject",
+      "strength": 3,
+      "unique": false,
+      "text": "When you attach a Link here, this Subject gains +1 Strength until the end of the Battle.",
+      "balance": {"dynamic": true}
+    },
+    {
+      "id": "the-three-brothers-of-avar",
+      "title": "The Three Brothers of Avar",
+      "type": "subject",
+      "strength": 5,
+      "unique": false,
+      "text": "Frontline only.",
+      "balance": {}
+    },
+
+    {
+      "id": "followed",
+      "title": "Followed",
+      "type": "link",
+      "unique": false,
+      "text": "While complete, its Subject has +3 Strength.",
+      "balance": {"complete_strength_bonus": 3}
+    },
+    {
+      "id": "swore-to",
+      "title": "Swore To",
+      "type": "link",
+      "unique": false,
+      "text": "While complete, its Subject has +5 Strength. If the Name leaves this Legend, discard the Subject.",
+      "balance": {"complete_strength_bonus": 5, "dynamic": true}
+    },
+    {
+      "id": "defied",
+      "title": "Defied",
+      "type": "link",
+      "unique": false,
+      "text": "While complete, its Subject has +2 Strength and the opposing Front has -2 Strength.",
+      "balance": {"complete_strength_bonus": 2, "dynamic": true}
+    },
+    {
+      "id": "carried",
+      "title": "Carried",
+      "type": "link",
+      "unique": false,
+      "text": "While complete, its Subject has +2 Strength. Its Name cannot be returned to hand by a Plot.",
+      "balance": {"complete_strength_bonus": 2, "dynamic": true}
+    },
+    {
+      "id": "avenged",
+      "title": "Avenged",
+      "type": "link",
+      "unique": false,
+      "text": "While complete, its Subject has +1 Strength for each of your cards discarded this Battle, to a maximum of +4.",
+      "balance": {"dynamic": true}
+    },
+
+    {
+      "id": "namar",
+      "title": "Namar",
+      "type": "name",
+      "strength": 2,
+      "unique": true,
+      "text": "If Namar completes Followed, that Subject gains +2 additional Strength.",
+      "balance": {"link_strength_bonus": {"followed": 2}}
+    },
+    {
+      "id": "iria",
+      "title": "Iria",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "text": "When Iria completes a Legend, you may move that Legend to an adjacent legal position.",
+      "balance": {"dynamic": true}
+    },
+    {
+      "id": "oren",
+      "title": "Oren",
+      "type": "name",
+      "strength": 3,
+      "unique": true,
+      "text": "",
+      "balance": {}
+    },
+    {
+      "id": "teyra",
+      "title": "Teyra",
+      "type": "name",
+      "strength": 2,
+      "unique": true,
+      "text": "When Teyra completes a Legend, reveal one enemy Scheme in this Front.",
+      "balance": {"dynamic": true}
+    },
+
+    {
+      "id": "the-story-is-false",
+      "title": "The Story Is False",
+      "type": "plot",
+      "unique": false,
+      "text": "Discard one Link.",
+      "balance": {"dynamic": true}
+    },
+    {
+      "id": "he-never-came",
+      "title": "He Never Came",
+      "type": "plot",
+      "unique": false,
+      "text": "Return one Name to its owner's hand.",
+      "balance": {"dynamic": true}
+    },
+    {
+      "id": "they-chose-another",
+      "title": "They Chose Another",
+      "type": "plot",
+      "unique": false,
+      "text": "Move one of your Names to another legal open Link you control.",
+      "balance": {"dynamic": true}
+    }
+  ]
+}
