@@ -56,10 +56,16 @@ make test-fast         # deterministic unit/rules tests
 make test-algorithm    # MCCFR learning/correctness tests
 make test-integration  # multi-game simulation and telemetry tests
 make test              # everything
+make verify-mccfr      # formal Kuhn-poker MCCFR verification
 make check             # everything plus reports and Pages build
 ```
 
-The MCCFR algorithm suite contains a controlled final-Battle state in which **Pass** is provably the winning action while several alternative plays remain legal. Training from that fixed state must drive regret matching above 90% probability for Pass. A second test verifies deterministic reproducibility from the same seed.
+The MCCFR algorithm suite contains two independent correctness checks:
+
+1. a controlled Long War final-Battle state in which **Pass** is provably the winning action while several alternative plays remain legal; training must drive regret matching above 90% probability for Pass;
+2. a formal reference benchmark on **Kuhn poker**, using the exact same shared external-sampling traversal as the Long War solver. Kuhn poker has known game value `-1/18`; CI fails if learned value error or exploitability exceeds fixed thresholds.
+
+A second fixed-state test also verifies deterministic reproducibility from the same seed.
 
 For an executable MCCFR end-to-end smoke test:
 
@@ -129,7 +135,21 @@ GitHub Pages publishes:
 
 - printable cards;
 - printable rulebook;
-- the Balance Lab generated from fresh heuristic self-play.
+- a full Balance Lab generated from fresh simulation and solver runs.
+
+The Balance Lab includes:
+
+- every card with a five-level balance grade: red, orange, yellow, green, or dark green;
+- draws, plays, dead-turn rate, pass-deadness, board/control swing, conditional win rates, confidence intervals, static marginal strength, and diagnostic flags per card;
+- all 120 possible Subject–Link–Name Legends, including combinations not observed in the current simulation sample;
+- static Strength-space diagnostics;
+- action, pass, Battle, and decision telemetry;
+- heuristic/random and MCCFR/heuristic matchup summaries;
+- MCCFR iterations, information-set count, depth, policy coverage/fallback counts;
+- the formal Kuhn-poker verification result, including exact-value error and exploitability;
+- downloadable raw JSON artifacts for every report.
+
+Card grades are diagnostic rather than prescriptive: **dark green** requires both no warning signals and strong evidence; **green** means currently healthy with thinner evidence; **yellow** is a watch signal; **orange** indicates one high-confidence or multiple watch issues; **red** indicates multiple high-confidence issues.
 
 ## Balance pipeline
 
@@ -139,14 +159,17 @@ The automated stack is now:
 2. deterministic full-match engine;
 3. heuristic self-play;
 4. extended telemetry;
-5. confidence-aware health analysis;
+5. confidence-aware health analysis and five-level per-card grading;
 6. **depth-limited external-sampling MCCFR**;
-7. MCCFR-policy evaluation against the heuristic baseline.
+7. exact-reference MCCFR verification on Kuhn poker using the shared solver core;
+8. MCCFR-policy evaluation against the heuristic baseline;
+9. full Balance Lab aggregation and Pages publication.
 
 Planned next layers:
 
-8. double-oracle deck/meta search;
-9. counterfactual card replacement experiments;
-10. marginal/Shapley interaction analysis.
+10. online MCCFR re-solving with belief sampling;
+11. double-oracle deck/meta search;
+12. counterfactual card replacement experiments;
+13. marginal/Shapley interaction analysis.
 
 Static outliers, conditional win rates, heuristic values, and shallow MCCFR policies are diagnostics, not automatic balance verdicts.
