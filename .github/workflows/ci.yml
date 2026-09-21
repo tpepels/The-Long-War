@@ -53,10 +53,38 @@ jobs:
       - name: Heuristic simulation smoke test
         run: >
           python tools/simulate.py
-          --games 50
+          --games 300
           --seed $((RUN_SEED + 101))
           --agent-a heuristic
           --agent-b heuristic
+      - name: Stratagem diagnostic
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("artifacts/simulation-report.json").read_text())
+          cards = report["telemetry"]["cards"]
+          ids = [
+              "the-storm-broke",
+              "the-tide-rose",
+              "the-ground-gave-way",
+              "the-bronze-teeth",
+              "the-false-muster",
+              "the-wooden-gift",
+          ]
+          for card_id in ids:
+              s = cards.get(card_id, {})
+              print(
+                  card_id,
+                  "draws=", s.get("draws"),
+                  "plays=", s.get("plays"),
+                  "play_rate=", s.get("play_rate_per_draw"),
+                  "dead_turn=", s.get("unplayable_turn_rate"),
+                  "dead_pass=", s.get("dead_on_pass_rate"),
+                  "swing=", s.get("mean_immediate_front_swing"),
+                  "played_wr=", s.get("win_rate_when_played"),
+              )
+          PY
       - name: Analyze telemetry
         run: python tools/analyze_telemetry.py --simulation artifacts/simulation-report.json
       - name: Build lab aggregate
