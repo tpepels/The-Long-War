@@ -259,9 +259,9 @@
       "title": "He Never Came",
       "type": "plot",
       "unique": false,
-      "text": "Choose an opponent's **Subject** with a **Link**. **Return** its **Name** to its owner's hand; if it has no **Name**, **return** its **Link** instead.",
+      "text": "Choose an opponent's **Subject**. If it has a **Name**, **return** that **Name** to its owner's hand. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**.",
       "rules": {
-        "effect": "return_outer_attachment"
+        "effect": "return_name_or_weaken"
       },
       "balance": {
         "dynamic": true

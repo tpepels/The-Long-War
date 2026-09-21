@@ -167,7 +167,7 @@ def test_he_never_came_returns_name_but_leaves_subject_and_link() -> None:
     assert "namar" in state.players[0].hand
 
 
-def test_he_never_came_returns_open_link_when_no_name_is_attached() -> None:
+def test_he_never_came_weakens_subject_when_no_name_is_attached() -> None:
     engine, state = fresh_state(first_player=1)
     slot = state.slot(0, CENTER_FRONT)
     slot.subject = "the-fifty-men"
@@ -183,22 +183,27 @@ def test_he_never_came_returns_open_link_when_no_name_is_attached() -> None:
     )
 
     assert slot.subject == "the-fifty-men"
-    assert slot.link is None
-    assert "followed" in state.players[0].hand
+    assert slot.link == "followed"
+    assert slot.name is None
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 3
 
 
-def test_he_never_came_requires_a_link() -> None:
+def test_he_never_came_is_useful_against_bare_subject() -> None:
     engine, state = fresh_state(first_player=1)
     slot = state.slot(0, CENTER_FRONT)
     slot.subject = "the-fifty-men"
     state.players[1].hand = ["he-never-came"]
 
-    actions = engine.legal_actions(state)
-    assert not any(
-        isinstance(action, PlayPlot)
-        and action.card_id == "he-never-came"
-        for action in actions
+    engine.apply(
+        state,
+        PlayPlot(
+            "he-never-came",
+            (BoardTarget(0, CENTER_FRONT),),
+        ),
     )
+
+    assert slot.subject == "the-fifty-men"
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 2
 
 
 def test_carried_protects_its_subject_from_opponent_plot() -> None:

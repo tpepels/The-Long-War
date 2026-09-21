@@ -406,11 +406,11 @@ class GameEngine:
                 )
             return
 
-        if effect == "return_outer_attachment":
+        if effect == "return_name_or_weaken":
             target_player = 1 - player
             for position in all_positions():
                 slot = state.slot(target_player, position)
-                if slot.subject is None or slot.link is None:
+                if slot.subject is None:
                     continue
                 if self._subject_protected_from_opponent_plot(slot):
                     continue
@@ -476,7 +476,7 @@ class GameEngine:
                 slot.temporary_strength -= 2
             return
 
-        if effect == "return_outer_attachment":
+        if effect == "return_name_or_weaken":
             target = action.targets[0]
             slot = state.slot(target.player, target.position)
             if slot.name is not None:
@@ -486,12 +486,8 @@ class GameEngine:
                     target.position,
                     to_hand=True,
                 )
-            elif slot.link is not None:
-                self._return_link_to_hand(
-                    state,
-                    target.player,
-                    target.position,
-                )
+            elif slot.subject is not None:
+                slot.temporary_strength -= 2
             return
 
         if effect == "move_subject":
