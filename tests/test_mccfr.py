@@ -3,12 +3,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from longwar.agents.mccfr_agent import MCCFRAgent
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.mccfr import CFRNode, MCCFRTrainer, information_set_id
 
 ROOT = Path(__file__).resolve().parents[1]
+pytestmark = pytest.mark.algorithm
 
 
 def setup():

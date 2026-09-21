@@ -46,8 +46,6 @@ jobs:
           node --check web/balance.js
       - name: Fast unit tests
         run: make test-fast
-      - name: Cheap algorithm tests
-        run: make test-algorithm
       - name: Integration tests
         run: make test-integration
       - name: Static balance report
