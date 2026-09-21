@@ -14,15 +14,17 @@ Example: **The Fifty Men → Followed → Namar**
 - `decks/` — reproducible test and reference decks.
 - `rules/rulebook.md` — canonical printable rules.
 - `src/longwar/game/` — deterministic rules engine.
-- `src/longwar/agents/` — random and heuristic automated players.
+- `src/longwar/agents/` — random, heuristic, and MCCFR policy agents.
+- `src/longwar/mccfr.py` — external-sampling Monte Carlo CFR trainer and information abstraction.
 - `src/longwar/telemetry.py` — game, card, pass, and Legend telemetry.
+- `src/longwar/health.py` — confidence-aware balance flags and health analysis.
 - `src/longwar/balance.py` — static balance diagnostics.
 - `src/longwar/simulate.py` — repeated game simulation.
-- `web/` — static source for the printable GitHub Pages site.
+- `web/` — static source for the printable GitHub Pages site and Balance Lab.
 - `tools/` — CLI entry points.
 - `.github/workflows/` — CI, balance diagnostics, and Pages deployment.
 
-The printed cards, the engine, and the balance tooling all consume the same card database. Human-facing card text is not parsed by the engine; the `rules` object is executable card semantics.
+The printed cards, engine, search algorithms, and balance tooling consume the same canonical card database.
 
 ## Local setup
 
@@ -31,84 +33,89 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
 pytest
+
 python tools/balance_report.py
 python tools/simulate.py --games 1000 --agent-a heuristic --agent-b heuristic
+python tools/analyze_telemetry.py
+python tools/train_mccfr.py --iterations 50 --depth 3
 python tools/build_pages.py
 ```
 
-Then open `dist/index.html`.
+## MCCFR
 
-## Implemented engine rules
+The repository implements **depth-limited external-sampling Monte Carlo Counterfactual Regret Minimization**.
 
-The engine currently implements:
+For every sampled root deal:
 
-- 30-card deck validation and Unique/copy limits;
-- seeded shuffling, opening hands, and optional two-card mulligans;
-- six Subject positions: Left/Center/Right × Front/Rear;
-- Subject → Link → Name construction;
-- placement restrictions and position-dependent Strength;
-- all effects of the first 18-card set;
-- Plot targeting and Legend break/removal rules;
-- passing and hand economy;
-- three-Front scoring and pass-first tiebreaks;
-- best-of-three Battles;
-- the losing player choosing who starts the next Battle;
-- reproducible automated simulations.
+1. chance is sampled by shuffling both decks and drawing the private opening hands;
+2. training traverses once for each player;
+3. at the traverser's information sets, every legal action is expanded and counterfactual regrets are updated;
+4. at the opponent's information sets, one action is sampled from regret matching;
+5. sampled-path opponent strategies are accumulated into the exported average policy;
+6. at the configured depth frontier, the public-information heuristic state evaluator supplies a bounded continuation value.
 
-The state transition is deterministic after setup randomness. `legal_actions(state)` enumerates every action the active player may take; `apply(state, action)` rejects anything else.
+The information set contains public battlefield/discard information, the acting player's own hand and remaining-deck multiset, public hand/deck counts, and only information the player is allowed to know about Schemes. It never contains opponent hand identities or deck order.
+
+### Explicit approximations
+
+The current solver is intentionally transparent about two approximations:
+
+- **Depth-limited solving.** It converges toward the truncated game induced by the frontier evaluator, not yet the exact full match.
+- **State abstraction / imperfect recall.** The information key describes the currently observable state rather than preserving the entire action-observation history.
+
+The exported policy records these limitations in its metadata. The next solver work should measure information-set coverage, raise depth/iteration budgets, and eventually compare against a perfect-recall history abstraction on smaller subgames.
+
+Train:
+
+```bash
+python tools/train_mccfr.py \
+  --iterations 50 \
+  --depth 3 \
+  --output artifacts/mccfr-policy.json
+```
+
+Evaluate the learned table with heuristic fallback for unseen information sets:
+
+```bash
+python tools/simulate.py \
+  --games 100 \
+  --agent-a mccfr \
+  --policy-a artifacts/mccfr-policy.json \
+  --agent-b heuristic
+```
 
 ## Heuristic agent
 
-The heuristic player performs one-ply lookahead across every legal action. Its evaluation uses:
+The heuristic player performs one-ply lookahead across every legal action. Its evaluation uses Front control, Strength margins, Victory markers, public hand-size advantage, completed Legends, own-hand completion potential, and pass/card-conservation value. It never evaluates the identities of cards in the opponent's hand.
 
-- Front control and Strength margins;
-- Victory-marker advantage;
-- public hand-size advantage;
-- completed Legends;
-- own-hand completion potential for open Links;
-- the value of conserving cards through passing.
+The same public-information evaluator is used only at MCCFR depth frontiers.
 
-The agent does **not** inspect hidden opponent card identities. It sees only public battlefield information and public hand sizes, plus its own hand. A small exploration rate prevents self-play from collapsing into one deterministic line.
+## Telemetry and Balance Lab
 
-This agent is a stepping stone: it produces strategically meaningful trajectories for balance telemetry before MCCFR is introduced.
+Simulations record card playability, immediate board swing, pass behavior, completed Legends, conditional outcomes, and decision statistics. The health analyzer adds Wilson 95% intervals, minimum-evidence thresholds, within-type z-scores, and diagnostic flags.
 
-## Telemetry
+GitHub Pages publishes:
 
-Every simulation now records:
-
-- actions by type;
-- cards drawn and played;
-- play rate per draw;
-- turns a card is playable/unplayable while held;
-- cards held or dead when a player passes;
-- immediate net Front-margin swing per played card;
-- immediate Front-control swing;
-- win rate conditional on drawing or playing each card;
-- every completed Subject–Link–Name combination;
-- Strength at Legend completion;
-- win rate conditional on completing a Legend;
-- pass timing, hand size, controlled Fronts, and subsequent Battle result;
-- actions and total Strength per Battle;
-- heuristic candidate counts and score gaps.
-
-Conditional win rates are observational diagnostics, not causal estimates. MCCFR and counterfactual replacement experiments will provide stronger value estimates later.
-
-## GitHub Pages
-
-The Pages workflow builds the printable cards and rulebook and also runs a 200-game heuristic self-play sample for the **Balance Lab** dashboard. The cards page is formatted for A4 printing at 100% scale with poker-size cards (63 × 88 mm), nine cards per sheet.
+- printable cards;
+- printable rulebook;
+- the Balance Lab generated from fresh heuristic self-play.
 
 ## Balance pipeline
 
-The automated balance stack now has three layers:
+The automated stack is now:
 
-1. **Static combinatorial analysis** — evaluates every Subject–Link–Name combination using explicit Strength semantics.
-2. **Heuristic rules-engine self-play** — generates strategically directed full matches.
-3. **Extended telemetry** — measures card usability, immediate board swing, pass behavior, and Legend-combination outcomes.
+1. static Subject–Link–Name combinatorial analysis;
+2. deterministic full-match engine;
+3. heuristic self-play;
+4. extended telemetry;
+5. confidence-aware health analysis;
+6. **depth-limited external-sampling MCCFR**;
+7. MCCFR-policy evaluation against the heuristic baseline.
 
 Planned next layers:
 
-4. Monte Carlo CFR for play strategy;
-5. double-oracle search for deck/meta strategy;
-6. marginal/Shapley interaction analysis for card and combo value.
+8. double-oracle deck/meta search;
+9. counterfactual card replacement experiments;
+10. marginal/Shapley interaction analysis.
 
-Static outliers, heuristic values, and conditional win rates are diagnostics, not balance verdicts.
+Static outliers, conditional win rates, heuristic values, and shallow MCCFR policies are diagnostics, not automatic balance verdicts.

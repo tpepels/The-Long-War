@@ -1,0 +1,380 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import random
+from collections import Counter
+from dataclasses import dataclass, field
+from typing import Any
+
+from .agents.heuristic_agent import HeuristicAgent
+from .game.actions import (
+    Action,
+    BoardTarget,
+    ChooseFirst,
+    Pass,
+    PlayLink,
+    PlayName,
+    PlayPlot,
+    PlayScheme,
+    PlaySubject,
+)
+from .game.engine import GameEngine, all_positions
+from .game.model import Front, GameState, Phase, Position, Rank
+
+
+def _counter_view(cards: list[str]) -> list[list[Any]]:
+    return [[card_id, count] for card_id, count in sorted(Counter(cards).items())]
+
+
+def _position_view(position: Position) -> list[Any]:
+    return [int(position.front), position.rank.value]
+
+
+def _target_view(target: BoardTarget) -> list[Any]:
+    return [target.player, *_position_view(target.position)]
+
+
+def action_key(action: Action) -> str:
+    """Stable serialization used inside an information-set policy."""
+    if isinstance(action, Pass):
+        return "pass"
+    if isinstance(action, ChooseFirst):
+        return f"choose_first:{action.player}"
+    if isinstance(action, PlaySubject):
+        return f"subject:{action.card_id}:{int(action.position.front)}:{action.position.rank.value}"
+    if isinstance(action, PlayLink):
+        return f"link:{action.card_id}:{int(action.position.front)}:{action.position.rank.value}"
+    if isinstance(action, PlayName):
+        move = "stay"
+        if action.move_to is not None:
+            move = f"{int(action.move_to.front)}:{action.move_to.rank.value}"
+        return (
+            f"name:{action.card_id}:{int(action.position.front)}:"
+            f"{action.position.rank.value}:{move}"
+        )
+    if isinstance(action, PlayScheme):
+        return f"scheme:{action.card_id}:{int(action.front)}"
+    if isinstance(action, PlayPlot):
+        targets = ";".join(
+            f"{target.player}:{int(target.position.front)}:{target.position.rank.value}"
+            for target in action.targets
+        )
+        return f"plot:{action.card_id}:{targets}"
+    raise TypeError(f"Unsupported action type: {type(action)!r}")
+
+
+def _scheme_view(state: GameState, viewer: int, owner: int, front: Front) -> Any:
+    scheme = state.scheme(owner, front)
+    if scheme is None:
+        return None
+    if owner == viewer or scheme.revealed:
+        return [scheme.card_id, bool(scheme.revealed)]
+    return ["hidden", False]
+
+
+def information_set_observation(state: GameState, player: int) -> dict[str, Any]:
+    """Return the state abstraction visible to one player.
+
+    Hidden opponent hand identities and both deck orders are deliberately
+    excluded. The acting player's remaining deck is represented only as a
+    multiset, which is inferable from a known deck list and observed own cards.
+    """
+    opponent = 1 - player
+    own = state.players[player]
+    other = state.players[opponent]
+
+    board: list[Any] = []
+    for owner in range(2):
+        owner_rows = []
+        for position in all_positions():
+            slot = state.slot(owner, position)
+            owner_rows.append(
+                [
+                    int(position.front),
+                    position.rank.value,
+                    slot.subject,
+                    slot.link,
+                    slot.name,
+                    slot.temporary_strength,
+                ]
+            )
+        board.append(owner_rows)
+
+    schemes = [
+        [
+            _scheme_view(state, player, owner, front)
+            for front in Front
+        ]
+        for owner in range(2)
+    ]
+
+    return {
+        "viewer": player,
+        "phase": state.phase.value,
+        "battle": state.battle,
+        "active_player": state.active_player,
+        "chooser": state.chooser,
+        "victories": [p.victories for p in state.players],
+        "passed": [p.passed for p in state.players],
+        "pass_order": list(state.pass_order),
+        "discarded_this_battle": list(state.discarded_this_battle),
+        "board": board,
+        "schemes": schemes,
+        "own_hand": _counter_view(own.hand),
+        "own_deck": _counter_view(own.deck),
+        "own_discard": list(own.discard),
+        "opponent_hand_count": len(other.hand),
+        "opponent_deck_count": len(other.deck),
+        "opponent_discard": list(other.discard),
+    }
+
+
+def information_set_id(state: GameState, player: int) -> str:
+    payload = json.dumps(
+        information_set_observation(state, player),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+@dataclass
+class CFRNode:
+    regret_sum: dict[str, float] = field(default_factory=dict)
+    strategy_sum: dict[str, float] = field(default_factory=dict)
+    visits: int = 0
+    average_visits: int = 0
+
+    def ensure_actions(self, keys: list[str]) -> None:
+        for key in keys:
+            self.regret_sum.setdefault(key, 0.0)
+            self.strategy_sum.setdefault(key, 0.0)
+
+    def strategy(self, keys: list[str]) -> dict[str, float]:
+        self.ensure_actions(keys)
+        positives = {key: max(0.0, self.regret_sum[key]) for key in keys}
+        total = sum(positives.values())
+        if total > 0:
+            return {key: positives[key] / total for key in keys}
+        probability = 1.0 / len(keys)
+        return {key: probability for key in keys}
+
+    def accumulate_average(self, strategy: dict[str, float]) -> None:
+        for key, probability in strategy.items():
+            self.strategy_sum[key] = self.strategy_sum.get(key, 0.0) + probability
+        self.average_visits += 1
+
+    def average_strategy(self, keys: list[str] | None = None) -> dict[str, float]:
+        keys = keys or list(self.strategy_sum)
+        if not keys:
+            return {}
+        total = sum(max(0.0, self.strategy_sum.get(key, 0.0)) for key in keys)
+        if total <= 0:
+            return self.strategy(keys)
+        return {
+            key: max(0.0, self.strategy_sum.get(key, 0.0)) / total
+            for key in keys
+        }
+
+
+@dataclass(frozen=True)
+class TrainingSummary:
+    iterations: int
+    traversals: int
+    information_sets: int
+    max_depth: int
+    mean_sampled_utility_p0: float
+    mean_sampled_utility_p1: float
+
+
+class MCCFRTrainer:
+    """Depth-limited external-sampling Monte Carlo CFR.
+
+    Chance is sampled by shuffling/drawing a fresh complete state at the root
+    of every iteration. On the traversing player's nodes every legal action is
+    expanded; on the opponent's nodes one action is sampled from regret
+    matching. This is the external-sampling MCCFR update. The explicit
+    approximation is the depth limit: frontier states are evaluated by the
+    public-information heuristic evaluator rather than recursively solving the
+    rest of the match.
+    """
+
+    def __init__(
+        self,
+        engine: GameEngine,
+        deck_a: list[str],
+        deck_b: list[str],
+        *,
+        seed: int = 1701,
+        max_depth: int = 3,
+        leaf_scale: float = 100.0,
+    ):
+        if max_depth < 1:
+            raise ValueError("max_depth must be at least 1")
+        self.engine = engine
+        self.deck_a = list(deck_a)
+        self.deck_b = list(deck_b)
+        self.engine.validate_deck(self.deck_a)
+        self.engine.validate_deck(self.deck_b)
+        self.rng = random.Random(seed)
+        self.seed = seed
+        self.max_depth = max_depth
+        self.leaf_scale = leaf_scale
+        self.nodes: dict[str, CFRNode] = {}
+        self.iterations = 0
+        self._leaf_agent = HeuristicAgent(seed=seed, exploration=0.0)
+
+    def train(self, iterations: int) -> TrainingSummary:
+        if iterations <= 0:
+            raise ValueError("iterations must be positive")
+
+        utility_sum = [0.0, 0.0]
+        for _ in range(iterations):
+            chance_seed = self.rng.randrange(0, 2**31)
+            first_player = self.rng.randrange(2)
+            root = self.engine.new_game(
+                self.deck_a,
+                self.deck_b,
+                seed=chance_seed,
+                first_player=first_player,
+            )
+            for traverser in (0, 1):
+                utility_sum[traverser] += self._traverse(
+                    root.clone(),
+                    traverser,
+                    depth=0,
+                )
+            self.iterations += 1
+
+        return TrainingSummary(
+            iterations=self.iterations,
+            traversals=self.iterations * 2,
+            information_sets=len(self.nodes),
+            max_depth=self.max_depth,
+            mean_sampled_utility_p0=utility_sum[0] / iterations,
+            mean_sampled_utility_p1=utility_sum[1] / iterations,
+        )
+
+    def _traverse(
+        self,
+        state: GameState,
+        traverser: int,
+        *,
+        depth: int,
+    ) -> float:
+        if state.phase is Phase.COMPLETE:
+            return 1.0 if state.winner == traverser else -1.0
+
+        if depth >= self.max_depth:
+            return self._leaf_value(state, traverser)
+
+        actor = state.active_player
+        actions = self.engine.legal_actions(state)
+        if not actions:
+            raise RuntimeError("Non-terminal state has no legal actions")
+
+        keys = [action_key(action) for action in actions]
+        if len(keys) != len(set(keys)):
+            raise RuntimeError("Action serialization collision inside information set")
+
+        info_id = information_set_id(state, actor)
+        node = self.nodes.setdefault(info_id, CFRNode())
+        node.ensure_actions(keys)
+        node.visits += 1
+        strategy = node.strategy(keys)
+
+        action_by_key = dict(zip(keys, actions))
+
+        if actor == traverser:
+            action_utilities: dict[str, float] = {}
+            node_utility = 0.0
+
+            for key in keys:
+                child = state.clone()
+                self.engine.apply(child, action_by_key[key])
+                utility = self._traverse(
+                    child,
+                    traverser,
+                    depth=depth + 1,
+                )
+                action_utilities[key] = utility
+                node_utility += strategy[key] * utility
+
+            for key in keys:
+                node.regret_sum[key] += action_utilities[key] - node_utility
+
+            return node_utility
+
+        # In external sampling, the non-traversing player's action is sampled.
+        # Average-policy accumulation therefore occurs on the sampled path.
+        node.accumulate_average(strategy)
+        sampled_key = self._sample(strategy)
+        child = state.clone()
+        self.engine.apply(child, action_by_key[sampled_key])
+        return self._traverse(
+            child,
+            traverser,
+            depth=depth + 1,
+        )
+
+    def _leaf_value(self, state: GameState, traverser: int) -> float:
+        raw = self._leaf_agent.evaluate(self.engine, state, traverser)
+        return math.tanh(raw / self.leaf_scale)
+
+    def _sample(self, probabilities: dict[str, float]) -> str:
+        threshold = self.rng.random()
+        cumulative = 0.0
+        last = next(iter(probabilities))
+        for key, probability in probabilities.items():
+            last = key
+            cumulative += probability
+            if threshold <= cumulative:
+                return key
+        return last
+
+    def policy_payload(self) -> dict[str, Any]:
+        infosets: dict[str, Any] = {}
+        for info_id, node in self.nodes.items():
+            keys = sorted(node.regret_sum)
+            infosets[info_id] = {
+                "visits": node.visits,
+                "average_visits": node.average_visits,
+                "average_strategy": node.average_strategy(keys),
+                "current_strategy": node.strategy(keys),
+                "regret_sum": {key: node.regret_sum[key] for key in keys},
+            }
+
+        return {
+            "schema_version": 1,
+            "algorithm": "depth_limited_external_sampling_mccfr",
+            "iterations": self.iterations,
+            "traversals": self.iterations * 2,
+            "max_depth": self.max_depth,
+            "leaf_evaluator": {
+                "type": "heuristic_state_value",
+                "transform": "tanh(value / leaf_scale)",
+                "leaf_scale": self.leaf_scale,
+            },
+            "chance_sampling": "fresh root shuffle/draw and starting player per iteration",
+            "mulligan_policy": "no mulligan during MCCFR root sampling",
+            "information_abstraction": {
+                "includes": [
+                    "public battlefield and discard state",
+                    "own hand identities",
+                    "own remaining deck multiset",
+                    "public hand/deck counts",
+                    "own hidden Scheme identity",
+                ],
+                "excludes": [
+                    "opponent hand identities",
+                    "both deck orders",
+                    "opponent unrevealed Scheme identity",
+                    "full action history",
+                ],
+                "note": "This is an imperfect-recall state abstraction, not an exact perfect-recall game tree.",
+            },
+            "average_policy": "visit-weighted sampled-path average strategy",
+            "infosets": infosets,
+        }

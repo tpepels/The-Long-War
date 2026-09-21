@@ -77,6 +77,15 @@ class HeuristicAgent:
         }
         return selected.action
 
+    def evaluate(
+        self,
+        engine: GameEngine,
+        state: GameState,
+        player: int,
+    ) -> float:
+        """Public-information state value used by search algorithms."""
+        return self._state_value(engine, state, player)
+
     def _score_action(
         self,
         engine: GameEngine,

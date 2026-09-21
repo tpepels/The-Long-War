@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .agents import HeuristicAgent, RandomAgent
+from .agents.mccfr_agent import MCCFRAgent
 from .game.engine import GameEngine
 from .game.model import Phase
 from .telemetry import Telemetry
@@ -28,11 +29,20 @@ class SimulationReport:
         return self.first_player_wins / self.games
 
 
-def make_agent(name: str, seed: int):
+def make_agent(
+    name: str,
+    seed: int,
+    *,
+    policy: dict[str, Any] | None = None,
+):
     if name == "random":
         return RandomAgent(seed)
     if name == "heuristic":
         return HeuristicAgent(seed)
+    if name == "mccfr":
+        if policy is None:
+            raise ValueError("MCCFR agent requires an exported policy")
+        return MCCFRAgent(seed, policy)
     raise ValueError(f"Unknown agent: {name}")
 
 
@@ -45,6 +55,7 @@ def simulate_games(
     seed: int = 0,
     max_actions: int = 500,
     agent_names: tuple[str, str] = ("heuristic", "heuristic"),
+    agent_policies: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
 ) -> SimulationReport:
     if games <= 0:
         raise ValueError("games must be positive")
@@ -64,8 +75,16 @@ def simulate_games(
             first_player=first_player,
         )
         agents = [
-            make_agent(agent_names[0], seed * 10_000 + game_index * 2 + 1),
-            make_agent(agent_names[1], seed * 10_000 + game_index * 2 + 2),
+            make_agent(
+                agent_names[0],
+                seed * 10_000 + game_index * 2 + 1,
+                policy=agent_policies[0],
+            ),
+            make_agent(
+                agent_names[1],
+                seed * 10_000 + game_index * 2 + 2,
+                policy=agent_policies[1],
+            ),
         ]
         telemetry.start_game(state)
 

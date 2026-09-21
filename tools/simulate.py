@@ -4,6 +4,7 @@ import argparse
 import json
 from dataclasses import asdict
 from pathlib import Path
+from typing import Any
 
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
@@ -12,9 +13,19 @@ from longwar.simulate import simulate_games
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def resolve(path: Path) -> Path:
+    return path if path.is_absolute() else ROOT / path
+
+
 def load_deck(path: Path) -> list[str]:
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(resolve(path).read_text(encoding="utf-8"))
     return list(data["cards"])
+
+
+def load_policy(path: Path | None) -> dict[str, Any] | None:
+    if path is None:
+        return None
+    return json.loads(resolve(path).read_text(encoding="utf-8"))
 
 
 def main() -> None:
@@ -23,28 +34,30 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=1701)
     parser.add_argument(
         "--agent-a",
-        choices=["heuristic", "random"],
+        choices=["heuristic", "random", "mccfr"],
         default="heuristic",
     )
     parser.add_argument(
         "--agent-b",
-        choices=["heuristic", "random"],
+        choices=["heuristic", "random", "mccfr"],
         default="heuristic",
     )
+    parser.add_argument("--policy-a", type=Path)
+    parser.add_argument("--policy-b", type=Path)
     parser.add_argument(
         "--deck-a",
         type=Path,
-        default=ROOT / "decks" / "reference.json",
+        default=Path("decks/reference.json"),
     )
     parser.add_argument(
         "--deck-b",
         type=Path,
-        default=ROOT / "decks" / "reference.json",
+        default=Path("decks/reference.json"),
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=ROOT / "artifacts" / "simulation-report.json",
+        default=Path("artifacts/simulation-report.json"),
     )
     args = parser.parse_args()
 
@@ -52,6 +65,7 @@ def main() -> None:
     engine = GameEngine(card_data)
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
+    policies = (load_policy(args.policy_a), load_policy(args.policy_b))
 
     report = simulate_games(
         engine,
@@ -60,13 +74,14 @@ def main() -> None:
         games=args.games,
         seed=args.seed,
         agent_names=(args.agent_a, args.agent_b),
+        agent_policies=policies,
     )
 
     payload = asdict(report)
     payload["win_rates"] = report.win_rates
     payload["first_player_win_rate"] = report.first_player_win_rate
 
-    output = args.output if args.output.is_absolute() else ROOT / args.output
+    output = resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
         json.dumps(payload, indent=2) + "\n",

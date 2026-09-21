@@ -13,6 +13,7 @@ on:
       - "tools/balance_report.py"
       - "tools/simulate.py"
       - "tools/analyze_telemetry.py"
+      - "tools/train_mccfr.py"
       - ".github/workflows/balance.yml"
 
 jobs:
@@ -36,6 +37,31 @@ jobs:
           --output artifacts/heuristic-selfplay.json
       - name: Build balance health report
         run: python tools/analyze_telemetry.py --simulation artifacts/heuristic-selfplay.json
+      - name: Train MCCFR policy
+        run: >
+          python tools/train_mccfr.py
+          --iterations 50
+          --depth 3
+          --seed 6401
+          --output artifacts/mccfr-policy.json
+      - name: MCCFR vs heuristic
+        run: >
+          python tools/simulate.py
+          --games 100
+          --seed 7401
+          --agent-a mccfr
+          --policy-a artifacts/mccfr-policy.json
+          --agent-b heuristic
+          --output artifacts/mccfr-vs-heuristic.json
+      - name: Heuristic vs MCCFR
+        run: >
+          python tools/simulate.py
+          --games 100
+          --seed 8401
+          --agent-a heuristic
+          --agent-b mccfr
+          --policy-b artifacts/mccfr-policy.json
+          --output artifacts/heuristic-vs-mccfr.json
       - name: Heuristic vs random
         run: >
           python tools/simulate.py
