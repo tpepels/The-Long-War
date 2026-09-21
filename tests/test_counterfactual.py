@@ -43,6 +43,11 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
     }
     assert baseline_card(index["namar"])["strength"] == 2
     assert baseline_card(index["he-never-came"])["rules"] == {}
+    assert baseline_card(index["the-storm-broke"])["rules"] == {
+        "stratagem": {
+            "trigger": {"event": "never", "actor": "either"},
+        }
+    }
 
 
 def test_replacement_changes_exactly_one_matching_slot_and_remains_legal() -> None:
