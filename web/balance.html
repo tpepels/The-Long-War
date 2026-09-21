@@ -11,47 +11,152 @@
     <a href="index.html">The Long War</a>
     <div><span>Balance Lab</span></div>
   </header>
+
   <main class="balance-dashboard">
-    <p class="eyebrow">Automated playtest telemetry</p>
+    <p class="eyebrow">Automated playtest + solver observability</p>
     <h1>Balance Lab</h1>
-    <p class="dashboard-lede">Heuristic self-play diagnostics. Flags identify cards and Legends worth inspecting; they are not automatic balance verdicts.</p>
+    <p class="dashboard-lede">
+      Card health, Legend performance, simulations, raw telemetry, MCCFR training,
+      policy coverage and formal solver verification in one place.
+    </p>
 
     <section id="overview" class="metric-grid" aria-live="polite"></section>
 
     <section class="dashboard-section">
       <div class="section-heading">
-        <div><p class="eyebrow">Cards</p><h2>Card health</h2></div>
-        <select id="card-filter" aria-label="Filter cards">
-          <option value="flagged">Flagged first</option>
-          <option value="all">All cards</option>
-          <option value="subject">Subjects</option>
-          <option value="link">Links</option>
-          <option value="name">Names</option>
-          <option value="plot">Plots</option>
-        </select>
+        <div>
+          <p class="eyebrow">Cards</p>
+          <h2>Per-card balance</h2>
+        </div>
+        <div class="section-controls">
+          <select id="card-filter" aria-label="Filter cards">
+            <option value="all">All cards</option>
+            <option value="red">Red</option>
+            <option value="orange">Orange</option>
+            <option value="yellow">Yellow</option>
+            <option value="green">Green</option>
+            <option value="dark_green">Dark green</option>
+            <option value="subject">Subjects</option>
+            <option value="link">Links</option>
+            <option value="name">Names</option>
+            <option value="plot">Plots</option>
+          </select>
+        </div>
       </div>
+
+      <div class="balance-legend" aria-label="Balance status legend">
+        <span class="grade grade-red">Red · critical</span>
+        <span class="grade grade-orange">Orange · needs balancing</span>
+        <span class="grade grade-yellow">Yellow · watch</span>
+        <span class="grade grade-green">Green · looks healthy</span>
+        <span class="grade grade-dark_green">Dark green · well-supported healthy</span>
+      </div>
+
       <div class="table-wrap">
-        <table class="balance-table">
-          <thead><tr><th>Card</th><th>Type</th><th>Play / draw</th><th>Dead turns</th><th>Front swing</th><th>Win when played</th><th>Flags</th></tr></thead>
+        <table class="balance-table card-health-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Card</th>
+              <th>Type</th>
+              <th>Strength</th>
+              <th>Draws / plays</th>
+              <th>Play / draw</th>
+              <th>Dead turns</th>
+              <th>Dead on pass</th>
+              <th>Front swing</th>
+              <th>Control swing</th>
+              <th>Win drawn</th>
+              <th>Win played</th>
+              <th>Static Δ</th>
+              <th>Flags</th>
+            </tr>
+          </thead>
           <tbody id="card-table"></tbody>
         </table>
       </div>
     </section>
 
     <section class="dashboard-section">
-      <div class="section-heading"><div><p class="eyebrow">Legends</p><h2>Observed combinations</h2></div></div>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Legends</p>
+          <h2>All observed combinations</h2>
+        </div>
+        <div id="legend-count" class="muted"></div>
+      </div>
       <div class="table-wrap">
         <table class="balance-table">
-          <thead><tr><th>Legend</th><th>Completions</th><th>Games seen</th><th>Strength</th><th>Win rate</th><th>Flags</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Legend</th>
+              <th>Completions</th>
+              <th>Games seen</th>
+              <th>Strength</th>
+              <th>Strength z</th>
+              <th>Win rate</th>
+              <th>95% interval</th>
+              <th>Flags</th>
+            </tr>
+          </thead>
           <tbody id="legend-table"></tbody>
         </table>
       </div>
     </section>
 
+    <section class="dashboard-section">
+      <p class="eyebrow">Simulation</p>
+      <h2>Matchups & game telemetry</h2>
+      <div id="matchups" class="table-wrap"></div>
+      <div id="telemetry-grid" class="metric-grid compact-grid"></div>
+
+      <details class="diagnostic-details" open>
+        <summary>Action, pass and decision telemetry</summary>
+        <div id="raw-telemetry"></div>
+      </details>
+    </section>
+
+    <section class="dashboard-section">
+      <p class="eyebrow">MCCFR</p>
+      <h2>Training, coverage & formal verification</h2>
+      <div id="mccfr-overview" class="metric-grid compact-grid"></div>
+      <div id="mccfr-verification"></div>
+      <p class="dashboard-note">
+        “Verified” here means the shared external-sampling traversal passes the
+        exact reference benchmark and exploitability thresholds. It does not mean
+        the current Long War abstraction is solved.
+      </p>
+    </section>
+
+    <section class="dashboard-section">
+      <p class="eyebrow">Static analysis</p>
+      <h2>Legend Strength space</h2>
+      <div id="static-overview" class="metric-grid compact-grid"></div>
+      <div class="two-column-tables">
+        <div>
+          <h3>Highest static Legends</h3>
+          <div id="static-high" class="table-wrap"></div>
+        </div>
+        <div>
+          <h3>Lowest static Legends</h3>
+          <div id="static-low" class="table-wrap"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <p class="eyebrow">Artifacts</p>
+      <h2>Raw outputs</h2>
+      <div id="downloads" class="download-grid"></div>
+    </section>
+
     <section class="dashboard-section methodology">
-      <p class="eyebrow">Method</p><h2>How to read this</h2><div id="methodology"></div>
+      <p class="eyebrow">Method</p>
+      <h2>How to read this</h2>
+      <div id="methodology"></div>
     </section>
   </main>
+
   <script src="balance.js"></script>
 </body>
 </html>
