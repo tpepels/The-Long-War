@@ -62,16 +62,8 @@ function propertyLabel(card) {
     : "";
 }
 
-function densityClass(card) {
-  const length = String(card.text || "").replace(/\*+/g, "").length;
-  if (length > 210) return "density-max";
-  if (length > 155) return "density-dense";
-  if (length > 105) return "density-medium";
-  return "density-open";
-}
-
 function themeClasses(card) {
-  const classes = ["game-card", "deck-card", "card-" + card.type, densityClass(card)];
+  const classes = ["game-card", "deck-card", "card-" + card.type];
   if (card.hero) classes.push("card-hero");
   if (card.veiled) classes.push("card-veiled");
   if (card.role) classes.push("role-" + card.role);
