@@ -24,9 +24,9 @@
     <main class="play-client">
       <section class="play-setup" id="play-setup">
         <div class="setup-emblem" aria-hidden="true">III</div>
-        <p class="setup-kicker">A contest of position, memory, and restraint</p>
-        <h1>Begin a campaign</h1>
-        <p class="setup-intro">Fight across three Fronts. Build Legends where they matter. Spend only what the Battle is worth.</p>
+        <p class="setup-kicker">Three Fronts · one shared Battle</p>
+        <h1>Start a match</h1>
+        <p class="setup-intro">Control two of three Fronts. Cards left in your hand carry into the next Battle.</p>
 
         <form id="new-game-form">
           <label>Opponent
@@ -44,7 +44,7 @@
           </label>
           <button id="start-game" type="submit" disabled>Begin Battle I</button>
         </form>
-        <p id="setup-note">A fresh seed is chosen for every new campaign. Keep it only if you want to replay the same deal.</p>
+        <p id="setup-note">A new seed gives a new deal. Reuse a seed to replay the same one.</p>
       </section>
 
       <section id="game" class="play-game" hidden>
@@ -69,9 +69,9 @@
 
             <div class="orders-ribbon" id="interaction-strip">
               <div>
-                <small>YOUR DECISION</small>
+                <small>YOUR TURN</small>
                 <strong id="interaction-title">Choose a card</strong>
-                <span id="interaction-hint">Select a card from your hand, then place it on the lit part of the table.</span>
+                <span id="interaction-hint">Select a card. Legal positions and targets will highlight.</span>
               </div>
               <button type="button" id="cancel-selection" hidden>Cancel</button>
             </div>
@@ -90,7 +90,7 @@
               <div class="hand-controls">
                 <label class="explain-toggle">
                   <input type="checkbox" id="show-reasons">
-                  rules hints
+                  show rule hints
                 </label>
                 <button type="button" id="pass-button" class="pass-button" hidden>Pass</button>
               </div>
@@ -106,7 +106,7 @@
             <div class="public-zones" id="public-zones"></div>
           </details>
           <details class="action-log">
-            <summary>Chronicle</summary>
+            <summary>Turn log</summary>
             <ol id="history"></ol>
           </details>
           <div class="campaign-links">
