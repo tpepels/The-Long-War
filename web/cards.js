@@ -19,6 +19,13 @@ const TYPE_LABELS = {
   stratagem: "Stratagem",
 };
 
+const TYPE_SYMBOLS = {
+  subject: "◆",
+  link: "⛓",
+  name: "✦",
+  stratagem: "⚑",
+};
+
 const titleCase = (value) =>
   String(value ?? "")
     .split(/[-_ ]+/)
@@ -32,10 +39,10 @@ function typeLabel(card) {
     return card.veiled ? form + " · Veiled Story" : form + " · Story";
   }
   if (card.type === "subject" && card.hero) return "Hero · Subject";
-  return TYPE_LABELS[card.type] ?? card.type;
+  return TYPE_LABELS[card.type] ?? titleCase(card.type);
 }
 
-function propertyLabel(card) {
+function propertyValues(card) {
   const values = [];
   if (card.type === "subject" && card.role) values.push(titleCase(card.role));
   for (const value of card.classes || []) {
@@ -43,27 +50,76 @@ function propertyLabel(card) {
     const label = titleCase(value);
     if (!values.includes(label)) values.push(label);
   }
+  return values;
+}
+
+function propertyLabel(card) {
+  const values = propertyValues(card);
   return values.length
     ? '<div class="card-properties">' +
-      values.map((value) => "<em>" + esc(value) + "</em>").join(" · ") +
+      values.map((value) => "<em>" + esc(value) + "</em>").join("<span>·</span>") +
       "</div>"
     : "";
 }
 
+function densityClass(card) {
+  const length = String(card.text || "").replace(/\*+/g, "").length;
+  if (length > 210) return "density-max";
+  if (length > 155) return "density-dense";
+  if (length > 105) return "density-medium";
+  return "density-open";
+}
+
+function themeClasses(card) {
+  const classes = ["game-card", "card-" + card.type, densityClass(card)];
+  if (card.hero) classes.push("card-hero");
+  if (card.veiled) classes.push("card-veiled");
+  if (card.role) classes.push("role-" + card.role);
+  if (card.story_form) classes.push("story-" + card.story_form);
+  for (const value of card.classes || []) classes.push("class-" + value);
+  return classes.join(" ");
+}
+
+function cardInitials(title) {
+  return String(title)
+    .replace(/^(the|a|an)\s+/i, "")
+    .split(/\s+/)
+    .slice(0, 3)
+    .map((word) => word[0] || "")
+    .join("")
+    .toUpperCase();
+}
+
+function cardSymbol(card) {
+  if (card.type === "plot") return card.veiled ? "◐" : "⌁";
+  if (card.hero) return "♛";
+  return TYPE_SYMBOLS[card.type] || "•";
+}
+
+function artMarkup(card) {
+  return '<div class="card-art" aria-hidden="true">' +
+    '<span class="card-art-orbit"></span>' +
+    '<span class="card-art-line line-a"></span>' +
+    '<span class="card-art-line line-b"></span>' +
+    '<b class="card-art-symbol">' + cardSymbol(card) + '</b>' +
+    '<strong class="card-art-mark">' + esc(cardInitials(card.title)) + '</strong>' +
+  "</div>";
+}
+
 function cardMarkup(card) {
   const strength = Number.isInteger(card.strength)
-    ? '<div class="strength" aria-label="Strength">' + card.strength + "</div>"
+    ? '<div class="strength" aria-label="Strength ' + card.strength + '">' + card.strength + "</div>"
     : "";
 
   const unique = card.unique ? '<span class="unique"><em>Unique</em></span>' : "";
 
-  return '<article class="game-card card-' + card.type + (card.hero ? " card-hero" : "") + '">' +
-    '<header class="card-header"><div>' +
+  return '<article class="' + themeClasses(card) + '" data-card-id="' + esc(card.id) + '">' +
+    '<header class="card-header"><div class="card-heading">' +
       '<div class="card-type">' + esc(typeLabel(card)) + "</div>" +
       "<h2>" + esc(card.title) + "</h2>" +
       propertyLabel(card) +
     "</div>" + strength + "</header>" +
-    '<div class="card-art" aria-hidden="true"><span>' + esc(card.title) + "</span></div>" +
+    artMarkup(card) +
     '<div class="card-rule"><p>' + (card.text ? formatGameText(card.text) : "&nbsp;") + "</p></div>" +
     '<footer class="card-footer">' + unique + '<span class="card-id">' + esc(card.id) + "</span></footer>" +
     "</article>";
