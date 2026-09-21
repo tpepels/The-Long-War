@@ -43,12 +43,14 @@ def main() -> None:
     )
     summary = trainer.train(args.iterations)
     payload = trainer.policy_payload()
+    payload["training_seed"] = args.seed
     payload["training_summary"] = asdict(summary)
 
     output = resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
+    print(f"Seed: {args.seed}")
     print(f"Algorithm: {payload['algorithm']}")
     print(f"Iterations: {summary.iterations}")
     print(f"Traversals: {summary.traversals}")

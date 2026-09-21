@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -31,13 +32,18 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -e .
+      - name: Set per-run seed
+        run: |
+          RUN_SEED=$(( (GITHUB_RUN_ID + GITHUB_RUN_ATTEMPT * 1000003) % 2000000000 + 1 ))
+          echo "RUN_SEED=$RUN_SEED" >> "$GITHUB_ENV"
+          echo "Run seed: $RUN_SEED"
       - name: Static balance
         run: python tools/balance_report.py
       - name: Heuristic self-play
         run: >
           python tools/simulate.py
           --games 300
-          --seed 91021
+          --seed $((RUN_SEED + 101))
           --agent-a heuristic
           --agent-b heuristic
           --output artifacts/heuristic-selfplay.json
@@ -50,13 +56,13 @@ jobs:
           python tools/train_mccfr.py
           --iterations 50
           --depth 3
-          --seed 6401
+          --seed $((RUN_SEED + 201))
           --output artifacts/mccfr-policy.json
       - name: MCCFR vs heuristic
         run: >
           python tools/simulate.py
           --games 60
-          --seed 7401
+          --seed $((RUN_SEED + 301))
           --agent-a mccfr
           --policy-a artifacts/mccfr-policy.json
           --agent-b heuristic
@@ -65,7 +71,7 @@ jobs:
         run: >
           python tools/simulate.py
           --games 60
-          --seed 8401
+          --seed $((RUN_SEED + 401))
           --agent-a heuristic
           --agent-b mccfr
           --policy-b artifacts/mccfr-policy.json
@@ -74,7 +80,7 @@ jobs:
         run: >
           python tools/simulate.py
           --games 6
-          --seed 9401
+          --seed $((RUN_SEED + 501))
           --agent-a online_mccfr
           --agent-b heuristic
           --online-iterations 4
@@ -84,7 +90,7 @@ jobs:
         run: >
           python tools/simulate.py
           --games 100
-          --seed 2701
+          --seed $((RUN_SEED + 601))
           --agent-a heuristic
           --agent-b random
           --output artifacts/heuristic-vs-random.json
@@ -92,28 +98,21 @@ jobs:
         run: >
           python tools/simulate.py
           --games 100
-          --seed 3701
+          --seed $((RUN_SEED + 701))
           --agent-a random
           --agent-b heuristic
           --output artifacts/random-vs-heuristic.json
-      - name: Counterfactual card and interaction analysis
-        run: >
-          python tools/counterfactual_balance.py
-          --contexts 3
-          --games-per-context 4
-          --bootstrap-resamples 750
-          --seed 20260921
-      - name: Target suspicious effects with online MCCFR
-        run: >
-          python tools/targeted_online_counterfactual.py
-          --contexts 2
-          --games-per-context 2
-          --online-iterations 3
-          --online-depth 2
-          --max-cards 2
-          --max-pairs 1
-          --max-triples 1
-          --bootstrap-resamples 500
+      - name: Restore latest counterfactual reports
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID="$(gh run list --workflow counterfactual.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          if [ -n "$RUN_ID" ]; then
+            echo "Restoring counterfactual reports from run $RUN_ID"
+            gh run download "$RUN_ID" --name counterfactual-reports --dir artifacts
+          else
+            echo "No successful counterfactual analysis exists yet; continuing without it."
+          fi
       - name: Aggregate Balance Lab
         run: python tools/build_lab_report.py
       - run: python tools/build_pages.py

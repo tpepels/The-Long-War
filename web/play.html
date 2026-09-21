@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Play — The Long War</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="play.css">
 </head>
 <body>
   <header class="screen-toolbar">
@@ -20,17 +21,20 @@
       <form id="new-game-form">
         <label>Opponent
           <select id="mode" disabled>
-            <option value="hotseat">Human vs Human · hot-seat</option>
-            <option value="heuristic">Human vs heuristic agent</option>
+            <option value="heuristic" selected>Human vs heuristic agent</option>
             <option value="online_mccfr">Human vs online MCCFR</option>
+            <option value="hotseat">Human vs Human · hot-seat</option>
           </select>
         </label>
-        <label>Seed
-          <input id="seed" type="number" min="0" max="2147483647" value="1701" disabled>
+        <label>Replay seed
+          <span class="seed-control">
+            <input id="seed" type="number" min="1" max="2147483647" disabled>
+            <button id="randomize-seed" class="seed-randomize" type="button" disabled>New</button>
+          </span>
         </label>
         <button id="start-game" type="submit" disabled>Start match</button>
       </form>
-      <p class="muted" id="setup-note">The first load downloads Pyodide; game state remains local in your browser.</p>
+      <p class="muted" id="setup-note">A fresh seed is chosen for every new match. Keep it if you want to replay the exact deal.</p>
     </section>
 
     <section id="game" class="play-game" hidden>
@@ -67,6 +71,7 @@
             Explain legal moves
           </label>
         </div>
+        <p class="hand-note">Identical copies are stacked as ×N during play. They are strategically interchangeable; the opening mulligan still lets you select individual copies.</p>
         <div id="hand" class="digital-hand"></div>
         <div id="turn-actions" class="turn-actions"></div>
       </section>

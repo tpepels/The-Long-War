@@ -32,6 +32,11 @@ jobs:
           cache: pip
       - run: python -m pip install --upgrade pip
       - run: pip install -e '.[dev]'
+      - name: Set per-run seed
+        run: |
+          RUN_SEED=$(( (GITHUB_RUN_ID + GITHUB_RUN_ATTEMPT * 1000003) % 2000000000 + 1 ))
+          echo "RUN_SEED=$RUN_SEED" >> "$GITHUB_ENV"
+          echo "Run seed: $RUN_SEED"
       - name: Browser JavaScript syntax
         run: |
           node --check web/play.js
@@ -50,40 +55,40 @@ jobs:
       - name: Static balance report
         run: python tools/balance_report.py
       - name: Heuristic simulation smoke test
-        run: python tools/simulate.py --games 50 --seed 1701 --agent-a heuristic --agent-b heuristic
+        run: >
+          python tools/simulate.py
+          --games 50
+          --seed $((RUN_SEED + 101))
+          --agent-a heuristic
+          --agent-b heuristic
       - name: Analyze telemetry
         run: python tools/analyze_telemetry.py --simulation artifacts/simulation-report.json
       - name: MCCFR smoke training
-        run: make mccfr-smoke
+        run: >
+          python tools/train_mccfr.py
+          --iterations 5
+          --depth 2
+          --seed $((RUN_SEED + 201))
+          --output artifacts/mccfr-smoke.json
+      - name: MCCFR smoke match
+        run: >
+          python tools/simulate.py
+          --games 5
+          --seed $((RUN_SEED + 202))
+          --agent-a mccfr
+          --policy-a artifacts/mccfr-smoke.json
+          --agent-b heuristic
+          --output artifacts/mccfr-smoke-match.json
       - name: Online MCCFR smoke match
         run: >
           python tools/simulate.py
           --games 2
-          --seed 9501
+          --seed $((RUN_SEED + 301))
           --agent-a online_mccfr
           --agent-b heuristic
           --online-iterations 2
           --online-depth 1
           --output artifacts/online-mccfr-smoke.json
-      - name: Counterfactual balance smoke test
-        run: >
-          python tools/counterfactual_balance.py
-          --contexts 1
-          --games-per-context 1
-          --bootstrap-resamples 100
-          --cards the-fifty-men followed namar
-      - name: Targeted online MCCFR counterfactual smoke test
-        run: >
-          python tools/targeted_online_counterfactual.py
-          --contexts 1
-          --games-per-context 1
-          --online-iterations 1
-          --online-depth 1
-          --max-cards 1
-          --max-pairs 0
-          --max-triples 0
-          --bootstrap-resamples 100
-          --force-top
       - name: Build lab aggregate
         run: python tools/build_lab_report.py
       - name: Build Pages

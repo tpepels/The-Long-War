@@ -7,8 +7,23 @@ let selectedCardId = null;
 let stagedPlotSource = null;
 let choiceActions = [];
 let mulliganSelection = new Set();
+let engineReady = false;
+let cardsReady = false;
 
 const $ = (id) => document.getElementById(id);
+
+function updateStartAvailability() {
+  const ready = engineReady && cardsReady;
+  $("mode").disabled = !ready;
+  $("seed").disabled = !ready;
+  $("randomize-seed").disabled = !ready;
+  $("start-game").disabled = !ready;
+  $("engine-status").textContent = ready
+    ? "Rules engine + card catalogue ready"
+    : engineReady
+      ? "Loading card catalogue…"
+      : "Loading Python rules engine…";
+}
 const frontNames = ["Left", "Center", "Right"];
 
 function esc(value) {
@@ -29,10 +44,8 @@ function request(payload) {
 
 worker.addEventListener("message", (event) => {
   if (event.data.type === "ready") {
-    $("engine-status").textContent = "Rules engine ready";
-    $("mode").disabled = false;
-    $("seed").disabled = false;
-    $("start-game").disabled = false;
+    engineReady = true;
+    updateStartAvailability();
     return;
   }
   if (event.data.type === "boot_error") {
@@ -55,6 +68,90 @@ function cardTitle(cardId) {
 function cardType(card) {
   if (card.type === "plot" && (card.keywords || []).includes("scheme")) return "Scheme";
   return card.type[0].toUpperCase() + card.type.slice(1);
+}
+
+function cardInitials(title) {
+  return title
+    .replace(/^(the|a|an)\s+/i, "")
+    .split(/\s+/)
+    .slice(0, 3)
+    .map((word) => word[0] || "")
+    .join("")
+    .toUpperCase();
+}
+
+function cardHash(value) {
+  let hash = 2166136261;
+  for (const char of value) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function cardVisual(cardId, compact = false) {
+  const card = cards[cardId];
+  const hash = cardHash(cardId);
+  const x = 18 + (hash % 58);
+  const y = 15 + ((hash >>> 7) % 35);
+  const r = 10 + ((hash >>> 13) % 18);
+  const mark = cardInitials(card.title);
+  const symbol = (card.keywords || []).includes("scheme")
+    ? "◐"
+    : { subject: "◆", link: "↔", name: "✦", plot: "⌁" }[card.type] || "•";
+  return '<div class="play-card-art' + (compact ? " compact" : "") + '">' +
+    '<svg viewBox="0 0 100 62" aria-hidden="true">' +
+      '<circle cx="' + x + '" cy="' + y + '" r="' + r + '"></circle>' +
+      '<path d="M4 ' + (54 - (hash % 18)) + ' Q 32 ' + (8 + (hash % 20)) +
+      ' 52 ' + (34 + ((hash >>> 4) % 20)) + ' T 96 ' + (12 + ((hash >>> 10) % 38)) + '"></path>' +
+      '<path d="M8 54 L' + (30 + (hash % 40)) + ' 12 L94 50"></path>' +
+    '</svg>' +
+    '<span class="play-card-symbol">' + symbol + '</span>' +
+    '<b>' + esc(mark) + '</b>' +
+  '</div>';
+}
+
+function playCardMarkup(cardId, options = {}) {
+  const card = cards[cardId];
+  const count = options.count || 1;
+  const classes = ["play-card", "card-" + card.type];
+  if ((card.keywords || []).includes("scheme")) classes.push("card-scheme");
+  if (options.playable) classes.push("playable");
+  if (options.selected) classes.push("selected");
+  if (options.mulligan) classes.push("mulligan-card");
+  const strength = Number.isInteger(card.strength)
+    ? '<span class="play-card-strength">' + card.strength + '</span>'
+    : "";
+  const badge = count > 1
+    ? '<span class="copy-badge">×' + count + '</span>'
+    : options.copyLabel
+      ? '<span class="copy-badge copy-index">' + esc(options.copyLabel) + '</span>'
+      : "";
+  const footer = options.footer || "";
+  return '<article class="' + classes.join(" ") + '" ' + (options.attrs || "") + '>' +
+    '<div class="play-card-meta"><span>' + esc(cardType(card)) + '</span>' + badge + '</div>' +
+    '<h3>' + esc(card.title) + '</h3>' +
+    strength +
+    cardVisual(cardId) +
+    '<div class="play-card-rules">' +
+      (card.text ? esc(card.text) : '<em>No special rules.</em>') +
+    '</div>' +
+    '<footer>' + footer + '</footer>' +
+  '</article>';
+}
+
+function boardCardMarkup(cardId, role) {
+  if (!cardId) return "";
+  const card = cards[cardId];
+  return '<div class="board-card board-card-' + role + ' card-' + card.type +
+    ((card.keywords || []).includes("scheme") ? " card-scheme" : "") + '">' +
+    cardVisual(cardId, true) +
+    '<span class="board-card-type">' + esc(cardType(card)) + '</span>' +
+    '<strong>' + esc(card.title) + '</strong>' +
+    (Number.isInteger(card.strength)
+      ? '<span class="board-card-strength">' + card.strength + '</span>'
+      : "") +
+  '</div>';
 }
 
 function currentViewer() {
@@ -142,21 +239,21 @@ function renderSlot(owner, front, rank) {
     'data-board-owner="' + owner + '" data-board-front="' + front + '" data-board-rank="' + rank + '"';
 
   if (!slot?.subject) {
-    return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>' +
-      (rank === "front" ? "Frontline" : "Rear") + "</span></div>";
+    return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
+      '<span class="empty-slot-mark">＋</span><span>' +
+      (rank === "front" ? "Frontline" : "Rear") + '</span></div>';
   }
 
-  return '<div class="' + classes.join(" ") + '" ' + attrs + ">" +
-    '<span class="slot-rank">' + esc(slot.rank_name) + "</span>" +
-    '<div class="legend-stack">' +
-      component(slot.subject, "subject") +
-      component(slot.link, "link") +
-      component(slot.name, "name") +
-    "</div>" +
-    '<span class="slot-strength">' + slot.strength + "</span>" +
-  "</div>";
+  return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
+    '<span class="slot-rank">' + esc(slot.rank_name) + '</span>' +
+    '<div class="board-legend">' +
+      boardCardMarkup(slot.subject, "subject") +
+      (slot.link ? '<div class="board-attachment link">' + boardCardMarkup(slot.link, "link") + '</div>' : "") +
+      (slot.name ? '<div class="board-attachment name">' + boardCardMarkup(slot.name, "name") + '</div>' : "") +
+    '</div>' +
+    '<span class="slot-strength">' + slot.strength + '</span>' +
+  '</div>';
 }
-
 function renderScheme(owner, front) {
   const scheme = state.schemes[owner][front];
   const targetable = owner === currentViewer() && targetActionsForFront(front).length > 0;
@@ -220,7 +317,8 @@ function renderStrip() {
     "<span>P1 victories " + state.players[0].victories + "/2</span>" +
     "<span>P2 victories " + state.players[1].victories + "/2</span>" +
     "<span>Turn · Player " + (state.active_player + 1) + winnerText + "</span>" +
-    "<span>Hands " + state.players[0].hand_count + " / " + state.players[1].hand_count + "</span>";
+    "<span>Hands " + state.players[0].hand_count + " / " + state.players[1].hand_count + "</span>" +
+    "<span>Seed " + state.seed + "</span>";
 
   const pass = actionForPass();
   const button = $("pass-button");
@@ -393,16 +491,23 @@ function renderHand() {
   if (state.phase === "mulligan") {
     $("hand-title").textContent =
       "Player " + (state.viewer + 1) + " opening hand · choose up to " + state.mulligan_limit;
+
+    const totals = new Map();
+    for (const cardId of state.hand) totals.set(cardId, (totals.get(cardId) || 0) + 1);
+    const seen = new Map();
+
     hand.innerHTML = state.hand.map((cardId, index) => {
-      const card = cards[cardId];
+      const ordinal = (seen.get(cardId) || 0) + 1;
+      seen.set(cardId, ordinal);
+      const total = totals.get(cardId) || 1;
       const selected = mulliganSelection.has(index);
-      const classes = ["hand-card", "mulligan-card", "card-" + card.type];
-      if (selected) classes.push("selected");
-      return '<article class="' + classes.join(" ") + '" data-mulligan-index="' + index + '">' +
-        "<header><span>" + esc(cardType(card)) + "</span><strong>" + esc(card.title) + "</strong>" +
-        (Number.isInteger(card.strength) ? "<b>" + card.strength + "</b>" : "") + "</header>" +
-        "<p>" + esc(card.text || "No rules text.") + "</p>" +
-        "<footer><span>" + (selected ? "Return this card" : "Keep") + "</span></footer></article>";
+      return playCardMarkup(cardId, {
+        selected,
+        mulligan: true,
+        copyLabel: total > 1 ? ordinal + "/" + total : "",
+        attrs: 'data-mulligan-index="' + index + '"',
+        footer: selected ? "RETURN THIS COPY" : "KEEP",
+      });
     }).join("");
 
     hand.querySelectorAll("[data-mulligan-index]").forEach((cardEl) => {
@@ -432,17 +537,16 @@ function renderHand() {
   for (const cardId of state.hand) grouped.set(cardId, (grouped.get(cardId) || 0) + 1);
 
   hand.innerHTML = [...grouped.entries()].map(([cardId, count]) => {
-    const card = cards[cardId];
     const playable = state.legal_actions.some((action) => action.card_id === cardId);
-    const classes = ["hand-card", "card-" + card.type];
-    if (playable) classes.push("playable");
-    if (selectedCardId === cardId) classes.push("selected");
-    return '<article class="' + classes.join(" ") + '" data-hand-card="' + esc(cardId) + '" draggable="' + playable + '">' +
-      "<header><span>" + esc(cardType(card)) + (count > 1 ? " ×" + count : "") + "</span>" +
-      "<strong>" + esc(card.title) + "</strong>" +
-      (Number.isInteger(card.strength) ? "<b>" + card.strength + "</b>" : "") +
-      "</header><p>" + esc(card.text || "No rules text.") + "</p>" +
-      '<footer><span>' + (playable ? "Select to play" : "No legal play") + "</span></footer></article>";
+    return playCardMarkup(cardId, {
+      count,
+      playable,
+      selected: selectedCardId === cardId,
+      attrs: 'data-hand-card="' + esc(cardId) + '" draggable="' + playable + '"',
+      footer: playable
+        ? (count > 1 ? "PLAY ONE OF " + count + " COPIES" : "SELECT OR DRAG TO PLAY")
+        : "NO LEGAL PLAY",
+    });
   }).join("");
 
   hand.querySelectorAll("[data-hand-card]").forEach((cardEl) => {
@@ -477,7 +581,6 @@ function renderHand() {
     });
   });
 }
-
 function renderPublicZones() {
   if (state.phase === "mulligan") {
     $("public-zones").innerHTML = "";
@@ -641,7 +744,24 @@ async function loadCards() {
   if (!response.ok) throw new Error("Could not load card data");
   const data = await response.json();
   cards = Object.fromEntries(data.cards.map((card) => [card.id, card]));
+  cardsReady = true;
+  updateStartAvailability();
 }
+
+function freshSeed() {
+  const values = new Uint32Array(1);
+  crypto.getRandomValues(values);
+  return (values[0] % 2147483646) + 1;
+}
+
+function randomizeSeed() {
+  $("seed").value = String(freshSeed());
+}
+
+randomizeSeed();
+updateStartAvailability();
+
+$("randomize-seed").addEventListener("click", randomizeSeed);
 
 $("new-game-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -660,6 +780,7 @@ $("restart").addEventListener("click", () => {
   clearSelection();
   $("game").hidden = true;
   $("play-setup").hidden = false;
+  randomizeSeed();
 });
 
 $("show-reasons").addEventListener("change", () => {

@@ -1,0 +1,87 @@
+name: Counterfactual Analysis
+
+on:
+  workflow_dispatch:
+    inputs:
+      contexts:
+        description: Broad deck contexts
+        required: true
+        default: "4"
+      games_per_context:
+        description: Broad paired games per context
+        required: true
+        default: "6"
+      target_contexts:
+        description: Contexts for targeted online MCCFR validation
+        required: true
+        default: "2"
+      target_games_per_context:
+        description: Paired games per targeted context
+        required: true
+        default: "2"
+      online_iterations:
+        description: Online MCCFR iterations per decision
+        required: true
+        default: "6"
+      online_depth:
+        description: Online MCCFR search depth
+        required: true
+        default: "2"
+      seed:
+        description: Seed (0 = derive a fresh reproducible seed from this workflow run)
+        required: true
+        default: "0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: counterfactual-analysis
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Choose analysis seed
+        env:
+          INPUT_SEED: ${{ inputs.seed }}
+        run: |
+          if [ "$INPUT_SEED" = "0" ]; then
+            ANALYSIS_SEED=$(( (GITHUB_RUN_ID + GITHUB_RUN_ATTEMPT * 1000003) % 2000000000 + 1 ))
+          else
+            ANALYSIS_SEED="$INPUT_SEED"
+          fi
+          echo "ANALYSIS_SEED=$ANALYSIS_SEED" >> "$GITHUB_ENV"
+          echo "Counterfactual seed: $ANALYSIS_SEED"
+      - name: Broad paired counterfactual sweep
+        run: >
+          python tools/counterfactual_balance.py
+          --contexts ${{ inputs.contexts }}
+          --games-per-context ${{ inputs.games_per_context }}
+          --bootstrap-resamples 1500
+          --seed "$ANALYSIS_SEED"
+      - name: Target suspicious effects with online MCCFR
+        run: >
+          python tools/targeted_online_counterfactual.py
+          --contexts ${{ inputs.target_contexts }}
+          --games-per-context ${{ inputs.target_games_per_context }}
+          --online-iterations ${{ inputs.online_iterations }}
+          --online-depth ${{ inputs.online_depth }}
+          --max-cards 2
+          --max-pairs 2
+          --max-triples 2
+          --bootstrap-resamples 1000
+      - uses: actions/upload-artifact@v4
+        with:
+          name: counterfactual-reports
+          path: |
+            artifacts/counterfactual-balance.json
+            artifacts/targeted-online-counterfactual.json
+          retention-days: 90

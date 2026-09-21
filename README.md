@@ -189,6 +189,26 @@ The heuristic player performs one-ply lookahead across every legal action. Its e
 
 The same public-information evaluator is used only at MCCFR depth frontiers.
 
+## CI and analysis cadence
+
+Routine **CI**, **Pages deployment**, and weekly **Balance diagnostics** do not run
+the expensive counterfactual sweep. Counterfactual analysis has its own manual
+GitHub Actions workflow, **Counterfactual Analysis**, containing both the broad
+paired heuristic experiment and the targeted online-MCCFR validation stage.
+
+Run it only when card text, numerical parameters, deck composition, or a balance
+question justifies a fresh causal analysis. Its reports are retained as a
+`counterfactual-reports` workflow artifact. Pages restores the most recent
+successful artifact when building the Balance Lab; it does not recompute the
+analysis on an ordinary UI/rulebook/code commit.
+
+Routine Actions derive a fresh base seed from the GitHub run ID, then use
+documented offsets for individual simulations/training jobs. Thus scheduled and
+CI runs explore new samples instead of repeating the same deal forever, while
+the actual seed is written into simulation/policy artifacts so any run can be
+replayed exactly. Local CLI defaults remain deterministic for convenient
+debugging.
+
 ## Counterfactual card value
 
 The balance pipeline includes paired causal replacement experiments. Each

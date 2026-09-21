@@ -75,6 +75,7 @@ def main() -> None:
     )
 
     payload = asdict(report)
+    payload["seed"] = args.seed
     payload["win_rates"] = report.win_rates
     payload["first_player_win_rate"] = report.first_player_win_rate
     payload["online_config"] = {
@@ -89,6 +90,7 @@ def main() -> None:
         encoding="utf-8",
     )
 
+    print(f"Seed: {args.seed}")
     print(f"Agents: {report.agents[0]} vs {report.agents[1]}")
     print(f"Games: {report.games}")
     print(f"Wins: P0={report.wins[0]} P1={report.wins[1]}")
