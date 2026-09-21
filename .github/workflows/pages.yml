@@ -7,7 +7,10 @@ on:
       - "cards/**"
       - "rules/**"
       - "web/**"
+      - "src/longwar/**"
       - "tools/build_pages.py"
+      - "tools/analyze_telemetry.py"
+      - "tools/simulate.py"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -30,6 +33,15 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -e .
+      - name: Generate dashboard telemetry
+        run: >
+          python tools/simulate.py
+          --games 200
+          --seed 91021
+          --agent-a heuristic
+          --agent-b heuristic
+          --output artifacts/pages-selfplay.json
+      - run: python tools/analyze_telemetry.py --simulation artifacts/pages-selfplay.json
       - run: python tools/build_pages.py
       - uses: actions/upload-pages-artifact@v4
         with:
