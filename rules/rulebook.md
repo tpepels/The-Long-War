@@ -163,7 +163,7 @@ Every Name is *Unique*: you may include only one copy of that card title in your
 
 A **Plot** is a one-shot action. Reveal it, resolve its text, then **discard** it.
 
-Plots let you break Links, return Names, move relationships between Subjects, and otherwise interfere with what is already on the table.
+Plots let you break **Links**, **return** attached cards, **move Subjects**, weaken positions, and otherwise interfere with what is already on the table.
 
 ### Scheme — make the opponent play around uncertainty
 

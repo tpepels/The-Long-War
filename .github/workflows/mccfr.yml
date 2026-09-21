@@ -1,0 +1,113 @@
+name: MCCFR Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      verification_iterations:
+        description: Kuhn verification iterations
+        required: true
+        default: "30000"
+      training_iterations:
+        description: Long War MCCFR training iterations
+        required: true
+        default: "50"
+      depth:
+        description: Long War search depth
+        required: true
+        default: "3"
+      matchup_games:
+        description: Games in each heuristic/MCCFR direction
+        required: true
+        default: "60"
+      online_games:
+        description: Online-MCCFR vs heuristic games
+        required: true
+        default: "6"
+      online_iterations:
+        description: Online MCCFR iterations per decision
+        required: true
+        default: "4"
+      online_depth:
+        description: Online MCCFR depth
+        required: true
+        default: "2"
+      seed:
+        description: Seed (0 = derive from workflow run)
+        required: true
+        default: "0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mccfr-validation
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Choose validation seed
+        env:
+          INPUT_SEED: ${{ inputs.seed }}
+        run: |
+          if [ "$INPUT_SEED" = "0" ]; then
+            VALIDATION_SEED=$(( (GITHUB_RUN_ID + GITHUB_RUN_ATTEMPT * 1000003) % 2000000000 + 1 ))
+          else
+            VALIDATION_SEED="$INPUT_SEED"
+          fi
+          echo "VALIDATION_SEED=$VALIDATION_SEED" >> "$GITHUB_ENV"
+          echo "MCCFR validation seed: $VALIDATION_SEED"
+      - name: Formal MCCFR verification
+        run: python tools/verify_mccfr.py --iterations ${{ inputs.verification_iterations }}
+      - name: Train MCCFR policy
+        run: >
+          python tools/train_mccfr.py
+          --iterations ${{ inputs.training_iterations }}
+          --depth ${{ inputs.depth }}
+          --seed "$VALIDATION_SEED"
+          --output artifacts/mccfr-policy.json
+      - name: MCCFR vs heuristic
+        run: >
+          python tools/simulate.py
+          --games ${{ inputs.matchup_games }}
+          --seed $((VALIDATION_SEED + 101))
+          --agent-a mccfr
+          --policy-a artifacts/mccfr-policy.json
+          --agent-b heuristic
+          --output artifacts/mccfr-vs-heuristic.json
+      - name: Heuristic vs MCCFR
+        run: >
+          python tools/simulate.py
+          --games ${{ inputs.matchup_games }}
+          --seed $((VALIDATION_SEED + 201))
+          --agent-a heuristic
+          --agent-b mccfr
+          --policy-b artifacts/mccfr-policy.json
+          --output artifacts/heuristic-vs-mccfr.json
+      - name: Online MCCFR vs heuristic
+        run: >
+          python tools/simulate.py
+          --games ${{ inputs.online_games }}
+          --seed $((VALIDATION_SEED + 301))
+          --agent-a online_mccfr
+          --agent-b heuristic
+          --online-iterations ${{ inputs.online_iterations }}
+          --online-depth ${{ inputs.online_depth }}
+          --output artifacts/online-mccfr-vs-heuristic.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mccfr-reports
+          path: |
+            artifacts/mccfr-verification.json
+            artifacts/mccfr-policy.json
+            artifacts/mccfr-vs-heuristic.json
+            artifacts/heuristic-vs-mccfr.json
+            artifacts/online-mccfr-vs-heuristic.json
+          retention-days: 90

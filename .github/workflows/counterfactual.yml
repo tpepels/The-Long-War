@@ -11,8 +11,13 @@ on:
         description: Broad paired games per context
         required: true
         default: "6"
+      run_online_mccfr:
+        description: Also run targeted online-MCCFR validation
+        required: true
+        type: boolean
+        default: false
       target_contexts:
-        description: Contexts for targeted online MCCFR validation
+        description: Contexts for optional targeted online MCCFR validation
         required: true
         default: "2"
       target_games_per_context:
@@ -60,14 +65,15 @@ jobs:
           fi
           echo "ANALYSIS_SEED=$ANALYSIS_SEED" >> "$GITHUB_ENV"
           echo "Counterfactual seed: $ANALYSIS_SEED"
-      - name: Broad paired counterfactual sweep
+      - name: Broad paired heuristic counterfactual sweep
         run: >
           python tools/counterfactual_balance.py
           --contexts ${{ inputs.contexts }}
           --games-per-context ${{ inputs.games_per_context }}
           --bootstrap-resamples 1500
           --seed "$ANALYSIS_SEED"
-      - name: Target suspicious effects with online MCCFR
+      - name: Optional targeted online MCCFR validation
+        if: ${{ inputs.run_online_mccfr }}
         run: >
           python tools/targeted_online_counterfactual.py
           --contexts ${{ inputs.target_contexts }}
@@ -84,4 +90,5 @@ jobs:
           path: |
             artifacts/counterfactual-balance.json
             artifacts/targeted-online-counterfactual.json
+          if-no-files-found: warn
           retention-days: 90

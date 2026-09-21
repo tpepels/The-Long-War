@@ -246,9 +246,9 @@
       "title": "The Story Is False",
       "type": "plot",
       "unique": false,
-      "text": "**Discard** a **Link**. If it has a **Name**, **return** that **Name** to its owner's hand.",
+      "text": "Choose an opponent's **Subject**. If it has a **Link**, **discard** that **Link**. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**.",
       "rules": {
-        "effect": "discard_link"
+        "effect": "discredit_subject"
       },
       "balance": {
         "dynamic": true
@@ -259,9 +259,9 @@
       "title": "He Never Came",
       "type": "plot",
       "unique": false,
-      "text": "Choose a **Subject**. **Return** its **Name** to its owner's hand. If it has no **Name**, **return** its **Link** instead. If it has neither, **return** the **Subject** itself.",
+      "text": "Choose an opponent's **Subject** with a **Link**. **Return** its **Name** to its owner's hand; if it has no **Name**, **return** its **Link** instead.",
       "rules": {
-        "effect": "return_outer_card"
+        "effect": "return_outer_attachment"
       },
       "balance": {
         "dynamic": true

@@ -67,11 +67,13 @@ Then use the test tiers independently:
 
 ```bash
 make test-fast         # deterministic unit/rules tests
-make test-algorithm    # MCCFR learning/correctness tests
 make test-integration  # multi-game simulation and telemetry tests
-make test              # everything
-make verify-mccfr      # formal Kuhn-poker MCCFR verification
-make check             # everything plus reports and Pages build
+make check             # routine rules/engine/heuristic checks + Pages build
+
+make test-algorithm    # explicit MCCFR learning/correctness tests
+make verify-mccfr      # explicit Kuhn-poker MCCFR verification
+make check-mccfr       # full MCCFR validation bundle
+make test              # literally every pytest test
 ```
 
 The MCCFR algorithm suite contains two independent correctness checks:
@@ -89,7 +91,7 @@ make mccfr-smoke
 
 This trains a small policy artifact and immediately uses it in complete matches against the heuristic agent.
 
-GitHub CI runs the fast, algorithm, and integration suites as separate named steps on every push and pull request.
+Routine GitHub CI runs the fast and integration suites plus heuristic smoke simulation. MCCFR learning, formal verification, training, and solver matchups are deliberately excluded from routine CI.
 
 
 ## MCCFR
@@ -191,23 +193,29 @@ The same public-information evaluator is used only at MCCFR depth frontiers.
 
 ## CI and analysis cadence
 
-Routine **CI**, **Pages deployment**, and weekly **Balance diagnostics** do not run
-the expensive counterfactual sweep. Counterfactual analysis has its own manual
-GitHub Actions workflow, **Counterfactual Analysis**, containing both the broad
-paired heuristic experiment and the targeted online-MCCFR validation stage.
+Routine **CI**, **Pages deployment**, and weekly **Balance diagnostics** use the
+deterministic engine, static checks, heuristic self-play, telemetry, and
+heuristic/random comparison only. They do **not** train, verify, or run MCCFR,
+and they do not run counterfactual experiments.
 
-Run it only when card text, numerical parameters, deck composition, or a balance
-question justifies a fresh causal analysis. Its reports are retained as a
-`counterfactual-reports` workflow artifact. Pages restores the most recent
-successful artifact when building the Balance Lab; it does not recompute the
-analysis on an ordinary UI/rulebook/code commit.
+Expensive analysis is opt-in:
+
+- **Counterfactual Analysis** is manual. Its broad paired heuristic sweep runs
+  by default. Targeted online-MCCFR validation is a separate checkbox and is
+  off by default.
+- **MCCFR Validation** is manual-only. It contains the formal Kuhn benchmark,
+  offline training/matchups, and online-MCCFR matchup.
+
+Use those workflows when a solver change, a stable suspicious card interaction,
+or a release-quality balance check actually justifies the compute. Pages
+restores the most recent successful analysis artifacts when available rather
+than recomputing them on ordinary rulebook, UI, or card iterations.
 
 Routine Actions derive a fresh base seed from the GitHub run ID, then use
-documented offsets for individual simulations/training jobs. Thus scheduled and
-CI runs explore new samples instead of repeating the same deal forever, while
-the actual seed is written into simulation/policy artifacts so any run can be
-replayed exactly. Local CLI defaults remain deterministic for convenient
-debugging.
+documented offsets for individual simulations. Scheduled and CI runs therefore
+explore new samples instead of repeating the same deal forever, while the
+actual seed is written into simulation artifacts so a run can be replayed
+exactly. Local CLI defaults remain deterministic for debugging.
 
 ## Counterfactual card value
 
@@ -256,8 +264,9 @@ equilibrium value.
 ## Targeted online-MCCFR validation
 
 The broad heuristic counterfactual sweep is intentionally cheap enough to test
-all cards, all 153 pairs, and all 120 Subject–Link–Name triples. It now feeds a
-second, selective stage.
+all cards, all 153 pairs, and all 120 Subject–Link–Name triples. Online MCCFR
+is not run automatically afterward; enable the targeted stage only after the
+heuristic sweep has identified candidates that merit stronger validation.
 
 Targets are nominated when their paired heuristic effect is large, receives a
 yellow/orange/red causal level, or its paired interval excludes zero. Only the
@@ -320,21 +329,23 @@ Card grades are diagnostic rather than prescriptive: **dark green** requires bot
 
 ## Balance pipeline
 
-The automated stack is now:
+The routine automated stack is:
 
 1. static Subject–Link–Name combinatorial analysis;
 2. deterministic full-match engine;
 3. heuristic self-play;
 4. extended telemetry;
 5. confidence-aware health analysis and five-level per-card grading;
-6. **depth-limited external-sampling MCCFR**;
-7. exact-reference MCCFR verification on Kuhn poker using the shared solver core;
-8. MCCFR-policy evaluation against the heuristic baseline;
-9. online MCCFR re-solving with observation-history-aware hidden-state beliefs;
-10. deck-uncertainty priors with weighted hypothesis conditioning;
-11. paired counterfactual card replacement and factorial interaction analysis;
-12. targeted online-MCCFR validation of suspicious causal effects;
-13. full Balance Lab aggregation and Pages publication.
+6. heuristic/random baseline comparison;
+7. full Balance Lab aggregation and Pages publication.
+
+Optional analysis layers are run only when needed:
+
+8. paired heuristic counterfactual card replacement and factorial interaction analysis;
+9. targeted online-MCCFR counterfactual validation;
+10. depth-limited external-sampling MCCFR training;
+11. exact-reference MCCFR verification on Kuhn poker;
+12. MCCFR-policy and online-MCCFR matchup evaluation.
 
 Planned next layers:
 

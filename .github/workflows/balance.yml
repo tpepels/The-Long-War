@@ -29,50 +29,13 @@ jobs:
       - name: Heuristic self-play
         run: >
           python tools/simulate.py
-          --games 500
+          --games 750
           --seed $((RUN_SEED + 101))
           --agent-a heuristic
           --agent-b heuristic
           --output artifacts/heuristic-selfplay.json
       - name: Build balance health report
         run: python tools/analyze_telemetry.py --simulation artifacts/heuristic-selfplay.json
-      - name: Formal MCCFR verification
-        run: python tools/verify_mccfr.py --iterations 50000
-      - name: Train MCCFR policy
-        run: >
-          python tools/train_mccfr.py
-          --iterations 50
-          --depth 3
-          --seed $((RUN_SEED + 201))
-          --output artifacts/mccfr-policy.json
-      - name: MCCFR vs heuristic
-        run: >
-          python tools/simulate.py
-          --games 100
-          --seed $((RUN_SEED + 301))
-          --agent-a mccfr
-          --policy-a artifacts/mccfr-policy.json
-          --agent-b heuristic
-          --output artifacts/mccfr-vs-heuristic.json
-      - name: Heuristic vs MCCFR
-        run: >
-          python tools/simulate.py
-          --games 100
-          --seed $((RUN_SEED + 401))
-          --agent-a heuristic
-          --agent-b mccfr
-          --policy-b artifacts/mccfr-policy.json
-          --output artifacts/heuristic-vs-mccfr.json
-      - name: Online MCCFR vs heuristic
-        run: >
-          python tools/simulate.py
-          --games 20
-          --seed $((RUN_SEED + 501))
-          --agent-a online_mccfr
-          --agent-b heuristic
-          --online-iterations 8
-          --online-depth 2
-          --output artifacts/online-mccfr-vs-heuristic.json
       - name: Heuristic vs random
         run: >
           python tools/simulate.py

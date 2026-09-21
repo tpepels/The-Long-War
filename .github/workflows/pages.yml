@@ -12,7 +12,7 @@ on:
       - ".github/workflows/pages.yml"
   workflow_dispatch:
   workflow_run:
-    workflows: ["Counterfactual Analysis"]
+    workflows: ["Counterfactual Analysis", "MCCFR Validation"]
     types: [completed]
 
 permissions:
@@ -53,43 +53,6 @@ jobs:
           --output artifacts/heuristic-selfplay.json
       - name: Health analysis
         run: python tools/analyze_telemetry.py --simulation artifacts/heuristic-selfplay.json
-      - name: Formal MCCFR verification
-        run: python tools/verify_mccfr.py --iterations 30000
-      - name: Train MCCFR policy
-        run: >
-          python tools/train_mccfr.py
-          --iterations 50
-          --depth 3
-          --seed $((RUN_SEED + 201))
-          --output artifacts/mccfr-policy.json
-      - name: MCCFR vs heuristic
-        run: >
-          python tools/simulate.py
-          --games 60
-          --seed $((RUN_SEED + 301))
-          --agent-a mccfr
-          --policy-a artifacts/mccfr-policy.json
-          --agent-b heuristic
-          --output artifacts/mccfr-vs-heuristic.json
-      - name: Heuristic vs MCCFR
-        run: >
-          python tools/simulate.py
-          --games 60
-          --seed $((RUN_SEED + 401))
-          --agent-a heuristic
-          --agent-b mccfr
-          --policy-b artifacts/mccfr-policy.json
-          --output artifacts/heuristic-vs-mccfr.json
-      - name: Online MCCFR vs heuristic
-        run: >
-          python tools/simulate.py
-          --games 6
-          --seed $((RUN_SEED + 501))
-          --agent-a online_mccfr
-          --agent-b heuristic
-          --online-iterations 4
-          --online-depth 2
-          --output artifacts/online-mccfr-vs-heuristic.json
       - name: Heuristic vs random
         run: >
           python tools/simulate.py
@@ -113,9 +76,18 @@ jobs:
           RUN_ID="$(gh run list --workflow counterfactual.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
           if [ -n "$RUN_ID" ]; then
             echo "Restoring counterfactual reports from run $RUN_ID"
-            gh run download "$RUN_ID" --name counterfactual-reports --dir artifacts
+            gh run download "$RUN_ID" --name counterfactual-reports --dir artifacts || true
+          fi
+      - name: Restore latest MCCFR reports
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID="$(gh run list --workflow mccfr.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          if [ -n "$RUN_ID" ]; then
+            echo "Restoring MCCFR reports from run $RUN_ID"
+            gh run download "$RUN_ID" --name mccfr-reports --dir artifacts || true
           else
-            echo "No successful counterfactual analysis exists yet; continuing without it."
+            echo "No successful MCCFR validation exists yet; continuing without it."
           fi
       - name: Aggregate Balance Lab
         run: python tools/build_lab_report.py

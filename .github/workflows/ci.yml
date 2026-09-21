@@ -46,10 +46,8 @@ jobs:
           node --check web/balance.js
       - name: Fast unit tests
         run: make test-fast
-      - name: Algorithm learning tests
+      - name: Cheap algorithm tests
         run: make test-algorithm
-      - name: Formal MCCFR verification
-        run: python tools/verify_mccfr.py --iterations 30000
       - name: Integration tests
         run: make test-integration
       - name: Static balance report
@@ -63,32 +61,6 @@ jobs:
           --agent-b heuristic
       - name: Analyze telemetry
         run: python tools/analyze_telemetry.py --simulation artifacts/simulation-report.json
-      - name: MCCFR smoke training
-        run: >
-          python tools/train_mccfr.py
-          --iterations 5
-          --depth 2
-          --seed $((RUN_SEED + 201))
-          --output artifacts/mccfr-smoke.json
-      - name: MCCFR smoke match
-        run: >
-          python tools/simulate.py
-          --games 5
-          --seed $((RUN_SEED + 202))
-          --agent-a mccfr
-          --policy-a artifacts/mccfr-smoke.json
-          --agent-b heuristic
-          --output artifacts/mccfr-smoke-match.json
-      - name: Online MCCFR smoke match
-        run: >
-          python tools/simulate.py
-          --games 2
-          --seed $((RUN_SEED + 301))
-          --agent-a online_mccfr
-          --agent-b heuristic
-          --online-iterations 2
-          --online-depth 1
-          --output artifacts/online-mccfr-smoke.json
       - name: Build lab aggregate
         run: python tools/build_lab_report.py
       - name: Build Pages

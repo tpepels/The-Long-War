@@ -392,31 +392,32 @@ class GameEngine:
     ) -> Iterable[Action]:
         effect = card.get("rules", {}).get("effect")
 
-        if effect == "discard_link":
-            for target_player in range(2):
-                for position in all_positions():
-                    if state.slot(target_player, position).link is not None:
-                        yield PlayPlot(
-                            card["id"],
-                            (BoardTarget(target_player, position),),
-                        )
+        if effect == "discredit_subject":
+            target_player = 1 - player
+            for position in all_positions():
+                slot = state.slot(target_player, position)
+                if slot.subject is None:
+                    continue
+                if self._subject_protected_from_opponent_plot(slot):
+                    continue
+                yield PlayPlot(
+                    card["id"],
+                    (BoardTarget(target_player, position),),
+                )
             return
 
-        if effect == "return_outer_card":
-            for target_player in range(2):
-                for position in all_positions():
-                    slot = state.slot(target_player, position)
-                    if slot.subject is None:
-                        continue
-                    if (
-                        target_player != player
-                        and self._subject_protected_from_opponent_plot(slot)
-                    ):
-                        continue
-                    yield PlayPlot(
-                        card["id"],
-                        (BoardTarget(target_player, position),),
-                    )
+        if effect == "return_outer_attachment":
+            target_player = 1 - player
+            for position in all_positions():
+                slot = state.slot(target_player, position)
+                if slot.subject is None or slot.link is None:
+                    continue
+                if self._subject_protected_from_opponent_plot(slot):
+                    continue
+                yield PlayPlot(
+                    card["id"],
+                    (BoardTarget(target_player, position),),
+                )
             return
 
         if effect == "move_subject":
@@ -466,12 +467,16 @@ class GameEngine:
     ) -> None:
         effect = self.cards[action.card_id].get("rules", {}).get("effect")
 
-        if effect == "discard_link":
+        if effect == "discredit_subject":
             target = action.targets[0]
-            self._remove_link(state, target.player, target.position)
+            slot = state.slot(target.player, target.position)
+            if slot.link is not None:
+                self._remove_link(state, target.player, target.position)
+            elif slot.subject is not None:
+                slot.temporary_strength -= 2
             return
 
-        if effect == "return_outer_card":
+        if effect == "return_outer_attachment":
             target = action.targets[0]
             slot = state.slot(target.player, target.position)
             if slot.name is not None:
@@ -483,12 +488,6 @@ class GameEngine:
                 )
             elif slot.link is not None:
                 self._return_link_to_hand(
-                    state,
-                    target.player,
-                    target.position,
-                )
-            else:
-                self._return_subject_to_hand(
                     state,
                     target.player,
                     target.position,
@@ -736,27 +735,6 @@ class GameEngine:
 
         self._copy_slot(source_slot, destination_slot)
         self._clear_slot(source_slot)
-
-    def _return_subject_to_hand(
-        self,
-        state: GameState,
-        player: int,
-        position: Position,
-    ) -> None:
-        slot = state.slot(player, position)
-        subject_id = slot.subject
-        if subject_id is None:
-            raise IllegalAction("Position has no Subject")
-        if slot.link is not None or slot.name is not None:
-            raise IllegalAction("Cannot return a Subject while attachments remain")
-
-        self._clear_slot(slot)
-        self._return_public_card_to_hand(
-            state,
-            player,
-            subject_id,
-            reason="subject_returned",
-        )
 
     def _return_link_to_hand(
         self,

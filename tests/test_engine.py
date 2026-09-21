@@ -103,6 +103,25 @@ def test_story_is_false_breaks_link_and_returns_name() -> None:
     assert "followed" in state.players[0].discard
 
 
+def test_story_is_false_weakens_bare_subject() -> None:
+    engine, state = fresh_state(first_player=1)
+    slot = state.slot(0, CENTER_FRONT)
+    slot.subject = "the-fifty-men"
+    state.players[1].hand = ["the-story-is-false"]
+
+    engine.apply(
+        state,
+        PlayPlot(
+            "the-story-is-false",
+            (BoardTarget(0, CENTER_FRONT),),
+        ),
+    )
+
+    assert slot.subject == "the-fifty-men"
+    assert slot.link is None
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 2
+
+
 def test_story_is_false_does_not_trigger_old_swore_to_penalty() -> None:
     engine, state = fresh_state(first_player=1)
     slot = state.slot(0, CENTER_FRONT)
@@ -168,22 +187,18 @@ def test_he_never_came_returns_open_link_when_no_name_is_attached() -> None:
     assert "followed" in state.players[0].hand
 
 
-def test_he_never_came_returns_bare_subject_when_no_attachments_exist() -> None:
+def test_he_never_came_requires_a_link() -> None:
     engine, state = fresh_state(first_player=1)
     slot = state.slot(0, CENTER_FRONT)
     slot.subject = "the-fifty-men"
     state.players[1].hand = ["he-never-came"]
 
-    engine.apply(
-        state,
-        PlayPlot(
-            "he-never-came",
-            (BoardTarget(0, CENTER_FRONT),),
-        ),
+    actions = engine.legal_actions(state)
+    assert not any(
+        isinstance(action, PlayPlot)
+        and action.card_id == "he-never-came"
+        for action in actions
     )
-
-    assert not slot.occupied
-    assert "the-fifty-men" in state.players[0].hand
 
 
 def test_carried_protects_its_subject_from_opponent_plot() -> None:
