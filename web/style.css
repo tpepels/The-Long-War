@@ -1617,3 +1617,10 @@ button, .button {
 .card-hero .strength {
   color: #7d5a1e;
 }
+
+
+.card-stratagem .card-art {
+  background:
+    repeating-linear-gradient(45deg, transparent 0 5mm, rgba(0,0,0,.045) 5mm 5.5mm),
+    linear-gradient(180deg, rgba(120,92,45,.08), transparent 60%);
+}
