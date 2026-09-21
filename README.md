@@ -43,15 +43,16 @@ python tools/train_mccfr.py --iterations 50 --depth 3
 python tools/build_pages.py
 ```
 
-## v0.1 playtest build
+## v0.3 playtest build
 
 The repository now publishes a playable first human-test build:
 
 - **Browser play:** `play.html` runs the canonical Python `GameEngine` in the browser through Pyodide. Modes are hot-seat Human vs Human, Human vs heuristic, and Human vs online MCCFR.
 - **Hot-seat privacy:** hands stay hidden between turns until the next player explicitly reveals their hand.
 - **Printable kit:** `playtest-kit.html` prints two complete 30-card reference decks.
-- **Battlefield/reference:** `playmat.html` is an A4-landscape battlefield with the six Subject positions, Veiled Story spaces, Line Defense/role reference, scoring summary, and Victory boxes.
-- **Four initial Veiled Storys:** The Lamps Went Dark, The Road Was Cut, The Hidden Oars, and The Witness Lied.
+- **Battlefield/reference:** `playmat.html` is an A4-landscape battlefield with the six Subject positions, Veiled Story spaces, Battle-wide Stratagem spaces, Line Defense/role reference, scoring summary, and Victory boxes.
+- **Four initial Veiled Stories:** The Lamps Went Dark, The Road Was Cut, The Hidden Oars, and The Witness Lied.
+- **Six initial Stratagems:** The Storm Broke, The Tide Rose, The Ground Gave Way, The Bronze Teeth, The False Muster, and The Wooden Gift.
 
 The browser UI does not duplicate game rules in JavaScript. Pages publishes the tested Python package as a source bundle and Pyodide imports that package directly, so `GameEngine.legal_actions()`, `GameEngine.apply()`, scoring, Veiled Story triggers, formation rules, and AI play are shared with CI and simulation.
 
@@ -107,7 +108,7 @@ For every sampled root deal:
 5. sampled-path opponent strategies are accumulated into the exported average policy;
 6. at the configured depth frontier, the public-information heuristic state evaluator supplies a bounded continuation value.
 
-The information set contains public battlefield/discard information, the acting player's own hand and remaining-deck multiset, public hand/deck counts, and only information the player is allowed to know about Veiled Storys. It never contains opponent hand identities or deck order.
+The information set contains public battlefield/discard information, the acting player's own hand and remaining-deck multiset, public hand/deck counts, and only information the player is allowed to know about Veiled Stories and Stratagems. It never contains opponent hand identities or deck order.
 
 ### Explicit approximations
 
@@ -137,7 +138,7 @@ hand. Before every non-forced decision it:
    later returned to a hidden hand;
 3. conditions a deck prior on public cards plus guaranteed hidden-card facts;
 4. samples a legal opponent deck composition, then a compatible hidden
-   hand/deck/Veiled-Story partition;
+   hand/deck/Veiled-Story/Stratagem partition;
 5. reshuffles the acting player's unknown future deck order;
 6. repeats external-sampling MCCFR over those determinizations while merging
    them at the same root information set;
@@ -229,7 +230,8 @@ Experimental baselines are never added to the printable card set:
 - Subject: vanilla 4 Strength;
 - Bond: +1 Strength immediately and +2 more while it has a Name;
 - Name: vanilla 2 Strength;
-- Story: universally playable no-op Story.
+- Story: universally playable no-op Story;
+- Stratagem: face-down inert Stratagem with no trigger or effect.
 
 For card `c`, the reported causal effect is:
 
