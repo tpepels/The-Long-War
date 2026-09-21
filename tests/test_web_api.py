@@ -156,3 +156,24 @@ def test_stratagem_action_is_free_and_hidden_from_opponent() -> None:
         "card_id": None,
         "revealed": False,
     }
+
+
+def test_setting_stratagem_keeps_hotseat_turn_private_to_same_player() -> None:
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    finish_hotseat_mulligan(session)
+    active = session.state.active_player
+    session.state.players[active].hand = ["the-storm-broke", "the-fifty-men"]
+
+    result = session.act("stratagem:the-storm-broke", active)
+
+    assert result["viewer"] == active
+    assert result["active_player"] == active
+    assert result["needs_reveal"] is False
+    assert result["stratagems"][active]["card_id"] == "the-storm-broke"
+    assert result["stratagems"][active]["revealed"] is False
+    assert any(action["kind"] == "PlaySubject" for action in result["legal_actions"])
+
+    opponent = session.snapshot(1 - active)
+    assert opponent["stratagems"][active]["hidden"] is True
+    assert opponent["stratagems"][active]["card_id"] is None
