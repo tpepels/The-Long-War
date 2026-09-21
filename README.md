@@ -41,6 +41,37 @@ python tools/train_mccfr.py --iterations 50 --depth 3
 python tools/build_pages.py
 ```
 
+## Testing
+
+Install the development dependencies once:
+
+```bash
+make install
+```
+
+Then use the test tiers independently:
+
+```bash
+make test-fast         # deterministic unit/rules tests
+make test-algorithm    # MCCFR learning/correctness tests
+make test-integration  # multi-game simulation and telemetry tests
+make test              # everything
+make check             # everything plus reports and Pages build
+```
+
+The MCCFR algorithm suite contains a controlled final-Battle state in which **Pass** is provably the winning action while several alternative plays remain legal. Training from that fixed state must drive regret matching above 90% probability for Pass. A second test verifies deterministic reproducibility from the same seed.
+
+For an executable MCCFR end-to-end smoke test:
+
+```bash
+make mccfr-smoke
+```
+
+This trains a small policy artifact and immediately uses it in complete matches against the heuristic agent.
+
+GitHub CI runs the fast, algorithm, and integration suites as separate named steps on every push and pull request.
+
+
 ## MCCFR
 
 The repository implements **depth-limited external-sampling Monte Carlo Counterfactual Regret Minimization**.
