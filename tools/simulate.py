@@ -125,12 +125,15 @@ def main() -> None:
         report.telemetry["cards"].items(),
         key=lambda item: item[1]["plays"],
         reverse=True,
-    )[:5]
-    print("Most played cards:")
+    )
+    print("Card play diagnostics:")
     for card_id, stats in most_played:
         print(
-            f"  {card_id}: plays={stats['plays']} "
+            f"  {card_id}: draws={stats['draws']} plays={stats['plays']} "
+            f"play/draw={stats['plays_per_draw']} "
+            f"unplayable={stats['unplayable_turn_rate']} "
             f"dead-pass={stats['dead_on_pass_rate']} "
+            f"win-played={stats['win_rate_when_played']} "
             f"swing={stats['mean_immediate_front_swing']}"
         )
 

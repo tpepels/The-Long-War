@@ -44,6 +44,11 @@ class PlayScheme:
 
 
 @dataclass(frozen=True)
+class SetStratagem:
+    card_id: str
+
+
+@dataclass(frozen=True)
 class Pass:
     pass
 
@@ -53,4 +58,4 @@ class ChooseFirst:
     player: int
 
 
-Action: TypeAlias = PlaySubject | PlayLink | PlayName | PlayPlot | PlayScheme | Pass | ChooseFirst
+Action: TypeAlias = PlaySubject | PlayLink | PlayName | PlayPlot | PlayScheme | SetStratagem | Pass | ChooseFirst

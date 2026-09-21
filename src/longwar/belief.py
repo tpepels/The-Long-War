@@ -203,6 +203,7 @@ class BeliefDiagnostics:
     hidden_hand_cards: int
     hidden_deck_cards: int
     hidden_schemes: int
+    hidden_stratagems: int
     prior_type: str
 
 
@@ -229,6 +230,10 @@ class BeliefSampler:
                 and not state.scheme(opponent, front).revealed
             )
         )
+        hidden_stratagems = int(
+            state.stratagem(opponent) is not None
+            and not state.stratagem(opponent).revealed
+        )
         public = self._public_opponent_cards(state, opponent)
         known = state.known_hidden_cards(viewer, opponent, "hand")
         return BeliefDiagnostics(
@@ -239,6 +244,7 @@ class BeliefSampler:
             hidden_hand_cards=len(state.players[opponent].hand),
             hidden_deck_cards=len(state.players[opponent].deck),
             hidden_schemes=hidden_schemes,
+            hidden_stratagems=hidden_stratagems,
             prior_type=type(self.priors[opponent]).__name__,
         )
 
@@ -304,11 +310,29 @@ class BeliefSampler:
             ]
             if not eligible:
                 raise BeliefStateError(
-                    "Hidden Scheme exists but no Scheme-capable card remains "
+                    "Hidden Veiled Story exists but no Veiled-Story card remains "
                     "under the sampled deck hypothesis"
                 )
             index = rng.choice(eligible)
             sampled.schemes[opponent][int(front)].card_id = unknown_pool.pop(index)
+
+        hidden_stratagem = (
+            state.stratagem(opponent) is not None
+            and not state.stratagem(opponent).revealed
+        )
+        if hidden_stratagem:
+            eligible = [
+                index
+                for index, card_id in enumerate(unknown_pool)
+                if self._is_stratagem_card(card_id)
+            ]
+            if not eligible:
+                raise BeliefStateError(
+                    "Hidden Stratagem exists but no Stratagem card remains "
+                    "under the sampled deck hypothesis"
+                )
+            index = rng.choice(eligible)
+            sampled.stratagems[opponent].card_id = unknown_pool.pop(index)
 
         unknown_hand_slots = hand_count - len(known_hand)
         expected = unknown_hand_slots + deck_count
@@ -346,11 +370,18 @@ class BeliefSampler:
             if scheme is not None and scheme.revealed:
                 cards.append(scheme.card_id)
 
+        stratagem = state.stratagem(opponent)
+        if stratagem is not None and stratagem.revealed:
+            cards.append(stratagem.card_id)
+
         return cards
 
     def _is_scheme_card(self, card_id: str) -> bool:
         card = self.engine.cards[card_id]
         return card["type"] == "plot" and card.get("veiled", False)
+
+    def _is_stratagem_card(self, card_id: str) -> bool:
+        return self.engine.cards[card_id]["type"] == "stratagem"
 
     @staticmethod
     def _validate_viewer(viewer: int) -> None:

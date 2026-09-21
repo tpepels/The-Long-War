@@ -43,6 +43,11 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
     }
     assert baseline_card(index["namar"])["strength"] == 2
     assert baseline_card(index["he-never-came"])["rules"] == {}
+    assert baseline_card(index["the-storm-broke"])["rules"] == {
+        "stratagem": {
+            "trigger": {"event": "never", "actor": "either"},
+        }
+    }
 
 
 def test_replacement_changes_exactly_one_matching_slot_and_remains_legal() -> None:
@@ -68,10 +73,10 @@ def test_contexts_are_legal_and_contain_every_canonical_card() -> None:
     ids = {card["id"] for card in card_data["cards"]}
     contexts = generate_context_decks(card_data, count=8, seed=17)
 
-    assert len({tuple(sorted(deck)) for deck in contexts}) == 8
+    assert len(contexts) == 8
     for deck in contexts:
         engine.validate_deck(deck)
-        assert ids <= set(deck)
+        assert ids == set(deck)
 
 
 def test_samples_are_reproducible_and_balance_focal_seat() -> None:
@@ -117,6 +122,15 @@ def test_scheme_baseline_preserves_scheme_commitment() -> None:
     assert baseline["rules"]["scheme"]["trigger"] == "never"
     assert baseline["rules"]["scheme"]["face_down_front_bonus"] == 1
 
+
+
+def test_stratagem_baseline_preserves_hidden_free_commitment() -> None:
+    card_data = data()
+    index = {card["id"]: card for card in card_data["cards"]}
+    baseline = baseline_card(index["the-storm-broke"])
+
+    assert baseline["type"] == "stratagem"
+    assert baseline["rules"]["stratagem"]["trigger"]["event"] == "never"
 
 
 def test_hero_baseline_preserves_hero_deck_constraint() -> None:

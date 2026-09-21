@@ -15,6 +15,7 @@ from .game.actions import (
     PlayPlot,
     PlayScheme,
     PlaySubject,
+    SetStratagem,
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, Phase, Position, Rank
@@ -146,7 +147,13 @@ class PlaySession:
 
         self._apply_with_log(action)
         self._run_ai_until_human()
-        return self.snapshot(None if self.mode == "hotseat" else 0)
+        if self.mode == "hotseat":
+            # A Stratagem is a free pre-action deployment. Keep the same
+            # player's hand visible so they can still take their normal action.
+            return self.snapshot(
+                viewer if isinstance(action, SetStratagem) else None
+            )
+        return self.snapshot(0)
 
     def snapshot(self, viewer: int | None = None) -> dict[str, Any]:
         state = self.state
@@ -201,6 +208,24 @@ class PlaySession:
                         "revealed": False,
                     })
 
+        stratagems: list[dict[str, Any] | None] = []
+        for owner in range(2):
+            stratagem = state.stratagem(owner)
+            if stratagem is None:
+                stratagems.append(None)
+            elif viewer == owner or stratagem.revealed:
+                stratagems.append({
+                    "hidden": False,
+                    "card_id": stratagem.card_id,
+                    "revealed": stratagem.revealed,
+                })
+            else:
+                stratagems.append({
+                    "hidden": True,
+                    "card_id": None,
+                    "revealed": False,
+                })
+
         front_strengths = [
             [self.engine.front_strength(state, player, front) for front in Front]
             for player in range(2)
@@ -252,6 +277,8 @@ class PlaySession:
             "players": players,
             "board": board,
             "schemes": schemes,
+            "stratagems": stratagems,
+            "stratagem_used": list(state.stratagem_used),
             "front_strengths": front_strengths,
             "front_control": front_control,
             "hand": hand,
@@ -285,8 +312,16 @@ class PlaySession:
         self.log.append(label)
 
         for event in self.state.observations[observations_before:]:
-            if event.kind == "reveal":
-                self.log.append(f"Veiled Story revealed: {self.cards[event.card_id]['title']}.")
+            if event.kind != "reveal":
+                continue
+            if event.zone == "stratagem":
+                self.log.append(
+                    f"Stratagem revealed: {self.cards[event.card_id]['title']}."
+                )
+            else:
+                self.log.append(
+                    f"Veiled Story revealed: {self.cards[event.card_id]['title']}."
+                )
 
         battle_winner = next(
             (
@@ -388,6 +423,13 @@ class PlaySession:
                     f"in {FRONT_NAMES[action.front]}."
                 )
             return f"{prefix} sets a face-down Story in {FRONT_NAMES[action.front]}."
+        if isinstance(action, SetStratagem):
+            if private:
+                return (
+                    f"Set {self.cards[action.card_id]['title']} face-down "
+                    "as your Stratagem."
+                )
+            return f"{prefix} sets a face-down Stratagem."
         if isinstance(action, PlayPlot):
             title = self.cards[action.card_id]["title"]
             if not action.targets:
@@ -409,6 +451,11 @@ class PlaySession:
             return "This Subject has a Bond and no Name attached yet."
         if isinstance(action, PlayScheme):
             return "You have no Veiled Story in this Front."
+        if isinstance(action, SetStratagem):
+            return (
+                "You have not set a Stratagem this Battle. Setting it is free "
+                "and you still take your normal action."
+            )
         if isinstance(action, PlayPlot):
             return "The Story has all targets required by its rules text."
         return "Legal according to the canonical game engine."

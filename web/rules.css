@@ -978,3 +978,28 @@
     break-inside: avoid;
   }
 }
+
+
+.ov-stratagem {
+  min-height: 9mm;
+  padding: 2mm 3mm;
+  border: .35mm solid #181714;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 3mm;
+  background: rgba(248,243,233,.72);
+}
+.ov-stratagem b {
+  font: 800 2mm/1 system-ui,sans-serif;
+  letter-spacing: .1em;
+}
+.ov-stratagem span {
+  font: 2mm/1.15 Georgia,serif;
+  text-align: right;
+}
+.ov-stratagem.hidden {
+  background:
+    repeating-linear-gradient(135deg, #181714 0 4mm, #2a241b 4mm 8mm);
+  color: #f7f2e8;
+}

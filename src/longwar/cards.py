@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-CARD_TYPES = {"subject", "link", "name", "plot"}
+CARD_TYPES = {"subject", "link", "name", "plot", "stratagem"}
 
 SUBJECT_ROLES = {
     "swordsman",
@@ -93,6 +93,14 @@ def validate_card_data(data: dict[str, Any]) -> None:
                 raise ValueError(f"{card_id}: invalid Story form {form!r}")
             if not isinstance(card.get("veiled"), bool):
                 raise ValueError(f"{card_id}: Story veiled must be boolean")
+
+        if card_type == "stratagem":
+            stratagem = card.get("rules", {}).get("stratagem")
+            if not isinstance(stratagem, dict):
+                raise ValueError(f"{card_id}: Stratagem rules are required")
+            trigger = stratagem.get("trigger")
+            if not isinstance(trigger, dict) or not isinstance(trigger.get("event"), str):
+                raise ValueError(f"{card_id}: Stratagem requires a trigger event")
 
         if card_type in {"subject", "name"}:
             strength = card.get("strength")

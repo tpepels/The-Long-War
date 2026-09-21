@@ -5,7 +5,7 @@ from pathlib import Path
 
 from longwar.agents import HeuristicAgent
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine, Pass, Position, Rank
+from longwar.game import Front, GameEngine, Pass, Position, Rank, SetStratagem
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -68,3 +68,27 @@ def test_heuristic_prefers_to_pass_when_opponent_has_passed_and_battle_is_won() 
 
     action = HeuristicAgent(seed=1, exploration=0.0).choose(engine, state)
     assert isinstance(action, Pass)
+
+
+def test_equal_stratagem_scores_do_not_fall_back_to_card_id_order() -> None:
+    engine, state = engine_and_state()
+    state.players[0].hand = [
+        "the-storm-broke",
+        "the-tide-rose",
+        "the-ground-gave-way",
+        "the-bronze-teeth",
+        "the-false-muster",
+        "the-wooden-gift",
+    ]
+    state.players[1].hand = []
+    state.slot(1, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
+    state.slot(1, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
+
+    selected = {
+        action.card_id
+        for seed in range(12)
+        for action in [HeuristicAgent(seed=seed, exploration=0.0).choose(engine, state)]
+        if isinstance(action, SetStratagem)
+    }
+
+    assert len(selected) > 1

@@ -14,6 +14,7 @@ from .game.actions import (
     PlayPlot,
     PlayScheme,
     PlaySubject,
+    SetStratagem,
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase
@@ -485,7 +486,7 @@ class Telemetry:
     def _action_card_id(action: Action) -> str | None:
         if isinstance(
             action,
-            (PlaySubject, PlayLink, PlayName, PlayPlot, PlayScheme),
+            (PlaySubject, PlayLink, PlayName, PlayPlot, PlayScheme, SetStratagem),
         ):
             return action.card_id
         return None

@@ -16,6 +16,7 @@ const TYPE_LABELS = {
   subject: "Subject",
   link: "Bond",
   name: "Name",
+  stratagem: "Stratagem",
 };
 
 const titleCase = (value) =>

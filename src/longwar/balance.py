@@ -103,7 +103,7 @@ def build_report(data: dict[str, Any]) -> dict[str, Any]:
         "card_static_marginals": marginal,
         "limitations": [
             "This report scores only explicit static Strength.",
-            "Position, timing, hand economy, disruption, passing, Schemes, and dynamic effects require game simulation.",
+            "Position, timing, hand economy, disruption, passing, Veiled Stories, Stratagems, and dynamic effects require game simulation.",
             "Static outliers are diagnostics, not automatic balance failures.",
         ],
     }

@@ -12,8 +12,8 @@ from longwar.belief import (
     HypothesisDeckPrior,
 )
 from longwar.cards import load_card_file
-from longwar.game import BoardTarget, Front, GameEngine, PlayPlot, Position, Rank
-from longwar.game.model import GameState, PlayerState
+from longwar.game import BoardTarget, Front, GameEngine, PlayPlot, Position, Rank, SetStratagem
+from longwar.game.model import GameState, PlayerState, StratagemState
 from longwar.mccfr import information_set_id
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -169,3 +169,58 @@ def test_card_pool_prior_always_samples_exactly_one_hero() -> None:
             if engine.cards[card_id].get("hero", False)
         ]
         assert heroes == ["avaros-the-bronze-king"]
+
+
+def test_belief_sampler_resamples_hidden_stratagem_identity() -> None:
+    engine, _, state = setup()
+    opponent = 1
+
+    hidden_card = None
+    for zone_name in ("hand", "deck"):
+        zone = getattr(state.players[opponent], zone_name)
+        for index, card_id in enumerate(zone):
+            if engine.cards[card_id]["type"] == "stratagem":
+                hidden_card = zone.pop(index)
+                break
+        if hidden_card is not None:
+            break
+
+    if hidden_card is None:
+        hidden_card = "the-storm-broke"
+        state.players[opponent].deck.remove(hidden_card)
+
+    state.stratagems[opponent] = StratagemState(hidden_card)
+    state.stratagem_used[opponent] = True
+
+    sampler = BeliefSampler(engine)
+    diagnostics = sampler.diagnostics(state, 0)
+    assert diagnostics.hidden_stratagems == 1
+
+    sampled = sampler.sample(state, 0, random.Random(991))
+    assert information_set_id(sampled, 0) == information_set_id(state, 0)
+    assert sampled.stratagem(opponent) is not None
+    assert engine.cards[sampled.stratagem(opponent).card_id]["type"] == "stratagem"
+
+
+def test_belief_sampler_resamples_hidden_stratagem_identity() -> None:
+    engine, _, state = setup()
+    player = state.players[1]
+    card_id = "the-storm-broke"
+
+    if card_id in player.deck:
+        player.deck.remove(card_id)
+        player.hand.append(card_id)
+    elif card_id not in player.hand:
+        raise AssertionError("Expected Stratagem in opponent private zones")
+
+    state.active_player = 1
+    engine.apply(state, SetStratagem(card_id))
+    sampler = BeliefSampler(engine)
+    visible_id = information_set_id(state, 0)
+
+    sampled = sampler.sample(state, 0, random.Random(313))
+
+    assert information_set_id(sampled, 0) == visible_id
+    assert sampled.stratagem(1) is not None
+    assert engine.cards[sampled.stratagem(1).card_id]["type"] == "stratagem"
+    assert sampler.diagnostics(state, 0).hidden_stratagems == 1

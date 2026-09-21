@@ -11,6 +11,7 @@ from ..game.actions import (
     PlayLink,
     PlayName,
     PlayScheme,
+    SetStratagem,
 )
 from ..game.engine import GameEngine, all_positions
 from ..game.model import Front, GameState, Phase
@@ -57,10 +58,12 @@ class HeuristicAgent:
             ScoredAction(action, self._score_action(engine, state, player, action))
             for action in actions
         ]
-        scored.sort(
-            key=lambda item: (item.score, repr(item.action)),
-            reverse=True,
-        )
+        # Randomize exact score ties with the agent's seeded RNG before
+        # sorting. Otherwise semantically identical choices (notably hidden
+        # Stratagem sets) are selected by card-id/repr ordering, which creates
+        # fake play-rate differences in simulation telemetry.
+        self.rng.shuffle(scored)
+        scored.sort(key=lambda item: item.score, reverse=True)
 
         if self.exploration > 0 and self.rng.random() < self.exploration:
             # Explore among the best quarter rather than selecting nonsense.
@@ -118,6 +121,11 @@ class HeuristicAgent:
 
         if isinstance(action, PlayScheme):
             score += 0.20
+
+        if isinstance(action, SetStratagem):
+            # Setting a Stratagem is a free pre-action deployment, so a
+            # one-ply evaluator must credit the preserved normal action.
+            score += 1.35
 
         return score
 
@@ -214,6 +222,11 @@ class HeuristicAgent:
             state.scheme(opponent, front) is not None for front in Front
         )
         score += 0.75 * scheme_delta
+
+        stratagem_delta = int(state.stratagem(player) is not None) - int(
+            state.stratagem(opponent) is not None
+        )
+        score += 0.45 * stratagem_delta
 
         # Open Links are valued using only the acting player's own hand. The
         # value is derived from the engine's real Strength calculation rather
