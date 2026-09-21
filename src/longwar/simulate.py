@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .agents import HeuristicAgent, RandomAgent
+from .agents import HeuristicAgent, OnlineMCCFRAgent, RandomAgent
 from .agents.mccfr_agent import MCCFRAgent
 from .game.engine import GameEngine
 from .game.model import Phase
@@ -31,9 +31,13 @@ class SimulationReport:
 
 def make_agent(
     name: str,
+    engine: GameEngine,
+    decklists: tuple[list[str], list[str]],
     seed: int,
     *,
     policy: dict[str, Any] | None = None,
+    online_iterations: int = 8,
+    online_depth: int = 2,
 ):
     if name == "random":
         return RandomAgent(seed)
@@ -43,6 +47,14 @@ def make_agent(
         if policy is None:
             raise ValueError("MCCFR agent requires an exported policy")
         return MCCFRAgent(seed, policy)
+    if name == "online_mccfr":
+        return OnlineMCCFRAgent(
+            engine,
+            decklists,
+            seed,
+            iterations=online_iterations,
+            max_depth=online_depth,
+        )
     raise ValueError(f"Unknown agent: {name}")
 
 
@@ -56,6 +68,8 @@ def simulate_games(
     max_actions: int = 500,
     agent_names: tuple[str, str] = ("heuristic", "heuristic"),
     agent_policies: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
+    online_iterations: int = 8,
+    online_depth: int = 2,
 ) -> SimulationReport:
     if games <= 0:
         raise ValueError("games must be positive")
@@ -65,6 +79,7 @@ def simulate_games(
     total_turns = 0
     maximum_turns = 0
     telemetry = Telemetry()
+    decklists = (list(deck_a), list(deck_b))
 
     for game_index in range(games):
         first_player = game_index % 2
@@ -77,13 +92,21 @@ def simulate_games(
         agents = [
             make_agent(
                 agent_names[0],
+                engine,
+                decklists,
                 seed * 10_000 + game_index * 2 + 1,
                 policy=agent_policies[0],
+                online_iterations=online_iterations,
+                online_depth=online_depth,
             ),
             make_agent(
                 agent_names[1],
+                engine,
+                decklists,
                 seed * 10_000 + game_index * 2 + 2,
                 policy=agent_policies[1],
+                online_iterations=online_iterations,
+                online_depth=online_depth,
             ),
         ]
         telemetry.start_game(state)

@@ -48,6 +48,16 @@ jobs:
         run: python tools/analyze_telemetry.py --simulation artifacts/simulation-report.json
       - name: MCCFR smoke training
         run: make mccfr-smoke
+      - name: Online MCCFR smoke match
+        run: >
+          python tools/simulate.py
+          --games 2
+          --seed 9501
+          --agent-a online_mccfr
+          --agent-b heuristic
+          --online-iterations 2
+          --online-depth 1
+          --output artifacts/online-mccfr-smoke.json
       - name: Build lab aggregate
         run: python tools/build_lab_report.py
       - name: Build Pages

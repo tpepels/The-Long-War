@@ -70,6 +70,16 @@ jobs:
           --agent-b mccfr
           --policy-b artifacts/mccfr-policy.json
           --output artifacts/heuristic-vs-mccfr.json
+      - name: Online MCCFR vs heuristic
+        run: >
+          python tools/simulate.py
+          --games 6
+          --seed 9401
+          --agent-a online_mccfr
+          --agent-b heuristic
+          --online-iterations 4
+          --online-depth 2
+          --output artifacts/online-mccfr-vs-heuristic.json
       - name: Heuristic vs random
         run: >
           python tools/simulate.py

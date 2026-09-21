@@ -32,18 +32,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--games", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=1701)
-    parser.add_argument(
-        "--agent-a",
-        choices=["heuristic", "random", "mccfr"],
-        default="heuristic",
-    )
-    parser.add_argument(
-        "--agent-b",
-        choices=["heuristic", "random", "mccfr"],
-        default="heuristic",
-    )
+    choices = ["heuristic", "random", "mccfr", "online_mccfr"]
+    parser.add_argument("--agent-a", choices=choices, default="heuristic")
+    parser.add_argument("--agent-b", choices=choices, default="heuristic")
     parser.add_argument("--policy-a", type=Path)
     parser.add_argument("--policy-b", type=Path)
+    parser.add_argument("--online-iterations", type=int, default=8)
+    parser.add_argument("--online-depth", type=int, default=2)
     parser.add_argument(
         "--deck-a",
         type=Path,
@@ -75,11 +70,17 @@ def main() -> None:
         seed=args.seed,
         agent_names=(args.agent_a, args.agent_b),
         agent_policies=policies,
+        online_iterations=args.online_iterations,
+        online_depth=args.online_depth,
     )
 
     payload = asdict(report)
     payload["win_rates"] = report.win_rates
     payload["first_player_win_rate"] = report.first_player_win_rate
+    payload["online_config"] = {
+        "iterations": args.online_iterations,
+        "depth": args.online_depth,
+    }
 
     output = resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -107,6 +108,16 @@ def main() -> None:
         print("Policy sources:")
         for source, count in sorted(policy_sources.items()):
             print(f"  {source}: {count}")
+
+    online = report.telemetry.get("online_resolution", {})
+    if online.get("decisions"):
+        print(
+            "Online MCCFR: "
+            f"decisions={online['decisions']} "
+            f"root_coverage={online['mean_root_coverage']:.3f} "
+            f"belief_samples={online['mean_belief_samples']:.1f} "
+            f"infosets={online['mean_information_sets']:.1f}"
+        )
 
     most_played = sorted(
         report.telemetry["cards"].items(),

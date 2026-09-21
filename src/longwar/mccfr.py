@@ -6,7 +6,7 @@ import math
 import random
 from collections import Counter
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 from .agents.heuristic_agent import HeuristicAgent
 from .game.actions import (
@@ -237,6 +237,42 @@ class MCCFRTrainer:
 
         utility_sum = [0.0, 0.0]
         for _ in range(iterations):
+            for traverser in (0, 1):
+                utility_sum[traverser] += self._traverse(
+                    root.clone(),
+                    traverser,
+                    depth=0,
+                )
+            self.iterations += 1
+
+        return TrainingSummary(
+            iterations=self.iterations,
+            traversals=self.iterations * 2,
+            information_sets=len(self.nodes),
+            max_depth=self.max_depth,
+            mean_sampled_utility_p0=utility_sum[0] / iterations,
+            mean_sampled_utility_p1=utility_sum[1] / iterations,
+        )
+
+    def train_from_sampler(
+        self,
+        root_sampler: Callable[[], GameState],
+        iterations: int,
+    ) -> TrainingSummary:
+        """Train from a freshly sampled compatible root each iteration.
+
+        This is the online re-solving primitive: all sampled determinizations
+        may differ in hidden information while sharing the acting player's
+        root information set.
+        """
+        if iterations <= 0:
+            raise ValueError("iterations must be positive")
+
+        utility_sum = [0.0, 0.0]
+        for _ in range(iterations):
+            root = root_sampler()
+            if root.phase is Phase.COMPLETE:
+                raise ValueError("Root sampler returned a terminal state")
             for traverser in (0, 1):
                 utility_sum[traverser] += self._traverse(
                     root.clone(),

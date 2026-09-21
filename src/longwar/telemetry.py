@@ -62,6 +62,13 @@ class Telemetry:
         self.battle_records: list[dict[str, Any]] = []
         self.decision_stats: dict[str, DecisionStats] = defaultdict(DecisionStats)
         self.policy_sources: Counter[str] = Counter()
+        self.online_resolution = {
+            "decisions": 0,
+            "iterations_total": 0.0,
+            "belief_samples_total": 0.0,
+            "information_sets_total": 0.0,
+            "root_coverage_total": 0.0,
+        }
 
         self._drawn_this_game: list[set[str]] = [set(), set()]
         self._played_this_game: list[set[str]] = [set(), set()]
@@ -147,6 +154,20 @@ class Telemetry:
             policy_source = decision_info.get("policy_source")
             if policy_source is not None:
                 self.policy_sources[str(policy_source)] += 1
+            if policy_source == "online_mccfr":
+                self.online_resolution["decisions"] += 1
+                self.online_resolution["iterations_total"] += float(
+                    decision_info.get("resolver_iterations", 0)
+                )
+                self.online_resolution["belief_samples_total"] += float(
+                    decision_info.get("belief_samples", 0)
+                )
+                self.online_resolution["information_sets_total"] += float(
+                    decision_info.get("resolver_information_sets", 0)
+                )
+                self.online_resolution["root_coverage_total"] += float(
+                    decision_info.get("root_coverage", 0.0)
+                )
 
         return before
 
@@ -311,6 +332,27 @@ class Telemetry:
                 ),
             }
 
+        online_decisions = int(self.online_resolution["decisions"])
+        online_summary = {
+            "decisions": online_decisions,
+            "mean_iterations": self._ratio(
+                self.online_resolution["iterations_total"],
+                online_decisions,
+            ),
+            "mean_belief_samples": self._ratio(
+                self.online_resolution["belief_samples_total"],
+                online_decisions,
+            ),
+            "mean_information_sets": self._ratio(
+                self.online_resolution["information_sets_total"],
+                online_decisions,
+            ),
+            "mean_root_coverage": self._ratio(
+                self.online_resolution["root_coverage_total"],
+                online_decisions,
+            ),
+        }
+
         return {
             "actions": dict(sorted(self.action_counts.items())),
             "passes": pass_summary,
@@ -319,6 +361,7 @@ class Telemetry:
             "legend_combinations": combos,
             "decisions": decisions,
             "policy_sources": dict(sorted(self.policy_sources.items())),
+            "online_resolution": online_summary,
         }
 
     def _record_draw(self, player: int, card_id: str) -> None:

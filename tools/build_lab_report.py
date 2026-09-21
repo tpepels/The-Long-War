@@ -32,6 +32,8 @@ def simulation_summary(data: dict[str, Any] | None) -> dict[str, Any] | None:
         "actions": telemetry.get("actions"),
         "decisions": telemetry.get("decisions"),
         "policy_sources": telemetry.get("policy_sources"),
+        "online_resolution": telemetry.get("online_resolution"),
+        "online_config": data.get("online_config"),
     }
 
 
@@ -60,6 +62,7 @@ def main() -> None:
         "random_vs_heuristic": "random-vs-heuristic.json",
         "mccfr_vs_heuristic": "mccfr-vs-heuristic.json",
         "heuristic_vs_mccfr": "heuristic-vs-mccfr.json",
+        "online_mccfr_vs_heuristic": "online-mccfr-vs-heuristic.json",
     }
     matchups = {
         key: simulation_summary(load(filename))

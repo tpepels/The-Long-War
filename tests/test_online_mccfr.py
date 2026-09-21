@@ -1,0 +1,83 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+
+from longwar.cards import load_card_file
+from longwar.game import Front, GameEngine, GameState, Position, Rank
+from longwar.game.model import PlayerState
+from longwar.mccfr import action_key
+from longwar.online_mccfr import OnlineMCCFRResolver
+
+ROOT = Path(__file__).resolve().parents[1]
+pytestmark = pytest.mark.algorithm
+
+
+def setup():
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+    )["cards"]
+    return GameEngine(data), deck
+
+
+def test_online_resolver_has_root_coverage_by_construction() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=12, first_player=0)
+    resolver = OnlineMCCFRResolver(
+        engine,
+        (deck, deck),
+        seed=44,
+        iterations=4,
+        max_depth=1,
+    )
+
+    result = resolver.solve(state)
+    legal_keys = {action_key(action) for action in engine.legal_actions(state)}
+
+    assert result.root_coverage == 1.0
+    assert result.root_average_visits > 0
+    assert set(result.strategy) == legal_keys
+    assert sum(result.strategy.values()) == pytest.approx(1.0)
+
+
+def test_online_resolver_learns_immediate_winning_pass() -> None:
+    engine, deck = setup()
+
+    p0_hidden = list(deck)
+    p0_hidden.remove("the-fifty-men")
+    p0_hidden.remove("the-fifty-men")
+    p0_hidden.remove("seven-black-ships")
+    state = GameState(
+        players=[
+            PlayerState(
+                deck=p0_hidden,
+                hand=["seven-black-ships"],
+                victories=1,
+            ),
+            PlayerState(
+                deck=list(deck),
+                hand=[],
+                victories=1,
+                passed=True,
+            ),
+        ],
+        active_player=0,
+        battle=3,
+        pass_order=[1],
+    )
+    state.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
+    state.slot(0, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
+
+    resolver = OnlineMCCFRResolver(
+        engine,
+        (deck, deck),
+        seed=123,
+        iterations=50,
+        max_depth=1,
+    )
+    result = resolver.solve(state)
+
+    assert result.strategy["pass"] > 0.90
