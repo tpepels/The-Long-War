@@ -94,6 +94,18 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
             # A no-op Story preserves the card/turn cost and universal
             # playability while removing the card-specific effect.
             result["rules"] = {}
+    elif card_type == "stratagem":
+        # Preserve the free face-down commitment and one-per-Battle slot while
+        # removing all card-specific timing and payoff.
+        result["text"] = (
+            "Experimental matched baseline. Set this face-down as a "
+            "**Stratagem**. It has no trigger or effect."
+        )
+        result["rules"] = {
+            "stratagem": {
+                "trigger": {"event": "never", "actor": "either"},
+            }
+        }
     else:
         raise ValueError(f"Unsupported card type: {card_type}")
 
@@ -141,6 +153,11 @@ def generate_context_decks(
             "Current card pool cannot generate 30-card all-card contexts "
             f"(one_each={len(one_each)}, nonunique={len(nonunique)})"
         )
+
+    if extras_needed == 0:
+        # With exactly 30 canonical titles the only all-card composition is
+        # one copy of each. Game seeds still vary shuffle/order and play.
+        return [list(one_each) for _ in range(count)]
 
     rng = random.Random(seed)
     contexts: list[list[str]] = []
@@ -572,7 +589,8 @@ def run_counterfactual_experiment(
             "subject": "Vanilla Subject, 4 Strength",
             "link": "Vanilla Link, +1 Strength immediately and +2 more while it has a Name",
             "name": "Vanilla Name, 2 Strength",
-            "plot": "Universally playable no-op Plot",
+            "plot": "Universally playable no-op Story",
+            "stratagem": "Face-down inert Stratagem with no trigger or effect",
         },
         "pairing": {
             "common_game_seed": True,
