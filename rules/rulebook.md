@@ -1,14 +1,39 @@
 # The Long War
 
-## 1. Overview
+*Two players. Three Fronts. One card at a time.*
 
-The Long War is a head-to-head card game played over a series of Battles. Each player builds formations across three Fronts: Left, Center, and Right. A turn consists of playing one card or passing. There is no automatic attack or combat phase. When both players have passed, the three Fronts are scored. The first player to win two Battles wins the match.
+> **First game? Read only “Learn to Play.”** It gives you everything needed to begin. Start playing as soon as you reach **After a Battle**. Use the Reference section only when a question actually comes up.
 
-The central battlefield structure is a **Legend**: a **Subject** connected by a **Link** to a **Name**. A complete Legend reads from left to right as a phrase, such as **The Fifty Men — Followed — Namar**. Subjects occupy battlefield positions; Links and Names are attached to Subjects and do not occupy positions of their own.
+---
 
-## 2. The Battlefield
+<div class="rulebook-kicker">LEARN TO PLAY</div>
 
-Each player has six Subject positions arranged as three Fronts and two ranks.
+## 1. Win two Battles {#learn}
+
+A match is a best-of-three series of **Battles**.
+
+Each Battle is fought across three Fronts: **Left, Center, and Right**.
+
+When both players have Passed:
+
+1. Compare Strength in each Front.
+2. Whoever has more Strength controls that Front.
+3. Control **2 of the 3 Fronts** to win the Battle.
+
+If neither player controls two Fronts, compare total Strength across all three Fronts. If that is also tied, the player who **Passed first** wins the Battle.
+
+**Win two Battles to win the match.**
+
+<div class="rulebook-big-rule">
+  <span>2 of 3</span>
+  <small>Fronts wins a Battle</small>
+  <span>2 Battles</span>
+  <small>wins the match</small>
+</div>
+
+## 2. Know the battlefield {#battlefield}
+
+Each player has six places where Subjects can stand: a **Frontline** and **Rear** position in each Front.
 
 ```text
                     OPPONENT
@@ -24,242 +49,328 @@ Each player has six Subject positions arranged as three Fronts and two ranks.
                        YOU
 ```
 
-Each Front contains one Frontline position and one Rear position for each player. Only Subject cards occupy these six positions. Links, Names, and Schemes are placed with or beside the cards they affect.
+Only **Subjects** occupy these positions. Links and Names attach to a Subject. Schemes sit face-down in a Front.
 
-## 3. Card Types
+## 3. Set up {#setup}
 
-### 3.1 Subjects
+1. Each player shuffles a **30-card deck**.
+2. Draw **10 cards**.
+3. You may choose up to **2 cards** from your opening hand, shuffle them back, then draw the same number of replacements.
+4. Randomly choose who takes the first turn of Battle I.
+5. Keep each discard pile face-up and visible.
 
-A Subject represents the people, ships, households, companies, places, or other forces that take a position in the battle. A Subject has a printed Strength value and may have rules text.
+> **There is no automatic draw at the start of a turn.** The cards in your hand are a limited campaign resource.
 
-To play a Subject, place it in any legal empty Subject position on your side of the battlefield. Unless a card says otherwise, a Subject may be played in either rank and in any Front.
+## 4. Your turn: one card or Pass {#turn}
 
-### 3.2 Links
+On your turn, do **one** thing:
 
-A Link represents a relationship, action, oath, allegiance, betrayal, burden, or other connection. A Link is attached to one of your Subjects. It does not occupy a Subject position.
+- **Play one card from your hand**, or
+- **Pass**.
 
-A Subject may have at most one Link. A Link may have at most one Name. A Link without a Name is **open**. Unless the Link itself says otherwise, its rules text is inactive while it is open.
+Then the other player takes a turn.
 
-### 3.3 Names
+There is no attack phase and no automatic combat. You are building positions, stories, threats, and advantages until someone decides they have committed enough.
 
-A Name represents a specific named person, place, object, house, title, institution, or other unique identity. Every Name card is Unique.
+If you Pass, you are finished for the rest of that Battle. Your opponent may keep taking turns until they also Pass.
 
-A Name may be played only onto an open Link you control. The Name completes that Link. A Name does not occupy a Subject position and has no battlefield position independent of its Subject.
+<div class="rulebook-flow">
+  <span>PLAY 1 CARD</span><b>or</b><span>PASS</span><i>→</i><span>OPPONENT'S TURN</span>
+</div>
 
-A Name may have a printed Strength value. While linked, that value is added to the Strength of its Subject's position.
+## 5. The five ways to play a card {#cards}
 
-### 3.4 Plots
+### Subject — take a position
 
-A Plot represents an event, order, intervention, deception, quarrel, reversal, or other immediate change. Playing a Plot uses your turn. Resolve its text completely, then place it face-up in your discard pile unless the card says otherwise.
+Play a Subject into an empty legal Frontline or Rear position on your side.
 
-### 3.5 Schemes
+A Subject has printed **Strength**. It stays there until the Battle ends or an effect moves or removes it.
 
-**Scheme** is a keyword that may appear on a Plot. Instead of resolving a Scheme immediately, play it face-down in one Front. A Scheme remains there until its printed trigger occurs. When the trigger occurs, reveal the Scheme, resolve it, and discard it.
+### Link — create a relationship
 
-Each player may have at most one face-down Scheme in each Front. A player may inspect their own face-down Schemes at any time. An opponent may not inspect them. A face-down Scheme has no title, subtype, or rules text for the opponent until it is revealed.
+Attach a Link to one of your Subjects that does not already have one.
 
-## 4. Legends
+A Link without a Name is **open**. Unless the card says otherwise, an open Link's rules text is inactive.
 
-A Subject with both a Link and a Name forms a complete Legend. Arrange the three cards so their titles read from left to right:
+### Name — complete a Legend
 
-**[ SUBJECT ] [ LINK ] [ NAME ]**
+Attach a Name to one of your open Links.
 
-For example: **The Fifty Men — Followed — Namar.**
+A Subject + Link + Name is a **complete Legend**:
 
-In physical play, the Link and Name may overlap the Subject slightly or be fanned to its right, provided all three titles and all relevant rules text remain visible. The entire Legend belongs to the Subject's battlefield position.
+**The Fifty Men — Followed — Namar**
 
-A Subject with an open Link is not yet a complete Legend. The Link remains attached and may be completed by a later Name.
+Only the Subject occupies the board position. The Link and Name go with it.
 
-## 5. Strength
+### Plot — change the situation now
 
-Each occupied Subject position has one Strength total. Start with the Subject's printed Strength. If the Subject has a linked Name, add the Name's printed Strength. Then apply all modifiers from the Link, Subject, Name, Plots, Schemes, and other effects.
+Reveal a Plot, follow its text, then discard it.
 
-An open Link contributes no Strength unless its text explicitly says otherwise. A position's final Strength cannot be lower than 0 unless a card explicitly allows it.
+Plots are how you break, move, protect, or interfere with what is already happening.
 
-The Strength of a Front is the sum of the final Strength of its Frontline and Rear positions. Empty positions contribute 0 Strength.
+### Scheme — make a hidden threat
 
-## 6. Position Terms
+A Scheme is a Plot with the **Scheme** keyword.
 
-- **Front** — one of the three vertical battle areas: Left, Center, or Right.
-- **Frontline** — the Subject position nearest the battle line.
-- **Rear** — the Subject position directly behind the Frontline position in the same Front.
+Play it face-down in a Front where you do not already have a Scheme. When its printed trigger happens, reveal it, resolve it, then discard it.
+
+Your opponent knows **where** your Scheme is, but not **which Scheme** it is.
+
+## 6. Legends are the heart of the game {#legends}
+
+Legends take time to build, but concentrate power into one position.
+
+For example:
+
+| Step | Center Frontline | Strength |
+| --- | --- | ---: |
+| Play **The Fifty Men** | The Fifty Men | 4 |
+| Attach **Followed** | The Fifty Men — Followed | 4 |
+| Add **Namar** | The Fifty Men — Followed — Namar | **11** |
+
+Why 11?
+
+- The Fifty Men: 4
+- Namar: +2
+- Followed while complete: +3
+- Namar completing Followed: +2
+
+An open Link is a commitment. Completing it turns the phrase into a Legend and activates its normal Link text.
+
+> **Card text beats the rulebook.** If a card directly contradicts a general rule, follow the card.
+
+## 7. Pass at the right moment {#passing}
+
+Passing is permanent for that Battle.
+
+After the **first Pass**, the other player may continue playing cards one at a time. They can strengthen a winning position, steal another Front, or conserve cards and Pass immediately.
+
+When the **second player Passes**, score the Battle.
+
+This creates the central tension of *The Long War*: winning this Battle matters, but every extra card spent now is one fewer card available later.
+
+## 8. Score the Battle {#scoring}
+
+Add the Strength of your Frontline and Rear position in each Front.
+
+A tied Front belongs to neither player.
+
+### Example
+
+| Front | Player 1 | Player 2 | Control |
+| --- | ---: | ---: | --- |
+| Left | 7 | 4 | Player 1 |
+| Center | 3 | 5 | Player 2 |
+| Right | 2 | 2 | Tied |
+
+Neither player controls two Fronts, so compare total Strength:
+
+**Player 1: 12** · **Player 2: 11**
+
+Player 1 wins the Battle.
+
+### Battle tiebreakers
+
+Use these in order:
+
+1. Control 2 of 3 Fronts.
+2. If neither does: higher total Strength.
+3. If still tied: the player who **Passed first**.
+
+## 9. After a Battle {#after-battle}
+
+1. The winner takes **1 Victory marker**.
+2. Discard every card still on the battlefield, including face-down Schemes.
+3. **Keep the cards in your hand.**
+4. Each player draws **3 cards**.
+5. The player who lost the Battle chooses who takes the first turn of the next Battle.
+
+The first player to reach **2 Victory markers** wins the match.
+
+> **You now know enough to play.** Start a match. When something unusual happens, use the Reference section below instead of trying to memorize it first.
+
+---
+
+<div class="rulebook-kicker">REFERENCE</div>
+
+## A. Strength {#reference}
+
+Each occupied Subject position has one Strength total.
+
+Start with the Subject's printed Strength, then add the linked Name's printed Strength and apply all modifiers from cards and effects.
+
+- An open Link contributes nothing unless it explicitly says otherwise.
+- A Front's Strength is the sum of its Frontline and Rear positions.
+- Empty positions contribute 0.
+- A position's final Strength cannot be lower than 0 unless a card explicitly says otherwise.
+
+## B. Position language
+
+- **Front** — Left, Center, or Right.
+- **Frontline** — the position nearest the battle line.
+- **Rear** — the position behind the Frontline in the same Front.
 - **Adjacent** — immediately left or right in the same rank on the same player's side.
-- **Behind** — the Rear position in the same Front as a Frontline Subject.
-- **In front of** — the Frontline position in the same Front as a Rear Subject.
+- **Behind** — the Rear position in the same Front.
+- **In front of** — the Frontline position in the same Front.
 - **Opposing** — on the opponent's side of the same Front.
-- **Linked** — a Name attached to a Link, or a Link attached to a Subject, as appropriate.
-- **Open Link** — a Link attached to a Subject that does not currently have a Name.
+- **Open Link** — a Link attached to a Subject without a Name.
 
-A Link and Name inherit the position of their Subject for all effects that refer to a Front, rank, adjacency, or opposing position.
+A Link and Name inherit their Subject's Front and rank for effects that care about position.
 
-## 7. Deck Construction
+## C. Playing cards precisely
 
-Each player uses a deck of exactly 30 cards.
+### Subjects
 
-- A deck may contain no more than two copies of a card with the same title unless that card is Unique.
-- A deck may contain only one copy of each Unique card.
-- Every Name card is Unique.
+Choose a legal empty Subject position. Unless a card says otherwise, a Subject may be played in either rank and any Front.
 
-There is no separate resource deck. All Subjects, Links, Names, and Plots are drawn from the same deck.
+### Links
 
-## 8. Setup
+Choose one of your Subjects without a Link and attach the Link to it.
 
-- Each player shuffles their deck and places it face-down.
-- Each player draws 10 cards.
-- Each player may choose up to two cards from their opening hand, shuffle those cards back into their deck, then draw the same number of replacement cards.
-- Randomly determine the first player for Battle I.
-- Keep discard piles face-up and visible to both players.
+A Subject can have at most one Link.
 
-Players do not draw a card automatically at the start of a turn.
+### Names
 
-## 9. Taking a Turn
+Choose one of your open Links that the Name can legally complete.
 
-Players alternate turns. On your turn, choose exactly one of the following actions:
+Every Name is **Unique**. A Link can have at most one Name.
 
-- Play one card from your hand; or
-- Pass.
+The Name's Strength and continuous text become active immediately. Then resolve any effect caused by completing the Legend.
 
-A card played or placed by the effect of another card does not use an additional turn unless the effect specifically says that it does. Resolve the current card and all effects it creates before the other player begins their turn.
+### Plots
 
-## 10. Playing a Subject
+Choose all required legal targets, then resolve the Plot in the order written and discard it.
 
-To play a Subject, choose one legal empty Subject position and place the card there. The Subject's continuous rules text becomes active immediately unless the card says otherwise.
+If an instruction cannot do everything it asks, do as much as possible unless the card states a requirement or uses **must** in a way that makes the action illegal.
 
-A Subject remains in its position until it leaves the battlefield or an effect moves it. Subjects do not move automatically between turns or Battles.
+### Schemes
 
-## 11. Playing a Link
+Play a Scheme face-down in one Front. You may have at most one face-down Scheme in each Front.
 
-To play a Link, choose one Subject you control that does not already have a Link. Attach the Link to that Subject and leave space for a Name to its right.
+You may inspect your own Schemes at any time. Your opponent may not.
 
-A Link may be played even if you do not currently have a Name that can complete it. The Link is open until a Name is attached.
+When its trigger occurs:
 
-Unless the Link says otherwise, its rules text becomes active only when a Name completes it.
+1. Finish resolving the triggering card or action.
+2. Reveal the Scheme.
+3. Resolve it.
+4. Discard it.
 
-## 12. Playing a Name
+If simultaneous triggered effects would matter, the active player resolves their effects first, then the other player resolves theirs; each player chooses the order of their own simultaneous effects.
 
-To play a Name, choose one open Link you control that the Name is legally able to complete. Attach the Name to that Link. The Subject, Link, and Name now form a complete Legend.
+## D. Breaking a Legend
 
-The Name's Strength and continuous rules text become active immediately. If the Link has an effect that begins when it is completed, resolve that effect after the Name enters the Legend.
+Treat the three parts of a Legend separately unless an effect says to discard the **entire Legend**.
 
-## 13. Playing a Plot
+| What leaves? | What happens? |
+| --- | --- |
+| **Subject** | Discard its Link. Return its Name to its owner's hand. |
+| **Link** | Subject stays. Return its Name to its owner's hand. |
+| **Name** | Subject and Link stay. The Link becomes open. |
+| **Subject moves** | Its Link and Name move with it. |
+| **Entire Legend** | Discard Subject, Link, and Name together. |
 
-To play a normal Plot, reveal it from your hand, follow its instructions in the order written, then discard it. If a Plot has multiple instructions separated into sentences or clauses, complete each instruction before moving to the next.
+A returned card goes to its owner's hand. A discarded card goes face-up to its owner's discard pile.
 
-If a Plot cannot perform every part of its instruction, perform as much as possible unless the card uses the word **must** or states an explicit requirement for being played.
+## E. Passing and Battle end
 
-## 14. Playing and Revealing Schemes
+Once you Pass, you take no more turns that Battle.
 
-To play a Scheme, place it face-down in one Front in which you do not already have a face-down Scheme. Playing the Scheme uses your turn.
+When both players have Passed:
 
-When a Scheme's printed trigger occurs, its controller must reveal it unless the trigger uses the word **may**. Reveal the Scheme after the triggering card or effect has finished resolving, then resolve the Scheme before play continues.
+1. Resolve effects that explicitly happen at Battle end.
+2. Score each Front.
+3. Determine the Battle winner.
+4. Award a Victory marker.
+5. Discard the battlefield.
+6. Draw 3 each.
+7. The loser chooses who starts next.
 
-If more than one Scheme triggers from the same event, the active player resolves all of their triggered Schemes in any order, then the other player resolves all of theirs in any order.
+If fewer than three cards remain in your deck, draw as many as possible. Running out of cards does not itself make you lose.
 
-## 15. Breaking and Removing Legends
+## F. Timing
 
-Cards in a Legend may be affected separately. Apply the following rules whenever an effect removes part of a Legend unless that effect explicitly says otherwise.
+The player taking the current turn is the **active player**.
 
-- If a Subject leaves the battlefield, discard its attached Link. Return its attached Name to its owner's hand.
-- If a Link leaves the battlefield, return its attached Name to its owner's hand. The Subject remains in its position.
-- If a Name leaves the battlefield, its Link remains attached to the Subject and becomes open.
-- If a Subject moves to another legal position, its attached Link and Name move with it.
+Resolve the played card completely before resolving effects it triggered unless that card says otherwise.
 
-If an effect says to discard an entire Legend, discard the Subject, Link, and Name together instead of applying the normal removal rules above.
+After that, resolve triggered Schemes, then other triggered effects.
 
-Returning a card places it in its owner's hand. Discarding a card places it face-up in its owner's discard pile.
+If both players have effects waiting at the same time, the active player's effects resolve first, then the other player's.
 
-## 16. Passing
+At Battle end, the player who Passed second counts as the active player for simultaneous end-of-Battle effects.
 
-When you Pass, you play no card and take no further turns for the rest of that Battle. Passing cannot be undone.
+## G. Hidden and public information
 
-After one player has Passed, the other player continues taking turns normally until that player also Passes. When both players have Passed, the Battle ends and is scored.
+**Hidden**
 
-## 17. Scoring a Battle
+- Cards in hand
+- Identity of an unrevealed Scheme
 
-When both players have Passed, resolve any effects that explicitly occur at the end of the Battle. Then calculate the Strength of each Front.
+**Public**
 
-A player controls a Front if their Strength in that Front is greater than their opponent's. If both players have equal Strength in a Front, neither player controls it.
+- Number of cards in each hand
+- Number of cards remaining in each deck
+- Both discard piles
+- All face-up battlefield cards
+- The Front containing each face-down Scheme
 
-A player who controls at least two of the three Fronts wins the Battle.
+## H. Deck construction
 
-If neither player controls two Fronts, add each player's Strength across all three Fronts. The player with the higher total Strength wins the Battle.
+A deck contains exactly **30 cards**.
 
-If the total Strength is also equal, the player who Passed first wins the Battle.
+- Maximum 2 copies of a card with the same title.
+- Maximum 1 copy of each **Unique** card.
+- Every Name is Unique.
+- Subjects, Links, Names, and Plots all use the same deck.
 
-The winner takes one Victory marker.
+---
 
-## 18. Ending a Battle
+<div class="rulebook-kicker">GLOSSARY</div>
 
-After the winner has been determined, discard every card still on the battlefield, including all Subjects, Links, Names, revealed Schemes, and unrevealed Schemes. Cards in hand remain in hand. Discard piles remain unchanged.
+## Glossary {#glossary}
 
-Before the next Battle, each player draws three cards. If a player has fewer than three cards remaining in their deck, they draw as many as possible. Running out of cards does not by itself cause a player to lose.
+**Active player**  
+The player whose turn or effect sequence is currently being resolved.
 
-The player who lost the previous Battle chooses which player takes the first turn of the next Battle.
+**Battle**  
+One scoring period. A Battle ends when both players have Passed.
 
-## 19. Winning the Match
+**Complete Legend**  
+A Subject with one Link and one Name attached in that order.
 
-The first player to win two Battles wins the match. Because every Battle has a winner, a match lasts either two or three Battles.
-
-## 20. Effect Timing
-
-The player whose turn it is is the active player.
-
-Resolve a played card completely before resolving effects that were triggered by that card, unless the played card explicitly instructs otherwise. After the played card resolves, resolve triggered Schemes, then resolve other triggered effects.
-
-If several effects controlled by the same player trigger at the same time, that player chooses their order. If both players have effects waiting at the same time, the active player resolves all of their effects first, then the other player resolves all of theirs.
-
-At the end of a Battle, the player who Passed second is treated as the active player for resolving simultaneous end-of-Battle effects.
-
-## 21. Card Text and General Rules
-
-If the text of a card directly contradicts a rule in this rulebook, the card text takes precedence for that card or effect.
-
-The word **may** makes an instruction optional. Instructions without **may** are mandatory when they can legally be performed.
-
-If an effect requires a legal target and no legal target exists, that effect cannot be chosen or played if choosing the target is a requirement for playing it.
-
-Information in hands and face-down Schemes is hidden. The number of cards in each hand, the number of cards remaining in each deck, all discard piles, all face-up battlefield cards, and the location of each face-down Scheme are public information.
-
-## 22. Example: Building and Breaking a Legend
-
-A player has **The Fifty Men** in the Center Frontline. On a later turn, that player attaches **Followed** as a Link. The Link is open and its normal Link text is inactive. On another turn, the player attaches **Namar** to Followed. The three cards now form the complete Legend **The Fifty Men — Followed — Namar**. Namar's Strength and the active text of Followed now apply to the Center Frontline position.
-
-If an opposing effect removes Followed, Followed leaves the battlefield, Namar returns to its owner's hand, and The Fifty Men remain in the Center Frontline. If an effect removes Namar instead, Followed remains attached to The Fifty Men as an open Link and may later be completed by another legal Name.
-
-## 23. Glossary
-
-### Active player
-The player whose turn is currently being resolved.
-
-### Battle
-One scoring period that ends when both players have Passed.
-
-### Complete Legend
-One Subject with one Link and one Name attached in that order.
-
-### Discard
+**Discard**  
 Move a card to its owner's face-up discard pile.
 
-### Front
+**Front**  
 One of the three battle areas: Left, Center, or Right.
 
-### Legend
-The connected structure formed around a Subject. A complete Legend contains Subject, Link, and Name.
+**Legend**  
+The connected structure built around a Subject. A complete Legend is Subject — Link — Name.
 
-### Name
-A Unique card that completes an open Link and becomes part of its Subject's Legend.
+**Name**  
+A Unique card that completes an open Link.
 
-### Open Link
+**Open Link**  
 A Link attached to a Subject without a Name.
 
-### Pass
-End your participation in the current Battle. You take no further turns until the next Battle.
+**Pass**  
+End your participation in the current Battle.
 
-### Scheme
+**Plot**  
+A card that resolves an immediate effect and is then discarded, unless it is played as a Scheme.
+
+**Return**  
+Move a card to its owner's hand.
+
+**Scheme**  
 A Plot played face-down into a Front and revealed when its trigger occurs.
 
-### Subject
+**Strength**  
+The value used to determine control of a position and Front.
+
+**Subject**  
 The only card type that occupies one of the six battlefield positions.
 
-### Unique
+**Unique**  
 A deck-building restriction allowing only one copy of that card title in a deck.

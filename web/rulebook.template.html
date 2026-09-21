@@ -5,12 +5,30 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Rulebook — The Long War</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="rules.css">
 </head>
-<body>
+<body class="rulebook-body">
   <header class="screen-toolbar">
     <a href="index.html">The Long War</a>
-    <button type="button" onclick="window.print()">Print rulebook</button>
+    <div>
+      <a class="toolbar-link" href="play.html">Play</a>
+      <a class="toolbar-link" href="playmat.html">Quick reference</a>
+      <button type="button" onclick="window.print()">Print rulebook</button>
+    </div>
   </header>
-  <main class="rulebook">{{RULEBOOK}}</main>
+
+  <div class="rulebook-shell">
+    <nav class="rulebook-jump" aria-label="Rulebook sections">
+      <p>Jump to</p>
+      <a href="#learn">Learn to play</a>
+      <a href="#setup">Setup</a>
+      <a href="#turn">Your turn</a>
+      <a href="#cards">Card types</a>
+      <a href="#scoring">Score a Battle</a>
+      <a href="#reference">Reference</a>
+      <a href="#glossary">Glossary</a>
+    </nav>
+    <main class="rulebook">{{RULEBOOK}}</main>
+  </div>
 </body>
 </html>

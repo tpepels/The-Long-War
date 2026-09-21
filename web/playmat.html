@@ -5,38 +5,126 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Battlefield & Quick Reference — The Long War</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="rules.css">
 </head>
 <body class="playmat-body">
   <header class="screen-toolbar">
     <a href="playtest-kit.html">Playtest Kit</a>
-    <button type="button" onclick="window.print()">Print battlefield</button>
+    <div>
+      <a class="toolbar-link" href="rulebook.html">Rulebook</a>
+      <button type="button" onclick="window.print()">Print battlefield</button>
+    </div>
   </header>
-  <main class="playmat-page">
+
+  <main class="playmat-page playmat-v2">
     <section class="physical-board">
-      <div class="mat-title"><strong>The Long War</strong><span>v0.1 battlefield</span></div>
-      <div class="mat-player-label">Player 2</div>
+      <div class="mat-title">
+        <div>
+          <span class="mat-kicker">THE LONG WAR · QUICKSTART BOARD</span>
+          <strong>Three Fronts.<br>Two Battles to win.</strong>
+        </div>
+        <div class="mat-win-chip">
+          <b>2 / 3</b>
+          <span>Fronts wins a Battle</span>
+        </div>
+      </div>
+
+      <div class="mat-player-row">
+        <span>PLAYER 2</span>
+        <div class="mat-victories">VICTORIES □ □</div>
+      </div>
+
       <div class="mat-fronts opponent">
-        <div class="mat-front"><b>Left</b><div>Rear</div><div>Frontline</div><small>Scheme</small></div>
-        <div class="mat-front"><b>Center</b><div>Rear</div><div>Frontline</div><small>Scheme</small></div>
-        <div class="mat-front"><b>Right</b><div>Rear</div><div>Frontline</div><small>Scheme</small></div>
+        <div class="mat-front"><b>Left</b><div class="mat-slot rear">Rear</div><div class="mat-slot frontline">Frontline</div><small>Face-down Scheme</small></div>
+        <div class="mat-front"><b>Center</b><div class="mat-slot rear">Rear</div><div class="mat-slot frontline">Frontline</div><small>Face-down Scheme</small></div>
+        <div class="mat-front"><b>Right</b><div class="mat-slot rear">Rear</div><div class="mat-slot frontline">Frontline</div><small>Face-down Scheme</small></div>
       </div>
-      <div class="mat-battle-line">BATTLE LINE</div>
+
+      <div class="mat-battle-line"><span>BATTLE LINE</span><em>Compare Strength in each Front after both players Pass</em></div>
+
       <div class="mat-fronts">
-        <div class="mat-front"><b>Left</b><div>Frontline</div><div>Rear</div><small>Scheme</small></div>
-        <div class="mat-front"><b>Center</b><div>Frontline</div><div>Rear</div><small>Scheme</small></div>
-        <div class="mat-front"><b>Right</b><div>Frontline</div><div>Rear</div><small>Scheme</small></div>
+        <div class="mat-front"><b>Left</b><div class="mat-slot frontline">Frontline</div><div class="mat-slot rear">Rear</div><small>Face-down Scheme</small></div>
+        <div class="mat-front"><b>Center</b><div class="mat-slot frontline">Frontline</div><div class="mat-slot rear">Rear</div><small>Face-down Scheme</small></div>
+        <div class="mat-front"><b>Right</b><div class="mat-slot frontline">Frontline</div><div class="mat-slot rear">Rear</div><small>Face-down Scheme</small></div>
       </div>
-      <div class="mat-player-label">Player 1</div>
+
+      <div class="mat-player-row">
+        <span>PLAYER 1</span>
+        <div class="mat-victories">VICTORIES □ □</div>
+      </div>
+
+      <div class="legend-anatomy">
+        <span class="legend-piece subject">SUBJECT</span><i>→</i>
+        <span class="legend-piece link">LINK</span><i>→</i>
+        <span class="legend-piece name">NAME</span>
+        <b>= COMPLETE LEGEND</b>
+      </div>
     </section>
-    <aside class="quick-reference">
-      <h1>Quick reference</h1>
-      <h2>Turn</h2><p>Play exactly one card <strong>or Pass</strong>. No automatic turn draw.</p>
-      <h2>Legend</h2><p><strong>Subject → Link → Name.</strong> An open Link is normally inactive.</p>
-      <h2>Battle</h2><p>When both Pass, control 2 of 3 Fronts. Otherwise compare total Strength; if still tied, first passer wins.</p>
-      <h2>Between Battles</h2><p>Discard the battlefield. Keep hands. Draw 3 each. The loser chooses who starts next.</p>
-      <h2>Schemes</h2><p>Play face-down in a Front. One per player per Front. Reveal and resolve when the printed trigger occurs.</p>
-      <h2>Match</h2><p>First to 2 Battle wins.</p>
-      <div class="victory-track"><span>Player 1 □ □</span><span>Player 2 □ □</span></div>
+
+    <aside class="quick-reference quick-reference-v2">
+      <header class="qr-header">
+        <span>KEEP THIS BESIDE THE BOARD</span>
+        <h1>First-game reference</h1>
+      </header>
+
+      <div class="qr-setup">
+        <strong>SETUP</strong>
+        <span>30-card deck → draw 10 → mulligan up to 2 → random first player</span>
+      </div>
+
+      <section class="qr-step primary">
+        <span class="qr-number">1</span>
+        <div>
+          <h2>Your turn</h2>
+          <p><strong>Play 1 card</strong> from your hand <em>or</em> <strong>Pass</strong>.</p>
+          <p class="qr-note">No automatic draw. No attack phase.</p>
+        </div>
+      </section>
+
+      <section class="qr-step">
+        <span class="qr-number">2</span>
+        <div>
+          <h2>Build</h2>
+          <p><strong>Subject</strong> takes a position. <strong>Link</strong> attaches to it. <strong>Name</strong> completes the Legend.</p>
+          <p><strong>Plot</strong> resolves now. <strong>Scheme</strong> waits face-down for its trigger.</p>
+        </div>
+      </section>
+
+      <section class="qr-step">
+        <span class="qr-number">3</span>
+        <div>
+          <h2>Pass</h2>
+          <p>Once you Pass, you are done for this Battle. The other player may keep playing until they Pass too.</p>
+        </div>
+      </section>
+
+      <section class="qr-step score-step">
+        <span class="qr-number">4</span>
+        <div>
+          <h2>Score the Battle</h2>
+          <ol>
+            <li>Control <strong>2 of 3 Fronts</strong>.</li>
+            <li>If neither does: higher <strong>total Strength</strong>.</li>
+            <li>If still tied: <strong>first passer</strong> wins.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="qr-step">
+        <span class="qr-number">5</span>
+        <div>
+          <h2>Reset</h2>
+          <p>Discard the battlefield. <strong>Keep your hand.</strong> Draw 3 each. Battle loser chooses who starts next.</p>
+        </div>
+      </section>
+
+      <div class="qr-reminders">
+        <span>PASS IS PERMANENT</span>
+        <span>OPEN LINKS ARE NORMALLY INACTIVE</span>
+        <span>CARD TEXT BEATS GENERAL RULES</span>
+      </div>
+
+      <div class="qr-match"><strong>FIRST TO 2 BATTLE WINS TAKES THE MATCH</strong></div>
     </aside>
   </main>
 </body>

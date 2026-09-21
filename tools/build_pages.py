@@ -45,7 +45,7 @@ def main() -> None:
     rulebook_md = RULEBOOK.read_text(encoding="utf-8")
     rulebook_html = markdown.markdown(
         rulebook_md,
-        extensions=["extra", "sane_lists"],
+        extensions=["extra", "sane_lists", "attr_list"],
     )
 
     template = (WEB / "rulebook.template.html").read_text(encoding="utf-8")
