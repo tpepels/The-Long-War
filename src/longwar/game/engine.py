@@ -1301,10 +1301,10 @@ class GameEngine:
         player: int,
         card_id: str,
         *,
-        reveal_identity: bool = True,
+        hidden_kind: str | None = None,
     ) -> None:
         viewer = 1 - player
-        if reveal_identity:
+        if hidden_kind is None:
             if state.known_hidden_count(viewer, player, card_id, "hand") > 0:
                 state.observe_hidden_delta(
                     viewer=viewer,
@@ -1315,27 +1315,37 @@ class GameEngine:
                     reason="public_play_from_known_hand",
                 )
         else:
-            # A face-down play cannot reveal which exact known card left.
-            # Reduce only guaranteed knowledge for card identities that could
-            # legally be the hidden card, without consulting simulator truth.
+            # A face-down play reveals that a card left the hand, but not
+            # which eligible identity it was. Relax only knowledge that is no
+            # longer guaranteed after that hidden play.
             known = state.known_hidden_counter(viewer, player, "hand")
             for known_id, count in list(known.items()):
-                card = self.cards[known_id]
-                can_be_scheme = (
-                    card["type"] == "plot"
-                    and "scheme" in card.get("keywords", [])
-                )
-                if count > 0 and can_be_scheme:
+                if count > 0 and self._can_be_hidden_play(
+                    known_id,
+                    hidden_kind,
+                ):
                     state.observe_hidden_delta(
                         viewer=viewer,
                         owner=player,
                         card_id=known_id,
                         zone="hand",
                         delta=-1,
-                        reason="possible_face_down_play",
+                        reason=f"possible_face_down_{hidden_kind}_play",
                     )
 
         state.players[player].hand.remove(card_id)
+
+    def _can_be_hidden_play(
+        self,
+        card_id: str,
+        hidden_kind: str,
+    ) -> bool:
+        card = self.cards[card_id]
+        if hidden_kind == "scheme":
+            return card["type"] == "plot" and bool(card.get("veiled", False))
+        if hidden_kind == "stratagem":
+            return card["type"] == "stratagem"
+        raise ValueError(f"Unknown hidden play kind: {hidden_kind}")
 
     def _return_public_card_to_hand(
         self,
