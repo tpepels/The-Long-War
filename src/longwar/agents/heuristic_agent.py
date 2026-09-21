@@ -107,22 +107,17 @@ class HeuristicAgent:
         engine.apply(clone, action)
         score = self._state_value(engine, clone, player)
 
-        # A Link is an investment: it has no immediate Strength until a Name
-        # completes it. Give only a small tempo prior; the larger option value
-        # is calculated from the player's own hand in _state_value.
+        # The engine state already includes a Link's immediate Strength and a
+        # face-down Scheme's Front bonus. Keep only small priors for option
+        # value that a one-ply evaluator cannot see directly.
         if isinstance(action, PlayLink):
+            score += 0.10
+
+        if isinstance(action, PlayName):
             score += 0.35
 
-        # Completing a Legend is structurally valuable beyond raw Strength,
-        # because it turns Link/Name text on and creates future interactions.
-        if isinstance(action, PlayName):
-            score += 0.75
-
-        # A face-down Scheme is delayed option value rather than immediate
-        # Strength. Keep this modest so the heuristic does not carpet every
-        # Front with Schemes merely because they exist.
         if isinstance(action, PlayScheme):
-            score += 0.45
+            score += 0.20
 
         return score
 
@@ -208,10 +203,10 @@ class HeuristicAgent:
         )
         score += 1.25 * hand_delta
 
-        complete_delta = self._count_complete(state, player) - self._count_complete(
+        named_subject_delta = self._count_named_subjects(state, player) - self._count_named_subjects(
             state, opponent
         )
-        score += 1.5 * complete_delta
+        score += 1.5 * named_subject_delta
 
         scheme_delta = sum(
             state.scheme(player, front) is not None for front in Front
@@ -220,10 +215,10 @@ class HeuristicAgent:
         )
         score += 0.75 * scheme_delta
 
-        # Open Links are intentionally valued using only the acting player's
-        # own hand. This lets the agent invest in a Link despite zero immediate
-        # Strength, without leaking hidden opponent information.
-        score += self._own_completion_option_value(engine, state, player)
+        # Open Links are valued using only the acting player's own hand. The
+        # value is derived from the engine's real Strength calculation rather
+        # than duplicated card fields, so balance changes remain consistent.
+        score += self._own_name_option_value(engine, state, player)
 
         if state.players[player].passed and state.phase is Phase.BATTLE:
             score -= 2.0
@@ -244,13 +239,13 @@ class HeuristicAgent:
         ]
 
     @staticmethod
-    def _count_complete(state: GameState, player: int) -> int:
+    def _count_named_subjects(state: GameState, player: int) -> int:
         return sum(
-            state.slot(player, position).complete
+            state.slot(player, position).name is not None
             for position in all_positions()
         )
 
-    def _own_completion_option_value(
+    def _own_name_option_value(
         self,
         engine: GameEngine,
         state: GameState,
@@ -270,23 +265,15 @@ class HeuristicAgent:
             if slot.subject is None or slot.link is None or slot.name is not None:
                 continue
 
-            link = engine.cards[slot.link]
-            link_bonus = int(link.get("rules", {}).get("complete_strength_bonus", 0))
+            before = engine.position_strength(state, player, position)
             best_gain = -inf
             for name_id in hand_names:
-                name = engine.cards[name_id]
-                gain = (
-                    int(name["strength"])
-                    + link_bonus
-                    + int(
-                        name.get("rules", {})
-                        .get("link_strength_bonus", {})
-                        .get(slot.link, 0)
-                    )
-                )
-                best_gain = max(best_gain, gain)
+                clone = state.clone()
+                clone.slot(player, position).name = name_id
+                after = engine.position_strength(clone, player, position)
+                best_gain = max(best_gain, float(after - before))
 
             if best_gain > -inf:
-                value += 0.55 * max(0.0, best_gain)
+                value += 0.45 * max(0.0, best_gain)
 
         return value
