@@ -32,6 +32,13 @@ jobs:
           cache: pip
       - run: python -m pip install --upgrade pip
       - run: pip install -e '.[dev]'
+      - name: Browser JavaScript syntax
+        run: |
+          node --check web/play.js
+          node --check web/play-worker.js
+          node --check web/playtest-kit.js
+          node --check web/cards.js
+          node --check web/balance.js
       - name: Fast unit tests
         run: make test-fast
       - name: Algorithm learning tests
