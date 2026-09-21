@@ -97,16 +97,74 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         for flag in flags:
             counts[flag["severity"]] += 1
 
+        high_count = sum(flag["severity"] == "high" for flag in flags)
+        watch_count = sum(flag["severity"] == "watch" for flag in flags)
+        evidence_strong = draws >= 150 and played_n >= 100 and held >= 200
+
+        if high_count >= 2:
+            balance_level = "red"
+            balance_label = "Critical"
+        elif high_count >= 1 or watch_count >= 2:
+            balance_level = "orange"
+            balance_label = "Needs balancing"
+        elif watch_count == 1:
+            balance_level = "yellow"
+            balance_label = "Watch"
+        elif evidence_strong:
+            balance_level = "dark_green"
+            balance_label = "Well-supported healthy"
+        else:
+            balance_level = "green"
+            balance_label = "Looks healthy"
+
+        strong_signals = {
+            "auto_play",
+            "board_swing_outlier",
+            "positive_outcome_association",
+        }
+        weak_signals = {
+            "low_conversion",
+            "dead_draw",
+            "dead_on_pass",
+            "negative_outcome_association",
+        }
+        codes = {flag["code"] for flag in flags}
+        has_strong = bool(codes & strong_signals)
+        has_weak = bool(codes & weak_signals)
+        if has_strong and has_weak:
+            balance_direction = "mixed"
+        elif has_strong:
+            balance_direction = "strong"
+        elif has_weak:
+            balance_direction = "weak"
+        else:
+            balance_direction = "neutral"
+
         cards.append({
             "id": card_id,
             "title": card["title"],
             "type": card["type"],
+            "strength": card.get("strength"),
+            "text": card.get("text", ""),
+            "unique": bool(card.get("unique", False)),
+            "balance_level": balance_level,
+            "balance_label": balance_label,
+            "balance_direction": balance_direction,
+            "evidence_strong": evidence_strong,
             "draws": draws,
             "plays": plays,
+            "turns_in_hand": held,
+            "playable_turns": int(stats.get("playable_turns", 0)),
+            "unplayable_turns": int(stats.get("unplayable_turns", 0)),
+            "held_on_pass": held_pass,
+            "dead_on_pass": int(stats.get("dead_on_pass", 0)),
+            "games_drawn": drawn_n,
+            "games_played": played_n,
             "play_rate_per_draw": play_rate,
             "unplayable_turn_rate": dead,
             "dead_on_pass_rate": dead_pass,
             "mean_immediate_front_swing": swing,
+            "mean_immediate_control_swing": stats.get("mean_immediate_control_swing"),
             "front_swing_z_within_type": swing_z,
             "win_rate_when_drawn": stats.get("win_rate_when_drawn"),
             "win_rate_when_drawn_95": list(drawn_ci),
@@ -178,6 +236,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "legends_observed": len(legends),
             "flags_high": counts["high"],
             "flags_watch": counts["watch"],
+            "card_levels": dict(Counter(row["balance_level"] for row in cards)),
         },
         "cards": cards,
         "legends": legends,
