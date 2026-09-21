@@ -243,7 +243,11 @@ class Telemetry:
         cards: dict[str, Any] = {}
         for card_id, stats in sorted(self.cards.items()):
             payload = asdict(stats)
-            payload["play_rate_per_draw"] = self._ratio(stats.plays, stats.draws)
+            payload["plays_per_draw"] = self._ratio(stats.plays, stats.draws)
+            payload["play_rate_per_draw"] = self._ratio(
+                stats.games_played,
+                stats.games_drawn,
+            )
             payload["unplayable_turn_rate"] = self._ratio(
                 stats.unplayable_turns,
                 stats.turns_in_hand,

@@ -42,6 +42,7 @@ def test_telemetry_contains_card_pass_battle_and_combo_metrics() -> None:
     fifty = telemetry["cards"]["the-fifty-men"]
     assert fifty["draws"] > 0
     assert 0 <= fifty["play_rate_per_draw"] <= 1
+    assert fifty["plays_per_draw"] >= 0
     assert 0 <= fifty["unplayable_turn_rate"] <= 1
 
     assert telemetry["legend_combinations"]
