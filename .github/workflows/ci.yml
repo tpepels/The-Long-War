@@ -65,6 +65,18 @@ jobs:
           --games-per-context 1
           --bootstrap-resamples 100
           --cards the-fifty-men followed namar
+      - name: Targeted online MCCFR counterfactual smoke test
+        run: >
+          python tools/targeted_online_counterfactual.py
+          --contexts 1
+          --games-per-context 1
+          --online-iterations 1
+          --online-depth 1
+          --max-cards 1
+          --max-pairs 0
+          --max-triples 0
+          --bootstrap-resamples 100
+          --force-top
       - name: Build lab aggregate
         run: python tools/build_lab_report.py
       - name: Build Pages

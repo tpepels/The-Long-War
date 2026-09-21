@@ -91,6 +91,17 @@ jobs:
           --games-per-context 6
           --bootstrap-resamples 1500
           --seed 20260921
+      - name: Target suspicious effects with online MCCFR
+        run: >
+          python tools/targeted_online_counterfactual.py
+          --contexts 2
+          --games-per-context 2
+          --online-iterations 6
+          --online-depth 2
+          --max-cards 2
+          --max-pairs 2
+          --max-triples 2
+          --bootstrap-resamples 1000
       - name: Aggregate lab report
         run: python tools/build_lab_report.py
       - uses: actions/upload-artifact@v4

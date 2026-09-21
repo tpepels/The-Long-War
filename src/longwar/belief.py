@@ -110,6 +110,11 @@ class CardPoolDeckPrior:
 
         capacities: dict[str, int] = {}
         for card_id, card in self.engine.cards.items():
+            # Counterfactual baselines are intervention-only cards. They must
+            # never enter a generic metagame belief unless hard evidence
+            # already requires that exact experimental identity.
+            if card.get("experimental", False) and required[card_id] == 0:
+                continue
             maximum = 1 if card["unique"] else 2
             if required[card_id] > maximum:
                 raise BeliefStateError(

@@ -44,6 +44,7 @@ def main() -> None:
     policy = load("mccfr-policy.json")
     verification = load("mccfr-verification.json")
     counterfactual = load("counterfactual-balance.json")
+    targeted = load("targeted-online-counterfactual.json")
 
     if health is None:
         raise SystemExit("balance-health.json is required")
@@ -58,6 +59,11 @@ def main() -> None:
         row["id"]: row
         for row in (counterfactual or {}).get("cards", [])
     }
+    targeted_by_card = {
+        row["cards"][0]: row
+        for row in (targeted or {}).get("cards", [])
+        if row.get("cards")
+    }
     level_rank = {
         "dark_green": 0,
         "green": 1,
@@ -70,6 +76,7 @@ def main() -> None:
         card["observational_balance_level"] = card["balance_level"]
         causal = causal_by_card.get(card["id"])
         card["counterfactual"] = causal
+        card["targeted_online"] = targeted_by_card.get(card["id"])
         if causal is not None and int(causal.get("samples", 0)) >= 12:
             causal_level = causal.get("level", "green")
             if level_rank.get(causal_level, 1) > level_rank.get(card["balance_level"], 1):
@@ -82,6 +89,27 @@ def main() -> None:
                     "dark_green": "Well-supported healthy",
                 }[causal_level]
                 card["balance_direction"] = causal.get("direction", card["balance_direction"])
+
+        online = card["targeted_online"]
+        if (
+            online is not None
+            and online.get("confirmation") == "confirmed"
+            and int(online.get("online", {}).get("samples", 0)) >= 8
+        ):
+            online_level = online["online"].get("level", "green")
+            if level_rank.get(online_level, 1) > level_rank.get(card["balance_level"], 1):
+                card["balance_level"] = online_level
+                card["balance_label"] = {
+                    "red": "Critical",
+                    "orange": "Needs balancing",
+                    "yellow": "Watch",
+                    "green": "Looks healthy",
+                    "dark_green": "Well-supported healthy",
+                }[online_level]
+                card["balance_direction"] = online["online"].get(
+                    "direction",
+                    card["balance_direction"],
+                )
 
     matchup_files = {
         "heuristic_selfplay": "heuristic-selfplay.json",
@@ -165,6 +193,7 @@ def main() -> None:
         "mccfr": mccfr,
         "verification": verification,
         "counterfactual": counterfactual,
+        "targeted_counterfactual": targeted,
         "raw_telemetry": raw_telemetry,
         "all_legends": all_legends,
         "downloads": downloads,

@@ -138,3 +138,19 @@ def test_belief_samples_vary_across_random_seeds() -> None:
         for seed in range(8)
     }
     assert len(hands) > 1
+
+
+def test_card_pool_prior_excludes_unobserved_experimental_cards() -> None:
+    from longwar.counterfactual import build_experiment_card_data, baseline_id
+
+    engine, _, _ = setup()
+    experiment_engine = GameEngine(
+        build_experiment_card_data(
+            load_card_file(ROOT / "cards" / "cards.json")
+        )
+    )
+    prior = CardPoolDeckPrior(experiment_engine)
+    sampled = prior.sample_deck(Counter(), random.Random(7))
+
+    assert not any(card_id.startswith("__cf_baseline__") for card_id in sampled)
+    assert baseline_id("namar") not in sampled

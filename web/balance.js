@@ -89,6 +89,8 @@ function renderCards(lab) {
         <td>${staticDelta == null ? "—" : (staticDelta >= 0 ? "+" : "") + num(staticDelta, 2)}</td>
         <td>${row.counterfactual ? ((row.counterfactual.delta_win_probability >= 0 ? "+" : "") + pct(row.counterfactual.delta_win_probability)) : "—"}</td>
         <td>${row.counterfactual ? interval(row.counterfactual.ci95) : "—"}</td>
+        <td>${row.targeted_online ? ((row.targeted_online.online.effect >= 0 ? "+" : "") + pct(row.targeted_online.online.effect)) : "—"}</td>
+        <td>${row.targeted_online ? esc(row.targeted_online.confirmation.replaceAll("_", " ")) : "—"}</td>
         <td class="flags-cell">${flagMarkup(row.flags)}</td>
       </tr>
     `;
@@ -138,6 +140,48 @@ function renderCounterfactual(lab) {
     interactionTable((cf.pairs || []).slice(0, 25));
   document.getElementById("counterfactual-triples").innerHTML =
     interactionTable((cf.triples || []).slice(0, 25));
+}
+
+
+function renderTargetedCounterfactual(lab) {
+  const report = lab.targeted_counterfactual;
+  const el = document.getElementById("targeted-counterfactual");
+  if (!report) {
+    el.innerHTML = '<p class="muted">No targeted online-MCCFR validation report.</p>';
+    return;
+  }
+
+  if (!report.targets.length) {
+    el.innerHTML = '<p class="muted">The broad sweep nominated no suspicious targets at the configured threshold.</p>';
+    return;
+  }
+
+  el.innerHTML = `
+    <h3>Targeted online-MCCFR validation</h3>
+    <div class="metric-grid compact-grid">
+      ${metric("Targets", report.targets.length, `${report.total_matches} online matches`)}
+      ${metric("Samples / target", report.samples, `${report.contexts} contexts × ${report.games_per_context} games`)}
+      ${metric("Resolver", `${report.online_iterations} iterations`, `depth ${report.online_depth}`)}
+      ${metric("Confirmed", report.targets.filter((r) => r.confirmation === "confirmed").length, "online CI excludes zero in same direction")}
+    </div>
+    <div class="table-wrap">
+      <table class="balance-table">
+        <thead><tr><th>Target</th><th>Kind</th><th>Heuristic effect</th><th>Online effect</th><th>Online 95%</th><th>Result</th></tr></thead>
+        <tbody>
+          ${report.targets.map((row) => `
+            <tr>
+              <td><strong>${esc(row.title)}</strong></td>
+              <td>${esc(row.kind)}</td>
+              <td>${row.broad.effect >= 0 ? "+" : ""}${pct(row.broad.effect)} <span class="muted">${interval(row.broad.ci95)}</span></td>
+              <td>${row.online.effect >= 0 ? "+" : ""}${pct(row.online.effect)}</td>
+              <td>${interval(row.online.ci95)}</td>
+              <td><strong>${esc(row.confirmation.replaceAll("_", " "))}</strong></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 function renderLegends(lab) {
@@ -279,6 +323,7 @@ function renderMethod(lab) {
     <p><strong>Intervals:</strong> ${esc(report.methodology.win_intervals)}.</p>
     <p><strong>Board swing:</strong> standardized within card type.</p>
     <p><strong>Causal ΔWP:</strong> paired win-probability difference between the canonical card and its neutral same-type baseline under identical random seeds. Interaction values are factorial contrasts, not raw combo win rates.</p>
+    <p><strong>Targeted online validation:</strong> suspicious heuristic effects are rerun with online MCCFR on the same deck contexts. “Confirmed” requires the online 95% interval to exclude zero in the same direction; “reversed” means it excludes zero in the opposite direction.</p>
     <ul>${report.methodology.notes.map((note) => `<li>${esc(note)}</li>`).join("")}</ul>
   `;
 }
@@ -291,6 +336,7 @@ async function main() {
   renderOverview(lab);
   renderCards(lab);
   renderCounterfactual(lab);
+  renderTargetedCounterfactual(lab);
   renderLegends(lab);
   renderMatchups(lab);
   renderTelemetry(lab);

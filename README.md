@@ -221,6 +221,44 @@ the heuristic policy because thousands of matched games are required. The
 framework records this explicitly and does not present the result as an
 equilibrium value.
 
+## Targeted online-MCCFR validation
+
+The broad heuristic counterfactual sweep is intentionally cheap enough to test
+all cards, all 153 pairs, and all 120 Subject–Link–Name triples. It now feeds a
+second, selective stage.
+
+Targets are nominated when their paired heuristic effect is large, receives a
+yellow/orange/red causal level, or its paired interval excludes zero. Only the
+highest-priority candidates are then rerun with **online MCCFR**.
+
+For each selected card, pair, or triple, the online stage evaluates the exact
+factorial intervention family required for that contrast. It reuses a subset of
+the broad experiment's deck contexts, focal seats, and game seeds.
+
+To avoid condition leakage, the non-focal player receives the same uniform deck
+hypothesis prior over *all* factorial variants of the focal deck in every
+condition. It therefore knows which intervention family is under study, but is
+never told which variant is active. The focal player's belief over the opponent
+still uses the generic legal-card-pool prior.
+
+Validation labels are:
+
+- **confirmed** — online 95% interval excludes zero in the same direction;
+- **reversed** — online 95% interval excludes zero in the opposite direction;
+- **direction agrees** — same sign, but online evidence is not yet conclusive;
+- **inconclusive** — no stable directional agreement.
+
+Run locally after the broad report:
+
+```bash
+python tools/targeted_online_counterfactual.py \
+  --broad artifacts/counterfactual-balance.json \
+  --contexts 2 \
+  --games-per-context 2 \
+  --online-iterations 4 \
+  --online-depth 2
+```
+
 ## Telemetry and Balance Lab
 
 Simulations record card playability, immediate board swing, pass behavior, completed Legends, conditional outcomes, and decision statistics. The health analyzer adds Wilson 95% intervals, minimum-evidence thresholds, within-type z-scores, and diagnostic flags.
@@ -236,6 +274,7 @@ The Balance Lab includes:
 - every card with a five-level balance grade: red, orange, yellow, green, or dark green;
 - paired per-card causal Δ win probability with 95% intervals;
 - pairwise factorial interaction estimates and Subject–Link–Name triple interactions;
+- targeted online-MCCFR validation for suspicious card/pair/triple effects, with confirmation status;
 - draws, plays, dead-turn rate, pass-deadness, board/control swing, conditional win rates, confidence intervals, static marginal strength, and diagnostic flags per card;
 - all 120 possible Subject–Link–Name Legends, including combinations not observed in the current simulation sample;
 - static Strength-space diagnostics;
@@ -262,13 +301,13 @@ The automated stack is now:
 9. online MCCFR re-solving with observation-history-aware hidden-state beliefs;
 10. deck-uncertainty priors with weighted hypothesis conditioning;
 11. paired counterfactual card replacement and factorial interaction analysis;
-12. full Balance Lab aggregation and Pages publication.
+12. targeted online-MCCFR validation of suspicious causal effects;
+13. full Balance Lab aggregation and Pages publication.
 
 Planned next layers:
 
-13. action-likelihood learning for richer posterior deck/archetype inference;
-14. double-oracle deck/meta search;
-15. equilibrium-policy counterfactual validation using online MCCFR on targeted subsets;
+14. action-likelihood learning for richer posterior deck/archetype inference;
+15. double-oracle deck/meta search;
 16. sampled Shapley attribution across deck contexts.
 
 Static outliers, conditional win rates, heuristic values, and shallow MCCFR policies are diagnostics, not automatic balance verdicts.
