@@ -85,6 +85,43 @@ def main() -> None:
 
     raw_telemetry = selfplay.get("telemetry") if selfplay is not None else None
 
+    card_titles = {
+        card["id"]: card["title"]
+        for card in health.get("cards", [])
+    }
+    observed_legends = {
+        row["id"]: row
+        for row in health.get("legends", [])
+    }
+    all_legends: list[dict[str, Any]] = []
+    for row in static.get("all_static_legends", []):
+        key = " | ".join((row["subject"], row["link"], row["name"]))
+        observed = observed_legends.get(key)
+        if observed is not None:
+            merged = dict(observed)
+            merged["observed"] = True
+            merged["static_strength"] = row["static_strength"]
+            merged["static_z"] = row["z_score"]
+        else:
+            merged = {
+                "id": key,
+                "title": " — ".join(
+                    card_titles.get(part, part)
+                    for part in (row["subject"], row["link"], row["name"])
+                ),
+                "completions": 0,
+                "games_seen": 0,
+                "mean_strength_at_completion": None,
+                "completion_strength_z": None,
+                "win_rate_when_seen": None,
+                "win_rate_when_seen_95": [None, None],
+                "flags": [],
+                "observed": False,
+                "static_strength": row["static_strength"],
+                "static_z": row["z_score"],
+            }
+        all_legends.append(merged)
+
     downloads = sorted(
         path.name
         for path in ARTIFACTS.glob("*.json")
@@ -98,6 +135,7 @@ def main() -> None:
         "mccfr": mccfr,
         "verification": verification,
         "raw_telemetry": raw_telemetry,
+        "all_legends": all_legends,
         "downloads": downloads,
     }
 
