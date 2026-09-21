@@ -95,7 +95,7 @@ Conditional win rates are observational diagnostics, not causal estimates. MCCFR
 
 ## GitHub Pages
 
-The Pages workflow builds the site from `web/`, `rules/rulebook.md`, and `cards/cards.json`. The cards page is formatted for A4 printing at 100% scale with poker-size cards (63 × 88 mm), nine cards per sheet.
+The Pages workflow builds the printable cards and rulebook and also runs a 200-game heuristic self-play sample for the **Balance Lab** dashboard. The cards page is formatted for A4 printing at 100% scale with poker-size cards (63 × 88 mm), nine cards per sheet.
 
 ## Balance pipeline
 
