@@ -2164,3 +2164,96 @@ body.game-body {
     padding-inline: 8px;
   }
 }
+
+
+/* Tabletop score markers and local piles */
+.score-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #7f735f;
+}
+
+.score-player.active {
+  color: var(--parchment-light);
+}
+
+.victory-pips {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.victory-pips i {
+  width: 11px;
+  height: 11px;
+  display: block;
+  border: 1px solid #776a55;
+  border-radius: 50%;
+  background: rgba(255,255,255,.03);
+}
+
+.victory-pips i.won {
+  border-color: var(--gold);
+  background:
+    radial-gradient(circle at 35% 30%, #e8cf8a 0 16%, transparent 18%),
+    var(--gold);
+  box-shadow: 0 0 8px rgba(185,146,74,.25);
+}
+
+.battle-medallion {
+  min-width: 64px;
+  min-height: 34px;
+  padding: 4px 9px;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-left: 1px solid rgba(185,146,74,.3);
+  border-right: 1px solid rgba(185,146,74,.3);
+}
+
+.battle-medallion small {
+  color: #756a58;
+  font: 800 7px/1 system-ui, sans-serif;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.battle-medallion strong {
+  color: var(--gold);
+  font: 600 18px/1 Georgia, serif;
+}
+
+.turn-marker {
+  color: #9e917b;
+  font: 700 9px/1 system-ui, sans-serif;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.player-piles {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
+.player-piles .rack-pile {
+  min-height: 42px;
+  min-width: 68px;
+  padding: 5px 7px;
+}
+
+.player-piles .rack-pile b {
+  max-width: 96px;
+  font-size: 9px;
+}
+
+@media (max-width: 850px) {
+  .player-piles {
+    display: none;
+  }
+
+  .turn-marker {
+    min-width: max-content;
+  }
+}
