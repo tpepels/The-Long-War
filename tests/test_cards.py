@@ -65,15 +65,6 @@ def test_initial_stratagem_cycle_is_small_unique_and_rule_backed() -> None:
         card.get("rules", {}).get("stratagem", {}).get("trigger", {}).get("event")
         for card in stratagems
     )
-
-
-def test_initial_stratagem_cycle_is_unique_and_battle_wide() -> None:
-    data = load_card_file(ROOT / "cards" / "cards.json")
-    stratagems = cards_by_type(data, "stratagem")
-
-    assert len(stratagems) == 6
-    assert all(card["unique"] for card in stratagems)
-    assert all(card["rules"]["stratagem"]["trigger"]["event"] for card in stratagems)
     assert {
         "the-storm-broke",
         "the-tide-rose",
