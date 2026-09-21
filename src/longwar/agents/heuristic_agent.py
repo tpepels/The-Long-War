@@ -58,10 +58,12 @@ class HeuristicAgent:
             ScoredAction(action, self._score_action(engine, state, player, action))
             for action in actions
         ]
-        scored.sort(
-            key=lambda item: (item.score, repr(item.action)),
-            reverse=True,
-        )
+        # Randomize exact score ties with the agent's seeded RNG before
+        # sorting. Otherwise semantically identical choices (notably hidden
+        # Stratagem sets) are selected by card-id/repr ordering, which creates
+        # fake play-rate differences in simulation telemetry.
+        self.rng.shuffle(scored)
+        scored.sort(key=lambda item: item.score, reverse=True)
 
         if self.exploration > 0 and self.rng.random() < self.exploration:
             # Explore among the best quarter rather than selecting nonsense.
