@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+
+import pytest
 from pathlib import Path
 
 from longwar.cards import load_card_file
@@ -8,6 +10,8 @@ from longwar.game import GameEngine
 from longwar.simulate import simulate_games
 
 ROOT = Path(__file__).resolve().parents[1]
+
+pytestmark = pytest.mark.integration
 
 
 def setup():
