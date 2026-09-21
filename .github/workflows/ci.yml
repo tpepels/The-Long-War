@@ -58,6 +58,13 @@ jobs:
           --online-iterations 2
           --online-depth 1
           --output artifacts/online-mccfr-smoke.json
+      - name: Counterfactual balance smoke test
+        run: >
+          python tools/counterfactual_balance.py
+          --contexts 1
+          --games-per-context 1
+          --bootstrap-resamples 100
+          --cards the-fifty-men followed namar
       - name: Build lab aggregate
         run: python tools/build_lab_report.py
       - name: Build Pages

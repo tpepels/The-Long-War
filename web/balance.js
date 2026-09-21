@@ -87,10 +87,57 @@ function renderCards(lab) {
         <td>${pct(row.win_rate_when_drawn)} <span class="muted">${interval(row.win_rate_when_drawn_95)}</span></td>
         <td>${pct(row.win_rate_when_played)} <span class="muted">${interval(row.win_rate_when_played_95)}</span></td>
         <td>${staticDelta == null ? "—" : (staticDelta >= 0 ? "+" : "") + num(staticDelta, 2)}</td>
+        <td>${row.counterfactual ? ((row.counterfactual.delta_win_probability >= 0 ? "+" : "") + pct(row.counterfactual.delta_win_probability)) : "—"}</td>
+        <td>${row.counterfactual ? interval(row.counterfactual.ci95) : "—"}</td>
         <td class="flags-cell">${flagMarkup(row.flags)}</td>
       </tr>
     `;
   }).join("");
+}
+
+
+function interactionTable(rows) {
+  return `
+    <table class="mini-table">
+      <thead><tr><th>Cards</th><th>Interaction</th><th>95% interval</th><th>Level</th></tr></thead>
+      <tbody>
+        ${rows.map((row) => `
+          <tr>
+            <td><strong>${esc(row.title)}</strong></td>
+            <td>${row.interaction_delta >= 0 ? "+" : ""}${pct(row.interaction_delta)}</td>
+            <td>${interval(row.ci95)}</td>
+            <td><span class="grade grade-${row.level}">${esc(row.level.replace("_", " "))}</span></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderCounterfactual(lab) {
+  const cf = lab.counterfactual;
+  if (!cf) {
+    document.getElementById("counterfactual-overview").innerHTML =
+      metric("Counterfactual", "—", "report not generated");
+    document.getElementById("counterfactual-pairs").innerHTML = "";
+    document.getElementById("counterfactual-triples").innerHTML = "";
+    return;
+  }
+
+  const significantCards = cf.cards.filter((row) =>
+    row.confidence_excludes_zero
+  ).length;
+  document.getElementById("counterfactual-overview").innerHTML = [
+    metric("Paired samples", cf.samples, `${cf.contexts} contexts × ${cf.games_per_context} games`),
+    metric("Matches", Number(cf.total_matches).toLocaleString(), `${cf.conditions_evaluated_per_sample} intervention states/sample`),
+    metric("Causal card signals", significantCards, `of ${cf.cards.length} cards exclude zero`),
+    metric("Policy", esc(cf.policy), "common-random-number pairing"),
+  ].join("");
+
+  document.getElementById("counterfactual-pairs").innerHTML =
+    interactionTable((cf.pairs || []).slice(0, 25));
+  document.getElementById("counterfactual-triples").innerHTML =
+    interactionTable((cf.triples || []).slice(0, 25));
 }
 
 function renderLegends(lab) {
@@ -231,6 +278,7 @@ function renderMethod(lab) {
     <p><strong>Card status:</strong> red = multiple high-confidence issues; orange = one high-confidence or multiple watch issues; yellow = one watch issue; green = no current issue but thinner evidence; dark green = no issue with strong evidence.</p>
     <p><strong>Intervals:</strong> ${esc(report.methodology.win_intervals)}.</p>
     <p><strong>Board swing:</strong> standardized within card type.</p>
+    <p><strong>Causal ΔWP:</strong> paired win-probability difference between the canonical card and its neutral same-type baseline under identical random seeds. Interaction values are factorial contrasts, not raw combo win rates.</p>
     <ul>${report.methodology.notes.map((note) => `<li>${esc(note)}</li>`).join("")}</ul>
   `;
 }
@@ -242,6 +290,7 @@ async function main() {
 
   renderOverview(lab);
   renderCards(lab);
+  renderCounterfactual(lab);
   renderLegends(lab);
   renderMatchups(lab);
   renderTelemetry(lab);

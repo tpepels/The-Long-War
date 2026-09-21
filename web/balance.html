@@ -69,11 +69,34 @@
               <th>Win drawn</th>
               <th>Win played</th>
               <th>Static Δ</th>
+              <th>Causal ΔWP</th>
+              <th>Causal 95%</th>
               <th>Flags</th>
             </tr>
           </thead>
           <tbody id="card-table"></tbody>
         </table>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <p class="eyebrow">Counterfactual balance</p>
+      <h2>Paired causal estimates & interactions</h2>
+      <p class="dashboard-note">
+        Each estimate compares identical seeded games while replacing only the
+        focal card with a neutral same-type experimental baseline. Pair and
+        triple values are factorial interaction contrasts.
+      </p>
+      <div id="counterfactual-overview" class="metric-grid compact-grid"></div>
+      <div class="two-column-tables">
+        <div>
+          <h3>Strongest pair interactions</h3>
+          <div id="counterfactual-pairs" class="table-wrap"></div>
+        </div>
+        <div>
+          <h3>Strongest Legend triple interactions</h3>
+          <div id="counterfactual-triples" class="table-wrap"></div>
+        </div>
       </div>
     </section>
 

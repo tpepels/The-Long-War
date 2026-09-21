@@ -1,0 +1,568 @@
+from __future__ import annotations
+
+import copy
+import itertools
+import math
+import random
+from dataclasses import asdict, dataclass
+from statistics import mean, pstdev
+from typing import Any, Iterable
+
+from .cards import card_index, validate_card_data
+from .game.engine import GameEngine
+from .game.model import Phase
+from .simulate import make_agent
+
+
+BASELINE_PREFIX = "__cf_baseline__"
+
+
+@dataclass(frozen=True)
+class ExperimentSample:
+    sample_id: int
+    context_id: int
+    focal_player: int
+    game_seed: int
+    focal_deck: tuple[str, ...]
+    opponent_deck: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class EffectEstimate:
+    mean: float
+    ci95: tuple[float, float]
+    standard_error: float
+    samples: int
+
+
+def baseline_id(card_id: str) -> str:
+    return f"{BASELINE_PREFIX}{card_id}"
+
+
+def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
+    card_type = card["type"]
+    result: dict[str, Any] = {
+        "id": baseline_id(card["id"]),
+        "title": f"Counterfactual baseline — {card['title']}",
+        "type": card_type,
+        "unique": card_type == "name",
+        "text": "Experimental matched baseline.",
+        "rules": {},
+        "balance": {},
+        "experimental": True,
+        "baseline_for": card["id"],
+    }
+
+    if card_type == "subject":
+        result["strength"] = 4
+    elif card_type == "link":
+        result["text"] = "Experimental matched baseline. While complete, its Subject has +3 Strength."
+        result["rules"] = {"complete_strength_bonus": 3}
+        result["balance"] = {"complete_strength_bonus": 3}
+    elif card_type == "name":
+        result["strength"] = 2
+    elif card_type == "plot":
+        # A no-op Plot preserves the card/turn cost and universal playability
+        # of a Plot while removing the card-specific effect.
+        result["rules"] = {}
+    else:
+        raise ValueError(f"Unsupported card type: {card_type}")
+
+    return result
+
+
+def build_experiment_card_data(card_data: dict[str, Any]) -> dict[str, Any]:
+    data = copy.deepcopy(card_data)
+    original_cards = list(data["cards"])
+    data["cards"].extend(baseline_card(card) for card in original_cards)
+    validate_card_data(data)
+    return data
+
+
+def replace_cards(
+    deck: Iterable[str],
+    replacements: Iterable[str],
+) -> list[str]:
+    result = list(deck)
+    for card_id in sorted(set(replacements)):
+        try:
+            index = result.index(card_id)
+        except ValueError as exc:
+            raise ValueError(f"Deck does not contain card required for replacement: {card_id}") from exc
+        result[index] = baseline_id(card_id)
+    return result
+
+
+def generate_context_decks(
+    card_data: dict[str, Any],
+    *,
+    count: int,
+    seed: int,
+) -> list[list[str]]:
+    """Generate legal 30-card contexts containing every current card at least once."""
+    if count <= 0:
+        raise ValueError("count must be positive")
+
+    cards = card_data["cards"]
+    one_each = [card["id"] for card in cards]
+    nonunique = [card["id"] for card in cards if not card["unique"]]
+    extras_needed = 30 - len(one_each)
+    if extras_needed < 0 or extras_needed > len(nonunique):
+        raise ValueError(
+            "Current card pool cannot generate 30-card all-card contexts "
+            f"(one_each={len(one_each)}, nonunique={len(nonunique)})"
+        )
+
+    rng = random.Random(seed)
+    contexts: list[list[str]] = []
+    seen: set[tuple[str, ...]] = set()
+    attempts = 0
+    while len(contexts) < count:
+        attempts += 1
+        if attempts > max(1000, count * 100):
+            raise RuntimeError("Could not generate enough distinct deck contexts")
+        extras = rng.sample(nonunique, extras_needed)
+        deck = list(one_each) + extras
+        signature = tuple(sorted(deck))
+        if signature in seen:
+            continue
+        seen.add(signature)
+        contexts.append(deck)
+
+    return contexts
+
+
+def build_samples(
+    card_data: dict[str, Any],
+    *,
+    contexts: int,
+    games_per_context: int,
+    seed: int,
+) -> list[ExperimentSample]:
+    if games_per_context <= 0:
+        raise ValueError("games_per_context must be positive")
+
+    focal_contexts = generate_context_decks(card_data, count=contexts, seed=seed)
+    opponent_contexts = generate_context_decks(
+        card_data,
+        count=contexts,
+        seed=seed + 7919,
+    )
+
+    samples: list[ExperimentSample] = []
+    sample_id = 0
+    for context_id in range(contexts):
+        for local_game in range(games_per_context):
+            samples.append(
+                ExperimentSample(
+                    sample_id=sample_id,
+                    context_id=context_id,
+                    focal_player=sample_id % 2,
+                    game_seed=seed + 100_003 + sample_id * 97,
+                    focal_deck=tuple(focal_contexts[context_id]),
+                    opponent_deck=tuple(
+                        opponent_contexts[(context_id + local_game) % contexts]
+                    ),
+                )
+            )
+            sample_id += 1
+    return samples
+
+
+def _play_focal_outcome(
+    engine: GameEngine,
+    sample: ExperimentSample,
+    focal_deck: list[str],
+    *,
+    agent_name: str,
+    max_actions: int = 500,
+) -> int:
+    if agent_name not in {"heuristic", "random"}:
+        raise ValueError(
+            "Counterfactual experiments currently support heuristic or random "
+            "policies; use heuristic for balance estimates."
+        )
+
+    if sample.focal_player == 0:
+        deck_a, deck_b = focal_deck, list(sample.opponent_deck)
+    else:
+        deck_a, deck_b = list(sample.opponent_deck), focal_deck
+
+    state = engine.new_game(
+        deck_a,
+        deck_b,
+        seed=sample.game_seed,
+        first_player=0,
+    )
+    agents = [
+        make_agent(
+            agent_name,
+            engine,
+            sample.game_seed * 10_000 + 1,
+        ),
+        make_agent(
+            agent_name,
+            engine,
+            sample.game_seed * 10_000 + 2,
+        ),
+    ]
+
+    actions = 0
+    while state.phase is not Phase.COMPLETE:
+        if actions >= max_actions:
+            raise RuntimeError(
+                f"Counterfactual sample {sample.sample_id} exceeded {max_actions} actions"
+            )
+        actor = state.active_player
+        action = agents[actor].choose(engine, state)
+        engine.apply(state, action)
+        actions += 1
+
+    if state.winner is None:
+        raise RuntimeError("Completed counterfactual game has no winner")
+    return int(state.winner == sample.focal_player)
+
+
+def _bootstrap_ci(
+    values: list[float],
+    *,
+    seed: int,
+    resamples: int = 2000,
+) -> tuple[float, float]:
+    if not values:
+        raise ValueError("Cannot estimate an empty sample")
+    if len(values) == 1 or resamples <= 0:
+        value = float(values[0])
+        return (value, value)
+
+    rng = random.Random(seed)
+    n = len(values)
+    means = []
+    for _ in range(resamples):
+        means.append(
+            sum(values[rng.randrange(n)] for _ in range(n)) / n
+        )
+    means.sort()
+    low_index = max(0, math.floor(0.025 * (resamples - 1)))
+    high_index = min(resamples - 1, math.ceil(0.975 * (resamples - 1)))
+    return (means[low_index], means[high_index])
+
+
+def estimate(
+    values: list[float],
+    *,
+    seed: int,
+    bootstrap_resamples: int = 2000,
+) -> EffectEstimate:
+    if not values:
+        raise ValueError("Cannot estimate an empty sample")
+    avg = mean(values)
+    sd = pstdev(values) if len(values) > 1 else 0.0
+    se = sd / math.sqrt(len(values)) if values else 0.0
+    return EffectEstimate(
+        mean=avg,
+        ci95=_bootstrap_ci(
+            values,
+            seed=seed,
+            resamples=bootstrap_resamples,
+        ),
+        standard_error=se,
+        samples=len(values),
+    )
+
+
+def pair_contrast(
+    base: float,
+    replace_a: float,
+    replace_b: float,
+    replace_ab: float,
+) -> float:
+    return base - replace_a - replace_b + replace_ab
+
+
+def triple_contrast(
+    base: float,
+    replace_a: float,
+    replace_b: float,
+    replace_c: float,
+    replace_ab: float,
+    replace_ac: float,
+    replace_bc: float,
+    replace_abc: float,
+) -> float:
+    return (
+        base
+        - replace_a
+        - replace_b
+        - replace_c
+        + replace_ab
+        + replace_ac
+        + replace_bc
+        - replace_abc
+    )
+
+
+def _severity(estimate_value: EffectEstimate) -> dict[str, Any]:
+    low, high = estimate_value.ci95
+    excludes_zero = low > 0 or high < 0
+    magnitude = abs(estimate_value.mean)
+
+    if excludes_zero and magnitude >= 0.08:
+        level = "red"
+    elif excludes_zero and magnitude >= 0.04:
+        level = "orange"
+    elif excludes_zero or magnitude >= 0.05:
+        level = "yellow"
+    elif estimate_value.samples >= 24 and (high - low) <= 0.15:
+        level = "dark_green"
+    else:
+        level = "green"
+
+    if estimate_value.mean > 0:
+        direction = "stronger_than_baseline"
+    elif estimate_value.mean < 0:
+        direction = "weaker_than_baseline"
+    else:
+        direction = "neutral"
+
+    return {
+        "level": level,
+        "direction": direction,
+        "confidence_excludes_zero": excludes_zero,
+    }
+
+
+def run_counterfactual_experiment(
+    card_data: dict[str, Any],
+    *,
+    contexts: int,
+    games_per_context: int,
+    seed: int,
+    agent_name: str = "heuristic",
+    include_pairs: bool = True,
+    include_legend_triples: bool = True,
+    bootstrap_resamples: int = 2000,
+    card_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    canonical_cards = card_index(card_data)
+    selected_cards = (
+        list(card_ids)
+        if card_ids is not None
+        else [card["id"] for card in card_data["cards"]]
+    )
+    unknown = [card_id for card_id in selected_cards if card_id not in canonical_cards]
+    if unknown:
+        raise ValueError(f"Unknown selected cards: {unknown}")
+
+    experiment_data = build_experiment_card_data(card_data)
+    engine = GameEngine(experiment_data)
+    samples = build_samples(
+        card_data,
+        contexts=contexts,
+        games_per_context=games_per_context,
+        seed=seed,
+    )
+
+    pair_ids = (
+        list(itertools.combinations(selected_cards, 2))
+        if include_pairs
+        else []
+    )
+
+    subjects = [
+        card_id for card_id in selected_cards
+        if canonical_cards[card_id]["type"] == "subject"
+    ]
+    links = [
+        card_id for card_id in selected_cards
+        if canonical_cards[card_id]["type"] == "link"
+    ]
+    names = [
+        card_id for card_id in selected_cards
+        if canonical_cards[card_id]["type"] == "name"
+    ]
+    triple_ids = (
+        list(itertools.product(subjects, links, names))
+        if include_legend_triples
+        else []
+    )
+
+    required_conditions: set[frozenset[str]] = {frozenset()}
+    required_conditions.update(frozenset([card_id]) for card_id in selected_cards)
+    required_conditions.update(frozenset(pair) for pair in pair_ids)
+    if include_legend_triples:
+        required_conditions.update(frozenset(triple) for triple in triple_ids)
+
+    per_condition: dict[frozenset[str], list[int]] = {
+        condition: [] for condition in required_conditions
+    }
+
+    for sample in samples:
+        for condition in sorted(
+            required_conditions,
+            key=lambda item: (len(item), tuple(sorted(item))),
+        ):
+            focal_deck = replace_cards(sample.focal_deck, condition)
+            outcome = _play_focal_outcome(
+                engine,
+                sample,
+                focal_deck,
+                agent_name=agent_name,
+            )
+            per_condition[condition].append(outcome)
+
+    base = per_condition[frozenset()]
+
+    cards: list[dict[str, Any]] = []
+    for index, card_id in enumerate(selected_cards):
+        replaced = per_condition[frozenset([card_id])]
+        differences = [
+            original - control
+            for original, control in zip(base, replaced)
+        ]
+        effect = estimate(
+            differences,
+            seed=seed + 10_000 + index,
+            bootstrap_resamples=bootstrap_resamples,
+        )
+        row = {
+            "id": card_id,
+            "title": canonical_cards[card_id]["title"],
+            "type": canonical_cards[card_id]["type"],
+            "baseline_id": baseline_id(card_id),
+            "baseline": baseline_card(canonical_cards[card_id]),
+            "delta_win_probability": effect.mean,
+            "ci95": list(effect.ci95),
+            "standard_error": effect.standard_error,
+            "samples": effect.samples,
+            "original_wins": sum(base),
+            "replacement_wins": sum(replaced),
+            "discordant_original_better": sum(
+                1 for value in differences if value > 0
+            ),
+            "discordant_replacement_better": sum(
+                1 for value in differences if value < 0
+            ),
+            "ties": sum(1 for value in differences if value == 0),
+            **_severity(effect),
+        }
+        cards.append(row)
+
+    pairs: list[dict[str, Any]] = []
+    for index, (a, b) in enumerate(pair_ids):
+        ra = per_condition[frozenset([a])]
+        rb = per_condition[frozenset([b])]
+        rab = per_condition[frozenset([a, b])]
+        values = [
+            pair_contrast(v0, va, vb, vab)
+            for v0, va, vb, vab in zip(base, ra, rb, rab)
+        ]
+        effect = estimate(
+            values,
+            seed=seed + 20_000 + index,
+            bootstrap_resamples=bootstrap_resamples,
+        )
+        pairs.append({
+            "cards": [a, b],
+            "title": f"{canonical_cards[a]['title']} × {canonical_cards[b]['title']}",
+            "types": [
+                canonical_cards[a]["type"],
+                canonical_cards[b]["type"],
+            ],
+            "interaction_delta": effect.mean,
+            "ci95": list(effect.ci95),
+            "standard_error": effect.standard_error,
+            "samples": effect.samples,
+            **_severity(effect),
+        })
+
+    triples: list[dict[str, Any]] = []
+    for index, (a, b, c) in enumerate(triple_ids):
+        ra = per_condition[frozenset([a])]
+        rb = per_condition[frozenset([b])]
+        rc = per_condition[frozenset([c])]
+        rab = per_condition[frozenset([a, b])]
+        rac = per_condition[frozenset([a, c])]
+        rbc = per_condition[frozenset([b, c])]
+        rabc = per_condition[frozenset([a, b, c])]
+        values = [
+            triple_contrast(v0, va, vb, vc, vab, vac, vbc, vabc)
+            for v0, va, vb, vc, vab, vac, vbc, vabc in zip(
+                base, ra, rb, rc, rab, rac, rbc, rabc
+            )
+        ]
+        effect = estimate(
+            values,
+            seed=seed + 30_000 + index,
+            bootstrap_resamples=bootstrap_resamples,
+        )
+        triples.append({
+            "cards": [a, b, c],
+            "title": (
+                f"{canonical_cards[a]['title']} — "
+                f"{canonical_cards[b]['title']} — "
+                f"{canonical_cards[c]['title']}"
+            ),
+            "interaction_delta": effect.mean,
+            "ci95": list(effect.ci95),
+            "standard_error": effect.standard_error,
+            "samples": effect.samples,
+            **_severity(effect),
+        })
+
+    cards.sort(
+        key=lambda row: (
+            -abs(row["delta_win_probability"]),
+            row["title"],
+        )
+    )
+    pairs.sort(
+        key=lambda row: (
+            -abs(row["interaction_delta"]),
+            row["title"],
+        )
+    )
+    triples.sort(
+        key=lambda row: (
+            -abs(row["interaction_delta"]),
+            row["title"],
+        )
+    )
+
+    return {
+        "schema_version": 1,
+        "method": "paired_common_random_numbers_factorial_replacement",
+        "policy": agent_name,
+        "seed": seed,
+        "contexts": contexts,
+        "games_per_context": games_per_context,
+        "samples": len(samples),
+        "conditions_evaluated_per_sample": len(required_conditions),
+        "total_matches": len(samples) * len(required_conditions),
+        "baseline_definition": {
+            "subject": "Vanilla Subject, 4 Strength",
+            "link": "Vanilla Link, +3 Strength while complete",
+            "name": "Vanilla Name, 2 Strength",
+            "plot": "Universally playable no-op Plot",
+        },
+        "pairing": {
+            "common_game_seed": True,
+            "common_starting_player": True,
+            "common_agent_seed": True,
+            "same_deck_index_permutation": True,
+            "focal_seat_alternates": True,
+        },
+        "cards": cards,
+        "pairs": pairs,
+        "triples": triples,
+        "methodology": {
+            "card_effect": "base outcome - same deck with one copy replaced by its matched baseline",
+            "pair_interaction": "f(AB)-f(A0)-f(0B)+f(00)",
+            "triple_interaction": "third-order factorial contrast over original/baseline states",
+            "ci95": "paired percentile bootstrap over per-sample contrasts",
+            "interpretation": (
+                "Effects are causal for the evaluated policy and generated deck-context "
+                "distribution, not universal equilibrium card values."
+            ),
+        },
+    }

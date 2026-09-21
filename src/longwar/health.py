@@ -246,7 +246,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
                 "Conditional win rates are observational rather than causal values.",
                 "Board-swing z-scores are computed within card type.",
                 "Flags identify cases for inspection; they are not automatic nerf/buff instructions.",
-                "MCCFR and counterfactual replacement experiments are the next stronger causal layer.",
+                "Counterfactual replacement estimates are merged into the Balance Lab when available; MCCFR remains the strategic solver layer.",
             ],
         },
     }

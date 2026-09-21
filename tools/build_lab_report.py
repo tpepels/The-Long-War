@@ -43,6 +43,7 @@ def main() -> None:
     selfplay = load("heuristic-selfplay.json") or load("pages-selfplay.json")
     policy = load("mccfr-policy.json")
     verification = load("mccfr-verification.json")
+    counterfactual = load("counterfactual-balance.json")
 
     if health is None:
         raise SystemExit("balance-health.json is required")
@@ -53,8 +54,34 @@ def main() -> None:
         row["card"]: row
         for row in static.get("card_static_marginals", [])
     }
+    causal_by_card = {
+        row["id"]: row
+        for row in (counterfactual or {}).get("cards", [])
+    }
+    level_rank = {
+        "dark_green": 0,
+        "green": 1,
+        "yellow": 2,
+        "orange": 3,
+        "red": 4,
+    }
     for card in health.get("cards", []):
         card["static"] = static_by_card.get(card["id"])
+        card["observational_balance_level"] = card["balance_level"]
+        causal = causal_by_card.get(card["id"])
+        card["counterfactual"] = causal
+        if causal is not None and int(causal.get("samples", 0)) >= 12:
+            causal_level = causal.get("level", "green")
+            if level_rank.get(causal_level, 1) > level_rank.get(card["balance_level"], 1):
+                card["balance_level"] = causal_level
+                card["balance_label"] = {
+                    "red": "Critical",
+                    "orange": "Needs balancing",
+                    "yellow": "Watch",
+                    "green": "Looks healthy",
+                    "dark_green": "Well-supported healthy",
+                }[causal_level]
+                card["balance_direction"] = causal.get("direction", card["balance_direction"])
 
     matchup_files = {
         "heuristic_selfplay": "heuristic-selfplay.json",
@@ -137,6 +164,7 @@ def main() -> None:
         "matchups": matchups,
         "mccfr": mccfr,
         "verification": verification,
+        "counterfactual": counterfactual,
         "raw_telemetry": raw_telemetry,
         "all_legends": all_legends,
         "downloads": downloads,

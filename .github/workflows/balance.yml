@@ -84,6 +84,13 @@ jobs:
           --agent-a random
           --agent-b heuristic
           --output artifacts/random-vs-heuristic.json
+      - name: Counterfactual card and interaction analysis
+        run: >
+          python tools/counterfactual_balance.py
+          --contexts 4
+          --games-per-context 6
+          --bootstrap-resamples 1500
+          --seed 20260921
       - name: Aggregate lab report
         run: python tools/build_lab_report.py
       - uses: actions/upload-artifact@v4

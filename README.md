@@ -177,6 +177,50 @@ The heuristic player performs one-ply lookahead across every legal action. Its e
 
 The same public-information evaluator is used only at MCCFR depth frontiers.
 
+## Counterfactual card value
+
+The balance pipeline includes paired causal replacement experiments. Each
+canonical card is compared with a generated neutral same-type baseline while
+keeping the game seed, focal seat, agent seeds, and shuffle index permutation
+identical.
+
+Experimental baselines are never added to the printable card set:
+
+- Subject: vanilla 4 Strength;
+- Link: vanilla +3 Strength while complete;
+- Name: vanilla 2 Strength;
+- Plot: universally playable no-op Plot.
+
+For card `c`, the reported causal effect is:
+
+```text
+ΔWP(c) = win(base deck) - win(deck with one c replaced)
+```
+
+Pair interactions use the second-order factorial contrast:
+
+```text
+I(a,b) = f(ab) - f(a0) - f(0b) + f(00)
+```
+
+Subject–Link–Name triples use the corresponding third-order factorial
+contrast. Confidence intervals are paired percentile-bootstrap intervals over
+per-game contrasts, so common random numbers reduce noise rather than comparing
+two unrelated win-rate samples.
+
+Run locally:
+
+```bash
+python tools/counterfactual_balance.py \
+  --contexts 3 \
+  --games-per-context 4
+```
+
+The current causal estimates are policy-specific: the automated full sweep uses
+the heuristic policy because thousands of matched games are required. The
+framework records this explicitly and does not present the result as an
+equilibrium value.
+
 ## Telemetry and Balance Lab
 
 Simulations record card playability, immediate board swing, pass behavior, completed Legends, conditional outcomes, and decision statistics. The health analyzer adds Wilson 95% intervals, minimum-evidence thresholds, within-type z-scores, and diagnostic flags.
@@ -190,6 +234,8 @@ GitHub Pages publishes:
 The Balance Lab includes:
 
 - every card with a five-level balance grade: red, orange, yellow, green, or dark green;
+- paired per-card causal Δ win probability with 95% intervals;
+- pairwise factorial interaction estimates and Subject–Link–Name triple interactions;
 - draws, plays, dead-turn rate, pass-deadness, board/control swing, conditional win rates, confidence intervals, static marginal strength, and diagnostic flags per card;
 - all 120 possible Subject–Link–Name Legends, including combinations not observed in the current simulation sample;
 - static Strength-space diagnostics;
@@ -215,13 +261,14 @@ The automated stack is now:
 8. MCCFR-policy evaluation against the heuristic baseline;
 9. online MCCFR re-solving with observation-history-aware hidden-state beliefs;
 10. deck-uncertainty priors with weighted hypothesis conditioning;
-11. full Balance Lab aggregation and Pages publication.
+11. paired counterfactual card replacement and factorial interaction analysis;
+12. full Balance Lab aggregation and Pages publication.
 
 Planned next layers:
 
-12. action-likelihood learning for richer posterior deck/archetype inference;
-13. double-oracle deck/meta search;
-14. counterfactual card replacement experiments;
-15. marginal/Shapley interaction analysis.
+13. action-likelihood learning for richer posterior deck/archetype inference;
+14. double-oracle deck/meta search;
+15. equilibrium-policy counterfactual validation using online MCCFR on targeted subsets;
+16. sampled Shapley attribution across deck contexts.
 
 Static outliers, conditional win rates, heuristic values, and shallow MCCFR policies are diagnostics, not automatic balance verdicts.
