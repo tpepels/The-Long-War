@@ -8,8 +8,10 @@ on:
     branches: [main]
     paths:
       - "cards/**"
+      - "decks/**"
       - "src/longwar/**"
       - "tools/balance_report.py"
+      - "tools/simulate.py"
       - ".github/workflows/balance.yml"
 
 jobs:
@@ -23,8 +25,9 @@ jobs:
           cache: pip
       - run: pip install -e .
       - run: python tools/balance_report.py
+      - run: python tools/simulate.py --games 2000 --seed 1701
       - uses: actions/upload-artifact@v4
         with:
-          name: balance-report
-          path: artifacts/balance-report.json
+          name: balance-reports
+          path: artifacts/
           retention-days: 30

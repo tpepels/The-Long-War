@@ -8,6 +8,7 @@
       "strength": 4,
       "unique": false,
       "text": "",
+      "rules": {},
       "balance": {}
     },
     {
@@ -17,6 +18,11 @@
       "strength": 4,
       "unique": false,
       "text": "While in the Rear, this Subject has +1 Strength.",
+      "rules": {
+        "strength_modifiers": [
+          {"amount": 1, "when": {"rank": "rear"}}
+        ]
+      },
       "balance": {"dynamic": true}
     },
     {
@@ -26,6 +32,11 @@
       "strength": 3,
       "unique": false,
       "text": "This Subject has +1 Strength while your discard pile contains at least five cards.",
+      "rules": {
+        "strength_modifiers": [
+          {"amount": 1, "when": {"own_discard_at_least": 5}}
+        ]
+      },
       "balance": {"dynamic": true}
     },
     {
@@ -35,6 +46,11 @@
       "strength": 4,
       "unique": false,
       "text": "This Subject has +1 Strength while an adjacent position contains a complete Legend.",
+      "rules": {
+        "strength_modifiers": [
+          {"amount": 1, "when": {"adjacent_complete_legend": true}}
+        ]
+      },
       "balance": {"dynamic": true}
     },
     {
@@ -44,6 +60,9 @@
       "strength": 3,
       "unique": false,
       "text": "When you attach a Link here, this Subject gains +1 Strength until the end of the Battle.",
+      "rules": {
+        "on_link_attached": {"temporary_strength": 1}
+      },
       "balance": {"dynamic": true}
     },
     {
@@ -53,6 +72,9 @@
       "strength": 5,
       "unique": false,
       "text": "Frontline only.",
+      "rules": {
+        "placement": {"rank": "front"}
+      },
       "balance": {}
     },
 
@@ -62,6 +84,9 @@
       "type": "link",
       "unique": false,
       "text": "While complete, its Subject has +3 Strength.",
+      "rules": {
+        "complete_strength_bonus": 3
+      },
       "balance": {"complete_strength_bonus": 3}
     },
     {
@@ -70,6 +95,10 @@
       "type": "link",
       "unique": false,
       "text": "While complete, its Subject has +5 Strength. If the Name leaves this Legend, discard the Subject.",
+      "rules": {
+        "complete_strength_bonus": 5,
+        "on_name_leaves": "discard_subject"
+      },
       "balance": {"complete_strength_bonus": 5, "dynamic": true}
     },
     {
@@ -78,6 +107,10 @@
       "type": "link",
       "unique": false,
       "text": "While complete, its Subject has +2 Strength and the opposing Front has -2 Strength.",
+      "rules": {
+        "complete_strength_bonus": 2,
+        "opposing_front_modifier": -2
+      },
       "balance": {"complete_strength_bonus": 2, "dynamic": true}
     },
     {
@@ -85,7 +118,11 @@
       "title": "Carried",
       "type": "link",
       "unique": false,
-      "text": "While complete, its Subject has +2 Strength. Its Name cannot be returned to hand by a Plot.",
+      "text": "While complete, its Subject has +2 Strength. Its Name cannot be chosen as the target of a Plot.",
+      "rules": {
+        "complete_strength_bonus": 2,
+        "protect_name_from_plot_target": true
+      },
       "balance": {"complete_strength_bonus": 2, "dynamic": true}
     },
     {
@@ -94,6 +131,9 @@
       "type": "link",
       "unique": false,
       "text": "While complete, its Subject has +1 Strength for each of your cards discarded this Battle, to a maximum of +4.",
+      "rules": {
+        "discard_strength_bonus": {"per_card": 1, "maximum": 4}
+      },
       "balance": {"dynamic": true}
     },
 
@@ -104,6 +144,9 @@
       "strength": 2,
       "unique": true,
       "text": "If Namar completes Followed, that Subject gains +2 additional Strength.",
+      "rules": {
+        "link_strength_bonus": {"followed": 2}
+      },
       "balance": {"link_strength_bonus": {"followed": 2}}
     },
     {
@@ -113,6 +156,9 @@
       "strength": 1,
       "unique": true,
       "text": "When Iria completes a Legend, you may move that Legend to an adjacent legal position.",
+      "rules": {
+        "on_complete": "move_adjacent_optional"
+      },
       "balance": {"dynamic": true}
     },
     {
@@ -122,6 +168,7 @@
       "strength": 3,
       "unique": true,
       "text": "",
+      "rules": {},
       "balance": {}
     },
     {
@@ -130,7 +177,10 @@
       "type": "name",
       "strength": 2,
       "unique": true,
-      "text": "When Teyra completes a Legend, reveal one enemy Scheme in this Front.",
+      "text": "When Teyra completes a Legend, reveal the enemy Scheme in this Front, if any.",
+      "rules": {
+        "on_complete": "reveal_enemy_scheme"
+      },
       "balance": {"dynamic": true}
     },
 
@@ -140,6 +190,9 @@
       "type": "plot",
       "unique": false,
       "text": "Discard one Link.",
+      "rules": {
+        "effect": "discard_link"
+      },
       "balance": {"dynamic": true}
     },
     {
@@ -148,6 +201,9 @@
       "type": "plot",
       "unique": false,
       "text": "Return one Name to its owner's hand.",
+      "rules": {
+        "effect": "return_name"
+      },
       "balance": {"dynamic": true}
     },
     {
@@ -156,6 +212,9 @@
       "type": "plot",
       "unique": false,
       "text": "Move one of your Names to another legal open Link you control.",
+      "rules": {
+        "effect": "move_name"
+      },
       "balance": {"dynamic": true}
     }
   ]

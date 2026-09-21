@@ -10,12 +10,18 @@ Example: **The Fifty Men → Followed → Namar**
 
 ## Repository roles
 
-- `cards/cards.json` — canonical card database.
+- `cards/cards.json` — canonical card database: visible text plus machine-readable rules.
+- `decks/` — reproducible test and reference decks.
 - `rules/rulebook.md` — canonical printable rules.
-- `src/longwar/` — game and balance code.
+- `src/longwar/game/` — deterministic rules engine.
+- `src/longwar/agents/` — automated players.
+- `src/longwar/balance.py` — static balance diagnostics.
+- `src/longwar/simulate.py` — repeated game simulation.
 - `web/` — static source for the printable GitHub Pages site.
-- `tools/` — build and analysis entry points.
+- `tools/` — CLI entry points.
 - `.github/workflows/` — CI, balance diagnostics, and Pages deployment.
+
+The printed cards, the engine, and the balance tooling all consume the same card database. Human-facing card text is not parsed by the engine; the `rules` object is executable card semantics.
 
 ## Local setup
 
@@ -25,10 +31,30 @@ source .venv/bin/activate
 pip install -e '.[dev]'
 pytest
 python tools/balance_report.py
+python tools/simulate.py --games 1000
 python tools/build_pages.py
 ```
 
 Then open `dist/index.html`.
+
+## Implemented engine rules
+
+The engine currently implements:
+
+- 30-card deck validation and Unique/copy limits;
+- seeded shuffling, opening hands, and optional two-card mulligans;
+- six Subject positions: Left/Center/Right × Front/Rear;
+- Subject → Link → Name construction;
+- placement restrictions and position-dependent Strength;
+- all effects of the first 18-card set;
+- Plot targeting and Legend break/removal rules;
+- passing and hand economy;
+- three-Front scoring and pass-first tiebreaks;
+- best-of-three Battles;
+- the losing player choosing who starts the next Battle;
+- reproducible random-agent simulations.
+
+The state transition is deterministic after setup randomness. `legal_actions(state)` enumerates every action the active player may take; `apply(state, action)` rejects anything else.
 
 ## GitHub Pages
 
@@ -36,12 +62,16 @@ The Pages workflow builds the site from `web/`, `rules/rulebook.md`, and `cards/
 
 ## Balance pipeline
 
-The first automated layer validates card data and measures static Legend strength and interaction outliers. The planned solver stack is:
+The automated balance stack now has two layers:
 
-1. deterministic rules engine;
-2. random and heuristic agents;
-3. Monte Carlo CFR for play strategy;
-4. double-oracle search for deck/meta strategy;
-5. marginal/Shapley interaction analysis for card and combo value.
+1. **Static combinatorial analysis** — evaluates every Subject–Link–Name combination using explicit Strength semantics.
+2. **Rules-engine simulation** — runs complete seeded matches using automated agents and reports seat/first-player results and game length.
 
-The algorithms and the print site consume the same canonical card data.
+Planned next layers:
+
+3. heuristic agents with state-value features;
+4. Monte Carlo CFR for play strategy;
+5. double-oracle search for deck/meta strategy;
+6. marginal/Shapley interaction analysis for card and combo value.
+
+Static outliers and random-agent win rates are diagnostics, not balance verdicts.

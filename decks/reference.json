@@ -1,0 +1,23 @@
+{
+  "name": "Reference Deck",
+  "cards": [
+    "the-fifty-men", "the-fifty-men",
+    "seven-black-ships", "seven-black-ships",
+    "those-who-came-back", "those-who-came-back",
+    "the-house-at-orra", "the-house-at-orra",
+    "the-children-of-the-salt-road", "the-children-of-the-salt-road",
+    "the-three-brothers-of-avar", "the-three-brothers-of-avar",
+
+    "followed", "followed",
+    "swore-to", "swore-to",
+    "defied", "defied",
+    "carried", "carried",
+    "avenged", "avenged",
+
+    "namar", "iria", "oren", "teyra",
+
+    "the-story-is-false", "the-story-is-false",
+    "he-never-came",
+    "they-chose-another"
+  ]
+}
