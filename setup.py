@@ -10,6 +10,11 @@ extensions = [
         ["src/longwar/_mccfr_accel.pyx"],
         optional=True,
     ),
+    Extension(
+        "longwar._fast_search",
+        ["src/longwar/_fast_search.pyx"],
+        optional=True,
+    ),
     # Compile the actual search hot path as well as the generic CFR loop.
     # The .py sources remain canonical and are what the Pyodide bundle ships;
     # CPython prefers these extension modules when they are available.
