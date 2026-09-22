@@ -22,6 +22,10 @@ def main() -> None:
     args = parser.parse_args()
 
     workers = args.workers or max(1, os.cpu_count() or 1)
+    if workers < 2:
+        print("Parallel benchmark skipped: fewer than two CPUs/workers")
+        return
+
     card_data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
