@@ -101,6 +101,21 @@
           </section>
         </section>
 
+        <div id="card-inspector" class="card-inspector" hidden aria-hidden="true">
+          <button type="button" class="card-inspector-backdrop" data-inspector-close aria-label="Close card inspection"></button>
+          <section class="card-inspector-panel" role="dialog" aria-modal="true" aria-labelledby="card-inspector-title">
+            <header>
+              <div>
+                <span id="card-inspector-context">Public card</span>
+                <strong id="card-inspector-title">Card</strong>
+              </div>
+              <button type="button" id="card-inspector-close" aria-label="Close card inspection">×</button>
+            </header>
+            <div id="card-inspector-card" class="card-inspector-card"></div>
+            <p>Click outside the card or press Esc to close.</p>
+          </section>
+        </div>
+
         <aside class="game-tools" aria-label="Secondary match information">
           <details>
             <summary>Piles</summary>
