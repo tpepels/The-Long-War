@@ -32,7 +32,7 @@ function updateStartAvailability() {
   $("randomize-seed").disabled = !ready;
   $("start-game").disabled = !ready;
   $("engine-status").textContent = ready
-    ? "Ready · browser engine"
+    ? "Ready"
     : "Loading cards…";
 }
 const frontNames = ["Left", "Center", "Right"];
@@ -939,6 +939,112 @@ function renderInteractiveState() {
   renderInteraction();
 }
 
+function updateGameStatus() {
+  const status = $("engine-status");
+  if (!state) {
+    status.textContent = cardsReady ? "Ready" : "Loading cards…";
+    return;
+  }
+  if (state.phase === "mulligan") {
+    status.textContent = "Opening mulligan";
+    return;
+  }
+  if (state.phase === "complete") {
+    status.textContent = "Match complete";
+    return;
+  }
+  if (state.needs_ai) {
+    status.textContent = "Opponent’s turn";
+    return;
+  }
+  status.textContent = "Battle " + state.battle + " · " +
+    (state.mode === "hotseat" ? "Player " + (state.active_player + 1) : "Your turn");
+}
+
+function renderActionFeedback() {
+  const action = state?.last_action;
+  if (!action || action.id === lastShownActionId) return;
+  lastShownActionId = action.id;
+
+  const banner = $("action-banner");
+  const own = action.actor === state.viewer;
+  const card = action.card_id ? cards[action.card_id] : null;
+  let kicker = own ? "YOUR ACTION" : "OPPONENT ACTION";
+  let title = card?.title || action.label;
+
+  if (action.kind === "Draw") {
+    kicker = own ? "YOU DRAW" : "OPPONENT DRAWS";
+    title = "1 card";
+  } else if (action.kind === "Pass") {
+    kicker = own ? "YOU PASS" : "OPPONENT PASSES";
+    title = "No more turns this Battle";
+  } else if (action.kind === "PlaySubject") {
+    kicker = own ? "YOU DEPLOY" : "OPPONENT DEPLOYS";
+  } else if (action.kind === "PlayLink") {
+    kicker = own ? "YOU ATTACH A BOND" : "OPPONENT ATTACHES A BOND";
+  } else if (action.kind === "PlayName") {
+    kicker = own ? "YOU NAME A SUBJECT" : "OPPONENT NAMES A SUBJECT";
+  } else if (action.kind === "PlayPlot") {
+    kicker = own ? "YOU PLAY A STORY" : "OPPONENT PLAYS A STORY";
+  } else if (action.kind === "PlayScheme") {
+    kicker = own ? "YOU SET A VEILED STORY" : "OPPONENT SETS A VEILED STORY";
+    if (!card) title = "Face-down card";
+  } else if (action.kind === "SetStratagem") {
+    kicker = own ? "YOU SET A STRATAGEM" : "OPPONENT SETS A STRATAGEM";
+    if (!card) title = "Face-down card";
+  }
+
+  $("action-banner-kicker").textContent = kicker;
+  $("action-banner-title").textContent = title;
+  $("action-banner-detail").textContent = action.label || "";
+  banner.hidden = false;
+  banner.classList.remove("show");
+  void banner.offsetWidth;
+  banner.classList.add("show");
+
+  clearTimeout(actionBannerTimer);
+  actionBannerTimer = setTimeout(() => {
+    banner.classList.remove("show");
+    setTimeout(() => { banner.hidden = true; }, 180);
+  }, 1800);
+}
+
+function cancelAiStep() {
+  if (aiStepTimer) clearTimeout(aiStepTimer);
+  aiStepTimer = null;
+  document.body.classList.remove("ai-waiting", "ai-resolving");
+}
+
+function scheduleAiStep(delay = 1150) {
+  cancelAiStep();
+  if (!state?.needs_ai || state.phase === "complete") return;
+  document.body.classList.add("ai-waiting");
+  updateGameStatus();
+
+  aiStepTimer = setTimeout(async () => {
+    aiStepTimer = null;
+    if (!state?.needs_ai || state.phase === "complete") {
+      document.body.classList.remove("ai-waiting");
+      return;
+    }
+    document.body.classList.remove("ai-waiting");
+    document.body.classList.add("ai-resolving");
+    try {
+      state = await request({ type: "ai_step" });
+      clearSelection();
+      render();
+      if (state.needs_ai) scheduleAiStep(1050);
+    } catch (error) {
+      $("engine-status").textContent = "Opponent action failed";
+      $("interaction-hint").textContent = error.message;
+      $("interaction-strip").classList.add("interaction-error");
+      console.error("[play]", error);
+    } finally {
+      document.body.classList.remove("ai-resolving");
+    }
+  }, delay);
+}
+
 async function submitMulligan() {
   if (!state || state.phase !== "mulligan" || state.viewer == null) return;
   const indices = [...mulliganSelection].sort((a, b) => a - b);
@@ -951,15 +1057,17 @@ async function submitMulligan() {
     clearSelection();
     render();
   });
+  scheduleAiStep();
 }
 
 async function executeAction(action) {
-  if (!action || state.viewer == null) return;
+  if (!action || state.viewer == null || state.needs_ai) return;
   await runBusy(async () => {
     state = await request({ type: "act", key: action.key, viewer: state.viewer });
     clearSelection();
     render();
   });
+  scheduleAiStep();
 }
 
 function render() {
@@ -972,7 +1080,10 @@ function render() {
   renderHand();
   renderInteraction();
   renderHistory();
+  renderActionFeedback();
+  updateGameStatus();
   if (state.phase === "complete") {
+    cancelAiStep();
     $("privacy-gate").hidden = false;
     $("privacy-gate").innerHTML = "<p><strong>Player " + (state.winner + 1) + " wins the match.</strong></p>";
   }
@@ -980,10 +1091,8 @@ function render() {
 
 async function runBusy(fn) {
   document.body.classList.add("is-busy");
-  $("engine-status").textContent = "Resolving turn…";
   try {
     await fn();
-    $("engine-status").textContent = "Ready · browser engine";
     if ($("interaction-strip")) $("interaction-strip").classList.remove("interaction-error");
   } catch (error) {
     $("engine-status").textContent = "Action failed";
@@ -993,6 +1102,7 @@ async function runBusy(fn) {
     console.error("[play]", error);
   } finally {
     document.body.classList.remove("is-busy");
+    updateGameStatus();
   }
 }
 
@@ -1040,15 +1150,15 @@ $("new-game-form").addEventListener("submit", async (event) => {
 
 $("restart").addEventListener("click", () => {
   closeCardInspector();
+  cancelAiStep();
+  clearTimeout(actionBannerTimer);
+  lastShownActionId = 0;
+  $("action-banner").hidden = true;
   state = null;
   clearSelection();
   $("game").hidden = true;
   $("play-setup").hidden = false;
   randomizeSeed();
-});
-
-$("show-reasons").addEventListener("change", () => {
-  if (state) renderInteraction();
 });
 
 $("cancel-selection").addEventListener("click", () => {
@@ -1059,6 +1169,11 @@ $("cancel-selection").addEventListener("click", () => {
 $("card-inspector-close").addEventListener("click", closeCardInspector);
 document.querySelectorAll("[data-inspector-close]").forEach((el) => {
   el.addEventListener("click", closeCardInspector);
+});
+
+$("draw-button").addEventListener("click", () => {
+  const draw = actionForDraw();
+  if (draw) executeAction(draw);
 });
 
 $("pass-button").addEventListener("click", () => {
@@ -1083,6 +1198,10 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     clearSelection();
     renderInteractiveState();
+  }
+  if ((event.key === "d" || event.key === "D") && !event.metaKey && !event.ctrlKey) {
+    const draw = actionForDraw();
+    if (draw) executeAction(draw);
   }
   if ((event.key === "p" || event.key === "P") && !event.metaKey && !event.ctrlKey) {
     const pass = actionForPass();
