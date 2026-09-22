@@ -52,7 +52,12 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
 
 def test_replacement_changes_exactly_one_matching_slot_and_remains_legal() -> None:
     card_data = data()
-    contexts = generate_context_decks(card_data, count=1, seed=4)
+    contexts = generate_context_decks(
+        card_data,
+        count=1,
+        seed=4,
+        required_cards=["namar"],
+    )
     original = contexts[0]
     replaced = replace_cards(original, ["namar"])
 
@@ -67,16 +72,45 @@ def test_replacement_changes_exactly_one_matching_slot_and_remains_legal() -> No
     engine.validate_deck(replaced)
 
 
-def test_contexts_are_legal_and_contain_every_canonical_card() -> None:
+def test_contexts_are_legal_and_cover_the_expanded_pool() -> None:
     card_data = data()
     engine = GameEngine(card_data)
     ids = {card["id"] for card in card_data["cards"]}
     contexts = generate_context_decks(card_data, count=8, seed=17)
 
     assert len(contexts) == 8
+    covered: set[str] = set()
     for deck in contexts:
         engine.validate_deck(deck)
-        assert ids == set(deck)
+        assert len(deck) == 30
+        covered.update(deck)
+    assert ids <= covered
+
+
+def test_required_counterfactual_cards_appear_in_every_context() -> None:
+    card_data = data()
+    required = {"maela", "guarded", "the-crows-returned"}
+    contexts = generate_context_decks(
+        card_data,
+        count=4,
+        seed=23,
+        required_cards=required,
+    )
+    assert all(required <= set(deck) for deck in contexts)
+
+
+def test_alternative_heroes_must_be_evaluated_separately() -> None:
+    card_data = data()
+    with pytest.raises(ValueError, match="more than one Hero"):
+        generate_context_decks(
+            card_data,
+            count=1,
+            seed=29,
+            required_cards=[
+                "mara-queen-of-cinders",
+                "sera-mother-of-white-hands",
+            ],
+        )
 
 
 def test_samples_are_reproducible_and_balance_focal_seat() -> None:
