@@ -84,7 +84,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
             if "hero" not in classes:
                 raise ValueError(f"{card_id}: Hero classification is required")
 
-        rule_blocks = card.get("rule_blocks")
+        rule_blocks = card.get("rule_blocks", [])
         if not isinstance(rule_blocks, list):
             raise ValueError(f"{card_id}: rule_blocks must be a list")
         for block in rule_blocks:
