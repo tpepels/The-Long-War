@@ -1851,3 +1851,55 @@ body.game-body::before {
   .digital-hand .play-card:first-child { margin-left: 0; }
   .game-tools { right: 5px; gap: 3px; }
 }
+
+
+/* v0.6 interaction pass: cards are controls and legal destinations are explicit. */
+.play-card {
+  appearance: none;
+  padding: 0;
+  border-width: 2px;
+  font: inherit;
+  text-align: left;
+}
+
+.play-card.playable {
+  cursor: pointer;
+}
+
+.play-card.playable:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.play-card-rules {
+  grid-row: auto;
+}
+
+.legal-target-cue {
+  position: absolute;
+  right: 6px;
+  bottom: 5px;
+  z-index: 12;
+  padding: 3px 5px;
+  border: 1px solid var(--gold);
+  background: #17130e;
+  color: var(--gold);
+  font: 850 6.5px/1 system-ui,sans-serif;
+  letter-spacing: .07em;
+  pointer-events: none;
+}
+
+.digital-slot.targetable,
+.scheme-marker.targetable {
+  border-width: 2px;
+  animation: none;
+}
+
+.interaction-error {
+  border-color: #b95b50;
+  box-shadow: inset 0 0 0 1px #b95b50;
+}
+
+.interaction-error #interaction-hint {
+  color: #f0aaa1;
+}
