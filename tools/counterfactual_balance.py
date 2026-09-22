@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from longwar.cards import load_card_file
+from longwar.fingerprint import current_game_fingerprint
 from longwar.counterfactual import (
     run_counterfactual_card_sweep,
     run_counterfactual_experiment,
@@ -77,6 +78,8 @@ def main() -> None:
             bootstrap_resamples=args.bootstrap_resamples,
             card_ids=cards,
         )
+
+    report["game_fingerprint"] = current_game_fingerprint()
 
     output = resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
