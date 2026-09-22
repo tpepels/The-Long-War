@@ -6,27 +6,40 @@
   <title>Balance Lab — The Long War</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="balance-lab-body">
   <header class="screen-toolbar">
     <a href="index.html">The Long War</a>
     <div><span>Balance Lab</span></div>
   </header>
 
-  <main class="balance-dashboard">
-    <p class="eyebrow">Automated playtest + solver observability</p>
-    <h1>Balance Lab</h1>
-    <p class="dashboard-lede">
-      Card health, Subject–Bond–Name performance, simulations, raw telemetry, MCCFR training,
-      policy coverage and formal solver verification in one place.
-    </p>
+  <main class="balance-dashboard balance-dashboard-v2">
+    <header class="lab-heading">
+      <p class="eyebrow">Automated playtest + solver observability</p>
+      <h1>Balance Lab</h1>
+      <p class="dashboard-lede">
+        Start with the human summary. Open the deeper evidence only when you need to diagnose a card, matchup, or solver result.
+      </p>
+    </header>
 
-    <section id="overview" class="metric-grid" aria-live="polite"></section>
+    <section class="attention-panel" aria-labelledby="attention-title">
+      <div class="attention-heading">
+        <div>
+          <p class="eyebrow">Human summary</p>
+          <h2 id="attention-title">What needs attention next?</h2>
+        </div>
+        <span class="attention-note">Generated from the latest reports</span>
+      </div>
+      <div id="attention-summary" class="attention-list" aria-live="polite"></div>
+    </section>
 
-    <section class="dashboard-section">
+    <section id="overview" class="metric-grid overview-metrics" aria-live="polite"></section>
+
+    <section class="dashboard-section primary-analysis">
       <div class="section-heading">
         <div>
           <p class="eyebrow">Cards</p>
           <h2>Per-card balance</h2>
+          <p class="dashboard-note">The main table shows only decision-relevant evidence. Expand a card for the diagnostic columns.</p>
         </div>
         <div class="section-controls">
           <select id="card-filter" aria-label="Filter cards">
@@ -40,6 +53,7 @@
             <option value="link">Bonds</option>
             <option value="name">Names</option>
             <option value="plot">Stories</option>
+            <option value="stratagem">Stratagems</option>
           </select>
         </div>
       </div>
@@ -48,32 +62,23 @@
         <span class="grade grade-red">Red · critical</span>
         <span class="grade grade-orange">Orange · needs balancing</span>
         <span class="grade grade-yellow">Yellow · watch</span>
-        <span class="grade grade-green">Green · looks healthy</span>
+        <span class="grade grade-green">Green · healthy / thinner evidence</span>
         <span class="grade grade-dark_green">Dark green · well-supported healthy</span>
       </div>
 
-      <div class="table-wrap">
-        <table class="balance-table card-health-table">
+      <div class="table-wrap fitted-table">
+        <table class="balance-table card-health-table compact-balance-table">
           <thead>
             <tr>
               <th>Status</th>
               <th>Card</th>
-              <th>Type</th>
-              <th>Strength</th>
-              <th>Draws / plays</th>
-              <th>Play / draw</th>
-              <th>Dead turns</th>
+              <th>Type / Strength</th>
+              <th>Use</th>
               <th>Dead on pass</th>
               <th>Front swing</th>
-              <th>Control swing</th>
-              <th>Win drawn</th>
-              <th>Win played</th>
-              <th>Static Δ</th>
               <th>Causal ΔWP</th>
-              <th>Causal 95%</th>
-              <th>Online MCCFR Δ</th>
-              <th>Validation</th>
-              <th>Flags</th>
+              <th>Online check</th>
+              <th>Evidence</th>
             </tr>
           </thead>
           <tbody id="card-table"></tbody>
@@ -81,107 +86,122 @@
       </div>
     </section>
 
-    <section class="dashboard-section">
-      <p class="eyebrow">Counterfactual balance</p>
-      <h2>Paired causal estimates & interactions</h2>
-      <p class="dashboard-note">
-        Each estimate compares identical seeded games while replacing only the
-        focal card with a neutral same-type experimental baseline. Pair and
-        triple values are factorial interaction contrasts.
-      </p>
-      <div id="counterfactual-overview" class="metric-grid compact-grid"></div>
-      <div id="targeted-counterfactual"></div>
-      <div class="two-column-tables">
-        <div>
-          <h3>Strongest pair interactions</h3>
-          <div id="counterfactual-pairs" class="table-wrap"></div>
-        </div>
-        <div>
-          <h3>Strongest Subject–Bond–Name interactions</h3>
-          <div id="counterfactual-triples" class="table-wrap"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="dashboard-section">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Three-card sequences</p>
-          <h2>All observed combinations</h2>
-        </div>
-        <div id="legend-count" class="muted"></div>
-      </div>
-      <div class="table-wrap">
-        <table class="balance-table">
-          <thead>
-            <tr>
-              <th>Subject — Bond — Name</th>
-              <th>Times formed</th>
-              <th>Games seen</th>
-              <th>Observed Strength</th>
-              <th>Static Strength</th>
-              <th>Static z</th>
-              <th>Win rate</th>
-              <th>95% interval</th>
-              <th>Flags</th>
-            </tr>
-          </thead>
-          <tbody id="legend-table"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="dashboard-section">
-      <p class="eyebrow">Simulation</p>
-      <h2>Matchups & game telemetry</h2>
-      <div id="matchups" class="table-wrap"></div>
-      <div id="telemetry-grid" class="metric-grid compact-grid"></div>
-
-      <details class="diagnostic-details" open>
-        <summary>Action, pass and decision telemetry</summary>
-        <div id="raw-telemetry"></div>
-      </details>
-    </section>
-
-    <section class="dashboard-section">
-      <p class="eyebrow">MCCFR</p>
-      <h2>Training, coverage & formal verification</h2>
-      <div id="mccfr-overview" class="metric-grid compact-grid"></div>
-      <div id="mccfr-verification"></div>
-      <p class="dashboard-note">
-        “Verified” here means the shared external-sampling traversal passes the
-        exact reference benchmark and exploitability thresholds. It does not mean
-        the current Long War abstraction is solved.
-      </p>
-    </section>
-
-    <section class="dashboard-section">
-      <p class="eyebrow">Static analysis</p>
-      <h2>Subject–Bond–Name Strength space</h2>
-      <div id="static-overview" class="metric-grid compact-grid"></div>
-      <div class="two-column-tables">
-        <div>
-          <h3>Highest static three-card sequences</h3>
-          <div id="static-high" class="table-wrap"></div>
-        </div>
-        <div>
-          <h3>Lowest static three-card sequences</h3>
-          <div id="static-low" class="table-wrap"></div>
+    <details class="dashboard-disclosure" open>
+      <summary>
+        <span><small>Counterfactual balance</small><strong>Paired causal estimates & interactions</strong></span>
+        <i>open evidence</i>
+      </summary>
+      <div class="disclosure-body">
+        <p class="dashboard-note">
+          These estimates compare identical seeded games while replacing only the focal card with a neutral same-type baseline.
+          Pair and triple values are factorial interaction contrasts.
+        </p>
+        <div id="counterfactual-overview" class="metric-grid compact-grid"></div>
+        <div id="targeted-counterfactual"></div>
+        <div class="two-column-tables">
+          <div>
+            <h3>Strongest pair interactions</h3>
+            <div id="counterfactual-pairs" class="table-wrap fitted-table"></div>
+          </div>
+          <div>
+            <h3>Strongest Subject–Bond–Name interactions</h3>
+            <div id="counterfactual-triples" class="table-wrap fitted-table"></div>
+          </div>
         </div>
       </div>
-    </section>
+    </details>
 
-    <section class="dashboard-section">
-      <p class="eyebrow">Artifacts</p>
-      <h2>Raw outputs</h2>
-      <div id="downloads" class="download-grid"></div>
-    </section>
+    <details class="dashboard-disclosure" open>
+      <summary>
+        <span><small>MCCFR</small><strong>Current-card solver coverage</strong></span>
+        <i>open solver evidence</i>
+      </summary>
+      <div class="disclosure-body">
+        <div id="mccfr-overview" class="metric-grid compact-grid"></div>
+        <div id="mccfr-profiles" class="table-wrap fitted-table"></div>
+        <div id="mccfr-verification"></div>
+        <p class="dashboard-note">
+          Formal verification checks the shared external-sampling implementation against the exact reference benchmark.
+          Long War policies are depth-limited approximations, not solved-game claims.
+        </p>
+      </div>
+    </details>
 
-    <section class="dashboard-section methodology">
-      <p class="eyebrow">Method</p>
-      <h2>How to read this</h2>
-      <div id="methodology"></div>
-    </section>
+    <details class="dashboard-disclosure">
+      <summary>
+        <span><small>Simulation</small><strong>Matchups & game telemetry</strong></span>
+        <i>collapsed by default</i>
+      </summary>
+      <div class="disclosure-body">
+        <div id="matchups" class="table-wrap fitted-table"></div>
+        <div id="telemetry-grid" class="metric-grid compact-grid"></div>
+        <details class="diagnostic-details">
+          <summary>Action, pass and decision telemetry</summary>
+          <div id="raw-telemetry"></div>
+        </details>
+      </div>
+    </details>
+
+    <details class="dashboard-disclosure">
+      <summary>
+        <span><small>Three-card sequences</small><strong>Observed Subject–Bond–Name combinations</strong></span>
+        <i id="legend-count">collapsed by default</i>
+      </summary>
+      <div class="disclosure-body">
+        <div class="table-wrap fitted-table">
+          <table class="balance-table sequence-table">
+            <thead>
+              <tr>
+                <th>Subject — Bond — Name</th>
+                <th>Formed / games</th>
+                <th>Observed / static Strength</th>
+                <th>Win rate</th>
+                <th>95% interval</th>
+                <th>Flags</th>
+              </tr>
+            </thead>
+            <tbody id="legend-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <details class="dashboard-disclosure">
+      <summary>
+        <span><small>Static analysis</small><strong>Subject–Bond–Name Strength space</strong></span>
+        <i>collapsed by default</i>
+      </summary>
+      <div class="disclosure-body">
+        <div id="static-overview" class="metric-grid compact-grid"></div>
+        <div class="two-column-tables">
+          <div>
+            <h3>Highest static sequences</h3>
+            <div id="static-high" class="table-wrap fitted-table"></div>
+          </div>
+          <div>
+            <h3>Lowest static sequences</h3>
+            <div id="static-low" class="table-wrap fitted-table"></div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="dashboard-disclosure">
+      <summary>
+        <span><small>Diagnostics</small><strong>Raw artifacts & methodology</strong></span>
+        <i>collapsed by default</i>
+      </summary>
+      <div class="disclosure-body diagnostics-grid">
+        <section>
+          <h3>Raw outputs</h3>
+          <div id="downloads" class="download-grid"></div>
+        </section>
+        <section class="methodology">
+          <h3>How to read this</h3>
+          <div id="methodology"></div>
+        </section>
+      </div>
+    </details>
   </main>
 
   <script src="balance.js"></script>
