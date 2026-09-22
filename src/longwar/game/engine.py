@@ -344,11 +344,27 @@ class GameEngine:
     ) -> GameState:
         self.validate_deck(deck_a)
         self.validate_deck(deck_b)
-        rng = random.Random(seed)
+        return self._new_game_with_rng(
+            deck_a,
+            deck_b,
+            rng=random.Random(seed),
+            first_player=first_player,
+            mulligan_indices=mulligan_indices,
+        )
 
+    def _new_game_with_rng(
+        self,
+        deck_a: list[str],
+        deck_b: list[str],
+        *,
+        rng: random.Random,
+        first_player: int | None = None,
+        mulligan_indices: tuple[tuple[int, ...], tuple[int, ...]] = ((), ()),
+    ) -> GameState:
+        """Construct a game from already-validated decks with a reusable RNG."""
         decks = [list(deck_a), list(deck_b)]
-        for deck in decks:
-            rng.shuffle(deck)
+        rng.shuffle(decks[0])
+        rng.shuffle(decks[1])
 
         players = [
             PlayerState(deck=decks[player], hand=[])
@@ -365,7 +381,11 @@ class GameEngine:
                 rng,
             )
 
-        state.active_player = rng.randrange(2) if first_player is None else first_player
+        state.active_player = (
+            rng.randrange(2)
+            if first_player is None
+            else first_player
+        )
         return state
 
     def _apply_mulligan(
