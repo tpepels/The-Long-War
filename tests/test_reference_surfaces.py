@@ -30,15 +30,17 @@ def test_rulebook_healer_language_matches_engine_semantics() -> None:
     ) in rules
 
 
-def test_battlefield_reference_is_one_practical_sheet() -> None:
+def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     page = text("web/playmat.html")
     css = text("web/rules.css")
 
-    assert "battle-reference-sheet" in page
-    assert "What can go where?" in page
-    assert "Role bonuses" in page
-    assert "When both players Pass" in page
-    assert "reference-turn-strip" in page
+    assert "reference-v3" in page
+    assert "Battlefield & turn order" in page
+    assert "WHERE CARDS GO" in page
+    assert "ROLE BONUSES" in page
+    assert "WHEN BOTH PASS" in page
+    assert "BETWEEN BATTLES" in page
+    assert "font-size: 2.95mm;" in css
     assert "page: battlefield-reference" in css
 
 
@@ -116,7 +118,7 @@ def test_cards_are_scan_first_and_all_48_copy_blocks_are_labeled() -> None:
     style = text("web/style.css")
     play_style = text("web/play.css")
     card_rules = text("web/card-rules.js")
-    assert "font: 3.35mm/1.15 Georgia, serif;" in style
+    assert "font: 3.55mm/1.18 Georgia,serif;" in style
     assert "font: 11.2px/1.16 Georgia, serif;" in play_style
     assert "Frontline +1 if Rear occupied" in card_rules
     assert "Rear: Subject in front +2" in card_rules
@@ -137,3 +139,16 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     assert "opaque sleeves or identical card backs" in page
     assert "@page tracker" in css
     assert 'href="tokens.html"' in kit
+
+
+
+def test_rulebook_opening_renders_markdown_and_sections_have_column_wrappers() -> None:
+    rules = text("rules/rulebook.md")
+    builder = text("tools/build_pages.py")
+    css = text("web/rules.css")
+
+    assert '<div class="rulebook-opening" markdown="1">' in rules
+    assert '"md_in_html"' in builder
+    assert "group_rulebook_sections" in builder
+    assert ".rule-section" in css
+    assert "break-inside: avoid-column;" in css
