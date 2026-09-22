@@ -9,6 +9,7 @@ from .game.actions import (
     Action,
     BoardTarget,
     ChooseFirst,
+    Draw,
     Pass,
     PlayLink,
     PlayName,
@@ -59,7 +60,13 @@ class PlaySession:
         self.log: list[str] = []
 
         # Preview state exposes the reproducible opening hands before mulligans.
-        self.state = self.engine.new_game(deck, deck, seed=self.seed, first_player=None)
+        self.state = self.engine.new_game(
+            deck,
+            deck,
+            seed=self.seed,
+            first_player=None,
+            opening_bonus=False,
+        )
         self.setup_complete = False
         self.mulligan_player = 0
         self.mulligan_choices: dict[int, tuple[int, ...]] = {}
@@ -134,7 +141,8 @@ class PlaySession:
         )
         self.setup_complete = True
         self.log.append(
-            f"Battle I begins. Player {self.state.active_player + 1} goes first."
+            f"Battle I begins. Player {self.state.active_player + 1} goes first "
+            "and draws 1 additional opening card."
         )
         self._run_ai_until_human()
 
@@ -287,6 +295,7 @@ class PlaySession:
             "schemes": schemes,
             "stratagems": stratagems,
             "stratagem_used": list(state.stratagem_used),
+            "draw_used": list(state.draw_used),
             "front_strengths": front_strengths,
             "front_control": front_control,
             "hand": hand,
@@ -401,6 +410,8 @@ class PlaySession:
         prefix = f"Player {actor + 1}"
         if isinstance(action, Pass):
             return f"{prefix} Passes."
+        if isinstance(action, Draw):
+            return f"{prefix} draws 1 card."
         if isinstance(action, ChooseFirst):
             return f"{prefix} chooses Player {action.player + 1} to start the next Battle."
         if isinstance(action, PlaySubject):
@@ -449,6 +460,8 @@ class PlaySession:
     def _legal_reason(self, action: Action) -> str:
         if isinstance(action, Pass):
             return "Pass is always legal while you are still active in the Battle."
+        if isinstance(action, Draw):
+            return "Draw 1 card as your normal action. You may do this once per Battle."
         if isinstance(action, ChooseFirst):
             return "The previous Battle loser chooses who takes the first turn."
         if isinstance(action, PlaySubject):

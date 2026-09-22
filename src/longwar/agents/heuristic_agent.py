@@ -7,6 +7,7 @@ from math import inf
 from ..game.actions import (
     Action,
     ChooseFirst,
+    Draw,
     Pass,
     PlayLink,
     PlayName,
@@ -168,6 +169,11 @@ class HeuristicAgent:
         clone = state.clone()
         engine.apply(clone, action, validate=False)
         score = self._state_value(engine, clone, player)
+
+        if isinstance(action, Draw):
+            # Drawing gains a card but concedes tempo. Keep it available as a
+            # recovery option without making it the automatic best move.
+            score -= 0.8
 
         # The engine state already includes a Link's immediate Strength and a
         # face-down Scheme's Front bonus. Keep only small priors for option

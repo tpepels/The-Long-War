@@ -7,6 +7,8 @@ import pytest
 
 from longwar.cards import load_card_file
 from longwar.counterfactual import (
+    ExperimentSample,
+    _play_focal_outcome,
     baseline_card,
     baseline_id,
     build_experiment_card_data,
@@ -177,3 +179,36 @@ def test_hero_baseline_preserves_hero_deck_constraint() -> None:
     assert baseline["role"] == "swordsman"
     assert "hero" in baseline["classes"]
     assert baseline["strength"] == 6
+
+
+def test_counterfactual_mulligan_preview_excludes_opening_bonus(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    card_data = data()
+    deck = generate_context_decks(card_data, count=1, seed=41)[0]
+    engine = GameEngine(build_experiment_card_data(card_data))
+    sample = ExperimentSample(
+        sample_id=0,
+        context_id=0,
+        focal_player=0,
+        game_seed=1701,
+        focal_deck=tuple(deck),
+        opponent_deck=tuple(deck),
+    )
+
+    original_new_game = engine.new_game
+    opening_bonus_calls: list[bool] = []
+
+    def checked_new_game(*args, **kwargs):
+        opening_bonus_calls.append(bool(kwargs.get("opening_bonus", True)))
+        return original_new_game(*args, **kwargs)
+
+    monkeypatch.setattr(engine, "new_game", checked_new_game)
+    _play_focal_outcome(
+        engine,
+        sample,
+        list(deck),
+        agent_name="heuristic",
+    )
+
+    assert opening_bonus_calls[:2] == [False, True]

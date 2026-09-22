@@ -64,6 +64,7 @@ def main() -> None:
   let stage = "start";
   let ticks = 0;
   let beforeHistory = 0;
+  let humanHistory = 0;
   let targetClicked = false;
 
   function fail(detail) {
@@ -138,6 +139,12 @@ def main() -> None:
 
     if (stage === "target") {
       if (historyCount() > beforeHistory) {
+        const banner = document.getElementById("action-banner");
+        if (!banner || banner.hidden || !banner.classList.contains("show")) {
+          fail("human action did not produce a visible action banner");
+          return;
+        }
+        humanHistory = historyCount();
         stage = "inspect";
         return;
       }
@@ -160,6 +167,12 @@ def main() -> None:
 
     if (stage === "verify") {
       if (historyCount() > beforeHistory) {
+        const banner = document.getElementById("action-banner");
+        if (!banner || banner.hidden || !banner.classList.contains("show")) {
+          fail("human action did not produce a visible action banner");
+          return;
+        }
+        humanHistory = historyCount();
         stage = "inspect";
         return;
       }
@@ -183,13 +196,36 @@ def main() -> None:
         fail("inspector did not render the full card");
         return;
       }
+      document.getElementById("card-inspector-close")?.click();
+      stage = "wait-ai";
+      return;
+    }
+
+    if (stage === "wait-ai") {
+      if (historyCount() <= humanHistory) return;
+      const banner = document.getElementById("action-banner");
+      const kicker = document.getElementById("action-banner-kicker")?.textContent || "";
+      if (!banner || banner.hidden || !banner.classList.contains("show")) {
+        fail("opponent action was not shown before returning control");
+        return;
+      }
+      if (!kicker.includes("OPPONENT")) {
+        fail("delayed action banner did not identify the opponent");
+        return;
+      }
       root.dataset.playSmoke = "pass";
-      root.dataset.playSmokeDetail = "card action and public-card inspection completed";
+      root.dataset.playSmokeDetail = "human action, card inspection, and delayed opponent action were visible";
       clearInterval(timer);
       return;
     }
 
     if (targetClicked && historyCount() > beforeHistory) {
+      const banner = document.getElementById("action-banner");
+      if (!banner || banner.hidden || !banner.classList.contains("show")) {
+        fail("human action did not produce a visible action banner");
+        return;
+      }
+      humanHistory = historyCount();
       stage = "inspect";
       return;
     }
@@ -262,7 +298,7 @@ def main() -> None:
             detail = result.stdout.split(marker, 1)[1].split('"', 1)[0]
         raise SystemExit(f"Start-a-match browser smoke failed: {detail}")
 
-    print("PASS: real browser starts the match, completes a board action, and opens a public battlefield card at readable size")
+    print("PASS: real browser shows the human action, full-card inspection, and a delayed visible opponent response")
 
 
 if __name__ == "__main__":

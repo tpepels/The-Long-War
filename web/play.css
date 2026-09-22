@@ -2262,7 +2262,7 @@ body.game-body::before {
 
 @media (max-height: 940px) {
   .tabletop-shell {
-    --hand-scale: .61;
+    --hand-scale: .57;
     grid-template-rows: 32px 56px minmax(0, 1fr) 225px;
   }
 
@@ -2343,4 +2343,482 @@ body.game-body::before {
   .card-inspector .play-card-rules {
     font-size: 12.5px;
   }
+}
+
+
+/* v0.8 first human playtest: game-scale type and visible turn feedback ------ */
+
+.game-mark span {
+  font-size: 9px;
+}
+.game-mark strong {
+  font-size: 18px;
+}
+.engine-lamp {
+  font-size: 11px;
+}
+.game-masthead nav a,
+.game-masthead nav button {
+  font-size: 11px;
+}
+
+.match-strip {
+  font-size: 11px;
+  gap: 18px;
+}
+.match-strip strong {
+  font-size: 18px;
+}
+.battle-medallion small {
+  font-size: 9px;
+}
+.battle-medallion strong {
+  font-size: 18px;
+}
+.turn-marker {
+  font-size: 11px;
+}
+.score-player {
+  gap: 8px;
+}
+
+.rack-player span,
+.rack-pile span,
+.hand-heading > span {
+  font-size: 10px;
+}
+.rack-player strong {
+  font-size: 20px;
+}
+.rack-pile b {
+  font-size: 11px;
+}
+.rack-pile small {
+  font-size: 9px;
+}
+
+.orders-ribbon {
+  width: min(1040px, calc(100% - 24px));
+  min-height: 52px;
+  padding: 8px 14px;
+}
+.orders-ribbon small {
+  font-size: 10px;
+}
+.orders-ribbon strong {
+  font-size: 17px;
+}
+.orders-ribbon span {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.22;
+}
+.orders-ribbon button {
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid rgba(217,199,164,.22);
+  font-size: 11px;
+}
+
+.choice-tray {
+  width: min(1040px, calc(100% - 24px));
+  max-height: 54px;
+  min-height: 40px;
+  padding: 7px 9px;
+  font-size: 11px;
+}
+.choice-tray button {
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
+.front-banner small {
+  font-size: 9px;
+}
+.rank-label,
+.battle-stratagem-zone > span {
+  font-size: 9px;
+}
+.digital-slot.empty {
+  font-size: 10px;
+}
+.slot-rank {
+  font-size: 8px;
+}
+.board-card-type {
+  font-size: 8px;
+}
+.board-card strong {
+  font-size: 11px;
+  line-height: 1.03;
+}
+.scheme-marker span {
+  font-size: 9px;
+}
+.scheme-marker b,
+.public-card-link {
+  font-size: 10.5px;
+}
+.stratagem-marker span {
+  font-size: 10px;
+}
+.stratagem-marker b {
+  font-size: 8px;
+}
+.battle-line-wide span {
+  font-size: 8px;
+}
+
+.digital-slot.recent-action {
+  z-index: 7;
+  border-color: #d7ad58;
+  box-shadow:
+    inset 0 0 0 2px rgba(215,173,88,.62),
+    0 0 24px rgba(215,173,88,.28);
+  animation: recent-action-pulse 1.45s ease-out;
+}
+
+@keyframes recent-action-pulse {
+  0% {
+    background: rgba(215,173,88,.28);
+    box-shadow:
+      inset 0 0 0 3px rgba(239,210,139,.92),
+      0 0 34px rgba(215,173,88,.56);
+  }
+  100% {
+    background: rgba(229,216,187,.03);
+  }
+}
+
+.hand-dock h2 {
+  font-size: 18px;
+}
+.hand-heading > span {
+  font-size: 10px;
+}
+.hand-controls {
+  gap: 10px;
+}
+
+.draw-button,
+.pass-button {
+  min-width: 112px;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid var(--gold);
+  border-radius: 0;
+  font: 850 12px/1 system-ui,sans-serif;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.draw-button {
+  background: var(--gold);
+  color: #17130e;
+}
+.draw-button:hover {
+  background: #d7b465;
+}
+.pass-button {
+  background: #211b14;
+  color: var(--gold);
+}
+
+.play-card {
+  --inspect-scale: 1.22;
+}
+
+/* The dock is deliberately compact. Any hand card, including one that is not
+   currently legal, expands for reading without changing the table layout. */
+.digital-hand .play-card:hover {
+  z-index: 30;
+  transform:
+    rotate(var(--fan-rot, 0deg))
+    translateY(calc(var(--fan-y, 0px) - 11px))
+    scale(var(--inspect-scale));
+  filter: none;
+  opacity: 1;
+}
+.play-card-meta {
+  font-size: 8.5px;
+}
+.play-card-role {
+  font-size: 10px;
+}
+.play-card-role strong {
+  font-size: 10.5px;
+}
+.play-card-classes {
+  font-size: 9px;
+}
+.play-card-rules {
+  font-size: 12px;
+  line-height: 1.18;
+}
+.play-card-rules .rule-label {
+  font-size: 8px;
+}
+.play-card footer {
+  font-size: 8px;
+}
+
+.game-term {
+  border-bottom: 1px dotted currentColor;
+  cursor: help;
+  outline: none;
+}
+.game-term:focus {
+  border-bottom-style: solid;
+  background: color-mix(in srgb, var(--card-accent) 14%, transparent);
+}
+
+.term-hint[hidden] {
+  display: none;
+}
+.term-hint {
+  position: fixed;
+  z-index: 220;
+  width: min(330px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border: 1px solid rgba(217,199,164,.55);
+  background: #15120f;
+  color: #eee0c7;
+  box-shadow: 0 10px 30px rgba(0,0,0,.48);
+  font: 13.5px/1.35 system-ui,sans-serif;
+  pointer-events: none;
+}
+
+.turn-actions:has(.mulligan-confirm) {
+  width: min(720px, calc(100% - 34px));
+  max-height: none;
+  min-height: 56px;
+  top: 4px;
+  padding: 7px 9px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  overflow: visible;
+  border: 1px solid rgba(185,146,74,.45);
+  background: rgba(15,13,10,.96);
+  box-shadow: 0 10px 28px rgba(0,0,0,.42);
+}
+
+.mulligan-action-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  color: #a99b85;
+  text-align: left;
+}
+.mulligan-action-copy strong {
+  color: var(--parchment-light);
+  font: 600 15px/1 Georgia,serif;
+}
+.mulligan-action-copy span {
+  font: 11px/1.25 system-ui,sans-serif;
+}
+
+.initiative-button {
+  min-height: 42px;
+  padding: 9px 15px;
+  font-size: 11px;
+}
+.mulligan-confirm {
+  min-width: 190px;
+  background: var(--gold);
+  color: #17130e;
+  font-size: 12px;
+}
+
+.game-tools summary {
+  min-width: 58px;
+  padding: 8px 10px;
+  font-size: 10px;
+}
+.discard-list span {
+  padding: 6px 7px;
+  font-size: 11px;
+}
+.action-log .tool-panel {
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.campaign-links button,
+.campaign-links a {
+  padding: 10px;
+  font-size: 10px;
+}
+
+.mulligan-placeholder span {
+  font-size: 13px;
+}
+.privacy-gate button {
+  font-size: 12px;
+}
+
+.action-banner[hidden] {
+  display: none;
+}
+.action-banner {
+  width: min(520px, calc(100vw - 30px));
+  min-height: 94px;
+  padding: 14px 20px;
+  position: fixed;
+  left: 50%;
+  top: 64px;
+  z-index: 120;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  transform: translate(-50%, -14px) scale(.97);
+  border: 1px solid rgba(217,199,164,.5);
+  background:
+    linear-gradient(180deg, rgba(47,38,27,.98), rgba(20,17,13,.98));
+  box-shadow: 0 22px 60px rgba(0,0,0,.58);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .2s ease;
+  text-align: center;
+}
+.action-banner.show {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+.action-banner small {
+  color: var(--gold);
+  font: 850 10px/1 system-ui,sans-serif;
+  letter-spacing: .14em;
+}
+.action-banner strong {
+  color: var(--parchment-light);
+  font: 600 24px/1.05 Georgia,serif;
+}
+.action-banner span {
+  color: #b7aa94;
+  font: 12.5px/1.3 system-ui,sans-serif;
+}
+
+.ai-waiting .orders-ribbon {
+  border-color: rgba(185,146,74,.5);
+}
+.ai-waiting .opponent-rack {
+  background: linear-gradient(90deg, transparent, rgba(185,146,74,.07), transparent);
+}
+
+.card-inspector-panel {
+  width: min(430px, calc(100vw - 28px));
+}
+#card-inspector-context {
+  font-size: 11px;
+}
+#card-inspector-title {
+  font-size: 21px;
+}
+.card-inspector .play-card {
+  width: 300px;
+  height: 421px;
+  flex-basis: 300px;
+  grid-template-rows: 28px 70px 46px 247px 30px;
+}
+.card-inspector .play-card-meta {
+  height: 28px;
+  font-size: 11px;
+}
+.card-inspector .play-card h3 {
+  height: 70px;
+  font-size: 25px;
+}
+.card-inspector .play-card-role {
+  font-size: 13px;
+}
+.card-inspector .play-card-role strong {
+  font-size: 13.5px;
+}
+.card-inspector .play-card-classes {
+  font-size: 11px;
+}
+.card-inspector .play-card-rules {
+  padding: 14px 17px 10px;
+  font-size: 16px;
+  line-height: 1.24;
+}
+.card-inspector .play-card-rules .rule-label {
+  font-size: 10px;
+}
+.card-inspector .play-card footer {
+  font-size: 9px;
+}
+.card-inspector-panel > p {
+  font-size: 11px;
+}
+
+@media (max-height: 820px) {
+  /* Preserve the battlefield at laptop height. Hand cards stay compact in the
+     dock, but hover/selection still expands them at readable inspector scale. */
+  .tabletop-shell {
+    --hand-scale: .45;
+    grid-template-rows: 28px 46px minmax(0, 1fr) 182px;
+  }
+  .hand-dock {
+    grid-template-rows: 30px minmax(0, 1fr);
+    padding-block: 3px 4px;
+  }
+  .hand-dock > header {
+    height: 30px;
+  }
+  .opponent-rack {
+    padding-block: 0;
+  }
+  .card-back {
+    width: 32px;
+    height: 46px;
+    flex-basis: 32px;
+    margin-left: -17px;
+  }
+  .orders-ribbon {
+    min-height: 44px;
+    padding-block: 6px;
+  }
+  .orders-ribbon strong { font-size: 15px; }
+  .orders-ribbon span { font-size: 11.5px; }
+  .board-card strong { font-size: 10px; }
+  .board-card-type { font-size: 7px; }
+  .rank-label,
+  .battle-stratagem-zone > span { font-size: 8px; }
+  .game-tools { top: 39px; }
+  .draw-button,
+  .pass-button {
+    min-width: 92px;
+    min-height: 34px;
+    font-size: 11px;
+  }
+  .card-inspector .play-card {
+    width: 270px;
+    height: 379px;
+    flex-basis: 270px;
+    grid-template-rows: 26px 62px 42px 222px 27px;
+  }
+  .card-inspector .play-card h3 {
+    height: 62px;
+    font-size: 22px;
+  }
+  .card-inspector .play-card-rules {
+    font-size: 14.5px;
+  }
+}
+
+@media (max-width: 760px) {
+  .game-mark strong { font-size: 16px; }
+  .engine-lamp { font-size: 10px; }
+  .rank-label,
+  .battle-stratagem-zone > span { font-size: 7px; }
+  .front-banner > span { font-size: 10px; }
+  .orders-ribbon span { white-space: normal; }
+  .turn-actions:has(.mulligan-confirm) {
+    width: calc(100% - 18px);
+    gap: 8px;
+  }
+  .mulligan-action-copy span { display: none; }
+  .mulligan-confirm { min-width: 150px; }
 }

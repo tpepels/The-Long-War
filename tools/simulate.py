@@ -8,6 +8,7 @@ from typing import Any
 
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
+from longwar.fingerprint import current_game_fingerprint
 from longwar.simulate import simulate_games
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -61,6 +62,10 @@ def main() -> None:
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
     policies = (load_policy(args.policy_a), load_policy(args.policy_b))
+    game_fingerprint = current_game_fingerprint()
+    for policy in policies:
+        if policy is not None and policy.get("game_fingerprint") != game_fingerprint:
+            raise SystemExit("MCCFR policy belongs to an older ruleset; retrain it before simulation")
 
     report = simulate_games(
         engine,
@@ -75,6 +80,7 @@ def main() -> None:
     )
 
     payload = asdict(report)
+    payload["game_fingerprint"] = game_fingerprint
     payload["seed"] = args.seed
     payload["win_rates"] = report.win_rates
     payload["first_player_win_rate"] = report.first_player_win_rate

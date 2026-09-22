@@ -10,6 +10,7 @@ from .actions import (
     Action,
     BoardTarget,
     ChooseFirst,
+    Draw,
     Pass,
     PlayLink,
     PlayName,
@@ -231,6 +232,7 @@ class GameEngine:
                 )
 
         self._pass_action = Pass()
+        self._draw_action = Draw()
         self._choose_first_actions = (ChooseFirst(0), ChooseFirst(1))
         self._subject_action_templates = {
             card_id: tuple(
@@ -341,6 +343,7 @@ class GameEngine:
         seed: int = 0,
         first_player: int | None = None,
         mulligan_indices: tuple[tuple[int, ...], tuple[int, ...]] = ((), ()),
+        opening_bonus: bool = True,
     ) -> GameState:
         self.validate_deck(deck_a)
         self.validate_deck(deck_b)
@@ -350,6 +353,7 @@ class GameEngine:
             rng=random.Random(seed),
             first_player=first_player,
             mulligan_indices=mulligan_indices,
+            opening_bonus=opening_bonus,
         )
 
     def _new_game_with_rng(
@@ -360,6 +364,7 @@ class GameEngine:
         rng: random.Random,
         first_player: int | None = None,
         mulligan_indices: tuple[tuple[int, ...], tuple[int, ...]] = ((), ()),
+        opening_bonus: bool = True,
     ) -> GameState:
         """Construct a game from already-validated decks with a reusable RNG."""
         decks = [list(deck_a), list(deck_b)]
@@ -386,6 +391,11 @@ class GameEngine:
             if first_player is None
             else first_player
         )
+        # Acting first exposes the first commitment. Battle I compensates that
+        # information disadvantage with one additional opening card. Preview
+        # states may opt out because mulligans happen before this card is drawn.
+        if opening_bonus:
+            self._draw(state, state.active_player, 1)
         return state
 
     def _apply_mulligan(
@@ -422,6 +432,8 @@ class GameEngine:
             raise RuntimeError("A passed player cannot become active")
 
         actions: list[Action] = [self._pass_action]
+        if not state.draw_used[player] and state.players[player].deck:
+            actions.append(self._draw_action)
 
         for card_id in dict.fromkeys(state.players[player].hand):
             card_type = self._card_types[card_id]
@@ -469,6 +481,13 @@ class GameEngine:
 
         if isinstance(action, Pass):
             self._pass(state, actor)
+            return
+
+        if isinstance(action, Draw):
+            self._draw(state, actor, 1)
+            state.draw_used[actor] = True
+            self._advance_turn(state)
+            state.turn_number += 1
             return
 
         if isinstance(action, PlaySubject):
@@ -1758,6 +1777,7 @@ class GameEngine:
         state.battle += 1
         state.discarded_this_battle = [0, 0]
         state.stratagem_used = [False, False]
+        state.draw_used = [False, False]
         state.pass_order.clear()
         for player in range(2):
             state.players[player].passed = False

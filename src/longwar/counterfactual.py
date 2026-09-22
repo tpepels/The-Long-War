@@ -311,6 +311,7 @@ def _play_focal_outcome(
         deck_b,
         seed=sample.game_seed,
         first_player=0,
+        opening_bonus=False,
     )
     agents = [
         make_agent(

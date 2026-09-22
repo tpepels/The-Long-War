@@ -86,6 +86,7 @@ def simulate_games(
             deck_b,
             seed=seed + game_index,
             first_player=first_player,
+            opening_bonus=False,
         )
         agents = [
             make_agent(

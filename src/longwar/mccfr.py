@@ -15,6 +15,7 @@ from .game.actions import (
     Action,
     BoardTarget,
     ChooseFirst,
+    Draw,
     Pass,
     PlayLink,
     PlayName,
@@ -65,6 +66,8 @@ def action_key(action: Action) -> str:
     """Stable serialization used inside an information-set policy."""
     if isinstance(action, Pass):
         return "pass"
+    if isinstance(action, Draw):
+        return "draw"
     if isinstance(action, ChooseFirst):
         return f"choose_first:{action.player}"
     if isinstance(action, PlaySubject):
@@ -173,6 +176,7 @@ def information_set_key(state: GameState, player: int) -> tuple[tuple[str, Any],
             ),
         ),
         ("stratagem_used", tuple(state.stratagem_used)),
+        ("draw_used", tuple(state.draw_used)),
         ("own_hand", _counter_key(own.hand)),
         ("own_deck", _counter_key(own.deck)),
         ("own_discard", tuple(own.discard)),
@@ -275,6 +279,10 @@ def _search_information_set_key(state: GameState, player: int) -> tuple[Any, ...
             state.stratagem_used[0],
             state.stratagem_used[1],
         ),
+        (
+            state.draw_used[0],
+            state.draw_used[1],
+        ),
         _sorted_card_multiset(own.hand),
         _sorted_card_multiset(own.deck),
         tuple(own.discard),
@@ -304,6 +312,7 @@ def _search_key_observation(key: tuple[Any, ...]) -> dict[str, Any]:
         schemes,
         stratagems,
         stratagem_used,
+        draw_used,
         own_hand,
         own_deck,
         own_discard,
@@ -348,6 +357,7 @@ def _search_key_observation(key: tuple[Any, ...]) -> dict[str, Any]:
         "schemes": thaw(schemes),
         "stratagems": thaw(stratagems),
         "stratagem_used": list(stratagem_used),
+        "draw_used": list(draw_used),
         "own_hand": _counter_view_from_sorted(own_hand),
         "own_deck": _counter_view_from_sorted(own_deck),
         "own_discard": list(own_discard),
@@ -475,6 +485,7 @@ def information_set_observation(state: GameState, player: int) -> dict[str, Any]
             for owner in range(2)
         ],
         "stratagem_used": list(state.stratagem_used),
+        "draw_used": list(state.draw_used),
         "own_hand": _counter_view(own.hand),
         "own_deck": _counter_view(own.deck),
         "own_discard": list(own.discard),

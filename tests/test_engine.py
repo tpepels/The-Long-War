@@ -7,6 +7,7 @@ from longwar.cards import load_card_file
 from longwar.game import (
     BoardTarget,
     ChooseFirst,
+    Draw,
     Front,
     GameEngine,
     Pass,
@@ -41,12 +42,52 @@ def fresh_state(*, first_player: int = 0):
     return engine, state
 
 
-def test_setup_draws_ten_and_keeps_twenty_in_deck() -> None:
-    _, state = fresh_state()
-    assert [len(player.hand) for player in state.players] == [10, 10]
-    assert [len(player.deck) for player in state.players] == [20, 20]
+def test_setup_gives_battle_one_starter_an_extra_opening_card() -> None:
+    engine, state = fresh_state(first_player=0)
+    assert [len(player.hand) for player in state.players] == [11, 10]
+    assert [len(player.deck) for player in state.players] == [19, 20]
     assert state.battle == 1
     assert state.phase is Phase.BATTLE
+    assert state.active_player == 0
+    assert state.draw_used == [False, False]
+    assert any(isinstance(action, Draw) for action in engine.legal_actions(state))
+
+def test_draw_is_a_once_per_battle_normal_action() -> None:
+    engine, state = fresh_state(first_player=0)
+    hand_before = len(state.players[0].hand)
+    deck_before = len(state.players[0].deck)
+
+    assert any(isinstance(action, Draw) for action in engine.legal_actions(state))
+    engine.apply(state, Draw())
+
+    assert len(state.players[0].hand) == hand_before + 1
+    assert len(state.players[0].deck) == deck_before - 1
+    assert state.draw_used == [True, False]
+    assert state.active_player == 1
+
+    state.active_player = 0
+    assert not any(isinstance(action, Draw) for action in engine.legal_actions(state))
+
+
+def test_draw_is_not_legal_with_an_empty_deck() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.players[0].deck.clear()
+    assert not any(isinstance(action, Draw) for action in engine.legal_actions(state))
+
+
+def test_battle_draw_resets_for_the_next_battle() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.draw_used = [True, True]
+    state.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
+    state.slot(0, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.battle == 2
+    assert state.phase is Phase.CHOOSE_FIRST
+    assert state.draw_used == [False, False]
+
 
 
 def test_links_help_immediately_and_namar_rewards_frontline() -> None:

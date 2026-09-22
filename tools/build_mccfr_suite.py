@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from longwar.fingerprint import current_game_fingerprint
+
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
 
@@ -32,6 +34,7 @@ def simulation_summary(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> None:
+    game_fingerprint = current_game_fingerprint()
     card_data = load(ROOT / "cards" / "cards.json")
     all_card_ids = {card["id"] for card in card_data["cards"]}
     covered: set[str] = set()
@@ -43,8 +46,18 @@ def main() -> None:
         covered.update(deck_unique)
 
         policy = load(ARTIFACTS / f"mccfr-policy-{profile_id}.json")
+        if policy.get("game_fingerprint") != game_fingerprint:
+            raise SystemExit(f"Stale MCCFR policy for {profile_id}: rerun training for the current ruleset")
         forward = load(ARTIFACTS / f"mccfr-{profile_id}-vs-heuristic.json")
         reverse = load(ARTIFACTS / f"heuristic-vs-mccfr-{profile_id}.json")
+        if (
+            forward.get("game_fingerprint") != game_fingerprint
+            or reverse.get("game_fingerprint") != game_fingerprint
+        ):
+            raise SystemExit(
+                f"Stale MCCFR evaluation for {profile_id}: "
+                "rerun evaluation for the current ruleset"
+            )
 
         forward_games = int(forward.get("games", 0))
         reverse_games = int(reverse.get("games", 0))
@@ -87,6 +100,7 @@ def main() -> None:
 
     payload = {
         "schema_version": 1,
+        "game_fingerprint": game_fingerprint,
         "card_pool_size": len(all_card_ids),
         "covered_cards": len(covered),
         "coverage_fraction": len(covered) / len(all_card_ids),

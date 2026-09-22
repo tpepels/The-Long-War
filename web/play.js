@@ -10,6 +10,10 @@ let stagedPlotSource = null;
 let choiceActions = [];
 let mulliganSelection = new Set();
 let cardsReady = false;
+let aiStepTimer = null;
+let actionBannerTimer = null;
+let lastShownActionId = 0;
+let openingAnnouncementShown = false;
 
 const moduleUrl = new URL(import.meta.url);
 const buildVersion = moduleUrl.searchParams.get("v") || "";
@@ -29,7 +33,7 @@ function updateStartAvailability() {
   $("randomize-seed").disabled = !ready;
   $("start-game").disabled = !ready;
   $("engine-status").textContent = ready
-    ? "Ready · browser engine"
+    ? "Ready"
     : "Loading cards…";
 }
 const frontNames = ["Left", "Center", "Right"];
@@ -42,9 +46,47 @@ function esc(value) {
     .replaceAll('"', "&quot;");
 }
 
+const TERM_HINTS = {
+  "battle": "A round of play. Control at least two of the three Fronts to win it.",
+  "bond": "An attachment played onto one of your Subjects. A Subject can have one Bond.",
+  "discard": "Move a card to its owner's discard pile.",
+  "discarded": "Moved to the discard pile.",
+  "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
+  "draw": "Spend your normal action to draw 1 card. You may do this once per Battle.",
+  "front": "One of the three lanes: Left, Center, or Right.",
+  "frontline": "The position nearest the Battle Line. It normally receives +1 Line Defense.",
+  "frontline subject": "The Subject occupying the Frontline position of that Front.",
+  "frontline subjects": "Subjects occupying Frontline positions.",
+  "line defense": "The default +1 Strength bonus given to a Subject in the Frontline.",
+  "move": "Relocate a Subject, keeping its attached Bond and Name unless the effect says otherwise.",
+  "name": "An attachment played onto an open Bond. A Subject can have one Name.",
+  "pass": "End your participation in this Battle. You take no more turns until the next Battle.",
+  "passes": "Pass ends that player's participation in the current Battle; they take no more turns.",
+  "rear": "The position behind the Frontline in the same Front.",
+  "rear subject": "The Subject occupying the Rear position of that Front.",
+  "rear subjects": "Subjects occupying Rear positions.",
+  "stories": "Story cards change the battlefield without occupying a Subject position.",
+  "story": "A card that resolves its effect and is then discarded.",
+  "strength": "The value compared in each Front. Higher total Strength controls that Front.",
+  "subject": "A unit or place that occupies a Frontline or Rear position.",
+  "subjects": "Cards that occupy Frontline or Rear positions.",
+  "veiled stories": "Stories set face-down in a Front and revealed when their trigger occurs.",
+  "veiled story": "A Story set face-down in a Front and revealed when its trigger occurs.",
+  "adjacent": "Immediately left or right in the same rank.",
+  "adjacent subject": "A Subject immediately left or right in the same rank.",
+  "adjacent subjects": "Subjects immediately left or right in the same rank.",
+  "return": "Move a card from the battlefield back to its owner's hand."
+};
+
+function termMarkup(label) {
+  const key = String(label).trim().toLowerCase();
+  const hint = TERM_HINTS[key] || "An important game term. See the rulebook for its full definition.";
+  return '<strong class="game-term" data-term-hint="' + esc(hint) + '">' + label + '</strong>';
+}
+
 function formatGameText(value) {
   return esc(value)
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*\*([^*]+)\*\*/g, (_, label) => termMarkup(label))
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
@@ -86,6 +128,7 @@ async function request(payload) {
   if (!session) throw new Error("Start a match first.");
   if (payload.type === "view") return session.view(payload.viewer);
   if (payload.type === "act") return session.act(payload.key, payload.viewer);
+  if (payload.type === "ai_step") return session.aiStep();
   if (payload.type === "mulligan") return session.mulligan(payload.indices || [], payload.viewer);
   throw new Error("Unknown game request: " + payload.type);
 }
@@ -219,6 +262,11 @@ function actionForPass() {
   return state.legal_actions.find((action) => action.kind === "Pass") || null;
 }
 
+function actionForDraw() {
+  if (!state || state.phase === "mulligan") return null;
+  return state.legal_actions.find((action) => action.kind === "Draw") || null;
+}
+
 function targetActionsForSlot(owner, front, rank) {
   const actions = selectedActions();
   const matches = [];
@@ -268,6 +316,12 @@ function renderSlot(owner, front, rank) {
   const classes = ["digital-slot", slot?.subject ? "occupied" : "empty"];
   if (targetable) classes.push("targetable");
   if (stagedPlotSource && locEquals(stagedPlotSource, owner, front, rank)) classes.push("staged-source");
+  const recent = state.last_action;
+  const recentPosition =
+    (recent?.actor === owner && posEquals(recent.position, front, rank)) ||
+    (recent?.move_to && recent.actor === owner && posEquals(recent.move_to, front, rank)) ||
+    (recent?.targets || []).some((target) => locEquals(target, owner, front, rank));
+  if (recentPosition) classes.push("recent-action");
 
   const attrs =
     'data-board-owner="' + owner + '" data-board-front="' + front + '" data-board-rank="' + rank + '"';
@@ -413,6 +467,7 @@ function renderStrip() {
       '<div class="battle-medallion"><small>Opening</small><strong>Mulligan</strong></div>' +
       '<div class="turn-marker">Player ' + (state.active_player + 1) + ' · choose up to 2 returns</div>';
     $("pass-button").hidden = true;
+    $("draw-button").hidden = true;
     return;
   }
 
@@ -431,11 +486,17 @@ function renderStrip() {
     '</div>';
 
   const pass = actionForPass();
-  const button = $("pass-button");
-  button.hidden = !pass || state.viewer == null;
-  button.disabled = !pass || state.viewer == null;
-  button.classList.toggle("danger-pass", !!pass && state.players[opponentOf(currentViewer())].passed);
-  button.textContent = state.players[opponentOf(currentViewer())].passed ? "Pass · score Battle" : "Pass";
+  const passButton = $("pass-button");
+  passButton.hidden = !pass || state.viewer == null;
+  passButton.disabled = !pass || state.viewer == null;
+  passButton.classList.toggle("danger-pass", !!pass && state.players[opponentOf(currentViewer())].passed);
+  passButton.textContent = state.players[opponentOf(currentViewer())].passed ? "Pass · score Battle" : "Pass";
+
+  const draw = actionForDraw();
+  const drawButton = $("draw-button");
+  drawButton.hidden = !draw || state.viewer == null;
+  drawButton.disabled = !draw || state.viewer == null;
+  drawButton.textContent = "Draw 1";
 }
 
 function renderOpponentRack() {
@@ -561,6 +622,14 @@ function renderInteraction() {
     return;
   }
 
+  if (state.needs_ai) {
+    title.textContent = "Opponent’s turn";
+    hint.textContent = "Watch the battlefield: the opponent’s action will resolve before your next turn.";
+    cancel.hidden = true;
+    tray.hidden = true;
+    return;
+  }
+
   if (!selectedCardId) {
     const choose = state.legal_actions.filter((a) => a.kind === "ChooseFirst");
     if (choose.length) {
@@ -568,17 +637,15 @@ function renderInteraction() {
       hint.textContent = "The loser of the previous Battle chooses the first player.";
     } else {
       title.textContent = "Choose a card";
-      hint.textContent = "Click a card, or drag it onto a highlighted position. Press P to Pass.";
+      hint.textContent = "Play a card, Draw 1 once this Battle, or Pass. Legal destinations highlight when you select a card.";
     }
     cancel.hidden = true;
   } else {
     const card = cards[selectedCardId];
     title.textContent = card.title;
     let message = interactionHintFor(card);
-    if ($("show-reasons").checked) {
-      const reason = selectedActions()[0]?.reason;
-      if (reason) message += " " + reason;
-    }
+    const reason = selectedActions()[0]?.reason;
+    if (reason) message += " " + reason;
     hint.textContent = message;
     cancel.hidden = false;
   }
@@ -649,7 +716,7 @@ function renderHand() {
         mulligan: true,
         copyLabel: total > 1 ? ordinal + "/" + total : "",
         attrs: 'data-mulligan-index="' + index + '"',
-        footer: selected ? "RETURN THIS COPY" : "KEEP",
+        footer: selected ? "REDRAW THIS CARD" : "KEEP",
       });
     }).join("");
 
@@ -668,8 +735,12 @@ function renderHand() {
 
     const count = mulliganSelection.size;
     actions.innerHTML =
-      '<button type="button" class="initiative-button" id="confirm-mulligan">' +
-      (count ? "Return " + count + " card" + (count === 1 ? "" : "s") : "Keep this hand") +
+      '<div class="mulligan-action-copy">' +
+        '<strong>' + (count ? count + " selected" : "No cards selected") + '</strong>' +
+        '<span>' + (count ? "These cards will be shuffled back and replaced." : "Keep all 10 cards and begin the Battle.") + '</span>' +
+      '</div>' +
+      '<button type="button" class="initiative-button mulligan-confirm" id="confirm-mulligan">' +
+      (count ? "Redraw " + count + " selected" : "Keep all 10") +
       "</button>";
     $("confirm-mulligan").addEventListener("click", submitMulligan);
     window.CardLayoutGuard?.schedule(hand);
@@ -689,14 +760,19 @@ function renderHand() {
       selected: selectedCardId === cardId,
       attrs: 'data-hand-card="' + esc(cardId) + '" draggable="' + playable +
         '" style="--fan-rot:' + rotation + 'deg;--fan-y:' + offset + 'px"',
-      footer: playable ? "SELECT OR DRAG TO PLAY" : "NO LEGAL PLAY",
+      footer: playable ? "SELECT TO PLAY · CLICK AGAIN TO READ" : "CLICK TO READ",
     });
   }).join("");
 
   hand.querySelectorAll("[data-hand-card]").forEach((cardEl) => {
     const cardId = cardEl.dataset.handCard;
     cardEl.addEventListener("click", () => {
-      if (state.legal_actions.some((a) => a.card_id === cardId)) selectCard(cardId);
+      const playable = state.legal_actions.some((a) => a.card_id === cardId);
+      if (!playable || selectedCardId === cardId) {
+        openCardInspector(cardId, currentViewer(), "hand");
+        return;
+      }
+      selectCard(cardId);
     });
     cardEl.addEventListener("dragstart", (event) => {
       if (!state.legal_actions.some((a) => a.card_id === cardId)) {
@@ -871,6 +947,135 @@ function renderInteractiveState() {
   renderInteraction();
 }
 
+function updateGameStatus() {
+  const status = $("engine-status");
+  if (!state) {
+    status.textContent = cardsReady ? "Ready" : "Loading cards…";
+    return;
+  }
+  if (state.phase === "mulligan") {
+    status.textContent = "Opening mulligan";
+    return;
+  }
+  if (state.phase === "complete") {
+    status.textContent = "Match complete";
+    return;
+  }
+  if (state.needs_ai) {
+    status.textContent = "Opponent’s turn";
+    return;
+  }
+  status.textContent = "Battle " + state.battle + " · " +
+    (state.mode === "hotseat" ? "Player " + (state.active_player + 1) : "Your turn");
+}
+
+function renderActionFeedback() {
+  const banner = $("action-banner");
+
+  if (
+    !openingAnnouncementShown &&
+    state?.phase === "battle" &&
+    state.opening_player != null
+  ) {
+    openingAnnouncementShown = true;
+    const own = state.opening_player === state.viewer;
+    $("action-banner-kicker").textContent = own ? "YOU GO FIRST" : "OPPONENT GOES FIRST";
+    $("action-banner-title").textContent = "+1 opening card";
+    $("action-banner-detail").textContent =
+      "The Battle I starter draws one additional card after mulligans.";
+    banner.hidden = false;
+    banner.classList.remove("show");
+    void banner.offsetWidth;
+    banner.classList.add("show");
+    clearTimeout(actionBannerTimer);
+    actionBannerTimer = setTimeout(() => {
+      banner.classList.remove("show");
+      setTimeout(() => { banner.hidden = true; }, 180);
+    }, 1800);
+    return;
+  }
+
+  const action = state?.last_action;
+  if (!action || action.id === lastShownActionId) return;
+  lastShownActionId = action.id;
+  const own = action.actor === state.viewer;
+  const card = action.card_id ? cards[action.card_id] : null;
+  let kicker = own ? "YOUR ACTION" : "OPPONENT ACTION";
+  let title = card?.title || action.label;
+
+  if (action.kind === "Draw") {
+    kicker = own ? "YOU DRAW" : "OPPONENT DRAWS";
+    title = "1 card";
+  } else if (action.kind === "Pass") {
+    kicker = own ? "YOU PASS" : "OPPONENT PASSES";
+    title = "No more turns this Battle";
+  } else if (action.kind === "PlaySubject") {
+    kicker = own ? "YOU DEPLOY" : "OPPONENT DEPLOYS";
+  } else if (action.kind === "PlayLink") {
+    kicker = own ? "YOU ATTACH A BOND" : "OPPONENT ATTACHES A BOND";
+  } else if (action.kind === "PlayName") {
+    kicker = own ? "YOU NAME A SUBJECT" : "OPPONENT NAMES A SUBJECT";
+  } else if (action.kind === "PlayPlot") {
+    kicker = own ? "YOU PLAY A STORY" : "OPPONENT PLAYS A STORY";
+  } else if (action.kind === "PlayScheme") {
+    kicker = own ? "YOU SET A VEILED STORY" : "OPPONENT SETS A VEILED STORY";
+    if (!card) title = "Face-down card";
+  } else if (action.kind === "SetStratagem") {
+    kicker = own ? "YOU SET A STRATAGEM" : "OPPONENT SETS A STRATAGEM";
+    if (!card) title = "Face-down card";
+  }
+
+  $("action-banner-kicker").textContent = kicker;
+  $("action-banner-title").textContent = title;
+  $("action-banner-detail").textContent = action.label || "";
+  banner.hidden = false;
+  banner.classList.remove("show");
+  void banner.offsetWidth;
+  banner.classList.add("show");
+
+  clearTimeout(actionBannerTimer);
+  actionBannerTimer = setTimeout(() => {
+    banner.classList.remove("show");
+    setTimeout(() => { banner.hidden = true; }, 180);
+  }, 1800);
+}
+
+function cancelAiStep() {
+  if (aiStepTimer) clearTimeout(aiStepTimer);
+  aiStepTimer = null;
+  document.body.classList.remove("ai-waiting", "ai-resolving");
+}
+
+function scheduleAiStep(delay = 2000) {
+  cancelAiStep();
+  if (!state?.needs_ai || state.phase === "complete") return;
+  document.body.classList.add("ai-waiting");
+  updateGameStatus();
+
+  aiStepTimer = setTimeout(async () => {
+    aiStepTimer = null;
+    if (!state?.needs_ai || state.phase === "complete") {
+      document.body.classList.remove("ai-waiting");
+      return;
+    }
+    document.body.classList.remove("ai-waiting");
+    document.body.classList.add("ai-resolving");
+    try {
+      state = await request({ type: "ai_step" });
+      clearSelection();
+      render();
+      if (state.needs_ai) scheduleAiStep(1950);
+    } catch (error) {
+      $("engine-status").textContent = "Opponent action failed";
+      $("interaction-hint").textContent = error.message;
+      $("interaction-strip").classList.add("interaction-error");
+      console.error("[play]", error);
+    } finally {
+      document.body.classList.remove("ai-resolving");
+    }
+  }, delay);
+}
+
 async function submitMulligan() {
   if (!state || state.phase !== "mulligan" || state.viewer == null) return;
   const indices = [...mulliganSelection].sort((a, b) => a - b);
@@ -883,15 +1088,17 @@ async function submitMulligan() {
     clearSelection();
     render();
   });
+  scheduleAiStep();
 }
 
 async function executeAction(action) {
-  if (!action || state.viewer == null) return;
+  if (!action || state.viewer == null || state.needs_ai) return;
   await runBusy(async () => {
     state = await request({ type: "act", key: action.key, viewer: state.viewer });
     clearSelection();
     render();
   });
+  scheduleAiStep();
 }
 
 function render() {
@@ -904,7 +1111,10 @@ function render() {
   renderHand();
   renderInteraction();
   renderHistory();
+  renderActionFeedback();
+  updateGameStatus();
   if (state.phase === "complete") {
+    cancelAiStep();
     $("privacy-gate").hidden = false;
     $("privacy-gate").innerHTML = "<p><strong>Player " + (state.winner + 1) + " wins the match.</strong></p>";
   }
@@ -912,10 +1122,8 @@ function render() {
 
 async function runBusy(fn) {
   document.body.classList.add("is-busy");
-  $("engine-status").textContent = "Resolving turn…";
   try {
     await fn();
-    $("engine-status").textContent = "Ready · browser engine";
     if ($("interaction-strip")) $("interaction-strip").classList.remove("interaction-error");
   } catch (error) {
     $("engine-status").textContent = "Action failed";
@@ -925,6 +1133,7 @@ async function runBusy(fn) {
     console.error("[play]", error);
   } finally {
     document.body.classList.remove("is-busy");
+    updateGameStatus();
   }
 }
 
@@ -972,15 +1181,16 @@ $("new-game-form").addEventListener("submit", async (event) => {
 
 $("restart").addEventListener("click", () => {
   closeCardInspector();
+  cancelAiStep();
+  clearTimeout(actionBannerTimer);
+  lastShownActionId = 0;
+  openingAnnouncementShown = false;
+  $("action-banner").hidden = true;
   state = null;
   clearSelection();
   $("game").hidden = true;
   $("play-setup").hidden = false;
   randomizeSeed();
-});
-
-$("show-reasons").addEventListener("change", () => {
-  if (state) renderInteraction();
 });
 
 $("cancel-selection").addEventListener("click", () => {
@@ -993,9 +1203,54 @@ document.querySelectorAll("[data-inspector-close]").forEach((el) => {
   el.addEventListener("click", closeCardInspector);
 });
 
+$("draw-button").addEventListener("click", () => {
+  const draw = actionForDraw();
+  if (draw) executeAction(draw);
+});
+
 $("pass-button").addEventListener("click", () => {
   const pass = actionForPass();
   if (pass) executeAction(pass);
+});
+
+function showTermHint(term) {
+  const hint = $("term-hint");
+  if (!term || !hint) return;
+  hint.textContent = term.dataset.termHint || "";
+  hint.hidden = false;
+  const rect = term.getBoundingClientRect();
+  const hintRect = hint.getBoundingClientRect();
+  const left = Math.max(12, Math.min(
+    window.innerWidth - hintRect.width - 12,
+    rect.left + rect.width / 2 - hintRect.width / 2
+  ));
+  const below = rect.bottom + 9;
+  const top = below + hintRect.height <= window.innerHeight - 10
+    ? below
+    : Math.max(10, rect.top - hintRect.height - 9);
+  hint.style.left = left + "px";
+  hint.style.top = top + "px";
+}
+
+function hideTermHint() {
+  const hint = $("term-hint");
+  if (hint) hint.hidden = true;
+}
+
+document.addEventListener("mouseover", (event) => {
+  const term = event.target.closest?.(".game-term");
+  if (term) showTermHint(term);
+});
+document.addEventListener("mouseout", (event) => {
+  const term = event.target.closest?.(".game-term");
+  if (term && !term.contains(event.relatedTarget)) hideTermHint();
+});
+document.addEventListener("focusin", (event) => {
+  const term = event.target.closest?.(".game-term");
+  if (term) showTermHint(term);
+});
+document.addEventListener("focusout", (event) => {
+  if (event.target.closest?.(".game-term")) hideTermHint();
 });
 
 document.addEventListener("keydown", (event) => {
@@ -1015,6 +1270,10 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     clearSelection();
     renderInteractiveState();
+  }
+  if ((event.key === "d" || event.key === "D") && !event.metaKey && !event.ctrlKey) {
+    const draw = actionForDraw();
+    if (draw) executeAction(draw);
   }
   if ((event.key === "p" || event.key === "P") && !event.metaKey && !event.ctrlKey) {
     const pass = actionForPass();
