@@ -128,20 +128,11 @@ function cardHash(value) {
 function cardVisual(cardId, compact = false) {
   const card = cards[cardId];
   const hash = cardHash(cardId);
-  const x = 18 + (hash % 58);
-  const y = 15 + ((hash >>> 7) % 35);
-  const r = 10 + ((hash >>> 13) % 18);
   const mark = cardInitials(card.title);
   const symbol = card.type === "plot"
     ? (card.veiled ? "◐" : "⌁")
     : { subject: "◆", link: "⛓", name: "✦", stratagem: "⚑" }[card.type] || "•";
-  return '<div class="play-card-art' + (compact ? " compact" : "") + '">' +
-    '<svg viewBox="0 0 100 62" aria-hidden="true">' +
-      '<circle cx="' + x + '" cy="' + y + '" r="' + r + '"></circle>' +
-      '<path d="M4 ' + (54 - (hash % 18)) + ' Q 32 ' + (8 + (hash % 20)) +
-      ' 52 ' + (34 + ((hash >>> 4) % 20)) + ' T 96 ' + (12 + ((hash >>> 10) % 38)) + '"></path>' +
-      '<path d="M8 54 L' + (30 + (hash % 40)) + ' 12 L94 50"></path>' +
-    '</svg>' +
+  return '<div class="play-card-art motif-' + (hash % 5) + (compact ? " compact" : "") + '">' +
     '<span class="play-card-symbol">' + symbol + '</span>' +
     '<b>' + esc(mark) + '</b>' +
   '</div>';
