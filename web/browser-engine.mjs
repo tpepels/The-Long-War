@@ -918,8 +918,12 @@ export class BrowserSession {
       this.engine.applyMulligan(this.state, player, this.mulliganChoices.get(player) || [], this.rng);
     }
     this.state.active_player = this.rng.int(2);
+    this.engine.draw(this.state, this.state.active_player, 1);
     this.setupComplete = true;
-    this.log.push("Battle I begins. Player " + (this.state.active_player + 1) + " goes first.");
+    this.log.push(
+      "Battle I begins. Player " + (this.state.active_player + 1) +
+      " goes first and draws 1 additional opening card."
+    );
   }
 
   act(key, viewer) {
