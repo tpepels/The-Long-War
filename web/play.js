@@ -13,6 +13,7 @@ let cardsReady = false;
 let aiStepTimer = null;
 let actionBannerTimer = null;
 let lastShownActionId = 0;
+let openingAnnouncementShown = false;
 
 const moduleUrl = new URL(import.meta.url);
 const buildVersion = moduleUrl.searchParams.get("v") || "";
@@ -969,11 +970,34 @@ function updateGameStatus() {
 }
 
 function renderActionFeedback() {
+  const banner = $("action-banner");
+
+  if (
+    !openingAnnouncementShown &&
+    state?.phase === "battle" &&
+    state.opening_player != null
+  ) {
+    openingAnnouncementShown = true;
+    const own = state.opening_player === state.viewer;
+    $("action-banner-kicker").textContent = own ? "YOU GO FIRST" : "OPPONENT GOES FIRST";
+    $("action-banner-title").textContent = "+1 opening card";
+    $("action-banner-detail").textContent =
+      "The Battle I starter draws one additional card after mulligans.";
+    banner.hidden = false;
+    banner.classList.remove("show");
+    void banner.offsetWidth;
+    banner.classList.add("show");
+    clearTimeout(actionBannerTimer);
+    actionBannerTimer = setTimeout(() => {
+      banner.classList.remove("show");
+      setTimeout(() => { banner.hidden = true; }, 180);
+    }, 1800);
+    return;
+  }
+
   const action = state?.last_action;
   if (!action || action.id === lastShownActionId) return;
   lastShownActionId = action.id;
-
-  const banner = $("action-banner");
   const own = action.actor === state.viewer;
   const card = action.card_id ? cards[action.card_id] : null;
   let kicker = own ? "YOUR ACTION" : "OPPONENT ACTION";
@@ -1160,6 +1184,7 @@ $("restart").addEventListener("click", () => {
   cancelAiStep();
   clearTimeout(actionBannerTimer);
   lastShownActionId = 0;
+  openingAnnouncementShown = false;
   $("action-banner").hidden = true;
   state = null;
   clearSelection();
