@@ -45,6 +45,7 @@ def run_benchmark(
     iterations: int,
     depth: int,
     seed: int,
+    direct_traversal: bool = True,
 ) -> tuple[float, float, int]:
     trainer = MCCFRTrainer(
         engine,
@@ -52,6 +53,7 @@ def run_benchmark(
         deck,
         seed=seed,
         max_depth=depth,
+        direct_traversal=direct_traversal,
     )
     started = time.perf_counter()
     summary = trainer.train(iterations)
@@ -109,16 +111,17 @@ def main() -> None:
                 iterations=args.iterations,
                 depth=args.depth,
                 seed=args.seed,
+                direct_traversal=False,
             )
         finally:
             mccfr_module.external_sampling_traverse = original
 
-        print("Python fallback:")
+        print("Generic Python fallback:")
         print(f"  Information sets: {py_infosets}")
         print(f"  Elapsed seconds: {py_elapsed:.4f}")
         print(f"  Traversals/second: {py_rate:.2f}")
         if elapsed > 0:
-            print(f"Native speedup vs optimized Python: {py_elapsed / elapsed:.2f}x")
+            print(f"Direct native speedup vs generic Python: {py_elapsed / elapsed:.2f}x")
 
     if args.compare_legacy:
         original_traverse = mccfr_module.external_sampling_traverse
@@ -134,6 +137,7 @@ def main() -> None:
                 iterations=args.iterations,
                 depth=args.depth,
                 seed=args.seed,
+                direct_traversal=False,
             )
         finally:
             mccfr_module.external_sampling_traverse = original_traverse

@@ -94,6 +94,218 @@ class GameEngine:
         self.card_data = card_data
         self.cards = card_index(card_data)
 
+        # Flatten immutable dispatch metadata used at every search node.
+        self._card_types = {
+            card_id: card["type"]
+            for card_id, card in self.cards.items()
+        }
+        self._subject_required_rank = {
+            card_id: card.get("rules", {}).get("placement", {}).get("rank")
+            for card_id, card in self.cards.items()
+            if card["type"] == "subject"
+        }
+        self._name_attach_effect = {
+            card_id: card.get("rules", {}).get("on_name_attached")
+            for card_id, card in self.cards.items()
+            if card["type"] == "name"
+        }
+        self._plot_effects = {
+            card_id: card.get("rules", {}).get("effect")
+            for card_id, card in self.cards.items()
+            if card["type"] == "plot"
+        }
+        self._veiled_story_ids = {
+            card_id
+            for card_id, card in self.cards.items()
+            if card["type"] == "plot" and card.get("veiled", False)
+        }
+
+        # Strength-related runtime metadata. These tuples mirror the validated
+        # card data but avoid nested dict decoding inside every search leaf.
+        self._subject_strength: dict[str, int] = {}
+        self._subject_role: dict[str, str] = {}
+        self._subject_role_values: dict[str, tuple[int, int, int, int]] = {}
+        self._subject_conditions: dict[
+            str,
+            tuple[tuple[int, str | None, int | None, bool], ...],
+        ] = {}
+        self._subject_adjacent_aura: dict[str, int] = {}
+        self._subject_aura_rank: dict[str, str | None] = {}
+
+        self._link_runtime: dict[
+            str,
+            tuple[int, int, int, int, int, bool],
+        ] = {}
+        self._name_runtime: dict[str, tuple[int, str | None, int]] = {}
+        self._scheme_front_bonus: dict[str, int] = {}
+        self._stratagem_continuous: dict[
+            str,
+            tuple[
+                dict[str, int],
+                dict[str, int],
+                dict[str, int],
+                int,
+                int,
+                bool,
+            ],
+        ] = {}
+
+        for card_id, card in self.cards.items():
+            card_type = card["type"]
+            rules = card.get("rules", {})
+            if card_type == "subject":
+                role = card["role"]
+                role_rules = ROLE_POSITION_RULES.get(role, {})
+                self._subject_strength[card_id] = int(card["strength"])
+                self._subject_role[card_id] = role
+                self._subject_role_values[card_id] = (
+                    int(role_rules.get("front_bonus", 0)),
+                    int(role_rules.get("front_with_rear_bonus", 0)),
+                    int(role_rules.get("rear_bonus", 0)),
+                    int(role_rules.get("rear_with_front_bonus", 0)),
+                )
+                self._subject_conditions[card_id] = tuple(
+                    (
+                        int(modifier["amount"]),
+                        modifier.get("when", {}).get("rank"),
+                        (
+                            int(modifier.get("when", {})["own_discard_at_least"])
+                            if "own_discard_at_least" in modifier.get("when", {})
+                            else None
+                        ),
+                        bool(
+                            modifier.get("when", {}).get(
+                                "adjacent_subject_has_name",
+                                False,
+                            )
+                        ),
+                    )
+                    for modifier in rules.get("strength_modifiers", [])
+                )
+                self._subject_adjacent_aura[card_id] = int(
+                    rules.get("adjacent_strength_aura", 0)
+                )
+                self._subject_aura_rank[card_id] = rules.get(
+                    "aura_requires_rank"
+                )
+
+            elif card_type == "link":
+                discard_bonus = rules.get("discard_strength_bonus") or {}
+                self._link_runtime[card_id] = (
+                    int(rules.get("strength_bonus", 0)),
+                    int(rules.get("named_strength_bonus", 0)),
+                    int(discard_bonus.get("per_card", 0)),
+                    int(discard_bonus.get("maximum", 0)),
+                    int(rules.get("opposing_front_modifier", 0)),
+                    bool(rules.get("protect_subject_from_opponent_plot", False)),
+                )
+
+            elif card_type == "name":
+                rank_bonus = rules.get("rank_strength_bonus") or {}
+                self._name_runtime[card_id] = (
+                    int(card["strength"]),
+                    rank_bonus.get("rank"),
+                    int(rank_bonus.get("amount", 0)),
+                )
+
+            elif card_type == "plot" and card.get("veiled", False):
+                scheme = rules.get("scheme", {})
+                self._scheme_front_bonus[card_id] = int(
+                    scheme.get("face_down_front_bonus", 0)
+                )
+
+            elif card_type == "stratagem":
+                continuous = rules.get("stratagem", {}).get("continuous", {})
+                self._stratagem_continuous[card_id] = (
+                    dict(continuous.get("role_strength_modifiers", {})),
+                    dict(continuous.get("rank_strength_modifiers", {})),
+                    dict(
+                        continuous.get(
+                            "controller_rank_strength_modifiers",
+                            {},
+                        )
+                    ),
+                    int(continuous.get("named_subject_modifier", 0)),
+                    int(continuous.get("unnamed_subject_modifier", 0)),
+                    bool(continuous.get("disable_line_defense", False)),
+                )
+
+        self._pass_action = Pass()
+        self._choose_first_actions = (ChooseFirst(0), ChooseFirst(1))
+        self._subject_action_templates = {
+            card_id: tuple(
+                PlaySubject(card_id, position)
+                for position in ALL_POSITIONS
+                if required_rank is None or position.rank.value == required_rank
+            )
+            for card_id, required_rank in self._subject_required_rank.items()
+        }
+        self._link_action_templates = {
+            card_id: tuple(
+                PlayLink(card_id, position)
+                for position in ALL_POSITIONS
+            )
+            for card_id, card_type in self._card_types.items()
+            if card_type == "link"
+        }
+        self._name_action_templates = {}
+        for card_id in self._name_attach_effect:
+            actions: list[PlayName] = []
+            move_optional = self._name_attach_effect[card_id] == "move_adjacent_optional"
+            for position in ALL_POSITIONS:
+                actions.append(PlayName(card_id, position, None))
+                if move_optional:
+                    actions.extend(
+                        PlayName(card_id, position, destination)
+                        for destination in ADJACENT_POSITIONS[position]
+                    )
+            self._name_action_templates[card_id] = tuple(actions)
+
+        self._scheme_action_templates = {
+            card_id: tuple(PlayScheme(card_id, front) for front in FRONTS)
+            for card_id in self._veiled_story_ids
+        }
+        self._stratagem_actions = {
+            card_id: SetStratagem(card_id)
+            for card_id, card_type in self._card_types.items()
+            if card_type == "stratagem"
+        }
+
+        self._plot_target_action_templates: dict[
+            tuple[str, int],
+            tuple[PlayPlot, ...],
+        ] = {}
+        self._plot_move_action_templates: dict[
+            tuple[str, int],
+            tuple[PlayPlot, ...],
+        ] = {}
+        for card_id, effect in self._plot_effects.items():
+            if card_id in self._veiled_story_ids:
+                continue
+            for actor in (0, 1):
+                if effect in {"discredit_subject", "return_name_or_weaken"}:
+                    target_player = 1 - actor
+                    self._plot_target_action_templates[(card_id, actor)] = tuple(
+                        PlayPlot(
+                            card_id,
+                            (BoardTarget(target_player, position),),
+                        )
+                        for position in ALL_POSITIONS
+                    )
+                elif effect == "move_subject":
+                    self._plot_move_action_templates[(card_id, actor)] = tuple(
+                        PlayPlot(
+                            card_id,
+                            (
+                                BoardTarget(actor, source),
+                                BoardTarget(actor, destination),
+                            ),
+                        )
+                        for source in ALL_POSITIONS
+                        for destination in ALL_POSITIONS
+                        if destination != source
+                    )
+
     @classmethod
     def from_file(cls, path: str) -> "GameEngine":
         return cls(load_card_file(path))
@@ -132,11 +344,27 @@ class GameEngine:
     ) -> GameState:
         self.validate_deck(deck_a)
         self.validate_deck(deck_b)
-        rng = random.Random(seed)
+        return self._new_game_with_rng(
+            deck_a,
+            deck_b,
+            rng=random.Random(seed),
+            first_player=first_player,
+            mulligan_indices=mulligan_indices,
+        )
 
+    def _new_game_with_rng(
+        self,
+        deck_a: list[str],
+        deck_b: list[str],
+        *,
+        rng: random.Random,
+        first_player: int | None = None,
+        mulligan_indices: tuple[tuple[int, ...], tuple[int, ...]] = ((), ()),
+    ) -> GameState:
+        """Construct a game from already-validated decks with a reusable RNG."""
         decks = [list(deck_a), list(deck_b)]
-        for deck in decks:
-            rng.shuffle(deck)
+        rng.shuffle(decks[0])
+        rng.shuffle(decks[1])
 
         players = [
             PlayerState(deck=decks[player], hand=[])
@@ -153,7 +381,11 @@ class GameEngine:
                 rng,
             )
 
-        state.active_player = rng.randrange(2) if first_player is None else first_player
+        state.active_player = (
+            rng.randrange(2)
+            if first_player is None
+            else first_player
+        )
         return state
 
     def _apply_mulligan(
@@ -183,36 +415,34 @@ class GameEngine:
         if state.phase is Phase.CHOOSE_FIRST:
             if state.active_player != state.chooser:
                 raise RuntimeError("Chooser must be the active player")
-            return [ChooseFirst(0), ChooseFirst(1)]
+            return list(self._choose_first_actions)
 
         player = state.active_player
         if state.players[player].passed:
             raise RuntimeError("A passed player cannot become active")
 
-        actions: list[Action] = [Pass()]
-        unique_hand = list(dict.fromkeys(state.players[player].hand))
+        actions: list[Action] = [self._pass_action]
 
-        for card_id in unique_hand:
-            card = self.cards[card_id]
-            card_type = card["type"]
+        for card_id in dict.fromkeys(state.players[player].hand):
+            card_type = self._card_types[card_id]
 
             if card_type == "subject":
-                actions.extend(self._subject_actions(state, player, card))
+                actions.extend(self._subject_actions(state, player, card_id))
             elif card_type == "link":
-                actions.extend(self._link_actions(state, player, card))
+                actions.extend(self._link_actions(state, player, card_id))
             elif card_type == "name":
-                actions.extend(self._name_actions(state, player, card))
+                actions.extend(self._name_actions(state, player, card_id))
             elif card_type == "plot":
-                if card.get("veiled", False):
-                    actions.extend(self._scheme_actions(state, player, card))
+                if card_id in self._veiled_story_ids:
+                    actions.extend(self._scheme_actions(state, player, card_id))
                 elif not self._immediate_story_locked(state, player):
-                    actions.extend(self._plot_actions(state, player, card))
+                    actions.extend(self._plot_actions(state, player, card_id))
             elif card_type == "stratagem":
                 if (
                     not state.stratagem_used[player]
                     and state.stratagem(player) is None
                 ):
-                    actions.append(SetStratagem(card_id))
+                    actions.append(self._stratagem_actions[card_id])
 
         return actions
 
@@ -408,6 +638,261 @@ class GameEngine:
         )
         return max(0, value)
 
+    def name_attachment_strength_gain(
+        self,
+        state: GameState,
+        player: int,
+        position: Position,
+        name_id: str,
+    ) -> int:
+        """Exact Strength gain from hypothetically attaching a Name."""
+        slot = state.slot(player, position)
+        if slot.subject is None or slot.link is None or slot.name is not None:
+            return 0
+
+        (
+            _base_bonus,
+            named_bonus,
+            discard_per_card,
+            discard_maximum,
+            _opposing_modifier,
+            _protected,
+        ) = self._link_runtime[slot.link]
+        name_strength, bonus_rank, rank_bonus = self._name_runtime[name_id]
+
+        delta = named_bonus + name_strength
+        if discard_per_card:
+            delta += min(
+                state.discarded_this_battle[player] * discard_per_card,
+                discard_maximum,
+            )
+        if bonus_rank is not None and position.rank.value == bonus_rank:
+            delta += rank_bonus
+
+        continuous_rules = []
+        line_defense_disabled = False
+        for controller in range(2):
+            stratagem = state.stratagem(controller)
+            if stratagem is None or not stratagem.revealed:
+                continue
+            runtime = self._stratagem_continuous[stratagem.card_id]
+            continuous_rules.append((controller, runtime))
+            delta += runtime[3] - runtime[4]
+            if runtime[5]:
+                line_defense_disabled = True
+
+        before = self._position_strength_search(
+            state,
+            player,
+            position,
+            continuous_rules,
+            line_defense_disabled,
+        )
+        if before > 0 and before + delta >= 0:
+            return delta
+
+        original_name = slot.name
+        try:
+            slot.name = name_id
+            after = self._position_strength_search(
+                state,
+                player,
+                position,
+                continuous_rules,
+                line_defense_disabled,
+            )
+        finally:
+            slot.name = original_name
+        return after - before
+
+    def front_strength_matrix(
+        self,
+        state: GameState,
+    ) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
+        """Compute all six Front totals with precompiled rule metadata."""
+        continuous_rules = []
+        line_defense_disabled = False
+        for controller in range(2):
+            stratagem = state.stratagem(controller)
+            if stratagem is None or not stratagem.revealed:
+                continue
+            runtime = self._stratagem_continuous[stratagem.card_id]
+            continuous_rules.append((controller, runtime))
+            if runtime[5]:
+                line_defense_disabled = True
+
+        totals = [[0, 0, 0], [0, 0, 0]]
+        for player in range(2):
+            opponent = 1 - player
+            for front in FRONTS:
+                front_position, rear_position = POSITIONS_BY_FRONT[int(front)]
+                value = self._position_strength_search(
+                    state,
+                    player,
+                    front_position,
+                    continuous_rules,
+                    line_defense_disabled,
+                )
+                value += self._position_strength_search(
+                    state,
+                    player,
+                    rear_position,
+                    continuous_rules,
+                    line_defense_disabled,
+                )
+
+                scheme = state.scheme(player, front)
+                if scheme is not None and not scheme.revealed:
+                    value += self._scheme_front_bonus[scheme.card_id]
+
+                for enemy_position in POSITIONS_BY_FRONT[int(front)]:
+                    enemy_slot = state.slot(opponent, enemy_position)
+                    if enemy_slot.complete:
+                        value += self._link_runtime[enemy_slot.link][4]
+
+                totals[player][int(front)] = value
+
+        return (
+            (totals[0][0], totals[0][1], totals[0][2]),
+            (totals[1][0], totals[1][1], totals[1][2]),
+        )
+
+    def front_margins(
+        self,
+        state: GameState,
+        player: int,
+    ) -> tuple[int, int, int]:
+        totals = self.front_strength_matrix(state)
+        opponent = 1 - player
+        return (
+            totals[player][0] - totals[opponent][0],
+            totals[player][1] - totals[opponent][1],
+            totals[player][2] - totals[opponent][2],
+        )
+
+    def _position_strength_search(
+        self,
+        state: GameState,
+        player: int,
+        position: Position,
+        continuous_rules: list[tuple[int, Any]],
+        line_defense_disabled: bool,
+    ) -> int:
+        slot = state.slot(player, position)
+        subject_id = slot.subject
+        if subject_id is None:
+            return 0
+
+        value = self._subject_strength[subject_id] + slot.temporary_strength
+        rank_value = position.rank.value
+        is_front = position.rank is Rank.FRONT
+
+        if is_front and not line_defense_disabled:
+            value += LINE_DEFENSE_BONUS
+
+        (
+            front_bonus,
+            front_with_rear_bonus,
+            rear_bonus,
+            rear_with_front_bonus,
+        ) = self._subject_role_values[subject_id]
+        if is_front:
+            value += front_bonus
+            if front_with_rear_bonus:
+                rear = state.slot(player, REAR_POSITIONS[int(position.front)])
+                if rear.subject is not None:
+                    value += front_with_rear_bonus
+        else:
+            value += rear_bonus
+            if rear_with_front_bonus:
+                frontline = state.slot(
+                    player,
+                    FRONTLINE_POSITIONS[int(position.front)],
+                )
+                if frontline.subject is not None:
+                    value += rear_with_front_bonus
+
+        if is_front:
+            rear = state.slot(player, REAR_POSITIONS[int(position.front)])
+            if (
+                rear.subject is not None
+                and self._subject_role[rear.subject] == "healer"
+            ):
+                value += 2
+
+        for adjacent in ADJACENT_POSITIONS[position]:
+            adjacent_subject = state.slot(player, adjacent).subject
+            if adjacent_subject is None:
+                continue
+            aura = self._subject_adjacent_aura[adjacent_subject]
+            if not aura:
+                continue
+            required_rank = self._subject_aura_rank[adjacent_subject]
+            if required_rank is None or adjacent.rank.value == required_rank:
+                value += aura
+
+        for (
+            amount,
+            required_rank,
+            discard_at_least,
+            adjacent_subject_has_name,
+        ) in self._subject_conditions[subject_id]:
+            if required_rank is not None and rank_value != required_rank:
+                continue
+            if (
+                discard_at_least is not None
+                and len(state.players[player].discard) < discard_at_least
+            ):
+                continue
+            if adjacent_subject_has_name and not any(
+                state.slot(player, adjacent).name is not None
+                for adjacent in ADJACENT_POSITIONS[position]
+            ):
+                continue
+            value += amount
+
+        named = slot.name is not None
+        if slot.link is not None:
+            (
+                base_bonus,
+                named_bonus,
+                discard_per_card,
+                discard_maximum,
+                _opposing_modifier,
+                _protected,
+            ) = self._link_runtime[slot.link]
+            value += base_bonus
+
+            if named:
+                value += named_bonus
+                if discard_per_card:
+                    value += min(
+                        state.discarded_this_battle[player] * discard_per_card,
+                        discard_maximum,
+                    )
+                name_strength, bonus_rank, rank_bonus = self._name_runtime[slot.name]
+                value += name_strength
+                if bonus_rank is not None and rank_value == bonus_rank:
+                    value += rank_bonus
+
+        role = self._subject_role[subject_id]
+        for controller, runtime in continuous_rules:
+            (
+                role_modifiers,
+                rank_modifiers,
+                controller_rank_modifiers,
+                named_modifier,
+                unnamed_modifier,
+                _disable_line_defense,
+            ) = runtime
+            value += int(role_modifiers.get(role, 0))
+            value += int(rank_modifiers.get(rank_value, 0))
+            if controller == player:
+                value += int(controller_rank_modifiers.get(rank_value, 0))
+            value += named_modifier if named else unnamed_modifier
+
+        return max(0, value)
+
     def front_strength(self, state: GameState, player: int, front: Front) -> int:
         front_position, rear_position = POSITIONS_BY_FRONT[int(front)]
         value = (
@@ -582,108 +1067,79 @@ class GameEngine:
         self,
         state: GameState,
         player: int,
-        card: dict[str, Any],
+        card_id: str,
     ) -> Iterable[Action]:
-        required_rank = card.get("rules", {}).get("placement", {}).get("rank")
-        for position in ALL_POSITIONS:
-            if state.slot(player, position).occupied:
-                continue
-            if required_rank is not None and position.rank.value != required_rank:
-                continue
-            yield PlaySubject(card["id"], position)
+        for action in self._subject_action_templates[card_id]:
+            if not state.slot(player, action.position).occupied:
+                yield action
 
     def _link_actions(
         self,
         state: GameState,
         player: int,
-        card: dict[str, Any],
+        card_id: str,
     ) -> Iterable[Action]:
-        for position in ALL_POSITIONS:
-            slot = state.slot(player, position)
+        for action in self._link_action_templates[card_id]:
+            slot = state.slot(player, action.position)
             if slot.subject is not None and slot.link is None:
-                yield PlayLink(card["id"], position)
+                yield action
 
     def _name_actions(
         self,
         state: GameState,
         player: int,
-        card: dict[str, Any],
+        card_id: str,
     ) -> Iterable[Action]:
-        for position in ALL_POSITIONS:
-            slot = state.slot(player, position)
+        for action in self._name_action_templates[card_id]:
+            slot = state.slot(player, action.position)
             if slot.subject is None or slot.link is None or slot.name is not None:
                 continue
-
-            on_name_attached = card.get("rules", {}).get("on_name_attached")
-            if on_name_attached == "move_adjacent_optional":
-                yield PlayName(card["id"], position, None)
-                for destination in self._adjacent_positions(position):
-                    if not state.slot(player, destination).occupied:
-                        yield PlayName(card["id"], position, destination)
-            else:
-                yield PlayName(card["id"], position)
+            if (
+                action.move_to is not None
+                and state.slot(player, action.move_to).occupied
+            ):
+                continue
+            yield action
 
     def _plot_actions(
         self,
         state: GameState,
         player: int,
-        card: dict[str, Any],
+        card_id: str,
     ) -> Iterable[Action]:
-        effect = card.get("rules", {}).get("effect")
+        effect = self._plot_effects[card_id]
 
-        if effect == "discredit_subject":
-            target_player = 1 - player
-            for position in ALL_POSITIONS:
-                slot = state.slot(target_player, position)
+        if effect in {"discredit_subject", "return_name_or_weaken"}:
+            for action in self._plot_target_action_templates[(card_id, player)]:
+                target = action.targets[0]
+                slot = state.slot(target.player, target.position)
                 if slot.subject is None:
                     continue
                 if self._subject_protected_from_opponent_plot(slot):
                     continue
-                yield PlayPlot(
-                    card["id"],
-                    (BoardTarget(target_player, position),),
-                )
-            return
-
-        if effect == "return_name_or_weaken":
-            target_player = 1 - player
-            for position in ALL_POSITIONS:
-                slot = state.slot(target_player, position)
-                if slot.subject is None:
-                    continue
-                if self._subject_protected_from_opponent_plot(slot):
-                    continue
-                yield PlayPlot(
-                    card["id"],
-                    (BoardTarget(target_player, position),),
-                )
+                yield action
             return
 
         if effect == "move_subject":
-            for source in ALL_POSITIONS:
+            for action in self._plot_move_action_templates[(card_id, player)]:
+                source = action.targets[0].position
+                destination = action.targets[1].position
                 source_slot = state.slot(player, source)
                 if source_slot.subject is None:
                     continue
-                subject = self.cards[source_slot.subject]
-                required_rank = subject.get("rules", {}).get("placement", {}).get("rank")
-                for destination in ALL_POSITIONS:
-                    if destination == source:
-                        continue
-                    if state.slot(player, destination).occupied:
-                        continue
-                    if required_rank is not None and destination.rank.value != required_rank:
-                        continue
-                    yield PlayPlot(
-                        card["id"],
-                        (
-                            BoardTarget(player, source),
-                            BoardTarget(player, destination),
-                        ),
-                    )
+                if state.slot(player, destination).occupied:
+                    continue
+                required_rank = self._subject_required_rank.get(source_slot.subject)
+                if (
+                    required_rank is not None
+                    and destination.rank.value != required_rank
+                ):
+                    continue
+                yield action
             return
 
         if effect is None:
-            yield PlayPlot(card["id"])
+            yield PlayPlot(card_id)
             return
 
         raise NotImplementedError(f"Unsupported plot effect: {effect}")
@@ -692,11 +1148,11 @@ class GameEngine:
         self,
         state: GameState,
         player: int,
-        card: dict[str, Any],
+        card_id: str,
     ) -> Iterable[Action]:
-        for front in FRONTS:
-            if state.schemes[player][int(front)] is None:
-                yield PlayScheme(card["id"], front)
+        for action in self._scheme_action_templates[card_id]:
+            if state.schemes[player][int(action.front)] is None:
+                yield action
 
     def _immediate_story_locked(
         self,

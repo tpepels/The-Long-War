@@ -290,12 +290,7 @@ class HeuristicAgent:
         state: GameState,
         player: int,
     ) -> list[int]:
-        opponent = 1 - player
-        return [
-            engine.front_strength(state, player, front)
-            - engine.front_strength(state, opponent, front)
-            for front in Front
-        ]
+        return list(engine.front_margins(state, player))
 
     @staticmethod
     def _count_named_subjects(state: GameState, player: int) -> int:
@@ -429,21 +424,17 @@ class HeuristicAgent:
             if slot.subject is None or slot.link is None or slot.name is not None:
                 continue
 
-            before = engine.position_strength(state, player, position)
-            best_gain = -inf
-            original_name = slot.name
-            try:
-                for name_id in hand_names:
-                    # Evaluation is read-only from the caller's perspective.
-                    # Temporarily attaching a Name avoids a full GameState
-                    # clone for every candidate at every MCCFR leaf.
-                    slot.name = name_id
-                    after = engine.position_strength(state, player, position)
-                    best_gain = max(best_gain, float(after - before))
-            finally:
-                slot.name = original_name
-
-            if best_gain > -inf:
-                value += 0.45 * max(0.0, best_gain)
+            best_gain = max(
+                float(
+                    engine.name_attachment_strength_gain(
+                        state,
+                        player,
+                        position,
+                        name_id,
+                    )
+                )
+                for name_id in hand_names
+            )
+            value += 0.45 * max(0.0, best_gain)
 
         return value

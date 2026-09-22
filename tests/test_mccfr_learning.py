@@ -88,3 +88,29 @@ def test_fixed_state_training_is_reproducible() -> None:
         trainer.train_from_state(state, iterations=30)
 
     assert trainers[0].policy_payload() == trainers[1].policy_payload()
+
+
+def test_direct_longwar_traversal_matches_generic_core() -> None:
+    engine, deck, state = setup()
+    direct = MCCFRTrainer(
+        engine,
+        deck,
+        deck,
+        seed=812,
+        max_depth=2,
+        direct_traversal=True,
+    )
+    generic = MCCFRTrainer(
+        engine,
+        deck,
+        deck,
+        seed=812,
+        max_depth=2,
+        direct_traversal=False,
+    )
+
+    direct_summary = direct.train_from_state(state, iterations=12)
+    generic_summary = generic.train_from_state(state, iterations=12)
+
+    assert direct_summary == generic_summary
+    assert direct.policy_payload()["infosets"] == generic.policy_payload()["infosets"]

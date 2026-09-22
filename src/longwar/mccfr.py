@@ -6,6 +6,8 @@ import math
 import random
 from collections import Counter
 from dataclasses import dataclass
+from functools import lru_cache
+from itertools import groupby
 from typing import Any, Callable
 
 from .agents.heuristic_agent import HeuristicAgent
@@ -23,7 +25,27 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase, Position, Rank
-from .mccfr_core import BACKEND, CFRNode, external_sampling_traverse
+from .mccfr_core import (
+    BACKEND,
+    CFRNode,
+    external_sampling_traverse,
+    longwar_external_sampling_traverse,
+)
+
+try:
+    from ._fast_search import (
+        FastCFRNode as PrimitiveCFRNode,
+        FastEngine as PrimitiveFastEngine,
+        make_scratch as make_primitive_scratch,
+        packed_external_sampling_traverse,
+        stable_information_id_from_fast_key,
+    )
+except ImportError:
+    PrimitiveCFRNode = None
+    PrimitiveFastEngine = None
+    make_primitive_scratch = None
+    packed_external_sampling_traverse = None
+    stable_information_id_from_fast_key = None
 
 
 def _counter_view(cards: list[str]) -> list[list[Any]]:
@@ -38,6 +60,7 @@ def _target_view(target: BoardTarget) -> list[Any]:
     return [target.player, *_position_view(target.position)]
 
 
+@lru_cache(maxsize=8192)
 def action_key(action: Action) -> str:
     """Stable serialization used inside an information-set policy."""
     if isinstance(action, Pass):
@@ -163,6 +186,187 @@ def information_set_key(state: GameState, player: int) -> tuple[tuple[str, Any],
     )
 
 
+@lru_cache(maxsize=32768)
+def _sorted_card_tuple(cards: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(sorted(cards))
+
+
+def _sorted_card_multiset(cards: list[str]) -> tuple[str, ...]:
+    """Cheap cached multiset representation for the internal search table."""
+    return _sorted_card_tuple(tuple(cards))
+
+
+def _search_information_set_key(state: GameState, player: int) -> tuple[Any, ...]:
+    """Compact information key used only inside MCCFR traversal."""
+    opponent = 1 - player
+    own = state.players[player]
+    other = state.players[opponent]
+
+    board = tuple(
+        tuple(
+            (
+                slot.subject,
+                slot.link,
+                slot.name,
+                slot.temporary_strength,
+            )
+            for front in side
+            for slot in front
+        )
+        for side in state.board
+    )
+
+    scheme_rows = []
+    for owner in (0, 1):
+        row = []
+        for scheme in state.schemes[owner]:
+            if scheme is None:
+                row.append(None)
+            elif owner == player or scheme.revealed:
+                row.append((scheme.card_id, bool(scheme.revealed)))
+            else:
+                row.append(("hidden", False))
+        scheme_rows.append(tuple(row))
+    schemes = tuple(scheme_rows)
+
+    stratagem_views = []
+    for owner in (0, 1):
+        stratagem = state.stratagems[owner]
+        if stratagem is None:
+            stratagem_views.append(None)
+        elif owner == player or stratagem.revealed:
+            stratagem_views.append(
+                (stratagem.card_id, bool(stratagem.revealed))
+            )
+        else:
+            stratagem_views.append(("hidden", False))
+
+    known_opponent_hand: tuple[str, ...]
+    if state.observations:
+        known_opponent_hand = _sorted_card_multiset(
+            state.known_hidden_cards(player, opponent, "hand")
+        )
+    else:
+        known_opponent_hand = ()
+
+    return (
+        player,
+        state.phase.value,
+        state.battle,
+        state.active_player,
+        state.chooser,
+        (
+            state.players[0].victories,
+            state.players[1].victories,
+        ),
+        (
+            state.players[0].passed,
+            state.players[1].passed,
+        ),
+        tuple(state.pass_order),
+        (
+            state.discarded_this_battle[0],
+            state.discarded_this_battle[1],
+        ),
+        board,
+        schemes,
+        tuple(stratagem_views),
+        (
+            state.stratagem_used[0],
+            state.stratagem_used[1],
+        ),
+        _sorted_card_multiset(own.hand),
+        _sorted_card_multiset(own.deck),
+        tuple(own.discard),
+        len(other.hand),
+        known_opponent_hand,
+        len(other.deck),
+        tuple(other.discard),
+    )
+
+
+def _counter_view_from_sorted(cards: tuple[str, ...]) -> list[list[Any]]:
+    return [[card_id, sum(1 for _ in group)] for card_id, group in groupby(cards)]
+
+
+def _search_key_observation(key: tuple[Any, ...]) -> dict[str, Any]:
+    (
+        player,
+        phase,
+        battle,
+        active_player,
+        chooser,
+        victories,
+        passed,
+        pass_order,
+        discarded_this_battle,
+        compact_board,
+        schemes,
+        stratagems,
+        stratagem_used,
+        own_hand,
+        own_deck,
+        own_discard,
+        opponent_hand_count,
+        known_opponent_hand,
+        opponent_deck_count,
+        opponent_discard,
+    ) = key
+
+    board: list[Any] = []
+    positions = all_positions()
+    for owner_rows in compact_board:
+        rows = []
+        for position, slot in zip(positions, owner_rows):
+            subject, link, name, temporary_strength = slot
+            rows.append([
+                int(position.front),
+                position.rank.value,
+                subject,
+                link,
+                name,
+                temporary_strength,
+            ])
+        board.append(rows)
+
+    def thaw(value: Any) -> Any:
+        if isinstance(value, tuple):
+            return [thaw(item) for item in value]
+        return value
+
+    return {
+        "viewer": player,
+        "phase": phase,
+        "battle": battle,
+        "active_player": active_player,
+        "chooser": chooser,
+        "victories": list(victories),
+        "passed": list(passed),
+        "pass_order": list(pass_order),
+        "discarded_this_battle": list(discarded_this_battle),
+        "board": board,
+        "schemes": thaw(schemes),
+        "stratagems": thaw(stratagems),
+        "stratagem_used": list(stratagem_used),
+        "own_hand": _counter_view_from_sorted(own_hand),
+        "own_deck": _counter_view_from_sorted(own_deck),
+        "own_discard": list(own_discard),
+        "opponent_hand_count": opponent_hand_count,
+        "known_opponent_hand": _counter_view_from_sorted(known_opponent_hand),
+        "opponent_deck_count": opponent_deck_count,
+        "opponent_discard": list(opponent_discard),
+    }
+
+
+def _stable_id_from_search_key(key: tuple[Any, ...]) -> str:
+    payload = json.dumps(
+        _search_key_observation(key),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def _information_set_id_from_key(key: tuple[tuple[str, Any], ...]) -> str:
     payload = json.dumps(
         dict(key),
@@ -186,7 +390,10 @@ class InformationNodeStore(dict[object, CFRNode]):
             return cached
         if not isinstance(key, tuple):
             return str(key)
-        stable = _information_set_id_from_key(key)
+        if key and isinstance(key[0], int):
+            stable = _stable_id_from_search_key(key)
+        else:
+            stable = _information_set_id_from_key(key)
         self._id_by_key[key] = stable
         self._key_by_id[stable] = key
         return stable
@@ -315,6 +522,7 @@ class MCCFRTrainer:
         seed: int = 1701,
         max_depth: int = 3,
         leaf_scale: float = 100.0,
+        direct_traversal: bool = True,
     ):
         if max_depth < 1:
             raise ValueError("max_depth must be at least 1")
@@ -326,10 +534,32 @@ class MCCFRTrainer:
         if self.deck_b is not None:
             self.engine.validate_deck(self.deck_b)
         self.rng = random.Random(seed)
+        self.chance_rng = random.Random(seed ^ 0x5F3759DF)
         self.seed = seed
         self.max_depth = max_depth
         self.leaf_scale = leaf_scale
+        self.direct_traversal = direct_traversal
         self.nodes = InformationNodeStore()
+        self._primitive_nodes: dict[bytes, Any] = {}
+        self._primitive_engine = (
+            PrimitiveFastEngine(engine)
+            if (
+                direct_traversal
+                and PrimitiveFastEngine is not None
+                and PrimitiveCFRNode is not None
+                and packed_external_sampling_traverse is not None
+            )
+            else None
+        )
+        self._primitive_scratch = (
+            make_primitive_scratch(max_depth)
+            if (
+                self._primitive_engine is not None
+                and make_primitive_scratch is not None
+            )
+            else None
+        )
+        self._used_primitive_training = False
         self.iterations = 0
         self._leaf_agent = HeuristicAgent(seed=seed, exploration=0.0)
 
@@ -341,26 +571,44 @@ class MCCFRTrainer:
 
         utility_sum = [0.0, 0.0]
         for _ in range(iterations):
-            chance_seed = self.rng.randrange(0, 2**31)
-            first_player = self.rng.randrange(2)
-            root = self.engine.new_game(
+            root = self.engine._new_game_with_rng(
                 self.deck_a,
                 self.deck_b,
-                seed=chance_seed,
-                first_player=first_player,
+                rng=self.chance_rng,
+                first_player=self.chance_rng.randrange(2),
             )
-            for traverser in (0, 1):
-                utility_sum[traverser] += self._traverse(
-                    root.clone(),
-                    traverser,
-                    depth=0,
-                )
+            if self._primitive_engine is not None:
+                fast_root = self._primitive_engine.from_game_state(root)
+                for traverser in (0, 1):
+                    utility_sum[traverser] += packed_external_sampling_traverse(
+                        self._primitive_engine,
+                        fast_root,
+                        traverser,
+                        depth=0,
+                        max_depth=self.max_depth,
+                        nodes=self._primitive_nodes,
+                        rng=self.rng,
+                        leaf_scale=self.leaf_scale,
+                        scratch=self._primitive_scratch,
+                    )
+                self._used_primitive_training = True
+            else:
+                for traverser in (0, 1):
+                    utility_sum[traverser] += self._traverse(
+                        root,
+                        traverser,
+                        depth=0,
+                    )
             self.iterations += 1
 
         return TrainingSummary(
             iterations=self.iterations,
             traversals=self.iterations * 2,
-            information_sets=len(self.nodes),
+            information_sets=(
+                len(self._primitive_nodes)
+                if self._used_primitive_training
+                else len(self.nodes)
+            ),
             max_depth=self.max_depth,
             mean_sampled_utility_p0=utility_sum[0] / iterations,
             mean_sampled_utility_p1=utility_sum[1] / iterations,
@@ -386,7 +634,7 @@ class MCCFRTrainer:
         for _ in range(iterations):
             for traverser in (0, 1):
                 utility_sum[traverser] += self._traverse(
-                    root.clone(),
+                    root,
                     traverser,
                     depth=0,
                 )
@@ -422,7 +670,7 @@ class MCCFRTrainer:
                 raise ValueError("Root sampler returned a terminal state")
             for traverser in (0, 1):
                 utility_sum[traverser] += self._traverse(
-                    root.clone(),
+                    root,
                     traverser,
                     depth=0,
                 )
@@ -437,6 +685,22 @@ class MCCFRTrainer:
             mean_sampled_utility_p1=utility_sum[1] / iterations,
         )
 
+    def _search_child(
+        self,
+        current: GameState,
+        action: Action,
+        child_depth: int,
+        scratch_by_depth: dict[int, GameState],
+    ) -> GameState:
+        child = scratch_by_depth.get(child_depth)
+        if child is None:
+            child = current.clone()
+            scratch_by_depth[child_depth] = child
+        else:
+            child.copy_from(current)
+        self.engine.apply(child, action, validate=False)
+        return child
+
     def _traverse(
         self,
         state: GameState,
@@ -444,9 +708,36 @@ class MCCFRTrainer:
         *,
         depth: int,
     ) -> float:
+        # The object-state traversal remains the correctness/reference path.
+        # Offline deck training uses the primitive-array engine instead.
+        # Keeping this path generic avoids maintaining two independent native
+        # traversals over the mutable Python GameState representation.
+        return self._traverse_generic(
+            state,
+            traverser,
+            depth=depth,
+            scratch_by_depth={},
+        )
+
+    def _traverse_generic(
+        self,
+        state: GameState,
+        traverser: int,
+        *,
+        depth: int,
+        scratch_by_depth: dict[int, GameState],
+    ) -> float:
+        depth_by_state_id = {id(state): depth}
+
         def next_state(current: GameState, action: Action) -> GameState:
-            child = current.clone()
-            self.engine.apply(child, action, validate=False)
+            child_depth = depth_by_state_id[id(current)] + 1
+            child = self._search_child(
+                current,
+                action,
+                child_depth,
+                scratch_by_depth,
+            )
+            depth_by_state_id[id(child)] = child_depth
             return child
 
         return external_sampling_traverse(
@@ -463,7 +754,7 @@ class MCCFRTrainer:
             current_player=lambda current: current.active_player,
             legal_actions=self.engine.legal_actions,
             action_key=action_key,
-            information_set_id=information_set_key,
+            information_set_id=_search_information_set_key,
             next_state=next_state,
             leaf_value=self._leaf_value,
         )
@@ -474,21 +765,69 @@ class MCCFRTrainer:
 
     def policy_payload(self) -> dict[str, Any]:
         infosets: dict[str, Any] = {}
-        for internal_key, node in self.nodes.items():
-            info_id = self.nodes.stable_id(internal_key)
-            keys = sorted(node.regret_sum)
-            infosets[info_id] = {
-                "visits": node.visits,
-                "average_visits": node.average_visits,
-                "average_strategy": node.average_strategy(keys),
-                "current_strategy": node.strategy(keys),
-                "regret_sum": {key: node.regret_sum[key] for key in keys},
-            }
+        if self._used_primitive_training:
+            if (
+                self._primitive_engine is None
+                or stable_information_id_from_fast_key is None
+            ):
+                raise RuntimeError("Primitive MCCFR export backend is unavailable")
+            for internal_key, node in self._primitive_nodes.items():
+                info_id = stable_information_id_from_fast_key(
+                    self._primitive_engine,
+                    internal_key,
+                )
+                raw_keys = sorted(node.regret_sum)
+                serialized = {
+                    key: self._primitive_engine.action_key(key)
+                    for key in raw_keys
+                }
+                average = node.average_strategy(raw_keys)
+                current = node.strategy(raw_keys)
+                infosets[info_id] = {
+                    "visits": node.visits,
+                    "average_visits": node.average_visits,
+                    "average_strategy": {
+                        serialized[key]: average[key]
+                        for key in raw_keys
+                    },
+                    "current_strategy": {
+                        serialized[key]: current[key]
+                        for key in raw_keys
+                    },
+                    "regret_sum": {
+                        serialized[key]: node.regret_sum[key]
+                        for key in raw_keys
+                    },
+                    "strategy_sum": {
+                        serialized[key]: node.strategy_sum.get(key, 0.0)
+                        for key in raw_keys
+                    },
+                }
+        else:
+            for internal_key, node in self.nodes.items():
+                info_id = self.nodes.stable_id(internal_key)
+                keys = sorted(node.regret_sum)
+                infosets[info_id] = {
+                    "visits": node.visits,
+                    "average_visits": node.average_visits,
+                    "average_strategy": node.average_strategy(keys),
+                    "current_strategy": node.strategy(keys),
+                    "regret_sum": {key: node.regret_sum[key] for key in keys},
+                    "strategy_sum": {
+                        key: node.strategy_sum.get(key, 0.0)
+                        for key in keys
+                    },
+                }
 
         return {
             "schema_version": 1,
             "algorithm": "depth_limited_external_sampling_mccfr",
             "execution_backend": BACKEND,
+            "traversal_backend": (
+                "primitive_array_cython"
+                if self._used_primitive_training
+                else "generic_external_sampling"
+            ),
             "iterations": self.iterations,
             "traversals": self.iterations * 2,
             "max_depth": self.max_depth,

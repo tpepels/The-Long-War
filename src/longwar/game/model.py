@@ -180,6 +180,70 @@ class GameState:
             observations=list(self.observations),
         )
 
+    def copy_from(self, source: "GameState") -> "GameState":
+        """Overwrite this state from source while reusing allocated containers.
+
+        MCCFR explores depth-first, so one scratch state per depth is enough.
+        Reusing PlayerState, Slot and list objects avoids thousands of small
+        allocations without changing branch isolation.
+        """
+        for index in range(2):
+            target_player = self.players[index]
+            source_player = source.players[index]
+            target_player.deck[:] = source_player.deck
+            target_player.hand[:] = source_player.hand
+            target_player.discard[:] = source_player.discard
+            target_player.victories = source_player.victories
+            target_player.passed = source_player.passed
+
+        for player in range(2):
+            for front in range(3):
+                for rank in range(2):
+                    target_slot = self.board[player][front][rank]
+                    source_slot = source.board[player][front][rank]
+                    target_slot.subject = source_slot.subject
+                    target_slot.link = source_slot.link
+                    target_slot.name = source_slot.name
+                    target_slot.temporary_strength = source_slot.temporary_strength
+
+                source_scheme = source.schemes[player][front]
+                target_scheme = self.schemes[player][front]
+                if source_scheme is None:
+                    self.schemes[player][front] = None
+                elif target_scheme is None:
+                    self.schemes[player][front] = SchemeState(
+                        card_id=source_scheme.card_id,
+                        revealed=source_scheme.revealed,
+                    )
+                else:
+                    target_scheme.card_id = source_scheme.card_id
+                    target_scheme.revealed = source_scheme.revealed
+
+            source_stratagem = source.stratagems[player]
+            target_stratagem = self.stratagems[player]
+            if source_stratagem is None:
+                self.stratagems[player] = None
+            elif target_stratagem is None:
+                self.stratagems[player] = StratagemState(
+                    card_id=source_stratagem.card_id,
+                    revealed=source_stratagem.revealed,
+                )
+            else:
+                target_stratagem.card_id = source_stratagem.card_id
+                target_stratagem.revealed = source_stratagem.revealed
+
+        self.stratagem_used[:] = source.stratagem_used
+        self.active_player = source.active_player
+        self.battle = source.battle
+        self.phase = source.phase
+        self.discarded_this_battle[:] = source.discarded_this_battle
+        self.pass_order[:] = source.pass_order
+        self.chooser = source.chooser
+        self.winner = source.winner
+        self.turn_number = source.turn_number
+        self.observations[:] = source.observations
+        return self
+
     def slot(self, player: int, position: Position) -> Slot:
         rank_index = 0 if position.rank is Rank.FRONT else 1
         return self.board[player][int(position.front)][rank_index]

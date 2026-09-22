@@ -16,7 +16,8 @@ Example: **The Fifty Men → Followed → Namar**
 - `src/longwar/game/` — deterministic rules engine.
 - `src/longwar/agents/` — random, heuristic, and MCCFR policy agents.
 - `src/longwar/mccfr.py` — external-sampling Monte Carlo CFR trainer and information abstraction.
-- `src/longwar/_mccfr_accel.pyx` — native Cython traversal/regret-matching backend used by installed CPython builds.
+- `src/longwar/_fast_search.pyx` — typed primitive-array search state, packed actions, Strength evaluation, and CFR hot loop used by offline CPython MCCFR training.
+- `src/longwar/_mccfr_accel.pyx` — native shared CFR reference kernel used for algorithm verification and generic traversal.
 - `src/longwar/belief.py` — observation-conditioned hidden-state and deck-construction priors.
 - `src/longwar/online_mccfr.py` — online information-set re-solving across sampled beliefs.
 - `src/longwar/telemetry.py` — game, card, pass, and Subject–Bond–Name telemetry.
@@ -101,9 +102,11 @@ Routine GitHub CI runs the fast and integration suites plus heuristic smoke simu
 
 The repository implements **depth-limited external-sampling Monte Carlo Counterfactual Regret Minimization**.
 
-Installed CPython builds use a Cython backend for the shared traversal and regret-matching core. Browser/Pyodide builds automatically fall back to the equivalent Python implementation. Search also uses a structural GameState clone and tuple information-set keys so the hot path avoids generic `deepcopy`, JSON construction, and SHA-256 hashing on every tree visit. Exported information-set IDs remain compatible with the canonical JSON representation.
+Installed CPython builds use a dedicated typed Cython search representation for offline MCCFR: card identities and actions are integers, battlefield/deck/hand state lives in primitive arrays, CFR actions/regrets/strategy sums use compact native storage, and search states are copied into reusable depth scratch buffers. The ordinary Python `GameState` remains the reference implementation and the browser/Pyodide fallback. Exported policies still use the canonical string action keys and information-set IDs.
 
 Run `make benchmark-mccfr` to report the active backend and traversals per second on the reference deck.
+
+Replica multiprocessing is currently optional rather than the default. Each worker builds a large independent information-set table; serializing and pooling those tables can cost more than the extra CPU throughput. The native single-process solver is therefore the recommended training path until the tables themselves can be shared or merged natively.
 
 For every sampled root deal:
 
@@ -129,8 +132,9 @@ Train:
 
 ```bash
 python tools/train_mccfr.py \
-  --iterations 50 \
+  --iterations 5000 \
   --depth 3 \
+  --workers 1 \
   --output artifacts/mccfr-policy.json
 ```
 
