@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -12,8 +14,50 @@ DIST = ROOT / "dist"
 RULEBOOK = ROOT / "rules" / "rulebook.md"
 CARDS = ROOT / "cards" / "cards.json"
 REFERENCE_DECK = ROOT / "decks" / "reference.json"
-PYTHON_SOURCE = ROOT / "src"
 BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
+
+
+def version_static_assets() -> str:
+    inputs = [
+        path
+        for path in DIST.rglob("*")
+        if path.is_file()
+        and (
+            path.suffix in {".js", ".mjs", ".css"}
+            or path.relative_to(DIST).as_posix()
+            in {"data/cards.json", "data/reference-deck.json"}
+        )
+    ]
+    digest = hashlib.sha256()
+    for path in sorted(inputs):
+        digest.update(path.relative_to(DIST).as_posix().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    version = digest.hexdigest()[:12]
+
+    play_js = DIST / "play.js"
+    if play_js.exists():
+        source = play_js.read_text(encoding="utf-8")
+        source = source.replace(
+            '"./browser-engine.mjs"',
+            f'"./browser-engine.mjs?v={version}"',
+        )
+        play_js.write_text(source, encoding="utf-8")
+
+    asset_pattern = re.compile(
+        r'(?P<attr>src|href)="(?P<path>(?!https?://)[^"#?]+\.(?:js|mjs|css))"'
+    )
+    for page in DIST.rglob("*.html"):
+        source = page.read_text(encoding="utf-8")
+        source = asset_pattern.sub(
+            lambda match: (
+                f'{match.group("attr")}="{match.group("path")}?v={version}"'
+            ),
+            source,
+        )
+        page.write_text(source, encoding="utf-8")
+    return version
 
 
 def main() -> None:
@@ -26,14 +70,6 @@ def main() -> None:
     shutil.copy2(CARDS, data_dir / "cards.json")
     shutil.copy2(REFERENCE_DECK, data_dir / "reference-deck.json")
 
-    python_bundle = {
-        str(path.relative_to(PYTHON_SOURCE)): path.read_text(encoding="utf-8")
-        for path in sorted((PYTHON_SOURCE / "longwar").rglob("*.py"))
-    }
-    (data_dir / "python-bundle.json").write_text(
-        json.dumps(python_bundle),
-        encoding="utf-8",
-    )
     if BALANCE_HEALTH.exists():
         shutil.copy2(BALANCE_HEALTH, data_dir / "balance-health.json")
 
@@ -53,11 +89,12 @@ def main() -> None:
     (DIST / "rulebook.html").write_text(rendered, encoding="utf-8")
     (DIST / "rulebook.template.html").unlink(missing_ok=True)
 
+    version = version_static_assets()
     card_data = json.loads(CARDS.read_text(encoding="utf-8"))
     balance = "with balance data" if BALANCE_HEALTH.exists() else "without balance data"
     print(
-        f"Built Pages site with {len(card_data['cards'])} cards, "
-        f"{len(python_bundle)} Python engine files ({balance}) at {DIST}"
+        f"Built Pages site with {len(card_data['cards'])} cards "
+        f"({balance}), asset version {version} at {DIST}"
     )
 
 
