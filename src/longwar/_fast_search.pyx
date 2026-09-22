@@ -147,6 +147,9 @@ cdef class FastState:
     cdef int32_t turn_number
 
     def __cinit__(self):
+        self.reset_fast()
+
+    cdef void reset_fast(self) noexcept:
         memset(self.deck, 0xff, sizeof(self.deck))
         memset(self.deck_len, 0, sizeof(self.deck_len))
         memset(self.deck_counts, 0, sizeof(self.deck_counts))
@@ -1610,6 +1613,128 @@ def packed_external_sampling_traverse(
 
 def make_scratch(int max_depth):
     return [FastState() for _ in range(max_depth + 1)]
+
+
+cdef inline uint64_t _chance_next(uint64_t* state) noexcept:
+    cdef uint64_t x = state[0]
+    x ^= x >> 12
+    x ^= x << 25
+    x ^= x >> 27
+    state[0] = x
+    return x * 2685821657736338717
+
+
+cdef void _prepare_root(
+    FastEngine engine,
+    FastState root,
+    int8_t* deck_a,
+    int len_a,
+    int8_t* deck_b,
+    int len_b,
+    uint64_t* rng_state,
+) noexcept:
+    cdef int p, i, j, card, temp
+    root.reset_fast()
+    root.active_player = <int>(_chance_next(rng_state) & 1)
+
+    root.deck_len[0] = len_a
+    root.deck_len[1] = len_b
+    for i in range(len_a):
+        card = deck_a[i]
+        root.deck[0][i] = card
+        root.deck_counts[0][card] += 1
+    for i in range(len_b):
+        card = deck_b[i]
+        root.deck[1][i] = card
+        root.deck_counts[1][card] += 1
+
+    for p in range(2):
+        i = root.deck_len[p] - 1
+        while i > 0:
+            j = <int>(_chance_next(rng_state) % <uint64_t>(i + 1))
+            temp = root.deck[p][i]
+            root.deck[p][i] = root.deck[p][j]
+            root.deck[p][j] = temp
+            i -= 1
+        engine.draw(root, p, 10)
+
+
+def train_primitive_deals(
+    FastEngine engine,
+    deck_a,
+    deck_b,
+    int iterations,
+    int max_depth,
+    nodes,
+    rng,
+    double leaf_scale=100.0,
+    scratch=None,
+    unsigned long long chance_state=1701,
+):
+    """Train complete root deals without constructing Python GameStates."""
+    cdef int8_t encoded_a[MAX_DECK]
+    cdef int8_t encoded_b[MAX_DECK]
+    cdef int len_a = len(deck_a)
+    cdef int len_b = len(deck_b)
+    cdef int i, traverser
+    cdef object card_id
+    cdef FastState root = FastState()
+    cdef uint64_t state = <uint64_t>chance_state
+    cdef double utility0 = 0.0
+    cdef double utility1 = 0.0
+
+    if iterations <= 0:
+        raise ValueError("iterations must be positive")
+    if len_a > MAX_DECK or len_b > MAX_DECK:
+        raise ValueError("Primitive MCCFR deck exceeds native deck capacity")
+    if state == 0:
+        state = 0xD1B54A32D192ED03
+    if scratch is None:
+        scratch = [FastState() for _ in range(max_depth + 1)]
+
+    for i, card_id in enumerate(deck_a):
+        encoded_a[i] = engine.id_to_code[card_id]
+    for i, card_id in enumerate(deck_b):
+        encoded_b[i] = engine.id_to_code[card_id]
+
+    for i in range(iterations):
+        _prepare_root(
+            engine,
+            root,
+            &encoded_a[0],
+            len_a,
+            &encoded_b[0],
+            len_b,
+            &state,
+        )
+        utility0 += _packed_traverse(
+            engine,
+            root,
+            0,
+            0,
+            max_depth,
+            nodes,
+            rng,
+            leaf_scale,
+            1.0,
+            1.0,
+            scratch,
+        )
+        utility1 += _packed_traverse(
+            engine,
+            root,
+            1,
+            0,
+            max_depth,
+            nodes,
+            rng,
+            leaf_scale,
+            1.0,
+            1.0,
+            scratch,
+        )
+
+    return utility0, utility1, int(state)
 
 
 
