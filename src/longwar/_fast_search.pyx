@@ -1,8 +1,6 @@
 # cython: language_level=3, boundscheck=False, wraparound=False, initializedcheck=False, cdivision=True
 from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, int32_t, uint64_t
-from libc.stddef cimport size_t
-from libc.string cimport memcpy, memset, memcmp
-from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy, memset
 from libc.math cimport tanh
 from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
@@ -1119,13 +1117,9 @@ cdef class FastEngine:
     cpdef double evaluate(self, FastState state, int player):
         return self.evaluate_fast(state, player)
 
-    cdef int information_key_into(
-        self,
-        FastState state,
-        int player,
-        unsigned char* buf,
-    ) noexcept:
-        cdef int n=0, i, owner, slot, card, front, ix, opponent=1-player
+    cdef bytes information_key_fast(self, FastState state, int player):
+        cdef unsigned char buf[512]
+        cdef int n=0, i, owner, slot, card, count, front, ix, opponent=1-player
         # version byte makes the binary representation explicitly evolvable
         buf[n] = 1; n += 1
         buf[n] = player; n += 1
@@ -1147,6 +1141,7 @@ cdef class FastEngine:
                 buf[n] = state.subject[slot] + 1; n += 1
                 buf[n] = state.link[slot] + 1; n += 1
                 buf[n] = state.name[slot] + 1; n += 1
+                # signed temporary strength in one byte, biased by 64
                 buf[n] = state.temporary[slot] + 64; n += 1
 
         for owner in range(2):
@@ -1177,6 +1172,7 @@ cdef class FastEngine:
         for owner in range(2):
             buf[n] = state.stratagem_used[owner]; n += 1
 
+        # own hand and own deck multisets: fixed card-count vector
         for card in range(self.n_cards):
             buf[n] = state.hand[player][card]; n += 1
         for card in range(self.n_cards):
@@ -1194,11 +1190,6 @@ cdef class FastEngine:
         for i in range(state.discard_len[opponent]):
             buf[n] = state.discard[opponent][i] + 1; n += 1
 
-        return n
-
-    cdef bytes information_key_fast(self, FastState state, int player):
-        cdef unsigned char buf[512]
-        cdef int n = self.information_key_into(state, player, &buf[0])
         return <bytes>PyBytes_FromStringAndSize(<char*>buf, n)
 
     cpdef bytes information_key(self, FastState state, int player):
@@ -1291,9 +1282,6 @@ cdef class FastEngine:
 
 
 cdef class FastCFRNode:
-    cdef unsigned char info_key[512]
-    cdef uint16_t info_key_len
-    cdef uint64_t info_hash
     cdef uint64_t action_codes[MAX_ACTIONS]
     cdef double regrets[MAX_ACTIONS]
     cdef double strategy_sums[MAX_ACTIONS]
@@ -1302,41 +1290,12 @@ cdef class FastCFRNode:
     cdef public long average_visits
 
     def __cinit__(self):
-        memset(self.info_key, 0, sizeof(self.info_key))
-        self.info_key_len = 0
-        self.info_hash = 0
         memset(self.action_codes, 0, sizeof(self.action_codes))
         memset(self.regrets, 0, sizeof(self.regrets))
         memset(self.strategy_sums, 0, sizeof(self.strategy_sums))
         self.action_count = 0
         self.visits = 0
         self.average_visits = 0
-
-    cdef void set_information_key(
-        self,
-        unsigned char* key,
-        int key_len,
-        uint64_t key_hash,
-    ) noexcept:
-        memcpy(self.info_key, key, key_len)
-        self.info_key_len = key_len
-        self.info_hash = key_hash
-
-    cdef bint information_key_equals(
-        self,
-        unsigned char* key,
-        int key_len,
-    ) noexcept:
-        return (
-            self.info_key_len == key_len
-            and memcmp(self.info_key, key, key_len) == 0
-        )
-
-    cpdef bytes key_bytes(self):
-        return <bytes>PyBytes_FromStringAndSize(
-            <char*>self.info_key,
-            self.info_key_len,
-        )
 
     cdef void strategy_into(
         self,
@@ -1472,140 +1431,13 @@ cdef class FastCFRNode:
         return result
 
 
-cdef inline uint64_t _key_hash(
-    unsigned char* key,
-    int key_len,
-) noexcept:
-    cdef uint64_t value = 1469598103934665603
-    cdef int i
-    for i in range(key_len):
-        value ^= key[i]
-        value *= 1099511628211
-    if value == 0:
-        value = 1
-    return value
-
-
-cdef class FastNodeTable:
-    cdef uint64_t* hashes
-    cdef int32_t* indexes
-    cdef size_t capacity
-    cdef size_t node_count
-    cdef public object nodes
-
-    def __cinit__(self):
-        self.hashes = NULL
-        self.indexes = NULL
-        self.capacity = 0
-        self.node_count = 0
-        self.nodes = []
-
-    def __init__(self, int initial_capacity=2048):
-        cdef size_t capacity = 1
-        while capacity < initial_capacity:
-            capacity <<= 1
-        self._allocate(capacity)
-
-    def __dealloc__(self):
-        if self.hashes != NULL:
-            free(self.hashes)
-        if self.indexes != NULL:
-            free(self.indexes)
-
-    cdef void _allocate(self, size_t capacity) except *:
-        self.hashes = <uint64_t*>malloc(capacity * sizeof(uint64_t))
-        self.indexes = <int32_t*>malloc(capacity * sizeof(int32_t))
-        if self.hashes == NULL or self.indexes == NULL:
-            if self.hashes != NULL:
-                free(self.hashes)
-                self.hashes = NULL
-            if self.indexes != NULL:
-                free(self.indexes)
-                self.indexes = NULL
-            raise MemoryError("Unable to allocate fast MCCFR node table")
-        memset(self.hashes, 0, capacity * sizeof(uint64_t))
-        memset(self.indexes, 0xff, capacity * sizeof(int32_t))
-        self.capacity = capacity
-
-    cdef void _grow(self) except *:
-        cdef uint64_t* old_hashes = self.hashes
-        cdef int32_t* old_indexes = self.indexes
-        cdef size_t old_capacity = self.capacity
-        cdef size_t i, slot, mask
-        cdef uint64_t h
-        cdef int32_t index
-
-        self.hashes = NULL
-        self.indexes = NULL
-        self._allocate(old_capacity << 1)
-        mask = self.capacity - 1
-
-        for i in range(old_capacity):
-            index = old_indexes[i]
-            if index < 0:
-                continue
-            h = old_hashes[i]
-            slot = h & mask
-            while self.indexes[slot] >= 0:
-                slot = (slot + 1) & mask
-            self.hashes[slot] = h
-            self.indexes[slot] = index
-
-        free(old_hashes)
-        free(old_indexes)
-
-    cdef FastCFRNode get_or_create(
-        self,
-        unsigned char* key,
-        int key_len,
-    ) except *:
-        cdef uint64_t h = _key_hash(key, key_len)
-        cdef size_t mask, slot
-        cdef int32_t index
-        cdef FastCFRNode node
-
-        if (self.node_count + 1) * 10 >= self.capacity * 7:
-            self._grow()
-
-        mask = self.capacity - 1
-        slot = h & mask
-
-        while True:
-            index = self.indexes[slot]
-            if index < 0:
-                node = FastCFRNode()
-                node.set_information_key(key, key_len, h)
-                self.nodes.append(node)
-                index = <int32_t>(len(self.nodes) - 1)
-                self.hashes[slot] = h
-                self.indexes[slot] = index
-                self.node_count += 1
-                return node
-
-            if self.hashes[slot] == h:
-                node = <FastCFRNode>self.nodes[index]
-                if node.information_key_equals(key, key_len):
-                    return node
-
-            slot = (slot + 1) & mask
-
-    def __len__(self):
-        return self.node_count
-
-    def items(self):
-        return [
-            (node.key_bytes(), node)
-            for node in self.nodes
-        ]
-
-
 cdef double _packed_traverse(
     FastEngine engine,
     FastState state,
     int traverser,
     int depth,
     int max_depth,
-    FastNodeTable nodes,
+    object nodes,
     object rng,
     double leaf_scale,
     double reach0,
@@ -1616,8 +1448,8 @@ cdef double _packed_traverse(
     cdef uint64_t actions[MAX_ACTIONS]
     cdef double probabilities[MAX_ACTIONS]
     cdef double utilities[MAX_ACTIONS]
-    cdef unsigned char info_key[512]
-    cdef int info_key_len
+    cdef bytes info_key
+    cdef object raw_node
     cdef FastCFRNode node
     cdef FastState child
     cdef double probability
@@ -1637,12 +1469,14 @@ cdef double _packed_traverse(
     if n <= 0:
         raise RuntimeError("Packed non-terminal state has no legal actions")
 
-    info_key_len = engine.information_key_into(
-        state,
-        actor,
-        &info_key[0],
-    )
-    node = nodes.get_or_create(&info_key[0], info_key_len)
+    info_key = engine.information_key_fast(state, actor)
+    raw_node = nodes.get(info_key)
+    if raw_node is None:
+        node = FastCFRNode()
+        nodes[info_key] = node
+    else:
+        node = <FastCFRNode>raw_node
+
     node.visits += 1
     node.strategy_into(&actions[0], n, &probabilities[0])
     child_depth = depth + 1
@@ -1708,7 +1542,7 @@ def packed_external_sampling_traverse(
     *,
     int depth,
     int max_depth,
-    FastNodeTable nodes,
+    nodes,
     rng,
     double leaf_scale=100.0,
     scratch=None,
