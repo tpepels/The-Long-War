@@ -181,7 +181,23 @@ def main() -> None:
     play_style = (ROOT / "web" / "play.css").read_text(encoding="utf-8")
     guard = (ROOT / "web" / "card-layout-guard.js").read_text(encoding="utf-8")
 
-    document = f"""<!doctype html>
+    cases = (
+        (
+            "browser",
+            '<section class="layout-test">' +
+            "".join(play_card(card) for card in cards) +
+            "</section>",
+        ),
+        (
+            "print",
+            '<section class="layout-test-print">' +
+            "".join(print_card(card) for card in cards) +
+            "</section>",
+        ),
+    )
+
+    for label, markup in cases:
+        document = f"""<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -198,12 +214,7 @@ def main() -> None:
 </head>
 <body class="game-body">
 <div id="layout-result"></div>
-<section class="layout-test">
-{''.join(play_card(card) for card in cards)}
-</section>
-<section class="layout-test-print">
-{''.join(print_card(card) for card in cards)}
-</section>
+{markup}
 <script>{guard}</script>
 <script>
 window.addEventListener("load", () => {{
@@ -217,28 +228,19 @@ window.addEventListener("load", () => {{
 </body>
 </html>"""
 
-    with tempfile.TemporaryDirectory(prefix="longwar-layout-") as temp_dir:
-        path = Path(temp_dir) / "card-layout.html"
-        path.write_text(document, encoding="utf-8")
-        command = [
-            browser,
-            "--headless=new",
-            "--no-sandbox",
-            "--disable-gpu",
-            "--window-size=1920,1080",
-            "--virtual-time-budget=1500",
-            "--dump-dom",
-            path.as_uri(),
-        ]
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )
-        if result.returncode != 0 and "--headless=new" in command:
-            command[1] = "--headless"
+        with tempfile.TemporaryDirectory(prefix=f"longwar-layout-{label}-") as temp_dir:
+            path = Path(temp_dir) / f"card-layout-{label}.html"
+            path.write_text(document, encoding="utf-8")
+            command = [
+                browser,
+                "--headless=new",
+                "--no-sandbox",
+                "--disable-gpu",
+                "--window-size=1920,1080",
+                "--virtual-time-budget=1500",
+                "--dump-dom",
+                path.as_uri(),
+            ]
             result = subprocess.run(
                 command,
                 capture_output=True,
@@ -246,17 +248,26 @@ window.addEventListener("load", () => {{
                 timeout=30,
                 check=False,
             )
+            if result.returncode != 0 and "--headless=new" in command:
+                command[1] = "--headless"
+                result = subprocess.run(
+                    command,
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                    check=False,
+                )
 
-    if result.returncode != 0:
-        raise SystemExit(
-            "Headless browser failed during card layout validation:\n" +
-            result.stderr[-4000:]
-        )
+        if result.returncode != 0:
+            raise SystemExit(
+                f"Headless browser failed during {label} card layout validation:\n" +
+                result.stderr[-4000:]
+            )
 
-    if 'data-layout-check="pass"' not in result.stdout:
-        match = re.search(r'<div id="layout-result">([^<]*)</div>', result.stdout)
-        details = html.unescape(match.group(1)) if match else "unknown layout failure"
-        raise SystemExit(f"Card layout failure detected: {details}")
+        if 'data-layout-check="pass"' not in result.stdout:
+            match = re.search(r'<div id="layout-result">([^<]*)</div>', result.stdout)
+            details = html.unescape(match.group(1)) if match else "unknown layout failure"
+            raise SystemExit(f"{label.title()} card layout failure detected: {details}")
 
     print(f"PASS: {len(cards)} browser cards and {len(cards)} print cards fit fixed regions")
 
