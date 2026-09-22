@@ -233,6 +233,30 @@ class HeuristicAgent:
         )
         score += 1.25 * hand_delta
 
+        if state.phase is Phase.BATTLE:
+            own_passed = state.players[player].passed
+            opponent_passed = state.players[opponent].passed
+            if own_passed != opponent_passed:
+                if own_passed:
+                    # Once we have Passed, close leads are exposed because the
+                    # opponent can spend cards without another reply from us.
+                    exposed_leads = sum(0 < margin <= 4 for margin in margins)
+                    score -= (
+                        1.5
+                        + min(7.0, 0.55 * len(state.players[opponent].hand))
+                        + 1.1 * exposed_leads
+                    )
+                else:
+                    # If the opponent has Passed, we own all remaining tempo.
+                    # Reward realistic catch-up opportunities, but not a huge
+                    # hand when every Front is already far out of reach.
+                    reachable_fronts = sum(-4 <= margin <= 0 for margin in margins)
+                    score += (
+                        1.0
+                        + min(5.0, 0.4 * len(state.players[player].hand))
+                        + 0.9 * reachable_fronts
+                    )
+
         named_subject_delta = self._count_named_subjects(state, player) - self._count_named_subjects(
             state, opponent
         )
