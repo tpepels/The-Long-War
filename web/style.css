@@ -2349,3 +2349,84 @@ button, .button {
     display: none;
   }
 }
+
+
+/* v0.6 playtest cards: information first, no decorative duplicate panel. */
+.game-card {
+  grid-template-rows: 7mm 15mm 10mm minmax(0, 1fr) 6mm;
+}
+
+.game-card > .card-art {
+  display: none !important;
+}
+
+.card-meta {
+  padding: 2.2mm 3.5mm 0;
+  overflow: visible;
+}
+
+.card-type {
+  max-width: 48mm;
+  font-size: 2.7mm;
+}
+
+.card-title {
+  height: 15mm;
+  padding: 1.6mm 15.5mm 0 3.5mm;
+  font-size: 4.75mm;
+  line-height: .98;
+}
+
+.strength {
+  right: 3.2mm;
+  top: 2.1mm;
+  width: 11mm;
+  height: 11mm;
+  font-size: 5.3mm;
+  background: #fbf4e5;
+}
+
+.card-properties {
+  height: 10mm;
+  padding: 1mm 3.5mm .6mm;
+  gap: .6mm;
+  border-bottom: .25mm solid color-mix(in srgb,var(--card-accent) 32%,transparent);
+}
+
+.card-role {
+  gap: 1.2mm;
+  font-size: 2.55mm;
+}
+
+.card-role strong {
+  font-size: 2.6mm;
+}
+
+.card-classes {
+  font-size: 2.15mm;
+}
+
+.card-rule {
+  padding: 3mm 3.5mm 1.8mm;
+  font: 3.55mm/1.18 Georgia,serif;
+}
+
+.card-rule .rule-block + .rule-block {
+  margin-top: 1.7mm;
+}
+
+.card-rule .rule-label {
+  margin-right: 1.2mm;
+  padding: .55mm .8mm .45mm;
+  font-size: 1.95mm;
+  vertical-align: .25mm;
+}
+
+.card-rule .rule-empty {
+  opacity: .55;
+}
+
+.card-footer {
+  padding: 1.2mm 3.2mm;
+  font-size: 1.9mm;
+}
