@@ -505,7 +505,7 @@ class MCCFRTrainer:
             )
             for traverser in (0, 1):
                 utility_sum[traverser] += self._traverse(
-                    root.clone(),
+                    root,
                     traverser,
                     depth=0,
                 )
@@ -540,7 +540,7 @@ class MCCFRTrainer:
         for _ in range(iterations):
             for traverser in (0, 1):
                 utility_sum[traverser] += self._traverse(
-                    root.clone(),
+                    root,
                     traverser,
                     depth=0,
                 )
@@ -576,7 +576,7 @@ class MCCFRTrainer:
                 raise ValueError("Root sampler returned a terminal state")
             for traverser in (0, 1):
                 utility_sum[traverser] += self._traverse(
-                    root.clone(),
+                    root,
                     traverser,
                     depth=0,
                 )
@@ -598,8 +598,18 @@ class MCCFRTrainer:
         *,
         depth: int,
     ) -> float:
+        scratch_by_depth: dict[int, GameState] = {}
+        depth_by_state_id = {id(state): depth}
+
         def next_state(current: GameState, action: Action) -> GameState:
-            child = current.clone()
+            child_depth = depth_by_state_id[id(current)] + 1
+            child = scratch_by_depth.get(child_depth)
+            if child is None:
+                child = current.clone()
+                scratch_by_depth[child_depth] = child
+            else:
+                child.copy_from(current)
+            depth_by_state_id[id(child)] = child_depth
             self.engine.apply(child, action, validate=False)
             return child
 
