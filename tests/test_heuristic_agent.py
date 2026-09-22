@@ -72,14 +72,9 @@ def test_heuristic_prefers_to_pass_when_opponent_has_passed_and_battle_is_won() 
 
 def test_equal_stratagem_scores_do_not_fall_back_to_card_id_order() -> None:
     engine, state = engine_and_state()
-    state.players[0].hand = [
-        "the-storm-broke",
-        "the-tide-rose",
-        "the-ground-gave-way",
-        "the-bronze-teeth",
-        "the-false-muster",
-        "the-wooden-gift",
-    ]
+    # Tide and Ground have the same public-board estimate here: each improves
+    # the current relative position by two points if revealed.
+    state.players[0].hand = ["the-tide-rose", "the-ground-gave-way"]
     state.players[1].hand = []
     state.slot(1, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
     state.slot(1, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
@@ -91,7 +86,7 @@ def test_equal_stratagem_scores_do_not_fall_back_to_card_id_order() -> None:
         if isinstance(action, SetStratagem)
     }
 
-    assert len(selected) > 1
+    assert selected == {"the-tide-rose", "the-ground-gave-way"}
 
 def test_heuristic_prefers_two_front_control_over_overkill() -> None:
     engine, state = engine_and_state()
