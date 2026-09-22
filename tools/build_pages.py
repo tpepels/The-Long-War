@@ -63,7 +63,7 @@ def version_static_assets() -> str:
 def group_rulebook_sections(rendered: str) -> str:
     """Wrap each H2 section so short rules sections do not split awkwardly across columns."""
     pattern = re.compile(
-        r'(<h2\\b[^>]*>.*?</h2>)(.*?)(?=(?:<h2\\b|<div class="rulebook-kicker"|$))',
+        r'(<h2\b[^>]*>.*?</h2>)(.*?)(?=(?:<h2\b|<div class="rulebook-kicker"|$))',
         re.DOTALL,
     )
     return pattern.sub(
