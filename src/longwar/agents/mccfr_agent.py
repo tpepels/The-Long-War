@@ -30,6 +30,13 @@ class MCCFRAgent:
         self.fallback_agent = HeuristicAgent(seed=seed, exploration=0.0)
         self.last_decision: dict[str, float | int | str] = {}
 
+    def choose_mulligan(
+        self,
+        engine: GameEngine,
+        hand: list[str],
+    ) -> tuple[int, ...]:
+        return self.fallback_agent.choose_mulligan(engine, hand)
+
     def choose(self, engine: GameEngine, state: GameState) -> Action:
         actions = engine.legal_actions(state)
         if len(actions) == 1:

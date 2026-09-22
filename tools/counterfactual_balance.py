@@ -5,7 +5,10 @@ import json
 from pathlib import Path
 
 from longwar.cards import load_card_file
-from longwar.counterfactual import run_counterfactual_experiment
+from longwar.counterfactual import (
+    run_counterfactual_card_sweep,
+    run_counterfactual_experiment,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -37,17 +40,43 @@ def main() -> None:
     args = parser.parse_args()
 
     data = load_card_file(ROOT / "cards" / "cards.json")
-    report = run_counterfactual_experiment(
-        data,
-        contexts=args.contexts,
-        games_per_context=args.games_per_context,
-        seed=args.seed,
-        agent_name=args.agent,
-        include_pairs=not args.no_pairs,
-        include_legend_triples=not args.no_triples,
-        bootstrap_resamples=args.bootstrap_resamples,
-        card_ids=args.cards,
+    cards = args.cards
+    selected = (
+        cards
+        if cards is not None
+        else [card["id"] for card in data["cards"]]
     )
+    selected_heroes = [
+        card_id
+        for card_id in selected
+        if next(card for card in data["cards"] if card["id"] == card_id).get("hero", False)
+    ]
+    full_pool_requires_sweep = (
+        cards is None
+        and (len(selected) > 30 or len(selected_heroes) > 1)
+    )
+
+    if full_pool_requires_sweep:
+        report = run_counterfactual_card_sweep(
+            data,
+            contexts=args.contexts,
+            games_per_context=args.games_per_context,
+            seed=args.seed,
+            agent_name=args.agent,
+            bootstrap_resamples=args.bootstrap_resamples,
+        )
+    else:
+        report = run_counterfactual_experiment(
+            data,
+            contexts=args.contexts,
+            games_per_context=args.games_per_context,
+            seed=args.seed,
+            agent_name=args.agent,
+            include_pairs=not args.no_pairs,
+            include_legend_triples=not args.no_triples,
+            bootstrap_resamples=args.bootstrap_resamples,
+            card_ids=cards,
+        )
 
     output = resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)

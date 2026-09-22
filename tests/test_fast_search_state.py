@@ -22,10 +22,10 @@ ROOT = Path(__file__).resolve().parents[1]
 pytestmark = pytest.mark.algorithm
 
 
-def setup():
+def setup(deck_file: str = "reference.json"):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / deck_file).read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
     return engine, deck, FastEngine(engine)
@@ -116,8 +116,19 @@ def assert_fast_matches(engine, fast_engine, state, fast_state):
         )
 
 
-def test_primitive_search_state_matches_reference_engine_on_random_games():
-    engine, deck, fast_engine = setup()
+@pytest.mark.parametrize(
+    "deck_file",
+    (
+        "reference.json",
+        "avaros-line.json",
+        "mara-rear.json",
+        "sera-support.json",
+    ),
+)
+def test_primitive_search_state_matches_reference_engine_on_random_games(
+    deck_file: str,
+):
+    engine, deck, fast_engine = setup(deck_file)
     rng = random.Random(94117)
     checked = 0
 

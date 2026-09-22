@@ -8,6 +8,7 @@ from ..game.engine import GameEngine
 from ..game.model import GameState
 from ..mccfr import action_key
 from ..online_mccfr import OnlineMCCFRResolver
+from .heuristic_agent import opening_mulligan_indices
 
 
 class OnlineMCCFRAgent:
@@ -33,6 +34,13 @@ class OnlineMCCFRAgent:
             max_depth=max_depth,
         )
         self.last_decision: dict[str, float | int | str] = {}
+
+    def choose_mulligan(
+        self,
+        engine: GameEngine,
+        hand: list[str],
+    ) -> tuple[int, ...]:
+        return opening_mulligan_indices(engine, hand)
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
         actions = engine.legal_actions(state)

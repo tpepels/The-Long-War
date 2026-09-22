@@ -17,6 +17,58 @@ from ..game.engine import GameEngine, all_positions
 from ..game.model import Front, GameState, Phase
 
 
+
+def opening_mulligan_indices(
+    engine: GameEngine,
+    hand: list[str],
+    *,
+    maximum: int = 2,
+) -> tuple[int, ...]:
+    """Choose weak opening cards using only the player's own hand.
+
+    The score is about opening flexibility, not raw card power. Subjects are
+    immediately deployable; Bonds and especially Names become poor keeps when
+    the hand lacks the earlier parts of the Subject-Bond-Name chain.
+    """
+    if maximum <= 0 or not hand:
+        return ()
+
+    types = [engine.cards[card_id]["type"] for card_id in hand]
+    subject_count = types.count("subject")
+    bond_count = types.count("link")
+    stratagem_count = types.count("stratagem")
+
+    scored: list[tuple[float, int]] = []
+    seen_stratagems = 0
+    for index, card_id in enumerate(hand):
+        card = engine.cards[card_id]
+        card_type = card["type"]
+
+        if card_type == "subject":
+            score = 5.0 + 0.08 * float(card.get("strength", 0))
+        elif card_type == "link":
+            score = 3.1 if subject_count >= 2 else 2.4 if subject_count == 1 else 0.9
+        elif card_type == "name":
+            if subject_count >= 2 and bond_count >= 2:
+                score = 2.8
+            elif subject_count >= 1 and bond_count >= 1:
+                score = 1.9
+            else:
+                score = 0.5
+        elif card_type == "plot":
+            score = 3.7 if card.get("veiled", False) else 2.6
+        elif card_type == "stratagem":
+            seen_stratagems += 1
+            score = 3.2 if seen_stratagems == 1 else 2.0
+            if stratagem_count >= 3:
+                score -= 0.35
+        else:
+            score = 2.5
+        scored.append((score, index))
+
+    scored.sort(key=lambda item: (item[0], item[1]))
+    return tuple(sorted(index for _, index in scored[:maximum]))
+
 @dataclass(frozen=True)
 class ScoredAction:
     action: Action
@@ -40,6 +92,13 @@ class HeuristicAgent:
         self.rng = random.Random(seed)
         self.exploration = exploration
         self.last_decision: dict[str, float | int | str] = {}
+
+    def choose_mulligan(
+        self,
+        engine: GameEngine,
+        hand: list[str],
+    ) -> tuple[int, ...]:
+        return opening_mulligan_indices(engine, hand)
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
         player = state.active_player

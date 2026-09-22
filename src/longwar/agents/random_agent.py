@@ -12,6 +12,15 @@ class RandomAgent:
         self.rng = random.Random(seed)
         self.pass_probability = pass_probability
 
+    def choose_mulligan(
+        self,
+        engine: GameEngine,
+        hand: list[str],
+    ) -> tuple[int, ...]:
+        del engine
+        count = min(2, len(hand))
+        return tuple(sorted(self.rng.sample(range(len(hand)), count)))
+
     def choose(self, engine: GameEngine, state: GameState) -> Action:
         actions = engine.legal_actions(state)
 

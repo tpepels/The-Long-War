@@ -139,40 +139,106 @@ def generate_context_decks(
     *,
     count: int,
     seed: int,
+    required_cards: Iterable[str] = (),
 ) -> list[list[str]]:
-    """Generate legal 30-card contexts containing every current card at least once."""
+    """Generate legal 30-card contexts for an expandable card pool.
+
+    ``required_cards`` are included in every generated deck. Without required
+    cards, the generator rotates coverage so the union of contexts reaches the
+    whole canonical pool. A deck always contains exactly one Hero.
+    """
     if count <= 0:
         raise ValueError("count must be positive")
 
     cards = card_data["cards"]
-    one_each = [card["id"] for card in cards]
-    nonunique = [card["id"] for card in cards if not card["unique"]]
-    extras_needed = 30 - len(one_each)
-    if extras_needed < 0 or extras_needed > len(nonunique):
-        raise ValueError(
-            "Current card pool cannot generate 30-card all-card contexts "
-            f"(one_each={len(one_each)}, nonunique={len(nonunique)})"
-        )
+    meta = card_index(card_data)
+    all_ids = [card["id"] for card in cards]
+    required = list(dict.fromkeys(required_cards))
+    unknown = [card_id for card_id in required if card_id not in meta]
+    if unknown:
+        raise ValueError(f"Unknown required cards: {unknown}")
+    if len(required) > 30:
+        raise ValueError("At most 30 distinct cards can be required in a deck context")
 
-    if extras_needed == 0:
-        # With exactly 30 canonical titles the only all-card composition is
-        # one copy of each. Game seeds still vary shuffle/order and play.
-        return [list(one_each) for _ in range(count)]
+    heroes = [card["id"] for card in cards if card.get("hero", False)]
+    required_heroes = [card_id for card_id in required if meta[card_id].get("hero", False)]
+    if len(required_heroes) > 1:
+        raise ValueError(
+            "A legal context cannot require more than one Hero; "
+            "evaluate alternative Heroes in separate counterfactual runs"
+        )
+    if not heroes:
+        raise ValueError("Card pool must contain at least one Hero")
 
     rng = random.Random(seed)
+    uncovered = set(all_ids) - set(required)
     contexts: list[list[str]] = []
     seen: set[tuple[str, ...]] = set()
-    attempts = 0
-    while len(contexts) < count:
-        attempts += 1
-        if attempts > max(1000, count * 100):
-            raise RuntimeError("Could not generate enough distinct deck contexts")
-        extras = rng.sample(nonunique, extras_needed)
-        deck = list(one_each) + extras
+
+    for context_index in range(count):
+        chosen_hero = (
+            required_heroes[0]
+            if required_heroes
+            else heroes[context_index % len(heroes)]
+        )
+        deck = list(required)
+        if chosen_hero not in deck:
+            deck.append(chosen_hero)
+
+        eligible_unique = [
+            card_id
+            for card_id in all_ids
+            if card_id not in deck
+            and (not meta[card_id].get("hero", False) or card_id == chosen_hero)
+        ]
+        coverage = [card_id for card_id in eligible_unique if card_id in uncovered]
+        rng.shuffle(coverage)
+        remainder = [card_id for card_id in eligible_unique if card_id not in uncovered]
+        rng.shuffle(remainder)
+        for card_id in coverage + remainder:
+            if len(deck) >= 30:
+                break
+            deck.append(card_id)
+
+        if len(deck) < 30:
+            duplicate_candidates = [
+                card["id"]
+                for card in cards
+                if not card["unique"]
+                and not card.get("hero", False)
+                and deck.count(card["id"]) < 2
+            ]
+            rng.shuffle(duplicate_candidates)
+            for card_id in duplicate_candidates:
+                if len(deck) >= 30:
+                    break
+                deck.append(card_id)
+
+        if len(deck) != 30:
+            raise ValueError(
+                "Card pool cannot generate a legal 30-card context from the "
+                f"requested cards (built {len(deck)})"
+            )
+
         signature = tuple(sorted(deck))
         if signature in seen:
-            continue
+            alternatives = [card_id for card_id in eligible_unique if card_id not in deck]
+            if alternatives:
+                replaced = next(
+                    (
+                        index
+                        for index in range(len(deck) - 1, -1, -1)
+                        if deck[index] not in required
+                        and deck[index] != chosen_hero
+                    ),
+                    None,
+                )
+                if replaced is not None:
+                    deck[replaced] = rng.choice(alternatives)
+                    signature = tuple(sorted(deck))
+
         seen.add(signature)
+        uncovered.difference_update(deck)
         contexts.append(deck)
 
     return contexts
@@ -184,11 +250,17 @@ def build_samples(
     contexts: int,
     games_per_context: int,
     seed: int,
+    required_cards: Iterable[str] = (),
 ) -> list[ExperimentSample]:
     if games_per_context <= 0:
         raise ValueError("games_per_context must be positive")
 
-    focal_contexts = generate_context_decks(card_data, count=contexts, seed=seed)
+    focal_contexts = generate_context_decks(
+        card_data,
+        count=contexts,
+        seed=seed,
+        required_cards=required_cards,
+    )
     opponent_contexts = generate_context_decks(
         card_data,
         count=contexts,
@@ -234,7 +306,7 @@ def _play_focal_outcome(
     else:
         deck_a, deck_b = list(sample.opponent_deck), focal_deck
 
-    state = engine.new_game(
+    preview = engine.new_game(
         deck_a,
         deck_b,
         seed=sample.game_seed,
@@ -252,6 +324,19 @@ def _play_focal_outcome(
             sample.game_seed * 10_000 + 2,
         ),
     ]
+    mulligan_indices = tuple(
+        agent.choose_mulligan(engine, preview.players[player].hand)
+        if hasattr(agent, "choose_mulligan")
+        else ()
+        for player, agent in enumerate(agents)
+    )
+    state = engine.new_game(
+        deck_a,
+        deck_b,
+        seed=sample.game_seed,
+        first_player=0,
+        mulligan_indices=mulligan_indices,
+    )
 
     actions = 0
     while state.phase is not Phase.COMPLETE:
@@ -378,6 +463,98 @@ def _severity(estimate_value: EffectEstimate) -> dict[str, Any]:
     }
 
 
+def run_counterfactual_card_sweep(
+    card_data: dict[str, Any],
+    *,
+    contexts: int,
+    games_per_context: int,
+    seed: int,
+    agent_name: str = "heuristic",
+    bootstrap_resamples: int = 2000,
+    card_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    """Evaluate card main effects across a pool larger than one legal deck.
+
+    Each card is evaluated in its own legal paired contexts. This preserves
+    the causal replacement interpretation without pretending 48 titles can
+    coexist in a 30-card deck. Pair/triple interactions require an explicit
+    compatible subset and remain the responsibility of the grouped runner.
+    """
+    canonical = card_index(card_data)
+    selected = (
+        list(card_ids)
+        if card_ids is not None
+        else [card["id"] for card in card_data["cards"]]
+    )
+    unknown = [card_id for card_id in selected if card_id not in canonical]
+    if unknown:
+        raise ValueError(f"Unknown selected cards: {unknown}")
+
+    rows: list[dict[str, Any]] = []
+    total_matches = 0
+    reports: list[dict[str, Any]] = []
+    for index, card_id in enumerate(selected):
+        report = run_counterfactual_experiment(
+            card_data,
+            contexts=contexts,
+            games_per_context=games_per_context,
+            seed=seed + index * 104729,
+            agent_name=agent_name,
+            include_pairs=False,
+            include_legend_triples=False,
+            bootstrap_resamples=bootstrap_resamples,
+            card_ids=[card_id],
+        )
+        reports.append(report)
+        rows.extend(report["cards"])
+        total_matches += int(report["total_matches"])
+
+    rows.sort(
+        key=lambda row: (
+            -abs(row["delta_win_probability"]),
+            row["title"],
+        )
+    )
+    first = reports[0] if reports else None
+    return {
+        "schema_version": 1,
+        "method": "paired_common_random_numbers_per_card_context_sweep",
+        "policy": agent_name,
+        "seed": seed,
+        "contexts": contexts,
+        "games_per_context": games_per_context,
+        "samples": contexts * games_per_context,
+        "samples_per_card": contexts * games_per_context,
+        "conditions_evaluated_per_sample": 2,
+        "total_matches": total_matches,
+        "baseline_definition": first["baseline_definition"] if first else {},
+        "pairing": first["pairing"] if first else {},
+        "cards": rows,
+        "pairs": [],
+        "triples": [],
+        "methodology": {
+            "card_effect": (
+                "base outcome - same legal deck context with the focal card "
+                "replaced by its matched baseline"
+            ),
+            "pair_interaction": (
+                "Not evaluated in full-pool sweep; select a compatible card "
+                "subset to evaluate interactions."
+            ),
+            "triple_interaction": (
+                "Not evaluated in full-pool sweep; select a compatible card "
+                "subset to evaluate interactions."
+            ),
+            "ci95": "paired percentile bootstrap over per-card matched samples",
+            "interpretation": (
+                "Each card is tested in legal contexts containing that card. "
+                "Effects are policy- and context-distribution-specific, not "
+                "universal equilibrium values."
+            ),
+        },
+    }
+
+
 def run_counterfactual_experiment(
     card_data: dict[str, Any],
     *,
@@ -402,11 +579,24 @@ def run_counterfactual_experiment(
 
     experiment_data = build_experiment_card_data(card_data)
     engine = GameEngine(experiment_data)
+    selected_heroes = [
+        card_id
+        for card_id in selected_cards
+        if canonical_cards[card_id].get("hero", False)
+    ]
+    if len(selected_cards) > 30 or len(selected_heroes) > 1:
+        raise ValueError(
+            "A single paired counterfactual run requires at most 30 selected "
+            "cards and at most one Hero. Split a larger pool into candidate "
+            "groups; alternative Heroes must be evaluated separately."
+        )
+
     samples = build_samples(
         card_data,
         contexts=contexts,
         games_per_context=games_per_context,
         seed=seed,
+        required_cards=selected_cards,
     )
 
     pair_ids = (

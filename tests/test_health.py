@@ -154,3 +154,56 @@ def test_delayed_utility_is_not_judged_by_immediate_swing() -> None:
     assert "board_swing_outlier" not in {
         flag["code"] for flag in delayed["flags"]
     }
+
+def test_combo_outcome_association_is_diagnostic_not_balance_failure() -> None:
+    cards = {
+        "schema_version": 1,
+        "cards": [
+            {"id": "subject", "title": "Subject", "type": "subject", "strength": 4, "unique": False, "classes": ["human"], "role": "swordsman", "text": "", "rules": {}, "balance": {}},
+            {"id": "bond", "title": "Bond", "type": "link", "unique": False, "classes": ["oath"], "text": "", "rules": {"strength_bonus": 1}, "balance": {}},
+            {"id": "name", "title": "Name", "type": "name", "strength": 2, "unique": True, "classes": ["human"], "text": "", "rules": {}, "balance": {}},
+        ],
+    }
+    neutral = {
+        "draws": 200, "plays": 100, "turns_in_hand": 300,
+        "playable_turns": 240, "unplayable_turns": 60,
+        "held_on_pass": 80, "dead_on_pass": 20,
+        "mean_immediate_front_swing": 1.0,
+        "mean_immediate_control_swing": 0.0,
+        "games_drawn": 150, "wins_when_drawn": 75,
+        "games_played": 100, "wins_when_played": 50,
+        "play_rate_per_draw": 0.5, "unplayable_turn_rate": 0.2,
+        "dead_on_pass_rate": 0.25, "win_rate_when_drawn": 0.5,
+        "win_rate_when_played": 0.5,
+    }
+    report = analyze_simulation(
+        {
+            "games": 200,
+            "agents": ["heuristic", "heuristic"],
+            "wins": [100, 100],
+            "first_player_wins": 100,
+            "mean_turns": 30.0,
+            "max_turns": 42,
+            "telemetry": {
+                "passes": {},
+                "battles": {},
+                "cards": {key: dict(neutral) for key in ("subject", "bond", "name")},
+                "legend_combinations": {
+                    "subject | bond | name": {
+                        "games_seen": 100,
+                        "wins_when_seen": 80,
+                        "win_rate_when_seen": 0.8,
+                        "completions": 20,
+                        "mean_strength_at_completion": 9.0,
+                    }
+                },
+            },
+        },
+        cards,
+    )
+    combo = report["legends"][0]
+    assert combo["flags"][0]["code"] == "combo_positive_association"
+    assert combo["flags"][0]["severity"] == "diagnostic"
+    assert report["summary"]["flags_high"] == 0
+    assert report["summary"]["flags_diagnostic"] == 1
+

@@ -681,6 +681,451 @@
         "dynamic": true,
         "delayed_utility": true
       }
+    },
+    {
+      "id": "the-red-shields",
+      "title": "The Red Shields",
+      "type": "subject",
+      "strength": 5,
+      "unique": false,
+      "classes": [
+        "human",
+        "guard"
+      ],
+      "role": "spearman",
+      "text": "*Frontline only.*",
+      "rules": {
+        "placement": {
+          "rank": "front"
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "the-crow-archers",
+      "title": "The Crow Archers",
+      "type": "subject",
+      "strength": 4,
+      "unique": false,
+      "classes": [
+        "human",
+        "company"
+      ],
+      "role": "archer",
+      "text": "*Rear only.*",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "the-house-of-reed",
+      "title": "The House of Reed",
+      "type": "subject",
+      "strength": 5,
+      "unique": false,
+      "classes": [
+        "place",
+        "stronghold"
+      ],
+      "role": "stronghold",
+      "text": "*Rear only.*",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "the-lantern-bearers",
+      "title": "The Lantern Bearers",
+      "type": "subject",
+      "strength": 1,
+      "unique": false,
+      "classes": [
+        "human",
+        "healer"
+      ],
+      "role": "healer",
+      "text": "*Rear only.* While your **discard pile** contains at least 5 cards, this **Subject** gets +1 **Strength**.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        },
+        "strength_modifiers": [
+          {
+            "amount": 1,
+            "when": {
+              "own_discard_at_least": 5
+            }
+          }
+        ]
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "mara-queen-of-cinders",
+      "title": "Mara, Queen of Cinders",
+      "type": "subject",
+      "strength": 5,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "queen",
+        "hero"
+      ],
+      "role": "archer",
+      "text": "*Hero. Rear only.* While this **Subject** is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        },
+        "adjacent_strength_aura": 1,
+        "aura_requires_rank": "rear"
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "sera-mother-of-white-hands",
+      "title": "Sera, Mother of White Hands",
+      "type": "subject",
+      "strength": 3,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "healer",
+        "hero"
+      ],
+      "role": "healer",
+      "text": "*Hero. Rear only.* While this **Subject** is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        },
+        "adjacent_strength_aura": 1,
+        "aura_requires_rank": "rear"
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "guarded",
+      "title": "Guarded",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "ward"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, that **Subject** cannot be chosen by an opponent's **Story**, and the opponent has -1 **Strength** in this **Front**.",
+      "rules": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 0,
+        "opposing_front_modifier": -1,
+        "protect_subject_from_opponent_plot": true
+      },
+      "balance": {
+        "strength_bonus": 1,
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "feared",
+      "title": "Feared",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "dread"
+      ],
+      "text": "Its **Subject** gets +2 **Strength**. While this **Bond** has a **Name**, the opponent has -1 **Strength** in this **Front**.",
+      "rules": {
+        "strength_bonus": 2,
+        "named_strength_bonus": 0,
+        "opposing_front_modifier": -1
+      },
+      "balance": {
+        "strength_bonus": 2,
+        "dynamic": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "remembered",
+      "title": "Remembered",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "memory"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength**, then +1 more if you have **discarded** a card this **Battle**.",
+      "rules": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 1,
+        "discard_strength_bonus": {
+          "per_card": 1,
+          "maximum": 1
+        }
+      },
+      "balance": {
+        "strength_bonus": 1,
+        "dynamic": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "held-fast",
+      "title": "Held Fast",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "resolve"
+      ],
+      "text": "Its **Subject** gets +2 **Strength**.",
+      "rules": {
+        "strength_bonus": 2,
+        "named_strength_bonus": 0
+      },
+      "balance": {
+        "strength_bonus": 2,
+        "candidate": true
+      }
+    },
+    {
+      "id": "maela",
+      "title": "Maela",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "navigator"
+      ],
+      "text": "While *Maela* is attached to a **Subject** in the **Rear**, that **Subject** gets +3 **Strength**.",
+      "rules": {
+        "rank_strength_bonus": {
+          "rank": "rear",
+          "amount": 3
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "vara",
+      "title": "Vara",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "seer"
+      ],
+      "text": "When you play *Vara*, reveal the enemy **Veiled Story** in this **Front**, if there is one. While *Vara* is in the **Rear**, its **Subject** gets +2 **Strength**.",
+      "rules": {
+        "on_name_attached": "reveal_enemy_scheme",
+        "rank_strength_bonus": {
+          "rank": "rear",
+          "amount": 2
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "elian",
+      "title": "Elian",
+      "type": "name",
+      "strength": 0,
+      "unique": true,
+      "classes": [
+        "human",
+        "wanderer"
+      ],
+      "text": "When you play *Elian*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position. While *Elian* is in the **Frontline**, its **Subject** gets +2 **Strength**.",
+      "rules": {
+        "on_name_attached": "move_adjacent_optional",
+        "rank_strength_bonus": {
+          "rank": "front",
+          "amount": 2
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "the-crows-returned",
+      "title": "The Crows Returned",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "battle",
+        "omen"
+      ],
+      "story_form": "omen",
+      "veiled": true,
+      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Subject** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_plays_subject",
+          "effect": "reinforce_front",
+          "amount": 2,
+          "requires_own_subject": true,
+          "face_down_front_bonus": 1
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "the-oath-was-heard",
+      "title": "The Oath Was Heard",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "oath",
+        "warning"
+      ],
+      "story_form": "warning",
+      "veiled": true,
+      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Bond** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_plays_link",
+          "effect": "reinforce_front",
+          "amount": 2,
+          "requires_own_subject": true,
+          "face_down_front_bonus": 1
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "no-fires-burned",
+      "title": "No Fires Burned",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "silence",
+        "prophecy"
+      ],
+      "story_form": "prophecy",
+      "veiled": true,
+      "text": "*Veiled.* While this is face-down, you have +2 **Strength** in this **Front**. When your opponent **Passes**, if you control a **Subject** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_passes",
+          "effect": "reinforce_front",
+          "amount": 2,
+          "requires_own_subject": true,
+          "face_down_front_bonus": 2
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "the-broken-mast",
+      "title": "The Broken Mast",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "weather",
+        "sea"
+      ],
+      "text": "Reveal when either player plays an *Archer* or *Ship*. While revealed, *Archers* get +2 **Strength** and *Ships* get -2 **Strength**.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "subject_played",
+            "actor": "either",
+            "roles": [
+              "archer",
+              "ship"
+            ]
+          },
+          "continuous": {
+            "role_strength_modifiers": {
+              "archer": 2,
+              "ship": -2
+            }
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      }
+    },
+    {
+      "id": "the-quiet-field",
+      "title": "The Quiet Field",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "silence",
+        "ritual"
+      ],
+      "text": "Reveal when either player plays a **Name**. While revealed, **Subjects** with a **Name** get +1 **Strength** and **Subjects** without a **Name** get -1 **Strength**.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "name_played",
+            "actor": "either"
+          },
+          "continuous": {
+            "named_subject_modifier": 1,
+            "unnamed_subject_modifier": -1
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      }
     }
   ]
 }
