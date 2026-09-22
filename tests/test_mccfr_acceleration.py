@@ -13,6 +13,7 @@ from longwar.game import Front, GameEngine, Position, Rank
 from longwar.game.model import SchemeState, StratagemState
 from longwar.mccfr import (
     _search_information_set_key,
+    action_key,
     _stable_id_from_search_key,
     information_set_id,
     information_set_observation,
@@ -129,3 +130,25 @@ def test_cython_node_regret_matching_matches_expected() -> None:
     assert node.strategy(["a", "b", "c"]) == pytest.approx(
         {"a": 2.0 / 3.0, "b": 0.0, "c": 1.0 / 3.0}
     )
+
+
+def test_longwar_action_keys_are_unique_across_live_states() -> None:
+    engine, _ = make_engine_and_state()
+    deck = json.loads(
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+    )["cards"]
+    rng = random.Random(441)
+
+    checked = 0
+    for seed in range(6):
+        state = engine.new_game(deck, deck, seed=seed, first_player=seed % 2)
+        for _ in range(35):
+            actions = engine.legal_actions(state)
+            keys = [action_key(action) for action in actions]
+            assert len(keys) == len(set(keys))
+            checked += 1
+            if state.phase.value == "complete":
+                break
+            engine.apply(state, rng.choice(actions), validate=False)
+
+    assert checked >= 80
