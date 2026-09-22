@@ -45,10 +45,12 @@ jobs:
           node --check web/card-layout-guard.js
           node --check web/card-rules.js
           node --check web/play.js
-          node --check web/play-worker.js
+          node --check web/browser-engine.mjs
           node --check web/playtest-kit.js
           node --check web/cards.js
           node --check web/balance.js
+      - name: Native browser game smoke
+        run: node tools/check_browser_engine.mjs
       - name: Card layout clipping guard
         run: python tools/check_card_layout.py --require-browser
       - name: Game viewport layout guard
@@ -72,3 +74,5 @@ jobs:
         run: python tools/build_lab_report.py
       - name: Build Pages
         run: python tools/build_pages.py
+      - name: Start-match browser smoke
+        run: python tools/check_play_start.py --require-browser
