@@ -10,12 +10,12 @@
 <body class="game-body">
   <div class="game-chrome">
     <header class="game-masthead">
-      <a class="game-mark" href="index.html">
+      <a class="game-mark" href="index.html" aria-label="The Long War home">
         <span>THE</span>
         <strong>LONG WAR</strong>
       </a>
       <span id="engine-status" class="engine-lamp">Loading the game…</span>
-      <nav>
+      <nav aria-label="Match controls">
         <a href="rulebook.html">Rules</a>
         <button type="button" id="restart-top">New match</button>
       </nav>
@@ -24,9 +24,11 @@
     <main class="play-client">
       <section class="play-setup" id="play-setup">
         <div class="setup-emblem" aria-hidden="true">III</div>
-        <p class="setup-kicker">Three Fronts · one shared Battle</p>
-        <h1>Start a match</h1>
-        <p class="setup-intro">Control two of three Fronts. Cards left in your hand carry into the next Battle.</p>
+        <div class="setup-copy">
+          <p class="setup-kicker">Three Fronts · one shared Battle</p>
+          <h1>Start a match</h1>
+          <p class="setup-intro">Control two of three Fronts. Cards left in your hand carry into the next Battle.</p>
+        </div>
 
         <form id="new-game-form">
           <label>Opponent
@@ -65,7 +67,7 @@
           </section>
 
           <section class="war-table" aria-label="Battlefield">
-            <div class="table-surface-mark top" aria-hidden="true">LEFT · CENTER · RIGHT</div>
+            <div class="table-surface-mark" aria-hidden="true">LEFT · CENTER · RIGHT</div>
 
             <div class="orders-ribbon" id="interaction-strip">
               <div>
@@ -82,7 +84,7 @@
 
           <section class="hand-dock" aria-label="Your hand">
             <header>
-              <div>
+              <div class="hand-heading">
                 <span>YOUR HAND</span>
                 <h2 id="hand-title">Your hand</h2>
               </div>
@@ -90,7 +92,7 @@
               <div class="hand-controls">
                 <label class="explain-toggle">
                   <input type="checkbox" id="show-reasons">
-                  show rule hints
+                  rule hints
                 </label>
                 <button type="button" id="pass-button" class="pass-button" hidden>Pass</button>
               </div>
@@ -100,21 +102,24 @@
           </section>
         </section>
 
-        <section class="campaign-drawers">
+        <aside class="game-tools" aria-label="Secondary match information">
           <details>
-            <summary>Decks & discards</summary>
-            <div class="public-zones" id="public-zones"></div>
+            <summary>Piles</summary>
+            <div class="tool-panel public-zones" id="public-zones"></div>
           </details>
           <details class="action-log">
-            <summary>Turn log</summary>
-            <ol id="history"></ol>
+            <summary>Log</summary>
+            <ol class="tool-panel" id="history"></ol>
           </details>
-          <div class="campaign-links">
-            <button type="button" id="restart">New match</button>
-            <a href="rulebook.html">Rules</a>
-            <a href="playtest-kit.html">Print cards</a>
-          </div>
-        </section>
+          <details class="match-menu">
+            <summary>Menu</summary>
+            <div class="tool-panel campaign-links">
+              <button type="button" id="restart">New match</button>
+              <a href="rulebook.html">Rules</a>
+              <a href="playtest-kit.html">Print cards</a>
+            </div>
+          </details>
+        </aside>
       </section>
     </main>
   </div>
