@@ -311,6 +311,7 @@ body.game-body::before {
 
 .tabletop-shell {
   --hand-scale: 1;
+  --inspect-scale: 1;
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -1130,7 +1131,7 @@ body.game-body::before {
   z-index: 20;
   display: grid;
   grid-template-rows: 34px minmax(0, 1fr);
-  overflow: hidden;
+  overflow: visible;
   border: 0;
   border-top: 1px solid rgba(185,146,74,.3);
   background:
@@ -1237,7 +1238,7 @@ body.game-body::before {
   align-items: flex-end;
   justify-content: center;
   gap: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .play-card {
@@ -1318,11 +1319,11 @@ body.game-body::before {
 
 .play-card.playable:hover,
 .play-card.selected {
-  z-index: 7;
+  z-index: 30;
   transform:
     rotate(var(--fan-rot, 0deg))
     translateY(calc(var(--fan-y, 0px) - 11px))
-    scale(var(--hand-scale));
+    scale(var(--inspect-scale));
 }
 
 .play-card.selected {
@@ -1719,7 +1720,7 @@ body.game-body::before {
    representation scales uniformly when vertical space is short. */
 @media (max-height: 940px) {
   .tabletop-shell {
-    --hand-scale: .85;
+    --hand-scale: .80;
     grid-template-rows: 36px 72px minmax(0, 1fr) 278px;
   }
 
@@ -1730,7 +1731,7 @@ body.game-body::before {
 
 @media (max-height: 820px) {
   .tabletop-shell {
-    --hand-scale: .72;
+    --hand-scale: .65;
     grid-template-rows: 34px 62px minmax(0, 1fr) 238px;
   }
 
