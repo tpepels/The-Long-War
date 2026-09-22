@@ -450,6 +450,98 @@ def _severity(estimate_value: EffectEstimate) -> dict[str, Any]:
     }
 
 
+def run_counterfactual_card_sweep(
+    card_data: dict[str, Any],
+    *,
+    contexts: int,
+    games_per_context: int,
+    seed: int,
+    agent_name: str = "heuristic",
+    bootstrap_resamples: int = 2000,
+    card_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    """Evaluate card main effects across a pool larger than one legal deck.
+
+    Each card is evaluated in its own legal paired contexts. This preserves
+    the causal replacement interpretation without pretending 48 titles can
+    coexist in a 30-card deck. Pair/triple interactions require an explicit
+    compatible subset and remain the responsibility of the grouped runner.
+    """
+    canonical = card_index(card_data)
+    selected = (
+        list(card_ids)
+        if card_ids is not None
+        else [card["id"] for card in card_data["cards"]]
+    )
+    unknown = [card_id for card_id in selected if card_id not in canonical]
+    if unknown:
+        raise ValueError(f"Unknown selected cards: {unknown}")
+
+    rows: list[dict[str, Any]] = []
+    total_matches = 0
+    reports: list[dict[str, Any]] = []
+    for index, card_id in enumerate(selected):
+        report = run_counterfactual_experiment(
+            card_data,
+            contexts=contexts,
+            games_per_context=games_per_context,
+            seed=seed + index * 104729,
+            agent_name=agent_name,
+            include_pairs=False,
+            include_legend_triples=False,
+            bootstrap_resamples=bootstrap_resamples,
+            card_ids=[card_id],
+        )
+        reports.append(report)
+        rows.extend(report["cards"])
+        total_matches += int(report["total_matches"])
+
+    rows.sort(
+        key=lambda row: (
+            -abs(row["delta_win_probability"]),
+            row["title"],
+        )
+    )
+    first = reports[0] if reports else None
+    return {
+        "schema_version": 1,
+        "method": "paired_common_random_numbers_per_card_context_sweep",
+        "policy": agent_name,
+        "seed": seed,
+        "contexts": contexts,
+        "games_per_context": games_per_context,
+        "samples": contexts * games_per_context,
+        "samples_per_card": contexts * games_per_context,
+        "conditions_evaluated_per_sample": 2,
+        "total_matches": total_matches,
+        "baseline_definition": first["baseline_definition"] if first else {},
+        "pairing": first["pairing"] if first else {},
+        "cards": rows,
+        "pairs": [],
+        "triples": [],
+        "methodology": {
+            "card_effect": (
+                "base outcome - same legal deck context with the focal card "
+                "replaced by its matched baseline"
+            ),
+            "pair_interaction": (
+                "Not evaluated in full-pool sweep; select a compatible card "
+                "subset to evaluate interactions."
+            ),
+            "triple_interaction": (
+                "Not evaluated in full-pool sweep; select a compatible card "
+                "subset to evaluate interactions."
+            ),
+            "ci95": "paired percentile bootstrap over per-card matched samples",
+            "interpretation": (
+                "Each card is tested in legal contexts containing that card. "
+                "Effects are policy- and context-distribution-specific, not "
+                "universal equilibrium values."
+            ),
+        },
+    }
+
+
 def run_counterfactual_experiment(
     card_data: dict[str, Any],
     *,
