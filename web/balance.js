@@ -110,6 +110,14 @@ function renderAttention(lab) {
   const suite = lab.mccfr_suite;
   const items = [];
 
+  if ((lab.stale_evidence || []).length) {
+    items.push(attentionItem(
+      "pending",
+      "Solver evidence needs a fresh run for this ruleset",
+      `Draw and the playtest deck profiles changed. ${lab.stale_evidence.length} restored dynamic/solver artifact${lab.stale_evidence.length === 1 ? "" : "s"} from an older game fingerprint ${lab.stale_evidence.length === 1 ? "is" : "are"} hidden rather than being presented as current evidence.`
+    ));
+  }
+
   if (critical.length) {
     items.push(attentionItem(
       "high",
