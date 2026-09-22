@@ -73,27 +73,104 @@ function grade(row) {
   return `<span class="grade grade-${row.balance_level}" title="${esc(row.balance_direction)}">${esc(row.balance_label)}</span>`;
 }
 
+function signedPct(value) {
+  if (value == null) return "—";
+  return (Number(value) >= 0 ? "+" : "") + pct(value);
+}
+
 function renderOverview(lab) {
   const h = lab.health;
   const g = h.global;
   const s = h.summary;
   const verification = lab.verification;
+  const suite = lab.mccfr_suite;
   document.getElementById("overview").innerHTML = [
     metric("Games", Number(h.source.games).toLocaleString(), h.source.agents.join(" vs ")),
     metric("First-player win", pct(g.first_player_win_rate), `95% ${interval(g.first_player_win_rate_95)}`),
-    metric("Mean actions", num(g.mean_actions, 1), `max ${g.max_actions}`),
     metric("Cards", s.cards_analyzed, `${s.flags_high} high · ${s.flags_watch} watch flags`),
-    metric("Three-card sequences observed", s.legends_observed, `of ${lab.static.legend_count} possible Subject–Bond–Name sequences`),
-    metric("MCCFR verification", verification ? (verification.passed ? "PASS" : "FAIL") : "—",
+    metric("Causal coverage", lab.counterfactual ? lab.counterfactual.cards.length : "—", lab.counterfactual ? "paired card estimates" : "not generated"),
+    metric("MCCFR card coverage", suite ? `${suite.covered_cards}/${suite.card_pool_size}` : "—", suite ? `${suite.profiles.length} deck profiles` : "not generated"),
+    metric("Solver verification", verification ? (verification.passed ? "PASS" : "FAIL") : "—",
       verification ? `exploitability ${num(verification.exploitability, 4)}` : "not generated"),
   ].join("");
+}
+
+function attentionItem(level, title, body) {
+  return `<article class="attention-item attention-${level}"><strong>${esc(title)}</strong><p>${body}</p></article>`;
+}
+
+function renderAttention(lab) {
+  const cards = lab.health.cards || [];
+  const critical = cards.filter((row) => ["red", "orange"].includes(row.balance_level));
+  const watch = cards.filter((row) => row.balance_level === "yellow");
+  const causal = [...(lab.counterfactual?.cards || [])]
+    .filter((row) => row.confidence_excludes_zero)
+    .sort((a, b) => Math.abs(b.delta_win_probability) - Math.abs(a.delta_win_probability));
+  const firstPlayer = Number(lab.health.global.first_player_win_rate);
+  const suite = lab.mccfr_suite;
+  const items = [];
+
+  if (critical.length) {
+    items.push(attentionItem(
+      "high",
+      `${critical.length} card${critical.length === 1 ? "" : "s"} need direct balance review`,
+      critical.slice(0, 6).map((row) => `<b>${esc(row.title)}</b>`).join(", ") +
+        (critical.length > 6 ? ` and ${critical.length - 6} more` : "") + "."
+    ));
+  } else {
+    items.push(attentionItem(
+      "good",
+      "No red or orange card flags",
+      watch.length
+        ? `${watch.length} yellow watch item${watch.length === 1 ? "" : "s"} remain; treat them as leads, not confirmed imbalance.`
+        : "The current health pass has no high-confidence card-level balance flags."
+    ));
+  }
+
+  if (causal.length) {
+    const lead = causal[0];
+    items.push(attentionItem(
+      "watch",
+      "Strongest current causal signal",
+      `<b>${esc(lead.title)}</b> has paired ΔWP ${signedPct(lead.delta_win_probability)} with 95% interval ${interval(lead.ci95)}. ${causal.length} card signal${causal.length === 1 ? "" : "s"} currently exclude zero.`
+    ));
+  } else {
+    items.push(attentionItem(
+      "good",
+      "No paired card effect currently excludes zero",
+      "The counterfactual sweep is not identifying a high-confidence single-card causal outlier at its current sample size."
+    ));
+  }
+
+  const seatDelta = Math.abs(firstPlayer - 0.5);
+  items.push(attentionItem(
+    seatDelta > 0.05 ? "watch" : "good",
+    "Turn-order check",
+    `First player wins ${pct(firstPlayer)} of the current self-play sample${seatDelta > 0.05 ? ", so turn order deserves follow-up." : ", inside the 45–55% working band."}`
+  ));
+
+  if (suite) {
+    items.push(attentionItem(
+      suite.covered_cards === suite.card_pool_size ? "good" : "watch",
+      "MCCFR coverage",
+      `${suite.profiles.length} deck-profile policies cover ${suite.covered_cards}/${suite.card_pool_size} current cards. Use the profile table below to compare solver/heuristic behavior by deck.`
+    ));
+  } else {
+    items.push(attentionItem(
+      "pending",
+      "MCCFR suite not generated yet",
+      "The card and heuristic reports are available, but there is no current-card MCCFR suite in this build."
+    ));
+  }
+
+  document.getElementById("attention-summary").innerHTML = items.join("");
 }
 
 function renderCards(lab) {
   const filter = document.getElementById("card-filter").value;
   let rows = [...lab.health.cards];
 
-  if (["subject", "link", "name", "plot"].includes(filter)) {
+  if (["subject", "link", "name", "plot", "stratagem"].includes(filter)) {
     rows = rows.filter((row) => row.type === filter);
   } else if (["red", "orange", "yellow", "green", "dark_green"].includes(filter)) {
     rows = rows.filter((row) => row.balance_level === filter);
@@ -107,45 +184,56 @@ function renderCards(lab) {
 
   document.getElementById("card-table").innerHTML = rows.map((row) => {
     const staticDelta = row.static?.delta_from_global_mean;
+    const causal = row.counterfactual;
+    const online = row.targeted_online;
     return `
       <tr class="grade-row grade-row-${row.balance_level}">
-        <td>${grade(row)}</td>
-        <td>
+        <td data-label="Status">${grade(row)}</td>
+        <td data-label="Card" class="card-name-cell">
           <strong>${esc(row.title)}</strong>
           ${displayProperties(row)}
           <div class="card-rule-inline">${formatGameText(row.text)}</div>
         </td>
-        <td>${esc(displayCardType(row))}${row.unique ? ' <span class="muted"><em>Unique</em></span>' : ""}</td>
-        <td>${row.strength ?? "—"}</td>
-        <td>${row.draws} / ${row.plays}</td>
-        <td>${pct(row.play_rate_per_draw)}</td>
-        <td>${pct(row.unplayable_turn_rate)}</td>
-        <td>${pct(row.dead_on_pass_rate)}</td>
-        <td>${num(row.mean_immediate_front_swing, 1)} <span class="muted">z ${num(row.front_swing_z_within_type, 1)}</span></td>
-        <td>${num(row.mean_immediate_control_swing, 2)}</td>
-        <td>${pct(row.win_rate_when_drawn)} <span class="muted">${interval(row.win_rate_when_drawn_95)}</span></td>
-        <td>${pct(row.win_rate_when_played)} <span class="muted">${interval(row.win_rate_when_played_95)}</span></td>
-        <td>${staticDelta == null ? "—" : (staticDelta >= 0 ? "+" : "") + num(staticDelta, 2)}</td>
-        <td>${row.counterfactual ? ((row.counterfactual.delta_win_probability >= 0 ? "+" : "") + pct(row.counterfactual.delta_win_probability)) : "—"}</td>
-        <td>${row.counterfactual ? interval(row.counterfactual.ci95) : "—"}</td>
-        <td>${row.targeted_online ? ((row.targeted_online.online.effect >= 0 ? "+" : "") + pct(row.targeted_online.online.effect)) : "—"}</td>
-        <td>${row.targeted_online ? esc(row.targeted_online.confirmation.replaceAll("_", " ")) : "—"}</td>
-        <td class="flags-cell">${flagMarkup(row.flags)}</td>
+        <td data-label="Type / Strength">
+          ${esc(displayCardType(row))}
+          <span class="metric-inline">${row.strength ?? "—"} Str</span>
+          ${row.unique ? '<span class="muted"><em>Unique</em></span>' : ""}
+        </td>
+        <td data-label="Use">
+          <strong>${pct(row.play_rate_per_draw)}</strong>
+          <span class="muted">${row.plays}/${row.draws} plays/draws</span>
+        </td>
+        <td data-label="Dead on pass">${pct(row.dead_on_pass_rate)}</td>
+        <td data-label="Front swing">${num(row.mean_immediate_front_swing, 1)} <span class="muted">z ${num(row.front_swing_z_within_type, 1)}</span></td>
+        <td data-label="Causal ΔWP">${causal ? signedPct(causal.delta_win_probability) : "—"}<span class="muted">${causal ? interval(causal.ci95) : ""}</span></td>
+        <td data-label="Online check">${online ? `${signedPct(online.online.effect)}<span class="muted">${esc(online.confirmation.replaceAll("_", " "))}</span>` : "—"}</td>
+        <td data-label="Evidence">
+          <details class="row-evidence">
+            <summary>details</summary>
+            <dl>
+              <div><dt>Dead turns</dt><dd>${pct(row.unplayable_turn_rate)}</dd></div>
+              <div><dt>Control swing</dt><dd>${num(row.mean_immediate_control_swing, 2)}</dd></div>
+              <div><dt>Win when drawn</dt><dd>${pct(row.win_rate_when_drawn)} · ${interval(row.win_rate_when_drawn_95)}</dd></div>
+              <div><dt>Win when played</dt><dd>${pct(row.win_rate_when_played)} · ${interval(row.win_rate_when_played_95)}</dd></div>
+              <div><dt>Static Δ</dt><dd>${staticDelta == null ? "—" : (staticDelta >= 0 ? "+" : "") + num(staticDelta, 2)}</dd></div>
+              <div><dt>Flags</dt><dd>${flagMarkup(row.flags)}</dd></div>
+            </dl>
+          </details>
+        </td>
       </tr>
     `;
   }).join("");
 }
 
-
 function interactionTable(rows) {
   return `
-    <table class="mini-table">
+    <table class="mini-table fitted-mini-table">
       <thead><tr><th>Cards</th><th>Interaction</th><th>95% interval</th><th>Level</th></tr></thead>
       <tbody>
         ${rows.map((row) => `
           <tr>
             <td><strong>${esc(row.title)}</strong></td>
-            <td>${row.interaction_delta >= 0 ? "+" : ""}${pct(row.interaction_delta)}</td>
+            <td>${signedPct(row.interaction_delta)}</td>
             <td>${interval(row.ci95)}</td>
             <td><span class="grade grade-${row.level}">${esc(row.level.replace("_", " "))}</span></td>
           </tr>
@@ -165,9 +253,7 @@ function renderCounterfactual(lab) {
     return;
   }
 
-  const significantCards = cf.cards.filter((row) =>
-    row.confidence_excludes_zero
-  ).length;
+  const significantCards = cf.cards.filter((row) => row.confidence_excludes_zero).length;
   document.getElementById("counterfactual-overview").innerHTML = [
     metric("Paired samples", cf.samples, `${cf.contexts} contexts × ${cf.games_per_context} games`),
     metric("Matches", Number(cf.total_matches).toLocaleString(), `${cf.conditions_evaluated_per_sample} intervention states/sample`),
@@ -176,11 +262,10 @@ function renderCounterfactual(lab) {
   ].join("");
 
   document.getElementById("counterfactual-pairs").innerHTML =
-    interactionTable((cf.pairs || []).slice(0, 25));
+    interactionTable((cf.pairs || []).slice(0, 20));
   document.getElementById("counterfactual-triples").innerHTML =
-    interactionTable((cf.triples || []).slice(0, 25));
+    interactionTable((cf.triples || []).slice(0, 20));
 }
-
 
 function renderTargetedCounterfactual(lab) {
   const report = lab.targeted_counterfactual;
@@ -189,7 +274,6 @@ function renderTargetedCounterfactual(lab) {
     el.innerHTML = '<p class="muted">No targeted online-MCCFR validation report.</p>';
     return;
   }
-
   if (!report.targets.length) {
     el.innerHTML = '<p class="muted">The broad sweep nominated no suspicious targets at the configured threshold.</p>';
     return;
@@ -201,18 +285,17 @@ function renderTargetedCounterfactual(lab) {
       ${metric("Targets", report.targets.length, `${report.total_matches} online matches`)}
       ${metric("Samples / target", report.samples, `${report.contexts} contexts × ${report.games_per_context} games`)}
       ${metric("Resolver", `${report.online_iterations} iterations`, `depth ${report.online_depth}`)}
-      ${metric("Confirmed", report.targets.filter((r) => r.confirmation === "confirmed").length, "online CI excludes zero in same direction")}
+      ${metric("Confirmed", report.targets.filter((r) => r.confirmation === "confirmed").length, "same-direction online CI excludes zero")}
     </div>
-    <div class="table-wrap">
-      <table class="balance-table">
-        <thead><tr><th>Target</th><th>Kind</th><th>Heuristic effect</th><th>Online effect</th><th>Online 95%</th><th>Result</th></tr></thead>
+    <div class="table-wrap fitted-table">
+      <table class="balance-table targeted-table">
+        <thead><tr><th>Target</th><th>Heuristic</th><th>Online MCCFR</th><th>95%</th><th>Result</th></tr></thead>
         <tbody>
           ${report.targets.map((row) => `
             <tr>
-              <td><strong>${esc(row.title)}</strong></td>
-              <td>${esc(row.kind)}</td>
-              <td>${row.broad.effect >= 0 ? "+" : ""}${pct(row.broad.effect)} <span class="muted">${interval(row.broad.ci95)}</span></td>
-              <td>${row.online.effect >= 0 ? "+" : ""}${pct(row.online.effect)}</td>
+              <td><strong>${esc(row.title)}</strong><span class="muted">${esc(row.kind)}</span></td>
+              <td>${signedPct(row.broad.effect)} <span class="muted">${interval(row.broad.ci95)}</span></td>
+              <td>${signedPct(row.online.effect)}</td>
               <td>${interval(row.online.ci95)}</td>
               <td><strong>${esc(row.confirmation.replaceAll("_", " "))}</strong></td>
             </tr>
@@ -230,11 +313,8 @@ function renderSequences(lab) {
   document.getElementById("legend-table").innerHTML = rows.map((row) => `
     <tr class="${row.flags.length ? "flagged-row" : ""}">
       <td><strong>${esc(row.title)}</strong></td>
-      <td>${row.completions}</td>
-      <td>${row.games_seen}</td>
-      <td>${num(row.mean_strength_at_completion, 1)}</td>
-      <td>${row.static_strength ?? "—"}</td>
-      <td>${num(row.static_z, 2)}</td>
+      <td>${row.completions} / ${row.games_seen}</td>
+      <td>${num(row.mean_strength_at_completion, 1)} / ${row.static_strength ?? "—"} <span class="muted">z ${num(row.static_z, 2)}</span></td>
       <td>${pct(row.win_rate_when_seen)}</td>
       <td>${interval(row.win_rate_when_seen_95)}</td>
       <td class="flags-cell">${flagMarkup(row.flags)}</td>
@@ -245,22 +325,26 @@ function renderSequences(lab) {
 function renderMatchups(lab) {
   const rows = Object.entries(lab.matchups || {}).filter(([, value]) => value);
   document.getElementById("matchups").innerHTML = `
-    <table class="balance-table">
-      <thead><tr><th>Run</th><th>Agents</th><th>Games</th><th>Wins</th><th>Win rates</th><th>First-player win</th><th>Mean actions</th><th>Policy sources</th><th>Online belief / resolve</th></tr></thead>
+    <table class="balance-table matchup-table">
+      <thead><tr><th>Run</th><th>Agents</th><th>Games</th><th>Win rates</th><th>First player</th><th>Details</th></tr></thead>
       <tbody>
         ${rows.map(([name, row]) => `
           <tr>
             <td><strong>${esc(name.replaceAll("_", " "))}</strong></td>
             <td>${esc((row.agents || []).join(" vs "))}</td>
             <td>${row.games ?? "—"}</td>
-            <td>${(row.wins || []).join("–")}</td>
             <td>${(row.win_rates || []).map((v) => pct(v)).join(" / ")}</td>
             <td>${pct(row.first_player_win_rate)}</td>
-            <td>${num(row.mean_turns, 1)}</td>
-            <td><code>${esc(JSON.stringify(row.policy_sources || {}))}</code></td>
-            <td>${row.online_resolution && row.online_resolution.decisions
-              ? `${pct(row.online_resolution.mean_root_coverage)} root coverage · ${num(row.online_resolution.mean_belief_samples,1)} samples · ${num(row.online_resolution.mean_information_sets,1)} infosets · known hidden ${num(row.online_resolution.mean_known_hidden_cards,2)} · <code>${esc(JSON.stringify(row.online_resolution.belief_priors || {}))}</code>`
-              : "—"}</td>
+            <td>
+              <details class="row-evidence">
+                <summary>details</summary>
+                <dl>
+                  <div><dt>Wins</dt><dd>${(row.wins || []).join("–")}</dd></div>
+                  <div><dt>Mean actions</dt><dd>${num(row.mean_turns, 1)}</dd></div>
+                  <div><dt>Policy sources</dt><dd><code>${esc(JSON.stringify(row.policy_sources || {}))}</code></dd></div>
+                </dl>
+              </details>
+            </td>
           </tr>
         `).join("")}
       </tbody>
@@ -286,14 +370,14 @@ function renderTelemetry(lab) {
     <div class="two-column-tables">
       <div>
         <h3>Actions</h3>
-        <table class="mini-table"><tbody>
+        <table class="mini-table fitted-mini-table"><tbody>
           ${actions.map(([k,v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("")}
         </tbody></table>
       </div>
       <div>
         <h3>Agent decisions</h3>
-        <table class="mini-table"><tbody>
-          ${decisions.map(([k,v]) => `<tr><td>${esc(k)}</td><td>${v.decisions} decisions · ${num(v.mean_candidate_count,1)} candidates · gap ${num(v.mean_score_gap,2)}</td></tr>`).join("")}
+        <table class="mini-table fitted-mini-table"><tbody>
+          ${decisions.map(([k,v]) => `<tr><td>${esc(k)}</td><td>${v.decisions} · ${num(v.mean_candidate_count,1)} candidates · gap ${num(v.mean_score_gap,2)}</td></tr>`).join("")}
         </tbody></table>
       </div>
     </div>
@@ -301,35 +385,66 @@ function renderTelemetry(lab) {
 }
 
 function renderMccfr(lab) {
-  const m = lab.mccfr;
-  const v = lab.verification;
-  if (!m) {
-    document.getElementById("mccfr-overview").innerHTML = metric("MCCFR", "—", "policy not generated");
-  } else {
+  const suite = lab.mccfr_suite;
+  const fallback = lab.mccfr;
+  const verification = lab.verification;
+  const profiles = document.getElementById("mccfr-profiles");
+
+  if (suite) {
     document.getElementById("mccfr-overview").innerHTML = [
-      metric("Iterations", m.iterations ?? "—", `${m.traversals ?? "—"} traversals`),
-      metric("Information sets", Number(m.information_sets || 0).toLocaleString(), `depth ${m.max_depth}`),
-      metric("Algorithm", "External sampling", m.algorithm || ""),
-      metric("Average policy", "Reach weighted", m.average_policy || ""),
+      metric("Card coverage", `${suite.covered_cards}/${suite.card_pool_size}`, pct(suite.coverage_fraction) + " of current pool"),
+      metric("Deck profiles", suite.profiles.length, "Reference · Avaros · Mara · Sera"),
+      metric("Policies", suite.profiles.length, "one mirror policy per deck profile"),
+      metric("Missing cards", suite.missing_cards.length, suite.missing_cards.length ? suite.missing_cards.join(", ") : "none"),
     ].join("");
+
+    profiles.innerHTML = `
+      <table class="balance-table mccfr-table">
+        <thead><tr><th>Deck profile</th><th>Unique cards</th><th>Iterations</th><th>Infosets</th><th>Depth</th><th>MCCFR vs heuristic</th><th>Eval games</th></tr></thead>
+        <tbody>
+          ${suite.profiles.map((row) => `
+            <tr>
+              <td><strong>${esc(row.label)}</strong><span class="muted">${esc(row.deck)}</span></td>
+              <td>${row.deck_unique_cards}</td>
+              <td>${row.policy.iterations ?? "—"}</td>
+              <td>${Number(row.policy.information_sets || 0).toLocaleString()}</td>
+              <td>${row.policy.max_depth ?? "—"}</td>
+              <td><strong>${pct(row.evaluation.seat_swapped_mccfr_win_rate)}</strong><span class="muted">seat-swapped</span></td>
+              <td>${row.evaluation.games}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  } else if (fallback) {
+    document.getElementById("mccfr-overview").innerHTML = [
+      metric("Iterations", fallback.iterations ?? "—", `${fallback.traversals ?? "—"} traversals`),
+      metric("Information sets", Number(fallback.information_sets || 0).toLocaleString(), `depth ${fallback.max_depth}`),
+      metric("Algorithm", "External sampling", fallback.algorithm || ""),
+      metric("Coverage", "Reference only", "legacy single-policy artifact"),
+    ].join("");
+    profiles.innerHTML = '<p class="muted">This build contains the older single reference-deck MCCFR artifact.</p>';
+  } else {
+    document.getElementById("mccfr-overview").innerHTML = metric("MCCFR", "—", "policy suite not generated");
+    profiles.innerHTML = "";
   }
 
-  if (!v) {
+  if (!verification) {
     document.getElementById("mccfr-verification").innerHTML = '<p class="verification verification-missing">No formal verification artifact.</p>';
     return;
   }
   document.getElementById("mccfr-verification").innerHTML = `
-    <div class="verification ${v.passed ? "verification-pass" : "verification-fail"}">
-      <strong>${v.passed ? "VERIFIED" : "FAILED"}</strong>
-      <span>${esc(v.benchmark)} · known value ${num(v.known_p0_value, 6)} · learned ${num(v.learned_p0_value, 6)} · error ${num(v.absolute_value_error, 6)} · exploitability ${num(v.exploitability, 6)}</span>
-      <span>Thresholds: value error ≤ ${v.thresholds.max_value_error}, exploitability ≤ ${v.thresholds.max_exploitability}</span>
+    <div class="verification ${verification.passed ? "verification-pass" : "verification-fail"}">
+      <strong>${verification.passed ? "VERIFIED" : "FAILED"}</strong>
+      <span>${esc(verification.benchmark)} · known ${num(verification.known_p0_value, 6)} · learned ${num(verification.learned_p0_value, 6)} · error ${num(verification.absolute_value_error, 6)} · exploitability ${num(verification.exploitability, 6)}</span>
+      <span>Thresholds: value error ≤ ${verification.thresholds.max_value_error}, exploitability ≤ ${verification.thresholds.max_exploitability}</span>
     </div>
   `;
 }
 
 function staticTable(rows) {
   return `
-    <table class="mini-table">
+    <table class="mini-table fitted-mini-table">
       <thead><tr><th>Subject · Bond · Name</th><th>Strength</th><th>z</th></tr></thead>
       <tbody>
         ${rows.map((r) => `<tr><td><code>${esc([r.subject,r.link,r.name].join(" · "))}</code></td><td>${r.static_strength}</td><td>${num(r.z_score,2)}</td></tr>`).join("")}
@@ -361,8 +476,8 @@ function renderMethod(lab) {
     <p><strong>Card status:</strong> red = multiple high-confidence issues; orange = one high-confidence or multiple watch issues; yellow = one watch issue; green = no current issue but thinner evidence; dark green = no issue with strong evidence.</p>
     <p><strong>Intervals:</strong> ${esc(report.methodology.win_intervals)}.</p>
     <p><strong>Board swing:</strong> standardized within card type.</p>
-    <p><strong>Causal ΔWP:</strong> paired win-probability difference between the canonical card and its neutral same-type baseline under identical random seeds. Interaction values are factorial contrasts, not raw combo win rates.</p>
-    <p><strong>Targeted online validation:</strong> suspicious heuristic effects are rerun with online MCCFR on the same deck contexts. “Confirmed” requires the online 95% interval to exclude zero in the same direction; “reversed” means it excludes zero in the opposite direction.</p>
+    <p><strong>Causal ΔWP:</strong> paired win-probability difference between the canonical card and a neutral same-type baseline under identical random seeds.</p>
+    <p><strong>Targeted online validation:</strong> suspicious heuristic effects are rerun with online MCCFR. “Confirmed” means the online interval excludes zero in the same direction.</p>
     <ul>${report.methodology.notes.map((note) => `<li>${esc(note)}</li>`).join("")}</ul>
   `;
 }
@@ -372,6 +487,7 @@ async function main() {
   if (!response.ok) throw new Error("Full Balance Lab report is not available yet.");
   const lab = await response.json();
 
+  renderAttention(lab);
   renderOverview(lab);
   renderCards(lab);
   renderCounterfactual(lab);
@@ -388,6 +504,7 @@ async function main() {
 }
 
 main().catch((error) => {
-  document.getElementById("overview").innerHTML =
-    `<p class="dashboard-error">${esc(error.message)}</p>`;
+  document.getElementById("attention-summary").innerHTML =
+    attentionItem("high", "Balance Lab unavailable", esc(error.message));
+  document.getElementById("overview").innerHTML = "";
 });
