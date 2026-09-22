@@ -8,48 +8,69 @@ on:
         required: true
         default: "30000"
       training_iterations:
-        description: Long War MCCFR training iterations
+        description: Long War MCCFR iterations per deck profile
         required: true
-        default: "50"
+        default: "80"
       depth:
         description: Long War search depth
         required: true
         default: "3"
       workers:
-        description: MCCFR workers (1 = recommended native solver; >1 = experimental replica pooling)
+        description: MCCFR workers (1 = recommended native solver)
         required: true
         default: "1"
       matchup_games:
-        description: Games in each heuristic/MCCFR direction
+        description: Games in each heuristic/MCCFR direction per deck profile
         required: true
-        default: "60"
-      online_games:
-        description: Online-MCCFR vs heuristic games
-        required: true
-        default: "6"
-      online_iterations:
-        description: Online MCCFR iterations per decision
-        required: true
-        default: "4"
-      online_depth:
-        description: Online MCCFR depth
-        required: true
-        default: "2"
+        default: "40"
       seed:
         description: Seed (0 = derive from workflow run)
         required: true
         default: "0"
+  pull_request:
+    branches: [main]
+    paths:
+      - "cards/**"
+      - "decks/**"
+      - "src/longwar/game/**"
+      - "src/longwar/mccfr.py"
+      - "src/longwar/mccfr_core.py"
+      - "src/longwar/_mccfr_accel.pyx"
+      - "src/longwar/agents/mccfr_agent.py"
+      - "tools/train_mccfr.py"
+      - "tools/build_mccfr_suite.py"
+      - ".github/workflows/mccfr.yml"
+  push:
+    branches: [main]
+    paths:
+      - "cards/**"
+      - "decks/**"
+      - "src/longwar/game/**"
+      - "src/longwar/mccfr.py"
+      - "src/longwar/mccfr_core.py"
+      - "src/longwar/_mccfr_accel.pyx"
+      - "src/longwar/agents/mccfr_agent.py"
+      - "tools/train_mccfr.py"
+      - "tools/build_mccfr_suite.py"
+      - ".github/workflows/mccfr.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: mccfr-validation
-  cancel-in-progress: false
+  group: mccfr-validation-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      VERIFY_ITERS: ${{ inputs.verification_iterations || '30000' }}
+      TRAIN_ITERS: ${{ inputs.training_iterations || '80' }}
+      SEARCH_DEPTH: ${{ inputs.depth || '3' }}
+      MCCFR_WORKERS: ${{ inputs.workers || '1' }}
+      MATCHUP_GAMES: ${{ inputs.matchup_games || '40' }}
+      INPUT_SEED: ${{ inputs.seed || '0' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -60,8 +81,6 @@ jobs:
       - name: Native MCCFR accelerator
         run: make check-native-mccfr
       - name: Choose validation seed
-        env:
-          INPUT_SEED: ${{ inputs.seed }}
         run: |
           if [ "$INPUT_SEED" = "0" ]; then
             VALIDATION_SEED=$(( (GITHUB_RUN_ID + GITHUB_RUN_ATTEMPT * 1000003) % 2000000000 + 1 ))
@@ -71,56 +90,43 @@ jobs:
           echo "VALIDATION_SEED=$VALIDATION_SEED" >> "$GITHUB_ENV"
           echo "MCCFR validation seed: $VALIDATION_SEED"
       - name: MCCFR benchmark
-        run: >
-          python tools/benchmark_mccfr.py
-          --iterations 10
-          --depth 2
-          --seed "$VALIDATION_SEED"
+        run: python tools/benchmark_mccfr.py --iterations 10 --depth 2 --seed "$VALIDATION_SEED"
       - name: Formal MCCFR verification
-        run: python tools/verify_mccfr.py --iterations ${{ inputs.verification_iterations }}
-      - name: Train MCCFR policy
-        run: >
-          python tools/train_mccfr.py
-          --iterations ${{ inputs.training_iterations }}
-          --depth ${{ inputs.depth }}
-          --workers ${{ inputs.workers }}
-          --seed "$VALIDATION_SEED"
-          --output artifacts/mccfr-policy.json
-      - name: MCCFR vs heuristic
-        run: >
-          python tools/simulate.py
-          --games ${{ inputs.matchup_games }}
-          --seed $((VALIDATION_SEED + 101))
-          --agent-a mccfr
-          --policy-a artifacts/mccfr-policy.json
-          --agent-b heuristic
-          --output artifacts/mccfr-vs-heuristic.json
-      - name: Heuristic vs MCCFR
-        run: >
-          python tools/simulate.py
-          --games ${{ inputs.matchup_games }}
-          --seed $((VALIDATION_SEED + 201))
-          --agent-a heuristic
-          --agent-b mccfr
-          --policy-b artifacts/mccfr-policy.json
-          --output artifacts/heuristic-vs-mccfr.json
-      - name: Online MCCFR vs heuristic
-        run: >
-          python tools/simulate.py
-          --games ${{ inputs.online_games }}
-          --seed $((VALIDATION_SEED + 301))
-          --agent-a online_mccfr
-          --agent-b heuristic
-          --online-iterations ${{ inputs.online_iterations }}
-          --online-depth ${{ inputs.online_depth }}
-          --output artifacts/online-mccfr-vs-heuristic.json
+        run: python tools/verify_mccfr.py --iterations "$VERIFY_ITERS"
+
+      - name: Train current deck-profile policies
+        run: |
+          python tools/train_mccfr.py --iterations "$TRAIN_ITERS" --depth "$SEARCH_DEPTH" --workers "$MCCFR_WORKERS" --seed $((VALIDATION_SEED + 10)) --deck-a decks/reference.json --deck-b decks/reference.json --output artifacts/mccfr-policy-reference.json
+          python tools/train_mccfr.py --iterations "$TRAIN_ITERS" --depth "$SEARCH_DEPTH" --workers "$MCCFR_WORKERS" --seed $((VALIDATION_SEED + 20)) --deck-a decks/avaros-line.json --deck-b decks/avaros-line.json --output artifacts/mccfr-policy-avaros.json
+          python tools/train_mccfr.py --iterations "$TRAIN_ITERS" --depth "$SEARCH_DEPTH" --workers "$MCCFR_WORKERS" --seed $((VALIDATION_SEED + 30)) --deck-a decks/mara-rear.json --deck-b decks/mara-rear.json --output artifacts/mccfr-policy-mara.json
+          python tools/train_mccfr.py --iterations "$TRAIN_ITERS" --depth "$SEARCH_DEPTH" --workers "$MCCFR_WORKERS" --seed $((VALIDATION_SEED + 40)) --deck-a decks/sera-support.json --deck-b decks/sera-support.json --output artifacts/mccfr-policy-sera.json
+
+      - name: Evaluate Reference MCCFR
+        run: |
+          python tools/simulate.py --games "$MATCHUP_GAMES" --seed $((VALIDATION_SEED + 110)) --deck-a decks/reference.json --deck-b decks/reference.json --agent-a mccfr --policy-a artifacts/mccfr-policy-reference.json --agent-b heuristic --output artifacts/mccfr-reference-vs-heuristic.json
+          python tools/simulate.py --games "$MATCHUP_GAMES" --seed $((VALIDATION_SEED + 111)) --deck-a decks/reference.json --deck-b decks/reference.json --agent-a heuristic --agent-b mccfr --policy-b artifacts/mccfr-policy-reference.json --output artifacts/heuristic-vs-mccfr-reference.json
+      - name: Evaluate Avaros MCCFR
+        run: |
+          python tools/simulate.py --games "$MATCHUP_GAMES" --seed $((VALIDATION_SEED + 120)) --deck-a decks/avaros-line.json --deck-b decks/avaros-line.json --agent-a mccfr --policy-a artifacts/mccfr-policy-avaros.json --agent-b heuristic --output artifacts/mccfr-avaros-vs-heuristic.json
+          python tools/simulate.py --games "$MATCHUP_GAMES" --seed $((VALIDATION_SEED + 121)) --deck-a decks/avaros-line.json --deck-b decks/avaros-line.json --agent-a heuristic --agent-b mccfr --policy-b artifacts/mccfr-policy-avaros.json --output artifacts/heuristic-vs-mccfr-avaros.json
+      - name: Evaluate Mara MCCFR
+        run: |
+          python tools/simulate.py --games "$MATCHUP_GAMES" --seed $((VALIDATION_SEED + 130)) --deck-a decks/mara-rear.json --deck-b decks/mara-rear.json --agent-a mccfr --policy-a artifacts/mccfr-policy-mara.json --agent-b heuristic --output artifacts/mccfr-mara-vs-heuristic.json
+          python tools/simulate.py --games "$MATCHUP_GAMES" --seed $((VALIDATION_SEED + 131)) --deck-a decks/mara-rear.json --deck-b decks/mara-rear.json --agent-a heuristic --agent-b mccfr --policy-b artifacts/mccfr-policy-mara.json --output artifacts/heuristic-vs-mccfr-mara.json
+      - name: Evaluate Sera MCCFR
+        run: |
+          python tools/simulate.py --games "$MATCHUP_GAMES" --seed $((VALIDATION_SEED + 140)) --deck-a decks/sera-support.json --deck-b decks/sera-support.json --agent-a mccfr --policy-a artifacts/mccfr-policy-sera.json --agent-b heuristic --output artifacts/mccfr-sera-vs-heuristic.json
+          python tools/simulate.py --games "$MATCHUP_GAMES" --seed $((VALIDATION_SEED + 141)) --deck-a decks/sera-support.json --deck-b decks/sera-support.json --agent-a heuristic --agent-b mccfr --policy-b artifacts/mccfr-policy-sera.json --output artifacts/heuristic-vs-mccfr-sera.json
+
+      - name: Aggregate current-card MCCFR suite
+        run: python tools/build_mccfr_suite.py
       - uses: actions/upload-artifact@v4
         with:
           name: mccfr-reports
           path: |
             artifacts/mccfr-verification.json
-            artifacts/mccfr-policy.json
-            artifacts/mccfr-vs-heuristic.json
-            artifacts/heuristic-vs-mccfr.json
-            artifacts/online-mccfr-vs-heuristic.json
+            artifacts/mccfr-policy-*.json
+            artifacts/mccfr-*-vs-heuristic.json
+            artifacts/heuristic-vs-mccfr-*.json
+            artifacts/mccfr-suite.json
           retention-days: 90
