@@ -306,7 +306,7 @@ def _play_focal_outcome(
     else:
         deck_a, deck_b = list(sample.opponent_deck), focal_deck
 
-    state = engine.new_game(
+    preview = engine.new_game(
         deck_a,
         deck_b,
         seed=sample.game_seed,
@@ -324,6 +324,19 @@ def _play_focal_outcome(
             sample.game_seed * 10_000 + 2,
         ),
     ]
+    mulligan_indices = tuple(
+        agent.choose_mulligan(engine, preview.players[player].hand)
+        if hasattr(agent, "choose_mulligan")
+        else ()
+        for player, agent in enumerate(agents)
+    )
+    state = engine.new_game(
+        deck_a,
+        deck_b,
+        seed=sample.game_seed,
+        first_player=0,
+        mulligan_indices=mulligan_indices,
+    )
 
     actions = 0
     while state.phase is not Phase.COMPLETE:
