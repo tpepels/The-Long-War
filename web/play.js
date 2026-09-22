@@ -171,20 +171,21 @@ function playCardMarkup(cardId, options = {}) {
   '</button>';
 }
 
-function boardCardMarkup(cardId, role) {
+function boardCardMarkup(cardId, role, owner) {
   if (!cardId) return "";
   const card = cards[cardId];
-  return '<div class="board-card board-card-' + role + ' card-' + card.type +
-    (card.veiled ? " card-scheme" : "") + (card.hero ? " card-hero" : "") + '">' +
-    '<div class="board-card-face">' +
+  return '<button type="button" class="board-card board-card-' + role + ' card-' + card.type +
+    (card.veiled ? " card-scheme" : "") + (card.hero ? " card-hero" : "") +
+    '" data-inspect-card="' + esc(cardId) + '" data-inspect-owner="' + owner + '" data-inspect-zone="' + esc(role) +
+    '" aria-label="Inspect ' + esc(card.title) + '">' +
+    '<span class="board-card-face">' +
       '<span class="board-card-type">' + esc(cardType(card)) + '</span>' +
       '<strong>' + esc(card.title) + '</strong>' +
-      cardVisual(cardId, true) +
       (Number.isInteger(card.strength)
         ? '<span class="board-card-strength">' + card.strength + '</span>'
         : "") +
-    '</div>' +
-  '</div>';
+    '</span>' +
+  '</button>';
 }
 
 function currentViewer() {
@@ -283,9 +284,9 @@ function renderSlot(owner, front, rank) {
     '<span class="slot-rank">' + esc(slot.rank_name) +
       (rank === "front" ? " · Line Defense +1" : "") + '</span>' +
     '<div class="board-legend">' +
-      boardCardMarkup(slot.subject, "subject") +
-      (slot.link ? '<div class="board-attachment link">' + boardCardMarkup(slot.link, "link") + '</div>' : "") +
-      (slot.name ? '<div class="board-attachment name">' + boardCardMarkup(slot.name, "name") + '</div>' : "") +
+      boardCardMarkup(slot.subject, "subject", owner) +
+      (slot.link ? '<div class="board-attachment link">' + boardCardMarkup(slot.link, "link", owner) + '</div>' : "") +
+      (slot.name ? '<div class="board-attachment name">' + boardCardMarkup(slot.name, "name", owner) + '</div>' : "") +
     '</div>' +
     '<span class="slot-strength">' + slot.strength + '</span>' +
     (targetable ? '<b class="legal-target-cue">PLAY HERE</b>' : '') +
@@ -307,8 +308,10 @@ function renderScheme(owner, front) {
   if (scheme.hidden) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>face-down</b></div>';
   }
-  return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>' +
-    esc(cardTitle(scheme.card_id)) + (scheme.revealed ? " · revealed" : "") + '</b></div>';
+  return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span>' +
+    '<button type="button" class="public-card-link" data-inspect-card="' + esc(scheme.card_id) +
+    '" data-inspect-owner="' + owner + '" data-inspect-zone="veiled story">' +
+    esc(cardTitle(scheme.card_id)) + (scheme.revealed ? " · revealed" : "") + '</button></div>';
 }
 
 function renderStratagem(owner) {
@@ -324,7 +327,10 @@ function renderStratagem(owner) {
     title = cardTitle(stratagem.card_id);
     label = stratagem.revealed ? "revealed" : "face-down";
   }
-  return '<div class="' + classes.join(" ") + '"><span>' + esc(title) + '</span><b>' + esc(label) + '</b></div>';
+  const inspect = stratagem?.card_id && !stratagem.hidden
+    ? ' data-inspect-card="' + esc(stratagem.card_id) + '" data-inspect-owner="' + owner + '" data-inspect-zone="stratagem"'
+    : "";
+  return '<div class="' + classes.join(" ") + '"' + inspect + '><span>' + esc(title) + '</span><b>' + esc(label) + '</b></div>';
 }
 
 function controlClass(front, viewer) {
@@ -392,6 +398,7 @@ function renderBattlefield() {
     '</div>';
 
   bindBoardTargets();
+  bindCardInspectors();
 }
 
 function victoryPips(count) {
@@ -742,6 +749,45 @@ function renderHistory() {
   $("history").innerHTML = state.log.map((line) => "<li>" + esc(line) + "</li>").join("");
 }
 
+function closeCardInspector() {
+  const inspector = $("card-inspector");
+  if (!inspector) return;
+  inspector.hidden = true;
+  inspector.setAttribute("aria-hidden", "true");
+  $("card-inspector-card").innerHTML = "";
+}
+
+function openCardInspector(cardId, owner, zone = "card") {
+  const card = cards[cardId];
+  if (!card) return;
+  const inspector = $("card-inspector");
+  const ownerLabel = owner === currentViewer() ? "Your" : "Opponent's";
+  $("card-inspector-context").textContent = ownerLabel + " " + zone;
+  $("card-inspector-title").textContent = card.title;
+  $("card-inspector-card").innerHTML = playCardMarkup(cardId, {
+    footer: ownerLabel.toUpperCase() + " · " + zone.toUpperCase(),
+    attrs: 'tabindex="-1"',
+  });
+  inspector.hidden = false;
+  inspector.setAttribute("aria-hidden", "false");
+  $("card-inspector-close").focus();
+}
+
+function bindCardInspectors() {
+  document.querySelectorAll("[data-inspect-card]").forEach((el) => {
+    el.addEventListener("click", (event) => {
+      if (selectedCardId && el.closest(".digital-slot")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openCardInspector(
+        el.dataset.inspectCard,
+        Number(el.dataset.inspectOwner),
+        el.dataset.inspectZone || "card"
+      );
+    });
+  });
+}
+
 function bindBoardTargets() {
   document.querySelectorAll("[data-board-owner]").forEach((el) => {
     const owner = Number(el.dataset.boardOwner);
@@ -925,6 +971,7 @@ $("new-game-form").addEventListener("submit", async (event) => {
 });
 
 $("restart").addEventListener("click", () => {
+  closeCardInspector();
   state = null;
   clearSelection();
   $("game").hidden = true;
@@ -941,12 +988,21 @@ $("cancel-selection").addEventListener("click", () => {
   renderInteractiveState();
 });
 
+$("card-inspector-close").addEventListener("click", closeCardInspector);
+document.querySelectorAll("[data-inspector-close]").forEach((el) => {
+  el.addEventListener("click", closeCardInspector);
+});
+
 $("pass-button").addEventListener("click", () => {
   const pass = actionForPass();
   if (pass) executeAction(pass);
 });
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !$("card-inspector").hidden) {
+    closeCardInspector();
+    return;
+  }
   if (!state || state.viewer == null || state.phase === "complete") return;
   if (state.phase === "mulligan") {
     if (event.key === "Escape") {

@@ -126,7 +126,9 @@ def main() -> None:
     }
 
     if (stage === "select") {
-      const card = document.querySelector("#hand .play-card.playable[data-hand-card]");
+      const card =
+        document.querySelector("#hand .play-card.playable.card-subject[data-hand-card]") ||
+        document.querySelector("#hand .play-card.playable[data-hand-card]");
       if (!card) return;
       beforeHistory = historyCount();
       card.click();
@@ -136,9 +138,7 @@ def main() -> None:
 
     if (stage === "target") {
       if (historyCount() > beforeHistory) {
-        root.dataset.playSmoke = "pass";
-        root.dataset.playSmokeDetail = "card action completed";
-        clearInterval(timer);
+        stage = "inspect";
         return;
       }
 
@@ -160,9 +160,7 @@ def main() -> None:
 
     if (stage === "verify") {
       if (historyCount() > beforeHistory) {
-        root.dataset.playSmoke = "pass";
-        root.dataset.playSmokeDetail = "card action completed";
-        clearInterval(timer);
+        stage = "inspect";
         return;
       }
       const choice = document.querySelector("#choice-tray:not([hidden]) button");
@@ -170,10 +168,30 @@ def main() -> None:
       return;
     }
 
-    if (targetClicked && historyCount() > beforeHistory) {
+    if (stage === "inspect") {
+      const publicCard =
+        document.querySelector(".opponent-army [data-inspect-card]") ||
+        document.querySelector("#battlefield [data-inspect-card]");
+      if (!publicCard) return;
+      publicCard.click();
+      const inspector = document.getElementById("card-inspector");
+      if (!inspector || inspector.hidden || getComputedStyle(inspector).display === "none") {
+        fail("public battlefield card did not open inspector");
+        return;
+      }
+      if (!document.querySelector("#card-inspector-card .play-card")) {
+        fail("inspector did not render the full card");
+        return;
+      }
       root.dataset.playSmoke = "pass";
-      root.dataset.playSmokeDetail = "card action completed";
+      root.dataset.playSmokeDetail = "card action and public-card inspection completed";
       clearInterval(timer);
+      return;
+    }
+
+    if (targetClicked && historyCount() > beforeHistory) {
+      stage = "inspect";
+      return;
     }
   }, 40);
 })();
@@ -244,7 +262,7 @@ def main() -> None:
             detail = result.stdout.split(marker, 1)[1].split('"', 1)[0]
         raise SystemExit(f"Start-a-match browser smoke failed: {detail}")
 
-    print("PASS: real browser starts the match, keeps the mulligan, selects a playable card, and completes a board action")
+    print("PASS: real browser starts the match, completes a board action, and opens a public battlefield card at readable size")
 
 
 if __name__ == "__main__":
