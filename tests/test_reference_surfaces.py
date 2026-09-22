@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,3 +54,29 @@ def test_balance_lab_is_human_first_and_collapsible() -> None:
     assert "card-health-table" in page
     assert "min-width: 0 !important;" in css
     assert "row-evidence" in script
+
+
+def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:
+    cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
+    canonical = {card["id"] for card in cards["cards"]}
+    covered: set[str] = set()
+    for deck in (
+        "decks/reference.json",
+        "decks/avaros-line.json",
+        "decks/mara-rear.json",
+        "decks/sera-support.json",
+    ):
+        data = json.loads((ROOT / deck).read_text(encoding="utf-8"))
+        covered.update(data["cards"])
+
+    assert covered == canonical
+    assert len(canonical) == 48
+
+
+def test_manual_mccfr_workflow_builds_all_four_profile_policies() -> None:
+    workflow = text(".github/workflows/mccfr.yml")
+    assert "pull_request:" not in workflow
+    assert "push:" not in workflow
+    for profile in ("reference", "avaros", "mara", "sera"):
+        assert f"mccfr-policy-{profile}.json" in workflow
+    assert "tools/build_mccfr_suite.py" in workflow
