@@ -1,5 +1,5 @@
 # cython: language_level=3, boundscheck=False, wraparound=False, initializedcheck=False, cdivision=True
-from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, int32_t, uint64_t
+from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, uint32_t, int32_t, uint64_t
 from libc.stddef cimport size_t
 from libc.string cimport memcpy, memset
 from libc.stdlib cimport malloc, free
@@ -147,6 +147,7 @@ cdef class FastState:
     cdef int8_t chooser
     cdef int8_t winner
     cdef int32_t turn_number
+    cdef uint32_t shuffle_seed
 
     def __cinit__(self):
         memset(self.deck, 0xff, sizeof(self.deck))
@@ -178,6 +179,7 @@ cdef class FastState:
         self.chooser = -1
         self.winner = -1
         self.turn_number = 0
+        self.shuffle_seed = 0
 
     cdef void copy_from_fast(self, FastState other) noexcept:
         memcpy(self.deck, other.deck, sizeof(self.deck))
@@ -209,6 +211,7 @@ cdef class FastState:
         self.chooser = other.chooser
         self.winner = other.winner
         self.turn_number = other.turn_number
+        self.shuffle_seed = other.shuffle_seed
 
     cdef FastState clone_fast(self):
         cdef FastState other = FastState()
@@ -453,6 +456,7 @@ cdef class FastEngine:
         fast.chooser = -1 if state.chooser is None else state.chooser
         fast.winner = -1 if state.winner is None else state.winner
         fast.turn_number = state.turn_number
+        fast.shuffle_seed = state.shuffle_seed
         fast.pass_len = len(state.pass_order)
         for i, p in enumerate(state.pass_order):
             fast.pass_order[i] = p
@@ -526,9 +530,17 @@ cdef class FastEngine:
                 pass
             elif self.subject_mod_adj_named[card]:
                 other = 0
-                if front > 0 and state.name[slot_index(player, front - 1, rank)] >= 0:
+                if (
+                    front > 0
+                    and state.subject[slot_index(player, front - 1, rank)] >= 0
+                    and state.name[slot_index(player, front - 1, rank)] >= 0
+                ):
                     other = 1
-                if front < 2 and state.name[slot_index(player, front + 1, rank)] >= 0:
+                if (
+                    front < 2
+                    and state.subject[slot_index(player, front + 1, rank)] >= 0
+                    and state.name[slot_index(player, front + 1, rank)] >= 0
+                ):
                     other = 1
                 if other:
                     value += mod
@@ -546,9 +558,10 @@ cdef class FastEngine:
                     if mod > self.link_discard_max[link]:
                         mod = self.link_discard_max[link]
                     value += mod
-                value += self.strength[name]
-                if self.name_rank_bonus_rank[name] == rank:
-                    value += self.name_rank_bonus_amount[name]
+        if name >= 0:
+            value += self.strength[name]
+            if self.name_rank_bonus_rank[name] == rank:
+                value += self.name_rank_bonus_amount[name]
 
         for controller in range(2):
             strat = state.stratagem[controller]
@@ -632,25 +645,25 @@ cdef class FastEngine:
             elif self.card_type[card] == CARD_LINK:
                 for local in range(6):
                     slot = player * 6 + local
-                    if state.subject[slot] >= 0 and state.link[slot] < 0:
+                    if state.link[slot] < 0:
                         actions[n] = encode_action(TYPE_LINK, card, slot, -1, player); n += 1
 
             elif self.card_type[card] == CARD_NAME:
                 for local in range(6):
                     slot = player * 6 + local
-                    if state.subject[slot] < 0 or state.link[slot] < 0 or state.name[slot] >= 0:
+                    if state.name[slot] >= 0:
                         continue
                     actions[n] = encode_action(TYPE_NAME, card, slot, -1, player); n += 1
-                    if self.name_effect[card] == NAME_MOVE_ADJACENT:
+                    if self.name_effect[card] == NAME_MOVE_ADJACENT and state.subject[slot] >= 0:
                         front = local >> 1
                         rank = local & 1
                         if front > 0:
                             dest = slot_index(player, front - 1, rank)
-                            if state.subject[dest] < 0:
+                            if state.subject[dest] < 0 and state.link[dest] < 0 and state.name[dest] < 0:
                                 actions[n] = encode_action(TYPE_NAME, card, slot, dest, player); n += 1
                         if front < 2:
                             dest = slot_index(player, front + 1, rank)
-                            if state.subject[dest] < 0:
+                            if state.subject[dest] < 0 and state.link[dest] < 0 and state.name[dest] < 0:
                                 actions[n] = encode_action(TYPE_NAME, card, slot, dest, player); n += 1
 
             elif self.card_type[card] == CARD_PLOT:
@@ -671,7 +684,12 @@ cdef class FastEngine:
                                 continue
                             req = self.placement_rank[state.subject[source]]
                             for dest in range(player * 6, player * 6 + 6):
-                                if dest == source or state.subject[dest] >= 0:
+                                if (
+                                    dest == source
+                                    or state.subject[dest] >= 0
+                                    or state.link[dest] >= 0
+                                    or state.name[dest] >= 0
+                                ):
                                     continue
                                 if req >= 0 and req != rank_from_slot(dest):
                                     continue
@@ -879,6 +897,34 @@ cdef class FastEngine:
             state.hand_len[player] += 1
             count -= 1
 
+    cdef inline uint32_t next_shuffle_seed(self, uint32_t seed) noexcept:
+        return seed * <uint32_t>1664525 + <uint32_t>1013904223
+
+    cdef void recycle_non_hand_cards(self, FastState state):
+        cdef int player, i, j, card, target
+        cdef uint32_t seed = state.shuffle_seed
+        for player in range(2):
+            for i in range(state.discard_len[player]):
+                card = state.discard[player][i]
+                state.deck[player][state.deck_len[player]] = card
+                state.deck_len[player] += 1
+                state.deck_counts[player][card] += 1
+            state.discard_len[player] = 0
+
+            i = state.deck_len[player] - 1
+            while i > 0:
+                seed = self.next_shuffle_seed(seed)
+                j = seed % (i + 1)
+                card = state.deck[player][i]
+                state.deck[player][i] = state.deck[player][j]
+                state.deck[player][j] = card
+                i -= 1
+
+            target = 10 - state.hand_len[player]
+            if target > 0:
+                self.draw(state, player, target)
+        state.shuffle_seed = seed
+
     cdef void discard_battlefield(self, FastState state):
         cdef int player, slot, front, card
         for player in range(2):
@@ -950,9 +996,9 @@ cdef class FastEngine:
         state.pass_len = 0
         state.pass_order[0] = -1
         state.pass_order[1] = -1
+        self.recycle_non_hand_cards(state)
         for p in range(2):
             state.passed[p] = 0
-            self.draw(state, p, 3)
         state.phase = PHASE_CHOOSE
         state.chooser = loser
         state.active_player = loser
@@ -1009,7 +1055,8 @@ cdef class FastEngine:
         elif kind == TYPE_LINK:
             self.take_from_hand(state, actor, card, 0)
             state.link[pos] = card
-            state.temporary[pos] += self.on_link_bonus[state.subject[pos]]
+            if state.subject[pos] >= 0:
+                state.temporary[pos] += self.on_link_bonus[state.subject[pos]]
             front = front_from_slot(pos)
             self.resolve_scheme_event(state, actor, EVENT_LINK, front, pos)
         elif kind == TYPE_NAME:
@@ -1097,10 +1144,10 @@ cdef class FastEngine:
             else:
                 score += 1.0 + min(5.0, 0.4 * self.hand_size(state, player)) + 0.9 * reachable
         for slot in range(player * 6, player * 6 + 6):
-            if state.name[slot] >= 0:
+            if state.subject[slot] >= 0 and state.name[slot] >= 0:
                 named_delta += 1
         for slot in range(opponent * 6, opponent * 6 + 6):
-            if state.name[slot] >= 0:
+            if state.subject[slot] >= 0 and state.name[slot] >= 0:
                 named_delta -= 1
         score += 1.5 * named_delta
         for front in range(3):
@@ -1113,7 +1160,7 @@ cdef class FastEngine:
         score += 0.45 * strat_delta
 
         for slot in range(player * 6, player * 6 + 6):
-            if state.subject[slot] < 0 or state.link[slot] < 0 or state.name[slot] >= 0:
+            if state.subject[slot] < 0 or state.name[slot] >= 0:
                 continue
             before = self.position_strength_fast(state, slot)
             best = -32768

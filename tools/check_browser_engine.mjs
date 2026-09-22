@@ -39,6 +39,68 @@ for (const card of cards.cards) {
   }
 }
 
+const prepared = new BrowserSession(cards, deck, "hotseat", 8172);
+prepared.setupComplete = true;
+prepared.state.active_player = 0;
+prepared.state.players[0].hand = ["namar", "followed", "the-fifty-men"];
+prepared.state.players[1].hand = [];
+
+function formationAction(session, kind) {
+  return session.engine.legalActions(session.state).find((action) =>
+    action.kind === kind &&
+    action.position?.front === 1 &&
+    action.position?.rank === "front"
+  );
+}
+
+let preparedAction = formationAction(prepared, "PlayName");
+assert(preparedAction, "Name could not be prepared before Subject/Bond");
+prepared.engine.apply(prepared.state, preparedAction);
+let preparedSlot = prepared.state.board[0][1][0];
+assert(preparedSlot.name === "namar" && !preparedSlot.subject && !preparedSlot.link, "Prepared Name was not retained");
+assert(prepared.engine.positionStrength(prepared.state, 0, { front: 1, rank: "front" }) === 0, "Prepared Name contributed Strength without a Subject");
+
+prepared.engine.apply(
+  prepared.state,
+  prepared.engine.legalActions(prepared.state).find((action) => action.kind === "Pass")
+);
+preparedAction = formationAction(prepared, "PlayLink");
+assert(preparedAction, "Bond could not be added after a prepared Name");
+prepared.engine.apply(prepared.state, preparedAction);
+preparedAction = formationAction(prepared, "PlaySubject");
+assert(preparedAction, "Subject could not be added to prepared Bond/Name");
+prepared.engine.apply(prepared.state, preparedAction);
+assert(prepared.engine.positionStrength(prepared.state, 0, { front: 1, rank: "front" }) === 13, "Prepared formation did not activate when Subject arrived");
+
+const recycle = new BrowserSession(cards, deck, "hotseat", 9911);
+recycle.setupComplete = true;
+recycle.state.active_player = 0;
+const keptHands = [];
+for (const [player, target] of [[0, 4], [1, 6]]) {
+  const ps = recycle.state.players[player];
+  const moved = ps.hand.splice(target);
+  ps.discard.push(...moved);
+  keptHands.push([...ps.hand]);
+}
+recycle.engine.apply(
+  recycle.state,
+  recycle.engine.legalActions(recycle.state).find((action) => action.kind === "Pass")
+);
+recycle.engine.apply(
+  recycle.state,
+  recycle.engine.legalActions(recycle.state).find((action) => action.kind === "Pass")
+);
+assert(recycle.state.battle === 2 && recycle.state.phase === "choose_first", "Battle recycle did not advance to the next Battle");
+for (let player = 0; player < 2; player += 1) {
+  const ps = recycle.state.players[player];
+  assert(ps.hand.length === 10, "Battle recycle did not refill hand to 10");
+  assert(ps.discard.length === 0, "Battle recycle did not shuffle discard into the deck");
+  assert(ps.hand.length + ps.deck.length === 30, "Battle recycle lost or duplicated cards");
+  for (const cardId of keptHands[player]) {
+    assert(ps.hand.includes(cardId), "Battle recycle did not preserve held cards");
+  }
+}
+
 const heuristic = new BrowserSession(cards, deck, "heuristic", 1701);
 let view = heuristic.snapshot(0);
 assert(view.phase === "mulligan", "Heuristic match did not start at mulligan");
@@ -118,4 +180,4 @@ assert(hot.hand.length === 10, "Player 2 opening hand not revealable");
 hot = hotseat.mulligan([], 1);
 assert(hot.viewer === null && hot.needs_reveal, "Battle did not return to privacy gate");
 
-console.log("PASS: native browser engine supports Draw, paced AI turns, mulligans, privacy, and match progress");
+console.log("PASS: native browser engine supports flexible formations, Battle recycling, Draw, paced AI turns, mulligans, privacy, and match progress");

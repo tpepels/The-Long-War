@@ -40,7 +40,10 @@ class Slot:
 
     @property
     def occupied(self) -> bool:
-        return self.subject is not None
+        return any(
+            component is not None
+            for component in (self.subject, self.link, self.name)
+        )
 
     @property
     def complete(self) -> bool:
@@ -111,6 +114,7 @@ class GameState:
     chooser: int | None = None
     winner: int | None = None
     turn_number: int = 1
+    shuffle_seed: int = 0
     observations: list[ObservationEvent] = field(default_factory=list)
 
     def clone(self) -> "GameState":
@@ -179,6 +183,7 @@ class GameState:
             chooser=self.chooser,
             winner=self.winner,
             turn_number=self.turn_number,
+            shuffle_seed=self.shuffle_seed,
             observations=list(self.observations),
         )
 
@@ -244,6 +249,7 @@ class GameState:
         self.chooser = source.chooser
         self.winner = source.winner
         self.turn_number = source.turn_number
+        self.shuffle_seed = source.shuffle_seed
         self.observations[:] = source.observations
         return self
 

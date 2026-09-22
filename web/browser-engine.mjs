@@ -35,6 +35,23 @@ function emptySlot() {
   return { subject: null, link: null, name: null, temporary_strength: 0 };
 }
 
+function slotOccupied(slot) {
+  return Boolean(slot.subject || slot.link || slot.name);
+}
+
+function nextShuffleSeed(seed) {
+  return (Math.imul(seed >>> 0, 1664525) + 1013904223) >>> 0;
+}
+
+function shuffleForBattle(values, seed) {
+  for (let index = values.length - 1; index > 0; index -= 1) {
+    seed = nextShuffleSeed(seed);
+    const other = seed % (index + 1);
+    [values[index], values[other]] = [values[other], values[index]];
+  }
+  return seed >>> 0;
+}
+
 function makeBoard() {
   return Array.from({ length: 2 }, () =>
     Array.from({ length: 3 }, () => [emptySlot(), emptySlot()])
@@ -128,6 +145,7 @@ class BrowserEngine {
       chooser: null,
       winner: null,
       turn_number: 0,
+      shuffle_seed: 0,
     };
     this.draw(state, 0, 10);
     this.draw(state, 1, 10);
@@ -217,7 +235,7 @@ class BrowserEngine {
     return POSITIONS
       .filter((position) => {
         const slot = slotAt(state, player, position.front, position.rank);
-        return slot.subject && !slot.link;
+        return !slot.link;
       })
       .map((position) => this.action("PlayLink", { card_id: cardId, position: { ...position } }));
   }
@@ -227,11 +245,11 @@ class BrowserEngine {
     const effect = this.cards[cardId].rules?.on_name_attached;
     for (const position of POSITIONS) {
       const slot = slotAt(state, player, position.front, position.rank);
-      if (!slot.subject || !slot.link || slot.name) continue;
+      if (slot.name) continue;
       actions.push(this.action("PlayName", { card_id: cardId, position: { ...position } }));
-      if (effect !== "move_adjacent_optional") continue;
+      if (effect !== "move_adjacent_optional" || !slot.subject) continue;
       for (const destination of adjacentPositions(position)) {
-        if (!slotAt(state, player, destination.front, destination.rank).subject) {
+        if (!slotOccupied(slotAt(state, player, destination.front, destination.rank))) {
           actions.push(this.action("PlayName", {
             card_id: cardId,
             position: { ...position },
@@ -348,8 +366,10 @@ class BrowserEngine {
       this.takeFromHand(state, actor, action.card_id);
       const target = slotAt(state, actor, action.position.front, action.position.rank);
       target.link = action.card_id;
-      const subject = this.cards[target.subject];
-      target.temporary_strength += Number(subject.rules?.on_link_attached?.temporary_strength || 0);
+      if (target.subject) {
+        const subject = this.cards[target.subject];
+        target.temporary_strength += Number(subject.rules?.on_link_attached?.temporary_strength || 0);
+      }
       this.resolveTriggeredSchemes(state, actor, "opponent_plays_link", action.position, events);
     } else if (action.kind === "PlayName") {
       this.takeFromHand(state, actor, action.card_id);
@@ -436,13 +456,26 @@ class BrowserEngine {
     state.stratagem_used = [false, false];
     state.draw_used = [false, false];
     state.pass_order = [];
+    this.recycleNonHandCards(state);
     for (let player = 0; player < 2; player += 1) {
       state.players[player].passed = false;
-      this.draw(state, player, 3);
     }
     state.phase = "choose_first";
     state.chooser = loser;
     state.active_player = loser;
+  }
+
+  recycleNonHandCards(state) {
+    let seed = state.shuffle_seed >>> 0;
+    for (let player = 0; player < 2; player += 1) {
+      const ps = state.players[player];
+      const pool = [...ps.deck, ...ps.discard];
+      ps.discard = [];
+      seed = shuffleForBattle(pool, seed);
+      ps.deck = pool;
+      this.draw(state, player, Math.max(0, 10 - ps.hand.length));
+    }
+    state.shuffle_seed = seed >>> 0;
   }
 
   discardBattlefield(state) {
@@ -488,7 +521,7 @@ class BrowserEngine {
     const from = slotAt(state, player, source.front, source.rank);
     const to = slotAt(state, player, destination.front, destination.rank);
     if (!from.subject) throw new Error("Source has no Subject");
-    if (to.subject) throw new Error("Destination is occupied");
+    if (slotOccupied(to)) throw new Error("Destination is occupied");
     if (adjacentOnly && !adjacentPositions(source).some((pos) =>
       pos.front === destination.front && pos.rank === destination.rank
     )) throw new Error("Destination is not adjacent");
@@ -725,18 +758,26 @@ class BrowserEngine {
       if (when.rank && when.rank !== position.rank) continue;
       if (when.own_discard_at_least != null && state.players[player].discard.length < Number(when.own_discard_at_least)) continue;
       if (when.adjacent_subject_has_name) {
-        const found = adjacentPositions(position).some((adjacent) =>
-          Boolean(slotAt(state, player, adjacent.front, adjacent.rank).name)
-        );
+        const found = adjacentPositions(position).some((adjacent) => {
+          const adjacentSlot = slotAt(state, player, adjacent.front, adjacent.rank);
+          return Boolean(adjacentSlot.subject && adjacentSlot.name);
+        });
         if (!found) continue;
       }
       value += Number(modifier.amount || 0);
     }
 
+    let linkRules = null;
     if (slot.link) {
-      const linkRules = this.cards[slot.link].rules || {};
+      linkRules = this.cards[slot.link].rules || {};
       value += Number(linkRules.strength_bonus || 0);
-      if (slot.name) {
+    }
+    if (slot.name) {
+      const name = this.cards[slot.name];
+      value += Number(name.strength || 0);
+      const rankBonus = name.rules?.rank_strength_bonus;
+      if (rankBonus && rankBonus.rank === position.rank) value += Number(rankBonus.amount || 0);
+      if (linkRules) {
         value += Number(linkRules.named_strength_bonus || 0);
         if (linkRules.discard_strength_bonus) {
           value += Math.min(
@@ -744,10 +785,6 @@ class BrowserEngine {
             Number(linkRules.discard_strength_bonus.maximum || 0)
           );
         }
-        const name = this.cards[slot.name];
-        value += Number(name.strength || 0);
-        const rankBonus = name.rules?.rank_strength_bonus;
-        if (rankBonus && rankBonus.rank === position.rank) value += Number(rankBonus.amount || 0);
       }
     }
 
@@ -796,18 +833,15 @@ class BrowserEngine {
 function openingMulliganIndices(engine, hand, maximum = 2) {
   if (!hand.length || maximum <= 0) return [];
   const types = hand.map((id) => engine.cards[id].type);
-  const subjectCount = types.filter((value) => value === "subject").length;
-  const bondCount = types.filter((value) => value === "link").length;
   const stratagemCount = types.filter((value) => value === "stratagem").length;
   let seenStratagems = 0;
   const scored = hand.map((cardId, index) => {
     const card = engine.cards[cardId];
     let score = 2.5;
     if (card.type === "subject") score = 5 + 0.08 * Number(card.strength || 0);
-    else if (card.type === "link") score = subjectCount >= 2 ? 3.1 : subjectCount === 1 ? 2.4 : 0.9;
-    else if (card.type === "name") {
-      score = subjectCount >= 2 && bondCount >= 2 ? 2.8 : subjectCount >= 1 && bondCount >= 1 ? 1.9 : 0.5;
-    } else if (card.type === "plot") score = card.veiled ? 3.7 : 2.6;
+    else if (card.type === "link") score = 3.2;
+    else if (card.type === "name") score = 3.0;
+    else if (card.type === "plot") score = card.veiled ? 3.7 : 2.6;
     else if (card.type === "stratagem") {
       seenStratagems += 1;
       score = seenStratagems === 1 ? 3.2 : 2.0;
@@ -840,9 +874,15 @@ class LightweightAgent {
       let score = this.evaluate(clone, player);
       if (action.kind === "SetStratagem") score += 3;
       if (action.kind === "Draw") score -= 0.8;
-      if (action.kind === "PlayName") score += 0.35;
+      if (action.kind === "PlayName") {
+        const slot = slotAt(state, player, action.position.front, action.position.rank);
+        score += slot.subject ? 0.35 : 1.50;
+      }
       if (action.kind === "PlayScheme") score += 0.2;
-      if (action.kind === "PlayLink") score += 0.1;
+      if (action.kind === "PlayLink") {
+        const slot = slotAt(state, player, action.position.front, action.position.rank);
+        score += slot.subject ? 0.1 : 1.35;
+      }
       if (score > bestScore || (score === bestScore && action.key < best.key)) {
         best = action;
         bestScore = score;
@@ -881,6 +921,7 @@ export class BrowserSession {
     this.rng = new SeededRng(this.seed);
     this.humanPlayers = mode === "hotseat" ? new Set([0, 1]) : new Set([0]);
     this.state = this.engine.newOpeningState(deck, this.rng);
+    this.state.shuffle_seed = (this.seed ^ 0x9e3779b9) >>> 0;
     this.setupComplete = false;
     this.mulliganPlayer = 0;
     this.mulliganChoices = new Map();
@@ -1162,7 +1203,8 @@ export class BrowserSession {
         FRONT_NAMES[action.position.front] + " " + RANK_NAMES[action.position.rank] + ".";
     }
     if (action.kind === "PlayLink") {
-      return prefix + " attaches the Bond " + this.cards[action.card_id].title + " in " + FRONT_NAMES[action.position.front] + ".";
+      return prefix + " plays the Bond " + this.cards[action.card_id].title + " in " +
+        FRONT_NAMES[action.position.front] + " " + RANK_NAMES[action.position.rank] + ".";
     }
     if (action.kind === "PlayName") {
       let move = "";
@@ -1170,8 +1212,8 @@ export class BrowserSession {
         move = " and moves that Subject and its attachments to " +
           FRONT_NAMES[action.move_to.front] + " " + RANK_NAMES[action.move_to.rank];
       }
-      return prefix + " attaches " + this.cards[action.card_id].title + " as the Name in " +
-        FRONT_NAMES[action.position.front] + move + ".";
+      return prefix + " plays " + this.cards[action.card_id].title + " as the Name in " +
+        FRONT_NAMES[action.position.front] + " " + RANK_NAMES[action.position.rank] + move + ".";
     }
     if (action.kind === "PlayScheme") {
       return privateText
@@ -1198,9 +1240,9 @@ export class BrowserSession {
     if (action.kind === "Pass") return "Pass is always legal while you are still active in the Battle.";
     if (action.kind === "Draw") return "Draw 1 card as your normal action. You may do this once per Battle.";
     if (action.kind === "ChooseFirst") return "The previous Battle loser chooses who takes the first turn.";
-    if (action.kind === "PlaySubject") return "This is an empty legal Subject position.";
-    if (action.kind === "PlayLink") return "This Subject has no Bond yet.";
-    if (action.kind === "PlayName") return "This Subject has a Bond and no Name attached yet.";
+    if (action.kind === "PlaySubject") return "This position has no Subject. Prepared Bond or Name cards may already be here.";
+    if (action.kind === "PlayLink") return "This position has no Bond. The Bond may be prepared before its Subject.";
+    if (action.kind === "PlayName") return "This position has no Name. The Name may be prepared before its Subject or Bond; Subject-dependent text waits for a Subject.";
     if (action.kind === "PlayScheme") return "You have no Veiled Story in this Front.";
     if (action.kind === "SetStratagem") return "You have not set a Stratagem this Battle. Setting it is free and you still take your normal action.";
     if (action.kind === "PlayPlot") return "The Story has all targets required by its rules text.";

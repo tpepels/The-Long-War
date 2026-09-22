@@ -27,16 +27,14 @@ def opening_mulligan_indices(
 ) -> tuple[int, ...]:
     """Choose weak opening cards using only the player's own hand.
 
-    The score is about opening flexibility, not raw card power. Subjects are
-    immediately deployable; Bonds and especially Names become poor keeps when
-    the hand lacks the earlier parts of the Subject-Bond-Name chain.
+    The score is about opening flexibility, not raw card power. Formation
+    components can be prepared in any order, so Bonds and Names are no longer
+    penalized for lacking an earlier component in the opening hand.
     """
     if maximum <= 0 or not hand:
         return ()
 
     types = [engine.cards[card_id]["type"] for card_id in hand]
-    subject_count = types.count("subject")
-    bond_count = types.count("link")
     stratagem_count = types.count("stratagem")
 
     scored: list[tuple[float, int]] = []
@@ -48,14 +46,9 @@ def opening_mulligan_indices(
         if card_type == "subject":
             score = 5.0 + 0.08 * float(card.get("strength", 0))
         elif card_type == "link":
-            score = 3.1 if subject_count >= 2 else 2.4 if subject_count == 1 else 0.9
+            score = 3.2
         elif card_type == "name":
-            if subject_count >= 2 and bond_count >= 2:
-                score = 2.8
-            elif subject_count >= 1 and bond_count >= 1:
-                score = 1.9
-            else:
-                score = 0.5
+            score = 3.0
         elif card_type == "plot":
             score = 3.7 if card.get("veiled", False) else 2.6
         elif card_type == "stratagem":
@@ -179,10 +172,12 @@ class HeuristicAgent:
         # face-down Scheme's Front bonus. Keep only small priors for option
         # value that a one-ply evaluator cannot see directly.
         if isinstance(action, PlayLink):
-            score += 0.10
+            slot = state.slot(player, action.position)
+            score += 0.10 if slot.subject is not None else 1.35
 
         if isinstance(action, PlayName):
-            score += 0.35
+            slot = state.slot(player, action.position)
+            score += 0.35 if slot.subject is not None else 1.50
 
         if isinstance(action, PlayScheme):
             score += 0.20
@@ -360,7 +355,8 @@ class HeuristicAgent:
     @staticmethod
     def _count_named_subjects(state: GameState, player: int) -> int:
         return sum(
-            state.slot(player, position).name is not None
+            state.slot(player, position).subject is not None
+            and state.slot(player, position).name is not None
             for position in all_positions()
         )
 
@@ -486,7 +482,7 @@ class HeuristicAgent:
         value = 0.0
         for position in all_positions():
             slot = state.slot(player, position)
-            if slot.subject is None or slot.link is None or slot.name is not None:
+            if slot.subject is None or slot.name is not None:
                 continue
 
             best_gain = max(
