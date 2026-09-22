@@ -2262,7 +2262,7 @@ body.game-body::before {
 
 @media (max-height: 940px) {
   .tabletop-shell {
-    --hand-scale: .61;
+    --hand-scale: .57;
     grid-template-rows: 32px 56px minmax(0, 1fr) 225px;
   }
 
@@ -2528,6 +2528,18 @@ body.game-body::before {
 .play-card {
   --inspect-scale: 1.22;
 }
+
+/* The dock is deliberately compact. Any hand card, including one that is not
+   currently legal, expands for reading without changing the table layout. */
+.digital-hand .play-card:hover {
+  z-index: 30;
+  transform:
+    rotate(var(--fan-rot, 0deg))
+    translateY(calc(var(--fan-y, 0px) - 11px))
+    scale(var(--inspect-scale));
+  filter: none;
+  opacity: 1;
+}
 .play-card-meta {
   font-size: 8.5px;
 }
@@ -2745,8 +2757,8 @@ body.game-body::before {
   /* Preserve the battlefield at laptop height. Hand cards stay compact in the
      dock, but hover/selection still expands them at readable inspector scale. */
   .tabletop-shell {
-    --hand-scale: .49;
-    grid-template-rows: 28px 46px minmax(0, 1fr) 178px;
+    --hand-scale: .45;
+    grid-template-rows: 28px 46px minmax(0, 1fr) 182px;
   }
   .hand-dock {
     grid-template-rows: 30px minmax(0, 1fr);
