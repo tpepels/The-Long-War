@@ -102,6 +102,7 @@ class GameState:
     schemes: list[list[SchemeState | None]] = field(default_factory=empty_schemes)
     stratagems: list[StratagemState | None] = field(default_factory=empty_stratagems)
     stratagem_used: list[bool] = field(default_factory=lambda: [False, False])
+    draw_used: list[bool] = field(default_factory=lambda: [False, False])
     active_player: int = 0
     battle: int = 1
     phase: Phase = Phase.BATTLE
@@ -169,6 +170,7 @@ class GameState:
             schemes=schemes,
             stratagems=stratagems,
             stratagem_used=list(self.stratagem_used),
+            draw_used=list(self.draw_used),
             active_player=self.active_player,
             battle=self.battle,
             phase=self.phase,
@@ -233,6 +235,7 @@ class GameState:
                 target_stratagem.revealed = source_stratagem.revealed
 
         self.stratagem_used[:] = source.stratagem_used
+        self.draw_used[:] = source.draw_used
         self.active_player = source.active_player
         self.battle = source.battle
         self.phase = source.phase
