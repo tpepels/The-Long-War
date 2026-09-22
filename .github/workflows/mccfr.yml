@@ -27,32 +27,6 @@ on:
         description: Seed (0 = derive from workflow run)
         required: true
         default: "0"
-  pull_request:
-    branches: [main]
-    paths:
-      - "cards/**"
-      - "decks/**"
-      - "src/longwar/game/**"
-      - "src/longwar/mccfr.py"
-      - "src/longwar/mccfr_core.py"
-      - "src/longwar/_mccfr_accel.pyx"
-      - "src/longwar/agents/mccfr_agent.py"
-      - "tools/train_mccfr.py"
-      - "tools/build_mccfr_suite.py"
-      - ".github/workflows/mccfr.yml"
-  push:
-    branches: [main]
-    paths:
-      - "cards/**"
-      - "decks/**"
-      - "src/longwar/game/**"
-      - "src/longwar/mccfr.py"
-      - "src/longwar/mccfr_core.py"
-      - "src/longwar/_mccfr_accel.pyx"
-      - "src/longwar/agents/mccfr_agent.py"
-      - "tools/train_mccfr.py"
-      - "tools/build_mccfr_suite.py"
-      - ".github/workflows/mccfr.yml"
 
 permissions:
   contents: read
