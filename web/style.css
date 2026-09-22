@@ -1652,7 +1652,7 @@ button, .button {
   width: 68mm;
   height: 96mm;
   display: grid;
-  grid-template-rows: 7mm 15mm 6mm 17mm minmax(0, 1fr) 6.5mm;
+  grid-template-rows: 6mm 13mm 8mm 10mm minmax(0, 1fr) 5mm;
   overflow: hidden;
   position: relative;
   break-inside: avoid;
@@ -1685,7 +1685,7 @@ button, .button {
 
 .card-meta {
   min-width: 0;
-  padding: 2.5mm 3.4mm 0;
+  padding: 2.1mm 3.4mm 0;
   position: relative;
   overflow: hidden;
   border-bottom: .25mm solid color-mix(in srgb, var(--card-accent) 40%, transparent);
@@ -1696,7 +1696,7 @@ button, .button {
   display: block;
   max-width: 46mm;
   overflow: hidden;
-  font: 800 2.25mm/1 system-ui, sans-serif;
+  font: 800 2.5mm/1 system-ui, sans-serif;
   letter-spacing: .09em;
   text-transform: uppercase;
   text-overflow: ellipsis;
@@ -1705,19 +1705,19 @@ button, .button {
 
 .card-title {
   min-width: 0;
-  height: 15mm;
+  height: 13mm;
   margin: 0;
-  padding: 1.5mm 15mm 0 3.4mm;
+  padding: 1.1mm 15mm 0 3.4mm;
   overflow: hidden;
   color: #1c1914;
-  font: 600 4.7mm/.96 Georgia, serif;
+  font: 600 4.55mm/.96 Georgia, serif;
   letter-spacing: -.015em;
 }
 
 .strength {
   position: absolute;
   right: 3.2mm;
-  top: 3.2mm;
+  top: 2.6mm;
   z-index: 4;
   width: 10.5mm;
   height: 10.5mm;
@@ -1733,16 +1733,22 @@ button, .button {
 
 .card-properties {
   min-width: 0;
-  height: 6mm;
+  height: 8mm;
   margin: 0;
-  padding: .8mm 3.4mm 0;
-  display: block;
+  padding: .65mm 3.4mm .4mm;
+  display: grid;
+  align-content: start;
+  gap: .35mm;
   overflow: hidden;
-  color: color-mix(in srgb, var(--card-deep) 72%, #1c1914);
-  font: 700 2.05mm/1.15 system-ui, sans-serif;
-  letter-spacing: .02em;
-  white-space: nowrap;
+  color: #2b261e;
+  font-family: system-ui, sans-serif;
+  letter-spacing: .01em;
 }
+.card-role,.card-classes{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-role{display:flex;align-items:baseline;gap:1.1mm;font-size:2.25mm;line-height:1.08}
+.card-role strong{color:var(--card-deep);font-size:2.35mm;font-weight:850}
+.card-role span{font-weight:650}
+.card-classes{color:color-mix(in srgb,var(--card-deep) 72%,#1c1914);font-size:1.9mm;line-height:1.08;font-weight:650}
 
 .card-art {
   position: relative;
@@ -1804,7 +1810,7 @@ button, .button {
   top: 1.6mm;
   z-index: 2;
   color: var(--card-deep);
-  font: 700 6mm/1 Georgia, serif;
+  font: 700 4.8mm/1 Georgia, serif;
   opacity: .88;
 }
 
@@ -1817,7 +1823,7 @@ button, .button {
   max-width: none;
   overflow: hidden;
   color: var(--card-deep);
-  font: italic 2.7mm/1.05 Georgia, serif;
+  font: italic 2.15mm/1.05 Georgia, serif;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1840,19 +1846,15 @@ button, .button {
 .card-rule {
   min-width: 0;
   min-height: 0;
-  padding: 2.4mm 3.3mm 1.8mm;
+  padding: 2mm 3.3mm 1.2mm;
   overflow: hidden;
-  color: #201b15;
-  font: 2.75mm/1.2 Georgia, serif;
+  color: #17130f;
+  font: 3.35mm/1.15 Georgia, serif;
 }
-
-.card-rule .rule-block {
-  margin: 0;
-}
-
-.card-rule .rule-block + .rule-block {
-  margin-top: 1.15mm;
-}
+.card-rule .rule-block{margin:0}
+.card-rule .rule-block + .rule-block{margin-top:1.15mm}
+.card-rule .rule-label{display:inline-block;margin:0 1.05mm .55mm 0;padding:.45mm .65mm .35mm;border:.22mm solid color-mix(in srgb,var(--card-accent) 55%,transparent);color:var(--card-deep);font:850 1.72mm/1 system-ui,sans-serif;letter-spacing:.075em;text-transform:uppercase;vertical-align:.35mm}
+.card-rule .rule-empty{color:color-mix(in srgb,#17130f 58%,transparent);font-style:italic}
 
 .card-rule strong {
   color: var(--card-deep);
@@ -1868,7 +1870,7 @@ button, .button {
 .card-footer {
   min-width: 0;
   min-height: 0;
-  padding: 1.4mm 3mm;
+  padding: 1mm 3mm;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1877,7 +1879,7 @@ button, .button {
   border-top: .25mm solid color-mix(in srgb, var(--card-accent) 45%, #1c1914);
   background: color-mix(in srgb, var(--card-accent) 7%, transparent);
   color: #3b342a;
-  font: 600 1.9mm/1 system-ui, sans-serif;
+  font: 650 1.75mm/1 system-ui, sans-serif;
 }
 
 .unique { text-transform: uppercase; letter-spacing: .08em; }
