@@ -166,9 +166,14 @@ def information_set_key(state: GameState, player: int) -> tuple[tuple[str, Any],
     )
 
 
-def _sorted_card_multiset(cards: list[str]) -> tuple[str, ...]:
-    """Cheap multiset representation for the internal search table."""
+@lru_cache(maxsize=32768)
+def _sorted_card_tuple(cards: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(sorted(cards))
+
+
+def _sorted_card_multiset(cards: list[str]) -> tuple[str, ...]:
+    """Cheap cached multiset representation for the internal search table."""
+    return _sorted_card_tuple(tuple(cards))
 
 
 def _search_information_set_key(state: GameState, player: int) -> tuple[Any, ...]:
