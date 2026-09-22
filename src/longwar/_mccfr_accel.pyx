@@ -219,3 +219,135 @@ def external_sampling_traverse(
         leaf_value=leaf_value,
         reach=(child_reach[0], child_reach[1]),
     )
+
+
+def longwar_external_sampling_traverse(
+    trainer,
+    state,
+    traverser,
+    *,
+    depth,
+    action_key,
+    information_set_id,
+    reach=(1.0, 1.0),
+    scratch_by_depth=None,
+):
+    """Specialized Long War traversal without generic engine callbacks."""
+    cdef int actor
+    cdef int child_depth
+    cdef object actions
+    cdef object keys
+    cdef object info_id
+    cdef object node
+    cdef object strategy
+    cdef object action
+    cdef object key
+    cdef object child
+    cdef object utility
+    cdef object child_reach
+    cdef object sampled_action
+    cdef double sampled_probability
+    cdef double probability
+    cdef double threshold
+    cdef double cumulative
+    cdef double node_utility
+    cdef list utilities
+
+    if scratch_by_depth is None:
+        scratch_by_depth = {}
+
+    if state.phase.value == "complete":
+        return 1.0 if state.winner == traverser else -1.0
+
+    if depth >= trainer.max_depth:
+        return trainer._leaf_value(state, traverser)
+
+    actor = state.active_player
+    actions = trainer.engine.legal_actions(state)
+    if not actions:
+        raise RuntimeError("Non-terminal state has no legal actions")
+
+    keys = [action_key(action) for action in actions]
+    info_id = information_set_id(state, actor)
+    node = trainer.nodes.get(info_id)
+    if node is None:
+        node = CFRNode()
+        trainer.nodes[info_id] = node
+    node.ensure_actions(keys)
+    node.visits += 1
+    strategy = node.strategy(keys)
+
+    child_depth = depth + 1
+
+    if actor == traverser:
+        utilities = []
+        node_utility = 0.0
+        for key, action in zip(keys, actions):
+            probability = strategy[key]
+            if actor == 0:
+                child_reach = (reach[0] * probability, reach[1])
+            else:
+                child_reach = (reach[0], reach[1] * probability)
+
+            child = scratch_by_depth.get(child_depth)
+            if child is None:
+                child = state.clone()
+                scratch_by_depth[child_depth] = child
+            else:
+                child.copy_from(state)
+            trainer.engine.apply(child, action, validate=False)
+
+            utility = longwar_external_sampling_traverse(
+                trainer,
+                child,
+                traverser,
+                depth=child_depth,
+                action_key=action_key,
+                information_set_id=information_set_id,
+                reach=child_reach,
+                scratch_by_depth=scratch_by_depth,
+            )
+            utilities.append(utility)
+            node_utility += probability * utility
+
+        for key, utility in zip(keys, utilities):
+            node.regret_sum[key] += utility - node_utility
+        return node_utility
+
+    node.accumulate_average(strategy, reach_weight=reach[actor])
+
+    threshold = trainer.rng.random()
+    cumulative = 0.0
+    sampled_action = actions[-1]
+    sampled_probability = strategy[keys[-1]]
+    for key, action in zip(keys, actions):
+        probability = strategy[key]
+        cumulative += probability
+        sampled_action = action
+        sampled_probability = probability
+        if threshold <= cumulative:
+            break
+
+    if actor == 0:
+        child_reach = (reach[0] * sampled_probability, reach[1])
+    else:
+        child_reach = (reach[0], reach[1] * sampled_probability)
+
+    child = scratch_by_depth.get(child_depth)
+    if child is None:
+        child = state.clone()
+        scratch_by_depth[child_depth] = child
+    else:
+        child.copy_from(state)
+    trainer.engine.apply(child, sampled_action, validate=False)
+
+    return longwar_external_sampling_traverse(
+        trainer,
+        child,
+        traverser,
+        depth=child_depth,
+        action_key=action_key,
+        information_set_id=information_set_id,
+        reach=child_reach,
+        scratch_by_depth=scratch_by_depth,
+    )
