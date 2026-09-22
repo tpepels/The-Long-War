@@ -4,11 +4,13 @@ from libc.string cimport memcpy, memset
 from libc.math cimport tanh
 from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
+import json
 
 DEF MAX_CARDS = 64
 DEF MAX_DECK = 64
 DEF SLOT_COUNT = 12
 DEF SCHEME_COUNT = 6
+DEF MAX_ACTIONS = 256
 DEF NONE = -1
 
 cdef int PHASE_BATTLE = 0
@@ -1446,3 +1448,359 @@ def packed_external_sampling_traverse(
 
 def make_scratch(int max_depth):
     return [FastState() for _ in range(max_depth + 1)]
+
+
+
+cdef double _fast_external_sampling_traverse(
+    FastEngine engine,
+    FastState state,
+    int traverser,
+    int depth,
+    int max_depth,
+    dict nodes,
+    object rng,
+    object node_factory,
+    double leaf_scale,
+    double reach0,
+    double reach1,
+) except *:
+    cdef int actor, n, i, sampled_index
+    cdef uint64_t action
+    cdef object actions
+    cdef object info_key
+    cdef object node
+    cdef object pykey
+    cdef double regret, positive_total = 0.0
+    cdef double probability, threshold, cumulative
+    cdef double node_utility = 0.0
+    cdef double sampled_probability
+    cdef double probs[MAX_ACTIONS]
+    cdef double utilities[MAX_ACTIONS]
+    cdef FastState child
+
+    if state.phase == PHASE_COMPLETE:
+        return 1.0 if state.winner == traverser else -1.0
+
+    if depth >= max_depth:
+        return tanh(engine.evaluate_fast(state, traverser) / leaf_scale)
+
+    actor = state.active_player
+    actions = engine.legal_actions_fast(state)
+    n = len(actions)
+    if n <= 0:
+        raise RuntimeError("Non-terminal fast state has no legal actions")
+    if n > MAX_ACTIONS:
+        raise RuntimeError(
+            f"Fast MCCFR action buffer exceeded: {n} > {MAX_ACTIONS}"
+        )
+
+    info_key = engine.information_key_fast(state, actor)
+    node = nodes.get(info_key)
+    if node is None:
+        node = node_factory()
+        nodes[info_key] = node
+
+    node.visits += 1
+
+    for i in range(n):
+        pykey = actions[i]
+        if pykey not in node.regret_sum:
+            node.regret_sum[pykey] = 0.0
+            node.strategy_sum[pykey] = 0.0
+        regret = node.regret_sum[pykey]
+        if regret > 0.0:
+            probs[i] = regret
+            positive_total += regret
+        else:
+            probs[i] = 0.0
+
+    if positive_total > 0.0:
+        for i in range(n):
+            probs[i] /= positive_total
+    else:
+        probability = 1.0 / n
+        for i in range(n):
+            probs[i] = probability
+
+    if actor == traverser:
+        child = FastState()
+        for i in range(n):
+            action = <uint64_t>actions[i]
+            child = state.clone_fast()
+            engine.apply_fast(child, action)
+            if actor == 0:
+                utilities[i] = _fast_external_sampling_traverse(
+                    engine,
+                    child,
+                    traverser,
+                    depth + 1,
+                    max_depth,
+                    nodes,
+                    rng,
+                    node_factory,
+                    leaf_scale,
+                    reach0 * probs[i],
+                    reach1,
+                )
+            else:
+                utilities[i] = _fast_external_sampling_traverse(
+                    engine,
+                    child,
+                    traverser,
+                    depth + 1,
+                    max_depth,
+                    nodes,
+                    rng,
+                    node_factory,
+                    leaf_scale,
+                    reach0,
+                    reach1 * probs[i],
+                )
+            node_utility += probs[i] * utilities[i]
+
+        for i in range(n):
+            pykey = actions[i]
+            node.regret_sum[pykey] += utilities[i] - node_utility
+        return node_utility
+
+    node.average_visits += 1
+    if actor == 0:
+        probability = reach0
+    else:
+        probability = reach1
+    for i in range(n):
+        pykey = actions[i]
+        node.strategy_sum[pykey] += probability * probs[i]
+
+    threshold = rng.random()
+    cumulative = 0.0
+    sampled_index = n - 1
+    for i in range(n):
+        cumulative += probs[i]
+        if threshold <= cumulative:
+            sampled_index = i
+            break
+
+    sampled_probability = probs[sampled_index]
+    action = <uint64_t>actions[sampled_index]
+    child = state.clone_fast()
+    engine.apply_fast(child, action)
+    if actor == 0:
+        return _fast_external_sampling_traverse(
+            engine,
+            child,
+            traverser,
+            depth + 1,
+            max_depth,
+            nodes,
+            rng,
+            node_factory,
+            leaf_scale,
+            reach0 * sampled_probability,
+            reach1,
+        )
+    return _fast_external_sampling_traverse(
+        engine,
+        child,
+        traverser,
+        depth + 1,
+        max_depth,
+        nodes,
+        rng,
+        node_factory,
+        leaf_scale,
+        reach0,
+        reach1 * sampled_probability,
+    )
+
+
+def fast_external_sampling_traverse(
+    FastEngine engine,
+    FastState state,
+    int traverser,
+    *,
+    int max_depth,
+    dict nodes,
+    rng,
+    node_factory,
+    double leaf_scale=100.0,
+    int depth=0,
+):
+    """External-sampling MCCFR directly on the primitive-array search state."""
+    return _fast_external_sampling_traverse(
+        engine,
+        state,
+        traverser,
+        depth,
+        max_depth,
+        nodes,
+        rng,
+        node_factory,
+        leaf_scale,
+        1.0,
+        1.0,
+    )
+
+
+def stable_information_id_from_fast_key(FastEngine engine, bytes key):
+    """Translate a binary fast-search key to the legacy policy id.
+
+    This runs only when exporting/looking up a policy, never inside traversal.
+    """
+    data = key
+    i = 0
+    version = data[i]
+    i += 1
+    if version != 1:
+        raise ValueError(f"Unsupported fast information-key version: {version}")
+
+    card_ids = engine.card_ids
+    n_cards = len(card_ids)
+    player = data[i]
+    i += 1
+    phase_code = data[i] - 1
+    i += 1
+    phase = ("battle", "choose_first", "complete")[phase_code]
+    battle = data[i]
+    i += 1
+    active_player = data[i] - 1
+    i += 1
+    chooser_raw = data[i] - 1
+    i += 1
+    chooser = None if chooser_raw < 0 else chooser_raw
+
+    victories = [data[i], data[i + 2]]
+    passed = [bool(data[i + 1]), bool(data[i + 3])]
+    i += 4
+
+    pass_len = data[i]
+    i += 1
+    pass_order = []
+    for _ in range(pass_len):
+        pass_order.append(data[i] - 1)
+        i += 1
+
+    discarded_this_battle = [data[i], data[i + 1]]
+    i += 2
+
+    board = [[], []]
+    for owner in range(2):
+        for local in range(6):
+            subject_code = data[i] - 1
+            link_code = data[i + 1] - 1
+            name_code = data[i + 2] - 1
+            temporary = data[i + 3] - 64
+            i += 4
+            board[owner].append([
+                local // 2,
+                "front" if (local & 1) == 0 else "rear",
+                None if subject_code < 0 else card_ids[subject_code],
+                None if link_code < 0 else card_ids[link_code],
+                None if name_code < 0 else card_ids[name_code],
+                temporary,
+            ])
+
+    schemes = [[], []]
+    for owner in range(2):
+        for _front in range(3):
+            card_code = data[i]
+            revealed = bool(data[i + 1])
+            i += 2
+            if card_code == 0:
+                schemes[owner].append(None)
+            elif card_code == 255:
+                schemes[owner].append(["hidden", False])
+            else:
+                schemes[owner].append([card_ids[card_code - 1], revealed])
+
+    stratagems = []
+    for owner in range(2):
+        card_code = data[i]
+        revealed = bool(data[i + 1])
+        i += 2
+        if card_code == 0:
+            stratagems.append(None)
+        elif card_code == 255:
+            stratagems.append(["hidden", False])
+        else:
+            stratagems.append([card_ids[card_code - 1], revealed])
+
+    stratagem_used = [bool(data[i]), bool(data[i + 1])]
+    i += 2
+
+    own_hand_counts = []
+    for card_code in range(n_cards):
+        count = data[i]
+        i += 1
+        if count:
+            own_hand_counts.append([card_ids[card_code], count])
+    own_hand_counts.sort(key=lambda row: row[0])
+
+    own_deck_counts = []
+    for card_code in range(n_cards):
+        count = data[i]
+        i += 1
+        if count:
+            own_deck_counts.append([card_ids[card_code], count])
+    own_deck_counts.sort(key=lambda row: row[0])
+
+    own_discard_len = data[i]
+    i += 1
+    own_discard = []
+    for _ in range(own_discard_len):
+        own_discard.append(card_ids[data[i] - 1])
+        i += 1
+
+    opponent_hand_count = data[i]
+    i += 1
+
+    known_counts = []
+    for card_code in range(n_cards):
+        count = data[i]
+        i += 1
+        if count:
+            known_counts.append([card_ids[card_code], count])
+    known_counts.sort(key=lambda row: row[0])
+
+    opponent_deck_count = data[i]
+    i += 1
+    opponent_discard_len = data[i]
+    i += 1
+    opponent_discard = []
+    for _ in range(opponent_discard_len):
+        opponent_discard.append(card_ids[data[i] - 1])
+        i += 1
+
+    if i != len(data):
+        raise ValueError(
+            f"Fast information key decode mismatch: consumed {i}, size {len(data)}"
+        )
+
+    observation = {
+        "viewer": player,
+        "phase": phase,
+        "battle": battle,
+        "active_player": active_player,
+        "chooser": chooser,
+        "victories": victories,
+        "passed": passed,
+        "pass_order": pass_order,
+        "discarded_this_battle": discarded_this_battle,
+        "board": board,
+        "schemes": schemes,
+        "stratagems": stratagems,
+        "stratagem_used": stratagem_used,
+        "own_hand": own_hand_counts,
+        "own_deck": own_deck_counts,
+        "own_discard": own_discard,
+        "opponent_hand_count": opponent_hand_count,
+        "known_opponent_hand": known_counts,
+        "opponent_deck_count": opponent_deck_count,
+        "opponent_discard": opponent_discard,
+    }
+    payload = json.dumps(
+        observation,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
