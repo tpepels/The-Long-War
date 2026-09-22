@@ -836,7 +836,7 @@ def test_opposing_stratagems_can_reveal_and_stack() -> None:
     assert engine.position_strength(state, 1, rear) == 9
 
 
-def test_untriggered_stratagem_reveals_and_discards_at_battle_end() -> None:
+def test_untriggered_stratagem_reveals_and_recycles_at_battle_end() -> None:
     engine, state = fresh_state(first_player=0)
     state.players[0].hand = ["the-storm-broke"]
 
@@ -844,7 +844,10 @@ def test_untriggered_stratagem_reveals_and_discards_at_battle_end() -> None:
     engine.apply(state, Pass())
     engine.apply(state, Pass())
 
-    assert "the-storm-broke" in state.players[0].discard
+    assert state.players[0].discard == []
+    assert "the-storm-broke" in (
+        state.players[0].hand + state.players[0].deck
+    )
     assert any(
         event.kind == "reveal"
         and event.zone == "stratagem"
@@ -887,7 +890,10 @@ def test_unrevealed_stratagem_is_revealed_after_scoring_then_reset() -> None:
     assert state.battle == 2
     assert state.stratagem(0) is None
     assert state.stratagem_used == [False, False]
-    assert "the-storm-broke" in state.players[0].discard
+    assert state.players[0].discard == []
+    assert "the-storm-broke" in (
+        state.players[0].hand + state.players[0].deck
+    )
     assert any(
         event.kind == "reveal"
         and event.zone == "stratagem"
