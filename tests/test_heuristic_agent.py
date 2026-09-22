@@ -128,3 +128,39 @@ def test_heuristic_uses_public_board_to_choose_stratagem() -> None:
     assert isinstance(action, SetStratagem)
     assert action.card_id == "the-wooden-gift"
 
+def test_heuristic_penalizes_fragile_leads_after_passing() -> None:
+    engine, state = engine_and_state()
+    state.players[0].hand = ["oren", "iria"]
+    state.players[1].hand = ["namar", "teyra", "followed", "swore-to"]
+    state.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
+    state.slot(0, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
+
+    live_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, state, 0)
+
+    passed = state.clone()
+    passed.players[0].passed = True
+    passed.pass_order = [0]
+    passed_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, passed, 0)
+
+    assert passed_value < live_value
+
+
+def test_heuristic_values_tempo_after_opponent_passes() -> None:
+    engine, state = engine_and_state()
+    state.players[0].hand = ["the-fifty-men", "followed", "oren"]
+    state.players[1].hand = []
+    state.slot(1, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
+
+    live_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, state, 0)
+
+    opponent_passed = state.clone()
+    opponent_passed.players[1].passed = True
+    opponent_passed.pass_order = [1]
+    tempo_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(
+        engine,
+        opponent_passed,
+        0,
+    )
+
+    assert tempo_value > live_value
+
