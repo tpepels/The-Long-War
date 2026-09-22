@@ -1,15 +1,19 @@
-name: MCCFR V2 Profile
+name: MCCFR V2 Validation
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - "tools/profile_mccfr_callbacks.py"
       - "src/longwar/**"
+      - "tests/test_mccfr*.py"
+      - "tests/test_online_mccfr.py"
+      - "tests/test_parallel_mccfr.py"
+      - "tools/benchmark_mccfr.py"
+      - "tools/benchmark_parallel_mccfr.py"
       - ".github/workflows/mccfr-v2-profile.yml"
 
 jobs:
-  profile:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,11 +23,15 @@ jobs:
           cache: pip
       - run: pip install -e '.[dev]'
       - run: make check-native-mccfr
-      - name: Depth 2 profile
-        run: python tools/profile_mccfr_callbacks.py --iterations 60 --depth 2
-      - name: Depth 3 profile
-        run: python tools/profile_mccfr_callbacks.py --iterations 12 --depth 3
-      - name: Uninstrumented depth 2 benchmark
-        run: python tools/benchmark_mccfr.py --iterations 60 --depth 2
-      - name: Parallel throughput benchmark
-        run: python tools/benchmark_parallel_mccfr.py --workers 0 --iterations 30 --depth 2
+      - name: MCCFR algorithm and equivalence tests
+        run: make test-algorithm
+      - name: Formal Kuhn verification
+        run: python tools/verify_mccfr.py --iterations 30000
+      - name: Sequential depth 2 throughput
+        run: python tools/benchmark_mccfr.py --iterations 120 --depth 2 --compare-python --compare-legacy
+      - name: Sequential depth 3 throughput
+        run: python tools/benchmark_mccfr.py --iterations 30 --depth 3
+      - name: Parallel depth 2 throughput
+        run: python tools/benchmark_parallel_mccfr.py --workers 0 --iterations 80 --depth 2
+      - name: Parallel depth 3 throughput
+        run: python tools/benchmark_parallel_mccfr.py --workers 0 --iterations 20 --depth 3
