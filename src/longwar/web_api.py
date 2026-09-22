@@ -60,7 +60,13 @@ class PlaySession:
         self.log: list[str] = []
 
         # Preview state exposes the reproducible opening hands before mulligans.
-        self.state = self.engine.new_game(deck, deck, seed=self.seed, first_player=None)
+        self.state = self.engine.new_game(
+            deck,
+            deck,
+            seed=self.seed,
+            first_player=None,
+            opening_bonus=False,
+        )
         self.setup_complete = False
         self.mulligan_player = 0
         self.mulligan_choices: dict[int, tuple[int, ...]] = {}
@@ -135,7 +141,8 @@ class PlaySession:
         )
         self.setup_complete = True
         self.log.append(
-            f"Battle I begins. Player {self.state.active_player + 1} goes first."
+            f"Battle I begins. Player {self.state.active_player + 1} goes first "
+            "and draws 1 additional opening card."
         )
         self._run_ai_until_human()
 
