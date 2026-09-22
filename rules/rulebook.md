@@ -23,7 +23,7 @@ On the battlefield, position matters. **Subjects** stand in the **Frontline** or
 
 ### Reading cards and rules
 
-**Bold** words are game terms or rules actions: **Subject**, **Bond**, **Name**, **Story**, **Stratagem**, **Strength**, **Front**, **Pass**, **discard**, **return**, and **move**.
+**Bold** words are game terms or rules actions: **Subject**, **Bond**, **Name**, **Story**, **Stratagem**, **Strength**, **Front**, **Draw**, **Pass**, **discard**, **return**, and **move**.
 
 *Italic* words are card titles or printed properties: *Namar*, *Swordsman*, *Human*, *Hero*, *Myth*, *Frontline only*.
 
