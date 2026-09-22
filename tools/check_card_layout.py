@@ -19,13 +19,18 @@ def game_text(value: str) -> str:
     return escaped
 
 
-def rule_markup(card: dict, empty: str = "&nbsp;") -> str:
+def rule_markup(card: dict, empty: str = "<em>No special rules.</em>") -> str:
     blocks = card.get("rule_blocks", [])
     if not blocks:
-        return f'<div class="rule-block rule-empty">{empty}</div>'
+        return (
+            '<div class="rule-block rule-empty"><span class="rule-text">'
+            + empty
+            + "</span></div>"
+        )
     return "".join(
         f'<div class="rule-block rule-{html.escape(block["kind"])}">'
-        f'{game_text(block["text"])}</div>'
+        f'<span class="rule-label">{html.escape(block.get("label", "EFFECT"))}</span>'
+        f'<span class="rule-text">{game_text(block["text"])}</span></div>'
         for block in blocks
     )
 
@@ -67,10 +72,37 @@ def classes(card: dict) -> str:
     return " ".join(values)
 
 
+ROLE_HINTS = {
+    "swordsman": "Frontline +1",
+    "spearman": "Frontline +1 if Rear occupied",
+    "archer": "Rear +2 if Frontline occupied",
+    "healer": "Rear: Subject in front +2",
+    "ship": "Rear +1",
+    "stronghold": "Rear +1",
+}
+
+
 def property_markup(card: dict, class_name: str) -> str:
-    values = properties(card)
-    content = " · ".join(f"<em>{html.escape(value)}</em>" for value in values) or "&nbsp;"
-    return f'<div class="{class_name}">{content}</div>'
+    class_prefix = "play-card" if class_name.startswith("play-") else "card"
+    role_markup = ""
+    if card["type"] == "subject" and card.get("role"):
+        role = title_case(card["role"])
+        role_markup = (
+            f'<span class="{class_prefix}-role"><strong>{html.escape(role)}</strong>'
+            f'<span>{html.escape(ROLE_HINTS[card["role"]])}</span></span>'
+        )
+    values = [
+        title_case(value)
+        for value in card.get("classes", [])
+        if value != "hero" and value != card.get("role")
+    ]
+    classes_markup = " · ".join(
+        f"<em>{html.escape(value)}</em>" for value in values
+    ) or "&nbsp;"
+    return (
+        f'<div class="{class_name}">{role_markup}'
+        f'<span class="{class_prefix}-classes">{classes_markup}</span></div>'
+    )
 
 
 def play_card(card: dict) -> str:
