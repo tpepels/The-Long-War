@@ -106,7 +106,9 @@ def simulate_games(
             ),
         ]
         mulligan_indices = tuple(
-            agent.choose_mulligan(engine, preview.players[player].hand)
+            # The Battle I starter's compensation card is drawn after
+            # mulligans and is therefore not eligible to be returned.
+            agent.choose_mulligan(engine, preview.players[player].hand[:10])
             if hasattr(agent, "choose_mulligan")
             else ()
             for player, agent in enumerate(agents)
