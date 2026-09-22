@@ -61,43 +61,113 @@ def main() -> None:
 (() => {
   const root = document.documentElement;
   root.dataset.playSmoke = "waiting";
-  let submitted = false;
+  let stage = "start";
   let ticks = 0;
+  let beforeHistory = 0;
+  let targetClicked = false;
+
+  function fail(detail) {
+    root.dataset.playSmoke = "fail";
+    root.dataset.playSmokeDetail = String(detail || "unknown");
+    clearInterval(timer);
+  }
+
+  function historyCount() {
+    return document.querySelectorAll("#history li").length;
+  }
+
   const timer = setInterval(() => {
     ticks += 1;
-    const start = document.getElementById("start-game");
-    const form = document.getElementById("new-game-form");
-    const game = document.getElementById("game");
-    const setup = document.getElementById("play-setup");
-    if (!submitted && start && form && !start.disabled) {
-      submitted = true;
-      root.dataset.playSmoke = "submitted";
-      form.requestSubmit();
-    }
-    if (
-      submitted &&
-      game &&
-      setup &&
-      !game.hidden &&
-      setup.hidden &&
-      document.querySelectorAll("#hand .play-card").length > 0
-    ) {
-      root.dataset.playSmoke = "pass";
-      clearInterval(timer);
+    if (ticks > 220) {
+      fail(
+        stage + ": " +
+        (document.getElementById("interaction-hint")?.textContent ||
+         document.getElementById("setup-note")?.textContent ||
+         document.getElementById("engine-status")?.textContent ||
+         "timeout")
+      );
       return;
     }
-    if (ticks > 100) {
-      root.dataset.playSmoke = "fail";
-      root.dataset.playSmokeDetail =
-        document.getElementById("setup-note")?.textContent ||
-        document.getElementById("engine-status")?.textContent ||
-        "unknown";
+
+    if (document.body.classList.contains("is-busy")) return;
+
+    if (stage === "start") {
+      const start = document.getElementById("start-game");
+      const form = document.getElementById("new-game-form");
+      if (!start || !form || start.disabled) return;
+      document.getElementById("mode").value = "heuristic";
+      document.getElementById("seed").value = "1701";
+      root.dataset.playSmoke = "submitted";
+      form.requestSubmit();
+      stage = "mulligan";
+      return;
+    }
+
+    if (stage === "mulligan") {
+      const confirm = document.getElementById("confirm-mulligan");
+      if (!confirm) return;
+      if (document.querySelectorAll("#hand .play-card").length !== 10) {
+        fail("mulligan did not render ten cards");
+        return;
+      }
+      confirm.click();
+      stage = "select";
+      return;
+    }
+
+    if (stage === "select") {
+      const card = document.querySelector("#hand .play-card.playable[data-hand-card]");
+      if (!card) return;
+      beforeHistory = historyCount();
+      card.click();
+      stage = "target";
+      return;
+    }
+
+    if (stage === "target") {
+      if (historyCount() > beforeHistory) {
+        root.dataset.playSmoke = "pass";
+        root.dataset.playSmokeDetail = "card action completed";
+        clearInterval(timer);
+        return;
+      }
+
+      const choice = document.querySelector("#choice-tray:not([hidden]) button");
+      if (choice) {
+        choice.click();
+        stage = "verify";
+        return;
+      }
+
+      const target = document.querySelector(
+        ".digital-slot.targetable, .scheme-marker.targetable"
+      );
+      if (!target) return;
+      target.click();
+      targetClicked = true;
+      return;
+    }
+
+    if (stage === "verify") {
+      if (historyCount() > beforeHistory) {
+        root.dataset.playSmoke = "pass";
+        root.dataset.playSmokeDetail = "card action completed";
+        clearInterval(timer);
+        return;
+      }
+      const choice = document.querySelector("#choice-tray:not([hidden]) button");
+      if (choice) choice.click();
+      return;
+    }
+
+    if (targetClicked && historyCount() > beforeHistory) {
+      root.dataset.playSmoke = "pass";
+      root.dataset.playSmokeDetail = "card action completed";
       clearInterval(timer);
     }
   }, 40);
 })();
 </script>
-"""
     page = source.replace("</body>", smoke + "\n</body>")
 
     with tempfile.TemporaryDirectory(prefix="longwar-play-smoke-") as tmp:
@@ -163,7 +233,7 @@ def main() -> None:
             detail = result.stdout.split(marker, 1)[1].split('"', 1)[0]
         raise SystemExit(f"Start-a-match browser smoke failed: {detail}")
 
-    print("PASS: Begin Battle I opens a rendered mulligan in the real browser page")
+    print("PASS: real browser starts the match, keeps the mulligan, selects a playable card, and completes a board action")
 
 
 if __name__ == "__main__":
