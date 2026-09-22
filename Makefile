@@ -27,7 +27,7 @@ check-native-mccfr:
 	python -c "from longwar.mccfr_core import ACCELERATED, BACKEND; print(f'MCCFR backend: {BACKEND}'); assert ACCELERATED"
 
 benchmark-mccfr:
-	python tools/benchmark_mccfr.py --iterations 25 --depth 2
+	python tools/benchmark_mccfr.py --iterations 1000 --depth 2
 
 mccfr-smoke:
 	python tools/train_mccfr.py --iterations 5 --depth 2 --output artifacts/mccfr-smoke.json
