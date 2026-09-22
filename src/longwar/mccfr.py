@@ -177,13 +177,7 @@ def _sorted_card_multiset(cards: list[str]) -> tuple[str, ...]:
 
 
 def _search_information_set_key(state: GameState, player: int) -> tuple[Any, ...]:
-    """Compact information key used only inside MCCFR traversal.
-
-    Field names and invariant board coordinates are omitted, and card
-    multisets are represented as sorted ids rather than repeatedly building
-    Counters. The public/exported information-set id remains byte-for-byte
-    compatible with the original representation.
-    """
+    """Compact information key used only inside MCCFR traversal."""
     opponent = 1 - player
     own = state.players[player]
     other = state.players[opponent]
@@ -191,22 +185,49 @@ def _search_information_set_key(state: GameState, player: int) -> tuple[Any, ...
     board = tuple(
         tuple(
             (
-                state.slot(owner, position).subject,
-                state.slot(owner, position).link,
-                state.slot(owner, position).name,
-                state.slot(owner, position).temporary_strength,
+                slot.subject,
+                slot.link,
+                slot.name,
+                slot.temporary_strength,
             )
-            for position in all_positions()
+            for front in side
+            for slot in front
         )
-        for owner in range(2)
+        for side in state.board
     )
-    schemes = tuple(
-        tuple(
-            _freeze_view(_scheme_view(state, player, owner, front))
-            for front in Front
+
+    scheme_rows = []
+    for owner in (0, 1):
+        row = []
+        for scheme in state.schemes[owner]:
+            if scheme is None:
+                row.append(None)
+            elif owner == player or scheme.revealed:
+                row.append((scheme.card_id, bool(scheme.revealed)))
+            else:
+                row.append(("hidden", False))
+        scheme_rows.append(tuple(row))
+    schemes = tuple(scheme_rows)
+
+    stratagem_views = []
+    for owner in (0, 1):
+        stratagem = state.stratagems[owner]
+        if stratagem is None:
+            stratagem_views.append(None)
+        elif owner == player or stratagem.revealed:
+            stratagem_views.append(
+                (stratagem.card_id, bool(stratagem.revealed))
+            )
+        else:
+            stratagem_views.append(("hidden", False))
+
+    known_opponent_hand: tuple[str, ...]
+    if state.observations:
+        known_opponent_hand = _sorted_card_multiset(
+            state.known_hidden_cards(player, opponent, "hand")
         )
-        for owner in range(2)
-    )
+    else:
+        known_opponent_hand = ()
 
     return (
         player,
@@ -214,24 +235,31 @@ def _search_information_set_key(state: GameState, player: int) -> tuple[Any, ...
         state.battle,
         state.active_player,
         state.chooser,
-        tuple(p.victories for p in state.players),
-        tuple(p.passed for p in state.players),
+        (
+            state.players[0].victories,
+            state.players[1].victories,
+        ),
+        (
+            state.players[0].passed,
+            state.players[1].passed,
+        ),
         tuple(state.pass_order),
-        tuple(state.discarded_this_battle),
+        (
+            state.discarded_this_battle[0],
+            state.discarded_this_battle[1],
+        ),
         board,
         schemes,
-        tuple(
-            _freeze_view(_stratagem_view(state, player, owner))
-            for owner in range(2)
+        tuple(stratagem_views),
+        (
+            state.stratagem_used[0],
+            state.stratagem_used[1],
         ),
-        tuple(state.stratagem_used),
         _sorted_card_multiset(own.hand),
         _sorted_card_multiset(own.deck),
         tuple(own.discard),
         len(other.hand),
-        _sorted_card_multiset(
-            state.known_hidden_cards(player, opponent, "hand")
-        ),
+        known_opponent_hand,
         len(other.deck),
         tuple(other.discard),
     )
