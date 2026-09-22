@@ -757,14 +757,19 @@ function renderHand() {
       selected: selectedCardId === cardId,
       attrs: 'data-hand-card="' + esc(cardId) + '" draggable="' + playable +
         '" style="--fan-rot:' + rotation + 'deg;--fan-y:' + offset + 'px"',
-      footer: playable ? "SELECT OR DRAG TO PLAY" : "NO LEGAL PLAY",
+      footer: playable ? "SELECT TO PLAY · CLICK AGAIN TO READ" : "CLICK TO READ",
     });
   }).join("");
 
   hand.querySelectorAll("[data-hand-card]").forEach((cardEl) => {
     const cardId = cardEl.dataset.handCard;
     cardEl.addEventListener("click", () => {
-      if (state.legal_actions.some((a) => a.card_id === cardId)) selectCard(cardId);
+      const playable = state.legal_actions.some((a) => a.card_id === cardId);
+      if (!playable || selectedCardId === cardId) {
+        openCardInspector(cardId, currentViewer(), "hand");
+        return;
+      }
+      selectCard(cardId);
     });
     cardEl.addEventListener("dragstart", (event) => {
       if (!state.legal_actions.some((a) => a.card_id === cardId)) {
