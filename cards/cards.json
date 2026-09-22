@@ -65,7 +65,8 @@
       "rule_blocks": [
         {
           "kind": "continuous",
-          "text": "While your **discard pile** contains at least 5 cards, this **Subject** gets +1 **Strength**."
+          "label": "WHILE",
+          "text": "You have 5+ cards in your **discard pile**: this **Subject** gets +1 **Strength**."
         }
       ]
     },
@@ -97,7 +98,8 @@
       "rule_blocks": [
         {
           "kind": "continuous",
-          "text": "While an **adjacent Subject** you control has both a **Bond** and a **Name**, this **Subject** gets +1 **Strength**."
+          "label": "WHILE",
+          "text": "An **adjacent Subject** you control has both a **Bond** and a **Name**: this **Subject** gets +1 **Strength**."
         }
       ]
     },
@@ -124,7 +126,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "When you play a **Bond** on this **Subject**, it gets +1 **Strength** for this **Battle**."
+          "label": "WHEN",
+          "text": "You play a **Bond** on this **Subject**: it gets +1 **Strength** for this **Battle**."
         }
       ]
     },
@@ -151,7 +154,8 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Frontline only.*"
+          "label": "PLAY",
+          "text": "**Frontline** only."
         }
       ]
     },
@@ -179,7 +183,8 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Rear only.*"
+          "label": "PLAY",
+          "text": "**Rear** only."
         }
       ]
     },
@@ -208,11 +213,13 @@
       "rule_blocks": [
         {
           "kind": "property",
+          "label": "TRAIT",
           "text": "*Hero.*"
         },
         {
           "kind": "continuous",
-          "text": "While this **Subject** is in the **Frontline**, **adjacent Subjects** you control get +1 **Strength**."
+          "label": "WHILE",
+          "text": "In the **Frontline**: **adjacent Subjects** you control get +1 **Strength**."
         }
       ]
     },
@@ -224,7 +231,7 @@
       "classes": [
         "loyalty"
       ],
-      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +2 additional **Strength**.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +2 more **Strength**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 2
@@ -236,11 +243,13 @@
       "rule_blocks": [
         {
           "kind": "effect",
+          "label": "BONUS",
           "text": "Its **Subject** gets +1 **Strength**."
         },
         {
           "kind": "continuous",
-          "text": "While this **Bond** has a **Name**, its **Subject** gets +2 additional **Strength**."
+          "label": "NAMED",
+          "text": "Its **Subject** gets +2 more **Strength**."
         }
       ]
     },
@@ -252,7 +261,7 @@
       "classes": [
         "oath"
       ],
-      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +3 additional **Strength**.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +3 more **Strength**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 3
@@ -264,11 +273,13 @@
       "rule_blocks": [
         {
           "kind": "effect",
+          "label": "BONUS",
           "text": "Its **Subject** gets +1 **Strength**."
         },
         {
           "kind": "continuous",
-          "text": "While this **Bond** has a **Name**, its **Subject** gets +3 additional **Strength**."
+          "label": "NAMED",
+          "text": "Its **Subject** gets +3 more **Strength**."
         }
       ]
     },
@@ -280,7 +291,7 @@
       "classes": [
         "feud"
       ],
-      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** and the opponent has -2 **Strength** in this **Front**.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 more **Strength** and the opponent has -2 **Strength** in this **Front**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 1,
@@ -294,11 +305,13 @@
       "rule_blocks": [
         {
           "kind": "effect",
+          "label": "BONUS",
           "text": "Its **Subject** gets +1 **Strength**."
         },
         {
           "kind": "continuous",
-          "text": "While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** and the opponent has -2 **Strength** in this **Front**."
+          "label": "NAMED",
+          "text": "Its **Subject** gets +1 more **Strength**; opponent gets -2 **Strength** in this **Front**."
         }
       ]
     },
@@ -310,7 +323,7 @@
       "classes": [
         "burden"
       ],
-      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** and that **Subject** cannot be chosen by an opponent's **Story**.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 more **Strength** and cannot be chosen by an opponent's **Story**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 1,
@@ -325,11 +338,13 @@
       "rule_blocks": [
         {
           "kind": "effect",
+          "label": "BONUS",
           "text": "Its **Subject** gets +1 **Strength**."
         },
         {
           "kind": "continuous",
-          "text": "While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** and that **Subject** cannot be chosen by an opponent's **Story**."
+          "label": "NAMED",
+          "text": "Its **Subject** gets +1 more **Strength** and cannot be chosen by an opponent's **Story**."
         }
       ]
     },
@@ -341,7 +356,7 @@
       "classes": [
         "vengeance"
       ],
-      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** for each of your cards **discarded** this **Battle**, up to +3.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 **Strength** for each of your cards **discarded** this **Battle**, up to +3.",
       "rules": {
         "strength_bonus": 1,
         "discard_strength_bonus": {
@@ -356,11 +371,13 @@
       "rule_blocks": [
         {
           "kind": "effect",
+          "label": "BONUS",
           "text": "Its **Subject** gets +1 **Strength**."
         },
         {
           "kind": "continuous",
-          "text": "While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** for each of your cards **discarded** this **Battle**, up to +3."
+          "label": "NAMED",
+          "text": "Its **Subject** gets +1 **Strength** per card you **discarded** this **Battle** (max +3)."
         }
       ]
     },
@@ -387,7 +404,8 @@
       "rule_blocks": [
         {
           "kind": "continuous",
-          "text": "While *Namar* is attached to a **Subject** in the **Frontline**, that **Subject** gets +2 **Strength**."
+          "label": "WHILE",
+          "text": "Attached in the **Frontline**: its **Subject** gets +2 **Strength**."
         }
       ]
     },
@@ -411,7 +429,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "When you play *Iria*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position."
+          "label": "WHEN",
+          "text": "You play *Iria*: you may **move** this **Subject** and all attached cards to an **adjacent** empty position."
         }
       ]
     },
@@ -440,7 +459,7 @@
         "god",
         "oracle"
       ],
-      "text": "When you play *Teyra*, reveal the enemy **Veiled Story** in this **Front**, if there is one.",
+      "text": "When you play *Teyra*, reveal the opponent's **Veiled Story** in this **Front**, if there is one.",
       "rules": {
         "on_name_attached": "reveal_enemy_scheme"
       },
@@ -450,7 +469,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "When you play *Teyra*, reveal the enemy **Veiled Story** in this **Front**, if there is one."
+          "label": "WHEN",
+          "text": "You play *Teyra*: reveal the opponent's **Veiled Story** in this **Front**, if any."
         }
       ]
     },
@@ -475,15 +495,13 @@
       "rule_blocks": [
         {
           "kind": "effect",
-          "text": "Choose an opponent's **Subject**."
+          "label": "TARGET",
+          "text": "An opponent's **Subject**."
         },
         {
           "kind": "effect",
-          "text": "If it has a **Bond**, **discard** that **Bond**."
-        },
-        {
-          "kind": "effect",
-          "text": "Otherwise, that **Subject** gets -2 **Strength** for this **Battle**."
+          "label": "EFFECT",
+          "text": "If it has a **Bond**, **discard** it. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**."
         }
       ]
     },
@@ -508,15 +526,13 @@
       "rule_blocks": [
         {
           "kind": "effect",
-          "text": "Choose an opponent's **Subject**."
+          "label": "TARGET",
+          "text": "An opponent's **Subject**."
         },
         {
           "kind": "effect",
-          "text": "If it has a **Name**, **return** that **Name** to its owner's hand."
-        },
-        {
-          "kind": "effect",
-          "text": "Otherwise, that **Subject** gets -2 **Strength** for this **Battle**."
+          "label": "EFFECT",
+          "text": "If it has a **Name**, **return** it to its owner's hand. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**."
         }
       ]
     },
@@ -531,7 +547,7 @@
       ],
       "story_form": "saga",
       "veiled": false,
-      "text": "**Move** one of your **Subjects**, together with all cards attached to it, to any legal empty position on your side.",
+      "text": "**Move** one of your **Subjects**, together with all attached cards, to any legal empty position on your side.",
       "rules": {
         "effect": "move_subject"
       },
@@ -541,7 +557,8 @@
       "rule_blocks": [
         {
           "kind": "effect",
-          "text": "**Move** one of your **Subjects**, together with all cards attached to it, to any legal empty position on your side."
+          "label": "MOVE",
+          "text": "One of your **Subjects** and all attached cards to any legal empty position on your side."
         }
       ]
     },
@@ -556,7 +573,7 @@
       ],
       "story_form": "omen",
       "veiled": true,
-      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Subject** here, reveal this. That **Subject** gets -3 **Strength** for this **Battle**.",
+      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. When your opponent plays a **Subject** here, reveal this. That **Subject** gets -3 **Strength** for this **Battle**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_subject",
@@ -571,18 +588,17 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Veiled.*"
-        },
-        {
-          "kind": "continuous",
-          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+          "label": "VEILED",
+          "text": "Face-down: +1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "text": "When your opponent plays a **Subject** here, reveal this."
+          "label": "REVEAL",
+          "text": "Opponent plays a **Subject** here."
         },
         {
           "kind": "effect",
+          "label": "EFFECT",
           "text": "That **Subject** gets -3 **Strength** for this **Battle**."
         }
       ]
@@ -598,7 +614,7 @@
       ],
       "story_form": "warning",
       "veiled": true,
-      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Bond** here, reveal this. **Discard** that **Bond**.",
+      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. When your opponent plays a **Bond** here, reveal this. **Discard** that **Bond**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_link",
@@ -612,18 +628,17 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Veiled.*"
-        },
-        {
-          "kind": "continuous",
-          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+          "label": "VEILED",
+          "text": "Face-down: +1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "text": "When your opponent plays a **Bond** here, reveal this."
+          "label": "REVEAL",
+          "text": "Opponent plays a **Bond** here."
         },
         {
           "kind": "effect",
+          "label": "EFFECT",
           "text": "**Discard** that **Bond**."
         }
       ]
@@ -639,7 +654,7 @@
       ],
       "story_form": "prophecy",
       "veiled": true,
-      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. When your opponent **Passes**, if you control a **Subject** here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
+      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. When your opponent **Passes**, if you control a **Subject** here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
       "rules": {
         "scheme": {
           "trigger": "opponent_passes",
@@ -655,19 +670,18 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Veiled.*"
-        },
-        {
-          "kind": "continuous",
-          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+          "label": "VEILED",
+          "text": "Face-down: +1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "text": "When your opponent **Passes**, if you control a **Subject** here, reveal this."
+          "label": "REVEAL",
+          "text": "Opponent **Passes** while you control a **Subject** here."
         },
         {
           "kind": "effect",
-          "text": "Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead."
+          "label": "EFFECT",
+          "text": "Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does."
         }
       ]
     },
@@ -682,7 +696,7 @@
       ],
       "story_form": "conspiracy",
       "veiled": true,
-      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. After an opponent's **Story** targets a card you control here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
+      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. After an opponent's **Story** targets a card you control here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plot_targets_your_card",
@@ -698,19 +712,18 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Veiled.*"
-        },
-        {
-          "kind": "continuous",
-          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+          "label": "VEILED",
+          "text": "Face-down: +1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "text": "After an opponent's **Story** targets a card you control here, reveal this."
+          "label": "REVEAL",
+          "text": "After an opponent's **Story** targets a card you control here."
         },
         {
           "kind": "effect",
-          "text": "Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead."
+          "label": "EFFECT",
+          "text": "Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does."
         }
       ]
     },
@@ -749,11 +762,13 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "Reveal when either player plays an *Archer* or *Ship*."
+          "label": "REVEAL",
+          "text": "Either player plays an *Archer* or *Ship*."
         },
         {
           "kind": "continuous",
-          "text": "While revealed, *Ships* get +2 **Strength** and *Archers* get -2 **Strength**."
+          "label": "WHILE REVEALED",
+          "text": "*Ships* get +2 **Strength**; *Archers* get -2 **Strength**."
         }
       ]
     },
@@ -788,11 +803,13 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "Reveal when either player **Passes**."
+          "label": "REVEAL",
+          "text": "Either player **Passes**."
         },
         {
           "kind": "continuous",
-          "text": "While revealed, *Ships* get +1 **Strength** and **Line Defense** provides no bonus."
+          "label": "WHILE REVEALED",
+          "text": "*Ships* get +1 **Strength**; **Line Defense** gives no bonus."
         }
       ]
     },
@@ -830,11 +847,13 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "Reveal when either player plays a **Subject** in the **Rear**."
+          "label": "REVEAL",
+          "text": "Either player plays a **Subject** in the **Rear**."
         },
         {
           "kind": "continuous",
-          "text": "While revealed, **Rear Subjects** get +1 **Strength** and **Frontline Subjects** get -1 **Strength**."
+          "label": "WHILE REVEALED",
+          "text": "**Rear Subjects** get +1 **Strength**; **Frontline Subjects** get -1 **Strength**."
         }
       ]
     },
@@ -875,15 +894,18 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "Reveal when your opponent plays a **Subject** in the **Frontline**."
+          "label": "REVEAL",
+          "text": "Opponent plays a **Subject** in the **Frontline**."
         },
         {
           "kind": "effect",
+          "label": "EFFECT",
           "text": "That **Subject** gets -2 **Strength** for this **Battle**."
         },
         {
           "kind": "continuous",
-          "text": "While revealed, your **Frontline Subjects** get -1 **Strength**."
+          "label": "WHILE REVEALED",
+          "text": "Your **Frontline Subjects** get -1 **Strength**."
         }
       ]
     },
@@ -918,19 +940,18 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "Reveal when your opponent plays an immediate **Story**."
+          "label": "REVEAL",
+          "text": "Opponent plays an immediate **Story**."
         },
         {
           "kind": "effect",
+          "label": "EFFECT",
           "text": "Cancel that **Story**."
         },
         {
           "kind": "continuous",
-          "text": "For the rest of this **Battle**, you cannot play immediate **Stories**."
-        },
-        {
-          "kind": "continuous",
-          "text": "*Veiled* **Stories** are unaffected."
+          "label": "WHILE REVEALED",
+          "text": "You cannot play immediate **Stories** this **Battle**. **Veiled Stories** are unaffected."
         }
       ]
     },
@@ -963,11 +984,13 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "Reveal when your opponent plays a **Name**."
+          "label": "REVEAL",
+          "text": "Opponent plays a **Name**."
         },
         {
           "kind": "continuous",
-          "text": "While revealed, every **Subject** with a **Name** gets -2 **Strength**, and every **Subject** without a **Name** gets +1 **Strength**."
+          "label": "WHILE REVEALED",
+          "text": "**Subjects** with a **Name** get -2 **Strength**; those without a **Name** get +1."
         }
       ]
     },
@@ -995,7 +1018,8 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Frontline only.*"
+          "label": "PLAY",
+          "text": "**Frontline** only."
         }
       ]
     },
@@ -1023,7 +1047,8 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Rear only.*"
+          "label": "PLAY",
+          "text": "**Rear** only."
         }
       ]
     },
@@ -1051,7 +1076,8 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Rear only.*"
+          "label": "PLAY",
+          "text": "**Rear** only."
         }
       ]
     },
@@ -1088,11 +1114,13 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Rear only.*"
+          "label": "PLAY",
+          "text": "**Rear** only."
         },
         {
           "kind": "continuous",
-          "text": "While your **discard pile** contains at least 5 cards, this **Subject** gets +1 **Strength**."
+          "label": "WHILE",
+          "text": "You have 5+ cards in your **discard pile**: this **Subject** gets +1 **Strength**."
         }
       ]
     },
@@ -1125,15 +1153,18 @@
       "rule_blocks": [
         {
           "kind": "property",
+          "label": "TRAIT",
           "text": "*Hero.*"
         },
         {
           "kind": "property",
-          "text": "*Rear only.*"
+          "label": "PLAY",
+          "text": "**Rear** only."
         },
         {
           "kind": "continuous",
-          "text": "While this **Subject** is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**."
+          "label": "WHILE",
+          "text": "In the **Rear**: **adjacent Subjects** you control get +1 **Strength**."
         }
       ]
     },
@@ -1166,15 +1197,18 @@
       "rule_blocks": [
         {
           "kind": "property",
+          "label": "TRAIT",
           "text": "*Hero.*"
         },
         {
           "kind": "property",
-          "text": "*Rear only.*"
+          "label": "PLAY",
+          "text": "**Rear** only."
         },
         {
           "kind": "continuous",
-          "text": "While this **Subject** is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**."
+          "label": "WHILE",
+          "text": "In the **Rear**: **adjacent Subjects** you control get +1 **Strength**."
         }
       ]
     },
@@ -1202,11 +1236,13 @@
       "rule_blocks": [
         {
           "kind": "effect",
+          "label": "BONUS",
           "text": "Its **Subject** gets +1 **Strength**."
         },
         {
           "kind": "continuous",
-          "text": "While this **Bond** has a **Name**, that **Subject** cannot be chosen by an opponent's **Story**, and the opponent has -1 **Strength** in this **Front**."
+          "label": "NAMED",
+          "text": "Its **Subject** cannot be chosen by an opponent's **Story**; opponent gets -1 **Strength** in this **Front**."
         }
       ]
     },
@@ -1232,11 +1268,13 @@
       "rule_blocks": [
         {
           "kind": "effect",
+          "label": "BONUS",
           "text": "Its **Subject** gets +2 **Strength**."
         },
         {
           "kind": "continuous",
-          "text": "While this **Bond** has a **Name**, the opponent has -1 **Strength** in this **Front**."
+          "label": "NAMED",
+          "text": "Opponent gets -1 **Strength** in this **Front**."
         }
       ]
     },
@@ -1248,7 +1286,7 @@
       "classes": [
         "memory"
       ],
-      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength**, then +1 more if you have **discarded** a card this **Battle**.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 more **Strength**, plus +1 more if you have **discarded** a card this **Battle**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 1,
@@ -1265,11 +1303,13 @@
       "rule_blocks": [
         {
           "kind": "effect",
+          "label": "BONUS",
           "text": "Its **Subject** gets +1 **Strength**."
         },
         {
           "kind": "continuous",
-          "text": "While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength**, then +1 more if you have **discarded** a card this **Battle**."
+          "label": "NAMED",
+          "text": "Its **Subject** gets +1 more **Strength**; if you **discarded** a card this **Battle**, +1 more."
         }
       ]
     },
@@ -1293,6 +1333,7 @@
       "rule_blocks": [
         {
           "kind": "effect",
+          "label": "BONUS",
           "text": "Its **Subject** gets +2 **Strength**."
         }
       ]
@@ -1321,7 +1362,8 @@
       "rule_blocks": [
         {
           "kind": "continuous",
-          "text": "While *Maela* is attached to a **Subject** in the **Rear**, that **Subject** gets +3 **Strength**."
+          "label": "WHILE",
+          "text": "Attached in the **Rear**: its **Subject** gets +3 **Strength**."
         }
       ]
     },
@@ -1335,7 +1377,7 @@
         "human",
         "seer"
       ],
-      "text": "When you play *Vara*, reveal the enemy **Veiled Story** in this **Front**, if there is one. While *Vara* is in the **Rear**, its **Subject** gets +2 **Strength**.",
+      "text": "When you play *Vara*, reveal the opponent's **Veiled Story** in this **Front**, if there is one. While *Vara* is attached to a **Subject** in the **Rear**, that **Subject** gets +2 **Strength**.",
       "rules": {
         "on_name_attached": "reveal_enemy_scheme",
         "rank_strength_bonus": {
@@ -1350,11 +1392,13 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "When you play *Vara*, reveal the enemy **Veiled Story** in this **Front**, if there is one."
+          "label": "WHEN",
+          "text": "You play *Vara*: reveal the opponent's **Veiled Story** in this **Front**, if any."
         },
         {
           "kind": "continuous",
-          "text": "While *Vara* is in the **Rear**, its **Subject** gets +2 **Strength**."
+          "label": "WHILE",
+          "text": "Attached in the **Rear**: its **Subject** gets +2 **Strength**."
         }
       ]
     },
@@ -1368,7 +1412,7 @@
         "human",
         "wanderer"
       ],
-      "text": "When you play *Elian*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position. While *Elian* is in the **Frontline**, its **Subject** gets +2 **Strength**.",
+      "text": "When you play *Elian*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position. While *Elian* is attached to a **Subject** in the **Frontline**, that **Subject** gets +2 **Strength**.",
       "rules": {
         "on_name_attached": "move_adjacent_optional",
         "rank_strength_bonus": {
@@ -1383,11 +1427,13 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "When you play *Elian*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position."
+          "label": "WHEN",
+          "text": "You play *Elian*: you may **move** this **Subject** and all attached cards to an **adjacent** empty position."
         },
         {
           "kind": "continuous",
-          "text": "While *Elian* is in the **Frontline**, its **Subject** gets +2 **Strength**."
+          "label": "WHILE",
+          "text": "Attached in the **Frontline**: its **Subject** gets +2 **Strength**."
         }
       ]
     },
@@ -1402,7 +1448,7 @@
       ],
       "story_form": "omen",
       "veiled": true,
-      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Subject** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
+      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. When your opponent plays a **Subject** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_subject",
@@ -1420,19 +1466,18 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Veiled.*"
-        },
-        {
-          "kind": "continuous",
-          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+          "label": "VEILED",
+          "text": "Face-down: +1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "text": "When your opponent plays a **Subject** here, reveal this."
+          "label": "REVEAL",
+          "text": "Opponent plays a **Subject** here."
         },
         {
           "kind": "effect",
-          "text": "Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead."
+          "label": "EFFECT",
+          "text": "Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
         }
       ]
     },
@@ -1447,7 +1492,7 @@
       ],
       "story_form": "warning",
       "veiled": true,
-      "text": "*Veiled.* While this is face-down, you have +1 **Strength** in this **Front**. When your opponent plays a **Bond** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
+      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. When your opponent plays a **Bond** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_link",
@@ -1465,19 +1510,18 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Veiled.*"
-        },
-        {
-          "kind": "continuous",
-          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+          "label": "VEILED",
+          "text": "Face-down: +1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "text": "When your opponent plays a **Bond** here, reveal this."
+          "label": "REVEAL",
+          "text": "Opponent plays a **Bond** here."
         },
         {
           "kind": "effect",
-          "text": "Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead."
+          "label": "EFFECT",
+          "text": "Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
         }
       ]
     },
@@ -1492,7 +1536,7 @@
       ],
       "story_form": "prophecy",
       "veiled": true,
-      "text": "*Veiled.* While this is face-down, you have +2 **Strength** in this **Front**. When your opponent **Passes**, if you control a **Subject** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
+      "text": "*Veiled.* While face-down, this gives you +2 **Strength** in this **Front**. When your opponent **Passes**, if you control a **Subject** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
       "rules": {
         "scheme": {
           "trigger": "opponent_passes",
@@ -1510,19 +1554,18 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "text": "*Veiled.*"
-        },
-        {
-          "kind": "continuous",
-          "text": "While this is face-down, you have +2 **Strength** in this **Front**."
+          "label": "VEILED",
+          "text": "Face-down: +2 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "text": "When your opponent **Passes**, if you control a **Subject** here, reveal this."
+          "label": "REVEAL",
+          "text": "Opponent **Passes** while you control a **Subject** here."
         },
         {
           "kind": "effect",
-          "text": "Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead."
+          "label": "EFFECT",
+          "text": "Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
         }
       ]
     },
@@ -1562,11 +1605,13 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "Reveal when either player plays an *Archer* or *Ship*."
+          "label": "REVEAL",
+          "text": "Either player plays an *Archer* or *Ship*."
         },
         {
           "kind": "continuous",
-          "text": "While revealed, *Archers* get +2 **Strength** and *Ships* get -2 **Strength**."
+          "label": "WHILE REVEALED",
+          "text": "*Archers* get +2 **Strength**; *Ships* get -2 **Strength**."
         }
       ]
     },
@@ -1600,11 +1645,13 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "text": "Reveal when either player plays a **Name**."
+          "label": "REVEAL",
+          "text": "Either player plays a **Name**."
         },
         {
           "kind": "continuous",
-          "text": "While revealed, **Subjects** with a **Name** get +1 **Strength** and **Subjects** without a **Name** get -1 **Strength**."
+          "label": "WHILE REVEALED",
+          "text": "**Subjects** with a **Name** get +1 **Strength**; those without a **Name** get -1."
         }
       ]
     }
