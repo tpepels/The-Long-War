@@ -34,6 +34,12 @@ jobs:
           --agent-a heuristic
           --agent-b heuristic
           --output artifacts/heuristic-selfplay.json
+      - name: Build human-playability statistics
+        run: >
+          python tools/playability_report.py
+          artifacts/heuristic-selfplay.json
+          --json-output artifacts/playability-report.json
+          --markdown-output artifacts/playability-report.md
       - name: Build balance health report
         run: python tools/analyze_telemetry.py --simulation artifacts/heuristic-selfplay.json
       - name: Heuristic vs random
