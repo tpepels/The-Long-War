@@ -38,6 +38,8 @@ def main() -> None:
 
     original_legal = engine.legal_actions
     original_apply = engine.apply
+    original_front_strength = engine.front_strength
+    original_position_strength = engine.position_strength
     original_clone = GameState.clone
     original_info = mccfr_module.information_set_key
     original_leaf = trainer._leaf_value
@@ -54,6 +56,8 @@ def main() -> None:
 
     engine.legal_actions = timed("legal_actions", original_legal)
     engine.apply = timed("apply", original_apply)
+    engine.front_strength = timed("front_strength", original_front_strength)
+    engine.position_strength = timed("position_strength", original_position_strength)
     GameState.clone = timed("clone", original_clone)
     mccfr_module.information_set_key = timed("information_set_key", original_info)
     trainer._leaf_value = timed("leaf_value", original_leaf)
@@ -64,6 +68,8 @@ def main() -> None:
     finally:
         engine.legal_actions = original_legal
         engine.apply = original_apply
+        engine.front_strength = original_front_strength
+        engine.position_strength = original_position_strength
         GameState.clone = original_clone
         mccfr_module.information_set_key = original_info
         trainer._leaf_value = original_leaf
