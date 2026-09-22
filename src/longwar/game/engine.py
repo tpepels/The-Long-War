@@ -408,6 +408,189 @@ class GameEngine:
         )
         return max(0, value)
 
+    def front_strength_matrix(
+        self,
+        state: GameState,
+    ) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
+        """Compute all six Front totals in one pass.
+
+        Search evaluates complete battlefield positions far more often than it
+        asks for one isolated position. Hoisting revealed-Stratagem decoding
+        out of the twelve position calculations avoids repeating the same
+        dynamic-rule work at every MCCFR leaf.
+        """
+        continuous_rules: list[tuple[int, dict[str, Any]]] = []
+        line_defense_disabled = False
+        for controller in range(2):
+            stratagem = state.stratagem(controller)
+            if stratagem is None or not stratagem.revealed:
+                continue
+            stratagem_rules = (
+                self.cards[stratagem.card_id]
+                .get("rules", {})
+                .get("stratagem", {})
+            )
+            continuous = stratagem_rules.get("continuous", {})
+            continuous_rules.append((controller, continuous))
+            if continuous.get("disable_line_defense"):
+                line_defense_disabled = True
+
+        totals = [[0, 0, 0], [0, 0, 0]]
+        for player in range(2):
+            for front in FRONTS:
+                front_position, rear_position = POSITIONS_BY_FRONT[int(front)]
+                value = self._position_strength_search(
+                    state,
+                    player,
+                    front_position,
+                    continuous_rules,
+                    line_defense_disabled,
+                )
+                value += self._position_strength_search(
+                    state,
+                    player,
+                    rear_position,
+                    continuous_rules,
+                    line_defense_disabled,
+                )
+
+                scheme = state.scheme(player, front)
+                if scheme is not None and not scheme.revealed:
+                    scheme_rules = (
+                        self.cards[scheme.card_id]
+                        .get("rules", {})
+                        .get("scheme", {})
+                    )
+                    value += int(scheme_rules.get("face_down_front_bonus", 0))
+
+                opponent = 1 - player
+                for enemy_position in POSITIONS_BY_FRONT[int(front)]:
+                    enemy_slot = state.slot(opponent, enemy_position)
+                    if not enemy_slot.complete:
+                        continue
+                    enemy_link = self.cards[enemy_slot.link]
+                    value += int(
+                        enemy_link.get("rules", {}).get(
+                            "opposing_front_modifier",
+                            0,
+                        )
+                    )
+
+                totals[player][int(front)] = value
+
+        return (
+            (totals[0][0], totals[0][1], totals[0][2]),
+            (totals[1][0], totals[1][1], totals[1][2]),
+        )
+
+    def front_margins(
+        self,
+        state: GameState,
+        player: int,
+    ) -> tuple[int, int, int]:
+        totals = self.front_strength_matrix(state)
+        opponent = 1 - player
+        return (
+            totals[player][0] - totals[opponent][0],
+            totals[player][1] - totals[opponent][1],
+            totals[player][2] - totals[opponent][2],
+        )
+
+    def _position_strength_search(
+        self,
+        state: GameState,
+        player: int,
+        position: Position,
+        continuous_rules: list[tuple[int, dict[str, Any]]],
+        line_defense_disabled: bool,
+    ) -> int:
+        slot = state.slot(player, position)
+        if slot.subject is None:
+            return 0
+
+        subject = self.cards[slot.subject]
+        value = int(subject["strength"]) + slot.temporary_strength
+
+        if position.rank is Rank.FRONT and not line_defense_disabled:
+            value += LINE_DEFENSE_BONUS
+
+        value += self._role_strength_bonus(
+            state,
+            player,
+            position,
+            subject,
+        )
+        value += self._support_strength_bonus(
+            state,
+            player,
+            position,
+        )
+        value += self._adjacent_aura_bonus(
+            state,
+            player,
+            position,
+        )
+
+        for modifier in subject.get("rules", {}).get("strength_modifiers", []):
+            if self._condition_matches(
+                state,
+                player,
+                position,
+                modifier.get("when", {}),
+            ):
+                value += int(modifier["amount"])
+
+        if slot.link is not None:
+            link = self.cards[slot.link]
+            link_rules = link.get("rules", {})
+            value += int(link_rules.get("strength_bonus", 0))
+
+            if slot.name is not None:
+                name = self.cards[slot.name]
+                name_rules = name.get("rules", {})
+                value += int(link_rules.get("named_strength_bonus", 0))
+
+                discard_bonus = link_rules.get("discard_strength_bonus")
+                if discard_bonus:
+                    per_card = int(discard_bonus.get("per_card", 1))
+                    maximum = int(discard_bonus.get("maximum", 0))
+                    value += min(
+                        state.discarded_this_battle[player] * per_card,
+                        maximum,
+                    )
+
+                value += int(name["strength"])
+                rank_bonus = name_rules.get("rank_strength_bonus")
+                if (
+                    rank_bonus
+                    and position.rank.value == rank_bonus.get("rank")
+                ):
+                    value += int(rank_bonus.get("amount", 0))
+
+        role = subject.get("role")
+        rank = position.rank.value
+        named = slot.name is not None
+        for controller, continuous in continuous_rules:
+            value += int(
+                continuous.get("role_strength_modifiers", {}).get(role, 0)
+            )
+            value += int(
+                continuous.get("rank_strength_modifiers", {}).get(rank, 0)
+            )
+            if controller == player:
+                value += int(
+                    continuous.get(
+                        "controller_rank_strength_modifiers",
+                        {},
+                    ).get(rank, 0)
+                )
+            if named:
+                value += int(continuous.get("named_subject_modifier", 0))
+            else:
+                value += int(continuous.get("unnamed_subject_modifier", 0))
+
+        return max(0, value)
+
     def front_strength(self, state: GameState, player: int, front: Front) -> int:
         front_position, rear_position = POSITIONS_BY_FRONT[int(front)]
         value = (
