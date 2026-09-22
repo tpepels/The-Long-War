@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_card_file_is_valid() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    assert len(data["cards"]) == 30
+    assert len(data["cards"]) == 48
 
 
 def test_every_card_has_world_classifications() -> None:
@@ -55,11 +55,11 @@ def test_stories_have_named_forms_and_veiled_state() -> None:
     assert all(isinstance(card["veiled"], bool) for card in stories)
 
 
-def test_initial_stratagem_cycle_is_small_unique_and_rule_backed() -> None:
+def test_stratagem_pool_is_unique_and_rule_backed() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     stratagems = cards_by_type(data, "stratagem")
 
-    assert len(stratagems) == 6
+    assert len(stratagems) == 8
     assert all(card["unique"] for card in stratagems)
     assert all(
         card.get("rules", {}).get("stratagem", {}).get("trigger", {}).get("event")
@@ -72,6 +72,8 @@ def test_initial_stratagem_cycle_is_small_unique_and_rule_backed() -> None:
         "the-bronze-teeth",
         "the-false-muster",
         "the-wooden-gift",
+        "the-broken-mast",
+        "the-quiet-field",
     } == {card["id"] for card in stratagems}
 
 
@@ -85,9 +87,25 @@ def test_reference_deck_has_exactly_one_hero() -> None:
     heroes = [card_id for card_id in deck if cards[card_id].get("hero", False)]
     assert len(deck) == 30
     assert heroes == ["avaros-the-bronze-king"]
-    assert set(deck) == set(cards)
+    assert set(deck) <= set(cards)
     assert len(set(deck)) == 30
 
+
+
+
+def test_expanded_pool_offers_three_hero_choices() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    heroes = [card for card in data["cards"] if card.get("hero", False)]
+    assert {card["id"] for card in heroes} == {
+        "avaros-the-bronze-king",
+        "mara-queen-of-cinders",
+        "sera-mother-of-white-hands",
+    }
+    assert {card["role"] for card in heroes} == {
+        "swordsman",
+        "archer",
+        "healer",
+    }
 
 def test_player_facing_card_text_avoids_old_technical_terms() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
