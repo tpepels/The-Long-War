@@ -1,6 +1,7 @@
 # cython: language_level=3, boundscheck=False, wraparound=False, initializedcheck=False, cdivision=True
 from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, int32_t, uint64_t
 from libc.string cimport memcpy, memset
+from libc.stdlib cimport malloc, free
 from libc.math cimport tanh
 from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
@@ -1282,20 +1283,56 @@ cdef class FastEngine:
 
 
 cdef class FastCFRNode:
-    cdef uint64_t action_codes[MAX_ACTIONS]
-    cdef double regrets[MAX_ACTIONS]
-    cdef double strategy_sums[MAX_ACTIONS]
+    cdef void* action_storage
+    cdef uint64_t* action_codes
+    cdef double* regrets
+    cdef double* strategy_sums
     cdef int action_count
     cdef public long visits
     cdef public long average_visits
 
     def __cinit__(self):
-        memset(self.action_codes, 0, sizeof(self.action_codes))
-        memset(self.regrets, 0, sizeof(self.regrets))
-        memset(self.strategy_sums, 0, sizeof(self.strategy_sums))
+        self.action_storage = NULL
+        self.action_codes = NULL
+        self.regrets = NULL
+        self.strategy_sums = NULL
         self.action_count = 0
         self.visits = 0
         self.average_visits = 0
+
+    def __dealloc__(self):
+        if self.action_storage != NULL:
+            free(self.action_storage)
+
+    cdef void initialize_actions(
+        self,
+        uint64_t* actions,
+        int n,
+    ) except *:
+        cdef int i
+        cdef size_t bytes_needed
+
+        if self.action_count != 0:
+            return
+
+        bytes_needed = n * (
+            sizeof(uint64_t)
+            + sizeof(double)
+            + sizeof(double)
+        )
+        self.action_storage = malloc(bytes_needed)
+        if self.action_storage == NULL:
+            raise MemoryError("Unable to allocate fast CFR node actions")
+
+        self.action_codes = <uint64_t*>self.action_storage
+        self.regrets = <double*>(self.action_codes + n)
+        self.strategy_sums = self.regrets + n
+        self.action_count = n
+
+        for i in range(n):
+            self.action_codes[i] = actions[i]
+            self.regrets[i] = 0.0
+            self.strategy_sums[i] = 0.0
 
     cdef void strategy_into(
         self,
@@ -1308,9 +1345,7 @@ cdef class FastCFRNode:
         cdef double value
 
         if self.action_count == 0:
-            self.action_count = n
-            for i in range(n):
-                self.action_codes[i] = actions[i]
+            self.initialize_actions(actions, n)
         elif self.action_count != n:
             raise RuntimeError(
                 f"Action count changed inside information set: "
@@ -1378,6 +1413,14 @@ cdef class FastCFRNode:
                 self.action_codes[i]: self.strategy_sums[i]
                 for i in range(self.action_count)
             }
+
+    property allocated_action_bytes:
+        def __get__(self):
+            return self.action_count * (
+                sizeof(uint64_t)
+                + sizeof(double)
+                + sizeof(double)
+            )
 
     def strategy(self, actions=None):
         cdef list keys
