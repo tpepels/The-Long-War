@@ -1922,7 +1922,7 @@ body.game-body {
   aspect-ratio: auto;
   margin-left: -40px;
   display: grid;
-  grid-template-rows: 24px 42px 18px 54px 120px 24px;
+  grid-template-rows: 22px 54px 16px 42px 124px 24px;
   border: 2px solid #17130e;
   border-radius: 9px;
   background:
@@ -1959,18 +1959,18 @@ body.game-body {
 }
 
 .play-card-meta {
-  height: 24px;
+  height: 22px;
   min-height: 0;
-  padding: 7px 10px 2px;
+  padding: 6px 10px 2px;
   overflow: hidden;
   color: color-mix(in srgb, var(--card-accent) 80%, #1c1914);
 }
 
 .play-card h3 {
-  height: 42px;
+  height: 54px;
   min-height: 0;
   margin: 0;
-  padding: 5px 11px 0;
+  padding: 5px 48px 0 11px;
   overflow: hidden;
   color: #1b1711;
   font: 600 18.5px/.98 Georgia, serif;
@@ -1978,10 +1978,10 @@ body.game-body {
 }
 
 .play-card-properties {
-  height: 18px;
+  height: 16px;
   min-height: 0;
   margin: 0;
-  padding: 3px 11px 0;
+  padding: 2px 11px 0;
   overflow: hidden;
   color: #554b3b;
   font: 700 8px/1.2 system-ui, sans-serif;
@@ -2010,7 +2010,7 @@ body.game-body {
 }
 
 .play-card-rules {
-  height: 120px;
+  height: 124px;
   min-height: 0;
   margin: 0;
   padding: 7px 11px 6px;
@@ -2250,3 +2250,7 @@ body.game-body {
     min-width: max-content;
   }
 }
+
+/* Semantic rule blocks use deliberate line breaks inside the fixed rules zone. */
+.play-card-rules .rule-block + .rule-block { margin-top: 5px; }
+.play-card-rules .rule-property { font-style: italic; }
