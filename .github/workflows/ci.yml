@@ -36,7 +36,7 @@ jobs:
       - name: Native MCCFR accelerator
         run: make check-native-mccfr
       - name: Temporary MCCFR performance diagnostic
-        run: python tools/benchmark_mccfr.py --iterations 6 --depth 2 --compare-python
+        run: python tools/benchmark_mccfr.py --iterations 6 --depth 2 --compare-python --compare-legacy
       - name: Temporary MCCFR algorithm validation
         run: make test-algorithm
       - name: Set per-run seed
