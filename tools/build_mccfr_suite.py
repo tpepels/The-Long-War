@@ -50,6 +50,14 @@ def main() -> None:
             raise SystemExit(f"Stale MCCFR policy for {profile_id}: rerun training for the current ruleset")
         forward = load(ARTIFACTS / f"mccfr-{profile_id}-vs-heuristic.json")
         reverse = load(ARTIFACTS / f"heuristic-vs-mccfr-{profile_id}.json")
+        if (
+            forward.get("game_fingerprint") != game_fingerprint
+            or reverse.get("game_fingerprint") != game_fingerprint
+        ):
+            raise SystemExit(
+                f"Stale MCCFR evaluation for {profile_id}: "
+                "rerun evaluation for the current ruleset"
+            )
 
         forward_games = int(forward.get("games", 0))
         reverse_games = int(reverse.get("games", 0))
