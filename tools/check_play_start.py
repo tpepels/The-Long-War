@@ -168,6 +168,7 @@ def main() -> None:
   }, 40);
 })();
 </script>
+"""
     page = source.replace("</body>", smoke + "\n</body>")
 
     with tempfile.TemporaryDirectory(prefix="longwar-play-smoke-") as tmp:
