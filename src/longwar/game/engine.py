@@ -343,6 +343,7 @@ class GameEngine:
         seed: int = 0,
         first_player: int | None = None,
         mulligan_indices: tuple[tuple[int, ...], tuple[int, ...]] = ((), ()),
+        opening_bonus: bool = True,
     ) -> GameState:
         self.validate_deck(deck_a)
         self.validate_deck(deck_b)
@@ -352,6 +353,7 @@ class GameEngine:
             rng=random.Random(seed),
             first_player=first_player,
             mulligan_indices=mulligan_indices,
+            opening_bonus=opening_bonus,
         )
 
     def _new_game_with_rng(
@@ -362,6 +364,7 @@ class GameEngine:
         rng: random.Random,
         first_player: int | None = None,
         mulligan_indices: tuple[tuple[int, ...], tuple[int, ...]] = ((), ()),
+        opening_bonus: bool = True,
     ) -> GameState:
         """Construct a game from already-validated decks with a reusable RNG."""
         decks = [list(deck_a), list(deck_b)]
@@ -389,8 +392,10 @@ class GameEngine:
             else first_player
         )
         # Acting first exposes the first commitment. Battle I compensates that
-        # information disadvantage with one additional opening card.
-        self._draw(state, state.active_player, 1)
+        # information disadvantage with one additional opening card. Preview
+        # states may opt out because mulligans happen before this card is drawn.
+        if opening_bonus:
+            self._draw(state, state.active_player, 1)
         return state
 
     def _apply_mulligan(
