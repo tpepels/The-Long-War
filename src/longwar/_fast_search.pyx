@@ -586,23 +586,29 @@ cdef class FastEngine:
         cdef int strat = state.stratagem[player]
         return strat >= 0 and state.stratagem_revealed[player] and self.strat_story_lock[strat]
 
-    cdef list legal_actions_fast(self, FastState state):
-        cdef list actions = []
+    cdef int legal_actions_into(
+        self,
+        FastState state,
+        uint64_t* actions,
+    ) except -1:
+        cdef int n = 0
         cdef int player, card, slot, local, front, rank, source, dest, req, opponent, effect
+
         if state.phase == PHASE_COMPLETE:
-            return actions
+            return 0
         if state.phase == PHASE_CHOOSE:
-            actions.append(encode_action(TYPE_CHOOSE, -1, 0, -1, 0))
-            actions.append(encode_action(TYPE_CHOOSE, -1, 1, -1, 0))
-            return actions
+            actions[n] = encode_action(TYPE_CHOOSE, -1, 0, -1, 0); n += 1
+            actions[n] = encode_action(TYPE_CHOOSE, -1, 1, -1, 0); n += 1
+            return n
 
         player = state.active_player
-        actions.append(encode_action(TYPE_PASS, -1, -1, -1, 0))
+        actions[n] = encode_action(TYPE_PASS, -1, -1, -1, 0); n += 1
         opponent = 1 - player
 
         for card in range(self.n_cards):
             if state.hand[player][card] == 0:
                 continue
+
             if self.card_type[card] == CARD_SUBJECT:
                 req = self.placement_rank[card]
                 for local in range(6):
@@ -612,41 +618,44 @@ cdef class FastEngine:
                     rank = local & 1
                     if req >= 0 and req != rank:
                         continue
-                    actions.append(encode_action(TYPE_SUBJECT, card, slot, -1, player))
+                    actions[n] = encode_action(TYPE_SUBJECT, card, slot, -1, player); n += 1
+
             elif self.card_type[card] == CARD_LINK:
                 for local in range(6):
                     slot = player * 6 + local
                     if state.subject[slot] >= 0 and state.link[slot] < 0:
-                        actions.append(encode_action(TYPE_LINK, card, slot, -1, player))
+                        actions[n] = encode_action(TYPE_LINK, card, slot, -1, player); n += 1
+
             elif self.card_type[card] == CARD_NAME:
                 for local in range(6):
                     slot = player * 6 + local
                     if state.subject[slot] < 0 or state.link[slot] < 0 or state.name[slot] >= 0:
                         continue
-                    actions.append(encode_action(TYPE_NAME, card, slot, -1, player))
+                    actions[n] = encode_action(TYPE_NAME, card, slot, -1, player); n += 1
                     if self.name_effect[card] == NAME_MOVE_ADJACENT:
                         front = local >> 1
                         rank = local & 1
                         if front > 0:
                             dest = slot_index(player, front - 1, rank)
                             if state.subject[dest] < 0:
-                                actions.append(encode_action(TYPE_NAME, card, slot, dest, player))
+                                actions[n] = encode_action(TYPE_NAME, card, slot, dest, player); n += 1
                         if front < 2:
                             dest = slot_index(player, front + 1, rank)
                             if state.subject[dest] < 0:
-                                actions.append(encode_action(TYPE_NAME, card, slot, dest, player))
+                                actions[n] = encode_action(TYPE_NAME, card, slot, dest, player); n += 1
+
             elif self.card_type[card] == CARD_PLOT:
                 if self.veiled[card]:
                     for front in range(3):
                         if state.scheme[player * 3 + front] < 0:
-                            actions.append(encode_action(TYPE_SCHEME, card, front, -1, player))
+                            actions[n] = encode_action(TYPE_SCHEME, card, front, -1, player); n += 1
                 elif not self.story_locked(state, player):
                     effect = self.plot_effect[card]
                     if effect == PLOT_DISCREDIT or effect == PLOT_RETURN_NAME:
                         for local in range(6):
                             slot = opponent * 6 + local
                             if state.subject[slot] >= 0 and not self.subject_protected(state, slot):
-                                actions.append(encode_action(TYPE_PLOT, card, slot, -1, opponent))
+                                actions[n] = encode_action(TYPE_PLOT, card, slot, -1, opponent); n += 1
                     elif effect == PLOT_MOVE_SUBJECT:
                         for source in range(player * 6, player * 6 + 6):
                             if state.subject[source] < 0:
@@ -657,16 +666,26 @@ cdef class FastEngine:
                                     continue
                                 if req >= 0 and req != rank_from_slot(dest):
                                     continue
-                                actions.append(encode_action(TYPE_PLOT, card, source, dest, player))
+                                actions[n] = encode_action(TYPE_PLOT, card, source, dest, player); n += 1
                     elif effect == PLOT_NONE:
-                        actions.append(encode_action(TYPE_PLOT, card, -1, -1, player))
+                        actions[n] = encode_action(TYPE_PLOT, card, -1, -1, player); n += 1
+
             elif self.card_type[card] == CARD_STRATAGEM:
                 if not state.stratagem_used[player] and state.stratagem[player] < 0:
-                    actions.append(encode_action(TYPE_STRATAGEM, card, -1, -1, player))
-        return actions
+                    actions[n] = encode_action(TYPE_STRATAGEM, card, -1, -1, player); n += 1
+
+            if n >= MAX_ACTIONS:
+                raise RuntimeError(
+                    f"Fast MCCFR action buffer exceeded: {n} >= {MAX_ACTIONS}"
+                )
+
+        return n
 
     cpdef list legal_actions(self, FastState state):
-        return self.legal_actions_fast(state)
+        cdef uint64_t actions[MAX_ACTIONS]
+        cdef int n = self.legal_actions_into(state, &actions[0])
+        cdef int i
+        return [actions[i] for i in range(n)]
 
     cdef inline void append_discard(self, FastState state, int player, int card, bint battle_count=True) noexcept:
         state.discard[player][state.discard_len[player]] = card
@@ -1263,67 +1282,152 @@ cdef class FastEngine:
 
 
 cdef class FastCFRNode:
-    cdef public object regret_sum
-    cdef public object strategy_sum
+    cdef uint64_t action_codes[MAX_ACTIONS]
+    cdef double regrets[MAX_ACTIONS]
+    cdef double strategy_sums[MAX_ACTIONS]
+    cdef int action_count
     cdef public long visits
     cdef public long average_visits
 
-    def __init__(self):
-        self.regret_sum = {}
-        self.strategy_sum = {}
+    def __cinit__(self):
+        memset(self.action_codes, 0, sizeof(self.action_codes))
+        memset(self.regrets, 0, sizeof(self.regrets))
+        memset(self.strategy_sums, 0, sizeof(self.strategy_sums))
+        self.action_count = 0
         self.visits = 0
         self.average_visits = 0
 
-    cdef dict strategy_fast(self, list actions):
-        cdef dict result = {}
-        cdef uint64_t action
+    cdef void strategy_into(
+        self,
+        uint64_t* actions,
+        int n,
+        double* probabilities,
+    ) except *:
+        cdef int i
         cdef double total = 0.0
         cdef double value
-        cdef int n = len(actions)
-        for action in actions:
-            value = self.regret_sum.get(action, 0.0)
-            if action not in self.regret_sum:
-                self.regret_sum[action] = 0.0
-                self.strategy_sum[action] = 0.0
+
+        if self.action_count == 0:
+            self.action_count = n
+            for i in range(n):
+                self.action_codes[i] = actions[i]
+        elif self.action_count != n:
+            raise RuntimeError(
+                f"Action count changed inside information set: "
+                f"{self.action_count} != {n}"
+            )
+
+        for i in range(n):
+            if self.action_codes[i] != actions[i]:
+                raise RuntimeError(
+                    "Action ordering changed inside information set"
+                )
+            value = self.regrets[i]
             if value > 0.0:
+                probabilities[i] = value
                 total += value
+            else:
+                probabilities[i] = 0.0
+
         if total > 0.0:
-            for action in actions:
-                value = self.regret_sum[action]
-                result[action] = (value if value > 0.0 else 0.0) / total
+            for i in range(n):
+                probabilities[i] /= total
         else:
             value = 1.0 / n
-            for action in actions:
-                result[action] = value
-        return result
+            for i in range(n):
+                probabilities[i] = value
 
-    def strategy(self, actions):
-        return self.strategy_fast(list(actions))
-
-    cdef void accumulate_fast(self, dict strategy, double reach_weight):
-        cdef object action
-        cdef double probability
-        for action, probability in strategy.items():
-            self.strategy_sum[action] = self.strategy_sum.get(action, 0.0) + reach_weight * probability
+    cdef void accumulate_into(
+        self,
+        double* probabilities,
+        int n,
+        double reach_weight,
+    ) noexcept:
+        cdef int i
+        for i in range(n):
+            self.strategy_sums[i] += reach_weight * probabilities[i]
         self.average_visits += 1
 
-    def average_strategy(self, actions=None):
-        cdef list keys = list(self.strategy_sum if actions is None else actions)
+    cdef void update_regrets(
+        self,
+        double* utilities,
+        int n,
+        double node_utility,
+    ) noexcept:
+        cdef int i
+        for i in range(n):
+            self.regrets[i] += utilities[i] - node_utility
+
+    cdef int find_action(self, uint64_t action) noexcept:
+        cdef int i
+        for i in range(self.action_count):
+            if self.action_codes[i] == action:
+                return i
+        return -1
+
+    property regret_sum:
+        def __get__(self):
+            return {
+                self.action_codes[i]: self.regrets[i]
+                for i in range(self.action_count)
+            }
+
+    property strategy_sum:
+        def __get__(self):
+            return {
+                self.action_codes[i]: self.strategy_sums[i]
+                for i in range(self.action_count)
+            }
+
+    def strategy(self, actions=None):
+        cdef list keys
+        cdef int i, ix
         cdef double total = 0.0
         cdef double value
-        cdef object action
         cdef dict result = {}
-        if not keys:
-            return {}
-        for action in keys:
-            value = self.strategy_sum.get(action, 0.0)
-            if value > 0.0:
-                total += value
+
+        keys = (
+            [self.action_codes[i] for i in range(self.action_count)]
+            if actions is None
+            else list(actions)
+        )
+        for key in keys:
+            ix = self.find_action(<uint64_t>key)
+            if ix >= 0 and self.regrets[ix] > 0.0:
+                total += self.regrets[ix]
         if total <= 0.0:
-            return self.strategy_fast(keys)
-        for action in keys:
-            value = self.strategy_sum.get(action, 0.0)
-            result[action] = (value if value > 0.0 else 0.0) / total
+            if not keys:
+                return {}
+            value = 1.0 / len(keys)
+            return {key: value for key in keys}
+        for key in keys:
+            ix = self.find_action(<uint64_t>key)
+            value = self.regrets[ix] if ix >= 0 else 0.0
+            result[key] = (value if value > 0.0 else 0.0) / total
+        return result
+
+    def average_strategy(self, actions=None):
+        cdef list keys
+        cdef int i, ix
+        cdef double total = 0.0
+        cdef double value
+        cdef dict result = {}
+
+        keys = (
+            [self.action_codes[i] for i in range(self.action_count)]
+            if actions is None
+            else list(actions)
+        )
+        for key in keys:
+            ix = self.find_action(<uint64_t>key)
+            if ix >= 0 and self.strategy_sums[ix] > 0.0:
+                total += self.strategy_sums[ix]
+        if total <= 0.0:
+            return self.strategy(keys)
+        for key in keys:
+            ix = self.find_action(<uint64_t>key)
+            value = self.strategy_sums[ix] if ix >= 0 else 0.0
+            result[key] = (value if value > 0.0 else 0.0) / total
         return result
 
 
@@ -1340,22 +1444,19 @@ cdef double _packed_traverse(
     double reach1,
     list scratch,
 ):
-    cdef int actor
-    cdef int child_depth
-    cdef list actions
+    cdef int actor, child_depth, n, i, sampled_index
+    cdef uint64_t actions[MAX_ACTIONS]
+    cdef double probabilities[MAX_ACTIONS]
+    cdef double utilities[MAX_ACTIONS]
     cdef bytes info_key
+    cdef object raw_node
     cdef FastCFRNode node
-    cdef dict strategy
-    cdef uint64_t action
     cdef FastState child
     cdef double probability
     cdef double utility
     cdef double node_utility = 0.0
     cdef double threshold
     cdef double cumulative = 0.0
-    cdef uint64_t sampled_action = 0
-    cdef double sampled_probability = 0.0
-    cdef list utilities
 
     if state.phase == PHASE_COMPLETE:
         return 1.0 if state.winner == traverser else -1.0
@@ -1364,26 +1465,28 @@ cdef double _packed_traverse(
         return tanh(engine.evaluate_fast(state, traverser) / leaf_scale)
 
     actor = state.active_player
-    actions = engine.legal_actions_fast(state)
-    if not actions:
+    n = engine.legal_actions_into(state, &actions[0])
+    if n <= 0:
         raise RuntimeError("Packed non-terminal state has no legal actions")
 
     info_key = engine.information_key_fast(state, actor)
-    node = nodes.get(info_key)
-    if node is None:
+    raw_node = nodes.get(info_key)
+    if raw_node is None:
         node = FastCFRNode()
         nodes[info_key] = node
+    else:
+        node = <FastCFRNode>raw_node
+
     node.visits += 1
-    strategy = node.strategy_fast(actions)
+    node.strategy_into(&actions[0], n, &probabilities[0])
     child_depth = depth + 1
 
     if actor == traverser:
-        utilities = []
-        for action in actions:
-            probability = strategy[action]
-            child = scratch[child_depth]
+        for i in range(n):
+            probability = probabilities[i]
+            child = <FastState>scratch[child_depth]
             child.copy_from_fast(state)
-            engine.apply_fast(child, action)
+            engine.apply_fast(child, actions[i])
             if actor == 0:
                 utility = _packed_traverse(
                     engine, child, traverser, child_depth, max_depth,
@@ -1396,36 +1499,39 @@ cdef double _packed_traverse(
                     nodes, rng, leaf_scale,
                     reach0, reach1 * probability, scratch,
                 )
-            utilities.append(utility)
+            utilities[i] = utility
             node_utility += probability * utility
 
-        for action, utility in zip(actions, utilities):
-            node.regret_sum[action] = node.regret_sum.get(action, 0.0) + utility - node_utility
+        node.update_regrets(&utilities[0], n, node_utility)
         return node_utility
 
-    node.accumulate_fast(strategy, reach0 if actor == 0 else reach1)
+    node.accumulate_into(
+        &probabilities[0],
+        n,
+        reach0 if actor == 0 else reach1,
+    )
     threshold = rng.random()
-    for action in actions:
-        probability = strategy[action]
-        cumulative += probability
-        sampled_action = action
-        sampled_probability = probability
+    sampled_index = n - 1
+    for i in range(n):
+        cumulative += probabilities[i]
         if threshold <= cumulative:
+            sampled_index = i
             break
 
-    child = scratch[child_depth]
+    probability = probabilities[sampled_index]
+    child = <FastState>scratch[child_depth]
     child.copy_from_fast(state)
-    engine.apply_fast(child, sampled_action)
+    engine.apply_fast(child, actions[sampled_index])
     if actor == 0:
         return _packed_traverse(
             engine, child, traverser, child_depth, max_depth,
             nodes, rng, leaf_scale,
-            reach0 * sampled_probability, reach1, scratch,
+            reach0 * probability, reach1, scratch,
         )
     return _packed_traverse(
         engine, child, traverser, child_depth, max_depth,
         nodes, rng, leaf_scale,
-        reach0, reach1 * sampled_probability, scratch,
+        reach0, reach1 * probability, scratch,
     )
 
 
