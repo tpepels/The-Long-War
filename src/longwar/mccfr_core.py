@@ -173,12 +173,14 @@ try:
     from ._mccfr_accel import (
         CFRNode,
         external_sampling_traverse,
+        longwar_external_sampling_traverse,
         sample_distribution,
     )
 except ImportError:
     CFRNode = _PythonCFRNode
     sample_distribution = _python_sample_distribution
     external_sampling_traverse = _python_external_sampling_traverse
+    longwar_external_sampling_traverse = None
     ACCELERATED = False
     BACKEND = "python"
 else:
@@ -191,5 +193,6 @@ __all__ = [
     "BACKEND",
     "CFRNode",
     "external_sampling_traverse",
+    "longwar_external_sampling_traverse",
     "sample_distribution",
 ]
