@@ -79,3 +79,13 @@ def test_start_match_is_covered_by_real_browser_interaction_smoke() -> None:
     assert "legal-target-cue" in play
     assert "check_browser_engine.mjs" in workflow
     assert "check_play_start.py --require-browser" in workflow
+
+
+def test_start_overlay_obeys_hidden_attribute() -> None:
+    css = text("web/play.css")
+    checker = text("tools/check_play_start.py")
+
+    assert ".play-setup[hidden]" in css
+    assert "display: none;" in css[css.index(".play-setup[hidden]"):css.index(".play-setup[hidden]") + 100]
+    assert 'getComputedStyle(setup).display !== "none"' in checker
+    assert "start overlay remains visible after match start" in checker

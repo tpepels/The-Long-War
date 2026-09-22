@@ -142,6 +142,10 @@ body.game-body::before {
 
 /* Match setup ----------------------------------------------------------- */
 
+.play-setup[hidden] {
+  display: none;
+}
+
 .play-setup {
   width: min(900px, calc(100vw - 28px));
   height: min(620px, calc(100% - 24px));
