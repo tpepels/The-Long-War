@@ -181,20 +181,27 @@ def main() -> None:
     play_style = (ROOT / "web" / "play.css").read_text(encoding="utf-8")
     guard = (ROOT / "web" / "card-layout-guard.js").read_text(encoding="utf-8")
 
-    cases = (
-        (
-            "browser",
-            '<section class="layout-test">' +
-            "".join(play_card(card) for card in cards) +
-            "</section>",
-        ),
-        (
-            "print",
-            '<section class="layout-test-print">' +
-            "".join(print_card(card) for card in cards) +
-            "</section>",
-        ),
-    )
+    batch_size = 8
+    cases: list[tuple[str, str]] = []
+    for start in range(0, len(cards), batch_size):
+        batch = cards[start : start + batch_size]
+        number = start // batch_size + 1
+        cases.append(
+            (
+                f"browser-{number}",
+                '<section class="layout-test">' +
+                "".join(play_card(card) for card in batch) +
+                "</section>",
+            )
+        )
+        cases.append(
+            (
+                f"print-{number}",
+                '<section class="layout-test-print">' +
+                "".join(print_card(card) for card in batch) +
+                "</section>",
+            )
+        )
 
     for label, markup in cases:
         document = f"""<!doctype html>
