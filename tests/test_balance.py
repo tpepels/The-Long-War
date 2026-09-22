@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from longwar.balance import build_report, score_static_legend
-from longwar.cards import card_index, load_card_file
+from longwar.cards import card_index, cards_by_type, load_card_file
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -20,4 +20,4 @@ def test_fifty_men_followed_namar_static_strength_before_position_bonus() -> Non
 def test_all_subject_bond_name_combinations_are_analyzed() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     report = build_report(data)
-    assert report["legend_count"] == 8 * 5 * 4
+    assert report["legend_count"] == (\n        len(cards_by_type(data, "subject"))\n        * len(cards_by_type(data, "link"))\n        * len(cards_by_type(data, "name"))\n    )
