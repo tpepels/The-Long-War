@@ -5,7 +5,8 @@ import random
 from pathlib import Path
 
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine, Phase
+from longwar.game import Front, GameEngine, Phase, Position, Rank
+from longwar.game.model import StratagemState
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -46,3 +47,34 @@ def test_batched_front_strength_matches_scalar_engine_across_play() -> None:
             engine.apply(state, action, validate=False)
 
     assert checked >= 120
+
+
+def test_name_option_delta_matches_full_strength_recalculation() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=91, first_player=0)
+    state.stratagems[1] = StratagemState("the-wooden-gift", revealed=True)
+
+    bonds = ["followed", "swore-to", "defied", "carried", "avenged"]
+    names = ["namar", "iria", "oren", "teyra"]
+
+    for rank in (Rank.FRONT, Rank.REAR):
+        position = Position(Front.CENTER, rank)
+        slot = state.slot(0, position)
+        slot.subject = "the-fifty-men"
+        for bond_id in bonds:
+            slot.link = bond_id
+            slot.name = None
+            for discarded in (0, 2, 5):
+                state.discarded_this_battle[0] = discarded
+                before = engine.position_strength(state, 0, position)
+                for name_id in names:
+                    predicted = engine.name_attachment_strength_gain(
+                        state,
+                        0,
+                        position,
+                        name_id,
+                    )
+                    slot.name = name_id
+                    after = engine.position_strength(state, 0, position)
+                    slot.name = None
+                    assert predicted == after - before
