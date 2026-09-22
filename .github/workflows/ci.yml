@@ -43,6 +43,7 @@ jobs:
       - name: Browser JavaScript syntax
         run: |
           node --check web/card-layout-guard.js
+          node --check web/card-rules.js
           node --check web/play.js
           node --check web/play-worker.js
           node --check web/playtest-kit.js
@@ -50,6 +51,8 @@ jobs:
           node --check web/balance.js
       - name: Card layout clipping guard
         run: python tools/check_card_layout.py --require-browser
+      - name: Game viewport layout guard
+        run: python tools/check_game_layout.py --require-browser
       - name: Fast unit tests
         run: make test-fast
       - name: Integration tests

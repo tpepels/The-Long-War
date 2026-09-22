@@ -178,7 +178,7 @@ function playCardMarkup(cardId, options = {}) {
     strength +
     cardVisual(cardId) +
     '<div class="play-card-rules">' +
-      (card.text ? formatGameText(card.text) : '<em>No special rules.</em>') +
+      window.CardRules.markup(card, formatGameText, '<em>No special rules.</em>') +
     '</div>' +
     '<footer>' + footer + '</footer>' +
   '</article>';

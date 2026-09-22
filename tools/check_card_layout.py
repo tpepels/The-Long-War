@@ -19,11 +19,22 @@ def game_text(value: str) -> str:
     return escaped
 
 
+def rule_markup(card: dict, empty: str = "&nbsp;") -> str:
+    blocks = card.get("rule_blocks", [])
+    if not blocks:
+        return f'<div class="rule-block rule-empty">{empty}</div>'
+    return "".join(
+        f'<div class="rule-block rule-{html.escape(block["kind"])}">'
+        f'{game_text(block["text"])}</div>'
+        for block in blocks
+    )
+
+
 def title_case(value: str) -> str:
     return " ".join(part.capitalize() for part in re.split(r"[-_ ]+", value) if part)
 
 
-def properties(card: dict) -> str:
+def properties(card: dict) -> list[str]:
     values: list[str] = []
     if card["type"] == "subject" and card.get("role"):
         values.append(title_case(card["role"]))
@@ -33,7 +44,7 @@ def properties(card: dict) -> str:
         label = title_case(value)
         if label not in values:
             values.append(label)
-    return " · ".join(values)
+    return values
 
 
 def type_label(card: dict) -> str:
@@ -41,22 +52,28 @@ def type_label(card: dict) -> str:
         return "Bond"
     if card["type"] == "plot":
         form = title_case(card.get("story_form", "Story"))
-        return ("Veiled " if card.get("veiled") else "") + form + " Story"
+        return f"{form} · " + ("Veiled Story" if card.get("veiled") else "Story")
+    if card["type"] == "subject" and card.get("hero"):
+        return "Hero · Subject"
     return title_case(card["type"])
 
 
 def classes(card: dict) -> str:
     values = [f"card-{card['type']}"]
     if card.get("veiled"):
-        values.append("card-veiled")
-        values.append("card-scheme")
+        values.extend(["card-veiled", "card-scheme"])
     if card.get("hero"):
         values.append("card-hero")
     return " ".join(values)
 
 
+def property_markup(card: dict, class_name: str) -> str:
+    values = properties(card)
+    content = " · ".join(f"<em>{html.escape(value)}</em>" for value in values) or "&nbsp;"
+    return f'<div class="{class_name}">{content}</div>'
+
+
 def play_card(card: dict) -> str:
-    prop = properties(card) or "&nbsp;"
     strength = (
         f'<span class="play-card-strength">{card["strength"]}</span>'
         if isinstance(card.get("strength"), int)
@@ -66,24 +83,16 @@ def play_card(card: dict) -> str:
         f'<article class="play-card {classes(card)}" data-card-id="{html.escape(card["id"])}">'
         f'<div class="play-card-meta"><span>{html.escape(type_label(card))}</span></div>'
         f'<h3>{html.escape(card["title"])}</h3>'
-        f'<div class="play-card-properties">{html.escape(prop) if prop != "&nbsp;" else prop}</div>'
+        f'{property_markup(card, "play-card-properties")}'
         f'{strength}'
         f'<div class="play-card-art"><span class="play-card-symbol">◆</span><b>LW</b></div>'
-        f'<div class="play-card-rules">{game_text(card.get("text", "")) or "<em>No special rules.</em>"}</div>'
+        f'<div class="play-card-rules">{rule_markup(card, "<em>No special rules.</em>")}</div>'
         f'<footer>SELECT OR DRAG TO PLAY</footer>'
         f'</article>'
     )
 
 
 def print_card(card: dict) -> str:
-    prop = properties(card)
-    property_markup = (
-        '<div class="card-properties">' +
-        " · ".join(f"<em>{html.escape(value.strip())}</em>" for value in prop.split(" · ")) +
-        "</div>"
-        if prop
-        else ""
-    )
     strength = (
         f'<div class="strength">{card["strength"]}</div>'
         if isinstance(card.get("strength"), int)
@@ -92,12 +101,12 @@ def print_card(card: dict) -> str:
     unique = '<span class="unique"><em>Unique</em></span>' if card.get("unique") else ""
     return (
         f'<article class="game-card {classes(card)}" data-card-id="{html.escape(card["id"])}">'
-        f'<header class="card-header"><div>'
-        f'<div class="card-type">{html.escape(type_label(card))}</div>'
-        f'<h2>{html.escape(card["title"])}</h2>{property_markup}'
-        f'</div>{strength}</header>'
-        f'<div class="card-art"><span class="card-art-symbol">◆</span></div>'
-        f'<div class="card-rule"><p>{game_text(card.get("text", "")) or "&nbsp;"}</p></div>'
+        f'<div class="card-meta"><span class="card-type">{html.escape(type_label(card))}</span>{strength}</div>'
+        f'<h2 class="card-title">{html.escape(card["title"])}</h2>'
+        f'{property_markup(card, "card-properties")}'
+        f'<div class="card-art"><span class="card-art-sigil">◆</span>'
+        f'<span class="card-art-name">{html.escape(card["title"])}</span></div>'
+        f'<div class="card-rule">{rule_markup(card)}</div>'
         f'<footer class="card-footer">{unique}<span class="card-id">{html.escape(card["id"])}</span></footer>'
         f'</article>'
     )
@@ -147,10 +156,11 @@ def main() -> None:
 <style>{style}</style>
 <style>{play_style}</style>
 <style>
+  html, body {{ width: auto !important; height: auto !important; min-height: 0 !important; overflow: visible !important; }}
   body {{ padding: 24px; }}
   .layout-test {{ display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }}
   .layout-test .play-card {{ margin-left: 0 !important; transform: none !important; }}
-  .layout-test-print {{ display: grid; grid-template-columns: repeat(4, 68mm); gap: 4mm; }}
+  .layout-test-print {{ display: grid; grid-template-columns: repeat(4, 68mm); gap: 4mm; margin-top: 24px; }}
   #layout-result {{ position: fixed; left: -9999px; }}
 </style>
 </head>
@@ -213,8 +223,8 @@ window.addEventListener("load", () => {{
 
     if 'data-layout-check="pass"' not in result.stdout:
         match = re.search(r'<div id="layout-result">([^<]*)</div>', result.stdout)
-        details = html.unescape(match.group(1)) if match else "unknown overflow"
-        raise SystemExit(f"Card text overflow detected: {details}")
+        details = html.unescape(match.group(1)) if match else "unknown layout failure"
+        raise SystemExit(f"Card layout failure detected: {details}")
 
     print(f"PASS: {len(cards)} browser cards and {len(cards)} print cards fit fixed regions")
 

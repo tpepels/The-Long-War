@@ -25,6 +25,8 @@ STORY_FORMS = {
     "conspiracy",
 }
 
+RULE_BLOCK_KINDS = {"property", "timing", "trigger", "effect", "continuous"}
+
 
 def load_card_file(path: str | Path) -> dict[str, Any]:
     path = Path(path)
@@ -81,6 +83,17 @@ def validate_card_data(data: dict[str, Any]) -> None:
                 raise ValueError(f"{card_id}: every Hero must be Unique")
             if "hero" not in classes:
                 raise ValueError(f"{card_id}: Hero classification is required")
+
+        rule_blocks = card.get("rule_blocks", [])
+        if not isinstance(rule_blocks, list):
+            raise ValueError(f"{card_id}: rule_blocks must be a list")
+        for block in rule_blocks:
+            if not isinstance(block, dict):
+                raise ValueError(f"{card_id}: rule_blocks entries must be objects")
+            if block.get("kind") not in RULE_BLOCK_KINDS:
+                raise ValueError(f"{card_id}: invalid rule block kind {block.get('kind')!r}")
+            if not isinstance(block.get("text"), str) or not block["text"]:
+                raise ValueError(f"{card_id}: rule block text must be non-empty")
 
         if card_type == "subject":
             role = card.get("role")

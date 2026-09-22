@@ -16,7 +16,8 @@
       "rules": {},
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": []
     },
     {
       "id": "seven-black-ships",
@@ -33,7 +34,8 @@
       "rules": {},
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": []
     },
     {
       "id": "those-who-came-back",
@@ -59,7 +61,13 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "text": "While your **discard pile** contains at least 5 cards, this **Subject** gets +1 **Strength**."
+        }
+      ]
     },
     {
       "id": "the-house-at-orra",
@@ -85,7 +93,13 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "text": "While an **adjacent Subject** you control has both a **Bond** and a **Name**, this **Subject** gets +1 **Strength**."
+        }
+      ]
     },
     {
       "id": "the-children-of-the-salt-road",
@@ -106,7 +120,13 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "When you play a **Bond** on this **Subject**, it gets +1 **Strength** for this **Battle**."
+        }
+      ]
     },
     {
       "id": "the-three-brothers-of-avar",
@@ -127,7 +147,13 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Frontline only.*"
+        }
+      ]
     },
     {
       "id": "the-white-hands-of-elara",
@@ -149,7 +175,13 @@
       "balance": {
         "dynamic": true,
         "delayed_utility": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Rear only.*"
+        }
+      ]
     },
     {
       "id": "avaros-the-bronze-king",
@@ -172,7 +204,17 @@
       "balance": {
         "dynamic": true,
         "delayed_utility": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Hero.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Subject** is in the **Frontline**, **adjacent Subjects** you control get +1 **Strength**."
+        }
+      ]
     },
     {
       "id": "followed",
@@ -190,7 +232,17 @@
       "balance": {
         "strength_bonus": 1,
         "named_strength_bonus": 2
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Bond** has a **Name**, its **Subject** gets +2 additional **Strength**."
+        }
+      ]
     },
     {
       "id": "swore-to",
@@ -208,7 +260,17 @@
       "balance": {
         "strength_bonus": 1,
         "named_strength_bonus": 3
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Bond** has a **Name**, its **Subject** gets +3 additional **Strength**."
+        }
+      ]
     },
     {
       "id": "defied",
@@ -228,7 +290,17 @@
         "strength_bonus": 1,
         "named_strength_bonus": 1,
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** and the opponent has -2 **Strength** in this **Front**."
+        }
+      ]
     },
     {
       "id": "carried",
@@ -249,7 +321,17 @@
         "named_strength_bonus": 1,
         "dynamic": true,
         "delayed_utility": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** and that **Subject** cannot be chosen by an opponent's **Story**."
+        }
+      ]
     },
     {
       "id": "avenged",
@@ -270,7 +352,17 @@
       "balance": {
         "strength_bonus": 1,
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength** for each of your cards **discarded** this **Battle**, up to +3."
+        }
+      ]
     },
     {
       "id": "namar",
@@ -291,7 +383,13 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "text": "While *Namar* is attached to a **Subject** in the **Frontline**, that **Subject** gets +2 **Strength**."
+        }
+      ]
     },
     {
       "id": "iria",
@@ -309,7 +407,13 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "When you play *Iria*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position."
+        }
+      ]
     },
     {
       "id": "oren",
@@ -323,7 +427,8 @@
       ],
       "text": "",
       "rules": {},
-      "balance": {}
+      "balance": {},
+      "rule_blocks": []
     },
     {
       "id": "teyra",
@@ -341,7 +446,13 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "When you play *Teyra*, reveal the enemy **Veiled Story** in this **Front**, if there is one."
+        }
+      ]
     },
     {
       "id": "the-story-is-false",
@@ -360,7 +471,21 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Choose an opponent's **Subject**."
+        },
+        {
+          "kind": "effect",
+          "text": "If it has a **Bond**, **discard** that **Bond**."
+        },
+        {
+          "kind": "effect",
+          "text": "Otherwise, that **Subject** gets -2 **Strength** for this **Battle**."
+        }
+      ]
     },
     {
       "id": "he-never-came",
@@ -379,7 +504,21 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Choose an opponent's **Subject**."
+        },
+        {
+          "kind": "effect",
+          "text": "If it has a **Name**, **return** that **Name** to its owner's hand."
+        },
+        {
+          "kind": "effect",
+          "text": "Otherwise, that **Subject** gets -2 **Strength** for this **Battle**."
+        }
+      ]
     },
     {
       "id": "they-chose-another",
@@ -398,7 +537,13 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "**Move** one of your **Subjects**, together with all cards attached to it, to any legal empty position on your side."
+        }
+      ]
     },
     {
       "id": "the-lamps-went-dark",
@@ -422,7 +567,25 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Veiled.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "text": "When your opponent plays a **Subject** here, reveal this."
+        },
+        {
+          "kind": "effect",
+          "text": "That **Subject** gets -3 **Strength** for this **Battle**."
+        }
+      ]
     },
     {
       "id": "the-road-was-cut",
@@ -445,7 +608,25 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Veiled.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "text": "When your opponent plays a **Bond** here, reveal this."
+        },
+        {
+          "kind": "effect",
+          "text": "**Discard** that **Bond**."
+        }
+      ]
     },
     {
       "id": "the-hidden-oars",
@@ -470,7 +651,25 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Veiled.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "text": "When your opponent **Passes**, if you control a **Subject** here, reveal this."
+        },
+        {
+          "kind": "effect",
+          "text": "Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead."
+        }
+      ]
     },
     {
       "id": "the-witness-lied",
@@ -495,7 +694,25 @@
       },
       "balance": {
         "dynamic": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Veiled.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "text": "After an opponent's **Story** targets a card you control here, reveal this."
+        },
+        {
+          "kind": "effect",
+          "text": "Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead."
+        }
+      ]
     },
     {
       "id": "the-storm-broke",
@@ -528,7 +745,17 @@
       "balance": {
         "dynamic": true,
         "delayed_utility": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "Reveal when either player plays an *Archer* or *Ship*."
+        },
+        {
+          "kind": "continuous",
+          "text": "While revealed, *Ships* get +2 **Strength** and *Archers* get -2 **Strength**."
+        }
+      ]
     },
     {
       "id": "the-tide-rose",
@@ -557,7 +784,17 @@
       "balance": {
         "dynamic": true,
         "delayed_utility": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "Reveal when either player **Passes**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While revealed, *Ships* get +1 **Strength** and **Line Defense** provides no bonus."
+        }
+      ]
     },
     {
       "id": "the-ground-gave-way",
@@ -589,7 +826,17 @@
       "balance": {
         "dynamic": true,
         "delayed_utility": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "Reveal when either player plays a **Subject** in the **Rear**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While revealed, **Rear Subjects** get +1 **Strength** and **Frontline Subjects** get -1 **Strength**."
+        }
+      ]
     },
     {
       "id": "the-bronze-teeth",
@@ -624,7 +871,21 @@
       "balance": {
         "dynamic": true,
         "delayed_utility": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "Reveal when your opponent plays a **Subject** in the **Frontline**."
+        },
+        {
+          "kind": "effect",
+          "text": "That **Subject** gets -2 **Strength** for this **Battle**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While revealed, your **Frontline Subjects** get -1 **Strength**."
+        }
+      ]
     },
     {
       "id": "the-false-muster",
@@ -653,7 +914,25 @@
       "balance": {
         "dynamic": true,
         "delayed_utility": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "Reveal when your opponent plays an immediate **Story**."
+        },
+        {
+          "kind": "effect",
+          "text": "Cancel that **Story**."
+        },
+        {
+          "kind": "continuous",
+          "text": "For the rest of this **Battle**, you cannot play immediate **Stories**."
+        },
+        {
+          "kind": "continuous",
+          "text": "*Veiled* **Stories** are unaffected."
+        }
+      ]
     },
     {
       "id": "the-wooden-gift",
@@ -680,7 +959,17 @@
       "balance": {
         "dynamic": true,
         "delayed_utility": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "Reveal when your opponent plays a **Name**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While revealed, every **Subject** with a **Name** gets -2 **Strength**, and every **Subject** without a **Name** gets +1 **Strength**."
+        }
+      ]
     },
     {
       "id": "the-red-shields",
@@ -702,7 +991,13 @@
       "balance": {
         "dynamic": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Frontline only.*"
+        }
+      ]
     },
     {
       "id": "the-crow-archers",
@@ -724,7 +1019,13 @@
       "balance": {
         "dynamic": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Rear only.*"
+        }
+      ]
     },
     {
       "id": "the-house-of-reed",
@@ -746,7 +1047,13 @@
       "balance": {
         "dynamic": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Rear only.*"
+        }
+      ]
     },
     {
       "id": "the-lantern-bearers",
@@ -777,7 +1084,17 @@
         "dynamic": true,
         "delayed_utility": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Rear only.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While your **discard pile** contains at least 5 cards, this **Subject** gets +1 **Strength**."
+        }
+      ]
     },
     {
       "id": "mara-queen-of-cinders",
@@ -804,7 +1121,21 @@
         "dynamic": true,
         "delayed_utility": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Hero.*"
+        },
+        {
+          "kind": "property",
+          "text": "*Rear only.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Subject** is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**."
+        }
+      ]
     },
     {
       "id": "sera-mother-of-white-hands",
@@ -831,7 +1162,21 @@
         "dynamic": true,
         "delayed_utility": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Hero.*"
+        },
+        {
+          "kind": "property",
+          "text": "*Rear only.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Subject** is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**."
+        }
+      ]
     },
     {
       "id": "guarded",
@@ -853,7 +1198,17 @@
         "dynamic": true,
         "delayed_utility": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Bond** has a **Name**, that **Subject** cannot be chosen by an opponent's **Story**, and the opponent has -1 **Strength** in this **Front**."
+        }
+      ]
     },
     {
       "id": "feared",
@@ -873,7 +1228,17 @@
         "strength_bonus": 2,
         "dynamic": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Its **Subject** gets +2 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Bond** has a **Name**, the opponent has -1 **Strength** in this **Front**."
+        }
+      ]
     },
     {
       "id": "remembered",
@@ -896,7 +1261,17 @@
         "strength_bonus": 1,
         "dynamic": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength**, then +1 more if you have **discarded** a card this **Battle**."
+        }
+      ]
     },
     {
       "id": "held-fast",
@@ -914,7 +1289,13 @@
       "balance": {
         "strength_bonus": 2,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "text": "Its **Subject** gets +2 **Strength**."
+        }
+      ]
     },
     {
       "id": "maela",
@@ -936,7 +1317,13 @@
       "balance": {
         "dynamic": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "text": "While *Maela* is attached to a **Subject** in the **Rear**, that **Subject** gets +3 **Strength**."
+        }
+      ]
     },
     {
       "id": "vara",
@@ -959,7 +1346,17 @@
       "balance": {
         "dynamic": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "When you play *Vara*, reveal the enemy **Veiled Story** in this **Front**, if there is one."
+        },
+        {
+          "kind": "continuous",
+          "text": "While *Vara* is in the **Rear**, its **Subject** gets +2 **Strength**."
+        }
+      ]
     },
     {
       "id": "elian",
@@ -982,7 +1379,17 @@
       "balance": {
         "dynamic": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "When you play *Elian*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position."
+        },
+        {
+          "kind": "continuous",
+          "text": "While *Elian* is in the **Frontline**, its **Subject** gets +2 **Strength**."
+        }
+      ]
     },
     {
       "id": "the-crows-returned",
@@ -1009,7 +1416,25 @@
         "dynamic": true,
         "delayed_utility": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Veiled.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "text": "When your opponent plays a **Subject** here, reveal this."
+        },
+        {
+          "kind": "effect",
+          "text": "Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead."
+        }
+      ]
     },
     {
       "id": "the-oath-was-heard",
@@ -1036,7 +1461,25 @@
         "dynamic": true,
         "delayed_utility": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Veiled.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While this is face-down, you have +1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "text": "When your opponent plays a **Bond** here, reveal this."
+        },
+        {
+          "kind": "effect",
+          "text": "Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead."
+        }
+      ]
     },
     {
       "id": "no-fires-burned",
@@ -1063,7 +1506,25 @@
         "dynamic": true,
         "delayed_utility": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "text": "*Veiled.*"
+        },
+        {
+          "kind": "continuous",
+          "text": "While this is face-down, you have +2 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "text": "When your opponent **Passes**, if you control a **Subject** here, reveal this."
+        },
+        {
+          "kind": "effect",
+          "text": "Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead."
+        }
+      ]
     },
     {
       "id": "the-broken-mast",
@@ -1097,7 +1558,17 @@
         "dynamic": true,
         "delayed_utility": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "Reveal when either player plays an *Archer* or *Ship*."
+        },
+        {
+          "kind": "continuous",
+          "text": "While revealed, *Archers* get +2 **Strength** and *Ships* get -2 **Strength**."
+        }
+      ]
     },
     {
       "id": "the-quiet-field",
@@ -1125,7 +1596,17 @@
         "dynamic": true,
         "delayed_utility": true,
         "candidate": true
-      }
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "text": "Reveal when either player plays a **Name**."
+        },
+        {
+          "kind": "continuous",
+          "text": "While revealed, **Subjects** with a **Name** get +1 **Strength** and **Subjects** without a **Name** get -1 **Strength**."
+        }
+      ]
     }
   ]
 }
