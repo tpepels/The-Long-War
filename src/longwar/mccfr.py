@@ -39,7 +39,6 @@ try:
         make_scratch as make_primitive_scratch,
         packed_external_sampling_traverse,
         stable_information_id_from_fast_key,
-        train_primitive_deals,
     )
 except ImportError:
     PrimitiveCFRNode = None
@@ -47,7 +46,6 @@ except ImportError:
     make_primitive_scratch = None
     packed_external_sampling_traverse = None
     stable_information_id_from_fast_key = None
-    train_primitive_deals = None
 
 
 def _counter_view(cards: list[str]) -> list[list[Any]]:
@@ -561,9 +559,6 @@ class MCCFRTrainer:
             )
             else None
         )
-        self._primitive_chance_state = (
-            (seed ^ 0xD1B54A32D192ED03) & ((1 << 64) - 1)
-        ) or 0x9E3779B97F4A7C15
         self._used_primitive_training = False
         self.iterations = 0
         self._leaf_agent = HeuristicAgent(seed=seed, exploration=0.0)
@@ -574,42 +569,37 @@ class MCCFRTrainer:
         if self.deck_a is None or self.deck_b is None:
             raise ValueError("Root-deal training requires both concrete decklists")
 
-        if (
-            self._primitive_engine is not None
-            and train_primitive_deals is not None
-        ):
-            utility0, utility1, chance_state = train_primitive_deals(
-                self._primitive_engine,
+        utility_sum = [0.0, 0.0]
+        for _ in range(iterations):
+            root = self.engine._new_game_with_rng(
                 self.deck_a,
                 self.deck_b,
-                iterations,
-                self.max_depth,
-                self._primitive_nodes,
-                self.rng,
-                leaf_scale=self.leaf_scale,
-                scratch=self._primitive_scratch,
-                chance_state=self._primitive_chance_state,
+                rng=self.chance_rng,
+                first_player=self.chance_rng.randrange(2),
             )
-            self._primitive_chance_state = chance_state
-            utility_sum = [utility0, utility1]
-            self._used_primitive_training = True
-            self.iterations += iterations
-        else:
-            utility_sum = [0.0, 0.0]
-            for _ in range(iterations):
-                root = self.engine._new_game_with_rng(
-                    self.deck_a,
-                    self.deck_b,
-                    rng=self.chance_rng,
-                    first_player=self.chance_rng.randrange(2),
-                )
+            if self._primitive_engine is not None:
+                fast_root = self._primitive_engine.from_game_state(root)
+                for traverser in (0, 1):
+                    utility_sum[traverser] += packed_external_sampling_traverse(
+                        self._primitive_engine,
+                        fast_root,
+                        traverser,
+                        depth=0,
+                        max_depth=self.max_depth,
+                        nodes=self._primitive_nodes,
+                        rng=self.rng,
+                        leaf_scale=self.leaf_scale,
+                        scratch=self._primitive_scratch,
+                    )
+                self._used_primitive_training = True
+            else:
                 for traverser in (0, 1):
                     utility_sum[traverser] += self._traverse(
                         root,
                         traverser,
                         depth=0,
                     )
-                self.iterations += 1
+            self.iterations += 1
 
         return TrainingSummary(
             iterations=self.iterations,
