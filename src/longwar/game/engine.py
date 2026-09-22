@@ -432,6 +432,61 @@ class GameEngine:
         )
         return max(0, value)
 
+    def name_attachment_strength_gain(
+        self,
+        state: GameState,
+        player: int,
+        position: Position,
+        name_id: str,
+    ) -> int:
+        """Strength gain from hypothetically attaching a Name to an open Bond.
+
+        The heuristic asks this question repeatedly. In the normal case the
+        delta can be computed from the Bond, Name and revealed Stratagems
+        without mutating the state or recomputing the complete Subject.
+        """
+        slot = state.slot(player, position)
+        if slot.subject is None or slot.link is None or slot.name is not None:
+            return 0
+
+        before = self.position_strength(state, player, position)
+        link_rules = self.cards[slot.link].get("rules", {})
+        name = self.cards[name_id]
+        name_rules = name.get("rules", {})
+
+        delta = int(link_rules.get("named_strength_bonus", 0))
+        discard_bonus = link_rules.get("discard_strength_bonus")
+        if discard_bonus:
+            delta += min(
+                state.discarded_this_battle[player]
+                * int(discard_bonus.get("per_card", 1)),
+                int(discard_bonus.get("maximum", 0)),
+            )
+
+        delta += int(name["strength"])
+        rank_bonus = name_rules.get("rank_strength_bonus")
+        if rank_bonus and position.rank.value == rank_bonus.get("rank"):
+            delta += int(rank_bonus.get("amount", 0))
+
+        for _, rules in self._revealed_stratagem_rules(state):
+            continuous = rules.get("continuous", {})
+            delta += int(continuous.get("named_subject_modifier", 0))
+            delta -= int(continuous.get("unnamed_subject_modifier", 0))
+
+        # With a positive current Strength, all unchanged terms cancel and
+        # the additive delta is exact unless the hypothetical result would be
+        # clamped at zero.
+        if before > 0 and before + delta >= 0:
+            return delta
+
+        original_name = slot.name
+        try:
+            slot.name = name_id
+            after = self.position_strength(state, player, position)
+        finally:
+            slot.name = original_name
+        return after - before
+
     def front_strength_matrix(
         self,
         state: GameState,
