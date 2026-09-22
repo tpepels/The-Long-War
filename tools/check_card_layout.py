@@ -136,8 +136,6 @@ def print_card(card: dict) -> str:
         f'<div class="card-meta"><span class="card-type">{html.escape(type_label(card))}</span>{strength}</div>'
         f'<h2 class="card-title">{html.escape(card["title"])}</h2>'
         f'{property_markup(card, "card-properties")}'
-        f'<div class="card-art"><span class="card-art-sigil">◆</span>'
-        f'<span class="card-art-name">{html.escape(card["title"])}</span></div>'
         f'<div class="card-rule">{rule_markup(card)}</div>'
         f'<footer class="card-footer">{unique}<span class="card-id">{html.escape(card["id"])}</span></footer>'
         f'</article>'
