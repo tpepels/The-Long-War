@@ -1273,8 +1273,8 @@ body.game-body::before {
 
 .play-card:first-child { margin-left: 0; }
 .digital-hand:has(.play-card:nth-child(9)) .play-card { margin-left: -78px; }
-.digital-hand:has(.play-card:nth-child(11)) .play-card { margin-left: -104px; }
-.digital-hand:has(.play-card:nth-child(13)) .play-card { margin-left: -122px; }
+.digital-hand:has(.play-card:nth-child(11)) .play-card { margin-left: -112px; }
+.digital-hand:has(.play-card:nth-child(13)) .play-card { margin-left: -126px; }
 .digital-hand:has(.play-card:nth-child(15)) .play-card { margin-left: -136px; }
 .digital-hand .play-card:first-child { margin-left: 0; }
 
@@ -1765,8 +1765,8 @@ body.game-body::before {
   .battle-stratagem-zone { grid-template-columns: 40px minmax(0, 1fr); }
   .board-legend { padding-right: 16px; }
   .digital-hand:has(.play-card:nth-child(8)) .play-card { margin-left: -92px; }
-  .digital-hand:has(.play-card:nth-child(10)) .play-card { margin-left: -116px; }
-  .digital-hand:has(.play-card:nth-child(12)) .play-card { margin-left: -134px; }
+  .digital-hand:has(.play-card:nth-child(10)) .play-card { margin-left: -122px; }
+  .digital-hand:has(.play-card:nth-child(12)) .play-card { margin-left: -142px; }
   .digital-hand .play-card:first-child { margin-left: 0; }
 }
 
