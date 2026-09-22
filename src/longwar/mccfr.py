@@ -25,7 +25,12 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase, Position, Rank
-from .mccfr_core import BACKEND, CFRNode, external_sampling_traverse
+from .mccfr_core import (
+    BACKEND,
+    CFRNode,
+    external_sampling_traverse,
+    longwar_external_sampling_traverse,
+)
 
 
 def _counter_view(cards: list[str]) -> list[list[Any]]:
@@ -649,11 +654,17 @@ class MCCFRTrainer:
         depth: int,
     ) -> float:
         scratch_by_depth: dict[int, GameState] = {}
-        if self.direct_traversal:
-            return self._traverse_direct(
+        if (
+            self.direct_traversal
+            and longwar_external_sampling_traverse is not None
+        ):
+            return longwar_external_sampling_traverse(
+                self,
                 state,
                 traverser,
                 depth=depth,
+                action_key=action_key,
+                information_set_id=_search_information_set_key,
                 reach=(1.0, 1.0),
                 scratch_by_depth=scratch_by_depth,
             )
@@ -661,109 +672,6 @@ class MCCFRTrainer:
             state,
             traverser,
             depth=depth,
-            scratch_by_depth=scratch_by_depth,
-        )
-
-    def _traverse_direct(
-        self,
-        state: GameState,
-        traverser: int,
-        *,
-        depth: int,
-        reach: tuple[float, float],
-        scratch_by_depth: dict[int, GameState],
-    ) -> float:
-        if state.phase is Phase.COMPLETE:
-            return 1.0 if state.winner == traverser else -1.0
-
-        if depth >= self.max_depth:
-            return self._leaf_value(state, traverser)
-
-        actor = state.active_player
-        actions = self.engine.legal_actions(state)
-        if not actions:
-            raise RuntimeError("Non-terminal state has no legal actions")
-
-        keys = [action_key(action) for action in actions]
-        info_id = _search_information_set_key(state, actor)
-        node = self.nodes.get(info_id)
-        if node is None:
-            node = CFRNode()
-            self.nodes[info_id] = node
-        node.ensure_actions(keys)
-        node.visits += 1
-        strategy = node.strategy(keys)
-
-        if actor == traverser:
-            utilities: list[float] = []
-            node_utility = 0.0
-            for key, action in zip(keys, actions):
-                probability = strategy[key]
-                if actor == 0:
-                    child_reach = (
-                        reach[0] * probability,
-                        reach[1],
-                    )
-                else:
-                    child_reach = (
-                        reach[0],
-                        reach[1] * probability,
-                    )
-                child = self._search_child(
-                    state,
-                    action,
-                    depth + 1,
-                    scratch_by_depth,
-                )
-                utility = self._traverse_direct(
-                    child,
-                    traverser,
-                    depth=depth + 1,
-                    reach=child_reach,
-                    scratch_by_depth=scratch_by_depth,
-                )
-                utilities.append(utility)
-                node_utility += probability * utility
-
-            for key, utility in zip(keys, utilities):
-                node.regret_sum[key] += utility - node_utility
-            return node_utility
-
-        node.accumulate_average(strategy, reach_weight=reach[actor])
-
-        threshold = self.rng.random()
-        cumulative = 0.0
-        sampled_action = actions[-1]
-        sampled_probability = strategy[keys[-1]]
-        for key, action in zip(keys, actions):
-            probability = strategy[key]
-            cumulative += probability
-            sampled_action = action
-            sampled_probability = probability
-            if threshold <= cumulative:
-                break
-
-        if actor == 0:
-            child_reach = (
-                reach[0] * sampled_probability,
-                reach[1],
-            )
-        else:
-            child_reach = (
-                reach[0],
-                reach[1] * sampled_probability,
-            )
-        child = self._search_child(
-            state,
-            sampled_action,
-            depth + 1,
-            scratch_by_depth,
-        )
-        return self._traverse_direct(
-            child,
-            traverser,
-            depth=depth + 1,
-            reach=child_reach,
             scratch_by_depth=scratch_by_depth,
         )
 
@@ -833,8 +741,11 @@ class MCCFRTrainer:
             "algorithm": "depth_limited_external_sampling_mccfr",
             "execution_backend": BACKEND,
             "traversal_backend": (
-                "direct_longwar"
-                if self.direct_traversal
+                "specialized_cython_longwar"
+                if (
+                    self.direct_traversal
+                    and longwar_external_sampling_traverse is not None
+                )
                 else "generic_external_sampling"
             ),
             "iterations": self.iterations,
