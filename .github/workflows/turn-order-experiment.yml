@@ -1,0 +1,20 @@
+name: Turn Order Balance Experiment
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "tools/turn_order_experiment.py"
+      - ".github/workflows/turn-order-experiment.yml"
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - run: python tools/turn_order_experiment.py
