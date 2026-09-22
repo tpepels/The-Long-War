@@ -10,6 +10,7 @@ import pytest
 
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Position, Rank
+from longwar.game.model import SchemeState, StratagemState
 from longwar.mccfr import information_set_id, information_set_observation
 from longwar.mccfr_core import (
     ACCELERATED,
@@ -58,11 +59,9 @@ def test_fast_information_key_preserves_exported_id() -> None:
     own.link = "followed"
     own.name = "namar"
 
-    state.players[0].hand = ["the-lamps-went-dark", "the-tide-rose"]
-    from longwar.game import PlayScheme, SetStratagem
-
-    engine.apply(state, PlayScheme("the-lamps-went-dark", Front.CENTER))
-    engine.apply(state, SetStratagem("the-tide-rose"))
+    state.schemes[0][int(Front.CENTER)] = SchemeState("the-lamps-went-dark")
+    state.stratagems[0] = StratagemState("the-tide-rose")
+    state.stratagem_used[0] = True
 
     assert information_set_id(state, 0) == legacy_information_set_id(state, 0)
     assert information_set_id(state, 1) == legacy_information_set_id(state, 1)
