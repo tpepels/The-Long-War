@@ -42,6 +42,7 @@ def main() -> None:
     static = load("balance-report.json")
     selfplay = load("heuristic-selfplay.json") or load("pages-selfplay.json")
     policy = load("mccfr-policy.json")
+    mccfr_suite = load("mccfr-suite.json")
     verification = load("mccfr-verification.json")
     counterfactual = load("counterfactual-balance.json")
     targeted = load("targeted-online-counterfactual.json")
@@ -127,6 +128,8 @@ def main() -> None:
         matchups["heuristic_selfplay"] = simulation_summary(selfplay)
 
     mccfr: dict[str, Any] | None = None
+    if policy is None and mccfr_suite and mccfr_suite.get("profiles"):
+        policy = mccfr_suite["profiles"][0].get("policy")
     if policy is not None:
         mccfr = {
             "algorithm": policy.get("algorithm"),
@@ -191,6 +194,7 @@ def main() -> None:
         "static": static,
         "matchups": matchups,
         "mccfr": mccfr,
+        "mccfr_suite": mccfr_suite,
         "verification": verification,
         "counterfactual": counterfactual,
         "targeted_counterfactual": targeted,
