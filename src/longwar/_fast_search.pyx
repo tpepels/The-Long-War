@@ -1,6 +1,7 @@
 # cython: language_level=3, boundscheck=False, wraparound=False, initializedcheck=False, cdivision=True
 from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, int32_t, uint64_t
 from libc.string cimport memcpy, memset
+from libc.math cimport tanh
 from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
 
@@ -165,38 +166,44 @@ cdef class FastState:
         self.winner = -1
         self.turn_number = 0
 
+    cdef void copy_from_fast(self, FastState other) noexcept:
+        memcpy(self.deck, other.deck, sizeof(self.deck))
+        memcpy(self.deck_len, other.deck_len, sizeof(self.deck_len))
+        memcpy(self.hand, other.hand, sizeof(self.hand))
+        memcpy(self.discard, other.discard, sizeof(self.discard))
+        memcpy(self.discard_len, other.discard_len, sizeof(self.discard_len))
+        memcpy(self.subject, other.subject, sizeof(self.subject))
+        memcpy(self.link, other.link, sizeof(self.link))
+        memcpy(self.name, other.name, sizeof(self.name))
+        memcpy(self.temporary, other.temporary, sizeof(self.temporary))
+        memcpy(self.scheme, other.scheme, sizeof(self.scheme))
+        memcpy(self.scheme_revealed, other.scheme_revealed, sizeof(self.scheme_revealed))
+        memcpy(self.stratagem, other.stratagem, sizeof(self.stratagem))
+        memcpy(self.stratagem_revealed, other.stratagem_revealed, sizeof(self.stratagem_revealed))
+        memcpy(self.stratagem_used, other.stratagem_used, sizeof(self.stratagem_used))
+        memcpy(self.known_hidden, other.known_hidden, sizeof(self.known_hidden))
+        memcpy(self.victories, other.victories, sizeof(self.victories))
+        memcpy(self.passed, other.passed, sizeof(self.passed))
+        memcpy(self.pass_order, other.pass_order, sizeof(self.pass_order))
+        memcpy(self.discarded_this_battle, other.discarded_this_battle, sizeof(self.discarded_this_battle))
+        self.pass_len = other.pass_len
+        self.active_player = other.active_player
+        self.battle = other.battle
+        self.phase = other.phase
+        self.chooser = other.chooser
+        self.winner = other.winner
+        self.turn_number = other.turn_number
+
     cdef FastState clone_fast(self):
         cdef FastState other = FastState()
-        memcpy(other.deck, self.deck, sizeof(self.deck))
-        memcpy(other.deck_len, self.deck_len, sizeof(self.deck_len))
-        memcpy(other.hand, self.hand, sizeof(self.hand))
-        memcpy(other.discard, self.discard, sizeof(self.discard))
-        memcpy(other.discard_len, self.discard_len, sizeof(self.discard_len))
-        memcpy(other.subject, self.subject, sizeof(self.subject))
-        memcpy(other.link, self.link, sizeof(self.link))
-        memcpy(other.name, self.name, sizeof(self.name))
-        memcpy(other.temporary, self.temporary, sizeof(self.temporary))
-        memcpy(other.scheme, self.scheme, sizeof(self.scheme))
-        memcpy(other.scheme_revealed, self.scheme_revealed, sizeof(self.scheme_revealed))
-        memcpy(other.stratagem, self.stratagem, sizeof(self.stratagem))
-        memcpy(other.stratagem_revealed, self.stratagem_revealed, sizeof(self.stratagem_revealed))
-        memcpy(other.stratagem_used, self.stratagem_used, sizeof(self.stratagem_used))
-        memcpy(other.known_hidden, self.known_hidden, sizeof(self.known_hidden))
-        memcpy(other.victories, self.victories, sizeof(self.victories))
-        memcpy(other.passed, self.passed, sizeof(self.passed))
-        memcpy(other.pass_order, self.pass_order, sizeof(self.pass_order))
-        memcpy(other.discarded_this_battle, self.discarded_this_battle, sizeof(self.discarded_this_battle))
-        other.pass_len = self.pass_len
-        other.active_player = self.active_player
-        other.battle = self.battle
-        other.phase = self.phase
-        other.chooser = self.chooser
-        other.winner = self.winner
-        other.turn_number = self.turn_number
+        other.copy_from_fast(self)
         return other
 
     cpdef FastState clone(self):
         return self.clone_fast()
+
+    cpdef copy_from(self, FastState other):
+        self.copy_from_fast(other)
 
 
 cdef class FastEngine:
@@ -1239,3 +1246,203 @@ cdef class FastEngine:
             ],
             "stratagem_used": [bool(state.stratagem_used[0]), bool(state.stratagem_used[1])],
         }
+
+
+cdef class FastCFRNode:
+    cdef public object regret_sum
+    cdef public object strategy_sum
+    cdef public long visits
+    cdef public long average_visits
+
+    def __init__(self):
+        self.regret_sum = {}
+        self.strategy_sum = {}
+        self.visits = 0
+        self.average_visits = 0
+
+    cdef dict strategy_fast(self, list actions):
+        cdef dict result = {}
+        cdef uint64_t action
+        cdef double total = 0.0
+        cdef double value
+        cdef int n = len(actions)
+        for action in actions:
+            value = self.regret_sum.get(action, 0.0)
+            if action not in self.regret_sum:
+                self.regret_sum[action] = 0.0
+                self.strategy_sum[action] = 0.0
+            if value > 0.0:
+                total += value
+        if total > 0.0:
+            for action in actions:
+                value = self.regret_sum[action]
+                result[action] = (value if value > 0.0 else 0.0) / total
+        else:
+            value = 1.0 / n
+            for action in actions:
+                result[action] = value
+        return result
+
+    def strategy(self, actions):
+        return self.strategy_fast(list(actions))
+
+    cdef void accumulate_fast(self, dict strategy, double reach_weight):
+        cdef object action
+        cdef double probability
+        for action, probability in strategy.items():
+            self.strategy_sum[action] = self.strategy_sum.get(action, 0.0) + reach_weight * probability
+        self.average_visits += 1
+
+    def average_strategy(self, actions=None):
+        cdef list keys = list(self.strategy_sum if actions is None else actions)
+        cdef double total = 0.0
+        cdef double value
+        cdef object action
+        cdef dict result = {}
+        if not keys:
+            return {}
+        for action in keys:
+            value = self.strategy_sum.get(action, 0.0)
+            if value > 0.0:
+                total += value
+        if total <= 0.0:
+            return self.strategy_fast(keys)
+        for action in keys:
+            value = self.strategy_sum.get(action, 0.0)
+            result[action] = (value if value > 0.0 else 0.0) / total
+        return result
+
+
+cdef double _packed_traverse(
+    FastEngine engine,
+    FastState state,
+    int traverser,
+    int depth,
+    int max_depth,
+    object nodes,
+    object rng,
+    double leaf_scale,
+    double reach0,
+    double reach1,
+    list scratch,
+):
+    cdef int actor
+    cdef int child_depth
+    cdef list actions
+    cdef bytes info_key
+    cdef FastCFRNode node
+    cdef dict strategy
+    cdef uint64_t action
+    cdef FastState child
+    cdef double probability
+    cdef double utility
+    cdef double node_utility = 0.0
+    cdef double threshold
+    cdef double cumulative = 0.0
+    cdef uint64_t sampled_action = 0
+    cdef double sampled_probability = 0.0
+    cdef list utilities
+
+    if state.phase == PHASE_COMPLETE:
+        return 1.0 if state.winner == traverser else -1.0
+
+    if depth >= max_depth:
+        return tanh(engine.evaluate_fast(state, traverser) / leaf_scale)
+
+    actor = state.active_player
+    actions = engine.legal_actions_fast(state)
+    if not actions:
+        raise RuntimeError("Packed non-terminal state has no legal actions")
+
+    info_key = engine.information_key_fast(state, actor)
+    node = nodes.get(info_key)
+    if node is None:
+        node = FastCFRNode()
+        nodes[info_key] = node
+    node.visits += 1
+    strategy = node.strategy_fast(actions)
+    child_depth = depth + 1
+
+    if actor == traverser:
+        utilities = []
+        for action in actions:
+            probability = strategy[action]
+            child = scratch[child_depth]
+            child.copy_from_fast(state)
+            engine.apply_fast(child, action)
+            if actor == 0:
+                utility = _packed_traverse(
+                    engine, child, traverser, child_depth, max_depth,
+                    nodes, rng, leaf_scale,
+                    reach0 * probability, reach1, scratch,
+                )
+            else:
+                utility = _packed_traverse(
+                    engine, child, traverser, child_depth, max_depth,
+                    nodes, rng, leaf_scale,
+                    reach0, reach1 * probability, scratch,
+                )
+            utilities.append(utility)
+            node_utility += probability * utility
+
+        for action, utility in zip(actions, utilities):
+            node.regret_sum[action] = node.regret_sum.get(action, 0.0) + utility - node_utility
+        return node_utility
+
+    node.accumulate_fast(strategy, reach0 if actor == 0 else reach1)
+    threshold = rng.random()
+    for action in actions:
+        probability = strategy[action]
+        cumulative += probability
+        sampled_action = action
+        sampled_probability = probability
+        if threshold <= cumulative:
+            break
+
+    child = scratch[child_depth]
+    child.copy_from_fast(state)
+    engine.apply_fast(child, sampled_action)
+    if actor == 0:
+        return _packed_traverse(
+            engine, child, traverser, child_depth, max_depth,
+            nodes, rng, leaf_scale,
+            reach0 * sampled_probability, reach1, scratch,
+        )
+    return _packed_traverse(
+        engine, child, traverser, child_depth, max_depth,
+        nodes, rng, leaf_scale,
+        reach0, reach1 * sampled_probability, scratch,
+    )
+
+
+def packed_external_sampling_traverse(
+    FastEngine engine,
+    FastState state,
+    int traverser,
+    *,
+    int depth,
+    int max_depth,
+    nodes,
+    rng,
+    double leaf_scale=100.0,
+    scratch=None,
+):
+    if scratch is None:
+        scratch = [FastState() for _ in range(max_depth + 1)]
+    return _packed_traverse(
+        engine,
+        state,
+        traverser,
+        depth,
+        max_depth,
+        nodes,
+        rng,
+        leaf_scale,
+        1.0,
+        1.0,
+        scratch,
+    )
+
+
+def make_scratch(int max_depth):
+    return [FastState() for _ in range(max_depth + 1)]
