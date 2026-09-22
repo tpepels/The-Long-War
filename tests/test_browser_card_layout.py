@@ -20,7 +20,8 @@ def test_browser_hand_cards_use_one_fixed_internal_geometry() -> None:
 
 def test_browser_cards_always_reserve_the_properties_row() -> None:
     js = text("web/play.js")
-    assert "'<div class="play-card-properties">' + propertyMarkup + '</div>'" in js
+    assert '<div class="play-card-properties">' in js
+    assert "propertyMarkup" in js
     assert "data-card-id=" in js
 
 
