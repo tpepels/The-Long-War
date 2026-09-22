@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+
+import markdown
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -143,12 +145,21 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
 
 
 def test_rulebook_opening_renders_markdown_and_sections_have_column_wrappers() -> None:
+    from tools.build_pages import group_rulebook_sections
+
     rules = text("rules/rulebook.md")
     builder = text("tools/build_pages.py")
     css = text("web/rules.css")
+    rendered = markdown.markdown(
+        rules,
+        extensions=["extra", "sane_lists", "attr_list", "md_in_html"],
+    )
+    rendered = group_rulebook_sections(rendered)
 
     assert '<div class="rulebook-opening" markdown="1">' in rules
     assert '"md_in_html"' in builder
-    assert "group_rulebook_sections" in builder
+    assert "<strong>The Long War</strong>" in rendered
+    assert "**The Long War**" not in rendered
+    assert '<section class="rule-section">' in rendered
     assert ".rule-section" in css
     assert "break-inside: avoid-column;" in css
