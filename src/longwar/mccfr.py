@@ -15,6 +15,7 @@ from .game.actions import (
     Action,
     BoardTarget,
     ChooseFirst,
+    Draw,
     Pass,
     PlayLink,
     PlayName,
@@ -65,6 +66,8 @@ def action_key(action: Action) -> str:
     """Stable serialization used inside an information-set policy."""
     if isinstance(action, Pass):
         return "pass"
+    if isinstance(action, Draw):
+        return "draw"
     if isinstance(action, ChooseFirst):
         return f"choose_first:{action.player}"
     if isinstance(action, PlaySubject):
@@ -173,6 +176,7 @@ def information_set_key(state: GameState, player: int) -> tuple[tuple[str, Any],
             ),
         ),
         ("stratagem_used", tuple(state.stratagem_used)),
+        ("draw_used", tuple(state.draw_used)),
         ("own_hand", _counter_key(own.hand)),
         ("own_deck", _counter_key(own.deck)),
         ("own_discard", tuple(own.discard)),
