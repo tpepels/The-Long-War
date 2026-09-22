@@ -887,6 +887,7 @@ export class BrowserSession {
     this.log = [];
     this.actionSerial = 0;
     this.lastAction = null;
+    this.openingPlayer = null;
     this.agent = mode === "heuristic" ? new LightweightAgent(this.engine) : null;
   }
 
@@ -918,6 +919,7 @@ export class BrowserSession {
       this.engine.applyMulligan(this.state, player, this.mulliganChoices.get(player) || [], this.rng);
     }
     this.state.active_player = this.rng.int(2);
+    this.openingPlayer = this.state.active_player;
     this.engine.draw(this.state, this.state.active_player, 1);
     this.setupComplete = true;
     this.log.push(
@@ -1083,6 +1085,7 @@ export class BrowserSession {
     return {
       mode: this.mode,
       seed: this.seed,
+      opening_player: this.setupComplete ? this.openingPlayer : null,
       battle: state.battle,
       phase: displayPhase,
       active_player: displayActive,
