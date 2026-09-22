@@ -52,7 +52,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -e .
+      - run: pip install -e '.[dev]'
+      - name: Native MCCFR accelerator
+        run: make check-native-mccfr
       - name: Choose validation seed
         env:
           INPUT_SEED: ${{ inputs.seed }}
@@ -64,6 +66,12 @@ jobs:
           fi
           echo "VALIDATION_SEED=$VALIDATION_SEED" >> "$GITHUB_ENV"
           echo "MCCFR validation seed: $VALIDATION_SEED"
+      - name: MCCFR benchmark
+        run: >
+          python tools/benchmark_mccfr.py
+          --iterations 10
+          --depth 2
+          --seed "$VALIDATION_SEED"
       - name: Formal MCCFR verification
         run: python tools/verify_mccfr.py --iterations ${{ inputs.verification_iterations }}
       - name: Train MCCFR policy
