@@ -575,12 +575,12 @@ cdef class FastEngine:
         if state.phase == PHASE_COMPLETE:
             return actions
         if state.phase == PHASE_CHOOSE:
-            actions.append(encode_action(TYPE_CHOOSE, pos=0))
-            actions.append(encode_action(TYPE_CHOOSE, pos=1))
+            actions.append(encode_action(TYPE_CHOOSE, -1, 0, -1, 0))
+            actions.append(encode_action(TYPE_CHOOSE, -1, 1, -1, 0))
             return actions
 
         player = state.active_player
-        actions.append(encode_action(TYPE_PASS))
+        actions.append(encode_action(TYPE_PASS, -1, -1, -1, 0))
         opponent = 1 - player
 
         for card in range(self.n_cards):
@@ -595,34 +595,34 @@ cdef class FastEngine:
                     rank = local & 1
                     if req >= 0 and req != rank:
                         continue
-                    actions.append(encode_action(TYPE_SUBJECT, card, slot))
+                    actions.append(encode_action(TYPE_SUBJECT, card, slot, -1, player))
             elif self.card_type[card] == CARD_LINK:
                 for local in range(6):
                     slot = player * 6 + local
                     if state.subject[slot] >= 0 and state.link[slot] < 0:
-                        actions.append(encode_action(TYPE_LINK, card, slot))
+                        actions.append(encode_action(TYPE_LINK, card, slot, -1, player))
             elif self.card_type[card] == CARD_NAME:
                 for local in range(6):
                     slot = player * 6 + local
                     if state.subject[slot] < 0 or state.link[slot] < 0 or state.name[slot] >= 0:
                         continue
-                    actions.append(encode_action(TYPE_NAME, card, slot))
+                    actions.append(encode_action(TYPE_NAME, card, slot, -1, player))
                     if self.name_effect[card] == NAME_MOVE_ADJACENT:
                         front = local >> 1
                         rank = local & 1
                         if front > 0:
                             dest = slot_index(player, front - 1, rank)
                             if state.subject[dest] < 0:
-                                actions.append(encode_action(TYPE_NAME, card, slot, dest))
+                                actions.append(encode_action(TYPE_NAME, card, slot, dest, player))
                         if front < 2:
                             dest = slot_index(player, front + 1, rank)
                             if state.subject[dest] < 0:
-                                actions.append(encode_action(TYPE_NAME, card, slot, dest))
+                                actions.append(encode_action(TYPE_NAME, card, slot, dest, player))
             elif self.card_type[card] == CARD_PLOT:
                 if self.veiled[card]:
                     for front in range(3):
                         if state.scheme[player * 3 + front] < 0:
-                            actions.append(encode_action(TYPE_SCHEME, card, front))
+                            actions.append(encode_action(TYPE_SCHEME, card, front, -1, player))
                 elif not self.story_locked(state, player):
                     effect = self.plot_effect[card]
                     if effect == PLOT_DISCREDIT or effect == PLOT_RETURN_NAME:
@@ -642,10 +642,10 @@ cdef class FastEngine:
                                     continue
                                 actions.append(encode_action(TYPE_PLOT, card, source, dest, player))
                     elif effect == PLOT_NONE:
-                        actions.append(encode_action(TYPE_PLOT, card))
+                        actions.append(encode_action(TYPE_PLOT, card, -1, -1, player))
             elif self.card_type[card] == CARD_STRATAGEM:
                 if not state.stratagem_used[player] and state.stratagem[player] < 0:
-                    actions.append(encode_action(TYPE_STRATAGEM, card))
+                    actions.append(encode_action(TYPE_STRATAGEM, card, -1, -1, player))
         return actions
 
     cpdef list legal_actions(self, FastState state):
