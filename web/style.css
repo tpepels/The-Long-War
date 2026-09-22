@@ -1867,6 +1867,11 @@ button, .button {
     0 1.4mm 3mm rgba(24,23,20,.2);
 }
 
+.game-card.layout-overflow {
+  outline: 1mm solid #a52f28;
+  outline-offset: .8mm;
+}
+
 @page cards {
   size: A4 landscape;
   margin: 6mm;

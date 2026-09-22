@@ -6,7 +6,7 @@ from typing import Any, Callable, Hashable, Sequence
 
 
 @dataclass
-class CFRNode:
+class _PythonCFRNode:
     regret_sum: dict[str, float] = field(default_factory=dict)
     strategy_sum: dict[str, float] = field(default_factory=dict)
     visits: int = 0
@@ -55,7 +55,7 @@ class CFRNode:
         }
 
 
-def sample_distribution(
+def _python_sample_distribution(
     rng: random.Random,
     probabilities: dict[str, float],
 ) -> str:
@@ -70,31 +70,25 @@ def sample_distribution(
     return last
 
 
-def external_sampling_traverse(
+def _python_external_sampling_traverse(
     state: Any,
     traverser: int,
     *,
     depth: int,
     max_depth: int | None,
-    nodes: dict[str, CFRNode],
+    nodes: dict[Hashable, Any],
     rng: random.Random,
     is_terminal: Callable[[Any], bool],
     terminal_utility: Callable[[Any, int], float],
     current_player: Callable[[Any], int],
     legal_actions: Callable[[Any], Sequence[Any]],
     action_key: Callable[[Any], str],
-    information_set_id: Callable[[Any, int], str],
+    information_set_id: Callable[[Any, int], Hashable],
     next_state: Callable[[Any, Any], Any],
     leaf_value: Callable[[Any, int], float] | None = None,
     reach: tuple[float, float] = (1.0, 1.0),
 ) -> float:
-    """One external-sampling MCCFR traversal for a two-player zero-sum game.
-
-    Opponent/chance sampling probabilities cancel from the traverser's
-    counterfactual regret estimate when the sampling policy equals the current
-    strategy. The non-traverser's average strategy is accumulated with that
-    player's own realization reach.
-    """
+    """Pure-Python fallback for two-player external-sampling MCCFR."""
     if is_terminal(state):
         return terminal_utility(state, traverser)
 
@@ -113,7 +107,10 @@ def external_sampling_traverse(
         raise RuntimeError("Action serialization collision inside information set")
 
     info_id = information_set_id(state, actor)
-    node = nodes.setdefault(info_id, CFRNode())
+    node = nodes.get(info_id)
+    if node is None:
+        node = _PythonCFRNode()
+        nodes[info_id] = node
     node.ensure_actions(keys)
     node.visits += 1
     strategy = node.strategy(keys)
@@ -123,9 +120,9 @@ def external_sampling_traverse(
         action_utilities: dict[str, float] = {}
         node_utility = 0.0
         for key in keys:
-            child_reach = list(reach)
+            child_reach = [reach[0], reach[1]]
             child_reach[actor] *= strategy[key]
-            utility = external_sampling_traverse(
+            utility = _python_external_sampling_traverse(
                 next_state(state, action_by_key[key]),
                 traverser,
                 depth=depth + 1,
@@ -150,10 +147,10 @@ def external_sampling_traverse(
         return node_utility
 
     node.accumulate_average(strategy, reach_weight=reach[actor])
-    sampled_key = sample_distribution(rng, strategy)
-    child_reach = list(reach)
+    sampled_key = _python_sample_distribution(rng, strategy)
+    child_reach = [reach[0], reach[1]]
     child_reach[actor] *= strategy[sampled_key]
-    return external_sampling_traverse(
+    return _python_external_sampling_traverse(
         next_state(state, action_by_key[sampled_key]),
         traverser,
         depth=depth + 1,
@@ -170,3 +167,29 @@ def external_sampling_traverse(
         leaf_value=leaf_value,
         reach=(child_reach[0], child_reach[1]),
     )
+
+
+try:
+    from ._mccfr_accel import (
+        CFRNode,
+        external_sampling_traverse,
+        sample_distribution,
+    )
+except ImportError:
+    CFRNode = _PythonCFRNode
+    sample_distribution = _python_sample_distribution
+    external_sampling_traverse = _python_external_sampling_traverse
+    ACCELERATED = False
+    BACKEND = "python"
+else:
+    ACCELERATED = True
+    BACKEND = "cython"
+
+
+__all__ = [
+    "ACCELERATED",
+    "BACKEND",
+    "CFRNode",
+    "external_sampling_traverse",
+    "sample_distribution",
+]

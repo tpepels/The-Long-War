@@ -72,14 +72,9 @@ def test_heuristic_prefers_to_pass_when_opponent_has_passed_and_battle_is_won() 
 
 def test_equal_stratagem_scores_do_not_fall_back_to_card_id_order() -> None:
     engine, state = engine_and_state()
-    state.players[0].hand = [
-        "the-storm-broke",
-        "the-tide-rose",
-        "the-ground-gave-way",
-        "the-bronze-teeth",
-        "the-false-muster",
-        "the-wooden-gift",
-    ]
+    # Tide and Ground have the same public-board estimate here: each improves
+    # the current relative position by two points if revealed.
+    state.players[0].hand = ["the-tide-rose", "the-ground-gave-way"]
     state.players[1].hand = []
     state.slot(1, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
     state.slot(1, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
@@ -91,4 +86,81 @@ def test_equal_stratagem_scores_do_not_fall_back_to_card_id_order() -> None:
         if isinstance(action, SetStratagem)
     }
 
-    assert len(selected) > 1
+    assert selected == {"the-tide-rose", "the-ground-gave-way"}
+
+def test_heuristic_prefers_two_front_control_over_overkill() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=3, exploration=0.0)
+
+    spread = state.clone()
+    spread.players[0].hand = []
+    spread.players[1].hand = []
+    spread.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
+    spread.slot(0, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
+    spread.slot(1, Position(Front.RIGHT, Rank.FRONT)).subject = "the-fifty-men"
+    spread.slot(1, Position(Front.CENTER, Rank.REAR)).subject = "seven-black-ships"
+
+    overkill = state.clone()
+    overkill.players[0].hand = []
+    overkill.players[1].hand = []
+    overkill.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
+    overkill.slot(0, Position(Front.LEFT, Rank.REAR)).subject = "seven-black-ships"
+    overkill.slot(0, Position(Front.LEFT, Rank.FRONT)).temporary_strength = 10
+    overkill.slot(1, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
+    overkill.slot(1, Position(Front.RIGHT, Rank.FRONT)).subject = "the-fifty-men"
+
+    assert agent.evaluate(engine, spread, 0) > agent.evaluate(engine, overkill, 0)
+
+
+def test_heuristic_uses_public_board_to_choose_stratagem() -> None:
+    engine, state = engine_and_state()
+    state.players[0].hand = ["the-storm-broke", "the-wooden-gift"]
+    state.players[1].hand = ["oren", "iria", "teyra", "he-never-came"]
+
+    for front, name in ((Front.LEFT, "namar"), (Front.CENTER, "oren")):
+        slot = state.slot(1, Position(front, Rank.FRONT))
+        slot.subject = "the-fifty-men"
+        slot.link = "followed"
+        slot.name = name
+
+    action = HeuristicAgent(seed=4, exploration=0.0).choose(engine, state)
+
+    assert isinstance(action, SetStratagem)
+    assert action.card_id == "the-wooden-gift"
+
+def test_heuristic_penalizes_fragile_leads_after_passing() -> None:
+    engine, state = engine_and_state()
+    state.players[0].hand = ["oren", "iria"]
+    state.players[1].hand = ["namar", "teyra", "followed", "swore-to"]
+    state.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
+    state.slot(0, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
+
+    live_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, state, 0)
+
+    passed = state.clone()
+    passed.players[0].passed = True
+    passed.pass_order = [0]
+    passed_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, passed, 0)
+
+    assert passed_value < live_value
+
+
+def test_heuristic_values_tempo_after_opponent_passes() -> None:
+    engine, state = engine_and_state()
+    state.players[0].hand = ["the-fifty-men", "followed", "oren"]
+    state.players[1].hand = []
+    state.slot(1, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
+
+    live_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, state, 0)
+
+    opponent_passed = state.clone()
+    opponent_passed.players[1].passed = True
+    opponent_passed.pass_order = [1]
+    tempo_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(
+        engine,
+        opponent_passed,
+        0,
+    )
+
+    assert tempo_value > live_value
+

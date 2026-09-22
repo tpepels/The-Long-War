@@ -98,7 +98,9 @@ async function main() {
   const cards = data.cards;
 
   document.getElementById("card-count").textContent = cards.length + " cards";
-  document.getElementById("cards").innerHTML = cards.map(cardMarkup).join("");
+  const root = document.getElementById("cards");
+  root.innerHTML = cards.map(cardMarkup).join("");
+  window.CardLayoutGuard?.schedule(root);
 }
 
 main().catch((error) => {

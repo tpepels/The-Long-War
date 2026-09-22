@@ -102,6 +102,7 @@ async function main() {
       '</div></section>'
   ).join("");
   document.getElementById("kit-count").textContent = "2 × 30-card reference decks";
+  window.CardLayoutGuard?.schedule(document.getElementById("playtest-decks"));
 }
 
 main().catch((error) => {

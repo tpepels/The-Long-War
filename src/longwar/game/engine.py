@@ -49,13 +49,44 @@ ROLE_POSITION_RULES = {
     "stronghold": {"rear_bonus": 1},
 }
 
+# Search visits these tiny collections tens of thousands of times. Build the
+# immutable Position objects once rather than recreating them inside every
+# legal-action and evaluation pass.
+FRONTS = tuple(Front)
+FRONTLINE_POSITIONS = tuple(Position(front, Rank.FRONT) for front in FRONTS)
+REAR_POSITIONS = tuple(Position(front, Rank.REAR) for front in FRONTS)
+POSITIONS_BY_FRONT = tuple(
+    (FRONTLINE_POSITIONS[int(front)], REAR_POSITIONS[int(front)])
+    for front in FRONTS
+)
+ALL_POSITIONS = tuple(
+    position
+    for pair in POSITIONS_BY_FRONT
+    for position in pair
+)
+ADJACENT_POSITIONS = {
+    position: tuple(
+        candidate
+        for candidate in (
+            (
+                Position(Front(int(position.front) - 1), position.rank)
+                if int(position.front) > 0
+                else None
+            ),
+            (
+                Position(Front(int(position.front) + 1), position.rank)
+                if int(position.front) < len(FRONTS) - 1
+                else None
+            ),
+        )
+        if candidate is not None
+    )
+    for position in ALL_POSITIONS
+}
+
 
 def all_positions() -> tuple[Position, ...]:
-    return tuple(
-        Position(front, rank)
-        for front in Front
-        for rank in (Rank.FRONT, Rank.REAR)
-    )
+    return ALL_POSITIONS
 
 
 class GameEngine:
@@ -185,10 +216,17 @@ class GameEngine:
 
         return actions
 
-    def apply(self, state: GameState, action: Action) -> None:
-        legal = self.legal_actions(state)
-        if action not in legal:
-            raise IllegalAction(f"Illegal action: {action!r}")
+    def apply(
+        self,
+        state: GameState,
+        action: Action,
+        *,
+        validate: bool = True,
+    ) -> None:
+        if validate:
+            legal = self.legal_actions(state)
+            if action not in legal:
+                raise IllegalAction(f"Illegal action: {action!r}")
 
         if isinstance(action, ChooseFirst):
             state.active_player = action.player
@@ -371,9 +409,10 @@ class GameEngine:
         return max(0, value)
 
     def front_strength(self, state: GameState, player: int, front: Front) -> int:
-        value = sum(
-            self.position_strength(state, player, Position(front, rank))
-            for rank in (Rank.FRONT, Rank.REAR)
+        front_position, rear_position = POSITIONS_BY_FRONT[int(front)]
+        value = (
+            self.position_strength(state, player, front_position)
+            + self.position_strength(state, player, rear_position)
         )
 
         scheme = state.scheme(player, front)
@@ -382,8 +421,8 @@ class GameEngine:
             value += int(scheme_rules.get("face_down_front_bonus", 0))
 
         opponent = 1 - player
-        for rank in (Rank.FRONT, Rank.REAR):
-            enemy_slot = state.slot(opponent, Position(front, rank))
+        for enemy_position in POSITIONS_BY_FRONT[int(front)]:
+            enemy_slot = state.slot(opponent, enemy_position)
             if not enemy_slot.complete:
                 continue
             enemy_link = self.cards[enemy_slot.link]
@@ -458,13 +497,16 @@ class GameEngine:
         if position.rank is Rank.FRONT:
             value += int(rules.get("front_bonus", 0))
             if rules.get("front_with_rear_bonus"):
-                rear = state.slot(player, Position(position.front, Rank.REAR))
+                rear = state.slot(player, REAR_POSITIONS[int(position.front)])
                 if rear.subject is not None:
                     value += int(rules["front_with_rear_bonus"])
         else:
             value += int(rules.get("rear_bonus", 0))
             if rules.get("rear_with_front_bonus"):
-                frontline = state.slot(player, Position(position.front, Rank.FRONT))
+                frontline = state.slot(
+                    player,
+                    FRONTLINE_POSITIONS[int(position.front)],
+                )
                 if frontline.subject is not None:
                     value += int(rules["rear_with_front_bonus"])
 
@@ -479,7 +521,7 @@ class GameEngine:
         if position.rank is not Rank.FRONT:
             return 0
 
-        rear = state.slot(player, Position(position.front, Rank.REAR))
+        rear = state.slot(player, REAR_POSITIONS[int(position.front)])
         if rear.subject is None:
             return 0
 
@@ -543,7 +585,7 @@ class GameEngine:
         card: dict[str, Any],
     ) -> Iterable[Action]:
         required_rank = card.get("rules", {}).get("placement", {}).get("rank")
-        for position in all_positions():
+        for position in ALL_POSITIONS:
             if state.slot(player, position).occupied:
                 continue
             if required_rank is not None and position.rank.value != required_rank:
@@ -556,7 +598,7 @@ class GameEngine:
         player: int,
         card: dict[str, Any],
     ) -> Iterable[Action]:
-        for position in all_positions():
+        for position in ALL_POSITIONS:
             slot = state.slot(player, position)
             if slot.subject is not None and slot.link is None:
                 yield PlayLink(card["id"], position)
@@ -567,7 +609,7 @@ class GameEngine:
         player: int,
         card: dict[str, Any],
     ) -> Iterable[Action]:
-        for position in all_positions():
+        for position in ALL_POSITIONS:
             slot = state.slot(player, position)
             if slot.subject is None or slot.link is None or slot.name is not None:
                 continue
@@ -591,7 +633,7 @@ class GameEngine:
 
         if effect == "discredit_subject":
             target_player = 1 - player
-            for position in all_positions():
+            for position in ALL_POSITIONS:
                 slot = state.slot(target_player, position)
                 if slot.subject is None:
                     continue
@@ -605,7 +647,7 @@ class GameEngine:
 
         if effect == "return_name_or_weaken":
             target_player = 1 - player
-            for position in all_positions():
+            for position in ALL_POSITIONS:
                 slot = state.slot(target_player, position)
                 if slot.subject is None:
                     continue
@@ -618,13 +660,13 @@ class GameEngine:
             return
 
         if effect == "move_subject":
-            for source in all_positions():
+            for source in ALL_POSITIONS:
                 source_slot = state.slot(player, source)
                 if source_slot.subject is None:
                     continue
                 subject = self.cards[source_slot.subject]
                 required_rank = subject.get("rules", {}).get("placement", {}).get("rank")
-                for destination in all_positions():
+                for destination in ALL_POSITIONS:
                     if destination == source:
                         continue
                     if state.slot(player, destination).occupied:
@@ -652,7 +694,7 @@ class GameEngine:
         player: int,
         card: dict[str, Any],
     ) -> Iterable[Action]:
-        for front in Front:
+        for front in FRONTS:
             if state.schemes[player][int(front)] is None:
                 yield PlayScheme(card["id"], front)
 
@@ -921,7 +963,7 @@ class GameEngine:
         actor: int,
     ) -> None:
         opponent = 1 - actor
-        for front in Front:
+        for front in FRONTS:
             scheme = state.scheme(opponent, front)
             if scheme is None:
                 continue
@@ -1007,10 +1049,9 @@ class GameEngine:
         player: int,
         front: Front,
     ) -> Position | None:
-        frontline = Position(front, Rank.FRONT)
+        frontline, rear = POSITIONS_BY_FRONT[int(front)]
         if state.slot(player, frontline).subject is not None:
             return frontline
-        rear = Position(front, Rank.REAR)
         if state.slot(player, rear).subject is not None:
             return rear
         return None
@@ -1272,14 +1313,14 @@ class GameEngine:
 
     def _discard_battlefield(self, state: GameState) -> None:
         for player in range(2):
-            for position in all_positions():
+            for position in ALL_POSITIONS:
                 slot = state.slot(player, position)
                 for card_id in (slot.subject, slot.link, slot.name):
                     if card_id is not None:
                         state.players[player].discard.append(card_id)
                 self._clear_slot(slot)
 
-            for front in Front:
+            for front in FRONTS:
                 scheme = state.schemes[player][int(front)]
                 if scheme is not None:
                     state.players[player].discard.append(scheme.card_id)
@@ -1374,14 +1415,9 @@ class GameEngine:
         for _ in range(min(count, len(player_state.deck))):
             player_state.hand.append(player_state.deck.pop())
 
-    def _adjacent_positions(self, position: Position) -> tuple[Position, ...]:
-        positions: list[Position] = []
-        index = int(position.front)
-        if index > 0:
-            positions.append(Position(Front(index - 1), position.rank))
-        if index < 2:
-            positions.append(Position(Front(index + 1), position.rank))
-        return tuple(positions)
+    @staticmethod
+    def _adjacent_positions(position: Position) -> tuple[Position, ...]:
+        return ADJACENT_POSITIONS[position]
 
     @staticmethod
     def _clear_slot(slot: Slot) -> None:

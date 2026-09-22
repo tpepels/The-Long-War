@@ -23,7 +23,7 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase, Position, Rank
-from .mccfr_core import CFRNode, external_sampling_traverse
+from .mccfr_core import BACKEND, CFRNode, external_sampling_traverse
 
 
 def _counter_view(cards: list[str]) -> list[list[Any]]:
@@ -85,6 +85,134 @@ def _stratagem_view(state: GameState, viewer: int, owner: int) -> Any:
     if owner == viewer or stratagem.revealed:
         return [stratagem.card_id, bool(stratagem.revealed)]
     return ["hidden", False]
+
+
+def _counter_key(cards: list[str]) -> tuple[tuple[str, int], ...]:
+    return tuple(sorted(Counter(cards).items()))
+
+
+def _freeze_view(value: Any) -> Any:
+    if isinstance(value, list):
+        return tuple(_freeze_view(item) for item in value)
+    return value
+
+
+def information_set_key(state: GameState, player: int) -> tuple[tuple[str, Any], ...]:
+    """Hashable form of the public information state used during search.
+
+    This deliberately avoids JSON construction and SHA-256 on every tree
+    visit. Tuples serialize to the same JSON arrays as the previous list-based
+    observation, so exported information-set ids remain stable.
+    """
+    opponent = 1 - player
+    own = state.players[player]
+    other = state.players[opponent]
+
+    board = tuple(
+        tuple(
+            (
+                int(position.front),
+                position.rank.value,
+                state.slot(owner, position).subject,
+                state.slot(owner, position).link,
+                state.slot(owner, position).name,
+                state.slot(owner, position).temporary_strength,
+            )
+            for position in all_positions()
+        )
+        for owner in range(2)
+    )
+    schemes = tuple(
+        tuple(
+            _freeze_view(_scheme_view(state, player, owner, front))
+            for front in Front
+        )
+        for owner in range(2)
+    )
+
+    return (
+        ("viewer", player),
+        ("phase", state.phase.value),
+        ("battle", state.battle),
+        ("active_player", state.active_player),
+        ("chooser", state.chooser),
+        ("victories", tuple(p.victories for p in state.players)),
+        ("passed", tuple(p.passed for p in state.players)),
+        ("pass_order", tuple(state.pass_order)),
+        ("discarded_this_battle", tuple(state.discarded_this_battle)),
+        ("board", board),
+        ("schemes", schemes),
+        (
+            "stratagems",
+            tuple(
+                _freeze_view(_stratagem_view(state, player, owner))
+                for owner in range(2)
+            ),
+        ),
+        ("stratagem_used", tuple(state.stratagem_used)),
+        ("own_hand", _counter_key(own.hand)),
+        ("own_deck", _counter_key(own.deck)),
+        ("own_discard", tuple(own.discard)),
+        ("opponent_hand_count", len(other.hand)),
+        (
+            "known_opponent_hand",
+            _counter_key(state.known_hidden_cards(player, opponent, "hand")),
+        ),
+        ("opponent_deck_count", len(other.deck)),
+        ("opponent_discard", tuple(other.discard)),
+    )
+
+
+def _information_set_id_from_key(key: tuple[tuple[str, Any], ...]) -> str:
+    payload = json.dumps(
+        dict(key),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+class InformationNodeStore(dict[object, CFRNode]):
+    """Search table keyed by cheap tuples with lazy stable-id conversion."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._id_by_key: dict[object, str] = {}
+        self._key_by_id: dict[str, object] = {}
+
+    def stable_id(self, key: object) -> str:
+        cached = self._id_by_key.get(key)
+        if cached is not None:
+            return cached
+        if not isinstance(key, tuple):
+            return str(key)
+        stable = _information_set_id_from_key(key)
+        self._id_by_key[key] = stable
+        self._key_by_id[stable] = key
+        return stable
+
+    def _key_for_stable_id(self, stable_id: str) -> object | None:
+        cached = self._key_by_id.get(stable_id)
+        if cached is not None:
+            return cached
+        for key in dict.keys(self):
+            if self.stable_id(key) == stable_id:
+                return key
+        return None
+
+    def __getitem__(self, key: object) -> CFRNode:
+        if isinstance(key, str) and not dict.__contains__(self, key):
+            internal = self._key_for_stable_id(key)
+            if internal is None:
+                raise KeyError(key)
+            key = internal
+        return dict.__getitem__(self, key)
+
+    def get(self, key: object, default: Any = None) -> Any:
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
 
 def information_set_observation(state: GameState, player: int) -> dict[str, Any]:
@@ -153,12 +281,7 @@ def information_set_observation(state: GameState, player: int) -> dict[str, Any]
 
 
 def information_set_id(state: GameState, player: int) -> str:
-    payload = json.dumps(
-        information_set_observation(state, player),
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
+    return _information_set_id_from_key(information_set_key(state, player))
 
 
 @dataclass(frozen=True)
@@ -206,7 +329,7 @@ class MCCFRTrainer:
         self.seed = seed
         self.max_depth = max_depth
         self.leaf_scale = leaf_scale
-        self.nodes: dict[str, CFRNode] = {}
+        self.nodes = InformationNodeStore()
         self.iterations = 0
         self._leaf_agent = HeuristicAgent(seed=seed, exploration=0.0)
 
@@ -323,7 +446,7 @@ class MCCFRTrainer:
     ) -> float:
         def next_state(current: GameState, action: Action) -> GameState:
             child = current.clone()
-            self.engine.apply(child, action)
+            self.engine.apply(child, action, validate=False)
             return child
 
         return external_sampling_traverse(
@@ -340,7 +463,7 @@ class MCCFRTrainer:
             current_player=lambda current: current.active_player,
             legal_actions=self.engine.legal_actions,
             action_key=action_key,
-            information_set_id=information_set_id,
+            information_set_id=information_set_key,
             next_state=next_state,
             leaf_value=self._leaf_value,
         )
@@ -351,7 +474,8 @@ class MCCFRTrainer:
 
     def policy_payload(self) -> dict[str, Any]:
         infosets: dict[str, Any] = {}
-        for info_id, node in self.nodes.items():
+        for internal_key, node in self.nodes.items():
+            info_id = self.nodes.stable_id(internal_key)
             keys = sorted(node.regret_sum)
             infosets[info_id] = {
                 "visits": node.visits,
@@ -364,6 +488,7 @@ class MCCFRTrainer:
         return {
             "schema_version": 1,
             "algorithm": "depth_limited_external_sampling_mccfr",
+            "execution_backend": BACKEND,
             "iterations": self.iterations,
             "traversals": self.iterations * 2,
             "max_depth": self.max_depth,

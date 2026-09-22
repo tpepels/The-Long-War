@@ -8,6 +8,7 @@ from pathlib import Path
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.mccfr import MCCFRTrainer
+from longwar.mccfr_core import BACKEND
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -51,6 +52,7 @@ def main() -> None:
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
     print(f"Seed: {args.seed}")
+    print(f"Backend: {BACKEND}")
     print(f"Algorithm: {payload['algorithm']}")
     print(f"Iterations: {summary.iterations}")
     print(f"Traversals: {summary.traversals}")

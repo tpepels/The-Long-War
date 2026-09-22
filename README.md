@@ -16,6 +16,7 @@ Example: **The Fifty Men → Followed → Namar**
 - `src/longwar/game/` — deterministic rules engine.
 - `src/longwar/agents/` — random, heuristic, and MCCFR policy agents.
 - `src/longwar/mccfr.py` — external-sampling Monte Carlo CFR trainer and information abstraction.
+- `src/longwar/_mccfr_accel.pyx` — native Cython traversal/regret-matching backend used by installed CPython builds.
 - `src/longwar/belief.py` — observation-conditioned hidden-state and deck-construction priors.
 - `src/longwar/online_mccfr.py` — online information-set re-solving across sampled beliefs.
 - `src/longwar/telemetry.py` — game, card, pass, and Subject–Bond–Name telemetry.
@@ -40,6 +41,7 @@ python tools/balance_report.py
 python tools/simulate.py --games 1000 --agent-a heuristic --agent-b heuristic
 python tools/analyze_telemetry.py
 python tools/train_mccfr.py --iterations 50 --depth 3
+python tools/benchmark_mccfr.py --iterations 25 --depth 2
 python tools/build_pages.py
 ```
 
@@ -98,6 +100,10 @@ Routine GitHub CI runs the fast and integration suites plus heuristic smoke simu
 ## MCCFR
 
 The repository implements **depth-limited external-sampling Monte Carlo Counterfactual Regret Minimization**.
+
+Installed CPython builds use a Cython backend for the shared traversal and regret-matching core. Browser/Pyodide builds automatically fall back to the equivalent Python implementation. Search also uses a structural GameState clone and tuple information-set keys so the hot path avoids generic `deepcopy`, JSON construction, and SHA-256 hashing on every tree visit. Exported information-set IDs remain compatible with the canonical JSON representation.
+
+Run `make benchmark-mccfr` to report the active backend and traversals per second on the reference deck.
 
 For every sampled root deal:
 
@@ -188,9 +194,9 @@ python tools/simulate.py \
 
 ## Heuristic agent
 
-The heuristic player performs one-ply lookahead across every legal action. Its evaluation uses Front control, Strength margins, Victory markers, public hand-size advantage, Subjects with both a Bond and a Name, own-hand completion potential, and pass/card-conservation value. It never evaluates the identities of cards in the opponent's hand.
+The heuristic player performs one-ply lookahead across every legal action. Its evaluator follows the actual two-of-three-Front objective rather than raw Strength alone: the second controlled Front receives a distinct premium and large overkill margins are saturated. It also values Victory markers, public hand-size advantage, named positions, own-hand completion potential, pass/card conservation, and the current public board when choosing among Stratagems. It never evaluates the identities of cards in the opponent's hand.
 
-The same public-information evaluator is used only at MCCFR depth frontiers.
+The same public-information evaluator is used at MCCFR depth frontiers. It is deliberately inexpensive: Name option checks reuse the current state rather than cloning it for every candidate.
 
 ## CI and analysis cadence
 
