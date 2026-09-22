@@ -375,7 +375,8 @@ Passing saves the rest of your hand, but gives the opponent as many turns as the
 2. Shuffle and draw **10 cards**.
 3. Each player may choose up to **2 cards**, shuffle them back, then draw the same number.
 4. Randomly choose the first player for Battle I.
-5. Keep hands and decks hidden. Keep discard piles face-up.
+5. That first player draws **1 additional opening card**.
+6. Keep hands and decks hidden. Keep discard piles face-up.
 
 There is no automatic draw at the start of a turn. Instead, each player has one optional **Draw** action per Battle: spend your normal action to draw 1 card.
 
