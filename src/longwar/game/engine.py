@@ -120,6 +120,82 @@ class GameEngine:
             if card["type"] == "plot" and card.get("veiled", False)
         }
 
+        self._pass_action = Pass()
+        self._choose_first_actions = (ChooseFirst(0), ChooseFirst(1))
+        self._subject_action_templates = {
+            card_id: tuple(
+                PlaySubject(card_id, position)
+                for position in ALL_POSITIONS
+                if required_rank is None or position.rank.value == required_rank
+            )
+            for card_id, required_rank in self._subject_required_rank.items()
+        }
+        self._link_action_templates = {
+            card_id: tuple(
+                PlayLink(card_id, position)
+                for position in ALL_POSITIONS
+            )
+            for card_id, card_type in self._card_types.items()
+            if card_type == "link"
+        }
+        self._name_action_templates = {}
+        for card_id in self._name_attach_effect:
+            actions: list[PlayName] = []
+            move_optional = self._name_attach_effect[card_id] == "move_adjacent_optional"
+            for position in ALL_POSITIONS:
+                actions.append(PlayName(card_id, position, None))
+                if move_optional:
+                    actions.extend(
+                        PlayName(card_id, position, destination)
+                        for destination in ADJACENT_POSITIONS[position]
+                    )
+            self._name_action_templates[card_id] = tuple(actions)
+
+        self._scheme_action_templates = {
+            card_id: tuple(PlayScheme(card_id, front) for front in FRONTS)
+            for card_id in self._veiled_story_ids
+        }
+        self._stratagem_actions = {
+            card_id: SetStratagem(card_id)
+            for card_id, card_type in self._card_types.items()
+            if card_type == "stratagem"
+        }
+
+        self._plot_target_action_templates: dict[
+            tuple[str, int],
+            tuple[PlayPlot, ...],
+        ] = {}
+        self._plot_move_action_templates: dict[
+            tuple[str, int],
+            tuple[PlayPlot, ...],
+        ] = {}
+        for card_id, effect in self._plot_effects.items():
+            if card_id in self._veiled_story_ids:
+                continue
+            for actor in (0, 1):
+                if effect in {"discredit_subject", "return_name_or_weaken"}:
+                    target_player = 1 - actor
+                    self._plot_target_action_templates[(card_id, actor)] = tuple(
+                        PlayPlot(
+                            card_id,
+                            (BoardTarget(target_player, position),),
+                        )
+                        for position in ALL_POSITIONS
+                    )
+                elif effect == "move_subject":
+                    self._plot_move_action_templates[(card_id, actor)] = tuple(
+                        PlayPlot(
+                            card_id,
+                            (
+                                BoardTarget(actor, source),
+                                BoardTarget(actor, destination),
+                            ),
+                        )
+                        for source in ALL_POSITIONS
+                        for destination in ALL_POSITIONS
+                        if destination != source
+                    )
+
     @classmethod
     def from_file(cls, path: str) -> "GameEngine":
         return cls(load_card_file(path))
@@ -209,13 +285,13 @@ class GameEngine:
         if state.phase is Phase.CHOOSE_FIRST:
             if state.active_player != state.chooser:
                 raise RuntimeError("Chooser must be the active player")
-            return [ChooseFirst(0), ChooseFirst(1)]
+            return list(self._choose_first_actions)
 
         player = state.active_player
         if state.players[player].passed:
             raise RuntimeError("A passed player cannot become active")
 
-        actions: list[Action] = [Pass()]
+        actions: list[Action] = [self._pass_action]
 
         for card_id in dict.fromkeys(state.players[player].hand):
             card_type = self._card_types[card_id]
@@ -236,7 +312,7 @@ class GameEngine:
                     not state.stratagem_used[player]
                     and state.stratagem(player) is None
                 ):
-                    actions.append(SetStratagem(card_id))
+                    actions.append(self._stratagem_actions[card_id])
 
         return actions
 
@@ -846,13 +922,9 @@ class GameEngine:
         player: int,
         card_id: str,
     ) -> Iterable[Action]:
-        required_rank = self._subject_required_rank[card_id]
-        for position in ALL_POSITIONS:
-            if state.slot(player, position).occupied:
-                continue
-            if required_rank is not None and position.rank.value != required_rank:
-                continue
-            yield PlaySubject(card_id, position)
+        for action in self._subject_action_templates[card_id]:
+            if not state.slot(player, action.position).occupied:
+                yield action
 
     def _link_actions(
         self,
@@ -860,10 +932,10 @@ class GameEngine:
         player: int,
         card_id: str,
     ) -> Iterable[Action]:
-        for position in ALL_POSITIONS:
-            slot = state.slot(player, position)
+        for action in self._link_action_templates[card_id]:
+            slot = state.slot(player, action.position)
             if slot.subject is not None and slot.link is None:
-                yield PlayLink(card_id, position)
+                yield action
 
     def _name_actions(
         self,
@@ -871,19 +943,16 @@ class GameEngine:
         player: int,
         card_id: str,
     ) -> Iterable[Action]:
-        on_name_attached = self._name_attach_effect[card_id]
-        for position in ALL_POSITIONS:
-            slot = state.slot(player, position)
+        for action in self._name_action_templates[card_id]:
+            slot = state.slot(player, action.position)
             if slot.subject is None or slot.link is None or slot.name is not None:
                 continue
-
-            if on_name_attached == "move_adjacent_optional":
-                yield PlayName(card_id, position, None)
-                for destination in self._adjacent_positions(position):
-                    if not state.slot(player, destination).occupied:
-                        yield PlayName(card_id, position, destination)
-            else:
-                yield PlayName(card_id, position)
+            if (
+                action.move_to is not None
+                and state.slot(player, action.move_to).occupied
+            ):
+                continue
+            yield action
 
     def _plot_actions(
         self,
@@ -893,55 +962,33 @@ class GameEngine:
     ) -> Iterable[Action]:
         effect = self._plot_effects[card_id]
 
-        if effect == "discredit_subject":
-            target_player = 1 - player
-            for position in ALL_POSITIONS:
-                slot = state.slot(target_player, position)
+        if effect in {"discredit_subject", "return_name_or_weaken"}:
+            for action in self._plot_target_action_templates[(card_id, player)]:
+                target = action.targets[0]
+                slot = state.slot(target.player, target.position)
                 if slot.subject is None:
                     continue
                 if self._subject_protected_from_opponent_plot(slot):
                     continue
-                yield PlayPlot(
-                    card_id,
-                    (BoardTarget(target_player, position),),
-                )
-            return
-
-        if effect == "return_name_or_weaken":
-            target_player = 1 - player
-            for position in ALL_POSITIONS:
-                slot = state.slot(target_player, position)
-                if slot.subject is None:
-                    continue
-                if self._subject_protected_from_opponent_plot(slot):
-                    continue
-                yield PlayPlot(
-                    card_id,
-                    (BoardTarget(target_player, position),),
-                )
+                yield action
             return
 
         if effect == "move_subject":
-            for source in ALL_POSITIONS:
+            for action in self._plot_move_action_templates[(card_id, player)]:
+                source = action.targets[0].position
+                destination = action.targets[1].position
                 source_slot = state.slot(player, source)
                 if source_slot.subject is None:
                     continue
-                subject = self.cards[source_slot.subject]
-                required_rank = subject.get("rules", {}).get("placement", {}).get("rank")
-                for destination in ALL_POSITIONS:
-                    if destination == source:
-                        continue
-                    if state.slot(player, destination).occupied:
-                        continue
-                    if required_rank is not None and destination.rank.value != required_rank:
-                        continue
-                    yield PlayPlot(
-                        card_id,
-                        (
-                            BoardTarget(player, source),
-                            BoardTarget(player, destination),
-                        ),
-                    )
+                if state.slot(player, destination).occupied:
+                    continue
+                required_rank = self._subject_required_rank.get(source_slot.subject)
+                if (
+                    required_rank is not None
+                    and destination.rank.value != required_rank
+                ):
+                    continue
+                yield action
             return
 
         if effect is None:
@@ -956,9 +1003,9 @@ class GameEngine:
         player: int,
         card_id: str,
     ) -> Iterable[Action]:
-        for front in FRONTS:
-            if state.schemes[player][int(front)] is None:
-                yield PlayScheme(card_id, front)
+        for action in self._scheme_action_templates[card_id]:
+            if state.schemes[player][int(action.front)] is None:
+                yield action
 
     def _immediate_story_locked(
         self,
