@@ -177,3 +177,22 @@ def test_setting_stratagem_keeps_hotseat_turn_private_to_same_player() -> None:
     opponent = session.snapshot(1 - active)
     assert opponent["stratagems"][active]["hidden"] is True
     assert opponent["stratagems"][active]["card_id"] is None
+
+
+def test_hotseat_draw_action_draws_one_and_moves_turn() -> None:
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    finish_hotseat_mulligan(session)
+    active = session.state.active_player
+    before_hand = len(session.state.players[active].hand)
+    before_deck = len(session.state.players[active].deck)
+
+    snapshot = session.snapshot(active)
+    draw = next(action for action in snapshot["legal_actions"] if action["kind"] == "Draw")
+    result = session.act(draw["key"], active)
+
+    assert len(session.state.players[active].hand) == before_hand + 1
+    assert len(session.state.players[active].deck) == before_deck - 1
+    assert session.state.draw_used[active] is True
+    assert result["viewer"] is None
+    assert result["needs_reveal"] is True
