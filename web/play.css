@@ -1907,3 +1907,440 @@ body.game-body::before {
 .interaction-error #interaction-hint {
   color: #f0aaa1;
 }
+
+
+/* v0.7 playtest table scale + public-card inspection ------------------- */
+
+.tabletop-shell {
+  --hand-scale: .82;
+  --inspect-scale: 1;
+  grid-template-rows: 34px 64px minmax(0, 1fr) 270px;
+}
+
+.war-table {
+  margin-inline: 6px;
+  padding: 0 8px 5px;
+  grid-template-rows: 8px auto auto minmax(0, 1fr);
+}
+
+.digital-battlefield {
+  width: min(1460px, 100%);
+}
+
+.battlefield-table {
+  grid-template-rows:
+    minmax(20px, .34fr)
+    minmax(30px, .48fr)
+    minmax(18px, .28fr)
+    minmax(70px, 1.35fr)
+    minmax(70px, 1.35fr)
+    minmax(18px, .28fr)
+    minmax(70px, 1.35fr)
+    minmax(70px, 1.35fr)
+    minmax(18px, .28fr)
+    minmax(20px, .34fr);
+  gap: 3px;
+}
+
+.front-banner-row,
+.rank-row,
+.scheme-row {
+  grid-template-columns: 56px repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.battle-stratagem-zone {
+  grid-template-columns: 56px minmax(0, 1fr);
+}
+
+.front-banner {
+  padding: 4px 9px;
+}
+
+.front-banner > span {
+  font-size: 14px;
+}
+
+.front-banner > b {
+  font-size: 11px;
+}
+
+.front-banner small {
+  font-size: 7px;
+}
+
+.rank-label,
+.battle-stratagem-zone > span {
+  padding-right: 5px;
+  font-size: 7px;
+}
+
+.digital-slot {
+  padding: 4px 7px;
+}
+
+.digital-slot.empty {
+  font-size: 8px;
+}
+
+.empty-slot-mark {
+  font-size: 18px;
+}
+
+.slot-rank {
+  left: 6px;
+  top: 5px;
+  font-size: 6.5px;
+}
+
+.board-legend {
+  padding: 2px 34px 2px 7px;
+}
+
+.board-card {
+  appearance: none;
+  flex: 0 0 68px;
+  width: 68px;
+  height: 94px;
+  border-radius: 6px;
+  cursor: zoom-in;
+  font: inherit;
+  text-align: left;
+}
+
+.board-card:hover,
+.board-card:focus-visible {
+  z-index: 14;
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  transform: translateY(-2px);
+}
+
+.board-card-face {
+  grid-template-rows: 16px minmax(0, 1fr);
+}
+
+.board-card-type {
+  padding: 5px 5px 0;
+  font-size: 6px;
+}
+
+.board-card strong {
+  max-height: none;
+  padding: 4px 6px 16px;
+  font-size: 9.5px;
+  line-height: 1.02;
+}
+
+.board-card-strength {
+  right: -5px;
+  bottom: -5px;
+  width: 25px;
+  height: 25px;
+  font-size: 10px;
+}
+
+.board-attachment {
+  margin-left: -43px;
+  transform: translate(27px, 6px) rotate(3deg);
+}
+
+.board-attachment .board-card {
+  flex-basis: 60px;
+  width: 60px;
+  height: 84px;
+}
+
+.board-attachment.name {
+  margin-left: -50px;
+  transform: translate(41px, 9px) rotate(7deg);
+}
+
+.slot-strength {
+  right: 7px;
+  bottom: 7px;
+  min-width: 31px;
+  width: 31px;
+  height: 31px;
+  font-size: 11px;
+}
+
+.scheme-marker {
+  padding-inline: 8px;
+}
+
+.scheme-marker span {
+  font-size: 6.5px;
+}
+
+.scheme-marker b,
+.public-card-link {
+  font-size: 8.5px;
+}
+
+.public-card-link {
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #c6b89e;
+  font-family: Georgia, serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: zoom-in;
+}
+
+.stratagem-marker[data-inspect-card] {
+  cursor: zoom-in;
+}
+
+.card-inspector[hidden] {
+  display: none;
+}
+
+.card-inspector {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.card-inspector-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgba(5,5,4,.82);
+  cursor: zoom-out;
+}
+
+.card-inspector-panel {
+  width: min(390px, calc(100vw - 28px));
+  max-height: calc(100dvh - 38px);
+  padding: 15px 18px 18px;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  overflow: auto;
+  border: 1px solid rgba(217,199,164,.5);
+  background: #17130f;
+  box-shadow: 0 28px 90px rgba(0,0,0,.68);
+}
+
+.card-inspector-panel > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+}
+
+.card-inspector-panel > header > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+#card-inspector-context {
+  color: var(--gold);
+  font: 800 8px/1 system-ui,sans-serif;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+#card-inspector-title {
+  overflow: hidden;
+  color: var(--parchment-light);
+  font: 500 18px/1.05 Georgia,serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#card-inspector-close {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid rgba(217,199,164,.3);
+  background: transparent;
+  color: var(--parchment-light);
+  font: 24px/1 Georgia,serif;
+  cursor: pointer;
+}
+
+.card-inspector-card {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.card-inspector .play-card {
+  --hand-scale: 1;
+  width: 272px;
+  height: 382px;
+  flex: 0 0 272px;
+  margin: 0;
+  grid-template-rows: 26px 64px 42px 218px 28px;
+  transform: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  pointer-events: none;
+  box-shadow: 0 16px 38px rgba(0,0,0,.48);
+}
+
+.card-inspector .play-card-meta {
+  height: 26px;
+  padding: 7px 13px 3px;
+  font-size: 9px;
+}
+
+.card-inspector .play-card h3 {
+  height: 64px;
+  padding: 7px 58px 0 14px;
+  font-size: 23px;
+}
+
+.card-inspector .play-card-properties {
+  height: 42px;
+  padding: 4px 14px 2px;
+  gap: 2px;
+}
+
+.card-inspector .play-card-role {
+  font-size: 11.5px;
+}
+
+.card-inspector .play-card-role strong {
+  font-size: 12px;
+}
+
+.card-inspector .play-card-classes {
+  font-size: 9.5px;
+}
+
+.card-inspector .play-card-strength {
+  right: 10px;
+  top: 31px;
+  width: 42px;
+  height: 42px;
+  font-size: 20px;
+}
+
+.card-inspector .play-card-rules {
+  height: auto;
+  padding: 12px 15px 8px;
+  font-size: 14px;
+  line-height: 1.22;
+}
+
+.card-inspector .play-card-rules .rule-block + .rule-block {
+  margin-top: 7px;
+}
+
+.card-inspector .play-card-rules .rule-label {
+  margin-right: 6px;
+  padding: 3px 4px 2px;
+  font-size: 8.5px;
+}
+
+.card-inspector .play-card footer {
+  height: 28px;
+  padding: 8px 12px 0;
+  font-size: 7.5px;
+}
+
+.card-inspector-panel > p {
+  margin: 0;
+  color: #817664;
+  font: 9px/1.35 system-ui,sans-serif;
+  text-align: center;
+}
+
+@media (max-height: 940px) {
+  .tabletop-shell {
+    --hand-scale: .68;
+    grid-template-rows: 32px 56px minmax(0, 1fr) 220px;
+  }
+
+  .board-card {
+    width: 64px;
+    height: 89px;
+    flex-basis: 64px;
+  }
+
+  .board-attachment .board-card {
+    width: 56px;
+    height: 79px;
+    flex-basis: 56px;
+  }
+}
+
+@media (max-height: 820px) {
+  .tabletop-shell {
+    --hand-scale: .56;
+    grid-template-rows: 30px 48px minmax(0, 1fr) 180px;
+  }
+
+  .battlefield-table {
+    grid-template-rows:
+      18px 26px 16px
+      minmax(62px, 1.35fr)
+      minmax(62px, 1.35fr)
+      16px
+      minmax(62px, 1.35fr)
+      minmax(62px, 1.35fr)
+      16px 18px;
+    gap: 2px;
+  }
+
+  .board-card {
+    width: 56px;
+    height: 78px;
+    flex-basis: 56px;
+  }
+
+  .board-attachment .board-card {
+    width: 50px;
+    height: 70px;
+    flex-basis: 50px;
+  }
+
+  .board-card strong {
+    font-size: 8px;
+  }
+
+  .board-card-type {
+    font-size: 5.5px;
+  }
+
+  .slot-strength {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    font-size: 10px;
+  }
+
+  .card-inspector-panel {
+    max-height: calc(100dvh - 20px);
+  }
+
+  .card-inspector .play-card {
+    width: 238px;
+    height: 334px;
+    flex-basis: 238px;
+    grid-template-rows: 24px 56px 38px 192px 24px;
+  }
+
+  .card-inspector .play-card h3 {
+    height: 56px;
+    font-size: 20px;
+  }
+
+  .card-inspector .play-card-rules {
+    font-size: 12.5px;
+  }
+}
