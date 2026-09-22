@@ -140,7 +140,7 @@ def test_card_rules_text_uses_canonical_typography() -> None:
             f"{card['title']} has an unformatted game concept: {text}"
         )
 
-        text_without_italics = re.sub(r"(?<!\\*)\\*[^*]+\\*(?!\\*)", "", text)
+        text_without_italics = re.sub(r"(?<!\*)\*[^*]+\*(?!\*)", "", text)
         for title in titles:
             assert title not in text_without_italics, (
                 f"{card['title']} references {title} without italics"
