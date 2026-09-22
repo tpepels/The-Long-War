@@ -1626,8 +1626,8 @@ button, .button {
 }
 
 
-/* v0.4 playtest card system -------------------------------------------------
-   Larger cards with one fixed layout and visual families. */
+/* v0.5 fixed six-zone card system ------------------------------------------
+   All printed cards share exactly the same internal geometry. */
 .card-sheets,
 .playtest-decks {
   width: min(100%, 297mm);
@@ -1651,7 +1651,11 @@ button, .button {
   --card-deep: #332d24;
   width: 68mm;
   height: 96mm;
-  grid-template-rows: 20mm 22mm 47.5mm 6.5mm;
+  display: grid;
+  grid-template-rows: 7mm 15mm 6mm 17mm minmax(0, 1fr) 6.5mm;
+  overflow: hidden;
+  position: relative;
+  break-inside: avoid;
   border: .45mm solid var(--card-deep);
   border-radius: 3.2mm;
   background:
@@ -1672,86 +1676,78 @@ button, .button {
   pointer-events: none;
 }
 
-.game-card.card-subject {
-  --card-accent: #8b6337;
-  --card-wash: #eee0c2;
-  --card-deep: #4a3827;
-}
+.game-card.card-subject { --card-accent: #8b6337; --card-wash: #eee0c2; --card-deep: #4a3827; }
+.game-card.card-link { --card-accent: #536d78; --card-wash: #e2e8e5; --card-deep: #2f4249; }
+.game-card.card-name { --card-accent: #59705a; --card-wash: #e4ead7; --card-deep: #334934; }
+.game-card.card-plot { --card-accent: #8a5148; --card-wash: #eee0da; --card-deep: #56342f; }
+.game-card.card-veiled { --card-accent: #65587f; --card-wash: #e5e0ed; --card-deep: #403a54; }
+.game-card.card-stratagem { --card-accent: #8a6e3f; --card-wash: #e9dfc8; --card-deep: #4e4029; }
 
-.game-card.card-link {
-  --card-accent: #536d78;
-  --card-wash: #e2e8e5;
-  --card-deep: #2f4249;
-}
-
-.game-card.card-name {
-  --card-accent: #59705a;
-  --card-wash: #e4ead7;
-  --card-deep: #334934;
-}
-
-.game-card.card-plot {
-  --card-accent: #8a5148;
-  --card-wash: #eee0da;
-  --card-deep: #56342f;
-}
-
-.game-card.card-veiled {
-  --card-accent: #65587f;
-  --card-wash: #e5e0ed;
-  --card-deep: #403a54;
-}
-
-.game-card.card-stratagem {
-  --card-accent: #8a6e3f;
-  --card-wash: #e9dfc8;
-  --card-deep: #4e4029;
-}
-
-.card-header {
-  min-height: 0;
-  padding: 3.1mm 3.4mm 2.4mm;
-  border-bottom: .35mm solid color-mix(in srgb, var(--card-accent) 68%, #1c1914);
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 17%, transparent), transparent 70%);
-}
-
-.card-header h2 {
-  max-width: 48mm;
-  margin: 1.2mm 0 0;
-  font-size: 5mm;
-  line-height: .98;
-  letter-spacing: -.015em;
+.card-meta {
+  min-width: 0;
+  padding: 2.5mm 3.4mm 0;
+  position: relative;
+  overflow: hidden;
+  border-bottom: .25mm solid color-mix(in srgb, var(--card-accent) 40%, transparent);
+  color: var(--card-deep);
 }
 
 .card-type {
-  color: var(--card-deep);
-  font-size: 2.35mm;
+  display: block;
+  max-width: 46mm;
+  overflow: hidden;
+  font: 800 2.25mm/1 system-ui, sans-serif;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.card-properties {
-  margin-top: 1.25mm;
-  gap: .8mm 1.4mm;
-  font-size: 2.15mm;
-  line-height: 1.15;
-  opacity: .72;
+.card-title {
+  min-width: 0;
+  height: 15mm;
+  margin: 0;
+  padding: 1.5mm 15mm 0 3.4mm;
+  overflow: hidden;
+  color: #1c1914;
+  font: 600 4.7mm/.96 Georgia, serif;
+  letter-spacing: -.015em;
 }
 
 .strength {
+  position: absolute;
+  right: 3.2mm;
+  top: 3.2mm;
+  z-index: 4;
   width: 10.5mm;
   height: 10.5mm;
-  flex-basis: 10.5mm;
+  display: grid;
+  place-items: center;
   border: .45mm solid var(--card-deep);
+  border-radius: 50%;
   background: color-mix(in srgb, var(--card-wash) 72%, white);
   color: var(--card-deep);
-  font-size: 5mm;
+  font: 800 5mm/1 system-ui, sans-serif;
   box-shadow: inset 0 0 0 .7mm color-mix(in srgb, var(--card-accent) 18%, transparent);
+}
+
+.card-properties {
+  min-width: 0;
+  height: 6mm;
+  margin: 0;
+  padding: .8mm 3.4mm 0;
+  display: block;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--card-deep) 72%, #1c1914);
+  font: 700 2.05mm/1.15 system-ui, sans-serif;
+  letter-spacing: .02em;
+  white-space: nowrap;
 }
 
 .card-art {
   position: relative;
   min-height: 0;
-  margin: 1.8mm 3.2mm 0;
+  margin: 0 3.2mm;
   padding: 0;
   overflow: hidden;
   border: .3mm solid color-mix(in srgb, var(--card-deep) 78%, transparent);
@@ -1769,10 +1765,10 @@ button, .button {
 }
 
 .card-art::before {
-  width: 28mm;
-  height: 28mm;
-  left: -6mm;
-  top: -8mm;
+  width: 25mm;
+  height: 25mm;
+  left: -5mm;
+  top: -9mm;
   border: .45mm solid color-mix(in srgb, var(--card-accent) 65%, transparent);
   border-radius: 50%;
   box-shadow:
@@ -1787,85 +1783,113 @@ button, .button {
   transform: rotate(-12deg);
 }
 
-.card-art.motif-1::before { left: 34mm; top: -7mm; }
+.card-art.motif-1::before { left: 34mm; top: -8mm; }
 .card-art.motif-1::after { transform: rotate(11deg); inset: auto 14mm -13mm -7mm; }
-.card-art.motif-2 { background-image:
-  linear-gradient(45deg, transparent 46%, color-mix(in srgb, var(--card-accent) 18%, transparent) 47% 49%, transparent 50%),
-  repeating-linear-gradient(90deg, transparent 0 7mm, rgba(28,25,20,.04) 7mm 7.3mm);
+.card-art.motif-2 {
+  background-image:
+    linear-gradient(45deg, transparent 46%, color-mix(in srgb, var(--card-accent) 18%, transparent) 47% 49%, transparent 50%),
+    repeating-linear-gradient(90deg, transparent 0 7mm, rgba(28,25,20,.04) 7mm 7.3mm);
 }
 .card-art.motif-3::before { border-radius: 0; transform: rotate(45deg); top: -14mm; left: 3mm; }
-.card-art.motif-4 { background-image:
-  radial-gradient(circle at 72% 30%, color-mix(in srgb, var(--card-accent) 22%, transparent) 0 7mm, transparent 7.3mm),
-  repeating-linear-gradient(135deg, transparent 0 5mm, rgba(28,25,20,.038) 5mm 5.25mm);
+.card-art.motif-4 {
+  background-image:
+    radial-gradient(circle at 72% 30%, color-mix(in srgb, var(--card-accent) 22%, transparent) 0 6mm, transparent 6.3mm),
+    repeating-linear-gradient(135deg, transparent 0 5mm, rgba(28,25,20,.038) 5mm 5.25mm);
 }
 .card-art.motif-5::after { transform: rotate(0); bottom: 8mm; left: -4mm; right: -4mm; height: 0; border-top-width: 1mm; }
 
 .card-art-sigil {
   position: absolute;
-  left: 3mm;
-  top: 2.5mm;
+  left: 2.4mm;
+  top: 1.6mm;
   z-index: 2;
   color: var(--card-deep);
-  font: 700 7mm/1 Georgia, serif;
+  font: 700 6mm/1 Georgia, serif;
   opacity: .88;
 }
 
 .card-art-name {
   position: absolute;
-  left: 3mm;
-  right: 3mm;
-  bottom: 2.4mm;
+  left: 2.4mm;
+  right: 2.4mm;
+  bottom: 1.6mm;
   z-index: 2;
   max-width: none;
+  overflow: hidden;
   color: var(--card-deep);
-  font: italic 3.1mm/1.05 Georgia, serif;
+  font: italic 2.7mm/1.05 Georgia, serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-art-mark {
   position: absolute;
-  right: 3mm;
-  top: 3mm;
-  width: 7mm;
-  height: 7mm;
+  right: 2.4mm;
+  top: 2mm;
+  width: 6mm;
+  height: 6mm;
   border: .3mm solid var(--card-accent);
   border-radius: 50%;
   opacity: .48;
 }
 
 .card-link .card-art { border-style: dashed; }
-.card-name .card-art { border-radius: 12mm 12mm 1mm 1mm; }
+.card-name .card-art { border-radius: 9mm 9mm 1mm 1mm; }
 .card-stratagem .card-art { border-style: double; border-width: .7mm; }
 
 .card-rule {
+  min-width: 0;
   min-height: 0;
-  padding: 2.7mm 3.3mm 2.2mm;
+  padding: 2.4mm 3.3mm 1.8mm;
   overflow: hidden;
-  font-size: 2.85mm;
-  line-height: 1.22;
-  display: flex;
-  align-items: flex-start;
+  color: #201b15;
+  font: 2.75mm/1.2 Georgia, serif;
 }
 
-.card-rule p { width: 100%; }
+.card-rule .rule-block {
+  margin: 0;
+}
+
+.card-rule .rule-block + .rule-block {
+  margin-top: 1.15mm;
+}
 
 .card-rule strong {
   color: var(--card-deep);
+  font-family: system-ui, sans-serif;
+  font-size: .92em;
   font-weight: 800;
 }
 
+.card-rule em {
+  font-style: italic;
+}
+
 .card-footer {
-  min-height: 6.5mm;
+  min-width: 0;
+  min-height: 0;
   padding: 1.4mm 3mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2mm;
+  overflow: hidden;
   border-top: .25mm solid color-mix(in srgb, var(--card-accent) 45%, #1c1914);
   background: color-mix(in srgb, var(--card-accent) 7%, transparent);
-  font-size: 1.95mm;
+  color: #3b342a;
+  font: 600 1.9mm/1 system-ui, sans-serif;
 }
+
+.unique { text-transform: uppercase; letter-spacing: .08em; }
+.card-id { opacity: .5; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
 .card-hero {
   box-shadow:
     inset 0 0 0 .85mm #9b762f,
     0 1.4mm 3mm rgba(24,23,20,.2);
 }
+.card-hero .card-type,
+.card-hero .strength { color: #7d5a1e; }
 
 .game-card.layout-overflow {
   outline: 1mm solid #a52f28;
@@ -1896,31 +1920,21 @@ button, .button {
   .print-deck { page: cards; }
 
   .game-card:nth-child(9n + 1),
-  .deck-card:nth-child(9n + 1) {
-    break-before: auto;
-  }
+  .deck-card:nth-child(9n + 1) { break-before: auto; }
 
   .game-card:nth-child(8n + 1),
-  .deck-card:nth-child(8n + 1) {
-    break-before: page;
-  }
+  .deck-card:nth-child(8n + 1) { break-before: page; }
 
   .game-card:first-child,
-  .deck-card:first-child {
-    break-before: auto;
-  }
+  .deck-card:first-child { break-before: auto; }
 }
 
 @media (max-width: 920px) {
   .card-sheets,
-  .deck-card-grid {
-    grid-template-columns: repeat(2, 68mm);
-  }
+  .deck-card-grid { grid-template-columns: repeat(2, 68mm); }
 }
 
 @media (max-width: 580px) {
   .card-sheets,
-  .deck-card-grid {
-    grid-template-columns: 68mm;
-  }
+  .deck-card-grid { grid-template-columns: 68mm; }
 }
