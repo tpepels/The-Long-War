@@ -27,6 +27,7 @@ cdef int TYPE_NAME = 4
 cdef int TYPE_PLOT = 5
 cdef int TYPE_SCHEME = 6
 cdef int TYPE_STRATAGEM = 7
+cdef int TYPE_DRAW = 8
 
 cdef int CARD_SUBJECT = 1
 cdef int CARD_LINK = 2
@@ -130,6 +131,7 @@ cdef class FastState:
     cdef int8_t stratagem[2]
     cdef uint8_t stratagem_revealed[2]
     cdef uint8_t stratagem_used[2]
+    cdef uint8_t draw_used[2]
 
     cdef uint8_t known_hidden[2][2][MAX_CARDS]
 
@@ -163,6 +165,7 @@ cdef class FastState:
         memset(self.stratagem, 0xff, sizeof(self.stratagem))
         memset(self.stratagem_revealed, 0, sizeof(self.stratagem_revealed))
         memset(self.stratagem_used, 0, sizeof(self.stratagem_used))
+        memset(self.draw_used, 0, sizeof(self.draw_used))
         memset(self.known_hidden, 0, sizeof(self.known_hidden))
         memset(self.victories, 0, sizeof(self.victories))
         memset(self.passed, 0, sizeof(self.passed))
@@ -193,6 +196,7 @@ cdef class FastState:
         memcpy(self.stratagem, other.stratagem, sizeof(self.stratagem))
         memcpy(self.stratagem_revealed, other.stratagem_revealed, sizeof(self.stratagem_revealed))
         memcpy(self.stratagem_used, other.stratagem_used, sizeof(self.stratagem_used))
+        memcpy(self.draw_used, other.draw_used, sizeof(self.draw_used))
         memcpy(self.known_hidden, other.known_hidden, sizeof(self.known_hidden))
         memcpy(self.victories, other.victories, sizeof(self.victories))
         memcpy(self.passed, other.passed, sizeof(self.passed))
@@ -421,6 +425,7 @@ cdef class FastEngine:
             fast.passed[p] = state.players[p].passed
             fast.discarded_this_battle[p] = state.discarded_this_battle[p]
             fast.stratagem_used[p] = state.stratagem_used[p]
+            fast.draw_used[p] = state.draw_used[p]
             strat = state.stratagems[p]
             if strat is not None:
                 fast.stratagem[p] = self.id_to_code[strat.card_id]
@@ -605,6 +610,8 @@ cdef class FastEngine:
 
         player = state.active_player
         actions[n] = encode_action(TYPE_PASS, -1, -1, -1, 0); n += 1
+        if not state.draw_used[player] and state.deck_len[player] > 0:
+            actions[n] = encode_action(TYPE_DRAW, -1, -1, -1, player); n += 1
         opponent = 1 - player
 
         for card in range(self.n_cards):
@@ -938,6 +945,8 @@ cdef class FastEngine:
         state.discarded_this_battle[1] = 0
         state.stratagem_used[0] = 0
         state.stratagem_used[1] = 0
+        state.draw_used[0] = 0
+        state.draw_used[1] = 0
         state.pass_len = 0
         state.pass_order[0] = -1
         state.pass_order[1] = -1
@@ -983,6 +992,13 @@ cdef class FastEngine:
             return
         if kind == TYPE_PASS:
             self.pass_action(state, actor)
+            return
+        if kind == TYPE_DRAW:
+            self.draw(state, actor, 1)
+            state.draw_used[actor] = 1
+            if not state.passed[1 - actor]:
+                state.active_player = 1 - actor
+            state.turn_number += 1
             return
         if kind == TYPE_SUBJECT:
             self.take_from_hand(state, actor, card, 0)
@@ -1123,7 +1139,7 @@ cdef class FastEngine:
         cdef unsigned char buf[512]
         cdef int n=0, i, owner, slot, card, count, front, ix, opponent=1-player
         # version byte makes the binary representation explicitly evolvable
-        buf[n] = 1; n += 1
+        buf[n] = 2; n += 1
         buf[n] = player; n += 1
         buf[n] = state.phase + 1; n += 1
         buf[n] = state.battle & 255; n += 1
@@ -1209,6 +1225,8 @@ cdef class FastEngine:
         cdef int front, rank
         if kind == TYPE_PASS:
             return "pass"
+        if kind == TYPE_DRAW:
+            return "draw"
         if kind == TYPE_CHOOSE:
             return f"choose_first:{pos}"
         if kind == TYPE_SUBJECT:
@@ -1280,6 +1298,7 @@ cdef class FastEngine:
                 for p in range(2)
             ],
             "stratagem_used": [bool(state.stratagem_used[0]), bool(state.stratagem_used[1])],
+            "draw_used": [bool(state.draw_used[0]), bool(state.draw_used[1])],
         }
 
 
@@ -1813,7 +1832,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i = 0
     version = data[i]
     i += 1
-    if version != 1:
+    if version not in (1, 2):
         raise ValueError(f"Unsupported fast information-key version: {version}")
 
     card_ids = engine.card_ids
@@ -1889,6 +1908,10 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
 
     stratagem_used = [bool(data[i]), bool(data[i + 1])]
     i += 2
+    draw_used = [False, False]
+    if version >= 2:
+        draw_used = [bool(data[i]), bool(data[i + 1])]
+        i += 2
 
     own_hand_counts = []
     for card_code in range(n_cards):
@@ -1952,6 +1975,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "schemes": schemes,
         "stratagems": stratagems,
         "stratagem_used": stratagem_used,
+        "draw_used": draw_used,
         "own_hand": own_hand_counts,
         "own_deck": own_deck_counts,
         "own_discard": own_discard,
