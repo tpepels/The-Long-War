@@ -20,6 +20,43 @@ def engine_and_state():
     return engine, state
 
 
+def test_opening_mulligan_rejects_unenabled_names_first() -> None:
+    engine, _ = engine_and_state()
+    hand = [
+        "namar",
+        "iria",
+        "the-fifty-men",
+        "seven-black-ships",
+        "the-lamps-went-dark",
+        "the-storm-broke",
+        "the-house-at-orra",
+        "the-children-of-the-salt-road",
+        "the-road-was-cut",
+        "the-three-brothers-of-avar",
+    ]
+    agent = HeuristicAgent(seed=5, exploration=0.0)
+    assert agent.choose_mulligan(engine, hand) == (0, 1)
+
+
+def test_opening_mulligan_keeps_enabled_bond_over_dead_name() -> None:
+    engine, _ = engine_and_state()
+    hand = [
+        "the-fifty-men",
+        "seven-black-ships",
+        "followed",
+        "namar",
+        "iria",
+        "the-lamps-went-dark",
+        "the-storm-broke",
+        "the-house-at-orra",
+        "the-road-was-cut",
+        "the-three-brothers-of-avar",
+    ]
+    agent = HeuristicAgent(seed=5, exploration=0.0)
+    mulligan = agent.choose_mulligan(engine, hand)
+    assert 2 not in mulligan
+    assert 3 in mulligan or 4 in mulligan
+
 def test_heuristic_always_returns_legal_action() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=5, exploration=0.0)
