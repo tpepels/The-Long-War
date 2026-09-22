@@ -694,26 +694,15 @@ class MCCFRTrainer:
         *,
         depth: int,
     ) -> float:
-        scratch_by_depth: dict[int, GameState] = {}
-        if (
-            self.direct_traversal
-            and longwar_external_sampling_traverse is not None
-        ):
-            return longwar_external_sampling_traverse(
-                self,
-                state,
-                traverser,
-                depth=depth,
-                action_key=action_key,
-                information_set_id=_search_information_set_key,
-                reach=(1.0, 1.0),
-                scratch_by_depth=scratch_by_depth,
-            )
+        # The object-state traversal remains the correctness/reference path.
+        # Offline deck training uses the primitive-array engine instead.
+        # Keeping this path generic avoids maintaining two independent native
+        # traversals over the mutable Python GameState representation.
         return self._traverse_generic(
             state,
             traverser,
             depth=depth,
-            scratch_by_depth=scratch_by_depth,
+            scratch_by_depth={},
         )
 
     def _traverse_generic(
@@ -823,14 +812,7 @@ class MCCFRTrainer:
             "traversal_backend": (
                 "primitive_array_cython"
                 if self._used_primitive_training
-                else (
-                    "specialized_cython_longwar"
-                    if (
-                        self.direct_traversal
-                        and longwar_external_sampling_traverse is not None
-                    )
-                    else "generic_external_sampling"
-                )
+                else "generic_external_sampling"
             ),
             "iterations": self.iterations,
             "traversals": self.iterations * 2,
