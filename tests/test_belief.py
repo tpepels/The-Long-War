@@ -161,14 +161,24 @@ def test_card_pool_prior_always_samples_exactly_one_hero() -> None:
     engine, _, _ = setup()
     prior = CardPoolDeckPrior(engine)
 
-    for seed in range(12):
+    available_heroes = {
+        card_id
+        for card_id, card in engine.cards.items()
+        if card.get("hero", False) and not card.get("experimental", False)
+    }
+    sampled_heroes: set[str] = set()
+    for seed in range(24):
         deck = prior.sample_deck(Counter(), random.Random(seed))
         heroes = [
             card_id
             for card_id in deck
             if engine.cards[card_id].get("hero", False)
         ]
-        assert heroes == ["avaros-the-bronze-king"]
+        assert len(heroes) == 1
+        assert heroes[0] in available_heroes
+        sampled_heroes.add(heroes[0])
+
+    assert len(sampled_heroes) > 1
 
 
 def test_belief_sampler_resamples_hidden_stratagem_identity() -> None:
