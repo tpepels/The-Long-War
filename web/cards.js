@@ -86,7 +86,6 @@ function cardMarkup(card) {
     '<div class="card-meta"><span class="card-type">' + esc(typeLabel(card)) + "</span>" + strength + "</div>" +
     '<h2 class="card-title">' + esc(card.title) + "</h2>" +
     propertyLabel(card) +
-    cardArtMarkup(card) +
     '<div class="card-rule">' + ruleMarkup(card) + "</div>" +
     '<footer class="card-footer">' + unique + '<span class="card-id">' + esc(card.id) + "</span></footer>" +
     "</article>";

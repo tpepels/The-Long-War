@@ -6,7 +6,6 @@
       ["meta", ".card-meta"],
       ["title", ".card-title"],
       ["properties", ".card-properties"],
-      ["art", ".card-art"],
       ["rules", ".card-rule"],
       ["footer", ".card-footer"],
     ],
@@ -14,7 +13,6 @@
       ["meta", ".play-card-meta"],
       ["title", "h3"],
       ["properties", ".play-card-properties"],
-      ["art", ".play-card-art"],
       ["rules", ".play-card-rules"],
       ["footer", "footer"],
     ],
@@ -54,7 +52,7 @@
 
     for (const [label, selector] of regions) {
       const element = card.querySelector(selector);
-      const inspectContent = !["meta", "art"].includes(label);
+      const inspectContent = label !== "meta";
       if (inspectContent && overflows(element)) failures.push(label + "-overflow");
       if (inspectContent && outside(card, element)) failures.push(label + "-outside");
     }
@@ -65,6 +63,20 @@
       const a = card.querySelector(aSelector);
       const b = card.querySelector(bSelector);
       if (verticallyOverlaps(a, b)) failures.push(aLabel + "-" + bLabel + "-overlap");
+    }
+
+    if (type === "game-card") {
+      const badge = card.querySelector(".strength");
+      const meta = card.querySelector(".card-meta");
+      if (badge && outside(card, badge)) failures.push("strength-outside");
+      if (badge && meta) {
+        const metaRect = meta.getBoundingClientRect();
+        const badgeRect = badge.getBoundingClientRect();
+        const overflow = getComputedStyle(meta).overflow;
+        if (overflow !== "visible" && badgeRect.bottom > metaRect.bottom + 1) {
+          failures.push("strength-clipped");
+        }
+      }
     }
 
     if (failures.length) {

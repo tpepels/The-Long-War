@@ -65,11 +65,17 @@ def test_live_player_uses_native_browser_runtime_not_pyodide() -> None:
     assert "version_static_assets" in build
 
 
-def test_start_match_is_covered_by_real_browser_smoke() -> None:
+def test_start_match_is_covered_by_real_browser_interaction_smoke() -> None:
     checker = text("tools/check_play_start.py")
     workflow = text(".github/workflows/ci.yml")
+    play = text("web/play.js")
 
     assert "form.requestSubmit()" in checker
+    assert 'confirm.click()' in checker
+    assert '.play-card.playable[data-hand-card]' in checker
+    assert '.digital-slot.targetable, .scheme-marker.targetable' in checker
     assert 'data-play-smoke="pass"' in checker
+    assert '<button type="button" class="' in play
+    assert "legal-target-cue" in play
     assert "check_browser_engine.mjs" in workflow
     assert "check_play_start.py --require-browser" in workflow

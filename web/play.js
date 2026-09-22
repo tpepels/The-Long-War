@@ -159,17 +159,16 @@ function playCardMarkup(cardId, options = {}) {
   const footer = options.footer || "";
   const propertyMarkup = cardPropertyMarkup(card);
 
-  return '<article class="' + classes.filter(Boolean).join(" ") + '" data-card-id="' + esc(cardId) + '" ' + (options.attrs || "") + '>' +
+  return '<button type="button" class="' + classes.filter(Boolean).join(" ") + '" data-card-id="' + esc(cardId) + '" ' + (options.attrs || "") + '>' +
     '<div class="play-card-meta"><span>' + esc(cardType(card)) + '</span>' + badge + '</div>' +
     '<h3>' + esc(card.title) + '</h3>' +
     '<div class="play-card-properties">' + propertyMarkup + '</div>' +
     strength +
-    cardVisual(cardId) +
     '<div class="play-card-rules">' +
       window.CardRules.markup(card, formatGameText, '<em>No special rules.</em>') +
     '</div>' +
     '<footer>' + footer + '</footer>' +
-  '</article>';
+  '</button>';
 }
 
 function boardCardMarkup(cardId, role) {
@@ -275,7 +274,9 @@ function renderSlot(owner, front, rank) {
   if (!slot?.subject) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
       '<span class="empty-slot-mark">＋</span><span>' +
-      (rank === "front" ? "Frontline" : "Rear") + '</span></div>';
+      (rank === "front" ? "Frontline" : "Rear") + '</span>' +
+      (targetable ? '<b class="legal-target-cue">PLAY HERE</b>' : '') +
+      '</div>';
   }
 
   return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
@@ -287,6 +288,7 @@ function renderSlot(owner, front, rank) {
       (slot.name ? '<div class="board-attachment name">' + boardCardMarkup(slot.name, "name") + '</div>' : "") +
     '</div>' +
     '<span class="slot-strength">' + slot.strength + '</span>' +
+    (targetable ? '<b class="legal-target-cue">PLAY HERE</b>' : '') +
   '</div>';
 }
 function renderScheme(owner, front) {
@@ -299,7 +301,8 @@ function renderScheme(owner, front) {
   const attrs = 'data-scheme-owner="' + owner + '" data-scheme-front="' + front + '"';
 
   if (!scheme) {
-    return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>empty</b></div>';
+    return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>' +
+      (targetable ? 'PLAY HERE' : 'empty') + '</b></div>';
   }
   if (scheme.hidden) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>face-down</b></div>';
@@ -867,10 +870,13 @@ async function runBusy(fn) {
   try {
     await fn();
     $("engine-status").textContent = "Ready · browser engine";
+    if ($("interaction-strip")) $("interaction-strip").classList.remove("interaction-error");
   } catch (error) {
     $("engine-status").textContent = "Action failed";
     if ($("interaction-hint")) $("interaction-hint").textContent = error.message;
+    if ($("interaction-strip")) $("interaction-strip").classList.add("interaction-error");
     if (!state) $("setup-note").textContent = error.message;
+    console.error("[play]", error);
   } finally {
     document.body.classList.remove("is-busy");
   }

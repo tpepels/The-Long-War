@@ -60,6 +60,18 @@ def version_static_assets() -> str:
     return version
 
 
+def group_rulebook_sections(rendered: str) -> str:
+    """Wrap each H2 section so short rules sections do not split awkwardly across columns."""
+    pattern = re.compile(
+        r'(<h2\b[^>]*>.*?</h2>)(.*?)(?=(?:<h2\b|<div class="rulebook-kicker"|$))',
+        re.DOTALL,
+    )
+    return pattern.sub(
+        lambda match: '<section class="rule-section">' + match.group(1) + match.group(2) + '</section>',
+        rendered,
+    )
+
+
 def main() -> None:
     if DIST.exists():
         shutil.rmtree(DIST)
@@ -81,8 +93,9 @@ def main() -> None:
     rulebook_md = RULEBOOK.read_text(encoding="utf-8")
     rulebook_html = markdown.markdown(
         rulebook_md,
-        extensions=["extra", "sane_lists", "attr_list"],
+        extensions=["extra", "sane_lists", "attr_list", "md_in_html"],
     )
+    rulebook_html = group_rulebook_sections(rulebook_html)
 
     template = (WEB / "rulebook.template.html").read_text(encoding="utf-8")
     rendered = template.replace("{{RULEBOOK}}", rulebook_html)

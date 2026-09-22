@@ -17,145 +17,89 @@
     </div>
   </header>
 
-  <main class="battle-reference-sheet">
-    <header class="battle-reference-title">
+  <main class="reference-v3">
+    <header class="reference-v3-title">
       <div>
-        <span>THE LONG WAR · BATTLEFIELD REFERENCE</span>
-        <h1>Where cards go, what positions do, and how a Battle ends.</h1>
+        <span>THE LONG WAR · QUICK REFERENCE</span>
+        <h1>Battlefield & turn order</h1>
       </div>
-      <div class="battle-win-rule">
-        <b>2 / 3</b>
-        <span>Fronts win a Battle</span>
-        <small>2 Battles win the match</small>
-      </div>
+      <div class="reference-v3-win"><b>2 / 3</b><span>Fronts win a Battle</span></div>
     </header>
 
-    <div class="battle-reference-grid">
-      <section class="reference-board" aria-label="Battlefield diagram">
-        <div class="reference-player-row opponent">
-          <strong>OPPONENT</strong>
-          <span>hand · deck · discard are outside the battlefield</span>
+    <div class="reference-v3-main">
+      <section class="reference-v3-board" aria-label="Battlefield diagram">
+        <div class="rv-player"><strong>OPPONENT</strong><span>Stratagem · one per Battle</span></div>
+        <div class="rv-front-labels"><span>LEFT</span><span>CENTER</span><span>RIGHT</span></div>
+        <div class="rv-side opponent">
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-veiled">Veiled Story</span></div>
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-veiled">Veiled Story</span></div>
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-veiled">Veiled Story</span></div>
         </div>
-
-        <div class="reference-stratagem">
-          <b>STRATAGEM</b>
-          <span>one Battle-wide hidden card · set before the normal action · once per Battle</span>
+        <div class="rv-battle-line"><strong>BATTLE LINE</strong><span>Frontline is nearest the line</span></div>
+        <div class="rv-side player">
+          <div><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-slot rear"><b>Rear</b></span><span class="rv-veiled">Veiled Story</span></div>
+          <div><span class="rv-slot front example"><b>Subject</b><small>Bond → Name</small></span><span class="rv-slot rear"><b>Rear</b></span><span class="rv-veiled">Veiled Story</span></div>
+          <div><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-slot rear"><b>Rear</b></span><span class="rv-veiled">Veiled Story</span></div>
         </div>
-
-        <div class="reference-front-headings">
-          <span>LEFT</span><span>CENTER</span><span>RIGHT</span>
-        </div>
-
-        <div class="reference-side opponent-side">
-          <div class="reference-front">
-            <div class="ref-slot rear"><b>Rear</b><small>Subject</small></div>
-            <div class="ref-slot frontline"><b>Frontline</b><small>Subject · +1 Line Defense</small></div>
-            <div class="ref-veiled"><b>Veiled Story</b><small>max 1 in this Front</small></div>
-          </div>
-          <div class="reference-front">
-            <div class="ref-slot rear example"><b>Rear</b><small>Archers · Healers · Ships · Strongholds often want this rank</small></div>
-            <div class="ref-slot frontline example"><b>Frontline</b><small>Swordsmen · Spearmen often want this rank</small></div>
-            <div class="ref-veiled hidden"><b>?</b><small>identity hidden</small></div>
-          </div>
-          <div class="reference-front">
-            <div class="ref-slot rear"><b>Rear</b><small>Subject</small></div>
-            <div class="ref-slot frontline"><b>Frontline</b><small>Subject · +1 Line Defense</small></div>
-            <div class="ref-veiled"><b>Veiled Story</b><small>max 1 in this Front</small></div>
-          </div>
-        </div>
-
-        <div class="reference-battle-line">
-          <span>BATTLE LINE</span>
-          <small>Frontline is nearest this line. Subjects do not attack across it.</small>
-        </div>
-
-        <div class="reference-side player-side">
-          <div class="reference-front">
-            <div class="ref-slot frontline"><b>Frontline</b><small>Subject · +1 Line Defense</small></div>
-            <div class="ref-slot rear"><b>Rear</b><small>Subject</small></div>
-            <div class="ref-veiled"><b>Veiled Story</b><small>max 1 in this Front</small></div>
-          </div>
-          <div class="reference-front">
-            <div class="ref-slot frontline example formation-card">
-              <b>Subject</b>
-              <small><strong>Bond</strong> attaches here · <strong>Name</strong> attaches to that Bond</small>
-            </div>
-            <div class="ref-slot rear example">
-              <b>Support</b>
-              <small>Behind = same Front, Rear. In front = same Front, Frontline.</small>
-            </div>
-            <div class="ref-veiled hidden"><b>?</b><small>your face-down Story</small></div>
-          </div>
-          <div class="reference-front">
-            <div class="ref-slot frontline"><b>Frontline</b><small>Subject · +1 Line Defense</small></div>
-            <div class="ref-slot rear"><b>Rear</b><small>Subject</small></div>
-            <div class="ref-veiled"><b>Veiled Story</b><small>max 1 in this Front</small></div>
-          </div>
-        </div>
-
-        <div class="reference-front-headings bottom">
-          <span>LEFT</span><span>CENTER</span><span>RIGHT</span>
-        </div>
-
-        <div class="reference-stratagem player">
-          <b>YOUR STRATAGEM</b>
-          <span>global · face-down until its trigger · stays face-up after revealing</span>
-        </div>
-
-        <div class="reference-player-row player">
-          <strong>YOU</strong>
-          <span><b>Adjacent</b> = immediately left/right in the same rank</span>
+        <div class="rv-front-labels bottom"><span>LEFT</span><span>CENTER</span><span>RIGHT</span></div>
+        <div class="rv-player you"><strong>YOU</strong><span>Your Stratagem · one per Battle</span></div>
+        <div class="rv-language">
+          <b>Adjacent</b> = left/right in the same rank
+          <b>Behind</b> = Rear in the same Front
+          <b>In front</b> = Frontline in the same Front
         </div>
       </section>
 
-      <aside class="reference-rail">
+      <aside class="reference-v3-rules">
+        <section class="rv-turn">
+          <span>YOUR TURN</span>
+          <ol>
+            <li><b>Optional:</b> set your Stratagem.</li>
+            <li><b>Then:</b> play 1 card or Pass.</li>
+            <li><b>After Pass:</b> no more turns this Battle.</li>
+          </ol>
+        </section>
+
         <section>
-          <span class="rail-kicker">PLAYING A CARD</span>
-          <h2>What can go where?</h2>
-          <dl class="placement-list">
-            <div><dt>◆ Subject</dt><dd>Any legal empty Frontline or Rear position.</dd></div>
-            <div><dt>⛓ Bond</dt><dd>Attach to one of your Subjects that has no Bond.</dd></div>
-            <div><dt>✦ Name</dt><dd>Attach to one of your open Bonds.</dd></div>
-            <div><dt>⌁ Story</dt><dd>Resolve its targets immediately, then discard it.</dd></div>
-            <div><dt>◐ Veiled Story</dt><dd>Face-down in a Front where you have no Veiled Story.</dd></div>
-            <div><dt>⚑ Stratagem</dt><dd>Before your normal action; one set opportunity per Battle.</dd></div>
+          <span>WHERE CARDS GO</span>
+          <dl class="rv-placement">
+            <div><dt>Subject</dt><dd>Empty Frontline or Rear.</dd></div>
+            <div><dt>Bond</dt><dd>Attach to your Subject.</dd></div>
+            <div><dt>Name</dt><dd>Attach to an open Bond.</dd></div>
+            <div><dt>Story</dt><dd>Resolve, then discard.</dd></div>
+            <div><dt>Veiled Story</dt><dd>Face-down in one Front.</dd></div>
           </dl>
         </section>
 
         <section>
-          <span class="rail-kicker">FORMATION</span>
-          <h2>Role bonuses</h2>
-          <table class="role-matrix">
+          <span>ROLE BONUSES</span>
+          <table class="rv-roles">
             <tbody>
               <tr><th>Swordsman</th><td>Frontline</td><td>+1</td></tr>
               <tr><th>Spearman</th><td>Frontline + Subject behind</td><td>+1</td></tr>
               <tr><th>Archer</th><td>Rear + Subject in front</td><td>+2</td></tr>
-              <tr><th>Healer</th><td>Rear</td><td>Subject in front +2</td></tr>
+              <tr><th>Healer</th><td>Rear</td><td>front Subject +2</td></tr>
               <tr><th>Ship</th><td>Rear</td><td>+1</td></tr>
               <tr><th>Stronghold</th><td>Rear</td><td>+1</td></tr>
             </tbody>
           </table>
-          <p class="rail-note">Frontline Line Defense (+1) is separate from these role bonuses and can be disabled by a card.</p>
         </section>
 
-        <section>
-          <span class="rail-kicker">SCORING</span>
-          <h2>When both players Pass</h2>
-          <ol class="score-order">
-            <li><b>Front control.</b> Higher Strength controls each Front.</li>
-            <li><b>Battle.</b> Control 2 Fronts to win.</li>
-            <li><b>No one has 2?</b> Higher total Strength wins.</li>
-            <li><b>Still tied?</b> The first player who Passed wins.</li>
+        <section class="rv-score">
+          <span>WHEN BOTH PASS</span>
+          <ol>
+            <li>Higher Strength controls each Front.</li>
+            <li>Control <b>2 Fronts</b> to win.</li>
+            <li>No one has 2? Higher <b>total Strength</b>.</li>
+            <li>Still tied? <b>First to Pass</b> wins.</li>
           </ol>
         </section>
       </aside>
     </div>
 
-    <footer class="reference-turn-strip">
-      <div><b>1</b><span><strong>Optional:</strong> set your Stratagem if unused.</span></div>
-      <div><b>2</b><span><strong>Normal action:</strong> play 1 card or Pass.</span></div>
-      <div><b>3</b><span><strong>After Pass:</strong> you take no more turns this Battle.</span></div>
-      <div><b>↻</b><span><strong>After scoring:</strong> clear battlefield, keep hand, draw 3; loser chooses next starter.</span></div>
+    <footer class="reference-v3-footer">
+      <div><b>BETWEEN BATTLES</b><span>Clear battlefield · keep hand · draw 3 · loser chooses next starter</span></div>
+      <div><b>WIN THE MATCH</b><span>Win 2 Battles</span></div>
     </footer>
   </main>
 </body>

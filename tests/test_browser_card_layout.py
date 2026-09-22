@@ -14,20 +14,21 @@ def test_browser_hand_cards_use_one_fixed_internal_geometry() -> None:
     assert "flex: 0 0 204px;" in css
     assert "width: 204px;" in css
     assert "height: 286px;" in css
-    assert "grid-template-rows: 20px 48px 30px 24px 136px 24px;" in css
+    assert "grid-template-rows: 20px 48px 30px 160px 24px;" in css
     assert "scale(var(--inspect-scale));" in css
     assert "card-density-" not in css
 
 
-def test_print_cards_use_six_fixed_internal_zones() -> None:
+def test_print_cards_use_five_fixed_information_zones() -> None:
     css = text("web/style.css")
-    assert "grid-template-rows: 6mm 13mm 8mm 10mm minmax(0, 1fr) 5mm;" in css
+    assert "grid-template-rows: 7mm 15mm 10mm minmax(0, 1fr) 6mm;" in css
 
     for renderer in ("web/cards.js", "web/playtest-kit.js"):
         source = text(renderer)
         assert 'class="card-meta"' in source
         assert 'class="card-title"' in source
         assert 'class="card-properties"' in source
+        assert 'cardArtMarkup(card) +' not in source
         assert 'class="card-rule"' in source
         assert 'class="card-footer"' in source
 
