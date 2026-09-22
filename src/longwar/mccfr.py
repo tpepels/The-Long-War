@@ -34,13 +34,17 @@ from .mccfr_core import (
 
 try:
     from ._fast_search import (
+        FastCFRNode as PrimitiveCFRNode,
         FastEngine as PrimitiveFastEngine,
-        fast_external_sampling_traverse,
+        make_scratch as make_primitive_scratch,
+        packed_external_sampling_traverse,
         stable_information_id_from_fast_key,
     )
 except ImportError:
+    PrimitiveCFRNode = None
     PrimitiveFastEngine = None
-    fast_external_sampling_traverse = None
+    make_primitive_scratch = None
+    packed_external_sampling_traverse = None
     stable_information_id_from_fast_key = None
 
 
@@ -536,13 +540,22 @@ class MCCFRTrainer:
         self.leaf_scale = leaf_scale
         self.direct_traversal = direct_traversal
         self.nodes = InformationNodeStore()
-        self._primitive_nodes: dict[bytes, CFRNode] = {}
+        self._primitive_nodes: dict[bytes, Any] = {}
         self._primitive_engine = (
             PrimitiveFastEngine(engine)
             if (
                 direct_traversal
                 and PrimitiveFastEngine is not None
-                and fast_external_sampling_traverse is not None
+                and PrimitiveCFRNode is not None
+                and packed_external_sampling_traverse is not None
+            )
+            else None
+        )
+        self._primitive_scratch = (
+            make_primitive_scratch(max_depth)
+            if (
+                self._primitive_engine is not None
+                and make_primitive_scratch is not None
             )
             else None
         )
@@ -567,15 +580,16 @@ class MCCFRTrainer:
             if self._primitive_engine is not None:
                 fast_root = self._primitive_engine.from_game_state(root)
                 for traverser in (0, 1):
-                    utility_sum[traverser] += fast_external_sampling_traverse(
+                    utility_sum[traverser] += packed_external_sampling_traverse(
                         self._primitive_engine,
                         fast_root,
                         traverser,
+                        depth=0,
                         max_depth=self.max_depth,
                         nodes=self._primitive_nodes,
                         rng=self.rng,
-                        node_factory=CFRNode,
                         leaf_scale=self.leaf_scale,
+                        scratch=self._primitive_scratch,
                     )
                 self._used_primitive_training = True
             else:
