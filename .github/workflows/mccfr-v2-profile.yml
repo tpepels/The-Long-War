@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "tools/profile_mccfr_callbacks.py"
+      - "src/longwar/**"
       - ".github/workflows/mccfr-v2-profile.yml"
 
 jobs:
