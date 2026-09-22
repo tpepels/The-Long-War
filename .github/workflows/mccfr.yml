@@ -15,6 +15,10 @@ on:
         description: Long War search depth
         required: true
         default: "3"
+      workers:
+        description: Parallel MCCFR workers (0 = all detected CPUs)
+        required: true
+        default: "0"
       matchup_games:
         description: Games in each heuristic/MCCFR direction
         required: true
@@ -79,6 +83,7 @@ jobs:
           python tools/train_mccfr.py
           --iterations ${{ inputs.training_iterations }}
           --depth ${{ inputs.depth }}
+          --workers ${{ inputs.workers }}
           --seed "$VALIDATION_SEED"
           --output artifacts/mccfr-policy.json
       - name: MCCFR vs heuristic
