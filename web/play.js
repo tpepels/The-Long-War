@@ -10,6 +10,9 @@ let stagedPlotSource = null;
 let choiceActions = [];
 let mulliganSelection = new Set();
 let cardsReady = false;
+let aiStepTimer = null;
+let actionBannerTimer = null;
+let lastShownActionId = 0;
 
 const moduleUrl = new URL(import.meta.url);
 const buildVersion = moduleUrl.searchParams.get("v") || "";
@@ -42,9 +45,45 @@ function esc(value) {
     .replaceAll('"', "&quot;");
 }
 
+const TERM_HINTS = {
+  "battle": "A round of play. Control at least two of the three Fronts to win it.",
+  "bond": "An attachment played onto one of your Subjects. A Subject can have one Bond.",
+  "discard": "Move a card to its owner's discard pile.",
+  "discarded": "Moved to the discard pile.",
+  "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
+  "front": "One of the three lanes: Left, Center, or Right.",
+  "frontline": "The position nearest the Battle Line. It normally receives +1 Line Defense.",
+  "frontline subject": "The Subject occupying the Frontline position of that Front.",
+  "frontline subjects": "Subjects occupying Frontline positions.",
+  "line defense": "The default +1 Strength bonus given to a Subject in the Frontline.",
+  "move": "Relocate a Subject, keeping its attached Bond and Name unless the effect says otherwise.",
+  "name": "An attachment played onto an open Bond. A Subject can have one Name.",
+  "passes": "Pass ends that player's participation in the current Battle; they take no more turns.",
+  "rear": "The position behind the Frontline in the same Front.",
+  "rear subject": "The Subject occupying the Rear position of that Front.",
+  "rear subjects": "Subjects occupying Rear positions.",
+  "stories": "Story cards change the battlefield without occupying a Subject position.",
+  "story": "A card that resolves its effect and is then discarded.",
+  "strength": "The value compared in each Front. Higher total Strength controls that Front.",
+  "subject": "A unit or place that occupies a Frontline or Rear position.",
+  "subjects": "Cards that occupy Frontline or Rear positions.",
+  "veiled stories": "Stories set face-down in a Front and revealed when their trigger occurs.",
+  "veiled story": "A Story set face-down in a Front and revealed when its trigger occurs.",
+  "adjacent": "Immediately left or right in the same rank.",
+  "adjacent subject": "A Subject immediately left or right in the same rank.",
+  "adjacent subjects": "Subjects immediately left or right in the same rank.",
+  "return": "Move a card from the battlefield back to its owner's hand."
+};
+
+function termMarkup(label) {
+  const key = String(label).trim().toLowerCase();
+  const hint = TERM_HINTS[key] || "An important game term. See the rulebook for its full definition.";
+  return '<strong class="game-term" tabindex="0" data-term-hint="' + esc(hint) + '">' + label + '</strong>';
+}
+
 function formatGameText(value) {
   return esc(value)
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*\*([^*]+)\*\*/g, (_, label) => termMarkup(label))
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
@@ -86,6 +125,7 @@ async function request(payload) {
   if (!session) throw new Error("Start a match first.");
   if (payload.type === "view") return session.view(payload.viewer);
   if (payload.type === "act") return session.act(payload.key, payload.viewer);
+  if (payload.type === "ai_step") return session.aiStep();
   if (payload.type === "mulligan") return session.mulligan(payload.indices || [], payload.viewer);
   throw new Error("Unknown game request: " + payload.type);
 }
@@ -217,6 +257,11 @@ function selectedActions() {
 function actionForPass() {
   if (!state || state.phase === "mulligan") return null;
   return state.legal_actions.find((action) => action.kind === "Pass") || null;
+}
+
+function actionForDraw() {
+  if (!state || state.phase === "mulligan") return null;
+  return state.legal_actions.find((action) => action.kind === "Draw") || null;
 }
 
 function targetActionsForSlot(owner, front, rank) {
