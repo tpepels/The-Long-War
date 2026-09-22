@@ -1252,7 +1252,7 @@ body.game-body::before {
   margin-left: -56px;
   position: relative;
   display: grid;
-  grid-template-rows: 20px 48px 30px 162px 24px;
+  grid-template-rows: 20px 48px 30px 160px 24px;
   overflow: hidden;
   border: 2px solid #17130e;
   border-radius: 9px;
@@ -1472,7 +1472,7 @@ body.game-body::before {
 }
 
 .play-card-rules {
-  height: 162px;
+  height: 160px;
   min-height: 0;
   margin: 0;
   padding: 6px 11px 4px;
