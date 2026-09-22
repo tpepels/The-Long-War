@@ -107,7 +107,15 @@ class PlaySession:
             return self.snapshot(None)
 
         if self.mode != "hotseat":
-            self.mulligan_choices[1] = ()
+            agent = self.agents[1]
+            self.mulligan_choices[1] = (
+                agent.choose_mulligan(
+                    self.engine,
+                    self.state.players[1].hand,
+                )
+                if hasattr(agent, "choose_mulligan")
+                else ()
+            )
 
         self._finish_mulligans()
         return self.snapshot(None if self.mode == "hotseat" else 0)
