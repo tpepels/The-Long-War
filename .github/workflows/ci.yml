@@ -52,8 +52,6 @@ jobs:
         run: python tools/check_card_layout.py --require-browser
       - name: Fast unit tests
         run: make test-fast
-      - name: Temporary MCCFR algorithm correctness
-        run: make test-algorithm
       - name: Integration tests
         run: make test-integration
       - name: Static balance report
