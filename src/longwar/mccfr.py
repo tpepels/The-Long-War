@@ -6,6 +6,8 @@ import math
 import random
 from collections import Counter
 from dataclasses import dataclass
+from functools import lru_cache
+from itertools import groupby
 from typing import Any, Callable
 
 from .agents.heuristic_agent import HeuristicAgent
@@ -38,6 +40,7 @@ def _target_view(target: BoardTarget) -> list[Any]:
     return [target.player, *_position_view(target.position)]
 
 
+@lru_cache(maxsize=8192)
 def action_key(action: Action) -> str:
     """Stable serialization used inside an information-set policy."""
     if isinstance(action, Pass):
@@ -163,6 +166,154 @@ def information_set_key(state: GameState, player: int) -> tuple[tuple[str, Any],
     )
 
 
+def _sorted_card_multiset(cards: list[str]) -> tuple[str, ...]:
+    """Cheap multiset representation for the internal search table."""
+    return tuple(sorted(cards))
+
+
+def _search_information_set_key(state: GameState, player: int) -> tuple[Any, ...]:
+    """Compact information key used only inside MCCFR traversal.
+
+    Field names and invariant board coordinates are omitted, and card
+    multisets are represented as sorted ids rather than repeatedly building
+    Counters. The public/exported information-set id remains byte-for-byte
+    compatible with the original representation.
+    """
+    opponent = 1 - player
+    own = state.players[player]
+    other = state.players[opponent]
+
+    board = tuple(
+        tuple(
+            (
+                state.slot(owner, position).subject,
+                state.slot(owner, position).link,
+                state.slot(owner, position).name,
+                state.slot(owner, position).temporary_strength,
+            )
+            for position in all_positions()
+        )
+        for owner in range(2)
+    )
+    schemes = tuple(
+        tuple(
+            _freeze_view(_scheme_view(state, player, owner, front))
+            for front in Front
+        )
+        for owner in range(2)
+    )
+
+    return (
+        player,
+        state.phase.value,
+        state.battle,
+        state.active_player,
+        state.chooser,
+        tuple(p.victories for p in state.players),
+        tuple(p.passed for p in state.players),
+        tuple(state.pass_order),
+        tuple(state.discarded_this_battle),
+        board,
+        schemes,
+        tuple(
+            _freeze_view(_stratagem_view(state, player, owner))
+            for owner in range(2)
+        ),
+        tuple(state.stratagem_used),
+        _sorted_card_multiset(own.hand),
+        _sorted_card_multiset(own.deck),
+        tuple(own.discard),
+        len(other.hand),
+        _sorted_card_multiset(
+            state.known_hidden_cards(player, opponent, "hand")
+        ),
+        len(other.deck),
+        tuple(other.discard),
+    )
+
+
+def _counter_view_from_sorted(cards: tuple[str, ...]) -> list[list[Any]]:
+    return [[card_id, sum(1 for _ in group)] for card_id, group in groupby(cards)]
+
+
+def _search_key_observation(key: tuple[Any, ...]) -> dict[str, Any]:
+    (
+        player,
+        phase,
+        battle,
+        active_player,
+        chooser,
+        victories,
+        passed,
+        pass_order,
+        discarded_this_battle,
+        compact_board,
+        schemes,
+        stratagems,
+        stratagem_used,
+        own_hand,
+        own_deck,
+        own_discard,
+        opponent_hand_count,
+        known_opponent_hand,
+        opponent_deck_count,
+        opponent_discard,
+    ) = key
+
+    board: list[Any] = []
+    positions = all_positions()
+    for owner_rows in compact_board:
+        rows = []
+        for position, slot in zip(positions, owner_rows):
+            subject, link, name, temporary_strength = slot
+            rows.append([
+                int(position.front),
+                position.rank.value,
+                subject,
+                link,
+                name,
+                temporary_strength,
+            ])
+        board.append(rows)
+
+    def thaw(value: Any) -> Any:
+        if isinstance(value, tuple):
+            return [thaw(item) for item in value]
+        return value
+
+    return {
+        "viewer": player,
+        "phase": phase,
+        "battle": battle,
+        "active_player": active_player,
+        "chooser": chooser,
+        "victories": list(victories),
+        "passed": list(passed),
+        "pass_order": list(pass_order),
+        "discarded_this_battle": list(discarded_this_battle),
+        "board": board,
+        "schemes": thaw(schemes),
+        "stratagems": thaw(stratagems),
+        "stratagem_used": list(stratagem_used),
+        "own_hand": _counter_view_from_sorted(own_hand),
+        "own_deck": _counter_view_from_sorted(own_deck),
+        "own_discard": list(own_discard),
+        "opponent_hand_count": opponent_hand_count,
+        "known_opponent_hand": _counter_view_from_sorted(known_opponent_hand),
+        "opponent_deck_count": opponent_deck_count,
+        "opponent_discard": list(opponent_discard),
+    }
+
+
+def _stable_id_from_search_key(key: tuple[Any, ...]) -> str:
+    payload = json.dumps(
+        _search_key_observation(key),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def _information_set_id_from_key(key: tuple[tuple[str, Any], ...]) -> str:
     payload = json.dumps(
         dict(key),
@@ -186,7 +337,10 @@ class InformationNodeStore(dict[object, CFRNode]):
             return cached
         if not isinstance(key, tuple):
             return str(key)
-        stable = _information_set_id_from_key(key)
+        if key and isinstance(key[0], int):
+            stable = _stable_id_from_search_key(key)
+        else:
+            stable = _information_set_id_from_key(key)
         self._id_by_key[key] = stable
         self._key_by_id[stable] = key
         return stable
@@ -463,7 +617,7 @@ class MCCFRTrainer:
             current_player=lambda current: current.active_player,
             legal_actions=self.engine.legal_actions,
             action_key=action_key,
-            information_set_id=information_set_key,
+            information_set_id=_search_information_set_key,
             next_state=next_state,
             leaf_value=self._leaf_value,
         )
