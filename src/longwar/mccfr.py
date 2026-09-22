@@ -91,6 +91,12 @@ def _counter_key(cards: list[str]) -> tuple[tuple[str, int], ...]:
     return tuple(sorted(Counter(cards).items()))
 
 
+def _freeze_view(value: Any) -> Any:
+    if isinstance(value, list):
+        return tuple(_freeze_view(item) for item in value)
+    return value
+
+
 def information_set_key(state: GameState, player: int) -> tuple[tuple[str, Any], ...]:
     """Hashable form of the public information state used during search.
 
@@ -117,7 +123,10 @@ def information_set_key(state: GameState, player: int) -> tuple[tuple[str, Any],
         for owner in range(2)
     )
     schemes = tuple(
-        tuple(_scheme_view(state, player, owner, front) for front in Front)
+        tuple(
+            _freeze_view(_scheme_view(state, player, owner, front))
+            for front in Front
+        )
         for owner in range(2)
     )
 
@@ -135,7 +144,10 @@ def information_set_key(state: GameState, player: int) -> tuple[tuple[str, Any],
         ("schemes", schemes),
         (
             "stratagems",
-            tuple(_stratagem_view(state, player, owner) for owner in range(2)),
+            tuple(
+                _freeze_view(_stratagem_view(state, player, owner))
+                for owner in range(2)
+            ),
         ),
         ("stratagem_used", tuple(state.stratagem_used)),
         ("own_hand", _counter_key(own.hand)),
