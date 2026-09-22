@@ -89,3 +89,21 @@ def test_start_overlay_obeys_hidden_attribute() -> None:
     assert "display: none;" in css[css.index(".play-setup[hidden]"):css.index(".play-setup[hidden]") + 100]
     assert 'getComputedStyle(setup).display !== "none"' in checker
     assert "start overlay remains visible after match start" in checker
+
+
+def test_battlefield_has_minimum_visual_scale_and_public_card_inspection() -> None:
+    css = text("web/play.css")
+    play = text("web/play.js")
+    html = text("web/play.html")
+    checker = text("tools/check_game_layout.py")
+    smoke = text("tools/check_play_start.py")
+
+    assert "battlefield-too-small" in checker
+    assert "board-card-" in checker and "-too-small" in checker
+    assert 'data-inspect-card="' in play
+    assert "bindCardInspectors" in play
+    assert "openCardInspector" in play
+    assert 'id="card-inspector"' in html
+    assert ".card-inspector .play-card" in css
+    assert ".opponent-army [data-inspect-card]" in smoke
+    assert "public battlefield card did not open inspector" in smoke
