@@ -166,13 +166,15 @@ function playCardMarkup(cardId, options = {}) {
       ? '<span class="copy-badge copy-index">' + esc(options.copyLabel) + '</span>'
       : "";
   const footer = options.footer || "";
+  const properties = cardProperties(card);
+  const propertyMarkup = properties.length
+    ? properties.map((value) => '<em>' + esc(value) + '</em>').join(' · ')
+    : '&nbsp;';
 
-  return '<article class="' + classes.filter(Boolean).join(" ") + '" ' + (options.attrs || "") + '>' +
+  return '<article class="' + classes.filter(Boolean).join(" ") + '" data-card-id="' + esc(cardId) + '" ' + (options.attrs || "") + '>' +
     '<div class="play-card-meta"><span>' + esc(cardType(card)) + '</span>' + badge + '</div>' +
     '<h3>' + esc(card.title) + '</h3>' +
-    (cardProperties(card).length
-      ? '<div class="play-card-properties">' + cardProperties(card).map((value) => '<em>' + esc(value) + '</em>').join(' · ') + '</div>'
-      : '') +
+    '<div class="play-card-properties">' + propertyMarkup + '</div>' +
     strength +
     cardVisual(cardId) +
     '<div class="play-card-rules">' +
@@ -672,6 +674,7 @@ function renderHand() {
       (count ? "Return " + count + " card" + (count === 1 ? "" : "s") : "Keep this hand") +
       "</button>";
     $("confirm-mulligan").addEventListener("click", submitMulligan);
+    window.CardLayoutGuard?.schedule(hand);
     return;
   }
 
@@ -723,6 +726,7 @@ function renderHand() {
       if (action) executeAction(action);
     });
   });
+  window.CardLayoutGuard?.schedule(hand);
 }
 function renderPublicZones() {
   if (state.phase === "mulligan") {
