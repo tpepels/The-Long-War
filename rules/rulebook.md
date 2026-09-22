@@ -15,7 +15,7 @@ On the battlefield, position matters. **Subjects** stand in the **Frontline** or
 > **First game?** Read through **A Battle, from beginning to end**, then start playing. Use the Reference section when a question comes up.
 
 <div class="rulebook-at-a-glance">
-  <div><b>YOUR TURN</b><span>Optionally set 1 Stratagem, then play 1 card or Pass.</span></div>
+  <div><b>YOUR TURN</b><span>Optionally set 1 Stratagem, then play 1 card, draw 1 card, or Pass.</span></div>
   <div><b>WIN A BATTLE</b><span>Control 2 of 3 Fronts. Total Strength breaks a 1–1–1/0–0–0 style deadlock; first passer breaks the final tie.</span></div>
   <div><b>BETWEEN BATTLES</b><span>Clear the battlefield, keep your hand, draw 3. The loser chooses who starts next.</span></div>
   <div><b>WIN THE MATCH</b><span>Win 2 Battles.</span></div>
@@ -66,9 +66,11 @@ So the question is not only whether you can win a Battle. It is how many cards y
 On your turn:
 
 1. You may set your one **Stratagem** for the Battle, if you have not already done so.
-2. Then play **one card** or **Pass**.
+2. Then take one normal action: play **one card**, **Draw** 1 card, or **Pass**.
 
 Setting a Stratagem does not use your normal action.
+
+You may choose **Draw** only once per Battle. Draw the top card of your deck; this uses your normal action and ends your turn. If your deck is empty, you cannot Draw.
 
 There is no attack step and Subjects do not deal damage. You change the position by placing Subjects, attaching Bonds and Names, playing Stories, setting hidden cards, and moving or removing cards.
 
@@ -237,12 +239,11 @@ When the printed trigger occurs:
 
 The opponent can see which Front contains a Veiled Story, but not which Story it is.
 
-The reference set contains:
+The reference deck contains three Veiled Stories:
 
 - *The Lamps Went Dark* — *Omen*
 - *The Road Was Cut* — *Warning*
 - *The Hidden Oars* — *Prophecy*
-- *The Witness Lied* — *Conspiracy*
 
 ## Stratagems {#stratagems}
 
@@ -250,7 +251,7 @@ A **Stratagem** is a hidden Battle-wide card. It does not belong to a Front.
 
 On your own turn, before your normal action, you may set one Stratagem from your hand face-down. Each player may do this **once per Battle**.
 
-Setting it is free: you still play one card or Pass afterward.
+Setting it is free: you still play one card, Draw 1 card if your Battle draw is unused, or Pass afterward.
 
 Once set, the Stratagem stays in play until the Battle ends. Revealing it does not let you set another.
 
@@ -265,16 +266,13 @@ If it never triggers, reveal it only after the Battle has been scored, then disc
 
 Both players may have a Stratagem in play. Strength modifiers from revealed Stratagems stack. A rule that switches something off, such as *The Tide Rose* disabling Line Defense, remains off while that Stratagem is revealed.
 
-The reference deck uses six deliberately double-edged Stratagems:
+The reference deck uses three deliberately double-edged Stratagems:
 
 - *The Storm Broke* helps Ships and hinders Archers.
 - *The Tide Rose* helps Ships and removes Line Defense.
 - *The Ground Gave Way* helps Rear Subjects and weakens Frontline Subjects.
-- *The Bronze Teeth* punishes an opposing Frontline arrival, then weakens your own Frontline.
-- *The False Muster* cancels one opposing immediate Story, then prevents you from playing immediate Stories.
-- *The Wooden Gift* weakens named Subjects and strengthens unnamed Subjects.
 
-The expanded pool also contains *The Broken Mast* and *The Quiet Field*. Their full text is authoritative; they follow the same set/reveal/continue timing above.
+Other Stratagems remain in the expanded pool. Their full text is authoritative; they follow the same set/reveal/continue timing above.
 
 ---
 
@@ -363,7 +361,7 @@ If Player 2 also Passes, score the Battle.
 
 When you **Pass**, you take no more turns in that Battle.
 
-The opponent may continue playing one card per turn until they Pass.
+The opponent may continue taking normal actions until they Pass.
 
 Passing saves the rest of your hand, but gives the opponent as many turns as they are willing to pay for.
 
@@ -379,7 +377,7 @@ Passing saves the rest of your hand, but gives the opponent as many turns as the
 4. Randomly choose the first player for Battle I.
 5. Keep hands and decks hidden. Keep discard piles face-up.
 
-There is no automatic draw at the start of a turn.
+There is no automatic draw at the start of a turn. Instead, each player has one optional **Draw** action per Battle: spend your normal action to draw 1 card.
 
 ## Score the Battle {#scoring}
 
@@ -497,7 +495,7 @@ You may inspect your own face-down Stories. Your opponent may not.
 
 Before your normal action, if you have not set a Stratagem this Battle, you may set one from your hand face-down in your Stratagem space.
 
-Do not end the turn. You must still play one card or Pass.
+Do not end the turn. You must still take a normal action: play one card, Draw 1 if available, or Pass.
 
 A revealed Stratagem stays face-up until the Battle ends. You cannot set another Stratagem that Battle.
 
@@ -557,6 +555,7 @@ Reveal any Stratagem still face-down only after scoring. Its newly revealed cont
 - which Front contains each face-down Veiled Story;
 - whether each player has a face-down Stratagem;
 - whether each player has used their Stratagem opportunity this Battle;
+- whether each player has used their Draw action this Battle;
 - classifications and roles on visible cards.
 
 ## Deck construction
@@ -586,6 +585,9 @@ A printed identity property such as *Human*, *God*, *King*, *Ship*, or *Strongho
 
 **Hero**  
 A unique Subject with a special rule. Every deck contains exactly one Hero.
+
+**Draw**  
+A normal action that draws 1 card from your deck. Each player may Draw once per Battle.
 
 **Line Defense**  
 The +1 Strength normally gained by a Subject in the Frontline.
