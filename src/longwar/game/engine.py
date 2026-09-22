@@ -388,6 +388,9 @@ class GameEngine:
             if first_player is None
             else first_player
         )
+        # Acting first exposes the first commitment. Battle I compensates that
+        # information disadvantage with one additional opening card.
+        self._draw(state, state.active_player, 1)
         return state
 
     def _apply_mulligan(
