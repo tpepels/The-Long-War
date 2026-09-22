@@ -117,7 +117,6 @@ def play_card(card: dict) -> str:
         f'<h3>{html.escape(card["title"])}</h3>'
         f'{property_markup(card, "play-card-properties")}'
         f'{strength}'
-        f'<div class="play-card-art"><span class="play-card-symbol">◆</span><b>LW</b></div>'
         f'<div class="play-card-rules">{rule_markup(card, "<em>No special rules.</em>")}</div>'
         f'<footer>SELECT OR DRAG TO PLAY</footer>'
         f'</article>'
