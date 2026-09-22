@@ -503,13 +503,17 @@ A revealed Stratagem stays face-up until the Battle ends. You cannot set another
 
 ## What happens when attached cards leave?
 
+During a Battle, when an effect removes or moves an attached card:
+
 | What happens? | Result |
 | --- | --- |
-| A **Subject** is discarded | Discard its Bond. Return its Name to its owner's hand. |
-| A **Bond** is discarded | The Subject stays. Return its Name to its owner's hand. |
+| A **Subject** is discarded by an effect | Discard its Bond. Return its Name to its owner's hand. |
+| A **Bond** is discarded by an effect | The Subject stays. Return its Name to its owner's hand. |
 | An open **Bond** is returned | The Subject stays. Put the Bond into its owner's hand. |
 | A **Name** is returned or discarded | Subject and Bond stay. The Bond becomes open. |
 | A **Subject** moves | Its Bond and Name move with it. |
+
+**Battle cleanup is different:** after scoring, every card still on the battlefield is discarded together, including attached Bonds and Names.
 
 ## Timing
 
