@@ -1189,6 +1189,8 @@ cdef class FastEngine:
                 buf[n] = 0; n += 1
         for owner in range(2):
             buf[n] = state.stratagem_used[owner]; n += 1
+        for owner in range(2):
+            buf[n] = state.draw_used[owner]; n += 1
 
         # own hand and own deck multisets: fixed card-count vector
         for card in range(self.n_cards):
