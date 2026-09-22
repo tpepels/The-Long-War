@@ -40,7 +40,7 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     assert "ROLE BONUSES" in page
     assert "WHEN BOTH PASS" in page
     assert "BETWEEN BATTLES" in page
-    assert "font-size: 2.95mm;" in css
+    assert "font-size: 3.1mm;" in css
     assert "page: battlefield-reference" in css
 
 
