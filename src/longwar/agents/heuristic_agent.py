@@ -290,12 +290,7 @@ class HeuristicAgent:
         state: GameState,
         player: int,
     ) -> list[int]:
-        opponent = 1 - player
-        return [
-            engine.front_strength(state, player, front)
-            - engine.front_strength(state, opponent, front)
-            for front in Front
-        ]
+        return list(engine.front_margins(state, player))
 
     @staticmethod
     def _count_named_subjects(state: GameState, player: int) -> int:
