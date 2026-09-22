@@ -80,3 +80,60 @@ def test_manual_mccfr_workflow_builds_all_four_profile_policies() -> None:
     for profile in ("reference", "avaros", "mara", "sera"):
         assert f"mccfr-policy-{profile}.json" in workflow
     assert "tools/build_mccfr_suite.py" in workflow
+
+
+def test_cards_are_scan_first_and_all_48_copy_blocks_are_labeled() -> None:
+    data = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
+    cards = data["cards"]
+    allowed_labels = {
+        "PLAY",
+        "TRAIT",
+        "WHILE",
+        "WHEN",
+        "BONUS",
+        "NAMED",
+        "TARGET",
+        "EFFECT",
+        "MOVE",
+        "VEILED",
+        "REVEAL",
+        "WHILE REVEALED",
+    }
+
+    assert len(cards) == 48
+    for card in cards:
+        for block in card.get("rule_blocks", []):
+            assert block.get("label") in allowed_labels
+            assert block.get("text", "").strip()
+        player_copy = " ".join(
+            [card.get("text", "")]
+            + [block.get("text", "") for block in card.get("rule_blocks", [])]
+        ).lower()
+        assert " link " not in f" {player_copy} "
+        assert " plot " not in f" {player_copy} "
+        assert " scheme " not in f" {player_copy} "
+
+    style = text("web/style.css")
+    play_style = text("web/play.css")
+    card_rules = text("web/card-rules.js")
+    assert "font: 3.35mm/1.15 Georgia, serif;" in style
+    assert "font: 11.2px/1.16 Georgia, serif;" in play_style
+    assert "Frontline +1 if Rear occupied" in card_rules
+    assert "Rear: Subject in front +2" in card_rules
+
+
+def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bonus() -> None:
+    page = text("web/tokens.html")
+    css = text("web/tokens.css")
+    kit = text("web/playtest-kit.html")
+
+    assert "ACTIVE" in page
+    assert "FIRST" in page and "TO PASS" in page
+    assert page.count("BATTLE WIN") == 4
+    assert "STRATAGEM USED" in page
+    for modifier in ("+1", "+2", "+3", "-1", "-2", "-3"):
+        assert modifier in page
+    assert "Do not place a public Strength marker for a face-down" in page
+    assert "opaque sleeves or identical card backs" in page
+    assert "@page tracker" in css
+    assert 'href="tokens.html"' in kit
