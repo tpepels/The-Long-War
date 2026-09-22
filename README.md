@@ -106,6 +106,8 @@ Installed CPython builds use a dedicated typed Cython search representation for 
 
 Run `make benchmark-mccfr` to report the active backend and traversals per second on the reference deck.
 
+Replica multiprocessing is currently optional rather than the default. Each worker builds a large independent information-set table; serializing and pooling those tables can cost more than the extra CPU throughput. The native single-process solver is therefore the recommended training path until the tables themselves can be shared or merged natively.
+
 For every sampled root deal:
 
 1. chance is sampled by shuffling both decks and drawing the private opening hands;
@@ -132,7 +134,7 @@ Train:
 python tools/train_mccfr.py \
   --iterations 5000 \
   --depth 3 \
-  --workers 0 \
+  --workers 1 \
   --output artifacts/mccfr-policy.json
 ```
 
