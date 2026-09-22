@@ -112,7 +112,9 @@ cdef inline int action_player(uint64_t action) noexcept:
 cdef class FastState:
     cdef int8_t deck[2][MAX_DECK]
     cdef uint8_t deck_len[2]
+    cdef uint8_t deck_counts[2][MAX_CARDS]
     cdef uint8_t hand[2][MAX_CARDS]
+    cdef uint8_t hand_len[2]
     cdef int8_t discard[2][MAX_DECK]
     cdef uint8_t discard_len[2]
 
@@ -144,8 +146,12 @@ cdef class FastState:
 
     def __cinit__(self):
         memset(self.deck, 0xff, sizeof(self.deck))
+        memset(self.deck_len, 0, sizeof(self.deck_len))
+        memset(self.deck_counts, 0, sizeof(self.deck_counts))
         memset(self.hand, 0, sizeof(self.hand))
+        memset(self.hand_len, 0, sizeof(self.hand_len))
         memset(self.discard, 0xff, sizeof(self.discard))
+        memset(self.discard_len, 0, sizeof(self.discard_len))
         memset(self.subject, 0xff, sizeof(self.subject))
         memset(self.link, 0xff, sizeof(self.link))
         memset(self.name, 0xff, sizeof(self.name))
@@ -171,7 +177,9 @@ cdef class FastState:
     cdef void copy_from_fast(self, FastState other) noexcept:
         memcpy(self.deck, other.deck, sizeof(self.deck))
         memcpy(self.deck_len, other.deck_len, sizeof(self.deck_len))
+        memcpy(self.deck_counts, other.deck_counts, sizeof(self.deck_counts))
         memcpy(self.hand, other.hand, sizeof(self.hand))
+        memcpy(self.hand_len, other.hand_len, sizeof(self.hand_len))
         memcpy(self.discard, other.discard, sizeof(self.discard))
         memcpy(self.discard_len, other.discard_len, sizeof(self.discard_len))
         memcpy(self.subject, other.subject, sizeof(self.subject))
@@ -398,7 +406,10 @@ cdef class FastEngine:
         for p in range(2):
             fast.deck_len[p] = len(state.players[p].deck)
             for i, card_id in enumerate(state.players[p].deck):
-                fast.deck[p][i] = self.id_to_code[card_id]
+                code = self.id_to_code[card_id]
+                fast.deck[p][i] = code
+                fast.deck_counts[p][code] += 1
+            fast.hand_len[p] = len(state.players[p].hand)
             for card_id in state.players[p].hand:
                 fast.hand[p][self.id_to_code[card_id]] += 1
             fast.discard_len[p] = len(state.players[p].discard)
@@ -448,10 +459,7 @@ cdef class FastEngine:
         return fast
 
     cdef inline int hand_size(self, FastState state, int player) noexcept:
-        cdef int i, total = 0
-        for i in range(self.n_cards):
-            total += state.hand[player][i]
-        return total
+        return state.hand_len[player]
 
     cdef inline bint line_disabled(self, FastState state) noexcept:
         cdef int p, card
@@ -668,6 +676,7 @@ cdef class FastEngine:
 
     cdef inline void return_to_hand(self, FastState state, int player, int card) noexcept:
         state.hand[player][card] += 1
+        state.hand_len[player] += 1
         state.known_hidden[1 - player][player][card] += 1
 
     cdef inline void take_from_hand(self, FastState state, int player, int card, int hidden_kind) noexcept:
@@ -687,6 +696,7 @@ cdef class FastEngine:
                     if self.card_type[known] == CARD_STRATAGEM:
                         state.known_hidden[viewer][player][known] -= 1
         state.hand[player][card] -= 1
+        state.hand_len[player] -= 1
 
     cdef inline bint front_has_subject(self, FastState state, int player, int front) noexcept:
         return state.subject[slot_index(player, front, 0)] >= 0 or state.subject[slot_index(player, front, 1)] >= 0
@@ -836,7 +846,9 @@ cdef class FastEngine:
         while count > 0 and state.deck_len[player] > 0:
             state.deck_len[player] -= 1
             card = state.deck[player][state.deck_len[player]]
+            state.deck_counts[player][card] -= 1
             state.hand[player][card] += 1
+            state.hand_len[player] += 1
             count -= 1
 
     cdef void discard_battlefield(self, FastState state):
@@ -1145,17 +1157,13 @@ cdef class FastEngine:
         for card in range(self.n_cards):
             buf[n] = state.hand[player][card]; n += 1
         for card in range(self.n_cards):
-            count = 0
-            for i in range(state.deck_len[player]):
-                if state.deck[player][i] == card:
-                    count += 1
-            buf[n] = count; n += 1
+            buf[n] = state.deck_counts[player][card]; n += 1
 
         buf[n] = state.discard_len[player]; n += 1
         for i in range(state.discard_len[player]):
             buf[n] = state.discard[player][i] + 1; n += 1
 
-        buf[n] = self.hand_size(state, opponent); n += 1
+        buf[n] = state.hand_len[opponent]; n += 1
         for card in range(self.n_cards):
             buf[n] = state.known_hidden[player][opponent][card]; n += 1
         buf[n] = state.deck_len[opponent]; n += 1
