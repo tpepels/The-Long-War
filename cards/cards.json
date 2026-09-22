@@ -883,7 +883,7 @@
       "classes": [
         "memory"
       ],
-      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength**, then +1 more if you have discarded a card this **Battle**.",
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 additional **Strength**, then +1 more if you have **discarded** a card this **Battle**.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 1,
