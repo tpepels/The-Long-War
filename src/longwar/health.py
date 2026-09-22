@@ -293,9 +293,19 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
 
         if seen >= 50 and ci[0] is not None:
             if ci[0] > 0.60:
-                flags.append(_flag("combo_positive_association", "high", "Three-card sequence's lower 95% win bound exceeds 60%.", float(stats["win_rate_when_seen"])))
+                flags.append(_flag(
+                    "combo_positive_association",
+                    "diagnostic",
+                    "Observational three-card win association; inspect with paired interaction evidence before treating this as a balance defect.",
+                    float(stats["win_rate_when_seen"]),
+                ))
             elif ci[1] < 0.40:
-                flags.append(_flag("combo_negative_association", "high", "Three-card sequence's upper 95% win bound is below 40%.", float(stats["win_rate_when_seen"])))
+                flags.append(_flag(
+                    "combo_negative_association",
+                    "diagnostic",
+                    "Observational three-card win association; inspect with paired interaction evidence before treating this as a balance defect.",
+                    float(stats["win_rate_when_seen"]),
+                ))
 
         if int(stats.get("completions", 0)) >= 30 and strength_z is not None and strength_z >= 2.0:
             flags.append(_flag("combo_strength_outlier", "watch", "Three-card sequence Strength is at least two standard deviations high.", strength_z))
