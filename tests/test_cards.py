@@ -107,6 +107,42 @@ def test_expanded_pool_offers_three_hero_choices() -> None:
         "healer",
     }
 
+def test_all_cards_define_semantic_rule_blocks() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    allowed = {"property", "timing", "trigger", "effect", "continuous"}
+
+    for card in data["cards"]:
+        blocks = card["rule_blocks"]
+        assert all(block["kind"] in allowed for block in blocks)
+        assert all(block["text"].strip() for block in blocks)
+
+        if card["text"]:
+            assert blocks, card["title"]
+        else:
+            assert blocks == [], card["title"]
+
+        properties = [i for i, block in enumerate(blocks) if block["kind"] == "property"]
+        if properties:
+            assert properties == list(range(len(properties))), card["title"]
+
+        if card["type"] == "plot" and card.get("veiled"):
+            assert blocks[0]["kind"] == "property"
+            assert blocks[0]["text"] == "*Veiled.*"
+            assert [block["kind"] for block in blocks[:4]] == [
+                "property",
+                "continuous",
+                "trigger",
+                "effect",
+            ]
+
+        if card["type"] == "stratagem":
+            assert blocks[0]["kind"] == "trigger"
+            continuous = [i for i, block in enumerate(blocks) if block["kind"] == "continuous"]
+            effects = [i for i, block in enumerate(blocks) if block["kind"] == "effect"]
+            if continuous and effects:
+                assert max(effects) < min(continuous), card["title"]
+
+
 def test_player_facing_card_text_avoids_old_technical_terms() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     for card in data["cards"]:
