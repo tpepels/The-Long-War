@@ -2,7 +2,7 @@
 
 *Three Fronts. One hand. Spend carefully.*
 
-<div class="rulebook-opening">
+<div class="rulebook-opening" markdown="1">
 
 **The Long War** is a two-player card game fought across **Left**, **Center**, and **Right**. Each Battle ends when both players **Pass**. Control two Fronts to win the Battle; win two Battles to win the match.
 
