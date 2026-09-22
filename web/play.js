@@ -1181,6 +1181,46 @@ $("pass-button").addEventListener("click", () => {
   if (pass) executeAction(pass);
 });
 
+function showTermHint(term) {
+  const hint = $("term-hint");
+  if (!term || !hint) return;
+  hint.textContent = term.dataset.termHint || "";
+  hint.hidden = false;
+  const rect = term.getBoundingClientRect();
+  const hintRect = hint.getBoundingClientRect();
+  const left = Math.max(12, Math.min(
+    window.innerWidth - hintRect.width - 12,
+    rect.left + rect.width / 2 - hintRect.width / 2
+  ));
+  const below = rect.bottom + 9;
+  const top = below + hintRect.height <= window.innerHeight - 10
+    ? below
+    : Math.max(10, rect.top - hintRect.height - 9);
+  hint.style.left = left + "px";
+  hint.style.top = top + "px";
+}
+
+function hideTermHint() {
+  const hint = $("term-hint");
+  if (hint) hint.hidden = true;
+}
+
+document.addEventListener("mouseover", (event) => {
+  const term = event.target.closest?.(".game-term");
+  if (term) showTermHint(term);
+});
+document.addEventListener("mouseout", (event) => {
+  const term = event.target.closest?.(".game-term");
+  if (term && !term.contains(event.relatedTarget)) hideTermHint();
+});
+document.addEventListener("focusin", (event) => {
+  const term = event.target.closest?.(".game-term");
+  if (term) showTermHint(term);
+});
+document.addEventListener("focusout", (event) => {
+  if (event.target.closest?.(".game-term")) hideTermHint();
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !$("card-inspector").hidden) {
     closeCardInspector();
