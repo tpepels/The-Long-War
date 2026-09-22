@@ -41,7 +41,7 @@ on:
       - "tools/build_mccfr_suite.py"
       - ".github/workflows/mccfr.yml"
   push:
-    branches: [main]
+    branches: [main, feature/fullscreen-tabletop-ui]
     paths:
       - "cards/**"
       - "decks/**"
