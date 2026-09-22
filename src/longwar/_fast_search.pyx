@@ -1,5 +1,5 @@
 # cython: language_level=3, boundscheck=False, wraparound=False, initializedcheck=False, cdivision=True
-from libc.stdint cimport int8_t, int16_t, uint8_t, int32_t, uint64_t
+from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, int32_t, uint64_t
 from libc.string cimport memcpy, memset
 from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
