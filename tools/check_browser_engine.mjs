@@ -48,6 +48,10 @@ assert(view.legal_actions.length === 0, "Mulligan should not expose battle actio
 view = heuristic.mulligan([], 0);
 assert(view.viewer === 0, "Heuristic mode did not return to Player 1");
 assert(["battle", "choose_first", "complete"].includes(view.phase), "Unexpected post-mulligan phase");
+assert(
+  [...view.players.map((player) => player.hand_count)].sort((a, b) => a - b).join(",") === "10,11",
+  "Battle I starter did not receive exactly one additional opening card"
+);
 
 function settleAi(current) {
   let safety = 0;
