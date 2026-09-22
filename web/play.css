@@ -1912,7 +1912,7 @@ body.game-body::before {
 /* v0.7 playtest table scale + public-card inspection ------------------- */
 
 .tabletop-shell {
-  --hand-scale: .82;
+  --hand-scale: .77;
   --inspect-scale: 1;
   grid-template-rows: 34px 64px minmax(0, 1fr) 270px;
 }
@@ -2262,8 +2262,8 @@ body.game-body::before {
 
 @media (max-height: 940px) {
   .tabletop-shell {
-    --hand-scale: .68;
-    grid-template-rows: 32px 56px minmax(0, 1fr) 220px;
+    --hand-scale: .61;
+    grid-template-rows: 32px 56px minmax(0, 1fr) 225px;
   }
 
   .board-card {
@@ -2281,8 +2281,8 @@ body.game-body::before {
 
 @media (max-height: 820px) {
   .tabletop-shell {
-    --hand-scale: .56;
-    grid-template-rows: 30px 48px minmax(0, 1fr) 180px;
+    --hand-scale: .53;
+    grid-template-rows: 30px 48px minmax(0, 1fr) 200px;
   }
 
   .battlefield-table {
