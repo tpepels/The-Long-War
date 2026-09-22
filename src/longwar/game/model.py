@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections import Counter
-from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
 
@@ -114,7 +113,72 @@ class GameState:
     observations: list[ObservationEvent] = field(default_factory=list)
 
     def clone(self) -> "GameState":
-        return deepcopy(self)
+        """Fast structural copy used heavily by search.
+
+        Card ids, enums and ObservationEvent objects are immutable, so only
+        mutable containers and mutable state records need to be copied.
+        Avoiding deepcopy here removes a large amount of MCCFR overhead while
+        preserving full branch isolation.
+        """
+        players = [
+            PlayerState(
+                deck=list(player.deck),
+                hand=list(player.hand),
+                discard=list(player.discard),
+                victories=player.victories,
+                passed=player.passed,
+            )
+            for player in self.players
+        ]
+        board = [
+            [
+                [
+                    Slot(
+                        subject=slot.subject,
+                        link=slot.link,
+                        name=slot.name,
+                        temporary_strength=slot.temporary_strength,
+                    )
+                    for slot in front
+                ]
+                for front in side
+            ]
+            for side in self.board
+        ]
+        schemes = [
+            [
+                None
+                if scheme is None
+                else SchemeState(card_id=scheme.card_id, revealed=scheme.revealed)
+                for scheme in side
+            ]
+            for side in self.schemes
+        ]
+        stratagems = [
+            None
+            if stratagem is None
+            else StratagemState(
+                card_id=stratagem.card_id,
+                revealed=stratagem.revealed,
+            )
+            for stratagem in self.stratagems
+        ]
+        return GameState(
+            players=players,
+            board=board,
+            schemes=schemes,
+            stratagems=stratagems,
+            stratagem_used=list(self.stratagem_used),
+            active_player=self.active_player,
+            battle=self.battle,
+            phase=self.phase,
+            discarded_this_battle=list(self.discarded_this_battle),
+            pass_order=list(self.pass_order),
+            chooser=self.chooser,
+            winner=self.winner,
+            turn_number=self.turn_number,
+            observations=list(self.observations),
+        )
 
     def slot(self, player: int, position: Position) -> Slot:
         return self.board[player][int(position.front)][RANK_INDEX[position.rank]]
