@@ -36,7 +36,6 @@ try:
     from ._fast_search import (
         FastCFRNode as PrimitiveCFRNode,
         FastEngine as PrimitiveFastEngine,
-        FastRNG as PrimitiveRNG,
         make_scratch as make_primitive_scratch,
         packed_external_sampling_traverse,
         stable_information_id_from_fast_key,
@@ -44,7 +43,6 @@ try:
 except ImportError:
     PrimitiveCFRNode = None
     PrimitiveFastEngine = None
-    PrimitiveRNG = None
     make_primitive_scratch = None
     packed_external_sampling_traverse = None
     stable_information_id_from_fast_key = None
@@ -561,14 +559,6 @@ class MCCFRTrainer:
             )
             else None
         )
-        self._primitive_rng = (
-            PrimitiveRNG(seed ^ 0xA0761D6478BD642F)
-            if (
-                self._primitive_engine is not None
-                and PrimitiveRNG is not None
-            )
-            else None
-        )
         self._used_primitive_training = False
         self.iterations = 0
         self._leaf_agent = HeuristicAgent(seed=seed, exploration=0.0)
@@ -597,7 +587,7 @@ class MCCFRTrainer:
                         depth=0,
                         max_depth=self.max_depth,
                         nodes=self._primitive_nodes,
-                        rng=self._primitive_rng,
+                        rng=self.rng,
                         leaf_scale=self.leaf_scale,
                         scratch=self._primitive_scratch,
                     )
