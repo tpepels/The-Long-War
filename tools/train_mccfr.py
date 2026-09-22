@@ -33,8 +33,8 @@ def main() -> None:
     parser.add_argument(
         "--workers",
         type=int,
-        default=0,
-        help="0 = all detected CPUs (default); 1 = sequential; >1 = parallel replicas",
+        default=1,
+        help="1 = fast sequential native solver (default); 0 = all detected CPUs; >1 = experimental parallel replicas",
     )
     parser.add_argument("--deck-a", type=Path, default=Path("decks/reference.json"))
     parser.add_argument("--deck-b", type=Path, default=Path("decks/reference.json"))
