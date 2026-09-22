@@ -28,10 +28,12 @@ jobs:
       - name: Formal Kuhn verification
         run: python tools/verify_mccfr.py --iterations 30000
       - name: Sequential depth 2 throughput
-        run: python tools/benchmark_mccfr.py --iterations 120 --depth 2 --compare-python --compare-legacy
+        run: python tools/benchmark_mccfr.py --iterations 2000 --depth 2
       - name: Sequential depth 3 throughput
-        run: python tools/benchmark_mccfr.py --iterations 30 --depth 3
+        run: python tools/benchmark_mccfr.py --iterations 500 --depth 3
+      - name: Small legacy comparison
+        run: python tools/benchmark_mccfr.py --iterations 120 --depth 2 --compare-python --compare-legacy
       - name: Parallel depth 2 throughput
-        run: python tools/benchmark_parallel_mccfr.py --workers 0 --iterations 80 --depth 2
+        run: python tools/benchmark_parallel_mccfr.py --workers 0 --iterations 2000 --depth 2
       - name: Parallel depth 3 throughput
-        run: python tools/benchmark_parallel_mccfr.py --workers 0 --iterations 20 --depth 3
+        run: python tools/benchmark_parallel_mccfr.py --workers 0 --iterations 500 --depth 3
