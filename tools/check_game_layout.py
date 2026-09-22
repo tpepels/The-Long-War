@@ -191,10 +191,10 @@ window.addEventListener("load", () => {{
   if (boardRect.width < 1 || boardRect.height < 1) fail("battlefield-collapsed");
   if (boardRect.height < shellRect.height * 0.45) fail("battlefield-too-small");
 
-  document.querySelectorAll(".board-card").forEach((card, index) => {
+  document.querySelectorAll(".board-card").forEach((card, index) => {{
     const rect = card.getBoundingClientRect();
     if (rect.width < 50 || rect.height < 68) fail("board-card-" + index + "-too-small");
-  });
+  }});
 
   document.documentElement.dataset.gameLayout = failures.length ? "fail" : "pass";
   document.getElementById("layout-result").textContent = failures.join(",");
