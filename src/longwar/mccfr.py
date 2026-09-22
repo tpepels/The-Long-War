@@ -446,7 +446,7 @@ class MCCFRTrainer:
     ) -> float:
         def next_state(current: GameState, action: Action) -> GameState:
             child = current.clone()
-            self.engine.apply(child, action)
+            self.engine.apply(child, action, validate=False)
             return child
 
         return external_sampling_traverse(
