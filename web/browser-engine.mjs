@@ -968,6 +968,11 @@ export class BrowserSession {
       public_label: label,
       private_label: privateLabel,
       events: events.map((event) => ({ ...event })),
+      position: action.position ? { ...action.position } : null,
+      front: action.front ?? null,
+      targets: (action.targets || []).map((target) => ({ ...target })),
+      move_to: action.move_to ? { ...action.move_to } : null,
+      choose_player: action.choose_player ?? null,
     };
     this.log.push(label);
 
@@ -1107,6 +1112,14 @@ export class BrowserSession {
       card_id: maySeeIdentity ? this.lastAction.card_id : null,
       label: maySeeIdentity ? this.lastAction.private_label : this.lastAction.public_label,
       events: this.lastAction.events.map((event) => ({ ...event })),
+      position: this.lastAction.position ? positionPayload(this.lastAction.position) : null,
+      front: this.lastAction.front,
+      targets: this.lastAction.targets.map((target) => ({
+        player: target.player,
+        ...positionPayload(target),
+      })),
+      move_to: this.lastAction.move_to ? positionPayload(this.lastAction.move_to) : null,
+      choose_player: this.lastAction.choose_player,
     };
   }
 
