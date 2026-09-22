@@ -59,11 +59,14 @@ function propertyLabel(card) {
     const label = titleCase(value);
     if (!values.includes(label)) values.push(label);
   }
-  return values.length
-    ? '<div class="card-properties">' +
-      values.map((value) => "<em>" + esc(value) + "</em>").join(" · ") +
-      "</div>"
-    : "";
+  const content = values.length
+    ? values.map((value) => "<em>" + esc(value) + "</em>").join(" · ")
+    : "&nbsp;";
+  return '<div class="card-properties">' + content + "</div>";
+}
+
+function ruleMarkup(card) {
+  return window.CardRules.markup(card, formatGameText, "&nbsp;");
 }
 
 function cardMarkup(card, deckLabel) {
@@ -73,11 +76,12 @@ function cardMarkup(card, deckLabel) {
   const unique = card.unique ? '<span class="unique"><em>Unique</em></span>' : "";
   return '<article class="game-card deck-card card-' + card.type +
     (card.veiled ? " card-veiled" : "") +
-    (card.hero ? " card-hero" : "") + '">' +
-    '<header class="card-header"><div><div class="card-type">' + esc(typeLabel(card)) +
-    '</div><h2>' + esc(card.title) + '</h2>' + propertyLabel(card) + '</div>' + strength + '</header>' +
+    (card.hero ? " card-hero" : "") + '" data-card-id="' + esc(card.id) + '">' +
+    '<div class="card-meta"><span class="card-type">' + esc(typeLabel(card)) + '</span>' + strength + '</div>' +
+    '<h2 class="card-title">' + esc(card.title) + '</h2>' +
+    propertyLabel(card) +
     cardArtMarkup(card) +
-    '<div class="card-rule"><p>' + (card.text ? formatGameText(card.text) : "&nbsp;") + '</p></div>' +
+    '<div class="card-rule">' + ruleMarkup(card) + '</div>' +
     '<footer class="card-footer"><span>' + unique + '</span><span>' + esc(deckLabel) + '</span></footer>' +
     '</article>';
 }
