@@ -208,7 +208,7 @@ def main() -> None:
                     "--no-sandbox",
                     "--disable-gpu",
                     "--window-size=1440,900",
-                    "--virtual-time-budget=5000",
+                    "--virtual-time-budget=9000",
                     "--dump-dom",
                     url,
                 ],
