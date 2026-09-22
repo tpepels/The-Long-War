@@ -313,6 +313,12 @@ function renderSlot(owner, front, rank) {
   const classes = ["digital-slot", slot?.subject ? "occupied" : "empty"];
   if (targetable) classes.push("targetable");
   if (stagedPlotSource && locEquals(stagedPlotSource, owner, front, rank)) classes.push("staged-source");
+  const recent = state.last_action;
+  const recentPosition =
+    (recent?.actor === owner && posEquals(recent.position, front, rank)) ||
+    (recent?.move_to && recent.actor === owner && posEquals(recent.move_to, front, rank)) ||
+    (recent?.targets || []).some((target) => locEquals(target, owner, front, rank));
+  if (recentPosition) classes.push("recent-action");
 
   const attrs =
     'data-board-owner="' + owner + '" data-board-front="' + front + '" data-board-rank="' + rank + '"';
@@ -458,6 +464,7 @@ function renderStrip() {
       '<div class="battle-medallion"><small>Opening</small><strong>Mulligan</strong></div>' +
       '<div class="turn-marker">Player ' + (state.active_player + 1) + ' · choose up to 2 returns</div>';
     $("pass-button").hidden = true;
+    $("draw-button").hidden = true;
     return;
   }
 
@@ -476,11 +483,17 @@ function renderStrip() {
     '</div>';
 
   const pass = actionForPass();
-  const button = $("pass-button");
-  button.hidden = !pass || state.viewer == null;
-  button.disabled = !pass || state.viewer == null;
-  button.classList.toggle("danger-pass", !!pass && state.players[opponentOf(currentViewer())].passed);
-  button.textContent = state.players[opponentOf(currentViewer())].passed ? "Pass · score Battle" : "Pass";
+  const passButton = $("pass-button");
+  passButton.hidden = !pass || state.viewer == null;
+  passButton.disabled = !pass || state.viewer == null;
+  passButton.classList.toggle("danger-pass", !!pass && state.players[opponentOf(currentViewer())].passed);
+  passButton.textContent = state.players[opponentOf(currentViewer())].passed ? "Pass · score Battle" : "Pass";
+
+  const draw = actionForDraw();
+  const drawButton = $("draw-button");
+  drawButton.hidden = !draw || state.viewer == null;
+  drawButton.disabled = !draw || state.viewer == null;
+  drawButton.textContent = "Draw 1";
 }
 
 function renderOpponentRack() {
@@ -606,6 +619,14 @@ function renderInteraction() {
     return;
   }
 
+  if (state.needs_ai) {
+    title.textContent = "Opponent’s turn";
+    hint.textContent = "Watch the battlefield: the opponent’s action will resolve before your next turn.";
+    cancel.hidden = true;
+    tray.hidden = true;
+    return;
+  }
+
   if (!selectedCardId) {
     const choose = state.legal_actions.filter((a) => a.kind === "ChooseFirst");
     if (choose.length) {
@@ -613,17 +634,15 @@ function renderInteraction() {
       hint.textContent = "The loser of the previous Battle chooses the first player.";
     } else {
       title.textContent = "Choose a card";
-      hint.textContent = "Click a card, or drag it onto a highlighted position. Press P to Pass.";
+      hint.textContent = "Play a card, Draw 1 once this Battle, or Pass. Legal destinations highlight when you select a card.";
     }
     cancel.hidden = true;
   } else {
     const card = cards[selectedCardId];
     title.textContent = card.title;
     let message = interactionHintFor(card);
-    if ($("show-reasons").checked) {
-      const reason = selectedActions()[0]?.reason;
-      if (reason) message += " " + reason;
-    }
+    const reason = selectedActions()[0]?.reason;
+    if (reason) message += " " + reason;
     hint.textContent = message;
     cancel.hidden = false;
   }
@@ -694,7 +713,7 @@ function renderHand() {
         mulligan: true,
         copyLabel: total > 1 ? ordinal + "/" + total : "",
         attrs: 'data-mulligan-index="' + index + '"',
-        footer: selected ? "RETURN THIS COPY" : "KEEP",
+        footer: selected ? "REDRAW THIS CARD" : "KEEP",
       });
     }).join("");
 
@@ -713,8 +732,12 @@ function renderHand() {
 
     const count = mulliganSelection.size;
     actions.innerHTML =
-      '<button type="button" class="initiative-button" id="confirm-mulligan">' +
-      (count ? "Return " + count + " card" + (count === 1 ? "" : "s") : "Keep this hand") +
+      '<div class="mulligan-action-copy">' +
+        '<strong>' + (count ? count + " selected" : "No cards selected") + '</strong>' +
+        '<span>' + (count ? "These cards will be shuffled back and replaced." : "Keep all 10 cards and begin the Battle.") + '</span>' +
+      '</div>' +
+      '<button type="button" class="initiative-button mulligan-confirm" id="confirm-mulligan">' +
+      (count ? "Redraw " + count + " selected" : "Keep all 10") +
       "</button>";
     $("confirm-mulligan").addEventListener("click", submitMulligan);
     window.CardLayoutGuard?.schedule(hand);
