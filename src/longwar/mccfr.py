@@ -23,7 +23,7 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase, Position, Rank
-from .mccfr_core import CFRNode, external_sampling_traverse
+from .mccfr_core import BACKEND, CFRNode, external_sampling_traverse
 
 
 def _counter_view(cards: list[str]) -> list[list[Any]]:
@@ -488,6 +488,7 @@ class MCCFRTrainer:
         return {
             "schema_version": 1,
             "algorithm": "depth_limited_external_sampling_mccfr",
+            "execution_backend": BACKEND,
             "iterations": self.iterations,
             "traversals": self.iterations * 2,
             "max_depth": self.max_depth,
