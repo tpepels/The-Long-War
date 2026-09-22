@@ -1900,7 +1900,7 @@ body.game-body {
 .digital-hand {
   width: 100%;
   max-width: 1480px;
-  min-height: 284px;
+  min-height: 306px;
   margin: 0 auto;
   padding: 8px 24px 2px;
   display: flex;
@@ -1915,14 +1915,14 @@ body.game-body {
 .play-card {
   --card-accent: #796a50;
   --card-wash: #d7c29b;
-  flex: 0 0 196px;
-  width: 196px;
+  flex: 0 0 204px;
+  width: 204px;
   max-width: none;
-  height: 274px;
+  height: 286px;
   aspect-ratio: auto;
-  margin-left: -38px;
-  display: flex;
-  flex-direction: column;
+  margin-left: -40px;
+  display: grid;
+  grid-template-rows: 24px 42px 18px 54px 120px 24px;
   border: 2px solid #17130e;
   border-radius: 9px;
   background:
@@ -1948,7 +1948,7 @@ body.game-body {
 
 .play-card.playable:hover,
 .play-card.selected {
-  margin-left: -38px;
+  margin-left: -40px;
   transform: translateY(-17px) scale(1.035);
 }
 
@@ -1959,24 +1959,34 @@ body.game-body {
 }
 
 .play-card-meta {
-  min-height: 25px;
-  padding: 9px 10px 2px;
+  height: 24px;
+  min-height: 0;
+  padding: 7px 10px 2px;
+  overflow: hidden;
   color: color-mix(in srgb, var(--card-accent) 80%, #1c1914);
 }
 
 .play-card h3 {
+  height: 42px;
   min-height: 0;
-  margin: 3px 11px 0;
+  margin: 0;
+  padding: 5px 11px 0;
+  overflow: hidden;
   color: #1b1711;
-  font: 600 19px/.96 Georgia, serif;
+  font: 600 18.5px/.98 Georgia, serif;
   letter-spacing: -.015em;
 }
 
 .play-card-properties {
-  min-height: 17px;
-  margin: 5px 11px 0;
+  height: 18px;
+  min-height: 0;
+  margin: 0;
+  padding: 3px 11px 0;
+  overflow: hidden;
   color: #554b3b;
-  font-size: 8px;
+  font: 700 8px/1.2 system-ui, sans-serif;
+  letter-spacing: .035em;
+  white-space: nowrap;
 }
 
 .play-card-strength {
@@ -1990,9 +2000,9 @@ body.game-body {
 }
 
 .play-card-art {
-  flex: 0 0 66px;
-  height: 66px;
-  margin: 8px 10px 0;
+  min-height: 0;
+  height: auto;
+  margin: 4px 10px 2px;
   border: 1px solid color-mix(in srgb, var(--card-accent) 60%, #201b15);
   background:
     linear-gradient(140deg, color-mix(in srgb, var(--card-accent) 16%, transparent), transparent 60%),
@@ -2000,13 +2010,13 @@ body.game-body {
 }
 
 .play-card-rules {
-  flex: 1 1 auto;
+  height: 120px;
   min-height: 0;
   margin: 0;
-  padding: 9px 11px 7px;
+  padding: 7px 11px 6px;
   overflow: hidden;
   color: #201b15;
-  font: 10.8px/1.22 Georgia, serif;
+  font: 10.2px/1.18 Georgia, serif;
 }
 
 .play-card-rules strong {
@@ -2016,11 +2026,18 @@ body.game-body {
 }
 
 .play-card footer {
-  flex: 0 0 24px;
+  height: 24px;
+  min-height: 0;
   padding: 7px 10px 6px;
+  overflow: hidden;
   border-top: 1px solid color-mix(in srgb, var(--card-accent) 30%, transparent);
   color: #675b48;
   font-size: 6.5px;
+}
+
+.play-card.layout-overflow {
+  outline: 3px solid #a52f28;
+  outline-offset: 2px;
 }
 
 
