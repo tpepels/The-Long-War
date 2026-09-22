@@ -81,7 +81,7 @@ def simulate_games(
 
     for game_index in range(games):
         first_player = game_index % 2
-        state = engine.new_game(
+        preview = engine.new_game(
             deck_a,
             deck_b,
             seed=seed + game_index,
@@ -105,6 +105,19 @@ def simulate_games(
                 online_depth=online_depth,
             ),
         ]
+        mulligan_indices = tuple(
+            agent.choose_mulligan(engine, preview.players[player].hand)
+            if hasattr(agent, "choose_mulligan")
+            else ()
+            for player, agent in enumerate(agents)
+        )
+        state = engine.new_game(
+            deck_a,
+            deck_b,
+            seed=seed + game_index,
+            first_player=first_player,
+            mulligan_indices=mulligan_indices,
+        )
         telemetry.start_game(state)
 
         action_count = 0
