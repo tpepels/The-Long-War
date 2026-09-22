@@ -8,6 +8,7 @@ from pathlib import Path
 
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
+from longwar.fingerprint import current_game_fingerprint
 from longwar.mccfr import MCCFRTrainer
 from longwar.mccfr_core import BACKEND
 from longwar.parallel_mccfr import train_parallel_mccfr
@@ -77,6 +78,7 @@ def main() -> None:
 
     payload["training_seed"] = args.seed
     payload["training_summary"] = summary
+    payload["game_fingerprint"] = current_game_fingerprint()
 
     output = resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
