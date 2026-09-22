@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from longwar.fingerprint import current_game_fingerprint
+
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
 
@@ -38,14 +40,29 @@ def simulation_summary(data: dict[str, Any] | None) -> dict[str, Any] | None:
 
 
 def main() -> None:
+    game_fingerprint = current_game_fingerprint()
+    stale_files: set[str] = set()
+
+    def current(name: str) -> dict[str, Any] | None:
+        data = load(name)
+        if data is None:
+            return None
+        if data.get("game_fingerprint") != game_fingerprint:
+            stale_files.add(name)
+            return None
+        return data
+
+    # Static/card-health reports are generated in the current workflow. Dynamic
+    # simulations and expensive solver/counterfactual artifacts must explicitly
+    # match this ruleset before they may influence the lab.
     health = load("balance-health.json")
     static = load("balance-report.json")
-    selfplay = load("heuristic-selfplay.json") or load("pages-selfplay.json")
-    policy = load("mccfr-policy.json")
-    mccfr_suite = load("mccfr-suite.json")
+    selfplay = current("heuristic-selfplay.json") or current("pages-selfplay.json")
+    policy = current("mccfr-policy.json")
+    mccfr_suite = current("mccfr-suite.json")
     verification = load("mccfr-verification.json")
-    counterfactual = load("counterfactual-balance.json")
-    targeted = load("targeted-online-counterfactual.json")
+    counterfactual = current("counterfactual-balance.json")
+    targeted = current("targeted-online-counterfactual.json")
 
     if health is None:
         raise SystemExit("balance-health.json is required")
@@ -121,7 +138,7 @@ def main() -> None:
         "online_mccfr_vs_heuristic": "online-mccfr-vs-heuristic.json",
     }
     matchups = {
-        key: simulation_summary(load(filename))
+        key: simulation_summary(current(filename))
         for key, filename in matchup_files.items()
     }
     if matchups["heuristic_selfplay"] is None:
@@ -186,10 +203,13 @@ def main() -> None:
     downloads = sorted(
         path.name
         for path in ARTIFACTS.glob("*.json")
+        if path.name not in stale_files
     )
 
     report = {
         "schema_version": 1,
+        "game_fingerprint": game_fingerprint,
+        "stale_evidence": sorted(stale_files),
         "health": health,
         "static": static,
         "matchups": matchups,
