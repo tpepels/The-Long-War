@@ -514,6 +514,7 @@ class MCCFRTrainer:
         if self.deck_b is not None:
             self.engine.validate_deck(self.deck_b)
         self.rng = random.Random(seed)
+        self.chance_rng = random.Random(seed ^ 0x5F3759DF)
         self.seed = seed
         self.max_depth = max_depth
         self.leaf_scale = leaf_scale
@@ -530,13 +531,11 @@ class MCCFRTrainer:
 
         utility_sum = [0.0, 0.0]
         for _ in range(iterations):
-            chance_seed = self.rng.randrange(0, 2**31)
-            first_player = self.rng.randrange(2)
-            root = self.engine.new_game(
+            root = self.engine._new_game_with_rng(
                 self.deck_a,
                 self.deck_b,
-                seed=chance_seed,
-                first_player=first_player,
+                rng=self.chance_rng,
+                first_player=self.chance_rng.randrange(2),
             )
             for traverser in (0, 1):
                 utility_sum[traverser] += self._traverse(
