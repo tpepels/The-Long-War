@@ -647,6 +647,10 @@ class MCCFRTrainer:
                 "average_strategy": node.average_strategy(keys),
                 "current_strategy": node.strategy(keys),
                 "regret_sum": {key: node.regret_sum[key] for key in keys},
+                "strategy_sum": {
+                    key: node.strategy_sum.get(key, 0.0)
+                    for key in keys
+                },
             }
 
         return {
