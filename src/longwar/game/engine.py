@@ -120,6 +120,116 @@ class GameEngine:
             if card["type"] == "plot" and card.get("veiled", False)
         }
 
+        # Strength-related runtime metadata. These tuples mirror the validated
+        # card data but avoid nested dict decoding inside every search leaf.
+        self._subject_strength: dict[str, int] = {}
+        self._subject_role: dict[str, str] = {}
+        self._subject_role_values: dict[str, tuple[int, int, int, int]] = {}
+        self._subject_conditions: dict[
+            str,
+            tuple[tuple[int, str | None, int | None, bool], ...],
+        ] = {}
+        self._subject_adjacent_aura: dict[str, int] = {}
+        self._subject_aura_rank: dict[str, str | None] = {}
+
+        self._link_runtime: dict[
+            str,
+            tuple[int, int, int, int, int, bool],
+        ] = {}
+        self._name_runtime: dict[str, tuple[int, str | None, int]] = {}
+        self._scheme_front_bonus: dict[str, int] = {}
+        self._stratagem_continuous: dict[
+            str,
+            tuple[
+                dict[str, int],
+                dict[str, int],
+                dict[str, int],
+                int,
+                int,
+                bool,
+            ],
+        ] = {}
+
+        for card_id, card in self.cards.items():
+            card_type = card["type"]
+            rules = card.get("rules", {})
+            if card_type == "subject":
+                role = card["role"]
+                role_rules = ROLE_POSITION_RULES.get(role, {})
+                self._subject_strength[card_id] = int(card["strength"])
+                self._subject_role[card_id] = role
+                self._subject_role_values[card_id] = (
+                    int(role_rules.get("front_bonus", 0)),
+                    int(role_rules.get("front_with_rear_bonus", 0)),
+                    int(role_rules.get("rear_bonus", 0)),
+                    int(role_rules.get("rear_with_front_bonus", 0)),
+                )
+                self._subject_conditions[card_id] = tuple(
+                    (
+                        int(modifier["amount"]),
+                        modifier.get("when", {}).get("rank"),
+                        (
+                            int(modifier.get("when", {})["own_discard_at_least"])
+                            if "own_discard_at_least" in modifier.get("when", {})
+                            else None
+                        ),
+                        bool(
+                            modifier.get("when", {}).get(
+                                "adjacent_subject_has_name",
+                                False,
+                            )
+                        ),
+                    )
+                    for modifier in rules.get("strength_modifiers", [])
+                )
+                self._subject_adjacent_aura[card_id] = int(
+                    rules.get("adjacent_strength_aura", 0)
+                )
+                self._subject_aura_rank[card_id] = rules.get(
+                    "aura_requires_rank"
+                )
+
+            elif card_type == "link":
+                discard_bonus = rules.get("discard_strength_bonus") or {}
+                self._link_runtime[card_id] = (
+                    int(rules.get("strength_bonus", 0)),
+                    int(rules.get("named_strength_bonus", 0)),
+                    int(discard_bonus.get("per_card", 0)),
+                    int(discard_bonus.get("maximum", 0)),
+                    int(rules.get("opposing_front_modifier", 0)),
+                    bool(rules.get("protect_subject_from_opponent_plot", False)),
+                )
+
+            elif card_type == "name":
+                rank_bonus = rules.get("rank_strength_bonus") or {}
+                self._name_runtime[card_id] = (
+                    int(card["strength"]),
+                    rank_bonus.get("rank"),
+                    int(rank_bonus.get("amount", 0)),
+                )
+
+            elif card_type == "plot" and card.get("veiled", False):
+                scheme = rules.get("scheme", {})
+                self._scheme_front_bonus[card_id] = int(
+                    scheme.get("face_down_front_bonus", 0)
+                )
+
+            elif card_type == "stratagem":
+                continuous = rules.get("stratagem", {}).get("continuous", {})
+                self._stratagem_continuous[card_id] = (
+                    dict(continuous.get("role_strength_modifiers", {})),
+                    dict(continuous.get("rank_strength_modifiers", {})),
+                    dict(
+                        continuous.get(
+                            "controller_rank_strength_modifiers",
+                            {},
+                        )
+                    ),
+                    int(continuous.get("named_subject_modifier", 0)),
+                    int(continuous.get("unnamed_subject_modifier", 0)),
+                    bool(continuous.get("disable_line_defense", False)),
+                )
+
         self._pass_action = Pass()
         self._choose_first_actions = (ChooseFirst(0), ChooseFirst(1))
         self._subject_action_templates = {
