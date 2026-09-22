@@ -107,7 +107,7 @@ class HeuristicAgent:
             return self._score_pass(engine, state, player)
 
         clone = state.clone()
-        engine.apply(clone, action)
+        engine.apply(clone, action, validate=False)
         score = self._state_value(engine, clone, player)
 
         # The engine state already includes a Link's immediate Strength and a
@@ -143,7 +143,7 @@ class HeuristicAgent:
         player: int,
     ) -> float:
         clone = state.clone()
-        engine.apply(clone, Pass())
+        engine.apply(clone, Pass(), validate=False)
 
         # If passing resolves the Battle, the ordinary state evaluator can
         # directly value the resulting Victory marker / match result.
