@@ -65,6 +65,20 @@
       if (verticallyOverlaps(a, b)) failures.push(aLabel + "-" + bLabel + "-overlap");
     }
 
+    if (type === "game-card") {
+      const badge = card.querySelector(".strength");
+      const meta = card.querySelector(".card-meta");
+      if (badge && outside(card, badge)) failures.push("strength-outside");
+      if (badge && meta) {
+        const metaRect = meta.getBoundingClientRect();
+        const badgeRect = badge.getBoundingClientRect();
+        const overflow = getComputedStyle(meta).overflow;
+        if (overflow !== "visible" && badgeRect.bottom > metaRect.bottom + 1) {
+          failures.push("strength-clipped");
+        }
+      }
+    }
+
     if (failures.length) {
       card.classList.add("layout-overflow");
       card.dataset.layoutOverflow = failures.join(",");
