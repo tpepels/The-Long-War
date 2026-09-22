@@ -1,4 +1,4 @@
-.PHONY: install test test-fast test-algorithm test-integration check check-mccfr mccfr-smoke verify-mccfr simulate-smoke pages
+.PHONY: install test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages
 
 install:
 	python -m pip install -e '.[dev]'
@@ -21,7 +21,13 @@ check: test-fast test-integration
 	python tools/analyze_telemetry.py --simulation artifacts/simulation-report.json
 	python tools/build_pages.py
 
-check-mccfr: test-algorithm verify-mccfr mccfr-smoke
+check-mccfr: check-native-mccfr test-algorithm verify-mccfr mccfr-smoke
+
+check-native-mccfr:
+	python -c "from longwar.mccfr_core import ACCELERATED, BACKEND; print(f'MCCFR backend: {BACKEND}'); assert ACCELERATED"
+
+benchmark-mccfr:
+	python tools/benchmark_mccfr.py --iterations 25 --depth 2
 
 mccfr-smoke:
 	python tools/train_mccfr.py --iterations 5 --depth 2 --output artifacts/mccfr-smoke.json
