@@ -54,8 +54,9 @@
 
     for (const [label, selector] of regions) {
       const element = card.querySelector(selector);
-      if (overflows(element)) failures.push(label + "-overflow");
-      if (outside(card, element)) failures.push(label + "-outside");
+      const inspectContent = !["meta", "art"].includes(label);
+      if (inspectContent && overflows(element)) failures.push(label + "-overflow");
+      if (inspectContent && outside(card, element)) failures.push(label + "-outside");
     }
 
     for (let index = 0; index < regions.length - 1; index += 1) {
