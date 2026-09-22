@@ -48,3 +48,28 @@ def test_game_layout_checker_covers_standard_desktop_sizes() -> None:
     assert "root-scroll" in checker
     assert "hand-card-" in checker
     assert "shell-outside-viewport" in checker
+
+
+def test_live_player_uses_native_browser_runtime_not_pyodide() -> None:
+    play = text("web/play.js")
+    engine = text("web/browser-engine.mjs")
+    build = text("tools/build_pages.py")
+
+    assert 'BrowserSession' in play
+    assert 'browser-engine.mjs' in play
+    assert 'new Worker(' not in play
+    assert 'Pyodide' not in play
+    assert 'Pyodide' not in engine
+    assert not (ROOT / "web" / "play-worker.js").exists()
+    assert "python-bundle.json" not in build
+    assert "version_static_assets" in build
+
+
+def test_start_match_is_covered_by_real_browser_smoke() -> None:
+    checker = text("tools/check_play_start.py")
+    workflow = text(".github/workflows/ci.yml")
+
+    assert "form.requestSubmit()" in checker
+    assert 'data-play-smoke="pass"' in checker
+    assert "check_browser_engine.mjs" in workflow
+    assert "check_play_start.py --require-browser" in workflow
