@@ -23,6 +23,7 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "gives +2" in rules
     assert "player who Passed second counts as active" not in rules
     assert "optional **Draw** action per Battle" in rules
+    assert "first player draws **1 additional opening card**" in rules
     assert "play 1 card, Draw 1, or Pass" in text("web/playmat.html")
 
 
