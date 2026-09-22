@@ -175,9 +175,19 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
 
         if played_n >= 100 and played_ci[0] is not None:
             if played_ci[0] > 0.56:
-                flags.append(_flag("positive_outcome_association", "high", "Lower 95% win bound when played exceeds 56%.", float(stats["win_rate_when_played"])))
+                flags.append(_flag(
+                    "positive_outcome_association",
+                    "diagnostic",
+                    "Observational win association when played; inspect with paired counterfactual evidence before treating this as card strength.",
+                    float(stats["win_rate_when_played"]),
+                ))
             elif played_ci[1] < 0.44:
-                flags.append(_flag("negative_outcome_association", "high", "Upper 95% win bound when played is below 44%.", float(stats["win_rate_when_played"])))
+                flags.append(_flag(
+                    "negative_outcome_association",
+                    "diagnostic",
+                    "Observational win association when played; inspect with paired counterfactual evidence before treating this as card weakness.",
+                    float(stats["win_rate_when_played"]),
+                ))
 
         for flag in flags:
             counts[flag["severity"]] += 1
@@ -205,13 +215,11 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         strong_signals = {
             "auto_play",
             "board_swing_outlier",
-            "positive_outcome_association",
         }
         weak_signals = {
             "low_conversion",
             "dead_draw",
             "dead_on_pass",
-            "negative_outcome_association",
         }
         codes = {flag["code"] for flag in flags}
         has_strong = bool(codes & strong_signals)
@@ -331,6 +339,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "legends_observed": len(legends),
             "flags_high": counts["high"],
             "flags_watch": counts["watch"],
+            "flags_diagnostic": counts["diagnostic"],
             "card_levels": dict(Counter(row["balance_level"] for row in cards)),
         },
         "cards": cards,
@@ -358,7 +367,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"Games: **{report['source']['games']}** · Agents: **{' vs '.join(report['source']['agents'])}**  ",
         f"First-player win: **{100*g['first_player_win_rate']:.1f}%** "
         f"(95% Wilson {100*low:.1f}%–{100*high:.1f}%)  ",
-        f"High flags: **{s['flags_high']}** · Watch flags: **{s['flags_watch']}**",
+        f"High flags: **{s['flags_high']}** · Watch flags: **{s['flags_watch']}** · Diagnostic associations: **{s.get('flags_diagnostic', 0)}**",
         "",
         "## Flagged cards",
         "",
