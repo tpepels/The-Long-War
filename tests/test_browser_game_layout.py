@@ -107,3 +107,28 @@ def test_battlefield_has_minimum_visual_scale_and_public_card_inspection() -> No
     assert ".card-inspector .play-card" in css
     assert ".opponent-army [data-inspect-card]" in smoke
     assert "public battlefield card did not open inspector" in smoke
+
+
+def test_first_playtest_ui_exposes_draw_paced_actions_and_term_help() -> None:
+    html = text("web/play.html")
+    play = text("web/play.js")
+    css = text("web/play.css")
+    engine = text("web/browser-engine.mjs")
+    smoke = text("tools/check_play_start.py")
+
+    assert 'id="draw-button"' in html
+    assert 'id="action-banner"' in html
+    assert 'id="term-hint"' in html
+    assert "actionForDraw" in play
+    assert "scheduleAiStep" in play
+    assert 'type: "ai_step"' in play
+    assert "TERM_HINTS" in play
+    assert 'class="game-term"' in play
+    assert "mulligan-confirm" in play
+    assert "aiStep()" in engine
+    assert "needs_ai:" in engine
+    assert ".action-banner" in css
+    assert ".term-hint" in css
+    assert ".draw-button" in css
+    assert "human action did not produce a visible action banner" in smoke
+    assert "opponent action was not shown before returning control" in smoke
