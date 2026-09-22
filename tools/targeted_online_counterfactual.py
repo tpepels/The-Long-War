@@ -41,6 +41,9 @@ def main() -> None:
 
     card_data = load_card_file(ROOT / "cards" / "cards.json")
     broad = json.loads(resolve(args.broad).read_text(encoding="utf-8"))
+    fingerprint = current_game_fingerprint()
+    if broad.get("game_fingerprint") != fingerprint:
+        raise SystemExit("Broad counterfactual report belongs to an older ruleset; rerun it first")
     report = run_targeted_online_validation(
         card_data,
         broad,
@@ -56,7 +59,7 @@ def main() -> None:
         force_top=args.force_top,
     )
 
-    report["game_fingerprint"] = current_game_fingerprint()
+    report["game_fingerprint"] = fingerprint
 
     output = resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
