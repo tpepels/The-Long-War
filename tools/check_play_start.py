@@ -104,8 +104,18 @@ def main() -> None:
     }
 
     if (stage === "mulligan") {
+      const setup = document.getElementById("play-setup");
+      const game = document.getElementById("game");
       const confirm = document.getElementById("confirm-mulligan");
       if (!confirm) return;
+      if (!setup?.hidden || getComputedStyle(setup).display !== "none") {
+        fail("start overlay remains visible after match start");
+        return;
+      }
+      if (game?.hidden || getComputedStyle(game).display === "none") {
+        fail("game scene is still hidden after match start");
+        return;
+      }
       if (document.querySelectorAll("#hand .play-card").length !== 10) {
         fail("mulligan did not render ten cards");
         return;
