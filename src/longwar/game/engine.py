@@ -216,10 +216,17 @@ class GameEngine:
 
         return actions
 
-    def apply(self, state: GameState, action: Action) -> None:
-        legal = self.legal_actions(state)
-        if action not in legal:
-            raise IllegalAction(f"Illegal action: {action!r}")
+    def apply(
+        self,
+        state: GameState,
+        action: Action,
+        *,
+        validate: bool = True,
+    ) -> None:
+        if validate:
+            legal = self.legal_actions(state)
+            if action not in legal:
+                raise IllegalAction(f"Illegal action: {action!r}")
 
         if isinstance(action, ChooseFirst):
             state.active_player = action.player
