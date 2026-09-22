@@ -14,6 +14,13 @@ On the battlefield, position matters. **Subjects** stand in the **Frontline** or
 
 > **First game?** Read through **A Battle, from beginning to end**, then start playing. Use the Reference section when a question comes up.
 
+<div class="rulebook-at-a-glance">
+  <div><b>YOUR TURN</b><span>Optionally set 1 Stratagem, then play 1 card or Pass.</span></div>
+  <div><b>WIN A BATTLE</b><span>Control 2 of 3 Fronts. Total Strength breaks a 1–1–1/0–0–0 style deadlock; first passer breaks the final tie.</span></div>
+  <div><b>BETWEEN BATTLES</b><span>Clear the battlefield, keep your hand, draw 3. The loser chooses who starts next.</span></div>
+  <div><b>WIN THE MATCH</b><span>Win 2 Battles.</span></div>
+</div>
+
 ### Reading cards and rules
 
 **Bold** words are game terms or rules actions: **Subject**, **Bond**, **Name**, **Story**, **Stratagem**, **Strength**, **Front**, **Pass**, **discard**, **return**, and **move**.
@@ -108,7 +115,7 @@ Every Subject has a printed *role*. Roles have standard formation rules.
 | *Swordsman* | +1 Strength in the **Frontline**. |
 | *Spearman* | +1 Strength in the **Frontline** if a friendly Subject is directly behind it. |
 | *Archer* | +2 Strength in the **Rear** if a friendly Subject is directly in front of it. |
-| *Healer* | Must be played in the Rear; the friendly Subject directly in front of it gets +2 Strength. |
+| *Healer* | While in the **Rear**, the friendly Subject directly in front of it gets +2 Strength. Current Healer cards are printed *Rear only*. |
 | *Ship* | +1 Strength in the **Rear**. |
 | *Stronghold* | +1 Strength in the **Rear**. |
 
@@ -219,10 +226,12 @@ Examples:
 
 A Story with the *Veiled* property is played face-down in a Front. You may have at most one Veiled Story in each Front.
 
-The current Veiled Stories give +1 Strength in their Front while face-down. When the printed trigger occurs:
+A face-down Veiled Story contributes the hidden Front bonus printed in its rule. Most current Veiled Stories give +1 Strength; *No Fires Burned* gives +2.
+
+When the printed trigger occurs:
 
 1. reveal the Story;
-2. remove its face-down +1;
+2. remove its face-down Front bonus;
 3. resolve its effect;
 4. discard it.
 
@@ -256,7 +265,7 @@ If it never triggers, reveal it only after the Battle has been scored, then disc
 
 Both players may have a Stratagem in play. Strength modifiers from revealed Stratagems stack. A rule that switches something off, such as *The Tide Rose* disabling Line Defense, remains off while that Stratagem is revealed.
 
-The six reference Stratagems are intentionally double-edged:
+The reference deck uses six deliberately double-edged Stratagems:
 
 - *The Storm Broke* helps Ships and hinders Archers.
 - *The Tide Rose* helps Ships and removes Line Defense.
@@ -264,6 +273,8 @@ The six reference Stratagems are intentionally double-edged:
 - *The Bronze Teeth* punishes an opposing Frontline arrival, then weakens your own Frontline.
 - *The False Muster* cancels one opposing immediate Story, then prevents you from playing immediate Stories.
 - *The Wooden Gift* weakens named Subjects and strengthens unnamed Subjects.
+
+The expanded pool also contains *The Broken Mast* and *The Quiet Field*. Their full text is authoritative; they follow the same set/reveal/continue timing above.
 
 ---
 
@@ -424,7 +435,7 @@ For each occupied Subject position:
 
 A Front's Strength is its Frontline + Rear + Front-level modifiers.
 
-Final Subject Strength cannot fall below 0 unless a card explicitly says otherwise.
+Final Subject Strength cannot fall below 0.
 
 ## Position language
 
@@ -507,12 +518,12 @@ There is no reaction stack. A Stratagem is set only on its controller's turn, be
 For a normal card play:
 
 1. announce the card and all required targets;
-2. if an opposing hidden Stratagem cancels that play, reveal and resolve it;
+2. if it is an immediate Story and an opposing *The False Muster* triggers, reveal the Stratagem and cancel that Story;
 3. otherwise resolve the played card completely;
-4. resolve Veiled Stories triggered by that play;
-5. reveal and resolve Stratagems triggered by that play.
+4. resolve any Veiled Stories triggered by that play;
+5. reveal and resolve any Stratagems triggered by that play.
 
-*The False Muster* is currently the only Stratagem that can cancel a play in step 2. It cancels an immediate Story, never a Veiled Story.
+*The False Muster* cancels an immediate Story before that Story resolves. It never cancels a Veiled Story.
 
 When a player Passes:
 
@@ -523,7 +534,7 @@ When a player Passes:
 
 If both hidden Stratagems trigger from the same event, reveal the active player's Stratagem first, then the opponent's. Apply all continuing effects together afterward.
 
-At Battle end, the player who Passed second counts as active for any other simultaneous end-of-Battle effects. Reveal any Stratagem still face-down only after scoring.
+Reveal any Stratagem still face-down only after scoring. Its newly revealed continuing effect cannot change the result that was already determined.
 
 ## Hidden and public information
 
