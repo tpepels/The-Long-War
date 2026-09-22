@@ -22,6 +22,8 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "No Fires Burned" in rules
     assert "gives +2" in rules
     assert "player who Passed second counts as active" not in rules
+    assert "optional **Draw** action per Battle" in rules
+    assert "play 1 card, Draw 1, or Pass" in text("web/playmat.html")
 
 
 def test_rulebook_healer_language_matches_engine_semantics() -> None:
@@ -135,6 +137,7 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     assert "FIRST" in page and "TO PASS" in page
     assert page.count("BATTLE WIN") == 4
     assert "STRATAGEM USED" in page
+    assert page.count("DRAW USED") == 2
     for modifier in ("+1", "+2", "+3", "-1", "-2", "-3"):
         assert modifier in page
     assert "Do not place a public Strength marker for a face-down" in page
@@ -163,3 +166,15 @@ def test_rulebook_opening_renders_markdown_and_sections_have_column_wrappers() -
     assert '<section class="rule-section">' in rendered
     assert ".rule-section" in css
     assert "break-inside: avoid-column;" in css
+
+
+def test_balance_lab_hides_dynamic_evidence_from_other_rulesets() -> None:
+    builder = text("tools/build_lab_report.py")
+    script = text("web/balance.js")
+    fingerprint = text("src/longwar/fingerprint.py")
+
+    assert "current_game_fingerprint" in builder
+    assert '"stale_evidence": sorted(stale_files)' in builder
+    assert 'data.get("game_fingerprint") != game_fingerprint' in builder
+    assert "Solver evidence needs a fresh run for this ruleset" in script
+    assert "FINGERPRINT_PATHS" in fingerprint
