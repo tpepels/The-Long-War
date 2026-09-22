@@ -52,6 +52,8 @@ assert(
   [...view.players.map((player) => player.hand_count)].sort((a, b) => a - b).join(",") === "10,11",
   "Battle I starter did not receive exactly one additional opening card"
 );
+assert(view.opening_player === view.active_player, "Opening player is not exposed consistently");
+assert(view.players[view.opening_player].hand_count === 11, "Opening player does not have 11 cards");
 
 function settleAi(current) {
   let safety = 0;
