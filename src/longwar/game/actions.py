@@ -49,6 +49,11 @@ class SetStratagem:
 
 
 @dataclass(frozen=True)
+class Draw:
+    pass
+
+
+@dataclass(frozen=True)
 class Pass:
     pass
 
@@ -58,4 +63,4 @@ class ChooseFirst:
     player: int
 
 
-Action: TypeAlias = PlaySubject | PlayLink | PlayName | PlayPlot | PlayScheme | SetStratagem | Pass | ChooseFirst
+Action: TypeAlias = PlaySubject | PlayLink | PlayName | PlayPlot | PlayScheme | SetStratagem | Draw | Pass | ChooseFirst
