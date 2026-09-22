@@ -1020,7 +1020,7 @@ function cancelAiStep() {
   document.body.classList.remove("ai-waiting", "ai-resolving");
 }
 
-function scheduleAiStep(delay = 1150) {
+function scheduleAiStep(delay = 2000) {
   cancelAiStep();
   if (!state?.needs_ai || state.phase === "complete") return;
   document.body.classList.add("ai-waiting");
@@ -1038,7 +1038,7 @@ function scheduleAiStep(delay = 1150) {
       state = await request({ type: "ai_step" });
       clearSelection();
       render();
-      if (state.needs_ai) scheduleAiStep(1050);
+      if (state.needs_ai) scheduleAiStep(1950);
     } catch (error) {
       $("engine-status").textContent = "Opponent action failed";
       $("interaction-hint").textContent = error.message;
