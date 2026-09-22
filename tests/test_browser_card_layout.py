@@ -14,7 +14,7 @@ def test_browser_hand_cards_use_one_fixed_internal_geometry() -> None:
     assert "flex: 0 0 204px;" in css
     assert "width: 204px;" in css
     assert "height: 286px;" in css
-    assert "grid-template-rows: 20px 48px 30px 24px 136px 24px;" in css
+    assert "grid-template-rows: 20px 48px 30px 162px 24px;" in css
     assert "scale(var(--inspect-scale));" in css
     assert "card-density-" not in css
 
