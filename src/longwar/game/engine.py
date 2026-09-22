@@ -94,6 +94,32 @@ class GameEngine:
         self.card_data = card_data
         self.cards = card_index(card_data)
 
+        # Flatten immutable dispatch metadata used at every search node.
+        self._card_types = {
+            card_id: card["type"]
+            for card_id, card in self.cards.items()
+        }
+        self._subject_required_rank = {
+            card_id: card.get("rules", {}).get("placement", {}).get("rank")
+            for card_id, card in self.cards.items()
+            if card["type"] == "subject"
+        }
+        self._name_attach_effect = {
+            card_id: card.get("rules", {}).get("on_name_attached")
+            for card_id, card in self.cards.items()
+            if card["type"] == "name"
+        }
+        self._plot_effects = {
+            card_id: card.get("rules", {}).get("effect")
+            for card_id, card in self.cards.items()
+            if card["type"] == "plot"
+        }
+        self._veiled_story_ids = {
+            card_id
+            for card_id, card in self.cards.items()
+            if card["type"] == "plot" and card.get("veiled", False)
+        }
+
     @classmethod
     def from_file(cls, path: str) -> "GameEngine":
         return cls(load_card_file(path))
@@ -190,23 +216,21 @@ class GameEngine:
             raise RuntimeError("A passed player cannot become active")
 
         actions: list[Action] = [Pass()]
-        unique_hand = list(dict.fromkeys(state.players[player].hand))
 
-        for card_id in unique_hand:
-            card = self.cards[card_id]
-            card_type = card["type"]
+        for card_id in dict.fromkeys(state.players[player].hand):
+            card_type = self._card_types[card_id]
 
             if card_type == "subject":
-                actions.extend(self._subject_actions(state, player, card))
+                actions.extend(self._subject_actions(state, player, card_id))
             elif card_type == "link":
-                actions.extend(self._link_actions(state, player, card))
+                actions.extend(self._link_actions(state, player, card_id))
             elif card_type == "name":
-                actions.extend(self._name_actions(state, player, card))
+                actions.extend(self._name_actions(state, player, card_id))
             elif card_type == "plot":
-                if card.get("veiled", False):
-                    actions.extend(self._scheme_actions(state, player, card))
+                if card_id in self._veiled_story_ids:
+                    actions.extend(self._scheme_actions(state, player, card_id))
                 elif not self._immediate_story_locked(state, player):
-                    actions.extend(self._plot_actions(state, player, card))
+                    actions.extend(self._plot_actions(state, player, card_id))
             elif card_type == "stratagem":
                 if (
                     not state.stratagem_used[player]
@@ -765,54 +789,54 @@ class GameEngine:
         self,
         state: GameState,
         player: int,
-        card: dict[str, Any],
+        card_id: str,
     ) -> Iterable[Action]:
-        required_rank = card.get("rules", {}).get("placement", {}).get("rank")
+        required_rank = self._subject_required_rank[card_id]
         for position in ALL_POSITIONS:
             if state.slot(player, position).occupied:
                 continue
             if required_rank is not None and position.rank.value != required_rank:
                 continue
-            yield PlaySubject(card["id"], position)
+            yield PlaySubject(card_id, position)
 
     def _link_actions(
         self,
         state: GameState,
         player: int,
-        card: dict[str, Any],
+        card_id: str,
     ) -> Iterable[Action]:
         for position in ALL_POSITIONS:
             slot = state.slot(player, position)
             if slot.subject is not None and slot.link is None:
-                yield PlayLink(card["id"], position)
+                yield PlayLink(card_id, position)
 
     def _name_actions(
         self,
         state: GameState,
         player: int,
-        card: dict[str, Any],
+        card_id: str,
     ) -> Iterable[Action]:
+        on_name_attached = self._name_attach_effect[card_id]
         for position in ALL_POSITIONS:
             slot = state.slot(player, position)
             if slot.subject is None or slot.link is None or slot.name is not None:
                 continue
 
-            on_name_attached = card.get("rules", {}).get("on_name_attached")
             if on_name_attached == "move_adjacent_optional":
-                yield PlayName(card["id"], position, None)
+                yield PlayName(card_id, position, None)
                 for destination in self._adjacent_positions(position):
                     if not state.slot(player, destination).occupied:
-                        yield PlayName(card["id"], position, destination)
+                        yield PlayName(card_id, position, destination)
             else:
-                yield PlayName(card["id"], position)
+                yield PlayName(card_id, position)
 
     def _plot_actions(
         self,
         state: GameState,
         player: int,
-        card: dict[str, Any],
+        card_id: str,
     ) -> Iterable[Action]:
-        effect = card.get("rules", {}).get("effect")
+        effect = self._plot_effects[card_id]
 
         if effect == "discredit_subject":
             target_player = 1 - player
@@ -823,7 +847,7 @@ class GameEngine:
                 if self._subject_protected_from_opponent_plot(slot):
                     continue
                 yield PlayPlot(
-                    card["id"],
+                    card_id,
                     (BoardTarget(target_player, position),),
                 )
             return
@@ -837,7 +861,7 @@ class GameEngine:
                 if self._subject_protected_from_opponent_plot(slot):
                     continue
                 yield PlayPlot(
-                    card["id"],
+                    card_id,
                     (BoardTarget(target_player, position),),
                 )
             return
@@ -857,7 +881,7 @@ class GameEngine:
                     if required_rank is not None and destination.rank.value != required_rank:
                         continue
                     yield PlayPlot(
-                        card["id"],
+                        card_id,
                         (
                             BoardTarget(player, source),
                             BoardTarget(player, destination),
@@ -866,7 +890,7 @@ class GameEngine:
             return
 
         if effect is None:
-            yield PlayPlot(card["id"])
+            yield PlayPlot(card_id)
             return
 
         raise NotImplementedError(f"Unsupported plot effect: {effect}")
@@ -875,11 +899,11 @@ class GameEngine:
         self,
         state: GameState,
         player: int,
-        card: dict[str, Any],
+        card_id: str,
     ) -> Iterable[Action]:
         for front in FRONTS:
             if state.schemes[player][int(front)] is None:
-                yield PlayScheme(card["id"], front)
+                yield PlayScheme(card_id, front)
 
     def _immediate_story_locked(
         self,
