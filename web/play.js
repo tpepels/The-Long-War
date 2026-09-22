@@ -51,6 +51,7 @@ const TERM_HINTS = {
   "discard": "Move a card to its owner's discard pile.",
   "discarded": "Moved to the discard pile.",
   "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
+  "draw": "Spend your normal action to draw 1 card. You may do this once per Battle.",
   "front": "One of the three lanes: Left, Center, or Right.",
   "frontline": "The position nearest the Battle Line. It normally receives +1 Line Defense.",
   "frontline subject": "The Subject occupying the Frontline position of that Front.",
@@ -58,6 +59,7 @@ const TERM_HINTS = {
   "line defense": "The default +1 Strength bonus given to a Subject in the Frontline.",
   "move": "Relocate a Subject, keeping its attached Bond and Name unless the effect says otherwise.",
   "name": "An attachment played onto an open Bond. A Subject can have one Name.",
+  "pass": "End your participation in this Battle. You take no more turns until the next Battle.",
   "passes": "Pass ends that player's participation in the current Battle; they take no more turns.",
   "rear": "The position behind the Frontline in the same Front.",
   "rear subject": "The Subject occupying the Rear position of that Front.",
@@ -78,7 +80,7 @@ const TERM_HINTS = {
 function termMarkup(label) {
   const key = String(label).trim().toLowerCase();
   const hint = TERM_HINTS[key] || "An important game term. See the rulebook for its full definition.";
-  return '<strong class="game-term" tabindex="0" data-term-hint="' + esc(hint) + '">' + label + '</strong>';
+  return '<strong class="game-term" data-term-hint="' + esc(hint) + '">' + label + '</strong>';
 }
 
 function formatGameText(value) {
