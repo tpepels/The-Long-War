@@ -52,17 +52,19 @@ function titleCase(value) {
     .join(" ");
 }
 
-function cardProperties(card) {
-  const values = [];
-  if (card.type === "subject" && card.role) values.push(titleCase(card.role));
-  for (const value of card.classes || []) {
-    if (value === "hero") continue;
-    const label = titleCase(value);
-    if (!values.includes(label)) values.push(label);
-  }
-  return values;
+function cardPropertyMarkup(card) {
+  const classes = (card.classes || [])
+    .filter((value) => value !== "hero" && value !== card.role)
+    .map((value) => titleCase(value));
+  const role = card.type === "subject" && card.role
+    ? '<span class="play-card-role"><strong>' + esc(titleCase(card.role)) + '</strong><span>' +
+      esc(window.CardRules.roleHint(card)) + '</span></span>'
+    : "";
+  const classMarkup = classes.length
+    ? '<span class="play-card-classes">' + classes.map((value) => '<em>' + esc(value) + '</em>').join(' · ') + '</span>'
+    : '<span class="play-card-classes">&nbsp;</span>';
+  return role + classMarkup;
 }
-
 
 function request(payload) {
   return new Promise((resolve, reject) => {
@@ -166,10 +168,7 @@ function playCardMarkup(cardId, options = {}) {
       ? '<span class="copy-badge copy-index">' + esc(options.copyLabel) + '</span>'
       : "";
   const footer = options.footer || "";
-  const properties = cardProperties(card);
-  const propertyMarkup = properties.length
-    ? properties.map((value) => '<em>' + esc(value) + '</em>').join(' · ')
-    : '&nbsp;';
+  const propertyMarkup = cardPropertyMarkup(card);
 
   return '<article class="' + classes.filter(Boolean).join(" ") + '" data-card-id="' + esc(cardId) + '" ' + (options.attrs || "") + '>' +
     '<div class="play-card-meta"><span>' + esc(cardType(card)) + '</span>' + badge + '</div>' +

@@ -14,13 +14,14 @@ def test_browser_hand_cards_use_one_fixed_internal_geometry() -> None:
     assert "flex: 0 0 204px;" in css
     assert "width: 204px;" in css
     assert "height: 286px;" in css
-    assert "grid-template-rows: 22px 54px 16px 36px 130px 24px;" in css
+    assert "grid-template-rows: 20px 48px 30px 24px 136px 24px;" in css
+    assert "scale(var(--inspect-scale));" in css
     assert "card-density-" not in css
 
 
 def test_print_cards_use_six_fixed_internal_zones() -> None:
     css = text("web/style.css")
-    assert "grid-template-rows: 7mm 15mm 6mm 17mm minmax(0, 1fr) 6.5mm;" in css
+    assert "grid-template-rows: 6mm 13mm 8mm 10mm minmax(0, 1fr) 5mm;" in css
 
     for renderer in ("web/cards.js", "web/playtest-kit.js"):
         source = text(renderer)

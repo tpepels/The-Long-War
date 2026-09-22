@@ -311,6 +311,7 @@ body.game-body::before {
 
 .tabletop-shell {
   --hand-scale: 1;
+  --inspect-scale: 1;
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -1130,7 +1131,7 @@ body.game-body::before {
   z-index: 20;
   display: grid;
   grid-template-rows: 34px minmax(0, 1fr);
-  overflow: hidden;
+  overflow: visible;
   border: 0;
   border-top: 1px solid rgba(185,146,74,.3);
   background:
@@ -1237,7 +1238,7 @@ body.game-body::before {
   align-items: flex-end;
   justify-content: center;
   gap: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .play-card {
@@ -1251,7 +1252,7 @@ body.game-body::before {
   margin-left: -56px;
   position: relative;
   display: grid;
-  grid-template-rows: 22px 54px 16px 36px 130px 24px;
+  grid-template-rows: 20px 48px 30px 24px 136px 24px;
   overflow: hidden;
   border: 2px solid #17130e;
   border-radius: 9px;
@@ -1318,11 +1319,11 @@ body.game-body::before {
 
 .play-card.playable:hover,
 .play-card.selected {
-  z-index: 7;
+  z-index: 30;
   transform:
     rotate(var(--fan-rot, 0deg))
     translateY(calc(var(--fan-y, 0px) - 11px))
-    scale(var(--hand-scale));
+    scale(var(--inspect-scale));
 }
 
 .play-card.selected {
@@ -1337,9 +1338,9 @@ body.game-body::before {
 }
 
 .play-card-meta {
-  height: 22px;
+  height: 20px;
   min-height: 0;
-  padding: 6px 10px 2px;
+  padding: 5px 10px 2px;
   display: flex;
   justify-content: space-between;
   gap: 6px;
@@ -1351,32 +1352,38 @@ body.game-body::before {
 }
 
 .play-card h3 {
-  height: 54px;
+  height: 48px;
   min-height: 0;
   margin: 0;
-  padding: 5px 48px 0 11px;
+  padding: 4px 48px 0 11px;
   overflow: hidden;
   color: #1b1711;
-  font: 600 17.5px/.98 Georgia, serif;
+  font: 600 18px/.98 Georgia, serif;
   letter-spacing: -.015em;
 }
 
 .play-card-properties {
-  height: 16px;
+  height: 30px;
   min-height: 0;
   margin: 0;
-  padding: 2px 11px 0;
+  padding: 2px 11px 1px;
+  display: grid;
+  align-content: start;
+  gap: 1px;
   overflow: hidden;
-  color: #554b3b;
-  font: 700 7.5px/1.2 system-ui, sans-serif;
-  letter-spacing: .03em;
-  white-space: nowrap;
+  color: #40372a;
+  font-family: system-ui,sans-serif;
 }
+.play-card-role,.play-card-classes{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.play-card-role{display:flex;gap:4px;align-items:baseline;font-size:9px;line-height:1.08}
+.play-card-role strong{color:#2a2117;font-size:9.5px;font-weight:850}
+.play-card-role span{font-weight:650}
+.play-card-classes{color:#655744;font-size:7.5px;line-height:1.08;font-weight:650}
 
 .play-card-strength {
   position: absolute;
   right: 10px;
-  top: 30px;
+  top: 27px;
   z-index: 5;
   width: 34px;
   height: 34px;
@@ -1444,17 +1451,18 @@ body.game-body::before {
 }
 
 .play-card-rules {
-  height: 130px;
+  height: 136px;
   min-height: 0;
   margin: 0;
-  padding: 5px 11px 4px;
+  padding: 6px 11px 4px;
   overflow: hidden;
-  color: #201b15;
-  font: 9.4px/1.14 Georgia, serif;
+  color: #17130f;
+  font: 11.2px/1.16 Georgia, serif;
 }
-
-.play-card-rules .rule-block + .rule-block { margin-top: 4px; }
-.play-card-rules .rule-property { font-style: italic; }
+.play-card-rules .rule-block + .rule-block{margin-top:5px}
+.play-card-rules .rule-property{font-style:normal}
+.play-card-rules .rule-label{display:inline-block;margin:0 4px 2px 0;padding:2px 3px 1px;border:1px solid color-mix(in srgb,var(--card-accent) 55%,transparent);color:color-mix(in srgb,var(--card-accent) 78%,#17130f);font:850 7px/1 system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;vertical-align:1px}
+.play-card-rules .rule-empty{opacity:.62;font-style:italic}
 
 .play-card-rules strong {
   color: color-mix(in srgb, var(--card-accent) 72%, #15120e);

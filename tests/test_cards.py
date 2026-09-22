@@ -127,13 +127,16 @@ def test_all_cards_define_semantic_rule_blocks() -> None:
 
         if card["type"] == "plot" and card.get("veiled"):
             assert blocks[0]["kind"] == "property"
-            assert blocks[0]["text"] == "*Veiled.*"
-            assert [block["kind"] for block in blocks[:4]] == [
+            assert blocks[0]["label"] == "VEILED"
+            assert blocks[0]["text"].startswith("Face-down: +")
+            assert "**Strength** in this **Front**." in blocks[0]["text"]
+            assert [block["kind"] for block in blocks[:3]] == [
                 "property",
-                "continuous",
                 "trigger",
                 "effect",
             ]
+            assert blocks[1]["label"] == "REVEAL"
+            assert blocks[2]["label"] == "EFFECT"
 
         if card["type"] == "stratagem":
             assert blocks[0]["kind"] == "trigger"
