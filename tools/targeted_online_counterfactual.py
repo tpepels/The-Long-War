@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from longwar.cards import load_card_file
+from longwar.fingerprint import current_game_fingerprint
 from longwar.targeted_counterfactual import run_targeted_online_validation
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,6 +55,8 @@ def main() -> None:
         bootstrap_resamples=args.bootstrap_resamples,
         force_top=args.force_top,
     )
+
+    report["game_fingerprint"] = current_game_fingerprint()
 
     output = resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
