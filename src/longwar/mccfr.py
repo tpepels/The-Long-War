@@ -36,6 +36,7 @@ try:
     from ._fast_search import (
         FastCFRNode as PrimitiveCFRNode,
         FastEngine as PrimitiveFastEngine,
+        FastNodeTable as PrimitiveNodeTable,
         make_scratch as make_primitive_scratch,
         packed_external_sampling_traverse,
         stable_information_id_from_fast_key,
@@ -43,6 +44,7 @@ try:
 except ImportError:
     PrimitiveCFRNode = None
     PrimitiveFastEngine = None
+    PrimitiveNodeTable = None
     make_primitive_scratch = None
     packed_external_sampling_traverse = None
     stable_information_id_from_fast_key = None
@@ -540,7 +542,11 @@ class MCCFRTrainer:
         self.leaf_scale = leaf_scale
         self.direct_traversal = direct_traversal
         self.nodes = InformationNodeStore()
-        self._primitive_nodes: dict[bytes, Any] = {}
+        self._primitive_nodes = (
+            PrimitiveNodeTable()
+            if PrimitiveNodeTable is not None
+            else {}
+        )
         self._primitive_engine = (
             PrimitiveFastEngine(engine)
             if (
