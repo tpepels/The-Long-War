@@ -181,7 +181,8 @@ class GameState:
         )
 
     def slot(self, player: int, position: Position) -> Slot:
-        return self.board[player][int(position.front)][RANK_INDEX[position.rank]]
+        rank_index = 0 if position.rank is Rank.FRONT else 1
+        return self.board[player][int(position.front)][rank_index]
 
     def scheme(self, player: int, front: Front) -> SchemeState | None:
         return self.schemes[player][int(front)]
