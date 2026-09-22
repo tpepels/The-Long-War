@@ -1064,12 +1064,16 @@ export class BrowserSession {
       }
     } else if (
       viewer != null &&
-      viewer === state.active_player &&
       this.humanPlayers.has(viewer) &&
-      state.phase !== "complete"
+      state.phase !== "complete" &&
+      (this.mode === "heuristic" || viewer === state.active_player)
     ) {
+      // Against the AI, keep the player's hand on the table while the
+      // opponent takes its paced turn. Hot-seat still hides inactive hands.
       hand = [...state.players[viewer].hand];
-      legalActions = this.engine.legalActions(state).map((action) => this.actionView(action));
+      if (viewer === state.active_player) {
+        legalActions = this.engine.legalActions(state).map((action) => this.actionView(action));
+      }
     }
 
     return {
