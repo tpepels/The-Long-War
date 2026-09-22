@@ -1,28 +1,36 @@
-const worker = new Worker("play-worker.js", { type: "module" });
-const pending = new Map();
-let requestId = 0;
+import { BrowserSession } from "./browser-engine.mjs";
+
+let session = null;
+let cardData = null;
+let referenceDeck = null;
 let cards = {};
 let state = null;
 let selectedCardId = null;
 let stagedPlotSource = null;
 let choiceActions = [];
 let mulliganSelection = new Set();
-let engineReady = false;
 let cardsReady = false;
+
+const moduleUrl = new URL(import.meta.url);
+const buildVersion = moduleUrl.searchParams.get("v") || "";
+
+function dataUrl(path) {
+  const url = new URL(path, moduleUrl);
+  if (buildVersion) url.searchParams.set("v", buildVersion);
+  return url;
+}
 
 const $ = (id) => document.getElementById(id);
 
 function updateStartAvailability() {
-  const ready = engineReady && cardsReady;
+  const ready = cardsReady;
   $("mode").disabled = !ready;
   $("seed").disabled = !ready;
   $("randomize-seed").disabled = !ready;
   $("start-game").disabled = !ready;
   $("engine-status").textContent = ready
-    ? "Game ready"
-    : engineReady
-      ? "Loading cards…"
-      : "Loading game…";
+    ? "Ready · browser engine"
+    : "Loading cards…";
 }
 const frontNames = ["Left", "Center", "Right"];
 
@@ -66,31 +74,21 @@ function cardPropertyMarkup(card) {
   return role + classMarkup;
 }
 
-function request(payload) {
-  return new Promise((resolve, reject) => {
-    const id = ++requestId;
-    pending.set(id, { resolve, reject });
-    worker.postMessage({ id, ...payload });
-  });
-}
+async function request(payload) {
+  // Yield once so busy/loading UI paints before the small synchronous rules step.
+  await new Promise((resolve) => setTimeout(resolve, 0));
 
-worker.addEventListener("message", (event) => {
-  if (event.data.type === "ready") {
-    engineReady = true;
-    updateStartAvailability();
-    return;
+  if (payload.type === "new_game") {
+    if (!cardData || !referenceDeck) throw new Error("Game data is not loaded yet.");
+    session = new BrowserSession(cardData, referenceDeck, payload.mode, payload.seed);
+    return session.snapshot(payload.mode === "hotseat" ? null : 0);
   }
-  if (event.data.type === "boot_error") {
-    $("engine-status").textContent = "Rules engine failed to load";
-    $("setup-note").textContent = event.data.error;
-    return;
-  }
-  const entry = pending.get(event.data.id);
-  if (!entry) return;
-  pending.delete(event.data.id);
-  if (event.data.ok) entry.resolve(event.data.result);
-  else entry.reject(new Error(event.data.error));
-});
+  if (!session) throw new Error("Start a match first.");
+  if (payload.type === "view") return session.view(payload.viewer);
+  if (payload.type === "act") return session.act(payload.key, payload.viewer);
+  if (payload.type === "mulligan") return session.mulligan(payload.indices || [], payload.viewer);
+  throw new Error("Unknown game request: " + payload.type);
+}
 
 function cardTitle(cardId) {
   if (!cardId) return "—";
@@ -130,20 +128,11 @@ function cardHash(value) {
 function cardVisual(cardId, compact = false) {
   const card = cards[cardId];
   const hash = cardHash(cardId);
-  const x = 18 + (hash % 58);
-  const y = 15 + ((hash >>> 7) % 35);
-  const r = 10 + ((hash >>> 13) % 18);
   const mark = cardInitials(card.title);
   const symbol = card.type === "plot"
     ? (card.veiled ? "◐" : "⌁")
     : { subject: "◆", link: "⛓", name: "✦", stratagem: "⚑" }[card.type] || "•";
-  return '<div class="play-card-art' + (compact ? " compact" : "") + '">' +
-    '<svg viewBox="0 0 100 62" aria-hidden="true">' +
-      '<circle cx="' + x + '" cy="' + y + '" r="' + r + '"></circle>' +
-      '<path d="M4 ' + (54 - (hash % 18)) + ' Q 32 ' + (8 + (hash % 20)) +
-      ' 52 ' + (34 + ((hash >>> 4) % 20)) + ' T 96 ' + (12 + ((hash >>> 10) % 38)) + '"></path>' +
-      '<path d="M8 54 L' + (30 + (hash % 40)) + ' 12 L94 50"></path>' +
-    '</svg>' +
+  return '<div class="play-card-art motif-' + (hash % 5) + (compact ? " compact" : "") + '">' +
     '<span class="play-card-symbol">' + symbol + '</span>' +
     '<b>' + esc(mark) + '</b>' +
   '</div>';
@@ -874,23 +863,30 @@ function render() {
 
 async function runBusy(fn) {
   document.body.classList.add("is-busy");
-  $("engine-status").textContent = "Resolving…";
+  $("engine-status").textContent = "Resolving turn…";
   try {
     await fn();
-    $("engine-status").textContent = "Game ready";
+    $("engine-status").textContent = "Ready · browser engine";
   } catch (error) {
-    $("engine-status").textContent = "Could not resolve action";
-    window.alert(error.message);
+    $("engine-status").textContent = "Action failed";
+    if ($("interaction-hint")) $("interaction-hint").textContent = error.message;
+    if (!state) $("setup-note").textContent = error.message;
   } finally {
     document.body.classList.remove("is-busy");
   }
 }
 
 async function loadCards() {
-  const response = await fetch("data/cards.json", { cache: "no-store" });
-  if (!response.ok) throw new Error("Could not load card data");
-  const data = await response.json();
-  cards = Object.fromEntries(data.cards.map((card) => [card.id, card]));
+  const [cardsResponse, deckResponse] = await Promise.all([
+    fetch(dataUrl("data/cards.json"), { cache: "default" }),
+    fetch(dataUrl("data/reference-deck.json"), { cache: "default" }),
+  ]);
+  if (!cardsResponse.ok || !deckResponse.ok) {
+    throw new Error("Could not load the card or deck data.");
+  }
+  cardData = await cardsResponse.json();
+  referenceDeck = await deckResponse.json();
+  cards = Object.fromEntries(cardData.cards.map((card) => [card.id, card]));
   cardsReady = true;
   updateStartAvailability();
 }
