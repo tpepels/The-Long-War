@@ -1,0 +1,37 @@
+name: MCCFR PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/longwar/mccfr.py"
+      - "src/longwar/mccfr_core.py"
+      - "src/longwar/_mccfr_accel.pyx"
+      - "src/longwar/online_mccfr.py"
+      - "src/longwar/game/**"
+      - "src/longwar/agents/heuristic_agent.py"
+      - "tests/test_mccfr*.py"
+      - "tests/test_online_mccfr.py"
+      - "tests/test_heuristic_agent.py"
+      - "setup.py"
+      - "pyproject.toml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e '.[dev]'
+      - name: Native backend
+        run: make check-native-mccfr
+      - name: MCCFR algorithm suite
+        run: make test-algorithm
+      - name: Formal Kuhn verification
+        run: python tools/verify_mccfr.py --iterations 30000
+      - name: Performance sanity
+        run: python tools/benchmark_mccfr.py --iterations 8 --depth 2 --compare-python --compare-legacy
