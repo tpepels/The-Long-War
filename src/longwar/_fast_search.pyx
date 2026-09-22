@@ -1026,6 +1026,10 @@ cdef class FastEngine:
                     score -= 1.25
                 if margin >= -4:
                     reachable += 1
+            else:
+                # A tied Front is also a realistic catch-up target after the
+                # opponent has Passed; the reference heuristic counts it.
+                reachable += 1
             if margin > 10:
                 margin = 10
             elif margin < -10:
