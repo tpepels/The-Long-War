@@ -126,7 +126,9 @@ def main() -> None:
     }
 
     if (stage === "select") {
-      const card = document.querySelector("#hand .play-card.playable[data-hand-card]");
+      const card =
+        document.querySelector("#hand .play-card.playable.card-subject[data-hand-card]") ||
+        document.querySelector("#hand .play-card.playable[data-hand-card]");
       if (!card) return;
       beforeHistory = historyCount();
       card.click();
