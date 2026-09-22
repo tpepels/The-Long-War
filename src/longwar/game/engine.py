@@ -625,50 +625,62 @@ class GameEngine:
         position: Position,
         name_id: str,
     ) -> int:
-        """Strength gain from hypothetically attaching a Name to an open Bond.
-
-        The heuristic asks this question repeatedly. In the normal case the
-        delta can be computed from the Bond, Name and revealed Stratagems
-        without mutating the state or recomputing the complete Subject.
-        """
+        """Exact Strength gain from hypothetically attaching a Name."""
         slot = state.slot(player, position)
         if slot.subject is None or slot.link is None or slot.name is not None:
             return 0
 
-        before = self.position_strength(state, player, position)
-        link_rules = self.cards[slot.link].get("rules", {})
-        name = self.cards[name_id]
-        name_rules = name.get("rules", {})
+        (
+            _base_bonus,
+            named_bonus,
+            discard_per_card,
+            discard_maximum,
+            _opposing_modifier,
+            _protected,
+        ) = self._link_runtime[slot.link]
+        name_strength, bonus_rank, rank_bonus = self._name_runtime[name_id]
 
-        delta = int(link_rules.get("named_strength_bonus", 0))
-        discard_bonus = link_rules.get("discard_strength_bonus")
-        if discard_bonus:
+        delta = named_bonus + name_strength
+        if discard_per_card:
             delta += min(
-                state.discarded_this_battle[player]
-                * int(discard_bonus.get("per_card", 1)),
-                int(discard_bonus.get("maximum", 0)),
+                state.discarded_this_battle[player] * discard_per_card,
+                discard_maximum,
             )
+        if bonus_rank is not None and position.rank.value == bonus_rank:
+            delta += rank_bonus
 
-        delta += int(name["strength"])
-        rank_bonus = name_rules.get("rank_strength_bonus")
-        if rank_bonus and position.rank.value == rank_bonus.get("rank"):
-            delta += int(rank_bonus.get("amount", 0))
+        continuous_rules = []
+        line_defense_disabled = False
+        for controller in range(2):
+            stratagem = state.stratagem(controller)
+            if stratagem is None or not stratagem.revealed:
+                continue
+            runtime = self._stratagem_continuous[stratagem.card_id]
+            continuous_rules.append((controller, runtime))
+            delta += runtime[3] - runtime[4]
+            if runtime[5]:
+                line_defense_disabled = True
 
-        for _, rules in self._revealed_stratagem_rules(state):
-            continuous = rules.get("continuous", {})
-            delta += int(continuous.get("named_subject_modifier", 0))
-            delta -= int(continuous.get("unnamed_subject_modifier", 0))
-
-        # With a positive current Strength, all unchanged terms cancel and
-        # the additive delta is exact unless the hypothetical result would be
-        # clamped at zero.
+        before = self._position_strength_search(
+            state,
+            player,
+            position,
+            continuous_rules,
+            line_defense_disabled,
+        )
         if before > 0 and before + delta >= 0:
             return delta
 
         original_name = slot.name
         try:
             slot.name = name_id
-            after = self.position_strength(state, player, position)
+            after = self._position_strength_search(
+                state,
+                player,
+                position,
+                continuous_rules,
+                line_defense_disabled,
+            )
         finally:
             slot.name = original_name
         return after - before
@@ -677,31 +689,21 @@ class GameEngine:
         self,
         state: GameState,
     ) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
-        """Compute all six Front totals in one pass.
-
-        Search evaluates complete battlefield positions far more often than it
-        asks for one isolated position. Hoisting revealed-Stratagem decoding
-        out of the twelve position calculations avoids repeating the same
-        dynamic-rule work at every MCCFR leaf.
-        """
-        continuous_rules: list[tuple[int, dict[str, Any]]] = []
+        """Compute all six Front totals with precompiled rule metadata."""
+        continuous_rules = []
         line_defense_disabled = False
         for controller in range(2):
             stratagem = state.stratagem(controller)
             if stratagem is None or not stratagem.revealed:
                 continue
-            stratagem_rules = (
-                self.cards[stratagem.card_id]
-                .get("rules", {})
-                .get("stratagem", {})
-            )
-            continuous = stratagem_rules.get("continuous", {})
-            continuous_rules.append((controller, continuous))
-            if continuous.get("disable_line_defense"):
+            runtime = self._stratagem_continuous[stratagem.card_id]
+            continuous_rules.append((controller, runtime))
+            if runtime[5]:
                 line_defense_disabled = True
 
         totals = [[0, 0, 0], [0, 0, 0]]
         for player in range(2):
+            opponent = 1 - player
             for front in FRONTS:
                 front_position, rear_position = POSITIONS_BY_FRONT[int(front)]
                 value = self._position_strength_search(
@@ -721,25 +723,12 @@ class GameEngine:
 
                 scheme = state.scheme(player, front)
                 if scheme is not None and not scheme.revealed:
-                    scheme_rules = (
-                        self.cards[scheme.card_id]
-                        .get("rules", {})
-                        .get("scheme", {})
-                    )
-                    value += int(scheme_rules.get("face_down_front_bonus", 0))
+                    value += self._scheme_front_bonus[scheme.card_id]
 
-                opponent = 1 - player
                 for enemy_position in POSITIONS_BY_FRONT[int(front)]:
                     enemy_slot = state.slot(opponent, enemy_position)
-                    if not enemy_slot.complete:
-                        continue
-                    enemy_link = self.cards[enemy_slot.link]
-                    value += int(
-                        enemy_link.get("rules", {}).get(
-                            "opposing_front_modifier",
-                            0,
-                        )
-                    )
+                    if enemy_slot.complete:
+                        value += self._link_runtime[enemy_slot.link][4]
 
                 totals[player][int(front)] = value
 
@@ -766,93 +755,121 @@ class GameEngine:
         state: GameState,
         player: int,
         position: Position,
-        continuous_rules: list[tuple[int, dict[str, Any]]],
+        continuous_rules: list[tuple[int, Any]],
         line_defense_disabled: bool,
     ) -> int:
         slot = state.slot(player, position)
-        if slot.subject is None:
+        subject_id = slot.subject
+        if subject_id is None:
             return 0
 
-        subject = self.cards[slot.subject]
-        value = int(subject["strength"]) + slot.temporary_strength
+        value = self._subject_strength[subject_id] + slot.temporary_strength
+        rank_value = position.rank.value
+        is_front = position.rank is Rank.FRONT
 
-        if position.rank is Rank.FRONT and not line_defense_disabled:
+        if is_front and not line_defense_disabled:
             value += LINE_DEFENSE_BONUS
 
-        value += self._role_strength_bonus(
-            state,
-            player,
-            position,
-            subject,
-        )
-        value += self._support_strength_bonus(
-            state,
-            player,
-            position,
-        )
-        value += self._adjacent_aura_bonus(
-            state,
-            player,
-            position,
-        )
-
-        for modifier in subject.get("rules", {}).get("strength_modifiers", []):
-            if self._condition_matches(
-                state,
-                player,
-                position,
-                modifier.get("when", {}),
-            ):
-                value += int(modifier["amount"])
-
-        if slot.link is not None:
-            link = self.cards[slot.link]
-            link_rules = link.get("rules", {})
-            value += int(link_rules.get("strength_bonus", 0))
-
-            if slot.name is not None:
-                name = self.cards[slot.name]
-                name_rules = name.get("rules", {})
-                value += int(link_rules.get("named_strength_bonus", 0))
-
-                discard_bonus = link_rules.get("discard_strength_bonus")
-                if discard_bonus:
-                    per_card = int(discard_bonus.get("per_card", 1))
-                    maximum = int(discard_bonus.get("maximum", 0))
-                    value += min(
-                        state.discarded_this_battle[player] * per_card,
-                        maximum,
-                    )
-
-                value += int(name["strength"])
-                rank_bonus = name_rules.get("rank_strength_bonus")
-                if (
-                    rank_bonus
-                    and position.rank.value == rank_bonus.get("rank")
-                ):
-                    value += int(rank_bonus.get("amount", 0))
-
-        role = subject.get("role")
-        rank = position.rank.value
-        named = slot.name is not None
-        for controller, continuous in continuous_rules:
-            value += int(
-                continuous.get("role_strength_modifiers", {}).get(role, 0)
-            )
-            value += int(
-                continuous.get("rank_strength_modifiers", {}).get(rank, 0)
-            )
-            if controller == player:
-                value += int(
-                    continuous.get(
-                        "controller_rank_strength_modifiers",
-                        {},
-                    ).get(rank, 0)
+        (
+            front_bonus,
+            front_with_rear_bonus,
+            rear_bonus,
+            rear_with_front_bonus,
+        ) = self._subject_role_values[subject_id]
+        if is_front:
+            value += front_bonus
+            if front_with_rear_bonus:
+                rear = state.slot(player, REAR_POSITIONS[int(position.front)])
+                if rear.subject is not None:
+                    value += front_with_rear_bonus
+        else:
+            value += rear_bonus
+            if rear_with_front_bonus:
+                frontline = state.slot(
+                    player,
+                    FRONTLINE_POSITIONS[int(position.front)],
                 )
+                if frontline.subject is not None:
+                    value += rear_with_front_bonus
+
+        if is_front:
+            rear = state.slot(player, REAR_POSITIONS[int(position.front)])
+            if (
+                rear.subject is not None
+                and self._subject_role[rear.subject] == "healer"
+            ):
+                value += 2
+
+        for adjacent in ADJACENT_POSITIONS[position]:
+            adjacent_subject = state.slot(player, adjacent).subject
+            if adjacent_subject is None:
+                continue
+            aura = self._subject_adjacent_aura[adjacent_subject]
+            if not aura:
+                continue
+            required_rank = self._subject_aura_rank[adjacent_subject]
+            if required_rank is None or adjacent.rank.value == required_rank:
+                value += aura
+
+        for (
+            amount,
+            required_rank,
+            discard_at_least,
+            adjacent_subject_has_name,
+        ) in self._subject_conditions[subject_id]:
+            if required_rank is not None and rank_value != required_rank:
+                continue
+            if (
+                discard_at_least is not None
+                and len(state.players[player].discard) < discard_at_least
+            ):
+                continue
+            if adjacent_subject_has_name and not any(
+                state.slot(player, adjacent).name is not None
+                for adjacent in ADJACENT_POSITIONS[position]
+            ):
+                continue
+            value += amount
+
+        named = slot.name is not None
+        if slot.link is not None:
+            (
+                base_bonus,
+                named_bonus,
+                discard_per_card,
+                discard_maximum,
+                _opposing_modifier,
+                _protected,
+            ) = self._link_runtime[slot.link]
+            value += base_bonus
+
             if named:
-                value += int(continuous.get("named_subject_modifier", 0))
-            else:
-                value += int(continuous.get("unnamed_subject_modifier", 0))
+                value += named_bonus
+                if discard_per_card:
+                    value += min(
+                        state.discarded_this_battle[player] * discard_per_card,
+                        discard_maximum,
+                    )
+                name_strength, bonus_rank, rank_bonus = self._name_runtime[slot.name]
+                value += name_strength
+                if bonus_rank is not None and rank_value == bonus_rank:
+                    value += rank_bonus
+
+        role = self._subject_role[subject_id]
+        for controller, runtime in continuous_rules:
+            (
+                role_modifiers,
+                rank_modifiers,
+                controller_rank_modifiers,
+                named_modifier,
+                unnamed_modifier,
+                _disable_line_defense,
+            ) = runtime
+            value += int(role_modifiers.get(role, 0))
+            value += int(rank_modifiers.get(rank_value, 0))
+            if controller == player:
+                value += int(controller_rank_modifiers.get(rank_value, 0))
+            value += named_modifier if named else unnamed_modifier
 
         return max(0, value)
 
