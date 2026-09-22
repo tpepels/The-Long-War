@@ -11,7 +11,12 @@ import pytest
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Position, Rank
 from longwar.game.model import SchemeState, StratagemState
-from longwar.mccfr import information_set_id, information_set_observation
+from longwar.mccfr import (
+    _search_information_set_key,
+    _stable_id_from_search_key,
+    information_set_id,
+    information_set_observation,
+)
 from longwar.mccfr_core import (
     ACCELERATED,
     CFRNode,
@@ -65,6 +70,13 @@ def test_fast_information_key_preserves_exported_id() -> None:
 
     assert information_set_id(state, 0) == legacy_information_set_id(state, 0)
     assert information_set_id(state, 1) == legacy_information_set_id(state, 1)
+
+    assert _stable_id_from_search_key(
+        _search_information_set_key(state, 0)
+    ) == information_set_id(state, 0)
+    assert _stable_id_from_search_key(
+        _search_information_set_key(state, 1)
+    ) == information_set_id(state, 1)
 
 
 def _run_kuhn(traverse, *, seed: int = 7331, rounds: int = 80):
