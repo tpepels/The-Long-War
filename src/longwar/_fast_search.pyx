@@ -109,26 +109,6 @@ cdef inline int action_player(uint64_t action) noexcept:
     return <int>((action >> 21) & 1)
 
 
-cdef class FastRNG:
-    cdef uint64_t state
-
-    def __init__(self, unsigned long long seed):
-        self.state = <uint64_t>seed ^ 0x9E3779B97F4A7C15
-        if self.state == 0:
-            self.state = 0xD1B54A32D192ED03
-
-    cdef inline uint64_t next_u64(self) noexcept:
-        cdef uint64_t x = self.state
-        x ^= x >> 12
-        x ^= x << 25
-        x ^= x >> 27
-        self.state = x
-        return x * 2685821657736338717
-
-    cdef inline double next_double(self) noexcept:
-        return (self.next_u64() >> 11) * (1.0 / 9007199254740992.0)
-
-
 cdef class FastState:
     cdef int8_t deck[2][MAX_DECK]
     cdef uint8_t deck_len[2]
@@ -1458,7 +1438,7 @@ cdef double _packed_traverse(
     int depth,
     int max_depth,
     object nodes,
-    FastRNG rng,
+    object rng,
     double leaf_scale,
     double reach0,
     double reach1,
@@ -1530,7 +1510,7 @@ cdef double _packed_traverse(
         n,
         reach0 if actor == 0 else reach1,
     )
-    threshold = rng.next_double()
+    threshold = rng.random()
     sampled_index = n - 1
     for i in range(n):
         cumulative += probabilities[i]
@@ -1563,7 +1543,7 @@ def packed_external_sampling_traverse(
     int depth,
     int max_depth,
     nodes,
-    FastRNG rng,
+    rng,
     double leaf_scale=100.0,
     scratch=None,
 ):
