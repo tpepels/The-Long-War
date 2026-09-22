@@ -2742,6 +2742,28 @@ body.game-body::before {
 }
 
 @media (max-height: 820px) {
+  /* Preserve the battlefield at laptop height. Hand cards stay compact in the
+     dock, but hover/selection still expands them at readable inspector scale. */
+  .tabletop-shell {
+    --hand-scale: .49;
+    grid-template-rows: 28px 46px minmax(0, 1fr) 178px;
+  }
+  .hand-dock {
+    grid-template-rows: 30px minmax(0, 1fr);
+    padding-block: 3px 4px;
+  }
+  .hand-dock > header {
+    height: 30px;
+  }
+  .opponent-rack {
+    padding-block: 0;
+  }
+  .card-back {
+    width: 32px;
+    height: 46px;
+    flex-basis: 32px;
+    margin-left: -17px;
+  }
   .orders-ribbon {
     min-height: 44px;
     padding-block: 6px;
