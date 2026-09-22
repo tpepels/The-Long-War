@@ -3,10 +3,13 @@ from __future__ import annotations
 import hashlib
 import json
 import random
+import json
+from pathlib import Path
 
 import pytest
 
-from longwar.game import Front, Position, Rank
+from longwar.cards import load_card_file
+from longwar.game import Front, GameEngine, Position, Rank
 from longwar.mccfr import information_set_id, information_set_observation
 from longwar.mccfr_core import (
     ACCELERATED,
@@ -34,8 +37,21 @@ def legacy_information_set_id(state, player: int) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def test_fast_information_key_preserves_exported_id(engine_and_state) -> None:
-    engine, state = engine_and_state
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def make_engine_and_state():
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data)
+    state = engine.new_game(deck, deck, seed=41, first_player=0)
+    return engine, state
+
+
+def test_fast_information_key_preserves_exported_id() -> None:
+    engine, state = make_engine_and_state()
 
     own = state.slot(0, Position(Front.LEFT, Rank.FRONT))
     own.subject = "the-fifty-men"
