@@ -67,6 +67,7 @@ function cloneState(state) {
 
 function actionKey(action) {
   if (action.kind === "Pass") return "pass";
+  if (action.kind === "Draw") return "draw";
   if (action.kind === "ChooseFirst") return "choose_first:" + action.choose_player;
   if (action.kind === "PlaySubject") {
     return "subject:" + action.card_id + ":" + action.position.front + ":" + action.position.rank;
@@ -118,6 +119,7 @@ class BrowserEngine {
       schemes: [[null, null, null], [null, null, null]],
       stratagems: [null, null],
       stratagem_used: [false, false],
+      draw_used: [false, false],
       discarded_this_battle: [0, 0],
       pass_order: [],
       battle: 1,
@@ -164,6 +166,9 @@ class BrowserEngine {
     const player = state.active_player;
     if (state.players[player].passed) throw new Error("A passed player cannot become active");
     const actions = [this.action("Pass")];
+    if (!state.draw_used[player] && state.players[player].deck.length) {
+      actions.push(this.action("Draw"));
+    }
 
     for (const cardId of unique(state.players[player].hand)) {
       const card = this.cards[cardId];
@@ -325,6 +330,14 @@ class BrowserEngine {
       return events;
     }
 
+    if (action.kind === "Draw") {
+      this.draw(state, actor, 1);
+      state.draw_used[actor] = true;
+      this.advanceTurn(state);
+      state.turn_number += 1;
+      return events;
+    }
+
     if (action.kind === "PlaySubject") {
       this.takeFromHand(state, actor, action.card_id);
       const target = slotAt(state, actor, action.position.front, action.position.rank);
@@ -421,6 +434,7 @@ class BrowserEngine {
     state.battle += 1;
     state.discarded_this_battle = [0, 0];
     state.stratagem_used = [false, false];
+    state.draw_used = [false, false];
     state.pass_order = [];
     for (let player = 0; player < 2; player += 1) {
       state.players[player].passed = false;
@@ -825,6 +839,7 @@ class LightweightAgent {
       this.engine.apply(clone, action, { validate: false });
       let score = this.evaluate(clone, player);
       if (action.kind === "SetStratagem") score += 3;
+      if (action.kind === "Draw") score -= 0.8;
       if (action.kind === "PlayName") score += 0.35;
       if (action.kind === "PlayScheme") score += 0.2;
       if (action.kind === "PlayLink") score += 0.1;
@@ -870,6 +885,8 @@ export class BrowserSession {
     this.mulliganPlayer = 0;
     this.mulliganChoices = new Map();
     this.log = [];
+    this.actionSerial = 0;
+    this.lastAction = null;
     this.agent = mode === "heuristic" ? new LightweightAgent(this.engine) : null;
   }
 
@@ -903,7 +920,6 @@ export class BrowserSession {
     this.state.active_player = this.rng.int(2);
     this.setupComplete = true;
     this.log.push("Battle I begins. Player " + (this.state.active_player + 1) + " goes first.");
-    this.runAiUntilHuman();
   }
 
   act(key, viewer) {
@@ -914,7 +930,6 @@ export class BrowserSession {
     const action = this.engine.legalActions(this.state).find((item) => item.key === key);
     if (!action) throw new Error("That action is no longer legal");
     this.applyWithLog(action);
-    this.runAiUntilHuman();
     if (this.mode === "hotseat") {
       return this.snapshot(action.kind === "SetStratagem" ? viewer : null);
     }
@@ -925,16 +940,16 @@ export class BrowserSession {
     return this.snapshot(viewer);
   }
 
-  runAiUntilHuman() {
-    if (!this.setupComplete || this.mode !== "heuristic") return;
-    let safety = 0;
-    while (this.state.phase !== "complete" && !this.humanPlayers.has(this.state.active_player)) {
-      safety += 1;
-      if (safety > 200) throw new Error("AI loop exceeded 200 actions");
-      const action = this.agent.choose(this.state);
-      if (!action) throw new Error("AI has no legal action");
-      this.applyWithLog(action);
+  aiStep() {
+    if (!this.setupComplete) throw new Error("Complete the opening mulligan first");
+    if (this.mode !== "heuristic") throw new Error("AI stepping is only available against the Tactical AI");
+    if (this.state.phase === "complete" || this.humanPlayers.has(this.state.active_player)) {
+      return this.snapshot(0);
     }
+    const action = this.agent.choose(this.state);
+    if (!action) throw new Error("AI has no legal action");
+    this.applyWithLog(action);
+    return this.snapshot(0);
   }
 
   applyWithLog(action) {
@@ -942,7 +957,18 @@ export class BrowserSession {
     const battleBefore = this.state.battle;
     const victoriesBefore = this.state.players.map((player) => player.victories);
     const label = this.describeAction(action, actor, false);
+    const privateLabel = this.describeAction(action, actor, true);
     const events = this.engine.apply(this.state, action);
+    this.actionSerial += 1;
+    this.lastAction = {
+      id: this.actionSerial,
+      actor,
+      kind: action.kind,
+      card_id: action.card_id || null,
+      public_label: label,
+      private_label: privateLabel,
+      events: events.map((event) => ({ ...event })),
+    };
     this.log.push(label);
 
     for (const event of events) {
@@ -1058,11 +1084,29 @@ export class BrowserSession {
       schemes,
       stratagems,
       stratagem_used: [...state.stratagem_used],
+      draw_used: [...state.draw_used],
+      needs_ai: this.setupComplete && this.mode === "heuristic" &&
+        state.phase !== "complete" && !this.humanPlayers.has(state.active_player),
+      last_action: this.lastActionView(viewer),
       front_strengths: frontStrengths,
       front_control: frontControl,
       hand,
       legal_actions: legalActions,
       log: this.log.slice(-40),
+    };
+  }
+
+  lastActionView(viewer) {
+    if (!this.lastAction) return null;
+    const hiddenPlay = this.lastAction.kind === "PlayScheme" || this.lastAction.kind === "SetStratagem";
+    const maySeeIdentity = !hiddenPlay || viewer === this.lastAction.actor;
+    return {
+      id: this.lastAction.id,
+      actor: this.lastAction.actor,
+      kind: this.lastAction.kind,
+      card_id: maySeeIdentity ? this.lastAction.card_id : null,
+      label: maySeeIdentity ? this.lastAction.private_label : this.lastAction.public_label,
+      events: this.lastAction.events.map((event) => ({ ...event })),
     };
   }
 
@@ -1087,6 +1131,7 @@ export class BrowserSession {
   describeAction(action, actor, privateText) {
     const prefix = "Player " + (actor + 1);
     if (action.kind === "Pass") return prefix + " Passes.";
+    if (action.kind === "Draw") return prefix + " draws 1 card.";
     if (action.kind === "ChooseFirst") return prefix + " chooses Player " + (action.choose_player + 1) + " to start the next Battle.";
     if (action.kind === "PlaySubject") {
       return prefix + " plays " + this.cards[action.card_id].title + " to " +
@@ -1127,6 +1172,7 @@ export class BrowserSession {
 
   legalReason(action) {
     if (action.kind === "Pass") return "Pass is always legal while you are still active in the Battle.";
+    if (action.kind === "Draw") return "Draw 1 card as your normal action. You may do this once per Battle.";
     if (action.kind === "ChooseFirst") return "The previous Battle loser chooses who takes the first turn.";
     if (action.kind === "PlaySubject") return "This is an empty legal Subject position.";
     if (action.kind === "PlayLink") return "This Subject has no Bond yet.";
