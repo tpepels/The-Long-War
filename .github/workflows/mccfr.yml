@@ -16,9 +16,9 @@ on:
         required: true
         default: "3"
       workers:
-        description: Parallel MCCFR workers (0 = all detected CPUs)
+        description: MCCFR workers (1 = recommended native solver; >1 = experimental replica pooling)
         required: true
-        default: "0"
+        default: "1"
       matchup_games:
         description: Games in each heuristic/MCCFR direction
         required: true
