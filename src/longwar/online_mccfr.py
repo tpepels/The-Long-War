@@ -7,7 +7,7 @@ from .belief import BeliefSampler, DeckPrior
 from .game.actions import Action
 from .game.engine import GameEngine
 from .game.model import GameState, Phase
-from .mccfr import MCCFRTrainer, action_key, information_set_id
+from .mccfr import MCCFRTrainer, action_key, information_set_id, information_set_key
 
 
 @dataclass(frozen=True)
@@ -64,6 +64,7 @@ class OnlineMCCFRResolver:
 
         legal = self.engine.legal_actions(state)
         keys = [action_key(action) for action in legal]
+        root_key = information_set_key(state, viewer)
         root_id = information_set_id(state, viewer)
         diagnostics = self.belief.diagnostics(state, viewer)
 
@@ -84,7 +85,7 @@ class OnlineMCCFRResolver:
             iterations=self.iterations,
         )
 
-        node = trainer.nodes.get(root_id)
+        node = trainer.nodes.get(root_key)
         if node is None:
             raise RuntimeError(
                 "Online MCCFR did not visit the current root information set"
