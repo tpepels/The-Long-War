@@ -23,3 +23,7 @@ jobs:
         run: python tools/profile_mccfr_callbacks.py --iterations 60 --depth 2
       - name: Depth 3 profile
         run: python tools/profile_mccfr_callbacks.py --iterations 12 --depth 3
+      - name: Uninstrumented depth 2 benchmark
+        run: python tools/benchmark_mccfr.py --iterations 60 --depth 2
+      - name: Parallel throughput benchmark
+        run: python tools/benchmark_parallel_mccfr.py --workers 0 --iterations 30 --depth 2
