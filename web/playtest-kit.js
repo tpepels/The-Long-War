@@ -52,21 +52,21 @@ function cardArtMarkup(card) {
 }
 
 function propertyLabel(card) {
-  const values = [];
-  if (card.type === "subject" && card.role) values.push(titleCase(card.role));
-  for (const value of card.classes || []) {
-    if (value === "hero") continue;
-    const label = titleCase(value);
-    if (!values.includes(label)) values.push(label);
-  }
-  const content = values.length
-    ? values.map((value) => "<em>" + esc(value) + "</em>").join(" · ")
-    : "&nbsp;";
-  return '<div class="card-properties">' + content + "</div>";
+  const classes = (card.classes || [])
+    .filter((value) => value !== "hero" && value !== card.role)
+    .map((value) => titleCase(value));
+  const role = card.type === "subject" && card.role
+    ? '<span class="card-role"><strong>' + esc(titleCase(card.role)) + '</strong><span>' +
+      esc(window.CardRules.roleHint(card)) + '</span></span>'
+    : "";
+  const classMarkup = classes.length
+    ? '<span class="card-classes">' + classes.map((value) => "<em>" + esc(value) + "</em>").join(" · ") + "</span>"
+    : '<span class="card-classes">&nbsp;</span>';
+  return '<div class="card-properties">' + role + classMarkup + "</div>";
 }
 
 function ruleMarkup(card) {
-  return window.CardRules.markup(card, formatGameText, "&nbsp;");
+  return window.CardRules.markup(card, formatGameText, "<em>No special rules.</em>");
 }
 
 function cardMarkup(card, deckLabel) {
@@ -99,7 +99,7 @@ async function main() {
 
   document.getElementById("playtest-decks").innerHTML = labels.map((label) =>
     '<section class="print-deck">' +
-      '<header class="deck-sheet-heading"><strong>The Long War · v0.4</strong>' +
+      '<header class="deck-sheet-heading"><strong>The Long War · v0.5</strong>' +
       '<span>' + label + ' · ' + deckData.name + ' · 30 cards</span></header>' +
       '<div class="deck-card-grid">' +
       deckData.cards.map((id) => cardMarkup(index[id], label)).join("") +
