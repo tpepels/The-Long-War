@@ -132,3 +132,6 @@ def test_first_playtest_ui_exposes_draw_paced_actions_and_term_help() -> None:
     assert ".draw-button" in css
     assert "human action did not produce a visible action banner" in smoke
     assert "opponent action was not shown before returning control" in smoke
+    assert "openingAnnouncementShown" in play
+    assert "+1 opening card" in play
+    assert "opening_player:" in engine
