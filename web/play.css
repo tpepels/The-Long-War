@@ -1251,7 +1251,7 @@ body.game-body::before {
   margin-left: -56px;
   position: relative;
   display: grid;
-  grid-template-rows: 20px 48px 30px 28px 136px 24px;
+  grid-template-rows: 20px 48px 30px 24px 136px 24px;
   overflow: hidden;
   border: 2px solid #17130e;
   border-radius: 9px;
