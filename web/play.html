@@ -50,6 +50,12 @@
 
       <section id="game" class="play-game" hidden>
         <div id="privacy-gate" class="privacy-gate" hidden></div>
+        <div id="action-banner" class="action-banner" hidden aria-live="polite">
+          <small id="action-banner-kicker">Action</small>
+          <strong id="action-banner-title">Card played</strong>
+          <span id="action-banner-detail"></span>
+        </div>
+        <div id="term-hint" class="term-hint" hidden role="tooltip"></div>
 
         <section class="tabletop-shell" aria-label="The Long War tabletop">
           <div class="campaign-hud">
@@ -89,10 +95,7 @@
               </div>
               <div id="player-piles" class="rack-piles player-piles"></div>
               <div class="hand-controls">
-                <label class="explain-toggle">
-                  <input type="checkbox" id="show-reasons">
-                  rule hints
-                </label>
+                <button type="button" id="draw-button" class="draw-button" hidden>Draw 1</button>
                 <button type="button" id="pass-button" class="pass-button" hidden>Pass</button>
               </div>
             </header>
