@@ -43,6 +43,7 @@ jobs:
       - name: Browser JavaScript syntax
         run: |
           node --check web/card-layout-guard.js
+          node --check web/card-rules.js
           node --check web/play.js
           node --check web/play-worker.js
           node --check web/playtest-kit.js
