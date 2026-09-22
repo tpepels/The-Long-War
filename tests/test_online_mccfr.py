@@ -48,7 +48,7 @@ def test_online_resolver_learns_immediate_winning_pass_with_unknown_deck() -> No
 
     p0_hidden = list(deck)
     p0_hidden.remove("the-fifty-men")
-    p0_hidden.remove("the-fifty-men")
+    p0_hidden.remove("the-three-brothers-of-avar")
     p0_hidden.remove("seven-black-ships")
     state = GameState(
         players=[
@@ -69,7 +69,7 @@ def test_online_resolver_learns_immediate_winning_pass_with_unknown_deck() -> No
         pass_order=[1],
     )
     state.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
-    state.slot(0, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
+    state.slot(0, Position(Front.CENTER, Rank.FRONT)).subject = "the-three-brothers-of-avar"
 
     resolver = OnlineMCCFRResolver(
         engine,
