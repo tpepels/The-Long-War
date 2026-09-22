@@ -5,7 +5,10 @@ import json
 from pathlib import Path
 
 from longwar.cards import load_card_file
-from longwar.counterfactual import (\n    run_counterfactual_card_sweep,\n    run_counterfactual_experiment,\n)
+from longwar.counterfactual import (
+    run_counterfactual_card_sweep,
+    run_counterfactual_experiment,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
