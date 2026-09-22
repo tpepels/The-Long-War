@@ -32,6 +32,17 @@ from .mccfr_core import (
     longwar_external_sampling_traverse,
 )
 
+try:
+    from ._fast_search import (
+        FastEngine as PrimitiveFastEngine,
+        fast_external_sampling_traverse,
+        stable_information_id_from_fast_key,
+    )
+except ImportError:
+    PrimitiveFastEngine = None
+    fast_external_sampling_traverse = None
+    stable_information_id_from_fast_key = None
+
 
 def _counter_view(cards: list[str]) -> list[list[Any]]:
     return [[card_id, count] for card_id, count in sorted(Counter(cards).items())]
@@ -525,6 +536,17 @@ class MCCFRTrainer:
         self.leaf_scale = leaf_scale
         self.direct_traversal = direct_traversal
         self.nodes = InformationNodeStore()
+        self._primitive_nodes: dict[bytes, CFRNode] = {}
+        self._primitive_engine = (
+            PrimitiveFastEngine(engine)
+            if (
+                direct_traversal
+                and PrimitiveFastEngine is not None
+                and fast_external_sampling_traverse is not None
+            )
+            else None
+        )
+        self._used_primitive_training = False
         self.iterations = 0
         self._leaf_agent = HeuristicAgent(seed=seed, exploration=0.0)
 
@@ -542,18 +564,37 @@ class MCCFRTrainer:
                 rng=self.chance_rng,
                 first_player=self.chance_rng.randrange(2),
             )
-            for traverser in (0, 1):
-                utility_sum[traverser] += self._traverse(
-                    root,
-                    traverser,
-                    depth=0,
-                )
+            if self._primitive_engine is not None:
+                fast_root = self._primitive_engine.from_game_state(root)
+                for traverser in (0, 1):
+                    utility_sum[traverser] += fast_external_sampling_traverse(
+                        self._primitive_engine,
+                        fast_root,
+                        traverser,
+                        max_depth=self.max_depth,
+                        nodes=self._primitive_nodes,
+                        rng=self.rng,
+                        node_factory=CFRNode,
+                        leaf_scale=self.leaf_scale,
+                    )
+                self._used_primitive_training = True
+            else:
+                for traverser in (0, 1):
+                    utility_sum[traverser] += self._traverse(
+                        root,
+                        traverser,
+                        depth=0,
+                    )
             self.iterations += 1
 
         return TrainingSummary(
             iterations=self.iterations,
             traversals=self.iterations * 2,
-            information_sets=len(self.nodes),
+            information_sets=(
+                len(self._primitive_nodes)
+                if self._used_primitive_training
+                else len(self.nodes)
+            ),
             max_depth=self.max_depth,
             mean_sampled_utility_p0=utility_sum[0] / iterations,
             mean_sampled_utility_p1=utility_sum[1] / iterations,
@@ -721,32 +762,75 @@ class MCCFRTrainer:
 
     def policy_payload(self) -> dict[str, Any]:
         infosets: dict[str, Any] = {}
-        for internal_key, node in self.nodes.items():
-            info_id = self.nodes.stable_id(internal_key)
-            keys = sorted(node.regret_sum)
-            infosets[info_id] = {
-                "visits": node.visits,
-                "average_visits": node.average_visits,
-                "average_strategy": node.average_strategy(keys),
-                "current_strategy": node.strategy(keys),
-                "regret_sum": {key: node.regret_sum[key] for key in keys},
-                "strategy_sum": {
-                    key: node.strategy_sum.get(key, 0.0)
-                    for key in keys
-                },
-            }
+        if self._used_primitive_training:
+            if (
+                self._primitive_engine is None
+                or stable_information_id_from_fast_key is None
+            ):
+                raise RuntimeError("Primitive MCCFR export backend is unavailable")
+            for internal_key, node in self._primitive_nodes.items():
+                info_id = stable_information_id_from_fast_key(
+                    self._primitive_engine,
+                    internal_key,
+                )
+                raw_keys = sorted(node.regret_sum)
+                serialized = {
+                    key: self._primitive_engine.action_key(key)
+                    for key in raw_keys
+                }
+                average = node.average_strategy(raw_keys)
+                current = node.strategy(raw_keys)
+                infosets[info_id] = {
+                    "visits": node.visits,
+                    "average_visits": node.average_visits,
+                    "average_strategy": {
+                        serialized[key]: average[key]
+                        for key in raw_keys
+                    },
+                    "current_strategy": {
+                        serialized[key]: current[key]
+                        for key in raw_keys
+                    },
+                    "regret_sum": {
+                        serialized[key]: node.regret_sum[key]
+                        for key in raw_keys
+                    },
+                    "strategy_sum": {
+                        serialized[key]: node.strategy_sum.get(key, 0.0)
+                        for key in raw_keys
+                    },
+                }
+        else:
+            for internal_key, node in self.nodes.items():
+                info_id = self.nodes.stable_id(internal_key)
+                keys = sorted(node.regret_sum)
+                infosets[info_id] = {
+                    "visits": node.visits,
+                    "average_visits": node.average_visits,
+                    "average_strategy": node.average_strategy(keys),
+                    "current_strategy": node.strategy(keys),
+                    "regret_sum": {key: node.regret_sum[key] for key in keys},
+                    "strategy_sum": {
+                        key: node.strategy_sum.get(key, 0.0)
+                        for key in keys
+                    },
+                }
 
         return {
             "schema_version": 1,
             "algorithm": "depth_limited_external_sampling_mccfr",
             "execution_backend": BACKEND,
             "traversal_backend": (
-                "specialized_cython_longwar"
-                if (
-                    self.direct_traversal
-                    and longwar_external_sampling_traverse is not None
+                "primitive_array_cython"
+                if self._used_primitive_training
+                else (
+                    "specialized_cython_longwar"
+                    if (
+                        self.direct_traversal
+                        and longwar_external_sampling_traverse is not None
+                    )
+                    else "generic_external_sampling"
                 )
-                else "generic_external_sampling"
             ),
             "iterations": self.iterations,
             "traversals": self.iterations * 2,
