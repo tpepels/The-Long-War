@@ -115,14 +115,20 @@ class GameEngine:
         opening_hand_size: int = 10,
         draw_action_enabled: bool = True,
         completion_draw_names: Iterable[str] = (),
+        deck_size: int = 30,
+        recycle_between_battles: bool = True,
     ):
-        if not 1 <= opening_hand_size <= 30:
-            raise ValueError("opening_hand_size must be between 1 and 30")
+        if deck_size < 1:
+            raise ValueError("deck_size must be positive")
+        if not 1 <= opening_hand_size <= deck_size:
+            raise ValueError("opening_hand_size must be between 1 and deck_size")
         self.card_data = card_data
         self.cards = card_index(card_data)
         self.opening_hand_size = opening_hand_size
         self.draw_action_enabled = draw_action_enabled
         self.completion_draw_names = frozenset(completion_draw_names)
+        self.deck_size = deck_size
+        self.recycle_between_battles = recycle_between_battles
         invalid_completion_names = [
             card_id
             for card_id in self.completion_draw_names
@@ -352,8 +358,10 @@ class GameEngine:
         return cls(load_card_file(path))
 
     def validate_deck(self, deck: list[str]) -> None:
-        if len(deck) != 30:
-            raise InvalidDeck(f"A deck must contain exactly 30 cards, got {len(deck)}")
+        if len(deck) != self.deck_size:
+            raise InvalidDeck(
+                f"A deck must contain exactly {self.deck_size} cards, got {len(deck)}"
+            )
 
         counts = Counter(deck)
         hero_count = 0
@@ -1817,13 +1825,25 @@ class GameEngine:
         state.stratagem_used = [False, False]
         state.draw_used = [False, False]
         state.pass_order.clear()
-        self._recycle_non_hand_cards(state)
+        if self.recycle_between_battles:
+            self._recycle_non_hand_cards(state)
+        else:
+            self._refill_from_remaining_deck(state)
         for player in range(2):
             state.players[player].passed = False
 
         state.phase = Phase.CHOOSE_FIRST
         state.chooser = loser
         state.active_player = loser
+
+    def _refill_from_remaining_deck(self, state: GameState) -> None:
+        for player in range(2):
+            player_state = state.players[player]
+            self._draw(
+                state,
+                player,
+                max(0, self.opening_hand_size - len(player_state.hand)),
+            )
 
     def _recycle_non_hand_cards(self, state: GameState) -> None:
         seed = state.shuffle_seed

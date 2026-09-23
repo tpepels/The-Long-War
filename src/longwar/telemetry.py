@@ -211,7 +211,7 @@ class Telemetry:
         )
         if battle_resolved:
             winner = self._battle_winner(before, state)
-            self._record_battle(engine, before, winner)
+            self._record_battle(engine, before, state, winner)
             for record in reversed(self.pass_events):
                 if record["battle"] != before.battle:
                     continue
@@ -318,6 +318,11 @@ class Telemetry:
             ),
         }
 
+        continuing_battles = [
+            record
+            for record in self.battle_records
+            if record["next_battle_hand_total"] is not None
+        ]
         battles = {
             "count": len(self.battle_records),
             "mean_actions": self._mean_field(self.battle_records, "actions"),
@@ -328,6 +333,19 @@ class Telemetry:
             "mean_abs_total_margin": self._mean_field(
                 self.battle_records,
                 "abs_total_margin",
+            ),
+            "continuing_battles": len(continuing_battles),
+            "mean_next_battle_hand_size": self._ratio(
+                sum(record["next_battle_hand_total"] for record in continuing_battles),
+                2 * len(continuing_battles),
+            ),
+            "mean_next_battle_hand_shortfall": self._ratio(
+                sum(record["next_battle_hand_shortfall"] for record in continuing_battles),
+                2 * len(continuing_battles),
+            ),
+            "next_battle_player_shortfall_rate": self._ratio(
+                sum(record["next_battle_players_below_target"] for record in continuing_battles),
+                2 * len(continuing_battles),
             ),
         }
 
@@ -469,12 +487,18 @@ class Telemetry:
         self,
         engine: GameEngine,
         before: GameState,
+        state: GameState,
         winner: int,
     ) -> None:
         totals = [
             sum(engine.front_strength(before, player, front) for front in Front)
             for player in range(2)
         ]
+        next_hand_sizes = (
+            None
+            if state.phase is Phase.COMPLETE
+            else [len(player.hand) for player in state.players]
+        )
         self.battle_records.append(
             {
                 "battle": before.battle,
@@ -484,6 +508,19 @@ class Telemetry:
                 "actions_p1": self._battle_actions[1],
                 "total_strength": totals[0] + totals[1],
                 "abs_total_margin": abs(totals[0] - totals[1]),
+                "next_battle_hand_total": (
+                    None if next_hand_sizes is None else sum(next_hand_sizes)
+                ),
+                "next_battle_hand_shortfall": (
+                    None
+                    if next_hand_sizes is None
+                    else sum(max(0, engine.opening_hand_size - size) for size in next_hand_sizes)
+                ),
+                "next_battle_players_below_target": (
+                    None
+                    if next_hand_sizes is None
+                    else sum(size < engine.opening_hand_size for size in next_hand_sizes)
+                ),
             }
         )
 

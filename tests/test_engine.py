@@ -444,6 +444,64 @@ def test_non_selected_name_does_not_draw_on_completion() -> None:
     assert state.players[0].hand == []
 
 
+def test_experiment_can_validate_larger_decks() -> None:
+    default_engine, deck = engine_and_deck()
+    larger = list(deck)
+    larger.extend(
+        [
+            "the-fifty-men",
+            "seven-black-ships",
+            "followed",
+            "swore-to",
+            "the-story-is-false",
+            "he-never-came",
+        ]
+    )
+    engine = GameEngine(default_engine.card_data, deck_size=36)
+    engine.validate_deck(larger)
+
+
+def test_no_recycle_leaves_played_cards_out_and_refills_from_remaining_deck() -> None:
+    default_engine, deck = engine_and_deck()
+    engine = GameEngine(
+        default_engine.card_data,
+        opening_hand_size=10,
+        draw_action_enabled=False,
+        recycle_between_battles=False,
+    )
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=910,
+        first_player=0,
+        opening_bonus=False,
+    )
+    initial_deck_sizes = [len(player.deck) for player in state.players]
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+    assert state.phase is Phase.CHOOSE_FIRST
+    assert [len(player.hand) for player in state.players] == [10, 10]
+    assert [len(player.deck) for player in state.players] == initial_deck_sizes
+
+    state.phase = Phase.BATTLE
+    state.active_player = 0
+    state.chooser = None
+    state.slot(0, CENTER_FRONT).subject = state.players[0].hand.pop()
+    state.slot(1, CENTER_FRONT).subject = state.players[1].hand.pop()
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.phase is Phase.CHOOSE_FIRST
+    assert [len(player.discard) for player in state.players] == [1, 1]
+    assert [len(player.hand) for player in state.players] == [10, 10]
+    assert [len(player.deck) for player in state.players] == [
+        initial_deck_sizes[0] - 1,
+        initial_deck_sizes[1] - 1,
+    ]
+
+
 def test_next_battle_keeps_hand_recycles_everything_else_and_refills_to_ten() -> None:
     engine, state = fresh_state(first_player=0)
     kept = []

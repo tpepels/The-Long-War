@@ -1,0 +1,183 @@
+name: Deck Hand Recycle Experiment
+
+on:
+  push:
+    branches:
+      - experiment/deck-hand-recycle-sweep
+    paths:
+      - "src/longwar/game/engine.py"
+      - "src/longwar/telemetry.py"
+      - "src/longwar/playability.py"
+      - "tools/simulate.py"
+      - "tools/playability_report.py"
+      - "tests/test_engine.py"
+      - "decks/experiments/name-rich-*.json"
+      - ".github/workflows/deck-hand-recycle-experiment.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    strategy:
+      fail-fast: false
+      matrix:
+        deck_size: [30, 36, 42]
+        hand_size: [9, 10, 11, 12]
+        mode: [recycle, persistent]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Variant regression
+        run: pytest -q tests/test_engine.py tests/test_simulation.py
+      - name: Choose decks and recycle mode
+        run: |
+          if [ "${{ matrix.deck_size }}" = "30" ]; then
+            echo "REF_DECK=decks/experiments/name-rich-reference.json" >> "$GITHUB_ENV"
+            echo "AVAROS_DECK=decks/experiments/name-rich-avaros.json" >> "$GITHUB_ENV"
+            echo "MARA_DECK=decks/experiments/name-rich-mara.json" >> "$GITHUB_ENV"
+            echo "SERA_DECK=decks/experiments/name-rich-sera.json" >> "$GITHUB_ENV"
+          else
+            echo "REF_DECK=decks/experiments/name-rich-${{ matrix.deck_size }}-reference.json" >> "$GITHUB_ENV"
+            echo "AVAROS_DECK=decks/experiments/name-rich-${{ matrix.deck_size }}-avaros.json" >> "$GITHUB_ENV"
+            echo "MARA_DECK=decks/experiments/name-rich-${{ matrix.deck_size }}-mara.json" >> "$GITHUB_ENV"
+            echo "SERA_DECK=decks/experiments/name-rich-${{ matrix.deck_size }}-sera.json" >> "$GITHUB_ENV"
+          fi
+          if [ "${{ matrix.mode }}" = "persistent" ]; then
+            echo "RECYCLE_ARGS=--no-between-battle-recycle" >> "$GITHUB_ENV"
+          else
+            echo "RECYCLE_ARGS=" >> "$GITHUB_ENV"
+          fi
+          echo "PREFIX=d${{ matrix.deck_size }}-h${{ matrix.hand_size }}-${{ matrix.mode }}" >> "$GITHUB_ENV"
+      - name: Reference mirror
+        run: >
+          python tools/simulate.py --games 250 --seed 26092510
+          --deck-size ${{ matrix.deck_size }} --hand-size ${{ matrix.hand_size }}
+          --disable-draw --completion-draw-names oren iria teyra
+          $RECYCLE_ARGS
+          --deck-a "$REF_DECK" --deck-b "$REF_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/$PREFIX-reference.json"
+      - name: Avaros mirror
+        run: >
+          python tools/simulate.py --games 250 --seed 26092511
+          --deck-size ${{ matrix.deck_size }} --hand-size ${{ matrix.hand_size }}
+          --disable-draw --completion-draw-names oren iria teyra
+          $RECYCLE_ARGS
+          --deck-a "$AVAROS_DECK" --deck-b "$AVAROS_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/$PREFIX-avaros.json"
+      - name: Mara mirror
+        run: >
+          python tools/simulate.py --games 250 --seed 26092512
+          --deck-size ${{ matrix.deck_size }} --hand-size ${{ matrix.hand_size }}
+          --disable-draw --completion-draw-names oren iria teyra
+          $RECYCLE_ARGS
+          --deck-a "$MARA_DECK" --deck-b "$MARA_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/$PREFIX-mara.json"
+      - name: Sera mirror
+        run: >
+          python tools/simulate.py --games 250 --seed 26092513
+          --deck-size ${{ matrix.deck_size }} --hand-size ${{ matrix.hand_size }}
+          --disable-draw --completion-draw-names oren iria teyra
+          $RECYCLE_ARGS
+          --deck-a "$SERA_DECK" --deck-b "$SERA_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/$PREFIX-sera.json"
+      - name: Aggregate playability
+        run: >
+          python tools/playability_report.py
+          "artifacts/$PREFIX-reference.json"
+          "artifacts/$PREFIX-avaros.json"
+          "artifacts/$PREFIX-mara.json"
+          "artifacts/$PREFIX-sera.json"
+          --json-output "artifacts/$PREFIX-playability.json"
+          --markdown-output "artifacts/$PREFIX-playability.md"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deck-hand-${{ matrix.deck_size }}-${{ matrix.hand_size }}-${{ matrix.mode }}
+          path: artifacts/d${{ matrix.deck_size }}-h${{ matrix.hand_size }}-${{ matrix.mode }}-*
+          retention-days: 30
+
+  summarize:
+    needs: simulate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: deck-hand-*
+          path: artifacts/all
+          merge-multiple: true
+      - name: Build matrix summary
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          root = Path("artifacts/all")
+          rows = []
+          pattern = re.compile(r"d(\d+)-h(\d+)-(recycle|persistent)-playability\.json$")
+          for path in sorted(root.glob("*-playability.json")):
+              match = pattern.match(path.name)
+              if not match:
+                  continue
+              deck_size, hand_size, mode = match.groups()
+              report = json.loads(path.read_text())
+              prefix = path.name.removesuffix("-playability.json")
+              sources = [
+                  json.loads(source.read_text())
+                  for source in root.glob(f"{prefix}-*.json")
+                  if not source.name.endswith("-playability.json")
+              ]
+              fp_rate = sum(s["first_player_win_rate"] for s in sources) / len(sources)
+              rows.append({
+                  "deck_size": int(deck_size),
+                  "hand_size": int(hand_size),
+                  "mode": mode,
+                  "completions_per_battle": report["battle_pacing"]["mean_complete_legends_created_per_battle"],
+                  "names_per_battle": report["card_mix"]["Names"]["mean_per_battle"],
+                  "cards_per_battle": report["battle_pacing"]["mean_cards_played_per_battle"],
+                  "legal_choices": report["decision_load"]["mean_legal_candidates_per_heuristic_decision"],
+                  "first_passer_wr": report["passing"]["first_passer_battle_win_rate"],
+                  "dead_share": report["hand_pressure"]["dead_card_share_at_pass"],
+                  "first_player_wr": fp_rate,
+                  "refill_shortfall_rate": report["refill"]["next_battle_player_shortfall_rate"],
+                  "mean_next_hand": report["refill"]["mean_next_battle_hand_size"],
+              })
+
+          rows.sort(key=lambda row: (row["deck_size"], row["mode"], row["hand_size"]))
+          out = Path("artifacts/summary")
+          out.mkdir(parents=True, exist_ok=True)
+          (out / "deck-hand-recycle-summary.json").write_text(json.dumps(rows, indent=2) + "\n")
+          lines = [
+              "# Deck × hand × recycle sweep",
+              "",
+              "| Deck | Hand | Mode | Complete/Battle | Names/Battle | Cards/Battle | Choices | First-pass WR | First-player WR | Refill shortfall | Next hand |",
+              "| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+          ]
+          for row in rows:
+              lines.append(
+                  f"| {row['deck_size']} | {row['hand_size']} | {row['mode']} "
+                  f"| {row['completions_per_battle']:.2f} "
+                  f"| {row['names_per_battle']:.2f} "
+                  f"| {row['cards_per_battle']:.2f} "
+                  f"| {row['legal_choices']:.2f} "
+                  f"| {row['first_passer_wr']:.1%} "
+                  f"| {row['first_player_wr']:.1%} "
+                  f"| {row['refill_shortfall_rate']:.1%} "
+                  f"| {row['mean_next_hand']:.2f} |"
+              )
+          (out / "deck-hand-recycle-summary.md").write_text("\n".join(lines) + "\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deck-hand-recycle-summary
+          path: artifacts/summary/*
+          retention-days: 30

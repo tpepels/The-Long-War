@@ -47,6 +47,20 @@ def main() -> None:
         help="Base opening and between-Battle refill hand target.",
     )
     parser.add_argument(
+        "--deck-size",
+        type=int,
+        default=30,
+        help="Required deck size for this simulation variant.",
+    )
+    parser.add_argument(
+        "--no-between-battle-recycle",
+        action="store_true",
+        help=(
+            "Keep played/discarded cards out between Battles and refill only "
+            "from the remaining deck."
+        ),
+    )
+    parser.add_argument(
         "--disable-draw",
         action="store_true",
         help="Remove the once-per-Battle Draw action for variant experiments.",
@@ -80,6 +94,8 @@ def main() -> None:
         opening_hand_size=args.hand_size,
         draw_action_enabled=not args.disable_draw,
         completion_draw_names=args.completion_draw_names,
+        deck_size=args.deck_size,
+        recycle_between_battles=not args.no_between_battle_recycle,
     )
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
@@ -115,6 +131,8 @@ def main() -> None:
         "draw_action_enabled": not args.disable_draw,
         "battle_one_starter_bonus": 1,
         "completion_draw_names": sorted(args.completion_draw_names),
+        "deck_size": args.deck_size,
+        "recycle_between_battles": not args.no_between_battle_recycle,
     }
 
     output = resolve(args.output)
@@ -131,6 +149,8 @@ def main() -> None:
         f"hand={args.hand_size} "
         f"draw={'off' if args.disable_draw else 'on'} "
         f"completion_draw_names={','.join(sorted(args.completion_draw_names)) or 'none'} "
+        f"deck={args.deck_size} "
+        f"recycle={'off' if args.no_between_battle_recycle else 'on'} "
         "starter_bonus=+1"
     )
     print(f"Games: {report.games}")
