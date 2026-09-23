@@ -6,7 +6,7 @@
 
 **The Long War** is a two-player card game fought across **Left**, **Center**, and **Right**. Each Battle ends when both players **Pass**. Control two Fronts to win the Battle; win two Battles to win the match.
 
-Cards are the real cost. The battlefield is cleared after every Battle, but cards left in your hand stay with you. If you spend too much to win now, you may start the next Battle short of options.
+Cards and **Command** are the costs of war. The battlefield is cleared after every Battle, but cards left in your hand, your remaining draw pile, and unspent Command carry forward. Winning now can leave you with fewer options later.
 
 On the battlefield, position matters. **Subjects** stand in the **Frontline** or **Rear**. Their roles reward different formations. **Bonds** and **Names** strengthen them. **Stories**, **Veiled Stories**, and **Stratagems** change the position without adding another Subject.
 
@@ -15,15 +15,15 @@ On the battlefield, position matters. **Subjects** stand in the **Frontline** or
 > **First game?** Read through **A Battle, from beginning to end**, then start playing. Use the Reference section when a question comes up.
 
 <div class="rulebook-at-a-glance">
-  <div><b>YOUR TURN</b><span>Optionally set 1 Stratagem, then play 1 card, draw 1 card, or Pass.</span></div>
+  <div><b>YOUR TURN</b><span>Take 1 operation: play 1 card, Cycle 1 card, or Pass. Pay any Command cost.</span></div>
   <div><b>WIN A BATTLE</b><span>Control 2 of 3 Fronts. Total Strength breaks a 1–1–1/0–0–0 style deadlock; first passer breaks the final tie.</span></div>
-  <div><b>BETWEEN BATTLES</b><span>Clear the battlefield, keep your hand, shuffle every other card, and refill to 10. The loser chooses who starts next.</span></div>
+  <div><b>BETWEEN BATTLES</b><span>Clear the battlefield, keep your hand and draw pile, gain 10 Command (max 20), then refill your hand to 10.</span></div>
   <div><b>WIN THE MATCH</b><span>Win 2 Battles.</span></div>
 </div>
 
 ### Reading cards and rules
 
-**Bold** words are game terms or rules actions: **Subject**, **Bond**, **Name**, **Story**, **Stratagem**, **Strength**, **Front**, **Draw**, **Pass**, **discard**, **return**, and **move**.
+**Bold** words are game terms or rules actions: **Subject**, **Bond**, **Name**, **Story**, **Stratagem**, **Strength**, **Front**, **Command**, **Cycle**, **Pass**, **discard**, **return**, and **move**.
 
 *Italic* words are card titles or printed properties: *Namar*, *Swordsman*, *Human*, *Hero*, *Myth*, *Frontline only*.
 
@@ -55,26 +55,31 @@ A large lead in one Front is still only one Front. If your opponent spends heavi
   <span>2</span><small>Battles to win the match</small>
 </div>
 
-### Your hand lasts longer than the battlefield
+### Your resources last longer than the battlefield
 
-At the end of a Battle, cards on the battlefield are discarded. Keep the cards still in your hand, shuffle every other card you own into a new deck, then draw until you have 10 cards.
+At the end of a Battle, cards on the battlefield are discarded, but your hand and remaining draw pile stay as they are. You then refill your hand to 10 from that draw pile.
 
-So the question is not only whether you can win a Battle. It is how many cards you are willing to spend on it.
+If you ever need to draw while your draw pile is empty, shuffle your discard pile to make a new draw pile, then continue drawing. There is no automatic reshuffle between Battles.
+
+**Command** also persists. Each player starts the match with **20 Command**. After a Battle, each player gains **10 Command**, up to a maximum of **20**.
+
+So the question is not only whether you can win a Battle. It is how many cards and how much Command you are willing to spend on it.
 
 ## What happens on a turn? {#turn}
 
-On your turn:
+On your turn, perform exactly **one operation**:
 
-1. You may set your one **Stratagem** for the Battle, if you have not already done so.
-2. Then take one normal action: play **one card**, **Draw** 1 card, or **Pass**.
+- **Play one card** from your hand and pay the Command cost printed on it.
+- **Cycle** — pay **1 Command**, discard one card from your hand, then draw one card.
+- **Pass** — pay nothing and take no more turns in this Battle.
 
-Setting a Stratagem does not use your normal action.
+A card effect may reduce a cost, make a Cycle free, or refund Command. Unless a card says otherwise, costs cannot be avoided.
 
-You may choose **Draw** only once per Battle. Draw the top card of your deck; this uses your normal action and ends your turn. If your deck is empty, you cannot Draw.
+There is no automatic draw at the start of a turn and no separate Draw operation.
 
 There is no attack step and Subjects do not deal damage. You change the position by placing Subjects, attaching Bonds and Names, playing Stories, setting hidden cards, and moving or removing cards.
 
-Once you **Pass**, you take no more turns in that Battle. Your opponent may continue until they also Pass.
+Once you **Pass**, your opponent may continue until they also Pass.
 
 ---
 
@@ -253,9 +258,9 @@ The reference deck contains three Veiled Stories:
 
 A **Stratagem** is a hidden Battle-wide card. It does not belong to a Front.
 
-On your own turn, before your normal action, you may set one Stratagem from your hand face-down. Each player may do this **once per Battle**.
+On your turn, you may play one Stratagem from your hand face-down. Each player may do this **once per Battle**.
 
-Setting it is free: you still play one card, Draw 1 card if your Battle draw is unused, or Pass afterward.
+Playing a Stratagem is your operation for the turn. Pay the Command cost printed on the card, then end your turn as after any other card play.
 
 Once set, the Stratagem stays in play until the Battle ends. Revealing it does not let you set another.
 
@@ -365,9 +370,9 @@ If Player 2 also Passes, score the Battle.
 
 When you **Pass**, you take no more turns in that Battle.
 
-The opponent may continue taking normal actions until they Pass.
+The opponent may continue taking operations until they Pass.
 
-Passing saves the rest of your hand, but gives the opponent as many turns as they are willing to pay for.
+Passing preserves the rest of your hand and Command for later Battles, but gives the opponent as many turns as they are willing and able to pay for.
 
 ---
 
@@ -376,13 +381,14 @@ Passing saves the rest of your hand, but gives the opponent as many turns as the
 ## Set up your first match {#setup}
 
 1. Each player takes a legal **30-card deck** with **exactly one Hero**.
-2. Shuffle and draw **10 cards**.
-3. Each player may choose up to **2 cards**, shuffle them back, then draw the same number.
-4. Randomly choose the first player for Battle I.
-5. That first player draws **1 additional opening card**.
-6. Keep hands and decks hidden. Keep discard piles face-up.
+2. Give each player **20 Command**. A d20 is a convenient tracker.
+3. Shuffle and draw **10 cards**.
+4. Each player may choose up to **2 cards**, shuffle them back, then draw the same number.
+5. Randomly choose the first player for Battle I.
+6. That first player draws **1 additional opening card**.
+7. Keep hands and decks hidden. Keep discard piles face-up.
 
-There is no automatic draw at the start of a turn. Instead, each player has one optional **Draw** action per Battle: spend your normal action to draw 1 card.
+There is no automatic draw at the start of a turn. Use **Cycle** when you want to exchange a card in hand for a new draw.
 
 ## Score the Battle {#scoring}
 
@@ -410,9 +416,11 @@ Then:
 1. reveal any Stratagem still face-down; it cannot change the score;
 2. discard all battlefield cards, including Veiled Stories and Stratagems;
 3. keep cards still in hand;
-4. combine every other card you own — your remaining deck and discard pile — and shuffle them into a new deck;
-5. draw until you have **10 cards** in hand; if you already have 10 or more, keep them all and draw nothing;
-6. the Battle loser chooses who takes the first turn of the next Battle.
+4. keep the remaining draw pile and discard pile separate — do **not** reshuffle automatically;
+5. gain **10 Command**, up to a maximum of **20**;
+6. draw from the remaining draw pile until you have **10 cards** in hand; if the draw pile empties while drawing, shuffle the discard pile to make a new draw pile and continue;
+7. if you already have 10 or more cards, keep them all and draw nothing;
+8. the Battle loser chooses who takes the first turn of the next Battle.
 
 The first player to win 2 Battles wins the match.
 
@@ -597,8 +605,11 @@ A printed identity property such as *Human*, *God*, *King*, *Ship*, or *Strongho
 **Hero**  
 A unique Subject with a special rule. Every deck contains exactly one Hero.
 
-**Draw**  
-A normal action that draws 1 card from your deck. Each player may Draw once per Battle.
+**Command**  
+The persistent resource used to pay card and Cycle costs. Each player starts with 20, gains 10 after each non-final Battle, and cannot hold more than 20.
+
+**Cycle**  
+An operation: pay 1 Command, discard one card from your hand, then draw one card. Some card effects can make a Cycle free.
 
 **Line Defense**  
 The +1 Strength normally gained by a Subject in the Frontline.
@@ -616,7 +627,7 @@ A printed Subject property such as *Swordsman*, *Spearman*, *Archer*, or *Healer
 A one-shot card. Its form may be *Myth*, *Legend*, *Saga*, *Omen*, *Warning*, *Prophecy*, or *Conspiracy*.
 
 **Stratagem**  
-A Battle-wide hidden card set before your normal action. Each player may set one per Battle.
+A Battle-wide hidden card. Playing it is your operation for the turn and costs its printed Command. Each player may set one per Battle.
 
 **Prepared**  
 A Bond or Name placed in a formation before its Subject. Subject-dependent rules stay inactive until the Subject arrives.
