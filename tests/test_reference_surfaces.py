@@ -22,9 +22,10 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "No Fires Burned" in rules
     assert "gives +2" in rules
     assert "player who Passed second counts as active" not in rules
-    assert "optional **Draw** action per Battle" in rules
+    assert "**Cycle** — pay **1 Command**" in rules
     assert "first player draws **1 additional opening card**" in rules
-    assert "play 1 card, Draw 1, or Pass" in text("web/playmat.html")
+    assert "play 1 card, Cycle 1 card, or Pass" in text("web/playmat.html")
+    assert "gain C10 (max 20)" in text("web/playmat.html")
 
 
 def test_rulebook_healer_language_matches_engine_semantics() -> None:
@@ -138,7 +139,8 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     assert "FIRST" in page and "TO PASS" in page
     assert page.count("BATTLE WIN") == 4
     assert "STRATAGEM USED" in page
-    assert page.count("DRAW USED") == 2
+    assert page.count("FREE CYCLE") == 2
+    assert "Track each player's Command on a d20" in page
     for modifier in ("+1", "+2", "+3", "-1", "-2", "-3"):
         assert modifier in page
     assert "Do not place a public Strength marker for a face-down" in page

@@ -37,6 +37,7 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
         baseline = index[baseline_id(card["id"])]
         assert baseline["type"] == card["type"]
         assert baseline["experimental"] is True
+        assert baseline["command_cost"] == card["command_cost"]
 
     assert baseline_card(index["the-fifty-men"])["strength"] == 4
     assert baseline_card(index["followed"])["rules"] == {
@@ -160,7 +161,7 @@ def test_scheme_baseline_preserves_scheme_commitment() -> None:
 
 
 
-def test_stratagem_baseline_preserves_hidden_free_commitment() -> None:
+def test_stratagem_baseline_preserves_hidden_paid_commitment() -> None:
     card_data = data()
     index = {card["id"]: card for card in card_data["cards"]}
     baseline = baseline_card(index["the-storm-broke"])
