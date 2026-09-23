@@ -52,7 +52,8 @@ const TERM_HINTS = {
   "discard": "Move a card to its owner's discard pile.",
   "discarded": "Moved to the discard pile.",
   "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
-  "draw": "Spend your normal action to draw 1 card. You may do this once per Battle.",
+  "command": "Your persistent match resource. Pay printed Command costs to play cards; unused Command carries between Battles.",
+  "cycle": "Pay 1 Command, discard one card from your hand, then draw one card. This uses your operation for the turn.",
   "front": "One of the three lanes: Left, Center, or Right.",
   "frontline": "The position nearest the Battle Line. It normally receives +1 Line Defense.",
   "frontline subject": "The Subject occupying the Frontline position of that Front.",
@@ -266,11 +267,6 @@ function actionForPass() {
   return state.legal_actions.find((action) => action.kind === "Pass") || null;
 }
 
-function actionForDraw() {
-  if (!state || state.phase === "mulligan") return null;
-  return state.legal_actions.find((action) => action.kind === "Draw") || null;
-}
-
 function targetActionsForSlot(owner, front, rank) {
   const actions = selectedActions();
   const matches = [];
@@ -476,7 +472,6 @@ function renderStrip() {
       '<div class="battle-medallion"><small>Opening</small><strong>Mulligan</strong></div>' +
       '<div class="turn-marker">Player ' + (state.active_player + 1) + ' · choose up to 2 returns</div>';
     $("pass-button").hidden = true;
-    $("draw-button").hidden = true;
     return;
   }
 
@@ -486,12 +481,12 @@ function renderStrip() {
 
   $("match-strip").innerHTML =
     '<div class="score-player ' + (state.active_player === opponent ? "active" : "") + '">' +
-      '<span>P' + (opponent + 1) + '</span>' + victoryPips(state.players[opponent].victories) +
+      '<span>P' + (opponent + 1) + '</span><b class="command-readout">C ' + state.players[opponent].command + '</b>' + victoryPips(state.players[opponent].victories) +
     '</div>' +
     '<div class="battle-medallion"><small>Battle</small><strong>' + state.battle + '</strong></div>' +
     '<div class="turn-marker">Turn · Player ' + (state.active_player + 1) + winnerText + '</div>' +
     '<div class="score-player ' + (state.active_player === viewer ? "active" : "") + '">' +
-      '<span>P' + (viewer + 1) + '</span>' + victoryPips(state.players[viewer].victories) +
+      '<span>P' + (viewer + 1) + '</span><b class="command-readout">C ' + state.players[viewer].command + '</b>' + victoryPips(state.players[viewer].victories) +
     '</div>';
 
   const pass = actionForPass();
@@ -501,11 +496,6 @@ function renderStrip() {
   passButton.classList.toggle("danger-pass", !!pass && state.players[opponentOf(currentViewer())].passed);
   passButton.textContent = state.players[opponentOf(currentViewer())].passed ? "Pass · score Battle" : "Pass";
 
-  const draw = actionForDraw();
-  const drawButton = $("draw-button");
-  drawButton.hidden = !draw || state.viewer == null;
-  drawButton.disabled = !draw || state.viewer == null;
-  drawButton.textContent = "Draw 1";
 }
 
 function renderOpponentRack() {
@@ -586,13 +576,14 @@ function interactionHintFor(card) {
   if (actions.some((a) => a.kind === "PlayLink")) return "Choose a position without a Bond. It may be prepared before the Subject.";
   if (actions.some((a) => a.kind === "PlayName")) return "Choose a position without a Name. It may be prepared before the Subject or Bond; movement is offered only when a Subject is already there.";
   if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Front to set this Veiled Story face-down.";
-  if (actions.some((a) => a.kind === "SetStratagem")) return "Set this face-down in your Stratagem space, then take your normal action.";
+  if (actions.some((a) => a.kind === "SetStratagem")) return "Set this face-down as your Stratagem. It costs its printed Command and ends your turn.";
   if (actions.some((a) => a.kind === "PlayPlot")) {
     if (stagedPlotSource) return "Now choose the destination for " + card.title + ".";
     return actions.some((a) => a.targets.length === 2)
       ? "Choose the first target; the legal destinations will then light up."
       : "Choose a highlighted target on the battlefield.";
   }
+  if (actions.some((a) => a.kind === "Cycle")) return "Cycle this card: pay the shown cost, discard it, then draw 1 card.";
   return "Choose a legal action.";
 }
 
@@ -646,7 +637,7 @@ function renderInteraction() {
       hint.textContent = "The loser of the previous Battle chooses the first player.";
     } else {
       title.textContent = "Choose a card";
-      hint.textContent = "Play a card, Draw 1 once this Battle, or Pass. Legal destinations highlight when you select a card.";
+      hint.textContent = "Play a card, Cycle a card, or Pass. Every card play spends its printed Command.";
     }
     cancel.hidden = true;
   } else {
@@ -676,7 +667,8 @@ function renderChoiceTray() {
   if (!actions.length && selectedCardId) {
     const direct = selectedActions().filter((a) =>
       (a.kind === "PlayPlot" && a.targets.length === 0) ||
-      a.kind === "SetStratagem"
+      a.kind === "SetStratagem" ||
+      a.kind === "Cycle"
     );
     if (direct.length === 1) actions = direct;
   }
@@ -769,7 +761,7 @@ function renderHand() {
       selected: selectedCardId === cardId,
       attrs: 'data-hand-card="' + esc(cardId) + '" draggable="' + playable +
         '" style="--fan-rot:' + rotation + 'deg;--fan-y:' + offset + 'px"',
-      footer: playable ? "SELECT TO PLAY · CLICK AGAIN TO READ" : "CLICK TO READ",
+      footer: playable ? "SELECT ACTION · CLICK AGAIN TO READ" : "CLICK TO READ",
     });
   }).join("");
 
@@ -975,7 +967,8 @@ function updateGameStatus() {
     return;
   }
   status.textContent = "Battle " + state.battle + " · " +
-    (state.mode === "hotseat" ? "Player " + (state.active_player + 1) : "Your turn");
+    (state.mode === "hotseat" ? "Player " + (state.active_player + 1) : "Your turn") +
+    " · C " + state.players[state.active_player].command;
 }
 
 function renderActionFeedback() {
@@ -1012,7 +1005,10 @@ function renderActionFeedback() {
   let kicker = own ? "YOUR ACTION" : "OPPONENT ACTION";
   let title = card?.title || action.label;
 
-  if (action.kind === "Draw") {
+  if (action.kind === "Cycle") {
+    kicker = own ? "YOU CYCLE" : "OPPONENT CYCLES";
+    title = card?.title || "1 card";
+  } else if (action.kind === "Draw") {
     kicker = own ? "YOU DRAW" : "OPPONENT DRAWS";
     title = "1 card";
   } else if (action.kind === "Pass") {
@@ -1212,11 +1208,6 @@ document.querySelectorAll("[data-inspector-close]").forEach((el) => {
   el.addEventListener("click", closeCardInspector);
 });
 
-$("draw-button").addEventListener("click", () => {
-  const draw = actionForDraw();
-  if (draw) executeAction(draw);
-});
-
 $("pass-button").addEventListener("click", () => {
   const pass = actionForPass();
   if (pass) executeAction(pass);
@@ -1280,9 +1271,9 @@ document.addEventListener("keydown", (event) => {
     clearSelection();
     renderInteractiveState();
   }
-  if ((event.key === "d" || event.key === "D") && !event.metaKey && !event.ctrlKey) {
-    const draw = actionForDraw();
-    if (draw) executeAction(draw);
+  if ((event.key === "c" || event.key === "C") && !event.metaKey && !event.ctrlKey && selectedCardId) {
+    const cycle = selectedActions().find((action) => action.kind === "Cycle");
+    if (cycle) executeAction(cycle);
   }
   if ((event.key === "p" || event.key === "P") && !event.metaKey && !event.ctrlKey) {
     const pass = actionForPass();
