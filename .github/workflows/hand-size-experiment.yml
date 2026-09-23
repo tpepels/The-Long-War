@@ -1,0 +1,74 @@
+name: Hand Size Experiment
+
+on:
+  push:
+    branches:
+      - experiment/hand-size-sweep
+    paths:
+      - "src/longwar/game/engine.py"
+      - "tools/simulate.py"
+      - "tools/playability_report.py"
+      - "tests/test_engine.py"
+      - ".github/workflows/hand-size-experiment.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    strategy:
+      fail-fast: false
+      matrix:
+        hand_size: [9, 10, 11]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Variant regression
+        run: pytest -q tests/test_engine.py tests/test_simulation.py
+      - name: Reference mirror
+        run: >
+          python tools/simulate.py --games 2000 --seed 26092390
+          --hand-size ${{ matrix.hand_size }} --disable-draw
+          --deck-a decks/reference.json --deck-b decks/reference.json
+          --agent-a heuristic --agent-b heuristic
+          --output artifacts/hand-${{ matrix.hand_size }}-reference.json
+      - name: Avaros mirror
+        run: >
+          python tools/simulate.py --games 2000 --seed 26092391
+          --hand-size ${{ matrix.hand_size }} --disable-draw
+          --deck-a decks/avaros-line.json --deck-b decks/avaros-line.json
+          --agent-a heuristic --agent-b heuristic
+          --output artifacts/hand-${{ matrix.hand_size }}-avaros.json
+      - name: Mara mirror
+        run: >
+          python tools/simulate.py --games 2000 --seed 26092392
+          --hand-size ${{ matrix.hand_size }} --disable-draw
+          --deck-a decks/mara-rear.json --deck-b decks/mara-rear.json
+          --agent-a heuristic --agent-b heuristic
+          --output artifacts/hand-${{ matrix.hand_size }}-mara.json
+      - name: Sera mirror
+        run: >
+          python tools/simulate.py --games 2000 --seed 26092393
+          --hand-size ${{ matrix.hand_size }} --disable-draw
+          --deck-a decks/sera-support.json --deck-b decks/sera-support.json
+          --agent-a heuristic --agent-b heuristic
+          --output artifacts/hand-${{ matrix.hand_size }}-sera.json
+      - name: Aggregate playability
+        run: >
+          python tools/playability_report.py
+          artifacts/hand-${{ matrix.hand_size }}-reference.json
+          artifacts/hand-${{ matrix.hand_size }}-avaros.json
+          artifacts/hand-${{ matrix.hand_size }}-mara.json
+          artifacts/hand-${{ matrix.hand_size }}-sera.json
+          --json-output artifacts/hand-${{ matrix.hand_size }}-playability.json
+          --markdown-output artifacts/hand-${{ matrix.hand_size }}-playability.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hand-size-${{ matrix.hand_size }}
+          path: artifacts/hand-${{ matrix.hand_size }}-*
+          retention-days: 30

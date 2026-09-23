@@ -108,9 +108,19 @@ def all_positions() -> tuple[Position, ...]:
 
 
 class GameEngine:
-    def __init__(self, card_data: dict[str, Any]):
+    def __init__(
+        self,
+        card_data: dict[str, Any],
+        *,
+        opening_hand_size: int = 10,
+        draw_action_enabled: bool = True,
+    ):
+        if not 1 <= opening_hand_size <= 30:
+            raise ValueError("opening_hand_size must be between 1 and 30")
         self.card_data = card_data
         self.cards = card_index(card_data)
+        self.opening_hand_size = opening_hand_size
+        self.draw_action_enabled = draw_action_enabled
 
         # Flatten immutable dispatch metadata used at every search node.
         self._card_types = {
@@ -397,7 +407,7 @@ class GameEngine:
         state = GameState(players=players, shuffle_seed=shuffle_seed)
 
         for player in range(2):
-            self._draw(state, player, 10)
+            self._draw(state, player, self.opening_hand_size)
             self._apply_mulligan(
                 state,
                 player,
@@ -451,7 +461,11 @@ class GameEngine:
             raise RuntimeError("A passed player cannot become active")
 
         actions: list[Action] = [self._pass_action]
-        if not state.draw_used[player] and state.players[player].deck:
+        if (
+            self.draw_action_enabled
+            and not state.draw_used[player]
+            and state.players[player].deck
+        ):
             actions.append(self._draw_action)
 
         for card_id in dict.fromkeys(state.players[player].hand):
@@ -503,6 +517,8 @@ class GameEngine:
             return
 
         if isinstance(action, Draw):
+            if not self.draw_action_enabled:
+                raise IllegalAction("Draw is disabled for this rules variant")
             self._draw(state, actor, 1)
             state.draw_used[actor] = True
             self._advance_turn(state)
@@ -1795,7 +1811,7 @@ class GameEngine:
             self._draw(
                 state,
                 player,
-                max(0, 10 - len(player_state.hand)),
+                max(0, self.opening_hand_size - len(player_state.hand)),
             )
         state.shuffle_seed = seed
 

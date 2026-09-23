@@ -355,6 +355,37 @@ def test_removing_subject_discards_its_bond_and_name() -> None:
     assert "namar" not in state.players[0].hand
 
 
+def test_configurable_hand_target_can_disable_draw_for_experiments() -> None:
+    default_engine, deck = engine_and_deck()
+    engine = GameEngine(
+        default_engine.card_data,
+        opening_hand_size=9,
+        draw_action_enabled=False,
+    )
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=707,
+        first_player=0,
+        opening_bonus=False,
+    )
+
+    assert [len(player.hand) for player in state.players] == [9, 9]
+    assert not any(isinstance(action, Draw) for action in engine.legal_actions(state))
+
+    for player, keep in ((0, 3), (1, 5)):
+        player_state = state.players[player]
+        player_state.discard.extend(player_state.hand[keep:])
+        del player_state.hand[keep:]
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.phase is Phase.CHOOSE_FIRST
+    assert [len(player.hand) for player in state.players] == [9, 9]
+    assert [len(player.discard) for player in state.players] == [0, 0]
+
+
 def test_next_battle_keeps_hand_recycles_everything_else_and_refills_to_ten() -> None:
     engine, state = fresh_state(first_player=0)
     kept = []

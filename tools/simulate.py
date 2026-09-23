@@ -41,6 +41,17 @@ def main() -> None:
     parser.add_argument("--online-iterations", type=int, default=8)
     parser.add_argument("--online-depth", type=int, default=2)
     parser.add_argument(
+        "--hand-size",
+        type=int,
+        default=10,
+        help="Base opening and between-Battle refill hand target.",
+    )
+    parser.add_argument(
+        "--disable-draw",
+        action="store_true",
+        help="Remove the once-per-Battle Draw action for variant experiments.",
+    )
+    parser.add_argument(
         "--deck-a",
         type=Path,
         default=Path("decks/reference.json"),
@@ -58,7 +69,11 @@ def main() -> None:
     args = parser.parse_args()
 
     card_data = load_card_file(ROOT / "cards" / "cards.json")
-    engine = GameEngine(card_data)
+    engine = GameEngine(
+        card_data,
+        opening_hand_size=args.hand_size,
+        draw_action_enabled=not args.disable_draw,
+    )
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
     policies = (load_policy(args.policy_a), load_policy(args.policy_b))
@@ -88,6 +103,11 @@ def main() -> None:
         "iterations": args.online_iterations,
         "depth": args.online_depth,
     }
+    payload["simulation_variant"] = {
+        "base_hand_size": args.hand_size,
+        "draw_action_enabled": not args.disable_draw,
+        "battle_one_starter_bonus": 1,
+    }
 
     output = resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -98,6 +118,12 @@ def main() -> None:
 
     print(f"Seed: {args.seed}")
     print(f"Agents: {report.agents[0]} vs {report.agents[1]}")
+    print(
+        "Variant: "
+        f"hand={args.hand_size} "
+        f"draw={'off' if args.disable_draw else 'on'} "
+        "starter_bonus=+1"
+    )
     print(f"Games: {report.games}")
     print(f"Wins: P0={report.wins[0]} P1={report.wins[1]}")
     print(f"First-player win rate: {report.first_player_win_rate:.3f}")
