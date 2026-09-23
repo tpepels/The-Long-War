@@ -566,6 +566,81 @@ class GameEngine:
             ]
         return actions
 
+    def command_cost_for_action(self, state: GameState, action: Action) -> int:
+        if not self.command_enabled:
+            return 0
+        player = state.active_player
+        if isinstance(action, Cycle):
+            return 0 if state.players[player].free_cycle else self.cycle_command_cost
+        if isinstance(action, (Pass, ChooseFirst, Draw)):
+            return 0
+
+        card_id = getattr(action, "card_id", None)
+        if card_id is None:
+            return 0
+        cost = int(self.cards[card_id]["command_cost"])
+
+        target_front: Front | None = None
+        if isinstance(action, (PlaySubject, PlayLink, PlayName)):
+            target_front = action.position.front
+        elif isinstance(action, PlayScheme):
+            target_front = action.front
+
+        if target_front is not None:
+            discount = self._adjacent_command_discount(state, player, target_front)
+            if discount:
+                cost = max(1, cost - discount)
+        return cost
+
+    def _adjacent_command_discount(
+        self,
+        state: GameState,
+        player: int,
+        target_front: Front,
+    ) -> int:
+        discount = 0
+        for position in ALL_POSITIONS:
+            slot = state.slot(player, position)
+            if not slot.complete or slot.name is None:
+                continue
+            if abs(int(position.front) - int(target_front)) != 1:
+                continue
+            discount = max(
+                discount,
+                int(
+                    self.cards[slot.name]
+                    .get("rules", {})
+                    .get("adjacent_command_discount", 0)
+                ),
+            )
+        return discount
+
+    def _spend_command(
+        self,
+        state: GameState,
+        player: int,
+        amount: int,
+    ) -> None:
+        if amount < 0 or amount > state.players[player].command:
+            raise IllegalAction("Not enough Command")
+        state.players[player].command -= amount
+        state.command_spent_this_battle[player] += amount
+
+    def _gain_command(
+        self,
+        state: GameState,
+        player: int,
+        amount: int,
+    ) -> int:
+        before = state.players[player].command
+        state.players[player].command = min(
+            self.command_cap,
+            before + max(0, amount),
+        )
+        gained = state.players[player].command - before
+        state.command_refunded_this_battle[player] += gained
+        return gained
+
     def apply(
         self,
         state: GameState,
@@ -1676,8 +1751,15 @@ class GameEngine:
         if slot.link is None or slot.name is None:
             return False
         link = self.cards[slot.link]
+        if link.get("rules", {}).get("protect_subject_from_opponent_plot"):
+            return True
+        name = self.cards[slot.name]
         return bool(
-            link.get("rules", {}).get("protect_subject_from_opponent_plot")
+            slot.complete
+            and name.get("rules", {}).get(
+                "complete_protection_from_opponent_plot",
+                False,
+            )
         )
 
     def _on_name_attached(
@@ -1912,9 +1994,22 @@ class GameEngine:
 
         state.battle += 1
         state.discarded_this_battle = [0, 0]
+        state.command_spent_this_battle = [0, 0]
+        state.command_refunded_this_battle = [0, 0]
         state.stratagem_used = [False, False]
         state.draw_used = [False, False]
         state.pass_order.clear()
+        if self.command_enabled:
+            for player in range(2):
+                state.players[player].command = min(
+                    self.command_cap,
+                    state.players[player].command + self.battle_command_gain,
+                )
+                state.players[player].free_cycle = False
+            state.battle_start_command = [
+                state.players[0].command,
+                state.players[1].command,
+            ]
         if self.recycle_between_battles:
             self._recycle_non_hand_cards(state)
         else:
@@ -1974,6 +2069,72 @@ class GameEngine:
             name_id = combo[2]
             if name_id in self.completion_draw_names:
                 self._draw(state, player, count)
+
+    def _resolve_new_completion_utilities(
+        self,
+        state: GameState,
+        player: int,
+        before: Counter[tuple[str, str, str]],
+    ) -> None:
+        after = self._complete_formation_counts(state, player)
+        new_counts = after - before
+        if not new_counts:
+            return
+
+        remaining = Counter(new_counts)
+        for position in ALL_POSITIONS:
+            slot = state.slot(player, position)
+            if not slot.complete:
+                continue
+            combo = (slot.subject, slot.link, slot.name)
+            if remaining[combo] <= 0:
+                continue
+            remaining[combo] -= 1
+            name_id = slot.name
+            if name_id is None:
+                continue
+            completion = self.cards[name_id].get("rules", {}).get(
+                "on_completion",
+                {},
+            )
+            effect = completion.get("effect")
+            if effect == "gain_command":
+                self._gain_command(
+                    state,
+                    player,
+                    int(completion.get("amount", 1)),
+                )
+            elif effect == "grant_free_cycle":
+                state.players[player].free_cycle = True
+            elif effect == "reveal_enemy_scheme":
+                owner = 1 - player
+                enemy_scheme = state.scheme(owner, position.front)
+                if enemy_scheme is not None and not enemy_scheme.revealed:
+                    enemy_scheme.revealed = True
+                    state.observe_reveal(
+                        viewer=player,
+                        owner=owner,
+                        card_id=enemy_scheme.card_id,
+                        zone="scheme",
+                        reason="revealed_by_name_completion",
+                    )
+            elif effect == "recover_recent_link":
+                self._recover_recent_link(state, player)
+
+    def _recover_recent_link(self, state: GameState, player: int) -> None:
+        discard = state.players[player].discard
+        for index in range(len(discard) - 1, -1, -1):
+            card_id = discard[index]
+            if self._card_types[card_id] != "link":
+                continue
+            del discard[index]
+            self._return_public_card_to_hand(
+                state,
+                player,
+                card_id,
+                reason="name_completion_recovery",
+            )
+            return
 
     def _discard_battlefield(self, state: GameState) -> None:
         for player in range(2):
