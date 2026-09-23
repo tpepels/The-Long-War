@@ -10,6 +10,7 @@ from .actions import (
     Action,
     BoardTarget,
     ChooseFirst,
+    Cycle,
     Draw,
     Pass,
     PlayLink,
@@ -117,6 +118,11 @@ class GameEngine:
         completion_draw_names: Iterable[str] = (),
         deck_size: int = 30,
         recycle_between_battles: bool = True,
+        command_enabled: bool = False,
+        starting_command: int = 20,
+        battle_command_gain: int = 10,
+        command_cap: int = 20,
+        cycle_command_cost: int = 1,
     ):
         if deck_size < 1:
             raise ValueError("deck_size must be positive")
@@ -129,6 +135,26 @@ class GameEngine:
         self.completion_draw_names = frozenset(completion_draw_names)
         self.deck_size = deck_size
         self.recycle_between_battles = recycle_between_battles
+        self.command_enabled = command_enabled
+        self.starting_command = starting_command
+        self.battle_command_gain = battle_command_gain
+        self.command_cap = command_cap
+        self.cycle_command_cost = cycle_command_cost
+        if min(starting_command, battle_command_gain, command_cap, cycle_command_cost) < 0:
+            raise ValueError("Command settings must be non-negative")
+        if starting_command > command_cap:
+            raise ValueError("starting_command cannot exceed command_cap")
+        if self.command_enabled:
+            missing_costs = [
+                card_id
+                for card_id, card in self.cards.items()
+                if not isinstance(card.get("command_cost"), int)
+            ]
+            if missing_costs:
+                raise ValueError(
+                    "Command mode requires command_cost on every card: "
+                    + ", ".join(sorted(missing_costs))
+                )
         invalid_completion_names = [
             card_id
             for card_id in self.completion_draw_names
@@ -421,10 +447,21 @@ class GameEngine:
         rng.shuffle(decks[1])
 
         players = [
-            PlayerState(deck=decks[player], hand=[])
+            PlayerState(
+                deck=decks[player],
+                hand=[],
+                command=self.starting_command if self.command_enabled else 0,
+            )
             for player in range(2)
         ]
-        state = GameState(players=players, shuffle_seed=shuffle_seed)
+        state = GameState(
+            players=players,
+            shuffle_seed=shuffle_seed,
+            battle_start_command=[
+                self.starting_command if self.command_enabled else 0,
+                self.starting_command if self.command_enabled else 0,
+            ],
+        )
 
         for player in range(2):
             self._draw(state, player, self.opening_hand_size)

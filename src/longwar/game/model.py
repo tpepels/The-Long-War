@@ -69,6 +69,8 @@ class PlayerState:
     discard: list[str] = field(default_factory=list)
     victories: int = 0
     passed: bool = False
+    command: int = 0
+    free_cycle: bool = False
 
 
 @dataclass(frozen=True)
@@ -110,6 +112,9 @@ class GameState:
     battle: int = 1
     phase: Phase = Phase.BATTLE
     discarded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
+    command_spent_this_battle: list[int] = field(default_factory=lambda: [0, 0])
+    command_refunded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
+    battle_start_command: list[int] = field(default_factory=lambda: [0, 0])
     pass_order: list[int] = field(default_factory=list)
     chooser: int | None = None
     winner: int | None = None
@@ -132,6 +137,8 @@ class GameState:
                 discard=list(player.discard),
                 victories=player.victories,
                 passed=player.passed,
+                command=player.command,
+                free_cycle=player.free_cycle,
             )
             for player in self.players
         ]
@@ -179,6 +186,9 @@ class GameState:
             battle=self.battle,
             phase=self.phase,
             discarded_this_battle=list(self.discarded_this_battle),
+            command_spent_this_battle=list(self.command_spent_this_battle),
+            command_refunded_this_battle=list(self.command_refunded_this_battle),
+            battle_start_command=list(self.battle_start_command),
             pass_order=list(self.pass_order),
             chooser=self.chooser,
             winner=self.winner,
@@ -202,6 +212,8 @@ class GameState:
             target_player.discard[:] = source_player.discard
             target_player.victories = source_player.victories
             target_player.passed = source_player.passed
+            target_player.command = source_player.command
+            target_player.free_cycle = source_player.free_cycle
 
         for player in range(2):
             for front in range(3):
@@ -245,6 +257,9 @@ class GameState:
         self.battle = source.battle
         self.phase = source.phase
         self.discarded_this_battle[:] = source.discarded_this_battle
+        self.command_spent_this_battle[:] = source.command_spent_this_battle
+        self.command_refunded_this_battle[:] = source.command_refunded_this_battle
+        self.battle_start_command[:] = source.battle_start_command
         self.pass_order[:] = source.pass_order
         self.chooser = source.chooser
         self.winner = source.winner
