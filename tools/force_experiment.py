@@ -36,12 +36,17 @@ def run_command(command: list[str], *, capture: bool = False) -> subprocess.Comp
 def require_cython() -> None:
     try:
         import longwar._alphabeta_accel  # noqa: F401
+        from longwar._fast_search import (  # noqa: F401
+            FastEngine,
+            NativeSearchBudget,
+            native_search_value,
+        )
     except ImportError as exc:
         raise SystemExit(
-            "Cython alpha-beta extension is not available.\n"
+            "Packed Cython search extension is not available.\n"
             "Run: make force-setup"
         ) from exc
-    print("Cython alpha-beta extension: OK")
+    print("Packed Cython alpha-beta extension: OK")
 
 
 def normalized_payload(path: Path) -> dict[str, Any]:
@@ -140,6 +145,7 @@ def validate() -> None:
             "-q",
             "tests/test_force_draw_candidate.py",
             "tests/test_strategic_heuristic.py",
+            "tests/test_fast_search_state.py",
         ]
     )
 
@@ -228,12 +234,13 @@ def benchmark(node_budget: int) -> None:
             "action": action,
             "depth": int(agent.last_decision["completed_depth"]),
         }
+        detail = agent.last_decision.get("search_backend_detail", backend)
         print(
             f"{backend.capitalize():6}: {elapsed:.3f}s | "
             f"{nodes:,} nodes | "
             f"{results[backend]['nodes_per_second']:,.0f} nodes/s | "
             f"depth {results[backend]['depth']} | "
-            f"{type(action).__name__}"
+            f"{type(action).__name__} | {detail}"
         )
 
     python_result = results["python"]
