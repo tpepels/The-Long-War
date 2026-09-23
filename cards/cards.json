@@ -404,7 +404,7 @@
         "human",
         "king"
       ],
-      "text": "When this formation becomes **complete**, regain 1 **Command**.",
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, regain 1 **Command**.",
       "rules": {
         "on_completion": {
           "effect": "gain_command",
@@ -417,8 +417,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "COMPLETION",
-          "text": "When this formation becomes **complete**, regain 1 **Command**."
+          "label": "WHEN",
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, regain 1 **Command**."
         }
       ],
       "command_cost": 1
@@ -459,7 +459,7 @@
         "human",
         "warrior"
       ],
-      "text": "When this formation becomes **complete**, your next **Cycle** this Battle costs 0 **Command**.",
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, your next **Cycle** this **Battle** costs 0 **Command**.",
       "rules": {
         "on_completion": {
           "effect": "grant_free_cycle"
@@ -469,8 +469,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "COMPLETION",
-          "text": "When this formation becomes **complete**, your next **Cycle** this Battle costs 0 **Command**."
+          "label": "WHEN",
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, your next **Cycle** this **Battle** costs 0 **Command**."
         }
       ],
       "command_cost": 2
@@ -485,7 +485,7 @@
         "god",
         "oracle"
       ],
-      "text": "When this formation becomes **complete**, reveal the opponent's **Veiled Story** in this **Front**, if any.",
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, reveal the opponent's **Veiled Story** in this **Front**, if any.",
       "rules": {
         "on_completion": {
           "effect": "reveal_enemy_scheme"
@@ -497,8 +497,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "COMPLETION",
-          "text": "When this formation becomes **complete**, reveal the opponent's **Veiled Story** in this **Front**, if any."
+          "label": "WHEN",
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, reveal the opponent's **Veiled Story** in this **Front**, if any."
         }
       ],
       "command_cost": 1
@@ -1400,7 +1400,7 @@
         "human",
         "navigator"
       ],
-      "text": "This **Subject** cannot be chosen by an opponent's immediate **Story**.",
+      "text": "While this formation has a **Subject**, **Bond**, and **Name**, this **Subject** cannot be chosen by an opponent's immediate **Story**.",
       "rules": {
         "complete_protection_from_opponent_plot": true
       },
@@ -1411,8 +1411,8 @@
       "rule_blocks": [
         {
           "kind": "continuous",
-          "label": "WHILE COMPLETE",
-          "text": "This **Subject** cannot be chosen by an opponent's immediate **Story**."
+          "label": "WHILE",
+          "text": "While this formation has a **Subject**, **Bond**, and **Name**, this **Subject** cannot be chosen by an opponent's immediate **Story**."
         }
       ],
       "command_cost": 1
@@ -1427,7 +1427,7 @@
         "human",
         "seer"
       ],
-      "text": "When this formation becomes **complete**, return your most recently discarded **Bond** to your hand, if any.",
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, return your most recently **discarded Bond** to your hand, if any.",
       "rules": {
         "on_completion": {
           "effect": "recover_recent_link"
@@ -1440,8 +1440,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "COMPLETION",
-          "text": "When this formation becomes **complete**, return your most recently discarded **Bond** to your hand, if any."
+          "label": "WHEN",
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, return your most recently **discarded Bond** to your hand, if any."
         }
       ],
       "command_cost": 1
@@ -1456,7 +1456,7 @@
         "human",
         "wanderer"
       ],
-      "text": "Cards you play into **adjacent Fronts** cost 1 less **Command** (minimum 1).",
+      "text": "While this formation has a **Subject**, **Bond**, and **Name**, cards you play into **adjacent Fronts** cost 1 less **Command** (minimum 1).",
       "rules": {
         "adjacent_command_discount": 1
       },
@@ -1467,8 +1467,8 @@
       "rule_blocks": [
         {
           "kind": "continuous",
-          "label": "WHILE COMPLETE",
-          "text": "Cards you play into **adjacent Fronts** cost 1 less **Command** (minimum 1)."
+          "label": "WHILE",
+          "text": "While this formation has a **Subject**, **Bond**, and **Name**, cards you play into **adjacent Fronts** cost 1 less **Command** (minimum 1)."
         }
       ],
       "command_cost": 1
