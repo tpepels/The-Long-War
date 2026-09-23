@@ -85,6 +85,7 @@ function cloneState(state) {
 function actionKey(action) {
   if (action.kind === "Pass") return "pass";
   if (action.kind === "Draw") return "draw";
+  if (action.kind === "Cycle") return "cycle:" + action.card_id;
   if (action.kind === "ChooseFirst") return "choose_first:" + action.choose_player;
   if (action.kind === "PlaySubject") {
     return "subject:" + action.card_id + ":" + action.position.front + ":" + action.position.rank;
@@ -129,6 +130,8 @@ class BrowserEngine {
       discard: [],
       victories: 0,
       passed: false,
+      command: 20,
+      free_cycle: false,
     }));
     const state = {
       players,
@@ -138,6 +141,10 @@ class BrowserEngine {
       stratagem_used: [false, false],
       draw_used: [false, false],
       discarded_this_battle: [0, 0],
+      command_spent_this_battle: [0, 0],
+      command_refunded_this_battle: [0, 0],
+      battle_start_command: [20, 20],
+      deck_reshuffles: [0, 0],
       pass_order: [],
       battle: 1,
       phase: "battle",
@@ -152,9 +159,22 @@ class BrowserEngine {
     return state;
   }
 
+  reshuffleDiscardIntoDeck(state, player) {
+    const ps = state.players[player];
+    if (ps.deck.length || !ps.discard.length) return false;
+    const pool = [...ps.discard];
+    ps.discard = [];
+    state.shuffle_seed = shuffleForBattle(pool, state.shuffle_seed >>> 0);
+    ps.deck = pool;
+    state.deck_reshuffles[player] += 1;
+    return true;
+  }
+
   draw(state, player, count) {
     const ps = state.players[player];
-    for (let i = 0; i < count && ps.deck.length; i += 1) {
+    for (let i = 0; i < count; i += 1) {
+      if (!ps.deck.length) this.reshuffleDiscardIntoDeck(state, player);
+      if (!ps.deck.length) break;
       ps.hand.push(ps.deck.pop());
     }
   }
@@ -183,9 +203,15 @@ class BrowserEngine {
 
     const player = state.active_player;
     if (state.players[player].passed) throw new Error("A passed player cannot become active");
-    const actions = [this.action("Pass")];
-    if (!state.draw_used[player] && state.players[player].deck.length) {
-      actions.push(this.action("Draw"));
+    let actions = [this.action("Pass")];
+    const playerState = state.players[player];
+    if (
+      playerState.hand.length &&
+      (playerState.deck.length || playerState.discard.length)
+    ) {
+      actions.push(...unique(playerState.hand).map((cardId) =>
+        this.action("Cycle", { card_id: cardId })
+      ));
     }
 
     for (const cardId of unique(state.players[player].hand)) {
@@ -205,7 +231,59 @@ class BrowserEngine {
         actions.push(this.action("SetStratagem", { card_id: cardId }));
       }
     }
+    actions = actions.filter((action) =>
+      this.commandCostForAction(state, action) <= playerState.command
+    );
     return actions;
+  }
+
+  commandCostForAction(state, action) {
+    const player = state.active_player;
+    if (action.kind === "Cycle") {
+      return state.players[player].free_cycle ? 0 : 1;
+    }
+    if (["Pass", "ChooseFirst", "Draw"].includes(action.kind)) return 0;
+    if (!action.card_id) return 0;
+
+    let cost = Number(this.cards[action.card_id].command_cost || 0);
+    let targetFront = null;
+    if (["PlaySubject", "PlayLink", "PlayName"].includes(action.kind)) {
+      targetFront = action.position?.front ?? null;
+    } else if (action.kind === "PlayScheme") {
+      targetFront = action.front;
+    }
+    if (targetFront != null) {
+      cost = Math.max(1, cost - this.adjacentCommandDiscount(state, player, targetFront));
+    }
+    return cost;
+  }
+
+  adjacentCommandDiscount(state, player, targetFront) {
+    let discount = 0;
+    for (const position of POSITIONS) {
+      const slot = slotAt(state, player, position.front, position.rank);
+      if (!(slot.subject && slot.link && slot.name)) continue;
+      if (Math.abs(position.front - targetFront) !== 1) continue;
+      discount = Math.max(
+        discount,
+        Number(this.cards[slot.name].rules?.adjacent_command_discount || 0)
+      );
+    }
+    return discount;
+  }
+
+  spendCommand(state, player, amount) {
+    if (amount < 0 || amount > state.players[player].command) {
+      throw new Error("Not enough Command");
+    }
+    state.players[player].command -= amount;
+    state.command_spent_this_battle[player] += amount;
+  }
+
+  gainCommand(state, player, amount) {
+    const before = state.players[player].command;
+    state.players[player].command = Math.min(20, before + Math.max(0, amount));
+    state.command_refunded_this_battle[player] += state.players[player].command - before;
   }
 
   action(kind, fields = {}) {
