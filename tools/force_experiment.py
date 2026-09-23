@@ -157,6 +157,7 @@ def validate() -> None:
             "tests/test_force_draw_candidate.py",
             "tests/test_strategic_heuristic.py",
             "tests/test_fast_search_state.py",
+            "tests/test_architecture_boundaries.py",
         ]
     )
 
