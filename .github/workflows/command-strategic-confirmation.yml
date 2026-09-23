@@ -1,0 +1,140 @@
+name: Command Strategic Confirmation
+
+on:
+  push:
+    branches:
+      - experiment/command-hand-deck-sweep
+    paths:
+      - ".github/workflows/command-strategic-confirmation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {id: d30-h14-r, deck: 30, hand: 14, mode: recycle}
+          - {id: d30-h14-p, deck: 30, hand: 14, mode: persistent}
+          - {id: d36-h14-r, deck: 36, hand: 14, mode: recycle}
+          - {id: d36-h14-p, deck: 36, hand: 14, mode: persistent}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Configure cell
+        run: |
+          if [ "${{ matrix.deck }}" = "30" ]; then
+            echo "REF_DECK=decks/experiments/name-rich-reference.json" >> "$GITHUB_ENV"
+            echo "AVAROS_DECK=decks/experiments/name-rich-avaros.json" >> "$GITHUB_ENV"
+            echo "MARA_DECK=decks/experiments/name-rich-mara.json" >> "$GITHUB_ENV"
+            echo "SERA_DECK=decks/experiments/name-rich-sera.json" >> "$GITHUB_ENV"
+          else
+            echo "REF_DECK=decks/experiments/name-rich-36-reference.json" >> "$GITHUB_ENV"
+            echo "AVAROS_DECK=decks/experiments/name-rich-36-avaros.json" >> "$GITHUB_ENV"
+            echo "MARA_DECK=decks/experiments/name-rich-36-mara.json" >> "$GITHUB_ENV"
+            echo "SERA_DECK=decks/experiments/name-rich-36-sera.json" >> "$GITHUB_ENV"
+          fi
+          if [ "${{ matrix.mode }}" = "persistent" ]; then
+            echo "RECYCLE_ARGS=--no-between-battle-recycle" >> "$GITHUB_ENV"
+          else
+            echo "RECYCLE_ARGS=" >> "$GITHUB_ENV"
+          fi
+      - name: Reference
+        run: >
+          python tools/simulate.py --games 50 --seed 26092910
+          --deck-size ${{ matrix.deck }} --hand-size ${{ matrix.hand }}
+          --disable-draw --command $RECYCLE_ARGS
+          --deck-a "$REF_DECK" --deck-b "$REF_DECK"
+          --agent-a strategic_heuristic --agent-b strategic_heuristic
+          --strategic-belief-samples 2 --strategic-rollout-plies 3 --strategic-candidate-width 5
+          --output "artifacts/${{ matrix.id }}-strategic-reference.json"
+      - name: Avaros
+        run: >
+          python tools/simulate.py --games 50 --seed 26092911
+          --deck-size ${{ matrix.deck }} --hand-size ${{ matrix.hand }}
+          --disable-draw --command $RECYCLE_ARGS
+          --deck-a "$AVAROS_DECK" --deck-b "$AVAROS_DECK"
+          --agent-a strategic_heuristic --agent-b strategic_heuristic
+          --strategic-belief-samples 2 --strategic-rollout-plies 3 --strategic-candidate-width 5
+          --output "artifacts/${{ matrix.id }}-strategic-avaros.json"
+      - name: Mara
+        run: >
+          python tools/simulate.py --games 50 --seed 26092912
+          --deck-size ${{ matrix.deck }} --hand-size ${{ matrix.hand }}
+          --disable-draw --command $RECYCLE_ARGS
+          --deck-a "$MARA_DECK" --deck-b "$MARA_DECK"
+          --agent-a strategic_heuristic --agent-b strategic_heuristic
+          --strategic-belief-samples 2 --strategic-rollout-plies 3 --strategic-candidate-width 5
+          --output "artifacts/${{ matrix.id }}-strategic-mara.json"
+      - name: Sera
+        run: >
+          python tools/simulate.py --games 50 --seed 26092913
+          --deck-size ${{ matrix.deck }} --hand-size ${{ matrix.hand }}
+          --disable-draw --command $RECYCLE_ARGS
+          --deck-a "$SERA_DECK" --deck-b "$SERA_DECK"
+          --agent-a strategic_heuristic --agent-b strategic_heuristic
+          --strategic-belief-samples 2 --strategic-rollout-plies 3 --strategic-candidate-width 5
+          --output "artifacts/${{ matrix.id }}-strategic-sera.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: strategic-${{ matrix.id }}
+          path: artifacts/${{ matrix.id }}-strategic-*.json
+          retention-days: 30
+
+  summarize:
+    needs: simulate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: strategic-*
+          path: artifacts/all
+          merge-multiple: true
+      - name: Summarize
+        run: |
+          python - <<'PY'
+          import json,re
+          from pathlib import Path
+          root=Path("artifacts/all")
+          pat=re.compile(r"d(30|36)-h14-([rp])-strategic-(.+)\.json$")
+          groups={}
+          for p in root.glob("*.json"):
+              m=pat.match(p.name)
+              if not m: continue
+              deck,mode,_=m.groups()
+              key=(int(deck),"recycle" if mode=="r" else "persistent")
+              groups.setdefault(key,[]).append(json.loads(p.read_text()))
+          rows=[]
+          for (deck,mode),rs in sorted(groups.items()):
+              battles=sum(r["telemetry"]["battles"]["count"] for r in rs)
+              names=sum(r["telemetry"]["actions"].get("PlayName",0) for r in rs)
+              cycles=sum(r["telemetry"]["actions"].get("Cycle",0) for r in rs)
+              comps=sum(sum(v.get("completions",0) for v in r["telemetry"]["legend_combinations"].values()) for r in rs)
+              games=sum(r["games"] for r in rs)
+              ex=sum((r["telemetry"]["depletion"]["player_game_deck_exhaustion_rate"] or 0)*r["games"] for r in rs)/games
+              b1=sum((r["telemetry"]["match_flow"]["battle_one_loser_match_win_rate"] or 0)*r["games"] for r in rs)/games
+              dec=sum(r["telemetry"]["decisions"].get("strategic_heuristic",{}).get("decisions",0) for r in rs)
+              choices=sum((r["telemetry"]["decisions"].get("strategic_heuristic",{}).get("mean_candidate_count") or 0)*r["telemetry"]["decisions"].get("strategic_heuristic",{}).get("decisions",0) for r in rs)/(dec or 1)
+              rows.append({"deck":deck,"mode":mode,"games":games,"battles":battles,"names_per_battle":names/battles,"completions_per_battle":comps/battles,"cycles_per_battle":cycles/battles,"deck_exhaustion":ex,"battle1_loser_match_wr":b1,"choices":choices})
+          out=Path("artifacts/summary"); out.mkdir(parents=True,exist_ok=True)
+          (out/"strategic-confirmation.json").write_text(json.dumps(rows,indent=2)+"\n")
+          lines=["# Strategic heuristic confirmation","",
+            "| Deck | Mode | Games | Names/B | Complete/B | Cycles/B | Choices | Deck exhaust | B1 loser match WR |",
+            "| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
+          for r in rows:
+              lines.append(f"| {r['deck']} | {r['mode']} | {r['games']} | {r['names_per_battle']:.2f} | {r['completions_per_battle']:.2f} | {r['cycles_per_battle']:.2f} | {r['choices']:.1f} | {r['deck_exhaustion']:.1%} | {r['battle1_loser_match_wr']:.1%} |")
+          (out/"strategic-confirmation.md").write_text("\n".join(lines)+"\n")
+          print("\n".join(lines))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: strategic-confirmation-summary
+          path: artifacts/summary/*
+          retention-days: 30
