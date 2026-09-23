@@ -5,11 +5,9 @@ on:
     branches: [main]
     paths:
       - "cards/**"
+      - "decks/reference.json"
       - "rules/**"
       - "web/**"
-      - "src/longwar/**"
-      - "tools/**"
-      - ".github/workflows/pages.yml"
   workflow_dispatch:
   workflow_run:
     workflows: ["Counterfactual Analysis", "MCCFR Validation"]

@@ -51,7 +51,7 @@ force-check:
 	python tools/force_experiment.py validate
 
 force-bench:
-	python tools/force_experiment.py bench
+	python tools/force_experiment.py bench --jobs 8
 
 force-quick:
 	python tools/force_experiment.py run --preset quick --backend cython --jobs 8

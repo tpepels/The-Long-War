@@ -6,6 +6,7 @@ import json
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -145,41 +146,74 @@ def validate() -> None:
     print("Rules tests passed and Python/Cython produced identical fixed-seed simulations.")
 
 
-def benchmark(games: int) -> None:
+def benchmark(games: int, jobs: int) -> None:
     require_cython()
-    BENCH_ROOT.mkdir(parents=True, exist_ok=True)
+    if games <= 0:
+        raise SystemExit("--games must be positive.")
+    if jobs <= 0:
+        raise SystemExit("--jobs must be positive.")
 
+    BENCH_ROOT.mkdir(parents=True, exist_ok=True)
+    seeds = [26092334 + index for index in range(jobs)]
     timings: dict[str, float] = {}
+
+    print(
+        f"Benchmark load: {jobs} workers × {games} game(s) "
+        f"= {jobs * games} games/backend"
+    )
+
     for backend in ("python", "cython"):
-        output = BENCH_ROOT / backend
-        command = [
-            sys.executable,
-            str(RUNNER),
-            "--preset",
-            "deep",
-            "--games",
-            str(games),
-            "--jobs",
-            "1",
-            "--mode",
-            "automatic",
-            "--deck",
-            "reference",
-            "--backend",
-            backend,
-            "--output-dir",
-            str(output),
-        ]
-        print(f"\nBenchmarking {backend} backend...")
+        commands: list[list[str]] = []
+        for index, seed in enumerate(seeds):
+            output = BENCH_ROOT / backend / f"worker-{index + 1}"
+            commands.append(
+                [
+                    sys.executable,
+                    str(RUNNER),
+                    "--preset",
+                    "deep",
+                    "--games",
+                    str(games),
+                    "--jobs",
+                    "1",
+                    "--mode",
+                    "automatic",
+                    "--deck",
+                    "reference",
+                    "--backend",
+                    backend,
+                    "--seed",
+                    str(seed),
+                    "--output-dir",
+                    str(output),
+                ]
+            )
+
+        print(f"\nBenchmarking {backend} backend on {jobs} CPU workers...")
         start = time.perf_counter()
-        run_command(command)
+        with ThreadPoolExecutor(max_workers=jobs) as pool:
+            futures = [
+                pool.submit(run_command, command, capture=True)
+                for command in commands
+            ]
+            for index, future in enumerate(as_completed(futures), start=1):
+                future.result()
+                print(f"  completed {index}/{jobs}", flush=True)
         timings[backend] = time.perf_counter() - start
 
     py = timings["python"]
     cy = timings["cython"]
+    total_games = jobs * games
+
     print("\nBenchmark")
-    print(f"Python : {py:.2f}s")
-    print(f"Cython : {cy:.2f}s")
+    print(
+        f"Python : {py:.2f}s "
+        f"({total_games / py:.2f} games/s aggregate)"
+    )
+    print(
+        f"Cython : {cy:.2f}s "
+        f"({total_games / cy:.2f} games/s aggregate)"
+    )
     if cy > 0:
         print(f"Speedup: {py / cy:.2f}x")
 
@@ -221,7 +255,18 @@ def parse_args() -> argparse.Namespace:
         "bench",
         help="Benchmark Python and Cython on the same deep-search cell.",
     )
-    bench.add_argument("--games", type=int, default=3)
+    bench.add_argument(
+        "--games",
+        type=int,
+        default=1,
+        help="Games per CPU worker (default: 1).",
+    )
+    bench.add_argument(
+        "--jobs",
+        type=int,
+        default=8,
+        help="Parallel benchmark workers (default: 8).",
+    )
 
     run = sub.add_parser(
         "run",
@@ -243,7 +288,7 @@ def main() -> None:
     if args.command == "validate":
         validate()
     elif args.command == "bench":
-        benchmark(args.games)
+        benchmark(args.games, args.jobs)
     elif args.command == "run":
         run_experiment(args)
     else:
