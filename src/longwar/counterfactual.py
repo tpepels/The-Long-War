@@ -52,6 +52,7 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         "balance": {},
         "experimental": True,
         "baseline_for": card["id"],
+        "command_cost": int(card["command_cost"]),
     }
 
     if card_type == "subject":
@@ -95,7 +96,7 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
             # playability while removing the card-specific effect.
             result["rules"] = {}
     elif card_type == "stratagem":
-        # Preserve the free face-down commitment and one-per-Battle slot while
+        # Preserve the paid face-down commitment and one-per-Battle slot while
         # removing all card-specific timing and payoff.
         result["text"] = (
             "Experimental matched baseline. Set this face-down as a "

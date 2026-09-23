@@ -15,6 +15,7 @@ from .game.actions import (
     Action,
     BoardTarget,
     ChooseFirst,
+    Cycle,
     Draw,
     Pass,
     PlayLink,
@@ -68,6 +69,8 @@ def action_key(action: Action) -> str:
         return "pass"
     if isinstance(action, Draw):
         return "draw"
+    if isinstance(action, Cycle):
+        return f"cycle:{action.card_id}"
     if isinstance(action, ChooseFirst):
         return f"choose_first:{action.player}"
     if isinstance(action, PlaySubject):
@@ -166,6 +169,9 @@ def information_set_key(state: GameState, player: int) -> tuple[tuple[str, Any],
         ("passed", tuple(p.passed for p in state.players)),
         ("pass_order", tuple(state.pass_order)),
         ("discarded_this_battle", tuple(state.discarded_this_battle)),
+        ("command", tuple(p.command for p in state.players)),
+        ("free_cycle", tuple(p.free_cycle for p in state.players)),
+        ("deck_reshuffles", tuple(state.deck_reshuffles)),
         ("board", board),
         ("schemes", schemes),
         (
@@ -272,6 +278,18 @@ def _search_information_set_key(state: GameState, player: int) -> tuple[Any, ...
             state.discarded_this_battle[0],
             state.discarded_this_battle[1],
         ),
+        (
+            state.players[0].command,
+            state.players[1].command,
+        ),
+        (
+            state.players[0].free_cycle,
+            state.players[1].free_cycle,
+        ),
+        (
+            state.deck_reshuffles[0],
+            state.deck_reshuffles[1],
+        ),
         board,
         schemes,
         tuple(stratagem_views),
@@ -308,6 +326,9 @@ def _search_key_observation(key: tuple[Any, ...]) -> dict[str, Any]:
         passed,
         pass_order,
         discarded_this_battle,
+        command,
+        free_cycle,
+        deck_reshuffles,
         compact_board,
         schemes,
         stratagems,
@@ -353,6 +374,9 @@ def _search_key_observation(key: tuple[Any, ...]) -> dict[str, Any]:
         "passed": list(passed),
         "pass_order": list(pass_order),
         "discarded_this_battle": list(discarded_this_battle),
+        "command": list(command),
+        "free_cycle": list(free_cycle),
+        "deck_reshuffles": list(deck_reshuffles),
         "board": board,
         "schemes": thaw(schemes),
         "stratagems": thaw(stratagems),
@@ -478,6 +502,9 @@ def information_set_observation(state: GameState, player: int) -> dict[str, Any]
         "passed": [p.passed for p in state.players],
         "pass_order": list(state.pass_order),
         "discarded_this_battle": list(state.discarded_this_battle),
+        "command": [p.command for p in state.players],
+        "free_cycle": [p.free_cycle for p in state.players],
+        "deck_reshuffles": list(state.deck_reshuffles),
         "board": board,
         "schemes": schemes,
         "stratagems": [
@@ -556,6 +583,7 @@ class MCCFRTrainer:
             PrimitiveFastEngine(engine)
             if (
                 direct_traversal
+                and not engine.command_enabled
                 and PrimitiveFastEngine is not None
                 and PrimitiveCFRNode is not None
                 and packed_external_sampling_traverse is not None

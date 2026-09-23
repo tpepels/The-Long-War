@@ -367,6 +367,9 @@ def test_configurable_hand_target_can_disable_draw_for_experiments() -> None:
         default_engine.card_data,
         opening_hand_size=9,
         draw_action_enabled=False,
+        recycle_between_battles=True,
+        command_enabled=False,
+        reshuffle_on_empty=False,
     )
     state = engine.new_game(
         deck,

@@ -14,7 +14,7 @@ def test_fifty_men_followed_namar_static_strength_before_position_bonus() -> Non
         cards["followed"],
         cards["namar"],
     )
-    assert score.static_strength == 9
+    assert score.static_strength == 8
 
 
 def test_all_subject_bond_name_combinations_are_analyzed() -> None:

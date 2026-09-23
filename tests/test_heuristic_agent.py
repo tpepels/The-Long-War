@@ -112,6 +112,8 @@ def test_equal_stratagem_scores_do_not_fall_back_to_card_id_order() -> None:
     # Tide and Ground have the same public-board estimate here: each improves
     # the current relative position by two points if revealed.
     state.players[0].hand = ["the-tide-rose", "the-ground-gave-way"]
+    state.players[0].deck = []
+    state.players[0].discard = []
     state.players[1].hand = []
     state.slot(1, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
     state.slot(1, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"

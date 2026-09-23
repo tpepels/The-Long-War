@@ -69,7 +69,7 @@ class PlayerState:
     discard: list[str] = field(default_factory=list)
     victories: int = 0
     passed: bool = False
-    command: int = 0
+    command: int = 20
     free_cycle: bool = False
 
 

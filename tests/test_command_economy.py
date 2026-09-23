@@ -28,7 +28,7 @@ RIGHT_FRONT = Position(Front.RIGHT, Rank.FRONT)
 def command_game(*, first_player: int = 0):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "experiments" / "name-rich-reference.json").read_text(
+        (ROOT / "decks" / "reference.json").read_text(
             encoding="utf-8"
         )
     )["cards"]

@@ -33,10 +33,17 @@ def command_engine(*, deck_size: int, hand_size: int, recycle: bool = True) -> G
 
 
 def test_default_belief_sampler_uses_engine_deck_size_for_36_cards() -> None:
-    deck = load_deck("decks/experiments/name-rich-36-reference.json")
+    import random
+    from collections import Counter
+    from longwar.belief import CardPoolDeckPrior
+
     engine = command_engine(deck_size=36, hand_size=12)
+    deck = CardPoolDeckPrior(engine, deck_size=36).sample_deck(
+        Counter(),
+        random.Random(7301),
+    )
     state = engine.new_game(deck, deck, seed=7301, first_player=0)
-    sampled = BeliefSampler(engine).sample(state, 0, __import__("random").Random(7302))
+    sampled = BeliefSampler(engine).sample(state, 0, random.Random(7302))
 
     opponent = sampled.players[1]
     public_count = (
@@ -53,7 +60,7 @@ def test_default_belief_sampler_uses_engine_deck_size_for_36_cards() -> None:
 
 
 def test_strategic_heuristic_returns_a_legal_action_without_true_hand_access() -> None:
-    deck = load_deck("decks/experiments/name-rich-reference.json")
+    deck = load_deck("decks/reference.json")
     engine = command_engine(deck_size=30, hand_size=10)
     state = engine.new_game(deck, deck, seed=7310, first_player=0)
     priors = (
@@ -78,7 +85,7 @@ def test_strategic_heuristic_returns_a_legal_action_without_true_hand_access() -
 
 
 def test_short_strategic_command_simulation_finishes() -> None:
-    deck = load_deck("decks/experiments/name-rich-reference.json")
+    deck = load_deck("decks/reference.json")
     engine = command_engine(deck_size=30, hand_size=11)
 
     report = simulate_games(
@@ -99,7 +106,7 @@ def test_short_strategic_command_simulation_finishes() -> None:
 
 
 def test_persistent_command_simulation_reports_depletion() -> None:
-    deck = load_deck("decks/experiments/name-rich-reference.json")
+    deck = load_deck("decks/reference.json")
     engine = command_engine(deck_size=30, hand_size=12, recycle=False)
 
     report = simulate_games(

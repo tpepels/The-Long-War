@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def deck() -> list[str]:
     return json.loads(
-        (ROOT / "decks" / "experiments" / "seven-name-reference.json").read_text(
+        (ROOT / "decks" / "reference.json").read_text(
             encoding="utf-8"
         )
     )["cards"]
