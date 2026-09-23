@@ -9,6 +9,109 @@ function assert(condition, message) {
 const cards = JSON.parse(fs.readFileSync(new URL("../cards/cards.json", import.meta.url), "utf8"));
 const deck = JSON.parse(fs.readFileSync(new URL("../decks/reference.json", import.meta.url), "utf8"));
 
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function projectState(state) {
+  return {
+    players: state.players.map((player) => ({
+      deck: [...player.deck],
+      hand: [...player.hand],
+      discard: [...player.discard],
+      victories: player.victories,
+      passed: player.passed,
+    })),
+    board: clone(state.board),
+    schemes: clone(state.schemes),
+    stratagems: clone(state.stratagems),
+    stratagem_used: [...state.stratagem_used],
+    draw_used: [...state.draw_used],
+    discarded_this_battle: [...state.discarded_this_battle],
+    pass_order: [...state.pass_order],
+    battle: state.battle,
+    phase: state.phase,
+    active_player: state.active_player,
+    chooser: state.chooser,
+    winner: state.winner,
+    turn_number: state.turn_number,
+    shuffle_seed: state.shuffle_seed >>> 0,
+  };
+}
+
+function frontStrengths(engine, state) {
+  return [0, 1].map((player) =>
+    [0, 1, 2].map((front) => engine.frontStrength(state, player, front))
+  );
+}
+
+function assertJsonEqual(actual, expected, message) {
+  const left = JSON.stringify(actual);
+  const right = JSON.stringify(expected);
+  if (left !== right) {
+    throw new Error(
+      message + "\nexpected=" + JSON.stringify(expected, null, 2) +
+      "\nactual=" + JSON.stringify(actual, null, 2)
+    );
+  }
+}
+
+function runParityContract(contractPath) {
+  const contract = JSON.parse(fs.readFileSync(contractPath, "utf8"));
+  for (const scenario of contract.scenarios) {
+    const session = new BrowserSession(cards, deck, "hotseat", 1);
+    session.setupComplete = true;
+    session.state = clone(scenario.initial);
+
+    const checkLegal = (expected, label) => {
+      const actual = session.engine.legalActions(session.state)
+        .map((action) => action.key)
+        .sort();
+      assertJsonEqual(actual, expected, label + " legal actions diverged");
+    };
+
+    if (scenario.legal) {
+      checkLegal(scenario.legal, scenario.name);
+      assertJsonEqual(
+        frontStrengths(session.engine, session.state),
+        scenario.front_strengths,
+        scenario.name + " Front strengths diverged"
+      );
+    }
+
+    for (let index = 0; index < (scenario.steps || []).length; index += 1) {
+      const step = scenario.steps[index];
+      const label = scenario.name + " step " + index;
+      checkLegal(step.legal, label);
+      const action = session.engine.legalActions(session.state)
+        .find((candidate) => candidate.key === step.action);
+      assert(action, label + " missing chosen action " + step.action);
+      session.engine.apply(session.state, action);
+      assertJsonEqual(
+        projectState(session.state),
+        step.after,
+        label + " state diverged"
+      );
+      assertJsonEqual(
+        frontStrengths(session.engine, session.state),
+        step.front_strengths,
+        label + " Front strengths diverged"
+      );
+    }
+  }
+  console.log(
+    "PASS: browser compatibility runtime matches canonical Cython contract " +
+    contract.game_fingerprint
+  );
+}
+
+const contractIndex = process.argv.indexOf("--contract");
+if (contractIndex >= 0) {
+  const contractPath = process.argv[contractIndex + 1];
+  assert(contractPath, "--contract requires a path");
+  runParityContract(contractPath);
+}
+
 const supported = {
   plotEffects: new Set(["discredit_subject", "return_name_or_weaken", "move_subject"]),
   schemeTriggers: new Set([

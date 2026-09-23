@@ -1,3 +1,8 @@
+// Compatibility runtime for static GitHub Pages.
+// Canonical game rules live in the packed Cython engine. This implementation
+// must pass tools/build_browser_contract.py + tools/check_browser_engine.mjs.
+// Do not treat this file as a source of game-rule truth.
+
 const FRONT_NAMES = ["Left", "Center", "Right"];
 const RANK_NAMES = { front: "Frontline", rear: "Rear" };
 const RANKS = ["front", "rear"];
@@ -284,7 +289,7 @@ class BrowserEngine {
         for (const destination of POSITIONS) {
           if (source.front === destination.front && source.rank === destination.rank) continue;
           if (required && destination.rank !== required) continue;
-          if (slotAt(state, player, destination.front, destination.rank).subject) continue;
+          if (slotOccupied(slotAt(state, player, destination.front, destination.rank))) continue;
           actions.push(this.action("PlayPlot", {
             card_id: cardId,
             targets: [

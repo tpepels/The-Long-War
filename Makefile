@@ -1,4 +1,4 @@
-.PHONY: install test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages force-setup force-check force-bench force-quick force-run force-max
+.PHONY: install test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity force-setup force-check force-bench force-quick force-run force-max
 
 install:
 	python -m pip install -e '.[dev]'
@@ -15,7 +15,7 @@ test-algorithm:
 test-integration:
 	python -m pytest -q -m integration --durations=10
 
-check: test-fast test-integration
+check: test-fast test-integration browser-parity
 	python tools/balance_report.py
 	python tools/simulate.py --games 50 --seed 1701 --agent-a heuristic --agent-b heuristic
 	python tools/analyze_telemetry.py --simulation artifacts/simulation-report.json
@@ -41,6 +41,10 @@ simulate-smoke:
 
 pages:
 	python tools/build_pages.py
+
+browser-parity:
+	python tools/build_browser_contract.py --output artifacts/browser-engine-contract.json
+	node tools/check_browser_engine.mjs --contract artifacts/browser-engine-contract.json
 
 
 # Force-rich draw experiment: local-only convenience targets.
