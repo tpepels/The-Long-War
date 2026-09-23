@@ -390,6 +390,16 @@ body.game-body::before {
 
 .score-player.active { color: var(--parchment-light); }
 
+.command-readout {
+  min-width: 34px;
+  padding: 2px 5px;
+  border: 1px solid rgba(185,146,74,.45);
+  color: var(--gold);
+  font: 800 8px/1 system-ui, sans-serif;
+  letter-spacing: .04em;
+  text-align: center;
+}
+
 .victory-pips {
   display: inline-flex;
   gap: 3px;
@@ -2550,7 +2560,6 @@ body.game-body::before {
   gap: 10px;
 }
 
-.draw-button,
 .pass-button {
   min-width: 112px;
   min-height: 38px;
@@ -2563,13 +2572,6 @@ body.game-body::before {
   cursor: pointer;
 }
 
-.draw-button {
-  background: var(--gold);
-  color: #17130e;
-}
-.draw-button:hover {
-  background: #d7b465;
-}
 .pass-button {
   background: #211b14;
   color: var(--gold);
