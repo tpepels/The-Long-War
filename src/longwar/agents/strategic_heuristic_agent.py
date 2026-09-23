@@ -9,6 +9,7 @@ from ..game.actions import Action, Draw, Pass
 from ..game.engine import GameEngine, all_positions
 from ..game.model import GameState, Phase
 from .heuristic_agent import HeuristicAgent, ScoredAction
+from ..heuristics import StrategicEvaluator
 
 try:
     from .._alphabeta_accel import (
@@ -76,7 +77,11 @@ class StrategicHeuristicAgent(HeuristicAgent):
         search_backend: str = "auto",
         exploration: float = 0.0,
     ):
-        super().__init__(seed=seed, exploration=exploration)
+        super().__init__(
+            seed=seed,
+            exploration=exploration,
+            evaluator=StrategicEvaluator(),
+        )
         if belief_samples <= 0:
             raise ValueError("belief_samples must be positive")
         if rollout_plies <= 0:
@@ -410,114 +415,15 @@ class StrategicHeuristicAgent(HeuristicAgent):
         # Preserve long-horizon resource/tempo choices even if their one-ply
         # score is weak.
         for action in ranked[width:]:
-            if isinstance(action, (Pass, Draw)) and action not in selected:
-                selected.append(action)
-        return selected
-
-    def _strategic_state_value(
+            if isi    def _strategic_state_value(
         self,
         engine: GameEngine,
         state: GameState,
         player: int,
     ) -> float:
-        value = self._state_value(engine, state, player)
-        if state.phase is Phase.COMPLETE:
-            return value
+        return self.evaluator._strategic_state_value(engine, state, player)
 
-        opponent = 1 - player
-
-        # Reward progress toward complete formations, including Bonds/Names
-        # prepared before their Force. This is where the one-ply evaluator is
-        # weakest.
-        value += 0.85 * (
-            self._formation_progress(state, player)
-            - self._formation_progress(state, opponent)
-        )
-        value += 0.30 * (
-            self._hand_construction_value(engine, state, player)
-            - self._hand_construction_value(engine, state, opponent)
-        )
-
-        if not engine.recycle_between_battles:
-            value += 0.18 * (
-                len(state.players[player].deck)
-                - len(state.players[opponent].deck)
-            )
-            value += 0.55 * (
-                self._future_formation_sets(engine, state, player)
-                - self._future_formation_sets(engine, state, opponent)
-            )
-            value += 0.40 * (
-                self._future_force_availability(engine, state, player)
-                - self._future_force_availability(engine, state, opponent)
-            )
-
-        if engine.command_enabled:
-            # Command saved now remains useful in later Battles. The public
-            # evaluator already values current Command; this smaller term
-            # specifically values future playable-card capacity.
-            value += 0.12 * (
-                self._affordable_hand_count(engine, state, player)
-                - self._affordable_hand_count(engine, state, opponent)
-            )
-
-        return value
-
-    @staticmethod
-    def _formation_progress(state: GameState, player: int) -> float:
-        value = 0.0
-        for position in all_positions():
-            slot = state.slot(player, position)
-            components = sum(
-                component is not None
-                for component in (slot.subject, slot.link, slot.name)
-            )
-            if components == 1:
-                value += 0.35
-            elif components == 2:
-                value += 1.35
-            elif components == 3:
-                value += 2.25
-        return value
-
-    @staticmethod
-    def _affordable_hand_count(
-        engine: GameEngine,
-        state: GameState,
-        player: int,
-    ) -> int:
-        if not engine.command_enabled:
-            return len(state.players[player].hand)
-        command = state.players[player].command
-        return sum(
-            int(engine.cards[card_id].get("command_cost", 0)) <= command
-            for card_id in state.players[player].hand
-        )
-
-    @staticmethod
-    def _future_force_availability(
-        engine: GameEngine,
-        state: GameState,
-        player: int,
-    ) -> float:
-        immediate = state.players[player].hand + state.players[player].deck
-        discard = state.players[player].discard
-        return float(
-            sum(engine.cards[card_id]["type"] == "subject" for card_id in immediate)
-        ) + 0.35 * float(
-            sum(engine.cards[card_id]["type"] == "subject" for card_id in discard)
-        )
-
-    @staticmethod
-    def _future_formation_sets(
-        engine: GameEngine,
-        state: GameState,
-        player: int,
-    ) -> int:
-        remaining = state.players[player].hand + state.players[player].deck
-        counts = {"subject": 0, "link": 0, "name": 0}
-        for card_id in remaining:
-            card_type = engine.cards[card_id]["type"]
+d]["type"]
             if card_type in counts:
                 counts[card_type] += 1
         return min(counts.values())

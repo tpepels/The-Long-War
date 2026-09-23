@@ -1888,6 +1888,23 @@ cdef class FastEngine:
     cpdef double evaluate(self, FastState state, int player):
         return self.evaluate_fast(state, player)
 
+    cpdef double strategic_evaluate(self, FastState state, int player):
+        return self.strategic_evaluate_fast(state, player)
+
+    cpdef double score_action(
+        self,
+        FastState state,
+        int player,
+        uint64_t action,
+    ):
+        cdef FastState scratch = FastState()
+        return self.action_order_score_fast(
+            state,
+            player,
+            action,
+            scratch,
+        )
+
     cdef bytes information_key_fast(self, FastState state, int player):
         cdef unsigned char buf[512]
         cdef int n=0, i, owner, slot, card, count, front, ix, opponent=1-player
