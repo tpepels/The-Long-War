@@ -35,7 +35,7 @@ RANK_NAMES = {
 
 
 class PlaySession:
-    """JSON adapter around the canonical Python game engine."""
+    """JSON adapter around the canonical packed Cython game engine."""
 
     def __init__(
         self,

@@ -13,10 +13,15 @@ FINGERPRINT_PATHS = (
     "decks/avaros-line.json",
     "decks/mara-rear.json",
     "decks/sera-support.json",
+    "src/longwar/rules.py",
     "src/longwar/game/actions.py",
     "src/longwar/game/model.py",
     "src/longwar/game/engine.py",
+    "src/longwar/_fast_search.pyx",
+    "src/longwar/heuristics.py",
+    "src/longwar/algorithms/alpha_beta.py",
     "src/longwar/agents/heuristic_agent.py",
+    "src/longwar/agents/strategic_heuristic_agent.py",
 )
 
 
