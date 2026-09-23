@@ -1,0 +1,155 @@
+name: Eight Name Density Sweep
+
+on:
+  push:
+    branches:
+      - experiment/command-hand-deck-sweep
+    paths:
+      - "cards/experiments/eight-name-cards.json"
+      - "decks/experiments/eight-name-*.json"
+      - ".github/workflows/eight-name-density-sweep.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    strategy:
+      fail-fast: false
+      matrix:
+        hand: [10, 11, 12, 13, 14]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Validate and simulate
+        env:
+          HAND: ${{ matrix.hand }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from dataclasses import asdict
+          from pathlib import Path
+          from longwar.cards import load_card_file
+          from longwar.game import GameEngine
+          from longwar.simulate import simulate_games
+
+          root=Path(".")
+          data=load_card_file(root/"cards/experiments/eight-name-cards.json")
+          hand=int(os.environ["HAND"])
+          engine=GameEngine(
+              data,
+              opening_hand_size=hand,
+              draw_action_enabled=False,
+              deck_size=30,
+              recycle_between_battles=True,
+              command_enabled=True,
+              starting_command=20,
+              battle_command_gain=10,
+              command_cap=20,
+              cycle_command_cost=1,
+          )
+          profiles={
+              "reference":("decks/experiments/eight-name-reference.json",26093110),
+              "avaros":("decks/experiments/eight-name-avaros.json",26093111),
+              "mara":("decks/experiments/eight-name-mara.json",26093112),
+              "sera":("decks/experiments/eight-name-sera.json",26093113),
+          }
+          out=Path("artifacts"); out.mkdir(exist_ok=True)
+          for name,(deck_path,seed) in profiles.items():
+              deck=json.loads(Path(deck_path).read_text())["cards"]
+              engine.validate_deck(deck)
+              assert sum(engine.cards[c]["type"]=="subject" for c in deck)==10
+              assert sum(engine.cards[c]["type"]=="name" for c in deck)==8
+              report=simulate_games(
+                  engine,deck,deck,
+                  games=250,
+                  seed=seed,
+                  agent_names=("heuristic","heuristic"),
+              )
+              payload=asdict(report)
+              payload["first_player_win_rate"]=report.first_player_win_rate
+              payload["simulation_variant"]={
+                  "deck_size":30,
+                  "base_hand_size":hand,
+                  "name_count":8,
+                  "recycle_between_battles":True,
+                  "command_enabled":True,
+              }
+              (out/f"h{hand}-{name}.json").write_text(json.dumps(payload,indent=2)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eight-name-h${{ matrix.hand }}
+          path: artifacts/h${{ matrix.hand }}-*.json
+          retention-days: 30
+
+  summarize:
+    needs: simulate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: eight-name-*
+          path: artifacts/all
+          merge-multiple: true
+      - name: Summarize
+        run: |
+          python - <<'PY'
+          import json,re
+          from pathlib import Path
+          root=Path("artifacts/all")
+          pat=re.compile(r"h(\d+)-(.+)\.json$")
+          groups={}
+          for p in root.glob("*.json"):
+              m=pat.match(p.name)
+              if not m: continue
+              hand,_=m.groups()
+              groups.setdefault(int(hand),[]).append(json.loads(p.read_text()))
+          rows=[]
+          for hand,rs in sorted(groups.items()):
+              battles=sum(r["telemetry"]["battles"]["count"] for r in rs)
+              games=sum(r["games"] for r in rs)
+              acts=lambda n:sum(r["telemetry"]["actions"].get(n,0) for r in rs)
+              comps=sum(sum(v.get("completions",0) for v in r["telemetry"]["legend_combinations"].values()) for r in rs)
+              dec=sum(r["telemetry"]["decisions"].get("heuristic",{}).get("decisions",0) for r in rs)
+              choices=sum(
+                  (r["telemetry"]["decisions"].get("heuristic",{}).get("mean_candidate_count") or 0)
+                  *r["telemetry"]["decisions"].get("heuristic",{}).get("decisions",0)
+                  for r in rs
+              )/(dec or 1)
+              rows.append({
+                  "hand":hand,"games":games,"battles":battles,
+                  "names_per_battle":acts("PlayName")/battles,
+                  "completions_per_battle":comps/battles,
+                  "cycles_per_battle":acts("Cycle")/battles,
+                  "cards_per_battle":sum(acts(n) for n in ("PlaySubject","PlayLink","PlayName","PlayPlot","PlayScheme","SetStratagem"))/battles,
+                  "choices":choices,
+                  "first_player_wr":sum(r["first_player_win_rate"]*r["games"] for r in rs)/games,
+              })
+          out=Path("artifacts/summary");out.mkdir(parents=True,exist_ok=True)
+          (out/"eight-name-density.json").write_text(json.dumps(rows,indent=2)+"\n")
+          lines=[
+              "# Eight-Name density sweep","",
+              "| Hand | Names/B | Target | Complete/B | Cycles/B | Cards/B | Choices | First-player WR |",
+              "| ---: | ---: | :---: | ---: | ---: | ---: | ---: | ---: |",
+          ]
+          for r in rows:
+              lines.append(
+                  f"| {r['hand']} | {r['names_per_battle']:.2f} "
+                  f"| {'YES' if r['names_per_battle']>=3 else 'no'} "
+                  f"| {r['completions_per_battle']:.2f} | {r['cycles_per_battle']:.2f} "
+                  f"| {r['cards_per_battle']:.2f} | {r['choices']:.1f} | {r['first_player_wr']:.1%} |"
+              )
+          (out/"eight-name-density.md").write_text("\n".join(lines)+"\n")
+          print("\n".join(lines))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eight-name-density-summary
+          path: artifacts/summary/*
+          retention-days: 30
