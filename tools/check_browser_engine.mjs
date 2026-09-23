@@ -19,7 +19,7 @@ const supported = {
   ]),
   schemeEffects: new Set(["penalize_played_subject", "discard_played_link", "reinforce_front"]),
   stratagemEvents: new Set(["subject_played", "pass", "immediate_story_played", "name_played"]),
-  nameEffects: new Set(["move_adjacent_optional", "reveal_enemy_scheme"]),
+  nameEffects: new Set(["move_adjacent_optional"]),
 };
 
 for (const card of cards.cards) {
@@ -70,34 +70,51 @@ prepared.engine.apply(prepared.state, preparedAction);
 preparedAction = formationAction(prepared, "PlaySubject");
 assert(preparedAction, "Subject could not be added to prepared Bond/Name");
 prepared.engine.apply(prepared.state, preparedAction);
-assert(prepared.engine.positionStrength(prepared.state, 0, { front: 1, rank: "front" }) === 13, "Prepared formation did not activate when Subject arrived");
+assert(prepared.engine.positionStrength(prepared.state, 0, { front: 1, rank: "front" }) === 10, "Prepared formation did not activate with the redesigned Name strength");
+const expectedPreparedCommand =
+  20
+  - Number(cards.cards.find((card) => card.id === "namar").command_cost)
+  - Number(cards.cards.find((card) => card.id === "followed").command_cost)
+  - Number(cards.cards.find((card) => card.id === "the-fifty-men").command_cost)
+  + 1;
+assert(
+  prepared.state.players[0].command === expectedPreparedCommand,
+  "Namar completion did not refund exactly 1 Command"
+);
 
-const recycle = new BrowserSession(cards, deck, "hotseat", 9911);
-recycle.setupComplete = true;
-recycle.state.active_player = 0;
+const persistent = new BrowserSession(cards, deck, "hotseat", 9911);
+persistent.setupComplete = true;
+persistent.state.active_player = 0;
+persistent.state.players[0].command = 7;
+persistent.state.players[1].command = 14;
 const keptHands = [];
+const discardBefore = [];
 for (const [player, target] of [[0, 4], [1, 6]]) {
-  const ps = recycle.state.players[player];
+  const ps = persistent.state.players[player];
   const moved = ps.hand.splice(target);
   ps.discard.push(...moved);
+  discardBefore.push([...ps.discard]);
   keptHands.push([...ps.hand]);
 }
-recycle.engine.apply(
-  recycle.state,
-  recycle.engine.legalActions(recycle.state).find((action) => action.kind === "Pass")
+persistent.engine.apply(
+  persistent.state,
+  persistent.engine.legalActions(persistent.state).find((action) => action.kind === "Pass")
 );
-recycle.engine.apply(
-  recycle.state,
-  recycle.engine.legalActions(recycle.state).find((action) => action.kind === "Pass")
+persistent.engine.apply(
+  persistent.state,
+  persistent.engine.legalActions(persistent.state).find((action) => action.kind === "Pass")
 );
-assert(recycle.state.battle === 2 && recycle.state.phase === "choose_first", "Battle recycle did not advance to the next Battle");
+assert(persistent.state.battle === 2 && persistent.state.phase === "choose_first", "Persistent Battle transition did not advance");
+assert(
+  persistent.state.players[0].command === 17 && persistent.state.players[1].command === 20,
+  "Command did not carry and replenish by +10 to the cap"
+);
 for (let player = 0; player < 2; player += 1) {
-  const ps = recycle.state.players[player];
-  assert(ps.hand.length === 10, "Battle recycle did not refill hand to 10");
-  assert(ps.discard.length === 0, "Battle recycle did not shuffle discard into the deck");
-  assert(ps.hand.length + ps.deck.length === 30, "Battle recycle lost or duplicated cards");
+  const ps = persistent.state.players[player];
+  assert(ps.hand.length === 10, "Persistent Battle transition did not refill hand to 10");
+  assert(ps.discard.length >= discardBefore[player].length, "Between-Battle transition unexpectedly recycled the discard pile");
   for (const cardId of keptHands[player]) {
-    assert(ps.hand.includes(cardId), "Battle recycle did not preserve held cards");
+    assert(ps.hand.includes(cardId), "Persistent Battle transition did not preserve held cards");
   }
 }
 
@@ -131,15 +148,18 @@ view = settleAi(view);
 if (view.phase !== "complete") {
   assert(view.active_player === 0, "AI did not yield back to the human");
   assert(view.legal_actions.length > 0, "Human has no legal actions");
-  const draw = view.legal_actions.find((item) => item.kind === "Draw");
-  assert(draw, "Once-per-Battle Draw action is missing");
+  assert(!view.legal_actions.some((item) => item.kind === "Draw"), "Generic Draw should not exist in Command play");
+  const cycle = view.legal_actions.find((item) => item.kind === "Cycle");
+  assert(cycle, "Cycle action is missing");
   const handBefore = view.hand.length;
   const deckBefore = view.players[0].deck_count;
-  view = heuristic.act(draw.key, 0);
-  assert(view.needs_ai, "Human Draw should expose the intermediate state before the AI reply");
-  assert(view.last_action?.actor === 0 && view.last_action?.kind === "Draw", "Human Draw was not surfaced as the last action");
-  assert(view.hand.length === handBefore + 1, "Draw did not add one visible card");
-  assert(view.players[0].deck_count === deckBefore - 1, "Draw did not consume one deck card");
+  const commandBefore = view.players[0].command;
+  view = heuristic.act(cycle.key, 0);
+  assert(view.needs_ai, "Human Cycle should expose the intermediate state before the AI reply");
+  assert(view.last_action?.actor === 0 && view.last_action?.kind === "Cycle", "Human Cycle was not surfaced as the last action");
+  assert(view.hand.length === handBefore, "Cycle should replace rather than grow the hand");
+  assert(view.players[0].deck_count === deckBefore - 1, "Cycle did not consume one deck card");
+  assert(view.players[0].command === commandBefore - cycle.command_cost, "Cycle did not spend its Command cost");
   view = settleAi(view);
   assert(view.last_action?.actor === 1 || view.phase === "complete", "AI action was not exposed one step at a time");
 }
@@ -180,4 +200,4 @@ assert(hot.hand.length === 10, "Player 2 opening hand not revealable");
 hot = hotseat.mulligan([], 1);
 assert(hot.viewer === null && hot.needs_reveal, "Battle did not return to privacy gate");
 
-console.log("PASS: native browser engine supports flexible formations, Battle recycling, Draw, paced AI turns, mulligans, privacy, and match progress");
+console.log("PASS: native browser engine supports Command, Cycle, persistent decks, flexible formations, completion utilities, paced AI turns, mulligans, privacy, and match progress");

@@ -49,6 +49,8 @@ jobs:
           node --check web/playtest-kit.js
           node --check web/cards.js
           node --check web/balance.js
+      - name: Command cost drift
+        run: python tools/compute_command_costs.py
       - name: Native browser game smoke
         run: node tools/check_browser_engine.mjs
       - name: Card layout clipping guard

@@ -184,3 +184,19 @@ def test_card_rules_text_uses_canonical_typography() -> None:
             assert title not in text_without_italics, (
                 f"{card['title']} references {title} without italics"
             )
+
+
+def test_canonical_decks_use_six_names_and_ten_subjects() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    by_id = {card["id"]: card for card in data["cards"]}
+    for path in (
+        ROOT / "decks" / "reference.json",
+        ROOT / "decks" / "avaros-line.json",
+        ROOT / "decks" / "mara-rear.json",
+        ROOT / "decks" / "sera-support.json",
+    ):
+        deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
+        assert len(deck) == 30
+        assert sum(by_id[card_id]["type"] == "subject" for card_id in deck) == 10
+        assert sum(by_id[card_id]["type"] == "name" for card_id in deck) == 6
+        assert sum(bool(by_id[card_id].get("hero")) for card_id in deck) == 1

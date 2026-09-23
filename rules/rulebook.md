@@ -316,7 +316,7 @@ You then attach *Namar*:
 
 The position is now **10 Strength**.
 
-That took three cards and three turns, all in Center. If the opponent gives up Center and wins Left and Right, the 13 Strength does not save the Battle.
+That took three cards and three turns, all in Center. If the opponent gives up Center and wins Left and Right, the 10 Strength does not save the Battle.
 
 ---
 
@@ -372,7 +372,7 @@ If Player 2 also Passes, score the Battle.
 
 When you **Pass**, you take no more turns in that Battle.
 
-The opponent may continue taking normal actions until they Pass.
+The opponent may continue taking operations until they Pass.
 
 Passing preserves both your hand and your remaining Command, but gives the opponent as many turns as they are willing and able to pay for.
 

@@ -55,26 +55,38 @@ def main() -> None:
         default=30,
         help="Required deck size for this simulation variant.",
     )
-    parser.add_argument(
+    deck_mode = parser.add_mutually_exclusive_group()
+    deck_mode.add_argument(
+        "--between-battle-recycle",
+        action="store_true",
+        help="Legacy variant: reshuffle all non-hand cards between Battles.",
+    )
+    deck_mode.add_argument(
         "--no-between-battle-recycle",
         action="store_true",
-        help=(
-            "Keep played/discarded cards out between Battles and refill only "
-            "from the remaining deck."
-        ),
+        help="Explicitly keep the canonical persistent draw pile between Battles.",
     )
-    parser.add_argument(
+    reshuffle_mode = parser.add_mutually_exclusive_group()
+    reshuffle_mode.add_argument(
         "--reshuffle-on-empty",
         action="store_true",
-        help=(
-            "Keep the draw pile persistent, but when it empties shuffle the "
-            "discard pile into a new draw pile."
-        ),
+        help="Explicitly use the canonical discard reshuffle when the deck empties.",
     )
-    parser.add_argument(
+    reshuffle_mode.add_argument(
+        "--no-reshuffle-on-empty",
+        action="store_true",
+        help="Experiment variant: allow the persistent draw pile to exhaust.",
+    )
+    draw_mode = parser.add_mutually_exclusive_group()
+    draw_mode.add_argument(
+        "--enable-draw",
+        action="store_true",
+        help="Legacy variant: enable the once-per-Battle generic Draw action.",
+    )
+    draw_mode.add_argument(
         "--disable-draw",
         action="store_true",
-        help="Remove the once-per-Battle Draw action for variant experiments.",
+        help="Explicitly use the canonical no-generic-Draw rules.",
     )
     parser.add_argument(
         "--completion-draw-names",
@@ -82,10 +94,16 @@ def main() -> None:
         default=[],
         help="Name ids that draw 1 when their formation becomes complete.",
     )
-    parser.add_argument(
+    command_mode = parser.add_mutually_exclusive_group()
+    command_mode.add_argument(
         "--command",
         action="store_true",
-        help="Enable the persistent Command economy and paid Cycle operation.",
+        help="Explicitly enable the canonical Command economy.",
+    )
+    command_mode.add_argument(
+        "--no-command",
+        action="store_true",
+        help="Legacy variant: disable Command and Cycle.",
     )
     parser.add_argument("--starting-command", type=int, default=20)
     parser.add_argument("--battle-command-gain", type=int, default=10)
@@ -112,16 +130,16 @@ def main() -> None:
     engine = GameEngine(
         card_data,
         opening_hand_size=args.hand_size,
-        draw_action_enabled=not args.disable_draw,
+        draw_action_enabled=args.enable_draw and not args.disable_draw,
         completion_draw_names=args.completion_draw_names,
         deck_size=args.deck_size,
-        recycle_between_battles=not args.no_between_battle_recycle,
-        command_enabled=args.command,
+        recycle_between_battles=args.between_battle_recycle and not args.no_between_battle_recycle,
+        command_enabled=not args.no_command,
         starting_command=args.starting_command,
         battle_command_gain=args.battle_command_gain,
         command_cap=args.command_cap,
         cycle_command_cost=args.cycle_command_cost,
-        reshuffle_on_empty=args.reshuffle_on_empty,
+        reshuffle_on_empty=not args.no_reshuffle_on_empty,
     )
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
@@ -162,17 +180,17 @@ def main() -> None:
     }
     payload["simulation_variant"] = {
         "base_hand_size": args.hand_size,
-        "draw_action_enabled": not args.disable_draw,
+        "draw_action_enabled": args.enable_draw and not args.disable_draw,
         "battle_one_starter_bonus": 1,
         "completion_draw_names": sorted(args.completion_draw_names),
         "deck_size": args.deck_size,
-        "recycle_between_battles": not args.no_between_battle_recycle,
-        "reshuffle_on_empty": args.reshuffle_on_empty,
-        "command_enabled": args.command,
-        "starting_command": args.starting_command if args.command else None,
-        "battle_command_gain": args.battle_command_gain if args.command else None,
-        "command_cap": args.command_cap if args.command else None,
-        "cycle_command_cost": args.cycle_command_cost if args.command else None,
+        "recycle_between_battles": args.between_battle_recycle and not args.no_between_battle_recycle,
+        "reshuffle_on_empty": not args.no_reshuffle_on_empty,
+        "command_enabled": not args.no_command,
+        "starting_command": args.starting_command if not args.no_command else None,
+        "battle_command_gain": args.battle_command_gain if not args.no_command else None,
+        "command_cap": args.command_cap if not args.no_command else None,
+        "cycle_command_cost": args.cycle_command_cost if not args.no_command else None,
     }
 
     output = resolve(args.output)
@@ -187,12 +205,12 @@ def main() -> None:
     print(
         "Variant: "
         f"hand={args.hand_size} "
-        f"draw={'off' if args.disable_draw else 'on'} "
+        f"draw={'on' if args.enable_draw and not args.disable_draw else 'off'} "
         f"completion_draw_names={','.join(sorted(args.completion_draw_names)) or 'none'} "
         f"deck={args.deck_size} "
-        f"recycle={'off' if args.no_between_battle_recycle else 'on'} "
-        f"reshuffle_on_empty={'on' if args.reshuffle_on_empty else 'off'} "
-        f"command={'on' if args.command else 'off'} "
+        f"recycle={'on' if args.between_battle_recycle and not args.no_between_battle_recycle else 'off'} "
+        f"reshuffle_on_empty={'off' if args.no_reshuffle_on_empty else 'on'} "
+        f"command={'off' if args.no_command else 'on'} "
         "starter_bonus=+1"
     )
     print(f"Games: {report.games}")
