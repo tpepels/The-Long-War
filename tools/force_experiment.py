@@ -36,7 +36,6 @@ def run_command(command: list[str], *, capture: bool = False) -> subprocess.Comp
 
 def require_cython() -> None:
     try:
-        import longwar._alphabeta_accel  # noqa: F401
         from longwar._fast_search import (  # noqa: F401
             FastEngine,
             NativeSearchBudget,
@@ -47,7 +46,7 @@ def require_cython() -> None:
             "Packed Cython search extension is not available.\n"
             "Run: make force-setup"
         ) from exc
-    print("Packed Cython alpha-beta extension: OK")
+    print("Canonical Cython engine/search extension: OK")
 
 
 def normalized_payload(path: Path) -> dict[str, Any]:

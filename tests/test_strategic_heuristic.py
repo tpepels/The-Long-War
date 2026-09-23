@@ -126,7 +126,7 @@ def test_candidate_simulation_reports_depletion() -> None:
 
 
 def test_cython_and_python_backends_agree_on_root_decision() -> None:
-    pytest.importorskip("longwar._alphabeta_accel")
+    pytest.importorskip("longwar._fast_search")
 
     deck = load_deck()
     engine = candidate_engine()
