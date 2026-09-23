@@ -404,7 +404,7 @@
         "human",
         "king"
       ],
-      "text": "While *Namar* is attached to a **Subject** in the **Frontline**, that **Subject** gets +2 **Strength**.",
+      "text": "When this formation becomes **complete**, regain 1 **Command**.",
       "rules": {
         "on_completion": {
           "effect": "gain_command",
@@ -433,7 +433,7 @@
         "human",
         "seer"
       ],
-      "text": "When you play *Iria*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position.",
+      "text": "When you play *Iria* onto a **Subject**, you may **move** that formation to an **adjacent** empty position.",
       "rules": {
         "on_name_attached": "move_adjacent_optional"
       },
@@ -459,7 +459,7 @@
         "human",
         "warrior"
       ],
-      "text": "",
+      "text": "When this formation becomes **complete**, your next **Cycle** this Battle costs 0 **Command**.",
       "rules": {
         "on_completion": {
           "effect": "grant_free_cycle"
@@ -485,7 +485,7 @@
         "god",
         "oracle"
       ],
-      "text": "When you play *Teyra*, reveal the opponent's **Veiled Story** in this **Front**, if there is one.",
+      "text": "When this formation becomes **complete**, reveal the opponent's **Veiled Story** in this **Front**, if any.",
       "rules": {
         "on_completion": {
           "effect": "reveal_enemy_scheme"
@@ -1400,7 +1400,7 @@
         "human",
         "navigator"
       ],
-      "text": "While *Maela* is attached to a **Subject** in the **Rear**, that **Subject** gets +3 **Strength**.",
+      "text": "This **Subject** cannot be chosen by an opponent's immediate **Story**.",
       "rules": {
         "complete_protection_from_opponent_plot": true
       },
@@ -1427,7 +1427,7 @@
         "human",
         "seer"
       ],
-      "text": "When you play *Vara*, reveal the opponent's **Veiled Story** in this **Front**, if there is one. While *Vara* is attached to a **Subject** in the **Rear**, that **Subject** gets +2 **Strength**.",
+      "text": "When this formation becomes **complete**, return your most recently discarded **Bond** to your hand, if any.",
       "rules": {
         "on_completion": {
           "effect": "recover_recent_link"
@@ -1456,7 +1456,7 @@
         "human",
         "wanderer"
       ],
-      "text": "When you play *Elian*, you may **move** this **Subject** and all cards attached to it to an **adjacent** empty position. While *Elian* is attached to a **Subject** in the **Frontline**, that **Subject** gets +2 **Strength**.",
+      "text": "Cards you play into **adjacent Fronts** cost 1 less **Command** (minimum 1).",
       "rules": {
         "adjacent_command_discount": 1
       },

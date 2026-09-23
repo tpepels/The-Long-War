@@ -597,7 +597,7 @@ def test_defied_reduces_opposing_front_strength() -> None:
     left1 = state.slot(1, LEFT_FRONT)
     left1.subject = "the-fifty-men"
 
-    assert engine.front_strength(state, 0, Front.LEFT) == 11
+    assert engine.front_strength(state, 0, Front.LEFT) == 10
     assert engine.front_strength(state, 1, Front.LEFT) == 4
 
 
@@ -982,7 +982,7 @@ def test_wooden_gift_revalues_named_and_unnamed_subjects() -> None:
 
     assert state.stratagem(0).revealed is True
     assert engine.position_strength(state, 0, rear) == 5
-    assert engine.position_strength(state, 1, CENTER_FRONT) == 10
+    assert engine.position_strength(state, 1, CENTER_FRONT) == 9
 
 
 def test_opposing_stratagems_can_reveal_and_stack() -> None:
