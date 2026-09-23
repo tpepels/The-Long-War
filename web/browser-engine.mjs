@@ -389,8 +389,11 @@ class BrowserEngine {
   }
 
   subjectProtectedFromStory(slot) {
-    if (!slot.link || !slot.name) return false;
-    return Boolean(this.cards[slot.link].rules?.protect_subject_from_opponent_plot);
+    if (!slot.link || !slot.name || !slot.subject) return false;
+    if (this.cards[slot.link].rules?.protect_subject_from_opponent_plot) return true;
+    return Boolean(
+      this.cards[slot.name].rules?.complete_protection_from_opponent_plot
+    );
   }
 
   takeFromHand(state, player, cardId) {
@@ -427,12 +430,33 @@ class BrowserEngine {
     }
 
     if (action.kind === "Draw") {
+      throw new Error("Draw is disabled in the canonical Command rules");
+    }
+
+    if (action.kind === "Cycle") {
+      const cost = this.commandCostForAction(state, action);
+      this.spendCommand(state, actor, cost);
+      const wasFree = state.players[actor].free_cycle;
+      this.takeFromHand(state, actor, action.card_id);
+      this.discardCard(state, actor, action.card_id);
       this.draw(state, actor, 1);
-      state.draw_used[actor] = true;
+      if (wasFree) state.players[actor].free_cycle = false;
       this.advanceTurn(state);
       state.turn_number += 1;
       return events;
     }
+
+    if (["PlaySubject", "PlayLink", "PlayName", "PlayPlot", "PlayScheme", "SetStratagem"].includes(action.kind)) {
+      this.spendCommand(state, actor, this.commandCostForAction(state, action));
+    }
+
+    const completionBefore = ["PlaySubject", "PlayLink", "PlayName"].includes(action.kind)
+      ? (() => {
+          const slot = slotAt(state, actor, action.position.front, action.position.rank);
+          return Boolean(slot.subject && slot.link && slot.name);
+        })()
+      : null;
+    let completionPosition = action.position ? { ...action.position } : null;
 
     if (action.kind === "PlaySubject") {
       this.takeFromHand(state, actor, action.card_id);
@@ -454,6 +478,7 @@ class BrowserEngine {
       const target = slotAt(state, actor, action.position.front, action.position.rank);
       target.name = action.card_id;
       const finalPosition = this.onNameAttached(state, actor, action.position, action.move_to, events);
+      completionPosition = { ...finalPosition };
       this.resolveStratagemEvent(state, "name_played", actor, action.card_id, finalPosition, events);
     } else if (action.kind === "PlayPlot") {
       this.takeFromHand(state, actor, action.card_id);
@@ -471,9 +496,25 @@ class BrowserEngine {
       this.takeFromHand(state, actor, action.card_id);
       state.stratagems[actor] = { card_id: action.card_id, revealed: false };
       state.stratagem_used[actor] = true;
-      return events;
     } else {
       throw new Error("Unhandled action: " + action.kind);
+    }
+
+    if (completionBefore === false && completionPosition) {
+      const completed = slotAt(
+        state,
+        actor,
+        completionPosition.front,
+        completionPosition.rank
+      );
+      if (completed.subject && completed.link && completed.name) {
+        this.resolveNameCompletion(
+          state,
+          actor,
+          completionPosition,
+          events
+        );
+      }
     }
 
     this.advanceTurn(state);
@@ -531,13 +572,22 @@ class BrowserEngine {
 
     state.battle += 1;
     state.discarded_this_battle = [0, 0];
+    state.command_spent_this_battle = [0, 0];
+    state.command_refunded_this_battle = [0, 0];
     state.stratagem_used = [false, false];
     state.draw_used = [false, false];
     state.pass_order = [];
-    this.recycleNonHandCards(state);
     for (let player = 0; player < 2; player += 1) {
-      state.players[player].passed = false;
+      const ps = state.players[player];
+      ps.command = Math.min(20, ps.command + 10);
+      ps.free_cycle = false;
+      this.draw(state, player, Math.max(0, 10 - ps.hand.length));
+      ps.passed = false;
     }
+    state.battle_start_command = [
+      state.players[0].command,
+      state.players[1].command,
+    ];
     state.phase = "choose_first";
     state.chooser = loser;
     state.active_player = loser;
@@ -628,6 +678,35 @@ class BrowserEngine {
     if (effect === "move_subject") {
       const [source, destination] = action.targets;
       this.moveSubject(state, actor, source, destination, false);
+    }
+  }
+
+  resolveNameCompletion(state, player, position, events) {
+    const slot = slotAt(state, player, position.front, position.rank);
+    if (!(slot.subject && slot.link && slot.name)) return;
+    const completion = this.cards[slot.name].rules?.on_completion || {};
+    const effect = completion.effect;
+
+    if (effect === "gain_command") {
+      this.gainCommand(state, player, Number(completion.amount || 1));
+    } else if (effect === "grant_free_cycle") {
+      state.players[player].free_cycle = true;
+    } else if (effect === "reveal_enemy_scheme") {
+      const owner = 1 - player;
+      const scheme = state.schemes[owner][position.front];
+      if (scheme && !scheme.revealed) {
+        scheme.revealed = true;
+        events.push({ type: "reveal", zone: "scheme", card_id: scheme.card_id });
+      }
+    } else if (effect === "recover_recent_link") {
+      const discard = state.players[player].discard;
+      for (let index = discard.length - 1; index >= 0; index -= 1) {
+        const cardId = discard[index];
+        if (this.cards[cardId]?.type !== "link") continue;
+        discard.splice(index, 1);
+        state.players[player].hand.push(cardId);
+        break;
+      }
     }
   }
 
