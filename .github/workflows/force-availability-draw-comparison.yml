@@ -1,0 +1,52 @@
+name: Force Availability Draw Comparison
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    strategy:
+      fail-fast: false
+      matrix:
+        draw_mode: [automatic, paid]
+        deck: [reference, avaros, mara, sera]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Configure draw rule
+        run: |
+          if [ "${{ matrix.draw_mode }}" = "automatic" ]; then
+            echo "DRAW_ARGS=--automatic-draw" >> "$GITHUB_ENV"
+          else
+            echo "DRAW_ARGS=--paid-draw --paid-draw-command-cost 1" >> "$GITHUB_ENV"
+          fi
+      - name: Simulate
+        run: >
+          python tools/simulate.py --games 100 --seed 26092334
+          --card-file cards/experiments/force-draw-cards.json
+          --deck-size 34 --hand-size 10 --disable-draw
+          --command --disable-cycle
+          --no-between-battle-recycle --reshuffle-on-empty
+          --pass-final-operation --pass-requires-both-acted
+          --first-passer-starts-next-battle
+          --completion-command-refund 1 --public-stratagems
+          $DRAW_ARGS
+          --deck-a decks/experiments/force-rich-34-${{ matrix.deck }}.json
+          --deck-b decks/experiments/force-rich-34-${{ matrix.deck }}.json
+          --agent-a strategic_heuristic --agent-b strategic_heuristic
+          --strategic-belief-samples 3 --strategic-rollout-plies 4
+          --strategic-candidate-width 6
+          --output artifacts/${{ matrix.draw_mode }}-${{ matrix.deck }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: force-draw-${{ matrix.draw_mode }}-${{ matrix.deck }}
+          path: artifacts/*.json
+          retention-days: 30

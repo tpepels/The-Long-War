@@ -165,9 +165,15 @@ class HeuristicAgent:
         score = self._state_value(engine, clone, player)
 
         if isinstance(action, Draw):
-            # Drawing gains a card but concedes tempo. Keep it available as a
-            # recovery option without making it the automatic best move.
-            score -= 0.8
+            # Paid Draw is chiefly a recovery operation. Command cost is
+            # already reflected in the cloned state.
+            force_count = sum(
+                engine.cards[card_id]["type"] == "subject"
+                for card_id in state.players[player].hand
+            )
+            score -= 0.35 if engine.paid_draw_enabled else 0.8
+            if force_count == 0:
+                score += 1.4
 
         if isinstance(action, Cycle):
             # Cycle is deliberately useful only when it improves the actual
@@ -229,6 +235,7 @@ class HeuristicAgent:
 
         opponent_hand = len(state.players[1 - player].hand)
         own_hand = len(state.players[player].hand)
+        pressure_scale = 0.45 if engine.pass_final_operation else 1.0
 
         score = self._state_value(engine, state, player)
 
@@ -242,12 +249,15 @@ class HeuristicAgent:
                 + 0.65 * total_margin
                 + 0.9 * weakest_control
                 + 0.8 * own_hand
-                - 1.6 * opponent_hand
+                - pressure_scale * 1.6 * opponent_hand
             )
         elif controls == 1 and tied >= 1 and total_margin >= 0:
-            score -= 7.0 + 1.2 * opponent_hand
+            score -= 7.0 + pressure_scale * 1.2 * opponent_hand
         else:
-            score -= 25.0 + 1.5 * opponent_hand
+            score -= 25.0 + pressure_scale * 1.5 * opponent_hand
+
+        if engine.first_passer_starts_next_battle and not state.pass_order:
+            score += 1.5
 
         # Passing first wins a completely tied Battle under the current rules,
         # so do not treat a true zero board as catastrophically bad.
@@ -304,6 +314,17 @@ class HeuristicAgent:
             - len(state.players[opponent].hand)
         )
         score += 1.25 * hand_delta
+
+        own_forces = sum(
+            engine.cards[card_id]["type"] == "subject"
+            for card_id in state.players[player].hand
+        )
+        score += 0.35 * min(3, own_forces)
+        if own_forces == 0 and not any(
+            state.slot(player, position).subject is not None
+            for position in all_positions()
+        ):
+            score -= 2.0
 
         if engine.command_enabled:
             command_delta = (
@@ -470,6 +491,14 @@ class HeuristicAgent:
                     value += 0.35 * sign * float(
                         continuous.get("unnamed_subject_modifier", 0)
                     )
+
+        if continuous.get("global_immediate_story_lock"):
+            own_immediate_stories = sum(
+                engine.cards[held_id].get("type") == "plot"
+                and not engine.cards[held_id].get("veiled", False)
+                for held_id in state.players[player].hand
+            )
+            value += 0.8 - 0.35 * own_immediate_stories
 
         if continuous.get("disable_line_defense"):
             own_front = sum(

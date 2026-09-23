@@ -124,6 +124,15 @@ class GameEngine:
         command_cap: int = 20,
         cycle_command_cost: int = 1,
         reshuffle_on_empty: bool = False,
+        automatic_draw: bool = False,
+        paid_draw_enabled: bool = False,
+        paid_draw_command_cost: int = 1,
+        cycle_enabled: bool = True,
+        pass_final_operation: bool = False,
+        pass_requires_both_acted: bool = False,
+        first_passer_starts_next_battle: bool = False,
+        completion_command_refund: int = 0,
+        public_stratagems: bool = False,
     ):
         if deck_size < 1:
             raise ValueError("deck_size must be positive")
@@ -142,8 +151,28 @@ class GameEngine:
         self.command_cap = command_cap
         self.cycle_command_cost = cycle_command_cost
         self.reshuffle_on_empty = reshuffle_on_empty
-        if min(starting_command, battle_command_gain, command_cap, cycle_command_cost) < 0:
+        self.automatic_draw = automatic_draw
+        self.paid_draw_enabled = paid_draw_enabled
+        self.paid_draw_command_cost = paid_draw_command_cost
+        self.cycle_enabled = cycle_enabled
+        self.pass_final_operation = pass_final_operation
+        self.pass_requires_both_acted = pass_requires_both_acted
+        self.first_passer_starts_next_battle = first_passer_starts_next_battle
+        self.completion_command_refund = completion_command_refund
+        self.public_stratagems = public_stratagems
+        if min(
+            starting_command,
+            battle_command_gain,
+            command_cap,
+            cycle_command_cost,
+            paid_draw_command_cost,
+            completion_command_refund,
+        ) < 0:
             raise ValueError("Command settings must be non-negative")
+        if automatic_draw and paid_draw_enabled:
+            raise ValueError("automatic_draw and paid_draw_enabled are mutually exclusive")
+        if paid_draw_enabled and not command_enabled:
+            raise ValueError("paid_draw_enabled requires Command mode")
         if starting_command > command_cap:
             raise ValueError("starting_command cannot exceed command_cap")
         if self.command_enabled:
@@ -474,16 +503,26 @@ class GameEngine:
                 rng,
             )
 
+        state.opening_hands = [
+            list(state.players[0].hand),
+            list(state.players[1].hand),
+        ]
+        state.battle_start_hand_size = [
+            len(state.players[0].hand),
+            len(state.players[1].hand),
+        ]
         state.active_player = (
             rng.randrange(2)
             if first_player is None
             else first_player
         )
-        # Acting first exposes the first commitment. Battle I compensates that
-        # information disadvantage with one additional opening card. Preview
-        # states may opt out because mulligans happen before this card is drawn.
+        # The automatic-draw candidate replaces the legacy Battle-I starter
+        # bonus with the normal start-of-turn draw.
         if opening_bonus:
-            self._draw(state, state.active_player, 1)
+            if self.automatic_draw:
+                self._start_turn(state, state.active_player)
+            elif not self.paid_draw_enabled:
+                self._draw(state, state.active_player, 1)
         return state
 
     def _apply_mulligan(
@@ -519,17 +558,25 @@ class GameEngine:
         if state.players[player].passed:
             raise RuntimeError("A passed player cannot become active")
 
-        actions: list[Action] = [self._pass_action]
+        actions: list[Action] = []
         if (
             not self.command_enabled
             and self.draw_action_enabled
             and not state.draw_used[player]
-            and state.players[player].deck
+            and self.can_draw(state, player)
         ):
             actions.append(self._draw_action)
 
         if (
             self.command_enabled
+            and self.paid_draw_enabled
+            and self.can_draw(state, player)
+        ):
+            actions.append(self._draw_action)
+
+        if (
+            self.command_enabled
+            and self.cycle_enabled
             and self.can_draw(state, player)
             and state.players[player].hand
         ):
@@ -566,16 +613,25 @@ class GameEngine:
                 for action in actions
                 if self.command_cost_for_action(state, action) <= available
             ]
-        return actions
 
+        can_pass = (
+            not self.pass_requires_both_acted
+            or bool(state.pass_order)
+            or all(count > 0 for count in state.operations_this_battle)
+        )
+        if can_pass or not actions:
+            actions.insert(0, self._pass_action)
+        return actions
     def command_cost_for_action(self, state: GameState, action: Action) -> int:
         if not self.command_enabled:
             return 0
         player = state.active_player
+        if isinstance(action, (Pass, ChooseFirst)):
+            return 0
+        if isinstance(action, Draw):
+            return self.paid_draw_command_cost if self.paid_draw_enabled else 0
         if isinstance(action, Cycle):
             return 0 if state.players[player].free_cycle else self.cycle_command_cost
-        if isinstance(action, (Pass, ChooseFirst, Draw)):
-            return 0
 
         card_id = getattr(action, "card_id", None)
         if card_id is None:
@@ -593,7 +649,6 @@ class GameEngine:
             if discount:
                 cost = max(1, cost - discount)
         return cost
-
     def _adjacent_command_discount(
         self,
         state: GameState,
@@ -656,9 +711,9 @@ class GameEngine:
                 raise IllegalAction(f"Illegal action: {action!r}")
 
         if isinstance(action, ChooseFirst):
-            state.active_player = action.player
             state.chooser = None
             state.phase = Phase.BATTLE
+            self._start_turn(state, action.player)
             state.turn_number += 1
             return
 
@@ -669,27 +724,34 @@ class GameEngine:
             return
 
         if isinstance(action, Draw):
+            if self.command_enabled and self.paid_draw_enabled:
+                self._spend_command(
+                    state,
+                    actor,
+                    self.command_cost_for_action(state, action),
+                )
+                self._draw_for_battle(state, actor, 1)
+                self._finish_operation(state, actor)
+                return
             if not self.draw_action_enabled or self.command_enabled:
                 raise IllegalAction("Draw is disabled for this rules variant")
-            self._draw(state, actor, 1)
+            self._draw_for_battle(state, actor, 1)
             state.draw_used[actor] = True
-            self._advance_turn(state)
-            state.turn_number += 1
+            self._finish_operation(state, actor)
             return
 
         if isinstance(action, Cycle):
-            if not self.command_enabled:
-                raise IllegalAction("Cycle is only available in Command mode")
+            if not self.command_enabled or not self.cycle_enabled:
+                raise IllegalAction("Cycle is disabled for this rules variant")
             cost = self.command_cost_for_action(state, action)
             self._spend_command(state, actor, cost)
             was_free = state.players[actor].free_cycle
             self._take_from_hand(state, actor, action.card_id)
             self._discard_card(state, actor, action.card_id)
-            self._draw(state, actor, 1)
+            self._draw_for_battle(state, actor, 1)
             if was_free:
                 state.players[actor].free_cycle = False
-            self._advance_turn(state)
-            state.turn_number += 1
+            self._finish_operation(state, actor)
             return
 
         if self.command_enabled and isinstance(
@@ -790,13 +852,15 @@ class GameEngine:
                 state,
                 actor,
                 action.card_id,
-                hidden_kind="stratagem",
+                hidden_kind=None if self.public_stratagems else "stratagem",
             )
-            state.stratagems[actor] = StratagemState(action.card_id)
+            state.stratagems[actor] = StratagemState(
+                action.card_id,
+                revealed=self.public_stratagems,
+            )
             state.stratagem_used[actor] = True
             if self.command_enabled:
-                self._advance_turn(state)
-                state.turn_number += 1
+                self._finish_operation(state, actor)
             return
 
         else:
@@ -815,8 +879,7 @@ class GameEngine:
                 completion_before,
             )
 
-        self._advance_turn(state)
-        state.turn_number += 1
+        self._finish_operation(state, actor)
 
     def position_strength(
         self,
@@ -1395,14 +1458,15 @@ class GameEngine:
         player: int,
     ) -> bool:
         for controller, rules in self._revealed_stratagem_rules(state):
-            if controller != player:
-                continue
-            if rules.get("continuous", {}).get(
-                "controller_immediate_story_lock"
+            continuous = rules.get("continuous", {})
+            if continuous.get("global_immediate_story_lock"):
+                return True
+            if (
+                controller == player
+                and continuous.get("controller_immediate_story_lock")
             ):
                 return True
         return False
-
     def _stratagem_trigger_matches(
         self,
         state: GameState,
@@ -1941,13 +2005,20 @@ class GameEngine:
         self._resolve_pass_schemes(state, actor=player)
 
         opponent = 1 - player
-        if state.players[opponent].passed:
+        if self.pass_final_operation:
+            if state.pending_final_operation_for == player:
+                state.operations_this_battle[player] += 1
+                state.pending_final_operation_for = None
+                self._score_battle(state)
+            else:
+                state.pending_final_operation_for = opponent
+                self._start_turn(state, opponent)
+        elif state.players[opponent].passed:
             self._score_battle(state)
         else:
-            state.active_player = opponent
+            self._start_turn(state, opponent)
 
         state.turn_number += 1
-
     def _score_battle(self, state: GameState) -> None:
         front_scores = {
             front: (
@@ -1978,7 +2049,46 @@ class GameEngine:
             elif totals[1] > totals[0]:
                 winner = 1
             else:
-                winner = state.pass_order[0]
+                winner = state.pass_order[0] if state.pass_order else state.active_player
+
+        first_passer = state.pass_order[0] if state.pass_order else None
+        totals = [
+            sum(scores[player] for scores in front_scores.values())
+            for player in range(2)
+        ]
+        state.last_battle_snapshot = {
+            "battle": state.battle,
+            "winner": winner,
+            "front_scores": [
+                [front_scores[front][0], front_scores[front][1]]
+                for front in Front
+            ],
+            "total_strength": totals[0] + totals[1],
+            "abs_total_margin": abs(totals[0] - totals[1]),
+            "command_start": list(state.battle_start_command),
+            "command_spent": list(state.command_spent_this_battle),
+            "command_refunded": list(state.command_refunded_this_battle),
+            "completion_command_refunded": list(
+                state.completion_command_refunded_this_battle
+            ),
+            "command_remaining": [
+                state.players[0].command,
+                state.players[1].command,
+            ],
+            "deck_remaining": [
+                len(state.players[0].deck),
+                len(state.players[1].deck),
+            ],
+            "hand_size": [
+                len(state.players[0].hand),
+                len(state.players[1].hand),
+            ],
+            "battle_start_hand_size": list(state.battle_start_hand_size),
+            "cards_drawn": list(state.cards_drawn_this_battle),
+            "completion_count": list(state.completion_count_this_battle),
+            "operations": list(state.operations_this_battle),
+            "pass_order": list(state.pass_order),
+        }
 
         state.players[winner].victories += 1
         loser = 1 - winner
@@ -1990,14 +2100,20 @@ class GameEngine:
             state.phase = Phase.COMPLETE
             state.winner = winner
             state.chooser = None
+            state.pending_final_operation_for = None
             return
 
         state.battle += 1
         state.discarded_this_battle = [0, 0]
         state.command_spent_this_battle = [0, 0]
         state.command_refunded_this_battle = [0, 0]
+        state.completion_command_refunded_this_battle = [0, 0]
+        state.cards_drawn_this_battle = [0, 0]
+        state.completion_count_this_battle = [0, 0]
+        state.operations_this_battle = [0, 0]
         state.stratagem_used = [False, False]
         state.draw_used = [False, False]
+        state.pending_final_operation_for = None
         state.pass_order.clear()
         if self.command_enabled:
             for player in range(2):
@@ -2017,10 +2133,18 @@ class GameEngine:
         for player in range(2):
             state.players[player].passed = False
 
-        state.phase = Phase.CHOOSE_FIRST
-        state.chooser = loser
-        state.active_player = loser
-
+        state.battle_start_hand_size = [
+            len(state.players[0].hand),
+            len(state.players[1].hand),
+        ]
+        if self.first_passer_starts_next_battle and first_passer is not None:
+            state.phase = Phase.BATTLE
+            state.chooser = None
+            self._start_turn(state, first_passer)
+        else:
+            state.phase = Phase.CHOOSE_FIRST
+            state.chooser = loser
+            state.active_player = loser
     def _refill_from_remaining_deck(self, state: GameState) -> None:
         for player in range(2):
             player_state = state.players[player]
@@ -2081,6 +2205,7 @@ class GameEngine:
         if not new_counts:
             return
 
+        state.completion_count_this_battle[player] += sum(new_counts.values())
         remaining = Counter(new_counts)
         for position in ALL_POSITIONS:
             slot = state.slot(player, position)
@@ -2090,6 +2215,15 @@ class GameEngine:
             if remaining[combo] <= 0:
                 continue
             remaining[combo] -= 1
+
+            if self.command_enabled and self.completion_command_refund:
+                gained = self._gain_command(
+                    state,
+                    player,
+                    self.completion_command_refund,
+                )
+                state.completion_command_refunded_this_battle[player] += gained
+
             name_id = slot.name
             if name_id is None:
                 continue
@@ -2106,8 +2240,14 @@ class GameEngine:
                         int(completion.get("amount", 1)),
                     )
             elif effect == "grant_free_cycle":
-                if self.command_enabled:
+                if self.command_enabled and self.cycle_enabled:
                     state.players[player].free_cycle = True
+            elif effect == "draw_card":
+                self._draw_for_battle(
+                    state,
+                    player,
+                    int(completion.get("amount", 1)),
+                )
             elif effect == "reveal_enemy_scheme":
                 owner = 1 - player
                 enemy_scheme = state.scheme(owner, position.front)
@@ -2122,7 +2262,6 @@ class GameEngine:
                     )
             elif effect == "recover_recent_link":
                 self._recover_recent_link(state, player)
-
     def _recover_recent_link(self, state: GameState, player: int) -> None:
         discard = state.players[player].discard
         for index in range(len(discard) - 1, -1, -1):
@@ -2158,11 +2297,39 @@ class GameEngine:
                 state.players[player].discard.append(stratagem.card_id)
                 state.stratagems[player] = None
 
+    def _start_turn(
+        self,
+        state: GameState,
+        player: int,
+    ) -> None:
+        state.active_player = player
+        if (
+            self.automatic_draw
+            and state.phase is Phase.BATTLE
+            and not state.players[player].passed
+        ):
+            self._draw_for_battle(state, player, 1)
+
+    def _finish_operation(
+        self,
+        state: GameState,
+        actor: int,
+    ) -> None:
+        state.operations_this_battle[actor] += 1
+        if (
+            self.pass_final_operation
+            and state.pending_final_operation_for == actor
+        ):
+            state.pending_final_operation_for = None
+            self._score_battle(state)
+        else:
+            self._advance_turn(state)
+        state.turn_number += 1
+
     def _advance_turn(self, state: GameState) -> None:
         opponent = 1 - state.active_player
         if not state.players[opponent].passed:
-            state.active_player = opponent
-
+            self._start_turn(state, opponent)
     def _take_from_hand(
         self,
         state: GameState,
@@ -2262,21 +2429,33 @@ class GameEngine:
 
         pool = list(player_state.discard)
         player_state.discard.clear()
+        state.reshuffle_card_totals[player] += len(pool)
+        state.reshuffle_hand_card_totals[player] += len(player_state.hand)
         state.shuffle_seed = _shuffle_cards(pool, state.shuffle_seed)
         player_state.deck[:] = pool
         state.deck_reshuffles[player] += 1
         return True
-
-    def _draw(self, state: GameState, player: int, count: int) -> None:
+    def _draw(self, state: GameState, player: int, count: int) -> int:
         player_state = state.players[player]
+        drawn = 0
         for _ in range(count):
             if not player_state.deck:
                 self._reshuffle_discard_into_deck(state, player)
             if not player_state.deck:
                 break
             player_state.hand.append(player_state.deck.pop())
+            drawn += 1
+        return drawn
 
-    @staticmethod
+    def _draw_for_battle(
+        self,
+        state: GameState,
+        player: int,
+        count: int,
+    ) -> int:
+        drawn = self._draw(state, player, count)
+        state.cards_drawn_this_battle[player] += drawn
+        return drawn
     def _adjacent_positions(position: Position) -> tuple[Position, ...]:
         return ADJACENT_POSITIONS[position]
 

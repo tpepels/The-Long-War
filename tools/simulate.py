@@ -56,6 +56,12 @@ def main() -> None:
         help="Required deck size for this simulation variant.",
     )
     parser.add_argument(
+        "--card-file",
+        type=Path,
+        default=Path("cards/cards.json"),
+        help="Card data file for this simulation variant.",
+    )
+    parser.add_argument(
         "--no-between-battle-recycle",
         action="store_true",
         help=(
@@ -92,6 +98,44 @@ def main() -> None:
     parser.add_argument("--command-cap", type=int, default=20)
     parser.add_argument("--cycle-command-cost", type=int, default=1)
     parser.add_argument(
+        "--disable-cycle",
+        action="store_true",
+        help="Disable the Command Cycle operation.",
+    )
+    draw_group = parser.add_mutually_exclusive_group()
+    draw_group.add_argument(
+        "--automatic-draw",
+        action="store_true",
+        help="At the start of every turn, draw one card before the operation.",
+    )
+    draw_group.add_argument(
+        "--paid-draw",
+        action="store_true",
+        help="Enable Draw as a paid Command operation with no discard.",
+    )
+    parser.add_argument("--paid-draw-command-cost", type=int, default=1)
+    parser.add_argument(
+        "--pass-final-operation",
+        action="store_true",
+        help="After the first Pass, give the opponent exactly one final operation.",
+    )
+    parser.add_argument(
+        "--pass-requires-both-acted",
+        action="store_true",
+        help="Do not allow the first Pass until both players performed an operation.",
+    )
+    parser.add_argument(
+        "--first-passer-starts-next-battle",
+        action="store_true",
+        help="The first passer starts the next Battle.",
+    )
+    parser.add_argument("--completion-command-refund", type=int, default=0)
+    parser.add_argument(
+        "--public-stratagems",
+        action="store_true",
+        help="Play Stratagems face-up so their Battle rule is active immediately.",
+    )
+    parser.add_argument(
         "--deck-a",
         type=Path,
         default=Path("decks/reference.json"),
@@ -108,7 +152,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    card_data = load_card_file(ROOT / "cards" / "cards.json")
+    card_data = load_card_file(resolve(args.card_file))
     engine = GameEngine(
         card_data,
         opening_hand_size=args.hand_size,
@@ -122,6 +166,15 @@ def main() -> None:
         command_cap=args.command_cap,
         cycle_command_cost=args.cycle_command_cost,
         reshuffle_on_empty=args.reshuffle_on_empty,
+        automatic_draw=args.automatic_draw,
+        paid_draw_enabled=args.paid_draw,
+        paid_draw_command_cost=args.paid_draw_command_cost,
+        cycle_enabled=not args.disable_cycle,
+        pass_final_operation=args.pass_final_operation,
+        pass_requires_both_acted=args.pass_requires_both_acted,
+        first_passer_starts_next_battle=args.first_passer_starts_next_battle,
+        completion_command_refund=args.completion_command_refund,
+        public_stratagems=args.public_stratagems,
     )
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
@@ -172,7 +225,23 @@ def main() -> None:
         "starting_command": args.starting_command if args.command else None,
         "battle_command_gain": args.battle_command_gain if args.command else None,
         "command_cap": args.command_cap if args.command else None,
-        "cycle_command_cost": args.cycle_command_cost if args.command else None,
+        "cycle_command_cost": (
+            args.cycle_command_cost
+            if args.command and not args.disable_cycle
+            else None
+        ),
+        "cycle_enabled": not args.disable_cycle,
+        "automatic_draw": args.automatic_draw,
+        "paid_draw_enabled": args.paid_draw,
+        "paid_draw_command_cost": (
+            args.paid_draw_command_cost if args.paid_draw else None
+        ),
+        "pass_final_operation": args.pass_final_operation,
+        "pass_requires_both_acted": args.pass_requires_both_acted,
+        "first_passer_starts_next_battle": args.first_passer_starts_next_battle,
+        "completion_command_refund": args.completion_command_refund,
+        "public_stratagems": args.public_stratagems,
+        "card_file": str(args.card_file),
     }
 
     output = resolve(args.output)
@@ -193,7 +262,13 @@ def main() -> None:
         f"recycle={'off' if args.no_between_battle_recycle else 'on'} "
         f"reshuffle_on_empty={'on' if args.reshuffle_on_empty else 'off'} "
         f"command={'on' if args.command else 'off'} "
-        "starter_bonus=+1"
+        f"cycle={'off' if args.disable_cycle else 'on'} "
+        f"auto_draw={'on' if args.automatic_draw else 'off'} "
+        f"paid_draw={'on' if args.paid_draw else 'off'} "
+        f"pass_final={'on' if args.pass_final_operation else 'off'} "
+        f"completion_refund={args.completion_command_refund} "
+        f"stratagems={'public' if args.public_stratagems else 'hidden'} "
+        f"starter_bonus={'turn-draw' if args.automatic_draw else '+1'}"
     )
     print(f"Games: {report.games}")
     print(f"Wins: P0={report.wins[0]} P1={report.wins[1]}")

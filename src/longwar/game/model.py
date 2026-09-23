@@ -114,8 +114,18 @@ class GameState:
     discarded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     command_spent_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     command_refunded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
+    completion_command_refunded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     battle_start_command: list[int] = field(default_factory=lambda: [0, 0])
+    battle_start_hand_size: list[int] = field(default_factory=lambda: [0, 0])
+    cards_drawn_this_battle: list[int] = field(default_factory=lambda: [0, 0])
+    completion_count_this_battle: list[int] = field(default_factory=lambda: [0, 0])
+    operations_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     deck_reshuffles: list[int] = field(default_factory=lambda: [0, 0])
+    reshuffle_card_totals: list[int] = field(default_factory=lambda: [0, 0])
+    reshuffle_hand_card_totals: list[int] = field(default_factory=lambda: [0, 0])
+    opening_hands: list[list[str]] = field(default_factory=lambda: [[], []])
+    pending_final_operation_for: int | None = None
+    last_battle_snapshot: dict[str, object] | None = None
     pass_order: list[int] = field(default_factory=list)
     chooser: int | None = None
     winner: int | None = None
@@ -189,8 +199,22 @@ class GameState:
             discarded_this_battle=list(self.discarded_this_battle),
             command_spent_this_battle=list(self.command_spent_this_battle),
             command_refunded_this_battle=list(self.command_refunded_this_battle),
+            completion_command_refunded_this_battle=list(self.completion_command_refunded_this_battle),
             battle_start_command=list(self.battle_start_command),
+            battle_start_hand_size=list(self.battle_start_hand_size),
+            cards_drawn_this_battle=list(self.cards_drawn_this_battle),
+            completion_count_this_battle=list(self.completion_count_this_battle),
+            operations_this_battle=list(self.operations_this_battle),
             deck_reshuffles=list(self.deck_reshuffles),
+            reshuffle_card_totals=list(self.reshuffle_card_totals),
+            reshuffle_hand_card_totals=list(self.reshuffle_hand_card_totals),
+            opening_hands=[list(hand) for hand in self.opening_hands],
+            pending_final_operation_for=self.pending_final_operation_for,
+            last_battle_snapshot=(
+                None
+                if self.last_battle_snapshot is None
+                else dict(self.last_battle_snapshot)
+            ),
             pass_order=list(self.pass_order),
             chooser=self.chooser,
             winner=self.winner,
@@ -261,8 +285,23 @@ class GameState:
         self.discarded_this_battle[:] = source.discarded_this_battle
         self.command_spent_this_battle[:] = source.command_spent_this_battle
         self.command_refunded_this_battle[:] = source.command_refunded_this_battle
+        self.completion_command_refunded_this_battle[:] = source.completion_command_refunded_this_battle
         self.battle_start_command[:] = source.battle_start_command
+        self.battle_start_hand_size[:] = source.battle_start_hand_size
+        self.cards_drawn_this_battle[:] = source.cards_drawn_this_battle
+        self.completion_count_this_battle[:] = source.completion_count_this_battle
+        self.operations_this_battle[:] = source.operations_this_battle
         self.deck_reshuffles[:] = source.deck_reshuffles
+        self.reshuffle_card_totals[:] = source.reshuffle_card_totals
+        self.reshuffle_hand_card_totals[:] = source.reshuffle_hand_card_totals
+        for index in range(2):
+            self.opening_hands[index][:] = source.opening_hands[index]
+        self.pending_final_operation_for = source.pending_final_operation_for
+        self.last_battle_snapshot = (
+            None
+            if source.last_battle_snapshot is None
+            else dict(source.last_battle_snapshot)
+        )
         self.pass_order[:] = source.pass_order
         self.chooser = source.chooser
         self.winner = source.winner

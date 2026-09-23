@@ -10,6 +10,7 @@ from .belief import DeckHypothesis, DeckPrior, HypothesisDeckPrior
 from .agents.mccfr_agent import MCCFRAgent
 from .game.engine import GameEngine
 from .game.model import Phase
+from .human_flow import HumanFlowDiagnostics
 from .telemetry import Telemetry
 
 
@@ -96,6 +97,7 @@ def simulate_games(
     total_turns = 0
     maximum_turns = 0
     telemetry = Telemetry()
+    human_flow = HumanFlowDiagnostics()
     priors: tuple[DeckPrior, DeckPrior] = (
         HypothesisDeckPrior(
             engine,
@@ -156,6 +158,7 @@ def simulate_games(
             mulligan_indices=mulligan_indices,
         )
         telemetry.start_game(state)
+        human_flow.start_game(engine, state)
 
         action_count = 0
         while state.phase is not Phase.COMPLETE:
@@ -173,6 +176,7 @@ def simulate_games(
                 decision_info = dict(decision_info)
                 decision_info["agent"] = agent_names[actor]
 
+            human_flow.before_action(engine, state, actor, action)
             before = telemetry.before_action(
                 engine,
                 state,
@@ -182,6 +186,7 @@ def simulate_games(
             )
             engine.apply(state, action)
             telemetry.after_action(engine, before, state, actor, action)
+            human_flow.after_action(engine, before, state, actor, action)
             action_count += 1
 
         winner = state.winner
@@ -195,6 +200,8 @@ def simulate_games(
         total_turns += action_count
         maximum_turns = max(maximum_turns, action_count)
 
+    telemetry_summary = telemetry.summary()
+    telemetry_summary["human_flow"] = human_flow.summary()
     return SimulationReport(
         games=games,
         agents=agent_names,
@@ -202,5 +209,5 @@ def simulate_games(
         first_player_wins=first_player_wins,
         mean_turns=total_turns / games,
         max_turns=maximum_turns,
-        telemetry=telemetry.summary(),
+        telemetry=telemetry_summary,
     )

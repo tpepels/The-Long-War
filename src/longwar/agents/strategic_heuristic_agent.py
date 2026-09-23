@@ -156,7 +156,25 @@ class StrategicHeuristicAgent(HeuristicAgent):
                 self._future_formation_sets(engine, state, player)
                 - self._future_formation_sets(engine, state, opponent)
             )
+            value += 0.35 * (
+                self._future_force_availability(engine, state, player)
+                - self._future_force_availability(engine, state, opponent)
+            )
         return value
+
+    @staticmethod
+    def _future_force_availability(
+        engine: GameEngine,
+        state: GameState,
+        player: int,
+    ) -> float:
+        immediate = state.players[player].hand + state.players[player].deck
+        discard = state.players[player].discard
+        return float(
+            sum(engine.cards[card_id]["type"] == "subject" for card_id in immediate)
+        ) + 0.35 * float(
+            sum(engine.cards[card_id]["type"] == "subject" for card_id in discard)
+        )
 
     @staticmethod
     def _future_formation_sets(
