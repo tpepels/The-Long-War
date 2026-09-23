@@ -234,3 +234,25 @@ def test_belief_sampler_resamples_hidden_stratagem_identity() -> None:
     assert sampled.stratagem(1) is not None
     assert engine.cards[sampled.stratagem(1).card_id]["type"] == "stratagem"
     assert sampler.diagnostics(state, 0).hidden_stratagems == 1
+
+
+def test_card_pool_prior_defaults_to_engine_deck_size() -> None:
+    data = load_card_file(
+        ROOT / "cards" / "experiments" / "force-draw-cards.json"
+    )
+    deck = json.loads(
+        (
+            ROOT
+            / "decks"
+            / "experiments"
+            / "force-rich-34-reference.json"
+        ).read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data, deck_size=34)
+    prior = CardPoolDeckPrior(engine)
+
+    sampled = prior.sample_deck(Counter(), random.Random(31415))
+
+    assert prior.deck_size == 34
+    assert len(sampled) == 34
+    engine.validate_deck(sampled)

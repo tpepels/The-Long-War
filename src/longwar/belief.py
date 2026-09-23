@@ -93,11 +93,11 @@ class CardPoolDeckPrior:
         self,
         engine: GameEngine,
         *,
-        deck_size: int = 30,
+        deck_size: int | None = None,
         card_weights: dict[str, float] | None = None,
     ):
         self.engine = engine
-        self.deck_size = deck_size
+        self.deck_size = engine.deck_size if deck_size is None else deck_size
         self.card_weights = dict(card_weights or {})
 
     def sample_deck(
