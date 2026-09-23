@@ -1427,7 +1427,7 @@
         "human",
         "seer"
       ],
-      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, return your most recently **discarded Bond** to your hand, if any.",
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, **return** your most recently **discarded Bond** to your hand, if any.",
       "rules": {
         "on_completion": {
           "effect": "recover_recent_link"
@@ -1441,7 +1441,7 @@
         {
           "kind": "trigger",
           "label": "WHEN",
-          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, return your most recently **discarded Bond** to your hand, if any."
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, **return** your most recently **discarded Bond** to your hand, if any."
         }
       ],
       "command_cost": 1
