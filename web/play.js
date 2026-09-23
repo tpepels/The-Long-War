@@ -654,6 +654,9 @@ function renderInteraction() {
 }
 
 function choiceLabel(action) {
+  if (action.kind === "Cycle") {
+    return "Cycle · discard and draw · C " + action.command_cost;
+  }
   if (action.kind === "PlayName") {
     if (!action.move_to) return "Play the Name here · stay";
     return "Play the Name here · move the Subject to " + action.move_to.front_name + " " + action.move_to.rank_name;
@@ -670,7 +673,7 @@ function renderChoiceTray() {
       a.kind === "SetStratagem" ||
       a.kind === "Cycle"
     );
-    if (direct.length === 1) actions = direct;
+    if (direct.length) actions = direct;
   }
   if (!actions.length) {
     tray.hidden = true;

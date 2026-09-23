@@ -20,6 +20,12 @@ const supported = {
   schemeEffects: new Set(["penalize_played_subject", "discard_played_link", "reinforce_front"]),
   stratagemEvents: new Set(["subject_played", "pass", "immediate_story_played", "name_played"]),
   nameEffects: new Set(["move_adjacent_optional", "reveal_enemy_scheme"]),
+  completionEffects: new Set([
+    "gain_command",
+    "grant_free_cycle",
+    "reveal_enemy_scheme",
+    "recover_recent_link",
+  ]),
 };
 
 for (const card of cards.cards) {
@@ -37,6 +43,16 @@ for (const card of cards.cards) {
   if (card.type === "name" && rules.on_name_attached) {
     assert(supported.nameEffects.has(rules.on_name_attached), "Unsupported Name effect");
   }
+  if (card.type === "name" && rules.on_completion?.effect) {
+    assert(
+      supported.completionEffects.has(rules.on_completion.effect),
+      "Unsupported Name completion effect: " + rules.on_completion.effect
+    );
+  }
+  assert(
+    Number.isInteger(card.command_cost) && card.command_cost >= 1 && card.command_cost <= 3,
+    "Invalid Command cost: " + card.id
+  );
 }
 
 const prepared = new BrowserSession(cards, deck, "hotseat", 8172);
@@ -70,34 +86,41 @@ prepared.engine.apply(prepared.state, preparedAction);
 preparedAction = formationAction(prepared, "PlaySubject");
 assert(preparedAction, "Subject could not be added to prepared Bond/Name");
 prepared.engine.apply(prepared.state, preparedAction);
-assert(prepared.engine.positionStrength(prepared.state, 0, { front: 1, rank: "front" }) === 13, "Prepared formation did not activate when Subject arrived");
+assert(prepared.engine.positionStrength(prepared.state, 0, { front: 1, rank: "front" }) === 10, "Prepared formation did not activate with the redesigned Name Strength");
+assert(prepared.state.command_refunded_this_battle[0] === 1, "Namar completion did not refund Command");
 
-const recycle = new BrowserSession(cards, deck, "hotseat", 9911);
-recycle.setupComplete = true;
-recycle.state.active_player = 0;
+const persistent = new BrowserSession(cards, deck, "hotseat", 9911);
+persistent.setupComplete = true;
+persistent.state.active_player = 0;
+persistent.state.players[0].command = 4;
+persistent.state.players[1].command = 13;
 const keptHands = [];
+const discardedCounts = [];
 for (const [player, target] of [[0, 4], [1, 6]]) {
-  const ps = recycle.state.players[player];
+  const ps = persistent.state.players[player];
   const moved = ps.hand.splice(target);
   ps.discard.push(...moved);
   keptHands.push([...ps.hand]);
+  discardedCounts.push(moved.length);
 }
-recycle.engine.apply(
-  recycle.state,
-  recycle.engine.legalActions(recycle.state).find((action) => action.kind === "Pass")
+persistent.engine.apply(
+  persistent.state,
+  persistent.engine.legalActions(persistent.state).find((action) => action.kind === "Pass")
 );
-recycle.engine.apply(
-  recycle.state,
-  recycle.engine.legalActions(recycle.state).find((action) => action.kind === "Pass")
+persistent.engine.apply(
+  persistent.state,
+  persistent.engine.legalActions(persistent.state).find((action) => action.kind === "Pass")
 );
-assert(recycle.state.battle === 2 && recycle.state.phase === "choose_first", "Battle recycle did not advance to the next Battle");
+assert(persistent.state.battle === 2 && persistent.state.phase === "choose_first", "Persistent Battle cleanup did not advance to the next Battle");
+assert(persistent.state.players[0].command === 14, "Battle transition did not add 10 Command");
+assert(persistent.state.players[1].command === 20, "Battle transition did not cap Command at 20");
 for (let player = 0; player < 2; player += 1) {
-  const ps = recycle.state.players[player];
-  assert(ps.hand.length === 10, "Battle recycle did not refill hand to 10");
-  assert(ps.discard.length === 0, "Battle recycle did not shuffle discard into the deck");
-  assert(ps.hand.length + ps.deck.length === 30, "Battle recycle lost or duplicated cards");
+  const ps = persistent.state.players[player];
+  assert(ps.hand.length === 10, "Persistent Battle transition did not refill hand to 10");
+  assert(ps.discard.length === discardedCounts[player], "Between-Battle transition unexpectedly recycled the discard pile");
+  assert(ps.hand.length + ps.deck.length + ps.discard.length === 30, "Persistent Battle transition lost or duplicated cards");
   for (const cardId of keptHands[player]) {
-    assert(ps.hand.includes(cardId), "Battle recycle did not preserve held cards");
+    assert(ps.hand.includes(cardId), "Persistent Battle transition did not preserve held cards");
   }
 }
 
@@ -131,15 +154,19 @@ view = settleAi(view);
 if (view.phase !== "complete") {
   assert(view.active_player === 0, "AI did not yield back to the human");
   assert(view.legal_actions.length > 0, "Human has no legal actions");
-  const draw = view.legal_actions.find((item) => item.kind === "Draw");
-  assert(draw, "Once-per-Battle Draw action is missing");
+  const cycle = view.legal_actions.find((item) => item.kind === "Cycle");
+  assert(cycle, "Cycle action is missing");
   const handBefore = view.hand.length;
   const deckBefore = view.players[0].deck_count;
-  view = heuristic.act(draw.key, 0);
-  assert(view.needs_ai, "Human Draw should expose the intermediate state before the AI reply");
-  assert(view.last_action?.actor === 0 && view.last_action?.kind === "Draw", "Human Draw was not surfaced as the last action");
-  assert(view.hand.length === handBefore + 1, "Draw did not add one visible card");
-  assert(view.players[0].deck_count === deckBefore - 1, "Draw did not consume one deck card");
+  const discardBefore = view.players[0].discard.length;
+  const commandBefore = view.players[0].command;
+  view = heuristic.act(cycle.key, 0);
+  assert(view.needs_ai, "Human Cycle should expose the intermediate state before the AI reply");
+  assert(view.last_action?.actor === 0 && view.last_action?.kind === "Cycle", "Human Cycle was not surfaced as the last action");
+  assert(view.hand.length === handBefore, "Cycle should replace rather than grow the hand");
+  assert(view.players[0].deck_count === deckBefore - 1, "Cycle did not consume one draw-pile card");
+  assert(view.players[0].discard.length === discardBefore + 1, "Cycle did not discard one card");
+  assert(view.players[0].command === commandBefore - cycle.command_cost, "Cycle did not spend its Command cost");
   view = settleAi(view);
   assert(view.last_action?.actor === 1 || view.phase === "complete", "AI action was not exposed one step at a time");
 }
@@ -180,4 +207,4 @@ assert(hot.hand.length === 10, "Player 2 opening hand not revealable");
 hot = hotseat.mulligan([], 1);
 assert(hot.viewer === null && hot.needs_reveal, "Battle did not return to privacy gate");
 
-console.log("PASS: native browser engine supports flexible formations, Battle recycling, Draw, paced AI turns, mulligans, privacy, and match progress");
+console.log("PASS: native browser engine supports Command, Cycle, persistent Battles, flexible formations, paced AI turns, mulligans, privacy, and match progress");

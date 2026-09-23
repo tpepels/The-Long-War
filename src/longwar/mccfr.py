@@ -15,6 +15,7 @@ from .game.actions import (
     Action,
     BoardTarget,
     ChooseFirst,
+    Cycle,
     Draw,
     Pass,
     PlayLink,
@@ -68,6 +69,8 @@ def action_key(action: Action) -> str:
         return "pass"
     if isinstance(action, Draw):
         return "draw"
+    if isinstance(action, Cycle):
+        return f"cycle:{action.card_id}"
     if isinstance(action, ChooseFirst):
         return f"choose_first:{action.player}"
     if isinstance(action, PlaySubject):
