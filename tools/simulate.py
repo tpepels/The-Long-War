@@ -57,6 +57,12 @@ def main() -> None:
         help="Maximum alpha-beta nodes per strategic decision.",
     )
     parser.add_argument(
+        "--strategic-search-backend",
+        choices=("auto", "cython", "python"),
+        default="auto",
+        help="Search backend. auto prefers the compiled Cython accelerator.",
+    )
+    parser.add_argument(
         "--hand-size",
         type=int,
         default=10,
@@ -211,6 +217,7 @@ def main() -> None:
         strategic_rollout_plies=args.strategic_rollout_plies,
         strategic_candidate_width=args.strategic_candidate_width,
         strategic_node_budget=args.strategic_node_budget,
+        strategic_search_backend=args.strategic_search_backend,
     )
 
     payload = asdict(report)
@@ -228,6 +235,7 @@ def main() -> None:
         "candidate_width": args.strategic_candidate_width,
         "node_budget": args.strategic_node_budget,
         "search": "belief-sampled iterative-deepening alpha-beta",
+        "backend_requested": args.strategic_search_backend,
     }
     payload["simulation_variant"] = {
         "base_hand_size": args.hand_size,

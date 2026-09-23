@@ -10,6 +10,17 @@ from ..game.engine import GameEngine, all_positions
 from ..game.model import GameState, Phase
 from .heuristic_agent import HeuristicAgent, ScoredAction
 
+try:
+    from .._alphabeta_accel import (
+        SearchBudget as _CythonSearchBudget,
+        SearchLimit as _CythonSearchLimit,
+        search_value as _cython_search_value,
+    )
+except ImportError:  # optional Cython extension
+    _CythonSearchBudget = None
+    _CythonSearchLimit = None
+    _cython_search_value = None
+
 
 class _SearchLimit(RuntimeError):
     pass
@@ -49,6 +60,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
         rollout_plies: int = 5,
         candidate_width: int = 6,
         node_budget: int = 20_000,
+        search_backend: str = "auto",
         exploration: float = 0.0,
     ):
         super().__init__(seed=seed, exploration=exploration)
@@ -60,6 +72,19 @@ class StrategicHeuristicAgent(HeuristicAgent):
             raise ValueError("candidate_width must be positive")
         if node_budget <= 0:
             raise ValueError("node_budget must be positive")
+        if search_backend not in {"auto", "cython", "python"}:
+            raise ValueError("search_backend must be auto, cython, or python")
+        if search_backend == "cython" and _cython_search_value is None:
+            raise RuntimeError(
+                "Cython search backend requested but longwar._alphabeta_accel "
+                "is not available; reinstall with python -m pip install -e '.[dev]'"
+            )
+        self.search_backend = search_backend
+        self._use_cython = (
+            _cython_search_value is not None
+            if search_backend == "auto"
+            else search_backend == "cython"
+        )
         self.belief = BeliefSampler(engine, priors=priors)
         self.belief_samples = belief_samples
         self.rollout_plies = rollout_plies
@@ -81,6 +106,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
                 "completed_depth": 0,
                 "search_nodes": 0,
                 "search_budget": self.node_budget,
+                "search_backend": "cython" if self._use_cython else "python",
                 "evaluated_candidates": 1,
             }
             return actions[0]
@@ -110,9 +136,14 @@ class StrategicHeuristicAgent(HeuristicAgent):
             for _ in range(self.belief_samples)
         ]
 
-        budget = _SearchBudget(self.node_budget)
+        budget = (
+            _CythonSearchBudget(self.node_budget)
+            if self._use_cython
+            else _SearchBudget(self.node_budget)
+        )
         completed_depth = 0
         transposition: dict[tuple[object, ...], float] = {}
+        scratch: list[GameState] = []
 
         for depth in range(1, self.rollout_plies + 1):
             depth_scores: dict[Action, list[float]] = {
@@ -134,19 +165,42 @@ class StrategicHeuristicAgent(HeuristicAgent):
                     for action in root_order:
                         child = sampled.clone()
                         engine.apply(child, action, validate=False)
-                        value = self._alphabeta(
-                            engine,
-                            child,
-                            root_player=root_player,
-                            depth=depth - 1,
-                            alpha=-inf,
-                            beta=inf,
-                            budget=budget,
-                            transposition=transposition,
-                        )
+                        if self._use_cython:
+                            value = _cython_search_value(
+                                self,
+                                engine,
+                                child,
+                                root_player,
+                                depth - 1,
+                                -inf,
+                                inf,
+                                budget,
+                                transposition,
+                                scratch,
+                            )
+                        else:
+                            value = self._alphabeta(
+                                engine,
+                                child,
+                                root_player=root_player,
+                                depth=depth - 1,
+                                alpha=-inf,
+                                beta=inf,
+                                budget=budget,
+                                transposition=transposition,
+                                scratch=scratch,
+                            )
                         depth_scores[action].append(value)
             except _SearchLimit:
                 break
+            except Exception as exc:
+                if (
+                    self._use_cython
+                    and _CythonSearchLimit is not None
+                    and isinstance(exc, _CythonSearchLimit)
+                ):
+                    break
+                raise
 
             scores = {
                 action: mean(values)
@@ -177,6 +231,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
             "completed_depth": completed_depth,
             "search_nodes": min(budget.nodes, self.node_budget),
             "search_budget": self.node_budget,
+            "search_backend": "cython" if self._use_cython else "python",
             "evaluated_candidates": len(candidates),
         }
         return selected.action
@@ -192,6 +247,8 @@ class StrategicHeuristicAgent(HeuristicAgent):
         beta: float,
         budget: _SearchBudget,
         transposition: dict[tuple[object, ...], float],
+        scratch: list[GameState],
+        level: int = 0,
     ) -> float:
         budget.visit()
 
@@ -222,7 +279,12 @@ class StrategicHeuristicAgent(HeuristicAgent):
         cutoff = False
 
         for action in actions:
-            child = state.clone()
+            if level < len(scratch):
+                child = scratch[level]
+                child.copy_from(state)
+            else:
+                child = state.clone()
+                scratch.append(child)
             engine.apply(child, action, validate=False)
             child_value = self._alphabeta(
                 engine,
@@ -233,6 +295,8 @@ class StrategicHeuristicAgent(HeuristicAgent):
                 beta=beta,
                 budget=budget,
                 transposition=transposition,
+                scratch=scratch,
+                level=level + 1,
             )
 
             if maximizing:

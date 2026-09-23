@@ -122,3 +122,40 @@ def test_persistent_command_simulation_reports_depletion() -> None:
     assert 0 <= depletion["player_game_deck_exhaustion_rate"] <= 1
     assert 0 <= depletion["deck_empty_decision_rate"] <= 1
     assert depletion["mean_deck_remaining_at_pass"] is not None
+
+
+def test_cython_and_python_backends_agree_on_root_decision() -> None:
+    __import__("pytest").importorskip("longwar._alphabeta_accel")
+
+    deck = load_deck("decks/experiments/name-rich-reference.json")
+    engine = command_engine(deck_size=30, hand_size=10)
+    state = engine.new_game(deck, deck, seed=7340, first_player=0)
+    priors = (
+        HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="a")]),
+        HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="b")]),
+    )
+    common = dict(
+        engine=engine,
+        seed=7341,
+        priors=priors,
+        belief_samples=2,
+        rollout_plies=3,
+        candidate_width=4,
+        node_budget=3_000,
+    )
+    python_agent = StrategicHeuristicAgent(
+        **common,
+        search_backend="python",
+    )
+    cython_agent = StrategicHeuristicAgent(
+        **common,
+        search_backend="cython",
+    )
+
+    python_action = python_agent.choose(engine, state.clone())
+    cython_action = cython_agent.choose(engine, state.clone())
+
+    assert cython_action == python_action
+    assert cython_agent.last_decision["search_backend"] == "cython"
+    assert python_agent.last_decision["search_backend"] == "python"
+    assert cython_agent.last_decision["completed_depth"] == python_agent.last_decision["completed_depth"]

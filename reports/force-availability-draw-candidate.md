@@ -152,3 +152,45 @@ The presets are:
 | max | 20 | 6 | 8 | 6 | 60,000 |
 
 All experiment workflows on this branch are now intended as manual fallbacks. The local runner is the primary path.
+
+
+## Cython alpha-beta backend
+
+The strategic search now has two interchangeable recursion backends:
+
+- `cython`: compiled alpha-beta recursion with one reusable GameState scratch object per search depth;
+- `python`: reference implementation with the same search semantics and the same scratch-state reuse;
+- `auto`: prefer Cython when the extension compiled, otherwise fall back to Python.
+
+The Cython path deliberately continues to call the authoritative Python GameEngine for legal actions and rule application. This keeps the experimental rules identical while removing Python recursive-call overhead and most search-state allocation. The older packed `_fast_search` engine is not used for this experiment yet because it predates Command, paid/automatic draw, final-operation Pass, completion refunds, and persistent-deck reshuffling.
+
+Rebuild the editable install after pulling:
+
+```bash
+python -m pip install -e '.[dev]'
+```
+
+Verify that the extension imports:
+
+```bash
+python -c "import longwar._alphabeta_accel; print('Cython alpha-beta: OK')"
+```
+
+Run the parity test:
+
+```bash
+pytest -q tests/test_strategic_heuristic.py -k cython
+```
+
+Normal local experiment, preferring Cython:
+
+```bash
+python tools/run_force_draw_experiment.py --preset deep --games 50 --jobs 4 --backend cython
+```
+
+For an exact backend timing comparison, use one matrix cell and the same seed/settings:
+
+```bash
+time python tools/run_force_draw_experiment.py --preset deep --games 10 --jobs 1 --mode automatic --deck reference --backend python --output-dir artifacts/bench-python
+time python tools/run_force_draw_experiment.py --preset deep --games 10 --jobs 1 --mode automatic --deck reference --backend cython --output-dir artifacts/bench-cython
+```

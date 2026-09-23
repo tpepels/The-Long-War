@@ -87,6 +87,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--width", type=int)
     parser.add_argument("--node-budget", type=int)
     parser.add_argument(
+        "--backend",
+        choices=("auto", "cython", "python"),
+        default="auto",
+        help="Strategic search backend; auto prefers compiled Cython.",
+    )
+    parser.add_argument(
         "--jobs",
         type=int,
         default=max(1, min(4, os.cpu_count() or 1)),
@@ -169,7 +175,7 @@ def effective_preset(args: argparse.Namespace) -> Preset:
     return preset
 
 
-def command_for(run: Run, preset: Preset) -> list[str]:
+def command_for(run: Run, preset: Preset, backend: str) -> list[str]:
     draw_args = (
         ["--automatic-draw"]
         if run.mode == "automatic"
@@ -216,6 +222,8 @@ def command_for(run: Run, preset: Preset) -> list[str]:
         str(preset.width),
         "--strategic-node-budget",
         str(preset.node_budget),
+        "--strategic-search-backend",
+        backend,
         "--output",
         str(run.output),
     ]
@@ -303,6 +311,7 @@ def row_for(path: Path) -> dict[str, Any]:
         "mean_completed_depth": decisions.get("mean_completed_depth"),
         "mean_search_nodes": decisions.get("mean_search_nodes"),
         "first_player_win_rate": payload["first_player_win_rate"],
+        "search_backends": telemetry.get("search_backends", {}),
     }
 
 
@@ -401,10 +410,16 @@ def main() -> None:
         f"beliefs={preset.belief_samples}, depth={preset.depth}, "
         f"width={preset.width}, nodes={preset.node_budget:,}"
     )
-    print(f"Parallel jobs: {min(args.jobs, len(runs))}")
+    print(
+        f"Parallel jobs: {min(args.jobs, len(runs))} | "
+        f"backend={args.backend}"
+    )
     print()
 
-    commands = [(run, command_for(run, preset)) for run in runs]
+    commands = [
+        (run, command_for(run, preset, args.backend))
+        for run in runs
+    ]
     for run, command in commands:
         print(f"[{run.mode}/{run.deck}] {printable_command(command)}")
 

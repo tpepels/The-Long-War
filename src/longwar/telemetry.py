@@ -65,6 +65,7 @@ class Telemetry:
         self.battle_records: list[dict[str, Any]] = []
         self.decision_stats: dict[str, DecisionStats] = defaultdict(DecisionStats)
         self.policy_sources: Counter[str] = Counter()
+        self.search_backends: Counter[str] = Counter()
         self.online_resolution = {
             "decisions": 0,
             "iterations_total": 0.0,
@@ -183,6 +184,9 @@ class Telemetry:
             stats.completed_depth_total += int(
                 decision_info.get("completed_depth", 0)
             )
+            search_backend = decision_info.get("search_backend")
+            if search_backend is not None:
+                self.search_backends[str(search_backend)] += 1
             policy_source = decision_info.get("policy_source")
             if policy_source is not None:
                 self.policy_sources[str(policy_source)] += 1
@@ -539,6 +543,7 @@ class Telemetry:
             "legend_combinations": combos,
             "decisions": decisions,
             "policy_sources": dict(sorted(self.policy_sources.items())),
+            "search_backends": dict(sorted(self.search_backends.items())),
             "online_resolution": online_summary,
             "match_flow": {
                 "matches": self._match_count,
