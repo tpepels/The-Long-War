@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -95,8 +94,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--jobs",
         type=int,
-        default=max(1, min(4, os.cpu_count() or 1)),
-        help="Number of deck/mode simulations to run in parallel.",
+        default=8,
+        help="Number of deck/mode simulations to run in parallel (default: 8).",
     )
     parser.add_argument("--seed", type=int, default=26092334)
     parser.add_argument(

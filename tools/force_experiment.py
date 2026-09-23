@@ -229,7 +229,7 @@ def parse_args() -> argparse.Namespace:
     )
     run.add_argument("--preset", choices=("quick", "deep", "max"), default="deep")
     run.add_argument("--games", type=int)
-    run.add_argument("--jobs", type=int, default=4)
+    run.add_argument("--jobs", type=int, default=8)
     run.add_argument("--backend", choices=("auto", "cython", "python"), default="cython")
     run.add_argument("--mode", choices=("both", "automatic", "paid"), default="both")
     run.add_argument("--deck", choices=("all", "reference", "avaros", "mara", "sera"), default="all")

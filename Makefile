@@ -54,10 +54,10 @@ force-bench:
 	python tools/force_experiment.py bench
 
 force-quick:
-	python tools/force_experiment.py run --preset quick --backend cython
+	python tools/force_experiment.py run --preset quick --backend cython --jobs 8
 
 force-run:
-	python tools/force_experiment.py run --preset deep --backend cython
+	python tools/force_experiment.py run --preset deep --backend cython --jobs 8
 
 force-max:
-	python tools/force_experiment.py run --preset max --backend cython
+	python tools/force_experiment.py run --preset max --backend cython --jobs 8
