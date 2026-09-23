@@ -47,6 +47,13 @@ cdef int NAME_NONE = 0
 cdef int NAME_MOVE_ADJACENT = 1
 cdef int NAME_REVEAL_SCHEME = 2
 
+cdef int COMPLETE_NONE = 0
+cdef int COMPLETE_GAIN_COMMAND = 1
+cdef int COMPLETE_FREE_CYCLE = 2
+cdef int COMPLETE_DRAW = 3
+cdef int COMPLETE_REVEAL_SCHEME = 4
+cdef int COMPLETE_RECOVER_LINK = 5
+
 cdef int PLOT_NONE = 0
 cdef int PLOT_DISCREDIT = 1
 cdef int PLOT_RETURN_NAME = 2
@@ -140,6 +147,10 @@ cdef class FastState:
     cdef int8_t pass_order[2]
     cdef uint8_t pass_len
     cdef uint8_t discarded_this_battle[2]
+    cdef int16_t command[2]
+    cdef uint8_t free_cycle[2]
+    cdef uint16_t operations_this_battle[2]
+    cdef int8_t pending_final_operation_for
 
     cdef int8_t active_player
     cdef int16_t battle
@@ -172,6 +183,10 @@ cdef class FastState:
         memset(self.passed, 0, sizeof(self.passed))
         memset(self.pass_order, 0xff, sizeof(self.pass_order))
         memset(self.discarded_this_battle, 0, sizeof(self.discarded_this_battle))
+        memset(self.command, 0, sizeof(self.command))
+        memset(self.free_cycle, 0, sizeof(self.free_cycle))
+        memset(self.operations_this_battle, 0, sizeof(self.operations_this_battle))
+        self.pending_final_operation_for = -1
         self.pass_len = 0
         self.active_player = 0
         self.battle = 1
@@ -204,6 +219,10 @@ cdef class FastState:
         memcpy(self.passed, other.passed, sizeof(self.passed))
         memcpy(self.pass_order, other.pass_order, sizeof(self.pass_order))
         memcpy(self.discarded_this_battle, other.discarded_this_battle, sizeof(self.discarded_this_battle))
+        memcpy(self.command, other.command, sizeof(self.command))
+        memcpy(self.free_cycle, other.free_cycle, sizeof(self.free_cycle))
+        memcpy(self.operations_this_battle, other.operations_this_battle, sizeof(self.operations_this_battle))
+        self.pending_final_operation_for = other.pending_final_operation_for
         self.pass_len = other.pass_len
         self.active_player = other.active_player
         self.battle = other.battle
@@ -229,8 +248,28 @@ cdef class FastEngine:
     cdef public object card_ids
     cdef public object id_to_code
     cdef int n_cards
+    cdef int opening_hand_size
+    cdef bint recycle_between_battles
+    cdef bint command_enabled
+    cdef int battle_command_gain
+    cdef int command_cap
+    cdef bint reshuffle_on_empty
+    cdef bint automatic_draw
+    cdef bint paid_draw_enabled
+    cdef int paid_draw_command_cost
+    cdef bint cycle_enabled
+    cdef bint pass_final_operation
+    cdef bint pass_requires_both_acted
+    cdef bint first_passer_starts_next_battle
+    cdef int completion_command_refund
+    cdef bint public_stratagems
 
     cdef int8_t card_type[MAX_CARDS]
+    cdef int8_t command_cost[MAX_CARDS]
+    cdef int8_t adjacent_command_discount[MAX_CARDS]
+    cdef int8_t completion_effect[MAX_CARDS]
+    cdef int8_t completion_amount[MAX_CARDS]
+    cdef uint8_t complete_plot_protection[MAX_CARDS]
     cdef int8_t role[MAX_CARDS]
     cdef int8_t strength[MAX_CARDS]
     cdef int8_t placement_rank[MAX_CARDS]
@@ -274,9 +313,15 @@ cdef class FastEngine:
     cdef int8_t strat_unnamed_mod[MAX_CARDS]
     cdef uint8_t strat_disable_line[MAX_CARDS]
     cdef uint8_t strat_story_lock[MAX_CARDS]
+    cdef uint8_t strat_global_story_lock[MAX_CARDS]
 
     def __cinit__(self):
         memset(self.card_type, 0, sizeof(self.card_type))
+        memset(self.command_cost, 0, sizeof(self.command_cost))
+        memset(self.adjacent_command_discount, 0, sizeof(self.adjacent_command_discount))
+        memset(self.completion_effect, 0, sizeof(self.completion_effect))
+        memset(self.completion_amount, 0, sizeof(self.completion_amount))
+        memset(self.complete_plot_protection, 0, sizeof(self.complete_plot_protection))
         memset(self.role, 0, sizeof(self.role))
         memset(self.strength, 0, sizeof(self.strength))
         memset(self.placement_rank, 0xff, sizeof(self.placement_rank))
@@ -316,11 +361,27 @@ cdef class FastEngine:
         memset(self.strat_unnamed_mod, 0, sizeof(self.strat_unnamed_mod))
         memset(self.strat_disable_line, 0, sizeof(self.strat_disable_line))
         memset(self.strat_story_lock, 0, sizeof(self.strat_story_lock))
+        memset(self.strat_global_story_lock, 0, sizeof(self.strat_global_story_lock))
 
     def __init__(self, engine):
         cdef int code, r
         self.card_ids = tuple(engine.cards)
         self.n_cards = len(self.card_ids)
+        self.opening_hand_size = int(engine.opening_hand_size)
+        self.recycle_between_battles = bool(engine.recycle_between_battles)
+        self.command_enabled = bool(engine.command_enabled)
+        self.battle_command_gain = int(engine.battle_command_gain)
+        self.command_cap = int(engine.command_cap)
+        self.reshuffle_on_empty = bool(engine.reshuffle_on_empty)
+        self.automatic_draw = bool(engine.automatic_draw)
+        self.paid_draw_enabled = bool(engine.paid_draw_enabled)
+        self.paid_draw_command_cost = int(engine.paid_draw_command_cost)
+        self.cycle_enabled = bool(engine.cycle_enabled)
+        self.pass_final_operation = bool(engine.pass_final_operation)
+        self.pass_requires_both_acted = bool(engine.pass_requires_both_acted)
+        self.first_passer_starts_next_battle = bool(engine.first_passer_starts_next_battle)
+        self.completion_command_refund = int(engine.completion_command_refund)
+        self.public_stratagems = bool(engine.public_stratagems)
         if self.n_cards > MAX_CARDS:
             raise ValueError("Fast MCCFR supports at most 64 card identities")
         self.id_to_code = {card_id: i for i, card_id in enumerate(self.card_ids)}
@@ -328,6 +389,13 @@ cdef class FastEngine:
         type_map = {"subject": CARD_SUBJECT, "link": CARD_LINK, "name": CARD_NAME, "plot": CARD_PLOT, "stratagem": CARD_STRATAGEM}
         role_map = {"swordsman": ROLE_SWORDSMAN, "spearman": ROLE_SPEARMAN, "archer": ROLE_ARCHER, "healer": ROLE_HEALER, "ship": ROLE_SHIP, "stronghold": ROLE_STRONGHOLD}
         name_effect_map = {"move_adjacent_optional": NAME_MOVE_ADJACENT, "reveal_enemy_scheme": NAME_REVEAL_SCHEME}
+        completion_effect_map = {
+            "gain_command": COMPLETE_GAIN_COMMAND,
+            "grant_free_cycle": COMPLETE_FREE_CYCLE,
+            "draw_card": COMPLETE_DRAW,
+            "reveal_enemy_scheme": COMPLETE_REVEAL_SCHEME,
+            "recover_recent_link": COMPLETE_RECOVER_LINK,
+        }
         plot_effect_map = {"discredit_subject": PLOT_DISCREDIT, "return_name_or_weaken": PLOT_RETURN_NAME, "move_subject": PLOT_MOVE_SUBJECT}
         scheme_trigger_map = {"opponent_plays_subject": EVENT_SUBJECT, "opponent_plays_link": EVENT_LINK, "opponent_passes": EVENT_PASS, "opponent_plot_targets_your_card": EVENT_PLOT_TARGET}
         scheme_effect_map = {"penalize_played_subject": SCHEME_PENALIZE_SUBJECT, "discard_played_link": SCHEME_DISCARD_LINK, "reinforce_front": SCHEME_REINFORCE}
@@ -341,6 +409,12 @@ cdef class FastEngine:
             self.role[code] = role_map.get(card.get("role"), ROLE_NONE)
             self.strength[code] = int(card.get("strength", 0))
             rules = card.get("rules", {})
+            self.command_cost[code] = int(card.get("command_cost", 0))
+            self.adjacent_command_discount[code] = int(rules.get("adjacent_command_discount", 0))
+            completion = rules.get("on_completion") or {}
+            self.completion_effect[code] = completion_effect_map.get(completion.get("effect"), COMPLETE_NONE)
+            self.completion_amount[code] = int(completion.get("amount", 1))
+            self.complete_plot_protection[code] = bool(rules.get("complete_protection_from_opponent_plot"))
             placement = rules.get("placement", {}).get("rank")
             self.placement_rank[code] = rank_map.get(placement, -1)
 
@@ -405,6 +479,7 @@ cdef class FastEngine:
             self.strat_unnamed_mod[code] = int(continuous.get("unnamed_subject_modifier", 0))
             self.strat_disable_line[code] = bool(continuous.get("disable_line_defense"))
             self.strat_story_lock[code] = bool(continuous.get("controller_immediate_story_lock"))
+            self.strat_global_story_lock[code] = bool(continuous.get("global_immediate_story_lock"))
 
     cpdef FastState from_game_state(self, state):
         cdef FastState fast = FastState()
@@ -426,6 +501,9 @@ cdef class FastEngine:
                 fast.discard[p][i] = self.id_to_code[card_id]
             fast.victories[p] = state.players[p].victories
             fast.passed[p] = state.players[p].passed
+            fast.command[p] = state.players[p].command
+            fast.free_cycle[p] = state.players[p].free_cycle
+            fast.operations_this_battle[p] = state.operations_this_battle[p]
             fast.discarded_this_battle[p] = state.discarded_this_battle[p]
             fast.stratagem_used[p] = state.stratagem_used[p]
             fast.draw_used[p] = state.draw_used[p]
@@ -458,6 +536,11 @@ cdef class FastEngine:
         fast.turn_number = state.turn_number
         fast.shuffle_seed = state.shuffle_seed
         fast.pass_len = len(state.pass_order)
+        fast.pending_final_operation_for = (
+            -1
+            if state.pending_final_operation_for is None
+            else state.pending_final_operation_for
+        )
         for i, p in enumerate(state.pass_order):
             fast.pass_order[i] = p
 
@@ -598,13 +681,174 @@ cdef class FastEngine:
     cpdef int front_strength(self, FastState state, int player, int front):
         return self.front_strength_fast(state, player, front)
 
+    cdef inline bint slot_complete(self, FastState state, int slot) noexcept:
+        return (
+            state.subject[slot] >= 0
+            and state.link[slot] >= 0
+            and state.name[slot] >= 0
+        )
+
     cdef inline bint subject_protected(self, FastState state, int slot) noexcept:
         cdef int link = state.link[slot]
-        return link >= 0 and state.name[slot] >= 0 and self.link_protect[link]
+        cdef int name = state.name[slot]
+        if link >= 0 and name >= 0 and self.link_protect[link]:
+            return True
+        return (
+            self.slot_complete(state, slot)
+            and name >= 0
+            and self.complete_plot_protection[name]
+        )
 
     cdef inline bint story_locked(self, FastState state, int player) noexcept:
-        cdef int strat = state.stratagem[player]
-        return strat >= 0 and state.stratagem_revealed[player] and self.strat_story_lock[strat]
+        cdef int controller, strat
+        for controller in range(2):
+            strat = state.stratagem[controller]
+            if strat < 0 or not state.stratagem_revealed[controller]:
+                continue
+            if self.strat_global_story_lock[strat]:
+                return True
+            if controller == player and self.strat_story_lock[strat]:
+                return True
+        return False
+
+    cdef inline bint can_draw_fast(self, FastState state, int player) noexcept:
+        return (
+            state.deck_len[player] > 0
+            or (self.reshuffle_on_empty and state.discard_len[player] > 0)
+        )
+
+    cdef inline int adjacent_discount_fast(
+        self,
+        FastState state,
+        int player,
+        int target_front,
+    ) noexcept:
+        cdef int local, slot, front, name, discount = 0
+        for local in range(6):
+            slot = player * 6 + local
+            if not self.slot_complete(state, slot):
+                continue
+            front = local >> 1
+            if abs(front - target_front) != 1:
+                continue
+            name = state.name[slot]
+            if name >= 0 and self.adjacent_command_discount[name] > discount:
+                discount = self.adjacent_command_discount[name]
+        return discount
+
+    cdef inline int command_cost_fast(
+        self,
+        FastState state,
+        uint64_t action,
+    ) noexcept:
+        cdef int kind, card, pos, target_front=-1, cost, discount
+        if not self.command_enabled:
+            return 0
+        kind = action_kind(action)
+        if kind == TYPE_PASS or kind == TYPE_CHOOSE:
+            return 0
+        if kind == TYPE_DRAW:
+            return self.paid_draw_command_cost if self.paid_draw_enabled else 0
+        card = action_card(action)
+        if card < 0:
+            return 0
+        cost = self.command_cost[card]
+        pos = action_pos(action)
+        if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
+            target_front = front_from_slot(pos)
+        elif kind == TYPE_SCHEME:
+            target_front = pos
+        if target_front >= 0:
+            discount = self.adjacent_discount_fast(
+                state,
+                state.active_player,
+                target_front,
+            )
+            if discount:
+                cost -= discount
+                if cost < 1:
+                    cost = 1
+        return cost
+
+    cdef inline void spend_command_fast(
+        self,
+        FastState state,
+        int player,
+        int amount,
+    ) noexcept:
+        state.command[player] -= amount
+
+    cdef inline void gain_command_fast(
+        self,
+        FastState state,
+        int player,
+        int amount,
+    ) noexcept:
+        state.command[player] += amount
+        if state.command[player] > self.command_cap:
+            state.command[player] = self.command_cap
+
+    cdef inline int complete_mask(self, FastState state, int player) noexcept:
+        cdef int local, slot, mask=0
+        for local in range(6):
+            slot = player * 6 + local
+            if self.slot_complete(state, slot):
+                mask |= 1 << local
+        return mask
+
+    cdef void recover_recent_link_fast(self, FastState state, int player) noexcept:
+        cdef int i, j, card
+        for i in range(state.discard_len[player] - 1, -1, -1):
+            card = state.discard[player][i]
+            if self.card_type[card] != CARD_LINK:
+                continue
+            for j in range(i, state.discard_len[player] - 1):
+                state.discard[player][j] = state.discard[player][j + 1]
+            state.discard_len[player] -= 1
+            self.return_to_hand(state, player, card)
+            return
+
+    cdef void resolve_new_completions_fast(
+        self,
+        FastState state,
+        int player,
+        int before_mask,
+    ):
+        cdef int local, slot, name, effect, amount, front, enemy_ix
+        cdef int after_mask = self.complete_mask(state, player)
+        cdef int new_mask = after_mask & ~before_mask
+        if new_mask == 0:
+            return
+        for local in range(6):
+            if not (new_mask & (1 << local)):
+                continue
+            slot = player * 6 + local
+            if self.command_enabled and self.completion_command_refund:
+                self.gain_command_fast(
+                    state,
+                    player,
+                    self.completion_command_refund,
+                )
+            name = state.name[slot]
+            if name < 0:
+                continue
+            effect = self.completion_effect[name]
+            amount = self.completion_amount[name]
+            if effect == COMPLETE_GAIN_COMMAND:
+                if self.command_enabled:
+                    self.gain_command_fast(state, player, amount)
+            elif effect == COMPLETE_FREE_CYCLE:
+                if self.command_enabled and self.cycle_enabled:
+                    state.free_cycle[player] = 1
+            elif effect == COMPLETE_DRAW:
+                self.draw(state, player, amount)
+            elif effect == COMPLETE_REVEAL_SCHEME:
+                front = local >> 1
+                enemy_ix = (1 - player) * 3 + front
+                if state.scheme[enemy_ix] >= 0:
+                    state.scheme_revealed[enemy_ix] = 1
+            elif effect == COMPLETE_RECOVER_LINK:
+                self.recover_recent_link_fast(state, player)
 
     cdef int legal_actions_into(
         self,
@@ -613,19 +857,31 @@ cdef class FastEngine:
     ) except -1:
         cdef int n = 0
         cdef int player, card, slot, local, front, rank, source, dest, req, opponent, effect
+        cdef int i, kept, can_pass, available
+        cdef uint64_t action
 
         if state.phase == PHASE_COMPLETE:
             return 0
         if state.phase == PHASE_CHOOSE:
-            actions[n] = encode_action(TYPE_CHOOSE, -1, 0, -1, 0); n += 1
-            actions[n] = encode_action(TYPE_CHOOSE, -1, 1, -1, 0); n += 1
-            return n
+            actions[0] = encode_action(TYPE_CHOOSE, -1, 0, -1, 0)
+            actions[1] = encode_action(TYPE_CHOOSE, -1, 1, -1, 0)
+            return 2
 
         player = state.active_player
-        actions[n] = encode_action(TYPE_PASS, -1, -1, -1, 0); n += 1
-        if not state.draw_used[player] and state.deck_len[player] > 0:
-            actions[n] = encode_action(TYPE_DRAW, -1, -1, -1, player); n += 1
         opponent = 1 - player
+
+        if (
+            (not self.command_enabled)
+            and (not state.draw_used[player])
+            and self.can_draw_fast(state, player)
+        ):
+            actions[n] = encode_action(TYPE_DRAW, -1, -1, -1, player); n += 1
+        elif (
+            self.command_enabled
+            and self.paid_draw_enabled
+            and self.can_draw_fast(state, player)
+        ):
+            actions[n] = encode_action(TYPE_DRAW, -1, -1, -1, player); n += 1
 
         for card in range(self.n_cards):
             if state.hand[player][card] == 0:
@@ -701,10 +957,34 @@ cdef class FastEngine:
                 if not state.stratagem_used[player] and state.stratagem[player] < 0:
                     actions[n] = encode_action(TYPE_STRATAGEM, card, -1, -1, player); n += 1
 
-            if n >= MAX_ACTIONS:
+            if n >= MAX_ACTIONS - 1:
                 raise RuntimeError(
-                    f"Fast MCCFR action buffer exceeded: {n} >= {MAX_ACTIONS}"
+                    f"Fast search action buffer exceeded: {n} >= {MAX_ACTIONS - 1}"
                 )
+
+        if self.command_enabled:
+            available = state.command[player]
+            kept = 0
+            for i in range(n):
+                action = actions[i]
+                if self.command_cost_fast(state, action) <= available:
+                    actions[kept] = action
+                    kept += 1
+            n = kept
+
+        can_pass = (
+            (not self.pass_requires_both_acted)
+            or state.pass_len > 0
+            or (
+                state.operations_this_battle[0] > 0
+                and state.operations_this_battle[1] > 0
+            )
+        )
+        if can_pass or n == 0:
+            for i in range(n, 0, -1):
+                actions[i] = actions[i - 1]
+            actions[0] = encode_action(TYPE_PASS, -1, -1, -1, 0)
+            n += 1
 
         return n
 
@@ -887,15 +1167,71 @@ cdef class FastEngine:
             return
         self.reveal_scheme(state, opponent, front, actor, -1)
 
+    cdef void reshuffle_discard_into_deck(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int i, j, card
+        cdef uint32_t seed
+        if (
+            not self.reshuffle_on_empty
+            or state.deck_len[player] > 0
+            or state.discard_len[player] == 0
+        ):
+            return
+        for i in range(state.discard_len[player]):
+            card = state.discard[player][i]
+            state.deck[player][state.deck_len[player]] = card
+            state.deck_len[player] += 1
+            state.deck_counts[player][card] += 1
+        state.discard_len[player] = 0
+        seed = state.shuffle_seed
+        i = state.deck_len[player] - 1
+        while i > 0:
+            seed = self.next_shuffle_seed(seed)
+            j = seed % (i + 1)
+            card = state.deck[player][i]
+            state.deck[player][i] = state.deck[player][j]
+            state.deck[player][j] = card
+            i -= 1
+        state.shuffle_seed = seed
+
     cdef void draw(self, FastState state, int player, int count) noexcept:
         cdef int card
-        while count > 0 and state.deck_len[player] > 0:
+        while count > 0:
+            if state.deck_len[player] == 0:
+                self.reshuffle_discard_into_deck(state, player)
+            if state.deck_len[player] == 0:
+                break
             state.deck_len[player] -= 1
             card = state.deck[player][state.deck_len[player]]
             state.deck_counts[player][card] -= 1
             state.hand[player][card] += 1
             state.hand_len[player] += 1
             count -= 1
+
+    cdef void start_turn_fast(self, FastState state, int player) noexcept:
+        state.active_player = player
+        if (
+            self.automatic_draw
+            and state.phase == PHASE_BATTLE
+            and not state.passed[player]
+        ):
+            self.draw(state, player, 1)
+
+    cdef void finish_operation_fast(self, FastState state, int actor):
+        cdef int opponent = 1 - actor
+        state.operations_this_battle[actor] += 1
+        if (
+            self.pass_final_operation
+            and state.pending_final_operation_for == actor
+        ):
+            state.pending_final_operation_for = -1
+            self.score_battle(state)
+        elif not state.passed[opponent]:
+            self.start_turn_fast(state, opponent)
+        state.turn_number += 1
 
     cdef inline uint32_t next_shuffle_seed(self, uint32_t seed) noexcept:
         return seed * <uint32_t>1664525 + <uint32_t>1013904223
@@ -920,7 +1256,7 @@ cdef class FastEngine:
                 state.deck[player][j] = card
                 i -= 1
 
-            target = 10 - state.hand_len[player]
+            target = self.opening_hand_size - state.hand_len[player]
             if target > 0:
                 self.draw(state, player, target)
         state.shuffle_seed = seed
@@ -955,7 +1291,8 @@ cdef class FastEngine:
                 state.stratagem_revealed[player] = 0
 
     cdef void score_battle(self, FastState state):
-        cdef int front, a, b, controls0=0, controls1=0, total0=0, total1=0, winner, loser, p
+        cdef int front, a, b, controls0=0, controls1=0, total0=0, total1=0
+        cdef int winner, loser, p, first_passer=-1, target
         for front in range(3):
             a = self.front_strength_fast(state, 0, front)
             b = self.front_strength_fast(state, 1, front)
@@ -973,35 +1310,63 @@ cdef class FastEngine:
             winner = 0
         elif total1 > total0:
             winner = 1
-        else:
+        elif state.pass_len > 0:
             winner = state.pass_order[0]
+        else:
+            winner = state.active_player
+
+        if state.pass_len > 0:
+            first_passer = state.pass_order[0]
+
         state.victories[winner] += 1
         loser = 1 - winner
         for p in range(2):
             if state.stratagem[p] >= 0:
                 state.stratagem_revealed[p] = 1
         self.discard_battlefield(state)
+
         if state.victories[winner] >= 2:
             state.phase = PHASE_COMPLETE
             state.winner = winner
             state.chooser = -1
+            state.pending_final_operation_for = -1
             return
+
         state.battle += 1
-        state.discarded_this_battle[0] = 0
-        state.discarded_this_battle[1] = 0
-        state.stratagem_used[0] = 0
-        state.stratagem_used[1] = 0
-        state.draw_used[0] = 0
-        state.draw_used[1] = 0
+        for p in range(2):
+            state.discarded_this_battle[p] = 0
+            state.operations_this_battle[p] = 0
+            state.stratagem_used[p] = 0
+            state.draw_used[p] = 0
+            state.free_cycle[p] = 0
+            if self.command_enabled:
+                state.command[p] += self.battle_command_gain
+                if state.command[p] > self.command_cap:
+                    state.command[p] = self.command_cap
+        state.pending_final_operation_for = -1
         state.pass_len = 0
         state.pass_order[0] = -1
         state.pass_order[1] = -1
-        self.recycle_non_hand_cards(state)
+
+        if self.recycle_between_battles:
+            self.recycle_non_hand_cards(state)
+        else:
+            for p in range(2):
+                target = self.opening_hand_size - state.hand_len[p]
+                if target > 0:
+                    self.draw(state, p, target)
+
         for p in range(2):
             state.passed[p] = 0
-        state.phase = PHASE_CHOOSE
-        state.chooser = loser
-        state.active_player = loser
+
+        if self.first_passer_starts_next_battle and first_passer >= 0:
+            state.phase = PHASE_BATTLE
+            state.chooser = -1
+            self.start_turn_fast(state, first_passer)
+        else:
+            state.phase = PHASE_CHOOSE
+            state.chooser = loser
+            state.active_player = loser
 
     cdef void pass_action(self, FastState state, int player):
         cdef int opponent = 1 - player
@@ -1016,10 +1381,19 @@ cdef class FastEngine:
             if card >= 0 and self.scheme_trigger[card] == EVENT_PASS:
                 if not self.scheme_requires_subject[card] or self.front_has_subject(state, opponent, front):
                     self.reveal_scheme(state, opponent, front, player, -1)
-        if state.passed[opponent]:
+
+        if self.pass_final_operation:
+            if state.pending_final_operation_for == player:
+                state.operations_this_battle[player] += 1
+                state.pending_final_operation_for = -1
+                self.score_battle(state)
+            else:
+                state.pending_final_operation_for = opponent
+                self.start_turn_fast(state, opponent)
+        elif state.passed[opponent]:
             self.score_battle(state)
         else:
-            state.active_player = opponent
+            self.start_turn_fast(state, opponent)
         state.turn_number += 1
 
     cdef void apply_fast(self, FastState state, uint64_t action):
@@ -1028,30 +1402,44 @@ cdef class FastEngine:
         cdef int pos = action_pos(action)
         cdef int dest = action_dest(action)
         cdef int actor = state.active_player
-        cdef int front
+        cdef int front, before_mask = 0, cost = 0
         cdef bint cancelled
+
         if kind == TYPE_CHOOSE:
-            state.active_player = pos
             state.chooser = -1
             state.phase = PHASE_BATTLE
+            self.start_turn_fast(state, pos)
             state.turn_number += 1
             return
+
         if kind == TYPE_PASS:
             self.pass_action(state, actor)
             return
+
         if kind == TYPE_DRAW:
+            if self.command_enabled and self.paid_draw_enabled:
+                cost = self.command_cost_fast(state, action)
+                self.spend_command_fast(state, actor, cost)
+            else:
+                state.draw_used[actor] = 1
             self.draw(state, actor, 1)
-            state.draw_used[actor] = 1
-            if not state.passed[1 - actor]:
-                state.active_player = 1 - actor
-            state.turn_number += 1
+            self.finish_operation_fast(state, actor)
             return
+
+        if self.command_enabled:
+            cost = self.command_cost_fast(state, action)
+            self.spend_command_fast(state, actor, cost)
+
+        if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
+            before_mask = self.complete_mask(state, actor)
+
         if kind == TYPE_SUBJECT:
             self.take_from_hand(state, actor, card, 0)
             state.subject[pos] = card
             front = front_from_slot(pos)
             self.resolve_scheme_event(state, actor, EVENT_SUBJECT, front, pos)
             self.resolve_strat_event(state, EVENT_SUBJECT, actor, card, pos)
+
         elif kind == TYPE_LINK:
             self.take_from_hand(state, actor, card, 0)
             state.link[pos] = card
@@ -1059,6 +1447,7 @@ cdef class FastEngine:
                 state.temporary[pos] += self.on_link_bonus[state.subject[pos]]
             front = front_from_slot(pos)
             self.resolve_scheme_event(state, actor, EVENT_LINK, front, pos)
+
         elif kind == TYPE_NAME:
             self.take_from_hand(state, actor, card, 0)
             state.name[pos] = card
@@ -1070,6 +1459,7 @@ cdef class FastEngine:
                 self.move_slot(state, pos, dest)
                 pos = dest
             self.resolve_strat_event(state, EVENT_NAME, actor, card, pos)
+
         elif kind == TYPE_PLOT:
             self.take_from_hand(state, actor, card, 0)
             cancelled = self.pre_story_cancel(state, actor)
@@ -1077,19 +1467,30 @@ cdef class FastEngine:
                 self.resolve_plot(state, actor, card, pos, dest)
                 self.resolve_plot_target_scheme(state, actor, pos)
             self.append_discard(state, actor, card, True)
+
         elif kind == TYPE_SCHEME:
             self.take_from_hand(state, actor, card, 1)
             state.scheme[actor * 3 + pos] = card
             state.scheme_revealed[actor * 3 + pos] = 0
+
         elif kind == TYPE_STRATAGEM:
-            self.take_from_hand(state, actor, card, 2)
+            self.take_from_hand(
+                state,
+                actor,
+                card,
+                0 if self.public_stratagems else 2,
+            )
             state.stratagem[actor] = card
-            state.stratagem_revealed[actor] = 0
+            state.stratagem_revealed[actor] = 1 if self.public_stratagems else 0
             state.stratagem_used[actor] = 1
+            if self.command_enabled:
+                self.finish_operation_fast(state, actor)
             return
-        if not state.passed[1 - actor]:
-            state.active_player = 1 - actor
-        state.turn_number += 1
+
+        if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
+            self.resolve_new_completions_fast(state, actor, before_mask)
+
+        self.finish_operation_fast(state, actor)
 
     cpdef FastState next_state(self, FastState state, uint64_t action):
         cdef FastState child = state.clone_fast()
@@ -1101,15 +1502,22 @@ cdef class FastEngine:
 
     cdef double evaluate_fast(self, FastState state, int player) noexcept:
         cdef int opponent = 1 - player
-        cdef int front, margin, controls=0, enemy_controls=0, total_margin=0, hand_delta, named_delta=0, scheme_delta=0, strat_delta=0
-        cdef int exposed=0, reachable=0, slot, card, name_card, before, after, best, i
+        cdef int front, margin, controls=0, enemy_controls=0, hand_delta
+        cdef int named_delta=0, scheme_delta=0, strat_delta=0
+        cdef int exposed=0, reachable=0, slot, name_card, before, after, best
+        cdef int card, own_forces=0, own_board_subjects=0
         cdef double score = 0.0, option = 0.0
+
         if state.phase == PHASE_COMPLETE:
             return 10000.0 if state.winner == player else -10000.0
+
         score += 80.0 * (state.victories[player] - state.victories[opponent])
+
         for front in range(3):
-            margin = self.front_strength_fast(state, player, front) - self.front_strength_fast(state, opponent, front)
-            total_margin += margin
+            margin = (
+                self.front_strength_fast(state, player, front)
+                - self.front_strength_fast(state, opponent, front)
+            )
             if margin > 0:
                 controls += 1
                 if margin <= 3:
@@ -1123,26 +1531,61 @@ cdef class FastEngine:
                 if margin >= -4:
                     reachable += 1
             else:
-                # A tied Front is also a realistic catch-up target after the
-                # opponent has Passed; the reference heuristic counts it.
                 reachable += 1
+
             if margin > 10:
                 margin = 10
             elif margin < -10:
                 margin = -10
             score += 0.75 * margin
+
         score += 10.0 * (controls - enemy_controls)
         if controls >= 2:
             score += 14.0
         if enemy_controls >= 2:
             score -= 14.0
-        hand_delta = self.hand_size(state, player) - self.hand_size(state, opponent)
+
+        hand_delta = state.hand_len[player] - state.hand_len[opponent]
         score += 1.25 * hand_delta
-        if state.phase == PHASE_BATTLE and state.passed[player] != state.passed[opponent]:
+
+        for card in range(self.n_cards):
+            if self.card_type[card] == CARD_SUBJECT:
+                own_forces += state.hand[player][card]
+        if own_forces > 3:
+            own_forces = 3
+        score += 0.35 * own_forces
+
+        for slot in range(player * 6, player * 6 + 6):
+            if state.subject[slot] >= 0:
+                own_board_subjects += 1
+        if own_forces == 0 and own_board_subjects == 0:
+            score -= 2.0
+
+        if self.command_enabled:
+            score += 0.45 * (
+                state.command[player] - state.command[opponent]
+            )
+            score += 0.35 * (
+                state.free_cycle[player] - state.free_cycle[opponent]
+            )
+
+        if (
+            state.phase == PHASE_BATTLE
+            and state.passed[player] != state.passed[opponent]
+        ):
             if state.passed[player]:
-                score -= 1.5 + min(7.0, 0.55 * self.hand_size(state, opponent)) + 1.1 * exposed
+                score -= (
+                    1.5
+                    + min(7.0, 0.55 * state.hand_len[opponent])
+                    + 1.1 * exposed
+                )
             else:
-                score += 1.0 + min(5.0, 0.4 * self.hand_size(state, player)) + 0.9 * reachable
+                score += (
+                    1.0
+                    + min(5.0, 0.4 * state.hand_len[player])
+                    + 0.9 * reachable
+                )
+
         for slot in range(player * 6, player * 6 + 6):
             if state.subject[slot] >= 0 and state.name[slot] >= 0:
                 named_delta += 1
@@ -1150,13 +1593,18 @@ cdef class FastEngine:
             if state.subject[slot] >= 0 and state.name[slot] >= 0:
                 named_delta -= 1
         score += 1.5 * named_delta
+
         for front in range(3):
             if state.scheme[player * 3 + front] >= 0:
                 scheme_delta += 1
             if state.scheme[opponent * 3 + front] >= 0:
                 scheme_delta -= 1
         score += 0.75 * scheme_delta
-        strat_delta = (1 if state.stratagem[player] >= 0 else 0) - (1 if state.stratagem[opponent] >= 0 else 0)
+
+        strat_delta = (
+            (1 if state.stratagem[player] >= 0 else 0)
+            - (1 if state.stratagem[opponent] >= 0 else 0)
+        )
         score += 0.45 * strat_delta
 
         for slot in range(player * 6, player * 6 + 6):
@@ -1165,7 +1613,10 @@ cdef class FastEngine:
             before = self.position_strength_fast(state, slot)
             best = -32768
             for name_card in range(self.n_cards):
-                if state.hand[player][name_card] == 0 or self.card_type[name_card] != CARD_NAME:
+                if (
+                    state.hand[player][name_card] == 0
+                    or self.card_type[name_card] != CARD_NAME
+                ):
                     continue
                 state.name[slot] = name_card
                 after = self.position_strength_fast(state, slot)
@@ -1175,9 +1626,267 @@ cdef class FastEngine:
             if best > 0:
                 option += 0.45 * best
         score += option
+
         if state.passed[player] and state.phase == PHASE_BATTLE:
             score -= 2.0
+
         return score
+
+    cdef double formation_progress_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int local, slot, components
+        cdef double value = 0.0
+        for local in range(6):
+            slot = player * 6 + local
+            components = (
+                (1 if state.subject[slot] >= 0 else 0)
+                + (1 if state.link[slot] >= 0 else 0)
+                + (1 if state.name[slot] >= 0 else 0)
+            )
+            if components == 1:
+                value += 0.35
+            elif components == 2:
+                value += 1.35
+            elif components == 3:
+                value += 2.25
+        return value
+
+    cdef double hand_construction_value_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef bint needs_subject=False, needs_link=False, needs_name=False
+        cdef int local, slot, card, count, typ
+        cdef double value=0.0
+        for local in range(6):
+            slot = player * 6 + local
+            if state.subject[slot] < 0 and (
+                state.link[slot] >= 0 or state.name[slot] >= 0
+            ):
+                needs_subject = True
+            if state.link[slot] < 0 and (
+                state.subject[slot] >= 0 or state.name[slot] >= 0
+            ):
+                needs_link = True
+            if state.name[slot] < 0 and (
+                state.subject[slot] >= 0 or state.link[slot] >= 0
+            ):
+                needs_name = True
+
+        for card in range(self.n_cards):
+            count = state.hand[player][card]
+            if count == 0:
+                continue
+            typ = self.card_type[card]
+            if typ == CARD_SUBJECT:
+                value += count * (0.45 + (0.95 if needs_subject else 0.0))
+            elif typ == CARD_LINK:
+                value += count * (0.35 + (0.95 if needs_link else 0.0))
+            elif typ == CARD_NAME:
+                value += count * (0.35 + (1.05 if needs_name else 0.0))
+            elif typ == CARD_PLOT:
+                value += count * 0.40
+            elif typ == CARD_STRATAGEM:
+                value += count * 0.30
+        return value
+
+    cdef int future_formation_sets_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int card, count, subjects=0, links=0, names=0
+        cdef int value
+        for card in range(self.n_cards):
+            count = state.hand[player][card] + state.deck_counts[player][card]
+            if self.card_type[card] == CARD_SUBJECT:
+                subjects += count
+            elif self.card_type[card] == CARD_LINK:
+                links += count
+            elif self.card_type[card] == CARD_NAME:
+                names += count
+        value = subjects
+        if links < value:
+            value = links
+        if names < value:
+            value = names
+        return value
+
+    cdef double future_force_availability_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int card, i, immediate=0, discarded=0
+        for card in range(self.n_cards):
+            if self.card_type[card] == CARD_SUBJECT:
+                immediate += (
+                    state.hand[player][card]
+                    + state.deck_counts[player][card]
+                )
+        for i in range(state.discard_len[player]):
+            card = state.discard[player][i]
+            if self.card_type[card] == CARD_SUBJECT:
+                discarded += 1
+        return immediate + 0.35 * discarded
+
+    cdef int affordable_hand_count_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int card, total=0
+        if not self.command_enabled:
+            return state.hand_len[player]
+        for card in range(self.n_cards):
+            if (
+                state.hand[player][card]
+                and self.command_cost[card] <= state.command[player]
+            ):
+                total += state.hand[player][card]
+        return total
+
+    cdef double strategic_evaluate_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int opponent = 1 - player
+        cdef double value = self.evaluate_fast(state, player)
+        if state.phase == PHASE_COMPLETE:
+            return value
+
+        value += 0.85 * (
+            self.formation_progress_fast(state, player)
+            - self.formation_progress_fast(state, opponent)
+        )
+        value += 0.30 * (
+            self.hand_construction_value_fast(state, player)
+            - self.hand_construction_value_fast(state, opponent)
+        )
+
+        if not self.recycle_between_battles:
+            value += 0.18 * (
+                state.deck_len[player] - state.deck_len[opponent]
+            )
+            value += 0.55 * (
+                self.future_formation_sets_fast(state, player)
+                - self.future_formation_sets_fast(state, opponent)
+            )
+            value += 0.40 * (
+                self.future_force_availability_fast(state, player)
+                - self.future_force_availability_fast(state, opponent)
+            )
+
+        if self.command_enabled:
+            value += 0.12 * (
+                self.affordable_hand_count_fast(state, player)
+                - self.affordable_hand_count_fast(state, opponent)
+            )
+
+        return value
+
+    cdef double pass_score_fast(
+        self,
+        FastState state,
+        int player,
+    ):
+        cdef FastState child = FastState()
+        cdef int front, margin, controls=0, tied=0, total_margin=0
+        cdef int weakest_control=32767
+        cdef int opponent = 1 - player
+        cdef double pressure_scale = 0.45 if self.pass_final_operation else 1.0
+        cdef double score
+
+        child.copy_from_fast(state)
+        self.pass_action(child, player)
+        if child.phase != PHASE_BATTLE or child.battle != state.battle:
+            return self.evaluate_fast(child, player)
+
+        score = self.evaluate_fast(state, player)
+        for front in range(3):
+            margin = (
+                self.front_strength_fast(state, player, front)
+                - self.front_strength_fast(state, opponent, front)
+            )
+            total_margin += margin
+            if margin > 0:
+                controls += 1
+                if margin < weakest_control:
+                    weakest_control = margin
+            elif margin == 0:
+                tied += 1
+
+        if controls >= 2:
+            if weakest_control == 32767:
+                weakest_control = 0
+            score += (
+                10.0
+                + 0.65 * total_margin
+                + 0.9 * weakest_control
+                + 0.8 * state.hand_len[player]
+                - pressure_scale * 1.6 * state.hand_len[opponent]
+            )
+        elif controls == 1 and tied >= 1 and total_margin >= 0:
+            score -= 7.0 + pressure_scale * 1.2 * state.hand_len[opponent]
+        else:
+            score -= 25.0 + pressure_scale * 1.5 * state.hand_len[opponent]
+
+        if self.first_passer_starts_next_battle and state.pass_len == 0:
+            score += 1.5
+
+        if (
+            self.front_strength_fast(state, player, 0)
+            == self.front_strength_fast(state, opponent, 0)
+            and self.front_strength_fast(state, player, 1)
+            == self.front_strength_fast(state, opponent, 1)
+            and self.front_strength_fast(state, player, 2)
+            == self.front_strength_fast(state, opponent, 2)
+        ):
+            score += 5.0
+        return score
+
+    cdef double action_order_score_fast(
+        self,
+        FastState state,
+        int player,
+        uint64_t action,
+        FastState child,
+    ):
+        cdef int kind = action_kind(action)
+        cdef int pos = action_pos(action)
+        cdef int force_count=0, card
+        cdef double score
+
+        if kind == TYPE_PASS:
+            return self.pass_score_fast(state, player)
+
+        child.copy_from_fast(state)
+        self.apply_fast(child, action)
+        score = self.evaluate_fast(child, player)
+
+        if kind == TYPE_DRAW:
+            for card in range(self.n_cards):
+                if self.card_type[card] == CARD_SUBJECT:
+                    force_count += state.hand[player][card]
+            score -= 0.35 if self.paid_draw_enabled else 0.8
+            if force_count == 0:
+                score += 1.4
+        elif kind == TYPE_LINK:
+            score += 0.10 if state.subject[pos] >= 0 else 1.35
+        elif kind == TYPE_NAME:
+            score += 0.35 if state.subject[pos] >= 0 else 1.50
+        elif kind == TYPE_SCHEME:
+            score += 0.20
+
+        return score
+
+    cpdef double evaluate(self, FastState state, int player):
+        return self.evaluate_fast(state, player)
 
     cpdef double evaluate(self, FastState state, int player):
         return self.evaluate_fast(state, player)
@@ -1311,6 +2020,9 @@ cdef class FastEngine:
             "passed": [bool(state.passed[0]), bool(state.passed[1])],
             "pass_order": [state.pass_order[i] for i in range(state.pass_len)],
             "discarded_this_battle": [state.discarded_this_battle[0], state.discarded_this_battle[1]],
+            "command": [state.command[0], state.command[1]],
+            "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
+            "pending_final_operation_for": None if state.pending_final_operation_for < 0 else state.pending_final_operation_for,
             "hands": [
                 {self.card_ids[card]: state.hand[p][card] for card in range(self.n_cards) if state.hand[p][card]}
                 for p in range(2)
@@ -1350,6 +2062,191 @@ cdef class FastEngine:
             "draw_used": [bool(state.draw_used[0]), bool(state.draw_used[1])],
         }
 
+
+
+class NativeSearchLimit(RuntimeError):
+    pass
+
+
+cdef class NativeSearchBudget:
+    cdef public long limit
+    cdef public long nodes
+
+    def __init__(self, long limit):
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        self.limit = limit
+        self.nodes = 0
+
+
+cdef int ordered_actions_into(
+    FastEngine engine,
+    FastState state,
+    int actor,
+    int width,
+    uint64_t* selected,
+    FastState order_scratch,
+) except -1:
+    cdef uint64_t actions[MAX_ACTIONS]
+    cdef double scores[MAX_ACTIONS]
+    cdef int n, i, j, selected_n, kind
+    cdef uint64_t action, tmp_action
+    cdef double score, tmp_score
+    cdef bint have_pass=False, have_draw=False
+
+    n = engine.legal_actions_into(state, &actions[0])
+    if n <= 0:
+        return 0
+
+    for i in range(n):
+        scores[i] = engine.action_order_score_fast(
+            state,
+            actor,
+            actions[i],
+            order_scratch,
+        )
+
+    # Stable insertion sort: highest one-ply actor score first.
+    for i in range(1, n):
+        tmp_action = actions[i]
+        tmp_score = scores[i]
+        j = i - 1
+        while j >= 0 and scores[j] < tmp_score:
+            actions[j + 1] = actions[j]
+            scores[j + 1] = scores[j]
+            j -= 1
+        actions[j + 1] = tmp_action
+        scores[j + 1] = tmp_score
+
+    selected_n = n if n <= width else width
+    for i in range(selected_n):
+        selected[i] = actions[i]
+        kind = action_kind(actions[i])
+        if kind == TYPE_PASS:
+            have_pass = True
+        elif kind == TYPE_DRAW:
+            have_draw = True
+
+    # Match the Python beam policy: Pass and Draw always survive pruning.
+    if selected_n < n:
+        for i in range(selected_n, n):
+            kind = action_kind(actions[i])
+            if kind == TYPE_PASS and not have_pass:
+                selected[selected_n] = actions[i]
+                selected_n += 1
+                have_pass = True
+            elif kind == TYPE_DRAW and not have_draw:
+                selected[selected_n] = actions[i]
+                selected_n += 1
+                have_draw = True
+
+    return selected_n
+
+
+cdef double native_alphabeta(
+    FastEngine engine,
+    FastState state,
+    int root_player,
+    int depth,
+    double alpha,
+    double beta,
+    NativeSearchBudget budget,
+    int width,
+    object scratch,
+    int level,
+) except *:
+    cdef uint64_t actions[MAX_ACTIONS]
+    cdef int n, i, actor
+    cdef bint maximizing
+    cdef double value, child_value
+    cdef FastState child
+    cdef FastState order_scratch
+
+    budget.nodes += 1
+    if budget.nodes > budget.limit:
+        raise NativeSearchLimit()
+
+    if state.phase == PHASE_COMPLETE or depth <= 0:
+        return engine.strategic_evaluate_fast(state, root_player)
+
+    actor = state.active_player
+    order_scratch = <FastState>scratch[level * 2]
+    child = <FastState>scratch[level * 2 + 1]
+    n = ordered_actions_into(
+        engine,
+        state,
+        actor,
+        width,
+        &actions[0],
+        order_scratch,
+    )
+    if n <= 0:
+        return engine.strategic_evaluate_fast(state, root_player)
+
+    maximizing = actor == root_player
+    value = -1.0e300 if maximizing else 1.0e300
+
+    for i in range(n):
+        child.copy_from_fast(state)
+        engine.apply_fast(child, actions[i])
+        child_value = native_alphabeta(
+            engine,
+            child,
+            root_player,
+            depth - 1,
+            alpha,
+            beta,
+            budget,
+            width,
+            scratch,
+            level + 1,
+        )
+
+        if maximizing:
+            if child_value > value:
+                value = child_value
+            if value > alpha:
+                alpha = value
+        else:
+            if child_value < value:
+                value = child_value
+            if value < beta:
+                beta = value
+
+        if beta <= alpha:
+            break
+
+    return value
+
+
+cpdef double native_search_value(
+    FastEngine engine,
+    object game_state,
+    int root_player,
+    int depth,
+    double alpha,
+    double beta,
+    NativeSearchBudget budget,
+    int candidate_width,
+):
+    cdef FastState state = engine.from_game_state(game_state)
+    cdef int levels = depth + 2
+    cdef object scratch = [
+        FastState()
+        for _ in range(levels * 2)
+    ]
+    return native_alphabeta(
+        engine,
+        state,
+        root_player,
+        depth,
+        alpha,
+        beta,
+        budget,
+        candidate_width,
+        scratch,
+        0,
+    )
 
 cdef class FastCFRNode:
     cdef void* action_storage

@@ -16,10 +16,23 @@ try:
         SearchLimit as _CythonSearchLimit,
         search_value as _cython_search_value,
     )
-except ImportError:  # optional Cython extension
+except ImportError:  # optional compatibility Cython extension
     _CythonSearchBudget = None
     _CythonSearchLimit = None
     _cython_search_value = None
+
+try:
+    from .._fast_search import (
+        FastEngine as _NativeFastEngine,
+        NativeSearchBudget as _NativeSearchBudget,
+        NativeSearchLimit as _NativeSearchLimit,
+        native_search_value as _native_search_value,
+    )
+except ImportError:  # optional packed-state Cython extension
+    _NativeFastEngine = None
+    _NativeSearchBudget = None
+    _NativeSearchLimit = None
+    _native_search_value = None
 
 
 class _SearchLimit(RuntimeError):
@@ -74,16 +87,35 @@ class StrategicHeuristicAgent(HeuristicAgent):
             raise ValueError("node_budget must be positive")
         if search_backend not in {"auto", "cython", "python"}:
             raise ValueError("search_backend must be auto, cython, or python")
-        if search_backend == "cython" and _cython_search_value is None:
+        native_supported = bool(
+            _native_search_value is not None
+            and _NativeFastEngine is not None
+            and engine.command_enabled
+            and not engine.cycle_enabled
+        )
+        wrapper_supported = _cython_search_value is not None
+        if search_backend == "cython" and not (native_supported or wrapper_supported):
             raise RuntimeError(
-                "Cython search backend requested but longwar._alphabeta_accel "
-                "is not available; reinstall with python -m pip install -e '.[dev]'"
+                "Cython search backend requested but no compiled search "
+                "extension is available; reinstall with "
+                "python -m pip install -e '.[dev]'"
             )
         self.search_backend = search_backend
+        self._use_native = (
+            native_supported
+            and search_backend in {"auto", "cython"}
+        )
         self._use_cython = (
-            _cython_search_value is not None
-            if search_backend == "auto"
-            else search_backend == "cython"
+            self._use_native
+            or (
+                wrapper_supported
+                and search_backend in {"auto", "cython"}
+            )
+        )
+        self._fast_engine = (
+            _NativeFastEngine(engine)
+            if self._use_native
+            else None
         )
         self.belief = BeliefSampler(engine, priors=priors)
         self.belief_samples = belief_samples
@@ -107,6 +139,13 @@ class StrategicHeuristicAgent(HeuristicAgent):
                 "search_nodes": 0,
                 "search_budget": self.node_budget,
                 "search_backend": "cython" if self._use_cython else "python",
+                "search_backend_detail": (
+                    "packed-native"
+                    if self._use_native
+                    else "compiled-wrapper"
+                    if self._use_cython
+                    else "python"
+                ),
                 "evaluated_candidates": 1,
             }
             return actions[0]
@@ -136,11 +175,12 @@ class StrategicHeuristicAgent(HeuristicAgent):
             for _ in range(self.belief_samples)
         ]
 
-        budget = (
-            _CythonSearchBudget(self.node_budget)
-            if self._use_cython
-            else _SearchBudget(self.node_budget)
-        )
+        if self._use_native:
+            budget = _NativeSearchBudget(self.node_budget)
+        elif self._use_cython:
+            budget = _CythonSearchBudget(self.node_budget)
+        else:
+            budget = _SearchBudget(self.node_budget)
         completed_depth = 0
         transposition: dict[tuple[object, ...], float] = {}
         scratch: list[GameState] = []
@@ -165,7 +205,18 @@ class StrategicHeuristicAgent(HeuristicAgent):
                     for action in root_order:
                         child = sampled.clone()
                         engine.apply(child, action, validate=False)
-                        if self._use_cython:
+                        if self._use_native:
+                            value = _native_search_value(
+                                self._fast_engine,
+                                child,
+                                root_player,
+                                depth - 1,
+                                -inf,
+                                inf,
+                                budget,
+                                self.candidate_width,
+                            )
+                        elif self._use_cython:
                             value = _cython_search_value(
                                 self,
                                 engine,
@@ -195,7 +246,14 @@ class StrategicHeuristicAgent(HeuristicAgent):
                 break
             except Exception as exc:
                 if (
+                    self._use_native
+                    and _NativeSearchLimit is not None
+                    and isinstance(exc, _NativeSearchLimit)
+                ):
+                    break
+                if (
                     self._use_cython
+                    and not self._use_native
                     and _CythonSearchLimit is not None
                     and isinstance(exc, _CythonSearchLimit)
                 ):
@@ -232,6 +290,13 @@ class StrategicHeuristicAgent(HeuristicAgent):
             "search_nodes": min(budget.nodes, self.node_budget),
             "search_budget": self.node_budget,
             "search_backend": "cython" if self._use_cython else "python",
+            "search_backend_detail": (
+                "packed-native"
+                if self._use_native
+                else "compiled-wrapper"
+                if self._use_cython
+                else "python"
+            ),
             "evaluated_candidates": len(candidates),
         }
         return selected.action
