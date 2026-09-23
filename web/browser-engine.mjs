@@ -1340,7 +1340,7 @@ export class BrowserSession {
       key: action.key,
       kind: action.kind,
       card_id: action.card_id,
-      command_cost: this.commandCostForAction(this.state, action),
+      command_cost: this.engine.commandCostForAction(this.state, action),
       label: this.describeAction(action, this.state.active_player, true),
       reason: this.legalReason(action),
       position: action.position ? positionPayload(action.position) : null,
