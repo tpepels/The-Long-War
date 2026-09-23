@@ -1,6 +1,15 @@
 name: Deploy print site
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "cards/**"
+      - "rules/**"
+      - "web/**"
+      - "src/longwar/**"
+      - "tools/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
   workflow_run:
     workflows: ["Counterfactual Analysis", "MCCFR Validation"]

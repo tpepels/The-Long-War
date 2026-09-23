@@ -88,6 +88,15 @@ body.game-body::before {
   font: 600 15px/1 Georgia, serif;
 }
 
+.game-version {
+  margin-left: 2px;
+  color: var(--ink-dim);
+  font: 800 7px/1 system-ui, sans-serif;
+  letter-spacing: .08em;
+  opacity: .7;
+  text-transform: uppercase;
+}
+
 .engine-lamp {
   min-width: 0;
   overflow: hidden;
