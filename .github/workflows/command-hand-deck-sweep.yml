@@ -1,0 +1,252 @@
+name: Command Hand Deck Sweep
+
+on:
+  push:
+    branches:
+      - experiment/command-hand-deck-sweep
+    paths:
+      - "cards/cards.json"
+      - "src/longwar/**"
+      - "tools/simulate.py"
+      - "tools/compute_command_costs.py"
+      - "tests/test_strategic_heuristic.py"
+      - ".github/workflows/command-hand-deck-sweep.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - run: python tools/compute_command_costs.py
+      - run: >
+          pytest -q
+          tests/test_cards.py
+          tests/test_engine.py
+          tests/test_command_economy.py
+          tests/test_strategic_heuristic.py
+          tests/test_simulation.py
+
+  simulate:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {id: d30-h10-r, deck: 30, hand: 10, mode: recycle}
+          - {id: d30-h11-r, deck: 30, hand: 11, mode: recycle}
+          - {id: d30-h12-r, deck: 30, hand: 12, mode: recycle}
+          - {id: d30-h13-r, deck: 30, hand: 13, mode: recycle}
+          - {id: d30-h14-r, deck: 30, hand: 14, mode: recycle}
+          - {id: d36-h10-r, deck: 36, hand: 10, mode: recycle}
+          - {id: d36-h11-r, deck: 36, hand: 11, mode: recycle}
+          - {id: d36-h12-r, deck: 36, hand: 12, mode: recycle}
+          - {id: d36-h13-r, deck: 36, hand: 13, mode: recycle}
+          - {id: d36-h14-r, deck: 36, hand: 14, mode: recycle}
+          - {id: d30-h12-p, deck: 30, hand: 12, mode: persistent}
+          - {id: d30-h13-p, deck: 30, hand: 13, mode: persistent}
+          - {id: d30-h14-p, deck: 30, hand: 14, mode: persistent}
+          - {id: d36-h12-p, deck: 36, hand: 12, mode: persistent}
+          - {id: d36-h13-p, deck: 36, hand: 13, mode: persistent}
+          - {id: d36-h14-p, deck: 36, hand: 14, mode: persistent}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Configure cell
+        run: |
+          if [ "${{ matrix.deck }}" = "30" ]; then
+            echo "REF_DECK=decks/experiments/name-rich-reference.json" >> "$GITHUB_ENV"
+            echo "AVAROS_DECK=decks/experiments/name-rich-avaros.json" >> "$GITHUB_ENV"
+            echo "MARA_DECK=decks/experiments/name-rich-mara.json" >> "$GITHUB_ENV"
+            echo "SERA_DECK=decks/experiments/name-rich-sera.json" >> "$GITHUB_ENV"
+          else
+            echo "REF_DECK=decks/experiments/name-rich-36-reference.json" >> "$GITHUB_ENV"
+            echo "AVAROS_DECK=decks/experiments/name-rich-36-avaros.json" >> "$GITHUB_ENV"
+            echo "MARA_DECK=decks/experiments/name-rich-36-mara.json" >> "$GITHUB_ENV"
+            echo "SERA_DECK=decks/experiments/name-rich-36-sera.json" >> "$GITHUB_ENV"
+          fi
+          if [ "${{ matrix.mode }}" = "persistent" ]; then
+            echo "RECYCLE_ARGS=--no-between-battle-recycle" >> "$GITHUB_ENV"
+          else
+            echo "RECYCLE_ARGS=" >> "$GITHUB_ENV"
+          fi
+      - name: Reference
+        run: >
+          python tools/simulate.py --games 250 --seed 26092810
+          --deck-size ${{ matrix.deck }} --hand-size ${{ matrix.hand }}
+          --disable-draw --command
+          $RECYCLE_ARGS
+          --deck-a "$REF_DECK" --deck-b "$REF_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/${{ matrix.id }}-reference.json"
+      - name: Avaros
+        run: >
+          python tools/simulate.py --games 250 --seed 26092811
+          --deck-size ${{ matrix.deck }} --hand-size ${{ matrix.hand }}
+          --disable-draw --command
+          $RECYCLE_ARGS
+          --deck-a "$AVAROS_DECK" --deck-b "$AVAROS_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/${{ matrix.id }}-avaros.json"
+      - name: Mara
+        run: >
+          python tools/simulate.py --games 250 --seed 26092812
+          --deck-size ${{ matrix.deck }} --hand-size ${{ matrix.hand }}
+          --disable-draw --command
+          $RECYCLE_ARGS
+          --deck-a "$MARA_DECK" --deck-b "$MARA_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/${{ matrix.id }}-mara.json"
+      - name: Sera
+        run: >
+          python tools/simulate.py --games 250 --seed 26092813
+          --deck-size ${{ matrix.deck }} --hand-size ${{ matrix.hand }}
+          --disable-draw --command
+          $RECYCLE_ARGS
+          --deck-a "$SERA_DECK" --deck-b "$SERA_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/${{ matrix.id }}-sera.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: command-sweep-${{ matrix.id }}
+          path: artifacts/${{ matrix.id }}-*.json
+          retention-days: 30
+
+  summarize:
+    needs: simulate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: command-sweep-*
+          path: artifacts/all
+          merge-multiple: true
+      - name: Build matrix summary
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          root=Path("artifacts/all")
+          pattern=re.compile(r"d(30|36)-h(\d+)-([rp])-(reference|avaros|mara|sera)\.json$")
+          groups={}
+          for path in root.glob("*.json"):
+              m=pattern.match(path.name)
+              if not m:
+                  continue
+              deck,hand,mode,_profile=m.groups()
+              key=(int(deck),int(hand),"recycle" if mode=="r" else "persistent")
+              groups.setdefault(key,[]).append(json.loads(path.read_text()))
+
+          def ratio(num,den):
+              return None if not den else num/den
+
+          rows=[]
+          for (deck,hand,mode),reports in sorted(groups.items()):
+              games=sum(r["games"] for r in reports)
+              battles=sum(r["telemetry"]["battles"]["count"] for r in reports)
+              completions=sum(
+                  sum(x.get("completions",0) for x in r["telemetry"]["legend_combinations"].values())
+                  for r in reports
+              )
+              actions={}
+              for name in ("PlaySubject","PlayLink","PlayName","PlayPlot","PlayScheme","SetStratagem","Cycle"):
+                  actions[name]=sum(r["telemetry"]["actions"].get(name,0) for r in reports)
+              card_plays=sum(actions[n] for n in actions if n!="Cycle")
+              decisions=sum(r["telemetry"]["decisions"].get("heuristic",{}).get("decisions",0) for r in reports)
+              choices=sum(
+                  (r["telemetry"]["decisions"].get("heuristic",{}).get("mean_candidate_count") or 0)
+                  * r["telemetry"]["decisions"].get("heuristic",{}).get("decisions",0)
+                  for r in reports
+              )
+
+              def weighted(path, weight):
+                  num=den=0.0
+                  for r in reports:
+                      value=r
+                      for part in path:
+                          value=value[part]
+                      w=weight(r)
+                      if value is not None and w:
+                          num += float(value)*w
+                          den += w
+                  return ratio(num,den)
+
+              pass_weight=lambda r:r["telemetry"]["passes"]["events"]
+              battle_weight=lambda r:r["telemetry"]["battles"]["count"]
+              match_weight=lambda r:r["games"]
+              continuing_weight=lambda r:r["telemetry"]["battles"]["continuing_battles"]
+
+              row={
+                  "deck":deck,
+                  "hand":hand,
+                  "mode":mode,
+                  "games":games,
+                  "battles":battles,
+                  "completions_per_battle":ratio(completions,battles),
+                  "names_per_battle":ratio(actions["PlayName"],battles),
+                  "cycles_per_battle":ratio(actions["Cycle"],battles),
+                  "cards_per_battle":ratio(card_plays,battles),
+                  "choices":ratio(choices,decisions),
+                  "first_pass_wr":weighted(["telemetry","passes","first_passer_battle_win_rate"],battle_weight),
+                  "first_player_wr":sum(r["first_player_win_rate"]*r["games"] for r in reports)/games,
+                  "command_at_pass":weighted(["telemetry","passes","mean_command_remaining"],pass_weight),
+                  "deck_at_pass":weighted(["telemetry","depletion","mean_deck_remaining_at_pass"],pass_weight),
+                  "deck_exhaustion":weighted(["telemetry","depletion","player_game_deck_exhaustion_rate"],match_weight),
+                  "deck_empty_decisions":weighted(["telemetry","depletion","deck_empty_decision_rate"],battle_weight),
+                  "cycle_blocked_empty":weighted(["telemetry","depletion","cycle_blocked_by_empty_deck_decision_rate"],battle_weight),
+                  "winner_minus_loser_command":weighted(["telemetry","command","battle_one_winner_minus_loser_remaining"],battle_weight),
+                  "battle1_loser_match_wr":weighted(["telemetry","match_flow","battle_one_loser_match_win_rate"],match_weight),
+                  "refill_shortfall":weighted(["telemetry","battles","next_battle_player_shortfall_rate"],continuing_weight),
+                  "next_hand":weighted(["telemetry","battles","mean_next_battle_hand_size"],continuing_weight),
+                  "next_deck":weighted(["telemetry","depletion","mean_next_battle_deck_per_player"],continuing_weight),
+              }
+              row["names_target_met"]=row["names_per_battle"] >= 3.0
+              rows.append(row)
+
+          out=Path("artifacts/summary")
+          out.mkdir(parents=True,exist_ok=True)
+          (out/"command-hand-deck-sweep.json").write_text(json.dumps(rows,indent=2)+"\n")
+          lines=[
+              "# Command hand/deck sweep",
+              "",
+              "| Deck | Hand | Mode | Complete/B | Names/B | Target | Cycles/B | Cards/B | Choices | Deck exhaust | Empty-deck decisions | Refill shortfall | Deck at Pass | First-pass WR | B1 winner-Loser Cmd |",
+              "| ---: | ---: | --- | ---: | ---: | :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+          ]
+          for row in rows:
+              lines.append(
+                  f"| {row['deck']} | {row['hand']} | {row['mode']} "
+                  f"| {row['completions_per_battle']:.2f} "
+                  f"| {row['names_per_battle']:.2f} "
+                  f"| {'YES' if row['names_target_met'] else 'no'} "
+                  f"| {row['cycles_per_battle']:.2f} "
+                  f"| {row['cards_per_battle']:.2f} "
+                  f"| {row['choices']:.1f} "
+                  f"| {row['deck_exhaustion']:.1%} "
+                  f"| {row['deck_empty_decisions']:.1%} "
+                  f"| {(row['refill_shortfall'] or 0):.1%} "
+                  f"| {row['deck_at_pass']:.2f} "
+                  f"| {row['first_pass_wr']:.1%} "
+                  f"| {row['winner_minus_loser_command']:.2f} |"
+              )
+          (out/"command-hand-deck-sweep.md").write_text("\n".join(lines)+"\n")
+          print("\n".join(lines))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: command-hand-deck-summary
+          path: artifacts/summary/*
+          retention-days: 30
