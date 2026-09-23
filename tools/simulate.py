@@ -169,6 +169,11 @@ def main() -> None:
         type=Path,
         default=Path("artifacts/simulation-report.json"),
     )
+    parser.add_argument(
+        "--progress-file",
+        type=Path,
+        help="Optional file updated after each completed game.",
+    )
     args = parser.parse_args()
 
     card_data = load_card_file(resolve(args.card_file))
@@ -203,6 +208,15 @@ def main() -> None:
         if policy is not None and policy.get("game_fingerprint") != game_fingerprint:
             raise SystemExit("MCCFR policy belongs to an older ruleset; retrain it before simulation")
 
+    progress_path = resolve(args.progress_file) if args.progress_file else None
+    if progress_path is not None:
+        progress_path.parent.mkdir(parents=True, exist_ok=True)
+        progress_path.write_text("0\n", encoding="utf-8")
+
+    def report_progress(completed: int, total: int) -> None:
+        if progress_path is not None:
+            progress_path.write_text(f"{completed}\n", encoding="utf-8")
+
     report = simulate_games(
         engine,
         deck_a,
@@ -218,6 +232,7 @@ def main() -> None:
         strategic_candidate_width=args.strategic_candidate_width,
         strategic_node_budget=args.strategic_node_budget,
         strategic_search_backend=args.strategic_search_backend,
+        progress_callback=report_progress if progress_path is not None else None,
     )
 
     payload = asdict(report)

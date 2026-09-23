@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 from .agents import HeuristicAgent, RandomAgent
 from .agents.strategic_heuristic_agent import StrategicHeuristicAgent
@@ -94,6 +94,7 @@ def simulate_games(
     strategic_candidate_width: int = 8,
     strategic_node_budget: int = 20_000,
     strategic_search_backend: str = "auto",
+    progress_callback: Callable[[int, int], None] | None = None,
 ) -> SimulationReport:
     if games <= 0:
         raise ValueError("games must be positive")
@@ -209,6 +210,8 @@ def simulate_games(
             first_player_wins += 1
         total_turns += action_count
         maximum_turns = max(maximum_turns, action_count)
+        if progress_callback is not None:
+            progress_callback(game_index + 1, games)
 
     telemetry_summary = telemetry.summary()
     telemetry_summary["human_flow"] = human_flow.summary()

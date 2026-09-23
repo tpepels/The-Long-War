@@ -4,7 +4,8 @@ import argparse
 import json
 import subprocess
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -223,6 +224,8 @@ def command_for(run: Run, preset: Preset, backend: str) -> list[str]:
         str(preset.node_budget),
         "--strategic-search-backend",
         backend,
+        "--progress-file",
+        str(run.output.with_suffix(".progress")),
         "--output",
         str(run.output),
     ]
@@ -251,6 +254,62 @@ def execute(run: Run, command: list[str]) -> tuple[Run, str]:
             f"{process.returncode}:\n{process.stdout}"
         )
     return run, process.stdout
+
+
+def read_progress(path: Path) -> int:
+    try:
+        return max(0, int(path.read_text(encoding="utf-8").strip() or "0"))
+    except (OSError, ValueError):
+        return 0
+
+
+def format_duration(seconds: float) -> str:
+    seconds = max(0, int(round(seconds)))
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours:
+        return f"{hours:d}h {minutes:02d}m"
+    if minutes:
+        return f"{minutes:d}m {seconds:02d}s"
+    return f"{seconds:d}s"
+
+
+def render_progress(
+    runs: list[Run],
+    *,
+    games_per_run: int,
+    finished_cells: int,
+    started_at: float,
+) -> str:
+    total_games = games_per_run * len(runs)
+    completed_games = min(
+        total_games,
+        sum(
+            min(games_per_run, read_progress(run.output.with_suffix(".progress")))
+            for run in runs
+        ),
+    )
+    fraction = completed_games / total_games if total_games else 1.0
+    width = 30
+    filled = min(width, int(fraction * width))
+    bar = "#" * filled + "-" * (width - filled)
+    elapsed = time.perf_counter() - started_at
+    if completed_games:
+        rate = completed_games / elapsed if elapsed > 0 else 0.0
+        eta = (
+            (total_games - completed_games) / rate
+            if rate > 0 and completed_games < total_games
+            else 0.0
+        )
+        eta_text = format_duration(eta)
+    else:
+        eta_text = "calculating..."
+    return (
+        f"[{bar}] {completed_games:>3}/{total_games} "
+        f"({fraction * 100:5.1f}%) | "
+        f"elapsed {format_duration(elapsed)} | ETA {eta_text} | "
+        f"cells {finished_cells}/{len(runs)}"
+    )
 
 
 def safe_ratio(numerator: float, denominator: float) -> float | None:
@@ -426,21 +485,55 @@ def main() -> None:
         return
 
     print()
+    for run in runs:
+        run.output.with_suffix(".progress").unlink(missing_ok=True)
+
+    started_at = time.perf_counter()
+    finished_cells = 0
     with ThreadPoolExecutor(max_workers=min(args.jobs, len(runs))) as pool:
         futures = {
             pool.submit(execute, run, command): run
             for run, command in commands
         }
-        for future in as_completed(futures):
-            run = futures[future]
-            try:
-                _, stdout = future.result()
-            except Exception as exc:
-                for pending in futures:
-                    pending.cancel()
-                raise SystemExit(str(exc)) from exc
-            final_line = stdout.rstrip().splitlines()[-1] if stdout.strip() else "done"
-            print(f"[done {run.mode}/{run.deck}] {final_line}")
+        pending = set(futures)
+        last_line = ""
+        while pending:
+            done, pending = wait(
+                pending,
+                timeout=1.0,
+                return_when=FIRST_COMPLETED,
+            )
+            for future in done:
+                run = futures[future]
+                try:
+                    future.result()
+                except Exception as exc:
+                    for remaining in pending:
+                        remaining.cancel()
+                    print()
+                    raise SystemExit(str(exc)) from exc
+                finished_cells += 1
+
+            line = render_progress(
+                runs,
+                games_per_run=preset.games,
+                finished_cells=finished_cells,
+                started_at=started_at,
+            )
+            if line != last_line:
+                print("\r" + line + " " * max(0, len(last_line) - len(line)), end="", flush=True)
+                last_line = line
+
+        final_line = render_progress(
+            runs,
+            games_per_run=preset.games,
+            finished_cells=finished_cells,
+            started_at=started_at,
+        )
+        print("\r" + final_line + " " * max(0, len(last_line) - len(final_line)))
+
+    for run in runs:
+        run.output.with_suffix(".progress").unlink(missing_ok=True)
 
     rows = [row_for(run.output) for run in runs]
     output_dir.mkdir(parents=True, exist_ok=True)
