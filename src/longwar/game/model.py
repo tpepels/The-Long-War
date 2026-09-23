@@ -132,6 +132,9 @@ class GameState:
     turn_number: int = 1
     shuffle_seed: int = 0
     observations: list[ObservationEvent] = field(default_factory=list)
+    known_hidden_hand: list[list[dict[str, int]]] = field(
+        default_factory=lambda: [[{}, {}], [{}, {}]]
+    )
 
     def clone(self) -> "GameState":
         """Fast structural copy used heavily by search.
@@ -221,6 +224,10 @@ class GameState:
             turn_number=self.turn_number,
             shuffle_seed=self.shuffle_seed,
             observations=list(self.observations),
+            known_hidden_hand=[
+                [dict(self.known_hidden_hand[viewer][owner]) for owner in range(2)]
+                for viewer in range(2)
+            ],
         )
 
     def copy_from(self, source: "GameState") -> "GameState":
@@ -308,6 +315,12 @@ class GameState:
         self.turn_number = source.turn_number
         self.shuffle_seed = source.shuffle_seed
         self.observations[:] = source.observations
+        for viewer in range(2):
+            for owner in range(2):
+                self.known_hidden_hand[viewer][owner].clear()
+                self.known_hidden_hand[viewer][owner].update(
+                    source.known_hidden_hand[viewer][owner]
+                )
         return self
 
     def slot(self, player: int, position: Position) -> Slot:
@@ -332,6 +345,13 @@ class GameState:
     ) -> None:
         if delta == 0:
             return
+        if zone == "hand":
+            counter = self.known_hidden_hand[viewer][owner]
+            updated = counter.get(card_id, 0) + delta
+            if updated > 0:
+                counter[card_id] = updated
+            else:
+                counter.pop(card_id, None)
         self.observations.append(
             ObservationEvent(
                 turn_number=self.turn_number,
@@ -372,6 +392,11 @@ class GameState:
         owner: int,
         zone: str = "hand",
     ) -> Counter[str]:
+        if zone == "hand":
+            direct = self.known_hidden_hand[viewer][owner]
+            if direct:
+                return Counter(direct)
+
         counts: Counter[str] = Counter()
         for event in self.observations:
             if (

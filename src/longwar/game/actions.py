@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import TypeAlias
 
-from .model import Front, Position
+from .model import Front, Position, Rank
 
 
 @dataclass(frozen=True)
@@ -116,3 +116,53 @@ def action_key(action: Action) -> str:
     if isinstance(action, Cycle):
         return f"cycle:{action.card_id}"
     raise TypeError(f"Unsupported action type: {type(action)!r}")
+
+
+def action_from_key(key: str) -> Action:
+    """Inverse of :func:`action_key` for engine/API boundaries."""
+    if key == "pass":
+        return Pass()
+    if key == "draw":
+        return Draw()
+    if key.startswith("cycle:"):
+        return Cycle(key.split(":", 1)[1])
+    if key.startswith("choose_first:"):
+        return ChooseFirst(int(key.split(":", 1)[1]))
+
+    kind, card_id, *parts = key.split(":")
+    if kind in {"subject", "link"}:
+        front = Front(int(parts[0]))
+        rank = Rank(parts[1])
+        position = Position(front, rank)
+        return (
+            PlaySubject(card_id, position)
+            if kind == "subject"
+            else PlayLink(card_id, position)
+        )
+    if kind == "name":
+        front = Front(int(parts[0]))
+        rank = Rank(parts[1])
+        position = Position(front, rank)
+        if parts[2] == "stay":
+            return PlayName(card_id, position, None)
+        move_to = Position(Front(int(parts[2])), Rank(parts[3]))
+        return PlayName(card_id, position, move_to)
+    if kind == "scheme":
+        return PlayScheme(card_id, Front(int(parts[0])))
+    if kind == "stratagem":
+        return SetStratagem(card_id)
+    if kind == "plot":
+        target_blob = ":".join(parts)
+        if not target_blob:
+            return PlayPlot(card_id, ())
+        targets = []
+        for encoded in target_blob.split(";"):
+            player, front, rank = encoded.split(":")
+            targets.append(
+                BoardTarget(
+                    int(player),
+                    Position(Front(int(front)), Rank(rank)),
+                )
+            )
+        return PlayPlot(card_id, tuple(targets))
+    raise ValueError(f"Unknown action key: {key}")

@@ -20,6 +20,8 @@ from .actions import (
     PlayScheme,
     PlaySubject,
     SetStratagem,
+    action_from_key,
+    action_key,
 )
 from .model import (
     Front,
@@ -2521,3 +2523,310 @@ class GameEngine:
         destination.link = source.link
         destination.name = source.name
         destination.temporary_strength = source.temporary_strength
+
+
+    # ------------------------------------------------------------------
+    # Canonical Cython engine boundary
+    # ------------------------------------------------------------------
+    # The methods below intentionally override the older Python reference
+    # implementations above. During the migration the reference code remains
+    # in this file solely so parity tests can identify regressions. All normal
+    # consumers execute legality, transitions and Strength in the packed
+    # Cython core.
+
+    def _native_core(self):
+        core = getattr(self, "_native_core_instance", None)
+        if core is None:
+            try:
+                from .._fast_search import FastEngine
+            except ImportError as exc:
+                raise RuntimeError(
+                    "The canonical Cython game engine is not built. "
+                    "Run: python -m pip install -e '.[dev]'"
+                ) from exc
+            core = FastEngine(self)
+            self._native_core_instance = core
+        return core
+
+    def _sync_from_native(self, state: GameState, fast_state) -> None:
+        data = self._native_core().export_state(fast_state)
+
+        for player in range(2):
+            source = data["players"][player]
+            target = state.players[player]
+            target.deck[:] = source["deck"]
+            target.hand[:] = source["hand"]
+            target.discard[:] = source["discard"]
+            target.victories = int(source["victories"])
+            target.passed = bool(source["passed"])
+            target.command = int(source["command"])
+            target.free_cycle = bool(source["free_cycle"])
+
+        for player in range(2):
+            for front in range(3):
+                for rank in range(2):
+                    source = data["board"][player][front][rank]
+                    target = state.board[player][front][rank]
+                    target.subject = source["subject"]
+                    target.link = source["link"]
+                    target.name = source["name"]
+                    target.temporary_strength = int(
+                        source["temporary_strength"]
+                    )
+
+                scheme = data["schemes"][player][front]
+                state.schemes[player][front] = (
+                    None
+                    if scheme is None
+                    else SchemeState(
+                        card_id=scheme["card_id"],
+                        revealed=bool(scheme["revealed"]),
+                    )
+                )
+
+            stratagem = data["stratagems"][player]
+            state.stratagems[player] = (
+                None
+                if stratagem is None
+                else StratagemState(
+                    card_id=stratagem["card_id"],
+                    revealed=bool(stratagem["revealed"]),
+                )
+            )
+
+        state.stratagem_used[:] = data["stratagem_used"]
+        state.draw_used[:] = data["draw_used"]
+        state.active_player = int(data["active_player"])
+        state.battle = int(data["battle"])
+        state.phase = Phase(data["phase"])
+        state.discarded_this_battle[:] = data["discarded_this_battle"]
+        state.command_spent_this_battle[:] = data[
+            "command_spent_this_battle"
+        ]
+        state.command_refunded_this_battle[:] = data[
+            "command_refunded_this_battle"
+        ]
+        state.completion_command_refunded_this_battle[:] = data[
+            "completion_command_refunded_this_battle"
+        ]
+        state.battle_start_command[:] = data["battle_start_command"]
+        state.battle_start_hand_size[:] = data["battle_start_hand_size"]
+        state.cards_drawn_this_battle[:] = data["cards_drawn_this_battle"]
+        state.completion_count_this_battle[:] = data[
+            "completion_count_this_battle"
+        ]
+        state.operations_this_battle[:] = data["operations_this_battle"]
+        state.deck_reshuffles[:] = data["deck_reshuffles"]
+        state.reshuffle_card_totals[:] = data["reshuffle_card_totals"]
+        state.reshuffle_hand_card_totals[:] = data[
+            "reshuffle_hand_card_totals"
+        ]
+        state.pending_final_operation_for = data[
+            "pending_final_operation_for"
+        ]
+        state.last_battle_snapshot = data["last_battle_snapshot"]
+        state.pass_order[:] = data["pass_order"]
+        state.chooser = data["chooser"]
+        state.winner = data["winner"]
+        state.turn_number = int(data["turn_number"])
+        state.shuffle_seed = int(data["shuffle_seed"])
+
+        hidden = data["known_hidden_hand"]
+        for viewer in range(2):
+            for owner in range(2):
+                state.known_hidden_hand[viewer][owner].clear()
+                state.known_hidden_hand[viewer][owner].update(
+                    hidden[viewer][owner]
+                )
+
+    def _native_action(self, fast_state, action: Action):
+        target = action_key(action)
+        native = self._native_core()
+        for candidate in native.legal_actions(fast_state):
+            if native.action_key(candidate) == target:
+                return candidate
+        raise IllegalAction(f"Illegal action: {action!r}")
+
+    def _new_game_with_rng(
+        self,
+        deck_a: list[str],
+        deck_b: list[str],
+        *,
+        rng: random.Random,
+        shuffle_seed: int | None = None,
+        first_player: int | None = None,
+        mulligan_indices: tuple[tuple[int, ...], tuple[int, ...]] = ((), ()),
+        opening_bonus: bool = True,
+    ) -> GameState:
+        """Deal/setup in Python; all gameplay semantics execute in Cython."""
+        decks = [list(deck_a), list(deck_b)]
+        rng.shuffle(decks[0])
+        rng.shuffle(decks[1])
+
+        players: list[PlayerState] = []
+        for player in range(2):
+            hand = [
+                decks[player].pop()
+                for _ in range(min(self.opening_hand_size, len(decks[player])))
+            ]
+            indices = mulligan_indices[player]
+            if len(indices) > 2 or len(set(indices)) != len(indices):
+                raise ValueError(
+                    "A mulligan may contain at most two distinct hand indices"
+                )
+            if any(index < 0 or index >= len(hand) for index in indices):
+                raise ValueError("Mulligan index outside opening hand")
+
+            returned = [hand[index] for index in sorted(indices)]
+            for index in sorted(indices, reverse=True):
+                del hand[index]
+            if returned:
+                decks[player].extend(returned)
+                rng.shuffle(decks[player])
+                hand.extend(
+                    decks[player].pop()
+                    for _ in range(
+                        min(len(returned), len(decks[player]))
+                    )
+                )
+
+            players.append(
+                PlayerState(
+                    deck=decks[player],
+                    hand=hand,
+                    command=(
+                        self.starting_command
+                        if self.command_enabled
+                        else 0
+                    ),
+                )
+            )
+
+        state = GameState(
+            players=players,
+            shuffle_seed=(
+                int(shuffle_seed)
+                if shuffle_seed is not None
+                else rng.randrange(0x1_0000_0000)
+            ),
+            battle_start_command=[
+                self.starting_command if self.command_enabled else 0,
+                self.starting_command if self.command_enabled else 0,
+            ],
+        )
+        state.opening_hands = [
+            list(state.players[0].hand),
+            list(state.players[1].hand),
+        ]
+        state.battle_start_hand_size = [
+            len(state.players[0].hand),
+            len(state.players[1].hand),
+        ]
+
+        active_player = (
+            rng.randrange(2)
+            if first_player is None
+            else first_player
+        )
+        native = self._native_core()
+        fast_state = native.from_game_state(state)
+        native.initialize_opening_turn(
+            fast_state,
+            active_player,
+            opening_bonus,
+        )
+        self._sync_from_native(state, fast_state)
+        return state
+
+    def legal_actions(self, state: GameState) -> list[Action]:
+        native = self._native_core()
+        fast_state = native.from_game_state(state)
+        return [
+            action_from_key(native.action_key(candidate))
+            for candidate in native.legal_actions(fast_state)
+        ]
+
+    def command_cost_for_action(
+        self,
+        state: GameState,
+        action: Action,
+    ) -> int:
+        native = self._native_core()
+        fast_state = native.from_game_state(state)
+        candidate = self._native_action(fast_state, action)
+        return int(native.command_cost(fast_state, candidate))
+
+    def apply(
+        self,
+        state: GameState,
+        action: Action,
+        *,
+        validate: bool = True,
+    ) -> None:
+        del validate  # Cython legality is always authoritative.
+        native = self._native_core()
+        fast_state = native.from_game_state(state)
+        candidate = self._native_action(fast_state, action)
+        native.apply(fast_state, candidate)
+        self._sync_from_native(state, fast_state)
+
+    def can_draw(self, state: GameState, player: int) -> bool:
+        native = self._native_core()
+        fast_state = native.from_game_state(state)
+        return bool(native.can_draw(fast_state, player))
+
+    def position_strength(
+        self,
+        state: GameState,
+        player: int,
+        position: Position,
+    ) -> int:
+        native = self._native_core()
+        fast_state = native.from_game_state(state)
+        return int(
+            native.position_strength(
+                fast_state,
+                player,
+                int(position.front),
+                0 if position.rank is Rank.FRONT else 1,
+            )
+        )
+
+    def front_strength(
+        self,
+        state: GameState,
+        player: int,
+        front: Front,
+    ) -> int:
+        native = self._native_core()
+        fast_state = native.from_game_state(state)
+        return int(native.front_strength(fast_state, player, int(front)))
+
+    def front_strength_matrix(
+        self,
+        state: GameState,
+    ) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
+        native = self._native_core()
+        fast_state = native.from_game_state(state)
+        return (
+            tuple(
+                int(native.front_strength(fast_state, 0, front))
+                for front in range(3)
+            ),
+            tuple(
+                int(native.front_strength(fast_state, 1, front))
+                for front in range(3)
+            ),
+        )
+
+    def front_margins(
+        self,
+        state: GameState,
+        player: int,
+    ) -> tuple[int, int, int]:
+        totals = self.front_strength_matrix(state)
+        opponent = 1 - player
+        return tuple(
+            totals[player][front] - totals[opponent][front]
+            for front in range(3)
+        )

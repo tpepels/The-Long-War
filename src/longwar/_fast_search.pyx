@@ -28,6 +28,7 @@ cdef int TYPE_PLOT = 5
 cdef int TYPE_SCHEME = 6
 cdef int TYPE_STRATAGEM = 7
 cdef int TYPE_DRAW = 8
+cdef int TYPE_CYCLE = 9
 
 cdef int CARD_SUBJECT = 1
 cdef int CARD_LINK = 2
@@ -150,6 +151,35 @@ cdef class FastState:
     cdef int16_t command[2]
     cdef uint8_t free_cycle[2]
     cdef uint16_t operations_this_battle[2]
+    cdef int16_t command_spent_this_battle[2]
+    cdef int16_t command_refunded_this_battle[2]
+    cdef int16_t completion_command_refunded_this_battle[2]
+    cdef int16_t battle_start_command[2]
+    cdef int16_t battle_start_hand_size[2]
+    cdef int16_t cards_drawn_this_battle[2]
+    cdef int16_t completion_count_this_battle[2]
+    cdef int16_t deck_reshuffles[2]
+    cdef int16_t reshuffle_card_totals[2]
+    cdef int16_t reshuffle_hand_card_totals[2]
+    cdef uint8_t last_battle_valid
+    cdef int16_t last_battle
+    cdef int8_t last_battle_winner
+    cdef int16_t last_front_scores[3][2]
+    cdef int16_t last_total_strength
+    cdef int16_t last_abs_total_margin
+    cdef int16_t last_command_start[2]
+    cdef int16_t last_command_spent[2]
+    cdef int16_t last_command_refunded[2]
+    cdef int16_t last_completion_command_refunded[2]
+    cdef int16_t last_command_remaining[2]
+    cdef int16_t last_deck_remaining[2]
+    cdef int16_t last_hand_size[2]
+    cdef int16_t last_battle_start_hand_size[2]
+    cdef int16_t last_cards_drawn[2]
+    cdef int16_t last_completion_count[2]
+    cdef int16_t last_operations[2]
+    cdef int8_t last_pass_order[2]
+    cdef uint8_t last_pass_len
     cdef int8_t pending_final_operation_for
 
     cdef int8_t active_player
@@ -186,6 +216,35 @@ cdef class FastState:
         memset(self.command, 0, sizeof(self.command))
         memset(self.free_cycle, 0, sizeof(self.free_cycle))
         memset(self.operations_this_battle, 0, sizeof(self.operations_this_battle))
+        memset(self.command_spent_this_battle, 0, sizeof(self.command_spent_this_battle))
+        memset(self.command_refunded_this_battle, 0, sizeof(self.command_refunded_this_battle))
+        memset(self.completion_command_refunded_this_battle, 0, sizeof(self.completion_command_refunded_this_battle))
+        memset(self.battle_start_command, 0, sizeof(self.battle_start_command))
+        memset(self.battle_start_hand_size, 0, sizeof(self.battle_start_hand_size))
+        memset(self.cards_drawn_this_battle, 0, sizeof(self.cards_drawn_this_battle))
+        memset(self.completion_count_this_battle, 0, sizeof(self.completion_count_this_battle))
+        memset(self.deck_reshuffles, 0, sizeof(self.deck_reshuffles))
+        memset(self.reshuffle_card_totals, 0, sizeof(self.reshuffle_card_totals))
+        memset(self.reshuffle_hand_card_totals, 0, sizeof(self.reshuffle_hand_card_totals))
+        self.last_battle_valid = 0
+        self.last_battle = 0
+        self.last_battle_winner = -1
+        memset(self.last_front_scores, 0, sizeof(self.last_front_scores))
+        self.last_total_strength = 0
+        self.last_abs_total_margin = 0
+        memset(self.last_command_start, 0, sizeof(self.last_command_start))
+        memset(self.last_command_spent, 0, sizeof(self.last_command_spent))
+        memset(self.last_command_refunded, 0, sizeof(self.last_command_refunded))
+        memset(self.last_completion_command_refunded, 0, sizeof(self.last_completion_command_refunded))
+        memset(self.last_command_remaining, 0, sizeof(self.last_command_remaining))
+        memset(self.last_deck_remaining, 0, sizeof(self.last_deck_remaining))
+        memset(self.last_hand_size, 0, sizeof(self.last_hand_size))
+        memset(self.last_battle_start_hand_size, 0, sizeof(self.last_battle_start_hand_size))
+        memset(self.last_cards_drawn, 0, sizeof(self.last_cards_drawn))
+        memset(self.last_completion_count, 0, sizeof(self.last_completion_count))
+        memset(self.last_operations, 0, sizeof(self.last_operations))
+        memset(self.last_pass_order, 0xff, sizeof(self.last_pass_order))
+        self.last_pass_len = 0
         self.pending_final_operation_for = -1
         self.pass_len = 0
         self.active_player = 0
@@ -222,6 +281,35 @@ cdef class FastState:
         memcpy(self.command, other.command, sizeof(self.command))
         memcpy(self.free_cycle, other.free_cycle, sizeof(self.free_cycle))
         memcpy(self.operations_this_battle, other.operations_this_battle, sizeof(self.operations_this_battle))
+        memcpy(self.command_spent_this_battle, other.command_spent_this_battle, sizeof(self.command_spent_this_battle))
+        memcpy(self.command_refunded_this_battle, other.command_refunded_this_battle, sizeof(self.command_refunded_this_battle))
+        memcpy(self.completion_command_refunded_this_battle, other.completion_command_refunded_this_battle, sizeof(self.completion_command_refunded_this_battle))
+        memcpy(self.battle_start_command, other.battle_start_command, sizeof(self.battle_start_command))
+        memcpy(self.battle_start_hand_size, other.battle_start_hand_size, sizeof(self.battle_start_hand_size))
+        memcpy(self.cards_drawn_this_battle, other.cards_drawn_this_battle, sizeof(self.cards_drawn_this_battle))
+        memcpy(self.completion_count_this_battle, other.completion_count_this_battle, sizeof(self.completion_count_this_battle))
+        memcpy(self.deck_reshuffles, other.deck_reshuffles, sizeof(self.deck_reshuffles))
+        memcpy(self.reshuffle_card_totals, other.reshuffle_card_totals, sizeof(self.reshuffle_card_totals))
+        memcpy(self.reshuffle_hand_card_totals, other.reshuffle_hand_card_totals, sizeof(self.reshuffle_hand_card_totals))
+        self.last_battle_valid = other.last_battle_valid
+        self.last_battle = other.last_battle
+        self.last_battle_winner = other.last_battle_winner
+        memcpy(self.last_front_scores, other.last_front_scores, sizeof(self.last_front_scores))
+        self.last_total_strength = other.last_total_strength
+        self.last_abs_total_margin = other.last_abs_total_margin
+        memcpy(self.last_command_start, other.last_command_start, sizeof(self.last_command_start))
+        memcpy(self.last_command_spent, other.last_command_spent, sizeof(self.last_command_spent))
+        memcpy(self.last_command_refunded, other.last_command_refunded, sizeof(self.last_command_refunded))
+        memcpy(self.last_completion_command_refunded, other.last_completion_command_refunded, sizeof(self.last_completion_command_refunded))
+        memcpy(self.last_command_remaining, other.last_command_remaining, sizeof(self.last_command_remaining))
+        memcpy(self.last_deck_remaining, other.last_deck_remaining, sizeof(self.last_deck_remaining))
+        memcpy(self.last_hand_size, other.last_hand_size, sizeof(self.last_hand_size))
+        memcpy(self.last_battle_start_hand_size, other.last_battle_start_hand_size, sizeof(self.last_battle_start_hand_size))
+        memcpy(self.last_cards_drawn, other.last_cards_drawn, sizeof(self.last_cards_drawn))
+        memcpy(self.last_completion_count, other.last_completion_count, sizeof(self.last_completion_count))
+        memcpy(self.last_operations, other.last_operations, sizeof(self.last_operations))
+        memcpy(self.last_pass_order, other.last_pass_order, sizeof(self.last_pass_order))
+        self.last_pass_len = other.last_pass_len
         self.pending_final_operation_for = other.pending_final_operation_for
         self.pass_len = other.pass_len
         self.active_player = other.active_player
@@ -249,10 +337,12 @@ cdef class FastEngine:
     cdef public object id_to_code
     cdef int n_cards
     cdef int opening_hand_size
+    cdef bint draw_action_enabled
     cdef bint recycle_between_battles
     cdef bint command_enabled
     cdef int battle_command_gain
     cdef int command_cap
+    cdef int cycle_command_cost
     cdef bint reshuffle_on_empty
     cdef bint automatic_draw
     cdef bint paid_draw_enabled
@@ -270,6 +360,7 @@ cdef class FastEngine:
     cdef int8_t completion_effect[MAX_CARDS]
     cdef int8_t completion_amount[MAX_CARDS]
     cdef uint8_t complete_plot_protection[MAX_CARDS]
+    cdef uint8_t legacy_completion_draw[MAX_CARDS]
     cdef int8_t role[MAX_CARDS]
     cdef int8_t strength[MAX_CARDS]
     cdef int8_t placement_rank[MAX_CARDS]
@@ -322,6 +413,7 @@ cdef class FastEngine:
         memset(self.completion_effect, 0, sizeof(self.completion_effect))
         memset(self.completion_amount, 0, sizeof(self.completion_amount))
         memset(self.complete_plot_protection, 0, sizeof(self.complete_plot_protection))
+        memset(self.legacy_completion_draw, 0, sizeof(self.legacy_completion_draw))
         memset(self.role, 0, sizeof(self.role))
         memset(self.strength, 0, sizeof(self.strength))
         memset(self.placement_rank, 0xff, sizeof(self.placement_rank))
@@ -368,10 +460,12 @@ cdef class FastEngine:
         self.card_ids = tuple(engine.cards)
         self.n_cards = len(self.card_ids)
         self.opening_hand_size = int(engine.opening_hand_size)
+        self.draw_action_enabled = bool(engine.draw_action_enabled)
         self.recycle_between_battles = bool(engine.recycle_between_battles)
         self.command_enabled = bool(engine.command_enabled)
         self.battle_command_gain = int(engine.battle_command_gain)
         self.command_cap = int(engine.command_cap)
+        self.cycle_command_cost = int(engine.cycle_command_cost)
         self.reshuffle_on_empty = bool(engine.reshuffle_on_empty)
         self.automatic_draw = bool(engine.automatic_draw)
         self.paid_draw_enabled = bool(engine.paid_draw_enabled)
@@ -415,6 +509,7 @@ cdef class FastEngine:
             self.completion_effect[code] = completion_effect_map.get(completion.get("effect"), COMPLETE_NONE)
             self.completion_amount[code] = int(completion.get("amount", 1))
             self.complete_plot_protection[code] = bool(rules.get("complete_protection_from_opponent_plot"))
+            self.legacy_completion_draw[code] = card_id in engine.completion_draw_names
             placement = rules.get("placement", {}).get("rank")
             self.placement_rank[code] = rank_map.get(placement, -1)
 
@@ -504,6 +599,16 @@ cdef class FastEngine:
             fast.command[p] = state.players[p].command
             fast.free_cycle[p] = state.players[p].free_cycle
             fast.operations_this_battle[p] = state.operations_this_battle[p]
+            fast.command_spent_this_battle[p] = state.command_spent_this_battle[p]
+            fast.command_refunded_this_battle[p] = state.command_refunded_this_battle[p]
+            fast.completion_command_refunded_this_battle[p] = state.completion_command_refunded_this_battle[p]
+            fast.battle_start_command[p] = state.battle_start_command[p]
+            fast.battle_start_hand_size[p] = state.battle_start_hand_size[p]
+            fast.cards_drawn_this_battle[p] = state.cards_drawn_this_battle[p]
+            fast.completion_count_this_battle[p] = state.completion_count_this_battle[p]
+            fast.deck_reshuffles[p] = state.deck_reshuffles[p]
+            fast.reshuffle_card_totals[p] = state.reshuffle_card_totals[p]
+            fast.reshuffle_hand_card_totals[p] = state.reshuffle_hand_card_totals[p]
             fast.discarded_this_battle[p] = state.discarded_this_battle[p]
             fast.stratagem_used[p] = state.stratagem_used[p]
             fast.draw_used[p] = state.draw_used[p]
@@ -549,6 +654,38 @@ cdef class FastEngine:
                 counter = state.known_hidden_counter(viewer, owner, "hand")
                 for card_id, count in counter.items():
                     fast.known_hidden[viewer][owner][self.id_to_code[card_id]] = count
+
+        snapshot = state.last_battle_snapshot
+        if snapshot is not None:
+            fast.last_battle_valid = 1
+            fast.last_battle = int(snapshot.get("battle", 0))
+            fast.last_battle_winner = int(snapshot.get("winner", -1))
+            front_scores = snapshot.get("front_scores", ())
+            for f in range(min(3, len(front_scores))):
+                fast.last_front_scores[f][0] = int(front_scores[f][0])
+                fast.last_front_scores[f][1] = int(front_scores[f][1])
+            fast.last_total_strength = int(snapshot.get("total_strength", 0))
+            fast.last_abs_total_margin = int(snapshot.get("abs_total_margin", 0))
+            for p in range(2):
+                fast.last_command_start[p] = int(snapshot.get("command_start", (0, 0))[p])
+                fast.last_command_spent[p] = int(snapshot.get("command_spent", (0, 0))[p])
+                fast.last_command_refunded[p] = int(snapshot.get("command_refunded", (0, 0))[p])
+                fast.last_completion_command_refunded[p] = int(
+                    snapshot.get("completion_command_refunded", (0, 0))[p]
+                )
+                fast.last_command_remaining[p] = int(snapshot.get("command_remaining", (0, 0))[p])
+                fast.last_deck_remaining[p] = int(snapshot.get("deck_remaining", (0, 0))[p])
+                fast.last_hand_size[p] = int(snapshot.get("hand_size", (0, 0))[p])
+                fast.last_battle_start_hand_size[p] = int(
+                    snapshot.get("battle_start_hand_size", (0, 0))[p]
+                )
+                fast.last_cards_drawn[p] = int(snapshot.get("cards_drawn", (0, 0))[p])
+                fast.last_completion_count[p] = int(snapshot.get("completion_count", (0, 0))[p])
+                fast.last_operations[p] = int(snapshot.get("operations", (0, 0))[p])
+            pass_snapshot = snapshot.get("pass_order", ())
+            fast.last_pass_len = min(2, len(pass_snapshot))
+            for i in range(fast.last_pass_len):
+                fast.last_pass_order[i] = int(pass_snapshot[i])
 
         return fast
 
@@ -717,6 +854,9 @@ cdef class FastEngine:
             or (self.reshuffle_on_empty and state.discard_len[player] > 0)
         )
 
+    cpdef bint can_draw(self, FastState state, int player):
+        return self.can_draw_fast(state, player)
+
     cdef inline int adjacent_discount_fast(
         self,
         FastState state,
@@ -749,6 +889,8 @@ cdef class FastEngine:
             return 0
         if kind == TYPE_DRAW:
             return self.paid_draw_command_cost if self.paid_draw_enabled else 0
+        if kind == TYPE_CYCLE:
+            return 0 if state.free_cycle[state.active_player] else self.cycle_command_cost
         card = action_card(action)
         if card < 0:
             return 0
@@ -770,6 +912,9 @@ cdef class FastEngine:
                     cost = 1
         return cost
 
+    cpdef int command_cost(self, FastState state, uint64_t action):
+        return self.command_cost_fast(state, action)
+
     cdef inline void spend_command_fast(
         self,
         FastState state,
@@ -777,6 +922,7 @@ cdef class FastEngine:
         int amount,
     ) noexcept:
         state.command[player] -= amount
+        state.command_spent_this_battle[player] += amount
 
     cdef inline void gain_command_fast(
         self,
@@ -784,9 +930,11 @@ cdef class FastEngine:
         int player,
         int amount,
     ) noexcept:
+        cdef int before = state.command[player]
         state.command[player] += amount
         if state.command[player] > self.command_cap:
             state.command[player] = self.command_cap
+        state.command_refunded_this_battle[player] += state.command[player] - before
 
     cdef inline int complete_mask(self, FastState state, int player) noexcept:
         cdef int local, slot, mask=0
@@ -814,7 +962,7 @@ cdef class FastEngine:
         int player,
         int before_mask,
     ):
-        cdef int local, slot, name, effect, amount, front, enemy_ix
+        cdef int local, slot, name, effect, amount, front, enemy_ix, command_before
         cdef int after_mask = self.complete_mask(state, player)
         cdef int new_mask = after_mask & ~before_mask
         if new_mask == 0:
@@ -823,15 +971,22 @@ cdef class FastEngine:
             if not (new_mask & (1 << local)):
                 continue
             slot = player * 6 + local
+            state.completion_count_this_battle[player] += 1
             if self.command_enabled and self.completion_command_refund:
+                command_before = state.command[player]
                 self.gain_command_fast(
                     state,
                     player,
                     self.completion_command_refund,
                 )
+                state.completion_command_refunded_this_battle[player] += (
+                    state.command[player] - command_before
+                )
             name = state.name[slot]
             if name < 0:
                 continue
+            if self.legacy_completion_draw[name]:
+                self.draw(state, player, 1)
             effect = self.completion_effect[name]
             amount = self.completion_amount[name]
             if effect == COMPLETE_GAIN_COMMAND:
@@ -841,7 +996,7 @@ cdef class FastEngine:
                 if self.command_enabled and self.cycle_enabled:
                     state.free_cycle[player] = 1
             elif effect == COMPLETE_DRAW:
-                self.draw(state, player, amount)
+                self.draw_for_battle(state, player, amount)
             elif effect == COMPLETE_REVEAL_SCHEME:
                 front = local >> 1
                 enemy_ix = (1 - player) * 3 + front
@@ -872,6 +1027,7 @@ cdef class FastEngine:
 
         if (
             (not self.command_enabled)
+            and self.draw_action_enabled
             and (not state.draw_used[player])
             and self.can_draw_fast(state, player)
         ):
@@ -886,6 +1042,13 @@ cdef class FastEngine:
         for card in range(self.n_cards):
             if state.hand[player][card] == 0:
                 continue
+
+            if (
+                self.command_enabled
+                and self.cycle_enabled
+                and self.can_draw_fast(state, player)
+            ):
+                actions[n] = encode_action(TYPE_CYCLE, card, -1, -1, player); n += 1
 
             if self.card_type[card] == CARD_SUBJECT:
                 req = self.placement_rank[card]
@@ -1180,6 +1343,9 @@ cdef class FastEngine:
             or state.discard_len[player] == 0
         ):
             return
+        state.deck_reshuffles[player] += 1
+        state.reshuffle_card_totals[player] += state.discard_len[player]
+        state.reshuffle_hand_card_totals[player] += state.hand_len[player]
         for i in range(state.discard_len[player]):
             card = state.discard[player][i]
             state.deck[player][state.deck_len[player]] = card
@@ -1211,6 +1377,16 @@ cdef class FastEngine:
             state.hand_len[player] += 1
             count -= 1
 
+    cdef void draw_for_battle(
+        self,
+        FastState state,
+        int player,
+        int count,
+    ) noexcept:
+        cdef int before = state.hand_len[player]
+        self.draw(state, player, count)
+        state.cards_drawn_this_battle[player] += state.hand_len[player] - before
+
     cdef void start_turn_fast(self, FastState state, int player) noexcept:
         state.active_player = player
         if (
@@ -1218,7 +1394,21 @@ cdef class FastEngine:
             and state.phase == PHASE_BATTLE
             and not state.passed[player]
         ):
-            self.draw(state, player, 1)
+            self.draw_for_battle(state, player, 1)
+
+    cpdef initialize_opening_turn(
+        self,
+        FastState state,
+        int active_player,
+        bint opening_bonus=True,
+    ):
+        state.active_player = active_player
+        if not opening_bonus:
+            return
+        if self.automatic_draw:
+            self.start_turn_fast(state, active_player)
+        elif not self.paid_draw_enabled:
+            self.draw(state, active_player, 1)
 
     cdef void finish_operation_fast(self, FastState state, int actor):
         cdef int opponent = 1 - actor
@@ -1292,16 +1482,28 @@ cdef class FastEngine:
 
     cdef void score_battle(self, FastState state):
         cdef int front, a, b, controls0=0, controls1=0, total0=0, total1=0
-        cdef int winner, loser, p, first_passer=-1, target
+        cdef int winner, loser, p, first_passer=-1, target, margin
+
+        state.last_battle_valid = 1
+        state.last_battle = state.battle
+        state.last_pass_len = state.pass_len
+        for p in range(2):
+            state.last_pass_order[p] = (
+                state.pass_order[p] if p < state.pass_len else -1
+            )
+
         for front in range(3):
             a = self.front_strength_fast(state, 0, front)
             b = self.front_strength_fast(state, 1, front)
+            state.last_front_scores[front][0] = a
+            state.last_front_scores[front][1] = b
             total0 += a
             total1 += b
             if a > b:
                 controls0 += 1
             elif b > a:
                 controls1 += 1
+
         if controls0 >= 2:
             winner = 0
         elif controls1 >= 2:
@@ -1314,6 +1516,25 @@ cdef class FastEngine:
             winner = state.pass_order[0]
         else:
             winner = state.active_player
+
+        state.last_battle_winner = winner
+        state.last_total_strength = total0 + total1
+        margin = total0 - total1
+        state.last_abs_total_margin = margin if margin >= 0 else -margin
+        for p in range(2):
+            state.last_command_start[p] = state.battle_start_command[p]
+            state.last_command_spent[p] = state.command_spent_this_battle[p]
+            state.last_command_refunded[p] = state.command_refunded_this_battle[p]
+            state.last_completion_command_refunded[p] = (
+                state.completion_command_refunded_this_battle[p]
+            )
+            state.last_command_remaining[p] = state.command[p]
+            state.last_deck_remaining[p] = state.deck_len[p]
+            state.last_hand_size[p] = state.hand_len[p]
+            state.last_battle_start_hand_size[p] = state.battle_start_hand_size[p]
+            state.last_cards_drawn[p] = state.cards_drawn_this_battle[p]
+            state.last_completion_count[p] = state.completion_count_this_battle[p]
+            state.last_operations[p] = state.operations_this_battle[p]
 
         if state.pass_len > 0:
             first_passer = state.pass_order[0]
@@ -1336,6 +1557,11 @@ cdef class FastEngine:
         for p in range(2):
             state.discarded_this_battle[p] = 0
             state.operations_this_battle[p] = 0
+            state.command_spent_this_battle[p] = 0
+            state.command_refunded_this_battle[p] = 0
+            state.completion_command_refunded_this_battle[p] = 0
+            state.cards_drawn_this_battle[p] = 0
+            state.completion_count_this_battle[p] = 0
             state.stratagem_used[p] = 0
             state.draw_used[p] = 0
             state.free_cycle[p] = 0
@@ -1343,6 +1569,10 @@ cdef class FastEngine:
                 state.command[p] += self.battle_command_gain
                 if state.command[p] > self.command_cap:
                     state.command[p] = self.command_cap
+                state.battle_start_command[p] = state.command[p]
+            else:
+                state.battle_start_command[p] = 0
+
         state.pending_final_operation_for = -1
         state.pass_len = 0
         state.pass_order[0] = -1
@@ -1358,6 +1588,7 @@ cdef class FastEngine:
 
         for p in range(2):
             state.passed[p] = 0
+            state.battle_start_hand_size[p] = state.hand_len[p]
 
         if self.first_passer_starts_next_battle and first_passer >= 0:
             state.phase = PHASE_BATTLE
@@ -1422,7 +1653,18 @@ cdef class FastEngine:
                 self.spend_command_fast(state, actor, cost)
             else:
                 state.draw_used[actor] = 1
-            self.draw(state, actor, 1)
+            self.draw_for_battle(state, actor, 1)
+            self.finish_operation_fast(state, actor)
+            return
+
+        if kind == TYPE_CYCLE:
+            cost = self.command_cost_fast(state, action)
+            self.spend_command_fast(state, actor, cost)
+            self.take_from_hand(state, actor, card, 0)
+            self.append_discard(state, actor, card, True)
+            self.draw_for_battle(state, actor, 1)
+            if state.free_cycle[actor]:
+                state.free_cycle[actor] = 0
             self.finish_operation_fast(state, actor)
             return
 
@@ -1891,6 +2133,13 @@ cdef class FastEngine:
     cpdef double strategic_evaluate(self, FastState state, int player):
         return self.strategic_evaluate_fast(state, player)
 
+    cpdef double hand_construction_value(
+        self,
+        FastState state,
+        int player,
+    ):
+        return self.hand_construction_value_fast(state, player)
+
     cpdef double score_action(
         self,
         FastState state,
@@ -1999,6 +2248,8 @@ cdef class FastEngine:
             return "pass"
         if kind == TYPE_DRAW:
             return "draw"
+        if kind == TYPE_CYCLE:
+            return f"cycle:{self.card_ids[card]}"
         if kind == TYPE_CHOOSE:
             return f"choose_first:{pos}"
         if kind == TYPE_SUBJECT:
@@ -2020,6 +2271,249 @@ cdef class FastEngine:
                 return f"plot:{self.card_ids[card]}:{player}:{front_from_slot(pos)}:{'front' if rank_from_slot(pos) == 0 else 'rear'}"
             return f"plot:{self.card_ids[card]}:"
         raise ValueError("Unknown fast action")
+
+    cpdef dict export_state(self, FastState state):
+        cdef int p, f, r, i, card, viewer, owner
+        cdef object last_snapshot = None
+        if state.last_battle_valid:
+            last_snapshot = {
+                "battle": state.last_battle,
+                "winner": state.last_battle_winner,
+                "front_scores": [
+                    [
+                        state.last_front_scores[f][0],
+                        state.last_front_scores[f][1],
+                    ]
+                    for f in range(3)
+                ],
+                "total_strength": state.last_total_strength,
+                "abs_total_margin": state.last_abs_total_margin,
+                "command_start": [
+                    state.last_command_start[0],
+                    state.last_command_start[1],
+                ],
+                "command_spent": [
+                    state.last_command_spent[0],
+                    state.last_command_spent[1],
+                ],
+                "command_refunded": [
+                    state.last_command_refunded[0],
+                    state.last_command_refunded[1],
+                ],
+                "completion_command_refunded": [
+                    state.last_completion_command_refunded[0],
+                    state.last_completion_command_refunded[1],
+                ],
+                "command_remaining": [
+                    state.last_command_remaining[0],
+                    state.last_command_remaining[1],
+                ],
+                "deck_remaining": [
+                    state.last_deck_remaining[0],
+                    state.last_deck_remaining[1],
+                ],
+                "hand_size": [
+                    state.last_hand_size[0],
+                    state.last_hand_size[1],
+                ],
+                "battle_start_hand_size": [
+                    state.last_battle_start_hand_size[0],
+                    state.last_battle_start_hand_size[1],
+                ],
+                "cards_drawn": [
+                    state.last_cards_drawn[0],
+                    state.last_cards_drawn[1],
+                ],
+                "completion_count": [
+                    state.last_completion_count[0],
+                    state.last_completion_count[1],
+                ],
+                "operations": [
+                    state.last_operations[0],
+                    state.last_operations[1],
+                ],
+                "pass_order": [
+                    state.last_pass_order[i]
+                    for i in range(state.last_pass_len)
+                ],
+            }
+
+        return {
+            "phase": (
+                "battle"
+                if state.phase == PHASE_BATTLE
+                else "choose_first"
+                if state.phase == PHASE_CHOOSE
+                else "complete"
+            ),
+            "battle": state.battle,
+            "active_player": state.active_player,
+            "chooser": None if state.chooser < 0 else state.chooser,
+            "winner": None if state.winner < 0 else state.winner,
+            "turn_number": state.turn_number,
+            "shuffle_seed": state.shuffle_seed,
+            "players": [
+                {
+                    "deck": [
+                        self.card_ids[state.deck[p][i]]
+                        for i in range(state.deck_len[p])
+                    ],
+                    "hand": [
+                        self.card_ids[card]
+                        for card in range(self.n_cards)
+                        for _ in range(state.hand[p][card])
+                    ],
+                    "discard": [
+                        self.card_ids[state.discard[p][i]]
+                        for i in range(state.discard_len[p])
+                    ],
+                    "victories": state.victories[p],
+                    "passed": bool(state.passed[p]),
+                    "command": state.command[p],
+                    "free_cycle": bool(state.free_cycle[p]),
+                }
+                for p in range(2)
+            ],
+            "board": [
+                [
+                    [
+                        {
+                            "subject": (
+                                None
+                                if state.subject[slot_index(p, f, r)] < 0
+                                else self.card_ids[
+                                    state.subject[slot_index(p, f, r)]
+                                ]
+                            ),
+                            "link": (
+                                None
+                                if state.link[slot_index(p, f, r)] < 0
+                                else self.card_ids[
+                                    state.link[slot_index(p, f, r)]
+                                ]
+                            ),
+                            "name": (
+                                None
+                                if state.name[slot_index(p, f, r)] < 0
+                                else self.card_ids[
+                                    state.name[slot_index(p, f, r)]
+                                ]
+                            ),
+                            "temporary_strength": (
+                                state.temporary[slot_index(p, f, r)]
+                            ),
+                        }
+                        for r in range(2)
+                    ]
+                    for f in range(3)
+                ]
+                for p in range(2)
+            ],
+            "schemes": [
+                [
+                    (
+                        None
+                        if state.scheme[p * 3 + f] < 0
+                        else {
+                            "card_id": self.card_ids[state.scheme[p * 3 + f]],
+                            "revealed": bool(
+                                state.scheme_revealed[p * 3 + f]
+                            ),
+                        }
+                    )
+                    for f in range(3)
+                ]
+                for p in range(2)
+            ],
+            "stratagems": [
+                (
+                    None
+                    if state.stratagem[p] < 0
+                    else {
+                        "card_id": self.card_ids[state.stratagem[p]],
+                        "revealed": bool(state.stratagem_revealed[p]),
+                    }
+                )
+                for p in range(2)
+            ],
+            "stratagem_used": [
+                bool(state.stratagem_used[0]),
+                bool(state.stratagem_used[1]),
+            ],
+            "draw_used": [
+                bool(state.draw_used[0]),
+                bool(state.draw_used[1]),
+            ],
+            "discarded_this_battle": [
+                state.discarded_this_battle[0],
+                state.discarded_this_battle[1],
+            ],
+            "command_spent_this_battle": [
+                state.command_spent_this_battle[0],
+                state.command_spent_this_battle[1],
+            ],
+            "command_refunded_this_battle": [
+                state.command_refunded_this_battle[0],
+                state.command_refunded_this_battle[1],
+            ],
+            "completion_command_refunded_this_battle": [
+                state.completion_command_refunded_this_battle[0],
+                state.completion_command_refunded_this_battle[1],
+            ],
+            "battle_start_command": [
+                state.battle_start_command[0],
+                state.battle_start_command[1],
+            ],
+            "battle_start_hand_size": [
+                state.battle_start_hand_size[0],
+                state.battle_start_hand_size[1],
+            ],
+            "cards_drawn_this_battle": [
+                state.cards_drawn_this_battle[0],
+                state.cards_drawn_this_battle[1],
+            ],
+            "completion_count_this_battle": [
+                state.completion_count_this_battle[0],
+                state.completion_count_this_battle[1],
+            ],
+            "operations_this_battle": [
+                state.operations_this_battle[0],
+                state.operations_this_battle[1],
+            ],
+            "deck_reshuffles": [
+                state.deck_reshuffles[0],
+                state.deck_reshuffles[1],
+            ],
+            "reshuffle_card_totals": [
+                state.reshuffle_card_totals[0],
+                state.reshuffle_card_totals[1],
+            ],
+            "reshuffle_hand_card_totals": [
+                state.reshuffle_hand_card_totals[0],
+                state.reshuffle_hand_card_totals[1],
+            ],
+            "pending_final_operation_for": (
+                None
+                if state.pending_final_operation_for < 0
+                else state.pending_final_operation_for
+            ),
+            "pass_order": [
+                state.pass_order[i]
+                for i in range(state.pass_len)
+            ],
+            "known_hidden_hand": [
+                [
+                    {
+                        self.card_ids[card]: state.known_hidden[viewer][owner][card]
+                        for card in range(self.n_cards)
+                        if state.known_hidden[viewer][owner][card]
+                    }
+                    for owner in range(2)
+                ]
+                for viewer in range(2)
+            ],
+            "last_battle_snapshot": last_snapshot,
+        }
 
     cpdef dict debug_snapshot(self, FastState state):
         cdef int p, f, r, slot, i, card
