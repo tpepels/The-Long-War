@@ -408,7 +408,7 @@ cdef class FastEngine:
 
     def __cinit__(self):
         memset(self.card_type, 0, sizeof(self.card_type))
-        memset(self.command_cost, 0, sizeof(self.card_command_cost))
+        memset(self.card_command_cost, 0, sizeof(self.card_command_cost))
         memset(self.adjacent_command_discount, 0, sizeof(self.adjacent_command_discount))
         memset(self.completion_effect, 0, sizeof(self.completion_effect))
         memset(self.completion_amount, 0, sizeof(self.completion_amount))
