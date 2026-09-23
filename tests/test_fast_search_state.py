@@ -44,6 +44,10 @@ def python_snapshot(state):
         "passed": [state.players[0].passed, state.players[1].passed],
         "pass_order": list(state.pass_order),
         "discarded_this_battle": list(state.discarded_this_battle),
+        "command": [state.players[0].command, state.players[1].command],
+        "free_cycle": [state.players[0].free_cycle, state.players[1].free_cycle],
+        "operations_this_battle": list(state.operations_this_battle),
+        "pending_final_operation_for": state.pending_final_operation_for,
         "hands": [dict(Counter(player.hand)) for player in state.players],
         "decks": [list(player.deck) for player in state.players],
         "discards": [list(player.discard) for player in state.players],
@@ -86,7 +90,14 @@ def python_snapshot(state):
     }
 
 
-def assert_fast_matches(engine, fast_engine, state, fast_state):
+def assert_fast_matches(
+    engine,
+    fast_engine,
+    state,
+    fast_state,
+    *,
+    check_information: bool = True,
+):
     assert fast_engine.debug_snapshot(fast_state) == python_snapshot(state)
 
     if state.phase.value != "complete":
@@ -98,10 +109,11 @@ def assert_fast_matches(engine, fast_engine, state, fast_state):
         assert fast_keys == py_keys
 
     for player in (0, 1):
-        assert stable_information_id_from_fast_key(
-            fast_engine,
-            fast_engine.information_key(fast_state, player),
-        ) == information_set_id(state, player)
+        if check_information:
+            assert stable_information_id_from_fast_key(
+                fast_engine,
+                fast_engine.information_key(fast_state, player),
+            ) == information_set_id(state, player)
 
         for front in Front:
             assert fast_engine.front_strength(
@@ -161,3 +173,81 @@ def test_primitive_search_state_matches_reference_engine_on_random_games(
             fast_engine.apply(fast_state, fast_action)
 
     assert checked >= 150
+
+
+def force_candidate_engine(*, automatic: bool) -> tuple[GameEngine, list[str], object]:
+    data = load_card_file(ROOT / "cards" / "experiments" / "force-draw-cards.json")
+    deck = json.loads(
+        (
+            ROOT
+            / "decks"
+            / "experiments"
+            / "force-rich-34-reference.json"
+        ).read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(
+        data,
+        opening_hand_size=10,
+        deck_size=34,
+        draw_action_enabled=False,
+        recycle_between_battles=False,
+        reshuffle_on_empty=True,
+        command_enabled=True,
+        starting_command=20,
+        battle_command_gain=10,
+        command_cap=20,
+        cycle_enabled=False,
+        automatic_draw=automatic,
+        paid_draw_enabled=not automatic,
+        paid_draw_command_cost=1,
+        pass_final_operation=True,
+        pass_requires_both_acted=True,
+        first_passer_starts_next_battle=True,
+        completion_command_refund=1,
+        public_stratagems=True,
+    )
+    return engine, deck, FastEngine(engine)
+
+
+@pytest.mark.parametrize("automatic", (False, True))
+def test_packed_state_matches_force_candidate_random_games(
+    automatic: bool,
+) -> None:
+    engine, deck, fast_engine = force_candidate_engine(automatic=automatic)
+    rng = random.Random(26092377 + int(automatic))
+    checked = 0
+
+    for seed in range(4):
+        state = engine.new_game(
+            deck,
+            deck,
+            seed=26092400 + seed,
+            first_player=seed % 2,
+        )
+        fast_state = fast_engine.from_game_state(state)
+
+        for _ in range(80):
+            assert_fast_matches(
+                engine,
+                fast_engine,
+                state,
+                fast_state,
+                check_information=False,
+            )
+            checked += 1
+            if state.phase.value == "complete":
+                break
+
+            actions = engine.legal_actions(state)
+            action = rng.choice(actions)
+            target_key = action_key(action)
+            fast_action = next(
+                candidate
+                for candidate in fast_engine.legal_actions(fast_state)
+                if fast_engine.action_key(candidate) == target_key
+            )
+
+            engine.apply(state, action, validate=False)
+            fast_engine.apply(fast_state, fast_action)
+
+    assert checked >= 120

@@ -2021,6 +2021,7 @@ cdef class FastEngine:
             "pass_order": [state.pass_order[i] for i in range(state.pass_len)],
             "discarded_this_battle": [state.discarded_this_battle[0], state.discarded_this_battle[1]],
             "command": [state.command[0], state.command[1]],
+            "free_cycle": [bool(state.free_cycle[0]), bool(state.free_cycle[1])],
             "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
             "pending_final_operation_for": None if state.pending_final_operation_for < 0 else state.pending_final_operation_for,
             "hands": [
