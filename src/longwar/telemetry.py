@@ -77,12 +77,16 @@ class Telemetry:
         self._played_this_game: list[set[str]] = [set(), set()]
         self._combos_this_game: list[set[str]] = [set(), set()]
         self._battle_actions: list[int] = [0, 0]
+        self._current_battle_winners: list[int] = []
+        self._match_count = 0
+        self._battle_one_loser_match_wins = 0
 
     def start_game(self, state: GameState) -> None:
         self._drawn_this_game = [set(), set()]
         self._played_this_game = [set(), set()]
         self._combos_this_game = [set(), set()]
         self._battle_actions = [0, 0]
+        self._current_battle_winners = []
 
         for player in range(2):
             for card_id in state.players[player].hand:
@@ -222,6 +226,12 @@ class Telemetry:
             self._battle_actions = [0, 0]
 
     def finish_game(self, winner: int) -> None:
+        self._match_count += 1
+        if self._current_battle_winners:
+            battle_one_winner = self._current_battle_winners[0]
+            if winner != battle_one_winner:
+                self._battle_one_loser_match_wins += 1
+
         for player in range(2):
             for card_id in self._drawn_this_game[player]:
                 stats = self.cards[card_id]
@@ -358,6 +368,9 @@ class Telemetry:
             ),
         }
 
+        battle_one_records = [
+            record for record in self.battle_records if record["battle"] == 1
+        ]
         command = {
             "mean_start_per_player": self._ratio(
                 sum(record["command_start_total"] for record in self.battle_records),
@@ -378,6 +391,13 @@ class Telemetry:
             "mean_winner_minus_loser_remaining": self._ratio(
                 sum(record["winner_minus_loser_command"] for record in self.battle_records),
                 len(self.battle_records),
+            ),
+            "battle_one_winner_minus_loser_remaining": self._ratio(
+                sum(
+                    record["winner_minus_loser_command"]
+                    for record in battle_one_records
+                ),
+                len(battle_one_records),
             ),
             "mean_next_battle_command_per_player": self._ratio(
                 sum(
@@ -438,6 +458,13 @@ class Telemetry:
             "decisions": decisions,
             "policy_sources": dict(sorted(self.policy_sources.items())),
             "online_resolution": online_summary,
+            "match_flow": {
+                "matches": self._match_count,
+                "battle_one_loser_match_win_rate": self._ratio(
+                    self._battle_one_loser_match_wins,
+                    self._match_count,
+                ),
+            },
         }
 
     def _record_draw(self, player: int, card_id: str) -> None:
@@ -544,6 +571,7 @@ class Telemetry:
             if state.phase is Phase.COMPLETE
             else [player.command for player in state.players]
         )
+        self._current_battle_winners.append(winner)
         self.battle_records.append(
             {
                 "battle": before.battle,
