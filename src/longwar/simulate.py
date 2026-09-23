@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from .agents import HeuristicAgent, RandomAgent
+from .agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from .agents.online_mccfr_agent import OnlineMCCFRAgent
+from .belief import DeckHypothesis, DeckPrior, HypothesisDeckPrior
 from .agents.mccfr_agent import MCCFRAgent
 from .game.engine import GameEngine
 from .game.model import Phase
@@ -38,11 +40,24 @@ def make_agent(
     policy: dict[str, Any] | None = None,
     online_iterations: int = 8,
     online_depth: int = 2,
+    priors: tuple[DeckPrior, DeckPrior] | None = None,
+    strategic_belief_samples: int = 3,
+    strategic_rollout_plies: int = 3,
+    strategic_candidate_width: int = 8,
 ):
     if name == "random":
         return RandomAgent(seed)
     if name == "heuristic":
         return HeuristicAgent(seed)
+    if name == "strategic_heuristic":
+        return StrategicHeuristicAgent(
+            engine,
+            seed,
+            priors=priors,
+            belief_samples=strategic_belief_samples,
+            rollout_plies=strategic_rollout_plies,
+            candidate_width=strategic_candidate_width,
+        )
     if name == "mccfr":
         if policy is None:
             raise ValueError("MCCFR agent requires an exported policy")
@@ -69,6 +84,9 @@ def simulate_games(
     agent_policies: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
     online_iterations: int = 8,
     online_depth: int = 2,
+    strategic_belief_samples: int = 3,
+    strategic_rollout_plies: int = 3,
+    strategic_candidate_width: int = 8,
 ) -> SimulationReport:
     if games <= 0:
         raise ValueError("games must be positive")
@@ -78,6 +96,16 @@ def simulate_games(
     total_turns = 0
     maximum_turns = 0
     telemetry = Telemetry()
+    priors: tuple[DeckPrior, DeckPrior] = (
+        HypothesisDeckPrior(
+            engine,
+            [DeckHypothesis(tuple(deck_a), label="deck-a")],
+        ),
+        HypothesisDeckPrior(
+            engine,
+            [DeckHypothesis(tuple(deck_b), label="deck-b")],
+        ),
+    )
 
     for game_index in range(games):
         first_player = game_index % 2
@@ -96,6 +124,10 @@ def simulate_games(
                 policy=agent_policies[0],
                 online_iterations=online_iterations,
                 online_depth=online_depth,
+                priors=priors,
+                strategic_belief_samples=strategic_belief_samples,
+                strategic_rollout_plies=strategic_rollout_plies,
+                strategic_candidate_width=strategic_candidate_width,
             ),
             make_agent(
                 agent_names[1],
@@ -104,6 +136,10 @@ def simulate_games(
                 policy=agent_policies[1],
                 online_iterations=online_iterations,
                 online_depth=online_depth,
+                priors=priors,
+                strategic_belief_samples=strategic_belief_samples,
+                strategic_rollout_plies=strategic_rollout_plies,
+                strategic_candidate_width=strategic_candidate_width,
             ),
         ]
         mulligan_indices = tuple(

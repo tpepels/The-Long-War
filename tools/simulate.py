@@ -33,13 +33,16 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--games", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=1701)
-    choices = ["heuristic", "random", "mccfr", "online_mccfr"]
+    choices = ["heuristic", "strategic_heuristic", "random", "mccfr", "online_mccfr"]
     parser.add_argument("--agent-a", choices=choices, default="heuristic")
     parser.add_argument("--agent-b", choices=choices, default="heuristic")
     parser.add_argument("--policy-a", type=Path)
     parser.add_argument("--policy-b", type=Path)
     parser.add_argument("--online-iterations", type=int, default=8)
     parser.add_argument("--online-depth", type=int, default=2)
+    parser.add_argument("--strategic-belief-samples", type=int, default=3)
+    parser.add_argument("--strategic-rollout-plies", type=int, default=3)
+    parser.add_argument("--strategic-candidate-width", type=int, default=8)
     parser.add_argument(
         "--hand-size",
         type=int,
@@ -129,6 +132,9 @@ def main() -> None:
         agent_policies=policies,
         online_iterations=args.online_iterations,
         online_depth=args.online_depth,
+        strategic_belief_samples=args.strategic_belief_samples,
+        strategic_rollout_plies=args.strategic_rollout_plies,
+        strategic_candidate_width=args.strategic_candidate_width,
     )
 
     payload = asdict(report)
@@ -139,6 +145,11 @@ def main() -> None:
     payload["online_config"] = {
         "iterations": args.online_iterations,
         "depth": args.online_depth,
+    }
+    payload["strategic_config"] = {
+        "belief_samples": args.strategic_belief_samples,
+        "rollout_plies": args.strategic_rollout_plies,
+        "candidate_width": args.strategic_candidate_width,
     }
     payload["simulation_variant"] = {
         "base_hand_size": args.hand_size,

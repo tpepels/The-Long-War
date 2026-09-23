@@ -78,6 +78,11 @@ class Telemetry:
         self._combos_this_game: list[set[str]] = [set(), set()]
         self._battle_actions: list[int] = [0, 0]
         self._current_battle_winners: list[int] = []
+        self._deck_exhausted_this_game: list[bool] = [False, False]
+        self._deck_exhausted_player_games = 0
+        self._battle_decisions = 0
+        self._deck_empty_decisions = 0
+        self._cycle_blocked_empty_deck_decisions = 0
         self._match_count = 0
         self._battle_one_loser_match_wins = 0
 
@@ -87,6 +92,7 @@ class Telemetry:
         self._combos_this_game = [set(), set()]
         self._battle_actions = [0, 0]
         self._current_battle_winners = []
+        self._deck_exhausted_this_game = [False, False]
 
         for player in range(2):
             for card_id in state.players[player].hand:
@@ -105,6 +111,12 @@ class Telemetry:
 
         if state.phase is Phase.BATTLE:
             self._battle_actions[actor] += 1
+            self._battle_decisions += 1
+            if not state.players[actor].deck:
+                self._deck_empty_decisions += 1
+                self._deck_exhausted_this_game[actor] = True
+                if state.players[actor].hand and engine.command_enabled:
+                    self._cycle_blocked_empty_deck_decisions += 1
             legal = engine.legal_actions(state)
             playable_ids = {
                 card_id
@@ -128,6 +140,7 @@ class Telemetry:
                     "player": actor,
                     "first_pass": first_pass,
                     "hand_size": len(state.players[actor].hand),
+                    "deck_remaining": len(state.players[actor].deck),
                     "command_remaining": state.players[actor].command,
                     "controlled_fronts": sum(margin > 0 for margin in margins),
                     "tied_fronts": sum(margin == 0 for margin in margins),
@@ -227,6 +240,7 @@ class Telemetry:
 
     def finish_game(self, winner: int) -> None:
         self._match_count += 1
+        self._deck_exhausted_player_games += sum(self._deck_exhausted_this_game)
         if self._current_battle_winners:
             battle_one_winner = self._current_battle_winners[0]
             if winner != battle_one_winner:
@@ -313,6 +327,10 @@ class Telemetry:
             "mean_command_remaining": self._mean_field(
                 self.pass_events,
                 "command_remaining",
+            ),
+            "mean_deck_remaining": self._mean_field(
+                self.pass_events,
+                "deck_remaining",
             ),
             "command_exhausted_rate": self._ratio(
                 sum(event["command_remaining"] == 0 for event in self.pass_events),
@@ -448,11 +466,42 @@ class Telemetry:
             "belief_priors": dict(sorted(self.online_prior_counts.items())),
         }
 
+        depletion = {
+            "deck_empty_decision_rate": self._ratio(
+                self._deck_empty_decisions,
+                self._battle_decisions,
+            ),
+            "cycle_blocked_by_empty_deck_decision_rate": self._ratio(
+                self._cycle_blocked_empty_deck_decisions,
+                self._battle_decisions,
+            ),
+            "player_game_deck_exhaustion_rate": self._ratio(
+                self._deck_exhausted_player_games,
+                2 * self._match_count,
+            ),
+            "mean_deck_remaining_at_pass": self._mean_field(
+                self.pass_events,
+                "deck_remaining",
+            ),
+            "mean_deck_remaining_at_battle_end_per_player": self._ratio(
+                sum(record["deck_remaining_total"] for record in self.battle_records),
+                2 * len(self.battle_records),
+            ),
+            "mean_next_battle_deck_per_player": self._ratio(
+                sum(
+                    record["next_battle_deck_total"]
+                    for record in continuing_battles
+                ),
+                2 * len(continuing_battles),
+            ),
+        }
+
         return {
             "actions": dict(sorted(self.action_counts.items())),
             "passes": pass_summary,
             "battles": battles,
             "command": command,
+            "depletion": depletion,
             "cards": cards,
             "legend_combinations": combos,
             "decisions": decisions,
@@ -571,6 +620,11 @@ class Telemetry:
             if state.phase is Phase.COMPLETE
             else [player.command for player in state.players]
         )
+        next_decks = (
+            None
+            if state.phase is Phase.COMPLETE
+            else [len(player.deck) for player in state.players]
+        )
         self._current_battle_winners.append(winner)
         self.battle_records.append(
             {
@@ -587,12 +641,21 @@ class Telemetry:
                 "command_remaining_total": sum(
                     player.command for player in before.players
                 ),
+                "deck_remaining_total": sum(
+                    len(player.deck) for player in before.players
+                ),
+                "players_with_empty_deck": sum(
+                    not player.deck for player in before.players
+                ),
                 "winner_minus_loser_command": (
                     before.players[winner].command
                     - before.players[1 - winner].command
                 ),
                 "next_battle_command_total": (
                     0 if next_command is None else sum(next_command)
+                ),
+                "next_battle_deck_total": (
+                    0 if next_decks is None else sum(next_decks)
                 ),
                 "next_battle_hand_total": (
                     None if next_hand_sizes is None else sum(next_hand_sizes)
