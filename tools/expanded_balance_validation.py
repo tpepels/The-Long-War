@@ -5,7 +5,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from longwar.cards import load_card_file
-from longwar.game import GameEngine
+from longwar.game import canonical_game_engine
 from longwar.simulate import simulate_games
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,7 +22,7 @@ def load_deck(path: Path) -> list[str]:
 
 def main() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    engine = GameEngine(data)
+    engine = canonical_game_engine(data)
     decks = {name: load_deck(path) for name, path in DECKS.items()}
     games = 2000
     seed = 26092400

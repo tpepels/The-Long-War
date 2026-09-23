@@ -57,24 +57,42 @@ def main() -> None:
     )
     parser.add_argument(
         "--no-between-battle-recycle",
+        dest="no_between_battle_recycle",
         action="store_true",
-        help=(
-            "Keep played/discarded cards out between Battles and refill only "
-            "from the remaining deck."
-        ),
+        default=True,
+        help="Keep played/discarded cards out between Battles (canonical default).",
+    )
+    parser.add_argument(
+        "--between-battle-recycle",
+        dest="no_between_battle_recycle",
+        action="store_false",
+        help="Experimental legacy variant: recycle all non-hand cards between Battles.",
     )
     parser.add_argument(
         "--reshuffle-on-empty",
+        dest="reshuffle_on_empty",
         action="store_true",
-        help=(
-            "Keep the draw pile persistent, but when it empties shuffle the "
-            "discard pile into a new draw pile."
-        ),
+        default=True,
+        help="Shuffle discard into a new draw pile when the draw pile empties (canonical default).",
+    )
+    parser.add_argument(
+        "--no-reshuffle-on-empty",
+        dest="reshuffle_on_empty",
+        action="store_false",
+        help="Experimental variant: allow the persistent draw pile to exhaust.",
     )
     parser.add_argument(
         "--disable-draw",
+        dest="disable_draw",
         action="store_true",
-        help="Remove the once-per-Battle Draw action for variant experiments.",
+        default=True,
+        help="Disable the legacy Draw operation (canonical default).",
+    )
+    parser.add_argument(
+        "--enable-draw",
+        dest="disable_draw",
+        action="store_false",
+        help="Experimental legacy variant: enable the once-per-Battle Draw operation.",
     )
     parser.add_argument(
         "--completion-draw-names",
@@ -84,8 +102,16 @@ def main() -> None:
     )
     parser.add_argument(
         "--command",
+        dest="command",
         action="store_true",
-        help="Enable the persistent Command economy and paid Cycle operation.",
+        default=True,
+        help="Enable the persistent Command economy and Cycle (canonical default).",
+    )
+    parser.add_argument(
+        "--no-command",
+        dest="command",
+        action="store_false",
+        help="Experimental legacy variant: disable Command.",
     )
     parser.add_argument("--starting-command", type=int, default=20)
     parser.add_argument("--battle-command-gain", type=int, default=10)

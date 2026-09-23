@@ -9,7 +9,7 @@ from statistics import mean, pstdev
 from typing import Any, Iterable
 
 from .cards import card_index, validate_card_data
-from .game.engine import GameEngine
+from .game.engine import canonical_game_engine
 from .game.model import Phase
 from .simulate import make_agent
 
@@ -52,6 +52,7 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         "balance": {},
         "experimental": True,
         "baseline_for": card["id"],
+        "command_cost": int(card["command_cost"]),
     }
 
     if card_type == "subject":
@@ -95,7 +96,7 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
             # playability while removing the card-specific effect.
             result["rules"] = {}
     elif card_type == "stratagem":
-        # Preserve the free face-down commitment and one-per-Battle slot while
+        # Preserve the paid face-down commitment and one-per-Battle slot while
         # removing all card-specific timing and payoff.
         result["text"] = (
             "Experimental matched baseline. Set this face-down as a "
@@ -579,7 +580,7 @@ def run_counterfactual_experiment(
         raise ValueError(f"Unknown selected cards: {unknown}")
 
     experiment_data = build_experiment_card_data(card_data)
-    engine = GameEngine(experiment_data)
+    engine = canonical_game_engine(experiment_data)
     selected_heroes = [
         card_id
         for card_id in selected_cards

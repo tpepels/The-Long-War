@@ -559,6 +559,8 @@ class MCCFRTrainer:
             PrimitiveFastEngine(engine)
             if (
                 direct_traversal
+                and not engine.command_enabled
+                and not engine.reshuffle_on_empty
                 and PrimitiveFastEngine is not None
                 and PrimitiveCFRNode is not None
                 and packed_external_sampling_traverse is not None

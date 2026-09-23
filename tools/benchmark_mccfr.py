@@ -9,7 +9,7 @@ from pathlib import Path
 
 import longwar.mccfr as mccfr_module
 from longwar.cards import load_card_file
-from longwar.game import GameEngine
+from longwar.game import canonical_game_engine
 from longwar.mccfr import MCCFRTrainer, information_set_observation
 from longwar.game.model import GameState
 from longwar.mccfr_core import (
@@ -82,7 +82,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    engine = GameEngine(load_card_file(ROOT / "cards" / "cards.json"))
+    engine = canonical_game_engine(load_card_file(ROOT / "cards" / "cards.json"))
     deck = load_deck(args.deck)
 
     elapsed, rate, information_sets = run_benchmark(

@@ -7,7 +7,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from longwar.cards import load_card_file
-from longwar.game import GameEngine
+from longwar.game import canonical_game_engine
 from longwar.fingerprint import current_game_fingerprint
 from longwar.mccfr import MCCFRTrainer
 from longwar.mccfr_core import BACKEND
@@ -52,7 +52,7 @@ def main() -> None:
         raise ValueError("workers must be 0 or a positive integer")
 
     if workers == 1:
-        engine = GameEngine(card_data)
+        engine = canonical_game_engine(card_data)
         trainer = MCCFRTrainer(
             engine,
             deck_a,

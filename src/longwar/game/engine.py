@@ -2293,3 +2293,23 @@ class GameEngine:
         destination.link = source.link
         destination.name = source.name
         destination.temporary_strength = source.temporary_strength
+
+
+def canonical_game_engine(
+    card_data: dict[str, Any],
+    **overrides: Any,
+) -> GameEngine:
+    """Construct the current playtest ruleset while allowing explicit variants."""
+    settings: dict[str, Any] = {
+        "opening_hand_size": 10,
+        "draw_action_enabled": False,
+        "recycle_between_battles": False,
+        "command_enabled": True,
+        "starting_command": 20,
+        "battle_command_gain": 10,
+        "command_cap": 20,
+        "cycle_command_cost": 1,
+        "reshuffle_on_empty": True,
+    }
+    settings.update(overrides)
+    return GameEngine(card_data, **settings)

@@ -19,7 +19,7 @@ from .game.actions import (
     PlaySubject,
     SetStratagem,
 )
-from .game.engine import GameEngine, all_positions
+from .game.engine import canonical_game_engine, all_positions
 from .game.model import Front, Phase, Position, Rank
 from .mccfr import action_key
 
@@ -52,13 +52,7 @@ class PlaySession:
         deck_payload = json.loads(deck_json)
         deck = list(deck_payload["cards"]) if isinstance(deck_payload, dict) else list(deck_payload)
 
-        self.engine = GameEngine(
-            card_data,
-            draw_action_enabled=False,
-            recycle_between_battles=False,
-            command_enabled=True,
-            reshuffle_on_empty=True,
-        )
+        self.engine = canonical_game_engine(card_data)
         self.cards = self.engine.cards
         self.deck = deck
         self.mode = mode

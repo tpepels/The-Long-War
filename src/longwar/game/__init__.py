@@ -12,7 +12,7 @@ from .actions import (
     PlaySubject,
     SetStratagem,
 )
-from .engine import GameEngine, IllegalAction
+from .engine import GameEngine, canonical_game_engine, IllegalAction
 from .model import Front, GameState, Phase, Position, Rank
 
 __all__ = [
@@ -23,6 +23,7 @@ __all__ = [
     "Draw",
     "Front",
     "GameEngine",
+    "canonical_game_engine",
     "GameState",
     "IllegalAction",
     "Pass",

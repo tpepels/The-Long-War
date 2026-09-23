@@ -4,7 +4,7 @@ from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict
 from typing import Any
 
-from .game.engine import GameEngine
+from .game.engine import canonical_game_engine
 from .mccfr import MCCFRTrainer
 
 
@@ -24,7 +24,7 @@ def _train_replica(
     max_depth: int,
     leaf_scale: float,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    engine = GameEngine(card_data)
+    engine = canonical_game_engine(card_data)
     trainer = MCCFRTrainer(
         engine,
         deck_a,

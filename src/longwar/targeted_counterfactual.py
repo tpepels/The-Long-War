@@ -18,7 +18,7 @@ from .counterfactual import (
     replace_cards,
     triple_contrast,
 )
-from .game.engine import GameEngine
+from .game.engine import canonical_game_engine
 from .game.model import Phase
 
 
@@ -347,7 +347,7 @@ def run_targeted_online_validation(
         contexts=contexts,
         games_per_context=games_per_context,
     )
-    engine = GameEngine(build_experiment_card_data(card_data))
+    engine = canonical_game_engine(build_experiment_card_data(card_data))
 
     results: list[dict[str, Any]] = []
     total_matches = 0
