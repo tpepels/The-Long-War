@@ -473,7 +473,6 @@ function renderStrip() {
       '<div class="battle-medallion"><small>Opening</small><strong>Mulligan</strong></div>' +
       '<div class="turn-marker">Player ' + (state.active_player + 1) + ' · choose up to 2 returns</div>';
     $("pass-button").hidden = true;
-    $("draw-button").hidden = true;
     return;
   }
 
