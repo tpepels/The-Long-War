@@ -6,6 +6,7 @@ from itertools import combinations
 from typing import Any, Iterable
 
 from ..cards import card_index, load_card_file
+from ..rules import GameRules
 from .actions import (
     Action,
     BoardTarget,
@@ -113,6 +114,7 @@ class GameEngine:
         self,
         card_data: dict[str, Any],
         *,
+        rules: GameRules | None = None,
         opening_hand_size: int = 10,
         draw_action_enabled: bool = True,
         completion_draw_names: Iterable[str] = (),
@@ -134,6 +136,52 @@ class GameEngine:
         completion_command_refund: int = 0,
         public_stratagems: bool = False,
     ):
+        if rules is None:
+            rules = GameRules(
+                opening_hand_size=opening_hand_size,
+                draw_action_enabled=draw_action_enabled,
+                completion_draw_names=tuple(completion_draw_names),
+                deck_size=deck_size,
+                recycle_between_battles=recycle_between_battles,
+                command_enabled=command_enabled,
+                starting_command=starting_command,
+                battle_command_gain=battle_command_gain,
+                command_cap=command_cap,
+                cycle_command_cost=cycle_command_cost,
+                reshuffle_on_empty=reshuffle_on_empty,
+                automatic_draw=automatic_draw,
+                paid_draw_enabled=paid_draw_enabled,
+                paid_draw_command_cost=paid_draw_command_cost,
+                cycle_enabled=cycle_enabled,
+                pass_final_operation=pass_final_operation,
+                pass_requires_both_acted=pass_requires_both_acted,
+                first_passer_starts_next_battle=first_passer_starts_next_battle,
+                completion_command_refund=completion_command_refund,
+                public_stratagems=public_stratagems,
+            )
+        self.rules = rules
+
+        opening_hand_size = rules.opening_hand_size
+        draw_action_enabled = rules.draw_action_enabled
+        completion_draw_names = rules.completion_draw_names
+        deck_size = rules.deck_size
+        recycle_between_battles = rules.recycle_between_battles
+        command_enabled = rules.command_enabled
+        starting_command = rules.starting_command
+        battle_command_gain = rules.battle_command_gain
+        command_cap = rules.command_cap
+        cycle_command_cost = rules.cycle_command_cost
+        reshuffle_on_empty = rules.reshuffle_on_empty
+        automatic_draw = rules.automatic_draw
+        paid_draw_enabled = rules.paid_draw_enabled
+        paid_draw_command_cost = rules.paid_draw_command_cost
+        cycle_enabled = rules.cycle_enabled
+        pass_final_operation = rules.pass_final_operation
+        pass_requires_both_acted = rules.pass_requires_both_acted
+        first_passer_starts_next_battle = rules.first_passer_starts_next_battle
+        completion_command_refund = rules.completion_command_refund
+        public_stratagems = rules.public_stratagems
+
         if deck_size < 1:
             raise ValueError("deck_size must be positive")
         if not 1 <= opening_hand_size <= deck_size:

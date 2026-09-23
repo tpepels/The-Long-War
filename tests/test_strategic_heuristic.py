@@ -9,6 +9,7 @@ from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
+from longwar.rules import GameRules
 from longwar.simulate import simulate_games
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,27 +23,11 @@ def load_deck() -> list[str]:
 
 def candidate_engine(*, automatic: bool = False, paid: bool = True) -> GameEngine:
     data = load_card_file(CARD_FILE)
-    return GameEngine(
-        data,
-        opening_hand_size=10,
-        deck_size=34,
-        draw_action_enabled=False,
-        recycle_between_battles=False,
-        reshuffle_on_empty=True,
-        command_enabled=True,
-        starting_command=20,
-        battle_command_gain=10,
-        command_cap=20,
-        cycle_enabled=False,
-        automatic_draw=automatic,
-        paid_draw_enabled=paid,
-        paid_draw_command_cost=1,
-        pass_final_operation=True,
-        pass_requires_both_acted=True,
-        first_passer_starts_next_battle=True,
-        completion_command_refund=1,
-        public_stratagems=True,
-    )
+    draw_mode = "automatic" if automatic else "paid"
+    rules = GameRules.force_candidate(draw_mode)
+    if not automatic and not paid:
+        rules = rules.with_overrides(paid_draw_enabled=False)
+    return GameEngine(data, rules=rules)
 
 
 def test_default_belief_sampler_uses_engine_deck_size() -> None:

@@ -13,6 +13,7 @@ from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
+from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "tools" / "run_force_draw_experiment.py"
@@ -186,23 +187,7 @@ def benchmark(node_budget: int) -> None:
     )["cards"]
     engine = GameEngine(
         card_data,
-        opening_hand_size=10,
-        deck_size=34,
-        draw_action_enabled=False,
-        recycle_between_battles=False,
-        reshuffle_on_empty=True,
-        command_enabled=True,
-        starting_command=20,
-        battle_command_gain=10,
-        command_cap=20,
-        cycle_enabled=False,
-        paid_draw_enabled=True,
-        paid_draw_command_cost=1,
-        pass_final_operation=True,
-        pass_requires_both_acted=True,
-        first_passer_starts_next_battle=True,
-        completion_command_refund=1,
-        public_stratagems=True,
+        rules=GameRules.force_candidate("paid"),
     )
     state = engine.new_game(deck, deck, seed=26092334, first_player=0)
     priors = (

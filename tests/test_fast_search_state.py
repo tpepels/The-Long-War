@@ -10,6 +10,7 @@ import pytest
 from longwar.agents.heuristic_agent import HeuristicAgent
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine
+from longwar.rules import GameRules
 from longwar.mccfr import action_key, information_set_id
 
 fast_search = pytest.importorskip("longwar._fast_search")
@@ -187,24 +188,9 @@ def force_candidate_engine(*, automatic: bool) -> tuple[GameEngine, list[str], o
     )["cards"]
     engine = GameEngine(
         data,
-        opening_hand_size=10,
-        deck_size=34,
-        draw_action_enabled=False,
-        recycle_between_battles=False,
-        reshuffle_on_empty=True,
-        command_enabled=True,
-        starting_command=20,
-        battle_command_gain=10,
-        command_cap=20,
-        cycle_enabled=False,
-        automatic_draw=automatic,
-        paid_draw_enabled=not automatic,
-        paid_draw_command_cost=1,
-        pass_final_operation=True,
-        pass_requires_both_acted=True,
-        first_passer_starts_next_battle=True,
-        completion_command_refund=1,
-        public_stratagems=True,
+        rules=GameRules.force_candidate(
+            "automatic" if automatic else "paid"
+        ),
     )
     return engine, deck, FastEngine(engine)
 

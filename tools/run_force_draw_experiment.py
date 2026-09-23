@@ -176,10 +176,10 @@ def effective_preset(args: argparse.Namespace) -> Preset:
 
 
 def command_for(run: Run, preset: Preset, backend: str) -> list[str]:
-    draw_args = (
-        ["--automatic-draw"]
+    rules_profile = (
+        "force-automatic"
         if run.mode == "automatic"
-        else ["--paid-draw", "--paid-draw-command-cost", "1"]
+        else "force-paid"
     )
     return [
         sys.executable,
@@ -188,24 +188,10 @@ def command_for(run: Run, preset: Preset, backend: str) -> list[str]:
         str(preset.games),
         "--seed",
         str(run.seed),
+        "--rules-profile",
+        rules_profile,
         "--card-file",
         "cards/experiments/force-draw-cards.json",
-        "--deck-size",
-        "34",
-        "--hand-size",
-        "10",
-        "--disable-draw",
-        "--command",
-        "--disable-cycle",
-        "--no-between-battle-recycle",
-        "--reshuffle-on-empty",
-        "--pass-final-operation",
-        "--pass-requires-both-acted",
-        "--first-passer-starts-next-battle",
-        "--completion-command-refund",
-        "1",
-        "--public-stratagems",
-        *draw_args,
         "--deck-a",
         f"decks/experiments/force-rich-34-{run.deck}.json",
         "--deck-b",

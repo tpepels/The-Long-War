@@ -8,6 +8,7 @@ from typing import Any
 
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
+from longwar.rules import GameRules
 from longwar.fingerprint import current_game_fingerprint
 from longwar.simulate import simulate_games
 
@@ -31,6 +32,15 @@ def load_policy(path: Path | None) -> dict[str, Any] | None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--rules-profile",
+        choices=("custom", "standard", "force-automatic", "force-paid"),
+        default="custom",
+        help=(
+            "Named rules profile. Use custom to configure individual rule "
+            "switches below."
+        ),
+    )
     parser.add_argument("--games", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=1701)
     choices = ["heuristic", "strategic_heuristic", "random", "mccfr", "online_mccfr"]
@@ -177,29 +187,36 @@ def main() -> None:
     args = parser.parse_args()
 
     card_data = load_card_file(resolve(args.card_file))
-    engine = GameEngine(
-        card_data,
-        opening_hand_size=args.hand_size,
-        draw_action_enabled=not args.disable_draw,
-        completion_draw_names=args.completion_draw_names,
-        deck_size=args.deck_size,
-        recycle_between_battles=not args.no_between_battle_recycle,
-        command_enabled=args.command,
-        starting_command=args.starting_command,
-        battle_command_gain=args.battle_command_gain,
-        command_cap=args.command_cap,
-        cycle_command_cost=args.cycle_command_cost,
-        reshuffle_on_empty=args.reshuffle_on_empty,
-        automatic_draw=args.automatic_draw,
-        paid_draw_enabled=args.paid_draw,
-        paid_draw_command_cost=args.paid_draw_command_cost,
-        cycle_enabled=not args.disable_cycle,
-        pass_final_operation=args.pass_final_operation,
-        pass_requires_both_acted=args.pass_requires_both_acted,
-        first_passer_starts_next_battle=args.first_passer_starts_next_battle,
-        completion_command_refund=args.completion_command_refund,
-        public_stratagems=args.public_stratagems,
-    )
+    if args.rules_profile == "standard":
+        rules = GameRules.standard()
+    elif args.rules_profile == "force-automatic":
+        rules = GameRules.force_candidate("automatic")
+    elif args.rules_profile == "force-paid":
+        rules = GameRules.force_candidate("paid")
+    else:
+        rules = GameRules(
+            opening_hand_size=args.hand_size,
+            draw_action_enabled=not args.disable_draw,
+            completion_draw_names=tuple(args.completion_draw_names),
+            deck_size=args.deck_size,
+            recycle_between_battles=not args.no_between_battle_recycle,
+            command_enabled=args.command,
+            starting_command=args.starting_command,
+            battle_command_gain=args.battle_command_gain,
+            command_cap=args.command_cap,
+            cycle_command_cost=args.cycle_command_cost,
+            reshuffle_on_empty=args.reshuffle_on_empty,
+            automatic_draw=args.automatic_draw,
+            paid_draw_enabled=args.paid_draw,
+            paid_draw_command_cost=args.paid_draw_command_cost,
+            cycle_enabled=not args.disable_cycle,
+            pass_final_operation=args.pass_final_operation,
+            pass_requires_both_acted=args.pass_requires_both_acted,
+            first_passer_starts_next_battle=args.first_passer_starts_next_battle,
+            completion_command_refund=args.completion_command_refund,
+            public_stratagems=args.public_stratagems,
+        )
+    engine = GameEngine(card_data, rules=rules)
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
     policies = (load_policy(args.policy_a), load_policy(args.policy_b))
@@ -253,35 +270,38 @@ def main() -> None:
         "backend_requested": args.strategic_search_backend,
     }
     payload["simulation_variant"] = {
-        "base_hand_size": args.hand_size,
-        "draw_action_enabled": not args.disable_draw,
+        "rules_profile": args.rules_profile,
+        "base_hand_size": rules.opening_hand_size,
+        "draw_action_enabled": rules.draw_action_enabled,
         "battle_one_starter_bonus": (
-            0 if (args.automatic_draw or args.paid_draw) else 1
+            0 if (rules.automatic_draw or rules.paid_draw_enabled) else 1
         ),
-        "completion_draw_names": sorted(args.completion_draw_names),
-        "deck_size": args.deck_size,
-        "recycle_between_battles": not args.no_between_battle_recycle,
-        "reshuffle_on_empty": args.reshuffle_on_empty,
-        "command_enabled": args.command,
-        "starting_command": args.starting_command if args.command else None,
-        "battle_command_gain": args.battle_command_gain if args.command else None,
-        "command_cap": args.command_cap if args.command else None,
+        "completion_draw_names": sorted(rules.completion_draw_names),
+        "deck_size": rules.deck_size,
+        "recycle_between_battles": rules.recycle_between_battles,
+        "reshuffle_on_empty": rules.reshuffle_on_empty,
+        "command_enabled": rules.command_enabled,
+        "starting_command": rules.starting_command if rules.command_enabled else None,
+        "battle_command_gain": (
+            rules.battle_command_gain if rules.command_enabled else None
+        ),
+        "command_cap": rules.command_cap if rules.command_enabled else None,
         "cycle_command_cost": (
-            args.cycle_command_cost
-            if args.command and not args.disable_cycle
+            rules.cycle_command_cost
+            if rules.command_enabled and rules.cycle_enabled
             else None
         ),
-        "cycle_enabled": not args.disable_cycle,
-        "automatic_draw": args.automatic_draw,
-        "paid_draw_enabled": args.paid_draw,
+        "cycle_enabled": rules.cycle_enabled,
+        "automatic_draw": rules.automatic_draw,
+        "paid_draw_enabled": rules.paid_draw_enabled,
         "paid_draw_command_cost": (
-            args.paid_draw_command_cost if args.paid_draw else None
+            rules.paid_draw_command_cost if rules.paid_draw_enabled else None
         ),
-        "pass_final_operation": args.pass_final_operation,
-        "pass_requires_both_acted": args.pass_requires_both_acted,
-        "first_passer_starts_next_battle": args.first_passer_starts_next_battle,
-        "completion_command_refund": args.completion_command_refund,
-        "public_stratagems": args.public_stratagems,
+        "pass_final_operation": rules.pass_final_operation,
+        "pass_requires_both_acted": rules.pass_requires_both_acted,
+        "first_passer_starts_next_battle": rules.first_passer_starts_next_battle,
+        "completion_command_refund": rules.completion_command_refund,
+        "public_stratagems": rules.public_stratagems,
         "card_file": str(args.card_file),
     }
 
@@ -296,20 +316,21 @@ def main() -> None:
     print(f"Agents: {report.agents[0]} vs {report.agents[1]}")
     print(
         "Variant: "
-        f"hand={args.hand_size} "
-        f"draw={'off' if args.disable_draw else 'on'} "
-        f"completion_draw_names={','.join(sorted(args.completion_draw_names)) or 'none'} "
-        f"deck={args.deck_size} "
-        f"recycle={'off' if args.no_between_battle_recycle else 'on'} "
-        f"reshuffle_on_empty={'on' if args.reshuffle_on_empty else 'off'} "
-        f"command={'on' if args.command else 'off'} "
-        f"cycle={'off' if args.disable_cycle else 'on'} "
-        f"auto_draw={'on' if args.automatic_draw else 'off'} "
-        f"paid_draw={'on' if args.paid_draw else 'off'} "
-        f"pass_final={'on' if args.pass_final_operation else 'off'} "
-        f"completion_refund={args.completion_command_refund} "
-        f"stratagems={'public' if args.public_stratagems else 'hidden'} "
-        f"starter_bonus={'turn-draw' if args.automatic_draw else ('none' if args.paid_draw else '+1')}"
+        f"profile={args.rules_profile} "
+        f"hand={rules.opening_hand_size} "
+        f"draw={'on' if rules.draw_action_enabled else 'off'} "
+        f"completion_draw_names={','.join(sorted(rules.completion_draw_names)) or 'none'} "
+        f"deck={rules.deck_size} "
+        f"recycle={'on' if rules.recycle_between_battles else 'off'} "
+        f"reshuffle_on_empty={'on' if rules.reshuffle_on_empty else 'off'} "
+        f"command={'on' if rules.command_enabled else 'off'} "
+        f"cycle={'on' if rules.cycle_enabled else 'off'} "
+        f"auto_draw={'on' if rules.automatic_draw else 'off'} "
+        f"paid_draw={'on' if rules.paid_draw_enabled else 'off'} "
+        f"pass_final={'on' if rules.pass_final_operation else 'off'} "
+        f"completion_refund={rules.completion_command_refund} "
+        f"stratagems={'public' if rules.public_stratagems else 'hidden'} "
+        f"starter_bonus={'turn-draw' if rules.automatic_draw else ('none' if rules.paid_draw_enabled else '+1')}"
     )
     print(f"Games: {report.games}")
     print(f"Wins: P0={report.wins[0]} P1={report.wins[1]}")
