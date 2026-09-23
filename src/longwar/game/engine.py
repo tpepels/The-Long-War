@@ -2456,6 +2456,7 @@ class GameEngine:
         drawn = self._draw(state, player, count)
         state.cards_drawn_this_battle[player] += drawn
         return drawn
+    @staticmethod
     def _adjacent_positions(position: Position) -> tuple[Position, ...]:
         return ADJACENT_POSITIONS[position]
 
