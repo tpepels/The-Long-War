@@ -1,6 +1,38 @@
+# Virtual environments
 .venv/
+venv/
+env/
+
+# Python caches and test/tool caches
 __pycache__/
+*.py[cod]
 .pytest_cache/
-*.pyc
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Packaging / build output
+build/
 dist/
+*.egg-info/
+
+# Native/Cython build products
+*.so
+*.pyd
+*.dylib
+*.o
+*.obj
+src/longwar/_mccfr_accel.c
+src/longwar/_fast_search.c
+src/longwar/_alphabeta_accel.c
+
+# Local experiment and analysis output
 artifacts/
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
