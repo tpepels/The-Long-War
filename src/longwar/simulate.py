@@ -4,10 +4,13 @@ from dataclasses import dataclass
 from typing import Any
 
 from .agents import HeuristicAgent, RandomAgent
+from .agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from .agents.online_mccfr_agent import OnlineMCCFRAgent
+from .belief import DeckHypothesis, DeckPrior, HypothesisDeckPrior
 from .agents.mccfr_agent import MCCFRAgent
 from .game.engine import GameEngine
 from .game.model import Phase
+from .human_flow import HumanFlowDiagnostics
 from .telemetry import Telemetry
 
 
@@ -38,11 +41,28 @@ def make_agent(
     policy: dict[str, Any] | None = None,
     online_iterations: int = 8,
     online_depth: int = 2,
+    priors: tuple[DeckPrior, DeckPrior] | None = None,
+    strategic_belief_samples: int = 3,
+    strategic_rollout_plies: int = 3,
+    strategic_candidate_width: int = 8,
+    strategic_node_budget: int = 20_000,
+    strategic_search_backend: str = "auto",
 ):
     if name == "random":
         return RandomAgent(seed)
     if name == "heuristic":
         return HeuristicAgent(seed)
+    if name == "strategic_heuristic":
+        return StrategicHeuristicAgent(
+            engine,
+            seed,
+            priors=priors,
+            belief_samples=strategic_belief_samples,
+            rollout_plies=strategic_rollout_plies,
+            candidate_width=strategic_candidate_width,
+            node_budget=strategic_node_budget,
+            search_backend=strategic_search_backend,
+        )
     if name == "mccfr":
         if policy is None:
             raise ValueError("MCCFR agent requires an exported policy")
@@ -69,6 +89,11 @@ def simulate_games(
     agent_policies: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
     online_iterations: int = 8,
     online_depth: int = 2,
+    strategic_belief_samples: int = 3,
+    strategic_rollout_plies: int = 3,
+    strategic_candidate_width: int = 8,
+    strategic_node_budget: int = 20_000,
+    strategic_search_backend: str = "auto",
 ) -> SimulationReport:
     if games <= 0:
         raise ValueError("games must be positive")
@@ -78,6 +103,17 @@ def simulate_games(
     total_turns = 0
     maximum_turns = 0
     telemetry = Telemetry()
+    human_flow = HumanFlowDiagnostics()
+    priors: tuple[DeckPrior, DeckPrior] = (
+        HypothesisDeckPrior(
+            engine,
+            [DeckHypothesis(tuple(deck_a), label="deck-a")],
+        ),
+        HypothesisDeckPrior(
+            engine,
+            [DeckHypothesis(tuple(deck_b), label="deck-b")],
+        ),
+    )
 
     for game_index in range(games):
         first_player = game_index % 2
@@ -96,6 +132,12 @@ def simulate_games(
                 policy=agent_policies[0],
                 online_iterations=online_iterations,
                 online_depth=online_depth,
+                priors=priors,
+                strategic_belief_samples=strategic_belief_samples,
+                strategic_rollout_plies=strategic_rollout_plies,
+                strategic_candidate_width=strategic_candidate_width,
+                strategic_node_budget=strategic_node_budget,
+                strategic_search_backend=strategic_search_backend,
             ),
             make_agent(
                 agent_names[1],
@@ -104,6 +146,12 @@ def simulate_games(
                 policy=agent_policies[1],
                 online_iterations=online_iterations,
                 online_depth=online_depth,
+                priors=priors,
+                strategic_belief_samples=strategic_belief_samples,
+                strategic_rollout_plies=strategic_rollout_plies,
+                strategic_candidate_width=strategic_candidate_width,
+                strategic_node_budget=strategic_node_budget,
+                strategic_search_backend=strategic_search_backend,
             ),
         ]
         mulligan_indices = tuple(
@@ -120,6 +168,7 @@ def simulate_games(
             mulligan_indices=mulligan_indices,
         )
         telemetry.start_game(state)
+        human_flow.start_game(engine, state)
 
         action_count = 0
         while state.phase is not Phase.COMPLETE:
@@ -137,6 +186,7 @@ def simulate_games(
                 decision_info = dict(decision_info)
                 decision_info["agent"] = agent_names[actor]
 
+            human_flow.before_action(engine, state, actor, action)
             before = telemetry.before_action(
                 engine,
                 state,
@@ -146,6 +196,7 @@ def simulate_games(
             )
             engine.apply(state, action)
             telemetry.after_action(engine, before, state, actor, action)
+            human_flow.after_action(engine, before, state, actor, action)
             action_count += 1
 
         winner = state.winner
@@ -159,6 +210,8 @@ def simulate_games(
         total_turns += action_count
         maximum_turns = max(maximum_turns, action_count)
 
+    telemetry_summary = telemetry.summary()
+    telemetry_summary["human_flow"] = human_flow.summary()
     return SimulationReport(
         games=games,
         agents=agent_names,
@@ -166,5 +219,5 @@ def simulate_games(
         first_player_wins=first_player_wins,
         mean_turns=total_turns / games,
         max_turns=maximum_turns,
-        telemetry=telemetry.summary(),
+        telemetry=telemetry_summary,
     )

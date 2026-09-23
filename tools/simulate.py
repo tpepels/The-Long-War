@@ -33,13 +33,127 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--games", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=1701)
-    choices = ["heuristic", "random", "mccfr", "online_mccfr"]
+    choices = ["heuristic", "strategic_heuristic", "random", "mccfr", "online_mccfr"]
     parser.add_argument("--agent-a", choices=choices, default="heuristic")
     parser.add_argument("--agent-b", choices=choices, default="heuristic")
     parser.add_argument("--policy-a", type=Path)
     parser.add_argument("--policy-b", type=Path)
     parser.add_argument("--online-iterations", type=int, default=8)
     parser.add_argument("--online-depth", type=int, default=2)
+    parser.add_argument("--strategic-belief-samples", type=int, default=3)
+    parser.add_argument(
+        "--strategic-rollout-plies",
+        "--strategic-search-depth",
+        dest="strategic_rollout_plies",
+        type=int,
+        default=5,
+        help="Maximum iterative-deepening alpha-beta depth in plies.",
+    )
+    parser.add_argument("--strategic-candidate-width", type=int, default=6)
+    parser.add_argument(
+        "--strategic-node-budget",
+        type=int,
+        default=20_000,
+        help="Maximum alpha-beta nodes per strategic decision.",
+    )
+    parser.add_argument(
+        "--strategic-search-backend",
+        choices=("auto", "cython", "python"),
+        default="auto",
+        help="Search backend. auto prefers the compiled Cython accelerator.",
+    )
+    parser.add_argument(
+        "--hand-size",
+        type=int,
+        default=10,
+        help="Base opening and between-Battle refill hand target.",
+    )
+    parser.add_argument(
+        "--deck-size",
+        type=int,
+        default=30,
+        help="Required deck size for this simulation variant.",
+    )
+    parser.add_argument(
+        "--card-file",
+        type=Path,
+        default=Path("cards/cards.json"),
+        help="Card data file for this simulation variant.",
+    )
+    parser.add_argument(
+        "--no-between-battle-recycle",
+        action="store_true",
+        help=(
+            "Keep played/discarded cards out between Battles and refill only "
+            "from the remaining deck."
+        ),
+    )
+    parser.add_argument(
+        "--reshuffle-on-empty",
+        action="store_true",
+        help=(
+            "Keep the draw pile persistent, but when it empties shuffle the "
+            "discard pile into a new draw pile."
+        ),
+    )
+    parser.add_argument(
+        "--disable-draw",
+        action="store_true",
+        help="Remove the once-per-Battle Draw action for variant experiments.",
+    )
+    parser.add_argument(
+        "--completion-draw-names",
+        nargs="*",
+        default=[],
+        help="Name ids that draw 1 when their formation becomes complete.",
+    )
+    parser.add_argument(
+        "--command",
+        action="store_true",
+        help="Enable the persistent Command economy and paid Cycle operation.",
+    )
+    parser.add_argument("--starting-command", type=int, default=20)
+    parser.add_argument("--battle-command-gain", type=int, default=10)
+    parser.add_argument("--command-cap", type=int, default=20)
+    parser.add_argument("--cycle-command-cost", type=int, default=1)
+    parser.add_argument(
+        "--disable-cycle",
+        action="store_true",
+        help="Disable the Command Cycle operation.",
+    )
+    draw_group = parser.add_mutually_exclusive_group()
+    draw_group.add_argument(
+        "--automatic-draw",
+        action="store_true",
+        help="At the start of every turn, draw one card before the operation.",
+    )
+    draw_group.add_argument(
+        "--paid-draw",
+        action="store_true",
+        help="Enable Draw as a paid Command operation with no discard.",
+    )
+    parser.add_argument("--paid-draw-command-cost", type=int, default=1)
+    parser.add_argument(
+        "--pass-final-operation",
+        action="store_true",
+        help="After the first Pass, give the opponent exactly one final operation.",
+    )
+    parser.add_argument(
+        "--pass-requires-both-acted",
+        action="store_true",
+        help="Do not allow the first Pass until both players performed an operation.",
+    )
+    parser.add_argument(
+        "--first-passer-starts-next-battle",
+        action="store_true",
+        help="The first passer starts the next Battle.",
+    )
+    parser.add_argument("--completion-command-refund", type=int, default=0)
+    parser.add_argument(
+        "--public-stratagems",
+        action="store_true",
+        help="Play Stratagems face-up so their Battle rule is active immediately.",
+    )
     parser.add_argument(
         "--deck-a",
         type=Path,
@@ -57,8 +171,30 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    card_data = load_card_file(ROOT / "cards" / "cards.json")
-    engine = GameEngine(card_data)
+    card_data = load_card_file(resolve(args.card_file))
+    engine = GameEngine(
+        card_data,
+        opening_hand_size=args.hand_size,
+        draw_action_enabled=not args.disable_draw,
+        completion_draw_names=args.completion_draw_names,
+        deck_size=args.deck_size,
+        recycle_between_battles=not args.no_between_battle_recycle,
+        command_enabled=args.command,
+        starting_command=args.starting_command,
+        battle_command_gain=args.battle_command_gain,
+        command_cap=args.command_cap,
+        cycle_command_cost=args.cycle_command_cost,
+        reshuffle_on_empty=args.reshuffle_on_empty,
+        automatic_draw=args.automatic_draw,
+        paid_draw_enabled=args.paid_draw,
+        paid_draw_command_cost=args.paid_draw_command_cost,
+        cycle_enabled=not args.disable_cycle,
+        pass_final_operation=args.pass_final_operation,
+        pass_requires_both_acted=args.pass_requires_both_acted,
+        first_passer_starts_next_battle=args.first_passer_starts_next_battle,
+        completion_command_refund=args.completion_command_refund,
+        public_stratagems=args.public_stratagems,
+    )
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
     policies = (load_policy(args.policy_a), load_policy(args.policy_b))
@@ -77,6 +213,11 @@ def main() -> None:
         agent_policies=policies,
         online_iterations=args.online_iterations,
         online_depth=args.online_depth,
+        strategic_belief_samples=args.strategic_belief_samples,
+        strategic_rollout_plies=args.strategic_rollout_plies,
+        strategic_candidate_width=args.strategic_candidate_width,
+        strategic_node_budget=args.strategic_node_budget,
+        strategic_search_backend=args.strategic_search_backend,
     )
 
     payload = asdict(report)
@@ -88,6 +229,46 @@ def main() -> None:
         "iterations": args.online_iterations,
         "depth": args.online_depth,
     }
+    payload["strategic_config"] = {
+        "belief_samples": args.strategic_belief_samples,
+        "rollout_plies": args.strategic_rollout_plies,
+        "candidate_width": args.strategic_candidate_width,
+        "node_budget": args.strategic_node_budget,
+        "search": "belief-sampled iterative-deepening alpha-beta",
+        "backend_requested": args.strategic_search_backend,
+    }
+    payload["simulation_variant"] = {
+        "base_hand_size": args.hand_size,
+        "draw_action_enabled": not args.disable_draw,
+        "battle_one_starter_bonus": (
+            0 if (args.automatic_draw or args.paid_draw) else 1
+        ),
+        "completion_draw_names": sorted(args.completion_draw_names),
+        "deck_size": args.deck_size,
+        "recycle_between_battles": not args.no_between_battle_recycle,
+        "reshuffle_on_empty": args.reshuffle_on_empty,
+        "command_enabled": args.command,
+        "starting_command": args.starting_command if args.command else None,
+        "battle_command_gain": args.battle_command_gain if args.command else None,
+        "command_cap": args.command_cap if args.command else None,
+        "cycle_command_cost": (
+            args.cycle_command_cost
+            if args.command and not args.disable_cycle
+            else None
+        ),
+        "cycle_enabled": not args.disable_cycle,
+        "automatic_draw": args.automatic_draw,
+        "paid_draw_enabled": args.paid_draw,
+        "paid_draw_command_cost": (
+            args.paid_draw_command_cost if args.paid_draw else None
+        ),
+        "pass_final_operation": args.pass_final_operation,
+        "pass_requires_both_acted": args.pass_requires_both_acted,
+        "first_passer_starts_next_battle": args.first_passer_starts_next_battle,
+        "completion_command_refund": args.completion_command_refund,
+        "public_stratagems": args.public_stratagems,
+        "card_file": str(args.card_file),
+    }
 
     output = resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -98,6 +279,23 @@ def main() -> None:
 
     print(f"Seed: {args.seed}")
     print(f"Agents: {report.agents[0]} vs {report.agents[1]}")
+    print(
+        "Variant: "
+        f"hand={args.hand_size} "
+        f"draw={'off' if args.disable_draw else 'on'} "
+        f"completion_draw_names={','.join(sorted(args.completion_draw_names)) or 'none'} "
+        f"deck={args.deck_size} "
+        f"recycle={'off' if args.no_between_battle_recycle else 'on'} "
+        f"reshuffle_on_empty={'on' if args.reshuffle_on_empty else 'off'} "
+        f"command={'on' if args.command else 'off'} "
+        f"cycle={'off' if args.disable_cycle else 'on'} "
+        f"auto_draw={'on' if args.automatic_draw else 'off'} "
+        f"paid_draw={'on' if args.paid_draw else 'off'} "
+        f"pass_final={'on' if args.pass_final_operation else 'off'} "
+        f"completion_refund={args.completion_command_refund} "
+        f"stratagems={'public' if args.public_stratagems else 'hidden'} "
+        f"starter_bonus={'turn-draw' if args.automatic_draw else ('none' if args.paid_draw else '+1')}"
+    )
     print(f"Games: {report.games}")
     print(f"Wins: P0={report.wins[0]} P1={report.wins[1]}")
     print(f"First-player win rate: {report.first_player_win_rate:.3f}")

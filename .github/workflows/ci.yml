@@ -1,22 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "cards/**"
-      - "decks/**"
-      - "rules/**"
-      - "src/**"
-      - "tests/**"
-      - "tools/**"
-      - "web/**"
-      - "pyproject.toml"
-      - "setup.py"
-      - "Makefile"
-      - ".github/workflows/**"
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}

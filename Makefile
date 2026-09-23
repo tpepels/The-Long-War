@@ -1,4 +1,4 @@
-.PHONY: install test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages
+.PHONY: install test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages force-setup force-check force-bench force-quick force-run force-max
 
 install:
 	python -m pip install -e '.[dev]'
@@ -41,3 +41,23 @@ simulate-smoke:
 
 pages:
 	python tools/build_pages.py
+
+
+# Force-rich draw experiment: local-only convenience targets.
+force-setup:
+	python -m pip install -e '.[dev]'
+
+force-check:
+	python tools/force_experiment.py validate
+
+force-bench:
+	python tools/force_experiment.py bench
+
+force-quick:
+	python tools/force_experiment.py run --preset quick --backend cython
+
+force-run:
+	python tools/force_experiment.py run --preset deep --backend cython
+
+force-max:
+	python tools/force_experiment.py run --preset max --backend cython

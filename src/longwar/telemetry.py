@@ -50,6 +50,8 @@ class DecisionStats:
     decisions: int = 0
     candidate_count_total: int = 0
     score_gap_total: float = 0.0
+    search_nodes_total: int = 0
+    completed_depth_total: int = 0
 
 
 class Telemetry:
@@ -63,6 +65,7 @@ class Telemetry:
         self.battle_records: list[dict[str, Any]] = []
         self.decision_stats: dict[str, DecisionStats] = defaultdict(DecisionStats)
         self.policy_sources: Counter[str] = Counter()
+        self.search_backends: Counter[str] = Counter()
         self.online_resolution = {
             "decisions": 0,
             "iterations_total": 0.0,
@@ -77,12 +80,26 @@ class Telemetry:
         self._played_this_game: list[set[str]] = [set(), set()]
         self._combos_this_game: list[set[str]] = [set(), set()]
         self._battle_actions: list[int] = [0, 0]
+        self._current_battle_winners: list[int] = []
+        self._deck_exhausted_this_game: list[bool] = [False, False]
+        self._deck_exhausted_player_games = 0
+        self._reshuffled_this_game: list[bool] = [False, False]
+        self._reshuffle_player_games = 0
+        self._reshuffles_total = 0
+        self._battle_decisions = 0
+        self._deck_empty_decisions = 0
+        self._cycle_blocked_empty_deck_decisions = 0
+        self._match_count = 0
+        self._battle_one_loser_match_wins = 0
 
     def start_game(self, state: GameState) -> None:
         self._drawn_this_game = [set(), set()]
         self._played_this_game = [set(), set()]
         self._combos_this_game = [set(), set()]
         self._battle_actions = [0, 0]
+        self._current_battle_winners = []
+        self._deck_exhausted_this_game = [False, False]
+        self._reshuffled_this_game = [False, False]
 
         for player in range(2):
             for card_id in state.players[player].hand:
@@ -101,6 +118,13 @@ class Telemetry:
 
         if state.phase is Phase.BATTLE:
             self._battle_actions[actor] += 1
+            self._battle_decisions += 1
+            if not state.players[actor].deck:
+                self._deck_empty_decisions += 1
+                if not engine.can_draw(state, actor):
+                    self._deck_exhausted_this_game[actor] = True
+                    if state.players[actor].hand and engine.command_enabled:
+                        self._cycle_blocked_empty_deck_decisions += 1
             legal = engine.legal_actions(state)
             playable_ids = {
                 card_id
@@ -124,6 +148,8 @@ class Telemetry:
                     "player": actor,
                     "first_pass": first_pass,
                     "hand_size": len(state.players[actor].hand),
+                    "deck_remaining": len(state.players[actor].deck),
+                    "command_remaining": state.players[actor].command,
                     "controlled_fronts": sum(margin > 0 for margin in margins),
                     "tied_fronts": sum(margin == 0 for margin in margins),
                     "total_margin": sum(margins),
@@ -154,6 +180,13 @@ class Telemetry:
                 decision_info.get("candidate_count", 0)
             )
             stats.score_gap_total += float(decision_info.get("score_gap", 0.0))
+            stats.search_nodes_total += int(decision_info.get("search_nodes", 0))
+            stats.completed_depth_total += int(
+                decision_info.get("completed_depth", 0)
+            )
+            search_backend = decision_info.get("search_backend")
+            if search_backend is not None:
+                self.search_backends[str(search_backend)] += 1
             policy_source = decision_info.get("policy_source")
             if policy_source is not None:
                 self.policy_sources[str(policy_source)] += 1
@@ -189,6 +222,11 @@ class Telemetry:
         action: Action,
     ) -> None:
         self._record_new_draws(before, state)
+        for player in range(2):
+            delta = state.deck_reshuffles[player] - before.deck_reshuffles[player]
+            if delta > 0:
+                self._reshuffles_total += delta
+                self._reshuffled_this_game[player] = True
 
         card_id = self._action_card_id(action)
         if card_id is not None and before.phase is Phase.BATTLE:
@@ -211,7 +249,7 @@ class Telemetry:
         )
         if battle_resolved:
             winner = self._battle_winner(before, state)
-            self._record_battle(engine, before, winner)
+            self._record_battle(engine, before, state, winner)
             for record in reversed(self.pass_events):
                 if record["battle"] != before.battle:
                     continue
@@ -221,6 +259,14 @@ class Telemetry:
             self._battle_actions = [0, 0]
 
     def finish_game(self, winner: int) -> None:
+        self._match_count += 1
+        self._deck_exhausted_player_games += sum(self._deck_exhausted_this_game)
+        self._reshuffle_player_games += sum(self._reshuffled_this_game)
+        if self._current_battle_winners:
+            battle_one_winner = self._current_battle_winners[0]
+            if winner != battle_one_winner:
+                self._battle_one_loser_match_wins += 1
+
         for player in range(2):
             for card_id in self._drawn_this_game[player]:
                 stats = self.cards[card_id]
@@ -299,6 +345,18 @@ class Telemetry:
         pass_summary = {
             "events": len(self.pass_events),
             "mean_hand_size": self._mean_field(self.pass_events, "hand_size"),
+            "mean_command_remaining": self._mean_field(
+                self.pass_events,
+                "command_remaining",
+            ),
+            "mean_deck_remaining": self._mean_field(
+                self.pass_events,
+                "deck_remaining",
+            ),
+            "command_exhausted_rate": self._ratio(
+                sum(event["command_remaining"] == 0 for event in self.pass_events),
+                len(self.pass_events),
+            ),
             "mean_dead_cards": self._mean_field(self.pass_events, "dead_cards"),
             "mean_actions_before_pass": self._mean_field(
                 self.pass_events,
@@ -318,6 +376,11 @@ class Telemetry:
             ),
         }
 
+        continuing_battles = [
+            record
+            for record in self.battle_records
+            if record["next_battle_hand_total"] is not None
+        ]
         battles = {
             "count": len(self.battle_records),
             "mean_actions": self._mean_field(self.battle_records, "actions"),
@@ -328,6 +391,59 @@ class Telemetry:
             "mean_abs_total_margin": self._mean_field(
                 self.battle_records,
                 "abs_total_margin",
+            ),
+            "continuing_battles": len(continuing_battles),
+            "mean_next_battle_hand_size": self._ratio(
+                sum(record["next_battle_hand_total"] for record in continuing_battles),
+                2 * len(continuing_battles),
+            ),
+            "mean_next_battle_hand_shortfall": self._ratio(
+                sum(record["next_battle_hand_shortfall"] for record in continuing_battles),
+                2 * len(continuing_battles),
+            ),
+            "next_battle_player_shortfall_rate": self._ratio(
+                sum(record["next_battle_players_below_target"] for record in continuing_battles),
+                2 * len(continuing_battles),
+            ),
+        }
+
+        battle_one_records = [
+            record for record in self.battle_records if record["battle"] == 1
+        ]
+        command = {
+            "mean_start_per_player": self._ratio(
+                sum(record["command_start_total"] for record in self.battle_records),
+                2 * len(self.battle_records),
+            ),
+            "mean_spent_per_player": self._ratio(
+                sum(record["command_spent_total"] for record in self.battle_records),
+                2 * len(self.battle_records),
+            ),
+            "mean_refunded_per_player": self._ratio(
+                sum(record["command_refunded_total"] for record in self.battle_records),
+                2 * len(self.battle_records),
+            ),
+            "mean_remaining_at_battle_end_per_player": self._ratio(
+                sum(record["command_remaining_total"] for record in self.battle_records),
+                2 * len(self.battle_records),
+            ),
+            "mean_winner_minus_loser_remaining": self._ratio(
+                sum(record["winner_minus_loser_command"] for record in self.battle_records),
+                len(self.battle_records),
+            ),
+            "battle_one_winner_minus_loser_remaining": self._ratio(
+                sum(
+                    record["winner_minus_loser_command"]
+                    for record in battle_one_records
+                ),
+                len(battle_one_records),
+            ),
+            "mean_next_battle_command_per_player": self._ratio(
+                sum(
+                    record["next_battle_command_total"]
+                    for record in continuing_battles
+                ),
+                2 * len(continuing_battles),
             ),
         }
 
@@ -341,6 +457,14 @@ class Telemetry:
                 ),
                 "mean_score_gap": self._ratio(
                     stats.score_gap_total,
+                    stats.decisions,
+                ),
+                "mean_search_nodes": self._ratio(
+                    stats.search_nodes_total,
+                    stats.decisions,
+                ),
+                "mean_completed_depth": self._ratio(
+                    stats.completed_depth_total,
                     stats.decisions,
                 ),
             }
@@ -371,15 +495,63 @@ class Telemetry:
             "belief_priors": dict(sorted(self.online_prior_counts.items())),
         }
 
+        depletion = {
+            "deck_empty_decision_rate": self._ratio(
+                self._deck_empty_decisions,
+                self._battle_decisions,
+            ),
+            "cycle_blocked_by_empty_deck_decision_rate": self._ratio(
+                self._cycle_blocked_empty_deck_decisions,
+                self._battle_decisions,
+            ),
+            "player_game_deck_exhaustion_rate": self._ratio(
+                self._deck_exhausted_player_games,
+                2 * self._match_count,
+            ),
+            "player_game_reshuffle_rate": self._ratio(
+                self._reshuffle_player_games,
+                2 * self._match_count,
+            ),
+            "mean_reshuffles_per_player_game": self._ratio(
+                self._reshuffles_total,
+                2 * self._match_count,
+            ),
+            "mean_deck_remaining_at_pass": self._mean_field(
+                self.pass_events,
+                "deck_remaining",
+            ),
+            "mean_deck_remaining_at_battle_end_per_player": self._ratio(
+                sum(record["deck_remaining_total"] for record in self.battle_records),
+                2 * len(self.battle_records),
+            ),
+            "mean_next_battle_deck_per_player": self._ratio(
+                sum(
+                    record["next_battle_deck_total"]
+                    for record in continuing_battles
+                ),
+                2 * len(continuing_battles),
+            ),
+        }
+
         return {
             "actions": dict(sorted(self.action_counts.items())),
             "passes": pass_summary,
             "battles": battles,
+            "command": command,
+            "depletion": depletion,
             "cards": cards,
             "legend_combinations": combos,
             "decisions": decisions,
             "policy_sources": dict(sorted(self.policy_sources.items())),
+            "search_backends": dict(sorted(self.search_backends.items())),
             "online_resolution": online_summary,
+            "match_flow": {
+                "matches": self._match_count,
+                "battle_one_loser_match_win_rate": self._ratio(
+                    self._battle_one_loser_match_wins,
+                    self._match_count,
+                ),
+            },
         }
 
     def _record_draw(self, player: int, card_id: str) -> None:
@@ -409,6 +581,15 @@ class Telemetry:
             return
 
         for player in range(2):
+            if state.deck_reshuffles[player] > before.deck_reshuffles[player]:
+                added = Counter(state.players[player].hand) - Counter(
+                    before.players[player].hand
+                )
+                for card_id, count in added.items():
+                    for _ in range(count):
+                        self._record_draw(player, card_id)
+                continue
+
             count = len(before.players[player].deck) - len(state.players[player].deck)
             if count <= 0:
                 continue
@@ -469,12 +650,29 @@ class Telemetry:
         self,
         engine: GameEngine,
         before: GameState,
+        state: GameState,
         winner: int,
     ) -> None:
         totals = [
             sum(engine.front_strength(before, player, front) for front in Front)
             for player in range(2)
         ]
+        next_hand_sizes = (
+            None
+            if state.phase is Phase.COMPLETE
+            else [len(player.hand) for player in state.players]
+        )
+        next_command = (
+            None
+            if state.phase is Phase.COMPLETE
+            else [player.command for player in state.players]
+        )
+        next_decks = (
+            None
+            if state.phase is Phase.COMPLETE
+            else [len(player.deck) for player in state.players]
+        )
+        self._current_battle_winners.append(winner)
         self.battle_records.append(
             {
                 "battle": before.battle,
@@ -484,6 +682,41 @@ class Telemetry:
                 "actions_p1": self._battle_actions[1],
                 "total_strength": totals[0] + totals[1],
                 "abs_total_margin": abs(totals[0] - totals[1]),
+                "command_start_total": sum(before.battle_start_command),
+                "command_spent_total": sum(before.command_spent_this_battle),
+                "command_refunded_total": sum(before.command_refunded_this_battle),
+                "command_remaining_total": sum(
+                    player.command for player in before.players
+                ),
+                "deck_remaining_total": sum(
+                    len(player.deck) for player in before.players
+                ),
+                "players_with_empty_deck": sum(
+                    not player.deck for player in before.players
+                ),
+                "winner_minus_loser_command": (
+                    before.players[winner].command
+                    - before.players[1 - winner].command
+                ),
+                "next_battle_command_total": (
+                    0 if next_command is None else sum(next_command)
+                ),
+                "next_battle_deck_total": (
+                    0 if next_decks is None else sum(next_decks)
+                ),
+                "next_battle_hand_total": (
+                    None if next_hand_sizes is None else sum(next_hand_sizes)
+                ),
+                "next_battle_hand_shortfall": (
+                    None
+                    if next_hand_sizes is None
+                    else sum(max(0, engine.opening_hand_size - size) for size in next_hand_sizes)
+                ),
+                "next_battle_players_below_target": (
+                    None
+                    if next_hand_sizes is None
+                    else sum(size < engine.opening_hand_size for size in next_hand_sizes)
+                ),
             }
         )
 

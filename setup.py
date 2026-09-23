@@ -15,6 +15,11 @@ extensions = [
         ["src/longwar/_fast_search.pyx"],
         optional=True,
     ),
+    Extension(
+        "longwar._alphabeta_accel",
+        ["src/longwar/_alphabeta_accel.pyx"],
+        optional=True,
+    ),
 ]
 
 setup(

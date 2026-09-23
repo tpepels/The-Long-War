@@ -7,6 +7,7 @@ from math import inf
 from ..game.actions import (
     Action,
     ChooseFirst,
+    Cycle,
     Draw,
     Pass,
     PlayLink,
@@ -164,9 +165,27 @@ class HeuristicAgent:
         score = self._state_value(engine, clone, player)
 
         if isinstance(action, Draw):
-            # Drawing gains a card but concedes tempo. Keep it available as a
-            # recovery option without making it the automatic best move.
-            score -= 0.8
+            # Paid Draw is chiefly a recovery operation. Command cost is
+            # already reflected in the cloned state.
+            force_count = sum(
+                engine.cards[card_id]["type"] == "subject"
+                for card_id in state.players[player].hand
+            )
+            score -= 0.35 if engine.paid_draw_enabled else 0.8
+            if force_count == 0:
+                score += 1.4
+
+        if isinstance(action, Cycle):
+            # Cycle is deliberately useful only when it improves the actual
+            # construction options in hand; it still spends the turn.
+            score += (
+                1.15
+                * (
+                    self._hand_construction_value(engine, clone, player)
+                    - self._hand_construction_value(engine, state, player)
+                )
+                - 0.30
+            )
 
         # The engine state already includes a Link's immediate Strength and a
         # face-down Scheme's Front bonus. Keep only small priors for option
@@ -183,11 +202,10 @@ class HeuristicAgent:
             score += 0.20
 
         if isinstance(action, SetStratagem):
-            # Setting a Stratagem is a free pre-action deployment, so a
-            # one-ply evaluator must credit the preserved normal action.
-            # Add a public-information estimate so different Stratagems are
-            # not treated as arbitrary ties.
-            score += 1.35 + self._stratagem_option_value(
+            # In the legacy rules a Stratagem is a free pre-action deployment;
+            # in Command mode it is an ordinary paid operation.
+            preserved_action = 0.0 if engine.command_enabled else 1.35
+            score += preserved_action + self._stratagem_option_value(
                 engine,
                 state,
                 player,
@@ -217,6 +235,7 @@ class HeuristicAgent:
 
         opponent_hand = len(state.players[1 - player].hand)
         own_hand = len(state.players[player].hand)
+        pressure_scale = 0.45 if engine.pass_final_operation else 1.0
 
         score = self._state_value(engine, state, player)
 
@@ -230,12 +249,15 @@ class HeuristicAgent:
                 + 0.65 * total_margin
                 + 0.9 * weakest_control
                 + 0.8 * own_hand
-                - 1.6 * opponent_hand
+                - pressure_scale * 1.6 * opponent_hand
             )
         elif controls == 1 and tied >= 1 and total_margin >= 0:
-            score -= 7.0 + 1.2 * opponent_hand
+            score -= 7.0 + pressure_scale * 1.2 * opponent_hand
         else:
-            score -= 25.0 + 1.5 * opponent_hand
+            score -= 25.0 + pressure_scale * 1.5 * opponent_hand
+
+        if engine.first_passer_starts_next_battle and not state.pass_order:
+            score += 1.5
 
         # Passing first wins a completely tied Battle under the current rules,
         # so do not treat a true zero board as catastrophically bad.
@@ -292,6 +314,28 @@ class HeuristicAgent:
             - len(state.players[opponent].hand)
         )
         score += 1.25 * hand_delta
+
+        own_forces = sum(
+            engine.cards[card_id]["type"] == "subject"
+            for card_id in state.players[player].hand
+        )
+        score += 0.35 * min(3, own_forces)
+        if own_forces == 0 and not any(
+            state.slot(player, position).subject is not None
+            for position in all_positions()
+        ):
+            score -= 2.0
+
+        if engine.command_enabled:
+            command_delta = (
+                state.players[player].command
+                - state.players[opponent].command
+            )
+            score += 0.45 * command_delta
+            score += 0.35 * (
+                int(state.players[player].free_cycle)
+                - int(state.players[opponent].free_cycle)
+            )
 
         if state.phase is Phase.BATTLE:
             own_passed = state.players[player].passed
@@ -360,6 +404,43 @@ class HeuristicAgent:
             for position in all_positions()
         )
 
+    def _hand_construction_value(
+        self,
+        engine: GameEngine,
+        state: GameState,
+        player: int,
+    ) -> float:
+        needs_subject = needs_link = needs_name = False
+        for position in all_positions():
+            slot = state.slot(player, position)
+            needs_subject = needs_subject or (
+                slot.subject is None
+                and (slot.link is not None or slot.name is not None)
+            )
+            needs_link = needs_link or (
+                slot.link is None
+                and (slot.subject is not None or slot.name is not None)
+            )
+            needs_name = needs_name or (
+                slot.name is None
+                and (slot.subject is not None or slot.link is not None)
+            )
+
+        value = 0.0
+        for card_id in state.players[player].hand:
+            card_type = engine.cards[card_id]["type"]
+            if card_type == "subject":
+                value += 0.45 + (0.95 if needs_subject else 0.0)
+            elif card_type == "link":
+                value += 0.35 + (0.95 if needs_link else 0.0)
+            elif card_type == "name":
+                value += 0.35 + (1.05 if needs_name else 0.0)
+            elif card_type == "plot":
+                value += 0.40
+            elif card_type == "stratagem":
+                value += 0.30
+        return value
+
     def _stratagem_option_value(
         self,
         engine: GameEngine,
@@ -410,6 +491,14 @@ class HeuristicAgent:
                     value += 0.35 * sign * float(
                         continuous.get("unnamed_subject_modifier", 0)
                     )
+
+        if continuous.get("global_immediate_story_lock"):
+            own_immediate_stories = sum(
+                engine.cards[held_id].get("type") == "plot"
+                and not engine.cards[held_id].get("veiled", False)
+                for held_id in state.players[player].hand
+            )
+            value += 0.8 - 0.35 * own_immediate_stories
 
         if continuous.get("disable_line_defense"):
             own_front = sum(
