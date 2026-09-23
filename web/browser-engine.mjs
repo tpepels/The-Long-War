@@ -1029,8 +1029,8 @@ class LightweightAgent {
       const clone = cloneState(state);
       this.engine.apply(clone, action, { validate: false });
       let score = this.evaluate(clone, player);
-      if (action.kind === "SetStratagem") score += 3;
-      if (action.kind === "Draw") score -= 0.8;
+      if (action.kind === "SetStratagem") score += 0.75;
+      if (action.kind === "Cycle") score -= 0.3;
       if (action.kind === "PlayName") {
         const slot = slotAt(state, player, action.position.front, action.position.rank);
         score += slot.subject ? 0.35 : 1.50;
@@ -1061,6 +1061,8 @@ class LightweightAgent {
     if (enemyControls >= 2) score -= 14;
     score += 0.75 * margins.reduce((sum, margin) => sum + Math.max(-10, Math.min(10, margin)), 0);
     score += 1.25 * (state.players[player].hand.length - state.players[opponent].hand.length);
+    score += 0.45 * (state.players[player].command - state.players[opponent].command);
+    score += 0.35 * (Number(state.players[player].free_cycle) - Number(state.players[opponent].free_cycle));
     if (state.phase === "choose_first" && state.chooser === player) score += state.active_player === player ? 0 : 0.5;
     return score;
   }
@@ -1135,7 +1137,7 @@ export class BrowserSession {
     if (!action) throw new Error("That action is no longer legal");
     this.applyWithLog(action);
     if (this.mode === "hotseat") {
-      return this.snapshot(action.kind === "SetStratagem" ? viewer : null);
+      return this.snapshot(null);
     }
     return this.snapshot(0);
   }
@@ -1210,6 +1212,8 @@ export class BrowserSession {
       hand_count: player.hand.length,
       deck_count: player.deck.length,
       discard: [...player.discard],
+      command: player.command,
+      free_cycle: player.free_cycle,
     }));
 
     const board = [[], []];
@@ -1298,7 +1302,6 @@ export class BrowserSession {
       schemes,
       stratagems,
       stratagem_used: [...state.stratagem_used],
-      draw_used: [...state.draw_used],
       needs_ai: this.setupComplete && this.mode === "heuristic" &&
         state.phase !== "complete" && !this.humanPlayers.has(state.active_player),
       last_action: this.lastActionView(viewer),
@@ -1347,6 +1350,7 @@ export class BrowserSession {
       })),
       move_to: action.move_to ? positionPayload(action.move_to) : null,
       choose_player: action.choose_player,
+      command_cost: this.engine.commandCostForAction(this.state, action),
     };
   }
 
@@ -1354,6 +1358,7 @@ export class BrowserSession {
     const prefix = "Player " + (actor + 1);
     if (action.kind === "Pass") return prefix + " Passes.";
     if (action.kind === "Draw") return prefix + " draws 1 card.";
+    if (action.kind === "Cycle") return prefix + " Cycles " + this.cards[action.card_id].title + ".";
     if (action.kind === "ChooseFirst") return prefix + " chooses Player " + (action.choose_player + 1) + " to start the next Battle.";
     if (action.kind === "PlaySubject") {
       return prefix + " plays " + this.cards[action.card_id].title + " to " +
@@ -1395,13 +1400,14 @@ export class BrowserSession {
 
   legalReason(action) {
     if (action.kind === "Pass") return "Pass is always legal while you are still active in the Battle.";
-    if (action.kind === "Draw") return "Draw 1 card as your normal action. You may do this once per Battle.";
+    if (action.kind === "Draw") return "Draw is disabled in the canonical Command rules.";
+    if (action.kind === "Cycle") return "Pay 1 Command (or 0 after a free-Cycle effect), discard this card, then draw 1.";
     if (action.kind === "ChooseFirst") return "The previous Battle loser chooses who takes the first turn.";
     if (action.kind === "PlaySubject") return "This position has no Subject. Prepared Bond or Name cards may already be here.";
     if (action.kind === "PlayLink") return "This position has no Bond. The Bond may be prepared before its Subject.";
     if (action.kind === "PlayName") return "This position has no Name. The Name may be prepared before its Subject or Bond; Subject-dependent text waits for a Subject.";
     if (action.kind === "PlayScheme") return "You have no Veiled Story in this Front.";
-    if (action.kind === "SetStratagem") return "You have not set a Stratagem this Battle. Setting it is free and you still take your normal action.";
+    if (action.kind === "SetStratagem") return "You have not set a Stratagem this Battle. Setting it is your operation for the turn and costs its printed Command.";
     if (action.kind === "PlayPlot") return "The Story has all targets required by its rules text.";
     return "Legal according to the browser rules engine.";
   }
