@@ -1,0 +1,173 @@
+name: Seven Name Density Sweep
+
+on:
+  push:
+    branches:
+      - experiment/command-hand-deck-sweep
+    paths:
+      - "decks/experiments/seven-name-*.json"
+      - ".github/workflows/seven-name-density-sweep.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Validate seven-Name decks
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from longwar.cards import load_card_file
+          from longwar.game import GameEngine
+
+          data=load_card_file(Path("cards/cards.json"))
+          engine=GameEngine(data,deck_size=30)
+          for path in sorted(Path("decks/experiments").glob("seven-name-*.json")):
+              deck=json.loads(path.read_text())["cards"]
+              engine.validate_deck(deck)
+              names=sum(engine.cards[c]["type"]=="name" for c in deck)
+              subjects=sum(engine.cards[c]["type"]=="subject" for c in deck)
+              assert names==7, (path,names)
+              assert subjects==10, (path,subjects)
+              print(path, "ok")
+          PY
+
+  simulate:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {id: h10-r, hand: 10, mode: recycle}
+          - {id: h11-r, hand: 11, mode: recycle}
+          - {id: h12-r, hand: 12, mode: recycle}
+          - {id: h13-r, hand: 13, mode: recycle}
+          - {id: h14-r, hand: 14, mode: recycle}
+          - {id: h12-p, hand: 12, mode: persistent}
+          - {id: h13-p, hand: 13, mode: persistent}
+          - {id: h14-p, hand: 14, mode: persistent}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Configure
+        run: |
+          if [ "${{ matrix.mode }}" = "persistent" ]; then
+            echo "RECYCLE_ARGS=--no-between-battle-recycle" >> "$GITHUB_ENV"
+          else
+            echo "RECYCLE_ARGS=" >> "$GITHUB_ENV"
+          fi
+      - name: Reference
+        run: >
+          python tools/simulate.py --games 250 --seed 26093010
+          --deck-size 30 --hand-size ${{ matrix.hand }}
+          --disable-draw --command $RECYCLE_ARGS
+          --deck-a decks/experiments/seven-name-reference.json
+          --deck-b decks/experiments/seven-name-reference.json
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/${{ matrix.id }}-reference.json"
+      - name: Avaros
+        run: >
+          python tools/simulate.py --games 250 --seed 26093011
+          --deck-size 30 --hand-size ${{ matrix.hand }}
+          --disable-draw --command $RECYCLE_ARGS
+          --deck-a decks/experiments/seven-name-avaros.json
+          --deck-b decks/experiments/seven-name-avaros.json
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/${{ matrix.id }}-avaros.json"
+      - name: Mara
+        run: >
+          python tools/simulate.py --games 250 --seed 26093012
+          --deck-size 30 --hand-size ${{ matrix.hand }}
+          --disable-draw --command $RECYCLE_ARGS
+          --deck-a decks/experiments/seven-name-mara.json
+          --deck-b decks/experiments/seven-name-mara.json
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/${{ matrix.id }}-mara.json"
+      - name: Sera
+        run: >
+          python tools/simulate.py --games 250 --seed 26093013
+          --deck-size 30 --hand-size ${{ matrix.hand }}
+          --disable-draw --command $RECYCLE_ARGS
+          --deck-a decks/experiments/seven-name-sera.json
+          --deck-b decks/experiments/seven-name-sera.json
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/${{ matrix.id }}-sera.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seven-name-${{ matrix.id }}
+          path: artifacts/${{ matrix.id }}-*.json
+          retention-days: 30
+
+  summarize:
+    needs: simulate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: seven-name-*
+          path: artifacts/all
+          merge-multiple: true
+      - name: Summarize
+        run: |
+          python - <<'PY'
+          import json,re
+          from pathlib import Path
+          root=Path("artifacts/all")
+          pat=re.compile(r"h(\d+)-([rp])-(.+)\.json$")
+          groups={}
+          for p in root.glob("*.json"):
+              m=pat.match(p.name)
+              if not m: continue
+              hand,mode,_=m.groups()
+              key=(int(hand),"recycle" if mode=="r" else "persistent")
+              groups.setdefault(key,[]).append(json.loads(p.read_text()))
+          rows=[]
+          for (hand,mode),rs in sorted(groups.items()):
+              battles=sum(r["telemetry"]["battles"]["count"] for r in rs)
+              games=sum(r["games"] for r in rs)
+              def acts(name): return sum(r["telemetry"]["actions"].get(name,0) for r in rs)
+              comps=sum(sum(v.get("completions",0) for v in r["telemetry"]["legend_combinations"].values()) for r in rs)
+              ex=sum((r["telemetry"]["depletion"]["player_game_deck_exhaustion_rate"] or 0)*r["games"] for r in rs)/games
+              cont=sum(r["telemetry"]["battles"]["continuing_battles"] for r in rs)
+              short=sum((r["telemetry"]["battles"]["next_battle_player_shortfall_rate"] or 0)*r["telemetry"]["battles"]["continuing_battles"] for r in rs)/(cont or 1)
+              dec=sum(r["telemetry"]["decisions"].get("heuristic",{}).get("decisions",0) for r in rs)
+              choices=sum((r["telemetry"]["decisions"].get("heuristic",{}).get("mean_candidate_count") or 0)*r["telemetry"]["decisions"].get("heuristic",{}).get("decisions",0) for r in rs)/(dec or 1)
+              rows.append({
+                "hand":hand,"mode":mode,"games":games,"battles":battles,
+                "names_per_battle":acts("PlayName")/battles,
+                "completions_per_battle":comps/battles,
+                "cycles_per_battle":acts("Cycle")/battles,
+                "cards_per_battle":sum(acts(n) for n in ("PlaySubject","PlayLink","PlayName","PlayPlot","PlayScheme","SetStratagem"))/battles,
+                "choices":choices,
+                "deck_exhaustion":ex,
+                "refill_shortfall":short,
+              })
+          out=Path("artifacts/summary"); out.mkdir(parents=True,exist_ok=True)
+          (out/"seven-name-density.json").write_text(json.dumps(rows,indent=2)+"\n")
+          lines=["# Seven-Name density sweep","",
+            "| Hand | Mode | Names/B | Target | Complete/B | Cycles/B | Cards/B | Choices | Deck exhaust | Refill shortfall |",
+            "| ---: | --- | ---: | :---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
+          for r in rows:
+              lines.append(f"| {r['hand']} | {r['mode']} | {r['names_per_battle']:.2f} | {'YES' if r['names_per_battle']>=3 else 'no'} | {r['completions_per_battle']:.2f} | {r['cycles_per_battle']:.2f} | {r['cards_per_battle']:.2f} | {r['choices']:.1f} | {r['deck_exhaustion']:.1%} | {r['refill_shortfall']:.1%} |")
+          (out/"seven-name-density.md").write_text("\n".join(lines)+"\n")
+          print("\n".join(lines))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seven-name-density-summary
+          path: artifacts/summary/*
+          retention-days: 30
