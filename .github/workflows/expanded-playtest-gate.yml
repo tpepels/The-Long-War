@@ -42,8 +42,50 @@ jobs:
         run: |
           python tools/simulate.py --games 1500 --seed 26092239 --deck-a decks/mara-rear.json --deck-b decks/sera-support.json --agent-a heuristic --agent-b heuristic --output artifacts/gate-mara-sera-a.json
           python tools/simulate.py --games 1500 --seed 26092240 --deck-a decks/sera-support.json --deck-b decks/mara-rear.json --agent-a heuristic --agent-b heuristic --output artifacts/gate-mara-sera-b.json
+      - name: Build human-playability statistics
+        run: >
+          python tools/playability_report.py
+          artifacts/gate-core30.json
+          artifacts/gate-avaros-mirror.json
+          artifacts/gate-mara-mirror.json
+          artifacts/gate-sera-mirror.json
+          artifacts/gate-avaros-mara-a.json
+          artifacts/gate-avaros-mara-b.json
+          artifacts/gate-avaros-sera-a.json
+          artifacts/gate-avaros-sera-b.json
+          artifacts/gate-mara-sera-a.json
+          artifacts/gate-mara-sera-b.json
+          --json-output artifacts/gate-playability.json
+          --markdown-output artifacts/gate-playability.md
       - name: Full 48-card paired counterfactual sweep
         run: python tools/counterfactual_balance.py --contexts 10 --games-per-context 10 --no-pairs --no-triples --bootstrap-resamples 1200 --seed 26092241 --output artifacts/gate-counterfactual.json
+      - name: Confirm red counterfactual outliers
+        run: |
+          python - <<'PY' > /tmp/red-card-ids.txt
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("artifacts/gate-counterfactual.json").read_text())
+          for row in report["cards"]:
+              if row["level"] == "red":
+                  print(row["id"])
+          PY
+
+          index=0
+          while IFS= read -r card_id; do
+            [ -n "$card_id" ] || continue
+            seed=$((26092341 + index))
+            python tools/counterfactual_balance.py \
+              --contexts 20 \
+              --games-per-context 12 \
+              --no-pairs \
+              --no-triples \
+              --bootstrap-resamples 2000 \
+              --seed "$seed" \
+              --cards "$card_id" \
+              --output "artifacts/gate-counterfactual-confirm-${card_id}.json"
+            index=$((index + 1))
+          done < /tmp/red-card-ids.txt
       - name: Evaluate playtest gate
         run: |
           python - <<'PY'
@@ -95,8 +137,30 @@ jobs:
           print("COUNTERFACTUAL red",[(r["title"],r["delta_win_probability"],r["ci95"]) for r in red])
           print("COUNTERFACTUAL orange",[(r["title"],r["delta_win_probability"],r["ci95"]) for r in orange])
           print("COUNTERFACTUAL top",[(r["title"],r["delta_win_probability"],r["ci95"],r["level"]) for r in cf["cards"][:15]])
-          if red:
-              failures.append("Full-pool counterfactual sweep has red card outliers")
+
+          confirmed_red=[]
+          for row in red:
+              path=Path("artifacts", f"gate-counterfactual-confirm-{row['id']}.json")
+              if not path.exists():
+                  failures.append(f"Missing confirmation report for red card {row['title']}")
+                  continue
+              confirmation=json.loads(path.read_text())
+              confirmed=next(item for item in confirmation["cards"] if item["id"]==row["id"])
+              print(
+                  "COUNTERFACTUAL confirmation",
+                  row["title"],
+                  confirmed["delta_win_probability"],
+                  confirmed["ci95"],
+                  confirmed["level"],
+              )
+              if confirmed["level"]=="red":
+                  confirmed_red.append(confirmed)
+
+          if confirmed_red:
+              failures.append(
+                  "Full-pool counterfactual sweep has independently confirmed red card outliers: "
+                  + ", ".join(row["title"] for row in confirmed_red)
+              )
 
           if failures:
               print("PLAYTEST GATE: FAIL")

@@ -391,6 +391,23 @@ class Telemetry:
         before: GameState,
         state: GameState,
     ) -> None:
+        battle_changed = (
+            before.phase is Phase.BATTLE
+            and (
+                state.phase is Phase.COMPLETE
+                or state.battle != before.battle
+            )
+        )
+        if battle_changed:
+            for player in range(2):
+                added = Counter(state.players[player].hand) - Counter(
+                    before.players[player].hand
+                )
+                for card_id, count in added.items():
+                    for _ in range(count):
+                        self._record_draw(player, card_id)
+            return
+
         for player in range(2):
             count = len(before.players[player].deck) - len(state.players[player].deck)
             if count <= 0:

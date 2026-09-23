@@ -65,6 +65,23 @@ ALL_POSITIONS = tuple(
     for pair in POSITIONS_BY_FRONT
     for position in pair
 )
+SHUFFLE_MULTIPLIER = 1_664_525
+SHUFFLE_INCREMENT = 1_013_904_223
+SHUFFLE_MASK = 0xFFFF_FFFF
+
+
+def _shuffle_cards(cards: list[str], seed: int) -> int:
+    """Deterministically reshuffle cards while keeping search clones reproducible."""
+    seed &= SHUFFLE_MASK
+    for index in range(len(cards) - 1, 0, -1):
+        seed = (
+            SHUFFLE_MULTIPLIER * seed + SHUFFLE_INCREMENT
+        ) & SHUFFLE_MASK
+        other = seed % (index + 1)
+        cards[index], cards[other] = cards[other], cards[index]
+    return seed
+
+
 ADJACENT_POSITIONS = {
     position: tuple(
         candidate
@@ -351,6 +368,7 @@ class GameEngine:
             deck_a,
             deck_b,
             rng=random.Random(seed),
+            shuffle_seed=(seed ^ 0x9E37_79B9) & SHUFFLE_MASK,
             first_player=first_player,
             mulligan_indices=mulligan_indices,
             opening_bonus=opening_bonus,
@@ -362,6 +380,7 @@ class GameEngine:
         deck_b: list[str],
         *,
         rng: random.Random,
+        shuffle_seed: int,
         first_player: int | None = None,
         mulligan_indices: tuple[tuple[int, ...], tuple[int, ...]] = ((), ()),
         opening_bonus: bool = True,
@@ -375,7 +394,7 @@ class GameEngine:
             PlayerState(deck=decks[player], hand=[])
             for player in range(2)
         ]
-        state = GameState(players=players)
+        state = GameState(players=players, shuffle_seed=shuffle_seed)
 
         for player in range(2):
             self._draw(state, player, 10)
@@ -513,11 +532,12 @@ class GameEngine:
             self._take_from_hand(state, actor, action.card_id)
             slot = state.slot(actor, action.position)
             slot.link = action.card_id
-            subject = self.cards[slot.subject]
-            bonus = subject.get("rules", {}).get("on_link_attached", {}).get(
-                "temporary_strength", 0
-            )
-            slot.temporary_strength += int(bonus)
+            if slot.subject is not None:
+                subject = self.cards[slot.subject]
+                bonus = subject.get("rules", {}).get("on_link_attached", {}).get(
+                    "temporary_strength", 0
+                )
+                slot.temporary_strength += int(bonus)
             self._resolve_triggered_schemes(
                 state,
                 actor=actor,
@@ -620,16 +640,26 @@ class GameEngine:
             if self._condition_matches(state, player, position, modifier.get("when", {})):
                 value += int(modifier["amount"])
 
+        link_rules: dict[str, Any] = {}
         if slot.link is not None:
             link = self.cards[slot.link]
             link_rules = link.get("rules", {})
             value += int(link_rules.get("strength_bonus", 0))
 
-            if slot.name is not None:
-                name = self.cards[slot.name]
-                name_rules = name.get("rules", {})
-                value += int(link_rules.get("named_strength_bonus", 0))
+        if slot.name is not None:
+            name = self.cards[slot.name]
+            name_rules = name.get("rules", {})
+            value += int(name["strength"])
 
+            rank_bonus = name_rules.get("rank_strength_bonus")
+            if (
+                rank_bonus
+                and position.rank.value == rank_bonus.get("rank")
+            ):
+                value += int(rank_bonus.get("amount", 0))
+
+            if slot.link is not None:
+                value += int(link_rules.get("named_strength_bonus", 0))
                 discard_bonus = link_rules.get("discard_strength_bonus")
                 if discard_bonus:
                     per_card = int(discard_bonus.get("per_card", 1))
@@ -638,15 +668,6 @@ class GameEngine:
                         state.discarded_this_battle[player] * per_card,
                         maximum,
                     )
-
-                value += int(name["strength"])
-
-                rank_bonus = name_rules.get("rank_strength_bonus")
-                if (
-                    rank_bonus
-                    and position.rank.value == rank_bonus.get("rank")
-                ):
-                    value += int(rank_bonus.get("amount", 0))
 
         value += self._stratagem_strength_modifier(
             state,
@@ -666,27 +687,8 @@ class GameEngine:
     ) -> int:
         """Exact Strength gain from hypothetically attaching a Name."""
         slot = state.slot(player, position)
-        if slot.subject is None or slot.link is None or slot.name is not None:
+        if slot.subject is None or slot.name is not None:
             return 0
-
-        (
-            _base_bonus,
-            named_bonus,
-            discard_per_card,
-            discard_maximum,
-            _opposing_modifier,
-            _protected,
-        ) = self._link_runtime[slot.link]
-        name_strength, bonus_rank, rank_bonus = self._name_runtime[name_id]
-
-        delta = named_bonus + name_strength
-        if discard_per_card:
-            delta += min(
-                state.discarded_this_battle[player] * discard_per_card,
-                discard_maximum,
-            )
-        if bonus_rank is not None and position.rank.value == bonus_rank:
-            delta += rank_bonus
 
         continuous_rules = []
         line_defense_disabled = False
@@ -696,7 +698,6 @@ class GameEngine:
                 continue
             runtime = self._stratagem_continuous[stratagem.card_id]
             continuous_rules.append((controller, runtime))
-            delta += runtime[3] - runtime[4]
             if runtime[5]:
                 line_defense_disabled = True
 
@@ -707,9 +708,6 @@ class GameEngine:
             continuous_rules,
             line_defense_disabled,
         )
-        if before > 0 and before + delta >= 0:
-            return delta
-
         original_name = slot.name
         try:
             slot.name = name_id
@@ -864,7 +862,8 @@ class GameEngine:
             ):
                 continue
             if adjacent_subject_has_name and not any(
-                state.slot(player, adjacent).name is not None
+                state.slot(player, adjacent).subject is not None
+                and state.slot(player, adjacent).name is not None
                 for adjacent in ADJACENT_POSITIONS[position]
             ):
                 continue
@@ -881,7 +880,6 @@ class GameEngine:
                 _protected,
             ) = self._link_runtime[slot.link]
             value += base_bonus
-
             if named:
                 value += named_bonus
                 if discard_per_card:
@@ -889,10 +887,12 @@ class GameEngine:
                         state.discarded_this_battle[player] * discard_per_card,
                         discard_maximum,
                     )
-                name_strength, bonus_rank, rank_bonus = self._name_runtime[slot.name]
-                value += name_strength
-                if bonus_rank is not None and rank_value == bonus_rank:
-                    value += rank_bonus
+
+        if named:
+            name_strength, bonus_rank, rank_bonus = self._name_runtime[slot.name]
+            value += name_strength
+            if bonus_rank is not None and rank_value == bonus_rank:
+                value += rank_bonus
 
         role = self._subject_role[subject_id]
         for controller, runtime in continuous_rules:
@@ -1075,7 +1075,8 @@ class GameEngine:
 
         if condition.get("adjacent_subject_has_name"):
             if not any(
-                state.slot(player, adjacent).name is not None
+                state.slot(player, adjacent).subject is not None
+                and state.slot(player, adjacent).name is not None
                 for adjacent in self._adjacent_positions(position)
             ):
                 return False
@@ -1089,7 +1090,7 @@ class GameEngine:
         card_id: str,
     ) -> Iterable[Action]:
         for action in self._subject_action_templates[card_id]:
-            if not state.slot(player, action.position).occupied:
+            if state.slot(player, action.position).subject is None:
                 yield action
 
     def _link_actions(
@@ -1100,7 +1101,7 @@ class GameEngine:
     ) -> Iterable[Action]:
         for action in self._link_action_templates[card_id]:
             slot = state.slot(player, action.position)
-            if slot.subject is not None and slot.link is None:
+            if slot.link is None:
                 yield action
 
     def _name_actions(
@@ -1111,13 +1112,13 @@ class GameEngine:
     ) -> Iterable[Action]:
         for action in self._name_action_templates[card_id]:
             slot = state.slot(player, action.position)
-            if slot.subject is None or slot.link is None or slot.name is not None:
+            if slot.name is not None:
                 continue
-            if (
-                action.move_to is not None
-                and state.slot(player, action.move_to).occupied
-            ):
-                continue
+            if action.move_to is not None:
+                if slot.subject is None:
+                    continue
+                if state.slot(player, action.move_to).occupied:
+                    continue
             yield action
 
     def _plot_actions(
@@ -1705,12 +1706,7 @@ class GameEngine:
         if link_id is not None:
             self._discard_card(state, player, link_id)
         if name_id is not None:
-            self._return_public_card_to_hand(
-                state,
-                player,
-                name_id,
-                reason="subject_removed",
-            )
+            self._discard_card(state, player, name_id)
 
     def _pass(self, state: GameState, player: int) -> None:
         state.players[player].passed = True
@@ -1779,13 +1775,29 @@ class GameEngine:
         state.stratagem_used = [False, False]
         state.draw_used = [False, False]
         state.pass_order.clear()
+        self._recycle_non_hand_cards(state)
         for player in range(2):
             state.players[player].passed = False
-            self._draw(state, player, 3)
 
         state.phase = Phase.CHOOSE_FIRST
         state.chooser = loser
         state.active_player = loser
+
+    def _recycle_non_hand_cards(self, state: GameState) -> None:
+        seed = state.shuffle_seed
+        for player in range(2):
+            player_state = state.players[player]
+            pool = list(player_state.deck)
+            pool.extend(player_state.discard)
+            player_state.discard.clear()
+            seed = _shuffle_cards(pool, seed)
+            player_state.deck[:] = pool
+            self._draw(
+                state,
+                player,
+                max(0, 10 - len(player_state.hand)),
+            )
+        state.shuffle_seed = seed
 
     def _discard_battlefield(self, state: GameState) -> None:
         for player in range(2):

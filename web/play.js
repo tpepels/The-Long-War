@@ -48,7 +48,7 @@ function esc(value) {
 
 const TERM_HINTS = {
   "battle": "A round of play. Control at least two of the three Fronts to win it.",
-  "bond": "An attachment played onto one of your Subjects. A Subject can have one Bond.",
+  "bond": "A formation component. It may be prepared before the Subject; Subject-dependent text stays inactive until a Subject is present.",
   "discard": "Move a card to its owner's discard pile.",
   "discarded": "Moved to the discard pile.",
   "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
@@ -59,7 +59,7 @@ const TERM_HINTS = {
   "frontline subjects": "Subjects occupying Frontline positions.",
   "line defense": "The default +1 Strength bonus given to a Subject in the Frontline.",
   "move": "Relocate a Subject, keeping its attached Bond and Name unless the effect says otherwise.",
-  "name": "An attachment played onto an open Bond. A Subject can have one Name.",
+  "name": "A Unique formation component. It may be prepared before the Subject or Bond; Subject-dependent text stays inactive until a Subject is present.",
   "pass": "End your participation in this Battle. You take no more turns until the next Battle.",
   "passes": "Pass ends that player's participation in the current Battle; they take no more turns.",
   "rear": "The position behind the Frontline in the same Front.",
@@ -68,8 +68,9 @@ const TERM_HINTS = {
   "stories": "Story cards change the battlefield without occupying a Subject position.",
   "story": "A card that resolves its effect and is then discarded.",
   "strength": "The value compared in each Front. Higher total Strength controls that Front.",
-  "subject": "A unit or place that occupies a Frontline or Rear position.",
-  "subjects": "Cards that occupy Frontline or Rear positions.",
+  "subject": "The unit or place that activates a formation's Strength and Subject-dependent Bond or Name text.",
+  "subjects": "Cards that activate formations in Frontline or Rear positions.",
+  "prepared": "A Bond or Name already placed in a formation before its Subject. It remains inactive where text depends on a Subject.",
   "veiled stories": "Stories set face-down in a Front and revealed when their trigger occurs.",
   "veiled story": "A Story set face-down in a Front and revealed when its trigger occurs.",
   "adjacent": "Immediately left or right in the same rank.",
@@ -313,7 +314,9 @@ function component(cardId, cls) {
 function renderSlot(owner, front, rank) {
   const slot = boardSlot(owner, front, rank);
   const targetable = targetActionsForSlot(owner, front, rank).length > 0;
-  const classes = ["digital-slot", slot?.subject ? "occupied" : "empty"];
+  const hasFormation = Boolean(slot?.subject || slot?.link || slot?.name);
+  const classes = ["digital-slot", hasFormation ? "occupied" : "empty"];
+  if (hasFormation && !slot?.subject) classes.push("prepared");
   if (targetable) classes.push("targetable");
   if (stagedPlotSource && locEquals(stagedPlotSource, owner, front, rank)) classes.push("staged-source");
   const recent = state.last_action;
@@ -326,7 +329,7 @@ function renderSlot(owner, front, rank) {
   const attrs =
     'data-board-owner="' + owner + '" data-board-front="' + front + '" data-board-rank="' + rank + '"';
 
-  if (!slot?.subject) {
+  if (!hasFormation) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
       '<span class="empty-slot-mark">＋</span><span>' +
       (rank === "front" ? "Frontline" : "Rear") + '</span>' +
@@ -338,11 +341,14 @@ function renderSlot(owner, front, rank) {
     '<span class="slot-rank">' + esc(slot.rank_name) +
       (rank === "front" ? " · Line Defense +1" : "") + '</span>' +
     '<div class="board-legend">' +
-      boardCardMarkup(slot.subject, "subject", owner) +
+      (slot.subject
+        ? boardCardMarkup(slot.subject, "subject", owner)
+        : '<span class="prepared-formation-label">' + termMarkup("Prepared") + '<small>Subject open</small></span>') +
       (slot.link ? '<div class="board-attachment link">' + boardCardMarkup(slot.link, "link", owner) + '</div>' : "") +
       (slot.name ? '<div class="board-attachment name">' + boardCardMarkup(slot.name, "name", owner) + '</div>' : "") +
     '</div>' +
-    '<span class="slot-strength">' + slot.strength + '</span>' +
+    '<span class="slot-strength' + (slot.subject ? '' : ' inactive') + '">' +
+      (slot.subject ? slot.strength : "—") + '</span>' +
     (targetable ? '<b class="legal-target-cue">PLAY HERE</b>' : '') +
   '</div>';
 }
@@ -573,9 +579,9 @@ function selectCard(cardId) {
 function interactionHintFor(card) {
   const actions = selectedActions();
   if (!actions.length) return "No legal play for this card right now.";
-  if (actions.some((a) => a.kind === "PlaySubject")) return "Choose an empty battlefield position.";
-  if (actions.some((a) => a.kind === "PlayLink")) return "Choose one of your Subjects without a Bond.";
-  if (actions.some((a) => a.kind === "PlayName")) return "Choose an open Bond. If movement is possible, you will choose it next.";
+  if (actions.some((a) => a.kind === "PlaySubject")) return "Choose a position without a Subject. Prepared Bond or Name cards may already be there.";
+  if (actions.some((a) => a.kind === "PlayLink")) return "Choose a position without a Bond. It may be prepared before the Subject.";
+  if (actions.some((a) => a.kind === "PlayName")) return "Choose a position without a Name. It may be prepared before the Subject or Bond; movement is offered only when a Subject is already there.";
   if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Front to set this Veiled Story face-down.";
   if (actions.some((a) => a.kind === "SetStratagem")) return "Set this face-down in your Stratagem space, then take your normal action.";
   if (actions.some((a) => a.kind === "PlayPlot")) {
@@ -655,8 +661,8 @@ function renderInteraction() {
 
 function choiceLabel(action) {
   if (action.kind === "PlayName") {
-    if (!action.move_to) return "Attach the Name here · stay";
-    return "Attach the Name here · move the Subject to " + action.move_to.front_name + " " + action.move_to.rank_name;
+    if (!action.move_to) return "Play the Name here · stay";
+    return "Play the Name here · move the Subject to " + action.move_to.front_name + " " + action.move_to.rank_name;
   }
   return action.label;
 }

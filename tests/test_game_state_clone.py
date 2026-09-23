@@ -24,6 +24,7 @@ def test_game_state_fast_clone_is_fully_isolated() -> None:
     state.stratagem_used[0] = True
 
     clone = state.clone()
+    assert clone.shuffle_seed == state.shuffle_seed
 
     clone.players[0].hand.clear()
     clone.players[0].discard.append("namar")
@@ -71,6 +72,7 @@ def test_game_state_copy_from_reuses_containers_without_aliasing_source() -> Non
     assert target.players[1].passed is True
     assert target.pass_order == [1]
     assert target.stratagem_used[0] is True
+    assert target.shuffle_seed == source.shuffle_seed
     assert target.slot(0, Position(Front.RIGHT, Rank.REAR)).subject == "seven-black-ships"
     assert target.slot(0, Position(Front.RIGHT, Rank.REAR)).temporary_strength == 2
 

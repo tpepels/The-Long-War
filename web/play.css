@@ -826,6 +826,33 @@ body.game-body::before {
   background: rgba(229,216,187,.03);
 }
 
+.digital-slot.prepared {
+  border-style: dashed;
+}
+
+.prepared-formation-label {
+  z-index: 1;
+  display: grid;
+  gap: 3px;
+  place-items: center;
+  min-width: 52px;
+  text-align: center;
+  font: 800 6px/1 system-ui, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .62;
+}
+
+.prepared-formation-label small {
+  font: 700 5px/1 system-ui, sans-serif;
+  letter-spacing: .04em;
+}
+
+.slot-strength.inactive {
+  border-style: dashed;
+  opacity: .45;
+}
+
 .digital-slot.empty {
   color: #6f6453;
   text-align: center;

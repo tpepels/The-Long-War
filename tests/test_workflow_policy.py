@@ -67,3 +67,14 @@ def test_routine_workflows_use_per_run_seeds() -> None:
         assert "--seed 1701" not in content
         assert "--seed 6401" not in content
         assert "--seed 7401" not in content
+
+
+def test_expanded_playtest_gate_confirms_counterfactual_reds_before_failing() -> None:
+    content = text("expanded-playtest-gate.yml")
+    assert "Build human-playability statistics" in content
+    assert "gate-playability.json" in content
+    assert "Confirm red counterfactual outliers" in content
+    assert '--cards "$card_id"' in content
+    assert "26092341 + index" in content
+    assert "confirmed_red" in content
+    assert "independently confirmed red card outliers" in content

@@ -17,7 +17,7 @@ On the battlefield, position matters. **Subjects** stand in the **Frontline** or
 <div class="rulebook-at-a-glance">
   <div><b>YOUR TURN</b><span>Optionally set 1 Stratagem, then play 1 card, draw 1 card, or Pass.</span></div>
   <div><b>WIN A BATTLE</b><span>Control 2 of 3 Fronts. Total Strength breaks a 1–1–1/0–0–0 style deadlock; first passer breaks the final tie.</span></div>
-  <div><b>BETWEEN BATTLES</b><span>Clear the battlefield, keep your hand, draw 3. The loser chooses who starts next.</span></div>
+  <div><b>BETWEEN BATTLES</b><span>Clear the battlefield, keep your hand, shuffle every other card, and refill to 10. The loser chooses who starts next.</span></div>
   <div><b>WIN THE MATCH</b><span>Win 2 Battles.</span></div>
 </div>
 
@@ -57,7 +57,7 @@ A large lead in one Front is still only one Front. If your opponent spends heavi
 
 ### Your hand lasts longer than the battlefield
 
-At the end of a Battle, cards on the battlefield are discarded. Cards still in your hand remain, then each player draws 3 cards.
+At the end of a Battle, cards on the battlefield are discarded. Keep the cards still in your hand, shuffle every other card you own into a new deck, then draw until you have 10 cards.
 
 So the question is not only whether you can win a Battle. It is how many cards you are willing to spend on it.
 
@@ -174,27 +174,31 @@ A Subject, Bond, and Name can form a sentence:
 
 Read it as: *The Fifty Men followed Namar.*
 
-They remain three separate cards.
+They remain three separate cards, and the three formation components may be played in **any order**.
+
+A Bond or Name played before a Subject is **prepared**. It stays face-up in that battlefield position, but contributes no Strength and no rule that depends on "its Subject" until a Subject is present. Playing a Subject into that position activates the prepared components immediately.
+
+A Name's one-shot "when you play" text resolves when the Name is actually played if its requirements can be met. It does not trigger again when a Subject or Bond is added later.
 
 ### Subject
 
-A **Subject** occupies a battlefield position.
+A **Subject** activates a battlefield formation. Play it into any Frontline or Rear position that does not already contain a Subject; a prepared Bond or Name may already be there.
 
-Its Strength comes from its printed value plus Line Defense, role bonuses, attached cards, and other modifiers.
+Its Strength comes from its printed value plus Line Defense, role bonuses, the Bond and/or Name in its position, and other modifiers.
 
 ### Bond
 
-A **Bond** attaches to one of your Subjects.
+A **Bond** occupies the Bond slot of one of your battlefield positions. It may be played before or after the Subject and Name.
 
-A Bond applies its printed effect immediately. Many Bonds gain an additional effect once a Name is attached.
+If no Subject is present, the Bond is prepared. Once a Subject is present, the Bond's Subject-dependent rules become active. Rules that require the Bond to have a Name still require a Name in that formation.
 
 A Bond without a Name is an **open Bond**.
 
 ### Name
 
-A **Name** attaches to an open Bond.
+A **Name** occupies the Name slot of one of your battlefield positions. It may be played before or after the Subject and Bond.
 
-The Name adds its printed Strength and rules. Any Bond rule that requires a Name also becomes active.
+If no Subject is present, the Name is prepared. Once a Subject is present, the Name adds its printed Strength and applicable rules even if the Bond slot is still empty. If a Bond is also present, any Bond rule that requires a Name becomes active.
 
 Every Name is *Unique*.
 
@@ -406,8 +410,9 @@ Then:
 1. reveal any Stratagem still face-down; it cannot change the score;
 2. discard all battlefield cards, including Veiled Stories and Stratagems;
 3. keep cards still in hand;
-4. each player draws 3 cards;
-5. the Battle loser chooses who takes the first turn of the next Battle.
+4. combine every other card you own — your remaining deck and discard pile — and shuffle them into a new deck;
+5. draw until you have **10 cards** in hand; if you already have 10 or more, keep them all and draw nothing;
+6. the Battle loser chooses who takes the first turn of the next Battle.
 
 The first player to win 2 Battles wins the match.
 
@@ -422,15 +427,17 @@ The first player to win 2 Battles wins the match.
 
 ## Strength {#reference}
 
-For each occupied Subject position:
+For each position containing a Subject:
 
-1. start with printed Strength;
+1. start with the Subject's printed Strength;
 2. add Line Defense if it is in the Frontline;
 3. apply its role;
 4. apply support from Subjects behind, in front of, or adjacent;
-5. apply the attached Bond;
-6. if a Name is attached, add its printed Strength and any Bond or Name conditions;
+5. if a Bond is present, apply its active rules;
+6. if a Name is present, add its printed Strength and active rules; if a Bond is also present, apply that Bond's named conditions;
 7. apply temporary and card-specific modifiers.
+
+A position containing only a prepared Bond and/or Name contributes **0 Strength** until a Subject is played there.
 
 A Front's Strength is its Frontline + Rear + Front-level modifiers.
 
@@ -460,29 +467,32 @@ The Frontline position in the same Front.
 On the opponent's side of the same Front.
 
 **Open Bond**  
-A Bond attached to a Subject without a Name.
+A Bond without a Name, whether or not its formation already has a Subject.
 
-A Bond and Name are always in the same Front and rank as their Subject.
+**Prepared**  
+A Bond or Name already placed in a battlefield position that does not yet contain a Subject. Subject-dependent text is inactive until the Subject arrives.
+
+All components in one formation share the same Front and rank. Prepared components remain in that position when a Subject is played there.
 
 ## Playing cards precisely
 
 ### Subjects
 
-Choose a legal empty Subject position.
+Choose one of your positions without a Subject. A prepared Bond, Name, or both may already be in that position.
 
 Unless the card says otherwise, a Subject may be played in the Frontline or Rear. Positional bonuses update whenever it moves.
 
 ### Bonds
 
-Choose one of your Subjects without a Bond and attach the Bond.
+Choose one of your positions without a Bond and play the Bond there. A Subject or Name may already be present, or the Bond may be prepared in an otherwise empty formation.
 
-A Subject can have at most one Bond.
+A formation can have at most one Bond.
 
 ### Names
 
-Choose one of your open Bonds and attach the Name.
+Choose one of your positions without a Name and play the Name there. A Subject or Bond may already be present, or the Name may be prepared in an otherwise empty formation.
 
-A Bond can have at most one Name. Every Name is Unique.
+A formation can have at most one Name. Every Name is Unique. A movement effect referring to "this Subject" cannot move anything when the Name is played into a position without a Subject.
 
 ### Stories
 
@@ -506,11 +516,11 @@ During a Battle, when an effect removes or moves an attached card:
 
 | What happens? | Result |
 | --- | --- |
-| A **Subject** is discarded by an effect | Discard its Bond. Return its Name to its owner's hand. |
+| A **Subject** is discarded by an effect | Discard its Bond and Name with it. |
 | A **Bond** is discarded by an effect | The Subject stays. Return its Name to its owner's hand. |
-| An open **Bond** is returned | The Subject stays. Put the Bond into its owner's hand. |
-| A **Name** is returned or discarded | Subject and Bond stay. The Bond becomes open. |
-| A **Subject** moves | Its Bond and Name move with it. |
+| An open **Bond** is returned | Any Subject stays. Put the Bond into its owner's hand. |
+| A **Name** is returned or discarded | Any Subject and Bond stay. The Bond becomes open. |
+| A **Subject** moves | Its Bond and Name move with it. The destination must contain no prepared components. |
 
 **Battle cleanup is different:** after scoring, every card still on the battlefield is discarded together, including attached Bonds and Names.
 
@@ -579,7 +589,7 @@ A deck contains exactly **30 cards**.
 One scoring period. It ends when both players have Passed.
 
 **Bond**  
-A card attached to a Subject. A Bond without a Name is an open Bond.
+A formation component. It may be prepared before its Subject. A Bond without a Name is an open Bond.
 
 **Classification**  
 A printed identity property such as *Human*, *God*, *King*, *Ship*, or *Stronghold*.
@@ -594,7 +604,7 @@ A normal action that draws 1 card from your deck. Each player may Draw once per 
 The +1 Strength normally gained by a Subject in the Frontline.
 
 **Name**  
-A Unique card attached to a Bond.
+A Unique formation component. It may be prepared before its Subject or Bond.
 
 **Pass**  
 End your participation in the current Battle.
@@ -608,8 +618,11 @@ A one-shot card. Its form may be *Myth*, *Legend*, *Saga*, *Omen*, *Warning*, *P
 **Stratagem**  
 A Battle-wide hidden card set before your normal action. Each player may set one per Battle.
 
+**Prepared**  
+A Bond or Name placed in a formation before its Subject. Subject-dependent rules stay inactive until the Subject arrives.
+
 **Subject**  
-The only card type that occupies a battlefield position.
+The card that activates a battlefield formation's Strength and Subject-dependent rules.
 
 **Veiled Story**  
 A Story with the *Veiled* property, played face-down in a Front until its trigger reveals it.

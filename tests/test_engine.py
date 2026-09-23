@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 
 from longwar.cards import load_card_file
@@ -104,6 +105,63 @@ def test_links_help_immediately_and_namar_rewards_frontline() -> None:
 
     engine.apply(state, PlayName("namar", CENTER_FRONT))
     assert engine.position_strength(state, 0, CENTER_FRONT) == 13
+
+
+def test_formation_components_can_be_prepared_in_any_order() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.players[0].hand = ["namar", "followed", "the-fifty-men"]
+    state.players[1].hand = []
+
+    engine.apply(state, PlayName("namar", CENTER_FRONT))
+    slot = state.slot(0, CENTER_FRONT)
+    assert slot.subject is None
+    assert slot.link is None
+    assert slot.name == "namar"
+    assert slot.occupied
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 0
+
+    engine.apply(state, Pass())
+    engine.apply(state, PlayLink("followed", CENTER_FRONT))
+    assert slot.subject is None
+    assert slot.link == "followed"
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 0
+
+    engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
+    assert slot.complete
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 13
+
+
+def test_name_becomes_active_with_subject_even_before_bond() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.players[0].hand = ["namar", "the-fifty-men"]
+    state.players[1].hand = []
+
+    engine.apply(state, PlayName("namar", CENTER_FRONT))
+    engine.apply(state, Pass())
+    engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
+
+    slot = state.slot(0, CENTER_FRONT)
+    assert slot.subject == "the-fifty-men"
+    assert slot.link is None
+    assert slot.name == "namar"
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 10
+
+
+def test_prepared_bond_does_not_retroactively_trigger_on_link_play() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.players[0].hand = ["followed", "the-children-of-the-salt-road"]
+    state.players[1].hand = []
+
+    engine.apply(state, PlayLink("followed", CENTER_FRONT))
+    engine.apply(state, Pass())
+    engine.apply(
+        state,
+        PlaySubject("the-children-of-the-salt-road", CENTER_FRONT),
+    )
+
+    slot = state.slot(0, CENTER_FRONT)
+    assert slot.link == "followed"
+    assert slot.temporary_strength == 0
 
 
 def test_iria_can_move_subject_with_attachments_to_adjacent_position() -> None:
@@ -278,6 +336,70 @@ def test_children_gain_temporary_strength_when_link_played() -> None:
     engine.apply(state, PlayLink("followed", CENTER_FRONT))
 
     assert engine.position_strength(state, 0, CENTER_FRONT) == 6
+
+
+def test_removing_subject_discards_its_bond_and_name() -> None:
+    engine, state = fresh_state()
+    state.players[0].hand = []
+    slot = state.slot(0, CENTER_FRONT)
+    slot.subject = "the-fifty-men"
+    slot.link = "followed"
+    slot.name = "namar"
+
+    engine._discard_subject(state, 0, CENTER_FRONT)
+
+    assert not slot.occupied
+    assert Counter(state.players[0].discard) >= Counter(
+        ["the-fifty-men", "followed", "namar"]
+    )
+    assert "namar" not in state.players[0].hand
+
+
+def test_next_battle_keeps_hand_recycles_everything_else_and_refills_to_ten() -> None:
+    engine, state = fresh_state(first_player=0)
+    kept = []
+
+    for player, target in ((0, 4), (1, 6)):
+        player_state = state.players[player]
+        moved = player_state.hand[target:]
+        player_state.hand[:] = player_state.hand[:target]
+        player_state.discard.extend(moved)
+        kept.append(Counter(player_state.hand))
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.battle == 2
+    assert state.phase is Phase.CHOOSE_FIRST
+    assert [len(player.hand) for player in state.players] == [10, 10]
+    assert [len(player.discard) for player in state.players] == [0, 0]
+    for player in range(2):
+        player_state = state.players[player]
+        assert len(player_state.hand) + len(player_state.deck) == 30
+        assert Counter(player_state.hand) >= kept[player]
+
+
+def test_battle_recycle_is_deterministic_for_the_same_game_seed() -> None:
+    engine, deck = engine_and_deck()
+    states = [
+        engine.new_game(deck, deck, seed=31415, first_player=0)
+        for _ in range(2)
+    ]
+
+    for state in states:
+        for player, target in ((0, 3), (1, 5)):
+            player_state = state.players[player]
+            player_state.discard.extend(player_state.hand[target:])
+            del player_state.hand[target:]
+        engine.apply(state, Pass())
+        engine.apply(state, Pass())
+
+    assert [player.hand for player in states[0].players] == [
+        player.hand for player in states[1].players
+    ]
+    assert [player.deck for player in states[0].players] == [
+        player.deck for player in states[1].players
+    ]
 
 
 def test_battle_scoring_and_loser_chooses_next_first_player() -> None:
@@ -714,7 +836,7 @@ def test_opposing_stratagems_can_reveal_and_stack() -> None:
     assert engine.position_strength(state, 1, rear) == 9
 
 
-def test_untriggered_stratagem_reveals_and_discards_at_battle_end() -> None:
+def test_untriggered_stratagem_reveals_and_recycles_at_battle_end() -> None:
     engine, state = fresh_state(first_player=0)
     state.players[0].hand = ["the-storm-broke"]
 
@@ -722,7 +844,10 @@ def test_untriggered_stratagem_reveals_and_discards_at_battle_end() -> None:
     engine.apply(state, Pass())
     engine.apply(state, Pass())
 
-    assert "the-storm-broke" in state.players[0].discard
+    assert state.players[0].discard == []
+    assert "the-storm-broke" in (
+        state.players[0].hand + state.players[0].deck
+    )
     assert any(
         event.kind == "reveal"
         and event.zone == "stratagem"
@@ -765,7 +890,10 @@ def test_unrevealed_stratagem_is_revealed_after_scoring_then_reset() -> None:
     assert state.battle == 2
     assert state.stratagem(0) is None
     assert state.stratagem_used == [False, False]
-    assert "the-storm-broke" in state.players[0].discard
+    assert state.players[0].discard == []
+    assert "the-storm-broke" in (
+        state.players[0].hand + state.players[0].deck
+    )
     assert any(
         event.kind == "reveal"
         and event.zone == "stratagem"
