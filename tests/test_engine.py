@@ -487,8 +487,26 @@ def test_no_recycle_leaves_played_cards_out_and_refills_from_remaining_deck() ->
     state.phase = Phase.BATTLE
     state.active_player = 0
     state.chooser = None
-    state.slot(0, CENTER_FRONT).subject = state.players[0].hand.pop()
-    state.slot(1, CENTER_FRONT).subject = state.players[1].hand.pop()
+    for player in range(2):
+        player_state = state.players[player]
+        subject_id = next(
+            (
+                card_id
+                for card_id in player_state.hand
+                if engine.cards[card_id]["type"] == "subject"
+            ),
+            None,
+        )
+        if subject_id is not None:
+            player_state.hand.remove(subject_id)
+        else:
+            subject_id = next(
+                card_id
+                for card_id in player_state.deck
+                if engine.cards[card_id]["type"] == "subject"
+            )
+            player_state.deck.remove(subject_id)
+        state.slot(player, CENTER_FRONT).subject = subject_id
 
     engine.apply(state, Pass())
     engine.apply(state, Pass())
