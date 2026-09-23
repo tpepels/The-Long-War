@@ -194,3 +194,58 @@ For an exact backend timing comparison, use one matrix cell and the same seed/se
 time python tools/run_force_draw_experiment.py --preset deep --games 10 --jobs 1 --mode automatic --deck reference --backend python --output-dir artifacts/bench-python
 time python tools/run_force_draw_experiment.py --preset deep --games 10 --jobs 1 --mode automatic --deck reference --backend cython --output-dir artifacts/bench-cython
 ```
+
+
+## Simplified local commands
+
+The preferred local interface is now `tools/force_experiment.py`, with matching Make targets.
+
+One-time build/install:
+
+```bash
+make force-setup
+```
+
+Validate the candidate before a long run:
+
+```bash
+make force-check
+```
+
+This validation performs three independent checks:
+
+1. the Cython alpha-beta extension imports successfully;
+2. the focused candidate-rule and strategic-agent pytest suites pass;
+3. fixed-seed **automatic Draw** and **paid Draw** simulations are run once with the Python search backend and once with the Cython backend, then their normalized JSON outputs are compared for exact equality.
+
+Only backend-identification metadata is removed before the parity comparison. Winners, actions, telemetry, draws, passes, Command usage, search depth/nodes, and all other simulation data must agree exactly.
+
+Benchmark the two implementations:
+
+```bash
+make force-bench
+```
+
+Run a small smoke experiment:
+
+```bash
+make force-quick
+```
+
+Run the normal experiment:
+
+```bash
+make force-run
+```
+
+Run the strongest preset:
+
+```bash
+make force-max
+```
+
+For custom settings, use the same entry point directly:
+
+```bash
+python tools/force_experiment.py run --preset deep --games 50 --jobs 4
+```
