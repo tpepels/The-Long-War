@@ -13,7 +13,6 @@ extensions = [
     Extension(
         "longwar._fast_search",
         ["src/longwar/_fast_search.pyx"],
-        optional=True,
     ),
 ]
 

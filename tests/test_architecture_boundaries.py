@@ -83,3 +83,32 @@ def test_force_runner_selects_profile_not_individual_rules() -> None:
         "--disable-cycle",
     ):
         assert obsolete_flag not in source
+
+
+def test_python_facade_contains_no_duplicate_rule_engine() -> None:
+    """Rule transitions must exist only in the canonical Cython engine."""
+    forbidden = (
+        "_pass",
+        "_score_battle",
+        "_resolve_plot",
+        "_resolve_triggered_schemes",
+        "_resolve_stratagem_event",
+        "_discard_subject",
+        "_draw_for_battle",
+        "_reshuffle_discard_into_deck",
+        "_finish_operation",
+        "_advance_turn",
+    )
+    for name in forbidden:
+        assert not hasattr(GameEngine, name), name
+
+    source = inspect.getsource(GameEngine)
+    assert "During the migration the reference code remains" not in source
+
+
+def test_canonical_cython_engine_is_required_build_output() -> None:
+    source = (ROOT / "setup.py").read_text(encoding="utf-8")
+    marker = '"longwar._fast_search"'
+    assert marker in source
+    fast_block = source.split(marker, 1)[1].split("),", 1)[0]
+    assert "optional=True" not in fast_block

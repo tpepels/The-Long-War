@@ -338,23 +338,6 @@ def test_children_gain_temporary_strength_when_link_played() -> None:
     assert engine.position_strength(state, 0, CENTER_FRONT) == 6
 
 
-def test_removing_subject_discards_its_bond_and_name() -> None:
-    engine, state = fresh_state()
-    state.players[0].hand = []
-    slot = state.slot(0, CENTER_FRONT)
-    slot.subject = "the-fifty-men"
-    slot.link = "followed"
-    slot.name = "namar"
-
-    engine._discard_subject(state, 0, CENTER_FRONT)
-
-    assert not slot.occupied
-    assert Counter(state.players[0].discard) >= Counter(
-        ["the-fifty-men", "followed", "namar"]
-    )
-    assert "namar" not in state.players[0].hand
-
-
 def test_next_battle_keeps_hand_recycles_everything_else_and_refills_to_ten() -> None:
     engine, state = fresh_state(first_player=0)
     kept = []
