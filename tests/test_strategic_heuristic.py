@@ -65,8 +65,9 @@ def test_strategic_heuristic_returns_a_legal_action_without_true_hand_access() -
         seed=7311,
         priors=priors,
         belief_samples=2,
-        rollout_plies=2,
+        rollout_plies=3,
         candidate_width=4,
+        node_budget=2_000,
     )
 
     legal = engine.legal_actions(state)
@@ -75,6 +76,8 @@ def test_strategic_heuristic_returns_a_legal_action_without_true_hand_access() -
     assert action in legal
     assert agent.last_decision["policy_source"] == "strategic_heuristic"
     assert agent.last_decision["belief_samples"] == 2
+    assert 0 <= agent.last_decision["completed_depth"] <= 3
+    assert agent.last_decision["search_nodes"] <= 2_000
 
 
 def test_short_strategic_command_simulation_finishes() -> None:
@@ -91,11 +94,15 @@ def test_short_strategic_command_simulation_finishes() -> None:
         strategic_belief_samples=2,
         strategic_rollout_plies=2,
         strategic_candidate_width=4,
+        strategic_node_budget=2_000,
     )
 
     assert sum(report.wins) == 4
     assert report.telemetry["depletion"]["player_game_deck_exhaustion_rate"] is not None
     assert "strategic_heuristic" in report.telemetry["decisions"]
+    decisions = report.telemetry["decisions"]["strategic_heuristic"]
+    assert decisions["mean_search_nodes"] is not None
+    assert decisions["mean_completed_depth"] is not None
 
 
 def test_persistent_command_simulation_reports_depletion() -> None:

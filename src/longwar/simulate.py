@@ -45,6 +45,7 @@ def make_agent(
     strategic_belief_samples: int = 3,
     strategic_rollout_plies: int = 3,
     strategic_candidate_width: int = 8,
+    strategic_node_budget: int = 20_000,
 ):
     if name == "random":
         return RandomAgent(seed)
@@ -58,6 +59,7 @@ def make_agent(
             belief_samples=strategic_belief_samples,
             rollout_plies=strategic_rollout_plies,
             candidate_width=strategic_candidate_width,
+            node_budget=strategic_node_budget,
         )
     if name == "mccfr":
         if policy is None:
@@ -88,6 +90,7 @@ def simulate_games(
     strategic_belief_samples: int = 3,
     strategic_rollout_plies: int = 3,
     strategic_candidate_width: int = 8,
+    strategic_node_budget: int = 20_000,
 ) -> SimulationReport:
     if games <= 0:
         raise ValueError("games must be positive")
@@ -130,6 +133,7 @@ def simulate_games(
                 strategic_belief_samples=strategic_belief_samples,
                 strategic_rollout_plies=strategic_rollout_plies,
                 strategic_candidate_width=strategic_candidate_width,
+                strategic_node_budget=strategic_node_budget,
             ),
             make_agent(
                 agent_names[1],
@@ -142,6 +146,7 @@ def simulate_games(
                 strategic_belief_samples=strategic_belief_samples,
                 strategic_rollout_plies=strategic_rollout_plies,
                 strategic_candidate_width=strategic_candidate_width,
+                strategic_node_budget=strategic_node_budget,
             ),
         ]
         mulligan_indices = tuple(

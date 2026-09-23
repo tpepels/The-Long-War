@@ -71,6 +71,84 @@ The simulator now records a `human_flow` block containing:
 
 Existing telemetry still supplies Names/Battle, Bonds/Battle, action counts, pass records, decision-space size, and per-card diagnostics.
 
-## Deferred execution
+## Strategic agent
 
-`.github/workflows/force-availability-draw-comparison.yml` is **manual-only** (`workflow_dispatch`). It is intentionally not push-triggered, so this implementation commit does not request an Actions run. When credits are available, run that workflow to compare A and B independently across Reference, Avaros, Mara and Sera.
+The strategic agent now uses belief-sampled **iterative-deepening alpha-beta search** rather than greedy rollout.
+
+For each real decision it:
+
+1. ranks plausible root actions with the public heuristic;
+2. samples several hidden opponent states through `BeliefSampler`;
+3. searches both sides adversarially inside each sampled state;
+4. uses alpha-beta pruning and a bounded candidate beam;
+5. deepens one ply at a time until the configured depth or node budget is reached;
+6. keeps the last fully completed depth if the node budget interrupts a deeper iteration;
+7. averages root-action values over belief samples.
+
+The search records mean completed depth and mean searched nodes in telemetry. The true opponent hand is never used; hidden cards come from belief samples.
+
+## Run locally
+
+Install/update the development environment once:
+
+```bash
+python -m pip install -e '.[dev]'
+```
+
+Optional focused rule/AI tests:
+
+```bash
+pytest -q tests/test_force_draw_candidate.py tests/test_strategic_heuristic.py
+```
+
+Fast smoke experiment:
+
+```bash
+python tools/run_force_draw_experiment.py --preset quick
+```
+
+Normal experiment — this is the default recommended comparison:
+
+```bash
+python tools/run_force_draw_experiment.py --preset deep --jobs 4
+```
+
+Strongest preset:
+
+```bash
+python tools/run_force_draw_experiment.py --preset max --jobs 4
+```
+
+Override the number of games without changing the AI preset:
+
+```bash
+python tools/run_force_draw_experiment.py --preset deep --games 50 --jobs 4
+```
+
+Run one specific cell of the matrix:
+
+```bash
+python tools/run_force_draw_experiment.py --preset deep --mode automatic --deck reference
+```
+
+Inspect the exact underlying `tools/simulate.py` commands without running them:
+
+```bash
+python tools/run_force_draw_experiment.py --preset deep --dry-run
+```
+
+Results are written under `artifacts/local-force-draw/<preset>/`:
+
+- one raw JSON per draw-mode/deck combination;
+- `summary.json` with the full comparison;
+- `summary.md` with the main human-flow and AI-search metrics.
+
+The presets are:
+
+| Preset | Games/run | Belief samples | Max depth | Beam | Nodes/decision |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| quick | 8 | 2 | 4 | 4 | 4,000 |
+| deep | 20 | 4 | 6 | 5 | 20,000 |
+| max | 20 | 6 | 8 | 6 | 60,000 |
+
+All experiment workflows on this branch are now intended as manual fallbacks. The local runner is the primary path.

@@ -1,16 +1,7 @@
 name: Command Hand Deck Sweep
 
 on:
-  push:
-    branches:
-      - experiment/command-hand-deck-sweep
-    paths:
-      - "cards/cards.json"
-      - "src/longwar/**"
-      - "tools/simulate.py"
-      - "tools/compute_command_costs.py"
-      - "tests/test_strategic_heuristic.py"
-      - ".github/workflows/command-hand-deck-sweep.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -41,8 +41,21 @@ def main() -> None:
     parser.add_argument("--online-iterations", type=int, default=8)
     parser.add_argument("--online-depth", type=int, default=2)
     parser.add_argument("--strategic-belief-samples", type=int, default=3)
-    parser.add_argument("--strategic-rollout-plies", type=int, default=3)
-    parser.add_argument("--strategic-candidate-width", type=int, default=8)
+    parser.add_argument(
+        "--strategic-rollout-plies",
+        "--strategic-search-depth",
+        dest="strategic_rollout_plies",
+        type=int,
+        default=5,
+        help="Maximum iterative-deepening alpha-beta depth in plies.",
+    )
+    parser.add_argument("--strategic-candidate-width", type=int, default=6)
+    parser.add_argument(
+        "--strategic-node-budget",
+        type=int,
+        default=20_000,
+        help="Maximum alpha-beta nodes per strategic decision.",
+    )
     parser.add_argument(
         "--hand-size",
         type=int,
@@ -197,6 +210,7 @@ def main() -> None:
         strategic_belief_samples=args.strategic_belief_samples,
         strategic_rollout_plies=args.strategic_rollout_plies,
         strategic_candidate_width=args.strategic_candidate_width,
+        strategic_node_budget=args.strategic_node_budget,
     )
 
     payload = asdict(report)
@@ -212,11 +226,15 @@ def main() -> None:
         "belief_samples": args.strategic_belief_samples,
         "rollout_plies": args.strategic_rollout_plies,
         "candidate_width": args.strategic_candidate_width,
+        "node_budget": args.strategic_node_budget,
+        "search": "belief-sampled iterative-deepening alpha-beta",
     }
     payload["simulation_variant"] = {
         "base_hand_size": args.hand_size,
         "draw_action_enabled": not args.disable_draw,
-        "battle_one_starter_bonus": 1,
+        "battle_one_starter_bonus": (
+            0 if (args.automatic_draw or args.paid_draw) else 1
+        ),
         "completion_draw_names": sorted(args.completion_draw_names),
         "deck_size": args.deck_size,
         "recycle_between_battles": not args.no_between_battle_recycle,
@@ -268,7 +286,7 @@ def main() -> None:
         f"pass_final={'on' if args.pass_final_operation else 'off'} "
         f"completion_refund={args.completion_command_refund} "
         f"stratagems={'public' if args.public_stratagems else 'hidden'} "
-        f"starter_bonus={'turn-draw' if args.automatic_draw else '+1'}"
+        f"starter_bonus={'turn-draw' if args.automatic_draw else ('none' if args.paid_draw else '+1')}"
     )
     print(f"Games: {report.games}")
     print(f"Wins: P0={report.wins[0]} P1={report.wins[1]}")

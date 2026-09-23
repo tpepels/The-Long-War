@@ -50,6 +50,8 @@ class DecisionStats:
     decisions: int = 0
     candidate_count_total: int = 0
     score_gap_total: float = 0.0
+    search_nodes_total: int = 0
+    completed_depth_total: int = 0
 
 
 class Telemetry:
@@ -177,6 +179,10 @@ class Telemetry:
                 decision_info.get("candidate_count", 0)
             )
             stats.score_gap_total += float(decision_info.get("score_gap", 0.0))
+            stats.search_nodes_total += int(decision_info.get("search_nodes", 0))
+            stats.completed_depth_total += int(
+                decision_info.get("completed_depth", 0)
+            )
             policy_source = decision_info.get("policy_source")
             if policy_source is not None:
                 self.policy_sources[str(policy_source)] += 1
@@ -447,6 +453,14 @@ class Telemetry:
                 ),
                 "mean_score_gap": self._ratio(
                     stats.score_gap_total,
+                    stats.decisions,
+                ),
+                "mean_search_nodes": self._ratio(
+                    stats.search_nodes_total,
+                    stats.decisions,
+                ),
+                "mean_completed_depth": self._ratio(
+                    stats.completed_depth_total,
                     stats.decisions,
                 ),
             }
