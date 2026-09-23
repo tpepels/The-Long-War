@@ -1794,8 +1794,8 @@ cdef class FastEngine:
         self,
         FastState state,
         int player,
+        FastState child,
     ):
-        cdef FastState child = FastState()
         cdef int front, margin, controls=0, tied=0, total_margin=0
         cdef int weakest_control=32767
         cdef int opponent = 1 - player
@@ -1863,7 +1863,7 @@ cdef class FastEngine:
         cdef double score
 
         if kind == TYPE_PASS:
-            return self.pass_score_fast(state, player)
+            return self.pass_score_fast(state, player, child)
 
         child.copy_from_fast(state)
         self.apply_fast(child, action)
