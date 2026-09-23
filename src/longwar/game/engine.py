@@ -123,6 +123,7 @@ class GameEngine:
         battle_command_gain: int = 10,
         command_cap: int = 20,
         cycle_command_cost: int = 1,
+        reshuffle_on_empty: bool = False,
     ):
         if deck_size < 1:
             raise ValueError("deck_size must be positive")
@@ -140,6 +141,7 @@ class GameEngine:
         self.battle_command_gain = battle_command_gain
         self.command_cap = command_cap
         self.cycle_command_cost = cycle_command_cost
+        self.reshuffle_on_empty = reshuffle_on_empty
         if min(starting_command, battle_command_gain, command_cap, cycle_command_cost) < 0:
             raise ValueError("Command settings must be non-negative")
         if starting_command > command_cap:
@@ -528,7 +530,7 @@ class GameEngine:
 
         if (
             self.command_enabled
-            and state.players[player].deck
+            and self.can_draw(state, player)
             and state.players[player].hand
         ):
             actions.extend(
@@ -2235,9 +2237,43 @@ class GameEngine:
         state.players[player].discard.append(card_id)
         state.discarded_this_battle[player] += 1
 
+    def can_draw(self, state: GameState, player: int) -> bool:
+        player_state = state.players[player]
+        return bool(
+            player_state.deck
+            or (
+                self.reshuffle_on_empty
+                and player_state.discard
+            )
+        )
+
+    def _reshuffle_discard_into_deck(
+        self,
+        state: GameState,
+        player: int,
+    ) -> bool:
+        player_state = state.players[player]
+        if (
+            not self.reshuffle_on_empty
+            or player_state.deck
+            or not player_state.discard
+        ):
+            return False
+
+        pool = list(player_state.discard)
+        player_state.discard.clear()
+        state.shuffle_seed = _shuffle_cards(pool, state.shuffle_seed)
+        player_state.deck[:] = pool
+        state.deck_reshuffles[player] += 1
+        return True
+
     def _draw(self, state: GameState, player: int, count: int) -> None:
         player_state = state.players[player]
-        for _ in range(min(count, len(player_state.deck))):
+        for _ in range(count):
+            if not player_state.deck:
+                self._reshuffle_discard_into_deck(state, player)
+            if not player_state.deck:
+                break
             player_state.hand.append(player_state.deck.pop())
 
     @staticmethod

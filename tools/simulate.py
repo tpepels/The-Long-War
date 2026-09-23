@@ -64,6 +64,14 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--reshuffle-on-empty",
+        action="store_true",
+        help=(
+            "Keep the draw pile persistent, but when it empties shuffle the "
+            "discard pile into a new draw pile."
+        ),
+    )
+    parser.add_argument(
         "--disable-draw",
         action="store_true",
         help="Remove the once-per-Battle Draw action for variant experiments.",
@@ -113,6 +121,7 @@ def main() -> None:
         battle_command_gain=args.battle_command_gain,
         command_cap=args.command_cap,
         cycle_command_cost=args.cycle_command_cost,
+        reshuffle_on_empty=args.reshuffle_on_empty,
     )
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
@@ -158,6 +167,7 @@ def main() -> None:
         "completion_draw_names": sorted(args.completion_draw_names),
         "deck_size": args.deck_size,
         "recycle_between_battles": not args.no_between_battle_recycle,
+        "reshuffle_on_empty": args.reshuffle_on_empty,
         "command_enabled": args.command,
         "starting_command": args.starting_command if args.command else None,
         "battle_command_gain": args.battle_command_gain if args.command else None,
@@ -181,6 +191,7 @@ def main() -> None:
         f"completion_draw_names={','.join(sorted(args.completion_draw_names)) or 'none'} "
         f"deck={args.deck_size} "
         f"recycle={'off' if args.no_between_battle_recycle else 'on'} "
+        f"reshuffle_on_empty={'on' if args.reshuffle_on_empty else 'off'} "
         f"command={'on' if args.command else 'off'} "
         "starter_bonus=+1"
     )

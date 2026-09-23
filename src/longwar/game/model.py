@@ -115,6 +115,7 @@ class GameState:
     command_spent_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     command_refunded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     battle_start_command: list[int] = field(default_factory=lambda: [0, 0])
+    deck_reshuffles: list[int] = field(default_factory=lambda: [0, 0])
     pass_order: list[int] = field(default_factory=list)
     chooser: int | None = None
     winner: int | None = None
@@ -189,6 +190,7 @@ class GameState:
             command_spent_this_battle=list(self.command_spent_this_battle),
             command_refunded_this_battle=list(self.command_refunded_this_battle),
             battle_start_command=list(self.battle_start_command),
+            deck_reshuffles=list(self.deck_reshuffles),
             pass_order=list(self.pass_order),
             chooser=self.chooser,
             winner=self.winner,
@@ -260,6 +262,7 @@ class GameState:
         self.command_spent_this_battle[:] = source.command_spent_this_battle
         self.command_refunded_this_battle[:] = source.command_refunded_this_battle
         self.battle_start_command[:] = source.battle_start_command
+        self.deck_reshuffles[:] = source.deck_reshuffles
         self.pass_order[:] = source.pass_order
         self.chooser = source.chooser
         self.winner = source.winner

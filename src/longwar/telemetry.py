@@ -80,6 +80,9 @@ class Telemetry:
         self._current_battle_winners: list[int] = []
         self._deck_exhausted_this_game: list[bool] = [False, False]
         self._deck_exhausted_player_games = 0
+        self._reshuffled_this_game: list[bool] = [False, False]
+        self._reshuffle_player_games = 0
+        self._reshuffles_total = 0
         self._battle_decisions = 0
         self._deck_empty_decisions = 0
         self._cycle_blocked_empty_deck_decisions = 0
@@ -93,6 +96,7 @@ class Telemetry:
         self._battle_actions = [0, 0]
         self._current_battle_winners = []
         self._deck_exhausted_this_game = [False, False]
+        self._reshuffled_this_game = [False, False]
 
         for player in range(2):
             for card_id in state.players[player].hand:
@@ -114,9 +118,10 @@ class Telemetry:
             self._battle_decisions += 1
             if not state.players[actor].deck:
                 self._deck_empty_decisions += 1
-                self._deck_exhausted_this_game[actor] = True
-                if state.players[actor].hand and engine.command_enabled:
-                    self._cycle_blocked_empty_deck_decisions += 1
+                if not engine.can_draw(state, actor):
+                    self._deck_exhausted_this_game[actor] = True
+                    if state.players[actor].hand and engine.command_enabled:
+                        self._cycle_blocked_empty_deck_decisions += 1
             legal = engine.legal_actions(state)
             playable_ids = {
                 card_id
@@ -207,6 +212,11 @@ class Telemetry:
         action: Action,
     ) -> None:
         self._record_new_draws(before, state)
+        for player in range(2):
+            delta = state.deck_reshuffles[player] - before.deck_reshuffles[player]
+            if delta > 0:
+                self._reshuffles_total += delta
+                self._reshuffled_this_game[player] = True
 
         card_id = self._action_card_id(action)
         if card_id is not None and before.phase is Phase.BATTLE:
@@ -241,6 +251,7 @@ class Telemetry:
     def finish_game(self, winner: int) -> None:
         self._match_count += 1
         self._deck_exhausted_player_games += sum(self._deck_exhausted_this_game)
+        self._reshuffle_player_games += sum(self._reshuffled_this_game)
         if self._current_battle_winners:
             battle_one_winner = self._current_battle_winners[0]
             if winner != battle_one_winner:
@@ -479,6 +490,14 @@ class Telemetry:
                 self._deck_exhausted_player_games,
                 2 * self._match_count,
             ),
+            "player_game_reshuffle_rate": self._ratio(
+                self._reshuffle_player_games,
+                2 * self._match_count,
+            ),
+            "mean_reshuffles_per_player_game": self._ratio(
+                self._reshuffles_total,
+                2 * self._match_count,
+            ),
             "mean_deck_remaining_at_pass": self._mean_field(
                 self.pass_events,
                 "deck_remaining",
@@ -543,6 +562,15 @@ class Telemetry:
             return
 
         for player in range(2):
+            if state.deck_reshuffles[player] > before.deck_reshuffles[player]:
+                added = Counter(state.players[player].hand) - Counter(
+                    before.players[player].hand
+                )
+                for card_id, count in added.items():
+                    for _ in range(count):
+                        self._record_draw(player, card_id)
+                continue
+
             count = len(before.players[player].deck) - len(state.players[player].deck)
             if count <= 0:
                 continue
