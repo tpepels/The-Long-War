@@ -112,3 +112,26 @@ def test_canonical_cython_engine_is_required_build_output() -> None:
     assert marker in source
     fast_block = source.split(marker, 1)[1].split("),", 1)[0]
     assert "optional=True" not in fast_block
+
+
+def test_cython_engine_contains_no_heuristic_policy() -> None:
+    source = (
+        ROOT / "src" / "longwar" / "_fast_search.pyx"
+    ).read_text(encoding="utf-8")
+    engine_section = source.split("cdef class FastEngine:", 1)[1].split(
+        "cdef class NativeHeuristicEvaluator:",
+        1,
+    )[0]
+    evaluator_section = source.split(
+        "cdef class NativeHeuristicEvaluator:",
+        1,
+    )[1].split("class NativeSearchLimit", 1)[0]
+
+    for method in (
+        "cdef double evaluate_fast(",
+        "cdef double strategic_evaluate_fast(",
+        "cdef double action_order_score_fast(",
+        "cdef double pass_score_fast(",
+    ):
+        assert method not in engine_section
+        assert method in evaluator_section

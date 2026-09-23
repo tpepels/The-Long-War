@@ -15,6 +15,7 @@ from longwar.mccfr import action_key, information_set_id
 
 fast_search = pytest.importorskip("longwar._fast_search")
 FastEngine = fast_search.FastEngine
+NativeHeuristicEvaluator = fast_search.NativeHeuristicEvaluator
 stable_information_id_from_fast_key = (
     fast_search.stable_information_id_from_fast_key
 )
@@ -124,8 +125,12 @@ def assert_fast_matches(
             ) == engine.front_strength(state, player, front)
 
     evaluator = HeuristicAgent(seed=0, exploration=0.0)
+    native_evaluator = NativeHeuristicEvaluator(fast_engine)
     for player in (0, 1):
-        assert fast_engine.evaluate(fast_state, player) == pytest.approx(
+        assert native_evaluator.evaluate(
+            fast_state,
+            player,
+        ) == pytest.approx(
             evaluator.evaluate(engine, state, player)
         )
 

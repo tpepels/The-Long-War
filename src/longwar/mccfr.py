@@ -38,6 +38,7 @@ try:
     from ._fast_search import (
         FastCFRNode as PrimitiveCFRNode,
         FastEngine as PrimitiveFastEngine,
+        NativeHeuristicEvaluator as PrimitiveHeuristicEvaluator,
         make_scratch as make_primitive_scratch,
         packed_external_sampling_traverse,
         stable_information_id_from_fast_key,
@@ -45,6 +46,7 @@ try:
 except ImportError:
     PrimitiveCFRNode = None
     PrimitiveFastEngine = None
+    PrimitiveHeuristicEvaluator = None
     make_primitive_scratch = None
     packed_external_sampling_traverse = None
     stable_information_id_from_fast_key = None
@@ -131,6 +133,14 @@ class MCCFRTrainer:
             )
             else None
         )
+        self._primitive_evaluator = (
+            PrimitiveHeuristicEvaluator(self._primitive_engine)
+            if (
+                self._primitive_engine is not None
+                and PrimitiveHeuristicEvaluator is not None
+            )
+            else None
+        )
         self._primitive_scratch = (
             make_primitive_scratch(max_depth)
             if (
@@ -170,6 +180,7 @@ class MCCFRTrainer:
                         rng=self.rng,
                         leaf_scale=self.leaf_scale,
                         scratch=self._primitive_scratch,
+                        evaluator=self._primitive_evaluator,
                     )
                 self._used_primitive_training = True
             else:
