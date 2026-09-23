@@ -6,9 +6,13 @@ import json
 import subprocess
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
+
+from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
+from longwar.belief import DeckHypothesis, HypothesisDeckPrior
+from longwar.cards import load_card_file
+from longwar.game import GameEngine
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "tools" / "run_force_draw_experiment.py"
@@ -146,76 +150,107 @@ def validate() -> None:
     print("Rules tests passed and Python/Cython produced identical fixed-seed simulations.")
 
 
-def benchmark(games: int, jobs: int) -> None:
+def benchmark(node_budget: int) -> None:
+    """Compare Python and Cython alpha-beta on one identical root decision."""
     require_cython()
-    if games <= 0:
-        raise SystemExit("--games must be positive.")
-    if jobs <= 0:
-        raise SystemExit("--jobs must be positive.")
+    if node_budget <= 0:
+        raise SystemExit("--nodes must be positive.")
 
-    BENCH_ROOT.mkdir(parents=True, exist_ok=True)
-    seeds = [26092334 + index for index in range(jobs)]
-    timings: dict[str, float] = {}
+    card_data = load_card_file(
+        ROOT / "cards" / "experiments" / "force-draw-cards.json"
+    )
+    deck = json.loads(
+        (
+            ROOT
+            / "decks"
+            / "experiments"
+            / "force-rich-34-reference.json"
+        ).read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(
+        card_data,
+        opening_hand_size=10,
+        deck_size=34,
+        draw_action_enabled=False,
+        recycle_between_battles=False,
+        reshuffle_on_empty=True,
+        command_enabled=True,
+        starting_command=20,
+        battle_command_gain=10,
+        command_cap=20,
+        cycle_enabled=False,
+        paid_draw_enabled=True,
+        paid_draw_command_cost=1,
+        pass_final_operation=True,
+        pass_requires_both_acted=True,
+        first_passer_starts_next_battle=True,
+        completion_command_refund=1,
+        public_stratagems=True,
+    )
+    state = engine.new_game(deck, deck, seed=26092334, first_player=0)
+    priors = (
+        HypothesisDeckPrior(
+            engine,
+            [DeckHypothesis(tuple(deck), label="reference")],
+        ),
+        HypothesisDeckPrior(
+            engine,
+            [DeckHypothesis(tuple(deck), label="reference")],
+        ),
+    )
 
+    results: dict[str, dict[str, Any]] = {}
     print(
-        f"Benchmark load: {jobs} workers × {games} game(s) "
-        f"= {jobs * games} games/backend"
+        "Benchmark: one fixed strategic decision, "
+        f"2 beliefs, depth 5, beam 5, {node_budget:,} node budget"
     )
 
     for backend in ("python", "cython"):
-        commands: list[list[str]] = []
-        for index, seed in enumerate(seeds):
-            output = BENCH_ROOT / backend / f"worker-{index + 1}"
-            commands.append(
-                [
-                    sys.executable,
-                    str(RUNNER),
-                    "--preset",
-                    "deep",
-                    "--games",
-                    str(games),
-                    "--jobs",
-                    "1",
-                    "--mode",
-                    "automatic",
-                    "--deck",
-                    "reference",
-                    "--backend",
-                    backend,
-                    "--seed",
-                    str(seed),
-                    "--output-dir",
-                    str(output),
-                ]
-            )
-
-        print(f"\nBenchmarking {backend} backend on {jobs} CPU workers...")
+        agent = StrategicHeuristicAgent(
+            engine,
+            seed=26092335,
+            priors=priors,
+            belief_samples=2,
+            rollout_plies=5,
+            candidate_width=5,
+            node_budget=node_budget,
+            search_backend=backend,
+        )
+        benchmark_state = state.clone()
         start = time.perf_counter()
-        with ThreadPoolExecutor(max_workers=jobs) as pool:
-            futures = [
-                pool.submit(run_command, command, capture=True)
-                for command in commands
-            ]
-            for index, future in enumerate(as_completed(futures), start=1):
-                future.result()
-                print(f"  completed {index}/{jobs}", flush=True)
-        timings[backend] = time.perf_counter() - start
+        action = agent.choose(engine, benchmark_state)
+        elapsed = time.perf_counter() - start
+        nodes = int(agent.last_decision["search_nodes"])
+        results[backend] = {
+            "elapsed": elapsed,
+            "nodes": nodes,
+            "nodes_per_second": nodes / elapsed if elapsed else float("inf"),
+            "action": action,
+            "depth": int(agent.last_decision["completed_depth"]),
+        }
+        print(
+            f"{backend.capitalize():6}: {elapsed:.3f}s | "
+            f"{nodes:,} nodes | "
+            f"{results[backend]['nodes_per_second']:,.0f} nodes/s | "
+            f"depth {results[backend]['depth']} | "
+            f"{type(action).__name__}"
+        )
 
-    py = timings["python"]
-    cy = timings["cython"]
-    total_games = jobs * games
+    python_result = results["python"]
+    cython_result = results["cython"]
+    if python_result["action"] != cython_result["action"]:
+        raise SystemExit(
+            "Benchmark parity FAILED: Python and Cython selected "
+            "different root actions."
+        )
 
-    print("\nBenchmark")
-    print(
-        f"Python : {py:.2f}s "
-        f"({total_games / py:.2f} games/s aggregate)"
+    speedup = (
+        python_result["elapsed"] / cython_result["elapsed"]
+        if cython_result["elapsed"]
+        else float("inf")
     )
-    print(
-        f"Cython : {cy:.2f}s "
-        f"({total_games / cy:.2f} games/s aggregate)"
-    )
-    if cy > 0:
-        print(f"Speedup: {py / cy:.2f}x")
+    print(f"Speedup: {speedup:.2f}x")
+    print("Root-action parity: OK")
 
 
 def run_experiment(args: argparse.Namespace) -> None:
@@ -256,16 +291,10 @@ def parse_args() -> argparse.Namespace:
         help="Benchmark Python and Cython on the same deep-search cell.",
     )
     bench.add_argument(
-        "--games",
+        "--nodes",
         type=int,
-        default=1,
-        help="Games per CPU worker (default: 1).",
-    )
-    bench.add_argument(
-        "--jobs",
-        type=int,
-        default=8,
-        help="Parallel benchmark workers (default: 8).",
+        default=5_000,
+        help="Search-node budget for each backend (default: 5000).",
     )
 
     run = sub.add_parser(
@@ -288,7 +317,7 @@ def main() -> None:
     if args.command == "validate":
         validate()
     elif args.command == "bench":
-        benchmark(args.games, args.jobs)
+        benchmark(args.nodes)
     elif args.command == "run":
         run_experiment(args)
     else:
