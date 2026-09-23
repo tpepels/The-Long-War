@@ -1411,6 +1411,29 @@ body.game-body::before {
 .play-card-role span{font-weight:650}
 .play-card-classes{color:#655744;font-size:7.5px;line-height:1.08;font-weight:650}
 
+.play-card-meta-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.play-command-cost {
+  min-width: 23px;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: rgba(243,234,215,.82);
+  color: #4d3d26;
+  font: 850 9px/1 system-ui, sans-serif;
+  text-align: center;
+}
+.play-command-cost::before {
+  content: "C";
+  margin-right: 3px;
+  font-size: 7px;
+  opacity: .72;
+}
+
 .play-card-strength {
   position: absolute;
   right: 10px;

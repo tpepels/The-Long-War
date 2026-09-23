@@ -73,11 +73,14 @@ function cardMarkup(card, deckLabel) {
   const strength = Number.isInteger(card.strength)
     ? '<div class="strength" aria-label="Strength">' + card.strength + "</div>"
     : "";
+  const commandCost = Number.isInteger(card.command_cost)
+    ? '<div class="command-cost" aria-label="Command cost">' + card.command_cost + "</div>"
+    : "";
   const unique = card.unique ? '<span class="unique"><em>Unique</em></span>' : "";
   return '<article class="game-card deck-card card-' + card.type +
     (card.veiled ? " card-veiled" : "") +
     (card.hero ? " card-hero" : "") + '" data-card-id="' + esc(card.id) + '">' +
-    '<div class="card-meta"><span class="card-type">' + esc(typeLabel(card)) + '</span>' + strength + '</div>' +
+    '<div class="card-meta"><span class="card-type">' + esc(typeLabel(card)) + '</span>' + commandCost + strength + '</div>' +
     '<h2 class="card-title">' + esc(card.title) + '</h2>' +
     propertyLabel(card) +
     '<div class="card-rule">' + ruleMarkup(card) + '</div>' +
