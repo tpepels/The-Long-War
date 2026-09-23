@@ -39,7 +39,9 @@ def build_playability_report(simulations: Iterable[dict[str, Any]]) -> dict[str,
         raise ValueError("Simulation reports belong to different game fingerprints")
 
     games = battles = pass_events = first_pass_battles = decisions = 0
+    continuing_battles = shortfall_players = 0
     match_actions = pass_hand_total = pass_dead_total = 0.0
+    next_hand_total = next_shortfall_total = 0.0
     first_pass_wins = candidate_total = 0.0
     actions: Counter[str] = Counter()
     card_totals: Counter[str] = Counter()
@@ -61,7 +63,9 @@ def build_playability_report(simulations: Iterable[dict[str, Any]]) -> dict[str,
             count for name, count in run_actions.items() if name != "ChooseFirst"
         )
         passes = telemetry["passes"]
+        battle_stats = telemetry["battles"]
         run_pass_events = int(passes["events"])
+        run_continuing = int(battle_stats.get("continuing_battles", 0))
 
         games += game_count
         battles += battle_count
@@ -73,6 +77,24 @@ def build_playability_report(simulations: Iterable[dict[str, Any]]) -> dict[str,
         first_pass_battles += battle_count
         first_pass_wins += (
             float(passes.get("first_passer_battle_win_rate") or 0.0) * battle_count
+        )
+        continuing_battles += run_continuing
+        next_hand_total += (
+            float(battle_stats.get("mean_next_battle_hand_size") or 0.0)
+            * 2
+            * run_continuing
+        )
+        next_shortfall_total += (
+            float(battle_stats.get("mean_next_battle_hand_shortfall") or 0.0)
+            * 2
+            * run_continuing
+        )
+        shortfall_players += int(
+            round(
+                float(battle_stats.get("next_battle_player_shortfall_rate") or 0.0)
+                * 2
+                * run_continuing
+            )
         )
 
         for stats in telemetry.get("cards", {}).values():
@@ -163,6 +185,12 @@ def build_playability_report(simulations: Iterable[dict[str, Any]]) -> dict[str,
             "mean_per_battle": actions["SetStratagem"] / battles,
             "opportunity_use_rate": actions["SetStratagem"] / (2 * battles),
         },
+        "refill": {
+            "continuing_battles": continuing_battles,
+            "mean_next_battle_hand_size": _ratio(next_hand_total, 2 * continuing_battles),
+            "mean_next_battle_hand_shortfall": _ratio(next_shortfall_total, 2 * continuing_battles),
+            "next_battle_player_shortfall_rate": _ratio(shortfall_players, 2 * continuing_battles),
+        },
         "hand_pressure": {
             "mean_hand_size_at_pass": _ratio(pass_hand_total, pass_events),
             "mean_dead_cards_at_pass": _ratio(pass_dead_total, pass_events),
@@ -196,6 +224,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     match = report["match_pacing"]
     battle = report["battle_pacing"]
     hand = report["hand_pressure"]
+    refill = report["refill"]
     rows = [
         "# AI playability statistics",
         "",
@@ -215,6 +244,9 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"| Dead-card share at pass | {_pct(hand['dead_card_share_at_pass'])} |",
         f"| Card-in-hand turns unplayable | {_pct(hand['unplayable_card_turn_share'])} |",
         f"| Drawn cards eventually played | {_pct(hand['card_play_rate_per_draw'])} |",
+        f"| Next-Battle hand size | {_num(refill['mean_next_battle_hand_size'])} |",
+        f"| Next-Battle refill shortfall/player | {_num(refill['mean_next_battle_hand_shortfall'])} |",
+        f"| Players below refill target | {_pct(refill['next_battle_player_shortfall_rate'])} |",
         f"| First passer wins Battle | {_pct(report['passing']['first_passer_battle_win_rate'])} |",
         f"| Mean legal candidates per heuristic decision | {_num(report['decision_load']['mean_legal_candidates_per_heuristic_decision'])} |",
         "",
