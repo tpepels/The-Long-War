@@ -85,6 +85,7 @@ function cloneState(state) {
 function actionKey(action) {
   if (action.kind === "Pass") return "pass";
   if (action.kind === "Draw") return "draw";
+  if (action.kind === "Cycle") return "cycle:" + action.card_id;
   if (action.kind === "ChooseFirst") return "choose_first:" + action.choose_player;
   if (action.kind === "PlaySubject") {
     return "subject:" + action.card_id + ":" + action.position.front + ":" + action.position.rank;
@@ -129,6 +130,8 @@ class BrowserEngine {
       discard: [],
       victories: 0,
       passed: false,
+      command: 20,
+      free_cycle: false,
     }));
     const state = {
       players,
@@ -138,6 +141,7 @@ class BrowserEngine {
       stratagem_used: [false, false],
       draw_used: [false, false],
       discarded_this_battle: [0, 0],
+      deck_reshuffles: [0, 0],
       pass_order: [],
       battle: 1,
       phase: "battle",
@@ -152,9 +156,27 @@ class BrowserEngine {
     return state;
   }
 
+  canDraw(state, player) {
+    const ps = state.players[player];
+    return Boolean(ps.deck.length || ps.discard.length);
+  }
+
+  reshuffleDiscardIntoDeck(state, player) {
+    const ps = state.players[player];
+    if (ps.deck.length || !ps.discard.length) return false;
+    const pool = [...ps.discard];
+    ps.discard = [];
+    state.shuffle_seed = shuffleForBattle(pool, state.shuffle_seed >>> 0);
+    ps.deck = pool;
+    state.deck_reshuffles[player] += 1;
+    return true;
+  }
+
   draw(state, player, count) {
     const ps = state.players[player];
-    for (let i = 0; i < count && ps.deck.length; i += 1) {
+    for (let i = 0; i < count; i += 1) {
+      if (!ps.deck.length) this.reshuffleDiscardIntoDeck(state, player);
+      if (!ps.deck.length) break;
       ps.hand.push(ps.deck.pop());
     }
   }
@@ -184,8 +206,10 @@ class BrowserEngine {
     const player = state.active_player;
     if (state.players[player].passed) throw new Error("A passed player cannot become active");
     const actions = [this.action("Pass")];
-    if (!state.draw_used[player] && state.players[player].deck.length) {
-      actions.push(this.action("Draw"));
+    if (this.canDraw(state, player) && state.players[player].hand.length) {
+      for (const cardId of unique(state.players[player].hand)) {
+        actions.push(this.action("Cycle", { card_id: cardId }));
+      }
     }
 
     for (const cardId of unique(state.players[player].hand)) {
@@ -205,7 +229,55 @@ class BrowserEngine {
         actions.push(this.action("SetStratagem", { card_id: cardId }));
       }
     }
-    return actions;
+    return actions.filter((action) =>
+      this.commandCostForAction(state, action) <= state.players[player].command
+    );
+  }
+
+  commandCostForAction(state, action) {
+    const player = state.active_player;
+    if (action.kind === "Cycle") return state.players[player].free_cycle ? 0 : 1;
+    if (["Pass", "ChooseFirst", "Draw"].includes(action.kind)) return 0;
+    if (!action.card_id) return 0;
+    let cost = Number(this.cards[action.card_id]?.command_cost || 0);
+    let targetFront = null;
+    if (["PlaySubject", "PlayLink", "PlayName"].includes(action.kind)) {
+      targetFront = action.position?.front ?? null;
+    } else if (action.kind === "PlayScheme") {
+      targetFront = action.front;
+    }
+    if (targetFront != null) {
+      cost = Math.max(1, cost - this.adjacentCommandDiscount(state, player, targetFront));
+    }
+    return cost;
+  }
+
+  adjacentCommandDiscount(state, player, targetFront) {
+    let discount = 0;
+    for (const position of POSITIONS) {
+      const slot = slotAt(state, player, position.front, position.rank);
+      if (!(slot.subject && slot.link && slot.name)) continue;
+      if (Math.abs(position.front - targetFront) !== 1) continue;
+      discount = Math.max(
+        discount,
+        Number(this.cards[slot.name]?.rules?.adjacent_command_discount || 0)
+      );
+    }
+    return discount;
+  }
+
+  spendCommand(state, player, amount) {
+    if (amount < 0 || amount > state.players[player].command) {
+      throw new Error("Not enough Command");
+    }
+    state.players[player].command -= amount;
+  }
+
+  gainCommand(state, player, amount) {
+    state.players[player].command = Math.min(
+      20,
+      state.players[player].command + Math.max(0, Number(amount || 0))
+    );
   }
 
   action(kind, fields = {}) {
@@ -312,7 +384,11 @@ class BrowserEngine {
 
   subjectProtectedFromStory(slot) {
     if (!slot.link || !slot.name) return false;
-    return Boolean(this.cards[slot.link].rules?.protect_subject_from_opponent_plot);
+    if (this.cards[slot.link].rules?.protect_subject_from_opponent_plot) return true;
+    return Boolean(
+      slot.subject &&
+      this.cards[slot.name].rules?.complete_protection_from_opponent_plot
+    );
   }
 
   takeFromHand(state, player, cardId) {
@@ -349,12 +425,29 @@ class BrowserEngine {
     }
 
     if (action.kind === "Draw") {
+      throw new Error("Generic Draw is disabled in Command play");
+    }
+
+    if (action.kind === "Cycle") {
+      const cost = this.commandCostForAction(state, action);
+      this.spendCommand(state, actor, cost);
+      const wasFree = state.players[actor].free_cycle;
+      this.takeFromHand(state, actor, action.card_id);
+      this.discardCard(state, actor, action.card_id);
       this.draw(state, actor, 1);
-      state.draw_used[actor] = true;
+      if (wasFree) state.players[actor].free_cycle = false;
       this.advanceTurn(state);
       state.turn_number += 1;
       return events;
     }
+
+    if (["PlaySubject", "PlayLink", "PlayName", "PlayPlot", "PlayScheme", "SetStratagem"].includes(action.kind)) {
+      this.spendCommand(state, actor, this.commandCostForAction(state, action));
+    }
+
+    const completionBefore = ["PlaySubject", "PlayLink", "PlayName"].includes(action.kind)
+      ? this.completeFormationCounts(state, actor)
+      : null;
 
     if (action.kind === "PlaySubject") {
       this.takeFromHand(state, actor, action.card_id);
@@ -393,14 +486,76 @@ class BrowserEngine {
       this.takeFromHand(state, actor, action.card_id);
       state.stratagems[actor] = { card_id: action.card_id, revealed: false };
       state.stratagem_used[actor] = true;
+      this.advanceTurn(state);
+      state.turn_number += 1;
       return events;
     } else {
       throw new Error("Unhandled action: " + action.kind);
     }
 
+    if (completionBefore) {
+      this.resolveNewCompletionUtilities(state, actor, completionBefore, events);
+    }
+
     this.advanceTurn(state);
     state.turn_number += 1;
     return events;
+  }
+
+  completeFormationCounts(state, player) {
+    const counts = new Map();
+    for (const position of POSITIONS) {
+      const slot = slotAt(state, player, position.front, position.rank);
+      if (!(slot.subject && slot.link && slot.name)) continue;
+      const key = [slot.subject, slot.link, slot.name].join("|");
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    return counts;
+  }
+
+  resolveNewCompletionUtilities(state, player, before, events) {
+    const after = this.completeFormationCounts(state, player);
+    const remaining = new Map();
+    for (const [key, count] of after) {
+      const delta = count - (before.get(key) || 0);
+      if (delta > 0) remaining.set(key, delta);
+    }
+    if (!remaining.size) return;
+
+    for (const position of POSITIONS) {
+      const slot = slotAt(state, player, position.front, position.rank);
+      if (!(slot.subject && slot.link && slot.name)) continue;
+      const key = [slot.subject, slot.link, slot.name].join("|");
+      if ((remaining.get(key) || 0) <= 0) continue;
+      remaining.set(key, remaining.get(key) - 1);
+
+      const completion = this.cards[slot.name]?.rules?.on_completion || {};
+      if (completion.effect === "gain_command") {
+        this.gainCommand(state, player, Number(completion.amount || 1));
+      } else if (completion.effect === "grant_free_cycle") {
+        state.players[player].free_cycle = true;
+      } else if (completion.effect === "reveal_enemy_scheme") {
+        const owner = 1 - player;
+        const scheme = state.schemes[owner][position.front];
+        if (scheme && !scheme.revealed) {
+          scheme.revealed = true;
+          events.push({ type: "reveal", zone: "scheme", card_id: scheme.card_id });
+        }
+      } else if (completion.effect === "recover_recent_link") {
+        this.recoverRecentLink(state, player);
+      }
+    }
+  }
+
+  recoverRecentLink(state, player) {
+    const discard = state.players[player].discard;
+    for (let index = discard.length - 1; index >= 0; index -= 1) {
+      const cardId = discard[index];
+      if (this.cards[cardId]?.type !== "link") continue;
+      discard.splice(index, 1);
+      state.players[player].hand.push(cardId);
+      return;
+    }
   }
 
   advanceTurn(state) {
@@ -456,8 +611,10 @@ class BrowserEngine {
     state.stratagem_used = [false, false];
     state.draw_used = [false, false];
     state.pass_order = [];
-    this.recycleNonHandCards(state);
     for (let player = 0; player < 2; player += 1) {
+      state.players[player].command = Math.min(20, state.players[player].command + 10);
+      state.players[player].free_cycle = false;
+      this.draw(state, player, Math.max(0, 10 - state.players[player].hand.length));
       state.players[player].passed = false;
     }
     state.phase = "choose_first";
@@ -872,8 +1029,8 @@ class LightweightAgent {
       const clone = cloneState(state);
       this.engine.apply(clone, action, { validate: false });
       let score = this.evaluate(clone, player);
-      if (action.kind === "SetStratagem") score += 3;
-      if (action.kind === "Draw") score -= 0.8;
+      if (action.kind === "SetStratagem") score += 0.25;
+      if (action.kind === "Cycle") score -= 0.25;
       if (action.kind === "PlayName") {
         const slot = slotAt(state, player, action.position.front, action.position.rank);
         score += slot.subject ? 0.35 : 1.50;
@@ -904,6 +1061,7 @@ class LightweightAgent {
     if (enemyControls >= 2) score -= 14;
     score += 0.75 * margins.reduce((sum, margin) => sum + Math.max(-10, Math.min(10, margin)), 0);
     score += 1.25 * (state.players[player].hand.length - state.players[opponent].hand.length);
+    score += 0.45 * (state.players[player].command - state.players[opponent].command);
     if (state.phase === "choose_first" && state.chooser === player) score += state.active_player === player ? 0 : 0.5;
     return score;
   }
@@ -978,7 +1136,7 @@ export class BrowserSession {
     if (!action) throw new Error("That action is no longer legal");
     this.applyWithLog(action);
     if (this.mode === "hotseat") {
-      return this.snapshot(action.kind === "SetStratagem" ? viewer : null);
+      return this.snapshot(null);
     }
     return this.snapshot(0);
   }
@@ -1052,6 +1210,8 @@ export class BrowserSession {
       passed: player.passed,
       hand_count: player.hand.length,
       deck_count: player.deck.length,
+      command: player.command,
+      free_cycle: player.free_cycle,
       discard: [...player.discard],
     }));
 
@@ -1180,6 +1340,7 @@ export class BrowserSession {
       key: action.key,
       kind: action.kind,
       card_id: action.card_id,
+      command_cost: this.commandCostForAction(this.state, action),
       label: this.describeAction(action, this.state.active_player, true),
       reason: this.legalReason(action),
       position: action.position ? positionPayload(action.position) : null,
@@ -1197,6 +1358,7 @@ export class BrowserSession {
     const prefix = "Player " + (actor + 1);
     if (action.kind === "Pass") return prefix + " Passes.";
     if (action.kind === "Draw") return prefix + " draws 1 card.";
+    if (action.kind === "Cycle") return prefix + " Cycles " + this.cards[action.card_id].title + ".";
     if (action.kind === "ChooseFirst") return prefix + " chooses Player " + (action.choose_player + 1) + " to start the next Battle.";
     if (action.kind === "PlaySubject") {
       return prefix + " plays " + this.cards[action.card_id].title + " to " +
@@ -1238,13 +1400,14 @@ export class BrowserSession {
 
   legalReason(action) {
     if (action.kind === "Pass") return "Pass is always legal while you are still active in the Battle.";
-    if (action.kind === "Draw") return "Draw 1 card as your normal action. You may do this once per Battle.";
+    if (action.kind === "Draw") return "Generic Draw is not part of the Command rules.";
+    if (action.kind === "Cycle") return "Pay its Cycle cost, discard this card, then draw 1.";
     if (action.kind === "ChooseFirst") return "The previous Battle loser chooses who takes the first turn.";
     if (action.kind === "PlaySubject") return "This position has no Subject. Prepared Bond or Name cards may already be here.";
     if (action.kind === "PlayLink") return "This position has no Bond. The Bond may be prepared before its Subject.";
     if (action.kind === "PlayName") return "This position has no Name. The Name may be prepared before its Subject or Bond; Subject-dependent text waits for a Subject.";
     if (action.kind === "PlayScheme") return "You have no Veiled Story in this Front.";
-    if (action.kind === "SetStratagem") return "You have not set a Stratagem this Battle. Setting it is free and you still take your normal action.";
+    if (action.kind === "SetStratagem") return "You have not set a Stratagem this Battle. Pay its printed Command cost; setting it uses this turn's operation.";
     if (action.kind === "PlayPlot") return "The Story has all targets required by its rules text.";
     return "Legal according to the browser rules engine.";
   }
