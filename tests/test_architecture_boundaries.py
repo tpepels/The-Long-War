@@ -115,17 +115,16 @@ def test_canonical_cython_engine_is_required_build_output() -> None:
 
 
 def test_cython_engine_contains_no_heuristic_policy() -> None:
-    source = (
+    engine_source = (
         ROOT / "src" / "longwar" / "_fast_search.pyx"
     ).read_text(encoding="utf-8")
-    engine_section = source.split("cdef class FastEngine:", 1)[1].split(
-        "cdef class NativeHeuristicEvaluator:",
-        1,
-    )[0]
-    evaluator_section = source.split(
-        "cdef class NativeHeuristicEvaluator:",
-        1,
-    )[1].split("class NativeSearchLimit", 1)[0]
+    heuristic_source = (
+        ROOT / "src" / "longwar" / "_heuristic_core.pxi"
+    ).read_text(encoding="utf-8")
+
+    assert 'include "_heuristic_core.pxi"' in engine_source
+    assert 'include "_alpha_beta_core.pxi"' in engine_source
+    assert 'include "_mccfr_core.pxi"' in engine_source
 
     for method in (
         "cdef double evaluate_fast(",
@@ -133,5 +132,21 @@ def test_cython_engine_contains_no_heuristic_policy() -> None:
         "cdef double action_order_score_fast(",
         "cdef double pass_score_fast(",
     ):
-        assert method not in engine_section
-        assert method in evaluator_section
+        assert method not in engine_source
+        assert method in heuristic_source
+
+
+def test_native_algorithms_do_not_contain_rule_switches() -> None:
+    forbidden = (
+        "automatic_draw",
+        "paid_draw_enabled",
+        "pass_final_operation",
+        "completion_command_refund",
+        "public_stratagems",
+        "reshuffle_on_empty",
+    )
+    for filename in ("_alpha_beta_core.pxi", "_mccfr_core.pxi"):
+        source = (
+            ROOT / "src" / "longwar" / filename
+        ).read_text(encoding="utf-8")
+        assert not any(term in source for term in forbidden), filename
