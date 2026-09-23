@@ -50,6 +50,13 @@ def require_cython() -> None:
 
 
 def normalized_payload(path: Path) -> dict[str, Any]:
+    """Strip backend-internal diagnostics before semantic parity checks.
+
+    Python and packed Cython deliberately have different node accounting and
+    may assign different numeric score gaps while still choosing the same
+    actions. Those are performance/search diagnostics, not game outcomes.
+    Search depth remains part of parity.
+    """
     payload = json.loads(path.read_text(encoding="utf-8"))
     payload = copy.deepcopy(payload)
 
@@ -58,6 +65,10 @@ def normalized_payload(path: Path) -> dict[str, Any]:
 
     telemetry = payload.get("telemetry", {})
     telemetry.pop("search_backends", None)
+
+    for stats in telemetry.get("decisions", {}).values():
+        stats.pop("mean_search_nodes", None)
+        stats.pop("mean_score_gap", None)
 
     return payload
 
