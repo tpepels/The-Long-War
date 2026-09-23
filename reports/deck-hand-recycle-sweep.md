@@ -1,26 +1,26 @@
-# Deck size × hand size × between-Battle recycle sweep
+# Deck size × hand size × recycle experiment
 
-This experiment extends the Name-rich / selective completion-draw configuration from `reports/name-completion-sweep.md`.
+This experiment extends the Name-rich / selective-completion-draw configuration from `reports/name-completion-sweep.md`.
 
-All variants use:
+## Scope
 
-- flexible Subject/Bond/Name ordering;
-- 6-Name 30-card baseline decks;
-- selective completion draw on **Oren, Iria, and Teyra**;
-- no generic once-per-Battle Draw action;
-- Battle-I starter +1-card compensation.
+Screening run **35848575711** tested:
 
-The screen varied:
+- deck sizes **30, 36, 42**;
+- hand targets **9, 10, 11, 12**;
+- **recycle**: keep hand, shuffle all other cards back between Battles, draw to target;
+- **persistent**: keep hand, leave played/discarded cards out, draw to target only from the remaining deck;
+- generic once-per-Battle Draw disabled;
+- Oren / Iria / Teyra draw 1 when their formation becomes complete;
+- four mirror profiles: Reference, Avaros, Mara, Sera.
 
-- deck size: **30, 36, 42**;
-- hand/refill target: **9, 10, 11, 12**;
-- between-Battle handling:
-  - **recycle** — keep hand, reshuffle all non-hand cards, refill to target;
-  - **persistent** — keep hand, leave played/discarded cards out, refill only from the remaining deck.
+The screening matrix contains **24,000 matches**: 1,000 per cell.
 
-The screen used **24 cells × 1,000 mirror matches per cell = 24,000 matches** across Reference, Avaros, Mara, and Sera. A second confirmation used **4,000 matches per candidate** on the four leading configurations.
+The 36-card and 42-card experimental decks use all seven existing unique Names. No new Name cards were invented for this experiment.
 
-## 24-cell screen
+A second run, **35849136696**, confirmed four leading cells with **4,000 matches each / 16,000 matches total**.
+
+## Full screening matrix
 
 | Deck | Hand | Mode | Complete/Battle | Names/Battle | Cards/Battle | Choices | First-pass WR | First-player WR | Refill shortfall |
 | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -29,7 +29,7 @@ The screen used **24 cells × 1,000 mirror matches per cell = 24,000 matches** a
 | 30 | 11 | persistent | 1.72 | 3.24 | 15.78 | 27.00 | 57.1% | 43.6% | 6.4% |
 | 30 | 12 | persistent | 1.97 | 3.60 | 16.84 | 28.69 | 55.1% | 43.3% | 14.2% |
 | 30 | 9 | recycle | 1.23 | 2.39 | 13.58 | 22.37 | 63.7% | 48.9% | 0.0% |
-| 30 | 10 | recycle | **1.52** | **2.74** | **14.68** | **24.91** | **57.6%** | **45.9%** | **0.0%** |
+| 30 | 10 | recycle | 1.52 | 2.74 | 14.68 | 24.91 | 57.6% | 45.9% | 0.0% |
 | 30 | 11 | recycle | 1.77 | 3.06 | 15.66 | 27.36 | 52.2% | 44.8% | 0.0% |
 | 30 | 12 | recycle | 2.08 | 3.44 | 16.94 | 29.43 | 48.1% | 47.2% | 0.0% |
 | 36 | 9 | persistent | 1.11 | 2.47 | 13.55 | 22.04 | 68.4% | 49.0% | 0.0% |
@@ -49,101 +49,91 @@ The screen used **24 cells × 1,000 mirror matches per cell = 24,000 matches** a
 | 42 | 11 | recycle | 1.40 | 2.56 | 15.33 | 27.27 | 54.3% | 44.9% | 0.0% |
 | 42 | 12 | recycle | 1.70 | 2.92 | 16.50 | 29.60 | 49.0% | 46.3% | 0.0% |
 
+The first-player figures in this table are only 1,000-match screening measurements and should not be used alone for balance conclusions.
+
 ## Higher-sample confirmation
 
 | Candidate | Complete/Battle | Names/Battle | Cards/Battle | Choices | First-pass WR | First-player WR | Refill shortfall |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 30 / 10 / persistent | 1.51 | 3.00 | 14.89 | 24.76 | 61.4% | 47.5% | 1.0% |
-| 30 / 10 / recycle | **1.50** | 2.74 | **14.72** | 24.82 | **58.5%** | 47.2% | **0.0%** |
-| 36 / 11 / persistent | 1.60 | 3.10 | 15.84 | **26.52** | 59.7% | 47.4% | 0.0% |
-| 36 / 11 / recycle | 1.58 | 2.91 | 15.58 | 26.62 | **56.1%** | 47.7% | 0.0% |
+| 30 / hand 10 / persistent | **1.51** | **3.00** | **14.89** | **24.76** | 61.4% | 47.5% | **1.0%** |
+| 30 / hand 10 / recycle | 1.50 | 2.74 | 14.72 | 24.82 | 58.5% | 47.2% | 0.0% |
+| 36 / hand 11 / persistent | 1.60 | 3.10 | 15.84 | 26.52 | 59.7% | 47.4% | 0.0% |
+| 36 / hand 11 / recycle | 1.58 | 2.91 | 15.58 | 26.62 | 56.1% | 47.7% | 0.0% |
 
-The confirmation contains **16,000 matches** total.
+All four confirmation cells used 4,000 matches.
 
-## Deck size result
+## Findings
 
-Larger decks do not improve the formation problem efficiently.
+### 1. Larger decks require larger hands to recover the same formation rate
 
-At the same 10-card hand:
+At hand 10, completion frequency falls as the deck grows:
 
-- 30/recycle: **1.52 completions/Battle**
-- 36/recycle: **1.35**
-- 42/recycle: **1.20**
+- 30 recycle: about **1.50 complete formations/Battle**;
+- 36 recycle: screening **1.35**;
+- 42 recycle: screening **1.20**.
 
-The larger decks need larger hands to recover the lost completion frequency.
+A 36-card deck needs roughly hand 11 to return to the 1.5–1.6 range. A 42-card deck needs roughly hand 12 to reach 1.7.
 
-The clearest comparison is the confirmed pair:
+The larger deck therefore does not give free additional design space: the hand has to grow with it.
 
-- **30 cards / hand 10 / recycle:** 1.50 completions, 14.72 cards/Battle, 24.82 choices.
-- **36 cards / hand 11 / recycle:** 1.58 completions, 15.58 cards/Battle, 26.62 choices.
+### 2. The extra hand size costs more than the larger deck gains
 
-The six extra deck cards plus one extra hand card therefore buy only about **+0.08 completed formations per Battle**, while costing roughly **+0.86 card plays per Battle** and **+1.80 legal choices per heuristic decision**.
+Confirmed persistent comparison:
 
-The 42-card results are even less attractive at the current card-pool size.
+- 30 / hand 10: **1.51 completions**, 14.89 cards/Battle, 24.76 choices;
+- 36 / hand 11: **1.60 completions**, 15.84 cards/Battle, 26.52 choices.
 
-### Important 42-card caveat
+The larger configuration gains only **0.09 complete formations per Battle**, while adding about **0.95 card plays per Battle** and **1.76 legal choices per decision**.
 
-There are currently only **seven unique Name cards** in the canonical pool. Because Names are Unique, a 42-card deck cannot preserve the 30-card experiment's 20% Name ratio:
+This is not an efficient exchange if the purpose of the larger deck is to solve the Name/completion problem.
 
-- 30-card Name-rich deck: 6 Names = **20.0%**
-- 36-card experiment: 7 Names = **19.4%**
-- 42-card experiment: 7 Names = **16.7%**
+### 3. Recycling is not required at 30 cards / hand 10
 
-The 36-card comparison is therefore the fairer test of deck-size scaling. A future 42-card format with 8–9 distinct Names could be worth re-testing after the card pool grows.
+The strongest practical result is the direct 30/10 comparison:
 
-## Hand-size result
+- recycle: **1.50 completions**, 2.74 Names/Battle, 14.72 cards/Battle;
+- persistent: **1.51 completions**, 3.00 Names/Battle, 14.89 cards/Battle.
 
-Within the 30-card recycled format, increasing hand size has a predictable effect:
+Only **1.0%** of next-Battle player refills in the persistent version fall below the 10-card target. Mean next-Battle hand size is 9.98.
 
-| Hand | Complete/Battle | Cards/Battle | Choices | First-pass WR |
-| ---: | ---: | ---: | ---: | ---: |
-| 9 | 1.23 | 13.58 | 22.37 | 63.7% |
-| 10 | **1.52** | **14.68** | **24.91** | **57.6%** |
-| 11 | 1.77 | 15.66 | 27.36 | 52.2% |
-| 12 | 2.08 | 16.94 | 29.43 | 48.1% |
+So the deck can remain persistent across Battles without materially breaking refill at the current 30/10 scale.
 
-Every extra guaranteed card adds roughly one card play per Battle and about 2–2.5 legal options per decision.
+This restores a real match-level resource consequence: cards committed in one Battle are not immediately available again in the next.
 
-Hand 11 is therefore a valid completion-heavy alternative, but hand 10 remains the more efficient baseline. Hand 12 pushes completion above two per Battle but also produces nearly 17 card plays and about 29 legal choices per heuristic decision.
+### 4. Larger decks mainly solve an exhaustion problem that 30/10 barely has
 
-## Recycle versus persistent deck
+At 36/11 persistent, refill shortfall is effectively zero. That is clean, but 30/10 persistent already misses the refill target only about one time in a hundred.
 
-Removing between-Battle recycling does **not** materially increase completed formations.
+The additional six cards therefore mostly buy insurance against a problem that is already rare, while increasing hand size and decision load.
 
-Confirmed at deck 30 / hand 10:
+### 5. Hand size remains the dominant pacing lever
 
-- persistent: **1.51 completions/Battle**
-- recycle: **1.50 completions/Battle**
+Across every deck size, increasing the hand raises:
 
-Persistent play does expose more Names (3.00 vs 2.74 Names/Battle), but those extra Name plays do not convert into meaningfully more completed formations. It also:
+- complete formations;
+- Names played;
+- cards committed per Battle;
+- legal choices;
+- and generally moves first-pass outcomes closer to parity.
 
-- uses slightly more cards per Battle;
-- raises first-passer Battle win rate from 58.5% to 61.4%;
-- produces slightly more dead/unplayable pressure;
-- causes a refill shortfall for about **1%** of players already at hand 10.
-
-At hand 11 and 12, the 30-card persistent deck starts to deplete noticeably: the screen found refill shortfall rates of **6.4%** and **14.2%**, respectively.
-
-The 36-card persistent format avoids depletion, but gives no meaningful formation advantage over recycling and needs the larger 11-card hand to reach the same completion range as the 30/10 game.
+The cost is consistent: larger hands make Battles longer and more cognitively dense.
 
 ## Experimental conclusion
 
-The most efficient current baseline remains:
+The most efficient baseline remains:
 
 - **30-card deck**
-- **10-card hand/refill target**
-- **between-Battle recycle**
-- **10 Subjects / 6 Names in the 30-card experimental decks**
-- no generic once-per-Battle Draw
-- selected Names use completion-triggered utility such as **draw 1**
+- **10-card hand**
+- **10 Subjects / 6 Names** in the current Name-rich test decks
+- **no generic Draw action**
+- selective Name completion utility (Oren / Iria / Teyra draw 1 in this prototype)
 
-This configuration is not the absolute maximum for completed formations. Hand 11 reaches around 1.8/Battle in the larger Name experiment. It is the current best trade-off between:
+The new evidence suggests that **between-Battle recycling can be removed**:
 
-- completion frequency;
-- card volume;
-- decision load;
-- hand pressure;
-- refill reliability;
-- Pass behavior.
+> Keep your hand. Played and discarded cards stay out of the deck. Draw from the remaining deck until you have 10 cards, or until the deck is empty.
 
-Larger decks should be revisited only if the design later wants a larger card pool for variety, or after enough new unique Names exist to preserve the intended Name ratio.
+That version produces essentially the same formation rate as recycling, retains acceptable pacing and decision load, and creates meaningful multi-Battle resource progression.
+
+The 36-card / hand-11 version is viable if a larger deck is desired for card-pool variety, but the current data does not justify it as a mechanical improvement. The 42-card variants are less efficient with the existing seven-Name pool.
+
+No experimental deck-size, hand-size, or recycle-mode change in this branch has been merged to `main`.
