@@ -702,8 +702,7 @@ class GameEngine:
 
         completion_before = (
             self._complete_formation_counts(state, actor)
-            if (self.completion_draw_names or self.command_enabled)
-            and isinstance(action, (PlaySubject, PlayLink, PlayName))
+            if isinstance(action, (PlaySubject, PlayLink, PlayName))
             else None
         )
 
@@ -808,12 +807,11 @@ class GameEngine:
                     actor,
                     completion_before,
                 )
-            if self.command_enabled:
-                self._resolve_new_completion_utilities(
-                    state,
-                    actor,
-                    completion_before,
-                )
+            self._resolve_new_completion_utilities(
+                state,
+                actor,
+                completion_before,
+            )
 
         self._advance_turn(state)
         state.turn_number += 1
@@ -2099,13 +2097,15 @@ class GameEngine:
             )
             effect = completion.get("effect")
             if effect == "gain_command":
-                self._gain_command(
-                    state,
-                    player,
-                    int(completion.get("amount", 1)),
-                )
+                if self.command_enabled:
+                    self._gain_command(
+                        state,
+                        player,
+                        int(completion.get("amount", 1)),
+                    )
             elif effect == "grant_free_cycle":
-                state.players[player].free_cycle = True
+                if self.command_enabled:
+                    state.players[player].free_cycle = True
             elif effect == "reveal_enemy_scheme":
                 owner = 1 - player
                 enemy_scheme = state.scheme(owner, position.front)
