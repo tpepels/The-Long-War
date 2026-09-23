@@ -63,6 +63,12 @@ def validate_card_data(data: dict[str, Any]) -> None:
         if not isinstance(card.get("unique"), bool):
             raise ValueError(f"{card_id}: unique must be boolean")
 
+        command_cost = card.get("command_cost")
+        if command_cost is not None and (
+            not isinstance(command_cost, int) or not 1 <= command_cost <= 3
+        ):
+            raise ValueError(f"{card_id}: command_cost must be an integer from 1 to 3")
+
         classes = card.get("classes")
         if (
             not isinstance(classes, list)

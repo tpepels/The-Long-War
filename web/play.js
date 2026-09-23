@@ -195,6 +195,9 @@ function playCardMarkup(cardId, options = {}) {
   const strength = Number.isInteger(card.strength)
     ? '<span class="play-card-strength">' + card.strength + '</span>'
     : "";
+  const commandCost = Number.isInteger(card.command_cost)
+    ? '<span class="play-command-cost" aria-label="Command cost">' + card.command_cost + '</span>'
+    : "";
   const badge = count > 1
     ? '<span class="copy-badge">×' + count + '</span>'
     : options.copyLabel
@@ -204,7 +207,7 @@ function playCardMarkup(cardId, options = {}) {
   const propertyMarkup = cardPropertyMarkup(card);
 
   return '<button type="button" class="' + classes.filter(Boolean).join(" ") + '" data-card-id="' + esc(cardId) + '" ' + (options.attrs || "") + '>' +
-    '<div class="play-card-meta"><span>' + esc(cardType(card)) + '</span>' + badge + '</div>' +
+    '<div class="play-card-meta"><span>' + esc(cardType(card)) + '</span><span class="play-card-meta-badges">' + commandCost + badge + '</span></div>' +
     '<h3>' + esc(card.title) + '</h3>' +
     '<div class="play-card-properties">' + propertyMarkup + '</div>' +
     strength +

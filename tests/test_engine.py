@@ -91,7 +91,7 @@ def test_battle_draw_resets_for_the_next_battle() -> None:
 
 
 
-def test_links_help_immediately_and_namar_rewards_frontline() -> None:
+def test_links_help_immediately_and_namar_adds_name_value() -> None:
     engine, state = fresh_state(first_player=1)
     state.players[0].hand = ["the-fifty-men", "followed", "namar"]
     state.players[1].hand = []
@@ -104,7 +104,7 @@ def test_links_help_immediately_and_namar_rewards_frontline() -> None:
     assert engine.position_strength(state, 0, CENTER_FRONT) == 7
 
     engine.apply(state, PlayName("namar", CENTER_FRONT))
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 13
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 10
 
 
 def test_formation_components_can_be_prepared_in_any_order() -> None:
@@ -128,7 +128,7 @@ def test_formation_components_can_be_prepared_in_any_order() -> None:
 
     engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
     assert slot.complete
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 13
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 10
 
 
 def test_name_becomes_active_with_subject_even_before_bond() -> None:
@@ -144,7 +144,7 @@ def test_name_becomes_active_with_subject_even_before_bond() -> None:
     assert slot.subject == "the-fifty-men"
     assert slot.link is None
     assert slot.name == "namar"
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 10
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 7
 
 
 def test_prepared_bond_does_not_retroactively_trigger_on_link_play() -> None:
@@ -355,6 +355,171 @@ def test_removing_subject_discards_its_bond_and_name() -> None:
     assert "namar" not in state.players[0].hand
 
 
+def test_configurable_hand_target_can_disable_draw_for_experiments() -> None:
+    default_engine, deck = engine_and_deck()
+    engine = GameEngine(
+        default_engine.card_data,
+        opening_hand_size=9,
+        draw_action_enabled=False,
+    )
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=707,
+        first_player=0,
+        opening_bonus=False,
+    )
+
+    assert [len(player.hand) for player in state.players] == [9, 9]
+    assert not any(isinstance(action, Draw) for action in engine.legal_actions(state))
+
+    for player, keep in ((0, 3), (1, 5)):
+        player_state = state.players[player]
+        player_state.discard.extend(player_state.hand[keep:])
+        del player_state.hand[keep:]
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.phase is Phase.CHOOSE_FIRST
+    assert [len(player.hand) for player in state.players] == [9, 9]
+    assert [len(player.discard) for player in state.players] == [0, 0]
+
+
+def test_selected_name_draws_when_its_formation_becomes_complete() -> None:
+    default_engine, deck = engine_and_deck()
+    engine = GameEngine(
+        default_engine.card_data,
+        draw_action_enabled=False,
+        completion_draw_names={"oren"},
+    )
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=808,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.players[0].hand = ["oren", "followed", "the-fifty-men"]
+    state.players[0].deck = ["the-story-is-false"]
+    state.players[1].hand = []
+
+    engine.apply(state, PlayName("oren", CENTER_FRONT))
+    engine.apply(state, Pass())
+    engine.apply(state, PlayLink("followed", CENTER_FRONT))
+    assert state.players[0].deck == ["the-story-is-false"]
+
+    engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
+
+    assert state.slot(0, CENTER_FRONT).complete
+    assert state.players[0].deck == []
+    assert state.players[0].hand == ["the-story-is-false"]
+
+
+def test_non_selected_name_does_not_draw_on_completion() -> None:
+    default_engine, deck = engine_and_deck()
+    engine = GameEngine(
+        default_engine.card_data,
+        draw_action_enabled=False,
+        completion_draw_names={"oren"},
+    )
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=809,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.players[0].hand = ["namar", "followed", "the-fifty-men"]
+    state.players[0].deck = ["the-story-is-false"]
+    state.players[1].hand = []
+
+    engine.apply(state, PlayName("namar", CENTER_FRONT))
+    engine.apply(state, Pass())
+    engine.apply(state, PlayLink("followed", CENTER_FRONT))
+    engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
+
+    assert state.slot(0, CENTER_FRONT).complete
+    assert state.players[0].deck == ["the-story-is-false"]
+    assert state.players[0].hand == []
+
+
+def test_experiment_can_validate_larger_decks() -> None:
+    default_engine, deck = engine_and_deck()
+    larger = list(deck)
+    larger.extend(
+        [
+            "the-fifty-men",
+            "seven-black-ships",
+            "followed",
+            "swore-to",
+            "the-story-is-false",
+            "he-never-came",
+        ]
+    )
+    engine = GameEngine(default_engine.card_data, deck_size=36)
+    engine.validate_deck(larger)
+
+
+def test_no_recycle_leaves_played_cards_out_and_refills_from_remaining_deck() -> None:
+    default_engine, deck = engine_and_deck()
+    engine = GameEngine(
+        default_engine.card_data,
+        opening_hand_size=10,
+        draw_action_enabled=False,
+        recycle_between_battles=False,
+    )
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=910,
+        first_player=0,
+        opening_bonus=False,
+    )
+    initial_deck_sizes = [len(player.deck) for player in state.players]
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+    assert state.phase is Phase.CHOOSE_FIRST
+    assert [len(player.hand) for player in state.players] == [10, 10]
+    assert [len(player.deck) for player in state.players] == initial_deck_sizes
+
+    state.phase = Phase.BATTLE
+    state.active_player = 0
+    state.chooser = None
+    for player in range(2):
+        player_state = state.players[player]
+        subject_id = next(
+            (
+                card_id
+                for card_id in player_state.hand
+                if engine.cards[card_id]["type"] == "subject"
+            ),
+            None,
+        )
+        if subject_id is not None:
+            player_state.hand.remove(subject_id)
+        else:
+            subject_id = next(
+                card_id
+                for card_id in player_state.deck
+                if engine.cards[card_id]["type"] == "subject"
+            )
+            player_state.deck.remove(subject_id)
+        state.slot(player, CENTER_FRONT).subject = subject_id
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.phase is Phase.CHOOSE_FIRST
+    assert [len(player.discard) for player in state.players] == [1, 1]
+    assert [len(player.hand) for player in state.players] == [10, 10]
+    assert [len(player.deck) for player in state.players] == [
+        initial_deck_sizes[0] - 1,
+        initial_deck_sizes[1] - 1,
+    ]
+
+
 def test_next_battle_keeps_hand_recycles_everything_else_and_refills_to_ten() -> None:
     engine, state = fresh_state(first_player=0)
     kept = []
@@ -432,7 +597,7 @@ def test_defied_reduces_opposing_front_strength() -> None:
     left1 = state.slot(1, LEFT_FRONT)
     left1.subject = "the-fifty-men"
 
-    assert engine.front_strength(state, 0, Front.LEFT) == 11
+    assert engine.front_strength(state, 0, Front.LEFT) == 10
     assert engine.front_strength(state, 1, Front.LEFT) == 4
 
 
@@ -479,7 +644,7 @@ def test_they_chose_another_respects_frontline_only_subjects() -> None:
     )
 
 
-def test_namar_frontline_bonus_does_not_apply_in_rear() -> None:
+def test_namar_has_no_rank_specific_strength_bonus() -> None:
     engine, state = fresh_state()
     rear = Position(Front.CENTER, Rank.REAR)
     slot = state.slot(0, rear)
@@ -487,7 +652,7 @@ def test_namar_frontline_bonus_does_not_apply_in_rear() -> None:
     slot.link = "followed"
     slot.name = "namar"
 
-    assert engine.position_strength(state, 0, rear) == 9
+    assert engine.position_strength(state, 0, rear) == 8
 
 
 def test_face_down_scheme_adds_front_strength_until_revealed() -> None:
@@ -817,7 +982,7 @@ def test_wooden_gift_revalues_named_and_unnamed_subjects() -> None:
 
     assert state.stratagem(0).revealed is True
     assert engine.position_strength(state, 0, rear) == 5
-    assert engine.position_strength(state, 1, CENTER_FRONT) == 10
+    assert engine.position_strength(state, 1, CENTER_FRONT) == 9
 
 
 def test_opposing_stratagems_can_reveal_and_stack() -> None:
@@ -1018,4 +1183,4 @@ def test_wooden_gift_penalizes_named_and_rewards_unnamed_subjects() -> None:
 
     assert state.stratagem(0).revealed is True
     assert engine.position_strength(state, 0, own_front) == 7
-    assert engine.position_strength(state, 1, enemy_front) == 11
+    assert engine.position_strength(state, 1, enemy_front) == 8
