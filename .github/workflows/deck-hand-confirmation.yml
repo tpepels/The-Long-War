@@ -1,0 +1,166 @@
+name: Deck Hand Confirmation
+
+on:
+  push:
+    branches:
+      - experiment/deck-hand-recycle-sweep
+    paths:
+      - ".github/workflows/deck-hand-confirmation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: d30-h10-recycle
+            deck_size: 30
+            hand_size: 10
+            mode: recycle
+          - id: d30-h10-persistent
+            deck_size: 30
+            hand_size: 10
+            mode: persistent
+          - id: d36-h11-recycle
+            deck_size: 36
+            hand_size: 11
+            mode: recycle
+          - id: d36-h11-persistent
+            deck_size: 36
+            hand_size: 11
+            mode: persistent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Choose decks and recycle mode
+        run: |
+          if [ "${{ matrix.deck_size }}" = "30" ]; then
+            echo "REF_DECK=decks/experiments/name-rich-reference.json" >> "$GITHUB_ENV"
+            echo "AVAROS_DECK=decks/experiments/name-rich-avaros.json" >> "$GITHUB_ENV"
+            echo "MARA_DECK=decks/experiments/name-rich-mara.json" >> "$GITHUB_ENV"
+            echo "SERA_DECK=decks/experiments/name-rich-sera.json" >> "$GITHUB_ENV"
+          else
+            echo "REF_DECK=decks/experiments/name-rich-36-reference.json" >> "$GITHUB_ENV"
+            echo "AVAROS_DECK=decks/experiments/name-rich-36-avaros.json" >> "$GITHUB_ENV"
+            echo "MARA_DECK=decks/experiments/name-rich-36-mara.json" >> "$GITHUB_ENV"
+            echo "SERA_DECK=decks/experiments/name-rich-36-sera.json" >> "$GITHUB_ENV"
+          fi
+          if [ "${{ matrix.mode }}" = "persistent" ]; then
+            echo "RECYCLE_ARGS=--no-between-battle-recycle" >> "$GITHUB_ENV"
+          else
+            echo "RECYCLE_ARGS=" >> "$GITHUB_ENV"
+          fi
+          echo "PREFIX=${{ matrix.id }}" >> "$GITHUB_ENV"
+      - name: Reference mirror
+        run: >
+          python tools/simulate.py --games 1000 --seed 26092610
+          --deck-size ${{ matrix.deck_size }} --hand-size ${{ matrix.hand_size }}
+          --disable-draw --completion-draw-names oren iria teyra
+          $RECYCLE_ARGS --deck-a "$REF_DECK" --deck-b "$REF_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/$PREFIX-reference.json"
+      - name: Avaros mirror
+        run: >
+          python tools/simulate.py --games 1000 --seed 26092611
+          --deck-size ${{ matrix.deck_size }} --hand-size ${{ matrix.hand_size }}
+          --disable-draw --completion-draw-names oren iria teyra
+          $RECYCLE_ARGS --deck-a "$AVAROS_DECK" --deck-b "$AVAROS_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/$PREFIX-avaros.json"
+      - name: Mara mirror
+        run: >
+          python tools/simulate.py --games 1000 --seed 26092612
+          --deck-size ${{ matrix.deck_size }} --hand-size ${{ matrix.hand_size }}
+          --disable-draw --completion-draw-names oren iria teyra
+          $RECYCLE_ARGS --deck-a "$MARA_DECK" --deck-b "$MARA_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/$PREFIX-mara.json"
+      - name: Sera mirror
+        run: >
+          python tools/simulate.py --games 1000 --seed 26092613
+          --deck-size ${{ matrix.deck_size }} --hand-size ${{ matrix.hand_size }}
+          --disable-draw --completion-draw-names oren iria teyra
+          $RECYCLE_ARGS --deck-a "$SERA_DECK" --deck-b "$SERA_DECK"
+          --agent-a heuristic --agent-b heuristic
+          --output "artifacts/$PREFIX-sera.json"
+      - name: Aggregate playability
+        run: >
+          python tools/playability_report.py
+          "artifacts/$PREFIX-reference.json"
+          "artifacts/$PREFIX-avaros.json"
+          "artifacts/$PREFIX-mara.json"
+          "artifacts/$PREFIX-sera.json"
+          --json-output "artifacts/$PREFIX-playability.json"
+          --markdown-output "artifacts/$PREFIX-playability.md"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: confirm-${{ matrix.id }}
+          path: artifacts/${{ matrix.id }}-*
+          retention-days: 30
+
+  summarize:
+    needs: simulate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: confirm-*
+          path: artifacts/all
+          merge-multiple: true
+      - name: Build confirmation summary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          rows=[]
+          root=Path("artifacts/all")
+          for path in sorted(root.glob("*-playability.json")):
+              prefix=path.name.removesuffix("-playability.json")
+              report=json.loads(path.read_text())
+              sources=[
+                  json.loads(p.read_text())
+                  for p in root.glob(f"{prefix}-*.json")
+                  if not p.name.endswith("-playability.json")
+              ]
+              rows.append({
+                  "id":prefix,
+                  "completions":report["battle_pacing"]["mean_complete_legends_created_per_battle"],
+                  "names":report["card_mix"]["Names"]["mean_per_battle"],
+                  "cards":report["battle_pacing"]["mean_cards_played_per_battle"],
+                  "choices":report["decision_load"]["mean_legal_candidates_per_heuristic_decision"],
+                  "first_pass":report["passing"]["first_passer_battle_win_rate"],
+                  "dead":report["hand_pressure"]["dead_card_share_at_pass"],
+                  "shortfall":report["refill"]["next_battle_player_shortfall_rate"],
+                  "next_hand":report["refill"]["mean_next_battle_hand_size"],
+                  "first_player":sum(s["first_player_win_rate"] for s in sources)/len(sources),
+              })
+          out=Path("artifacts/summary")
+          out.mkdir(parents=True,exist_ok=True)
+          (out/"deck-hand-confirmation.json").write_text(json.dumps(rows,indent=2)+"\n")
+          lines=[
+              "# Deck/hand confirmation",
+              "",
+              "| Candidate | Complete/Battle | Names/Battle | Cards/Battle | Choices | First-pass WR | First-player WR | Refill shortfall |",
+              "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+          ]
+          for r in rows:
+              lines.append(
+                  f"| {r['id']} | {r['completions']:.2f} | {r['names']:.2f} "
+                  f"| {r['cards']:.2f} | {r['choices']:.2f} | {r['first_pass']:.1%} "
+                  f"| {r['first_player']:.1%} | {r['shortfall']:.1%} |"
+              )
+          (out/"deck-hand-confirmation.md").write_text("\n".join(lines)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deck-hand-confirmation-summary
+          path: artifacts/summary/*
+          retention-days: 30
