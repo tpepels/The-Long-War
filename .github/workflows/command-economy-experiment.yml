@@ -1,0 +1,225 @@
+name: Command Economy Experiment
+
+on:
+  push:
+    branches:
+      - experiment/command-economy
+    paths:
+      - "cards/cards.json"
+      - "src/longwar/**"
+      - "tools/compute_command_costs.py"
+      - "tools/simulate.py"
+      - "tests/**"
+      - ".github/workflows/command-economy-experiment.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Command cost drift
+        run: python tools/compute_command_costs.py
+      - name: Regression suite
+        run: >
+          pytest -q
+          tests/test_cards.py
+          tests/test_engine.py
+          tests/test_command_economy.py
+          tests/test_simulation.py
+
+  simulate:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - profile: reference
+            deck: decks/experiments/name-rich-reference.json
+            seed: 26092710
+          - profile: avaros
+            deck: decks/experiments/name-rich-avaros.json
+            seed: 26092711
+          - profile: mara
+            deck: decks/experiments/name-rich-mara.json
+            seed: 26092712
+          - profile: sera
+            deck: decks/experiments/name-rich-sera.json
+            seed: 26092713
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Run Command mirror
+        run: >
+          python tools/simulate.py
+          --games 1000
+          --seed ${{ matrix.seed }}
+          --hand-size 10
+          --deck-size 30
+          --disable-draw
+          --command
+          --starting-command 20
+          --battle-command-gain 10
+          --command-cap 20
+          --cycle-command-cost 1
+          --deck-a ${{ matrix.deck }}
+          --deck-b ${{ matrix.deck }}
+          --agent-a heuristic
+          --agent-b heuristic
+          --output artifacts/command-${{ matrix.profile }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: command-${{ matrix.profile }}
+          path: artifacts/command-${{ matrix.profile }}.json
+          retention-days: 30
+
+  summarize:
+    needs: simulate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: command-*
+          path: artifacts/all
+          merge-multiple: true
+      - name: Build summary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          reports=[json.loads(p.read_text()) for p in sorted(Path("artifacts/all").glob("command-*.json"))]
+          games=sum(r["games"] for r in reports)
+          battles=sum(r["telemetry"]["battles"]["count"] for r in reports)
+          play_names=("PlaySubject","PlayLink","PlayName","PlayPlot","PlayScheme","SetStratagem")
+          actions={name:sum(r["telemetry"]["actions"].get(name,0) for r in reports) for name in play_names}
+          cycles=sum(r["telemetry"]["actions"].get("Cycle",0) for r in reports)
+          completions=sum(
+              sum(x.get("completions",0) for x in r["telemetry"].get("legend_combinations",{}).values())
+              for r in reports
+          )
+          pass_events=sum(r["telemetry"]["passes"]["events"] for r in reports)
+          decisions=sum(r["telemetry"]["decisions"].get("heuristic",{}).get("decisions",0) for r in reports)
+
+          def weighted(section, field, weight_field):
+              num=den=0.0
+              for r in reports:
+                  s=r["telemetry"][section]
+                  w=float(s.get(weight_field,0) or 0)
+                  v=s.get(field)
+                  if v is None:
+                      continue
+                  num += float(v)*w
+                  den += w
+              return None if den==0 else num/den
+
+          command_fields=(
+              "mean_start_per_player",
+              "mean_spent_per_player",
+              "mean_refunded_per_player",
+              "mean_remaining_at_battle_end_per_player",
+              "mean_winner_minus_loser_remaining",
+              "battle_one_winner_minus_loser_remaining",
+              "mean_next_battle_command_per_player",
+          )
+          command={}
+          for field in command_fields:
+              num=den=0.0
+              for r in reports:
+                  w=float(r["telemetry"]["battles"]["count"])
+                  v=r["telemetry"]["command"].get(field)
+                  if v is not None:
+                      num += float(v)*w
+                      den += w
+              command[field]=None if den==0 else num/den
+
+          first_pass=sum(
+              float(r["telemetry"]["passes"]["first_passer_battle_win_rate"] or 0)
+              * r["telemetry"]["battles"]["count"]
+              for r in reports
+          )/battles
+          mean_pass_command=sum(
+              float(r["telemetry"]["passes"]["mean_command_remaining"] or 0)
+              * r["telemetry"]["passes"]["events"]
+              for r in reports
+          )/pass_events
+          exhausted=sum(
+              float(r["telemetry"]["passes"]["command_exhausted_rate"] or 0)
+              * r["telemetry"]["passes"]["events"]
+              for r in reports
+          )/pass_events
+          choices=sum(
+              float(r["telemetry"]["decisions"].get("heuristic",{}).get("mean_candidate_count") or 0)
+              * r["telemetry"]["decisions"].get("heuristic",{}).get("decisions",0)
+              for r in reports
+          )/decisions
+          comeback=sum(
+              float(r["telemetry"]["match_flow"]["battle_one_loser_match_win_rate"] or 0)
+              * r["telemetry"]["match_flow"]["matches"]
+              for r in reports
+          )/games
+          fp=sum(r["first_player_win_rate"]*r["games"] for r in reports)/games
+
+          result={
+              "games":games,
+              "battles":battles,
+              "battles_per_match":battles/games,
+              "cards_per_battle":sum(actions.values())/battles,
+              "completions_per_battle":completions/battles,
+              "names_per_battle":actions["PlayName"]/battles,
+              "cycles_per_battle":cycles/battles,
+              "first_passer_battle_win_rate":first_pass,
+              "first_player_match_win_rate":fp,
+              "mean_legal_choices":choices,
+              "mean_command_at_pass":mean_pass_command,
+              "command_exhausted_at_pass_rate":exhausted,
+              "battle_one_loser_match_win_rate":comeback,
+              "command":command,
+          }
+          out=Path("artifacts/summary")
+          out.mkdir(parents=True,exist_ok=True)
+          (out/"command-economy-summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          lines=[
+              "# Command economy experiment",
+              "",
+              f"Source: **{games:,} matches / {battles:,} Battles**.",
+              "",
+              "| Metric | Result |",
+              "| --- | ---: |",
+              f"| Battles/match | {result['battles_per_match']:.3f} |",
+              f"| Cards/Battle | {result['cards_per_battle']:.2f} |",
+              f"| Complete formations/Battle | {result['completions_per_battle']:.2f} |",
+              f"| Names/Battle | {result['names_per_battle']:.2f} |",
+              f"| Cycles/Battle | {result['cycles_per_battle']:.2f} |",
+              f"| Legal choices/decision | {result['mean_legal_choices']:.2f} |",
+              f"| First-passer Battle WR | {result['first_passer_battle_win_rate']:.1%} |",
+              f"| First-player match WR | {result['first_player_match_win_rate']:.1%} |",
+              f"| Command at Pass | {result['mean_command_at_pass']:.2f} |",
+              f"| Passes at 0 Command | {result['command_exhausted_at_pass_rate']:.1%} |",
+              f"| Battle-I loser wins match | {result['battle_one_loser_match_win_rate']:.1%} |",
+              f"| Command spent/player/Battle | {result['command']['mean_spent_per_player']:.2f} |",
+              f"| Command refunded/player/Battle | {result['command']['mean_refunded_per_player']:.2f} |",
+              f"| Command remaining/player at Battle end | {result['command']['mean_remaining_at_battle_end_per_player']:.2f} |",
+              f"| Battle-I winner minus loser Command | {result['command']['battle_one_winner_minus_loser_remaining']:.2f} |",
+              f"| Command entering next Battle/player | {result['command']['mean_next_battle_command_per_player']:.2f} |",
+          ]
+          (out/"command-economy-summary.md").write_text("\n".join(lines)+"\n")
+          print("\n".join(lines))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: command-economy-summary
+          path: artifacts/summary/*
+          retention-days: 30
