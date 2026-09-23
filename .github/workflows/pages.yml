@@ -50,6 +50,10 @@ jobs:
           --seed $((RUN_SEED + 101))
           --agent-a heuristic
           --agent-b heuristic
+          --disable-draw
+          --command
+          --no-between-battle-recycle
+          --reshuffle-on-empty
           --output artifacts/heuristic-selfplay.json
       - name: Health analysis
         run: python tools/analyze_telemetry.py --simulation artifacts/heuristic-selfplay.json
@@ -60,6 +64,10 @@ jobs:
           --seed $((RUN_SEED + 601))
           --agent-a heuristic
           --agent-b random
+          --disable-draw
+          --command
+          --no-between-battle-recycle
+          --reshuffle-on-empty
           --output artifacts/heuristic-vs-random.json
       - name: Random vs heuristic
         run: >
@@ -68,6 +76,10 @@ jobs:
           --seed $((RUN_SEED + 701))
           --agent-a random
           --agent-b heuristic
+          --disable-draw
+          --command
+          --no-between-battle-recycle
+          --reshuffle-on-empty
           --output artifacts/random-vs-heuristic.json
       - name: Restore latest counterfactual reports
         env:

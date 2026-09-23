@@ -68,6 +68,10 @@ jobs:
           --seed $((RUN_SEED + 101))
           --agent-a heuristic
           --agent-b heuristic
+          --disable-draw
+          --command
+          --no-between-battle-recycle
+          --reshuffle-on-empty
       - name: Analyze telemetry
         run: python tools/analyze_telemetry.py --simulation artifacts/simulation-report.json
       - name: Build lab aggregate

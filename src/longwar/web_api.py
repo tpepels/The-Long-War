@@ -9,6 +9,7 @@ from .game.actions import (
     Action,
     BoardTarget,
     ChooseFirst,
+    Cycle,
     Draw,
     Pass,
     PlayLink,
@@ -51,7 +52,13 @@ class PlaySession:
         deck_payload = json.loads(deck_json)
         deck = list(deck_payload["cards"]) if isinstance(deck_payload, dict) else list(deck_payload)
 
-        self.engine = GameEngine(card_data)
+        self.engine = GameEngine(
+            card_data,
+            draw_action_enabled=False,
+            recycle_between_battles=False,
+            command_enabled=True,
+            reshuffle_on_empty=True,
+        )
         self.cards = self.engine.cards
         self.deck = deck
         self.mode = mode
@@ -164,11 +171,7 @@ class PlaySession:
         self._apply_with_log(action)
         self._run_ai_until_human()
         if self.mode == "hotseat":
-            # A Stratagem is a free pre-action deployment. Keep the same
-            # player's hand visible so they can still take their normal action.
-            return self.snapshot(
-                viewer if isinstance(action, SetStratagem) else None
-            )
+            return self.snapshot(None)
         return self.snapshot(0)
 
     def snapshot(self, viewer: int | None = None) -> dict[str, Any]:
@@ -187,6 +190,8 @@ class PlaySession:
                 "hand_count": len(ps.hand),
                 "deck_count": len(ps.deck),
                 "discard": list(ps.discard),
+                "command": ps.command,
+                "free_cycle": ps.free_cycle,
             })
 
         board: list[list[dict[str, Any]]] = [[], []]
@@ -295,7 +300,6 @@ class PlaySession:
             "schemes": schemes,
             "stratagems": stratagems,
             "stratagem_used": list(state.stratagem_used),
-            "draw_used": list(state.draw_used),
             "front_strengths": front_strengths,
             "front_control": front_control,
             "hand": hand,
@@ -374,6 +378,7 @@ class PlaySession:
             "targets": [],
             "move_to": None,
             "choose_player": None,
+            "command_cost": self.engine.command_cost_for_action(self.state, action),
         }
 
         if isinstance(action, (PlaySubject, PlayLink, PlayName)):
@@ -412,6 +417,8 @@ class PlaySession:
             return f"{prefix} Passes."
         if isinstance(action, Draw):
             return f"{prefix} draws 1 card."
+        if isinstance(action, Cycle):
+            return f"{prefix} Cycles {self.cards[action.card_id]['title']}."
         if isinstance(action, ChooseFirst):
             return f"{prefix} chooses Player {action.player + 1} to start the next Battle."
         if isinstance(action, PlaySubject):
@@ -461,7 +468,12 @@ class PlaySession:
         if isinstance(action, Pass):
             return "Pass is always legal while you are still active in the Battle."
         if isinstance(action, Draw):
-            return "Draw 1 card as your normal action. You may do this once per Battle."
+            return "Draw is disabled in the canonical Command rules."
+        if isinstance(action, Cycle):
+            return (
+                "Pay 1 Command (or 0 if an effect makes your next Cycle free), "
+                "discard this card, then draw 1 card."
+            )
         if isinstance(action, ChooseFirst):
             return "The previous Battle loser chooses who takes the first turn."
         if isinstance(action, PlaySubject):
@@ -474,8 +486,8 @@ class PlaySession:
             return "You have no Veiled Story in this Front."
         if isinstance(action, SetStratagem):
             return (
-                "You have not set a Stratagem this Battle. Setting it is free "
-                "and you still take your normal action."
+                "You have not set a Stratagem this Battle. Setting it is your "
+                "operation for the turn and costs the value printed on the card."
             )
         if isinstance(action, PlayPlot):
             return "The Story has all targets required by its rules text."
