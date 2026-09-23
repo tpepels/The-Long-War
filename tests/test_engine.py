@@ -355,6 +355,95 @@ def test_removing_subject_discards_its_bond_and_name() -> None:
     assert "namar" not in state.players[0].hand
 
 
+def test_configurable_hand_target_can_disable_draw_for_experiments() -> None:
+    default_engine, deck = engine_and_deck()
+    engine = GameEngine(
+        default_engine.card_data,
+        opening_hand_size=9,
+        draw_action_enabled=False,
+    )
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=707,
+        first_player=0,
+        opening_bonus=False,
+    )
+
+    assert [len(player.hand) for player in state.players] == [9, 9]
+    assert not any(isinstance(action, Draw) for action in engine.legal_actions(state))
+
+    for player, keep in ((0, 3), (1, 5)):
+        player_state = state.players[player]
+        player_state.discard.extend(player_state.hand[keep:])
+        del player_state.hand[keep:]
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.phase is Phase.CHOOSE_FIRST
+    assert [len(player.hand) for player in state.players] == [9, 9]
+    assert [len(player.discard) for player in state.players] == [0, 0]
+
+
+def test_selected_name_draws_when_its_formation_becomes_complete() -> None:
+    default_engine, deck = engine_and_deck()
+    engine = GameEngine(
+        default_engine.card_data,
+        draw_action_enabled=False,
+        completion_draw_names={"oren"},
+    )
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=808,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.players[0].hand = ["oren", "followed", "the-fifty-men"]
+    state.players[0].deck = ["the-story-is-false"]
+    state.players[1].hand = []
+
+    engine.apply(state, PlayName("oren", CENTER_FRONT))
+    engine.apply(state, Pass())
+    engine.apply(state, PlayLink("followed", CENTER_FRONT))
+    assert state.players[0].deck == ["the-story-is-false"]
+
+    engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
+
+    assert state.slot(0, CENTER_FRONT).complete
+    assert state.players[0].deck == []
+    assert state.players[0].hand == ["the-story-is-false"]
+
+
+def test_non_selected_name_does_not_draw_on_completion() -> None:
+    default_engine, deck = engine_and_deck()
+    engine = GameEngine(
+        default_engine.card_data,
+        draw_action_enabled=False,
+        completion_draw_names={"oren"},
+    )
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=809,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.players[0].hand = ["namar", "followed", "the-fifty-men"]
+    state.players[0].deck = ["the-story-is-false"]
+    state.players[1].hand = []
+
+    engine.apply(state, PlayName("namar", CENTER_FRONT))
+    engine.apply(state, Pass())
+    engine.apply(state, PlayLink("followed", CENTER_FRONT))
+    engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
+
+    assert state.slot(0, CENTER_FRONT).complete
+    assert state.players[0].deck == ["the-story-is-false"]
+    assert state.players[0].hand == []
+
+
 def test_next_battle_keeps_hand_recycles_everything_else_and_refills_to_ten() -> None:
     engine, state = fresh_state(first_player=0)
     kept = []

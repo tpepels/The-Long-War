@@ -108,9 +108,31 @@ def all_positions() -> tuple[Position, ...]:
 
 
 class GameEngine:
-    def __init__(self, card_data: dict[str, Any]):
+    def __init__(
+        self,
+        card_data: dict[str, Any],
+        *,
+        opening_hand_size: int = 10,
+        draw_action_enabled: bool = True,
+        completion_draw_names: Iterable[str] = (),
+    ):
+        if not 1 <= opening_hand_size <= 30:
+            raise ValueError("opening_hand_size must be between 1 and 30")
         self.card_data = card_data
         self.cards = card_index(card_data)
+        self.opening_hand_size = opening_hand_size
+        self.draw_action_enabled = draw_action_enabled
+        self.completion_draw_names = frozenset(completion_draw_names)
+        invalid_completion_names = [
+            card_id
+            for card_id in self.completion_draw_names
+            if card_id not in self.cards or self.cards[card_id]["type"] != "name"
+        ]
+        if invalid_completion_names:
+            raise ValueError(
+                "completion_draw_names must contain only Name ids: "
+                + ", ".join(sorted(invalid_completion_names))
+            )
 
         # Flatten immutable dispatch metadata used at every search node.
         self._card_types = {
@@ -397,7 +419,7 @@ class GameEngine:
         state = GameState(players=players, shuffle_seed=shuffle_seed)
 
         for player in range(2):
-            self._draw(state, player, 10)
+            self._draw(state, player, self.opening_hand_size)
             self._apply_mulligan(
                 state,
                 player,
@@ -451,7 +473,11 @@ class GameEngine:
             raise RuntimeError("A passed player cannot become active")
 
         actions: list[Action] = [self._pass_action]
-        if not state.draw_used[player] and state.players[player].deck:
+        if (
+            self.draw_action_enabled
+            and not state.draw_used[player]
+            and state.players[player].deck
+        ):
             actions.append(self._draw_action)
 
         for card_id in dict.fromkeys(state.players[player].hand):
@@ -503,11 +529,20 @@ class GameEngine:
             return
 
         if isinstance(action, Draw):
+            if not self.draw_action_enabled:
+                raise IllegalAction("Draw is disabled for this rules variant")
             self._draw(state, actor, 1)
             state.draw_used[actor] = True
             self._advance_turn(state)
             state.turn_number += 1
             return
+
+        completion_before = (
+            self._complete_formation_counts(state, actor)
+            if self.completion_draw_names
+            and isinstance(action, (PlaySubject, PlayLink, PlayName))
+            else None
+        )
 
         if isinstance(action, PlaySubject):
             self._take_from_hand(state, actor, action.card_id)
@@ -599,6 +634,13 @@ class GameEngine:
 
         else:
             raise TypeError(f"Unhandled action type: {type(action)!r}")
+
+        if completion_before is not None:
+            self._reward_new_completion_draws(
+                state,
+                actor,
+                completion_before,
+            )
 
         self._advance_turn(state)
         state.turn_number += 1
@@ -1795,9 +1837,33 @@ class GameEngine:
             self._draw(
                 state,
                 player,
-                max(0, 10 - len(player_state.hand)),
+                max(0, self.opening_hand_size - len(player_state.hand)),
             )
         state.shuffle_seed = seed
+
+    def _complete_formation_counts(
+        self,
+        state: GameState,
+        player: int,
+    ) -> Counter[tuple[str, str, str]]:
+        return Counter(
+            (slot.subject, slot.link, slot.name)
+            for position in ALL_POSITIONS
+            for slot in [state.slot(player, position)]
+            if slot.complete
+        )
+
+    def _reward_new_completion_draws(
+        self,
+        state: GameState,
+        player: int,
+        before: Counter[tuple[str, str, str]],
+    ) -> None:
+        after = self._complete_formation_counts(state, player)
+        for combo, count in (after - before).items():
+            name_id = combo[2]
+            if name_id in self.completion_draw_names:
+                self._draw(state, player, count)
 
     def _discard_battlefield(self, state: GameState) -> None:
         for player in range(2):
