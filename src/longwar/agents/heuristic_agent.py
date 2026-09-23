@@ -7,6 +7,7 @@ from math import inf
 from ..game.actions import (
     Action,
     ChooseFirst,
+    Cycle,
     Draw,
     Pass,
     PlayLink,
@@ -168,6 +169,18 @@ class HeuristicAgent:
             # recovery option without making it the automatic best move.
             score -= 0.8
 
+        if isinstance(action, Cycle):
+            # Cycle is deliberately useful only when it improves the actual
+            # construction options in hand; it still spends the turn.
+            score += (
+                1.15
+                * (
+                    self._hand_construction_value(engine, clone, player)
+                    - self._hand_construction_value(engine, state, player)
+                )
+                - 0.30
+            )
+
         # The engine state already includes a Link's immediate Strength and a
         # face-down Scheme's Front bonus. Keep only small priors for option
         # value that a one-ply evaluator cannot see directly.
@@ -183,11 +196,10 @@ class HeuristicAgent:
             score += 0.20
 
         if isinstance(action, SetStratagem):
-            # Setting a Stratagem is a free pre-action deployment, so a
-            # one-ply evaluator must credit the preserved normal action.
-            # Add a public-information estimate so different Stratagems are
-            # not treated as arbitrary ties.
-            score += 1.35 + self._stratagem_option_value(
+            # In the legacy rules a Stratagem is a free pre-action deployment;
+            # in Command mode it is an ordinary paid operation.
+            preserved_action = 0.0 if engine.command_enabled else 1.35
+            score += preserved_action + self._stratagem_option_value(
                 engine,
                 state,
                 player,
@@ -293,6 +305,17 @@ class HeuristicAgent:
         )
         score += 1.25 * hand_delta
 
+        if engine.command_enabled:
+            command_delta = (
+                state.players[player].command
+                - state.players[opponent].command
+            )
+            score += 0.45 * command_delta
+            score += 0.35 * (
+                int(state.players[player].free_cycle)
+                - int(state.players[opponent].free_cycle)
+            )
+
         if state.phase is Phase.BATTLE:
             own_passed = state.players[player].passed
             opponent_passed = state.players[opponent].passed
@@ -359,6 +382,43 @@ class HeuristicAgent:
             and state.slot(player, position).name is not None
             for position in all_positions()
         )
+
+    def _hand_construction_value(
+        self,
+        engine: GameEngine,
+        state: GameState,
+        player: int,
+    ) -> float:
+        needs_subject = needs_link = needs_name = False
+        for position in all_positions():
+            slot = state.slot(player, position)
+            needs_subject = needs_subject or (
+                slot.subject is None
+                and (slot.link is not None or slot.name is not None)
+            )
+            needs_link = needs_link or (
+                slot.link is None
+                and (slot.subject is not None or slot.name is not None)
+            )
+            needs_name = needs_name or (
+                slot.name is None
+                and (slot.subject is not None or slot.link is not None)
+            )
+
+        value = 0.0
+        for card_id in state.players[player].hand:
+            card_type = engine.cards[card_id]["type"]
+            if card_type == "subject":
+                value += 0.45 + (0.95 if needs_subject else 0.0)
+            elif card_type == "link":
+                value += 0.35 + (0.95 if needs_link else 0.0)
+            elif card_type == "name":
+                value += 0.35 + (1.05 if needs_name else 0.0)
+            elif card_type == "plot":
+                value += 0.40
+            elif card_type == "stratagem":
+                value += 0.30
+        return value
 
     def _stratagem_option_value(
         self,

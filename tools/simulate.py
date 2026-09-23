@@ -72,6 +72,15 @@ def main() -> None:
         help="Name ids that draw 1 when their formation becomes complete.",
     )
     parser.add_argument(
+        "--command",
+        action="store_true",
+        help="Enable the persistent Command economy and paid Cycle operation.",
+    )
+    parser.add_argument("--starting-command", type=int, default=20)
+    parser.add_argument("--battle-command-gain", type=int, default=10)
+    parser.add_argument("--command-cap", type=int, default=20)
+    parser.add_argument("--cycle-command-cost", type=int, default=1)
+    parser.add_argument(
         "--deck-a",
         type=Path,
         default=Path("decks/reference.json"),
@@ -96,6 +105,11 @@ def main() -> None:
         completion_draw_names=args.completion_draw_names,
         deck_size=args.deck_size,
         recycle_between_battles=not args.no_between_battle_recycle,
+        command_enabled=args.command,
+        starting_command=args.starting_command,
+        battle_command_gain=args.battle_command_gain,
+        command_cap=args.command_cap,
+        cycle_command_cost=args.cycle_command_cost,
     )
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
@@ -133,6 +147,11 @@ def main() -> None:
         "completion_draw_names": sorted(args.completion_draw_names),
         "deck_size": args.deck_size,
         "recycle_between_battles": not args.no_between_battle_recycle,
+        "command_enabled": args.command,
+        "starting_command": args.starting_command if args.command else None,
+        "battle_command_gain": args.battle_command_gain if args.command else None,
+        "command_cap": args.command_cap if args.command else None,
+        "cycle_command_cost": args.cycle_command_cost if args.command else None,
     }
 
     output = resolve(args.output)
@@ -151,6 +170,7 @@ def main() -> None:
         f"completion_draw_names={','.join(sorted(args.completion_draw_names)) or 'none'} "
         f"deck={args.deck_size} "
         f"recycle={'off' if args.no_between_battle_recycle else 'on'} "
+        f"command={'on' if args.command else 'off'} "
         "starter_bonus=+1"
     )
     print(f"Games: {report.games}")

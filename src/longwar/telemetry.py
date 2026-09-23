@@ -124,6 +124,7 @@ class Telemetry:
                     "player": actor,
                     "first_pass": first_pass,
                     "hand_size": len(state.players[actor].hand),
+                    "command_remaining": state.players[actor].command,
                     "controlled_fronts": sum(margin > 0 for margin in margins),
                     "tied_fronts": sum(margin == 0 for margin in margins),
                     "total_margin": sum(margins),
@@ -299,6 +300,14 @@ class Telemetry:
         pass_summary = {
             "events": len(self.pass_events),
             "mean_hand_size": self._mean_field(self.pass_events, "hand_size"),
+            "mean_command_remaining": self._mean_field(
+                self.pass_events,
+                "command_remaining",
+            ),
+            "command_exhausted_rate": self._ratio(
+                sum(event["command_remaining"] == 0 for event in self.pass_events),
+                len(self.pass_events),
+            ),
             "mean_dead_cards": self._mean_field(self.pass_events, "dead_cards"),
             "mean_actions_before_pass": self._mean_field(
                 self.pass_events,
@@ -349,6 +358,36 @@ class Telemetry:
             ),
         }
 
+        command = {
+            "mean_start_per_player": self._ratio(
+                sum(record["command_start_total"] for record in self.battle_records),
+                2 * len(self.battle_records),
+            ),
+            "mean_spent_per_player": self._ratio(
+                sum(record["command_spent_total"] for record in self.battle_records),
+                2 * len(self.battle_records),
+            ),
+            "mean_refunded_per_player": self._ratio(
+                sum(record["command_refunded_total"] for record in self.battle_records),
+                2 * len(self.battle_records),
+            ),
+            "mean_remaining_at_battle_end_per_player": self._ratio(
+                sum(record["command_remaining_total"] for record in self.battle_records),
+                2 * len(self.battle_records),
+            ),
+            "mean_winner_minus_loser_remaining": self._ratio(
+                sum(record["winner_minus_loser_command"] for record in self.battle_records),
+                len(self.battle_records),
+            ),
+            "mean_next_battle_command_per_player": self._ratio(
+                sum(
+                    record["next_battle_command_total"]
+                    for record in continuing_battles
+                ),
+                2 * len(continuing_battles),
+            ),
+        }
+
         decisions: dict[str, Any] = {}
         for agent, stats in sorted(self.decision_stats.items()):
             decisions[agent] = {
@@ -393,6 +432,7 @@ class Telemetry:
             "actions": dict(sorted(self.action_counts.items())),
             "passes": pass_summary,
             "battles": battles,
+            "command": command,
             "cards": cards,
             "legend_combinations": combos,
             "decisions": decisions,
@@ -499,6 +539,11 @@ class Telemetry:
             if state.phase is Phase.COMPLETE
             else [len(player.hand) for player in state.players]
         )
+        next_command = (
+            None
+            if state.phase is Phase.COMPLETE
+            else [player.command for player in state.players]
+        )
         self.battle_records.append(
             {
                 "battle": before.battle,
@@ -508,6 +553,19 @@ class Telemetry:
                 "actions_p1": self._battle_actions[1],
                 "total_strength": totals[0] + totals[1],
                 "abs_total_margin": abs(totals[0] - totals[1]),
+                "command_start_total": sum(before.battle_start_command),
+                "command_spent_total": sum(before.command_spent_this_battle),
+                "command_refunded_total": sum(before.command_refunded_this_battle),
+                "command_remaining_total": sum(
+                    player.command for player in before.players
+                ),
+                "winner_minus_loser_command": (
+                    before.players[winner].command
+                    - before.players[1 - winner].command
+                ),
+                "next_battle_command_total": (
+                    0 if next_command is None else sum(next_command)
+                ),
                 "next_battle_hand_total": (
                     None if next_hand_sizes is None else sum(next_hand_sizes)
                 ),
