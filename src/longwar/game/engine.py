@@ -519,11 +519,22 @@ class GameEngine:
 
         actions: list[Action] = [self._pass_action]
         if (
-            self.draw_action_enabled
+            not self.command_enabled
+            and self.draw_action_enabled
             and not state.draw_used[player]
             and state.players[player].deck
         ):
             actions.append(self._draw_action)
+
+        if (
+            self.command_enabled
+            and state.players[player].deck
+            and state.players[player].hand
+        ):
+            actions.extend(
+                Cycle(card_id)
+                for card_id in dict.fromkeys(state.players[player].hand)
+            )
 
         for card_id in dict.fromkeys(state.players[player].hand):
             card_type = self._card_types[card_id]
@@ -546,6 +557,13 @@ class GameEngine:
                 ):
                     actions.append(self._stratagem_actions[card_id])
 
+        if self.command_enabled:
+            available = state.players[player].command
+            actions = [
+                action
+                for action in actions
+                if self.command_cost_for_action(state, action) <= available
+            ]
         return actions
 
     def apply(
@@ -574,7 +592,7 @@ class GameEngine:
             return
 
         if isinstance(action, Draw):
-            if not self.draw_action_enabled:
+            if not self.draw_action_enabled or self.command_enabled:
                 raise IllegalAction("Draw is disabled for this rules variant")
             self._draw(state, actor, 1)
             state.draw_used[actor] = True
@@ -582,9 +600,34 @@ class GameEngine:
             state.turn_number += 1
             return
 
+        if isinstance(action, Cycle):
+            if not self.command_enabled:
+                raise IllegalAction("Cycle is only available in Command mode")
+            cost = self.command_cost_for_action(state, action)
+            self._spend_command(state, actor, cost)
+            was_free = state.players[actor].free_cycle
+            self._take_from_hand(state, actor, action.card_id)
+            self._discard_card(state, actor, action.card_id)
+            self._draw(state, actor, 1)
+            if was_free:
+                state.players[actor].free_cycle = False
+            self._advance_turn(state)
+            state.turn_number += 1
+            return
+
+        if self.command_enabled and isinstance(
+            action,
+            (PlaySubject, PlayLink, PlayName, PlayPlot, PlayScheme, SetStratagem),
+        ):
+            self._spend_command(
+                state,
+                actor,
+                self.command_cost_for_action(state, action),
+            )
+
         completion_before = (
             self._complete_formation_counts(state, actor)
-            if self.completion_draw_names
+            if (self.completion_draw_names or self.command_enabled)
             and isinstance(action, (PlaySubject, PlayLink, PlayName))
             else None
         )
@@ -675,17 +718,27 @@ class GameEngine:
             )
             state.stratagems[actor] = StratagemState(action.card_id)
             state.stratagem_used[actor] = True
+            if self.command_enabled:
+                self._advance_turn(state)
+                state.turn_number += 1
             return
 
         else:
             raise TypeError(f"Unhandled action type: {type(action)!r}")
 
         if completion_before is not None:
-            self._reward_new_completion_draws(
-                state,
-                actor,
-                completion_before,
-            )
+            if self.completion_draw_names:
+                self._reward_new_completion_draws(
+                    state,
+                    actor,
+                    completion_before,
+                )
+            if self.command_enabled:
+                self._resolve_new_completion_utilities(
+                    state,
+                    actor,
+                    completion_before,
+                )
 
         self._advance_turn(state)
         state.turn_number += 1
