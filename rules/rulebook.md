@@ -512,9 +512,9 @@ You may inspect your own face-down Stories. Your opponent may not.
 
 ### Stratagems
 
-Before your normal action, if you have not set a Stratagem this Battle, you may set one from your hand face-down in your Stratagem space.
+If you have not set a Stratagem this Battle, you may play one from your hand face-down in your Stratagem space as your operation for the turn.
 
-Do not end the turn. You must still take a normal action: play one card, Draw 1 if available, or Pass.
+Pay its printed Command cost. Your turn then ends normally.
 
 A revealed Stratagem stays face-up until the Battle ends. You cannot set another Stratagem that Battle.
 
@@ -534,9 +534,9 @@ During a Battle, when an effect removes or moves an attached card:
 
 ## Timing
 
-There is no reaction stack. A Stratagem is set only on its controller's turn, before that player's normal action.
+There is no reaction stack. A Stratagem is played only on its controller's turn and uses that turn's operation.
 
-For a normal card play:
+For a card play:
 
 1. announce the card and all required targets;
 2. if it is an immediate Story and an opposing *The False Muster* triggers, reveal the Stratagem and cancel that Story;
@@ -574,7 +574,7 @@ Reveal any Stratagem still face-down only after scoring. Its newly revealed cont
 - which Front contains each face-down Veiled Story;
 - whether each player has a face-down Stratagem;
 - whether each player has used their Stratagem opportunity this Battle;
-- whether each player has used their Draw action this Battle;
+- each player's current Command;
 - classifications and roles on visible cards.
 
 ## Deck construction
