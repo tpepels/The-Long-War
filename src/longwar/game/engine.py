@@ -2548,6 +2548,20 @@ class GameEngine:
             self._native_core_instance = core
         return core
 
+    def _native_heuristic(self):
+        evaluator = getattr(self, "_native_heuristic_instance", None)
+        if evaluator is None:
+            try:
+                from .._fast_search import NativeHeuristicEvaluator
+            except ImportError as exc:
+                raise RuntimeError(
+                    "The canonical Cython heuristic evaluator is not built. "
+                    "Run: python -m pip install -e '.[dev]'"
+                ) from exc
+            evaluator = NativeHeuristicEvaluator(self._native_core())
+            self._native_heuristic_instance = evaluator
+        return evaluator
+
     def _sync_from_native(self, state: GameState, fast_state) -> None:
         data = self._native_core().export_state(fast_state)
 

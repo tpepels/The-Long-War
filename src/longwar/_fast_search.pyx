@@ -2573,6 +2573,71 @@ cdef class FastEngine:
 
 
 
+
+cdef class NativeHeuristicEvaluator:
+    """Compiled heuristic policy, separate from game transitions/search."""
+
+    cdef FastEngine engine
+
+    def __init__(self, FastEngine engine):
+        self.engine = engine
+
+    cdef inline double evaluate_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        return self.engine.evaluate_fast(state, player)
+
+    cdef inline double strategic_evaluate_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        return self.engine.strategic_evaluate_fast(state, player)
+
+    cdef double score_action_fast(
+        self,
+        FastState state,
+        int player,
+        uint64_t action,
+        FastState scratch,
+    ):
+        return self.engine.action_order_score_fast(
+            state,
+            player,
+            action,
+            scratch,
+        )
+
+    cpdef double evaluate(self, FastState state, int player):
+        return self.evaluate_fast(state, player)
+
+    cpdef double strategic_evaluate(self, FastState state, int player):
+        return self.strategic_evaluate_fast(state, player)
+
+    cpdef double score_action(
+        self,
+        FastState state,
+        int player,
+        uint64_t action,
+    ):
+        cdef FastState scratch = FastState()
+        return self.score_action_fast(
+            state,
+            player,
+            action,
+            scratch,
+        )
+
+    cpdef double hand_construction_value(
+        self,
+        FastState state,
+        int player,
+    ):
+        return self.engine.hand_construction_value_fast(state, player)
+
+
 class NativeSearchLimit(RuntimeError):
     pass
 
@@ -2590,6 +2655,7 @@ cdef class NativeSearchBudget:
 
 cdef int ordered_actions_into(
     FastEngine engine,
+    NativeHeuristicEvaluator evaluator,
     FastState state,
     int actor,
     int width,
@@ -2608,7 +2674,7 @@ cdef int ordered_actions_into(
         return 0
 
     for i in range(n):
-        scores[i] = engine.action_order_score_fast(
+        scores[i] = evaluator.score_action_fast(
             state,
             actor,
             actions[i],
@@ -2654,6 +2720,7 @@ cdef int ordered_actions_into(
 
 cdef double native_alphabeta(
     FastEngine engine,
+    NativeHeuristicEvaluator evaluator,
     FastState state,
     int root_player,
     int depth,
@@ -2676,13 +2743,14 @@ cdef double native_alphabeta(
         raise NativeSearchLimit()
 
     if state.phase == PHASE_COMPLETE or depth <= 0:
-        return engine.strategic_evaluate_fast(state, root_player)
+        return evaluator.strategic_evaluate_fast(state, root_player)
 
     actor = state.active_player
     order_scratch = <FastState>scratch[level * 2]
     child = <FastState>scratch[level * 2 + 1]
     n = ordered_actions_into(
         engine,
+        evaluator,
         state,
         actor,
         width,
@@ -2690,7 +2758,7 @@ cdef double native_alphabeta(
         order_scratch,
     )
     if n <= 0:
-        return engine.strategic_evaluate_fast(state, root_player)
+        return evaluator.strategic_evaluate_fast(state, root_player)
 
     maximizing = actor == root_player
     value = -1.0e300 if maximizing else 1.0e300
@@ -2700,6 +2768,7 @@ cdef double native_alphabeta(
         engine.apply_fast(child, actions[i])
         child_value = native_alphabeta(
             engine,
+            evaluator,
             child,
             root_player,
             depth - 1,
@@ -2737,15 +2806,20 @@ cpdef double native_search_value(
     double beta,
     NativeSearchBudget budget,
     int candidate_width,
+    NativeHeuristicEvaluator evaluator=None,
 ):
     cdef FastState state = engine.from_game_state(game_state)
     cdef int levels = depth + 2
-    cdef object scratch = [
+    cdef object scratch
+    if evaluator is None:
+        evaluator = NativeHeuristicEvaluator(engine)
+    scratch = [
         FastState()
         for _ in range(levels * 2)
     ]
     return native_alphabeta(
         engine,
+        evaluator,
         state,
         root_player,
         depth,

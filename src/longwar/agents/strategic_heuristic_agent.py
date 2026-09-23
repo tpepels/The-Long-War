@@ -25,12 +25,14 @@ except ImportError:  # optional compatibility Cython extension
 try:
     from .._fast_search import (
         FastEngine as _NativeFastEngine,
+        NativeHeuristicEvaluator as _NativeHeuristicEvaluator,
         NativeSearchBudget as _NativeSearchBudget,
         NativeSearchLimit as _NativeSearchLimit,
         native_search_value as _native_search_value,
     )
 except ImportError:  # optional packed-state Cython extension
     _NativeFastEngine = None
+    _NativeHeuristicEvaluator = None
     _NativeSearchBudget = None
     _NativeSearchLimit = None
     _native_search_value = None
@@ -95,6 +97,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
         native_supported = bool(
             _native_search_value is not None
             and _NativeFastEngine is not None
+            and _NativeHeuristicEvaluator is not None
             and engine.command_enabled
             and not engine.cycle_enabled
         )
@@ -119,6 +122,11 @@ class StrategicHeuristicAgent(HeuristicAgent):
         )
         self._fast_engine = (
             _NativeFastEngine(engine)
+            if self._use_native
+            else None
+        )
+        self._native_evaluator = (
+            _NativeHeuristicEvaluator(self._fast_engine)
             if self._use_native
             else None
         )
@@ -220,6 +228,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
                                 inf,
                                 budget,
                                 self.candidate_width,
+                                self._native_evaluator,
                             )
                         elif self._use_cython:
                             value = _cython_search_value(

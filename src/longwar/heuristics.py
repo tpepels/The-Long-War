@@ -56,7 +56,8 @@ class HeuristicEvaluator:
     @staticmethod
     def _packed(engine: GameEngine, state: GameState):
         native = engine._native_core()
-        return native, native.from_game_state(state)
+        evaluator = engine._native_heuristic()
+        return native, evaluator, native.from_game_state(state)
 
     def evaluate(
         self,
@@ -72,8 +73,8 @@ class HeuristicEvaluator:
         state: GameState,
         player: int,
     ) -> float:
-        native, packed = self._packed(engine, state)
-        return float(native.evaluate(packed, player))
+        _native, evaluator, packed = self._packed(engine, state)
+        return float(evaluator.evaluate(packed, player))
 
     def _score_action(
         self,
@@ -82,10 +83,10 @@ class HeuristicEvaluator:
         player: int,
         action: Action,
     ) -> float:
-        native, packed = self._packed(engine, state)
+        native, evaluator, packed = self._packed(engine, state)
         native_action = engine._native_action(packed, action)
         return float(
-            native.score_action(
+            evaluator.score_action(
                 packed,
                 player,
                 native_action,
@@ -98,8 +99,8 @@ class HeuristicEvaluator:
         state: GameState,
         player: int,
     ) -> float:
-        native, packed = self._packed(engine, state)
-        return float(native.hand_construction_value(packed, player))
+        _native, evaluator, packed = self._packed(engine, state)
+        return float(evaluator.hand_construction_value(packed, player))
 
 
 class StrategicEvaluator(HeuristicEvaluator):
@@ -111,5 +112,5 @@ class StrategicEvaluator(HeuristicEvaluator):
         state: GameState,
         player: int,
     ) -> float:
-        native, packed = self._packed(engine, state)
-        return float(native.strategic_evaluate(packed, player))
+        _native, evaluator, packed = self._packed(engine, state)
+        return float(evaluator.strategic_evaluate(packed, player))
