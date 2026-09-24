@@ -21,15 +21,27 @@ CANONICAL_DECK_PATHS = {
     "mara": "decks/mara-rear.json",
     "sera": "decks/sera-support.json",
 }
-VARIANT_PROFILES = {
-    "control": "force-automatic",
-    "paid-free": "force-paid-free",
-    "auto-discard9": "force-auto-discard9",
-    "auto-discard7": "force-auto-discard7",
-    "auto-cap10": "force-auto-cap10",
-    # Retained for regression comparisons with the original experiment.
-    "automatic": "force-automatic",
-    "paid": "force-paid",
+VARIANT_RULE_ARGS = {
+    "control": ("--automatic-draw",),
+    "paid-free": ("--paid-draw", "--paid-draw-keeps-operation"),
+    "auto-discard9": (
+        "--automatic-draw",
+        "--battle-end-hand-limit",
+        "9",
+    ),
+    "auto-discard7": (
+        "--automatic-draw",
+        "--battle-end-hand-limit",
+        "7",
+    ),
+    "auto-cap10": (
+        "--automatic-draw",
+        "--automatic-draw-hand-limit",
+        "10",
+    ),
+    # Retained only for regression comparisons with the original experiment.
+    "automatic": ("--automatic-draw",),
+    "paid": ("--paid-draw",),
 }
 EXPERIMENT_VARIANTS = (
     "control",
@@ -93,7 +105,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         "--variant",
         "--mode",
         dest="variant",
-        choices=("experiment", "all", *VARIANT_PROFILES),
+        choices=("experiment", "all", *VARIANT_RULE_ARGS),
         default="experiment",
         help=(
             "experiment runs control + A-D. all also includes the original "
@@ -163,7 +175,7 @@ def selected_runs(args: argparse.Namespace) -> list[Run]:
     if args.variant == "experiment":
         variants = EXPERIMENT_VARIANTS
     elif args.variant == "all":
-        variants = tuple(VARIANT_PROFILES)
+        variants = tuple(VARIANT_RULE_ARGS)
     else:
         variants = (args.variant,)
     decks = DECKS if args.deck == "all" else (args.deck,)
@@ -243,7 +255,6 @@ def command_for(
     ismcts_progressive_widening: float = 0.0,
     ismcts_exploration: float = 2 ** 0.5,
 ) -> list[str]:
-    rules_profile = VARIANT_PROFILES[run.variant]
     command = [
         sys.executable,
         str(ROOT / "tools" / "simulate.py"),
@@ -251,8 +262,7 @@ def command_for(
         str(preset.games),
         "--seed",
         str(run.seed),
-        "--rules-profile",
-        rules_profile,
+        *VARIANT_RULE_ARGS[run.variant],
         "--card-file",
         "cards/cards.json",
         "--deck-a",
