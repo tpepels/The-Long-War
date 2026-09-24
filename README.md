@@ -23,7 +23,7 @@ make verify
 | Quick balance/playability signal | Canonical cards and decks | `make balance` |
 | Deeper balance evidence | Canonical cards and decks | `make balance BALANCE_PRESET=deep` |
 
-Add a focused regression at the changed boundary. `make verify` checks every shipped card/deck, the fast tests, and native/browser parity. `make verify-algorithms` runs learning/correctness tests plus fixed-seed Python/native alpha-beta comparisons and ISMCTS validation. `make test-integration` checks multi-game and report pipelines. `make test` runs every pytest test.
+Add a focused regression at the changed boundary. `make verify` checks every shipped card/deck against the current standard rules, the ordinary fast tests, and native/browser parity. `make verify-algorithms` validates search/AI only against the current standard rules. Historical non-standard rule-profile tests are marked `legacy_rule_experiment` and run under the full `make test`, not the canonical verification path. `make test-integration` checks multi-game and report pipelines.
 
 Rebuild after every `.pyx` or `.pxi` edit. Browser builds automatically detect changed package sources. The first browser build is slower; a current build is reused. No GitHub Actions run is needed for local verification.
 
@@ -33,7 +33,7 @@ The canonical implementation is `src/longwar/_fast_search.pyx`. It owns legal ac
 
 The standard playtest uses 34-card decks and a 10-card opening/refill hand. Command starts at 20, gains 10 between Battles up to 20, and carries forward. At the start of every turn, draw 1 card automatically; then play one card or Pass when Pass is legal. Playing a card spends its printed Command cost. There is no generic Draw action and no standard Cycle action. Draw piles persist between Battles and the discard pile reshuffles only when a draw requires an empty deck. The first Pass gives the opponent exactly one final operation, then the Battle scores; the first passer starts the next Battle. Stratagems are public and active when played, and completing a formation refunds 1 Command. The four shipped deck templates contain 14 Subject-type cards and 6 printed Names. They now carry multiple distinct Heroes; each Hero is Unique, may be played as either a Subject or a Name, and each side may play only one Hero per Battle.
 
-The static browser runs a WebAssembly build of the **same Cython package** through Pyodide. `web/browser-engine.mjs` only transports JSON to `web_api.PlaySession`; rules and AI live in the Python/Cython package. Hot-seat privacy, mulligans, and paced AI turns share the native session implementation.
+The static browser runs the **same canonical Cython engine** through Pyodide. Its Python wheel is intentionally minimal: cards, rules, game state/actions/engine, heuristic evaluation, `web_api.PlaySession`, and the current Tactical AI only. Simulation, telemetry, balance, counterfactual, MCCFR Python tooling, and other search agents are not packaged into browser play. The native `_fast_search` extension still physically contains the bundled search cores for now; splitting that extension is separate cleanup work. `web/browser-engine.mjs` only transports JSON to `web_api.PlaySession`.
 
 ```bash
 make browser-parity   # build/cache wasm, build Pages, compare complete session traces
@@ -67,7 +67,7 @@ The [issue #21 desktop-client handoff](reports/issue-21-desktop-client.md) recor
 The packed engine supports up to 127 card identities, 64 cards per player deck, and 1024 generated actions, with checked boundaries. Counterfactual neutral cards are generated in memory and never added to printable canonical data.
 
 - `decks/*.json`: canonical reference and archetype decks.
-- Named non-standard rule profiles in `src/longwar/rules.py`: card-flow experiments that reuse the same canonical cards and decks.
+- Named non-standard rule profiles in `src/longwar/rules.py`: retained historical/design experiments. They are not part of canonical verification.
 - `reports/`: retained historical playtest analyses. They are context, not current balance evidence.
 - `artifacts/`: generated local results, manifests, policies and build output.
 
