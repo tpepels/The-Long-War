@@ -1,12 +1,11 @@
 {
-  "name": "Avaros Line v0.8",
-  "hero": "avaros-the-bronze-king",
+  "name": "Avaros Line v0.9",
   "cards": [
     "avaros-the-bronze-king",
     "the-red-shields",
-    "the-red-shields",
+    "daran-the-red-shield",
     "the-fifty-men",
-    "the-fifty-men",
+    "theron-the-oathkeeper",
     "the-three-brothers-of-avar",
     "the-three-brothers-of-avar",
     "those-who-came-back",
@@ -36,5 +35,10 @@
     "the-witness-lied",
     "the-bronze-teeth",
     "the-false-muster"
+  ],
+  "heroes": [
+    "avaros-the-bronze-king",
+    "daran-the-red-shield",
+    "theron-the-oathkeeper"
   ]
 }
