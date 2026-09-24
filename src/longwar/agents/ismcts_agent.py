@@ -9,6 +9,9 @@ from ..game.engine import GameEngine
 from ..game.model import GameState
 from ..heuristics import opening_mulligan_indices
 
+DEFAULT_ISMCTS_EXPLORATION = 0.3
+
+
 try:
     from .._fast_search import (
         FastEngine,
@@ -42,7 +45,7 @@ class ISMCTSAgent:
         time_budget_seconds: float | None = None,
         rollout_depth: int = 5,
         tree_depth_limit: int = 96,
-        exploration: float = 2 ** 0.5,
+        exploration: float = DEFAULT_ISMCTS_EXPLORATION,
         progressive_widening: float = 0.0,
         reuse_tree: bool = True,
         max_tree_nodes: int | None = None,
