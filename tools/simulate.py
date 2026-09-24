@@ -55,6 +55,12 @@ def main() -> None:
         default="{}",
         help="Internal per-seat agent overrides as a JSON object.",
     )
+    parser.add_argument(
+        "--heuristic-exploration",
+        type=float,
+        default=0.0,
+        help="Random exploration probability for the one-ply heuristic agent.",
+    )
     parser.add_argument("--online-iterations", type=int, default=8)
     parser.add_argument("--online-depth", type=int, default=2)
     parser.add_argument("--strategic-belief-samples", type=int, default=3)
@@ -107,6 +113,14 @@ def main() -> None:
         "--ismcts-no-tree-reuse",
         action="store_true",
         help="Rebuild the ISMCTS tree from scratch for every decision.",
+    )
+    parser.add_argument(
+        "--ismcts-max-tree-nodes",
+        type=int,
+        help=(
+            "Maximum persistent ISMCTS information-set nodes. "
+            "Default is four times the iteration budget."
+        ),
     )
     parser.add_argument("--ismcts-rollout-epsilon", type=float, default=0.12)
     parser.add_argument(
@@ -397,6 +411,7 @@ def main() -> None:
         seed=args.seed,
         agent_names=(args.agent_a, args.agent_b),
         agent_policies=policies,
+        heuristic_exploration=args.heuristic_exploration,
         online_iterations=args.online_iterations,
         online_depth=args.online_depth,
         strategic_belief_samples=args.strategic_belief_samples,
@@ -413,6 +428,7 @@ def main() -> None:
         ismcts_exploration=args.ismcts_exploration,
         ismcts_progressive_widening=args.ismcts_progressive_widening,
         ismcts_reuse_tree=not args.ismcts_no_tree_reuse,
+        ismcts_max_tree_nodes=args.ismcts_max_tree_nodes,
         ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
         ismcts_rollout_policy=args.ismcts_rollout_policy,
         agent_overrides=agent_overrides,
@@ -426,6 +442,9 @@ def main() -> None:
     payload["seed"] = args.seed
     payload["win_rates"] = report.win_rates
     payload["first_player_win_rate"] = report.first_player_win_rate
+    payload["heuristic_config"] = {
+        "exploration": args.heuristic_exploration,
+    }
     payload["online_config"] = {
         "iterations": args.online_iterations,
         "depth": args.online_depth,
@@ -448,6 +467,7 @@ def main() -> None:
         "exploration": args.ismcts_exploration,
         "progressive_widening": args.ismcts_progressive_widening,
         "tree_reuse": not args.ismcts_no_tree_reuse,
+        "max_tree_nodes": args.ismcts_max_tree_nodes,
         "progressive_widening_alpha": (
             0.5 if args.ismcts_progressive_widening > 0 else 0.0
         ),
