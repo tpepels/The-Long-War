@@ -205,6 +205,7 @@ cdef class FastState:
     cdef int8_t stratagem[2]
     cdef uint8_t stratagem_revealed[2]
     cdef uint8_t stratagem_used[2]
+    cdef uint8_t hero_used[2]
     cdef uint8_t draw_used[2]
 
     cdef uint8_t known_hidden[2][2][MAX_CARDS]
@@ -276,6 +277,7 @@ cdef class FastState:
         memset(self.stratagem, 0xff, sizeof(self.stratagem))
         memset(self.stratagem_revealed, 0, sizeof(self.stratagem_revealed))
         memset(self.stratagem_used, 0, sizeof(self.stratagem_used))
+        memset(self.hero_used, 0, sizeof(self.hero_used))
         memset(self.draw_used, 0, sizeof(self.draw_used))
         memset(self.known_hidden, 0, sizeof(self.known_hidden))
         memset(self.victories, 0, sizeof(self.victories))
@@ -344,6 +346,7 @@ cdef class FastState:
         memcpy(self.stratagem, other.stratagem, sizeof(self.stratagem))
         memcpy(self.stratagem_revealed, other.stratagem_revealed, sizeof(self.stratagem_revealed))
         memcpy(self.stratagem_used, other.stratagem_used, sizeof(self.stratagem_used))
+        memcpy(self.hero_used, other.hero_used, sizeof(self.hero_used))
         memcpy(self.draw_used, other.draw_used, sizeof(self.draw_used))
         memcpy(self.known_hidden, other.known_hidden, sizeof(self.known_hidden))
         memcpy(self.victories, other.victories, sizeof(self.victories))
@@ -441,6 +444,8 @@ cdef class FastEngine:
     cdef uint8_t legacy_completion_draw[MAX_CARDS]
     cdef int8_t role[MAX_CARDS]
     cdef int8_t strength[MAX_CARDS]
+    cdef int8_t name_strength[MAX_CARDS]
+    cdef uint8_t hero[MAX_CARDS]
     cdef int8_t placement_rank[MAX_CARDS]
     cdef int8_t on_link_bonus[MAX_CARDS]
     cdef int8_t aura[MAX_CARDS]
@@ -494,6 +499,8 @@ cdef class FastEngine:
         memset(self.legacy_completion_draw, 0, sizeof(self.legacy_completion_draw))
         memset(self.role, 0, sizeof(self.role))
         memset(self.strength, 0, sizeof(self.strength))
+        memset(self.name_strength, 0, sizeof(self.name_strength))
+        memset(self.hero, 0, sizeof(self.hero))
         memset(self.placement_rank, 0xff, sizeof(self.placement_rank))
         memset(self.on_link_bonus, 0, sizeof(self.on_link_bonus))
         memset(self.aura, 0, sizeof(self.aura))
@@ -602,6 +609,13 @@ cdef class FastEngine:
             self.card_type[code] = type_map[card["type"]]
             self.role[code] = role_map.get(card.get("role"), ROLE_NONE)
             self.strength[code] = int(card.get("strength", 0))
+            self.name_strength[code] = int(
+                card.get(
+                    "hero_name_strength",
+                    card.get("strength", 0) if card["type"] == "name" else 0,
+                )
+            )
+            self.hero[code] = bool(card.get("hero", False))
             rules = card.get("rules", {})
             self.card_command_cost[code] = int(card.get("command_cost", 0))
             self.adjacent_command_discount[code] = int(rules.get("adjacent_command_discount", 0))
@@ -713,6 +727,7 @@ cdef class FastEngine:
             fast.reshuffle_hand_card_totals[p] = state.reshuffle_hand_card_totals[p]
             fast.discarded_this_battle[p] = state.discarded_this_battle[p]
             fast.stratagem_used[p] = state.stratagem_used[p]
+            fast.hero_used[p] = state.hero_used[p]
             fast.draw_used[p] = state.draw_used[p]
             strat = state.stratagems[p]
             if strat is not None:
@@ -892,7 +907,7 @@ cdef class FastEngine:
                         mod = self.link_discard_max[link]
                     value += mod
         if name >= 0:
-            value += self.strength[name]
+            value += self.name_strength[name]
             if self.name_rank_bonus_rank[name] == rank:
                 value += self.name_rank_bonus_amount[name]
 
@@ -1173,15 +1188,26 @@ cdef class FastEngine:
                 n = _append_action(actions, n, encode_action(TYPE_CYCLE, card, -1, -1, player))
 
             if self.card_type[card] == CARD_SUBJECT:
-                req = self.placement_rank[card]
-                for local in range(6):
-                    slot = player * 6 + local
-                    if state.subject[slot] >= 0:
-                        continue
-                    rank = local & 1
-                    if req >= 0 and req != rank:
-                        continue
-                    n = _append_action(actions, n, encode_action(TYPE_SUBJECT, card, slot, -1, player))
+                if not self.hero[card] or not state.hero_used[player]:
+                    req = self.placement_rank[card]
+                    for local in range(6):
+                        slot = player * 6 + local
+                        if state.subject[slot] >= 0:
+                            continue
+                        rank = local & 1
+                        if req >= 0 and req != rank:
+                            continue
+                        n = _append_action(actions, n, encode_action(TYPE_SUBJECT, card, slot, -1, player))
+
+                    if self.hero[card]:
+                        for local in range(6):
+                            slot = player * 6 + local
+                            if state.name[slot] < 0:
+                                n = _append_action(
+                                    actions,
+                                    n,
+                                    encode_action(TYPE_NAME, card, slot, -1, player),
+                                )
 
             elif self.card_type[card] == CARD_LINK:
                 for local in range(6):
@@ -1728,6 +1754,7 @@ cdef class FastEngine:
             state.cards_drawn_this_battle[p] = 0
             state.completion_count_this_battle[p] = 0
             state.stratagem_used[p] = 0
+            state.hero_used[p] = 0
             state.draw_used[p] = 0
             state.free_cycle[p] = 0
             if self.command_enabled:
@@ -1865,6 +1892,8 @@ cdef class FastEngine:
 
         if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
             before_mask = self.complete_mask(state, actor)
+        if (kind == TYPE_SUBJECT or kind == TYPE_NAME) and card >= 0 and self.hero[card]:
+            state.hero_used[actor] = 1
 
         if kind == TYPE_SUBJECT:
             self.take_from_hand(state, actor, card, 0)
@@ -1962,6 +1991,7 @@ cdef class FastEngine:
             _info_hash_feed(&h, state.passed[p])
             _info_hash_feed_u16(&h, <uint16_t>state.command[p])
             _info_hash_feed(&h, state.free_cycle[p])
+            _info_hash_feed(&h, state.hero_used[p])
             _info_hash_feed_u16(
                 &h,
                 state.operations_this_battle[p],
@@ -2050,6 +2080,7 @@ cdef class FastEngine:
                 <uint16_t>state.command[i],
             )
             _info_emit(buf, &n, h, state.free_cycle[i])
+            _info_emit(buf, &n, h, state.hero_used[i])
             _info_emit_u16(
                 buf,
                 &n,
@@ -2425,6 +2456,10 @@ cdef class FastEngine:
             "stratagem_used": [
                 bool(state.stratagem_used[0]),
                 bool(state.stratagem_used[1]),
+            ],
+            "hero_used": [
+                bool(state.hero_used[0]),
+                bool(state.hero_used[1]),
             ],
             "draw_used": [
                 bool(state.draw_used[0]),
