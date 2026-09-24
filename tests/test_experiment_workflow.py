@@ -233,7 +233,7 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
         "baseline-control",
         "exploration-0p15",
         "exploration-0p6",
-        "belief-8",
+        "belief-16",
         "belief-24",
         "tree-cold",
         "tree-800k",
@@ -247,7 +247,7 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
     assert match_calls[0]["max_tree_nodes_b"] == 400_000
     assert match_calls[1]["exploration_b"] == pytest.approx(0.15)
     assert match_calls[2]["exploration_b"] == pytest.approx(0.6)
-    assert match_calls[3]["belief_samples_b"] == 8
+    assert match_calls[3]["belief_samples_b"] == 16
     assert match_calls[4]["belief_samples_b"] == 24
     assert match_calls[5]["reuse_tree_b"] is False
     assert match_calls[6]["max_tree_nodes_b"] == 800_000
