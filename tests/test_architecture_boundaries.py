@@ -52,24 +52,23 @@ def test_game_core_dependencies_point_inward_only() -> None:
 
 
 def test_runtime_and_search_do_not_special_case_card_ids() -> None:
-    """Cards express capabilities as data; implementations never branch on ids."""
+    """Cards express capabilities as data; implementations never branch on ids.
+
+    Scans every source file under ``src/longwar`` instead of a fixed list, so a
+    newly added module cannot silently opt out of this invariant.
+    """
     import json
 
     card_data = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     card_ids = {card["id"] for card in card_data["cards"]}
+    assert len(card_ids) >= 10, "expected the shipped card set to be non-trivial"
 
-    implementation_files = [
-        SRC / "game" / "engine.py",
-        SRC / "_fast_search.pyx",
-        SRC / "_heuristic_core.pxi",
-        SRC / "_alpha_beta_core.pxi",
-        SRC / "_ismcts_core.pxi",
-        SRC / "_mccfr_core.pxi",
-        SRC / "heuristics.py",
-        SRC / "agents" / "heuristic_agent.py",
-        SRC / "agents" / "strategic_heuristic_agent.py",
-        SRC / "agents" / "ismcts_agent.py",
-    ]
+    implementation_files = sorted(
+        path
+        for pattern in ("*.py", "*.pyx", "*.pxi")
+        for path in SRC.rglob(pattern)
+    )
+    assert len(implementation_files) >= 10, "expected to find game package source files"
     for path in implementation_files:
         source = path.read_text(encoding="utf-8")
         leaked = sorted(card_id for card_id in card_ids if card_id in source)
@@ -325,7 +324,10 @@ def test_canonical_native_engine_is_required_build_output() -> None:
     source = (ROOT / "setup.py").read_text(encoding="utf-8")
     marker = '"longwar._fast_search"'
     assert marker in source
-    fast_block = source.split(marker, 1)[1].split("),", 1)[0]
+    remainder = source.split(marker, 1)[1]
+    end_marker = "),"
+    assert end_marker in remainder, "expected the Extension(...) call to close with '),'"
+    fast_block = remainder.split(end_marker, 1)[0]
     assert "optional=True" not in fast_block
 
 
@@ -447,14 +449,57 @@ def test_information_state_schema_has_one_canonical_encoder() -> None:
     assert "state." not in key_body
 
 
-def test_serious_ismcts_defaults_are_not_smoke_budgets() -> None:
-    agent = (SRC / "agents" / "ismcts_agent.py").read_text(encoding="utf-8")
-    simulation = (SRC / "simulate.py").read_text(encoding="utf-8")
-    cli = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
-    experiments = (ROOT / "tools" / "run_experiments.py").read_text(encoding="utf-8")
+def test_serious_ismcts_defaults_are_not_smoke_budgets(monkeypatch) -> None:
+    """AGENTS.md: "Serious ISMCTS default: 100,000 iterations."
 
-    assert "iterations: int = 100_000" in agent
-    assert simulation.count("ismcts_iterations: int = 100_000") >= 2
-    assert 'parser.add_argument("--ismcts-iterations", type=int, default=100_000)' in cli
-    assert 'strength_bench.add_argument("--iterations", type=int, default=100_000)' in experiments
-    assert 'suite.add_argument("--iterations", type=int, default=100_000)' in experiments
+    Every caller shares one constant (``DEFAULT_ISMCTS_ITERATIONS``) instead of
+    re-literaling the number, so this checks resolved runtime defaults through
+    that constant rather than pinning each call site's literal source text.
+    That way reformatting a number can't break the test, and a caller that
+    quietly reverts to its own hardcoded value can't escape it either.
+    """
+    import ast
+    import sys
+
+    from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_ITERATIONS, ISMCTSAgent
+    from longwar.simulate import make_agent, simulate_games
+
+    assert DEFAULT_ISMCTS_ITERATIONS == 100_000
+
+    agent_default = inspect.signature(ISMCTSAgent.__init__).parameters["iterations"].default
+    assert agent_default == DEFAULT_ISMCTS_ITERATIONS
+
+    for target in (make_agent, simulate_games):
+        default = inspect.signature(target).parameters["ismcts_iterations"].default
+        assert default == DEFAULT_ISMCTS_ITERATIONS, target.__name__
+
+    # tools/run_experiments.py exposes a side-effect-free parser builder;
+    # parse each ISMCTS-related subcommand for real and read back the value.
+    from tools import run_experiments
+
+    for command in ("ismcts-match", "strength-bench", "suite"):
+        monkeypatch.setattr(sys, "argv", ["run_experiments.py", command])
+        args = run_experiments.parse_args()
+        assert args.iterations == DEFAULT_ISMCTS_ITERATIONS, command
+
+    # tools/simulate.py builds its argparse parser inline inside main(), which
+    # also runs a full simulation, so parse the source with ast instead of
+    # executing it; require the default to reference the shared constant by
+    # name rather than matching a specific literal spelling.
+    cli_source = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
+    tree = ast.parse(cli_source)
+    matches = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "add_argument"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+        and node.args[0].value == "--ismcts-iterations"
+    ]
+    assert len(matches) == 1, "expected exactly one --ismcts-iterations argument"
+    default_kwarg = next(kw.value for kw in matches[0].keywords if kw.arg == "default")
+    assert (
+        isinstance(default_kwarg, ast.Name) and default_kwarg.id == "DEFAULT_ISMCTS_ITERATIONS"
+    ), "tools/simulate.py must default --ismcts-iterations from the shared constant, not a literal"

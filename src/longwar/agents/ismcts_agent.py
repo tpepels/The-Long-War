@@ -10,6 +10,10 @@ from ..game.model import GameState
 from ..heuristics import opening_mulligan_indices
 
 DEFAULT_ISMCTS_EXPLORATION = 0.3
+# AGENTS.md: "Serious ISMCTS default: 100,000 iterations." Every caller (agent,
+# simulate.py, CLI tools) must import this rather than re-literal the number so
+# there is exactly one place that encodes the "not a smoke budget" invariant.
+DEFAULT_ISMCTS_ITERATIONS = 100_000
 
 
 try:
@@ -41,7 +45,7 @@ class ISMCTSAgent:
         *,
         priors: tuple[DeckPrior, DeckPrior] | None = None,
         belief_samples: int = 16,
-        iterations: int = 100_000,
+        iterations: int = DEFAULT_ISMCTS_ITERATIONS,
         time_budget_seconds: float | None = None,
         rollout_depth: int = 5,
         tree_depth_limit: int = 96,

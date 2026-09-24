@@ -12,7 +12,7 @@ from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
-from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION
+from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, DEFAULT_ISMCTS_ITERATIONS
 from longwar.balance import validate_command_costs
 from longwar.cards import load_card_file
 from longwar.decks import PLAYTEST_DECK_SIZE, validate_deck_definition
@@ -1556,7 +1556,7 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     ismcts_match.add_argument("--jobs", type=int, default=8)
-    ismcts_match.add_argument("--iterations", type=int, default=100_000)
+    ismcts_match.add_argument("--iterations", type=int, default=DEFAULT_ISMCTS_ITERATIONS)
     ismcts_match.add_argument("--time-budget-seconds", type=float, default=2.0)
     ismcts_match.add_argument("--seed", type=int, default=26092400)
     ismcts_match.add_argument("--a-belief-samples", type=int, default=12)
@@ -1598,7 +1598,7 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     strength_bench.add_argument("--jobs", type=int, default=8)
-    strength_bench.add_argument("--iterations", type=int, default=100_000)
+    strength_bench.add_argument("--iterations", type=int, default=DEFAULT_ISMCTS_ITERATIONS)
     strength_bench.add_argument("--seed", type=int, default=26092400)
     strength_bench.add_argument("--alpha-nodes", type=int, default=20_000)
     strength_bench.add_argument("--belief-samples", type=int, default=12)
@@ -1642,7 +1642,7 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     suite.add_argument("--jobs", type=int, default=8)
-    suite.add_argument("--iterations", type=int, default=100_000)
+    suite.add_argument("--iterations", type=int, default=DEFAULT_ISMCTS_ITERATIONS)
     suite.add_argument("--alpha-nodes", type=int, default=20_000)
     suite.add_argument("--time-budget-seconds", type=float, default=2.0)
     suite.add_argument("--seed", type=int, default=26092400)

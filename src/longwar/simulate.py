@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .agents import HeuristicAgent, ISMCTSAgent, RandomAgent
-from .agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION
+from .agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, DEFAULT_ISMCTS_ITERATIONS
 from .agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from .agents.online_mccfr_agent import OnlineMCCFRAgent
 from .belief import DeckHypothesis, DeckPrior, HypothesisDeckPrior
@@ -52,7 +52,7 @@ def make_agent(
     strategic_time_budget_seconds: float | None = None,
     strategic_search_backend: str = "auto",
     ismcts_belief_samples: int = 12,
-    ismcts_iterations: int = 100_000,
+    ismcts_iterations: int = DEFAULT_ISMCTS_ITERATIONS,
     ismcts_time_budget_seconds: float | None = None,
     ismcts_rollout_depth: int = 5,
     ismcts_tree_depth_limit: int = 96,
@@ -130,7 +130,7 @@ def simulate_games(
     strategic_time_budget_seconds: float | None = None,
     strategic_search_backend: str = "auto",
     ismcts_belief_samples: int = 12,
-    ismcts_iterations: int = 100_000,
+    ismcts_iterations: int = DEFAULT_ISMCTS_ITERATIONS,
     ismcts_time_budget_seconds: float | None = None,
     ismcts_rollout_depth: int = 5,
     ismcts_tree_depth_limit: int = 96,

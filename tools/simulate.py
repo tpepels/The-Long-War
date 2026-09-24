@@ -6,7 +6,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION
+from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, DEFAULT_ISMCTS_ITERATIONS
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.rules import GameRules
@@ -91,7 +91,7 @@ def main() -> None:
         help="Search backend. auto prefers the compiled Cython accelerator.",
     )
     parser.add_argument("--ismcts-belief-samples", type=int, default=12)
-    parser.add_argument("--ismcts-iterations", type=int, default=100_000)
+    parser.add_argument("--ismcts-iterations", type=int, default=DEFAULT_ISMCTS_ITERATIONS)
     parser.add_argument(
         "--ismcts-time-budget-seconds",
         type=float,
