@@ -38,6 +38,7 @@ class ISMCTSAgent:
         rollout_depth: int = 5,
         tree_depth_limit: int = 96,
         exploration: float = 2 ** 0.5,
+        progressive_widening: float = 0.0,
         rollout_epsilon: float = 0.12,
         rollout_policy: str = "cheap",
         leaf_scale: float = 100.0,
@@ -52,6 +53,8 @@ class ISMCTSAgent:
             raise ValueError("tree_depth_limit must be positive")
         if exploration < 0:
             raise ValueError("exploration must be non-negative")
+        if progressive_widening < 0:
+            raise ValueError("progressive_widening must be non-negative")
         if not 0.0 <= rollout_epsilon <= 1.0:
             raise ValueError("rollout_epsilon must be between 0 and 1")
         if rollout_policy not in {"greedy", "cheap", "random"}:
@@ -71,6 +74,7 @@ class ISMCTSAgent:
         self.rollout_depth = rollout_depth
         self.tree_depth_limit = tree_depth_limit
         self.exploration = exploration
+        self.progressive_widening = progressive_widening
         self.rollout_epsilon = rollout_epsilon
         self.rollout_policy = rollout_policy
         self._rollout_policy_code = {
@@ -116,6 +120,7 @@ class ISMCTSAgent:
                 "ismcts_rollouts_stopped_depth": 0,
                 "ismcts_rollout_actions": 0,
                 "ismcts_rollout_policy": self.rollout_policy,
+                "ismcts_progressive_widening": self.progressive_widening,
             }
             return legal[0]
 
@@ -137,6 +142,7 @@ class ISMCTSAgent:
             rollout_depth=self.rollout_depth,
             tree_depth_limit=self.tree_depth_limit,
             exploration=self.exploration,
+            progressive_widening=self.progressive_widening,
             rollout_epsilon=self.rollout_epsilon,
             rollout_policy=self._rollout_policy_code,
             leaf_scale=self.leaf_scale,
@@ -183,6 +189,10 @@ class ISMCTSAgent:
             "ismcts_rollout_actions": int(result["rollout_actions"]),
             "ismcts_root_value": score,
             "ismcts_rollout_policy": self.rollout_policy,
+            "ismcts_progressive_widening": self.progressive_widening,
+            "ismcts_progressive_widening_alpha": float(
+                result["progressive_widening_alpha"]
+            ),
             "ismcts_tree_storage": str(result["tree_storage"]),
         }
         return selected
