@@ -268,10 +268,14 @@ def test_suite_readiness_blocks_a_confidently_better_challenger(
 ):
     suite_dir = tmp_path / "suite"
 
+    def fake_artifact_directory(_base, _identity):
+        suite_dir.mkdir(parents=True, exist_ok=True)
+        return suite_dir
+
     monkeypatch.setattr(
         runner,
         "artifact_directory",
-        lambda _base, _identity: suite_dir,
+        fake_artifact_directory,
     )
 
     calls = 0
