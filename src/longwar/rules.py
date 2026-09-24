@@ -19,7 +19,6 @@ class GameRules:
     opening_hand_size: int = 10
     draw_action_enabled: bool = False
     completion_draw_names: tuple[str, ...] = ()
-    deck_size: int = 34
     recycle_between_battles: bool = False
 
     command_enabled: bool = True
@@ -59,12 +58,8 @@ class GameRules:
             for card_id in self.completion_draw_names
         ):
             raise ValueError("completion_draw_names must be a tuple of card ids")
-        if self.deck_size < 1:
-            raise ValueError("deck_size must be positive")
-        if not 1 <= self.opening_hand_size <= self.deck_size:
-            raise ValueError(
-                "opening_hand_size must be between 1 and deck_size"
-            )
+        if self.opening_hand_size < 1:
+            raise ValueError("opening_hand_size must be positive")
         if min(
             self.starting_command,
             self.battle_command_gain,
