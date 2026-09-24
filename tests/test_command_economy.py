@@ -257,3 +257,78 @@ def test_stratagem_is_paid_public_operation_in_standard_game() -> None:
     assert stratagem is not None
     assert stratagem.revealed is True
     assert state.active_player == 1
+
+
+def test_hero_offers_subject_and_name_modes_before_allowance_is_spent() -> None:
+    engine, state = standard_game()
+    state.players[0].hand = ["daran-the-red-shield"]
+    actions = engine.legal_actions(state)
+
+    assert any(
+        isinstance(action, PlaySubject)
+        and action.card_id == "daran-the-red-shield"
+        for action in actions
+    )
+    assert any(
+        isinstance(action, PlayName)
+        and action.card_id == "daran-the-red-shield"
+        for action in actions
+    )
+
+
+def test_playing_hero_as_name_uses_name_strength_and_locks_other_heroes() -> None:
+    engine, state = standard_game()
+    state.slot(0, CENTER_FRONT).subject = "the-fifty-men"
+    state.players[0].hand = [
+        "daran-the-red-shield",
+        "lysa-of-the-salt-road",
+    ]
+
+    action = PlayName("daran-the-red-shield", CENTER_FRONT)
+    assert action in engine.legal_actions(state)
+    engine.apply(state, action)
+
+    assert state.hero_used == [True, False]
+    assert state.slot(0, CENTER_FRONT).name == "daran-the-red-shield"
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 8
+
+    state.active_player = 0
+    actions = engine.legal_actions(state)
+    assert not any(
+        getattr(candidate, "card_id", None) == "lysa-of-the-salt-road"
+        and isinstance(candidate, (PlaySubject, PlayName))
+        for candidate in actions
+    )
+
+
+def test_playing_hero_as_subject_locks_other_heroes_until_next_battle() -> None:
+    engine, state = standard_game()
+    state.players[0].hand = [
+        "daran-the-red-shield",
+        "theron-the-oathkeeper",
+    ]
+
+    action = next(
+        candidate
+        for candidate in engine.legal_actions(state)
+        if isinstance(candidate, PlaySubject)
+        and candidate.card_id == "daran-the-red-shield"
+    )
+    engine.apply(state, action)
+
+    assert state.hero_used[0] is True
+    state.active_player = 0
+    assert not any(
+        getattr(candidate, "card_id", None) == "theron-the-oathkeeper"
+        and isinstance(candidate, (PlaySubject, PlayName))
+        for candidate in engine.legal_actions(state)
+    )
+
+    state.operations_this_battle[:] = [1, 1]
+    state.slot(0, LEFT_FRONT).subject = "the-fifty-men"
+    state.slot(0, RIGHT_FRONT).subject = "the-fifty-men"
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.battle == 2
+    assert state.hero_used == [False, False]
