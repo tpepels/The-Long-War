@@ -9,6 +9,8 @@ from pathlib import Path
 import pytest
 
 from longwar import cardflow, fingerprint
+from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, ISMCTSAgent
+from longwar.simulate import make_agent, simulate_games
 from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,6 +50,21 @@ def test_all_named_profiles_are_resolvable():
         assert isinstance(GameRules.from_profile(name), GameRules)
     with pytest.raises(ValueError, match="Unknown rules profile"):
         GameRules.from_profile("typo")
+
+
+def test_provisional_ismcts_exploration_default_is_shared():
+    assert DEFAULT_ISMCTS_EXPLORATION == pytest.approx(0.3)
+    assert inspect.signature(ISMCTSAgent).parameters["exploration"].default == DEFAULT_ISMCTS_EXPLORATION
+    assert inspect.signature(make_agent).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
+    assert inspect.signature(simulate_games).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
+
+
+def test_ismcts_match_can_compare_rollout_controls():
+    source = inspect.getsource(runner.benchmark_ismcts_match)
+    assert '"ismcts_rollout_depth": rollout_depth_a' in source
+    assert '"ismcts_rollout_depth": rollout_depth_b' in source
+    assert '"ismcts_rollout_policy": rollout_policy_a' in source
+    assert '"ismcts_rollout_policy": rollout_policy_b' in source
 
 
 def test_backend_parity_ignores_runtime_but_keeps_search_depth_and_outcomes(tmp_path):
