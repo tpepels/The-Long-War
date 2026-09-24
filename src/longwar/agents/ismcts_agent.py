@@ -111,6 +111,10 @@ class ISMCTSAgent:
                 "ismcts_tree_nodes": 0,
                 "ismcts_root_total_visits": 0,
                 "ismcts_selected_action_visits": 0,
+                "ismcts_rollouts_stopped_terminal": 0,
+                "ismcts_rollouts_stopped_battle_boundary": 0,
+                "ismcts_rollouts_stopped_depth": 0,
+                "ismcts_rollout_actions": 0,
                 "ismcts_rollout_policy": self.rollout_policy,
             }
             return legal[0]
@@ -167,6 +171,16 @@ class ISMCTSAgent:
             "ismcts_selected_action_visits": int(
                 result["selected_action_visits"]
             ),
+            "ismcts_rollouts_stopped_terminal": int(
+                result["rollouts_stopped_terminal"]
+            ),
+            "ismcts_rollouts_stopped_battle_boundary": int(
+                result["rollouts_stopped_battle_boundary"]
+            ),
+            "ismcts_rollouts_stopped_depth": int(
+                result["rollouts_stopped_depth"]
+            ),
+            "ismcts_rollout_actions": int(result["rollout_actions"]),
             "ismcts_root_value": score,
             "ismcts_rollout_policy": self.rollout_policy,
             "ismcts_tree_storage": str(result["tree_storage"]),
