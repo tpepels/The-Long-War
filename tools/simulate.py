@@ -50,6 +50,8 @@ def main() -> None:
     parser.add_argument("--policy-b", type=Path)
     parser.add_argument("--agent-a-label")
     parser.add_argument("--agent-b-label")
+    parser.add_argument("--agent-a-seed-offset", type=int)
+    parser.add_argument("--agent-b-seed-offset", type=int)
     parser.add_argument(
         "--agent-a-options-json",
         default="{}",
@@ -251,6 +253,14 @@ def main() -> None:
         args.agent_b_label or args.agent_b,
     )
 
+    if (args.agent_a_seed_offset is None) != (args.agent_b_seed_offset is None):
+        raise SystemExit("Provide both --agent-a-seed-offset and --agent-b-seed-offset")
+    agent_seed_offsets = (
+        None
+        if args.agent_a_seed_offset is None
+        else (args.agent_a_seed_offset, args.agent_b_seed_offset)
+    )
+
     card_data = load_card_file(resolve(args.card_file))
     if args.rules_profile != "custom":
         rules = GameRules.from_profile(args.rules_profile)
@@ -323,6 +333,7 @@ def main() -> None:
         ismcts_rollout_policy=args.ismcts_rollout_policy,
         agent_overrides=agent_overrides,
         agent_labels=agent_labels,
+        agent_seed_offsets=agent_seed_offsets,
         progress_callback=report_progress if progress_path is not None else None,
     )
 
@@ -362,6 +373,9 @@ def main() -> None:
     }
     payload["agent_overrides"] = [agent_overrides[0], agent_overrides[1]]
     payload["agent_labels"] = list(agent_labels)
+    payload["agent_seed_offsets"] = (
+        list(agent_seed_offsets) if agent_seed_offsets is not None else None
+    )
     payload["simulation_variant"] = {
         "rules_profile": args.rules_profile,
         "base_hand_size": rules.opening_hand_size,
