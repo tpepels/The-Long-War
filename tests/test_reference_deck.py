@@ -44,7 +44,7 @@ def test_expanded_archetype_decks_are_legal_subject_forward_and_choose_one_hero(
         deck = _deck(filename)
         engine.validate_deck(deck)
         assert len(deck) == 34
-        assert sum(cards[card_id]["type"] == "subject" for card_id in deck) == 10
+        assert sum(cards[card_id]["type"] == "subject" for card_id in deck) == 14
         assert sum(cards[card_id]["type"] == "name" for card_id in deck) == 6
         heroes = [
             card_id
