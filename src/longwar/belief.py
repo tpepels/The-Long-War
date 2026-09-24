@@ -108,11 +108,13 @@ class CardPoolDeckPrior:
         self,
         engine: GameEngine,
         *,
-        deck_size: int | None = None,
+        deck_size: int,
         card_weights: dict[str, float] | None = None,
     ):
         self.engine = engine
-        self.deck_size = engine.deck_size if deck_size is None else deck_size
+        if deck_size < 1:
+            raise ValueError("deck_size must be positive")
+        self.deck_size = deck_size
         self.card_weights = dict(card_weights or {})
         if any(not isfinite(weight) or weight < 0 for weight in self.card_weights.values()):
             raise ValueError("Card prior weights must be finite and non-negative")
@@ -209,8 +211,7 @@ class BeliefSampler:
         priors: tuple[DeckPrior, DeckPrior] | None = None,
     ):
         self.engine = engine
-        default = CardPoolDeckPrior(engine, deck_size=engine.deck_size)
-        self.priors = priors or (default, default)
+        self.priors = priors
 
     def reuse_context(self, state: GameState, viewer: int) -> tuple[object, ...]:
         """Hard evidence whose change invalidates root-sampled search values.
@@ -225,7 +226,7 @@ class BeliefSampler:
         diagnostics = self.diagnostics(state, viewer)
         return (
             viewer,
-            id(self.priors[opponent]),
+            self._prior_identity(state, opponent),
             tuple(sorted(state.players[viewer].deck)),
             tuple(sorted(self._public_opponent_cards(state, opponent))),
             tuple(sorted(state.known_hidden_cards(viewer, opponent, "hand"))),
@@ -261,7 +262,11 @@ class BeliefSampler:
             hidden_deck_cards=len(state.players[opponent].deck),
             hidden_schemes=hidden_schemes,
             hidden_stratagems=hidden_stratagems,
-            prior_type=type(self.priors[opponent]).__name__,
+            prior_type=(
+                type(self.priors[opponent]).__name__
+                if self.priors is not None
+                else "CardPoolDeckPrior"
+            ),
         )
 
     def sample(
@@ -301,7 +306,7 @@ class BeliefSampler:
             ))
         # Preserve the simple DeckPrior protocol for third-party priors when no
         # hidden type evidence is present.
-        prior = self.priors[opponent]
+        prior = self._prior_for_state(state, opponent)
         sampled_full_deck = (
             prior.sample_deck(required, rng, hidden_requirements=tuple(hidden_requirements))
             if hidden_requirements else prior.sample_deck(required, rng)
@@ -383,6 +388,46 @@ class BeliefSampler:
         rng.shuffle(sampled.players[opponent].hand)
         sampled.players[opponent].deck = list(unknown_pool[unknown_hand_slots:])
         return sampled
+
+    def _prior_for_state(
+        self,
+        state: GameState,
+        player: int,
+    ) -> DeckPrior:
+        if self.priors is not None:
+            return self.priors[player]
+        return CardPoolDeckPrior(
+            self.engine,
+            deck_size=self._deck_size_from_state(state, player),
+        )
+
+    def _prior_identity(
+        self,
+        state: GameState,
+        player: int,
+    ) -> object:
+        if self.priors is not None:
+            return id(self.priors[player])
+        return ("card-pool", self._deck_size_from_state(state, player))
+
+    @staticmethod
+    def _deck_size_from_state(state: GameState, player: int) -> int:
+        """Recover the supplied deck size from public zone counts.
+
+        Card identities may be hidden, but the number of cards in each zone is
+        part of the observable game state. No match-rule deck-size constant is
+        needed.
+        """
+        ps = state.players[player]
+        total = len(ps.deck) + len(ps.hand) + len(ps.discard)
+        for front in state.board[player]:
+            for slot in front:
+                total += int(slot.subject is not None)
+                total += int(slot.link is not None)
+                total += int(slot.name is not None)
+        total += sum(scheme is not None for scheme in state.schemes[player])
+        total += int(state.stratagems[player] is not None)
+        return total
 
     def _public_opponent_cards(
         self,
