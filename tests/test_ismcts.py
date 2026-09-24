@@ -185,3 +185,29 @@ def test_ismcts_rollout_policies_return_legal_action(policy: str) -> None:
     )
     assert agent.choose(engine, state) in legal
     assert agent.last_decision["ismcts_rollout_policy"] == policy
+
+
+def test_ismcts_wall_clock_budget_reports_actual_work() -> None:
+    engine, deck, priors = setup()
+    state = engine.new_game(deck, deck, seed=8160, first_player=0)
+    agent = ISMCTSAgent(
+        engine,
+        8161,
+        priors=priors,
+        belief_samples=2,
+        iterations=40,
+        time_budget_seconds=0.01,
+        rollout_depth=2,
+        tree_depth_limit=16,
+        exploration=0.3,
+    )
+
+    action = agent.choose(engine, state)
+    info = agent.last_decision
+
+    assert action in engine.legal_actions(state)
+    assert info["search_time_budget_seconds"] == pytest.approx(0.01)
+    assert info["search_timed_out"] is True
+    assert int(info["ismcts_iterations"]) >= 256
+    assert int(info["search_nodes"]) == int(info["ismcts_iterations"])
+    assert float(info["decision_seconds"]) > 0.0
