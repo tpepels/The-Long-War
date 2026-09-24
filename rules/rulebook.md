@@ -151,18 +151,13 @@ A card may have several classifications. A Subject's classification says what it
 
 ## Heroes {#heroes}
 
-Every legal deck contains **exactly one Hero**.
+Heroes are **Unique** cards, so each individual Hero may appear only once in a deck. A deck may contain several different Heroes.
 
-A Hero is a unique Subject with a special rule. It uses an ordinary Subject position and follows the same placement and targeting rules unless its card says otherwise.
+Every Hero is dual-use: play it either as a **Subject** or as a **Name**. Its card shows separate Subject and Name Strength values. Subject-only placement, role, and special rules apply only when it is played as a Subject.
 
-The reference deck uses *Avaros, the Bronze King*:
+You may play only **one Hero per side per Battle**. Once you have played a Hero - as either a Subject or a Name - your other Hero cards cannot be played until the next Battle. The Hero allowance resets between Battles even if the Hero left the battlefield.
 
-- printed Strength 6;
-- *Swordsman*;
-- *Human · King · Hero*;
-- while Avaros is in the Frontline, adjacent Subjects you control get +1 Strength.
-
-In the Frontline, Avaros counts 8 before his adjacency rule: 6 printed +1 Line Defense +1 Swordsman.
+The reference deck deliberately contains several Heroes so this choice is part of normal play.
 
 ---
 
@@ -370,7 +365,7 @@ Passing preserves both your hand and your remaining Command, but gives the oppon
 
 ## Set up your first match {#setup}
 
-1. Each player takes a **34-card playtest deck** with **14 Subjects**, **6 Names**, and exactly **1 Hero**.
+1. Each player takes a **34-card playtest deck** with **14 Subject-type cards** and **6 Name cards**. Hero cards count among the Subject-type cards and may also be played as Names.
 2. Each player sets a d20 or other counter to **20 Command**.
 3. Shuffle and draw **10 cards**.
 4. Each player may choose up to **2 cards**, shuffle them back, then draw the same number.
@@ -565,12 +560,13 @@ The canonical playtest decks contain exactly **34 cards** and use this compositi
 
 - Exactly **14 Subjects**.
 - Exactly **6 Names**.
-- Exactly **1 Hero** among those Subjects.
+- Heroes are **Unique**: maximum 1 copy of each Hero title.
+- A deck may contain multiple different Heroes.
 - Maximum 2 copies of a non-Unique title.
-- Maximum 1 copy of a Unique title.
-- Every Name is Unique.
+- Maximum 1 copy of any Unique title.
+- Every printed Name is Unique.
 
-Custom research decks may vary the Subject and Name counts while retaining the deck size, copy limits, and Hero requirement.
+Custom research decks may vary the Subject and Name counts while retaining the deck size and copy limits.
 - Subjects, Bonds, Names, Stories, and Stratagems all use the same deck.
 
 ---
@@ -589,7 +585,7 @@ A formation component. It may be prepared before its Subject. A Bond without a N
 A printed identity property such as *Human*, *God*, *King*, *Ship*, or *Stronghold*.
 
 **Hero**  
-A unique Subject with a special rule. Every deck contains exactly one Hero.
+A Unique dual-use card that may be played as a Subject or a Name. Each side may play only one Hero per Battle; a deck may contain multiple different Heroes.
 
 **Command**  
 Your persistent operation budget. Start the match at 20. Gain 10 between Battles, to a maximum of 20. Unspent Command carries over.
