@@ -215,7 +215,7 @@ def _play_online_outcome(
     # in every condition. The focal player's opponent prior remains a general
     # legal-card-pool prior rather than the simulator's true deck.
     focal_prior = _family_prior(engine, sample.focal_deck, target_cards)
-    generic_prior = CardPoolDeckPrior(engine)
+    generic_prior = CardPoolDeckPrior(engine, deck_size=len(sample.opponent_deck))
     priors = (
         (focal_prior, generic_prior)
         if sample.focal_player == 0
