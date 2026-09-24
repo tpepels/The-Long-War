@@ -101,13 +101,14 @@ async function main() {
 
   document.getElementById("playtest-decks").innerHTML = labels.map((label) =>
     '<section class="print-deck">' +
-      '<header class="deck-sheet-heading"><strong>The Long War · v0.6</strong>' +
-      '<span>' + label + ' · ' + deckData.name + ' · 30 cards</span></header>' +
+      '<header class="deck-sheet-heading"><strong>The Long War · v0.8</strong>' +
+      '<span>' + label + ' · ' + deckData.name + ' · ' + deckData.cards.length + ' cards</span></header>' +
       '<div class="deck-card-grid">' +
       deckData.cards.map((id) => cardMarkup(index[id], label)).join("") +
       '</div></section>'
   ).join("");
-  document.getElementById("kit-count").textContent = "2 × 30-card reference decks";
+  document.getElementById("kit-count").textContent =
+    "2 × " + deckData.cards.length + "-card reference decks";
   window.CardLayoutGuard?.schedule(document.getElementById("playtest-decks"));
 }
 
