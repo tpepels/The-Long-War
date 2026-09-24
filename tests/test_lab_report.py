@@ -47,7 +47,7 @@ def test_lab_rejects_stale_static_report(monkeypatch) -> None:
 @pytest.mark.parametrize("variant", [
     {"rules_profile": "force-automatic"},
     {"rules_profile": "custom", "automatic_draw": True},
-    {"rules_profile": "standard", "card_file": "cards/experiments/force-draw-cards.json"},
+    {"rules_profile": "standard", "card_file": "cards/noncanonical.json"},
 ])
 def test_lab_rejects_experimental_health_with_current_source(monkeypatch, variant):
     artifacts = {
