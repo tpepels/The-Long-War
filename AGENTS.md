@@ -84,9 +84,9 @@ awake with `systemd-inhibit`. The runner, not Make, owns experiment defaults.
 - Rebuild native extensions after changing `.pyx` or `.pxi`.
 - Use small deterministic tests to validate plumbing; large simulations are
   evidence, not correctness tests.
-- GitHub Actions are manual-only. Do not add push, pull-request, schedule, or
-  workflow-run triggers without an explicit project decision; routine work is
-  verified locally to avoid notification noise and unnecessary Actions usage.
+- GitHub Actions are deployment-only: `.github/workflows/pages.yml` manually
+  builds and deploys the site. Do not put tests, simulations, balance analysis,
+  solver training, or research experiments in Actions; run those locally.
 
 ## AI/search
 
