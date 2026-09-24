@@ -28,9 +28,11 @@ class HeuristicAgent:
         self,
         seed: int,
         *,
-        exploration: float = 0.02,
+        exploration: float = 0.0,
         evaluator: HeuristicEvaluator | None = None,
     ):
+        if not 0.0 <= exploration <= 1.0:
+            raise ValueError("exploration must be between 0 and 1")
         self.rng = random.Random(seed)
         self.exploration = exploration
         self.evaluator = evaluator or HeuristicEvaluator()
