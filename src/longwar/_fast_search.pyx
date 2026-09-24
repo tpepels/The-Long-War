@@ -413,6 +413,7 @@ cdef class FastState:
 cdef class FastEngine:
     cdef public object card_ids
     cdef public object id_to_code
+    cdef public int max_deck_size
     cdef int n_cards
     cdef int opening_hand_size
     cdef bint draw_action_enabled
@@ -490,6 +491,7 @@ cdef class FastEngine:
     cdef uint8_t strat_global_story_lock[MAX_CARDS]
 
     def __cinit__(self):
+        self.max_deck_size = MAX_DECK
         memset(self.card_type, 0, sizeof(self.card_type))
         memset(self.card_command_cost, 0, sizeof(self.card_command_cost))
         memset(self.adjacent_command_discount, 0, sizeof(self.adjacent_command_discount))
@@ -576,8 +578,6 @@ cdef class FastEngine:
         self.public_stratagems = bool(engine.public_stratagems)
         if self.n_cards > MAX_CARDS:
             raise ValueError(f"The native engine supports at most {MAX_CARDS} card identities")
-        if engine.deck_size > MAX_DECK:
-            raise ValueError(f"The native engine supports decks of at most {MAX_DECK} cards")
         if max(engine.starting_command, self.command_cap, self.battle_command_gain) > 32767:
             raise ValueError("Command settings exceed the native signed 16-bit capacity")
         if not self.public_stratagems and any(
