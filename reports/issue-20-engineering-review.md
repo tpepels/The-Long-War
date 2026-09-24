@@ -1,5 +1,7 @@
 # Issue #20 engineering review
 
+> **Post-review reconciliation - 2026-09-24.** PR #18 was subsequently reconciled explicitly rather than merged wholesale. The final standard game keeps the Issue #20 architecture intact: one canonical Cython rules engine, transport-only browser adapter, separate shared evaluator, beliefs outside search, and canonical information-state encoding. The later Force rules supersede PR #18's earlier 30-card/Cycle baseline. Canonical play now uses 34-card decks, automatic turn draw, persistent deck/discard with reshuffle-on-empty, Command 20/+10/cap 20, no standard Cycle, final-operation Pass timing, first-passer next-Battle start, +1 completion Command, and public Stratagems. The canonical pool is now 51 cards. Heroes are Unique dual-use Subject/Name cards; multiple distinct Heroes may share a deck, but each side may play only one Hero per Battle. The four canonical v0.9 decks contain 3 distinct Heroes each. Local rule/search/browser/layout verification was rerun after reconciliation and reported green before merge.
+
 Completed locally on 2026-09-24 for [issue #20](https://github.com/tpepels/The-Long-War/issues/20). The work began from `1c8d7ff`; the user's intervening `03223b3` commit contains the initial implementation and was preserved. Follow-up fixes remain in the working tree. `origin/main` was refreshed and PR #18 remains separate and open. No GitHub Actions runs were requested for this work.
 
 ## Problems fixed
