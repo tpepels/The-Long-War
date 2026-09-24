@@ -34,7 +34,7 @@ cdef int ordered_actions_into(
         return 0
 
     for i in range(n):
-        scores[i] = evaluator.score_action_fast(
+        scores[i] = evaluator.action_order_score_fast(
             state,
             actor,
             actions[i],

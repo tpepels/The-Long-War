@@ -173,3 +173,13 @@ def test_native_algorithms_do_not_contain_rule_switches() -> None:
             ROOT / "src" / "longwar" / filename
         ).read_text(encoding="utf-8")
         assert not any(term in source for term in forbidden), filename
+
+
+def test_native_search_uses_current_heuristic_interface() -> None:
+    root = Path(__file__).resolve().parents[1]
+    for filename in ("_alpha_beta_core.pxi", "_ismcts_core.pxi"):
+        source = (root / "src" / "longwar" / filename).read_text(
+            encoding="utf-8"
+        )
+        assert "score_action_fast" not in source
+        assert "action_order_score_fast" in source
