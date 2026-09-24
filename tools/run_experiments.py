@@ -1461,8 +1461,11 @@ def parse_args() -> argparse.Namespace:
     strength_bench.add_argument(
         "--games",
         type=int,
-        default=8,
-        help="Games per deck/orientation; total games are 8x this value.",
+        default=24,
+        help=(
+            "Games per deck/orientation. Default 24 gives 192 games total "
+            "and 96 independent mirrored deal pairs."
+        ),
     )
     strength_bench.add_argument("--jobs", type=int, default=8)
     strength_bench.add_argument("--iterations", type=int, default=100_000)
