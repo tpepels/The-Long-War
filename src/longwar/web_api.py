@@ -161,9 +161,15 @@ class PlaySession:
         )
         self.setup_complete = True
         self.opening_player = self.state.active_player
+        if self.engine.automatic_draw:
+            opening_note = " and draws 1 card at the start of the turn."
+        elif self.engine.paid_draw_enabled:
+            opening_note = "."
+        else:
+            opening_note = " and draws 1 additional opening card."
         self.log.append(
-            f"Battle I begins. Player {self.state.active_player + 1} goes first "
-            "and draws 1 additional opening card."
+            f"Battle I begins. Player {self.state.active_player + 1} goes first"
+            f"{opening_note}"
         )
         self._run_ai_until_human()
 
@@ -406,7 +412,14 @@ class PlaySession:
         if self.last_action is None:
             return None
         action = self.last_action
-        visible = action["kind"] not in {"PlayScheme", "SetStratagem"} or viewer == action["actor"]
+        hidden_action = (
+            action["kind"] == "PlayScheme"
+            or (
+                action["kind"] == "SetStratagem"
+                and not self.engine.public_stratagems
+            )
+        )
+        visible = not hidden_action or viewer == action["actor"]
         result = {key: value for key, value in action.items() if key not in {"key", "reason", "public_label", "private_label"}}
         result["card_id"] = action["card_id"] if visible else None
         result["label"] = action["private_label"] if visible else action["public_label"]
@@ -497,11 +510,11 @@ class PlaySession:
                 )
             return f"{prefix} sets a face-down Story in {FRONT_NAMES[action.front]}."
         if isinstance(action, SetStratagem):
+            title = self.cards[action.card_id]["title"]
+            if self.engine.public_stratagems:
+                return f"{prefix} plays {title} face-up as their Stratagem."
             if private:
-                return (
-                    f"Set {self.cards[action.card_id]['title']} face-down "
-                    "as your Stratagem."
-                )
+                return f"Set {title} face-down as your Stratagem."
             return f"{prefix} sets a face-down Stratagem."
         if isinstance(action, PlayPlot):
             title = self.cards[action.card_id]["title"]
@@ -513,7 +526,10 @@ class PlaySession:
 
     def _legal_reason(self, action: Action) -> str:
         if isinstance(action, Pass):
-            return "Pass is always legal while you are still active in the Battle."
+            return (
+                "Pass ends your operations. Normally both players must have acted "
+                "before the first Pass; the opponent then receives one final operation."
+            )
         if isinstance(action, Draw):
             return "Generic Draw is disabled in Command play."
         if isinstance(action, Cycle):
@@ -530,8 +546,8 @@ class PlaySession:
             return "You have no Veiled Story in this Front."
         if isinstance(action, SetStratagem):
             return (
-                "You have not set a Stratagem this Battle. Pay its printed "
-                "Command cost; setting it uses your operation."
+                "You have not played a Stratagem this Battle. Pay its printed "
+                "Command cost; it enters face-up and uses your operation."
             )
         if isinstance(action, PlayPlot):
             return "The Story has all targets required by its rules text."
