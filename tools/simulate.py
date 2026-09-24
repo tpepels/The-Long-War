@@ -130,12 +130,6 @@ def main() -> None:
         help="Base opening and between-Battle refill hand target.",
     )
     parser.add_argument(
-        "--deck-size",
-        type=int,
-        default=defaults.deck_size,
-        help="Required deck size for this simulation variant.",
-    )
-    parser.add_argument(
         "--card-file",
         type=Path,
         default=Path("cards/cards.json"),
@@ -344,7 +338,6 @@ def main() -> None:
             opening_hand_size=args.hand_size,
             draw_action_enabled=args.draw_enabled,
             completion_draw_names=tuple(args.completion_draw_names),
-            deck_size=args.deck_size,
             recycle_between_battles=args.recycle,
             command_enabled=args.command,
             starting_command=args.starting_command,
@@ -459,7 +452,7 @@ def main() -> None:
             0 if (rules.automatic_draw or rules.paid_draw_enabled) else 1
         ),
         "completion_draw_names": sorted(rules.completion_draw_names),
-        "deck_size": rules.deck_size,
+        "deck_sizes": [len(deck_a), len(deck_b)],
         "recycle_between_battles": rules.recycle_between_battles,
         "reshuffle_on_empty": rules.reshuffle_on_empty,
         "command_enabled": rules.command_enabled,
@@ -505,7 +498,7 @@ def main() -> None:
         f"hand={rules.opening_hand_size} "
         f"draw={'on' if rules.draw_action_enabled else 'off'} "
         f"completion_draw_names={','.join(sorted(rules.completion_draw_names)) or 'none'} "
-        f"deck={rules.deck_size} "
+        f"decks={len(deck_a)}/{len(deck_b)} "
         f"recycle={'on' if rules.recycle_between_battles else 'off'} "
         f"reshuffle_on_empty={'on' if rules.reshuffle_on_empty else 'off'} "
         f"command={'on' if rules.command_enabled else 'off'} "
