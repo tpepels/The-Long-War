@@ -159,7 +159,7 @@ def test_card_pool_prior_excludes_unobserved_experimental_cards() -> None:
 
 def test_card_pool_prior_allows_multiple_distinct_heroes() -> None:
     engine, _, _ = setup()
-    prior = CardPoolDeckPrior(engine)
+    prior = CardPoolDeckPrior(engine, deck_size=34)
     required = Counter({
         "mara-queen-of-cinders": 1,
         "sera-mother-of-white-hands": 1,
