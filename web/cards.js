@@ -31,7 +31,7 @@ function typeLabel(card) {
     const form = titleCase(card.story_form);
     return card.veiled ? form + " · Veiled Story" : form + " · Story";
   }
-  if (card.type === "subject" && card.hero) return "Hero · Subject";
+  if (card.type === "subject" && card.hero) return "Hero · Subject / Name";
   return TYPE_LABELS[card.type] ?? card.type;
 }
 
@@ -75,9 +75,12 @@ function ruleMarkup(card) {
 }
 
 function cardMarkup(card) {
-  const strength = Number.isInteger(card.strength)
-    ? '<div class="strength" aria-label="Strength">' + card.strength + "</div>"
-    : "";
+  const strength = card.hero
+    ? '<div class="strength hero-dual-strength" aria-label="Subject strength ' + card.strength + ', Name strength ' + card.hero_name_strength + '">' +
+      '<span><small>S</small>' + card.strength + '</span><span><small>N</small>' + card.hero_name_strength + '</span></div>'
+    : Number.isInteger(card.strength)
+      ? '<div class="strength" aria-label="Strength">' + card.strength + "</div>"
+      : "";
   const commandCost = Number.isInteger(card.command_cost)
     ? '<div class="command-cost" aria-label="Command cost">' + card.command_cost + "</div>"
     : "";
