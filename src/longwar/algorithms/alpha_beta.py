@@ -155,6 +155,19 @@ class AlphaBetaSearch:
 
     @staticmethod
     def state_key(state: GameState) -> tuple[object, ...]:
+        """Cache key covering every GameState field that can change the
+        legal-action set, the recursive search value, or move ordering.
+
+        Deliberately excludes write-only telemetry/UI fields that are never
+        read back by legality, `StrategicEvaluator`, or action ordering
+        (`command_spent_this_battle` and its siblings, `opening_hands`,
+        `last_battle_snapshot`, `observations`, `known_hidden_hand`) -
+        including them would only fragment the cache without changing
+        correctness. `test_python_state_key_tracks_every_game_state_field`
+        enforces that every field is either represented here or explicitly
+        exempted, so a newly added field cannot silently repeat the
+        cleanup-state cache-key bug.
+        """
         players = tuple(
             (
                 tuple(player.deck),
@@ -208,4 +221,5 @@ class AlphaBetaSearch:
             state.cleanup_pending,
             state.cleanup_next_starter,
             state.cleanup_next_chooser,
+            state.turn_number,
         )

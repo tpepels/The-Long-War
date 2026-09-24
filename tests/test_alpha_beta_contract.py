@@ -81,3 +81,62 @@ def test_python_state_key_includes_search_relevant_flags():
     hero_spent = state.clone()
     hero_spent.hero_used[0] = not state.hero_used[0]
     assert AlphaBetaSearch.state_key(hero_spent) != key
+
+
+def test_python_state_key_tracks_every_game_state_field() -> None:
+    """Guard against a repeat of the cache-key gap that let
+    cleanup_pending/cleanup_next_starter/cleanup_next_chooser be silently
+    ignored: every GameState field must be referenced by state_key(), or be
+    declared exempt here with a reason a reviewer can check.
+
+    A field is only safe to exempt if it is never read by legal_actions,
+    by apply()'s transition/branching logic, or by StrategicEvaluator's
+    reachable evaluation call graph (evaluate_fast, strategic_evaluate_fast
+    and everything they call) in a way that changes a returned value -
+    write-only telemetry/UI fields qualify; anything else does not.
+    """
+    import dataclasses
+    import inspect
+
+    from longwar.game.model import GameState
+
+    exempt = {
+        "command_spent_this_battle": "write-only telemetry counter",
+        "command_refunded_this_battle": "write-only telemetry counter",
+        "completion_command_refunded_this_battle": "write-only telemetry counter",
+        "battle_start_command": "write-only telemetry, only surfaced via last_battle_snapshot reporting",
+        "battle_start_hand_size": "write-only telemetry, only surfaced via last_battle_snapshot reporting",
+        "cards_drawn_this_battle": "write-only telemetry counter",
+        "completion_count_this_battle": "write-only telemetry counter",
+        "deck_reshuffles": "write-only telemetry counter",
+        "reshuffle_card_totals": "write-only telemetry counter",
+        "reshuffle_hand_card_totals": "write-only telemetry counter",
+        "opening_hands": "recorded once for UI/reporting, never read back by legality/evaluation",
+        "last_battle_snapshot": "diagnostic snapshot dict, not read by legality or StrategicEvaluator",
+        "observations": "append-only display log, never read by legality/evaluation",
+        "known_hidden_hand": (
+            "used only by the ISMCTS information-set hash (a separate cache "
+            "key), not by legal_actions or StrategicEvaluator"
+        ),
+        "players": "nested PlayerState fields verified individually above and by construction",
+        "board": "nested Slot fields (subject/link/name/temporary_strength) all represented above",
+        "schemes": "nested SchemeState fields (card_id/revealed) all represented above",
+        "stratagems": "nested StratagemState fields (card_id/revealed) all represented above",
+    }
+
+    all_field_names = {f.name for f in dataclasses.fields(GameState)}
+    stale = set(exempt) - all_field_names
+    assert not stale, f"Exemption set references fields GameState no longer has: {stale}"
+
+    source = inspect.getsource(AlphaBetaSearch.state_key)
+    missing = [
+        f.name
+        for f in dataclasses.fields(GameState)
+        if f.name not in exempt and f"state.{f.name}" not in source
+    ]
+    assert not missing, (
+        f"GameState field(s) {missing} are not referenced by state_key() and "
+        "are not declared exempt in this test. Add them to state_key() if "
+        "they can affect legal actions, search values, or candidate "
+        "ordering; otherwise add them to the exemption set with a reason."
+    )
