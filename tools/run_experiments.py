@@ -1842,13 +1842,6 @@ def parse_args() -> argparse.Namespace:
         default="cheap",
     )
 
-    run = sub.add_parser(
-        "run",
-        help="Run the local draw experiment.",
-    )
-    from longwar.cardflow import add_arguments
-    add_arguments(run)
-
     return parser.parse_args()
 
 
@@ -1918,9 +1911,6 @@ def main() -> None:
         )
     elif args.command == "suite":
         run_suite(args)
-    elif args.command == "run":
-        from longwar.cardflow import run
-        run(args)
     else:
         raise AssertionError(args.command)
 
