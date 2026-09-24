@@ -131,6 +131,9 @@ def test_standard_ui_exposes_command_automatic_draw_paced_actions_and_term_help(
     assert "actionForCycle" in play
     assert "standard game exposed Draw or Cycle" in text("tools/check_play_start.py")
     assert "Command" in play
+    assert "Hero · Subject / Name" in play
+    assert "Hero ready" in play and "Hero used" in play
+    assert "hero-dual-strength" in css
     assert "scheduleAiStep" in play
     assert 'type: "ai_step"' in play
     assert "TERM_HINTS" in play
