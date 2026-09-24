@@ -2,63 +2,104 @@
 
 ## Goal
 
-Keep one obvious implementation path and local verification path for rules, cards, algorithms and balance analysis. Fix problems with regressions; prefer removing dead paths to restoring migration wrappers. Read README.md for the supported command surface.
+The Long War is a game first. Keep the codebase easy to change while guaranteeing
+that browser play, simulations, and AI all use the same game semantics.
 
-## Canonical architecture
+Read `ARCHITECTURE.md` before structural work. Its dependency rules are enforced
+by `tests/test_architecture_boundaries.py`.
 
-- `_fast_search.pyx` owns rules, transitions, visibility and information encoding. `game/engine.py` is a dataclass/action adapter.
-- `GameRules` in `rules.py` owns configuration, profile names and profile lookup. Select profiles in tools; do not duplicate their switches.
-- `cards/cards.json` and the four shipped decks are canonical. Rule experiments reuse those data files and vary named `GameRules` profiles instead of maintaining duplicate card/deck fixtures. `cards.py` validates file and in-memory input. New effect names require schema and native support.
-- Browser play uses the same Cython package compiled to WebAssembly through Pyodide. `web/browser-engine.mjs` is transport only; `web_api.PlaySession` owns session/privacy/pacing adaptation. Never add JavaScript rules or AI policy.
-- `_heuristic_core.pxi` owns shared evaluation separately from rules. Search algorithms consume engine/evaluator interfaces without rule-specific branches.
-- `_alpha_beta_core.pxi`, `_ismcts_core.pxi`, `_mccfr_core.pxi` own native algorithms. Python alpha-beta and generic MCCFR traversal are maintained correctness references, not alternate rules engines.
-- Belief construction and observation-conditioned deck priors live in `belief.py`, outside search.
-- `known_hidden_hand` is canonical knowledge. `ObservationEvent` is a presentation/history log, not another knowledge source.
+## Non-negotiable architecture
 
-## Supported workflow
+- There is one authoritative game engine for rules, legal actions, transitions,
+  scoring, visibility, and card effects.
+- `GameRules` is configuration. Prefer tunable constants and
+  `with_overrides(...)` for experiments; do not create another rules engine or
+  another named mode for a parameter combination.
+- Cards are data. Ordinary new cards should not require algorithm or UI changes.
+- Decks are match input, separate from rules. Reference/archetype decks are not
+  engine constants and must not leak into core code.
+- AI/search consumes the engine. It never reimplements rules or branches on
+  individual `GameRules` fields.
+- Browser code adapts the game core and the chosen play agent. It must not depend
+  on analysis, telemetry, training, counterfactual, or solver-research modules.
+- Simulation is the single AI-vs-AI match loop. Analysis consumes simulations;
+  it does not create alternate game loops.
+- Dependency direction is one-way: content -> core -> consumers -> analysis.
+  Nothing points back toward analysis or a particular experiment.
 
-Use Python 3.14 for browser builds, Node.js, a native compiler and make. Activate `.venv` after `make install`.
+The current native extension still physically bundles engine and search cores.
+Treat that as cleanup debt, not as permission to couple their semantics.
+
+## Command surface
+
+Make is deliberately small. Do not add a target for a parameter combination,
+solver variant, experiment name, or convenience alias.
+
+Supported lifecycle commands:
 
 ```bash
-make native-build       # required after every .pyx/.pxi change
-make verify-cards       # all shipped schemas/decks/native loading
-make verify             # data + fast tests + browser/native parity
-make verify-algorithms  # learning/correctness + fixed-seed search validation
-make test-integration   # simulation/report integration
-make balance-quick      # small canonical playability/health check
-make balance-deep       # opt-in release-sized balance pipeline
-make experiment-suite   # unattended decision-grade search batch
+make install
+make native-build
+make browser-build
+make verify
+make verify-algorithms
+make test
+make test-fast
+make test-integration
+make simulate
+make balance
+make experiments
+make pages
+make browser-parity
 ```
 
-`make browser-parity` builds/caches the wasm wheel and compares native/wasm rules plus complete browser session traces. `tools/build_browser_runtime.py` pins runtime/build-tool versions and isolates cross compilation under `artifacts/`. Rebuild automatically when package sources change. Do not commit wasm/native binaries or downloaded toolchains.
+Variations use arguments:
 
-Add regressions at the changed semantic boundary. Use small deterministic smoke runs to validate plumbing; do not run massive experiments to substitute for a correctness test. Keep exact larger benchmark commands in README and report exact local commands/results. Do not spend GitHub Actions budget for issue #20.
+```bash
+make simulate SIMULATE_ARGS="..."
+make balance BALANCE_PRESET=deep BALANCE_ARGS="..."
+make experiments EXPERIMENT=ismcts-match EXPERIMENT_ARGS="..."
+```
 
-## ISMCTS
+`make experiments` defaults to the canonical search suite and keeps the machine
+awake with `systemd-inhibit`. The runner, not Make, owns experiment defaults.
 
-- Serious default: 100,000 iterations; explicit smoke overrides are supported.
-- Historical c=0.3 results in issue #20 predate correctness fixes and must be remeasured.
-- Progressive widening is experimental, disabled by default, with configurable coefficient and fixed alpha=0.5. Do not make it canonical without strength evidence.
-- Battle-boundary rollouts use the shared next-Battle evaluator.
-- Reuse is permitted only under a valid belief/search context. New hidden information invalidates accumulated statistics. Keep inherited/new visits and discarded nodes distinguishable.
-- Root selection uses lifetime visits within a valid context. Default arena cap is four times iteration budget; at capacity search rolls out and resets on reroot as needed. Keep allocation growth bounded.
-- Do not name a canonical playing agent from fixed-work or historical results. Use the supported Make targets with equal wall-clock budgets and paired mirrored seeds. `make ismcts-match` is the decision-grade single comparison; `make experiment-suite` is the only batch search entry point and composes the same canonical comparison primitives. Local laptop evidence currently uses 2s/searched move with at least 24 games per deck/orientation; the suite default uses 48. Compare the selected ISMCTS candidate with alpha-beta using the same equal-time framework. Longer 5s/10s runs are optional later confirmation, not a prerequisite for local tuning. Fixed node/iteration modes remain regression benchmarks, not fair cross-algorithm strength evidence.
-- Mirrored benchmark RNG seeds belong to the candidate/algorithm rather than the seat. Preserve this common-random-number pairing when extending strength tests.
+## Development rules
 
-## Analysis ownership
+- Change rules once in the canonical engine/configuration and verify every
+  consumer against them.
+- Add regressions at the semantic boundary that changed.
+- Prefer deleting obsolete paths over compatibility wrappers.
+- Never introduce a second card/deck fixture merely to support an experiment.
+- Never add a new runner when an existing runner can accept another argument.
+- Generated reports, policies, build products, logs and toolchains live under
+  `artifacts/`; Pages output lives under `dist/`.
+- Do not commit native/wasm binaries or generated artifacts.
+- Rebuild native extensions after changing `.pyx` or `.pxi`.
+- Use small deterministic tests to validate plumbing; large simulations are
+  evidence, not correctness tests.
 
-- `simulate.py` and `telemetry.py`: games, per-game seed/outcome provenance, observations and decision metrics.
-- `balance.py`: static diagnostics from machine rules.
-- `health.py` and `playability.py`: observational uncertainty/flags and card flow.
-- `counterfactual.py` and `targeted_counterfactual.py`: paired causal replacement/factorial analysis and stronger follow-up using identical broad contexts.
-- `tools/run_experiments.py`: supported orchestration, validation, canonical balance and search benchmarks.
-- `cardflow.py`: experimental Force/Command scheduling/reporting, exposed through the runner's `run` subcommand.
-- Lab/Pages builders aggregate or render; they do not reimplement analysis or card semantics.
+## AI/search
 
-Keep policy-specific causal estimates separate from conditional-win correlations. Bootstrap mirrored deals as pairs. Do not give statistically certain labels to single/constant tiny samples. Save seeds, effective settings, source/card/deck fingerprints and per-game outcomes. Different configurations must not silently overwrite each other. Fingerprints include native `.pxi` files and analysis entry points; stale reports/policies require regeneration.
+- Serious ISMCTS default: 100,000 iterations.
+- Current provisional exploration constant: 0.3.
+- Progressive widening remains experimental and off by default.
+- Tree reuse is valid only while the belief/search context remains valid.
+- Mirrored strength comparisons preserve candidate-specific RNG seeds across
+  seat swaps.
+- Equal wall-clock comparisons are the relevant cross-algorithm evidence.
+- Do not promote an AI configuration to production from tiny or historical
+  samples.
 
-## Repository and concurrency
+Search implementations may have their own trees, beliefs, evaluators and
+performance code, but all legal actions and transitions come from the engine.
 
-Refresh origin/main, recent commits and open PRs before substantial writes. Preserve unrelated user edits/commits. PR #18 is separate unless merged or explicitly reconciled; do not absorb its game-design changes.
+## Repository discipline
 
-`reports/` contains useful historical analyses. Canonical card/deck data is shared by standard play and rule-profile experiments; do not reintroduce duplicate experiment fixtures. Generated reports, policies, contracts, logs and toolchains belong under `artifacts/`; Pages output is `dist/`. Both are ignored. Do not add a new parallel experiment runner or compatibility wrapper when an existing interface can be fixed.
+Work directly on `main` unless isolation is genuinely necessary. Preserve
+unrelated user changes. Before substantial writes, refresh current `main` and
+open PR state.
+
+Do not solve architecture problems by adding more architecture. Prefer fewer
+entry points, fewer permanent modes, and configuration passed through existing
+boundaries.
