@@ -17,6 +17,7 @@ from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import DeckHypothesis, HypothesisDeckPrior
 from longwar.balance import validate_command_costs
 from longwar.cards import load_card_file
+from longwar.decks import PLAYTEST_DECK_SIZE, validate_deck_definition
 from longwar.game import GameEngine
 from longwar.fingerprint import artifact_directory, experiment_identity
 from longwar.health import wilson_interval
@@ -45,11 +46,17 @@ def validate_data() -> None:
     engine = GameEngine(data, rules=GameRules.standard())
     for path in deck_paths:
         deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
+        validate_deck_definition(
+            deck,
+            engine.cards,
+            exact_size=PLAYTEST_DECK_SIZE,
+        )
         engine.validate_deck(deck)
         engine.legal_actions(engine.new_game(deck, deck, seed=1701))
     print(
         f"Validated canonical data: {len(data['cards'])} cards, "
-        f"{len(deck_paths)} decks, standard rules"
+        f"{len(deck_paths)} {PLAYTEST_DECK_SIZE}-card playtest decks, "
+        "standard rules"
     )
 
 
