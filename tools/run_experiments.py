@@ -35,22 +35,21 @@ CANONICAL_DECK_PATHS = {
 
 
 def validate_data() -> None:
-    """Validate the canonical card/deck data under every shipped rule profile."""
+    """Validate canonical cards/decks against the current standard rules."""
     data = load_card_file(ROOT / "cards" / "cards.json")
     validate_command_costs(data)
     deck_paths = [
         ROOT / path
         for path in CANONICAL_DECK_PATHS.values()
     ]
-    for profile in GameRules.profile_names():
-        engine = GameEngine(data, rules=GameRules.from_profile(profile))
-        for path in deck_paths:
-            deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
-            engine.validate_deck(deck)
-            engine.legal_actions(engine.new_game(deck, deck, seed=1701))
+    engine = GameEngine(data, rules=GameRules.standard())
+    for path in deck_paths:
+        deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
+        engine.validate_deck(deck)
+        engine.legal_actions(engine.new_game(deck, deck, seed=1701))
     print(
         f"Validated canonical data: {len(data['cards'])} cards, "
-        f"{len(deck_paths)} decks, {len(GameRules.profile_names())} profiles"
+        f"{len(deck_paths)} decks, standard rules"
     )
 
 
@@ -261,80 +260,80 @@ def normalized_payload(path: Path) -> dict[str, Any]:
     return payload
 
 
-def parity_case(mode: str, *, seed: int) -> None:
-    print(f"\nBackend parity: {mode} draw")
+def standard_backend_parity(*, seed: int) -> None:
+    """Compare Python/Cython strategic search under current standard rules."""
+    print("\nBackend parity: standard rules")
     common = [
-        "--preset",
-        "quick",
         "--games",
         "2",
-        "--jobs",
-        "1",
-        "--mode",
-        mode,
-        "--deck",
-        "reference",
-        "--agent",
-        "strategic_heuristic",
-        "--belief-samples",
-        "2",
-        "--depth",
-        "3",
-        "--width",
-        "4",
-        "--node-budget",
-        "3000",
         "--seed",
         str(seed),
+        "--rules-profile",
+        "standard",
+        "--card-file",
+        "cards/cards.json",
+        "--deck-a",
+        "decks/reference.json",
+        "--deck-b",
+        "decks/reference.json",
+        "--agent-a",
+        "strategic_heuristic",
+        "--agent-b",
+        "strategic_heuristic",
+        "--strategic-belief-samples",
+        "2",
+        "--strategic-search-depth",
+        "3",
+        "--strategic-candidate-width",
+        "4",
+        "--strategic-node-budget",
+        "3000",
     ]
     output = artifact_directory(
         VALIDATION_ROOT,
-        experiment_identity({"command": "backend-parity", "arguments": common}),
+        experiment_identity({
+            "command": "standard-backend-parity",
+            "arguments": common,
+        }),
     )
-    python_dir = output / f"{mode}-python"
-    cython_dir = output / f"{mode}-cython"
+    python_output = output / "standard-python.json"
+    cython_output = output / "standard-cython.json"
 
-    run_command(
-        [
-            sys.executable,
-            str(RUNNER),
-            "run",
-            *common,
-            "--backend",
-            "python",
-            "--output-dir",
-            str(python_dir),
-        ]
-    )
-    run_command(
-        [
-            sys.executable,
-            str(RUNNER),
-            "run",
-            *common,
-            "--backend",
-            "cython",
-            "--output-dir",
-            str(cython_dir),
-        ]
-    )
+    for backend, destination in (
+        ("python", python_output),
+        ("cython", cython_output),
+    ):
+        run_command(
+            [
+                sys.executable,
+                str(ROOT / "tools" / "simulate.py"),
+                *common,
+                "--strategic-search-backend",
+                backend,
+                "--output",
+                str(destination),
+            ]
+        )
 
-    filename = f"{mode}--reference.json"
-    python_payload = normalized_payload(python_dir / filename)
-    cython_payload = normalized_payload(cython_dir / filename)
-
+    python_payload = normalized_payload(python_output)
+    cython_payload = normalized_payload(cython_output)
     if python_payload != cython_payload:
-        left = output / f"{mode}-normalized-python.json"
-        right = output / f"{mode}-normalized-cython.json"
-        left.parent.mkdir(parents=True, exist_ok=True)
-        left.write_text(json.dumps(python_payload, indent=2) + "\n", encoding="utf-8")
-        right.write_text(json.dumps(cython_payload, indent=2) + "\n", encoding="utf-8")
+        left = output / "standard-normalized-python.json"
+        right = output / "standard-normalized-cython.json"
+        left.write_text(
+            json.dumps(python_payload, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        right.write_text(
+            json.dumps(cython_payload, indent=2) + "\n",
+            encoding="utf-8",
+        )
         raise SystemExit(
-            f"Backend parity FAILED for {mode}.\n"
+            "Backend parity FAILED for standard rules.\n"
             f"Normalized outputs written to:\n  {left}\n  {right}"
         )
 
-    print(f"Backend parity {mode}: OK")
+    print("Backend parity standard: OK")
 
 
 def validate() -> None:
@@ -342,15 +341,16 @@ def validate() -> None:
     print("=" * 45)
     require_cython()
 
-    print("\nFocused rules and strategic-search tests")
+    print("\nFocused current-rules and strategic-search tests")
     run_command(
         [
             sys.executable,
             "-m",
             "pytest",
             "-q",
+            "-m",
+            "not legacy_rule_experiment",
             "tests/test_engine.py",
-            "tests/test_cardflow_profiles.py",
             "tests/test_strategic_heuristic.py",
             "tests/test_fast_search_state.py",
             "tests/test_architecture_boundaries.py",
@@ -359,13 +359,12 @@ def validate() -> None:
         ]
     )
 
-    parity_case("automatic", seed=26092334)
-    parity_case("paid", seed=26092334)
+    standard_backend_parity(seed=26092334)
 
     print("\nVALIDATION PASSED")
     print(
-        "Rules, ISMCTS invariants, architecture boundaries, and fixed-seed "
-        "Python/Cython parity passed."
+        "Current rules, ISMCTS invariants, architecture boundaries, and "
+        "fixed-seed standard-rules Python/Cython parity passed."
     )
 
 
