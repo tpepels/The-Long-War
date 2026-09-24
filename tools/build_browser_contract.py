@@ -81,6 +81,7 @@ def project_state(state) -> dict[str, object]:
             for stratagem in state.stratagems
         ],
         "stratagem_used": list(state.stratagem_used),
+        "hero_used": list(state.hero_used),
         "draw_used": list(state.draw_used),
         "discarded_this_battle": list(state.discarded_this_battle),
         "command_spent_this_battle": list(state.command_spent_this_battle),
