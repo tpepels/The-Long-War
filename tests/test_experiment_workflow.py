@@ -19,7 +19,7 @@ spec.loader.exec_module(runner)
 
 def test_fingerprint_tracks_native_includes_and_experiment_inputs(tmp_path, monkeypatch):
     monkeypatch.setattr(fingerprint, "ROOT", tmp_path)
-    paths = ["src/longwar/_ismcts_core.pxi", "cards/experiments/test.json",
+    paths = ["src/longwar/_ismcts_core.pxi", "cards/cards.json",
              "decks/reference.json", "tools/run_experiments.py"]
     previous = fingerprint.current_game_fingerprint()
     for name in paths:
