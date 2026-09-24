@@ -403,11 +403,16 @@ def ismcts_search(
     cdef int n, actor, ix, depth, rollout_steps, sample_ix, node_index
     cdef int root_index, max_tree_depth_seen = 0
     cdef int i, best_ix=-1, second_ix=-1
+    cdef int rollout_battle, action_battle
     cdef long iteration
     cdef long best_visits=-1, second_visits=-1
+    cdef long rollouts_stopped_terminal=0
+    cdef long rollouts_stopped_battle_boundary=0
+    cdef long rollouts_stopped_depth=0
+    cdef long rollout_actions=0
     cdef double utility, node_utility, mean_value
     cdef double best_mean=-1.0e300, second_mean=-1.0e300
-    cdef bint expanded, created
+    cdef bint expanded, created, rollout_boundary
     cdef list root_stats
 
     if not root_states:
@@ -434,6 +439,7 @@ def ismcts_search(
         sampled = <FastState>root_states[sample_ix]
         state.copy_from_fast(sampled)
         depth = 0
+        rollout_boundary = False
 
         while state.phase != PHASE_COMPLETE and depth < tree_depth_limit:
             actor = state.active_player
@@ -460,18 +466,26 @@ def ismcts_search(
             action = tree.nodes[node_index].actions[ix]
             path_nodes[depth] = node_index
             path_indices[depth] = <uint16_t>ix
+            action_battle = state.battle
             engine.apply_fast(state, action)
             depth += 1
 
             if expanded:
+                if (
+                    state.phase != PHASE_COMPLETE
+                    and state.battle != action_battle
+                ):
+                    rollout_boundary = True
                 break
 
         if depth > max_tree_depth_seen:
             max_tree_depth_seen = depth
 
         rollout_steps = 0
+        rollout_battle = state.battle
         while (
-            state.phase != PHASE_COMPLETE
+            not rollout_boundary
+            and state.phase != PHASE_COMPLETE
             and rollout_steps < rollout_depth
         ):
             action = _ismcts_rollout_action(
@@ -485,10 +499,28 @@ def ismcts_search(
             )
             engine.apply_fast(state, action)
             rollout_steps += 1
+            rollout_actions += 1
+            if (
+                state.phase != PHASE_COMPLETE
+                and state.battle != rollout_battle
+            ):
+                rollout_boundary = True
+                break
 
         if state.phase == PHASE_COMPLETE:
+            rollouts_stopped_terminal += 1
             utility = 1.0 if state.winner == root_player else -1.0
+        elif rollout_boundary:
+            rollouts_stopped_battle_boundary += 1
+            utility = tanh(
+                evaluator.battle_boundary_evaluate_fast(
+                    state,
+                    root_player,
+                )
+                / leaf_scale
+            )
         else:
+            rollouts_stopped_depth += 1
             utility = tanh(
                 evaluator.strategic_evaluate_fast(state, root_player)
                 / leaf_scale
@@ -569,6 +601,10 @@ def ismcts_search(
         "max_tree_depth": max_tree_depth_seen,
         "belief_states": len(root_states),
         "root_stats": root_stats,
+        "rollouts_stopped_terminal": rollouts_stopped_terminal,
+        "rollouts_stopped_battle_boundary": rollouts_stopped_battle_boundary,
+        "rollouts_stopped_depth": rollouts_stopped_depth,
+        "rollout_actions": rollout_actions,
         "tree_storage": "native-hash-arena",
         "rollout_policy": (
             "cheap" if rollout_policy == 1
