@@ -762,7 +762,7 @@ def benchmark_strength(
     time_budget_seconds: float | None = None,
     seed: int = 26092400,
 ) -> None:
-    """Mirrored ISMCTS-vs-alpha-beta matches on all Force reference decks."""
+    """Mirrored ISMCTS-vs-alpha-beta matches on all canonical reference decks."""
     require_cython()
     if games_per_orientation <= 0:
         raise SystemExit("--games must be positive")
@@ -1416,7 +1416,7 @@ def parse_args() -> argparse.Namespace:
 
     strength_bench = sub.add_parser(
         "strength-bench",
-        help="Mirrored ISMCTS-vs-alpha-beta matches across all Force decks.",
+        help="Mirrored ISMCTS-vs-alpha-beta matches across all canonical decks.",
     )
     strength_bench.add_argument(
         "--games",
