@@ -208,3 +208,24 @@ def test_heuristic_values_tempo_after_opponent_passes() -> None:
     )
 
     assert tempo_value > live_value
+
+
+def test_heuristic_values_unused_hero_as_flexible_name_resource() -> None:
+    engine, state = engine_and_state()
+    state.players[0].hand = ["daran-the-red-shield"]
+    state.players[1].hand = []
+    slot = state.slot(0, Position(Front.CENTER, Rank.FRONT))
+    slot.subject = "the-fifty-men"
+    slot.link = "followed"
+
+    available = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, state, 0)
+
+    spent = state.clone()
+    spent.hero_used[0] = True
+    unavailable = HeuristicAgent(seed=2, exploration=0.0).evaluate(
+        engine,
+        spent,
+        0,
+    )
+
+    assert available > unavailable
