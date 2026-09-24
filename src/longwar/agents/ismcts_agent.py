@@ -100,6 +100,7 @@ class ISMCTSAgent:
         engine: GameEngine,
         hand: list[str],
     ) -> tuple[int, ...]:
+        self.reset_tree()
         return opening_mulligan_indices(engine, hand)
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
