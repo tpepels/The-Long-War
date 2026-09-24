@@ -611,30 +611,38 @@ def benchmark_ismcts_match(
             cells.append((deck, orientation, output, command))
 
     print(
-        "Direct ISMCTS match: "
-        f"{len(decks)} decks × 2 mirrored orientations × "
-        f"{games_per_orientation} games = {len(cells) * games_per_orientation} games"
+        f"ISMCTS A/B | {len(cells) * games_per_orientation} games | "
+        f"{time_budget_seconds:g}s/searched move"
     )
     print(
-        f"Equal time={time_budget_seconds:g}s/non-forced decision; "
-        f"A: c={exploration_a:g}, pw={progressive_widening_a:g}, "
-        f"tree={'reuse' if reuse_tree_a else 'cold'}; "
-        f"B: c={exploration_b:g}, pw={progressive_widening_b:g}, "
-        f"tree={'reuse' if reuse_tree_b else 'cold'}"
+        f"A c={exploration_a:g} pw={progressive_widening_a:g} "
+        f"{'reuse' if reuse_tree_a else 'cold'} | "
+        f"B c={exploration_b:g} pw={progressive_widening_b:g} "
+        f"{'reuse' if reuse_tree_b else 'cold'}"
     )
+    print("\nProgress")
+    print("deck       orientation   A-B    elapsed")
 
     def run_cell(cell):
         deck, orientation, output, command = cell
         started = time.perf_counter()
         run_command(command, capture=True)
-        return deck, orientation, output, time.perf_counter() - started
+        elapsed = time.perf_counter() - started
+        payload = json.loads(output.read_text(encoding="utf-8"))
+        labels = payload["agents"]
+        a_wins = int(payload["wins"][labels.index("candidate-a")])
+        b_wins = int(payload["wins"][labels.index("candidate-b")])
+        return deck, orientation, output, elapsed, a_wins, b_wins
 
     results = []
     with ThreadPoolExecutor(max_workers=min(jobs, len(cells))) as pool:
         futures = [pool.submit(run_cell, cell) for cell in cells]
         for future in as_completed(futures):
-            deck, orientation, output, elapsed = future.result()
-            print(f"  finished {deck:9} {orientation:7} in {elapsed:.1f}s")
+            deck, orientation, output, elapsed, a_wins, b_wins = future.result()
+            print(
+                f"{deck:10} {orientation:11} "
+                f"{a_wins:>2}-{b_wins:<2}  {elapsed:7.1f}s"
+            )
             results.append((deck, orientation, output, elapsed))
 
     totals = {deck: {"a": 0, "b": 0, "games": 0} for deck in decks}
@@ -860,40 +868,41 @@ def benchmark_strength(
                 command.append("--ismcts-no-tree-reuse")
             cells.append((deck, orientation, output, command))
 
-    print(
-        "Playing-strength benchmark: "
-        f"{len(decks)} decks × 2 mirrored orientations × "
-        f"{games_per_orientation} games = "
-        f"{len(cells) * games_per_orientation} games"
+    budget_label = (
+        f"{time_budget_seconds:g}s/searched move"
+        if time_budget_seconds is not None
+        else f"{ismcts_iterations:,} iters vs {alpha_nodes:,} nodes"
     )
     print(
-        (
-            f"equal time={time_budget_seconds:g}s/decision; "
-            if time_budget_seconds is not None
-            else ""
-        )
-        + f"ISMCTS base={ismcts_iterations:,} iterations, "
-        f"c={exploration:g}, pw={progressive_widening:g}, "
-        f"tree={'reuse' if reuse_tree else 'cold'}; "
-        f"alpha-beta base={alpha_nodes:,} nodes, "
-        f"depth {'32' if time_budget_seconds is not None else '6'}, beam 5"
+        f"ISMCTS vs alpha-beta | {len(cells) * games_per_orientation} games | "
+        f"{budget_label}"
     )
-    print(f"Parallel cells: {min(jobs, len(cells))}")
+    print(
+        f"ISMCTS c={exploration:g} pw={progressive_widening:g} "
+        f"{'reuse' if reuse_tree else 'cold'}"
+    )
+    print("\nProgress")
+    print("deck       orientation    MCTS-AB  elapsed")
 
     def run_cell(cell):
         deck, orientation, output, command = cell
         started = time.perf_counter()
         run_command(command, capture=True)
-        return deck, orientation, output, time.perf_counter() - started
+        elapsed = time.perf_counter() - started
+        payload = json.loads(output.read_text(encoding="utf-8"))
+        labels = payload["agents"]
+        mcts_wins = int(payload["wins"][labels.index("ismcts")])
+        alpha_wins = int(payload["wins"][labels.index("strategic_heuristic")])
+        return deck, orientation, output, elapsed, mcts_wins, alpha_wins
 
     results = []
     with ThreadPoolExecutor(max_workers=min(jobs, len(cells))) as pool:
         futures = [pool.submit(run_cell, cell) for cell in cells]
         for future in as_completed(futures):
-            deck, orientation, output, elapsed = future.result()
+            deck, orientation, output, elapsed, mcts_wins, alpha_wins = future.result()
             print(
-                f"  finished {deck:9} {orientation:11} "
-                f"in {elapsed:.1f}s"
+                f"{deck:10} {orientation:12} "
+                f"{mcts_wins:>2}-{alpha_wins:<2}    {elapsed:7.1f}s"
             )
             results.append((deck, orientation, output, elapsed))
 
