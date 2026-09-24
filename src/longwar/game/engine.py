@@ -227,7 +227,6 @@ class GameEngine:
             )
 
         counts = Counter(deck)
-        hero_count = 0
         for card_id, count in counts.items():
             if card_id not in self.cards:
                 raise InvalidDeck(f"Unknown card: {card_id}")
@@ -237,13 +236,6 @@ class GameEngine:
                 raise InvalidDeck(
                     f"{card['title']} appears {count} times; maximum is {maximum}"
                 )
-            if card.get("hero", False):
-                hero_count += count
-
-        if hero_count != 1:
-            raise InvalidDeck(
-                f"A deck must contain exactly one Hero, got {hero_count}"
-            )
 
     def new_game(
         self,
@@ -387,6 +379,7 @@ class GameEngine:
             )
 
         state.stratagem_used[:] = data["stratagem_used"]
+        state.hero_used[:] = data["hero_used"]
         state.draw_used[:] = data["draw_used"]
         state.active_player = int(data["active_player"])
         state.battle = int(data["battle"])
