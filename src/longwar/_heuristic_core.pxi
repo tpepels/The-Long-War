@@ -296,6 +296,18 @@ cdef class NativeHeuristicEvaluator:
 
         return value
 
+    cdef double battle_boundary_evaluate_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        # score_battle() has already recorded the resolved Battle in
+        # victories/last_battle and performed the canonical transition
+        # toward the next Battle. Reuse the strategic evaluator here so
+        # search cutoffs value both match progress and next-Battle readiness
+        # without creating a second set of heuristic weights in ISMCTS.
+        return self.strategic_evaluate_fast(state, player)
+
     cdef double pass_score_fast(
         self,
         FastState state,
@@ -311,7 +323,7 @@ cdef class NativeHeuristicEvaluator:
         child.copy_from_fast(state)
         self.engine.pass_action(child, player)
         if child.phase != PHASE_BATTLE or child.battle != state.battle:
-            return self.evaluate_fast(child, player)
+            return self.battle_boundary_evaluate_fast(child, player)
 
         score = self.evaluate_fast(state, player)
         for front in range(3):
@@ -446,6 +458,13 @@ cdef class NativeHeuristicEvaluator:
 
     cpdef double strategic_evaluate(self, FastState state, int player):
         return self.strategic_evaluate_fast(state, player)
+
+    cpdef double battle_boundary_evaluate(
+        self,
+        FastState state,
+        int player,
+    ):
+        return self.battle_boundary_evaluate_fast(state, player)
 
     cpdef double hand_construction_value(
         self,
