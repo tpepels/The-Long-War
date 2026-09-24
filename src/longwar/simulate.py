@@ -41,6 +41,7 @@ def make_agent(
     seed: int,
     *,
     policy: dict[str, Any] | None = None,
+    heuristic_exploration: float = 0.0,
     online_iterations: int = 8,
     online_depth: int = 2,
     priors: tuple[DeckPrior, DeckPrior] | None = None,
@@ -58,13 +59,14 @@ def make_agent(
     ismcts_exploration: float = DEFAULT_ISMCTS_EXPLORATION,
     ismcts_progressive_widening: float = 0.0,
     ismcts_reuse_tree: bool = True,
+    ismcts_max_tree_nodes: int | None = None,
     ismcts_rollout_epsilon: float = 0.12,
     ismcts_rollout_policy: str = "cheap",
 ):
     if name == "random":
         return RandomAgent(seed)
     if name == "heuristic":
-        return HeuristicAgent(seed)
+        return HeuristicAgent(seed, exploration=heuristic_exploration)
     if name == "strategic_heuristic":
         return StrategicHeuristicAgent(
             engine,
@@ -90,6 +92,7 @@ def make_agent(
             exploration=ismcts_exploration,
             progressive_widening=ismcts_progressive_widening,
             reuse_tree=ismcts_reuse_tree,
+            max_tree_nodes=ismcts_max_tree_nodes,
             rollout_epsilon=ismcts_rollout_epsilon,
             rollout_policy=ismcts_rollout_policy,
         )
@@ -117,6 +120,7 @@ def simulate_games(
     max_actions: int = 500,
     agent_names: tuple[str, str] = ("heuristic", "heuristic"),
     agent_policies: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
+    heuristic_exploration: float = 0.0,
     online_iterations: int = 8,
     online_depth: int = 2,
     strategic_belief_samples: int = 3,
@@ -133,6 +137,7 @@ def simulate_games(
     ismcts_exploration: float = DEFAULT_ISMCTS_EXPLORATION,
     ismcts_progressive_widening: float = 0.0,
     ismcts_reuse_tree: bool = True,
+    ismcts_max_tree_nodes: int | None = None,
     ismcts_rollout_epsilon: float = 0.12,
     ismcts_rollout_policy: str = "cheap",
     agent_overrides: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
@@ -166,6 +171,7 @@ def simulate_games(
     if len(agent_overrides) != 2:
         raise ValueError("agent_overrides must contain exactly two entries")
     base_agent_options: dict[str, Any] = {
+        "heuristic_exploration": heuristic_exploration,
         "online_iterations": online_iterations,
         "online_depth": online_depth,
         "strategic_belief_samples": strategic_belief_samples,
@@ -182,6 +188,7 @@ def simulate_games(
         "ismcts_exploration": ismcts_exploration,
         "ismcts_progressive_widening": ismcts_progressive_widening,
         "ismcts_reuse_tree": ismcts_reuse_tree,
+        "ismcts_max_tree_nodes": ismcts_max_tree_nodes,
         "ismcts_rollout_epsilon": ismcts_rollout_epsilon,
         "ismcts_rollout_policy": ismcts_rollout_policy,
     }
