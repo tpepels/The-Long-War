@@ -320,6 +320,10 @@ def test_paid_profile_python_cython_match_each_root_decision(
         cython_action = cython_agent.choose(engine, state.clone())
 
         assert cython_agent.rng.getstate() == python_agent.rng.getstate()
+        assert (
+            cython_agent.last_decision["completed_depth"]
+            == python_agent.last_decision["completed_depth"]
+        )
         assert action_key(cython_action) == action_key(python_action), (
             f"paid backend divergence in game {game_index}, decision {decision}, "
             f"battle {state.battle}, turn {state.turn_number}, actor {actor}; "
