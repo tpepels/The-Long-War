@@ -52,6 +52,31 @@ def test_game_core_dependencies_point_inward_only() -> None:
         assert not any(term in source for term in forbidden), path
 
 
+def test_runtime_and_search_do_not_special_case_card_ids() -> None:
+    """Cards express capabilities as data; implementations never branch on ids."""
+    import json
+
+    card_data = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
+    card_ids = {card["id"] for card in card_data["cards"]}
+
+    implementation_files = [
+        SRC / "game" / "engine.py",
+        SRC / "_fast_search.pyx",
+        SRC / "_heuristic_core.pxi",
+        SRC / "_alpha_beta_core.pxi",
+        SRC / "_ismcts_core.pxi",
+        SRC / "_mccfr_core.pxi",
+        SRC / "heuristics.py",
+        SRC / "agents" / "heuristic_agent.py",
+        SRC / "agents" / "strategic_heuristic_agent.py",
+        SRC / "agents" / "ismcts_agent.py",
+    ]
+    for path in implementation_files:
+        source = path.read_text(encoding="utf-8")
+        leaked = sorted(card_id for card_id in card_ids if card_id in source)
+        assert not leaked, f"{path} special-cases cards: {leaked}"
+
+
 def test_game_core_does_not_know_shipped_decks() -> None:
     """Reference/archetype decks are content passed to the engine, not rules."""
     core = "\n".join(
