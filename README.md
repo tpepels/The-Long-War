@@ -23,7 +23,7 @@ make verify
 | Quick balance/playability signal | Canonical cards and decks | `make balance` |
 | Deeper balance evidence | Canonical cards and decks | `make balance BALANCE_PRESET=deep` |
 
-Add a focused regression at the changed boundary. `make verify` checks every shipped card/deck against the current standard rules, the ordinary fast tests, and native/browser parity. `make verify-algorithms` validates search/AI only against the current standard rules. Historical non-standard rule-profile tests are marked `legacy_rule_experiment` and run under the full `make test`, not the canonical verification path. `make test-integration` checks multi-game and report pipelines.
+Add a focused regression at the changed boundary. `make verify` checks every shipped card/deck against the current standard rules, the ordinary fast tests, and native/browser parity. `make verify-algorithms` validates search/AI only against the current standard rules. Historical non-standard rule-variant tests are marked `legacy_rule_experiment` and run under the full `make test`, not the canonical verification path. Variants are explicit rule-value overrides, not named profiles. `make test-integration` checks multi-game and report pipelines.
 
 Rebuild after every `.pyx` or `.pxi` edit. Browser builds automatically detect changed package sources. The first browser build is slower; a current build is reused. No GitHub Actions run is needed for local verification. GitHub workflows are manual-only to avoid notification noise; deploy Pages or run expensive analysis explicitly when needed.
 
@@ -69,7 +69,7 @@ The [issue #21 desktop-client handoff](reports/issue-21-desktop-client.md) recor
 The packed engine supports up to 127 card identities, 64 cards per player deck, and 1024 generated actions, with checked boundaries. Counterfactual neutral cards are generated in memory and never added to printable canonical data.
 
 - `decks/*.json`: canonical reference and archetype decks.
-- Named non-standard rule profiles in `src/longwar/rules.py`: retained historical/design experiments. They are not part of canonical verification.
+- Historical card-flow experiments: retained as explicit argument-driven rule variants in `cardflow.py`, outside the canonical rules API.
 - `reports/`: retained historical playtest analyses. They are context, not current balance evidence.
 - `artifacts/`: generated local results, manifests, policies and build output.
 
