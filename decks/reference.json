@@ -1,5 +1,5 @@
 {
-  "name": "Reference Deck v0.8",
+  "name": "Reference Deck v0.9",
   "cards": [
     "the-fifty-men",
     "seven-black-ships",
@@ -12,9 +12,9 @@
     "the-crow-archers",
     "avaros-the-bronze-king",
     "the-fifty-men",
-    "seven-black-ships",
+    "lysa-of-the-salt-road",
     "those-who-came-back",
-    "the-house-at-orra",
+    "theron-the-oathkeeper",
     "followed",
     "swore-to",
     "defied",
@@ -35,5 +35,10 @@
     "the-storm-broke",
     "the-tide-rose",
     "the-ground-gave-way"
+  ],
+  "heroes": [
+    "avaros-the-bronze-king",
+    "lysa-of-the-salt-road",
+    "theron-the-oathkeeper"
   ]
 }
