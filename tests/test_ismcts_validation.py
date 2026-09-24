@@ -28,14 +28,11 @@ MASK64 = (1 << 64) - 1
 
 def _force_fixture(rules: GameRules):
     data = load_card_file(
-        ROOT / "cards" / "experiments" / "force-draw-cards.json"
+        ROOT / "cards" / "cards.json"
     )
     deck = json.loads(
         (
-            ROOT
-            / "decks"
-            / "experiments"
-            / "force-rich-34-reference.json"
+            ROOT / "decks" / "reference.json"
         ).read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data, rules=rules)
