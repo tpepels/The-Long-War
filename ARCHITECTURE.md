@@ -145,8 +145,9 @@ Analysis exists to help design the game. It sits outside the browser runtime
 and may be deleted or replaced without changing game semantics.
 
 Canonical verification covers the current standard rules. Historical/non-standard
-rule profiles may retain explicit tests for design archaeology, but those tests
-are marked `legacy_rule_experiment` and are not part of `make verify` or
+rule variants may retain explicit tests for design archaeology, but those tests
+are expressed as ordinary `GameRules.standard().with_overrides(...)` values,
+marked `legacy_rule_experiment`, and are not part of `make verify` or
 `make verify-algorithms`.
 
 Tools may compose simulations and reports, but a new experiment is not a reason
@@ -191,7 +192,6 @@ layout or a particular search implementation.
 The following existing structures predate this contract and should be reduced
 carefully rather than duplicated further:
 
-- named `force-*` experiment profiles live in `GameRules`;
 - `_fast_search.pyx` physically bundles the engine and several native search
   cores into one extension;
 - the browser's `_fast_search` extension still physically contains native
