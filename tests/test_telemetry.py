@@ -130,3 +130,5 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
     assert decisions["max_decision_seconds"] == pytest.approx(1.25)
     assert decisions["timed_out_decisions"] == 1
     assert decisions["timeout_rate"] == pytest.approx(1.0)
+    assert decisions["searched_decisions"] == 1
+    assert decisions["mean_searched_decision_seconds"] == pytest.approx(1.25)
