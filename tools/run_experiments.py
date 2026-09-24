@@ -370,7 +370,7 @@ def benchmark_ismcts(
     iterations: int,
     rollout_policy: str = "cheap",
     progressive_widening: float = 0.0,
-    exploration: float = 2 ** 0.5,
+    exploration: float = DEFAULT_ISMCTS_EXPLORATION,
 ) -> None:
     """Benchmark one fixed Cython ISMCTS decision."""
     require_cython()
@@ -771,8 +771,9 @@ def benchmark_strength(
     ismcts_iterations: int,
     alpha_nodes: int,
     rollout_policy: str = "cheap",
+    rollout_depth: int = 5,
     progressive_widening: float = 0.0,
-    exploration: float = 2 ** 0.5,
+    exploration: float = DEFAULT_ISMCTS_EXPLORATION,
     reuse_tree: bool = True,
     time_budget_seconds: float | None = None,
     seed: int = 26092400,
@@ -785,6 +786,8 @@ def benchmark_strength(
         raise SystemExit("--jobs must be positive")
     if ismcts_iterations <= 0 or alpha_nodes <= 0:
         raise SystemExit("Search budgets must be positive")
+    if rollout_depth < 0:
+        raise SystemExit("--rollout-depth must be non-negative")
     if time_budget_seconds is not None and time_budget_seconds <= 0.0:
         raise SystemExit("--time-budget-seconds must be positive")
 
@@ -800,7 +803,8 @@ def benchmark_strength(
     identity = experiment_identity({
         "games_per_orientation": games_per_orientation, "seed": seed,
         "ismcts_iterations": ismcts_iterations, "alpha_nodes": alpha_nodes,
-        "rollout_policy": rollout_policy, "exploration": exploration,
+        "rollout_policy": rollout_policy, "rollout_depth": rollout_depth,
+        "exploration": exploration,
         "progressive_widening": progressive_widening, "reuse_tree": reuse_tree,
         "time_budget_seconds": time_budget_seconds,
         "rules_profile": "standard", "decks": list(decks),
@@ -844,7 +848,7 @@ def benchmark_strength(
                 "--ismcts-iterations",
                 str(ismcts_iterations),
                 "--ismcts-rollout-depth",
-                "5",
+                str(rollout_depth),
                 "--ismcts-exploration",
                 str(exploration),
                 "--ismcts-progressive-widening",
@@ -886,7 +890,8 @@ def benchmark_strength(
     )
     print(
         f"ISMCTS c={exploration:g} pw={progressive_widening:g} "
-        f"{'reuse' if reuse_tree else 'cold'}"
+        f"{'reuse' if reuse_tree else 'cold'} "
+        f"rollout={rollout_policy}/{rollout_depth}"
     )
     print("\nProgress")
     print("deck       orientation    MCTS-AB  elapsed")
@@ -1146,7 +1151,7 @@ def benchmark_searches(
     alpha_nodes: int,
     rollout_policy: str = "cheap",
     progressive_widening: float = 0.0,
-    exploration: float = 2 ** 0.5,
+    exploration: float = DEFAULT_ISMCTS_EXPLORATION,
 ) -> None:
     """Side-by-side wall-time benchmark on the same root position."""
     require_cython()
@@ -1420,10 +1425,10 @@ def parse_args() -> argparse.Namespace:
     ismcts_match.add_argument("--games", type=int, default=8)
     ismcts_match.add_argument("--jobs", type=int, default=8)
     ismcts_match.add_argument("--iterations", type=int, default=100_000)
-    ismcts_match.add_argument("--time-budget-seconds", type=float, default=5.0)
+    ismcts_match.add_argument("--time-budget-seconds", type=float, default=2.0)
     ismcts_match.add_argument("--seed", type=int, default=26092400)
-    ismcts_match.add_argument("--a-exploration", type=float, default=0.3)
-    ismcts_match.add_argument("--b-exploration", type=float, default=0.5)
+    ismcts_match.add_argument("--a-exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
+    ismcts_match.add_argument("--b-exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     ismcts_match.add_argument("--a-pw", type=float, default=0.0)
     ismcts_match.add_argument("--b-pw", type=float, default=0.0)
     ismcts_match.add_argument("--a-no-tree-reuse", action="store_true")
@@ -1472,6 +1477,7 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="Square-root widening constant; 0 keeps the baseline tree policy.",
     )
+    strength_bench.add_argument("--rollout-depth", type=int, default=5)
     strength_bench.add_argument(
         "--rollout-policy",
         choices=("greedy", "cheap", "random"),
@@ -1578,6 +1584,7 @@ def main() -> None:
             ismcts_iterations=args.iterations,
             alpha_nodes=args.alpha_nodes,
             rollout_policy=args.rollout_policy,
+            rollout_depth=args.rollout_depth,
             progressive_widening=args.progressive_widening,
             exploration=args.exploration,
         )
