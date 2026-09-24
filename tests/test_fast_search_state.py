@@ -201,6 +201,7 @@ def force_candidate_engine(*, automatic: bool) -> tuple[GameEngine, list[str], o
     return engine, deck, FastEngine(engine)
 
 
+@pytest.mark.legacy_rule_experiment
 @pytest.mark.parametrize("automatic", (False, True))
 def test_packed_state_matches_force_candidate_random_games(
     automatic: bool,
