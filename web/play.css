@@ -1682,3 +1682,48 @@ body.game-body {
   }
 }
 
+
+
+/* Dual-use Hero treatment */
+.play-card.card-hero {
+  background:
+    linear-gradient(90deg, #e3d2af 0 49%, #d5d9bf 51% 100%);
+  border-color: #bd9d53;
+}
+.play-card.card-hero h3 {
+  padding-right: 60px;
+}
+.play-card-strength.hero-dual-strength {
+  width: 44px;
+  border-radius: 11px;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+  overflow: hidden;
+  font: 800 10px/1 system-ui, sans-serif;
+}
+.play-card-strength.hero-dual-strength > span {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  grid-template-rows: auto auto;
+  align-content: center;
+}
+.play-card-strength.hero-dual-strength > span + span {
+  border-left: 1px solid #6f715288;
+}
+.play-card-strength.hero-dual-strength small {
+  font-size: 7px;
+  opacity: .7;
+}
+.board-card.card-hero .board-card-face {
+  background:
+    linear-gradient(90deg, #ddc9a7 0 49%, #cdd6bd 51% 100%);
+}
+.command-counter .hero-status {
+  display: block;
+  margin-top: 1px;
+  font-size: 7px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  opacity: .72;
+}
