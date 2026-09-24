@@ -67,6 +67,37 @@ def test_ismcts_match_can_compare_rollout_controls():
     assert '"ismcts_rollout_policy": rollout_policy_b' in source
 
 
+def test_decision_grade_search_match_defaults(monkeypatch):
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "ismcts-match"],
+    )
+    match = runner.parse_args()
+    assert match.games == 24
+    assert match.jobs == 8
+    assert match.time_budget_seconds == pytest.approx(2.0)
+
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "strength-bench"],
+    )
+    strength = runner.parse_args()
+    assert strength.games == 24
+    assert strength.jobs == 8
+
+
+def test_makefile_owns_decision_grade_search_commands():
+    source = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert "ismcts-match:" in source
+    assert "ISMCTS_MATCH_GAMES ?= 24" in source
+    assert "ISMCTS_MATCH_SECONDS ?= 2" in source
+    assert "strength-bench:" in source
+    assert "STRENGTH_BENCH_GAMES ?= 24" in source
+    assert "STRENGTH_BENCH_SECONDS ?= 2" in source
+
+
 def test_backend_parity_ignores_runtime_but_keeps_search_depth_and_outcomes(tmp_path):
     path = tmp_path / "match.json"
     payload = {
