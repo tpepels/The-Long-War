@@ -51,6 +51,8 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     assert "ROLE BONUSES" in page
     assert "AFTER THE FINAL OPERATION" in page
     assert "BETWEEN BATTLES" in page
+    assert "Hero" in page
+    assert "only 1 Hero per side per Battle" in page
     assert "font-size: 3.1mm;" in css
     assert "page: battlefield-reference" in css
 
@@ -152,6 +154,7 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     assert "FIRST" in page and "TO PASS" in page
     assert page.count("BATTLE WIN") == 4
     assert "STRATAGEM USED" in page
+    assert page.count("HERO USED") == 2
     assert "DRAW USED" not in page
     assert "FINAL" in page and "OPERATION" in page
     assert "+10" in page and "COMMAND · NEXT BATTLE" in page
