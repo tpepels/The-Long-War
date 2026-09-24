@@ -56,12 +56,14 @@ def test_online_resolver_learns_immediate_winning_pass_with_unknown_deck() -> No
                 deck=p0_hidden,
                 hand=["seven-black-ships"],
                 victories=1,
+                command=engine.starting_command,
             ),
             PlayerState(
                 deck=list(deck),
                 hand=[],
                 victories=1,
                 passed=True,
+                command=engine.starting_command,
             ),
         ],
         active_player=0,
@@ -70,6 +72,7 @@ def test_online_resolver_learns_immediate_winning_pass_with_unknown_deck() -> No
     )
     state.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
     state.slot(0, Position(Front.CENTER, Rank.FRONT)).subject = "the-three-brothers-of-avar"
+    assert len(engine.legal_actions(state)) > 1
 
     resolver = OnlineMCCFRResolver(
         engine,

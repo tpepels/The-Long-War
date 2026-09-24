@@ -23,9 +23,12 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "No Fires Burned" in rules
     assert "gives +2" in rules
     assert "player who Passed second counts as active" not in rules
-    assert "optional **Draw** action per Battle" in rules
+    assert "no generic Draw operation" in rules
+    assert "**Cycle** one card" in rules
+    assert "gain **10 Command**" in rules
     assert "first player draws **1 additional opening card**" in rules
-    assert "play 1 card, Draw 1, or Pass" in text("web/playmat.html")
+    assert "play 1 card, Cycle 1 card, or Pass" in text("web/playmat.html")
+    assert "reshuffle discard only if deck empties" in text("web/playmat.html")
 
 
 def test_rulebook_healer_language_matches_engine_semantics() -> None:

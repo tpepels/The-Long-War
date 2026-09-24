@@ -1029,6 +1029,30 @@ button, .button {
   letter-spacing: -.015em;
 }
 
+.command-cost {
+  position: absolute;
+  right: 15.5mm;
+  top: 1.1mm;
+  z-index: 4;
+  min-width: 8.5mm;
+  height: 4.8mm;
+  padding: 0 1.1mm;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: .35mm solid var(--card-deep);
+  border-radius: 3.3mm;
+  background: #f3ead7;
+  color: var(--card-deep);
+  font: 800 3.1mm/1 system-ui, sans-serif;
+}
+.command-cost::before {
+  content: "C";
+  margin-right: .6mm;
+  font-size: 2.2mm;
+  opacity: .75;
+}
+
 .strength {
   position: absolute;
   right: 3.2mm;
@@ -1206,7 +1230,8 @@ button, .button {
     0 1.4mm 3mm rgba(24,23,20,.2);
 }
 .card-hero .card-type,
-.card-hero .strength { color: #7d5a1e; }
+.card-hero .strength,
+.card-hero .command-cost { color: #7d5a1e; }
 
 .game-card.layout-overflow {
   outline: 1mm solid #a52f28;
@@ -1681,8 +1706,9 @@ button, .button {
 }
 
 .card-type {
-  max-width: 48mm;
-  font-size: 2.7mm;
+  max-width: 38mm;
+  font-size: 2.45mm;
+  letter-spacing: .04em;
 }
 
 .card-title {
@@ -1691,6 +1717,7 @@ button, .button {
   font-size: 4.5mm;
   line-height: .96;
 }
+
 
 .strength {
   right: 3.2mm;

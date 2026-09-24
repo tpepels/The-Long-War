@@ -15,6 +15,7 @@ from typing import Any
 from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import DeckHypothesis, HypothesisDeckPrior
+from longwar.balance import validate_command_costs
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.fingerprint import artifact_directory, experiment_identity
@@ -34,6 +35,8 @@ def validate_data() -> None:
         ("cards/experiments/force-draw-cards.json", "decks/experiments", "force-automatic"),
     ):
         data = load_card_file(ROOT / card_file)
+        if profile == "standard":
+            validate_command_costs(data)
         engine = GameEngine(data, rules=GameRules.from_profile(profile))
         decks = sorted((ROOT / deck_dir).glob("*.json"))
         for path in decks:
@@ -162,6 +165,9 @@ def normalized_payload(path: Path) -> dict[str, Any]:
     for stats in telemetry.get("decisions", {}).values():
         stats.pop("mean_search_nodes", None)
         stats.pop("mean_score_gap", None)
+        stats.pop("mean_decision_seconds", None)
+        stats.pop("max_decision_seconds", None)
+        stats.pop("mean_searched_decision_seconds", None)
 
     return payload
 

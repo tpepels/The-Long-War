@@ -106,8 +106,8 @@ def test_belief_sampler_keeps_remembered_returned_card_in_hand() -> None:
     p1_deck.remove("he-never-came")
     state = GameState(
         players=[
-            PlayerState(deck=p0_deck, hand=[]),
-            PlayerState(deck=p1_deck, hand=["he-never-came"]),
+            PlayerState(deck=p0_deck, hand=[], command=engine.starting_command),
+            PlayerState(deck=p1_deck, hand=["he-never-came"], command=engine.starting_command),
         ],
         active_player=1,
     )

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import re
+
+import pytest
 from pathlib import Path
 
 from longwar.cards import (
@@ -9,6 +11,7 @@ from longwar.cards import (
     SUBJECT_ROLES,
     cards_by_type,
     load_card_file,
+    validate_card_data,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -164,7 +167,7 @@ def test_card_rules_text_uses_canonical_typography() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     concepts = re.compile(
         r"\b(?:Subjects?|Bonds?|Names?|Stories?|Strength|Fronts?|Frontline|Rear|"
-        r"Battles?|Stratagems?|Pass(?:es|ed)?|Discard(?:ed)?|Return(?:ed)?|Move(?:d)?|"
+        r"Command|Cycle|Battles?|Stratagems?|Pass(?:es|ed)?|Discard(?:ed)?|Return(?:ed)?|Move(?:d)?|"
         r"adjacent|discard pile|Veiled Story|Stratagem|Hero|Line Defense)\b",
         re.IGNORECASE,
     )
@@ -184,3 +187,27 @@ def test_card_rules_text_uses_canonical_typography() -> None:
             assert title not in text_without_italics, (
                 f"{card['title']} references {title} without italics"
             )
+
+
+def test_canonical_decks_use_six_names_and_ten_subjects() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    by_id = {card["id"]: card for card in data["cards"]}
+    for path in (
+        ROOT / "decks" / "reference.json",
+        ROOT / "decks" / "avaros-line.json",
+        ROOT / "decks" / "mara-rear.json",
+        ROOT / "decks" / "sera-support.json",
+    ):
+        deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
+        assert len(deck) == 30
+        assert sum(by_id[card_id]["type"] == "subject" for card_id in deck) == 10
+        assert sum(by_id[card_id]["type"] == "name" for card_id in deck) == 6
+        assert sum(bool(by_id[card_id].get("hero")) for card_id in deck) == 1
+
+
+@pytest.mark.parametrize("value", [None, True, 0, 4, 1.5])
+def test_printed_command_cost_is_a_small_integer(value) -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    data["cards"][0]["command_cost"] = value
+    with pytest.raises(ValueError, match="command_cost"):
+        validate_card_data(data)

@@ -78,6 +78,8 @@ def main() -> None:
   let humanHistory = 0;
   let targetClicked = false;
   let beforeHand = 0;
+  let beforeCommand = 0;
+  let cycleCost = 0;
   const expectedReducedMotion = REDUCED_MOTION_EXPECTED;
 
   function fail(detail) {
@@ -273,29 +275,40 @@ def main() -> None:
         fail("delayed action banner did not identify the opponent");
         return;
       }
-      stage = "draw";
+      stage = "cycle";
       return;
     }
 
-    if (stage === "draw") {
+    if (stage === "cycle") {
       const snapshot = JSON.parse(window.render_game_to_text());
       if (snapshot.needs_ai) return;
-      const draw = document.getElementById("draw-button");
-      if (!draw || draw.hidden || draw.disabled) {
-        fail("Draw was unavailable after the opponent response");
+      const action = snapshot.legal_actions.find((action) => action.kind === "Cycle");
+      if (!action) { fail("Cycle was unavailable after the opponent response"); return; }
+      const card = [...document.querySelectorAll("#hand [data-hand-card]")].find((card) => card.dataset.handCard === action.card_id);
+      if (!card) { fail("Cycle card was not selectable"); return; }
+      card.click();
+      const cycle = document.getElementById("cycle-button");
+      if (!cycle || cycle.hidden || cycle.disabled) {
+        fail("Cycle did not activate for the selected card");
         return;
       }
       beforeHand = snapshot.hand.length;
-      draw.click();
-      stage = "verify-draw";
+      beforeCommand = snapshot.players[0].command;
+      cycleCost = action.command_cost;
+      cycle.click();
+      stage = "verify-cycle";
       return;
     }
 
-    if (stage === "verify-draw") {
+    if (stage === "verify-cycle") {
       const snapshot = JSON.parse(window.render_game_to_text());
-      if (snapshot.last_action?.kind !== "Draw" || snapshot.last_action?.actor !== 0) return;
-      if (snapshot.hand.length !== beforeHand + 1) {
-        fail("Draw did not add exactly one card to the visible hand");
+      if (snapshot.last_action?.kind !== "Cycle" || snapshot.last_action?.actor !== 0) return;
+      if (snapshot.hand.length !== beforeHand) {
+        fail("Cycle did not replace exactly one visible hand card");
+        return;
+      }
+      if (snapshot.players[0].command !== beforeCommand - cycleCost) {
+        fail("Cycle did not spend its displayed Command cost");
         return;
       }
       if (document.documentElement.scrollWidth > innerWidth + 2 || document.documentElement.scrollHeight > innerHeight + 2) {
@@ -303,7 +316,7 @@ def main() -> None:
         return;
       }
       root.dataset.playSmoke = "pass";
-      root.dataset.playSmokeDetail = "menu, keyboard cancellation, human action, full inspection, paced AI, and Draw passed";
+      root.dataset.playSmokeDetail = "menu, keyboard cancellation, human action, full inspection, paced AI, and Cycle passed";
       clearInterval(timer);
       return;
     }
@@ -390,7 +403,7 @@ def main() -> None:
             detail = result.stdout.split(marker, 1)[1].split('"', 1)[0]
         raise SystemExit(f"Start-a-match browser smoke failed: {detail}")
 
-    print(f"PASS: {width}x{height} real browser menu, keyboard targeting/cancellation, action, inspector, paced AI and Draw" + (" with reduced motion" if args.reduced_motion else ""))
+    print(f"PASS: {width}x{height} real browser menu, keyboard targeting/cancellation, action, inspector, paced AI and Cycle" + (" with reduced motion" if args.reduced_motion else ""))
 
 
 if __name__ == "__main__":

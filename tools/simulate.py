@@ -32,6 +32,7 @@ def load_policy(path: Path | None) -> dict[str, Any] | None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    defaults = GameRules.standard()
     parser.add_argument(
         "--rules-profile",
         choices=("custom", *GameRules.profile_names()),
@@ -124,13 +125,13 @@ def main() -> None:
     parser.add_argument(
         "--hand-size",
         type=int,
-        default=10,
+        default=defaults.opening_hand_size,
         help="Base opening and between-Battle refill hand target.",
     )
     parser.add_argument(
         "--deck-size",
         type=int,
-        default=30,
+        default=defaults.deck_size,
         help="Required deck size for this simulation variant.",
     )
     parser.add_argument(
@@ -139,26 +140,19 @@ def main() -> None:
         default=Path("cards/cards.json"),
         help="Card data file for this simulation variant.",
     )
-    parser.add_argument(
-        "--no-between-battle-recycle",
-        action="store_true",
-        help=(
-            "Keep played/discarded cards out between Battles and refill only "
-            "from the remaining deck."
-        ),
-    )
-    parser.add_argument(
-        "--reshuffle-on-empty",
-        action="store_true",
-        help=(
-            "Keep the draw pile persistent, but when it empties shuffle the "
-            "discard pile into a new draw pile."
-        ),
-    )
-    parser.add_argument(
-        "--disable-draw",
-        action="store_true",
-        help="Remove the once-per-Battle Draw action for variant experiments.",
+    recycle_group = parser.add_mutually_exclusive_group()
+    recycle_group.add_argument("--between-battle-recycle", dest="recycle", action="store_true")
+    recycle_group.add_argument("--no-between-battle-recycle", dest="recycle", action="store_false")
+    reshuffle_group = parser.add_mutually_exclusive_group()
+    reshuffle_group.add_argument("--reshuffle-on-empty", dest="reshuffle", action="store_true")
+    reshuffle_group.add_argument("--no-reshuffle-on-empty", dest="reshuffle", action="store_false")
+    draw_group = parser.add_mutually_exclusive_group()
+    draw_group.add_argument("--enable-draw", dest="draw_enabled", action="store_true")
+    draw_group.add_argument("--disable-draw", dest="draw_enabled", action="store_false")
+    parser.set_defaults(
+        recycle=defaults.recycle_between_battles,
+        reshuffle=defaults.reshuffle_on_empty,
+        draw_enabled=defaults.draw_action_enabled,
     )
     parser.add_argument(
         "--completion-draw-names",
@@ -166,11 +160,10 @@ def main() -> None:
         default=[],
         help="Name ids that draw 1 when their formation becomes complete.",
     )
-    parser.add_argument(
-        "--command",
-        action="store_true",
-        help="Enable the persistent Command economy and paid Cycle operation.",
-    )
+    command_group = parser.add_mutually_exclusive_group()
+    command_group.add_argument("--command", action="store_true")
+    command_group.add_argument("--no-command", dest="command", action="store_false")
+    parser.set_defaults(command=defaults.command_enabled)
     parser.add_argument("--starting-command", type=int, default=20)
     parser.add_argument("--battle-command-gain", type=int, default=10)
     parser.add_argument("--command-cap", type=int, default=20)
@@ -267,16 +260,16 @@ def main() -> None:
     else:
         rules = GameRules(
             opening_hand_size=args.hand_size,
-            draw_action_enabled=not args.disable_draw,
+            draw_action_enabled=args.draw_enabled,
             completion_draw_names=tuple(args.completion_draw_names),
             deck_size=args.deck_size,
-            recycle_between_battles=not args.no_between_battle_recycle,
+            recycle_between_battles=args.recycle,
             command_enabled=args.command,
             starting_command=args.starting_command,
             battle_command_gain=args.battle_command_gain,
             command_cap=args.command_cap,
             cycle_command_cost=args.cycle_command_cost,
-            reshuffle_on_empty=args.reshuffle_on_empty,
+            reshuffle_on_empty=args.reshuffle,
             automatic_draw=args.automatic_draw,
             paid_draw_enabled=args.paid_draw,
             paid_draw_command_cost=args.paid_draw_command_cost,
@@ -490,7 +483,7 @@ def main() -> None:
             f"swing={stats['mean_immediate_front_swing']}"
         )
 
-    print(f"Wrote {output.relative_to(ROOT)}")
+    print(f"Wrote {output.relative_to(ROOT) if output.is_relative_to(ROOT) else output}")
 
 
 if __name__ == "__main__":

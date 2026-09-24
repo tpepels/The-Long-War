@@ -17,19 +17,19 @@ class GameRules:
     """
 
     opening_hand_size: int = 10
-    draw_action_enabled: bool = True
+    draw_action_enabled: bool = False
     completion_draw_names: tuple[str, ...] = ()
     deck_size: int = 30
-    recycle_between_battles: bool = True
+    recycle_between_battles: bool = False
 
-    command_enabled: bool = False
+    command_enabled: bool = True
     starting_command: int = 20
     battle_command_gain: int = 10
     command_cap: int = 20
     cycle_command_cost: int = 1
     cycle_enabled: bool = True
 
-    reshuffle_on_empty: bool = False
+    reshuffle_on_empty: bool = True
     automatic_draw: bool = False
     paid_draw_enabled: bool = False
     paid_draw_command_cost: int = 1

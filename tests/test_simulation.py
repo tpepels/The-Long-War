@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from dataclasses import asdict
 
 import pytest
@@ -57,3 +59,30 @@ def test_simulation_supports_distinct_agent_labels() -> None:
     decisions = report.telemetry["decisions"]
     assert "candidate-a" in decisions
     assert "candidate-b" in decisions
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_simulation_cli_resolves_canonical_defaults_and_explicit_overrides(tmp_path, legacy):
+    from longwar.rules import GameRules
+
+    output = tmp_path / "simulation.json"
+    command = [
+        sys.executable, str(ROOT / "tools/simulate.py"),
+        "--games", "2", "--seed", "401", "--output", str(output),
+    ]
+    if legacy:
+        command.extend(["--no-command", "--enable-draw", "--between-battle-recycle", "--no-reshuffle-on-empty"])
+    result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    report = json.loads(output.read_text())
+    rules = GameRules.standard()
+    expected = {
+        "command_enabled": False if legacy else rules.command_enabled,
+        "draw_action_enabled": True if legacy else rules.draw_action_enabled,
+        "recycle_between_battles": True if legacy else rules.recycle_between_battles,
+        "reshuffle_on_empty": False if legacy else rules.reshuffle_on_empty,
+    }
+    assert {key: report["simulation_variant"][key] for key in expected} == expected
+    assert sum(report["wins"]) == 2
+    if not legacy:
+        assert "Draw" not in report["telemetry"]["actions"]

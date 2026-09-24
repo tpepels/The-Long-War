@@ -79,6 +79,7 @@ def presentation_snapshots() -> dict[str, dict]:
     session.state.players[1].hand = [card["id"] for card in cards[:18]]
     session.state.players[0].discard = [by_type["subject"][0]["id"]]
     session.state.players[1].discard = [by_type["name"][0]["id"]]
+    session.state.players[0].free_cycle = True
     crowded = session.snapshot(0)
     cases = {name: copy.deepcopy(crowded) for name in ("battle", "inspector", "drawer")}
     # One free Subject destination exercises legal-target highlighting using an
@@ -160,6 +161,12 @@ CHECK_SCRIPT = r"""
       else essential(card, "inspector-card");
       essential($("card-inspector-close"), "inspector-close");
     }
+    if (scenario === "battle") {
+      document.querySelector("#hand [data-hand-card]")?.click();
+      const cycle = $("cycle-button");
+      if (!cycle || cycle.disabled || !cycle.textContent.includes("0 C")) fail("free-cycle-action-cost-missing");
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    }
     if (scenario === "drawer") {
       document.querySelector('[data-open-drawer="piles"]')?.click();
       essential($("game-drawer"), "game-drawer");
@@ -179,6 +186,7 @@ CHECK_SCRIPT = r"""
     essential(document.querySelector(".opponent-rack"), "opponent-rack");
     essential(document.querySelector(".hand-dock"), "hand-dock");
     essential($("match-strip"), "battle-hud");
+    if (document.querySelectorAll(".command-counter").length !== 2) fail("public-command-counters-missing");
     if (scenario !== "mulligan") {
       essential($("battlefield"), "battlefield");
       if (rect($("battlefield")).height < innerHeight * .38) fail("battlefield-too-small");
@@ -190,7 +198,10 @@ CHECK_SCRIPT = r"""
       withinViewport(card, "hand-card-" + index + "-clipped");
       if (card.tabIndex < 0) fail("hand-card-" + index + "-keyboard-inaccessible");
     });
-    if (scenario === "battle" && document.querySelectorAll("#hand > .play-card").length < 18) fail("large-hand-fixture-incomplete");
+    if (scenario === "battle") {
+      if (document.querySelectorAll("#hand > .play-card").length < 18) fail("large-hand-fixture-incomplete");
+      if (!document.querySelector("#player-piles .command-counter").textContent.includes("Free Cycle")) fail("free-cycle-status-missing");
+    }
     document.querySelectorAll(".board-card strong").forEach((title, index) => {
       if (title.scrollHeight > title.clientHeight + epsilon || title.scrollWidth > title.clientWidth + epsilon) fail("board-title-" + index + "-clipped");
     });

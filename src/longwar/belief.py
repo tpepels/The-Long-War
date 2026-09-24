@@ -251,7 +251,7 @@ class BeliefSampler:
         priors: tuple[DeckPrior, DeckPrior] | None = None,
     ):
         self.engine = engine
-        default = CardPoolDeckPrior(engine)
+        default = CardPoolDeckPrior(engine, deck_size=engine.deck_size)
         self.priors = priors or (default, default)
 
     def reuse_context(self, state: GameState, viewer: int) -> tuple[object, ...]:

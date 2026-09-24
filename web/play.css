@@ -403,6 +403,28 @@ body.game-body {
   align-items: center;
   gap: 12px;
 }
+
+.command-counter {
+  min-width: 64px;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  gap: 2px 7px;
+  color: var(--gold);
+}
+.command-counter > span {
+  font: 8px/1 system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.command-counter > b {
+  font: 600 21px/1 Georgia, serif;
+}
+.command-counter > small {
+  grid-column: 1 / -1;
+  color: var(--ink);
+  font: 8px/1 system-ui, sans-serif;
+}
 .game-body .rack-pile {
   position: relative;
   width: 90px;
@@ -986,7 +1008,7 @@ body.game-body {
   color: var(--gold);
   border: 1px solid #8f926761;
 }
-.hand-controls .draw-button {
+.hand-controls .cycle-button {
   color: #19291e;
   background: #d7b974;
   border-color: #d7b974;
@@ -1126,6 +1148,21 @@ body.game-body {
     sans-serif;
   letter-spacing: 0.045em;
   text-transform: uppercase;
+}
+
+.play-card-meta-badges {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+.play-command-cost {
+  padding: 1px 3px;
+  margin-top: -2px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  white-space: nowrap;
+  font: 800 8px/1 system-ui, sans-serif;
 }
 .play-card h3 {
   height: 48px;
@@ -1644,3 +1681,4 @@ body.game-body {
     scroll-behavior: auto !important;
   }
 }
+

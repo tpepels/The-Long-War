@@ -120,14 +120,13 @@ def test_snapshot_exposes_front_control() -> None:
     assert snapshot["front_control"] == [None, None, None]
 
 
-def test_stratagem_action_is_free_and_hidden_from_opponent() -> None:
+def test_stratagem_action_is_paid_and_hidden_from_opponent() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
     active = session.state.active_player
     opponent = 1 - active
 
-    # Preserve the 30-card partition while forcing a Stratagem into the hand.
     player = session.state.players[active]
     if "the-storm-broke" in player.deck:
         player.deck.remove("the-storm-broke")
@@ -135,6 +134,7 @@ def test_stratagem_action_is_free_and_hidden_from_opponent() -> None:
     elif "the-storm-broke" not in player.hand:
         raise AssertionError("Expected Stratagem in the player's private zones")
 
+    before_command = player.command
     before = session.snapshot(active)
     set_action = next(
         action
@@ -144,11 +144,11 @@ def test_stratagem_action_is_free_and_hidden_from_opponent() -> None:
     )
     result = session.act(set_action["key"], active)
 
-    assert result["viewer"] == active
-    assert result["active_player"] == active
-    assert result["stratagems"][active]["card_id"] == "the-storm-broke"
-    assert result["stratagems"][active]["revealed"] is False
-    assert any(action["kind"] == "Pass" for action in result["legal_actions"])
+    assert player.command == before_command - set_action["command_cost"]
+    assert result["viewer"] is None
+    assert result["active_player"] == opponent
+    assert session.state.stratagems[active].card_id == "the-storm-broke"
+    assert session.state.stratagems[active].revealed is False
 
     hidden = session.snapshot(opponent)
     assert hidden["stratagems"][active] == {
@@ -158,7 +158,7 @@ def test_stratagem_action_is_free_and_hidden_from_opponent() -> None:
     }
 
 
-def test_setting_stratagem_keeps_hotseat_turn_private_to_same_player() -> None:
+def test_setting_stratagem_ends_operation_and_returns_to_privacy_gate() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
@@ -167,32 +167,34 @@ def test_setting_stratagem_keeps_hotseat_turn_private_to_same_player() -> None:
 
     result = session.act("stratagem:the-storm-broke", active)
 
-    assert result["viewer"] == active
-    assert result["active_player"] == active
-    assert result["needs_reveal"] is False
-    assert result["stratagems"][active]["card_id"] == "the-storm-broke"
-    assert result["stratagems"][active]["revealed"] is False
-    assert any(action["kind"] == "PlaySubject" for action in result["legal_actions"])
+    assert result["viewer"] is None
+    assert result["active_player"] == 1 - active
+    assert result["needs_reveal"] is True
+    assert session.state.stratagems[active].card_id == "the-storm-broke"
+    assert session.state.stratagems[active].revealed is False
 
     opponent = session.snapshot(1 - active)
     assert opponent["stratagems"][active]["hidden"] is True
     assert opponent["stratagems"][active]["card_id"] is None
 
 
-def test_hotseat_draw_action_draws_one_and_moves_turn() -> None:
+def test_hotseat_cycle_replaces_card_spends_command_and_moves_turn() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
     active = session.state.active_player
-    before_hand = len(session.state.players[active].hand)
-    before_deck = len(session.state.players[active].deck)
+    player = session.state.players[active]
+    before_hand = len(player.hand)
+    before_deck = len(player.deck)
+    before_command = player.command
 
     snapshot = session.snapshot(active)
-    draw = next(action for action in snapshot["legal_actions"] if action["kind"] == "Draw")
-    result = session.act(draw["key"], active)
+    assert not any(action["kind"] == "Draw" for action in snapshot["legal_actions"])
+    cycle = next(action for action in snapshot["legal_actions"] if action["kind"] == "Cycle")
+    result = session.act(cycle["key"], active)
 
-    assert len(session.state.players[active].hand) == before_hand + 1
-    assert len(session.state.players[active].deck) == before_deck - 1
-    assert session.state.draw_used[active] is True
+    assert len(player.hand) == before_hand
+    assert len(player.deck) == before_deck - 1
+    assert player.command == before_command - cycle["command_cost"]
     assert result["viewer"] is None
     assert result["needs_reveal"] is True

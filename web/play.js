@@ -63,7 +63,9 @@ const TERM_HINTS = {
   "discard": "Move a card to its owner's discard pile.",
   "discarded": "Moved to the discard pile.",
   "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
-  "draw": "Spend your normal action to draw 1 card. You may do this once per Battle.",
+  "command": "Your operation budget. Start at 20; gain 10 between Battles, up to 20. Unspent Command carries over.",
+  "cycle": "Discard a selected hand card, then draw one. The button shows the Command cost, including a free Cycle.",
+  "draw": "Draw through setup, refill, Cycle, or card effects. Your draw pile persists; shuffle the discard only when an empty deck must supply a draw.",
   "front": "One of the three lanes: Left, Center, or Right.",
   "frontline": "The position nearest the Battle Line. It normally receives +1 Line Defense.",
   "frontline subject": "The Subject occupying the Frontline position of that Front.",
@@ -174,6 +176,9 @@ function playCardMarkup(cardId, options = {}) {
   const strength = Number.isInteger(card.strength)
     ? '<span class="play-card-strength">' + card.strength + '</span>'
     : "";
+  const commandCost = Number.isInteger(card.command_cost)
+    ? '<span class="play-command-cost" aria-label="Command cost ' + card.command_cost + '">C ' + card.command_cost + '</span>'
+    : "";
   const badge = count > 1
     ? '<span class="copy-badge">×' + count + '</span>'
     : options.copyLabel
@@ -183,7 +188,7 @@ function playCardMarkup(cardId, options = {}) {
   const propertyMarkup = cardPropertyMarkup(card);
 
   return '<button type="button" class="' + classes.filter(Boolean).join(" ") + '" data-card-id="' + esc(cardId) + '" aria-label="' + esc(card.title) + '" ' + (options.attrs || "") + '>' +
-    '<div class="play-card-meta"><span>' + esc(cardType(card)) + '</span>' + badge + '</div>' +
+    '<div class="play-card-meta"><span>' + esc(cardType(card)) + '</span><span class="play-card-meta-badges">' + commandCost + badge + '</span></div>' +
     '<h3 class="' + (card.title.length > 28 ? 'long-title' : '') + '">' + esc(card.title) + '</h3>' +
     '<div class="play-card-properties">' + propertyMarkup + '</div>' +
     strength +
@@ -242,9 +247,24 @@ function actionForPass() {
   return state.legal_actions.find((action) => action.kind === "Pass") || null;
 }
 
-function actionForDraw() {
-  if (!state || state.phase === "mulligan") return null;
-  return state.legal_actions.find((action) => action.kind === "Draw") || null;
+function actionForCycle() {
+  if (!state || !selectedCardId || state.phase !== "battle") return null;
+  return selectedActions().find((action) => action.kind === "Cycle") || null;
+}
+
+function commandCostLabel(actions) {
+  const costs = [...new Set(actions.map((action) => action.command_cost).filter(Number.isInteger))];
+  if (!costs.length) return "";
+  return (costs.length === 1 ? costs[0] : Math.min(...costs) + "–" + Math.max(...costs)) + " C";
+}
+
+function renderCycleControl() {
+  const button = $("cycle-button");
+  const action = actionForCycle();
+  button.hidden = state.phase !== "battle" || state.viewer == null || state.needs_ai;
+  button.disabled = !action;
+  button.textContent = action ? "Cycle · " + commandCostLabel([action]) : "Cycle";
+  button.title = action ? "Discard " + cardTitle(selectedCardId) + ", then draw one card (C)" : "Select a card to Cycle it";
 }
 
 function targetActionsForSlot(owner, front, rank) {
@@ -280,7 +300,8 @@ function targetActionsForFront(front) {
 
 function renderSlot(owner, front, rank) {
   const slot = boardSlot(owner, front, rank);
-  const targetable = targetActionsForSlot(owner, front, rank).length > 0;
+  const targets = targetActionsForSlot(owner, front, rank);
+  const targetable = targets.length > 0;
   const hasFormation = Boolean(slot?.subject || slot?.link || slot?.name);
   const classes = ["digital-slot", hasFormation ? "occupied" : "empty"];
   if (hasFormation && !slot?.subject) classes.push("prepared");
@@ -301,7 +322,7 @@ function renderSlot(owner, front, rank) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
       '<span class="empty-slot-mark">＋</span><span>' +
       (rank === "front" ? "Frontline" : "Rear") + '</span>' +
-      (targetable ? '<b class="legal-target-cue">PLAY</b>' : '') +
+      (targetable ? '<b class="legal-target-cue">PLAY · ' + commandCostLabel(targets) + '</b>' : '') +
       '</div>';
   }
 
@@ -317,7 +338,7 @@ function renderSlot(owner, front, rank) {
     '</div>' +
     '<span class="slot-strength' + (slot.subject ? '' : ' inactive') + '">' +
       (slot.subject ? slot.strength : "—") + '</span>' +
-    (targetable ? '<b class="legal-target-cue">PLAY</b>' : '') +
+    (targetable ? '<b class="legal-target-cue">PLAY · ' + commandCostLabel(targets) + '</b>' : '') +
   '</div>';
 }
 function renderScheme(owner, front) {
@@ -333,7 +354,7 @@ function renderScheme(owner, front) {
 
   if (!scheme) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>' +
-      (targetable ? 'PLAY' : 'empty') + '</b></div>';
+      (targetable ? 'SET · ' + commandCostLabel(targetActionsForFront(front)) : 'empty') + '</b></div>';
   }
   if (scheme.hidden) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>face-down</b></div>';
@@ -350,7 +371,7 @@ function renderStratagem(owner) {
   const targetable = owner === currentViewer() && selectedActions().some((action) => action.kind === "SetStratagem");
   if (targetable) classes.push("targetable");
   let title = "Stratagem";
-  let label = "empty";
+  let label = targetable ? "SET · " + commandCostLabel(selectedActions().filter((action) => action.kind === "SetStratagem")) : "empty";
   if (stratagem?.hidden) {
     classes.push("hidden");
     label = "face-down";
@@ -446,7 +467,7 @@ function renderStrip() {
       '<div class="battle-medallion"><small>Opening</small><strong>Mulligan</strong></div>' +
       '<div class="turn-marker">Player ' + (state.active_player + 1) + ' · choose up to 2 returns</div>';
     $("pass-button").hidden = true;
-    $("draw-button").hidden = true;
+    $("cycle-button").hidden = true;
     return;
   }
 
@@ -471,11 +492,13 @@ function renderStrip() {
   passButton.classList.toggle("danger-pass", !!pass && state.players[opponentOf(currentViewer())].passed);
   passButton.textContent = state.players[opponentOf(currentViewer())].passed ? "Pass · score Battle" : "Pass";
 
-  const draw = actionForDraw();
-  const drawButton = $("draw-button");
-  drawButton.hidden = !draw || state.viewer == null;
-  drawButton.disabled = !draw || state.viewer == null;
-  drawButton.textContent = "Draw 1";
+
+}
+
+function commandCounter(player) {
+  const label = "Command " + player.command + (player.free_cycle ? ", free Cycle ready" : "");
+  return '<div class="command-counter" aria-label="' + esc(label) + '"><span>Command</span><b>' + player.command + '</b>' +
+    (player.free_cycle ? '<small>Free Cycle</small>' : '') + '</div>';
 }
 
 function renderOpponentRack() {
@@ -497,14 +520,14 @@ function renderOpponentRack() {
 
   const discard = ps.discard || [];
   const topDiscard = discard.length ? cardTitle(discard[discard.length - 1]) : "Empty";
-  $("opponent-piles").innerHTML =
+  $("opponent-piles").innerHTML = commandCounter(ps) +
     '<button type="button" class="rack-pile deck-pile" data-open-drawer="piles" data-pile-owner="' + opponent + '" aria-label="Opponent deck and discard"><span>Deck</span><b>' + ps.deck_count + '</b></button>' +
     '<button type="button" class="rack-pile discard-pile" data-open-drawer="piles" data-pile-owner="' + opponent + '" aria-label="Opponent discard, ' + discard.length + ' cards"><span>Discard</span><b>' + discard.length + '</b><small>' + esc(topDiscard) + '</small></button>';
 
   const own = state.players[viewer];
   const ownDiscard = own.discard || [];
   const ownTopDiscard = ownDiscard.length ? cardTitle(ownDiscard[ownDiscard.length - 1]) : "Empty";
-  $("player-piles").innerHTML =
+  $("player-piles").innerHTML = commandCounter(own) +
     '<button type="button" class="rack-pile deck-pile" data-open-drawer="piles" data-pile-owner="' + viewer + '" aria-label="Your deck and discard"><span>Deck</span><b>' + own.deck_count + '</b></button>' +
     '<button type="button" class="rack-pile discard-pile" data-open-drawer="piles" data-pile-owner="' + viewer + '" aria-label="Your discard, ' + ownDiscard.length + ' cards"><span>Discard</span><b>' + ownDiscard.length + '</b><small>' + esc(ownTopDiscard) + '</small></button>';
 }
@@ -559,17 +582,19 @@ function interactionHintFor(card) {
   if (actions.some((a) => a.kind === "PlayLink")) return "Choose a formation for this Bond.";
   if (actions.some((a) => a.kind === "PlayName")) return "Choose a formation for this Name.";
   if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Veiled Story space.";
-  if (actions.some((a) => a.kind === "SetStratagem")) return "Choose your Stratagem space. This is a free action.";
+  if (actions.some((a) => a.kind === "SetStratagem")) return "Choose your Stratagem space. This spends Command and uses your operation.";
   if (actions.some((a) => a.kind === "PlayPlot")) {
     if (stagedPlotSource) return "Now choose the destination for " + card.title + ".";
     return actions.some((a) => a.targets.length === 2)
       ? "Choose the first highlighted target."
       : "Choose a highlighted target.";
   }
+  if (actions.some((action) => action.kind === "Cycle")) return "Cycle this card to draw a replacement.";
   return "Choose a legal action.";
 }
 
 function renderInteraction() {
+  renderCycleControl();
   const title = $("interaction-title");
   const hint = $("interaction-hint");
   const cancel = $("cancel-selection");
@@ -619,13 +644,15 @@ function renderInteraction() {
       hint.textContent = "The loser of the previous Battle chooses the first player.";
     } else {
       title.textContent = "Your turn";
-      hint.textContent = "Select a card · Draw · Pass";
+      hint.textContent = "Select a card · Play or Cycle · Pass";
     }
     cancel.hidden = true;
   } else {
     const card = cards[selectedCardId];
     title.textContent = card.title;
     let message = interactionHintFor(card);
+    const plays = selectedActions().filter((action) => action.kind !== "Cycle");
+    if (plays.length) message += " Play: " + commandCostLabel(plays) + ".";
     hint.textContent = message;
     cancel.hidden = false;
   }
@@ -734,12 +761,13 @@ function renderHand() {
   $("hand-title").textContent = (state.mode === "hotseat" ? "Player " + (state.viewer + 1) : "Your hand") + " · " + state.hand.length;
 
   hand.innerHTML = state.hand.map((cardId, index) => {
-    const playable = state.legal_actions.some((action) => action.card_id === cardId);
+    const playable = state.legal_actions.some((action) => action.card_id === cardId && action.kind !== "Cycle");
+    const cyclable = state.legal_actions.some((action) => action.card_id === cardId && action.kind === "Cycle");
     return playCardMarkup(cardId, {
       playable,
       selected: selectedCardId === cardId && selectedHandIndex === index,
       attrs: 'data-hand-card="' + esc(cardId) + '" data-hand-index="' + index + '" aria-pressed="' + (selectedCardId === cardId && selectedHandIndex === index) + '"',
-      footer: playable ? "SELECT · CLICK AGAIN TO INSPECT" : "INSPECT",
+      footer: playable ? "SELECT · CLICK AGAIN TO INSPECT" : cyclable ? "SELECT TO CYCLE · CLICK AGAIN TO INSPECT" : "INSPECT",
     });
   }).join("");
 
@@ -1012,7 +1040,9 @@ function renderActionFeedback() {
   let kicker = own ? "YOUR ACTION" : "OPPONENT ACTION";
   let title = card?.title || action.label;
 
-  if (action.kind === "Draw") {
+  if (action.kind === "Cycle") {
+    kicker = own ? "YOU CYCLE" : "OPPONENT CYCLES";
+  } else if (action.kind === "Draw") {
     kicker = own ? "YOU DRAW" : "OPPONENT DRAWS";
     title = "1 card";
   } else if (action.kind === "Pass") {
@@ -1228,9 +1258,9 @@ document.querySelectorAll("[data-inspector-close]").forEach((el) => {
   el.addEventListener("click", closeCardInspector);
 });
 
-$("draw-button").addEventListener("click", () => {
-  const draw = actionForDraw();
-  if (draw) executeAction(draw);
+$("cycle-button").addEventListener("click", () => {
+  const cycle = actionForCycle();
+  if (cycle) executeAction(cycle);
 });
 
 $("pass-button").addEventListener("click", () => {
@@ -1302,9 +1332,9 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   if (!state || state.viewer == null || state.phase !== "battle") return;
-  if (event.key.toLowerCase() === "d") {
-    const draw = actionForDraw();
-    if (draw) executeAction(draw);
+  if (event.key.toLowerCase() === "c") {
+    const cycle = actionForCycle();
+    if (cycle) executeAction(cycle);
   }
   if (event.key.toLowerCase() === "p") {
     const pass = actionForPass();
@@ -1457,7 +1487,10 @@ function animateSnapshot(previous, before) {
     added.node.animate([{ opacity: .2 }, { opacity: 1 }], { duration: 450 });
   }
   const action = state.last_action;
-  if (action?.actor !== currentViewer() && action?.kind === "Draw") flyCard(pileNode(action.actor, "deck"), $("opponent-hand"));
+  if (action?.actor !== currentViewer() && action?.kind === "Cycle") {
+    flyCard($("opponent-hand"), pileNode(action.actor, "discard"), action.card_id);
+    flyCard(pileNode(action.actor, "deck"), $("opponent-hand"));
+  }
   if (action?.kind === "PlayScheme" || action?.kind === "SetStratagem") {
     const target = action.kind === "SetStratagem" ? document.querySelector('[data-stratagem-owner="' + action.actor + '"]') : document.querySelector('[data-scheme-owner="' + action.actor + '"][data-scheme-front="' + action.front + '"]');
     if (!action.card_id) flyCard($("opponent-hand"), target);

@@ -49,6 +49,36 @@ def test_all_named_profiles_are_resolvable():
         GameRules.from_profile("typo")
 
 
+def test_backend_parity_ignores_runtime_but_keeps_search_depth_and_outcomes(tmp_path):
+    path = tmp_path / "match.json"
+    payload = {
+        "wins": [1, 1],
+        "telemetry": {"decisions": {"strategic_heuristic": {
+            "mean_completed_depth": 3,
+            "mean_decision_seconds": 0.2,
+            "max_decision_seconds": 0.3,
+            "mean_searched_decision_seconds": 0.25,
+        }}},
+    }
+    path.write_text(json.dumps(payload))
+    expected = runner.normalized_payload(path)
+    decision = payload["telemetry"]["decisions"]["strategic_heuristic"]
+    for field in ("mean_decision_seconds", "max_decision_seconds",
+                  "mean_searched_decision_seconds"):
+        decision[field] *= 10
+    path.write_text(json.dumps(payload))
+    assert runner.normalized_payload(path) == expected
+
+    decision["mean_completed_depth"] = 2
+    path.write_text(json.dumps(payload))
+    assert runner.normalized_payload(path) != expected
+
+    decision["mean_completed_depth"] = 3
+    payload["wins"] = [2, 0]
+    path.write_text(json.dumps(payload))
+    assert runner.normalized_payload(path) != expected
+
+
 @pytest.mark.parametrize("change", ["seed", "source"])
 def test_validation_can_repeat_after_inputs_change(tmp_path, monkeypatch, change):
     monkeypatch.setattr(runner, "VALIDATION_ROOT", tmp_path)

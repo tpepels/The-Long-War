@@ -116,17 +116,21 @@ def test_battlefield_has_minimum_visual_scale_and_public_card_inspection() -> No
     assert "public battlefield card did not open inspector" in smoke
 
 
-def test_first_playtest_ui_exposes_draw_paced_actions_and_term_help() -> None:
+def test_first_playtest_ui_exposes_command_cycle_paced_actions_and_term_help() -> None:
     html = text("web/play.html")
     play = text("web/play.js")
     css = text("web/play.css")
     engine = text("web/browser-engine.mjs")
     smoke = text("tools/check_play_start.py")
 
-    assert 'id="draw-button"' in html
+    assert 'id="draw-button"' not in html
+    assert 'id="cycle-button"' in html
     assert 'id="action-banner"' in html
     assert 'id="term-hint"' in html
-    assert "actionForDraw" in play
+    assert "actionForDraw" not in play
+    assert "actionForCycle" in play
+    assert "Cycle · " in play
+    assert "Command" in play
     assert "scheduleAiStep" in play
     assert 'type: "ai_step"' in play
     assert "TERM_HINTS" in play
@@ -136,7 +140,8 @@ def test_first_playtest_ui_exposes_draw_paced_actions_and_term_help() -> None:
     assert '"needs_ai":' in text("src/longwar/web_api.py")
     assert ".action-banner" in css
     assert ".term-hint" in css
-    assert ".draw-button" in css
+    assert ".command-counter" in css
+    assert ".cycle-button" in css
     assert "human action did not produce a visible action banner" in smoke
     assert "opponent action was not shown before returning control" in smoke
     assert "openingAnnouncementShown" in play
@@ -151,6 +156,8 @@ def test_desktop_fixtures_cover_crowded_and_interrupting_states() -> None:
     snapshots = presentation_snapshots()
     crowded = snapshots["battle"]
     assert len(crowded["hand"]) >= 18
+    assert crowded["players"][0]["free_cycle"]
+    assert any(action["kind"] == "Cycle" and action["command_cost"] == 0 for action in crowded["legal_actions"])
     assert all(slot["subject"] and slot["link"] and slot["name"] for side in crowded["board"] for slot in side)
     assert all(scheme["hidden"] and scheme["card_id"] is None for scheme in crowded["schemes"][1])
     assert crowded["stratagems"][1]["hidden"]

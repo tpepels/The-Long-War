@@ -199,7 +199,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
         if not isinstance(card["text"], str):
             raise ValueError(f"{card_id}: text must be a string")
         if "command_cost" in card:
-            _validate_rule_value(card["command_cost"], _NONNEGATIVE, f"{card_id}.command_cost")
+            _validate_rule_value(card["command_cost"], range(1, 4), f"{card_id}.command_cost")
 
         classes = card.get("classes")
         if (

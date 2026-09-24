@@ -101,14 +101,18 @@ def play_card(card: dict) -> str:
         if isinstance(card.get("strength"), int)
         else ""
     )
+    command = (
+        f'<span class="play-command-cost" aria-label="Command cost">C {card["command_cost"]}</span>'
+        if isinstance(card.get("command_cost"), int) else ""
+    )
     return (
         f'<article class="play-card {classes(card)}" data-card-id="{html.escape(card["id"])}">'
-        f'<div class="play-card-meta"><span>{html.escape(type_label(card))}</span></div>'
+        f'<div class="play-card-meta"><span>{html.escape(type_label(card))}</span><span class="play-card-meta-badges">{command}</span></div>'
         f'<h3>{html.escape(card["title"])}</h3>'
         f'{property_markup(card, "play-card-properties")}'
         f'{strength}'
         f'<div class="play-card-rules">{rule_markup(card, "<em>No special rules.</em>")}</div>'
-        f'<footer>SELECT OR DRAG TO PLAY</footer>'
+        f'<footer>SELECT OR INSPECT</footer>'
         f'</article>'
     )
 
@@ -119,10 +123,14 @@ def print_card(card: dict) -> str:
         if isinstance(card.get("strength"), int)
         else ""
     )
+    command = (
+        f'<div class="command-cost" aria-label="Command cost">{card["command_cost"]}</div>'
+        if isinstance(card.get("command_cost"), int) else ""
+    )
     unique = '<span class="unique"><em>Unique</em></span>' if card.get("unique") else ""
     return (
         f'<article class="game-card {classes(card)}" data-card-id="{html.escape(card["id"])}">'
-        f'<div class="card-meta"><span class="card-type">{html.escape(type_label(card))}</span>{strength}</div>'
+        f'<div class="card-meta"><span class="card-type">{html.escape(type_label(card))}</span>{command}{strength}</div>'
         f'<h2 class="card-title">{html.escape(card["title"])}</h2>'
         f'{property_markup(card, "card-properties")}'
         f'<div class="card-rule">{rule_markup(card)}</div>'

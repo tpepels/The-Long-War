@@ -40,6 +40,7 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
         baseline = index[baseline_id(card["id"])]
         assert baseline["type"] == card["type"]
         assert baseline["experimental"] is True
+        assert baseline["command_cost"] == card["command_cost"]
 
     assert baseline_card(index["the-fifty-men"])["strength"] == 4
     assert baseline_card(index["followed"])["rules"] == {
@@ -53,6 +54,16 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
             "trigger": {"event": "never", "actor": "either"},
         }
     }
+
+
+def test_non_command_experiment_baselines_allow_cards_without_command_cost() -> None:
+    card_data = data()
+    for card in card_data["cards"]:
+        card.pop("command_cost")
+
+    experiment = build_experiment_card_data(card_data)
+    assert all("command_cost" not in card for card in experiment["cards"])
+    GameEngine(experiment, command_enabled=False)
 
 
 def test_replacement_changes_exactly_one_matching_slot_and_remains_legal() -> None:

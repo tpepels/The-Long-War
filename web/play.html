@@ -70,7 +70,7 @@
               Take your seat <span aria-hidden="true">↗</span>
             </button>
           </form>
-          <p id="setup-note">Your hand carries from one Battle to the next.</p>
+          <p id="setup-note">Your hand and Command carry from one Battle to the next.</p>
           <div class="setup-footer">
             <span id="engine-status" role="status">Preparing the table…</span
             ><a href="rulebook.html">Read the rules ↗</a>
@@ -142,11 +142,11 @@
               <div class="hand-controls">
                 <button
                   type="button"
-                  id="draw-button"
-                  class="draw-button"
+                  id="cycle-button"
+                  class="cycle-button"
                   hidden
                 >
-                  Draw 1 <kbd>D</kbd></button
+                  Cycle <kbd>C</kbd></button
                 ><button
                   type="button"
                   id="pass-button"
@@ -235,7 +235,7 @@
             </button>
             <p class="menu-help">
               Click to select. Click a highlighted position to play. Click a
-              selected card again to inspect it. <kbd>Esc</kbd> cancels.
+              selected card again to inspect it. <kbd>Esc</kbd> cancels. <kbd>C</kbd> Cycles the selected card.
             </p>
           </section>
           <section data-drawer-content="rules" hidden class="rules-summary">
@@ -246,8 +246,10 @@
             </p>
             <h3>Your turn</h3>
             <p>
-              Play a card, draw one card, or pass. You may use Draw once per
-              Battle. Pass ends your participation in that Battle.
+              Spend Command to play a card, or select a hand card and Cycle it:
+              discard it, then draw a replacement. Cycle normally costs 1 Command.
+              A Stratagem also uses your operation. Pass ends your participation
+              in this Battle.
             </p>
             <h3>Formations</h3>
             <p>
@@ -257,8 +259,9 @@
             </p>
             <h3>Between Battles</h3>
             <p>
-              Your hand carries over. Follow the table's cleanup and
-              starting-player prompts.
+              Keep your hand, draw pile, and discard pile. Gain 10 Command, up
+              to 20, then refill to 10 cards. Shuffle the discard only when an
+              empty draw pile needs to supply a card.
             </p>
             <a href="rulebook.html" target="_blank" rel="noopener"
               >Open the full rulebook ↗</a

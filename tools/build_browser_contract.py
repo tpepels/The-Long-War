@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from longwar.cards import load_card_file
 from longwar.fingerprint import current_game_fingerprint
 from longwar.game import (
     ChooseFirst,
+    Cycle,
     Front,
     GameEngine,
     Pass,
@@ -38,6 +40,8 @@ def project_state(state) -> dict[str, object]:
                 "discard": list(player.discard),
                 "victories": player.victories,
                 "passed": player.passed,
+                "command": player.command,
+                "free_cycle": player.free_cycle,
             }
             for player in state.players
         ],
@@ -80,6 +84,18 @@ def project_state(state) -> dict[str, object]:
         "stratagem_used": list(state.stratagem_used),
         "draw_used": list(state.draw_used),
         "discarded_this_battle": list(state.discarded_this_battle),
+        "command_spent_this_battle": list(state.command_spent_this_battle),
+        "command_refunded_this_battle": list(state.command_refunded_this_battle),
+        "completion_command_refunded_this_battle": list(state.completion_command_refunded_this_battle),
+        "battle_start_command": list(state.battle_start_command),
+        "battle_start_hand_size": list(state.battle_start_hand_size),
+        "cards_drawn_this_battle": list(state.cards_drawn_this_battle),
+        "completion_count_this_battle": list(state.completion_count_this_battle),
+        "operations_this_battle": list(state.operations_this_battle),
+        "deck_reshuffles": list(state.deck_reshuffles),
+        "reshuffle_card_totals": list(state.reshuffle_card_totals),
+        "reshuffle_hand_card_totals": list(state.reshuffle_hand_card_totals),
+        "known_hidden_hand": [[dict(known) for known in side] for side in state.known_hidden_hand],
         "pass_order": list(state.pass_order),
         "battle": state.battle,
         "phase": state.phase.value,
@@ -244,6 +260,62 @@ def prepared_destination_scenario(
     }
 
 
+def command_scenarios(engine: GameEngine, deck: list[str]) -> list[dict[str, object]]:
+    """Pin Command costs, completion refunds and both persistent draw paths."""
+    state = engine.new_game(deck, deck, seed=921, first_player=1, opening_bonus=False)
+    state.players[0].hand = ["namar", "followed", "the-fifty-men", "defied", "avenged"]
+    state.players[0].deck = ["the-house-at-orra"]
+    state.players[0].discard = ["carried"]
+    scenario = {"name": "command-completion-cycle-reshuffle", "initial": project_state(state), "steps": []}
+
+    def record(target, current, predicate):
+        legal = engine.legal_actions(current)
+        action = next(action for action in legal if predicate(action))
+        engine.apply(current, action)
+        target["steps"].append({
+            "legal": sorted(action_key(item) for item in legal),
+            "action": action_key(action),
+            "after": project_state(current),
+            "front_strengths": front_strengths(engine, current),
+        })
+
+    record(scenario, state, lambda action: isinstance(action, Pass))
+    position = Position(Front.CENTER, Rank.FRONT)
+    for kind in (PlayName, PlayLink, PlaySubject):
+        record(scenario, state, lambda action: isinstance(action, kind) and action.position == position)
+    expected = 20 - sum(engine.cards[card]["command_cost"] for card in ("namar", "followed", "the-fifty-men")) + 1
+    assert state.players[0].command == expected, "Namar completion must refund one Command"
+    record(scenario, state, lambda action: isinstance(action, Cycle) and action.card_id == "defied")
+    assert state.players[0].deck == [] and state.deck_reshuffles[0] == 0
+    assert state.players[0].command == expected - 1
+    record(scenario, state, lambda action: isinstance(action, Cycle) and action.card_id == "avenged")
+    assert state.deck_reshuffles[0] == 1 and state.players[0].discard == []
+    assert state.players[0].command == expected - 2
+
+    persistent = engine.new_game(deck, deck, seed=922, first_player=0, opening_bonus=False)
+    held = []
+    discards = []
+    expected_decks = []
+    for player, command, keep in ((0, 7, 4), (1, 14, 6)):
+        ps = persistent.players[player]
+        ps.command = command
+        ps.discard.extend(ps.hand[keep:])
+        del ps.hand[keep:]
+        held.append(list(ps.hand))
+        discards.append(list(ps.discard))
+        expected_decks.append(list(ps.deck[:-(10 - keep)]))
+    refill = {"name": "command-carry-persistent-refill", "initial": project_state(persistent), "steps": []}
+    record(refill, persistent, lambda action: isinstance(action, Pass))
+    record(refill, persistent, lambda action: isinstance(action, Pass))
+    assert persistent.battle == 2 and persistent.phase is Phase.CHOOSE_FIRST
+    assert [ps.command for ps in persistent.players] == [17, 20]
+    for player, ps in enumerate(persistent.players):
+        assert len(ps.hand) == 10 and Counter(held[player]) <= Counter(ps.hand)
+        assert ps.discard == discards[player] and ps.deck == expected_decks[player]
+        assert persistent.deck_reshuffles[player] == 0
+    return [scenario, refill]
+
+
 def check_engine_contract_json(cards_json: str, contract_json: str) -> int:
     """Replay native fixtures in the compiled browser engine, including targets."""
     engine = GameEngine(json.loads(cards_json))
@@ -315,6 +387,7 @@ def main() -> None:
         "scenarios": [
             trace_scenario(engine, deck),
             prepared_destination_scenario(engine, deck),
+            *command_scenarios(engine, deck),
         ],
         "sessions": [session_trace(cards, deck, mode, seed)
                      for mode, seed in (("hotseat", 1701), ("hotseat", 17), ("heuristic", 1701))],

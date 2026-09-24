@@ -30,7 +30,15 @@ LEFT_FRONT = Position(Front.LEFT, Rank.FRONT)
 
 def engine_and_deck() -> tuple[GameEngine, list[str]]:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    engine = GameEngine(data)
+    # Exercise the configurable pre-Command rules explicitly; the standard
+    # Command/persistent profile has its own transition regressions.
+    engine = GameEngine(
+        data,
+        draw_action_enabled=True,
+        recycle_between_battles=True,
+        command_enabled=False,
+        reshuffle_on_empty=False,
+    )
     deck = json.loads(
         (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
     )["cards"]
@@ -91,7 +99,7 @@ def test_battle_draw_resets_for_the_next_battle() -> None:
 
 
 
-def test_links_help_immediately_and_namar_rewards_frontline() -> None:
+def test_links_help_immediately_and_namar_adds_name_value() -> None:
     engine, state = fresh_state(first_player=1)
     state.players[0].hand = ["the-fifty-men", "followed", "namar"]
     state.players[1].hand = []
@@ -104,7 +112,7 @@ def test_links_help_immediately_and_namar_rewards_frontline() -> None:
     assert engine.position_strength(state, 0, CENTER_FRONT) == 7
 
     engine.apply(state, PlayName("namar", CENTER_FRONT))
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 13
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 10
 
 
 def test_formation_components_can_be_prepared_in_any_order() -> None:
@@ -128,7 +136,7 @@ def test_formation_components_can_be_prepared_in_any_order() -> None:
 
     engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
     assert slot.complete
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 13
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 10
 
 
 def test_name_becomes_active_with_subject_even_before_bond() -> None:
@@ -144,7 +152,7 @@ def test_name_becomes_active_with_subject_even_before_bond() -> None:
     assert slot.subject == "the-fifty-men"
     assert slot.link is None
     assert slot.name == "namar"
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 10
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 7
 
 
 def test_prepared_bond_does_not_retroactively_trigger_on_link_play() -> None:
@@ -415,7 +423,7 @@ def test_defied_reduces_opposing_front_strength() -> None:
     left1 = state.slot(1, LEFT_FRONT)
     left1.subject = "the-fifty-men"
 
-    assert engine.front_strength(state, 0, Front.LEFT) == 11
+    assert engine.front_strength(state, 0, Front.LEFT) == 10
     assert engine.front_strength(state, 1, Front.LEFT) == 4
 
 
@@ -462,7 +470,7 @@ def test_they_chose_another_respects_frontline_only_subjects() -> None:
     )
 
 
-def test_namar_frontline_bonus_does_not_apply_in_rear() -> None:
+def test_namar_has_no_rank_specific_strength_bonus() -> None:
     engine, state = fresh_state()
     rear = Position(Front.CENTER, Rank.REAR)
     slot = state.slot(0, rear)
@@ -470,7 +478,7 @@ def test_namar_frontline_bonus_does_not_apply_in_rear() -> None:
     slot.link = "followed"
     slot.name = "namar"
 
-    assert engine.position_strength(state, 0, rear) == 9
+    assert engine.position_strength(state, 0, rear) == 8
 
 
 def test_face_down_scheme_adds_front_strength_until_revealed() -> None:
@@ -800,7 +808,7 @@ def test_wooden_gift_revalues_named_and_unnamed_subjects() -> None:
 
     assert state.stratagem(0).revealed is True
     assert engine.position_strength(state, 0, rear) == 5
-    assert engine.position_strength(state, 1, CENTER_FRONT) == 10
+    assert engine.position_strength(state, 1, CENTER_FRONT) == 9
 
 
 def test_opposing_stratagems_can_reveal_and_stack() -> None:
@@ -1001,4 +1009,4 @@ def test_wooden_gift_penalizes_named_and_rewards_unnamed_subjects() -> None:
 
     assert state.stratagem(0).revealed is True
     assert engine.position_strength(state, 0, own_front) == 7
-    assert engine.position_strength(state, 1, enemy_front) == 11
+    assert engine.position_strength(state, 1, enemy_front) == 8
