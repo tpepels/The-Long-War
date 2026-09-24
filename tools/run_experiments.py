@@ -1584,7 +1584,6 @@ def main() -> None:
             ismcts_iterations=args.iterations,
             alpha_nodes=args.alpha_nodes,
             rollout_policy=args.rollout_policy,
-            rollout_depth=args.rollout_depth,
             progressive_widening=args.progressive_widening,
             exploration=args.exploration,
         )
@@ -1613,6 +1612,7 @@ def main() -> None:
             ismcts_iterations=args.iterations,
             alpha_nodes=args.alpha_nodes,
             rollout_policy=args.rollout_policy,
+            rollout_depth=args.rollout_depth,
             progressive_widening=args.progressive_widening,
             exploration=args.exploration,
             reuse_tree=not args.no_tree_reuse,
