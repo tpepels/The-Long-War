@@ -93,20 +93,26 @@ Persistent trees now invalidate when observable belief evidence or search config
 
 The pre-audit 43–21 cold / 46–18 reused / 39–25 reused-with-PW results are historical. Corrected belief conditioning, reuse and evaluation require new measurements before claiming the same strength or reuse rate. `ismcts-match` compares two candidate configurations on mirrored deals and can vary exploration, tree reuse, progressive widening, rollout policy, and rollout depth independently.
 
+The supported command surface is Make. Decision-grade search matchups use 24 games per deck/orientation by default: 192 games total, representing 96 independent mirrored deal pairs.
+
 ```bash
-python tools/run_experiments.py --help
+make verify-algorithms
+make mcts-bench
+make search-bench
 
 # Provisional agent against itself except for tree reuse.
-python tools/run_experiments.py ismcts-match --games 4 --jobs 8 --time-budget-seconds 2 --b-no-tree-reuse
+make ismcts-match ISMCTS_MATCH_ARGS="--b-no-tree-reuse"
 
 # Progressive widening and rollout-policy/depth experiments use the same harness.
-python tools/run_experiments.py ismcts-match --games 4 --jobs 8 --time-budget-seconds 2 --b-pw 1.0
-python tools/run_experiments.py ismcts-match --games 4 --jobs 8 --time-budget-seconds 2 --b-rollout-policy greedy
-python tools/run_experiments.py ismcts-match --games 4 --jobs 8 --time-budget-seconds 2 --b-rollout-depth 8
+make ismcts-match ISMCTS_MATCH_ARGS="--b-pw 1.0"
+make ismcts-match ISMCTS_MATCH_ARGS="--b-rollout-policy greedy"
+make ismcts-match ISMCTS_MATCH_ARGS="--b-rollout-depth 8"
 
 # Final cross-algorithm comparison after choosing the ISMCTS configuration.
-python tools/run_experiments.py strength-bench --games 4 --jobs 8 --time-budget-seconds 2
+make strength-bench
 ```
+
+Override the decision sample only deliberately, for example `ISMCTS_MATCH_GAMES=48`; do not use tiny samples to choose an agent.
 
 Strength artifacts preserve per-game seeds/outcomes, effective configuration, source fingerprints and paired uncertainty over mirrored deals. Different budgets/seeds/configurations use different artifact directories.
 
