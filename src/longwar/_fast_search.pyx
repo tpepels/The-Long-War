@@ -7,6 +7,7 @@ from libc.math cimport tanh, log, sqrt
 from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
 import json
+from time import perf_counter
 
 DEF MAX_CARDS = 127
 DEF MAX_DECK = 64
