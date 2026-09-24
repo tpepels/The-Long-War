@@ -77,9 +77,9 @@ def test_hotseat_card_action_returns_to_privacy_gate() -> None:
     assert result["hand"] == []
 
 
-def test_heuristic_mode_mulligan_then_returns_control_to_human() -> None:
+def test_computer_mode_mulligan_then_returns_control_to_human() -> None:
     card_json, deck_json = payloads()
-    session = PlaySession(card_json, deck_json, mode="heuristic", seed=1701)
+    session = PlaySession(card_json, deck_json, mode="computer", seed=1701)
     assert session.snapshot(0)["phase"] == "mulligan"
 
     result = session.mulligan([], 0)
