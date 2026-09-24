@@ -48,7 +48,7 @@ def require_cython() -> None:
     except ImportError as exc:
         raise SystemExit(
             "Packed Cython search extension is not available.\n"
-            "Run: make force-setup"
+            "Run: make dev-setup"
         ) from exc
     print("Canonical Cython engine/search extension: OK")
 
@@ -608,6 +608,45 @@ def benchmark_searches(
     print(f"ISMCTS / alpha-beta wall-time ratio: {ratio:.2f}x")
 
 
+def run_suite(args: argparse.Namespace) -> None:
+    print("=== 1/3 Search speed comparison ===")
+    benchmark_searches(
+        ismcts_iterations=args.iterations,
+        alpha_nodes=args.alpha_nodes,
+    )
+
+    print("\n=== 2/3 Playing-strength benchmark ===")
+    benchmark_strength(
+        games_per_orientation=args.games,
+        jobs=args.jobs,
+        ismcts_iterations=args.iterations,
+        alpha_nodes=args.alpha_nodes,
+    )
+
+    print("\n=== 3/3 Card-flow experiment ===")
+    command = [
+        sys.executable,
+        str(RUNNER),
+        "--preset",
+        args.cardflow_preset,
+        "--jobs",
+        str(args.jobs),
+        "--backend",
+        "cython",
+        "--agent",
+        "ismcts",
+        "--variant",
+        "experiment",
+        "--deck",
+        "all",
+        "--ismcts-iterations",
+        str(args.iterations),
+        "--ismcts-rollout-depth",
+        "5",
+    ]
+    run_command(command)
+
+
 def run_experiment(args: argparse.Namespace) -> None:
     command = [
         sys.executable,
@@ -658,7 +697,7 @@ def parse_args() -> argparse.Namespace:
         "search-bench",
         help="Compare Cython ISMCTS and alpha-beta speed on one root.",
     )
-    search_bench.add_argument("--iterations", type=int, default=2_000)
+    search_bench.add_argument("--iterations", type=int, default=10_000)
     search_bench.add_argument("--alpha-nodes", type=int, default=20_000)
 
     strength_bench = sub.add_parser(
@@ -672,8 +711,25 @@ def parse_args() -> argparse.Namespace:
         help="Games per deck/orientation; total games are 8x this value.",
     )
     strength_bench.add_argument("--jobs", type=int, default=8)
-    strength_bench.add_argument("--iterations", type=int, default=2_000)
+    strength_bench.add_argument("--iterations", type=int, default=10_000)
     strength_bench.add_argument("--alpha-nodes", type=int, default=20_000)
+
+    suite = sub.add_parser(
+        "suite",
+        help=(
+            "Run search speed comparison, mirrored playing-strength benchmark, "
+            "then the five-way card-flow experiment."
+        ),
+    )
+    suite.add_argument("--jobs", type=int, default=8)
+    suite.add_argument("--games", type=int, default=8)
+    suite.add_argument("--iterations", type=int, default=10_000)
+    suite.add_argument("--alpha-nodes", type=int, default=20_000)
+    suite.add_argument(
+        "--cardflow-preset",
+        choices=("quick", "deep", "max"),
+        default="deep",
+    )
 
     mcts_bench = sub.add_parser(
         "mcts-bench",
@@ -682,8 +738,8 @@ def parse_args() -> argparse.Namespace:
     mcts_bench.add_argument(
         "--iterations",
         type=int,
-        default=2_000,
-        help="ISMCTS iterations for the benchmark (default: 2000).",
+        default=10_000,
+        help="ISMCTS iterations for the benchmark (default: 10000).",
     )
 
     run = sub.add_parser(
@@ -742,6 +798,8 @@ def main() -> None:
             ismcts_iterations=args.iterations,
             alpha_nodes=args.alpha_nodes,
         )
+    elif args.command == "suite":
+        run_suite(args)
     elif args.command == "run":
         run_experiment(args)
     else:

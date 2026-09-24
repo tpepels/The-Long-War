@@ -1,4 +1,4 @@
-.PHONY: install dev-setup native-build test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check alpha-bench mcts-bench search-bench strength-bench cardflow-quick cardflow-run cardflow-max
+.PHONY: install dev-setup native-build test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check alpha-bench mcts-bench search-bench strength-bench experiment-suite cardflow-quick cardflow-run cardflow-max
 
 install:
 	python -m pip install -e '.[dev]'
@@ -69,6 +69,9 @@ search-bench:
 
 strength-bench:
 	python tools/run_experiments.py strength-bench
+
+experiment-suite:
+	python tools/run_experiments.py suite
 
 # Card-flow experiment convenience targets.
 cardflow-quick:

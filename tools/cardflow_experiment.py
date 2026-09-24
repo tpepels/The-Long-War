@@ -77,8 +77,8 @@ class Run:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run Force-rich card-flow experiments locally with the "
-            "belief-sampled alpha-beta agent."
+            "Run the card-flow experiment locally with ISMCTS or the "
+            "strategic alpha-beta reference agent."
         )
     )
     parser.add_argument(
@@ -114,6 +114,9 @@ def parse_args() -> argparse.Namespace:
         default="ismcts",
         help="Strong simulation agent; ISMCTS is the default.",
     )
+    parser.add_argument("--ismcts-belief-samples", type=int)
+    parser.add_argument("--ismcts-iterations", type=int)
+    parser.add_argument("--ismcts-rollout-depth", type=int)
     parser.add_argument(
         "--backend",
         choices=("auto", "cython", "python"),
@@ -133,7 +136,7 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help=(
             "Result directory. Defaults to "
-            "artifacts/local-force-draw/<preset>/."
+            "artifacts/cardflow/<preset>/."
         ),
     )
     parser.add_argument(
@@ -155,7 +158,7 @@ def selected_runs(args: argparse.Namespace) -> list[Run]:
     output_dir = resolve(
         args.output_dir
         if args.output_dir is not None
-        else Path("artifacts") / "local-force-draw" / args.preset
+        else Path("artifacts") / "cardflow" / args.preset
     )
     runs: list[Run] = []
     for deck_index, deck in enumerate(decks):
@@ -211,9 +214,9 @@ def effective_preset(args: argparse.Namespace) -> Preset:
 def ismcts_preset(name: str) -> tuple[int, int, int]:
     """belief states, iterations, rollout depth"""
     return {
-        "quick": (8, 500, 5),
-        "deep": (12, 2_000, 5),
-        "max": (16, 5_000, 5),
+        "quick": (8, 2_000, 5),
+        "deep": (12, 10_000, 5),
+        "max": (16, 50_000, 5),
     }[name]
 
 
@@ -223,6 +226,7 @@ def command_for(
     preset_name: str,
     backend: str,
     agent: str,
+    ismcts_settings: tuple[int, int, int] | None = None,
 ) -> list[str]:
     rules_profile = VARIANT_PROFILES[run.variant]
     command = [
@@ -246,9 +250,12 @@ def command_for(
         agent,
     ]
     if agent == "ismcts":
-        # MCTS iterations are full simulations, not alpha-beta nodes. Start
-        # conservatively; benchmark before increasing these substantially.
-        beliefs, iterations, rollout = ismcts_preset(preset_name)
+        # MCTS iterations are full simulations, not alpha-beta nodes.
+        beliefs, iterations, rollout = (
+            ismcts_settings
+            if ismcts_settings is not None
+            else ismcts_preset(preset_name)
+        )
         command.extend([
             "--ismcts-belief-samples", str(beliefs),
             "--ismcts-iterations", str(iterations),
@@ -436,6 +443,7 @@ def write_summary(
     preset_name: str,
     preset: Preset,
     agent: str,
+    ismcts_settings: tuple[int, int, int] | None = None,
 ) -> None:
     variant_order = {
         name: index
@@ -448,7 +456,11 @@ def write_summary(
         )
     )
     if agent == "ismcts":
-        beliefs, iterations, rollout = ismcts_preset(preset_name)
+        beliefs, iterations, rollout = (
+            ismcts_settings
+            if ismcts_settings is not None
+            else ismcts_preset(preset_name)
+        )
         settings = {
             "agent": "ismcts",
             "games": preset.games,
@@ -476,7 +488,11 @@ def write_summary(
     )
 
     if agent == "ismcts":
-        beliefs, iterations, rollout = ismcts_preset(preset_name)
+        beliefs, iterations, rollout = (
+            ismcts_settings
+            if ismcts_settings is not None
+            else ismcts_preset(preset_name)
+        )
         settings_line = (
             f"Preset **{preset_name}** — {preset.games} games/run, "
             f"Cython ISMCTS, {beliefs} belief states, "
@@ -543,8 +559,21 @@ def main() -> None:
         else Path("artifacts") / "local-force-draw" / args.preset
     )
 
+    ismcts_settings = None
     if args.agent == "ismcts":
-        beliefs, iterations, rollout = ismcts_preset(args.preset)
+        default_beliefs, default_iterations, default_rollout = ismcts_preset(
+            args.preset
+        )
+        ismcts_settings = (
+            args.ismcts_belief_samples or default_beliefs,
+            args.ismcts_iterations or default_iterations,
+            (
+                args.ismcts_rollout_depth
+                if args.ismcts_rollout_depth is not None
+                else default_rollout
+            ),
+        )
+        beliefs, iterations, rollout = ismcts_settings
         print(
             f"Preset {args.preset}: games={preset.games}, "
             f"ISMCTS beliefs={beliefs}, iterations={iterations:,}, "
@@ -571,6 +600,7 @@ def main() -> None:
                 args.preset,
                 args.backend,
                 args.agent,
+                ismcts_settings,
             ),
         )
         for run in runs
@@ -640,6 +670,7 @@ def main() -> None:
         preset_name=args.preset,
         preset=preset,
         agent=args.agent,
+        ismcts_settings=ismcts_settings,
     )
     print(f"Raw results: {output_dir}")
     print(f"Summary: {output_dir / 'summary.md'}")
