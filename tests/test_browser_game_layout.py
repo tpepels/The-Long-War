@@ -116,7 +116,7 @@ def test_battlefield_has_minimum_visual_scale_and_public_card_inspection() -> No
     assert "public battlefield card did not open inspector" in smoke
 
 
-def test_first_playtest_ui_exposes_command_cycle_paced_actions_and_term_help() -> None:
+def test_standard_ui_exposes_command_automatic_draw_paced_actions_and_term_help() -> None:
     html = text("web/play.html")
     play = text("web/play.js")
     css = text("web/play.css")
@@ -124,12 +124,12 @@ def test_first_playtest_ui_exposes_command_cycle_paced_actions_and_term_help() -
     smoke = text("tools/check_play_start.py")
 
     assert 'id="draw-button"' not in html
-    assert 'id="cycle-button"' in html
+    assert 'id="cycle-button"' in html  # retained for non-standard experimental profiles
     assert 'id="action-banner"' in html
     assert 'id="term-hint"' in html
     assert "actionForDraw" not in play
     assert "actionForCycle" in play
-    assert "Cycle · " in play
+    assert "standard game exposed Draw or Cycle" in text("tools/check_play_start.py")
     assert "Command" in play
     assert "scheduleAiStep" in play
     assert 'type: "ai_step"' in play
@@ -145,7 +145,7 @@ def test_first_playtest_ui_exposes_command_cycle_paced_actions_and_term_help() -
     assert "human action did not produce a visible action banner" in smoke
     assert "opponent action was not shown before returning control" in smoke
     assert "openingAnnouncementShown" in play
-    assert "+1 opening card" in play
+    assert "Draw 1 to start the turn" in play
     assert '"opening_player":' in text("src/longwar/web_api.py")
 
 
@@ -156,12 +156,12 @@ def test_desktop_fixtures_cover_crowded_and_interrupting_states() -> None:
     snapshots = presentation_snapshots()
     crowded = snapshots["battle"]
     assert len(crowded["hand"]) >= 18
-    assert crowded["players"][0]["free_cycle"]
-    assert any(action["kind"] == "Cycle" and action["command_cost"] == 0 for action in crowded["legal_actions"])
+    assert not crowded["players"][0]["free_cycle"]
+    assert not any(action["kind"] == "Cycle" for action in crowded["legal_actions"])
     assert all(slot["subject"] and slot["link"] and slot["name"] for side in crowded["board"] for slot in side)
     assert all(scheme["hidden"] and scheme["card_id"] is None for scheme in crowded["schemes"][1])
-    assert crowded["stratagems"][1]["hidden"]
-    assert crowded["stratagems"][1]["card_id"] is None
+    assert not crowded["stratagems"][1]["hidden"]
+    assert crowded["stratagems"][1]["card_id"] is not None
     assert snapshots["ai"]["needs_ai"]
     assert snapshots["choose-first"]["phase"] == "choose_first"
     assert snapshots["complete"]["winner"] == 0
