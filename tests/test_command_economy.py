@@ -54,7 +54,7 @@ def test_standard_profile_is_later_force_baseline() -> None:
     engine, state = standard_game()
 
     assert engine.rules == GameRules.standard()
-    assert engine.deck_size == 34
+    assert not hasattr(engine, "deck_size")
     assert [len(player.hand) for player in state.players] == [10, 10]
     assert [len(player.deck) for player in state.players] == [24, 24]
     assert [player.command for player in state.players] == [20, 20]
