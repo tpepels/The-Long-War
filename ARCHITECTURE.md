@@ -134,8 +134,13 @@ may consume its output rather than creating alternate game loops.
 
 ## 6. Analysis and developer tooling
 
-Analysis exists to help design the game. It sits outside the runtime and may be
-deleted or replaced without changing game semantics.
+Analysis exists to help design the game. It sits outside the browser runtime
+and may be deleted or replaced without changing game semantics.
+
+Canonical verification covers the current standard rules. Historical/non-standard
+rule profiles may retain explicit tests for design archaeology, but those tests
+are marked `legacy_rule_experiment` and are not part of `make verify` or
+`make verify-algorithms`.
 
 Tools may compose simulations and reports, but a new experiment is not a reason
 to add:
@@ -182,8 +187,8 @@ carefully rather than duplicated further:
 - named `force-*` experiment profiles live in `GameRules`;
 - `_fast_search.pyx` physically bundles the engine and several native search
   cores into one extension;
-- the browser wheel currently packages more analysis/search code than browser
-  play needs;
-- the Makefile still contains historical specialist/research targets.
+- the browser's `_fast_search` extension still physically contains native
+  search cores that browser play does not use because the engine/search split
+  has not yet been performed.
 
 These are migration items, not patterns to copy.
