@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from math import inf
+from math import inf, isfinite
+from time import perf_counter
 from statistics import mean
 
 from ..algorithms.alpha_beta import AlphaBetaSearch, SearchBudget, SearchLimit
@@ -48,6 +49,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
         rollout_plies: int = 5,
         candidate_width: int = 6,
         node_budget: int = 20_000,
+        time_budget_seconds: float | None = None,
         search_backend: str = "auto",
         exploration: float = 0.0,
     ):
@@ -65,6 +67,11 @@ class StrategicHeuristicAgent(HeuristicAgent):
             raise ValueError("candidate_width must be positive")
         if node_budget <= 0:
             raise ValueError("node_budget must be positive")
+        if (
+            time_budget_seconds is not None
+            and (not isfinite(time_budget_seconds) or time_budget_seconds <= 0.0)
+        ):
+            raise ValueError("time_budget_seconds must be finite and positive")
         if search_backend not in {"auto", "cython", "python"}:
             raise ValueError("search_backend must be auto, cython, or python")
 
@@ -75,6 +82,8 @@ class StrategicHeuristicAgent(HeuristicAgent):
             and _NativeSearchBudget is not None
             and _NativeTranspositionTable is not None
         )
+        if time_budget_seconds is not None and search_backend == "python":
+            raise ValueError("wall-clock alpha-beta budgets require the Cython backend")
         if search_backend == "cython" and not native_supported:
             raise RuntimeError(
                 "Packed Cython alpha-beta requested but the canonical "
@@ -93,6 +102,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
         self.rollout_plies = rollout_plies
         self.candidate_width = candidate_width
         self.node_budget = node_budget
+        self.time_budget_seconds = time_budget_seconds
 
         self._python_search = AlphaBetaSearch(
             engine,
@@ -116,6 +126,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
         )
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
+        decision_started = perf_counter()
         root_player = state.active_player
         actions = engine.legal_actions(state)
         if len(actions) == 1:
@@ -130,6 +141,8 @@ class StrategicHeuristicAgent(HeuristicAgent):
                 "completed_depth": 0,
                 "search_nodes": 0,
                 "search_budget": self.node_budget,
+                "search_time_budget_seconds": self.time_budget_seconds,
+                "decision_seconds": perf_counter() - decision_started,
                 "search_backend": (
                     "cython" if self._use_native else "python"
                 ),
@@ -166,10 +179,21 @@ class StrategicHeuristicAgent(HeuristicAgent):
             for _ in range(self.belief_samples)
         ]
 
+        elapsed_setup = perf_counter() - decision_started
+        remaining_time = (
+            max(1.0e-6, self.time_budget_seconds - elapsed_setup)
+            if self.time_budget_seconds is not None
+            else 0.0
+        )
+        effective_node_limit = (
+            max(self.node_budget, 2_000_000_000)
+            if self.time_budget_seconds is not None
+            else self.node_budget
+        )
         budget = (
-            _NativeSearchBudget(self.node_budget)
+            _NativeSearchBudget(effective_node_limit, remaining_time)
             if self._use_native
-            else SearchBudget(self.node_budget)
+            else SearchBudget(effective_node_limit)
         )
         if self._use_native:
             self._native_tt.clear()
@@ -258,8 +282,14 @@ class StrategicHeuristicAgent(HeuristicAgent):
             "belief_samples": self.belief_samples,
             "rollout_plies": self.rollout_plies,
             "completed_depth": completed_depth,
-            "search_nodes": min(budget.nodes, self.node_budget),
+            "search_nodes": int(budget.nodes),
             "search_budget": self.node_budget,
+            "search_node_limit_effective": effective_node_limit,
+            "search_time_budget_seconds": self.time_budget_seconds,
+            "search_timed_out": bool(
+                getattr(budget, "timed_out", False)
+            ),
+            "decision_seconds": perf_counter() - decision_started,
             "search_backend": (
                 "cython" if self._use_native else "python"
             ),
