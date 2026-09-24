@@ -87,18 +87,25 @@ Static strength diagnostics read machine rules, not the optional historical `bal
 
 Algorithms consume engine/evaluator contracts without rule-profile branches. Beliefs stay outside traversal. MCCFR uses external sampling with depth-limited heuristic leaves and an imperfect-recall observation abstraction; a policy is not a full-game equilibrium proof. Generic Python/Cython traversal and the Kuhn-poker reference remain independent correctness checks. Replica multiprocessing is experimental because table serialization/merging can dominate runtime.
 
-ISMCTS serious defaults use 100,000 iterations. UCT exploration is configurable; use explicit `--exploration 0.3` to reproduce the issue's comparison configuration. Progressive widening remains **off by default and experimental**: `k * sqrt(N + 1)`, with fixed alpha 0.5. There is no supported alpha knob.
+ISMCTS serious defaults use 100,000 iterations with provisional UCT exploration `c=0.3`, cheap rollouts of depth 5, tree reuse enabled, and progressive widening disabled. The exploration value is intentionally provisional: current equal-time calibration does not justify spending more compute fine-tuning it before the larger structural choices are measured. Progressive widening remains **off by default and experimental**: `k * sqrt(N + 1)`, with fixed alpha 0.5. There is no supported alpha knob.
 
 Persistent trees now invalidate when observable belief evidence or search configuration changes. Retained root selection uses lifetime visits only within the valid context; diagnostics separate inherited and newly accumulated visits. Arenas are bounded (default four times the iteration budget); at capacity, search uses rollout leaves and clears on rerooting when needed. `ISMCTSAgent(max_tree_nodes=...)` can set a smaller cap. `--ismcts-no-tree-reuse` on the simulator and `--no-tree-reuse` on the strength benchmark provide cold-tree comparisons. Reuse/PW telemetry is diagnostic, not evidence that either improves strength.
 
-The pre-audit 43–21 cold / 46–18 reused / 39–25 reused-with-PW results are historical. Corrected belief conditioning, reuse and evaluation require new measurements before claiming the same strength or reuse rate.
+The pre-audit 43–21 cold / 46–18 reused / 39–25 reused-with-PW results are historical. Corrected belief conditioning, reuse and evaluation require new measurements before claiming the same strength or reuse rate. `ismcts-match` compares two candidate configurations on mirrored deals and can vary exploration, tree reuse, progressive widening, rollout policy, and rollout depth independently.
 
 ```bash
 python tools/run_experiments.py --help
-python tools/run_experiments.py search-bench --iterations 100000 --exploration 0.3
-python tools/run_experiments.py strength-bench --games 8 --jobs 8 --iterations 100000 --exploration 0.3
-python tools/run_experiments.py strength-bench --games 8 --jobs 8 --iterations 100000 --exploration 0.3 --no-tree-reuse
-python tools/run_experiments.py strength-bench --games 8 --jobs 8 --iterations 100000 --exploration 0.3 --progressive-widening 1.0
+
+# Provisional agent against itself except for tree reuse.
+python tools/run_experiments.py ismcts-match --games 4 --jobs 8 --time-budget-seconds 2 --b-no-tree-reuse
+
+# Progressive widening and rollout-policy/depth experiments use the same harness.
+python tools/run_experiments.py ismcts-match --games 4 --jobs 8 --time-budget-seconds 2 --b-pw 1.0
+python tools/run_experiments.py ismcts-match --games 4 --jobs 8 --time-budget-seconds 2 --b-rollout-policy greedy
+python tools/run_experiments.py ismcts-match --games 4 --jobs 8 --time-budget-seconds 2 --b-rollout-depth 8
+
+# Final cross-algorithm comparison after choosing the ISMCTS configuration.
+python tools/run_experiments.py strength-bench --games 4 --jobs 8 --time-budget-seconds 2
 ```
 
 Strength artifacts preserve per-game seeds/outcomes, effective configuration, source fingerprints and paired uncertainty over mirrored deals. Different budgets/seeds/configurations use different artifact directories.
