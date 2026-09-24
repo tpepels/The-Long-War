@@ -157,28 +157,25 @@ def test_card_pool_prior_excludes_unobserved_experimental_cards() -> None:
 
 
 
-def test_card_pool_prior_always_samples_exactly_one_hero() -> None:
+def test_card_pool_prior_allows_multiple_distinct_heroes() -> None:
     engine, _, _ = setup()
     prior = CardPoolDeckPrior(engine)
+    required = Counter({
+        "mara-queen-of-cinders": 1,
+        "sera-mother-of-white-hands": 1,
+    })
 
-    available_heroes = {
+    sampled = prior.sample_deck(required, random.Random(17))
+    heroes = [
         card_id
-        for card_id, card in engine.cards.items()
-        if card.get("hero", False) and not card.get("experimental", False)
-    }
-    sampled_heroes: set[str] = set()
-    for seed in range(24):
-        deck = prior.sample_deck(Counter(), random.Random(seed))
-        heroes = [
-            card_id
-            for card_id in deck
-            if engine.cards[card_id].get("hero", False)
-        ]
-        assert len(heroes) == 1
-        assert heroes[0] in available_heroes
-        sampled_heroes.add(heroes[0])
+        for card_id in sampled
+        if engine.cards[card_id].get("hero", False)
+    ]
 
-    assert len(sampled_heroes) > 1
+    assert "mara-queen-of-cinders" in heroes
+    assert "sera-mother-of-white-hands" in heroes
+    assert len(heroes) == len(set(heroes))
+    engine.validate_deck(sampled)
 
 
 def test_belief_sampler_resamples_hidden_stratagem_identity_from_zone() -> None:
