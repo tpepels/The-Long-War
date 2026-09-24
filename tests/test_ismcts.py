@@ -14,6 +14,8 @@ from longwar.rules import GameRules
 
 fast_search = pytest.importorskip("longwar._fast_search")
 FastEngine = fast_search.FastEngine
+NativeHeuristicEvaluator = fast_search.NativeHeuristicEvaluator
+ismcts_search = fast_search.ismcts_search
 
 ROOT = Path(__file__).resolve().parents[1]
 CARD_FILE = ROOT / "cards" / "experiments" / "force-draw-cards.json"
@@ -106,3 +108,25 @@ def test_information_key_distinguishes_public_resource_state() -> None:
     changed.cleanup_pending = True
     changed.cleanup_next_starter = 0
     assert key(changed) != baseline
+
+
+def test_ismcts_rng_accepts_full_uint64_seed_range() -> None:
+    engine, deck, _priors = setup()
+    state = engine.new_game(deck, deck, seed=8130, first_player=0)
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+
+    result = ismcts_search(
+        fast,
+        evaluator,
+        [packed],
+        0,
+        iterations=8,
+        rollout_depth=2,
+        tree_depth_limit=8,
+        seed=0xFFFFFFFFFFFFFFFF,
+    )
+
+    assert result["iterations"] == 8
+    assert result["visits"] == 8

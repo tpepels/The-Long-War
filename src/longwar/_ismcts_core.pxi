@@ -6,14 +6,19 @@
 # them. The game engine and heuristic evaluator remain separate dependencies.
 
 cdef inline uint64_t _ismcts_next(uint64_t* state) noexcept:
+    # Keep every literal in the C domain. Without the ULL suffix Cython can
+    # route the high-bit constants through Python integers, which overflows
+    # when converted back to uint64_t inside this noexcept helper.
     cdef uint64_t x = state[0]
+    cdef uint64_t fallback = 0x9E3779B97F4A7C15ULL
+    cdef uint64_t multiplier = 0x2545F4914F6CDD1DULL
     if x == 0:
-        x = 0x9E3779B97F4A7C15
+        x = fallback
     x ^= x >> 12
     x ^= x << 25
     x ^= x >> 27
     state[0] = x
-    return x * 2685821657736338717
+    return x * multiplier
 
 cdef inline int _ismcts_rand_index(uint64_t* state, int n) noexcept:
     if n <= 1:
