@@ -26,7 +26,27 @@ pytestmark = pytest.mark.algorithm
 MASK64 = (1 << 64) - 1
 
 
-def _force_fixture(rules: GameRules):
+def _rules_variant(name: str) -> GameRules:
+    changes = {
+        "automatic": {},
+        "control": {},
+        "paid": {
+            "automatic_draw": False,
+            "paid_draw_enabled": True,
+        },
+        "paid-free": {
+            "automatic_draw": False,
+            "paid_draw_enabled": True,
+            "paid_draw_consumes_operation": False,
+        },
+        "auto-discard9": {"battle_end_hand_limit": 9},
+        "auto-discard7": {"battle_end_hand_limit": 7},
+        "auto-cap10": {"automatic_draw_hand_limit": 10},
+    }
+    return GameRules.standard().with_overrides(**changes[name])
+
+
+def _rules_fixture(rules: GameRules):
     data = load_card_file(
         ROOT / "cards" / "cards.json"
     )
@@ -168,8 +188,8 @@ def _search(
 
 
 def test_native_hash_is_exact_hash_of_canonical_information_encoding() -> None:
-    engine, deck, _priors = _force_fixture(
-        GameRules.force_candidate("automatic")
+    engine, deck, _priors = _rules_fixture(
+        _rules_variant("automatic")
     )
     fast = FastEngine(engine)
     rng = random.Random(9201)
@@ -201,8 +221,8 @@ def test_native_hash_is_exact_hash_of_canonical_information_encoding() -> None:
 
 
 def test_hidden_determinizations_share_root_information_identity() -> None:
-    engine, deck, priors = _force_fixture(
-        GameRules.force_candidate("automatic")
+    engine, deck, priors = _rules_fixture(
+        _rules_variant("automatic")
     )
     state = engine.new_game(deck, deck, seed=9210, first_player=0)
     belief = BeliefSampler(engine, priors=priors)
@@ -221,8 +241,8 @@ def test_hidden_determinizations_share_root_information_identity() -> None:
 
 
 def test_ismcts_is_bit_reproducible_for_fixed_beliefs_and_seed() -> None:
-    engine, deck, priors = _force_fixture(
-        GameRules.force_candidate("automatic")
+    engine, deck, priors = _rules_fixture(
+        _rules_variant("automatic")
     )
     state = engine.new_game(deck, deck, seed=9220, first_player=0)
     belief = BeliefSampler(engine, priors=priors)
@@ -258,8 +278,8 @@ def test_ismcts_is_bit_reproducible_for_fixed_beliefs_and_seed() -> None:
 
 
 def test_root_visit_and_availability_accounting_is_conserved() -> None:
-    engine, deck, _priors = _force_fixture(
-        GameRules.force_candidate("automatic")
+    engine, deck, _priors = _rules_fixture(
+        _rules_variant("automatic")
     )
     state = engine.new_game(deck, deck, seed=9230, first_player=0)
     fast = FastEngine(engine)
@@ -298,8 +318,8 @@ def test_root_visit_and_availability_accounting_is_conserved() -> None:
 
 
 def test_first_expansion_visits_every_root_action_once() -> None:
-    engine, deck, _priors = _force_fixture(
-        GameRules.force_candidate("automatic")
+    engine, deck, _priors = _rules_fixture(
+        _rules_variant("automatic")
     )
     state = engine.new_game(deck, deck, seed=9240, first_player=0)
     fast = FastEngine(engine)
@@ -380,8 +400,8 @@ def test_persistent_tree_reroots_to_previously_explored_information_set() -> Non
 
 
 def test_progressive_widening_limits_initial_root_breadth() -> None:
-    engine, deck, _priors = _force_fixture(
-        GameRules.force_candidate("automatic")
+    engine, deck, _priors = _rules_fixture(
+        _rules_variant("automatic")
     )
     state = engine.new_game(deck, deck, seed=9245, first_player=0)
     fast = FastEngine(engine)
@@ -412,8 +432,8 @@ def test_progressive_widening_limits_initial_root_breadth() -> None:
 
 
 def test_one_ply_ismcts_matches_strategic_leaf_oracle() -> None:
-    engine, deck, _priors = _force_fixture(
-        GameRules.force_candidate("automatic")
+    engine, deck, _priors = _rules_fixture(
+        _rules_variant("automatic")
     )
     state = engine.new_game(deck, deck, seed=9250, first_player=0)
     fast = FastEngine(engine)
@@ -554,8 +574,8 @@ def test_final_tree_step_boundary_does_not_start_next_battle_rollout() -> None:
 
 
 def test_boundary_evaluator_projects_pending_cleanup() -> None:
-    engine, deck, _priors = _force_fixture(
-        GameRules.force_experiment("auto-discard7")
+    engine, deck, _priors = _rules_fixture(
+        _rules_variant("auto-discard7")
     )
     state = engine.new_game(deck, deck, seed=9283, first_player=0)
     state.battle = 2
@@ -619,20 +639,20 @@ def test_boundary_evaluator_rewards_next_battle_readiness() -> None:
 @pytest.mark.parametrize(
     "name,rules",
     (
-        ("automatic", GameRules.force_candidate("automatic")),
-        ("paid", GameRules.force_candidate("paid")),
-        ("control", GameRules.force_experiment("control")),
-        ("paid-free", GameRules.force_experiment("paid-free")),
-        ("auto-discard9", GameRules.force_experiment("auto-discard9")),
-        ("auto-discard7", GameRules.force_experiment("auto-discard7")),
-        ("auto-cap10", GameRules.force_experiment("auto-cap10")),
+        ("automatic", _rules_variant("automatic")),
+        ("paid", _rules_variant("paid")),
+        ("control", _rules_variant("control")),
+        ("paid-free", _rules_variant("paid-free")),
+        ("auto-discard9", _rules_variant("auto-discard9")),
+        ("auto-discard7", _rules_variant("auto-discard7")),
+        ("auto-cap10", _rules_variant("auto-cap10")),
     ),
 )
-def test_same_ismcts_agent_runs_across_force_rule_profiles(
+def test_same_ismcts_agent_runs_across_rule_variants(
     name: str,
     rules: GameRules,
 ) -> None:
-    engine, deck, priors = _force_fixture(rules)
+    engine, deck, priors = _rules_fixture(rules)
     state = engine.new_game(deck, deck, seed=9260, first_player=0)
     legal = engine.legal_actions(state)
     agent = ISMCTSAgent(
