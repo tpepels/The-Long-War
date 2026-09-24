@@ -178,7 +178,7 @@ def _run_cells_with_live_progress(
             for path in progress_paths
         )
         fraction = completed / total_games if total_games else 1.0
-        width = 30
+        width = 20
         filled = min(width, int(width * fraction))
         bar = "#" * filled + "-" * (width - filled)
         elapsed = time.perf_counter() - started
@@ -189,11 +189,15 @@ def _run_cells_with_live_progress(
         )
         eta_text = _format_duration(eta) if eta is not None else "--:--"
         line = (
-            f"[{bar}] {completed:>4}/{total_games:<4} "
-            f"{fraction:6.1%} | elapsed {_format_duration(elapsed)} "
-            f"| ETA {eta_text} | active cells {pending_count}"
+            f"[{bar}] {completed}/{total_games} "
+            f"{fraction:5.1%} | {_format_duration(elapsed)} "
+            f"| ETA {eta_text} | {pending_count} active"
         )
-        print(f"\r{line:<110}", end="", flush=True)
+        # Clear the physical terminal row before redrawing. Do not pad the
+        # line to a fixed width: padding can wrap on narrow terminals and make
+        # every refresh appear on a new line.
+        sys.stdout.write(f"\r\x1b[2K{line}")
+        sys.stdout.flush()
 
     with ThreadPoolExecutor(max_workers=min(jobs, len(cells))) as pool:
         future_to_cell = {
