@@ -209,7 +209,7 @@ def test_belief_sampler_resamples_hidden_stratagem_identity_from_zone() -> None:
     assert engine.cards[sampled.stratagem(opponent).card_id]["type"] == "stratagem"
 
 
-def test_belief_sampler_resamples_hidden_stratagem_identity() -> None:
+def test_belief_sampler_preserves_public_stratagem_identity() -> None:
     engine, _, state = setup()
     player = state.players[1]
     card_id = "the-storm-broke"
@@ -229,8 +229,9 @@ def test_belief_sampler_resamples_hidden_stratagem_identity() -> None:
 
     assert information_set_id(sampled, 0) == visible_id
     assert sampled.stratagem(1) is not None
-    assert engine.cards[sampled.stratagem(1).card_id]["type"] == "stratagem"
-    assert sampler.diagnostics(state, 0).hidden_stratagems == 1
+    assert sampled.stratagem(1).revealed is True
+    assert sampled.stratagem(1).card_id == card_id
+    assert sampler.diagnostics(state, 0).hidden_stratagems == 0
 
 
 def test_card_pool_prior_defaults_to_engine_deck_size() -> None:
@@ -258,9 +259,19 @@ def test_card_pool_prior_defaults_to_engine_deck_size() -> None:
 
 def test_hypothesis_prior_conditions_on_hidden_card_type_evidence() -> None:
     engine, reference, state = setup()
-    stratagems = {card for card in reference if engine.cards[card]["type"] == "stratagem"}
+    stratagems = {
+        card for card in reference
+        if engine.cards[card]["type"] == "stratagem"
+    }
     without_stratagems = [card for card in reference if card not in stratagems]
-    without_stratagems.extend(["the-fifty-men", "followed", "seven-black-ships"])
+    counts = Counter(without_stratagems)
+    for card_id, card in engine.cards.items():
+        if card["type"] == "stratagem" or card["unique"]:
+            continue
+        while counts[card_id] < 2 and len(without_stratagems) < engine.deck_size:
+            without_stratagems.append(card_id)
+            counts[card_id] += 1
+    assert len(without_stratagems) == engine.deck_size
     engine.validate_deck(without_stratagems)
     prior = HypothesisDeckPrior(engine, [
         DeckHypothesis(tuple(without_stratagems), weight=1000, label="impossible"),
