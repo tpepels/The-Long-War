@@ -136,6 +136,7 @@ def simulate_games(
     ismcts_rollout_policy: str = "cheap",
     agent_overrides: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
     agent_labels: tuple[str, str] | None = None,
+    agent_seed_offsets: tuple[int, int] | None = None,
     progress_callback: Callable[[int, int], None] | None = None,
 ) -> SimulationReport:
     if games <= 0:
@@ -159,6 +160,8 @@ def simulate_games(
         ),
     )
     labels = agent_labels or agent_names
+    if agent_seed_offsets is not None and len(agent_seed_offsets) != 2:
+        raise ValueError("agent_seed_offsets must contain exactly two entries")
     if len(agent_overrides) != 2:
         raise ValueError("agent_overrides must contain exactly two entries")
     base_agent_options: dict[str, Any] = {
@@ -203,7 +206,11 @@ def simulate_games(
                 make_agent(
                     agent_names[player],
                     engine,
-                    seed * 10_000 + game_index * 2 + player + 1,
+                    (
+                        seed * 10_000 + game_index * 2 + player + 1
+                        if agent_seed_offsets is None
+                        else seed * 10_000 + game_index * 100 + agent_seed_offsets[player]
+                    ),
                     policy=agent_policies[player],
                     priors=priors,
                     **options,
