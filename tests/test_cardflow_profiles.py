@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from longwar.cards import load_card_file
 from longwar.game import (
     Cycle,
@@ -21,6 +23,7 @@ from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
 CENTER_FRONT = Position(Front.CENTER, Rank.FRONT)
+pytestmark = pytest.mark.legacy_rule_experiment
 
 
 def profile_candidate(*, automatic: bool = False, paid: bool = False):
