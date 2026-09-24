@@ -1,4 +1,4 @@
-.PHONY: install dev-setup native-build browser-build verify verify-cards verify-algorithms balance-quick balance-deep test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check ismcts-validate alpha-bench mcts-bench search-bench ismcts-match strength-bench experiment-suite cardflow-quick cardflow-run cardflow-max
+.PHONY: install dev-setup native-build browser-build verify verify-cards verify-algorithms balance-quick balance-deep test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check ismcts-validate alpha-bench mcts-bench search-bench ismcts-match strength-bench overnight-search experiment-suite cardflow-quick cardflow-run cardflow-max
 
 # Supported daily workflow. Keep native builds explicit after .pyx/.pxi changes.
 verify: verify-cards test-fast browser-parity
@@ -93,6 +93,10 @@ STRENGTH_BENCH_GAMES ?= 24
 STRENGTH_BENCH_JOBS ?= 8
 STRENGTH_BENCH_SECONDS ?= 2
 STRENGTH_BENCH_ARGS ?=
+OVERNIGHT_SEARCH_GAMES ?= 48
+OVERNIGHT_SEARCH_JOBS ?= 8
+OVERNIGHT_SEARCH_SECONDS ?= 2
+OVERNIGHT_SEARCH_ARGS ?=
 
 mcts-bench:
 	python tools/run_experiments.py mcts-bench $(MCTS_BENCH_ARGS)
@@ -115,6 +119,15 @@ strength-bench:
 		--jobs $(STRENGTH_BENCH_JOBS) \
 		--time-budget-seconds $(STRENGTH_BENCH_SECONDS) \
 		$(STRENGTH_BENCH_ARGS)
+
+# Unattended structural ISMCTS battery. The runner checkpoints after every experiment.
+overnight-search: verify-algorithms
+	systemd-inhibit --what=sleep:idle:handle-lid-switch --why="The Long War overnight search experiments" --mode=block \
+		python tools/run_experiments.py overnight-search \
+		--games $(OVERNIGHT_SEARCH_GAMES) \
+		--jobs $(OVERNIGHT_SEARCH_JOBS) \
+		--time-budget-seconds $(OVERNIGHT_SEARCH_SECONDS) \
+		$(OVERNIGHT_SEARCH_ARGS)
 
 experiment-suite:
 	python tools/run_experiments.py suite
