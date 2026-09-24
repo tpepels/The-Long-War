@@ -272,6 +272,8 @@ def test_suite_readiness_blocks_a_confidently_better_challenger(
         suite_dir.mkdir(parents=True, exist_ok=True)
         return suite_dir
 
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
     monkeypatch.setattr(
         runner,
         "artifact_directory",
@@ -333,6 +335,9 @@ def test_suite_readiness_blocks_a_confidently_better_challenger(
     assert readiness["ready"] is False
     assert readiness["challengers_beating_baseline"] == [
         "exploration-0p15"
+    ]
+    assert readiness["blockers"] == [
+        "predeclared challenger beats the baseline: exploration-0p15"
     ]
 
 
