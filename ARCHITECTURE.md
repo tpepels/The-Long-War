@@ -7,9 +7,10 @@ same game.
 ## Dependency map
 
 ```text
-content/data
+content / construction
   cards/cards.json
   decks/*.json
+  decks.py
   rules/rulebook.md
         |
         v
