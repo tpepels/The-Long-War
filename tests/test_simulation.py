@@ -84,5 +84,6 @@ def test_simulation_cli_resolves_canonical_defaults_and_explicit_overrides(tmp_p
     }
     assert {key: report["simulation_variant"][key] for key in expected} == expected
     assert sum(report["wins"]) == 2
+    assert report["heuristic_config"]["exploration"] == pytest.approx(0.0)
     if not legacy:
         assert "Draw" not in report["telemetry"]["actions"]
