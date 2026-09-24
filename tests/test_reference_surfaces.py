@@ -88,13 +88,13 @@ def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:
     assert len(canonical) == 51
 
 
-def test_manual_mccfr_workflow_builds_all_four_profile_policies() -> None:
-    workflow = text(".github/workflows/mccfr.yml")
-    assert "pull_request:" not in workflow
-    assert "push:" not in workflow
+def test_mccfr_suite_builder_covers_all_four_profile_policies() -> None:
+    builder = text("tools/build_mccfr_suite.py")
     for profile in ("reference", "avaros", "mara", "sera"):
-        assert f"mccfr-policy-{profile}.json" in workflow
-    assert "tools/build_mccfr_suite.py" in workflow
+        assert f'("{profile}",' in builder
+    assert 'mccfr-policy-{profile_id}.json' in builder
+    assert 'mccfr-{profile_id}-vs-heuristic.json' in builder
+    assert 'heuristic-vs-mccfr-{profile_id}.json' in builder
 
 
 def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
