@@ -616,8 +616,18 @@ def benchmark_ismcts_match(
     totals = {deck: {"a": 0, "b": 0, "games": 0} for deck in decks}
     paired_outcomes: dict[str, dict[str, list[dict[str, int]]]] = {}
     resources = {
-        "candidate-a": {"decisions": 0, "decision_seconds": 0.0, "search_work": 0.0},
-        "candidate-b": {"decisions": 0, "decision_seconds": 0.0, "search_work": 0.0},
+        "candidate-a": {
+            "searched_decisions": 0,
+            "decision_seconds": 0.0,
+            "search_work": 0.0,
+            "timeouts": 0,
+        },
+        "candidate-b": {
+            "searched_decisions": 0,
+            "decision_seconds": 0.0,
+            "search_work": 0.0,
+            "timeouts": 0,
+        },
     }
     wall_sum = 0.0
 
@@ -636,13 +646,17 @@ def benchmark_ismcts_match(
         decisions = payload.get("telemetry", {}).get("decisions", {})
         for label in ("candidate-a", "candidate-b"):
             stats = decisions.get(label, {})
-            count = int(stats.get("decisions", 0) or 0)
-            resources[label]["decisions"] += count
-            resources[label]["decision_seconds"] += count * float(
-                stats.get("mean_decision_seconds", 0.0) or 0.0
+            all_count = int(stats.get("decisions", 0) or 0)
+            searched = int(stats.get("searched_decisions", 0) or 0)
+            resources[label]["searched_decisions"] += searched
+            resources[label]["decision_seconds"] += searched * float(
+                stats.get("mean_searched_decision_seconds", 0.0) or 0.0
             )
-            resources[label]["search_work"] += count * float(
+            resources[label]["search_work"] += all_count * float(
                 stats.get("mean_search_nodes", 0.0) or 0.0
+            )
+            resources[label]["timeouts"] += int(
+                stats.get("timed_out_decisions", 0) or 0
             )
 
     overall_a = sum(row["a"] for row in totals.values())
@@ -670,16 +684,21 @@ def benchmark_ismcts_match(
 
     resource_summary = {}
     for label, stats in resources.items():
-        count = int(stats["decisions"])
+        count = int(stats["searched_decisions"])
         resource_summary[label] = {
-            "decisions": count,
-            "mean_decision_seconds": stats["decision_seconds"] / count if count else None,
+            "searched_decisions": count,
+            "mean_searched_decision_seconds": (
+                stats["decision_seconds"] / count if count else None
+            ),
             "mean_iterations": stats["search_work"] / count if count else None,
+            "timeout_rate": stats["timeouts"] / count if count else None,
         }
         if count:
             print(
-                f"{label}: {resource_summary[label]['mean_decision_seconds']:.3f}s/decision, "
-                f"{resource_summary[label]['mean_iterations']:,.0f} iterations/decision"
+                f"{label}: "
+                f"{resource_summary[label]['mean_searched_decision_seconds']:.3f}s/searched decision, "
+                f"{resource_summary[label]['mean_iterations']:,.0f} iterations, "
+                f"timeouts={100.0 * resource_summary[label]['timeout_rate']:.1f}%"
             )
 
     summary = {
@@ -858,6 +877,20 @@ def benchmark_strength(
     overall_alpha = 0
     paired_outcomes: dict[str, dict[str, list[dict[str, int]]]] = {}
     wall_sum = 0.0
+    resource_totals = {
+        "ismcts": {
+            "searched_decisions": 0,
+            "decision_seconds": 0.0,
+            "search_work": 0.0,
+            "timeouts": 0,
+        },
+        "strategic_heuristic": {
+            "searched_decisions": 0,
+            "decision_seconds": 0.0,
+            "search_work": 0.0,
+            "timeouts": 0,
+        },
+    }
     cutoff_totals = {
         "iterations": 0,
         "terminal": 0,
@@ -891,9 +924,22 @@ def benchmark_strength(
         overall_alpha += alpha_wins
         paired_outcomes.setdefault(deck, {})[orientation] = payload["game_outcomes"]
         wall_sum += elapsed
-        decision_stats = payload.get("telemetry", {}).get(
-            "decisions", {}
-        ).get("ismcts", {})
+        all_decision_stats = payload.get("telemetry", {}).get("decisions", {})
+        for label in ("ismcts", "strategic_heuristic"):
+            stats = all_decision_stats.get(label, {})
+            all_count = int(stats.get("decisions", 0) or 0)
+            searched = int(stats.get("searched_decisions", 0) or 0)
+            resource_totals[label]["searched_decisions"] += searched
+            resource_totals[label]["decision_seconds"] += searched * float(
+                stats.get("mean_searched_decision_seconds", 0.0) or 0.0
+            )
+            resource_totals[label]["search_work"] += all_count * float(
+                stats.get("mean_search_nodes", 0.0) or 0.0
+            )
+            resource_totals[label]["timeouts"] += int(
+                stats.get("timed_out_decisions", 0) or 0
+            )
+        decision_stats = all_decision_stats.get("ismcts", {})
         cutoffs = decision_stats.get("ismcts_rollout_cutoffs", {})
         for key in cutoff_totals:
             cutoff_totals[key] += int(cutoffs.get(key, 0) or 0)
@@ -986,6 +1032,26 @@ def benchmark_strength(
             f"{float(reuse_summary['mean_tree_nodes_before']):.1f}"
         )
 
+    resource_summary = {}
+    for label, stats in resource_totals.items():
+        count = int(stats["searched_decisions"])
+        resource_summary[label] = {
+            "searched_decisions": count,
+            "mean_searched_decision_seconds": (
+                stats["decision_seconds"] / count if count else None
+            ),
+            "mean_search_work": stats["search_work"] / count if count else None,
+            "timeout_rate": stats["timeouts"] / count if count else None,
+        }
+        if count:
+            unit = "iterations" if label == "ismcts" else "nodes"
+            print(
+                f"{label}: "
+                f"{resource_summary[label]['mean_searched_decision_seconds']:.3f}s/searched decision, "
+                f"{resource_summary[label]['mean_search_work']:,.0f} {unit}, "
+                f"timeouts={100.0 * resource_summary[label]['timeout_rate']:.1f}%"
+            )
+
     summary = {
         **identity,
         "rules_profile": "force-automatic",
@@ -1020,6 +1086,7 @@ def benchmark_strength(
             "mcts_win_rate": rate,
             "paired_uncertainty": paired,
         },
+        "resources": resource_summary,
         "sum_cell_wall_seconds": wall_sum,
     }
     (output_dir / "summary.json").write_text(
