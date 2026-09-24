@@ -64,8 +64,8 @@ const TERM_HINTS = {
   "discarded": "Moved to the discard pile.",
   "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
   "command": "Your operation budget. Start at 20; gain 10 between Battles, up to 20. Unspent Command carries over.",
-  "cycle": "Discard a selected hand card, then draw one. The button shows the Command cost, including a free Cycle.",
-  "draw": "Draw through setup, refill, Cycle, or card effects. Your draw pile persists; shuffle the discard only when an empty deck must supply a draw.",
+  "cycle": "Some experimental rules use Cycle, but it is not part of the standard game.",
+  "draw": "At the start of each turn, draw 1 card. Your draw pile persists; shuffle the discard only when an empty deck must supply a draw.",
   "front": "One of the three lanes: Left, Center, or Right.",
   "frontline": "The position nearest the Battle Line. It normally receives +1 Line Defense.",
   "frontline subject": "The Subject occupying the Frontline position of that Front.",
@@ -73,8 +73,8 @@ const TERM_HINTS = {
   "line defense": "The default +1 Strength bonus given to a Subject in the Frontline.",
   "move": "Relocate a Subject, keeping its attached Bond and Name unless the effect says otherwise.",
   "name": "A Unique formation component. It may be prepared before the Subject or Bond; Subject-dependent text stays inactive until a Subject is present.",
-  "pass": "End your participation in this Battle. You take no more turns until the next Battle.",
-  "passes": "Pass ends that player's participation in the current Battle; they take no more turns.",
+  "pass": "End your operations in this Battle. After the first Pass, the opponent gets exactly one final operation before scoring.",
+  "passes": "After the first Pass, the opponent gets exactly one final operation before the Battle is scored.",
   "rear": "The position behind the Frontline in the same Front.",
   "rear subject": "The Subject occupying the Rear position of that Front.",
   "rear subjects": "Subjects occupying Rear positions.",
@@ -261,7 +261,8 @@ function commandCostLabel(actions) {
 function renderCycleControl() {
   const button = $("cycle-button");
   const action = actionForCycle();
-  button.hidden = state.phase !== "battle" || state.viewer == null || state.needs_ai;
+  const cycleAvailable = state.legal_actions.some((item) => item.kind === "Cycle");
+  button.hidden = state.phase !== "battle" || state.viewer == null || state.needs_ai || !cycleAvailable;
   button.disabled = !action;
   button.textContent = action ? "Cycle · " + commandCostLabel([action]) : "Cycle";
   button.title = action ? "Discard " + cardTitle(selectedCardId) + ", then draw one card (C)" : "Select a card to Cycle it";
@@ -378,7 +379,7 @@ function renderStratagem(owner) {
   } else if (stratagem?.card_id) {
     if (!stratagem.revealed) classes.push("hidden", "known");
     title = cardTitle(stratagem.card_id);
-    label = stratagem.revealed ? "revealed" : "face-down";
+    label = stratagem.revealed ? "face-up" : "face-down";
   }
   const inspect = stratagem?.card_id && !stratagem.hidden
     ? ' data-inspect-card="' + esc(stratagem.card_id) + '" data-inspect-owner="' + owner + '" data-inspect-zone="stratagem"'
@@ -644,7 +645,7 @@ function renderInteraction() {
       hint.textContent = "The loser of the previous Battle chooses the first player.";
     } else {
       title.textContent = "Your turn";
-      hint.textContent = "Select a card · Play or Cycle · Pass";
+      hint.textContent = "Draw 1 automatically · Select a card to play · Pass";
     }
     cancel.hidden = true;
   } else {
@@ -1028,7 +1029,7 @@ function renderActionFeedback() {
   ) {
     openingAnnouncementShown = true;
     const own = state.opening_player === state.viewer;
-    showActionBanner(own ? "YOU GO FIRST" : "OPPONENT GOES FIRST", "+1 opening card");
+    showActionBanner(own ? "YOU GO FIRST" : "OPPONENT GOES FIRST", "Draw 1 to start the turn");
     return;
   }
 
