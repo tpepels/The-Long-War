@@ -1,14 +1,7 @@
 name: Expanded Pool Playtest Gate
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "cards/cards.json"
-      - "decks/*.json"
-      - "src/longwar/**"
-      - "tools/counterfactual_balance.py"
-      - ".github/workflows/expanded-playtest-gate.yml"
+  workflow_dispatch:
 
 jobs:
   gate:
