@@ -355,7 +355,7 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     assert summary["config"]["seed"] == 71
     match = json.loads((output / "reference--reference.json").read_text())
     assert len(match["deck_a"]) == 34
-    assert match["rules"]["deck_size"] == 34
+    assert "deck_size" not in match["rules"]
     assert match["game_fingerprint"] == summary["game_fingerprint"]
     assert (output / "playability.json").is_file()
 
