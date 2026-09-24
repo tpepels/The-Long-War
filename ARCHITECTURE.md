@@ -95,8 +95,14 @@ The engine accepts two deck compositions when creating a game. Reference decks
 are examples/playtest content, not engine constants. Future decks may contain
 different cards and may be larger than today's playtest decks.
 
-If constructed-deck legality eventually needs rules such as minimum size or
-copy limits, that policy should be kept separate from match mechanics.
+`decks.py` owns optional construction policy. The current shipped playtest
+format is 34 cards with the current copy limits, but those constraints are not
+fields of `GameRules` and are not required by `GameEngine`. The engine only
+checks that supplied card ids exist and that the deck fits native storage.
+
+AI beliefs must likewise take deck size from the supplied game/deck context,
+not from match rules. A future deck format may change size or copy limits
+without changing the engine or search algorithms.
 
 ## 4. AI/search
 
@@ -174,6 +180,7 @@ Architecture tests must enforce these properties:
 6. Python game transitions are not duplicated outside the canonical engine.
 7. Experiment-specific command combinations do not become new Make targets.
 8. Engine, heuristic, and search implementation files contain no canonical card ids.
+9. `GameRules` contains no deck-construction fields such as deck size or copy limits.
 
 Tests should enforce dependency direction and ownership, not incidental file
 layout or a particular search implementation.
@@ -183,7 +190,6 @@ layout or a particular search implementation.
 The following existing structures predate this contract and should be reduced
 carefully rather than duplicated further:
 
-- `GameRules.deck_size` couples current deck format to match mechanics.
 - named `force-*` experiment profiles live in `GameRules`;
 - `_fast_search.pyx` physically bundles the engine and several native search
   cores into one extension;
