@@ -120,6 +120,26 @@ def test_information_hash_preserves_full_width_observable_values(field):
     ) == information_set_id(state, 0)
 
 
+
+
+def test_information_hash_includes_public_hero_allowance() -> None:
+    from longwar.mccfr import information_set_id
+
+    engine, deck, _ = _standard_fixture()
+    state = engine.new_game(deck, deck, seed=18, first_player=0)
+    fast = FastEngine(engine)
+    before = fast.from_game_state(state)
+
+    state.hero_used[0] = True
+    after = fast.from_game_state(state)
+
+    assert fast.information_hash(before, 0) != fast.information_hash(after, 0)
+    assert fast.information_key(before, 0) != fast.information_key(after, 0)
+    assert fast_search.stable_information_id_from_fast_key(
+        fast, fast.information_key(after, 0)
+    ) == information_set_id(state, 0)
+
+
 def _search(
     fast,
     evaluator,
