@@ -30,8 +30,14 @@ def _run_logged(command: list[str]) -> None:
         )
     if result.returncode != 0:
         try:
-            lines = BUILD_LOG.read_text(encoding="utf-8", errors="replace").splitlines()
-            tail = "\n".join(lines[-80:])
+            lines = BUILD_LOG.read_text(
+                encoding="utf-8",
+                errors="replace",
+            ).splitlines()
+            tail = "\n".join(
+                line[:500] + ("..." if len(line) > 500 else "")
+                for line in lines[-80:]
+            )
         except OSError:
             tail = "(build log unavailable)"
         print(f"Browser build failed. Last log lines:\n{tail}", file=sys.stderr)
