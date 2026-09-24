@@ -32,3 +32,27 @@ def test_random_games_finish() -> None:
     assert tuple(sum(outcome["winner"] == player for outcome in report.game_outcomes) for player in range(2)) == report.wins
     assert sum(outcome["winner"] == outcome["first_player"] for outcome in report.game_outcomes) == report.first_player_wins
     assert json.loads(json.dumps(asdict(report)))["game_outcomes"] == report.game_outcomes
+
+
+def test_simulation_supports_distinct_agent_labels() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data)
+
+    report = simulate_games(
+        engine,
+        deck,
+        deck,
+        games=2,
+        seed=199,
+        agent_names=("heuristic", "heuristic"),
+        agent_labels=("candidate-a", "candidate-b"),
+        agent_overrides=({}, {}),
+    )
+
+    assert report.agents == ("candidate-a", "candidate-b")
+    decisions = report.telemetry["decisions"]
+    assert "candidate-a" in decisions
+    assert "candidate-b" in decisions
