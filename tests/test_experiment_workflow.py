@@ -278,19 +278,35 @@ def test_backend_parity_ignores_runtime_but_keeps_search_depth_and_outcomes(tmp_
     assert runner.normalized_payload(path) != expected
 
 
+def test_canonical_validation_uses_only_current_standard_rules():
+    data_source = inspect.getsource(runner.validate_data)
+    validate_source = inspect.getsource(runner.validate)
+
+    assert "GameRules.standard()" in data_source
+    assert "profile_names()" not in data_source
+    assert "from_profile(" not in data_source
+
+    assert "standard_backend_parity" in validate_source
+    assert "test_cardflow_profiles.py" not in validate_source
+    assert "not legacy_rule_experiment" in validate_source
+    assert "parity_case" not in validate_source
+
+
 @pytest.mark.parametrize("change", ["seed", "source"])
 def test_validation_can_repeat_after_inputs_change(tmp_path, monkeypatch, change):
     monkeypatch.setattr(runner, "VALIDATION_ROOT", tmp_path)
     monkeypatch.setattr(fingerprint, "current_game_fingerprint", lambda: "before")
     outputs = []
-    monkeypatch.setattr(runner, "run_command", lambda command: outputs.append(
-        Path(command[command.index("--output-dir") + 1])
-    ))
+
+    def fake_run(command):
+        outputs.append(Path(command[command.index("--output") + 1]))
+
+    monkeypatch.setattr(runner, "run_command", fake_run)
     monkeypatch.setattr(runner, "normalized_payload", lambda path: {})
-    runner.parity_case("automatic", seed=17)
+    runner.standard_backend_parity(seed=17)
     if change == "source":
         monkeypatch.setattr(fingerprint, "current_game_fingerprint", lambda: "after")
-    runner.parity_case("automatic", seed=18 if change == "seed" else 17)
+    runner.standard_backend_parity(seed=18 if change == "seed" else 17)
     assert outputs[0].parent == outputs[1].parent
     assert outputs[2].parent == outputs[3].parent
     assert outputs[0].parent != outputs[2].parent
