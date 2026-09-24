@@ -51,7 +51,8 @@ def test_returned_public_name_remains_known_in_hidden_hand() -> None:
         ),
     )
 
-    assert state.players[0].hand == ["namar"]
+    assert "namar" in state.players[0].hand
+    assert len(state.players[0].hand) == 2  # returned Name + automatic turn draw
     assert state.known_hidden_cards(1, 0, "hand") == ["namar"]
     assert any(
         event.card_id == "namar"
