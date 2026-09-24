@@ -167,45 +167,126 @@ def main() -> None:
     parser.add_argument("--starting-command", type=int, default=20)
     parser.add_argument("--battle-command-gain", type=int, default=10)
     parser.add_argument("--command-cap", type=int, default=20)
-    parser.add_argument("--cycle-command-cost", type=int, default=1)
     parser.add_argument(
-        "--disable-cycle",
+        "--cycle-command-cost",
+        type=int,
+        default=defaults.cycle_command_cost,
+    )
+    cycle_group = parser.add_mutually_exclusive_group()
+    cycle_group.add_argument(
+        "--enable-cycle",
+        dest="cycle_enabled",
         action="store_true",
+        help="Enable the Command Cycle operation.",
+    )
+    cycle_group.add_argument(
+        "--disable-cycle",
+        dest="cycle_enabled",
+        action="store_false",
         help="Disable the Command Cycle operation.",
     )
-    draw_group = parser.add_mutually_exclusive_group()
-    draw_group.add_argument(
+    parser.set_defaults(cycle_enabled=defaults.cycle_enabled)
+
+    turn_draw_group = parser.add_mutually_exclusive_group()
+    turn_draw_group.add_argument(
         "--automatic-draw",
-        action="store_true",
+        dest="turn_draw_mode",
+        action="store_const",
+        const="automatic",
         help="At the start of every turn, draw one card before the operation.",
     )
-    draw_group.add_argument(
+    turn_draw_group.add_argument(
         "--paid-draw",
-        action="store_true",
+        dest="turn_draw_mode",
+        action="store_const",
+        const="paid",
         help="Enable Draw as a paid Command operation with no discard.",
     )
-    parser.add_argument("--paid-draw-command-cost", type=int, default=1)
+    turn_draw_group.add_argument(
+        "--no-turn-draw",
+        dest="turn_draw_mode",
+        action="store_const",
+        const="none",
+        help="Disable both automatic and paid Command draw modes.",
+    )
+    parser.set_defaults(
+        turn_draw_mode=(
+            "automatic"
+            if defaults.automatic_draw
+            else "paid"
+            if defaults.paid_draw_enabled
+            else "none"
+        )
+    )
     parser.add_argument(
+        "--paid-draw-command-cost",
+        type=int,
+        default=defaults.paid_draw_command_cost,
+    )
+
+    final_operation_group = parser.add_mutually_exclusive_group()
+    final_operation_group.add_argument(
         "--pass-final-operation",
+        dest="pass_final_operation",
         action="store_true",
         help="After the first Pass, give the opponent exactly one final operation.",
     )
-    parser.add_argument(
+    final_operation_group.add_argument(
+        "--no-pass-final-operation",
+        dest="pass_final_operation",
+        action="store_false",
+    )
+    parser.set_defaults(pass_final_operation=defaults.pass_final_operation)
+
+    pass_gate_group = parser.add_mutually_exclusive_group()
+    pass_gate_group.add_argument(
         "--pass-requires-both-acted",
+        dest="pass_requires_both_acted",
         action="store_true",
         help="Do not allow the first Pass until both players performed an operation.",
     )
-    parser.add_argument(
+    pass_gate_group.add_argument(
+        "--pass-does-not-require-both-acted",
+        dest="pass_requires_both_acted",
+        action="store_false",
+    )
+    parser.set_defaults(pass_requires_both_acted=defaults.pass_requires_both_acted)
+
+    next_starter_group = parser.add_mutually_exclusive_group()
+    next_starter_group.add_argument(
         "--first-passer-starts-next-battle",
+        dest="first_passer_starts_next_battle",
         action="store_true",
         help="The first passer starts the next Battle.",
     )
-    parser.add_argument("--completion-command-refund", type=int, default=0)
+    next_starter_group.add_argument(
+        "--loser-chooses-next-battle",
+        dest="first_passer_starts_next_battle",
+        action="store_false",
+    )
+    parser.set_defaults(
+        first_passer_starts_next_battle=defaults.first_passer_starts_next_battle
+    )
+
     parser.add_argument(
+        "--completion-command-refund",
+        type=int,
+        default=defaults.completion_command_refund,
+    )
+    stratagem_group = parser.add_mutually_exclusive_group()
+    stratagem_group.add_argument(
         "--public-stratagems",
+        dest="public_stratagems",
         action="store_true",
         help="Play Stratagems face-up so their Battle rule is active immediately.",
     )
+    stratagem_group.add_argument(
+        "--hidden-stratagems",
+        dest="public_stratagems",
+        action="store_false",
+        help="Use hidden triggered Stratagems for legacy experiments.",
+    )
+    parser.set_defaults(public_stratagems=defaults.public_stratagems)
     parser.add_argument(
         "--deck-a",
         type=Path,
@@ -270,10 +351,10 @@ def main() -> None:
             command_cap=args.command_cap,
             cycle_command_cost=args.cycle_command_cost,
             reshuffle_on_empty=args.reshuffle,
-            automatic_draw=args.automatic_draw,
-            paid_draw_enabled=args.paid_draw,
+            automatic_draw=args.turn_draw_mode == "automatic",
+            paid_draw_enabled=args.turn_draw_mode == "paid",
             paid_draw_command_cost=args.paid_draw_command_cost,
-            cycle_enabled=not args.disable_cycle,
+            cycle_enabled=args.cycle_enabled,
             pass_final_operation=args.pass_final_operation,
             pass_requires_both_acted=args.pass_requires_both_acted,
             first_passer_starts_next_battle=args.first_passer_starts_next_battle,
