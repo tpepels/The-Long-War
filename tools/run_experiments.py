@@ -781,6 +781,8 @@ def run_experiment(args: argparse.Namespace) -> None:
         args.variant,
         "--deck",
         args.deck,
+        "--ismcts-progressive-widening",
+        str(args.progressive_widening),
     ]
     if args.games is not None:
         command.extend(["--games", str(args.games)])
@@ -930,6 +932,7 @@ def parse_args() -> argparse.Namespace:
     )
     run.add_argument("--deck", choices=("all", "reference", "avaros", "mara", "sera"), default="all")
     run.add_argument("--output-dir", type=Path)
+    run.add_argument("--progressive-widening", type=float, default=0.0)
 
     return parser.parse_args()
 
