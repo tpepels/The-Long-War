@@ -116,18 +116,20 @@ def test_required_counterfactual_cards_appear_in_every_context() -> None:
     assert all(required <= set(deck) for deck in contexts)
 
 
-def test_alternative_heroes_must_be_evaluated_separately() -> None:
+def test_multiple_heroes_can_share_a_counterfactual_context() -> None:
     card_data = data()
-    with pytest.raises(ValueError, match="more than one Hero"):
-        generate_context_decks(
-            card_data,
-            count=1,
-            seed=29,
-            required_cards=[
-                "mara-queen-of-cinders",
-                "sera-mother-of-white-hands",
-            ],
-        )
+    deck = generate_context_decks(
+        card_data,
+        count=1,
+        seed=29,
+        required_cards=[
+            "mara-queen-of-cinders",
+            "sera-mother-of-white-hands",
+        ],
+    )[0]
+    assert "mara-queen-of-cinders" in deck
+    assert "sera-mother-of-white-hands" in deck
+    GameEngine(card_data).validate_deck(deck)
 
 
 def test_samples_are_reproducible_and_balance_focal_seat() -> None:
@@ -237,13 +239,13 @@ def test_scheme_baseline_preserves_scheme_commitment() -> None:
 
 
 
-def test_stratagem_baseline_preserves_hidden_free_commitment() -> None:
+def test_stratagem_baseline_preserves_public_play_commitment() -> None:
     card_data = data()
     index = {card["id"]: card for card in card_data["cards"]}
     baseline = baseline_card(index["the-storm-broke"])
 
     assert baseline["type"] == "stratagem"
-    assert baseline["rules"]["stratagem"]["trigger"]["event"] == "never"
+    assert baseline["rules"]["stratagem"]["trigger"]["event"] == "played"
 
 
 def test_hero_baseline_preserves_hero_deck_constraint() -> None:
@@ -256,6 +258,7 @@ def test_hero_baseline_preserves_hero_deck_constraint() -> None:
     assert baseline["role"] == "swordsman"
     assert "hero" in baseline["classes"]
     assert baseline["strength"] == 6
+    assert baseline["hero_name_strength"] == 2
 
 
 def test_counterfactual_mulligan_preview_excludes_opening_bonus(
