@@ -2,8 +2,6 @@ name: Balance diagnostics
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "17 3 * * 1"
 
 concurrency:
   group: balance-diagnostics
