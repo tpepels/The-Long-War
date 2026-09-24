@@ -224,6 +224,7 @@ def _root_candidate_snapshot(
     )
 
 
+@pytest.mark.legacy_rule_experiment
 @pytest.mark.parametrize("game_index", (0, 1))
 def test_paid_profile_python_cython_match_each_root_decision(
     game_index: int,
