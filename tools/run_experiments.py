@@ -1205,17 +1205,20 @@ def run_suite(args: argparse.Namespace) -> Path:
         "rollout_depth": 5,
         "rollout_policy": "cheap",
         "rollout_epsilon": 0.12,
-        "max_tree_nodes": None,
+        "max_tree_nodes": 400_000,
     }
     comparisons = [
         ("baseline-control", {}),
+        ("exploration-0p15", {"exploration_b": 0.15}),
+        ("exploration-0p6", {"exploration_b": 0.6}),
+        ("belief-8", {"belief_samples_b": 8}),
+        ("belief-24", {"belief_samples_b": 24}),
         ("tree-cold", {"reuse_tree_b": False}),
+        ("tree-800k", {"max_tree_nodes_b": 800_000}),
         ("pw-0p5", {"progressive_widening_b": 0.5}),
-        ("pw-1p0", {"progressive_widening_b": 1.0}),
         ("rollout-greedy", {"rollout_policy_b": "greedy"}),
-        ("rollout-random", {"rollout_policy_b": "random"}),
-        ("rollout-depth-3", {"rollout_depth_b": 3}),
         ("rollout-depth-8", {"rollout_depth_b": 8}),
+        ("rollout-epsilon-0", {"rollout_epsilon_b": 0.0}),
     ]
     identity = experiment_identity({
         "command": "suite",
@@ -1255,8 +1258,8 @@ def run_suite(args: argparse.Namespace) -> Path:
         f"{args.time_budget_seconds:g}s/searched move"
     )
     print(
-        "Baseline: c=0.3, reuse, pw=0, rollout=cheap/5. "
-        "Each A/B changes only candidate B."
+        "Baseline: belief=12, c=0.3, reuse, tree=400k, pw=0, "
+        "rollout=cheap/5, epsilon=0.12. Each A/B changes only candidate B."
     )
 
     experiments = len(comparisons) + 1
@@ -1389,6 +1392,84 @@ def run_suite(args: argparse.Namespace) -> Path:
     ]
     manifest["completed"] = True
     manifest["failures"] = failures
+
+    def ci_for(row: dict[str, Any], rate_key: str) -> tuple[float | None, float | None]:
+        paired = row.get("overall", {}).get("paired_uncertainty", {})
+        low, high = paired.get("ci95", [None, None])
+        if low is None or high is None or row.get("overall", {}).get(rate_key) is None:
+            return None, None
+        return float(low), float(high)
+
+    control = next(
+        (row for row in manifest["experiments"] if row["name"] == "baseline-control"),
+        None,
+    )
+    strength = next(
+        (row for row in manifest["experiments"] if row["name"] == "baseline-vs-alpha-beta"),
+        None,
+    )
+    control_ci = ci_for(control or {}, "candidate_a_win_rate")
+    strength_ci = ci_for(strength or {}, "mcts_win_rate")
+
+    challengers_beating_baseline = []
+    for row in manifest["experiments"]:
+        if row.get("kind") != "ismcts-match" or row.get("name") == "baseline-control":
+            continue
+        low, high = ci_for(row, "candidate_a_win_rate")
+        if high is not None and high < 0.5:
+            challengers_beating_baseline.append(row["name"])
+
+    capacity_cutoffs = 0
+    capacity_reroots = 0
+    if control:
+        for stats in control.get("resources", {}).values():
+            capacity_cutoffs += int(stats.get("tree_capacity_cutoffs", 0) or 0)
+            capacity_reroots += int(stats.get("capacity_reroots", 0) or 0)
+
+    blockers: list[str] = []
+    warnings: list[str] = []
+    if failures:
+        blockers.append("one or more calibration experiments failed")
+    if control_ci[0] is None or not (control_ci[0] <= 0.5 <= control_ci[1]):
+        blockers.append("identical ISMCTS control does not calibrate around 50%")
+    if challengers_beating_baseline:
+        blockers.append(
+            "predeclared challenger beats the baseline: "
+            + ", ".join(challengers_beating_baseline)
+        )
+    if strength_ci[1] is not None and strength_ci[1] < 0.5:
+        blockers.append("ISMCTS is significantly weaker than strategic alpha-beta")
+    if capacity_cutoffs:
+        warnings.append(
+            f"baseline tree hit capacity {capacity_cutoffs} times; "
+            "inspect tree-800k before treating search as converged"
+        )
+    if capacity_reroots:
+        warnings.append(
+            f"baseline tree rerooted after capacity {capacity_reroots} times"
+        )
+    if strength_ci[0] is not None and strength_ci[0] > 0.5:
+        warnings.append(
+            "ISMCTS is significantly stronger than strategic alpha-beta; "
+            "use alpha-beta as a qualitative cross-check, not an equal-strength oracle"
+        )
+
+    manifest["decision_readiness"] = {
+        "ready": not blockers,
+        "blockers": blockers,
+        "warnings": warnings,
+        "baseline_control_ci95": list(control_ci),
+        "ismcts_vs_alpha_beta_ci95": list(strength_ci),
+        "challengers_beating_baseline": challengers_beating_baseline,
+        "baseline_tree_capacity_cutoffs": capacity_cutoffs,
+        "baseline_capacity_reroots": capacity_reroots,
+        "policy": (
+            "Use ISMCTS as primary hidden-information design evidence and "
+            "strategic alpha-beta as an independent cross-check. Heuristic "
+            "telemetry is exploratory/product-policy evidence only. MCCFR "
+            "variants are research-only until separately validated."
+        ),
+    }
     save_manifest()
 
     print()
@@ -1421,6 +1502,16 @@ def run_suite(args: argparse.Namespace) -> Path:
         else:
             detail = ""
         print(f"{status:6} {row['name']}{detail}")
+    readiness = manifest["decision_readiness"]
+    print()
+    print(
+        "Decision readiness: "
+        + ("READY" if readiness["ready"] else "NOT READY")
+    )
+    for blocker in readiness["blockers"]:
+        print(f"BLOCKER: {blocker}")
+    for warning in readiness["warnings"]:
+        print(f"WARNING: {warning}")
     print(f"Suite summary: {manifest_path}")
 
     if failures:
