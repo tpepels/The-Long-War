@@ -109,6 +109,12 @@ without changing the engine or search algorithms.
 
 Agents and search algorithms are consumers of the game core.
 
+Browser play exposes product modes (`computer` and `hotseat`), not solver
+identities. The current production computer opponent is `HeuristicAgent`.
+Changing the production opponent must not change the browser protocol or create
+a new play mode. ISMCTS, alpha-beta, MCCFR and online MCCFR are research/search
+implementations unless explicitly promoted by a separate product decision.
+
 They may own:
 
 - search trees;
