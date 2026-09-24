@@ -64,6 +64,13 @@ def test_cython_ismcts_returns_legal_action() -> None:
         0 < agent.last_decision["ismcts_selected_action_visits"] <= 200
     )
     assert agent.last_decision["ismcts_tree_nodes"] > 0
+    assert (
+        agent.last_decision["ismcts_rollouts_stopped_terminal"]
+        + agent.last_decision["ismcts_rollouts_stopped_battle_boundary"]
+        + agent.last_decision["ismcts_rollouts_stopped_depth"]
+        == 200
+    )
+    assert agent.last_decision["ismcts_rollout_actions"] >= 0
 
 
 def test_root_belief_samples_share_information_set() -> None:
