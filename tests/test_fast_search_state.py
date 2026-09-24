@@ -91,6 +91,7 @@ def python_snapshot(state):
             for player in range(2)
         ],
         "stratagem_used": list(state.stratagem_used),
+        "hero_used": list(state.hero_used),
         "draw_used": list(state.draw_used),
     }
 
