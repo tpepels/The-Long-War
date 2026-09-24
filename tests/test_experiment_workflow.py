@@ -90,6 +90,11 @@ def test_live_progress_helpers_are_robust(tmp_path):
     assert runner._format_duration(65) == "01:05"
     assert runner._format_duration(3661) == "1:01:01"
 
+    source = inspect.getsource(runner._run_cells_with_live_progress)
+    assert "\\x1b[2K" in source
+    assert "line:<110" not in source
+    assert "width = 20" in source
+
 
 def test_strength_benchmark_reports_live_progress():
     source = inspect.getsource(runner.benchmark_strength)
