@@ -67,6 +67,7 @@ const TERM_HINTS = {
   "cycle": "Some experimental rules use Cycle, but it is not part of the standard game.",
   "draw": "At the start of each turn, draw 1 card. Your draw pile persists; shuffle the discard only when an empty deck must supply a draw.",
   "front": "One of the three lanes: Left, Center, or Right.",
+  "hero": "A Unique dual-use card. Play one Hero per side per Battle, either as a Subject or as a Name.",
   "frontline": "The position nearest the Battle Line. It normally receives +1 Line Defense.",
   "frontline subject": "The Subject occupying the Frontline position of that Front.",
   "frontline subjects": "Subjects occupying Frontline positions.",
@@ -159,7 +160,7 @@ function cardType(card) {
   }
   if (card.type === "link") return "Bond";
   if (card.type === "stratagem") return "Stratagem";
-  if (card.type === "subject" && card.hero) return "Hero · Subject";
+  if (card.type === "subject" && card.hero) return "Hero · Subject / Name";
   return card.type[0].toUpperCase() + card.type.slice(1);
 }
 
@@ -173,9 +174,12 @@ function playCardMarkup(cardId, options = {}) {
   if (options.selected) classes.push("selected");
   if (options.mulligan) classes.push("mulligan-card");
 
-  const strength = Number.isInteger(card.strength)
-    ? '<span class="play-card-strength">' + card.strength + '</span>'
-    : "";
+  const strength = card.hero
+    ? '<span class="play-card-strength hero-dual-strength" aria-label="Subject strength ' + card.strength + ', Name strength ' + card.hero_name_strength + '">' +
+      '<span><small>S</small>' + card.strength + '</span><span><small>N</small>' + card.hero_name_strength + '</span></span>'
+    : Number.isInteger(card.strength)
+      ? '<span class="play-card-strength">' + card.strength + '</span>'
+      : "";
   const commandCost = Number.isInteger(card.command_cost)
     ? '<span class="play-command-cost" aria-label="Command cost ' + card.command_cost + '">C ' + card.command_cost + '</span>'
     : "";
@@ -202,6 +206,9 @@ function playCardMarkup(cardId, options = {}) {
 function boardCardMarkup(cardId, role, owner) {
   if (!cardId) return "";
   const card = cards[cardId];
+  const visibleStrength = card.hero && role === "name"
+    ? card.hero_name_strength
+    : card.strength;
   return '<button type="button" class="board-card board-card-' + role + ' card-' + card.type +
     (card.veiled ? " card-scheme" : "") + (card.hero ? " card-hero" : "") +
     '" data-inspect-card="' + esc(cardId) + '" data-inspect-owner="' + owner + '" data-inspect-zone="' + esc(role) +
@@ -209,8 +216,8 @@ function boardCardMarkup(cardId, role, owner) {
     '<span class="board-card-face">' +
       '<span class="board-card-type">' + esc(cardType(card)) + '</span>' +
       '<strong>' + esc(card.title) + '</strong>' +
-      (Number.isInteger(card.strength)
-        ? '<span class="board-card-strength">' + card.strength + '</span>'
+      (Number.isInteger(visibleStrength)
+        ? '<span class="board-card-strength">' + visibleStrength + '</span>'
         : "") +
     '</span>' +
   '</button>';
@@ -497,9 +504,11 @@ function renderStrip() {
 }
 
 function commandCounter(player) {
-  const label = "Command " + player.command + (player.free_cycle ? ", free Cycle ready" : "");
+  const heroStatus = player.hero_used ? ", Hero used this Battle" : ", Hero available";
+  const label = "Command " + player.command + (player.free_cycle ? ", free Cycle ready" : "") + heroStatus;
   return '<div class="command-counter" aria-label="' + esc(label) + '"><span>Command</span><b>' + player.command + '</b>' +
-    (player.free_cycle ? '<small>Free Cycle</small>' : '') + '</div>';
+    (player.free_cycle ? '<small>Free Cycle</small>' : '') +
+    '<small class="hero-status">' + (player.hero_used ? 'Hero used' : 'Hero ready') + '</small></div>';
 }
 
 function renderOpponentRack() {
@@ -662,6 +671,13 @@ function renderInteraction() {
 }
 
 function choiceLabel(action) {
+  const card = cards[action.card_id];
+  if (card?.hero && action.kind === "PlaySubject") {
+    return "Deploy as Subject";
+  }
+  if (card?.hero && action.kind === "PlayName") {
+    return "Use as Name";
+  }
   if (action.kind === "PlayName") {
     if (!action.move_to) return "Play the Name here · stay";
     return "Play the Name here · move the Subject to " + action.move_to.front_name + " " + action.move_to.rank_name;
