@@ -118,14 +118,14 @@ Strength artifacts preserve per-game seeds/outcomes, effective configuration, so
 
 ## Balance and analysis
 
-`tools/run_experiments.py` is the main entry point. It composes existing analysis modules; specialized tools remain available for individual stages.
+Make is the supported command surface. `tools/run_experiments.py` implements the experiment orchestration underneath it; specialized tools remain available for individual stages.
 
 | Question | Command | Meaning |
 | --- | --- | --- |
 | Are data/decks valid? | `make verify-cards` | Schema, effects, legal decks, native loading |
 | Does ordinary play run? | `make balance-quick` | Static report, 8 heuristic games per canonical deck, health and card flow |
 | How do experimental draw profiles play? | `python tools/run_experiments.py run --preset quick --dry-run` | Inspect experimental Force/Command runs before spending compute |
-| Which search is stronger? | `python tools/run_experiments.py strength-bench ...` | Mirrored ISMCTS/alpha-beta matches |
+| Which search is stronger? | `make strength-bench` | Mirrored ISMCTS/alpha-beta matches with the decision-grade sample defaults |
 | What is a card's paired replacement value? | `python tools/counterfactual_balance.py --cards followed --contexts 3 --games-per-context 4 --no-pairs --no-triples` | Policy-specific causal replacement, with uncertainty |
 | Does a selected effect survive stronger play? | `python tools/targeted_online_counterfactual.py --broad artifacts/counterfactual-balance.json` | Online MCCFR on the exact broad contexts/interventions |
 | Release balance suite | `make balance-deep` | 2000 games per mirror/directed archetype cell, static/health/card flow, full per-card paired sweep |
