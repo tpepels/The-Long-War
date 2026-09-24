@@ -117,6 +117,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ismcts-belief-samples", type=int)
     parser.add_argument("--ismcts-iterations", type=int)
     parser.add_argument("--ismcts-rollout-depth", type=int)
+    parser.add_argument("--ismcts-exploration", type=float, default=2 ** 0.5)
     parser.add_argument(
         "--ismcts-progressive-widening",
         type=float,
@@ -239,6 +240,7 @@ def command_for(
     ismcts_settings: tuple[int, int, int] | None = None,
     ismcts_rollout_policy: str = "cheap",
     ismcts_progressive_widening: float = 0.0,
+    ismcts_exploration: float = 2 ** 0.5,
 ) -> list[str]:
     rules_profile = VARIANT_PROFILES[run.variant]
     command = [
@@ -272,6 +274,7 @@ def command_for(
             "--ismcts-belief-samples", str(beliefs),
             "--ismcts-iterations", str(iterations),
             "--ismcts-rollout-depth", str(rollout),
+            "--ismcts-exploration", str(ismcts_exploration),
             "--ismcts-progressive-widening", str(ismcts_progressive_widening),
             "--ismcts-rollout-policy", ismcts_rollout_policy,
         ])
@@ -460,6 +463,7 @@ def write_summary(
     ismcts_settings: tuple[int, int, int] | None = None,
     ismcts_rollout_policy: str = "cheap",
     ismcts_progressive_widening: float = 0.0,
+    ismcts_exploration: float = 2 ** 0.5,
 ) -> None:
     variant_order = {
         name: index
@@ -484,6 +488,7 @@ def write_summary(
             "iterations": iterations,
             "rollout_depth": rollout,
             "rollout_policy": ismcts_rollout_policy,
+            "exploration": ismcts_exploration,
             "progressive_widening": ismcts_progressive_widening,
         }
     else:
@@ -516,7 +521,7 @@ def write_summary(
             f"Cython ISMCTS, {beliefs} belief states, "
             f"{iterations:,} iterations/decision, rollout depth {rollout}, "
             f"rollout policy {ismcts_rollout_policy}, "
-            f"pw {ismcts_progressive_widening:g}."
+            f"c {ismcts_exploration:g}, pw {ismcts_progressive_widening:g}."
         )
     else:
         settings_line = (
@@ -623,6 +628,7 @@ def main() -> None:
                 ismcts_settings,
                 args.ismcts_rollout_policy,
                 args.ismcts_progressive_widening,
+                args.ismcts_exploration,
             ),
         )
         for run in runs
@@ -695,6 +701,7 @@ def main() -> None:
         ismcts_settings=ismcts_settings,
         ismcts_rollout_policy=args.ismcts_rollout_policy,
         ismcts_progressive_widening=args.ismcts_progressive_widening,
+        ismcts_exploration=args.ismcts_exploration,
     )
     print(f"Raw results: {output_dir}")
     print(f"Summary: {output_dir / 'summary.md'}")
