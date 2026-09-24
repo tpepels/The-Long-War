@@ -79,10 +79,19 @@ def test_engine_default_profile_is_exactly_standard(data):
     assert GameEngine(data).rules == GameRules.standard()
 
 
-def test_alternative_rule_profiles_use_canonical_cards():
+def test_rule_overrides_use_canonical_cards():
     data = load_card_file(ROOT / "cards/cards.json")
-    for profile in GameRules.profile_names():
-        GameEngine(data, rules=GameRules.from_profile(profile))
+    variants = (
+        GameRules.standard(),
+        GameRules.standard().with_overrides(
+            automatic_draw=False,
+            paid_draw_enabled=True,
+        ),
+        GameRules.standard().with_overrides(battle_end_hand_limit=7),
+        GameRules.standard().with_overrides(automatic_draw_hand_limit=10),
+    )
+    for rules in variants:
+        GameEngine(data, rules=rules)
 
     hidden = GameRules.standard().with_overrides(public_stratagems=False)
     with pytest.raises(ValueError, match="requires public_stratagems"):
