@@ -149,6 +149,7 @@ def test_cython_engine_contains_no_heuristic_policy() -> None:
     for method in (
         "cdef double evaluate_fast(",
         "cdef double strategic_evaluate_fast(",
+        "cdef double battle_boundary_evaluate_fast(",
         "cdef double action_order_score_fast(",
         "cdef double rollout_prior_fast(",
         "cdef double pass_score_fast(",
@@ -227,6 +228,9 @@ def test_ismcts_depends_on_engine_contract_not_rule_schema() -> None:
 
     assert "GameRules" not in algorithm_source
     assert "GameRules" not in agent_source
+    assert "battle_boundary_evaluate_fast" in algorithm_source
+    assert "cleanup_pending" not in algorithm_source
+    assert "PHASE_CHOOSE" not in algorithm_source
 
     engine_calls = set(
         re.findall(r"\bengine\.([A-Za-z_]\w*)", algorithm_source)
