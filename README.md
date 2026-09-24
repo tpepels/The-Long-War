@@ -18,10 +18,10 @@ make verify
 | Work | Edit | Verify |
 | --- | --- | --- |
 | Rule change | `src/longwar/rules.py` for configuration; `_fast_search.pyx` for transitions; update `rules/rulebook.md` | `make native-build && make verify` |
-| Card addition/change | `cards/cards.json`; update appropriate `decks/*.json` | `make verify-cards` for immediate feedback, then `make verify` |
+| Card addition/change | `cards/cards.json`; update appropriate `decks/*.json` | `make verify` |
 | Search/evaluation change | Algorithm's native `.pxi`, its Python adapter, or `_heuristic_core.pxi` | `make native-build && make verify-algorithms` |
-| Quick balance/playability signal | Canonical cards and decks | `make balance-quick` |
-| Release balance evidence | Canonical cards and decks | `make balance-deep` |
+| Quick balance/playability signal | Canonical cards and decks | `make balance` |
+| Deeper balance evidence | Canonical cards and decks | `make balance BALANCE_PRESET=deep` |
 
 Add a focused regression at the changed boundary. `make verify` checks every shipped card/deck, the fast tests, and native/browser parity. `make verify-algorithms` runs learning/correctness tests plus fixed-seed Python/native alpha-beta comparisons and ISMCTS validation. `make test-integration` checks multi-game and report pipelines. `make test` runs every pytest test.
 
@@ -29,7 +29,7 @@ Rebuild after every `.pyx` or `.pxi` edit. Browser builds automatically detect c
 
 ## One rules engine
 
-The canonical implementation is `src/longwar/_fast_search.pyx`. It owns legal actions, transitions, scoring, visibility, and the information-state encoder. `GameRules` in `rules.py` owns configuration and named profiles (`GameRules.profile_names()` / `from_profile()`). `game/engine.py` adapts Python dataclasses and action objects to this engine; it does not reimplement transitions.
+The canonical implementation is `src/longwar/_fast_search.pyx`. It owns legal actions, transitions, scoring, visibility, and the information-state encoder. `GameRules` in `rules.py` is tunable match configuration; `game/engine.py` adapts Python dataclasses and action objects to the engine without reimplementing transitions. Cards and decks are inputs to the engine, not alternate rule implementations. See `ARCHITECTURE.md` for the enforced dependency map. The existing named Force experiment profiles and deck-size coupling are retained only as cleanup debt, not as extension patterns.
 
 The standard playtest uses 34-card decks and a 10-card opening/refill hand. Command starts at 20, gains 10 between Battles up to 20, and carries forward. At the start of every turn, draw 1 card automatically; then play one card or Pass when Pass is legal. Playing a card spends its printed Command cost. There is no generic Draw action and no standard Cycle action. Draw piles persist between Battles and the discard pile reshuffles only when a draw requires an empty deck. The first Pass gives the opponent exactly one final operation, then the Battle scores; the first passer starts the next Battle. Stratagems are public and active when played, and completing a formation refunds 1 Command. The four shipped deck templates contain 14 Subject-type cards and 6 printed Names. They now carry multiple distinct Heroes; each Hero is Unique, may be played as either a Subject or a Name, and each side may play only one Hero per Battle.
 
@@ -62,7 +62,7 @@ The [issue #21 desktop-client handoff](reports/issue-21-desktop-client.md) recor
 
 `cards/cards.json` is the canonical card pool. Each card has a stable unique `id`, title, type, classes, uniqueness, display text/rule blocks, and machine-readable `rules`. Preserve IDs when revising cards: decks and policy artifacts refer to them.
 
-`cards.py` validates required fields, nested rule/effect/trigger names, types and native numeric limits. `make verify-cards` also checks printed Command costs against the canonical static cost model in `balance.py`. `GameEngine` applies the same validation to in-memory data, including browser input. Deck validation enforces size, copy limits and known IDs. Hero cards are Unique, so each Hero title is limited to one copy, while multiple different Heroes may share a deck. New effect kinds require explicit schema and native-engine support plus a regression; misspellings fail instead of silently producing vanilla cards.
+`cards.py` validates required fields, nested rule/effect/trigger names, types and native numeric limits. `make verify` checks shipped card/deck data as part of the normal verification path. `GameEngine` applies the same validation to in-memory data, including browser input. Current playtest validation still includes size/copy constraints, but deck composition is architecturally separate from match rules so larger future decks do not require another engine. Hero cards are Unique, so each Hero title is limited to one copy, while multiple different Heroes may share a deck. New effect kinds require explicit schema and native-engine support plus a regression; misspellings fail instead of silently producing vanilla cards.
 
 The packed engine supports up to 127 card identities, 64 cards per player deck, and 1024 generated actions, with checked boundaries. Counterfactual neutral cards are generated in memory and never added to printable canonical data.
 
@@ -93,32 +93,36 @@ Persistent trees now invalidate when observable belief evidence or search config
 
 The pre-audit 43–21 cold / 46–18 reused / 39–25 reused-with-PW results are historical. Corrected belief conditioning, reuse and evaluation require new measurements before claiming the same strength or reuse rate. `ismcts-match` compares two candidate configurations on mirrored deals and can vary exploration, tree reuse, progressive widening, rollout policy, and rollout depth independently.
 
-The supported command surface is Make. Decision-grade search matchups use 24 games per deck/orientation by default: 192 games total, representing 96 independent mirrored deal pairs.
+Make exposes one configurable search-experiment entry point instead of a target per solver or parameter combination. The runner owns experiment defaults.
 
 ```bash
 make verify-algorithms
-make mcts-bench
-make search-bench
 
-# Provisional agent against itself except for tree reuse.
-make ismcts-match ISMCTS_MATCH_ARGS="--b-no-tree-reuse"
+# Canonical unattended suite: 48 games per deck/orientation by default.
+make experiments
 
-# Progressive widening and rollout-policy/depth experiments use the same harness.
-make ismcts-match ISMCTS_MATCH_ARGS="--b-pw 1.0"
-make ismcts-match ISMCTS_MATCH_ARGS="--b-rollout-policy greedy"
-make ismcts-match ISMCTS_MATCH_ARGS="--b-rollout-depth 8"
+# One ISMCTS A/B comparison: runner default is 24 games per deck/orientation.
+make experiments \
+  EXPERIMENT=ismcts-match \
+  EXPERIMENT_ARGS="--b-no-tree-reuse"
 
-# Final cross-algorithm comparison after choosing the ISMCTS configuration.
-make strength-bench
+make experiments \
+  EXPERIMENT=ismcts-match \
+  EXPERIMENT_ARGS="--b-pw 1.0"
 
-# Canonical unattended batch for an 8-core systemd laptop.
-# Runs 48 games per deck/orientation by default and checkpoints after each run.
-make experiment-suite
+make experiments \
+  EXPERIMENT=ismcts-match \
+  EXPERIMENT_ARGS="--b-rollout-policy greedy"
+
+make experiments \
+  EXPERIMENT=ismcts-match \
+  EXPERIMENT_ARGS="--b-rollout-depth 8"
+
+# Equal-time ISMCTS vs alpha-beta.
+make experiments EXPERIMENT=strength-bench
 ```
 
-`make experiment-suite` first runs `make verify-algorithms`, then uses `systemd-inhibit` to keep the machine awake. It runs an identical baseline-vs-baseline control, reuse vs cold, progressive widening at 0.5 and 1.0, cheap vs greedy/random rollouts, rollout depth 5 vs 3/8, and finally the provisional baseline against alpha-beta. Each A/B comparison changes only candidate B. Parallel matchups display one aggregate live progress bar (games completed, elapsed time, ETA, active cells) and print each deck/orientation result as it finishes. The suite writes a checkpointed aggregate summary under `artifacts/search-benchmark/suite/` and continues after an isolated experiment failure unless `EXPERIMENT_SUITE_ARGS="--stop-on-error"` is supplied.
-
-The suite default is 48 games per deck/orientation: 384 games and 192 independent mirrored deal-pairs per comparison. Override it deliberately, for example `EXPERIMENT_SUITE_GAMES=24`; the runner refuses values below 24. For one-off comparisons, `make ismcts-match` remains at 24 games per deck/orientation.
+`make experiments` runs algorithm verification first and uses `systemd-inhibit` while the selected experiment runs. The default `suite` performs the baseline control, reuse, progressive widening, rollout policy/depth comparisons, and the provisional baseline-vs-alpha-beta reference. Parallel matchups display one aggregate live progress bar and checkpoint results under `artifacts/search-benchmark/`. Experiment variations belong in `EXPERIMENT` / `EXPERIMENT_ARGS`, not new Make targets.
 
 Strength artifacts preserve per-game seeds/outcomes, effective configuration, source fingerprints and paired uncertainty over mirrored deals. Different budgets/seeds/configurations use different artifact directories.
 
@@ -128,13 +132,11 @@ Make is the supported command surface. `tools/run_experiments.py` implements the
 
 | Question | Command | Meaning |
 | --- | --- | --- |
-| Are data/decks valid? | `make verify-cards` | Schema, effects, legal decks, native loading |
-| Does ordinary play run? | `make balance-quick` | Static report, 8 heuristic games per canonical deck, health and card flow |
-| How do experimental draw profiles play? | `python tools/run_experiments.py run --preset quick --dry-run` | Inspect experimental Force/Command runs before spending compute |
-| Which search is stronger? | `make strength-bench` | Mirrored ISMCTS/alpha-beta matches with the decision-grade sample defaults |
-| What is a card's paired replacement value? | `python tools/counterfactual_balance.py --cards followed --contexts 3 --games-per-context 4 --no-pairs --no-triples` | Policy-specific causal replacement, with uncertainty |
-| Does a selected effect survive stronger play? | `python tools/targeted_online_counterfactual.py --broad artifacts/counterfactual-balance.json` | Online MCCFR on the exact broad contexts/interventions |
-| Release balance suite | `make balance-deep` | 2000 games per mirror/directed archetype cell, static/health/card flow, full per-card paired sweep |
+| Are data/decks/runtime valid? | `make verify` | Data, fast tests and browser/native parity |
+| Does ordinary play look healthy? | `make balance` | Quick static/playability/health signal |
+| Need deeper balance evidence? | `make balance BALANCE_PRESET=deep` | Larger canonical balance pipeline |
+| Which search is stronger? | `make experiments EXPERIMENT=strength-bench` | Mirrored equal-time ISMCTS/alpha-beta matches |
+| What is a card's paired replacement value? | `python tools/counterfactual_balance.py --cards followed --contexts 3 --games-per-context 4 --no-pairs --no-triples` | Specialist analysis, outside the Make lifecycle surface |
 
 Quick runs check plumbing and playability, not statistical balance. Deep runs are explicitly opt-in. Override sizes and seeds for development:
 
@@ -153,10 +155,11 @@ Outputs live under `artifacts/balance/<preset>/<identity>/`, `artifacts/cardflow
 Full-pool causal analysis uses per-card sweeps because all cards/Heroes cannot fit in a legal deck. Selected compatible subsets can request pair/triple factorial analysis. Solver training/verification and targeted online analysis remain separate optional expensive stages:
 
 ```bash
-make verify-mccfr
-make mccfr-smoke
+python tools/verify_mccfr.py --iterations 30000
 python tools/train_mccfr.py --iterations 5000 --depth 3 --workers 1 --output artifacts/mccfr-policy.json
 ```
+
+These are specialist research tools rather than permanent Make targets.
 
 Policies and old balance artifacts must be regenerated after fingerprint-changing rule, card, search or evaluation edits. Pages can display saved compatible evidence without rerunning deep analysis.
 
