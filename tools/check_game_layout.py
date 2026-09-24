@@ -166,7 +166,9 @@ CHECK_SCRIPT = r"""
     if (scenario === "battle") {
       document.querySelector("#hand [data-hand-card]")?.click();
       const cycle = $("cycle-button");
-      if (!cycle || cycle.disabled || !cycle.textContent.includes("0 C")) fail("free-cycle-action-cost-missing");
+      if (cycle && !cycle.hidden && getComputedStyle(cycle).display !== "none") {
+        fail("standard-cycle-control-visible");
+      }
       document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     }
     if (scenario === "drawer") {
