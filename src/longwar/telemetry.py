@@ -526,6 +526,9 @@ class Telemetry:
                         stats.ismcts_root_reused_decisions,
                         stats.ismcts_searched_decisions,
                     ),
+                    "tree_nodes_before_total": stats.ismcts_tree_nodes_before_total,
+                    "tree_nodes_added_total": stats.ismcts_tree_nodes_added_total,
+                    "root_prior_visits_total": stats.ismcts_root_prior_visits_total,
                     "mean_tree_nodes_before": self._ratio(
                         stats.ismcts_tree_nodes_before_total,
                         stats.ismcts_searched_decisions,
