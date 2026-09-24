@@ -417,6 +417,7 @@ def ismcts_search(
     list root_states,
     int root_player,
     *,
+    ISMCTSTree tree=None,
     long iterations=20000,
     int rollout_depth=5,
     int tree_depth_limit=96,
@@ -427,7 +428,6 @@ def ismcts_search(
     double leaf_scale=100.0,
     unsigned long long seed=1701,
 ):
-    cdef ISMCTSTree tree
     cdef FastState state = FastState()
     cdef FastState score_scratch = FastState()
     cdef FastState sampled
@@ -439,18 +439,22 @@ def ismcts_search(
     cdef int path_nodes[MAX_ISMCTS_DEPTH]
     cdef uint16_t path_indices[MAX_ISMCTS_DEPTH]
     cdef int n, actor, ix, depth, rollout_steps, sample_ix, node_index
-    cdef int root_index, max_tree_depth_seen = 0
+    cdef int root_index, prior_root_index, max_tree_depth_seen = 0
     cdef int i, best_ix=-1, second_ix=-1
     cdef int rollout_battle, action_battle
     cdef long iteration
     cdef long best_visits=-1, second_visits=-1
+    cdef long root_total_visits_before=0
+    cdef long selected_action_visits_before=0
+    cdef size_t tree_nodes_before=0
+    cdef uint32_t root_prior_visits[MAX_ACTIONS]
     cdef long rollouts_stopped_terminal=0
     cdef long rollouts_stopped_battle_boundary=0
     cdef long rollouts_stopped_depth=0
     cdef long rollout_actions=0
     cdef double utility, node_utility, mean_value
     cdef double best_mean=-1.0e300, second_mean=-1.0e300
-    cdef bint expanded, created, rollout_boundary
+    cdef bint expanded, created, rollout_boundary, root_reused=False
     cdef list root_stats
 
     if not root_states:
@@ -468,11 +472,23 @@ def ismcts_search(
     if leaf_scale <= 0.0:
         raise ValueError("leaf_scale must be positive")
 
-    tree = ISMCTSTree(iterations)
+    if tree is None:
+        tree = ISMCTSTree(iterations)
+    tree_nodes_before = tree.node_count
+    for i in range(MAX_ACTIONS):
+        root_prior_visits[i] = 0
+
     sampled = <FastState>root_states[0]
     if sampled.phase == PHASE_COMPLETE:
         raise ValueError("ISMCTS cannot search a completed state")
     root_key = engine.information_hash_fast(sampled, root_player)
+    prior_root_index = tree.find(root_key)
+    if prior_root_index >= 0:
+        root_reused = True
+        root_node = &tree.nodes[prior_root_index]
+        root_total_visits_before = root_node.total_visits
+        for i in range(root_node.action_count):
+            root_prior_visits[i] = root_node.visits[i]
 
     for iteration in range(iterations):
         sample_ix = _ismcts_rand_index(&rng, len(root_states))
@@ -599,6 +615,8 @@ def ismcts_search(
             {
                 "action": root_node.actions[i],
                 "visits": root_node.visits[i],
+                "prior_visits": root_prior_visits[i],
+                "new_visits": root_node.visits[i] - root_prior_visits[i],
                 "availability": root_node.availability[i],
                 "mean_value": (
                     mean_value if root_node.visits[i] else 0.0
@@ -631,17 +649,25 @@ def ismcts_search(
 
     if best_ix < 0:
         raise RuntimeError("ISMCTS root has no action")
+    selected_action_visits_before = root_prior_visits[best_ix]
 
     return {
         "action": root_node.actions[best_ix],
         "root_total_visits": root_node.total_visits,
+        "root_total_visits_before": root_total_visits_before,
+        "root_new_visits": root_node.total_visits - root_total_visits_before,
         "selected_action_visits": best_visits,
+        "selected_action_visits_before": selected_action_visits_before,
+        "selected_action_new_visits": best_visits - selected_action_visits_before,
+        "root_reused": root_reused,
         "mean_value": best_mean,
         "second_mean_value": (
             second_mean if second_ix >= 0 else best_mean
         ),
         "iterations": iterations,
         "tree_nodes": tree.node_count,
+        "tree_nodes_before": tree_nodes_before,
+        "tree_nodes_added": tree.node_count - tree_nodes_before,
         "max_tree_depth": max_tree_depth_seen,
         "belief_states": len(root_states),
         "root_stats": root_stats,
