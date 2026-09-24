@@ -89,16 +89,16 @@ def test_alternative_rule_profiles_use_canonical_cards():
         GameEngine(data, rules=hidden)
 
 
-@pytest.mark.parametrize("changes", [{"deck_size": 30.5}, {"opening_hand_size": True}, {"automatic_draw": 1}, {"command_cap": "20"}, {"battle_end_hand_limit": 7.5}, {"completion_draw_names": "oren"}])
+@pytest.mark.parametrize("changes", [{"opening_hand_size": 0}, {"opening_hand_size": True}, {"automatic_draw": 1}, {"command_cap": "20"}, {"battle_end_hand_limit": 7.5}, {"completion_draw_names": "oren"}])
 def test_rules_do_not_silently_coerce_values(changes):
     with pytest.raises(ValueError):
         GameRules(**changes)
 
 
 def test_deck_capacity_and_malformed_entries_are_rejected(data):
-    with pytest.raises(ValueError, match="at most 64"):
-        GameEngine(data, rules=GameRules(deck_size=65))
     engine = GameEngine(data)
+    with pytest.raises(InvalidDeck, match="at most 64"):
+        engine.validate_deck(["followed"] * 65)
     with pytest.raises(InvalidDeck, match="list of card ids"):
         engine.validate_deck([{}] * 30)
 
