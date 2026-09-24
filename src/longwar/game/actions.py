@@ -60,6 +60,11 @@ class Cycle:
 
 
 @dataclass(frozen=True)
+class Discard:
+    card_id: str
+
+
+@dataclass(frozen=True)
 class Pass:
     pass
 
@@ -69,7 +74,7 @@ class ChooseFirst:
     player: int
 
 
-Action: TypeAlias = PlaySubject | PlayLink | PlayName | PlayPlot | PlayScheme | SetStratagem | Draw | Cycle | Pass | ChooseFirst
+Action: TypeAlias = PlaySubject | PlayLink | PlayName | PlayPlot | PlayScheme | SetStratagem | Draw | Cycle | Discard | Pass | ChooseFirst
 
 
 @lru_cache(maxsize=8192)
@@ -115,6 +120,8 @@ def action_key(action: Action) -> str:
         return f"plot:{action.card_id}:{targets}"
     if isinstance(action, Cycle):
         return f"cycle:{action.card_id}"
+    if isinstance(action, Discard):
+        return f"discard:{action.card_id}"
     raise TypeError(f"Unsupported action type: {type(action)!r}")
 
 
@@ -126,6 +133,8 @@ def action_from_key(key: str) -> Action:
         return Draw()
     if key.startswith("cycle:"):
         return Cycle(key.split(":", 1)[1])
+    if key.startswith("discard:"):
+        return Discard(key.split(":", 1)[1])
     if key.startswith("choose_first:"):
         return ChooseFirst(int(key.split(":", 1)[1]))
 

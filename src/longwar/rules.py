@@ -33,6 +33,9 @@ class GameRules:
     automatic_draw: bool = False
     paid_draw_enabled: bool = False
     paid_draw_command_cost: int = 1
+    paid_draw_consumes_operation: bool = True
+    automatic_draw_hand_limit: int | None = None
+    battle_end_hand_limit: int | None = None
 
     pass_final_operation: bool = False
     pass_requires_both_acted: bool = False
@@ -64,6 +67,16 @@ class GameRules:
             )
         if self.paid_draw_enabled and not self.command_enabled:
             raise ValueError("paid_draw_enabled requires Command mode")
+        for name, value in (
+            ("automatic_draw_hand_limit", self.automatic_draw_hand_limit),
+            ("battle_end_hand_limit", self.battle_end_hand_limit),
+        ):
+            if value is not None and value < 1:
+                raise ValueError(f"{name} must be positive when enabled")
+        if self.automatic_draw_hand_limit is not None and not self.automatic_draw:
+            raise ValueError(
+                "automatic_draw_hand_limit requires automatic_draw"
+            )
 
     @classmethod
     def standard(cls) -> "GameRules":
@@ -93,6 +106,36 @@ class GameRules:
             completion_command_refund=1,
             public_stratagems=True,
         )
+
+
+    @classmethod
+    def force_experiment(cls, variant: str) -> "GameRules":
+        """Named Force-flow experiment variants.
+
+        control: current automatic Draw.
+        paid-free: paid Draw costs Command but keeps the operation.
+        auto-discard9/7: automatic Draw plus strategic Battle-end cleanup.
+        auto-cap10: automatic Draw only while hand size is below 10.
+        """
+        if variant == "control":
+            return cls.force_candidate("automatic")
+        if variant == "paid-free":
+            return cls.force_candidate("paid").with_overrides(
+                paid_draw_consumes_operation=False,
+            )
+        if variant == "auto-discard9":
+            return cls.force_candidate("automatic").with_overrides(
+                battle_end_hand_limit=9,
+            )
+        if variant == "auto-discard7":
+            return cls.force_candidate("automatic").with_overrides(
+                battle_end_hand_limit=7,
+            )
+        if variant == "auto-cap10":
+            return cls.force_candidate("automatic").with_overrides(
+                automatic_draw_hand_limit=10,
+            )
+        raise ValueError(f"Unknown Force experiment variant: {variant}")
 
     def with_overrides(self, **changes: object) -> "GameRules":
         return replace(self, **changes)

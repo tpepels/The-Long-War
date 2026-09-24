@@ -95,6 +95,9 @@ class GameEngine:
         automatic_draw: bool = False,
         paid_draw_enabled: bool = False,
         paid_draw_command_cost: int = 1,
+        paid_draw_consumes_operation: bool = True,
+        automatic_draw_hand_limit: int | None = None,
+        battle_end_hand_limit: int | None = None,
         cycle_enabled: bool = True,
         pass_final_operation: bool = False,
         pass_requires_both_acted: bool = False,
@@ -118,6 +121,9 @@ class GameEngine:
                 automatic_draw=automatic_draw,
                 paid_draw_enabled=paid_draw_enabled,
                 paid_draw_command_cost=paid_draw_command_cost,
+                paid_draw_consumes_operation=paid_draw_consumes_operation,
+                automatic_draw_hand_limit=automatic_draw_hand_limit,
+                battle_end_hand_limit=battle_end_hand_limit,
                 cycle_enabled=cycle_enabled,
                 pass_final_operation=pass_final_operation,
                 pass_requires_both_acted=pass_requires_both_acted,
@@ -144,6 +150,9 @@ class GameEngine:
         self.automatic_draw = rules.automatic_draw
         self.paid_draw_enabled = rules.paid_draw_enabled
         self.paid_draw_command_cost = rules.paid_draw_command_cost
+        self.paid_draw_consumes_operation = rules.paid_draw_consumes_operation
+        self.automatic_draw_hand_limit = rules.automatic_draw_hand_limit
+        self.battle_end_hand_limit = rules.battle_end_hand_limit
         self.cycle_enabled = rules.cycle_enabled
         self.pass_final_operation = rules.pass_final_operation
         self.pass_requires_both_acted = rules.pass_requires_both_acted
@@ -394,6 +403,9 @@ class GameEngine:
         state.reshuffle_card_totals[:] = data["reshuffle_card_totals"]
         state.reshuffle_hand_card_totals[:] = data["reshuffle_hand_card_totals"]
         state.pending_final_operation_for = data["pending_final_operation_for"]
+        state.cleanup_pending = bool(data["cleanup_pending"])
+        state.cleanup_next_starter = data["cleanup_next_starter"]
+        state.cleanup_next_chooser = data["cleanup_next_chooser"]
         state.last_battle_snapshot = data["last_battle_snapshot"]
         state.pass_order[:] = data["pass_order"]
         state.chooser = data["chooser"]

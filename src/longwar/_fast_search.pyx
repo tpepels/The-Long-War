@@ -29,6 +29,7 @@ cdef int TYPE_SCHEME = 6
 cdef int TYPE_STRATAGEM = 7
 cdef int TYPE_DRAW = 8
 cdef int TYPE_CYCLE = 9
+cdef int TYPE_DISCARD = 10
 
 cdef int CARD_SUBJECT = 1
 cdef int CARD_LINK = 2
@@ -181,6 +182,9 @@ cdef class FastState:
     cdef int8_t last_pass_order[2]
     cdef uint8_t last_pass_len
     cdef int8_t pending_final_operation_for
+    cdef uint8_t cleanup_pending
+    cdef int8_t cleanup_next_starter
+    cdef int8_t cleanup_next_chooser
 
     cdef int8_t active_player
     cdef int16_t battle
@@ -246,6 +250,9 @@ cdef class FastState:
         memset(self.last_pass_order, 0xff, sizeof(self.last_pass_order))
         self.last_pass_len = 0
         self.pending_final_operation_for = -1
+        self.cleanup_pending = 0
+        self.cleanup_next_starter = -1
+        self.cleanup_next_chooser = -1
         self.pass_len = 0
         self.active_player = 0
         self.battle = 1
@@ -311,6 +318,9 @@ cdef class FastState:
         memcpy(self.last_pass_order, other.last_pass_order, sizeof(self.last_pass_order))
         self.last_pass_len = other.last_pass_len
         self.pending_final_operation_for = other.pending_final_operation_for
+        self.cleanup_pending = other.cleanup_pending
+        self.cleanup_next_starter = other.cleanup_next_starter
+        self.cleanup_next_chooser = other.cleanup_next_chooser
         self.pass_len = other.pass_len
         self.active_player = other.active_player
         self.battle = other.battle
@@ -347,6 +357,9 @@ cdef class FastEngine:
     cdef bint automatic_draw
     cdef bint paid_draw_enabled
     cdef int paid_draw_command_cost
+    cdef bint paid_draw_consumes_operation
+    cdef int automatic_draw_hand_limit
+    cdef int battle_end_hand_limit
     cdef bint cycle_enabled
     cdef bint pass_final_operation
     cdef bint pass_requires_both_acted
@@ -470,6 +483,19 @@ cdef class FastEngine:
         self.automatic_draw = bool(engine.automatic_draw)
         self.paid_draw_enabled = bool(engine.paid_draw_enabled)
         self.paid_draw_command_cost = int(engine.paid_draw_command_cost)
+        self.paid_draw_consumes_operation = bool(
+            engine.paid_draw_consumes_operation
+        )
+        self.automatic_draw_hand_limit = (
+            -1
+            if engine.automatic_draw_hand_limit is None
+            else int(engine.automatic_draw_hand_limit)
+        )
+        self.battle_end_hand_limit = (
+            -1
+            if engine.battle_end_hand_limit is None
+            else int(engine.battle_end_hand_limit)
+        )
         self.cycle_enabled = bool(engine.cycle_enabled)
         self.pass_final_operation = bool(engine.pass_final_operation)
         self.pass_requires_both_acted = bool(engine.pass_requires_both_acted)
@@ -645,6 +671,17 @@ cdef class FastEngine:
             -1
             if state.pending_final_operation_for is None
             else state.pending_final_operation_for
+        )
+        fast.cleanup_pending = bool(state.cleanup_pending)
+        fast.cleanup_next_starter = (
+            -1
+            if state.cleanup_next_starter is None
+            else state.cleanup_next_starter
+        )
+        fast.cleanup_next_chooser = (
+            -1
+            if state.cleanup_next_chooser is None
+            else state.cleanup_next_chooser
         )
         for i, p in enumerate(state.pass_order):
             fast.pass_order[i] = p
@@ -1023,6 +1060,20 @@ cdef class FastEngine:
             return 2
 
         player = state.active_player
+        if state.cleanup_pending:
+            for card in range(self.n_cards):
+                if state.hand[player][card] > 0:
+                    actions[n] = encode_action(
+                        TYPE_DISCARD,
+                        card,
+                        -1,
+                        -1,
+                        player,
+                    )
+                    n += 1
+            return n
+
+        player = state.active_player
         opponent = 1 - player
 
         if (
@@ -1393,6 +1444,11 @@ cdef class FastEngine:
             self.automatic_draw
             and state.phase == PHASE_BATTLE
             and not state.passed[player]
+            and not state.cleanup_pending
+            and (
+                self.automatic_draw_hand_limit < 0
+                or state.hand_len[player] < self.automatic_draw_hand_limit
+            )
         ):
             self.draw_for_battle(state, player, 1)
 
@@ -1479,6 +1535,49 @@ cdef class FastEngine:
                 self.append_discard(state, player, card, False)
                 state.stratagem[player] = -1
                 state.stratagem_revealed[player] = 0
+
+    cdef void begin_next_battle_fast(
+        self,
+        FastState state,
+        int starter,
+        int chooser,
+    ) noexcept:
+        cdef int p
+        state.cleanup_pending = 0
+        state.cleanup_next_starter = -1
+        state.cleanup_next_chooser = -1
+        for p in range(2):
+            state.battle_start_hand_size[p] = state.hand_len[p]
+        if starter >= 0:
+            state.phase = PHASE_BATTLE
+            state.chooser = -1
+            self.start_turn_fast(state, starter)
+        else:
+            state.phase = PHASE_CHOOSE
+            state.chooser = chooser
+            state.active_player = chooser
+
+    cdef void advance_cleanup_fast(self, FastState state) noexcept:
+        cdef int p
+        if self.battle_end_hand_limit < 0:
+            self.begin_next_battle_fast(
+                state,
+                state.cleanup_next_starter,
+                state.cleanup_next_chooser,
+            )
+            return
+        for p in range(2):
+            if state.hand_len[p] > self.battle_end_hand_limit:
+                state.cleanup_pending = 1
+                state.phase = PHASE_BATTLE
+                state.chooser = -1
+                state.active_player = p
+                return
+        self.begin_next_battle_fast(
+            state,
+            state.cleanup_next_starter,
+            state.cleanup_next_chooser,
+        )
 
     cdef void score_battle(self, FastState state):
         cdef int front, a, b, controls0=0, controls1=0, total0=0, total1=0
@@ -1588,16 +1687,30 @@ cdef class FastEngine:
 
         for p in range(2):
             state.passed[p] = 0
-            state.battle_start_hand_size[p] = state.hand_len[p]
 
-        if self.first_passer_starts_next_battle and first_passer >= 0:
-            state.phase = PHASE_BATTLE
-            state.chooser = -1
-            self.start_turn_fast(state, first_passer)
+        state.cleanup_next_starter = (
+            first_passer
+            if self.first_passer_starts_next_battle and first_passer >= 0
+            else -1
+        )
+        state.cleanup_next_chooser = (
+            -1 if state.cleanup_next_starter >= 0 else loser
+        )
+        if (
+            self.battle_end_hand_limit >= 0
+            and (
+                state.hand_len[0] > self.battle_end_hand_limit
+                or state.hand_len[1] > self.battle_end_hand_limit
+            )
+        ):
+            state.cleanup_pending = 1
+            self.advance_cleanup_fast(state)
         else:
-            state.phase = PHASE_CHOOSE
-            state.chooser = loser
-            state.active_player = loser
+            self.begin_next_battle_fast(
+                state,
+                state.cleanup_next_starter,
+                state.cleanup_next_chooser,
+            )
 
     cdef void pass_action(self, FastState state, int player):
         cdef int opponent = 1 - player
@@ -1654,7 +1767,19 @@ cdef class FastEngine:
             else:
                 state.draw_used[actor] = 1
             self.draw_for_battle(state, actor, 1)
+            if self.paid_draw_enabled and not self.paid_draw_consumes_operation:
+                state.turn_number += 1
+                return
             self.finish_operation_fast(state, actor)
+            return
+
+        if kind == TYPE_DISCARD:
+            if not state.cleanup_pending:
+                raise ValueError("Discard is only legal during Battle cleanup")
+            self.take_from_hand(state, actor, card, 0)
+            self.append_discard(state, actor, card, False)
+            state.turn_number += 1
+            self.advance_cleanup_fast(state)
             return
 
         if kind == TYPE_CYCLE:
@@ -1838,6 +1963,8 @@ cdef class FastEngine:
             return "draw"
         if kind == TYPE_CYCLE:
             return f"cycle:{self.card_ids[card]}"
+        if kind == TYPE_DISCARD:
+            return f"discard:{self.card_ids[card]}"
         if kind == TYPE_CHOOSE:
             return f"choose_first:{pos}"
         if kind == TYPE_SUBJECT:
@@ -2085,6 +2212,17 @@ cdef class FastEngine:
                 if state.pending_final_operation_for < 0
                 else state.pending_final_operation_for
             ),
+            "cleanup_pending": bool(state.cleanup_pending),
+            "cleanup_next_starter": (
+                None
+                if state.cleanup_next_starter < 0
+                else state.cleanup_next_starter
+            ),
+            "cleanup_next_chooser": (
+                None
+                if state.cleanup_next_chooser < 0
+                else state.cleanup_next_chooser
+            ),
             "pass_order": [
                 state.pass_order[i]
                 for i in range(state.pass_len)
@@ -2120,6 +2258,9 @@ cdef class FastEngine:
             "free_cycle": [bool(state.free_cycle[0]), bool(state.free_cycle[1])],
             "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
             "pending_final_operation_for": None if state.pending_final_operation_for < 0 else state.pending_final_operation_for,
+            "cleanup_pending": bool(state.cleanup_pending),
+            "cleanup_next_starter": None if state.cleanup_next_starter < 0 else state.cleanup_next_starter,
+            "cleanup_next_chooser": None if state.cleanup_next_chooser < 0 else state.cleanup_next_chooser,
             "hands": [
                 {self.card_ids[card]: state.hand[p][card] for card in range(self.n_cards) if state.hand[p][card]}
                 for p in range(2)
