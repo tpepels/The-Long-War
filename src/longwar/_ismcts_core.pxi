@@ -271,11 +271,13 @@ cdef class ISMCTSTree:
         uint64_t* legal,
         int n,
         double exploration,
+        double progressive_widening,
         uint64_t* rng,
         bint* expanded,
     ) except -1:
         cdef ISMCTSNodeRecord* node = &self.nodes[node_index]
-        cdef int i, ix, chosen=-1, unvisited=0
+        cdef int i, ix, chosen=-1, unvisited=0, visited_legal=0
+        cdef int allowed=n
         cdef double mean, bonus, score, best=-1.0e300
 
         for i in range(n):
@@ -289,14 +291,35 @@ cdef class ISMCTSTree:
                 unvisited += 1
                 if _ismcts_rand_index(rng, unvisited) == 0:
                     chosen = ix
+            else:
+                visited_legal += 1
 
-        if chosen >= 0:
+        # Optional square-root progressive widening. A value <= 0 preserves
+        # the original ISMCTS behavior: visit every legal action once before
+        # UCT selection. With widening enabled, a node may expand at most
+        # floor(c * sqrt(N + 1)) currently-legal actions, but always at least
+        # one. Actions unavailable in this determinization do not consume the
+        # node's legal-action allowance.
+        if progressive_widening > 0.0:
+            allowed = <int>(
+                progressive_widening
+                * sqrt(<double>(node.total_visits + 1))
+            )
+            if allowed < 1:
+                allowed = 1
+            if allowed > n:
+                allowed = n
+
+        if chosen >= 0 and visited_legal < allowed:
             expanded[0] = True
             return chosen
 
         expanded[0] = False
+        chosen = -1
         for i in range(n):
             ix = self._find_action(node, legal[i])
+            if node.visits[ix] == 0:
+                continue
             mean = node.value_sum[ix] / node.visits[ix]
             bonus = exploration * sqrt(
                 log(<double>(node.availability[ix] + 1))
@@ -306,6 +329,20 @@ cdef class ISMCTSTree:
             if score > best:
                 best = score
                 chosen = ix
+
+        # This can only happen when the current determinization exposes no
+        # previously visited action. Expand one available action regardless
+        # of the global widening allowance so the information set remains
+        # usable across hidden-state samples.
+        if chosen < 0:
+            for i in range(n):
+                ix = self._find_action(node, legal[i])
+                if node.visits[ix] == 0:
+                    unvisited -= 1
+                    if unvisited <= 0:
+                        chosen = ix
+                        break
+            expanded[0] = True
         return chosen
 
     cdef void update(
@@ -384,6 +421,7 @@ def ismcts_search(
     int rollout_depth=5,
     int tree_depth_limit=96,
     double exploration=1.4142135623730951,
+    double progressive_widening=0.0,
     double rollout_epsilon=0.12,
     int rollout_policy=1,
     double leaf_scale=100.0,
@@ -425,6 +463,8 @@ def ismcts_search(
         raise ValueError(
             f"tree_depth_limit exceeds native maximum {MAX_ISMCTS_DEPTH}"
         )
+    if progressive_widening < 0.0:
+        raise ValueError("progressive_widening must be non-negative")
     if leaf_scale <= 0.0:
         raise ValueError("leaf_scale must be positive")
 
@@ -463,6 +503,7 @@ def ismcts_search(
                 &actions[0],
                 n,
                 exploration,
+                progressive_widening,
                 &rng,
                 &expanded,
             )
@@ -609,6 +650,8 @@ def ismcts_search(
         "rollouts_stopped_depth": rollouts_stopped_depth,
         "rollout_actions": rollout_actions,
         "tree_storage": "native-hash-arena",
+        "progressive_widening": progressive_widening,
+        "progressive_widening_alpha": 0.5 if progressive_widening > 0.0 else 0.0,
         "rollout_policy": (
             "cheap" if rollout_policy == 1
             else "random" if rollout_policy == 2
