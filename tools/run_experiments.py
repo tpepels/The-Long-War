@@ -399,6 +399,7 @@ def benchmark_strength(
     rollout_policy: str = "cheap",
     progressive_widening: float = 0.0,
     exploration: float = 2 ** 0.5,
+    reuse_tree: bool = True,
 ) -> None:
     """Mirrored ISMCTS-vs-alpha-beta matches on all Force reference decks."""
     require_cython()
@@ -411,13 +412,14 @@ def benchmark_strength(
 
     decks = ("reference", "avaros", "mara", "sera")
     c_label = f"{exploration:g}".replace(".", "p")
+    tree_label = "reuse" if reuse_tree else "cold"
+    parts = ["strength", tree_label, f"c-{c_label}"]
     if progressive_widening > 0.0:
         pw_label = f"{progressive_widening:g}".replace(".", "p")
-        output_dir = BENCH_ROOT / f"strength-c-{c_label}-pw-{pw_label}"
-    elif abs(exploration - 2 ** 0.5) > 1e-12:
-        output_dir = BENCH_ROOT / f"strength-c-{c_label}"
+        parts.append(f"pw-{pw_label}")
     else:
-        output_dir = BENCH_ROOT / "strength"
+        parts.append("pw-0")
+    output_dir = BENCH_ROOT / "-".join(parts)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     cells: list[tuple[str, str, Path, list[str]]] = []
@@ -473,6 +475,8 @@ def benchmark_strength(
                 "--output",
                 str(output),
             ]
+            if not reuse_tree:
+                command.append("--ismcts-no-tree-reuse")
             cells.append((deck, orientation, output, command))
 
     print(
@@ -483,7 +487,8 @@ def benchmark_strength(
     )
     print(
         f"ISMCTS={ismcts_iterations:,} iterations/decision, "
-        f"c={exploration:g}, pw={progressive_widening:g}; "
+        f"c={exploration:g}, pw={progressive_widening:g}, "
+        f"tree={'reuse' if reuse_tree else 'cold'}; "
         f"alpha-beta={alpha_nodes:,} node budget, depth 6, beam 5"
     )
     print(f"Parallel cells: {min(jobs, len(cells))}")
@@ -519,6 +524,13 @@ def benchmark_strength(
         "depth": 0,
         "rollout_actions": 0,
     }
+    reuse_totals = {
+        "searched_decisions": 0,
+        "root_reused_decisions": 0,
+        "tree_nodes_before_total": 0,
+        "tree_nodes_added_total": 0,
+        "root_prior_visits_total": 0,
+    }
 
     for deck, orientation, output, elapsed in results:
         payload = json.loads(output.read_text(encoding="utf-8"))
@@ -540,6 +552,9 @@ def benchmark_strength(
         cutoffs = decision_stats.get("ismcts_rollout_cutoffs", {})
         for key in cutoff_totals:
             cutoff_totals[key] += int(cutoffs.get(key, 0) or 0)
+        reuse = decision_stats.get("ismcts_tree_reuse", {})
+        for key in reuse_totals:
+            reuse_totals[key] += int(reuse.get(key, 0) or 0)
 
     total_games = overall_mcts + overall_alpha
     low, high = _wilson_interval(overall_mcts, total_games)
@@ -590,6 +605,38 @@ def benchmark_strength(
     }
     _print_ismcts_cutoffs(cutoff_summary)
 
+    searched_decisions = reuse_totals["searched_decisions"]
+    reuse_summary = {
+        **reuse_totals,
+        "root_reuse_rate": (
+            reuse_totals["root_reused_decisions"] / searched_decisions
+            if searched_decisions else None
+        ),
+        "mean_tree_nodes_before": (
+            reuse_totals["tree_nodes_before_total"] / searched_decisions
+            if searched_decisions else None
+        ),
+        "mean_tree_nodes_added": (
+            reuse_totals["tree_nodes_added_total"] / searched_decisions
+            if searched_decisions else None
+        ),
+        "mean_root_prior_visits": (
+            reuse_totals["root_prior_visits_total"] / searched_decisions
+            if searched_decisions else None
+        ),
+    }
+    if searched_decisions:
+        print(
+            "ISMCTS tree reuse: "
+            f"root reused={100.0 * float(reuse_summary['root_reuse_rate']):.1f}% "
+            f"| prior root visits/decision="
+            f"{float(reuse_summary['mean_root_prior_visits']):.1f} "
+            f"| new infosets/decision="
+            f"{float(reuse_summary['mean_tree_nodes_added']):.1f} "
+            f"| tree infosets before/decision="
+            f"{float(reuse_summary['mean_tree_nodes_before']):.1f}"
+        )
+
     summary = {
         "rules_profile": "force-automatic",
         "games_per_orientation": games_per_orientation,
@@ -599,6 +646,8 @@ def benchmark_strength(
             "rollout_depth": 5,
             "rollout_policy": rollout_policy,
             "exploration": exploration,
+            "tree_reuse_enabled": reuse_tree,
+            "tree_reuse": reuse_summary,
             "progressive_widening": progressive_widening,
             "progressive_widening_alpha": (
                 0.5 if progressive_widening > 0 else 0.0
@@ -955,6 +1004,11 @@ def parse_args() -> argparse.Namespace:
     strength_bench.add_argument("--alpha-nodes", type=int, default=20_000)
     strength_bench.add_argument("--exploration", type=float, default=2 ** 0.5)
     strength_bench.add_argument(
+        "--no-tree-reuse",
+        action="store_true",
+        help="Use a fresh ISMCTS tree for every move.",
+    )
+    strength_bench.add_argument(
         "--progressive-widening",
         type=float,
         default=0.0,
@@ -1102,6 +1156,7 @@ def main() -> None:
             rollout_policy=args.rollout_policy,
             progressive_widening=args.progressive_widening,
             exploration=args.exploration,
+            reuse_tree=not args.no_tree_reuse,
         )
     elif args.command == "exploration-sweep":
         benchmark_exploration_sweep(
