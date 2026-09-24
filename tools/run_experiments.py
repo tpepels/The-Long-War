@@ -101,17 +101,29 @@ def balance_run(args: argparse.Namespace) -> Path:
     return output
 
 
-def run_command(command: list[str], *, capture: bool = False) -> subprocess.CompletedProcess[str]:
-    printable = " ".join(command)
-    print(f"$ {printable}", flush=True)
-    return subprocess.run(
-        command,
-        cwd=ROOT,
-        check=True,
-        text=True,
-        stdout=subprocess.PIPE if capture else None,
-        stderr=subprocess.STDOUT if capture else None,
-    )
+def run_command(
+    command: list[str],
+    *,
+    capture: bool = False,
+    echo: bool | None = None,
+) -> subprocess.CompletedProcess[str]:
+    if echo is None:
+        echo = not capture
+    if echo:
+        print(f"$ {' '.join(command)}", flush=True)
+    try:
+        return subprocess.run(
+            command,
+            cwd=ROOT,
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE if capture else None,
+            stderr=subprocess.STDOUT if capture else None,
+        )
+    except subprocess.CalledProcessError as exc:
+        if capture and exc.stdout:
+            print(exc.stdout, end="" if exc.stdout.endswith("\n") else "\n")
+        raise
 
 
 def require_cython() -> None:
