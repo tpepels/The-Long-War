@@ -31,7 +31,7 @@ def test_reference_deck_is_legal_and_subject_forward() -> None:
     ) == 3
 
 
-def test_expanded_archetype_decks_are_legal_subject_forward_and_choose_one_hero() -> None:
+def test_expanded_archetype_decks_are_legal_subject_forward_and_carry_multiple_heroes() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     cards = {card["id"]: card for card in data["cards"]}
     engine = GameEngine(data)
@@ -51,4 +51,5 @@ def test_expanded_archetype_decks_are_legal_subject_forward_and_choose_one_hero(
             for card_id in deck
             if cards[card_id].get("hero", False)
         ]
-        assert len(heroes) == 1
+        assert len(heroes) == 3
+        assert len(heroes) == len(set(heroes))
