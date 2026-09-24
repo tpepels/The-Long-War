@@ -120,7 +120,8 @@ def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
     state.players[0].deck = []
     state.players[0].hand = [card_id for card_id in engine.cards if card_id.startswith("test-bond-")][-60:]
     legal = engine.legal_actions(state)
-    assert len(legal) == 361
+    assert len(legal) == 360
+    assert all(getattr(action, "card_id", None) is not None for action in legal)
     assert any(getattr(action, "card_id", None) == "test-bond-126" for action in legal)
     for player in state.players:
         player.deck = []
