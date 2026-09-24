@@ -10,6 +10,22 @@ def text(name: str) -> str:
     return (WORKFLOWS / name).read_text(encoding="utf-8")
 
 
+def test_github_workflows_are_manual_only() -> None:
+    for path in WORKFLOWS.glob("*.yml"):
+        content = path.read_text(encoding="utf-8")
+        assert "workflow_dispatch:" in content, path
+        for automatic_trigger in (
+            "push:",
+            "pull_request:",
+            "schedule:",
+            "workflow_run:",
+        ):
+            assert automatic_trigger not in content, (
+                f"{path.name} reintroduced automatic trigger "
+                f"{automatic_trigger}"
+            )
+
+
 def test_counterfactual_analysis_is_not_part_of_routine_workflows() -> None:
     expensive_markers = (
         "tools/counterfactual_balance.py",
