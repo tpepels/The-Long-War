@@ -73,7 +73,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         raise SystemExit("Game/context counts must be positive")
     validate_data()
     config = {"preset": args.preset, "games_per_cell": games, "seed": args.seed,
-              "agents": ["heuristic", "heuristic"], "rules_profile": "standard",
+              "agents": ["heuristic", "heuristic"], "rules": GameRules.standard().as_dict(),
               "contexts": args.contexts, "games_per_context": args.games_per_context}
     identity = experiment_identity(config)
     output = artifact_directory(ROOT / "artifacts" / "balance" / args.preset, identity)
@@ -275,8 +275,6 @@ def standard_backend_parity(*, seed: int) -> None:
         "2",
         "--seed",
         str(seed),
-        "--rules-profile",
-        "standard",
         "--card-file",
         "cards/cards.json",
         "--deck-a",
@@ -657,7 +655,7 @@ def benchmark_ismcts_match(
         "time_budget_seconds": time_budget_seconds,
         "candidate_a": config_a,
         "candidate_b": config_b,
-        "rules_profile": "standard",
+        "rules": GameRules.standard().as_dict(),
         "decks": list(decks),
     })
     output_dir = artifact_directory(BENCH_ROOT / "ismcts-match", identity)
@@ -688,7 +686,6 @@ def benchmark_ismcts_match(
                 str(ROOT / "tools" / "simulate.py"),
                 "--games", str(games_per_orientation),
                 "--seed", str(cell_seed),
-                "--rules-profile", "standard",
                 "--card-file", "cards/cards.json",
                 "--deck-a", deck_path,
                 "--deck-b", deck_path,
@@ -844,7 +841,7 @@ def benchmark_ismcts_match(
 
     summary = {
         **identity,
-        "rules_profile": "standard",
+        "rules": GameRules.standard().as_dict(),
         "games_per_orientation": games_per_orientation,
         "time_budget_seconds": time_budget_seconds,
         "candidate_a": config_a,
@@ -911,7 +908,7 @@ def benchmark_strength(
         "exploration": exploration,
         "progressive_widening": progressive_widening, "reuse_tree": reuse_tree,
         "time_budget_seconds": time_budget_seconds,
-        "rules_profile": "standard", "decks": list(decks),
+        "rules": GameRules.standard().as_dict(), "decks": list(decks),
     })
     output_dir = artifact_directory(BENCH_ROOT / "-".join(parts), identity)
 
@@ -933,8 +930,6 @@ def benchmark_strength(
                 str(games_per_orientation),
                 "--seed",
                 str(cell_seed),
-                "--rules-profile",
-                "standard",
                 "--card-file",
                 "cards/cards.json",
                 "--deck-a",
@@ -1219,7 +1214,7 @@ def benchmark_strength(
 
     summary = {
         **identity,
-        "rules_profile": "standard",
+        "rules": GameRules.standard().as_dict(),
         "games_per_orientation": games_per_orientation,
         "ismcts": {
             "belief_samples": 12,
