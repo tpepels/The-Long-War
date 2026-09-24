@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from longwar import fingerprint
+from longwar import cardflow, fingerprint
 from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,7 +19,7 @@ spec.loader.exec_module(runner)
 
 def test_fingerprint_tracks_native_includes_and_experiment_inputs(tmp_path, monkeypatch):
     monkeypatch.setattr(fingerprint, "ROOT", tmp_path)
-    paths = ["src/longwar/_ismcts_core.pxi", "cards/experiments/test.json",
+    paths = ["src/longwar/_ismcts_core.pxi", "cards/cards.json",
              "decks/reference.json", "tools/run_experiments.py"]
     previous = fingerprint.current_game_fingerprint()
     for name in paths:
@@ -161,3 +161,25 @@ def test_search_benchmarks_use_canonical_standard_inputs(function):
     assert "force-draw-cards.json" not in source
     assert "force-rich-34-reference.json" not in source
     assert "force_candidate(" not in source
+
+
+def test_cardflow_variants_use_canonical_data_paths(tmp_path):
+    run = cardflow.Run(
+        variant="control",
+        deck="reference",
+        seed=17,
+        output=tmp_path / "result.json",
+    )
+    command = cardflow.command_for(
+        run,
+        cardflow.PRESETS["quick"],
+        "quick",
+        "cython",
+        "ismcts",
+    )
+    assert command[command.index("--card-file") + 1] == "cards/cards.json"
+    assert command[command.index("--deck-a") + 1] == "decks/reference.json"
+    assert command[command.index("--deck-b") + 1] == "decks/reference.json"
+    joined = " ".join(command)
+    assert "cards/experiments" not in joined
+    assert "decks/experiments" not in joined

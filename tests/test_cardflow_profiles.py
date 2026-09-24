@@ -23,14 +23,11 @@ ROOT = Path(__file__).resolve().parents[1]
 CENTER_FRONT = Position(Front.CENTER, Rank.FRONT)
 
 
-def candidate(*, automatic: bool = False, paid: bool = False):
-    data = load_card_file(ROOT / "cards" / "experiments" / "force-draw-cards.json")
+def profile_candidate(*, automatic: bool = False, paid: bool = False):
+    data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (
-            ROOT
-            / "decks"
-            / "experiments"
-            / "force-rich-34-reference.json"
+            ROOT / "decks" / "reference.json"
         ).read_text(encoding="utf-8")
     )["cards"]
     draw_mode = "automatic" if automatic else "paid"
@@ -42,14 +39,11 @@ def candidate(*, automatic: bool = False, paid: bool = False):
     return engine, state
 
 
-def experiment_candidate(variant: str):
-    data = load_card_file(ROOT / "cards" / "experiments" / "force-draw-cards.json")
+def cardflow_candidate(variant: str):
+    data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (
-            ROOT
-            / "decks"
-            / "experiments"
-            / "force-rich-34-reference.json"
+            ROOT / "decks" / "reference.json"
         ).read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data, rules=GameRules.force_experiment(variant))
@@ -57,15 +51,12 @@ def experiment_candidate(variant: str):
     return engine, state
 
 
-def test_force_rich_reference_has_14_forces_and_6_names() -> None:
-    data = load_card_file(ROOT / "cards" / "experiments" / "force-draw-cards.json")
+def test_canonical_reference_has_14_subject_type_cards_and_6_printed_names() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
     index = {card["id"]: card for card in data["cards"]}
     deck = json.loads(
         (
-            ROOT
-            / "decks"
-            / "experiments"
-            / "force-rich-34-reference.json"
+            ROOT / "decks" / "reference.json"
         ).read_text(encoding="utf-8")
     )["cards"]
 
@@ -75,7 +66,7 @@ def test_force_rich_reference_has_14_forces_and_6_names() -> None:
 
 
 def test_automatic_draw_starts_first_turn_with_one_fresh_card() -> None:
-    engine, state = candidate(automatic=True)
+    engine, state = profile_candidate(automatic=True)
 
     assert [len(hand) for hand in state.opening_hands] == [10, 10]
     assert len(state.players[0].hand) == 11
@@ -83,7 +74,7 @@ def test_automatic_draw_starts_first_turn_with_one_fresh_card() -> None:
 
 
 def test_paid_draw_costs_one_command_and_uses_operation() -> None:
-    engine, state = candidate(paid=True)
+    engine, state = profile_candidate(paid=True)
     before_hand = len(state.players[0].hand)
 
     assert Draw() in engine.legal_actions(state)
@@ -99,13 +90,13 @@ def test_paid_draw_costs_one_command_and_uses_operation() -> None:
 
 
 def test_cycle_is_absent_from_candidate() -> None:
-    engine, state = candidate(paid=True)
+    engine, state = profile_candidate(paid=True)
 
     assert not any(isinstance(action, Cycle) for action in engine.legal_actions(state))
 
 
 def test_pass_waits_until_both_players_operated() -> None:
-    engine, state = candidate(paid=True)
+    engine, state = profile_candidate(paid=True)
 
     assert Pass() not in engine.legal_actions(state)
 
@@ -115,7 +106,7 @@ def test_pass_waits_until_both_players_operated() -> None:
 
 
 def test_first_pass_gives_exactly_one_final_operation_and_next_initiative() -> None:
-    engine, state = candidate(paid=True)
+    engine, state = profile_candidate(paid=True)
     state.operations_this_battle = [1, 1]
     state.players[1].hand = ["the-fifty-men"]
 
@@ -132,7 +123,7 @@ def test_first_pass_gives_exactly_one_final_operation_and_next_initiative() -> N
 
 
 def test_completion_refunds_one_command_before_name_utility() -> None:
-    engine, state = candidate(paid=True)
+    engine, state = profile_candidate(paid=True)
     state.operations_this_battle = [1, 1]
     slot = state.slot(0, CENTER_FRONT)
     slot.subject = "the-fifty-men"
@@ -148,7 +139,7 @@ def test_completion_refunds_one_command_before_name_utility() -> None:
 
 
 def test_public_stratagem_is_immediately_revealed() -> None:
-    engine, state = candidate(paid=True)
+    engine, state = profile_candidate(paid=True)
     state.players[0].hand = ["the-storm-broke"]
 
     engine.apply(state, SetStratagem("the-storm-broke"))
@@ -159,7 +150,7 @@ def test_public_stratagem_is_immediately_revealed() -> None:
 
 
 def test_paid_free_draw_costs_command_but_keeps_operation() -> None:
-    engine, state = experiment_candidate("paid-free")
+    engine, state = cardflow_candidate("paid-free")
     before_hand = len(state.players[0].hand)
 
     engine.apply(state, Draw())
@@ -173,7 +164,7 @@ def test_paid_free_draw_costs_command_but_keeps_operation() -> None:
 
 
 def test_automatic_soft_cap_skips_opening_draw_at_ten_cards() -> None:
-    _, state = experiment_candidate("auto-cap10")
+    _, state = cardflow_candidate("auto-cap10")
 
     assert [len(hand) for hand in state.opening_hands] == [10, 10]
     assert len(state.players[0].hand) == 10
@@ -181,7 +172,7 @@ def test_automatic_soft_cap_skips_opening_draw_at_ten_cards() -> None:
 
 
 def test_battle_end_cleanup_is_explicit_and_strategic() -> None:
-    engine, state = experiment_candidate("auto-discard9")
+    engine, state = cardflow_candidate("auto-discard9")
     state.operations_this_battle[:] = [1, 1]
 
     engine.apply(state, Pass())
@@ -208,7 +199,7 @@ def test_battle_end_cleanup_is_explicit_and_strategic() -> None:
 
 
 def test_stronger_cleanup_limit_retains_seven_before_turn_draw() -> None:
-    engine, state = experiment_candidate("auto-discard7")
+    engine, state = cardflow_candidate("auto-discard7")
     state.operations_this_battle[:] = [1, 1]
     engine.apply(state, Pass())
     engine.apply(state, Pass())

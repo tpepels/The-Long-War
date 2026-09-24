@@ -179,17 +179,15 @@ cdef int ordered_actions_into(
     cdef uint64_t actions[MAX_ACTIONS]
     cdef double scores[MAX_ACTIONS]
     cdef int n, i, j, selected_n, kind, preferred_ix=-1
-    cdef uint64_t action, tmp_action
-    cdef double score, tmp_score
-    cdef bint have_pass=False, have_draw=False, have_preferred=False
+    cdef uint64_t tmp_action
+    cdef double tmp_score
+    cdef bint have_pass=False, have_draw=False
 
     n = engine.legal_actions_into(state, &actions[0])
     if n <= 0:
         return 0
 
     for i in range(n):
-        if preferred_action != 0 and actions[i] == preferred_action:
-            preferred_ix = i
         scores[i] = evaluator.action_order_score_fast(
             state,
             actor,
@@ -197,6 +195,9 @@ cdef int ordered_actions_into(
             order_scratch,
         )
 
+    # Beam membership is determined only by the heuristic policy. A
+    # transposition-table preferred move may improve traversal order, but it
+    # must never displace a higher-ranked candidate from the beam.
     for i in range(1, n):
         tmp_action = actions[i]
         tmp_score = scores[i]
@@ -208,16 +209,6 @@ cdef int ordered_actions_into(
         actions[j + 1] = tmp_action
         scores[j + 1] = tmp_score
 
-    if preferred_action != 0:
-        for i in range(n):
-            if actions[i] == preferred_action:
-                preferred_ix = i
-                break
-        if preferred_ix > 0:
-            tmp_action = actions[0]
-            actions[0] = actions[preferred_ix]
-            actions[preferred_ix] = tmp_action
-
     selected_n = n if n <= width else width
     for i in range(selected_n):
         selected[i] = actions[i]
@@ -226,17 +217,11 @@ cdef int ordered_actions_into(
             have_pass = True
         elif kind == TYPE_DRAW:
             have_draw = True
-        if actions[i] == preferred_action:
-            have_preferred = True
 
     if selected_n < n:
         for i in range(selected_n, n):
             kind = action_kind(actions[i])
-            if preferred_action != 0 and actions[i] == preferred_action and not have_preferred:
-                selected[selected_n] = actions[i]
-                selected_n += 1
-                have_preferred = True
-            elif kind == TYPE_PASS and not have_pass:
+            if kind == TYPE_PASS and not have_pass:
                 selected[selected_n] = actions[i]
                 selected_n += 1
                 have_pass = True
@@ -244,6 +229,16 @@ cdef int ordered_actions_into(
                 selected[selected_n] = actions[i]
                 selected_n += 1
                 have_draw = True
+
+    if preferred_action != 0:
+        for i in range(selected_n):
+            if selected[i] == preferred_action:
+                preferred_ix = i
+                break
+        if preferred_ix > 0:
+            tmp_action = selected[0]
+            selected[0] = selected[preferred_ix]
+            selected[preferred_ix] = tmp_action
 
     return selected_n
 

@@ -67,7 +67,7 @@ The [issue #21 desktop-client handoff](reports/issue-21-desktop-client.md) recor
 The packed engine supports up to 127 card identities, 64 cards per player deck, and 1024 generated actions, with checked boundaries. Counterfactual neutral cards are generated in memory and never added to printable canonical data.
 
 - `decks/*.json`: canonical reference and archetype decks.
-- `cards/experiments/` and `decks/experiments/`: Force/Command card-flow fixtures, selected with matching named profiles.
+- Named non-standard rule profiles in `src/longwar/rules.py`: card-flow experiments that reuse the same canonical cards and decks.
 - `reports/`: retained historical playtest analyses. They are context, not current balance evidence.
 - `artifacts/`: generated local results, manifests, policies and build output.
 

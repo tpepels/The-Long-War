@@ -199,6 +199,7 @@ class AlphaBetaSearch:
             schemes,
             stratagems,
             tuple(state.stratagem_used),
+            tuple(state.hero_used),
             tuple(state.draw_used),
             tuple(state.discarded_this_battle),
             tuple(state.pass_order),

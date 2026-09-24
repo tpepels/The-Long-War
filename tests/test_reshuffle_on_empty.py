@@ -5,6 +5,7 @@ from pathlib import Path
 
 from longwar.cards import load_card_file
 from longwar.game import Cycle, GameEngine, Pass
+from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -18,14 +19,20 @@ def deck() -> list[str]:
 
 
 def engine(*, reshuffle_on_empty: bool) -> GameEngine:
+    # These tests isolate persistent-deck reshuffling. Keep the legacy
+    # two-Pass/Cycle harness explicit instead of inheriting unrelated
+    # standard-profile turn-flow changes.
+    rules = GameRules.standard().with_overrides(
+        opening_hand_size=13,
+        reshuffle_on_empty=reshuffle_on_empty,
+        automatic_draw=False,
+        cycle_enabled=True,
+        pass_final_operation=False,
+        pass_requires_both_acted=False,
+    )
     return GameEngine(
         load_card_file(ROOT / "cards" / "cards.json"),
-        opening_hand_size=13,
-        draw_action_enabled=False,
-        deck_size=30,
-        recycle_between_battles=False,
-        command_enabled=True,
-        reshuffle_on_empty=reshuffle_on_empty,
+        rules=rules,
     )
 
 

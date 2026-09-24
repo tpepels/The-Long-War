@@ -186,13 +186,10 @@ def test_primitive_search_state_matches_reference_engine_on_random_games(
 
 
 def force_candidate_engine(*, automatic: bool) -> tuple[GameEngine, list[str], object]:
-    data = load_card_file(ROOT / "cards" / "experiments" / "force-draw-cards.json")
+    data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (
-            ROOT
-            / "decks"
-            / "experiments"
-            / "force-rich-34-reference.json"
+            ROOT / "decks" / "reference.json"
         ).read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(

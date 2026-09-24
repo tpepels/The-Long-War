@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from longwar.agents import HeuristicAgent
+from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Pass, Position, Rank, SetStratagem
 
@@ -62,6 +63,17 @@ def test_heuristic_always_returns_legal_action() -> None:
     agent = HeuristicAgent(seed=5, exploration=0.0)
     action = agent.choose(engine, state)
     assert action in engine.legal_actions(state)
+
+
+def test_random_agent_does_not_pass_before_pass_is_legal() -> None:
+    engine, state = engine_and_state()
+    legal = engine.legal_actions(state)
+    assert not any(isinstance(action, Pass) for action in legal)
+
+    action = RandomAgent(seed=5, pass_probability=1.0).choose(engine, state)
+
+    assert action in legal
+    assert not isinstance(action, Pass)
 
 
 def test_heuristic_does_not_use_opponent_hand_identities() -> None:

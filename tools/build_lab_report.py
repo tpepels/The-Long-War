@@ -19,28 +19,46 @@ def load(name: str) -> dict[str, Any] | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def serialized_rule_metadata(rules: GameRules) -> dict[str, object]:
+    """Serialize rules exactly as tools/simulate.py records provenance."""
+    metadata: dict[str, object] = dict(rules.as_dict())
+    metadata["base_hand_size"] = metadata.pop("opening_hand_size")
+    metadata["completion_draw_names"] = sorted(rules.completion_draw_names)
+
+    if not rules.command_enabled:
+        metadata["starting_command"] = None
+        metadata["battle_command_gain"] = None
+        metadata["command_cap"] = None
+    if not (rules.command_enabled and rules.cycle_enabled):
+        metadata["cycle_command_cost"] = None
+    if not rules.paid_draw_enabled:
+        metadata["paid_draw_command_cost"] = None
+
+    return metadata
+
+
 def canonical_variant(data: dict[str, Any]) -> bool:
     """A source fingerprint alone cannot distinguish an experimental ruleset."""
     variant = data.get("simulation_variant")
     if not variant:
         return True  # Static/causal/policy artifacts have no simulation variant.
-    if variant.get("rules_profile", "custom") not in {"custom", "standard"}:
+
+    profile = variant.get("rules_profile", "custom")
+    if profile not in {"custom", "standard"}:
         return False
+
     card_file = variant.get("card_file")
     if card_file and (ROOT / card_file).resolve() != (ROOT / "cards/cards.json").resolve():
         return False
-    inactive_command = {"starting_command", "battle_command_gain", "command_cap",
-                        "cycle_command_cost", "paid_draw_command_cost"}
-    for name, expected in GameRules.standard().as_dict().items():
-        key = "base_hand_size" if name == "opening_hand_size" else name
-        if key not in variant:
-            continue
-        actual = variant[key]
-        if name in inactive_command and actual is None and not variant.get("command_enabled"):
-            continue
-        if isinstance(expected, tuple):
-            expected = list(expected)
-        if actual != expected:
+
+    expected = serialized_rule_metadata(GameRules.standard())
+    if profile == "custom" and any(key not in variant for key in expected):
+        return False
+
+    # Named standard provenance may omit redundant rule metadata, but any rule
+    # metadata that is present still has to agree with the standard profile.
+    for key, value in expected.items():
+        if key in variant and variant[key] != value:
             return False
     return True
 

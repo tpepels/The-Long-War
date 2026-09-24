@@ -9,30 +9,27 @@ from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
+from longwar.game.actions import Draw, Pass, action_key
+from longwar.game.model import Phase
 from longwar.rules import GameRules
 from longwar.simulate import simulate_games
 
 ROOT = Path(__file__).resolve().parents[1]
-CARD_FILE = ROOT / "cards" / "experiments" / "force-draw-cards.json"
-DECK_FILE = ROOT / "decks" / "experiments" / "force-rich-34-reference.json"
+CARD_FILE = ROOT / "cards" / "cards.json"
+DECK_FILE = ROOT / "decks" / "reference.json"
 
 
 def load_deck() -> list[str]:
     return json.loads(DECK_FILE.read_text(encoding="utf-8"))["cards"]
 
 
-def candidate_engine(*, automatic: bool = False, paid: bool = True) -> GameEngine:
-    data = load_card_file(CARD_FILE)
-    draw_mode = "automatic" if automatic else "paid"
-    rules = GameRules.force_candidate(draw_mode)
-    if not automatic and not paid:
-        rules = rules.with_overrides(paid_draw_enabled=False)
-    return GameEngine(data, rules=rules)
+def standard_engine() -> GameEngine:
+    return GameEngine(load_card_file(CARD_FILE), rules=GameRules.standard())
 
 
 def test_default_belief_sampler_uses_engine_deck_size() -> None:
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
     state = engine.new_game(deck, deck, seed=7301, first_player=0)
     sampled = BeliefSampler(engine).sample(
         state,
@@ -56,7 +53,7 @@ def test_default_belief_sampler_uses_engine_deck_size() -> None:
 
 def test_strategic_heuristic_returns_legal_action_without_true_hand_access() -> None:
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
     state = engine.new_game(deck, deck, seed=7310, first_player=0)
     priors = (
         HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="a")]),
@@ -84,7 +81,7 @@ def test_strategic_heuristic_returns_legal_action_without_true_hand_access() -> 
 
 def test_short_strategic_candidate_simulation_finishes() -> None:
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
 
     report = simulate_games(
         engine,
@@ -108,7 +105,7 @@ def test_short_strategic_candidate_simulation_finishes() -> None:
 
 def test_candidate_simulation_reports_depletion() -> None:
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
 
     report = simulate_games(
         engine,
@@ -129,7 +126,7 @@ def test_cython_and_python_backends_agree_on_root_decision() -> None:
     pytest.importorskip("longwar._fast_search")
 
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
     state = engine.new_game(deck, deck, seed=7340, first_player=0)
     priors = (
         HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="a")]),
@@ -169,7 +166,7 @@ def test_cython_alpha_beta_wall_clock_budget_reports_actual_work() -> None:
     pytest.importorskip("longwar._fast_search")
 
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
     state = engine.new_game(deck, deck, seed=7350, first_player=0)
     priors = (
         HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="a")]),
@@ -195,3 +192,147 @@ def test_cython_alpha_beta_wall_clock_budget_reports_actual_work() -> None:
     assert info["search_timed_out"] is True
     assert int(info["search_nodes"]) >= 256
     assert float(info["decision_seconds"]) > 0.0
+
+
+def _root_candidate_snapshot(
+    agent: StrategicHeuristicAgent,
+    engine: GameEngine,
+    state,
+) -> tuple[list[str], list[str], dict[str, float]]:
+    root_player = state.active_player
+    actions = engine.legal_actions(state)
+    candidates = agent._python_search.ordered_actions(
+        state,
+        root_player,
+        width=agent.candidate_width,
+    )
+    for action in actions:
+        if isinstance(action, (Pass, Draw)) and action not in candidates:
+            candidates.append(action)
+    return (
+        [action_key(action) for action in actions],
+        [action_key(action) for action in candidates],
+        {
+            action_key(action): agent.evaluator._score_action(
+                engine,
+                state,
+                root_player,
+                action,
+            )
+            for action in candidates
+        },
+    )
+
+
+@pytest.mark.parametrize("game_index", (0, 1))
+def test_paid_profile_python_cython_match_each_root_decision(
+    game_index: int,
+) -> None:
+    """Reproduce the validation games and stop at the first backend divergence."""
+    pytest.importorskip("longwar._fast_search")
+
+    base_seed = 26092334
+    game_seed = base_seed + game_index
+    first_player = game_index % 2
+    deck = load_deck()
+    engine = GameEngine(
+        load_card_file(CARD_FILE),
+        rules=GameRules.force_candidate("paid"),
+    )
+    priors = (
+        HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="deck-a")]),
+        HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="deck-b")]),
+    )
+
+    common = dict(
+        engine=engine,
+        priors=priors,
+        belief_samples=2,
+        rollout_plies=3,
+        candidate_width=4,
+        node_budget=3_000,
+    )
+    python_agents = [
+        StrategicHeuristicAgent(
+            **common,
+            seed=base_seed * 10_000 + game_index * 2 + player + 1,
+            search_backend="python",
+        )
+        for player in range(2)
+    ]
+    cython_agents = [
+        StrategicHeuristicAgent(
+            **common,
+            seed=base_seed * 10_000 + game_index * 2 + player + 1,
+            search_backend="cython",
+        )
+        for player in range(2)
+    ]
+
+    preview = engine.new_game(
+        deck,
+        deck,
+        seed=game_seed,
+        first_player=first_player,
+        opening_bonus=False,
+    )
+    python_mulligans = tuple(
+        agent.choose_mulligan(engine, preview.players[player].hand)
+        for player, agent in enumerate(python_agents)
+    )
+    cython_mulligans = tuple(
+        agent.choose_mulligan(engine, preview.players[player].hand)
+        for player, agent in enumerate(cython_agents)
+    )
+    assert cython_mulligans == python_mulligans
+
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=game_seed,
+        first_player=first_player,
+        mulligan_indices=python_mulligans,
+    )
+    saw_paid_draw = False
+    decision = 0
+
+    while state.phase is not Phase.COMPLETE:
+        assert decision < 500
+        actor = state.active_player
+        python_agent = python_agents[actor]
+        cython_agent = cython_agents[actor]
+
+        python_root = _root_candidate_snapshot(python_agent, engine, state)
+        cython_root = _root_candidate_snapshot(cython_agent, engine, state)
+        assert cython_root == python_root
+
+        legal_keys, candidate_keys, root_scores = python_root
+        if "draw" in legal_keys:
+            saw_paid_draw = True
+            assert "draw" in candidate_keys
+            assert "draw" in root_scores
+
+        # The paired agents must enter search with the same belief RNG state;
+        # otherwise an action difference would not be a backend parity result.
+        assert cython_agent.rng.getstate() == python_agent.rng.getstate()
+
+        python_action = python_agent.choose(engine, state.clone())
+        cython_action = cython_agent.choose(engine, state.clone())
+
+        assert cython_agent.rng.getstate() == python_agent.rng.getstate()
+        assert (
+            cython_agent.last_decision["completed_depth"]
+            == python_agent.last_decision["completed_depth"]
+        )
+        assert action_key(cython_action) == action_key(python_action), (
+            f"paid backend divergence in game {game_index}, decision {decision}, "
+            f"battle {state.battle}, turn {state.turn_number}, actor {actor}; "
+            f"legal={legal_keys}; candidates={candidate_keys}; "
+            f"scores={root_scores}; python={action_key(python_action)}; "
+            f"cython={action_key(cython_action)}"
+        )
+
+        engine.apply(state, python_action)
+        decision += 1
+
+    assert saw_paid_draw

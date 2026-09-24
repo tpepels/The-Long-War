@@ -15,6 +15,12 @@ from .fingerprint import artifact_directory, experiment_identity
 ROOT = Path(__file__).resolve().parents[2]
 
 DECKS = ("reference", "avaros", "mara", "sera")
+CANONICAL_DECK_PATHS = {
+    "reference": "decks/reference.json",
+    "avaros": "decks/avaros-line.json",
+    "mara": "decks/mara-rear.json",
+    "sera": "decks/sera-support.json",
+}
 VARIANT_PROFILES = {
     "control": "force-automatic",
     "paid-free": "force-paid-free",
@@ -248,11 +254,11 @@ def command_for(
         "--rules-profile",
         rules_profile,
         "--card-file",
-        "cards/experiments/force-draw-cards.json",
+        "cards/cards.json",
         "--deck-a",
-        f"decks/experiments/force-rich-34-{run.deck}.json",
+        CANONICAL_DECK_PATHS[run.deck],
         "--deck-b",
-        f"decks/experiments/force-rich-34-{run.deck}.json",
+        CANONICAL_DECK_PATHS[run.deck],
         "--agent-a",
         agent,
         "--agent-b",

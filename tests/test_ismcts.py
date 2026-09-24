@@ -18,14 +18,14 @@ NativeHeuristicEvaluator = fast_search.NativeHeuristicEvaluator
 ismcts_search = fast_search.ismcts_search
 
 ROOT = Path(__file__).resolve().parents[1]
-CARD_FILE = ROOT / "cards" / "experiments" / "force-draw-cards.json"
-DECK_FILE = ROOT / "decks" / "experiments" / "force-rich-34-reference.json"
+CARD_FILE = ROOT / "cards" / "cards.json"
+DECK_FILE = ROOT / "decks" / "reference.json"
 
 
 def setup():
     data = load_card_file(CARD_FILE)
     deck = json.loads(DECK_FILE.read_text(encoding="utf-8"))["cards"]
-    engine = GameEngine(data, rules=GameRules.force_candidate("automatic"))
+    engine = GameEngine(data, rules=GameRules.standard())
     priors = (
         HypothesisDeckPrior(
             engine,

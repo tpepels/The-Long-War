@@ -75,11 +75,18 @@ def test_direct_engine_input_is_validated_before_indexing(data):
         GameEngine(data)
 
 
-def test_experiment_cards_and_profile_remain_supported():
-    data = load_card_file(ROOT / "cards/experiments/force-draw-cards.json")
-    GameEngine(data, rules=GameRules.force_candidate("automatic"))
+def test_engine_default_profile_is_exactly_standard(data):
+    assert GameEngine(data).rules == GameRules.standard()
+
+
+def test_alternative_rule_profiles_use_canonical_cards():
+    data = load_card_file(ROOT / "cards/cards.json")
+    for profile in GameRules.profile_names():
+        GameEngine(data, rules=GameRules.from_profile(profile))
+
+    hidden = GameRules.standard().with_overrides(public_stratagems=False)
     with pytest.raises(ValueError, match="requires public_stratagems"):
-        GameEngine(data)
+        GameEngine(data, rules=hidden)
 
 
 @pytest.mark.parametrize("changes", [{"deck_size": 30.5}, {"opening_hand_size": True}, {"automatic_draw": 1}, {"command_cap": "20"}, {"battle_end_hand_limit": 7.5}, {"completion_draw_names": "oren"}])
@@ -113,7 +120,8 @@ def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
     state.players[0].deck = []
     state.players[0].hand = [card_id for card_id in engine.cards if card_id.startswith("test-bond-")][-60:]
     legal = engine.legal_actions(state)
-    assert len(legal) == 361
+    assert len(legal) == 360
+    assert all(getattr(action, "card_id", None) is not None for action in legal)
     assert any(getattr(action, "card_id", None) == "test-bond-126" for action in legal)
     for player in state.players:
         player.deck = []

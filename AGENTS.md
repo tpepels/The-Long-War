@@ -8,7 +8,7 @@ Keep one obvious implementation path and local verification path for rules, card
 
 - `_fast_search.pyx` owns rules, transitions, visibility and information encoding. `game/engine.py` is a dataclass/action adapter.
 - `GameRules` in `rules.py` owns configuration, profile names and profile lookup. Select profiles in tools; do not duplicate their switches.
-- `cards/cards.json` is canonical; experiment fixtures live under `cards/experiments/` and `decks/experiments/`. `cards.py` validates both files and in-memory input. New effect names require schema and native support.
+- `cards/cards.json` and the four shipped decks are canonical. Rule experiments reuse those data files and vary named `GameRules` profiles instead of maintaining duplicate card/deck fixtures. `cards.py` validates file and in-memory input. New effect names require schema and native support.
 - Browser play uses the same Cython package compiled to WebAssembly through Pyodide. `web/browser-engine.mjs` is transport only; `web_api.PlaySession` owns session/privacy/pacing adaptation. Never add JavaScript rules or AI policy.
 - `_heuristic_core.pxi` owns shared evaluation separately from rules. Search algorithms consume engine/evaluator interfaces without rule-specific branches.
 - `_alpha_beta_core.pxi`, `_ismcts_core.pxi`, `_mccfr_core.pxi` own native algorithms. Python alpha-beta and generic MCCFR traversal are maintained correctness references, not alternate rules engines.
@@ -60,4 +60,4 @@ Keep policy-specific causal estimates separate from conditional-win correlations
 
 Refresh origin/main, recent commits and open PRs before substantial writes. Preserve unrelated user edits/commits. PR #18 is separate unless merged or explicitly reconciled; do not absorb its game-design changes.
 
-`reports/` contains useful historical analyses. Canonical and experimental card/deck fixtures remain separate. Generated reports, policies, contracts, logs and toolchains belong under `artifacts/`; Pages output is `dist/`. Both are ignored. Do not add a new parallel experiment runner or compatibility wrapper when an existing interface can be fixed.
+`reports/` contains useful historical analyses. Canonical card/deck data is shared by standard play and rule-profile experiments; do not reintroduce duplicate experiment fixtures. Generated reports, policies, contracts, logs and toolchains belong under `artifacts/`; Pages output is `dist/`. Both are ignored. Do not add a new parallel experiment runner or compatibility wrapper when an existing interface can be fixed.
