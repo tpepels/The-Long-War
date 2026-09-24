@@ -325,7 +325,7 @@ def test_playing_hero_as_subject_locks_other_heroes_until_next_battle() -> None:
     )
 
     state.operations_this_battle[:] = [1, 1]
-    state.slot(0, LEFT_FRONT).subject = "the-fifty-men"
+    state.slot(0, CENTER_FRONT).subject = "the-fifty-men"
     state.slot(0, RIGHT_FRONT).subject = "the-fifty-men"
     engine.apply(state, Pass())
     engine.apply(state, Pass())
