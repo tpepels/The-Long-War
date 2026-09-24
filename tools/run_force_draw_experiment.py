@@ -13,7 +13,23 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 
 DECKS = ("reference", "avaros", "mara", "sera")
-MODES = ("automatic", "paid")
+VARIANT_PROFILES = {
+    "control": "force-automatic",
+    "paid-free": "force-paid-free",
+    "auto-discard9": "force-auto-discard9",
+    "auto-discard7": "force-auto-discard7",
+    "auto-cap10": "force-auto-cap10",
+    # Retained for regression comparisons with the original experiment.
+    "automatic": "force-automatic",
+    "paid": "force-paid",
+}
+EXPERIMENT_VARIANTS = (
+    "control",
+    "paid-free",
+    "auto-discard9",
+    "auto-discard7",
+    "auto-cap10",
+)
 
 
 @dataclass(frozen=True)
@@ -52,7 +68,7 @@ PRESETS = {
 
 @dataclass(frozen=True)
 class Run:
-    mode: str
+    variant: str
     deck: str
     seed: int
     output: Path
@@ -61,8 +77,8 @@ class Run:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run the Force-rich automatic-vs-paid draw experiment locally "
-            "with the belief-sampled alpha-beta agent."
+            "Run Force-rich card-flow experiments locally with the "
+            "belief-sampled alpha-beta agent."
         )
     )
     parser.add_argument(
@@ -72,9 +88,15 @@ def parse_args() -> argparse.Namespace:
         help="AI/search preset. deep is the normal experiment setting.",
     )
     parser.add_argument(
+        "--variant",
         "--mode",
-        choices=("both", *MODES),
-        default="both",
+        dest="variant",
+        choices=("experiment", "all", *VARIANT_PROFILES),
+        default="experiment",
+        help=(
+            "experiment runs control + A-D. all also includes the original "
+            "paid baseline. --mode remains as a compatibility alias."
+        ),
     )
     parser.add_argument(
         "--deck",
@@ -117,7 +139,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def selected_runs(args: argparse.Namespace) -> list[Run]:
-    modes = MODES if args.mode == "both" else (args.mode,)
+    if args.variant == "experiment":
+        variants = EXPERIMENT_VARIANTS
+    elif args.variant == "all":
+        variants = tuple(VARIANT_PROFILES)
+    else:
+        variants = (args.variant,)
     decks = DECKS if args.deck == "all" else (args.deck,)
     output_dir = resolve(
         args.output_dir
@@ -126,16 +153,16 @@ def selected_runs(args: argparse.Namespace) -> list[Run]:
     )
     runs: list[Run] = []
     for deck_index, deck in enumerate(decks):
-        # Automatic and paid use the same seed for the same deck so the
-        # comparison is paired as closely as the differing draw rules allow.
+        # Every variant uses the same seed for a deck, keeping comparisons
+        # paired as closely as the differing card-flow rules allow.
         seed = args.seed + DECKS.index(deck)
-        for mode in modes:
+        for variant in variants:
             runs.append(
                 Run(
-                    mode=mode,
+                    variant=variant,
                     deck=deck,
                     seed=seed,
-                    output=output_dir / f"{mode}-{deck}.json",
+                    output=output_dir / f"{variant}--{deck}.json",
                 )
             )
     return runs
@@ -176,11 +203,7 @@ def effective_preset(args: argparse.Namespace) -> Preset:
 
 
 def command_for(run: Run, preset: Preset, backend: str) -> list[str]:
-    rules_profile = (
-        "force-automatic"
-        if run.mode == "automatic"
-        else "force-paid"
-    )
+    rules_profile = VARIANT_PROFILES[run.variant]
     return [
         sys.executable,
         str(ROOT / "tools" / "simulate.py"),
@@ -236,7 +259,7 @@ def execute(run: Run, command: list[str]) -> tuple[Run, str]:
     )
     if process.returncode != 0:
         raise RuntimeError(
-            f"{run.mode}/{run.deck} failed with exit code "
+            f"{run.variant}/{run.deck} failed with exit code "
             f"{process.returncode}:\n{process.stdout}"
         )
     return run, process.stdout
@@ -315,10 +338,9 @@ def row_for(path: Path) -> dict[str, Any]:
         int(stats.get("completions", 0))
         for stats in telemetry["legend_combinations"].values()
     )
-    mode = "automatic" if payload["simulation_variant"]["automatic_draw"] else "paid"
-    deck = path.stem.removeprefix(f"{mode}-")
+    variant, deck = path.stem.rsplit("--", 1)
     return {
-        "mode": mode,
+        "variant": variant,
         "deck": deck,
         "games": int(payload["games"]),
         "battles": battles,
@@ -347,6 +369,12 @@ def row_for(path: Path) -> dict[str, Any]:
         "completion_command_refund": human[
             "mean_completion_command_refund_per_player_battle"
         ],
+        "battle_end_discards_per_player_battle": human.get(
+            "mean_battle_end_discards_per_player_battle"
+        ),
+        "mean_operations_before_pass": human.get(
+            "mean_operations_before_pass"
+        ),
         "final_operation_abs_margin_swing": human[
             "mean_final_operation_abs_margin_swing"
         ],
@@ -374,7 +402,16 @@ def write_summary(
     preset_name: str,
     preset: Preset,
 ) -> None:
-    rows.sort(key=lambda row: (row["deck"], row["mode"]))
+    variant_order = {
+        name: index
+        for index, name in enumerate((*EXPERIMENT_VARIANTS, "automatic", "paid"))
+    }
+    rows.sort(
+        key=lambda row: (
+            row["deck"],
+            variant_order.get(row["variant"], 999),
+        )
+    )
     summary = {
         "preset": preset_name,
         "settings": {
@@ -392,7 +429,7 @@ def write_summary(
     )
 
     lines = [
-        "# Local Force-rich draw comparison",
+        "# Local Force-rich card-flow comparison",
         "",
         (
             f"Preset **{preset_name}** — {preset.games} games/run, "
@@ -400,8 +437,8 @@ def write_summary(
             f"beam {preset.width}, {preset.node_budget:,} nodes/decision."
         ),
         "",
-        "| Deck | Draw | 0 Force | 0/1 Force | Forces/B | Names/B | Complete/B | No playable Force | Draws/player-B | Deck seen | Pass hand | AI depth | AI nodes |",
-        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Deck | Variant | Forces/B | Names/B | Complete/B | No playable Force | Draws/player-B | Deck seen | Pass hand | Ops/pass | Cleanup discards/PB | Reshuffles | AI depth | AI nodes |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for row in rows:
         lines.append(
@@ -409,9 +446,7 @@ def write_summary(
             + " | ".join(
                 [
                     row["deck"],
-                    row["mode"],
-                    fmt(row["opening_zero_force_rate"]),
-                    fmt(row["opening_zero_or_one_force_rate"]),
+                    row["variant"],
                     fmt(row["force_per_battle"]),
                     fmt(row["name_per_battle"]),
                     fmt(row["completion_per_battle"]),
@@ -419,6 +454,9 @@ def write_summary(
                     fmt(row["mean_cards_drawn_per_player_battle"]),
                     fmt(row["mean_deck_seen_fraction_per_player_battle"]),
                     fmt(row["mean_hand_size_at_pass"]),
+                    fmt(row["mean_operations_before_pass"]),
+                    fmt(row["battle_end_discards_per_player_battle"]),
+                    fmt(row["reshuffles"], 0),
                     fmt(row["mean_completed_depth"]),
                     fmt(row["mean_search_nodes"], 0),
                 ]
@@ -465,7 +503,7 @@ def main() -> None:
         for run in runs
     ]
     for run, command in commands:
-        print(f"[{run.mode}/{run.deck}] {printable_command(command)}")
+        print(f"[{run.variant}/{run.deck}] {printable_command(command)}")
 
     if args.dry_run:
         return

@@ -25,6 +25,17 @@ def test_force_candidate_rules_live_in_named_profiles() -> None:
     assert automatic.pass_final_operation
     assert paid.pass_final_operation
 
+    paid_free = GameRules.force_experiment("paid-free")
+    discard9 = GameRules.force_experiment("auto-discard9")
+    discard7 = GameRules.force_experiment("auto-discard7")
+    cap10 = GameRules.force_experiment("auto-cap10")
+
+    assert paid_free.paid_draw_enabled
+    assert not paid_free.paid_draw_consumes_operation
+    assert discard9.automatic_draw and discard9.battle_end_hand_limit == 9
+    assert discard7.automatic_draw and discard7.battle_end_hand_limit == 7
+    assert cap10.automatic_draw and cap10.automatic_draw_hand_limit == 10
+
 
 def test_public_game_engine_is_a_cython_facade() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
@@ -75,6 +86,13 @@ def test_force_runner_selects_profile_not_individual_rules() -> None:
         ROOT / "tools" / "run_force_draw_experiment.py"
     ).read_text(encoding="utf-8")
     assert "--rules-profile" in source
+    for profile in (
+        "force-paid-free",
+        "force-auto-discard9",
+        "force-auto-discard7",
+        "force-auto-cap10",
+    ):
+        assert profile in source
     for obsolete_flag in (
         "--pass-final-operation",
         "--completion-command-refund",

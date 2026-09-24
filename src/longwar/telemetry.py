@@ -116,7 +116,7 @@ class Telemetry:
         before = state.clone()
         self.action_counts[type(action).__name__] += 1
 
-        if state.phase is Phase.BATTLE:
+        if state.phase is Phase.BATTLE and not state.cleanup_pending:
             self._battle_actions[actor] += 1
             self._battle_decisions += 1
             if not state.players[actor].deck:
@@ -229,7 +229,11 @@ class Telemetry:
                 self._reshuffled_this_game[player] = True
 
         card_id = self._action_card_id(action)
-        if card_id is not None and before.phase is Phase.BATTLE:
+        if (
+            card_id is not None
+            and before.phase is Phase.BATTLE
+            and not before.cleanup_pending
+        ):
             before_margin = sum(self._front_margins(engine, before, actor))
             after_margin = sum(self._front_margins(engine, state, actor))
             before_control = self._control_balance(engine, before, actor)

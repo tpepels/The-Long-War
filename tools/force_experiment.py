@@ -124,7 +124,7 @@ def parity_case(mode: str, *, seed: int) -> None:
         ]
     )
 
-    filename = f"{mode}-reference.json"
+    filename = f"{mode}--reference.json"
     python_payload = normalized_payload(python_dir / filename)
     cython_payload = normalized_payload(cython_dir / filename)
 
@@ -158,7 +158,6 @@ def validate() -> None:
             "tests/test_force_draw_candidate.py",
             "tests/test_strategic_heuristic.py",
             "tests/test_fast_search_state.py",
-            "tests/test_architecture_boundaries.py",
             "tests/test_architecture_boundaries.py",
         ]
     )
@@ -268,8 +267,8 @@ def run_experiment(args: argparse.Namespace) -> None:
         str(args.jobs),
         "--backend",
         args.backend,
-        "--mode",
-        args.mode,
+        "--variant",
+        args.variant,
         "--deck",
         args.deck,
     ]
@@ -310,7 +309,23 @@ def parse_args() -> argparse.Namespace:
     run.add_argument("--games", type=int)
     run.add_argument("--jobs", type=int, default=8)
     run.add_argument("--backend", choices=("auto", "cython", "python"), default="cython")
-    run.add_argument("--mode", choices=("both", "automatic", "paid"), default="both")
+    run.add_argument(
+        "--variant",
+        "--mode",
+        dest="variant",
+        choices=(
+            "experiment",
+            "all",
+            "control",
+            "paid-free",
+            "auto-discard9",
+            "auto-discard7",
+            "auto-cap10",
+            "automatic",
+            "paid",
+        ),
+        default="experiment",
+    )
     run.add_argument("--deck", choices=("all", "reference", "avaros", "mara", "sera"), default="all")
     run.add_argument("--output-dir", type=Path)
 

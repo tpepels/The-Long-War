@@ -34,7 +34,16 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--rules-profile",
-        choices=("custom", "standard", "force-automatic", "force-paid"),
+        choices=(
+            "custom",
+            "standard",
+            "force-automatic",
+            "force-paid",
+            "force-paid-free",
+            "force-auto-discard9",
+            "force-auto-discard7",
+            "force-auto-cap10",
+        ),
         default="custom",
         help=(
             "Named rules profile. Use custom to configure individual rule "
@@ -193,6 +202,14 @@ def main() -> None:
         rules = GameRules.force_candidate("automatic")
     elif args.rules_profile == "force-paid":
         rules = GameRules.force_candidate("paid")
+    elif args.rules_profile == "force-paid-free":
+        rules = GameRules.force_experiment("paid-free")
+    elif args.rules_profile == "force-auto-discard9":
+        rules = GameRules.force_experiment("auto-discard9")
+    elif args.rules_profile == "force-auto-discard7":
+        rules = GameRules.force_experiment("auto-discard7")
+    elif args.rules_profile == "force-auto-cap10":
+        rules = GameRules.force_experiment("auto-cap10")
     else:
         rules = GameRules(
             opening_hand_size=args.hand_size,
@@ -297,6 +314,9 @@ def main() -> None:
         "paid_draw_command_cost": (
             rules.paid_draw_command_cost if rules.paid_draw_enabled else None
         ),
+        "paid_draw_consumes_operation": rules.paid_draw_consumes_operation,
+        "automatic_draw_hand_limit": rules.automatic_draw_hand_limit,
+        "battle_end_hand_limit": rules.battle_end_hand_limit,
         "pass_final_operation": rules.pass_final_operation,
         "pass_requires_both_acted": rules.pass_requires_both_acted,
         "first_passer_starts_next_battle": rules.first_passer_starts_next_battle,
@@ -327,6 +347,9 @@ def main() -> None:
         f"cycle={'on' if rules.cycle_enabled else 'off'} "
         f"auto_draw={'on' if rules.automatic_draw else 'off'} "
         f"paid_draw={'on' if rules.paid_draw_enabled else 'off'} "
+        f"paid_draw_operation={'yes' if rules.paid_draw_consumes_operation else 'no'} "
+        f"auto_hand_limit={rules.automatic_draw_hand_limit or 'none'} "
+        f"battle_hand_limit={rules.battle_end_hand_limit or 'none'} "
         f"pass_final={'on' if rules.pass_final_operation else 'off'} "
         f"completion_refund={rules.completion_command_refund} "
         f"stratagems={'public' if rules.public_stratagems else 'hidden'} "

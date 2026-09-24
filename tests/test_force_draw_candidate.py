@@ -6,6 +6,7 @@ from pathlib import Path
 from longwar.cards import load_card_file
 from longwar.game import (
     Cycle,
+    Discard,
     Draw,
     Front,
     GameEngine,
@@ -37,6 +38,21 @@ def candidate(*, automatic: bool = False, paid: bool = False):
     if not automatic and not paid:
         rules = rules.with_overrides(paid_draw_enabled=False)
     engine = GameEngine(data, rules=rules)
+    state = engine.new_game(deck, deck, seed=26092334, first_player=0)
+    return engine, state
+
+
+def experiment_candidate(variant: str):
+    data = load_card_file(ROOT / "cards" / "experiments" / "force-draw-cards.json")
+    deck = json.loads(
+        (
+            ROOT
+            / "decks"
+            / "experiments"
+            / "force-rich-34-reference.json"
+        ).read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data, rules=GameRules.force_experiment(variant))
     state = engine.new_game(deck, deck, seed=26092334, first_player=0)
     return engine, state
 
@@ -140,3 +156,68 @@ def test_public_stratagem_is_immediately_revealed() -> None:
     stratagem = state.stratagem(0)
     assert stratagem is not None
     assert stratagem.revealed is True
+
+
+def test_paid_free_draw_costs_command_but_keeps_operation() -> None:
+    engine, state = experiment_candidate("paid-free")
+    before_hand = len(state.players[0].hand)
+
+    engine.apply(state, Draw())
+
+    assert len(state.players[0].hand) == before_hand + 1
+    assert state.players[0].command == 19
+    assert state.command_spent_this_battle[0] == 1
+    assert state.operations_this_battle[0] == 0
+    assert state.active_player == 0
+    assert Draw() in engine.legal_actions(state)
+
+
+def test_automatic_soft_cap_skips_opening_draw_at_ten_cards() -> None:
+    _, state = experiment_candidate("auto-cap10")
+
+    assert [len(hand) for hand in state.opening_hands] == [10, 10]
+    assert len(state.players[0].hand) == 10
+    assert state.cards_drawn_this_battle == [0, 0]
+
+
+def test_battle_end_cleanup_is_explicit_and_strategic() -> None:
+    engine, state = experiment_candidate("auto-discard9")
+    state.operations_this_battle[:] = [1, 1]
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.battle == 2
+    assert state.cleanup_pending
+    assert state.active_player == 0
+    assert all(
+        isinstance(action, Discard)
+        for action in engine.legal_actions(state)
+    )
+
+    while state.cleanup_pending:
+        action = engine.legal_actions(state)[0]
+        engine.apply(state, action)
+
+    # Both players retained nine cards; the first passer immediately starts
+    # Battle II and receives the normal automatic turn draw.
+    assert len(state.players[0].hand) == 10
+    assert len(state.players[1].hand) == 9
+    assert state.active_player == 0
+    assert state.operations_this_battle == [0, 0]
+
+
+def test_stronger_cleanup_limit_retains_seven_before_turn_draw() -> None:
+    engine, state = experiment_candidate("auto-discard7")
+    state.operations_this_battle[:] = [1, 1]
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    discarded = 0
+    while state.cleanup_pending:
+        engine.apply(state, engine.legal_actions(state)[0])
+        discarded += 1
+
+    assert discarded >= 6
+    assert len(state.players[0].hand) == 8
+    assert len(state.players[1].hand) == 7

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any
 
-from .game.actions import Action, Pass, PlaySubject
+from .game.actions import Action, Discard, Pass, PlaySubject
 from .game.engine import GameEngine
 from .game.model import Front, GameState, Phase
 
@@ -46,6 +46,8 @@ class HumanFlowDiagnostics:
         self.final_operation_control_swing_total = 0.0
         self.final_actor_battle_wins = 0
 
+        self.cleanup_discards = 0
+
         self.reshuffles = 0
         self.reshuffled_cards_total = 0
         self.reshuffle_hand_cards_total = 0
@@ -83,6 +85,10 @@ class HumanFlowDiagnostics:
         action: Action,
     ) -> None:
         if state.phase is not Phase.BATTLE:
+            return
+        if state.cleanup_pending:
+            if isinstance(action, Discard):
+                self.cleanup_discards += 1
             return
 
         legal = engine.legal_actions(state)
@@ -296,6 +302,11 @@ class HumanFlowDiagnostics:
             "final_actor_battle_win_rate": self._ratio(
                 self.final_actor_battle_wins,
                 self.final_operation_events,
+            ),
+            "battle_end_discards": self.cleanup_discards,
+            "mean_battle_end_discards_per_player_battle": self._ratio(
+                self.cleanup_discards,
+                self.player_battles,
             ),
             "reshuffles": self.reshuffles,
             "mean_cards_recycled_per_reshuffle": self._ratio(
