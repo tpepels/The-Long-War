@@ -1772,3 +1772,44 @@ button, .button {
   padding: 1.2mm 3.2mm;
   font-size: 1.9mm;
 }
+
+
+/* Dual-use Hero treatment */
+.game-card.card-hero {
+  background:
+    linear-gradient(90deg, #eee0c2 0 49%, #e4ead7 51% 100%);
+  box-shadow:
+    inset 0 0 0 .85mm #9b762f,
+    0 1.4mm 3mm rgba(24,23,20,.2);
+}
+.game-card.card-hero .card-art {
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, #8b6337 18%, transparent) 0 49%,
+      color-mix(in srgb, #59705a 18%, transparent) 51% 100%),
+    repeating-linear-gradient(0deg, transparent 0 4mm, rgba(28,25,20,.045) 4mm 4.25mm),
+    color-mix(in srgb, var(--card-wash) 78%, white);
+}
+.strength.hero-dual-strength {
+  width: 12.6mm;
+  border-radius: 4mm;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+  overflow: hidden;
+  font-size: 2.65mm;
+}
+.strength.hero-dual-strength > span {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  grid-template-rows: auto auto;
+  align-content: center;
+  line-height: .9;
+}
+.strength.hero-dual-strength > span + span {
+  border-left: .25mm solid color-mix(in srgb, var(--card-deep) 55%, transparent);
+}
+.strength.hero-dual-strength small {
+  font: 800 1.45mm/1 system-ui, sans-serif;
+  opacity: .7;
+}
