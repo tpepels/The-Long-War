@@ -77,6 +77,21 @@ def test_runtime_and_search_do_not_special_case_card_ids() -> None:
         assert not leaked, f"{path} special-cases cards: {leaked}"
 
 
+def test_rules_are_values_not_named_experiment_profiles() -> None:
+    for name in (
+        "profile_names",
+        "from_profile",
+        "force_candidate",
+        "force_experiment",
+    ):
+        assert not hasattr(GameRules, name)
+
+    simulator_source = (ROOT / "tools" / "simulate.py").read_text(
+        encoding="utf-8"
+    )
+    assert "--rules-profile" not in simulator_source
+
+
 def test_deck_format_is_separate_from_match_rules() -> None:
     assert "deck_size" not in GameRules.__dataclass_fields__
 
