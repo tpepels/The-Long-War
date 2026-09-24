@@ -1813,3 +1813,10 @@ button, .button {
   font: 800 1.45mm/1 system-ui, sans-serif;
   opacity: .7;
 }
+
+
+.game-card.card-hero .card-type {
+  max-width: 40mm;
+  font-size: 2.15mm;
+  letter-spacing: .025em;
+}
