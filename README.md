@@ -2,367 +2,127 @@
 
 A two-player card game fought across three Fronts. Subjects occupy the line; Bonds and Names build on them; cards left in hand carry into later Battles.
 
-The core grammar is:
+**Subject → Bond → Name**, for example **The Fifty Men → Followed → Namar**.
 
-**Subject → Bond → Name**
+## Setup and everyday commands
 
-Example: **The Fifty Men → Followed → Namar**
-
-## Repository roles
-
-- `cards/cards.json` — canonical card database: visible text plus machine-readable rules.
-- `decks/` — reproducible test and reference decks.
-- `rules/rulebook.md` — canonical printable rules.
-- `src/longwar/game/` — deterministic rules engine.
-- `src/longwar/agents/` — random, heuristic, and MCCFR policy agents.
-- `src/longwar/mccfr.py` — external-sampling Monte Carlo CFR trainer and information abstraction.
-- `src/longwar/_fast_search.pyx` — typed primitive-array search state, packed actions, Strength evaluation, and CFR hot loop used by offline CPython MCCFR training.
-- `src/longwar/_mccfr_accel.pyx` — native shared CFR reference kernel used for algorithm verification and generic traversal.
-- `src/longwar/belief.py` — observation-conditioned hidden-state and deck-construction priors.
-- `src/longwar/online_mccfr.py` — online information-set re-solving across sampled beliefs.
-- `src/longwar/telemetry.py` — game, card, pass, and Subject–Bond–Name telemetry.
-- `src/longwar/health.py` — confidence-aware balance flags and health analysis.
-- `src/longwar/balance.py` — static balance diagnostics.
-- `src/longwar/simulate.py` — repeated game simulation.
-- `web/` — static source for the printable GitHub Pages site and Balance Lab.
-- `tools/` — CLI entry points.
-- `.github/workflows/` — CI, balance diagnostics, and Pages deployment.
-
-The printed cards, engine, search algorithms, and balance tooling consume the same canonical card database.
-
-## Local setup
+Use Python 3.14 for the complete workflow, including the browser build, plus Node.js, a C compiler, and `make`. Native tools also support Python 3.11+. The first browser build downloads a pinned Pyodide/Emscripten toolchain; subsequent builds reuse local caches.
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e '.[dev]'
-pytest
-
-python tools/balance_report.py
-python tools/simulate.py --games 1000 --agent-a heuristic --agent-b heuristic
-python tools/analyze_telemetry.py
-python tools/train_mccfr.py --iterations 50 --depth 3
-python tools/benchmark_mccfr.py --iterations 25 --depth 2
-python tools/build_pages.py
-```
-
-## v0.3 playtest build
-
-The repository now publishes a playable first human-test build:
-
-- **Browser play:** `play.html` runs the canonical Python `GameEngine` in the browser through Pyodide. Modes are hot-seat Human vs Human, Human vs heuristic, and Human vs online MCCFR.
-- **Hot-seat privacy:** hands stay hidden between turns until the next player explicitly reveals their hand.
-- **Printable kit:** `playtest-kit.html` prints two complete 30-card reference decks.
-- **Battlefield/reference:** `playmat.html` is an A4-landscape battlefield with the six Subject positions, Veiled Story spaces, Battle-wide Stratagem spaces, Line Defense/role reference, scoring summary, and Victory boxes.
-- **Four initial Veiled Stories:** The Lamps Went Dark, The Road Was Cut, The Hidden Oars, and The Witness Lied.
-- **Six initial Stratagems:** The Storm Broke, The Tide Rose, The Ground Gave Way, The Bronze Teeth, The False Muster, and The Wooden Gift.
-
-The browser UI does not duplicate game rules in JavaScript. Pages publishes the tested Python package as a source bundle and Pyodide imports that package directly, so `GameEngine.legal_actions()`, `GameEngine.apply()`, scoring, Veiled Story triggers, formation rules, and AI play are shared with CI and simulation.
-
-## Testing
-
-Install the development dependencies once:
-
-```bash
 make install
+make verify
 ```
 
-Then use the test tiers independently:
+| Work | Edit | Verify |
+| --- | --- | --- |
+| Rule change | `src/longwar/rules.py` for configuration; `_fast_search.pyx` for transitions; update `rules/rulebook.md` | `make native-build && make verify` |
+| Card addition/change | `cards/cards.json`; update appropriate `decks/*.json` | `make verify-cards` for immediate feedback, then `make verify` |
+| Search/evaluation change | Algorithm's native `.pxi`, its Python adapter, or `_heuristic_core.pxi` | `make native-build && make verify-algorithms` |
+| Quick balance/playability signal | Canonical cards and decks | `make balance-quick` |
+| Release balance evidence | Canonical cards and decks | `make balance-deep` |
+
+Add a focused regression at the changed boundary. `make verify` checks every shipped card/deck, the fast tests, and native/browser parity. `make verify-algorithms` runs learning/correctness tests plus fixed-seed Python/native alpha-beta comparisons and ISMCTS validation. `make test-integration` checks multi-game and report pipelines. `make test` runs every pytest test.
+
+Rebuild after every `.pyx` or `.pxi` edit. Browser builds automatically detect changed package sources. The first browser build is slower; a current build is reused. No GitHub Actions run is needed for local verification.
+
+## One rules engine
+
+The canonical implementation is `src/longwar/_fast_search.pyx`. It owns legal actions, transitions, scoring, visibility, and the information-state encoder. `GameRules` in `rules.py` owns configuration and named profiles (`GameRules.profile_names()` / `from_profile()`). `game/engine.py` adapts Python dataclasses and action objects to this engine; it does not reimplement transitions.
+
+The static browser runs a WebAssembly build of the **same Cython package** through Pyodide. `web/browser-engine.mjs` only transports JSON to `web_api.PlaySession`; rules and AI live in the Python/Cython package. Hot-seat privacy, mulligans, and paced AI turns share the native session implementation.
 
 ```bash
-make test-fast         # deterministic unit/rules tests
-make test-integration  # multi-game simulation and telemetry tests
-make check             # routine rules/engine/heuristic checks + Pages build
-
-make test-algorithm    # explicit MCCFR learning/correctness tests
-make verify-mccfr      # explicit Kuhn-poker MCCFR verification
-make check-mccfr       # full MCCFR validation bundle
-make test              # literally every pytest test
+make browser-parity   # build/cache wasm, build Pages, compare complete session traces
+make pages
+python -m http.server 8000 --directory dist
+# Open http://localhost:8000/play.html
 ```
 
-The MCCFR algorithm suite contains two independent correctness checks:
+`tools/build_browser_runtime.py` pins Pyodide 314.0.7 and pyodide-build 0.39.1. Cross compilation uses an isolated source directory under `artifacts/browser/`, so it cannot replace host extensions. The runtime, wheel, toolchain environment, contracts and logs are generated artifacts. `dist/` is the generated Pages site. Both directories are ignored by Git.
 
-1. a controlled Long War final-Battle state in which **Pass** is provably the winning action while several alternative plays remain legal; training must drive regret matching above 90% probability for Pass;
-2. a formal reference benchmark on **Kuhn poker**, using the exact same shared external-sampling traversal as the Long War solver. Kuhn poker has known game value `-1/18`; CI fails if learned value error or exploitability exceeds fixed thresholds.
+## Cards and fixtures
 
-A second fixed-state test also verifies deterministic reproducibility from the same seed.
+`cards/cards.json` is the canonical card pool. Each card has a stable unique `id`, title, type, classes, uniqueness, display text/rule blocks, and machine-readable `rules`. Preserve IDs when revising cards: decks and policy artifacts refer to them.
 
-For an executable MCCFR end-to-end smoke test:
+`cards.py` validates required fields, nested rule/effect/trigger names, types and native numeric limits. `GameEngine` applies the same validation to in-memory data, including browser input. Deck validation enforces size, copy limits, known IDs and exactly one Hero. New effect kinds require explicit schema and native-engine support plus a regression; misspellings fail instead of silently producing vanilla cards.
+
+The packed engine supports up to 127 card identities, 64 cards per player deck, and 1024 generated actions, with checked boundaries. Counterfactual neutral cards are generated in memory and never added to printable canonical data.
+
+- `decks/*.json`: canonical reference and archetype decks.
+- `cards/experiments/` and `decks/experiments/`: Force/Command card-flow fixtures, selected with matching named profiles.
+- `reports/`: retained historical playtest analyses. They are context, not current balance evidence.
+- `artifacts/`: generated local results, manifests, policies and build output.
+
+Static strength diagnostics read machine rules, not the optional historical `balance` annotations. Display tooling renders authored rule blocks; it does not calculate game effects.
+
+## Search contracts and supported experiments
+
+| Responsibility | Implementation |
+| --- | --- |
+| Engine and information encoding | `_fast_search.pyx` |
+| Shared heuristic / Battle-boundary evaluator | `_heuristic_core.pxi`, `heuristics.py` |
+| Alpha-beta | `_alpha_beta_core.pxi`; `algorithms/alpha_beta.py` is the maintained Python reference |
+| ISMCTS | `_ismcts_core.pxi`, `agents/ismcts_agent.py` |
+| MCCFR | `_mccfr_core.pxi`, `_mccfr_accel.pyx`, `mccfr_core.py`; trainer in `mccfr.py` |
+| Online MCCFR | `online_mccfr.py` over externally sampled beliefs |
+| Hidden-state/deck priors | `belief.py` |
+
+Algorithms consume engine/evaluator contracts without rule-profile branches. Beliefs stay outside traversal. MCCFR uses external sampling with depth-limited heuristic leaves and an imperfect-recall observation abstraction; a policy is not a full-game equilibrium proof. Generic Python/Cython traversal and the Kuhn-poker reference remain independent correctness checks. Replica multiprocessing is experimental because table serialization/merging can dominate runtime.
+
+ISMCTS serious defaults use 100,000 iterations. UCT exploration is configurable; use explicit `--exploration 0.3` to reproduce the issue's comparison configuration. Progressive widening remains **off by default and experimental**: `k * sqrt(N + 1)`, with fixed alpha 0.5. There is no supported alpha knob.
+
+Persistent trees now invalidate when observable belief evidence or search configuration changes. Retained root selection uses lifetime visits only within the valid context; diagnostics separate inherited and newly accumulated visits. Arenas are bounded (default four times the iteration budget); at capacity, search uses rollout leaves and clears on rerooting when needed. `ISMCTSAgent(max_tree_nodes=...)` can set a smaller cap. `--ismcts-no-tree-reuse` on the simulator and `--no-tree-reuse` on the strength benchmark provide cold-tree comparisons. Reuse/PW telemetry is diagnostic, not evidence that either improves strength.
+
+The pre-audit 43–21 cold / 46–18 reused / 39–25 reused-with-PW results are historical. Corrected belief conditioning, reuse and evaluation require new measurements before claiming the same strength or reuse rate.
 
 ```bash
+python tools/run_experiments.py --help
+python tools/run_experiments.py search-bench --iterations 100000 --exploration 0.3
+python tools/run_experiments.py strength-bench --games 8 --jobs 8 --iterations 100000 --exploration 0.3
+python tools/run_experiments.py strength-bench --games 8 --jobs 8 --iterations 100000 --exploration 0.3 --no-tree-reuse
+python tools/run_experiments.py strength-bench --games 8 --jobs 8 --iterations 100000 --exploration 0.3 --progressive-widening 1.0
+```
+
+Strength artifacts preserve per-game seeds/outcomes, effective configuration, source fingerprints and paired uncertainty over mirrored deals. Different budgets/seeds/configurations use different artifact directories.
+
+## Balance and analysis
+
+`tools/run_experiments.py` is the main entry point. It composes existing analysis modules; specialized tools remain available for individual stages.
+
+| Question | Command | Meaning |
+| --- | --- | --- |
+| Are data/decks valid? | `make verify-cards` | Schema, effects, legal decks, native loading |
+| Does ordinary play run? | `make balance-quick` | Static report, 8 heuristic games per canonical deck, health and card flow |
+| How do experimental draw profiles play? | `python tools/run_experiments.py run --preset quick --dry-run` | Inspect experimental Force/Command runs before spending compute |
+| Which search is stronger? | `python tools/run_experiments.py strength-bench ...` | Mirrored ISMCTS/alpha-beta matches |
+| What is a card's paired replacement value? | `python tools/counterfactual_balance.py --cards followed --contexts 3 --games-per-context 4 --no-pairs --no-triples` | Policy-specific causal replacement, with uncertainty |
+| Does a selected effect survive stronger play? | `python tools/targeted_online_counterfactual.py --broad artifacts/counterfactual-balance.json` | Online MCCFR on the exact broad contexts/interventions |
+| Release balance suite | `make balance-deep` | 2000 games per mirror/directed archetype cell, static/health/card flow, full per-card paired sweep |
+
+Quick runs check plumbing and playability, not statistical balance. Deep runs are explicitly opt-in. Override sizes and seeds for development:
+
+```bash
+python tools/run_experiments.py balance --preset quick --games 2 --seed 1701
+python tools/run_experiments.py balance --preset deep --games 2000 --seed 1701 --contexts 3 --games-per-context 4
+python tools/run_experiments.py run --preset deep --variant experiment --deck all --jobs 8 --seed 26092334 --exploration 0.3
+```
+
+Outputs live under `artifacts/balance/<preset>/<identity>/`, `artifacts/cardflow/<preset>/<identity>/`, and `artifacts/search-benchmark/`. Each run saves configuration and source/card/deck fingerprints. An explicitly supplied card-flow output directory cannot silently mix different configurations.
+
+`simulate.py` records action/card/pass/decision telemetry. `health.py` adds confidence-aware observational flags; `playability.py` summarizes card flow. `balance.py` handles static combinations. `counterfactual.py` estimates paired replacement and factorial contrasts; `targeted_counterfactual.py` preserves exact broad-sweep contexts for stronger follow-up. Lab builders aggregate these outputs and reject stale evidence.
+
+“Win when played” is an observational correlation. It is not a card-value estimate. Paired replacements use identical focal seats, game/agent seeds and shuffle permutations. Uncertainty is reported explicitly; a singleton or constant tiny sample cannot establish certainty. Even a narrow interval is specific to the tested policy and deck contexts.
+
+Full-pool causal analysis uses per-card sweeps because all cards/Heroes cannot fit in a legal deck. Selected compatible subsets can request pair/triple factorial analysis. Solver training/verification and targeted online analysis remain separate optional expensive stages:
+
+```bash
+make verify-mccfr
 make mccfr-smoke
+python tools/train_mccfr.py --iterations 5000 --depth 3 --workers 1 --output artifacts/mccfr-policy.json
 ```
 
-This trains a small policy artifact and immediately uses it in complete matches against the heuristic agent.
+Policies and old balance artifacts must be regenerated after fingerprint-changing rule, card, search or evaluation edits. Pages can display saved compatible evidence without rerunning deep analysis.
 
-Routine GitHub CI runs the fast and integration suites plus heuristic smoke simulation. MCCFR learning, formal verification, training, and solver matchups are deliberately excluded from routine CI.
-
-
-## MCCFR
-
-The repository implements **depth-limited external-sampling Monte Carlo Counterfactual Regret Minimization**.
-
-Installed CPython builds use a dedicated typed Cython search representation for offline MCCFR: card identities and actions are integers, battlefield/deck/hand state lives in primitive arrays, CFR actions/regrets/strategy sums use compact native storage, and search states are copied into reusable depth scratch buffers. The ordinary Python `GameState` remains the reference implementation and the browser/Pyodide fallback. Exported policies still use the canonical string action keys and information-set IDs.
-
-Run `make benchmark-mccfr` to report the active backend and traversals per second on the reference deck.
-
-Replica multiprocessing is currently optional rather than the default. Each worker builds a large independent information-set table; serializing and pooling those tables can cost more than the extra CPU throughput. The native single-process solver is therefore the recommended training path until the tables themselves can be shared or merged natively.
-
-For every sampled root deal:
-
-1. chance is sampled by shuffling both decks and drawing the private opening hands;
-2. training traverses once for each player;
-3. at the traverser's information sets, every legal action is expanded and counterfactual regrets are updated;
-4. at the opponent's information sets, one action is sampled from regret matching;
-5. sampled-path opponent strategies are accumulated into the exported average policy;
-6. at the configured depth frontier, the public-information heuristic state evaluator supplies a bounded continuation value.
-
-The information set contains public battlefield/discard information, the acting player's own hand and remaining-deck multiset, public hand/deck counts, and only information the player is allowed to know about Veiled Stories and Stratagems. It never contains opponent hand identities or deck order.
-
-### Explicit approximations
-
-The current solver is intentionally transparent about two approximations:
-
-- **Depth-limited solving.** It converges toward the truncated game induced by the frontier evaluator, not yet the exact full match.
-- **State abstraction / imperfect recall.** The information key describes the currently observable state rather than preserving the entire action-observation history.
-
-The exported policy records these limitations in its metadata. The next solver work should measure information-set coverage, raise depth/iteration budgets, and eventually compare against a perfect-recall history abstraction on smaller subgames.
-
-Train:
-
-```bash
-python tools/train_mccfr.py \
-  --iterations 5000 \
-  --depth 3 \
-  --workers 1 \
-  --output artifacts/mccfr-policy.json
-```
-
-### Online re-solving and belief sampling
-
-The online agent does not depend on an offline table matching the current private
-hand. Before every non-forced decision it:
-
-1. conditions on the acting player's public observation and own private cards;
-2. replays retained observation knowledge, including publicly seen cards that
-   later returned to a hidden hand;
-3. conditions a deck prior on public cards plus guaranteed hidden-card facts;
-4. samples a legal opponent deck composition, then a compatible hidden
-   hand/deck/Veiled-Story/Stratagem partition;
-5. reshuffles the acting player's unknown future deck order;
-6. repeats external-sampling MCCFR over those determinizations while merging
-   them at the same root information set;
-7. selects from the locally solved average root strategy, then discards the
-   local regret table.
-
-This gives root policy coverage by construction instead of hoping an offline
-table has previously encountered the exact information set.
-
-The default online belief model no longer receives the opponent's true
-decklist. It uses a legal card-pool prior derived from deck-construction rules.
-A weighted `HypothesisDeckPrior` is also available for an externally supplied
-metagame distribution. Incompatible deck hypotheses are eliminated by observed
-card counts.
-
-`GameState` now retains epistemic observation events. If a public Name is
-returned to a hand, the opponent remembers that guaranteed hidden card until
-public play or another observable transition invalidates the certainty. These
-facts are part of the information-set hash and are enforced in every sampled
-determinization.
-
-Face-down actions are updated conservatively from public information only: the
-knowledge tracker never consults the simulator's actual hidden identity to
-decide what the opponent should know. Tests compare states with different true
-hidden partitions to enforce this non-leakage property.
-
-Run an online benchmark with:
-
-```bash
-python tools/simulate.py \
-  --games 20 \
-  --agent-a online_mccfr \
-  --agent-b heuristic \
-  --online-iterations 8 \
-  --online-depth 2
-```
-
-Evaluate the learned offline table with heuristic fallback for unseen information sets:
-
-```bash
-python tools/simulate.py \
-  --games 100 \
-  --agent-a mccfr \
-  --policy-a artifacts/mccfr-policy.json \
-  --agent-b heuristic
-```
-
-## Heuristic agent
-
-The heuristic player performs one-ply lookahead across every legal action. Its evaluator follows the actual two-of-three-Front objective rather than raw Strength alone: the second controlled Front receives a distinct premium and large overkill margins are saturated. It also values Victory markers, public hand-size advantage, named positions, own-hand completion potential, pass/card conservation, and the current public board when choosing among Stratagems. It never evaluates the identities of cards in the opponent's hand.
-
-The same public-information evaluator is used at MCCFR depth frontiers. It is deliberately inexpensive: Name option checks reuse the current state rather than cloning it for every candidate.
-
-## CI and analysis cadence
-
-Routine **CI**, **Pages deployment**, and weekly **Balance diagnostics** use the
-deterministic engine, static checks, heuristic self-play, telemetry, and
-heuristic/random comparison only. They do **not** train, verify, or run MCCFR,
-and they do not run counterfactual experiments.
-
-Expensive analysis is opt-in:
-
-- **Counterfactual Analysis** is manual. Its broad paired heuristic sweep runs
-  by default. Targeted online-MCCFR validation is a separate checkbox and is
-  off by default.
-- **MCCFR Validation** is manual-only. It contains the formal Kuhn benchmark,
-  offline training/matchups, and online-MCCFR matchup.
-
-Use those workflows when a solver change, a stable suspicious card interaction,
-or a release-quality balance check actually justifies the compute. Pages
-restores the most recent successful analysis artifacts when available rather
-than recomputing them on ordinary rulebook, UI, or card iterations.
-
-Routine Actions derive a fresh base seed from the GitHub run ID, then use
-documented offsets for individual simulations. Scheduled and CI runs therefore
-explore new samples instead of repeating the same deal forever, while the
-actual seed is written into simulation artifacts so a run can be replayed
-exactly. Local CLI defaults remain deterministic for debugging.
-
-## Counterfactual card value
-
-The balance pipeline includes paired causal replacement experiments. Each
-canonical card is compared with a generated neutral same-type baseline while
-keeping the game seed, focal seat, agent seeds, and shuffle index permutation
-identical.
-
-Experimental baselines are never added to the printable card set:
-
-- Subject: vanilla 4 Strength;
-- Bond: +1 Strength immediately and +2 more while it has a Name;
-- Name: vanilla 2 Strength;
-- Story: universally playable no-op Story;
-- Stratagem: face-down inert Stratagem with no trigger or effect.
-
-For card `c`, the reported causal effect is:
-
-```text
-ΔWP(c) = win(base deck) - win(deck with one c replaced)
-```
-
-Pair interactions use the second-order factorial contrast:
-
-```text
-I(a,b) = f(ab) - f(a0) - f(0b) + f(00)
-```
-
-Subject–Bond–Name triples use the corresponding third-order factorial
-contrast. Confidence intervals are paired percentile-bootstrap intervals over
-per-game contrasts, so common random numbers reduce noise rather than comparing
-two unrelated win-rate samples.
-
-Run locally:
-
-```bash
-python tools/counterfactual_balance.py \
-  --contexts 3 \
-  --games-per-context 4
-```
-
-The current causal estimates are policy-specific: the automated full sweep uses
-the heuristic policy because thousands of matched games are required. The
-framework records this explicitly and does not present the result as an
-equilibrium value.
-
-## Targeted online-MCCFR validation
-
-The broad heuristic counterfactual sweep is intentionally cheap enough to test
-all cards, all 153 pairs, and all 120 Subject–Bond–Name triples. Online MCCFR
-is not run automatically afterward; enable the targeted stage only after the
-heuristic sweep has identified candidates that merit stronger validation.
-
-Targets are nominated when their paired heuristic effect is large, receives a
-yellow/orange/red causal level, or its paired interval excludes zero. Only the
-highest-priority candidates are then rerun with **online MCCFR**.
-
-For each selected card, pair, or triple, the online stage evaluates the exact
-factorial intervention family required for that contrast. It reuses a subset of
-the broad experiment's deck contexts, focal seats, and game seeds.
-
-To avoid condition leakage, the non-focal player receives the same uniform deck
-hypothesis prior over *all* factorial variants of the focal deck in every
-condition. It therefore knows which intervention family is under study, but is
-never told which variant is active. The focal player's belief over the opponent
-still uses the generic legal-card-pool prior.
-
-Validation labels are:
-
-- **confirmed** — online 95% interval excludes zero in the same direction;
-- **reversed** — online 95% interval excludes zero in the opposite direction;
-- **direction agrees** — same sign, but online evidence is not yet conclusive;
-- **inconclusive** — no stable directional agreement.
-
-Run locally after the broad report:
-
-```bash
-python tools/targeted_online_counterfactual.py \
-  --broad artifacts/counterfactual-balance.json \
-  --contexts 2 \
-  --games-per-context 2 \
-  --online-iterations 4 \
-  --online-depth 2
-```
-
-## Telemetry and Balance Lab
-
-Simulations record card playability, immediate board swing, pass behavior, Subjects with both a Bond and a Name, conditional outcomes, and decision statistics. The health analyzer adds Wilson 95% intervals, minimum-evidence thresholds, within-type z-scores, and diagnostic flags.
-
-GitHub Pages publishes:
-
-- printable cards;
-- printable rulebook;
-- a full Balance Lab generated from fresh simulation and solver runs.
-
-The Balance Lab includes:
-
-- every card with a five-level balance grade: red, orange, yellow, green, or dark green;
-- paired per-card causal Δ win probability with 95% intervals;
-- pairwise factorial interaction estimates and Subject–Bond–Name triple interactions;
-- targeted online-MCCFR validation for suspicious card/pair/triple effects, with confirmation status;
-- draws, plays, dead-turn rate, pass-deadness, board/control swing, conditional win rates, confidence intervals, static marginal strength, and diagnostic flags per card;
-- all 120 possible Subject–Bond–Name Subject–Bond–Name sequences, including combinations not observed in the current simulation sample;
-- static Strength-space diagnostics;
-- action, pass, Battle, and decision telemetry;
-- heuristic/random and MCCFR/heuristic matchup summaries;
-- MCCFR iterations, information-set count, depth, policy coverage/fallback counts;
-- the formal Kuhn-poker verification result, including exact-value error and exploitability;
-- downloadable raw JSON artifacts for every report.
-
-Card grades are diagnostic rather than prescriptive: **dark green** requires both no warning signals and strong evidence; **green** means currently healthy with thinner evidence; **yellow** is a watch signal; **orange** indicates one high-confidence or multiple watch issues; **red** indicates multiple high-confidence issues.
-
-## Balance pipeline
-
-The routine automated stack is:
-
-1. static Subject–Bond–Name combinatorial analysis;
-2. deterministic full-match engine;
-3. heuristic self-play;
-4. extended telemetry;
-5. confidence-aware health analysis and five-level per-card grading;
-6. heuristic/random baseline comparison;
-7. full Balance Lab aggregation and Pages publication.
-
-Optional analysis layers are run only when needed:
-
-8. paired heuristic counterfactual card replacement and factorial interaction analysis;
-9. targeted online-MCCFR counterfactual validation;
-10. depth-limited external-sampling MCCFR training;
-11. exact-reference MCCFR verification on Kuhn poker;
-12. MCCFR-policy and online-MCCFR matchup evaluation.
-
-Planned next layers:
-
-14. action-likelihood learning for richer posterior deck/archetype inference;
-15. double-oracle deck/meta search;
-16. sampled Shapley attribution across deck contexts.
-
-Static outliers, conditional win rates, heuristic values, and shallow MCCFR policies are diagnostics, not automatic balance verdicts.
+The [issue #20 engineering review](reports/issue-20-engineering-review.md) records the fixes, removed paths, exact local verification and remaining gameplay-data questions.

@@ -178,6 +178,13 @@ cdef inline void _info_emit(
     n[0] += 1
 
 
+cdef inline void _info_emit_u16(
+    unsigned char* buf, int* n, InfoHash128* h, uint16_t value,
+) noexcept:
+    _info_emit(buf, n, h, <uint8_t>(value & 255))
+    _info_emit(buf, n, h, <uint8_t>(value >> 8))
+
+
 cdef class FastState:
     cdef int8_t deck[2][MAX_DECK]
     cdef uint8_t deck_len[2]
@@ -2016,10 +2023,10 @@ cdef class FastEngine:
         cdef int n=0, i, owner, slot, card, front, ix
         cdef int opponent = 1 - player
 
-        _info_emit(buf, &n, h, 3)
+        _info_emit(buf, &n, h, 4)
         _info_emit(buf, &n, h, <uint8_t>player)
         _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
-        _info_emit(buf, &n, h, <uint8_t>(state.battle & 255))
+        _info_emit_u16(buf, &n, h, <uint16_t>state.battle)
         _info_emit(buf, &n, h, <uint8_t>(state.active_player + 1))
         _info_emit(buf, &n, h, <uint8_t>(state.chooser + 1))
         for i in range(2):
@@ -2035,18 +2042,18 @@ cdef class FastEngine:
             )
         for i in range(2):
             _info_emit(buf, &n, h, state.discarded_this_battle[i])
-            _info_emit(
+            _info_emit_u16(
                 buf,
                 &n,
                 h,
-                <uint8_t>(state.command[i] & 255),
+                <uint16_t>state.command[i],
             )
             _info_emit(buf, &n, h, state.free_cycle[i])
-            _info_emit(
+            _info_emit_u16(
                 buf,
                 &n,
                 h,
-                <uint8_t>(state.operations_this_battle[i] & 255),
+                state.operations_this_battle[i],
             )
         _info_emit(
             buf,
@@ -2088,11 +2095,11 @@ cdef class FastEngine:
                     h,
                     <uint8_t>(state.name[slot] + 1),
                 )
-                _info_emit(
+                _info_emit_u16(
                     buf,
                     &n,
                     h,
-                    <uint8_t>(state.temporary[slot] + 64),
+                    <uint16_t>state.temporary[slot],
                 )
 
         for owner in range(2):

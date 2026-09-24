@@ -420,8 +420,16 @@ class GameEngine:
         for viewer in range(2):
             for owner in range(2):
                 target = state.known_hidden_hand[viewer][owner]
+                updated = hidden[viewer][owner]
+                for card_id in sorted(target.keys() | updated.keys()):
+                    delta = updated.get(card_id, 0) - target.get(card_id, 0)
+                    if delta:
+                        state.observe_hidden_delta(
+                            viewer=viewer, owner=owner, card_id=card_id,
+                            zone="hand", delta=delta, reason="engine_transition",
+                        )
                 target.clear()
-                target.update(hidden[viewer][owner])
+                target.update(updated)
 
     def _native_action(self, fast_state, action: Action):
         target = action_key(action)

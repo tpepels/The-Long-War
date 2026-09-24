@@ -333,205 +333,8 @@ def make_scratch(int max_depth):
 
 
 
-cdef double _fast_external_sampling_traverse(
-    FastEngine engine,
-    NativeHeuristicEvaluator evaluator,
-    FastState state,
-    int traverser,
-    int depth,
-    int max_depth,
-    dict nodes,
-    object rng,
-    object node_factory,
-    double leaf_scale,
-    double reach0,
-    double reach1,
-) except *:
-    cdef int actor, n, i, sampled_index
-    cdef uint64_t action
-    cdef object actions
-    cdef object info_key
-    cdef object node
-    cdef object pykey
-    cdef double regret, positive_total = 0.0
-    cdef double probability, threshold, cumulative
-    cdef double node_utility = 0.0
-    cdef double sampled_probability
-    cdef double probs[MAX_ACTIONS]
-    cdef double utilities[MAX_ACTIONS]
-    cdef FastState child
-
-    if state.phase == PHASE_COMPLETE:
-        return 1.0 if state.winner == traverser else -1.0
-
-    if depth >= max_depth:
-        return tanh(evaluator.evaluate_fast(state, traverser) / leaf_scale)
-
-    actor = state.active_player
-    actions = engine.legal_actions_fast(state)
-    n = len(actions)
-    if n <= 0:
-        raise RuntimeError("Non-terminal fast state has no legal actions")
-    if n > MAX_ACTIONS:
-        raise RuntimeError(
-            f"Fast MCCFR action buffer exceeded: {n} > {MAX_ACTIONS}"
-        )
-
-    info_key = engine.information_key_fast(state, actor)
-    node = nodes.get(info_key)
-    if node is None:
-        node = node_factory()
-        nodes[info_key] = node
-
-    node.visits += 1
-
-    for i in range(n):
-        pykey = actions[i]
-        if pykey not in node.regret_sum:
-            node.regret_sum[pykey] = 0.0
-            node.strategy_sum[pykey] = 0.0
-        regret = node.regret_sum[pykey]
-        if regret > 0.0:
-            probs[i] = regret
-            positive_total += regret
-        else:
-            probs[i] = 0.0
-
-    if positive_total > 0.0:
-        for i in range(n):
-            probs[i] /= positive_total
-    else:
-        probability = 1.0 / n
-        for i in range(n):
-            probs[i] = probability
-
-    if actor == traverser:
-        child = FastState()
-        for i in range(n):
-            action = <uint64_t>actions[i]
-            child = state.clone_fast()
-            engine.apply_fast(child, action)
-            if actor == 0:
-                utilities[i] = _fast_external_sampling_traverse(
-                    engine,
-                    evaluator,
-                    child,
-                    traverser,
-                    depth + 1,
-                    max_depth,
-                    nodes,
-                    rng,
-                    node_factory,
-                    leaf_scale,
-                    reach0 * probs[i],
-                    reach1,
-                )
-            else:
-                utilities[i] = _fast_external_sampling_traverse(
-                    engine,
-                    evaluator,
-                    child,
-                    traverser,
-                    depth + 1,
-                    max_depth,
-                    nodes,
-                    rng,
-                    node_factory,
-                    leaf_scale,
-                    reach0,
-                    reach1 * probs[i],
-                )
-            node_utility += probs[i] * utilities[i]
-
-        for i in range(n):
-            pykey = actions[i]
-            node.regret_sum[pykey] += utilities[i] - node_utility
-        return node_utility
-
-    node.average_visits += 1
-    # Own reach cancels the probability of sampling this opponent node.
-    for i in range(n):
-        pykey = actions[i]
-        node.strategy_sum[pykey] += probs[i]
-
-    threshold = rng.random()
-    cumulative = 0.0
-    sampled_index = n - 1
-    for i in range(n):
-        cumulative += probs[i]
-        if threshold <= cumulative:
-            sampled_index = i
-            break
-
-    sampled_probability = probs[sampled_index]
-    action = <uint64_t>actions[sampled_index]
-    child = state.clone_fast()
-    engine.apply_fast(child, action)
-    if actor == 0:
-        return _fast_external_sampling_traverse(
-            engine,
-            evaluator,
-            child,
-            traverser,
-            depth + 1,
-            max_depth,
-            nodes,
-            rng,
-            node_factory,
-            leaf_scale,
-            reach0 * sampled_probability,
-            reach1,
-        )
-    return _fast_external_sampling_traverse(
-        engine,
-        evaluator,
-        child,
-        traverser,
-        depth + 1,
-        max_depth,
-        nodes,
-        rng,
-        node_factory,
-        leaf_scale,
-        reach0,
-        reach1 * sampled_probability,
-    )
-
-
-def fast_external_sampling_traverse(
-    FastEngine engine,
-    FastState state,
-    int traverser,
-    *,
-    int max_depth,
-    dict nodes,
-    rng,
-    node_factory,
-    double leaf_scale=100.0,
-    int depth=0,
-    NativeHeuristicEvaluator evaluator=None,
-):
-    """External-sampling MCCFR directly on the primitive-array search state."""
-    if evaluator is None:
-        evaluator = NativeHeuristicEvaluator(engine)
-    return _fast_external_sampling_traverse(
-        engine,
-        evaluator,
-        state,
-        traverser,
-        depth,
-        max_depth,
-        nodes,
-        rng,
-        node_factory,
-        leaf_scale,
-        1.0,
-        1.0,
-    )
-
-
 def stable_information_id_from_fast_key(FastEngine engine, bytes key):
-    """Translate a binary fast-search key to the legacy policy id.
+    """Translate the current binary key to the public stable policy id.
 
     This runs only when exporting/looking up a policy, never inside traversal.
     """
@@ -539,7 +342,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i = 0
     version = data[i]
     i += 1
-    if version not in (1, 2, 3):
+    if version != 4:
         raise ValueError(f"Unsupported fast information-key version: {version}")
 
     card_ids = engine.card_ids
@@ -549,8 +352,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     phase_code = data[i] - 1
     i += 1
     phase = ("battle", "choose_first", "complete")[phase_code]
-    battle = data[i]
-    i += 1
+    battle = data[i] | (data[i + 1] << 8)
+    i += 2
     active_player = data[i] - 1
     i += 1
     chooser_raw = data[i] - 1
@@ -568,44 +371,24 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         pass_order.append(data[i] - 1)
         i += 1
 
-    if version >= 3:
-        discarded_this_battle = []
-        command = []
-        free_cycle = []
-        operations_this_battle = []
-        for _ in range(2):
-            discarded_this_battle.append(data[i])
-            command.append(data[i + 1])
-            free_cycle.append(bool(data[i + 2]))
-            operations_this_battle.append(data[i + 3])
-            i += 4
-        pending_final_raw = data[i] - 1
-        i += 1
-        cleanup_pending = bool(data[i])
-        i += 1
-        cleanup_starter_raw = data[i] - 1
-        i += 1
-        cleanup_chooser_raw = data[i] - 1
-        i += 1
-        pending_final_operation_for = (
-            None if pending_final_raw < 0 else pending_final_raw
-        )
-        cleanup_next_starter = (
-            None if cleanup_starter_raw < 0 else cleanup_starter_raw
-        )
-        cleanup_next_chooser = (
-            None if cleanup_chooser_raw < 0 else cleanup_chooser_raw
-        )
-    else:
-        discarded_this_battle = [data[i], data[i + 1]]
-        i += 2
-        command = [0, 0]
-        free_cycle = [False, False]
-        operations_this_battle = [0, 0]
-        pending_final_operation_for = None
-        cleanup_pending = False
-        cleanup_next_starter = None
-        cleanup_next_chooser = None
+    discarded_this_battle = []
+    command = []
+    free_cycle = []
+    operations_this_battle = []
+    for _ in range(2):
+        discarded_this_battle.append(data[i])
+        command.append(data[i + 1] | (data[i + 2] << 8))
+        free_cycle.append(bool(data[i + 3]))
+        operations_this_battle.append(data[i + 4] | (data[i + 5] << 8))
+        i += 6
+    pending_final_raw = data[i] - 1
+    cleanup_pending = bool(data[i + 1])
+    cleanup_starter_raw = data[i + 2] - 1
+    cleanup_chooser_raw = data[i + 3] - 1
+    i += 4
+    pending_final_operation_for = None if pending_final_raw < 0 else pending_final_raw
+    cleanup_next_starter = None if cleanup_starter_raw < 0 else cleanup_starter_raw
+    cleanup_next_chooser = None if cleanup_chooser_raw < 0 else cleanup_chooser_raw
 
     board = [[], []]
     for owner in range(2):
@@ -613,8 +396,10 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             subject_code = data[i] - 1
             link_code = data[i + 1] - 1
             name_code = data[i + 2] - 1
-            temporary = data[i + 3] - 64
-            i += 4
+            temporary = data[i + 3] | (data[i + 4] << 8)
+            if temporary >= 32768:
+                temporary -= 65536
+            i += 5
             board[owner].append([
                 local // 2,
                 "front" if (local & 1) == 0 else "rear",
@@ -651,10 +436,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
 
     stratagem_used = [bool(data[i]), bool(data[i + 1])]
     i += 2
-    draw_used = [False, False]
-    if version >= 2:
-        draw_used = [bool(data[i]), bool(data[i + 1])]
-        i += 2
+    draw_used = [bool(data[i]), bool(data[i + 1])]
+    i += 2
 
     own_hand_counts = []
     for card_code in range(n_cards):

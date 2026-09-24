@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import re
 import shutil
 from pathlib import Path
 
 import markdown
-from build_browser_runtime import ensure_browser_runtime
+if __package__:
+    from .build_browser_runtime import ensure_browser_runtime
+else:
+    from build_browser_runtime import ensure_browser_runtime
 from longwar.cards import load_card_file
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,7 +27,7 @@ def version_static_assets() -> str:
         for path in DIST.rglob("*")
         if path.is_file()
         and (
-            path.suffix in {".js", ".mjs", ".css"}
+            path.suffix in {".js", ".mjs", ".css", ".whl"}
             or path.relative_to(DIST).as_posix()
             in {"data/cards.json", "data/reference-deck.json"}
         )

@@ -2373,8 +2373,8 @@ button, .button {
 .card-title {
   height: 15mm;
   padding: 1.6mm 15.5mm 0 3.5mm;
-  font-size: 4.75mm;
-  line-height: .98;
+  font-size: 4.5mm;
+  line-height: .96;
 }
 
 .strength {

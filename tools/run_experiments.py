@@ -156,9 +156,6 @@ def normalized_payload(path: Path) -> dict[str, Any]:
 
 def parity_case(mode: str, *, seed: int) -> None:
     print(f"\nBackend parity: {mode} draw")
-    python_dir = VALIDATION_ROOT / f"{mode}-python"
-    cython_dir = VALIDATION_ROOT / f"{mode}-cython"
-
     common = [
         "--preset",
         "quick",
@@ -183,6 +180,12 @@ def parity_case(mode: str, *, seed: int) -> None:
         "--seed",
         str(seed),
     ]
+    output = artifact_directory(
+        VALIDATION_ROOT,
+        experiment_identity({"command": "backend-parity", "arguments": common}),
+    )
+    python_dir = output / f"{mode}-python"
+    cython_dir = output / f"{mode}-cython"
 
     run_command(
         [
@@ -214,8 +217,8 @@ def parity_case(mode: str, *, seed: int) -> None:
     cython_payload = normalized_payload(cython_dir / filename)
 
     if python_payload != cython_payload:
-        left = VALIDATION_ROOT / f"{mode}-normalized-python.json"
-        right = VALIDATION_ROOT / f"{mode}-normalized-cython.json"
+        left = output / f"{mode}-normalized-python.json"
+        right = output / f"{mode}-normalized-cython.json"
         left.parent.mkdir(parents=True, exist_ok=True)
         left.write_text(json.dumps(python_payload, indent=2) + "\n", encoding="utf-8")
         right.write_text(json.dumps(cython_payload, indent=2) + "\n", encoding="utf-8")
@@ -618,7 +621,10 @@ def benchmark_strength(
         "tree_nodes_before_total": 0,
         "tree_nodes_added_total": 0,
         "root_prior_visits_total": 0,
+        "tree_nodes_discarded_total": 0,
+        "tree_capacity_cutoffs": 0,
     }
+    reset_totals: dict[str, int] = {}
 
     for deck, orientation, output, elapsed in results:
         payload = json.loads(output.read_text(encoding="utf-8"))
@@ -644,6 +650,8 @@ def benchmark_strength(
         reuse = decision_stats.get("ismcts_tree_reuse", {})
         for key in reuse_totals:
             reuse_totals[key] += int(reuse.get(key, 0) or 0)
+        for reason, count in reuse.get("tree_resets", {}).items():
+            reset_totals[reason] = reset_totals.get(reason, 0) + int(count)
 
     total_games = overall_mcts + overall_alpha
     paired = paired_strength_interval(paired_outcomes)
@@ -698,6 +706,7 @@ def benchmark_strength(
     searched_decisions = reuse_totals["searched_decisions"]
     reuse_summary = {
         **reuse_totals,
+        "tree_resets": reset_totals,
         "root_reuse_rate": (
             reuse_totals["root_reused_decisions"] / searched_decisions
             if searched_decisions else None

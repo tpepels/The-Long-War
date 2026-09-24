@@ -44,6 +44,22 @@ def test_lab_rejects_stale_static_report(monkeypatch) -> None:
         build_lab_report.main()
 
 
+@pytest.mark.parametrize("variant", [
+    {"rules_profile": "force-automatic"},
+    {"rules_profile": "custom", "automatic_draw": True},
+    {"rules_profile": "standard", "card_file": "cards/experiments/force-draw-cards.json"},
+])
+def test_lab_rejects_experimental_health_with_current_source(monkeypatch, variant):
+    artifacts = {
+        "balance-health.json": {"game_fingerprint": "current", "simulation_variant": variant},
+        "balance-report.json": {"game_fingerprint": "current"},
+    }
+    monkeypatch.setattr(build_lab_report, "current_game_fingerprint", lambda: "current")
+    monkeypatch.setattr(build_lab_report, "load", artifacts.get)
+    with pytest.raises(SystemExit, match="current balance-health.json"):
+        build_lab_report.main()
+
+
 def test_report_builders_share_simulation_summary_and_preserve_provenance() -> None:
     data = {
         "games": 2, "seed": 37, "game_fingerprint": "current-engine",

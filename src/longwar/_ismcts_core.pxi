@@ -444,7 +444,7 @@ def ismcts_search(
     *,
     ISMCTSTree tree=None,
     reuse_context=None,
-    long iterations=20000,
+    long iterations=100000,
     int rollout_depth=5,
     int tree_depth_limit=96,
     double exploration=1.4142135623730951,
@@ -534,8 +534,9 @@ def ismcts_search(
     # Values depend on the evaluator/search horizon and the observer's belief
     # evidence, not just the node's information hash. The belief layer owns
     # reuse_context; native callers omitting it must manage belief changes.
-    search_context = (engine, evaluator, rollout_depth, tree_depth_limit,
-                      rollout_epsilon, rollout_policy, leaf_scale, reuse_context)
+    search_context = (engine, evaluator, root_player, rollout_depth, tree_depth_limit,
+                      rollout_epsilon, rollout_policy, leaf_scale,
+                      exploration, progressive_widening, reuse_context)
     if tree.search_context is not None and tree.search_context != search_context:
         tree_nodes_discarded = tree.node_count
         tree.clear()

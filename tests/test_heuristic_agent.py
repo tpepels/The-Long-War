@@ -109,6 +109,8 @@ def test_heuristic_prefers_to_pass_when_opponent_has_passed_and_battle_is_won() 
 
 def test_equal_stratagem_scores_do_not_fall_back_to_card_id_order() -> None:
     engine, state = engine_and_state()
+    # Isolate the deployment decision after the once-per-Battle draw.
+    state.draw_used[0] = True
     # Tide and Ground have the same public-board estimate here: each improves
     # the current relative position by two points if revealed.
     state.players[0].hand = ["the-tide-rose", "the-ground-gave-way"]
@@ -151,6 +153,7 @@ def test_heuristic_prefers_two_front_control_over_overkill() -> None:
 
 def test_heuristic_uses_public_board_to_choose_stratagem() -> None:
     engine, state = engine_and_state()
+    state.draw_used[0] = True
     state.players[0].hand = ["the-storm-broke", "the-wooden-gift"]
     state.players[1].hand = ["oren", "iria", "teyra", "he-never-came"]
 
@@ -200,4 +203,3 @@ def test_heuristic_values_tempo_after_opponent_passes() -> None:
     )
 
     assert tempo_value > live_value
-

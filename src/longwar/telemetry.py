@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from statistics import mean
 from typing import Any
 
@@ -61,6 +61,9 @@ class DecisionStats:
     ismcts_tree_nodes_before_total: int = 0
     ismcts_tree_nodes_added_total: int = 0
     ismcts_root_prior_visits_total: int = 0
+    ismcts_tree_nodes_discarded_total: int = 0
+    ismcts_tree_capacity_cutoffs: int = 0
+    ismcts_tree_resets: Counter[str] = field(default_factory=Counter)
 
 
 class Telemetry:
@@ -225,6 +228,15 @@ class Telemetry:
                 stats.ismcts_root_prior_visits_total += int(
                     decision_info.get("ismcts_root_prior_visits", 0)
                 )
+                stats.ismcts_tree_nodes_discarded_total += int(
+                    decision_info.get("ismcts_tree_nodes_discarded", 0)
+                )
+                stats.ismcts_tree_capacity_cutoffs += int(
+                    decision_info.get("ismcts_tree_capacity_cutoffs", 0)
+                )
+                reason = str(decision_info.get("ismcts_tree_reset_reason", "none"))
+                if reason != "none":
+                    stats.ismcts_tree_resets[reason] += 1
             search_backend = decision_info.get("search_backend")
             if search_backend is not None:
                 self.search_backends[str(search_backend)] += 1
@@ -529,6 +541,9 @@ class Telemetry:
                     "tree_nodes_before_total": stats.ismcts_tree_nodes_before_total,
                     "tree_nodes_added_total": stats.ismcts_tree_nodes_added_total,
                     "root_prior_visits_total": stats.ismcts_root_prior_visits_total,
+                    "tree_nodes_discarded_total": stats.ismcts_tree_nodes_discarded_total,
+                    "tree_capacity_cutoffs": stats.ismcts_tree_capacity_cutoffs,
+                    "tree_resets": dict(stats.ismcts_tree_resets),
                     "mean_tree_nodes_before": self._ratio(
                         stats.ismcts_tree_nodes_before_total,
                         stats.ismcts_searched_decisions,

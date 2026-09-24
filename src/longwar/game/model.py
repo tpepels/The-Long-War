@@ -402,9 +402,8 @@ class GameState:
         zone: str = "hand",
     ) -> Counter[str]:
         if zone == "hand":
-            direct = self.known_hidden_hand[viewer][owner]
-            if direct:
-                return Counter(direct)
+            # The native state owns knowledge; observations are a UI log.
+            return Counter(self.known_hidden_hand[viewer][owner])
 
         counts: Counter[str] = Counter()
         for event in self.observations:

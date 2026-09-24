@@ -13,10 +13,12 @@ export function initializeBrowserEngine(options = {}) {
       const runtimeURL = new URL("./runtime/", import.meta.url);
       const { loadPyodide } = await import(new URL("pyodide.mjs", runtimeURL).href);
       pyodide = await loadPyodide({ indexURL: runtimeURL.href });
-      const response = await fetch(new URL("longwar-runtime.json", runtimeURL));
+      const response = await fetch(new URL("longwar-runtime.json", runtimeURL), { cache: "no-store" });
       if (!response.ok) throw new Error("Could not load the game runtime manifest.");
       const manifest = await response.json();
-      const wheelResponse = await fetch(new URL(manifest.wheel, runtimeURL));
+      const wheelURL = new URL(manifest.wheel, runtimeURL);
+      wheelURL.searchParams.set("v", manifest.source_fingerprint);
+      const wheelResponse = await fetch(wheelURL);
       if (!wheelResponse.ok) throw new Error("Could not load the game engine.");
       wheel = await wheelResponse.arrayBuffer();
     }
@@ -44,7 +46,10 @@ export class BrowserSession {
   }
 
   snapshot(viewer = null) {
-    return JSON.parse(this.session.snapshot_json(viewer));
+    // JS null is a distinct JsNull object in Pyodide; omit the argument for None.
+    return JSON.parse(viewer === null
+      ? this.session.snapshot_json()
+      : this.session.snapshot_json(viewer));
   }
 
   view(viewer) {

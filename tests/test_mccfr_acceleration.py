@@ -148,7 +148,7 @@ def test_longwar_action_keys_are_unique_across_live_states() -> None:
     assert checked >= 80
 
 
-@pytest.mark.parametrize("backend", ["python", "cython", "direct", "fast", "packed"])
+@pytest.mark.parametrize("backend", ["python", "cython", "direct", "packed"])
 def test_external_sampling_does_not_weight_opponent_reach_twice(backend):
     """Choosing to start creates two decisions by the sampled player.
 
@@ -192,13 +192,10 @@ def test_external_sampling_does_not_weight_opponent_reach_twice(backend):
         )
         nodes = trainer.nodes
     else:
-        from longwar._fast_search import FastEngine, fast_external_sampling_traverse, packed_external_sampling_traverse
+        from longwar._fast_search import FastEngine, packed_external_sampling_traverse
         fast = FastEngine(engine)
         options = dict(depth=0, max_depth=2, nodes=nodes, rng=rng)
-        if backend == "packed":
-            packed_external_sampling_traverse(fast, fast.from_game_state(state), 1, **options)
-        else:
-            fast_external_sampling_traverse(fast, fast.from_game_state(state), 1, node_factory=CFRNode, **options)
+        packed_external_sampling_traverse(fast, fast.from_game_state(state), 1, **options)
 
     assert len(nodes) == 2
     for node in nodes.values():

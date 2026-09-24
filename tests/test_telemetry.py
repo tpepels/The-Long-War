@@ -88,6 +88,9 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
             "ismcts_tree_nodes_before": 120,
             "ismcts_tree_nodes_added": 17,
             "ismcts_root_prior_visits": 9,
+            "ismcts_tree_nodes_discarded": 70,
+            "ismcts_tree_capacity_cutoffs": 4,
+            "ismcts_tree_reset_reason": "context_changed",
         },
     )
 
@@ -113,7 +116,9 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
     assert reuse["tree_nodes_before_total"] == 120
     assert reuse["tree_nodes_added_total"] == 17
     assert reuse["root_prior_visits_total"] == 9
+    assert reuse["tree_nodes_discarded_total"] == 70
+    assert reuse["tree_capacity_cutoffs"] == 4
+    assert reuse["tree_resets"] == {"context_changed": 1}
     assert reuse["mean_tree_nodes_before"] == pytest.approx(120.0)
     assert reuse["mean_tree_nodes_added"] == pytest.approx(17.0)
     assert reuse["mean_root_prior_visits"] == pytest.approx(9.0)
-

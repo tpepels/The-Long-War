@@ -18,7 +18,8 @@ spec.loader.exec_module(runner)
 
 def test_fingerprint_tracks_native_includes_and_experiment_inputs(tmp_path, monkeypatch):
     monkeypatch.setattr(fingerprint, "ROOT", tmp_path)
-    paths = ["src/longwar/_ismcts_core.pxi", "cards/experiments/test.json", "decks/reference.json"]
+    paths = ["src/longwar/_ismcts_core.pxi", "cards/experiments/test.json",
+             "decks/reference.json", "tools/run_experiments.py"]
     previous = fingerprint.current_game_fingerprint()
     for name in paths:
         path = tmp_path / name
@@ -46,6 +47,26 @@ def test_all_named_profiles_are_resolvable():
         assert isinstance(GameRules.from_profile(name), GameRules)
     with pytest.raises(ValueError, match="Unknown rules profile"):
         GameRules.from_profile("typo")
+
+
+@pytest.mark.parametrize("change", ["seed", "source"])
+def test_validation_can_repeat_after_inputs_change(tmp_path, monkeypatch, change):
+    monkeypatch.setattr(runner, "VALIDATION_ROOT", tmp_path)
+    monkeypatch.setattr(fingerprint, "current_game_fingerprint", lambda: "before")
+    outputs = []
+    monkeypatch.setattr(runner, "run_command", lambda command: outputs.append(
+        Path(command[command.index("--output-dir") + 1])
+    ))
+    monkeypatch.setattr(runner, "normalized_payload", lambda path: {})
+    runner.parity_case("automatic", seed=17)
+    if change == "source":
+        monkeypatch.setattr(fingerprint, "current_game_fingerprint", lambda: "after")
+    runner.parity_case("automatic", seed=18 if change == "seed" else 17)
+    assert outputs[0].parent == outputs[1].parent
+    assert outputs[2].parent == outputs[3].parent
+    assert outputs[0].parent != outputs[2].parent
+    assert (outputs[0].parent / "config.json").is_file()
+    assert (outputs[2].parent / "config.json").is_file()
 
 
 def test_strength_uncertainty_pairs_orientations_by_seed():

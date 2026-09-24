@@ -28,8 +28,8 @@
 
   function outside(card, element) {
     if (!element) return false;
-    const outer = card.getBoundingClientRect();
-    const inner = element.getBoundingClientRect();
+    const outer = { left: 0, top: 0, right: card.clientWidth, bottom: card.clientHeight };
+    const inner = layoutRect(element, card);
     return (
       inner.left < outer.left - 1 ||
       inner.right > outer.right + 1 ||
@@ -38,10 +38,23 @@
     );
   }
 
+  function layoutRect(element, card) {
+    // Axis-aligned viewport rectangles overlap when a correctly laid-out card
+    // is rotated in the hand. Inspect its untransformed internal geometry.
+    let left = 0;
+    let top = 0;
+    for (let current = element; current && current !== card; current = current.offsetParent) {
+      left += current.offsetLeft;
+      top += current.offsetTop;
+    }
+    return { left, top, right: left + element.offsetWidth, bottom: top + element.offsetHeight };
+  }
+
   function verticallyOverlaps(a, b) {
     if (!a || !b) return false;
-    const first = a.getBoundingClientRect();
-    const second = b.getBoundingClientRect();
+    const card = a.closest(".game-card, .play-card");
+    const first = layoutRect(a, card);
+    const second = layoutRect(b, card);
     return first.bottom > second.top + 1;
   }
 

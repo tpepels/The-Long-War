@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: pip
       - run: python -m pip install --upgrade pip
       - run: pip install -e '.[dev]'
@@ -35,7 +35,10 @@ jobs:
           node --check web/cards.js
           node --check web/balance.js
       - name: Native browser game smoke
-        run: node tools/check_browser_engine.mjs
+        run: |
+          make browser-build
+          python tools/build_browser_contract.py
+          node tools/check_browser_engine.mjs
       - name: Card layout clipping guard
         run: python tools/check_card_layout.py --require-browser
       - name: Game viewport layout guard

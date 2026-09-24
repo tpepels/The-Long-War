@@ -6,6 +6,7 @@ from typing import Any
 
 from longwar.fingerprint import current_game_fingerprint
 from longwar.health import simulation_summary
+from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
@@ -18,6 +19,32 @@ def load(name: str) -> dict[str, Any] | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def canonical_variant(data: dict[str, Any]) -> bool:
+    """A source fingerprint alone cannot distinguish an experimental ruleset."""
+    variant = data.get("simulation_variant")
+    if not variant:
+        return True  # Static/causal/policy artifacts have no simulation variant.
+    if variant.get("rules_profile", "custom") not in {"custom", "standard"}:
+        return False
+    card_file = variant.get("card_file")
+    if card_file and (ROOT / card_file).resolve() != (ROOT / "cards/cards.json").resolve():
+        return False
+    inactive_command = {"starting_command", "battle_command_gain", "command_cap",
+                        "cycle_command_cost", "paid_draw_command_cost"}
+    for name, expected in GameRules.standard().as_dict().items():
+        key = "base_hand_size" if name == "opening_hand_size" else name
+        if key not in variant:
+            continue
+        actual = variant[key]
+        if name in inactive_command and actual is None and not variant.get("command_enabled"):
+            continue
+        if isinstance(expected, tuple):
+            expected = list(expected)
+        if actual != expected:
+            return False
+    return True
+
+
 def main() -> None:
     game_fingerprint = current_game_fingerprint()
     stale_files: set[str] = set()
@@ -27,6 +54,9 @@ def main() -> None:
         if data is None:
             return None
         if data.get("game_fingerprint") != game_fingerprint:
+            stale_files.add(name)
+            return None
+        if not canonical_variant(data):
             stale_files.add(name)
             return None
         return data

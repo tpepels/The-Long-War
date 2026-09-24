@@ -90,6 +90,9 @@ def test_information_set_distinguishes_remembered_hidden_card() -> None:
 
     remembered = information_set_id(state, 1)
     forgotten = state.clone()
+    # Clearing the presentation log must not erase canonical knowledge.
     forgotten.observations.clear()
+    assert information_set_id(forgotten, 1) == remembered
+    forgotten.known_hidden_hand[1][0].clear()
 
     assert information_set_id(forgotten, 1) != remembered

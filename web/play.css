@@ -1398,7 +1398,7 @@ body.game-body::before {
   padding: 4px 48px 0 11px;
   overflow: hidden;
   color: #1b1711;
-  font: 600 18px/.98 Georgia, serif;
+  font: 600 16px/.9 Georgia, serif;
   letter-spacing: -.015em;
 }
 

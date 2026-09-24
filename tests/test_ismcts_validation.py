@@ -10,7 +10,7 @@ import pytest
 from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
-from longwar.game import GameEngine, Pass, Phase
+from longwar.game import ChooseFirst, GameEngine, Pass, Phase
 from longwar.game.actions import action_key
 from longwar.rules import GameRules
 
@@ -97,6 +97,27 @@ def _hash_information_key(key: bytes) -> tuple[int, int]:
         b = (b * 0xC2B2AE3D27D4EB4F) & MASK64
         b ^= b >> 29
     return a, b
+
+
+@pytest.mark.parametrize("field", ["temporary", "command", "operations"])
+def test_information_hash_preserves_full_width_observable_values(field):
+    from longwar.mccfr import information_set_id
+    engine, deck, _ = _standard_fixture()
+    state = engine.new_game(deck, deck, seed=17, first_player=0)
+    fast = FastEngine(engine)
+    before = fast.from_game_state(state)
+    if field == "temporary":
+        state.board[0][0][0].temporary_strength += 256
+    elif field == "command":
+        state.players[0].command += 256
+    else:
+        state.operations_this_battle[0] += 256
+    after = fast.from_game_state(state)
+    assert fast.information_hash(before, 0) != fast.information_hash(after, 0)
+    assert fast.information_key(before, 0) != fast.information_key(after, 0)
+    assert fast_search.stable_information_id_from_fast_key(
+        fast, fast.information_key(after, 0)
+    ) == information_set_id(state, 0)
 
 
 def _search(
@@ -312,15 +333,17 @@ def test_persistent_tree_reroots_to_previously_explored_information_set() -> Non
     assert tree.size() == first["tree_nodes"]
 
     engine.apply(state, Pass())
+    engine.apply(state, Pass())
+    engine.apply(state, ChooseFirst(player=0))
     assert state.phase is Phase.BATTLE
-    assert state.active_player == 1
+    assert state.active_player == 0
     next_packed = fast.from_game_state(state)
 
     second = ismcts_search(
         fast,
         evaluator,
         [next_packed],
-        1,
+        0,
         tree=tree,
         iterations=12,
         rollout_depth=0,
@@ -696,12 +719,29 @@ def test_persistent_tree_capacity_uses_rollouts_and_resets_for_unseen_root() -> 
     assert first["root_new_visits"] == 8
 
     engine.apply(state, Pass())
-    second = ismcts_search(fast, evaluator, [fast.from_game_state(state)], 1, **options)
+    engine.apply(state, Pass())
+    engine.apply(state, ChooseFirst(player=0))
+    second = ismcts_search(fast, evaluator, [fast.from_game_state(state)], 0, **options)
     assert tree.size() == second["tree_nodes"] == 1
     assert second["root_new_visits"] == 8
     assert second["tree_reset_reason"] == "capacity_reroot"
     assert second["tree_nodes_discarded"] == 1
     assert second["root_reused"] is False
+
+
+def test_persistent_tree_invalidates_values_when_root_player_changes() -> None:
+    engine, state = _pass_only_standard_state()
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    tree = ISMCTSTree(32)
+    options = dict(tree=tree, iterations=8, rollout_depth=0, tree_depth_limit=4)
+    first = ismcts_search(fast, evaluator, [fast.from_game_state(state)], 0, **options)
+    engine.apply(state, Pass())
+    changed = ismcts_search(fast, evaluator, [fast.from_game_state(state)], 1, **options)
+    assert changed["tree_reset_reason"] == "context_changed"
+    assert changed["tree_nodes_discarded"] == first["tree_nodes"]
+    assert changed["root_reused"] is False
+    assert changed["root_total_visits_before"] == 0
 
 
 def test_belief_reuse_context_tracks_observed_evidence_only() -> None:

@@ -248,7 +248,8 @@ def test_card_pool_prior_defaults_to_engine_deck_size() -> None:
             / "force-rich-34-reference.json"
         ).read_text(encoding="utf-8")
     )["cards"]
-    engine = GameEngine(data, deck_size=34)
+    from longwar.rules import GameRules
+    engine = GameEngine(data, rules=GameRules.force_candidate("automatic"))
     prior = CardPoolDeckPrior(engine)
 
     sampled = prior.sample_deck(Counter(), random.Random(31415))
@@ -262,7 +263,7 @@ def test_hypothesis_prior_conditions_on_hidden_card_type_evidence() -> None:
     engine, reference, state = setup()
     stratagems = {card for card in reference if engine.cards[card]["type"] == "stratagem"}
     without_stratagems = [card for card in reference if card not in stratagems]
-    without_stratagems.extend(["the-fifty-men", "followed", "namar"])
+    without_stratagems.extend(["the-fifty-men", "followed", "seven-black-ships"])
     engine.validate_deck(without_stratagems)
     prior = HypothesisDeckPrior(engine, [
         DeckHypothesis(tuple(without_stratagems), weight=1000, label="impossible"),

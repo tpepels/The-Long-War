@@ -487,7 +487,7 @@ cdef class NativeHeuristicEvaluator:
     ):
         cdef int kind = action_kind(action)
         cdef int pos = action_pos(action)
-        cdef int force_count=0, card
+        cdef int force_count=0, card, front, margin_before=0, margin_after=0
         cdef double score
 
         if kind == TYPE_PASS:
@@ -510,6 +510,26 @@ cdef class NativeHeuristicEvaluator:
             score += 0.35 if state.subject[pos] >= 0 else 1.50
         elif kind == TYPE_SCHEME:
             score += 0.20
+        elif kind == TYPE_STRATAGEM:
+            # Preserve the free-action option and estimate an own hidden
+            # Stratagem's public board effect through the canonical scorer.
+            # Never inspect the opponent's face-down identity or hand.
+            if child.turn_number == state.turn_number:
+                score += 1.35
+            if not child.stratagem_revealed[player]:
+                for front in range(3):
+                    margin_before += (
+                        self.engine.front_strength_fast(child, player, front)
+                        - self.engine.front_strength_fast(child, 1 - player, front)
+                    )
+                child.stratagem_revealed[player] = 1
+                for front in range(3):
+                    margin_after += (
+                        self.engine.front_strength_fast(child, player, front)
+                        - self.engine.front_strength_fast(child, 1 - player, front)
+                    )
+                child.stratagem_revealed[player] = 0
+                score += 0.35 * (margin_after - margin_before)
 
         return score
 

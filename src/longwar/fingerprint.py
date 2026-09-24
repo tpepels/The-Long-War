@@ -17,6 +17,11 @@ def fingerprint_paths() -> list[Path]:
     ]
     for directory in ("cards", "decks"):
         paths.extend((ROOT / directory).rglob("*.json"))
+    for name in ("run_experiments.py", "simulate.py", "train_mccfr.py",
+                 "counterfactual_balance.py", "targeted_online_counterfactual.py"):
+        path = ROOT / "tools" / name
+        if path.exists():
+            paths.append(path)
     return sorted(paths)
 
 

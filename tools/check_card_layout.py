@@ -72,16 +72,6 @@ def classes(card: dict) -> str:
     return " ".join(values)
 
 
-ROLE_HINTS = {
-    "swordsman": "Frontline +1",
-    "spearman": "Frontline +1 if Rear occupied",
-    "archer": "Rear +2 if Frontline occupied",
-    "healer": "Rear: Subject in front +2",
-    "ship": "Rear +1",
-    "stronghold": "Rear +1",
-}
-
-
 def property_markup(card: dict, class_name: str) -> str:
     class_prefix = "play-card" if class_name.startswith("play-") else "card"
     role_markup = ""
@@ -89,7 +79,7 @@ def property_markup(card: dict, class_name: str) -> str:
         role = title_case(card["role"])
         role_markup = (
             f'<span class="{class_prefix}-role"><strong>{html.escape(role)}</strong>'
-            f'<span>{html.escape(ROLE_HINTS[card["role"]])}</span></span>'
+            f'<span data-role-hint="{html.escape(card["role"])}"></span></span>'
         )
     values = [
         title_case(value)
@@ -176,10 +166,15 @@ def main() -> None:
     cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))["cards"]
     style = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
     play_style = (ROOT / "web" / "play.css").read_text(encoding="utf-8")
+    card_rules = (ROOT / "web" / "card-rules.js").read_text(encoding="utf-8")
     guard = (ROOT / "web" / "card-layout-guard.js").read_text(encoding="utf-8")
 
     batch_size = 8
-    cases: list[tuple[str, str]] = []
+    cases: list[tuple[str, str]] = [(
+        "browser-rotated",
+        '<section class="layout-test layout-test-rotated">'
+        + "".join(play_card(card) for card in cards[:batch_size]) + "</section>",
+    )]
     for start in range(0, len(cards), batch_size):
         batch = cards[start : start + batch_size]
         number = start // batch_size + 1
@@ -212,6 +207,7 @@ def main() -> None:
   body {{ padding: 24px; }}
   .layout-test {{ display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }}
   .layout-test .play-card {{ margin-left: 0 !important; transform: none !important; }}
+  .layout-test-rotated .play-card {{ transform: rotate(4deg) !important; }}
   .layout-test-print {{ display: grid; grid-template-columns: repeat(4, 68mm); gap: 4mm; margin-top: 24px; }}
   #layout-result {{ position: fixed; left: -9999px; }}
 </style>
@@ -219,6 +215,12 @@ def main() -> None:
 <body class="game-body">
 <div id="layout-result"></div>
 {markup}
+<script>{card_rules}</script>
+<script>
+for (const label of document.querySelectorAll("[data-role-hint]")) {{
+  label.textContent = window.CardRules.roleHint({{ type: "subject", role: label.dataset.roleHint }});
+}}
+</script>
 <script>{guard}</script>
 <script>
 window.addEventListener("load", () => {{
