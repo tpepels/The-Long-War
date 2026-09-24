@@ -200,3 +200,34 @@ def test_standard_browser_session_has_no_draw_or_cycle_operation() -> None:
         action["kind"] in {"Draw", "Cycle"}
         for action in snapshot["legal_actions"]
     )
+
+
+def test_battle_transition_log_handles_fixed_next_starter() -> None:
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    finish_hotseat_mulligan(session)
+
+    session.state.operations_this_battle[:] = [1, 1]
+    first = session.state.active_player
+    second = 1 - first
+
+    first_snapshot = session.snapshot(first)
+    first_pass = next(
+        action for action in first_snapshot["legal_actions"]
+        if action["kind"] == "Pass"
+    )
+    session.act(first_pass["key"], first)
+
+    second_snapshot = session.snapshot(second)
+    second_pass = next(
+        action for action in second_snapshot["legal_actions"]
+        if action["kind"] == "Pass"
+    )
+    result = session.act(second_pass["key"], second)
+
+    assert result["battle"] == 2
+    assert session.state.chooser is None
+    assert session.state.active_player == first
+    assert session.log[-1] == (
+        f"Battle II begins. Player {first + 1} starts."
+    )
