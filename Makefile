@@ -1,4 +1,4 @@
-.PHONY: install dev-setup native-build browser-build verify verify-cards verify-algorithms balance-quick balance-deep test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check ismcts-validate alpha-bench mcts-bench search-bench strength-bench experiment-suite cardflow-quick cardflow-run cardflow-max
+.PHONY: install dev-setup native-build browser-build verify verify-cards verify-algorithms balance-quick balance-deep test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check ismcts-validate alpha-bench mcts-bench search-bench ismcts-match strength-bench experiment-suite cardflow-quick cardflow-run cardflow-max
 
 # Supported daily workflow. Keep native builds explicit after .pyx/.pxi changes.
 verify: verify-cards test-fast browser-parity
@@ -83,14 +83,31 @@ ismcts-validate:
 alpha-bench:
 	python tools/run_experiments.py bench
 
+MCTS_BENCH_ARGS ?=
+SEARCH_BENCH_ARGS ?=
+ISMCTS_MATCH_GAMES ?= 24
+ISMCTS_MATCH_JOBS ?= 8
+ISMCTS_MATCH_SECONDS ?= 2
+ISMCTS_MATCH_ARGS ?=
+STRENGTH_BENCH_ARGS ?=
+
 mcts-bench:
-	python tools/run_experiments.py mcts-bench
+	python tools/run_experiments.py mcts-bench $(MCTS_BENCH_ARGS)
 
 search-bench:
-	python tools/run_experiments.py search-bench
+	python tools/run_experiments.py search-bench $(SEARCH_BENCH_ARGS)
+
+# Decision-grade ISMCTS A/B: 24 games per deck/orientation =
+# 192 games total, 96 independent mirrored deal pairs.
+ismcts-match:
+	python tools/run_experiments.py ismcts-match \
+		--games $(ISMCTS_MATCH_GAMES) \
+		--jobs $(ISMCTS_MATCH_JOBS) \
+		--time-budget-seconds $(ISMCTS_MATCH_SECONDS) \
+		$(ISMCTS_MATCH_ARGS)
 
 strength-bench:
-	python tools/run_experiments.py strength-bench
+	python tools/run_experiments.py strength-bench $(STRENGTH_BENCH_ARGS)
 
 experiment-suite:
 	python tools/run_experiments.py suite
