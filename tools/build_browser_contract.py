@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 from longwar.cards import load_card_file
-from longwar.fingerprint import current_game_fingerprint
 from longwar.game import (
     ChooseFirst,
     Front,
@@ -438,6 +437,11 @@ def session_trace(cards, deck, mode: str, seed: int) -> dict[str, object]:
 
 
 def main() -> None:
+    # Fingerprinting is host-side contract metadata. Keep it out of the
+    # import surface used to replay the contract inside the minimal browser
+    # runtime.
+    from longwar.fingerprint import current_game_fingerprint
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--output",
