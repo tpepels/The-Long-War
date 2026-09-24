@@ -452,6 +452,7 @@ def ismcts_search(
     double rollout_epsilon=0.12,
     int rollout_policy=1,
     double leaf_scale=100.0,
+    double time_limit_seconds=0.0,
     unsigned long long seed=1701,
 ):
     cdef FastState state = FastState()
@@ -468,7 +469,7 @@ def ismcts_search(
     cdef int root_index, prior_root_index, max_tree_depth_seen = 0
     cdef int i, best_ix=-1, second_ix=-1
     cdef int rollout_battle, action_battle
-    cdef long iteration
+    cdef long iteration, completed_iterations=0
     cdef uint64_t best_visits=0, second_visits=0
     cdef uint64_t root_total_visits_before=0
     cdef uint64_t selected_action_visits_before=0
@@ -483,8 +484,9 @@ def ismcts_search(
     cdef object search_context
     cdef str tree_reset_reason="none"
     cdef double utility, node_utility, mean_value
+    cdef double deadline = 0.0
     cdef double best_mean=-1.0e300, second_mean=-1.0e300
-    cdef bint expanded, created, rollout_boundary, root_reused=False
+    cdef bint expanded, created, rollout_boundary, root_reused=False, timed_out=False
     cdef list root_stats
 
     if not root_states:
@@ -509,6 +511,10 @@ def ismcts_search(
         raise ValueError("rollout_policy must be 0, 1, or 2")
     if not isfinite(leaf_scale) or leaf_scale <= 0.0:
         raise ValueError("leaf_scale must be positive")
+    if not isfinite(time_limit_seconds) or time_limit_seconds < 0.0:
+        raise ValueError("time_limit_seconds must be finite and non-negative")
+    if time_limit_seconds > 0.0:
+        deadline = perf_counter() + time_limit_seconds
 
     if tree is None:
         tree = ISMCTSTree(iterations)
@@ -556,6 +562,14 @@ def ismcts_search(
             root_prior_visits[i] = root_node.visits[i]
 
     for iteration in range(iterations):
+        if (
+            iteration > 0
+            and deadline > 0.0
+            and (iteration & 255) == 0
+            and perf_counter() >= deadline
+        ):
+            timed_out = True
+            break
         sample_ix = _ismcts_rand_index(&rng, len(root_states))
         sampled = <FastState>root_states[sample_ix]
         state.copy_from_fast(sampled)
@@ -668,6 +682,7 @@ def ismcts_search(
                 <int>path_indices[i],
                 node_utility,
             )
+        completed_iterations += 1
 
     root_index = tree.find(root_key)
     if root_index < 0:
@@ -736,7 +751,10 @@ def ismcts_search(
         "second_mean_value": (
             second_mean if second_ix >= 0 else best_mean
         ),
-        "iterations": iterations,
+        "iterations": completed_iterations,
+        "iteration_limit": iterations,
+        "time_limit_seconds": time_limit_seconds,
+        "timed_out": timed_out,
         "tree_nodes": tree.node_count,
         "tree_nodes_before": tree_nodes_before,
         "tree_nodes_discarded": tree_nodes_discarded,
