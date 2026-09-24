@@ -780,11 +780,14 @@ def benchmark_strength(
     jobs: int,
     ismcts_iterations: int,
     alpha_nodes: int,
+    belief_samples: int = 12,
     rollout_policy: str = "cheap",
     rollout_depth: int = 5,
     progressive_widening: float = 0.0,
     exploration: float = DEFAULT_ISMCTS_EXPLORATION,
     reuse_tree: bool = True,
+    rollout_epsilon: float = 0.12,
+    max_tree_nodes: int | None = None,
     time_budget_seconds: float | None = None,
     seed: int = 26092400,
 ) -> Path:
@@ -796,6 +799,12 @@ def benchmark_strength(
         raise SystemExit("--jobs must be positive")
     if ismcts_iterations <= 0 or alpha_nodes <= 0:
         raise SystemExit("Search budgets must be positive")
+    if belief_samples <= 0:
+        raise SystemExit("ISMCTS belief samples must be positive")
+    if not 0.0 <= rollout_epsilon <= 1.0:
+        raise SystemExit("ISMCTS rollout epsilon must be between 0 and 1")
+    if max_tree_nodes is not None and max_tree_nodes <= 0:
+        raise SystemExit("ISMCTS max tree nodes must be positive")
     if rollout_depth < 0:
         raise SystemExit("--rollout-depth must be non-negative")
     if time_budget_seconds is not None and time_budget_seconds <= 0.0:
@@ -813,7 +822,10 @@ def benchmark_strength(
     identity = experiment_identity({
         "games_per_orientation": games_per_orientation, "seed": seed,
         "ismcts_iterations": ismcts_iterations, "alpha_nodes": alpha_nodes,
+        "belief_samples": belief_samples,
         "rollout_policy": rollout_policy, "rollout_depth": rollout_depth,
+        "rollout_epsilon": rollout_epsilon,
+        "max_tree_nodes": max_tree_nodes,
         "exploration": exploration,
         "progressive_widening": progressive_widening, "reuse_tree": reuse_tree,
         "time_budget_seconds": time_budget_seconds,
@@ -854,7 +866,7 @@ def benchmark_strength(
                 "--agent-b-seed-offset",
                 str(seed_offsets[1]),
                 "--ismcts-belief-samples",
-                "12",
+                str(belief_samples),
                 "--ismcts-iterations",
                 str(ismcts_iterations),
                 "--ismcts-rollout-depth",
@@ -865,6 +877,8 @@ def benchmark_strength(
                 str(progressive_widening),
                 "--ismcts-rollout-policy",
                 rollout_policy,
+                "--ismcts-rollout-epsilon",
+                str(rollout_epsilon),
                 "--strategic-belief-samples",
                 "4",
                 "--strategic-search-depth",
@@ -878,6 +892,11 @@ def benchmark_strength(
                 "--output",
                 str(output),
             ]
+            if max_tree_nodes is not None:
+                command.extend([
+                    "--ismcts-max-tree-nodes",
+                    str(max_tree_nodes),
+                ])
             if time_budget_seconds is not None:
                 command.extend([
                     "--ismcts-time-budget-seconds",
@@ -1126,13 +1145,15 @@ def benchmark_strength(
         "rules": GameRules.standard().as_dict(),
         "games_per_orientation": games_per_orientation,
         "ismcts": {
-            "belief_samples": 12,
+            "belief_samples": belief_samples,
             "iterations": ismcts_iterations,
             "rollout_depth": rollout_depth,
             "rollout_policy": rollout_policy,
             "exploration": exploration,
             "time_budget_seconds": time_budget_seconds,
             "tree_reuse_enabled": reuse_tree,
+            "max_tree_nodes": max_tree_nodes,
+            "rollout_epsilon": rollout_epsilon,
             "tree_reuse": reuse_summary,
             "progressive_widening": progressive_widening,
             "progressive_widening_alpha": (
@@ -1262,7 +1283,10 @@ def run_suite(args: argparse.Namespace) -> Path:
                     baseline["belief_samples"],
                 ),
                 exploration_a=baseline["exploration"],
-                exploration_b=baseline["exploration"],
+                exploration_b=overrides.get(
+                    "exploration_b",
+                    baseline["exploration"],
+                ),
                 progressive_widening_a=baseline["progressive_widening"],
                 progressive_widening_b=overrides.get(
                     "progressive_widening_b",
@@ -1329,11 +1353,14 @@ def run_suite(args: argparse.Namespace) -> Path:
             jobs=args.jobs,
             ismcts_iterations=args.iterations,
             alpha_nodes=args.alpha_nodes,
+            belief_samples=baseline["belief_samples"],
             rollout_policy=baseline["rollout_policy"],
             rollout_depth=baseline["rollout_depth"],
             progressive_widening=baseline["progressive_widening"],
             exploration=baseline["exploration"],
             reuse_tree=baseline["reuse_tree"],
+            rollout_epsilon=baseline["rollout_epsilon"],
+            max_tree_nodes=baseline["max_tree_nodes"],
             time_budget_seconds=args.time_budget_seconds,
             seed=args.seed,
         )
@@ -1479,6 +1506,7 @@ def parse_args() -> argparse.Namespace:
     strength_bench.add_argument("--iterations", type=int, default=100_000)
     strength_bench.add_argument("--seed", type=int, default=26092400)
     strength_bench.add_argument("--alpha-nodes", type=int, default=20_000)
+    strength_bench.add_argument("--belief-samples", type=int, default=12)
     strength_bench.add_argument("--exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     strength_bench.add_argument(
         "--time-budget-seconds",
@@ -1497,6 +1525,8 @@ def parse_args() -> argparse.Namespace:
         help="Square-root widening constant; 0 keeps the baseline tree policy.",
     )
     strength_bench.add_argument("--rollout-depth", type=int, default=5)
+    strength_bench.add_argument("--rollout-epsilon", type=float, default=0.12)
+    strength_bench.add_argument("--max-tree-nodes", type=int)
     strength_bench.add_argument(
         "--rollout-policy",
         choices=("greedy", "cheap", "random"),
@@ -1568,11 +1598,14 @@ def main() -> None:
             jobs=args.jobs,
             ismcts_iterations=args.iterations,
             alpha_nodes=args.alpha_nodes,
+            belief_samples=args.belief_samples,
             rollout_policy=args.rollout_policy,
             rollout_depth=args.rollout_depth,
             progressive_widening=args.progressive_widening,
             exploration=args.exploration,
             reuse_tree=not args.no_tree_reuse,
+            rollout_epsilon=args.rollout_epsilon,
+            max_tree_nodes=args.max_tree_nodes,
             time_budget_seconds=args.time_budget_seconds,
             seed=args.seed,
         )
