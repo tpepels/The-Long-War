@@ -1,14 +1,13 @@
 {
-  "name": "Mara Rear v0.8",
-  "hero": "mara-queen-of-cinders",
+  "name": "Mara Rear v0.9",
   "cards": [
     "mara-queen-of-cinders",
     "the-crow-archers",
-    "the-crow-archers",
+    "lysa-of-the-salt-road",
     "seven-black-ships",
     "seven-black-ships",
     "the-house-of-reed",
-    "the-house-of-reed",
+    "sera-mother-of-white-hands",
     "the-children-of-the-salt-road",
     "the-white-hands-of-elara",
     "the-house-at-orra",
@@ -36,5 +35,10 @@
     "no-fires-burned",
     "the-broken-mast",
     "the-quiet-field"
+  ],
+  "heroes": [
+    "mara-queen-of-cinders",
+    "lysa-of-the-salt-road",
+    "sera-mother-of-white-hands"
   ]
 }
