@@ -65,7 +65,7 @@ def presentation_snapshots() -> dict[str, dict]:
         card for card in by_type["subject"] if not card.get("hero", False)
     ]
     veiled = next(card["id"] for card in cards if card.get("veiled"))
-    session = PlaySession(card_json, deck_json, "heuristic", 1701, paced_ai=True)
+    session = PlaySession(card_json, deck_json, "computer", 1701, paced_ai=True)
     opening = session.snapshot(0)
     session.mulligan([], 0)
     session.state.active_player = 0
