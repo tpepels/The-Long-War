@@ -66,6 +66,7 @@ def test_stratagem_pool_is_unique_and_rule_backed() -> None:
     assert all(card["unique"] for card in stratagems)
     assert all(
         card.get("rules", {}).get("stratagem", {}).get("trigger", {}).get("event")
+        == "played"
         for card in stratagems
     )
     assert {
@@ -88,7 +89,7 @@ def test_reference_deck_has_exactly_one_hero() -> None:
     )["cards"]
 
     heroes = [card_id for card_id in deck if cards[card_id].get("hero", False)]
-    assert len(deck) == 30
+    assert len(deck) == 34
     assert heroes == ["avaros-the-bronze-king"]
     assert set(deck) <= set(cards)
     assert len(set(deck)) == 30
@@ -130,16 +131,14 @@ def test_all_cards_define_semantic_rule_blocks() -> None:
 
         if card["type"] == "plot" and card.get("veiled"):
             assert blocks[0]["kind"] == "property"
-            assert blocks[0]["label"] == "VEILED"
-            assert blocks[0]["text"].startswith("Face-down: +")
+            assert blocks[0]["label"] == "FACE-DOWN"
+            assert blocks[0]["text"].startswith("+")
             assert "**Strength** in this **Front**." in blocks[0]["text"]
-            assert [block["kind"] for block in blocks[:3]] == [
+            assert [block["kind"] for block in blocks[:2]] == [
                 "property",
                 "trigger",
-                "effect",
             ]
-            assert blocks[1]["label"] == "REVEAL"
-            assert blocks[2]["label"] == "EFFECT"
+            assert blocks[1]["label"] == "WHEN"
 
         if card["type"] == "stratagem":
             assert blocks[0]["kind"] == "trigger"
@@ -189,7 +188,7 @@ def test_card_rules_text_uses_canonical_typography() -> None:
             )
 
 
-def test_canonical_decks_use_six_names_and_ten_subjects() -> None:
+def test_canonical_decks_use_six_names_and_fourteen_subjects() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     by_id = {card["id"]: card for card in data["cards"]}
     for path in (
@@ -199,8 +198,8 @@ def test_canonical_decks_use_six_names_and_ten_subjects() -> None:
         ROOT / "decks" / "sera-support.json",
     ):
         deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
-        assert len(deck) == 30
-        assert sum(by_id[card_id]["type"] == "subject" for card_id in deck) == 10
+        assert len(deck) == 34
+        assert sum(by_id[card_id]["type"] == "subject" for card_id in deck) == 14
         assert sum(by_id[card_id]["type"] == "name" for card_id in deck) == 6
         assert sum(bool(by_id[card_id].get("hero")) for card_id in deck) == 1
 
