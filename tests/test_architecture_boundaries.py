@@ -192,7 +192,8 @@ def test_ismcts_hot_tree_path_is_native() -> None:
     source = (
         ROOT / "src" / "longwar" / "_ismcts_core.pxi"
     ).read_text(encoding="utf-8")
-    assert "cdef ISMCTSTree tree" in source
+    assert "cdef class ISMCTSTree" in source
+    assert "ISMCTSTree tree=None" in source
     assert "int path_nodes[MAX_ISMCTS_DEPTH]" in source
     assert "uint16_t path_indices[MAX_ISMCTS_DEPTH]" in source
     assert "information_hash_fast" in source
