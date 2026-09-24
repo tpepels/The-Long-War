@@ -47,9 +47,11 @@ def make_agent(
     strategic_rollout_plies: int = 3,
     strategic_candidate_width: int = 8,
     strategic_node_budget: int = 20_000,
+    strategic_time_budget_seconds: float | None = None,
     strategic_search_backend: str = "auto",
     ismcts_belief_samples: int = 12,
     ismcts_iterations: int = 100_000,
+    ismcts_time_budget_seconds: float | None = None,
     ismcts_rollout_depth: int = 5,
     ismcts_tree_depth_limit: int = 96,
     ismcts_exploration: float = 2 ** 0.5,
@@ -71,6 +73,7 @@ def make_agent(
             rollout_plies=strategic_rollout_plies,
             candidate_width=strategic_candidate_width,
             node_budget=strategic_node_budget,
+            time_budget_seconds=strategic_time_budget_seconds,
             search_backend=strategic_search_backend,
         )
     if name == "ismcts":
@@ -80,6 +83,7 @@ def make_agent(
             priors=priors,
             belief_samples=ismcts_belief_samples,
             iterations=ismcts_iterations,
+            time_budget_seconds=ismcts_time_budget_seconds,
             rollout_depth=ismcts_rollout_depth,
             tree_depth_limit=ismcts_tree_depth_limit,
             exploration=ismcts_exploration,
@@ -118,9 +122,11 @@ def simulate_games(
     strategic_rollout_plies: int = 3,
     strategic_candidate_width: int = 8,
     strategic_node_budget: int = 20_000,
+    strategic_time_budget_seconds: float | None = None,
     strategic_search_backend: str = "auto",
     ismcts_belief_samples: int = 12,
     ismcts_iterations: int = 100_000,
+    ismcts_time_budget_seconds: float | None = None,
     ismcts_rollout_depth: int = 5,
     ismcts_tree_depth_limit: int = 96,
     ismcts_exploration: float = 2 ** 0.5,
@@ -128,6 +134,8 @@ def simulate_games(
     ismcts_reuse_tree: bool = True,
     ismcts_rollout_epsilon: float = 0.12,
     ismcts_rollout_policy: str = "cheap",
+    agent_overrides: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
+    agent_labels: tuple[str, str] | None = None,
     progress_callback: Callable[[int, int], None] | None = None,
 ) -> SimulationReport:
     if games <= 0:
@@ -150,6 +158,29 @@ def simulate_games(
             [DeckHypothesis(tuple(deck_b), label="deck-b")],
         ),
     )
+    labels = agent_labels or agent_names
+    if len(agent_overrides) != 2:
+        raise ValueError("agent_overrides must contain exactly two entries")
+    base_agent_options: dict[str, Any] = {
+        "online_iterations": online_iterations,
+        "online_depth": online_depth,
+        "strategic_belief_samples": strategic_belief_samples,
+        "strategic_rollout_plies": strategic_rollout_plies,
+        "strategic_candidate_width": strategic_candidate_width,
+        "strategic_node_budget": strategic_node_budget,
+        "strategic_time_budget_seconds": strategic_time_budget_seconds,
+        "strategic_search_backend": strategic_search_backend,
+        "ismcts_belief_samples": ismcts_belief_samples,
+        "ismcts_iterations": ismcts_iterations,
+        "ismcts_time_budget_seconds": ismcts_time_budget_seconds,
+        "ismcts_rollout_depth": ismcts_rollout_depth,
+        "ismcts_tree_depth_limit": ismcts_tree_depth_limit,
+        "ismcts_exploration": ismcts_exploration,
+        "ismcts_progressive_widening": ismcts_progressive_widening,
+        "ismcts_reuse_tree": ismcts_reuse_tree,
+        "ismcts_rollout_epsilon": ismcts_rollout_epsilon,
+        "ismcts_rollout_policy": ismcts_rollout_policy,
+    }
 
     for game_index in range(games):
         first_player = game_index % 2
@@ -160,54 +191,24 @@ def simulate_games(
             first_player=first_player,
             opening_bonus=False,
         )
-        agents = [
-            make_agent(
-                agent_names[0],
-                engine,
-                seed * 10_000 + game_index * 2 + 1,
-                policy=agent_policies[0],
-                online_iterations=online_iterations,
-                online_depth=online_depth,
-                priors=priors,
-                strategic_belief_samples=strategic_belief_samples,
-                strategic_rollout_plies=strategic_rollout_plies,
-                strategic_candidate_width=strategic_candidate_width,
-                strategic_node_budget=strategic_node_budget,
-                strategic_search_backend=strategic_search_backend,
-                ismcts_belief_samples=ismcts_belief_samples,
-                ismcts_iterations=ismcts_iterations,
-                ismcts_rollout_depth=ismcts_rollout_depth,
-                ismcts_tree_depth_limit=ismcts_tree_depth_limit,
-                ismcts_exploration=ismcts_exploration,
-                ismcts_progressive_widening=ismcts_progressive_widening,
-                ismcts_reuse_tree=ismcts_reuse_tree,
-                ismcts_rollout_epsilon=ismcts_rollout_epsilon,
-                ismcts_rollout_policy=ismcts_rollout_policy,
-            ),
-            make_agent(
-                agent_names[1],
-                engine,
-                seed * 10_000 + game_index * 2 + 2,
-                policy=agent_policies[1],
-                online_iterations=online_iterations,
-                online_depth=online_depth,
-                priors=priors,
-                strategic_belief_samples=strategic_belief_samples,
-                strategic_rollout_plies=strategic_rollout_plies,
-                strategic_candidate_width=strategic_candidate_width,
-                strategic_node_budget=strategic_node_budget,
-                strategic_search_backend=strategic_search_backend,
-                ismcts_belief_samples=ismcts_belief_samples,
-                ismcts_iterations=ismcts_iterations,
-                ismcts_rollout_depth=ismcts_rollout_depth,
-                ismcts_tree_depth_limit=ismcts_tree_depth_limit,
-                ismcts_exploration=ismcts_exploration,
-                ismcts_progressive_widening=ismcts_progressive_widening,
-                ismcts_reuse_tree=ismcts_reuse_tree,
-                ismcts_rollout_epsilon=ismcts_rollout_epsilon,
-                ismcts_rollout_policy=ismcts_rollout_policy,
-            ),
-        ]
+        agents = []
+        for player in range(2):
+            options = dict(base_agent_options)
+            override = agent_overrides[player]
+            if override is not None:
+                if not isinstance(override, dict):
+                    raise TypeError("agent override must be a dict or None")
+                options.update(override)
+            agents.append(
+                make_agent(
+                    agent_names[player],
+                    engine,
+                    seed * 10_000 + game_index * 2 + player + 1,
+                    policy=agent_policies[player],
+                    priors=priors,
+                    **options,
+                )
+            )
         mulligan_indices = tuple(
             agent.choose_mulligan(engine, preview.players[player].hand)
             if hasattr(agent, "choose_mulligan")
@@ -238,7 +239,7 @@ def simulate_games(
             decision_info = getattr(agent, "last_decision", None)
             if decision_info is not None:
                 decision_info = dict(decision_info)
-                decision_info["agent"] = agent_names[actor]
+                decision_info["agent"] = labels[actor]
 
             human_flow.before_action(engine, state, actor, action)
             before = telemetry.before_action(
@@ -275,7 +276,7 @@ def simulate_games(
     telemetry_summary["human_flow"] = human_flow.summary()
     return SimulationReport(
         games=games,
-        agents=agent_names,
+        agents=labels,
         wins=(wins[0], wins[1]),
         first_player_wins=first_player_wins,
         mean_turns=total_turns / games,
