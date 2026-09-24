@@ -19,9 +19,9 @@ from longwar.game import GameEngine
 from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNNER = ROOT / "tools" / "run_force_draw_experiment.py"
-VALIDATION_ROOT = ROOT / "artifacts" / "force-validation"
-BENCH_ROOT = ROOT / "artifacts" / "force-benchmark"
+RUNNER = ROOT / "tools" / "cardflow_experiment.py"
+VALIDATION_ROOT = ROOT / "artifacts" / "search-validation"
+BENCH_ROOT = ROOT / "artifacts" / "search-benchmark"
 
 
 def run_command(command: list[str], *, capture: bool = False) -> subprocess.CompletedProcess[str]:
@@ -302,7 +302,7 @@ def benchmark_ismcts(iterations: int) -> None:
         priors=priors,
         belief_samples=12,
         iterations=iterations,
-        rollout_depth=12,
+        rollout_depth=5,
         tree_depth_limit=96,
     )
 
@@ -391,7 +391,7 @@ def benchmark_strength(
                 "--ismcts-iterations",
                 str(ismcts_iterations),
                 "--ismcts-rollout-depth",
-                "12",
+                "5",
                 "--strategic-belief-samples",
                 "4",
                 "--strategic-search-depth",
@@ -492,7 +492,7 @@ def benchmark_strength(
         "ismcts": {
             "belief_samples": 12,
             "iterations": ismcts_iterations,
-            "rollout_depth": 12,
+            "rollout_depth": 5,
         },
         "alpha_beta": {
             "belief_samples": 4,
@@ -570,7 +570,7 @@ def benchmark_searches(
         priors=priors,
         belief_samples=12,
         iterations=ismcts_iterations,
-        rollout_depth=12,
+        rollout_depth=5,
         tree_depth_limit=96,
     )
 
@@ -634,7 +634,7 @@ def run_experiment(args: argparse.Namespace) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Single entry point for the Force-rich draw experiment."
+        description="Local validation, search benchmarks, and gameplay experiments."
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

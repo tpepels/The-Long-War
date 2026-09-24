@@ -83,7 +83,7 @@ def main() -> None:
     )
     parser.add_argument("--ismcts-belief-samples", type=int, default=12)
     parser.add_argument("--ismcts-iterations", type=int, default=2_000)
-    parser.add_argument("--ismcts-rollout-depth", type=int, default=12)
+    parser.add_argument("--ismcts-rollout-depth", type=int, default=5)
     parser.add_argument("--ismcts-tree-depth-limit", type=int, default=96)
     parser.add_argument("--ismcts-exploration", type=float, default=2 ** 0.5)
     parser.add_argument("--ismcts-rollout-epsilon", type=float, default=0.12)

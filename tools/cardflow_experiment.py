@@ -211,9 +211,9 @@ def effective_preset(args: argparse.Namespace) -> Preset:
 def ismcts_preset(name: str) -> tuple[int, int, int]:
     """belief states, iterations, rollout depth"""
     return {
-        "quick": (8, 500, 8),
-        "deep": (12, 2_000, 12),
-        "max": (16, 5_000, 16),
+        "quick": (8, 500, 5),
+        "deep": (12, 2_000, 5),
+        "max": (16, 5_000, 5),
     }[name]
 
 

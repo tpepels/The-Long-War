@@ -204,7 +204,7 @@ def ismcts_search(
     int root_player,
     *,
     long iterations=20000,
-    int rollout_depth=16,
+    int rollout_depth=5,
     int tree_depth_limit=96,
     double exploration=1.4142135623730951,
     double rollout_epsilon=0.12,

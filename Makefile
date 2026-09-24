@@ -1,4 +1,4 @@
-.PHONY: install test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity force-setup force-rebuild force-check force-bench force-mcts-bench force-search-bench force-strength-bench force-quick force-run force-max
+.PHONY: install dev-setup native-build test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check alpha-bench mcts-bench search-bench strength-bench cardflow-quick cardflow-run cardflow-max
 
 install:
 	python -m pip install -e '.[dev]'
@@ -47,34 +47,35 @@ browser-parity:
 	node tools/check_browser_engine.mjs --contract artifacts/browser-engine-contract.json
 
 
-# Force-rich draw experiment: local-only convenience targets.
-force-setup:
+# Local development and native-search workflow.
+dev-setup:
 	python -m pip install -e '.[dev]'
 
-# Rebuild the editable package in isolated build env; no runtime deps reinstalled.
-force-rebuild:
-	python -m pip install -e . --no-deps
+# Requires dev-setup once. This only recompiles native extensions in place.
+native-build:
+	python setup.py build_ext --inplace
 
-force-check:
-	python tools/force_experiment.py validate
+search-check:
+	python tools/run_experiments.py validate
 
-force-bench:
-	python tools/force_experiment.py bench
+alpha-bench:
+	python tools/run_experiments.py bench
 
-force-mcts-bench:
-	python tools/force_experiment.py mcts-bench
+mcts-bench:
+	python tools/run_experiments.py mcts-bench
 
-force-search-bench:
-	python tools/force_experiment.py search-bench
+search-bench:
+	python tools/run_experiments.py search-bench
 
-force-strength-bench:
-	python tools/force_experiment.py strength-bench
+strength-bench:
+	python tools/run_experiments.py strength-bench
 
-force-quick:
-	python tools/force_experiment.py run --preset quick --backend cython --jobs 8
+# Card-flow experiment convenience targets.
+cardflow-quick:
+	python tools/run_experiments.py run --preset quick --backend cython --jobs 8
 
-force-run:
-	python tools/force_experiment.py run --preset deep --backend cython --jobs 8
+cardflow-run:
+	python tools/run_experiments.py run --preset deep --backend cython --jobs 8
 
-force-max:
-	python tools/force_experiment.py run --preset max --backend cython --jobs 8
+cardflow-max:
+	python tools/run_experiments.py run --preset max --backend cython --jobs 8
