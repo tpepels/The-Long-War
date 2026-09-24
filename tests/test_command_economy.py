@@ -46,6 +46,10 @@ def standard_game(*, first_player: int = 0, opening_bonus: bool = False):
     return engine, state
 
 
+def test_standard_profile_matches_selected_automatic_force_candidate() -> None:
+    assert GameRules.standard() == GameRules.force_candidate("automatic")
+
+
 def test_standard_profile_is_later_force_baseline() -> None:
     engine, state = standard_game()
 
