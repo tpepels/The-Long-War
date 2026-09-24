@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from longwar import cardflow, fingerprint
+from longwar import fingerprint
 from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, ISMCTSAgent
 from longwar.simulate import make_agent, simulate_games
 from longwar.rules import GameRules
@@ -245,6 +245,12 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
     assert strength_calls[0]["time_budget_seconds"] == pytest.approx(2.0)
 
 
+def test_no_dedicated_rule_experiment_runner() -> None:
+    source = (ROOT / "tools" / "run_experiments.py").read_text(encoding="utf-8")
+    assert "longwar.cardflow" not in source
+    assert 'sub.add_parser("run"' not in source
+
+
 def test_no_duplicate_batch_search_entry_point():
     source = (ROOT / "tools" / "run_experiments.py").read_text(encoding="utf-8")
     assert "overnight-search" not in source
@@ -380,27 +386,3 @@ def test_search_benchmarks_use_canonical_standard_inputs(function):
     assert "force-rich-34-reference.json" not in source
     assert "force_candidate(" not in source
 
-
-@pytest.mark.legacy_rule_experiment
-def test_cardflow_variants_use_canonical_data_paths(tmp_path):
-    run = cardflow.Run(
-        variant="control",
-        deck="reference",
-        seed=17,
-        output=tmp_path / "result.json",
-    )
-    command = cardflow.command_for(
-        run,
-        cardflow.PRESETS["quick"],
-        "quick",
-        "cython",
-        "ismcts",
-    )
-    assert command[command.index("--card-file") + 1] == "cards/cards.json"
-    assert command[command.index("--deck-a") + 1] == "decks/reference.json"
-    assert command[command.index("--deck-b") + 1] == "decks/reference.json"
-    joined = " ".join(command)
-    assert "--rules-profile" not in command
-    assert "--automatic-draw" in command
-    assert "cards/experiments" not in joined
-    assert "decks/experiments" not in joined
