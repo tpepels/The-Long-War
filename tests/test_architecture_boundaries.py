@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import re
 import json
 from pathlib import Path
 
@@ -208,3 +209,60 @@ def test_native_alpha_beta_has_transposition_table() -> None:
     assert "state_hash_fast" in source
     assert "table.probe" in source
     assert "table.store" in source
+
+
+def test_ismcts_depends_on_engine_contract_not_rule_schema() -> None:
+    """Adding/changing a GameRules field must not require ISMCTS edits."""
+    algorithm_source = (
+        ROOT / "src" / "longwar" / "_ismcts_core.pxi"
+    ).read_text(encoding="utf-8")
+    agent_source = (
+        ROOT / "src" / "longwar" / "agents" / "ismcts_agent.py"
+    ).read_text(encoding="utf-8")
+
+    for field in GameRules.__dataclass_fields__:
+        pattern = rf"\b{re.escape(field)}\b"
+        assert not re.search(pattern, algorithm_source), field
+        assert not re.search(pattern, agent_source), field
+
+    assert "GameRules" not in algorithm_source
+    assert "GameRules" not in agent_source
+
+    engine_calls = set(
+        re.findall(r"\bengine\.([A-Za-z_]\w*)", algorithm_source)
+    )
+    assert engine_calls <= {
+        "legal_actions_into",
+        "apply_fast",
+        "information_hash_fast",
+    }
+
+
+def test_information_state_schema_has_one_canonical_encoder() -> None:
+    source = (
+        ROOT / "src" / "longwar" / "_fast_search.pyx"
+    ).read_text(encoding="utf-8")
+
+    assert "cdef int _information_state_encode(" in source
+
+    hash_start = source.index(
+        "    cdef InfoHash128 information_hash_fast("
+    )
+    hash_end = source.index(
+        "    cpdef tuple information_hash(",
+        hash_start,
+    )
+    hash_body = source[hash_start:hash_end]
+    assert "_information_state_encode(" in hash_body
+    assert "state." not in hash_body
+
+    key_start = source.index(
+        "    cdef bytes information_key_fast("
+    )
+    key_end = source.index(
+        "    cpdef bytes information_key(",
+        key_start,
+    )
+    key_body = source[key_start:key_end]
+    assert "_information_state_encode(" in key_body
+    assert "state." not in key_body

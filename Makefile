@@ -1,4 +1,4 @@
-.PHONY: install dev-setup native-build test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check alpha-bench mcts-bench search-bench strength-bench experiment-suite cardflow-quick cardflow-run cardflow-max
+.PHONY: install dev-setup native-build test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check ismcts-validate alpha-bench mcts-bench search-bench strength-bench experiment-suite cardflow-quick cardflow-run cardflow-max
 
 install:
 	python -m pip install -e '.[dev]'
@@ -57,6 +57,9 @@ native-build:
 
 search-check:
 	python tools/run_experiments.py validate
+
+ismcts-validate:
+	python -m pytest -q tests/test_ismcts.py tests/test_ismcts_validation.py tests/test_fast_search_state.py tests/test_architecture_boundaries.py
 
 alpha-bench:
 	python tools/run_experiments.py bench

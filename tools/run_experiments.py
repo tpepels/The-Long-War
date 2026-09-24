@@ -149,8 +149,8 @@ def parity_case(mode: str, *, seed: int) -> None:
 
 
 def validate() -> None:
-    print("The Long War — Force/draw experiment validation")
-    print("=" * 52)
+    print("The Long War — native search validation")
+    print("=" * 45)
     require_cython()
 
     print("\nFocused rules and strategic-search tests")
@@ -166,6 +166,7 @@ def validate() -> None:
             "tests/test_fast_search_state.py",
             "tests/test_architecture_boundaries.py",
             "tests/test_ismcts.py",
+            "tests/test_ismcts_validation.py",
         ]
     )
 
@@ -173,7 +174,10 @@ def validate() -> None:
     parity_case("paid", seed=26092334)
 
     print("\nVALIDATION PASSED")
-    print("Rules tests passed and Python/Cython produced identical fixed-seed simulations.")
+    print(
+        "Rules, ISMCTS invariants, architecture boundaries, and fixed-seed "
+        "Python/Cython parity passed."
+    )
 
 
 def benchmark(node_budget: int) -> None:
