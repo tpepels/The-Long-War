@@ -17,6 +17,7 @@ try:
         NativeHeuristicEvaluator as _NativeHeuristicEvaluator,
         NativeSearchBudget as _NativeSearchBudget,
         NativeSearchLimit as _NativeSearchLimit,
+        NativeTranspositionTable as _NativeTranspositionTable,
         native_search_value as _native_search_value,
     )
 except ImportError:  # canonical extension is built by normal package install
@@ -24,6 +25,7 @@ except ImportError:  # canonical extension is built by normal package install
     _NativeHeuristicEvaluator = None
     _NativeSearchBudget = None
     _NativeSearchLimit = None
+    _NativeTranspositionTable = None
     _native_search_value = None
 
 
@@ -71,6 +73,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
             and _NativeFastEngine is not None
             and _NativeHeuristicEvaluator is not None
             and _NativeSearchBudget is not None
+            and _NativeTranspositionTable is not None
         )
         if search_backend == "cython" and not native_supported:
             raise RuntimeError(
@@ -103,6 +106,11 @@ class StrategicHeuristicAgent(HeuristicAgent):
         )
         self._native_evaluator = (
             _NativeHeuristicEvaluator(self._fast_engine)
+            if self._use_native
+            else None
+        )
+        self._native_tt = (
+            _NativeTranspositionTable(max(131_072, node_budget * 4))
             if self._use_native
             else None
         )
@@ -163,6 +171,8 @@ class StrategicHeuristicAgent(HeuristicAgent):
             if self._use_native
             else SearchBudget(self.node_budget)
         )
+        if self._use_native:
+            self._native_tt.clear()
         completed_depth = 0
         transposition: dict[tuple[object, ...], float] = {}
         scratch: list[GameState] = []
@@ -195,6 +205,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
                                 budget,
                                 self.candidate_width,
                                 self._native_evaluator,
+                                self._native_tt,
                             )
                         else:
                             value = self._python_search.search(
@@ -256,5 +267,11 @@ class StrategicHeuristicAgent(HeuristicAgent):
                 "packed-native" if self._use_native else "python"
             ),
             "evaluated_candidates": len(candidates),
+            "transposition_hits": (
+                int(self._native_tt.hits) if self._use_native else 0
+            ),
+            "transposition_stores": (
+                int(self._native_tt.stores) if self._use_native else 0
+            ),
         }
         return selected.action

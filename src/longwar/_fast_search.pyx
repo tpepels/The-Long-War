@@ -139,6 +139,22 @@ cdef inline void _info_hash_feed(InfoHash128* h, uint8_t value) noexcept:
     h.b ^= h.b >> 29
 
 
+cdef inline void _info_hash_feed_u16(
+    InfoHash128* h,
+    uint16_t value,
+) noexcept:
+    _info_hash_feed(h, <uint8_t>(value & 255))
+    _info_hash_feed(h, <uint8_t>((value >> 8) & 255))
+
+
+cdef inline void _info_hash_feed_u32(
+    InfoHash128* h,
+    uint32_t value,
+) noexcept:
+    _info_hash_feed_u16(h, <uint16_t>(value & 65535))
+    _info_hash_feed_u16(h, <uint16_t>((value >> 16) & 65535))
+
+
 cdef class FastState:
     cdef int8_t deck[2][MAX_DECK]
     cdef uint8_t deck_len[2]
@@ -1884,6 +1900,86 @@ cdef class FastEngine:
 
     cpdef apply(self, FastState state, uint64_t action):
         self.apply_fast(state, action)
+
+    cdef InfoHash128 state_hash_fast(self, FastState state) noexcept:
+        """128-bit hash of all rule/search-relevant perfect-state data."""
+        cdef InfoHash128 h
+        cdef int p, i, card, slot, ix
+        _info_hash_init(&h)
+        _info_hash_feed(&h, <uint8_t>(state.phase + 1))
+        _info_hash_feed_u16(&h, <uint16_t>state.battle)
+        _info_hash_feed(&h, <uint8_t>(state.active_player + 1))
+        _info_hash_feed(&h, <uint8_t>(state.chooser + 1))
+        _info_hash_feed(&h, <uint8_t>(state.winner + 1))
+        _info_hash_feed_u32(&h, <uint32_t>state.shuffle_seed)
+
+        for p in range(2):
+            _info_hash_feed(&h, state.deck_len[p])
+            for i in range(state.deck_len[p]):
+                _info_hash_feed(&h, <uint8_t>(state.deck[p][i] + 1))
+            for card in range(self.n_cards):
+                _info_hash_feed(&h, state.hand[p][card])
+            _info_hash_feed(&h, state.hand_len[p])
+            _info_hash_feed(&h, state.discard_len[p])
+            for i in range(state.discard_len[p]):
+                _info_hash_feed(
+                    &h,
+                    <uint8_t>(state.discard[p][i] + 1),
+                )
+            _info_hash_feed(&h, state.victories[p])
+            _info_hash_feed(&h, state.passed[p])
+            _info_hash_feed_u16(&h, <uint16_t>state.command[p])
+            _info_hash_feed(&h, state.free_cycle[p])
+            _info_hash_feed_u16(
+                &h,
+                state.operations_this_battle[p],
+            )
+            _info_hash_feed(&h, state.draw_used[p])
+            for card in range(self.n_cards):
+                _info_hash_feed(
+                    &h,
+                    state.known_hidden[0][p][card],
+                )
+                _info_hash_feed(
+                    &h,
+                    state.known_hidden[1][p][card],
+                )
+
+        _info_hash_feed(&h, state.pass_len)
+        for i in range(state.pass_len):
+            _info_hash_feed(&h, <uint8_t>(state.pass_order[i] + 1))
+        for p in range(2):
+            _info_hash_feed(&h, state.discarded_this_battle[p])
+
+        for slot in range(SLOT_COUNT):
+            _info_hash_feed(&h, <uint8_t>(state.subject[slot] + 1))
+            _info_hash_feed(&h, <uint8_t>(state.link[slot] + 1))
+            _info_hash_feed(&h, <uint8_t>(state.name[slot] + 1))
+            _info_hash_feed_u16(
+                &h,
+                <uint16_t>state.temporary[slot],
+            )
+
+        for ix in range(SCHEME_COUNT):
+            _info_hash_feed(&h, <uint8_t>(state.scheme[ix] + 1))
+            _info_hash_feed(&h, state.scheme_revealed[ix])
+        for p in range(2):
+            _info_hash_feed(&h, <uint8_t>(state.stratagem[p] + 1))
+            _info_hash_feed(&h, state.stratagem_revealed[p])
+            _info_hash_feed(&h, state.stratagem_used[p])
+
+        _info_hash_feed(
+            &h,
+            <uint8_t>(state.pending_final_operation_for + 1),
+        )
+        _info_hash_feed(&h, state.cleanup_pending)
+        _info_hash_feed(&h, <uint8_t>(state.cleanup_next_starter + 1))
+        _info_hash_feed(&h, <uint8_t>(state.cleanup_next_chooser + 1))
+        return h
+
+    cpdef tuple state_hash(self, FastState state):
+        cdef InfoHash128 h = self.state_hash_fast(state)
+        return (h.a, h.b)
 
     cdef InfoHash128 information_hash_fast(
         self,

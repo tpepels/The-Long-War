@@ -198,3 +198,13 @@ def test_ismcts_hot_tree_path_is_native() -> None:
     assert "path_nodes = []" not in source
     assert "path_indices = []" not in source
     assert "information_key_fast" not in source
+
+
+def test_native_alpha_beta_has_transposition_table() -> None:
+    source = (
+        ROOT / "src" / "longwar" / "_alpha_beta_core.pxi"
+    ).read_text(encoding="utf-8")
+    assert "cdef class NativeTranspositionTable" in source
+    assert "state_hash_fast" in source
+    assert "table.probe" in source
+    assert "table.store" in source

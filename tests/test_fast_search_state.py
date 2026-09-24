@@ -245,3 +245,19 @@ def test_packed_state_matches_force_candidate_random_games(
             fast_engine.apply(fast_state, fast_action)
 
     assert checked >= 120
+
+
+def test_native_state_hash_distinguishes_draw_order() -> None:
+    engine, deck, native = setup("reference.json")
+    state = engine.new_game(deck, deck, seed=9901, first_player=0)
+    packed = native.from_game_state(state)
+    baseline = native.state_hash(packed)
+
+    changed = state.clone()
+    if len(changed.players[0].deck) >= 2:
+        changed.players[0].deck[-1], changed.players[0].deck[-2] = (
+            changed.players[0].deck[-2],
+            changed.players[0].deck[-1],
+        )
+    changed_packed = native.from_game_state(changed)
+    assert native.state_hash(changed_packed) != baseline
