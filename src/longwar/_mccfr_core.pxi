@@ -374,13 +374,15 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     discarded_this_battle = []
     command = []
     free_cycle = []
+    hero_used = []
     operations_this_battle = []
     for _ in range(2):
         discarded_this_battle.append(data[i])
         command.append(data[i + 1] | (data[i + 2] << 8))
         free_cycle.append(bool(data[i + 3]))
-        operations_this_battle.append(data[i + 4] | (data[i + 5] << 8))
-        i += 6
+        hero_used.append(bool(data[i + 4]))
+        operations_this_battle.append(data[i + 5] | (data[i + 6] << 8))
+        i += 7
     pending_final_raw = data[i] - 1
     cleanup_pending = bool(data[i + 1])
     cleanup_starter_raw = data[i + 2] - 1
@@ -435,8 +437,6 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             stratagems.append([card_ids[card_code - 1], revealed])
 
     stratagem_used = [bool(data[i]), bool(data[i + 1])]
-    i += 2
-    hero_used = [bool(data[i]), bool(data[i + 1])]
     i += 2
     draw_used = [bool(data[i]), bool(data[i + 1])]
     i += 2
