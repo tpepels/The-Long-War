@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_card_file_is_valid() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    assert len(data["cards"]) == 48
+    assert len(data["cards"]) == 51
 
 
 def test_every_card_has_world_classifications() -> None:
@@ -81,7 +81,7 @@ def test_stratagem_pool_is_unique_and_rule_backed() -> None:
     } == {card["id"] for card in stratagems}
 
 
-def test_reference_deck_has_exactly_one_hero() -> None:
+def test_reference_deck_carries_multiple_unique_heroes() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     cards = {card["id"]: card for card in data["cards"]}
     deck = json.loads(
@@ -90,26 +90,36 @@ def test_reference_deck_has_exactly_one_hero() -> None:
 
     heroes = [card_id for card_id in deck if cards[card_id].get("hero", False)]
     assert len(deck) == 34
-    assert heroes == ["avaros-the-bronze-king"]
+    assert set(heroes) == {
+        "avaros-the-bronze-king",
+        "lysa-of-the-salt-road",
+        "theron-the-oathkeeper",
+    }
+    assert len(heroes) == len(set(heroes)) == 3
     assert set(deck) <= set(cards)
-    assert len(set(deck)) == 30
 
 
 
 
-def test_expanded_pool_offers_three_hero_choices() -> None:
+def test_expanded_pool_offers_six_dual_use_hero_choices() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     heroes = [card for card in data["cards"] if card.get("hero", False)]
     assert {card["id"] for card in heroes} == {
         "avaros-the-bronze-king",
         "mara-queen-of-cinders",
         "sera-mother-of-white-hands",
+        "daran-the-red-shield",
+        "lysa-of-the-salt-road",
+        "theron-the-oathkeeper",
     }
-    assert {card["role"] for card in heroes} == {
+    assert {card["role"] for card in heroes} >= {
         "swordsman",
+        "spearman",
         "archer",
         "healer",
     }
+    assert all(card["unique"] for card in heroes)
+    assert all(card["hero_name_strength"] == 2 for card in heroes)
 
 def test_all_cards_define_semantic_rule_blocks() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
@@ -201,7 +211,9 @@ def test_canonical_decks_use_six_names_and_fourteen_subjects() -> None:
         assert len(deck) == 34
         assert sum(by_id[card_id]["type"] == "subject" for card_id in deck) == 14
         assert sum(by_id[card_id]["type"] == "name" for card_id in deck) == 6
-        assert sum(bool(by_id[card_id].get("hero")) for card_id in deck) == 1
+        heroes = [card_id for card_id in deck if by_id[card_id].get("hero")]
+        assert len(heroes) == 3
+        assert len(heroes) == len(set(heroes))
 
 
 @pytest.mark.parametrize("value", [None, True, 0, 4, 1.5])
