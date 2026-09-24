@@ -95,6 +95,11 @@ def main() -> None:
             "positive c allows floor(c * sqrt(N + 1)) legal actions per node."
         ),
     )
+    parser.add_argument(
+        "--ismcts-no-tree-reuse",
+        action="store_true",
+        help="Rebuild the ISMCTS tree from scratch for every decision.",
+    )
     parser.add_argument("--ismcts-rollout-epsilon", type=float, default=0.12)
     parser.add_argument(
         "--ismcts-rollout-policy",
@@ -292,6 +297,7 @@ def main() -> None:
         ismcts_tree_depth_limit=args.ismcts_tree_depth_limit,
         ismcts_exploration=args.ismcts_exploration,
         ismcts_progressive_widening=args.ismcts_progressive_widening,
+        ismcts_reuse_tree=not args.ismcts_no_tree_reuse,
         ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
         ismcts_rollout_policy=args.ismcts_rollout_policy,
         progress_callback=report_progress if progress_path is not None else None,
@@ -321,6 +327,7 @@ def main() -> None:
         "tree_depth_limit": args.ismcts_tree_depth_limit,
         "exploration": args.ismcts_exploration,
         "progressive_widening": args.ismcts_progressive_widening,
+        "tree_reuse": not args.ismcts_no_tree_reuse,
         "progressive_widening_alpha": (
             0.5 if args.ismcts_progressive_widening > 0 else 0.0
         ),
