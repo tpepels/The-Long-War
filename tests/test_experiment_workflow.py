@@ -46,12 +46,14 @@ def test_artifact_identity_keeps_budgets_seeds_and_sources_separate(tmp_path):
     assert json.loads((first / "config.json").read_text())["config"] == config
 
 
-@pytest.mark.legacy_rule_experiment
-def test_all_named_profiles_are_resolvable():
-    for name in GameRules.profile_names():
-        assert isinstance(GameRules.from_profile(name), GameRules)
-    with pytest.raises(ValueError, match="Unknown rules profile"):
-        GameRules.from_profile("typo")
+def test_game_rules_have_no_named_experiment_profile_api():
+    for name in (
+        "profile_names",
+        "from_profile",
+        "force_candidate",
+        "force_experiment",
+    ):
+        assert not hasattr(GameRules, name)
 
 
 def test_provisional_ismcts_exploration_default_is_shared():
