@@ -41,6 +41,8 @@ Add regressions at the changed semantic boundary. Use small deterministic smoke 
 - Battle-boundary rollouts use the shared next-Battle evaluator.
 - Reuse is permitted only under a valid belief/search context. New hidden information invalidates accumulated statistics. Keep inherited/new visits and discarded nodes distinguishable.
 - Root selection uses lifetime visits within a valid context. Default arena cap is four times iteration budget; at capacity search rolls out and resets on reroot as needed. Keep allocation growth bounded.
+- Do not name a canonical playing agent from fixed-work or historical results. Tune ISMCTS variants with `run_experiments.py ismcts-match` using equal wall-clock budgets and paired mirrored seeds. Then compare the selected ISMCTS candidate with alpha-beta using `strength-bench --time-budget-seconds ...` at serious budgets (currently 5s and 10s are the intended evidence points). Fixed node/iteration modes remain regression benchmarks, not fair cross-algorithm strength evidence.
+- Mirrored benchmark RNG seeds belong to the candidate/algorithm rather than the seat. Preserve this common-random-number pairing when extending strength tests.
 
 ## Analysis ownership
 
