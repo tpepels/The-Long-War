@@ -212,6 +212,19 @@ def test_browser_modes_are_product_terms_not_solver_names() -> None:
 
     assert '{"hotseat", "computer"}' in source
     assert 'value="computer"' in page
+
+    browser_surfaces = (
+        ROOT / "web" / "play.html",
+        ROOT / "tools" / "build_browser_contract.py",
+        ROOT / "tools" / "check_game_layout.py",
+        ROOT / "tools" / "check_play_start.py",
+        ROOT / "tests" / "test_web_api.py",
+    )
+    for path in browser_surfaces:
+        content = path.read_text(encoding="utf-8")
+        assert '"heuristic"' not in content
+        assert "'heuristic'" not in content
+
     for solver_name in (
         'value="heuristic"',
         'value="ismcts"',
