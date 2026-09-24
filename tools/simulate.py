@@ -52,7 +52,7 @@ def main() -> None:
     )
     parser.add_argument("--games", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=1701)
-    choices = ["heuristic", "strategic_heuristic", "random", "mccfr", "online_mccfr"]
+    choices = ["heuristic", "strategic_heuristic", "ismcts", "random", "mccfr", "online_mccfr"]
     parser.add_argument("--agent-a", choices=choices, default="heuristic")
     parser.add_argument("--agent-b", choices=choices, default="heuristic")
     parser.add_argument("--policy-a", type=Path)
@@ -81,6 +81,12 @@ def main() -> None:
         default="auto",
         help="Search backend. auto prefers the compiled Cython accelerator.",
     )
+    parser.add_argument("--ismcts-belief-samples", type=int, default=12)
+    parser.add_argument("--ismcts-iterations", type=int, default=2_000)
+    parser.add_argument("--ismcts-rollout-depth", type=int, default=12)
+    parser.add_argument("--ismcts-tree-depth-limit", type=int, default=96)
+    parser.add_argument("--ismcts-exploration", type=float, default=2 ** 0.5)
+    parser.add_argument("--ismcts-rollout-epsilon", type=float, default=0.12)
     parser.add_argument(
         "--hand-size",
         type=int,
@@ -266,6 +272,12 @@ def main() -> None:
         strategic_candidate_width=args.strategic_candidate_width,
         strategic_node_budget=args.strategic_node_budget,
         strategic_search_backend=args.strategic_search_backend,
+        ismcts_belief_samples=args.ismcts_belief_samples,
+        ismcts_iterations=args.ismcts_iterations,
+        ismcts_rollout_depth=args.ismcts_rollout_depth,
+        ismcts_tree_depth_limit=args.ismcts_tree_depth_limit,
+        ismcts_exploration=args.ismcts_exploration,
+        ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
         progress_callback=report_progress if progress_path is not None else None,
     )
 
@@ -285,6 +297,15 @@ def main() -> None:
         "node_budget": args.strategic_node_budget,
         "search": "belief-sampled iterative-deepening alpha-beta",
         "backend_requested": args.strategic_search_backend,
+    }
+    payload["ismcts_config"] = {
+        "belief_samples": args.ismcts_belief_samples,
+        "iterations": args.ismcts_iterations,
+        "rollout_depth": args.ismcts_rollout_depth,
+        "tree_depth_limit": args.ismcts_tree_depth_limit,
+        "exploration": args.ismcts_exploration,
+        "rollout_epsilon": args.ismcts_rollout_epsilon,
+        "search": "root-belief-sampled Cython ISMCTS",
     }
     payload["simulation_variant"] = {
         "rules_profile": args.rules_profile,

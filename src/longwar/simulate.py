@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from .agents import HeuristicAgent, RandomAgent
+from .agents import HeuristicAgent, ISMCTSAgent, RandomAgent
 from .agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from .agents.online_mccfr_agent import OnlineMCCFRAgent
 from .belief import DeckHypothesis, DeckPrior, HypothesisDeckPrior
@@ -47,6 +47,12 @@ def make_agent(
     strategic_candidate_width: int = 8,
     strategic_node_budget: int = 20_000,
     strategic_search_backend: str = "auto",
+    ismcts_belief_samples: int = 12,
+    ismcts_iterations: int = 2_000,
+    ismcts_rollout_depth: int = 12,
+    ismcts_tree_depth_limit: int = 96,
+    ismcts_exploration: float = 2 ** 0.5,
+    ismcts_rollout_epsilon: float = 0.12,
 ):
     if name == "random":
         return RandomAgent(seed)
@@ -62,6 +68,18 @@ def make_agent(
             candidate_width=strategic_candidate_width,
             node_budget=strategic_node_budget,
             search_backend=strategic_search_backend,
+        )
+    if name == "ismcts":
+        return ISMCTSAgent(
+            engine,
+            seed,
+            priors=priors,
+            belief_samples=ismcts_belief_samples,
+            iterations=ismcts_iterations,
+            rollout_depth=ismcts_rollout_depth,
+            tree_depth_limit=ismcts_tree_depth_limit,
+            exploration=ismcts_exploration,
+            rollout_epsilon=ismcts_rollout_epsilon,
         )
     if name == "mccfr":
         if policy is None:
@@ -94,6 +112,12 @@ def simulate_games(
     strategic_candidate_width: int = 8,
     strategic_node_budget: int = 20_000,
     strategic_search_backend: str = "auto",
+    ismcts_belief_samples: int = 12,
+    ismcts_iterations: int = 2_000,
+    ismcts_rollout_depth: int = 12,
+    ismcts_tree_depth_limit: int = 96,
+    ismcts_exploration: float = 2 ** 0.5,
+    ismcts_rollout_epsilon: float = 0.12,
     progress_callback: Callable[[int, int], None] | None = None,
 ) -> SimulationReport:
     if games <= 0:
@@ -139,6 +163,12 @@ def simulate_games(
                 strategic_candidate_width=strategic_candidate_width,
                 strategic_node_budget=strategic_node_budget,
                 strategic_search_backend=strategic_search_backend,
+                ismcts_belief_samples=ismcts_belief_samples,
+                ismcts_iterations=ismcts_iterations,
+                ismcts_rollout_depth=ismcts_rollout_depth,
+                ismcts_tree_depth_limit=ismcts_tree_depth_limit,
+                ismcts_exploration=ismcts_exploration,
+                ismcts_rollout_epsilon=ismcts_rollout_epsilon,
             ),
             make_agent(
                 agent_names[1],
@@ -153,6 +183,12 @@ def simulate_games(
                 strategic_candidate_width=strategic_candidate_width,
                 strategic_node_budget=strategic_node_budget,
                 strategic_search_backend=strategic_search_backend,
+                ismcts_belief_samples=ismcts_belief_samples,
+                ismcts_iterations=ismcts_iterations,
+                ismcts_rollout_depth=ismcts_rollout_depth,
+                ismcts_tree_depth_limit=ismcts_tree_depth_limit,
+                ismcts_exploration=ismcts_exploration,
+                ismcts_rollout_epsilon=ismcts_rollout_epsilon,
             ),
         ]
         mulligan_indices = tuple(

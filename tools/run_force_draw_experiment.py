@@ -109,6 +109,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--width", type=int)
     parser.add_argument("--node-budget", type=int)
     parser.add_argument(
+        "--agent",
+        choices=("ismcts", "strategic_heuristic"),
+        default="ismcts",
+        help="Strong simulation agent; ISMCTS is the default.",
+    )
+    parser.add_argument(
         "--backend",
         choices=("auto", "cython", "python"),
         default="auto",
@@ -202,9 +208,24 @@ def effective_preset(args: argparse.Namespace) -> Preset:
     return preset
 
 
-def command_for(run: Run, preset: Preset, backend: str) -> list[str]:
+def ismcts_preset(name: str) -> tuple[int, int, int]:
+    """belief states, iterations, rollout depth"""
+    return {
+        "quick": (8, 500, 8),
+        "deep": (12, 2_000, 12),
+        "max": (16, 5_000, 16),
+    }[name]
+
+
+def command_for(
+    run: Run,
+    preset: Preset,
+    preset_name: str,
+    backend: str,
+    agent: str,
+) -> list[str]:
     rules_profile = VARIANT_PROFILES[run.variant]
-    return [
+    command = [
         sys.executable,
         str(ROOT / "tools" / "simulate.py"),
         "--games",
@@ -220,24 +241,34 @@ def command_for(run: Run, preset: Preset, backend: str) -> list[str]:
         "--deck-b",
         f"decks/experiments/force-rich-34-{run.deck}.json",
         "--agent-a",
-        "strategic_heuristic",
+        agent,
         "--agent-b",
-        "strategic_heuristic",
-        "--strategic-belief-samples",
-        str(preset.belief_samples),
-        "--strategic-search-depth",
-        str(preset.depth),
-        "--strategic-candidate-width",
-        str(preset.width),
-        "--strategic-node-budget",
-        str(preset.node_budget),
-        "--strategic-search-backend",
-        backend,
+        agent,
+    ]
+    if agent == "ismcts":
+        # MCTS iterations are full simulations, not alpha-beta nodes. Start
+        # conservatively; benchmark before increasing these substantially.
+        beliefs, iterations, rollout = ismcts_preset(preset_name)
+        command.extend([
+            "--ismcts-belief-samples", str(beliefs),
+            "--ismcts-iterations", str(iterations),
+            "--ismcts-rollout-depth", str(rollout),
+        ])
+    else:
+        command.extend([
+            "--strategic-belief-samples", str(preset.belief_samples),
+            "--strategic-search-depth", str(preset.depth),
+            "--strategic-candidate-width", str(preset.width),
+            "--strategic-node-budget", str(preset.node_budget),
+            "--strategic-search-backend", backend,
+        ])
+    command.extend([
         "--progress-file",
         str(run.output.with_suffix(".progress")),
         "--output",
         str(run.output),
-    ]
+    ])
+    return command
 
 
 def printable_command(command: list[str]) -> str:
@@ -333,7 +364,10 @@ def row_for(path: Path) -> dict[str, Any]:
     human = telemetry["human_flow"]
     actions = telemetry["actions"]
     battles = int(telemetry["battles"]["count"])
-    decisions = telemetry["decisions"].get("strategic_heuristic", {})
+    decisions = (
+        telemetry["decisions"].get("ismcts")
+        or telemetry["decisions"].get("strategic_heuristic", {})
+    )
     completions = sum(
         int(stats.get("completions", 0))
         for stats in telemetry["legend_combinations"].values()
@@ -401,6 +435,7 @@ def write_summary(
     output_dir: Path,
     preset_name: str,
     preset: Preset,
+    agent: str,
 ) -> None:
     variant_order = {
         name: index
@@ -412,15 +447,27 @@ def write_summary(
             variant_order.get(row["variant"], 999),
         )
     )
-    summary = {
-        "preset": preset_name,
-        "settings": {
+    if agent == "ismcts":
+        beliefs, iterations, rollout = ismcts_preset(preset_name)
+        settings = {
+            "agent": "ismcts",
+            "games": preset.games,
+            "belief_samples": beliefs,
+            "iterations": iterations,
+            "rollout_depth": rollout,
+        }
+    else:
+        settings = {
+            "agent": "strategic_heuristic",
             "games": preset.games,
             "belief_samples": preset.belief_samples,
             "depth": preset.depth,
             "width": preset.width,
             "node_budget": preset.node_budget,
-        },
+        }
+    summary = {
+        "preset": preset_name,
+        "settings": settings,
         "rows": rows,
     }
     (output_dir / "summary.json").write_text(
@@ -428,14 +475,23 @@ def write_summary(
         encoding="utf-8",
     )
 
-    lines = [
-        "# Local Force-rich card-flow comparison",
-        "",
-        (
+    if agent == "ismcts":
+        beliefs, iterations, rollout = ismcts_preset(preset_name)
+        settings_line = (
+            f"Preset **{preset_name}** — {preset.games} games/run, "
+            f"Cython ISMCTS, {beliefs} belief states, "
+            f"{iterations:,} iterations/decision, rollout depth {rollout}."
+        )
+    else:
+        settings_line = (
             f"Preset **{preset_name}** — {preset.games} games/run, "
             f"{preset.belief_samples} belief samples, max depth {preset.depth}, "
             f"beam {preset.width}, {preset.node_budget:,} nodes/decision."
-        ),
+        )
+    lines = [
+        "# Local Force-rich card-flow comparison",
+        "",
+        settings_line,
         "",
         "| Deck | Variant | Forces/B | Names/B | Complete/B | No playable Force | Draws/player-B | Deck seen | Pass hand | Ops/pass | Cleanup discards/PB | Reshuffles | AI depth | AI nodes |",
         "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
@@ -487,19 +543,36 @@ def main() -> None:
         else Path("artifacts") / "local-force-draw" / args.preset
     )
 
-    print(
-        f"Preset {args.preset}: games={preset.games}, "
-        f"beliefs={preset.belief_samples}, depth={preset.depth}, "
-        f"width={preset.width}, nodes={preset.node_budget:,}"
-    )
+    if args.agent == "ismcts":
+        beliefs, iterations, rollout = ismcts_preset(args.preset)
+        print(
+            f"Preset {args.preset}: games={preset.games}, "
+            f"ISMCTS beliefs={beliefs}, iterations={iterations:,}, "
+            f"rollout={rollout}"
+        )
+    else:
+        print(
+            f"Preset {args.preset}: games={preset.games}, "
+            f"beliefs={preset.belief_samples}, depth={preset.depth}, "
+            f"width={preset.width}, nodes={preset.node_budget:,}"
+        )
     print(
         f"Parallel jobs: {min(args.jobs, len(runs))} | "
-        f"backend={args.backend}"
+        f"agent={args.agent} | backend={args.backend}"
     )
     print()
 
     commands = [
-        (run, command_for(run, preset, args.backend))
+        (
+            run,
+            command_for(
+                run,
+                preset,
+                args.preset,
+                args.backend,
+                args.agent,
+            ),
+        )
         for run in runs
     ]
     for run, command in commands:
@@ -566,6 +639,7 @@ def main() -> None:
         output_dir=output_dir,
         preset_name=args.preset,
         preset=preset,
+        agent=args.agent,
     )
     print(f"Raw results: {output_dir}")
     print(f"Summary: {output_dir / 'summary.md'}")

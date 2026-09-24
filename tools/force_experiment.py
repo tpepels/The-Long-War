@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
@@ -40,6 +41,7 @@ def require_cython() -> None:
             FastEngine,
             NativeSearchBudget,
             native_search_value,
+            ismcts_search,
         )
     except ImportError as exc:
         raise SystemExit(
@@ -89,6 +91,8 @@ def parity_case(mode: str, *, seed: int) -> None:
         mode,
         "--deck",
         "reference",
+        "--agent",
+        "strategic_heuristic",
         "--belief-samples",
         "2",
         "--depth",
@@ -159,6 +163,7 @@ def validate() -> None:
             "tests/test_strategic_heuristic.py",
             "tests/test_fast_search_state.py",
             "tests/test_architecture_boundaries.py",
+            "tests/test_ismcts.py",
         ]
     )
 
@@ -257,6 +262,62 @@ def benchmark(node_budget: int) -> None:
     print("Root-action parity: OK")
 
 
+def benchmark_ismcts(iterations: int) -> None:
+    """Benchmark one fixed Cython ISMCTS decision."""
+    require_cython()
+    if iterations <= 0:
+        raise SystemExit("--iterations must be positive.")
+
+    card_data = load_card_file(
+        ROOT / "cards" / "experiments" / "force-draw-cards.json"
+    )
+    deck = json.loads(
+        (
+            ROOT
+            / "decks"
+            / "experiments"
+            / "force-rich-34-reference.json"
+        ).read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(
+        card_data,
+        rules=GameRules.force_candidate("automatic"),
+    )
+    state = engine.new_game(deck, deck, seed=26092334, first_player=0)
+    priors = (
+        HypothesisDeckPrior(
+            engine,
+            [DeckHypothesis(tuple(deck), label="reference")],
+        ),
+        HypothesisDeckPrior(
+            engine,
+            [DeckHypothesis(tuple(deck), label="reference")],
+        ),
+    )
+    agent = ISMCTSAgent(
+        engine,
+        seed=26092335,
+        priors=priors,
+        belief_samples=12,
+        iterations=iterations,
+        rollout_depth=12,
+        tree_depth_limit=96,
+    )
+
+    start = time.perf_counter()
+    action = agent.choose(engine, state)
+    elapsed = time.perf_counter() - start
+    rate = iterations / elapsed if elapsed else float("inf")
+    print(
+        "Cython ISMCTS benchmark: "
+        f"{iterations:,} iterations | {elapsed:.3f}s | "
+        f"{rate:,.0f} iterations/s | "
+        f"tree={agent.last_decision['ismcts_tree_nodes']:,} infosets | "
+        f"depth={agent.last_decision['completed_depth']} | "
+        f"{type(action).__name__}"
+    )
+
+
 def run_experiment(args: argparse.Namespace) -> None:
     command = [
         sys.executable,
@@ -267,6 +328,8 @@ def run_experiment(args: argparse.Namespace) -> None:
         str(args.jobs),
         "--backend",
         args.backend,
+        "--agent",
+        args.agent,
         "--variant",
         args.variant,
         "--deck",
@@ -301,6 +364,17 @@ def parse_args() -> argparse.Namespace:
         help="Search-node budget for each backend (default: 5000).",
     )
 
+    mcts_bench = sub.add_parser(
+        "mcts-bench",
+        help="Benchmark one fixed Cython ISMCTS decision.",
+    )
+    mcts_bench.add_argument(
+        "--iterations",
+        type=int,
+        default=2_000,
+        help="ISMCTS iterations for the benchmark (default: 2000).",
+    )
+
     run = sub.add_parser(
         "run",
         help="Run the local draw experiment.",
@@ -309,6 +383,11 @@ def parse_args() -> argparse.Namespace:
     run.add_argument("--games", type=int)
     run.add_argument("--jobs", type=int, default=8)
     run.add_argument("--backend", choices=("auto", "cython", "python"), default="cython")
+    run.add_argument(
+        "--agent",
+        choices=("ismcts", "strategic_heuristic"),
+        default="ismcts",
+    )
     run.add_argument(
         "--variant",
         "--mode",
@@ -338,6 +417,8 @@ def main() -> None:
         validate()
     elif args.command == "bench":
         benchmark(args.nodes)
+    elif args.command == "mcts-bench":
+        benchmark_ismcts(args.iterations)
     elif args.command == "run":
         run_experiment(args)
     else:

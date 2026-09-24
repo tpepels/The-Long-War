@@ -142,6 +142,7 @@ def test_cython_engine_contains_no_heuristic_policy() -> None:
 
     assert 'include "_heuristic_core.pxi"' in engine_source
     assert 'include "_alpha_beta_core.pxi"' in engine_source
+    assert 'include "_ismcts_core.pxi"' in engine_source
     assert 'include "_mccfr_core.pxi"' in engine_source
 
     for method in (
@@ -163,7 +164,11 @@ def test_native_algorithms_do_not_contain_rule_switches() -> None:
         "public_stratagems",
         "reshuffle_on_empty",
     )
-    for filename in ("_alpha_beta_core.pxi", "_mccfr_core.pxi"):
+    for filename in (
+        "_alpha_beta_core.pxi",
+        "_ismcts_core.pxi",
+        "_mccfr_core.pxi",
+    ):
         source = (
             ROOT / "src" / "longwar" / filename
         ).read_text(encoding="utf-8")
