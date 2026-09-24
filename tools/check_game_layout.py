@@ -74,12 +74,14 @@ def presentation_snapshots() -> dict[str, dict]:
             slot.link = by_type["link"][index % len(by_type["link"])]["id"]
             slot.name = by_type["name"][index % len(by_type["name"])]["id"]
         session.state.schemes[owner] = [SchemeState(veiled) for _ in range(3)]
-        session.state.stratagems[owner] = StratagemState(by_type["stratagem"][owner]["id"])
+        session.state.stratagems[owner] = StratagemState(
+            by_type["stratagem"][owner]["id"],
+            revealed=True,
+        )
     session.state.players[0].hand = [card["id"] for card in sorted(cards, key=lambda card: len(card["title"]), reverse=True)[:18]]
     session.state.players[1].hand = [card["id"] for card in cards[:18]]
     session.state.players[0].discard = [by_type["subject"][0]["id"]]
     session.state.players[1].discard = [by_type["name"][0]["id"]]
-    session.state.players[0].free_cycle = True
     crowded = session.snapshot(0)
     cases = {name: copy.deepcopy(crowded) for name in ("battle", "inspector", "drawer")}
     # One free Subject destination exercises legal-target highlighting using an
@@ -191,8 +193,9 @@ CHECK_SCRIPT = r"""
       essential($("battlefield"), "battlefield");
       if (rect($("battlefield")).height < innerHeight * .38) fail("battlefield-too-small");
       if (document.querySelectorAll(".digital-slot").length !== 12) fail("formation-positions-missing");
-      if (!document.querySelector(".scheme-marker.hidden") || !document.querySelector(".stratagem-marker.hidden")) fail("hidden-zones-missing");
-      document.querySelectorAll(".scheme-marker.hidden:not(.known) [data-inspect-card], .stratagem-marker.hidden:not(.known)[data-inspect-card]").forEach(() => fail("hidden-card-inspectable"));
+      if (!document.querySelector(".scheme-marker.hidden")) fail("hidden-scheme-zone-missing");
+      if (!document.querySelector(".stratagem-marker:not(.hidden)")) fail("public-stratagem-zone-missing");
+      document.querySelectorAll(".scheme-marker.hidden:not(.known) [data-inspect-card]").forEach(() => fail("hidden-card-inspectable"));
     }
     document.querySelectorAll("#hand > .play-card").forEach((card, index) => {
       withinViewport(card, "hand-card-" + index + "-clipped");
@@ -200,7 +203,9 @@ CHECK_SCRIPT = r"""
     });
     if (scenario === "battle") {
       if (document.querySelectorAll("#hand > .play-card").length < 18) fail("large-hand-fixture-incomplete");
-      if (!document.querySelector("#player-piles .command-counter").textContent.includes("Free Cycle")) fail("free-cycle-status-missing");
+      if (!document.querySelector("#player-piles .command-counter")) fail("command-status-missing");
+      const cycle = document.getElementById("cycle-button");
+      if (cycle && !cycle.hidden && getComputedStyle(cycle).display !== "none") fail("standard-cycle-control-visible");
     }
     document.querySelectorAll(".board-card strong").forEach((title, index) => {
       if (title.scrollHeight > title.clientHeight + epsilon || title.scrollWidth > title.clientWidth + epsilon) fail("board-title-" + index + "-clipped");
