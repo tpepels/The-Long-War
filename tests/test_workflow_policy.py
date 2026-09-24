@@ -6,70 +6,37 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
 
 
-def text(name: str) -> str:
-    return (WORKFLOWS / name).read_text(encoding="utf-8")
+def test_github_actions_are_pages_deployment_only() -> None:
+    workflows = sorted(path.name for path in WORKFLOWS.glob("*.yml"))
+    assert workflows == ["pages.yml"]
 
-
-def test_github_workflows_are_manual_only() -> None:
-    for path in WORKFLOWS.glob("*.yml"):
-        content = path.read_text(encoding="utf-8")
-        assert "workflow_dispatch:" in content, path
-        for automatic_trigger in (
-            "push:",
-            "pull_request:",
-            "schedule:",
-            "workflow_run:",
-        ):
-            assert automatic_trigger not in content, (
-                f"{path.name} reintroduced automatic trigger "
-                f"{automatic_trigger}"
-            )
-
-
-def test_broken_ci_and_mccfr_workflows_stay_removed() -> None:
-    assert not (WORKFLOWS / "ci.yml").exists()
-    assert not (WORKFLOWS / "mccfr.yml").exists()
-
-
-def test_counterfactual_analysis_is_explicit_only() -> None:
-    content = text("counterfactual.yml")
+    content = (WORKFLOWS / "pages.yml").read_text(encoding="utf-8")
     assert "workflow_dispatch:" in content
-    assert "tools/counterfactual_balance.py" in content
-    assert "tools/targeted_online_counterfactual.py" in content
-    assert "run_online_mccfr" in content
-    assert "inputs.run_online_mccfr" in content
+    for automatic_trigger in (
+        "push:",
+        "pull_request:",
+        "schedule:",
+        "workflow_run:",
+    ):
+        assert automatic_trigger not in content
+
+    assert "tools/build_pages.py" in content
+    assert "actions/deploy-pages" in content
 
 
-def test_pages_and_balance_do_not_run_expensive_research() -> None:
-    expensive_markers = (
+def test_pages_workflow_contains_no_analysis_or_solver_jobs() -> None:
+    content = (WORKFLOWS / "pages.yml").read_text(encoding="utf-8")
+    forbidden = (
+        "tools/simulate.py",
+        "tools/analyze_telemetry.py",
+        "tools/balance_report.py",
+        "tools/playability_report.py",
         "tools/counterfactual_balance.py",
         "tools/targeted_online_counterfactual.py",
         "tools/verify_mccfr.py",
         "tools/train_mccfr.py",
-        "--agent-a mccfr",
-        "--agent-b mccfr",
-        "--agent-a online_mccfr",
-        "--agent-b online_mccfr",
+        "mccfr-policy",
+        "counterfactual-reports",
     )
-    for workflow in ("pages.yml", "balance.yml"):
-        content = text(workflow)
-        for marker in expensive_markers:
-            assert marker not in content, f"{marker} leaked into {workflow}"
-
-
-def test_remaining_routine_analysis_workflows_use_per_run_seeds() -> None:
-    for workflow in ("pages.yml", "balance.yml"):
-        content = text(workflow)
-        assert "RUN_SEED" in content
-        assert "GITHUB_RUN_ID" in content
-
-
-def test_expanded_playtest_gate_confirms_counterfactual_reds_before_failing() -> None:
-    content = text("expanded-playtest-gate.yml")
-    assert "Build human-playability statistics" in content
-    assert "gate-playability.json" in content
-    assert "Confirm red counterfactual outliers" in content
-    assert '--cards "$card_id"' in content
-    assert "26092341 + index" in content
-    assert "confirmed_red" in content
-    assert "independently confirmed red card outliers" in content
+    for marker in forbidden:
+        assert marker not in content
