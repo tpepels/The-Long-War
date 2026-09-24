@@ -107,6 +107,10 @@ def test_decision_grade_search_match_defaults(monkeypatch):
     assert match.games == 24
     assert match.jobs == 8
     assert match.time_budget_seconds == pytest.approx(2.0)
+    assert match.a_belief_samples == 12
+    assert match.b_belief_samples == 12
+    assert match.a_rollout_epsilon == pytest.approx(0.12)
+    assert match.b_rollout_epsilon == pytest.approx(0.12)
 
     monkeypatch.setattr(
         runner.sys,
@@ -116,6 +120,8 @@ def test_decision_grade_search_match_defaults(monkeypatch):
     strength = runner.parse_args()
     assert strength.games == 24
     assert strength.jobs == 8
+    assert strength.belief_samples == 12
+    assert strength.rollout_epsilon == pytest.approx(0.12)
 
 
 def test_makefile_has_one_configurable_experiment_entrypoint():
@@ -219,30 +225,111 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
     manifest_path = runner.run_suite(args)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    assert len(match_calls) == 8
+    assert len(match_calls) == 11
     assert len(strength_calls) == 1
-    assert len(manifest["experiments"]) == 9
+    assert len(manifest["experiments"]) == 12
     assert all(row["status"] == "passed" for row in manifest["experiments"])
     assert [row["name"] for row in manifest["experiments"]] == [
         "baseline-control",
+        "exploration-0p15",
+        "exploration-0p6",
+        "belief-8",
+        "belief-24",
         "tree-cold",
+        "tree-800k",
         "pw-0p5",
-        "pw-1p0",
         "rollout-greedy",
-        "rollout-random",
-        "rollout-depth-3",
         "rollout-depth-8",
+        "rollout-epsilon-0",
         "baseline-vs-alpha-beta",
     ]
-    assert match_calls[0]["reuse_tree_b"] is True
-    assert match_calls[1]["reuse_tree_b"] is False
-    assert match_calls[2]["progressive_widening_b"] == pytest.approx(0.5)
-    assert match_calls[3]["progressive_widening_b"] == pytest.approx(1.0)
-    assert match_calls[4]["rollout_policy_b"] == "greedy"
-    assert match_calls[5]["rollout_policy_b"] == "random"
-    assert match_calls[6]["rollout_depth_b"] == 3
-    assert match_calls[7]["rollout_depth_b"] == 8
+    assert match_calls[0]["belief_samples_b"] == 12
+    assert match_calls[0]["max_tree_nodes_b"] == 400_000
+    assert match_calls[1]["exploration_b"] == pytest.approx(0.15)
+    assert match_calls[2]["exploration_b"] == pytest.approx(0.6)
+    assert match_calls[3]["belief_samples_b"] == 8
+    assert match_calls[4]["belief_samples_b"] == 24
+    assert match_calls[5]["reuse_tree_b"] is False
+    assert match_calls[6]["max_tree_nodes_b"] == 800_000
+    assert match_calls[7]["progressive_widening_b"] == pytest.approx(0.5)
+    assert match_calls[8]["rollout_policy_b"] == "greedy"
+    assert match_calls[9]["rollout_depth_b"] == 8
+    assert match_calls[10]["rollout_epsilon_b"] == pytest.approx(0.0)
     assert strength_calls[0]["time_budget_seconds"] == pytest.approx(2.0)
+    assert strength_calls[0]["belief_samples"] == 12
+    assert strength_calls[0]["max_tree_nodes"] == 400_000
+    assert manifest["decision_readiness"]["ready"] is True
+    assert manifest["decision_readiness"]["blockers"] == []
+
+
+def test_suite_readiness_blocks_a_confidently_better_challenger(
+    tmp_path,
+    monkeypatch,
+):
+    suite_dir = tmp_path / "suite"
+
+    monkeypatch.setattr(
+        runner,
+        "artifact_directory",
+        lambda _base, _identity: suite_dir,
+    )
+
+    calls = 0
+
+    def fake_match(**_kwargs):
+        nonlocal calls
+        calls += 1
+        suite_dir.mkdir(parents=True, exist_ok=True)
+        path = tmp_path / f"match-{calls}.json"
+        better = calls == 2
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "candidate_a_win_rate": 0.40 if better else 0.50,
+                    "paired_uncertainty": {
+                        "ci95": [0.32, 0.48] if better else [0.44, 0.56],
+                    },
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    def fake_strength(**_kwargs):
+        path = tmp_path / "strength.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "mcts_win_rate": 0.50,
+                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
+    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
+
+    manifest_path = runner.run_suite(Namespace(
+        games=24,
+        jobs=8,
+        iterations=100_000,
+        alpha_nodes=20_000,
+        time_budget_seconds=2.0,
+        seed=26092400,
+        stop_on_error=False,
+    ))
+    readiness = json.loads(
+        manifest_path.read_text(encoding="utf-8")
+    )["decision_readiness"]
+
+    assert readiness["ready"] is False
+    assert readiness["challengers_beating_baseline"] == [
+        "exploration-0p15"
+    ]
 
 
 def test_no_dedicated_rule_experiment_runner() -> None:
