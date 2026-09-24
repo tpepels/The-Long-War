@@ -45,7 +45,7 @@ class PlaySession:
         seed: int = 1,
         paced_ai: bool = False,
     ):
-        if mode not in {"hotseat", "heuristic"}:
+        if mode not in {"hotseat", "computer"}:
             raise ValueError(f"Unsupported play mode: {mode}")
 
         card_data = json.loads(card_data_json)
@@ -77,7 +77,7 @@ class PlaySession:
         self.mulligan_choices: dict[int, tuple[int, ...]] = {}
 
         self.agents: dict[int, Any] = {}
-        if mode == "heuristic":
+        if mode == "computer":
             self.agents[1] = HeuristicAgent(self.seed + 20_001, exploration=0.0)
 
     def snapshot_json(self, viewer: int | None = None) -> str:
