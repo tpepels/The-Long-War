@@ -48,6 +48,18 @@ def main() -> None:
     parser.add_argument("--agent-b", choices=choices, default="heuristic")
     parser.add_argument("--policy-a", type=Path)
     parser.add_argument("--policy-b", type=Path)
+    parser.add_argument("--agent-a-label")
+    parser.add_argument("--agent-b-label")
+    parser.add_argument(
+        "--agent-a-options-json",
+        default="{}",
+        help="Internal per-seat agent overrides as a JSON object.",
+    )
+    parser.add_argument(
+        "--agent-b-options-json",
+        default="{}",
+        help="Internal per-seat agent overrides as a JSON object.",
+    )
     parser.add_argument("--online-iterations", type=int, default=8)
     parser.add_argument("--online-depth", type=int, default=2)
     parser.add_argument("--strategic-belief-samples", type=int, default=3)
@@ -67,6 +79,11 @@ def main() -> None:
         help="Maximum alpha-beta nodes per strategic decision.",
     )
     parser.add_argument(
+        "--strategic-time-budget-seconds",
+        type=float,
+        help="Optional wall-clock budget per non-forced alpha-beta decision.",
+    )
+    parser.add_argument(
         "--strategic-search-backend",
         choices=("auto", "cython", "python"),
         default="auto",
@@ -74,6 +91,11 @@ def main() -> None:
     )
     parser.add_argument("--ismcts-belief-samples", type=int, default=12)
     parser.add_argument("--ismcts-iterations", type=int, default=100_000)
+    parser.add_argument(
+        "--ismcts-time-budget-seconds",
+        type=float,
+        help="Optional wall-clock budget per non-forced ISMCTS decision.",
+    )
     parser.add_argument("--ismcts-rollout-depth", type=int, default=5)
     parser.add_argument("--ismcts-tree-depth-limit", type=int, default=96)
     parser.add_argument("--ismcts-exploration", type=float, default=2 ** 0.5)
@@ -211,6 +233,24 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    def parse_agent_options(raw: str, label: str) -> dict[str, Any]:
+        try:
+            value = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise SystemExit(f"{label} must be valid JSON: {exc}") from exc
+        if not isinstance(value, dict):
+            raise SystemExit(f"{label} must decode to a JSON object")
+        return value
+
+    agent_overrides = (
+        parse_agent_options(args.agent_a_options_json, "--agent-a-options-json"),
+        parse_agent_options(args.agent_b_options_json, "--agent-b-options-json"),
+    )
+    agent_labels = (
+        args.agent_a_label or args.agent_a,
+        args.agent_b_label or args.agent_b,
+    )
+
     card_data = load_card_file(resolve(args.card_file))
     if args.rules_profile != "custom":
         rules = GameRules.from_profile(args.rules_profile)
@@ -269,9 +309,11 @@ def main() -> None:
         strategic_rollout_plies=args.strategic_rollout_plies,
         strategic_candidate_width=args.strategic_candidate_width,
         strategic_node_budget=args.strategic_node_budget,
+        strategic_time_budget_seconds=args.strategic_time_budget_seconds,
         strategic_search_backend=args.strategic_search_backend,
         ismcts_belief_samples=args.ismcts_belief_samples,
         ismcts_iterations=args.ismcts_iterations,
+        ismcts_time_budget_seconds=args.ismcts_time_budget_seconds,
         ismcts_rollout_depth=args.ismcts_rollout_depth,
         ismcts_tree_depth_limit=args.ismcts_tree_depth_limit,
         ismcts_exploration=args.ismcts_exploration,
@@ -279,6 +321,8 @@ def main() -> None:
         ismcts_reuse_tree=not args.ismcts_no_tree_reuse,
         ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
         ismcts_rollout_policy=args.ismcts_rollout_policy,
+        agent_overrides=agent_overrides,
+        agent_labels=agent_labels,
         progress_callback=report_progress if progress_path is not None else None,
     )
 
@@ -296,12 +340,14 @@ def main() -> None:
         "rollout_plies": args.strategic_rollout_plies,
         "candidate_width": args.strategic_candidate_width,
         "node_budget": args.strategic_node_budget,
+        "time_budget_seconds": args.strategic_time_budget_seconds,
         "search": "belief-sampled iterative-deepening alpha-beta",
         "backend_requested": args.strategic_search_backend,
     }
     payload["ismcts_config"] = {
         "belief_samples": args.ismcts_belief_samples,
         "iterations": args.ismcts_iterations,
+        "time_budget_seconds": args.ismcts_time_budget_seconds,
         "rollout_depth": args.ismcts_rollout_depth,
         "tree_depth_limit": args.ismcts_tree_depth_limit,
         "exploration": args.ismcts_exploration,
@@ -314,6 +360,8 @@ def main() -> None:
         "rollout_policy": args.ismcts_rollout_policy,
         "search": "root-belief-sampled Cython ISMCTS",
     }
+    payload["agent_overrides"] = [agent_overrides[0], agent_overrides[1]]
+    payload["agent_labels"] = list(agent_labels)
     payload["simulation_variant"] = {
         "rules_profile": args.rules_profile,
         "base_hand_size": rules.opening_hand_size,
