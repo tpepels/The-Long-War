@@ -2603,6 +2603,7 @@ cdef class FastEngine:
                 for p in range(2)
             ],
             "stratagem_used": [bool(state.stratagem_used[0]), bool(state.stratagem_used[1])],
+            "hero_used": [bool(state.hero_used[0]), bool(state.hero_used[1])],
             "draw_used": [bool(state.draw_used[0]), bool(state.draw_used[1])],
         }
 
