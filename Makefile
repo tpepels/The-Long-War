@@ -1,4 +1,4 @@
-.PHONY: install test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity force-setup force-check force-bench force-mcts-bench force-search-bench force-strength-bench force-quick force-run force-max
+.PHONY: install test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity force-setup force-rebuild force-check force-bench force-mcts-bench force-search-bench force-strength-bench force-quick force-run force-max
 
 install:
 	python -m pip install -e '.[dev]'
@@ -50,6 +50,10 @@ browser-parity:
 # Force-rich draw experiment: local-only convenience targets.
 force-setup:
 	python -m pip install -e '.[dev]'
+
+# Recompile the existing editable install after Cython-only source changes.
+force-rebuild:
+	python setup.py build_ext --inplace
 
 force-check:
 	python tools/force_experiment.py validate

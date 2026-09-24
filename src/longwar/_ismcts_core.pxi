@@ -185,7 +185,7 @@ cdef uint64_t _ismcts_rollout_action(
         return actions[_ismcts_rand_index(rng, n)]
 
     for i in range(n):
-        value = evaluator.score_action_fast(
+        value = evaluator.action_order_score_fast(
             state,
             actor,
             actions[i],
