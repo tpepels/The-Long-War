@@ -113,6 +113,7 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
         "schemes": schemes,
         "stratagems": stratagems,
         "stratagem_used": list(state.stratagem_used),
+        "hero_used": list(state.hero_used),
         "draw_used": list(state.draw_used),
         "own_hand": _counter_view(state.players[player].hand),
         "own_deck": _counter_view(state.players[player].deck),
