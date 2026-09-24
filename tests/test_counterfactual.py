@@ -51,7 +51,8 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
     assert baseline_card(index["he-never-came"])["rules"] == {}
     assert baseline_card(index["the-storm-broke"])["rules"] == {
         "stratagem": {
-            "trigger": {"event": "never", "actor": "either"},
+            "trigger": {"event": "played", "actor": "controller"},
+            "continuous": {},
         }
     }
 
