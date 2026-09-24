@@ -4,7 +4,7 @@
 
 <div class="rulebook-opening" markdown="1">
 
-**The Long War** is a two-player card game fought across **Left**, **Center**, and **Right**. Each Battle ends when both players **Pass**. Control two Fronts to win the Battle; win two Battles to win the match.
+**The Long War** is a two-player card game fought across **Left**, **Center**, and **Right**. Once the first player **Passes**, the opponent gets one final operation and the Battle is scored. Control two Fronts to win the Battle; win two Battles to win the match.
 
 Every operation costs **Command**. You begin the match with 20 Command, and unused Command carries between Battles. The battlefield clears after every Battle, but your hand, draw pile, and discard pile persist. Winning now can leave you short of both Command and cards later.
 
@@ -40,7 +40,7 @@ Each Front has two positions on each side:
 - **Frontline**
 - **Rear**
 
-When both players have Passed, compare Strength in each Front.
+After the first Pass and the opponent's final operation, compare Strength in each Front.
 
 - Higher Strength controls the Front.
 - Equal Strength controls it for neither player.
@@ -382,7 +382,7 @@ At the start of every turn, draw **1 card** automatically. There is no generic D
 
 ## Score the Battle {#scoring}
 
-When both players have Passed:
+After the first Pass and the opponent's final operation:
 
 1. calculate each occupied Subject's Strength;
 2. add Frontline and Rear within each Front;
