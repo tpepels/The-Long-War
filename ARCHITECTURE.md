@@ -75,6 +75,16 @@ Adding ordinary cards should require data changes, not search/UI changes.
 Reusable effect primitives belong to the game core; algorithms must not contain
 card-specific behavior.
 
+**No runtime implementation may special-case a card identity.** The engine,
+heuristics, and search agents may understand capabilities such as "Hero",
+"move a formation", "gain Command", or "play in more than one role", but they
+must not branch on a particular card id or title. A card that needs a new kind
+of behavior requires a reusable capability/effect primitive in the card schema
+and engine, not an `if card_id == ...` patch.
+
+This is especially important for future rule-breaking cards: exceptions remain
+data-driven and visible to every consumer through the same engine.
+
 The card catalogue is independent from any particular deck.
 
 ## 3. Decks
@@ -158,6 +168,7 @@ Architecture tests must enforce these properties:
 5. Deck files/names are not referenced by the game core.
 6. Python game transitions are not duplicated outside the canonical engine.
 7. Experiment-specific command combinations do not become new Make targets.
+8. Engine, heuristic, and search implementation files contain no canonical card ids.
 
 Tests should enforce dependency direction and ownership, not incidental file
 layout or a particular search implementation.
