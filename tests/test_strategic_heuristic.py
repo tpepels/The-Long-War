@@ -13,26 +13,21 @@ from longwar.rules import GameRules
 from longwar.simulate import simulate_games
 
 ROOT = Path(__file__).resolve().parents[1]
-CARD_FILE = ROOT / "cards" / "experiments" / "force-draw-cards.json"
-DECK_FILE = ROOT / "decks" / "experiments" / "force-rich-34-reference.json"
+CARD_FILE = ROOT / "cards" / "cards.json"
+DECK_FILE = ROOT / "decks" / "reference.json"
 
 
 def load_deck() -> list[str]:
     return json.loads(DECK_FILE.read_text(encoding="utf-8"))["cards"]
 
 
-def candidate_engine(*, automatic: bool = False, paid: bool = True) -> GameEngine:
-    data = load_card_file(CARD_FILE)
-    draw_mode = "automatic" if automatic else "paid"
-    rules = GameRules.force_candidate(draw_mode)
-    if not automatic and not paid:
-        rules = rules.with_overrides(paid_draw_enabled=False)
-    return GameEngine(data, rules=rules)
+def standard_engine() -> GameEngine:
+    return GameEngine(load_card_file(CARD_FILE), rules=GameRules.standard())
 
 
 def test_default_belief_sampler_uses_engine_deck_size() -> None:
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
     state = engine.new_game(deck, deck, seed=7301, first_player=0)
     sampled = BeliefSampler(engine).sample(
         state,
@@ -56,7 +51,7 @@ def test_default_belief_sampler_uses_engine_deck_size() -> None:
 
 def test_strategic_heuristic_returns_legal_action_without_true_hand_access() -> None:
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
     state = engine.new_game(deck, deck, seed=7310, first_player=0)
     priors = (
         HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="a")]),
@@ -84,7 +79,7 @@ def test_strategic_heuristic_returns_legal_action_without_true_hand_access() -> 
 
 def test_short_strategic_candidate_simulation_finishes() -> None:
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
 
     report = simulate_games(
         engine,
@@ -108,7 +103,7 @@ def test_short_strategic_candidate_simulation_finishes() -> None:
 
 def test_candidate_simulation_reports_depletion() -> None:
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
 
     report = simulate_games(
         engine,
@@ -129,7 +124,7 @@ def test_cython_and_python_backends_agree_on_root_decision() -> None:
     pytest.importorskip("longwar._fast_search")
 
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
     state = engine.new_game(deck, deck, seed=7340, first_player=0)
     priors = (
         HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="a")]),
@@ -169,7 +164,7 @@ def test_cython_alpha_beta_wall_clock_budget_reports_actual_work() -> None:
     pytest.importorskip("longwar._fast_search")
 
     deck = load_deck()
-    engine = candidate_engine()
+    engine = standard_engine()
     state = engine.new_game(deck, deck, seed=7350, first_player=0)
     priors = (
         HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="a")]),
