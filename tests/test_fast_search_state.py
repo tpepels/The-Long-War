@@ -185,28 +185,29 @@ def test_primitive_search_state_matches_reference_engine_on_random_games(
     assert checked >= 150
 
 
-def force_candidate_engine(*, automatic: bool) -> tuple[GameEngine, list[str], object]:
+def rule_variant_engine(*, automatic: bool) -> tuple[GameEngine, list[str], object]:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (
             ROOT / "decks" / "reference.json"
         ).read_text(encoding="utf-8")
     )["cards"]
-    engine = GameEngine(
-        data,
-        rules=GameRules.force_candidate(
-            "automatic" if automatic else "paid"
-        ),
-    )
+    rules = GameRules.standard()
+    if not automatic:
+        rules = rules.with_overrides(
+            automatic_draw=False,
+            paid_draw_enabled=True,
+        )
+    engine = GameEngine(data, rules=rules)
     return engine, deck, FastEngine(engine)
 
 
 @pytest.mark.legacy_rule_experiment
 @pytest.mark.parametrize("automatic", (False, True))
-def test_packed_state_matches_force_candidate_random_games(
+def test_packed_state_matches_rule_variant_random_games(
     automatic: bool,
 ) -> None:
-    engine, deck, fast_engine = force_candidate_engine(automatic=automatic)
+    engine, deck, fast_engine = rule_variant_engine(automatic=automatic)
     rng = random.Random(26092377 + int(automatic))
     checked = 0
 
