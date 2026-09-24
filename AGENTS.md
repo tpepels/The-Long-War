@@ -27,7 +27,7 @@ make verify-algorithms  # learning/correctness + fixed-seed search validation
 make test-integration   # simulation/report integration
 make balance-quick      # small canonical playability/health check
 make balance-deep       # opt-in release-sized balance pipeline
-make overnight-search   # unattended structural search battery, checkpoints each run
+make experiment-suite   # unattended decision-grade search batch
 ```
 
 `make browser-parity` builds/caches the wasm wheel and compares native/wasm rules plus complete browser session traces. `tools/build_browser_runtime.py` pins runtime/build-tool versions and isolates cross compilation under `artifacts/`. Rebuild automatically when package sources change. Do not commit wasm/native binaries or downloaded toolchains.
@@ -42,7 +42,7 @@ Add regressions at the changed semantic boundary. Use small deterministic smoke 
 - Battle-boundary rollouts use the shared next-Battle evaluator.
 - Reuse is permitted only under a valid belief/search context. New hidden information invalidates accumulated statistics. Keep inherited/new visits and discarded nodes distinguishable.
 - Root selection uses lifetime visits within a valid context. Default arena cap is four times iteration budget; at capacity search rolls out and resets on reroot as needed. Keep allocation growth bounded.
-- Do not name a canonical playing agent from fixed-work or historical results. Use the supported Make targets with equal wall-clock budgets and paired mirrored seeds. `make ismcts-match` is the decision-grade single comparison; `make overnight-search` runs the unattended structural battery. Local laptop evidence currently uses 2s/searched move with at least 24 games per deck/orientation; the overnight default uses 48. Compare the selected ISMCTS candidate with alpha-beta using the same equal-time framework. Longer 5s/10s runs are optional later confirmation, not a prerequisite for local tuning. Fixed node/iteration modes remain regression benchmarks, not fair cross-algorithm strength evidence.
+- Do not name a canonical playing agent from fixed-work or historical results. Use the supported Make targets with equal wall-clock budgets and paired mirrored seeds. `make ismcts-match` is the decision-grade single comparison; `make experiment-suite` is the only batch search entry point and composes the same canonical comparison primitives. Local laptop evidence currently uses 2s/searched move with at least 24 games per deck/orientation; the suite default uses 48. Compare the selected ISMCTS candidate with alpha-beta using the same equal-time framework. Longer 5s/10s runs are optional later confirmation, not a prerequisite for local tuning. Fixed node/iteration modes remain regression benchmarks, not fair cross-algorithm strength evidence.
 - Mirrored benchmark RNG seeds belong to the candidate/algorithm rather than the seat. Preserve this common-random-number pairing when extending strength tests.
 
 ## Analysis ownership
