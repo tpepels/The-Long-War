@@ -257,24 +257,13 @@ The reference deck contains three Veiled Stories:
 
 ## Stratagems {#stratagems}
 
-A **Stratagem** is a hidden Battle-wide card. It does not belong to a Front.
+A **Stratagem** is a public Battle-wide card. It does not belong to a Front.
 
-On your own turn, you may use your operation to set one Stratagem from your hand face-down. Each player may do this **once per Battle**.
+On your own turn, you may use your operation to play one Stratagem from your hand **face-up**. Each player may do this **once per Battle**.
 
-Pay the Stratagem's printed Command cost. Setting it uses your operation for the turn.
+Pay the Stratagem's printed Command cost. Playing it uses your operation for the turn.
 
-Once set, the Stratagem stays in play until the Battle ends. Revealing it does not let you set another.
-
-When its printed trigger occurs:
-
-1. reveal it;
-2. resolve any one-time reveal effect;
-3. leave it face-up;
-4. apply its continuing rule for the rest of the Battle.
-
-If it never triggers, reveal it only after the Battle has been scored, then discard it. A Stratagem that stayed hidden cannot change an already determined result.
-
-Both players may have a Stratagem in play. Strength modifiers from revealed Stratagems stack. A rule that switches something off, such as *The Tide Rose* disabling Line Defense, remains off while that Stratagem is revealed.
+The Stratagem is active immediately and remains face-up until the Battle ends. Both players may have a Stratagem in play. Strength modifiers from active Stratagems stack. A rule that switches something off, such as *The Tide Rose* disabling Line Defense, remains off while that Stratagem is in play.
 
 The reference deck uses three deliberately double-edged Stratagems:
 
@@ -282,7 +271,7 @@ The reference deck uses three deliberately double-edged Stratagems:
 - *The Tide Rose* helps Ships and removes Line Defense.
 - *The Ground Gave Way* helps Rear Subjects and weakens Frontline Subjects.
 
-Other Stratagems remain in the expanded pool. Their full text is authoritative; they follow the same set/reveal/continue timing above.
+Other Stratagems remain in the expanded pool. Their full text is authoritative; they follow the same face-up play and continuing-effect timing above.
 
 ---
 
@@ -513,11 +502,11 @@ You may inspect your own face-down Stories. Your opponent may not.
 
 ### Stratagems
 
-If you have not set a Stratagem this Battle, you may use your operation to set one from your hand face-down in your Stratagem space.
+If you have not played a Stratagem this Battle, you may use your operation to play one from your hand face-up in your Stratagem space.
 
-Pay its printed Command cost. Setting it uses your operation for the turn.
+Pay its printed Command cost. Playing it uses your operation for the turn.
 
-A revealed Stratagem stays face-up until the Battle ends. You cannot set another Stratagem that Battle.
+The Stratagem is active immediately and stays face-up until the Battle ends. You cannot play another Stratagem that Battle.
 
 ## What happens when attached cards leave?
 
@@ -535,36 +524,28 @@ During a Battle, when an effect removes or moves an attached card:
 
 ## Timing
 
-There is no reaction stack. A Stratagem is set only on its controller's turn, as that player's operation.
+There is no reaction stack. A Stratagem is played face-up only on its controller's turn, as that player's operation, and its continuing effect is active immediately.
 
 For a normal card play:
 
 1. announce the card and all required targets;
-2. if it is an immediate Story and an opposing *The False Muster* triggers, reveal the Stratagem and cancel that Story;
-3. otherwise resolve the played card completely;
-4. resolve any Veiled Stories triggered by that play;
-5. reveal and resolve any Stratagems triggered by that play.
+2. resolve the played card completely;
+3. resolve any Veiled Stories triggered by that play;
+4. apply all active continuing effects.
 
-*The False Muster* cancels an immediate Story before that Story resolves. It never cancels a Veiled Story.
-
-When a player Passes:
+When the first player Passes:
 
 1. mark that player as Passed;
-2. resolve Pass-triggered Stratagems;
-3. resolve Pass-triggered Veiled Stories;
-4. if both players have Passed, score the Battle.
-
-If both hidden Stratagems trigger from the same event, reveal the active player's Stratagem first, then the opponent's. Apply all continuing effects together afterward.
-
-Reveal any Stratagem still face-down only after scoring. Its newly revealed continuing effect cannot change the result that was already determined.
+2. resolve any Pass-triggered Veiled Stories;
+3. give the opponent exactly one final operation;
+4. after that operation - or if the opponent Passes - score the Battle.
 
 ## Hidden and public information
 
 **Hidden**
 
 - cards in hand;
-- the identity of an unrevealed Veiled Story;
-- the identity of an unrevealed Stratagem.
+- the identity of an unrevealed Veiled Story.
 
 **Public**
 
@@ -573,16 +554,16 @@ Reveal any Stratagem still face-down only after scoring. Its newly revealed cont
 - discard piles;
 - all face-up battlefield cards;
 - which Front contains each face-down Veiled Story;
-- whether each player has a face-down Stratagem;
+- each face-up Stratagem;
 - whether each player has used their Stratagem opportunity this Battle;
 - each player's current Command;
 - classifications and roles on visible cards.
 
 ## Deck construction
 
-The canonical playtest decks contain exactly **30 cards** and use this composition:
+The canonical playtest decks contain exactly **34 cards** and use this composition:
 
-- Exactly **10 Subjects**.
+- Exactly **14 Subjects**.
 - Exactly **6 Names**.
 - Exactly **1 Hero** among those Subjects.
 - Maximum 2 copies of a non-Unique title.
@@ -599,7 +580,7 @@ Custom research decks may vary the Subject and Name counts while retaining the d
 ## Glossary {#glossary}
 
 **Battle**  
-One scoring period. It ends when both players have Passed.
+One scoring period. After the first Pass, the opponent receives one final operation and then the Battle is scored.
 
 **Bond**  
 A formation component. It may be prepared before its Subject. A Bond without a Name is an open Bond.
@@ -613,9 +594,6 @@ A unique Subject with a special rule. Every deck contains exactly one Hero.
 **Command**  
 Your persistent operation budget. Start the match at 20. Gain 10 between Battles, to a maximum of 20. Unspent Command carries over.
 
-**Cycle**  
-Pay 1 Command, discard one card from your hand, then draw one card. If the draw pile is empty, shuffle the discard pile first. Card text can change the cost.
-
 **Line Defense**  
 The +1 Strength normally gained by a Subject in the Frontline.
 
@@ -623,7 +601,7 @@ The +1 Strength normally gained by a Subject in the Frontline.
 A Unique formation component. It may be prepared before its Subject or Bond.
 
 **Pass**  
-End your participation in the current Battle.
+End your operations in the current Battle. After the first Pass, the opponent receives exactly one final operation before scoring.
 
 **Role**  
 A printed Subject property such as *Swordsman*, *Spearman*, *Archer*, or *Healer*. Roles provide standard formation rules.
@@ -632,7 +610,7 @@ A printed Subject property such as *Swordsman*, *Spearman*, *Archer*, or *Healer
 A one-shot card. Its form may be *Myth*, *Legend*, *Saga*, *Omen*, *Warning*, *Prophecy*, or *Conspiracy*.
 
 **Stratagem**  
-A Battle-wide hidden card set as your operation. Each player may set one per Battle.
+A Battle-wide public card played face-up as your operation. Each player may play one per Battle.
 
 **Prepared**  
 A Bond or Name placed in a formation before its Subject. Subject-dependent rules stay inactive until the Subject arrives.
