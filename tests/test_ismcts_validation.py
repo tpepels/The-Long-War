@@ -109,6 +109,7 @@ def _search(
     rollout_depth: int = 2,
     tree_depth_limit: int = 24,
     exploration: float = 2 ** 0.5,
+    progressive_widening: float = 0.0,
     rollout_policy: int = 1,
 ):
     return ismcts_search(
@@ -120,6 +121,7 @@ def _search(
         rollout_depth=rollout_depth,
         tree_depth_limit=tree_depth_limit,
         exploration=exploration,
+        progressive_widening=progressive_widening,
         rollout_epsilon=0.12,
         rollout_policy=rollout_policy,
         seed=seed,
@@ -281,6 +283,38 @@ def test_first_expansion_visits_every_root_action_once() -> None:
 
     assert result["root_total_visits"] == legal_count
     assert all(int(row["visits"]) == 1 for row in result["root_stats"])
+
+
+def test_progressive_widening_limits_initial_root_breadth() -> None:
+    engine, deck, _priors = _force_fixture(
+        GameRules.force_candidate("automatic")
+    )
+    state = engine.new_game(deck, deck, seed=9245, first_player=0)
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+    assert len(fast.legal_actions(packed)) >= 4
+
+    result = _search(
+        fast,
+        evaluator,
+        [packed],
+        0,
+        iterations=16,
+        seed=9246,
+        rollout_depth=0,
+        tree_depth_limit=1,
+        exploration=0.0,
+        progressive_widening=1.0,
+        rollout_policy=2,
+    )
+
+    visited = [
+        row for row in result["root_stats"] if int(row["visits"]) > 0
+    ]
+    assert len(visited) == 4
+    assert result["progressive_widening"] == pytest.approx(1.0)
+    assert result["progressive_widening_alpha"] == pytest.approx(0.5)
 
 
 def test_one_ply_ismcts_matches_strategic_leaf_oracle() -> None:
