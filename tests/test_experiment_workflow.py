@@ -400,5 +400,7 @@ def test_cardflow_variants_use_canonical_data_paths(tmp_path):
     assert command[command.index("--deck-a") + 1] == "decks/reference.json"
     assert command[command.index("--deck-b") + 1] == "decks/reference.json"
     joined = " ".join(command)
+    assert "--rules-profile" not in command
+    assert "--automatic-draw" in command
     assert "cards/experiments" not in joined
     assert "decks/experiments" not in joined
