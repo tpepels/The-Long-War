@@ -79,6 +79,8 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
             "candidate_count": 4,
             "search_nodes": 20,
             "completed_depth": 3,
+            "decision_seconds": 1.25,
+            "search_timed_out": True,
             "ismcts_iterations": 20,
             "ismcts_rollouts_stopped_terminal": 7,
             "ismcts_rollouts_stopped_battle_boundary": 11,
@@ -122,3 +124,9 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
     assert reuse["mean_tree_nodes_before"] == pytest.approx(120.0)
     assert reuse["mean_tree_nodes_added"] == pytest.approx(17.0)
     assert reuse["mean_root_prior_visits"] == pytest.approx(9.0)
+
+    decisions = telemetry.summary()["decisions"]["ismcts"]
+    assert decisions["mean_decision_seconds"] == pytest.approx(1.25)
+    assert decisions["max_decision_seconds"] == pytest.approx(1.25)
+    assert decisions["timed_out_decisions"] == 1
+    assert decisions["timeout_rate"] == pytest.approx(1.0)
