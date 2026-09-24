@@ -372,7 +372,8 @@ def ismcts_search(
 
     return {
         "action": root_node.actions[best_ix],
-        "visits": best_visits,
+        "root_total_visits": root_node.total_visits,
+        "selected_action_visits": best_visits,
         "mean_value": best_mean,
         "second_mean_value": (
             second_mean if second_ix >= 0 else best_mean

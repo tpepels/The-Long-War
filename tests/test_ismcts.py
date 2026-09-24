@@ -59,7 +59,10 @@ def test_cython_ismcts_returns_legal_action() -> None:
     assert agent.last_decision["policy_source"] == "ismcts"
     assert agent.last_decision["search_backend_detail"] == "packed-ismcts"
     assert agent.last_decision["ismcts_iterations"] == 200
-    assert agent.last_decision["ismcts_root_visits"] == 200
+    assert agent.last_decision["ismcts_root_total_visits"] == 200
+    assert (
+        0 < agent.last_decision["ismcts_selected_action_visits"] <= 200
+    )
     assert agent.last_decision["ismcts_tree_nodes"] > 0
 
 
@@ -129,4 +132,5 @@ def test_ismcts_rng_accepts_full_uint64_seed_range() -> None:
     )
 
     assert result["iterations"] == 8
-    assert result["visits"] == 8
+    assert result["root_total_visits"] == 8
+    assert 0 < result["selected_action_visits"] <= 8

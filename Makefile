@@ -51,9 +51,9 @@ browser-parity:
 force-setup:
 	python -m pip install -e '.[dev]'
 
-# Recompile the existing editable install after Cython-only source changes.
+# Rebuild the editable package in isolated build env; no runtime deps reinstalled.
 force-rebuild:
-	python setup.py build_ext --inplace
+	python -m pip install -e . --no-deps
 
 force-check:
 	python tools/force_experiment.py validate

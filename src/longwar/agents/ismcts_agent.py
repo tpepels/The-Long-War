@@ -98,7 +98,8 @@ class ISMCTSAgent:
                 "evaluated_candidates": 1,
                 "ismcts_iterations": 0,
                 "ismcts_tree_nodes": 0,
-                "ismcts_root_visits": 0,
+                "ismcts_root_total_visits": 0,
+                "ismcts_selected_action_visits": 0,
             }
             return legal[0]
 
@@ -149,7 +150,10 @@ class ISMCTSAgent:
             "evaluated_candidates": len(legal),
             "ismcts_iterations": self.iterations,
             "ismcts_tree_nodes": int(result["tree_nodes"]),
-            "ismcts_root_visits": int(result["visits"]),
+            "ismcts_root_total_visits": int(result["root_total_visits"]),
+            "ismcts_selected_action_visits": int(
+                result["selected_action_visits"]
+            ),
             "ismcts_root_value": score,
         }
         return selected
