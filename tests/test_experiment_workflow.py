@@ -69,6 +69,20 @@ def test_validation_can_repeat_after_inputs_change(tmp_path, monkeypatch, change
     assert (outputs[2].parent / "config.json").is_file()
 
 
+def test_ismcts_uncertainty_pairs_orientations_by_seed():
+    outcomes = {"reference": {
+        "a-first": [{"seed": 1, "winner": 0}, {"seed": 2, "winner": 1}],
+        "b-first": [{"seed": 2, "winner": 0}, {"seed": 1, "winner": 1}],
+    }}
+    result = runner.paired_ismcts_interval(outcomes)
+    assert result["independent_deals"] == 2
+    assert result["a_win_rate"] == 0.5
+    assert result["ci95"][0] < 0.5 < result["ci95"][1]
+    outcomes["reference"]["b-first"][0]["seed"] = 3
+    with pytest.raises(ValueError, match="identical deal seeds"):
+        runner.paired_ismcts_interval(outcomes)
+
+
 def test_strength_uncertainty_pairs_orientations_by_seed():
     outcomes = {"reference": {
         "mcts-first": [{"seed": 1, "winner": 0}, {"seed": 2, "winner": 1}],
