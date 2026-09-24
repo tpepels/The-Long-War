@@ -228,7 +228,7 @@ def require_cython() -> None:
     except ImportError as exc:
         raise SystemExit(
             "Packed Cython search extension is not available.\n"
-            "Run: make dev-setup"
+            "Run: make install && make native-build"
         ) from exc
     print("Canonical Cython engine/search extension: OK")
 
