@@ -59,7 +59,6 @@ def test_lab_accepts_complete_custom_standard_provenance() -> None:
         "base_hand_size": 10,
         "draw_action_enabled": False,
         "completion_draw_names": [],
-        "deck_size": 34,
         "recycle_between_battles": False,
         "reshuffle_on_empty": True,
         "command_enabled": True,
