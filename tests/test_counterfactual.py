@@ -98,7 +98,7 @@ def test_contexts_are_legal_and_cover_the_expanded_pool() -> None:
     covered: set[str] = set()
     for deck in contexts:
         engine.validate_deck(deck)
-        assert len(deck) == 30
+        assert len(deck) == 34
         covered.update(deck)
     assert ids <= covered
 
