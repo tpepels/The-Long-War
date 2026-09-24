@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from longwar.agents import HeuristicAgent
 from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
@@ -19,6 +21,14 @@ def engine_and_state():
     engine = GameEngine(data)
     state = engine.new_game(deck, deck, seed=91, first_player=0)
     return engine, state
+
+
+def test_heuristic_default_has_no_random_exploration() -> None:
+    agent = HeuristicAgent(seed=5)
+    assert agent.exploration == 0.0
+
+    with pytest.raises(ValueError, match="exploration"):
+        HeuristicAgent(seed=5, exploration=1.1)
 
 
 def test_opening_mulligan_rejects_unenabled_names_first() -> None:
