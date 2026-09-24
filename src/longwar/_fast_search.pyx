@@ -2,7 +2,7 @@
 from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, uint32_t, int32_t, uint64_t
 from libc.stddef cimport size_t
 from libc.string cimport memcpy, memset
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport malloc, free, realloc
 from libc.math cimport tanh, log, sqrt
 from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
@@ -119,6 +119,24 @@ cdef inline int action_dest(uint64_t action) noexcept:
 
 cdef inline int action_player(uint64_t action) noexcept:
     return <int>((action >> 21) & 1)
+
+
+cdef struct InfoHash128:
+    uint64_t a
+    uint64_t b
+
+
+cdef inline void _info_hash_init(InfoHash128* h) noexcept:
+    h.a = 0xCBF29CE484222325ULL
+    h.b = 0x84222325CBF29CE4ULL
+
+
+cdef inline void _info_hash_feed(InfoHash128* h, uint8_t value) noexcept:
+    h.a ^= <uint64_t>value
+    h.a *= 0x100000001B3ULL
+    h.b ^= <uint64_t>value
+    h.b *= 0xC2B2AE3D27D4EB4FULL
+    h.b ^= h.b >> 29
 
 
 cdef class FastState:
@@ -1866,6 +1884,116 @@ cdef class FastEngine:
 
     cpdef apply(self, FastState state, uint64_t action):
         self.apply_fast(state, action)
+
+    cdef InfoHash128 information_hash_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        """Native 128-bit hash of the same observable state as information_key."""
+        cdef InfoHash128 h
+        cdef int i, owner, slot, card, front, ix, opponent=1-player
+        _info_hash_init(&h)
+
+        _info_hash_feed(&h, 3)
+        _info_hash_feed(&h, <uint8_t>player)
+        _info_hash_feed(&h, <uint8_t>(state.phase + 1))
+        _info_hash_feed(&h, <uint8_t>(state.battle & 255))
+        _info_hash_feed(&h, <uint8_t>(state.active_player + 1))
+        _info_hash_feed(&h, <uint8_t>(state.chooser + 1))
+        for i in range(2):
+            _info_hash_feed(&h, state.victories[i])
+            _info_hash_feed(&h, state.passed[i])
+        _info_hash_feed(&h, state.pass_len)
+        for i in range(state.pass_len):
+            _info_hash_feed(&h, <uint8_t>(state.pass_order[i] + 1))
+        for i in range(2):
+            _info_hash_feed(&h, state.discarded_this_battle[i])
+            _info_hash_feed(&h, <uint8_t>(state.command[i] & 255))
+            _info_hash_feed(&h, state.free_cycle[i])
+            _info_hash_feed(
+                &h,
+                <uint8_t>(state.operations_this_battle[i] & 255),
+            )
+        _info_hash_feed(
+            &h,
+            <uint8_t>(state.pending_final_operation_for + 1),
+        )
+        _info_hash_feed(&h, state.cleanup_pending)
+        _info_hash_feed(&h, <uint8_t>(state.cleanup_next_starter + 1))
+        _info_hash_feed(&h, <uint8_t>(state.cleanup_next_chooser + 1))
+
+        for owner in range(2):
+            for slot in range(owner * 6, owner * 6 + 6):
+                _info_hash_feed(&h, <uint8_t>(state.subject[slot] + 1))
+                _info_hash_feed(&h, <uint8_t>(state.link[slot] + 1))
+                _info_hash_feed(&h, <uint8_t>(state.name[slot] + 1))
+                _info_hash_feed(
+                    &h,
+                    <uint8_t>(state.temporary[slot] + 64),
+                )
+
+        for owner in range(2):
+            for front in range(3):
+                ix = owner * 3 + front
+                card = state.scheme[ix]
+                if card < 0:
+                    _info_hash_feed(&h, 0)
+                    _info_hash_feed(&h, 0)
+                elif owner == player or state.scheme_revealed[ix]:
+                    _info_hash_feed(&h, <uint8_t>(card + 1))
+                    _info_hash_feed(&h, state.scheme_revealed[ix])
+                else:
+                    _info_hash_feed(&h, 255)
+                    _info_hash_feed(&h, 0)
+
+        for owner in range(2):
+            card = state.stratagem[owner]
+            if card < 0:
+                _info_hash_feed(&h, 0)
+                _info_hash_feed(&h, 0)
+            elif owner == player or state.stratagem_revealed[owner]:
+                _info_hash_feed(&h, <uint8_t>(card + 1))
+                _info_hash_feed(&h, state.stratagem_revealed[owner])
+            else:
+                _info_hash_feed(&h, 255)
+                _info_hash_feed(&h, 0)
+
+        for owner in range(2):
+            _info_hash_feed(&h, state.stratagem_used[owner])
+        for owner in range(2):
+            _info_hash_feed(&h, state.draw_used[owner])
+
+        for card in range(self.n_cards):
+            _info_hash_feed(&h, state.hand[player][card])
+        for card in range(self.n_cards):
+            _info_hash_feed(&h, state.deck_counts[player][card])
+
+        _info_hash_feed(&h, state.discard_len[player])
+        for i in range(state.discard_len[player]):
+            _info_hash_feed(
+                &h,
+                <uint8_t>(state.discard[player][i] + 1),
+            )
+
+        _info_hash_feed(&h, state.hand_len[opponent])
+        for card in range(self.n_cards):
+            _info_hash_feed(
+                &h,
+                state.known_hidden[player][opponent][card],
+            )
+        _info_hash_feed(&h, state.deck_len[opponent])
+        _info_hash_feed(&h, state.discard_len[opponent])
+        for i in range(state.discard_len[opponent]):
+            _info_hash_feed(
+                &h,
+                <uint8_t>(state.discard[opponent][i] + 1),
+            )
+        return h
+
+    cpdef tuple information_hash(self, FastState state, int player):
+        cdef InfoHash128 h = self.information_hash_fast(state, player)
+        return (h.a, h.b)
 
     cdef bytes information_key_fast(self, FastState state, int player):
         cdef unsigned char buf[512]

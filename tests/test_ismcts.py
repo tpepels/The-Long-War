@@ -134,3 +134,29 @@ def test_ismcts_rng_accepts_full_uint64_seed_range() -> None:
     assert result["iterations"] == 8
     assert result["root_total_visits"] == 8
     assert 0 < result["selected_action_visits"] <= 8
+
+
+def test_native_information_hash_matches_information_identity() -> None:
+    engine, deck, priors = setup()
+    state = engine.new_game(deck, deck, seed=8140, first_player=0)
+    belief = BeliefSampler(engine, priors=priors)
+    fast = FastEngine(engine)
+
+    sample_a = fast.from_game_state(
+        belief.sample(state, 0, random.Random(8141))
+    )
+    sample_b = fast.from_game_state(
+        belief.sample(state, 0, random.Random(8142))
+    )
+    assert fast.information_hash(sample_a, 0) == fast.information_hash(
+        sample_b,
+        0,
+    )
+
+    changed = state.clone()
+    changed.players[0].command -= 1
+    changed_fast = fast.from_game_state(changed)
+    assert fast.information_hash(changed_fast, 0) != fast.information_hash(
+        sample_a,
+        0,
+    )

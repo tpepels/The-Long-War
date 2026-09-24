@@ -81,9 +81,9 @@ def test_alpha_beta_algorithm_contains_no_rule_switches() -> None:
     assert not any(term in source for term in forbidden)
 
 
-def test_force_runner_selects_profile_not_individual_rules() -> None:
+def test_cardflow_runner_selects_profile_not_individual_rules() -> None:
     source = (
-        ROOT / "tools" / "run_force_draw_experiment.py"
+        ROOT / "tools" / "cardflow_experiment.py"
     ).read_text(encoding="utf-8")
     assert "--rules-profile" in source
     for profile in (
@@ -183,3 +183,17 @@ def test_native_search_uses_current_heuristic_interface() -> None:
         )
         assert "score_action_fast" not in source
         assert "action_order_score_fast" in source
+
+
+def test_ismcts_hot_tree_path_is_native() -> None:
+    source = (
+        ROOT / "src" / "longwar" / "_ismcts_core.pxi"
+    ).read_text(encoding="utf-8")
+    assert "cdef ISMCTSTree tree" in source
+    assert "int path_nodes[MAX_ISMCTS_DEPTH]" in source
+    assert "uint16_t path_indices[MAX_ISMCTS_DEPTH]" in source
+    assert "information_hash_fast" in source
+    assert "cdef dict tree" not in source
+    assert "path_nodes = []" not in source
+    assert "path_indices = []" not in source
+    assert "information_key_fast" not in source
