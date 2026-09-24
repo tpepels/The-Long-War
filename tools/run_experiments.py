@@ -8,7 +8,7 @@ import sys
 import time
 from dataclasses import asdict
 from itertools import combinations
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed, wait
 from pathlib import Path
 from typing import Any
 
@@ -135,6 +135,87 @@ def run_command(
         if capture and exc.stdout:
             print(exc.stdout, end="" if exc.stdout.endswith("\n") else "\n")
         raise
+
+
+def _read_progress_count(path: Path, maximum: int) -> int:
+    try:
+        value = int(path.read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return 0
+    return max(0, min(maximum, value))
+
+
+def _format_duration(seconds: float) -> str:
+    seconds = max(0, int(seconds))
+    hours, remainder = divmod(seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    if hours:
+        return f"{hours:d}:{minutes:02d}:{secs:02d}"
+    return f"{minutes:02d}:{secs:02d}"
+
+
+def _run_cells_with_live_progress(
+    cells: list[tuple[str, str, Path, Path, list[str]]],
+    *,
+    jobs: int,
+    games_per_cell: int,
+    run_cell,
+    format_result,
+) -> list[Any]:
+    """Run parallel simulation cells while aggregating per-game progress files."""
+    total_games = len(cells) * games_per_cell
+    progress_paths = [cell[3] for cell in cells]
+    started = time.perf_counter()
+    results: list[Any] = []
+
+    def render(pending_count: int) -> None:
+        completed = sum(
+            _read_progress_count(path, games_per_cell)
+            for path in progress_paths
+        )
+        fraction = completed / total_games if total_games else 1.0
+        width = 30
+        filled = min(width, int(width * fraction))
+        bar = "#" * filled + "-" * (width - filled)
+        elapsed = time.perf_counter() - started
+        eta = (
+            elapsed * (total_games - completed) / completed
+            if completed
+            else None
+        )
+        eta_text = _format_duration(eta) if eta is not None else "--:--"
+        line = (
+            f"[{bar}] {completed:>4}/{total_games:<4} "
+            f"{fraction:6.1%} | elapsed {_format_duration(elapsed)} "
+            f"| ETA {eta_text} | active cells {pending_count}"
+        )
+        print(f"\r{line:<110}", end="", flush=True)
+
+    with ThreadPoolExecutor(max_workers=min(jobs, len(cells))) as pool:
+        future_to_cell = {
+            pool.submit(run_cell, cell): cell
+            for cell in cells
+        }
+        pending = set(future_to_cell)
+        render(len(pending))
+        while pending:
+            done, pending = wait(
+                pending,
+                timeout=1.0,
+                return_when=FIRST_COMPLETED,
+            )
+            render(len(pending))
+            if done:
+                print()
+                for future in done:
+                    result = future.result()
+                    results.append(result)
+                    print(format_result(result), flush=True)
+                if pending:
+                    render(len(pending))
+        print()
+
+    return results
 
 
 def require_cython() -> None:
@@ -572,7 +653,7 @@ def benchmark_ismcts_match(
     })
     output_dir = artifact_directory(BENCH_ROOT / "ismcts-match", identity)
 
-    cells: list[tuple[str, str, Path, list[str]]] = []
+    cells: list[tuple[str, str, Path, Path, list[str]]] = []
     for deck_index, deck in enumerate(decks):
         cell_seed = seed + deck_index * games_per_orientation
         deck_path = CANONICAL_DECK_PATHS[deck]
@@ -591,6 +672,8 @@ def benchmark_ismcts_match(
             ),
         ):
             output = output_dir / f"{deck}--{orientation}.json"
+            progress = output.with_suffix(".progress")
+            progress.unlink(missing_ok=True)
             command = [
                 sys.executable,
                 str(ROOT / "tools" / "simulate.py"),
@@ -611,9 +694,10 @@ def benchmark_ismcts_match(
                 "--ismcts-belief-samples", "12",
                 "--ismcts-iterations", str(iterations),
                 "--ismcts-time-budget-seconds", str(time_budget_seconds),
+                "--progress-file", str(progress),
                 "--output", str(output),
             ]
-            cells.append((deck, orientation, output, command))
+            cells.append((deck, orientation, output, progress, command))
 
     print(
         f"ISMCTS A/B | {len(cells) * games_per_orientation} games | "
@@ -631,7 +715,7 @@ def benchmark_ismcts_match(
     print("deck       orientation   A-B    elapsed")
 
     def run_cell(cell):
-        deck, orientation, output, command = cell
+        deck, orientation, output, progress, command = cell
         started = time.perf_counter()
         run_command(command, capture=True)
         elapsed = time.perf_counter() - started
@@ -641,16 +725,25 @@ def benchmark_ismcts_match(
         b_wins = int(payload["wins"][labels.index("candidate-b")])
         return deck, orientation, output, elapsed, a_wins, b_wins
 
-    results = []
-    with ThreadPoolExecutor(max_workers=min(jobs, len(cells))) as pool:
-        futures = [pool.submit(run_cell, cell) for cell in cells]
-        for future in as_completed(futures):
-            deck, orientation, output, elapsed, a_wins, b_wins = future.result()
-            print(
-                f"{deck:10} {orientation:11} "
-                f"{a_wins:>2}-{b_wins:<2}  {elapsed:7.1f}s"
-            )
-            results.append((deck, orientation, output, elapsed))
+    def format_result(result) -> str:
+        deck, orientation, _output, elapsed, a_wins, b_wins = result
+        return (
+            f"{deck:10} {orientation:11} "
+            f"{a_wins:>2}-{b_wins:<2}  {elapsed:7.1f}s"
+        )
+
+    completed_results = _run_cells_with_live_progress(
+        cells,
+        jobs=jobs,
+        games_per_cell=games_per_orientation,
+        run_cell=run_cell,
+        format_result=format_result,
+    )
+    results = [
+        (deck, orientation, output, elapsed)
+        for deck, orientation, output, elapsed, _a_wins, _b_wins
+        in completed_results
+    ]
 
     totals = {deck: {"a": 0, "b": 0, "games": 0} for deck in decks}
     paired_outcomes: dict[str, dict[str, list[dict[str, int]]]] = {}
@@ -813,7 +906,7 @@ def benchmark_strength(
     })
     output_dir = artifact_directory(BENCH_ROOT / "-".join(parts), identity)
 
-    cells: list[tuple[str, str, Path, list[str]]] = []
+    cells: list[tuple[str, str, Path, Path, list[str]]] = []
     for deck_index, deck in enumerate(decks):
         cell_seed = seed + deck_index * games_per_orientation
         deck_path = CANONICAL_DECK_PATHS[deck]
@@ -822,6 +915,8 @@ def benchmark_strength(
             ("alpha-first", ("strategic_heuristic", "ismcts"), (2, 1)),
         ):
             output = output_dir / f"{deck}--{orientation}.json"
+            progress = output.with_suffix(".progress")
+            progress.unlink(missing_ok=True)
             command = [
                 sys.executable,
                 str(ROOT / "tools" / "simulate.py"),
@@ -877,9 +972,10 @@ def benchmark_strength(
                     "--strategic-time-budget-seconds",
                     str(time_budget_seconds),
                 ])
+            command.extend(["--progress-file", str(progress)])
             if not reuse_tree:
                 command.append("--ismcts-no-tree-reuse")
-            cells.append((deck, orientation, output, command))
+            cells.append((deck, orientation, output, progress, command))
 
     budget_label = (
         f"{time_budget_seconds:g}s/searched move"
@@ -899,7 +995,7 @@ def benchmark_strength(
     print("deck       orientation    MCTS-AB  elapsed")
 
     def run_cell(cell):
-        deck, orientation, output, command = cell
+        deck, orientation, output, progress, command = cell
         started = time.perf_counter()
         run_command(command, capture=True)
         elapsed = time.perf_counter() - started
@@ -909,16 +1005,25 @@ def benchmark_strength(
         alpha_wins = int(payload["wins"][labels.index("strategic_heuristic")])
         return deck, orientation, output, elapsed, mcts_wins, alpha_wins
 
-    results = []
-    with ThreadPoolExecutor(max_workers=min(jobs, len(cells))) as pool:
-        futures = [pool.submit(run_cell, cell) for cell in cells]
-        for future in as_completed(futures):
-            deck, orientation, output, elapsed, mcts_wins, alpha_wins = future.result()
-            print(
-                f"{deck:10} {orientation:12} "
-                f"{mcts_wins:>2}-{alpha_wins:<2}    {elapsed:7.1f}s"
-            )
-            results.append((deck, orientation, output, elapsed))
+    def format_result(result) -> str:
+        deck, orientation, _output, elapsed, mcts_wins, alpha_wins = result
+        return (
+            f"{deck:10} {orientation:12} "
+            f"{mcts_wins:>2}-{alpha_wins:<2}    {elapsed:7.1f}s"
+        )
+
+    completed_results = _run_cells_with_live_progress(
+        cells,
+        jobs=jobs,
+        games_per_cell=games_per_orientation,
+        run_cell=run_cell,
+        format_result=format_result,
+    )
+    results = [
+        (deck, orientation, output, elapsed)
+        for deck, orientation, output, elapsed, _mcts_wins, _alpha_wins
+        in completed_results
+    ]
 
     totals = {
         deck: {"mcts": 0, "alpha": 0, "games": 0}
