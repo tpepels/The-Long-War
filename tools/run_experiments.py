@@ -271,6 +271,7 @@ def benchmark(node_budget: int) -> None:
 def benchmark_ismcts(
     iterations: int,
     rollout_policy: str = "cheap",
+    progressive_widening: float = 0.0,
 ) -> None:
     """Benchmark one fixed Cython ISMCTS decision."""
     require_cython()
@@ -311,6 +312,7 @@ def benchmark_ismcts(
         iterations=iterations,
         rollout_depth=5,
         tree_depth_limit=96,
+        progressive_widening=progressive_widening,
         rollout_policy=rollout_policy,
     )
 
@@ -325,7 +327,8 @@ def benchmark_ismcts(
         f"tree={agent.last_decision['ismcts_tree_nodes']:,} infosets | "
         f"depth={agent.last_decision['completed_depth']} | "
         f"storage={agent.last_decision.get('ismcts_tree_storage', 'unknown')} | "
-        f"{type(action).__name__} | rollout={rollout_policy}"
+        f"{type(action).__name__} | rollout={rollout_policy} | "
+        f"pw={progressive_widening:g}"
     )
     _print_ismcts_cutoffs(_ismcts_cutoff_summary(agent.last_decision))
 
@@ -392,6 +395,7 @@ def benchmark_strength(
     ismcts_iterations: int,
     alpha_nodes: int,
     rollout_policy: str = "cheap",
+    progressive_widening: float = 0.0,
 ) -> None:
     """Mirrored ISMCTS-vs-alpha-beta matches on all Force reference decks."""
     require_cython()
@@ -440,6 +444,8 @@ def benchmark_strength(
                 str(ismcts_iterations),
                 "--ismcts-rollout-depth",
                 "5",
+                "--ismcts-progressive-widening",
+                str(progressive_widening),
                 "--ismcts-rollout-policy",
                 rollout_policy,
                 "--strategic-belief-samples",
@@ -464,7 +470,8 @@ def benchmark_strength(
         f"{len(cells) * games_per_orientation} games"
     )
     print(
-        f"ISMCTS={ismcts_iterations:,} iterations/decision; "
+        f"ISMCTS={ismcts_iterations:,} iterations/decision, "
+        f"pw={progressive_widening:g}; "
         f"alpha-beta={alpha_nodes:,} node budget, depth 6, beam 5"
     )
     print(f"Parallel cells: {min(jobs, len(cells))}")
@@ -579,6 +586,10 @@ def benchmark_strength(
             "iterations": ismcts_iterations,
             "rollout_depth": 5,
             "rollout_policy": rollout_policy,
+            "progressive_widening": progressive_widening,
+            "progressive_widening_alpha": (
+                0.5 if progressive_widening > 0 else 0.0
+            ),
             "rollout_cutoffs": cutoff_summary,
         },
         "alpha_beta": {
@@ -609,6 +620,7 @@ def benchmark_searches(
     ismcts_iterations: int,
     alpha_nodes: int,
     rollout_policy: str = "cheap",
+    progressive_widening: float = 0.0,
 ) -> None:
     """Side-by-side wall-time benchmark on the same root position."""
     require_cython()
@@ -660,6 +672,7 @@ def benchmark_searches(
         iterations=ismcts_iterations,
         rollout_depth=5,
         tree_depth_limit=96,
+        progressive_widening=progressive_widening,
         rollout_policy=rollout_policy,
     )
 
@@ -679,7 +692,11 @@ def benchmark_searches(
             work = (
                 f"{ismcts_iterations:,} iterations, "
                 f"{rate:,.0f} iterations/s, "
-                f"{int(info['ismcts_tree_nodes']):,} infosets"
+                f"{int(info['ismcts_tree_nodes']):,} infosets, "
+                f"depth {int(info['completed_depth'])}, "
+                f"selected-root-share "
+                f"{int(info['ismcts_selected_action_visits']) / ismcts_iterations:.1%}, "
+                f"pw={progressive_widening:g}"
             )
         else:
             nodes = int(info["search_nodes"])
@@ -707,6 +724,7 @@ def run_suite(args: argparse.Namespace) -> None:
         ismcts_iterations=args.iterations,
         alpha_nodes=args.alpha_nodes,
         rollout_policy=args.rollout_policy,
+        progressive_widening=args.progressive_widening,
     )
 
     print("\n=== 2/3 Playing-strength benchmark ===")
@@ -716,6 +734,7 @@ def run_suite(args: argparse.Namespace) -> None:
         ismcts_iterations=args.iterations,
         alpha_nodes=args.alpha_nodes,
         rollout_policy=args.rollout_policy,
+        progressive_widening=args.progressive_widening,
     )
 
     print("\n=== 3/3 Card-flow experiment ===")
@@ -738,6 +757,8 @@ def run_suite(args: argparse.Namespace) -> None:
         str(args.iterations),
         "--ismcts-rollout-depth",
         "5",
+        "--ismcts-progressive-widening",
+        str(args.progressive_widening),
         "--ismcts-rollout-policy",
         args.rollout_policy,
     ]
@@ -797,6 +818,12 @@ def parse_args() -> argparse.Namespace:
     search_bench.add_argument("--iterations", type=int, default=10_000)
     search_bench.add_argument("--alpha-nodes", type=int, default=20_000)
     search_bench.add_argument(
+        "--progressive-widening",
+        type=float,
+        default=0.0,
+        help="Square-root widening constant; 0 keeps the baseline tree policy.",
+    )
+    search_bench.add_argument(
         "--rollout-policy",
         choices=("greedy", "cheap", "random"),
         default="cheap",
@@ -816,6 +843,12 @@ def parse_args() -> argparse.Namespace:
     strength_bench.add_argument("--iterations", type=int, default=100_000)
     strength_bench.add_argument("--alpha-nodes", type=int, default=20_000)
     strength_bench.add_argument(
+        "--progressive-widening",
+        type=float,
+        default=0.0,
+        help="Square-root widening constant; 0 keeps the baseline tree policy.",
+    )
+    strength_bench.add_argument(
         "--rollout-policy",
         choices=("greedy", "cheap", "random"),
         default="cheap",
@@ -832,6 +865,7 @@ def parse_args() -> argparse.Namespace:
     suite.add_argument("--games", type=int, default=8)
     suite.add_argument("--iterations", type=int, default=100_000)
     suite.add_argument("--alpha-nodes", type=int, default=20_000)
+    suite.add_argument("--progressive-widening", type=float, default=0.0)
     suite.add_argument(
         "--rollout-policy",
         choices=("greedy", "cheap", "random"),
@@ -852,6 +886,11 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=100_000,
         help="ISMCTS iterations for the benchmark (default: 100000).",
+    )
+    mcts_bench.add_argument(
+        "--progressive-widening",
+        type=float,
+        default=0.0,
     )
     mcts_bench.add_argument(
         "--rollout-policy",
@@ -902,12 +941,17 @@ def main() -> None:
     elif args.command == "bench":
         benchmark(args.nodes)
     elif args.command == "mcts-bench":
-        benchmark_ismcts(args.iterations, args.rollout_policy)
+        benchmark_ismcts(
+            args.iterations,
+            args.rollout_policy,
+            args.progressive_widening,
+        )
     elif args.command == "search-bench":
         benchmark_searches(
             ismcts_iterations=args.iterations,
             alpha_nodes=args.alpha_nodes,
             rollout_policy=args.rollout_policy,
+            progressive_widening=args.progressive_widening,
         )
     elif args.command == "strength-bench":
         benchmark_strength(
@@ -916,6 +960,7 @@ def main() -> None:
             ismcts_iterations=args.iterations,
             alpha_nodes=args.alpha_nodes,
             rollout_policy=args.rollout_policy,
+            progressive_widening=args.progressive_widening,
         )
     elif args.command == "suite":
         run_suite(args)
