@@ -111,7 +111,7 @@ def main() -> None:
       const start = document.getElementById("start-game");
       const form = document.getElementById("new-game-form");
       if (!start || !form || start.disabled) return;
-      document.getElementById("mode").value = "heuristic";
+      document.getElementById("mode").value = "computer";
       document.getElementById("seed").value = "1701";
       root.dataset.playSmoke = "submitted";
       form.requestSubmit();
