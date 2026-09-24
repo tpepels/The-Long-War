@@ -1,12 +1,11 @@
 {
-  "name": "Sera Support v0.8",
-  "hero": "sera-mother-of-white-hands",
+  "name": "Sera Support v0.9",
   "cards": [
     "sera-mother-of-white-hands",
     "the-red-shields",
-    "the-red-shields",
+    "daran-the-red-shield",
     "the-three-brothers-of-avar",
-    "the-three-brothers-of-avar",
+    "theron-the-oathkeeper",
     "the-fifty-men",
     "the-fifty-men",
     "those-who-came-back",
@@ -36,5 +35,10 @@
     "the-hidden-oars",
     "the-wooden-gift",
     "the-false-muster"
+  ],
+  "heroes": [
+    "sera-mother-of-white-hands",
+    "daran-the-red-shield",
+    "theron-the-oathkeeper"
   ]
 }
