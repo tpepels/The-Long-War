@@ -20,9 +20,12 @@ by `tests/test_architecture_boundaries.py`.
   card needs new behavior, add a reusable capability/effect primitive to the
   card schema and canonical engine so all consumers see it.
 - Decks are match input, separate from rules. Reference/archetype decks are not
-  engine constants and must not leak into core code.
+  engine constants and must not leak into core code. Construction constraints
+  belong in `decks.py`, never in `GameRules`; engine validation is runtime
+  safety only.
 - AI/search consumes the engine. It never reimplements rules or branches on
-  individual `GameRules` fields.
+  individual `GameRules` fields. Belief models take deck size/format from
+  supplied deck or state context, not from the rules engine.
 - Browser code adapts the game core and the chosen play agent. It must not depend
   on analysis, telemetry, training, counterfactual, or solver-research modules.
 - Simulation is the single AI-vs-AI match loop. Analysis consumes simulations;
