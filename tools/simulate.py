@@ -34,15 +34,6 @@ def load_policy(path: Path | None) -> dict[str, Any] | None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     defaults = GameRules.standard()
-    parser.add_argument(
-        "--rules-profile",
-        choices=("custom", *GameRules.profile_names()),
-        default="custom",
-        help=(
-            "Named rules profile. Use custom to configure individual rule "
-            "switches below."
-        ),
-    )
     parser.add_argument("--games", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=1701)
     choices = ["heuristic", "strategic_heuristic", "ismcts", "random", "mccfr", "online_mccfr"]
@@ -219,6 +210,31 @@ def main() -> None:
         default=defaults.paid_draw_command_cost,
     )
 
+    paid_operation_group = parser.add_mutually_exclusive_group()
+    paid_operation_group.add_argument(
+        "--paid-draw-consumes-operation",
+        dest="paid_draw_consumes_operation",
+        action="store_true",
+    )
+    paid_operation_group.add_argument(
+        "--paid-draw-keeps-operation",
+        dest="paid_draw_consumes_operation",
+        action="store_false",
+    )
+    parser.set_defaults(
+        paid_draw_consumes_operation=defaults.paid_draw_consumes_operation
+    )
+    parser.add_argument(
+        "--automatic-draw-hand-limit",
+        type=int,
+        default=defaults.automatic_draw_hand_limit,
+    )
+    parser.add_argument(
+        "--battle-end-hand-limit",
+        type=int,
+        default=defaults.battle_end_hand_limit,
+    )
+
     final_operation_group = parser.add_mutually_exclusive_group()
     final_operation_group.add_argument(
         "--pass-final-operation",
@@ -331,30 +347,30 @@ def main() -> None:
     )
 
     card_data = load_card_file(resolve(args.card_file))
-    if args.rules_profile != "custom":
-        rules = GameRules.from_profile(args.rules_profile)
-    else:
-        rules = GameRules(
-            opening_hand_size=args.hand_size,
-            draw_action_enabled=args.draw_enabled,
-            completion_draw_names=tuple(args.completion_draw_names),
-            recycle_between_battles=args.recycle,
-            command_enabled=args.command,
-            starting_command=args.starting_command,
-            battle_command_gain=args.battle_command_gain,
-            command_cap=args.command_cap,
-            cycle_command_cost=args.cycle_command_cost,
-            reshuffle_on_empty=args.reshuffle,
-            automatic_draw=args.turn_draw_mode == "automatic",
-            paid_draw_enabled=args.turn_draw_mode == "paid",
-            paid_draw_command_cost=args.paid_draw_command_cost,
-            cycle_enabled=args.cycle_enabled,
-            pass_final_operation=args.pass_final_operation,
-            pass_requires_both_acted=args.pass_requires_both_acted,
-            first_passer_starts_next_battle=args.first_passer_starts_next_battle,
-            completion_command_refund=args.completion_command_refund,
-            public_stratagems=args.public_stratagems,
-        )
+    rules = GameRules(
+        opening_hand_size=args.hand_size,
+        draw_action_enabled=args.draw_enabled,
+        completion_draw_names=tuple(args.completion_draw_names),
+        recycle_between_battles=args.recycle,
+        command_enabled=args.command,
+        starting_command=args.starting_command,
+        battle_command_gain=args.battle_command_gain,
+        command_cap=args.command_cap,
+        cycle_command_cost=args.cycle_command_cost,
+        reshuffle_on_empty=args.reshuffle,
+        automatic_draw=args.turn_draw_mode == "automatic",
+        paid_draw_enabled=args.turn_draw_mode == "paid",
+        paid_draw_command_cost=args.paid_draw_command_cost,
+        paid_draw_consumes_operation=args.paid_draw_consumes_operation,
+        automatic_draw_hand_limit=args.automatic_draw_hand_limit,
+        battle_end_hand_limit=args.battle_end_hand_limit,
+        cycle_enabled=args.cycle_enabled,
+        pass_final_operation=args.pass_final_operation,
+        pass_requires_both_acted=args.pass_requires_both_acted,
+        first_passer_starts_next_battle=args.first_passer_starts_next_battle,
+        completion_command_refund=args.completion_command_refund,
+        public_stratagems=args.public_stratagems,
+    )
     engine = GameEngine(card_data, rules=rules)
     deck_a = load_deck(args.deck_a)
     deck_b = load_deck(args.deck_b)
@@ -445,7 +461,6 @@ def main() -> None:
         list(agent_seed_offsets) if agent_seed_offsets is not None else None
     )
     payload["simulation_variant"] = {
-        "rules_profile": args.rules_profile,
         "base_hand_size": rules.opening_hand_size,
         "draw_action_enabled": rules.draw_action_enabled,
         "battle_one_starter_bonus": (
@@ -494,7 +509,6 @@ def main() -> None:
     print(f"Agents: {report.agents[0]} vs {report.agents[1]}")
     print(
         "Variant: "
-        f"profile={args.rules_profile} "
         f"hand={rules.opening_hand_size} "
         f"draw={'on' if rules.draw_action_enabled else 'off'} "
         f"completion_draw_names={','.join(sorted(rules.completion_draw_names)) or 'none'} "
