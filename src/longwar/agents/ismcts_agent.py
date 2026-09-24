@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from math import isfinite
+from time import perf_counter
 
 from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, action_key
@@ -38,6 +39,7 @@ class ISMCTSAgent:
         priors: tuple[DeckPrior, DeckPrior] | None = None,
         belief_samples: int = 16,
         iterations: int = 100_000,
+        time_budget_seconds: float | None = None,
         rollout_depth: int = 5,
         tree_depth_limit: int = 96,
         exploration: float = 2 ** 0.5,
@@ -52,6 +54,11 @@ class ISMCTSAgent:
             raise ValueError("belief_samples must be positive")
         if iterations <= 0:
             raise ValueError("iterations must be positive")
+        if (
+            time_budget_seconds is not None
+            and (not isfinite(time_budget_seconds) or time_budget_seconds <= 0.0)
+        ):
+            raise ValueError("time_budget_seconds must be finite and positive")
         if rollout_depth < 0:
             raise ValueError("rollout_depth must be non-negative")
         if not 1 <= tree_depth_limit <= 256:
@@ -76,6 +83,7 @@ class ISMCTSAgent:
         self.belief = BeliefSampler(engine, priors=priors)
         self.belief_samples = belief_samples
         self.iterations = iterations
+        self.time_budget_seconds = time_budget_seconds
         self.rollout_depth = rollout_depth
         self.tree_depth_limit = tree_depth_limit
         self.exploration = exploration
@@ -111,6 +119,7 @@ class ISMCTSAgent:
         return opening_mulligan_indices(engine, hand)
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
+        decision_started = perf_counter()
         root_player = state.active_player
         legal = engine.legal_actions(state)
         if len(legal) == 1:
@@ -123,6 +132,8 @@ class ISMCTSAgent:
                 "belief_samples": 0,
                 "search_nodes": 0,
                 "search_budget": self.iterations,
+                "search_time_budget_seconds": self.time_budget_seconds,
+                "decision_seconds": perf_counter() - decision_started,
                 "completed_depth": 0,
                 "search_backend": "cython",
                 "search_backend_detail": "packed-ismcts",
@@ -164,14 +175,32 @@ class ISMCTSAgent:
             for sampled in sampled_states
         ]
 
+        elapsed_setup = perf_counter() - decision_started
+        remaining_time = (
+            max(1.0e-6, self.time_budget_seconds - elapsed_setup)
+            if self.time_budget_seconds is not None
+            else 0.0
+        )
+        effective_iteration_limit = (
+            max(self.iterations, 100_000_000)
+            if self.time_budget_seconds is not None
+            else self.iterations
+        )
+        search_tree = self._tree
+        if search_tree is None:
+            search_tree = ISMCTSTree(
+                self.iterations,
+                max_nodes=self.max_tree_nodes,
+            )
+
         result = ismcts_search(
             self.fast_engine,
             self.evaluator,
             packed_states,
             root_player,
-            tree=self._tree,
+            tree=search_tree,
             reuse_context=self.belief.reuse_context(state, root_player),
-            iterations=self.iterations,
+            iterations=effective_iteration_limit,
             rollout_depth=self.rollout_depth,
             tree_depth_limit=self.tree_depth_limit,
             exploration=self.exploration,
@@ -179,6 +208,7 @@ class ISMCTSAgent:
             rollout_epsilon=self.rollout_epsilon,
             rollout_policy=self._rollout_policy_code,
             leaf_scale=self.leaf_scale,
+            time_limit_seconds=remaining_time,
             seed=self.rng.getrandbits(64),
         )
         selected_key = self.fast_engine.action_key(result["action"])
@@ -199,12 +229,16 @@ class ISMCTSAgent:
             "belief_samples": self.belief_samples,
             "rollout_plies": self.rollout_depth,
             "completed_depth": int(result["max_tree_depth"]),
-            "search_nodes": self.iterations,
+            "search_nodes": int(result["iterations"]),
             "search_budget": self.iterations,
+            "search_iteration_limit_effective": effective_iteration_limit,
+            "search_time_budget_seconds": self.time_budget_seconds,
+            "search_timed_out": bool(result["timed_out"]),
+            "decision_seconds": perf_counter() - decision_started,
             "search_backend": "cython",
             "search_backend_detail": "packed-ismcts",
             "evaluated_candidates": len(legal),
-            "ismcts_iterations": self.iterations,
+            "ismcts_iterations": int(result["iterations"]),
             "ismcts_tree_nodes": int(result["tree_nodes"]),
             "ismcts_tree_nodes_before": int(result["tree_nodes_before"]),
             "ismcts_tree_nodes_added": int(result["tree_nodes_added"]),
