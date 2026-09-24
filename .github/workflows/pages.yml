@@ -1,11 +1,10 @@
-name: Deploy print site
+name: Deploy game site
 
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read
   pages: write
   id-token: write
 
@@ -23,61 +22,6 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install -e .
-      - name: Set per-run seed
-        run: |
-          RUN_SEED=$(( (GITHUB_RUN_ID + GITHUB_RUN_ATTEMPT * 1000003) % 2000000000 + 1 ))
-          echo "RUN_SEED=$RUN_SEED" >> "$GITHUB_ENV"
-          echo "Run seed: $RUN_SEED"
-      - name: Static balance
-        run: python tools/balance_report.py
-      - name: Heuristic self-play
-        run: >
-          python tools/simulate.py
-          --games 300
-          --seed $((RUN_SEED + 101))
-          --agent-a heuristic
-          --agent-b heuristic
-          --output artifacts/heuristic-selfplay.json
-      - name: Health analysis
-        run: python tools/analyze_telemetry.py --simulation artifacts/heuristic-selfplay.json
-      - name: Heuristic vs random
-        run: >
-          python tools/simulate.py
-          --games 100
-          --seed $((RUN_SEED + 601))
-          --agent-a heuristic
-          --agent-b random
-          --output artifacts/heuristic-vs-random.json
-      - name: Random vs heuristic
-        run: >
-          python tools/simulate.py
-          --games 100
-          --seed $((RUN_SEED + 701))
-          --agent-a random
-          --agent-b heuristic
-          --output artifacts/random-vs-heuristic.json
-      - name: Restore latest counterfactual reports
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          RUN_ID="$(gh run list --workflow counterfactual.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
-          if [ -n "$RUN_ID" ]; then
-            echo "Restoring counterfactual reports from run $RUN_ID"
-            gh run download "$RUN_ID" --name counterfactual-reports --dir artifacts || true
-          fi
-      - name: Restore latest MCCFR reports
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          RUN_ID="$(gh run list --workflow mccfr.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
-          if [ -n "$RUN_ID" ]; then
-            echo "Restoring MCCFR reports from run $RUN_ID"
-            gh run download "$RUN_ID" --name mccfr-reports --dir artifacts || true
-          else
-            echo "No successful MCCFR validation exists yet; continuing without it."
-          fi
-      - name: Aggregate Balance Lab
-        run: python tools/build_lab_report.py
       - run: python tools/build_pages.py
       - uses: actions/upload-pages-artifact@v4
         with:
