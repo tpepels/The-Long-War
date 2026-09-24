@@ -58,7 +58,7 @@ def test_descendant_cutoff_bound_is_not_cached_as_exact(sign):
     assert exact == sign * 2
 
 
-def test_python_state_key_includes_pending_cleanup():
+def test_python_state_key_includes_search_relevant_flags():
     from pathlib import Path
     import json
     from longwar.cards import load_card_file
@@ -69,7 +69,15 @@ def test_python_state_key_includes_pending_cleanup():
     deck = json.loads((root / "decks/reference.json").read_text())["cards"]
     state = engine.new_game(deck, deck, seed=1, first_player=0)
     key = AlphaBetaSearch.state_key(state)
-    for field, value in (("cleanup_pending", True), ("cleanup_next_starter", 0), ("cleanup_next_chooser", 1)):
+    for field, value in (
+        ("cleanup_pending", True),
+        ("cleanup_next_starter", 0),
+        ("cleanup_next_chooser", 1),
+    ):
         changed = state.clone()
         setattr(changed, field, value)
         assert AlphaBetaSearch.state_key(changed) != key
+
+    hero_spent = state.clone()
+    hero_spent.hero_used[0] = not state.hero_used[0]
+    assert AlphaBetaSearch.state_key(hero_spent) != key
