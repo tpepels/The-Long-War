@@ -1428,10 +1428,10 @@ def benchmark_exploration_sweep(
 
 
 
-def run_overnight_search(args: argparse.Namespace) -> Path:
-    """Run an unattended, non-adaptive search experiment battery."""
+def run_suite(args: argparse.Namespace) -> Path:
+    """Run the canonical non-adaptive search experiment suite."""
     if args.games < 24:
-        raise SystemExit("--games must be at least 24 for the overnight suite")
+        raise SystemExit("--games must be at least 24 for the experiment suite")
     if args.jobs <= 0:
         raise SystemExit("--jobs must be positive")
     if args.time_budget_seconds <= 0.0:
@@ -1455,7 +1455,7 @@ def run_overnight_search(args: argparse.Namespace) -> Path:
         ("rollout-depth-8", {"rollout_depth_b": 8}),
     ]
     identity = experiment_identity({
-        "command": "overnight-search",
+        "command": "suite",
         "games_per_orientation": args.games,
         "jobs": args.jobs,
         "time_budget_seconds": args.time_budget_seconds,
@@ -1464,9 +1464,8 @@ def run_overnight_search(args: argparse.Namespace) -> Path:
         "seed": args.seed,
         "baseline": baseline,
         "comparisons": comparisons,
-        "include_strength_reference": not args.skip_strength,
     })
-    output_dir = artifact_directory(BENCH_ROOT / "overnight", identity)
+    output_dir = artifact_directory(BENCH_ROOT / "suite", identity)
     manifest_path = output_dir / "summary.json"
     manifest: dict[str, Any] = {
         **identity,
@@ -1486,8 +1485,8 @@ def run_overnight_search(args: argparse.Namespace) -> Path:
             encoding="utf-8",
         )
 
-    print("The Long War - overnight search battery")
-    print("=" * 41)
+    print("The Long War - search experiment suite")
+    print("=" * 38)
     print(
         f"{args.games} games/deck/orientation | {args.jobs} jobs | "
         f"{args.time_budget_seconds:g}s/searched move"
@@ -1497,9 +1496,10 @@ def run_overnight_search(args: argparse.Namespace) -> Path:
         "Each A/B changes only candidate B."
     )
 
+    experiments = len(comparisons) + 1
     for index, (name, overrides) in enumerate(comparisons, start=1):
         print()
-        print(f"=== {index}/{len(comparisons) + (0 if args.skip_strength else 1)} {name} ===")
+        print(f"=== {index}/{experiments} {name} ===")
         entry: dict[str, Any] = {
             "name": name,
             "kind": "ismcts-match",
@@ -1550,54 +1550,53 @@ def run_overnight_search(args: argparse.Namespace) -> Path:
                 "status": "failed",
                 "error": f"{type(exc).__name__}: {exc}",
             })
-            print(f"OVERNIGHT EXPERIMENT FAILED: {name}: {exc}")
+            print(f"EXPERIMENT FAILED: {name}: {exc}")
             if args.stop_on_error:
                 save_manifest()
                 raise
         save_manifest()
 
-    if not args.skip_strength:
-        name = "baseline-vs-alpha-beta"
-        print()
-        print(f"=== {len(comparisons) + 1}/{len(comparisons) + 1} {name} ===")
-        entry = {
-            "name": name,
-            "kind": "strength-bench",
-            "status": "running",
-        }
-        manifest["experiments"].append(entry)
-        save_manifest()
-        try:
-            summary_path = benchmark_strength(
-                games_per_orientation=args.games,
-                jobs=args.jobs,
-                ismcts_iterations=args.iterations,
-                alpha_nodes=args.alpha_nodes,
-                rollout_policy=baseline["rollout_policy"],
-                rollout_depth=baseline["rollout_depth"],
-                progressive_widening=baseline["progressive_widening"],
-                exploration=baseline["exploration"],
-                reuse_tree=baseline["reuse_tree"],
-                time_budget_seconds=args.time_budget_seconds,
-                seed=args.seed,
-            )
-            payload = json.loads(summary_path.read_text(encoding="utf-8"))
-            entry.update({
-                "status": "passed",
-                "summary": str(summary_path.relative_to(ROOT)),
-                "overall": payload.get("overall", {}),
-                "resources": payload.get("resources", {}),
-            })
-        except (Exception, SystemExit) as exc:
-            entry.update({
-                "status": "failed",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
-            print(f"OVERNIGHT EXPERIMENT FAILED: {name}: {exc}")
-            if args.stop_on_error:
-                save_manifest()
-                raise
-        save_manifest()
+    name = "baseline-vs-alpha-beta"
+    print()
+    print(f"=== {experiments}/{experiments} {name} ===")
+    entry = {
+        "name": name,
+        "kind": "strength-bench",
+        "status": "running",
+    }
+    manifest["experiments"].append(entry)
+    save_manifest()
+    try:
+        summary_path = benchmark_strength(
+            games_per_orientation=args.games,
+            jobs=args.jobs,
+            ismcts_iterations=args.iterations,
+            alpha_nodes=args.alpha_nodes,
+            rollout_policy=baseline["rollout_policy"],
+            rollout_depth=baseline["rollout_depth"],
+            progressive_widening=baseline["progressive_widening"],
+            exploration=baseline["exploration"],
+            reuse_tree=baseline["reuse_tree"],
+            time_budget_seconds=args.time_budget_seconds,
+            seed=args.seed,
+        )
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+        entry.update({
+            "status": "passed",
+            "summary": str(summary_path.relative_to(ROOT)),
+            "overall": payload.get("overall", {}),
+            "resources": payload.get("resources", {}),
+        })
+    except (Exception, SystemExit) as exc:
+        entry.update({
+            "status": "failed",
+            "error": f"{type(exc).__name__}: {exc}",
+        })
+        print(f"EXPERIMENT FAILED: {name}: {exc}")
+        if args.stop_on_error:
+            save_manifest()
+            raise
+    save_manifest()
 
     failures = [
         row["name"]
@@ -1609,8 +1608,8 @@ def run_overnight_search(args: argparse.Namespace) -> Path:
     save_manifest()
 
     print()
-    print("Overnight battery complete")
-    print("==========================")
+    print("Experiment suite complete")
+    print("=========================")
     for row in manifest["experiments"]:
         status = row["status"].upper()
         if row["kind"] == "ismcts-match" and row.get("overall"):
@@ -1643,58 +1642,6 @@ def run_overnight_search(args: argparse.Namespace) -> Path:
     if failures:
         print("Failed experiments: " + ", ".join(failures))
     return manifest_path
-
-
-def run_suite(args: argparse.Namespace) -> None:
-    print("=== 1/3 Search speed comparison ===")
-    benchmark_searches(
-        ismcts_iterations=args.iterations,
-        alpha_nodes=args.alpha_nodes,
-        rollout_policy=args.rollout_policy,
-        progressive_widening=args.progressive_widening,
-        exploration=args.exploration,
-    )
-
-    print("\n=== 2/3 Playing-strength benchmark ===")
-    benchmark_strength(
-        games_per_orientation=args.games,
-        jobs=args.jobs,
-        ismcts_iterations=args.iterations,
-        alpha_nodes=args.alpha_nodes,
-        rollout_policy=args.rollout_policy,
-        progressive_widening=args.progressive_widening,
-        exploration=args.exploration,
-    )
-
-    print("\n=== 3/3 Card-flow experiment ===")
-    command = [
-        sys.executable,
-        str(RUNNER),
-            "run",
-        "--preset",
-        args.cardflow_preset,
-        "--jobs",
-        str(args.jobs),
-        "--backend",
-        "cython",
-        "--agent",
-        "ismcts",
-        "--variant",
-        "experiment",
-        "--deck",
-        "all",
-        "--ismcts-iterations",
-        str(args.iterations),
-        "--ismcts-rollout-depth",
-        "5",
-        "--ismcts-exploration",
-        str(args.exploration),
-        "--ismcts-progressive-widening",
-        str(args.progressive_widening),
-        "--ismcts-rollout-policy",
-        args.rollout_policy,
-    ]
-    run_command(command)
 
 
 def parse_args() -> argparse.Namespace:
@@ -1823,11 +1770,11 @@ def parse_args() -> argparse.Namespace:
         default="cheap",
     )
 
-    overnight_search = sub.add_parser(
-        "overnight-search",
-        help="Run the unattended decision-grade ISMCTS experiment battery.",
+    suite = sub.add_parser(
+        "suite",
+        help="Run the canonical decision-grade search experiment suite.",
     )
-    overnight_search.add_argument(
+    suite.add_argument(
         "--games",
         type=int,
         default=48,
@@ -1836,44 +1783,15 @@ def parse_args() -> argparse.Namespace:
             "384 games and 192 mirrored deal pairs per comparison."
         ),
     )
-    overnight_search.add_argument("--jobs", type=int, default=8)
-    overnight_search.add_argument("--iterations", type=int, default=100_000)
-    overnight_search.add_argument("--alpha-nodes", type=int, default=20_000)
-    overnight_search.add_argument("--time-budget-seconds", type=float, default=2.0)
-    overnight_search.add_argument("--seed", type=int, default=26092400)
-    overnight_search.add_argument(
-        "--skip-strength",
-        action="store_true",
-        help="Skip the final provisional ISMCTS-vs-alpha-beta reference run.",
-    )
-    overnight_search.add_argument(
+    suite.add_argument("--jobs", type=int, default=8)
+    suite.add_argument("--iterations", type=int, default=100_000)
+    suite.add_argument("--alpha-nodes", type=int, default=20_000)
+    suite.add_argument("--time-budget-seconds", type=float, default=2.0)
+    suite.add_argument("--seed", type=int, default=26092400)
+    suite.add_argument(
         "--stop-on-error",
         action="store_true",
         help="Stop immediately instead of recording a failed experiment and continuing.",
-    )
-
-    suite = sub.add_parser(
-        "suite",
-        help=(
-            "Run search speed comparison, mirrored playing-strength benchmark, "
-            "then the five-way card-flow experiment."
-        ),
-    )
-    suite.add_argument("--jobs", type=int, default=8)
-    suite.add_argument("--games", type=int, default=8)
-    suite.add_argument("--iterations", type=int, default=100_000)
-    suite.add_argument("--alpha-nodes", type=int, default=20_000)
-    suite.add_argument("--exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
-    suite.add_argument("--progressive-widening", type=float, default=0.0)
-    suite.add_argument(
-        "--rollout-policy",
-        choices=("greedy", "cheap", "random"),
-        default="cheap",
-    )
-    suite.add_argument(
-        "--cardflow-preset",
-        choices=("quick", "deep", "max"),
-        default="deep",
     )
 
     mcts_bench = sub.add_parser(
@@ -1994,8 +1912,6 @@ def main() -> None:
             rollout_policy=args.rollout_policy,
             progressive_widening=args.progressive_widening,
         )
-    elif args.command == "overnight-search":
-        run_overnight_search(args)
     elif args.command == "suite":
         run_suite(args)
     elif args.command == "run":
