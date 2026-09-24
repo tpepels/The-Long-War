@@ -21,39 +21,20 @@ def load(name: str) -> dict[str, Any] | None:
 
 def serialized_rule_metadata(rules: GameRules) -> dict[str, object]:
     """Serialize rules exactly as tools/simulate.py records provenance."""
-    return {
-        "base_hand_size": rules.opening_hand_size,
-        "draw_action_enabled": rules.draw_action_enabled,
-        "completion_draw_names": sorted(rules.completion_draw_names),
-        "deck_size": rules.deck_size,
-        "recycle_between_battles": rules.recycle_between_battles,
-        "reshuffle_on_empty": rules.reshuffle_on_empty,
-        "command_enabled": rules.command_enabled,
-        "starting_command": rules.starting_command if rules.command_enabled else None,
-        "battle_command_gain": (
-            rules.battle_command_gain if rules.command_enabled else None
-        ),
-        "command_cap": rules.command_cap if rules.command_enabled else None,
-        "cycle_command_cost": (
-            rules.cycle_command_cost
-            if rules.command_enabled and rules.cycle_enabled
-            else None
-        ),
-        "cycle_enabled": rules.cycle_enabled,
-        "automatic_draw": rules.automatic_draw,
-        "paid_draw_enabled": rules.paid_draw_enabled,
-        "paid_draw_command_cost": (
-            rules.paid_draw_command_cost if rules.paid_draw_enabled else None
-        ),
-        "paid_draw_consumes_operation": rules.paid_draw_consumes_operation,
-        "automatic_draw_hand_limit": rules.automatic_draw_hand_limit,
-        "battle_end_hand_limit": rules.battle_end_hand_limit,
-        "pass_final_operation": rules.pass_final_operation,
-        "pass_requires_both_acted": rules.pass_requires_both_acted,
-        "first_passer_starts_next_battle": rules.first_passer_starts_next_battle,
-        "completion_command_refund": rules.completion_command_refund,
-        "public_stratagems": rules.public_stratagems,
-    }
+    metadata: dict[str, object] = dict(rules.as_dict())
+    metadata["base_hand_size"] = metadata.pop("opening_hand_size")
+    metadata["completion_draw_names"] = sorted(rules.completion_draw_names)
+
+    if not rules.command_enabled:
+        metadata["starting_command"] = None
+        metadata["battle_command_gain"] = None
+        metadata["command_cap"] = None
+    if not (rules.command_enabled and rules.cycle_enabled):
+        metadata["cycle_command_cost"] = None
+    if not rules.paid_draw_enabled:
+        metadata["paid_draw_command_cost"] = None
+
+    return metadata
 
 
 def canonical_variant(data: dict[str, Any]) -> bool:
