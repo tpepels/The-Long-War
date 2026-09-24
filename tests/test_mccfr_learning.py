@@ -35,6 +35,7 @@ def test_mccfr_learns_forced_winning_pass_from_fixed_state() -> None:
     state.players[1].passed = True
     state.pass_order = [1]
     state.active_player = 0
+    state.pending_final_operation_for = 0
 
     # Keep one playable alternative in hand so Pass must compete against
     # actual legal actions rather than being the only available move.
@@ -47,6 +48,11 @@ def test_mccfr_learns_forced_winning_pass_from_fixed_state() -> None:
     legal = engine.legal_actions(state)
     assert Pass() in legal
     assert len(legal) > 1
+
+    terminal = state.clone()
+    engine.apply(terminal, Pass())
+    assert terminal.phase.value == "complete"
+    assert terminal.winner == 0
 
     root_id = information_set_id(state, 0)
     trainer = MCCFRTrainer(
@@ -75,6 +81,7 @@ def test_fixed_state_training_is_reproducible() -> None:
     state.players[1].passed = True
     state.pass_order = [1]
     state.active_player = 0
+    state.pending_final_operation_for = 0
     state.players[0].hand = ["the-fifty-men"]
     state.players[1].hand = []
     state.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
