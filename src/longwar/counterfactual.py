@@ -9,10 +9,10 @@ from statistics import mean, stdev
 from typing import Any, Iterable
 
 from .cards import card_index, validate_card_data
+from .decks import PLAYTEST_DECK_SIZE
 from .game.engine import GameEngine
 from .game.model import Phase
 from .simulate import make_agent
-from .rules import GameRules
 
 
 BASELINE_PREFIX = "__cf_baseline__"
@@ -165,7 +165,7 @@ def generate_context_decks(
     unknown = [card_id for card_id in required if card_id not in meta]
     if unknown:
         raise ValueError(f"Unknown required cards: {unknown}")
-    deck_size = GameRules.standard().deck_size
+    deck_size = PLAYTEST_DECK_SIZE
     if len(required) > deck_size:
         raise ValueError(
             f"At most {deck_size} distinct cards can be required in a deck context"
