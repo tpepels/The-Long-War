@@ -541,7 +541,7 @@ def write_summary(
             f"beam {preset.width}, {preset.node_budget:,} nodes/decision."
         )
     lines = [
-        "# Local Force-rich card-flow comparison",
+        "# Local card-flow rule comparison",
         "",
         settings_line,
         "",
