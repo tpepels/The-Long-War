@@ -459,10 +459,11 @@
         "human",
         "warrior"
       ],
-      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, your next **Cycle** this **Battle** costs 0 **Command**.",
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, draw 1 card.",
       "rules": {
         "on_completion": {
-          "effect": "grant_free_cycle"
+          "effect": "draw_card",
+          "amount": 1
         }
       },
       "balance": {},
@@ -470,7 +471,7 @@
         {
           "kind": "trigger",
           "label": "WHEN",
-          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, your next **Cycle** this **Battle** costs 0 **Command**."
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, draw 1 card."
         }
       ],
       "command_cost": 2
@@ -485,7 +486,7 @@
         "god",
         "oracle"
       ],
-      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, reveal the opponent's **Veiled Story** in this **Front**, if any.",
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, flip the opponent's **Veiled Story** in this **Front** face-up, if any.",
       "rules": {
         "on_completion": {
           "effect": "reveal_enemy_scheme"
@@ -498,7 +499,7 @@
         {
           "kind": "trigger",
           "label": "WHEN",
-          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, reveal the opponent's **Veiled Story** in this **Front**, if any."
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, flip the opponent's **Veiled Story** in this **Front** face-up, if any."
         }
       ],
       "command_cost": 1
@@ -605,7 +606,7 @@
       ],
       "story_form": "omen",
       "veiled": true,
-      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. When your opponent plays a **Subject** here, reveal this. That **Subject** gets -3 **Strength** for this **Battle**.",
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** Opponent plays a **Subject** here. Flip this card face-up. That **Subject** gets -3 **Strength** for this **Battle**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_subject",
@@ -620,18 +621,13 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "VEILED",
-          "text": "Face-down: +1 **Strength** in this **Front**."
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Opponent plays a **Subject** here."
-        },
-        {
-          "kind": "effect",
-          "label": "EFFECT",
-          "text": "That **Subject** gets -3 **Strength** for this **Battle**."
+          "label": "WHEN",
+          "text": "Opponent plays a **Subject** here. Flip this card face-up. That **Subject** gets -3 **Strength** for this **Battle**."
         }
       ],
       "command_cost": 2
@@ -647,7 +643,7 @@
       ],
       "story_form": "warning",
       "veiled": true,
-      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. When your opponent plays a **Bond** here, reveal this. **Discard** that **Bond**.",
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** Opponent plays a **Bond** here. Flip this card face-up. **Discard** that **Bond**.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_link",
@@ -661,18 +657,13 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "VEILED",
-          "text": "Face-down: +1 **Strength** in this **Front**."
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Opponent plays a **Bond** here."
-        },
-        {
-          "kind": "effect",
-          "label": "EFFECT",
-          "text": "**Discard** that **Bond**."
+          "label": "WHEN",
+          "text": "Opponent plays a **Bond** here. Flip this card face-up. **Discard** that **Bond**."
         }
       ],
       "command_cost": 2
@@ -688,7 +679,7 @@
       ],
       "story_form": "prophecy",
       "veiled": true,
-      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. When your opponent **Passes**, if you control a **Subject** here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** Opponent **Passes** while you control a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does.",
       "rules": {
         "scheme": {
           "trigger": "opponent_passes",
@@ -704,18 +695,13 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "VEILED",
-          "text": "Face-down: +1 **Strength** in this **Front**."
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Opponent **Passes** while you control a **Subject** here."
-        },
-        {
-          "kind": "effect",
-          "label": "EFFECT",
-          "text": "Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does."
+          "label": "WHEN",
+          "text": "Opponent **Passes** while you control a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does."
         }
       ],
       "command_cost": 2
@@ -731,7 +717,7 @@
       ],
       "story_form": "conspiracy",
       "veiled": true,
-      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. After an opponent's **Story** targets a card you control here, reveal this. Your **Frontline Subject** here gets +3 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +3 instead.",
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** After an opponent's **Story** targets a card you control here. Flip this card face-up. Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plot_targets_your_card",
@@ -747,18 +733,13 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "VEILED",
-          "text": "Face-down: +1 **Strength** in this **Front**."
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "After an opponent's **Story** targets a card you control here."
-        },
-        {
-          "kind": "effect",
-          "label": "EFFECT",
-          "text": "Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does."
+          "label": "WHEN",
+          "text": "After an opponent's **Story** targets a card you control here. Flip this card face-up. Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does."
         }
       ],
       "command_cost": 2
@@ -772,16 +753,12 @@
         "weather",
         "sea"
       ],
-      "text": "Reveal when either player plays an *Archer* or *Ship*. While revealed, *Ships* get +2 **Strength** and *Archers* get -2 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — *Ships* get +2 **Strength**; *Archers* get -2 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
-            "event": "subject_played",
-            "actor": "either",
-            "roles": [
-              "archer",
-              "ship"
-            ]
+            "event": "played",
+            "actor": "controller"
           },
           "continuous": {
             "role_strength_modifiers": {
@@ -798,12 +775,12 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Either player plays an *Archer* or *Ship*."
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
         },
         {
           "kind": "continuous",
-          "label": "WHILE REVEALED",
+          "label": "DURING THIS BATTLE",
           "text": "*Ships* get +2 **Strength**; *Archers* get -2 **Strength**."
         }
       ],
@@ -818,12 +795,12 @@
         "sea",
         "tide"
       ],
-      "text": "Reveal when either player **Passes**. While revealed, *Ships* get +1 **Strength** and **Line Defense** provides no bonus.",
+      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — *Ships* get +1 **Strength**; **Line Defense** gives no bonus.",
       "rules": {
         "stratagem": {
           "trigger": {
-            "event": "pass",
-            "actor": "either"
+            "event": "played",
+            "actor": "controller"
           },
           "continuous": {
             "role_strength_modifiers": {
@@ -840,12 +817,12 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Either player **Passes**."
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
         },
         {
           "kind": "continuous",
-          "label": "WHILE REVEALED",
+          "label": "DURING THIS BATTLE",
           "text": "*Ships* get +1 **Strength**; **Line Defense** gives no bonus."
         }
       ],
@@ -860,15 +837,12 @@
         "terrain",
         "hazard"
       ],
-      "text": "Reveal when either player plays a **Subject** in the **Rear**. While revealed, **Rear Subjects** get +1 **Strength** and **Frontline Subjects** get -1 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Rear Subjects** get +1 **Strength**; **Frontline Subjects** get -1 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
-            "event": "subject_played",
-            "actor": "either",
-            "ranks": [
-              "rear"
-            ]
+            "event": "played",
+            "actor": "controller"
           },
           "continuous": {
             "rank_strength_modifiers": {
@@ -885,12 +859,12 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Either player plays a **Subject** in the **Rear**."
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
         },
         {
           "kind": "continuous",
-          "label": "WHILE REVEALED",
+          "label": "DURING THIS BATTLE",
           "text": "**Rear Subjects** get +1 **Strength**; **Frontline Subjects** get -1 **Strength**."
         }
       ],
@@ -905,22 +879,15 @@
         "weapon",
         "preparation"
       ],
-      "text": "Reveal when your opponent plays a **Subject** in the **Frontline**. That **Subject** gets -2 **Strength** for this **Battle**. While revealed, your **Frontline Subjects** get -1 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Frontline Subjects** get -1 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
-            "event": "subject_played",
-            "actor": "opponent",
-            "ranks": [
-              "front"
-            ]
-          },
-          "reveal_effect": {
-            "effect": "penalize_trigger_subject",
-            "amount": 2
+            "event": "played",
+            "actor": "controller"
           },
           "continuous": {
-            "controller_rank_strength_modifiers": {
+            "rank_strength_modifiers": {
               "front": -1
             }
           }
@@ -933,18 +900,13 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Opponent plays a **Subject** in the **Frontline**."
-        },
-        {
-          "kind": "effect",
-          "label": "EFFECT",
-          "text": "That **Subject** gets -2 **Strength** for this **Battle**."
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
         },
         {
           "kind": "continuous",
-          "label": "WHILE REVEALED",
-          "text": "Your **Frontline Subjects** get -1 **Strength**."
+          "label": "DURING THIS BATTLE",
+          "text": "**Frontline Subjects** get -1 **Strength**."
         }
       ],
       "command_cost": 2
@@ -958,18 +920,15 @@
         "misinformation",
         "deception"
       ],
-      "text": "Reveal when your opponent plays an immediate **Story**. Cancel that **Story**. For the rest of this **Battle**, you cannot play immediate **Stories**. *Veiled* **Stories** are unaffected.",
+      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — Immediate **Stories** cannot be played.",
       "rules": {
         "stratagem": {
           "trigger": {
-            "event": "immediate_story_played",
-            "actor": "opponent"
-          },
-          "reveal_effect": {
-            "cancel_story": true
+            "event": "played",
+            "actor": "controller"
           },
           "continuous": {
-            "controller_immediate_story_lock": true
+            "global_immediate_story_lock": true
           }
         }
       },
@@ -980,18 +939,13 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Opponent plays an immediate **Story**."
-        },
-        {
-          "kind": "effect",
-          "label": "EFFECT",
-          "text": "Cancel that **Story**."
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
         },
         {
           "kind": "continuous",
-          "label": "WHILE REVEALED",
-          "text": "You cannot play immediate **Stories** this **Battle**. **Veiled Stories** are unaffected."
+          "label": "DURING THIS BATTLE",
+          "text": "Immediate **Stories** cannot be played."
         }
       ],
       "command_cost": 2
@@ -1005,12 +959,12 @@
         "deception",
         "preparation"
       ],
-      "text": "Reveal when your opponent plays a **Name**. While revealed, every **Subject** with a **Name** gets -2 **Strength**, and every **Subject** without a **Name** gets +1 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Subjects** with a **Name** get -2 **Strength**; those without a **Name** get +1.",
       "rules": {
         "stratagem": {
           "trigger": {
-            "event": "name_played",
-            "actor": "opponent"
+            "event": "played",
+            "actor": "controller"
           },
           "continuous": {
             "named_subject_modifier": -2,
@@ -1025,12 +979,12 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Opponent plays a **Name**."
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
         },
         {
           "kind": "continuous",
-          "label": "WHILE REVEALED",
+          "label": "DURING THIS BATTLE",
           "text": "**Subjects** with a **Name** get -2 **Strength**; those without a **Name** get +1."
         }
       ],
@@ -1484,7 +1438,7 @@
       ],
       "story_form": "omen",
       "veiled": true,
-      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. When your opponent plays a **Subject** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** Opponent plays a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_subject",
@@ -1502,18 +1456,13 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "VEILED",
-          "text": "Face-down: +1 **Strength** in this **Front**."
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Opponent plays a **Subject** here."
-        },
-        {
-          "kind": "effect",
-          "label": "EFFECT",
-          "text": "Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
+          "label": "WHEN",
+          "text": "Opponent plays a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
         }
       ],
       "command_cost": 1
@@ -1529,7 +1478,7 @@
       ],
       "story_form": "warning",
       "veiled": true,
-      "text": "*Veiled.* While face-down, this gives you +1 **Strength** in this **Front**. When your opponent plays a **Bond** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** Opponent plays a **Bond** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does.",
       "rules": {
         "scheme": {
           "trigger": "opponent_plays_link",
@@ -1547,18 +1496,13 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "VEILED",
-          "text": "Face-down: +1 **Strength** in this **Front**."
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Opponent plays a **Bond** here."
-        },
-        {
-          "kind": "effect",
-          "label": "EFFECT",
-          "text": "Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
+          "label": "WHEN",
+          "text": "Opponent plays a **Bond** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
         }
       ],
       "command_cost": 1
@@ -1574,7 +1518,7 @@
       ],
       "story_form": "prophecy",
       "veiled": true,
-      "text": "*Veiled.* While face-down, this gives you +2 **Strength** in this **Front**. When your opponent **Passes**, if you control a **Subject** here, reveal this. Your **Frontline Subject** here gets +2 **Strength** for this **Battle**; if you have none, your **Rear Subject** here gets +2 instead.",
+      "text": "**FACE-DOWN** — +2 **Strength** in this **Front**. **WHEN** Opponent **Passes** while you control a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does.",
       "rules": {
         "scheme": {
           "trigger": "opponent_passes",
@@ -1592,18 +1536,13 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "VEILED",
-          "text": "Face-down: +2 **Strength** in this **Front**."
+          "label": "FACE-DOWN",
+          "text": "+2 **Strength** in this **Front**."
         },
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Opponent **Passes** while you control a **Subject** here."
-        },
-        {
-          "kind": "effect",
-          "label": "EFFECT",
-          "text": "Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
+          "label": "WHEN",
+          "text": "Opponent **Passes** while you control a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
         }
       ],
       "command_cost": 2
@@ -1617,16 +1556,12 @@
         "weather",
         "sea"
       ],
-      "text": "Reveal when either player plays an *Archer* or *Ship*. While revealed, *Archers* get +2 **Strength** and *Ships* get -2 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — *Archers* get +2 **Strength**; *Ships* get -2 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
-            "event": "subject_played",
-            "actor": "either",
-            "roles": [
-              "archer",
-              "ship"
-            ]
+            "event": "played",
+            "actor": "controller"
           },
           "continuous": {
             "role_strength_modifiers": {
@@ -1644,12 +1579,12 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Either player plays an *Archer* or *Ship*."
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
         },
         {
           "kind": "continuous",
-          "label": "WHILE REVEALED",
+          "label": "DURING THIS BATTLE",
           "text": "*Archers* get +2 **Strength**; *Ships* get -2 **Strength**."
         }
       ],
@@ -1664,12 +1599,12 @@
         "silence",
         "ritual"
       ],
-      "text": "Reveal when either player plays a **Name**. While revealed, **Subjects** with a **Name** get +1 **Strength** and **Subjects** without a **Name** get -1 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Subjects** with a **Name** get +1 **Strength**; those without a **Name** get -1.",
       "rules": {
         "stratagem": {
           "trigger": {
-            "event": "name_played",
-            "actor": "either"
+            "event": "played",
+            "actor": "controller"
           },
           "continuous": {
             "named_subject_modifier": 1,
@@ -1685,12 +1620,12 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "REVEAL",
-          "text": "Either player plays a **Name**."
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
         },
         {
           "kind": "continuous",
-          "label": "WHILE REVEALED",
+          "label": "DURING THIS BATTLE",
           "text": "**Subjects** with a **Name** get +1 **Strength**; those without a **Name** get -1."
         }
       ],
