@@ -405,9 +405,17 @@ class PlaySession:
         if self.state.phase is Phase.COMPLETE:
             self.log.append(f"Player {self.state.winner + 1} wins the match.")
         elif self.state.battle != battle_before:
+            if self.state.phase is Phase.CHOOSE_FIRST and self.state.chooser is not None:
+                transition = (
+                    f"Player {self.state.chooser + 1} chooses who starts."
+                )
+            else:
+                transition = (
+                    f"Player {self.state.active_player + 1} starts."
+                )
             self.log.append(
                 f"Battle {self._roman(self.state.battle)} begins. "
-                f"Player {self.state.chooser + 1} chooses who starts."
+                f"{transition}"
             )
 
     def _last_action_view(self, viewer: int | None) -> dict[str, Any] | None:
