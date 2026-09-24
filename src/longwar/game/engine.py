@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import random
-from collections import Counter
 from typing import Any, Iterable
 
 from ..cards import card_index, load_card_file, validate_card_data
@@ -84,7 +83,6 @@ class GameEngine:
         opening_hand_size: int = 10,
         draw_action_enabled: bool = False,
         completion_draw_names: Iterable[str] = (),
-        deck_size: int = 34,
         recycle_between_battles: bool = False,
         command_enabled: bool = True,
         starting_command: int = 20,
@@ -111,7 +109,6 @@ class GameEngine:
                 opening_hand_size=opening_hand_size,
                 draw_action_enabled=draw_action_enabled,
                 completion_draw_names=tuple(completion_draw_names),
-                deck_size=deck_size,
                 recycle_between_battles=recycle_between_battles,
                 command_enabled=command_enabled,
                 starting_command=starting_command,
@@ -140,7 +137,6 @@ class GameEngine:
         self.opening_hand_size = rules.opening_hand_size
         self.draw_action_enabled = rules.draw_action_enabled
         self.completion_draw_names = frozenset(rules.completion_draw_names)
-        self.deck_size = rules.deck_size
         self.recycle_between_battles = rules.recycle_between_battles
         self.command_enabled = rules.command_enabled
         self.starting_command = rules.starting_command
@@ -219,23 +215,28 @@ class GameEngine:
         return evaluator
 
     def validate_deck(self, deck: list[str]) -> None:
-        if not isinstance(deck, (list, tuple)) or any(not isinstance(card_id, str) for card_id in deck):
+        """Validate only what the runtime needs to play a supplied deck.
+
+        Deck-construction format rules such as current playtest size and copy
+        limits live outside the game engine.
+        """
+        if not isinstance(deck, (list, tuple)) or any(
+            not isinstance(card_id, str) for card_id in deck
+        ):
             raise InvalidDeck("A deck must be a list of card ids")
-        if len(deck) != self.deck_size:
+        if not deck:
+            raise InvalidDeck("A deck must contain at least one card")
+
+        maximum = int(self._native_core_instance.max_deck_size)
+        if len(deck) > maximum:
             raise InvalidDeck(
-                f"A deck must contain exactly {self.deck_size} cards, got {len(deck)}"
+                f"The native engine supports decks of at most {maximum} cards, "
+                f"got {len(deck)}"
             )
 
-        counts = Counter(deck)
-        for card_id, count in counts.items():
-            if card_id not in self.cards:
-                raise InvalidDeck(f"Unknown card: {card_id}")
-            card = self.cards[card_id]
-            maximum = 1 if card["unique"] else 2
-            if count > maximum:
-                raise InvalidDeck(
-                    f"{card['title']} appears {count} times; maximum is {maximum}"
-                )
+        unknown = sorted({card_id for card_id in deck if card_id not in self.cards})
+        if unknown:
+            raise InvalidDeck("Unknown card: " + ", ".join(unknown))
 
     def new_game(
         self,
