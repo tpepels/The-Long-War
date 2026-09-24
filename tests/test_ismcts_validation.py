@@ -16,6 +16,7 @@ from longwar.rules import GameRules
 
 fast_search = pytest.importorskip("longwar._fast_search")
 FastEngine = fast_search.FastEngine
+ISMCTSTree = fast_search.ISMCTSTree
 NativeHeuristicEvaluator = fast_search.NativeHeuristicEvaluator
 ismcts_search = fast_search.ismcts_search
 
@@ -283,6 +284,60 @@ def test_first_expansion_visits_every_root_action_once() -> None:
 
     assert result["root_total_visits"] == legal_count
     assert all(int(row["visits"]) == 1 for row in result["root_stats"])
+
+
+def test_persistent_tree_reroots_to_previously_explored_information_set() -> None:
+    engine, state = _pass_only_standard_state()
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    tree = ISMCTSTree(128)
+    packed = fast.from_game_state(state)
+
+    first = ismcts_search(
+        fast,
+        evaluator,
+        [packed],
+        0,
+        tree=tree,
+        iterations=16,
+        rollout_depth=0,
+        tree_depth_limit=4,
+        exploration=0.5,
+        seed=9284,
+    )
+    assert first["root_reused"] is False
+    assert first["root_total_visits_before"] == 0
+    assert first["root_new_visits"] == 16
+    assert first["tree_nodes_before"] == 0
+    assert tree.size() == first["tree_nodes"]
+
+    engine.apply(state, Pass())
+    assert state.phase is Phase.BATTLE
+    assert state.active_player == 1
+    next_packed = fast.from_game_state(state)
+
+    second = ismcts_search(
+        fast,
+        evaluator,
+        [next_packed],
+        1,
+        tree=tree,
+        iterations=12,
+        rollout_depth=0,
+        tree_depth_limit=4,
+        exploration=0.5,
+        seed=9285,
+    )
+
+    assert second["root_reused"] is True
+    assert second["root_total_visits_before"] > 0
+    assert second["root_new_visits"] == 12
+    assert second["root_total_visits"] == (
+        second["root_total_visits_before"] + 12
+    )
+    assert second["tree_nodes_before"] == first["tree_nodes"]
+    assert second["tree_nodes"] >= second["tree_nodes_before"]
+    assert sum(int(row["new_visits"]) for row in second["root_stats"]) == 12
 
 
 def test_progressive_widening_limits_initial_root_breadth() -> None:
