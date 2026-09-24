@@ -557,9 +557,19 @@ def benchmark_ismcts_match(
     for deck_index, deck in enumerate(decks):
         cell_seed = seed + deck_index * games_per_orientation
         deck_path = f"decks/experiments/force-rich-34-{deck}.json"
-        for orientation, seat_configs, seat_labels in (
-            ("a-first", (config_a, config_b), ("candidate-a", "candidate-b")),
-            ("b-first", (config_b, config_a), ("candidate-b", "candidate-a")),
+        for orientation, seat_configs, seat_labels, seat_seed_offsets in (
+            (
+                "a-first",
+                (config_a, config_b),
+                ("candidate-a", "candidate-b"),
+                (1, 2),
+            ),
+            (
+                "b-first",
+                (config_b, config_a),
+                ("candidate-b", "candidate-a"),
+                (2, 1),
+            ),
         ):
             output = output_dir / f"{deck}--{orientation}.json"
             command = [
@@ -575,6 +585,8 @@ def benchmark_ismcts_match(
                 "--agent-b", "ismcts",
                 "--agent-a-label", seat_labels[0],
                 "--agent-b-label", seat_labels[1],
+                "--agent-a-seed-offset", str(seat_seed_offsets[0]),
+                "--agent-b-seed-offset", str(seat_seed_offsets[1]),
                 "--agent-a-options-json", json.dumps(seat_configs[0], separators=(",", ":")),
                 "--agent-b-options-json", json.dumps(seat_configs[1], separators=(",", ":")),
                 "--ismcts-belief-samples", "12",
@@ -772,9 +784,9 @@ def benchmark_strength(
     for deck_index, deck in enumerate(decks):
         cell_seed = seed + deck_index * games_per_orientation
         deck_path = f"decks/experiments/force-rich-34-{deck}.json"
-        for orientation, agents in (
-            ("mcts-first", ("ismcts", "strategic_heuristic")),
-            ("alpha-first", ("strategic_heuristic", "ismcts")),
+        for orientation, agents, seed_offsets in (
+            ("mcts-first", ("ismcts", "strategic_heuristic"), (1, 2)),
+            ("alpha-first", ("strategic_heuristic", "ismcts"), (2, 1)),
         ):
             output = output_dir / f"{deck}--{orientation}.json"
             command = [
@@ -796,6 +808,10 @@ def benchmark_strength(
                 agents[0],
                 "--agent-b",
                 agents[1],
+                "--agent-a-seed-offset",
+                str(seed_offsets[0]),
+                "--agent-b-seed-offset",
+                str(seed_offsets[1]),
                 "--ismcts-belief-samples",
                 "12",
                 "--ismcts-iterations",
