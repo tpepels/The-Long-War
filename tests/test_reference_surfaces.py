@@ -24,10 +24,12 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "gives +2" in rules
     assert "player who Passed second counts as active" not in rules
     assert "no generic Draw operation" in rules
-    assert "**Cycle** one card" in rules
+    assert "no standard Cycle operation" in rules
     assert "gain **10 Command**" in rules
-    assert "first player draws **1 additional opening card**" in rules
-    assert "play 1 card, Cycle 1 card, or Pass" in text("web/playmat.html")
+    assert "start of every turn" in rules
+    assert "one final operation" in rules
+    assert "first passer starts" in rules
+    assert "draw 1 card automatically" in text("web/playmat.html").lower()
     assert "reshuffle discard only if deck empties" in text("web/playmat.html")
 
 
@@ -109,6 +111,9 @@ def test_cards_are_scan_first_and_all_48_copy_blocks_are_labeled() -> None:
         "VEILED",
         "REVEAL",
         "WHILE REVEALED",
+        "FACE-DOWN",
+        "WHEN PLAYED",
+        "DURING THIS BATTLE",
     }
 
     assert len(cards) == 48
