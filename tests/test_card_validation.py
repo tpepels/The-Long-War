@@ -75,6 +75,10 @@ def test_direct_engine_input_is_validated_before_indexing(data):
         GameEngine(data)
 
 
+def test_engine_default_profile_is_exactly_standard(data):
+    assert GameEngine(data).rules == GameRules.standard()
+
+
 def test_alternative_rule_profiles_use_canonical_cards():
     data = load_card_file(ROOT / "cards/cards.json")
     for profile in GameRules.profile_names():
