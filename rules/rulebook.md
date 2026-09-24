@@ -15,15 +15,15 @@ On the battlefield, position matters. **Subjects** stand in the **Frontline** or
 > **First game?** Read through **A Battle, from beginning to end**, then start playing. Use the Reference section when a question comes up.
 
 <div class="rulebook-at-a-glance">
-  <div><b>YOUR TURN</b><span>Take 1 operation: play 1 card, Cycle 1 card, or Pass. Pay its Command cost.</span></div>
+  <div><b>YOUR TURN</b><span>Draw 1 card, then take 1 operation: play 1 card or Pass when Pass is legal. Pay the card's Command cost.</span></div>
   <div><b>WIN A BATTLE</b><span>Control 2 of 3 Fronts. Total Strength breaks a 1–1–1/0–0–0 style deadlock; first passer breaks the final tie.</span></div>
-  <div><b>BETWEEN BATTLES</b><span>Clear the battlefield, keep hand/deck/discard, gain 10 Command (max 20), then refill to 10. The loser chooses who starts next.</span></div>
+  <div><b>BETWEEN BATTLES</b><span>Clear the battlefield, keep hand/deck/discard, gain 10 Command (max 20), then refill to 10. The first passer starts next.</span></div>
   <div><b>WIN THE MATCH</b><span>Win 2 Battles.</span></div>
 </div>
 
 ### Reading cards and rules
 
-**Bold** words are game terms or rules actions: **Subject**, **Bond**, **Name**, **Story**, **Stratagem**, **Strength**, **Front**, **Command**, **Cycle**, **Pass**, **discard**, **return**, and **move**.
+**Bold** words are game terms or rules actions: **Subject**, **Bond**, **Name**, **Story**, **Stratagem**, **Strength**, **Front**, **Command**, **Pass**, **discard**, **return**, **draw**, and **move**.
 
 *Italic* words are card titles or printed properties: *Namar*, *Swordsman*, *Human*, *Hero*, *Myth*, *Frontline only*.
 
@@ -67,21 +67,20 @@ So the question is not only whether you can win this Battle. It is how much Comm
 
 ## What happens on a turn? {#turn}
 
-On your turn, take exactly **one operation**:
+At the **start of every turn**, draw 1 card automatically. Then take exactly **one operation**:
 
 1. **Play one card** from your hand and pay its printed Command cost.
-2. **Cycle** one card: pay 1 Command, discard that card, then draw 1 card.
-3. **Pass** for 0 Command.
+2. **Pass** for 0 Command, once Pass is legal.
 
-A card can change these costs. If an effect makes an operation free, it costs 0; otherwise cost reductions cannot reduce a printed card below 1 Command.
+A card can change printed costs. Cost reductions cannot reduce a printed card below 1 Command.
 
-There is **no generic Draw operation**. Cycle is the standard way to improve your hand.
+There is **no generic Draw operation** and no standard Cycle operation. Additional draws come from turn starts and card effects.
 
-A **Stratagem** is played as your operation for the turn, just like another card. It is no longer a free pre-action.
+A **Stratagem** is played face-up as your operation for the turn, just like another card. Each player may play at most one Stratagem per Battle.
 
-There is no attack step and Subjects do not deal damage. You change the position by placing Subjects, attaching Bonds and Names, playing Stories, setting hidden cards, Cycling, and moving or removing cards.
+There is no attack step and Subjects do not deal damage. You change the position by placing Subjects, attaching Bonds and Names, playing Stories and Stratagems, and moving or removing cards.
 
-Once you **Pass**, you take no more turns in that Battle. Your opponent may continue until they also Pass.
+Normally, the first Pass is not legal until both players have completed at least one operation. After the first player **Passes**, the opponent receives exactly **one final operation**. The Battle is then scored automatically.
 
 ---
 
@@ -370,9 +369,9 @@ If Player 2 also Passes, score the Battle.
 
 ## Passing {#passing}
 
-When you **Pass**, you take no more turns in that Battle.
+Normally you may not **Pass** until both players have completed at least one operation. If no other legal action exists, Pass remains available.
 
-The opponent may continue taking operations until they Pass.
+When the first player Passes, the opponent receives exactly **one final operation**. After that operation - or if they Pass - score the Battle.
 
 Passing preserves both your hand and your remaining Command, but gives the opponent as many turns as they are willing and able to pay for.
 
@@ -382,15 +381,15 @@ Passing preserves both your hand and your remaining Command, but gives the oppon
 
 ## Set up your first match {#setup}
 
-1. Each player takes a **30-card playtest deck** with exactly **10 Subjects**, **6 Names**, and **1 Hero**.
+1. Each player takes a **34-card playtest deck** with **14 Subjects**, **6 Names**, and exactly **1 Hero**.
 2. Each player sets a d20 or other counter to **20 Command**.
 3. Shuffle and draw **10 cards**.
 4. Each player may choose up to **2 cards**, shuffle them back, then draw the same number.
 5. Randomly choose the first player for Battle I.
-6. That first player draws **1 additional opening card**.
+6. The first player's turn begins with the normal automatic draw of **1 card**.
 7. Keep hands and decks hidden. Keep discard piles face-up.
 
-There is no automatic draw at the start of a turn and no generic Draw operation. Use **Cycle** when you want to trade a card in hand for a new one.
+At the start of every turn, draw **1 card** automatically. There is no generic Draw operation and no standard Cycle operation.
 
 ## Score the Battle {#scoring}
 
@@ -422,7 +421,7 @@ Then:
 5. gain **10 Command**, up to a maximum of **20**;
 6. draw until you have **10 cards** in hand; if your deck empties while drawing, shuffle your discard pile to make a new deck and continue;
 7. if you already have 10 or more cards, keep them all and draw nothing;
-8. the Battle loser chooses who takes the first turn of the next Battle.
+8. the player who Passed first starts the next Battle.
 
 The first player to win 2 Battles wins the match.
 
