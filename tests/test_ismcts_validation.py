@@ -424,6 +424,33 @@ def test_final_tree_step_boundary_does_not_start_next_battle_rollout() -> None:
     assert result["rollout_actions"] == 0
 
 
+def test_boundary_evaluator_projects_pending_cleanup() -> None:
+    engine, deck, _priors = _force_fixture(
+        GameRules.force_experiment("auto-discard7")
+    )
+    state = engine.new_game(deck, deck, seed=9283, first_player=0)
+    state.battle = 2
+    state.cleanup_pending = True
+    state.players[0].hand[:] = ["the-fifty-men"] * 8
+    state.players[1].hand[:] = ["the-fifty-men"] * 7
+
+    projected = state.clone()
+    projected.players[0].hand.pop()
+    projected.players[0].discard.append("the-fifty-men")
+
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+    projected_packed = fast.from_game_state(projected)
+
+    assert evaluator.battle_boundary_evaluate(
+        packed,
+        0,
+    ) == pytest.approx(
+        evaluator.strategic_evaluate(projected_packed, 0)
+    )
+
+
 def test_boundary_evaluator_rewards_next_battle_readiness() -> None:
     engine, state = _pass_only_standard_state()
     engine.apply(state, Pass())
