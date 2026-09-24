@@ -206,6 +206,22 @@ def test_browser_parity_replay_helper_needs_only_browser_runtime() -> None:
         assert forbidden not in import_surface
 
 
+def test_browser_modes_are_product_terms_not_solver_names() -> None:
+    source = (SRC / "web_api.py").read_text(encoding="utf-8")
+    page = (ROOT / "web" / "play.html").read_text(encoding="utf-8")
+
+    assert '{"hotseat", "computer"}' in source
+    assert 'value="computer"' in page
+    for solver_name in (
+        'value="heuristic"',
+        'value="ismcts"',
+        'value="strategic_heuristic"',
+        'value="mccfr"',
+        'value="online_mccfr"',
+    ):
+        assert solver_name not in page
+
+
 def test_browser_adapter_has_no_research_dependencies() -> None:
     source = (SRC / "web_api.py").read_text(encoding="utf-8")
     for forbidden in (
