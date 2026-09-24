@@ -151,11 +151,14 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     assert "FIRST" in page and "TO PASS" in page
     assert page.count("BATTLE WIN") == 4
     assert "STRATAGEM USED" in page
-    assert page.count("DRAW USED") == 2
+    assert "DRAW USED" not in page
+    assert "FINAL" in page and "OPERATION" in page
+    assert "+10" in page and "COMMAND · NEXT BATTLE" in page
     for modifier in ("+1", "+2", "+3", "-1", "-2", "-3"):
         assert modifier in page
     assert "Do not place a public Strength marker for a face-down" in page
-    assert "opaque sleeves or identical card backs" in page
+    assert "opaque sleeves or identical card backs for Veiled Stories" in page
+    assert "Stratagems are played face-up" in page
     assert "@page tracker" in css
     assert 'href="tokens.html"' in kit
 
