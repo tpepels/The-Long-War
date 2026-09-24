@@ -228,7 +228,7 @@ def _root_candidate_snapshot(
 
 @pytest.mark.legacy_rule_experiment
 @pytest.mark.parametrize("game_index", (0, 1))
-def test_paid_profile_python_cython_match_each_root_decision(
+def test_paid_variant_python_cython_match_each_root_decision(
     game_index: int,
 ) -> None:
     """Reproduce the validation games and stop at the first backend divergence."""
@@ -240,7 +240,10 @@ def test_paid_profile_python_cython_match_each_root_decision(
     deck = load_deck()
     engine = GameEngine(
         load_card_file(CARD_FILE),
-        rules=GameRules.force_candidate("paid"),
+        rules=GameRules.standard().with_overrides(
+            automatic_draw=False,
+            paid_draw_enabled=True,
+        ),
     )
     priors = (
         HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="deck-a")]),
