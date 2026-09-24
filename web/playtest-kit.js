@@ -104,7 +104,7 @@ async function main() {
 
   document.getElementById("playtest-decks").innerHTML = labels.map((label) =>
     '<section class="print-deck">' +
-      '<header class="deck-sheet-heading"><strong>The Long War · v0.8</strong>' +
+      '<header class="deck-sheet-heading"><strong>The Long War · v0.9</strong>' +
       '<span>' + label + ' · ' + deckData.name + ' · ' + deckData.cards.length + ' cards</span></header>' +
       '<div class="deck-card-grid">' +
       deckData.cards.map((id) => cardMarkup(index[id], label)).join("") +
