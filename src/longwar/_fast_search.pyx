@@ -3,7 +3,7 @@ from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, uint32_t, int32_t, 
 from libc.stddef cimport size_t
 from libc.string cimport memcpy, memset
 from libc.stdlib cimport malloc, free
-from libc.math cimport tanh
+from libc.math cimport tanh, log, sqrt
 from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
 import json
@@ -1871,7 +1871,7 @@ cdef class FastEngine:
         cdef unsigned char buf[512]
         cdef int n=0, i, owner, slot, card, count, front, ix, opponent=1-player
         # version byte makes the binary representation explicitly evolvable
-        buf[n] = 2; n += 1
+        buf[n] = 3; n += 1
         buf[n] = player; n += 1
         buf[n] = state.phase + 1; n += 1
         buf[n] = state.battle & 255; n += 1
@@ -1885,6 +1885,13 @@ cdef class FastEngine:
             buf[n] = state.pass_order[i] + 1; n += 1
         for i in range(2):
             buf[n] = state.discarded_this_battle[i]; n += 1
+            buf[n] = state.command[i] & 255; n += 1
+            buf[n] = state.free_cycle[i]; n += 1
+            buf[n] = state.operations_this_battle[i] & 255; n += 1
+        buf[n] = state.pending_final_operation_for + 1; n += 1
+        buf[n] = state.cleanup_pending; n += 1
+        buf[n] = state.cleanup_next_starter + 1; n += 1
+        buf[n] = state.cleanup_next_chooser + 1; n += 1
 
         for owner in range(2):
             for slot in range(owner * 6, owner * 6 + 6):
@@ -2304,4 +2311,5 @@ cdef class FastEngine:
 # algorithms physically so rule changes do not invite heuristic/search edits.
 include "_heuristic_core.pxi"
 include "_alpha_beta_core.pxi"
+include "_ismcts_core.pxi"
 include "_mccfr_core.pxi"

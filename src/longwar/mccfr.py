@@ -69,6 +69,105 @@ def action_key(action: Action) -> str:
     return _canonical_action_key(action)
 
 
+def information_set_key(state: GameState, player: int) -> dict[str, Any]:
+    """Canonical public/private observation used by imperfect-information AI."""
+    opponent = 1 - player
+
+    board: list[list[Any]] = [[], []]
+    for owner in range(2):
+        for position in all_positions():
+            slot = state.slot(owner, position)
+            board[owner].append(
+                [
+                    int(position.front),
+                    position.rank.value,
+                    slot.subject,
+                    slot.link,
+                    slot.name,
+                    slot.temporary_strength,
+                ]
+            )
+
+    schemes: list[list[Any]] = [[], []]
+    for owner in range(2):
+        for front in Front:
+            scheme = state.scheme(owner, front)
+            if scheme is None:
+                schemes[owner].append(None)
+            elif owner == player or scheme.revealed:
+                schemes[owner].append([scheme.card_id, scheme.revealed])
+            else:
+                schemes[owner].append(["hidden", False])
+
+    stratagems: list[Any] = []
+    for owner in range(2):
+        stratagem = state.stratagem(owner)
+        if stratagem is None:
+            stratagems.append(None)
+        elif owner == player or stratagem.revealed:
+            stratagems.append([stratagem.card_id, stratagem.revealed])
+        else:
+            stratagems.append(["hidden", False])
+
+    return {
+        "viewer": player,
+        "phase": state.phase.value,
+        "battle": state.battle,
+        "active_player": state.active_player,
+        "chooser": state.chooser,
+        "victories": [
+            state.players[0].victories,
+            state.players[1].victories,
+        ],
+        "passed": [
+            state.players[0].passed,
+            state.players[1].passed,
+        ],
+        "pass_order": list(state.pass_order),
+        "discarded_this_battle": list(state.discarded_this_battle),
+        "command": [
+            state.players[0].command,
+            state.players[1].command,
+        ],
+        "free_cycle": [
+            state.players[0].free_cycle,
+            state.players[1].free_cycle,
+        ],
+        "operations_this_battle": list(state.operations_this_battle),
+        "pending_final_operation_for": state.pending_final_operation_for,
+        "cleanup_pending": state.cleanup_pending,
+        "cleanup_next_starter": state.cleanup_next_starter,
+        "cleanup_next_chooser": state.cleanup_next_chooser,
+        "board": board,
+        "schemes": schemes,
+        "stratagems": stratagems,
+        "stratagem_used": list(state.stratagem_used),
+        "draw_used": list(state.draw_used),
+        "own_hand": _counter_view(state.players[player].hand),
+        "own_deck": _counter_view(state.players[player].deck),
+        "own_discard": list(state.players[player].discard),
+        "opponent_hand_count": len(state.players[opponent].hand),
+        "known_opponent_hand": _counter_view(
+            state.known_hidden_cards(player, opponent, "hand")
+        ),
+        "opponent_deck_count": len(state.players[opponent].deck),
+        "opponent_discard": list(state.players[opponent].discard),
+    }
+
+
+def _information_set_id_from_key(key: dict[str, Any]) -> str:
+    payload = json.dumps(
+        key,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _search_information_set_key(state: GameState, player: int) -> str:
+    return information_set_id(state, player)
+
+
 def information_set_id(state: GameState, player: int) -> str:
     return _information_set_id_from_key(information_set_key(state, player))
 

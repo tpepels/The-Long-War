@@ -542,7 +542,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i = 0
     version = data[i]
     i += 1
-    if version not in (1, 2):
+    if version not in (1, 2, 3):
         raise ValueError(f"Unsupported fast information-key version: {version}")
 
     card_ids = engine.card_ids
@@ -571,8 +571,44 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         pass_order.append(data[i] - 1)
         i += 1
 
-    discarded_this_battle = [data[i], data[i + 1]]
-    i += 2
+    if version >= 3:
+        discarded_this_battle = []
+        command = []
+        free_cycle = []
+        operations_this_battle = []
+        for _ in range(2):
+            discarded_this_battle.append(data[i])
+            command.append(data[i + 1])
+            free_cycle.append(bool(data[i + 2]))
+            operations_this_battle.append(data[i + 3])
+            i += 4
+        pending_final_raw = data[i] - 1
+        i += 1
+        cleanup_pending = bool(data[i])
+        i += 1
+        cleanup_starter_raw = data[i] - 1
+        i += 1
+        cleanup_chooser_raw = data[i] - 1
+        i += 1
+        pending_final_operation_for = (
+            None if pending_final_raw < 0 else pending_final_raw
+        )
+        cleanup_next_starter = (
+            None if cleanup_starter_raw < 0 else cleanup_starter_raw
+        )
+        cleanup_next_chooser = (
+            None if cleanup_chooser_raw < 0 else cleanup_chooser_raw
+        )
+    else:
+        discarded_this_battle = [data[i], data[i + 1]]
+        i += 2
+        command = [0, 0]
+        free_cycle = [False, False]
+        operations_this_battle = [0, 0]
+        pending_final_operation_for = None
+        cleanup_pending = False
+        cleanup_next_starter = None
+        cleanup_next_chooser = None
 
     board = [[], []]
     for owner in range(2):
@@ -681,6 +717,13 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "passed": passed,
         "pass_order": pass_order,
         "discarded_this_battle": discarded_this_battle,
+        "command": command,
+        "free_cycle": free_cycle,
+        "operations_this_battle": operations_this_battle,
+        "pending_final_operation_for": pending_final_operation_for,
+        "cleanup_pending": cleanup_pending,
+        "cleanup_next_starter": cleanup_next_starter,
+        "cleanup_next_chooser": cleanup_next_chooser,
         "board": board,
         "schemes": schemes,
         "stratagems": stratagems,
