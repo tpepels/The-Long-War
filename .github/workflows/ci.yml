@@ -19,7 +19,7 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: pip install -e '.[dev]'
       - name: Native MCCFR accelerator
-        run: make check-native-mccfr
+        run: python -c "from longwar.mccfr_core import ACCELERATED, BACKEND; print(f'MCCFR backend: {BACKEND}'); assert ACCELERATED"
       - name: Set per-run seed
         run: |
           RUN_SEED=$(( (GITHUB_RUN_ID + GITHUB_RUN_ATTEMPT * 1000003) % 2000000000 + 1 ))
