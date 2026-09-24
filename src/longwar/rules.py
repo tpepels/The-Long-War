@@ -1,17 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Literal
-
-
-DrawMode = Literal["automatic", "paid"]
-
-
 @dataclass(frozen=True, slots=True)
 class GameRules:
     """Immutable rules configuration shared by every engine consumer.
 
-    Tools select a rules profile; they do not re-declare individual game rules.
+    Tools may override values for experiments; they do not create alternate
+    named rules modes.
     Card-specific rules remain in the card data. The engine is the only layer
     allowed to interpret either source into legal actions and transitions.
     """
@@ -91,63 +86,6 @@ class GameRules:
     @classmethod
     def standard(cls) -> "GameRules":
         return cls()
-
-    @staticmethod
-    def profile_names() -> tuple[str, ...]:
-        return ("standard", "force-automatic", "force-paid", "force-paid-free",
-                "force-auto-discard9", "force-auto-discard7", "force-auto-cap10")
-
-    @classmethod
-    def from_profile(cls, name: str) -> "GameRules":
-        if name == "standard":
-            return cls.standard()
-        if name in {"force-automatic", "force-paid"}:
-            return cls.force_candidate(name.removeprefix("force-"))
-        if name in cls.profile_names():
-            return cls.force_experiment(name.removeprefix("force-"))
-        raise ValueError(f"Unknown rules profile: {name}")
-
-    @classmethod
-    def force_candidate(cls, draw_mode: DrawMode) -> "GameRules":
-        """Compatibility profile derived from the canonical standard rules."""
-        if draw_mode == "automatic":
-            return cls.standard()
-        if draw_mode == "paid":
-            return cls.standard().with_overrides(
-                automatic_draw=False,
-                paid_draw_enabled=True,
-            )
-        raise ValueError(f"Unknown Force draw mode: {draw_mode}")
-
-
-    @classmethod
-    def force_experiment(cls, variant: str) -> "GameRules":
-        """Named card-flow experiment variants derived from standard.
-
-        control: current automatic Draw.
-        paid-free: paid Draw costs Command but keeps the operation.
-        auto-discard9/7: automatic Draw plus strategic Battle-end cleanup.
-        auto-cap10: automatic Draw only while hand size is below 10.
-        """
-        if variant == "control":
-            return cls.force_candidate("automatic")
-        if variant == "paid-free":
-            return cls.force_candidate("paid").with_overrides(
-                paid_draw_consumes_operation=False,
-            )
-        if variant == "auto-discard9":
-            return cls.force_candidate("automatic").with_overrides(
-                battle_end_hand_limit=9,
-            )
-        if variant == "auto-discard7":
-            return cls.force_candidate("automatic").with_overrides(
-                battle_end_hand_limit=7,
-            )
-        if variant == "auto-cap10":
-            return cls.force_candidate("automatic").with_overrides(
-                automatic_draw_hand_limit=10,
-            )
-        raise ValueError(f"Unknown Force experiment variant: {variant}")
 
     def with_overrides(self, **changes: object) -> "GameRules":
         return replace(self, **changes)
