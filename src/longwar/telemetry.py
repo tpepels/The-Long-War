@@ -52,6 +52,9 @@ class DecisionStats:
     score_gap_total: float = 0.0
     search_nodes_total: int = 0
     completed_depth_total: int = 0
+    decision_seconds_total: float = 0.0
+    decision_seconds_max: float = 0.0
+    timed_out_decisions: int = 0
     ismcts_terminal_cutoffs: int = 0
     ismcts_battle_boundary_cutoffs: int = 0
     ismcts_depth_cutoffs: int = 0
@@ -195,6 +198,15 @@ class Telemetry:
             stats.search_nodes_total += int(decision_info.get("search_nodes", 0))
             stats.completed_depth_total += int(
                 decision_info.get("completed_depth", 0)
+            )
+            decision_seconds = float(decision_info.get("decision_seconds", 0.0) or 0.0)
+            stats.decision_seconds_total += decision_seconds
+            stats.decision_seconds_max = max(
+                stats.decision_seconds_max,
+                decision_seconds,
+            )
+            stats.timed_out_decisions += int(
+                bool(decision_info.get("search_timed_out", False))
             )
             stats.ismcts_terminal_cutoffs += int(
                 decision_info.get("ismcts_rollouts_stopped_terminal", 0)
@@ -527,6 +539,16 @@ class Telemetry:
                 ),
                 "mean_completed_depth": self._ratio(
                     stats.completed_depth_total,
+                    stats.decisions,
+                ),
+                "mean_decision_seconds": self._ratio(
+                    stats.decision_seconds_total,
+                    stats.decisions,
+                ),
+                "max_decision_seconds": stats.decision_seconds_max,
+                "timed_out_decisions": stats.timed_out_decisions,
+                "timeout_rate": self._ratio(
+                    stats.timed_out_decisions,
                     stats.decisions,
                 ),
             }
