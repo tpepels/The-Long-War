@@ -664,22 +664,29 @@ def test_hero_is_strong_and_buffs_adjacent_subjects() -> None:
     assert engine.position_strength(state, 0, adjacent) == 7
 
 
-def test_deck_requires_exactly_one_hero() -> None:
+def test_deck_allows_multiple_heroes_but_not_duplicate_hero_titles() -> None:
     from longwar.game.engine import InvalidDeck
 
     engine, deck = engine_and_deck()
     engine.validate_deck(deck)
+    assert sum(engine.cards[card_id].get("hero", False) for card_id in deck) == 3
 
-    without_hero = list(deck)
-    without_hero.remove("avaros-the-bronze-king")
-    without_hero.append("the-red-shields")
+    duplicate_hero = list(deck)
+    replacement = next(
+        card_id
+        for card_id in duplicate_hero
+        if not engine.cards[card_id].get("hero", False)
+        and duplicate_hero.count(card_id) == 1
+    )
+    duplicate_hero.remove(replacement)
+    duplicate_hero.append("avaros-the-bronze-king")
 
     try:
-        engine.validate_deck(without_hero)
+        engine.validate_deck(duplicate_hero)
     except InvalidDeck as exc:
-        assert "exactly one Hero" in str(exc)
+        assert "Avaros, the Bronze King appears 2 times; maximum is 1" in str(exc)
     else:
-        raise AssertionError("Deck without a Hero should be invalid")
+        raise AssertionError("Duplicate Hero title should be invalid")
 
 
 def test_public_stratagem_is_free_pre_action_in_legacy_profile_and_only_one_may_be_played() -> None:
