@@ -753,7 +753,7 @@
         "weather",
         "sea"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — *Ships* get +2 **Strength**; *Archers* get -2 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — *Ships* get +2 **Strength**; *Archers* get -2 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -795,7 +795,7 @@
         "sea",
         "tide"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — *Ships* get +1 **Strength**; **Line Defense** gives no bonus.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — *Ships* get +1 **Strength**; **Line Defense** gives no bonus.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -837,7 +837,7 @@
         "terrain",
         "hazard"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Rear Subjects** get +1 **Strength**; **Frontline Subjects** get -1 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Rear Subjects** get +1 **Strength**; **Frontline Subjects** get -1 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -879,7 +879,7 @@
         "weapon",
         "preparation"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Frontline Subjects** get -1 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Frontline Subjects** get -1 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -920,7 +920,7 @@
         "misinformation",
         "deception"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — Immediate **Stories** cannot be played.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — Immediate **Stories** cannot be played.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -959,7 +959,7 @@
         "deception",
         "preparation"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Subjects** with a **Name** get -2 **Strength**; those without a **Name** get +1.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Subjects** with a **Name** get -2 **Strength**; those without a **Name** get +1.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -1556,7 +1556,7 @@
         "weather",
         "sea"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — *Archers* get +2 **Strength**; *Ships* get -2 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — *Archers* get +2 **Strength**; *Ships* get -2 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -1599,7 +1599,7 @@
         "silence",
         "ritual"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Subjects** with a **Name** get +1 **Strength**; those without a **Name** get -1.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Subjects** with a **Name** get +1 **Strength**; those without a **Name** get -1.",
       "rules": {
         "stratagem": {
           "trigger": {
