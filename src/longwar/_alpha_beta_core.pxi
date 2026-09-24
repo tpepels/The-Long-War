@@ -1,3 +1,5 @@
+from libc.math cimport isfinite
+
 cdef int TT_EXACT = 0
 cdef int TT_LOWER = 1
 cdef int TT_UPPER = 2
@@ -10,12 +12,23 @@ class NativeSearchLimit(RuntimeError):
 cdef class NativeSearchBudget:
     cdef public long limit
     cdef public long nodes
+    cdef public double time_limit_seconds
+    cdef public double deadline
+    cdef public bint timed_out
 
-    def __init__(self, long limit):
+    def __init__(self, long limit, double time_limit_seconds=0.0):
         if limit <= 0:
             raise ValueError("limit must be positive")
+        if not isfinite(time_limit_seconds) or time_limit_seconds < 0.0:
+            raise ValueError("time_limit_seconds must be finite and non-negative")
         self.limit = limit
         self.nodes = 0
+        self.time_limit_seconds = time_limit_seconds
+        self.deadline = (
+            perf_counter() + time_limit_seconds
+            if time_limit_seconds > 0.0 else 0.0
+        )
+        self.timed_out = False
 
 
 cdef struct NativeTTEntry:
@@ -261,6 +274,13 @@ cdef double native_alphabeta(
 
     budget.nodes += 1
     if budget.nodes > budget.limit:
+        raise NativeSearchLimit()
+    if (
+        budget.deadline > 0.0
+        and (budget.nodes & 255) == 0
+        and perf_counter() >= budget.deadline
+    ):
+        budget.timed_out = True
         raise NativeSearchLimit()
 
     if state.phase == PHASE_COMPLETE or depth <= 0:
