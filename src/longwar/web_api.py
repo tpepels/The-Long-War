@@ -4,7 +4,6 @@ import json
 from typing import Any
 
 from .agents.heuristic_agent import HeuristicAgent
-from .agents.online_mccfr_agent import OnlineMCCFRAgent
 from .game.actions import (
     Action,
     BoardTarget,
@@ -18,10 +17,10 @@ from .game.actions import (
     PlayScheme,
     PlaySubject,
     SetStratagem,
+    action_key,
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, Phase, Position, Rank
-from .mccfr import action_key
 
 
 FRONT_NAMES = {
@@ -46,7 +45,7 @@ class PlaySession:
         seed: int = 1,
         paced_ai: bool = False,
     ):
-        if mode not in {"hotseat", "heuristic", "online_mccfr"}:
+        if mode not in {"hotseat", "heuristic"}:
             raise ValueError(f"Unsupported play mode: {mode}")
 
         card_data = json.loads(card_data_json)
@@ -80,14 +79,6 @@ class PlaySession:
         self.agents: dict[int, Any] = {}
         if mode == "heuristic":
             self.agents[1] = HeuristicAgent(self.seed + 20_001, exploration=0.0)
-        elif mode == "online_mccfr":
-            self.agents[1] = OnlineMCCFRAgent(
-                self.engine,
-                self.seed + 30_001,
-                iterations=4,
-                max_depth=2,
-                deterministic=True,
-            )
 
     def snapshot_json(self, viewer: int | None = None) -> str:
         return json.dumps(self.snapshot(viewer), separators=(",", ":"))
