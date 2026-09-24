@@ -83,7 +83,7 @@ def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:
         covered.update(data["cards"])
 
     assert covered == canonical
-    assert len(canonical) == 48
+    assert len(canonical) == 51
 
 
 def test_manual_mccfr_workflow_builds_all_four_profile_policies() -> None:
@@ -95,12 +95,13 @@ def test_manual_mccfr_workflow_builds_all_four_profile_policies() -> None:
     assert "tools/build_mccfr_suite.py" in workflow
 
 
-def test_cards_are_scan_first_and_all_48_copy_blocks_are_labeled() -> None:
+def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
     data = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     cards = data["cards"]
     allowed_labels = {
         "PLAY",
         "TRAIT",
+        "DUAL",
         "WHILE",
         "WHEN",
         "BONUS",
@@ -116,7 +117,7 @@ def test_cards_are_scan_first_and_all_48_copy_blocks_are_labeled() -> None:
         "DURING THIS BATTLE",
     }
 
-    assert len(cards) == 48
+    assert len(cards) == 51
     for card in cards:
         for block in card.get("rule_blocks", []):
             assert block.get("label") in allowed_labels
