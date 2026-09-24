@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import inspect
 import json
 from argparse import Namespace
 from pathlib import Path
@@ -141,3 +142,22 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     assert match["rules"]["deck_size"] == 34
     assert match["game_fingerprint"] == summary["game_fingerprint"]
     assert (output / "playability.json").is_file()
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        runner.benchmark,
+        runner.benchmark_ismcts,
+        runner.benchmark_searches,
+        runner.benchmark_exploration_sweep,
+    ],
+)
+def test_search_benchmarks_use_canonical_standard_inputs(function):
+    source = inspect.getsource(function)
+    assert 'cards" / "cards.json' in source
+    assert 'decks" / "reference.json' in source
+    assert "GameRules.standard()" in source
+    assert "force-draw-cards.json" not in source
+    assert "force-rich-34-reference.json" not in source
+    assert "force_candidate(" not in source
