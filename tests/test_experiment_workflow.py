@@ -14,6 +14,7 @@ from longwar.simulate import make_agent, simulate_games
 from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
+pytestmark = pytest.mark.algorithm
 spec = importlib.util.spec_from_file_location("run_experiments", ROOT / "tools" / "run_experiments.py")
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
@@ -299,7 +300,7 @@ def test_validation_can_repeat_after_inputs_change(tmp_path, monkeypatch, change
     monkeypatch.setattr(fingerprint, "current_game_fingerprint", lambda: "before")
     outputs = []
 
-    def fake_run(command):
+    def fake_run(command, **_kwargs):
         outputs.append(Path(command[command.index("--output") + 1]))
 
     monkeypatch.setattr(runner, "run_command", fake_run)
