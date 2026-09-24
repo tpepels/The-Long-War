@@ -312,7 +312,8 @@ def standard_backend_parity(*, seed: int) -> None:
                 backend,
                 "--output",
                 str(destination),
-            ]
+            ],
+            capture=True,
         )
 
     python_payload = normalized_payload(python_output)
@@ -356,8 +357,10 @@ def validate() -> None:
             "tests/test_architecture_boundaries.py",
             "tests/test_ismcts.py",
             "tests/test_ismcts_validation.py",
-        ]
+        ],
+        capture=True,
     )
+    print("Focused current-rules/search tests: OK")
 
     standard_backend_parity(seed=26092334)
 
