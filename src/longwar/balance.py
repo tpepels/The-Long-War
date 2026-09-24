@@ -139,6 +139,8 @@ def _command_card_value(card: dict[str, Any]) -> float:
             value += 0.6 * float(completion.get("amount", 1))
         elif effect == "grant_free_cycle":
             value += 0.9
+        elif effect == "draw_card":
+            value += float(completion.get("amount", 1))
         elif effect == "reveal_enemy_scheme":
             value += 0.45
         elif effect == "recover_recent_link":
