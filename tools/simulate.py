@@ -6,6 +6,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
+from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.rules import GameRules
@@ -101,7 +102,7 @@ def main() -> None:
     )
     parser.add_argument("--ismcts-rollout-depth", type=int, default=5)
     parser.add_argument("--ismcts-tree-depth-limit", type=int, default=96)
-    parser.add_argument("--ismcts-exploration", type=float, default=2 ** 0.5)
+    parser.add_argument("--ismcts-exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     parser.add_argument(
         "--ismcts-progressive-widening",
         type=float,
