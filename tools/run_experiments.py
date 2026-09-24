@@ -320,6 +320,7 @@ def benchmark_ismcts(
         f"{rate:,.0f} iterations/s | "
         f"tree={agent.last_decision['ismcts_tree_nodes']:,} infosets | "
         f"depth={agent.last_decision['completed_depth']} | "
+        f"storage={agent.last_decision.get('ismcts_tree_storage', 'unknown')} | "
         f"{type(action).__name__} | rollout={rollout_policy}"
     )
 
@@ -607,7 +608,9 @@ def benchmark_searches(
             rate = nodes / elapsed if elapsed else float("inf")
             work = (
                 f"{nodes:,} nodes, {rate:,.0f} nodes/s, "
-                f"completed depth {int(info['completed_depth'])}"
+                f"completed depth {int(info['completed_depth'])}, "
+                f"TT hits {int(info.get('transposition_hits', 0)):,}, "
+                f"stores {int(info.get('transposition_stores', 0)):,}"
             )
         print(
             f"{name:10}: {elapsed:7.3f}s | {work} | "

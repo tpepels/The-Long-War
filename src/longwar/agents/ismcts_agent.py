@@ -169,5 +169,6 @@ class ISMCTSAgent:
             ),
             "ismcts_root_value": score,
             "ismcts_rollout_policy": self.rollout_policy,
+            "ismcts_tree_storage": str(result["tree_storage"]),
         }
         return selected
