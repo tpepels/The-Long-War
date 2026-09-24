@@ -236,18 +236,15 @@ def test_belief_sampler_preserves_public_stratagem_identity() -> None:
 
 def test_card_pool_prior_defaults_to_engine_deck_size() -> None:
     data = load_card_file(
-        ROOT / "cards" / "experiments" / "force-draw-cards.json"
+        ROOT / "cards" / "cards.json"
     )
     deck = json.loads(
         (
-            ROOT
-            / "decks"
-            / "experiments"
-            / "force-rich-34-reference.json"
+            ROOT / "decks" / "reference.json"
         ).read_text(encoding="utf-8")
     )["cards"]
     from longwar.rules import GameRules
-    engine = GameEngine(data, rules=GameRules.force_candidate("automatic"))
+    engine = GameEngine(data, rules=GameRules.standard())
     prior = CardPoolDeckPrior(engine)
 
     sampled = prior.sample_deck(Counter(), random.Random(31415))
