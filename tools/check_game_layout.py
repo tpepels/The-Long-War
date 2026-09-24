@@ -61,6 +61,9 @@ def presentation_snapshots() -> dict[str, dict]:
     by_type = {kind: sorted((card for card in cards if card["type"] == kind),
                            key=lambda card: len(card["title"]), reverse=True)
                for kind in ("subject", "link", "name", "stratagem")}
+    by_type["subject"] = [
+        card for card in by_type["subject"] if not card.get("hero", False)
+    ]
     veiled = next(card["id"] for card in cards if card.get("veiled"))
     session = PlaySession(card_json, deck_json, "heuristic", 1701, paced_ai=True)
     opening = session.snapshot(0)
