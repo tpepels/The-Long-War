@@ -50,6 +50,7 @@ def test_simulation_supports_distinct_agent_labels() -> None:
         agent_names=("heuristic", "heuristic"),
         agent_labels=("candidate-a", "candidate-b"),
         agent_overrides=({}, {}),
+        agent_seed_offsets=(11, 22),
     )
 
     assert report.agents == ("candidate-a", "candidate-b")
