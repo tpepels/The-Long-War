@@ -114,21 +114,25 @@ def test_decision_grade_search_match_defaults(monkeypatch):
     assert strength.jobs == 8
 
 
-def test_makefile_owns_decision_grade_search_commands():
+def test_makefile_has_one_configurable_experiment_entrypoint():
     source = (ROOT / "Makefile").read_text(encoding="utf-8")
-    assert "ismcts-match:" in source
-    assert "ISMCTS_MATCH_GAMES ?= 24" in source
-    assert "ISMCTS_MATCH_SECONDS ?= 2" in source
-    assert "strength-bench:" in source
-    assert "STRENGTH_BENCH_GAMES ?= 24" in source
-    assert "STRENGTH_BENCH_SECONDS ?= 2" in source
-    assert "experiment-suite:" in source
-    assert "EXPERIMENT_SUITE_GAMES ?= 48" in source
-    assert "EXPERIMENT_SUITE_JOBS ?= 8" in source
-    assert "EXPERIMENT_SUITE_SECONDS ?= 2" in source
-    assert "overnight-search:" not in source
-    assert "OVERNIGHT_SEARCH_" not in source
+    assert "experiments:" in source
+    assert "EXPERIMENT ?= suite" in source
+    assert "EXPERIMENT_ARGS ?=" in source
     assert "systemd-inhibit" in source
+
+    for obsolete_target in (
+        "ismcts-match:",
+        "strength-bench:",
+        "experiment-suite:",
+        "mcts-bench:",
+        "search-bench:",
+        "cardflow-quick:",
+        "cardflow-run:",
+        "cardflow-max:",
+        "overnight-search:",
+    ):
+        assert obsolete_target not in source
 
 
 def test_experiment_suite_defaults_and_minimum(monkeypatch):
