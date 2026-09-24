@@ -122,18 +122,20 @@ def test_makefile_owns_decision_grade_search_commands():
     assert "strength-bench:" in source
     assert "STRENGTH_BENCH_GAMES ?= 24" in source
     assert "STRENGTH_BENCH_SECONDS ?= 2" in source
-    assert "overnight-search:" in source
-    assert "OVERNIGHT_SEARCH_GAMES ?= 48" in source
-    assert "OVERNIGHT_SEARCH_JOBS ?= 8" in source
-    assert "OVERNIGHT_SEARCH_SECONDS ?= 2" in source
+    assert "experiment-suite:" in source
+    assert "EXPERIMENT_SUITE_GAMES ?= 48" in source
+    assert "EXPERIMENT_SUITE_JOBS ?= 8" in source
+    assert "EXPERIMENT_SUITE_SECONDS ?= 2" in source
+    assert "overnight-search:" not in source
+    assert "OVERNIGHT_SEARCH_" not in source
     assert "systemd-inhibit" in source
 
 
-def test_overnight_search_defaults_and_minimum(monkeypatch):
+def test_experiment_suite_defaults_and_minimum(monkeypatch):
     monkeypatch.setattr(
         runner.sys,
         "argv",
-        ["run_experiments.py", "overnight-search"],
+        ["run_experiments.py", "suite"],
     )
     args = runner.parse_args()
     assert args.games == 48
@@ -141,19 +143,18 @@ def test_overnight_search_defaults_and_minimum(monkeypatch):
     assert args.time_budget_seconds == pytest.approx(2.0)
     assert args.iterations == 100_000
     assert args.alpha_nodes == 20_000
-    assert args.skip_strength is False
     assert args.stop_on_error is False
 
     args.games = 23
     with pytest.raises(SystemExit, match="at least 24"):
-        runner.run_overnight_search(args)
+        runner.run_suite(args)
 
 
-def test_overnight_search_runs_structural_battery_and_checkpoints(
+def test_experiment_suite_runs_structural_battery_and_checkpoints(
     tmp_path,
     monkeypatch,
 ):
-    suite_dir = tmp_path / "overnight"
+    suite_dir = tmp_path / "suite"
 
     def fake_artifact_directory(base, identity):
         suite_dir.mkdir(parents=True, exist_ok=True)
@@ -205,10 +206,9 @@ def test_overnight_search_runs_structural_battery_and_checkpoints(
         alpha_nodes=20_000,
         time_budget_seconds=2.0,
         seed=26092400,
-        skip_strength=False,
         stop_on_error=False,
     )
-    manifest_path = runner.run_overnight_search(args)
+    manifest_path = runner.run_suite(args)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     assert len(match_calls) == 8
@@ -235,6 +235,13 @@ def test_overnight_search_runs_structural_battery_and_checkpoints(
     assert match_calls[6]["rollout_depth_b"] == 3
     assert match_calls[7]["rollout_depth_b"] == 8
     assert strength_calls[0]["time_budget_seconds"] == pytest.approx(2.0)
+
+
+def test_no_duplicate_batch_search_entry_point():
+    source = (ROOT / "tools" / "run_experiments.py").read_text(encoding="utf-8")
+    assert "overnight-search" not in source
+    assert "run_overnight_search" not in source
+    assert 'BENCH_ROOT / "overnight"' not in source
 
 
 def test_backend_parity_ignores_runtime_but_keeps_search_depth_and_outcomes(tmp_path):
