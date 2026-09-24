@@ -436,6 +436,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
 
     stratagem_used = [bool(data[i]), bool(data[i + 1])]
     i += 2
+    hero_used = [bool(data[i]), bool(data[i + 1])]
+    i += 2
     draw_used = [bool(data[i]), bool(data[i + 1])]
     i += 2
 
@@ -508,6 +510,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "schemes": schemes,
         "stratagems": stratagems,
         "stratagem_used": stratagem_used,
+        "hero_used": hero_used,
         "draw_used": draw_used,
         "own_hand": own_hand_counts,
         "own_deck": own_deck_counts,
