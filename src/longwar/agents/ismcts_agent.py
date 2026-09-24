@@ -9,6 +9,7 @@ from ..heuristics import opening_mulligan_indices
 try:
     from .._fast_search import (
         FastEngine,
+        ISMCTSTree,
         NativeHeuristicEvaluator,
         ismcts_search,
     )
@@ -39,6 +40,7 @@ class ISMCTSAgent:
         tree_depth_limit: int = 96,
         exploration: float = 2 ** 0.5,
         progressive_widening: float = 0.0,
+        reuse_tree: bool = True,
         rollout_epsilon: float = 0.12,
         rollout_policy: str = "cheap",
         leaf_scale: float = 100.0,
@@ -75,6 +77,7 @@ class ISMCTSAgent:
         self.tree_depth_limit = tree_depth_limit
         self.exploration = exploration
         self.progressive_widening = progressive_widening
+        self.reuse_tree = reuse_tree
         self.rollout_epsilon = rollout_epsilon
         self.rollout_policy = rollout_policy
         self._rollout_policy_code = {
@@ -85,7 +88,12 @@ class ISMCTSAgent:
         self.leaf_scale = leaf_scale
         self.fast_engine = FastEngine(engine)
         self.evaluator = NativeHeuristicEvaluator(self.fast_engine)
-        self.last_decision: dict[str, float | int | str] = {}
+        self._tree = ISMCTSTree(iterations) if reuse_tree else None
+        self.last_decision: dict[str, float | int | str | bool] = {}
+
+    def reset_tree(self) -> None:
+        """Discard accumulated search statistics before starting a new game."""
+        self._tree = ISMCTSTree(self.iterations) if self.reuse_tree else None
 
     def choose_mulligan(
         self,
@@ -112,15 +120,27 @@ class ISMCTSAgent:
                 "search_backend_detail": "packed-ismcts",
                 "evaluated_candidates": 1,
                 "ismcts_iterations": 0,
-                "ismcts_tree_nodes": 0,
+                "ismcts_tree_nodes": (
+                    self._tree.size() if self._tree is not None else 0
+                ),
+                "ismcts_tree_nodes_before": (
+                    self._tree.size() if self._tree is not None else 0
+                ),
+                "ismcts_tree_nodes_added": 0,
                 "ismcts_root_total_visits": 0,
+                "ismcts_root_total_visits_lifetime": 0,
+                "ismcts_root_prior_visits": 0,
+                "ismcts_root_reused": False,
                 "ismcts_selected_action_visits": 0,
+                "ismcts_selected_action_visits_lifetime": 0,
+                "ismcts_selected_action_prior_visits": 0,
                 "ismcts_rollouts_stopped_terminal": 0,
                 "ismcts_rollouts_stopped_battle_boundary": 0,
                 "ismcts_rollouts_stopped_depth": 0,
                 "ismcts_rollout_actions": 0,
                 "ismcts_rollout_policy": self.rollout_policy,
                 "ismcts_progressive_widening": self.progressive_widening,
+                "ismcts_tree_reuse_enabled": self.reuse_tree,
             }
             return legal[0]
 
@@ -138,6 +158,7 @@ class ISMCTSAgent:
             self.evaluator,
             packed_states,
             root_player,
+            tree=self._tree,
             iterations=self.iterations,
             rollout_depth=self.rollout_depth,
             tree_depth_limit=self.tree_depth_limit,
@@ -173,9 +194,24 @@ class ISMCTSAgent:
             "evaluated_candidates": len(legal),
             "ismcts_iterations": self.iterations,
             "ismcts_tree_nodes": int(result["tree_nodes"]),
-            "ismcts_root_total_visits": int(result["root_total_visits"]),
+            "ismcts_tree_nodes_before": int(result["tree_nodes_before"]),
+            "ismcts_tree_nodes_added": int(result["tree_nodes_added"]),
+            "ismcts_root_total_visits": int(result["root_new_visits"]),
+            "ismcts_root_total_visits_lifetime": int(
+                result["root_total_visits"]
+            ),
+            "ismcts_root_prior_visits": int(
+                result["root_total_visits_before"]
+            ),
+            "ismcts_root_reused": bool(result["root_reused"]),
             "ismcts_selected_action_visits": int(
+                result["selected_action_new_visits"]
+            ),
+            "ismcts_selected_action_visits_lifetime": int(
                 result["selected_action_visits"]
+            ),
+            "ismcts_selected_action_prior_visits": int(
+                result["selected_action_visits_before"]
             ),
             "ismcts_rollouts_stopped_terminal": int(
                 result["rollouts_stopped_terminal"]
@@ -190,6 +226,7 @@ class ISMCTSAgent:
             "ismcts_root_value": score,
             "ismcts_rollout_policy": self.rollout_policy,
             "ismcts_progressive_widening": self.progressive_widening,
+            "ismcts_tree_reuse_enabled": self.reuse_tree,
             "ismcts_progressive_widening_alpha": float(
                 result["progressive_widening_alpha"]
             ),
