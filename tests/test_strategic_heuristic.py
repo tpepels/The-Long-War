@@ -27,28 +27,30 @@ def standard_engine() -> GameEngine:
     return GameEngine(load_card_file(CARD_FILE), rules=GameRules.standard())
 
 
-def test_default_belief_sampler_uses_engine_deck_size() -> None:
+def test_default_belief_sampler_uses_actual_state_deck_size() -> None:
     deck = load_deck()
     engine = standard_engine()
+
+    # Prove the default belief path follows the supplied deck, not a 34-card
+    # rules constant.
+    for card_id, card in engine.cards.items():
+        maximum = 1 if card["unique"] else 2
+        while deck.count(card_id) < maximum and len(deck) < 40:
+            deck.append(card_id)
+        if len(deck) == 40:
+            break
+    assert len(deck) == 40
+
     state = engine.new_game(deck, deck, seed=7301, first_player=0)
-    sampled = BeliefSampler(engine).sample(
+    sampler = BeliefSampler(engine)
+    sampled = sampler.sample(
         state,
         0,
         __import__("random").Random(7302),
     )
 
-    opponent = sampled.players[1]
-    public_count = (
-        len(opponent.discard)
-        + sum(
-            int(slot.subject is not None)
-            + int(slot.link is not None)
-            + int(slot.name is not None)
-            for front in sampled.board[1]
-            for slot in front
-        )
-    )
-    assert len(opponent.hand) + len(opponent.deck) + public_count <= 34
+    assert sampler._deck_size_from_state(state, 1) == 40
+    assert sampler._deck_size_from_state(sampled, 1) == 40
 
 
 def test_strategic_heuristic_returns_legal_action_without_true_hand_access() -> None:
