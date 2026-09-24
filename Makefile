@@ -7,6 +7,7 @@ verify-cards:
 	python tools/run_experiments.py validate-data
 
 verify-algorithms: test-algorithm
+	python -m pytest -q tests/test_experiment_workflow.py -m "not integration"
 	python tools/run_experiments.py validate
 
 balance-quick:
