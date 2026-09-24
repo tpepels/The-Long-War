@@ -59,7 +59,7 @@ def type_label(card: dict) -> str:
         form = title_case(card.get("story_form", "Story"))
         return f"{form} · " + ("Veiled Story" if card.get("veiled") else "Story")
     if card["type"] == "subject" and card.get("hero"):
-        return "Hero · Subject"
+        return "Hero · Subject / Name"
     return title_case(card["type"])
 
 
@@ -97,9 +97,18 @@ def property_markup(card: dict, class_name: str) -> str:
 
 def play_card(card: dict) -> str:
     strength = (
-        f'<span class="play-card-strength">{card["strength"]}</span>'
-        if isinstance(card.get("strength"), int)
-        else ""
+        (
+            '<span class="play-card-strength hero-dual-strength">'
+            f'<span><small>S</small>{card["strength"]}</span>'
+            f'<span><small>N</small>{card["hero_name_strength"]}</span>'
+            '</span>'
+        )
+        if card.get("hero")
+        else (
+            f'<span class="play-card-strength">{card["strength"]}</span>'
+            if isinstance(card.get("strength"), int)
+            else ""
+        )
     )
     command = (
         f'<span class="play-command-cost" aria-label="Command cost">C {card["command_cost"]}</span>'
@@ -119,9 +128,18 @@ def play_card(card: dict) -> str:
 
 def print_card(card: dict) -> str:
     strength = (
-        f'<div class="strength">{card["strength"]}</div>'
-        if isinstance(card.get("strength"), int)
-        else ""
+        (
+            '<div class="strength hero-dual-strength">'
+            f'<span><small>S</small>{card["strength"]}</span>'
+            f'<span><small>N</small>{card["hero_name_strength"]}</span>'
+            '</div>'
+        )
+        if card.get("hero")
+        else (
+            f'<div class="strength">{card["strength"]}</div>'
+            if isinstance(card.get("strength"), int)
+            else ""
+        )
     )
     command = (
         f'<div class="command-cost" aria-label="Command cost">{card["command_cost"]}</div>'
