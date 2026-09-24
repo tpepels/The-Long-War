@@ -292,21 +292,11 @@ def benchmark(node_budget: int) -> None:
     if node_budget <= 0:
         raise SystemExit("--nodes must be positive.")
 
-    card_data = load_card_file(
-        ROOT / "cards" / "experiments" / "force-draw-cards.json"
-    )
+    card_data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (
-            ROOT
-            / "decks"
-            / "experiments"
-            / "force-rich-34-reference.json"
-        ).read_text(encoding="utf-8")
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
     )["cards"]
-    engine = GameEngine(
-        card_data,
-        rules=GameRules.force_candidate("paid"),
-    )
+    engine = GameEngine(card_data, rules=GameRules.standard())
     state = engine.new_game(deck, deck, seed=26092334, first_player=0)
     priors = (
         HypothesisDeckPrior(
@@ -385,21 +375,11 @@ def benchmark_ismcts(
     if iterations <= 0:
         raise SystemExit("--iterations must be positive.")
 
-    card_data = load_card_file(
-        ROOT / "cards" / "experiments" / "force-draw-cards.json"
-    )
+    card_data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (
-            ROOT
-            / "decks"
-            / "experiments"
-            / "force-rich-34-reference.json"
-        ).read_text(encoding="utf-8")
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
     )["cards"]
-    engine = GameEngine(
-        card_data,
-        rules=GameRules.force_candidate("automatic"),
-    )
+    engine = GameEngine(card_data, rules=GameRules.standard())
     state = engine.new_game(deck, deck, seed=26092334, first_player=0)
     priors = (
         HypothesisDeckPrior(
@@ -1158,21 +1138,11 @@ def benchmark_searches(
     if ismcts_iterations <= 0 or alpha_nodes <= 0:
         raise SystemExit("Search budgets must be positive")
 
-    card_data = load_card_file(
-        ROOT / "cards" / "experiments" / "force-draw-cards.json"
-    )
+    card_data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (
-            ROOT
-            / "decks"
-            / "experiments"
-            / "force-rich-34-reference.json"
-        ).read_text(encoding="utf-8")
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
     )["cards"]
-    engine = GameEngine(
-        card_data,
-        rules=GameRules.force_candidate("automatic"),
-    )
+    engine = GameEngine(card_data, rules=GameRules.standard())
     state = engine.new_game(deck, deck, seed=26092334, first_player=0)
     priors = (
         HypothesisDeckPrior(
@@ -1264,21 +1234,11 @@ def benchmark_exploration_sweep(
     if not values or any(value < 0.0 for value in values):
         raise SystemExit("Exploration values must be non-negative")
 
-    card_data = load_card_file(
-        ROOT / "cards" / "experiments" / "force-draw-cards.json"
-    )
+    card_data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (
-            ROOT
-            / "decks"
-            / "experiments"
-            / "force-rich-34-reference.json"
-        ).read_text(encoding="utf-8")
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
     )["cards"]
-    engine = GameEngine(
-        card_data,
-        rules=GameRules.force_candidate("automatic"),
-    )
+    engine = GameEngine(card_data, rules=GameRules.standard())
     state = engine.new_game(deck, deck, seed=26092334, first_player=0)
     priors = (
         HypothesisDeckPrior(
