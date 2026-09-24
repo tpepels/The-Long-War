@@ -6,6 +6,7 @@ let referenceDeck = null;
 let cards = {};
 let state = null;
 let selectedCardId = null;
+let selectedHandIndex = null;
 let stagedPlotSource = null;
 let choiceActions = [];
 let mulliganSelection = new Set();
@@ -14,6 +15,16 @@ let aiStepTimer = null;
 let actionBannerTimer = null;
 let lastShownActionId = 0;
 let openingAnnouncementShown = false;
+let renderedState = null;
+let inspectorOrigin = null;
+let drawerOrigin = null;
+let activeDrawer = null;
+let aiDueAt = 0;
+let aiStepRunning = false;
+let sessionGeneration = 0;
+let busy = false;
+let handLayoutFrame = null;
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const moduleUrl = new URL(import.meta.url);
 const buildVersion = moduleUrl.searchParams.get("v") || "";
@@ -91,10 +102,6 @@ function formatGameText(value) {
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
-function plainGameText(value) {
-  return String(value ?? "").replace(/\*\*|\*/g, "");
-}
-
 function titleCase(value) {
   return String(value ?? "")
     .split(/[-_ ]+/)
@@ -118,16 +125,19 @@ function cardPropertyMarkup(card) {
 }
 
 async function request(payload) {
+  const requestedSession = session;
   // Yield once so busy/loading UI paints before the small synchronous rules step.
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   if (payload.type === "new_game") {
     if (!cardData || !referenceDeck) throw new Error("Game data is not loaded yet.");
+    sessionGeneration += 1;
     session?.destroy();
     session = new BrowserSession(cardData, referenceDeck, payload.mode, payload.seed);
     return session.snapshot(payload.mode === "hotseat" ? null : 0);
   }
   if (!session) throw new Error("Start a match first.");
+  if (session !== requestedSession) throw new Error("This match has ended.");
   if (payload.type === "view") return session.view(payload.viewer);
   if (payload.type === "act") return session.act(payload.key, payload.viewer);
   if (payload.type === "ai_step") return session.aiStep();
@@ -151,38 +161,6 @@ function cardType(card) {
   return card.type[0].toUpperCase() + card.type.slice(1);
 }
 
-function cardInitials(title) {
-  return title
-    .replace(/^(the|a|an)\s+/i, "")
-    .split(/\s+/)
-    .slice(0, 3)
-    .map((word) => word[0] || "")
-    .join("")
-    .toUpperCase();
-}
-
-function cardHash(value) {
-  let hash = 2166136261;
-  for (const char of value) {
-    hash ^= char.charCodeAt(0);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-function cardVisual(cardId, compact = false) {
-  const card = cards[cardId];
-  const hash = cardHash(cardId);
-  const mark = cardInitials(card.title);
-  const symbol = card.type === "plot"
-    ? (card.veiled ? "◐" : "⌁")
-    : { subject: "◆", link: "⛓", name: "✦", stratagem: "⚑" }[card.type] || "•";
-  return '<div class="play-card-art motif-' + (hash % 5) + (compact ? " compact" : "") + '">' +
-    '<span class="play-card-symbol">' + symbol + '</span>' +
-    '<b>' + esc(mark) + '</b>' +
-  '</div>';
-}
-
 function playCardMarkup(cardId, options = {}) {
   const card = cards[cardId];
   const count = options.count || 1;
@@ -204,9 +182,9 @@ function playCardMarkup(cardId, options = {}) {
   const footer = options.footer || "";
   const propertyMarkup = cardPropertyMarkup(card);
 
-  return '<button type="button" class="' + classes.filter(Boolean).join(" ") + '" data-card-id="' + esc(cardId) + '" ' + (options.attrs || "") + '>' +
+  return '<button type="button" class="' + classes.filter(Boolean).join(" ") + '" data-card-id="' + esc(cardId) + '" aria-label="' + esc(card.title) + '" ' + (options.attrs || "") + '>' +
     '<div class="play-card-meta"><span>' + esc(cardType(card)) + '</span>' + badge + '</div>' +
-    '<h3>' + esc(card.title) + '</h3>' +
+    '<h3 class="' + (card.title.length > 28 ? 'long-title' : '') + '">' + esc(card.title) + '</h3>' +
     '<div class="play-card-properties">' + propertyMarkup + '</div>' +
     strength +
     '<div class="play-card-rules">' +
@@ -300,18 +278,6 @@ function targetActionsForFront(front) {
   return selectedActions().filter((action) => action.kind === "PlayScheme" && action.front === front);
 }
 
-function cardTooltip(cardId) {
-  const card = cards[cardId];
-  if (!card) return "";
-  return [card.title, plainGameText(card.text || "")].filter(Boolean).join(" — ");
-}
-
-function component(cardId, cls) {
-  if (!cardId) return "";
-  return '<span class="legend-component ' + cls + '" title="' + esc(cardTooltip(cardId)) + '">' +
-    esc(cardTitle(cardId)) + "</span>";
-}
-
 function renderSlot(owner, front, rank) {
   const slot = boardSlot(owner, front, rank);
   const targetable = targetActionsForSlot(owner, front, rank).length > 0;
@@ -328,13 +294,14 @@ function renderSlot(owner, front, rank) {
   if (recentPosition) classes.push("recent-action");
 
   const attrs =
-    'data-board-owner="' + owner + '" data-board-front="' + front + '" data-board-rank="' + rank + '"';
+    'data-board-owner="' + owner + '" data-board-front="' + front + '" data-board-rank="' + rank + '"' +
+    (targetable ? ' role="button" tabindex="0" aria-label="Play ' + esc(cardTitle(selectedCardId)) + ' at ' + (owner === currentViewer() ? 'your ' : 'opponent ') + frontNames[front] + ' ' + rank + '"' : '');
 
   if (!hasFormation) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
       '<span class="empty-slot-mark">＋</span><span>' +
       (rank === "front" ? "Frontline" : "Rear") + '</span>' +
-      (targetable ? '<b class="legal-target-cue">PLAY HERE</b>' : '') +
+      (targetable ? '<b class="legal-target-cue">PLAY</b>' : '') +
       '</div>';
   }
 
@@ -350,7 +317,7 @@ function renderSlot(owner, front, rank) {
     '</div>' +
     '<span class="slot-strength' + (slot.subject ? '' : ' inactive') + '">' +
       (slot.subject ? slot.strength : "—") + '</span>' +
-    (targetable ? '<b class="legal-target-cue">PLAY HERE</b>' : '') +
+    (targetable ? '<b class="legal-target-cue">PLAY</b>' : '') +
   '</div>';
 }
 function renderScheme(owner, front) {
@@ -360,11 +327,13 @@ function renderScheme(owner, front) {
   if (targetable) classes.push("targetable");
   if (!scheme) classes.push("empty");
   if (scheme?.hidden) classes.push("hidden");
-  const attrs = 'data-scheme-owner="' + owner + '" data-scheme-front="' + front + '"';
+  else if (scheme && !scheme.revealed) classes.push("hidden", "known");
+  const attrs = 'data-scheme-owner="' + owner + '" data-scheme-front="' + front + '"' +
+    (targetable ? ' role="button" tabindex="0" aria-label="Set Veiled Story at ' + frontNames[front] + '"' : '');
 
   if (!scheme) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>' +
-      (targetable ? 'PLAY HERE' : 'empty') + '</b></div>';
+      (targetable ? 'PLAY' : 'empty') + '</b></div>';
   }
   if (scheme.hidden) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>face-down</b></div>';
@@ -378,6 +347,8 @@ function renderScheme(owner, front) {
 function renderStratagem(owner) {
   const stratagem = state.stratagems?.[owner] || null;
   const classes = ["stratagem-marker"];
+  const targetable = owner === currentViewer() && selectedActions().some((action) => action.kind === "SetStratagem");
+  if (targetable) classes.push("targetable");
   let title = "Stratagem";
   let label = "empty";
   if (stratagem?.hidden) {
@@ -391,7 +362,8 @@ function renderStratagem(owner) {
   const inspect = stratagem?.card_id && !stratagem.hidden
     ? ' data-inspect-card="' + esc(stratagem.card_id) + '" data-inspect-owner="' + owner + '" data-inspect-zone="stratagem"'
     : "";
-  return '<div class="' + classes.join(" ") + '"' + inspect + '><span>' + esc(title) + '</span><b>' + esc(label) + '</b></div>';
+  return '<div class="' + classes.join(" ") + '" data-stratagem-owner="' + owner + '"' +
+    (targetable ? ' role="button" tabindex="0" aria-label="Set your Stratagem"' : inspect ? ' role="button" tabindex="0" aria-label="Inspect Stratagem"' : '') + inspect + '><span>' + esc(title) + '</span><b>' + esc(label) + '</b></div>';
 }
 
 function controlClass(front, viewer) {
@@ -459,7 +431,7 @@ function renderBattlefield() {
     '</div>';
 
   bindBoardTargets();
-  bindCardInspectors();
+  bindCardInspectors($("battlefield"));
 }
 
 function victoryPips(count) {
@@ -513,7 +485,7 @@ function renderOpponentRack() {
   const ps = state.players[opponent];
   const handCount = ps.hand_count || 0;
 
-  $("opponent-label").textContent = "Player " + (opponent + 1) + (ps.passed ? " · PASSED" : "");
+  $("opponent-label").textContent = (state.mode === "hotseat" ? "Player " + (opponent + 1) : "Opponent") + " · " + handCount + " cards" + (ps.passed ? " · PASSED" : "");
 
   const visibleBacks = Math.min(handCount, 12);
   $("opponent-hand").innerHTML = Array.from({ length: visibleBacks }, (_, index) => {
@@ -526,15 +498,15 @@ function renderOpponentRack() {
   const discard = ps.discard || [];
   const topDiscard = discard.length ? cardTitle(discard[discard.length - 1]) : "Empty";
   $("opponent-piles").innerHTML =
-    '<div class="rack-pile deck-pile"><span>Deck</span><b>' + ps.deck_count + '</b></div>' +
-    '<div class="rack-pile discard-pile"><span>Discard</span><b>' + esc(topDiscard) + '</b><small>' + discard.length + ' cards</small></div>';
+    '<button type="button" class="rack-pile deck-pile" data-open-drawer="piles" data-pile-owner="' + opponent + '" aria-label="Opponent deck and discard"><span>Deck</span><b>' + ps.deck_count + '</b></button>' +
+    '<button type="button" class="rack-pile discard-pile" data-open-drawer="piles" data-pile-owner="' + opponent + '" aria-label="Opponent discard, ' + discard.length + ' cards"><span>Discard</span><b>' + discard.length + '</b><small>' + esc(topDiscard) + '</small></button>';
 
   const own = state.players[viewer];
   const ownDiscard = own.discard || [];
   const ownTopDiscard = ownDiscard.length ? cardTitle(ownDiscard[ownDiscard.length - 1]) : "Empty";
   $("player-piles").innerHTML =
-    '<div class="rack-pile deck-pile"><span>Deck</span><b>' + own.deck_count + '</b></div>' +
-    '<div class="rack-pile discard-pile"><span>Discard</span><b>' + esc(ownTopDiscard) + '</b><small>' + ownDiscard.length + ' cards</small></div>';
+    '<button type="button" class="rack-pile deck-pile" data-open-drawer="piles" data-pile-owner="' + viewer + '" aria-label="Your deck and discard"><span>Deck</span><b>' + own.deck_count + '</b></button>' +
+    '<button type="button" class="rack-pile discard-pile" data-open-drawer="piles" data-pile-owner="' + viewer + '" aria-label="Your discard, ' + ownDiscard.length + ' cards"><span>Discard</span><b>' + ownDiscard.length + '</b><small>' + esc(ownTopDiscard) + '</small></button>';
 }
 
 function renderPrivacy() {
@@ -551,6 +523,7 @@ function renderPrivacy() {
     (opening ? " for the opening mulligan." : ".") + "</p>" +
     '<button type="button" id="reveal-hand">Reveal Player ' + (state.active_player + 1) +
     (opening ? " opening hand" : " hand") + "</button>";
+  $("reveal-hand").focus();
   $("reveal-hand").addEventListener("click", async () => {
     await runBusy(async () => {
       state = await request({ type: "view", viewer: state.active_player });
@@ -561,16 +534,18 @@ function renderPrivacy() {
 
 function clearSelection() {
   selectedCardId = null;
+  selectedHandIndex = null;
   stagedPlotSource = null;
   choiceActions = [];
   mulliganSelection = new Set();
 }
 
-function selectCard(cardId) {
-  if (selectedCardId === cardId) {
+function selectCard(cardId, index) {
+  if (selectedCardId === cardId && selectedHandIndex === index) {
     clearSelection();
   } else {
     selectedCardId = cardId;
+    selectedHandIndex = index;
     stagedPlotSource = null;
     choiceActions = [];
   }
@@ -580,16 +555,16 @@ function selectCard(cardId) {
 function interactionHintFor(card) {
   const actions = selectedActions();
   if (!actions.length) return "No legal play for this card right now.";
-  if (actions.some((a) => a.kind === "PlaySubject")) return "Choose a position without a Subject. Prepared Bond or Name cards may already be there.";
-  if (actions.some((a) => a.kind === "PlayLink")) return "Choose a position without a Bond. It may be prepared before the Subject.";
-  if (actions.some((a) => a.kind === "PlayName")) return "Choose a position without a Name. It may be prepared before the Subject or Bond; movement is offered only when a Subject is already there.";
-  if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Front to set this Veiled Story face-down.";
-  if (actions.some((a) => a.kind === "SetStratagem")) return "Set this face-down in your Stratagem space, then take your normal action.";
+  if (actions.some((a) => a.kind === "PlaySubject")) return "Choose a highlighted formation.";
+  if (actions.some((a) => a.kind === "PlayLink")) return "Choose a formation for this Bond.";
+  if (actions.some((a) => a.kind === "PlayName")) return "Choose a formation for this Name.";
+  if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Veiled Story space.";
+  if (actions.some((a) => a.kind === "SetStratagem")) return "Choose your Stratagem space. This is a free action.";
   if (actions.some((a) => a.kind === "PlayPlot")) {
     if (stagedPlotSource) return "Now choose the destination for " + card.title + ".";
     return actions.some((a) => a.targets.length === 2)
-      ? "Choose the first target; the legal destinations will then light up."
-      : "Choose a highlighted target on the battlefield.";
+      ? "Choose the first highlighted target."
+      : "Choose a highlighted target.";
   }
   return "Choose a legal action.";
 }
@@ -606,7 +581,7 @@ function renderInteraction() {
       hint.textContent = "Pass the device, then reveal the next player's opening hand.";
     } else {
       title.textContent = "Mulligan";
-      hint.textContent = "Select up to two cards to shuffle back. You draw the same number of replacements.";
+      hint.textContent = "Return up to two cards, or keep your hand.";
     }
     cancel.hidden = true;
     tray.hidden = true;
@@ -631,7 +606,7 @@ function renderInteraction() {
 
   if (state.needs_ai) {
     title.textContent = "Opponent’s turn";
-    hint.textContent = "Watch the battlefield: the opponent’s action will resolve before your next turn.";
+    hint.textContent = "Thinking…";
     cancel.hidden = true;
     tray.hidden = true;
     return;
@@ -643,16 +618,14 @@ function renderInteraction() {
       title.textContent = "Choose who starts the next Battle";
       hint.textContent = "The loser of the previous Battle chooses the first player.";
     } else {
-      title.textContent = "Choose a card";
-      hint.textContent = "Play a card, Draw 1 once this Battle, or Pass. Legal destinations highlight when you select a card.";
+      title.textContent = "Your turn";
+      hint.textContent = "Select a card · Draw · Pass";
     }
     cancel.hidden = true;
   } else {
     const card = cards[selectedCardId];
     title.textContent = card.title;
     let message = interactionHintFor(card);
-    const reason = selectedActions()[0]?.reason;
-    if (reason) message += " " + reason;
     hint.textContent = message;
     cancel.hidden = false;
   }
@@ -673,8 +646,7 @@ function renderChoiceTray() {
   let actions = choiceActions;
   if (!actions.length && selectedCardId) {
     const direct = selectedActions().filter((a) =>
-      (a.kind === "PlayPlot" && a.targets.length === 0) ||
-      a.kind === "SetStratagem"
+      (a.kind === "PlayPlot" && a.targets.length === 0)
     );
     if (direct.length === 1) actions = direct;
   }
@@ -699,6 +671,7 @@ function renderChoiceTray() {
 function renderHand() {
   const hand = $("hand");
   const actions = $("turn-actions");
+  hand.classList.toggle("mulligan-hand", state.phase === "mulligan");
   if (state.viewer == null || state.phase === "complete") {
     hand.innerHTML = "";
     actions.innerHTML = "";
@@ -707,7 +680,7 @@ function renderHand() {
 
   if (state.phase === "mulligan") {
     $("hand-title").textContent =
-      "Player " + (state.viewer + 1) + " opening hand · choose up to " + state.mulligan_limit;
+      "Opening hand · " + state.hand.length + " cards";
 
     const totals = new Map();
     for (const cardId of state.hand) totals.set(cardId, (totals.get(cardId) || 0) + 1);
@@ -722,12 +695,13 @@ function renderHand() {
         selected,
         mulligan: true,
         copyLabel: total > 1 ? ordinal + "/" + total : "",
-        attrs: 'data-mulligan-index="' + index + '"',
+        attrs: 'data-mulligan-index="' + index + '" aria-pressed="' + selected + '"',
         footer: selected ? "REDRAW THIS CARD" : "KEEP",
       });
     }).join("");
 
     hand.querySelectorAll("[data-mulligan-index]").forEach((cardEl) => {
+      bindHandInspection(cardEl, state.hand[Number(cardEl.dataset.mulliganIndex)], "opening hand");
       cardEl.addEventListener("click", () => {
         const index = Number(cardEl.dataset.mulliganIndex);
         if (mulliganSelection.has(index)) {
@@ -735,8 +709,10 @@ function renderHand() {
         } else if (mulliganSelection.size < state.mulligan_limit) {
           mulliganSelection.add(index);
         }
+        const focus = focusIdentity();
         renderHand();
         renderInteraction();
+        restoreFocus(focus);
       });
     });
 
@@ -744,30 +720,26 @@ function renderHand() {
     actions.innerHTML =
       '<div class="mulligan-action-copy">' +
         '<strong>' + (count ? count + " selected" : "No cards selected") + '</strong>' +
-        '<span>' + (count ? "These cards will be shuffled back and replaced." : "Keep all 10 cards and begin the Battle.") + '</span>' +
+        '<span>' + (count ? "These cards will be shuffled back and replaced." : "Your opening hand is ready.") + '</span>' +
       '</div>' +
       '<button type="button" class="initiative-button mulligan-confirm" id="confirm-mulligan">' +
-      (count ? "Redraw " + count + " selected" : "Keep all 10") +
+      (count ? "Redraw " + count + " selected" : "Keep hand") +
       "</button>";
     $("confirm-mulligan").addEventListener("click", submitMulligan);
+    layoutHand();
     window.CardLayoutGuard?.schedule(hand);
     return;
   }
 
-  $("hand-title").textContent = "Player " + (state.viewer + 1) + " hand · " + state.hand.length + " cards";
-  const handCount = state.hand.length;
-  const center = (handCount - 1) / 2;
+  $("hand-title").textContent = (state.mode === "hotseat" ? "Player " + (state.viewer + 1) : "Your hand") + " · " + state.hand.length;
 
   hand.innerHTML = state.hand.map((cardId, index) => {
     const playable = state.legal_actions.some((action) => action.card_id === cardId);
-    const rotation = (index - center) * Math.min(1.45, 11 / Math.max(1, handCount));
-    const offset = Math.abs(index - center) * 1.25;
     return playCardMarkup(cardId, {
       playable,
-      selected: selectedCardId === cardId,
-      attrs: 'data-hand-card="' + esc(cardId) + '" draggable="' + playable +
-        '" style="--fan-rot:' + rotation + 'deg;--fan-y:' + offset + 'px"',
-      footer: playable ? "SELECT TO PLAY · CLICK AGAIN TO READ" : "CLICK TO READ",
+      selected: selectedCardId === cardId && selectedHandIndex === index,
+      attrs: 'data-hand-card="' + esc(cardId) + '" data-hand-index="' + index + '" aria-pressed="' + (selectedCardId === cardId && selectedHandIndex === index) + '"',
+      footer: playable ? "SELECT · CLICK AGAIN TO INSPECT" : "INSPECT",
     });
   }).join("");
 
@@ -775,25 +747,13 @@ function renderHand() {
     const cardId = cardEl.dataset.handCard;
     cardEl.addEventListener("click", () => {
       const playable = state.legal_actions.some((a) => a.card_id === cardId);
-      if (!playable || selectedCardId === cardId) {
+      if (!playable || (selectedCardId === cardId && selectedHandIndex === Number(cardEl.dataset.handIndex))) {
         openCardInspector(cardId, currentViewer(), "hand");
         return;
       }
-      selectCard(cardId);
+      selectCard(cardId, Number(cardEl.dataset.handIndex));
     });
-    cardEl.addEventListener("dragstart", (event) => {
-      if (!state.legal_actions.some((a) => a.card_id === cardId)) {
-        event.preventDefault();
-        return;
-      }
-      selectedCardId = cardId;
-      stagedPlotSource = null;
-      choiceActions = [];
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", cardId);
-      syncTargetClasses();
-      renderInteraction();
-    });
+    bindHandInspection(cardEl, cardId);
   });
 
   const chooseActions = state.legal_actions.filter((a) => a.kind === "ChooseFirst");
@@ -807,8 +767,49 @@ function renderHand() {
       if (action) executeAction(action);
     });
   });
+  layoutHand();
   window.CardLayoutGuard?.schedule(hand);
 }
+
+function bindHandInspection(cardEl, cardId, zone = "hand") {
+  cardEl.setAttribute("aria-keyshortcuts", "I Shift+F10");
+  cardEl.setAttribute("aria-description", "Press I or right-click to inspect this card.");
+  const inspect = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    openCardInspector(cardId, currentViewer(), zone);
+  };
+  cardEl.addEventListener("contextmenu", inspect);
+  cardEl.addEventListener("keydown", (event) => {
+    if ((!event.ctrlKey && !event.metaKey && !event.altKey && event.key.toLowerCase() === "i") || event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) inspect(event);
+  });
+}
+
+function layoutHand() {
+  const hand = $("hand");
+  // Commit the fan as one layout, before restoring hover/selection transitions.
+  // Newly rendered cards must not animate out of a temporary stack at center.
+  cancelAnimationFrame(handLayoutFrame);
+  hand.classList.add("laying-out");
+  const elements = [...hand.querySelectorAll(".play-card")];
+  const scale = Math.min(.78, Math.max(.42, (hand.clientHeight - 24) / 286));
+  const spread = Math.max(0, Math.min(110 * scale, (hand.clientWidth - 204 * scale - 44) / Math.max(1, elements.length - 1)));
+  const middle = (elements.length - 1) / 2;
+  elements.forEach((el, index) => {
+    const t = middle ? (index - middle) / middle : 0;
+    el.style.setProperty("--fan-x", ((index - middle) * spread) + "px");
+    el.style.setProperty("--fan-y", (Math.abs(t) * 10) + "px");
+    el.style.setProperty("--fan-rot", (t * 5) + "deg");
+    el.style.setProperty("--fan-scale", String(scale));
+    el.style.setProperty("--fan-order", String(index + 1));
+  });
+  void hand.offsetHeight;
+  handLayoutFrame = requestAnimationFrame(() => {
+    hand.classList.remove("laying-out");
+    handLayoutFrame = null;
+  });
+}
+
 function renderPublicZones() {
   if (state.phase === "mulligan") {
     $("public-zones").innerHTML = "";
@@ -819,13 +820,14 @@ function renderPublicZones() {
   $("public-zones").innerHTML = order.map((player) => {
     const ps = state.players[player];
     const discard = [...ps.discard].reverse();
-    return '<details class="public-zone"><summary>Player ' + (player + 1) +
+    return '<details class="public-zone" data-public-owner="' + player + '"><summary>Player ' + (player + 1) +
       " · deck " + ps.deck_count + " · discard " + discard.length +
       (ps.passed ? " · PASSED" : "") + "</summary>" +
       '<div class="discard-list">' +
-      (discard.length ? discard.map((id) => "<span>" + esc(cardTitle(id)) + "</span>").join("") : "<span>Empty discard</span>") +
+      (discard.length ? discard.map((id) => '<button type="button" class="public-card-link" data-inspect-card="' + esc(id) + '" data-inspect-owner="' + player + '" data-inspect-zone="discard">' + esc(cardTitle(id)) + "</button>").join("") : "<span>Empty discard</span>") +
       "</div></details>";
   }).join("");
+  bindCardInspectors($("public-zones"));
 }
 
 function renderHistory() {
@@ -838,12 +840,15 @@ function closeCardInspector() {
   inspector.hidden = true;
   inspector.setAttribute("aria-hidden", "true");
   $("card-inspector-card").innerHTML = "";
+  restoreFocus(inspectorOrigin);
+  inspectorOrigin = null;
 }
 
 function openCardInspector(cardId, owner, zone = "card") {
   const card = cards[cardId];
   if (!card) return;
   const inspector = $("card-inspector");
+  if (inspector.hidden) inspectorOrigin = focusIdentity();
   const ownerLabel = owner === currentViewer() ? "Your" : "Opponent's";
   $("card-inspector-context").textContent = ownerLabel + " " + zone;
   $("card-inspector-title").textContent = card.title;
@@ -856,10 +861,16 @@ function openCardInspector(cardId, owner, zone = "card") {
   $("card-inspector-close").focus();
 }
 
-function bindCardInspectors() {
-  document.querySelectorAll("[data-inspect-card]").forEach((el) => {
+function bindCardInspectors(root = document) {
+  root.querySelectorAll("[data-inspect-card]").forEach((el) => {
+    if (el.tagName !== "BUTTON") el.addEventListener("keydown", (event) => {
+      if (!el.classList.contains("targetable") && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        el.click();
+      }
+    });
     el.addEventListener("click", (event) => {
-      if (selectedCardId && el.closest(".digital-slot")) return;
+      if (selectedCardId && el.closest(".targetable")) return;
       event.preventDefault();
       event.stopPropagation();
       openCardInspector(
@@ -871,35 +882,31 @@ function bindCardInspectors() {
   });
 }
 
+function bindTarget(el, activate) {
+  el.addEventListener("click", activate);
+  el.addEventListener("keydown", (event) => {
+    if (event.target !== el || !el.classList.contains("targetable")) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      activate();
+    }
+  });
+}
+
 function bindBoardTargets() {
   document.querySelectorAll("[data-board-owner]").forEach((el) => {
-    const owner = Number(el.dataset.boardOwner);
-    const front = Number(el.dataset.boardFront);
-    const rank = el.dataset.boardRank;
-    el.addEventListener("click", () => handleBoardTarget(owner, front, rank));
-    el.addEventListener("dragover", (event) => {
-      if (targetActionsForSlot(owner, front, rank).length) {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
-      }
-    });
-    el.addEventListener("drop", (event) => {
-      event.preventDefault();
-      handleBoardTarget(owner, front, rank);
-    });
+    bindTarget(el, () => handleBoardTarget(Number(el.dataset.boardOwner), Number(el.dataset.boardFront), el.dataset.boardRank));
   });
   document.querySelectorAll("[data-scheme-front]").forEach((el) => {
-    const owner = Number(el.dataset.schemeOwner);
-    const front = Number(el.dataset.schemeFront);
-    el.addEventListener("click", () => {
-      if (owner === currentViewer()) handleFrontTarget(front);
+    bindTarget(el, () => {
+      if (Number(el.dataset.schemeOwner) === currentViewer()) handleFrontTarget(Number(el.dataset.schemeFront));
     });
-    el.addEventListener("dragover", (event) => {
-      if (owner === currentViewer() && targetActionsForFront(front).length) event.preventDefault();
-    });
-    el.addEventListener("drop", (event) => {
-      event.preventDefault();
-      if (owner === currentViewer()) handleFrontTarget(front);
+  });
+  document.querySelectorAll("[data-stratagem-owner]").forEach((el) => {
+    bindTarget(el, () => {
+      if (Number(el.dataset.stratagemOwner) !== currentViewer()) return;
+      const action = selectedActions().find((candidate) => candidate.kind === "SetStratagem");
+      if (action) executeAction(action);
     });
   });
 }
@@ -923,6 +930,7 @@ function handleBoardTarget(owner, front, rank) {
   } else if (matches.length > 1) {
     choiceActions = matches;
     renderChoiceTray();
+    $("choice-tray").querySelector("button")?.focus();
   }
 }
 
@@ -930,28 +938,15 @@ function handleFrontTarget(front) {
   if (!selectedCardId) return;
   const matches = targetActionsForFront(front);
   if (matches.length === 1) executeAction(matches[0]);
-  else if (matches.length > 1) { choiceActions = matches; renderChoiceTray(); }
-}
-
-function syncTargetClasses() {
-  document.querySelectorAll("[data-board-owner]").forEach((el) => {
-    const owner = Number(el.dataset.boardOwner);
-    const front = Number(el.dataset.boardFront);
-    const rank = el.dataset.boardRank;
-    el.classList.toggle("targetable", targetActionsForSlot(owner, front, rank).length > 0);
-    el.classList.toggle("staged-source", !!stagedPlotSource && locEquals(stagedPlotSource, owner, front, rank));
-  });
-  document.querySelectorAll("[data-scheme-front]").forEach((el) => {
-    const owner = Number(el.dataset.schemeOwner);
-    const front = Number(el.dataset.schemeFront);
-    el.classList.toggle("targetable", owner === currentViewer() && targetActionsForFront(front).length > 0);
-  });
+  else if (matches.length > 1) { choiceActions = matches; renderChoiceTray(); $("choice-tray").querySelector("button")?.focus(); }
 }
 
 function renderInteractiveState() {
+  const focus = focusIdentity();
   renderBattlefield();
   renderHand();
   renderInteraction();
+  restoreFocus(focus);
 }
 
 function updateGameStatus() {
@@ -976,8 +971,27 @@ function updateGameStatus() {
     (state.mode === "hotseat" ? "Player " + (state.active_player + 1) : "Your turn");
 }
 
-function renderActionFeedback() {
+function showActionBanner(kicker, title, detail = "") {
   const banner = $("action-banner");
+  $("action-banner-kicker").textContent = kicker;
+  $("action-banner-title").textContent = title;
+  $("action-banner-detail").textContent = detail;
+  banner.hidden = false;
+  banner.classList.add("show");
+  clearTimeout(actionBannerTimer);
+  actionBannerTimer = setTimeout(() => { banner.classList.remove("show"); banner.hidden = true; }, 1800);
+}
+
+function renderActionFeedback() {
+  if (renderedState && renderedState.battle !== state.battle && state.phase !== "complete") {
+    lastShownActionId = state.last_action?.id || lastShownActionId;
+    const victor = state.players.findIndex((player, index) => player.victories > renderedState.players[index].victories);
+    const result = victor < 0 ? "A drawn Battle" : state.mode === "hotseat"
+      ? "Player " + (victor + 1) + " gains a Victory"
+      : victor === currentViewer() ? "You gain a Victory" : "Opponent gains a Victory";
+    showActionBanner("BATTLE " + renderedState.battle + " RESOLVED", result, "Battle " + state.battle + " begins");
+    return;
+  }
 
   if (
     !openingAnnouncementShown &&
@@ -986,19 +1000,7 @@ function renderActionFeedback() {
   ) {
     openingAnnouncementShown = true;
     const own = state.opening_player === state.viewer;
-    $("action-banner-kicker").textContent = own ? "YOU GO FIRST" : "OPPONENT GOES FIRST";
-    $("action-banner-title").textContent = "+1 opening card";
-    $("action-banner-detail").textContent =
-      "The Battle I starter draws one additional card after mulligans.";
-    banner.hidden = false;
-    banner.classList.remove("show");
-    void banner.offsetWidth;
-    banner.classList.add("show");
-    clearTimeout(actionBannerTimer);
-    actionBannerTimer = setTimeout(() => {
-      banner.classList.remove("show");
-      setTimeout(() => { banner.hidden = true; }, 180);
-    }, 1800);
+    showActionBanner(own ? "YOU GO FIRST" : "OPPONENT GOES FIRST", "+1 opening card");
     return;
   }
 
@@ -1032,55 +1034,51 @@ function renderActionFeedback() {
     if (!card) title = "Face-down card";
   }
 
-  $("action-banner-kicker").textContent = kicker;
-  $("action-banner-title").textContent = title;
-  $("action-banner-detail").textContent = action.label || "";
-  banner.hidden = false;
-  banner.classList.remove("show");
-  void banner.offsetWidth;
-  banner.classList.add("show");
-
-  clearTimeout(actionBannerTimer);
-  actionBannerTimer = setTimeout(() => {
-    banner.classList.remove("show");
-    setTimeout(() => { banner.hidden = true; }, 180);
-  }, 1800);
+  showActionBanner(kicker, title, action.label || "");
 }
 
 function cancelAiStep() {
-  if (aiStepTimer) clearTimeout(aiStepTimer);
+  clearTimeout(aiStepTimer);
   aiStepTimer = null;
+  aiDueAt = 0;
   document.body.classList.remove("ai-waiting", "ai-resolving");
 }
 
-function scheduleAiStep(delay = 2000) {
+async function resolveAiStep() {
+  clearTimeout(aiStepTimer);
+  aiStepTimer = null;
+  aiDueAt = 0;
+  if (!state?.needs_ai || state.phase === "complete" || aiStepRunning) return;
+  aiStepRunning = true;
+  const generation = sessionGeneration;
+  document.body.classList.remove("ai-waiting");
+  document.body.classList.add("ai-resolving");
+  try {
+    const next = await request({ type: "ai_step" });
+    if (generation !== sessionGeneration || !state) return;
+    state = next;
+    clearSelection();
+    render();
+    if (state.needs_ai) scheduleAiStep(1100);
+  } catch (error) {
+    if (generation !== sessionGeneration || !state) return;
+    $("engine-status").textContent = "Opponent action failed";
+    $("interaction-hint").textContent = error.message;
+    $("interaction-strip").classList.add("interaction-error");
+    console.error("[play]", error);
+  } finally {
+    aiStepRunning = false;
+    document.body.classList.remove("ai-resolving");
+  }
+}
+
+function scheduleAiStep(delay = 650) {
   cancelAiStep();
   if (!state?.needs_ai || state.phase === "complete") return;
   document.body.classList.add("ai-waiting");
   updateGameStatus();
-
-  aiStepTimer = setTimeout(async () => {
-    aiStepTimer = null;
-    if (!state?.needs_ai || state.phase === "complete") {
-      document.body.classList.remove("ai-waiting");
-      return;
-    }
-    document.body.classList.remove("ai-waiting");
-    document.body.classList.add("ai-resolving");
-    try {
-      state = await request({ type: "ai_step" });
-      clearSelection();
-      render();
-      if (state.needs_ai) scheduleAiStep(1950);
-    } catch (error) {
-      $("engine-status").textContent = "Opponent action failed";
-      $("interaction-hint").textContent = error.message;
-      $("interaction-strip").classList.add("interaction-error");
-      console.error("[play]", error);
-    } finally {
-      document.body.classList.remove("ai-resolving");
-    }
-  }, delay);
+  aiDueAt = performance.now() + delay;
+  aiStepTimer = setTimeout(resolveAiStep, delay);
 }
 
 async function submitMulligan() {
@@ -1099,7 +1097,7 @@ async function submitMulligan() {
 }
 
 async function executeAction(action) {
-  if (!action || state.viewer == null || state.needs_ai) return;
+  if (!action || busy || state.viewer == null || state.needs_ai) return;
   await runBusy(async () => {
     state = await request({ type: "act", key: action.key, viewer: state.viewer });
     clearSelection();
@@ -1109,7 +1107,12 @@ async function executeAction(action) {
 }
 
 function render() {
+  const previous = renderedState;
+  if (previous && previous.viewer !== state.viewer) closeCardInspector();
+  const anchors = captureCardAnchors(previous);
   $("game").hidden = false;
+  document.body.classList.add("match-active");
+  $("game").dataset.phase = state.phase;
   renderStrip();
   renderOpponentRack();
   renderPrivacy();
@@ -1120,14 +1123,14 @@ function render() {
   renderHistory();
   renderActionFeedback();
   updateGameStatus();
-  if (state.phase === "complete") {
-    cancelAiStep();
-    $("privacy-gate").hidden = false;
-    $("privacy-gate").innerHTML = "<p><strong>Player " + (state.winner + 1) + " wins the match.</strong></p>";
-  }
+  renderMatchResult();
+  animateSnapshot(previous, anchors);
+  renderedState = state;
 }
 
 async function runBusy(fn) {
+  if (busy) return;
+  busy = true;
   document.body.classList.add("is-busy");
   try {
     await fn();
@@ -1139,6 +1142,7 @@ async function runBusy(fn) {
     if (!state) $("setup-note").textContent = error.message;
     console.error("[play]", error);
   } finally {
+    busy = false;
     document.body.classList.remove("is-busy");
     updateGameStatus();
   }
@@ -1185,21 +1189,34 @@ $("new-game-form").addEventListener("submit", async (event) => {
     $("play-setup").hidden = true;
     render();
   });
+  scheduleAiStep();
 });
 
-$("restart").addEventListener("click", () => {
+function restartMatch() {
+  if (busy) return;
   closeCardInspector();
   cancelAiStep();
   clearTimeout(actionBannerTimer);
   lastShownActionId = 0;
   openingAnnouncementShown = false;
   $("action-banner").hidden = true;
+  sessionGeneration += 1;
   state = null;
+  renderedState = null;
+  session?.destroy();
+  session = null;
+  closeDrawer(false);
+  document.body.classList.remove("match-active");
+  if ($("match-result")) $("match-result").hidden = true;
   clearSelection();
   $("game").hidden = true;
   $("play-setup").hidden = false;
   randomizeSeed();
-});
+  $("start-game").focus();
+}
+
+$("restart").addEventListener("click", restartMatch);
+$("play-again")?.addEventListener("click", restartMatch);
 
 $("cancel-selection").addEventListener("click", () => {
   clearSelection();
@@ -1262,31 +1279,223 @@ document.addEventListener("focusout", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !$("card-inspector").hidden) {
-    closeCardInspector();
-    return;
-  }
-  if (!state || state.viewer == null || state.phase === "complete") return;
-  if (state.phase === "mulligan") {
-    if (event.key === "Escape") {
-      mulliganSelection = new Set();
-      renderHand();
-      renderInteraction();
-    }
-    return;
-  }
   if (event.key === "Escape") {
-    clearSelection();
-    renderInteractiveState();
+    event.preventDefault();
+    if (!$("card-inspector").hidden) closeCardInspector();
+    else if (activeDrawer) closeDrawer();
+    else if (state && (selectedCardId || mulliganSelection.size)) {
+      clearSelection();
+      renderInteractiveState();
+    }
+    hideTermHint();
+    return;
   }
-  if ((event.key === "d" || event.key === "D") && !event.metaKey && !event.ctrlKey) {
+  const overlay = !$("card-inspector").hidden ? $("card-inspector") : activeDrawer ? $("game-drawer") : $("match-result") && !$("match-result").hidden ? $("match-result") : state?.needs_reveal ? $("privacy-gate") : null;
+  if (overlay) {
+    trapFocus(event, overlay);
+    return;
+  }
+  if (event.ctrlKey || event.metaKey || event.altKey || /INPUT|SELECT|TEXTAREA/.test(event.target.tagName)) return;
+  if (event.key.toLowerCase() === "f") {
+    event.preventDefault();
+    toggleFullscreen();
+    return;
+  }
+  if (!state || state.viewer == null || state.phase !== "battle") return;
+  if (event.key.toLowerCase() === "d") {
     const draw = actionForDraw();
     if (draw) executeAction(draw);
   }
-  if ((event.key === "p" || event.key === "P") && !event.metaKey && !event.ctrlKey) {
+  if (event.key.toLowerCase() === "p") {
     const pass = actionForPass();
     if (pass) executeAction(pass);
   }
 });
+
+// Focus survives snapshot-driven DOM replacement, without retaining hidden cards.
+function focusIdentity() {
+  const el = document.activeElement;
+  if (!el || el === document.body) return null;
+  const names = ["hand-index", "mulligan-index", "inspect-card", "inspect-owner", "inspect-zone", "board-owner", "board-front", "board-rank", "scheme-owner", "scheme-front", "stratagem-owner"];
+  if (el.id) return { id: el.id };
+  const attrs = names.filter((name) => el.hasAttribute("data-" + name)).map((name) => ["data-" + name, el.getAttribute("data-" + name)]);
+  return { el, attrs };
+}
+
+function restoreFocus(identity) {
+  if (!identity) return;
+  let el = identity.id ? $(identity.id) : identity.el?.isConnected ? identity.el : null;
+  if (!el && identity.attrs?.length) {
+    el = document.querySelector(identity.attrs.map(([name, value]) => "[" + name + '="' + CSS.escape(value) + '"]').join(""));
+  }
+  if (el && !el.closest("[hidden]")) el.focus({ preventScroll: true });
+}
+
+function trapFocus(event, overlay) {
+  if (event.key !== "Tab") return;
+  const elements = [...overlay.querySelectorAll('button:not([disabled]), a[href], input, select, [tabindex="0"]')].filter((el) => !el.closest("[hidden]") && el.getClientRects().length);
+  const first = elements[0];
+  const last = elements.at(-1);
+  if (!first) return;
+  if (!overlay.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
+  else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+}
+
+function openDrawer(name, owner = null) {
+  const drawer = $("game-drawer");
+  if (!drawer) return;
+  if (!activeDrawer) drawerOrigin = focusIdentity();
+  activeDrawer = name;
+  drawer.hidden = false;
+  $("drawer-title").textContent = { menu: "Game menu", rules: "How to play", log: "Battle log", piles: "Decks & discards" }[name] || "Game menu";
+  drawer.querySelectorAll("[data-drawer-content]").forEach((section) => { section.hidden = section.dataset.drawerContent !== name; });
+  if (name === "piles" && owner !== null) drawer.querySelectorAll("[data-public-owner]").forEach((zone) => { zone.open = Number(zone.dataset.publicOwner) === Number(owner); });
+  $("drawer-close").focus();
+}
+
+function closeDrawer(restore = true) {
+  const drawer = $("game-drawer");
+  if (!drawer) return;
+  drawer.hidden = true;
+  activeDrawer = null;
+  if (restore) restoreFocus(drawerOrigin);
+  drawerOrigin = null;
+}
+
+document.addEventListener("click", (event) => {
+  const open = event.target.closest("[data-open-drawer]");
+  if (open) openDrawer(open.dataset.openDrawer, open.dataset.pileOwner ?? null);
+  if (event.target.closest("[data-drawer-close]")) closeDrawer();
+});
+$("drawer-close")?.addEventListener("click", () => closeDrawer());
+
+async function toggleFullscreen() {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch { /* The browser may disallow fullscreen in embedded previews. */ }
+}
+$("fullscreen-button")?.addEventListener("click", toggleFullscreen);
+window.addEventListener("resize", layoutHand);
+
+function renderMatchResult() {
+  const result = $("match-result");
+  if (!result) return;
+  const complete = state.phase === "complete";
+  const wasHidden = result.hidden;
+  result.hidden = !complete;
+  if (!complete) return;
+  cancelAiStep();
+  $("privacy-gate").hidden = true;
+  $("result-title").textContent = state.mode === "hotseat" ? "Player " + (state.winner + 1) + " wins" : state.winner === currentViewer() ? "Victory" : "Defeat";
+  $("result-detail").textContent = state.players.map((player) => player.victories).join(" — ") + " · A war decided in " + state.battle + " Battles";
+  if (wasHidden) $("play-again")?.focus();
+}
+
+function pileNode(owner, kind) {
+  return document.querySelector((owner === currentViewer() ? "#player-piles" : "#opponent-piles") + " ." + kind + "-pile");
+}
+
+function captureCardAnchors(snapshot) {
+  if (!snapshot) return [];
+  const anchors = [];
+  document.querySelectorAll("#hand [data-card-id], #battlefield [data-inspect-card]").forEach((node) => {
+    const slot = node.closest("[data-board-owner]");
+    const scheme = node.closest("[data-scheme-front]");
+    const stratagem = node.closest("[data-stratagem-owner]");
+    const owner = node.closest("#hand") ? snapshot.viewer : Number(node.dataset.inspectOwner);
+    const zone = slot ? `slot:${slot.dataset.boardFront}:${slot.dataset.boardRank}:${node.dataset.inspectZone}` : scheme ? "scheme:" + scheme.dataset.schemeFront : stratagem ? "stratagem" : "hand";
+    anchors.push({ owner, zone, cardId: node.dataset.cardId || node.dataset.inspectCard, node, rect: node.getBoundingClientRect() });
+  });
+  return anchors;
+}
+
+function flyCard(from, destination, face = null) {
+  if (!from || !destination || reducedMotion.matches) return;
+  const start = from.rect || from.getBoundingClientRect();
+  const end = destination.rect || destination.getBoundingClientRect();
+  if (!start.width || !end.width) return;
+  const ghost = document.createElement("div");
+  ghost.className = "card-flight";
+  ghost.setAttribute("aria-hidden", "true");
+  Object.assign(ghost.style, { position: "fixed", left: start.left + "px", top: start.top + "px", width: start.width + "px", height: start.height + "px", pointerEvents: "none", zIndex: "80", borderRadius: "7px", overflow: "hidden", background: "#263b37", border: "1px solid #c0a878", display: "grid", placeItems: "center", color: "#f1e2be", font: "600 13px Georgia,serif", padding: "8px", textAlign: "center" });
+  ghost.textContent = face ? cardTitle(face) : "✦";
+  document.body.append(ghost);
+  const animation = ghost.animate([
+    { transform: "translate(0,0) rotate(-3deg)", opacity: .94 },
+    { transform: `translate(${end.left - start.left}px,${end.top - start.top}px) scale(${end.width / start.width},${end.height / start.height}) rotate(0deg)`, opacity: .78 }
+  ], { duration: 420, easing: "cubic-bezier(.22,.72,.2,1)", fill: "forwards" });
+  animation.finished.catch(() => {}).finally(() => ghost.remove());
+}
+
+// Motion compares visible authoritative snapshots. It never predicts rule results.
+function animateSnapshot(previous, before) {
+  if (!previous || reducedMotion.matches || previous.viewer !== state.viewer || previous.phase === "mulligan") return;
+  if (previous.last_action?.id === state.last_action?.id && previous.battle === state.battle) return;
+  const after = captureCardAnchors(state);
+  const unused = new Set(after);
+  const removed = [];
+  for (const old of before) {
+    const same = [...unused].find((next) => next.owner === old.owner && next.cardId === old.cardId && next.zone === old.zone);
+    if (same) unused.delete(same);
+    else removed.push(old);
+  }
+  for (const old of removed) {
+    const moved = [...unused].find((next) => next.owner === old.owner && next.cardId === old.cardId);
+    if (moved) { unused.delete(moved); flyCard(old, moved, old.cardId); }
+    else {
+      const handGrew = state.players[old.owner].hand_count > previous.players[old.owner].hand_count;
+      const discardGrew = state.players[old.owner].discard.length > previous.players[old.owner].discard.length;
+      flyCard(old, handGrew && !discardGrew && old.owner !== currentViewer() ? $("opponent-hand") : pileNode(old.owner, "discard"), old.cardId);
+    }
+  }
+  for (const added of unused) {
+    const revealed = state.last_action?.events?.some((event) => event.card_id === added.cardId && event.owner === added.owner);
+    const origin = added.zone === "hand" ? pileNode(added.owner, "deck") : added.owner !== currentViewer() ? $("opponent-hand") : $("hand");
+    if (!revealed) flyCard(origin, added, added.cardId);
+    added.node.animate([{ opacity: .2 }, { opacity: 1 }], { duration: 450 });
+  }
+  const action = state.last_action;
+  if (action?.actor !== currentViewer() && action?.kind === "Draw") flyCard(pileNode(action.actor, "deck"), $("opponent-hand"));
+  if (action?.kind === "PlayScheme" || action?.kind === "SetStratagem") {
+    const target = action.kind === "SetStratagem" ? document.querySelector('[data-stratagem-owner="' + action.actor + '"]') : document.querySelector('[data-scheme-owner="' + action.actor + '"][data-scheme-front="' + action.front + '"]');
+    if (!action.card_id) flyCard($("opponent-hand"), target);
+  }
+  for (const event of action?.events || []) {
+    const node = after.find((item) => item.cardId === event.card_id && item.owner === event.owner)?.node;
+    node?.animate([{ transform: "rotateY(90deg)", filter: "brightness(1.7)" }, { transform: "rotateY(0)", filter: "brightness(1)" }], { duration: 500 });
+  }
+  if (previous.battle !== state.battle || previous.phase !== state.phase) $("battlefield").animate([{ opacity: .35 }, { opacity: 1 }], { duration: 550 });
+  if (state.players.some((player, i) => player.victories !== previous.players[i].victories)) $("match-strip").animate([{ filter: "brightness(2)" }, { filter: "brightness(1)" }], { duration: 750 });
+}
+
+window.render_game_to_text = () => JSON.stringify({
+  coordinate_system: "Fronts 0=Left, 1=Center, 2=Right; ranks front=Frontline, rear=Rear; viewer at bottom",
+  ready: cardsReady,
+  ...(state ? Object.fromEntries(["phase", "battle", "viewer", "active_player", "needs_ai", "needs_reveal", "winner", "players", "hand", "board", "schemes", "stratagems", "front_strengths", "front_control", "legal_actions", "last_action"].map((key) => [key, state[key]])) : { phase: "setup" }),
+  selected_card: selectedCardId,
+  selected_hand_index: selectedHandIndex,
+  selected_source: stagedPlotSource,
+  mulligan_selection: [...mulliganSelection],
+  drawer: activeDrawer,
+  inspector: !$("card-inspector").hidden ? $("card-inspector-title").textContent : null,
+});
+
+window.advanceTime = async (milliseconds) => {
+  let remaining = Math.max(0, Number(milliseconds) || 0);
+  let steps = 0;
+  while (aiDueAt && steps++ < 200) {
+    const delay = Math.max(0, aiDueAt - performance.now());
+    if (delay > remaining) {
+      scheduleAiStep(delay - remaining);
+      break;
+    }
+    remaining -= delay;
+    await resolveAiStep();
+  }
+  document.getAnimations().forEach((animation) => { try { animation.finish(); } catch {} });
+  await new Promise(requestAnimationFrame);
+};
 
 loadCards().catch((error) => { $("setup-note").textContent = error.message; });

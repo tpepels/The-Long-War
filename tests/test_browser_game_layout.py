@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -11,25 +12,26 @@ def text(path: str) -> str:
 
 def test_gameplay_is_bound_to_one_viewport_scene() -> None:
     css = text("web/play.css")
-    assert "width: 100vw;" in css
-    assert "height: 100dvh;" in css
+    compact = re.sub(r"\s+", "", css)
+    assert "width:100%;" in compact
+    assert "height:100dvh;" in compact
     assert "body.game-body" in css
-    assert "overflow: hidden;" in css
-    assert "position: sticky" not in css
+    assert "overflow:hidden;" in compact
+    assert "position:sticky" not in compact
 
 
-def test_gameplay_secondary_information_is_overlayed_not_document_flow() -> None:
+def test_gameplay_secondary_information_uses_a_game_drawer() -> None:
     html = text("web/play.html")
     css = text("web/play.css")
 
-    game_start = html.index('<section id="game"')
-    game_end = html.index("</section>\n    </main>", game_start)
-    tools_index = html.index('<aside class="game-tools"', game_start)
-
-    assert game_start < tools_index < game_end
-    assert ".game-tools {" in css
-    assert "position: absolute;" in css
-    assert "campaign-drawers" not in html
+    assert 'id="game-drawer"' in html
+    for destination in ("menu", "rules", "log", "piles"):
+        assert f'data-open-drawer="{destination}"' in html + text("web/play.js")
+    assert "<details" not in html[html.index('id="game"'):]
+    assert "game-masthead" not in html
+    assert ".game-drawer" in css
+    compact = re.sub(r"\s+", "", css)
+    assert "position:fixed;" in compact or "position:absolute;" in compact
 
 
 def test_table_and_hand_never_request_browser_scrollbars() -> None:
@@ -37,13 +39,13 @@ def test_table_and_hand_never_request_browser_scrollbars() -> None:
     assert ".digital-hand {" in css
     assert ".war-table {" in css
     assert "overflow-x: auto" not in css
-    assert "scrollbar-width" not in css
-    assert "grid-template-columns: 1fr;" not in css[css.index("/* Width-driven recomposition"):]
+    assert "--fan-x" in css
+    assert "--fan-scale" in css
 
 
 def test_game_layout_checker_covers_standard_desktop_sizes() -> None:
     checker = text("tools/check_game_layout.py")
-    for viewport in ("1920, 1080", "1440, 900", "1366, 768", "1024, 768"):
+    for viewport in ("1920, 1080", "1440, 900", "1366, 768", "1280, 720"):
         assert viewport in checker
     assert "root-scroll" in checker
     assert "hand-card-" in checker
@@ -88,8 +90,8 @@ def test_start_overlay_obeys_hidden_attribute() -> None:
     css = text("web/play.css")
     checker = text("tools/check_play_start.py")
 
-    assert ".play-setup[hidden]" in css
-    assert "display: none;" in css[css.index(".play-setup[hidden]"):css.index(".play-setup[hidden]") + 100]
+    compact = re.sub(r"\s+", "", css)
+    assert ".game-body[hidden]{display:none!important;}" in compact
     assert 'getComputedStyle(setup).display !== "none"' in checker
     assert "start overlay remains visible after match start" in checker
 
@@ -102,7 +104,9 @@ def test_battlefield_has_minimum_visual_scale_and_public_card_inspection() -> No
     smoke = text("tools/check_play_start.py")
 
     assert "battlefield-too-small" in checker
-    assert "board-card-" in checker and "-too-small" in checker
+    assert "board-title-" in checker and "-clipped" in checker
+    assert "presentation_snapshots" in checker
+    assert "qa-engine.mjs" in checker
     assert 'data-inspect-card="' in play
     assert "bindCardInspectors" in play
     assert "openCardInspector" in play
@@ -138,3 +142,26 @@ def test_first_playtest_ui_exposes_draw_paced_actions_and_term_help() -> None:
     assert "openingAnnouncementShown" in play
     assert "+1 opening card" in play
     assert '"opening_player":' in text("src/longwar/web_api.py")
+
+
+def test_desktop_fixtures_cover_crowded_and_interrupting_states() -> None:
+    from tools.check_game_layout import SCENARIOS, presentation_snapshots
+
+    assert set(SCENARIOS) == {"battle", "targeting", "inspector", "ai", "choose-first", "complete", "mulligan", "drawer"}
+    snapshots = presentation_snapshots()
+    crowded = snapshots["battle"]
+    assert len(crowded["hand"]) >= 18
+    assert all(slot["subject"] and slot["link"] and slot["name"] for side in crowded["board"] for slot in side)
+    assert all(scheme["hidden"] and scheme["card_id"] is None for scheme in crowded["schemes"][1])
+    assert crowded["stratagems"][1]["hidden"]
+    assert crowded["stratagems"][1]["card_id"] is None
+    assert snapshots["ai"]["needs_ai"]
+    assert snapshots["choose-first"]["phase"] == "choose_first"
+    assert snapshots["complete"]["winner"] == 0
+
+
+def test_desktop_motion_respects_user_preference_and_exposes_visible_state() -> None:
+    assert "prefers-reduced-motion" in text("web/play.css")
+    play = text("web/play.js")
+    assert "render_game_to_text" in play
+    assert "advanceTime" in play

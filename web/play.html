@@ -1,154 +1,298 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Play — The Long War</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="play.css">
-</head>
-<body class="game-body">
-  <div class="game-chrome">
-    <header class="game-masthead">
-      <a class="game-mark" href="index.html" aria-label="The Long War home">
-        <span>THE</span>
-        <strong>LONG WAR</strong>
-        <small class="game-version">v0.4-dev</small>
-      </a>
-      <span id="engine-status" class="engine-lamp">Loading the game…</span>
-      <nav aria-label="Match controls">
-        <a href="rulebook.html">Rules</a>
-        <button type="button" id="restart-top">New match</button>
-      </nav>
-    </header>
-
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#161d1b" />
+    <title>Play — The Long War</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="play.css" />
+  </head>
+  <body class="game-body">
     <main class="play-client">
-      <section class="play-setup" id="play-setup">
-        <div class="setup-emblem" aria-hidden="true">III</div>
+      <section class="play-setup" id="play-setup" aria-labelledby="game-title">
+        <div class="setup-map" aria-hidden="true">
+          <svg viewBox="0 0 600 700" fill="none">
+            <path
+              d="M90 80 300 25 510 80 565 350 510 620 300 675 90 620 35 350Z"
+            />
+            <path
+              d="M110 100 300 50 490 100 540 350 490 600 300 650 110 600 60 350Z"
+            />
+            <path
+              d="M200 75V625M400 75V625M65 350H535"
+              stroke-dasharray="3 8"
+            />
+            <path
+              d="M120 180H180V240H120ZM270 180H330V240H270ZM420 180H480V240H420ZM120 460H180V520H120ZM270 460H330V520H270ZM420 460H480V520H420Z"
+            />
+            <path d="m150 275 0 150m150-150v150m150-150v150" />
+            <circle cx="150" cy="350" r="26" />
+            <circle cx="300" cy="350" r="26" />
+            <circle cx="450" cy="350" r="26" />
+          </svg>
+        </div>
         <div class="setup-copy">
-          <p class="setup-kicker">Three Fronts · one shared Battle</p>
-          <h1>Start a match</h1>
-          <p class="setup-intro">Control two of three Fronts. Cards left in your hand carry into the next Battle. The match runs locally in your browser.</p>
-        </div>
-
-        <form id="new-game-form">
-          <label>Opponent
-            <select id="mode" disabled>
-              <option value="heuristic" selected>Tactical AI</option>
-              <option value="hotseat">Two players · hot-seat</option>
-            </select>
-          </label>
-          <label>Replay seed
-            <span class="seed-control">
-              <input id="seed" type="number" min="1" max="2147483647" disabled>
-              <button id="randomize-seed" class="seed-randomize" type="button" disabled>New</button>
-            </span>
-          </label>
-          <button id="start-game" type="submit" disabled>Begin Battle I</button>
-        </form>
-        <p id="setup-note">A new seed gives a new deal. Reuse a seed to replay the same one.</p>
-      </section>
-
-      <section id="game" class="play-game" hidden>
-        <div id="privacy-gate" class="privacy-gate" hidden></div>
-        <div id="action-banner" class="action-banner" hidden aria-live="polite">
-          <small id="action-banner-kicker">Action</small>
-          <strong id="action-banner-title">Card played</strong>
-          <span id="action-banner-detail"></span>
-        </div>
-        <div id="term-hint" class="term-hint" hidden role="tooltip"></div>
-
-        <section class="tabletop-shell" aria-label="The Long War tabletop">
-          <div class="campaign-hud">
-            <div id="match-strip" class="match-strip"></div>
+          <p class="setup-kicker">A game of three Fronts</p>
+          <h1 id="game-title">
+            <span>The</span>Long<br />War<span class="title-stop">.</span>
+          </h1>
+          <p class="setup-intro">Hold two Fronts. Win two Battles.</p>
+          <form id="new-game-form">
+            <label
+              >Across the table<select id="mode" disabled>
+                <option value="heuristic" selected>Tactical AI</option>
+                <option value="hotseat">Two players · hot-seat</option>
+              </select></label
+            >
+            <details class="setup-options">
+              <summary>Replay a deal</summary>
+              <label
+                >Seed<span class="seed-control"
+                  ><input
+                    id="seed"
+                    type="number"
+                    min="1"
+                    max="2147483647"
+                    disabled
+                  /><button id="randomize-seed" type="button" disabled>
+                    New
+                  </button></span
+                ></label
+              >
+            </details>
+            <button
+              id="start-game"
+              class="primary-button"
+              type="submit"
+              disabled
+            >
+              Take your seat <span aria-hidden="true">↗</span>
+            </button>
+          </form>
+          <p id="setup-note">Your hand carries from one Battle to the next.</p>
+          <div class="setup-footer">
+            <span id="engine-status" role="status">Preparing the table…</span
+            ><a href="rulebook.html">Read the rules ↗</a>
           </div>
-
+        </div>
+      </section>
+      <section
+        id="game"
+        class="play-game"
+        hidden
+        aria-label="The Long War match"
+      >
+        <div id="privacy-gate" class="privacy-gate" hidden></div>
+        <div id="term-hint" class="term-hint" hidden role="tooltip"></div>
+        <section class="tabletop-shell" aria-label="The Long War tabletop">
+          <header class="campaign-hud">
+            <span class="table-wordmark">The Long War<span>.</span></span>
+            <div id="match-strip" class="match-strip" aria-live="polite"></div>
+            <nav class="table-menu" aria-label="Game menu">
+              <button type="button" data-open-drawer="log" title="Battle log">
+                Log</button
+              ><button
+                type="button"
+                data-open-drawer="menu"
+                aria-label="Open game menu"
+              >
+                Menu <span aria-hidden="true">☰</span>
+              </button>
+            </nav>
+          </header>
           <section class="opponent-rack" aria-label="Opponent area">
             <div class="rack-player">
-              <span>OPPONENT</span>
-              <strong id="opponent-label">Player 2</strong>
+              <span class="presence-dot" aria-hidden="true"></span>
+              <div>
+                <small>Across the table</small
+                ><strong id="opponent-label">Opponent</strong>
+              </div>
             </div>
-            <div id="opponent-hand" class="opponent-hand" aria-label="Opponent hand"></div>
+            <div
+              id="opponent-hand"
+              class="opponent-hand"
+              aria-label="Opponent hand"
+            ></div>
             <div id="opponent-piles" class="rack-piles"></div>
           </section>
-
           <section class="war-table" aria-label="Battlefield">
-            <div class="table-surface-mark" aria-hidden="true">LEFT · CENTER · RIGHT</div>
-
-            <div class="orders-ribbon" id="interaction-strip">
-              <div>
-                <small>YOUR TURN</small>
-                <strong id="interaction-title">Choose a card</strong>
-                <span id="interaction-hint">Select a card. Legal positions and targets will highlight.</span>
-              </div>
-              <button type="button" id="cancel-selection" hidden>Cancel</button>
-            </div>
-
-            <div id="choice-tray" class="choice-tray" hidden></div>
             <div id="battlefield" class="digital-battlefield"></div>
+            <div
+              class="orders-ribbon"
+              id="interaction-strip"
+              aria-live="polite"
+            >
+              <div>
+                <strong id="interaction-title">Choose a card</strong
+                ><span id="interaction-hint"
+                  >Choose a card, then a highlighted position.</span
+                >
+              </div>
+              <button type="button" id="cancel-selection" hidden>
+                Cancel <kbd>Esc</kbd>
+              </button>
+            </div>
+            <div id="choice-tray" class="choice-tray" hidden></div>
           </section>
-
           <section class="hand-dock" aria-label="Your hand">
             <header>
-              <div class="hand-heading">
-                <span>YOUR HAND</span>
-                <h2 id="hand-title">Your hand</h2>
-              </div>
+              <div class="hand-heading"><h2 id="hand-title">Your hand</h2></div>
               <div id="player-piles" class="rack-piles player-piles"></div>
               <div class="hand-controls">
-                <button type="button" id="draw-button" class="draw-button" hidden>Draw 1</button>
-                <button type="button" id="pass-button" class="pass-button" hidden>Pass</button>
+                <button
+                  type="button"
+                  id="draw-button"
+                  class="draw-button"
+                  hidden
+                >
+                  Draw 1 <kbd>D</kbd></button
+                ><button
+                  type="button"
+                  id="pass-button"
+                  class="pass-button"
+                  hidden
+                >
+                  Pass <kbd>P</kbd>
+                </button>
               </div>
             </header>
             <div id="hand" class="digital-hand"></div>
             <div id="turn-actions" class="turn-actions"></div>
           </section>
         </section>
-
-        <div id="card-inspector" class="card-inspector" hidden aria-hidden="true">
-          <button type="button" class="card-inspector-backdrop" data-inspector-close aria-label="Close card inspection"></button>
-          <section class="card-inspector-panel" role="dialog" aria-modal="true" aria-labelledby="card-inspector-title">
+        <div id="action-banner" class="action-banner" hidden aria-live="polite">
+          <small id="action-banner-kicker">Action</small
+          ><strong id="action-banner-title">Card played</strong
+          ><span id="action-banner-detail"></span>
+        </div>
+        <div
+          id="card-inspector"
+          class="card-inspector"
+          hidden
+          aria-hidden="true"
+        >
+          <button
+            type="button"
+            class="card-inspector-backdrop"
+            data-inspector-close
+            aria-label="Close card inspection"
+          ></button>
+          <section
+            class="card-inspector-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="card-inspector-title"
+          >
             <header>
               <div>
-                <span id="card-inspector-context">Public card</span>
-                <strong id="card-inspector-title">Card</strong>
+                <span id="card-inspector-context">Public card</span
+                ><strong id="card-inspector-title">Card</strong>
               </div>
-              <button type="button" id="card-inspector-close" aria-label="Close card inspection">×</button>
+              <button
+                type="button"
+                id="card-inspector-close"
+                class="close-button"
+                aria-label="Close card inspection"
+              >
+                ×
+              </button>
             </header>
             <div id="card-inspector-card" class="card-inspector-card"></div>
-            <p>Click outside the card or press Esc to close.</p>
+            <p>Click the table or press <kbd>Esc</kbd> to return.</p>
           </section>
         </div>
-
-        <aside class="game-tools" aria-label="Secondary match information">
-          <details>
-            <summary>Piles</summary>
-            <div class="tool-panel public-zones" id="public-zones"></div>
-          </details>
-          <details class="action-log">
-            <summary>Log</summary>
-            <ol class="tool-panel" id="history"></ol>
-          </details>
-          <details class="match-menu">
-            <summary>Menu</summary>
-            <div class="tool-panel campaign-links">
-              <button type="button" id="restart">New match</button>
-              <a href="rulebook.html">Rules</a>
-              <a href="playtest-kit.html">Print cards</a>
-            </div>
-          </details>
+        <aside
+          id="game-drawer"
+          class="game-drawer"
+          hidden
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="drawer-title"
+        >
+          <header>
+            <h2 id="drawer-title">Menu</h2>
+            <button
+              id="drawer-close"
+              class="close-button"
+              type="button"
+              aria-label="Close game menu"
+            >
+              ×
+            </button>
+          </header>
+          <section data-drawer-content="menu" class="menu-options">
+            <button type="button" data-open-drawer="rules">
+              How to play <span>↗</span></button
+            ><button type="button" data-open-drawer="piles">
+              Discard piles <span>↗</span></button
+            ><button type="button" data-open-drawer="log">
+              Battle log <span>↗</span></button
+            ><button type="button" id="fullscreen-button">
+              Fullscreen <kbd>F</kbd></button
+            ><button type="button" id="restart">
+              New match <span>↗</span>
+            </button>
+            <p class="menu-help">
+              Click to select. Click a highlighted position to play. Click a
+              selected card again to inspect it. <kbd>Esc</kbd> cancels.
+            </p>
+          </section>
+          <section data-drawer-content="rules" hidden class="rules-summary">
+            <p class="drawer-kicker">Three Fronts. Two Victories.</p>
+            <p>
+              Win a Battle by controlling at least two Fronts. Win two Battles
+              to win the match.
+            </p>
+            <h3>Your turn</h3>
+            <p>
+              Play a card, draw one card, or pass. You may use Draw once per
+              Battle. Pass ends your participation in that Battle.
+            </p>
+            <h3>Formations</h3>
+            <p>
+              A Subject, Bond and Name share one position. You can prepare a
+              Bond or Name before its Subject. Frontline Subjects receive +1
+              Line Defense.
+            </p>
+            <h3>Between Battles</h3>
+            <p>
+              Your hand carries over. Follow the table's cleanup and
+              starting-player prompts.
+            </p>
+            <a href="rulebook.html" target="_blank" rel="noopener"
+              >Open the full rulebook ↗</a
+            >
+          </section>
+          <section data-drawer-content="piles" hidden>
+            <div class="public-zones" id="public-zones"></div>
+          </section>
+          <section data-drawer-content="log" hidden>
+            <ol id="history" class="action-log"></ol>
+          </section>
         </aside>
+        <section
+          id="match-result"
+          class="match-result"
+          hidden
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="result-title"
+        >
+          <div>
+            <span class="result-emblem" aria-hidden="true">◆ ◆</span>
+            <p>The campaign is over</p>
+            <h2 id="result-title">Victory</h2>
+            <p id="result-detail"></p>
+            <button type="button" id="play-again" class="primary-button">
+              Play again ↗
+            </button>
+          </div>
+        </section>
       </section>
     </main>
-  </div>
-
-  <script src="card-rules.js"></script>
-  <script src="card-layout-guard.js"></script>
-  <script type="module" src="play.js"></script>
-  <script>
-    document.getElementById("restart-top").addEventListener("click", function () {
-      document.getElementById("restart").click();
-    });
-  </script>
-</body>
+    <script src="card-rules.js"></script>
+    <script src="card-layout-guard.js"></script>
+    <script type="module" src="play.js"></script>
+  </body>
 </html>

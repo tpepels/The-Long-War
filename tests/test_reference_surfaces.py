@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 import markdown
 from pathlib import Path
@@ -124,7 +125,11 @@ def test_cards_are_scan_first_and_all_48_copy_blocks_are_labeled() -> None:
     play_style = text("web/play.css")
     card_rules = text("web/card-rules.js")
     assert "font: 3.55mm/1.18 Georgia,serif;" in style
-    assert "font: 11.2px/1.16 Georgia, serif;" in play_style
+    rules_style = re.search(r"\.play-card-rules\s*\{([^}]+)\}", play_style).group(1)
+    typography = re.search(r"font:\s*([\d.]+)px/([\d.]+)\s+Georgia\s*,\s*serif", rules_style)
+    assert typography is not None
+    assert float(typography.group(1)) >= 11
+    assert float(typography.group(2)) >= 1.15
     assert "Frontline +1 if Rear occupied" in card_rules
     assert "Rear: Subject in front +2" in card_rules
 

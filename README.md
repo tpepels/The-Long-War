@@ -42,6 +42,20 @@ python -m http.server 8000 --directory dist
 
 `tools/build_browser_runtime.py` pins Pyodide 314.0.7 and pyodide-build 0.39.1. Cross compilation uses an isolated source directory under `artifacts/browser/`, so it cannot replace host extensions. The runtime, wheel, toolchain environment, contracts and logs are generated artifacts. `dist/` is the generated Pages site. Both directories are ignored by Git.
 
+The play client is a fixed desktop table, verified at 1280×720, 1366×768, 1440×900 and 1920×1080. Click a hand card, then a highlighted destination. Hover or focus lifts a card; click a selected card again, right-click, or press `I` while focused to inspect it. Inspection also works during mulligans. `Esc` cancels/closes, `D` draws, `P` passes and `F` toggles fullscreen. Rules, piles, the log and New Match live in the game menu. Motion respects the browser's reduced-motion preference.
+
+`web/play.css` owns the scene and card geometry; the client does not load website layout styles. `web/play.js` renders snapshots and routes legal actions. Its card motion compares visible snapshots, without predicting engine results. After UI changes, run:
+
+```bash
+make test-fast browser-parity
+python tools/check_card_layout.py --require-browser
+python tools/check_game_layout.py --require-browser
+python tools/check_play_start.py --require-browser --viewport 1280x720
+python tools/check_play_start.py --require-browser --viewport 1440x900 --reduced-motion
+```
+
+The [issue #21 desktop-client handoff](reports/issue-21-desktop-client.md) records the redesign, visual QA and remaining human-playtesting questions.
+
 ## Cards and fixtures
 
 `cards/cards.json` is the canonical card pool. Each card has a stable unique `id`, title, type, classes, uniqueness, display text/rule blocks, and machine-readable `rules`. Preserve IDs when revising cards: decks and policy artifacts refer to them.
