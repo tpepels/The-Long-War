@@ -61,6 +61,7 @@ def test_heuristic_beats_random_in_small_fixed_benchmark() -> None:
     )
     assert report.wins[0] > report.wins[1]
 
+
 def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=505, first_player=0)
@@ -78,10 +79,15 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
             "candidate_count": 4,
             "search_nodes": 20,
             "completed_depth": 3,
+            "ismcts_iterations": 20,
             "ismcts_rollouts_stopped_terminal": 7,
             "ismcts_rollouts_stopped_battle_boundary": 11,
             "ismcts_rollouts_stopped_depth": 2,
             "ismcts_rollout_actions": 53,
+            "ismcts_root_reused": True,
+            "ismcts_tree_nodes_before": 120,
+            "ismcts_tree_nodes_added": 17,
+            "ismcts_root_prior_visits": 9,
         },
     )
 
@@ -99,4 +105,15 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
     assert cutoffs["mean_rollout_actions_per_iteration"] == pytest.approx(
         53 / 20
     )
+
+    reuse = telemetry.summary()["decisions"]["ismcts"]["ismcts_tree_reuse"]
+    assert reuse["searched_decisions"] == 1
+    assert reuse["root_reused_decisions"] == 1
+    assert reuse["root_reuse_rate"] == pytest.approx(1.0)
+    assert reuse["tree_nodes_before_total"] == 120
+    assert reuse["tree_nodes_added_total"] == 17
+    assert reuse["root_prior_visits_total"] == 9
+    assert reuse["mean_tree_nodes_before"] == pytest.approx(120.0)
+    assert reuse["mean_tree_nodes_added"] == pytest.approx(17.0)
+    assert reuse["mean_root_prior_visits"] == pytest.approx(9.0)
 
