@@ -12,6 +12,7 @@ from .cards import card_index, validate_card_data
 from .game.engine import GameEngine
 from .game.model import Phase
 from .simulate import make_agent
+from .rules import GameRules
 
 
 BASELINE_PREFIX = "__cf_baseline__"
@@ -62,6 +63,8 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         result["role"] = card["role"]
         result["hero"] = bool(card.get("hero", False))
         result["strength"] = 6 if result["hero"] else 4
+        if result["hero"]:
+            result["hero_name_strength"] = int(card["hero_name_strength"])
     elif card_type == "link":
         result["text"] = (
             "Experimental matched baseline. Its **Subject** gets +1 **Strength**. "
@@ -99,15 +102,16 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
             # playability while removing the card-specific effect.
             result["rules"] = {}
     elif card_type == "stratagem":
-        # Preserve the free face-down commitment and one-per-Battle slot while
-        # removing all card-specific timing and payoff.
+        # Preserve the paid public one-per-Battle slot while removing all
+        # card-specific payoff.
         result["text"] = (
-            "Experimental matched baseline. Set this face-down as a "
-            "**Stratagem**. It has no trigger or effect."
+            "Experimental matched baseline. Play this face-up in your "
+            "**Stratagem** area. It has no continuing effect."
         )
         result["rules"] = {
             "stratagem": {
-                "trigger": {"event": "never", "actor": "either"},
+                "trigger": {"event": "played", "actor": "controller"},
+                "continuous": {},
             }
         }
     else:
@@ -145,11 +149,11 @@ def generate_context_decks(
     seed: int,
     required_cards: Iterable[str] = (),
 ) -> list[list[str]]:
-    """Generate legal 30-card contexts for an expandable card pool.
+    """Generate legal canonical-size contexts for an expandable card pool.
 
     ``required_cards`` are included in every generated deck. Without required
     cards, the generator rotates coverage so the union of contexts reaches the
-    whole canonical pool. A deck always contains exactly one Hero.
+    whole canonical pool. Different Unique Heroes may coexist in one deck.
     """
     if count <= 0:
         raise ValueError("count must be positive")
@@ -161,18 +165,11 @@ def generate_context_decks(
     unknown = [card_id for card_id in required if card_id not in meta]
     if unknown:
         raise ValueError(f"Unknown required cards: {unknown}")
-    if len(required) > 30:
-        raise ValueError("At most 30 distinct cards can be required in a deck context")
-
-    heroes = [card["id"] for card in cards if card.get("hero", False)]
-    required_heroes = [card_id for card_id in required if meta[card_id].get("hero", False)]
-    if len(required_heroes) > 1:
+    deck_size = GameRules.standard().deck_size
+    if len(required) > deck_size:
         raise ValueError(
-            "A legal context cannot require more than one Hero; "
-            "evaluate alternative Heroes in separate counterfactual runs"
+            f"At most {deck_size} distinct cards can be required in a deck context"
         )
-    if not heroes:
-        raise ValueError("Card pool must contain at least one Hero")
 
     rng = random.Random(seed)
     uncovered = set(all_ids) - set(required)
@@ -180,31 +177,23 @@ def generate_context_decks(
     seen: set[tuple[str, ...]] = set()
 
     for context_index in range(count):
-        chosen_hero = (
-            required_heroes[0]
-            if required_heroes
-            else heroes[context_index % len(heroes)]
-        )
         deck = list(required)
-        if chosen_hero not in deck:
-            deck.append(chosen_hero)
 
         eligible_unique = [
             card_id
             for card_id in all_ids
             if card_id not in deck
-            and (not meta[card_id].get("hero", False) or card_id == chosen_hero)
         ]
         coverage = [card_id for card_id in eligible_unique if card_id in uncovered]
         rng.shuffle(coverage)
         remainder = [card_id for card_id in eligible_unique if card_id not in uncovered]
         rng.shuffle(remainder)
         for card_id in coverage + remainder:
-            if len(deck) >= 30:
+            if len(deck) >= deck_size:
                 break
             deck.append(card_id)
 
-        if len(deck) < 30:
+        if len(deck) < deck_size:
             duplicate_candidates = [
                 card["id"]
                 for card in cards
@@ -214,14 +203,14 @@ def generate_context_decks(
             ]
             rng.shuffle(duplicate_candidates)
             for card_id in duplicate_candidates:
-                if len(deck) >= 30:
+                if len(deck) >= deck_size:
                     break
                 deck.append(card_id)
 
-        if len(deck) != 30:
+        if len(deck) != deck_size:
             raise ValueError(
-                "Card pool cannot generate a legal 30-card context from the "
-                f"requested cards (built {len(deck)})"
+                f"Card pool cannot generate a legal {deck_size}-card context from "
+                f"the requested cards (built {len(deck)})"
             )
 
         signature = tuple(sorted(deck))
@@ -233,7 +222,6 @@ def generate_context_decks(
                         index
                         for index in range(len(deck) - 1, -1, -1)
                         if deck[index] not in required
-                        and deck[index] != chosen_hero
                     ),
                     None,
                 )
@@ -494,8 +482,8 @@ def run_counterfactual_card_sweep(
     """Evaluate card main effects across a pool larger than one legal deck.
 
     Each card is evaluated in its own legal paired contexts. This preserves
-    the causal replacement interpretation without pretending 48 titles can
-    coexist in a 30-card deck. Pair/triple interactions require an explicit
+    the causal replacement interpretation without pretending the entire card
+    pool can coexist in one canonical-size deck. Pair/triple interactions require an explicit
     compatible subset and remain the responsibility of the grouped runner.
     """
     canonical = card_index(card_data)
@@ -604,16 +592,11 @@ def run_counterfactual_experiment(
 
     experiment_data = build_experiment_card_data(card_data)
     engine = GameEngine(experiment_data)
-    selected_heroes = [
-        card_id
-        for card_id in selected_cards
-        if canonical_cards[card_id].get("hero", False)
-    ]
-    if len(selected_cards) > 30 or len(selected_heroes) > 1:
+    deck_size = GameRules.standard().deck_size
+    if len(selected_cards) > deck_size:
         raise ValueError(
-            "A single paired counterfactual run requires at most 30 selected "
-            "cards and at most one Hero. Split a larger pool into candidate "
-            "groups; alternative Heroes must be evaluated separately."
+            f"A single paired counterfactual run requires at most {deck_size} "
+            "selected cards. Split a larger pool into candidate groups."
         )
 
     samples = build_samples(

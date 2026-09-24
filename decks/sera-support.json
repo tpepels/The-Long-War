@@ -1,19 +1,20 @@
 {
-  "name": "Sera Support",
-  "hero": "sera-mother-of-white-hands",
+  "name": "Sera Support v0.9",
   "cards": [
     "sera-mother-of-white-hands",
     "the-red-shields",
-    "the-red-shields",
+    "daran-the-red-shield",
     "the-three-brothers-of-avar",
-    "the-three-brothers-of-avar",
+    "theron-the-oathkeeper",
     "the-fifty-men",
     "the-fifty-men",
-    "those-who-came-back",
     "those-who-came-back",
     "the-white-hands-of-elara",
     "the-lantern-bearers",
-    "the-lantern-bearers",
+    "those-who-came-back",
+    "the-house-at-orra",
+    "seven-black-ships",
+    "the-children-of-the-salt-road",
     "followed",
     "followed",
     "swore-to",
@@ -25,6 +26,8 @@
     "oren",
     "elian",
     "vara",
+    "iria",
+    "teyra",
     "the-story-is-false",
     "he-never-came",
     "the-crows-returned",
@@ -32,5 +35,10 @@
     "the-hidden-oars",
     "the-wooden-gift",
     "the-false-muster"
+  ],
+  "heroes": [
+    "sera-mother-of-white-hands",
+    "daran-the-red-shield",
+    "theron-the-oathkeeper"
   ]
 }

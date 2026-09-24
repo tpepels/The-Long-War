@@ -15,6 +15,7 @@ from typing import Any
 from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import DeckHypothesis, HypothesisDeckPrior
+from longwar.balance import validate_command_costs
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.fingerprint import artifact_directory, experiment_identity
@@ -25,6 +26,12 @@ ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "tools" / "run_experiments.py"
 VALIDATION_ROOT = ROOT / "artifacts" / "search-validation"
 BENCH_ROOT = ROOT / "artifacts" / "search-benchmark"
+CANONICAL_DECK_PATHS = {
+    "reference": "decks/reference.json",
+    "avaros": "decks/avaros-line.json",
+    "mara": "decks/mara-rear.json",
+    "sera": "decks/sera-support.json",
+}
 
 
 def validate_data() -> None:
@@ -34,6 +41,8 @@ def validate_data() -> None:
         ("cards/experiments/force-draw-cards.json", "decks/experiments", "force-automatic"),
     ):
         data = load_card_file(ROOT / card_file)
+        if profile == "standard":
+            validate_command_costs(data)
         engine = GameEngine(data, rules=GameRules.from_profile(profile))
         decks = sorted((ROOT / deck_dir).glob("*.json"))
         for path in decks:
@@ -162,6 +171,9 @@ def normalized_payload(path: Path) -> dict[str, Any]:
     for stats in telemetry.get("decisions", {}).values():
         stats.pop("mean_search_nodes", None)
         stats.pop("mean_score_gap", None)
+        stats.pop("mean_decision_seconds", None)
+        stats.pop("max_decision_seconds", None)
+        stats.pop("mean_searched_decision_seconds", None)
 
     return payload
 
@@ -560,7 +572,7 @@ def benchmark_ismcts_match(
         "time_budget_seconds": time_budget_seconds,
         "candidate_a": config_a,
         "candidate_b": config_b,
-        "rules_profile": "force-automatic",
+        "rules_profile": "standard",
         "decks": list(decks),
     })
     output_dir = artifact_directory(BENCH_ROOT / "ismcts-match", identity)
@@ -568,7 +580,7 @@ def benchmark_ismcts_match(
     cells: list[tuple[str, str, Path, list[str]]] = []
     for deck_index, deck in enumerate(decks):
         cell_seed = seed + deck_index * games_per_orientation
-        deck_path = f"decks/experiments/force-rich-34-{deck}.json"
+        deck_path = CANONICAL_DECK_PATHS[deck]
         for orientation, seat_configs, seat_labels, seat_seed_offsets in (
             (
                 "a-first",
@@ -589,8 +601,8 @@ def benchmark_ismcts_match(
                 str(ROOT / "tools" / "simulate.py"),
                 "--games", str(games_per_orientation),
                 "--seed", str(cell_seed),
-                "--rules-profile", "force-automatic",
-                "--card-file", "cards/experiments/force-draw-cards.json",
+                "--rules-profile", "standard",
+                "--card-file", "cards/cards.json",
                 "--deck-a", deck_path,
                 "--deck-b", deck_path,
                 "--agent-a", "ismcts",
@@ -735,7 +747,7 @@ def benchmark_ismcts_match(
 
     summary = {
         **identity,
-        "rules_profile": "force-automatic",
+        "rules_profile": "standard",
         "games_per_orientation": games_per_orientation,
         "time_budget_seconds": time_budget_seconds,
         "candidate_a": config_a,
@@ -796,14 +808,14 @@ def benchmark_strength(
         "rollout_policy": rollout_policy, "exploration": exploration,
         "progressive_widening": progressive_widening, "reuse_tree": reuse_tree,
         "time_budget_seconds": time_budget_seconds,
-        "rules_profile": "force-automatic", "decks": list(decks),
+        "rules_profile": "standard", "decks": list(decks),
     })
     output_dir = artifact_directory(BENCH_ROOT / "-".join(parts), identity)
 
     cells: list[tuple[str, str, Path, list[str]]] = []
     for deck_index, deck in enumerate(decks):
         cell_seed = seed + deck_index * games_per_orientation
-        deck_path = f"decks/experiments/force-rich-34-{deck}.json"
+        deck_path = CANONICAL_DECK_PATHS[deck]
         for orientation, agents, seed_offsets in (
             ("mcts-first", ("ismcts", "strategic_heuristic"), (1, 2)),
             ("alpha-first", ("strategic_heuristic", "ismcts"), (2, 1)),
@@ -817,9 +829,9 @@ def benchmark_strength(
                 "--seed",
                 str(cell_seed),
                 "--rules-profile",
-                "force-automatic",
+                "standard",
                 "--card-file",
-                "cards/experiments/force-draw-cards.json",
+                "cards/cards.json",
                 "--deck-a",
                 deck_path,
                 "--deck-b",
@@ -1091,7 +1103,7 @@ def benchmark_strength(
 
     summary = {
         **identity,
-        "rules_profile": "force-automatic",
+        "rules_profile": "standard",
         "games_per_orientation": games_per_orientation,
         "ismcts": {
             "belief_samples": 12,

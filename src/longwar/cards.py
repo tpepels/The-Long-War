@@ -199,7 +199,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
         if not isinstance(card["text"], str):
             raise ValueError(f"{card_id}: text must be a string")
         if "command_cost" in card:
-            _validate_rule_value(card["command_cost"], _NONNEGATIVE, f"{card_id}.command_cost")
+            _validate_rule_value(card["command_cost"], range(1, 4), f"{card_id}.command_cost")
 
         classes = card.get("classes")
         if (
@@ -221,6 +221,13 @@ def validate_card_data(data: dict[str, Any]) -> None:
                 raise ValueError(f"{card_id}: every Hero must be Unique")
             if "hero" not in classes:
                 raise ValueError(f"{card_id}: Hero classification is required")
+            if "hero_name_strength" not in card:
+                raise ValueError(f"{card_id}: Hero requires hero_name_strength")
+            _validate_rule_value(
+                card["hero_name_strength"],
+                _NONNEGATIVE,
+                f"{card_id}.hero_name_strength",
+            )
 
         rule_blocks = card["rule_blocks"]
         if not isinstance(rule_blocks, list):

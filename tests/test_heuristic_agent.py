@@ -114,6 +114,8 @@ def test_equal_stratagem_scores_do_not_fall_back_to_card_id_order() -> None:
     # Tide and Ground have the same public-board estimate here: each improves
     # the current relative position by two points if revealed.
     state.players[0].hand = ["the-tide-rose", "the-ground-gave-way"]
+    state.players[0].deck = []
+    state.players[0].discard = []
     state.players[1].hand = []
     state.slot(1, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
     state.slot(1, Position(Front.CENTER, Rank.FRONT)).subject = "the-fifty-men"
@@ -155,6 +157,9 @@ def test_heuristic_uses_public_board_to_choose_stratagem() -> None:
     engine, state = engine_and_state()
     state.draw_used[0] = True
     state.players[0].hand = ["the-storm-broke", "the-wooden-gift"]
+    # Isolate the public-board preference between the two Stratagems.
+    state.players[0].deck = []
+    state.players[0].discard = []
     state.players[1].hand = ["oren", "iria", "teyra", "he-never-came"]
 
     for front, name in ((Front.LEFT, "namar"), (Front.CENTER, "oren")):
@@ -203,3 +208,24 @@ def test_heuristic_values_tempo_after_opponent_passes() -> None:
     )
 
     assert tempo_value > live_value
+
+
+def test_heuristic_values_unused_hero_as_flexible_name_resource() -> None:
+    engine, state = engine_and_state()
+    state.players[0].hand = ["daran-the-red-shield"]
+    state.players[1].hand = []
+    slot = state.slot(0, Position(Front.CENTER, Rank.FRONT))
+    slot.subject = "the-fifty-men"
+    slot.link = "followed"
+
+    available = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, state, 0)
+
+    spent = state.clone()
+    spent.hero_used[0] = True
+    unavailable = HeuristicAgent(seed=2, exploration=0.0).evaluate(
+        engine,
+        spent,
+        0,
+    )
+
+    assert available > unavailable

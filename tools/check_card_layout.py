@@ -59,7 +59,7 @@ def type_label(card: dict) -> str:
         form = title_case(card.get("story_form", "Story"))
         return f"{form} · " + ("Veiled Story" if card.get("veiled") else "Story")
     if card["type"] == "subject" and card.get("hero"):
-        return "Hero · Subject"
+        return "Hero · Subject / Name"
     return title_case(card["type"])
 
 
@@ -97,32 +97,58 @@ def property_markup(card: dict, class_name: str) -> str:
 
 def play_card(card: dict) -> str:
     strength = (
-        f'<span class="play-card-strength">{card["strength"]}</span>'
-        if isinstance(card.get("strength"), int)
-        else ""
+        (
+            '<span class="play-card-strength hero-dual-strength">'
+            f'<span><small>S</small>{card["strength"]}</span>'
+            f'<span><small>N</small>{card["hero_name_strength"]}</span>'
+            '</span>'
+        )
+        if card.get("hero")
+        else (
+            f'<span class="play-card-strength">{card["strength"]}</span>'
+            if isinstance(card.get("strength"), int)
+            else ""
+        )
+    )
+    command = (
+        f'<span class="play-command-cost" aria-label="Command cost">C {card["command_cost"]}</span>'
+        if isinstance(card.get("command_cost"), int) else ""
     )
     return (
         f'<article class="play-card {classes(card)}" data-card-id="{html.escape(card["id"])}">'
-        f'<div class="play-card-meta"><span>{html.escape(type_label(card))}</span></div>'
+        f'<div class="play-card-meta"><span>{html.escape(type_label(card))}</span><span class="play-card-meta-badges">{command}</span></div>'
         f'<h3>{html.escape(card["title"])}</h3>'
         f'{property_markup(card, "play-card-properties")}'
         f'{strength}'
         f'<div class="play-card-rules">{rule_markup(card, "<em>No special rules.</em>")}</div>'
-        f'<footer>SELECT OR DRAG TO PLAY</footer>'
+        f'<footer>SELECT OR INSPECT</footer>'
         f'</article>'
     )
 
 
 def print_card(card: dict) -> str:
     strength = (
-        f'<div class="strength">{card["strength"]}</div>'
-        if isinstance(card.get("strength"), int)
-        else ""
+        (
+            '<div class="strength hero-dual-strength">'
+            f'<span><small>S</small>{card["strength"]}</span>'
+            f'<span><small>N</small>{card["hero_name_strength"]}</span>'
+            '</div>'
+        )
+        if card.get("hero")
+        else (
+            f'<div class="strength">{card["strength"]}</div>'
+            if isinstance(card.get("strength"), int)
+            else ""
+        )
+    )
+    command = (
+        f'<div class="command-cost" aria-label="Command cost">{card["command_cost"]}</div>'
+        if isinstance(card.get("command_cost"), int) else ""
     )
     unique = '<span class="unique"><em>Unique</em></span>' if card.get("unique") else ""
     return (
         f'<article class="game-card {classes(card)}" data-card-id="{html.escape(card["id"])}">'
-        f'<div class="card-meta"><span class="card-type">{html.escape(type_label(card))}</span>{strength}</div>'
+        f'<div class="card-meta"><span class="card-type">{html.escape(type_label(card))}</span>{command}{strength}</div>'
         f'<h2 class="card-title">{html.escape(card["title"])}</h2>'
         f'{property_markup(card, "card-properties")}'
         f'<div class="card-rule">{rule_markup(card)}</div>'

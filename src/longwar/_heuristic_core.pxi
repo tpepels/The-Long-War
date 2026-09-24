@@ -11,7 +11,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int front, margin, controls=0, enemy_controls=0, hand_delta
         cdef int named_delta=0, scheme_delta=0, strat_delta=0
         cdef int exposed=0, reachable=0, slot, name_card, before, after, best
-        cdef int card, own_forces=0, own_board_subjects=0
+        cdef int card, own_forces=0, own_board_subjects=0, hero_force=0
         cdef double score = 0.0, option = 0.0
 
         if state.phase == PHASE_COMPLETE:
@@ -56,7 +56,15 @@ cdef class NativeHeuristicEvaluator:
 
         for card in range(self.engine.n_cards):
             if self.engine.card_type[card] == CARD_SUBJECT:
-                own_forces += state.hand[player][card]
+                if self.engine.hero[card]:
+                    if (
+                        not state.hero_used[player]
+                        and state.hand[player][card] > 0
+                    ):
+                        hero_force = 1
+                else:
+                    own_forces += state.hand[player][card]
+        own_forces += hero_force
         if own_forces > 3:
             own_forces = 3
         score += 0.35 * own_forces
@@ -119,11 +127,14 @@ cdef class NativeHeuristicEvaluator:
             before = self.engine.position_strength_fast(state, slot)
             best = -32768
             for name_card in range(self.engine.n_cards):
-                if (
-                    state.hand[player][name_card] == 0
-                    or self.engine.card_type[name_card] != CARD_NAME
-                ):
+                if state.hand[player][name_card] == 0:
                     continue
+                if self.engine.card_type[name_card] != CARD_NAME:
+                    if (
+                        not self.engine.hero[name_card]
+                        or state.hero_used[player]
+                    ):
+                        continue
                 state.name[slot] = name_card
                 after = self.engine.position_strength_fast(state, slot)
                 if after - before > best:
@@ -167,7 +178,7 @@ cdef class NativeHeuristicEvaluator:
     ) noexcept:
         cdef bint needs_subject=False, needs_link=False, needs_name=False
         cdef int local, slot, card, count, typ
-        cdef double value=0.0
+        cdef double value=0.0, subject_value=0.0, name_value=0.0
         for local in range(6):
             slot = player * 6 + local
             if state.subject[slot] < 0 and (
@@ -189,7 +200,18 @@ cdef class NativeHeuristicEvaluator:
                 continue
             typ = self.engine.card_type[card]
             if typ == CARD_SUBJECT:
-                value += count * (0.45 + (0.95 if needs_subject else 0.0))
+                subject_value = 0.45 + (0.95 if needs_subject else 0.0)
+                if self.engine.hero[card]:
+                    if state.hero_used[player]:
+                        continue
+                    name_value = 0.35 + (1.05 if needs_name else 0.0)
+                    value += count * (
+                        subject_value
+                        if subject_value >= name_value
+                        else name_value
+                    )
+                else:
+                    value += count * subject_value
             elif typ == CARD_LINK:
                 value += count * (0.35 + (0.95 if needs_link else 0.0))
             elif typ == CARD_NAME:
@@ -205,12 +227,15 @@ cdef class NativeHeuristicEvaluator:
         FastState state,
         int player,
     ) noexcept:
-        cdef int card, count, subjects=0, links=0, names=0
-        cdef int value
+        cdef int card, count, subjects=0, links=0, names=0, heroes=0
+        cdef int value, candidate
         for card in range(self.engine.n_cards):
             count = state.hand[player][card] + state.deck_counts[player][card]
             if self.engine.card_type[card] == CARD_SUBJECT:
-                subjects += count
+                if self.engine.hero[card]:
+                    heroes += count
+                else:
+                    subjects += count
             elif self.engine.card_type[card] == CARD_LINK:
                 links += count
             elif self.engine.card_type[card] == CARD_NAME:
@@ -220,6 +245,22 @@ cdef class NativeHeuristicEvaluator:
             value = links
         if names < value:
             value = names
+        if heroes > 0 and not state.hero_used[player]:
+            candidate = subjects + 1
+            if links < candidate:
+                candidate = links
+            if names < candidate:
+                candidate = names
+            if candidate > value:
+                value = candidate
+
+            candidate = subjects
+            if links < candidate:
+                candidate = links
+            if names + 1 < candidate:
+                candidate = names + 1
+            if candidate > value:
+                value = candidate
         return value
 
     cdef double future_force_availability_fast(
@@ -228,17 +269,38 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ) noexcept:
         cdef int card, i, immediate=0, discarded=0
+        cdef bint hero_available=False, discarded_hero=False
         for card in range(self.engine.n_cards):
             if self.engine.card_type[card] == CARD_SUBJECT:
-                immediate += (
-                    state.hand[player][card]
-                    + state.deck_counts[player][card]
-                )
+                if self.engine.hero[card]:
+                    if (
+                        not state.hero_used[player]
+                        and (
+                            state.hand[player][card]
+                            + state.deck_counts[player][card]
+                        ) > 0
+                    ):
+                        hero_available = True
+                else:
+                    immediate += (
+                        state.hand[player][card]
+                        + state.deck_counts[player][card]
+                    )
         for i in range(state.discard_len[player]):
             card = state.discard[player][i]
             if self.engine.card_type[card] == CARD_SUBJECT:
-                discarded += 1
-        return immediate + 0.35 * discarded
+                if self.engine.hero[card]:
+                    if not state.hero_used[player]:
+                        discarded_hero = True
+                else:
+                    discarded += 1
+        return (
+            immediate
+            + (1.0 if hero_available else 0.0)
+            + 0.35 * (
+                discarded + (1 if discarded_hero else 0)
+            )
+        )
 
     cdef int affordable_hand_count_fast(
         self,
@@ -500,7 +562,14 @@ cdef class NativeHeuristicEvaluator:
         if kind == TYPE_DRAW:
             for card in range(self.engine.n_cards):
                 if self.engine.card_type[card] == CARD_SUBJECT:
-                    force_count += state.hand[player][card]
+                    if self.engine.hero[card]:
+                        if (
+                            not state.hero_used[player]
+                            and state.hand[player][card] > 0
+                        ):
+                            force_count += 1
+                    else:
+                        force_count += state.hand[player][card]
             score -= 0.35 if self.engine.paid_draw_enabled else 0.8
             if force_count == 0:
                 score += 1.4

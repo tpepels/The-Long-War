@@ -1,5 +1,5 @@
 {
-  "name": "Reference Deck v0.6",
+  "name": "Reference Deck v0.9",
   "cards": [
     "the-fifty-men",
     "seven-black-ships",
@@ -10,9 +10,11 @@
     "the-white-hands-of-elara",
     "the-red-shields",
     "the-crow-archers",
-    "the-house-of-reed",
-    "the-lantern-bearers",
     "avaros-the-bronze-king",
+    "the-fifty-men",
+    "lysa-of-the-salt-road",
+    "those-who-came-back",
+    "theron-the-oathkeeper",
     "followed",
     "swore-to",
     "defied",
@@ -22,6 +24,8 @@
     "iria",
     "oren",
     "teyra",
+    "maela",
+    "vara",
     "the-story-is-false",
     "he-never-came",
     "they-chose-another",
@@ -31,5 +35,10 @@
     "the-storm-broke",
     "the-tide-rose",
     "the-ground-gave-way"
+  ],
+  "heroes": [
+    "avaros-the-bronze-king",
+    "lysa-of-the-salt-road",
+    "theron-the-oathkeeper"
   ]
 }

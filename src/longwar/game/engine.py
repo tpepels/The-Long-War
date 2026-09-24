@@ -82,28 +82,28 @@ class GameEngine:
         *,
         rules: GameRules | None = None,
         opening_hand_size: int = 10,
-        draw_action_enabled: bool = True,
+        draw_action_enabled: bool = False,
         completion_draw_names: Iterable[str] = (),
-        deck_size: int = 30,
-        recycle_between_battles: bool = True,
-        command_enabled: bool = False,
+        deck_size: int = 34,
+        recycle_between_battles: bool = False,
+        command_enabled: bool = True,
         starting_command: int = 20,
         battle_command_gain: int = 10,
         command_cap: int = 20,
         cycle_command_cost: int = 1,
-        reshuffle_on_empty: bool = False,
-        automatic_draw: bool = False,
+        reshuffle_on_empty: bool = True,
+        automatic_draw: bool = True,
         paid_draw_enabled: bool = False,
         paid_draw_command_cost: int = 1,
         paid_draw_consumes_operation: bool = True,
         automatic_draw_hand_limit: int | None = None,
         battle_end_hand_limit: int | None = None,
-        cycle_enabled: bool = True,
-        pass_final_operation: bool = False,
-        pass_requires_both_acted: bool = False,
-        first_passer_starts_next_battle: bool = False,
-        completion_command_refund: int = 0,
-        public_stratagems: bool = False,
+        cycle_enabled: bool = False,
+        pass_final_operation: bool = True,
+        pass_requires_both_acted: bool = True,
+        first_passer_starts_next_battle: bool = True,
+        completion_command_refund: int = 1,
+        public_stratagems: bool = True,
     ):
         validate_card_data(card_data)
         if rules is None:
@@ -227,7 +227,6 @@ class GameEngine:
             )
 
         counts = Counter(deck)
-        hero_count = 0
         for card_id, count in counts.items():
             if card_id not in self.cards:
                 raise InvalidDeck(f"Unknown card: {card_id}")
@@ -237,13 +236,6 @@ class GameEngine:
                 raise InvalidDeck(
                     f"{card['title']} appears {count} times; maximum is {maximum}"
                 )
-            if card.get("hero", False):
-                hero_count += count
-
-        if hero_count != 1:
-            raise InvalidDeck(
-                f"A deck must contain exactly one Hero, got {hero_count}"
-            )
 
     def new_game(
         self,
@@ -387,6 +379,7 @@ class GameEngine:
             )
 
         state.stratagem_used[:] = data["stratagem_used"]
+        state.hero_used[:] = data["hero_used"]
         state.draw_used[:] = data["draw_used"]
         state.active_player = int(data["active_player"])
         state.battle = int(data["battle"])

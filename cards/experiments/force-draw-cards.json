@@ -208,7 +208,7 @@
         "hero"
       ],
       "role": "swordsman",
-      "text": "*Hero.* While this **Subject** is in the **Frontline**, **adjacent Subjects** you control get +1 **Strength**.",
+      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, while this **Subject** is in the **Frontline**, **adjacent Subjects** you control get +1 **Strength**.",
       "rules": {
         "adjacent_strength_aura": 1,
         "aura_requires_rank": "front"
@@ -224,12 +224,18 @@
           "text": "*Hero.*"
         },
         {
+          "kind": "property",
+          "label": "DUAL",
+          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+        },
+        {
           "kind": "continuous",
           "label": "WHILE",
           "text": "In the **Frontline**: **adjacent Subjects** you control get +1 **Strength**."
         }
       ],
-      "command_cost": 3
+      "command_cost": 3,
+      "hero_name_strength": 2
     },
     {
       "id": "followed",
@@ -753,7 +759,7 @@
         "weather",
         "sea"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — *Ships* get +2 **Strength**; *Archers* get -2 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — *Ships* get +2 **Strength**; *Archers* get -2 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -795,7 +801,7 @@
         "sea",
         "tide"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — *Ships* get +1 **Strength**; **Line Defense** gives no bonus.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — *Ships* get +1 **Strength**; **Line Defense** gives no bonus.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -837,7 +843,7 @@
         "terrain",
         "hazard"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Rear Subjects** get +1 **Strength**; **Frontline Subjects** get -1 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Rear Subjects** get +1 **Strength**; **Frontline Subjects** get -1 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -879,7 +885,7 @@
         "weapon",
         "preparation"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Frontline Subjects** get -1 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Frontline Subjects** get -1 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -920,7 +926,7 @@
         "misinformation",
         "deception"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — Immediate **Stories** cannot be played.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — Immediate **Stories** cannot be played.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -959,7 +965,7 @@
         "deception",
         "preparation"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Subjects** with a **Name** get -2 **Strength**; those without a **Name** get +1.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Subjects** with a **Name** get -2 **Strength**; those without a **Name** get +1.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -1137,7 +1143,7 @@
         "hero"
       ],
       "role": "archer",
-      "text": "*Hero. Rear only.* While this **Subject** is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**.",
+      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, this **Subject** is *Rear only*. While it is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -1158,6 +1164,11 @@
         },
         {
           "kind": "property",
+          "label": "DUAL",
+          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+        },
+        {
+          "kind": "property",
           "label": "PLAY",
           "text": "**Rear** only."
         },
@@ -1167,7 +1178,8 @@
           "text": "In the **Rear**: **adjacent Subjects** you control get +1 **Strength**."
         }
       ],
-      "command_cost": 3
+      "command_cost": 3,
+      "hero_name_strength": 2
     },
     {
       "id": "sera-mother-of-white-hands",
@@ -1182,7 +1194,7 @@
         "hero"
       ],
       "role": "healer",
-      "text": "*Hero. Rear only.* While this **Subject** is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**.",
+      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, this **Subject** is *Rear only*. While it is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -1203,6 +1215,11 @@
         },
         {
           "kind": "property",
+          "label": "DUAL",
+          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+        },
+        {
+          "kind": "property",
           "label": "PLAY",
           "text": "**Rear** only."
         },
@@ -1212,7 +1229,8 @@
           "text": "In the **Rear**: **adjacent Subjects** you control get +1 **Strength**."
         }
       ],
-      "command_cost": 2
+      "command_cost": 2,
+      "hero_name_strength": 2
     },
     {
       "id": "guarded",
@@ -1556,7 +1574,7 @@
         "weather",
         "sea"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — *Archers* get +2 **Strength**; *Ships* get -2 **Strength**.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — *Archers* get +2 **Strength**; *Ships* get -2 **Strength**.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -1599,7 +1617,7 @@
         "silence",
         "ritual"
       ],
-      "text": "**WHEN PLAYED** — Place this face-up in your Stratagem area. **DURING THIS BATTLE** — **Subjects** with a **Name** get +1 **Strength**; those without a **Name** get -1.",
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Subjects** with a **Name** get +1 **Strength**; those without a **Name** get -1.",
       "rules": {
         "stratagem": {
           "trigger": {
@@ -1630,6 +1648,157 @@
         }
       ],
       "command_cost": 2
+    },
+    {
+      "id": "daran-the-red-shield",
+      "title": "Daran, the Red Shield",
+      "type": "subject",
+      "strength": 5,
+      "hero_name_strength": 2,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "guardian",
+        "hero"
+      ],
+      "role": "spearman",
+      "text": "*Hero.* Play as a **Subject** or **Name**. **Name**: +2 **Strength**. **Subject**: *Frontline only*. +1 **Strength** while an **adjacent Subject** you control has a **Name**.",
+      "rules": {
+        "placement": {
+          "rank": "front"
+        },
+        "strength_modifiers": [
+          {
+            "amount": 1,
+            "when": {
+              "adjacent_subject_has_name": true
+            }
+          }
+        ]
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "DUAL",
+          "text": "**Subject** or **Name**. **Name**: +2 **Strength**."
+        },
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "*Frontline only*."
+        },
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "An **adjacent Subject** you control has a **Name**: +1 **Strength**."
+        }
+      ],
+      "command_cost": 3
+    },
+    {
+      "id": "lysa-of-the-salt-road",
+      "title": "Lysa of the Salt Road",
+      "type": "subject",
+      "strength": 4,
+      "hero_name_strength": 2,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "scout",
+        "hero"
+      ],
+      "role": "archer",
+      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, this card is *Rear only*. When you attach a **Bond** to this **Subject**, it gets +2 **Strength** this **Battle**.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        },
+        "on_link_attached": {
+          "temporary_strength": 2
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "TRAIT",
+          "text": "*Hero.*"
+        },
+        {
+          "kind": "property",
+          "label": "DUAL",
+          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+        },
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "As a **Subject**: **Rear** only."
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "You attach a **Bond** to this **Subject**: it gets +2 **Strength** this **Battle**."
+        }
+      ],
+      "command_cost": 3
+    },
+    {
+      "id": "theron-the-oathkeeper",
+      "title": "Theron, the Oathkeeper",
+      "type": "subject",
+      "strength": 4,
+      "hero_name_strength": 2,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "oathkeeper",
+        "hero"
+      ],
+      "role": "swordsman",
+      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, while your **discard pile** contains at least 5 cards, this **Subject** gets +2 **Strength**.",
+      "rules": {
+        "strength_modifiers": [
+          {
+            "amount": 2,
+            "when": {
+              "own_discard_at_least": 5
+            }
+          }
+        ]
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "TRAIT",
+          "text": "*Hero.*"
+        },
+        {
+          "kind": "property",
+          "label": "DUAL",
+          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "You have 5+ cards in your **discard pile**: this **Subject** gets +2 **Strength**."
+        }
+      ],
+      "command_cost": 3
     }
   ]
 }

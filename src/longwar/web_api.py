@@ -9,6 +9,7 @@ from .game.actions import (
     Action,
     BoardTarget,
     ChooseFirst,
+    Cycle,
     Draw,
     Pass,
     PlayLink,
@@ -160,9 +161,15 @@ class PlaySession:
         )
         self.setup_complete = True
         self.opening_player = self.state.active_player
+        if self.engine.automatic_draw:
+            opening_note = " and draws 1 card at the start of the turn."
+        elif self.engine.paid_draw_enabled:
+            opening_note = "."
+        else:
+            opening_note = " and draws 1 additional opening card."
         self.log.append(
-            f"Battle I begins. Player {self.state.active_player + 1} goes first "
-            "and draws 1 additional opening card."
+            f"Battle I begins. Player {self.state.active_player + 1} goes first"
+            f"{opening_note}"
         )
         self._run_ai_until_human()
 
@@ -184,11 +191,7 @@ class PlaySession:
         self._apply_with_log(action)
         self._run_ai_until_human()
         if self.mode == "hotseat":
-            # A Stratagem is a free pre-action deployment. Keep the same
-            # player's hand visible so they can still take their normal action.
-            return self.snapshot(
-                viewer if isinstance(action, SetStratagem) else None
-            )
+            return self.snapshot(None)
         return self.snapshot(0)
 
     def snapshot(self, viewer: int | None = None) -> dict[str, Any]:
@@ -200,12 +203,15 @@ class PlaySession:
         display_phase = "mulligan" if not self.setup_complete else state.phase.value
 
         players = []
-        for ps in state.players:
+        for player, ps in enumerate(state.players):
             players.append({
                 "victories": ps.victories,
                 "passed": ps.passed,
                 "hand_count": len(ps.hand),
                 "deck_count": len(ps.deck),
+                "command": ps.command,
+                "free_cycle": ps.free_cycle,
+                "hero_used": bool(state.hero_used[player]),
                 "discard": list(ps.discard),
             })
 
@@ -317,6 +323,7 @@ class PlaySession:
             "schemes": schemes,
             "stratagems": stratagems,
             "stratagem_used": list(state.stratagem_used),
+            "hero_used": list(state.hero_used),
             "draw_used": list(state.draw_used),
             "needs_ai": (
                 self.setup_complete
@@ -398,16 +405,31 @@ class PlaySession:
         if self.state.phase is Phase.COMPLETE:
             self.log.append(f"Player {self.state.winner + 1} wins the match.")
         elif self.state.battle != battle_before:
+            if self.state.phase is Phase.CHOOSE_FIRST and self.state.chooser is not None:
+                transition = (
+                    f"Player {self.state.chooser + 1} chooses who starts."
+                )
+            else:
+                transition = (
+                    f"Player {self.state.active_player + 1} starts."
+                )
             self.log.append(
                 f"Battle {self._roman(self.state.battle)} begins. "
-                f"Player {self.state.chooser + 1} chooses who starts."
+                f"{transition}"
             )
 
     def _last_action_view(self, viewer: int | None) -> dict[str, Any] | None:
         if self.last_action is None:
             return None
         action = self.last_action
-        visible = action["kind"] not in {"PlayScheme", "SetStratagem"} or viewer == action["actor"]
+        hidden_action = (
+            action["kind"] == "PlayScheme"
+            or (
+                action["kind"] == "SetStratagem"
+                and not self.engine.public_stratagems
+            )
+        )
+        visible = not hidden_action or viewer == action["actor"]
         result = {key: value for key, value in action.items() if key not in {"key", "reason", "public_label", "private_label"}}
         result["card_id"] = action["card_id"] if visible else None
         result["label"] = action["private_label"] if visible else action["public_label"]
@@ -419,6 +441,7 @@ class PlaySession:
             "key": action_key(action),
             "kind": type(action).__name__,
             "card_id": card_id,
+            "command_cost": self.engine.command_cost_for_action(self.state, action),
             "label": self._describe_action(action, self.state.active_player, private=True),
             "reason": self._legal_reason(action),
             "position": None,
@@ -464,6 +487,8 @@ class PlaySession:
             return f"{prefix} Passes."
         if isinstance(action, Draw):
             return f"{prefix} draws 1 card."
+        if isinstance(action, Cycle):
+            return f"{prefix} Cycles {self.cards[action.card_id]['title']}."
         if isinstance(action, ChooseFirst):
             return f"{prefix} chooses Player {action.player + 1} to start the next Battle."
         if isinstance(action, PlaySubject):
@@ -495,11 +520,11 @@ class PlaySession:
                 )
             return f"{prefix} sets a face-down Story in {FRONT_NAMES[action.front]}."
         if isinstance(action, SetStratagem):
+            title = self.cards[action.card_id]["title"]
+            if self.engine.public_stratagems:
+                return f"{prefix} plays {title} face-up as their Stratagem."
             if private:
-                return (
-                    f"Set {self.cards[action.card_id]['title']} face-down "
-                    "as your Stratagem."
-                )
+                return f"Set {title} face-down as your Stratagem."
             return f"{prefix} sets a face-down Stratagem."
         if isinstance(action, PlayPlot):
             title = self.cards[action.card_id]["title"]
@@ -511,9 +536,14 @@ class PlaySession:
 
     def _legal_reason(self, action: Action) -> str:
         if isinstance(action, Pass):
-            return "Pass is always legal while you are still active in the Battle."
+            return (
+                "Pass ends your operations. Normally both players must have acted "
+                "before the first Pass; the opponent then receives one final operation."
+            )
         if isinstance(action, Draw):
-            return "Draw 1 card as your normal action. You may do this once per Battle."
+            return "Generic Draw is disabled in Command play."
+        if isinstance(action, Cycle):
+            return "Pay the shown Command cost, discard this card, then draw 1."
         if isinstance(action, ChooseFirst):
             return "The previous Battle loser chooses who takes the first turn."
         if isinstance(action, PlaySubject):
@@ -526,8 +556,8 @@ class PlaySession:
             return "You have no Veiled Story in this Front."
         if isinstance(action, SetStratagem):
             return (
-                "You have not set a Stratagem this Battle. Setting it is free "
-                "and you still take your normal action."
+                "You have not played a Stratagem this Battle. Pay its printed "
+                "Command cost; it enters face-up and uses your operation."
             )
         if isinstance(action, PlayPlot):
             return "The Story has all targets required by its rules text."

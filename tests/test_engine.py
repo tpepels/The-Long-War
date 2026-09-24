@@ -30,7 +30,23 @@ LEFT_FRONT = Position(Front.LEFT, Rank.FRONT)
 
 def engine_and_deck() -> tuple[GameEngine, list[str]]:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    engine = GameEngine(data)
+    # Exercise the configurable pre-Command rules explicitly; the standard
+    # Command/persistent profile has its own transition regressions.
+    engine = GameEngine(
+        data,
+        draw_action_enabled=True,
+        recycle_between_battles=True,
+        command_enabled=False,
+        reshuffle_on_empty=False,
+        automatic_draw=False,
+        paid_draw_enabled=False,
+        cycle_enabled=False,
+        pass_final_operation=False,
+        pass_requires_both_acted=False,
+        first_passer_starts_next_battle=False,
+        completion_command_refund=0,
+        public_stratagems=True,
+    )
     deck = json.loads(
         (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
     )["cards"]
@@ -46,7 +62,7 @@ def fresh_state(*, first_player: int = 0):
 def test_setup_gives_battle_one_starter_an_extra_opening_card() -> None:
     engine, state = fresh_state(first_player=0)
     assert [len(player.hand) for player in state.players] == [11, 10]
-    assert [len(player.deck) for player in state.players] == [19, 20]
+    assert [len(player.deck) for player in state.players] == [23, 24]
     assert state.battle == 1
     assert state.phase is Phase.BATTLE
     assert state.active_player == 0
@@ -91,7 +107,7 @@ def test_battle_draw_resets_for_the_next_battle() -> None:
 
 
 
-def test_links_help_immediately_and_namar_rewards_frontline() -> None:
+def test_links_help_immediately_and_namar_adds_name_value() -> None:
     engine, state = fresh_state(first_player=1)
     state.players[0].hand = ["the-fifty-men", "followed", "namar"]
     state.players[1].hand = []
@@ -104,7 +120,7 @@ def test_links_help_immediately_and_namar_rewards_frontline() -> None:
     assert engine.position_strength(state, 0, CENTER_FRONT) == 7
 
     engine.apply(state, PlayName("namar", CENTER_FRONT))
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 13
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 10
 
 
 def test_formation_components_can_be_prepared_in_any_order() -> None:
@@ -128,7 +144,7 @@ def test_formation_components_can_be_prepared_in_any_order() -> None:
 
     engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
     assert slot.complete
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 13
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 10
 
 
 def test_name_becomes_active_with_subject_even_before_bond() -> None:
@@ -144,7 +160,7 @@ def test_name_becomes_active_with_subject_even_before_bond() -> None:
     assert slot.subject == "the-fifty-men"
     assert slot.link is None
     assert slot.name == "namar"
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 10
+    assert engine.position_strength(state, 0, CENTER_FRONT) == 7
 
 
 def test_prepared_bond_does_not_retroactively_trigger_on_link_play() -> None:
@@ -358,7 +374,7 @@ def test_next_battle_keeps_hand_recycles_everything_else_and_refills_to_ten() ->
     assert [len(player.discard) for player in state.players] == [0, 0]
     for player in range(2):
         player_state = state.players[player]
-        assert len(player_state.hand) + len(player_state.deck) == 30
+        assert len(player_state.hand) + len(player_state.deck) == 34
         assert Counter(player_state.hand) >= kept[player]
 
 
@@ -415,7 +431,7 @@ def test_defied_reduces_opposing_front_strength() -> None:
     left1 = state.slot(1, LEFT_FRONT)
     left1.subject = "the-fifty-men"
 
-    assert engine.front_strength(state, 0, Front.LEFT) == 11
+    assert engine.front_strength(state, 0, Front.LEFT) == 10
     assert engine.front_strength(state, 1, Front.LEFT) == 4
 
 
@@ -462,7 +478,7 @@ def test_they_chose_another_respects_frontline_only_subjects() -> None:
     )
 
 
-def test_namar_frontline_bonus_does_not_apply_in_rear() -> None:
+def test_namar_has_no_rank_specific_strength_bonus() -> None:
     engine, state = fresh_state()
     rear = Position(Front.CENTER, Rank.REAR)
     slot = state.slot(0, rear)
@@ -470,7 +486,7 @@ def test_namar_frontline_bonus_does_not_apply_in_rear() -> None:
     slot.link = "followed"
     slot.name = "namar"
 
-    assert engine.position_strength(state, 0, rear) == 9
+    assert engine.position_strength(state, 0, rear) == 8
 
 
 def test_face_down_scheme_adds_front_strength_until_revealed() -> None:
@@ -648,25 +664,32 @@ def test_hero_is_strong_and_buffs_adjacent_subjects() -> None:
     assert engine.position_strength(state, 0, adjacent) == 7
 
 
-def test_deck_requires_exactly_one_hero() -> None:
+def test_deck_allows_multiple_heroes_but_not_duplicate_hero_titles() -> None:
     from longwar.game.engine import InvalidDeck
 
     engine, deck = engine_and_deck()
     engine.validate_deck(deck)
+    assert sum(engine.cards[card_id].get("hero", False) for card_id in deck) == 3
 
-    without_hero = list(deck)
-    without_hero.remove("avaros-the-bronze-king")
-    without_hero.append("seven-black-ships")
+    duplicate_hero = list(deck)
+    replacement = next(
+        card_id
+        for card_id in duplicate_hero
+        if not engine.cards[card_id].get("hero", False)
+        and duplicate_hero.count(card_id) == 1
+    )
+    duplicate_hero.remove(replacement)
+    duplicate_hero.append("avaros-the-bronze-king")
 
     try:
-        engine.validate_deck(without_hero)
+        engine.validate_deck(duplicate_hero)
     except InvalidDeck as exc:
-        assert "exactly one Hero" in str(exc)
+        assert "Avaros, the Bronze King appears 2 times; maximum is 1" in str(exc)
     else:
-        raise AssertionError("Deck without a Hero should be invalid")
+        raise AssertionError("Duplicate Hero title should be invalid")
 
 
-def test_stratagem_is_free_pre_action_and_only_one_may_be_set_per_battle() -> None:
+def test_public_stratagem_is_free_pre_action_in_legacy_profile_and_only_one_may_be_played() -> None:
     engine, state = fresh_state(first_player=0)
     state.players[0].hand = [
         "the-storm-broke",
@@ -679,7 +702,7 @@ def test_stratagem_is_free_pre_action_and_only_one_may_be_set_per_battle() -> No
     assert state.active_player == 0
     assert state.stratagem_used[0] is True
     assert state.stratagem(0) is not None
-    assert state.stratagem(0).revealed is False
+    assert state.stratagem(0).revealed is True
     assert not any(
         isinstance(action, SetStratagem)
         for action in engine.legal_actions(state)
@@ -689,288 +712,68 @@ def test_stratagem_is_free_pre_action_and_only_one_may_be_set_per_battle() -> No
     assert state.active_player == 1
 
 
-def test_storm_reveals_on_ship_and_modifies_ships_and_archers_for_both_players() -> None:
-    engine, state = fresh_state(first_player=0)
-    rear = Position(Front.CENTER, Rank.REAR)
-    state.players[0].hand = ["the-storm-broke", "seven-black-ships"]
-
-    engine.apply(state, SetStratagem("the-storm-broke"))
-    engine.apply(state, PlaySubject("seven-black-ships", rear))
-
-    assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 0, rear) == 7
-
-    state.slot(1, CENTER_FRONT).subject = "the-fifty-men"
-    state.slot(1, rear).subject = "the-children-of-the-salt-road"
-    assert engine.position_strength(state, 1, rear) == 3
-
-
-def test_high_tide_reveals_on_pass_and_changes_line_defense_and_ships() -> None:
-    engine, state = fresh_state(first_player=0)
-    rear = Position(Front.CENTER, Rank.REAR)
-    state.slot(0, CENTER_FRONT).subject = "the-fifty-men"
-    state.slot(0, rear).subject = "seven-black-ships"
-    state.players[0].hand = ["the-tide-rose"]
-
-    engine.apply(state, SetStratagem("the-tide-rose"))
-    engine.apply(state, Pass())
-
-    assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 5
-    assert engine.position_strength(state, 0, rear) == 6
-
-
-def test_ground_gave_way_reveals_from_rear_and_shifts_both_ranks() -> None:
-    engine, state = fresh_state(first_player=0)
-    rear = Position(Front.CENTER, Rank.REAR)
-    state.players[0].hand = ["the-ground-gave-way", "the-fifty-men"]
-
-    engine.apply(state, SetStratagem("the-ground-gave-way"))
-    engine.apply(state, PlaySubject("the-fifty-men", rear))
-
-    assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 0, rear) == 5
-
-    state.slot(1, CENTER_FRONT).subject = "the-fifty-men"
-    assert engine.position_strength(state, 1, CENTER_FRONT) == 5
-
-
-def test_bronze_teeth_hurts_trigger_subject_and_its_controllers_frontline() -> None:
-    engine, state = fresh_state(first_player=0)
-    state.players[0].hand = ["the-bronze-teeth", "the-fifty-men"]
-    state.players[1].hand = ["the-fifty-men"]
-
-    engine.apply(state, SetStratagem("the-bronze-teeth"))
-    engine.apply(state, PlaySubject("the-fifty-men", LEFT_FRONT))
-    engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
-
-    assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 0, LEFT_FRONT) == 5
-    assert engine.position_strength(state, 1, CENTER_FRONT) == 4
-
-
-def test_false_muster_cancels_story_then_locks_own_immediate_stories() -> None:
-    engine, state = fresh_state(first_player=0)
-    state.players[0].hand = ["the-false-muster", "the-fifty-men"]
-    state.players[1].hand = ["the-story-is-false"]
-    state.slot(0, CENTER_FRONT).subject = "the-fifty-men"
-    state.slot(0, CENTER_FRONT).link = "followed"
-
-    engine.apply(state, SetStratagem("the-false-muster"))
-    engine.apply(state, PlaySubject("the-fifty-men", LEFT_FRONT))
-    engine.apply(
-        state,
-        PlayPlot(
-            "the-story-is-false",
-            (BoardTarget(0, CENTER_FRONT),),
-        ),
-    )
-
-    assert state.stratagem(0).revealed is True
-    assert state.slot(0, CENTER_FRONT).link == "followed"
-    assert "the-story-is-false" in state.players[1].discard
-
-    state.players[0].hand = ["he-never-came", "the-lamps-went-dark"]
-    actions = engine.legal_actions(state)
-    assert not any(
-        isinstance(action, PlayPlot)
-        and action.card_id == "he-never-came"
-        for action in actions
-    )
-    assert any(
-        isinstance(action, PlayScheme)
-        and action.card_id == "the-lamps-went-dark"
-        for action in actions
-    )
-
-
-def test_wooden_gift_revalues_named_and_unnamed_subjects() -> None:
-    engine, state = fresh_state(first_player=0)
-    rear = Position(Front.LEFT, Rank.REAR)
-    state.players[0].hand = ["the-wooden-gift", "the-fifty-men"]
-    state.players[1].hand = ["oren"]
-
-    engine.apply(state, SetStratagem("the-wooden-gift"))
-    engine.apply(state, PlaySubject("the-fifty-men", rear))
-
-    enemy = state.slot(1, CENTER_FRONT)
-    enemy.subject = "the-fifty-men"
-    enemy.link = "followed"
-    engine.apply(state, PlayName("oren", CENTER_FRONT))
-
-    assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 0, rear) == 5
-    assert engine.position_strength(state, 1, CENTER_FRONT) == 10
-
-
-def test_opposing_stratagems_can_reveal_and_stack() -> None:
-    engine, state = fresh_state(first_player=0)
-    rear = Position(Front.CENTER, Rank.REAR)
-    state.players[0].hand = ["the-storm-broke"]
-    state.players[1].hand = ["the-storm-broke", "seven-black-ships"]
-
-    engine.apply(state, SetStratagem("the-storm-broke"))
-    engine.apply(state, Pass())
-    engine.apply(state, SetStratagem("the-storm-broke"))
-    engine.apply(state, PlaySubject("seven-black-ships", rear))
-
-    assert state.stratagem(0).revealed is True
-    assert state.stratagem(1).revealed is True
-    assert engine.position_strength(state, 1, rear) == 9
-
-
-def test_untriggered_stratagem_reveals_and_recycles_at_battle_end() -> None:
-    engine, state = fresh_state(first_player=0)
-    state.players[0].hand = ["the-storm-broke"]
-
-    engine.apply(state, SetStratagem("the-storm-broke"))
-    engine.apply(state, Pass())
-    engine.apply(state, Pass())
-
-    assert state.players[0].discard == []
-    assert "the-storm-broke" in (
-        state.players[0].hand + state.players[0].deck
-    )
-    assert any(
-        event.kind == "reveal"
-        and event.zone == "stratagem"
-        and event.card_id == "the-storm-broke"
-        and event.reason == "battle_end"
-        for event in state.observations
-    )
-
-
-def test_setting_stratagem_is_free_and_one_opportunity_per_battle() -> None:
-    engine, state = fresh_state(first_player=0)
-    state.players[0].hand = ["the-storm-broke", "the-tide-rose"]
-    turn_number = state.turn_number
-
-    engine.apply(state, SetStratagem("the-storm-broke"))
-
-    assert state.active_player == 0
-    assert state.turn_number == turn_number
-    assert state.stratagem_used[0] is True
-    assert state.stratagem(0) is not None
-    assert state.stratagem(0).card_id == "the-storm-broke"
-
-    # The opportunity is spent, not merely the physical slot. Even if a future
-    # effect ever cleared the slot, a second Stratagem would remain illegal.
-    state.stratagems[0] = None
-    assert not any(
-        isinstance(action, SetStratagem)
-        for action in engine.legal_actions(state)
-    )
-
-
-def test_unrevealed_stratagem_is_revealed_after_scoring_then_reset() -> None:
-    engine, state = fresh_state(first_player=0)
-    state.players[0].hand = ["the-storm-broke"]
-
-    engine.apply(state, SetStratagem("the-storm-broke"))
-    engine.apply(state, Pass())
-    engine.apply(state, Pass())
-
-    assert state.battle == 2
-    assert state.stratagem(0) is None
-    assert state.stratagem_used == [False, False]
-    assert state.players[0].discard == []
-    assert "the-storm-broke" in (
-        state.players[0].hand + state.players[0].deck
-    )
-    assert any(
-        event.kind == "reveal"
-        and event.zone == "stratagem"
-        and event.card_id == "the-storm-broke"
-        and event.reason == "battle_end"
-        for event in state.observations
-    )
-
-
-def test_storm_reveals_on_ship_and_changes_ship_and_archer_strength() -> None:
+def test_storm_is_active_immediately_and_modifies_ships_and_archers() -> None:
     engine, state = fresh_state(first_player=0)
     rear = Position(Front.CENTER, Rank.REAR)
     archer_rear = Position(Front.LEFT, Rank.REAR)
-    state.players[0].hand = ["the-storm-broke", "seven-black-ships"]
+    state.players[0].hand = ["the-storm-broke"]
 
+    state.slot(0, rear).subject = "seven-black-ships"
+    state.slot(0, archer_rear).subject = "the-children-of-the-salt-road"
+
+    before_ship = engine.position_strength(state, 0, rear)
+    before_archer = engine.position_strength(state, 0, archer_rear)
     engine.apply(state, SetStratagem("the-storm-broke"))
-    engine.apply(state, PlaySubject("seven-black-ships", rear))
 
     assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 0, rear) == 7
-
-    state.slot(0, archer_rear).subject = "the-children-of-the-salt-road"
-    assert engine.position_strength(state, 0, archer_rear) == 1
+    assert engine.position_strength(state, 0, rear) == before_ship + 2
+    assert engine.position_strength(state, 0, archer_rear) == before_archer - 2
 
 
-def test_tide_reveals_on_pass_and_disables_line_defense() -> None:
+def test_tide_is_active_immediately_disables_line_defense_and_buffs_ships() -> None:
     engine, state = fresh_state(first_player=0)
+    front = Position(Front.CENTER, Rank.FRONT)
     rear = Position(Front.LEFT, Rank.REAR)
-    state.players[0].hand = ["the-tide-rose"]
-    state.slot(0, CENTER_FRONT).subject = "the-fifty-men"
+    state.slot(0, front).subject = "the-fifty-men"
     state.slot(0, rear).subject = "seven-black-ships"
+    state.players[0].hand = ["the-tide-rose"]
+
+    assert engine.position_strength(state, 0, front) == 6
+    before_ship = engine.position_strength(state, 0, rear)
 
     engine.apply(state, SetStratagem("the-tide-rose"))
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 6
 
-    engine.apply(state, Pass())
-
-    assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 5
-    assert engine.position_strength(state, 0, rear) == 6
+    assert engine.position_strength(state, 0, front) == 5
+    assert engine.position_strength(state, 0, rear) == before_ship + 1
 
 
-def test_ground_gave_way_rewards_rear_and_penalizes_frontline() -> None:
+def test_ground_gave_way_is_active_immediately_on_both_ranks() -> None:
     engine, state = fresh_state(first_player=0)
-    rear = Position(Front.CENTER, Rank.REAR)
     front = Position(Front.LEFT, Rank.FRONT)
-    state.players[0].hand = ["the-ground-gave-way", "the-fifty-men"]
+    rear = Position(Front.CENTER, Rank.REAR)
+    state.slot(0, front).subject = "the-fifty-men"
+    state.slot(0, rear).subject = "the-fifty-men"
+    state.players[0].hand = ["the-ground-gave-way"]
+
+    before_front = engine.position_strength(state, 0, front)
+    before_rear = engine.position_strength(state, 0, rear)
 
     engine.apply(state, SetStratagem("the-ground-gave-way"))
-    engine.apply(state, PlaySubject("the-fifty-men", rear))
-    state.slot(0, front).subject = "the-fifty-men"
 
-    assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 0, rear) == 5
-    assert engine.position_strength(state, 0, front) == 5
+    assert engine.position_strength(state, 0, front) == before_front - 1
+    assert engine.position_strength(state, 0, rear) == before_rear + 1
 
 
-def test_bronze_teeth_punishes_trigger_subject_but_costs_controller() -> None:
+def test_false_muster_locks_immediate_stories_while_public_stratagem_is_active() -> None:
     engine, state = fresh_state(first_player=0)
-    own_front = Position(Front.LEFT, Rank.FRONT)
-    enemy_front = Position(Front.CENTER, Rank.FRONT)
-    state.players[0].hand = ["the-bronze-teeth"]
-    state.players[1].hand = ["the-fifty-men"]
-    state.slot(0, own_front).subject = "the-fifty-men"
-
-    engine.apply(state, SetStratagem("the-bronze-teeth"))
-    engine.apply(state, Pass())
-    engine.apply(state, PlaySubject("the-fifty-men", enemy_front))
-
-    assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 1, enemy_front) == 4
-    assert engine.position_strength(state, 0, own_front) == 5
-
-
-def test_false_muster_cancels_immediate_story_and_locks_own_stories() -> None:
-    engine, state = fresh_state(first_player=0)
-    state.players[0].hand = ["the-false-muster", "the-fifty-men"]
-    state.players[1].hand = ["he-never-came"]
+    state.players[0].hand = [
+        "the-false-muster",
+        "the-story-is-false",
+        "the-lamps-went-dark",
+    ]
 
     engine.apply(state, SetStratagem("the-false-muster"))
-    engine.apply(state, PlaySubject("the-fifty-men", CENTER_FRONT))
-    engine.apply(
-        state,
-        PlayPlot(
-            "he-never-came",
-            (BoardTarget(0, CENTER_FRONT),),
-        ),
-    )
 
-    assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 0, CENTER_FRONT) == 6
-    assert "he-never-came" in state.players[1].discard
-
-    state.players[0].hand = ["the-story-is-false", "the-lamps-went-dark"]
     actions = engine.legal_actions(state)
     assert not any(
         isinstance(action, PlayPlot)
@@ -984,21 +787,35 @@ def test_false_muster_cancels_immediate_story_and_locks_own_stories() -> None:
     )
 
 
-def test_wooden_gift_penalizes_named_and_rewards_unnamed_subjects() -> None:
+def test_wooden_gift_revalues_named_and_unnamed_subjects_immediately() -> None:
     engine, state = fresh_state(first_player=0)
-    own_front = Position(Front.LEFT, Rank.FRONT)
-    enemy_front = Position(Front.CENTER, Rank.FRONT)
-    state.players[0].hand = ["the-wooden-gift", "the-fifty-men"]
-    state.players[1].hand = ["namar"]
+    unnamed = Position(Front.LEFT, Rank.FRONT)
+    named = Position(Front.CENTER, Rank.FRONT)
+
+    state.slot(0, unnamed).subject = "the-fifty-men"
+    state.slot(0, named).subject = "the-fifty-men"
+    state.slot(0, named).name = "namar"
+    state.players[0].hand = ["the-wooden-gift"]
+
+    before_unnamed = engine.position_strength(state, 0, unnamed)
+    before_named = engine.position_strength(state, 0, named)
 
     engine.apply(state, SetStratagem("the-wooden-gift"))
-    engine.apply(state, PlaySubject("the-fifty-men", own_front))
 
-    enemy = state.slot(1, enemy_front)
-    enemy.subject = "the-fifty-men"
-    enemy.link = "followed"
-    engine.apply(state, PlayName("namar", enemy_front))
+    assert engine.position_strength(state, 0, unnamed) == before_unnamed + 1
+    assert engine.position_strength(state, 0, named) == before_named - 2
 
-    assert state.stratagem(0).revealed is True
-    assert engine.position_strength(state, 0, own_front) == 7
-    assert engine.position_strength(state, 1, enemy_front) == 11
+
+def test_public_stratagem_is_discarded_at_battle_end_and_opportunity_resets() -> None:
+    engine, state = fresh_state(first_player=0)
+    state.players[0].hand = ["the-storm-broke"]
+    state.slot(0, LEFT_FRONT).subject = "the-fifty-men"
+    state.slot(0, CENTER_FRONT).subject = "the-fifty-men"
+
+    engine.apply(state, SetStratagem("the-storm-broke"))
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.battle == 2
+    assert state.stratagem(0) is None
+    assert state.stratagem_used == [False, False]

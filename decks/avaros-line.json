@@ -1,19 +1,20 @@
 {
-  "name": "Avaros Frontline",
-  "hero": "avaros-the-bronze-king",
+  "name": "Avaros Line v0.9",
   "cards": [
     "avaros-the-bronze-king",
     "the-red-shields",
-    "the-red-shields",
+    "daran-the-red-shield",
     "the-fifty-men",
-    "the-fifty-men",
+    "theron-the-oathkeeper",
     "the-three-brothers-of-avar",
     "the-three-brothers-of-avar",
     "those-who-came-back",
-    "those-who-came-back",
-    "the-house-at-orra",
     "the-house-at-orra",
     "the-lantern-bearers",
+    "those-who-came-back",
+    "the-house-at-orra",
+    "the-white-hands-of-elara",
+    "seven-black-ships",
     "followed",
     "followed",
     "swore-to",
@@ -26,11 +27,18 @@
     "oren",
     "elian",
     "teyra",
+    "iria",
+    "vara",
     "the-story-is-false",
     "he-never-came",
     "the-road-was-cut",
     "the-witness-lied",
     "the-bronze-teeth",
     "the-false-muster"
+  ],
+  "heroes": [
+    "avaros-the-bronze-king",
+    "daran-the-red-shield",
+    "theron-the-oathkeeper"
   ]
 }

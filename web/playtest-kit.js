@@ -26,7 +26,7 @@ function typeLabel(card) {
     const form = titleCase(card.story_form);
     return card.veiled ? form + " · Veiled Story" : form + " · Story";
   }
-  if (card.type === "subject" && card.hero) return "Hero · Subject";
+  if (card.type === "subject" && card.hero) return "Hero · Subject / Name";
   return TYPE_LABELS[card.type] ?? card.type;
 }
 
@@ -70,14 +70,20 @@ function ruleMarkup(card) {
 }
 
 function cardMarkup(card, deckLabel) {
-  const strength = Number.isInteger(card.strength)
-    ? '<div class="strength" aria-label="Strength">' + card.strength + "</div>"
+  const strength = card.hero
+    ? '<div class="strength hero-dual-strength" aria-label="Subject strength ' + card.strength + ', Name strength ' + card.hero_name_strength + '">' +
+      '<span><small>S</small>' + card.strength + '</span><span><small>N</small>' + card.hero_name_strength + '</span></div>'
+    : Number.isInteger(card.strength)
+      ? '<div class="strength" aria-label="Strength">' + card.strength + "</div>"
+      : "";
+  const commandCost = Number.isInteger(card.command_cost)
+    ? '<div class="command-cost" aria-label="Command cost">' + card.command_cost + "</div>"
     : "";
   const unique = card.unique ? '<span class="unique"><em>Unique</em></span>' : "";
   return '<article class="game-card deck-card card-' + card.type +
     (card.veiled ? " card-veiled" : "") +
     (card.hero ? " card-hero" : "") + '" data-card-id="' + esc(card.id) + '">' +
-    '<div class="card-meta"><span class="card-type">' + esc(typeLabel(card)) + '</span>' + strength + '</div>' +
+    '<div class="card-meta"><span class="card-type">' + esc(typeLabel(card)) + '</span>' + commandCost + strength + '</div>' +
     '<h2 class="card-title">' + esc(card.title) + '</h2>' +
     propertyLabel(card) +
     '<div class="card-rule">' + ruleMarkup(card) + '</div>' +
@@ -98,13 +104,14 @@ async function main() {
 
   document.getElementById("playtest-decks").innerHTML = labels.map((label) =>
     '<section class="print-deck">' +
-      '<header class="deck-sheet-heading"><strong>The Long War · v0.6</strong>' +
-      '<span>' + label + ' · ' + deckData.name + ' · 30 cards</span></header>' +
+      '<header class="deck-sheet-heading"><strong>The Long War · v0.9</strong>' +
+      '<span>' + label + ' · ' + deckData.name + ' · ' + deckData.cards.length + ' cards</span></header>' +
       '<div class="deck-card-grid">' +
       deckData.cards.map((id) => cardMarkup(index[id], label)).join("") +
       '</div></section>'
   ).join("");
-  document.getElementById("kit-count").textContent = "2 × 30-card reference decks";
+  document.getElementById("kit-count").textContent =
+    "2 × " + deckData.cards.length + "-card reference decks";
   window.CardLayoutGuard?.schedule(document.getElementById("playtest-decks"));
 }
 

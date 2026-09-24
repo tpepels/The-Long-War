@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 import markdown
 from pathlib import Path
@@ -22,9 +23,14 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "No Fires Burned" in rules
     assert "gives +2" in rules
     assert "player who Passed second counts as active" not in rules
-    assert "optional **Draw** action per Battle" in rules
-    assert "first player draws **1 additional opening card**" in rules
-    assert "play 1 card, Draw 1, or Pass" in text("web/playmat.html")
+    assert "no generic Draw operation" in rules
+    assert "no standard Cycle operation" in rules
+    assert "gain **10 Command**" in rules
+    assert "start of every turn" in rules
+    assert "one final operation" in rules
+    assert "first passer starts" in rules
+    assert "draw 1 card automatically" in text("web/playmat.html").lower()
+    assert "reshuffle discard only if deck empties" in text("web/playmat.html")
 
 
 def test_rulebook_healer_language_matches_engine_semantics() -> None:
@@ -43,8 +49,10 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     assert "Battlefield & turn order" in page
     assert "WHERE CARDS GO" in page
     assert "ROLE BONUSES" in page
-    assert "WHEN BOTH PASS" in page
+    assert "AFTER THE FINAL OPERATION" in page
     assert "BETWEEN BATTLES" in page
+    assert "Hero" in page
+    assert "only 1 Hero per side per Battle" in page
     assert "font-size: 3.1mm;" in css
     assert "page: battlefield-reference" in css
 
@@ -77,7 +85,7 @@ def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:
         covered.update(data["cards"])
 
     assert covered == canonical
-    assert len(canonical) == 48
+    assert len(canonical) == 51
 
 
 def test_manual_mccfr_workflow_builds_all_four_profile_policies() -> None:
@@ -89,12 +97,13 @@ def test_manual_mccfr_workflow_builds_all_four_profile_policies() -> None:
     assert "tools/build_mccfr_suite.py" in workflow
 
 
-def test_cards_are_scan_first_and_all_48_copy_blocks_are_labeled() -> None:
+def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
     data = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     cards = data["cards"]
     allowed_labels = {
         "PLAY",
         "TRAIT",
+        "DUAL",
         "WHILE",
         "WHEN",
         "BONUS",
@@ -105,9 +114,12 @@ def test_cards_are_scan_first_and_all_48_copy_blocks_are_labeled() -> None:
         "VEILED",
         "REVEAL",
         "WHILE REVEALED",
+        "FACE-DOWN",
+        "WHEN PLAYED",
+        "DURING THIS BATTLE",
     }
 
-    assert len(cards) == 48
+    assert len(cards) == 51
     for card in cards:
         for block in card.get("rule_blocks", []):
             assert block.get("label") in allowed_labels
@@ -124,7 +136,11 @@ def test_cards_are_scan_first_and_all_48_copy_blocks_are_labeled() -> None:
     play_style = text("web/play.css")
     card_rules = text("web/card-rules.js")
     assert "font: 3.55mm/1.18 Georgia,serif;" in style
-    assert "font: 11.2px/1.16 Georgia, serif;" in play_style
+    rules_style = re.search(r"\.play-card-rules\s*\{([^}]+)\}", play_style).group(1)
+    typography = re.search(r"font:\s*([\d.]+)px/([\d.]+)\s+Georgia\s*,\s*serif", rules_style)
+    assert typography is not None
+    assert float(typography.group(1)) >= 11
+    assert float(typography.group(2)) >= 1.15
     assert "Frontline +1 if Rear occupied" in card_rules
     assert "Rear: Subject in front +2" in card_rules
 
@@ -138,11 +154,15 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     assert "FIRST" in page and "TO PASS" in page
     assert page.count("BATTLE WIN") == 4
     assert "STRATAGEM USED" in page
-    assert page.count("DRAW USED") == 2
+    assert page.count("HERO USED") == 2
+    assert "DRAW USED" not in page
+    assert "FINAL" in page and "OPERATION" in page
+    assert "+10" in page and "COMMAND · NEXT BATTLE" in page
     for modifier in ("+1", "+2", "+3", "-1", "-2", "-3"):
         assert modifier in page
     assert "Do not place a public Strength marker for a face-down" in page
-    assert "opaque sleeves or identical card backs" in page
+    assert "opaque sleeves or identical card backs for Veiled Stories" in page
+    assert "Stratagems are played face-up" in page
     assert "@page tracker" in css
     assert 'href="tokens.html"' in kit
 

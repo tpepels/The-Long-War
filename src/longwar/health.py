@@ -264,6 +264,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "text": card.get("text", ""),
             "unique": bool(card.get("unique", False)),
             "hero": bool(card.get("hero", False)),
+            "hero_name_strength": card.get("hero_name_strength"),
             "classes": list(card.get("classes", [])),
             "role": card.get("role"),
             "story_form": card.get("story_form"),

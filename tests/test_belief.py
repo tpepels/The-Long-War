@@ -106,8 +106,8 @@ def test_belief_sampler_keeps_remembered_returned_card_in_hand() -> None:
     p1_deck.remove("he-never-came")
     state = GameState(
         players=[
-            PlayerState(deck=p0_deck, hand=[]),
-            PlayerState(deck=p1_deck, hand=["he-never-came"]),
+            PlayerState(deck=p0_deck, hand=[], command=engine.starting_command),
+            PlayerState(deck=p1_deck, hand=["he-never-came"], command=engine.starting_command),
         ],
         active_player=1,
     )
@@ -157,28 +157,25 @@ def test_card_pool_prior_excludes_unobserved_experimental_cards() -> None:
 
 
 
-def test_card_pool_prior_always_samples_exactly_one_hero() -> None:
+def test_card_pool_prior_allows_multiple_distinct_heroes() -> None:
     engine, _, _ = setup()
     prior = CardPoolDeckPrior(engine)
+    required = Counter({
+        "mara-queen-of-cinders": 1,
+        "sera-mother-of-white-hands": 1,
+    })
 
-    available_heroes = {
+    sampled = prior.sample_deck(required, random.Random(17))
+    heroes = [
         card_id
-        for card_id, card in engine.cards.items()
-        if card.get("hero", False) and not card.get("experimental", False)
-    }
-    sampled_heroes: set[str] = set()
-    for seed in range(24):
-        deck = prior.sample_deck(Counter(), random.Random(seed))
-        heroes = [
-            card_id
-            for card_id in deck
-            if engine.cards[card_id].get("hero", False)
-        ]
-        assert len(heroes) == 1
-        assert heroes[0] in available_heroes
-        sampled_heroes.add(heroes[0])
+        for card_id in sampled
+        if engine.cards[card_id].get("hero", False)
+    ]
 
-    assert len(sampled_heroes) > 1
+    assert "mara-queen-of-cinders" in heroes
+    assert "sera-mother-of-white-hands" in heroes
+    assert len(heroes) == len(set(heroes))
+    engine.validate_deck(sampled)
 
 
 def test_belief_sampler_resamples_hidden_stratagem_identity_from_zone() -> None:
@@ -212,7 +209,7 @@ def test_belief_sampler_resamples_hidden_stratagem_identity_from_zone() -> None:
     assert engine.cards[sampled.stratagem(opponent).card_id]["type"] == "stratagem"
 
 
-def test_belief_sampler_resamples_hidden_stratagem_identity() -> None:
+def test_belief_sampler_preserves_public_stratagem_identity() -> None:
     engine, _, state = setup()
     player = state.players[1]
     card_id = "the-storm-broke"
@@ -232,8 +229,9 @@ def test_belief_sampler_resamples_hidden_stratagem_identity() -> None:
 
     assert information_set_id(sampled, 0) == visible_id
     assert sampled.stratagem(1) is not None
-    assert engine.cards[sampled.stratagem(1).card_id]["type"] == "stratagem"
-    assert sampler.diagnostics(state, 0).hidden_stratagems == 1
+    assert sampled.stratagem(1).revealed is True
+    assert sampled.stratagem(1).card_id == card_id
+    assert sampler.diagnostics(state, 0).hidden_stratagems == 0
 
 
 def test_card_pool_prior_defaults_to_engine_deck_size() -> None:
@@ -261,9 +259,19 @@ def test_card_pool_prior_defaults_to_engine_deck_size() -> None:
 
 def test_hypothesis_prior_conditions_on_hidden_card_type_evidence() -> None:
     engine, reference, state = setup()
-    stratagems = {card for card in reference if engine.cards[card]["type"] == "stratagem"}
+    stratagems = {
+        card for card in reference
+        if engine.cards[card]["type"] == "stratagem"
+    }
     without_stratagems = [card for card in reference if card not in stratagems]
-    without_stratagems.extend(["the-fifty-men", "followed", "seven-black-ships"])
+    counts = Counter(without_stratagems)
+    for card_id, card in engine.cards.items():
+        if card["type"] == "stratagem" or card["unique"]:
+            continue
+        while counts[card_id] < 2 and len(without_stratagems) < engine.deck_size:
+            without_stratagems.append(card_id)
+            counts[card_id] += 1
+    assert len(without_stratagems) == engine.deck_size
     engine.validate_deck(without_stratagems)
     prior = HypothesisDeckPrior(engine, [
         DeckHypothesis(tuple(without_stratagems), weight=1000, label="impossible"),

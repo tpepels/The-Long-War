@@ -43,7 +43,7 @@ def test_online_resolver_has_root_coverage_without_true_opponent_deck() -> None:
     assert result.belief_prior == "CardPoolDeckPrior"
 
 
-def test_online_resolver_learns_immediate_winning_pass_with_unknown_deck() -> None:
+def test_online_resolver_handles_final_operation_with_unknown_deck() -> None:
     engine, deck = setup()
 
     p0_hidden = list(deck)
@@ -56,20 +56,34 @@ def test_online_resolver_learns_immediate_winning_pass_with_unknown_deck() -> No
                 deck=p0_hidden,
                 hand=["seven-black-ships"],
                 victories=1,
+                command=engine.starting_command,
             ),
             PlayerState(
                 deck=list(deck),
                 hand=[],
                 victories=1,
                 passed=True,
+                command=engine.starting_command,
             ),
         ],
         active_player=0,
         battle=3,
         pass_order=[1],
+        pending_final_operation_for=0,
+        operations_this_battle=[1, 1],
     )
     state.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
     state.slot(0, Position(Front.CENTER, Rank.FRONT)).subject = "the-three-brothers-of-avar"
+
+    legal = engine.legal_actions(state)
+    legal_keys = {action_key(action) for action in legal}
+    assert "pass" in legal_keys
+    assert len(legal_keys) > 1
+
+    pass_state = state.clone()
+    pass_action = next(action for action in legal if action_key(action) == "pass")
+    engine.apply(pass_state, pass_action)
+    assert pass_state.winner == 0
 
     resolver = OnlineMCCFRResolver(
         engine,
@@ -79,4 +93,6 @@ def test_online_resolver_learns_immediate_winning_pass_with_unknown_deck() -> No
     )
     result = resolver.solve(state)
 
-    assert result.strategy["pass"] > 0.90
+    assert result.root_coverage == 1.0
+    assert set(result.strategy) == legal_keys
+    assert sum(result.strategy.values()) == pytest.approx(1.0)

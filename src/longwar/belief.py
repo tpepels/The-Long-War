@@ -149,48 +149,6 @@ class CardPoolDeckPrior:
             for _ in range(count)
         ]
 
-        observed_heroes = sum(
-            count
-            for card_id, count in required.items()
-            if self.engine.cards[card_id].get("hero", False)
-        )
-        if observed_heroes > 1:
-            raise BeliefStateError("Observed cards contain more than one Hero")
-
-        hero_ids = [
-            card_id
-            for card_id, card in self.engine.cards.items()
-            if card.get("hero", False)
-            and not card.get("experimental", False)
-        ]
-
-        if observed_heroes == 0:
-            hero_candidates = [
-                card_id
-                for card_id in hero_ids
-                if capacities.get(card_id, 0) > 0
-            ]
-            if not hero_candidates:
-                raise BeliefStateError("Card pool has no legal Hero available")
-            hero_weights = [
-                capacities[card_id] * self.card_weights.get(card_id, 1.0)
-                for card_id in hero_candidates
-            ]
-            if sum(hero_weights) <= 0:
-                raise BeliefStateError("No legal Hero has positive prior weight")
-            selected_hero = rng.choices(
-                hero_candidates,
-                weights=hero_weights,
-                k=1,
-            )[0]
-            deck.append(selected_hero)
-            capacities[selected_hero] -= 1
-
-        # Exactly one Hero is legal, so no additional Hero may enter the deck.
-        for card_id in list(capacities):
-            if self.engine.cards[card_id].get("hero", False):
-                capacities[card_id] = 0
-
         # Hidden card identities are unknown, but an occupied hidden slot is
         # evidence of its type. Reserve these cards before filling other slots.
         for eligible, count in hidden_requirements:
@@ -251,7 +209,7 @@ class BeliefSampler:
         priors: tuple[DeckPrior, DeckPrior] | None = None,
     ):
         self.engine = engine
-        default = CardPoolDeckPrior(engine)
+        default = CardPoolDeckPrior(engine, deck_size=engine.deck_size)
         self.priors = priors or (default, default)
 
     def reuse_context(self, state: GameState, viewer: int) -> tuple[object, ...]:

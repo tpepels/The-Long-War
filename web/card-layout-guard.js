@@ -78,6 +78,20 @@
       if (verticallyOverlaps(a, b)) failures.push(aLabel + "-" + bLabel + "-overlap");
     }
 
+    const typeLabel = card.querySelector(type === "game-card" ? ".card-type" : ".play-card-meta > span:first-child");
+    if (
+      typeLabel &&
+      typeLabel.scrollWidth > typeLabel.clientWidth + 1
+    ) {
+      failures.push("type-overflow");
+    }
+    const cost = card.querySelector(".command-cost, .play-command-cost");
+    if (cost) {
+      if (outside(card, cost)) failures.push("command-cost-outside");
+      const meta = card.querySelector(type === "game-card" ? ".card-meta" : ".play-card-meta");
+      if (meta && layoutRect(cost, card).bottom > layoutRect(meta, card).bottom + 1) failures.push("command-cost-below-meta");
+    }
+
     if (type === "game-card") {
       const badge = card.querySelector(".strength");
       const meta = card.querySelector(".card-meta");

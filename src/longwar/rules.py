@@ -17,31 +17,31 @@ class GameRules:
     """
 
     opening_hand_size: int = 10
-    draw_action_enabled: bool = True
+    draw_action_enabled: bool = False
     completion_draw_names: tuple[str, ...] = ()
-    deck_size: int = 30
-    recycle_between_battles: bool = True
+    deck_size: int = 34
+    recycle_between_battles: bool = False
 
-    command_enabled: bool = False
+    command_enabled: bool = True
     starting_command: int = 20
     battle_command_gain: int = 10
     command_cap: int = 20
     cycle_command_cost: int = 1
-    cycle_enabled: bool = True
+    cycle_enabled: bool = False
 
-    reshuffle_on_empty: bool = False
-    automatic_draw: bool = False
+    reshuffle_on_empty: bool = True
+    automatic_draw: bool = True
     paid_draw_enabled: bool = False
     paid_draw_command_cost: int = 1
     paid_draw_consumes_operation: bool = True
     automatic_draw_hand_limit: int | None = None
     battle_end_hand_limit: int | None = None
 
-    pass_final_operation: bool = False
-    pass_requires_both_acted: bool = False
-    first_passer_starts_next_battle: bool = False
-    completion_command_refund: int = 0
-    public_stratagems: bool = False
+    pass_final_operation: bool = True
+    pass_requires_both_acted: bool = True
+    first_passer_starts_next_battle: bool = True
+    completion_command_refund: int = 1
+    public_stratagems: bool = True
 
     def __post_init__(self) -> None:
         for name, field in self.__dataclass_fields__.items():

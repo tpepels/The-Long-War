@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import re
+
+import pytest
 from pathlib import Path
 
 from longwar.cards import (
@@ -9,6 +11,7 @@ from longwar.cards import (
     SUBJECT_ROLES,
     cards_by_type,
     load_card_file,
+    validate_card_data,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_card_file_is_valid() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    assert len(data["cards"]) == 48
+    assert len(data["cards"]) == 51
 
 
 def test_every_card_has_world_classifications() -> None:
@@ -63,6 +66,7 @@ def test_stratagem_pool_is_unique_and_rule_backed() -> None:
     assert all(card["unique"] for card in stratagems)
     assert all(
         card.get("rules", {}).get("stratagem", {}).get("trigger", {}).get("event")
+        == "played"
         for card in stratagems
     )
     assert {
@@ -77,7 +81,7 @@ def test_stratagem_pool_is_unique_and_rule_backed() -> None:
     } == {card["id"] for card in stratagems}
 
 
-def test_reference_deck_has_exactly_one_hero() -> None:
+def test_reference_deck_carries_multiple_unique_heroes() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     cards = {card["id"]: card for card in data["cards"]}
     deck = json.loads(
@@ -85,27 +89,37 @@ def test_reference_deck_has_exactly_one_hero() -> None:
     )["cards"]
 
     heroes = [card_id for card_id in deck if cards[card_id].get("hero", False)]
-    assert len(deck) == 30
-    assert heroes == ["avaros-the-bronze-king"]
+    assert len(deck) == 34
+    assert set(heroes) == {
+        "avaros-the-bronze-king",
+        "lysa-of-the-salt-road",
+        "theron-the-oathkeeper",
+    }
+    assert len(heroes) == len(set(heroes)) == 3
     assert set(deck) <= set(cards)
-    assert len(set(deck)) == 30
 
 
 
 
-def test_expanded_pool_offers_three_hero_choices() -> None:
+def test_expanded_pool_offers_six_dual_use_hero_choices() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     heroes = [card for card in data["cards"] if card.get("hero", False)]
     assert {card["id"] for card in heroes} == {
         "avaros-the-bronze-king",
         "mara-queen-of-cinders",
         "sera-mother-of-white-hands",
+        "daran-the-red-shield",
+        "lysa-of-the-salt-road",
+        "theron-the-oathkeeper",
     }
-    assert {card["role"] for card in heroes} == {
+    assert {card["role"] for card in heroes} >= {
         "swordsman",
+        "spearman",
         "archer",
         "healer",
     }
+    assert all(card["unique"] for card in heroes)
+    assert all(card["hero_name_strength"] == 2 for card in heroes)
 
 def test_all_cards_define_semantic_rule_blocks() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
@@ -127,16 +141,14 @@ def test_all_cards_define_semantic_rule_blocks() -> None:
 
         if card["type"] == "plot" and card.get("veiled"):
             assert blocks[0]["kind"] == "property"
-            assert blocks[0]["label"] == "VEILED"
-            assert blocks[0]["text"].startswith("Face-down: +")
+            assert blocks[0]["label"] == "FACE-DOWN"
+            assert blocks[0]["text"].startswith("+")
             assert "**Strength** in this **Front**." in blocks[0]["text"]
-            assert [block["kind"] for block in blocks[:3]] == [
+            assert [block["kind"] for block in blocks[:2]] == [
                 "property",
                 "trigger",
-                "effect",
             ]
-            assert blocks[1]["label"] == "REVEAL"
-            assert blocks[2]["label"] == "EFFECT"
+            assert blocks[1]["label"] == "WHEN"
 
         if card["type"] == "stratagem":
             assert blocks[0]["kind"] == "trigger"
@@ -164,7 +176,7 @@ def test_card_rules_text_uses_canonical_typography() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     concepts = re.compile(
         r"\b(?:Subjects?|Bonds?|Names?|Stories?|Strength|Fronts?|Frontline|Rear|"
-        r"Battles?|Stratagems?|Pass(?:es|ed)?|Discard(?:ed)?|Return(?:ed)?|Move(?:d)?|"
+        r"Command|Cycle|Battles?|Stratagems?|Pass(?:es|ed)?|Discard(?:ed)?|Return(?:ed)?|Move(?:d)?|"
         r"adjacent|discard pile|Veiled Story|Stratagem|Hero|Line Defense)\b",
         re.IGNORECASE,
     )
@@ -184,3 +196,29 @@ def test_card_rules_text_uses_canonical_typography() -> None:
             assert title not in text_without_italics, (
                 f"{card['title']} references {title} without italics"
             )
+
+
+def test_canonical_decks_use_six_names_and_fourteen_subjects() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    by_id = {card["id"]: card for card in data["cards"]}
+    for path in (
+        ROOT / "decks" / "reference.json",
+        ROOT / "decks" / "avaros-line.json",
+        ROOT / "decks" / "mara-rear.json",
+        ROOT / "decks" / "sera-support.json",
+    ):
+        deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
+        assert len(deck) == 34
+        assert sum(by_id[card_id]["type"] == "subject" for card_id in deck) == 14
+        assert sum(by_id[card_id]["type"] == "name" for card_id in deck) == 6
+        heroes = [card_id for card_id in deck if by_id[card_id].get("hero")]
+        assert len(heroes) == 3
+        assert len(heroes) == len(set(heroes))
+
+
+@pytest.mark.parametrize("value", [None, True, 0, 4, 1.5])
+def test_printed_command_cost_is_a_small_integer(value) -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    data["cards"][0]["command_cost"] = value
+    with pytest.raises(ValueError, match="command_cost"):
+        validate_card_data(data)

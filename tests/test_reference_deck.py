@@ -21,8 +21,9 @@ def test_reference_deck_is_legal_and_subject_forward() -> None:
     deck = _deck("reference.json")
 
     GameEngine(data).validate_deck(deck)
-    assert len(deck) == 30
-    assert sum(cards[card_id]["type"] == "subject" for card_id in deck) == 12
+    assert len(deck) == 34
+    assert sum(cards[card_id]["type"] == "subject" for card_id in deck) == 14
+    assert sum(cards[card_id]["type"] == "name" for card_id in deck) == 6
     assert sum(cards[card_id]["type"] == "stratagem" for card_id in deck) == 3
     assert sum(
         cards[card_id]["type"] == "plot" and cards[card_id].get("veiled", False)
@@ -30,7 +31,7 @@ def test_reference_deck_is_legal_and_subject_forward() -> None:
     ) == 3
 
 
-def test_expanded_archetype_decks_are_legal_subject_forward_and_choose_one_hero() -> None:
+def test_expanded_archetype_decks_are_legal_subject_forward_and_carry_multiple_heroes() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     cards = {card["id"]: card for card in data["cards"]}
     engine = GameEngine(data)
@@ -42,11 +43,13 @@ def test_expanded_archetype_decks_are_legal_subject_forward_and_choose_one_hero(
     ):
         deck = _deck(filename)
         engine.validate_deck(deck)
-        assert len(deck) == 30
-        assert sum(cards[card_id]["type"] == "subject" for card_id in deck) == 12
+        assert len(deck) == 34
+        assert sum(cards[card_id]["type"] == "subject" for card_id in deck) == 14
+        assert sum(cards[card_id]["type"] == "name" for card_id in deck) == 6
         heroes = [
             card_id
             for card_id in deck
             if cards[card_id].get("hero", False)
         ]
-        assert len(heroes) == 1
+        assert len(heroes) == 3
+        assert len(heroes) == len(set(heroes))

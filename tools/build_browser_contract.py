@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 from pathlib import Path
 
@@ -38,6 +39,8 @@ def project_state(state) -> dict[str, object]:
                 "discard": list(player.discard),
                 "victories": player.victories,
                 "passed": player.passed,
+                "command": player.command,
+                "free_cycle": player.free_cycle,
             }
             for player in state.players
         ],
@@ -78,8 +81,21 @@ def project_state(state) -> dict[str, object]:
             for stratagem in state.stratagems
         ],
         "stratagem_used": list(state.stratagem_used),
+        "hero_used": list(state.hero_used),
         "draw_used": list(state.draw_used),
         "discarded_this_battle": list(state.discarded_this_battle),
+        "command_spent_this_battle": list(state.command_spent_this_battle),
+        "command_refunded_this_battle": list(state.command_refunded_this_battle),
+        "completion_command_refunded_this_battle": list(state.completion_command_refunded_this_battle),
+        "battle_start_command": list(state.battle_start_command),
+        "battle_start_hand_size": list(state.battle_start_hand_size),
+        "cards_drawn_this_battle": list(state.cards_drawn_this_battle),
+        "completion_count_this_battle": list(state.completion_count_this_battle),
+        "operations_this_battle": list(state.operations_this_battle),
+        "deck_reshuffles": list(state.deck_reshuffles),
+        "reshuffle_card_totals": list(state.reshuffle_card_totals),
+        "reshuffle_hand_card_totals": list(state.reshuffle_hand_card_totals),
+        "known_hidden_hand": [[dict(known) for known in side] for side in state.known_hidden_hand],
         "pass_order": list(state.pass_order),
         "battle": state.battle,
         "phase": state.phase.value,
@@ -244,6 +260,132 @@ def prepared_destination_scenario(
     }
 
 
+def command_scenarios(engine: GameEngine, deck: list[str]) -> list[dict[str, object]]:
+    """Pin standard Command, completion, automatic-draw and persistence rules."""
+
+    def record(target, current, predicate):
+        legal = engine.legal_actions(current)
+        action = next(action for action in legal if predicate(action))
+        engine.apply(current, action)
+        target["steps"].append({
+            "legal": sorted(action_key(item) for item in legal),
+            "action": action_key(action),
+            "after": project_state(current),
+            "front_strengths": front_strengths(engine, current),
+        })
+
+    completion = engine.new_game(
+        deck,
+        deck,
+        seed=921,
+        first_player=0,
+        opening_bonus=False,
+    )
+    completion.players[1].passed = True
+    completion.players[0].hand = [
+        "namar",
+        "followed",
+        "the-fifty-men",
+    ]
+    completion_scenario = {
+        "name": "command-completion-refunds",
+        "initial": project_state(completion),
+        "steps": [],
+    }
+    position = Position(Front.CENTER, Rank.FRONT)
+    for kind in (PlayName, PlayLink, PlaySubject):
+        record(
+            completion_scenario,
+            completion,
+            lambda action, kind=kind: (
+                isinstance(action, kind)
+                and action.position == position
+            ),
+        )
+    expected = (
+        20
+        - sum(
+            engine.cards[card]["command_cost"]
+            for card in ("namar", "followed", "the-fifty-men")
+        )
+        + 2  # standard completion refund + Namar's own refund
+    )
+    assert completion.players[0].command == expected
+    assert completion.completion_command_refunded_this_battle[0] == 1
+
+    automatic = engine.new_game(
+        deck,
+        deck,
+        seed=923,
+        first_player=1,
+        opening_bonus=False,
+    )
+    automatic.players[1].hand = ["the-fifty-men"]
+    automatic.players[0].deck = []
+    automatic.players[0].discard = ["carried"]
+    automatic_scenario = {
+        "name": "automatic-draw-reshuffle",
+        "initial": project_state(automatic),
+        "steps": [],
+    }
+    record(
+        automatic_scenario,
+        automatic,
+        lambda action: (
+            isinstance(action, PlaySubject)
+            and action.card_id == "the-fifty-men"
+        ),
+    )
+    assert automatic.active_player == 0
+    assert "carried" in automatic.players[0].hand
+    assert automatic.deck_reshuffles[0] == 1
+    assert automatic.players[0].discard == []
+
+    persistent = engine.new_game(
+        deck,
+        deck,
+        seed=922,
+        first_player=0,
+        opening_bonus=False,
+    )
+    held = []
+    discards = []
+    original_decks = []
+    for player, command, keep in ((0, 7, 4), (1, 14, 6)):
+        ps = persistent.players[player]
+        ps.command = command
+        ps.discard.extend(ps.hand[keep:])
+        del ps.hand[keep:]
+        held.append(list(ps.hand))
+        discards.append(list(ps.discard))
+        original_decks.append(list(ps.deck))
+    persistent.operations_this_battle[:] = [1, 1]
+
+    refill = {
+        "name": "command-carry-persistent-refill",
+        "initial": project_state(persistent),
+        "steps": [],
+    }
+    record(refill, persistent, lambda action: isinstance(action, Pass))
+    record(refill, persistent, lambda action: isinstance(action, Pass))
+
+    assert persistent.battle == 2
+    assert persistent.phase is Phase.BATTLE
+    assert persistent.active_player == 0
+    assert persistent.chooser is None
+    assert [ps.command for ps in persistent.players] == [17, 20]
+    assert persistent.battle_start_hand_size == [10, 10]
+    assert [len(ps.hand) for ps in persistent.players] == [11, 10]
+    assert persistent.players[0].discard == discards[0]
+    assert persistent.players[1].discard == discards[1]
+    assert persistent.players[0].deck == original_decks[0][:-7]
+    assert persistent.players[1].deck == original_decks[1][:-4]
+    assert persistent.deck_reshuffles == [0, 0]
+    assert Counter(held[0]) <= Counter(persistent.players[0].hand)
+    assert Counter(held[1]) <= Counter(persistent.players[1].hand)
+
+    return [completion_scenario, automatic_scenario, refill]
+
 def check_engine_contract_json(cards_json: str, contract_json: str) -> int:
     """Replay native fixtures in the compiled browser engine, including targets."""
     engine = GameEngine(json.loads(cards_json))
@@ -315,6 +457,7 @@ def main() -> None:
         "scenarios": [
             trace_scenario(engine, deck),
             prepared_destination_scenario(engine, deck),
+            *command_scenarios(engine, deck),
         ],
         "sessions": [session_trace(cards, deck, mode, seed)
                      for mode, seed in (("hotseat", 1701), ("hotseat", 17), ("heuristic", 1701))],

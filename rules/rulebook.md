@@ -1,12 +1,12 @@
 # The Long War
 
-*Three Fronts. One hand. Spend carefully.*
+*Three Fronts. One hand. One long war.*
 
 <div class="rulebook-opening" markdown="1">
 
-**The Long War** is a two-player card game fought across **Left**, **Center**, and **Right**. Each Battle ends when both players **Pass**. Control two Fronts to win the Battle; win two Battles to win the match.
+**The Long War** is a two-player card game fought across **Left**, **Center**, and **Right**. Once the first player **Passes**, the opponent gets one final operation and the Battle is scored. Control two Fronts to win the Battle; win two Battles to win the match.
 
-Cards are the real cost. The battlefield is cleared after every Battle, but cards left in your hand stay with you. If you spend too much to win now, you may start the next Battle short of options.
+Every operation costs **Command**. You begin the match with 20 Command, and unused Command carries between Battles. The battlefield clears after every Battle, but your hand, draw pile, and discard pile persist. Winning now can leave you short of both Command and cards later.
 
 On the battlefield, position matters. **Subjects** stand in the **Frontline** or **Rear**. Their roles reward different formations. **Bonds** and **Names** strengthen them. **Stories**, **Veiled Stories**, and **Stratagems** change the position without adding another Subject.
 
@@ -15,15 +15,15 @@ On the battlefield, position matters. **Subjects** stand in the **Frontline** or
 > **First game?** Read through **A Battle, from beginning to end**, then start playing. Use the Reference section when a question comes up.
 
 <div class="rulebook-at-a-glance">
-  <div><b>YOUR TURN</b><span>Optionally set 1 Stratagem, then play 1 card, draw 1 card, or Pass.</span></div>
+  <div><b>YOUR TURN</b><span>Draw 1 card, then take 1 operation: play 1 card or Pass when Pass is legal. Pay the card's Command cost.</span></div>
   <div><b>WIN A BATTLE</b><span>Control 2 of 3 Fronts. Total Strength breaks a 1–1–1/0–0–0 style deadlock; first passer breaks the final tie.</span></div>
-  <div><b>BETWEEN BATTLES</b><span>Clear the battlefield, keep your hand, shuffle every other card, and refill to 10. The loser chooses who starts next.</span></div>
+  <div><b>BETWEEN BATTLES</b><span>Clear the battlefield, keep hand/deck/discard, gain 10 Command (max 20), then refill to 10. The first passer starts next.</span></div>
   <div><b>WIN THE MATCH</b><span>Win 2 Battles.</span></div>
 </div>
 
 ### Reading cards and rules
 
-**Bold** words are game terms or rules actions: **Subject**, **Bond**, **Name**, **Story**, **Stratagem**, **Strength**, **Front**, **Draw**, **Pass**, **discard**, **return**, and **move**.
+**Bold** words are game terms or rules actions: **Subject**, **Bond**, **Name**, **Story**, **Stratagem**, **Strength**, **Front**, **Command**, **Pass**, **discard**, **return**, **draw**, and **move**.
 
 *Italic* words are card titles or printed properties: *Namar*, *Swordsman*, *Human*, *Hero*, *Myth*, *Frontline only*.
 
@@ -40,7 +40,7 @@ Each Front has two positions on each side:
 - **Frontline**
 - **Rear**
 
-When both players have Passed, compare Strength in each Front.
+After the first Pass and the opponent's final operation, compare Strength in each Front.
 
 - Higher Strength controls the Front.
 - Equal Strength controls it for neither player.
@@ -55,26 +55,32 @@ A large lead in one Front is still only one Front. If your opponent spends heavi
   <span>2</span><small>Battles to win the match</small>
 </div>
 
-### Your hand lasts longer than the battlefield
+### Your resources last longer than the battlefield
 
-At the end of a Battle, cards on the battlefield are discarded. Keep the cards still in your hand, shuffle every other card you own into a new deck, then draw until you have 10 cards.
+At the end of a Battle, cards on the battlefield are discarded, but your remaining draw pile is **not** reset. Keep the cards still in your hand, keep the remaining deck and discard pile where they are, then draw until you have 10 cards.
 
-So the question is not only whether you can win a Battle. It is how many cards you are willing to spend on it.
+If you need to draw while your deck is empty, shuffle your discard pile to form a new deck, then continue drawing.
+
+Command persists too. You gain 10 Command between Battles, up to a maximum of 20.
+
+So the question is not only whether you can win this Battle. It is how much Command and how many useful cards you are willing to spend on it.
 
 ## What happens on a turn? {#turn}
 
-On your turn:
+At the **start of every turn**, draw 1 card automatically. Then take exactly **one operation**:
 
-1. You may set your one **Stratagem** for the Battle, if you have not already done so.
-2. Then take one normal action: play **one card**, **Draw** 1 card, or **Pass**.
+1. **Play one card** from your hand and pay its printed Command cost.
+2. **Pass** for 0 Command, once Pass is legal.
 
-Setting a Stratagem does not use your normal action.
+A card can change printed costs. Cost reductions cannot reduce a printed card below 1 Command.
 
-You may choose **Draw** only once per Battle. Draw the top card of your deck; this uses your normal action and ends your turn. If your deck is empty, you cannot Draw.
+There is **no generic Draw operation** and no standard Cycle operation. Additional draws come from turn starts and card effects.
 
-There is no attack step and Subjects do not deal damage. You change the position by placing Subjects, attaching Bonds and Names, playing Stories, setting hidden cards, and moving or removing cards.
+A **Stratagem** is played face-up as your operation for the turn, just like another card. Each player may play at most one Stratagem per Battle.
 
-Once you **Pass**, you take no more turns in that Battle. Your opponent may continue until they also Pass.
+There is no attack step and Subjects do not deal damage. You change the position by placing Subjects, attaching Bonds and Names, playing Stories and Stratagems, and moving or removing cards.
+
+Normally, the first Pass is not legal until both players have completed at least one operation. After the first player **Passes**, the opponent receives exactly **one final operation**. The Battle is then scored automatically.
 
 ---
 
@@ -145,18 +151,13 @@ A card may have several classifications. A Subject's classification says what it
 
 ## Heroes {#heroes}
 
-Every legal deck contains **exactly one Hero**.
+Heroes are **Unique** cards, so each individual Hero may appear only once in a deck. A deck may contain several different Heroes.
 
-A Hero is a unique Subject with a special rule. It uses an ordinary Subject position and follows the same placement and targeting rules unless its card says otherwise.
+Every Hero is dual-use: play it either as a **Subject** or as a **Name**. Its card shows separate Subject and Name Strength values. Subject-only placement, role, and special rules apply only when it is played as a Subject.
 
-The reference deck uses *Avaros, the Bronze King*:
+You may play only **one Hero per side per Battle**. Once you have played a Hero - as either a Subject or a Name - your other Hero cards cannot be played until the next Battle. The Hero allowance resets between Battles even if the Hero left the battlefield.
 
-- printed Strength 6;
-- *Swordsman*;
-- *Human · King · Hero*;
-- while Avaros is in the Frontline, adjacent Subjects you control get +1 Strength.
-
-In the Frontline, Avaros counts 8 before his adjacency rule: 6 printed +1 Line Defense +1 Swordsman.
+The reference deck deliberately contains several Heroes so this choice is part of normal play.
 
 ---
 
@@ -251,24 +252,13 @@ The reference deck contains three Veiled Stories:
 
 ## Stratagems {#stratagems}
 
-A **Stratagem** is a hidden Battle-wide card. It does not belong to a Front.
+A **Stratagem** is a public Battle-wide card. It does not belong to a Front.
 
-On your own turn, before your normal action, you may set one Stratagem from your hand face-down. Each player may do this **once per Battle**.
+On your own turn, you may use your operation to play one Stratagem from your hand **face-up**. Each player may do this **once per Battle**.
 
-Setting it is free: you still play one card, Draw 1 card if your Battle draw is unused, or Pass afterward.
+Pay the Stratagem's printed Command cost. Playing it uses your operation for the turn.
 
-Once set, the Stratagem stays in play until the Battle ends. Revealing it does not let you set another.
-
-When its printed trigger occurs:
-
-1. reveal it;
-2. resolve any one-time reveal effect;
-3. leave it face-up;
-4. apply its continuing rule for the rest of the Battle.
-
-If it never triggers, reveal it only after the Battle has been scored, then discard it. A Stratagem that stayed hidden cannot change an already determined result.
-
-Both players may have a Stratagem in play. Strength modifiers from revealed Stratagems stack. A rule that switches something off, such as *The Tide Rose* disabling Line Defense, remains off while that Stratagem is revealed.
+The Stratagem is active immediately and remains face-up until the Battle ends. Both players may have a Stratagem in play. Strength modifiers from active Stratagems stack. A rule that switches something off, such as *The Tide Rose* disabling Line Defense, remains off while that Stratagem is in play.
 
 The reference deck uses three deliberately double-edged Stratagems:
 
@@ -276,7 +266,7 @@ The reference deck uses three deliberately double-edged Stratagems:
 - *The Tide Rose* helps Ships and removes Line Defense.
 - *The Ground Gave Way* helps Rear Subjects and weakens Frontline Subjects.
 
-Other Stratagems remain in the expanded pool. Their full text is authoritative; they follow the same set/reveal/continue timing above.
+Other Stratagems remain in the expanded pool. Their full text is authoritative; they follow the same face-up play and continuing-effect timing above.
 
 ---
 
@@ -303,13 +293,13 @@ You attach *Followed*:
 
 You then attach *Namar*:
 
-- *Namar*: +2;
-- *Followed* now has a Name: +2;
-- *Namar* is in the Frontline: +2.
+- *Namar*: +1 Strength;
+- *Followed* now has a Name: +2 Strength;
+- the formation now has a Subject, Bond, and Name, so *Namar* refunds 1 Command.
 
-The position is now **13 Strength**.
+The position is now **10 Strength**.
 
-That took three cards and three turns, all in Center. If the opponent gives up Center and wins Left and Right, the 13 Strength does not save the Battle.
+That took three cards and three turns, all in Center. If the opponent gives up Center and wins Left and Right, the 10 Strength does not save the Battle.
 
 ---
 
@@ -363,11 +353,11 @@ If Player 2 also Passes, score the Battle.
 
 ## Passing {#passing}
 
-When you **Pass**, you take no more turns in that Battle.
+Normally you may not **Pass** until both players have completed at least one operation. If no other legal action exists, Pass remains available.
 
-The opponent may continue taking normal actions until they Pass.
+When the first player Passes, the opponent receives exactly **one final operation**. After that operation - or if they Pass - score the Battle.
 
-Passing saves the rest of your hand, but gives the opponent as many turns as they are willing to pay for.
+Passing preserves both your hand and your remaining Command, but gives the opponent as many turns as they are willing and able to pay for.
 
 ---
 
@@ -375,18 +365,19 @@ Passing saves the rest of your hand, but gives the opponent as many turns as the
 
 ## Set up your first match {#setup}
 
-1. Each player takes a legal **30-card deck** with **exactly one Hero**.
-2. Shuffle and draw **10 cards**.
-3. Each player may choose up to **2 cards**, shuffle them back, then draw the same number.
-4. Randomly choose the first player for Battle I.
-5. That first player draws **1 additional opening card**.
-6. Keep hands and decks hidden. Keep discard piles face-up.
+1. Each player takes a **34-card playtest deck** with **14 Subject-type cards** and **6 Name cards**. Hero cards count among the Subject-type cards and may also be played as Names.
+2. Each player sets a d20 or other counter to **20 Command**.
+3. Shuffle and draw **10 cards**.
+4. Each player may choose up to **2 cards**, shuffle them back, then draw the same number.
+5. Randomly choose the first player for Battle I.
+6. The first player's turn begins with the normal automatic draw of **1 card**.
+7. Keep hands and decks hidden. Keep discard piles face-up.
 
-There is no automatic draw at the start of a turn. Instead, each player has one optional **Draw** action per Battle: spend your normal action to draw 1 card.
+At the start of every turn, draw **1 card** automatically. There is no generic Draw operation and no standard Cycle operation.
 
 ## Score the Battle {#scoring}
 
-When both players have Passed:
+After the first Pass and the opponent's final operation:
 
 1. calculate each occupied Subject's Strength;
 2. add Frontline and Rear within each Front;
@@ -410,9 +401,11 @@ Then:
 1. reveal any Stratagem still face-down; it cannot change the score;
 2. discard all battlefield cards, including Veiled Stories and Stratagems;
 3. keep cards still in hand;
-4. combine every other card you own — your remaining deck and discard pile — and shuffle them into a new deck;
-5. draw until you have **10 cards** in hand; if you already have 10 or more, keep them all and draw nothing;
-6. the Battle loser chooses who takes the first turn of the next Battle.
+4. keep your remaining draw pile and discard pile separate — do **not** reshuffle merely because the Battle ended;
+5. gain **10 Command**, up to a maximum of **20**;
+6. draw until you have **10 cards** in hand; if your deck empties while drawing, shuffle your discard pile to make a new deck and continue;
+7. if you already have 10 or more cards, keep them all and draw nothing;
+8. the player who Passed first starts the next Battle.
 
 The first player to win 2 Battles wins the match.
 
@@ -504,11 +497,11 @@ You may inspect your own face-down Stories. Your opponent may not.
 
 ### Stratagems
 
-Before your normal action, if you have not set a Stratagem this Battle, you may set one from your hand face-down in your Stratagem space.
+If you have not played a Stratagem this Battle, you may use your operation to play one from your hand face-up in your Stratagem space.
 
-Do not end the turn. You must still take a normal action: play one card, Draw 1 if available, or Pass.
+Pay its printed Command cost. Playing it uses your operation for the turn.
 
-A revealed Stratagem stays face-up until the Battle ends. You cannot set another Stratagem that Battle.
+The Stratagem is active immediately and stays face-up until the Battle ends. You cannot play another Stratagem that Battle.
 
 ## What happens when attached cards leave?
 
@@ -526,36 +519,28 @@ During a Battle, when an effect removes or moves an attached card:
 
 ## Timing
 
-There is no reaction stack. A Stratagem is set only on its controller's turn, before that player's normal action.
+There is no reaction stack. A Stratagem is played face-up only on its controller's turn, as that player's operation, and its continuing effect is active immediately.
 
 For a normal card play:
 
 1. announce the card and all required targets;
-2. if it is an immediate Story and an opposing *The False Muster* triggers, reveal the Stratagem and cancel that Story;
-3. otherwise resolve the played card completely;
-4. resolve any Veiled Stories triggered by that play;
-5. reveal and resolve any Stratagems triggered by that play.
+2. resolve the played card completely;
+3. resolve any Veiled Stories triggered by that play;
+4. apply all active continuing effects.
 
-*The False Muster* cancels an immediate Story before that Story resolves. It never cancels a Veiled Story.
-
-When a player Passes:
+When the first player Passes:
 
 1. mark that player as Passed;
-2. resolve Pass-triggered Stratagems;
-3. resolve Pass-triggered Veiled Stories;
-4. if both players have Passed, score the Battle.
-
-If both hidden Stratagems trigger from the same event, reveal the active player's Stratagem first, then the opponent's. Apply all continuing effects together afterward.
-
-Reveal any Stratagem still face-down only after scoring. Its newly revealed continuing effect cannot change the result that was already determined.
+2. resolve any Pass-triggered Veiled Stories;
+3. give the opponent exactly one final operation;
+4. after that operation - or if the opponent Passes - score the Battle.
 
 ## Hidden and public information
 
 **Hidden**
 
 - cards in hand;
-- the identity of an unrevealed Veiled Story;
-- the identity of an unrevealed Stratagem.
+- the identity of an unrevealed Veiled Story.
 
 **Public**
 
@@ -564,19 +549,24 @@ Reveal any Stratagem still face-down only after scoring. Its newly revealed cont
 - discard piles;
 - all face-up battlefield cards;
 - which Front contains each face-down Veiled Story;
-- whether each player has a face-down Stratagem;
+- each face-up Stratagem;
 - whether each player has used their Stratagem opportunity this Battle;
-- whether each player has used their Draw action this Battle;
+- each player's current Command;
 - classifications and roles on visible cards.
 
 ## Deck construction
 
-A deck contains exactly **30 cards**.
+The canonical playtest decks contain exactly **34 cards** and use this composition:
 
-- Exactly **1 Hero**.
+- Exactly **14 Subjects**.
+- Exactly **6 Names**.
+- Heroes are **Unique**: maximum 1 copy of each Hero title.
+- A deck may contain multiple different Heroes.
 - Maximum 2 copies of a non-Unique title.
-- Maximum 1 copy of a Unique title.
-- Every Name is Unique.
+- Maximum 1 copy of any Unique title.
+- Every printed Name is Unique.
+
+Custom research decks may vary the Subject and Name counts while retaining the deck size and copy limits.
 - Subjects, Bonds, Names, Stories, and Stratagems all use the same deck.
 
 ---
@@ -586,7 +576,7 @@ A deck contains exactly **30 cards**.
 ## Glossary {#glossary}
 
 **Battle**  
-One scoring period. It ends when both players have Passed.
+One scoring period. After the first Pass, the opponent receives one final operation and then the Battle is scored.
 
 **Bond**  
 A formation component. It may be prepared before its Subject. A Bond without a Name is an open Bond.
@@ -595,10 +585,10 @@ A formation component. It may be prepared before its Subject. A Bond without a N
 A printed identity property such as *Human*, *God*, *King*, *Ship*, or *Stronghold*.
 
 **Hero**  
-A unique Subject with a special rule. Every deck contains exactly one Hero.
+A Unique dual-use card that may be played as a Subject or a Name. Each side may play only one Hero per Battle; a deck may contain multiple different Heroes.
 
-**Draw**  
-A normal action that draws 1 card from your deck. Each player may Draw once per Battle.
+**Command**  
+Your persistent operation budget. Start the match at 20. Gain 10 between Battles, to a maximum of 20. Unspent Command carries over.
 
 **Line Defense**  
 The +1 Strength normally gained by a Subject in the Frontline.
@@ -607,7 +597,7 @@ The +1 Strength normally gained by a Subject in the Frontline.
 A Unique formation component. It may be prepared before its Subject or Bond.
 
 **Pass**  
-End your participation in the current Battle.
+End your operations in the current Battle. After the first Pass, the opponent receives exactly one final operation before scoring.
 
 **Role**  
 A printed Subject property such as *Swordsman*, *Spearman*, *Archer*, or *Healer*. Roles provide standard formation rules.
@@ -616,7 +606,7 @@ A printed Subject property such as *Swordsman*, *Spearman*, *Archer*, or *Healer
 A one-shot card. Its form may be *Myth*, *Legend*, *Saga*, *Omen*, *Warning*, *Prophecy*, or *Conspiracy*.
 
 **Stratagem**  
-A Battle-wide hidden card set before your normal action. Each player may set one per Battle.
+A Battle-wide public card played face-up as your operation. Each player may play one per Battle.
 
 **Prepared**  
 A Bond or Name placed in a formation before its Subject. Subject-dependent rules stay inactive until the Subject arrives.

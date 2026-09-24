@@ -31,6 +31,8 @@ Rebuild after every `.pyx` or `.pxi` edit. Browser builds automatically detect c
 
 The canonical implementation is `src/longwar/_fast_search.pyx`. It owns legal actions, transitions, scoring, visibility, and the information-state encoder. `GameRules` in `rules.py` owns configuration and named profiles (`GameRules.profile_names()` / `from_profile()`). `game/engine.py` adapts Python dataclasses and action objects to this engine; it does not reimplement transitions.
 
+The standard playtest uses 34-card decks and a 10-card opening/refill hand. Command starts at 20, gains 10 between Battles up to 20, and carries forward. At the start of every turn, draw 1 card automatically; then play one card or Pass when Pass is legal. Playing a card spends its printed Command cost. There is no generic Draw action and no standard Cycle action. Draw piles persist between Battles and the discard pile reshuffles only when a draw requires an empty deck. The first Pass gives the opponent exactly one final operation, then the Battle scores; the first passer starts the next Battle. Stratagems are public and active when played, and completing a formation refunds 1 Command. The four shipped deck templates contain 14 Subject-type cards and 6 printed Names. They now carry multiple distinct Heroes; each Hero is Unique, may be played as either a Subject or a Name, and each side may play only one Hero per Battle.
+
 The static browser runs a WebAssembly build of the **same Cython package** through Pyodide. `web/browser-engine.mjs` only transports JSON to `web_api.PlaySession`; rules and AI live in the Python/Cython package. Hot-seat privacy, mulligans, and paced AI turns share the native session implementation.
 
 ```bash
@@ -42,11 +44,25 @@ python -m http.server 8000 --directory dist
 
 `tools/build_browser_runtime.py` pins Pyodide 314.0.7 and pyodide-build 0.39.1. Cross compilation uses an isolated source directory under `artifacts/browser/`, so it cannot replace host extensions. The runtime, wheel, toolchain environment, contracts and logs are generated artifacts. `dist/` is the generated Pages site. Both directories are ignored by Git.
 
+The play client is a fixed desktop table, verified at 1280×720, 1366×768, 1440×900 and 1920×1080. Click a hand card, then a highlighted destination. Hover or focus lifts a card; click a selected card again, right-click, or press `I` while focused to inspect it. Inspection also works during mulligans. Select a hand card to see its legal plays and Command costs. `Esc` cancels/closes, `P` passes and `F` toggles fullscreen. Rules, piles, the log and New Match live in the game menu. Motion respects the browser's reduced-motion preference.
+
+`web/play.css` owns the scene and card geometry; the client does not load website layout styles. `web/play.js` renders snapshots and routes legal actions. Its card motion compares visible snapshots, without predicting engine results. After UI changes, run:
+
+```bash
+make test-fast browser-parity
+python tools/check_card_layout.py --require-browser
+python tools/check_game_layout.py --require-browser
+python tools/check_play_start.py --require-browser --viewport 1280x720
+python tools/check_play_start.py --require-browser --viewport 1440x900 --reduced-motion
+```
+
+The [issue #21 desktop-client handoff](reports/issue-21-desktop-client.md) records the redesign, visual QA and remaining human-playtesting questions.
+
 ## Cards and fixtures
 
 `cards/cards.json` is the canonical card pool. Each card has a stable unique `id`, title, type, classes, uniqueness, display text/rule blocks, and machine-readable `rules`. Preserve IDs when revising cards: decks and policy artifacts refer to them.
 
-`cards.py` validates required fields, nested rule/effect/trigger names, types and native numeric limits. `GameEngine` applies the same validation to in-memory data, including browser input. Deck validation enforces size, copy limits, known IDs and exactly one Hero. New effect kinds require explicit schema and native-engine support plus a regression; misspellings fail instead of silently producing vanilla cards.
+`cards.py` validates required fields, nested rule/effect/trigger names, types and native numeric limits. `make verify-cards` also checks printed Command costs against the canonical static cost model in `balance.py`. `GameEngine` applies the same validation to in-memory data, including browser input. Deck validation enforces size, copy limits and known IDs. Hero cards are Unique, so each Hero title is limited to one copy, while multiple different Heroes may share a deck. New effect kinds require explicit schema and native-engine support plus a regression; misspellings fail instead of silently producing vanilla cards.
 
 The packed engine supports up to 127 card identities, 64 cards per player deck, and 1024 generated actions, with checked boundaries. Counterfactual neutral cards are generated in memory and never added to printable canonical data.
 
