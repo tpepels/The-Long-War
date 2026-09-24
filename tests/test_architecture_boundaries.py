@@ -83,6 +83,7 @@ def test_deck_format_is_separate_from_match_rules() -> None:
     engine_source = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
     assert "PLAYTEST_DECK_SIZE" not in engine_source
     assert "validate_deck_definition" not in engine_source
+    assert "..decks" not in engine_source
     assert "exactly 34" not in engine_source
 
     simulator_source = (ROOT / "tools" / "simulate.py").read_text(
