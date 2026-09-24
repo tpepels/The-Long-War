@@ -30,4 +30,5 @@ testpaths = ["tests"]
 markers = [
   "algorithm: algorithm-learning and solver correctness tests",
   "integration: multi-game or end-to-end integration tests",
+  "legacy_rule_experiment: historical/non-standard rules experiment coverage",
 ]
