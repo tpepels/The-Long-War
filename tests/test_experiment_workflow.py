@@ -258,6 +258,25 @@ def test_no_duplicate_batch_search_entry_point():
     assert 'BENCH_ROOT / "overnight"' not in source
 
 
+def test_experiment_runner_has_only_decision_grade_search_commands(monkeypatch):
+    for command in ("ismcts-match", "strength-bench", "suite"):
+        monkeypatch.setattr(
+            runner.sys,
+            "argv",
+            ["run_experiments.py", command],
+        )
+        assert runner.parse_args().command == command
+
+    source = (ROOT / "tools" / "run_experiments.py").read_text(encoding="utf-8")
+    for obsolete in (
+        '"bench"',
+        '"search-bench"',
+        '"mcts-bench"',
+        '"exploration-sweep"',
+    ):
+        assert obsolete not in source
+
+
 def test_backend_parity_ignores_runtime_but_keeps_search_depth_and_outcomes(tmp_path):
     path = tmp_path / "match.json"
     payload = {
@@ -297,7 +316,7 @@ def test_canonical_validation_uses_only_current_standard_rules():
     assert "from_profile(" not in data_source
 
     assert "standard_backend_parity" in validate_source
-    assert "test_cardflow_profiles.py" not in validate_source
+    assert "test_rule_variants.py" not in validate_source
     assert "not legacy_rule_experiment" in validate_source
     assert "parity_case" not in validate_source
 
@@ -366,23 +385,4 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     assert "deck_size" not in match["rules"]
     assert match["game_fingerprint"] == summary["game_fingerprint"]
     assert (output / "playability.json").is_file()
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        runner.benchmark,
-        runner.benchmark_ismcts,
-        runner.benchmark_searches,
-        runner.benchmark_exploration_sweep,
-    ],
-)
-def test_search_benchmarks_use_canonical_standard_inputs(function):
-    source = inspect.getsource(function)
-    assert 'cards" / "cards.json' in source
-    assert 'decks" / "reference.json' in source
-    assert "GameRules.standard()" in source
-    assert "force-draw-cards.json" not in source
-    assert "force-rich-34-reference.json" not in source
-    assert "force_candidate(" not in source
 
