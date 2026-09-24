@@ -153,7 +153,7 @@ def generate_context_decks(
 
     ``required_cards`` are included in every generated deck. Without required
     cards, the generator rotates coverage so the union of contexts reaches the
-    whole canonical pool. A deck always contains exactly one Hero.
+    whole canonical pool. Different Unique Heroes may coexist in one deck.
     """
     if count <= 0:
         raise ValueError("count must be positive")
@@ -482,8 +482,8 @@ def run_counterfactual_card_sweep(
     """Evaluate card main effects across a pool larger than one legal deck.
 
     Each card is evaluated in its own legal paired contexts. This preserves
-    the causal replacement interpretation without pretending 48 titles can
-    coexist in one canonical-size deck. Pair/triple interactions require an explicit
+    the causal replacement interpretation without pretending the entire card
+    pool can coexist in one canonical-size deck. Pair/triple interactions require an explicit
     compatible subset and remain the responsibility of the grouped runner.
     """
     canonical = card_index(card_data)
