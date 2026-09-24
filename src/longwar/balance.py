@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from itertools import product
-from math import sqrt
 from statistics import mean, pstdev
 from typing import Any
 
@@ -24,11 +23,10 @@ def score_static_legend(
     name: dict[str, Any],
 ) -> LegendScore:
     strength = int(subject["strength"])
-    link_balance = link.get("balance", {})
-    name_balance = name.get("balance", {})
+    link_rules = link.get("rules", {})
 
-    strength += int(link_balance.get("strength_bonus", 0))
-    strength += int(link_balance.get("named_strength_bonus", 0))
+    strength += int(link_rules.get("strength_bonus", 0))
+    strength += int(link_rules.get("named_strength_bonus", 0))
     strength += int(name["strength"])
 
     dynamic = any(

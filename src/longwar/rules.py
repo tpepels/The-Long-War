@@ -44,6 +44,21 @@ class GameRules:
     public_stratagems: bool = False
 
     def __post_init__(self) -> None:
+        for name, field in self.__dataclass_fields__.items():
+            value = getattr(self, name)
+            if isinstance(field.default, bool):
+                if type(value) is not bool:
+                    raise ValueError(f"{name} must be boolean")
+            elif isinstance(field.default, int) or name.endswith("hand_limit"):
+                if value is None and name.endswith("hand_limit"):
+                    continue
+                if type(value) is not int:
+                    raise ValueError(f"{name} must be an integer")
+        if not isinstance(self.completion_draw_names, tuple) or any(
+            not isinstance(card_id, str) or not card_id
+            for card_id in self.completion_draw_names
+        ):
+            raise ValueError("completion_draw_names must be a tuple of card ids")
         if self.deck_size < 1:
             raise ValueError("deck_size must be positive")
         if not 1 <= self.opening_hand_size <= self.deck_size:
@@ -81,6 +96,21 @@ class GameRules:
     @classmethod
     def standard(cls) -> "GameRules":
         return cls()
+
+    @staticmethod
+    def profile_names() -> tuple[str, ...]:
+        return ("standard", "force-automatic", "force-paid", "force-paid-free",
+                "force-auto-discard9", "force-auto-discard7", "force-auto-cap10")
+
+    @classmethod
+    def from_profile(cls, name: str) -> "GameRules":
+        if name == "standard":
+            return cls.standard()
+        if name in {"force-automatic", "force-paid"}:
+            return cls.force_candidate(name.removeprefix("force-"))
+        if name in cls.profile_names():
+            return cls.force_experiment(name.removeprefix("force-"))
+        raise ValueError(f"Unknown rules profile: {name}")
 
     @classmethod
     def force_candidate(cls, draw_mode: DrawMode) -> "GameRules":

@@ -146,7 +146,9 @@ def _python_external_sampling_traverse(
             node.regret_sum[key] += action_utilities[key] - node_utility
         return node_utility
 
-    node.accumulate_average(strategy, reach_weight=reach[actor])
+    # External sampling already visits this player in proportion to own
+    # reach. Its sampling probability cancels the average-strategy weight.
+    node.accumulate_average(strategy)
     sampled_key = _python_sample_distribution(rng, strategy)
     child_reach = [reach[0], reach[1]]
     child_reach[actor] *= strategy[sampled_key]

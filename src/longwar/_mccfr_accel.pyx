@@ -198,7 +198,9 @@ def external_sampling_traverse(
             node.regret_sum[key] += action_utilities[key] - node_utility
         return node_utility
 
-    node.accumulate_average(strategy, reach_weight=reach[actor])
+    # External sampling already visits this player in proportion to own
+    # reach. Its sampling probability cancels the average-strategy weight.
+    node.accumulate_average(strategy)
     sampled_key = sample_distribution(rng, strategy)
     child_reach = [reach[0], reach[1]]
     child_reach[actor] *= strategy[sampled_key]
@@ -314,12 +316,14 @@ def longwar_external_sampling_traverse(
             node.regret_sum[key] += utility - node_utility
         return node_utility
 
-    node.accumulate_average(strategy, reach_weight=reach[actor])
+    # External sampling already visits this player in proportion to own
+    # reach. Its sampling probability cancels the average-strategy weight.
+    node.accumulate_average(strategy)
 
     threshold = trainer.rng.random()
     cumulative = 0.0
-    sampled_action = actions[-1]
-    sampled_probability = strategy[keys[-1]]
+    sampled_action = actions[len(actions) - 1]
+    sampled_probability = strategy[keys[len(keys) - 1]]
     for key, action in zip(keys, actions):
         probability = strategy[key]
         cumulative += probability

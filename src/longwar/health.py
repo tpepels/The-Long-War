@@ -6,6 +6,29 @@ from statistics import mean, median, pstdev
 from typing import Any
 
 
+def simulation_summary(data: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Summarize a simulation for report builders without losing provenance."""
+    if data is None:
+        return None
+    telemetry = data.get("telemetry", {})
+    result = {
+        key: data.get(key)
+        for key in (
+            "games", "agents", "wins", "win_rates", "first_player_win_rate",
+            "mean_turns", "max_turns", "game_fingerprint", "seed", "config",
+            "simulation_variant", "online_config", "strategic_config", "ismcts_config",
+        )
+    }
+    result.update({
+        key: telemetry.get(key)
+        for key in (
+            "passes", "battles", "actions", "decisions", "policy_sources",
+            "online_resolution",
+        )
+    })
+    return result
+
+
 def wilson_interval(successes: int, trials: int, z: float = 1.96) -> tuple[float | None, float | None]:
     if trials <= 0:
         return (None, None)
@@ -334,6 +357,8 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
 
     return {
         "schema_version": 1,
+        "game_fingerprint": simulation.get("game_fingerprint"),
+        "simulation_variant": simulation.get("simulation_variant"),
         "source": {"games": games, "agents": simulation["agents"], "wins": simulation["wins"]},
         "global": {
             "first_player_win_rate": fp_rate,

@@ -9,6 +9,7 @@ from longwar.cards import load_card_file
 from longwar.counterfactual import (
     ExperimentSample,
     _play_focal_outcome,
+    _severity,
     baseline_card,
     baseline_id,
     build_experiment_card_data,
@@ -17,6 +18,8 @@ from longwar.counterfactual import (
     generate_context_decks,
     pair_contrast,
     replace_cards,
+    run_counterfactual_card_sweep,
+    run_counterfactual_experiment,
     triple_contrast,
 )
 from longwar.game import GameEngine
@@ -145,6 +148,68 @@ def test_paired_estimate_is_deterministic_and_reports_sample_count() -> None:
     assert first.samples == len(values)
     assert first.mean == pytest.approx(sum(values) / len(values))
     assert first.ci95[0] <= first.mean <= first.ci95[1]
+
+
+def test_estimate_uses_sample_standard_error() -> None:
+    assert estimate([-1.0, 1.0], seed=1).standard_error == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize("values", [[1.0], [1.0, 1.0], [0.0] * 24])
+def test_degenerate_smoke_samples_do_not_claim_certainty(values) -> None:
+    effect = estimate(values, seed=1)
+    assert effect.ci95[0] < effect.ci95[1]
+    assert effect.ci95[0] <= 0 <= effect.ci95[1]
+    assert effect.ci_method == "bounded_hoeffding_degenerate_sample"
+    severity = _severity(effect)
+    assert severity["confidence_excludes_zero"] is False
+    assert severity["level"] not in {"red", "orange", "dark_green"}
+
+
+def test_invalid_bootstrap_configuration_is_rejected() -> None:
+    with pytest.raises(ValueError, match="bootstrap_resamples must be positive"):
+        estimate([1.0, -1.0], seed=1, bootstrap_resamples=0)
+
+
+def test_triples_compute_required_pair_conditions_without_pair_output(monkeypatch) -> None:
+    import longwar.counterfactual as counterfactual
+
+    conditions = []
+
+    def outcome(engine, sample, focal_deck, **kwargs):
+        replaced = frozenset(card.removeprefix("__cf_baseline__") for card in focal_deck if card.startswith("__cf_baseline__"))
+        conditions.append(replaced)
+        return int(not replaced)
+
+    monkeypatch.setattr(counterfactual, "_play_focal_outcome", outcome)
+    report = run_counterfactual_experiment(
+        data(), contexts=1, games_per_context=1, seed=37,
+        card_ids=["the-fifty-men", "followed", "namar"],
+        include_pairs=False, include_legend_triples=True,
+    )
+    assert len(set(conditions)) == 8
+    assert report["total_matches"] == 8
+    assert report["pairs"] == []
+    assert report["triples"][0]["interaction_delta"] == 1
+    assert report["triples"][0]["ci95"] == [-4.0, 4.0]
+
+
+def test_per_card_sweep_keeps_each_seed_and_required_deck_cards(monkeypatch) -> None:
+    import longwar.counterfactual as counterfactual
+
+    monkeypatch.setattr(counterfactual, "_play_focal_outcome", lambda *args, **kwargs: 0)
+    report = run_counterfactual_card_sweep(
+        data(), contexts=1, games_per_context=1, seed=41,
+        card_ids=["namar", "followed"], bootstrap_resamples=99,
+    )
+    rows = {row["id"]: row for row in report["cards"]}
+    assert rows["namar"]["sample_generation"] == {"seed": 41, "required_cards": ["namar"]}
+    assert rows["followed"]["sample_generation"] == {"seed": 41 + 104729, "required_cards": ["followed"]}
+    assert report["bootstrap_resamples"] == 99
+
+
+def test_context_decks_do_not_depend_on_required_card_iteration_order() -> None:
+    cards = ["namar", "followed", "the-fifty-men"]
+    assert generate_context_decks(data(), count=2, seed=7, required_cards=cards) == generate_context_decks(data(), count=2, seed=7, required_cards=reversed(cards))
 
 
 def test_scheme_baseline_preserves_scheme_commitment() -> None:

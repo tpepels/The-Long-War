@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from longwar.fingerprint import current_game_fingerprint
+from longwar.health import simulation_summary
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
@@ -19,18 +20,6 @@ PROFILES = (
 
 def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def simulation_summary(data: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "games": data.get("games"),
-        "agents": data.get("agents"),
-        "wins": data.get("wins"),
-        "win_rates": data.get("win_rates"),
-        "first_player_win_rate": data.get("first_player_win_rate"),
-        "mean_turns": data.get("mean_turns"),
-        "policy_sources": data.get("telemetry", {}).get("policy_sources"),
-    }
 
 
 def main() -> None:

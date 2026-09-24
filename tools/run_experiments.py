@@ -3,10 +3,11 @@ from __future__ import annotations
 import argparse
 import copy
 import json
-import math
 import subprocess
 import sys
 import time
+from dataclasses import asdict
+from itertools import combinations
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
@@ -16,12 +17,88 @@ from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
+from longwar.fingerprint import artifact_directory, experiment_identity
+from longwar.health import wilson_interval
 from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNNER = ROOT / "tools" / "cardflow_experiment.py"
+RUNNER = ROOT / "tools" / "run_experiments.py"
 VALIDATION_ROOT = ROOT / "artifacts" / "search-validation"
 BENCH_ROOT = ROOT / "artifacts" / "search-benchmark"
+
+
+def validate_data() -> None:
+    """Validate shipped canonical and experimental data through the engine."""
+    for card_file, deck_dir, profile in (
+        ("cards/cards.json", "decks", "standard"),
+        ("cards/experiments/force-draw-cards.json", "decks/experiments", "force-automatic"),
+    ):
+        data = load_card_file(ROOT / card_file)
+        engine = GameEngine(data, rules=GameRules.from_profile(profile))
+        decks = sorted((ROOT / deck_dir).glob("*.json"))
+        for path in decks:
+            deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
+            engine.validate_deck(deck)
+            engine.legal_actions(engine.new_game(deck, deck, seed=1701))
+        print(f"Validated {card_file}: {len(data['cards'])} cards, {len(decks)} decks")
+
+
+def balance_run(args: argparse.Namespace) -> Path:
+    """Canonical balance pipeline; experimental rules stay in `run`."""
+    from longwar.balance import build_report
+    from longwar.counterfactual import run_counterfactual_card_sweep
+    from longwar.health import analyze_simulation
+    from longwar.playability import build_playability_report
+    from longwar.simulate import simulate_games
+
+    games = args.games if args.games is not None else (8 if args.preset == "quick" else 2000)
+    if games <= 0 or args.contexts <= 0 or args.games_per_context <= 0:
+        raise SystemExit("Game/context counts must be positive")
+    validate_data()
+    config = {"preset": args.preset, "games_per_cell": games, "seed": args.seed,
+              "agents": ["heuristic", "heuristic"], "rules_profile": "standard",
+              "contexts": args.contexts, "games_per_context": args.games_per_context}
+    identity = experiment_identity(config)
+    output = artifact_directory(ROOT / "artifacts" / "balance" / args.preset, identity)
+
+    def save(name: str, data: dict[str, Any]) -> None:
+        (output / f"{name}.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    engine = GameEngine(data)
+    decks = {p.stem: json.loads(p.read_text(encoding="utf-8"))["cards"]
+             for p in sorted((ROOT / "decks").glob("*.json"))}
+    cells = [(name, name) for name in decks]
+    if args.preset == "deep":
+        for left, right in combinations(decks, 2):
+            cells.extend([(left, right), (right, left)])
+    save("static", {**build_report(data), **identity})
+    simulations = []
+    for index, (left, right) in enumerate(cells):
+        seed = args.seed + index * games
+        report = simulate_games(engine, decks[left], decks[right], games=games, seed=seed)
+        payload = {**asdict(report), "game_fingerprint": identity["game_fingerprint"],
+                   "seed": seed, "rules": asdict(engine.rules),
+                   "deck_a": decks[left], "deck_b": decks[right],
+                   "first_player_win_rate": report.first_player_win_rate,
+                   "first_player_wilson_95": wilson_interval(report.first_player_wins, games)}
+        name = f"{left}--{right}"
+        save(name, payload)
+        save(f"{name}-health", analyze_simulation(payload, data))
+        simulations.append(payload)
+        print(f"{name}: {games} games, first-player wins {report.first_player_wins}; "
+              f"95% interval {payload['first_player_wilson_95']}")
+    save("playability", build_playability_report(simulations))
+    if args.preset == "deep":
+        causal = run_counterfactual_card_sweep(
+            data, contexts=args.contexts, games_per_context=args.games_per_context,
+            seed=args.seed, bootstrap_resamples=2000,
+        )
+        save("counterfactual", {**causal, "game_fingerprint": identity["game_fingerprint"]})
+    save("summary", {**identity, "cells": len(cells), "simulation_games": games * len(cells),
+                     "interpretation": "Policy-specific diagnostics. Conditional win rates are correlations; use paired counterfactual intervals for card value."})
+    print(f"Balance artifacts: {output}")
+    return output
 
 
 def run_command(command: list[str], *, capture: bool = False) -> subprocess.CompletedProcess[str]:
@@ -111,6 +188,7 @@ def parity_case(mode: str, *, seed: int) -> None:
         [
             sys.executable,
             str(RUNNER),
+            "run",
             *common,
             "--backend",
             "python",
@@ -122,6 +200,7 @@ def parity_case(mode: str, *, seed: int) -> None:
         [
             sys.executable,
             str(RUNNER),
+            "run",
             *common,
             "--backend",
             "cython",
@@ -372,22 +451,23 @@ def _print_ismcts_cutoffs(cutoffs: dict[str, float | int | None]) -> None:
     )
 
 
-def _wilson_interval(wins: int, games: int) -> tuple[float, float]:
-    if games <= 0:
-        return (0.0, 0.0)
-    z = 1.959963984540054
-    p = wins / games
-    denominator = 1.0 + z * z / games
-    center = (p + z * z / (2.0 * games)) / denominator
-    margin = (
-        z
-        * math.sqrt(
-            p * (1.0 - p) / games
-            + z * z / (4.0 * games * games)
-        )
-        / denominator
-    )
-    return (max(0.0, center - margin), min(1.0, center + margin))
+def paired_strength_interval(outcomes: dict[str, dict[str, list[dict[str, int]]]]) -> dict[str, Any]:
+    """Bootstrap deals, keeping the two seat orientations together."""
+    from longwar.counterfactual import estimate
+    contrasts = []
+    for orientations in outcomes.values():
+        first = {row["seed"]: row for row in orientations["mcts-first"]}
+        second = {row["seed"]: row for row in orientations["alpha-first"]}
+        if first.keys() != second.keys():
+            raise ValueError("Mirrored strength cells must contain identical deal seeds")
+        for seed, left in first.items():
+            right = second[seed]
+            contrasts.append(int(left["winner"] == 0) + int(right["winner"] == 1) - 1)
+    effect = estimate(contrasts, seed=1701, bootstrap_resamples=2000)
+    return {"win_rate": (effect.mean + 1) / 2,
+            "ci95": [max(0.0, (effect.ci95[0] + 1) / 2), min(1.0, (effect.ci95[1] + 1) / 2)],
+            "independent_deals": len(contrasts), "ci_method": effect.ci_method,
+            "resampling_unit": "same-seed mirrored seat pair"}
 
 
 def benchmark_strength(
@@ -400,6 +480,7 @@ def benchmark_strength(
     progressive_widening: float = 0.0,
     exploration: float = 2 ** 0.5,
     reuse_tree: bool = True,
+    seed: int = 26092400,
 ) -> None:
     """Mirrored ISMCTS-vs-alpha-beta matches on all Force reference decks."""
     require_cython()
@@ -419,12 +500,18 @@ def benchmark_strength(
         parts.append(f"pw-{pw_label}")
     else:
         parts.append("pw-0")
-    output_dir = BENCH_ROOT / "-".join(parts)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    identity = experiment_identity({
+        "games_per_orientation": games_per_orientation, "seed": seed,
+        "ismcts_iterations": ismcts_iterations, "alpha_nodes": alpha_nodes,
+        "rollout_policy": rollout_policy, "exploration": exploration,
+        "progressive_widening": progressive_widening, "reuse_tree": reuse_tree,
+        "rules_profile": "force-automatic", "decks": list(decks),
+    })
+    output_dir = artifact_directory(BENCH_ROOT / "-".join(parts), identity)
 
     cells: list[tuple[str, str, Path, list[str]]] = []
     for deck_index, deck in enumerate(decks):
-        seed = 26092400 + deck_index
+        cell_seed = seed + deck_index * games_per_orientation
         deck_path = f"decks/experiments/force-rich-34-{deck}.json"
         for orientation, agents in (
             ("mcts-first", ("ismcts", "strategic_heuristic")),
@@ -437,7 +524,7 @@ def benchmark_strength(
                 "--games",
                 str(games_per_orientation),
                 "--seed",
-                str(seed),
+                str(cell_seed),
                 "--rules-profile",
                 "force-automatic",
                 "--card-file",
@@ -516,6 +603,7 @@ def benchmark_strength(
     }
     overall_mcts = 0
     overall_alpha = 0
+    paired_outcomes: dict[str, dict[str, list[dict[str, int]]]] = {}
     wall_sum = 0.0
     cutoff_totals = {
         "iterations": 0,
@@ -545,6 +633,7 @@ def benchmark_strength(
         totals[deck]["games"] += int(payload["games"])
         overall_mcts += mcts_wins
         overall_alpha += alpha_wins
+        paired_outcomes.setdefault(deck, {})[orientation] = payload["game_outcomes"]
         wall_sum += elapsed
         decision_stats = payload.get("telemetry", {}).get(
             "decisions", {}
@@ -557,7 +646,8 @@ def benchmark_strength(
             reuse_totals[key] += int(reuse.get(key, 0) or 0)
 
     total_games = overall_mcts + overall_alpha
-    low, high = _wilson_interval(overall_mcts, total_games)
+    paired = paired_strength_interval(paired_outcomes)
+    low, high = paired["ci95"]
     rate = overall_mcts / total_games if total_games else 0.0
 
     print()
@@ -566,7 +656,7 @@ def benchmark_strength(
     for deck in decks:
         row = totals[deck]
         deck_rate = row["mcts"] / row["games"] if row["games"] else 0.0
-        dlow, dhigh = _wilson_interval(row["mcts"], row["games"])
+        dlow, dhigh = paired_strength_interval({deck: paired_outcomes[deck]})["ci95"]
         print(
             f"{deck:9}: ISMCTS {row['mcts']:>3}-{row['alpha']:<3} alpha-beta "
             f"| {deck_rate * 100:5.1f}% "
@@ -580,7 +670,7 @@ def benchmark_strength(
     )
     print(
         "Interpretation: above 50% favors ISMCTS; the confidence interval "
-        "shows how much uncertainty remains at this sample size."
+        "resamples mirrored deal pairs to keep their dependence intact."
     )
 
     cutoff_iterations = cutoff_totals["iterations"]
@@ -638,6 +728,7 @@ def benchmark_strength(
         )
 
     summary = {
+        **identity,
         "rules_profile": "force-automatic",
         "games_per_orientation": games_per_orientation,
         "ismcts": {
@@ -666,7 +757,7 @@ def benchmark_strength(
             "alpha_beta_wins": overall_alpha,
             "games": total_games,
             "mcts_win_rate": rate,
-            "wilson_95": [low, high],
+            "paired_uncertainty": paired,
         },
         "sum_cell_wall_seconds": wall_sum,
     }
@@ -894,6 +985,7 @@ def run_suite(args: argparse.Namespace) -> None:
     command = [
         sys.executable,
         str(RUNNER),
+            "run",
         "--preset",
         args.cardflow_preset,
         "--jobs",
@@ -920,39 +1012,19 @@ def run_suite(args: argparse.Namespace) -> None:
     run_command(command)
 
 
-def run_experiment(args: argparse.Namespace) -> None:
-    command = [
-        sys.executable,
-        str(RUNNER),
-        "--preset",
-        args.preset,
-        "--jobs",
-        str(args.jobs),
-        "--backend",
-        args.backend,
-        "--agent",
-        args.agent,
-        "--variant",
-        args.variant,
-        "--deck",
-        args.deck,
-        "--ismcts-exploration",
-        str(args.exploration),
-        "--ismcts-progressive-widening",
-        str(args.progressive_widening),
-    ]
-    if args.games is not None:
-        command.extend(["--games", str(args.games)])
-    if args.output_dir is not None:
-        command.extend(["--output-dir", str(args.output_dir)])
-    run_command(command)
-
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Local validation, search benchmarks, and gameplay experiments."
     )
     sub = parser.add_subparsers(dest="command", required=True)
+
+    sub.add_parser("validate-data", help="Validate all shipped card sets and decks.")
+    balance = sub.add_parser("balance", help="Canonical static, playability and paired balance pipeline.")
+    balance.add_argument("--preset", choices=("quick", "deep"), default="quick")
+    balance.add_argument("--games", type=int, help="Games per matchup cell (quick: 8; deep: 2000).")
+    balance.add_argument("--seed", type=int, default=1701)
+    balance.add_argument("--contexts", type=int, default=3)
+    balance.add_argument("--games-per-context", type=int, default=4)
 
     sub.add_parser(
         "validate",
@@ -1001,6 +1073,7 @@ def parse_args() -> argparse.Namespace:
     )
     strength_bench.add_argument("--jobs", type=int, default=8)
     strength_bench.add_argument("--iterations", type=int, default=100_000)
+    strength_bench.add_argument("--seed", type=int, default=26092400)
     strength_bench.add_argument("--alpha-nodes", type=int, default=20_000)
     strength_bench.add_argument("--exploration", type=float, default=2 ** 0.5)
     strength_bench.add_argument(
@@ -1092,43 +1165,19 @@ def parse_args() -> argparse.Namespace:
         "run",
         help="Run the local draw experiment.",
     )
-    run.add_argument("--preset", choices=("quick", "deep", "max"), default="deep")
-    run.add_argument("--games", type=int)
-    run.add_argument("--jobs", type=int, default=8)
-    run.add_argument("--backend", choices=("auto", "cython", "python"), default="cython")
-    run.add_argument(
-        "--agent",
-        choices=("ismcts", "strategic_heuristic"),
-        default="ismcts",
-    )
-    run.add_argument(
-        "--variant",
-        "--mode",
-        dest="variant",
-        choices=(
-            "experiment",
-            "all",
-            "control",
-            "paid-free",
-            "auto-discard9",
-            "auto-discard7",
-            "auto-cap10",
-            "automatic",
-            "paid",
-        ),
-        default="experiment",
-    )
-    run.add_argument("--deck", choices=("all", "reference", "avaros", "mara", "sera"), default="all")
-    run.add_argument("--output-dir", type=Path)
-    run.add_argument("--exploration", type=float, default=2 ** 0.5)
-    run.add_argument("--progressive-widening", type=float, default=0.0)
+    from longwar.cardflow import add_arguments
+    add_arguments(run)
 
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    if args.command == "validate":
+    if args.command == "validate-data":
+        validate_data()
+    elif args.command == "balance":
+        balance_run(args)
+    elif args.command == "validate":
         validate()
     elif args.command == "bench":
         benchmark(args.nodes)
@@ -1157,6 +1206,7 @@ def main() -> None:
             progressive_widening=args.progressive_widening,
             exploration=args.exploration,
             reuse_tree=not args.no_tree_reuse,
+            seed=args.seed,
         )
     elif args.command == "exploration-sweep":
         benchmark_exploration_sweep(
@@ -1168,7 +1218,8 @@ def main() -> None:
     elif args.command == "suite":
         run_suite(args)
     elif args.command == "run":
-        run_experiment(args)
+        from longwar.cardflow import run
+        run(args)
     else:
         raise AssertionError(args.command)
 

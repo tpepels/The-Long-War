@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+from math import isfinite
 from collections import Counter
 from dataclasses import dataclass
 from typing import Protocol
@@ -13,11 +14,17 @@ class BeliefStateError(ValueError):
     pass
 
 
+# Each group describes disjoint card identities eligible for hidden slots.
+HiddenRequirements = tuple[tuple[frozenset[str], int], ...]
+
+
 class DeckPrior(Protocol):
     def sample_deck(
         self,
         required: Counter[str],
         rng: random.Random,
+        *,
+        hidden_requirements: HiddenRequirements = (),
     ) -> list[str]:
         ...
 
@@ -42,18 +49,24 @@ class HypothesisDeckPrior:
         self.engine = engine
         self.hypotheses = list(hypotheses)
         for hypothesis in self.hypotheses:
-            if hypothesis.weight <= 0:
+            if not isfinite(hypothesis.weight) or hypothesis.weight <= 0:
                 raise ValueError("Deck hypothesis weights must be positive")
             self.engine.validate_deck(list(hypothesis.cards))
 
     def posterior(
         self,
         required: Counter[str],
+        *,
+        hidden_requirements: HiddenRequirements = (),
     ) -> list[tuple[DeckHypothesis, float]]:
         compatible = [
             hypothesis
             for hypothesis in self.hypotheses
             if self._contains(Counter(hypothesis.cards), required)
+            and all(
+                sum((Counter(hypothesis.cards) - required)[card] for card in eligible) >= count
+                for eligible, count in hidden_requirements
+            )
         ]
         if not compatible:
             raise BeliefStateError("No deck hypothesis is compatible with observed cards")
@@ -64,8 +77,10 @@ class HypothesisDeckPrior:
         self,
         required: Counter[str],
         rng: random.Random,
+        *,
+        hidden_requirements: HiddenRequirements = (),
     ) -> list[str]:
-        posterior = self.posterior(required)
+        posterior = self.posterior(required, hidden_requirements=hidden_requirements)
         threshold = rng.random()
         cumulative = 0.0
         selected = posterior[-1][0]
@@ -99,13 +114,19 @@ class CardPoolDeckPrior:
         self.engine = engine
         self.deck_size = engine.deck_size if deck_size is None else deck_size
         self.card_weights = dict(card_weights or {})
+        if any(not isfinite(weight) or weight < 0 for weight in self.card_weights.values()):
+            raise ValueError("Card prior weights must be finite and non-negative")
 
     def sample_deck(
         self,
         required: Counter[str],
         rng: random.Random,
+        *,
+        hidden_requirements: HiddenRequirements = (),
     ) -> list[str]:
-        if sum(required.values()) > self.deck_size:
+        if any(card not in self.engine.cards or count < 0 for card, count in required.items()):
+            raise BeliefStateError("Observed cards contain unknown IDs or negative counts")
+        if sum(required.values()) + sum(count for _, count in hidden_requirements) > self.deck_size:
             raise BeliefStateError("Observed cards exceed deck size")
 
         capacities: dict[str, int] = {}
@@ -155,6 +176,8 @@ class CardPoolDeckPrior:
                 capacities[card_id] * self.card_weights.get(card_id, 1.0)
                 for card_id in hero_candidates
             ]
+            if sum(hero_weights) <= 0:
+                raise BeliefStateError("No legal Hero has positive prior weight")
             selected_hero = rng.choices(
                 hero_candidates,
                 weights=hero_weights,
@@ -167,6 +190,18 @@ class CardPoolDeckPrior:
         for card_id in list(capacities):
             if self.engine.cards[card_id].get("hero", False):
                 capacities[card_id] = 0
+
+        # Hidden card identities are unknown, but an occupied hidden slot is
+        # evidence of its type. Reserve these cards before filling other slots.
+        for eligible, count in hidden_requirements:
+            for _ in range(count):
+                candidates = [card for card in sorted(eligible) if capacities.get(card, 0) > 0]
+                weights = [capacities[card] * self.card_weights.get(card, 1.0) for card in candidates]
+                if not candidates or sum(weights) <= 0:
+                    raise BeliefStateError("No legal card remains for an observed hidden slot")
+                selected = rng.choices(candidates, weights=weights, k=1)[0]
+                deck.append(selected)
+                capacities[selected] -= 1
 
         slots = self.deck_size - len(deck)
         if sum(capacities.values()) < slots:
@@ -218,6 +253,29 @@ class BeliefSampler:
         self.engine = engine
         default = CardPoolDeckPrior(engine)
         self.priors = priors or (default, default)
+
+    def reuse_context(self, state: GameState, viewer: int) -> tuple[object, ...]:
+        """Hard evidence whose change invalidates root-sampled search values.
+
+        Public deterministic moves can reuse matching information sets. A draw,
+        reveal, hidden-zone change or observer change conditions a different
+        belief and must not inherit values from the previous distribution.
+        Opponent hidden card identities and deck order never enter this key.
+        """
+        self._validate_viewer(viewer)
+        opponent = 1 - viewer
+        diagnostics = self.diagnostics(state, viewer)
+        return (
+            viewer,
+            id(self.priors[opponent]),
+            tuple(sorted(state.players[viewer].deck)),
+            tuple(sorted(self._public_opponent_cards(state, opponent))),
+            tuple(sorted(state.known_hidden_cards(viewer, opponent, "hand"))),
+            diagnostics.hidden_hand_cards,
+            diagnostics.hidden_deck_cards,
+            diagnostics.hidden_schemes,
+            diagnostics.hidden_stratagems,
+        )
 
     def diagnostics(self, state: GameState, viewer: int) -> BeliefDiagnostics:
         self._validate_viewer(viewer)
@@ -271,7 +329,25 @@ class BeliefSampler:
 
         required = Counter(public_cards)
         required.update(known_hand)
-        sampled_full_deck = self.priors[opponent].sample_deck(required, rng)
+        hidden_requirements = []
+        diagnostics = self.diagnostics(state, viewer)
+        if diagnostics.hidden_schemes:
+            hidden_requirements.append((
+                frozenset(card for card in self.engine.cards if self._is_scheme_card(card)),
+                diagnostics.hidden_schemes,
+            ))
+        if diagnostics.hidden_stratagems:
+            hidden_requirements.append((
+                frozenset(card for card in self.engine.cards if self._is_stratagem_card(card)),
+                diagnostics.hidden_stratagems,
+            ))
+        # Preserve the simple DeckPrior protocol for third-party priors when no
+        # hidden type evidence is present.
+        prior = self.priors[opponent]
+        sampled_full_deck = (
+            prior.sample_deck(required, rng, hidden_requirements=tuple(hidden_requirements))
+            if hidden_requirements else prior.sample_deck(required, rng)
+        )
         remaining = Counter(sampled_full_deck)
 
         for card_id in public_cards:

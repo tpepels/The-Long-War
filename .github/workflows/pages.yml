@@ -8,6 +8,11 @@ on:
       - "decks/reference.json"
       - "rules/**"
       - "web/**"
+      - "src/**"
+      - "tools/build_browser_runtime.py"
+      - "tools/build_pages.py"
+      - "pyproject.toml"
+      - "setup.py"
   workflow_dispatch:
   workflow_run:
     workflows: ["Counterfactual Analysis", "MCCFR Validation"]
@@ -31,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: pip
       - run: pip install -e .
       - name: Set per-run seed

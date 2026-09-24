@@ -43,6 +43,7 @@ class PlaySession:
         deck_json: str,
         mode: str = "hotseat",
         seed: int = 1,
+        paced_ai: bool = False,
     ):
         if mode not in {"hotseat", "heuristic", "online_mccfr"}:
             raise ValueError(f"Unsupported play mode: {mode}")
@@ -56,8 +57,12 @@ class PlaySession:
         self.deck = deck
         self.mode = mode
         self.seed = int(seed)
+        self.paced_ai = paced_ai
         self.human_players = {0, 1} if mode == "hotseat" else {0}
         self.log: list[str] = []
+        self.opening_player: int | None = None
+        self.last_action: dict[str, Any] | None = None
+        self.action_serial = 0
 
         # Preview state exposes the reproducible opening hands before mulligans.
         self.state = self.engine.new_game(
@@ -91,6 +96,20 @@ class PlaySession:
 
     def mulligan_json(self, indices: list[int], viewer: int) -> str:
         return json.dumps(self.mulligan(indices, viewer), separators=(",", ":"))
+
+    def ai_step_json(self) -> str:
+        return json.dumps(self.ai_step(), separators=(",", ":"))
+
+    def ai_step(self) -> dict[str, Any]:
+        """Advance one AI action so the browser can display it before the next."""
+        if not self.setup_complete:
+            raise ValueError("Complete the opening mulligan first")
+        if self.mode == "hotseat":
+            raise ValueError("AI stepping requires an AI opponent")
+        if self.state.phase is not Phase.COMPLETE and self.state.active_player not in self.human_players:
+            actor = self.state.active_player
+            self._apply_with_log(self.agents[actor].choose(self.engine, self.state))
+        return self.snapshot(0)
 
     def mulligan(self, indices: list[int], viewer: int) -> dict[str, Any]:
         if self.setup_complete:
@@ -140,6 +159,7 @@ class PlaySession:
             mulligan_indices=choices,
         )
         self.setup_complete = True
+        self.opening_player = self.state.active_player
         self.log.append(
             f"Battle I begins. Player {self.state.active_player + 1} goes first "
             "and draws 1 additional opening card."
@@ -263,16 +283,18 @@ class PlaySession:
                 hand = list(state.players[viewer].hand)
         elif (
             viewer is not None
-            and viewer == state.active_player
             and viewer in self.human_players
             and state.phase is not Phase.COMPLETE
+            and (self.mode != "hotseat" or viewer == state.active_player)
         ):
             hand = list(state.players[viewer].hand)
-            legal_actions = [self._action_view(action) for action in self.engine.legal_actions(state)]
+            if viewer == state.active_player:
+                legal_actions = [self._action_view(action) for action in self.engine.legal_actions(state)]
 
         return {
             "mode": self.mode,
             "seed": self.seed,
+            "opening_player": self.opening_player,
             "battle": state.battle,
             "phase": display_phase,
             "active_player": display_active,
@@ -296,6 +318,12 @@ class PlaySession:
             "stratagems": stratagems,
             "stratagem_used": list(state.stratagem_used),
             "draw_used": list(state.draw_used),
+            "needs_ai": (
+                self.setup_complete
+                and state.phase is not Phase.COMPLETE
+                and state.active_player not in self.human_players
+            ),
+            "last_action": self._last_action_view(viewer),
             "front_strengths": front_strengths,
             "front_control": front_control,
             "hand": hand,
@@ -304,7 +332,7 @@ class PlaySession:
         }
 
     def _run_ai_until_human(self) -> None:
-        if not self.setup_complete:
+        if not self.setup_complete or self.paced_ai:
             return
         safety = 0
         while (
@@ -324,9 +352,23 @@ class PlaySession:
         victories_before = [player.victories for player in self.state.players]
         observations_before = len(self.state.observations)
         label = self._describe_action(action, actor)
+        payload = self._action_view(action)
 
         self.engine.apply(self.state, action)
         self.log.append(label)
+        self.action_serial += 1
+        self.last_action = {
+            **payload,
+            "id": self.action_serial,
+            "actor": actor,
+            "public_label": label,
+            "private_label": payload["label"],
+            "events": [
+                {"type": event.kind, "card_id": event.card_id, "zone": event.zone, "owner": event.owner}
+                for event in self.state.observations[observations_before:]
+                if event.kind == "reveal"
+            ],
+        }
 
         for event in self.state.observations[observations_before:]:
             if event.kind != "reveal":
@@ -360,6 +402,16 @@ class PlaySession:
                 f"Battle {self._roman(self.state.battle)} begins. "
                 f"Player {self.state.chooser + 1} chooses who starts."
             )
+
+    def _last_action_view(self, viewer: int | None) -> dict[str, Any] | None:
+        if self.last_action is None:
+            return None
+        action = self.last_action
+        visible = action["kind"] not in {"PlayScheme", "SetStratagem"} or viewer == action["actor"]
+        result = {key: value for key, value in action.items() if key not in {"key", "reason", "public_label", "private_label"}}
+        result["card_id"] = action["card_id"] if visible else None
+        result["label"] = action["private_label"] if visible else action["public_label"]
+        return result
 
     def _action_view(self, action: Action) -> dict[str, Any]:
         card_id = getattr(action, "card_id", None)
@@ -467,9 +519,9 @@ class PlaySession:
         if isinstance(action, PlaySubject):
             return "This is an empty legal Subject position."
         if isinstance(action, PlayLink):
-            return "This Subject has no Bond yet."
+            return "This position has no Bond. A Bond may be prepared before its Subject."
         if isinstance(action, PlayName):
-            return "This Subject has a Bond and no Name attached yet."
+            return "This position has no Name. A Name may be prepared before its Subject or Bond."
         if isinstance(action, PlayScheme):
             return "You have no Veiled Story in this Front."
         if isinstance(action, SetStratagem):

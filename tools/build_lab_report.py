@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from longwar.fingerprint import current_game_fingerprint
+from longwar.health import simulation_summary
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
@@ -15,28 +16,6 @@ def load(name: str) -> dict[str, Any] | None:
     if not path.exists():
         return None
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def simulation_summary(data: dict[str, Any] | None) -> dict[str, Any] | None:
-    if data is None:
-        return None
-    telemetry = data.get("telemetry", {})
-    return {
-        "games": data.get("games"),
-        "agents": data.get("agents"),
-        "wins": data.get("wins"),
-        "win_rates": data.get("win_rates"),
-        "first_player_win_rate": data.get("first_player_win_rate"),
-        "mean_turns": data.get("mean_turns"),
-        "max_turns": data.get("max_turns"),
-        "passes": telemetry.get("passes"),
-        "battles": telemetry.get("battles"),
-        "actions": telemetry.get("actions"),
-        "decisions": telemetry.get("decisions"),
-        "policy_sources": telemetry.get("policy_sources"),
-        "online_resolution": telemetry.get("online_resolution"),
-        "online_config": data.get("online_config"),
-    }
 
 
 def main() -> None:
@@ -52,11 +31,10 @@ def main() -> None:
             return None
         return data
 
-    # Static/card-health reports are generated in the current workflow. Dynamic
-    # simulations and expensive solver/counterfactual artifacts must explicitly
-    # match this ruleset before they may influence the lab.
-    health = load("balance-health.json")
-    static = load("balance-report.json")
+    # Derived health reports carry the source simulation's fingerprint. They
+    # need the same freshness check as their underlying match telemetry.
+    health = current("balance-health.json")
+    static = current("balance-report.json")
     selfplay = current("heuristic-selfplay.json") or current("pages-selfplay.json")
     policy = current("mccfr-policy.json")
     mccfr_suite = current("mccfr-suite.json")
@@ -65,9 +43,9 @@ def main() -> None:
     targeted = current("targeted-online-counterfactual.json")
 
     if health is None:
-        raise SystemExit("balance-health.json is required")
+        raise SystemExit("A current balance-health.json is required; regenerate its source simulation and health report")
     if static is None:
-        raise SystemExit("balance-report.json is required")
+        raise SystemExit("A current balance-report.json is required; regenerate the static report")
 
     static_by_card = {
         row["card"]: row

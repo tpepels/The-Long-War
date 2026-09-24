@@ -1,4 +1,4 @@
-import { BrowserSession } from "./browser-engine.mjs";
+import { BrowserSession, initializeBrowserEngine } from "./browser-engine.mjs";
 
 let session = null;
 let cardData = null;
@@ -34,7 +34,7 @@ function updateStartAvailability() {
   $("start-game").disabled = !ready;
   $("engine-status").textContent = ready
     ? "Ready"
-    : "Loading cards…";
+    : "Loading game…";
 }
 const frontNames = ["Left", "Center", "Right"];
 
@@ -123,6 +123,7 @@ async function request(payload) {
 
   if (payload.type === "new_game") {
     if (!cardData || !referenceDeck) throw new Error("Game data is not loaded yet.");
+    session?.destroy();
     session = new BrowserSession(cardData, referenceDeck, payload.mode, payload.seed);
     return session.snapshot(payload.mode === "hotseat" ? null : 0);
   }
@@ -1147,6 +1148,7 @@ async function loadCards() {
   const [cardsResponse, deckResponse] = await Promise.all([
     fetch(dataUrl("data/cards.json"), { cache: "default" }),
     fetch(dataUrl("data/reference-deck.json"), { cache: "default" }),
+    initializeBrowserEngine(),
   ]);
   if (!cardsResponse.ok || !deckResponse.ok) {
     throw new Error("Could not load the card or deck data.");

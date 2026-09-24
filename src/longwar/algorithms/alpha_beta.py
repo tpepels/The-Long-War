@@ -84,7 +84,7 @@ class AlphaBetaSearch:
 
         maximizing = actor == root_player
         value = -inf if maximizing else inf
-        cutoff = False
+        alpha_start, beta_start = alpha, beta
 
         for action in actions:
             if level < len(scratch):
@@ -115,11 +115,11 @@ class AlphaBetaSearch:
                 beta = min(beta, value)
 
             if beta <= alpha:
-                cutoff = True
                 break
 
-        # A cutoff is a bound, not an exact score.
-        if not cutoff:
+        # Descendant cutoffs can also make a fully searched node a bound.
+        # Only results strictly inside the original window are exact.
+        if alpha_start < value < beta_start:
             transposition[cache_key] = value
         return value
 
@@ -204,4 +204,7 @@ class AlphaBetaSearch:
             tuple(state.pass_order),
             tuple(state.operations_this_battle),
             state.pending_final_operation_for,
+            state.cleanup_pending,
+            state.cleanup_next_starter,
+            state.cleanup_next_chooser,
         )

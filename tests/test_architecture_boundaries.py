@@ -84,7 +84,7 @@ def test_alpha_beta_algorithm_contains_no_rule_switches() -> None:
 
 def test_cardflow_runner_selects_profile_not_individual_rules() -> None:
     source = (
-        ROOT / "tools" / "cardflow_experiment.py"
+        ROOT / "src" / "longwar" / "cardflow.py"
     ).read_text(encoding="utf-8")
     assert "--rules-profile" in source
     for profile in (

@@ -4,7 +4,7 @@ import random
 from collections import Counter
 from typing import Any, Iterable
 
-from ..cards import card_index, load_card_file
+from ..cards import card_index, load_card_file, validate_card_data
 from ..rules import GameRules
 from .actions import Action, action_from_key, action_key
 from .model import (
@@ -105,6 +105,7 @@ class GameEngine:
         completion_command_refund: int = 0,
         public_stratagems: bool = False,
     ):
+        validate_card_data(card_data)
         if rules is None:
             rules = GameRules(
                 opening_hand_size=opening_hand_size,
@@ -218,6 +219,8 @@ class GameEngine:
         return evaluator
 
     def validate_deck(self, deck: list[str]) -> None:
+        if not isinstance(deck, (list, tuple)) or any(not isinstance(card_id, str) for card_id in deck):
+            raise InvalidDeck("A deck must be a list of card ids")
         if len(deck) != self.deck_size:
             raise InvalidDeck(
                 f"A deck must contain exactly {self.deck_size} cards, got {len(deck)}"

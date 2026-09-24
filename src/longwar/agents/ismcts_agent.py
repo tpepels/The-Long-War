@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from math import isfinite
+
 from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, action_key
 from ..game.engine import GameEngine
@@ -41,6 +43,7 @@ class ISMCTSAgent:
         exploration: float = 2 ** 0.5,
         progressive_widening: float = 0.0,
         reuse_tree: bool = True,
+        max_tree_nodes: int | None = None,
         rollout_epsilon: float = 0.12,
         rollout_policy: str = "cheap",
         leaf_scale: float = 100.0,
@@ -51,11 +54,11 @@ class ISMCTSAgent:
             raise ValueError("iterations must be positive")
         if rollout_depth < 0:
             raise ValueError("rollout_depth must be non-negative")
-        if tree_depth_limit <= 0:
-            raise ValueError("tree_depth_limit must be positive")
-        if exploration < 0:
+        if not 1 <= tree_depth_limit <= 256:
+            raise ValueError("tree_depth_limit must be between 1 and 256")
+        if not isfinite(exploration) or exploration < 0:
             raise ValueError("exploration must be non-negative")
-        if progressive_widening < 0:
+        if not isfinite(progressive_widening) or progressive_widening < 0:
             raise ValueError("progressive_widening must be non-negative")
         if not 0.0 <= rollout_epsilon <= 1.0:
             raise ValueError("rollout_epsilon must be between 0 and 1")
@@ -63,7 +66,7 @@ class ISMCTSAgent:
             raise ValueError(
                 "rollout_policy must be greedy, cheap, or random"
             )
-        if leaf_scale <= 0:
+        if not isfinite(leaf_scale) or leaf_scale <= 0:
             raise ValueError("leaf_scale must be positive")
 
         import random
@@ -78,6 +81,7 @@ class ISMCTSAgent:
         self.exploration = exploration
         self.progressive_widening = progressive_widening
         self.reuse_tree = reuse_tree
+        self.max_tree_nodes = max_tree_nodes
         self.rollout_epsilon = rollout_epsilon
         self.rollout_policy = rollout_policy
         self._rollout_policy_code = {
@@ -88,12 +92,15 @@ class ISMCTSAgent:
         self.leaf_scale = leaf_scale
         self.fast_engine = FastEngine(engine)
         self.evaluator = NativeHeuristicEvaluator(self.fast_engine)
-        self._tree = ISMCTSTree(iterations) if reuse_tree else None
+        self._tree = ISMCTSTree(iterations, max_nodes=max_tree_nodes) if reuse_tree else None
         self.last_decision: dict[str, float | int | str | bool] = {}
 
     def reset_tree(self) -> None:
         """Discard accumulated search statistics before starting a new game."""
-        self._tree = ISMCTSTree(self.iterations) if self.reuse_tree else None
+        self._tree = (
+            ISMCTSTree(self.iterations, max_nodes=self.max_tree_nodes)
+            if self.reuse_tree else None
+        )
 
     def choose_mulligan(
         self,
@@ -128,6 +135,9 @@ class ISMCTSAgent:
                     self._tree.size() if self._tree is not None else 0
                 ),
                 "ismcts_tree_nodes_added": 0,
+                "ismcts_tree_nodes_discarded": 0,
+                "ismcts_tree_reset_reason": "none",
+                "ismcts_tree_capacity_cutoffs": 0,
                 "ismcts_root_total_visits": 0,
                 "ismcts_root_total_visits_lifetime": 0,
                 "ismcts_root_prior_visits": 0,
@@ -160,6 +170,7 @@ class ISMCTSAgent:
             packed_states,
             root_player,
             tree=self._tree,
+            reuse_context=self.belief.reuse_context(state, root_player),
             iterations=self.iterations,
             rollout_depth=self.rollout_depth,
             tree_depth_limit=self.tree_depth_limit,
@@ -197,6 +208,10 @@ class ISMCTSAgent:
             "ismcts_tree_nodes": int(result["tree_nodes"]),
             "ismcts_tree_nodes_before": int(result["tree_nodes_before"]),
             "ismcts_tree_nodes_added": int(result["tree_nodes_added"]),
+            "ismcts_tree_nodes_discarded": int(result["tree_nodes_discarded"]),
+            "ismcts_tree_reset_reason": str(result["tree_reset_reason"]),
+            "ismcts_tree_capacity_cutoffs": int(result["tree_capacity_cutoffs"]),
+            "ismcts_tree_max_nodes": int(result["tree_max_nodes"]),
             "ismcts_root_total_visits": int(result["root_new_visits"]),
             "ismcts_root_total_visits_lifetime": int(
                 result["root_total_visits"]

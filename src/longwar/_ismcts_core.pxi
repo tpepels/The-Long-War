@@ -5,6 +5,8 @@
 # storage and fixed C path arrays. Python objects are created only for the
 # input belief states and the final diagnostics payload.
 
+from libc.math cimport isfinite
+
 DEF MAX_ISMCTS_DEPTH = 256
 
 cdef inline uint64_t _ismcts_next(uint64_t* state) noexcept:
@@ -45,10 +47,10 @@ cdef struct ISMCTSNodeRecord:
     uint64_t key_a
     uint64_t key_b
     uint64_t* actions
-    uint32_t* visits
-    uint32_t* availability
+    uint64_t* visits
+    uint64_t* availability
     double* value_sum
-    uint32_t total_visits
+    uint64_t total_visits
     uint16_t action_count
     int8_t player
 
@@ -59,6 +61,8 @@ cdef class ISMCTSTree:
     cdef size_t node_count
     cdef size_t node_capacity
     cdef size_t bucket_capacity
+    cdef size_t max_nodes
+    cdef object search_context
 
     def __cinit__(self):
         self.nodes = NULL
@@ -66,12 +70,19 @@ cdef class ISMCTSTree:
         self.node_count = 0
         self.node_capacity = 0
         self.bucket_capacity = 0
+        self.search_context = None
 
-    def __init__(self, long expected_nodes):
+    def __init__(self, long expected_nodes, max_nodes=None):
         cdef size_t node_capacity = 1024
         cdef size_t bucket_capacity = 2048
         if expected_nodes < 1:
             expected_nodes = 1
+        if max_nodes is None:
+            max_nodes = min(2147483647, expected_nodes * 4)
+        if not isinstance(max_nodes, int) or not 1 <= max_nodes <= 2147483647:
+            raise ValueError("max_nodes must be an integer between 1 and 2147483647")
+        self.max_nodes = max_nodes
+        expected_nodes = min(expected_nodes, max_nodes)
         while (
             node_capacity < <size_t>expected_nodes
             and node_capacity < 16384
@@ -83,6 +94,19 @@ cdef class ISMCTSTree:
 
     def size(self):
         return int(self.node_count)
+
+    def clear(self):
+        """Discard statistics while retaining bounded native allocations."""
+        cdef size_t i
+        for i in range(self.node_count):
+            free(self.nodes[i].actions)
+            free(self.nodes[i].visits)
+            free(self.nodes[i].availability)
+            free(self.nodes[i].value_sum)
+        memset(self.nodes, 0, self.node_capacity * sizeof(ISMCTSNodeRecord))
+        memset(self.buckets, 0, self.bucket_capacity * sizeof(int32_t))
+        self.node_count = 0
+        self.search_context = None
 
     def __dealloc__(self):
         cdef size_t i
@@ -219,8 +243,8 @@ cdef class ISMCTSTree:
         node.action_count = <uint16_t>n
         node.total_visits = 0
         node.actions = <uint64_t*>malloc(n * sizeof(uint64_t))
-        node.visits = <uint32_t*>malloc(n * sizeof(uint32_t))
-        node.availability = <uint32_t*>malloc(n * sizeof(uint32_t))
+        node.visits = <uint64_t*>malloc(n * sizeof(uint64_t))
+        node.availability = <uint64_t*>malloc(n * sizeof(uint64_t))
         node.value_sum = <double*>malloc(n * sizeof(double))
         if (
             node.actions == NULL
@@ -281,7 +305,7 @@ cdef class ISMCTSTree:
         cdef ISMCTSNodeRecord* node = &self.nodes[node_index]
         cdef int i, ix, chosen=-1, unvisited=0, visited_legal=0
         cdef int allowed=n
-        cdef double mean, bonus, score, best=-1.0e300
+        cdef double mean, bonus, score, allowance, best=-1.0e300
 
         for i in range(n):
             ix = self._find_action(node, legal[i])
@@ -304,10 +328,8 @@ cdef class ISMCTSTree:
         # one. Actions unavailable in this determinization do not consume the
         # node's legal-action allowance.
         if progressive_widening > 0.0:
-            allowed = <int>(
-                progressive_widening
-                * sqrt(<double>(node.total_visits + 1))
-            )
+            allowance = progressive_widening * sqrt(<double>(node.total_visits + 1))
+            allowed = n if allowance >= n else <int>allowance
             if allowed < 1:
                 allowed = 1
             if allowed > n:
@@ -421,6 +443,7 @@ def ismcts_search(
     int root_player,
     *,
     ISMCTSTree tree=None,
+    reuse_context=None,
     long iterations=20000,
     int rollout_depth=5,
     int tree_depth_limit=96,
@@ -446,15 +469,19 @@ def ismcts_search(
     cdef int i, best_ix=-1, second_ix=-1
     cdef int rollout_battle, action_battle
     cdef long iteration
-    cdef long best_visits=-1, second_visits=-1
-    cdef long root_total_visits_before=0
-    cdef long selected_action_visits_before=0
+    cdef uint64_t best_visits=0, second_visits=0
+    cdef uint64_t root_total_visits_before=0
+    cdef uint64_t selected_action_visits_before=0
     cdef size_t tree_nodes_before=0
-    cdef uint32_t root_prior_visits[MAX_ACTIONS]
+    cdef uint64_t root_prior_visits[MAX_ACTIONS]
     cdef long rollouts_stopped_terminal=0
     cdef long rollouts_stopped_battle_boundary=0
     cdef long rollouts_stopped_depth=0
     cdef long rollout_actions=0
+    cdef long tree_capacity_cutoffs=0
+    cdef size_t tree_nodes_discarded=0
+    cdef object search_context
+    cdef str tree_reset_reason="none"
     cdef double utility, node_utility, mean_value
     cdef double best_mean=-1.0e300, second_mean=-1.0e300
     cdef bint expanded, created, rollout_boundary, root_reused=False
@@ -470,21 +497,55 @@ def ismcts_search(
         raise ValueError(
             f"tree_depth_limit exceeds native maximum {MAX_ISMCTS_DEPTH}"
         )
-    if progressive_widening < 0.0:
+    if root_player not in (0, 1):
+        raise ValueError("root_player must be 0 or 1")
+    if not isfinite(exploration) or exploration < 0.0:
+        raise ValueError("exploration must be finite and non-negative")
+    if not isfinite(progressive_widening) or progressive_widening < 0.0:
         raise ValueError("progressive_widening must be non-negative")
-    if leaf_scale <= 0.0:
+    if not isfinite(rollout_epsilon) or not 0.0 <= rollout_epsilon <= 1.0:
+        raise ValueError("rollout_epsilon must be between 0 and 1")
+    if rollout_policy not in (0, 1, 2):
+        raise ValueError("rollout_policy must be 0, 1, or 2")
+    if not isfinite(leaf_scale) or leaf_scale <= 0.0:
         raise ValueError("leaf_scale must be positive")
 
     if tree is None:
         tree = ISMCTSTree(iterations)
-    tree_nodes_before = tree.node_count
     for i in range(MAX_ACTIONS):
         root_prior_visits[i] = 0
 
+    if not isinstance(root_states[0], FastState):
+        raise TypeError("ISMCTS belief samples must be FastState instances")
     sampled = <FastState>root_states[0]
-    if sampled.phase == PHASE_COMPLETE:
-        raise ValueError("ISMCTS cannot search a completed state")
     root_key = engine.information_hash_fast(sampled, root_player)
+    for candidate in root_states:
+        if not isinstance(candidate, FastState):
+            raise TypeError("ISMCTS belief samples must be FastState instances")
+        sampled = <FastState>candidate
+        if sampled.phase == PHASE_COMPLETE:
+            raise ValueError("ISMCTS cannot search a completed state")
+        if sampled.active_player != root_player:
+            raise ValueError("ISMCTS root_player must be the acting player")
+        key = engine.information_hash_fast(sampled, root_player)
+        if key.a != root_key.a or key.b != root_key.b:
+            raise ValueError("ISMCTS belief samples must share a root information set")
+
+    # Values depend on the evaluator/search horizon and the observer's belief
+    # evidence, not just the node's information hash. The belief layer owns
+    # reuse_context; native callers omitting it must manage belief changes.
+    search_context = (engine, evaluator, rollout_depth, tree_depth_limit,
+                      rollout_epsilon, rollout_policy, leaf_scale, reuse_context)
+    if tree.search_context is not None and tree.search_context != search_context:
+        tree_nodes_discarded = tree.node_count
+        tree.clear()
+        tree_reset_reason = "context_changed"
+    if tree.node_count >= tree.max_nodes and tree.find(root_key) < 0:
+        tree_nodes_discarded += tree.node_count
+        tree.clear()
+        tree_reset_reason = "capacity_reroot"
+    tree.search_context = search_context
+    tree_nodes_before = tree.node_count
     prior_root_index = tree.find(root_key)
     if prior_root_index >= 0:
         root_reused = True
@@ -510,6 +571,11 @@ def ismcts_search(
             # the previous boundary is no longer the rollout leaf.
             rollout_boundary = False
             key = engine.information_hash_fast(state, actor)
+            # A persistent arena must not grow with game length. Existing
+            # information sets still learn at capacity; unseen leaves rollout.
+            if tree.node_count >= tree.max_nodes and tree.find(key) < 0:
+                tree_capacity_cutoffs += 1
+                break
             node_index = tree.get_or_create(
                 key,
                 actor,
@@ -627,7 +693,8 @@ def ismcts_search(
             }
         )
         if (
-            root_node.visits[i] > best_visits
+            best_ix < 0
+            or root_node.visits[i] > best_visits
             or (
                 root_node.visits[i] == best_visits
                 and mean_value > best_mean
@@ -640,7 +707,8 @@ def ismcts_search(
             best_visits = root_node.visits[i]
             best_mean = mean_value
         elif (
-            root_node.visits[i] > second_visits
+            second_ix < 0
+            or root_node.visits[i] > second_visits
             or (
                 root_node.visits[i] == second_visits
                 and mean_value > second_mean
@@ -670,6 +738,10 @@ def ismcts_search(
         "iterations": iterations,
         "tree_nodes": tree.node_count,
         "tree_nodes_before": tree_nodes_before,
+        "tree_nodes_discarded": tree_nodes_discarded,
+        "tree_reset_reason": tree_reset_reason,
+        "tree_max_nodes": tree.max_nodes,
+        "tree_capacity_cutoffs": tree_capacity_cutoffs,
         "tree_nodes_added": tree.node_count - tree_nodes_before,
         "max_tree_depth": max_tree_depth_seen,
         "belief_states": len(root_states),

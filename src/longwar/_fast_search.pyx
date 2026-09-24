@@ -8,11 +8,11 @@ from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
 import json
 
-DEF MAX_CARDS = 64
+DEF MAX_CARDS = 127
 DEF MAX_DECK = 64
 DEF SLOT_COUNT = 12
 DEF SCHEME_COUNT = 6
-DEF MAX_ACTIONS = 256
+DEF MAX_ACTIONS = 1024
 DEF NONE = -1
 
 cdef int PHASE_BATTLE = 0
@@ -95,6 +95,15 @@ cdef inline int front_from_slot(int slot) noexcept:
 
 cdef inline int rank_from_slot(int slot) noexcept:
     return local_slot(slot) & 1
+
+cdef inline int _append_action(uint64_t* actions, int n, uint64_t action) except -1:
+    # Reserve one entry for Pass; guard before every write, including cards
+    # producing multiple target combinations.
+    if n >= MAX_ACTIONS - 1:
+        raise RuntimeError("Native legal-action capacity exceeded")
+    actions[n] = action
+    return n + 1
+
 
 cdef inline uint64_t encode_action(int kind, int card=-1, int pos=-1, int dest=-1, int player=0) noexcept:
     return (
@@ -551,7 +560,16 @@ cdef class FastEngine:
         self.completion_command_refund = int(engine.completion_command_refund)
         self.public_stratagems = bool(engine.public_stratagems)
         if self.n_cards > MAX_CARDS:
-            raise ValueError("Fast MCCFR supports at most 64 card identities")
+            raise ValueError(f"The native engine supports at most {MAX_CARDS} card identities")
+        if engine.deck_size > MAX_DECK:
+            raise ValueError(f"The native engine supports decks of at most {MAX_DECK} cards")
+        if max(engine.starting_command, self.command_cap, self.battle_command_gain) > 32767:
+            raise ValueError("Command settings exceed the native signed 16-bit capacity")
+        if not self.public_stratagems and any(
+            card.get("rules", {}).get("stratagem", {}).get("trigger", {}).get("event") == "played"
+            for card in engine.cards.values()
+        ):
+            raise ValueError("Stratagem trigger 'played' requires public_stratagems")
         self.id_to_code = {card_id: i for i, card_id in enumerate(self.card_ids)}
 
         type_map = {"subject": CARD_SUBJECT, "link": CARD_LINK, "name": CARD_NAME, "plot": CARD_PLOT, "stratagem": CARD_STRATAGEM}
@@ -657,6 +675,8 @@ cdef class FastEngine:
         phase_map = {"battle": PHASE_BATTLE, "choose_first": PHASE_CHOOSE, "complete": PHASE_COMPLETE}
 
         for p in range(2):
+            if max(len(state.players[p].deck), len(state.players[p].hand), len(state.players[p].discard)) > MAX_DECK:
+                raise ValueError(f"Player {p}: a card zone exceeds native capacity {MAX_DECK}")
             fast.deck_len[p] = len(state.players[p].deck)
             for i, card_id in enumerate(state.players[p].deck):
                 code = self.id_to_code[card_id]
@@ -1111,14 +1131,9 @@ cdef class FastEngine:
         if state.cleanup_pending:
             for card in range(self.n_cards):
                 if state.hand[player][card] > 0:
-                    actions[n] = encode_action(
-                        TYPE_DISCARD,
-                        card,
-                        -1,
-                        -1,
-                        player,
-                    )
-                    n += 1
+                    n = _append_action(actions, n, encode_action(
+                        TYPE_DISCARD, card, -1, -1, player,
+                    ))
             return n
 
         player = state.active_player
@@ -1130,13 +1145,13 @@ cdef class FastEngine:
             and (not state.draw_used[player])
             and self.can_draw_fast(state, player)
         ):
-            actions[n] = encode_action(TYPE_DRAW, -1, -1, -1, player); n += 1
+            n = _append_action(actions, n, encode_action(TYPE_DRAW, -1, -1, -1, player))
         elif (
             self.command_enabled
             and self.paid_draw_enabled
             and self.can_draw_fast(state, player)
         ):
-            actions[n] = encode_action(TYPE_DRAW, -1, -1, -1, player); n += 1
+            n = _append_action(actions, n, encode_action(TYPE_DRAW, -1, -1, -1, player))
 
         for card in range(self.n_cards):
             if state.hand[player][card] == 0:
@@ -1147,7 +1162,7 @@ cdef class FastEngine:
                 and self.cycle_enabled
                 and self.can_draw_fast(state, player)
             ):
-                actions[n] = encode_action(TYPE_CYCLE, card, -1, -1, player); n += 1
+                n = _append_action(actions, n, encode_action(TYPE_CYCLE, card, -1, -1, player))
 
             if self.card_type[card] == CARD_SUBJECT:
                 req = self.placement_rank[card]
@@ -1158,44 +1173,44 @@ cdef class FastEngine:
                     rank = local & 1
                     if req >= 0 and req != rank:
                         continue
-                    actions[n] = encode_action(TYPE_SUBJECT, card, slot, -1, player); n += 1
+                    n = _append_action(actions, n, encode_action(TYPE_SUBJECT, card, slot, -1, player))
 
             elif self.card_type[card] == CARD_LINK:
                 for local in range(6):
                     slot = player * 6 + local
                     if state.link[slot] < 0:
-                        actions[n] = encode_action(TYPE_LINK, card, slot, -1, player); n += 1
+                        n = _append_action(actions, n, encode_action(TYPE_LINK, card, slot, -1, player))
 
             elif self.card_type[card] == CARD_NAME:
                 for local in range(6):
                     slot = player * 6 + local
                     if state.name[slot] >= 0:
                         continue
-                    actions[n] = encode_action(TYPE_NAME, card, slot, -1, player); n += 1
+                    n = _append_action(actions, n, encode_action(TYPE_NAME, card, slot, -1, player))
                     if self.name_effect[card] == NAME_MOVE_ADJACENT and state.subject[slot] >= 0:
                         front = local >> 1
                         rank = local & 1
                         if front > 0:
                             dest = slot_index(player, front - 1, rank)
                             if state.subject[dest] < 0 and state.link[dest] < 0 and state.name[dest] < 0:
-                                actions[n] = encode_action(TYPE_NAME, card, slot, dest, player); n += 1
+                                n = _append_action(actions, n, encode_action(TYPE_NAME, card, slot, dest, player))
                         if front < 2:
                             dest = slot_index(player, front + 1, rank)
                             if state.subject[dest] < 0 and state.link[dest] < 0 and state.name[dest] < 0:
-                                actions[n] = encode_action(TYPE_NAME, card, slot, dest, player); n += 1
+                                n = _append_action(actions, n, encode_action(TYPE_NAME, card, slot, dest, player))
 
             elif self.card_type[card] == CARD_PLOT:
                 if self.veiled[card]:
                     for front in range(3):
                         if state.scheme[player * 3 + front] < 0:
-                            actions[n] = encode_action(TYPE_SCHEME, card, front, -1, player); n += 1
+                            n = _append_action(actions, n, encode_action(TYPE_SCHEME, card, front, -1, player))
                 elif not self.story_locked(state, player):
                     effect = self.plot_effect[card]
                     if effect == PLOT_DISCREDIT or effect == PLOT_RETURN_NAME:
                         for local in range(6):
                             slot = opponent * 6 + local
                             if state.subject[slot] >= 0 and not self.subject_protected(state, slot):
-                                actions[n] = encode_action(TYPE_PLOT, card, slot, -1, opponent); n += 1
+                                n = _append_action(actions, n, encode_action(TYPE_PLOT, card, slot, -1, opponent))
                     elif effect == PLOT_MOVE_SUBJECT:
                         for source in range(player * 6, player * 6 + 6):
                             if state.subject[source] < 0:
@@ -1211,18 +1226,13 @@ cdef class FastEngine:
                                     continue
                                 if req >= 0 and req != rank_from_slot(dest):
                                     continue
-                                actions[n] = encode_action(TYPE_PLOT, card, source, dest, player); n += 1
+                                n = _append_action(actions, n, encode_action(TYPE_PLOT, card, source, dest, player))
                     elif effect == PLOT_NONE:
-                        actions[n] = encode_action(TYPE_PLOT, card, -1, -1, player); n += 1
+                        n = _append_action(actions, n, encode_action(TYPE_PLOT, card, -1, -1, player))
 
             elif self.card_type[card] == CARD_STRATAGEM:
                 if not state.stratagem_used[player] and state.stratagem[player] < 0:
-                    actions[n] = encode_action(TYPE_STRATAGEM, card, -1, -1, player); n += 1
-
-            if n >= MAX_ACTIONS - 1:
-                raise RuntimeError(
-                    f"Fast search action buffer exceeded: {n} >= {MAX_ACTIONS - 1}"
-                )
+                    n = _append_action(actions, n, encode_action(TYPE_STRATAGEM, card, -1, -1, player))
 
         if self.command_enabled:
             available = state.command[player]
@@ -2188,7 +2198,7 @@ cdef class FastEngine:
         return (h.a, h.b)
 
     cdef bytes information_key_fast(self, FastState state, int player):
-        cdef unsigned char buf[512]
+        cdef unsigned char buf[3 * MAX_CARDS + 2 * MAX_DECK + 128]
         cdef int n = self._information_state_encode(
             state,
             player,

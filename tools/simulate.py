@@ -34,16 +34,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--rules-profile",
-        choices=(
-            "custom",
-            "standard",
-            "force-automatic",
-            "force-paid",
-            "force-paid-free",
-            "force-auto-discard9",
-            "force-auto-discard7",
-            "force-auto-cap10",
-        ),
+        choices=("custom", *GameRules.profile_names()),
         default="custom",
         help=(
             "Named rules profile. Use custom to configure individual rule "
@@ -221,20 +212,8 @@ def main() -> None:
     args = parser.parse_args()
 
     card_data = load_card_file(resolve(args.card_file))
-    if args.rules_profile == "standard":
-        rules = GameRules.standard()
-    elif args.rules_profile == "force-automatic":
-        rules = GameRules.force_candidate("automatic")
-    elif args.rules_profile == "force-paid":
-        rules = GameRules.force_candidate("paid")
-    elif args.rules_profile == "force-paid-free":
-        rules = GameRules.force_experiment("paid-free")
-    elif args.rules_profile == "force-auto-discard9":
-        rules = GameRules.force_experiment("auto-discard9")
-    elif args.rules_profile == "force-auto-discard7":
-        rules = GameRules.force_experiment("auto-discard7")
-    elif args.rules_profile == "force-auto-cap10":
-        rules = GameRules.force_experiment("auto-cap10")
+    if args.rules_profile != "custom":
+        rules = GameRules.from_profile(args.rules_profile)
     else:
         rules = GameRules(
             opening_hand_size=args.hand_size,

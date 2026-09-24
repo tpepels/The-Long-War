@@ -7,6 +7,8 @@ import shutil
 from pathlib import Path
 
 import markdown
+from build_browser_runtime import ensure_browser_runtime
+from longwar.cards import load_card_file
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -73,9 +75,12 @@ def group_rulebook_sections(rendered: str) -> str:
 
 
 def main() -> None:
+    card_data = load_card_file(CARDS)
+    runtime = ensure_browser_runtime()
     if DIST.exists():
         shutil.rmtree(DIST)
     shutil.copytree(WEB, DIST)
+    shutil.copytree(runtime, DIST / "runtime")
 
     data_dir = DIST / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -103,7 +108,6 @@ def main() -> None:
     (DIST / "rulebook.template.html").unlink(missing_ok=True)
 
     version = version_static_assets()
-    card_data = json.loads(CARDS.read_text(encoding="utf-8"))
     balance = "with balance data" if BALANCE_HEALTH.exists() else "without balance data"
     print(
         f"Built Pages site with {len(card_data['cards'])} cards "

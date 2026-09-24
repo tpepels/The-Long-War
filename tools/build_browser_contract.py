@@ -22,6 +22,9 @@ from longwar.game import (
     SetStratagem,
 )
 from longwar.game.actions import action_key
+from longwar.game.model import GameState, PlayerState, Slot, SchemeState, StratagemState
+from longwar.rules import GameRules
+from longwar.web_api import PlaySession
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -241,6 +244,57 @@ def prepared_destination_scenario(
     }
 
 
+def check_engine_contract_json(cards_json: str, contract_json: str) -> int:
+    """Replay native fixtures in the compiled browser engine, including targets."""
+    engine = GameEngine(json.loads(cards_json))
+    contract = json.loads(contract_json)
+    for scenario in contract["scenarios"]:
+        values = dict(scenario["initial"])
+        values["players"] = [PlayerState(**player) for player in values["players"]]
+        values["board"] = [[[Slot(**slot) for slot in front] for front in side] for side in values["board"]]
+        values["schemes"] = [[None if scheme is None else SchemeState(**scheme) for scheme in side] for side in values["schemes"]]
+        values["stratagems"] = [None if item is None else StratagemState(**item) for item in values["stratagems"]]
+        values["phase"] = Phase(values["phase"])
+        state = GameState(**values)
+        if "legal" in scenario:
+            assert sorted(action_key(action) for action in engine.legal_actions(state)) == scenario["legal"], scenario["name"]
+            assert front_strengths(engine, state) == scenario["front_strengths"], scenario["name"]
+        for step in scenario.get("steps", []):
+            legal = {action_key(action): action for action in engine.legal_actions(state)}
+            assert sorted(legal) == step["legal"], scenario["name"]
+            engine.apply(state, legal[step["action"]])
+            assert project_state(state) == step["after"], scenario["name"]
+            assert front_strengths(engine, state) == step["front_strengths"], scenario["name"]
+    return len(contract["scenarios"])
+
+
+def session_trace(cards, deck, mode: str, seed: int) -> dict[str, object]:
+    session = PlaySession(json.dumps(cards), json.dumps(deck), mode, seed, paced_ai=True)
+    steps = []
+
+    def record(method, args, snapshot):
+        steps.append({"method": method, "args": args, "snapshot": snapshot})
+
+    record("snapshot", [None if mode == "hotseat" else 0], session.snapshot(None if mode == "hotseat" else 0))
+    record("view", [0], session.snapshot(0))
+    record("mulligan", [[0, 1], 0], session.mulligan([0, 1], 0))
+    if mode == "hotseat":
+        record("view", [1], session.snapshot(1))
+        record("mulligan", [[], 1], session.mulligan([], 1))
+    for _ in range(150):
+        if session.state.phase is Phase.COMPLETE:
+            break
+        player = session.state.active_player
+        if player not in session.human_players:
+            record("aiStep", [], session.ai_step())
+        else:
+            record("view", [player], session.snapshot(player))
+            key = action_key(choose_contract_action(session.engine, session.state))
+            record("act", [key, player], session.act(key, player))
+    assert session.state.phase is Phase.COMPLETE, "Browser session fixture must cover a complete game"
+    return {"mode": mode, "seed": seed, "steps": steps}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -262,6 +316,8 @@ def main() -> None:
             trace_scenario(engine, deck),
             prepared_destination_scenario(engine, deck),
         ],
+        "sessions": [session_trace(cards, deck, mode, seed)
+                     for mode, seed in (("hotseat", 1701), ("hotseat", 17), ("heuristic", 1701))],
     }
 
     output = args.output

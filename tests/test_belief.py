@@ -181,7 +181,7 @@ def test_card_pool_prior_always_samples_exactly_one_hero() -> None:
     assert len(sampled_heroes) > 1
 
 
-def test_belief_sampler_resamples_hidden_stratagem_identity() -> None:
+def test_belief_sampler_resamples_hidden_stratagem_identity_from_zone() -> None:
     engine, _, state = setup()
     opponent = 1
 
@@ -256,3 +256,41 @@ def test_card_pool_prior_defaults_to_engine_deck_size() -> None:
     assert prior.deck_size == 34
     assert len(sampled) == 34
     engine.validate_deck(sampled)
+
+
+def test_hypothesis_prior_conditions_on_hidden_card_type_evidence() -> None:
+    engine, reference, state = setup()
+    stratagems = {card for card in reference if engine.cards[card]["type"] == "stratagem"}
+    without_stratagems = [card for card in reference if card not in stratagems]
+    without_stratagems.extend(["the-fifty-men", "followed", "namar"])
+    engine.validate_deck(without_stratagems)
+    prior = HypothesisDeckPrior(engine, [
+        DeckHypothesis(tuple(without_stratagems), weight=1000, label="impossible"),
+        DeckHypothesis(tuple(reference), weight=1, label="compatible"),
+    ])
+    player = state.players[1]
+    for zone in (player.hand, player.deck):
+        if "the-storm-broke" in zone:
+            zone.remove("the-storm-broke")
+            break
+    state.stratagems[1] = StratagemState("the-storm-broke")
+    state.stratagem_used[1] = True
+    sampler = BeliefSampler(engine, priors=(prior, prior))
+    for seed in range(8):
+        sampled = sampler.sample(state, 0, random.Random(seed))
+        assert engine.cards[sampled.stratagem(1).card_id]["type"] == "stratagem"
+        assert information_set_id(sampled, 0) == information_set_id(state, 0)
+
+
+def test_card_pool_prior_reserves_observed_hidden_card_slots() -> None:
+    engine, _, _ = setup()
+    schemes = frozenset(card for card, data in engine.cards.items() if data.get("veiled"))
+    stratagems = frozenset(card for card, data in engine.cards.items() if data["type"] == "stratagem")
+    prior = CardPoolDeckPrior(engine, card_weights={card: 0.001 for card in schemes | stratagems})
+    for seed in range(12):
+        sampled = prior.sample_deck(
+            Counter(), random.Random(seed), hidden_requirements=((schemes, 3), (stratagems, 1)),
+        )
+        assert sum(card in schemes for card in sampled) >= 3
+        assert sum(card in stratagems for card in sampled) >= 1
+        engine.validate_deck(sampled)

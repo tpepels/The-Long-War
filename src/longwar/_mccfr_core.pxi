@@ -268,7 +268,7 @@ cdef double _packed_traverse(
     node.accumulate_into(
         &probabilities[0],
         n,
-        reach0 if actor == 0 else reach1,
+        1.0,  # Own reach is already represented by opponent sampling.
     )
     threshold = rng.random()
     sampled_index = n - 1
@@ -449,13 +449,10 @@ cdef double _fast_external_sampling_traverse(
         return node_utility
 
     node.average_visits += 1
-    if actor == 0:
-        probability = reach0
-    else:
-        probability = reach1
+    # Own reach cancels the probability of sampling this opponent node.
     for i in range(n):
         pykey = actions[i]
-        node.strategy_sum[pykey] += probability * probs[i]
+        node.strategy_sum[pykey] += probs[i]
 
     threshold = rng.random()
     cumulative = 0.0

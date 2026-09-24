@@ -23,6 +23,7 @@ class SimulationReport:
     mean_turns: float
     max_turns: int
     telemetry: dict[str, Any]
+    game_outcomes: list[dict[str, int]]
 
     @property
     def win_rates(self) -> tuple[float, float]:
@@ -136,6 +137,7 @@ def simulate_games(
     first_player_wins = 0
     total_turns = 0
     maximum_turns = 0
+    game_outcomes: list[dict[str, int]] = []
     telemetry = Telemetry()
     human_flow = HumanFlowDiagnostics()
     priors: tuple[DeckPrior, DeckPrior] = (
@@ -256,6 +258,11 @@ def simulate_games(
             raise RuntimeError("Completed game has no winner")
 
         telemetry.finish_game(winner)
+        game_outcomes.append({
+            "seed": seed + game_index,
+            "first_player": first_player,
+            "winner": winner,
+        })
         wins[winner] += 1
         if winner == first_player:
             first_player_wins += 1
@@ -274,4 +281,5 @@ def simulate_games(
         mean_turns=total_turns / games,
         max_turns=maximum_turns,
         telemetry=telemetry_summary,
+        game_outcomes=game_outcomes,
     )

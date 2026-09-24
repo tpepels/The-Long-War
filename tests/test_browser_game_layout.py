@@ -50,7 +50,7 @@ def test_game_layout_checker_covers_standard_desktop_sizes() -> None:
     assert "shell-outside-viewport" in checker
 
 
-def test_live_player_uses_native_browser_runtime_not_pyodide() -> None:
+def test_live_player_loads_canonical_engine_without_a_javascript_rules_copy() -> None:
     play = text("web/play.js")
     engine = text("web/browser-engine.mjs")
     build = text("tools/build_pages.py")
@@ -58,8 +58,11 @@ def test_live_player_uses_native_browser_runtime_not_pyodide() -> None:
     assert 'BrowserSession' in play
     assert 'browser-engine.mjs' in play
     assert 'new Worker(' not in play
-    assert 'Pyodide' not in play
-    assert 'Pyodide' not in engine
+    assert 'initializeBrowserEngine()' in play
+    assert 'longwar.web_api' in engine
+    assert 'loadPyodide' in engine
+    assert 'class BrowserEngine' not in engine
+    assert 'class LightweightAgent' not in engine
     assert not (ROOT / "web" / "play-worker.js").exists()
     assert "python-bundle.json" not in build
     assert "version_static_assets" in build
@@ -126,7 +129,7 @@ def test_first_playtest_ui_exposes_draw_paced_actions_and_term_help() -> None:
     assert 'class="game-term"' in play
     assert "mulligan-confirm" in play
     assert "aiStep()" in engine
-    assert "needs_ai:" in engine
+    assert '"needs_ai":' in text("src/longwar/web_api.py")
     assert ".action-banner" in css
     assert ".term-hint" in css
     assert ".draw-button" in css
@@ -134,4 +137,4 @@ def test_first_playtest_ui_exposes_draw_paced_actions_and_term_help() -> None:
     assert "opponent action was not shown before returning control" in smoke
     assert "openingAnnouncementShown" in play
     assert "+1 opening card" in play
-    assert "opening_player:" in engine
+    assert '"opening_player":' in text("src/longwar/web_api.py")

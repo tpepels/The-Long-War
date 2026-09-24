@@ -1,4 +1,19 @@
-.PHONY: install dev-setup native-build test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check ismcts-validate alpha-bench mcts-bench search-bench strength-bench experiment-suite cardflow-quick cardflow-run cardflow-max
+.PHONY: install dev-setup native-build browser-build verify verify-cards verify-algorithms balance-quick balance-deep test test-fast test-algorithm test-integration check check-mccfr check-native-mccfr benchmark-mccfr mccfr-smoke verify-mccfr simulate-smoke pages browser-parity search-check ismcts-validate alpha-bench mcts-bench search-bench strength-bench experiment-suite cardflow-quick cardflow-run cardflow-max
+
+# Supported daily workflow. Keep native builds explicit after .pyx/.pxi changes.
+verify: verify-cards test-fast browser-parity
+
+verify-cards:
+	python tools/run_experiments.py validate-data
+
+verify-algorithms: test-algorithm
+	python tools/run_experiments.py validate
+
+balance-quick:
+	python tools/run_experiments.py balance --preset quick
+
+balance-deep:
+	python tools/run_experiments.py balance --preset deep
 
 install:
 	python -m pip install -e '.[dev]'
@@ -43,8 +58,12 @@ pages:
 	python tools/build_pages.py
 
 browser-parity:
+	python tools/build_pages.py
 	python tools/build_browser_contract.py --output artifacts/browser-engine-contract.json
 	node tools/check_browser_engine.mjs --contract artifacts/browser-engine-contract.json
+
+browser-build:
+	python tools/build_browser_runtime.py
 
 
 # Local development and native-search workflow.

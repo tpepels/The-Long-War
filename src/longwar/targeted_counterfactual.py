@@ -6,7 +6,6 @@ from typing import Any, Iterable
 
 from .agents.online_mccfr_agent import OnlineMCCFRAgent
 from .belief import CardPoolDeckPrior, DeckHypothesis, HypothesisDeckPrior
-from .cards import card_index
 from .counterfactual import (
     EffectEstimate,
     ExperimentSample,
@@ -40,6 +39,7 @@ class TargetCandidate:
     broad_ci95: tuple[float, float]
     broad_level: str
     broad_excludes_zero: bool
+    sample_generation: dict[str, Any] | None = None
 
 
 def _effect_field(kind: str) -> str:
@@ -62,6 +62,7 @@ def _candidate_from_row(kind: str, row: dict[str, Any]) -> TargetCandidate:
         broad_ci95=(float(ci[0]), float(ci[1])),
         broad_level=str(row.get("level", "green")),
         broad_excludes_zero=bool(row.get("confidence_excludes_zero", False)),
+        sample_generation=row.get("sample_generation"),
     )
 
 
@@ -130,6 +131,7 @@ def _subset_samples(
     *,
     contexts: int,
     games_per_context: int,
+    sample_generation: dict[str, Any] | None = None,
 ) -> list[ExperimentSample]:
     broad_contexts = int(broad_report["contexts"])
     broad_games = int(broad_report["games_per_context"])
@@ -141,11 +143,18 @@ def _subset_samples(
             "contexts/games so the deck contexts remain directly comparable"
         )
 
+    generation = sample_generation or broad_report.get("sample_generation")
+    if generation is None:
+        raise ValueError(
+            "Broad report lacks sample-generation metadata; rerun the broad "
+            "experiment before targeted validation to preserve exact pairing"
+        )
     all_samples = build_samples(
         card_data,
         contexts=broad_contexts,
         games_per_context=broad_games,
-        seed=int(broad_report["seed"]),
+        seed=int(generation["seed"]),
+        required_cards=generation["required_cards"],
     )
     return [
         sample
@@ -193,11 +202,12 @@ def _play_online_outcome(
     else:
         deck_a, deck_b = list(sample.opponent_deck), focal_deck
 
-    state = engine.new_game(
+    preview = engine.new_game(
         deck_a,
         deck_b,
         seed=sample.game_seed,
         first_player=0,
+        opening_bonus=False,
     )
 
     # The non-focal player never gets to know which factorial condition is
@@ -230,6 +240,18 @@ def _play_online_outcome(
             deterministic=True,
         ),
     ]
+
+    mulligan_indices = tuple(
+        agent.choose_mulligan(engine, preview.players[player].hand)
+        for player, agent in enumerate(agents)
+    )
+    state = engine.new_game(
+        deck_a,
+        deck_b,
+        seed=sample.game_seed,
+        first_player=0,
+        mulligan_indices=mulligan_indices,
+    )
 
     action_count = 0
     while state.phase is not Phase.COMPLETE:
@@ -332,7 +354,12 @@ def run_targeted_online_validation(
     bootstrap_resamples: int = 1000,
     force_top: bool = False,
 ) -> dict[str, Any]:
-    canonical = card_index(card_data)
+    if bootstrap_resamples <= 0:
+        raise ValueError("bootstrap_resamples must be positive")
+    if contexts <= 0 or games_per_context <= 0:
+        raise ValueError("contexts and games_per_context must be positive")
+    if contexts > int(broad_report["contexts"]) or games_per_context > int(broad_report["games_per_context"]):
+        raise ValueError("Targeted validation must use a subset of the broad experiment")
     selected = select_targets(
         broad_report,
         max_cards=max_cards,
@@ -341,18 +368,19 @@ def run_targeted_online_validation(
         minimum_abs_effect=minimum_abs_effect,
         force_top=force_top,
     )
-    samples = _subset_samples(
-        card_data,
-        broad_report,
-        contexts=contexts,
-        games_per_context=games_per_context,
-    )
     engine = GameEngine(build_experiment_card_data(card_data))
 
     results: list[dict[str, Any]] = []
     total_matches = 0
 
     for target_index, candidate in enumerate(selected):
+        samples = _subset_samples(
+            card_data,
+            broad_report,
+            contexts=contexts,
+            games_per_context=games_per_context,
+            sample_generation=candidate.sample_generation,
+        )
         conditions = _powerset(candidate.cards)
         outcomes: dict[frozenset[str], list[int]] = {
             condition: [] for condition in conditions
@@ -378,12 +406,14 @@ def run_targeted_online_validation(
             values,
             seed=int(broad_report["seed"]) + 70_000 + target_index,
             bootstrap_resamples=bootstrap_resamples,
+            contrast_bound=float(2 ** (len(candidate.cards) - 1)),
         )
         severity = _severity(effect)
         results.append({
             "kind": candidate.kind,
             "cards": list(candidate.cards),
             "title": candidate.title,
+            "sample_generation": candidate.sample_generation or broad_report["sample_generation"],
             "broad": {
                 "effect": candidate.broad_effect,
                 "ci95": list(candidate.broad_ci95),
@@ -395,6 +425,7 @@ def run_targeted_online_validation(
             "online": {
                 "effect": effect.mean,
                 "ci95": list(effect.ci95),
+                "ci_method": effect.ci_method,
                 "standard_error": effect.standard_error,
                 "samples": effect.samples,
                 **severity,
@@ -428,7 +459,8 @@ def run_targeted_online_validation(
         },
         "contexts": contexts,
         "games_per_context": games_per_context,
-        "samples": len(samples),
+        "samples": contexts * games_per_context,
+        "bootstrap_resamples": bootstrap_resamples,
         "online_iterations": online_iterations,
         "online_depth": online_depth,
         "total_matches": total_matches,
@@ -457,7 +489,9 @@ def run_targeted_online_validation(
             "interpretation": (
                 "Confirmed means the online-MCCFR interval excludes zero in the same "
                 "direction as the broad heuristic signal. Reversed means it excludes "
-                "zero in the opposite direction."
+                "zero in the opposite direction. Intervals are unadjusted for target "
+                "selection and multiple comparisons; reused contexts are not an "
+                "independent replication."
             ),
         },
     }

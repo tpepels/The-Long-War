@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import asdict
 
 import pytest
 from pathlib import Path
@@ -26,3 +27,8 @@ def test_random_games_finish() -> None:
     assert sum(report.wins) == 25
     assert 0 <= report.first_player_wins <= 25
     assert report.max_turns < 500
+    assert [outcome["seed"] for outcome in report.game_outcomes] == list(range(99, 124))
+    assert [outcome["first_player"] for outcome in report.game_outcomes] == [index % 2 for index in range(25)]
+    assert tuple(sum(outcome["winner"] == player for outcome in report.game_outcomes) for player in range(2)) == report.wins
+    assert sum(outcome["winner"] == outcome["first_player"] for outcome in report.game_outcomes) == report.first_player_wins
+    assert json.loads(json.dumps(asdict(report)))["game_outcomes"] == report.game_outcomes

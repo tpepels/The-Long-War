@@ -10,7 +10,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+from .fingerprint import artifact_directory, experiment_identity
+
+ROOT = Path(__file__).resolve().parents[2]
 
 DECKS = ("reference", "avaros", "mara", "sera")
 VARIANT_PROFILES = {
@@ -74,13 +76,7 @@ class Run:
     output: Path
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Run the card-flow experiment locally with ISMCTS or the "
-            "strategic alpha-beta reference agent."
-        )
-    )
+def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--preset",
         choices=tuple(PRESETS),
@@ -117,9 +113,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ismcts-belief-samples", type=int)
     parser.add_argument("--ismcts-iterations", type=int)
     parser.add_argument("--ismcts-rollout-depth", type=int)
-    parser.add_argument("--ismcts-exploration", type=float, default=2 ** 0.5)
+    parser.add_argument("--ismcts-exploration", "--exploration", type=float, default=2 ** 0.5)
     parser.add_argument(
-        "--ismcts-progressive-widening",
+        "--ismcts-progressive-widening", "--progressive-widening",
         type=float,
         default=0.0,
     )
@@ -155,7 +151,6 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print commands without executing them.",
     )
-    return parser.parse_args()
 
 
 def selected_runs(args: argparse.Namespace) -> list[Run]:
@@ -574,15 +569,8 @@ def write_summary(
     print(markdown)
 
 
-def main() -> None:
-    args = parse_args()
+def run(args: argparse.Namespace) -> None:
     preset = effective_preset(args)
-    runs = selected_runs(args)
-    output_dir = resolve(
-        args.output_dir
-        if args.output_dir is not None
-        else Path("artifacts") / "cardflow" / args.preset
-    )
 
     ismcts_settings = None
     if args.agent == "ismcts":
@@ -590,8 +578,8 @@ def main() -> None:
             args.preset
         )
         ismcts_settings = (
-            args.ismcts_belief_samples or default_beliefs,
-            args.ismcts_iterations or default_iterations,
+            args.ismcts_belief_samples if args.ismcts_belief_samples is not None else default_beliefs,
+            args.ismcts_iterations if args.ismcts_iterations is not None else default_iterations,
             (
                 args.ismcts_rollout_depth
                 if args.ismcts_rollout_depth is not None
@@ -599,6 +587,8 @@ def main() -> None:
             ),
         )
         beliefs, iterations, rollout = ismcts_settings
+        if min(beliefs, iterations) <= 0 or rollout < 0:
+            raise SystemExit("ISMCTS beliefs/iterations must be positive and rollout depth non-negative")
         print(
             f"Preset {args.preset}: games={preset.games}, "
             f"ISMCTS beliefs={beliefs}, iterations={iterations:,}, "
@@ -610,6 +600,22 @@ def main() -> None:
             f"beliefs={preset.belief_samples}, depth={preset.depth}, "
             f"width={preset.width}, nodes={preset.node_budget:,}"
         )
+    config = {key: value for key, value in vars(args).items()
+              if key not in {"output_dir", "jobs", "dry_run", "command"}}
+    identity = experiment_identity(config)
+    if args.output_dir is None:
+        args.output_dir = artifact_directory(
+            ROOT / "artifacts" / "cardflow" / args.preset, identity,
+            write=not args.dry_run,
+        )
+    output_dir = resolve(args.output_dir)
+    if not args.dry_run:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        manifest = output_dir / "config.json"
+        if manifest.exists() and json.loads(manifest.read_text()) != identity:
+            raise SystemExit("Output directory belongs to a different experiment; choose --output-dir")
+        manifest.write_text(json.dumps(identity, indent=2, sort_keys=True) + "\n")
+    runs = selected_runs(args)
     print(
         f"Parallel jobs: {min(args.jobs, len(runs))} | "
         f"agent={args.agent} | backend={args.backend}"
@@ -706,6 +712,3 @@ def main() -> None:
     print(f"Raw results: {output_dir}")
     print(f"Summary: {output_dir / 'summary.md'}")
 
-
-if __name__ == "__main__":
-    main()

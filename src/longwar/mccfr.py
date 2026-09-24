@@ -6,32 +6,16 @@ import math
 import random
 from collections import Counter
 from dataclasses import dataclass
-from functools import lru_cache
-from itertools import groupby
 from typing import Any, Callable
 
 from .agents.heuristic_agent import HeuristicAgent
-from .game.actions import (
-    Action,
-    action_key as _canonical_action_key,
-    BoardTarget,
-    ChooseFirst,
-    Draw,
-    Pass,
-    PlayLink,
-    PlayName,
-    PlayPlot,
-    PlayScheme,
-    PlaySubject,
-    SetStratagem,
-)
+from .game.actions import Action, action_key
 from .game.engine import GameEngine, all_positions
-from .game.model import Front, GameState, Phase, Position, Rank
+from .game.model import Front, GameState, Phase
 from .mccfr_core import (
     BACKEND,
     CFRNode,
     external_sampling_traverse,
-    longwar_external_sampling_traverse,
 )
 
 try:
@@ -54,19 +38,6 @@ except ImportError:
 
 def _counter_view(cards: list[str]) -> list[list[Any]]:
     return [[card_id, count] for card_id, count in sorted(Counter(cards).items())]
-
-
-def _position_view(position: Position) -> list[Any]:
-    return [int(position.front), position.rank.value]
-
-
-def _target_view(target: BoardTarget) -> list[Any]:
-    return [target.player, *_position_view(target.position)]
-
-
-def action_key(action: Action) -> str:
-    """Compatibility export; canonical serialization lives with actions."""
-    return _canonical_action_key(action)
 
 
 def information_set_key(state: GameState, player: int) -> dict[str, Any]:
@@ -205,6 +176,8 @@ class MCCFRTrainer:
         leaf_scale: float = 100.0,
         direct_traversal: bool = True,
     ):
+        if not math.isfinite(leaf_scale) or leaf_scale <= 0:
+            raise ValueError("leaf_scale must be finite and positive")
         if max_depth < 1:
             raise ValueError("max_depth must be at least 1")
         self.engine = engine
@@ -220,7 +193,7 @@ class MCCFRTrainer:
         self.max_depth = max_depth
         self.leaf_scale = leaf_scale
         self.direct_traversal = direct_traversal
-        self.nodes = InformationNodeStore()
+        self.nodes: dict[str, CFRNode] = {}
         self._primitive_nodes: dict[bytes, Any] = {}
         self._primitive_engine = (
             PrimitiveFastEngine(engine)
@@ -494,8 +467,7 @@ class MCCFRTrainer:
                     },
                 }
         else:
-            for internal_key, node in self.nodes.items():
-                info_id = self.nodes.stable_id(internal_key)
+            for info_id, node in self.nodes.items():
                 keys = sorted(node.regret_sum)
                 infosets[info_id] = {
                     "visits": node.visits,
@@ -544,6 +516,6 @@ class MCCFRTrainer:
                 ],
                 "note": "This is an imperfect-recall state abstraction, not an exact perfect-recall game tree.",
             },
-            "average_policy": "own-reach-weighted external-sampling average strategy",
+            "average_policy": "sampling-corrected external-sampling average strategy",
             "infosets": infosets,
         }

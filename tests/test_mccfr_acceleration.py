@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import json
 import random
-import json
 from pathlib import Path
 
 import pytest
@@ -14,9 +13,8 @@ from longwar.game.model import SchemeState, StratagemState
 from longwar.mccfr import (
     _search_information_set_key,
     action_key,
-    _stable_id_from_search_key,
     information_set_id,
-    information_set_observation,
+    information_set_key,
 )
 from longwar.mccfr_core import (
     ACCELERATED,
@@ -37,7 +35,7 @@ from longwar.mccfr_verification import (
 
 def legacy_information_set_id(state, player: int) -> str:
     payload = json.dumps(
-        information_set_observation(state, player),
+        information_set_key(state, player),
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
@@ -72,12 +70,8 @@ def test_fast_information_key_preserves_exported_id() -> None:
     assert information_set_id(state, 0) == legacy_information_set_id(state, 0)
     assert information_set_id(state, 1) == legacy_information_set_id(state, 1)
 
-    assert _stable_id_from_search_key(
-        _search_information_set_key(state, 0)
-    ) == information_set_id(state, 0)
-    assert _stable_id_from_search_key(
-        _search_information_set_key(state, 1)
-    ) == information_set_id(state, 1)
+    assert _search_information_set_key(state, 0) == information_set_id(state, 0)
+    assert _search_information_set_key(state, 1) == information_set_id(state, 1)
 
 
 def _run_kuhn(traverse, *, seed: int = 7331, rounds: int = 80):
@@ -152,3 +146,61 @@ def test_longwar_action_keys_are_unique_across_live_states() -> None:
             engine.apply(state, rng.choice(actions), validate=False)
 
     assert checked >= 80
+
+
+@pytest.mark.parametrize("backend", ["python", "cython", "direct", "fast", "packed"])
+def test_external_sampling_does_not_weight_opponent_reach_twice(backend):
+    """Choosing to start creates two decisions by the sampled player.
+
+    The second information set is reached with probability 1/2. Conditional
+    on visiting it, one full strategy contribution is the unbiased average;
+    multiplying by 1/2 again would square the player's reach probability.
+    """
+    from longwar.game import Phase
+    from longwar.mccfr import MCCFRTrainer
+    from longwar.mccfr_core import external_sampling_traverse
+
+    engine, state = make_engine_and_state()
+    state.phase = Phase.CHOOSE_FIRST
+    state.active_player = state.chooser = 0
+    rng = random.Random(1)  # Selects ChooseFirst(0) from the uniform root.
+    nodes = {}
+
+    def next_state(current, action):
+        child = current.clone()
+        engine.apply(child, action)
+        return child
+
+    if backend in ("python", "cython"):
+        traverse = _python_external_sampling_traverse if backend == "python" else external_sampling_traverse
+        traverse(
+            state, 1, depth=0, max_depth=2, nodes=nodes, rng=rng,
+            is_terminal=lambda s: s.phase is Phase.COMPLETE,
+            terminal_utility=lambda s, p: 0.0,
+            current_player=lambda s: s.active_player,
+            legal_actions=engine.legal_actions,
+            action_key=action_key, information_set_id=information_set_id,
+            next_state=next_state,
+            leaf_value=lambda s, p: 0.0,
+        )
+    elif backend == "direct":
+        from longwar._mccfr_accel import longwar_external_sampling_traverse
+        trainer = MCCFRTrainer(engine, None, None, seed=1, max_depth=2)
+        longwar_external_sampling_traverse(
+            trainer, state, 1, depth=0,
+            action_key=action_key, information_set_id=information_set_id,
+        )
+        nodes = trainer.nodes
+    else:
+        from longwar._fast_search import FastEngine, fast_external_sampling_traverse, packed_external_sampling_traverse
+        fast = FastEngine(engine)
+        options = dict(depth=0, max_depth=2, nodes=nodes, rng=rng)
+        if backend == "packed":
+            packed_external_sampling_traverse(fast, fast.from_game_state(state), 1, **options)
+        else:
+            fast_external_sampling_traverse(fast, fast.from_game_state(state), 1, node_factory=CFRNode, **options)
+
+    assert len(nodes) == 2
+    for node in nodes.values():
+        assert node.average_visits == 1
+        assert sum(node.strategy_sum.values()) == pytest.approx(1.0)

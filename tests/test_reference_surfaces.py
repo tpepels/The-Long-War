@@ -178,4 +178,4 @@ def test_balance_lab_hides_dynamic_evidence_from_other_rulesets() -> None:
     assert '"stale_evidence": sorted(stale_files)' in builder
     assert 'data.get("game_fingerprint") != game_fingerprint' in builder
     assert "Solver evidence needs a fresh run for this ruleset" in script
-    assert "FINGERPRINT_PATHS" in fingerprint
+    assert '".pxi"' in fingerprint

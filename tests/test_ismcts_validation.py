@@ -623,3 +623,106 @@ def test_same_ismcts_agent_runs_under_standard_rules() -> None:
     )
 
     assert agent.choose(engine, state) in legal
+
+
+@pytest.mark.parametrize(
+    "parameter,value",
+    [
+        ("exploration", float("nan")),
+        ("exploration", -1.0),
+        ("progressive_widening", float("inf")),
+        ("rollout_epsilon", 1.1),
+        ("rollout_policy", 3),
+        ("leaf_scale", float("nan")),
+    ],
+)
+def test_native_search_rejects_invalid_controls(parameter, value) -> None:
+    engine, state = _pass_only_standard_state()
+    fast = FastEngine(engine)
+    with pytest.raises(ValueError):
+        ismcts_search(
+            fast, NativeHeuristicEvaluator(fast),
+            [fast.from_game_state(state)], 0,
+            iterations=1, **{parameter: value},
+        )
+
+
+def test_native_search_rejects_incompatible_root_samples() -> None:
+    engine, state = _pass_only_standard_state()
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+    changed = state.clone()
+    changed.players[0].victories += 1
+    with pytest.raises(ValueError, match="share a root information set"):
+        ismcts_search(fast, evaluator, [packed, fast.from_game_state(changed)], 0)
+    with pytest.raises(ValueError, match="acting player"):
+        ismcts_search(fast, evaluator, [packed], 1)
+    with pytest.raises(TypeError, match="FastState"):
+        ismcts_search(fast, evaluator, [packed, object()], 0)
+
+
+def test_persistent_tree_invalidates_values_when_belief_context_changes() -> None:
+    engine, state = _pass_only_standard_state()
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    tree = ISMCTSTree(32)
+    packed = fast.from_game_state(state)
+    options = dict(tree=tree, iterations=8, rollout_depth=0, tree_depth_limit=4)
+    first = ismcts_search(fast, evaluator, [packed], 0, reuse_context=(0,), **options)
+    reused = ismcts_search(fast, evaluator, [packed], 0, reuse_context=(0,), **options)
+    assert reused["root_reused"] is True
+    assert reused["root_total_visits_before"] == first["root_total_visits"]
+    assert sum(row["new_visits"] for row in reused["root_stats"]) == 8
+    assert all(row["availability"] >= row["visits"] for row in reused["root_stats"])
+
+    changed = ismcts_search(fast, evaluator, [packed], 0, reuse_context=(1,), **options)
+    assert changed["root_reused"] is False
+    assert changed["root_total_visits_before"] == 0
+    assert changed["root_new_visits"] == 8
+    assert changed["tree_nodes_discarded"] == reused["tree_nodes"]
+    assert changed["tree_reset_reason"] == "context_changed"
+
+
+def test_persistent_tree_capacity_uses_rollouts_and_resets_for_unseen_root() -> None:
+    engine, state = _pass_only_standard_state()
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    tree = ISMCTSTree(32, max_nodes=1)
+    options = dict(tree=tree, iterations=8, rollout_depth=2, tree_depth_limit=4)
+    first = ismcts_search(fast, evaluator, [fast.from_game_state(state)], 0, **options)
+    assert tree.size() == first["tree_nodes"] == 1
+    assert first["tree_capacity_cutoffs"] > 0
+    assert first["root_new_visits"] == 8
+
+    engine.apply(state, Pass())
+    second = ismcts_search(fast, evaluator, [fast.from_game_state(state)], 1, **options)
+    assert tree.size() == second["tree_nodes"] == 1
+    assert second["root_new_visits"] == 8
+    assert second["tree_reset_reason"] == "capacity_reroot"
+    assert second["tree_nodes_discarded"] == 1
+    assert second["root_reused"] is False
+
+
+def test_belief_reuse_context_tracks_observed_evidence_only() -> None:
+    engine, deck, priors = _standard_fixture()
+    state = engine.new_game(deck, deck, seed=9381, first_player=0)
+    belief = BeliefSampler(engine, priors=priors)
+    baseline = belief.reuse_context(state, 0)
+    for seed in range(6):
+        assert belief.reuse_context(belief.sample(state, 0, random.Random(seed)), 0) == baseline
+
+    # Spending a known card adds no hidden evidence for its owner.
+    changed = state.clone()
+    changed.players[0].discard.append(changed.players[0].hand.pop())
+    assert belief.reuse_context(changed, 0) == baseline
+
+    # Drawing a previously unknown card changes the owner's belief context.
+    changed = state.clone()
+    changed.players[0].hand.append(changed.players[0].deck.pop())
+    assert belief.reuse_context(changed, 0) != baseline
+
+    # A public opponent play changes hard evidence even at unchanged zone sizes.
+    changed = state.clone()
+    changed.players[1].discard.append(changed.players[1].hand.pop())
+    assert belief.reuse_context(changed, 0) != baseline

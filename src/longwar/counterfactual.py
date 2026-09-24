@@ -4,8 +4,8 @@ import copy
 import itertools
 import math
 import random
-from dataclasses import asdict, dataclass
-from statistics import mean, pstdev
+from dataclasses import dataclass
+from statistics import mean, stdev
 from typing import Any, Iterable
 
 from .cards import card_index, validate_card_data
@@ -31,8 +31,9 @@ class ExperimentSample:
 class EffectEstimate:
     mean: float
     ci95: tuple[float, float]
-    standard_error: float
+    standard_error: float | None
     samples: int
+    ci_method: str = "paired_percentile_bootstrap"
 
 
 def baseline_id(card_id: str) -> str:
@@ -49,10 +50,13 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         "classes": list(card.get("classes", ["experimental"])),
         "text": "Experimental matched baseline.",
         "rules": {},
+        "rule_blocks": [],
         "balance": {},
         "experimental": True,
         "baseline_for": card["id"],
     }
+    if "command_cost" in card:
+        result["command_cost"] = card["command_cost"]
 
     if card_type == "subject":
         result["role"] = card["role"]
@@ -153,7 +157,7 @@ def generate_context_decks(
     cards = card_data["cards"]
     meta = card_index(card_data)
     all_ids = [card["id"] for card in cards]
-    required = list(dict.fromkeys(required_cards))
+    required = sorted(set(required_cards))
     unknown = [card_id for card_id in required if card_id not in meta]
     if unknown:
         raise ValueError(f"Unknown required cards: {unknown}")
@@ -363,9 +367,8 @@ def _bootstrap_ci(
 ) -> tuple[float, float]:
     if not values:
         raise ValueError("Cannot estimate an empty sample")
-    if len(values) == 1 or resamples <= 0:
-        value = float(values[0])
-        return (value, value)
+    if resamples <= 0:
+        raise ValueError("bootstrap_resamples must be positive")
 
     rng = random.Random(seed)
     n = len(values)
@@ -385,21 +388,35 @@ def estimate(
     *,
     seed: int,
     bootstrap_resamples: int = 2000,
+    contrast_bound: float = 1.0,
 ) -> EffectEstimate:
     if not values:
         raise ValueError("Cannot estimate an empty sample")
+    if bootstrap_resamples <= 0:
+        raise ValueError("bootstrap_resamples must be positive")
+    if not math.isfinite(contrast_bound) or contrast_bound <= 0:
+        raise ValueError("contrast_bound must be finite and positive")
+    if any(not math.isfinite(value) or abs(value) > contrast_bound for value in values):
+        raise ValueError("Contrasts must be finite and within contrast_bound")
     avg = mean(values)
-    sd = pstdev(values) if len(values) > 1 else 0.0
-    se = sd / math.sqrt(len(values)) if values else 0.0
+    se = stdev(values) / math.sqrt(len(values)) if len(values) > 1 else None
+    # Resampling an observed constant only reproduces that constant. A
+    # zero-width interval would falsely imply certainty, even for one game.
+    # Factorial Bernoulli contrasts are bounded, so a Hoeffding interval
+    # remains informative about the uncertainty without inventing variation.
+    if len(set(values)) == 1:
+        radius = contrast_bound * math.sqrt(2 * math.log(40) / len(values))
+        ci = (max(-contrast_bound, avg - radius), min(contrast_bound, avg + radius))
+        ci_method = "bounded_hoeffding_degenerate_sample"
+    else:
+        ci = _bootstrap_ci(values, seed=seed, resamples=bootstrap_resamples)
+        ci_method = "paired_percentile_bootstrap"
     return EffectEstimate(
         mean=avg,
-        ci95=_bootstrap_ci(
-            values,
-            seed=seed,
-            resamples=bootstrap_resamples,
-        ),
+        ci95=ci,
         standard_error=se,
         samples=len(values),
+        ci_method=ci_method,
     )
 
 
@@ -483,13 +500,15 @@ def run_counterfactual_card_sweep(
     """
     canonical = card_index(card_data)
     selected = (
-        list(card_ids)
+        list(dict.fromkeys(card_ids))
         if card_ids is not None
         else [card["id"] for card in card_data["cards"]]
     )
     unknown = [card_id for card_id in selected if card_id not in canonical]
     if unknown:
         raise ValueError(f"Unknown selected cards: {unknown}")
+    if not selected:
+        raise ValueError("At least one selected card is required")
 
     rows: list[dict[str, Any]] = []
     total_matches = 0
@@ -507,7 +526,7 @@ def run_counterfactual_card_sweep(
             card_ids=[card_id],
         )
         reports.append(report)
-        rows.extend(report["cards"])
+        rows.extend({**row, "sample_generation": report["sample_generation"]} for row in report["cards"])
         total_matches += int(report["total_matches"])
 
     rows.sort(
@@ -524,6 +543,7 @@ def run_counterfactual_card_sweep(
         "seed": seed,
         "contexts": contexts,
         "games_per_context": games_per_context,
+        "bootstrap_resamples": bootstrap_resamples,
         "samples": contexts * games_per_context,
         "samples_per_card": contexts * games_per_context,
         "conditions_evaluated_per_sample": 2,
@@ -546,7 +566,7 @@ def run_counterfactual_card_sweep(
                 "Not evaluated in full-pool sweep; select a compatible card "
                 "subset to evaluate interactions."
             ),
-            "ci95": "paired percentile bootstrap over per-card matched samples",
+            "ci95": "paired percentile bootstrap over per-card matched samples; bounded Hoeffding interval when observed contrasts are constant",
             "interpretation": (
                 "Each card is tested in legal contexts containing that card. "
                 "Effects are policy- and context-distribution-specific, not "
@@ -570,13 +590,17 @@ def run_counterfactual_experiment(
 ) -> dict[str, Any]:
     canonical_cards = card_index(card_data)
     selected_cards = (
-        list(card_ids)
+        list(dict.fromkeys(card_ids))
         if card_ids is not None
         else [card["id"] for card in card_data["cards"]]
     )
     unknown = [card_id for card_id in selected_cards if card_id not in canonical_cards]
     if unknown:
         raise ValueError(f"Unknown selected cards: {unknown}")
+    if not selected_cards:
+        raise ValueError("At least one selected card is required")
+    if bootstrap_resamples <= 0:
+        raise ValueError("bootstrap_resamples must be positive")
 
     experiment_data = build_experiment_card_data(card_data)
     engine = GameEngine(experiment_data)
@@ -629,6 +653,13 @@ def run_counterfactual_experiment(
     required_conditions.update(frozenset(pair) for pair in pair_ids)
     if include_legend_triples:
         required_conditions.update(frozenset(triple) for triple in triple_ids)
+        # Triple contrasts require every lower-order intervention even when
+        # the caller does not request pair rows in the output.
+        required_conditions.update(
+            frozenset(pair)
+            for triple in triple_ids
+            for pair in itertools.combinations(triple, 2)
+        )
 
     per_condition: dict[frozenset[str], list[int]] = {
         condition: [] for condition in required_conditions
@@ -670,6 +701,7 @@ def run_counterfactual_experiment(
             "baseline": baseline_card(canonical_cards[card_id]),
             "delta_win_probability": effect.mean,
             "ci95": list(effect.ci95),
+            "ci_method": effect.ci_method,
             "standard_error": effect.standard_error,
             "samples": effect.samples,
             "original_wins": sum(base),
@@ -698,6 +730,7 @@ def run_counterfactual_experiment(
             values,
             seed=seed + 20_000 + index,
             bootstrap_resamples=bootstrap_resamples,
+            contrast_bound=2.0,
         )
         pairs.append({
             "cards": [a, b],
@@ -708,6 +741,7 @@ def run_counterfactual_experiment(
             ],
             "interaction_delta": effect.mean,
             "ci95": list(effect.ci95),
+            "ci_method": effect.ci_method,
             "standard_error": effect.standard_error,
             "samples": effect.samples,
             **_severity(effect),
@@ -732,6 +766,7 @@ def run_counterfactual_experiment(
             values,
             seed=seed + 30_000 + index,
             bootstrap_resamples=bootstrap_resamples,
+            contrast_bound=4.0,
         )
         triples.append({
             "cards": [a, b, c],
@@ -742,6 +777,7 @@ def run_counterfactual_experiment(
             ),
             "interaction_delta": effect.mean,
             "ci95": list(effect.ci95),
+            "ci_method": effect.ci_method,
             "standard_error": effect.standard_error,
             "samples": effect.samples,
             **_severity(effect),
@@ -773,6 +809,8 @@ def run_counterfactual_experiment(
         "seed": seed,
         "contexts": contexts,
         "games_per_context": games_per_context,
+        "bootstrap_resamples": bootstrap_resamples,
+        "sample_generation": {"seed": seed, "required_cards": selected_cards},
         "samples": len(samples),
         "conditions_evaluated_per_sample": len(required_conditions),
         "total_matches": len(samples) * len(required_conditions),
@@ -797,7 +835,8 @@ def run_counterfactual_experiment(
             "card_effect": "base outcome - same deck with one copy replaced by its matched baseline",
             "pair_interaction": "f(AB)-f(A0)-f(0B)+f(00)",
             "triple_interaction": "third-order factorial contrast over original/baseline states",
-            "ci95": "paired percentile bootstrap over per-sample contrasts",
+            "ci95": "paired percentile bootstrap over per-sample contrasts; bounded Hoeffding interval when observed contrasts are constant",
+            "uncertainty_limits": "Intervals are unadjusted for multiple comparisons and condition on the generated deck contexts; targeted reuse of those contexts is not an independent replication.",
             "interpretation": (
                 "Effects are causal for the evaluated policy and generated deck-context "
                 "distribution, not universal equilibrium card values."
