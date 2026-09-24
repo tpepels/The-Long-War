@@ -56,6 +56,11 @@ class DecisionStats:
     ismcts_battle_boundary_cutoffs: int = 0
     ismcts_depth_cutoffs: int = 0
     ismcts_rollout_actions: int = 0
+    ismcts_searched_decisions: int = 0
+    ismcts_root_reused_decisions: int = 0
+    ismcts_tree_nodes_before_total: int = 0
+    ismcts_tree_nodes_added_total: int = 0
+    ismcts_root_prior_visits_total: int = 0
 
 
 class Telemetry:
@@ -203,6 +208,23 @@ class Telemetry:
             stats.ismcts_rollout_actions += int(
                 decision_info.get("ismcts_rollout_actions", 0)
             )
+            ismcts_iterations = int(
+                decision_info.get("ismcts_iterations", 0)
+            )
+            if ismcts_iterations > 0:
+                stats.ismcts_searched_decisions += 1
+                stats.ismcts_root_reused_decisions += int(
+                    bool(decision_info.get("ismcts_root_reused", False))
+                )
+                stats.ismcts_tree_nodes_before_total += int(
+                    decision_info.get("ismcts_tree_nodes_before", 0)
+                )
+                stats.ismcts_tree_nodes_added_total += int(
+                    decision_info.get("ismcts_tree_nodes_added", 0)
+                )
+                stats.ismcts_root_prior_visits_total += int(
+                    decision_info.get("ismcts_root_prior_visits", 0)
+                )
             search_backend = decision_info.get("search_backend")
             if search_backend is not None:
                 self.search_backends[str(search_backend)] += 1
@@ -496,6 +518,27 @@ class Telemetry:
                     stats.decisions,
                 ),
             }
+            if stats.ismcts_searched_decisions:
+                decisions[agent]["ismcts_tree_reuse"] = {
+                    "searched_decisions": stats.ismcts_searched_decisions,
+                    "root_reused_decisions": stats.ismcts_root_reused_decisions,
+                    "root_reuse_rate": self._ratio(
+                        stats.ismcts_root_reused_decisions,
+                        stats.ismcts_searched_decisions,
+                    ),
+                    "mean_tree_nodes_before": self._ratio(
+                        stats.ismcts_tree_nodes_before_total,
+                        stats.ismcts_searched_decisions,
+                    ),
+                    "mean_tree_nodes_added": self._ratio(
+                        stats.ismcts_tree_nodes_added_total,
+                        stats.ismcts_searched_decisions,
+                    ),
+                    "mean_root_prior_visits": self._ratio(
+                        stats.ismcts_root_prior_visits_total,
+                        stats.ismcts_searched_decisions,
+                    ),
+                }
             if cutoff_total:
                 decisions[agent]["ismcts_rollout_cutoffs"] = {
                     "iterations": cutoff_total,
