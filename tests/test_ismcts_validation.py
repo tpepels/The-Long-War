@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import random
 from pathlib import Path
 
@@ -9,7 +10,7 @@ import pytest
 from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
-from longwar.game import GameEngine
+from longwar.game import GameEngine, Pass, Phase
 from longwar.game.actions import action_key
 from longwar.rules import GameRules
 
@@ -67,6 +68,21 @@ def _standard_fixture():
         ),
     )
     return engine, deck, priors
+
+
+def _pass_only_standard_state(
+    *,
+    victories: tuple[int, int] = (0, 0),
+):
+    engine, deck, _priors = _standard_fixture()
+    state = engine.new_game(deck, deck, seed=9275, first_player=0)
+    for index, player in enumerate(state.players):
+        player.hand.clear()
+        player.deck.clear()
+        player.discard.clear()
+        player.victories = victories[index]
+    assert engine.legal_actions(state) == [Pass()]
+    return engine, state
 
 
 def _hash_information_key(key: bytes) -> tuple[int, int]:
@@ -305,6 +321,143 @@ def test_one_ply_ismcts_matches_strategic_leaf_oracle() -> None:
     )
 
     assert result["action"] in best_actions
+
+
+def test_rollout_stops_at_battle_boundary_and_uses_boundary_value() -> None:
+    engine, state = _pass_only_standard_state()
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+
+    boundary = state.clone()
+    engine.apply(boundary, Pass())
+    engine.apply(boundary, Pass())
+    assert boundary.battle == 2
+    assert boundary.phase is Phase.CHOOSE_FIRST
+
+    boundary_packed = fast.from_game_state(boundary)
+    leaf_scale = 100.0
+    expected = math.tanh(
+        evaluator.battle_boundary_evaluate(boundary_packed, 0)
+        / leaf_scale
+    )
+    iterations = 12
+    result = ismcts_search(
+        fast,
+        evaluator,
+        [packed],
+        0,
+        iterations=iterations,
+        rollout_depth=5,
+        tree_depth_limit=1,
+        exploration=0.0,
+        rollout_epsilon=0.0,
+        rollout_policy=2,
+        leaf_scale=leaf_scale,
+        seed=9280,
+    )
+
+    assert result["rollouts_stopped_terminal"] == 0
+    assert result["rollouts_stopped_battle_boundary"] == iterations
+    assert result["rollouts_stopped_depth"] == 0
+    assert result["rollout_actions"] == iterations
+    assert result["mean_value"] == pytest.approx(expected)
+
+
+def test_terminal_game_completion_keeps_exact_terminal_utility() -> None:
+    engine, state = _pass_only_standard_state(victories=(1, 0))
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+    iterations = 8
+
+    result = ismcts_search(
+        fast,
+        evaluator,
+        [packed],
+        0,
+        iterations=iterations,
+        rollout_depth=5,
+        tree_depth_limit=1,
+        exploration=0.0,
+        rollout_epsilon=0.0,
+        rollout_policy=2,
+        seed=9281,
+    )
+
+    assert result["rollouts_stopped_terminal"] == iterations
+    assert result["rollouts_stopped_battle_boundary"] == 0
+    assert result["rollouts_stopped_depth"] == 0
+    assert result["rollout_actions"] == iterations
+    assert result["mean_value"] == pytest.approx(1.0)
+
+
+def test_final_tree_step_boundary_does_not_start_next_battle_rollout() -> None:
+    engine, state = _pass_only_standard_state()
+    engine.apply(state, Pass())
+    assert state.battle == 1
+    assert state.phase is Phase.BATTLE
+    assert state.active_player == 1
+    assert engine.legal_actions(state) == [Pass()]
+
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+    iterations = 6
+    result = ismcts_search(
+        fast,
+        evaluator,
+        [packed],
+        1,
+        iterations=iterations,
+        rollout_depth=5,
+        tree_depth_limit=1,
+        exploration=0.0,
+        rollout_epsilon=0.0,
+        rollout_policy=2,
+        seed=9282,
+    )
+
+    assert result["rollouts_stopped_battle_boundary"] == iterations
+    assert result["rollouts_stopped_terminal"] == 0
+    assert result["rollouts_stopped_depth"] == 0
+    assert result["rollout_actions"] == 0
+
+
+def test_boundary_evaluator_rewards_next_battle_readiness() -> None:
+    engine, state = _pass_only_standard_state()
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+    assert state.battle == 2
+
+    ready = state.clone()
+    poor = state.clone()
+    ready.players[0].hand[:] = [
+        "the-fifty-men",
+        "followed",
+        "namar",
+    ]
+    poor.players[0].hand[:] = [
+        "the-story-is-false",
+        "he-never-came",
+        "they-chose-another",
+    ]
+
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    ready_packed = fast.from_game_state(ready)
+    poor_packed = fast.from_game_state(poor)
+
+    ready_value = evaluator.battle_boundary_evaluate(ready_packed, 0)
+    poor_value = evaluator.battle_boundary_evaluate(poor_packed, 0)
+
+    assert ready_value > poor_value
+    assert ready_value == pytest.approx(
+        evaluator.strategic_evaluate(ready_packed, 0)
+    )
+    assert poor_value == pytest.approx(
+        evaluator.strategic_evaluate(poor_packed, 0)
+    )
 
 
 @pytest.mark.parametrize(
