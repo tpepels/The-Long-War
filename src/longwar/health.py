@@ -16,7 +16,8 @@ def simulation_summary(data: dict[str, Any] | None) -> dict[str, Any] | None:
         for key in (
             "games", "agents", "wins", "win_rates", "first_player_win_rate",
             "mean_turns", "max_turns", "game_fingerprint", "seed", "config",
-            "simulation_variant", "online_config", "strategic_config", "ismcts_config",
+            "simulation_variant", "heuristic_config", "online_config",
+            "strategic_config", "ismcts_config",
         )
     }
     result.update({
