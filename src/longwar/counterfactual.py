@@ -500,7 +500,7 @@ def run_counterfactual_card_sweep(
 
     Each card is evaluated in its own legal paired contexts. This preserves
     the causal replacement interpretation without pretending 48 titles can
-    coexist in a 30-card deck. Pair/triple interactions require an explicit
+    coexist in one canonical-size deck. Pair/triple interactions require an explicit
     compatible subset and remain the responsibility of the grouped runner.
     """
     canonical = card_index(card_data)
@@ -614,11 +614,12 @@ def run_counterfactual_experiment(
         for card_id in selected_cards
         if canonical_cards[card_id].get("hero", False)
     ]
-    if len(selected_cards) > 30 or len(selected_heroes) > 1:
+    deck_size = GameRules.standard().deck_size
+    if len(selected_cards) > deck_size or len(selected_heroes) > 1:
         raise ValueError(
-            "A single paired counterfactual run requires at most 30 selected "
-            "cards and at most one Hero. Split a larger pool into candidate "
-            "groups; alternative Heroes must be evaluated separately."
+            f"A single paired counterfactual run requires at most {deck_size} "
+            "selected cards and at most one Hero. Split a larger pool into "
+            "candidate groups; alternative Heroes must be evaluated separately."
         )
 
     samples = build_samples(
