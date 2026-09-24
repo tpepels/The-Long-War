@@ -15,6 +15,28 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "artifacts" / "browser"
 PYODIDE_VERSION = "314.0.7"
 BUILD_VERSION = "0.39.1"
+BUILD_LOG = OUTPUT / "browser-build.log"
+
+
+def _run_logged(command: list[str]) -> None:
+    """Run noisy build tooling into one log; show only a useful tail on failure."""
+    OUTPUT.mkdir(parents=True, exist_ok=True)
+    with BUILD_LOG.open("a", encoding="utf-8") as stream:
+        result = subprocess.run(
+            command,
+            stdout=stream,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+    if result.returncode != 0:
+        try:
+            lines = BUILD_LOG.read_text(encoding="utf-8", errors="replace").splitlines()
+            tail = "\n".join(lines[-80:])
+        except OSError:
+            tail = "(build log unavailable)"
+        print(f"Browser build failed. Last log lines:\n{tail}", file=sys.stderr)
+        raise SystemExit(result.returncode)
+
 
 # Python modules required by browser play. Keep analysis/training/simulation and
 # non-production agents out of the browser wheel.
@@ -126,20 +148,16 @@ def ensure_browser_runtime() -> Path:
     pyodide = build_env / "bin" / "pyodide"
     if not pyodide.exists():
         venv.EnvBuilder(with_pip=True).create(build_env)
-        subprocess.run(
+        _run_logged(
             [
                 str(build_env / "bin" / "python"),
                 "-m",
                 "pip",
                 "install",
                 f"pyodide-build=={BUILD_VERSION}",
-            ],
-            check=True,
+            ]
         )
-    subprocess.run(
-        [str(pyodide), "xbuildenv", "install", PYODIDE_VERSION],
-        check=True,
-    )
+    _run_logged([str(pyodide), "xbuildenv", "install", PYODIDE_VERSION])
 
     source = OUTPUT / "build-source"
     prepare_browser_source(source)
@@ -148,10 +166,12 @@ def ensure_browser_runtime() -> Path:
     if wheels.exists():
         shutil.rmtree(wheels)
     wheels.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        [str(pyodide), "build", str(source), "--outdir", str(wheels)],
-        check=True,
+    BUILD_LOG.write_text(
+        "The Long War browser build\n"
+        f"Pyodide {PYODIDE_VERSION}, pyodide-build {BUILD_VERSION}\n",
+        encoding="utf-8",
     )
+    _run_logged([str(pyodide), "build", str(source), "--outdir", str(wheels)])
     wheel = next(wheels.glob("longwar-*.whl"))
 
     archive = OUTPUT / f"pyodide-{PYODIDE_VERSION}.tgz"
@@ -178,7 +198,11 @@ def ensure_browser_runtime() -> Path:
         )
         + "\n"
     )
-    print(f"Built canonical browser runtime: {runtime}", flush=True)
+    print(
+        f"Built canonical browser runtime: {runtime} "
+        f"(build log: {BUILD_LOG.relative_to(ROOT)})",
+        flush=True,
+    )
     return runtime
 
 
