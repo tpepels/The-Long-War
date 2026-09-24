@@ -23,9 +23,19 @@ test-integration:
 	python -m pytest -q -m integration --durations=10
 
 browser-parity:
-	python tools/build_pages.py
-	python tools/build_browser_contract.py --output artifacts/browser-engine-contract.json
-	node tools/check_browser_engine.mjs --contract artifacts/browser-engine-contract.json
+	@mkdir -p artifacts/logs
+	@echo "Browser/native parity..."
+	@rm -f artifacts/logs/browser-parity.log
+	@{ \
+		python tools/build_pages.py && \
+		python tools/build_browser_contract.py --output artifacts/browser-engine-contract.json && \
+		node tools/check_browser_engine.mjs --contract artifacts/browser-engine-contract.json; \
+	} > artifacts/logs/browser-parity.log 2>&1 || { \
+		echo "Browser/native parity: FAILED"; \
+		python -c 'from pathlib import Path; p=Path("artifacts/logs/browser-parity.log"); lines=p.read_text(errors="replace").splitlines()[-60:]; print("\n".join((line[:500] + ("..." if len(line) > 500 else "")) for line in lines))'; \
+		exit 1; \
+	}
+	@echo "Browser/native parity: OK (log: artifacts/logs/browser-parity.log)"
 
 verify:
 	python tools/run_experiments.py validate-data
