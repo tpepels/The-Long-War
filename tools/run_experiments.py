@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
-from longwar.agents.ismcts_agent import ISMCTSAgent
+from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, ISMCTSAgent
 from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import DeckHypothesis, HypothesisDeckPrior
 from longwar.balance import validate_command_costs
@@ -523,6 +523,10 @@ def benchmark_ismcts_match(
     progressive_widening_b: float,
     reuse_tree_a: bool,
     reuse_tree_b: bool,
+    rollout_depth_a: int,
+    rollout_depth_b: int,
+    rollout_policy_a: str,
+    rollout_policy_b: str,
     seed: int = 26092400,
 ) -> None:
     """Direct, equal-time ISMCTS configuration comparison."""
@@ -534,17 +538,26 @@ def benchmark_ismcts_match(
     for value in (exploration_a, exploration_b, progressive_widening_a, progressive_widening_b):
         if value < 0.0:
             raise SystemExit("ISMCTS exploration/PW values must be non-negative")
+    if rollout_depth_a < 0 or rollout_depth_b < 0:
+        raise SystemExit("ISMCTS rollout depths must be non-negative")
+    valid_rollout_policies = {"greedy", "cheap", "random"}
+    if rollout_policy_a not in valid_rollout_policies or rollout_policy_b not in valid_rollout_policies:
+        raise SystemExit("ISMCTS rollout policy must be greedy, cheap, or random")
 
     decks = ("reference", "avaros", "mara", "sera")
     config_a = {
         "ismcts_exploration": exploration_a,
         "ismcts_progressive_widening": progressive_widening_a,
         "ismcts_reuse_tree": reuse_tree_a,
+        "ismcts_rollout_depth": rollout_depth_a,
+        "ismcts_rollout_policy": rollout_policy_a,
     }
     config_b = {
         "ismcts_exploration": exploration_b,
         "ismcts_progressive_widening": progressive_widening_b,
         "ismcts_reuse_tree": reuse_tree_b,
+        "ismcts_rollout_depth": rollout_depth_b,
+        "ismcts_rollout_policy": rollout_policy_b,
     }
     identity = experiment_identity({
         "command": "ismcts-match",
@@ -598,8 +611,6 @@ def benchmark_ismcts_match(
                 "--ismcts-belief-samples", "12",
                 "--ismcts-iterations", str(iterations),
                 "--ismcts-time-budget-seconds", str(time_budget_seconds),
-                "--ismcts-rollout-depth", "5",
-                "--ismcts-rollout-policy", "cheap",
                 "--output", str(output),
             ]
             cells.append((deck, orientation, output, command))
@@ -610,9 +621,11 @@ def benchmark_ismcts_match(
     )
     print(
         f"A c={exploration_a:g} pw={progressive_widening_a:g} "
-        f"{'reuse' if reuse_tree_a else 'cold'} | "
+        f"{'reuse' if reuse_tree_a else 'cold'} "
+        f"rollout={rollout_policy_a}/{rollout_depth_a} | "
         f"B c={exploration_b:g} pw={progressive_widening_b:g} "
-        f"{'reuse' if reuse_tree_b else 'cold'}"
+        f"{'reuse' if reuse_tree_b else 'cold'} "
+        f"rollout={rollout_policy_b}/{rollout_depth_b}"
     )
     print("\nProgress")
     print("deck       orientation   A-B    elapsed")
@@ -1387,7 +1400,7 @@ def parse_args() -> argparse.Namespace:
     )
     search_bench.add_argument("--iterations", type=int, default=10_000)
     search_bench.add_argument("--alpha-nodes", type=int, default=20_000)
-    search_bench.add_argument("--exploration", type=float, default=2 ** 0.5)
+    search_bench.add_argument("--exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     search_bench.add_argument(
         "--progressive-widening",
         type=float,
@@ -1415,6 +1428,18 @@ def parse_args() -> argparse.Namespace:
     ismcts_match.add_argument("--b-pw", type=float, default=0.0)
     ismcts_match.add_argument("--a-no-tree-reuse", action="store_true")
     ismcts_match.add_argument("--b-no-tree-reuse", action="store_true")
+    ismcts_match.add_argument("--a-rollout-depth", type=int, default=5)
+    ismcts_match.add_argument("--b-rollout-depth", type=int, default=5)
+    ismcts_match.add_argument(
+        "--a-rollout-policy",
+        choices=("greedy", "cheap", "random"),
+        default="cheap",
+    )
+    ismcts_match.add_argument(
+        "--b-rollout-policy",
+        choices=("greedy", "cheap", "random"),
+        default="cheap",
+    )
 
     strength_bench = sub.add_parser(
         "strength-bench",
@@ -1430,7 +1455,7 @@ def parse_args() -> argparse.Namespace:
     strength_bench.add_argument("--iterations", type=int, default=100_000)
     strength_bench.add_argument("--seed", type=int, default=26092400)
     strength_bench.add_argument("--alpha-nodes", type=int, default=20_000)
-    strength_bench.add_argument("--exploration", type=float, default=2 ** 0.5)
+    strength_bench.add_argument("--exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     strength_bench.add_argument(
         "--time-budget-seconds",
         type=float,
@@ -1464,7 +1489,7 @@ def parse_args() -> argparse.Namespace:
     suite.add_argument("--games", type=int, default=8)
     suite.add_argument("--iterations", type=int, default=100_000)
     suite.add_argument("--alpha-nodes", type=int, default=20_000)
-    suite.add_argument("--exploration", type=float, default=2 ** 0.5)
+    suite.add_argument("--exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     suite.add_argument("--progressive-widening", type=float, default=0.0)
     suite.add_argument(
         "--rollout-policy",
@@ -1487,7 +1512,7 @@ def parse_args() -> argparse.Namespace:
         default=100_000,
         help="ISMCTS iterations for the benchmark (default: 100000).",
     )
-    mcts_bench.add_argument("--exploration", type=float, default=2 ** 0.5)
+    mcts_bench.add_argument("--exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     mcts_bench.add_argument(
         "--progressive-widening",
         type=float,
@@ -1568,6 +1593,10 @@ def main() -> None:
             progressive_widening_b=args.b_pw,
             reuse_tree_a=not args.a_no_tree_reuse,
             reuse_tree_b=not args.b_no_tree_reuse,
+            rollout_depth_a=args.a_rollout_depth,
+            rollout_depth_b=args.b_rollout_depth,
+            rollout_policy_a=args.a_rollout_policy,
+            rollout_policy_b=args.b_rollout_policy,
             seed=args.seed,
         )
     elif args.command == "strength-bench":
