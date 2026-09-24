@@ -887,6 +887,8 @@ def run_experiment(args: argparse.Namespace) -> None:
         args.variant,
         "--deck",
         args.deck,
+        "--ismcts-exploration",
+        str(args.exploration),
         "--ismcts-progressive-widening",
         str(args.progressive_widening),
     ]
@@ -1064,6 +1066,7 @@ def parse_args() -> argparse.Namespace:
     )
     run.add_argument("--deck", choices=("all", "reference", "avaros", "mara", "sera"), default="all")
     run.add_argument("--output-dir", type=Path)
+    run.add_argument("--exploration", type=float, default=2 ** 0.5)
     run.add_argument("--progressive-widening", type=float, default=0.0)
 
     return parser.parse_args()
