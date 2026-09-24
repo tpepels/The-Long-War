@@ -79,7 +79,12 @@
     }
 
     const typeLabel = card.querySelector(type === "game-card" ? ".card-type" : ".play-card-meta > span:first-child");
-    if (typeLabel && overflows(typeLabel)) failures.push("type-overflow");
+    if (
+      typeLabel &&
+      typeLabel.scrollWidth > typeLabel.clientWidth + 1
+    ) {
+      failures.push("type-overflow");
+    }
     const cost = card.querySelector(".command-cost, .play-command-cost");
     if (cost) {
       if (outside(card, cost)) failures.push("command-cost-outside");
