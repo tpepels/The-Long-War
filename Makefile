@@ -17,7 +17,7 @@ test:
 	python -m pytest -q --durations=10
 
 test-fast:
-	python -m pytest -q -m "not algorithm and not integration and not legacy_rule_experiment" --durations=10
+	python -m pytest -q --tb=short -m "not algorithm and not integration and not legacy_rule_experiment"
 
 test-integration:
 	python -m pytest -q -m integration --durations=10
@@ -43,8 +43,7 @@ verify:
 	$(MAKE) browser-parity
 
 verify-algorithms:
-	python -m pytest -q -m "algorithm and not legacy_rule_experiment" --durations=10
-	python -m pytest -q tests/test_experiment_workflow.py -m "not integration and not legacy_rule_experiment"
+	python -m pytest -q --tb=short -m "algorithm and not legacy_rule_experiment"
 	python tools/run_experiments.py validate
 
 SIMULATE_ARGS ?= --games 25 --seed 99 --agent-a heuristic --agent-b heuristic
