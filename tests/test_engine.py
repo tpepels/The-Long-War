@@ -672,7 +672,7 @@ def test_deck_requires_exactly_one_hero() -> None:
 
     without_hero = list(deck)
     without_hero.remove("avaros-the-bronze-king")
-    without_hero.append("seven-black-ships")
+    without_hero.append("the-red-shields")
 
     try:
         engine.validate_deck(without_hero)
