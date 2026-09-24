@@ -114,33 +114,20 @@ class GameRules:
 
     @classmethod
     def force_candidate(cls, draw_mode: DrawMode) -> "GameRules":
-        if draw_mode not in {"automatic", "paid"}:
-            raise ValueError(f"Unknown Force draw mode: {draw_mode}")
-        return cls(
-            opening_hand_size=10,
-            draw_action_enabled=False,
-            deck_size=34,
-            recycle_between_battles=False,
-            command_enabled=True,
-            starting_command=20,
-            battle_command_gain=10,
-            command_cap=20,
-            cycle_enabled=False,
-            reshuffle_on_empty=True,
-            automatic_draw=draw_mode == "automatic",
-            paid_draw_enabled=draw_mode == "paid",
-            paid_draw_command_cost=1,
-            pass_final_operation=True,
-            pass_requires_both_acted=True,
-            first_passer_starts_next_battle=True,
-            completion_command_refund=1,
-            public_stratagems=True,
-        )
+        """Compatibility profile derived from the canonical standard rules."""
+        if draw_mode == "automatic":
+            return cls.standard()
+        if draw_mode == "paid":
+            return cls.standard().with_overrides(
+                automatic_draw=False,
+                paid_draw_enabled=True,
+            )
+        raise ValueError(f"Unknown Force draw mode: {draw_mode}")
 
 
     @classmethod
     def force_experiment(cls, variant: str) -> "GameRules":
-        """Named Force-flow experiment variants.
+        """Named card-flow experiment variants derived from standard.
 
         control: current automatic Draw.
         paid-free: paid Draw costs Command but keeps the operation.
