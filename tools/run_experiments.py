@@ -737,7 +737,7 @@ def parse_args() -> argparse.Namespace:
         help="Games per deck/orientation; total games are 8x this value.",
     )
     strength_bench.add_argument("--jobs", type=int, default=8)
-    strength_bench.add_argument("--iterations", type=int, default=10_000)
+    strength_bench.add_argument("--iterations", type=int, default=100_000)
     strength_bench.add_argument("--alpha-nodes", type=int, default=20_000)
     strength_bench.add_argument(
         "--rollout-policy",
@@ -754,7 +754,7 @@ def parse_args() -> argparse.Namespace:
     )
     suite.add_argument("--jobs", type=int, default=8)
     suite.add_argument("--games", type=int, default=8)
-    suite.add_argument("--iterations", type=int, default=10_000)
+    suite.add_argument("--iterations", type=int, default=100_000)
     suite.add_argument("--alpha-nodes", type=int, default=20_000)
     suite.add_argument(
         "--rollout-policy",
@@ -774,8 +774,8 @@ def parse_args() -> argparse.Namespace:
     mcts_bench.add_argument(
         "--iterations",
         type=int,
-        default=10_000,
-        help="ISMCTS iterations for the benchmark (default: 10000).",
+        default=100_000,
+        help="ISMCTS iterations for the benchmark (default: 100000).",
     )
     mcts_bench.add_argument(
         "--rollout-policy",

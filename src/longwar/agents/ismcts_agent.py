@@ -34,7 +34,7 @@ class ISMCTSAgent:
         *,
         priors: tuple[DeckPrior, DeckPrior] | None = None,
         belief_samples: int = 16,
-        iterations: int = 30_000,
+        iterations: int = 100_000,
         rollout_depth: int = 5,
         tree_depth_limit: int = 96,
         exploration: float = 2 ** 0.5,

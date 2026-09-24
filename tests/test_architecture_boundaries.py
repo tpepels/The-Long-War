@@ -266,3 +266,29 @@ def test_information_state_schema_has_one_canonical_encoder() -> None:
     key_body = source[key_start:key_end]
     assert "_information_state_encode(" in key_body
     assert "state." not in key_body
+
+
+def test_serious_ismcts_defaults_are_not_smoke_budgets() -> None:
+    """Gameplay entry points should never silently fall back to tiny searches."""
+    agent = (
+        ROOT / "src" / "longwar" / "agents" / "ismcts_agent.py"
+    ).read_text(encoding="utf-8")
+    simulation = (
+        ROOT / "src" / "longwar" / "simulate.py"
+    ).read_text(encoding="utf-8")
+    cli = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
+    experiments = (
+        ROOT / "tools" / "run_experiments.py"
+    ).read_text(encoding="utf-8")
+
+    assert "iterations: int = 100_000" in agent
+    assert simulation.count("ismcts_iterations: int = 100_000") >= 2
+    assert (
+        'parser.add_argument("--ismcts-iterations", type=int, default=100_000)'
+        in cli
+    )
+    assert (
+        'strength_bench.add_argument("--iterations", type=int, default=100_000)'
+        in experiments
+    )
+    assert 'suite.add_argument("--iterations", type=int, default=100_000)' in experiments
