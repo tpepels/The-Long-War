@@ -158,6 +158,25 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     assert "_mccfr_accel" not in (source / "setup.py").read_text(encoding="utf-8")
 
 
+def test_browser_parity_replay_helper_needs_only_browser_runtime() -> None:
+    source = (ROOT / "tools" / "build_browser_contract.py").read_text(
+        encoding="utf-8"
+    )
+    import_surface = source.split("def main() -> None:", 1)[0]
+
+    # Host-only metadata may be used when generating the contract, but replay
+    # inside Pyodide must import only modules present in the minimal wheel.
+    for forbidden in (
+        "longwar.fingerprint",
+        "longwar.simulate",
+        "longwar.balance",
+        "longwar.telemetry",
+        "longwar.mccfr",
+        "longwar.counterfactual",
+    ):
+        assert forbidden not in import_surface
+
+
 def test_browser_adapter_has_no_research_dependencies() -> None:
     source = (SRC / "web_api.py").read_text(encoding="utf-8")
     for forbidden in (
