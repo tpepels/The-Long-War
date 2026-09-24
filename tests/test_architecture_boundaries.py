@@ -77,6 +77,21 @@ def test_runtime_and_search_do_not_special_case_card_ids() -> None:
         assert not leaked, f"{path} special-cases cards: {leaked}"
 
 
+def test_deck_format_is_separate_from_match_rules() -> None:
+    assert "deck_size" not in GameRules.__dataclass_fields__
+
+    engine_source = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
+    assert "PLAYTEST_DECK_SIZE" not in engine_source
+    assert "validate_deck_definition" not in engine_source
+    assert "exactly 34" not in engine_source
+
+    simulator_source = (ROOT / "tools" / "simulate.py").read_text(
+        encoding="utf-8"
+    )
+    assert "--deck-size" not in simulator_source
+    assert "rules.deck_size" not in simulator_source
+
+
 def test_game_core_does_not_know_shipped_decks() -> None:
     """Reference/archetype decks are content passed to the engine, not rules."""
     core = "\n".join(
