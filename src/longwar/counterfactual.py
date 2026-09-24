@@ -63,6 +63,8 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         result["role"] = card["role"]
         result["hero"] = bool(card.get("hero", False))
         result["strength"] = 6 if result["hero"] else 4
+        if result["hero"]:
+            result["hero_name_strength"] = int(card["hero_name_strength"])
     elif card_type == "link":
         result["text"] = (
             "Experimental matched baseline. Its **Subject** gets +1 **Strength**. "
@@ -169,36 +171,18 @@ def generate_context_decks(
             f"At most {deck_size} distinct cards can be required in a deck context"
         )
 
-    heroes = [card["id"] for card in cards if card.get("hero", False)]
-    required_heroes = [card_id for card_id in required if meta[card_id].get("hero", False)]
-    if len(required_heroes) > 1:
-        raise ValueError(
-            "A legal context cannot require more than one Hero; "
-            "evaluate alternative Heroes in separate counterfactual runs"
-        )
-    if not heroes:
-        raise ValueError("Card pool must contain at least one Hero")
-
     rng = random.Random(seed)
     uncovered = set(all_ids) - set(required)
     contexts: list[list[str]] = []
     seen: set[tuple[str, ...]] = set()
 
     for context_index in range(count):
-        chosen_hero = (
-            required_heroes[0]
-            if required_heroes
-            else heroes[context_index % len(heroes)]
-        )
         deck = list(required)
-        if chosen_hero not in deck:
-            deck.append(chosen_hero)
 
         eligible_unique = [
             card_id
             for card_id in all_ids
             if card_id not in deck
-            and (not meta[card_id].get("hero", False) or card_id == chosen_hero)
         ]
         coverage = [card_id for card_id in eligible_unique if card_id in uncovered]
         rng.shuffle(coverage)
@@ -238,7 +222,6 @@ def generate_context_decks(
                         index
                         for index in range(len(deck) - 1, -1, -1)
                         if deck[index] not in required
-                        and deck[index] != chosen_hero
                     ),
                     None,
                 )
@@ -609,17 +592,11 @@ def run_counterfactual_experiment(
 
     experiment_data = build_experiment_card_data(card_data)
     engine = GameEngine(experiment_data)
-    selected_heroes = [
-        card_id
-        for card_id in selected_cards
-        if canonical_cards[card_id].get("hero", False)
-    ]
     deck_size = GameRules.standard().deck_size
-    if len(selected_cards) > deck_size or len(selected_heroes) > 1:
+    if len(selected_cards) > deck_size:
         raise ValueError(
             f"A single paired counterfactual run requires at most {deck_size} "
-            "selected cards and at most one Hero. Split a larger pool into "
-            "candidate groups; alternative Heroes must be evaluated separately."
+            "selected cards. Split a larger pool into candidate groups."
         )
 
     samples = build_samples(
