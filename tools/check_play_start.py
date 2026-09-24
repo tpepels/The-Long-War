@@ -275,40 +275,20 @@ def main() -> None:
         fail("delayed action banner did not identify the opponent");
         return;
       }
-      stage = "cycle";
+      stage = "verify-standard";
       return;
     }
 
-    if (stage === "cycle") {
+    if (stage === "verify-standard") {
       const snapshot = JSON.parse(window.render_game_to_text());
       if (snapshot.needs_ai) return;
-      const action = snapshot.legal_actions.find((action) => action.kind === "Cycle");
-      if (!action) { fail("Cycle was unavailable after the opponent response"); return; }
-      const card = [...document.querySelectorAll("#hand [data-hand-card]")].find((card) => card.dataset.handCard === action.card_id);
-      if (!card) { fail("Cycle card was not selectable"); return; }
-      card.click();
+      if (snapshot.legal_actions.some((action) => action.kind === "Draw" || action.kind === "Cycle")) {
+        fail("standard game exposed Draw or Cycle as an operation");
+        return;
+      }
       const cycle = document.getElementById("cycle-button");
-      if (!cycle || cycle.hidden || cycle.disabled) {
-        fail("Cycle did not activate for the selected card");
-        return;
-      }
-      beforeHand = snapshot.hand.length;
-      beforeCommand = snapshot.players[0].command;
-      cycleCost = action.command_cost;
-      cycle.click();
-      stage = "verify-cycle";
-      return;
-    }
-
-    if (stage === "verify-cycle") {
-      const snapshot = JSON.parse(window.render_game_to_text());
-      if (snapshot.last_action?.kind !== "Cycle" || snapshot.last_action?.actor !== 0) return;
-      if (snapshot.hand.length !== beforeHand) {
-        fail("Cycle did not replace exactly one visible hand card");
-        return;
-      }
-      if (snapshot.players[0].command !== beforeCommand - cycleCost) {
-        fail("Cycle did not spend its displayed Command cost");
+      if (cycle && !cycle.hidden && getComputedStyle(cycle).display !== "none") {
+        fail("Cycle control was visible in the standard game");
         return;
       }
       if (document.documentElement.scrollWidth > innerWidth + 2 || document.documentElement.scrollHeight > innerHeight + 2) {
@@ -316,7 +296,7 @@ def main() -> None:
         return;
       }
       root.dataset.playSmoke = "pass";
-      root.dataset.playSmokeDetail = "menu, keyboard cancellation, human action, full inspection, paced AI, and Cycle passed";
+      root.dataset.playSmokeDetail = "menu, keyboard cancellation, human action, full inspection, paced AI, and standard Force controls passed";
       clearInterval(timer);
       return;
     }
@@ -403,7 +383,7 @@ def main() -> None:
             detail = result.stdout.split(marker, 1)[1].split('"', 1)[0]
         raise SystemExit(f"Start-a-match browser smoke failed: {detail}")
 
-    print(f"PASS: {width}x{height} real browser menu, keyboard targeting/cancellation, action, inspector, paced AI and Cycle" + (" with reduced motion" if args.reduced_motion else ""))
+    print(f"PASS: {width}x{height} real browser menu, keyboard targeting/cancellation, action, inspector, paced AI and standard Force controls" + (" with reduced motion" if args.reduced_motion else ""))
 
 
 if __name__ == "__main__":
