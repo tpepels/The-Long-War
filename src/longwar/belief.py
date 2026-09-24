@@ -6,6 +6,7 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Protocol
 
+from .decks import NON_UNIQUE_COPY_LIMIT, UNIQUE_COPY_LIMIT
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState
 
@@ -109,12 +110,18 @@ class CardPoolDeckPrior:
         engine: GameEngine,
         *,
         deck_size: int,
+        non_unique_copy_limit: int = NON_UNIQUE_COPY_LIMIT,
+        unique_copy_limit: int = UNIQUE_COPY_LIMIT,
         card_weights: dict[str, float] | None = None,
     ):
         self.engine = engine
         if deck_size < 1:
             raise ValueError("deck_size must be positive")
+        if non_unique_copy_limit < 1 or unique_copy_limit < 1:
+            raise ValueError("copy limits must be positive")
         self.deck_size = deck_size
+        self.non_unique_copy_limit = non_unique_copy_limit
+        self.unique_copy_limit = unique_copy_limit
         self.card_weights = dict(card_weights or {})
         if any(not isfinite(weight) or weight < 0 for weight in self.card_weights.values()):
             raise ValueError("Card prior weights must be finite and non-negative")
@@ -138,7 +145,11 @@ class CardPoolDeckPrior:
             # already requires that exact experimental identity.
             if card.get("experimental", False) and required[card_id] == 0:
                 continue
-            maximum = 1 if card["unique"] else 2
+            maximum = (
+                self.unique_copy_limit
+                if card["unique"]
+                else self.non_unique_copy_limit
+            )
             if required[card_id] > maximum:
                 raise BeliefStateError(
                     f"Observed {required[card_id]} copies of {card_id}, maximum is {maximum}"
