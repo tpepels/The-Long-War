@@ -110,9 +110,15 @@ make ismcts-match ISMCTS_MATCH_ARGS="--b-rollout-depth 8"
 
 # Final cross-algorithm comparison after choosing the ISMCTS configuration.
 make strength-bench
+
+# Unattended structural battery for an 8-core systemd laptop.
+# Runs 48 games per deck/orientation by default and checkpoints after each run.
+make overnight-search
 ```
 
-Override the decision sample only deliberately, for example `ISMCTS_MATCH_GAMES=48`; do not use tiny samples to choose an agent.
+`make overnight-search` first runs `make verify-algorithms`, then uses `systemd-inhibit` to keep the machine awake. It runs an identical baseline-vs-baseline control, reuse vs cold, progressive widening at 0.5 and 1.0, cheap vs greedy/random rollouts, rollout depth 5 vs 3/8, and finally the provisional baseline against alpha-beta. Each A/B comparison changes only candidate B. The overnight runner writes a checkpointed aggregate summary under `artifacts/search-benchmark/overnight/` and continues after an isolated experiment failure unless `OVERNIGHT_SEARCH_ARGS="--stop-on-error"` is supplied.
+
+The overnight default is 48 games per deck/orientation: 384 games and 192 independent mirrored deal-pairs per comparison. Override it deliberately, for example `OVERNIGHT_SEARCH_GAMES=24`; the runner refuses values below 24. For one-off comparisons, `make ismcts-match` remains at 24 games per deck/orientation.
 
 Strength artifacts preserve per-game seeds/outcomes, effective configuration, source fingerprints and paired uncertainty over mirrored deals. Different budgets/seeds/configurations use different artifact directories.
 
