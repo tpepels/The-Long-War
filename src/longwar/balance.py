@@ -127,6 +127,7 @@ def _command_card_value(card: dict[str, Any]) -> float:
             value -= 0.35
         if card.get("hero", False):
             value += 0.6
+            value += 0.4 * float(card.get("hero_name_strength", 0))
         return max(0.0, value)
 
     if card_type == "name":
