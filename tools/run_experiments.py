@@ -1422,7 +1422,15 @@ def parse_args() -> argparse.Namespace:
         "ismcts-match",
         help="Direct equal-time comparison of two ISMCTS configurations.",
     )
-    ismcts_match.add_argument("--games", type=int, default=8)
+    ismcts_match.add_argument(
+        "--games",
+        type=int,
+        default=24,
+        help=(
+            "Games per deck/orientation. Default 24 gives 192 games total "
+            "and 96 independent mirrored deal pairs."
+        ),
+    )
     ismcts_match.add_argument("--jobs", type=int, default=8)
     ismcts_match.add_argument("--iterations", type=int, default=100_000)
     ismcts_match.add_argument("--time-budget-seconds", type=float, default=2.0)
