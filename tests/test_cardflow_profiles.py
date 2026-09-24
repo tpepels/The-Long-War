@@ -33,10 +33,17 @@ def profile_candidate(*, automatic: bool = False, paid: bool = False):
             ROOT / "decks" / "reference.json"
         ).read_text(encoding="utf-8")
     )["cards"]
-    draw_mode = "automatic" if automatic else "paid"
-    rules = GameRules.force_candidate(draw_mode)
-    if not automatic and not paid:
-        rules = rules.with_overrides(paid_draw_enabled=False)
+    rules = GameRules.standard()
+    if paid:
+        rules = rules.with_overrides(
+            automatic_draw=False,
+            paid_draw_enabled=True,
+        )
+    elif not automatic:
+        rules = rules.with_overrides(
+            automatic_draw=False,
+            paid_draw_enabled=False,
+        )
     engine = GameEngine(data, rules=rules)
     state = engine.new_game(deck, deck, seed=26092334, first_player=0)
     return engine, state
@@ -49,7 +56,26 @@ def cardflow_candidate(variant: str):
             ROOT / "decks" / "reference.json"
         ).read_text(encoding="utf-8")
     )["cards"]
-    engine = GameEngine(data, rules=GameRules.force_experiment(variant))
+    changes = {
+        "control": {},
+        "paid-free": {
+            "automatic_draw": False,
+            "paid_draw_enabled": True,
+            "paid_draw_consumes_operation": False,
+        },
+        "auto-discard9": {"battle_end_hand_limit": 9},
+        "auto-discard7": {"battle_end_hand_limit": 7},
+        "auto-cap10": {"automatic_draw_hand_limit": 10},
+        "automatic": {},
+        "paid": {
+            "automatic_draw": False,
+            "paid_draw_enabled": True,
+        },
+    }
+    engine = GameEngine(
+        data,
+        rules=GameRules.standard().with_overrides(**changes[variant]),
+    )
     state = engine.new_game(deck, deck, seed=26092334, first_player=0)
     return engine, state
 
