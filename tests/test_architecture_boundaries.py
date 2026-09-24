@@ -99,6 +99,50 @@ def test_game_core_does_not_know_shipped_decks() -> None:
         assert marker not in core
 
 
+def test_browser_build_packages_only_game_runtime_python() -> None:
+    from tools import build_browser_runtime
+
+    packaged = set(build_browser_runtime.BROWSER_PYTHON_FILES)
+    assert packaged == {
+        "__init__.py",
+        "cards.py",
+        "rules.py",
+        "heuristics.py",
+        "web_api.py",
+        "game/__init__.py",
+        "game/actions.py",
+        "game/engine.py",
+        "game/model.py",
+        "agents/__init__.py",
+        "agents/heuristic_agent.py",
+    }
+
+    forbidden = (
+        "simulate.py",
+        "telemetry.py",
+        "human_flow.py",
+        "balance.py",
+        "health.py",
+        "playability.py",
+        "counterfactual.py",
+        "targeted_counterfactual.py",
+        "cardflow.py",
+        "mccfr.py",
+        "online_mccfr.py",
+        "parallel_mccfr.py",
+        "agents/ismcts_agent.py",
+        "agents/mccfr_agent.py",
+        "agents/online_mccfr_agent.py",
+        "agents/strategic_heuristic_agent.py",
+        "algorithms/alpha_beta.py",
+    )
+    assert not set(forbidden) & packaged
+
+    native = set(build_browser_runtime.BROWSER_NATIVE_FILES)
+    assert "_fast_search.pyx" in native
+    assert "_mccfr_accel.pyx" not in native
+
+
 def test_browser_adapter_has_no_research_dependencies() -> None:
     source = (SRC / "web_api.py").read_text(encoding="utf-8")
     for forbidden in (
