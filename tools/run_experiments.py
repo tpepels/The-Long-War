@@ -468,6 +468,8 @@ def benchmark_ismcts_match(
     jobs: int,
     iterations: int,
     time_budget_seconds: float,
+    belief_samples_a: int,
+    belief_samples_b: int,
     exploration_a: float,
     exploration_b: float,
     progressive_widening_a: float,
@@ -478,12 +480,18 @@ def benchmark_ismcts_match(
     rollout_depth_b: int,
     rollout_policy_a: str,
     rollout_policy_b: str,
+    rollout_epsilon_a: float,
+    rollout_epsilon_b: float,
+    max_tree_nodes_a: int | None,
+    max_tree_nodes_b: int | None,
     seed: int = 26092400,
 ) -> Path:
     """Direct, equal-time ISMCTS configuration comparison."""
     require_cython()
     if games_per_orientation <= 0 or jobs <= 0 or iterations <= 0:
         raise SystemExit("games, jobs, and iterations must be positive")
+    if belief_samples_a <= 0 or belief_samples_b <= 0:
+        raise SystemExit("ISMCTS belief samples must be positive")
     if time_budget_seconds <= 0.0:
         raise SystemExit("--time-budget-seconds must be positive")
     for value in (exploration_a, exploration_b, progressive_widening_a, progressive_widening_b):
@@ -491,24 +499,35 @@ def benchmark_ismcts_match(
             raise SystemExit("ISMCTS exploration/PW values must be non-negative")
     if rollout_depth_a < 0 or rollout_depth_b < 0:
         raise SystemExit("ISMCTS rollout depths must be non-negative")
+    if not 0.0 <= rollout_epsilon_a <= 1.0 or not 0.0 <= rollout_epsilon_b <= 1.0:
+        raise SystemExit("ISMCTS rollout epsilon must be between 0 and 1")
+    for value in (max_tree_nodes_a, max_tree_nodes_b):
+        if value is not None and value <= 0:
+            raise SystemExit("ISMCTS max tree nodes must be positive")
     valid_rollout_policies = {"greedy", "cheap", "random"}
     if rollout_policy_a not in valid_rollout_policies or rollout_policy_b not in valid_rollout_policies:
         raise SystemExit("ISMCTS rollout policy must be greedy, cheap, or random")
 
     decks = ("reference", "avaros", "mara", "sera")
     config_a = {
+        "ismcts_belief_samples": belief_samples_a,
         "ismcts_exploration": exploration_a,
         "ismcts_progressive_widening": progressive_widening_a,
         "ismcts_reuse_tree": reuse_tree_a,
         "ismcts_rollout_depth": rollout_depth_a,
         "ismcts_rollout_policy": rollout_policy_a,
+        "ismcts_rollout_epsilon": rollout_epsilon_a,
+        "ismcts_max_tree_nodes": max_tree_nodes_a,
     }
     config_b = {
+        "ismcts_belief_samples": belief_samples_b,
         "ismcts_exploration": exploration_b,
         "ismcts_progressive_widening": progressive_widening_b,
         "ismcts_reuse_tree": reuse_tree_b,
         "ismcts_rollout_depth": rollout_depth_b,
         "ismcts_rollout_policy": rollout_policy_b,
+        "ismcts_rollout_epsilon": rollout_epsilon_b,
+        "ismcts_max_tree_nodes": max_tree_nodes_b,
     }
     identity = experiment_identity({
         "command": "ismcts-match",
@@ -560,7 +579,6 @@ def benchmark_ismcts_match(
                 "--agent-b-seed-offset", str(seat_seed_offsets[1]),
                 "--agent-a-options-json", json.dumps(seat_configs[0], separators=(",", ":")),
                 "--agent-b-options-json", json.dumps(seat_configs[1], separators=(",", ":")),
-                "--ismcts-belief-samples", "12",
                 "--ismcts-iterations", str(iterations),
                 "--ismcts-time-budget-seconds", str(time_budget_seconds),
                 "--progress-file", str(progress),
@@ -573,12 +591,16 @@ def benchmark_ismcts_match(
         f"{time_budget_seconds:g}s/searched move"
     )
     print(
-        f"A c={exploration_a:g} pw={progressive_widening_a:g} "
+        f"A belief={belief_samples_a} c={exploration_a:g} "
+        f"pw={progressive_widening_a:g} "
         f"{'reuse' if reuse_tree_a else 'cold'} "
-        f"rollout={rollout_policy_a}/{rollout_depth_a} | "
-        f"B c={exploration_b:g} pw={progressive_widening_b:g} "
+        f"rollout={rollout_policy_a}/{rollout_depth_a} "
+        f"eps={rollout_epsilon_a:g} tree={max_tree_nodes_a or 'auto'} | "
+        f"B belief={belief_samples_b} c={exploration_b:g} "
+        f"pw={progressive_widening_b:g} "
         f"{'reuse' if reuse_tree_b else 'cold'} "
-        f"rollout={rollout_policy_b}/{rollout_depth_b}"
+        f"rollout={rollout_policy_b}/{rollout_depth_b} "
+        f"eps={rollout_epsilon_b:g} tree={max_tree_nodes_b or 'auto'}"
     )
     print("\nProgress")
     print("deck       orientation   A-B    elapsed")
@@ -622,12 +644,18 @@ def benchmark_ismcts_match(
             "decision_seconds": 0.0,
             "search_work": 0.0,
             "timeouts": 0,
+            "tree_capacity_cutoffs": 0,
+            "capacity_reroots": 0,
+            "root_reused_decisions": 0,
         },
         "candidate-b": {
             "searched_decisions": 0,
             "decision_seconds": 0.0,
             "search_work": 0.0,
             "timeouts": 0,
+            "tree_capacity_cutoffs": 0,
+            "capacity_reroots": 0,
+            "root_reused_decisions": 0,
         },
     }
     wall_sum = 0.0
@@ -658,6 +686,16 @@ def benchmark_ismcts_match(
             )
             resources[label]["timeouts"] += int(
                 stats.get("timed_out_decisions", 0) or 0
+            )
+            reuse = stats.get("ismcts_tree_reuse", {})
+            resources[label]["tree_capacity_cutoffs"] += int(
+                reuse.get("tree_capacity_cutoffs", 0) or 0
+            )
+            resources[label]["capacity_reroots"] += int(
+                reuse.get("tree_resets", {}).get("capacity_reroot", 0) or 0
+            )
+            resources[label]["root_reused_decisions"] += int(
+                reuse.get("root_reused_decisions", 0) or 0
             )
 
     overall_a = sum(row["a"] for row in totals.values())
@@ -693,13 +731,21 @@ def benchmark_ismcts_match(
             ),
             "mean_iterations": stats["search_work"] / count if count else None,
             "timeout_rate": stats["timeouts"] / count if count else None,
+            "tree_capacity_cutoffs": int(stats["tree_capacity_cutoffs"]),
+            "capacity_reroots": int(stats["capacity_reroots"]),
+            "root_reuse_rate": (
+                stats["root_reused_decisions"] / count if count else None
+            ),
         }
         if count:
             print(
                 f"{label}: "
                 f"{resource_summary[label]['mean_searched_decision_seconds']:.3f}s/searched decision, "
                 f"{resource_summary[label]['mean_iterations']:,.0f} iterations, "
-                f"timeouts={100.0 * resource_summary[label]['timeout_rate']:.1f}%"
+                f"timeouts={100.0 * resource_summary[label]['timeout_rate']:.1f}%, "
+                f"reuse={100.0 * resource_summary[label]['root_reuse_rate']:.1f}%, "
+                f"capacity-cutoffs={resource_summary[label]['tree_capacity_cutoffs']}, "
+                f"capacity-reroots={resource_summary[label]['capacity_reroots']}"
             )
 
     summary = {
@@ -1131,11 +1177,14 @@ def run_suite(args: argparse.Namespace) -> Path:
         raise SystemExit("--time-budget-seconds must be positive")
 
     baseline = {
+        "belief_samples": 12,
         "exploration": DEFAULT_ISMCTS_EXPLORATION,
         "progressive_widening": 0.0,
         "reuse_tree": True,
         "rollout_depth": 5,
         "rollout_policy": "cheap",
+        "rollout_epsilon": 0.12,
+        "max_tree_nodes": None,
     }
     comparisons = [
         ("baseline-control", {}),
@@ -1207,6 +1256,11 @@ def run_suite(args: argparse.Namespace) -> Path:
                 jobs=args.jobs,
                 iterations=args.iterations,
                 time_budget_seconds=args.time_budget_seconds,
+                belief_samples_a=baseline["belief_samples"],
+                belief_samples_b=overrides.get(
+                    "belief_samples_b",
+                    baseline["belief_samples"],
+                ),
                 exploration_a=baseline["exploration"],
                 exploration_b=baseline["exploration"],
                 progressive_widening_a=baseline["progressive_widening"],
@@ -1228,6 +1282,16 @@ def run_suite(args: argparse.Namespace) -> Path:
                 rollout_policy_b=overrides.get(
                     "rollout_policy_b",
                     baseline["rollout_policy"],
+                ),
+                rollout_epsilon_a=baseline["rollout_epsilon"],
+                rollout_epsilon_b=overrides.get(
+                    "rollout_epsilon_b",
+                    baseline["rollout_epsilon"],
+                ),
+                max_tree_nodes_a=baseline["max_tree_nodes"],
+                max_tree_nodes_b=overrides.get(
+                    "max_tree_nodes_b",
+                    baseline["max_tree_nodes"],
                 ),
                 seed=args.seed,
             )
@@ -1373,6 +1437,8 @@ def parse_args() -> argparse.Namespace:
     ismcts_match.add_argument("--iterations", type=int, default=100_000)
     ismcts_match.add_argument("--time-budget-seconds", type=float, default=2.0)
     ismcts_match.add_argument("--seed", type=int, default=26092400)
+    ismcts_match.add_argument("--a-belief-samples", type=int, default=12)
+    ismcts_match.add_argument("--b-belief-samples", type=int, default=12)
     ismcts_match.add_argument("--a-exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     ismcts_match.add_argument("--b-exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     ismcts_match.add_argument("--a-pw", type=float, default=0.0)
@@ -1381,6 +1447,10 @@ def parse_args() -> argparse.Namespace:
     ismcts_match.add_argument("--b-no-tree-reuse", action="store_true")
     ismcts_match.add_argument("--a-rollout-depth", type=int, default=5)
     ismcts_match.add_argument("--b-rollout-depth", type=int, default=5)
+    ismcts_match.add_argument("--a-rollout-epsilon", type=float, default=0.12)
+    ismcts_match.add_argument("--b-rollout-epsilon", type=float, default=0.12)
+    ismcts_match.add_argument("--a-max-tree-nodes", type=int)
+    ismcts_match.add_argument("--b-max-tree-nodes", type=int)
     ismcts_match.add_argument(
         "--a-rollout-policy",
         choices=("greedy", "cheap", "random"),
@@ -1474,6 +1544,8 @@ def main() -> None:
             jobs=args.jobs,
             iterations=args.iterations,
             time_budget_seconds=args.time_budget_seconds,
+            belief_samples_a=args.a_belief_samples,
+            belief_samples_b=args.b_belief_samples,
             exploration_a=args.a_exploration,
             exploration_b=args.b_exploration,
             progressive_widening_a=args.a_pw,
@@ -1484,6 +1556,10 @@ def main() -> None:
             rollout_depth_b=args.b_rollout_depth,
             rollout_policy_a=args.a_rollout_policy,
             rollout_policy_b=args.b_rollout_policy,
+            rollout_epsilon_a=args.a_rollout_epsilon,
+            rollout_epsilon_b=args.b_rollout_epsilon,
+            max_tree_nodes_a=args.a_max_tree_nodes,
+            max_tree_nodes_b=args.b_max_tree_nodes,
             seed=args.seed,
         )
     elif args.command == "strength-bench":
