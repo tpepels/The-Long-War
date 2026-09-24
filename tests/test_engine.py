@@ -664,11 +664,11 @@ def test_hero_is_strong_and_buffs_adjacent_subjects() -> None:
     assert engine.position_strength(state, 0, adjacent) == 7
 
 
-def test_deck_allows_multiple_heroes_but_not_duplicate_hero_titles() -> None:
-    from longwar.game.engine import InvalidDeck
+def test_playtest_deck_policy_allows_multiple_heroes_but_not_duplicate_titles() -> None:
+    from longwar.decks import InvalidDeckDefinition, validate_deck_definition
 
     engine, deck = engine_and_deck()
-    engine.validate_deck(deck)
+    validate_deck_definition(deck, engine.cards, exact_size=len(deck))
     assert sum(engine.cards[card_id].get("hero", False) for card_id in deck) == 3
 
     duplicate_hero = list(deck)
@@ -682,11 +682,28 @@ def test_deck_allows_multiple_heroes_but_not_duplicate_hero_titles() -> None:
     duplicate_hero.append("avaros-the-bronze-king")
 
     try:
-        engine.validate_deck(duplicate_hero)
-    except InvalidDeck as exc:
+        validate_deck_definition(
+            duplicate_hero,
+            engine.cards,
+            exact_size=len(deck),
+        )
+    except InvalidDeckDefinition as exc:
         assert "Avaros, the Bronze King appears 2 times; maximum is 1" in str(exc)
     else:
         raise AssertionError("Duplicate Hero title should be invalid")
+
+
+def test_engine_accepts_deck_sizes_independent_from_match_rules() -> None:
+    engine, deck = engine_and_deck()
+    larger = list(deck)
+    while len(larger) < 40:
+        larger.append("the-fifty-men")
+
+    engine.validate_deck(larger)
+    state = engine.new_game(larger, larger, seed=1701, first_player=0)
+
+    assert len(state.players[0].hand) == engine.opening_hand_size
+    assert len(state.players[0].hand) + len(state.players[0].deck) == 40
 
 
 def test_public_stratagem_is_free_pre_action_in_legacy_profile_and_only_one_may_be_played() -> None:
