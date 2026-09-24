@@ -35,21 +35,23 @@ CANONICAL_DECK_PATHS = {
 
 
 def validate_data() -> None:
-    """Validate shipped canonical and experimental data through the engine."""
-    for card_file, deck_dir, profile in (
-        ("cards/cards.json", "decks", "standard"),
-        ("cards/experiments/force-draw-cards.json", "decks/experiments", "force-automatic"),
-    ):
-        data = load_card_file(ROOT / card_file)
-        if profile == "standard":
-            validate_command_costs(data)
+    """Validate the canonical card/deck data under every shipped rule profile."""
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    validate_command_costs(data)
+    deck_paths = [
+        ROOT / path
+        for path in CANONICAL_DECK_PATHS.values()
+    ]
+    for profile in GameRules.profile_names():
         engine = GameEngine(data, rules=GameRules.from_profile(profile))
-        decks = sorted((ROOT / deck_dir).glob("*.json"))
-        for path in decks:
+        for path in deck_paths:
             deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
             engine.validate_deck(deck)
             engine.legal_actions(engine.new_game(deck, deck, seed=1701))
-        print(f"Validated {card_file}: {len(data['cards'])} cards, {len(decks)} decks")
+    print(
+        f"Validated canonical data: {len(data['cards'])} cards, "
+        f"{len(deck_paths)} decks, {len(GameRules.profile_names())} profiles"
+    )
 
 
 def balance_run(args: argparse.Namespace) -> Path:
