@@ -27,9 +27,10 @@ class RandomAgent:
         if state.phase is not Phase.BATTLE:
             return self.rng.choice(actions)
 
+        pass_actions = [action for action in actions if isinstance(action, Pass)]
         non_pass = [action for action in actions if not isinstance(action, Pass)]
         if not non_pass:
-            return Pass()
-        if self.rng.random() < self.pass_probability:
-            return Pass()
+            return pass_actions[0]
+        if self.rng.random() < self.pass_probability and pass_actions:
+            return pass_actions[0]
         return self.rng.choice(non_pass)
