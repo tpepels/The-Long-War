@@ -145,6 +145,8 @@ def ensure_browser_runtime() -> Path:
     prepare_browser_source(source)
 
     wheels = OUTPUT / "wheels"
+    if wheels.exists():
+        shutil.rmtree(wheels)
     wheels.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         [str(pyodide), "build", str(source), "--outdir", str(wheels)],
