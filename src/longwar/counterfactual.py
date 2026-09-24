@@ -592,7 +592,7 @@ def run_counterfactual_experiment(
 
     experiment_data = build_experiment_card_data(card_data)
     engine = GameEngine(experiment_data)
-    deck_size = GameRules.standard().deck_size
+    deck_size = PLAYTEST_DECK_SIZE
     if len(selected_cards) > deck_size:
         raise ValueError(
             f"A single paired counterfactual run requires at most {deck_size} "
