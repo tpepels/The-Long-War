@@ -12,6 +12,7 @@ from longwar.belief import (
     HypothesisDeckPrior,
 )
 from longwar.cards import load_card_file
+from longwar.decks import validate_deck_definition
 from longwar.game import BoardTarget, Front, GameEngine, PlayPlot, Position, Rank, SetStratagem
 from longwar.game.model import GameState, PlayerState, StratagemState
 from longwar.mccfr import information_set_id
@@ -39,7 +40,7 @@ def test_card_pool_prior_samples_multiple_legal_deck_compositions() -> None:
     ]
 
     for deck in samples:
-        engine.validate_deck(deck)
+        validate_deck_definition(deck, engine.cards, exact_size=34)
     assert len({tuple(sorted(deck)) for deck in samples}) > 1
     assert any(Counter(deck) != Counter(reference) for deck in samples)
 
@@ -49,7 +50,11 @@ def test_hypothesis_prior_conditions_on_observed_cards() -> None:
     alternative = list(reference)
     alternative.remove("he-never-came")
     alternative.append("they-chose-another")
-    engine.validate_deck(alternative)
+    validate_deck_definition(
+        alternative,
+        engine.cards,
+        exact_size=len(reference),
+    )
 
     prior = HypothesisDeckPrior(
         engine,
@@ -175,7 +180,7 @@ def test_card_pool_prior_allows_multiple_distinct_heroes() -> None:
     assert "mara-queen-of-cinders" in heroes
     assert "sera-mother-of-white-hands" in heroes
     assert len(heroes) == len(set(heroes))
-    engine.validate_deck(sampled)
+    validate_deck_definition(sampled, engine.cards, exact_size=34)
 
 
 def test_belief_sampler_resamples_hidden_stratagem_identity_from_zone() -> None:
@@ -243,7 +248,7 @@ def test_card_pool_prior_uses_explicit_deck_size_not_engine_rules() -> None:
 
     assert prior.deck_size == 40
     assert len(sampled) == 40
-    engine.validate_deck(sampled)
+    validate_deck_definition(sampled, engine.cards, exact_size=40)
 
 
 def test_hypothesis_prior_conditions_on_hidden_card_type_evidence() -> None:
@@ -262,7 +267,11 @@ def test_hypothesis_prior_conditions_on_hidden_card_type_evidence() -> None:
             without_stratagems.append(card_id)
             counts[card_id] += 1
     assert len(without_stratagems) == deck_size
-    engine.validate_deck(without_stratagems)
+    validate_deck_definition(
+        without_stratagems,
+        engine.cards,
+        exact_size=deck_size,
+    )
     prior = HypothesisDeckPrior(engine, [
         DeckHypothesis(tuple(without_stratagems), weight=1000, label="impossible"),
         DeckHypothesis(tuple(reference), weight=1, label="compatible"),
@@ -292,4 +301,4 @@ def test_card_pool_prior_reserves_observed_hidden_card_slots() -> None:
         )
         assert sum(card in schemes for card in sampled) >= 3
         assert sum(card in stratagems for card in sampled) >= 1
-        engine.validate_deck(sampled)
+        validate_deck_definition(sampled, engine.cards, exact_size=34)
