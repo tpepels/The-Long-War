@@ -700,10 +700,22 @@ def test_engine_accepts_deck_sizes_independent_from_match_rules() -> None:
         larger.append("the-fifty-men")
 
     engine.validate_deck(larger)
-    state = engine.new_game(larger, larger, seed=1701, first_player=0)
+    state = engine.new_game(
+        larger,
+        larger,
+        seed=1701,
+        first_player=0,
+        opening_bonus=False,
+    )
 
-    assert len(state.players[0].hand) == engine.opening_hand_size
-    assert len(state.players[0].hand) + len(state.players[0].deck) == 40
+    assert [len(player.hand) for player in state.players] == [
+        engine.opening_hand_size,
+        engine.opening_hand_size,
+    ]
+    assert all(
+        len(player.hand) + len(player.deck) == 40
+        for player in state.players
+    )
 
 
 def test_public_stratagem_is_free_pre_action_in_legacy_profile_and_only_one_may_be_played() -> None:
