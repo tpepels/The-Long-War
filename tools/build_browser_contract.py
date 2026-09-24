@@ -464,7 +464,7 @@ def main() -> None:
             *command_scenarios(engine, deck),
         ],
         "sessions": [session_trace(cards, deck, mode, seed)
-                     for mode, seed in (("hotseat", 1701), ("hotseat", 17), ("heuristic", 1701))],
+                     for mode, seed in (("hotseat", 1701), ("hotseat", 17), ("computer", 1701))],
     }
 
     output = args.output
