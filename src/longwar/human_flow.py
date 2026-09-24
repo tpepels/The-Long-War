@@ -34,6 +34,7 @@ class HumanFlowDiagnostics:
         self.completion_events_total = 0
         self.command_spent_total = 0
         self.completion_command_refund_total = 0
+        self._current_deck_sizes = [1, 1]
 
         self.pass_events = 0
         self.first_pass_events = 0
@@ -55,6 +56,10 @@ class HumanFlowDiagnostics:
     def start_game(self, engine: GameEngine, state: GameState) -> None:
         self._no_force_streak = [0, 0]
         self._first_force_seen = [False, False]
+        self._current_deck_sizes = [
+            len(player.hand) + len(player.deck) + len(player.discard)
+            for player in state.players
+        ]
         opening_hands = state.opening_hands
         if not any(opening_hands):
             opening_hands = [
@@ -181,7 +186,8 @@ class HumanFlowDiagnostics:
         for player in range(2):
             self.deck_seen_fraction_total += min(
                 1.0,
-                (start_hands[player] + cards_drawn[player]) / engine.deck_size,
+                (start_hands[player] + cards_drawn[player])
+                / self._current_deck_sizes[player],
             )
 
         if before.pending_final_operation_for == actor:
