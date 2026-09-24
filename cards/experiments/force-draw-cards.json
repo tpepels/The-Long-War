@@ -1663,7 +1663,7 @@
         "hero"
       ],
       "role": "spearman",
-      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, this card is *Frontline only*. While an **adjacent Subject** you control has a **Name**, this **Subject** gets +1 **Strength**.",
+      "text": "*Hero.* Play as a **Subject** or **Name**. **Name**: +2 **Strength**. **Subject**: *Frontline only*. +1 **Strength** while an **adjacent Subject** you control has a **Name**.",
       "rules": {
         "placement": {
           "rank": "front"
@@ -1684,23 +1684,18 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "TRAIT",
-          "text": "*Hero.*"
-        },
-        {
-          "kind": "property",
           "label": "DUAL",
-          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+          "text": "**Subject** or **Name**. **Name**: +2 **Strength**."
         },
         {
           "kind": "property",
-          "label": "PLAY",
-          "text": "As a **Subject**: **Frontline** only."
+          "label": "SUBJECT",
+          "text": "*Frontline only*."
         },
         {
           "kind": "continuous",
           "label": "WHILE",
-          "text": "An **adjacent Subject** you control has a **Name**: this **Subject** gets +1 **Strength**."
+          "text": "An **adjacent Subject** you control has a **Name**: +1 **Strength**."
         }
       ],
       "command_cost": 3
