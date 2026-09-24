@@ -43,8 +43,10 @@ def canonical_variant(data: dict[str, Any]) -> bool:
     if not variant:
         return True  # Static/causal/policy artifacts have no simulation variant.
 
-    profile = variant.get("rules_profile", "custom")
-    if profile not in {"custom", "standard"}:
+    # Named rules profiles are obsolete. Simulation provenance records the
+    # actual rule values so reports cannot hide experimental differences behind
+    # a label.
+    if "rules_profile" in variant:
         return False
 
     card_file = variant.get("card_file")
@@ -52,15 +54,9 @@ def canonical_variant(data: dict[str, Any]) -> bool:
         return False
 
     expected = serialized_rule_metadata(GameRules.standard())
-    if profile == "custom" and any(key not in variant for key in expected):
+    if any(key not in variant for key in expected):
         return False
-
-    # Named standard provenance may omit redundant rule metadata, but any rule
-    # metadata that is present still has to agree with the standard profile.
-    for key, value in expected.items():
-        if key in variant and variant[key] != value:
-            return False
-    return True
+    return all(variant[key] == value for key, value in expected.items())
 
 
 def main() -> None:
