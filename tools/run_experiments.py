@@ -407,7 +407,11 @@ def benchmark_strength(
         raise SystemExit("Search budgets must be positive")
 
     decks = ("reference", "avaros", "mara", "sera")
-    output_dir = BENCH_ROOT / "strength"
+    if progressive_widening > 0.0:
+        pw_label = f"{progressive_widening:g}".replace(".", "p")
+        output_dir = BENCH_ROOT / f"strength-pw-{pw_label}"
+    else:
+        output_dir = BENCH_ROOT / "strength"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     cells: list[tuple[str, str, Path, list[str]]] = []
