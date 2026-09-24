@@ -163,3 +163,35 @@ def test_cython_and_python_backends_agree_on_root_decision() -> None:
         cython_agent.last_decision["completed_depth"]
         == python_agent.last_decision["completed_depth"]
     )
+
+
+def test_cython_alpha_beta_wall_clock_budget_reports_actual_work() -> None:
+    pytest.importorskip("longwar._fast_search")
+
+    deck = load_deck()
+    engine = candidate_engine()
+    state = engine.new_game(deck, deck, seed=7350, first_player=0)
+    priors = (
+        HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="a")]),
+        HypothesisDeckPrior(engine, [DeckHypothesis(tuple(deck), label="b")]),
+    )
+    agent = StrategicHeuristicAgent(
+        engine,
+        seed=7351,
+        priors=priors,
+        belief_samples=2,
+        rollout_plies=32,
+        candidate_width=4,
+        node_budget=50,
+        time_budget_seconds=0.01,
+        search_backend="cython",
+    )
+
+    action = agent.choose(engine, state)
+    info = agent.last_decision
+
+    assert action in engine.legal_actions(state)
+    assert info["search_time_budget_seconds"] == pytest.approx(0.01)
+    assert info["search_timed_out"] is True
+    assert int(info["search_nodes"]) >= 256
+    assert float(info["decision_seconds"]) > 0.0
