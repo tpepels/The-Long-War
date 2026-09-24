@@ -119,8 +119,9 @@ class StrategicHeuristicAgent(HeuristicAgent):
             if self._use_native
             else None
         )
+        tt_floor = 1_048_576 if time_budget_seconds is not None else 131_072
         self._native_tt = (
-            _NativeTranspositionTable(max(131_072, node_budget * 4))
+            _NativeTranspositionTable(max(tt_floor, node_budget * 4))
             if self._use_native
             else None
         )
