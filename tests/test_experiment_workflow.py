@@ -96,6 +96,119 @@ def test_makefile_owns_decision_grade_search_commands():
     assert "strength-bench:" in source
     assert "STRENGTH_BENCH_GAMES ?= 24" in source
     assert "STRENGTH_BENCH_SECONDS ?= 2" in source
+    assert "overnight-search:" in source
+    assert "OVERNIGHT_SEARCH_GAMES ?= 48" in source
+    assert "OVERNIGHT_SEARCH_JOBS ?= 8" in source
+    assert "OVERNIGHT_SEARCH_SECONDS ?= 2" in source
+    assert "systemd-inhibit" in source
+
+
+def test_overnight_search_defaults_and_minimum(monkeypatch):
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "overnight-search"],
+    )
+    args = runner.parse_args()
+    assert args.games == 48
+    assert args.jobs == 8
+    assert args.time_budget_seconds == pytest.approx(2.0)
+    assert args.iterations == 100_000
+    assert args.alpha_nodes == 20_000
+    assert args.skip_strength is False
+    assert args.stop_on_error is False
+
+    args.games = 23
+    with pytest.raises(SystemExit, match="at least 24"):
+        runner.run_overnight_search(args)
+
+
+def test_overnight_search_runs_structural_battery_and_checkpoints(
+    tmp_path,
+    monkeypatch,
+):
+    suite_dir = tmp_path / "overnight"
+
+    def fake_artifact_directory(base, identity):
+        suite_dir.mkdir(parents=True, exist_ok=True)
+        return suite_dir
+
+    match_calls = []
+    strength_calls = []
+
+    def fake_match(**kwargs):
+        match_calls.append(kwargs)
+        path = tmp_path / f"match-{len(match_calls)}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "candidate_a_win_rate": 0.5,
+                    "paired_uncertainty": {"ci95": [0.45, 0.55]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    def fake_strength(**kwargs):
+        strength_calls.append(kwargs)
+        path = tmp_path / "strength.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "mcts_win_rate": 0.5,
+                    "paired_uncertainty": {"ci95": [0.45, 0.55]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
+    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
+    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
+    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
+
+    args = Namespace(
+        games=24,
+        jobs=8,
+        iterations=100_000,
+        alpha_nodes=20_000,
+        time_budget_seconds=2.0,
+        seed=26092400,
+        skip_strength=False,
+        stop_on_error=False,
+    )
+    manifest_path = runner.run_overnight_search(args)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert len(match_calls) == 8
+    assert len(strength_calls) == 1
+    assert len(manifest["experiments"]) == 9
+    assert all(row["status"] == "passed" for row in manifest["experiments"])
+    assert [row["name"] for row in manifest["experiments"]] == [
+        "baseline-control",
+        "tree-cold",
+        "pw-0p5",
+        "pw-1p0",
+        "rollout-greedy",
+        "rollout-random",
+        "rollout-depth-3",
+        "rollout-depth-8",
+        "baseline-vs-alpha-beta",
+    ]
+    assert match_calls[0]["reuse_tree_b"] is True
+    assert match_calls[1]["reuse_tree_b"] is False
+    assert match_calls[2]["progressive_widening_b"] == pytest.approx(0.5)
+    assert match_calls[3]["progressive_widening_b"] == pytest.approx(1.0)
+    assert match_calls[4]["rollout_policy_b"] == "greedy"
+    assert match_calls[5]["rollout_policy_b"] == "random"
+    assert match_calls[6]["rollout_depth_b"] == 3
+    assert match_calls[7]["rollout_depth_b"] == 8
+    assert strength_calls[0]["time_budget_seconds"] == pytest.approx(2.0)
 
 
 def test_backend_parity_ignores_runtime_but_keeps_search_depth_and_outcomes(tmp_path):
