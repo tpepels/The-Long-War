@@ -296,17 +296,77 @@ cdef class NativeHeuristicEvaluator:
 
         return value
 
+    cdef void project_boundary_cleanup_fast(
+        self,
+        FastState state,
+    ) noexcept:
+        cdef int player, card, best_card, discard_ix
+        cdef int limit = self.engine.battle_end_hand_limit
+        cdef double score, best_score
+
+        if not state.cleanup_pending or limit < 0:
+            return
+
+        # Battle-end discards are player choices. Project each player to the
+        # hand limit by greedily retaining the hand that the existing
+        # strategic evaluator values most. This keeps cleanup policy inside
+        # the evaluator and avoids teaching ISMCTS any cleanup rule details.
+        for player in range(2):
+            while state.hand_len[player] > limit:
+                best_card = -1
+                best_score = -1.0e300
+                for card in range(self.engine.n_cards):
+                    if state.hand[player][card] == 0:
+                        continue
+
+                    discard_ix = state.discard_len[player]
+                    state.hand[player][card] -= 1
+                    state.hand_len[player] -= 1
+                    state.discard[player][discard_ix] = card
+                    state.discard_len[player] += 1
+
+                    score = self.strategic_evaluate_fast(state, player)
+
+                    state.discard_len[player] -= 1
+                    state.discard[player][discard_ix] = -1
+                    state.hand_len[player] += 1
+                    state.hand[player][card] += 1
+
+                    if score > best_score:
+                        best_score = score
+                        best_card = card
+
+                if best_card < 0:
+                    return
+
+                discard_ix = state.discard_len[player]
+                state.hand[player][best_card] -= 1
+                state.hand_len[player] -= 1
+                state.discard[player][discard_ix] = best_card
+                state.discard_len[player] += 1
+
     cdef double battle_boundary_evaluate_fast(
         self,
         FastState state,
         int player,
     ) noexcept:
+        cdef FastState scratch
+
         # score_battle() has already recorded the resolved Battle in
         # victories/last_battle and performed the canonical transition
         # toward the next Battle. Reuse the strategic evaluator here so
         # search cutoffs value both match progress and next-Battle readiness
         # without creating a second set of heuristic weights in ISMCTS.
-        return self.strategic_evaluate_fast(state, player)
+        if not state.cleanup_pending:
+            return self.strategic_evaluate_fast(state, player)
+
+        # Some rule profiles pause between Battles for hand cleanup. Project
+        # that intermediate state to the retained hands before evaluating it;
+        # the search algorithm itself remains unaware of cleanup semantics.
+        scratch = FastState()
+        scratch.copy_from_fast(state)
+        self.project_boundary_cleanup_fast(scratch)
+        return self.strategic_evaluate_fast(scratch, player)
 
     cdef double pass_score_fast(
         self,
