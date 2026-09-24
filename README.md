@@ -69,7 +69,7 @@ The [issue #21 desktop-client handoff](reports/issue-21-desktop-client.md) recor
 The packed engine supports up to 127 card identities, 64 cards per player deck, and 1024 generated actions, with checked boundaries. Counterfactual neutral cards are generated in memory and never added to printable canonical data.
 
 - `decks/*.json`: canonical reference and archetype decks.
-- Historical card-flow experiments: retained as explicit argument-driven rule variants in `cardflow.py`, outside the canonical rules API.
+- Historical rule variants: retained only as focused regression tests using explicit `GameRules.with_overrides(...)` values; there is no dedicated experiment runner for them.
 - `reports/`: retained historical playtest analyses. They are context, not current balance evidence.
 - `artifacts/`: generated local results, manifests, policies and build output.
 
@@ -145,10 +145,9 @@ Quick runs check plumbing and playability, not statistical balance. Deep runs ar
 ```bash
 python tools/run_experiments.py balance --preset quick --games 2 --seed 1701
 python tools/run_experiments.py balance --preset deep --games 2000 --seed 1701 --contexts 3 --games-per-context 4
-python tools/run_experiments.py run --preset deep --variant experiment --deck all --jobs 8 --seed 26092334 --exploration 0.3
 ```
 
-Outputs live under `artifacts/balance/<preset>/<identity>/`, `artifacts/cardflow/<preset>/<identity>/`, and `artifacts/search-benchmark/`. Each run saves configuration and source/card/deck fingerprints. An explicitly supplied card-flow output directory cannot silently mix different configurations.
+Outputs live under `artifacts/balance/<preset>/<identity>/` and `artifacts/search-benchmark/`. Each run saves configuration and source/card/deck fingerprints.
 
 `simulate.py` records action/card/pass/decision telemetry. `health.py` adds confidence-aware observational flags; `playability.py` summarizes card flow. `balance.py` handles static combinations. `counterfactual.py` estimates paired replacement and factorial contrasts; `targeted_counterfactual.py` preserves exact broad-sweep contexts for stronger follow-up. Lab builders aggregate these outputs and reject stale evidence.
 
