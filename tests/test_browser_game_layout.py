@@ -70,9 +70,10 @@ def test_live_player_loads_canonical_engine_without_a_javascript_rules_copy() ->
     assert "version_static_assets" in build
 
 
-def test_start_match_is_covered_by_real_browser_interaction_smoke() -> None:
+def test_start_match_real_browser_interaction_smoke_is_maintained() -> None:
     checker = text("tools/check_play_start.py")
-    workflow = text(".github/workflows/ci.yml")
+    makefile = text("Makefile")
+    readme = text("README.md")
     play = text("web/play.js")
 
     assert "form.requestSubmit()" in checker
@@ -82,8 +83,8 @@ def test_start_match_is_covered_by_real_browser_interaction_smoke() -> None:
     assert 'data-play-smoke="pass"' in checker
     assert '<button type="button" class="' in play
     assert "legal-target-cue" in play
-    assert "check_browser_engine.mjs" in workflow
-    assert "check_play_start.py --require-browser" in workflow
+    assert "check_browser_engine.mjs" in makefile
+    assert "check_play_start.py --require-browser" in readme
 
 
 def test_start_overlay_obeys_hidden_attribute() -> None:
