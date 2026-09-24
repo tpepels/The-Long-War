@@ -25,7 +25,9 @@ make verify
 
 Add a focused regression at the changed boundary. `make verify` checks every shipped card/deck against the current standard rules, the ordinary fast tests, and native/browser parity. `make verify-algorithms` validates search/AI only against the current standard rules. Historical non-standard rule-profile tests are marked `legacy_rule_experiment` and run under the full `make test`, not the canonical verification path. `make test-integration` checks multi-game and report pipelines.
 
-Rebuild after every `.pyx` or `.pxi` edit. Browser builds automatically detect changed package sources. The first browser build is slower; a current build is reused. No GitHub Actions run is needed for local verification.
+Rebuild after every `.pyx` or `.pxi` edit. Browser builds automatically detect changed package sources. The first browser build is slower; a current build is reused. No GitHub Actions run is needed for local verification. GitHub workflows are manual-only to avoid notification noise; deploy Pages or run expensive analysis explicitly when needed.
+
+Browser/Pyodide build chatter is written to `artifacts/browser/browser-build.log`, and complete browser-parity output to `artifacts/logs/browser-parity.log`. Successful verification prints only concise status. On failure, only a bounded/truncated tail is shown.
 
 ## One rules engine
 
