@@ -89,11 +89,11 @@ Static strength diagnostics read machine rules, not the optional historical `bal
 
 Algorithms consume engine/evaluator contracts without rule-profile branches. Beliefs stay outside traversal. MCCFR uses external sampling with depth-limited heuristic leaves and an imperfect-recall observation abstraction; a policy is not a full-game equilibrium proof. Generic Python/Cython traversal and the Kuhn-poker reference remain independent correctness checks. Replica multiprocessing is experimental because table serialization/merging can dominate runtime.
 
-ISMCTS serious defaults use 100,000 iterations with provisional UCT exploration `c=0.3`, cheap rollouts of depth 5, tree reuse enabled, and progressive widening disabled. The exploration value is intentionally provisional: current equal-time calibration does not justify spending more compute fine-tuning it before the larger structural choices are measured. Progressive widening remains **off by default and experimental**: `k * sqrt(N + 1)`, with fixed alpha 0.5. There is no supported alpha knob.
+ISMCTS serious defaults use 100,000 iterations with UCT exploration `c=0.3`, 12 root-belief samples in simulation, cheap rollouts of depth 5, rollout epsilon 0.12, tree reuse enabled, and progressive widening disabled. These values are treated as a baseline, not as truth: the canonical suite compares predeclared alternatives under equal wall-clock budgets and will mark the baseline not ready if a challenger is significantly stronger. Progressive widening remains **off by default and experimental**: `k * sqrt(N + 1)`, with fixed alpha 0.5. There is no supported alpha knob.
 
-Persistent trees now invalidate when observable belief evidence or search configuration changes. Retained root selection uses lifetime visits only within the valid context; diagnostics separate inherited and newly accumulated visits. Arenas are bounded (default four times the iteration budget); at capacity, search uses rollout leaves and clears on rerooting when needed. `ISMCTSAgent(max_tree_nodes=...)` can set a smaller cap. `--ismcts-no-tree-reuse` on the simulator and `--no-tree-reuse` on the strength benchmark provide cold-tree comparisons. Reuse/PW telemetry is diagnostic, not evidence that either improves strength.
+Persistent trees now invalidate when observable belief evidence or search configuration changes. Retained root selection uses lifetime visits only within the valid context; diagnostics separate inherited and newly accumulated visits. Arenas are bounded (default four times the iteration budget); at capacity, search uses rollout leaves and clears on rerooting when needed. `ISMCTSAgent(max_tree_nodes=...)` and `--ismcts-max-tree-nodes` make that capacity explicit for calibration. `--ismcts-no-tree-reuse` on the simulator and `--no-tree-reuse` on the strength benchmark provide cold-tree comparisons. Reuse/PW telemetry is diagnostic, not evidence that either improves strength.
 
-The pre-audit 43–21 cold / 46–18 reused / 39–25 reused-with-PW results are historical. Corrected belief conditioning, reuse and evaluation require new measurements before claiming the same strength or reuse rate. `ismcts-match` compares two candidate configurations on mirrored deals and can vary exploration, tree reuse, progressive widening, rollout policy, and rollout depth independently.
+The pre-audit 43–21 cold / 46–18 reused / 39–25 reused-with-PW results are historical. Corrected belief conditioning, reuse and evaluation require new measurements before claiming the same strength or reuse rate. `ismcts-match` compares two candidate configurations on mirrored deals and can vary belief samples, exploration, tree reuse/capacity, progressive widening, rollout policy/depth, and rollout epsilon independently.
 
 Make exposes one configurable search-experiment entry point instead of a target per solver or parameter combination. The runner owns experiment defaults.
 
@@ -101,6 +101,7 @@ Make exposes one configurable search-experiment entry point instead of a target 
 make verify-algorithms
 
 # Canonical unattended suite: 48 games per deck/orientation by default.
+# It ends with an explicit READY / NOT READY design-evidence verdict.
 make experiments
 
 # One ISMCTS A/B comparison: runner default is 24 games per deck/orientation.
@@ -120,13 +121,19 @@ make experiments \
   EXPERIMENT=ismcts-match \
   EXPERIMENT_ARGS="--b-rollout-depth 8"
 
+make experiments \
+  EXPERIMENT=ismcts-match \
+  EXPERIMENT_ARGS="--b-belief-samples 16 --b-max-tree-nodes 800000"
+
 # Equal-time ISMCTS vs alpha-beta.
 make experiments EXPERIMENT=strength-bench
 ```
 
-`make experiments` runs algorithm verification first and uses `systemd-inhibit` while the selected experiment runs. The default `suite` performs the baseline control, reuse, progressive widening, rollout policy/depth comparisons, and the provisional baseline-vs-alpha-beta reference. Parallel matchups display one aggregate live progress bar and checkpoint results under `artifacts/search-benchmark/`. Experiment variations belong in `EXPERIMENT` / `EXPERIMENT_ARGS`, not new Make targets.
+`make experiments` runs algorithm verification first and uses `systemd-inhibit` while the selected experiment runs. The default `suite` checks an identical-control match, exploration, belief-sample count, tree reuse/capacity, progressive widening, rollout policy/depth/epsilon, and the baseline-vs-alpha-beta reference. It reports **READY** only when the identical control calibrates around 50%, no predeclared ISMCTS challenger is significantly stronger, and ISMCTS is not significantly weaker than alpha-beta. Tree-capacity pressure is surfaced as a warning. Parallel matchups display one aggregate live progress bar and checkpoint results under `artifacts/search-benchmark/`. Experiment variations belong in `EXPERIMENT` / `EXPERIMENT_ARGS`, not new Make targets.
 
 Strength artifacts preserve per-game seeds/outcomes, effective configuration, source fingerprints and paired uncertainty over mirrored deals. Different budgets/seeds/configurations use different artifact directories.
+
+For game-design evidence, use **ISMCTS as the primary hidden-information policy** once the suite reports READY, with **strategic alpha-beta as an independent cross-check**. The one-ply heuristic is the fast product opponent and a useful high-volume exploratory telemetry policy, but it is not a balance oracle. MCCFR and online MCCFR remain research-only until separately validated for the current ruleset. Simulation heuristic exploration defaults to 0.0 so product and simulation policy are aligned unless exploration is explicitly requested.
 
 ## Balance and analysis
 
