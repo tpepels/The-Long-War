@@ -32,7 +32,7 @@ def setup():
 
 def test_card_pool_prior_samples_multiple_legal_deck_compositions() -> None:
     engine, reference, _ = setup()
-    prior = CardPoolDeckPrior(engine)
+    prior = CardPoolDeckPrior(engine, deck_size=34)
     samples = [
         prior.sample_deck(Counter(), random.Random(seed))
         for seed in range(12)
@@ -149,7 +149,7 @@ def test_card_pool_prior_excludes_unobserved_experimental_cards() -> None:
             load_card_file(ROOT / "cards" / "cards.json")
         )
     )
-    prior = CardPoolDeckPrior(experiment_engine)
+    prior = CardPoolDeckPrior(experiment_engine, deck_size=34)
     sampled = prior.sample_deck(Counter(), random.Random(7))
 
     assert not any(card_id.startswith("__cf_baseline__") for card_id in sampled)
@@ -234,28 +234,21 @@ def test_belief_sampler_preserves_public_stratagem_identity() -> None:
     assert sampler.diagnostics(state, 0).hidden_stratagems == 0
 
 
-def test_card_pool_prior_defaults_to_engine_deck_size() -> None:
-    data = load_card_file(
-        ROOT / "cards" / "cards.json"
-    )
-    deck = json.loads(
-        (
-            ROOT / "decks" / "reference.json"
-        ).read_text(encoding="utf-8")
-    )["cards"]
-    from longwar.rules import GameRules
-    engine = GameEngine(data, rules=GameRules.standard())
-    prior = CardPoolDeckPrior(engine)
+def test_card_pool_prior_uses_explicit_deck_size_not_engine_rules() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    engine = GameEngine(data)
+    prior = CardPoolDeckPrior(engine, deck_size=40)
 
     sampled = prior.sample_deck(Counter(), random.Random(31415))
 
-    assert prior.deck_size == 34
-    assert len(sampled) == 34
+    assert prior.deck_size == 40
+    assert len(sampled) == 40
     engine.validate_deck(sampled)
 
 
 def test_hypothesis_prior_conditions_on_hidden_card_type_evidence() -> None:
     engine, reference, state = setup()
+    deck_size = len(reference)
     stratagems = {
         card for card in reference
         if engine.cards[card]["type"] == "stratagem"
@@ -265,10 +258,10 @@ def test_hypothesis_prior_conditions_on_hidden_card_type_evidence() -> None:
     for card_id, card in engine.cards.items():
         if card["type"] == "stratagem" or card["unique"]:
             continue
-        while counts[card_id] < 2 and len(without_stratagems) < engine.deck_size:
+        while counts[card_id] < 2 and len(without_stratagems) < deck_size:
             without_stratagems.append(card_id)
             counts[card_id] += 1
-    assert len(without_stratagems) == engine.deck_size
+    assert len(without_stratagems) == deck_size
     engine.validate_deck(without_stratagems)
     prior = HypothesisDeckPrior(engine, [
         DeckHypothesis(tuple(without_stratagems), weight=1000, label="impossible"),
@@ -292,7 +285,7 @@ def test_card_pool_prior_reserves_observed_hidden_card_slots() -> None:
     engine, _, _ = setup()
     schemes = frozenset(card for card, data in engine.cards.items() if data.get("veiled"))
     stratagems = frozenset(card for card, data in engine.cards.items() if data["type"] == "stratagem")
-    prior = CardPoolDeckPrior(engine, card_weights={card: 0.001 for card in schemes | stratagems})
+    prior = CardPoolDeckPrior(engine, deck_size=34, card_weights={card: 0.001 for card in schemes | stratagems})
     for seed in range(12):
         sampled = prior.sample_deck(
             Counter(), random.Random(seed), hidden_requirements=((schemes, 3), (stratagems, 1)),
