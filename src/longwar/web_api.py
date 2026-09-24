@@ -203,7 +203,7 @@ class PlaySession:
         display_phase = "mulligan" if not self.setup_complete else state.phase.value
 
         players = []
-        for ps in state.players:
+        for player, ps in enumerate(state.players):
             players.append({
                 "victories": ps.victories,
                 "passed": ps.passed,
@@ -211,6 +211,7 @@ class PlaySession:
                 "deck_count": len(ps.deck),
                 "command": ps.command,
                 "free_cycle": ps.free_cycle,
+                "hero_used": bool(state.hero_used[player]),
                 "discard": list(ps.discard),
             })
 
@@ -322,6 +323,7 @@ class PlaySession:
             "schemes": schemes,
             "stratagems": stratagems,
             "stratagem_used": list(state.stratagem_used),
+            "hero_used": list(state.hero_used),
             "draw_used": list(state.draw_used),
             "needs_ai": (
                 self.setup_complete
