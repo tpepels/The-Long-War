@@ -45,6 +45,7 @@ def test_artifact_identity_keeps_budgets_seeds_and_sources_separate(tmp_path):
     assert json.loads((first / "config.json").read_text())["config"] == config
 
 
+@pytest.mark.legacy_rule_experiment
 def test_all_named_profiles_are_resolvable():
     for name in GameRules.profile_names():
         assert isinstance(GameRules.from_profile(name), GameRules)
@@ -377,6 +378,7 @@ def test_search_benchmarks_use_canonical_standard_inputs(function):
     assert "force_candidate(" not in source
 
 
+@pytest.mark.legacy_rule_experiment
 def test_cardflow_variants_use_canonical_data_paths(tmp_path):
     run = cardflow.Run(
         variant="control",
