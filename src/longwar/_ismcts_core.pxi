@@ -447,6 +447,9 @@ def ismcts_search(
             if n <= 0:
                 break
 
+            # If the tree deliberately continues past a Battle boundary,
+            # the previous boundary is no longer the rollout leaf.
+            rollout_boundary = False
             key = engine.information_hash_fast(state, actor)
             node_index = tree.get_or_create(
                 key,
@@ -469,13 +472,13 @@ def ismcts_search(
             action_battle = state.battle
             engine.apply_fast(state, action)
             depth += 1
+            if (
+                state.phase != PHASE_COMPLETE
+                and state.battle != action_battle
+            ):
+                rollout_boundary = True
 
             if expanded:
-                if (
-                    state.phase != PHASE_COMPLETE
-                    and state.battle != action_battle
-                ):
-                    rollout_boundary = True
                 break
 
         if depth > max_tree_depth_seen:
