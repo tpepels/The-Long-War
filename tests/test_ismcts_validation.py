@@ -10,7 +10,7 @@ import pytest
 from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
-from longwar.game import ChooseFirst, GameEngine, Pass, Phase
+from longwar.game import GameEngine, Pass, Phase
 from longwar.game.actions import action_key
 from longwar.rules import GameRules
 
@@ -334,7 +334,6 @@ def test_persistent_tree_reroots_to_previously_explored_information_set() -> Non
 
     engine.apply(state, Pass())
     engine.apply(state, Pass())
-    engine.apply(state, ChooseFirst(player=0))
     assert state.phase is Phase.BATTLE
     assert state.active_player == 0
     next_packed = fast.from_game_state(state)
@@ -445,7 +444,8 @@ def test_rollout_stops_at_battle_boundary_and_uses_boundary_value() -> None:
     engine.apply(boundary, Pass())
     engine.apply(boundary, Pass())
     assert boundary.battle == 2
-    assert boundary.phase is Phase.CHOOSE_FIRST
+    assert boundary.phase is Phase.BATTLE
+    assert boundary.active_player == 0
 
     boundary_packed = fast.from_game_state(boundary)
     leaf_scale = 100.0
@@ -720,7 +720,8 @@ def test_persistent_tree_capacity_uses_rollouts_and_resets_for_unseen_root() -> 
 
     engine.apply(state, Pass())
     engine.apply(state, Pass())
-    engine.apply(state, ChooseFirst(player=0))
+    assert state.phase is Phase.BATTLE
+    assert state.active_player == 0
     second = ismcts_search(fast, evaluator, [fast.from_game_state(state)], 0, **options)
     assert tree.size() == second["tree_nodes"] == 1
     assert second["root_new_visits"] == 8
