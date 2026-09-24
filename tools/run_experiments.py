@@ -483,6 +483,7 @@ def benchmark_strength(
     progressive_widening: float = 0.0,
     exploration: float = 2 ** 0.5,
     reuse_tree: bool = True,
+    time_budget_seconds: float | None = None,
     seed: int = 26092400,
 ) -> None:
     """Mirrored ISMCTS-vs-alpha-beta matches on all Force reference decks."""
@@ -493,6 +494,8 @@ def benchmark_strength(
         raise SystemExit("--jobs must be positive")
     if ismcts_iterations <= 0 or alpha_nodes <= 0:
         raise SystemExit("Search budgets must be positive")
+    if time_budget_seconds is not None and time_budget_seconds <= 0.0:
+        raise SystemExit("--time-budget-seconds must be positive")
 
     decks = ("reference", "avaros", "mara", "sera")
     c_label = f"{exploration:g}".replace(".", "p")
@@ -508,6 +511,7 @@ def benchmark_strength(
         "ismcts_iterations": ismcts_iterations, "alpha_nodes": alpha_nodes,
         "rollout_policy": rollout_policy, "exploration": exploration,
         "progressive_widening": progressive_widening, "reuse_tree": reuse_tree,
+        "time_budget_seconds": time_budget_seconds,
         "rules_profile": "force-automatic", "decks": list(decks),
     })
     output_dir = artifact_directory(BENCH_ROOT / "-".join(parts), identity)
@@ -555,7 +559,7 @@ def benchmark_strength(
                 "--strategic-belief-samples",
                 "4",
                 "--strategic-search-depth",
-                "6",
+                "32" if time_budget_seconds is not None else "6",
                 "--strategic-candidate-width",
                 "5",
                 "--strategic-node-budget",
@@ -565,6 +569,13 @@ def benchmark_strength(
                 "--output",
                 str(output),
             ]
+            if time_budget_seconds is not None:
+                command.extend([
+                    "--ismcts-time-budget-seconds",
+                    str(time_budget_seconds),
+                    "--strategic-time-budget-seconds",
+                    str(time_budget_seconds),
+                ])
             if not reuse_tree:
                 command.append("--ismcts-no-tree-reuse")
             cells.append((deck, orientation, output, command))
@@ -576,10 +587,16 @@ def benchmark_strength(
         f"{len(cells) * games_per_orientation} games"
     )
     print(
-        f"ISMCTS={ismcts_iterations:,} iterations/decision, "
+        (
+            f"equal time={time_budget_seconds:g}s/decision; "
+            if time_budget_seconds is not None
+            else ""
+        )
+        + f"ISMCTS base={ismcts_iterations:,} iterations, "
         f"c={exploration:g}, pw={progressive_widening:g}, "
         f"tree={'reuse' if reuse_tree else 'cold'}; "
-        f"alpha-beta={alpha_nodes:,} node budget, depth 6, beam 5"
+        f"alpha-beta base={alpha_nodes:,} nodes, "
+        f"depth {'32' if time_budget_seconds is not None else '6'}, beam 5"
     )
     print(f"Parallel cells: {min(jobs, len(cells))}")
 
@@ -746,6 +763,7 @@ def benchmark_strength(
             "rollout_depth": 5,
             "rollout_policy": rollout_policy,
             "exploration": exploration,
+            "time_budget_seconds": time_budget_seconds,
             "tree_reuse_enabled": reuse_tree,
             "tree_reuse": reuse_summary,
             "progressive_widening": progressive_widening,
@@ -756,9 +774,10 @@ def benchmark_strength(
         },
         "alpha_beta": {
             "belief_samples": 4,
-            "max_depth": 6,
+            "max_depth": 32 if time_budget_seconds is not None else 6,
             "beam": 5,
             "node_budget": alpha_nodes,
+            "time_budget_seconds": time_budget_seconds,
         },
         "decks": totals,
         "overall": {
@@ -1086,6 +1105,11 @@ def parse_args() -> argparse.Namespace:
     strength_bench.add_argument("--alpha-nodes", type=int, default=20_000)
     strength_bench.add_argument("--exploration", type=float, default=2 ** 0.5)
     strength_bench.add_argument(
+        "--time-budget-seconds",
+        type=float,
+        help="Give ISMCTS and alpha-beta the same wall-clock budget per non-forced decision.",
+    )
+    strength_bench.add_argument(
         "--no-tree-reuse",
         action="store_true",
         help="Use a fresh ISMCTS tree for every move.",
@@ -1215,6 +1239,7 @@ def main() -> None:
             progressive_widening=args.progressive_widening,
             exploration=args.exploration,
             reuse_tree=not args.no_tree_reuse,
+            time_budget_seconds=args.time_budget_seconds,
             seed=args.seed,
         )
     elif args.command == "exploration-sweep":
