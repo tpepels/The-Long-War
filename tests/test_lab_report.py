@@ -44,6 +44,46 @@ def test_lab_rejects_stale_static_report(monkeypatch) -> None:
         build_lab_report.main()
 
 
+def test_lab_accepts_named_standard_provenance() -> None:
+    assert build_lab_report.canonical_variant({
+        "simulation_variant": {
+            "rules_profile": "standard",
+            "card_file": "cards/cards.json",
+        },
+    })
+
+
+def test_lab_accepts_complete_custom_standard_provenance() -> None:
+    variant = {
+        "rules_profile": "custom",
+        "base_hand_size": 10,
+        "draw_action_enabled": False,
+        "completion_draw_names": [],
+        "deck_size": 34,
+        "recycle_between_battles": False,
+        "reshuffle_on_empty": True,
+        "command_enabled": True,
+        "starting_command": 20,
+        "battle_command_gain": 10,
+        "command_cap": 20,
+        "cycle_command_cost": None,
+        "cycle_enabled": False,
+        "automatic_draw": True,
+        "paid_draw_enabled": False,
+        "paid_draw_command_cost": None,
+        "paid_draw_consumes_operation": True,
+        "automatic_draw_hand_limit": None,
+        "battle_end_hand_limit": None,
+        "pass_final_operation": True,
+        "pass_requires_both_acted": True,
+        "first_passer_starts_next_battle": True,
+        "completion_command_refund": 1,
+        "public_stratagems": True,
+        "card_file": "cards/cards.json",
+    }
+    assert build_lab_report.canonical_variant({"simulation_variant": variant})
+
+
 @pytest.mark.parametrize("variant", [
     {"rules_profile": "force-automatic"},
     {"rules_profile": "custom", "automatic_draw": True},
