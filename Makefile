@@ -89,6 +89,9 @@ ISMCTS_MATCH_GAMES ?= 24
 ISMCTS_MATCH_JOBS ?= 8
 ISMCTS_MATCH_SECONDS ?= 2
 ISMCTS_MATCH_ARGS ?=
+STRENGTH_BENCH_GAMES ?= 24
+STRENGTH_BENCH_JOBS ?= 8
+STRENGTH_BENCH_SECONDS ?= 2
 STRENGTH_BENCH_ARGS ?=
 
 mcts-bench:
@@ -107,7 +110,11 @@ ismcts-match:
 		$(ISMCTS_MATCH_ARGS)
 
 strength-bench:
-	python tools/run_experiments.py strength-bench $(STRENGTH_BENCH_ARGS)
+	python tools/run_experiments.py strength-bench \
+		--games $(STRENGTH_BENCH_GAMES) \
+		--jobs $(STRENGTH_BENCH_JOBS) \
+		--time-budget-seconds $(STRENGTH_BENCH_SECONDS) \
+		$(STRENGTH_BENCH_ARGS)
 
 experiment-suite:
 	python tools/run_experiments.py suite
