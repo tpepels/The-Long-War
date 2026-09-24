@@ -45,7 +45,6 @@ def test_game_core_dependencies_point_inward_only() -> None:
         "..web_api",
         ".web_api",
         "mccfr",
-        "cardflow",
     )
     for path in core_files:
         source = path.read_text(encoding="utf-8")
@@ -158,7 +157,6 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
         "playability.py",
         "counterfactual.py",
         "targeted_counterfactual.py",
-        "cardflow.py",
         "mccfr.py",
         "online_mccfr.py",
         "parallel_mccfr.py",
