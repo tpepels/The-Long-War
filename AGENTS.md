@@ -16,6 +16,9 @@ by `tests/test_architecture_boundaries.py`.
   `with_overrides(...)` for experiments; do not create another rules engine or
   another named mode for a parameter combination.
 - Cards are data. Ordinary new cards should not require algorithm or UI changes.
+- Never special-case a card id/title in engine, heuristic, or search code. If a
+  card needs new behavior, add a reusable capability/effect primitive to the
+  card schema and canonical engine so all consumers see it.
 - Decks are match input, separate from rules. Reference/archetype decks are not
   engine constants and must not leak into core code.
 - AI/search consumes the engine. It never reimplements rules or branches on
