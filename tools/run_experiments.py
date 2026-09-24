@@ -12,9 +12,7 @@ from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
-from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, ISMCTSAgent
-from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
-from longwar.belief import DeckHypothesis, HypothesisDeckPrior
+from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION
 from longwar.balance import validate_command_costs
 from longwar.cards import load_card_file
 from longwar.decks import PLAYTEST_DECK_SIZE, validate_deck_definition
