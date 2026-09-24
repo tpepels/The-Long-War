@@ -52,6 +52,10 @@ class DecisionStats:
     score_gap_total: float = 0.0
     search_nodes_total: int = 0
     completed_depth_total: int = 0
+    ismcts_terminal_cutoffs: int = 0
+    ismcts_battle_boundary_cutoffs: int = 0
+    ismcts_depth_cutoffs: int = 0
+    ismcts_rollout_actions: int = 0
 
 
 class Telemetry:
@@ -183,6 +187,21 @@ class Telemetry:
             stats.search_nodes_total += int(decision_info.get("search_nodes", 0))
             stats.completed_depth_total += int(
                 decision_info.get("completed_depth", 0)
+            )
+            stats.ismcts_terminal_cutoffs += int(
+                decision_info.get("ismcts_rollouts_stopped_terminal", 0)
+            )
+            stats.ismcts_battle_boundary_cutoffs += int(
+                decision_info.get(
+                    "ismcts_rollouts_stopped_battle_boundary",
+                    0,
+                )
+            )
+            stats.ismcts_depth_cutoffs += int(
+                decision_info.get("ismcts_rollouts_stopped_depth", 0)
+            )
+            stats.ismcts_rollout_actions += int(
+                decision_info.get("ismcts_rollout_actions", 0)
             )
             search_backend = decision_info.get("search_backend")
             if search_backend is not None:
@@ -453,6 +472,11 @@ class Telemetry:
 
         decisions: dict[str, Any] = {}
         for agent, stats in sorted(self.decision_stats.items()):
+            cutoff_total = (
+                stats.ismcts_terminal_cutoffs
+                + stats.ismcts_battle_boundary_cutoffs
+                + stats.ismcts_depth_cutoffs
+            )
             decisions[agent] = {
                 "decisions": stats.decisions,
                 "mean_candidate_count": self._ratio(
@@ -472,6 +496,30 @@ class Telemetry:
                     stats.decisions,
                 ),
             }
+            if cutoff_total:
+                decisions[agent]["ismcts_rollout_cutoffs"] = {
+                    "iterations": cutoff_total,
+                    "terminal": stats.ismcts_terminal_cutoffs,
+                    "battle_boundary": stats.ismcts_battle_boundary_cutoffs,
+                    "depth": stats.ismcts_depth_cutoffs,
+                    "terminal_rate": self._ratio(
+                        stats.ismcts_terminal_cutoffs,
+                        cutoff_total,
+                    ),
+                    "battle_boundary_rate": self._ratio(
+                        stats.ismcts_battle_boundary_cutoffs,
+                        cutoff_total,
+                    ),
+                    "depth_rate": self._ratio(
+                        stats.ismcts_depth_cutoffs,
+                        cutoff_total,
+                    ),
+                    "rollout_actions": stats.ismcts_rollout_actions,
+                    "mean_rollout_actions_per_iteration": self._ratio(
+                        stats.ismcts_rollout_actions,
+                        cutoff_total,
+                    ),
+                }
 
         online_decisions = int(self.online_resolution["decisions"])
         online_summary = {
