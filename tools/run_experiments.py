@@ -327,6 +327,44 @@ def benchmark_ismcts(
         f"storage={agent.last_decision.get('ismcts_tree_storage', 'unknown')} | "
         f"{type(action).__name__} | rollout={rollout_policy}"
     )
+    _print_ismcts_cutoffs(_ismcts_cutoff_summary(agent.last_decision))
+
+
+def _ismcts_cutoff_summary(info: dict[str, Any]) -> dict[str, float | int | None]:
+    terminal = int(info.get("ismcts_rollouts_stopped_terminal", 0))
+    boundary = int(info.get("ismcts_rollouts_stopped_battle_boundary", 0))
+    depth = int(info.get("ismcts_rollouts_stopped_depth", 0))
+    rollout_actions = int(info.get("ismcts_rollout_actions", 0))
+    iterations = terminal + boundary + depth
+    return {
+        "iterations": iterations,
+        "terminal": terminal,
+        "battle_boundary": boundary,
+        "depth": depth,
+        "terminal_rate": terminal / iterations if iterations else None,
+        "battle_boundary_rate": boundary / iterations if iterations else None,
+        "depth_rate": depth / iterations if iterations else None,
+        "rollout_actions": rollout_actions,
+        "mean_rollout_actions_per_iteration": (
+            rollout_actions / iterations if iterations else None
+        ),
+    }
+
+
+def _print_ismcts_cutoffs(cutoffs: dict[str, float | int | None]) -> None:
+    iterations = int(cutoffs["iterations"] or 0)
+    if not iterations:
+        print("ISMCTS rollout cutoffs: no searched iterations")
+        return
+    print(
+        "ISMCTS rollout cutoffs: "
+        f"terminal={100.0 * float(cutoffs['terminal_rate']):.1f}% "
+        f"Battle-boundary={100.0 * float(cutoffs['battle_boundary_rate']):.1f}% "
+        f"depth={100.0 * float(cutoffs['depth_rate']):.1f}% "
+        f"| rollout actions/iteration="
+        f"{float(cutoffs['mean_rollout_actions_per_iteration']):.2f} "
+        f"| iterations={iterations:,}"
+    )
 
 
 def _wilson_interval(wins: int, games: int) -> tuple[float, float]:
@@ -455,6 +493,13 @@ def benchmark_strength(
     overall_mcts = 0
     overall_alpha = 0
     wall_sum = 0.0
+    cutoff_totals = {
+        "iterations": 0,
+        "terminal": 0,
+        "battle_boundary": 0,
+        "depth": 0,
+        "rollout_actions": 0,
+    }
 
     for deck, orientation, output, elapsed in results:
         payload = json.loads(output.read_text(encoding="utf-8"))
@@ -470,6 +515,12 @@ def benchmark_strength(
         overall_mcts += mcts_wins
         overall_alpha += alpha_wins
         wall_sum += elapsed
+        decision_stats = payload.get("telemetry", {}).get(
+            "decisions", {}
+        ).get("ismcts", {})
+        cutoffs = decision_stats.get("ismcts_rollout_cutoffs", {})
+        for key in cutoff_totals:
+            cutoff_totals[key] += int(cutoffs.get(key, 0) or 0)
 
     total_games = overall_mcts + overall_alpha
     low, high = _wilson_interval(overall_mcts, total_games)
@@ -498,6 +549,28 @@ def benchmark_strength(
         "shows how much uncertainty remains at this sample size."
     )
 
+    cutoff_iterations = cutoff_totals["iterations"]
+    cutoff_summary = {
+        **cutoff_totals,
+        "terminal_rate": (
+            cutoff_totals["terminal"] / cutoff_iterations
+            if cutoff_iterations else None
+        ),
+        "battle_boundary_rate": (
+            cutoff_totals["battle_boundary"] / cutoff_iterations
+            if cutoff_iterations else None
+        ),
+        "depth_rate": (
+            cutoff_totals["depth"] / cutoff_iterations
+            if cutoff_iterations else None
+        ),
+        "mean_rollout_actions_per_iteration": (
+            cutoff_totals["rollout_actions"] / cutoff_iterations
+            if cutoff_iterations else None
+        ),
+    }
+    _print_ismcts_cutoffs(cutoff_summary)
+
     summary = {
         "rules_profile": "force-automatic",
         "games_per_orientation": games_per_orientation,
@@ -506,6 +579,7 @@ def benchmark_strength(
             "iterations": ismcts_iterations,
             "rollout_depth": 5,
             "rollout_policy": rollout_policy,
+            "rollout_cutoffs": cutoff_summary,
         },
         "alpha_beta": {
             "belief_samples": 4,
@@ -621,6 +695,8 @@ def benchmark_searches(
             f"{type(action).__name__}"
         )
 
+    mcts_info = rows[1][3]
+    _print_ismcts_cutoffs(_ismcts_cutoff_summary(mcts_info))
     ratio = rows[1][1] / rows[0][1] if rows[0][1] else float("inf")
     print(f"ISMCTS / alpha-beta wall-time ratio: {ratio:.2f}x")
 
