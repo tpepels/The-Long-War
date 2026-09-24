@@ -81,6 +81,9 @@ cdef class ISMCTSTree:
             bucket_capacity <<= 1
         self._allocate(node_capacity, bucket_capacity)
 
+    def size(self):
+        return int(self.node_count)
+
     def __dealloc__(self):
         cdef size_t i
         if self.nodes != NULL:
