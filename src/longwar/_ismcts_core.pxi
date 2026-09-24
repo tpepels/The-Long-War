@@ -327,19 +327,39 @@ cdef uint64_t _ismcts_rollout_action(
     FastState score_scratch,
     uint64_t* rng,
     double epsilon,
+    int policy,
 ) except *:
     cdef uint64_t actions[MAX_ACTIONS]
+    cdef double weights[MAX_ACTIONS]
     cdef int n = engine.legal_actions_into(state, &actions[0])
     cdef int actor = state.active_player
     cdef int i, best_ix=0
     cdef double value, best=-1.0e300
+    cdef double total=0.0, target, cumulative=0.0
 
     if n <= 0:
         raise RuntimeError("Non-terminal ISMCTS state has no legal action")
     if n == 1:
         return actions[0]
-    if _ismcts_rand_unit(rng) < epsilon:
+    if policy == 2 or _ismcts_rand_unit(rng) < epsilon:
         return actions[_ismcts_rand_index(rng, n)]
+
+    if policy == 1:
+        for i in range(n):
+            weights[i] = evaluator.rollout_prior_fast(
+                state,
+                actor,
+                actions[i],
+            )
+            if weights[i] < 0.001:
+                weights[i] = 0.001
+            total += weights[i]
+        target = _ismcts_rand_unit(rng) * total
+        for i in range(n):
+            cumulative += weights[i]
+            if cumulative >= target:
+                return actions[i]
+        return actions[n - 1]
 
     for i in range(n):
         value = evaluator.action_order_score_fast(
@@ -365,6 +385,7 @@ def ismcts_search(
     int tree_depth_limit=96,
     double exploration=1.4142135623730951,
     double rollout_epsilon=0.12,
+    int rollout_policy=1,
     double leaf_scale=100.0,
     unsigned long long seed=1701,
 ):
@@ -460,6 +481,7 @@ def ismcts_search(
                 score_scratch,
                 &rng,
                 rollout_epsilon,
+                rollout_policy,
             )
             engine.apply_fast(state, action)
             rollout_steps += 1
@@ -548,4 +570,9 @@ def ismcts_search(
         "belief_states": len(root_states),
         "root_stats": root_stats,
         "tree_storage": "native-hash-arena",
+        "rollout_policy": (
+            "cheap" if rollout_policy == 1
+            else "random" if rollout_policy == 2
+            else "greedy"
+        ),
     }

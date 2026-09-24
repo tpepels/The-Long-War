@@ -118,6 +118,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ismcts-iterations", type=int)
     parser.add_argument("--ismcts-rollout-depth", type=int)
     parser.add_argument(
+        "--ismcts-rollout-policy",
+        choices=("greedy", "cheap", "random"),
+        default="cheap",
+    )
+    parser.add_argument(
         "--backend",
         choices=("auto", "cython", "python"),
         default="auto",
@@ -227,6 +232,7 @@ def command_for(
     backend: str,
     agent: str,
     ismcts_settings: tuple[int, int, int] | None = None,
+    ismcts_rollout_policy: str = "cheap",
 ) -> list[str]:
     rules_profile = VARIANT_PROFILES[run.variant]
     command = [
@@ -260,6 +266,7 @@ def command_for(
             "--ismcts-belief-samples", str(beliefs),
             "--ismcts-iterations", str(iterations),
             "--ismcts-rollout-depth", str(rollout),
+            "--ismcts-rollout-policy", ismcts_rollout_policy,
         ])
     else:
         command.extend([
@@ -444,6 +451,7 @@ def write_summary(
     preset: Preset,
     agent: str,
     ismcts_settings: tuple[int, int, int] | None = None,
+    ismcts_rollout_policy: str = "cheap",
 ) -> None:
     variant_order = {
         name: index
@@ -467,6 +475,7 @@ def write_summary(
             "belief_samples": beliefs,
             "iterations": iterations,
             "rollout_depth": rollout,
+            "rollout_policy": ismcts_rollout_policy,
         }
     else:
         settings = {
@@ -496,7 +505,8 @@ def write_summary(
         settings_line = (
             f"Preset **{preset_name}** — {preset.games} games/run, "
             f"Cython ISMCTS, {beliefs} belief states, "
-            f"{iterations:,} iterations/decision, rollout depth {rollout}."
+            f"{iterations:,} iterations/decision, rollout depth {rollout}, "
+            f"rollout policy {ismcts_rollout_policy}."
         )
     else:
         settings_line = (
@@ -556,7 +566,7 @@ def main() -> None:
     output_dir = resolve(
         args.output_dir
         if args.output_dir is not None
-        else Path("artifacts") / "local-force-draw" / args.preset
+        else Path("artifacts") / "cardflow" / args.preset
     )
 
     ismcts_settings = None
@@ -601,6 +611,7 @@ def main() -> None:
                 args.backend,
                 args.agent,
                 ismcts_settings,
+                args.ismcts_rollout_policy,
             ),
         )
         for run in runs
@@ -671,6 +682,7 @@ def main() -> None:
         preset=preset,
         agent=args.agent,
         ismcts_settings=ismcts_settings,
+        ismcts_rollout_policy=args.ismcts_rollout_policy,
     )
     print(f"Raw results: {output_dir}")
     print(f"Summary: {output_dir / 'summary.md'}")

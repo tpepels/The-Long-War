@@ -39,6 +39,7 @@ class ISMCTSAgent:
         tree_depth_limit: int = 96,
         exploration: float = 2 ** 0.5,
         rollout_epsilon: float = 0.12,
+        rollout_policy: str = "cheap",
         leaf_scale: float = 100.0,
     ):
         if belief_samples <= 0:
@@ -53,6 +54,10 @@ class ISMCTSAgent:
             raise ValueError("exploration must be non-negative")
         if not 0.0 <= rollout_epsilon <= 1.0:
             raise ValueError("rollout_epsilon must be between 0 and 1")
+        if rollout_policy not in {"greedy", "cheap", "random"}:
+            raise ValueError(
+                "rollout_policy must be greedy, cheap, or random"
+            )
         if leaf_scale <= 0:
             raise ValueError("leaf_scale must be positive")
 
@@ -67,6 +72,12 @@ class ISMCTSAgent:
         self.tree_depth_limit = tree_depth_limit
         self.exploration = exploration
         self.rollout_epsilon = rollout_epsilon
+        self.rollout_policy = rollout_policy
+        self._rollout_policy_code = {
+            "greedy": 0,
+            "cheap": 1,
+            "random": 2,
+        }[rollout_policy]
         self.leaf_scale = leaf_scale
         self.fast_engine = FastEngine(engine)
         self.evaluator = NativeHeuristicEvaluator(self.fast_engine)
@@ -100,6 +111,7 @@ class ISMCTSAgent:
                 "ismcts_tree_nodes": 0,
                 "ismcts_root_total_visits": 0,
                 "ismcts_selected_action_visits": 0,
+                "ismcts_rollout_policy": self.rollout_policy,
             }
             return legal[0]
 
@@ -122,6 +134,7 @@ class ISMCTSAgent:
             tree_depth_limit=self.tree_depth_limit,
             exploration=self.exploration,
             rollout_epsilon=self.rollout_epsilon,
+            rollout_policy=self._rollout_policy_code,
             leaf_scale=self.leaf_scale,
             seed=self.rng.getrandbits(64),
         )
@@ -155,5 +168,6 @@ class ISMCTSAgent:
                 result["selected_action_visits"]
             ),
             "ismcts_root_value": score,
+            "ismcts_rollout_policy": self.rollout_policy,
         }
         return selected

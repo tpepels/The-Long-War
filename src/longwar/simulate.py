@@ -53,6 +53,7 @@ def make_agent(
     ismcts_tree_depth_limit: int = 96,
     ismcts_exploration: float = 2 ** 0.5,
     ismcts_rollout_epsilon: float = 0.12,
+    ismcts_rollout_policy: str = "cheap",
 ):
     if name == "random":
         return RandomAgent(seed)
@@ -80,6 +81,7 @@ def make_agent(
             tree_depth_limit=ismcts_tree_depth_limit,
             exploration=ismcts_exploration,
             rollout_epsilon=ismcts_rollout_epsilon,
+            rollout_policy=ismcts_rollout_policy,
         )
     if name == "mccfr":
         if policy is None:
@@ -118,6 +120,7 @@ def simulate_games(
     ismcts_tree_depth_limit: int = 96,
     ismcts_exploration: float = 2 ** 0.5,
     ismcts_rollout_epsilon: float = 0.12,
+    ismcts_rollout_policy: str = "cheap",
     progress_callback: Callable[[int, int], None] | None = None,
 ) -> SimulationReport:
     if games <= 0:
@@ -169,6 +172,7 @@ def simulate_games(
                 ismcts_tree_depth_limit=ismcts_tree_depth_limit,
                 ismcts_exploration=ismcts_exploration,
                 ismcts_rollout_epsilon=ismcts_rollout_epsilon,
+                ismcts_rollout_policy=ismcts_rollout_policy,
             ),
             make_agent(
                 agent_names[1],
@@ -189,6 +193,7 @@ def simulate_games(
                 ismcts_tree_depth_limit=ismcts_tree_depth_limit,
                 ismcts_exploration=ismcts_exploration,
                 ismcts_rollout_epsilon=ismcts_rollout_epsilon,
+                ismcts_rollout_policy=ismcts_rollout_policy,
             ),
         ]
         mulligan_indices = tuple(

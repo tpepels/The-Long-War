@@ -88,6 +88,11 @@ def main() -> None:
     parser.add_argument("--ismcts-exploration", type=float, default=2 ** 0.5)
     parser.add_argument("--ismcts-rollout-epsilon", type=float, default=0.12)
     parser.add_argument(
+        "--ismcts-rollout-policy",
+        choices=("greedy", "cheap", "random"),
+        default="cheap",
+    )
+    parser.add_argument(
         "--hand-size",
         type=int,
         default=10,
@@ -278,6 +283,7 @@ def main() -> None:
         ismcts_tree_depth_limit=args.ismcts_tree_depth_limit,
         ismcts_exploration=args.ismcts_exploration,
         ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
+        ismcts_rollout_policy=args.ismcts_rollout_policy,
         progress_callback=report_progress if progress_path is not None else None,
     )
 
@@ -305,6 +311,7 @@ def main() -> None:
         "tree_depth_limit": args.ismcts_tree_depth_limit,
         "exploration": args.ismcts_exploration,
         "rollout_epsilon": args.ismcts_rollout_epsilon,
+        "rollout_policy": args.ismcts_rollout_policy,
         "search": "root-belief-sampled Cython ISMCTS",
     }
     payload["simulation_variant"] = {

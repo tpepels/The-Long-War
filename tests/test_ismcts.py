@@ -160,3 +160,21 @@ def test_native_information_hash_matches_information_identity() -> None:
         sample_a,
         0,
     )
+
+
+@pytest.mark.parametrize("policy", ("greedy", "cheap", "random"))
+def test_ismcts_rollout_policies_return_legal_action(policy: str) -> None:
+    engine, deck, priors = setup()
+    state = engine.new_game(deck, deck, seed=8150, first_player=0)
+    legal = engine.legal_actions(state)
+    agent = ISMCTSAgent(
+        engine,
+        8151,
+        priors=priors,
+        belief_samples=2,
+        iterations=40,
+        rollout_depth=2,
+        rollout_policy=policy,
+    )
+    assert agent.choose(engine, state) in legal
+    assert agent.last_decision["ismcts_rollout_policy"] == policy

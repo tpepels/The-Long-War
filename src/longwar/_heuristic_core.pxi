@@ -356,6 +356,56 @@ cdef class NativeHeuristicEvaluator:
             score += 5.0
         return score
 
+    cdef double rollout_prior_fast(
+        self,
+        FastState state,
+        int player,
+        uint64_t action,
+    ) noexcept:
+        """Cheap stochastic-rollout prior; never copies or advances state."""
+        cdef int kind = action_kind(action)
+        cdef int pos = action_pos(action)
+        cdef double weight = 1.0
+
+        if kind == TYPE_PASS:
+            return 0.20
+        if kind == TYPE_CHOOSE:
+            return 1.0
+        if kind == TYPE_DRAW:
+            return 0.85
+        if kind == TYPE_CYCLE:
+            return 0.45
+        if kind == TYPE_DISCARD:
+            return 1.0
+        if kind == TYPE_SUBJECT:
+            weight = 1.35
+            if pos >= 0 and (
+                state.link[pos] >= 0 or state.name[pos] >= 0
+            ):
+                weight += 0.90
+            return weight
+        if kind == TYPE_LINK:
+            weight = 1.0
+            if pos >= 0 and state.subject[pos] >= 0:
+                weight += 0.80
+            if pos >= 0 and state.name[pos] >= 0:
+                weight += 0.35
+            return weight
+        if kind == TYPE_NAME:
+            weight = 1.05
+            if pos >= 0 and state.subject[pos] >= 0:
+                weight += 0.85
+            if pos >= 0 and state.link[pos] >= 0:
+                weight += 0.65
+            return weight
+        if kind == TYPE_PLOT:
+            return 0.75
+        if kind == TYPE_SCHEME:
+            return 0.70
+        if kind == TYPE_STRATAGEM:
+            return 0.65
+        return 1.0
+
     cdef double action_order_score_fast(
         self,
         FastState state,

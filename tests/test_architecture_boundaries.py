@@ -149,6 +149,7 @@ def test_cython_engine_contains_no_heuristic_policy() -> None:
         "cdef double evaluate_fast(",
         "cdef double strategic_evaluate_fast(",
         "cdef double action_order_score_fast(",
+        "cdef double rollout_prior_fast(",
         "cdef double pass_score_fast(",
     ):
         assert method not in engine_source
