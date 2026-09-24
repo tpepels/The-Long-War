@@ -473,6 +473,239 @@ def paired_strength_interval(outcomes: dict[str, dict[str, list[dict[str, int]]]
             "resampling_unit": "same-seed mirrored seat pair"}
 
 
+def paired_ismcts_interval(
+    outcomes: dict[str, dict[str, list[dict[str, int]]]],
+) -> dict[str, Any]:
+    """Bootstrap matched deals for candidate A versus candidate B."""
+    from longwar.counterfactual import estimate
+
+    contrasts = []
+    for orientations in outcomes.values():
+        first = {row["seed"]: row for row in orientations["a-first"]}
+        second = {row["seed"]: row for row in orientations["b-first"]}
+        if first.keys() != second.keys():
+            raise ValueError("Mirrored ISMCTS cells must contain identical deal seeds")
+        for seed, left in first.items():
+            right = second[seed]
+            contrasts.append(
+                int(left["winner"] == 0)
+                + int(right["winner"] == 1)
+                - 1
+            )
+    effect = estimate(contrasts, seed=1701, bootstrap_resamples=2000)
+    return {
+        "a_win_rate": (effect.mean + 1) / 2,
+        "ci95": [
+            max(0.0, (effect.ci95[0] + 1) / 2),
+            min(1.0, (effect.ci95[1] + 1) / 2),
+        ],
+        "independent_deals": len(contrasts),
+        "ci_method": effect.ci_method,
+        "resampling_unit": "same-seed mirrored seat pair",
+    }
+
+
+def benchmark_ismcts_match(
+    *,
+    games_per_orientation: int,
+    jobs: int,
+    iterations: int,
+    time_budget_seconds: float,
+    exploration_a: float,
+    exploration_b: float,
+    progressive_widening_a: float,
+    progressive_widening_b: float,
+    reuse_tree_a: bool,
+    reuse_tree_b: bool,
+    seed: int = 26092400,
+) -> None:
+    """Direct, equal-time ISMCTS configuration comparison."""
+    require_cython()
+    if games_per_orientation <= 0 or jobs <= 0 or iterations <= 0:
+        raise SystemExit("games, jobs, and iterations must be positive")
+    if time_budget_seconds <= 0.0:
+        raise SystemExit("--time-budget-seconds must be positive")
+    for value in (exploration_a, exploration_b, progressive_widening_a, progressive_widening_b):
+        if value < 0.0:
+            raise SystemExit("ISMCTS exploration/PW values must be non-negative")
+
+    decks = ("reference", "avaros", "mara", "sera")
+    config_a = {
+        "ismcts_exploration": exploration_a,
+        "ismcts_progressive_widening": progressive_widening_a,
+        "ismcts_reuse_tree": reuse_tree_a,
+    }
+    config_b = {
+        "ismcts_exploration": exploration_b,
+        "ismcts_progressive_widening": progressive_widening_b,
+        "ismcts_reuse_tree": reuse_tree_b,
+    }
+    identity = experiment_identity({
+        "command": "ismcts-match",
+        "games_per_orientation": games_per_orientation,
+        "seed": seed,
+        "iterations_base": iterations,
+        "time_budget_seconds": time_budget_seconds,
+        "candidate_a": config_a,
+        "candidate_b": config_b,
+        "rules_profile": "force-automatic",
+        "decks": list(decks),
+    })
+    output_dir = artifact_directory(BENCH_ROOT / "ismcts-match", identity)
+
+    cells: list[tuple[str, str, Path, list[str]]] = []
+    for deck_index, deck in enumerate(decks):
+        cell_seed = seed + deck_index * games_per_orientation
+        deck_path = f"decks/experiments/force-rich-34-{deck}.json"
+        for orientation, seat_configs, seat_labels in (
+            ("a-first", (config_a, config_b), ("candidate-a", "candidate-b")),
+            ("b-first", (config_b, config_a), ("candidate-b", "candidate-a")),
+        ):
+            output = output_dir / f"{deck}--{orientation}.json"
+            command = [
+                sys.executable,
+                str(ROOT / "tools" / "simulate.py"),
+                "--games", str(games_per_orientation),
+                "--seed", str(cell_seed),
+                "--rules-profile", "force-automatic",
+                "--card-file", "cards/experiments/force-draw-cards.json",
+                "--deck-a", deck_path,
+                "--deck-b", deck_path,
+                "--agent-a", "ismcts",
+                "--agent-b", "ismcts",
+                "--agent-a-label", seat_labels[0],
+                "--agent-b-label", seat_labels[1],
+                "--agent-a-options-json", json.dumps(seat_configs[0], separators=(",", ":")),
+                "--agent-b-options-json", json.dumps(seat_configs[1], separators=(",", ":")),
+                "--ismcts-belief-samples", "12",
+                "--ismcts-iterations", str(iterations),
+                "--ismcts-time-budget-seconds", str(time_budget_seconds),
+                "--ismcts-rollout-depth", "5",
+                "--ismcts-rollout-policy", "cheap",
+                "--output", str(output),
+            ]
+            cells.append((deck, orientation, output, command))
+
+    print(
+        "Direct ISMCTS match: "
+        f"{len(decks)} decks × 2 mirrored orientations × "
+        f"{games_per_orientation} games = {len(cells) * games_per_orientation} games"
+    )
+    print(
+        f"Equal time={time_budget_seconds:g}s/non-forced decision; "
+        f"A: c={exploration_a:g}, pw={progressive_widening_a:g}, "
+        f"tree={'reuse' if reuse_tree_a else 'cold'}; "
+        f"B: c={exploration_b:g}, pw={progressive_widening_b:g}, "
+        f"tree={'reuse' if reuse_tree_b else 'cold'}"
+    )
+
+    def run_cell(cell):
+        deck, orientation, output, command = cell
+        started = time.perf_counter()
+        run_command(command, capture=True)
+        return deck, orientation, output, time.perf_counter() - started
+
+    results = []
+    with ThreadPoolExecutor(max_workers=min(jobs, len(cells))) as pool:
+        futures = [pool.submit(run_cell, cell) for cell in cells]
+        for future in as_completed(futures):
+            deck, orientation, output, elapsed = future.result()
+            print(f"  finished {deck:9} {orientation:7} in {elapsed:.1f}s")
+            results.append((deck, orientation, output, elapsed))
+
+    totals = {deck: {"a": 0, "b": 0, "games": 0} for deck in decks}
+    paired_outcomes: dict[str, dict[str, list[dict[str, int]]]] = {}
+    resources = {
+        "candidate-a": {"decisions": 0, "decision_seconds": 0.0, "search_work": 0.0},
+        "candidate-b": {"decisions": 0, "decision_seconds": 0.0, "search_work": 0.0},
+    }
+    wall_sum = 0.0
+
+    for deck, orientation, output, elapsed in results:
+        payload = json.loads(output.read_text(encoding="utf-8"))
+        labels = payload["agents"]
+        a_index = labels.index("candidate-a")
+        b_index = labels.index("candidate-b")
+        a_wins = int(payload["wins"][a_index])
+        b_wins = int(payload["wins"][b_index])
+        totals[deck]["a"] += a_wins
+        totals[deck]["b"] += b_wins
+        totals[deck]["games"] += int(payload["games"])
+        paired_outcomes.setdefault(deck, {})[orientation] = payload["game_outcomes"]
+        wall_sum += elapsed
+        decisions = payload.get("telemetry", {}).get("decisions", {})
+        for label in ("candidate-a", "candidate-b"):
+            stats = decisions.get(label, {})
+            count = int(stats.get("decisions", 0) or 0)
+            resources[label]["decisions"] += count
+            resources[label]["decision_seconds"] += count * float(
+                stats.get("mean_decision_seconds", 0.0) or 0.0
+            )
+            resources[label]["search_work"] += count * float(
+                stats.get("mean_search_nodes", 0.0) or 0.0
+            )
+
+    overall_a = sum(row["a"] for row in totals.values())
+    overall_b = sum(row["b"] for row in totals.values())
+    total_games = overall_a + overall_b
+    paired = paired_ismcts_interval(paired_outcomes)
+    low, high = paired["ci95"]
+
+    print("\nHead-to-head result")
+    print("===================")
+    for deck in decks:
+        row = totals[deck]
+        deck_pair = paired_ismcts_interval({deck: paired_outcomes[deck]})
+        dlow, dhigh = deck_pair["ci95"]
+        rate = row["a"] / row["games"] if row["games"] else 0.0
+        print(
+            f"{deck:9}: A {row['a']:>3}-{row['b']:<3} B "
+            f"| {rate * 100:5.1f}% (95% CI {dlow * 100:4.1f}–{dhigh * 100:4.1f}%)"
+        )
+    rate = overall_a / total_games if total_games else 0.0
+    print(
+        f"OVERALL  : A {overall_a}-{overall_b} B | {rate * 100:.1f}% "
+        f"(95% CI {low * 100:.1f}–{high * 100:.1f}%)"
+    )
+
+    resource_summary = {}
+    for label, stats in resources.items():
+        count = int(stats["decisions"])
+        resource_summary[label] = {
+            "decisions": count,
+            "mean_decision_seconds": stats["decision_seconds"] / count if count else None,
+            "mean_iterations": stats["search_work"] / count if count else None,
+        }
+        if count:
+            print(
+                f"{label}: {resource_summary[label]['mean_decision_seconds']:.3f}s/decision, "
+                f"{resource_summary[label]['mean_iterations']:,.0f} iterations/decision"
+            )
+
+    summary = {
+        **identity,
+        "rules_profile": "force-automatic",
+        "games_per_orientation": games_per_orientation,
+        "time_budget_seconds": time_budget_seconds,
+        "candidate_a": config_a,
+        "candidate_b": config_b,
+        "decks": totals,
+        "overall": {
+            "candidate_a_wins": overall_a,
+            "candidate_b_wins": overall_b,
+            "games": total_games,
+            "candidate_a_win_rate": rate,
+            "paired_uncertainty": paired,
+        },
+        "resources": resource_summary,
+        "sum_cell_wall_seconds": wall_sum,
+    }
+    (output_dir / "summary.json").write_text(
+        json.dumps(summary, indent=2) + "\n", encoding="utf-8"
+    )
+    print(f"Summary: {output_dir / 'summary.json'}")
+
+
 def benchmark_strength(
     *,
     games_per_orientation: int,
@@ -1089,6 +1322,22 @@ def parse_args() -> argparse.Namespace:
         default="cheap",
     )
 
+    ismcts_match = sub.add_parser(
+        "ismcts-match",
+        help="Direct equal-time comparison of two ISMCTS configurations.",
+    )
+    ismcts_match.add_argument("--games", type=int, default=8)
+    ismcts_match.add_argument("--jobs", type=int, default=8)
+    ismcts_match.add_argument("--iterations", type=int, default=100_000)
+    ismcts_match.add_argument("--time-budget-seconds", type=float, default=5.0)
+    ismcts_match.add_argument("--seed", type=int, default=26092400)
+    ismcts_match.add_argument("--a-exploration", type=float, default=0.3)
+    ismcts_match.add_argument("--b-exploration", type=float, default=0.5)
+    ismcts_match.add_argument("--a-pw", type=float, default=0.0)
+    ismcts_match.add_argument("--b-pw", type=float, default=0.0)
+    ismcts_match.add_argument("--a-no-tree-reuse", action="store_true")
+    ismcts_match.add_argument("--b-no-tree-reuse", action="store_true")
+
     strength_bench = sub.add_parser(
         "strength-bench",
         help="Mirrored ISMCTS-vs-alpha-beta matches across all Force decks.",
@@ -1228,6 +1477,20 @@ def main() -> None:
             rollout_policy=args.rollout_policy,
             progressive_widening=args.progressive_widening,
             exploration=args.exploration,
+        )
+    elif args.command == "ismcts-match":
+        benchmark_ismcts_match(
+            games_per_orientation=args.games,
+            jobs=args.jobs,
+            iterations=args.iterations,
+            time_budget_seconds=args.time_budget_seconds,
+            exploration_a=args.a_exploration,
+            exploration_b=args.b_exploration,
+            progressive_widening_a=args.a_pw,
+            progressive_widening_b=args.b_pw,
+            reuse_tree_a=not args.a_no_tree_reuse,
+            reuse_tree_b=not args.b_no_tree_reuse,
+            seed=args.seed,
         )
     elif args.command == "strength-bench":
         benchmark_strength(
