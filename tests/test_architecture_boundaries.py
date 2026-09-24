@@ -99,11 +99,10 @@ def test_game_core_does_not_know_shipped_decks() -> None:
         assert marker not in core
 
 
-def test_browser_build_packages_only_game_runtime_python() -> None:
+def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     from tools import build_browser_runtime
 
-    packaged = set(build_browser_runtime.BROWSER_PYTHON_FILES)
-    assert packaged == {
+    expected = {
         "__init__.py",
         "cards.py",
         "rules.py",
@@ -116,8 +115,10 @@ def test_browser_build_packages_only_game_runtime_python() -> None:
         "agents/__init__.py",
         "agents/heuristic_agent.py",
     }
+    packaged = set(build_browser_runtime.BROWSER_PYTHON_FILES)
+    assert packaged == expected
 
-    forbidden = (
+    forbidden = {
         "simulate.py",
         "telemetry.py",
         "human_flow.py",
@@ -135,12 +136,26 @@ def test_browser_build_packages_only_game_runtime_python() -> None:
         "agents/online_mccfr_agent.py",
         "agents/strategic_heuristic_agent.py",
         "algorithms/alpha_beta.py",
-    )
-    assert not set(forbidden) & packaged
+    }
+    assert not forbidden & packaged
 
     native = set(build_browser_runtime.BROWSER_NATIVE_FILES)
     assert "_fast_search.pyx" in native
     assert "_mccfr_accel.pyx" not in native
+
+    source = tmp_path / "browser-source"
+    build_browser_runtime.prepare_browser_source(source)
+    package = source / "src" / "longwar"
+    copied_python = {
+        path.relative_to(package).as_posix()
+        for path in package.rglob("*.py")
+    }
+    assert copied_python == expected
+    assert not forbidden & copied_python
+    assert "_mccfr_accel.pyx" not in {
+        path.name for path in package.rglob("*.pyx")
+    }
+    assert "_mccfr_accel" not in (source / "setup.py").read_text(encoding="utf-8")
 
 
 def test_browser_adapter_has_no_research_dependencies() -> None:
