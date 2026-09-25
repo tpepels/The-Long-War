@@ -2,6 +2,16 @@ name: Deploy game site
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "web/**"
+      - "rules/**"
+      - "cards/**"
+      - "decks/reference.json"
+      - "tools/build_pages.py"
+      - ".github/workflows/pages.yml"
 
 permissions:
   contents: read
