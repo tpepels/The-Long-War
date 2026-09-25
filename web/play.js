@@ -74,8 +74,8 @@ const TERM_HINTS = {
   "line defense": "The default +1 Strength bonus given to a Subject in the Frontline.",
   "move": "Relocate a Subject, keeping its attached Bond and Name unless the effect says otherwise.",
   "name": "A Unique formation component. It may be prepared before the Subject or Bond; Subject-dependent text stays inactive until a Subject is present.",
-  "pass": "End your operations in this Battle. After the first Pass, the opponent gets exactly one final operation before scoring.",
-  "passes": "After the first Pass, the opponent gets exactly one final operation before the Battle is scored.",
+  "pass": "Normally available after both players have completed an operation. Two consecutive Passes end the Battle; any intervening operation clears the earlier Pass.",
+  "passes": "Two consecutive Passes end the Battle. After the first Pass, the opponent takes a normal turn; any non-Pass operation clears the earlier Pass.",
   "rear": "The position behind the Frontline in the same Front.",
   "rear subject": "The Subject occupying the Rear position of that Front.",
   "rear subjects": "Subjects occupying Rear positions.",
@@ -498,7 +498,7 @@ function renderStrip() {
   passButton.hidden = !pass || state.viewer == null;
   passButton.disabled = !pass || state.viewer == null;
   passButton.classList.toggle("danger-pass", !!pass && state.players[opponentOf(currentViewer())].passed);
-  passButton.textContent = state.players[opponentOf(currentViewer())].passed ? "Pass · score Battle" : "Pass";
+  passButton.textContent = state.players[opponentOf(currentViewer())].passed ? "Pass · end Battle" : "Pass";
 
 
 }
