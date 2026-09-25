@@ -14,13 +14,13 @@ class BoardTarget:
 
 
 @dataclass(frozen=True)
-class PlaySubject:
+class PlayForce:
     card_id: str
     position: Position
 
 
 @dataclass(frozen=True)
-class PlayLink:
+class PlayBond:
     card_id: str
     position: Position
 
@@ -29,34 +29,24 @@ class PlayLink:
 class PlayName:
     card_id: str
     position: Position
-    move_to: Position | None = None
 
 
 @dataclass(frozen=True)
-class PlayPlot:
+class PlayStory:
     card_id: str
     targets: tuple[BoardTarget, ...] = ()
+    ongoing_slot: int | None = None
 
 
 @dataclass(frozen=True)
-class PlayScheme:
-    card_id: str
-    front: Front
-
-
-@dataclass(frozen=True)
-class SetStratagem:
+class PlayStratagem:
     card_id: str
 
 
 @dataclass(frozen=True)
-class Draw:
-    pass
-
-
-@dataclass(frozen=True)
-class Cycle:
-    card_id: str
+class Maneuver:
+    source: Position
+    destination: Position
 
 
 @dataclass(frozen=True)
@@ -69,64 +59,106 @@ class Pass:
     pass
 
 
+# Transitional import aliases while the native/browser adapters are migrated.
+PlaySubject = PlayForce
+PlayLink = PlayBond
+PlayPlot = PlayStory
+SetStratagem = PlayStratagem
+
+
+@dataclass(frozen=True)
+class Draw:
+    """Obsolete compatibility type; never legal in canonical rules."""
+
+
+@dataclass(frozen=True)
+class Cycle:
+    """Obsolete compatibility type; never legal in canonical rules."""
+    card_id: str
+
+
 @dataclass(frozen=True)
 class ChooseFirst:
+    """Obsolete compatibility type; canonical rules never enter this phase."""
     player: int
 
 
-Action: TypeAlias = PlaySubject | PlayLink | PlayName | PlayPlot | PlayScheme | SetStratagem | Draw | Cycle | Discard | Pass | ChooseFirst
+@dataclass(frozen=True)
+class PlayScheme:
+    """Obsolete compatibility type for pre-migration serialized actions."""
+    card_id: str
+    front: Front
+
+
+Action: TypeAlias = (
+    PlayForce
+    | PlayBond
+    | PlayName
+    | PlayStory
+    | PlayStratagem
+    | Maneuver
+    | Discard
+    | Pass
+)
 
 
 @lru_cache(maxsize=8192)
-def action_key(action: Action) -> str:
-    """Stable action serialization shared by engines, UIs and algorithms."""
+def action_key(action: object) -> str:
+    """Stable canonical action serialization shared by engine, UI and AI."""
     if isinstance(action, Pass):
         return "pass"
-    if isinstance(action, Draw):
-        return "draw"
-    if isinstance(action, ChooseFirst):
-        return f"choose_first:{action.player}"
-    if isinstance(action, PlaySubject):
+    if isinstance(action, Discard):
+        return f"discard:{action.card_id}"
+    if isinstance(action, Maneuver):
         return (
-            f"subject:{action.card_id}:{int(action.position.front)}:"
+            f"maneuver:{int(action.source.front)}:{action.source.rank.value}:"
+            f"{int(action.destination.front)}:{action.destination.rank.value}"
+        )
+    if isinstance(action, PlayForce):
+        return (
+            f"force:{action.card_id}:{int(action.position.front)}:"
             f"{action.position.rank.value}"
         )
-    if isinstance(action, PlayLink):
+    if isinstance(action, PlayBond):
         return (
-            f"link:{action.card_id}:{int(action.position.front)}:"
+            f"bond:{action.card_id}:{int(action.position.front)}:"
             f"{action.position.rank.value}"
         )
     if isinstance(action, PlayName):
-        move = "stay"
-        if action.move_to is not None:
-            move = (
-                f"{int(action.move_to.front)}:"
-                f"{action.move_to.rank.value}"
-            )
         return (
             f"name:{action.card_id}:{int(action.position.front)}:"
-            f"{action.position.rank.value}:{move}"
+            f"{action.position.rank.value}"
         )
-    if isinstance(action, PlayScheme):
-        return f"scheme:{action.card_id}:{int(action.front)}"
-    if isinstance(action, SetStratagem):
-        return f"stratagem:{action.card_id}"
-    if isinstance(action, PlayPlot):
+    if isinstance(action, PlayStory):
+        if action.ongoing_slot is not None:
+            return f"story:{action.card_id}:ongoing:{action.ongoing_slot}"
         targets = ";".join(
             f"{target.player}:{int(target.position.front)}:"
             f"{target.position.rank.value}"
             for target in action.targets
         )
-        return f"plot:{action.card_id}:{targets}"
+        return f"story:{action.card_id}:{targets}"
+    if isinstance(action, PlayStratagem):
+        return f"stratagem:{action.card_id}"
+
+    # Serialized compatibility only. These are never returned by legal_actions.
+    if isinstance(action, Draw):
+        return "draw"
     if isinstance(action, Cycle):
         return f"cycle:{action.card_id}"
-    if isinstance(action, Discard):
-        return f"discard:{action.card_id}"
+    if isinstance(action, ChooseFirst):
+        return f"choose_first:{action.player}"
+    if isinstance(action, PlayScheme):
+        return f"scheme:{action.card_id}:{int(action.front)}"
     raise TypeError(f"Unsupported action type: {type(action)!r}")
 
 
-def action_from_key(key: str) -> Action:
-    """Inverse of :func:`action_key` for engine/API boundaries."""
+def _position(front: str, rank: str) -> Position:
+    return Position(Front(int(front)), Rank(rank))
+
+
+def action_from_key(key: str) -> object:
+    """Inverse of action_key, accepting a narrow legacy key set."""
     if key == "pass":
         return Pass()
     if key == "draw":
@@ -138,40 +170,44 @@ def action_from_key(key: str) -> Action:
     if key.startswith("choose_first:"):
         return ChooseFirst(int(key.split(":", 1)[1]))
 
-    kind, card_id, *parts = key.split(":")
-    if kind in {"subject", "link"}:
-        front = Front(int(parts[0]))
-        rank = Rank(parts[1])
-        position = Position(front, rank)
-        return (
-            PlaySubject(card_id, position)
-            if kind == "subject"
-            else PlayLink(card_id, position)
+    parts = key.split(":")
+    if parts[0] in {"force", "subject"}:
+        return PlayForce(parts[1], _position(parts[2], parts[3]))
+    if parts[0] in {"bond", "link"}:
+        return PlayBond(parts[1], _position(parts[2], parts[3]))
+    if parts[0] == "name":
+        return PlayName(parts[1], _position(parts[2], parts[3]))
+    if parts[0] == "maneuver":
+        return Maneuver(
+            _position(parts[1], parts[2]),
+            _position(parts[3], parts[4]),
         )
-    if kind == "name":
-        front = Front(int(parts[0]))
-        rank = Rank(parts[1])
-        position = Position(front, rank)
-        if parts[2] == "stay":
-            return PlayName(card_id, position, None)
-        move_to = Position(Front(int(parts[2])), Rank(parts[3]))
-        return PlayName(card_id, position, move_to)
-    if kind == "scheme":
-        return PlayScheme(card_id, Front(int(parts[0])))
-    if kind == "stratagem":
-        return SetStratagem(card_id)
-    if kind == "plot":
-        target_blob = ":".join(parts)
-        if not target_blob:
-            return PlayPlot(card_id, ())
-        targets = []
-        for encoded in target_blob.split(";"):
-            player, front, rank = encoded.split(":")
-            targets.append(
-                BoardTarget(
-                    int(player),
-                    Position(Front(int(front)), Rank(rank)),
+    if parts[0] == "stratagem":
+        return PlayStratagem(parts[1])
+    if parts[0] == "story":
+        card_id = parts[1]
+        if len(parts) >= 4 and parts[2] == "ongoing":
+            return PlayStory(card_id, ongoing_slot=int(parts[3]))
+        payload = ":".join(parts[2:])
+        targets: list[BoardTarget] = []
+        if payload:
+            for encoded in payload.split(";"):
+                player, front, rank = encoded.split(":")
+                targets.append(
+                    BoardTarget(int(player), _position(front, rank))
                 )
-            )
-        return PlayPlot(card_id, tuple(targets))
+        return PlayStory(card_id, tuple(targets))
+    if parts[0] == "plot":
+        card_id = parts[1]
+        targets: list[BoardTarget] = []
+        payload = ":".join(parts[2:])
+        if payload:
+            for encoded in payload.split(";"):
+                player, front, rank = encoded.split(":")
+                targets.append(
+                    BoardTarget(int(player), _position(front, rank))
+                )
+        return PlayStory(card_id, tuple(targets))
+    if parts[0] == "scheme":
+        return PlayStory(parts[1], ongoing_slot=int(parts[2]))
     raise ValueError(f"Unknown action key: {key}")
