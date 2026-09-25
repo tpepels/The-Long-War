@@ -1635,7 +1635,7 @@ def parse_args() -> argparse.Namespace:
     suite.add_argument(
         "--games",
         type=int,
-        default=96,
+        default=24,
         help=(
             "Games per deck/orientation. Minimum 24; default 96 gives "
             "768 games and 384 mirrored deal pairs per comparison."
