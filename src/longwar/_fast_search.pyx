@@ -2344,44 +2344,56 @@ cdef class FastEngine:
         cdef int pos = action_pos(action)
         cdef int dest = action_dest(action)
         cdef int player = action_player(action)
-        cdef int front, rank
+
         if kind == TYPE_PASS:
             return "pass"
-        if kind == TYPE_DRAW:
-            return "draw"
-        if kind == TYPE_CYCLE:
-            return f"cycle:{self.card_ids[card]}"
         if kind == TYPE_DISCARD:
             return f"discard:{self.card_ids[card]}"
-        if kind == TYPE_CHOOSE:
-            return f"choose_first:{pos}"
+        if kind == TYPE_MANEUVER:
+            return (
+                f"maneuver:{front_from_slot(pos)}:"
+                f"{'front' if rank_from_slot(pos) == 0 else 'rear'}:"
+                f"{front_from_slot(dest)}:"
+                f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+            )
         if kind == TYPE_SUBJECT:
-            return f"subject:{self.card_ids[card]}:{front_from_slot(pos)}:{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            return (
+                f"force:{self.card_ids[card]}:{front_from_slot(pos)}:"
+                f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            )
         if kind == TYPE_LINK:
-            return f"link:{self.card_ids[card]}:{front_from_slot(pos)}:{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            return (
+                f"bond:{self.card_ids[card]}:{front_from_slot(pos)}:"
+                f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            )
         if kind == TYPE_NAME:
-            if dest < 0:
-                return f"name:{self.card_ids[card]}:{front_from_slot(pos)}:{'front' if rank_from_slot(pos) == 0 else 'rear'}:stay"
-            return f"name:{self.card_ids[card]}:{front_from_slot(pos)}:{'front' if rank_from_slot(pos) == 0 else 'rear'}:{front_from_slot(dest)}:{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+            return (
+                f"name:{self.card_ids[card]}:{front_from_slot(pos)}:"
+                f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            )
         if kind == TYPE_SCHEME:
-            return f"scheme:{self.card_ids[card]}:{pos}"
+            return f"story:{self.card_ids[card]}:ongoing:{pos}"
         if kind == TYPE_STRATAGEM:
             return f"stratagem:{self.card_ids[card]}"
         if kind == TYPE_PLOT:
             if dest >= 0:
-                return f"plot:{self.card_ids[card]}:{player}:{front_from_slot(pos)}:{'front' if rank_from_slot(pos) == 0 else 'rear'};{player}:{front_from_slot(dest)}:{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                return (
+                    f"story:{self.card_ids[card]}:"
+                    f"{player}:{front_from_slot(pos)}:"
+                    f"{'front' if rank_from_slot(pos) == 0 else 'rear'};"
+                    f"{player}:{front_from_slot(dest)}:"
+                    f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                )
             if pos >= 0:
-                return f"plot:{self.card_ids[card]}:{player}:{front_from_slot(pos)}:{'front' if rank_from_slot(pos) == 0 else 'rear'}"
-            return f"plot:{self.card_ids[card]}:"
-        raise ValueError("Unknown fast action")
-
-    cpdef dict export_state(self, FastState state):
-        cdef int p, f, r, i, card, viewer, owner
+                return (
+                    f"story:{self.card_ids[card]}:"
+                    f"{    cpdef dict export_state(self, FastState state):
+        cdef int p, f, r, i, card, viewer, owner, ix
         cdef object last_snapshot = None
+
         if state.last_battle_valid:
             last_snapshot = {
                 "battle": state.last_battle,
-                "winner": state.last_battle_winner,
                 "front_scores": [
                     [
                         state.last_front_scores[f][0],
@@ -2389,8 +2401,32 @@ cdef class FastEngine:
                     ]
                     for f in range(4)
                 ],
-                "total_strength": state.last_total_strength,
-                "abs_total_margin": state.last_abs_total_margin,
+                "front_results": [
+                    (
+                        0
+                        if state.last_front_scores[f][0]
+                        > state.last_front_scores[f][1]
+                        else 1
+                        if state.last_front_scores[f][1]
+                        > state.last_front_scores[f][0]
+                        else None
+                    )
+                    for f in range(4)
+                ],
+                "fronts_lost": [
+                    sum(
+                        1
+                        for f in range(4)
+                        if state.last_front_scores[f][0]
+                        < state.last_front_scores[f][1]
+                    ),
+                    sum(
+                        1
+                        for f in range(4)
+                        if state.last_front_scores[f][1]
+                        < state.last_front_scores[f][0]
+                    ),
+                ],
                 "command_start": [
                     state.last_command_start[0],
                     state.last_command_start[1],
@@ -2402,10 +2438,6 @@ cdef class FastEngine:
                 "command_refunded": [
                     state.last_command_refunded[0],
                     state.last_command_refunded[1],
-                ],
-                "completion_command_refunded": [
-                    state.last_completion_command_refunded[0],
-                    state.last_completion_command_refunded[1],
                 ],
                 "command_remaining": [
                     state.last_command_remaining[0],
@@ -2445,13 +2477,12 @@ cdef class FastEngine:
             "phase": (
                 "battle"
                 if state.phase == PHASE_BATTLE
-                else "choose_first"
-                if state.phase == PHASE_CHOOSE
                 else "complete"
+                if state.phase == PHASE_COMPLETE
+                else "choose_first"
             ),
             "battle": state.battle,
             "active_player": state.active_player,
-            "chooser": None if state.chooser < 0 else state.chooser,
             "winner": None if state.winner < 0 else state.winner,
             "turn_number": state.turn_number,
             "shuffle_seed": state.shuffle_seed,
@@ -2470,10 +2501,8 @@ cdef class FastEngine:
                         self.card_ids[state.discard[p][i]]
                         for i in range(state.discard_len[p])
                     ],
-                    "victories": state.victories[p],
                     "passed": bool(state.passed[p]),
                     "command": state.command[p],
-                    "free_cycle": bool(state.free_cycle[p]),
                 }
                 for p in range(2)
             ],
@@ -2481,14 +2510,14 @@ cdef class FastEngine:
                 [
                     [
                         {
-                            "subject": (
+                            "force": (
                                 None
                                 if state.subject[slot_index(p, f, r)] < 0
                                 else self.card_ids[
                                     state.subject[slot_index(p, f, r)]
                                 ]
                             ),
-                            "link": (
+                            "bond": (
                                 None
                                 if state.link[slot_index(p, f, r)] < 0
                                 else self.card_ids[
@@ -2512,19 +2541,13 @@ cdef class FastEngine:
                 ]
                 for p in range(2)
             ],
-            "schemes": [
+            "stories": [
                 [
-                    (
-                        None
-                        if state.scheme[p * 4 + f] < 0
-                        else {
-                            "card_id": self.card_ids[state.scheme[p * 4 + f]],
-                            "revealed": bool(
-                                state.scheme_revealed[p * 4 + f]
-                            ),
-                        }
-                    )
-                    for f in range(4)
+                    {
+                        "card_id": self.card_ids[state.scheme[p * 4 + i]],
+                    }
+                    for i in range(self.ongoing_story_limit)
+                    if state.scheme[p * 4 + i] >= 0
                 ]
                 for p in range(2)
             ],
@@ -2532,10 +2555,7 @@ cdef class FastEngine:
                 (
                     None
                     if state.stratagem[p] < 0
-                    else {
-                        "card_id": self.card_ids[state.stratagem[p]],
-                        "revealed": bool(state.stratagem_revealed[p]),
-                    }
+                    else {"card_id": self.card_ids[state.stratagem[p]]}
                 )
                 for p in range(2)
             ],
@@ -2546,10 +2566,6 @@ cdef class FastEngine:
             "hero_used": [
                 bool(state.hero_used[0]),
                 bool(state.hero_used[1]),
-            ],
-            "draw_used": [
-                bool(state.draw_used[0]),
-                bool(state.draw_used[1]),
             ],
             "discarded_this_battle": [
                 state.discarded_this_battle[0],
@@ -2562,10 +2578,6 @@ cdef class FastEngine:
             "command_refunded_this_battle": [
                 state.command_refunded_this_battle[0],
                 state.command_refunded_this_battle[1],
-            ],
-            "completion_command_refunded_this_battle": [
-                state.completion_command_refunded_this_battle[0],
-                state.completion_command_refunded_this_battle[1],
             ],
             "battle_start_command": [
                 state.battle_start_command[0],
@@ -2604,16 +2616,8 @@ cdef class FastEngine:
                 if state.pending_final_operation_for < 0
                 else state.pending_final_operation_for
             ),
-            "cleanup_pending": bool(state.cleanup_pending),
-            "cleanup_next_starter": (
-                None
-                if state.cleanup_next_starter < 0
-                else state.cleanup_next_starter
-            ),
-            "cleanup_next_chooser": (
-                None
-                if state.cleanup_next_chooser < 0
-                else state.cleanup_next_chooser
+            "pending_draw_discard_for": (
+                state.active_player if state.cleanup_pending else None
             ),
             "pass_order": [
                 state.pass_order[i]
@@ -2622,7 +2626,8 @@ cdef class FastEngine:
             "known_hidden_hand": [
                 [
                     {
-                        self.card_ids[card]: state.known_hidden[viewer][owner][card]
+                        self.card_ids[card]:
+                            state.known_hidden[viewer][owner][card]
                         for card in range(self.n_cards)
                         if state.known_hidden[viewer][owner][card]
                     }
