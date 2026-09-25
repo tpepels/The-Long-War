@@ -250,18 +250,6 @@ class BeliefSampler:
     def diagnostics(self, state: GameState, viewer: int) -> BeliefDiagnostics:
         self._validate_viewer(viewer)
         opponent = 1 - viewer
-        hidden_schemes = sum(
-            1
-            for front in Front
-            if (
-                state.scheme(opponent, front) is not None
-                and not state.scheme(opponent, front).revealed
-            )
-        )
-        hidden_stratagems = int(
-            state.stratagem(opponent) is not None
-            and not state.stratagem(opponent).revealed
-        )
         public = self._public_opponent_cards(state, opponent)
         known = state.known_hidden_cards(viewer, opponent, "hand")
         return BeliefDiagnostics(
@@ -271,8 +259,8 @@ class BeliefSampler:
             known_hidden_hand_cards=len(known),
             hidden_hand_cards=len(state.players[opponent].hand),
             hidden_deck_cards=len(state.players[opponent].deck),
-            hidden_schemes=hidden_schemes,
-            hidden_stratagems=hidden_stratagems,
+            hidden_schemes=0,
+            hidden_stratagems=0,
             prior_type=(
                 type(self.priors[opponent]).__name__
                 if self.priors is not None
@@ -303,25 +291,8 @@ class BeliefSampler:
 
         required = Counter(public_cards)
         required.update(known_hand)
-        hidden_requirements = []
-        diagnostics = self.diagnostics(state, viewer)
-        if diagnostics.hidden_schemes:
-            hidden_requirements.append((
-                frozenset(card for card in self.engine.cards if self._is_scheme_card(card)),
-                diagnostics.hidden_schemes,
-            ))
-        if diagnostics.hidden_stratagems:
-            hidden_requirements.append((
-                frozenset(card for card in self.engine.cards if self._is_stratagem_card(card)),
-                diagnostics.hidden_stratagems,
-            ))
-        # Preserve the simple DeckPrior protocol for third-party priors when no
-        # hidden type evidence is present.
         prior = self._prior_for_state(state, opponent)
-        sampled_full_deck = (
-            prior.sample_deck(required, rng, hidden_requirements=tuple(hidden_requirements))
-            if hidden_requirements else prior.sample_deck(required, rng)
-        )
+        sampled_full_deck = prior.sample_deck(required, rng)
         remaining = Counter(sampled_full_deck)
 
         for card_id in public_cards:
@@ -342,47 +313,6 @@ class BeliefSampler:
             for card_id, count in sorted(remaining.items())
             for _ in range(count)
         ]
-
-        hidden_scheme_fronts = [
-            front
-            for front in Front
-            if (
-                state.scheme(opponent, front) is not None
-                and not state.scheme(opponent, front).revealed
-            )
-        ]
-
-        for front in hidden_scheme_fronts:
-            eligible = [
-                index
-                for index, card_id in enumerate(unknown_pool)
-                if self._is_scheme_card(card_id)
-            ]
-            if not eligible:
-                raise BeliefStateError(
-                    "Hidden Veiled Story exists but no Veiled-Story card remains "
-                    "under the sampled deck hypothesis"
-                )
-            index = rng.choice(eligible)
-            sampled.schemes[opponent][int(front)].card_id = unknown_pool.pop(index)
-
-        hidden_stratagem = (
-            state.stratagem(opponent) is not None
-            and not state.stratagem(opponent).revealed
-        )
-        if hidden_stratagem:
-            eligible = [
-                index
-                for index, card_id in enumerate(unknown_pool)
-                if self._is_stratagem_card(card_id)
-            ]
-            if not eligible:
-                raise BeliefStateError(
-                    "Hidden Stratagem exists but no Stratagem card remains "
-                    "under the sampled deck hypothesis"
-                )
-            index = rng.choice(eligible)
-            sampled.stratagems[opponent].card_id = unknown_pool.pop(index)
 
         unknown_hand_slots = hand_count - len(known_hand)
         expected = unknown_hand_slots + deck_count
@@ -433,10 +363,10 @@ class BeliefSampler:
         total = len(ps.deck) + len(ps.hand) + len(ps.discard)
         for front in state.board[player]:
             for slot in front:
-                total += int(slot.subject is not None)
-                total += int(slot.link is not None)
+                total += int(slot.force is not None)
+                total += int(slot.bond is not None)
                 total += int(slot.name is not None)
-        total += sum(scheme is not None for scheme in state.schemes[player])
+        total += len(state.stories[player])
         total += int(state.stratagems[player] is not None)
         return total
 
@@ -451,27 +381,17 @@ class BeliefSampler:
             slot = state.slot(opponent, position)
             cards.extend(
                 card_id
-                for card_id in (slot.subject, slot.link, slot.name)
+                for card_id in (slot.force, slot.bond, slot.name)
                 if card_id is not None
             )
 
-        for front in Front:
-            scheme = state.scheme(opponent, front)
-            if scheme is not None and scheme.revealed:
-                cards.append(scheme.card_id)
+        cards.extend(story.card_id for story in state.stories[opponent])
 
-        stratagem = state.stratagem(opponent)
-        if stratagem is not None and stratagem.revealed:
+        stratagem = state.stratagems[opponent]
+        if stratagem is not None:
             cards.append(stratagem.card_id)
 
         return cards
-
-    def _is_scheme_card(self, card_id: str) -> bool:
-        card = self.engine.cards[card_id]
-        return card["type"] == "plot" and card.get("veiled", False)
-
-    def _is_stratagem_card(self, card_id: str) -> bool:
-        return self.engine.cards[card_id]["type"] == "stratagem"
 
     @staticmethod
     def _validate_viewer(viewer: int) -> None:
