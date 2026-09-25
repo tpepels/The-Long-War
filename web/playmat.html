@@ -31,17 +31,17 @@
         <div class="rv-player"><strong>OPPONENT</strong><span>Stratagem · one new per Battle</span></div>
         <div class="rv-front-labels"><span>FRONT 1</span><span>FRONT 2</span><span>FRONT 3</span><span>FRONT 4</span></div>
         <div class="rv-side opponent">
-          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span></div>
-          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span></div>
-          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span></div>
-          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span></div>
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b></span></div>
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b></span></div>
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b></span></div>
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b></span></div>
         </div>
         <div class="rv-battle-line"><strong>BATTLE LINE</strong><span>Frontline is nearest the line</span></div>
         <div class="rv-side player">
-          <div><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-slot rear"><b>Rear</b></span></div>
-          <div><span class="rv-slot front example"><b>Named Formation</b><small>Force · Bond · Name</small></span><span class="rv-slot rear"><b>Rear</b></span></div>
-          <div><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-slot rear"><b>Rear</b></span></div>
-          <div><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-slot rear"><b>Rear</b></span></div>
+          <div><span class="rv-slot front"><b>Frontline</b></span><span class="rv-slot rear"><b>Rear</b></span></div>
+          <div><span class="rv-slot front example"><b>Named Formation</b><small>Force · Bond · Name · persists</small></span><span class="rv-slot rear"><b>Rear</b></span></div>
+          <div><span class="rv-slot front"><b>Frontline</b></span><span class="rv-slot rear"><b>Rear</b></span></div>
+          <div><span class="rv-slot front"><b>Frontline</b></span><span class="rv-slot rear"><b>Rear</b></span></div>
         </div>
         <div class="rv-front-labels bottom"><span>FRONT 1</span><span>FRONT 2</span><span>FRONT 3</span><span>FRONT 4</span></div>
         <div class="rv-player you"><strong>YOU</strong><span>Your Stratagem · one new per Battle</span></div>
@@ -57,8 +57,8 @@
           <span>YOUR TURN</span>
           <ol>
             <li><b>Start turn:</b> draw 1. At 10 cards, discard 1 first.</li>
-            <li><b>One operation:</b> play 1 card, Maneuver, or Pass. Normally Pass becomes legal after both players have acted.</li>
-            <li><b>Maneuver:</b> pay 1 Command; Named Formation moves one Front sideways or swaps with a friendly formation in the same rank.</li>
+            <li><b>One operation:</b> play 1 card, Maneuver, or Pass. Pass normally requires both players to have acted.</li>
+            <li><b>Maneuver:</b> pay 1 Command; move a Named Formation one Front sideways in the same rank, or swap with a friendly formation.</li>
             <li><b>First Pass:</b> opponent draws normally, then takes one final operation.</li>
           </ol>
         </section>
@@ -70,7 +70,7 @@
             <div><dt>Bond</dt><dd>Any position without a Bond; may be prepared.</dd></div>
             <div><dt>Name</dt><dd>Any position without a Name; may be prepared.</dd></div>
             <div><dt>Hero</dt><dd>Play as Force or Name; max 1 Hero card from hand per Battle.</dd></div>
-            <div><dt>Story</dt><dd>Face-up. Immediate or ongoing; max 3 ongoing.</dd></div>
+            <div><dt>Story</dt><dd>Face-up; immediate or ongoing; max 3 ongoing.</dd></div>
             <div><dt>Stratagem</dt><dd>Public Battle-wide effect; one new per Battle.</dd></div>
           </dl>
         </section>
@@ -92,19 +92,19 @@
         <section class="rv-score">
           <span>AFTER THE FINAL OPERATION</span>
           <ol>
-            <li>Resolve all 4 Fronts separately. Higher Strength wins; a tie does nothing. There is no overall Battle winner.</li>
-            <li>Clear incomplete formations.</li>
+            <li>Resolve all 4 Fronts separately. Higher Strength wins; ties do nothing. There is no overall Battle winner.</li>
+            <li>Discard incomplete formations; Named Formations persist.</li>
             <li>In each lost Front: Rear Named Formation is driven off; Frontline Named Formation Retreats to Rear.</li>
-            <li>Recover Command: base recovery − Fronts lost, minimum 0.</li>
+            <li>Recover Command: base recovery − Fronts lost, minimum 0; max total 20.</li>
           </ol>
         </section>
       </aside>
     </div>
 
     <footer class="reference-v3-footer">
-      <div><b>COMMAND</b><span>Start/max 20 · d20 track · never below 0 · Maneuver costs 1. After recovery: below 5 loses; if both are below 5, lower loses; tied means fight on.</span></div>
+      <div><b>COMMAND</b><span>0–20 · d20 track · Maneuver costs 1. After recovery, if either player is below 5: lower Command loses; equal means fight on.</span></div>
       <div><b>RECOVERY</b><span>Base after Battles I–VIII+: <b>+10, +7, +5, +4, +3, +2, +1, +0…</b> then −1 per Front lost, minimum 0.</span></div>
-      <div><b>BETWEEN BATTLES</b><span>Named Formations persist · no Maneuver · clear Stratagems and Battle-only effects · ongoing Stories persist by text · refill to 10 · first passer starts.</span></div>
+      <div><b>BETWEEN BATTLES</b><span>Named Formations persist · no Maneuver · clear Battle-only effects · ongoing Stories persist by text · refill to 10 · first passer starts.</span></div>
     </footer>
   </main>
 </body>
