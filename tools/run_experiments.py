@@ -1853,8 +1853,8 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=24,
         help=(
-            "Games per deck/orientation. Minimum 24; default 96 gives "
-            "768 games and 384 mirrored deal pairs per comparison."
+            "Games per deck/orientation. Minimum/default 24 gives "
+            "192 games and 96 mirrored deal pairs per comparison."
         ),
     )
     suite.add_argument("--jobs", type=int, default=8)
