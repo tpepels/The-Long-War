@@ -100,7 +100,7 @@ Make exposes one configurable search-experiment entry point instead of a target 
 ```bash
 make verify-algorithms
 
-# Canonical unattended suite: 96 games per deck/orientation by default.
+# Canonical unattended suite: 24 games per deck/orientation by default.
 # It ends with an explicit READY / NOT READY design-evidence verdict.
 make experiments
 
