@@ -364,25 +364,6 @@ cdef class NativeHeuristicEvaluator:
         int player,
         FastState child,
     ):
-        cdef int front, margin, controls=0, tied=0, total_margin=0
-        cdef int weakest_control=32767
-        cdef int opponent = 1 - player
-        cdef double pressure_scale = 0.45 if self.engine.pass_final_operation else 1.0
-        cdef double score
-
-        child.copy_from_fast(state)
-        self.engine.pass_action(child, player)
-        if child.phase != PHASE_BATTLE or child.battle != state.battle:
-            return self.battle_boundary_evaluate_fast(child, player)
-
-        score = self.evaluate_fast(state, player)
-        for front in range(4):
-         cdef double pass_score_fast(
-        self,
-        FastState state,
-        int player,
-        FastState child,
-    ):
         cdef int front, margin, total_margin=0, wins=0, losses=0, tied=0
         cdef int opponent = 1 - player
         cdef double score
@@ -406,9 +387,8 @@ cdef class NativeHeuristicEvaluator:
             else:
                 tied += 1
 
-        # Passing trades away future operations for the right to start the
-        # next Battle. Value the independent Front position, not an obsolete
-        # aggregate Battle winner.
+        # Passing trades future operations for the right to start the next
+        # Battle. Value independent Front position, never an aggregate winner.
         score += 4.0 * (wins - losses)
         score += 0.35 * total_margin
         score += 0.4 * tied
