@@ -98,7 +98,6 @@ class GameEngine:
         automatic_draw_hand_limit: int | None = 10,
         battle_end_hand_limit: int | None = None,
         cycle_enabled: bool = False,
-        pass_final_operation: bool = True,
         pass_requires_both_acted: bool = True,
         first_passer_starts_next_battle: bool = True,
         completion_command_refund: int = 0,
@@ -124,7 +123,6 @@ class GameEngine:
                 automatic_draw_hand_limit=automatic_draw_hand_limit,
                 battle_end_hand_limit=battle_end_hand_limit,
                 cycle_enabled=cycle_enabled,
-                pass_final_operation=pass_final_operation,
                 pass_requires_both_acted=pass_requires_both_acted,
                 first_passer_starts_next_battle=first_passer_starts_next_battle,
                 completion_command_refund=completion_command_refund,
@@ -157,7 +155,6 @@ class GameEngine:
         self.automatic_draw_hand_limit = rules.automatic_draw_hand_limit
         self.battle_end_hand_limit = rules.battle_end_hand_limit
         self.cycle_enabled = rules.cycle_enabled
-        self.pass_final_operation = rules.pass_final_operation
         self.pass_requires_both_acted = rules.pass_requires_both_acted
         self.first_passer_starts_next_battle = rules.first_passer_starts_next_battle
         self.completion_command_refund = rules.completion_command_refund
@@ -393,7 +390,6 @@ class GameEngine:
         state.deck_reshuffles[:] = data["deck_reshuffles"]
         state.reshuffle_card_totals[:] = data["reshuffle_card_totals"]
         state.reshuffle_hand_card_totals[:] = data["reshuffle_hand_card_totals"]
-        state.pending_final_operation_for = data["pending_final_operation_for"]
         state.pending_draw_discard_for = data["pending_draw_discard_for"]
         state.last_battle_snapshot = data["last_battle_snapshot"]
         state.pass_order[:] = data["pass_order"]
