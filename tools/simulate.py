@@ -31,6 +31,25 @@ def load_policy(path: Path | None) -> dict[str, Any] | None:
     return json.loads(resolve(path).read_text(encoding="utf-8"))
 
 
+def _write_progress_snapshot(
+    path: Path,
+    completed: int,
+    total: int,
+    wins: tuple[int, int],
+) -> None:
+    """Atomically publish one simulation progress snapshot."""
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(
+        json.dumps({
+            "completed": completed,
+            "total": total,
+            "wins": [wins[0], wins[1]],
+        }) + "\n",
+        encoding="utf-8",
+    )
+    temporary.replace(path)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     defaults = GameRules.standard()
@@ -395,6 +414,7 @@ def main() -> None:
             raise SystemExit("MCCFR policy belongs to an older ruleset; retrain it before simulation")
 
     progress_path = resolve(args.progress_file) if args.progress_file else None
+
     def write_progress(
         completed: int,
         total: int,
@@ -402,14 +422,7 @@ def main() -> None:
     ) -> None:
         if progress_path is None:
             return
-        progress_path.write_text(
-            json.dumps({
-                "completed": completed,
-                "total": total,
-                "wins": [wins[0], wins[1]],
-            }) + "\n",
-            encoding="utf-8",
-        )
+        _write_progress_snapshot(progress_path, completed, total, wins)
 
     if progress_path is not None:
         progress_path.parent.mkdir(parents=True, exist_ok=True)

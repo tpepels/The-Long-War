@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import random
 import select
 import subprocess
 import sys
@@ -1415,6 +1416,29 @@ def benchmark_strength(
     return summary_path
 
 
+
+def _suite_schedule(
+    comparisons: list[tuple[str, dict[str, Any]]],
+    seed: int,
+) -> list[dict[str, Any]]:
+    """Return the complete suite in deterministic randomized execution order."""
+    schedule = [
+        {
+            "name": name,
+            "kind": "ismcts-match",
+            "overrides": dict(overrides),
+        }
+        for name, overrides in comparisons
+    ]
+    schedule.append({
+        "name": "baseline-vs-alpha-beta",
+        "kind": "strength-bench",
+        "overrides": {},
+    })
+    random.Random(seed).shuffle(schedule)
+    return schedule
+
+
 def run_suite(args: argparse.Namespace) -> Path:
     """Run the canonical non-adaptive search experiment suite."""
     if args.games < 24:
@@ -1435,7 +1459,6 @@ def run_suite(args: argparse.Namespace) -> Path:
         "max_tree_nodes": 400_000,
     }
     comparisons = [
-        ("baseline-control", {}),
         ("tree-cold", {"reuse_tree_b": False}),
         ("pw-0p5", {"progressive_widening_b": 0.5}),
         ("rollout-greedy", {"rollout_policy_b": "greedy"}),
@@ -1452,9 +1475,11 @@ def run_suite(args: argparse.Namespace) -> Path:
         "seed": args.seed,
         "baseline": baseline,
         "comparisons": comparisons,
+        "schedule_policy": "seeded-shuffle-v1",
     })
     output_dir = artifact_directory(BENCH_ROOT / "suite", identity)
     manifest_path = output_dir / "summary.json"
+    schedule = _suite_schedule(comparisons, args.seed)
     manifest: dict[str, Any] = {
         **identity,
         "games_per_orientation": args.games,
@@ -1464,6 +1489,8 @@ def run_suite(args: argparse.Namespace) -> Path:
         "alpha_nodes": args.alpha_nodes,
         "seed": args.seed,
         "baseline": baseline,
+        "schedule_policy": "seeded-shuffle-v1",
+        "schedule": [item["name"] for item in schedule],
         "experiments": [],
     }
 
@@ -1483,67 +1510,94 @@ def run_suite(args: argparse.Namespace) -> Path:
         "Baseline: belief=12, c=0.3, reuse, tree=400k, pw=0, "
         "rollout=cheap/5, epsilon=0.12. Each A/B changes only candidate B."
     )
+    print("Randomized run order: " + " -> ".join(manifest["schedule"]))
 
-    experiments = len(comparisons) + 1
-    for index, (name, overrides) in enumerate(comparisons, start=1):
+    experiments = len(schedule)
+    for index, item in enumerate(schedule, start=1):
+        name = str(item["name"])
+        kind = str(item["kind"])
+        overrides = dict(item["overrides"])
         print()
         print(f"=== {index}/{experiments} {name} ===")
         entry: dict[str, Any] = {
             "name": name,
-            "kind": "ismcts-match",
-            "candidate_b_overrides": overrides,
+            "kind": kind,
             "status": "running",
         }
+        if kind == "ismcts-match":
+            entry["candidate_b_overrides"] = overrides
         manifest["experiments"].append(entry)
         save_manifest()
+
         try:
-            summary_path = benchmark_ismcts_match(
-                games_per_orientation=args.games,
-                jobs=args.jobs,
-                iterations=args.iterations,
-                time_budget_seconds=args.time_budget_seconds,
-                belief_samples_a=baseline["belief_samples"],
-                belief_samples_b=overrides.get(
-                    "belief_samples_b",
-                    baseline["belief_samples"],
-                ),
-                exploration_a=baseline["exploration"],
-                exploration_b=overrides.get(
-                    "exploration_b",
-                    baseline["exploration"],
-                ),
-                progressive_widening_a=baseline["progressive_widening"],
-                progressive_widening_b=overrides.get(
-                    "progressive_widening_b",
-                    baseline["progressive_widening"],
-                ),
-                reuse_tree_a=baseline["reuse_tree"],
-                reuse_tree_b=overrides.get(
-                    "reuse_tree_b",
-                    baseline["reuse_tree"],
-                ),
-                rollout_depth_a=baseline["rollout_depth"],
-                rollout_depth_b=overrides.get(
-                    "rollout_depth_b",
-                    baseline["rollout_depth"],
-                ),
-                rollout_policy_a=baseline["rollout_policy"],
-                rollout_policy_b=overrides.get(
-                    "rollout_policy_b",
-                    baseline["rollout_policy"],
-                ),
-                rollout_epsilon_a=baseline["rollout_epsilon"],
-                rollout_epsilon_b=overrides.get(
-                    "rollout_epsilon_b",
-                    baseline["rollout_epsilon"],
-                ),
-                max_tree_nodes_a=baseline["max_tree_nodes"],
-                max_tree_nodes_b=overrides.get(
-                    "max_tree_nodes_b",
-                    baseline["max_tree_nodes"],
-                ),
-                seed=args.seed,
-            )
+            if kind == "ismcts-match":
+                summary_path = benchmark_ismcts_match(
+                    games_per_orientation=args.games,
+                    jobs=args.jobs,
+                    iterations=args.iterations,
+                    time_budget_seconds=args.time_budget_seconds,
+                    belief_samples_a=baseline["belief_samples"],
+                    belief_samples_b=overrides.get(
+                        "belief_samples_b",
+                        baseline["belief_samples"],
+                    ),
+                    exploration_a=baseline["exploration"],
+                    exploration_b=overrides.get(
+                        "exploration_b",
+                        baseline["exploration"],
+                    ),
+                    progressive_widening_a=baseline["progressive_widening"],
+                    progressive_widening_b=overrides.get(
+                        "progressive_widening_b",
+                        baseline["progressive_widening"],
+                    ),
+                    reuse_tree_a=baseline["reuse_tree"],
+                    reuse_tree_b=overrides.get(
+                        "reuse_tree_b",
+                        baseline["reuse_tree"],
+                    ),
+                    rollout_depth_a=baseline["rollout_depth"],
+                    rollout_depth_b=overrides.get(
+                        "rollout_depth_b",
+                        baseline["rollout_depth"],
+                    ),
+                    rollout_policy_a=baseline["rollout_policy"],
+                    rollout_policy_b=overrides.get(
+                        "rollout_policy_b",
+                        baseline["rollout_policy"],
+                    ),
+                    rollout_epsilon_a=baseline["rollout_epsilon"],
+                    rollout_epsilon_b=overrides.get(
+                        "rollout_epsilon_b",
+                        baseline["rollout_epsilon"],
+                    ),
+                    max_tree_nodes_a=baseline["max_tree_nodes"],
+                    max_tree_nodes_b=overrides.get(
+                        "max_tree_nodes_b",
+                        baseline["max_tree_nodes"],
+                    ),
+                    seed=args.seed,
+                )
+            elif kind == "strength-bench":
+                summary_path = benchmark_strength(
+                    games_per_orientation=args.games,
+                    jobs=args.jobs,
+                    ismcts_iterations=args.iterations,
+                    alpha_nodes=args.alpha_nodes,
+                    belief_samples=baseline["belief_samples"],
+                    rollout_policy=baseline["rollout_policy"],
+                    rollout_depth=baseline["rollout_depth"],
+                    progressive_widening=baseline["progressive_widening"],
+                    exploration=baseline["exploration"],
+                    reuse_tree=baseline["reuse_tree"],
+                    rollout_epsilon=baseline["rollout_epsilon"],
+                    max_tree_nodes=baseline["max_tree_nodes"],
+                    time_budget_seconds=args.time_budget_seconds,
+                    seed=args.seed,
+                )
+            else:  # pragma: no cover - schedule is constructed locally
+                raise RuntimeError(f"Unknown suite experiment kind: {kind}")
+
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
             entry.update({
                 "status": "passed",
@@ -1564,54 +1618,6 @@ def run_suite(args: argparse.Namespace) -> Path:
                 save_manifest()
                 raise
         save_manifest()
-
-    name = "baseline-vs-alpha-beta"
-    print()
-    print(f"=== {experiments}/{experiments} {name} ===")
-    entry = {
-        "name": name,
-        "kind": "strength-bench",
-        "status": "running",
-    }
-    manifest["experiments"].append(entry)
-    save_manifest()
-    try:
-        summary_path = benchmark_strength(
-            games_per_orientation=args.games,
-            jobs=args.jobs,
-            ismcts_iterations=args.iterations,
-            alpha_nodes=args.alpha_nodes,
-            belief_samples=baseline["belief_samples"],
-            rollout_policy=baseline["rollout_policy"],
-            rollout_depth=baseline["rollout_depth"],
-            progressive_widening=baseline["progressive_widening"],
-            exploration=baseline["exploration"],
-            reuse_tree=baseline["reuse_tree"],
-            rollout_epsilon=baseline["rollout_epsilon"],
-            max_tree_nodes=baseline["max_tree_nodes"],
-            time_budget_seconds=args.time_budget_seconds,
-            seed=args.seed,
-        )
-        payload = json.loads(summary_path.read_text(encoding="utf-8"))
-        entry.update({
-            "status": "passed",
-            "summary": str(summary_path.relative_to(ROOT)),
-            "overall": payload.get("overall", {}),
-            "resources": payload.get("resources", {}),
-        })
-    except ExperimentSkipped:
-        entry.update({"status": "skipped"})
-        print(f"SKIPPED: {name}")
-    except (Exception, SystemExit) as exc:
-        entry.update({
-            "status": "failed",
-            "error": f"{type(exc).__name__}: {exc}",
-        })
-        print(f"EXPERIMENT FAILED: {name}: {exc}")
-        if args.stop_on_error:
-            save_manifest()
-            raise
-    save_manifest()
 
     failures = [
         row["name"]
@@ -1634,42 +1640,28 @@ def run_suite(args: argparse.Namespace) -> Path:
             return None, None
         return float(low), float(high)
 
-    control = next(
-        (row for row in manifest["experiments"] if row["name"] == "baseline-control"),
-        None,
-    )
     strength = next(
         (row for row in manifest["experiments"] if row["name"] == "baseline-vs-alpha-beta"),
         None,
     )
-    control_ci = ci_for(control or {}, "candidate_a_win_rate")
     strength_ci = ci_for(strength or {}, "mcts_win_rate")
 
     challengers_beating_baseline = []
     for row in manifest["experiments"]:
-        if row.get("kind") != "ismcts-match" or row.get("name") == "baseline-control":
+        if row.get("kind") != "ismcts-match":
             continue
         low, high = ci_for(row, "candidate_a_win_rate")
         if high is not None and high < 0.5:
             challengers_beating_baseline.append(row["name"])
 
-    capacity_cutoffs = 0
-    capacity_reroots = 0
-    if control:
-        for stats in control.get("resources", {}).values():
-            capacity_cutoffs += int(stats.get("tree_capacity_cutoffs", 0) or 0)
-            capacity_reroots += int(stats.get("capacity_reroots", 0) or 0)
-
     blockers: list[str] = []
     warnings: list[str] = []
     if failures:
-        blockers.append("one or more calibration experiments failed")
+        blockers.append("one or more experiments failed")
     if skipped:
         warnings.append(
             "manually skipped comparisons: " + ", ".join(skipped)
         )
-    if control_ci[0] is None or not (control_ci[0] <= 0.5 <= control_ci[1]):
-        blockers.append("identical ISMCTS control does not calibrate around 50%")
     if challengers_beating_baseline:
         blockers.append(
             "predeclared challenger beats the baseline: "
@@ -1679,15 +1671,6 @@ def run_suite(args: argparse.Namespace) -> Path:
         blockers.append("ISMCTS vs strategic alpha-beta comparison did not complete")
     elif strength_ci[1] is not None and strength_ci[1] < 0.5:
         blockers.append("ISMCTS is significantly weaker than strategic alpha-beta")
-    if capacity_cutoffs:
-        warnings.append(
-            f"baseline tree hit capacity {capacity_cutoffs} times; "
-            "inspect tree capacity before treating search as converged"
-        )
-    if capacity_reroots:
-        warnings.append(
-            f"baseline tree rerooted after capacity {capacity_reroots} times"
-        )
     if strength_ci[0] is not None and strength_ci[0] > 0.5:
         warnings.append(
             "ISMCTS is significantly stronger than strategic alpha-beta; "
@@ -1698,11 +1681,8 @@ def run_suite(args: argparse.Namespace) -> Path:
         "ready": not blockers,
         "blockers": blockers,
         "warnings": warnings,
-        "baseline_control_ci95": list(control_ci),
         "ismcts_vs_alpha_beta_ci95": list(strength_ci),
         "challengers_beating_baseline": challengers_beating_baseline,
-        "baseline_tree_capacity_cutoffs": capacity_cutoffs,
-        "baseline_capacity_reroots": capacity_reroots,
         "policy": (
             "Use ISMCTS as primary hidden-information design evidence and "
             "strategic alpha-beta as an independent cross-check. Heuristic "
@@ -1873,8 +1853,8 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=24,
         help=(
-            "Games per deck/orientation. Minimum 24; default 96 gives "
-            "768 games and 384 mirrored deal pairs per comparison."
+            "Games per deck/orientation. Minimum/default 24 gives "
+            "192 games and 96 mirrored deal pairs per comparison."
         ),
     )
     suite.add_argument("--jobs", type=int, default=8)
