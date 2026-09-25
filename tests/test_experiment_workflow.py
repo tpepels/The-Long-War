@@ -258,34 +258,275 @@ def test_skip_key_reader_restores_terminal_state_on_exception(monkeypatch):
     assert restored == [(17, runner.termios.TCSADRAIN, saved)]
 
 
-def test_optimization_schedule_is_seeded_randomized_and_excludes_strength_check():
-    comparisons = [
-        ("tree-cold", {"reuse_tree": False}),
-        ("pw-0p5", {"progressive_widening": 0.5}),
-        ("rollout-greedy", {"rollout_policy": "greedy"}),
-        ("rollout-depth-8", {"rollout_depth": 8}),
-        ("rollout-epsilon-0", {"rollout_epsilon": 0.0}),
-    ]
-    expected = {
+def test_ai_optimization_suite_is_a_round_robin_tournament(
+    tmp_path,
+    monkeypatch,
+):
+    suite_dir = tmp_path / "suite"
+    match_calls = []
+    strength_calls = []
+
+    def fake_artifact_directory(_base, _identity):
+        suite_dir.mkdir(parents=True, exist_ok=True)
+        return suite_dir
+
+    def fake_match(**kwargs):
+        match_calls.append(dict(kwargs))
+        path = tmp_path / f"match-{len(match_calls)}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "candidate_a_wins": 96,
+                    "candidate_b_wins": 96,
+                    "games": 192,
+                    "candidate_a_win_rate": 0.5,
+                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    def fake_strength(**kwargs):
+        strength_calls.append(dict(kwargs))
+        path = tmp_path / f"strength-{len(strength_calls)}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "mcts_wins": 96,
+                    "alpha_beta_wins": 96,
+                    "games": 192,
+                    "mcts_win_rate": 0.5,
+                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
+    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
+    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
+    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
+
+    args = Namespace(
+        games=24,
+        jobs=8,
+        iterations=100_000,
+        alpha_nodes=20_000,
+        time_budget_seconds=2.0,
+        seed=26092400,
+        stop_on_error=False,
+    )
+    manifest_path = runner.run_suite(args)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    entrants = {
+        "baseline",
         "tree-cold",
         "pw-0p5",
         "rollout-greedy",
         "rollout-depth-8",
         "rollout-epsilon-0",
+        "alpha-beta",
     }
+    assert set(manifest["tournament_entrants"]) == entrants
+    assert len(manifest["experiments"]) == 21
+    assert len(match_calls) == 15
+    assert len(strength_calls) == 6
+    assert all(row["status"] == "passed" for row in manifest["experiments"])
 
-    first = runner._optimization_schedule(comparisons, 26092400)
-    second = runner._optimization_schedule(comparisons, 26092400)
-
-    assert first == second
-    assert {item["name"] for item in first} == expected
-    assert "optimized-vs-alpha-beta" not in {
-        item["name"] for item in first
+    fixtures = {
+        frozenset((row["entrant_a"], row["entrant_b"]))
+        for row in manifest["experiments"]
     }
-    assert [item["name"] for item in first] != [
-        name for name, _overrides in comparisons
+    assert len(fixtures) == 21
+    assert all(len(pair) == 2 for pair in fixtures)
+    assert manifest["schedule"] == [
+        row["name"] for row in manifest["experiments"]
     ]
-    assert comparisons[0] == ("tree-cold", {"reuse_tree": False})
+    assert all(row["matches"] == 6 for row in manifest["standings"])
+    assert sum(row["points"] for row in manifest["standings"]) == pytest.approx(42.0)
+    assert manifest["optimized_ismcts"] in entrants - {"alpha-beta"}
+    assert manifest["decision_readiness"]["ready"] is True
+
+
+def test_tournament_selects_best_ismcts_and_includes_alpha_beta_results(
+    tmp_path,
+    monkeypatch,
+):
+    suite_dir = tmp_path / "suite"
+    strength_calls = []
+
+    def fake_artifact_directory(_base, _identity):
+        suite_dir.mkdir(parents=True, exist_ok=True)
+        return suite_dir
+
+    def fake_match(**kwargs):
+        a_greedy = kwargs["rollout_policy_a"] == "greedy"
+        b_greedy = kwargs["rollout_policy_b"] == "greedy"
+        if a_greedy:
+            a_wins, b_wins = 120, 72
+        elif b_greedy:
+            a_wins, b_wins = 72, 120
+        else:
+            a_wins, b_wins = 96, 96
+        path = tmp_path / f"match-{len(list(tmp_path.glob('match-*.json')))}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "candidate_a_wins": a_wins,
+                    "candidate_b_wins": b_wins,
+                    "games": a_wins + b_wins,
+                    "candidate_a_win_rate": a_wins / (a_wins + b_wins),
+                    "paired_uncertainty": {
+                        "ci95": [0.58, 0.67] if a_greedy
+                        else ([0.33, 0.42] if b_greedy else [0.44, 0.56]),
+                    },
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    def fake_strength(**kwargs):
+        strength_calls.append(dict(kwargs))
+        greedy = kwargs["rollout_policy"] == "greedy"
+        mcts_wins, alpha_wins = (120, 72) if greedy else (96, 96)
+        path = tmp_path / f"strength-{len(strength_calls)}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "mcts_wins": mcts_wins,
+                    "alpha_beta_wins": alpha_wins,
+                    "games": mcts_wins + alpha_wins,
+                    "mcts_win_rate": mcts_wins / (mcts_wins + alpha_wins),
+                    "paired_uncertainty": {
+                        "ci95": [0.58, 0.67] if greedy else [0.44, 0.56],
+                    },
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
+    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
+    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
+    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
+
+    manifest_path = runner.run_suite(Namespace(
+        games=24,
+        jobs=8,
+        iterations=100_000,
+        alpha_nodes=20_000,
+        time_budget_seconds=2.0,
+        seed=26092400,
+        stop_on_error=False,
+    ))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert manifest["optimized_ismcts"] == "rollout-greedy"
+    assert manifest["optimized_config"]["rollout_policy"] == "greedy"
+    assert manifest["tournament_champion"] == "rollout-greedy"
+    greedy = next(
+        row for row in manifest["standings"]
+        if row["name"] == "rollout-greedy"
+    )
+    assert greedy["wins"] == 6
+    assert greedy["points"] == pytest.approx(18.0)
+
+    alpha_fixture = next(
+        row for row in manifest["experiments"]
+        if {
+            row["entrant_a"],
+            row["entrant_b"],
+        } == {"rollout-greedy", "alpha-beta"}
+    )
+    assert alpha_fixture["status"] == "passed"
+    assert alpha_fixture["winner"] == "rollout-greedy"
+    assert manifest["decision_readiness"]["ready"] is True
+
+
+def test_tournament_skip_continues_but_marks_ai_optimization_incomplete(
+    tmp_path,
+    monkeypatch,
+):
+    suite_dir = tmp_path / "suite"
+    match_calls = 0
+
+    def fake_artifact_directory(_base, _identity):
+        suite_dir.mkdir(parents=True, exist_ok=True)
+        return suite_dir
+
+    def fake_match(**_kwargs):
+        nonlocal match_calls
+        match_calls += 1
+        if match_calls == 2:
+            raise runner.ExperimentSkipped("test skip")
+        path = tmp_path / f"match-{match_calls}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "candidate_a_wins": 96,
+                    "candidate_b_wins": 96,
+                    "games": 192,
+                    "candidate_a_win_rate": 0.5,
+                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    def fake_strength(**_kwargs):
+        path = tmp_path / f"strength-{len(list(tmp_path.glob('strength-*.json')))}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "mcts_wins": 96,
+                    "alpha_beta_wins": 96,
+                    "games": 192,
+                    "mcts_win_rate": 0.5,
+                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
+    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
+    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
+    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
+
+    manifest_path = runner.run_suite(Namespace(
+        games=24,
+        jobs=8,
+        iterations=100_000,
+        alpha_nodes=20_000,
+        time_budget_seconds=2.0,
+        seed=26092400,
+        stop_on_error=False,
+    ))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert len(manifest["experiments"]) == 21
+    assert len(manifest["skipped"]) == 1
+    assert manifest["failures"] == []
+    assert manifest["decision_readiness"]["ready"] is False
+    assert "AI optimization tournament incomplete" in (
+        manifest["decision_readiness"]["blockers"]
+    )
 
 
 def test_strength_benchmark_reports_live_progress():
@@ -359,351 +600,6 @@ def test_experiment_suite_defaults_and_minimum(monkeypatch):
     args.games = 23
     with pytest.raises(SystemExit, match="at least 24"):
         runner.run_suite(args)
-
-
-def test_experiment_suite_optimizes_before_strength_check(
-    tmp_path,
-    monkeypatch,
-):
-    suite_dir = tmp_path / "suite"
-
-    def fake_artifact_directory(base, identity):
-        suite_dir.mkdir(parents=True, exist_ok=True)
-        return suite_dir
-
-    match_calls = []
-    strength_calls = []
-    events = []
-
-    def fake_match(**kwargs):
-        match_calls.append(kwargs)
-        events.append("match")
-        path = tmp_path / f"match-{len(match_calls)}.json"
-        path.write_text(
-            json.dumps({
-                "overall": {
-                    "candidate_a_win_rate": 0.5,
-                    "paired_uncertainty": {"ci95": [0.45, 0.55]},
-                },
-                "resources": {},
-            }),
-            encoding="utf-8",
-        )
-        return path
-
-    def fake_strength(**kwargs):
-        strength_calls.append(kwargs)
-        events.append("strength")
-        path = tmp_path / "strength.json"
-        path.write_text(
-            json.dumps({
-                "overall": {
-                    "mcts_win_rate": 0.5,
-                    "paired_uncertainty": {"ci95": [0.45, 0.55]},
-                },
-                "resources": {},
-            }),
-            encoding="utf-8",
-        )
-        return path
-
-    monkeypatch.setattr(runner, "ROOT", tmp_path)
-    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
-    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
-    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
-    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
-
-    args = Namespace(
-        games=24,
-        jobs=8,
-        iterations=100_000,
-        alpha_nodes=20_000,
-        time_budget_seconds=2.0,
-        seed=26092400,
-        stop_on_error=False,
-    )
-    manifest_path = runner.run_suite(args)
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-
-    assert len(match_calls) == 5
-    assert len(strength_calls) == 1
-    assert events == ["match"] * 5 + ["strength"]
-    assert len(manifest["experiments"]) == 6
-    assert all(row["status"] == "passed" for row in manifest["experiments"])
-    assert manifest["schedule"][-1] == "optimized-vs-alpha-beta"
-    assert set(manifest["optimization_schedule"]) == {
-        "tree-cold",
-        "pw-0p5",
-        "rollout-greedy",
-        "rollout-depth-8",
-        "rollout-epsilon-0",
-    }
-    assert manifest["schedule"] == [
-        *manifest["optimization_schedule"],
-        "optimized-vs-alpha-beta",
-    ]
-
-    assert all(call["belief_samples_a"] == 12 for call in match_calls)
-    assert all(call["belief_samples_b"] == 12 for call in match_calls)
-    assert all(call["max_tree_nodes_a"] == 400_000 for call in match_calls)
-    assert all(call["max_tree_nodes_b"] == 400_000 for call in match_calls)
-    assert sum(call["reuse_tree_b"] is False for call in match_calls) == 1
-    assert sum(
-        call["progressive_widening_b"] == pytest.approx(0.5)
-        for call in match_calls
-    ) == 1
-    assert sum(call["rollout_policy_b"] == "greedy" for call in match_calls) == 1
-    assert sum(call["rollout_depth_b"] == 8 for call in match_calls) == 1
-    assert sum(call["rollout_epsilon_b"] == pytest.approx(0.0) for call in match_calls) == 1
-
-    assert strength_calls[0]["time_budget_seconds"] == pytest.approx(2.0)
-    assert strength_calls[0]["belief_samples"] == 12
-    assert strength_calls[0]["reuse_tree"] is True
-    assert strength_calls[0]["rollout_policy"] == "cheap"
-    assert strength_calls[0]["rollout_depth"] == 5
-    assert strength_calls[0]["rollout_epsilon"] == pytest.approx(0.12)
-    assert strength_calls[0]["max_tree_nodes"] == 400_000
-
-    assert manifest["optimized_config"] == manifest["starting_config"]
-    assert manifest["accepted_optimizations"] == []
-    assert manifest["decision_readiness"]["ready"] is True
-    assert manifest["decision_readiness"]["blockers"] == []
-
-
-def test_suite_rolls_confident_improvements_into_later_tests_and_strength(
-    tmp_path,
-    monkeypatch,
-):
-    suite_dir = tmp_path / "suite"
-
-    def fake_artifact_directory(_base, _identity):
-        suite_dir.mkdir(parents=True, exist_ok=True)
-        return suite_dir
-
-    match_calls = []
-    strength_calls = []
-
-    def fake_match(**kwargs):
-        match_calls.append(dict(kwargs))
-        path = tmp_path / f"match-{len(match_calls)}.json"
-        tree_challenger = (
-            kwargs["reuse_tree_a"] is True
-            and kwargs["reuse_tree_b"] is False
-        )
-        path.write_text(
-            json.dumps({
-                "overall": {
-                    "candidate_a_win_rate": 0.40 if tree_challenger else 0.50,
-                    "paired_uncertainty": {
-                        "ci95": [0.32, 0.48]
-                        if tree_challenger
-                        else [0.44, 0.56],
-                    },
-                },
-                "resources": {},
-            }),
-            encoding="utf-8",
-        )
-        return path
-
-    def fake_strength(**kwargs):
-        strength_calls.append(dict(kwargs))
-        path = tmp_path / "strength.json"
-        path.write_text(
-            json.dumps({
-                "overall": {
-                    "mcts_win_rate": 0.50,
-                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
-                },
-                "resources": {},
-            }),
-            encoding="utf-8",
-        )
-        return path
-
-    monkeypatch.setattr(runner, "ROOT", tmp_path)
-    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
-    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
-    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
-    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
-
-    manifest_path = runner.run_suite(Namespace(
-        games=24,
-        jobs=8,
-        iterations=100_000,
-        alpha_nodes=20_000,
-        time_budget_seconds=2.0,
-        seed=26092400,
-        stop_on_error=False,
-    ))
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-
-    tree_call_index = next(
-        index
-        for index, call in enumerate(match_calls)
-        if call["reuse_tree_a"] is True and call["reuse_tree_b"] is False
-    )
-    for call in match_calls[tree_call_index + 1:]:
-        assert call["reuse_tree_a"] is False
-        assert call["reuse_tree_b"] is False
-
-    assert manifest["accepted_optimizations"] == ["tree-cold"]
-    assert manifest["optimized_config"]["reuse_tree"] is False
-    assert strength_calls[0]["reuse_tree"] is False
-    tree_entry = next(
-        row for row in manifest["experiments"] if row["name"] == "tree-cold"
-    )
-    assert tree_entry["accepted"] is True
-    assert tree_entry["incumbent_after"]["reuse_tree"] is False
-
-
-def test_suite_manual_skip_continues_to_following_experiments(
-    tmp_path,
-    monkeypatch,
-):
-    suite_dir = tmp_path / "suite"
-
-    def fake_artifact_directory(_base, _identity):
-        suite_dir.mkdir(parents=True, exist_ok=True)
-        return suite_dir
-
-    calls = 0
-
-    def fake_match(**_kwargs):
-        nonlocal calls
-        calls += 1
-        if calls == 2:
-            raise runner.ExperimentSkipped("test skip")
-        path = tmp_path / f"match-{calls}.json"
-        path.write_text(
-            json.dumps({
-                "overall": {
-                    "candidate_a_win_rate": 0.5,
-                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
-                },
-                "resources": {},
-            }),
-            encoding="utf-8",
-        )
-        return path
-
-    def fake_strength(**_kwargs):
-        path = tmp_path / "strength.json"
-        path.write_text(
-            json.dumps({
-                "overall": {
-                    "mcts_win_rate": 0.5,
-                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
-                },
-                "resources": {},
-            }),
-            encoding="utf-8",
-        )
-        return path
-
-    monkeypatch.setattr(runner, "ROOT", tmp_path)
-    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
-    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
-    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
-    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
-
-    manifest_path = runner.run_suite(Namespace(
-        games=24,
-        jobs=8,
-        iterations=100_000,
-        alpha_nodes=20_000,
-        time_budget_seconds=2.0,
-        seed=26092400,
-        stop_on_error=False,
-    ))
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-
-    assert calls == 5
-    skipped_rows = [
-        row for row in manifest["experiments"] if row["status"] == "skipped"
-    ]
-    assert len(skipped_rows) == 1
-    assert skipped_rows[0]["kind"] == "ismcts-match"
-    assert manifest["skipped"] == [skipped_rows[0]["name"]]
-    assert manifest["failures"] == []
-    strength = next(
-        row
-        for row in manifest["experiments"]
-        if row["name"] == "optimized-vs-alpha-beta"
-    )
-    assert strength["status"] == "passed"
-    assert manifest["decision_readiness"]["ready"] is False
-    assert "optimization phase incomplete" in (
-        manifest["decision_readiness"]["blockers"]
-    )
-
-
-def test_confident_challenger_is_an_accepted_optimization_not_a_blocker(
-    tmp_path,
-    monkeypatch,
-):
-    suite_dir = tmp_path / "suite"
-
-    def fake_artifact_directory(_base, _identity):
-        suite_dir.mkdir(parents=True, exist_ok=True)
-        return suite_dir
-
-    def fake_match(**kwargs):
-        path = tmp_path / (
-            "tree.json"
-            if kwargs["reuse_tree_b"] is False
-            else f"match-{len(list(tmp_path.glob('match-*.json')))}.json"
-        )
-        better = kwargs["reuse_tree_a"] is True and kwargs["reuse_tree_b"] is False
-        path.write_text(
-            json.dumps({
-                "overall": {
-                    "candidate_a_win_rate": 0.40 if better else 0.50,
-                    "paired_uncertainty": {
-                        "ci95": [0.32, 0.48] if better else [0.44, 0.56],
-                    },
-                },
-                "resources": {},
-            }),
-            encoding="utf-8",
-        )
-        return path
-
-    def fake_strength(**_kwargs):
-        path = tmp_path / "strength.json"
-        path.write_text(
-            json.dumps({
-                "overall": {
-                    "mcts_win_rate": 0.50,
-                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
-                },
-                "resources": {},
-            }),
-            encoding="utf-8",
-        )
-        return path
-
-    monkeypatch.setattr(runner, "ROOT", tmp_path)
-    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
-    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
-    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
-    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
-
-    manifest_path = runner.run_suite(Namespace(
-        games=24,
-        jobs=8,
-        iterations=100_000,
-        alpha_nodes=20_000,
-        time_budget_seconds=2.0,
-        seed=26092400,
-        stop_on_error=False,
-    ))
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-
-    assert manifest["accepted_optimizations"] == ["tree-cold"]
-    assert manifest["optimized_config"]["reuse_tree"] is False
-    assert manifest["decision_readiness"]["ready"] is True
-    assert manifest["decision_readiness"]["blockers"] == []
 
 
 def test_no_dedicated_rule_experiment_runner() -> None:
