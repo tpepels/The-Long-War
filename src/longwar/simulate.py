@@ -7,7 +7,17 @@ import sys
 from typing import Any, Callable
 
 from .agents import HeuristicAgent, ISMCTSAgent, RandomAgent
-from .agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, DEFAULT_ISMCTS_ITERATIONS
+from .agents.ismcts_agent import (
+    DEFAULT_ISMCTS_BELIEF_SAMPLES,
+    DEFAULT_ISMCTS_EXPLORATION,
+    DEFAULT_ISMCTS_ITERATIONS,
+    DEFAULT_ISMCTS_MAX_TREE_NODES,
+    DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    DEFAULT_ISMCTS_REUSE_TREE,
+    DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+    DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+    DEFAULT_ISMCTS_ROLLOUT_POLICY,
+)
 from .agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from .agents.online_mccfr_agent import OnlineMCCFRAgent
 from .belief import DeckHypothesis, DeckPrior, HypothesisDeckPrior
@@ -76,17 +86,17 @@ def make_agent(
     strategic_node_budget: int = 20_000,
     strategic_time_budget_seconds: float | None = None,
     strategic_search_backend: str = "auto",
-    ismcts_belief_samples: int = 12,
+    ismcts_belief_samples: int = DEFAULT_ISMCTS_BELIEF_SAMPLES,
     ismcts_iterations: int = DEFAULT_ISMCTS_ITERATIONS,
     ismcts_time_budget_seconds: float | None = None,
-    ismcts_rollout_depth: int = 5,
+    ismcts_rollout_depth: int = DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     ismcts_tree_depth_limit: int = 96,
     ismcts_exploration: float = DEFAULT_ISMCTS_EXPLORATION,
-    ismcts_progressive_widening: float = 0.0,
-    ismcts_reuse_tree: bool = True,
-    ismcts_max_tree_nodes: int | None = None,
-    ismcts_rollout_epsilon: float = 0.12,
-    ismcts_rollout_policy: str = "greedy",
+    ismcts_progressive_widening: float = DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    ismcts_reuse_tree: bool = DEFAULT_ISMCTS_REUSE_TREE,
+    ismcts_max_tree_nodes: int | None = DEFAULT_ISMCTS_MAX_TREE_NODES,
+    ismcts_rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+    ismcts_rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
 ):
     if name == "random":
         return RandomAgent(seed)
@@ -154,17 +164,17 @@ def simulate_games(
     strategic_node_budget: int = 20_000,
     strategic_time_budget_seconds: float | None = None,
     strategic_search_backend: str = "auto",
-    ismcts_belief_samples: int = 12,
+    ismcts_belief_samples: int = DEFAULT_ISMCTS_BELIEF_SAMPLES,
     ismcts_iterations: int = DEFAULT_ISMCTS_ITERATIONS,
     ismcts_time_budget_seconds: float | None = None,
-    ismcts_rollout_depth: int = 5,
+    ismcts_rollout_depth: int = DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     ismcts_tree_depth_limit: int = 96,
     ismcts_exploration: float = DEFAULT_ISMCTS_EXPLORATION,
-    ismcts_progressive_widening: float = 0.0,
-    ismcts_reuse_tree: bool = True,
-    ismcts_max_tree_nodes: int | None = None,
-    ismcts_rollout_epsilon: float = 0.12,
-    ismcts_rollout_policy: str = "greedy",
+    ismcts_progressive_widening: float = DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    ismcts_reuse_tree: bool = DEFAULT_ISMCTS_REUSE_TREE,
+    ismcts_max_tree_nodes: int | None = DEFAULT_ISMCTS_MAX_TREE_NODES,
+    ismcts_rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+    ismcts_rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
     agent_overrides: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
     agent_labels: tuple[str, str] | None = None,
     agent_seed_offsets: tuple[int, int] | None = None,
