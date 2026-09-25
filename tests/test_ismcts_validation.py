@@ -26,49 +26,6 @@ pytestmark = pytest.mark.algorithm
 MASK64 = (1 << 64) - 1
 
 
-def _rules_variant(name: str) -> GameRules:
-    changes = {
-        "automatic": {},
-        "control": {},
-        "paid": {
-            "automatic_draw": False,
-            "paid_draw_enabled": True,
-        },
-        "paid-free": {
-            "automatic_draw": False,
-            "paid_draw_enabled": True,
-            "paid_draw_consumes_operation": False,
-        },
-        "auto-discard9": {"battle_end_hand_limit": 9},
-        "auto-discard7": {"battle_end_hand_limit": 7},
-        "auto-cap10": {"automatic_draw_hand_limit": 10},
-    }
-    return GameRules.standard().with_overrides(**changes[name])
-
-
-def _rules_fixture(rules: GameRules):
-    data = load_card_file(
-        ROOT / "cards" / "cards.json"
-    )
-    deck = json.loads(
-        (
-            ROOT / "decks" / "reference.json"
-        ).read_text(encoding="utf-8")
-    )["cards"]
-    engine = GameEngine(data, rules=rules)
-    priors = (
-        HypothesisDeckPrior(
-            engine,
-            [DeckHypothesis(tuple(deck), label="a")],
-        ),
-        HypothesisDeckPrior(
-            engine,
-            [DeckHypothesis(tuple(deck), label="b")],
-        ),
-    )
-    return engine, deck, priors
-
-
 def _standard_fixture():
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
@@ -90,18 +47,27 @@ def _standard_fixture():
 
 def _pass_only_standard_state(
     *,
-    victories: tuple[int, int] = (0, 0),
+    command: tuple[int, int] = (20, 20),
+    battle: int = 1,
 ):
     engine, deck, _priors = _standard_fixture()
-    state = engine.new_game(deck, deck, seed=9275, first_player=0)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=9275,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.battle = battle
     for index, player in enumerate(state.players):
         player.hand.clear()
         player.deck.clear()
         player.discard.clear()
-        player.victories = victories[index]
+        player.command = command[index]
+    state.battle_start_command[:] = list(command)
+    state.pending_draw_discard_for = None
     assert engine.legal_actions(state) == [Pass()]
     return engine, state
-
 
 def _hash_information_key(key: bytes) -> tuple[int, int]:
     """Pure-Python oracle for the native canonical information hash."""
@@ -188,9 +154,7 @@ def _search(
 
 
 def test_native_hash_is_exact_hash_of_canonical_information_encoding() -> None:
-    engine, deck, _priors = _rules_fixture(
-        _rules_variant("automatic")
-    )
+    engine, deck, _priors = _standard_fixture()
     fast = FastEngine(engine)
     rng = random.Random(9201)
     state = engine.new_game(deck, deck, seed=9202, first_player=0)
@@ -221,9 +185,7 @@ def test_native_hash_is_exact_hash_of_canonical_information_encoding() -> None:
 
 
 def test_hidden_determinizations_share_root_information_identity() -> None:
-    engine, deck, priors = _rules_fixture(
-        _rules_variant("automatic")
-    )
+    engine, deck, priors = _standard_fixture()
     state = engine.new_game(deck, deck, seed=9210, first_player=0)
     belief = BeliefSampler(engine, priors=priors)
     fast = FastEngine(engine)
@@ -241,9 +203,7 @@ def test_hidden_determinizations_share_root_information_identity() -> None:
 
 
 def test_ismcts_is_bit_reproducible_for_fixed_beliefs_and_seed() -> None:
-    engine, deck, priors = _rules_fixture(
-        _rules_variant("automatic")
-    )
+    engine, deck, priors = _standard_fixture()
     state = engine.new_game(deck, deck, seed=9220, first_player=0)
     belief = BeliefSampler(engine, priors=priors)
     fast = FastEngine(engine)
@@ -278,9 +238,7 @@ def test_ismcts_is_bit_reproducible_for_fixed_beliefs_and_seed() -> None:
 
 
 def test_root_visit_and_availability_accounting_is_conserved() -> None:
-    engine, deck, _priors = _rules_fixture(
-        _rules_variant("automatic")
-    )
+    engine, deck, _priors = _standard_fixture()
     state = engine.new_game(deck, deck, seed=9230, first_player=0)
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
@@ -318,9 +276,7 @@ def test_root_visit_and_availability_accounting_is_conserved() -> None:
 
 
 def test_first_expansion_visits_every_root_action_once() -> None:
-    engine, deck, _priors = _rules_fixture(
-        _rules_variant("automatic")
-    )
+    engine, deck, _priors = _standard_fixture()
     state = engine.new_game(deck, deck, seed=9240, first_player=0)
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
@@ -400,9 +356,7 @@ def test_persistent_tree_reroots_to_previously_explored_information_set() -> Non
 
 
 def test_progressive_widening_limits_initial_root_breadth() -> None:
-    engine, deck, _priors = _rules_fixture(
-        _rules_variant("automatic")
-    )
+    engine, deck, _priors = _standard_fixture()
     state = engine.new_game(deck, deck, seed=9245, first_player=0)
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
@@ -432,9 +386,7 @@ def test_progressive_widening_limits_initial_root_breadth() -> None:
 
 
 def test_one_ply_ismcts_matches_strategic_leaf_oracle() -> None:
-    engine, deck, _priors = _rules_fixture(
-        _rules_variant("automatic")
-    )
+    engine, deck, _priors = _standard_fixture()
     state = engine.new_game(deck, deck, seed=9250, first_player=0)
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
@@ -514,7 +466,7 @@ def test_rollout_stops_at_battle_boundary_and_uses_boundary_value() -> None:
 
 
 def test_terminal_game_completion_keeps_exact_terminal_utility() -> None:
-    engine, state = _pass_only_standard_state(victories=(1, 0))
+    engine, state = _pass_only_standard_state(command=(6, 0), battle=8)
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
     packed = fast.from_game_state(state)
@@ -573,33 +525,6 @@ def test_final_tree_step_boundary_does_not_start_next_battle_rollout() -> None:
     assert result["rollout_actions"] == 0
 
 
-def test_boundary_evaluator_projects_pending_cleanup() -> None:
-    engine, deck, _priors = _rules_fixture(
-        _rules_variant("auto-discard7")
-    )
-    state = engine.new_game(deck, deck, seed=9283, first_player=0)
-    state.battle = 2
-    state.cleanup_pending = True
-    state.players[0].hand[:] = ["the-fifty-men"] * 8
-    state.players[1].hand[:] = ["the-fifty-men"] * 7
-
-    projected = state.clone()
-    projected.players[0].hand.pop()
-    projected.players[0].discard.append("the-fifty-men")
-
-    fast = FastEngine(engine)
-    evaluator = NativeHeuristicEvaluator(fast)
-    packed = fast.from_game_state(state)
-    projected_packed = fast.from_game_state(projected)
-
-    assert evaluator.battle_boundary_evaluate(
-        packed,
-        0,
-    ) == pytest.approx(
-        evaluator.strategic_evaluate(projected_packed, 0)
-    )
-
-
 def test_boundary_evaluator_rewards_next_battle_readiness() -> None:
     engine, state = _pass_only_standard_state()
     engine.apply(state, Pass())
@@ -636,38 +561,6 @@ def test_boundary_evaluator_rewards_next_battle_readiness() -> None:
     )
 
 
-@pytest.mark.parametrize(
-    "name,rules",
-    (
-        ("automatic", _rules_variant("automatic")),
-        ("paid", _rules_variant("paid")),
-        ("control", _rules_variant("control")),
-        ("paid-free", _rules_variant("paid-free")),
-        ("auto-discard9", _rules_variant("auto-discard9")),
-        ("auto-discard7", _rules_variant("auto-discard7")),
-        ("auto-cap10", _rules_variant("auto-cap10")),
-    ),
-)
-def test_same_ismcts_agent_runs_across_rule_variants(
-    name: str,
-    rules: GameRules,
-) -> None:
-    engine, deck, priors = _rules_fixture(rules)
-    state = engine.new_game(deck, deck, seed=9260, first_player=0)
-    legal = engine.legal_actions(state)
-    agent = ISMCTSAgent(
-        engine,
-        9261,
-        priors=priors,
-        belief_samples=2,
-        iterations=32,
-        rollout_depth=1,
-        rollout_policy="cheap",
-    )
-
-    assert agent.choose(engine, state) in legal, name
-
-
 def test_same_ismcts_agent_runs_under_standard_rules() -> None:
     engine, deck, priors = _standard_fixture()
     state = engine.new_game(deck, deck, seed=9270, first_player=0)
@@ -679,7 +572,6 @@ def test_same_ismcts_agent_runs_under_standard_rules() -> None:
         belief_samples=2,
         iterations=32,
         rollout_depth=1,
-        rollout_policy="cheap",
     )
 
     assert agent.choose(engine, state) in legal
@@ -713,7 +605,7 @@ def test_native_search_rejects_incompatible_root_samples() -> None:
     evaluator = NativeHeuristicEvaluator(fast)
     packed = fast.from_game_state(state)
     changed = state.clone()
-    changed.players[0].victories += 1
+    changed.players[0].command -= 1
     with pytest.raises(ValueError, match="share a root information set"):
         ismcts_search(fast, evaluator, [packed, fast.from_game_state(changed)], 0)
     with pytest.raises(ValueError, match="acting player"):
