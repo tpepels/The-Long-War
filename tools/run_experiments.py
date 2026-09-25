@@ -1657,7 +1657,7 @@ def run_suite(args: argparse.Namespace) -> Path:
     blockers: list[str] = []
     warnings: list[str] = []
     if failures:
-        blockers.append("one or more calibration experiments failed")
+        blockers.append("one or more experiments failed")
     if skipped:
         warnings.append(
             "manually skipped comparisons: " + ", ".join(skipped)
