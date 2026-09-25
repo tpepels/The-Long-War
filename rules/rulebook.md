@@ -275,6 +275,8 @@ Every printed Name is **Unique**.
 
 A formation containing a **Force, Bond, and Name** is a **Named Formation**.
 
+When adding the missing component makes a formation complete, resolve any card ability that triggers when that formation becomes complete at that moment.
+
 Named Formations are persistent. If they remain on the battlefield at the end of a Battle, they carry forward into the next Battle after Retreat is resolved.
 
 A Force with only a Bond, only a Name, or neither is not a Named Formation and does not persist by default.
