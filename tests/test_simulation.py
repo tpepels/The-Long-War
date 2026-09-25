@@ -10,6 +10,7 @@ from pathlib import Path
 
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
+import longwar.simulate as simulation_module
 from longwar.simulate import simulate_games
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -87,3 +88,31 @@ def test_simulation_cli_resolves_canonical_defaults_and_explicit_overrides(tmp_p
     assert report["heuristic_config"]["exploration"] == pytest.approx(0.0)
     if not legacy:
         assert "Draw" not in report["telemetry"]["actions"]
+
+
+def test_simulation_reclaims_memory_between_moves_and_games(monkeypatch) -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data)
+    releases = []
+
+    monkeypatch.setattr(
+        simulation_module,
+        "_release_process_memory",
+        lambda: releases.append(True),
+    )
+
+    report = simulate_games(
+        engine,
+        deck,
+        deck,
+        games=1,
+        seed=299,
+        agent_names=("random", "random"),
+    )
+
+    assert report.games == 1
+    # Once per move, once after the game, and once before returning the report.
+    assert len(releases) >= report.max_turns + 2
