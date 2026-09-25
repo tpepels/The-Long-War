@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import random
 import select
 import subprocess
 import sys
@@ -1415,6 +1416,29 @@ def benchmark_strength(
     return summary_path
 
 
+
+def _suite_schedule(
+    comparisons: list[tuple[str, dict[str, Any]]],
+    seed: int,
+) -> list[dict[str, Any]]:
+    """Return the complete suite in deterministic randomized execution order."""
+    schedule = [
+        {
+            "name": name,
+            "kind": "ismcts-match",
+            "overrides": dict(overrides),
+        }
+        for name, overrides in comparisons
+    ]
+    schedule.append({
+        "name": "baseline-vs-alpha-beta",
+        "kind": "strength-bench",
+        "overrides": {},
+    })
+    random.Random(seed).shuffle(schedule)
+    return schedule
+
+
 def run_suite(args: argparse.Namespace) -> Path:
     """Run the canonical non-adaptive search experiment suite."""
     if args.games < 24:
@@ -1452,9 +1476,11 @@ def run_suite(args: argparse.Namespace) -> Path:
         "seed": args.seed,
         "baseline": baseline,
         "comparisons": comparisons,
+        "schedule_policy": "seeded-shuffle-v1",
     })
     output_dir = artifact_directory(BENCH_ROOT / "suite", identity)
     manifest_path = output_dir / "summary.json"
+    schedule = _suite_schedule(comparisons, args.seed)
     manifest: dict[str, Any] = {
         **identity,
         "games_per_orientation": args.games,
@@ -1464,6 +1490,8 @@ def run_suite(args: argparse.Namespace) -> Path:
         "alpha_nodes": args.alpha_nodes,
         "seed": args.seed,
         "baseline": baseline,
+        "schedule_policy": "seeded-shuffle-v1",
+        "schedule": [item["name"] for item in schedule],
         "experiments": [],
     }
 
@@ -1483,67 +1511,94 @@ def run_suite(args: argparse.Namespace) -> Path:
         "Baseline: belief=12, c=0.3, reuse, tree=400k, pw=0, "
         "rollout=cheap/5, epsilon=0.12. Each A/B changes only candidate B."
     )
+    print("Randomized run order: " + " -> ".join(manifest["schedule"]))
 
-    experiments = len(comparisons) + 1
-    for index, (name, overrides) in enumerate(comparisons, start=1):
+    experiments = len(schedule)
+    for index, item in enumerate(schedule, start=1):
+        name = str(item["name"])
+        kind = str(item["kind"])
+        overrides = dict(item["overrides"])
         print()
         print(f"=== {index}/{experiments} {name} ===")
         entry: dict[str, Any] = {
             "name": name,
-            "kind": "ismcts-match",
-            "candidate_b_overrides": overrides,
+            "kind": kind,
             "status": "running",
         }
+        if kind == "ismcts-match":
+            entry["candidate_b_overrides"] = overrides
         manifest["experiments"].append(entry)
         save_manifest()
+
         try:
-            summary_path = benchmark_ismcts_match(
-                games_per_orientation=args.games,
-                jobs=args.jobs,
-                iterations=args.iterations,
-                time_budget_seconds=args.time_budget_seconds,
-                belief_samples_a=baseline["belief_samples"],
-                belief_samples_b=overrides.get(
-                    "belief_samples_b",
-                    baseline["belief_samples"],
-                ),
-                exploration_a=baseline["exploration"],
-                exploration_b=overrides.get(
-                    "exploration_b",
-                    baseline["exploration"],
-                ),
-                progressive_widening_a=baseline["progressive_widening"],
-                progressive_widening_b=overrides.get(
-                    "progressive_widening_b",
-                    baseline["progressive_widening"],
-                ),
-                reuse_tree_a=baseline["reuse_tree"],
-                reuse_tree_b=overrides.get(
-                    "reuse_tree_b",
-                    baseline["reuse_tree"],
-                ),
-                rollout_depth_a=baseline["rollout_depth"],
-                rollout_depth_b=overrides.get(
-                    "rollout_depth_b",
-                    baseline["rollout_depth"],
-                ),
-                rollout_policy_a=baseline["rollout_policy"],
-                rollout_policy_b=overrides.get(
-                    "rollout_policy_b",
-                    baseline["rollout_policy"],
-                ),
-                rollout_epsilon_a=baseline["rollout_epsilon"],
-                rollout_epsilon_b=overrides.get(
-                    "rollout_epsilon_b",
-                    baseline["rollout_epsilon"],
-                ),
-                max_tree_nodes_a=baseline["max_tree_nodes"],
-                max_tree_nodes_b=overrides.get(
-                    "max_tree_nodes_b",
-                    baseline["max_tree_nodes"],
-                ),
-                seed=args.seed,
-            )
+            if kind == "ismcts-match":
+                summary_path = benchmark_ismcts_match(
+                    games_per_orientation=args.games,
+                    jobs=args.jobs,
+                    iterations=args.iterations,
+                    time_budget_seconds=args.time_budget_seconds,
+                    belief_samples_a=baseline["belief_samples"],
+                    belief_samples_b=overrides.get(
+                        "belief_samples_b",
+                        baseline["belief_samples"],
+                    ),
+                    exploration_a=baseline["exploration"],
+                    exploration_b=overrides.get(
+                        "exploration_b",
+                        baseline["exploration"],
+                    ),
+                    progressive_widening_a=baseline["progressive_widening"],
+                    progressive_widening_b=overrides.get(
+                        "progressive_widening_b",
+                        baseline["progressive_widening"],
+                    ),
+                    reuse_tree_a=baseline["reuse_tree"],
+                    reuse_tree_b=overrides.get(
+                        "reuse_tree_b",
+                        baseline["reuse_tree"],
+                    ),
+                    rollout_depth_a=baseline["rollout_depth"],
+                    rollout_depth_b=overrides.get(
+                        "rollout_depth_b",
+                        baseline["rollout_depth"],
+                    ),
+                    rollout_policy_a=baseline["rollout_policy"],
+                    rollout_policy_b=overrides.get(
+                        "rollout_policy_b",
+                        baseline["rollout_policy"],
+                    ),
+                    rollout_epsilon_a=baseline["rollout_epsilon"],
+                    rollout_epsilon_b=overrides.get(
+                        "rollout_epsilon_b",
+                        baseline["rollout_epsilon"],
+                    ),
+                    max_tree_nodes_a=baseline["max_tree_nodes"],
+                    max_tree_nodes_b=overrides.get(
+                        "max_tree_nodes_b",
+                        baseline["max_tree_nodes"],
+                    ),
+                    seed=args.seed,
+                )
+            elif kind == "strength-bench":
+                summary_path = benchmark_strength(
+                    games_per_orientation=args.games,
+                    jobs=args.jobs,
+                    ismcts_iterations=args.iterations,
+                    alpha_nodes=args.alpha_nodes,
+                    belief_samples=baseline["belief_samples"],
+                    rollout_policy=baseline["rollout_policy"],
+                    rollout_depth=baseline["rollout_depth"],
+                    progressive_widening=baseline["progressive_widening"],
+                    exploration=baseline["exploration"],
+                    reuse_tree=baseline["reuse_tree"],
+                    rollout_epsilon=baseline["rollout_epsilon"],
+                    max_tree_nodes=baseline["max_tree_nodes"],
+                    time_budget_seconds=args.time_budget_seconds,
+                    seed=args.seed,
+                )
+            else:  # pragma: no cover - schedule is constructed locally
+                raise RuntimeError(f"Unknown suite experiment kind: {kind}")
+
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
             entry.update({
                 "status": "passed",
@@ -1564,54 +1619,6 @@ def run_suite(args: argparse.Namespace) -> Path:
                 save_manifest()
                 raise
         save_manifest()
-
-    name = "baseline-vs-alpha-beta"
-    print()
-    print(f"=== {experiments}/{experiments} {name} ===")
-    entry = {
-        "name": name,
-        "kind": "strength-bench",
-        "status": "running",
-    }
-    manifest["experiments"].append(entry)
-    save_manifest()
-    try:
-        summary_path = benchmark_strength(
-            games_per_orientation=args.games,
-            jobs=args.jobs,
-            ismcts_iterations=args.iterations,
-            alpha_nodes=args.alpha_nodes,
-            belief_samples=baseline["belief_samples"],
-            rollout_policy=baseline["rollout_policy"],
-            rollout_depth=baseline["rollout_depth"],
-            progressive_widening=baseline["progressive_widening"],
-            exploration=baseline["exploration"],
-            reuse_tree=baseline["reuse_tree"],
-            rollout_epsilon=baseline["rollout_epsilon"],
-            max_tree_nodes=baseline["max_tree_nodes"],
-            time_budget_seconds=args.time_budget_seconds,
-            seed=args.seed,
-        )
-        payload = json.loads(summary_path.read_text(encoding="utf-8"))
-        entry.update({
-            "status": "passed",
-            "summary": str(summary_path.relative_to(ROOT)),
-            "overall": payload.get("overall", {}),
-            "resources": payload.get("resources", {}),
-        })
-    except ExperimentSkipped:
-        entry.update({"status": "skipped"})
-        print(f"SKIPPED: {name}")
-    except (Exception, SystemExit) as exc:
-        entry.update({
-            "status": "failed",
-            "error": f"{type(exc).__name__}: {exc}",
-        })
-        print(f"EXPERIMENT FAILED: {name}: {exc}")
-        if args.stop_on_error:
-            save_manifest()
-            raise
-    save_manifest()
 
     failures = [
         row["name"]
