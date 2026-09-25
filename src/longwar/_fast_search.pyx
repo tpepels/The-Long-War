@@ -1757,7 +1757,7 @@ cdef class FastEngine:
     cdef int command_recovery_for_battle(
         self,
         int battle,
-    ) noexcept:
+    ):
         cdef int index = battle - 1
         if index < 0 or index >= len(self.command_recovery_schedule):
             return 0
@@ -1767,7 +1767,6 @@ cdef class FastEngine:
         self,
         FastState state,
         int starter,
-        int chooser=-1,
     ) noexcept:
         cdef int p
         state.cleanup_pending = 0
@@ -2073,7 +2072,6 @@ cdef class FastEngine:
                     &h,
                     <uint8_t>(state.discard[p][i] + 1),
                 )
-            _info_hash_feed(&h, state.victories[p])
             _info_hash_feed(&h, state.passed[p])
             _info_hash_feed_u16(&h, <uint16_t>state.command[p])
             _info_hash_feed(&h, state.free_cycle[p])
@@ -2147,7 +2145,6 @@ cdef class FastEngine:
         _info_emit(buf, &n, h, <uint8_t>(state.active_player + 1))
         _info_emit(buf, &n, h, <uint8_t>(state.chooser + 1))
         for i in range(2):
-            _info_emit(buf, &n, h, state.victories[i])
             _info_emit(buf, &n, h, state.passed[i])
         _info_emit(buf, &n, h, state.pass_len)
         for i in range(state.pass_len):
@@ -2647,7 +2644,6 @@ cdef class FastEngine:
             "chooser": state.chooser,
             "winner": state.winner,
             "turn_number": state.turn_number,
-            "victories": [state.victories[0], state.victories[1]],
             "passed": [bool(state.passed[0]), bool(state.passed[1])],
             "pass_order": [state.pass_order[i] for i in range(state.pass_len)],
             "discarded_this_battle": [state.discarded_this_battle[0], state.discarded_this_battle[1]],
@@ -2655,7 +2651,7 @@ cdef class FastEngine:
             "free_cycle": [bool(state.free_cycle[0]), bool(state.free_cycle[1])],
             "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
             "pending_final_operation_for": None if state.pending_final_operation_for < 0 else state.pending_final_operation_for,
-            "cleanup_pending": bool(state.cleanup_pending),
+            "pending_draw_discard_for": state.active_player if state.cleanup_pending else None,
             "cleanup_next_starter": None if state.cleanup_next_starter < 0 else state.cleanup_next_starter,
             "cleanup_next_chooser": None if state.cleanup_next_chooser < 0 else state.cleanup_next_chooser,
             "hands": [
