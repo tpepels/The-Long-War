@@ -528,8 +528,9 @@ class PlaySession:
     def _legal_reason(self, action: Action) -> str:
         if isinstance(action, Pass):
             return (
-                "Pass ends your operations. Normally both players must have acted "
-                "before the first Pass; the opponent then receives one final operation."
+                "Normally both players must have completed an operation before Pass is "
+                "available, unless you have no other legal operation. Two consecutive "
+                "Passes end the Battle; any intervening operation clears the earlier Pass."
             )
         if isinstance(action, Draw):
             return "Generic Draw is disabled in Command play."
