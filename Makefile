@@ -55,7 +55,7 @@ BALANCE_ARGS ?=
 balance:
 	python tools/run_experiments.py balance --preset $(BALANCE_PRESET) $(BALANCE_ARGS)
 
-EXPERIMENT ?= suite
+EXPERIMENT ?= strength-bench
 EXPERIMENT_ARGS ?=
 experiments: verify-algorithms
 	systemd-inhibit --what=sleep:idle:handle-lid-switch --why="The Long War experiments" --mode=block \
