@@ -41,7 +41,7 @@ def setup():
 
 def test_cython_ismcts_returns_legal_action() -> None:
     engine, deck, priors = setup()
-    state = engine.new_game(deck, deck, seed=8101, first_player=0)
+    state = engine.new_game(deck, deck, seed=8101, first_player=0, opening_bonus=False)
     legal = engine.legal_actions(state)
 
     agent = ISMCTSAgent(
@@ -75,7 +75,7 @@ def test_cython_ismcts_returns_legal_action() -> None:
 
 def test_root_belief_samples_share_information_set() -> None:
     engine, deck, priors = setup()
-    state = engine.new_game(deck, deck, seed=8110, first_player=0)
+    state = engine.new_game(deck, deck, seed=8110, first_player=0, opening_bonus=False)
     belief = BeliefSampler(engine, priors=priors)
     fast = FastEngine(engine)
 
@@ -95,7 +95,7 @@ def test_root_belief_samples_share_information_set() -> None:
 def test_information_key_distinguishes_public_resource_state() -> None:
     engine, deck, _priors = setup()
     fast = FastEngine(engine)
-    base = engine.new_game(deck, deck, seed=8120, first_player=0)
+    base = engine.new_game(deck, deck, seed=8120, first_player=0, opening_bonus=False)
 
     def key(state):
         return fast.information_key(fast.from_game_state(state), 0)
@@ -111,18 +111,17 @@ def test_information_key_distinguishes_public_resource_state() -> None:
     assert key(changed) != baseline
 
     changed = base.clone()
-    changed.players[0].free_cycle = True
+    changed.hero_used[0] = True
     assert key(changed) != baseline
 
     changed = base.clone()
-    changed.cleanup_pending = True
-    changed.cleanup_next_starter = 0
+    changed.pending_draw_discard_for = 0
     assert key(changed) != baseline
 
 
 def test_ismcts_rng_accepts_full_uint64_seed_range() -> None:
     engine, deck, _priors = setup()
-    state = engine.new_game(deck, deck, seed=8130, first_player=0)
+    state = engine.new_game(deck, deck, seed=8130, first_player=0, opening_bonus=False)
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
     packed = fast.from_game_state(state)
@@ -145,7 +144,7 @@ def test_ismcts_rng_accepts_full_uint64_seed_range() -> None:
 
 def test_native_information_hash_matches_information_identity() -> None:
     engine, deck, priors = setup()
-    state = engine.new_game(deck, deck, seed=8140, first_player=0)
+    state = engine.new_game(deck, deck, seed=8140, first_player=0, opening_bonus=False)
     belief = BeliefSampler(engine, priors=priors)
     fast = FastEngine(engine)
 
@@ -172,7 +171,7 @@ def test_native_information_hash_matches_information_identity() -> None:
 @pytest.mark.parametrize("policy", ("greedy", "cheap", "random"))
 def test_ismcts_rollout_policies_return_legal_action(policy: str) -> None:
     engine, deck, priors = setup()
-    state = engine.new_game(deck, deck, seed=8150, first_player=0)
+    state = engine.new_game(deck, deck, seed=8150, first_player=0, opening_bonus=False)
     legal = engine.legal_actions(state)
     agent = ISMCTSAgent(
         engine,
@@ -189,7 +188,7 @@ def test_ismcts_rollout_policies_return_legal_action(policy: str) -> None:
 
 def test_ismcts_wall_clock_budget_reports_actual_work() -> None:
     engine, deck, priors = setup()
-    state = engine.new_game(deck, deck, seed=8160, first_player=0)
+    state = engine.new_game(deck, deck, seed=8160, first_player=0, opening_bonus=False)
     agent = ISMCTSAgent(
         engine,
         8161,
@@ -215,7 +214,7 @@ def test_ismcts_wall_clock_budget_reports_actual_work() -> None:
 
 def test_ismcts_release_search_memory_drops_native_tree() -> None:
     engine, deck, priors = setup()
-    state = engine.new_game(deck, deck, seed=8170, first_player=0)
+    state = engine.new_game(deck, deck, seed=8170, first_player=0, opening_bonus=False)
     agent = ISMCTSAgent(
         engine,
         8171,
