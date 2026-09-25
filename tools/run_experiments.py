@@ -1456,7 +1456,7 @@ def run_suite(args: argparse.Namespace) -> Path:
         raise SystemExit("--time-budget-seconds must be positive")
 
     final_time_budget_seconds = 5.0
-    calibration_time_budget_seconds = 1.0
+    calibration_time_budget_seconds = final_time_budget_seconds
     calibration_tolerance = 0.10
 
     starting_config = {
