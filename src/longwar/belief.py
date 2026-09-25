@@ -15,17 +15,11 @@ class BeliefStateError(ValueError):
     pass
 
 
-# Each group describes disjoint card identities eligible for hidden slots.
-HiddenRequirements = tuple[tuple[frozenset[str], int], ...]
-
-
 class DeckPrior(Protocol):
     def sample_deck(
         self,
         required: Counter[str],
         rng: random.Random,
-        *,
-        hidden_requirements: HiddenRequirements = (),
     ) -> list[str]:
         ...
 
@@ -57,17 +51,11 @@ class HypothesisDeckPrior:
     def posterior(
         self,
         required: Counter[str],
-        *,
-        hidden_requirements: HiddenRequirements = (),
     ) -> list[tuple[DeckHypothesis, float]]:
         compatible = [
             hypothesis
             for hypothesis in self.hypotheses
             if self._contains(Counter(hypothesis.cards), required)
-            and all(
-                sum((Counter(hypothesis.cards) - required)[card] for card in eligible) >= count
-                for eligible, count in hidden_requirements
-            )
         ]
         if not compatible:
             raise BeliefStateError("No deck hypothesis is compatible with observed cards")
@@ -81,7 +69,7 @@ class HypothesisDeckPrior:
         *,
         hidden_requirements: HiddenRequirements = (),
     ) -> list[str]:
-        posterior = self.posterior(required, hidden_requirements=hidden_requirements)
+        posterior = self.posterior(required)
         threshold = rng.random()
         cumulative = 0.0
         selected = posterior[-1][0]
@@ -135,7 +123,7 @@ class CardPoolDeckPrior:
     ) -> list[str]:
         if any(card not in self.engine.cards or count < 0 for card, count in required.items()):
             raise BeliefStateError("Observed cards contain unknown IDs or negative counts")
-        if sum(required.values()) + sum(count for _, count in hidden_requirements) > self.deck_size:
+        if sum(required.values()) > self.deck_size:
             raise BeliefStateError("Observed cards exceed deck size")
 
         capacities: dict[str, int] = {}
@@ -161,18 +149,6 @@ class CardPoolDeckPrior:
             for card_id, count in required.items()
             for _ in range(count)
         ]
-
-        # Hidden card identities are unknown, but an occupied hidden slot is
-        # evidence of its type. Reserve these cards before filling other slots.
-        for eligible, count in hidden_requirements:
-            for _ in range(count):
-                candidates = [card for card in sorted(eligible) if capacities.get(card, 0) > 0]
-                weights = [capacities[card] * self.card_weights.get(card, 1.0) for card in candidates]
-                if not candidates or sum(weights) <= 0:
-                    raise BeliefStateError("No legal card remains for an observed hidden slot")
-                selected = rng.choices(candidates, weights=weights, k=1)[0]
-                deck.append(selected)
-                capacities[selected] -= 1
 
         slots = self.deck_size - len(deck)
         if sum(capacities.values()) < slots:
