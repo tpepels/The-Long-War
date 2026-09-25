@@ -23,30 +23,32 @@
         <span>THE LONG WAR · QUICK REFERENCE</span>
         <h1>Battlefield & turn order</h1>
       </div>
-      <div class="reference-v3-win"><b>2 / 3</b><span>Fronts win a Battle</span></div>
+      <div class="reference-v3-win"><b>&lt; 5</b><span>Command Collapse</span></div>
     </header>
 
     <div class="reference-v3-main">
       <section class="reference-v3-board" aria-label="Battlefield diagram">
-        <div class="rv-player"><strong>OPPONENT</strong><span>Stratagem · one per Battle</span></div>
-        <div class="rv-front-labels"><span>LEFT</span><span>CENTER</span><span>RIGHT</span></div>
+        <div class="rv-player"><strong>OPPONENT</strong><span>Stratagem · one new per Battle</span></div>
+        <div class="rv-front-labels"><span>FRONT 1</span><span>FRONT 2</span><span>FRONT 3</span><span>FRONT 4</span></div>
         <div class="rv-side opponent">
-          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-veiled">Veiled Story</span></div>
-          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-veiled">Veiled Story</span></div>
-          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-veiled">Veiled Story</span></div>
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span></div>
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span></div>
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span></div>
+          <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span></div>
         </div>
         <div class="rv-battle-line"><strong>BATTLE LINE</strong><span>Frontline is nearest the line</span></div>
         <div class="rv-side player">
-          <div><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-slot rear"><b>Rear</b></span><span class="rv-veiled">Veiled Story</span></div>
-          <div><span class="rv-slot front example"><b>Formation</b><small>Subject · Bond · Name · any order</small></span><span class="rv-slot rear"><b>Rear</b></span><span class="rv-veiled">Veiled Story</span></div>
-          <div><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-slot rear"><b>Rear</b></span><span class="rv-veiled">Veiled Story</span></div>
+          <div><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-slot rear"><b>Rear</b></span></div>
+          <div><span class="rv-slot front example"><b>Named Formation</b><small>Force · Bond · Name</small></span><span class="rv-slot rear"><b>Rear</b></span></div>
+          <div><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-slot rear"><b>Rear</b></span></div>
+          <div><span class="rv-slot front"><b>Frontline</b><small>+1 Line Defense</small></span><span class="rv-slot rear"><b>Rear</b></span></div>
         </div>
-        <div class="rv-front-labels bottom"><span>LEFT</span><span>CENTER</span><span>RIGHT</span></div>
-        <div class="rv-player you"><strong>YOU</strong><span>Your Stratagem · one per Battle</span></div>
+        <div class="rv-front-labels bottom"><span>FRONT 1</span><span>FRONT 2</span><span>FRONT 3</span><span>FRONT 4</span></div>
+        <div class="rv-player you"><strong>YOU</strong><span>Your Stratagem · one new per Battle</span></div>
         <div class="rv-language">
-          <b>Adjacent</b> = left/right in the same rank
-          <b>Behind</b> = Rear in the same Front
-          <b>In front</b> = Frontline in the same Front
+          <b>Adjacent</b> = one Front left/right, same rank
+          <b>Retreat</b> = Frontline → Rear
+          <b>Driven off</b> = Rear → discard
         </div>
       </section>
 
@@ -54,21 +56,22 @@
         <section class="rv-turn">
           <span>YOUR TURN</span>
           <ol>
-            <li><b>Start turn:</b> draw 1 card automatically.</li>
-            <li><b>One operation:</b> play 1 card, or Pass when Pass is legal.</li>
-            <li><b>Pay Command:</b> cards use their printed cost.</li><li><b>First Pass:</b> opponent gets one final operation.</li>
+            <li><b>Start turn:</b> draw 1. At 10 cards, discard 1 first.</li>
+            <li><b>One operation:</b> play 1 card, Maneuver, or Pass when legal.</li>
+            <li><b>Maneuver:</b> pay 1 Command; Named Formation moves one Front sideways or swaps with a friendly formation in the same rank.</li>
+            <li><b>First Pass:</b> opponent gets one final operation.</li>
           </ol>
         </section>
 
         <section>
           <span>WHERE CARDS GO</span>
           <dl class="rv-placement">
-            <div><dt>Subject</dt><dd>Any position without a Subject; activates prepared cards.</dd></div>
+            <div><dt>Force</dt><dd>Any position without a Force; activates prepared cards.</dd></div>
             <div><dt>Bond</dt><dd>Any position without a Bond; may be prepared.</dd></div>
             <div><dt>Name</dt><dd>Any position without a Name; may be prepared.</dd></div>
-            <div><dt>Hero</dt><dd>Play as Subject or Name; only 1 Hero per side per Battle.</dd></div>
-            <div><dt>Story</dt><dd>Resolve, then discard.</dd></div>
-            <div><dt>Veiled Story</dt><dd>Face-down in one Front.</dd></div>
+            <div><dt>Hero</dt><dd>Play as Force or Name; one new Hero per side per Battle.</dd></div>
+            <div><dt>Story</dt><dd>Face-up. Immediate or ongoing; max 3 ongoing.</dd></div>
+            <div><dt>Stratagem</dt><dd>Public Battle-wide effect; one new per Battle.</dd></div>
           </dl>
         </section>
 
@@ -77,9 +80,9 @@
           <table class="rv-roles">
             <tbody>
               <tr><th>Swordsman</th><td>Frontline</td><td>+1</td></tr>
-              <tr><th>Spearman</th><td>Frontline + Subject behind</td><td>+1</td></tr>
-              <tr><th>Archer</th><td>Rear + Subject in front</td><td>+2</td></tr>
-              <tr><th>Healer</th><td>Rear</td><td>front Subject +2</td></tr>
+              <tr><th>Spearman</th><td>Frontline + Force behind</td><td>+1</td></tr>
+              <tr><th>Archer</th><td>Rear + Force in front</td><td>+2</td></tr>
+              <tr><th>Healer</th><td>Rear</td><td>front Force +2</td></tr>
               <tr><th>Ship</th><td>Rear</td><td>+1</td></tr>
               <tr><th>Stronghold</th><td>Rear</td><td>+1</td></tr>
             </tbody>
@@ -89,18 +92,19 @@
         <section class="rv-score">
           <span>AFTER THE FINAL OPERATION</span>
           <ol>
-            <li>Higher Strength controls each Front.</li>
-            <li>Control <b>2 Fronts</b> to win.</li>
-            <li>No one has 2? Higher <b>total Strength</b>.</li>
-            <li>Still tied? <b>First to Pass</b> wins.</li>
+            <li>Resolve all 4 Fronts separately. Higher Strength wins; a tie does nothing.</li>
+            <li>Clear incomplete formations.</li>
+            <li>In each lost Front: Rear Named Formation is driven off; Frontline Named Formation Retreats to Rear.</li>
+            <li>Recover Command: base recovery − Fronts lost, minimum 0.</li>
           </ol>
         </section>
       </aside>
     </div>
 
     <footer class="reference-v3-footer">
-      <div><b>BATTLE I</b><span>Start at 20 Command · after mulligans, randomly choose first player · draw 1 at the start of that turn</span></div><div><b>BETWEEN BATTLES</b><span>Clear battlefield · keep hand/deck/discard · +10 Command (max 20) · refill to 10 · reshuffle discard only if deck empties · first passer starts next Battle</span></div>
-      <div><b>WIN THE MATCH</b><span>Win 2 Battles</span></div>
+      <div><b>COMMAND</b><span>Start 20 · max 20 · d20 track · Maneuver costs 1 · collapse is checked after recovery.</span></div>
+      <div><b>RECOVERY</b><span>After Battles I–VIII+: <b>+10, +7, +5, +4, +3, +2, +1, +0…</b> minus 1 for each Front lost.</span></div>
+      <div><b>BETWEEN BATTLES</b><span>Named Formations persist · ongoing Stories persist by text · refill hand to 10 · first passer starts next Battle.</span></div>
     </footer>
   </main>
 </body>
