@@ -1707,7 +1707,22 @@ def run_suite(args: argparse.Namespace) -> Path:
         })
     standings_rows.sort(key=standing_key)
 
-    tournament_champion = standings_rows[0]["name"] if standings_rows else None
+    tournament_champion = None
+    if standings_rows:
+        lead = standings_rows[0]
+        leaders = [
+            row
+            for row in standings_rows
+            if (
+                row["points"] == lead["points"]
+                and row["game_difference"] == lead["game_difference"]
+                and row["game_win_rate"] == lead["game_win_rate"]
+            )
+        ]
+        if len(leaders) == 1:
+            tournament_champion = lead["name"]
+    else:
+        leaders = []
     best_ismcts = next(
         row["name"]
         for row in standings_rows
@@ -1735,6 +1750,7 @@ def run_suite(args: argparse.Namespace) -> Path:
     manifest["failures"] = failures
     manifest["skipped"] = skipped
     manifest["standings"] = standings_rows
+    manifest["tournament_leaders"] = [row["name"] for row in leaders]
     manifest["tournament_champion"] = tournament_champion
     manifest["optimized_ismcts"] = best_ismcts
     manifest["optimized_config"] = optimized_config
@@ -1791,6 +1807,7 @@ def run_suite(args: argparse.Namespace) -> Path:
         "blockers": blockers,
         "warnings": warnings,
         "tournament_incomplete": incomplete,
+        "tournament_leaders": [row["name"] for row in leaders],
         "tournament_champion": tournament_champion,
         "optimized_ismcts": best_ismcts,
         "optimized_config": optimized_config,
@@ -1819,7 +1836,10 @@ def run_suite(args: argparse.Namespace) -> Path:
             f"{row['game_difference']:>+6}   "
             f"{rate_text}  {row['name']}"
         )
-    print(f"Tournament champion: {tournament_champion}")
+    if tournament_champion is None:
+        print("Tournament leaders: " + ", ".join(row["name"] for row in leaders))
+    else:
+        print(f"Tournament champion: {tournament_champion}")
     print(f"Optimized ISMCTS: {best_ismcts}")
     print("Optimized configuration: " + json.dumps(
         optimized_config,
