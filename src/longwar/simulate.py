@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import ctypes
+import gc
+import sys
 from typing import Any, Callable
 
 from .agents import HeuristicAgent, ISMCTSAgent, RandomAgent
@@ -13,6 +16,28 @@ from .game.engine import GameEngine
 from .game.model import Phase
 from .human_flow import HumanFlowDiagnostics
 from .telemetry import Telemetry
+
+
+def _release_process_memory() -> None:
+    """Promptly return dead simulation/search memory to the OS when possible."""
+    gc.collect()
+    if not sys.platform.startswith("linux"):
+        return
+    try:
+        libc = ctypes.CDLL(None)
+        malloc_trim = getattr(libc, "malloc_trim", None)
+        if malloc_trim is not None:
+            malloc_trim(0)
+    except (AttributeError, OSError):
+        pass
+
+
+def _release_agent_search_memory(agent: object) -> None:
+    """Drop persistent per-game search state before discarding an agent."""
+    release = getattr(agent, "release_search_memory", None)
+    if callable(release):
+        release()
+
 
 
 @dataclass(frozen=True)
@@ -269,6 +294,13 @@ def simulate_games(
             human_flow.after_action(engine, before, state, actor, action)
             action_count += 1
 
+            # Search creates large short-lived belief states, packed states,
+            # and native scratch allocations. Reclaim dead objects after each
+            # move without clearing an ISMCTS tree that is intentionally
+            # reused within the same game.
+            del decision_info, before, action, agent
+            _release_process_memory()
+
         winner = state.winner
         if winner is None:
             raise RuntimeError("Completed game has no winner")
@@ -287,7 +319,15 @@ def simulate_games(
         if progress_callback is not None:
             progress_callback(game_index + 1, games, (wins[0], wins[1]))
 
+        # No search state is useful across games. Explicitly release native
+        # trees/tables before dropping the agents, then trim allocator caches.
+        for finished_agent in agents:
+            _release_agent_search_memory(finished_agent)
+        del agents, state, preview
+        _release_process_memory()
+
     telemetry_summary = telemetry.summary()
+    _release_process_memory()
     telemetry_summary["human_flow"] = human_flow.summary()
     return SimulationReport(
         games=games,
