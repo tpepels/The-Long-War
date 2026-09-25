@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 from typing import Any
 
-CARD_TYPES = {"subject", "link", "name", "plot", "stratagem"}
+CARD_TYPES = {"force", "bond", "name", "story", "stratagem"}
+_TYPE_ALIASES = {
+    "subject": "force",
+    "link": "bond",
+    "plot": "story",
+}
 
-SUBJECT_ROLES = {
+FORCE_ROLES = {
     "swordsman",
     "spearman",
     "archer",
@@ -49,12 +55,12 @@ _STRATAGEM = {
     "trigger": {
         "event": {"subject_played", "pass", "immediate_story_played", "name_played", "played", "never"},
         "actor": {"either", "opponent", "controller"},
-        "roles": [SUBJECT_ROLES],
+        "roles": [FORCE_ROLES],
         "ranks": [RANKS],
     },
     "reveal_effect": {"effect": {"penalize_trigger_subject"}, "amount": _NONNEGATIVE, "cancel_story": bool},
     "continuous": {
-        "role_strength_modifiers": {role: _SIGNED for role in SUBJECT_ROLES},
+        "role_strength_modifiers": {role: _SIGNED for role in FORCE_ROLES},
         "rank_strength_modifiers": {rank: _SIGNED for rank in RANKS},
         "controller_rank_strength_modifiers": {rank: _SIGNED for rank in RANKS},
         "named_subject_modifier": _SIGNED,
@@ -65,7 +71,7 @@ _STRATAGEM = {
     },
 }
 _RULE_SCHEMAS = {
-    "subject": {
+    "force": {
         "placement": {"rank": RANKS},
         "on_link_attached": {"temporary_strength": _SIGNED},
         "adjacent_strength_aura": _SIGNED,
@@ -75,7 +81,7 @@ _RULE_SCHEMAS = {
             "when": {"own_discard_at_least": _NONNEGATIVE, "adjacent_subject_has_name": bool},
         }],
     },
-    "link": {
+    "bond": {
         "strength_bonus": _SIGNED,
         "named_strength_bonus": _SIGNED,
         "opposing_front_modifier": _SIGNED,
@@ -89,7 +95,7 @@ _RULE_SCHEMAS = {
         "adjacent_command_discount": _NONNEGATIVE,
         "complete_protection_from_opponent_plot": bool,
     },
-    "plot": {"effect": {"discredit_subject", "return_name_or_weaken", "move_subject"}, "scheme": _SCHEME},
+    "story": {"effect": {"discredit_subject", "return_name_or_weaken", "move_subject"}, "scheme": _SCHEME},
     "stratagem": {"stratagem": _STRATAGEM},
 }
 
@@ -148,24 +154,42 @@ def _validate_rules(card: dict[str, Any]) -> None:
     if card["type"] == "stratagem":
         _require_fields(rules, ("stratagem",), path)
         _require_fields(rules["stratagem"]["trigger"], ("event",), f"{path}.stratagem.trigger")
-    if card["type"] == "plot":
-        if card["veiled"]:
-            _require_fields(rules, ("scheme",), path)
-            if "effect" in rules:
-                raise ValueError(f"{path}: a Veiled Story cannot have an immediate effect")
+    if card["type"] == "story":
+        if card.get("ongoing", False):
+            # Old veiled Story data is accepted only as a public ongoing Story
+            # compatibility representation while cards are being redesigned.
+            if "scheme" in rules:
+                _require_fields(rules, ("scheme",), path)
         elif "scheme" in rules:
-            raise ValueError(f"{path}: scheme requires a Veiled Story")
+            raise ValueError(f"{path}: ongoing Story rules require ongoing=true")
+
+
+def normalize_card_data(data: dict[str, Any]) -> dict[str, Any]:
+    """Return canonical in-memory card data without rewriting source files."""
+    normalized = copy.deepcopy(data)
+    for card in normalized.get("cards", []):
+        raw_type = card.get("type")
+        card["type"] = _TYPE_ALIASES.get(raw_type, raw_type)
+        if card.get("type") == "story":
+            if "ongoing" not in card:
+                card["ongoing"] = bool(card.get("veiled", False))
+        if card.get("type") == "force" and card.get("hero"):
+            classes = card.get("classes", [])
+            if "hero" not in classes:
+                classes.append("hero")
+    return normalized
 
 
 def load_card_file(path: str | Path) -> dict[str, Any]:
     path = Path(path)
     with path.open("r", encoding="utf-8") as handle:
-        data = json.load(handle)
+        data = normalize_card_data(json.load(handle))
     validate_card_data(data)
     return data
 
 
 def validate_card_data(data: dict[str, Any]) -> None:
+    data = normalize_card_data(data)
     if not isinstance(data, dict):
         raise ValueError("Card data must be an object")
     if type(data.get("schema_version")) is not int or data["schema_version"] != 1:
@@ -215,8 +239,8 @@ def validate_card_data(data: dict[str, Any]) -> None:
         if not isinstance(hero, bool):
             raise ValueError(f"{card_id}: hero must be boolean when present")
         if hero:
-            if card_type != "subject":
-                raise ValueError(f"{card_id}: only Subjects may be Heroes")
+            if card_type != "force":
+                raise ValueError(f"{card_id}: only Forces may be Heroes")
             if card.get("unique") is not True:
                 raise ValueError(f"{card_id}: every Hero must be Unique")
             if "hero" not in classes:
@@ -240,19 +264,19 @@ def validate_card_data(data: dict[str, Any]) -> None:
             if not isinstance(block.get("text"), str) or not block["text"].strip():
                 raise ValueError(f"{card_id}: rule block text must be non-empty")
 
-        if card_type == "subject":
+        if card_type == "force":
             role = card.get("role")
-            if not isinstance(role, str) or role not in SUBJECT_ROLES:
-                raise ValueError(f"{card_id}: invalid Subject role {role!r}")
+            if not isinstance(role, str) or role not in FORCE_ROLES:
+                raise ValueError(f"{card_id}: invalid Force role {role!r}")
 
-        if card_type == "plot":
+        if card_type == "story":
             form = card.get("story_form")
             if not isinstance(form, str) or form not in STORY_FORMS:
                 raise ValueError(f"{card_id}: invalid Story form {form!r}")
-            if not isinstance(card.get("veiled"), bool):
-                raise ValueError(f"{card_id}: Story veiled must be boolean")
+            if not isinstance(card.get("ongoing"), bool):
+                raise ValueError(f"{card_id}: Story ongoing must be boolean")
 
-        if card_type in {"subject", "name"}:
+        if card_type in {"force", "name"}:
             _validate_rule_value(card.get("strength"), _NONNEGATIVE, f"{card_id}.strength")
 
         if card_type == "name" and card.get("unique") is not True:
@@ -261,7 +285,8 @@ def validate_card_data(data: dict[str, Any]) -> None:
 
 
 def cards_by_type(data: dict[str, Any], card_type: str) -> list[dict[str, Any]]:
-    return [card for card in data["cards"] if card["type"] == card_type]
+    canonical = _TYPE_ALIASES.get(card_type, card_type)
+    return [card for card in normalize_card_data(data)["cards"] if card["type"] == canonical]
 
 
 def card_index(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
