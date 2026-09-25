@@ -46,7 +46,16 @@ CANONICAL_DECK_PATHS = {
 
 
 class ExperimentSkipped(RuntimeError):
-    """Raised when the user skips the currently running comparison."""
+    """Raised when the user skips a comparison, carrying its live score."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        partial: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.partial = partial or {}
 
 
 def validate_data() -> None:
@@ -412,7 +421,27 @@ def _run_cells_with_live_progress(
             print("Current experiment skipped.")
 
     if skipped:
-        raise ExperimentSkipped("user requested skip")
+        states = [
+            _read_progress_state(path, games_per_cell)
+            for path in progress_paths
+        ]
+        score_a = 0
+        score_b = 0
+        completed = 0
+        for cell, state in zip(cells, states):
+            _row, a_wins, b_wins = format_progress(cell, state)
+            score_a += int(a_wins)
+            score_b += int(b_wins)
+            completed += int(state["completed"])
+        raise ExperimentSkipped(
+            "user requested skip",
+            partial={
+                "score_a": score_a,
+                "score_b": score_b,
+                "completed": completed,
+                "total": total_games,
+            },
+        )
     return results
 
 
