@@ -54,7 +54,7 @@ class ISMCTSAgent:
         reuse_tree: bool = True,
         max_tree_nodes: int | None = None,
         rollout_epsilon: float = 0.12,
-        rollout_policy: str = "cheap",
+        rollout_policy: str = "greedy",
         leaf_scale: float = 100.0,
     ):
         if belief_samples <= 0:
