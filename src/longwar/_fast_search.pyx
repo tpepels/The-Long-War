@@ -11,8 +11,8 @@ from time import perf_counter
 
 DEF MAX_CARDS = 127
 DEF MAX_DECK = 64
-DEF SLOT_COUNT = 12
-DEF SCHEME_COUNT = 6
+DEF SLOT_COUNT = 16
+DEF SCHEME_COUNT = 8
 DEF MAX_ACTIONS = 1024
 DEF NONE = -1
 
@@ -31,6 +31,7 @@ cdef int TYPE_STRATAGEM = 7
 cdef int TYPE_DRAW = 8
 cdef int TYPE_CYCLE = 9
 cdef int TYPE_DISCARD = 10
+cdef int TYPE_MANEUVER = 11
 
 cdef int CARD_SUBJECT = 1
 cdef int CARD_LINK = 2
@@ -83,13 +84,13 @@ cdef int ACTOR_OPPONENT = 1
 cdef int ACTOR_CONTROLLER = 2
 
 cdef inline int slot_index(int player, int front, int rank) noexcept:
-    return player * 6 + front * 2 + rank
+    return player * 8 + front * 2 + rank
 
 cdef inline int owner_from_slot(int slot) noexcept:
-    return 0 if slot < 6 else 1
+    return 0 if slot < 8 else 1
 
 cdef inline int local_slot(int slot) noexcept:
-    return slot if slot < 6 else slot - 6
+    return slot if slot < 8 else slot - 8
 
 cdef inline int front_from_slot(int slot) noexcept:
     return local_slot(slot) >> 1
@@ -231,7 +232,7 @@ cdef class FastState:
     cdef uint8_t last_battle_valid
     cdef int16_t last_battle
     cdef int8_t last_battle_winner
-    cdef int16_t last_front_scores[3][2]
+    cdef int16_t last_front_scores[4][2]
     cdef int16_t last_total_strength
     cdef int16_t last_abs_total_margin
     cdef int16_t last_command_start[2]
@@ -421,6 +422,11 @@ cdef class FastEngine:
     cdef bint command_enabled
     cdef int battle_command_gain
     cdef int command_cap
+    cdef object command_recovery_schedule
+    cdef int command_collapse_threshold
+    cdef int maneuver_command_cost
+    cdef int hand_limit
+    cdef int ongoing_story_limit
     cdef int cycle_command_cost
     cdef bint reshuffle_on_empty
     cdef bint automatic_draw
@@ -552,6 +558,11 @@ cdef class FastEngine:
         self.command_enabled = bool(engine.command_enabled)
         self.battle_command_gain = int(engine.battle_command_gain)
         self.command_cap = int(engine.command_cap)
+        self.command_recovery_schedule = tuple(engine.command_recovery_schedule)
+        self.command_collapse_threshold = int(engine.command_collapse_threshold)
+        self.maneuver_command_cost = int(engine.maneuver_command_cost)
+        self.hand_limit = int(engine.hand_limit)
+        self.ongoing_story_limit = int(engine.ongoing_story_limit)
         self.cycle_command_cost = int(engine.cycle_command_cost)
         self.reshuffle_on_empty = bool(engine.reshuffle_on_empty)
         self.automatic_draw = bool(engine.automatic_draw)
@@ -587,7 +598,7 @@ cdef class FastEngine:
             raise ValueError("Stratagem trigger 'played' requires public_stratagems")
         self.id_to_code = {card_id: i for i, card_id in enumerate(self.card_ids)}
 
-        type_map = {"subject": CARD_SUBJECT, "link": CARD_LINK, "name": CARD_NAME, "plot": CARD_PLOT, "stratagem": CARD_STRATAGEM}
+        type_map = {"force": CARD_SUBJECT, "bond": CARD_LINK, "name": CARD_NAME, "story": CARD_PLOT, "stratagem": CARD_STRATAGEM}
         role_map = {"swordsman": ROLE_SWORDSMAN, "spearman": ROLE_SPEARMAN, "archer": ROLE_ARCHER, "healer": ROLE_HEALER, "ship": ROLE_SHIP, "stronghold": ROLE_STRONGHOLD}
         name_effect_map = {"move_adjacent_optional": NAME_MOVE_ADJACENT, "reveal_enemy_scheme": NAME_REVEAL_SCHEME}
         completion_effect_map = {
@@ -652,7 +663,7 @@ cdef class FastEngine:
             self.name_effect[code] = name_effect_map.get(rules.get("on_name_attached"), NAME_NONE)
 
             self.plot_effect[code] = plot_effect_map.get(rules.get("effect"), PLOT_NONE)
-            self.veiled[code] = bool(card.get("veiled", False))
+            self.veiled[code] = bool(card.get("ongoing", False))
             scheme = rules.get("scheme") or {}
             self.scheme_trigger[code] = scheme_trigger_map.get(scheme.get("trigger"), EVENT_NONE)
             self.scheme_effect[code] = scheme_effect_map.get(scheme.get("effect"), SCHEME_NONE)
@@ -693,12 +704,22 @@ cdef class FastEngine:
     cpdef FastState from_game_state(self, state):
         cdef FastState fast = FastState()
         cdef int p, i, f, r, slot, code, viewer, owner
-        cdef object card_id, py_slot, scheme, strat, counter
-        phase_map = {"battle": PHASE_BATTLE, "choose_first": PHASE_CHOOSE, "complete": PHASE_COMPLETE}
+        cdef object card_id, py_slot, story, strat, counter
+        phase_map = {
+            "battle": PHASE_BATTLE,
+            "choose_first": PHASE_CHOOSE,
+            "complete": PHASE_COMPLETE,
+        }
 
         for p in range(2):
-            if max(len(state.players[p].deck), len(state.players[p].hand), len(state.players[p].discard)) > MAX_DECK:
-                raise ValueError(f"Player {p}: a card zone exceeds native capacity {MAX_DECK}")
+            if max(
+                len(state.players[p].deck),
+                len(state.players[p].hand),
+                len(state.players[p].discard),
+            ) > MAX_DECK:
+                raise ValueError(
+                    f"Player {p}: a card zone exceeds native capacity {MAX_DECK}"
+                )
             fast.deck_len[p] = len(state.players[p].deck)
             for i, card_id in enumerate(state.players[p].deck):
                 code = self.id_to_code[card_id]
@@ -710,14 +731,12 @@ cdef class FastEngine:
             fast.discard_len[p] = len(state.players[p].discard)
             for i, card_id in enumerate(state.players[p].discard):
                 fast.discard[p][i] = self.id_to_code[card_id]
-            fast.victories[p] = state.players[p].victories
+
             fast.passed[p] = state.players[p].passed
             fast.command[p] = state.players[p].command
-            fast.free_cycle[p] = state.players[p].free_cycle
             fast.operations_this_battle[p] = state.operations_this_battle[p]
             fast.command_spent_this_battle[p] = state.command_spent_this_battle[p]
             fast.command_refunded_this_battle[p] = state.command_refunded_this_battle[p]
-            fast.completion_command_refunded_this_battle[p] = state.completion_command_refunded_this_battle[p]
             fast.battle_start_command[p] = state.battle_start_command[p]
             fast.battle_start_hand_size[p] = state.battle_start_hand_size[p]
             fast.cards_drawn_this_battle[p] = state.cards_drawn_this_battle[p]
@@ -728,32 +747,32 @@ cdef class FastEngine:
             fast.discarded_this_battle[p] = state.discarded_this_battle[p]
             fast.stratagem_used[p] = state.stratagem_used[p]
             fast.hero_used[p] = state.hero_used[p]
-            fast.draw_used[p] = state.draw_used[p]
+
             strat = state.stratagems[p]
             if strat is not None:
                 fast.stratagem[p] = self.id_to_code[strat.card_id]
-                fast.stratagem_revealed[p] = strat.revealed
+                fast.stratagem_revealed[p] = 1
 
-            for f in range(3):
+            for f in range(4):
                 for r in range(2):
                     slot = slot_index(p, f, r)
                     py_slot = state.board[p][f][r]
-                    if py_slot.subject is not None:
-                        fast.subject[slot] = self.id_to_code[py_slot.subject]
-                    if py_slot.link is not None:
-                        fast.link[slot] = self.id_to_code[py_slot.link]
+                    if py_slot.force is not None:
+                        fast.subject[slot] = self.id_to_code[py_slot.force]
+                    if py_slot.bond is not None:
+                        fast.link[slot] = self.id_to_code[py_slot.bond]
                     if py_slot.name is not None:
                         fast.name[slot] = self.id_to_code[py_slot.name]
                     fast.temporary[slot] = py_slot.temporary_strength
-                scheme = state.schemes[p][f]
-                if scheme is not None:
-                    fast.scheme[p * 3 + f] = self.id_to_code[scheme.card_id]
-                    fast.scheme_revealed[p * 3 + f] = scheme.revealed
+
+            for i, story in enumerate(state.stories[p][:self.ongoing_story_limit]):
+                fast.scheme[p * 4 + i] = self.id_to_code[story.card_id]
+                fast.scheme_revealed[p * 4 + i] = 1
 
         fast.active_player = state.active_player
         fast.battle = state.battle
         fast.phase = phase_map[state.phase.value]
-        fast.chooser = -1 if state.chooser is None else state.chooser
+        fast.chooser = -1
         fast.winner = -1 if state.winner is None else state.winner
         fast.turn_number = state.turn_number
         fast.shuffle_seed = state.shuffle_seed
@@ -763,16 +782,8 @@ cdef class FastEngine:
             if state.pending_final_operation_for is None
             else state.pending_final_operation_for
         )
-        fast.cleanup_pending = bool(state.cleanup_pending)
-        fast.cleanup_next_starter = (
-            -1
-            if state.cleanup_next_starter is None
-            else state.cleanup_next_starter
-        )
-        fast.cleanup_next_chooser = (
-            -1
-            if state.cleanup_next_chooser is None
-            else state.cleanup_next_chooser
+        fast.cleanup_pending = (
+            state.pending_draw_discard_for is not None
         )
         for i, p in enumerate(state.pass_order):
             fast.pass_order[i] = p
@@ -787,29 +798,42 @@ cdef class FastEngine:
         if snapshot is not None:
             fast.last_battle_valid = 1
             fast.last_battle = int(snapshot.get("battle", 0))
-            fast.last_battle_winner = int(snapshot.get("winner", -1))
+            fast.last_battle_winner = -1
             front_scores = snapshot.get("front_scores", ())
-            for f in range(min(3, len(front_scores))):
+            for f in range(min(4, len(front_scores))):
                 fast.last_front_scores[f][0] = int(front_scores[f][0])
                 fast.last_front_scores[f][1] = int(front_scores[f][1])
-            fast.last_total_strength = int(snapshot.get("total_strength", 0))
-            fast.last_abs_total_margin = int(snapshot.get("abs_total_margin", 0))
             for p in range(2):
-                fast.last_command_start[p] = int(snapshot.get("command_start", (0, 0))[p])
-                fast.last_command_spent[p] = int(snapshot.get("command_spent", (0, 0))[p])
-                fast.last_command_refunded[p] = int(snapshot.get("command_refunded", (0, 0))[p])
-                fast.last_completion_command_refunded[p] = int(
-                    snapshot.get("completion_command_refunded", (0, 0))[p]
+                fast.last_command_start[p] = int(
+                    snapshot.get("command_start", (0, 0))[p]
                 )
-                fast.last_command_remaining[p] = int(snapshot.get("command_remaining", (0, 0))[p])
-                fast.last_deck_remaining[p] = int(snapshot.get("deck_remaining", (0, 0))[p])
-                fast.last_hand_size[p] = int(snapshot.get("hand_size", (0, 0))[p])
+                fast.last_command_spent[p] = int(
+                    snapshot.get("command_spent", (0, 0))[p]
+                )
+                fast.last_command_refunded[p] = int(
+                    snapshot.get("command_refunded", (0, 0))[p]
+                )
+                fast.last_command_remaining[p] = int(
+                    snapshot.get("command_remaining", (0, 0))[p]
+                )
+                fast.last_deck_remaining[p] = int(
+                    snapshot.get("deck_remaining", (0, 0))[p]
+                )
+                fast.last_hand_size[p] = int(
+                    snapshot.get("hand_size", (0, 0))[p]
+                )
                 fast.last_battle_start_hand_size[p] = int(
                     snapshot.get("battle_start_hand_size", (0, 0))[p]
                 )
-                fast.last_cards_drawn[p] = int(snapshot.get("cards_drawn", (0, 0))[p])
-                fast.last_completion_count[p] = int(snapshot.get("completion_count", (0, 0))[p])
-                fast.last_operations[p] = int(snapshot.get("operations", (0, 0))[p])
+                fast.last_cards_drawn[p] = int(
+                    snapshot.get("cards_drawn", (0, 0))[p]
+                )
+                fast.last_completion_count[p] = int(
+                    snapshot.get("completion_count", (0, 0))[p]
+                )
+                fast.last_operations[p] = int(
+                    snapshot.get("operations", (0, 0))[p]
+                )
             pass_snapshot = snapshot.get("pass_order", ())
             fast.last_pass_len = min(2, len(pass_snapshot))
             for i in range(fast.last_pass_len):
@@ -840,9 +864,6 @@ cdef class FastEngine:
         role = self.role[card]
         value = self.strength[card] + state.temporary[slot]
 
-        if rank == 0 and not self.line_disabled(state):
-            value += 1
-
         if role == ROLE_SWORDSMAN and rank == 0:
             value += 1
         elif role == ROLE_SPEARMAN and rank == 0:
@@ -866,7 +887,7 @@ cdef class FastEngine:
             other = state.subject[adj]
             if other >= 0 and self.aura[other] and (self.aura_rank[other] < 0 or self.aura_rank[other] == rank):
                 value += self.aura[other]
-        if front < 2:
+        if front < 3:
             adj = slot_index(player, front + 1, rank)
             other = state.subject[adj]
             if other >= 0 and self.aura[other] and (self.aura_rank[other] < 0 or self.aura_rank[other] == rank):
@@ -885,7 +906,7 @@ cdef class FastEngine:
                 ):
                     other = 1
                 if (
-                    front < 2
+                    front < 3
                     and state.subject[slot_index(player, front + 1, rank)] >= 0
                     and state.name[slot_index(player, front + 1, rank)] >= 0
                 ):
@@ -933,8 +954,8 @@ cdef class FastEngine:
         cdef int value, scheme, enemy, slot, link
         value = self.position_strength_fast(state, slot_index(player, front, 0))
         value += self.position_strength_fast(state, slot_index(player, front, 1))
-        scheme = state.scheme[player * 3 + front]
-        if scheme >= 0 and not state.scheme_revealed[player * 3 + front]:
+        scheme = state.scheme[player * 4 + front]
+        if scheme >= 0 and not state.scheme_revealed[player * 4 + front]:
             value += self.scheme_face_bonus[scheme]
         enemy = 1 - player
         for slot in (slot_index(enemy, front, 0), slot_index(enemy, front, 1)):
@@ -992,8 +1013,8 @@ cdef class FastEngine:
         int target_front,
     ) noexcept:
         cdef int local, slot, front, name, discount = 0
-        for local in range(6):
-            slot = player * 6 + local
+        for local in range(8):
+            slot = player * 8 + local
             if not self.slot_complete(state, slot):
                 continue
             front = local >> 1
@@ -1066,8 +1087,8 @@ cdef class FastEngine:
 
     cdef inline int complete_mask(self, FastState state, int player) noexcept:
         cdef int local, slot, mask=0
-        for local in range(6):
-            slot = player * 6 + local
+        for local in range(8):
+            slot = player * 8 + local
             if self.slot_complete(state, slot):
                 mask |= 1 << local
         return mask
@@ -1095,10 +1116,10 @@ cdef class FastEngine:
         cdef int new_mask = after_mask & ~before_mask
         if new_mask == 0:
             return
-        for local in range(6):
+        for local in range(8):
             if not (new_mask & (1 << local)):
                 continue
-            slot = player * 6 + local
+            slot = player * 8 + local
             state.completion_count_this_battle[player] += 1
             if self.command_enabled and self.completion_command_refund:
                 command_before = state.command[player]
@@ -1127,7 +1148,7 @@ cdef class FastEngine:
                 self.draw_for_battle(state, player, amount)
             elif effect == COMPLETE_REVEAL_SCHEME:
                 front = local >> 1
-                enemy_ix = (1 - player) * 3 + front
+                enemy_ix = (1 - player) * 4 + front
                 if state.scheme[enemy_ix] >= 0:
                     state.scheme_revealed[enemy_ix] = 1
             elif effect == COMPLETE_RECOVER_LINK:
@@ -1190,8 +1211,8 @@ cdef class FastEngine:
             if self.card_type[card] == CARD_SUBJECT:
                 if not self.hero[card] or not state.hero_used[player]:
                     req = self.placement_rank[card]
-                    for local in range(6):
-                        slot = player * 6 + local
+                    for local in range(8):
+                        slot = player * 8 + local
                         if state.subject[slot] >= 0:
                             continue
                         rank = local & 1
@@ -1200,8 +1221,8 @@ cdef class FastEngine:
                         n = _append_action(actions, n, encode_action(TYPE_SUBJECT, card, slot, -1, player))
 
                     if self.hero[card]:
-                        for local in range(6):
-                            slot = player * 6 + local
+                        for local in range(8):
+                            slot = player * 8 + local
                             if state.name[slot] < 0:
                                 n = _append_action(
                                     actions,
@@ -1210,14 +1231,14 @@ cdef class FastEngine:
                                 )
 
             elif self.card_type[card] == CARD_LINK:
-                for local in range(6):
-                    slot = player * 6 + local
+                for local in range(8):
+                    slot = player * 8 + local
                     if state.link[slot] < 0:
                         n = _append_action(actions, n, encode_action(TYPE_LINK, card, slot, -1, player))
 
             elif self.card_type[card] == CARD_NAME:
-                for local in range(6):
-                    slot = player * 6 + local
+                for local in range(8):
+                    slot = player * 8 + local
                     if state.name[slot] >= 0:
                         continue
                     n = _append_action(actions, n, encode_action(TYPE_NAME, card, slot, -1, player))
@@ -1228,29 +1249,29 @@ cdef class FastEngine:
                             dest = slot_index(player, front - 1, rank)
                             if state.subject[dest] < 0 and state.link[dest] < 0 and state.name[dest] < 0:
                                 n = _append_action(actions, n, encode_action(TYPE_NAME, card, slot, dest, player))
-                        if front < 2:
+                        if front < 3:
                             dest = slot_index(player, front + 1, rank)
                             if state.subject[dest] < 0 and state.link[dest] < 0 and state.name[dest] < 0:
                                 n = _append_action(actions, n, encode_action(TYPE_NAME, card, slot, dest, player))
 
             elif self.card_type[card] == CARD_PLOT:
                 if self.veiled[card]:
-                    for front in range(3):
-                        if state.scheme[player * 3 + front] < 0:
+                    for front in range(4):
+                        if state.scheme[player * 4 + front] < 0:
                             n = _append_action(actions, n, encode_action(TYPE_SCHEME, card, front, -1, player))
                 elif not self.story_locked(state, player):
                     effect = self.plot_effect[card]
                     if effect == PLOT_DISCREDIT or effect == PLOT_RETURN_NAME:
-                        for local in range(6):
-                            slot = opponent * 6 + local
+                        for local in range(8):
+                            slot = opponent * 8 + local
                             if state.subject[slot] >= 0 and not self.subject_protected(state, slot):
                                 n = _append_action(actions, n, encode_action(TYPE_PLOT, card, slot, -1, opponent))
                     elif effect == PLOT_MOVE_SUBJECT:
-                        for source in range(player * 6, player * 6 + 6):
+                        for source in range(player * 8, player * 8 + 8):
                             if state.subject[source] < 0:
                                 continue
                             req = self.placement_rank[state.subject[source]]
-                            for dest in range(player * 6, player * 6 + 6):
+                            for dest in range(player * 8, player * 8 + 8):
                                 if (
                                     dest == source
                                     or state.subject[dest] >= 0
@@ -1351,7 +1372,7 @@ cdef class FastEngine:
             self.return_to_hand(state, player, name)
 
     cdef void reveal_scheme(self, FastState state, int controller, int front, int actor, int trigger_slot=-1):
-        cdef int ix = controller * 3 + front
+        cdef int ix = controller * 4 + front
         cdef int card = state.scheme[ix]
         cdef int effect, amount, target
         if card < 0:
@@ -1374,7 +1395,7 @@ cdef class FastEngine:
     cdef void resolve_scheme_event(self, FastState state, int actor, int event, int front, int trigger_slot=-1):
         cdef int controller, ix, card
         for controller in (actor, 1 - actor):
-            ix = controller * 3 + front
+            ix = controller * 4 + front
             card = state.scheme[ix]
             if card < 0:
                 continue
@@ -1465,7 +1486,7 @@ cdef class FastEngine:
         if pos < 0 or owner_from_slot(pos) != opponent:
             return
         front = front_from_slot(pos)
-        ix = opponent * 3 + front
+        ix = opponent * 4 + front
         card = state.scheme[ix]
         if card < 0 or self.scheme_trigger[card] != EVENT_PLOT_TARGET:
             return
@@ -1602,7 +1623,7 @@ cdef class FastEngine:
     cdef void discard_battlefield(self, FastState state):
         cdef int player, slot, front, card
         for player in range(2):
-            for slot in range(player * 6, player * 6 + 6):
+            for slot in range(player * 8, player * 8 + 8):
                 card = state.subject[slot]
                 if card >= 0:
                     self.append_discard(state, player, card, False)
@@ -1616,12 +1637,12 @@ cdef class FastEngine:
                 state.link[slot] = -1
                 state.name[slot] = -1
                 state.temporary[slot] = 0
-            for front in range(3):
-                card = state.scheme[player * 3 + front]
+            for front in range(4):
+                card = state.scheme[player * 4 + front]
                 if card >= 0:
                     self.append_discard(state, player, card, False)
-                    state.scheme[player * 3 + front] = -1
-                    state.scheme_revealed[player * 3 + front] = 0
+                    state.scheme[player * 4 + front] = -1
+                    state.scheme_revealed[player * 4 + front] = 0
             card = state.stratagem[player]
             if card >= 0:
                 self.append_discard(state, player, card, False)
@@ -1683,7 +1704,7 @@ cdef class FastEngine:
                 state.pass_order[p] if p < state.pass_len else -1
             )
 
-        for front in range(3):
+        for front in range(4):
             a = self.front_strength_fast(state, 0, front)
             b = self.front_strength_fast(state, 1, front)
             state.last_front_scores[front][0] = a
@@ -1812,8 +1833,8 @@ cdef class FastEngine:
         state.pass_order[state.pass_len] = player
         state.pass_len += 1
         self.resolve_strat_event(state, EVENT_PASS, player)
-        for front in range(3):
-            ix = opponent * 3 + front
+        for front in range(4):
+            ix = opponent * 4 + front
             card = state.scheme[ix]
             if card >= 0 and self.scheme_trigger[card] == EVENT_PASS:
                 if not self.scheme_requires_subject[card] or self.front_has_subject(state, opponent, front):
@@ -1915,8 +1936,8 @@ cdef class FastEngine:
             state.name[pos] = card
             if self.name_effect[card] == NAME_REVEAL_SCHEME:
                 front = front_from_slot(pos)
-                if state.scheme[(1 - actor) * 3 + front] >= 0:
-                    state.scheme_revealed[(1 - actor) * 3 + front] = 1
+                if state.scheme[(1 - actor) * 4 + front] >= 0:
+                    state.scheme_revealed[(1 - actor) * 4 + front] = 1
             elif self.name_effect[card] == NAME_MOVE_ADJACENT and dest >= 0:
                 self.move_slot(state, pos, dest)
                 pos = dest
@@ -1932,8 +1953,8 @@ cdef class FastEngine:
 
         elif kind == TYPE_SCHEME:
             self.take_from_hand(state, actor, card, 1)
-            state.scheme[actor * 3 + pos] = card
-            state.scheme_revealed[actor * 3 + pos] = 0
+            state.scheme[actor * 4 + pos] = card
+            state.scheme_revealed[actor * 4 + pos] = 0
 
         elif kind == TYPE_STRATAGEM:
             self.take_from_hand(
@@ -2108,7 +2129,7 @@ cdef class FastEngine:
         )
 
         for owner in range(2):
-            for slot in range(owner * 6, owner * 6 + 6):
+            for slot in range(owner * 8, owner * 8 + 8):
                 _info_emit(
                     buf,
                     &n,
@@ -2135,8 +2156,8 @@ cdef class FastEngine:
                 )
 
         for owner in range(2):
-            for front in range(3):
-                ix = owner * 3 + front
+            for front in range(4):
+                ix = owner * 4 + front
                 card = state.scheme[ix]
                 if card < 0:
                     _info_emit(buf, &n, h, 0)
@@ -2301,7 +2322,7 @@ cdef class FastEngine:
                         state.last_front_scores[f][0],
                         state.last_front_scores[f][1],
                     ]
-                    for f in range(3)
+                    for f in range(4)
                 ],
                 "total_strength": state.last_total_strength,
                 "abs_total_margin": state.last_abs_total_margin,
@@ -2422,7 +2443,7 @@ cdef class FastEngine:
                         }
                         for r in range(2)
                     ]
-                    for f in range(3)
+                    for f in range(4)
                 ]
                 for p in range(2)
             ],
@@ -2430,15 +2451,15 @@ cdef class FastEngine:
                 [
                     (
                         None
-                        if state.scheme[p * 3 + f] < 0
+                        if state.scheme[p * 4 + f] < 0
                         else {
-                            "card_id": self.card_ids[state.scheme[p * 3 + f]],
+                            "card_id": self.card_ids[state.scheme[p * 4 + f]],
                             "revealed": bool(
-                                state.scheme_revealed[p * 3 + f]
+                                state.scheme_revealed[p * 4 + f]
                             ),
                         }
                     )
-                    for f in range(3)
+                    for f in range(4)
                 ]
                 for p in range(2)
             ],
@@ -2587,14 +2608,14 @@ cdef class FastEngine:
                         None if state.name[slot_index(p, f, r)] < 0 else self.card_ids[state.name[slot_index(p, f, r)]],
                         state.temporary[slot_index(p, f, r)],
                     )
-                    for f in range(3) for r in range(2)
+                    for f in range(4) for r in range(2)
                 ]
                 for p in range(2)
             ],
             "schemes": [
                 [
-                    None if state.scheme[p * 3 + f] < 0 else (self.card_ids[state.scheme[p * 3 + f]], bool(state.scheme_revealed[p * 3 + f]))
-                    for f in range(3)
+                    None if state.scheme[p * 4 + f] < 0 else (self.card_ids[state.scheme[p * 4 + f]], bool(state.scheme_revealed[p * 4 + f]))
+                    for f in range(4)
                 ]
                 for p in range(2)
             ],
