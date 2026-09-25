@@ -75,6 +75,12 @@ def test_provisional_ismcts_exploration_default_is_shared():
     assert inspect.signature(simulate_games).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
 
 
+def test_canonical_ismcts_rollout_policy_default_is_greedy():
+    assert inspect.signature(ISMCTSAgent).parameters["rollout_policy"].default == "greedy"
+    assert inspect.signature(make_agent).parameters["ismcts_rollout_policy"].default == "greedy"
+    assert inspect.signature(simulate_games).parameters["ismcts_rollout_policy"].default == "greedy"
+
+
 def test_ismcts_match_can_compare_rollout_controls():
     source = inspect.getsource(runner.benchmark_ismcts_match)
     assert '"ismcts_rollout_depth": rollout_depth_a' in source
