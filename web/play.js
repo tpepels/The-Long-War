@@ -8,6 +8,7 @@ let state = null;
 let selectedCardId = null;
 let selectedHandIndex = null;
 let stagedPlotSource = null;
+let stagedManeuverSource = null;
 let choiceActions = [];
 let mulliganSelection = new Set();
 let cardsReady = false;
@@ -300,97 +301,186 @@ function targetActionsForSlot(owner, front, rank) {
   return matches;
 }
 
-function targetActionsForFront(front) {
-  return selectedActions().filter((action) => action.kind === "PlayScheme" && action.front === front);
+function targetActionsForStorySlot(slot) {
+  return selectedActions().filter(
+    (action) => action.kind === "PlayStory" && action.ongoing_slot === slot
+  );
+}
+
+function maneuverActionsFrom(front, rank) {
+  if (!state || selectedCardId || currentViewer() !== state.active_player) return [];
+  return state.legal_actions.filter(
+    (action) => action.kind === "Maneuver" && posEquals(action.source, front, rank)
+  );
+}
+
+function maneuverActionsTo(front, rank) {
+  if (!state || !stagedManeuverSource) return [];
+  return state.legal_actions.filter(
+    (action) =>
+      action.kind === "Maneuver" &&
+      posEquals(action.source, stagedManeuverSource.front, stagedManeuverSource.rank) &&
+      posEquals(action.destination, front, rank)
+  );
 }
 
 function renderSlot(owner, front, rank) {
   const slot = boardSlot(owner, front, rank);
-  const targets = targetActionsForSlot(owner, front, rank);
+  const cardTargets = targetActionsForSlot(owner, front, rank);
+  const maneuverSources =
+    owner === currentViewer() && !selectedCardId && !stagedManeuverSource
+      ? maneuverActionsFrom(front, rank)
+      : [];
+  const maneuverTargets =
+    owner === currentViewer() && !selectedCardId && stagedManeuverSource
+      ? maneuverActionsTo(front, rank)
+      : [];
+  const targets = [...cardTargets, ...maneuverSources, ...maneuverTargets];
   const targetable = targets.length > 0;
   const hasFormation = Boolean(slot?.force || slot?.bond || slot?.name);
   const classes = ["digital-slot", hasFormation ? "occupied" : "empty"];
   if (hasFormation && !slot?.force) classes.push("prepared");
   if (targetable) classes.push("targetable");
-  if (stagedPlotSource && locEquals(stagedPlotSource, owner, front, rank)) classes.push("staged-source");
+  if (
+    stagedPlotSource &&
+    locEquals(stagedPlotSource, owner, front, rank)
+  ) classes.push("staged-source");
+  if (
+    stagedManeuverSource &&
+    owner === currentViewer() &&
+    posEquals(stagedManeuverSource, front, rank)
+  ) classes.push("staged-source");
+
   const recent = state.last_action;
   const recentPosition =
     (recent?.actor === owner && posEquals(recent.position, front, rank)) ||
-    (recent?.move_to && recent.actor === owner && posEquals(recent.move_to, front, rank)) ||
-    (recent?.targets || []).some((target) => locEquals(target, owner, front, rank));
+    (recent?.actor === owner && posEquals(recent.source, front, rank)) ||
+    (recent?.actor === owner && posEquals(recent.destination, front, rank)) ||
+    (recent?.targets || []).some((target) =>
+      locEquals(target, owner, front, rank)
+    );
   if (recentPosition) classes.push("recent-action");
 
+  const cue = maneuverSources.length || maneuverTargets.length
+    ? "MANEUVER"
+    : "PLAY";
   const attrs =
-    'data-board-owner="' + owner + '" data-board-front="' + front + '" data-board-rank="' + rank + '"' +
-    (targetable ? ' role="button" tabindex="0" aria-label="Play ' + esc(cardTitle(selectedCardId)) + ' at ' + (owner === currentViewer() ? 'your ' : 'opponent ') + frontNames[front] + ' ' + rank + '"' : '');
+    'data-board-owner="' + owner +
+    '" data-board-front="' + front +
+    '" data-board-rank="' + rank + '"' +
+    (targetable
+      ? ' role="button" tabindex="0" aria-label="' + cue +
+        ' at ' + frontNames[front] + ' ' + rank + '"'
+      : '');
 
   if (!hasFormation) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
       '<span class="empty-slot-mark">＋</span><span>' +
       (rank === "front" ? "Frontline" : "Rear") + '</span>' +
-      (targetable ? '<b class="legal-target-cue">PLAY · ' + commandCostLabel(targets) + '</b>' : '') +
+      (targetable
+        ? '<b class="legal-target-cue">' + cue + ' · ' +
+          commandCostLabel(targets) + '</b>'
+        : '') +
       '</div>';
   }
 
   return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
-    '<span class="slot-rank">' + esc(slot.rank_name) +
-      (rank === "front" ? " · Line Defense +1" : "") + '</span>' +
+    '<span class="slot-rank">' + esc(slot.rank_name) + '</span>' +
     '<div class="board-legend">' +
       (slot.force
-        ? boardCardMarkup(slot.force, "subject", owner)
-        : '<span class="prepared-formation-label">' + termMarkup("Prepared") + '<small>Force open</small></span>') +
-      (slot.bond ? '<div class="board-attachment link">' + boardCardMarkup(slot.bond, "link", owner) + '</div>' : "") +
-      (slot.name ? '<div class="board-attachment name">' + boardCardMarkup(slot.name, "name", owner) + '</div>' : "") +
+        ? boardCardMarkup(slot.force, "force", owner)
+        : '<span class="prepared-formation-label">' +
+          termMarkup("Prepared") +
+          '<small>Force open</small></span>') +
+      (slot.bond
+        ? '<div class="board-attachment link">' +
+          boardCardMarkup(slot.bond, "bond", owner) + '</div>'
+        : "") +
+      (slot.name
+        ? '<div class="board-attachment name">' +
+          boardCardMarkup(slot.name, "name", owner) + '</div>'
+        : "") +
     '</div>' +
     '<span class="slot-strength' + (slot.force ? '' : ' inactive') + '">' +
-      (slot.force ? slot.strength : "—") + '</span>' +
-    (targetable ? '<b class="legal-target-cue">PLAY · ' + commandCostLabel(targets) + '</b>' : '') +
+      (slot.force ? slot.strength : "—") +
+    '</span>' +
+    (targetable
+      ? '<b class="legal-target-cue">' + cue + ' · ' +
+        commandCostLabel(targets) + '</b>'
+      : '') +
   '</div>';
 }
-function renderScheme(owner, front) {
-  const scheme = state.schemes[owner][front];
-  const targetable = owner === currentViewer() && targetActionsForFront(front).length > 0;
-  const classes = ["scheme-marker"];
-  if (targetable) classes.push("targetable");
-  if (!scheme) classes.push("empty");
-  if (scheme?.hidden) classes.push("hidden");
-  else if (scheme && !scheme.revealed) classes.push("hidden", "known");
-  const attrs = 'data-scheme-owner="' + owner + '" data-scheme-front="' + front + '"' +
-    (targetable ? ' role="button" tabindex="0" aria-label="Set Veiled Story at ' + frontNames[front] + '"' : '');
 
-  if (!scheme) {
-    return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>' +
-      (targetable ? 'SET · ' + commandCostLabel(targetActionsForFront(front)) : 'empty') + '</b></div>';
+function renderStorySlot(owner, slot) {
+  const story = state.stories?.[owner]?.[slot] || null;
+  const actions =
+    owner === currentViewer()
+      ? targetActionsForStorySlot(slot)
+      : [];
+  const targetable = actions.length > 0;
+  const classes = ["scheme-marker", "story-marker"];
+  if (targetable) classes.push("targetable");
+  if (!story) classes.push("empty");
+  const attrs =
+    'data-story-owner="' + owner +
+    '" data-story-slot="' + slot + '"' +
+    (targetable
+      ? ' role="button" tabindex="0" aria-label="Play ongoing Story in slot ' +
+        (slot + 1) + '"'
+      : '');
+
+  if (!story) {
+    return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
+      '<span>Ongoing Story ' + (slot + 1) + '</span><b>' +
+      (targetable
+        ? 'PLAY · ' + commandCostLabel(actions)
+        : 'empty') +
+      '</b></div>';
   }
-  if (scheme.hidden) {
-    return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span><b>face-down</b></div>';
-  }
-  return '<div class="' + classes.join(" ") + '" ' + attrs + '><span>Veiled Story</span>' +
-    '<button type="button" class="public-card-link" data-inspect-card="' + esc(scheme.card_id) +
-    '" data-inspect-owner="' + owner + '" data-inspect-zone="veiled story">' +
-    esc(cardTitle(scheme.card_id)) + (scheme.revealed ? " · revealed" : "") + '</button></div>';
+  return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
+    '<span>Ongoing Story ' + (slot + 1) + '</span>' +
+    '<button type="button" class="public-card-link" ' +
+      'data-inspect-card="' + esc(story.card_id) + '" ' +
+      'data-inspect-owner="' + owner + '" ' +
+      'data-inspect-zone="ongoing story">' +
+      esc(cardTitle(story.card_id)) +
+    '</button></div>';
 }
 
 function renderStratagem(owner) {
   const stratagem = state.stratagems?.[owner] || null;
+  const actions = selectedActions().filter(
+    (action) => action.kind === "PlayStratagem"
+  );
+  const targetable =
+    owner === currentViewer() && actions.length > 0;
   const classes = ["stratagem-marker"];
-  const targetable = owner === currentViewer() && selectedActions().some((action) => action.kind === "PlayStratagem");
   if (targetable) classes.push("targetable");
-  let title = "Stratagem";
-  let label = targetable ? "SET · " + commandCostLabel(selectedActions().filter((action) => action.kind === "PlayStratagem")) : "empty";
-  if (stratagem?.hidden) {
-    classes.push("hidden");
-    label = "face-down";
-  } else if (stratagem?.card_id) {
-    if (!stratagem.revealed) classes.push("hidden", "known");
-    title = cardTitle(stratagem.card_id);
-    label = stratagem.revealed ? "face-up" : "face-down";
-  }
-  const inspect = stratagem?.card_id && !stratagem.hidden
-    ? ' data-inspect-card="' + esc(stratagem.card_id) + '" data-inspect-owner="' + owner + '" data-inspect-zone="stratagem"'
+  if (!stratagem) classes.push("empty");
+
+  const inspect = stratagem?.card_id
+    ? ' data-inspect-card="' + esc(stratagem.card_id) +
+      '" data-inspect-owner="' + owner +
+      '" data-inspect-zone="stratagem"'
     : "";
-  return '<div class="' + classes.join(" ") + '" data-stratagem-owner="' + owner + '"' +
-    (targetable ? ' role="button" tabindex="0" aria-label="Set your Stratagem"' : inspect ? ' role="button" tabindex="0" aria-label="Inspect Stratagem"' : '') + inspect + '><span>' + esc(title) + '</span><b>' + esc(label) + '</b></div>';
+  const title = stratagem?.card_id
+    ? cardTitle(stratagem.card_id)
+    : "Stratagem";
+  const label = stratagem?.card_id
+    ? "in play"
+    : targetable
+      ? "PLAY · " + commandCostLabel(actions)
+      : "empty";
+
+  return '<div class="' + classes.join(" ") +
+    '" data-stratagem-owner="' + owner + '"' +
+    (targetable
+      ? ' role="button" tabindex="0" aria-label="Play your Stratagem"'
+      : inspect
+        ? ' role="button" tabindex="0" aria-label="Inspect Stratagem"'
+        : '') +
+    inspect + '><span>' + esc(title) + '</span><b>' +
+    esc(label) + '</b></div>';
 }
 
 function controlClass(front, viewer) {
@@ -421,9 +511,12 @@ function renderRankRow(owner, rank, label) {
   '</div>';
 }
 
-function renderSchemeRow(owner) {
-  return '<div class="scheme-row"><span class="rank-label">Veiled</span>' +
-    frontNames.map((_, front) => renderScheme(owner, front)).join("") +
+function renderStoryRow(owner) {
+  return '<div class="scheme-row story-row"><span class="rank-label">Stories</span>' +
+    renderStorySlot(owner, 0) +
+    renderStorySlot(owner, 1) +
+    '<div class="story-spacer" aria-hidden="true"></div>' +
+    '<div class="story-spacer" aria-hidden="true"></div>' +
   '</div>';
 }
 
@@ -444,7 +537,7 @@ function renderBattlefield() {
         frontNames.map((name, front) => frontBanner(name, front, bottom, top)).join("") +
       '</div>' +
       '<div class="army-side opponent-army">' +
-        renderSchemeRow(top) +
+        renderStoryRow(top) +
         renderRankRow(top, "rear", "Rear") +
         renderRankRow(top, "front", "Frontline") +
       '</div>' +
@@ -452,7 +545,7 @@ function renderBattlefield() {
       '<div class="army-side player-army">' +
         renderRankRow(bottom, "front", "Frontline") +
         renderRankRow(bottom, "rear", "Rear") +
-        renderSchemeRow(bottom) +
+        renderStoryRow(bottom) +
       '</div>' +
       '<div class="battle-stratagem-zone player"><span>Your Stratagem</span>' + renderStratagem(bottom) + '</div>' +
     '</div>';
@@ -461,17 +554,13 @@ function renderBattlefield() {
   bindCardInspectors($("battlefield"));
 }
 
-function victoryPips(count) {
-  return '<span class="victory-pips">' +
-    [0, 1].map((index) => '<i class="' + (index < count ? "won" : "") + '"></i>').join("") +
-  '</span>';
-}
-
 function renderStrip() {
   if (state.phase === "mulligan") {
     $("match-strip").innerHTML =
       '<div class="battle-medallion"><small>Opening</small><strong>Mulligan</strong></div>' +
-      '<div class="turn-marker">Player ' + (state.active_player + 1) + ' · choose up to 2 returns</div>';
+      '<div class="turn-marker">Player ' +
+      (state.active_player + 1) +
+      ' · choose up to 2 returns</div>';
     $("pass-button").hidden = true;
     $("cycle-button").hidden = true;
     return;
@@ -479,34 +568,42 @@ function renderStrip() {
 
   const viewer = currentViewer();
   const opponent = opponentOf(viewer);
-  const winnerText = state.winner == null ? "" : " · Player " + (state.winner + 1) + " wins";
+  const winnerText =
+    state.winner == null
+      ? ""
+      : " · Player " + (state.winner + 1) + " wins";
 
   $("match-strip").innerHTML =
-    '<div class="score-player ' + (state.active_player === opponent ? "active" : "") + '">' +
-      '<span>P' + (opponent + 1) + '</span>' + victoryPips(state.players[opponent].victories) +
-    '</div>' +
-    '<div class="battle-medallion"><small>Battle</small><strong>' + state.battle + '</strong></div>' +
-    '<div class="turn-marker">Turn · Player ' + (state.active_player + 1) + winnerText + '</div>' +
-    '<div class="score-player ' + (state.active_player === viewer ? "active" : "") + '">' +
-      '<span>P' + (viewer + 1) + '</span>' + victoryPips(state.players[viewer].victories) +
-    '</div>';
+    '<div class="score-player ' +
+      (state.active_player === opponent ? "active" : "") +
+      '"><span>P' + (opponent + 1) + '</span></div>' +
+    '<div class="battle-medallion"><small>Battle</small><strong>' +
+      state.battle + '</strong></div>' +
+    '<div class="turn-marker">Turn · Player ' +
+      (state.active_player + 1) + winnerText + '</div>' +
+    '<div class="score-player ' +
+      (state.active_player === viewer ? "active" : "") +
+      '"><span>P' + (viewer + 1) + '</span></div>';
 
   const pass = actionForPass();
   const passButton = $("pass-button");
   passButton.hidden = !pass || state.viewer == null;
   passButton.disabled = !pass || state.viewer == null;
-  passButton.classList.toggle("danger-pass", !!pass && state.players[opponentOf(currentViewer())].passed);
-  passButton.textContent = state.players[opponentOf(currentViewer())].passed ? "Pass · end Battle" : "Pass";
-
-
+  const answeringPass = state.pass_order?.length === 1;
+  passButton.classList.toggle("danger-pass", !!pass && answeringPass);
+  passButton.textContent = answeringPass ? "Pass · end Battle" : "Pass";
 }
 
 function commandCounter(player) {
-  const heroStatus = player.hero_used ? ", Hero used this Battle" : ", Hero available";
-  const label = "Command " + player.command + (player.free_cycle ? ", free Cycle ready" : "") + heroStatus;
-  return '<div class="command-counter" aria-label="' + esc(label) + '"><span>Command</span><b>' + player.command + '</b>' +
-    (player.free_cycle ? '<small>Free Cycle</small>' : '') +
-    '<small class="hero-status">' + (player.hero_used ? 'Hero used' : 'Hero ready') + '</small></div>';
+  const heroStatus = player.hero_used
+    ? ", Hero used this Battle"
+    : ", Hero available";
+  const label = "Command " + player.command + heroStatus;
+  return '<div class="command-counter" aria-label="' + esc(label) +
+    '"><span>Command</span><b>' + player.command + '</b>' +
+    '<small class="hero-status">' +
+      (player.hero_used ? 'Hero used' : 'Hero ready') +
+    '</small></div>';
 }
 
 function renderOpponentRack() {
