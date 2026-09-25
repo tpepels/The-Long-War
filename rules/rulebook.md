@@ -46,7 +46,7 @@ After the first Pass and the opponent's final operation, compare Strength in eac
 
 - Higher Strength wins that Front.
 - Equal Strength means the Front is tied.
-- A tied Front causes no Retreat and no attrition.
+- A tied Front causes no Retreat and does not reduce either player's Command recovery.
 - Losing a Front pushes persistent formations backward and reduces the Command you recover.
 
 The war continues from Battle to Battle until **Command Collapse** ends it. Battles are not scored as wins or losses; only the four Front results carry forward.
@@ -118,6 +118,8 @@ Then take exactly **one operation**:
 2. **Maneuver one Named Formation** for 1 Command.
 3. **Pass** for 0 Command, once Pass is legal.
 
+You cannot choose an operation whose Command cost you cannot pay. Command never goes below 0.
+
 A card can change printed costs. Cost reductions cannot reduce a printed card below 1 Command unless a card explicitly says otherwise.
 
 There is **no generic Draw operation**, no standard Cycle operation, and no generic Advance operation.
@@ -126,7 +128,7 @@ A **Stratagem** is played face-up as your operation for the turn, just like anot
 
 There is no attack step and Forces do not deal damage. The position changes through deployment, formation building, Maneuver, Stories, Stratagems, card effects, and Retreat at Battle end.
 
-Normally, the first Pass is not legal until both players have completed at least one operation. After the first player **Passes**, that player takes no more operations this Battle. The opponent receives exactly **one final operation**. The Battle then ends.
+Normally, the first Pass is not legal until both players have completed at least one operation. After the first player **Passes**, that player takes no more operations this Battle. The opponent begins one final turn: make the normal start-of-turn draw, then take exactly **one final operation**. The Battle then ends.
 
 The player who Passed first starts the next Battle.
 
@@ -152,7 +154,7 @@ Each player has eight Force positions:
 
                            YOU
 
-Only Forces occupy these main positions. A Bond and Name attach to a Force's formation and move with it unless a rule says otherwise.
+Each battlefield position can hold at most one Force, one Bond, and one Name. The Force occupies the combat position; a Bond and/or Name may be prepared there before the Force arrives. Once attached, the formation's components move together unless a rule says otherwise.
 
 ### Line Defense
 
@@ -217,9 +219,9 @@ Heroes are **Unique** cards. Each individual Hero title may appear only once in 
 
 Every Hero is dual-use: play it either as a **Force** or as a **Name**. Its card shows the rules that apply in each use.
 
-You may play only **one new Hero per side per Battle**. Playing a Hero as either a Force or a Name uses that Battle's Hero allowance.
+Each player may play at most **one Hero card from hand per Battle**. Playing it as either a Force or a Name uses that Battle's Hero allowance.
 
-Heroes already present in persistent Named Formations remain on the battlefield and do not consume the next Battle's allowance.
+Heroes already present in persistent Named Formations remain on the battlefield and do not use the next Battle's allowance.
 
 A long war can therefore contain several Heroes who entered during different Battles.
 
@@ -243,6 +245,8 @@ They remain three separate cards, and the three formation components may be play
 
 A Bond or Name played before a Force is **prepared**. It stays face-up in that battlefield position, but contributes no Strength and no rule that depends on its Force until a Force is present.
 
+A Name's one-shot **when you play** text resolves only when that Name is actually played, if its requirements can be met then. It does not trigger later merely because a Force or Bond is added.
+
 ### Force
 
 A **Force** activates a battlefield formation.
@@ -255,7 +259,7 @@ Its Strength comes from its printed value plus Line Defense, role bonuses, its B
 
 A **Bond** occupies the Bond slot of one of your battlefield positions. It may be played before or after the Force and Name.
 
-If no Force is present, the Bond is prepared. Once a Force is present, the Bond's Force-dependent rules become active.
+If no Force is present, the Bond is prepared. Once a Force is present, the Bond's Force-dependent rules become active. A rule that also requires a Name still requires a Name in that formation.
 
 A Bond without a Name is an **open Bond**.
 
@@ -374,7 +378,8 @@ You then attach *Namar*:
 
 - *Namar*: +1 Strength;
 - *Followed* now has a Name: +2 Strength;
-- the formation now has a Force, Bond, and Name.
+- the formation now has a Force, Bond, and Name;
+- *Namar*'s completion ability regains 1 Command.
 
 The position is now **10 Strength** and is a **Named Formation**.
 
@@ -441,8 +446,9 @@ Normally you may not **Pass** until both players have completed at least one ope
 When the first player Passes:
 
 1. that player takes no more operations this Battle;
-2. the opponent receives exactly **one final operation**;
-3. after that operation — or if the opponent Passes — the Battle ends.
+2. the opponent begins one final turn and makes the normal start-of-turn draw;
+3. the opponent takes exactly **one final operation**;
+4. after that operation — or if the opponent Passes — the Battle ends.
 
 Passing preserves your remaining hand and Command, but gives the opponent one last chance to alter the four Front results.
 
@@ -459,7 +465,7 @@ The player who Passed first starts the next Battle.
 3. Shuffle and draw **10 cards**.
 4. Each player may choose up to **2 cards**, shuffle them back, then draw the same number.
 5. Randomly choose the first player for Battle I.
-6. The first player's turn begins with the normal automatic draw of 1 card.
+6. The first player's turn begins with the normal automatic draw of 1 card. Because the opening hand is already 10, that player first discards 1 card, then draws.
 7. Keep hands and decks hidden. Keep discard piles face-up.
 
 Your hand limit is 10.
@@ -761,9 +767,10 @@ For Maneuver:
 When the first player Passes:
 
 1. mark that player as Passed;
-2. give the opponent exactly one final operation;
-3. after that operation — or if the opponent Passes — end the Battle;
-4. resolve all four Fronts.
+2. begin the opponent's final turn and make the normal start-of-turn draw;
+3. give that opponent exactly one final operation;
+4. after that operation — or if the opponent Passes — end the Battle;
+5. resolve all four Fronts.
 
 At Battle end, card text that refers to a Front result, Retreat, Battle end, Story completion, or similar events resolves when that event occurs.
 
@@ -804,6 +811,7 @@ Between Battles, simply draw until you reach 10.
 - Maximum Command is **20**.
 - Track Command on a d20.
 - Printed card costs spend Command.
+- You cannot pay more Command than you have; Command never goes below 0.
 - Maneuver costs **1 Command**.
 - Unspent Command carries between Battles.
 - Recovery decreases as the war continues.
@@ -858,7 +866,7 @@ A printed identity property such as *Human*, *God*, *King*, *Ship*, or *Strongho
 Your persistent war budget, tracked on a d20. Start at 20. Command spent on cards and Maneuver carries forward; some returns after each Battle.
 
 **Command Collapse**  
-The war-ending check after Command recovery. The current threshold is 5 Command. If both players are below 5, the player with less Command loses; if they are tied, the war continues.
+The war-ending check after Command recovery. A player is in collapse below 5 Command. If both players are below 5, the player with less Command loses; if they are tied, the war continues.
 
 **Deploy**  
 Place a Force onto the battlefield. A printed deployment restriction applies only when the Force enters play.
@@ -873,7 +881,7 @@ The card that activates a battlefield formation's Strength and Force-dependent r
 One of the four battlefield columns.
 
 **Hero**  
-A Unique dual-use card that may be played as a Force or a Name. Each side may play one new Hero per Battle; persistent Heroes from previous Battles remain.
+A Unique dual-use card that may be played as a Force or a Name. Each player may play at most one Hero card from hand per Battle; persistent Heroes already on the battlefield do not use that allowance.
 
 **Line Defense**  
 The +1 Strength normally gained by a Force in the Frontline.
@@ -891,7 +899,7 @@ A complete Force — Bond — Name. Named Formations persist between Battles unl
 A Bond without a Name.
 
 **Pass**  
-End your operations in the current Battle. The opponent then receives exactly one final operation.
+End your operations in the current Battle. The opponent then begins one final turn, makes the normal start-of-turn draw, and takes exactly one final operation.
 
 **Prepared**  
 A Bond or Name placed in a formation before its Force. Force-dependent text stays inactive until the Force arrives.
