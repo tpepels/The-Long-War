@@ -8,7 +8,7 @@ from pathlib import Path
 
 from longwar.cards import (
     STORY_FORMS,
-    SUBJECT_ROLES,
+    FORCE_ROLES,
     cards_by_type,
     load_card_file,
     validate_card_data,
@@ -36,13 +36,13 @@ def test_every_card_has_world_classifications() -> None:
     assert {"human", "god", "king", "ship"} <= represented
 
 
-def test_every_subject_has_a_supported_role() -> None:
+def test_every_force_has_a_supported_role() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    subjects = cards_by_type(data, "subject")
-    assert subjects
-    assert all(card["role"] in SUBJECT_ROLES for card in subjects)
+    forces = cards_by_type(data, "force")
+    assert forces
+    assert all(card["role"] in FORCE_ROLES for card in forces)
     assert {"swordsman", "spearman", "archer", "healer"} <= {
-        card["role"] for card in subjects
+        card["role"] for card in forces
     }
 
 
@@ -51,11 +51,11 @@ def test_every_name_is_unique() -> None:
     assert all(card["unique"] for card in cards_by_type(data, "name"))
 
 
-def test_stories_have_named_forms_and_veiled_state() -> None:
+def test_stories_have_named_forms_and_public_ongoing_metadata() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    stories = cards_by_type(data, "plot")
+    stories = cards_by_type(data, "story")
     assert {card["story_form"] for card in stories} == STORY_FORMS
-    assert all(isinstance(card["veiled"], bool) for card in stories)
+    assert all(isinstance(card["ongoing"], bool) for card in stories)
 
 
 def test_stratagem_pool_is_unique_and_rule_backed() -> None:
@@ -139,17 +139,6 @@ def test_all_cards_define_semantic_rule_blocks() -> None:
         if properties:
             assert properties == list(range(len(properties))), card["title"]
 
-        if card["type"] == "plot" and card.get("veiled"):
-            assert blocks[0]["kind"] == "property"
-            assert blocks[0]["label"] == "FACE-DOWN"
-            assert blocks[0]["text"].startswith("+")
-            assert "**Strength** in this **Front**." in blocks[0]["text"]
-            assert [block["kind"] for block in blocks[:2]] == [
-                "property",
-                "trigger",
-            ]
-            assert blocks[1]["label"] == "WHEN"
-
         if card["type"] == "stratagem":
             assert blocks[0]["kind"] == "trigger"
             continuous = [i for i, block in enumerate(blocks) if block["kind"] == "continuous"]
@@ -168,16 +157,16 @@ def test_player_facing_card_text_avoids_old_technical_terms() -> None:
 
 def test_all_bonds_have_immediate_game_value() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    for card in cards_by_type(data, "link"):
+    for card in cards_by_type(data, "bond"):
         assert int(card.get("rules", {}).get("strength_bonus", 0)) > 0
 
 
 def test_card_rules_text_uses_canonical_typography() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     concepts = re.compile(
-        r"\b(?:Subjects?|Bonds?|Names?|Stories?|Strength|Fronts?|Frontline|Rear|"
-        r"Command|Cycle|Battles?|Stratagems?|Pass(?:es|ed)?|Discard(?:ed)?|Return(?:ed)?|Move(?:d)?|"
-        r"adjacent|discard pile|Veiled Story|Stratagem|Hero|Line Defense)\b",
+        r"\b(?:Forces?|Bonds?|Names?|Stories?|Strength|Fronts?|Frontline|Rear|"
+        r"Command|Battles?|Stratagems?|Pass(?:es|ed)?|Discard(?:ed)?|Return(?:ed)?|Move(?:d)?|"
+        r"adjacent|discard pile|Stratagem|Hero)\b",
         re.IGNORECASE,
     )
 
@@ -198,7 +187,7 @@ def test_card_rules_text_uses_canonical_typography() -> None:
             )
 
 
-def test_canonical_decks_use_six_names_and_fourteen_subjects() -> None:
+def test_canonical_decks_use_six_names_and_fourteen_forces() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     by_id = {card["id"]: card for card in data["cards"]}
     for path in (
@@ -209,7 +198,7 @@ def test_canonical_decks_use_six_names_and_fourteen_subjects() -> None:
     ):
         deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
         assert len(deck) == 34
-        assert sum(by_id[card_id]["type"] == "subject" for card_id in deck) == 14
+        assert sum(by_id[card_id]["type"] == "force" for card_id in deck) == 14
         assert sum(by_id[card_id]["type"] == "name" for card_id in deck) == 6
         heroes = [card_id for card_id in deck if by_id[card_id].get("hero")]
         assert len(heroes) == 3
