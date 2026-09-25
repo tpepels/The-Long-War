@@ -1213,12 +1213,7 @@ def run_suite(args: argparse.Namespace) -> Path:
     }
     comparisons = [
         ("baseline-control", {}),
-        ("exploration-0p15", {"exploration_b": 0.15}),
-        ("exploration-0p6", {"exploration_b": 0.6}),
-        ("belief-16", {"belief_samples_b": 16}),
-        ("belief-24", {"belief_samples_b": 24}),
         ("tree-cold", {"reuse_tree_b": False}),
-        ("tree-800k", {"max_tree_nodes_b": 800_000}),
         ("pw-0p5", {"progressive_widening_b": 0.5}),
         ("rollout-greedy", {"rollout_policy_b": "greedy"}),
         ("rollout-depth-8", {"rollout_depth_b": 8}),
