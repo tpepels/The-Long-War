@@ -67,26 +67,31 @@ def test_python_state_key_includes_search_relevant_flags():
     root = Path(__file__).resolve().parents[1]
     engine = GameEngine(load_card_file(root / "cards/cards.json"))
     deck = json.loads((root / "decks/reference.json").read_text())["cards"]
-    state = engine.new_game(deck, deck, seed=1, first_player=0)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=1,
+        first_player=0,
+        opening_bonus=False,
+    )
     key = AlphaBetaSearch.state_key(state)
-    for field, value in (
-        ("cleanup_pending", True),
-        ("cleanup_next_starter", 0),
-        ("cleanup_next_chooser", 1),
-    ):
-        changed = state.clone()
-        setattr(changed, field, value)
-        assert AlphaBetaSearch.state_key(changed) != key
+
+    pending_draw = state.clone()
+    pending_draw.pending_draw_discard_for = 0
+    assert AlphaBetaSearch.state_key(pending_draw) != key
 
     hero_spent = state.clone()
     hero_spent.hero_used[0] = not state.hero_used[0]
     assert AlphaBetaSearch.state_key(hero_spent) != key
 
+    passed = state.clone()
+    passed.players[0].passed = True
+    passed.pass_order = [0]
+    assert AlphaBetaSearch.state_key(passed) != key
+
 
 def test_python_state_key_tracks_every_game_state_field() -> None:
-    """Guard against a repeat of the cache-key gap that let
-    cleanup_pending/cleanup_next_starter/cleanup_next_chooser be silently
-    ignored: every GameState field must be referenced by state_key(), or be
+    """Every GameState field must be referenced by state_key(), or be
     declared exempt here with a reason a reviewer can check.
 
     A field is only safe to exempt if it is never read by legal_actions,
@@ -103,7 +108,6 @@ def test_python_state_key_tracks_every_game_state_field() -> None:
     exempt = {
         "command_spent_this_battle": "write-only telemetry counter",
         "command_refunded_this_battle": "write-only telemetry counter",
-        "completion_command_refunded_this_battle": "write-only telemetry counter",
         "battle_start_command": "write-only telemetry, only surfaced via last_battle_snapshot reporting",
         "battle_start_hand_size": "write-only telemetry, only surfaced via last_battle_snapshot reporting",
         "cards_drawn_this_battle": "write-only telemetry counter",
@@ -119,9 +123,9 @@ def test_python_state_key_tracks_every_game_state_field() -> None:
             "key), not by legal_actions or StrategicEvaluator"
         ),
         "players": "nested PlayerState fields verified individually above and by construction",
-        "board": "nested Slot fields (subject/link/name/temporary_strength) all represented above",
-        "schemes": "nested SchemeState fields (card_id/revealed) all represented above",
-        "stratagems": "nested StratagemState fields (card_id/revealed) all represented above",
+        "board": "nested Slot fields (force/bond/name/temporary_strength) all represented above",
+        "stories": "nested StoryState card ids are represented above",
+        "stratagems": "nested StratagemState card ids are represented above",
     }
 
     all_field_names = {f.name for f in dataclasses.fields(GameState)}
