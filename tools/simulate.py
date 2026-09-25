@@ -145,7 +145,7 @@ def main() -> None:
     parser.add_argument(
         "--ismcts-rollout-policy",
         choices=("greedy", "cheap", "random"),
-        default="cheap",
+        default="greedy",
     )
     parser.add_argument(
         "--hand-size",
