@@ -7,6 +7,8 @@ from typing import Any
 PLAYTEST_DECK_SIZE = 34
 NON_UNIQUE_COPY_LIMIT = 2
 UNIQUE_COPY_LIMIT = 1
+PLAYTEST_FORCE_COUNT = 14
+PLAYTEST_PRINTED_NAME_COUNT = 6
 
 
 class InvalidDeckDefinition(ValueError):
@@ -20,6 +22,8 @@ def validate_deck_definition(
     exact_size: int | None = None,
     non_unique_copy_limit: int = NON_UNIQUE_COPY_LIMIT,
     unique_copy_limit: int = UNIQUE_COPY_LIMIT,
+    exact_force_count: int | None = None,
+    exact_printed_name_count: int | None = None,
 ) -> None:
     """Validate optional deck-construction policy independently from game rules.
 
@@ -56,4 +60,28 @@ def validate_deck_definition(
         if count > maximum:
             raise InvalidDeckDefinition(
                 f"{card['title']} appears {count} times; maximum is {maximum}"
+            )
+
+    if exact_force_count is not None:
+        forces = sum(
+            1
+            for card_id in deck
+            if cards[card_id]["type"] == "force"
+        )
+        if forces != exact_force_count:
+            raise InvalidDeckDefinition(
+                f"A deck in this format must contain exactly "
+                f"{exact_force_count} Force-type cards, got {forces}"
+            )
+
+    if exact_printed_name_count is not None:
+        names = sum(
+            1
+            for card_id in deck
+            if cards[card_id]["type"] == "name"
+        )
+        if names != exact_printed_name_count:
+            raise InvalidDeckDefinition(
+                f"A deck in this format must contain exactly "
+                f"{exact_printed_name_count} printed Names, got {names}"
             )
