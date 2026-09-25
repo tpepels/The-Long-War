@@ -383,12 +383,10 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         hero_used.append(bool(data[i + 4]))
         operations_this_battle.append(data[i + 5] | (data[i + 6] << 8))
         i += 7
-    pending_final_raw = data[i] - 1
-    cleanup_pending = bool(data[i + 1])
-    cleanup_starter_raw = data[i + 2] - 1
-    cleanup_chooser_raw = data[i + 3] - 1
-    i += 4
-    pending_final_operation_for = None if pending_final_raw < 0 else pending_final_raw
+    cleanup_pending = bool(data[i])
+    cleanup_starter_raw = data[i + 1] - 1
+    cleanup_chooser_raw = data[i + 2] - 1
+    i += 3
     cleanup_next_starter = None if cleanup_starter_raw < 0 else cleanup_starter_raw
     cleanup_next_chooser = None if cleanup_chooser_raw < 0 else cleanup_chooser_raw
 
@@ -502,7 +500,6 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "command": command,
         "free_cycle": free_cycle,
         "operations_this_battle": operations_this_battle,
-        "pending_final_operation_for": pending_final_operation_for,
         "cleanup_pending": cleanup_pending,
         "cleanup_next_starter": cleanup_next_starter,
         "cleanup_next_chooser": cleanup_next_chooser,
