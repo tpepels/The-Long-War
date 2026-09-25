@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any
 
-from .game.actions import Action, Discard, Pass, PlaySubject
+from .game.actions import Action, Discard, Pass, PlayForce
 from .game.engine import GameEngine
 from .game.model import Front, GameState, Phase
 
@@ -33,7 +33,6 @@ class HumanFlowDiagnostics:
         self.deck_seen_fraction_total = 0.0
         self.completion_events_total = 0
         self.command_spent_total = 0
-        self.completion_command_refund_total = 0
         self._current_deck_sizes = [1, 1]
 
         self.pass_events = 0
@@ -45,9 +44,8 @@ class HumanFlowDiagnostics:
         self.final_operation_events = 0
         self.final_operation_abs_margin_swing_total = 0.0
         self.final_operation_control_swing_total = 0.0
-        self.final_actor_battle_wins = 0
 
-        self.cleanup_discards = 0
+        self.pre_draw_discards = 0
 
         self.reshuffles = 0
         self.reshuffled_cards_total = 0
@@ -71,7 +69,7 @@ class HumanFlowDiagnostics:
             forces = [
                 engine.cards[card_id]
                 for card_id in hand
-                if engine.cards[card_id]["type"] == "subject"
+                if engine.cards[card_id]["type"] == "force"
             ]
             count = len(forces)
             self.opening_players += 1
@@ -91,17 +89,17 @@ class HumanFlowDiagnostics:
     ) -> None:
         if state.phase is not Phase.BATTLE:
             return
-        if state.cleanup_pending:
+        if state.pending_draw_discard_for is not None:
             if isinstance(action, Discard):
-                self.cleanup_discards += 1
+                self.pre_draw_discards += 1
             return
 
         legal = engine.legal_actions(state)
         force_count = sum(
-            engine.cards[card_id]["type"] == "subject"
+            engine.cards[card_id]["type"] == "force"
             for card_id in state.players[actor].hand
         )
-        playable_force = any(isinstance(candidate, PlaySubject) for candidate in legal)
+        playable_force = any(isinstance(candidate, PlayForce) for candidate in legal)
 
         self.decisions += 1
         self.force_hand_total += force_count
@@ -116,7 +114,7 @@ class HumanFlowDiagnostics:
                 self._no_force_streak[actor],
             )
 
-        if isinstance(action, PlaySubject) and not self._first_force_seen[actor]:
+        if isinstance(action, PlayForce) and not self._first_force_seen[actor]:
             self._first_force_seen[actor] = True
             self.first_force_operations.append(
                 state.operations_this_battle[actor] + 1
@@ -175,14 +173,9 @@ class HumanFlowDiagnostics:
         start_hands = [int(value) for value in snapshot["battle_start_hand_size"]]
         completion_counts = [int(value) for value in snapshot["completion_count"]]
         command_spent = [int(value) for value in snapshot["command_spent"]]
-        completion_refunds = [
-            int(value) for value in snapshot["completion_command_refunded"]
-        ]
-
         self.cards_drawn_total += sum(cards_drawn)
         self.completion_events_total += sum(completion_counts)
         self.command_spent_total += sum(command_spent)
-        self.completion_command_refund_total += sum(completion_refunds)
         for player in range(2):
             self.deck_seen_fraction_total += min(
                 1.0,
@@ -214,9 +207,6 @@ class HumanFlowDiagnostics:
             self.final_operation_control_swing_total += abs(
                 after_control - before_control
             )
-            if int(snapshot["winner"]) == actor:
-                self.final_actor_battle_wins += 1
-
         self._no_force_streak = [0, 0]
         self._first_force_seen = [False, False]
 
@@ -277,10 +267,6 @@ class HumanFlowDiagnostics:
                 self.command_spent_total,
                 self.player_battles,
             ),
-            "mean_completion_command_refund_per_player_battle": self._ratio(
-                self.completion_command_refund_total,
-                self.player_battles,
-            ),
             "pass_events": self.pass_events,
             "first_pass_events": self.first_pass_events,
             "early_first_pass_events": self.early_first_pass_events,
@@ -305,13 +291,9 @@ class HumanFlowDiagnostics:
                 self.final_operation_control_swing_total,
                 self.final_operation_events,
             ),
-            "final_actor_battle_win_rate": self._ratio(
-                self.final_actor_battle_wins,
-                self.final_operation_events,
-            ),
-            "battle_end_discards": self.cleanup_discards,
-            "mean_battle_end_discards_per_player_battle": self._ratio(
-                self.cleanup_discards,
+            "pre_draw_discards": self.pre_draw_discards,
+            "mean_pre_draw_discards_per_player_battle": self._ratio(
+                self.pre_draw_discards,
                 self.player_battles,
             ),
             "reshuffles": self.reshuffles,
