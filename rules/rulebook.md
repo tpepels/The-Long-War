@@ -49,9 +49,7 @@ After the first Pass and the opponent's final operation, compare Strength in eac
 - A tied Front causes no Retreat and no attrition.
 - Losing a Front pushes persistent formations backward and reduces the Command you recover.
 
-There is no Victory marker and no "win two Battles" condition.
-
-The war continues from Battle to Battle until **Command Collapse** ends it.
+The war continues from Battle to Battle until **Command Collapse** ends it. Battle victories are not counted separately.
 
 <div class="rulebook-big-rule">
   <span>4</span><small>Fronts in every Battle</small>
@@ -333,7 +331,7 @@ When an ongoing Story ends, discard it and its slot becomes available again.
 
 Stories normally belong to the player who played them. Their effects and objectives can still involve the opponent, a Front, a formation, or the wider war.
 
-There are no face-down or Veiled Stories.
+Stories are always public while they are in play.
 
 ## Stratagems {#stratagems}
 
