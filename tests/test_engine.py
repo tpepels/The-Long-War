@@ -74,15 +74,16 @@ def resolve_battle_by_passing(engine: GameEngine, state) -> None:
     state.active_player = 0
     state.operations_this_battle[:] = [1, 1]
 
-    # The final opponent turn includes its normal draw. Make one hand slot
-    # available without changing the total card multiset; start_turn will draw
-    # this exact top card back before the final Pass.
+    # The opponent gets a normal turn after the first Pass, including the
+    # normal start-of-turn draw. Leave one hand slot so that draw can resolve
+    # without entering the discard-before-draw substep.
     if len(state.players[1].hand) >= engine.hand_limit:
         card = state.players[1].hand.pop()
         state.players[1].deck.append(card)
 
     engine.apply(state, Pass())
-    assert state.pending_final_operation_for == 1
+    assert state.pass_order == [0]
+    assert state.players[0].passed is True
     engine.apply(state, Pass())
 
 
@@ -249,22 +250,79 @@ def test_first_pass_is_gated_but_emergency_pass_remains_available() -> None:
     assert engine.legal_actions(state) == [Pass()]
 
 
-def test_first_pass_gives_opponent_one_final_turn_with_normal_draw() -> None:
+def test_first_pass_gives_opponent_a_normal_turn_with_normal_draw() -> None:
     engine, state = setup_state()
     state.operations_this_battle[:] = [1, 1]
     state.active_player = 0
 
     moved = state.players[1].hand.pop()
-    state.players[1].discard.append(moved)
+    state.players[1].deck.append(moved)
     assert len(state.players[1].hand) == 9
     before_drawn = state.cards_drawn_this_battle[1]
 
     engine.apply(state, Pass())
 
+    assert state.battle == 1
     assert state.active_player == 1
-    assert state.pending_final_operation_for == 1
+    assert state.pass_order == [0]
+    assert state.players[0].passed is True
+    assert state.players[1].passed is False
     assert len(state.players[1].hand) == 10
     assert state.cards_drawn_this_battle[1] == before_drawn + 1
+
+
+def test_non_pass_operation_clears_earlier_pass_and_play_continues() -> None:
+    engine, state = setup_state()
+    state.operations_this_battle[:] = [1, 1]
+    state.active_player = 0
+
+    state.players[1].hand = ["the-fifty-men"]
+    state.players[1].deck = ["followed"]
+    state.players[1].command = 20
+    state.players[0].hand = []
+    state.players[0].deck = ["namar"]
+
+    engine.apply(state, Pass())
+    assert state.pass_order == [0]
+    assert state.active_player == 1
+
+    engine.apply(state, PlayForce("the-fifty-men", pos(0)))
+
+    assert state.battle == 1
+    assert state.pass_order == []
+    assert state.players[0].passed is False
+    assert state.players[1].passed is False
+    assert state.active_player == 0
+    assert "namar" in state.players[0].hand
+
+
+def test_emergency_first_pass_does_not_unlock_pass_for_opponent_with_legal_operation() -> None:
+    engine, state = setup_state()
+    state.operations_this_battle[:] = [0, 0]
+    state.active_player = 0
+    state.players[0].hand = []
+    state.players[0].deck = []
+    state.players[0].command = 0
+    state.players[1].hand = ["the-fifty-men"]
+    state.players[1].deck = ["followed"]
+    state.players[1].command = 20
+
+    assert engine.legal_actions(state) == [Pass()]
+    engine.apply(state, Pass())
+
+    assert state.active_player == 1
+    assert state.pass_order == [0]
+    assert Pass() not in engine.legal_actions(state)
+
+
+def test_two_consecutive_passes_end_the_battle() -> None:
+    engine, state = setup_state()
+    resolve_battle_by_passing(engine, state)
+
+    assert state.battle == 2
+    assert state.pass_order == []
+    assert state.players[0].passed is False
+    assert state.players[1].passed is False
 
 
 def test_turn_at_hand_limit_requires_discard_then_draw_before_operation() -> None:
