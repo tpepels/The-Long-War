@@ -1864,13 +1864,16 @@ def run_suite(args: argparse.Namespace) -> Path:
     print(
         f"=== timing calibration: {optimized_ismcts} vs alpha-beta ==="
     )
+    calibrated_ismcts_iterations = args.iterations
+    calibrated_alpha_nodes = args.alpha_nodes
     calibration_entry: dict[str, Any] = {
         "name": "alpha-beta-timing-calibration",
         "kind": "timing-calibration",
         "status": "running",
         "entrant_a": optimized_ismcts,
         "entrant_b": "alpha-beta",
-        "time_budget_seconds": calibration_time_budget_seconds,
+        "time_budget_seconds": None,
+        "target_time_budget_seconds": final_time_budget_seconds,
         "games_per_orientation": 1,
     }
     manifest["schedule"].append(calibration_entry["name"])
@@ -1891,58 +1894,103 @@ def run_suite(args: argparse.Namespace) -> Path:
             reuse_tree=optimized_config["reuse_tree"],
             rollout_epsilon=optimized_config["rollout_epsilon"],
             max_tree_nodes=optimized_config["max_tree_nodes"],
-            time_budget_seconds=calibration_time_budget_seconds,
+            time_budget_seconds=None,
             seed=args.seed + 700_001,
         )
         calibration_payload = json.loads(
             calibration_path.read_text(encoding="utf-8")
         )
         resources = calibration_payload.get("resources", {})
-        mcts_time = resources.get("ismcts", {}).get(
-            "mean_searched_decision_seconds"
-        )
-        alpha_time = resources.get("strategic_heuristic", {}).get(
-            "mean_searched_decision_seconds"
-        )
-        if (
-            mcts_time is None
-            or alpha_time is None
-            or float(mcts_time) <= 0.0
-            or float(alpha_time) <= 0.0
-        ):
-            timing_gap = None
-            timing_matched = False
-        else:
-            mcts_time = float(mcts_time)
-            alpha_time = float(alpha_time)
-            timing_gap = abs(mcts_time - alpha_time) / max(
+        mcts_stats = resources.get("ismcts", {})
+        alpha_stats = resources.get("strategic_heuristic", {})
+        mcts_time = mcts_stats.get("mean_searched_decision_seconds")
+        alpha_time = alpha_stats.get("mean_searched_decision_seconds")
+        mcts_work = mcts_stats.get("mean_search_work")
+        alpha_work = alpha_stats.get("mean_search_work")
+
+        valid_calibration = all(
+            value is not None and float(value) > 0.0
+            for value in (
                 mcts_time,
                 alpha_time,
+                mcts_work,
+                alpha_work,
             )
-            timing_matched = timing_gap <= calibration_tolerance
+        )
+        if valid_calibration:
+            mcts_time = float(mcts_time)
+            alpha_time = float(alpha_time)
+            mcts_work = float(mcts_work)
+            alpha_work = float(alpha_work)
+            mcts_rate = mcts_work / mcts_time
+            alpha_rate = alpha_work / alpha_time
+
+            calibrated_ismcts_iterations = max(
+                args.iterations,
+                int(
+                    mcts_rate
+                    * final_time_budget_seconds
+                    * calibration_safety_factor
+                ) + 1,
+            )
+            calibrated_alpha_nodes = max(
+                args.alpha_nodes,
+                int(
+                    alpha_rate
+                    * final_time_budget_seconds
+                    * calibration_safety_factor
+                ) + 1,
+            )
+            estimated_ismcts_ceiling_seconds = (
+                calibrated_ismcts_iterations / mcts_rate
+            )
+            estimated_alpha_ceiling_seconds = (
+                calibrated_alpha_nodes / alpha_rate
+            )
+            calibration_status = "passed"
+        else:
+            mcts_rate = None
+            alpha_rate = None
+            estimated_ismcts_ceiling_seconds = None
+            estimated_alpha_ceiling_seconds = None
+            calibration_status = "invalid"
 
         calibration_entry.update({
-            "status": "passed" if timing_matched else "timing-mismatch",
+            "status": calibration_status,
             "summary": str(calibration_path.relative_to(ROOT)),
             "measured": {
                 "ismcts_mean_searched_decision_seconds": mcts_time,
                 "alpha_beta_mean_searched_decision_seconds": alpha_time,
-                "relative_gap": timing_gap,
-                "tolerance": calibration_tolerance,
+                "ismcts_mean_search_work": mcts_work,
+                "alpha_beta_mean_search_work": alpha_work,
+                "ismcts_work_per_second": mcts_rate,
+                "alpha_beta_work_per_second": alpha_rate,
+            },
+            "calibrated_budgets": {
+                "ismcts_iterations": calibrated_ismcts_iterations,
+                "alpha_nodes": calibrated_alpha_nodes,
+                "target_seconds": final_time_budget_seconds,
+                "safety_factor": calibration_safety_factor,
+                "estimated_ismcts_work_ceiling_seconds": (
+                    estimated_ismcts_ceiling_seconds
+                ),
+                "estimated_alpha_work_ceiling_seconds": (
+                    estimated_alpha_ceiling_seconds
+                ),
             },
             "resources": resources,
         })
-        if timing_matched:
+        if calibration_status == "passed":
             print(
                 "Timing calibration OK: "
-                f"ISMCTS={float(mcts_time):.3f}s, "
-                f"alpha-beta={float(alpha_time):.3f}s"
+                f"ISMCTS {mcts_rate:,.0f} iterations/s -> "
+                f"{calibrated_ismcts_iterations:,} ceiling; "
+                f"alpha-beta {alpha_rate:,.0f} nodes/s -> "
+                f"{calibrated_alpha_nodes:,} ceiling"
             )
         else:
             print(
-                "TIMING CALIBRATION MISMATCH: "
-                f"ISMCTS={mcts_time}, alpha-beta={alpha_time}, "
-                f"tolerance={100.0 * calibration_tolerance:.0f}%"
+                "TIMING CALIBRATION INVALID: missing usable timing/work telemetry"
             )
     except ExperimentSkipped:
         calibration_entry.update({"status": "skipped"})
@@ -1971,39 +2019,76 @@ def run_suite(args: argparse.Namespace) -> Path:
         "entrant_b": "alpha-beta",
         "ismcts_config": dict(optimized_config),
         "time_budget_seconds": final_time_budget_seconds,
+        "ismcts_iterations": calibrated_ismcts_iterations,
+        "alpha_nodes": calibrated_alpha_nodes,
     }
     manifest["schedule"].append(final_entry["name"])
     manifest["experiments"].append(final_entry)
     save_manifest()
 
-    try:
-        summary_path = benchmark_strength(
-            games_per_orientation=args.games,
-            jobs=args.jobs,
-            ismcts_iterations=args.iterations,
-            alpha_nodes=args.alpha_nodes,
-            belief_samples=optimized_config["belief_samples"],
-            rollout_policy=optimized_config["rollout_policy"],
-            rollout_depth=optimized_config["rollout_depth"],
-            progressive_widening=optimized_config["progressive_widening"],
-            exploration=optimized_config["exploration"],
-            reuse_tree=optimized_config["reuse_tree"],
-            rollout_epsilon=optimized_config["rollout_epsilon"],
-            max_tree_nodes=optimized_config["max_tree_nodes"],
-            time_budget_seconds=final_time_budget_seconds,
-            seed=args.seed,
-        )
-        payload = json.loads(summary_path.read_text(encoding="utf-8"))
-        overall = payload.get("overall", {})
-        mcts_wins = int(overall.get("mcts_wins", 0))
-        alpha_wins = int(overall.get("alpha_beta_wins", 0))
-        low, high = overall.get(
-            "paired_uncertainty",
-            {},
-        ).get("ci95", [None, None])
+    if calibration_entry.get("status") != "passed":
         final_entry.update({
-            "status": "passed",
-            "winner": (
+            "status": "not-run",
+            "error": (
+                "final not run because timing calibration did not produce "
+                "usable work-rate ceilings"
+            ),
+        })
+        print("FINAL NOT RUN: timing calibration did not pass")
+    else:
+        try:
+            summary_path = benchmark_strength(
+                games_per_orientation=args.games,
+                jobs=args.jobs,
+                ismcts_iterations=calibrated_ismcts_iterations,
+                alpha_nodes=calibrated_alpha_nodes,
+                belief_samples=optimized_config["belief_samples"],
+                rollout_policy=optimized_config["rollout_policy"],
+                rollout_depth=optimized_config["rollout_depth"],
+                progressive_widening=optimized_config["progressive_widening"],
+                exploration=optimized_config["exploration"],
+                reuse_tree=optimized_config["reuse_tree"],
+                rollout_epsilon=optimized_config["rollout_epsilon"],
+                max_tree_nodes=optimized_config["max_tree_nodes"],
+                time_budget_seconds=final_time_budget_seconds,
+                seed=args.seed,
+            )
+            payload = json.loads(summary_path.read_text(encoding="utf-8"))
+            overall = payload.get("overall", {})
+            mcts_wins = int(overall.get("mcts_wins", 0))
+            alpha_wins = int(overall.get("alpha_beta_wins", 0))
+            low, high = overall.get(
+                "paired_uncertainty",
+                {},
+            ).get("ci95", [None, None])
+            final_entry.update({
+                "status": "passed",
+                "winner": (
+                    optimized_ismcts
+                    if mcts_wins > alpha_wins
+                    else (
+                        "alpha-beta"
+                        if alpha_wins > mcts_wins
+                        else None
+                    )
+                ),
+                "resolution": "game-result",
+                "result": {
+                    "mcts_wins": mcts_wins,
+                    "alpha_beta_wins": alpha_wins,
+                    "games": mcts_wins + alpha_wins,
+                    "mcts_win_rate": overall.get("mcts_win_rate"),
+                    "mcts_ci95": [low, high],
+                },
+                "summary": str(summary_path.relative_to(ROOT)),
+                "resources": payload.get("resources", {}),
+            })
+        except ExperimentSkipped as exc:
+            partial = exc.partial
+            mcts_wins = int(partial.get("score_a", 0) or 0)
+            alpha_wins = int(partial.get("score_b", 0) or 0)
+            completed = int(partial.get("completed", 0) or 0)
+            winner = (
                 optimized_ismcts
                 if mcts_wins > alpha_wins
                 else (
@@ -2011,62 +2096,37 @@ def run_suite(args: argparse.Namespace) -> Path:
                     if alpha_wins > mcts_wins
                     else None
                 )
-            ),
-            "resolution": "game-result",
-            "result": {
-                "mcts_wins": mcts_wins,
-                "alpha_beta_wins": alpha_wins,
-                "games": mcts_wins + alpha_wins,
-                "mcts_win_rate": overall.get("mcts_win_rate"),
-                "mcts_ci95": [low, high],
-            },
-            "summary": str(summary_path.relative_to(ROOT)),
-            "resources": payload.get("resources", {}),
-        })
-    except ExperimentSkipped as exc:
-        partial = exc.partial
-        mcts_wins = int(partial.get("score_a", 0) or 0)
-        alpha_wins = int(partial.get("score_b", 0) or 0)
-        completed = int(partial.get("completed", 0) or 0)
-        winner = (
-            optimized_ismcts
-            if mcts_wins > alpha_wins
-            else (
-                "alpha-beta"
-                if alpha_wins > mcts_wins
-                else None
             )
-        )
-        final_entry.update({
-            "status": "partial",
-            "winner": winner,
-            "resolution": "user-skip-partial",
-            "result": {
-                "mcts_wins": mcts_wins,
-                "alpha_beta_wins": alpha_wins,
-                "games": completed,
-                "scheduled_games": int(partial.get("total", 0) or 0),
-                "mcts_win_rate": (
-                    mcts_wins / completed
-                    if completed
-                    else None
-                ),
-                "mcts_ci95": [None, None],
-            },
-        })
-        print(
-            "SKIPPED final using partial result: "
-            f"ISMCTS {mcts_wins}-{alpha_wins} alpha-beta"
-        )
-    except (Exception, SystemExit) as exc:
-        final_entry.update({
-            "status": "failed",
-            "error": f"{type(exc).__name__}: {exc}",
-        })
-        print(f"EXPERIMENT FAILED: optimized-vs-alpha-beta: {exc}")
-        if args.stop_on_error:
-            save_manifest()
-            raise
+            final_entry.update({
+                "status": "partial",
+                "winner": winner,
+                "resolution": "user-skip-partial",
+                "result": {
+                    "mcts_wins": mcts_wins,
+                    "alpha_beta_wins": alpha_wins,
+                    "games": completed,
+                    "scheduled_games": int(partial.get("total", 0) or 0),
+                    "mcts_win_rate": (
+                        mcts_wins / completed
+                        if completed
+                        else None
+                    ),
+                    "mcts_ci95": [None, None],
+                },
+            })
+            print(
+                "SKIPPED final using partial result: "
+                f"ISMCTS {mcts_wins}-{alpha_wins} alpha-beta"
+            )
+        except (Exception, SystemExit) as exc:
+            final_entry.update({
+                "status": "failed",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+            print(f"EXPERIMENT FAILED: optimized-vs-alpha-beta: {exc}")
+            if args.stop_on_error:
+                save_manifest()
+                raise
     save_manifest()
 
     knockout_rows = [
