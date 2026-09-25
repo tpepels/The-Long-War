@@ -86,7 +86,7 @@ def make_agent(
     ismcts_reuse_tree: bool = True,
     ismcts_max_tree_nodes: int | None = None,
     ismcts_rollout_epsilon: float = 0.12,
-    ismcts_rollout_policy: str = "cheap",
+    ismcts_rollout_policy: str = "greedy",
 ):
     if name == "random":
         return RandomAgent(seed)
@@ -164,7 +164,7 @@ def simulate_games(
     ismcts_reuse_tree: bool = True,
     ismcts_max_tree_nodes: int | None = None,
     ismcts_rollout_epsilon: float = 0.12,
-    ismcts_rollout_policy: str = "cheap",
+    ismcts_rollout_policy: str = "greedy",
     agent_overrides: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
     agent_labels: tuple[str, str] | None = None,
     agent_seed_offsets: tuple[int, int] | None = None,
