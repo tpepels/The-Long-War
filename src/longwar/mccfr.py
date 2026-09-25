@@ -105,7 +105,6 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
             state.players[1].free_cycle,
         ],
         "operations_this_battle": list(state.operations_this_battle),
-        "pending_final_operation_for": state.pending_final_operation_for,
         "cleanup_pending": state.cleanup_pending,
         "cleanup_next_starter": state.cleanup_next_starter,
         "cleanup_next_chooser": state.cleanup_next_chooser,
