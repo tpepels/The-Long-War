@@ -258,13 +258,14 @@ def test_skip_key_reader_restores_terminal_state_on_exception(monkeypatch):
     assert restored == [(17, runner.termios.TCSADRAIN, saved)]
 
 
-def test_ai_optimization_suite_is_seeded_knockout(
+def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
     tmp_path,
     monkeypatch,
 ):
     suite_dir = tmp_path / "suite"
     match_calls = []
     strength_calls = []
+    events = []
 
     def fake_artifact_directory(_base, _identity):
         suite_dir.mkdir(parents=True, exist_ok=True)
@@ -272,6 +273,7 @@ def test_ai_optimization_suite_is_seeded_knockout(
 
     def fake_match(**kwargs):
         match_calls.append(dict(kwargs))
+        events.append("ismcts")
         path = tmp_path / f"match-{len(match_calls)}.json"
         path.write_text(
             json.dumps({
@@ -290,7 +292,8 @@ def test_ai_optimization_suite_is_seeded_knockout(
 
     def fake_strength(**kwargs):
         strength_calls.append(dict(kwargs))
-        path = tmp_path / f"strength-{len(strength_calls)}.json"
+        events.append("alpha-beta")
+        path = tmp_path / "strength.json"
         path.write_text(
             json.dumps({
                 "overall": {
@@ -330,25 +333,27 @@ def test_ai_optimization_suite_is_seeded_knockout(
         "rollout-greedy",
         "rollout-depth-8",
         "rollout-epsilon-0",
-        "alpha-beta",
     }
     assert set(manifest["tournament_entrants"]) == entrants
+    assert "alpha-beta" not in manifest["tournament_entrants"]
     assert set(manifest["bracket_seed_order"]) == entrants
-    assert len(manifest["bracket_seed_order"]) == 7
+    assert len(manifest["bracket_seed_order"]) == 6
+
     assert len(manifest["rounds"]) == 3
     assert len(manifest["experiments"]) == 6
-    assert len(match_calls) + len(strength_calls) == 6
-    assert all(row["status"] == "passed" for row in manifest["experiments"])
+    assert len(match_calls) == 5
+    assert len(strength_calls) == 1
+    assert events == ["ismcts"] * 5 + ["alpha-beta"]
 
     first_round = manifest["rounds"][0]
-    assert len(first_round["entrants"]) == 7
-    assert first_round["bye"] in entrants
-    assert len(first_round["fixtures"]) == 3
+    assert len(first_round["entrants"]) == 6
+    assert len(first_round["byes"]) == 2
+    assert len(first_round["fixtures"]) == 2
 
     for round_index, round_info in enumerate(manifest["rounds"][:-1]):
         following = set(manifest["rounds"][round_index + 1]["entrants"])
-        if round_info["bye"] is not None:
-            assert round_info["bye"] in following
+        for bye in round_info["byes"]:
+            assert bye in following
         for fixture_name in round_info["fixtures"]:
             fixture = next(
                 row
@@ -359,11 +364,17 @@ def test_ai_optimization_suite_is_seeded_knockout(
             assert fixture["loser"] not in following
 
     assert manifest["tournament_champion"] in entrants
-    assert manifest["optimized_ismcts"] in entrants - {"alpha-beta"}
+    assert manifest["optimized_ismcts"] == manifest["tournament_champion"]
+    final = manifest["experiments"][-1]
+    assert final["name"] == "optimized-vs-alpha-beta"
+    assert final["kind"] == "strength-bench"
+    assert final["entrant_a"] == manifest["optimized_ismcts"]
+    assert final["entrant_b"] == "alpha-beta"
+    assert final["status"] == "passed"
     assert manifest["decision_readiness"]["ready"] is True
 
 
-def test_knockout_winners_progress_and_dominant_greedy_wins(
+def test_knockout_winner_is_used_for_final_alpha_beta_match(
     tmp_path,
     monkeypatch,
 ):
@@ -403,17 +414,15 @@ def test_knockout_winners_progress_and_dominant_greedy_wins(
 
     def fake_strength(**kwargs):
         strength_calls.append(dict(kwargs))
-        greedy = kwargs["rollout_policy"] == "greedy"
-        mcts_wins, alpha_wins = (130, 62) if greedy else (82, 110)
-        path = tmp_path / f"strength-{len(strength_calls)}.json"
+        path = tmp_path / "strength.json"
         path.write_text(
             json.dumps({
                 "overall": {
-                    "mcts_wins": mcts_wins,
-                    "alpha_beta_wins": alpha_wins,
-                    "games": mcts_wins + alpha_wins,
-                    "mcts_win_rate": mcts_wins / (mcts_wins + alpha_wins),
-                    "paired_uncertainty": {"ci95": [0.55, 0.70]},
+                    "mcts_wins": 130,
+                    "alpha_beta_wins": 62,
+                    "games": 192,
+                    "mcts_win_rate": 130 / 192,
+                    "paired_uncertainty": {"ci95": [0.61, 0.73]},
                 },
                 "resources": {},
             }),
@@ -441,18 +450,23 @@ def test_knockout_winners_progress_and_dominant_greedy_wins(
     assert manifest["tournament_champion"] == "rollout-greedy"
     assert manifest["optimized_ismcts"] == "rollout-greedy"
     assert manifest["optimized_config"]["rollout_policy"] == "greedy"
+    assert len(strength_calls) == 1
+    assert strength_calls[0]["rollout_policy"] == "greedy"
 
-    greedy_fixtures = [
+    greedy_knockout_fixtures = [
         row
-        for row in manifest["experiments"]
+        for row in manifest["experiments"][:-1]
         if "rollout-greedy" in (row["entrant_a"], row["entrant_b"])
     ]
-    assert greedy_fixtures
-    assert all(row["winner"] == "rollout-greedy" for row in greedy_fixtures)
+    assert greedy_knockout_fixtures
+    assert all(
+        row["winner"] == "rollout-greedy"
+        for row in greedy_knockout_fixtures
+    )
     assert manifest["decision_readiness"]["ready"] is True
 
 
-def test_knockout_exact_tie_replays_fixture_with_new_seed(
+def test_knockout_exact_tie_replays_ismcts_fixture_with_new_seed(
     tmp_path,
     monkeypatch,
 ):
@@ -484,8 +498,8 @@ def test_knockout_exact_tie_replays_fixture_with_new_seed(
         )
         return path
 
-    def fake_strength(**kwargs):
-        path = tmp_path / f"strength-{len(list(tmp_path.glob('strength-*.json')))}.json"
+    def fake_strength(**_kwargs):
+        path = tmp_path / "strength.json"
         path.write_text(
             json.dumps({
                 "overall": {
@@ -519,23 +533,28 @@ def test_knockout_exact_tie_replays_fixture_with_new_seed(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     replayed = [
-        row for row in manifest["experiments"]
+        row
+        for row in manifest["experiments"][:-1]
         if len(row.get("attempts", [])) > 1
     ]
     assert len(replayed) == 1
     assert replayed[0]["attempts"][0]["a_wins"] == 96
     assert replayed[0]["attempts"][0]["b_wins"] == 96
-    assert replayed[0]["attempts"][1]["seed"] != replayed[0]["attempts"][0]["seed"]
+    assert (
+        replayed[0]["attempts"][1]["seed"]
+        != replayed[0]["attempts"][0]["seed"]
+    )
     assert replayed[0]["winner"] is not None
     assert manifest["decision_readiness"]["ready"] is True
 
 
-def test_knockout_skip_continues_with_fallback_but_marks_not_ready(
+def test_knockout_skip_continues_to_final_check_but_marks_not_ready(
     tmp_path,
     monkeypatch,
 ):
     suite_dir = tmp_path / "suite"
     calls = 0
+    strength_calls = 0
 
     def fake_artifact_directory(_base, _identity):
         suite_dir.mkdir(parents=True, exist_ok=True)
@@ -563,7 +582,9 @@ def test_knockout_skip_continues_with_fallback_but_marks_not_ready(
         return path
 
     def fake_strength(**_kwargs):
-        path = tmp_path / f"strength-{len(list(tmp_path.glob('strength-*.json')))}.json"
+        nonlocal strength_calls
+        strength_calls += 1
+        path = tmp_path / "strength.json"
         path.write_text(
             json.dumps({
                 "overall": {
@@ -597,10 +618,15 @@ def test_knockout_skip_continues_with_fallback_but_marks_not_ready(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     assert len(manifest["experiments"]) == 6
-    skipped = [row for row in manifest["experiments"] if row["status"] == "skipped"]
+    skipped = [
+        row for row in manifest["experiments"]
+        if row["status"] == "skipped"
+    ]
     assert len(skipped) == 1
     assert skipped[0]["resolution"] == "seed-order-fallback"
     assert skipped[0]["winner"] is not None
+    assert strength_calls == 1
+    assert manifest["experiments"][-1]["name"] == "optimized-vs-alpha-beta"
     assert manifest["decision_readiness"]["ready"] is False
     assert "AI optimization knockout incomplete" in (
         manifest["decision_readiness"]["blockers"]
