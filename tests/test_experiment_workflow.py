@@ -86,6 +86,14 @@ def test_live_progress_helpers_are_robust(tmp_path):
     progress.write_text("not-a-number\n", encoding="utf-8")
     assert runner._read_progress_count(progress, 24) == 0
 
+    progress.write_text(
+        json.dumps({"completed": 7, "total": 24, "wins": [4, 3]}) + "\n",
+        encoding="utf-8",
+    )
+    state = runner._read_progress_state(progress, 24)
+    assert state == {"completed": 7, "total": 24, "wins": [4, 3]}
+    assert runner._read_progress_count(progress, 24) == 7
+
     assert runner._format_duration(0) == "00:00"
     assert runner._format_duration(65) == "01:05"
     assert runner._format_duration(3661) == "1:01:01"
@@ -94,6 +102,8 @@ def test_live_progress_helpers_are_robust(tmp_path):
     assert "\\x1b[2K" in source
     assert "line:<110" not in source
     assert "width = 20" in source
+    assert "Press s to skip this experiment" in source
+    assert "_run_command_until_stop" in inspect.getsource(runner.benchmark_ismcts_match)
 
 
 def test_strength_benchmark_reports_live_progress():
@@ -255,6 +265,79 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
     assert strength_calls[0]["max_tree_nodes"] == 400_000
     assert manifest["decision_readiness"]["ready"] is True
     assert manifest["decision_readiness"]["blockers"] == []
+
+
+def test_suite_manual_skip_continues_to_following_experiments(
+    tmp_path,
+    monkeypatch,
+):
+    suite_dir = tmp_path / "suite"
+
+    def fake_artifact_directory(_base, _identity):
+        suite_dir.mkdir(parents=True, exist_ok=True)
+        return suite_dir
+
+    calls = 0
+
+    def fake_match(**_kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise runner.ExperimentSkipped("test skip")
+        path = tmp_path / f"match-{calls}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "candidate_a_win_rate": 0.5,
+                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    def fake_strength(**_kwargs):
+        path = tmp_path / "strength.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "mcts_win_rate": 0.5,
+                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
+    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
+    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
+    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
+
+    manifest_path = runner.run_suite(Namespace(
+        games=24,
+        jobs=8,
+        iterations=100_000,
+        alpha_nodes=20_000,
+        time_budget_seconds=2.0,
+        seed=26092400,
+        stop_on_error=False,
+    ))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert calls == 6
+    assert manifest["experiments"][1]["name"] == "tree-cold"
+    assert manifest["experiments"][1]["status"] == "skipped"
+    assert manifest["skipped"] == ["tree-cold"]
+    assert manifest["failures"] == []
+    assert manifest["experiments"][-1]["name"] == "baseline-vs-alpha-beta"
+    assert manifest["experiments"][-1]["status"] == "passed"
+    assert "manually skipped comparisons: tree-cold" in (
+        manifest["decision_readiness"]["warnings"]
+    )
 
 
 def test_suite_readiness_blocks_a_confidently_better_challenger(
