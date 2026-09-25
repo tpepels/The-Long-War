@@ -126,6 +126,15 @@ class StrategicHeuristicAgent(HeuristicAgent):
             else None
         )
 
+    def release_search_memory(self) -> None:
+        """Release persistent native search storage after a finished game."""
+        if self._native_tt is not None:
+            self._native_tt.clear()
+        self._native_tt = None
+        self._native_evaluator = None
+        self._fast_engine = None
+        self.last_decision = {}
+
     def choose(self, engine: GameEngine, state: GameState) -> Action:
         decision_started = perf_counter()
         root_player = state.active_player
