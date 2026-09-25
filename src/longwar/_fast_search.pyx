@@ -1687,153 +1687,191 @@ cdef class FastEngine:
                 self.draw(state, player, target)
         state.shuffle_seed = seed
 
-    cdef void discard_battlefield(self, FastState state):
-        cdef int player, slot, front, card
+    cdef void discard_slot_components(
+        self,
+        FastState state,
+        int player,
+        int slot,
+    ) noexcept:
+        cdef int card
+        card = state.subject[slot]
+        if card >= 0:
+            self.append_discard(state, player, card, False)
+        card = state.link[slot]
+        if card >= 0:
+            self.append_discard(state, player, card, False)
+        card = state.name[slot]
+        if card >= 0:
+            self.append_discard(state, player, card, False)
+        state.subject[slot] = -1
+        state.link[slot] = -1
+        state.name[slot] = -1
+        state.temporary[slot] = 0
+
+    cdef void discard_incomplete_formations(self, FastState state) noexcept:
+        cdef int player, slot
         for player in range(2):
             for slot in range(player * 8, player * 8 + 8):
-                card = state.subject[slot]
-                if card >= 0:
-                    self.append_discard(state, player, card, False)
-                card = state.link[slot]
-                if card >= 0:
-                    self.append_discard(state, player, card, False)
-                card = state.name[slot]
-                if card >= 0:
-                    self.append_discard(state, player, card, False)
-                state.subject[slot] = -1
-                state.link[slot] = -1
-                state.name[slot] = -1
-                state.temporary[slot] = 0
+                if (
+                    state.subject[slot] >= 0
+                    or state.link[slot] >= 0
+                    or state.name[slot] >= 0
+                ) and not self.slot_complete(state, slot):
+                    self.discard_slot_components(state, player, slot)
+
+    cdef void resolve_retreats(
+        self,
+        FastState state,
+        int losses0,
+        int losses1,
+    ) noexcept:
+        cdef int player, front, front_slot, rear_slot
+        cdef bint lost
+        for player in range(2):
             for front in range(4):
-                card = state.scheme[player * 4 + front]
-                if card >= 0:
-                    self.append_discard(state, player, card, False)
-                    state.scheme[player * 4 + front] = -1
-                    state.scheme_revealed[player * 4 + front] = 0
+                lost = (
+                    (player == 0 and (losses0 & (1 << front)) != 0)
+                    or (player == 1 and (losses1 & (1 << front)) != 0)
+                )
+                if not lost:
+                    continue
+                front_slot = slot_index(player, front, 0)
+                rear_slot = slot_index(player, front, 1)
+
+                # Rear is driven off first, then a surviving Frontline Named
+                # Formation retreats into the now-empty Rear.
+                if self.slot_complete(state, rear_slot):
+                    self.discard_slot_components(state, player, rear_slot)
+                if self.slot_complete(state, front_slot):
+                    self.move_slot(state, front_slot, rear_slot)
+
+    cdef void discard_battle_stratagems(self, FastState state) noexcept:
+        cdef int player, card
+        for player in range(2):
             card = state.stratagem[player]
             if card >= 0:
                 self.append_discard(state, player, card, False)
-                state.stratagem[player] = -1
-                state.stratagem_revealed[player] = 0
+            state.stratagem[player] = -1
+            state.stratagem_revealed[player] = 0
+
+    cdef int command_recovery_for_battle(
+        self,
+        int battle,
+    ) noexcept:
+        cdef int index = battle - 1
+        if index < 0 or index >= len(self.command_recovery_schedule):
+            return 0
+        return <int>self.command_recovery_schedule[index]
 
     cdef void begin_next_battle_fast(
         self,
         FastState state,
         int starter,
-        int chooser,
+        int chooser=-1,
     ) noexcept:
         cdef int p
         state.cleanup_pending = 0
         state.cleanup_next_starter = -1
         state.cleanup_next_chooser = -1
+        state.phase = PHASE_BATTLE
+        state.chooser = -1
         for p in range(2):
             state.battle_start_hand_size[p] = state.hand_len[p]
-        if starter >= 0:
-            state.phase = PHASE_BATTLE
-            state.chooser = -1
-            self.start_turn_fast(state, starter)
-        else:
-            state.phase = PHASE_CHOOSE
-            state.chooser = chooser
-            state.active_player = chooser
-
-    cdef void advance_cleanup_fast(self, FastState state) noexcept:
-        cdef int p
-        if self.battle_end_hand_limit < 0:
-            self.begin_next_battle_fast(
-                state,
-                state.cleanup_next_starter,
-                state.cleanup_next_chooser,
-            )
-            return
-        for p in range(2):
-            if state.hand_len[p] > self.battle_end_hand_limit:
-                state.cleanup_pending = 1
-                state.phase = PHASE_BATTLE
-                state.chooser = -1
-                state.active_player = p
-                return
-        self.begin_next_battle_fast(
-            state,
-            state.cleanup_next_starter,
-            state.cleanup_next_chooser,
-        )
+        self.start_turn_fast(state, starter)
 
     cdef void score_battle(self, FastState state):
-        cdef int front, a, b, controls0=0, controls1=0, total0=0, total1=0
-        cdef int winner, loser, p, first_passer=-1, target, margin
+        """Resolve four independent Fronts and the Battle-end sequence."""
+        cdef int front, a, b, p, first_passer
+        cdef int lost_mask0=0, lost_mask1=0
+        cdef int losses0=0, losses1=0
+        cdef int base_recovery, actual, target
 
         state.last_battle_valid = 1
         state.last_battle = state.battle
+        state.last_battle_winner = -1
+        state.last_total_strength = 0
+        state.last_abs_total_margin = 0
         state.last_pass_len = state.pass_len
+
         for p in range(2):
             state.last_pass_order[p] = (
                 state.pass_order[p] if p < state.pass_len else -1
             )
-
-        for front in range(4):
-            a = self.front_strength_fast(state, 0, front)
-            b = self.front_strength_fast(state, 1, front)
-            state.last_front_scores[front][0] = a
-            state.last_front_scores[front][1] = b
-            total0 += a
-            total1 += b
-            if a > b:
-                controls0 += 1
-            elif b > a:
-                controls1 += 1
-
-        if controls0 >= 2:
-            winner = 0
-        elif controls1 >= 2:
-            winner = 1
-        elif total0 > total1:
-            winner = 0
-        elif total1 > total0:
-            winner = 1
-        elif state.pass_len > 0:
-            winner = state.pass_order[0]
-        else:
-            winner = state.active_player
-
-        state.last_battle_winner = winner
-        state.last_total_strength = total0 + total1
-        margin = total0 - total1
-        state.last_abs_total_margin = margin if margin >= 0 else -margin
-        for p in range(2):
             state.last_command_start[p] = state.battle_start_command[p]
             state.last_command_spent[p] = state.command_spent_this_battle[p]
             state.last_command_refunded[p] = state.command_refunded_this_battle[p]
-            state.last_completion_command_refunded[p] = (
-                state.completion_command_refunded_this_battle[p]
-            )
-            state.last_command_remaining[p] = state.command[p]
-            state.last_deck_remaining[p] = state.deck_len[p]
-            state.last_hand_size[p] = state.hand_len[p]
+            state.last_completion_command_refunded[p] = 0
             state.last_battle_start_hand_size[p] = state.battle_start_hand_size[p]
             state.last_cards_drawn[p] = state.cards_drawn_this_battle[p]
             state.last_completion_count[p] = state.completion_count_this_battle[p]
             state.last_operations[p] = state.operations_this_battle[p]
 
-        if state.pass_len > 0:
-            first_passer = state.pass_order[0]
+        # Front results are fixed before any cleanup or Retreat changes board
+        # Strength. There is intentionally no overall Battle winner.
+        for front in range(4):
+            a = self.front_strength_fast(state, 0, front)
+            b = self.front_strength_fast(state, 1, front)
+            state.last_front_scores[front][0] = a
+            state.last_front_scores[front][1] = b
+            if a < b:
+                lost_mask0 |= 1 << front
+                losses0 += 1
+            elif b < a:
+                lost_mask1 |= 1 << front
+                losses1 += 1
 
-        state.victories[winner] += 1
-        loser = 1 - winner
+        self.discard_incomplete_formations(state)
+        self.resolve_retreats(state, lost_mask0, lost_mask1)
+        self.discard_battle_stratagems(state)
+
+        # Ongoing Stories remain in state.scheme. Battle-only allowances reset
+        # only if the war continues.
+        base_recovery = self.command_recovery_for_battle(state.battle)
         for p in range(2):
-            if state.stratagem[p] >= 0:
-                state.stratagem_revealed[p] = 1
-        self.discard_battlefield(state)
+            actual = base_recovery - (losses0 if p == 0 else losses1)
+            if actual < 0:
+                actual = 0
+            if self.command_enabled:
+                state.command[p] += actual
+                if state.command[p] > self.command_cap:
+                    state.command[p] = self.command_cap
+            state.last_command_remaining[p] = state.command[p]
+            state.last_deck_remaining[p] = state.deck_len[p]
+            state.last_hand_size[p] = state.hand_len[p]
 
-        if state.victories[winner] >= 2:
-            state.phase = PHASE_COMPLETE
-            state.winner = winner
-            state.chooser = -1
-            state.pending_final_operation_for = -1
-            return
+        # Command Collapse: if either side is below the threshold, the lower
+        # Command total loses. Equal totals continue exactly as written.
+        if (
+            state.command[0] < self.command_collapse_threshold
+            or state.command[1] < self.command_collapse_threshold
+        ):
+            if state.command[0] < state.command[1]:
+                state.phase = PHASE_COMPLETE
+                state.winner = 1
+            elif state.command[1] < state.command[0]:
+                state.phase = PHASE_COMPLETE
+                state.winner = 0
+            if state.phase == PHASE_COMPLETE:
+                state.pending_final_operation_for = -1
+                state.cleanup_pending = 0
+                state.chooser = -1
+                return
+
+        first_passer = (
+            state.pass_order[0]
+            if state.pass_len > 0
+            else state.active_player
+        )
 
         state.battle += 1
+        state.pending_final_operation_for = -1
+        state.cleanup_pending = 0
+        state.pass_len = 0
+        state.pass_order[0] = -1
+        state.pass_order[1] = -1
+
         for p in range(2):
+            state.passed[p] = 0
             state.discarded_this_battle[p] = 0
             state.operations_this_battle[p] = 0
             state.command_spent_this_battle[p] = 0
@@ -1845,67 +1883,22 @@ cdef class FastEngine:
             state.hero_used[p] = 0
             state.draw_used[p] = 0
             state.free_cycle[p] = 0
-            if self.command_enabled:
-                state.command[p] += self.battle_command_gain
-                if state.command[p] > self.command_cap:
-                    state.command[p] = self.command_cap
-                state.battle_start_command[p] = state.command[p]
-            else:
-                state.battle_start_command[p] = 0
 
-        state.pending_final_operation_for = -1
-        state.pass_len = 0
-        state.pass_order[0] = -1
-        state.pass_order[1] = -1
+            # Hand/deck/discard persist. Refill only to 10; draw() reshuffles
+            # discard only if the draw pile is actually empty.
+            target = self.hand_limit - state.hand_len[p]
+            if target > 0:
+                self.draw(state, p, target)
+            state.battle_start_command[p] = state.command[p]
 
-        if self.recycle_between_battles:
-            self.recycle_non_hand_cards(state)
-        else:
-            for p in range(2):
-                target = self.opening_hand_size - state.hand_len[p]
-                if target > 0:
-                    self.draw(state, p, target)
-
-        for p in range(2):
-            state.passed[p] = 0
-
-        state.cleanup_next_starter = (
-            first_passer
-            if self.first_passer_starts_next_battle and first_passer >= 0
-            else -1
-        )
-        state.cleanup_next_chooser = (
-            -1 if state.cleanup_next_starter >= 0 else loser
-        )
-        if (
-            self.battle_end_hand_limit >= 0
-            and (
-                state.hand_len[0] > self.battle_end_hand_limit
-                or state.hand_len[1] > self.battle_end_hand_limit
-            )
-        ):
-            state.cleanup_pending = 1
-            self.advance_cleanup_fast(state)
-        else:
-            self.begin_next_battle_fast(
-                state,
-                state.cleanup_next_starter,
-                state.cleanup_next_chooser,
-            )
+        self.begin_next_battle_fast(state, first_passer)
 
     cdef void pass_action(self, FastState state, int player):
         cdef int opponent = 1 - player
-        cdef int front, ix, card
         state.passed[player] = 1
         state.pass_order[state.pass_len] = player
         state.pass_len += 1
         self.resolve_strat_event(state, EVENT_PASS, player)
-        for front in range(4):
-            ix = opponent * 4 + front
-            card = state.scheme[ix]
-            if card >= 0 and self.scheme_trigger[card] == EVENT_PASS:
-                if not self.scheme_requires_subject[card] or self.front_has_subject(state, opponent, front):
-                    self.reveal_scheme(state, opponent, front, player, -1)
 
         if self.pass_final_operation:
             if state.pending_final_operation_for == player:
