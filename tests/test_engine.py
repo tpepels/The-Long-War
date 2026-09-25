@@ -508,6 +508,7 @@ def test_empty_draw_pile_reshuffles_discard_only_when_draw_is_required() -> None
 
 def test_ongoing_stories_are_public_and_limited_to_two_per_player() -> None:
     engine, state = setup_state()
+    assert engine.ongoing_story_limit == 2
     stories = [
         "the-lamps-went-dark",
         "the-road-was-cut",
