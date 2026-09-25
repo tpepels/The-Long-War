@@ -1036,6 +1036,8 @@ cdef class FastEngine:
         kind = action_kind(action)
         if kind == TYPE_PASS or kind == TYPE_CHOOSE:
             return 0
+        if kind == TYPE_MANEUVER:
+            return self.maneuver_command_cost
         if kind == TYPE_DRAW:
             return self.paid_draw_command_cost if self.paid_draw_enabled else 0
         if kind == TYPE_CYCLE:
@@ -1070,6 +1072,8 @@ cdef class FastEngine:
         int player,
         int amount,
     ) noexcept:
+        if amount > state.command[player]:
+            amount = state.command[player]
         state.command[player] -= amount
         state.command_spent_this_battle[player] += amount
 
@@ -1161,52 +1165,33 @@ cdef class FastEngine:
     ) except -1:
         cdef int n = 0
         cdef int player, card, slot, local, front, rank, source, dest, req, opponent, effect
-        cdef int i, kept, can_pass, available
+        cdef int i, kept, can_pass, available, story_slot
         cdef uint64_t action
 
         if state.phase == PHASE_COMPLETE:
             return 0
         if state.phase == PHASE_CHOOSE:
-            actions[0] = encode_action(TYPE_CHOOSE, -1, 0, -1, 0)
-            actions[1] = encode_action(TYPE_CHOOSE, -1, 1, -1, 0)
-            return 2
+            return 0
 
         player = state.active_player
+
+        # A turn that starts at the hand limit must discard before its
+        # automatic draw. This substep is not the turn's operation.
         if state.cleanup_pending:
             for card in range(self.n_cards):
                 if state.hand[player][card] > 0:
-                    n = _append_action(actions, n, encode_action(
-                        TYPE_DISCARD, card, -1, -1, player,
-                    ))
+                    n = _append_action(
+                        actions,
+                        n,
+                        encode_action(TYPE_DISCARD, card, -1, -1, player),
+                    )
             return n
 
-        player = state.active_player
         opponent = 1 - player
-
-        if (
-            (not self.command_enabled)
-            and self.draw_action_enabled
-            and (not state.draw_used[player])
-            and self.can_draw_fast(state, player)
-        ):
-            n = _append_action(actions, n, encode_action(TYPE_DRAW, -1, -1, -1, player))
-        elif (
-            self.command_enabled
-            and self.paid_draw_enabled
-            and self.can_draw_fast(state, player)
-        ):
-            n = _append_action(actions, n, encode_action(TYPE_DRAW, -1, -1, -1, player))
 
         for card in range(self.n_cards):
             if state.hand[player][card] == 0:
                 continue
-
-            if (
-                self.command_enabled
-                and self.cycle_enabled
-                and self.can_draw_fast(state, player)
-            ):
-                n = _append_action(actions, n, encode_action(TYPE_CYCLE, card, -1, -1, player))
 
             if self.card_type[card] == CARD_SUBJECT:
                 if not self.hero[card] or not state.hero_used[player]:
@@ -1218,8 +1203,14 @@ cdef class FastEngine:
                         rank = local & 1
                         if req >= 0 and req != rank:
                             continue
-                        n = _append_action(actions, n, encode_action(TYPE_SUBJECT, card, slot, -1, player))
+                        n = _append_action(
+                            actions,
+                            n,
+                            encode_action(TYPE_SUBJECT, card, slot, -1, player),
+                        )
 
+                    # Heroes are dual-use Force/Name cards. Playing either mode
+                    # consumes the one-Hero-from-hand allowance for the Battle.
                     if self.hero[card]:
                         for local in range(8):
                             slot = player * 8 + local
@@ -1234,43 +1225,63 @@ cdef class FastEngine:
                 for local in range(8):
                     slot = player * 8 + local
                     if state.link[slot] < 0:
-                        n = _append_action(actions, n, encode_action(TYPE_LINK, card, slot, -1, player))
+                        n = _append_action(
+                            actions,
+                            n,
+                            encode_action(TYPE_LINK, card, slot, -1, player),
+                        )
 
             elif self.card_type[card] == CARD_NAME:
                 for local in range(8):
                     slot = player * 8 + local
                     if state.name[slot] >= 0:
                         continue
-                    n = _append_action(actions, n, encode_action(TYPE_NAME, card, slot, -1, player))
-                    if self.name_effect[card] == NAME_MOVE_ADJACENT and state.subject[slot] >= 0:
-                        front = local >> 1
-                        rank = local & 1
-                        if front > 0:
-                            dest = slot_index(player, front - 1, rank)
-                            if state.subject[dest] < 0 and state.link[dest] < 0 and state.name[dest] < 0:
-                                n = _append_action(actions, n, encode_action(TYPE_NAME, card, slot, dest, player))
-                        if front < 3:
-                            dest = slot_index(player, front + 1, rank)
-                            if state.subject[dest] < 0 and state.link[dest] < 0 and state.name[dest] < 0:
-                                n = _append_action(actions, n, encode_action(TYPE_NAME, card, slot, dest, player))
+                    n = _append_action(
+                        actions,
+                        n,
+                        encode_action(TYPE_NAME, card, slot, -1, player),
+                    )
 
             elif self.card_type[card] == CARD_PLOT:
                 if self.veiled[card]:
-                    for front in range(4):
-                        if state.scheme[player * 4 + front] < 0:
-                            n = _append_action(actions, n, encode_action(TYPE_SCHEME, card, front, -1, player))
-                elif not self.story_locked(state, player):
+                    # Old veiled data is normalized to a public ongoing Story.
+                    for story_slot in range(self.ongoing_story_limit):
+                        if state.scheme[player * 4 + story_slot] < 0:
+                            n = _append_action(
+                                actions,
+                                n,
+                                encode_action(
+                                    TYPE_SCHEME,
+                                    card,
+                                    story_slot,
+                                    -1,
+                                    player,
+                                ),
+                            )
+                else:
                     effect = self.plot_effect[card]
                     if effect == PLOT_DISCREDIT or effect == PLOT_RETURN_NAME:
                         for local in range(8):
                             slot = opponent * 8 + local
-                            if state.subject[slot] >= 0 and not self.subject_protected(state, slot):
-                                n = _append_action(actions, n, encode_action(TYPE_PLOT, card, slot, -1, opponent))
+                            if (
+                                state.subject[slot] >= 0
+                                and not self.subject_protected(state, slot)
+                            ):
+                                n = _append_action(
+                                    actions,
+                                    n,
+                                    encode_action(
+                                        TYPE_PLOT,
+                                        card,
+                                        slot,
+                                        -1,
+                                        opponent,
+                                    ),
+                                )
                     elif effect == PLOT_MOVE_SUBJECT:
                         for source in range(player * 8, player * 8 + 8):
                             if state.subject[source] < 0:
                                 continue
-                            req = self.placement_rank[state.subject[source]]
                             for dest in range(player * 8, player * 8 + 8):
                                 if (
                                     dest == source
@@ -1279,15 +1290,57 @@ cdef class FastEngine:
                                     or state.name[dest] >= 0
                                 ):
                                     continue
-                                if req >= 0 and req != rank_from_slot(dest):
-                                    continue
-                                n = _append_action(actions, n, encode_action(TYPE_PLOT, card, source, dest, player))
-                    elif effect == PLOT_NONE:
-                        n = _append_action(actions, n, encode_action(TYPE_PLOT, card, -1, -1, player))
+                                n = _append_action(
+                                    actions,
+                                    n,
+                                    encode_action(
+                                        TYPE_PLOT,
+                                        card,
+                                        source,
+                                        dest,
+                                        player,
+                                    ),
+                                )
+                    else:
+                        n = _append_action(
+                            actions,
+                            n,
+                            encode_action(TYPE_PLOT, card, -1, -1, player),
+                        )
 
             elif self.card_type[card] == CARD_STRATAGEM:
-                if not state.stratagem_used[player] and state.stratagem[player] < 0:
-                    n = _append_action(actions, n, encode_action(TYPE_STRATAGEM, card, -1, -1, player))
+                if (
+                    not state.stratagem_used[player]
+                    and state.stratagem[player] < 0
+                ):
+                    n = _append_action(
+                        actions,
+                        n,
+                        encode_action(TYPE_STRATAGEM, card, -1, -1, player),
+                    )
+
+        # Maneuver is a core operation. Only the initiator must be Named; the
+        # destination may contain any friendly formation and is swapped whole.
+        for local in range(8):
+            source = player * 8 + local
+            if not self.slot_complete(state, source):
+                continue
+            front = local >> 1
+            rank = local & 1
+            if front > 0:
+                dest = slot_index(player, front - 1, rank)
+                n = _append_action(
+                    actions,
+                    n,
+                    encode_action(TYPE_MANEUVER, -1, source, dest, player),
+                )
+            if front < 3:
+                dest = slot_index(player, front + 1, rank)
+                n = _append_action(
+                    actions,
+                    n,
+                    encode_action(TYPE_MANEUVER, -1, source, dest, player),
+                )
 
         if self.command_enabled:
             available = state.command[player]
@@ -1460,6 +1513,20 @@ cdef class FastEngine:
         state.name[source] = -1
         state.temporary[source] = 0
 
+    cdef void swap_slots(self, FastState state, int a, int b) noexcept:
+        cdef int8_t force = state.subject[a]
+        cdef int8_t bond = state.link[a]
+        cdef int8_t name = state.name[a]
+        cdef int16_t temporary = state.temporary[a]
+        state.subject[a] = state.subject[b]
+        state.link[a] = state.link[b]
+        state.name[a] = state.name[b]
+        state.temporary[a] = state.temporary[b]
+        state.subject[b] = force
+        state.link[b] = bond
+        state.name[b] = name
+        state.temporary[b] = temporary
+
     cdef void resolve_plot(self, FastState state, int actor, int card, int pos, int dest):
         cdef int effect = self.plot_effect[card]
         cdef int owner
@@ -1553,17 +1620,17 @@ cdef class FastEngine:
 
     cdef void start_turn_fast(self, FastState state, int player) noexcept:
         state.active_player = player
+        state.cleanup_pending = 0
         if (
             self.automatic_draw
             and state.phase == PHASE_BATTLE
             and not state.passed[player]
-            and not state.cleanup_pending
-            and (
-                self.automatic_draw_hand_limit < 0
-                or state.hand_len[player] < self.automatic_draw_hand_limit
-            )
+            and self.can_draw_fast(state, player)
         ):
-            self.draw_for_battle(state, player, 1)
+            if state.hand_len[player] >= self.hand_limit:
+                state.cleanup_pending = 1
+            else:
+                self.draw_for_battle(state, player, 1)
 
     cpdef initialize_opening_turn(
         self,
@@ -1889,11 +1956,11 @@ cdef class FastEngine:
 
         if kind == TYPE_DISCARD:
             if not state.cleanup_pending:
-                raise ValueError("Discard is only legal during Battle cleanup")
+                raise ValueError("Discard is only legal before a mandatory draw")
             self.take_from_hand(state, actor, card, 0)
             self.append_discard(state, actor, card, False)
-            state.turn_number += 1
-            self.advance_cleanup_fast(state)
+            state.cleanup_pending = 0
+            self.draw_for_battle(state, actor, 1)
             return
 
         if kind == TYPE_CYCLE:
@@ -1910,6 +1977,11 @@ cdef class FastEngine:
         if self.command_enabled:
             cost = self.command_cost_fast(state, action)
             self.spend_command_fast(state, actor, cost)
+
+        if kind == TYPE_MANEUVER:
+            self.swap_slots(state, pos, dest)
+            self.finish_operation_fast(state, actor)
+            return
 
         if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
             before_mask = self.complete_mask(state, actor)
@@ -1952,9 +2024,9 @@ cdef class FastEngine:
             self.append_discard(state, actor, card, True)
 
         elif kind == TYPE_SCHEME:
-            self.take_from_hand(state, actor, card, 1)
+            self.take_from_hand(state, actor, card, 0)
             state.scheme[actor * 4 + pos] = card
-            state.scheme_revealed[actor * 4 + pos] = 0
+            state.scheme_revealed[actor * 4 + pos] = 1
 
         elif kind == TYPE_STRATAGEM:
             self.take_from_hand(
