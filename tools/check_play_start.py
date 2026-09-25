@@ -219,7 +219,7 @@ def main() -> None:
       }
 
       const target = document.querySelector(
-        ".digital-slot.targetable, .scheme-marker.targetable"
+        ".digital-slot.targetable, .story-marker.targetable"
       );
       if (!target) return;
       target.click();
