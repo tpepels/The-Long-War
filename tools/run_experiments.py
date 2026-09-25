@@ -1925,7 +1925,7 @@ def parse_args() -> argparse.Namespace:
 
     suite = sub.add_parser(
         "suite",
-        help="Run the canonical decision-grade search experiment suite.",
+        help="Optimize ISMCTS structurally, then compare the optimized policy to alpha-beta.",
     )
     suite.add_argument(
         "--games",
