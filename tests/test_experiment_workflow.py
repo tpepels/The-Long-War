@@ -355,9 +355,11 @@ def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
                 "resources": {
                     "ismcts": {
                         "mean_searched_decision_seconds": 1.0,
+                        "mean_search_work": 100_000.0,
                     },
                     "strategic_heuristic": {
                         "mean_searched_decision_seconds": 1.0,
+                        "mean_search_work": 100_000.0,
                     },
                 },
             }),
@@ -425,7 +427,7 @@ def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
     assert calibration["name"] == "alpha-beta-timing-calibration"
     assert calibration["kind"] == "timing-calibration"
     assert calibration["status"] == "passed"
-    assert strength_calls[-2]["time_budget_seconds"] == pytest.approx(5.0)
+    assert strength_calls[-2]["time_budget_seconds"] is None
 
     final = manifest["experiments"][-1]
     assert final["name"] == "optimized-vs-alpha-beta"
@@ -434,6 +436,10 @@ def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
     assert final["entrant_b"] == "alpha-beta"
     assert final["status"] == "passed"
     assert strength_calls[-1]["time_budget_seconds"] == pytest.approx(5.0)
+    assert strength_calls[-1]["ismcts_iterations"] > 100_000
+    assert strength_calls[-1]["alpha_nodes"] > 20_000
+    assert calibration["calibrated_budgets"]["ismcts_iterations"] > 100_000
+    assert calibration["calibrated_budgets"]["alpha_nodes"] > 20_000
     assert manifest["decision_readiness"]["ready"] is True
 
 
@@ -490,9 +496,11 @@ def test_knockout_winner_is_used_for_final_alpha_beta_match(
                 "resources": {
                     "ismcts": {
                         "mean_searched_decision_seconds": 1.0,
+                        "mean_search_work": 100_000.0,
                     },
                     "strategic_heuristic": {
                         "mean_searched_decision_seconds": 1.0,
+                        "mean_search_work": 100_000.0,
                     },
                 },
             }),
@@ -522,8 +530,10 @@ def test_knockout_winner_is_used_for_final_alpha_beta_match(
     assert manifest["optimized_config"]["rollout_policy"] == "greedy"
     assert len(strength_calls) == 2
     assert all(call["rollout_policy"] == "greedy" for call in strength_calls)
-    assert strength_calls[0]["time_budget_seconds"] == pytest.approx(5.0)
+    assert strength_calls[0]["time_budget_seconds"] is None
     assert strength_calls[1]["time_budget_seconds"] == pytest.approx(5.0)
+    assert strength_calls[1]["ismcts_iterations"] > 100_000
+    assert strength_calls[1]["alpha_nodes"] > 20_000
 
     greedy_knockout_fixtures = [
         row
@@ -587,9 +597,11 @@ def test_knockout_exact_tie_replays_ismcts_fixture_with_new_seed(
                 "resources": {
                     "ismcts": {
                         "mean_searched_decision_seconds": 1.0,
+                        "mean_search_work": 100_000.0,
                     },
                     "strategic_heuristic": {
                         "mean_searched_decision_seconds": 1.0,
+                        "mean_search_work": 100_000.0,
                     },
                 },
             }),
@@ -687,9 +699,11 @@ def test_knockout_skip_uses_partial_and_continues_to_final_check(
                 "resources": {
                     "ismcts": {
                         "mean_searched_decision_seconds": 1.0,
+                        "mean_search_work": 100_000.0,
                     },
                     "strategic_heuristic": {
                         "mean_searched_decision_seconds": 1.0,
+                        "mean_search_work": 100_000.0,
                     },
                 },
             }),
@@ -792,9 +806,11 @@ def test_final_alpha_beta_skip_uses_partial_score(
                 "resources": {
                     "ismcts": {
                         "mean_searched_decision_seconds": 1.0,
+                        "mean_search_work": 100_000.0,
                     },
                     "strategic_heuristic": {
                         "mean_searched_decision_seconds": 1.0,
+                        "mean_search_work": 100_000.0,
                     },
                 },
             }),
