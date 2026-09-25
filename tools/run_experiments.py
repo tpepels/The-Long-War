@@ -793,13 +793,11 @@ def benchmark_ismcts_match(
         f"rollout={rollout_policy_b}/{rollout_depth_b} "
         f"eps={rollout_epsilon_b:g} tree={max_tree_nodes_b or 'auto'}"
     )
-    print("\nProgress")
-    print("deck       orientation   A-B    elapsed")
-
-    def run_cell(cell):
+    def run_cell(cell, stop_event):
         deck, orientation, output, progress, command = cell
         started = time.perf_counter()
-        run_command(command, capture=True)
+        if not _run_command_until_stop(command, stop_event):
+            return None
         elapsed = time.perf_counter() - started
         payload = json.loads(output.read_text(encoding="utf-8"))
         labels = payload["agents"]
@@ -814,12 +812,30 @@ def benchmark_ismcts_match(
             f"{a_wins:>2}-{b_wins:<2}  {elapsed:7.1f}s"
         )
 
+    def format_progress(cell, state):
+        deck, orientation, _output, _progress, _command = cell
+        seat_a, seat_b = (0, 1) if orientation == "a-first" else (1, 0)
+        a_wins = int(state["wins"][seat_a])
+        b_wins = int(state["wins"][seat_b])
+        completed = int(state["completed"])
+        rate = 100.0 * a_wins / completed if completed else 0.0
+        return (
+            f"{deck:10} {orientation:11} "
+            f"{completed:>2}/{games_per_orientation:<2} "
+            f"{a_wins:>3}-{b_wins:<3} {rate:5.1f}% A",
+            a_wins,
+            b_wins,
+        )
+
     completed_results = _run_cells_with_live_progress(
         cells,
         jobs=jobs,
         games_per_cell=games_per_orientation,
         run_cell=run_cell,
         format_result=format_result,
+        table_header="deck       orientation played   A-B      A%",
+        score_labels=("A", "B"),
+        format_progress=format_progress,
     )
     results = [
         (deck, orientation, output, elapsed)
@@ -1114,13 +1130,11 @@ def benchmark_strength(
         f"{'reuse' if reuse_tree else 'cold'} "
         f"rollout={rollout_policy}/{rollout_depth}"
     )
-    print("\nProgress")
-    print("deck       orientation    MCTS-AB  elapsed")
-
-    def run_cell(cell):
+    def run_cell(cell, stop_event):
         deck, orientation, output, progress, command = cell
         started = time.perf_counter()
-        run_command(command, capture=True)
+        if not _run_command_until_stop(command, stop_event):
+            return None
         elapsed = time.perf_counter() - started
         payload = json.loads(output.read_text(encoding="utf-8"))
         labels = payload["agents"]
@@ -1135,12 +1149,32 @@ def benchmark_strength(
             f"{mcts_wins:>2}-{alpha_wins:<2}    {elapsed:7.1f}s"
         )
 
+    def format_progress(cell, state):
+        deck, orientation, _output, _progress, _command = cell
+        seat_mcts, seat_alpha = (
+            (0, 1) if orientation == "mcts-first" else (1, 0)
+        )
+        mcts_wins = int(state["wins"][seat_mcts])
+        alpha_wins = int(state["wins"][seat_alpha])
+        completed = int(state["completed"])
+        rate = 100.0 * mcts_wins / completed if completed else 0.0
+        return (
+            f"{deck:10} {orientation:12} "
+            f"{completed:>2}/{games_per_orientation:<2} "
+            f"{mcts_wins:>3}-{alpha_wins:<3} {rate:5.1f}% MCTS",
+            mcts_wins,
+            alpha_wins,
+        )
+
     completed_results = _run_cells_with_live_progress(
         cells,
         jobs=jobs,
         games_per_cell=games_per_orientation,
         run_cell=run_cell,
         format_result=format_result,
+        table_header="deck       orientation  played   MCTS-AB  MCTS%",
+        score_labels=("MCTS", "AB"),
+        format_progress=format_progress,
     )
     results = [
         (deck, orientation, output, elapsed)
