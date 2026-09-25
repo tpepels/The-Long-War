@@ -73,10 +73,14 @@ def make_named(
 def resolve_battle_by_passing(engine: GameEngine, state) -> None:
     state.active_player = 0
     state.operations_this_battle[:] = [1, 1]
-    state.players[0].hand.clear()
-    state.players[1].hand.clear()
-    state.players[0].deck.clear()
-    state.players[1].deck.clear()
+
+    # The final opponent turn includes its normal draw. Make one hand slot
+    # available without changing the total card multiset; start_turn will draw
+    # this exact top card back before the final Pass.
+    if len(state.players[1].hand) >= engine.hand_limit:
+        card = state.players[1].hand.pop()
+        state.players[1].deck.append(card)
+
     engine.apply(state, Pass())
     assert state.pending_final_operation_for == 1
     engine.apply(state, Pass())
@@ -414,8 +418,6 @@ def test_command_collapse_lower_command_loses_and_equal_low_continues() -> None:
 def test_hand_deck_discard_and_named_formations_persist_between_battles() -> None:
     engine, state = setup_state()
     make_named(state, 0, pos(0))
-    hand0 = list(state.players[0].hand)
-    deck0 = list(state.players[0].deck)
     state.players[0].discard.append(state.players[0].hand.pop())
     # Restore hand size to ten from deck so Battle-end refill does not move cards.
     state.players[0].hand.append(state.players[0].deck.pop())
