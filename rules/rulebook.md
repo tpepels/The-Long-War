@@ -189,14 +189,14 @@ A **Stratagem** is a public Battle-wide card. Playing one uses your operation an
 
 Normally you may not Pass until both players have completed at least one operation. If you have no other legal operation, you may Pass.
 
-When the first player Passes:
+A Pass means you are willing to end the Battle in its current state. It does **not** end your participation in the Battle.
 
-1. that player is finished for the Battle;
-2. the opponent begins one final turn and makes the normal draw;
-3. the opponent takes exactly one final operation;
-4. the Battle ends.
+After a player Passes, the opponent takes a normal turn: draw 1 card, then choose an operation.
 
-The player who Passed first starts the next Battle.
+- If the opponent also **Passes**, the Battle ends. The Battle therefore ends after **two consecutive Passes**.
+- If the opponent takes any other operation, the earlier Pass is cleared and play continues normally.
+
+The player who made the **first of the two consecutive Passes** starts the next Battle.
 
 ---
 
@@ -239,7 +239,7 @@ After resolving Retreat:
 4. check Command Collapse;
 5. if the war continues, keep your hand, draw pile, and discard pile, then draw until you have 10 cards;
 6. reset the Hero and Stratagem allowances;
-7. begin the next Battle with the player who Passed first.
+7. begin the next Battle with the player who made the first of the two consecutive Passes.
 
 Do not reshuffle merely because a Battle ended. If you must draw from an empty deck, shuffle the discard pile to make a new draw pile.
 
