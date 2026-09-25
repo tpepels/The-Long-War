@@ -262,6 +262,7 @@ def test_skip_key_reader_restores_terminal_state_on_exception(monkeypatch):
 def test_live_skip_raises_partial_score_from_progress(
     tmp_path,
     monkeypatch,
+    capsys,
 ):
     progress = tmp_path / "cell.progress"
     progress.write_text(
@@ -273,8 +274,6 @@ def test_live_skip_raises_partial_score_from_progress(
         encoding="utf-8",
     )
     cell = ("reference", "a-first", tmp_path / "out.json", progress, [])
-
-    monkeypatch.setattr(runner.sys.stdout, "isatty", lambda: False)
 
     @contextmanager
     def fake_skip_reader():
