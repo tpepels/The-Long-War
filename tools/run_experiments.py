@@ -1418,7 +1418,7 @@ def benchmark_strength(
 
 
 def run_suite(args: argparse.Namespace) -> Path:
-    """Run the canonical round-robin AI optimization tournament."""
+    """Run the canonical seeded knockout AI optimization tournament."""
     if args.games < 24:
         raise SystemExit("--games must be at least 24 for the experiment suite")
     if args.jobs <= 0:
@@ -1451,13 +1451,12 @@ def run_suite(args: argparse.Namespace) -> Path:
     entrant_names = [name for name, _overrides in ismcts_entrants]
     entrant_names.append("alpha-beta")
 
-    fixtures = [
-        (entrant_names[a_index], entrant_names[b_index])
-        for a_index in range(len(entrant_names))
-        for b_index in range(a_index + 1, len(entrant_names))
-    ]
-    random.Random(args.seed).shuffle(fixtures)
-    schedule = [f"{entrant_a}-vs-{entrant_b}" for entrant_a, entrant_b in fixtures]
+    bracket_seed_order = list(entrant_names)
+    random.Random(args.seed).shuffle(bracket_seed_order)
+    seed_rank = {
+        name: index
+        for index, name in enumerate(bracket_seed_order)
+    }
 
     identity = experiment_identity({
         "command": "suite",
@@ -1469,25 +1468,12 @@ def run_suite(args: argparse.Namespace) -> Path:
         "seed": args.seed,
         "starting_config": starting_config,
         "ismcts_entrants": ismcts_entrants,
-        "tournament_policy": "round-robin-3-1-0-v1",
-        "schedule_policy": "seeded-fixture-shuffle-v1",
+        "tournament_policy": "single-elimination-seeded-v1",
+        "schedule_policy": "seeded-bracket-v1",
     })
     output_dir = artifact_directory(BENCH_ROOT / "suite", identity)
     manifest_path = output_dir / "summary.json"
 
-    standings: dict[str, dict[str, Any]] = {
-        name: {
-            "name": name,
-            "matches": 0,
-            "wins": 0,
-            "draws": 0,
-            "losses": 0,
-            "points": 0.0,
-            "games_for": 0,
-            "games_against": 0,
-        }
-        for name in entrant_names
-    }
     manifest: dict[str, Any] = {
         **identity,
         "games_per_orientation": args.games,
@@ -1499,9 +1485,11 @@ def run_suite(args: argparse.Namespace) -> Path:
         "starting_config": dict(starting_config),
         "tournament_entrants": entrant_names,
         "ismcts_configs": configs,
-        "tournament_policy": "round-robin-3-1-0-v1",
-        "schedule_policy": "seeded-fixture-shuffle-v1",
-        "schedule": schedule,
+        "tournament_policy": "single-elimination-seeded-v1",
+        "schedule_policy": "seeded-bracket-v1",
+        "bracket_seed_order": bracket_seed_order,
+        "schedule": [],
+        "rounds": [],
         "experiments": [],
     }
 
@@ -1511,72 +1499,31 @@ def run_suite(args: argparse.Namespace) -> Path:
             encoding="utf-8",
         )
 
-    def record_result(
+    def run_fixture(
         entrant_a: str,
         entrant_b: str,
-        a_wins: int,
-        b_wins: int,
-    ) -> str | None:
-        row_a = standings[entrant_a]
-        row_b = standings[entrant_b]
-        row_a["matches"] += 1
-        row_b["matches"] += 1
-        row_a["games_for"] += a_wins
-        row_a["games_against"] += b_wins
-        row_b["games_for"] += b_wins
-        row_b["games_against"] += a_wins
-        if a_wins > b_wins:
-            row_a["wins"] += 1
-            row_b["losses"] += 1
-            row_a["points"] += 3.0
-            return entrant_a
-        if b_wins > a_wins:
-            row_b["wins"] += 1
-            row_a["losses"] += 1
-            row_b["points"] += 3.0
-            return entrant_b
-        row_a["draws"] += 1
-        row_b["draws"] += 1
-        row_a["points"] += 1.0
-        row_b["points"] += 1.0
-        return None
+        *,
+        fixture_number: int,
+    ) -> tuple[
+        str,
+        str,
+        list[dict[str, Any]],
+        str,
+        dict[str, Any],
+    ]:
+        """Play one knockout fixture, replaying exact ties with fresh seeds."""
+        attempts: list[dict[str, Any]] = []
+        max_attempts = 4
+        last_payload: dict[str, Any] = {}
 
-    print("The Long War - AI optimization tournament")
-    print("=" * 41)
-    print(
-        f"{args.games} games/deck/orientation | {args.jobs} jobs | "
-        f"{args.time_budget_seconds:g}s/searched move"
-    )
-    print(
-        "Entrants: "
-        + ", ".join(entrant_names)
-    )
-    print(
-        f"Round robin: {len(fixtures)} fixtures, "
-        "3 points for a fixture win, 1 each for a draw."
-    )
-    print(
-        "Fixture order is shuffled deterministically from the suite seed. "
-        "Game/balance optimization is separate."
-    )
+        for attempt in range(max_attempts):
+            attempt_seed = (
+                args.seed
+                if attempt == 0
+                else args.seed + attempt * 1_000_003 + fixture_number
+            )
+            is_strength_fixture = "alpha-beta" in (entrant_a, entrant_b)
 
-    for index, (entrant_a, entrant_b) in enumerate(fixtures, start=1):
-        name = f"{entrant_a}-vs-{entrant_b}"
-        is_strength_fixture = "alpha-beta" in (entrant_a, entrant_b)
-        kind = "strength-bench" if is_strength_fixture else "ismcts-match"
-        print()
-        print(f"=== fixture {index}/{len(fixtures)} {name} ===")
-        entry: dict[str, Any] = {
-            "name": name,
-            "kind": kind,
-            "status": "running",
-            "entrant_a": entrant_a,
-            "entrant_b": entrant_b,
-        }
-        manifest["experiments"].append(entry)
-        save_manifest()
-
-        try:
             if not is_strength_fixture:
                 config_a = configs[entrant_a]
                 config_b = configs[entrant_b]
@@ -1601,9 +1548,11 @@ def run_suite(args: argparse.Namespace) -> Path:
                     rollout_epsilon_b=config_b["rollout_epsilon"],
                     max_tree_nodes_a=config_a["max_tree_nodes"],
                     max_tree_nodes_b=config_b["max_tree_nodes"],
-                    seed=args.seed,
+                    seed=attempt_seed,
                 )
-                payload = json.loads(summary_path.read_text(encoding="utf-8"))
+                payload = json.loads(
+                    summary_path.read_text(encoding="utf-8")
+                )
                 overall = payload.get("overall", {})
                 a_wins = int(overall.get("candidate_a_wins", 0))
                 b_wins = int(overall.get("candidate_b_wins", 0))
@@ -1614,7 +1563,9 @@ def run_suite(args: argparse.Namespace) -> Path:
                 a_ci95 = [low, high]
             else:
                 ismcts_name = (
-                    entrant_b if entrant_a == "alpha-beta" else entrant_a
+                    entrant_b
+                    if entrant_a == "alpha-beta"
+                    else entrant_a
                 )
                 config = configs[ismcts_name]
                 summary_path = benchmark_strength(
@@ -1631,9 +1582,11 @@ def run_suite(args: argparse.Namespace) -> Path:
                     rollout_epsilon=config["rollout_epsilon"],
                     max_tree_nodes=config["max_tree_nodes"],
                     time_budget_seconds=args.time_budget_seconds,
-                    seed=args.seed,
+                    seed=attempt_seed,
                 )
-                payload = json.loads(summary_path.read_text(encoding="utf-8"))
+                payload = json.loads(
+                    summary_path.read_text(encoding="utf-8")
+                )
                 overall = payload.get("overall", {})
                 mcts_wins = int(overall.get("mcts_wins", 0))
                 alpha_wins = int(overall.get("alpha_beta_wins", 0))
@@ -1652,83 +1605,231 @@ def run_suite(args: argparse.Namespace) -> Path:
                     a_ci95 = [low, high]
 
             total_games = a_wins + b_wins
-            a_rate = a_wins / total_games if total_games else None
-            winner = record_result(
-                entrant_a,
-                entrant_b,
-                a_wins,
-                b_wins,
-            )
-            entry.update({
-                "status": "passed",
+            attempts.append({
+                "seed": attempt_seed,
                 "summary": str(summary_path.relative_to(ROOT)),
-                "winner": winner,
-                "result": {
-                    "a_wins": a_wins,
-                    "b_wins": b_wins,
-                    "games": total_games,
-                    "a_win_rate": a_rate,
-                    "a_ci95": a_ci95,
-                },
-                "resources": payload.get("resources", {}),
+                "a_wins": a_wins,
+                "b_wins": b_wins,
+                "games": total_games,
+                "a_win_rate": (
+                    a_wins / total_games
+                    if total_games
+                    else None
+                ),
+                "a_ci95": a_ci95,
             })
-        except ExperimentSkipped:
-            entry.update({"status": "skipped"})
-            print(f"SKIPPED: {name}")
-        except (Exception, SystemExit) as exc:
-            entry.update({
-                "status": "failed",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
-            print(f"EXPERIMENT FAILED: {name}: {exc}")
-            if args.stop_on_error:
-                save_manifest()
-                raise
-        save_manifest()
+            last_payload = payload
 
-    def standing_key(row: dict[str, Any]) -> tuple[Any, ...]:
-        games = int(row["games_for"]) + int(row["games_against"])
-        rate = row["games_for"] / games if games else 0.0
-        differential = row["games_for"] - row["games_against"]
+            if a_wins > b_wins:
+                return (
+                    entrant_a,
+                    entrant_b,
+                    attempts,
+                    "game-result",
+                    last_payload,
+                )
+            if b_wins > a_wins:
+                return (
+                    entrant_b,
+                    entrant_a,
+                    attempts,
+                    "game-result",
+                    last_payload,
+                )
+
+            if attempt + 1 < max_attempts:
+                print(
+                    f"TIED: {entrant_a} {a_wins}-{b_wins} "
+                    f"{entrant_b}; replaying fixture"
+                )
+
+        winner = min(
+            (entrant_a, entrant_b),
+            key=lambda name: seed_rank[name],
+        )
+        loser = entrant_b if winner == entrant_a else entrant_a
         return (
-            -float(row["points"]),
-            -int(differential),
-            -float(rate),
-            str(row["name"]),
+            winner,
+            loser,
+            attempts,
+            "seed-order-fallback-after-repeated-ties",
+            last_payload,
         )
 
-    standings_rows = []
-    for row in standings.values():
-        games = int(row["games_for"]) + int(row["games_against"])
-        standings_rows.append({
-            **row,
-            "game_difference": row["games_for"] - row["games_against"],
-            "game_win_rate": row["games_for"] / games if games else None,
-        })
-    standings_rows.sort(key=standing_key)
-
-    tournament_champion = None
-    if standings_rows:
-        lead = standings_rows[0]
-        leaders = [
-            row
-            for row in standings_rows
-            if (
-                row["points"] == lead["points"]
-                and row["game_difference"] == lead["game_difference"]
-                and row["game_win_rate"] == lead["game_win_rate"]
-            )
-        ]
-        if len(leaders) == 1:
-            tournament_champion = lead["name"]
-    else:
-        leaders = []
-    best_ismcts = next(
-        row["name"]
-        for row in standings_rows
-        if row["name"] != "alpha-beta"
+    print("The Long War - AI optimization knockout")
+    print("=" * 39)
+    print(
+        f"{args.games} games/deck/orientation | {args.jobs} jobs | "
+        f"{args.time_budget_seconds:g}s/searched move"
     )
-    optimized_config = dict(configs[best_ismcts])
+    print("Entrants: " + ", ".join(entrant_names))
+    print("Seeded bracket: " + " | ".join(bracket_seed_order))
+    print(
+        "Single elimination: winners advance, losers are discarded. "
+        "Exact tied fixtures are replayed with fresh seeds."
+    )
+    print("Game/balance optimization is separate.")
+
+    current_round = list(bracket_seed_order)
+    fixture_number = 0
+    round_number = 1
+
+    while len(current_round) > 1:
+        round_info: dict[str, Any] = {
+            "round": round_number,
+            "entrants": list(current_round),
+            "bye": None,
+            "fixtures": [],
+        }
+        manifest["rounds"].append(round_info)
+        save_manifest()
+
+        pair_pool = list(current_round)
+        next_round: list[str] = []
+
+        if len(pair_pool) % 2 == 1:
+            bye = pair_pool.pop(0)
+            round_info["bye"] = bye
+            next_round.append(bye)
+            print()
+            print(f"=== round {round_number}: {bye} receives the bye ===")
+
+        for pair_index in range(0, len(pair_pool), 2):
+            entrant_a = pair_pool[pair_index]
+            entrant_b = pair_pool[pair_index + 1]
+            fixture_number += 1
+            name = (
+                f"r{round_number}-"
+                f"{pair_index // 2 + 1}-"
+                f"{entrant_a}-vs-{entrant_b}"
+            )
+            is_strength_fixture = "alpha-beta" in (
+                entrant_a,
+                entrant_b,
+            )
+            kind = (
+                "strength-bench"
+                if is_strength_fixture
+                else "ismcts-match"
+            )
+
+            print()
+            print(
+                f"=== knockout {fixture_number} "
+                f"{entrant_a} vs {entrant_b} ==="
+            )
+            entry: dict[str, Any] = {
+                "name": name,
+                "kind": kind,
+                "round": round_number,
+                "status": "running",
+                "entrant_a": entrant_a,
+                "entrant_b": entrant_b,
+            }
+            manifest["schedule"].append(name)
+            manifest["experiments"].append(entry)
+            round_info["fixtures"].append(name)
+            save_manifest()
+
+            try:
+                (
+                    winner,
+                    loser,
+                    attempts,
+                    resolution,
+                    payload,
+                ) = run_fixture(
+                    entrant_a,
+                    entrant_b,
+                    fixture_number=fixture_number,
+                )
+                status = (
+                    "passed"
+                    if resolution == "game-result"
+                    else "unresolved-tie"
+                )
+                final_attempt = attempts[-1]
+                entry.update({
+                    "status": status,
+                    "winner": winner,
+                    "loser": loser,
+                    "resolution": resolution,
+                    "attempts": attempts,
+                    "result": {
+                        "a_wins": final_attempt["a_wins"],
+                        "b_wins": final_attempt["b_wins"],
+                        "games": final_attempt["games"],
+                        "a_win_rate": final_attempt["a_win_rate"],
+                        "a_ci95": final_attempt["a_ci95"],
+                    },
+                    "summary": final_attempt["summary"],
+                    "resources": payload.get("resources", {}),
+                })
+            except ExperimentSkipped:
+                winner = min(
+                    (entrant_a, entrant_b),
+                    key=lambda entrant: seed_rank[entrant],
+                )
+                loser = (
+                    entrant_b
+                    if winner == entrant_a
+                    else entrant_a
+                )
+                entry.update({
+                    "status": "skipped",
+                    "winner": winner,
+                    "loser": loser,
+                    "resolution": "seed-order-fallback",
+                    "attempts": [],
+                })
+                print(
+                    f"SKIPPED: {name}; provisional advance={winner}"
+                )
+            except (Exception, SystemExit) as exc:
+                winner = min(
+                    (entrant_a, entrant_b),
+                    key=lambda entrant: seed_rank[entrant],
+                )
+                loser = (
+                    entrant_b
+                    if winner == entrant_a
+                    else entrant_a
+                )
+                entry.update({
+                    "status": "failed",
+                    "winner": winner,
+                    "loser": loser,
+                    "resolution": "seed-order-fallback",
+                    "attempts": [],
+                    "error": f"{type(exc).__name__}: {exc}",
+                })
+                print(
+                    f"EXPERIMENT FAILED: {name}: {exc}; "
+                    f"provisional advance={winner}"
+                )
+                if args.stop_on_error:
+                    save_manifest()
+                    raise
+
+            next_round.append(entry["winner"])
+            print(
+                f"ADVANCES: {entry['winner']} "
+                f"| eliminated: {entry['loser']}"
+            )
+            save_manifest()
+
+        current_round = next_round
+        round_number += 1
+
+    tournament_champion = current_round[0]
+    final_fixture = manifest["experiments"][-1]
+    tournament_runner_up = final_fixture["loser"]
+    optimized_ismcts = (
+        tournament_champion
+        if tournament_champion != "alpha-beta"
+        else tournament_runner_up
+    )
+    optimized_config = dict(configs[optimized_ismcts])
 
     failures = [
         row["name"]
@@ -1740,111 +1841,95 @@ def run_suite(args: argparse.Namespace) -> Path:
         for row in manifest["experiments"]
         if row["status"] == "skipped"
     ]
+    unresolved_ties = [
+        row["name"]
+        for row in manifest["experiments"]
+        if row["status"] == "unresolved-tie"
+    ]
     incomplete = [
         row["name"]
         for row in manifest["experiments"]
         if row["status"] != "passed"
     ]
+    elimination_order = [
+        row["loser"]
+        for row in manifest["experiments"]
+    ]
 
     manifest["completed"] = True
     manifest["failures"] = failures
     manifest["skipped"] = skipped
-    manifest["standings"] = standings_rows
-    manifest["tournament_leaders"] = [row["name"] for row in leaders]
+    manifest["unresolved_ties"] = unresolved_ties
+    manifest["elimination_order"] = elimination_order
     manifest["tournament_champion"] = tournament_champion
-    manifest["optimized_ismcts"] = best_ismcts
+    manifest["tournament_runner_up"] = tournament_runner_up
+    manifest["optimized_ismcts"] = optimized_ismcts
     manifest["optimized_config"] = optimized_config
-
-    direct_alpha = next(
-        (
-            row
-            for row in manifest["experiments"]
-            if {
-                row["entrant_a"],
-                row["entrant_b"],
-            } == {best_ismcts, "alpha-beta"}
-        ),
-        None,
-    )
-    optimized_vs_alpha_ci: list[float | None] = [None, None]
-    if direct_alpha and direct_alpha.get("status") == "passed":
-        low, high = direct_alpha["result"].get("a_ci95", [None, None])
-        if direct_alpha["entrant_a"] == best_ismcts:
-            optimized_vs_alpha_ci = [low, high]
-        else:
-            optimized_vs_alpha_ci = [
-                None if high is None else 1.0 - float(high),
-                None if low is None else 1.0 - float(low),
-            ]
 
     blockers: list[str] = []
     warnings: list[str] = []
     if incomplete:
-        blockers.append("AI optimization tournament incomplete")
+        blockers.append("AI optimization knockout incomplete")
     if skipped:
-        warnings.append("manually skipped fixtures: " + ", ".join(skipped))
-    low, high = optimized_vs_alpha_ci
-    if (
-        direct_alpha is None
-        or direct_alpha.get("status") != "passed"
-    ):
-        blockers.append(
-            "optimized ISMCTS vs alpha-beta tournament fixture did not complete"
-        )
-    elif high is not None and float(high) < 0.5:
-        blockers.append(
-            "optimized ISMCTS is significantly weaker than alpha-beta"
-        )
-    if low is not None and float(low) > 0.5:
         warnings.append(
-            "optimized ISMCTS is significantly stronger than alpha-beta"
+            "manually skipped fixtures used provisional seed-order advancement: "
+            + ", ".join(skipped)
+        )
+    if unresolved_ties:
+        warnings.append(
+            "repeated tied fixtures used provisional seed-order advancement: "
+            + ", ".join(unresolved_ties)
         )
     if tournament_champion == "alpha-beta":
-        warnings.append("alpha-beta is the tournament champion")
+        warnings.append(
+            "alpha-beta won the AI optimization knockout; "
+            f"best surviving ISMCTS was {optimized_ismcts}"
+        )
 
     manifest["decision_readiness"] = {
         "ready": not blockers,
         "blockers": blockers,
         "warnings": warnings,
         "tournament_incomplete": incomplete,
-        "tournament_leaders": [row["name"] for row in leaders],
         "tournament_champion": tournament_champion,
-        "optimized_ismcts": best_ismcts,
+        "tournament_runner_up": tournament_runner_up,
+        "optimized_ismcts": optimized_ismcts,
         "optimized_config": optimized_config,
-        "optimized_ismcts_vs_alpha_beta_ci95": optimized_vs_alpha_ci,
         "policy": (
-            "AI search optimization is a round-robin tournament across the "
-            "baseline ISMCTS configuration, the five predeclared structural "
-            "ISMCTS variants, and alpha-beta. Rank by fixture points, then "
-            "game differential and game win rate. The highest-ranked ISMCTS "
-            "entrant is the optimized search policy. Game/balance optimization "
-            "remains a separate flow."
+            "AI search optimization is a seeded single-elimination knockout "
+            "across the baseline ISMCTS configuration, the five predeclared "
+            "structural ISMCTS variants, and alpha-beta. Winners advance and "
+            "losers are discarded. Exact tied fixtures replay with fresh "
+            "seeds. Game/balance optimization remains a separate flow."
         ),
     }
     save_manifest()
 
     print()
-    print("AI optimization tournament complete")
-    print("===================================")
-    print("Pts  W-D-L  Game +/-   Win%   Entrant")
-    for row in standings_rows:
-        rate = row["game_win_rate"]
-        rate_text = f"{100.0 * rate:5.1f}%" if rate is not None else "  n/a"
-        print(
-            f"{row['points']:>3.0f}  "
-            f"{row['wins']}-{row['draws']}-{row['losses']}    "
-            f"{row['game_difference']:>+6}   "
-            f"{rate_text}  {row['name']}"
-        )
-    if tournament_champion is None:
-        print("Tournament leaders: " + ", ".join(row["name"] for row in leaders))
-    else:
-        print(f"Tournament champion: {tournament_champion}")
-    print(f"Optimized ISMCTS: {best_ismcts}")
-    print("Optimized configuration: " + json.dumps(
-        optimized_config,
-        sort_keys=True,
-    ))
+    print("AI optimization knockout complete")
+    print("=================================")
+    for round_info in manifest["rounds"]:
+        print(f"Round {round_info['round']}:")
+        if round_info["bye"] is not None:
+            print(f"  BYE      {round_info['bye']}")
+        for fixture_name in round_info["fixtures"]:
+            row = next(
+                experiment
+                for experiment in manifest["experiments"]
+                if experiment["name"] == fixture_name
+            )
+            print(
+                f"  {row['winner']} def. {row['loser']} "
+                f"({row['resolution']})"
+            )
+
+    print(f"Tournament champion: {tournament_champion}")
+    print(f"Tournament runner-up: {tournament_runner_up}")
+    print(f"Optimized ISMCTS: {optimized_ismcts}")
+    print(
+        "Optimized configuration: "
+        + json.dumps(optimized_config, sort_keys=True)
+    )
 
     readiness = manifest["decision_readiness"]
     print()
@@ -1971,7 +2056,7 @@ def parse_args() -> argparse.Namespace:
 
     suite = sub.add_parser(
         "suite",
-        help="Run the canonical round-robin AI optimization tournament.",
+        help="Run the canonical seeded knockout AI optimization tournament.",
     )
     suite.add_argument(
         "--games",
