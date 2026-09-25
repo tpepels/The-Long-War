@@ -334,19 +334,17 @@ def make_scratch(int max_depth):
 
 
 def stable_information_id_from_fast_key(FastEngine engine, bytes key):
-    """Translate the current binary key to the public stable policy id.
-
-    This runs only when exporting/looking up a policy, never inside traversal.
-    """
+    """Translate the current binary key to the public stable policy id."""
     data = key
     i = 0
     version = data[i]
     i += 1
-    if version != 4:
+    if version != 5:
         raise ValueError(f"Unsupported fast information-key version: {version}")
 
     card_ids = engine.card_ids
     n_cards = len(card_ids)
+
     player = data[i]
     i += 1
     phase_code = data[i] - 1
@@ -356,13 +354,9 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i += 2
     active_player = data[i] - 1
     i += 1
-    chooser_raw = data[i] - 1
-    i += 1
-    chooser = None if chooser_raw < 0 else chooser_raw
 
-    victories = [data[i], data[i + 2]]
-    passed = [bool(data[i + 1]), bool(data[i + 3])]
-    i += 4
+    passed = [bool(data[i]), bool(data[i + 1])]
+    i += 2
 
     pass_len = data[i]
     i += 1
@@ -373,28 +367,26 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
 
     discarded_this_battle = []
     command = []
-    free_cycle = []
     hero_used = []
     operations_this_battle = []
     for _ in range(2):
         discarded_this_battle.append(data[i])
         command.append(data[i + 1] | (data[i + 2] << 8))
-        free_cycle.append(bool(data[i + 3]))
-        hero_used.append(bool(data[i + 4]))
-        operations_this_battle.append(data[i + 5] | (data[i + 6] << 8))
-        i += 7
-    cleanup_pending = bool(data[i])
-    cleanup_starter_raw = data[i + 1] - 1
-    cleanup_chooser_raw = data[i + 2] - 1
-    i += 3
-    cleanup_next_starter = None if cleanup_starter_raw < 0 else cleanup_starter_raw
-    cleanup_next_chooser = None if cleanup_chooser_raw < 0 else cleanup_chooser_raw
+        hero_used.append(bool(data[i + 3]))
+        operations_this_battle.append(data[i + 4] | (data[i + 5] << 8))
+        i += 6
+
+    pending_draw_raw = data[i] - 1
+    i += 1
+    pending_draw_discard_for = (
+        None if pending_draw_raw < 0 else pending_draw_raw
+    )
 
     board = [[], []]
     for owner in range(2):
-        for local in range(6):
-            subject_code = data[i] - 1
-            link_code = data[i + 1] - 1
+        for local in range(8):
+            force_code = data[i] - 1
+            bond_code = data[i + 1] - 1
             name_code = data[i + 2] - 1
             temporary = data[i + 3] | (data[i + 4] << 8)
             if temporary >= 32768:
@@ -403,40 +395,29 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             board[owner].append([
                 local // 2,
                 "front" if (local & 1) == 0 else "rear",
-                None if subject_code < 0 else card_ids[subject_code],
-                None if link_code < 0 else card_ids[link_code],
+                None if force_code < 0 else card_ids[force_code],
+                None if bond_code < 0 else card_ids[bond_code],
                 None if name_code < 0 else card_ids[name_code],
                 temporary,
             ])
 
-    schemes = [[], []]
+    stories = [[], []]
     for owner in range(2):
-        for _front in range(3):
-            card_code = data[i]
-            revealed = bool(data[i + 1])
-            i += 2
-            if card_code == 0:
-                schemes[owner].append(None)
-            elif card_code == 255:
-                schemes[owner].append(["hidden", False])
-            else:
-                schemes[owner].append([card_ids[card_code - 1], revealed])
+        story_count = data[i]
+        i += 1
+        for _ in range(story_count):
+            stories[owner].append(card_ids[data[i] - 1])
+            i += 1
 
     stratagems = []
     for owner in range(2):
         card_code = data[i]
-        revealed = bool(data[i + 1])
-        i += 2
-        if card_code == 0:
-            stratagems.append(None)
-        elif card_code == 255:
-            stratagems.append(["hidden", False])
-        else:
-            stratagems.append([card_ids[card_code - 1], revealed])
+        i += 1
+        stratagems.append(
+            None if card_code == 0 else card_ids[card_code - 1]
+        )
 
     stratagem_used = [bool(data[i]), bool(data[i + 1])]
-    i += 2
-    draw_used = [bool(data[i]), bool(data[i + 1])]
     i += 2
 
     own_hand_counts = []
@@ -492,23 +473,17 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "phase": phase,
         "battle": battle,
         "active_player": active_player,
-        "chooser": chooser,
-        "victories": victories,
         "passed": passed,
         "pass_order": pass_order,
         "discarded_this_battle": discarded_this_battle,
         "command": command,
-        "free_cycle": free_cycle,
         "operations_this_battle": operations_this_battle,
-        "cleanup_pending": cleanup_pending,
-        "cleanup_next_starter": cleanup_next_starter,
-        "cleanup_next_chooser": cleanup_next_chooser,
+        "pending_draw_discard_for": pending_draw_discard_for,
         "board": board,
-        "schemes": schemes,
+        "stories": stories,
         "stratagems": stratagems,
         "stratagem_used": stratagem_used,
         "hero_used": hero_used,
-        "draw_used": draw_used,
         "own_hand": own_hand_counts,
         "own_deck": own_deck_counts,
         "own_discard": own_discard,
