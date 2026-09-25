@@ -258,7 +258,7 @@ def test_skip_key_reader_restores_terminal_state_on_exception(monkeypatch):
     assert restored == [(17, runner.termios.TCSADRAIN, saved)]
 
 
-def test_ai_optimization_suite_is_a_round_robin_tournament(
+def test_ai_optimization_suite_is_seeded_knockout(
     tmp_path,
     monkeypatch,
 ):
@@ -276,11 +276,11 @@ def test_ai_optimization_suite_is_a_round_robin_tournament(
         path.write_text(
             json.dumps({
                 "overall": {
-                    "candidate_a_wins": 96,
-                    "candidate_b_wins": 96,
+                    "candidate_a_wins": 120,
+                    "candidate_b_wins": 72,
                     "games": 192,
-                    "candidate_a_win_rate": 0.5,
-                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                    "candidate_a_win_rate": 0.625,
+                    "paired_uncertainty": {"ci95": [0.56, 0.69]},
                 },
                 "resources": {},
             }),
@@ -294,11 +294,11 @@ def test_ai_optimization_suite_is_a_round_robin_tournament(
         path.write_text(
             json.dumps({
                 "overall": {
-                    "mcts_wins": 96,
-                    "alpha_beta_wins": 96,
+                    "mcts_wins": 120,
+                    "alpha_beta_wins": 72,
                     "games": 192,
-                    "mcts_win_rate": 0.5,
-                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                    "mcts_win_rate": 0.625,
+                    "paired_uncertainty": {"ci95": [0.56, 0.69]},
                 },
                 "resources": {},
             }),
@@ -312,7 +312,7 @@ def test_ai_optimization_suite_is_a_round_robin_tournament(
     monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
     monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
 
-    args = Namespace(
+    manifest_path = runner.run_suite(Namespace(
         games=24,
         jobs=8,
         iterations=100_000,
@@ -320,8 +320,7 @@ def test_ai_optimization_suite_is_a_round_robin_tournament(
         time_budget_seconds=2.0,
         seed=26092400,
         stop_on_error=False,
-    )
-    manifest_path = runner.run_suite(args)
+    ))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     entrants = {
@@ -334,31 +333,42 @@ def test_ai_optimization_suite_is_a_round_robin_tournament(
         "alpha-beta",
     }
     assert set(manifest["tournament_entrants"]) == entrants
-    assert len(manifest["experiments"]) == 21
-    assert len(match_calls) == 15
-    assert len(strength_calls) == 6
+    assert set(manifest["bracket_seed_order"]) == entrants
+    assert len(manifest["bracket_seed_order"]) == 7
+    assert len(manifest["rounds"]) == 3
+    assert len(manifest["experiments"]) == 6
+    assert len(match_calls) + len(strength_calls) == 6
     assert all(row["status"] == "passed" for row in manifest["experiments"])
 
-    fixtures = {
-        frozenset((row["entrant_a"], row["entrant_b"]))
-        for row in manifest["experiments"]
-    }
-    assert len(fixtures) == 21
-    assert all(len(pair) == 2 for pair in fixtures)
-    assert manifest["schedule"] == [
-        row["name"] for row in manifest["experiments"]
-    ]
-    assert all(row["matches"] == 6 for row in manifest["standings"])
-    assert sum(row["points"] for row in manifest["standings"]) == pytest.approx(42.0)
+    first_round = manifest["rounds"][0]
+    assert len(first_round["entrants"]) == 7
+    assert first_round["bye"] in entrants
+    assert len(first_round["fixtures"]) == 3
+
+    for round_index, round_info in enumerate(manifest["rounds"][:-1]):
+        following = set(manifest["rounds"][round_index + 1]["entrants"])
+        if round_info["bye"] is not None:
+            assert round_info["bye"] in following
+        for fixture_name in round_info["fixtures"]:
+            fixture = next(
+                row
+                for row in manifest["experiments"]
+                if row["name"] == fixture_name
+            )
+            assert fixture["winner"] in following
+            assert fixture["loser"] not in following
+
+    assert manifest["tournament_champion"] in entrants
     assert manifest["optimized_ismcts"] in entrants - {"alpha-beta"}
     assert manifest["decision_readiness"]["ready"] is True
 
 
-def test_tournament_selects_best_ismcts_and_includes_alpha_beta_results(
+def test_knockout_winners_progress_and_dominant_greedy_wins(
     tmp_path,
     monkeypatch,
 ):
     suite_dir = tmp_path / "suite"
+    match_calls = []
     strength_calls = []
 
     def fake_artifact_directory(_base, _identity):
@@ -366,15 +376,16 @@ def test_tournament_selects_best_ismcts_and_includes_alpha_beta_results(
         return suite_dir
 
     def fake_match(**kwargs):
+        match_calls.append(dict(kwargs))
         a_greedy = kwargs["rollout_policy_a"] == "greedy"
         b_greedy = kwargs["rollout_policy_b"] == "greedy"
         if a_greedy:
-            a_wins, b_wins = 120, 72
+            a_wins, b_wins = 130, 62
         elif b_greedy:
-            a_wins, b_wins = 72, 120
+            a_wins, b_wins = 62, 130
         else:
-            a_wins, b_wins = 96, 96
-        path = tmp_path / f"match-{len(list(tmp_path.glob('match-*.json')))}.json"
+            a_wins, b_wins = 110, 82
+        path = tmp_path / f"match-{len(match_calls)}.json"
         path.write_text(
             json.dumps({
                 "overall": {
@@ -382,10 +393,7 @@ def test_tournament_selects_best_ismcts_and_includes_alpha_beta_results(
                     "candidate_b_wins": b_wins,
                     "games": a_wins + b_wins,
                     "candidate_a_win_rate": a_wins / (a_wins + b_wins),
-                    "paired_uncertainty": {
-                        "ci95": [0.58, 0.67] if a_greedy
-                        else ([0.33, 0.42] if b_greedy else [0.44, 0.56]),
-                    },
+                    "paired_uncertainty": {"ci95": [0.55, 0.70]},
                 },
                 "resources": {},
             }),
@@ -396,7 +404,7 @@ def test_tournament_selects_best_ismcts_and_includes_alpha_beta_results(
     def fake_strength(**kwargs):
         strength_calls.append(dict(kwargs))
         greedy = kwargs["rollout_policy"] == "greedy"
-        mcts_wins, alpha_wins = (120, 72) if greedy else (96, 96)
+        mcts_wins, alpha_wins = (130, 62) if greedy else (82, 110)
         path = tmp_path / f"strength-{len(strength_calls)}.json"
         path.write_text(
             json.dumps({
@@ -405,9 +413,7 @@ def test_tournament_selects_best_ismcts_and_includes_alpha_beta_results(
                     "alpha_beta_wins": alpha_wins,
                     "games": mcts_wins + alpha_wins,
                     "mcts_win_rate": mcts_wins / (mcts_wins + alpha_wins),
-                    "paired_uncertainty": {
-                        "ci95": [0.58, 0.67] if greedy else [0.44, 0.56],
-                    },
+                    "paired_uncertainty": {"ci95": [0.55, 0.70]},
                 },
                 "resources": {},
             }),
@@ -432,53 +438,123 @@ def test_tournament_selects_best_ismcts_and_includes_alpha_beta_results(
     ))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
+    assert manifest["tournament_champion"] == "rollout-greedy"
     assert manifest["optimized_ismcts"] == "rollout-greedy"
     assert manifest["optimized_config"]["rollout_policy"] == "greedy"
-    assert manifest["tournament_champion"] == "rollout-greedy"
-    greedy = next(
-        row for row in manifest["standings"]
-        if row["name"] == "rollout-greedy"
-    )
-    assert greedy["wins"] == 6
-    assert greedy["points"] == pytest.approx(18.0)
 
-    alpha_fixture = next(
-        row for row in manifest["experiments"]
-        if {
-            row["entrant_a"],
-            row["entrant_b"],
-        } == {"rollout-greedy", "alpha-beta"}
-    )
-    assert alpha_fixture["status"] == "passed"
-    assert alpha_fixture["winner"] == "rollout-greedy"
+    greedy_fixtures = [
+        row
+        for row in manifest["experiments"]
+        if "rollout-greedy" in (row["entrant_a"], row["entrant_b"])
+    ]
+    assert greedy_fixtures
+    assert all(row["winner"] == "rollout-greedy" for row in greedy_fixtures)
     assert manifest["decision_readiness"]["ready"] is True
 
 
-def test_tournament_skip_continues_but_marks_ai_optimization_incomplete(
+def test_knockout_exact_tie_replays_fixture_with_new_seed(
     tmp_path,
     monkeypatch,
 ):
     suite_dir = tmp_path / "suite"
-    match_calls = 0
+    calls = 0
+
+    def fake_artifact_directory(_base, _identity):
+        suite_dir.mkdir(parents=True, exist_ok=True)
+        return suite_dir
+
+    def fake_match(**kwargs):
+        nonlocal calls
+        calls += 1
+        tied = calls == 1
+        a_wins, b_wins = (96, 96) if tied else (110, 82)
+        path = tmp_path / f"match-{calls}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "candidate_a_wins": a_wins,
+                    "candidate_b_wins": b_wins,
+                    "games": a_wins + b_wins,
+                    "candidate_a_win_rate": a_wins / (a_wins + b_wins),
+                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    def fake_strength(**kwargs):
+        path = tmp_path / f"strength-{len(list(tmp_path.glob('strength-*.json')))}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "mcts_wins": 110,
+                    "alpha_beta_wins": 82,
+                    "games": 192,
+                    "mcts_win_rate": 110 / 192,
+                    "paired_uncertainty": {"ci95": [0.51, 0.64]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
+    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
+    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
+    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
+
+    manifest_path = runner.run_suite(Namespace(
+        games=24,
+        jobs=8,
+        iterations=100_000,
+        alpha_nodes=20_000,
+        time_budget_seconds=2.0,
+        seed=26092400,
+        stop_on_error=False,
+    ))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    replayed = [
+        row for row in manifest["experiments"]
+        if len(row.get("attempts", [])) > 1
+    ]
+    assert len(replayed) == 1
+    assert replayed[0]["attempts"][0]["a_wins"] == 96
+    assert replayed[0]["attempts"][0]["b_wins"] == 96
+    assert replayed[0]["attempts"][1]["seed"] != replayed[0]["attempts"][0]["seed"]
+    assert replayed[0]["winner"] is not None
+    assert manifest["decision_readiness"]["ready"] is True
+
+
+def test_knockout_skip_continues_with_fallback_but_marks_not_ready(
+    tmp_path,
+    monkeypatch,
+):
+    suite_dir = tmp_path / "suite"
+    calls = 0
 
     def fake_artifact_directory(_base, _identity):
         suite_dir.mkdir(parents=True, exist_ok=True)
         return suite_dir
 
     def fake_match(**_kwargs):
-        nonlocal match_calls
-        match_calls += 1
-        if match_calls == 2:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
             raise runner.ExperimentSkipped("test skip")
-        path = tmp_path / f"match-{match_calls}.json"
+        path = tmp_path / f"match-{calls}.json"
         path.write_text(
             json.dumps({
                 "overall": {
-                    "candidate_a_wins": 96,
-                    "candidate_b_wins": 96,
+                    "candidate_a_wins": 110,
+                    "candidate_b_wins": 82,
                     "games": 192,
-                    "candidate_a_win_rate": 0.5,
-                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                    "candidate_a_win_rate": 110 / 192,
+                    "paired_uncertainty": {"ci95": [0.51, 0.64]},
                 },
                 "resources": {},
             }),
@@ -491,11 +567,11 @@ def test_tournament_skip_continues_but_marks_ai_optimization_incomplete(
         path.write_text(
             json.dumps({
                 "overall": {
-                    "mcts_wins": 96,
-                    "alpha_beta_wins": 96,
+                    "mcts_wins": 110,
+                    "alpha_beta_wins": 82,
                     "games": 192,
-                    "mcts_win_rate": 0.5,
-                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                    "mcts_win_rate": 110 / 192,
+                    "paired_uncertainty": {"ci95": [0.51, 0.64]},
                 },
                 "resources": {},
             }),
@@ -520,13 +596,16 @@ def test_tournament_skip_continues_but_marks_ai_optimization_incomplete(
     ))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    assert len(manifest["experiments"]) == 21
-    assert len(manifest["skipped"]) == 1
-    assert manifest["failures"] == []
+    assert len(manifest["experiments"]) == 6
+    skipped = [row for row in manifest["experiments"] if row["status"] == "skipped"]
+    assert len(skipped) == 1
+    assert skipped[0]["resolution"] == "seed-order-fallback"
+    assert skipped[0]["winner"] is not None
     assert manifest["decision_readiness"]["ready"] is False
-    assert "AI optimization tournament incomplete" in (
+    assert "AI optimization knockout incomplete" in (
         manifest["decision_readiness"]["blockers"]
     )
+
 
 
 def test_strength_benchmark_reports_live_progress():
