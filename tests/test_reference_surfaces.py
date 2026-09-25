@@ -27,8 +27,8 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "no standard Cycle operation" in rules
     assert "gain **10 Command**" in rules
     assert "start of every turn" in rules
-    assert "one final operation" in rules
-    assert "first passer starts" in rules
+    assert "two consecutive Passes" in rules
+    assert "first of the two consecutive Passes" in rules
     assert "draw 1 card automatically" in text("web/playmat.html").lower()
     assert "reshuffle discard only if deck empties" in text("web/playmat.html")
 
@@ -49,7 +49,7 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     assert "Battlefield & turn order" in page
     assert "WHERE CARDS GO" in page
     assert "ROLE BONUSES" in page
-    assert "AFTER THE FINAL OPERATION" in page
+    assert "AFTER TWO CONSECUTIVE PASSES" in page
     assert "BETWEEN BATTLES" in page
     assert "Hero" in page
     assert "only 1 Hero per side per Battle" in page
