@@ -211,3 +211,27 @@ def test_ismcts_wall_clock_budget_reports_actual_work() -> None:
     assert int(info["ismcts_iterations"]) >= 256
     assert int(info["search_nodes"]) == int(info["ismcts_iterations"])
     assert float(info["decision_seconds"]) > 0.0
+
+
+def test_ismcts_release_search_memory_drops_native_tree() -> None:
+    engine, deck, priors = setup()
+    state = engine.new_game(deck, deck, seed=8170, first_player=0)
+    agent = ISMCTSAgent(
+        engine,
+        8171,
+        priors=priors,
+        belief_samples=2,
+        iterations=40,
+        rollout_depth=2,
+        reuse_tree=True,
+    )
+
+    agent.choose(engine, state)
+    assert agent._tree is not None
+    assert agent._tree.size() > 0
+    assert agent.last_decision
+
+    agent.release_search_memory()
+
+    assert agent._tree is None
+    assert agent.last_decision == {}
