@@ -143,7 +143,7 @@ def simulate_games(
     agent_overrides: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
     agent_labels: tuple[str, str] | None = None,
     agent_seed_offsets: tuple[int, int] | None = None,
-    progress_callback: Callable[[int, int], None] | None = None,
+    progress_callback: Callable[[int, int, tuple[int, int]], None] | None = None,
 ) -> SimulationReport:
     if games <= 0:
         raise ValueError("games must be positive")
@@ -285,7 +285,7 @@ def simulate_games(
         total_turns += action_count
         maximum_turns = max(maximum_turns, action_count)
         if progress_callback is not None:
-            progress_callback(game_index + 1, games)
+            progress_callback(game_index + 1, games, (wins[0], wins[1]))
 
     telemetry_summary = telemetry.summary()
     telemetry_summary["human_flow"] = human_flow.summary()
