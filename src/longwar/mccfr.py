@@ -52,44 +52,27 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
                 [
                     int(position.front),
                     position.rank.value,
-                    slot.subject,
-                    slot.link,
+                    slot.force,
+                    slot.bond,
                     slot.name,
                     slot.temporary_strength,
                 ]
             )
 
-    schemes: list[list[Any]] = [[], []]
-    for owner in range(2):
-        for front in Front:
-            scheme = state.scheme(owner, front)
-            if scheme is None:
-                schemes[owner].append(None)
-            elif owner == player or scheme.revealed:
-                schemes[owner].append([scheme.card_id, scheme.revealed])
-            else:
-                schemes[owner].append(["hidden", False])
-
-    stratagems: list[Any] = []
-    for owner in range(2):
-        stratagem = state.stratagem(owner)
-        if stratagem is None:
-            stratagems.append(None)
-        elif owner == player or stratagem.revealed:
-            stratagems.append([stratagem.card_id, stratagem.revealed])
-        else:
-            stratagems.append(["hidden", False])
+    stories = [
+        [story.card_id for story in state.stories[owner]]
+        for owner in range(2)
+    ]
+    stratagems = [
+        None if state.stratagems[owner] is None else state.stratagems[owner].card_id
+        for owner in range(2)
+    ]
 
     return {
         "viewer": player,
         "phase": state.phase.value,
         "battle": state.battle,
         "active_player": state.active_player,
-        "chooser": state.chooser,
-        "victories": [
-            state.players[0].victories,
-            state.players[1].victories,
-        ],
         "passed": [
             state.players[0].passed,
             state.players[1].passed,
@@ -100,20 +83,13 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
             state.players[0].command,
             state.players[1].command,
         ],
-        "free_cycle": [
-            state.players[0].free_cycle,
-            state.players[1].free_cycle,
-        ],
         "operations_this_battle": list(state.operations_this_battle),
-        "cleanup_pending": state.cleanup_pending,
-        "cleanup_next_starter": state.cleanup_next_starter,
-        "cleanup_next_chooser": state.cleanup_next_chooser,
+        "pending_draw_discard_for": state.pending_draw_discard_for,
         "board": board,
-        "schemes": schemes,
+        "stories": stories,
         "stratagems": stratagems,
         "stratagem_used": list(state.stratagem_used),
         "hero_used": list(state.hero_used),
-        "draw_used": list(state.draw_used),
         "own_hand": _counter_view(state.players[player].hand),
         "own_deck": _counter_view(state.players[player].deck),
         "own_discard": list(state.players[player].discard),
@@ -124,7 +100,6 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
         "opponent_deck_count": len(state.players[opponent].deck),
         "opponent_discard": list(state.players[opponent].discard),
     }
-
 
 def _information_set_id_from_key(key: dict[str, Any]) -> str:
     payload = json.dumps(
