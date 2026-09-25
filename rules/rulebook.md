@@ -49,7 +49,7 @@ After the first Pass and the opponent's final operation, compare Strength in eac
 - A tied Front causes no Retreat and no attrition.
 - Losing a Front pushes persistent formations backward and reduces the Command you recover.
 
-The war continues from Battle to Battle until **Command Collapse** ends it. Battle victories are not counted separately.
+The war continues from Battle to Battle until **Command Collapse** ends it. Battles are not scored as wins or losses; only the four Front results carry forward.
 
 <div class="rulebook-big-rule">
   <span>4</span><small>Fronts in every Battle</small>
@@ -476,7 +476,7 @@ For each Front:
 2. apply any Front-level modifiers;
 3. compare the two totals.
 
-Equal Strength cancels completely: the Front is tied and nothing happens there.
+If both players have equal total Strength in a Front, that Front is tied and nothing happens there.
 
 If one player has more Strength, that player wins the Front and the other player loses it.
 
@@ -858,7 +858,7 @@ A printed identity property such as *Human*, *God*, *King*, *Ship*, or *Strongho
 Your persistent war budget, tracked on a d20. Start at 20. Command spent on cards and Maneuver carries forward; some returns after each Battle.
 
 **Command Collapse**  
-The war-ending check after Command recovery. The current threshold is 5 Command.
+The war-ending check after Command recovery. The current threshold is 5 Command. If both players are below 5, the player with less Command loses; if they are tied, the war continues.
 
 **Deploy**  
 Place a Force onto the battlefield. A printed deployment restriction applies only when the Force enters play.
