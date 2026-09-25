@@ -6,7 +6,16 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, DEFAULT_ISMCTS_ITERATIONS
+from longwar.agents.ismcts_agent import (
+    DEFAULT_ISMCTS_BELIEF_SAMPLES,
+    DEFAULT_ISMCTS_EXPLORATION,
+    DEFAULT_ISMCTS_ITERATIONS,
+    DEFAULT_ISMCTS_MAX_TREE_NODES,
+    DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+    DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+    DEFAULT_ISMCTS_ROLLOUT_POLICY,
+)
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.rules import GameRules
@@ -109,14 +118,14 @@ def main() -> None:
         default="auto",
         help="Search backend. auto prefers the compiled Cython accelerator.",
     )
-    parser.add_argument("--ismcts-belief-samples", type=int, default=12)
+    parser.add_argument("--ismcts-belief-samples", type=int, default=DEFAULT_ISMCTS_BELIEF_SAMPLES)
     parser.add_argument("--ismcts-iterations", type=int, default=DEFAULT_ISMCTS_ITERATIONS)
     parser.add_argument(
         "--ismcts-time-budget-seconds",
         type=float,
         help="Optional wall-clock budget per non-forced ISMCTS decision.",
     )
-    parser.add_argument("--ismcts-rollout-depth", type=int, default=5)
+    parser.add_argument("--ismcts-rollout-depth", type=int, default=DEFAULT_ISMCTS_ROLLOUT_DEPTH)
     parser.add_argument("--ismcts-tree-depth-limit", type=int, default=96)
     parser.add_argument("--ismcts-exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     parser.add_argument(
@@ -141,11 +150,11 @@ def main() -> None:
             "Default is four times the iteration budget."
         ),
     )
-    parser.add_argument("--ismcts-rollout-epsilon", type=float, default=0.12)
+    parser.add_argument("--ismcts-rollout-epsilon", type=float, default=DEFAULT_ISMCTS_ROLLOUT_EPSILON)
     parser.add_argument(
         "--ismcts-rollout-policy",
         choices=("greedy", "cheap", "random"),
-        default="greedy",
+        default=DEFAULT_ISMCTS_ROLLOUT_POLICY,
     )
     parser.add_argument(
         "--hand-size",
