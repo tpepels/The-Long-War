@@ -9,7 +9,7 @@ import pytest
 
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Position, Rank
-from longwar.game.model import SchemeState, StratagemState
+from longwar.game.model import StoryState, StratagemState
 from longwar.mccfr import (
     _search_information_set_key,
     action_key,
@@ -58,12 +58,12 @@ def make_engine_and_state():
 def test_fast_information_key_preserves_exported_id() -> None:
     engine, state = make_engine_and_state()
 
-    own = state.slot(0, Position(Front.LEFT, Rank.FRONT))
-    own.subject = "the-fifty-men"
-    own.link = "followed"
+    own = state.slot(0, Position(Front.FIRST, Rank.FRONT))
+    own.force = "the-fifty-men"
+    own.bond = "followed"
     own.name = "namar"
 
-    state.schemes[0][int(Front.CENTER)] = SchemeState("the-lamps-went-dark")
+    state.stories[0].append(StoryState("the-lamps-went-dark"))
     state.stratagems[0] = StratagemState("the-tide-rose")
     state.stratagem_used[0] = True
 
