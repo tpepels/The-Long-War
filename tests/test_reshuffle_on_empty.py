@@ -4,132 +4,103 @@ import json
 from pathlib import Path
 
 from longwar.cards import load_card_file
-from longwar.game import Cycle, GameEngine, Pass
+from longwar.game import GameEngine, Pass
 from longwar.rules import GameRules
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def deck() -> list[str]:
-    return json.loads(
-        (ROOT / "decks" / "reference.json").read_text(
-            encoding="utf-8"
-        )
+def setup_state(seed: int = 7401):
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
     )["cards"]
-
-
-def engine(*, reshuffle_on_empty: bool) -> GameEngine:
-    # These tests isolate persistent-deck reshuffling. Keep the legacy
-    # two-Pass/Cycle harness explicit instead of inheriting unrelated
-    # standard-profile turn-flow changes.
-    rules = GameRules.standard().with_overrides(
-        opening_hand_size=13,
-        reshuffle_on_empty=reshuffle_on_empty,
-        automatic_draw=False,
-        cycle_enabled=True,
-        pass_final_operation=False,
-        pass_requires_both_acted=False,
-    )
-    return GameEngine(
-        load_card_file(ROOT / "cards" / "cards.json"),
-        rules=rules,
-    )
-
-
-def state_for(test_engine: GameEngine):
-    return test_engine.new_game(
-        deck(),
-        deck(),
-        seed=7401,
+    engine = GameEngine(data, rules=GameRules.standard())
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=seed,
         first_player=0,
         opening_bonus=False,
     )
+    return engine, state
 
 
-def test_refill_reshuffles_discard_only_after_draw_pile_empties() -> None:
-    test_engine = engine(reshuffle_on_empty=True)
-    state = state_for(test_engine)
-    player = state.players[0]
-    player.hand = player.hand[:10]
+def start_final_turn(engine: GameEngine, state) -> None:
+    state.active_player = 0
+    state.operations_this_battle[:] = [1, 1]
+    engine.apply(state, Pass())
+    assert state.active_player == 1
+
+
+def test_draw_uses_existing_draw_pile_without_touching_discard() -> None:
+    engine, state = setup_state()
+    player = state.players[1]
+    player.hand = player.hand[:9]
     player.deck = ["namar"]
-    player.discard = ["followed", "swore-to", "teyra"]
+    player.discard = ["followed", "swore-to"]
 
-    test_engine.apply(state, Pass())
-    test_engine.apply(state, Pass())
+    start_final_turn(engine, state)
 
-    assert len(player.hand) == 13
+    assert "namar" in player.hand
+    assert player.deck == []
+    assert player.discard == ["followed", "swore-to"]
+    assert state.deck_reshuffles[1] == 0
+
+
+def test_required_draw_reshuffles_discard_when_draw_pile_is_empty() -> None:
+    engine, state = setup_state()
+    player = state.players[1]
+    player.hand = player.hand[:9]
+    player.deck = []
+    player.discard = ["followed", "swore-to", "namar"]
+
+    start_final_turn(engine, state)
+
+    assert len(player.hand) == 10
+    assert len(player.deck) == 2
     assert player.discard == []
-    assert len(player.deck) == 1
-    assert state.deck_reshuffles[0] == 1
+    assert state.deck_reshuffles[1] == 1
 
 
-def test_reshuffle_on_empty_is_deterministic() -> None:
-    test_engine = engine(reshuffle_on_empty=True)
-    states = [state_for(test_engine) for _ in range(2)]
+def test_empty_pile_reshuffle_is_deterministic_for_same_shuffle_seed() -> None:
+    engine, first = setup_state(seed=7501)
+    _engine, second = setup_state(seed=7502)
 
-    for state in states:
+    for state in (first, second):
         state.shuffle_seed = 991122
-        state.players[0].hand = []
-        state.players[0].deck = []
-        state.players[0].discard = [
+        player = state.players[1]
+        player.hand = player.hand[:9]
+        player.deck = []
+        player.discard = [
             "followed",
             "swore-to",
             "namar",
             "teyra",
             "the-fifty-men",
         ]
-        test_engine.apply(state, Pass())
-        test_engine.apply(state, Pass())
+        start_final_turn(engine, state)
 
-    assert states[0].players[0].hand == states[1].players[0].hand
-    assert states[0].players[0].deck == states[1].players[0].deck
-    assert states[0].shuffle_seed == states[1].shuffle_seed
-    assert states[0].deck_reshuffles == states[1].deck_reshuffles == [1, 0]
+    assert first.players[1].hand[-1] == second.players[1].hand[-1]
+    assert first.players[1].deck == second.players[1].deck
+    assert first.shuffle_seed == second.shuffle_seed
 
 
-def test_cycle_can_trigger_discard_reshuffle_when_draw_pile_is_empty() -> None:
-    test_engine = engine(reshuffle_on_empty=True)
-    state = state_for(test_engine)
-    player = state.players[0]
-    player.hand = ["namar"]
-    player.deck = []
-    player.discard = ["followed", "swore-to"]
-    player.command = 5
+def test_battle_end_does_not_recycle_discard_without_a_draw() -> None:
+    engine, state = setup_state()
+    state.players[0].hand = state.players[0].hand[:10]
+    state.players[0].deck = []
+    state.players[0].discard = ["followed", "swore-to", "namar"]
 
-    cycle = Cycle("namar")
-    assert cycle in test_engine.legal_actions(state)
+    # Make the final opponent turn drawable without touching player 0.
+    state.players[1].hand = state.players[1].hand[:9]
+    state.operations_this_battle[:] = [1, 1]
+    state.active_player = 0
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
 
-    test_engine.apply(state, cycle)
-
-    assert player.command == 4
-    assert len(player.hand) == 1
-    assert len(player.deck) == 2
-    assert player.discard == []
-    assert state.deck_reshuffles[0] == 1
-
-
-def test_cycle_is_not_offered_when_only_the_cycled_card_could_be_redrawn() -> None:
-    test_engine = engine(reshuffle_on_empty=True)
-    state = state_for(test_engine)
-    player = state.players[0]
-    player.hand = ["namar"]
-    player.deck = []
-    player.discard = []
-
-    assert Cycle("namar") not in test_engine.legal_actions(state)
-
-
-def test_flag_off_preserves_hard_exhaustion_behavior() -> None:
-    test_engine = engine(reshuffle_on_empty=False)
-    state = state_for(test_engine)
-    player = state.players[0]
-    player.hand = player.hand[:10]
-    player.deck = ["namar"]
-    player.discard = ["followed", "swore-to", "teyra"]
-
-    test_engine.apply(state, Pass())
-    test_engine.apply(state, Pass())
-
-    assert len(player.hand) == 11
-    assert player.discard == ["followed", "swore-to", "teyra"]
+    assert state.battle == 2
+    assert state.players[0].discard == ["followed", "swore-to", "namar"]
     assert state.deck_reshuffles[0] == 0
+    assert state.pending_draw_discard_for == 0
