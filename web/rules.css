@@ -1808,7 +1808,7 @@
 
 .rv-front-labels {
   display: grid;
-  grid-template-columns: repeat(3,1fr);
+  grid-template-columns: repeat(4,1fr);
   gap: 2.5mm;
   text-align: center;
   font: 850 3mm/1 system-ui,sans-serif;
@@ -1817,14 +1817,14 @@
 
 .rv-side {
   display: grid;
-  grid-template-columns: repeat(3,1fr);
+  grid-template-columns: repeat(4,1fr);
   gap: 2.5mm;
 }
 
 .rv-side > div {
   min-width: 0;
   display: grid;
-  grid-template-rows: 1fr 1fr auto;
+  grid-template-rows: 1fr 1fr;
   gap: 1.4mm;
 }
 
@@ -1997,7 +1997,7 @@
 .reference-v3-footer {
   margin-top: 5mm;
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1.35fr 1.35fr;
   border-top: .7mm solid #181714;
   border-bottom: .7mm solid #181714;
 }
