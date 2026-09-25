@@ -528,8 +528,11 @@ def test_knockout_winner_is_used_for_final_alpha_beta_match(
 
     greedy_knockout_fixtures = [
         row
-        for row in manifest["experiments"][:-1]
-        if "rollout-greedy" in (row["entrant_a"], row["entrant_b"])
+        for row in manifest["experiments"]
+        if (
+            row["kind"] == "ismcts-match"
+            and "rollout-greedy" in (row["entrant_a"], row["entrant_b"])
+        )
     ]
     assert greedy_knockout_fixtures
     assert all(
@@ -713,15 +716,15 @@ def test_knockout_skip_continues_to_final_check_but_marks_not_ready(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     assert len(manifest["experiments"]) == 7
-    skipped = [
+    partial = [
         row for row in manifest["experiments"]
-        if row["status"] == "skipped"
+        if row["status"] == "partial"
     ]
-    assert len(skipped) == 1
-    assert skipped[0]["resolution"] == "user-skip-partial"
-    assert skipped[0]["winner"] == skipped[0]["entrant_a"]
-    assert skipped[0]["result"]["a_wins"] == 18
-    assert skipped[0]["result"]["b_wins"] == 3
+    assert len(partial) == 1
+    assert partial[0]["resolution"] == "user-skip-partial"
+    assert partial[0]["winner"] == partial[0]["entrant_a"]
+    assert partial[0]["result"]["a_wins"] == 18
+    assert partial[0]["result"]["b_wins"] == 3
     assert strength_calls == 2
     assert manifest["experiments"][-1]["name"] == "optimized-vs-alpha-beta"
     assert manifest["decision_readiness"]["ready"] is True
