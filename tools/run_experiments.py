@@ -1417,30 +1417,24 @@ def benchmark_strength(
 
 
 
-def _suite_schedule(
+def _optimization_schedule(
     comparisons: list[tuple[str, dict[str, Any]]],
     seed: int,
 ) -> list[dict[str, Any]]:
-    """Return the complete suite in deterministic randomized execution order."""
+    """Return structural ISMCTS candidates in deterministic randomized order."""
     schedule = [
         {
             "name": name,
-            "kind": "ismcts-match",
             "overrides": dict(overrides),
         }
         for name, overrides in comparisons
     ]
-    schedule.append({
-        "name": "baseline-vs-alpha-beta",
-        "kind": "strength-bench",
-        "overrides": {},
-    })
     random.Random(seed).shuffle(schedule)
     return schedule
 
 
 def run_suite(args: argparse.Namespace) -> Path:
-    """Run the canonical non-adaptive search experiment suite."""
+    """Optimize ISMCTS structurally, then compare the optimized policy to alpha-beta."""
     if args.games < 24:
         raise SystemExit("--games must be at least 24 for the experiment suite")
     if args.jobs <= 0:
@@ -1448,7 +1442,7 @@ def run_suite(args: argparse.Namespace) -> Path:
     if args.time_budget_seconds <= 0.0:
         raise SystemExit("--time-budget-seconds must be positive")
 
-    baseline = {
+    starting_config = {
         "belief_samples": 12,
         "exploration": DEFAULT_ISMCTS_EXPLORATION,
         "progressive_widening": 0.0,
@@ -1459,12 +1453,16 @@ def run_suite(args: argparse.Namespace) -> Path:
         "max_tree_nodes": 400_000,
     }
     comparisons = [
-        ("tree-cold", {"reuse_tree_b": False}),
-        ("pw-0p5", {"progressive_widening_b": 0.5}),
-        ("rollout-greedy", {"rollout_policy_b": "greedy"}),
-        ("rollout-depth-8", {"rollout_depth_b": 8}),
-        ("rollout-epsilon-0", {"rollout_epsilon_b": 0.0}),
+        ("tree-cold", {"reuse_tree": False}),
+        ("pw-0p5", {"progressive_widening": 0.5}),
+        ("rollout-greedy", {"rollout_policy": "greedy"}),
+        ("rollout-depth-8", {"rollout_depth": 8}),
+        ("rollout-epsilon-0", {"rollout_epsilon": 0.0}),
     ]
+    selection_policy = (
+        "Accept candidate B only when candidate A's paired 95% confidence "
+        "interval lies entirely below 50%; otherwise retain the incumbent."
+    )
     identity = experiment_identity({
         "command": "suite",
         "games_per_orientation": args.games,
@@ -1473,13 +1471,18 @@ def run_suite(args: argparse.Namespace) -> Path:
         "iterations_base": args.iterations,
         "alpha_nodes": args.alpha_nodes,
         "seed": args.seed,
-        "baseline": baseline,
+        "starting_config": starting_config,
         "comparisons": comparisons,
-        "schedule_policy": "seeded-shuffle-v1",
+        "schedule_policy": "seeded-optimization-shuffle-v1",
+        "selection_policy": selection_policy,
     })
     output_dir = artifact_directory(BENCH_ROOT / "suite", identity)
     manifest_path = output_dir / "summary.json"
-    schedule = _suite_schedule(comparisons, args.seed)
+    optimization_schedule = _optimization_schedule(comparisons, args.seed)
+    schedule_names = [
+        *[item["name"] for item in optimization_schedule],
+        "optimized-vs-alpha-beta",
+    ]
     manifest: dict[str, Any] = {
         **identity,
         "games_per_orientation": args.games,
@@ -1488,9 +1491,15 @@ def run_suite(args: argparse.Namespace) -> Path:
         "iterations_base": args.iterations,
         "alpha_nodes": args.alpha_nodes,
         "seed": args.seed,
-        "baseline": baseline,
-        "schedule_policy": "seeded-shuffle-v1",
-        "schedule": [item["name"] for item in schedule],
+        "starting_config": dict(starting_config),
+        "optimized_config": dict(starting_config),
+        "accepted_optimizations": [],
+        "schedule_policy": "seeded-optimization-shuffle-v1",
+        "selection_policy": selection_policy,
+        "optimization_schedule": [
+            item["name"] for item in optimization_schedule
+        ],
+        "schedule": schedule_names,
         "experiments": [],
     }
 
@@ -1507,117 +1516,162 @@ def run_suite(args: argparse.Namespace) -> Path:
         f"{args.time_budget_seconds:g}s/searched move"
     )
     print(
-        "Baseline: belief=12, c=0.3, reuse, tree=400k, pw=0, "
-        "rollout=cheap/5, epsilon=0.12. Each A/B changes only candidate B."
+        "Starting ISMCTS: belief=12, c=0.3, reuse, tree=400k, pw=0, "
+        "rollout=cheap/5, epsilon=0.12."
     )
-    print("Randomized run order: " + " -> ".join(manifest["schedule"]))
+    print(
+        "Optimization order: "
+        + " -> ".join(manifest["optimization_schedule"])
+    )
+    print("Final check: optimized-vs-alpha-beta")
+    print(f"Selection: {selection_policy}")
 
-    experiments = len(schedule)
-    for index, item in enumerate(schedule, start=1):
+    incumbent = dict(starting_config)
+    accepted_optimizations: list[str] = []
+
+    for index, item in enumerate(optimization_schedule, start=1):
         name = str(item["name"])
-        kind = str(item["kind"])
         overrides = dict(item["overrides"])
+        challenger = {**incumbent, **overrides}
         print()
-        print(f"=== {index}/{experiments} {name} ===")
+        print(f"=== optimize {index}/{len(optimization_schedule)} {name} ===")
         entry: dict[str, Any] = {
             "name": name,
-            "kind": kind,
+            "kind": "ismcts-match",
             "status": "running",
+            "incumbent_before": dict(incumbent),
+            "challenger": dict(challenger),
+            "candidate_b_overrides": overrides,
         }
-        if kind == "ismcts-match":
-            entry["candidate_b_overrides"] = overrides
         manifest["experiments"].append(entry)
         save_manifest()
 
         try:
-            if kind == "ismcts-match":
-                summary_path = benchmark_ismcts_match(
-                    games_per_orientation=args.games,
-                    jobs=args.jobs,
-                    iterations=args.iterations,
-                    time_budget_seconds=args.time_budget_seconds,
-                    belief_samples_a=baseline["belief_samples"],
-                    belief_samples_b=overrides.get(
-                        "belief_samples_b",
-                        baseline["belief_samples"],
-                    ),
-                    exploration_a=baseline["exploration"],
-                    exploration_b=overrides.get(
-                        "exploration_b",
-                        baseline["exploration"],
-                    ),
-                    progressive_widening_a=baseline["progressive_widening"],
-                    progressive_widening_b=overrides.get(
-                        "progressive_widening_b",
-                        baseline["progressive_widening"],
-                    ),
-                    reuse_tree_a=baseline["reuse_tree"],
-                    reuse_tree_b=overrides.get(
-                        "reuse_tree_b",
-                        baseline["reuse_tree"],
-                    ),
-                    rollout_depth_a=baseline["rollout_depth"],
-                    rollout_depth_b=overrides.get(
-                        "rollout_depth_b",
-                        baseline["rollout_depth"],
-                    ),
-                    rollout_policy_a=baseline["rollout_policy"],
-                    rollout_policy_b=overrides.get(
-                        "rollout_policy_b",
-                        baseline["rollout_policy"],
-                    ),
-                    rollout_epsilon_a=baseline["rollout_epsilon"],
-                    rollout_epsilon_b=overrides.get(
-                        "rollout_epsilon_b",
-                        baseline["rollout_epsilon"],
-                    ),
-                    max_tree_nodes_a=baseline["max_tree_nodes"],
-                    max_tree_nodes_b=overrides.get(
-                        "max_tree_nodes_b",
-                        baseline["max_tree_nodes"],
-                    ),
-                    seed=args.seed,
-                )
-            elif kind == "strength-bench":
-                summary_path = benchmark_strength(
-                    games_per_orientation=args.games,
-                    jobs=args.jobs,
-                    ismcts_iterations=args.iterations,
-                    alpha_nodes=args.alpha_nodes,
-                    belief_samples=baseline["belief_samples"],
-                    rollout_policy=baseline["rollout_policy"],
-                    rollout_depth=baseline["rollout_depth"],
-                    progressive_widening=baseline["progressive_widening"],
-                    exploration=baseline["exploration"],
-                    reuse_tree=baseline["reuse_tree"],
-                    rollout_epsilon=baseline["rollout_epsilon"],
-                    max_tree_nodes=baseline["max_tree_nodes"],
-                    time_budget_seconds=args.time_budget_seconds,
-                    seed=args.seed,
-                )
-            else:  # pragma: no cover - schedule is constructed locally
-                raise RuntimeError(f"Unknown suite experiment kind: {kind}")
-
+            summary_path = benchmark_ismcts_match(
+                games_per_orientation=args.games,
+                jobs=args.jobs,
+                iterations=args.iterations,
+                time_budget_seconds=args.time_budget_seconds,
+                belief_samples_a=incumbent["belief_samples"],
+                belief_samples_b=challenger["belief_samples"],
+                exploration_a=incumbent["exploration"],
+                exploration_b=challenger["exploration"],
+                progressive_widening_a=incumbent["progressive_widening"],
+                progressive_widening_b=challenger["progressive_widening"],
+                reuse_tree_a=incumbent["reuse_tree"],
+                reuse_tree_b=challenger["reuse_tree"],
+                rollout_depth_a=incumbent["rollout_depth"],
+                rollout_depth_b=challenger["rollout_depth"],
+                rollout_policy_a=incumbent["rollout_policy"],
+                rollout_policy_b=challenger["rollout_policy"],
+                rollout_epsilon_a=incumbent["rollout_epsilon"],
+                rollout_epsilon_b=challenger["rollout_epsilon"],
+                max_tree_nodes_a=incumbent["max_tree_nodes"],
+                max_tree_nodes_b=challenger["max_tree_nodes"],
+                seed=args.seed,
+            )
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
+            paired = payload.get("overall", {}).get(
+                "paired_uncertainty",
+                {},
+            )
+            _low, high = paired.get("ci95", [None, None])
+            accepted = high is not None and float(high) < 0.5
+            if accepted:
+                incumbent = challenger
+                accepted_optimizations.append(name)
+                print(f"ACCEPTED: {name}")
+            else:
+                print(f"KEPT INCUMBENT: {name}")
+
             entry.update({
                 "status": "passed",
                 "summary": str(summary_path.relative_to(ROOT)),
                 "overall": payload.get("overall", {}),
                 "resources": payload.get("resources", {}),
+                "accepted": accepted,
+                "incumbent_after": dict(incumbent),
             })
         except ExperimentSkipped:
-            entry.update({"status": "skipped"})
+            entry.update({
+                "status": "skipped",
+                "accepted": False,
+                "incumbent_after": dict(incumbent),
+            })
             print(f"SKIPPED: {name}")
         except (Exception, SystemExit) as exc:
             entry.update({
                 "status": "failed",
+                "accepted": False,
+                "incumbent_after": dict(incumbent),
                 "error": f"{type(exc).__name__}: {exc}",
             })
             print(f"EXPERIMENT FAILED: {name}: {exc}")
             if args.stop_on_error:
+                manifest["optimized_config"] = dict(incumbent)
+                manifest["accepted_optimizations"] = list(
+                    accepted_optimizations
+                )
                 save_manifest()
                 raise
+
+        manifest["optimized_config"] = dict(incumbent)
+        manifest["accepted_optimizations"] = list(accepted_optimizations)
         save_manifest()
+
+    name = "optimized-vs-alpha-beta"
+    print()
+    print(
+        f"=== final {len(optimization_schedule) + 1}/"
+        f"{len(optimization_schedule) + 1} {name} ==="
+    )
+    print("Optimized ISMCTS: " + json.dumps(incumbent, sort_keys=True))
+    strength_entry: dict[str, Any] = {
+        "name": name,
+        "kind": "strength-bench",
+        "status": "running",
+        "ismcts_config": dict(incumbent),
+    }
+    manifest["experiments"].append(strength_entry)
+    save_manifest()
+
+    try:
+        summary_path = benchmark_strength(
+            games_per_orientation=args.games,
+            jobs=args.jobs,
+            ismcts_iterations=args.iterations,
+            alpha_nodes=args.alpha_nodes,
+            belief_samples=incumbent["belief_samples"],
+            rollout_policy=incumbent["rollout_policy"],
+            rollout_depth=incumbent["rollout_depth"],
+            progressive_widening=incumbent["progressive_widening"],
+            exploration=incumbent["exploration"],
+            reuse_tree=incumbent["reuse_tree"],
+            rollout_epsilon=incumbent["rollout_epsilon"],
+            max_tree_nodes=incumbent["max_tree_nodes"],
+            time_budget_seconds=args.time_budget_seconds,
+            seed=args.seed,
+        )
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+        strength_entry.update({
+            "status": "passed",
+            "summary": str(summary_path.relative_to(ROOT)),
+            "overall": payload.get("overall", {}),
+            "resources": payload.get("resources", {}),
+        })
+    except ExperimentSkipped:
+        strength_entry.update({"status": "skipped"})
+        print(f"SKIPPED: {name}")
+    except (Exception, SystemExit) as exc:
+        strength_entry.update({
+            "status": "failed",
+            "error": f"{type(exc).__name__}: {exc}",
+        })
+        print(f"EXPERIMENT FAILED: {name}: {exc}")
+        if args.stop_on_error:
+            save_manifest()
+            raise
+    save_manifest()
 
     failures = [
         row["name"]
@@ -1629,51 +1683,63 @@ def run_suite(args: argparse.Namespace) -> Path:
         for row in manifest["experiments"]
         if row["status"] == "skipped"
     ]
+    incomplete_optimization = [
+        row["name"]
+        for row in manifest["experiments"]
+        if (
+            row.get("kind") == "ismcts-match"
+            and row.get("status") != "passed"
+        )
+    ]
     manifest["completed"] = True
     manifest["failures"] = failures
     manifest["skipped"] = skipped
+    manifest["optimized_config"] = dict(incumbent)
+    manifest["accepted_optimizations"] = list(accepted_optimizations)
 
-    def ci_for(row: dict[str, Any], rate_key: str) -> tuple[float | None, float | None]:
+    def ci_for(
+        row: dict[str, Any],
+        rate_key: str,
+    ) -> tuple[float | None, float | None]:
         paired = row.get("overall", {}).get("paired_uncertainty", {})
         low, high = paired.get("ci95", [None, None])
-        if low is None or high is None or row.get("overall", {}).get(rate_key) is None:
+        if (
+            low is None
+            or high is None
+            or row.get("overall", {}).get(rate_key) is None
+        ):
             return None, None
         return float(low), float(high)
 
     strength = next(
-        (row for row in manifest["experiments"] if row["name"] == "baseline-vs-alpha-beta"),
+        (
+            row
+            for row in manifest["experiments"]
+            if row["name"] == "optimized-vs-alpha-beta"
+        ),
         None,
     )
     strength_ci = ci_for(strength or {}, "mcts_win_rate")
 
-    challengers_beating_baseline = []
-    for row in manifest["experiments"]:
-        if row.get("kind") != "ismcts-match":
-            continue
-        low, high = ci_for(row, "candidate_a_win_rate")
-        if high is not None and high < 0.5:
-            challengers_beating_baseline.append(row["name"])
-
     blockers: list[str] = []
     warnings: list[str] = []
-    if failures:
-        blockers.append("one or more experiments failed")
+    if incomplete_optimization:
+        blockers.append("optimization phase incomplete")
     if skipped:
         warnings.append(
             "manually skipped comparisons: " + ", ".join(skipped)
         )
-    if challengers_beating_baseline:
-        blockers.append(
-            "predeclared challenger beats the baseline: "
-            + ", ".join(challengers_beating_baseline)
-        )
     if strength is None or strength.get("status") != "passed":
-        blockers.append("ISMCTS vs strategic alpha-beta comparison did not complete")
+        blockers.append(
+            "optimized ISMCTS vs strategic alpha-beta comparison did not complete"
+        )
     elif strength_ci[1] is not None and strength_ci[1] < 0.5:
-        blockers.append("ISMCTS is significantly weaker than strategic alpha-beta")
+        blockers.append(
+            "optimized ISMCTS is significantly weaker than strategic alpha-beta"
+        )
     if strength_ci[0] is not None and strength_ci[0] > 0.5:
         warnings.append(
-            "ISMCTS is significantly stronger than strategic alpha-beta; "
+            "optimized ISMCTS is significantly stronger than strategic alpha-beta; "
             "use alpha-beta as a qualitative cross-check, not an equal-strength oracle"
         )
 
@@ -1681,13 +1747,16 @@ def run_suite(args: argparse.Namespace) -> Path:
         "ready": not blockers,
         "blockers": blockers,
         "warnings": warnings,
+        "optimization_incomplete": incomplete_optimization,
+        "accepted_optimizations": list(accepted_optimizations),
+        "optimized_config": dict(incumbent),
         "ismcts_vs_alpha_beta_ci95": list(strength_ci),
-        "challengers_beating_baseline": challengers_beating_baseline,
         "policy": (
-            "Use ISMCTS as primary hidden-information design evidence and "
-            "strategic alpha-beta as an independent cross-check. Heuristic "
-            "telemetry is exploratory/product-policy evidence only. MCCFR "
-            "variants are research-only until separately validated."
+            "Optimize ISMCTS first using paired mirrored A/B comparisons, "
+            "then use the optimized ISMCTS policy as primary hidden-information "
+            "design evidence and strategic alpha-beta as an independent cross-check. "
+            "Heuristic telemetry is exploratory/product-policy evidence only. "
+            "MCCFR variants are research-only until separately validated."
         ),
     }
     save_manifest()
@@ -1708,6 +1777,10 @@ def run_suite(args: argparse.Namespace) -> Path:
                 if rate is not None and low is not None and high is not None
                 else ""
             )
+            if row.get("accepted"):
+                detail += " -> ACCEPT B"
+            elif row.get("status") == "passed":
+                detail += " -> keep A"
         elif row["kind"] == "strength-bench" and row.get("overall"):
             overall = row["overall"]
             paired = overall.get("paired_uncertainty", {})
@@ -1722,6 +1795,11 @@ def run_suite(args: argparse.Namespace) -> Path:
         else:
             detail = ""
         print(f"{status:6} {row['name']}{detail}")
+
+    print(
+        "Optimized configuration: "
+        + json.dumps(manifest["optimized_config"], sort_keys=True)
+    )
     readiness = manifest["decision_readiness"]
     print()
     print(
@@ -1737,6 +1815,7 @@ def run_suite(args: argparse.Namespace) -> Path:
     if failures:
         print("Failed experiments: " + ", ".join(failures))
     return manifest_path
+
 
 
 def parse_args() -> argparse.Namespace:
