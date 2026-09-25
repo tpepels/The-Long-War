@@ -89,47 +89,24 @@ Static strength diagnostics read machine rules, not the optional historical `bal
 
 Algorithms consume engine/evaluator contracts without rule-profile branches. Beliefs stay outside traversal. MCCFR uses external sampling with depth-limited heuristic leaves and an imperfect-recall observation abstraction; a policy is not a full-game equilibrium proof. Generic Python/Cython traversal and the Kuhn-poker reference remain independent correctness checks. Replica multiprocessing is experimental because table serialization/merging can dominate runtime.
 
-ISMCTS serious defaults use 100,000 iterations with UCT exploration `c=0.3`, 12 root-belief samples in simulation, **greedy rollouts of depth 5**, rollout epsilon 0.12, tree reuse enabled, and progressive widening disabled. Greedy/depth-5 became the canonical rollout policy after the 2026-09-25 knockout: it beat tree-cold 117-75, beat PW 0.5 by 150-42, and beat the cheap/depth-8 finalist 106-86. The canonical AI optimizer now puts that winning baseline plus five structural challengers into the seeded ISMCTS-only knockout: tree-cold, PW 0.5, cheap rollout, greedy depth 8, and greedy epsilon 0. With six entrants, two receive deterministic first-round byes; the remaining four play two opening fixtures, followed by two semifinals and one ISMCTS final - five knockout fixtures total when no exact tie requires a replay. Winners advance and losers are discarded. The surviving ISMCTS configuration is then benchmarked against alpha-beta with fixed work ceilings and no wall-clock cap to measure each solver's throughput. Those measured iteration/node rates are used to raise both work ceilings above five seconds of expected work, with 25% headroom, so the final comparison is actually stopped by the common 5-second wall-clock limit rather than by a smaller iteration or node cap. Progressive widening remains **off by default and experimental**: `k * sqrt(N + 1)`, with fixed alpha 0.5. There is no supported alpha knob.
+ISMCTS uses a fixed canonical baseline for current engine work: 100,000 iterations, UCT exploration `c=0.3`, 12 root-belief samples, greedy rollouts of depth 5, rollout epsilon 0.12, tree reuse enabled, a 400,000-node tree cap, and progressive widening disabled. This baseline was promoted after the 2026-09-25 knockout and is no longer part of an ongoing optimizer.
 
-Persistent trees now invalidate when observable belief evidence or search configuration changes. Retained root selection uses lifetime visits only within the valid context; diagnostics separate inherited and newly accumulated visits. Arenas are bounded (default four times the iteration budget); at capacity, search uses rollout leaves and clears on rerooting when needed. `ISMCTSAgent(max_tree_nodes=...)` and `--ismcts-max-tree-nodes` make that capacity explicit for calibration. `--ismcts-no-tree-reuse` on the simulator and `--no-tree-reuse` on the strength benchmark provide cold-tree comparisons. Reuse/PW telemetry is diagnostic, not evidence that either improves strength.
-
-The pre-audit 43–21 cold / 46–18 reused / 39–25 reused-with-PW results are historical. Corrected belief conditioning, reuse and evaluation require new measurements before claiming the same strength or reuse rate. `ismcts-match` compares two candidate configurations on mirrored deals and can vary belief samples, exploration, tree reuse/capacity, progressive widening, rollout policy/depth, and rollout epsilon independently.
-
-Make exposes one configurable search-experiment entry point instead of a target per solver or parameter combination. The runner owns experiment defaults.
+The repository intentionally no longer carries the knockout/A-B configuration optimizer. During the current card and rules migration, AI configuration is held fixed so search changes do not become another moving variable. The only supported AI experiment is an occasional **equal-time ISMCTS vs alpha-beta sanity check**:
 
 ```bash
 make verify-algorithms
 
-# Canonical unattended suite: 24 games per deck/orientation by default.
-# It ends with an explicit READY / NOT READY design-evidence verdict.
+# Canonical AI sanity check: 192 games, 5 seconds per searched move.
 make experiments
 
-# One ISMCTS A/B comparison: runner default is 24 games per deck/orientation.
-make experiments \
-  EXPERIMENT=ismcts-match \
-  EXPERIMENT_ARGS="--b-no-tree-reuse"
-
-make experiments \
-  EXPERIMENT=ismcts-match \
-  EXPERIMENT_ARGS="--b-pw 1.0"
-
-make experiments \
-  EXPERIMENT=ismcts-match \
-  EXPERIMENT_ARGS="--b-rollout-policy cheap"
-
-make experiments \
-  EXPERIMENT=ismcts-match \
-  EXPERIMENT_ARGS="--b-rollout-depth 8"
-
-# Equal-time ISMCTS vs alpha-beta.
-make experiments EXPERIMENT=strength-bench
+# Optional smaller/larger sanity sample without changing the AI baseline.
+make experiments EXPERIMENT_ARGS="--games 8"
 ```
 
-`make experiments` runs algorithm verification first and uses `systemd-inhibit` while the selected experiment runs. The default `suite` is the AI optimization flow: the canonical greedy-rollout baseline, tree-cold, PW 0.5, cheap rollout, greedy rollout depth 8, and greedy rollout epsilon 0 form one six-entrant seeded single-elimination bracket. Two entrants receive first-round byes; winners advance and losers are discarded. Exact tied fixtures are replayed with fresh seeds. Pressing `s` uses the current live partial score instead of throwing the fixture away, so an obvious leader can advance immediately; partial results are preserved and reported. After the ISMCTS champion is known, the suite runs a small fixed-work timing benchmark against alpha-beta, measures iterations/second and nodes/second, and scales both final work ceilings to exceed five seconds by 25%. The final ISMCTS-vs-alpha-beta comparison then gives both solvers the same 5-second wall-clock limit per searched move; the calibrated work ceilings are deliberately high enough not to bind first. Exploration, belief-sample, tree-capacity, and identical-control checks were already resolved separately and are not rerun in the canonical suite. Game/balance optimization remains separate under `make balance`. Experiment variations belong in `EXPERIMENT` / `EXPERIMENT_ARGS`, not new Make targets.
+`make experiments` runs algorithm verification first and then `strength-bench`. Both solvers receive the same 5-second wall-clock search budget per non-forced move. ISMCTS automatically uses the canonical baseline above; the experiment CLI no longer exposes rollout/PW/reuse tuning knobs. Game/card balance analysis remains separate under `make balance`.
 
-Strength artifacts preserve per-game seeds/outcomes, effective configuration, source fingerprints and paired uncertainty over mirrored deals. Different budgets/seeds/configurations use different artifact directories.
+For game-design evidence, use **ISMCTS as the primary hidden-information policy**, with **strategic alpha-beta as an occasional independent sanity check**. MCCFR and online MCCFR remain research-only and are not part of the production search-selection workflow.
 
-For game-design evidence, use **ISMCTS as the primary hidden-information policy** once the suite reports READY, with **strategic alpha-beta as an independent cross-check**. The one-ply heuristic is the fast product opponent and a useful high-volume exploratory telemetry policy, but it is not a balance oracle. MCCFR and online MCCFR remain research-only until separately validated for the current ruleset. Simulation heuristic exploration defaults to 0.0 so product and simulation policy are aligned unless exploration is explicitly requested.
 
 ## Balance and analysis
 
@@ -140,7 +117,7 @@ Make is the supported command surface. `tools/run_experiments.py` implements the
 | Are data/decks/runtime valid? | `make verify` | Data, fast tests and browser/native parity |
 | Does ordinary play look healthy? | `make balance` | Quick static/playability/health signal |
 | Need deeper balance evidence? | `make balance BALANCE_PRESET=deep` | Larger canonical balance pipeline |
-| Which ISMCTS configuration wins, and how does it compare with alpha-beta? | `make experiments` | ISMCTS knockout, timing calibration, then 5-second alpha-beta final |
+| Does canonical ISMCTS still behave sensibly against alpha-beta? | `make experiments` | Equal-time 5-second sanity check; no optimizer |
 | What is a card's paired replacement value? | `python tools/counterfactual_balance.py --cards followed --contexts 3 --games-per-context 4 --no-pairs --no-triples` | Specialist analysis, outside the Make lifecycle surface |
 
 Quick runs check plumbing and playability, not statistical balance. Deep runs are explicitly opt-in. Override sizes and seeds for development:
