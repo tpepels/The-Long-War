@@ -112,12 +112,16 @@ class ISMCTSAgent:
 
     def reset_tree(self) -> None:
         """Discard accumulated search statistics before starting a new game."""
-        if self._tree is not None:
-            self._tree.clear()
-        self._tree = (
-            ISMCTSTree(self.iterations, max_nodes=self.max_tree_nodes)
-            if self.reuse_tree else None
-        )
+        tree = self._tree
+        self._tree = None
+        if tree is not None:
+            tree.clear()
+        del tree
+        if self.reuse_tree:
+            self._tree = ISMCTSTree(
+                self.iterations,
+                max_nodes=self.max_tree_nodes,
+            )
 
     def release_search_memory(self) -> None:
         """Release persistent native search storage after a finished game."""
