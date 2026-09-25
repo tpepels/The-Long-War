@@ -3,6 +3,10 @@ from __future__ import annotations
 import importlib.util
 import inspect
 import json
+import os
+import sys
+import threading
+import time
 from argparse import Namespace
 from pathlib import Path
 
@@ -18,6 +22,13 @@ pytestmark = pytest.mark.algorithm
 spec = importlib.util.spec_from_file_location("run_experiments", ROOT / "tools" / "run_experiments.py")
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
+
+simulate_spec = importlib.util.spec_from_file_location(
+    "simulate_tool",
+    ROOT / "tools" / "simulate.py",
+)
+simulate_tool = importlib.util.module_from_spec(simulate_spec)
+simulate_spec.loader.exec_module(simulate_tool)
 
 
 def test_fingerprint_tracks_native_includes_and_experiment_inputs(tmp_path, monkeypatch):
@@ -104,6 +115,178 @@ def test_live_progress_helpers_are_robust(tmp_path):
     assert "width = 20" in source
     assert "Press s to skip this experiment" in source
     assert "_run_command_until_stop" in inspect.getsource(runner.benchmark_ismcts_match)
+
+
+def test_progress_snapshot_contains_partial_wins_and_replaces_atomically(tmp_path):
+    progress = tmp_path / "cell.progress"
+
+    simulate_tool._write_progress_snapshot(progress, 3, 24, (2, 1))
+    assert json.loads(progress.read_text(encoding="utf-8")) == {
+        "completed": 3,
+        "total": 24,
+        "wins": [2, 1],
+    }
+    assert not progress.with_suffix(progress.suffix + ".tmp").exists()
+
+    simulate_tool._write_progress_snapshot(progress, 4, 24, (2, 2))
+    assert json.loads(progress.read_text(encoding="utf-8")) == {
+        "completed": 4,
+        "total": 24,
+        "wins": [2, 2],
+    }
+
+
+def test_live_progress_aggregates_partial_cell_scores_without_tty(tmp_path, capsys):
+    cells = []
+    snapshots = [
+        ("reference", "a-first", [2, 0]),
+        ("avaros", "b-first", [1, 1]),
+    ]
+    for deck, orientation, wins in snapshots:
+        output = tmp_path / f"{deck}-{orientation}.json"
+        progress = output.with_suffix(".progress")
+        cells.append((deck, orientation, output, progress, ["unused"]))
+
+    def run_cell(cell, _stop_event):
+        deck, orientation, _output, progress, _command = cell
+        wins = next(
+            wins
+            for expected_deck, expected_orientation, wins in snapshots
+            if expected_deck == deck and expected_orientation == orientation
+        )
+        progress.write_text(
+            json.dumps({"completed": 2, "total": 2, "wins": wins}) + "\n",
+            encoding="utf-8",
+        )
+        return deck
+
+    def format_progress(cell, state):
+        deck, orientation, *_rest = cell
+        a_wins, b_wins = state["wins"]
+        return (
+            f"{deck} {orientation} {state['completed']}/2 {a_wins}-{b_wins}",
+            a_wins,
+            b_wins,
+        )
+
+    results = runner._run_cells_with_live_progress(
+        cells,
+        jobs=2,
+        games_per_cell=2,
+        run_cell=run_cell,
+        format_result=str,
+        table_header="deck orientation games A-B",
+        score_labels=("A", "B"),
+        format_progress=format_progress,
+    )
+
+    assert sorted(results) == ["avaros", "reference"]
+    output = capsys.readouterr().out
+    assert "TOTAL A 3 - B 1" in output
+    assert "4/4" in output
+    assert "\x1b[" not in output
+
+
+def test_cancelled_simulation_process_is_terminated(tmp_path):
+    stop_event = threading.Event()
+    pid_path = tmp_path / "child.pid"
+
+    def request_stop():
+        deadline = time.monotonic() + 5.0
+        while not pid_path.exists() and time.monotonic() < deadline:
+            time.sleep(0.01)
+        stop_event.set()
+
+    stopper = threading.Thread(target=request_stop)
+    stopper.start()
+    started = time.monotonic()
+    completed = runner._run_command_until_stop(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import os, time; from pathlib import Path; "
+                f"Path({str(pid_path)!r}).write_text(str(os.getpid())); "
+                "time.sleep(30)"
+            ),
+        ],
+        stop_event,
+    )
+    stopper.join(timeout=5.0)
+
+    assert completed is False
+    assert pid_path.is_file()
+    assert time.monotonic() - started < 5.0
+    pid = int(pid_path.read_text(encoding="utf-8"))
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)
+
+
+def test_skip_key_reader_restores_terminal_state_on_exception(monkeypatch):
+    if runner.termios is None or runner.tty is None:
+        pytest.skip("POSIX terminal controls unavailable")
+
+    class FakeTTY:
+        def isatty(self):
+            return True
+
+        def fileno(self):
+            return 17
+
+        def write(self, _text):
+            return 0
+
+        def flush(self):
+            return None
+
+    saved = ["saved-terminal-state"]
+    restored = []
+    monkeypatch.setattr(runner.sys, "stdin", FakeTTY())
+    monkeypatch.setattr(runner.sys, "stdout", FakeTTY())
+    monkeypatch.setattr(runner.termios, "tcgetattr", lambda fd: saved)
+    monkeypatch.setattr(runner.tty, "setcbreak", lambda fd: None)
+    monkeypatch.setattr(
+        runner.termios,
+        "tcsetattr",
+        lambda fd, when, state: restored.append((fd, when, state)),
+    )
+
+    with pytest.raises(RuntimeError, match="boom"):
+        with runner._skip_key_reader():
+            raise RuntimeError("boom")
+
+    assert restored == [(17, runner.termios.TCSADRAIN, saved)]
+
+
+def test_suite_schedule_is_seeded_randomized_and_complete():
+    comparisons = [
+        ("baseline-control", {}),
+        ("tree-cold", {"reuse_tree_b": False}),
+        ("pw-0p5", {"progressive_widening_b": 0.5}),
+        ("rollout-greedy", {"rollout_policy_b": "greedy"}),
+        ("rollout-depth-8", {"rollout_depth_b": 8}),
+        ("rollout-epsilon-0", {"rollout_epsilon_b": 0.0}),
+    ]
+    expected = {
+        "baseline-control",
+        "tree-cold",
+        "pw-0p5",
+        "rollout-greedy",
+        "rollout-depth-8",
+        "rollout-epsilon-0",
+        "baseline-vs-alpha-beta",
+    }
+
+    first = runner._suite_schedule(comparisons, 26092400)
+    second = runner._suite_schedule(comparisons, 26092400)
+
+    assert first == second
+    assert {item["name"] for item in first} == expected
+    assert [item["name"] for item in first] != [
+        *[name for name, _overrides in comparisons],
+        "baseline-vs-alpha-beta",
+    ]
+    assert comparisons[0] == ("baseline-control", {})
 
 
 def test_strength_benchmark_reports_live_progress():
@@ -244,7 +427,20 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
     assert len(strength_calls) == 1
     assert len(manifest["experiments"]) == 7
     assert all(row["status"] == "passed" for row in manifest["experiments"])
-    assert [row["name"] for row in manifest["experiments"]] == [
+    expected_names = {
+        "baseline-control",
+        "tree-cold",
+        "pw-0p5",
+        "rollout-greedy",
+        "rollout-depth-8",
+        "rollout-epsilon-0",
+        "baseline-vs-alpha-beta",
+    }
+    assert {row["name"] for row in manifest["experiments"]} == expected_names
+    assert manifest["schedule"] == [
+        row["name"] for row in manifest["experiments"]
+    ]
+    assert manifest["schedule"] != [
         "baseline-control",
         "tree-cold",
         "pw-0p5",
@@ -253,13 +449,17 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
         "rollout-epsilon-0",
         "baseline-vs-alpha-beta",
     ]
-    assert match_calls[0]["belief_samples_b"] == 12
-    assert match_calls[0]["max_tree_nodes_b"] == 400_000
-    assert match_calls[1]["reuse_tree_b"] is False
-    assert match_calls[2]["progressive_widening_b"] == pytest.approx(0.5)
-    assert match_calls[3]["rollout_policy_b"] == "greedy"
-    assert match_calls[4]["rollout_depth_b"] == 8
-    assert match_calls[5]["rollout_epsilon_b"] == pytest.approx(0.0)
+    assert all(call["belief_samples_b"] == 12 for call in match_calls)
+    assert all(call["max_tree_nodes_b"] == 400_000 for call in match_calls)
+    assert sum(call["reuse_tree_b"] is False for call in match_calls) == 1
+    assert sum(
+        call["progressive_widening_b"] == pytest.approx(0.5)
+        for call in match_calls
+    ) == 1
+    assert sum(call["rollout_policy_b"] == "greedy" for call in match_calls) == 1
+    assert sum(call["rollout_depth_b"] == 8 for call in match_calls) == 1
+    assert sum(call["rollout_epsilon_b"] == pytest.approx(0.0) for call in match_calls) == 1
+    assert {call["seed"] for call in match_calls} == {args.seed}
     assert strength_calls[0]["time_budget_seconds"] == pytest.approx(2.0)
     assert strength_calls[0]["belief_samples"] == 12
     assert strength_calls[0]["max_tree_nodes"] == 400_000
@@ -329,14 +529,22 @@ def test_suite_manual_skip_continues_to_following_experiments(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     assert calls == 6
-    assert manifest["experiments"][1]["name"] == "tree-cold"
-    assert manifest["experiments"][1]["status"] == "skipped"
-    assert manifest["skipped"] == ["tree-cold"]
+    skipped_rows = [
+        row for row in manifest["experiments"] if row["status"] == "skipped"
+    ]
+    assert len(skipped_rows) == 1
+    assert skipped_rows[0]["kind"] == "ismcts-match"
+    assert manifest["skipped"] == [skipped_rows[0]["name"]]
     assert manifest["failures"] == []
-    assert manifest["experiments"][-1]["name"] == "baseline-vs-alpha-beta"
-    assert manifest["experiments"][-1]["status"] == "passed"
-    assert "manually skipped comparisons: tree-cold" in (
-        manifest["decision_readiness"]["warnings"]
+    strength = next(
+        row
+        for row in manifest["experiments"]
+        if row["name"] == "baseline-vs-alpha-beta"
+    )
+    assert strength["status"] == "passed"
+    assert (
+        "manually skipped comparisons: " + skipped_rows[0]["name"]
+        in manifest["decision_readiness"]["warnings"]
     )
 
 
@@ -365,7 +573,7 @@ def test_suite_readiness_blocks_a_confidently_better_challenger(
         calls += 1
         suite_dir.mkdir(parents=True, exist_ok=True)
         path = tmp_path / f"match-{calls}.json"
-        better = calls == 2
+        better = _kwargs.get("reuse_tree_b") is False
         path.write_text(
             json.dumps({
                 "overall": {
