@@ -6,6 +6,12 @@ from enum import Enum, IntEnum
 
 
 class Front(IntEnum):
+    FIRST = 0
+    SECOND = 1
+    THIRD = 2
+    FOURTH = 3
+
+    # Transitional internal aliases while old adapters/tests are migrated.
     LEFT = 0
     CENTER = 1
     RIGHT = 2
@@ -18,11 +24,15 @@ class Rank(str, Enum):
 
 class Phase(str, Enum):
     BATTLE = "battle"
+    # Retained only so old serialized states fail gracefully during migration.
     CHOOSE_FIRST = "choose_first"
     COMPLETE = "complete"
 
 
 RANK_INDEX = {Rank.FRONT: 0, Rank.REAR: 1}
+FRONT_COUNT = 4
+RANK_COUNT = 2
+POSITIONS_PER_PLAYER = FRONT_COUNT * RANK_COUNT
 
 
 @dataclass(frozen=True, order=True)
@@ -33,8 +43,8 @@ class Position:
 
 @dataclass
 class Slot:
-    subject: str | None = None
-    link: str | None = None
+    force: str | None = None
+    bond: str | None = None
     name: str | None = None
     temporary_strength: int = 0
 
@@ -42,24 +52,53 @@ class Slot:
     def occupied(self) -> bool:
         return any(
             component is not None
-            for component in (self.subject, self.link, self.name)
+            for component in (self.force, self.bond, self.name)
         )
 
     @property
     def complete(self) -> bool:
-        return self.subject is not None and self.link is not None and self.name is not None
+        return (
+            self.force is not None
+            and self.bond is not None
+            and self.name is not None
+        )
+
+    @property
+    def named(self) -> bool:
+        return self.complete
+
+    # Temporary compatibility aliases for old card/native adapters. New engine,
+    # API, tests and UI code must use Force/Bond terminology.
+    @property
+    def subject(self) -> str | None:
+        return self.force
+
+    @subject.setter
+    def subject(self, value: str | None) -> None:
+        self.force = value
+
+    @property
+    def link(self) -> str | None:
+        return self.bond
+
+    @link.setter
+    def link(self, value: str | None) -> None:
+        self.bond = value
 
 
 @dataclass
-class SchemeState:
+class StoryState:
     card_id: str
-    revealed: bool = False
+    ongoing: bool = True
+
+
+# Temporary import compatibility while web/belief code is migrated.
+SchemeState = StoryState
 
 
 @dataclass
 class StratagemState:
     card_id: str
-    revealed: bool = False
 
 
 @dataclass
@@ -67,10 +106,8 @@ class PlayerState:
     deck: list[str]
     hand: list[str]
     discard: list[str] = field(default_factory=list)
-    victories: int = 0
     passed: bool = False
     command: int = 0
-    free_cycle: bool = False
 
 
 @dataclass(frozen=True)
@@ -87,13 +124,13 @@ class ObservationEvent:
 
 def empty_board() -> list[list[list[Slot]]]:
     return [
-        [[Slot(), Slot()] for _ in range(3)],
-        [[Slot(), Slot()] for _ in range(3)],
+        [[Slot(), Slot()] for _ in range(FRONT_COUNT)],
+        [[Slot(), Slot()] for _ in range(FRONT_COUNT)],
     ]
 
 
-def empty_schemes() -> list[list[SchemeState | None]]:
-    return [[None for _ in range(3)] for _ in range(2)]
+def empty_stories() -> list[list[StoryState]]:
+    return [[], []]
 
 
 def empty_stratagems() -> list[StratagemState | None]:
@@ -104,18 +141,16 @@ def empty_stratagems() -> list[StratagemState | None]:
 class GameState:
     players: list[PlayerState]
     board: list[list[list[Slot]]] = field(default_factory=empty_board)
-    schemes: list[list[SchemeState | None]] = field(default_factory=empty_schemes)
+    stories: list[list[StoryState]] = field(default_factory=empty_stories)
     stratagems: list[StratagemState | None] = field(default_factory=empty_stratagems)
     stratagem_used: list[bool] = field(default_factory=lambda: [False, False])
     hero_used: list[bool] = field(default_factory=lambda: [False, False])
-    draw_used: list[bool] = field(default_factory=lambda: [False, False])
     active_player: int = 0
     battle: int = 1
     phase: Phase = Phase.BATTLE
     discarded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     command_spent_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     command_refunded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
-    completion_command_refunded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     battle_start_command: list[int] = field(default_factory=lambda: [0, 0])
     battle_start_hand_size: list[int] = field(default_factory=lambda: [0, 0])
     cards_drawn_this_battle: list[int] = field(default_factory=lambda: [0, 0])
@@ -126,12 +161,9 @@ class GameState:
     reshuffle_hand_card_totals: list[int] = field(default_factory=lambda: [0, 0])
     opening_hands: list[list[str]] = field(default_factory=lambda: [[], []])
     pending_final_operation_for: int | None = None
-    cleanup_pending: bool = False
-    cleanup_next_starter: int | None = None
-    cleanup_next_chooser: int | None = None
+    pending_draw_discard_for: int | None = None
     last_battle_snapshot: dict[str, object] | None = None
     pass_order: list[int] = field(default_factory=list)
-    chooser: int | None = None
     winner: int | None = None
     turn_number: int = 1
     shuffle_seed: int = 0
@@ -141,22 +173,13 @@ class GameState:
     )
 
     def clone(self) -> "GameState":
-        """Fast structural copy used heavily by search.
-
-        Card ids, enums and ObservationEvent objects are immutable, so only
-        mutable containers and mutable state records need to be copied.
-        Avoiding deepcopy here removes a large amount of MCCFR overhead while
-        preserving full branch isolation.
-        """
         players = [
             PlayerState(
                 deck=list(player.deck),
                 hand=list(player.hand),
                 discard=list(player.discard),
-                victories=player.victories,
                 passed=player.passed,
                 command=player.command,
-                free_cycle=player.free_cycle,
             )
             for player in self.players
         ]
@@ -164,8 +187,8 @@ class GameState:
             [
                 [
                     Slot(
-                        subject=slot.subject,
-                        link=slot.link,
+                        force=slot.force,
+                        bond=slot.bond,
                         name=slot.name,
                         temporary_strength=slot.temporary_strength,
                     )
@@ -175,39 +198,27 @@ class GameState:
             ]
             for side in self.board
         ]
-        schemes = [
-            [
-                None
-                if scheme is None
-                else SchemeState(card_id=scheme.card_id, revealed=scheme.revealed)
-                for scheme in side
-            ]
-            for side in self.schemes
+        stories = [
+            [StoryState(card_id=story.card_id, ongoing=story.ongoing) for story in side]
+            for side in self.stories
         ]
         stratagems = [
-            None
-            if stratagem is None
-            else StratagemState(
-                card_id=stratagem.card_id,
-                revealed=stratagem.revealed,
-            )
+            None if stratagem is None else StratagemState(card_id=stratagem.card_id)
             for stratagem in self.stratagems
         ]
         return GameState(
             players=players,
             board=board,
-            schemes=schemes,
+            stories=stories,
             stratagems=stratagems,
             stratagem_used=list(self.stratagem_used),
             hero_used=list(self.hero_used),
-            draw_used=list(self.draw_used),
             active_player=self.active_player,
             battle=self.battle,
             phase=self.phase,
             discarded_this_battle=list(self.discarded_this_battle),
             command_spent_this_battle=list(self.command_spent_this_battle),
             command_refunded_this_battle=list(self.command_refunded_this_battle),
-            completion_command_refunded_this_battle=list(self.completion_command_refunded_this_battle),
             battle_start_command=list(self.battle_start_command),
             battle_start_hand_size=list(self.battle_start_hand_size),
             cards_drawn_this_battle=list(self.cards_drawn_this_battle),
@@ -218,90 +229,63 @@ class GameState:
             reshuffle_hand_card_totals=list(self.reshuffle_hand_card_totals),
             opening_hands=[list(hand) for hand in self.opening_hands],
             pending_final_operation_for=self.pending_final_operation_for,
-            cleanup_pending=self.cleanup_pending,
-            cleanup_next_starter=self.cleanup_next_starter,
-            cleanup_next_chooser=self.cleanup_next_chooser,
+            pending_draw_discard_for=self.pending_draw_discard_for,
             last_battle_snapshot=(
                 None
                 if self.last_battle_snapshot is None
                 else dict(self.last_battle_snapshot)
             ),
             pass_order=list(self.pass_order),
-            chooser=self.chooser,
             winner=self.winner,
             turn_number=self.turn_number,
             shuffle_seed=self.shuffle_seed,
             observations=list(self.observations),
             known_hidden_hand=[
-                [dict(self.known_hidden_hand[viewer][owner]) for owner in range(2)]
-                for viewer in range(2)
+                [dict(self.known_hidden_hand[v][o]) for o in range(2)]
+                for v in range(2)
             ],
         )
 
     def copy_from(self, source: "GameState") -> "GameState":
-        """Overwrite this state from source while reusing allocated containers.
-
-        MCCFR explores depth-first, so one scratch state per depth is enough.
-        Reusing PlayerState, Slot and list objects avoids thousands of small
-        allocations without changing branch isolation.
-        """
         for index in range(2):
             target_player = self.players[index]
             source_player = source.players[index]
             target_player.deck[:] = source_player.deck
             target_player.hand[:] = source_player.hand
             target_player.discard[:] = source_player.discard
-            target_player.victories = source_player.victories
             target_player.passed = source_player.passed
             target_player.command = source_player.command
-            target_player.free_cycle = source_player.free_cycle
 
         for player in range(2):
-            for front in range(3):
-                for rank in range(2):
+            for front in range(FRONT_COUNT):
+                for rank in range(RANK_COUNT):
                     target_slot = self.board[player][front][rank]
                     source_slot = source.board[player][front][rank]
-                    target_slot.subject = source_slot.subject
-                    target_slot.link = source_slot.link
+                    target_slot.force = source_slot.force
+                    target_slot.bond = source_slot.bond
                     target_slot.name = source_slot.name
                     target_slot.temporary_strength = source_slot.temporary_strength
 
-                source_scheme = source.schemes[player][front]
-                target_scheme = self.schemes[player][front]
-                if source_scheme is None:
-                    self.schemes[player][front] = None
-                elif target_scheme is None:
-                    self.schemes[player][front] = SchemeState(
-                        card_id=source_scheme.card_id,
-                        revealed=source_scheme.revealed,
-                    )
-                else:
-                    target_scheme.card_id = source_scheme.card_id
-                    target_scheme.revealed = source_scheme.revealed
+            self.stories[player][:] = [
+                StoryState(card_id=story.card_id, ongoing=story.ongoing)
+                for story in source.stories[player]
+            ]
 
             source_stratagem = source.stratagems[player]
-            target_stratagem = self.stratagems[player]
-            if source_stratagem is None:
-                self.stratagems[player] = None
-            elif target_stratagem is None:
-                self.stratagems[player] = StratagemState(
-                    card_id=source_stratagem.card_id,
-                    revealed=source_stratagem.revealed,
-                )
-            else:
-                target_stratagem.card_id = source_stratagem.card_id
-                target_stratagem.revealed = source_stratagem.revealed
+            self.stratagems[player] = (
+                None
+                if source_stratagem is None
+                else StratagemState(card_id=source_stratagem.card_id)
+            )
 
         self.stratagem_used[:] = source.stratagem_used
         self.hero_used[:] = source.hero_used
-        self.draw_used[:] = source.draw_used
         self.active_player = source.active_player
         self.battle = source.battle
         self.phase = source.phase
         self.discarded_this_battle[:] = source.discarded_this_battle
         self.command_spent_this_battle[:] = source.command_spent_this_battle
         self.command_refunded_this_battle[:] = source.command_refunded_this_battle
-        self.completion_command_refunded_this_battle[:] = source.completion_command_refunded_this_battle
         self.battle_start_command[:] = source.battle_start_command
         self.battle_start_hand_size[:] = source.battle_start_hand_size
         self.cards_drawn_this_battle[:] = source.cards_drawn_this_battle
@@ -313,16 +297,13 @@ class GameState:
         for index in range(2):
             self.opening_hands[index][:] = source.opening_hands[index]
         self.pending_final_operation_for = source.pending_final_operation_for
-        self.cleanup_pending = source.cleanup_pending
-        self.cleanup_next_starter = source.cleanup_next_starter
-        self.cleanup_next_chooser = source.cleanup_next_chooser
+        self.pending_draw_discard_for = source.pending_draw_discard_for
         self.last_battle_snapshot = (
             None
             if source.last_battle_snapshot is None
             else dict(source.last_battle_snapshot)
         )
         self.pass_order[:] = source.pass_order
-        self.chooser = source.chooser
         self.winner = source.winner
         self.turn_number = source.turn_number
         self.shuffle_seed = source.shuffle_seed
@@ -336,14 +317,10 @@ class GameState:
         return self
 
     def slot(self, player: int, position: Position) -> Slot:
-        rank_index = 0 if position.rank is Rank.FRONT else 1
-        return self.board[player][int(position.front)][rank_index]
+        return self.board[player][int(position.front)][RANK_INDEX[position.rank]]
 
-    def scheme(self, player: int, front: Front) -> SchemeState | None:
-        return self.schemes[player][int(front)]
-
-    def stratagem(self, player: int) -> StratagemState | None:
-        return self.stratagems[player]
+    def ongoing_stories(self, player: int) -> list[StoryState]:
+        return self.stories[player]
 
     def observe_hidden_delta(
         self,
@@ -405,7 +382,6 @@ class GameState:
         zone: str = "hand",
     ) -> Counter[str]:
         if zone == "hand":
-            # The native state owns knowledge; observations are a UI log.
             return Counter(self.known_hidden_hand[viewer][owner])
 
         counts: Counter[str] = Counter()
