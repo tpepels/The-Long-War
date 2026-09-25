@@ -277,20 +277,6 @@ def main() -> None:
         default=defaults.battle_end_hand_limit,
     )
 
-    final_operation_group = parser.add_mutually_exclusive_group()
-    final_operation_group.add_argument(
-        "--pass-final-operation",
-        dest="pass_final_operation",
-        action="store_true",
-        help="After the first Pass, give the opponent exactly one final operation.",
-    )
-    final_operation_group.add_argument(
-        "--no-pass-final-operation",
-        dest="pass_final_operation",
-        action="store_false",
-    )
-    parser.set_defaults(pass_final_operation=defaults.pass_final_operation)
-
     pass_gate_group = parser.add_mutually_exclusive_group()
     pass_gate_group.add_argument(
         "--pass-requires-both-acted",
@@ -407,7 +393,6 @@ def main() -> None:
         automatic_draw_hand_limit=args.automatic_draw_hand_limit,
         battle_end_hand_limit=args.battle_end_hand_limit,
         cycle_enabled=args.cycle_enabled,
-        pass_final_operation=args.pass_final_operation,
         pass_requires_both_acted=args.pass_requires_both_acted,
         first_passer_starts_next_battle=args.first_passer_starts_next_battle,
         completion_command_refund=args.completion_command_refund,
@@ -551,7 +536,6 @@ def main() -> None:
         "paid_draw_consumes_operation": rules.paid_draw_consumes_operation,
         "automatic_draw_hand_limit": rules.automatic_draw_hand_limit,
         "battle_end_hand_limit": rules.battle_end_hand_limit,
-        "pass_final_operation": rules.pass_final_operation,
         "pass_requires_both_acted": rules.pass_requires_both_acted,
         "first_passer_starts_next_battle": rules.first_passer_starts_next_battle,
         "completion_command_refund": rules.completion_command_refund,
@@ -583,7 +567,6 @@ def main() -> None:
         f"paid_draw_operation={'yes' if rules.paid_draw_consumes_operation else 'no'} "
         f"auto_hand_limit={rules.automatic_draw_hand_limit or 'none'} "
         f"battle_hand_limit={rules.battle_end_hand_limit or 'none'} "
-        f"pass_final={'on' if rules.pass_final_operation else 'off'} "
         f"completion_refund={rules.completion_command_refund} "
         f"stratagems={'public' if rules.public_stratagems else 'hidden'} "
         f"starter_bonus={'turn-draw' if rules.automatic_draw else ('none' if rules.paid_draw_enabled else '+1')}"
