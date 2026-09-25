@@ -43,7 +43,7 @@ def test_online_resolver_has_root_coverage_without_true_opponent_deck() -> None:
     assert result.belief_prior == "CardPoolDeckPrior"
 
 
-def test_online_resolver_handles_final_operation_with_unknown_deck() -> None:
+def test_online_resolver_handles_second_consecutive_pass_with_unknown_deck() -> None:
     engine, deck = setup()
 
     p0_hidden = list(deck)
@@ -60,7 +60,6 @@ def test_online_resolver_handles_final_operation_with_unknown_deck() -> None:
             PlayerState(
                 deck=list(deck),
                 hand=[],
-                victories=1,
                 passed=True,
                 command=engine.starting_command,
             ),
