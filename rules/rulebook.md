@@ -419,7 +419,7 @@ If the Story remains unresolved at Battle end, it can continue into later Battle
 
 Player 1 attaches *Followed* and later *Namar* to *The Fifty Men*.
 
-Once Force, Bond, and Name are all present, that position is a Named Formation and can persist.
+Once Force, Bond, and Name are all present, that position is a Named Formation and can persist. Any ability that triggers when the formation becomes complete resolves at that moment.
 
 ### Later — Player 1 Maneuvers
 
@@ -435,7 +435,7 @@ Player 2 decides that further commitment is not worth the Command.
 
 Player 2 Passes.
 
-Player 1 receives exactly one final operation.
+Player 1 begins the final turn, makes the normal start-of-turn draw, and then takes exactly one final operation.
 
 Then the Battle ends and all four Fronts are resolved separately.
 
@@ -585,7 +585,7 @@ If the deck empties while drawing, shuffle the discard pile to form a new deck a
 
 Each player may again play:
 
-- one new Hero during the next Battle;
+- one Hero card from hand during the next Battle;
 - one new Stratagem during the next Battle.
 
 Persistent Heroes and ongoing Stories remain where they are.
@@ -854,7 +854,7 @@ Custom research decks may vary the Force and Name counts while retaining the dec
 ## Glossary {#glossary}
 
 **Battle**  
-One period of alternating operations. After the first Pass, the opponent receives one final operation and then all four Fronts are resolved. A Battle has no overall winner.
+One period of alternating turns. After the first Pass, the opponent takes one final turn - including the normal draw and exactly one operation - and then all four Fronts are resolved. A Battle has no overall winner.
 
 **Bond**  
 A formation component. It may be prepared before its Force. A Bond without a Name is an open Bond.
