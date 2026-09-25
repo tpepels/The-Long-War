@@ -14,8 +14,9 @@ from .model import (
     PlayerState,
     Position,
     Rank,
-    SchemeState,
+    FRONT_COUNT,
     Slot,
+    StoryState,
     StratagemState,
 )
 
@@ -86,7 +87,7 @@ class GameEngine:
         recycle_between_battles: bool = False,
         command_enabled: bool = True,
         starting_command: int = 20,
-        battle_command_gain: int = 10,
+        battle_command_gain: int = 0,
         command_cap: int = 20,
         cycle_command_cost: int = 1,
         reshuffle_on_empty: bool = True,
@@ -94,13 +95,13 @@ class GameEngine:
         paid_draw_enabled: bool = False,
         paid_draw_command_cost: int = 1,
         paid_draw_consumes_operation: bool = True,
-        automatic_draw_hand_limit: int | None = None,
+        automatic_draw_hand_limit: int | None = 10,
         battle_end_hand_limit: int | None = None,
         cycle_enabled: bool = False,
         pass_final_operation: bool = True,
         pass_requires_both_acted: bool = True,
         first_passer_starts_next_battle: bool = True,
-        completion_command_refund: int = 1,
+        completion_command_refund: int = 0,
         public_stratagems: bool = True,
     ):
         validate_card_data(card_data)
@@ -142,6 +143,11 @@ class GameEngine:
         self.starting_command = rules.starting_command
         self.battle_command_gain = rules.battle_command_gain
         self.command_cap = rules.command_cap
+        self.command_recovery_schedule = rules.command_recovery_schedule
+        self.command_collapse_threshold = rules.command_collapse_threshold
+        self.maneuver_command_cost = rules.maneuver_command_cost
+        self.hand_limit = rules.hand_limit
+        self.ongoing_story_limit = rules.ongoing_story_limit
         self.cycle_command_cost = rules.cycle_command_cost
         self.reshuffle_on_empty = rules.reshuffle_on_empty
         self.automatic_draw = rules.automatic_draw
@@ -345,52 +351,40 @@ class GameEngine:
             target.deck[:] = source["deck"]
             target.hand[:] = source["hand"]
             target.discard[:] = source["discard"]
-            target.victories = int(source["victories"])
             target.passed = bool(source["passed"])
             target.command = int(source["command"])
-            target.free_cycle = bool(source["free_cycle"])
 
-            for front in range(3):
+            for front in range(FRONT_COUNT):
                 for rank in range(2):
                     source_slot = data["board"][player][front][rank]
                     target_slot = state.board[player][front][rank]
-                    target_slot.subject = source_slot["subject"]
-                    target_slot.link = source_slot["link"]
+                    target_slot.force = source_slot["force"]
+                    target_slot.bond = source_slot["bond"]
                     target_slot.name = source_slot["name"]
-                    target_slot.temporary_strength = int(source_slot["temporary_strength"])
-
-                scheme = data["schemes"][player][front]
-                state.schemes[player][front] = (
-                    None
-                    if scheme is None
-                    else SchemeState(
-                        card_id=scheme["card_id"],
-                        revealed=bool(scheme["revealed"]),
+                    target_slot.temporary_strength = int(
+                        source_slot["temporary_strength"]
                     )
-                )
+
+            state.stories[player][:] = [
+                StoryState(card_id=story["card_id"], ongoing=True)
+                for story in data["stories"][player]
+            ]
 
             stratagem = data["stratagems"][player]
             state.stratagems[player] = (
                 None
                 if stratagem is None
-                else StratagemState(
-                    card_id=stratagem["card_id"],
-                    revealed=bool(stratagem["revealed"]),
-                )
+                else StratagemState(card_id=stratagem["card_id"])
             )
 
         state.stratagem_used[:] = data["stratagem_used"]
         state.hero_used[:] = data["hero_used"]
-        state.draw_used[:] = data["draw_used"]
         state.active_player = int(data["active_player"])
         state.battle = int(data["battle"])
         state.phase = Phase(data["phase"])
         state.discarded_this_battle[:] = data["discarded_this_battle"]
         state.command_spent_this_battle[:] = data["command_spent_this_battle"]
         state.command_refunded_this_battle[:] = data["command_refunded_this_battle"]
-        state.completion_command_refunded_this_battle[:] = data[
-            "completion_command_refunded_this_battle"
-        ]
         state.battle_start_command[:] = data["battle_start_command"]
         state.battle_start_hand_size[:] = data["battle_start_hand_size"]
         state.cards_drawn_this_battle[:] = data["cards_drawn_this_battle"]
@@ -400,12 +394,9 @@ class GameEngine:
         state.reshuffle_card_totals[:] = data["reshuffle_card_totals"]
         state.reshuffle_hand_card_totals[:] = data["reshuffle_hand_card_totals"]
         state.pending_final_operation_for = data["pending_final_operation_for"]
-        state.cleanup_pending = bool(data["cleanup_pending"])
-        state.cleanup_next_starter = data["cleanup_next_starter"]
-        state.cleanup_next_chooser = data["cleanup_next_chooser"]
+        state.pending_draw_discard_for = data["pending_draw_discard_for"]
         state.last_battle_snapshot = data["last_battle_snapshot"]
         state.pass_order[:] = data["pass_order"]
-        state.chooser = data["chooser"]
         state.winner = data["winner"]
         state.turn_number = int(data["turn_number"])
         state.shuffle_seed = int(data["shuffle_seed"])
@@ -419,8 +410,12 @@ class GameEngine:
                     delta = updated.get(card_id, 0) - target.get(card_id, 0)
                     if delta:
                         state.observe_hidden_delta(
-                            viewer=viewer, owner=owner, card_id=card_id,
-                            zone="hand", delta=delta, reason="engine_transition",
+                            viewer=viewer,
+                            owner=owner,
+                            card_id=card_id,
+                            zone="hand",
+                            delta=delta,
+                            reason="engine_transition",
                         )
                 target.clear()
                 target.update(updated)
@@ -455,40 +450,11 @@ class GameEngine:
         validate: bool = True,
     ) -> None:
         del validate
-        before_battle = state.battle
-        hidden_stratagems = [
-            (owner, stratagem.card_id)
-            for owner, stratagem in enumerate(state.stratagems)
-            if stratagem is not None and not stratagem.revealed
-        ]
-
         native = self._native_core_instance
         fast_state = native.from_game_state(state)
         candidate = self._native_action(fast_state, action)
         native.apply(fast_state, candidate)
         self._sync_from_native(state, fast_state)
-
-        # ObservationEvent is a presentation/history adapter, not game state.
-        # At Battle resolution the canonical core reveals then clears hidden
-        # Stratagems in one transition, so retain that public reveal in the
-        # Python log for UI/tests.
-        battle_resolved = (
-            state.phase is Phase.COMPLETE
-            or state.battle != before_battle
-        )
-        if battle_resolved:
-            for owner, card_id in hidden_stratagems:
-                state.observations.append(
-                    ObservationEvent(
-                        turn_number=state.turn_number,
-                        kind="reveal",
-                        viewer=1 - owner,
-                        owner=owner,
-                        card_id=card_id,
-                        zone="stratagem",
-                        reason="battle_end",
-                    )
-                )
 
     def can_draw(self, state: GameState, player: int) -> bool:
         native = self._native_core_instance
@@ -520,7 +486,7 @@ class GameEngine:
         name_id: str,
     ) -> int:
         slot = state.slot(player, position)
-        if slot.subject is None or slot.name is not None:
+        if slot.force is None or slot.name is not None:
             return 0
         before = self.position_strength(state, player, position)
         clone = state.clone()
@@ -541,22 +507,28 @@ class GameEngine:
     def front_strength_matrix(
         self,
         state: GameState,
-    ) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
+    ) -> tuple[tuple[int, ...], tuple[int, ...]]:
         native = self._native_core_instance
         fast_state = native.from_game_state(state)
         return (
-            tuple(int(native.front_strength(fast_state, 0, front)) for front in range(3)),
-            tuple(int(native.front_strength(fast_state, 1, front)) for front in range(3)),
+            tuple(
+                int(native.front_strength(fast_state, 0, front))
+                for front in range(FRONT_COUNT)
+            ),
+            tuple(
+                int(native.front_strength(fast_state, 1, front))
+                for front in range(FRONT_COUNT)
+            ),
         )
 
     def front_margins(
         self,
         state: GameState,
         player: int,
-    ) -> tuple[int, int, int]:
+    ) -> tuple[int, ...]:
         totals = self.front_strength_matrix(state)
         opponent = 1 - player
         return tuple(
             totals[player][front] - totals[opponent][front]
-            for front in range(3)
+            for front in range(FRONT_COUNT)
         )
