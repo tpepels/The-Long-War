@@ -12,7 +12,7 @@ import time
 from contextlib import contextmanager
 from dataclasses import asdict
 from itertools import combinations
-from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed, wait
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from pathlib import Path
 from typing import Any
 
@@ -384,6 +384,8 @@ def _run_cells_with_live_progress(
                     result = future.result()
                     if result is not None:
                         results.append(result)
+                        if not interactive:
+                            print(format_result(result), flush=True)
 
                 if not skipped:
                     render(len(pending))
