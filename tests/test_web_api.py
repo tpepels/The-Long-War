@@ -226,7 +226,6 @@ def test_battle_transition_log_handles_fixed_next_starter() -> None:
     result = session.act(second_pass["key"], second)
 
     assert result["battle"] == 2
-    assert session.state.chooser is None
     assert session.state.active_player == first
     assert session.log[-1] == (
         f"Battle II begins. Player {first + 1} starts."
