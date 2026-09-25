@@ -55,7 +55,6 @@ def test_online_resolver_handles_final_operation_with_unknown_deck() -> None:
             PlayerState(
                 deck=p0_hidden,
                 hand=["seven-black-ships"],
-                victories=1,
                 command=engine.starting_command,
             ),
             PlayerState(
@@ -69,11 +68,10 @@ def test_online_resolver_handles_final_operation_with_unknown_deck() -> None:
         active_player=0,
         battle=3,
         pass_order=[1],
-        pending_final_operation_for=0,
         operations_this_battle=[1, 1],
     )
-    state.slot(0, Position(Front.LEFT, Rank.FRONT)).subject = "the-fifty-men"
-    state.slot(0, Position(Front.CENTER, Rank.FRONT)).subject = "the-three-brothers-of-avar"
+    state.slot(0, Position(Front.FIRST, Rank.FRONT)).force = "the-fifty-men"
+    state.slot(0, Position(Front.SECOND, Rank.FRONT)).force = "the-three-brothers-of-avar"
 
     legal = engine.legal_actions(state)
     legal_keys = {action_key(action) for action in legal}
@@ -83,7 +81,8 @@ def test_online_resolver_handles_final_operation_with_unknown_deck() -> None:
     pass_state = state.clone()
     pass_action = next(action for action in legal if action_key(action) == "pass")
     engine.apply(pass_state, pass_action)
-    assert pass_state.winner == 0
+    assert pass_state.battle == 4
+    assert pass_state.winner is None
 
     resolver = OnlineMCCFRResolver(
         engine,
