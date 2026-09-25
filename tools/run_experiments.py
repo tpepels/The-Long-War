@@ -36,7 +36,12 @@ from longwar.agents.ismcts_agent import (
 )
 from longwar.balance import validate_command_costs
 from longwar.cards import load_card_file
-from longwar.decks import PLAYTEST_DECK_SIZE, validate_deck_definition
+from longwar.decks import (
+    PLAYTEST_DECK_SIZE,
+    PLAYTEST_FORCE_COUNT,
+    PLAYTEST_PRINTED_NAME_COUNT,
+    validate_deck_definition,
+)
 from longwar.game import GameEngine
 from longwar.fingerprint import artifact_directory, experiment_identity
 from longwar.health import wilson_interval
@@ -82,6 +87,8 @@ def validate_data() -> None:
             deck,
             engine.cards,
             exact_size=PLAYTEST_DECK_SIZE,
+            exact_force_count=PLAYTEST_FORCE_COUNT,
+            exact_printed_name_count=PLAYTEST_PRINTED_NAME_COUNT,
         )
         engine.validate_deck(deck)
         engine.legal_actions(engine.new_game(deck, deck, seed=1701))
