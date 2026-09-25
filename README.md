@@ -121,15 +121,11 @@ make experiments \
   EXPERIMENT=ismcts-match \
   EXPERIMENT_ARGS="--b-rollout-depth 8"
 
-make experiments \
-  EXPERIMENT=ismcts-match \
-  EXPERIMENT_ARGS="--b-belief-samples 16 --b-max-tree-nodes 800000"
-
 # Equal-time ISMCTS vs alpha-beta.
 make experiments EXPERIMENT=strength-bench
 ```
 
-`make experiments` runs algorithm verification first and uses `systemd-inhibit` while the selected experiment runs. The default `suite` checks an identical-control match, tree reuse, progressive widening, rollout policy/depth/epsilon, and the baseline-vs-alpha-beta reference. Exploration and belief-sample sweeps were already resolved separately and are not rerun in the canonical suite. It reports **READY** only when the identical control calibrates around 50%, no predeclared ISMCTS challenger is significantly stronger, and ISMCTS is not significantly weaker than alpha-beta. Tree-capacity pressure is surfaced as a warning. Parallel matchups display a live per-cell results table and aggregate progress under `artifacts/search-benchmark/`. In an interactive terminal, press `s` to stop the current comparison and continue with the next experiment. Experiment variations belong in `EXPERIMENT` / `EXPERIMENT_ARGS`, not new Make targets.
+`make experiments` runs algorithm verification first and uses `systemd-inhibit` while the selected experiment runs. The default `suite` checks tree reuse, progressive widening, rollout policy/depth/epsilon, and the baseline-vs-alpha-beta reference. Exploration, belief-sample, tree-capacity, and identical-control checks were already resolved separately and are not rerun in the canonical suite. The six remaining comparisons run in a deterministic randomized order derived from the suite seed so useful evidence appears earlier across the set. Parallel matchups display a live per-cell results table and aggregate progress under `artifacts/search-benchmark/`. In an interactive terminal, press `s` to stop the current comparison and continue immediately with the next one. Experiment variations belong in `EXPERIMENT` / `EXPERIMENT_ARGS`, not new Make targets.
 
 Strength artifacts preserve per-game seeds/outcomes, effective configuration, source fingerprints and paired uncertainty over mirrored deals. Different budgets/seeds/configurations use different artifact directories.
 
