@@ -395,13 +395,32 @@ def main() -> None:
             raise SystemExit("MCCFR policy belongs to an older ruleset; retrain it before simulation")
 
     progress_path = resolve(args.progress_file) if args.progress_file else None
+    def write_progress(
+        completed: int,
+        total: int,
+        wins: tuple[int, int],
+    ) -> None:
+        if progress_path is None:
+            return
+        progress_path.write_text(
+            json.dumps({
+                "completed": completed,
+                "total": total,
+                "wins": [wins[0], wins[1]],
+            }) + "\n",
+            encoding="utf-8",
+        )
+
     if progress_path is not None:
         progress_path.parent.mkdir(parents=True, exist_ok=True)
-        progress_path.write_text("0\n", encoding="utf-8")
+        write_progress(0, args.games, (0, 0))
 
-    def report_progress(completed: int, total: int) -> None:
-        if progress_path is not None:
-            progress_path.write_text(f"{completed}\n", encoding="utf-8")
+    def report_progress(
+        completed: int,
+        total: int,
+        wins: tuple[int, int],
+    ) -> None:
+        write_progress(completed, total, wins)
 
     report = simulate_games(
         engine,
