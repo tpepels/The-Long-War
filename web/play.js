@@ -1173,13 +1173,17 @@ function showActionBanner(kicker, title, detail = "") {
 }
 
 function renderActionFeedback() {
-  if (renderedState && renderedState.battle !== state.battle && state.phase !== "complete") {
+  if (
+    renderedState &&
+    renderedState.battle !== state.battle &&
+    state.phase !== "complete"
+  ) {
     lastShownActionId = state.last_action?.id || lastShownActionId;
-    const victor = state.players.findIndex((player, index) => player.victories > renderedState.players[index].victories);
-    const result = victor < 0 ? "A drawn Battle" : state.mode === "hotseat"
-      ? "Player " + (victor + 1) + " gains a Victory"
-      : victor === currentViewer() ? "You gain a Victory" : "Opponent gains a Victory";
-    showActionBanner("BATTLE " + renderedState.battle + " RESOLVED", result, "Battle " + state.battle + " begins");
+    showActionBanner(
+      "BATTLE " + renderedState.battle + " RESOLVED",
+      "Four Fronts resolved",
+      "Battle " + state.battle + " begins"
+    );
     return;
   }
 
@@ -1190,7 +1194,10 @@ function renderActionFeedback() {
   ) {
     openingAnnouncementShown = true;
     const own = state.opening_player === state.viewer;
-    showActionBanner(own ? "YOU GO FIRST" : "OPPONENT GOES FIRST", "Draw 1 to start the turn");
+    showActionBanner(
+      own ? "YOU GO FIRST" : "OPPONENT GOES FIRST",
+      "Normal start-of-turn draw"
+    );
     return;
   }
 
@@ -1202,28 +1209,26 @@ function renderActionFeedback() {
   let kicker = own ? "YOUR ACTION" : "OPPONENT ACTION";
   let title = card?.title || action.label;
 
-  if (action.kind === "Cycle") {
-    kicker = own ? "YOU CYCLE" : "OPPONENT CYCLES";
-  } else if (action.kind === "Draw") {
-    kicker = own ? "YOU DRAW" : "OPPONENT DRAWS";
-    title = "1 card";
-  } else if (action.kind === "Pass") {
+  if (action.kind === "Pass") {
     kicker = own ? "YOU PASS" : "OPPONENT PASSES";
-    title = "No more turns this Battle";
+    title = state.pass_order?.length
+      ? "Opponent takes a normal turn"
+      : "Battle ends";
+  } else if (action.kind === "Discard") {
+    kicker = own ? "YOU DISCARD" : "OPPONENT DISCARDS";
+    title = "Then draw 1";
+  } else if (action.kind === "Maneuver") {
+    kicker = own ? "YOU MANEUVER" : "OPPONENT MANEUVERS";
   } else if (action.kind === "PlayForce") {
     kicker = own ? "YOU DEPLOY" : "OPPONENT DEPLOYS";
   } else if (action.kind === "PlayBond") {
-    kicker = own ? "YOU ATTACH A BOND" : "OPPONENT ATTACHES A BOND";
+    kicker = own ? "YOU PLAY A BOND" : "OPPONENT PLAYS A BOND";
   } else if (action.kind === "PlayName") {
-    kicker = own ? "YOU NAME A SUBJECT" : "OPPONENT NAMES A SUBJECT";
+    kicker = own ? "YOU PLAY A NAME" : "OPPONENT PLAYS A NAME";
   } else if (action.kind === "PlayStory") {
     kicker = own ? "YOU PLAY A STORY" : "OPPONENT PLAYS A STORY";
-  } else if (action.kind === "PlayScheme") {
-    kicker = own ? "YOU SET A VEILED STORY" : "OPPONENT SETS A VEILED STORY";
-    if (!card) title = "Face-down card";
   } else if (action.kind === "PlayStratagem") {
-    kicker = own ? "YOU SET A STRATAGEM" : "OPPONENT SETS A STRATAGEM";
-    if (!card) title = "Face-down card";
+    kicker = own ? "YOU PLAY A STRATAGEM" : "OPPONENT PLAYS A STRATAGEM";
   }
 
   showActionBanner(kicker, title, action.label || "");
@@ -1581,7 +1586,10 @@ function renderMatchResult() {
   cancelAiStep();
   $("privacy-gate").hidden = true;
   $("result-title").textContent = state.mode === "hotseat" ? "Player " + (state.winner + 1) + " wins" : state.winner === currentViewer() ? "Victory" : "Defeat";
-  $("result-detail").textContent = state.players.map((player) => player.victories).join(" — ") + " · A war decided in " + state.battle + " Battles";
+  $("result-detail").textContent =
+    "Final Command " +
+    state.players.map((player) => player.command).join(" — ") +
+    " · resolved after Battle " + state.battle;
   if (wasHidden) $("play-again")?.focus();
 }
 
@@ -1594,10 +1602,16 @@ function captureCardAnchors(snapshot) {
   const anchors = [];
   document.querySelectorAll("#hand [data-card-id], #battlefield [data-inspect-card]").forEach((node) => {
     const slot = node.closest("[data-board-owner]");
-    const scheme = node.closest("[data-scheme-front]");
+    const story = node.closest("[data-story-slot]");
     const stratagem = node.closest("[data-stratagem-owner]");
     const owner = node.closest("#hand") ? snapshot.viewer : Number(node.dataset.inspectOwner);
-    const zone = slot ? `slot:${slot.dataset.boardFront}:${slot.dataset.boardRank}:${node.dataset.inspectZone}` : scheme ? "scheme:" + scheme.dataset.schemeFront : stratagem ? "stratagem" : "hand";
+    const zone = slot
+      ? `slot:${slot.dataset.boardFront}:${slot.dataset.boardRank}:${node.dataset.inspectZone}`
+      : story
+        ? "story:" + story.dataset.storySlot
+        : stratagem
+          ? "stratagem"
+          : "hand";
     anchors.push({ owner, zone, cardId: node.dataset.cardId || node.dataset.inspectCard, node, rect: node.getBoundingClientRect() });
   });
   return anchors;
@@ -1649,26 +1663,17 @@ function animateSnapshot(previous, before) {
     added.node.animate([{ opacity: .2 }, { opacity: 1 }], { duration: 450 });
   }
   const action = state.last_action;
-  if (action?.actor !== currentViewer() && action?.kind === "Cycle") {
-    flyCard($("opponent-hand"), pileNode(action.actor, "discard"), action.card_id);
-    flyCard(pileNode(action.actor, "deck"), $("opponent-hand"));
-  }
-  if (action?.kind === "PlayScheme" || action?.kind === "PlayStratagem") {
-    const target = action.kind === "PlayStratagem" ? document.querySelector('[data-stratagem-owner="' + action.actor + '"]') : document.querySelector('[data-scheme-owner="' + action.actor + '"][data-scheme-front="' + action.front + '"]');
-    if (!action.card_id) flyCard($("opponent-hand"), target);
-  }
   for (const event of action?.events || []) {
     const node = after.find((item) => item.cardId === event.card_id && item.owner === event.owner)?.node;
     node?.animate([{ transform: "rotateY(90deg)", filter: "brightness(1.7)" }, { transform: "rotateY(0)", filter: "brightness(1)" }], { duration: 500 });
   }
   if (previous.battle !== state.battle || previous.phase !== state.phase) $("battlefield").animate([{ opacity: .35 }, { opacity: 1 }], { duration: 550 });
-  if (state.players.some((player, i) => player.victories !== previous.players[i].victories)) $("match-strip").animate([{ filter: "brightness(2)" }, { filter: "brightness(1)" }], { duration: 750 });
 }
 
 window.render_game_to_text = () => JSON.stringify({
-  coordinate_system: "Fronts 0=Left, 1=Center, 2=Right; ranks front=Frontline, rear=Rear; viewer at bottom",
+  coordinate_system: "Fronts 0-3=Front 1-4; ranks front=Frontline, rear=Rear; viewer at bottom",
   ready: cardsReady,
-  ...(state ? Object.fromEntries(["phase", "battle", "viewer", "active_player", "needs_ai", "needs_reveal", "winner", "players", "hand", "board", "schemes", "stratagems", "front_strengths", "front_control", "legal_actions", "last_action"].map((key) => [key, state[key]])) : { phase: "setup" }),
+  ...(state ? Object.fromEntries(["phase", "battle", "viewer", "active_player", "needs_ai", "needs_reveal", "winner", "players", "hand", "board", "stories", "story_limit", "stratagems", "pass_order", "pending_draw_discard_for", "front_strengths", "front_control", "legal_actions", "last_action"].map((key) => [key, state[key]])) : { phase: "setup" }),
   selected_card: selectedCardId,
   selected_hand_index: selectedHandIndex,
   selected_source: stagedPlotSource,
