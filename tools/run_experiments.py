@@ -1456,8 +1456,7 @@ def run_suite(args: argparse.Namespace) -> Path:
         raise SystemExit("--time-budget-seconds must be positive")
 
     final_time_budget_seconds = 5.0
-    calibration_time_budget_seconds = final_time_budget_seconds
-    calibration_tolerance = 0.10
+    calibration_safety_factor = 1.25
 
     starting_config = {
         "belief_samples": 12,
@@ -1503,8 +1502,7 @@ def run_suite(args: argparse.Namespace) -> Path:
         "tournament_policy": "ismcts-single-elimination-seeded-v2",
         "schedule_policy": "seeded-bracket-calibrate-alpha-beta-v1",
         "final_time_budget_seconds": final_time_budget_seconds,
-        "calibration_time_budget_seconds": calibration_time_budget_seconds,
-        "calibration_tolerance": calibration_tolerance,
+        "calibration_safety_factor": calibration_safety_factor,
     })
     output_dir = artifact_directory(BENCH_ROOT / "suite", identity)
     manifest_path = output_dir / "summary.json"
@@ -1524,8 +1522,7 @@ def run_suite(args: argparse.Namespace) -> Path:
         "schedule_policy": "seeded-bracket-calibrate-alpha-beta-v1",
         "bracket_seed_order": bracket_seed_order,
         "final_time_budget_seconds": final_time_budget_seconds,
-        "calibration_time_budget_seconds": calibration_time_budget_seconds,
-        "calibration_tolerance": calibration_tolerance,
+        "calibration_safety_factor": calibration_safety_factor,
         "schedule": [],
         "rounds": [],
         "experiments": [],
