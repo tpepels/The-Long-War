@@ -23,7 +23,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 VIEWPORTS = [(1280, 720), (1366, 768), (1440, 900), (1920, 1080)]
-SCENARIOS = ("battle", "targeting", "inspector", "ai", "choose-first", "complete", "mulligan", "drawer")
+SCENARIOS = ("battle", "targeting", "inspector", "ai", "complete", "mulligan", "drawer")
 
 
 def browser_path() -> str | None:
@@ -52,7 +52,7 @@ def browser_window_size(browser: str, width: int, height: int) -> str:
 def presentation_snapshots() -> dict[str, dict]:
     """Use canonical visibility/strength/action encoding for crowded QA states."""
     from longwar.game.engine import all_positions
-    from longwar.game.model import Phase, SchemeState, StratagemState
+    from longwar.game.model import Phase, StoryState, StratagemState
     from longwar.web_api import PlaySession
 
     card_json = (ROOT / "cards/cards.json").read_text(encoding="utf-8")
@@ -73,13 +73,12 @@ def presentation_snapshots() -> dict[str, dict]:
     for owner in range(2):
         for index, position in enumerate(all_positions()):
             slot = session.state.slot(owner, position)
-            slot.subject = by_type["subject"][index % len(by_type["subject"])]["id"]
-            slot.link = by_type["link"][index % len(by_type["link"])]["id"]
+            slot.force = by_type["subject"][index % len(by_type["subject"])]["id"]
+            slot.bond = by_type["link"][index % len(by_type["link"])]["id"]
             slot.name = by_type["name"][index % len(by_type["name"])]["id"]
-        session.state.schemes[owner] = [SchemeState(veiled) for _ in range(3)]
+        session.state.stories[owner] = [StoryState(veiled) for _ in range(2)]
         session.state.stratagems[owner] = StratagemState(
             by_type["stratagem"][owner]["id"],
-            revealed=True,
         )
     session.state.players[0].hand = [card["id"] for card in sorted(cards, key=lambda card: len(card["title"]), reverse=True)[:18]]
     session.state.players[1].hand = [card["id"] for card in cards[:18]]
@@ -89,20 +88,15 @@ def presentation_snapshots() -> dict[str, dict]:
     cases = {name: copy.deepcopy(crowded) for name in ("battle", "inspector", "drawer")}
     # One free Subject destination exercises legal-target highlighting using an
     # action encoded by the real engine, with the rest of the formations full.
-    session.state.board[0][0][1].subject = None
+    session.state.board[0][0][1].force = None
     session.state.players[0].hand.append(by_type["subject"][0]["id"])
     cases["targeting"] = session.snapshot(0)
     session.state.active_player = 1
     cases["ai"] = session.snapshot(0)
     session.state.active_player = 0
     session.state.battle = 2
-    session.state.phase = Phase.CHOOSE_FIRST
-    session.state.chooser = 0
-    session.state.players[0].victories = 1
-    cases["choose-first"] = session.snapshot(0)
     session.state.phase = Phase.COMPLETE
     session.state.winner = 0
-    session.state.players[0].victories = 2
     cases["complete"] = session.snapshot(0)
     cases["mulligan"] = opening
     return cases
@@ -197,10 +191,10 @@ CHECK_SCRIPT = r"""
     if (scenario !== "mulligan") {
       essential($("battlefield"), "battlefield");
       if (rect($("battlefield")).height < innerHeight * .38) fail("battlefield-too-small");
-      if (document.querySelectorAll(".digital-slot").length !== 12) fail("formation-positions-missing");
-      if (!document.querySelector(".scheme-marker.hidden")) fail("hidden-scheme-zone-missing");
+      if (document.querySelectorAll(".digital-slot").length !== 16) fail("formation-positions-missing");
+      if (document.querySelectorAll(".story-marker").length !== 4) fail("story-slots-missing");
       if (!document.querySelector(".stratagem-marker:not(.hidden)")) fail("public-stratagem-zone-missing");
-      document.querySelectorAll(".scheme-marker.hidden:not(.known) [data-inspect-card]").forEach(() => fail("hidden-card-inspectable"));
+      document.querySelectorAll(".story-marker [data-inspect-card]").forEach((card) => { if (!card.dataset.inspectCard) fail("story-card-not-public"); });
     }
     document.querySelectorAll("#hand > .play-card").forEach((card, index) => {
       withinViewport(card, "hand-card-" + index + "-clipped");
@@ -219,7 +213,6 @@ CHECK_SCRIPT = r"""
       essential($("interaction-title"), "ai-turn-prompt");
       if (!$("interaction-hint").textContent.includes("Thinking")) fail("ai-thinking-state-missing");
     }
-    if (scenario === "choose-first" && !document.querySelector("[data-choice-first]")) fail("choose-first-missing");
     if (scenario === "mulligan") essential($("confirm-mulligan"), "mulligan-confirm");
     if (scenario === "complete") {
       essential($("match-result"), "match-result");
