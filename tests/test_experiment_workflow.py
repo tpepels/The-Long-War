@@ -258,13 +258,13 @@ def test_skip_key_reader_restores_terminal_state_on_exception(monkeypatch):
     assert restored == [(17, runner.termios.TCSADRAIN, saved)]
 
 
-def test_suite_schedule_is_seeded_randomized_and_complete():
+def test_optimization_schedule_is_seeded_randomized_and_excludes_strength_check():
     comparisons = [
-        ("tree-cold", {"reuse_tree_b": False}),
-        ("pw-0p5", {"progressive_widening_b": 0.5}),
-        ("rollout-greedy", {"rollout_policy_b": "greedy"}),
-        ("rollout-depth-8", {"rollout_depth_b": 8}),
-        ("rollout-epsilon-0", {"rollout_epsilon_b": 0.0}),
+        ("tree-cold", {"reuse_tree": False}),
+        ("pw-0p5", {"progressive_widening": 0.5}),
+        ("rollout-greedy", {"rollout_policy": "greedy"}),
+        ("rollout-depth-8", {"rollout_depth": 8}),
+        ("rollout-epsilon-0", {"rollout_epsilon": 0.0}),
     ]
     expected = {
         "tree-cold",
@@ -272,19 +272,20 @@ def test_suite_schedule_is_seeded_randomized_and_complete():
         "rollout-greedy",
         "rollout-depth-8",
         "rollout-epsilon-0",
-        "baseline-vs-alpha-beta",
     }
 
-    first = runner._suite_schedule(comparisons, 26092400)
-    second = runner._suite_schedule(comparisons, 26092400)
+    first = runner._optimization_schedule(comparisons, 26092400)
+    second = runner._optimization_schedule(comparisons, 26092400)
 
     assert first == second
     assert {item["name"] for item in first} == expected
+    assert "optimized-vs-alpha-beta" not in {
+        item["name"] for item in first
+    }
     assert [item["name"] for item in first] != [
-        *[name for name, _overrides in comparisons],
-        "baseline-vs-alpha-beta",
+        name for name, _overrides in comparisons
     ]
-    assert comparisons[0] == ("tree-cold", {"reuse_tree_b": False})
+    assert comparisons[0] == ("tree-cold", {"reuse_tree": False})
 
 
 def test_strength_benchmark_reports_live_progress():
@@ -360,7 +361,7 @@ def test_experiment_suite_defaults_and_minimum(monkeypatch):
         runner.run_suite(args)
 
 
-def test_experiment_suite_runs_structural_battery_and_checkpoints(
+def test_experiment_suite_optimizes_before_strength_check(
     tmp_path,
     monkeypatch,
 ):
@@ -372,9 +373,11 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
 
     match_calls = []
     strength_calls = []
+    events = []
 
     def fake_match(**kwargs):
         match_calls.append(kwargs)
+        events.append("match")
         path = tmp_path / f"match-{len(match_calls)}.json"
         path.write_text(
             json.dumps({
@@ -390,6 +393,7 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
 
     def fake_strength(**kwargs):
         strength_calls.append(kwargs)
+        events.append("strength")
         path = tmp_path / "strength.json"
         path.write_text(
             json.dumps({
@@ -423,29 +427,25 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
 
     assert len(match_calls) == 5
     assert len(strength_calls) == 1
+    assert events == ["match"] * 5 + ["strength"]
     assert len(manifest["experiments"]) == 6
     assert all(row["status"] == "passed" for row in manifest["experiments"])
-    expected_names = {
+    assert manifest["schedule"][-1] == "optimized-vs-alpha-beta"
+    assert set(manifest["optimization_schedule"]) == {
         "tree-cold",
         "pw-0p5",
         "rollout-greedy",
         "rollout-depth-8",
         "rollout-epsilon-0",
-        "baseline-vs-alpha-beta",
     }
-    assert {row["name"] for row in manifest["experiments"]} == expected_names
     assert manifest["schedule"] == [
-        row["name"] for row in manifest["experiments"]
+        *manifest["optimization_schedule"],
+        "optimized-vs-alpha-beta",
     ]
-    assert manifest["schedule"] != [
-        "tree-cold",
-        "pw-0p5",
-        "rollout-greedy",
-        "rollout-depth-8",
-        "rollout-epsilon-0",
-        "baseline-vs-alpha-beta",
-    ]
+
+    assert all(call["belief_samples_a"] == 12 for call in match_calls)
     assert all(call["belief_samples_b"] == 12 for call in match_calls)
+    assert all(call["max_tree_nodes_a"] == 400_000 for call in match_calls)
     assert all(call["max_tree_nodes_b"] == 400_000 for call in match_calls)
     assert sum(call["reuse_tree_b"] is False for call in match_calls) == 1
     assert sum(
@@ -455,15 +455,106 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
     assert sum(call["rollout_policy_b"] == "greedy" for call in match_calls) == 1
     assert sum(call["rollout_depth_b"] == 8 for call in match_calls) == 1
     assert sum(call["rollout_epsilon_b"] == pytest.approx(0.0) for call in match_calls) == 1
-    assert {call["seed"] for call in match_calls} == {args.seed}
+
     assert strength_calls[0]["time_budget_seconds"] == pytest.approx(2.0)
     assert strength_calls[0]["belief_samples"] == 12
+    assert strength_calls[0]["reuse_tree"] is True
+    assert strength_calls[0]["rollout_policy"] == "cheap"
+    assert strength_calls[0]["rollout_depth"] == 5
+    assert strength_calls[0]["rollout_epsilon"] == pytest.approx(0.12)
     assert strength_calls[0]["max_tree_nodes"] == 400_000
+
+    assert manifest["optimized_config"] == manifest["starting_config"]
+    assert manifest["accepted_optimizations"] == []
     assert manifest["decision_readiness"]["ready"] is True
     assert manifest["decision_readiness"]["blockers"] == []
-    assert "baseline_control_ci95" not in manifest["decision_readiness"]
-    assert "baseline_tree_capacity_cutoffs" not in manifest["decision_readiness"]
-    assert "baseline_capacity_reroots" not in manifest["decision_readiness"]
+
+
+def test_suite_rolls_confident_improvements_into_later_tests_and_strength(
+    tmp_path,
+    monkeypatch,
+):
+    suite_dir = tmp_path / "suite"
+
+    def fake_artifact_directory(_base, _identity):
+        suite_dir.mkdir(parents=True, exist_ok=True)
+        return suite_dir
+
+    match_calls = []
+    strength_calls = []
+
+    def fake_match(**kwargs):
+        match_calls.append(dict(kwargs))
+        path = tmp_path / f"match-{len(match_calls)}.json"
+        tree_challenger = (
+            kwargs["reuse_tree_a"] is True
+            and kwargs["reuse_tree_b"] is False
+        )
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "candidate_a_win_rate": 0.40 if tree_challenger else 0.50,
+                    "paired_uncertainty": {
+                        "ci95": [0.32, 0.48]
+                        if tree_challenger
+                        else [0.44, 0.56],
+                    },
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    def fake_strength(**kwargs):
+        strength_calls.append(dict(kwargs))
+        path = tmp_path / "strength.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "mcts_win_rate": 0.50,
+                    "paired_uncertainty": {"ci95": [0.44, 0.56]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
+    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
+    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
+    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
+
+    manifest_path = runner.run_suite(Namespace(
+        games=24,
+        jobs=8,
+        iterations=100_000,
+        alpha_nodes=20_000,
+        time_budget_seconds=2.0,
+        seed=26092400,
+        stop_on_error=False,
+    ))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    tree_call_index = next(
+        index
+        for index, call in enumerate(match_calls)
+        if call["reuse_tree_a"] is True and call["reuse_tree_b"] is False
+    )
+    for call in match_calls[tree_call_index + 1:]:
+        assert call["reuse_tree_a"] is False
+        assert call["reuse_tree_b"] is False
+
+    assert manifest["accepted_optimizations"] == ["tree-cold"]
+    assert manifest["optimized_config"]["reuse_tree"] is False
+    assert strength_calls[0]["reuse_tree"] is False
+    tree_entry = next(
+        row for row in manifest["experiments"] if row["name"] == "tree-cold"
+    )
+    assert tree_entry["accepted"] is True
+    assert tree_entry["incumbent_after"]["reuse_tree"] is False
 
 
 def test_suite_manual_skip_continues_to_following_experiments(
@@ -538,16 +629,16 @@ def test_suite_manual_skip_continues_to_following_experiments(
     strength = next(
         row
         for row in manifest["experiments"]
-        if row["name"] == "baseline-vs-alpha-beta"
+        if row["name"] == "optimized-vs-alpha-beta"
     )
     assert strength["status"] == "passed"
-    assert (
-        "manually skipped comparisons: " + skipped_rows[0]["name"]
-        in manifest["decision_readiness"]["warnings"]
+    assert manifest["decision_readiness"]["ready"] is False
+    assert "optimization phase incomplete" in (
+        manifest["decision_readiness"]["blockers"]
     )
 
 
-def test_suite_readiness_blocks_a_confidently_better_challenger(
+def test_confident_challenger_is_an_accepted_optimization_not_a_blocker(
     tmp_path,
     monkeypatch,
 ):
@@ -557,22 +648,13 @@ def test_suite_readiness_blocks_a_confidently_better_challenger(
         suite_dir.mkdir(parents=True, exist_ok=True)
         return suite_dir
 
-    monkeypatch.setattr(runner, "ROOT", tmp_path)
-    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
-    monkeypatch.setattr(
-        runner,
-        "artifact_directory",
-        fake_artifact_directory,
-    )
-
-    calls = 0
-
-    def fake_match(**_kwargs):
-        nonlocal calls
-        calls += 1
-        suite_dir.mkdir(parents=True, exist_ok=True)
-        path = tmp_path / f"match-{calls}.json"
-        better = _kwargs.get("reuse_tree_b") is False
+    def fake_match(**kwargs):
+        path = tmp_path / (
+            "tree.json"
+            if kwargs["reuse_tree_b"] is False
+            else f"match-{len(list(tmp_path.glob('match-*.json')))}.json"
+        )
+        better = kwargs["reuse_tree_a"] is True and kwargs["reuse_tree_b"] is False
         path.write_text(
             json.dumps({
                 "overall": {
@@ -601,6 +683,9 @@ def test_suite_readiness_blocks_a_confidently_better_challenger(
         )
         return path
 
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
+    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
     monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
     monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
 
@@ -613,17 +698,12 @@ def test_suite_readiness_blocks_a_confidently_better_challenger(
         seed=26092400,
         stop_on_error=False,
     ))
-    readiness = json.loads(
-        manifest_path.read_text(encoding="utf-8")
-    )["decision_readiness"]
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    assert readiness["ready"] is False
-    assert readiness["challengers_beating_baseline"] == [
-        "tree-cold"
-    ]
-    assert readiness["blockers"] == [
-        "predeclared challenger beats the baseline: tree-cold"
-    ]
+    assert manifest["accepted_optimizations"] == ["tree-cold"]
+    assert manifest["optimized_config"]["reuse_tree"] is False
+    assert manifest["decision_readiness"]["ready"] is True
+    assert manifest["decision_readiness"]["blockers"] == []
 
 
 def test_no_dedicated_rule_experiment_runner() -> None:
