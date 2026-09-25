@@ -1441,7 +1441,7 @@ def run_suite(args: argparse.Namespace) -> Path:
     if capacity_cutoffs:
         warnings.append(
             f"baseline tree hit capacity {capacity_cutoffs} times; "
-            "inspect tree-800k before treating search as converged"
+            "inspect tree capacity before treating search as converged"
         )
     if capacity_reroots:
         warnings.append(
