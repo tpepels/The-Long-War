@@ -426,7 +426,7 @@ def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
     assert calibration["name"] == "alpha-beta-timing-calibration"
     assert calibration["kind"] == "timing-calibration"
     assert calibration["status"] == "passed"
-    assert strength_calls[-2]["time_budget_seconds"] == pytest.approx(1.0)
+    assert strength_calls[-2]["time_budget_seconds"] == pytest.approx(5.0)
 
     final = manifest["experiments"][-1]
     assert final["name"] == "optimized-vs-alpha-beta"
@@ -523,7 +523,7 @@ def test_knockout_winner_is_used_for_final_alpha_beta_match(
     assert manifest["optimized_config"]["rollout_policy"] == "greedy"
     assert len(strength_calls) == 2
     assert all(call["rollout_policy"] == "greedy" for call in strength_calls)
-    assert strength_calls[0]["time_budget_seconds"] == pytest.approx(1.0)
+    assert strength_calls[0]["time_budget_seconds"] == pytest.approx(5.0)
     assert strength_calls[1]["time_budget_seconds"] == pytest.approx(5.0)
 
     greedy_knockout_fixtures = [
