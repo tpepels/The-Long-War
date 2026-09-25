@@ -631,7 +631,7 @@ def test_knockout_exact_tie_replays_ismcts_fixture_with_new_seed(
     assert manifest["decision_readiness"]["ready"] is True
 
 
-def test_knockout_skip_continues_to_final_check_but_marks_not_ready(
+def test_knockout_skip_uses_partial_and_continues_to_final_check(
     tmp_path,
     monkeypatch,
 ):
