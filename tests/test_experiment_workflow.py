@@ -157,7 +157,7 @@ def test_experiment_suite_defaults_and_minimum(monkeypatch):
         ["run_experiments.py", "suite"],
     )
     args = runner.parse_args()
-    assert args.games == 96
+    assert args.games == 24
     assert args.jobs == 8
     assert args.time_budget_seconds == pytest.approx(2.0)
     assert args.iterations == 100_000
