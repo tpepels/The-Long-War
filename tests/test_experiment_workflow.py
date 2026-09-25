@@ -230,18 +230,13 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
     manifest_path = runner.run_suite(args)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    assert len(match_calls) == 11
+    assert len(match_calls) == 6
     assert len(strength_calls) == 1
-    assert len(manifest["experiments"]) == 12
+    assert len(manifest["experiments"]) == 7
     assert all(row["status"] == "passed" for row in manifest["experiments"])
     assert [row["name"] for row in manifest["experiments"]] == [
         "baseline-control",
-        "exploration-0p15",
-        "exploration-0p6",
-        "belief-16",
-        "belief-24",
         "tree-cold",
-        "tree-800k",
         "pw-0p5",
         "rollout-greedy",
         "rollout-depth-8",
@@ -250,16 +245,11 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
     ]
     assert match_calls[0]["belief_samples_b"] == 12
     assert match_calls[0]["max_tree_nodes_b"] == 400_000
-    assert match_calls[1]["exploration_b"] == pytest.approx(0.15)
-    assert match_calls[2]["exploration_b"] == pytest.approx(0.6)
-    assert match_calls[3]["belief_samples_b"] == 16
-    assert match_calls[4]["belief_samples_b"] == 24
-    assert match_calls[5]["reuse_tree_b"] is False
-    assert match_calls[6]["max_tree_nodes_b"] == 800_000
-    assert match_calls[7]["progressive_widening_b"] == pytest.approx(0.5)
-    assert match_calls[8]["rollout_policy_b"] == "greedy"
-    assert match_calls[9]["rollout_depth_b"] == 8
-    assert match_calls[10]["rollout_epsilon_b"] == pytest.approx(0.0)
+    assert match_calls[1]["reuse_tree_b"] is False
+    assert match_calls[2]["progressive_widening_b"] == pytest.approx(0.5)
+    assert match_calls[3]["rollout_policy_b"] == "greedy"
+    assert match_calls[4]["rollout_depth_b"] == 8
+    assert match_calls[5]["rollout_epsilon_b"] == pytest.approx(0.0)
     assert strength_calls[0]["time_budget_seconds"] == pytest.approx(2.0)
     assert strength_calls[0]["belief_samples"] == 12
     assert strength_calls[0]["max_tree_nodes"] == 400_000
@@ -339,10 +329,10 @@ def test_suite_readiness_blocks_a_confidently_better_challenger(
 
     assert readiness["ready"] is False
     assert readiness["challengers_beating_baseline"] == [
-        "exploration-0p15"
+        "tree-cold"
     ]
     assert readiness["blockers"] == [
-        "predeclared challenger beats the baseline: exploration-0p15"
+        "predeclared challenger beats the baseline: tree-cold"
     ]
 
 
