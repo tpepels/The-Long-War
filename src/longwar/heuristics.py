@@ -31,7 +31,7 @@ def opening_mulligan_indices(
         elif card_type == "name":
             score = 3.0
         elif card_type == "story":
-            score = 3.7 if card.get("veiled", False) else 2.6
+            score = 3.7 if card.get("ongoing", False) else 2.6
         elif card_type == "stratagem":
             seen_stratagems += 1
             score = 3.2 if seen_stratagems == 1 else 2.0
