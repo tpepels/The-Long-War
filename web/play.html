@@ -33,11 +33,11 @@
           </svg>
         </div>
         <div class="setup-copy">
-          <p class="setup-kicker">A game of three Fronts</p>
+          <p class="setup-kicker">Four Fronts. One long war.</p>
           <h1 id="game-title">
             <span>The</span>Long<br />War<span class="title-stop">.</span>
           </h1>
-          <p class="setup-intro">Hold two Fronts. Win two Battles.</p>
+          <p class="setup-intro">Persistent formations. Attrition. Command Collapse.</p>
           <form id="new-game-form">
             <label
               >Across the table<select id="mode" disabled>
@@ -239,30 +239,31 @@
             </p>
           </section>
           <section data-drawer-content="rules" hidden class="rules-summary">
-            <p class="drawer-kicker">Three Fronts. Two Victories.</p>
+            <p class="drawer-kicker">Four Fronts. No Battle victories.</p>
             <p>
-              Win a Battle by controlling at least two Fronts. Win two Battles
-              to win the match.
+              Resolve all four Fronts independently. Battles have consequences, not
+              an overall winner. The war ends through Command Collapse.
             </p>
             <h3>Your turn</h3>
             <p>
-              Draw 1 card automatically at the start of your turn, then spend
-              Command to play one card. A Stratagem is played face-up and uses
-              your operation. Once both players have acted, you may Pass. The
+              Draw 1 card at the start of your turn. If you already hold 10,
+              discard 1 first. Then play one card, Maneuver, or Pass. A
+              Stratagem is public and uses your operation. Once both players have acted, you may Pass. The
               opponent takes a normal turn; two consecutive Passes end the Battle,
               while any intervening operation clears the earlier Pass.
             </p>
             <h3>Formations</h3>
             <p>
-              A Subject, Bond and Name share one position. You can prepare a
-              Bond or Name before its Subject. Frontline Subjects receive +1
-              Line Defense.
+              A Force, Bond and Name share one position. You can prepare a Bond
+              or Name before its Force. A complete Force - Bond - Name is a
+              Named Formation.
             </p>
             <h3>Between Battles</h3>
             <p>
-              Keep your hand, draw pile, and discard pile. Gain 10 Command, up
-              to 20, then refill to 10 cards. Shuffle the discard only when an
-              empty draw pile needs to supply a card.
+              Keep your hand, draw pile, discard pile, Named Formations and ongoing
+              Stories. Recover Command according to the Battle and Fronts lost,
+              then refill to 10. Shuffle the discard only when an empty draw pile
+              needs to supply a card.
             </p>
             <a href="rulebook.html" target="_blank" rel="noopener"
               >Open the full rulebook ↗</a
@@ -286,7 +287,7 @@
           <div>
             <span class="result-emblem" aria-hidden="true">◆ ◆</span>
             <p>The campaign is over</p>
-            <h2 id="result-title">Victory</h2>
+            <h2 id="result-title">War over</h2>
             <p id="result-detail"></p>
             <button type="button" id="play-again" class="primary-button">
               Play again ↗
