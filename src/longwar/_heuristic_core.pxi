@@ -387,8 +387,8 @@ cdef class NativeHeuristicEvaluator:
             else:
                 tied += 1
 
-        # Passing trades future operations for the right to start the next
-        # Battle. Value independent Front position, never an aggregate winner.
+        # A first Pass offers the opponent a normal turn; an intervening
+        # operation clears that Pass, while a consecutive Pass ends the Battle.
         score += 4.0 * (wins - losses)
         score += 0.35 * total_margin
         score += 0.4 * tied
