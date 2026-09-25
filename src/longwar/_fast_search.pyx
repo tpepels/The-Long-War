@@ -2205,12 +2205,10 @@ cdef class FastEngine:
 
         for owner in range(2):
             card = state.stratagem[owner]
-            _info_emit(
-                buf,
-                &n,
-                h,
-                0 if card < 0 else <uint8_t>(card + 1),
-            )
+            if card < 0:
+                _info_emit(buf, &n, h, 0)
+            else:
+                _info_emit(buf, &n, h, <uint8_t>(card + 1))
 
         for owner in range(2):
             _info_emit(buf, &n, h, state.stratagem_used[owner])
