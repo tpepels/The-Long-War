@@ -155,35 +155,21 @@ class AlphaBetaSearch:
 
     @staticmethod
     def state_key(state: GameState) -> tuple[object, ...]:
-        """Cache key covering every GameState field that can change the
-        legal-action set, the recursive search value, or move ordering.
-
-        Deliberately excludes write-only telemetry/UI fields that are never
-        read back by legality, `StrategicEvaluator`, or action ordering
-        (`command_spent_this_battle` and its siblings, `opening_hands`,
-        `last_battle_snapshot`, `observations`, `known_hidden_hand`) -
-        including them would only fragment the cache without changing
-        correctness. `test_python_state_key_tracks_every_game_state_field`
-        enforces that every field is either represented here or explicitly
-        exempted, so a newly added field cannot silently repeat the
-        cleanup-state cache-key bug.
-        """
+        """Cache key for canonical state that can affect search."""
         players = tuple(
             (
                 tuple(player.deck),
                 tuple(sorted(player.hand)),
                 tuple(player.discard),
-                player.victories,
                 player.passed,
                 player.command,
-                player.free_cycle,
             )
             for player in state.players
         )
         board = tuple(
             (
-                slot.subject,
-                slot.link,
+                slot.force,
+                slot.bond,
                 slot.name,
                 slot.temporary_strength,
             )
@@ -191,34 +177,29 @@ class AlphaBetaSearch:
             for front in side
             for slot in front
         )
-        schemes = tuple(
-            None if scheme is None else (scheme.card_id, scheme.revealed)
-            for side in state.schemes
-            for scheme in side
+        stories = tuple(
+            tuple(story.card_id for story in side)
+            for side in state.stories
         )
         stratagems = tuple(
-            None if stratagem is None else (stratagem.card_id, stratagem.revealed)
+            None if stratagem is None else stratagem.card_id
             for stratagem in state.stratagems
         )
         return (
             state.phase.value,
             state.active_player,
             state.battle,
-            state.chooser,
             state.winner,
             state.shuffle_seed,
             players,
             board,
-            schemes,
+            stories,
             stratagems,
             tuple(state.stratagem_used),
             tuple(state.hero_used),
-            tuple(state.draw_used),
             tuple(state.discarded_this_battle),
             tuple(state.pass_order),
             tuple(state.operations_this_battle),
-            state.cleanup_pending,
-            state.cleanup_next_starter,
-            state.cleanup_next_chooser,
+            state.pending_draw_discard_for,
             state.turn_number,
         )
