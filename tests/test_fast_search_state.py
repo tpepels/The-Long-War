@@ -68,7 +68,6 @@ def public_snapshot(state):
         ],
         "stratagem_used": list(state.stratagem_used),
         "hero_used": list(state.hero_used),
-        "pending_final_operation_for": state.pending_final_operation_for,
         "pending_draw_discard_for": state.pending_draw_discard_for,
         "pass_order": list(state.pass_order),
     }
@@ -93,7 +92,6 @@ def native_public_snapshot(native, fast_state):
         "stratagems": exported["stratagems"],
         "stratagem_used": exported["stratagem_used"],
         "hero_used": exported["hero_used"],
-        "pending_final_operation_for": exported["pending_final_operation_for"],
         "pending_draw_discard_for": exported["pending_draw_discard_for"],
         "pass_order": exported["pass_order"],
     }
