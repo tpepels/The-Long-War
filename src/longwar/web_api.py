@@ -190,9 +190,15 @@ class PlaySession:
         if action is None:
             raise ValueError("That action is no longer legal")
 
+        actor = viewer
         self._apply_with_log(action)
         self._run_ai_until_human()
         if self.mode == "hotseat":
+            if (
+                self.state.phase is not Phase.COMPLETE
+                and self.state.active_player == actor
+            ):
+                return self.snapshot(actor)
             return self.snapshot(None)
         return self.snapshot(0)
 
