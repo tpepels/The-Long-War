@@ -248,7 +248,6 @@ cdef class FastState:
     cdef int16_t last_operations[2]
     cdef int8_t last_pass_order[2]
     cdef uint8_t last_pass_len
-    cdef int8_t pending_final_operation_for
     cdef uint8_t cleanup_pending
     cdef int8_t cleanup_next_starter
     cdef int8_t cleanup_next_chooser
@@ -317,7 +316,6 @@ cdef class FastState:
         memset(self.last_operations, 0, sizeof(self.last_operations))
         memset(self.last_pass_order, 0xff, sizeof(self.last_pass_order))
         self.last_pass_len = 0
-        self.pending_final_operation_for = -1
         self.cleanup_pending = 0
         self.cleanup_next_starter = -1
         self.cleanup_next_chooser = -1
@@ -386,7 +384,6 @@ cdef class FastState:
         memcpy(self.last_operations, other.last_operations, sizeof(self.last_operations))
         memcpy(self.last_pass_order, other.last_pass_order, sizeof(self.last_pass_order))
         self.last_pass_len = other.last_pass_len
-        self.pending_final_operation_for = other.pending_final_operation_for
         self.cleanup_pending = other.cleanup_pending
         self.cleanup_next_starter = other.cleanup_next_starter
         self.cleanup_next_chooser = other.cleanup_next_chooser
@@ -436,7 +433,6 @@ cdef class FastEngine:
     cdef int automatic_draw_hand_limit
     cdef int battle_end_hand_limit
     cdef bint cycle_enabled
-    cdef bint pass_final_operation
     cdef bint pass_requires_both_acted
     cdef bint first_passer_starts_next_battle
     cdef int completion_command_refund
@@ -582,7 +578,6 @@ cdef class FastEngine:
             else int(engine.battle_end_hand_limit)
         )
         self.cycle_enabled = bool(engine.cycle_enabled)
-        self.pass_final_operation = bool(engine.pass_final_operation)
         self.pass_requires_both_acted = bool(engine.pass_requires_both_acted)
         self.first_passer_starts_next_battle = bool(engine.first_passer_starts_next_battle)
         self.completion_command_refund = int(engine.completion_command_refund)
@@ -777,11 +772,6 @@ cdef class FastEngine:
         fast.turn_number = state.turn_number
         fast.shuffle_seed = state.shuffle_seed
         fast.pass_len = len(state.pass_order)
-        fast.pending_final_operation_for = (
-            -1
-            if state.pending_final_operation_for is None
-            else state.pending_final_operation_for
-        )
         fast.cleanup_pending = (
             state.pending_draw_discard_for is not None
         )
@@ -1354,7 +1344,6 @@ cdef class FastEngine:
 
         can_pass = (
             (not self.pass_requires_both_acted)
-            or state.pass_len > 0
             or (
                 state.operations_this_battle[0] > 0
                 and state.operations_this_battle[1] > 0
@@ -1624,7 +1613,6 @@ cdef class FastEngine:
         if (
             self.automatic_draw
             and state.phase == PHASE_BATTLE
-            and not state.passed[player]
             and self.can_draw_fast(state, player)
         ):
             if state.hand_len[player] >= self.hand_limit:
@@ -1646,17 +1634,25 @@ cdef class FastEngine:
         elif not self.paid_draw_enabled:
             self.draw(state, active_player, 1)
 
+    cdef inline void clear_pass_sequence_fast(
+        self,
+        FastState state,
+    ) noexcept:
+        state.passed[0] = 0
+        state.passed[1] = 0
+        state.pass_len = 0
+        state.pass_order[0] = -1
+        state.pass_order[1] = -1
+
     cdef void finish_operation_fast(self, FastState state, int actor):
         cdef int opponent = 1 - actor
         state.operations_this_battle[actor] += 1
-        if (
-            self.pass_final_operation
-            and state.pending_final_operation_for == actor
-        ):
-            state.pending_final_operation_for = -1
-            self.score_battle(state)
-        elif not state.passed[opponent]:
-            self.start_turn_fast(state, opponent)
+
+        # Any non-Pass operation breaks a pending consecutive-Pass sequence.
+        if state.pass_len > 0:
+            self.clear_pass_sequence_fast(state)
+
+        self.start_turn_fast(state, opponent)
         state.turn_number += 1
 
     cdef inline uint32_t next_shuffle_seed(self, uint32_t seed) noexcept:
@@ -1851,7 +1847,6 @@ cdef class FastEngine:
                 state.phase = PHASE_COMPLETE
                 state.winner = 0
             if state.phase == PHASE_COMPLETE:
-                state.pending_final_operation_for = -1
                 state.cleanup_pending = 0
                 state.chooser = -1
                 return
@@ -1863,7 +1858,6 @@ cdef class FastEngine:
         )
 
         state.battle += 1
-        state.pending_final_operation_for = -1
         state.cleanup_pending = 0
         state.pass_len = 0
         state.pass_order[0] = -1
@@ -1894,23 +1888,18 @@ cdef class FastEngine:
 
     cdef void pass_action(self, FastState state, int player):
         cdef int opponent = 1 - player
+
         state.passed[player] = 1
         state.pass_order[state.pass_len] = player
         state.pass_len += 1
         self.resolve_strat_event(state, EVENT_PASS, player)
 
-        if self.pass_final_operation:
-            if state.pending_final_operation_for == player:
-                state.operations_this_battle[player] += 1
-                state.pending_final_operation_for = -1
-                self.score_battle(state)
-            else:
-                state.pending_final_operation_for = opponent
-                self.start_turn_fast(state, opponent)
-        elif state.passed[opponent]:
+        if state.pass_len >= 2:
             self.score_battle(state)
         else:
+            # A first Pass hands the opponent a completely normal turn.
             self.start_turn_fast(state, opponent)
+
         state.turn_number += 1
 
     cdef void apply_fast(self, FastState state, uint64_t action):
@@ -2114,10 +2103,6 @@ cdef class FastEngine:
             _info_hash_feed(&h, state.stratagem_revealed[p])
             _info_hash_feed(&h, state.stratagem_used[p])
 
-        _info_hash_feed(
-            &h,
-            <uint8_t>(state.pending_final_operation_for + 1),
-        )
         _info_hash_feed(&h, state.cleanup_pending)
         _info_hash_feed(&h, <uint8_t>(state.cleanup_next_starter + 1))
         _info_hash_feed(&h, <uint8_t>(state.cleanup_next_chooser + 1))
@@ -2170,12 +2155,6 @@ cdef class FastEngine:
                 h,
                 state.operations_this_battle[i],
             )
-        _info_emit(
-            buf,
-            &n,
-            h,
-            <uint8_t>(state.pending_final_operation_for + 1),
-        )
         _info_emit(buf, &n, h, state.cleanup_pending)
         _info_emit(
             buf,
@@ -2608,11 +2587,6 @@ cdef class FastEngine:
                 state.reshuffle_hand_card_totals[0],
                 state.reshuffle_hand_card_totals[1],
             ],
-            "pending_final_operation_for": (
-                None
-                if state.pending_final_operation_for < 0
-                else state.pending_final_operation_for
-            ),
             "pending_draw_discard_for": (
                 state.active_player if state.cleanup_pending else None
             ),
@@ -2650,7 +2624,6 @@ cdef class FastEngine:
             "command": [state.command[0], state.command[1]],
             "free_cycle": [bool(state.free_cycle[0]), bool(state.free_cycle[1])],
             "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
-            "pending_final_operation_for": None if state.pending_final_operation_for < 0 else state.pending_final_operation_for,
             "pending_draw_discard_for": state.active_player if state.cleanup_pending else None,
             "cleanup_next_starter": None if state.cleanup_next_starter < 0 else state.cleanup_next_starter,
             "cleanup_next_chooser": None if state.cleanup_next_chooser < 0 else state.cleanup_next_chooser,
