@@ -91,8 +91,12 @@ awake with `systemd-inhibit`. The runner, not Make, owns experiment defaults.
 ## AI/search
 
 - Serious ISMCTS default: 100,000 iterations.
-- Canonical ISMCTS rollout policy: greedy, depth 5, epsilon 0.12. Promoted
-  after the 2026-09-25 knockout; cheap remains an explicit challenger.
+- Canonical ISMCTS baseline: 100,000 iterations, 12 belief samples, c=0.3,
+  greedy depth-5 rollouts, epsilon 0.12, tree reuse on, 400,000-node cap,
+  progressive widening off.
+- The baseline is fixed for the foreseeable future. Do not add new optimizer
+  sweeps, tournament entrants, or Make targets for search tuning.
+- Use alpha-beta only as an occasional equal-wall-clock sanity check.
 - Current provisional exploration constant: 0.3.
 - Progressive widening remains experimental and off by default.
 - Tree reuse is valid only while the belief/search context remains valid.
