@@ -17,9 +17,7 @@ cdef class NativeHeuristicEvaluator:
         if state.phase == PHASE_COMPLETE:
             return 10000.0 if state.winner == player else -10000.0
 
-        score += 80.0 * (state.victories[player] - state.victories[opponent])
-
-        for front in range(3):
+        for front in range(4):
             margin = (
                 self.engine.front_strength_fast(state, player, front)
                 - self.engine.front_strength_fast(state, opponent, front)
@@ -45,11 +43,7 @@ cdef class NativeHeuristicEvaluator:
                 margin = -10
             score += 0.75 * margin
 
-        score += 10.0 * (controls - enemy_controls)
-        if controls >= 2:
-            score += 14.0
-        if enemy_controls >= 2:
-            score -= 14.0
+        score += 7.0 * (controls - enemy_controls)
 
         hand_delta = state.hand_len[player] - state.hand_len[opponent]
         score += 1.25 * hand_delta
@@ -69,7 +63,7 @@ cdef class NativeHeuristicEvaluator:
             own_forces = 3
         score += 0.35 * own_forces
 
-        for slot in range(player * 6, player * 6 + 6):
+        for slot in range(player * 8, player * 8 + 8):
             if state.subject[slot] >= 0:
                 own_board_subjects += 1
         if own_forces == 0 and own_board_subjects == 0:
@@ -78,9 +72,6 @@ cdef class NativeHeuristicEvaluator:
         if self.engine.command_enabled:
             score += 0.45 * (
                 state.command[player] - state.command[opponent]
-            )
-            score += 0.35 * (
-                state.free_cycle[player] - state.free_cycle[opponent]
             )
 
         if (
@@ -100,18 +91,18 @@ cdef class NativeHeuristicEvaluator:
                     + 0.9 * reachable
                 )
 
-        for slot in range(player * 6, player * 6 + 6):
+        for slot in range(player * 8, player * 8 + 8):
             if state.subject[slot] >= 0 and state.name[slot] >= 0:
                 named_delta += 1
-        for slot in range(opponent * 6, opponent * 6 + 6):
+        for slot in range(opponent * 8, opponent * 8 + 8):
             if state.subject[slot] >= 0 and state.name[slot] >= 0:
                 named_delta -= 1
         score += 1.5 * named_delta
 
-        for front in range(3):
-            if state.scheme[player * 3 + front] >= 0:
+        for front in range(self.engine.ongoing_story_limit):
+            if state.scheme[player * 4 + front] >= 0:
                 scheme_delta += 1
-            if state.scheme[opponent * 3 + front] >= 0:
+            if state.scheme[opponent * 4 + front] >= 0:
                 scheme_delta -= 1
         score += 0.75 * scheme_delta
 
@@ -121,7 +112,7 @@ cdef class NativeHeuristicEvaluator:
         )
         score += 0.45 * strat_delta
 
-        for slot in range(player * 6, player * 6 + 6):
+        for slot in range(player * 8, player * 8 + 8):
             if state.subject[slot] < 0 or state.name[slot] >= 0:
                 continue
             before = self.engine.position_strength_fast(state, slot)
@@ -156,8 +147,8 @@ cdef class NativeHeuristicEvaluator:
     ) noexcept:
         cdef int local, slot, components
         cdef double value = 0.0
-        for local in range(6):
-            slot = player * 6 + local
+        for local in range(8):
+            slot = player * 8 + local
             components = (
                 (1 if state.subject[slot] >= 0 else 0)
                 + (1 if state.link[slot] >= 0 else 0)
@@ -179,8 +170,8 @@ cdef class NativeHeuristicEvaluator:
         cdef bint needs_subject=False, needs_link=False, needs_name=False
         cdef int local, slot, card, count, typ
         cdef double value=0.0, subject_value=0.0, name_value=0.0
-        for local in range(6):
-            slot = player * 6 + local
+        for local in range(8):
+            slot = player * 8 + local
             if state.subject[slot] < 0 and (
                 state.link[slot] >= 0 or state.name[slot] >= 0
             ):
@@ -358,77 +349,14 @@ cdef class NativeHeuristicEvaluator:
 
         return value
 
-    cdef void project_boundary_cleanup_fast(
-        self,
-        FastState state,
-    ) noexcept:
-        cdef int player, card, best_card, discard_ix
-        cdef int limit = self.engine.battle_end_hand_limit
-        cdef double score, best_score
-
-        if not state.cleanup_pending or limit < 0:
-            return
-
-        # Battle-end discards are player choices. Project each player to the
-        # hand limit by greedily retaining the hand that the existing
-        # strategic evaluator values most. This keeps cleanup policy inside
-        # the evaluator and avoids teaching ISMCTS any cleanup rule details.
-        for player in range(2):
-            while state.hand_len[player] > limit:
-                best_card = -1
-                best_score = -1.0e300
-                for card in range(self.engine.n_cards):
-                    if state.hand[player][card] == 0:
-                        continue
-
-                    discard_ix = state.discard_len[player]
-                    state.hand[player][card] -= 1
-                    state.hand_len[player] -= 1
-                    state.discard[player][discard_ix] = card
-                    state.discard_len[player] += 1
-
-                    score = self.strategic_evaluate_fast(state, player)
-
-                    state.discard_len[player] -= 1
-                    state.discard[player][discard_ix] = -1
-                    state.hand_len[player] += 1
-                    state.hand[player][card] += 1
-
-                    if score > best_score:
-                        best_score = score
-                        best_card = card
-
-                if best_card < 0:
-                    return
-
-                discard_ix = state.discard_len[player]
-                state.hand[player][best_card] -= 1
-                state.hand_len[player] -= 1
-                state.discard[player][discard_ix] = best_card
-                state.discard_len[player] += 1
-
     cdef double battle_boundary_evaluate_fast(
         self,
         FastState state,
         int player,
     ) noexcept:
-        cdef FastState scratch
-
-        # score_battle() has already recorded the resolved Battle in
-        # victories/last_battle and performed the canonical transition
-        # toward the next Battle. Reuse the strategic evaluator here so
-        # search cutoffs value both match progress and next-Battle readiness
-        # without creating a second set of heuristic weights in ISMCTS.
-        if not state.cleanup_pending:
-            return self.strategic_evaluate_fast(state, player)
-
-        # Some rule profiles pause between Battles for hand cleanup. Project
-        # that intermediate state to the retained hands before evaluating it;
-        # the search algorithm itself remains unaware of cleanup semantics.
-        scratch = FastState()
-        scratch.copy_from_fast(state)
-        self.project_boundary_cleanup_fast(scratch)
-        return self.strategic_evaluate_fast(scratch, player)
+        # Battle resolution already applied cleanup, Retreat, recovery and
+        # Command Collapse. The resulting state is the correct strategic leaf.
+        return self.strategic_evaluate_fast(state, player)
 
     cdef double pass_score_fast(
         self,
@@ -448,46 +376,45 @@ cdef class NativeHeuristicEvaluator:
             return self.battle_boundary_evaluate_fast(child, player)
 
         score = self.evaluate_fast(state, player)
-        for front in range(3):
+        for front in range(4):
+         cdef double pass_score_fast(
+        self,
+        FastState state,
+        int player,
+        FastState child,
+    ):
+        cdef int front, margin, total_margin=0, wins=0, losses=0, tied=0
+        cdef int opponent = 1 - player
+        cdef double score
+
+        child.copy_from_fast(state)
+        self.engine.pass_action(child, player)
+        if child.phase != PHASE_BATTLE or child.battle != state.battle:
+            return self.battle_boundary_evaluate_fast(child, player)
+
+        score = self.evaluate_fast(state, player)
+        for front in range(4):
             margin = (
                 self.engine.front_strength_fast(state, player, front)
                 - self.engine.front_strength_fast(state, opponent, front)
             )
             total_margin += margin
             if margin > 0:
-                controls += 1
-                if margin < weakest_control:
-                    weakest_control = margin
-            elif margin == 0:
+                wins += 1
+            elif margin < 0:
+                losses += 1
+            else:
                 tied += 1
 
-        if controls >= 2:
-            if weakest_control == 32767:
-                weakest_control = 0
-            score += (
-                10.0
-                + 0.65 * total_margin
-                + 0.9 * weakest_control
-                + 0.8 * state.hand_len[player]
-                - pressure_scale * 1.6 * state.hand_len[opponent]
-            )
-        elif controls == 1 and tied >= 1 and total_margin >= 0:
-            score -= 7.0 + pressure_scale * 1.2 * state.hand_len[opponent]
-        else:
-            score -= 25.0 + pressure_scale * 1.5 * state.hand_len[opponent]
-
+        # Passing trades away future operations for the right to start the
+        # next Battle. Value the independent Front position, not an obsolete
+        # aggregate Battle winner.
+        score += 4.0 * (wins - losses)
+        score += 0.35 * total_margin
+        score += 0.4 * tied
+        score -= min(8.0, 0.8 * state.hand_len[opponent])
         if self.engine.first_passer_starts_next_battle and state.pass_len == 0:
             score += 1.5
-
-        if (
-            self.engine.front_strength_fast(state, player, 0)
-            == self.engine.front_strength_fast(state, opponent, 0)
-            and self.engine.front_strength_fast(state, player, 1)
-            == self.engine.front_strength_fast(state, opponent, 1)
-            and self.engine.front_strength_fast(state, player, 2)
-            == self.engine.front_strength_fast(state, opponent, 2)
-        ):
-            score += 5.0
         return score
 
     cdef double rollout_prior_fast(
@@ -511,6 +438,8 @@ cdef class NativeHeuristicEvaluator:
             return 0.45
         if kind == TYPE_DISCARD:
             return 1.0
+        if kind == TYPE_MANEUVER:
+            return 0.90
         if kind == TYPE_SUBJECT:
             weight = 1.35
             if pos >= 0 and (
@@ -559,46 +488,16 @@ cdef class NativeHeuristicEvaluator:
         self.engine.apply_fast(child, action)
         score = self.evaluate_fast(child, player)
 
-        if kind == TYPE_DRAW:
-            for card in range(self.engine.n_cards):
-                if self.engine.card_type[card] == CARD_SUBJECT:
-                    if self.engine.hero[card]:
-                        if (
-                            not state.hero_used[player]
-                            and state.hand[player][card] > 0
-                        ):
-                            force_count += 1
-                    else:
-                        force_count += state.hand[player][card]
-            score -= 0.35 if self.engine.paid_draw_enabled else 0.8
-            if force_count == 0:
-                score += 1.4
-        elif kind == TYPE_LINK:
+        if kind == TYPE_LINK:
             score += 0.10 if state.subject[pos] >= 0 else 1.35
         elif kind == TYPE_NAME:
             score += 0.35 if state.subject[pos] >= 0 else 1.50
         elif kind == TYPE_SCHEME:
             score += 0.20
         elif kind == TYPE_STRATAGEM:
-            # Preserve the free-action option and estimate an own hidden
-            # Stratagem's public board effect through the canonical scorer.
-            # Never inspect the opponent's face-down identity or hand.
-            if child.turn_number == state.turn_number:
-                score += 1.35
-            if not child.stratagem_revealed[player]:
-                for front in range(3):
-                    margin_before += (
-                        self.engine.front_strength_fast(child, player, front)
-                        - self.engine.front_strength_fast(child, 1 - player, front)
-                    )
-                child.stratagem_revealed[player] = 1
-                for front in range(3):
-                    margin_after += (
-                        self.engine.front_strength_fast(child, player, front)
-                        - self.engine.front_strength_fast(child, 1 - player, front)
-                    )
-                child.stratagem_revealed[player] = 0
-                score += 0.35 * (margin_after - margin_before)
+            score += 0.20
+        elif kind == TYPE_MANEUVER:
+            score += 0.15
 
         return score
 
