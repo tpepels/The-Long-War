@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import copy
+import ctypes
+import gc
 import json
 import random
 import select
@@ -56,6 +58,20 @@ class ExperimentSkipped(RuntimeError):
     ) -> None:
         super().__init__(message)
         self.partial = partial or {}
+
+
+def _release_runner_memory() -> None:
+    """Reclaim completed experiment payloads and allocator caches."""
+    gc.collect()
+    if not sys.platform.startswith("linux"):
+        return
+    try:
+        libc = ctypes.CDLL(None)
+        malloc_trim = getattr(libc, "malloc_trim", None)
+        if malloc_trim is not None:
+            malloc_trim(0)
+    except (AttributeError, OSError):
+        pass
 
 
 def validate_data() -> None:
@@ -1842,6 +1858,7 @@ def run_suite(args: argparse.Namespace) -> Path:
                 f"| eliminated: {entry['loser']}"
             )
             save_manifest()
+            _release_runner_memory()
 
         if byes:
             current_round = [
@@ -2005,6 +2022,7 @@ def run_suite(args: argparse.Namespace) -> Path:
             save_manifest()
             raise
     save_manifest()
+    _release_runner_memory()
 
     print()
     print(
@@ -2128,6 +2146,7 @@ def run_suite(args: argparse.Namespace) -> Path:
                 save_manifest()
                 raise
     save_manifest()
+    _release_runner_memory()
 
     knockout_rows = [
         row
