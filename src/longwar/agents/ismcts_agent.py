@@ -10,10 +10,16 @@ from ..game.model import GameState
 from ..heuristics import opening_mulligan_indices
 
 DEFAULT_ISMCTS_EXPLORATION = 0.3
-# AGENTS.md: "Serious ISMCTS default: 100,000 iterations." Every caller (agent,
-# simulate.py, CLI tools) must import this rather than re-literal the number so
-# there is exactly one place that encodes the "not a smoke budget" invariant.
+# Canonical production/search baseline. Keep experiment runners and simulation
+# defaults tied to these constants rather than re-literalizing a retired sweep.
 DEFAULT_ISMCTS_ITERATIONS = 100_000
+DEFAULT_ISMCTS_BELIEF_SAMPLES = 12
+DEFAULT_ISMCTS_ROLLOUT_POLICY = "greedy"
+DEFAULT_ISMCTS_ROLLOUT_DEPTH = 5
+DEFAULT_ISMCTS_ROLLOUT_EPSILON = 0.12
+DEFAULT_ISMCTS_PROGRESSIVE_WIDENING = 0.0
+DEFAULT_ISMCTS_REUSE_TREE = True
+DEFAULT_ISMCTS_MAX_TREE_NODES = 400_000
 
 
 try:
@@ -44,17 +50,17 @@ class ISMCTSAgent:
         seed: int,
         *,
         priors: tuple[DeckPrior, DeckPrior] | None = None,
-        belief_samples: int = 16,
+        belief_samples: int = DEFAULT_ISMCTS_BELIEF_SAMPLES,
         iterations: int = DEFAULT_ISMCTS_ITERATIONS,
         time_budget_seconds: float | None = None,
-        rollout_depth: int = 5,
+        rollout_depth: int = DEFAULT_ISMCTS_ROLLOUT_DEPTH,
         tree_depth_limit: int = 96,
         exploration: float = DEFAULT_ISMCTS_EXPLORATION,
-        progressive_widening: float = 0.0,
-        reuse_tree: bool = True,
-        max_tree_nodes: int | None = None,
-        rollout_epsilon: float = 0.12,
-        rollout_policy: str = "greedy",
+        progressive_widening: float = DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+        reuse_tree: bool = DEFAULT_ISMCTS_REUSE_TREE,
+        max_tree_nodes: int | None = DEFAULT_ISMCTS_MAX_TREE_NODES,
+        rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+        rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
         leaf_scale: float = 100.0,
     ):
         if belief_samples <= 0:
