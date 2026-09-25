@@ -217,7 +217,6 @@ class AlphaBetaSearch:
             tuple(state.discarded_this_battle),
             tuple(state.pass_order),
             tuple(state.operations_this_battle),
-            state.pending_final_operation_for,
             state.cleanup_pending,
             state.cleanup_next_starter,
             state.cleanup_next_chooser,
