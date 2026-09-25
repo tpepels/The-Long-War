@@ -388,7 +388,7 @@ def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
         "baseline",
         "tree-cold",
         "pw-0p5",
-        "rollout-greedy",
+        "rollout-cheap",
         "rollout-depth-8",
         "rollout-epsilon-0",
     }
@@ -443,7 +443,7 @@ def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
     assert manifest["decision_readiness"]["ready"] is True
 
 
-def test_knockout_winner_is_used_for_final_alpha_beta_match(
+def test_canonical_greedy_baseline_is_used_for_final_alpha_beta_match(
     tmp_path,
     monkeypatch,
 ):
@@ -457,11 +457,21 @@ def test_knockout_winner_is_used_for_final_alpha_beta_match(
 
     def fake_match(**kwargs):
         match_calls.append(dict(kwargs))
-        a_greedy = kwargs["rollout_policy_a"] == "greedy"
-        b_greedy = kwargs["rollout_policy_b"] == "greedy"
-        if a_greedy:
+
+        def is_canonical(side):
+            return (
+                kwargs[f"rollout_policy_{side}"] == "greedy"
+                and kwargs[f"rollout_depth_{side}"] == 5
+                and kwargs[f"reuse_tree_{side}"] is True
+                and kwargs[f"progressive_widening_{side}"] == 0.0
+                and kwargs[f"rollout_epsilon_{side}"] == pytest.approx(0.12)
+            )
+
+        a_canonical = is_canonical("a")
+        b_canonical = is_canonical("b")
+        if a_canonical:
             a_wins, b_wins = 130, 62
-        elif b_greedy:
+        elif b_canonical:
             a_wins, b_wins = 62, 130
         else:
             a_wins, b_wins = 110, 82
@@ -525,9 +535,13 @@ def test_knockout_winner_is_used_for_final_alpha_beta_match(
     ))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    assert manifest["tournament_champion"] == "rollout-greedy"
-    assert manifest["optimized_ismcts"] == "rollout-greedy"
+    assert manifest["tournament_champion"] == "baseline"
+    assert manifest["optimized_ismcts"] == "baseline"
     assert manifest["optimized_config"]["rollout_policy"] == "greedy"
+    assert manifest["optimized_config"]["rollout_depth"] == 5
+    assert manifest["optimized_config"]["reuse_tree"] is True
+    assert manifest["optimized_config"]["progressive_widening"] == 0.0
+    assert manifest["optimized_config"]["rollout_epsilon"] == pytest.approx(0.12)
     assert len(strength_calls) == 2
     assert all(call["rollout_policy"] == "greedy" for call in strength_calls)
     assert strength_calls[0]["time_budget_seconds"] is None
@@ -535,19 +549,16 @@ def test_knockout_winner_is_used_for_final_alpha_beta_match(
     assert strength_calls[1]["ismcts_iterations"] > 100_000
     assert strength_calls[1]["alpha_nodes"] > 20_000
 
-    greedy_knockout_fixtures = [
+    baseline_fixtures = [
         row
         for row in manifest["experiments"]
         if (
             row["kind"] == "ismcts-match"
-            and "rollout-greedy" in (row["entrant_a"], row["entrant_b"])
+            and "baseline" in (row["entrant_a"], row["entrant_b"])
         )
     ]
-    assert greedy_knockout_fixtures
-    assert all(
-        row["winner"] == "rollout-greedy"
-        for row in greedy_knockout_fixtures
-    )
+    assert baseline_fixtures
+    assert all(row["winner"] == "baseline" for row in baseline_fixtures)
     assert manifest["decision_readiness"]["ready"] is True
 
 
@@ -864,6 +875,8 @@ def test_decision_grade_search_match_defaults(monkeypatch):
     assert match.b_belief_samples == 12
     assert match.a_rollout_epsilon == pytest.approx(0.12)
     assert match.b_rollout_epsilon == pytest.approx(0.12)
+    assert match.a_rollout_policy == "greedy"
+    assert match.b_rollout_policy == "greedy"
 
     monkeypatch.setattr(
         runner.sys,
@@ -875,6 +888,7 @@ def test_decision_grade_search_match_defaults(monkeypatch):
     assert strength.jobs == 8
     assert strength.belief_samples == 12
     assert strength.rollout_epsilon == pytest.approx(0.12)
+    assert strength.rollout_policy == "greedy"
 
 
 def test_makefile_has_one_configurable_experiment_entrypoint():
