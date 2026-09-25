@@ -506,7 +506,7 @@ body.game-body {
 .scheme-row,
 .front-banner-row {
   display: grid;
-  grid-template-columns: 68px repeat(3, minmax(0, 1fr));
+  grid-template-columns: 68px repeat(4, minmax(0, 1fr));
   gap: 12px;
   min-height: 0;
 }
@@ -1726,4 +1726,11 @@ body.game-body {
   letter-spacing: .06em;
   text-transform: uppercase;
   opacity: .72;
+}
+
+.story-row .story-spacer {
+  min-width: 0;
+}
+.story-marker {
+  min-width: 0;
 }
