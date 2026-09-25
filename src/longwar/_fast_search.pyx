@@ -2120,17 +2120,23 @@ cdef class FastEngine:
         InfoHash128* h,
     ) noexcept:
         """Single canonical observable-state encoding for imperfect-info AI."""
-        cdef int n=0, i, owner, slot, card, front, ix
+        cdef int n=0, i, owner, slot, card, story_slot, story_count
         cdef int opponent = 1 - player
+        cdef int pending_draw = (
+            state.active_player + 1
+            if state.cleanup_pending
+            else 0
+        )
 
-        _info_emit(buf, &n, h, 4)
+        _info_emit(buf, &n, h, 5)
         _info_emit(buf, &n, h, <uint8_t>player)
         _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
         _info_emit_u16(buf, &n, h, <uint16_t>state.battle)
         _info_emit(buf, &n, h, <uint8_t>(state.active_player + 1))
-        _info_emit(buf, &n, h, <uint8_t>(state.chooser + 1))
+
         for i in range(2):
             _info_emit(buf, &n, h, state.passed[i])
+
         _info_emit(buf, &n, h, state.pass_len)
         for i in range(state.pass_len):
             _info_emit(
@@ -2139,6 +2145,7 @@ cdef class FastEngine:
                 h,
                 <uint8_t>(state.pass_order[i] + 1),
             )
+
         for i in range(2):
             _info_emit(buf, &n, h, state.discarded_this_battle[i])
             _info_emit_u16(
@@ -2147,7 +2154,6 @@ cdef class FastEngine:
                 h,
                 <uint16_t>state.command[i],
             )
-            _info_emit(buf, &n, h, state.free_cycle[i])
             _info_emit(buf, &n, h, state.hero_used[i])
             _info_emit_u16(
                 buf,
@@ -2155,19 +2161,8 @@ cdef class FastEngine:
                 h,
                 state.operations_this_battle[i],
             )
-        _info_emit(buf, &n, h, state.cleanup_pending)
-        _info_emit(
-            buf,
-            &n,
-            h,
-            <uint8_t>(state.cleanup_next_starter + 1),
-        )
-        _info_emit(
-            buf,
-            &n,
-            h,
-            <uint8_t>(state.cleanup_next_chooser + 1),
-        )
+
+        _info_emit(buf, &n, h, <uint8_t>pending_draw)
 
         for owner in range(2):
             for slot in range(owner * 8, owner * 8 + 8):
@@ -2196,51 +2191,29 @@ cdef class FastEngine:
                     <uint16_t>state.temporary[slot],
                 )
 
+        # Ongoing Stories and Stratagems are public in the canonical rules.
         for owner in range(2):
-            for front in range(4):
-                ix = owner * 4 + front
-                card = state.scheme[ix]
-                if card < 0:
-                    _info_emit(buf, &n, h, 0)
-                    _info_emit(buf, &n, h, 0)
-                elif owner == player or state.scheme_revealed[ix]:
-                    _info_emit(
-                        buf,
-                        &n,
-                        h,
-                        <uint8_t>(card + 1),
-                    )
-                    _info_emit(
-                        buf,
-                        &n,
-                        h,
-                        state.scheme_revealed[ix],
-                    )
-                else:
-                    _info_emit(buf, &n, h, 255)
-                    _info_emit(buf, &n, h, 0)
+            story_count = 0
+            for story_slot in range(self.ongoing_story_limit):
+                if state.scheme[owner * 4 + story_slot] >= 0:
+                    story_count += 1
+            _info_emit(buf, &n, h, <uint8_t>story_count)
+            for story_slot in range(self.ongoing_story_limit):
+                card = state.scheme[owner * 4 + story_slot]
+                if card >= 0:
+                    _info_emit(buf, &n, h, <uint8_t>(card + 1))
 
         for owner in range(2):
             card = state.stratagem[owner]
-            if card < 0:
-                _info_emit(buf, &n, h, 0)
-                _info_emit(buf, &n, h, 0)
-            elif owner == player or state.stratagem_revealed[owner]:
-                _info_emit(buf, &n, h, <uint8_t>(card + 1))
-                _info_emit(
-                    buf,
-                    &n,
-                    h,
-                    state.stratagem_revealed[owner],
-                )
-            else:
-                _info_emit(buf, &n, h, 255)
-                _info_emit(buf, &n, h, 0)
+            _info_emit(
+                buf,
+                &n,
+                h,
+                0 if card < 0 else <uint8_t>(card + 1),
+            )
 
         for owner in range(2):
             _info_emit(buf, &n, h, state.stratagem_used[owner])
-        for owner in range(2):
-            _info_emit(buf, &n, h, state.draw_used[owner])
 
         # Own hidden resources are visible to the acting player.
         for card in range(self.n_cards):
