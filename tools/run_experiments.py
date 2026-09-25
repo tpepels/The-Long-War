@@ -1417,24 +1417,8 @@ def benchmark_strength(
 
 
 
-def _optimization_schedule(
-    comparisons: list[tuple[str, dict[str, Any]]],
-    seed: int,
-) -> list[dict[str, Any]]:
-    """Return structural ISMCTS candidates in deterministic randomized order."""
-    schedule = [
-        {
-            "name": name,
-            "overrides": dict(overrides),
-        }
-        for name, overrides in comparisons
-    ]
-    random.Random(seed).shuffle(schedule)
-    return schedule
-
-
 def run_suite(args: argparse.Namespace) -> Path:
-    """Optimize ISMCTS structurally, then compare the optimized policy to alpha-beta."""
+    """Run the canonical round-robin AI optimization tournament."""
     if args.games < 24:
         raise SystemExit("--games must be at least 24 for the experiment suite")
     if args.jobs <= 0:
@@ -1452,17 +1436,29 @@ def run_suite(args: argparse.Namespace) -> Path:
         "rollout_epsilon": 0.12,
         "max_tree_nodes": 400_000,
     }
-    comparisons = [
+    ismcts_entrants = [
+        ("baseline", {}),
         ("tree-cold", {"reuse_tree": False}),
         ("pw-0p5", {"progressive_widening": 0.5}),
         ("rollout-greedy", {"rollout_policy": "greedy"}),
         ("rollout-depth-8", {"rollout_depth": 8}),
         ("rollout-epsilon-0", {"rollout_epsilon": 0.0}),
     ]
-    selection_policy = (
-        "Accept candidate B only when candidate A's paired 95% confidence "
-        "interval lies entirely below 50%; otherwise retain the incumbent."
-    )
+    configs = {
+        name: {**starting_config, **overrides}
+        for name, overrides in ismcts_entrants
+    }
+    entrant_names = [name for name, _overrides in ismcts_entrants]
+    entrant_names.append("alpha-beta")
+
+    fixtures = [
+        (entrant_names[a_index], entrant_names[b_index])
+        for a_index in range(len(entrant_names))
+        for b_index in range(a_index + 1, len(entrant_names))
+    ]
+    random.Random(args.seed).shuffle(fixtures)
+    schedule = [f"{entrant_a}-vs-{entrant_b}" for entrant_a, entrant_b in fixtures]
+
     identity = experiment_identity({
         "command": "suite",
         "games_per_orientation": args.games,
@@ -1472,17 +1468,26 @@ def run_suite(args: argparse.Namespace) -> Path:
         "alpha_nodes": args.alpha_nodes,
         "seed": args.seed,
         "starting_config": starting_config,
-        "comparisons": comparisons,
-        "schedule_policy": "seeded-optimization-shuffle-v1",
-        "selection_policy": selection_policy,
+        "ismcts_entrants": ismcts_entrants,
+        "tournament_policy": "round-robin-3-1-0-v1",
+        "schedule_policy": "seeded-fixture-shuffle-v1",
     })
     output_dir = artifact_directory(BENCH_ROOT / "suite", identity)
     manifest_path = output_dir / "summary.json"
-    optimization_schedule = _optimization_schedule(comparisons, args.seed)
-    schedule_names = [
-        *[item["name"] for item in optimization_schedule],
-        "optimized-vs-alpha-beta",
-    ]
+
+    standings: dict[str, dict[str, Any]] = {
+        name: {
+            "name": name,
+            "matches": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "points": 0.0,
+            "games_for": 0,
+            "games_against": 0,
+        }
+        for name in entrant_names
+    }
     manifest: dict[str, Any] = {
         **identity,
         "games_per_orientation": args.games,
@@ -1492,14 +1497,11 @@ def run_suite(args: argparse.Namespace) -> Path:
         "alpha_nodes": args.alpha_nodes,
         "seed": args.seed,
         "starting_config": dict(starting_config),
-        "optimized_config": dict(starting_config),
-        "accepted_optimizations": [],
-        "schedule_policy": "seeded-optimization-shuffle-v1",
-        "selection_policy": selection_policy,
-        "optimization_schedule": [
-            item["name"] for item in optimization_schedule
-        ],
-        "schedule": schedule_names,
+        "tournament_entrants": entrant_names,
+        "ismcts_configs": configs,
+        "tournament_policy": "round-robin-3-1-0-v1",
+        "schedule_policy": "seeded-fixture-shuffle-v1",
+        "schedule": schedule,
         "experiments": [],
     }
 
@@ -1509,169 +1511,209 @@ def run_suite(args: argparse.Namespace) -> Path:
             encoding="utf-8",
         )
 
-    print("The Long War - search experiment suite")
-    print("=" * 38)
+    def record_result(
+        entrant_a: str,
+        entrant_b: str,
+        a_wins: int,
+        b_wins: int,
+    ) -> str | None:
+        row_a = standings[entrant_a]
+        row_b = standings[entrant_b]
+        row_a["matches"] += 1
+        row_b["matches"] += 1
+        row_a["games_for"] += a_wins
+        row_a["games_against"] += b_wins
+        row_b["games_for"] += b_wins
+        row_b["games_against"] += a_wins
+        if a_wins > b_wins:
+            row_a["wins"] += 1
+            row_b["losses"] += 1
+            row_a["points"] += 3.0
+            return entrant_a
+        if b_wins > a_wins:
+            row_b["wins"] += 1
+            row_a["losses"] += 1
+            row_b["points"] += 3.0
+            return entrant_b
+        row_a["draws"] += 1
+        row_b["draws"] += 1
+        row_a["points"] += 1.0
+        row_b["points"] += 1.0
+        return None
+
+    print("The Long War - AI optimization tournament")
+    print("=" * 41)
     print(
         f"{args.games} games/deck/orientation | {args.jobs} jobs | "
         f"{args.time_budget_seconds:g}s/searched move"
     )
     print(
-        "Starting ISMCTS: belief=12, c=0.3, reuse, tree=400k, pw=0, "
-        "rollout=cheap/5, epsilon=0.12."
+        "Entrants: "
+        + ", ".join(entrant_names)
     )
     print(
-        "Optimization order: "
-        + " -> ".join(manifest["optimization_schedule"])
+        f"Round robin: {len(fixtures)} fixtures, "
+        "3 points for a fixture win, 1 each for a draw."
     )
-    print("Final check: optimized-vs-alpha-beta")
-    print(f"Selection: {selection_policy}")
+    print(
+        "Fixture order is shuffled deterministically from the suite seed. "
+        "Game/balance optimization is separate."
+    )
 
-    incumbent = dict(starting_config)
-    accepted_optimizations: list[str] = []
-
-    for index, item in enumerate(optimization_schedule, start=1):
-        name = str(item["name"])
-        overrides = dict(item["overrides"])
-        challenger = {**incumbent, **overrides}
+    for index, (entrant_a, entrant_b) in enumerate(fixtures, start=1):
+        name = f"{entrant_a}-vs-{entrant_b}"
+        is_strength_fixture = "alpha-beta" in (entrant_a, entrant_b)
+        kind = "strength-bench" if is_strength_fixture else "ismcts-match"
         print()
-        print(f"=== optimize {index}/{len(optimization_schedule)} {name} ===")
+        print(f"=== fixture {index}/{len(fixtures)} {name} ===")
         entry: dict[str, Any] = {
             "name": name,
-            "kind": "ismcts-match",
+            "kind": kind,
             "status": "running",
-            "incumbent_before": dict(incumbent),
-            "challenger": dict(challenger),
-            "candidate_b_overrides": overrides,
+            "entrant_a": entrant_a,
+            "entrant_b": entrant_b,
         }
         manifest["experiments"].append(entry)
         save_manifest()
 
         try:
-            summary_path = benchmark_ismcts_match(
-                games_per_orientation=args.games,
-                jobs=args.jobs,
-                iterations=args.iterations,
-                time_budget_seconds=args.time_budget_seconds,
-                belief_samples_a=incumbent["belief_samples"],
-                belief_samples_b=challenger["belief_samples"],
-                exploration_a=incumbent["exploration"],
-                exploration_b=challenger["exploration"],
-                progressive_widening_a=incumbent["progressive_widening"],
-                progressive_widening_b=challenger["progressive_widening"],
-                reuse_tree_a=incumbent["reuse_tree"],
-                reuse_tree_b=challenger["reuse_tree"],
-                rollout_depth_a=incumbent["rollout_depth"],
-                rollout_depth_b=challenger["rollout_depth"],
-                rollout_policy_a=incumbent["rollout_policy"],
-                rollout_policy_b=challenger["rollout_policy"],
-                rollout_epsilon_a=incumbent["rollout_epsilon"],
-                rollout_epsilon_b=challenger["rollout_epsilon"],
-                max_tree_nodes_a=incumbent["max_tree_nodes"],
-                max_tree_nodes_b=challenger["max_tree_nodes"],
-                seed=args.seed,
-            )
-            payload = json.loads(summary_path.read_text(encoding="utf-8"))
-            paired = payload.get("overall", {}).get(
-                "paired_uncertainty",
-                {},
-            )
-            _low, high = paired.get("ci95", [None, None])
-            accepted = high is not None and float(high) < 0.5
-            if accepted:
-                incumbent = challenger
-                accepted_optimizations.append(name)
-                print(f"ACCEPTED: {name}")
+            if not is_strength_fixture:
+                config_a = configs[entrant_a]
+                config_b = configs[entrant_b]
+                summary_path = benchmark_ismcts_match(
+                    games_per_orientation=args.games,
+                    jobs=args.jobs,
+                    iterations=args.iterations,
+                    time_budget_seconds=args.time_budget_seconds,
+                    belief_samples_a=config_a["belief_samples"],
+                    belief_samples_b=config_b["belief_samples"],
+                    exploration_a=config_a["exploration"],
+                    exploration_b=config_b["exploration"],
+                    progressive_widening_a=config_a["progressive_widening"],
+                    progressive_widening_b=config_b["progressive_widening"],
+                    reuse_tree_a=config_a["reuse_tree"],
+                    reuse_tree_b=config_b["reuse_tree"],
+                    rollout_depth_a=config_a["rollout_depth"],
+                    rollout_depth_b=config_b["rollout_depth"],
+                    rollout_policy_a=config_a["rollout_policy"],
+                    rollout_policy_b=config_b["rollout_policy"],
+                    rollout_epsilon_a=config_a["rollout_epsilon"],
+                    rollout_epsilon_b=config_b["rollout_epsilon"],
+                    max_tree_nodes_a=config_a["max_tree_nodes"],
+                    max_tree_nodes_b=config_b["max_tree_nodes"],
+                    seed=args.seed,
+                )
+                payload = json.loads(summary_path.read_text(encoding="utf-8"))
+                overall = payload.get("overall", {})
+                a_wins = int(overall.get("candidate_a_wins", 0))
+                b_wins = int(overall.get("candidate_b_wins", 0))
+                low, high = overall.get(
+                    "paired_uncertainty",
+                    {},
+                ).get("ci95", [None, None])
+                a_ci95 = [low, high]
             else:
-                print(f"KEPT INCUMBENT: {name}")
+                ismcts_name = (
+                    entrant_b if entrant_a == "alpha-beta" else entrant_a
+                )
+                config = configs[ismcts_name]
+                summary_path = benchmark_strength(
+                    games_per_orientation=args.games,
+                    jobs=args.jobs,
+                    ismcts_iterations=args.iterations,
+                    alpha_nodes=args.alpha_nodes,
+                    belief_samples=config["belief_samples"],
+                    rollout_policy=config["rollout_policy"],
+                    rollout_depth=config["rollout_depth"],
+                    progressive_widening=config["progressive_widening"],
+                    exploration=config["exploration"],
+                    reuse_tree=config["reuse_tree"],
+                    rollout_epsilon=config["rollout_epsilon"],
+                    max_tree_nodes=config["max_tree_nodes"],
+                    time_budget_seconds=args.time_budget_seconds,
+                    seed=args.seed,
+                )
+                payload = json.loads(summary_path.read_text(encoding="utf-8"))
+                overall = payload.get("overall", {})
+                mcts_wins = int(overall.get("mcts_wins", 0))
+                alpha_wins = int(overall.get("alpha_beta_wins", 0))
+                low, high = overall.get(
+                    "paired_uncertainty",
+                    {},
+                ).get("ci95", [None, None])
+                if entrant_a == "alpha-beta":
+                    a_wins, b_wins = alpha_wins, mcts_wins
+                    a_ci95 = [
+                        None if high is None else 1.0 - float(high),
+                        None if low is None else 1.0 - float(low),
+                    ]
+                else:
+                    a_wins, b_wins = mcts_wins, alpha_wins
+                    a_ci95 = [low, high]
 
+            total_games = a_wins + b_wins
+            a_rate = a_wins / total_games if total_games else None
+            winner = record_result(
+                entrant_a,
+                entrant_b,
+                a_wins,
+                b_wins,
+            )
             entry.update({
                 "status": "passed",
                 "summary": str(summary_path.relative_to(ROOT)),
-                "overall": payload.get("overall", {}),
+                "winner": winner,
+                "result": {
+                    "a_wins": a_wins,
+                    "b_wins": b_wins,
+                    "games": total_games,
+                    "a_win_rate": a_rate,
+                    "a_ci95": a_ci95,
+                },
                 "resources": payload.get("resources", {}),
-                "accepted": accepted,
-                "incumbent_after": dict(incumbent),
             })
         except ExperimentSkipped:
-            entry.update({
-                "status": "skipped",
-                "accepted": False,
-                "incumbent_after": dict(incumbent),
-            })
+            entry.update({"status": "skipped"})
             print(f"SKIPPED: {name}")
         except (Exception, SystemExit) as exc:
             entry.update({
                 "status": "failed",
-                "accepted": False,
-                "incumbent_after": dict(incumbent),
                 "error": f"{type(exc).__name__}: {exc}",
             })
             print(f"EXPERIMENT FAILED: {name}: {exc}")
             if args.stop_on_error:
-                manifest["optimized_config"] = dict(incumbent)
-                manifest["accepted_optimizations"] = list(
-                    accepted_optimizations
-                )
                 save_manifest()
                 raise
-
-        manifest["optimized_config"] = dict(incumbent)
-        manifest["accepted_optimizations"] = list(accepted_optimizations)
         save_manifest()
 
-    name = "optimized-vs-alpha-beta"
-    print()
-    print(
-        f"=== final {len(optimization_schedule) + 1}/"
-        f"{len(optimization_schedule) + 1} {name} ==="
-    )
-    print("Optimized ISMCTS: " + json.dumps(incumbent, sort_keys=True))
-    strength_entry: dict[str, Any] = {
-        "name": name,
-        "kind": "strength-bench",
-        "status": "running",
-        "ismcts_config": dict(incumbent),
-    }
-    manifest["experiments"].append(strength_entry)
-    save_manifest()
-
-    try:
-        summary_path = benchmark_strength(
-            games_per_orientation=args.games,
-            jobs=args.jobs,
-            ismcts_iterations=args.iterations,
-            alpha_nodes=args.alpha_nodes,
-            belief_samples=incumbent["belief_samples"],
-            rollout_policy=incumbent["rollout_policy"],
-            rollout_depth=incumbent["rollout_depth"],
-            progressive_widening=incumbent["progressive_widening"],
-            exploration=incumbent["exploration"],
-            reuse_tree=incumbent["reuse_tree"],
-            rollout_epsilon=incumbent["rollout_epsilon"],
-            max_tree_nodes=incumbent["max_tree_nodes"],
-            time_budget_seconds=args.time_budget_seconds,
-            seed=args.seed,
+    def standing_key(row: dict[str, Any]) -> tuple[Any, ...]:
+        games = int(row["games_for"]) + int(row["games_against"])
+        rate = row["games_for"] / games if games else 0.0
+        differential = row["games_for"] - row["games_against"]
+        return (
+            -float(row["points"]),
+            -int(differential),
+            -float(rate),
+            str(row["name"]),
         )
-        payload = json.loads(summary_path.read_text(encoding="utf-8"))
-        strength_entry.update({
-            "status": "passed",
-            "summary": str(summary_path.relative_to(ROOT)),
-            "overall": payload.get("overall", {}),
-            "resources": payload.get("resources", {}),
+
+    standings_rows = []
+    for row in standings.values():
+        games = int(row["games_for"]) + int(row["games_against"])
+        standings_rows.append({
+            **row,
+            "game_difference": row["games_for"] - row["games_against"],
+            "game_win_rate": row["games_for"] / games if games else None,
         })
-    except ExperimentSkipped:
-        strength_entry.update({"status": "skipped"})
-        print(f"SKIPPED: {name}")
-    except (Exception, SystemExit) as exc:
-        strength_entry.update({
-            "status": "failed",
-            "error": f"{type(exc).__name__}: {exc}",
-        })
-        print(f"EXPERIMENT FAILED: {name}: {exc}")
-        if args.stop_on_error:
-            save_manifest()
-            raise
-    save_manifest()
+    standings_rows.sort(key=standing_key)
+
+    tournament_champion = standings_rows[0]["name"] if standings_rows else None
+    best_ismcts = next(
+        row["name"]
+        for row in standings_rows
+        if row["name"] != "alpha-beta"
+    )
+    optimized_config = dict(configs[best_ismcts])
 
     failures = [
         row["name"]
@@ -1683,123 +1725,107 @@ def run_suite(args: argparse.Namespace) -> Path:
         for row in manifest["experiments"]
         if row["status"] == "skipped"
     ]
-    incomplete_optimization = [
+    incomplete = [
         row["name"]
         for row in manifest["experiments"]
-        if (
-            row.get("kind") == "ismcts-match"
-            and row.get("status") != "passed"
-        )
+        if row["status"] != "passed"
     ]
+
     manifest["completed"] = True
     manifest["failures"] = failures
     manifest["skipped"] = skipped
-    manifest["optimized_config"] = dict(incumbent)
-    manifest["accepted_optimizations"] = list(accepted_optimizations)
+    manifest["standings"] = standings_rows
+    manifest["tournament_champion"] = tournament_champion
+    manifest["optimized_ismcts"] = best_ismcts
+    manifest["optimized_config"] = optimized_config
 
-    def ci_for(
-        row: dict[str, Any],
-        rate_key: str,
-    ) -> tuple[float | None, float | None]:
-        paired = row.get("overall", {}).get("paired_uncertainty", {})
-        low, high = paired.get("ci95", [None, None])
-        if (
-            low is None
-            or high is None
-            or row.get("overall", {}).get(rate_key) is None
-        ):
-            return None, None
-        return float(low), float(high)
-
-    strength = next(
+    direct_alpha = next(
         (
             row
             for row in manifest["experiments"]
-            if row["name"] == "optimized-vs-alpha-beta"
+            if {
+                row["entrant_a"],
+                row["entrant_b"],
+            } == {best_ismcts, "alpha-beta"}
         ),
         None,
     )
-    strength_ci = ci_for(strength or {}, "mcts_win_rate")
+    optimized_vs_alpha_ci: list[float | None] = [None, None]
+    if direct_alpha and direct_alpha.get("status") == "passed":
+        low, high = direct_alpha["result"].get("a_ci95", [None, None])
+        if direct_alpha["entrant_a"] == best_ismcts:
+            optimized_vs_alpha_ci = [low, high]
+        else:
+            optimized_vs_alpha_ci = [
+                None if high is None else 1.0 - float(high),
+                None if low is None else 1.0 - float(low),
+            ]
 
     blockers: list[str] = []
     warnings: list[str] = []
-    if incomplete_optimization:
-        blockers.append("optimization phase incomplete")
+    if incomplete:
+        blockers.append("AI optimization tournament incomplete")
     if skipped:
-        warnings.append(
-            "manually skipped comparisons: " + ", ".join(skipped)
-        )
-    if strength is None or strength.get("status") != "passed":
+        warnings.append("manually skipped fixtures: " + ", ".join(skipped))
+    low, high = optimized_vs_alpha_ci
+    if (
+        direct_alpha is None
+        or direct_alpha.get("status") != "passed"
+    ):
         blockers.append(
-            "optimized ISMCTS vs strategic alpha-beta comparison did not complete"
+            "optimized ISMCTS vs alpha-beta tournament fixture did not complete"
         )
-    elif strength_ci[1] is not None and strength_ci[1] < 0.5:
+    elif high is not None and float(high) < 0.5:
         blockers.append(
-            "optimized ISMCTS is significantly weaker than strategic alpha-beta"
+            "optimized ISMCTS is significantly weaker than alpha-beta"
         )
-    if strength_ci[0] is not None and strength_ci[0] > 0.5:
+    if low is not None and float(low) > 0.5:
         warnings.append(
-            "optimized ISMCTS is significantly stronger than strategic alpha-beta; "
-            "use alpha-beta as a qualitative cross-check, not an equal-strength oracle"
+            "optimized ISMCTS is significantly stronger than alpha-beta"
         )
+    if tournament_champion == "alpha-beta":
+        warnings.append("alpha-beta is the tournament champion")
 
     manifest["decision_readiness"] = {
         "ready": not blockers,
         "blockers": blockers,
         "warnings": warnings,
-        "optimization_incomplete": incomplete_optimization,
-        "accepted_optimizations": list(accepted_optimizations),
-        "optimized_config": dict(incumbent),
-        "ismcts_vs_alpha_beta_ci95": list(strength_ci),
+        "tournament_incomplete": incomplete,
+        "tournament_champion": tournament_champion,
+        "optimized_ismcts": best_ismcts,
+        "optimized_config": optimized_config,
+        "optimized_ismcts_vs_alpha_beta_ci95": optimized_vs_alpha_ci,
         "policy": (
-            "Optimize ISMCTS first using paired mirrored A/B comparisons, "
-            "then use the optimized ISMCTS policy as primary hidden-information "
-            "design evidence and strategic alpha-beta as an independent cross-check. "
-            "Heuristic telemetry is exploratory/product-policy evidence only. "
-            "MCCFR variants are research-only until separately validated."
+            "AI search optimization is a round-robin tournament across the "
+            "baseline ISMCTS configuration, the five predeclared structural "
+            "ISMCTS variants, and alpha-beta. Rank by fixture points, then "
+            "game differential and game win rate. The highest-ranked ISMCTS "
+            "entrant is the optimized search policy. Game/balance optimization "
+            "remains a separate flow."
         ),
     }
     save_manifest()
 
     print()
-    print("Experiment suite complete")
-    print("=========================")
-    for row in manifest["experiments"]:
-        status = row["status"].upper()
-        if row["kind"] == "ismcts-match" and row.get("overall"):
-            overall = row["overall"]
-            paired = overall.get("paired_uncertainty", {})
-            low, high = paired.get("ci95", [None, None])
-            rate = overall.get("candidate_a_win_rate")
-            detail = (
-                f" A={100.0 * rate:.1f}%"
-                f" CI={100.0 * low:.1f}-{100.0 * high:.1f}%"
-                if rate is not None and low is not None and high is not None
-                else ""
-            )
-            if row.get("accepted"):
-                detail += " -> ACCEPT B"
-            elif row.get("status") == "passed":
-                detail += " -> keep A"
-        elif row["kind"] == "strength-bench" and row.get("overall"):
-            overall = row["overall"]
-            paired = overall.get("paired_uncertainty", {})
-            low, high = paired.get("ci95", [None, None])
-            rate = overall.get("mcts_win_rate")
-            detail = (
-                f" ISMCTS={100.0 * rate:.1f}%"
-                f" CI={100.0 * low:.1f}-{100.0 * high:.1f}%"
-                if rate is not None and low is not None and high is not None
-                else ""
-            )
-        else:
-            detail = ""
-        print(f"{status:6} {row['name']}{detail}")
+    print("AI optimization tournament complete")
+    print("===================================")
+    print("Pts  W-D-L  Game +/-   Win%   Entrant")
+    for row in standings_rows:
+        rate = row["game_win_rate"]
+        rate_text = f"{100.0 * rate:5.1f}%" if rate is not None else "  n/a"
+        print(
+            f"{row['points']:>3.0f}  "
+            f"{row['wins']}-{row['draws']}-{row['losses']}    "
+            f"{row['game_difference']:>+6}   "
+            f"{rate_text}  {row['name']}"
+        )
+    print(f"Tournament champion: {tournament_champion}")
+    print(f"Optimized ISMCTS: {best_ismcts}")
+    print("Optimized configuration: " + json.dumps(
+        optimized_config,
+        sort_keys=True,
+    ))
 
-    print(
-        "Optimized configuration: "
-        + json.dumps(manifest["optimized_config"], sort_keys=True)
-    )
     readiness = manifest["decision_readiness"]
     print()
     print(
@@ -1813,7 +1839,7 @@ def run_suite(args: argparse.Namespace) -> Path:
     print(f"Suite summary: {manifest_path}")
 
     if failures:
-        print("Failed experiments: " + ", ".join(failures))
+        print("Failed fixtures: " + ", ".join(failures))
     return manifest_path
 
 
@@ -1925,7 +1951,7 @@ def parse_args() -> argparse.Namespace:
 
     suite = sub.add_parser(
         "suite",
-        help="Optimize ISMCTS structurally, then compare the optimized policy to alpha-beta.",
+        help="Run the canonical round-robin AI optimization tournament.",
     )
     suite.add_argument(
         "--games",
