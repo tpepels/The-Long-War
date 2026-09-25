@@ -664,6 +664,7 @@ function clearSelection() {
   selectedCardId = null;
   selectedHandIndex = null;
   stagedPlotSource = null;
+  stagedManeuverSource = null;
   choiceActions = [];
   mulliganSelection = new Set();
 }
@@ -675,6 +676,7 @@ function selectCard(cardId, index) {
     selectedCardId = cardId;
     selectedHandIndex = index;
     stagedPlotSource = null;
+    stagedManeuverSource = null;
     choiceActions = [];
   }
   renderInteractiveState();
@@ -683,18 +685,36 @@ function selectCard(cardId, index) {
 function interactionHintFor(card) {
   const actions = selectedActions();
   if (!actions.length) return "No legal play for this card right now.";
-  if (actions.some((a) => a.kind === "PlayForce")) return "Choose a highlighted formation.";
-  if (actions.some((a) => a.kind === "PlayBond")) return "Choose a formation for this Bond.";
-  if (actions.some((a) => a.kind === "PlayName")) return "Choose a formation for this Name.";
-  if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Veiled Story space.";
-  if (actions.some((a) => a.kind === "PlayStratagem")) return "Choose your Stratagem space. This spends Command and uses your operation.";
-  if (actions.some((a) => a.kind === "PlayStory")) {
-    if (stagedPlotSource) return "Now choose the destination for " + card.title + ".";
-    return actions.some((a) => a.targets.length === 2)
-      ? "Choose the first highlighted target."
-      : "Choose a highlighted target.";
+  if (actions.some((a) => a.kind === "Discard")) {
+    return "Discard this card, then make the normal start-of-turn draw.";
   }
-  if (actions.some((action) => action.kind === "Cycle")) return "Cycle this card to draw a replacement.";
+  if (actions.some((a) => a.kind === "PlayForce")) {
+    return "Choose a highlighted formation position for this Force.";
+  }
+  if (actions.some((a) => a.kind === "PlayBond")) {
+    return "Choose a formation position for this Bond.";
+  }
+  if (actions.some((a) => a.kind === "PlayName")) {
+    return "Choose a formation position for this Name.";
+  }
+  if (actions.some((a) => a.kind === "PlayStratagem")) {
+    return "Play this as your public Stratagem.";
+  }
+  if (actions.some((a) => a.kind === "PlayStory")) {
+    if (actions.some((a) => a.ongoing_slot != null)) {
+      return "Choose one of your two ongoing Story slots.";
+    }
+    if (stagedPlotSource) {
+      return "Now choose the destination for " + card.title + ".";
+    }
+    if (actions.some((a) => a.targets.length === 2)) {
+      return "Choose the first highlighted target.";
+    }
+    if (actions.some((a) => a.targets.length === 1)) {
+      return "Choose a highlighted target.";
+    }
+    return "Play this Story.";
+  }
   return "Choose a legal action.";
 }
 
@@ -743,15 +763,19 @@ function renderInteraction() {
   }
 
   if (!selectedCardId) {
-    const choose = state.legal_actions.filter((a) => a.kind === "ChooseFirst");
-    if (choose.length) {
-      title.textContent = "Choose who starts the next Battle";
-      hint.textContent = "The loser of the previous Battle chooses the first player.";
+    if (stagedManeuverSource) {
+      title.textContent = "Maneuver";
+      hint.textContent = "Choose the highlighted adjacent destination in the same rank.";
+      cancel.hidden = false;
+    } else if (state.pending_draw_discard_for === state.viewer) {
+      title.textContent = "Hand limit";
+      hint.textContent = "Discard 1 card, then draw 1 before taking your operation.";
+      cancel.hidden = true;
     } else {
       title.textContent = "Your turn";
-      hint.textContent = "Draw 1 automatically · Select a card to play · Pass";
+      hint.textContent = "Draw 1 at the start · Play one card, Maneuver, or Pass";
+      cancel.hidden = true;
     }
-    cancel.hidden = true;
   } else {
     const card = cards[selectedCardId];
     title.textContent = card.title;
@@ -767,15 +791,12 @@ function renderInteraction() {
 
 function choiceLabel(action) {
   const card = cards[action.card_id];
+  if (action.kind === "Discard") return "Discard, then draw";
   if (card?.hero && action.kind === "PlayForce") {
-    return "Deploy as Subject";
+    return "Deploy as Force";
   }
   if (card?.hero && action.kind === "PlayName") {
     return "Use as Name";
-  }
-  if (action.kind === "PlayName") {
-    if (!action.move_to) return "Play the Name here · stay";
-    return "Play the Name here · move the Subject to " + action.move_to.front_name + " " + action.move_to.rank_name;
   }
   return action.label;
 }
@@ -785,7 +806,10 @@ function renderChoiceTray() {
   let actions = choiceActions;
   if (!actions.length && selectedCardId) {
     const direct = selectedActions().filter((a) =>
-      (a.kind === "PlayStory" && a.targets.length === 0)
+      a.kind === "Discard" ||
+      (a.kind === "PlayStory" &&
+        a.targets.length === 0 &&
+        a.ongoing_slot == null)
     );
     if (direct.length === 1) actions = direct;
   }
@@ -896,17 +920,7 @@ function renderHand() {
     bindHandInspection(cardEl, cardId);
   });
 
-  const chooseActions = state.legal_actions.filter((a) => a.kind === "ChooseFirst");
-  actions.innerHTML = chooseActions.map((action) =>
-    '<button type="button" class="initiative-button" data-choice-first="' + encodeURIComponent(action.key) + '">' +
-    "Player " + (action.choose_player + 1) + " starts</button>"
-  ).join("");
-  actions.querySelectorAll("[data-choice-first]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const action = state.legal_actions.find((a) => a.key === decodeURIComponent(button.dataset.choiceFirst));
-      if (action) executeAction(action);
-    });
-  });
+  actions.innerHTML = "";
   layoutHand();
   window.CardLayoutGuard?.schedule(hand);
 }
@@ -1035,28 +1049,71 @@ function bindTarget(el, activate) {
 
 function bindBoardTargets() {
   document.querySelectorAll("[data-board-owner]").forEach((el) => {
-    bindTarget(el, () => handleBoardTarget(Number(el.dataset.boardOwner), Number(el.dataset.boardFront), el.dataset.boardRank));
+    bindTarget(el, () =>
+      handleBoardTarget(
+        Number(el.dataset.boardOwner),
+        Number(el.dataset.boardFront),
+        el.dataset.boardRank
+      )
+    );
   });
-  document.querySelectorAll("[data-scheme-front]").forEach((el) => {
+
+  document.querySelectorAll("[data-story-slot]").forEach((el) => {
     bindTarget(el, () => {
-      if (Number(el.dataset.schemeOwner) === currentViewer()) handleFrontTarget(Number(el.dataset.schemeFront));
+      if (Number(el.dataset.storyOwner) !== currentViewer()) return;
+      const slot = Number(el.dataset.storySlot);
+      const matches = targetActionsForStorySlot(slot);
+      if (matches.length === 1) executeAction(matches[0]);
+      else if (matches.length > 1) {
+        choiceActions = matches;
+        renderChoiceTray();
+      }
     });
   });
+
   document.querySelectorAll("[data-stratagem-owner]").forEach((el) => {
     bindTarget(el, () => {
       if (Number(el.dataset.stratagemOwner) !== currentViewer()) return;
-      const action = selectedActions().find((candidate) => candidate.kind === "PlayStratagem");
+      const action = selectedActions().find(
+        (candidate) => candidate.kind === "PlayStratagem"
+      );
       if (action) executeAction(action);
     });
   });
 }
 
 function handleBoardTarget(owner, front, rank) {
-  if (!selectedCardId) return;
+  if (!selectedCardId) {
+    if (owner !== currentViewer()) return;
+
+    if (stagedManeuverSource) {
+      const matches = maneuverActionsTo(front, rank);
+      if (matches.length === 1) executeAction(matches[0]);
+      else if (matches.length > 1) {
+        choiceActions = matches;
+        renderChoiceTray();
+      }
+      return;
+    }
+
+    const sources = maneuverActionsFrom(front, rank);
+    if (!sources.length) return;
+    stagedManeuverSource = { front, rank };
+    choiceActions = [];
+    renderInteractiveState();
+    return;
+  }
+
   const all = selectedActions();
-  const isTwoTargetPlot = all.some((a) => a.kind === "PlayStory" && a.targets.length === 2);
-  if (isTwoTargetPlot && !stagedPlotSource) {
-    const sourceMatches = all.filter((a) => a.targets.length === 2 && locEquals(a.targets[0], owner, front, rank));
+  const isTwoTargetStory = all.some(
+    (a) => a.kind === "PlayStory" && a.targets.length === 2
+  );
+  if (isTwoTargetStory && !stagedPlotSource) {
+    const sourceMatches = all.filter(
+      (a) =>
+        a.targets.length === 2 &&
+        locEquals(a.targets[0], owner, front, rank)
+    );
     if (!sourceMatches.length) return;
     stagedPlotSource = { player: owner, front, rank };
     choiceActions = [];
@@ -1072,13 +1129,6 @@ function handleBoardTarget(owner, front, rank) {
     renderChoiceTray();
     $("choice-tray").querySelector("button")?.focus();
   }
-}
-
-function handleFrontTarget(front) {
-  if (!selectedCardId) return;
-  const matches = targetActionsForFront(front);
-  if (matches.length === 1) executeAction(matches[0]);
-  else if (matches.length > 1) { choiceActions = matches; renderChoiceTray(); $("choice-tray").querySelector("button")?.focus(); }
 }
 
 function renderInteractiveState() {
