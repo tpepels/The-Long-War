@@ -160,7 +160,6 @@ class GameState:
     reshuffle_card_totals: list[int] = field(default_factory=lambda: [0, 0])
     reshuffle_hand_card_totals: list[int] = field(default_factory=lambda: [0, 0])
     opening_hands: list[list[str]] = field(default_factory=lambda: [[], []])
-    pending_final_operation_for: int | None = None
     pending_draw_discard_for: int | None = None
     last_battle_snapshot: dict[str, object] | None = None
     pass_order: list[int] = field(default_factory=list)
@@ -228,7 +227,6 @@ class GameState:
             reshuffle_card_totals=list(self.reshuffle_card_totals),
             reshuffle_hand_card_totals=list(self.reshuffle_hand_card_totals),
             opening_hands=[list(hand) for hand in self.opening_hands],
-            pending_final_operation_for=self.pending_final_operation_for,
             pending_draw_discard_for=self.pending_draw_discard_for,
             last_battle_snapshot=(
                 None
@@ -296,7 +294,6 @@ class GameState:
         self.reshuffle_hand_card_totals[:] = source.reshuffle_hand_card_totals
         for index in range(2):
             self.opening_hands[index][:] = source.opening_hands[index]
-        self.pending_final_operation_for = source.pending_final_operation_for
         self.pending_draw_discard_for = source.pending_draw_discard_for
         self.last_battle_snapshot = (
             None
