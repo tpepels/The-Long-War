@@ -47,7 +47,7 @@ function updateStartAvailability() {
     ? "Ready"
     : "Loading game…";
 }
-const frontNames = ["Left", "Center", "Right"];
+const frontNames = ["Front 1", "Front 2", "Front 3", "Front 4"];
 
 function esc(value) {
   return String(value ?? "")
@@ -58,38 +58,35 @@ function esc(value) {
 }
 
 const TERM_HINTS = {
-  "battle": "A round of play. Control at least two of the three Fronts to win it.",
-  "bond": "A formation component. It may be prepared before the Subject; Subject-dependent text stays inactive until a Subject is present.",
+  "battle": "A round of play resolved across four independent Fronts. There is no overall Battle winner.",
+  "bond": "A formation component. It may be prepared before the Force; Force-dependent text stays inactive until a Force is present.",
   "discard": "Move a card to its owner's discard pile.",
   "discarded": "Moved to the discard pile.",
   "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
   "command": "Your operation budget. Start at 20; gain 10 between Battles, up to 20. Unspent Command carries over.",
   "cycle": "Some experimental rules use Cycle, but it is not part of the standard game.",
   "draw": "At the start of each turn, draw 1 card. Your draw pile persists; shuffle the discard only when an empty deck must supply a draw.",
-  "front": "One of the three lanes: Left, Center, or Right.",
-  "hero": "A Unique dual-use card. Play one Hero per side per Battle, either as a Subject or as a Name.",
-  "frontline": "The position nearest the Battle Line. It normally receives +1 Line Defense.",
-  "frontline subject": "The Subject occupying the Frontline position of that Front.",
-  "frontline subjects": "Subjects occupying Frontline positions.",
-  "line defense": "The default +1 Strength bonus given to a Subject in the Frontline.",
-  "move": "Relocate a Subject, keeping its attached Bond and Name unless the effect says otherwise.",
-  "name": "A Unique formation component. It may be prepared before the Subject or Bond; Subject-dependent text stays inactive until a Subject is present.",
+  "front": "One of four lanes: Front 1, Front 2, Front 3, or Front 4.",
+  "hero": "A Unique dual-use card. Play one Hero per side per Battle, either as a Force or as a Name.",
+  "frontline": "The position nearest the Battle Line.",
+  "frontline force": "The Force occupying the Frontline position of that Front.",
+  "frontline forces": "Forces occupying Frontline positions.",
+  "move": "Relocate a Named Formation or other cards as the rule or card text allows.",
+  "name": "A Unique formation component. It may be prepared before the Force or Bond; Force-dependent text stays inactive until a Force is present.",
   "pass": "Normally available after both players have completed an operation. Two consecutive Passes end the Battle; any intervening operation clears the earlier Pass.",
   "passes": "Two consecutive Passes end the Battle. After the first Pass, the opponent takes a normal turn; any non-Pass operation clears the earlier Pass.",
   "rear": "The position behind the Frontline in the same Front.",
-  "rear subject": "The Subject occupying the Rear position of that Front.",
-  "rear subjects": "Subjects occupying Rear positions.",
-  "stories": "Story cards change the battlefield without occupying a Subject position.",
-  "story": "A card that resolves its effect and is then discarded.",
+  "rear force": "The Force occupying the Rear position of that Front.",
+  "rear forces": "Forces occupying Rear positions.",
+  "stories": "Stories are public. An ongoing Story remains in play until its own text ends it; each player may have at most two.",
+  "story": "A public Story card. Some resolve immediately; ongoing Stories remain in play according to their text.",
   "strength": "The value compared in each Front. Higher total Strength controls that Front.",
-  "subject": "The unit or place that activates a formation's Strength and Subject-dependent Bond or Name text.",
-  "subjects": "Cards that activate formations in Frontline or Rear positions.",
-  "prepared": "A Bond or Name already placed in a formation before its Subject. It remains inactive where text depends on a Subject.",
-  "veiled stories": "Stories set face-down in a Front and revealed when their trigger occurs.",
-  "veiled story": "A Story set face-down in a Front and revealed when its trigger occurs.",
+  "force": "The unit or place that activates a formation's Strength and Force-dependent Bond or Name text.",
+  "forces": "Cards that activate formations in Frontline or Rear positions.",
+  "prepared": "A Bond or Name already placed before its Force. It remains inactive where text depends on a Force.",
   "adjacent": "Immediately left or right in the same rank.",
-  "adjacent subject": "A Subject immediately left or right in the same rank.",
-  "adjacent subjects": "Subjects immediately left or right in the same rank.",
+  "adjacent force": "A Force immediately left or right in the same rank.",
+  "adjacent forces": "Forces immediately left or right in the same rank.",
   "return": "Move a card from the battlefield back to its owner's hand."
 };
 
@@ -156,11 +153,12 @@ function cardTitle(cardId) {
 function cardType(card) {
   if (card.type === "plot") {
     const form = titleCase(card.story_form);
-    return card.veiled ? form + " · Veiled Story" : form + " · Story";
+    return card.veiled ? form + " · Ongoing Story" : form + " · Story";
   }
   if (card.type === "link") return "Bond";
   if (card.type === "stratagem") return "Stratagem";
-  if (card.type === "subject" && card.hero) return "Hero · Subject / Name";
+  if (card.type === "subject" && card.hero) return "Hero · Force / Name";
+  if (card.type === "subject") return "Force";
   return card.type[0].toUpperCase() + card.type.slice(1);
 }
 
@@ -175,8 +173,8 @@ function playCardMarkup(cardId, options = {}) {
   if (options.mulligan) classes.push("mulligan-card");
 
   const strength = card.hero
-    ? '<span class="play-card-strength hero-dual-strength" aria-label="Subject strength ' + card.strength + ', Name strength ' + card.hero_name_strength + '">' +
-      '<span><small>S</small>' + card.strength + '</span><span><small>N</small>' + card.hero_name_strength + '</span></span>'
+    ? '<span class="play-card-strength hero-dual-strength" aria-label="Force strength ' + card.strength + ', Name strength ' + card.hero_name_strength + '">' +
+      '<span><small>F</small>' + card.strength + '</span><span><small>N</small>' + card.hero_name_strength + '</span></span>'
     : Number.isInteger(card.strength)
       ? '<span class="play-card-strength">' + card.strength + '</span>'
       : "";
@@ -279,11 +277,11 @@ function targetActionsForSlot(owner, front, rank) {
   const actions = selectedActions();
   const matches = [];
   for (const action of actions) {
-    if (["PlaySubject", "PlayLink", "PlayName"].includes(action.kind)) {
+    if (["PlayForce", "PlayBond", "PlayName"].includes(action.kind)) {
       if (owner === currentViewer() && posEquals(action.position, front, rank)) matches.push(action);
       continue;
     }
-    if (action.kind !== "PlayPlot") continue;
+    if (action.kind !== "PlayStory") continue;
     if (action.targets.length === 1) {
       if (locEquals(action.targets[0], owner, front, rank)) matches.push(action);
       continue;
@@ -310,9 +308,9 @@ function renderSlot(owner, front, rank) {
   const slot = boardSlot(owner, front, rank);
   const targets = targetActionsForSlot(owner, front, rank);
   const targetable = targets.length > 0;
-  const hasFormation = Boolean(slot?.subject || slot?.link || slot?.name);
+  const hasFormation = Boolean(slot?.force || slot?.bond || slot?.name);
   const classes = ["digital-slot", hasFormation ? "occupied" : "empty"];
-  if (hasFormation && !slot?.subject) classes.push("prepared");
+  if (hasFormation && !slot?.force) classes.push("prepared");
   if (targetable) classes.push("targetable");
   if (stagedPlotSource && locEquals(stagedPlotSource, owner, front, rank)) classes.push("staged-source");
   const recent = state.last_action;
@@ -338,14 +336,14 @@ function renderSlot(owner, front, rank) {
     '<span class="slot-rank">' + esc(slot.rank_name) +
       (rank === "front" ? " · Line Defense +1" : "") + '</span>' +
     '<div class="board-legend">' +
-      (slot.subject
-        ? boardCardMarkup(slot.subject, "subject", owner)
-        : '<span class="prepared-formation-label">' + termMarkup("Prepared") + '<small>Subject open</small></span>') +
-      (slot.link ? '<div class="board-attachment link">' + boardCardMarkup(slot.link, "link", owner) + '</div>' : "") +
+      (slot.force
+        ? boardCardMarkup(slot.force, "subject", owner)
+        : '<span class="prepared-formation-label">' + termMarkup("Prepared") + '<small>Force open</small></span>') +
+      (slot.bond ? '<div class="board-attachment link">' + boardCardMarkup(slot.bond, "link", owner) + '</div>' : "") +
       (slot.name ? '<div class="board-attachment name">' + boardCardMarkup(slot.name, "name", owner) + '</div>' : "") +
     '</div>' +
-    '<span class="slot-strength' + (slot.subject ? '' : ' inactive') + '">' +
-      (slot.subject ? slot.strength : "—") + '</span>' +
+    '<span class="slot-strength' + (slot.force ? '' : ' inactive') + '">' +
+      (slot.force ? slot.strength : "—") + '</span>' +
     (targetable ? '<b class="legal-target-cue">PLAY · ' + commandCostLabel(targets) + '</b>' : '') +
   '</div>';
 }
@@ -376,10 +374,10 @@ function renderScheme(owner, front) {
 function renderStratagem(owner) {
   const stratagem = state.stratagems?.[owner] || null;
   const classes = ["stratagem-marker"];
-  const targetable = owner === currentViewer() && selectedActions().some((action) => action.kind === "SetStratagem");
+  const targetable = owner === currentViewer() && selectedActions().some((action) => action.kind === "PlayStratagem");
   if (targetable) classes.push("targetable");
   let title = "Stratagem";
-  let label = targetable ? "SET · " + commandCostLabel(selectedActions().filter((action) => action.kind === "SetStratagem")) : "empty";
+  let label = targetable ? "SET · " + commandCostLabel(selectedActions().filter((action) => action.kind === "PlayStratagem")) : "empty";
   if (stratagem?.hidden) {
     classes.push("hidden");
     label = "face-down";
@@ -588,12 +586,12 @@ function selectCard(cardId, index) {
 function interactionHintFor(card) {
   const actions = selectedActions();
   if (!actions.length) return "No legal play for this card right now.";
-  if (actions.some((a) => a.kind === "PlaySubject")) return "Choose a highlighted formation.";
-  if (actions.some((a) => a.kind === "PlayLink")) return "Choose a formation for this Bond.";
+  if (actions.some((a) => a.kind === "PlayForce")) return "Choose a highlighted formation.";
+  if (actions.some((a) => a.kind === "PlayBond")) return "Choose a formation for this Bond.";
   if (actions.some((a) => a.kind === "PlayName")) return "Choose a formation for this Name.";
   if (actions.some((a) => a.kind === "PlayScheme")) return "Choose a Veiled Story space.";
-  if (actions.some((a) => a.kind === "SetStratagem")) return "Choose your Stratagem space. This spends Command and uses your operation.";
-  if (actions.some((a) => a.kind === "PlayPlot")) {
+  if (actions.some((a) => a.kind === "PlayStratagem")) return "Choose your Stratagem space. This spends Command and uses your operation.";
+  if (actions.some((a) => a.kind === "PlayStory")) {
     if (stagedPlotSource) return "Now choose the destination for " + card.title + ".";
     return actions.some((a) => a.targets.length === 2)
       ? "Choose the first highlighted target."
@@ -672,7 +670,7 @@ function renderInteraction() {
 
 function choiceLabel(action) {
   const card = cards[action.card_id];
-  if (card?.hero && action.kind === "PlaySubject") {
+  if (card?.hero && action.kind === "PlayForce") {
     return "Deploy as Subject";
   }
   if (card?.hero && action.kind === "PlayName") {
@@ -690,7 +688,7 @@ function renderChoiceTray() {
   let actions = choiceActions;
   if (!actions.length && selectedCardId) {
     const direct = selectedActions().filter((a) =>
-      (a.kind === "PlayPlot" && a.targets.length === 0)
+      (a.kind === "PlayStory" && a.targets.length === 0)
     );
     if (direct.length === 1) actions = direct;
   }
@@ -950,7 +948,7 @@ function bindBoardTargets() {
   document.querySelectorAll("[data-stratagem-owner]").forEach((el) => {
     bindTarget(el, () => {
       if (Number(el.dataset.stratagemOwner) !== currentViewer()) return;
-      const action = selectedActions().find((candidate) => candidate.kind === "SetStratagem");
+      const action = selectedActions().find((candidate) => candidate.kind === "PlayStratagem");
       if (action) executeAction(action);
     });
   });
@@ -959,7 +957,7 @@ function bindBoardTargets() {
 function handleBoardTarget(owner, front, rank) {
   if (!selectedCardId) return;
   const all = selectedActions();
-  const isTwoTargetPlot = all.some((a) => a.kind === "PlayPlot" && a.targets.length === 2);
+  const isTwoTargetPlot = all.some((a) => a.kind === "PlayStory" && a.targets.length === 2);
   if (isTwoTargetPlot && !stagedPlotSource) {
     const sourceMatches = all.filter((a) => a.targets.length === 2 && locEquals(a.targets[0], owner, front, rank));
     if (!sourceMatches.length) return;
@@ -1065,18 +1063,18 @@ function renderActionFeedback() {
   } else if (action.kind === "Pass") {
     kicker = own ? "YOU PASS" : "OPPONENT PASSES";
     title = "No more turns this Battle";
-  } else if (action.kind === "PlaySubject") {
+  } else if (action.kind === "PlayForce") {
     kicker = own ? "YOU DEPLOY" : "OPPONENT DEPLOYS";
-  } else if (action.kind === "PlayLink") {
+  } else if (action.kind === "PlayBond") {
     kicker = own ? "YOU ATTACH A BOND" : "OPPONENT ATTACHES A BOND";
   } else if (action.kind === "PlayName") {
     kicker = own ? "YOU NAME A SUBJECT" : "OPPONENT NAMES A SUBJECT";
-  } else if (action.kind === "PlayPlot") {
+  } else if (action.kind === "PlayStory") {
     kicker = own ? "YOU PLAY A STORY" : "OPPONENT PLAYS A STORY";
   } else if (action.kind === "PlayScheme") {
     kicker = own ? "YOU SET A VEILED STORY" : "OPPONENT SETS A VEILED STORY";
     if (!card) title = "Face-down card";
-  } else if (action.kind === "SetStratagem") {
+  } else if (action.kind === "PlayStratagem") {
     kicker = own ? "YOU SET A STRATAGEM" : "OPPONENT SETS A STRATAGEM";
     if (!card) title = "Face-down card";
   }
@@ -1508,8 +1506,8 @@ function animateSnapshot(previous, before) {
     flyCard($("opponent-hand"), pileNode(action.actor, "discard"), action.card_id);
     flyCard(pileNode(action.actor, "deck"), $("opponent-hand"));
   }
-  if (action?.kind === "PlayScheme" || action?.kind === "SetStratagem") {
-    const target = action.kind === "SetStratagem" ? document.querySelector('[data-stratagem-owner="' + action.actor + '"]') : document.querySelector('[data-scheme-owner="' + action.actor + '"][data-scheme-front="' + action.front + '"]');
+  if (action?.kind === "PlayScheme" || action?.kind === "PlayStratagem") {
+    const target = action.kind === "PlayStratagem" ? document.querySelector('[data-stratagem-owner="' + action.actor + '"]') : document.querySelector('[data-scheme-owner="' + action.actor + '"][data-scheme-front="' + action.front + '"]');
     if (!action.card_id) flyCard($("opponent-hand"), target);
   }
   for (const event of action?.events || []) {
