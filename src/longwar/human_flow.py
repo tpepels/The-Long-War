@@ -41,10 +41,6 @@ class HumanFlowDiagnostics:
         self.pass_hand_total = 0
         self.pass_operations_total = 0
 
-        self.final_operation_events = 0
-        self.final_operation_abs_margin_swing_total = 0.0
-        self.final_operation_control_swing_total = 0.0
-
         self.pre_draw_discards = 0
 
         self.reshuffles = 0
@@ -183,30 +179,6 @@ class HumanFlowDiagnostics:
                 / self._current_deck_sizes[player],
             )
 
-        if before.pending_final_operation_for == actor:
-            self.final_operation_events += 1
-            before_margins = [
-                engine.front_strength(before, actor, front)
-                - engine.front_strength(before, 1 - actor, front)
-                for front in Front
-            ]
-            final_scores = snapshot["front_scores"]
-            after_margins = [
-                int(scores[actor]) - int(scores[1 - actor])
-                for scores in final_scores
-            ]
-            self.final_operation_abs_margin_swing_total += abs(
-                sum(after_margins) - sum(before_margins)
-            )
-            before_control = sum(value > 0 for value in before_margins) - sum(
-                value < 0 for value in before_margins
-            )
-            after_control = sum(value > 0 for value in after_margins) - sum(
-                value < 0 for value in after_margins
-            )
-            self.final_operation_control_swing_total += abs(
-                after_control - before_control
-            )
         self._no_force_streak = [0, 0]
         self._first_force_seen = [False, False]
 
@@ -281,15 +253,6 @@ class HumanFlowDiagnostics:
             "mean_operations_before_pass": self._ratio(
                 self.pass_operations_total,
                 self.pass_events,
-            ),
-            "final_operation_events": self.final_operation_events,
-            "mean_final_operation_abs_margin_swing": self._ratio(
-                self.final_operation_abs_margin_swing_total,
-                self.final_operation_events,
-            ),
-            "mean_final_operation_control_swing": self._ratio(
-                self.final_operation_control_swing_total,
-                self.final_operation_events,
             ),
             "pre_draw_discards": self.pre_draw_discards,
             "mean_pre_draw_discards_per_player_battle": self._ratio(
