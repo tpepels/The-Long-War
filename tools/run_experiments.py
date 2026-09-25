@@ -1549,6 +1549,9 @@ def run_suite(args: argparse.Namespace) -> Path:
                 "overall": payload.get("overall", {}),
                 "resources": payload.get("resources", {}),
             })
+        except ExperimentSkipped:
+            entry.update({"status": "skipped"})
+            print(f"SKIPPED: {name}")
         except (Exception, SystemExit) as exc:
             entry.update({
                 "status": "failed",
@@ -1594,6 +1597,9 @@ def run_suite(args: argparse.Namespace) -> Path:
             "overall": payload.get("overall", {}),
             "resources": payload.get("resources", {}),
         })
+    except ExperimentSkipped:
+        entry.update({"status": "skipped"})
+        print(f"SKIPPED: {name}")
     except (Exception, SystemExit) as exc:
         entry.update({
             "status": "failed",
@@ -1608,10 +1614,16 @@ def run_suite(args: argparse.Namespace) -> Path:
     failures = [
         row["name"]
         for row in manifest["experiments"]
-        if row["status"] != "passed"
+        if row["status"] == "failed"
+    ]
+    skipped = [
+        row["name"]
+        for row in manifest["experiments"]
+        if row["status"] == "skipped"
     ]
     manifest["completed"] = True
     manifest["failures"] = failures
+    manifest["skipped"] = skipped
 
     def ci_for(row: dict[str, Any], rate_key: str) -> tuple[float | None, float | None]:
         paired = row.get("overall", {}).get("paired_uncertainty", {})
@@ -1650,6 +1662,10 @@ def run_suite(args: argparse.Namespace) -> Path:
     warnings: list[str] = []
     if failures:
         blockers.append("one or more calibration experiments failed")
+    if skipped:
+        warnings.append(
+            "manually skipped comparisons: " + ", ".join(skipped)
+        )
     if control_ci[0] is None or not (control_ci[0] <= 0.5 <= control_ci[1]):
         blockers.append("identical ISMCTS control does not calibrate around 50%")
     if challengers_beating_baseline:
@@ -1657,7 +1673,9 @@ def run_suite(args: argparse.Namespace) -> Path:
             "predeclared challenger beats the baseline: "
             + ", ".join(challengers_beating_baseline)
         )
-    if strength_ci[1] is not None and strength_ci[1] < 0.5:
+    if strength is None or strength.get("status") != "passed":
+        blockers.append("ISMCTS vs strategic alpha-beta comparison did not complete")
+    elif strength_ci[1] is not None and strength_ci[1] < 0.5:
         blockers.append("ISMCTS is significantly weaker than strategic alpha-beta")
     if capacity_cutoffs:
         warnings.append(
