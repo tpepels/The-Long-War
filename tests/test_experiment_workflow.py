@@ -260,7 +260,6 @@ def test_skip_key_reader_restores_terminal_state_on_exception(monkeypatch):
 
 def test_suite_schedule_is_seeded_randomized_and_complete():
     comparisons = [
-        ("baseline-control", {}),
         ("tree-cold", {"reuse_tree_b": False}),
         ("pw-0p5", {"progressive_widening_b": 0.5}),
         ("rollout-greedy", {"rollout_policy_b": "greedy"}),
@@ -268,7 +267,6 @@ def test_suite_schedule_is_seeded_randomized_and_complete():
         ("rollout-epsilon-0", {"rollout_epsilon_b": 0.0}),
     ]
     expected = {
-        "baseline-control",
         "tree-cold",
         "pw-0p5",
         "rollout-greedy",
@@ -286,7 +284,7 @@ def test_suite_schedule_is_seeded_randomized_and_complete():
         *[name for name, _overrides in comparisons],
         "baseline-vs-alpha-beta",
     ]
-    assert comparisons[0] == ("baseline-control", {})
+    assert comparisons[0] == ("tree-cold", {"reuse_tree_b": False})
 
 
 def test_strength_benchmark_reports_live_progress():
@@ -423,12 +421,11 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
     manifest_path = runner.run_suite(args)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    assert len(match_calls) == 6
+    assert len(match_calls) == 5
     assert len(strength_calls) == 1
-    assert len(manifest["experiments"]) == 7
+    assert len(manifest["experiments"]) == 6
     assert all(row["status"] == "passed" for row in manifest["experiments"])
     expected_names = {
-        "baseline-control",
         "tree-cold",
         "pw-0p5",
         "rollout-greedy",
@@ -441,7 +438,6 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
         row["name"] for row in manifest["experiments"]
     ]
     assert manifest["schedule"] != [
-        "baseline-control",
         "tree-cold",
         "pw-0p5",
         "rollout-greedy",
@@ -465,6 +461,9 @@ def test_experiment_suite_runs_structural_battery_and_checkpoints(
     assert strength_calls[0]["max_tree_nodes"] == 400_000
     assert manifest["decision_readiness"]["ready"] is True
     assert manifest["decision_readiness"]["blockers"] == []
+    assert "baseline_control_ci95" not in manifest["decision_readiness"]
+    assert "baseline_tree_capacity_cutoffs" not in manifest["decision_readiness"]
+    assert "baseline_capacity_reroots" not in manifest["decision_readiness"]
 
 
 def test_suite_manual_skip_continues_to_following_experiments(
@@ -528,7 +527,7 @@ def test_suite_manual_skip_continues_to_following_experiments(
     ))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    assert calls == 6
+    assert calls == 5
     skipped_rows = [
         row for row in manifest["experiments"] if row["status"] == "skipped"
     ]
