@@ -2139,6 +2139,11 @@ def run_suite(args: argparse.Namespace) -> Path:
         for row in manifest["experiments"]
         if row["status"] == "failed"
     ]
+    skipped_rows = [
+        row["name"]
+        for row in manifest["experiments"]
+        if row["status"] == "skipped"
+    ]
     partial_rows = [
         row["name"]
         for row in manifest["experiments"]
@@ -2161,7 +2166,8 @@ def run_suite(args: argparse.Namespace) -> Path:
 
     manifest["completed"] = True
     manifest["failures"] = failures
-    manifest["skipped"] = partial_rows
+    manifest["skipped"] = skipped_rows
+    manifest["partial_results"] = partial_rows
     manifest["unresolved_ties"] = unresolved_ties
     manifest["elimination_order"] = [
         row["loser"]
@@ -2172,6 +2178,11 @@ def run_suite(args: argparse.Namespace) -> Path:
     warnings: list[str] = []
     if incomplete_knockout:
         blockers.append("AI optimization knockout incomplete")
+    if skipped_rows:
+        warnings.append(
+            "manually skipped stages without usable partial results: "
+            + ", ".join(skipped_rows)
+        )
     if partial_rows:
         warnings.append(
             "manual partial results accepted: " + ", ".join(partial_rows)
@@ -2183,7 +2194,9 @@ def run_suite(args: argparse.Namespace) -> Path:
         )
 
     if calibration_entry.get("status") != "passed":
-        blockers.append("ISMCTS/alpha-beta timing calibration did not match")
+        blockers.append(
+            "ISMCTS/alpha-beta timing calibration did not produce usable work rates"
+        )
 
     strength_ci: list[float | None] = [None, None]
     if final_entry.get("status") not in {"passed", "partial"}:
