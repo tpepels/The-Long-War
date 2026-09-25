@@ -258,6 +258,55 @@ def test_skip_key_reader_restores_terminal_state_on_exception(monkeypatch):
     assert restored == [(17, runner.termios.TCSADRAIN, saved)]
 
 
+def test_live_skip_raises_partial_score_from_progress(
+    tmp_path,
+    monkeypatch,
+):
+    progress = tmp_path / "cell.progress"
+    progress.write_text(
+        json.dumps({
+            "completed": 7,
+            "total": 24,
+            "wins": [6, 1],
+        }),
+        encoding="utf-8",
+    )
+    cell = ("reference", "a-first", tmp_path / "out.json", progress, [])
+
+    monkeypatch.setattr(runner.sys.stdout, "isatty", lambda: False)
+
+    @contextmanager
+    def fake_skip_reader():
+        yield lambda: True
+
+    monkeypatch.setattr(runner, "_skip_key_reader", fake_skip_reader)
+
+    def run_cell(_cell, stop_event):
+        while not stop_event.is_set():
+            time.sleep(0.001)
+        return None
+
+    def format_progress(_cell, state):
+        return "row", int(state["wins"][0]), int(state["wins"][1])
+
+    with pytest.raises(runner.ExperimentSkipped) as skipped:
+        runner._run_cells_with_live_progress(
+            [cell],
+            jobs=1,
+            games_per_cell=24,
+            run_cell=run_cell,
+            format_result=lambda _result: "",
+            table_header="table",
+            score_labels=("A", "B"),
+            format_progress=format_progress,
+        )
+
+    assert skipped.value.partial["score_a"] == 6
+    assert skipped.value.partial["score_b"] == 1
+    assert skipped.value.partial["completed"] == 7
+    assert skipped.value.partial["total"] == 24
+
+
 def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
     tmp_path,
     monkeypatch,
@@ -303,7 +352,14 @@ def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
                     "mcts_win_rate": 0.625,
                     "paired_uncertainty": {"ci95": [0.56, 0.69]},
                 },
-                "resources": {},
+                "resources": {
+                    "ismcts": {
+                        "mean_searched_decision_seconds": 1.0,
+                    },
+                    "strategic_heuristic": {
+                        "mean_searched_decision_seconds": 1.0,
+                    },
+                },
             }),
             encoding="utf-8",
         )
@@ -340,10 +396,10 @@ def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
     assert len(manifest["bracket_seed_order"]) == 6
 
     assert len(manifest["rounds"]) == 3
-    assert len(manifest["experiments"]) == 6
+    assert len(manifest["experiments"]) == 7
     assert len(match_calls) == 5
-    assert len(strength_calls) == 1
-    assert events == ["ismcts"] * 5 + ["alpha-beta"]
+    assert len(strength_calls) == 2
+    assert events == ["ismcts"] * 5 + ["alpha-beta", "alpha-beta"]
 
     first_round = manifest["rounds"][0]
     assert len(first_round["entrants"]) == 6
@@ -365,12 +421,19 @@ def test_ai_optimization_suite_knocks_out_ismcts_then_faces_alpha_beta(
 
     assert manifest["tournament_champion"] in entrants
     assert manifest["optimized_ismcts"] == manifest["tournament_champion"]
+    calibration = manifest["experiments"][-2]
+    assert calibration["name"] == "alpha-beta-timing-calibration"
+    assert calibration["kind"] == "timing-calibration"
+    assert calibration["status"] == "passed"
+    assert strength_calls[-2]["time_budget_seconds"] == pytest.approx(1.0)
+
     final = manifest["experiments"][-1]
     assert final["name"] == "optimized-vs-alpha-beta"
     assert final["kind"] == "strength-bench"
     assert final["entrant_a"] == manifest["optimized_ismcts"]
     assert final["entrant_b"] == "alpha-beta"
     assert final["status"] == "passed"
+    assert strength_calls[-1]["time_budget_seconds"] == pytest.approx(5.0)
     assert manifest["decision_readiness"]["ready"] is True
 
 
@@ -424,7 +487,14 @@ def test_knockout_winner_is_used_for_final_alpha_beta_match(
                     "mcts_win_rate": 130 / 192,
                     "paired_uncertainty": {"ci95": [0.61, 0.73]},
                 },
-                "resources": {},
+                "resources": {
+                    "ismcts": {
+                        "mean_searched_decision_seconds": 1.0,
+                    },
+                    "strategic_heuristic": {
+                        "mean_searched_decision_seconds": 1.0,
+                    },
+                },
             }),
             encoding="utf-8",
         )
@@ -450,8 +520,10 @@ def test_knockout_winner_is_used_for_final_alpha_beta_match(
     assert manifest["tournament_champion"] == "rollout-greedy"
     assert manifest["optimized_ismcts"] == "rollout-greedy"
     assert manifest["optimized_config"]["rollout_policy"] == "greedy"
-    assert len(strength_calls) == 1
-    assert strength_calls[0]["rollout_policy"] == "greedy"
+    assert len(strength_calls) == 2
+    assert all(call["rollout_policy"] == "greedy" for call in strength_calls)
+    assert strength_calls[0]["time_budget_seconds"] == pytest.approx(1.0)
+    assert strength_calls[1]["time_budget_seconds"] == pytest.approx(5.0)
 
     greedy_knockout_fixtures = [
         row
@@ -509,7 +581,14 @@ def test_knockout_exact_tie_replays_ismcts_fixture_with_new_seed(
                     "mcts_win_rate": 110 / 192,
                     "paired_uncertainty": {"ci95": [0.51, 0.64]},
                 },
-                "resources": {},
+                "resources": {
+                    "ismcts": {
+                        "mean_searched_decision_seconds": 1.0,
+                    },
+                    "strategic_heuristic": {
+                        "mean_searched_decision_seconds": 1.0,
+                    },
+                },
             }),
             encoding="utf-8",
         )
@@ -564,7 +643,15 @@ def test_knockout_skip_continues_to_final_check_but_marks_not_ready(
         nonlocal calls
         calls += 1
         if calls == 1:
-            raise runner.ExperimentSkipped("test skip")
+            raise runner.ExperimentSkipped(
+                "test skip",
+                partial={
+                    "score_a": 18,
+                    "score_b": 3,
+                    "completed": 21,
+                    "total": 192,
+                },
+            )
         path = tmp_path / f"match-{calls}.json"
         path.write_text(
             json.dumps({
@@ -594,7 +681,14 @@ def test_knockout_skip_continues_to_final_check_but_marks_not_ready(
                     "mcts_win_rate": 110 / 192,
                     "paired_uncertainty": {"ci95": [0.51, 0.64]},
                 },
-                "resources": {},
+                "resources": {
+                    "ismcts": {
+                        "mean_searched_decision_seconds": 1.0,
+                    },
+                    "strategic_heuristic": {
+                        "mean_searched_decision_seconds": 1.0,
+                    },
+                },
             }),
             encoding="utf-8",
         )
@@ -617,21 +711,118 @@ def test_knockout_skip_continues_to_final_check_but_marks_not_ready(
     ))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    assert len(manifest["experiments"]) == 6
+    assert len(manifest["experiments"]) == 7
     skipped = [
         row for row in manifest["experiments"]
         if row["status"] == "skipped"
     ]
     assert len(skipped) == 1
-    assert skipped[0]["resolution"] == "seed-order-fallback"
-    assert skipped[0]["winner"] is not None
-    assert strength_calls == 1
+    assert skipped[0]["resolution"] == "user-skip-partial"
+    assert skipped[0]["winner"] == skipped[0]["entrant_a"]
+    assert skipped[0]["result"]["a_wins"] == 18
+    assert skipped[0]["result"]["b_wins"] == 3
+    assert strength_calls == 2
     assert manifest["experiments"][-1]["name"] == "optimized-vs-alpha-beta"
-    assert manifest["decision_readiness"]["ready"] is False
-    assert "AI optimization knockout incomplete" in (
-        manifest["decision_readiness"]["blockers"]
+    assert manifest["decision_readiness"]["ready"] is True
+    assert "manual partial results accepted" in " ".join(
+        manifest["decision_readiness"]["warnings"]
     )
 
+
+
+def test_final_alpha_beta_skip_uses_partial_score(
+    tmp_path,
+    monkeypatch,
+):
+    suite_dir = tmp_path / "suite"
+
+    def fake_artifact_directory(_base, _identity):
+        suite_dir.mkdir(parents=True, exist_ok=True)
+        return suite_dir
+
+    match_count = 0
+
+    def fake_match(**_kwargs):
+        nonlocal match_count
+        match_count += 1
+        path = tmp_path / f"match-{match_count}.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "candidate_a_wins": 110,
+                    "candidate_b_wins": 82,
+                    "games": 192,
+                    "candidate_a_win_rate": 110 / 192,
+                    "paired_uncertainty": {"ci95": [0.51, 0.64]},
+                },
+                "resources": {},
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    strength_count = 0
+
+    def fake_strength(**_kwargs):
+        nonlocal strength_count
+        strength_count += 1
+        if strength_count == 2:
+            raise runner.ExperimentSkipped(
+                "obvious final",
+                partial={
+                    "score_a": 25,
+                    "score_b": 8,
+                    "completed": 33,
+                    "total": 192,
+                },
+            )
+        path = tmp_path / "calibration.json"
+        path.write_text(
+            json.dumps({
+                "overall": {
+                    "mcts_wins": 4,
+                    "alpha_beta_wins": 4,
+                    "games": 8,
+                    "mcts_win_rate": 0.5,
+                    "paired_uncertainty": {"ci95": [0.3, 0.7]},
+                },
+                "resources": {
+                    "ismcts": {
+                        "mean_searched_decision_seconds": 1.0,
+                    },
+                    "strategic_heuristic": {
+                        "mean_searched_decision_seconds": 1.0,
+                    },
+                },
+            }),
+            encoding="utf-8",
+        )
+        return path
+
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "BENCH_ROOT", tmp_path / "bench")
+    monkeypatch.setattr(runner, "artifact_directory", fake_artifact_directory)
+    monkeypatch.setattr(runner, "benchmark_ismcts_match", fake_match)
+    monkeypatch.setattr(runner, "benchmark_strength", fake_strength)
+
+    manifest_path = runner.run_suite(Namespace(
+        games=24,
+        jobs=8,
+        iterations=100_000,
+        alpha_nodes=20_000,
+        time_budget_seconds=2.0,
+        seed=26092400,
+        stop_on_error=False,
+    ))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    final = manifest["experiments"][-1]
+    assert final["status"] == "partial"
+    assert final["resolution"] == "user-skip-partial"
+    assert final["winner"] == manifest["optimized_ismcts"]
+    assert final["result"]["mcts_wins"] == 25
+    assert final["result"]["alpha_beta_wins"] == 8
+    assert manifest["decision_readiness"]["ready"] is True
 
 
 def test_strength_benchmark_reports_live_progress():
