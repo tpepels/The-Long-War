@@ -179,7 +179,7 @@ Maneuver cannot change rank and cannot occur between Battles. There is no generi
 
 - An **immediate Story** resolves and is discarded.
 - An **ongoing Story** remains until its own text ends it.
-- Each player may have at most **3 ongoing Stories**.
+- Each player may have at most **2 ongoing Stories**.
 
 Story forms such as *Legend*, *Saga*, *Myth*, *Omen*, *Warning*, *Prophecy*, and *Conspiracy* have no general rule unless a card refers to them.
 
