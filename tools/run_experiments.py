@@ -3,14 +3,25 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import select
 import subprocess
 import sys
+import tempfile
+import threading
 import time
+from contextlib import contextmanager
 from dataclasses import asdict
 from itertools import combinations
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed, wait
 from pathlib import Path
 from typing import Any
+
+try:
+    import termios
+    import tty
+except ImportError:  # pragma: no cover - interactive skip is POSIX-only
+    termios = None
+    tty = None
 
 from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, DEFAULT_ISMCTS_ITERATIONS
 from longwar.balance import validate_command_costs
@@ -31,6 +42,10 @@ CANONICAL_DECK_PATHS = {
     "mara": "decks/mara-rear.json",
     "sera": "decks/sera-support.json",
 }
+
+
+class ExperimentSkipped(RuntimeError):
+    """Raised when the user skips the currently running comparison."""
 
 
 def validate_data() -> None:
@@ -141,12 +156,51 @@ def run_command(
         raise
 
 
-def _read_progress_count(path: Path, maximum: int) -> int:
+def _read_progress_state(path: Path, maximum: int) -> dict[str, Any]:
+    fallback = {
+        "completed": 0,
+        "total": maximum,
+        "wins": [0, 0],
+    }
     try:
-        value = int(path.read_text(encoding="utf-8").strip())
-    except (OSError, ValueError):
-        return 0
-    return max(0, min(maximum, value))
+        raw = path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return fallback
+
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        # Backward compatibility with the old integer-only progress files.
+        try:
+            completed = int(raw)
+        except ValueError:
+            return fallback
+        return {
+            **fallback,
+            "completed": max(0, min(maximum, completed)),
+        }
+
+    if not isinstance(payload, dict):
+        return fallback
+    completed = payload.get("completed", 0)
+    wins = payload.get("wins", [0, 0])
+    if not isinstance(completed, int):
+        completed = 0
+    if (
+        not isinstance(wins, list)
+        or len(wins) != 2
+        or not all(isinstance(value, int) and value >= 0 for value in wins)
+    ):
+        wins = [0, 0]
+    return {
+        "completed": max(0, min(maximum, completed)),
+        "total": maximum,
+        "wins": wins,
+    }
+
+
+def _read_progress_count(path: Path, maximum: int) -> int:
+    return int(_read_progress_state(path, maximum)["completed"])
 
 
 def _format_duration(seconds: float) -> str:
@@ -158,6 +212,69 @@ def _format_duration(seconds: float) -> str:
     return f"{minutes:02d}:{secs:02d}"
 
 
+@contextmanager
+def _skip_key_reader():
+    """Yield a non-blocking single-key skip reader for interactive POSIX terminals."""
+    if (
+        termios is None
+        or tty is None
+        or not sys.stdin.isatty()
+        or not sys.stdout.isatty()
+    ):
+        yield lambda: False
+        return
+
+    fd = sys.stdin.fileno()
+    previous = termios.tcgetattr(fd)
+    tty.setcbreak(fd)
+
+    def requested() -> bool:
+        ready, _, _ = select.select([sys.stdin], [], [], 0)
+        if not ready:
+            return False
+        return sys.stdin.read(1).lower() == "s"
+
+    try:
+        yield requested
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, previous)
+
+
+def _run_command_until_stop(
+    command: list[str],
+    stop_event: threading.Event,
+) -> bool:
+    """Run one simulation subprocess, terminating it promptly when skipped."""
+    if stop_event.is_set():
+        return False
+
+    with tempfile.TemporaryFile(mode="w+t", encoding="utf-8") as log:
+        process = subprocess.Popen(
+            command,
+            cwd=ROOT,
+            text=True,
+            stdout=log,
+            stderr=subprocess.STDOUT,
+        )
+        while process.poll() is None:
+            if stop_event.wait(0.1):
+                process.terminate()
+                try:
+                    process.wait(timeout=2.0)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                return False
+
+        if process.returncode:
+            log.seek(0)
+            output = log.read()
+            if output:
+                print(output, end="" if output.endswith("\n") else "\n")
+            raise subprocess.CalledProcessError(process.returncode, command)
+    return True
+
+
 def _run_cells_with_live_progress(
     cells: list[tuple[str, str, Path, Path, list[str]]],
     *,
@@ -165,18 +282,36 @@ def _run_cells_with_live_progress(
     games_per_cell: int,
     run_cell,
     format_result,
+    table_header: str,
+    score_labels: tuple[str, str],
+    format_progress,
 ) -> list[Any]:
-    """Run parallel simulation cells while aggregating per-game progress files."""
+    """Run parallel cells with a live result table and interactive skip."""
     total_games = len(cells) * games_per_cell
     progress_paths = [cell[3] for cell in cells]
     started = time.perf_counter()
     results: list[Any] = []
+    stop_event = threading.Event()
+    skipped = False
+    previous_lines = 0
+    interactive = sys.stdout.isatty()
 
-    def render(pending_count: int) -> None:
-        completed = sum(
-            _read_progress_count(path, games_per_cell)
+    def clear_display() -> None:
+        nonlocal previous_lines
+        if not interactive or previous_lines <= 0:
+            return
+        sys.stdout.write("\r\x1b[2K")
+        for _ in range(previous_lines - 1):
+            sys.stdout.write("\x1b[1A\r\x1b[2K")
+        previous_lines = 0
+
+    def render(pending_count: int, *, stopping: bool = False) -> None:
+        nonlocal previous_lines
+        states = [
+            _read_progress_state(path, games_per_cell)
             for path in progress_paths
-        )
+        ]
+        completed = sum(int(state["completed"]) for state in states)
         fraction = completed / total_games if total_games else 1.0
         width = 20
         filled = min(width, int(width * fraction))
@@ -184,45 +319,97 @@ def _run_cells_with_live_progress(
         elapsed = time.perf_counter() - started
         eta = (
             elapsed * (total_games - completed) / completed
-            if completed
+            if completed and not stopping
             else None
         )
         eta_text = _format_duration(eta) if eta is not None else "--:--"
-        line = (
-            f"[{bar}] {completed}/{total_games} "
-            f"{fraction:5.1%} | {_format_duration(elapsed)} "
-            f"| ETA {eta_text} | {pending_count} active"
-        )
-        # Clear the physical terminal row before redrawing. Do not pad the
-        # line to a fixed width: padding can wrap on narrow terminals and make
-        # every refresh appear on a new line.
-        sys.stdout.write(f"\r\x1b[2K{line}")
-        sys.stdout.flush()
 
-    with ThreadPoolExecutor(max_workers=min(jobs, len(cells))) as pool:
-        future_to_cell = {
-            pool.submit(run_cell, cell): cell
-            for cell in cells
-        }
-        pending = set(future_to_cell)
-        render(len(pending))
-        while pending:
-            done, pending = wait(
-                pending,
-                timeout=1.0,
-                return_when=FIRST_COMPLETED,
-            )
+        rows: list[str] = []
+        score_a = 0
+        score_b = 0
+        for cell, state in zip(cells, states):
+            row, a_wins, b_wins = format_progress(cell, state)
+            rows.append(row)
+            score_a += a_wins
+            score_b += b_wins
+
+        status = (
+            "Stopping current experiment..."
+            if stopping
+            else "Press s to skip this experiment"
+        )
+        lines = [
+            f"Live results - {status}",
+            table_header,
+            *rows,
+            (
+                f"TOTAL {score_labels[0]} {score_a} - "
+                f"{score_labels[1]} {score_b}"
+            ),
+            (
+                f"[{bar}] {completed}/{total_games} {fraction:5.1%} "
+                f"| {_format_duration(elapsed)} | ETA {eta_text} "
+                f"| {pending_count} active"
+            ),
+        ]
+
+        if interactive:
+            clear_display()
+            sys.stdout.write("\n".join(lines))
+            sys.stdout.flush()
+            previous_lines = len(lines)
+        elif completed == total_games or stopping:
+            print("\n".join(lines), flush=True)
+
+    with _skip_key_reader() as skip_requested:
+        with ThreadPoolExecutor(max_workers=min(jobs, len(cells))) as pool:
+            future_to_cell = {
+                pool.submit(run_cell, cell, stop_event): cell
+                for cell in cells
+            }
+            pending = set(future_to_cell)
             render(len(pending))
-            if done:
-                print()
+            while pending:
+                if not skipped and skip_requested():
+                    skipped = True
+                    stop_event.set()
+                    render(len(pending), stopping=True)
+
+                done, pending = wait(
+                    pending,
+                    timeout=0.5,
+                    return_when=FIRST_COMPLETED,
+                )
                 for future in done:
                     result = future.result()
-                    results.append(result)
-                    print(format_result(result), flush=True)
-                if pending:
-                    render(len(pending))
-        print()
+                    if result is not None:
+                        results.append(result)
 
+                if not skipped:
+                    render(len(pending))
+                elif pending:
+                    render(len(pending), stopping=True)
+
+    if interactive:
+        if not skipped:
+            render(0)
+        clear_display()
+        if not skipped:
+            # Preserve the final completed table in scrollback.
+            states = [
+                _read_progress_state(path, games_per_cell)
+                for path in progress_paths
+            ]
+            print("Final cell results")
+            print(table_header)
+            for cell, state in zip(cells, states):
+                row, _a_wins, _b_wins = format_progress(cell, state)
+                print(row)
+        else:
+            print("Current experiment skipped.")
+
+    if skipped:
+        raise ExperimentSkipped("user requested skip")
     return results
 
 
