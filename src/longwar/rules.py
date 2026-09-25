@@ -38,7 +38,6 @@ class GameRules:
     automatic_draw_hand_limit: int | None = 10
     battle_end_hand_limit: int | None = None
 
-    pass_final_operation: bool = True
     pass_requires_both_acted: bool = True
     first_passer_starts_next_battle: bool = True
     completion_command_refund: int = 0
