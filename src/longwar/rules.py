@@ -18,8 +18,15 @@ class GameRules:
 
     command_enabled: bool = True
     starting_command: int = 20
-    battle_command_gain: int = 10
+    # Deprecated compatibility knobs are retained until the browser migration
+    # is complete, but canonical recovery uses command_recovery_schedule.
+    battle_command_gain: int = 0
     command_cap: int = 20
+    command_recovery_schedule: tuple[int, ...] = (10, 7, 5, 4, 3, 2, 1)
+    command_collapse_threshold: int = 5
+    maneuver_command_cost: int = 1
+    hand_limit: int = 10
+    ongoing_story_limit: int = 2
     cycle_command_cost: int = 1
     cycle_enabled: bool = False
 
@@ -28,13 +35,13 @@ class GameRules:
     paid_draw_enabled: bool = False
     paid_draw_command_cost: int = 1
     paid_draw_consumes_operation: bool = True
-    automatic_draw_hand_limit: int | None = None
+    automatic_draw_hand_limit: int | None = 10
     battle_end_hand_limit: int | None = None
 
     pass_final_operation: bool = True
     pass_requires_both_acted: bool = True
     first_passer_starts_next_battle: bool = True
-    completion_command_refund: int = 1
+    completion_command_refund: int = 0
     public_stratagems: bool = True
 
     def __post_init__(self) -> None:
@@ -53,6 +60,13 @@ class GameRules:
             for card_id in self.completion_draw_names
         ):
             raise ValueError("completion_draw_names must be a tuple of card ids")
+        if (
+            not isinstance(self.command_recovery_schedule, tuple)
+            or any(type(value) is not int or value < 0 for value in self.command_recovery_schedule)
+        ):
+            raise ValueError("command_recovery_schedule must be a tuple of non-negative integers")
+        if not self.command_recovery_schedule:
+            raise ValueError("command_recovery_schedule must not be empty")
         if self.opening_hand_size < 1:
             raise ValueError("opening_hand_size must be positive")
         if min(
@@ -62,6 +76,10 @@ class GameRules:
             self.cycle_command_cost,
             self.paid_draw_command_cost,
             self.completion_command_refund,
+            self.command_collapse_threshold,
+            self.maneuver_command_cost,
+            self.hand_limit,
+            self.ongoing_story_limit,
         ) < 0:
             raise ValueError("Command settings must be non-negative")
         if self.starting_command > self.command_cap:
