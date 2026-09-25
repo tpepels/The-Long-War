@@ -24,13 +24,13 @@ def opening_mulligan_indices(
         card = engine.cards[card_id]
         card_type = card["type"]
 
-        if card_type == "subject":
+        if card_type == "force":
             score = 5.0 + 0.08 * float(card.get("strength", 0))
-        elif card_type == "link":
+        elif card_type == "bond":
             score = 3.2
         elif card_type == "name":
             score = 3.0
-        elif card_type == "plot":
+        elif card_type == "story":
             score = 3.7 if card.get("veiled", False) else 2.6
         elif card_type == "stratagem":
             seen_stratagems += 1
