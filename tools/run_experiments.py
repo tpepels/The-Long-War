@@ -1044,7 +1044,7 @@ def benchmark_strength(
     ismcts_iterations: int,
     alpha_nodes: int,
     belief_samples: int = 12,
-    rollout_policy: str = "cheap",
+    rollout_policy: str = "greedy",
     rollout_depth: int = 5,
     progressive_widening: float = 0.0,
     exploration: float = DEFAULT_ISMCTS_EXPLORATION,
@@ -1488,7 +1488,7 @@ def run_suite(args: argparse.Namespace) -> Path:
         "progressive_widening": 0.0,
         "reuse_tree": True,
         "rollout_depth": 5,
-        "rollout_policy": "cheap",
+        "rollout_policy": "greedy",
         "rollout_epsilon": 0.12,
         "max_tree_nodes": 400_000,
     }
@@ -1496,7 +1496,7 @@ def run_suite(args: argparse.Namespace) -> Path:
         ("baseline", {}),
         ("tree-cold", {"reuse_tree": False}),
         ("pw-0p5", {"progressive_widening": 0.5}),
-        ("rollout-greedy", {"rollout_policy": "greedy"}),
+        ("rollout-cheap", {"rollout_policy": "cheap"}),
         ("rollout-depth-8", {"rollout_depth": 8}),
         ("rollout-epsilon-0", {"rollout_epsilon": 0.0}),
     ]
@@ -2375,12 +2375,12 @@ def parse_args() -> argparse.Namespace:
     ismcts_match.add_argument(
         "--a-rollout-policy",
         choices=("greedy", "cheap", "random"),
-        default="cheap",
+        default="greedy",
     )
     ismcts_match.add_argument(
         "--b-rollout-policy",
         choices=("greedy", "cheap", "random"),
-        default="cheap",
+        default="greedy",
     )
 
     strength_bench = sub.add_parser(
@@ -2424,7 +2424,7 @@ def parse_args() -> argparse.Namespace:
     strength_bench.add_argument(
         "--rollout-policy",
         choices=("greedy", "cheap", "random"),
-        default="cheap",
+        default="greedy",
     )
 
     suite = sub.add_parser(
