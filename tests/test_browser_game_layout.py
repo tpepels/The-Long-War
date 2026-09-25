@@ -79,7 +79,7 @@ def test_start_match_real_browser_interaction_smoke_is_maintained() -> None:
     assert "form.requestSubmit()" in checker
     assert 'confirm.click()' in checker
     assert '.play-card.playable[data-hand-card]' in checker
-    assert '.digital-slot.targetable, .scheme-marker.targetable' in checker
+    assert '.digital-slot.targetable, .story-marker.targetable' in checker
     assert 'data-play-smoke="pass"' in checker
     assert '<button type="button" class="' in play
     assert "legal-target-cue" in play
@@ -132,7 +132,7 @@ def test_standard_ui_exposes_command_automatic_draw_paced_actions_and_term_help(
     assert "actionForCycle" in play
     assert "standard game exposed Draw or Cycle" in text("tools/check_play_start.py")
     assert "Command" in play
-    assert "Hero · Subject / Name" in play
+    assert "Hero · Force / Name" in play
     assert "Hero ready" in play and "Hero used" in play
     assert "hero-dual-strength" in css
     assert "scheduleAiStep" in play
@@ -156,18 +156,16 @@ def test_standard_ui_exposes_command_automatic_draw_paced_actions_and_term_help(
 def test_desktop_fixtures_cover_crowded_and_interrupting_states() -> None:
     from tools.check_game_layout import SCENARIOS, presentation_snapshots
 
-    assert set(SCENARIOS) == {"battle", "targeting", "inspector", "ai", "choose-first", "complete", "mulligan", "drawer"}
+    assert set(SCENARIOS) == {"battle", "targeting", "inspector", "ai", "complete", "mulligan", "drawer"}
     snapshots = presentation_snapshots()
     crowded = snapshots["battle"]
     assert len(crowded["hand"]) >= 18
-    assert not crowded["players"][0]["free_cycle"]
     assert not any(action["kind"] == "Cycle" for action in crowded["legal_actions"])
-    assert all(slot["subject"] and slot["link"] and slot["name"] for side in crowded["board"] for slot in side)
-    assert all(scheme["hidden"] and scheme["card_id"] is None for scheme in crowded["schemes"][1])
-    assert not crowded["stratagems"][1]["hidden"]
+    assert all(slot["force"] and slot["bond"] and slot["name"] for side in crowded["board"] for slot in side)
+    assert len(crowded["stories"][1]) == 2
+    assert all(story["card_id"] for story in crowded["stories"][1])
     assert crowded["stratagems"][1]["card_id"] is not None
     assert snapshots["ai"]["needs_ai"]
-    assert snapshots["choose-first"]["phase"] == "choose_first"
     assert snapshots["complete"]["winner"] == 0
 
 
