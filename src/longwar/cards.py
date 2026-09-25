@@ -290,4 +290,5 @@ def cards_by_type(data: dict[str, Any], card_type: str) -> list[dict[str, Any]]:
 
 
 def card_index(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    return {card["id"]: card for card in data["cards"]}
+    normalized = normalize_card_data(data)
+    return {card["id"]: card for card in normalized["cards"]}
