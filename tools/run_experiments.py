@@ -206,6 +206,14 @@ def _read_progress_state(path: Path, maximum: int) -> dict[str, Any]:
             "completed": max(0, min(maximum, completed)),
         }
 
+    # Legacy progress files contained only an integer. A string such as
+    # "7" is also valid JSON, so handle the decoded scalar here rather than
+    # only in the JSONDecodeError fallback above.
+    if isinstance(payload, int) and not isinstance(payload, bool):
+        return {
+            **fallback,
+            "completed": max(0, min(maximum, payload)),
+        }
     if not isinstance(payload, dict):
         return fallback
     completed = payload.get("completed", 0)
