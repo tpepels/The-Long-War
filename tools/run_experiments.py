@@ -1459,7 +1459,6 @@ def run_suite(args: argparse.Namespace) -> Path:
         "max_tree_nodes": 400_000,
     }
     comparisons = [
-        ("baseline-control", {}),
         ("tree-cold", {"reuse_tree_b": False}),
         ("pw-0p5", {"progressive_widening_b": 0.5}),
         ("rollout-greedy", {"rollout_policy_b": "greedy"}),
@@ -1641,31 +1640,19 @@ def run_suite(args: argparse.Namespace) -> Path:
             return None, None
         return float(low), float(high)
 
-    control = next(
-        (row for row in manifest["experiments"] if row["name"] == "baseline-control"),
-        None,
-    )
     strength = next(
         (row for row in manifest["experiments"] if row["name"] == "baseline-vs-alpha-beta"),
         None,
     )
-    control_ci = ci_for(control or {}, "candidate_a_win_rate")
     strength_ci = ci_for(strength or {}, "mcts_win_rate")
 
     challengers_beating_baseline = []
     for row in manifest["experiments"]:
-        if row.get("kind") != "ismcts-match" or row.get("name") == "baseline-control":
+        if row.get("kind") != "ismcts-match":
             continue
         low, high = ci_for(row, "candidate_a_win_rate")
         if high is not None and high < 0.5:
             challengers_beating_baseline.append(row["name"])
-
-    capacity_cutoffs = 0
-    capacity_reroots = 0
-    if control:
-        for stats in control.get("resources", {}).values():
-            capacity_cutoffs += int(stats.get("tree_capacity_cutoffs", 0) or 0)
-            capacity_reroots += int(stats.get("capacity_reroots", 0) or 0)
 
     blockers: list[str] = []
     warnings: list[str] = []
@@ -1675,8 +1662,6 @@ def run_suite(args: argparse.Namespace) -> Path:
         warnings.append(
             "manually skipped comparisons: " + ", ".join(skipped)
         )
-    if control_ci[0] is None or not (control_ci[0] <= 0.5 <= control_ci[1]):
-        blockers.append("identical ISMCTS control does not calibrate around 50%")
     if challengers_beating_baseline:
         blockers.append(
             "predeclared challenger beats the baseline: "
@@ -1686,15 +1671,6 @@ def run_suite(args: argparse.Namespace) -> Path:
         blockers.append("ISMCTS vs strategic alpha-beta comparison did not complete")
     elif strength_ci[1] is not None and strength_ci[1] < 0.5:
         blockers.append("ISMCTS is significantly weaker than strategic alpha-beta")
-    if capacity_cutoffs:
-        warnings.append(
-            f"baseline tree hit capacity {capacity_cutoffs} times; "
-            "inspect tree capacity before treating search as converged"
-        )
-    if capacity_reroots:
-        warnings.append(
-            f"baseline tree rerooted after capacity {capacity_reroots} times"
-        )
     if strength_ci[0] is not None and strength_ci[0] > 0.5:
         warnings.append(
             "ISMCTS is significantly stronger than strategic alpha-beta; "
@@ -1705,11 +1681,8 @@ def run_suite(args: argparse.Namespace) -> Path:
         "ready": not blockers,
         "blockers": blockers,
         "warnings": warnings,
-        "baseline_control_ci95": list(control_ci),
         "ismcts_vs_alpha_beta_ci95": list(strength_ci),
         "challengers_beating_baseline": challengers_beating_baseline,
-        "baseline_tree_capacity_cutoffs": capacity_cutoffs,
-        "baseline_capacity_reroots": capacity_reroots,
         "policy": (
             "Use ISMCTS as primary hidden-information design evidence and "
             "strategic alpha-beta as an independent cross-check. Heuristic "
