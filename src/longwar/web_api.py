@@ -8,6 +8,7 @@ from .game.actions import (
     Action,
     BoardTarget,
     Discard,
+    EffectChoice,
     Maneuver,
     Pass,
     PlayBond,
@@ -491,6 +492,21 @@ class PlaySession:
             payload["destination"] = self._position_payload(
                 action.destination
             )
+        elif isinstance(action, EffectChoice):
+            payload["effect"] = action.effect
+            payload["skip"] = action.skip
+            if action.source is not None:
+                payload["source"] = {
+                    "player": action.source.player,
+                    **self._position_payload(action.source.position),
+                }
+            if action.destination is not None:
+                payload["destination"] = {
+                    "player": action.destination.player,
+                    **self._position_payload(action.destination.position),
+                }
+            if action.front is not None:
+                payload["fronts"] = [int(action.front)]
         elif isinstance(action, PlayStory):
             payload["ongoing_slot"] = action.ongoing_slot
             payload["discard_card_id"] = action.discard_card_id
@@ -541,6 +557,43 @@ class PlaySession:
                 f"{prefix} discards "
                 f"{self.cards[action.card_id]['title']} before drawing."
             )
+        if isinstance(action, EffectChoice):
+            effect_name = action.effect.replace("-", " ")
+            if action.skip:
+                return f"{prefix} declines {effect_name}."
+            if action.effect == "recover" and action.card_id is not None:
+                return (
+                    f"{prefix} returns "
+                    f"{self.cards[action.card_id]['title']} to hand."
+                )
+            if action.effect == "front-contribution" and action.front is not None:
+                return (
+                    f"{prefix} counts that formation's Strength in "
+                    f"{FRONT_NAMES[action.front]}."
+                )
+            if action.effect in {"move", "free-maneuver", "retreat", "swap", "succession", "transfer-component"}:
+                verb = {
+                    "move": "moves",
+                    "free-maneuver": "Maneuvers",
+                    "retreat": "Retreats",
+                    "swap": "swaps",
+                    "succession": "moves the Name",
+                    "transfer-component": "transfers the component",
+                }[action.effect]
+                if action.source is not None and action.destination is not None:
+                    return (
+                        f"{prefix} {verb} from "
+                        f"{self._target_label(action.source)} to "
+                        f"{self._target_label(action.destination)}."
+                    )
+            if action.effect in {"suppress", "sacrifice", "intercept", "protect-retreat"}:
+                target = action.destination or action.source
+                if target is not None:
+                    return (
+                        f"{prefix} resolves {effect_name} at "
+                        f"{self._target_label(target)}."
+                    )
+            return f"{prefix} resolves {effect_name}."
         if isinstance(action, Maneuver):
             return (
                 f"{prefix} Maneuvers a Named Formation from "
@@ -636,6 +689,10 @@ class PlaySession:
                 "Your hand is already at the 10-card limit. Discard one card, "
                 "then make the normal start-of-turn draw."
             )
+        if isinstance(action, EffectChoice):
+            if action.skip:
+                return "This printed effect is optional; decline it."
+            return "Resolve the pending printed card effect."
         if isinstance(action, Maneuver):
             return (
                 "Move this Named Formation one adjacent Front in the same rank "
