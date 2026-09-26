@@ -280,17 +280,70 @@ class GameEngine:
                         source_slot["temporary_strength"]
                     )
 
-            state.stories[player][:] = [
-                StoryState(card_id=story["card_id"], ongoing=True)
-                for story in data["stories"][player]
-            ]
+            synced_stories: list[StoryState] = []
+            for story in data["stories"][player]:
+                target_slot = story.get("target_slot")
+                target_player = None
+                target_position = None
+                if target_slot is not None:
+                    target_player = 0 if target_slot < 8 else 1
+                    local = target_slot if target_slot < 8 else target_slot - 8
+                    target_position = Position(
+                        Front(local // 2),
+                        Rank.FRONT if local % 2 == 0 else Rank.REAR,
+                    )
+                synced_stories.append(
+                    StoryState(
+                        card_id=story["card_id"],
+                        ongoing=True,
+                        fronts=tuple(
+                            Front(front)
+                            for front in range(FRONT_COUNT)
+                            if int(story.get("front_mask", 0)) & (1 << front)
+                        ),
+                        target_player=target_player,
+                        target_position=target_position,
+                    )
+                )
+            state.stories[player][:] = synced_stories
 
             stratagem = data["stratagems"][player]
-            state.stratagems[player] = (
-                None
-                if stratagem is None
-                else StratagemState(card_id=stratagem["card_id"])
-            )
+            if stratagem is None:
+                state.stratagems[player] = None
+            else:
+                targets: list[tuple[int, Position]] = []
+                target_mask = int(stratagem.get("target_mask", 0))
+                for target_slot in range(16):
+                    if not target_mask & (1 << target_slot):
+                        continue
+                    target_player = 0 if target_slot < 8 else 1
+                    local = target_slot if target_slot < 8 else target_slot - 8
+                    targets.append(
+                        (
+                            target_player,
+                            Position(
+                                Front(local // 2),
+                                Rank.FRONT if local % 2 == 0 else Rank.REAR,
+                            ),
+                        )
+                    )
+                direction_code = int(stratagem.get("direction", 0))
+                state.stratagems[player] = StratagemState(
+                    card_id=stratagem["card_id"],
+                    fronts=tuple(
+                        Front(front)
+                        for front in range(FRONT_COUNT)
+                        if int(stratagem.get("front_mask", 0)) & (1 << front)
+                    ),
+                    direction=(
+                        "left"
+                        if direction_code == 1
+                        else "right"
+                        if direction_code == 2
+                        else None
+                    ),
+                    targets=tuple(targets),
+                )
 
         state.stratagem_used[:] = data["stratagem_used"]
         state.hero_used[:] = data["hero_used"]
