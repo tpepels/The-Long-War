@@ -3033,6 +3033,7 @@ cdef class FastEngine:
                 state.temporary[pos] -= 2
         elif effect == PLOT_MOVE_SUBJECT:
             self.move_slot(state, pos, dest)
+            self.resolve_force_move_triggers(state, actor, pos, dest)
 
     cdef void discard_ongoing_narrative(
         self,
@@ -4202,6 +4203,78 @@ cdef class FastEngine:
 
         self.resume_pending_flow(state)
 
+    cdef void queue_veyra_force_on_play(
+        self,
+        FastState state,
+        int player,
+        int destination,
+    ) except *:
+        cdef int front = front_from_slot(destination)
+        cdef int rank = rank_from_slot(destination)
+        cdef int source
+        cdef uint16_t sources = 0
+        if front > 0:
+            source = slot_index(player, front - 1, rank)
+            if state.subject[source] < 0 and (
+                (state.link[source] >= 0 and state.link[destination] < 0)
+                or (state.name[source] >= 0 and state.name[destination] < 0)
+            ):
+                sources |= <uint16_t>(1 << source)
+        if front < 3:
+            source = slot_index(player, front + 1, rank)
+            if state.subject[source] < 0 and (
+                (state.link[source] >= 0 and state.link[destination] < 0)
+                or (state.name[source] >= 0 and state.name[destination] < 0)
+            ):
+                sources |= <uint16_t>(1 << source)
+        if sources:
+            self.enqueue_effect(
+                state,
+                EFFECT_TRANSFER_COMPONENT,
+                player,
+                source_mask=sources,
+                aux=destination,
+                flags=EFFECT_OPTIONAL,
+            )
+
+    cdef void queue_veyra_name_on_play(
+        self,
+        FastState state,
+        int player,
+        int destination,
+    ) except *:
+        cdef int front = front_from_slot(destination)
+        cdef int rank = rank_from_slot(destination)
+        cdef int source
+        cdef uint16_t sources = 0
+        if state.subject[destination] < 0 or state.link[destination] >= 0:
+            return
+        if front > 0:
+            source = slot_index(player, front - 1, rank)
+            if (
+                state.subject[source] >= 0
+                and state.link[source] >= 0
+                and state.name[source] < 0
+            ):
+                sources |= <uint16_t>(1 << source)
+        if front < 3:
+            source = slot_index(player, front + 1, rank)
+            if (
+                state.subject[source] >= 0
+                and state.link[source] >= 0
+                and state.name[source] < 0
+            ):
+                sources |= <uint16_t>(1 << source)
+        if sources:
+            self.enqueue_effect(
+                state,
+                EFFECT_TRANSFER_COMPONENT,
+                player,
+                source_mask=sources,
+                aux=destination,
+                flags=EFFECT_OPTIONAL,
+            )
+
     cdef void apply_fast(self, FastState state, uint64_t action):
         cdef int kind = action_kind(action)
         cdef int card = action_card(action)
@@ -4210,7 +4283,7 @@ cdef class FastEngine:
         cdef int actor = state.active_player
         cdef int front, before_mask = 0, cost = 0, source, target, local, choice
         cdef uint32_t extra = action_extra(action)
-        cdef bint cancelled
+        cdef bint cancelled, prepared_before, veyra_name_ready
 
         if kind == TYPE_PASS:
             self.pass_action(state, actor)
@@ -4252,8 +4325,6 @@ cdef class FastEngine:
             state.maneuver_count[dest] += 1
             if state.free_maneuver_available[actor]:
                 state.free_maneuver_available[actor] = 0
-            if target:
-                self.resolve_maneuver_into_empty_narratives(state, actor, pos)
             self.resolve_force_pair_narratives(state, actor)
             self.resolve_maneuver_triggers(state, actor, pos, dest, bool(target))
             self.resume_pending_flow(state)
@@ -4268,8 +4339,15 @@ cdef class FastEngine:
             state.hero_used[actor] = 1
 
         if kind == TYPE_SUBJECT:
+            prepared_before = state.link[pos] >= 0 or state.name[pos] >= 0
             self.take_from_hand(state, actor, card, 0)
             state.subject[pos] = card
+            if self.late_banner_force[card] and prepared_before:
+                self.queue_free_maneuver(
+                    state, actor, <uint16_t>(1 << pos), True
+                )
+            if self.veyra_force[card]:
+                self.queue_veyra_force_on_play(state, actor, pos)
             self.resolve_force_pair_narratives(state, actor)
             front = front_from_slot(pos)
             self.resolve_scheme_event(state, actor, EVENT_SUBJECT, front, pos)
@@ -4281,8 +4359,10 @@ cdef class FastEngine:
             if state.subject[pos] >= 0:
                 state.temporary[pos] += self.on_link_bonus[state.subject[pos]]
             if dest >= 0:
-                self.move_slot(state, pos, dest)
+                source = pos
+                self.move_slot(state, source, dest)
                 pos = dest
+                self.resolve_force_move_triggers(state, actor, source, dest)
                 self.resolve_force_pair_narratives(state, actor)
             if extra and self.bond_optional_draw_count[card] > 0:
                 self.queue_battle_draws(
@@ -4294,15 +4374,24 @@ cdef class FastEngine:
             self.resolve_scheme_event(state, actor, EVENT_LINK, front, pos)
 
         elif kind == TYPE_NAME:
+            veyra_name_ready = (
+                self.veyra_name[card]
+                and state.subject[pos] >= 0
+                and state.link[pos] < 0
+            )
             self.take_from_hand(state, actor, card, 0)
             state.name[pos] = card
+            if veyra_name_ready:
+                self.queue_veyra_name_on_play(state, actor, pos)
             if self.name_effect[card] == NAME_REVEAL_SCHEME:
                 front = front_from_slot(pos)
                 if state.scheme[(1 - actor) * 4 + front] >= 0:
                     state.scheme_revealed[(1 - actor) * 4 + front] = 1
             elif self.name_effect[card] == NAME_MOVE_ADJACENT and dest >= 0:
-                self.move_slot(state, pos, dest)
+                source = pos
+                self.move_slot(state, source, dest)
                 pos = dest
+                self.resolve_force_move_triggers(state, actor, source, dest)
             self.resolve_strat_event(state, EVENT_NAME, actor, card, pos)
 
         elif kind == TYPE_PLOT:
@@ -4357,6 +4446,9 @@ cdef class FastEngine:
                     else:
                         target = slot_index(actor, front + 1, local & 1)
                     self.move_slot(state, source, target)
+                    self.resolve_force_move_triggers(
+                        state, actor, source, target
+                    )
                 self.resolve_force_pair_narratives(state, actor)
             elif choice == STRAT_CHOICE_RESERVES:
                 for front in range(4):
@@ -4364,6 +4456,9 @@ cdef class FastEngine:
                     if extra & (<uint32_t>1 << source):
                         target = slot_index(actor, front, 0)
                         self.move_slot(state, source, target)
+                        self.resolve_force_move_triggers(
+                            state, actor, source, target
+                        )
                 self.resolve_force_pair_narratives(state, actor)
 
             self.resume_pending_flow(state)
