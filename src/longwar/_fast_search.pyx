@@ -122,6 +122,15 @@ cdef inline int _append_action(uint64_t* actions, int n, uint64_t action) except
     return n + 1
 
 
+cdef inline int popcount16(uint32_t value) noexcept:
+    cdef int count = 0
+    value &= 0xFFFF
+    while value:
+        count += value & 1
+        value >>= 1
+    return count
+
+
 cdef inline uint64_t encode_action(
     int kind,
     int card=-1,
@@ -1364,7 +1373,8 @@ cdef class FastEngine:
     ) except -1:
         cdef int n = 0
         cdef int player, card, slot, local, front, rank, source, dest, req, opponent, effect
-        cdef int i, kept, can_pass, available, story_slot
+        cdef int i, kept, can_pass, available, story_slot, choice, direction
+        cdef uint32_t eligible_mask, subset
         cdef uint64_t action
 
         if state.phase == PHASE_COMPLETE:
@@ -1441,9 +1451,42 @@ cdef class FastEngine:
 
             elif self.card_type[card] == CARD_PLOT:
                 if self.veiled[card]:
-                    # Old veiled data is normalized to a public ongoing Story.
+                    # Ongoing Narratives may carry a public Front or formation
+                    # association selected when the card is played.
+                    choice = self.story_choice_kind[card]
                     for story_slot in range(self.ongoing_story_limit):
-                        if state.scheme[player * 4 + story_slot] < 0:
+                        if state.scheme[player * 4 + story_slot] >= 0:
+                            continue
+                        if choice == STORY_CHOICE_FRONT:
+                            for front in range(4):
+                                n = _append_action(
+                                    actions,
+                                    n,
+                                    encode_action(
+                                        TYPE_SCHEME,
+                                        card,
+                                        story_slot,
+                                        -1,
+                                        player,
+                                        <uint32_t>(1 << front),
+                                    ),
+                                )
+                        elif choice == STORY_CHOICE_NAMED_FORMATION:
+                            for local in range(8):
+                                slot = player * 8 + local
+                                if self.slot_complete(state, slot):
+                                    n = _append_action(
+                                        actions,
+                                        n,
+                                        encode_action(
+                                            TYPE_SCHEME,
+                                            card,
+                                            story_slot,
+                                            slot,
+                                            player,
+                                        ),
+                                    )
+                        else:
                             n = _append_action(
                                 actions,
                                 n,
@@ -1510,11 +1553,140 @@ cdef class FastEngine:
                     not state.stratagem_used[player]
                     and state.stratagem[player] < 0
                 ):
-                    n = _append_action(
-                        actions,
-                        n,
-                        encode_action(TYPE_STRATAGEM, card, -1, -1, player),
-                    )
+                    choice = self.strat_choice_kind[card]
+                    if choice == STRAT_CHOICE_FRONT:
+                        for front in range(4):
+                            n = _append_action(
+                                actions,
+                                n,
+                                encode_action(
+                                    TYPE_STRATAGEM,
+                                    card,
+                                    1 << front,
+                                    -1,
+                                    player,
+                                ),
+                            )
+                    elif choice == STRAT_CHOICE_ADJACENT_FRONTS:
+                        for front in range(3):
+                            n = _append_action(
+                                actions,
+                                n,
+                                encode_action(
+                                    TYPE_STRATAGEM,
+                                    card,
+                                    3 << front,
+                                    -1,
+                                    player,
+                                ),
+                            )
+                    elif choice == STRAT_CHOICE_EDGE_FRONT:
+                        for front in (0, 3):
+                            n = _append_action(
+                                actions,
+                                n,
+                                encode_action(
+                                    TYPE_STRATAGEM,
+                                    card,
+                                    1 << front,
+                                    -1,
+                                    player,
+                                ),
+                            )
+                    elif choice == STRAT_CHOICE_DIRECTION:
+                        for direction in range(2):
+                            n = _append_action(
+                                actions,
+                                n,
+                                encode_action(
+                                    TYPE_STRATAGEM,
+                                    card,
+                                    -1,
+                                    direction,
+                                    player,
+                                ),
+                            )
+                    elif choice == STRAT_CHOICE_WHEEL:
+                        for direction in range(2):
+                            eligible_mask = 0
+                            for local in range(8):
+                                source = player * 8 + local
+                                if state.subject[source] < 0:
+                                    continue
+                                front = local >> 1
+                                rank = local & 1
+                                if direction == 0:
+                                    if front == 0:
+                                        continue
+                                    dest = slot_index(player, front - 1, rank)
+                                else:
+                                    if front == 3:
+                                        continue
+                                    dest = slot_index(player, front + 1, rank)
+                                if (
+                                    state.subject[dest] < 0
+                                    and state.link[dest] < 0
+                                    and state.name[dest] < 0
+                                ):
+                                    eligible_mask |= <uint32_t>(1 << source)
+                            subset = eligible_mask
+                            while True:
+                                n = _append_action(
+                                    actions,
+                                    n,
+                                    encode_action(
+                                        TYPE_STRATAGEM,
+                                        card,
+                                        -1,
+                                        direction,
+                                        player,
+                                        subset,
+                                    ),
+                                )
+                                if subset == 0:
+                                    break
+                                subset = (subset - 1) & eligible_mask
+                    elif choice == STRAT_CHOICE_RESERVES:
+                        eligible_mask = 0
+                        for front in range(4):
+                            source = slot_index(player, front, 1)
+                            dest = slot_index(player, front, 0)
+                            if (
+                                state.subject[source] >= 0
+                                and state.subject[dest] < 0
+                                and state.link[dest] < 0
+                                and state.name[dest] < 0
+                            ):
+                                eligible_mask |= <uint32_t>(1 << source)
+                        subset = eligible_mask
+                        while True:
+                            n = _append_action(
+                                actions,
+                                n,
+                                encode_action(
+                                    TYPE_STRATAGEM,
+                                    card,
+                                    -1,
+                                    -1,
+                                    player,
+                                    subset,
+                                ),
+                            )
+                            if subset == 0:
+                                break
+                            subset = (subset - 1) & eligible_mask
+                    else:
+                        n = _append_action(
+                            actions,
+                            n,
+                            encode_action(
+                                TYPE_STRATAGEM,
+                                card,
+                                -1,
+                                -1,
+                                player,
+                            ),
+                        )
 
         # Maneuver moves to an empty position or swaps with another formation.
         # A prepared-only Bond/Name position is occupied but is not a formation.
