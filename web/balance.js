@@ -34,7 +34,7 @@ function displayCardType(row) {
     return row.veiled ? form + " · Veiled Story" : form + " · Story";
   }
   if (row.type === "link") return "Bond";
-  if (row.type === "subject" && row.hero) return "Hero · Subject";
+  if (row.type === "subject") return row.hero ? "Hero · Force" : "Force";
   return titleCase(row.type);
 }
 
@@ -369,7 +369,7 @@ function renderTelemetry(lab) {
     metric("Battles", b.count ?? "—", `mean actions ${num(b.mean_actions, 1)}`),
     metric("Battle Strength", num(b.mean_total_strength, 1), `mean |margin| ${num(b.mean_abs_total_margin, 1)}`),
     metric("Pass events", p.events ?? "—", `mean hand ${num(p.mean_hand_size, 1)}`),
-    metric("First passer wins", pct(p.first_passer_battle_win_rate), `2-front pass wins ${pct(p.pass_with_two_fronts_battle_win_rate)}`),
+    metric("First Pass share", pct(p.first_pass_rate), "share of Pass events that opened a pass sequence"),
   ].join("");
 
   const actions = Object.entries(t.actions || {});
@@ -453,7 +453,7 @@ function renderMccfr(lab) {
 function staticTable(rows) {
   return `
     <table class="mini-table fitted-mini-table">
-      <thead><tr><th>Subject · Bond · Name</th><th>Strength</th><th>z</th></tr></thead>
+      <thead><tr><th>Force · Bond · Name</th><th>Strength</th><th>z</th></tr></thead>
       <tbody>
         ${rows.map((r) => `<tr><td><code>${esc([r.subject,r.link,r.name].join(" · "))}</code></td><td>${r.static_strength}</td><td>${num(r.z_score,2)}</td></tr>`).join("")}
       </tbody>
@@ -464,7 +464,7 @@ function staticTable(rows) {
 function renderStatic(lab) {
   const s = lab.static;
   document.getElementById("static-overview").innerHTML = [
-    metric("Static combinations", s.legend_count, "Subject × Bond × Name"),
+    metric("Static combinations", s.legend_count, "Force × Bond × Name"),
     metric("Mean Strength", num(s.static_strength.mean, 2), `σ ${num(s.static_strength.population_sd, 2)}`),
     metric("Range", `${s.static_strength.min}–${s.static_strength.max}`, "static Strength only"),
   ].join("");

@@ -6,7 +6,7 @@
     swordsman: "Frontline +1",
     spearman: "Frontline +1 if Rear occupied",
     archer: "Rear +2 if Frontline occupied",
-    healer: "Rear: Subject in front +2",
+    healer: "Rear: Force in front +2",
     ship: "Rear +1",
     stronghold: "Rear +1",
   };

@@ -13,7 +13,7 @@ function formatGameText(value) {
 }
 
 const TYPE_LABELS = {
-  subject: "Subject",
+  subject: "Force",
   link: "Bond",
   name: "Name",
   stratagem: "Stratagem",
@@ -31,7 +31,7 @@ function typeLabel(card) {
     const form = titleCase(card.story_form);
     return card.veiled ? form + " · Veiled Story" : form + " · Story";
   }
-  if (card.type === "subject" && card.hero) return "Hero · Subject / Name";
+  if (card.type === "subject" && card.hero) return "Hero · Force / Name";
   return TYPE_LABELS[card.type] ?? card.type;
 }
 
@@ -76,8 +76,8 @@ function ruleMarkup(card) {
 
 function cardMarkup(card) {
   const strength = card.hero
-    ? '<div class="strength hero-dual-strength" aria-label="Subject strength ' + card.strength + ', Name strength ' + card.hero_name_strength + '">' +
-      '<span><small>S</small>' + card.strength + '</span><span><small>N</small>' + card.hero_name_strength + '</span></div>'
+    ? '<div class="strength hero-dual-strength" aria-label="Force strength ' + card.strength + ', Name strength ' + card.hero_name_strength + '">' +
+      '<span><small>F</small>' + card.strength + '</span><span><small>N</small>' + card.hero_name_strength + '</span></div>'
     : Number.isInteger(card.strength)
       ? '<div class="strength" aria-label="Strength">' + card.strength + "</div>"
       : "";

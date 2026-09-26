@@ -169,8 +169,8 @@ def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
     assert float(typography.group(1)) >= 11
     assert float(typography.group(2)) >= 1.15
     assert "Frontline +1 if Rear occupied" in card_rules
-    assert "Rear: Subject in front +2" in card_rules
-
+    assert "Rear: Force in front +2" in card_rules
+    for surface in ("web/card-rules.js", "web/cards.js", "web/playtest-kit.js", "web/balance.html", "web/balance.js", "web/tokens.html"):\n        assert "Subject" not in text(surface)\n
 
 def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bonus() -> None:
     page = text("web/tokens.html")
@@ -179,17 +179,18 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
 
     assert "ACTIVE" in page
     assert "FIRST" in page and "TO PASS" in page
-    assert page.count("BATTLE WIN") == 4
+    assert "PASS PENDING" in page
+    assert "BATTLE WIN" not in page
     assert "STRATAGEM USED" in page
     assert page.count("HERO USED") == 2
     assert "DRAW USED" not in page
-    assert "FINAL" in page and "OPERATION" in page
-    assert "+10" in page and "COMMAND · NEXT BATTLE" in page
+    assert "FINAL</strong><span>OPERATION" not in page
+    assert "COMMAND · NEXT BATTLE" not in page
+    assert "There is no overall Battle winner." in page
     for modifier in ("+1", "+2", "+3", "-1", "-2", "-3"):
         assert modifier in page
-    assert "Do not place a public Strength marker for a face-down" in page
-    assert "opaque sleeves or identical card backs for Veiled Stories" in page
-    assert "Stratagems are played face-up" in page
+    assert "Ongoing Stories and Stratagems are public." in page
+    assert "stay face-up and visible to both players" in page
     assert "@page tracker" in css
     assert 'href="tokens.html"' in kit
 
