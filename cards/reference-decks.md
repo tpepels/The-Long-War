@@ -1,6 +1,6 @@
 # Reference decks
 
-These four 40-card decks are initial balance/playtest reference decks built from the canonical 87-card pool. They are deliberately strategic builds, not coverage decks: cards are selected for the deck plan rather than to force every title into play.
+These four 40-card decks are initial balance/playtest reference decks built from the canonical 95-card pool. They are deliberately strategic builds, not coverage decks: cards are selected for the deck plan rather than to force every title into play.
 
 | File | Deck | Forces | Bonds | Names | Narratives | Stratagems | Heroes | Unique cards |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -121,3 +121,10 @@ Potentially too narrow:
 - **Covered the Withdrawal of**
 
 The newly added Forces should be evaluated primarily for whether they create real deck-building alternatives rather than becoming new automatic inclusions.
+
+
+## Necessity / compulsion batch
+
+Cards 88-95 are intentionally not yet distributed across the four reference decks. They form a new mechanical package around constrained choice and should be placed into decks deliberately rather than treated as generic inclusions.
+
+Until that distribution pass is done, the cross-deck omission analysis above applies to cards 1-87 only. In that earlier pool, **Covered the Withdrawal of** remains the only card omitted from all four decks.
