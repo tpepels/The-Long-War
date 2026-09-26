@@ -14,7 +14,7 @@ CARD_LABELS = {
     "PlayForce": "Forces",
     "PlayBond": "Bonds",
     "PlayName": "Names",
-    "PlayStory": "Narratives",
+    "PlayStory": "Stories",
     "PlayStratagem": "Stratagems",
 }
 
@@ -104,7 +104,10 @@ def build_playability_report(
 
         combo_completions += sum(
             int(stats.get("completions", 0))
-            for stats in telemetry.get("formation_combinations", {}).values()
+            for stats in telemetry.get(
+                "legend_combinations",
+                telemetry.get("formation_combinations", {}),
+            ).values()
         )
 
         heuristic = telemetry.get("decisions", {}).get("heuristic")
