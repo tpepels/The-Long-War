@@ -2303,7 +2303,7 @@
         "effect": "ignore_rear_formations_when_comparing_strength"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 4
     },
     {
@@ -2347,7 +2347,7 @@
         "effect": "suppress_opposing_rear_force_for_resolution"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 4
     },
     {
@@ -2392,7 +2392,7 @@
         "effect": "drive_off_opposing_frontline_named_instead_of_retreat"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 4
     },
     {
@@ -2437,7 +2437,7 @@
         "effect": "target_does_not_contribute_this_resolution"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 4
     },
     {
@@ -2467,7 +2467,7 @@
         "effect": "chosen_opposing_formation_does_not_contribute_this_resolution"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 4
     },
     {
@@ -2498,7 +2498,7 @@
         "effect": "return_retreating_formation_bond_to_owner_hand"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 4
     },
     {
@@ -2530,7 +2530,7 @@
         "replacement": "this_formation_does_not_contribute_instead"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 4
     },
     {
@@ -2562,7 +2562,7 @@
         "effect": "that_side_wins_front"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 4
     },
     {
