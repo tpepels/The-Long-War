@@ -268,7 +268,7 @@ class PlaySession:
                     ),
                 }
                 for story in state.stories[owner][
-                    : self.engine.ongoing_story_limit
+                    : self.engine.ongoing_narrative_limit
                 ]
             ]
             for owner in range(2)
@@ -364,7 +364,7 @@ class PlaySession:
             "players": players,
             "board": board,
             "stories": stories,
-            "story_limit": self.engine.ongoing_story_limit,
+            "story_limit": self.engine.ongoing_narrative_limit,
             "stratagems": stratagems,
             "stratagem_used": list(state.stratagem_used),
             "hero_used": list(state.hero_used),
