@@ -2280,7 +2280,15 @@ cdef class FastEngine:
             for source in range(player * 8, player * 8 + 8):
                 if not (source_mask & (1 << source)):
                     continue
-                if state.subject[source] < 0 or self.immobile_force[state.subject[source]]:
+                if flags & EFFECT_ALLOW_UNNAMED:
+                    if (
+                        state.subject[source] < 0
+                        or self.immobile_force[state.subject[source]]
+                    ):
+                        continue
+                elif not self.maneuver_source_legal(
+                    state, player, source
+                ):
                     continue
                 front = front_from_slot(source)
                 rank = rank_from_slot(source)
@@ -2305,7 +2313,11 @@ cdef class FastEngine:
             for source in range(player * 8, player * 8 + 8):
                 if not (source_mask & (1 << source)) or state.subject[source] < 0:
                     continue
-                for dest in range(source + 1, player * 8 + 8):
+                for dest in range(player * 8, player * 8 + 8):
+                    if dest == source:
+                        continue
+                    if source_mask == dest_mask and dest < source:
+                        continue
                     if not (dest_mask & (1 << dest)) or state.subject[dest] < 0:
                         continue
                     if flags & EFFECT_ADJACENT_PAIR:
@@ -3188,15 +3200,19 @@ cdef class FastEngine:
         int player,
         uint16_t source_mask,
         bint optional=True,
+        bint allow_unnamed=False,
     ) except *:
+        cdef int flags = EFFECT_OPTIONAL if optional else 0
         if source_mask == 0:
             return
+        if allow_unnamed:
+            flags |= EFFECT_ALLOW_UNNAMED
         self.enqueue_effect(
             state,
             EFFECT_FREE_MANEUVER,
             player,
             source_mask=source_mask,
-            flags=EFFECT_OPTIONAL if optional else 0,
+            flags=flags,
         )
 
     cdef void queue_move_to_mask(
@@ -4924,7 +4940,7 @@ cdef class FastEngine:
             state.subject[pos] = card
             if self.late_banner_force[card] and prepared_before:
                 self.queue_free_maneuver(
-                    state, actor, <uint16_t>(1 << pos), True
+                    state, actor, <uint16_t>(1 << pos), True, True
                 )
             if self.veyra_force[card]:
                 self.queue_veyra_force_on_play(state, actor, pos)
@@ -5153,7 +5169,13 @@ cdef class FastEngine:
         _info_hash_feed(&h, state.resolution_lost_mask[1])
         _info_hash_feed(&h, state.resolution_drive_mask[0])
         _info_hash_feed(&h, state.resolution_drive_mask[1])
+        _info_hash_feed(&h, state.resolution_protected_mask[0])
+        _info_hash_feed(&h, state.resolution_protected_mask[1])
+        _info_hash_feed(&h, state.resolution_recovery_losses[0])
+        _info_hash_feed(&h, state.resolution_recovery_losses[1])
         _info_hash_feed_u16(&h, state.resolution_suppressed_mask)
+        _info_hash_feed(&h, state.resolution_cursor)
+        _info_hash_feed(&h, <uint8_t>(state.resolution_starter + 1))
         for slot in range(SLOT_COUNT):
             _info_hash_feed(&h, <uint8_t>(state.resolution_contribution_front[slot] + 1))
         return h
@@ -5237,7 +5259,13 @@ cdef class FastEngine:
         _info_emit(buf, &n, h, state.resolution_lost_mask[1])
         _info_emit(buf, &n, h, state.resolution_drive_mask[0])
         _info_emit(buf, &n, h, state.resolution_drive_mask[1])
+        _info_emit(buf, &n, h, state.resolution_protected_mask[0])
+        _info_emit(buf, &n, h, state.resolution_protected_mask[1])
+        _info_emit(buf, &n, h, state.resolution_recovery_losses[0])
+        _info_emit(buf, &n, h, state.resolution_recovery_losses[1])
         _info_emit_u16(buf, &n, h, state.resolution_suppressed_mask)
+        _info_emit(buf, &n, h, state.resolution_cursor)
+        _info_emit(buf, &n, h, <uint8_t>(state.resolution_starter + 1))
         for i in range(SLOT_COUNT):
             _info_emit(buf, &n, h, <uint8_t>(state.resolution_contribution_front[i] + 1))
 
@@ -5371,7 +5399,7 @@ cdef class FastEngine:
         return (h.a, h.b)
 
     cdef bytes information_key_fast(self, FastState state, int player):
-        cdef unsigned char buf[3 * MAX_CARDS + 2 * MAX_DECK + 128]
+        cdef unsigned char buf[3 * MAX_CARDS + 2 * MAX_DECK + 1024]
         cdef int n = self._information_state_encode(
             state,
             player,
