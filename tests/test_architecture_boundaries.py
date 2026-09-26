@@ -355,7 +355,6 @@ def test_alpha_beta_algorithm_contains_no_rule_switches() -> None:
         "pass_final_operation",
         "completion_command_refund",
         "public_stratagems",
-        "reshuffle_on_empty",
     )
     assert not any(term in source for term in forbidden)
 
@@ -365,7 +364,6 @@ def test_native_algorithms_do_not_contain_rule_switches() -> None:
         "pass_final_operation",
         "completion_command_refund",
         "public_stratagems",
-        "reshuffle_on_empty",
     )
     for filename in (
         "_alpha_beta_core.pxi",
@@ -393,6 +391,8 @@ def test_dead_rule_switches_are_removed() -> None:
         "paid_draw_enabled",
         "paid_draw_command_cost",
         "paid_draw_consumes_operation",
+        "command_enabled",
+        "reshuffle_on_empty",
     )
     for name in obsolete:
         assert name not in rules
@@ -405,6 +405,9 @@ def test_dead_rule_switches_are_removed() -> None:
     assert "--automatic-draw" not in simulate
     assert "--paid-draw" not in simulate
     assert "--no-turn-draw" not in simulate
+    assert "--no-command" not in simulate
+    assert "--reshuffle-on-empty" not in simulate
+    assert "--no-reshuffle-on-empty" not in simulate
 
 
 def test_public_stratagems_are_not_a_rule_variant() -> None:
