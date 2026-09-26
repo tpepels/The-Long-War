@@ -103,7 +103,7 @@ This batch deliberately expands what can happen when a Front resolves without in
 
 | # | Card | Type | Cost | Strength | Rules text |
 | --- | --- | --- | ---: | ---: | --- |
-| 25 | **The Red Duelists** | Force - Human, Duelists | 2 | 3 | **Deploy - Frontline only.** When resolving this Front, if there is an opposing Frontline formation, you may choose it. If you do, only this formation and that opposing formation contribute Strength to this Front. |
+| 25 | **The Red Duelists** | Force - Human, Duelists | 2 | 3 | **Deploy - Frontline only.** When resolving this Front, if your opponent has a Frontline formation, ignore both Rear formations. |
 | 26 | **The Thornbow Hunters** | Force - Human, Hunters - Archer | 2 | 1 | **Deploy - Rear only.** While in the Rear with a friendly Force directly ahead, this Force gets +2 Strength. When resolving this Front, you may choose an opposing Rear Force. It does not contribute Strength this resolution. |
 | 27 | **The Iron Boars** | Force - Human, Raiders - Swordsman | 3 | 3 | **Deploy - Frontline only.** While in the Frontline, this Force gets +1 Strength. If you win this Front while the opponent has no Force in the Rear, drive off their Frontline Named Formation instead of Retreating it. |
 | 28 | **The First Spear** | Force - Human, Guard - Spearman | 3 | 3 | **Deploy - Frontline only.** While in the Frontline with a friendly Force directly behind it, this Force gets +1 Strength. Before Strength is compared, you may choose an opposing Frontline Force with lower printed Strength. It does not contribute this resolution. |
@@ -114,7 +114,7 @@ This batch deliberately expands what can happen when a Front resolves without in
 
 ### Mechanics under test
 
-- **Challenge / engagement** - isolate opposing formations during a Front comparison.
+- **Frontline-only resolution** - a card can make a Front resolve using only the two Frontline formations.
 - **Skirmish / suppression** - stop a specific enemy formation contributing without damaging it.
 - **Breakthrough** - convert a favorable battlefield shape into a harsher Retreat result.
 - **First strike** - neutralize a weaker opposing Force before comparison.
