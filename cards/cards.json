@@ -3478,6 +3478,334 @@
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 7
+    },
+    {
+      "id": "the-wall-did-not-break",
+      "title": "The Wall Did Not Break",
+      "type": "story",
+      "story_form": "legend",
+      "ongoing": true,
+      "unique": false,
+      "classes": [
+        "legend",
+        "defence"
+      ],
+      "command_cost": 1,
+      "text": "**Legend - Ongoing.** When you play this Legend, choose a Front and place it beside that Front. At Battle end, if you did not lose that Front, regain 1 Command. If you won that Front, you may also return one Bond from your discard pile to your hand. Then discard this Legend.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "LEGEND",
+          "text": "**Ongoing.** Choose a Front and place this beside it."
+        },
+        {
+          "kind": "effect",
+          "label": "BATTLE END",
+          "text": "If you did not lose that Front, regain 1 Command. If you won it, you may also return one Bond from your discard pile to your hand. Then discard this Legend."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "legend",
+        "placement": "chosen_front",
+        "at_battle_end": {
+          "condition": "chosen_front_not_lost",
+          "gain_command": 1,
+          "bonus_if_won": "return_one_bond_from_discard_to_hand",
+          "discard_self": true
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 8
+    },
+    {
+      "id": "they-returned-with-names",
+      "title": "They Returned With Names",
+      "type": "story",
+      "story_form": "legend",
+      "ongoing": true,
+      "unique": false,
+      "classes": [
+        "legend",
+        "identity"
+      ],
+      "command_cost": 1,
+      "text": "**Legend - Ongoing.** When one of your formations becomes Named, regain 1 Command. You may Maneuver that formation for 0 Command. Then discard this Legend.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "LEGEND",
+          "text": "**Ongoing.**"
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN NAMED",
+          "text": "When one of your formations becomes Named, regain 1 Command. You may Maneuver that formation for 0 Command. Then discard this Legend."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "legend",
+        "trigger": "friendly_formation_becomes_named",
+        "gain_command": 1,
+        "secondary": "optional_zero_cost_maneuver_that_formation",
+        "discard_self": true
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 8
+    },
+    {
+      "id": "the-crows-came-down",
+      "title": "The Crows Came Down",
+      "type": "story",
+      "story_form": "omen",
+      "ongoing": true,
+      "unique": false,
+      "classes": [
+        "omen",
+        "retreat"
+      ],
+      "command_cost": 1,
+      "text": "**Omen - Ongoing.** When one of your Named Formations Retreats, regain 1 Command. You may move it one Front left or right if that Rear position is empty. Then discard this Omen.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "OMEN",
+          "text": "**Ongoing.**"
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN RETREAT",
+          "text": "When one of your Named Formations Retreats, regain 1 Command. You may move it one Front left or right if that Rear position is empty. Then discard this Omen."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "omen",
+        "trigger": "friendly_named_formation_retreats",
+        "gain_command": 1,
+        "secondary": "optional_sideways_rear_move",
+        "discard_self": true
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 8
+    },
+    {
+      "id": "they-were-gathering-there",
+      "title": "They Were Gathering There",
+      "type": "story",
+      "story_form": "warning",
+      "ongoing": true,
+      "unique": false,
+      "classes": [
+        "warning",
+        "positioning"
+      ],
+      "command_cost": 1,
+      "text": "**Warning - Ongoing.** When an opposing formation becomes Named, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Warning.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "WARNING",
+          "text": "**Ongoing.**"
+        },
+        {
+          "kind": "trigger",
+          "label": "ENEMY NAMED",
+          "text": "When an opposing formation becomes Named, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Warning."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "warning",
+        "trigger": "opposing_formation_becomes_named",
+        "gain_command": 1,
+        "secondary": "optional_zero_cost_friendly_named_maneuver",
+        "discard_self": true
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 8
+    },
+    {
+      "id": "before-sunset-the-ford-would-be-ours",
+      "title": "Before Sunset, the Ford Would Be Ours",
+      "type": "story",
+      "story_form": "prophecy",
+      "ongoing": true,
+      "unique": true,
+      "classes": [
+        "prophecy",
+        "battle"
+      ],
+      "command_cost": 1,
+      "text": "**Prophecy - Ongoing.** When you play this Prophecy, choose a Front and place it beside that Front. At Battle end, if you win that Front, regain 2 Command and draw 1 card. Then discard this Prophecy.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "PROPHECY",
+          "text": "**Ongoing.** Choose a Front and place this beside it."
+        },
+        {
+          "kind": "effect",
+          "label": "BATTLE END",
+          "text": "If you win that Front, regain 2 Command and draw 1 card. Then discard this Prophecy."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "prophecy",
+        "placement": "chosen_front",
+        "at_battle_end": {
+          "condition": "chosen_front_won",
+          "gain_command": 2,
+          "secondary": "draw_1",
+          "discard_self": true
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 8
+    },
+    {
+      "id": "they-lived-to-tell-it",
+      "title": "They Lived to Tell It",
+      "type": "story",
+      "story_form": "saga",
+      "ongoing": true,
+      "unique": false,
+      "classes": [
+        "saga",
+        "survival"
+      ],
+      "command_cost": 1,
+      "text": "**Saga - Ongoing.** When you play this Saga, place it beside one of your Named Formations. At Battle end, if that formation is still on the battlefield, regain 1 Command and draw 1 card. Then discard this Saga.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "SAGA",
+          "text": "**Ongoing.** Place this beside one of your Named Formations."
+        },
+        {
+          "kind": "effect",
+          "label": "BATTLE END",
+          "text": "If that formation is still on the battlefield, regain 1 Command and draw 1 card. Then discard this Saga."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "saga",
+        "placement": "chosen_named_formation",
+        "at_battle_end": {
+          "condition": "chosen_formation_still_on_battlefield",
+          "gain_command": 1,
+          "secondary": "draw_1",
+          "discard_self": true
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 8
+    },
+    {
+      "id": "no-road-was-too-long",
+      "title": "No Road Was Too Long",
+      "type": "story",
+      "story_form": "myth",
+      "ongoing": true,
+      "unique": true,
+      "classes": [
+        "myth",
+        "movement"
+      ],
+      "command_cost": 2,
+      "text": "**Myth - Ongoing.** The first time each Battle one of your formations Maneuvers into an empty position, regain 1 Command. You may move an adjacent friendly formation into the position it left.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "MYTH",
+          "text": "**Ongoing.**"
+        },
+        {
+          "kind": "trigger",
+          "label": "FIRST EACH BATTLE",
+          "text": "The first time each Battle one of your formations Maneuvers into an empty position, regain 1 Command. You may move an adjacent friendly formation into the position it left."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "myth",
+        "trigger": "first_friendly_maneuver_into_empty_each_battle",
+        "gain_command": 1,
+        "secondary": "optional_move_adjacent_friendly_into_vacated_position"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 8
+    },
+    {
+      "id": "the-muster-was-false",
+      "title": "The Muster Was False",
+      "type": "story",
+      "story_form": "conspiracy",
+      "ongoing": true,
+      "unique": false,
+      "classes": [
+        "conspiracy",
+        "positioning"
+      ],
+      "command_cost": 1,
+      "text": "**Conspiracy - Ongoing.** When your opponent has a Force in both the Frontline and Rear of the same Front, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Conspiracy.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "CONSPIRACY",
+          "text": "**Ongoing.**"
+        },
+        {
+          "kind": "trigger",
+          "label": "ENEMY COMMITMENT",
+          "text": "When your opponent has a Force in both the Frontline and Rear of the same Front, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Conspiracy."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "conspiracy",
+        "trigger": "opponent_has_force_in_both_ranks_same_front",
+        "gain_command": 1,
+        "secondary": "optional_zero_cost_friendly_named_maneuver",
+        "discard_self": true
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 8
     }
   ]
 }
