@@ -865,7 +865,6 @@
       "classes": [
         "journey"
       ],
-      "story_form": "saga",
       "ongoing": true,
       "command_cost": 2,
       "text": "**Saga - Ongoing.** The first time each Battle one of your formations **Maneuvers** into an empty position, regain 1 Command.",
@@ -892,7 +891,8 @@
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
-      "design_batch": 3
+      "design_batch": 3,
+      "narrative_form": "saga"
     },
     {
       "id": "the-red-duelists",
@@ -1577,7 +1577,6 @@
         "loss",
         "march"
       ],
-      "story_form": "warning",
       "ongoing": false,
       "command_cost": 1,
       "text": "**Warning.** When you play this, you may discard 1 other card to regain 2 Command.",
@@ -1599,7 +1598,8 @@
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
-      "design_batch": 6
+      "design_batch": 6,
+      "narrative_form": "warning"
     },
     {
       "id": "the-lines-held",
@@ -2116,7 +2116,6 @@
       "id": "the-wall-did-not-break",
       "title": "The Wall Did Not Break",
       "type": "story",
-      "story_form": "legend",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2153,13 +2152,13 @@
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
-      "design_batch": 8
+      "design_batch": 8,
+      "narrative_form": "legend"
     },
     {
       "id": "they-returned-with-names",
       "title": "They Returned With Names",
       "type": "story",
-      "story_form": "legend",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2193,13 +2192,13 @@
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
-      "design_batch": 8
+      "design_batch": 8,
+      "narrative_form": "legend"
     },
     {
       "id": "the-crows-came-down",
       "title": "The Crows Came Down",
       "type": "story",
-      "story_form": "omen",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2233,13 +2232,13 @@
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
-      "design_batch": 8
+      "design_batch": 8,
+      "narrative_form": "omen"
     },
     {
       "id": "they-were-gathering-there",
       "title": "They Were Gathering There",
       "type": "story",
-      "story_form": "warning",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2273,13 +2272,13 @@
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
-      "design_batch": 8
+      "design_batch": 8,
+      "narrative_form": "warning"
     },
     {
       "id": "before-sunset-the-ford-would-be-ours",
       "title": "Before Sunset, the Ford Would Be Ours",
       "type": "story",
-      "story_form": "prophecy",
       "ongoing": true,
       "unique": true,
       "classes": [
@@ -2316,13 +2315,13 @@
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
-      "design_batch": 8
+      "design_batch": 8,
+      "narrative_form": "prophecy"
     },
     {
       "id": "they-lived-to-tell-it",
       "title": "They Lived to Tell It",
       "type": "story",
-      "story_form": "saga",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2359,13 +2358,13 @@
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
-      "design_batch": 8
+      "design_batch": 8,
+      "narrative_form": "saga"
     },
     {
       "id": "no-road-was-too-long",
       "title": "No Road Was Too Long",
       "type": "story",
-      "story_form": "myth",
       "ongoing": true,
       "unique": true,
       "classes": [
@@ -2398,13 +2397,13 @@
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
-      "design_batch": 8
+      "design_batch": 8,
+      "narrative_form": "myth"
     },
     {
       "id": "the-muster-was-false",
       "title": "The Muster Was False",
       "type": "story",
-      "story_form": "conspiracy",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2438,7 +2437,8 @@
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
-      "design_batch": 8
+      "design_batch": 8,
+      "narrative_form": "conspiracy"
     },
     {
       "id": "no-step-back",
