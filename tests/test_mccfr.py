@@ -45,7 +45,13 @@ def test_information_set_hides_deck_order_but_not_own_composition() -> None:
     state.players[0].deck.reverse()
     assert information_set_id(state, 0) == first
 
-    state.players[0].deck[0] = "namar"
+    original = state.players[0].deck[0]
+    replacement = next(
+        card_id
+        for card_id in state.players[0].deck[1:]
+        if card_id != original
+    )
+    state.players[0].deck[0] = replacement
     assert information_set_id(state, 0) != first
 
 

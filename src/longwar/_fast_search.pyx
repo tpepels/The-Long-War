@@ -1434,6 +1434,26 @@ cdef class FastEngine:
         if name >= 0:
             self.return_to_hand(state, player, name)
 
+    cdef void compact_ongoing_stories(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        """Keep packed Story storage aligned with GameState's compact list."""
+        cdef int read_slot, write_slot, src, dst
+        write_slot = 0
+        for read_slot in range(self.ongoing_story_limit):
+            src = player * 4 + read_slot
+            if state.scheme[src] < 0:
+                continue
+            if read_slot != write_slot:
+                dst = player * 4 + write_slot
+                state.scheme[dst] = state.scheme[src]
+                state.scheme_revealed[dst] = state.scheme_revealed[src]
+                state.scheme[src] = -1
+                state.scheme_revealed[src] = 0
+            write_slot += 1
+
     cdef void reveal_scheme(self, FastState state, int controller, int front, int actor, int trigger_slot=-1):
         cdef int ix = controller * 4 + front
         cdef int card = state.scheme[ix]
@@ -1453,6 +1473,7 @@ cdef class FastEngine:
                 state.temporary[target] += amount
         state.scheme[ix] = -1
         state.scheme_revealed[ix] = 0
+        self.compact_ongoing_stories(state, controller)
         self.append_discard(state, controller, card, True)
 
     cdef void resolve_scheme_event(self, FastState state, int actor, int event, int front, int trigger_slot=-1):

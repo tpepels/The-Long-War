@@ -111,7 +111,7 @@ def test_live_progress_helpers_are_robust(tmp_path):
     assert "line:<110" not in source
     assert "width = 20" in source
     assert "Press s to skip this experiment" in source
-    assert "_run_command_until_stop" in inspect.getsource(runner.benchmark_ismcts_match)
+    assert "_run_command_until_stop" in inspect.getsource(runner.benchmark_strength)
 
 
 def test_progress_snapshot_contains_partial_wins_and_replaces_atomically(tmp_path):
