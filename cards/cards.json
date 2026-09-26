@@ -3221,7 +3221,7 @@
       ],
       "ongoing": true,
       "command_cost": 1,
-      "text": "**Saga - Ongoing.** Choose a Front when you play this. Named Formations in that Front cannot **Maneuver** away from it. When a Named Formation there **Retreats**, discard this Saga.",
+      "text": "**Saga - Ongoing.** Choose a Front containing one of your Named Formations. Named Formations in that Front cannot **Maneuver** away from it. When a Named Formation there **Retreats**, discard this Saga.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3230,7 +3230,7 @@
         {
           "kind": "property",
           "label": "SAGA",
-          "text": "**Ongoing.** Choose a Front."
+          "text": "**Ongoing.** Choose a Front containing one of your Named Formations."
         },
         {
           "kind": "continuous",
@@ -3245,7 +3245,7 @@
       ],
       "design_rules": {
         "narrative_form": "saga",
-        "chosen_front": true,
+        "chosen_front_requires_friendly_named_formation": true,
         "named_formations_cannot_maneuver_away": true,
         "discard_when_named_formation_retreated": true,
         "affects": "both_players"
@@ -3266,7 +3266,7 @@
       ],
       "ongoing": true,
       "command_cost": 1,
-      "text": "**Warning - Ongoing.** Choose one of your Named Formations and choose left or right. On your next turn, if that formation can **Maneuver** one Front in that direction, your operation must be that Maneuver. Then discard this Warning.",
+      "text": "**Warning - Ongoing.** Choose one of your Named Formations and choose left or right. On your next turn, if that formation can **Maneuver** one Front in that direction, your operation must be that Maneuver. It costs 0 Command. If you make that Maneuver, draw 1 card. Then discard this Warning.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3280,12 +3280,12 @@
         {
           "kind": "constraint",
           "label": "NEXT TURN",
-          "text": "If that formation can **Maneuver** one Front in that direction, your operation must be that Maneuver."
+          "text": "If that formation can **Maneuver** one Front in that direction, your operation must be that Maneuver. It costs 0 Command."
         },
         {
           "kind": "effect",
-          "label": "THEN",
-          "text": "Discard this Warning."
+          "label": "AFTER",
+          "text": "If you make that Maneuver, draw 1 card. Then discard this Warning."
         }
       ],
       "design_rules": {
@@ -3293,6 +3293,8 @@
         "choose_friendly_named_formation": true,
         "choose_direction": true,
         "next_turn_forced_maneuver_if_legal": true,
+        "forced_maneuver_cost": 0,
+        "draw_after_forced_maneuver": 1,
         "discard_after_next_turn_constraint": true
       },
       "engine_sync": "pending-compulsion-mechanics",
@@ -3312,7 +3314,7 @@
       ],
       "ongoing": true,
       "command_cost": 1,
-      "text": "**Omen - Ongoing.** When either player wins their third Front in a Battle, that player's first operation next Battle must be a **Maneuver**, if possible. Then discard this Omen.",
+      "text": "**Omen - Ongoing.** At Battle end, if either player won at least three Fronts, that player's first operation next Battle must be a **Maneuver**, if possible. Then discard this Omen.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3325,8 +3327,8 @@
         },
         {
           "kind": "trigger",
-          "label": "THIRD FRONT",
-          "text": "When either player wins their third Front in a Battle, that player's first operation next Battle must be a **Maneuver**, if possible."
+          "label": "BATTLE END",
+          "text": "If either player won at least three Fronts, that player's first operation next Battle must be a **Maneuver**, if possible."
         },
         {
           "kind": "effect",
@@ -3336,8 +3338,8 @@
       ],
       "design_rules": {
         "narrative_form": "omen",
-        "trigger": "player_wins_third_front_in_battle",
-        "affected_player": "triggering_player",
+        "trigger": "battle_end_player_won_at_least_three_fronts",
+        "affected_player": "player_who_won_at_least_three_fronts",
         "next_battle_first_operation_must_be_maneuver_if_possible": true,
         "discard_self": true
       },
@@ -3395,7 +3397,7 @@
         "maneuver"
       ],
       "command_cost": 2,
-      "text": "Choose left or right when you play this. **During this Battle**, the first **Maneuver** each player makes must be in that direction, if possible.",
+      "text": "Choose left or right when you play this. **During this Battle**, each player's first **Maneuver** costs 0 Command. If that player can Maneuver in the chosen direction, that Maneuver must be in that direction.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3409,12 +3411,13 @@
         {
           "kind": "continuous",
           "label": "DURING THIS BATTLE",
-          "text": "The first **Maneuver** each player makes must be in that direction, if possible."
+          "text": "Each player's first **Maneuver** costs 0 Command. If that player can Maneuver in the chosen direction, that Maneuver must be in that direction."
         }
       ],
       "design_rules": {
         "stratagem": "line_begun_to_move",
         "choose_direction": true,
+        "first_maneuver_each_player_cost": 0,
         "first_maneuver_each_player_must_use_direction_if_possible": true,
         "affects": "both_players"
       },
@@ -3432,8 +3435,8 @@
         "necessity",
         "focus"
       ],
-      "command_cost": 3,
-      "text": "Choose a Front when you play this. **During this Battle**, each player's first operation each turn must affect that Front, if possible.",
+      "command_cost": 2,
+      "text": "Choose a Front when you play this. Each player's next operation this Battle must affect that Front, if possible.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3445,15 +3448,16 @@
           "text": "Choose a Front."
         },
         {
-          "kind": "continuous",
-          "label": "DURING THIS BATTLE",
-          "text": "Each player's first operation each turn must affect that Front, if possible."
+          "kind": "constraint",
+          "label": "NEXT OPERATION",
+          "text": "Each player's next operation this Battle must affect that Front, if possible."
         }
       ],
       "design_rules": {
         "stratagem": "every_banner_turned",
         "chosen_front": true,
-        "first_operation_each_turn_must_affect_chosen_front_if_possible": true,
+        "next_operation_each_player_must_affect_chosen_front_if_possible": true,
+        "duration": "until_each_player_completes_next_operation_or_battle_ends",
         "affects": "both_players"
       },
       "engine_sync": "pending-compulsion-mechanics",
@@ -3470,27 +3474,33 @@
         "necessity"
       ],
       "command_cost": 1,
-      "text": "This formation gets +2 **Strength**. After it **Maneuvers**, its next Maneuver this Battle must continue in the same direction, if possible.",
+      "text": "This formation gets +1 **Strength**. Once it has **Maneuvered** this Battle, it gets +2 additional Strength during this Battle. After it Maneuvers, any later Maneuver it makes this Battle must continue in the same direction, if possible.",
       "rules": {},
       "balance": {
-        "strength_bonus": 2,
+        "strength_bonus": 1,
         "dynamic": true
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "BONUS",
-          "text": "This formation gets +2 **Strength**."
+          "text": "This formation gets +1 **Strength**."
         },
         {
-          "kind": "trigger",
+          "kind": "continuous",
           "label": "AFTER MANEUVER",
-          "text": "After it **Maneuvers**, its next Maneuver this Battle must continue in the same direction, if possible."
+          "text": "Once it has **Maneuvered** this Battle, it gets +2 additional Strength during this Battle."
+        },
+        {
+          "kind": "constraint",
+          "label": "MOMENTUM",
+          "text": "After it Maneuvers, any later Maneuver it makes this Battle must continue in the same direction, if possible."
         }
       ],
       "design_rules": {
-        "strength_bonus": 2,
-        "after_maneuver_next_maneuver_same_direction_if_possible": true,
+        "strength_bonus": 1,
+        "additional_strength_after_first_maneuver_this_battle": 2,
+        "later_maneuvers_same_direction_if_possible": true,
         "duration": "battle"
       },
       "engine_sync": "pending-compulsion-mechanics",
