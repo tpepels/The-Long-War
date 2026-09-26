@@ -113,7 +113,7 @@ cdef class NativeHeuristicEvaluator:
             # Project the rulebook's exact recovery formula using the current
             # Front results. This makes late-war Command and likely Collapse
             # visible to shallow search and rollouts.
-            recovery = self.engine.command_recovery_for_battle(state.battle)
+            recovery = self.engine.command_recovery_fast(state.battle)
             own_recovery = recovery - own_losses
             if own_recovery < 0:
                 own_recovery = 0
