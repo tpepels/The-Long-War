@@ -52,10 +52,10 @@ RUNNER = ROOT / "tools" / "run_experiments.py"
 VALIDATION_ROOT = ROOT / "artifacts" / "search-validation"
 BENCH_ROOT = ROOT / "artifacts" / "search-benchmark"
 CANONICAL_DECK_PATHS = {
-    "reference": "decks/mobility-open-bonds.json",
-    "avaros": "decks/persistent-elite-heroes.json",
-    "mara": "decks/narrative-command.json",
-    "sera": "decks/battlefield-control-stratagems.json",
+    "mobility": "decks/mobility-open-bonds.json",
+    "elite": "decks/persistent-elite-heroes.json",
+    "narrative": "decks/narrative-command.json",
+    "control": "decks/battlefield-control-stratagems.json",
 }
 
 
@@ -693,7 +693,7 @@ def benchmark_strength(
     if time_budget_seconds <= 0.0:
         raise SystemExit("--time-budget-seconds must be positive")
 
-    decks = ("reference", "avaros", "mara", "sera")
+    decks = ("mobility", "elite", "narrative", "control")
     c_label = f"{exploration:g}".replace(".", "p")
     tree_label = "reuse" if reuse_tree else "cold"
     parts = ["strength", tree_label, f"c-{c_label}"]
