@@ -864,6 +864,21 @@ cdef class FastEngine:
             if strat is not None:
                 fast.stratagem[p] = self.id_to_code[strat.card_id]
                 fast.stratagem_revealed[p] = 1
+                for front_choice in strat.fronts:
+                    fast.stratagem_front_mask[p] |= 1 << int(front_choice)
+                if strat.direction == "left":
+                    fast.stratagem_direction[p] = 1
+                elif strat.direction == "right":
+                    fast.stratagem_direction[p] = 2
+                for target_choice in strat.targets:
+                    fast.stratagem_target_mask[p] |= (
+                        1
+                        << slot_index(
+                            int(target_choice[0]),
+                            int(target_choice[1].front),
+                            0 if target_choice[1].rank.value == "front" else 1,
+                        )
+                    )
 
             for f in range(4):
                 for r in range(2):
@@ -880,6 +895,14 @@ cdef class FastEngine:
             for i, story in enumerate(state.stories[p][:self.ongoing_story_limit]):
                 fast.scheme[p * 4 + i] = self.id_to_code[story.card_id]
                 fast.scheme_revealed[p * 4 + i] = 1
+                for front_choice in story.fronts:
+                    fast.scheme_front_mask[p * 4 + i] |= 1 << int(front_choice)
+                if story.target_position is not None and story.target_player is not None:
+                    fast.scheme_target_slot[p * 4 + i] = slot_index(
+                        int(story.target_player),
+                        int(story.target_position.front),
+                        0 if story.target_position.rank.value == "front" else 1,
+                    )
 
         fast.active_player = state.active_player
         fast.battle = state.battle
@@ -1611,8 +1634,12 @@ cdef class FastEngine:
                 dst = player * 4 + write_slot
                 state.scheme[dst] = state.scheme[src]
                 state.scheme_revealed[dst] = state.scheme_revealed[src]
+                state.scheme_front_mask[dst] = state.scheme_front_mask[src]
+                state.scheme_target_slot[dst] = state.scheme_target_slot[src]
                 state.scheme[src] = -1
                 state.scheme_revealed[src] = 0
+                state.scheme_front_mask[src] = 0
+                state.scheme_target_slot[src] = -1
             write_slot += 1
 
     cdef void reveal_scheme(self, FastState state, int controller, int front, int actor, int trigger_slot=-1):
@@ -1634,6 +1661,8 @@ cdef class FastEngine:
                 state.temporary[target] += amount
         state.scheme[ix] = -1
         state.scheme_revealed[ix] = 0
+        state.scheme_front_mask[ix] = 0
+        state.scheme_target_slot[ix] = -1
         self.compact_ongoing_stories(state, controller)
         self.append_discard(state, controller, card, True)
 
@@ -1696,6 +1725,10 @@ cdef class FastEngine:
         return self.strat_cancel_story[card]
 
     cdef void move_slot(self, FastState state, int source, int dest) noexcept:
+        cdef int ix
+        for ix in range(SCHEME_COUNT):
+            if state.scheme_target_slot[ix] == source:
+                state.scheme_target_slot[ix] = dest
         state.subject[dest] = state.subject[source]
         state.link[dest] = state.link[source]
         state.name[dest] = state.name[source]
@@ -1706,6 +1739,12 @@ cdef class FastEngine:
         state.temporary[source] = 0
 
     cdef void swap_slots(self, FastState state, int a, int b) noexcept:
+        cdef int ix
+        for ix in range(SCHEME_COUNT):
+            if state.scheme_target_slot[ix] == a:
+                state.scheme_target_slot[ix] = b
+            elif state.scheme_target_slot[ix] == b:
+                state.scheme_target_slot[ix] = a
         cdef int8_t force = state.subject[a]
         cdef int8_t bond = state.link[a]
         cdef int8_t name = state.name[a]
@@ -1979,6 +2018,9 @@ cdef class FastEngine:
                 self.append_discard(state, player, card, False)
             state.stratagem[player] = -1
             state.stratagem_revealed[player] = 0
+            state.stratagem_front_mask[player] = 0
+            state.stratagem_direction[player] = 0
+            state.stratagem_target_mask[player] = 0
 
     cdef inline void clear_battle_temporary_strength(
         self,
@@ -2335,9 +2377,14 @@ cdef class FastEngine:
         for ix in range(SCHEME_COUNT):
             _info_hash_feed(&h, <uint8_t>(state.scheme[ix] + 1))
             _info_hash_feed(&h, state.scheme_revealed[ix])
+            _info_hash_feed(&h, state.scheme_front_mask[ix])
+            _info_hash_feed(&h, <uint8_t>(state.scheme_target_slot[ix] + 1))
         for p in range(2):
             _info_hash_feed(&h, <uint8_t>(state.stratagem[p] + 1))
             _info_hash_feed(&h, state.stratagem_revealed[p])
+            _info_hash_feed(&h, state.stratagem_front_mask[p])
+            _info_hash_feed(&h, state.stratagem_direction[p])
+            _info_hash_feed_u16(&h, state.stratagem_target_mask[p])
             _info_hash_feed(&h, state.stratagem_used[p])
 
         _info_hash_feed(&h, state.cleanup_pending)
@@ -2437,6 +2484,20 @@ cdef class FastEngine:
                 card = state.scheme[owner * 4 + story_slot]
                 if card >= 0:
                     _info_emit(buf, &n, h, <uint8_t>(card + 1))
+                    _info_emit(
+                        buf,
+                        &n,
+                        h,
+                        state.scheme_front_mask[owner * 4 + story_slot],
+                    )
+                    _info_emit(
+                        buf,
+                        &n,
+                        h,
+                        <uint8_t>(
+                            state.scheme_target_slot[owner * 4 + story_slot] + 1
+                        ),
+                    )
 
         for owner in range(2):
             card = state.stratagem[owner]
@@ -2444,6 +2505,9 @@ cdef class FastEngine:
                 _info_emit(buf, &n, h, 0)
             else:
                 _info_emit(buf, &n, h, <uint8_t>(card + 1))
+                _info_emit(buf, &n, h, state.stratagem_front_mask[owner])
+                _info_emit(buf, &n, h, state.stratagem_direction[owner])
+                _info_emit_u16(buf, &n, h, state.stratagem_target_mask[owner])
 
         for owner in range(2):
             _info_emit(buf, &n, h, state.stratagem_used[owner])
@@ -2731,6 +2795,12 @@ cdef class FastEngine:
                 [
                     {
                         "card_id": self.card_ids[state.scheme[p * 4 + i]],
+                        "front_mask": state.scheme_front_mask[p * 4 + i],
+                        "target_slot": (
+                            None
+                            if state.scheme_target_slot[p * 4 + i] < 0
+                            else state.scheme_target_slot[p * 4 + i]
+                        ),
                     }
                     for i in range(self.ongoing_story_limit)
                     if state.scheme[p * 4 + i] >= 0
@@ -2741,7 +2811,12 @@ cdef class FastEngine:
                 (
                     None
                     if state.stratagem[p] < 0
-                    else {"card_id": self.card_ids[state.stratagem[p]]}
+                    else {
+                        "card_id": self.card_ids[state.stratagem[p]],
+                        "front_mask": state.stratagem_front_mask[p],
+                        "direction": state.stratagem_direction[p],
+                        "target_mask": state.stratagem_target_mask[p],
+                    }
                 )
                 for p in range(2)
             ],
