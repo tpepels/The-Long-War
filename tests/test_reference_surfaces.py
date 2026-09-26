@@ -6,6 +6,9 @@ import re
 import markdown
 from pathlib import Path
 
+from longwar.game.model import FRONT_COUNT
+from longwar.rules import GameRules
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -31,6 +34,33 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "first of the two consecutive Passes" in rules
     assert "draw 1 card automatically" in text("web/playmat.html").lower()
     assert "reshuffle discard only if deck empties" in text("web/playmat.html")
+
+
+def test_rulebook_core_constants_match_standard_engine() -> None:
+    rules_text = text("rules/rulebook.md")
+    standard = GameRules.standard()
+
+    assert FRONT_COUNT == 4
+    assert standard.opening_hand_size == 10
+    assert standard.starting_command == 20
+    assert standard.command_cap == 20
+    assert standard.hand_limit == 10
+    assert standard.ongoing_story_limit == 2
+    assert standard.maneuver_command_cost == 1
+    assert standard.command_recovery_schedule == (10, 7, 5, 4, 3, 2, 1)
+    assert standard.command_collapse_threshold == 5
+    assert standard.automatic_draw is True
+    assert standard.draw_action_enabled is False
+    assert standard.cycle_enabled is False
+    assert standard.paid_draw_enabled is False
+
+    assert "**four Fronts**" in rules_text
+    assert "draw **10 cards**" in rules_text
+    assert "Command to **20**" in rules_text
+    assert "at most **2 ongoing Stories**" in rules_text
+    assert "Maneuver is an operation that costs **1 Command**" in rules_text
+    assert "**two consecutive Passes**" in rules_text
+    assert "fewer than 5 Command" in rules_text
 
 
 def test_rulebook_healer_language_matches_engine_semantics() -> None:
