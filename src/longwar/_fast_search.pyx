@@ -129,6 +129,17 @@ cdef int NARR_TRIGGER_FRIENDLY_RETREAT = 2
 cdef int NARR_TRIGGER_OPPONENT_NAMED = 3
 cdef int NARR_TRIGGER_OPPONENT_BOTH_RANKS = 4
 
+cdef int NARR_SECONDARY_NONE = 0
+cdef int NARR_SECONDARY_FREE_TRIGGERED = 1
+cdef int NARR_SECONDARY_SIDEWAYS_TRIGGERED = 2
+cdef int NARR_SECONDARY_FREE_ANY_NAMED = 3
+cdef int NARR_SECONDARY_MOVE_VACATED = 4
+
+cdef int NARR_END_NONE = 0
+cdef int NARR_END_NOT_LOST = 1
+cdef int NARR_END_WON = 2
+cdef int NARR_END_TARGET_SURVIVES = 3
+
 cdef int STRAT_CHOICE_NONE = 0
 cdef int STRAT_CHOICE_FRONT = 1
 cdef int STRAT_CHOICE_ADJACENT_FRONTS = 2
@@ -608,6 +619,44 @@ cdef class FastEngine:
     cdef int8_t retreat_command_gain[MAX_CARDS]
     cdef uint8_t capture_retreating_bond[MAX_CARDS]
     cdef uint8_t combat_frontline_only[MAX_CARDS]
+    cdef uint8_t completion_free_maneuver_self[MAX_CARDS]
+    cdef uint8_t completion_swap_adjacent[MAX_CARDS]
+    cdef uint8_t iria_name[MAX_CARDS]
+    cdef uint8_t skirmisher_contribution[MAX_CARDS]
+    cdef uint8_t after_empty_follow_move[MAX_CARDS]
+    cdef uint8_t after_swap_free_other[MAX_CARDS]
+    cdef uint8_t kept_pace_bond[MAX_CARDS]
+    cdef uint8_t covered_withdrawal_bond[MAX_CARDS]
+    cdef uint8_t teren_name[MAX_CARDS]
+    cdef uint8_t mara_name[MAX_CARDS]
+    cdef uint8_t suppress_rear_force[MAX_CARDS]
+    cdef uint8_t first_strike_force[MAX_CARDS]
+    cdef uint8_t sacrifice_bond[MAX_CARDS]
+    cdef uint8_t intercept_name[MAX_CARDS]
+    cdef uint8_t retreat_sideways_name[MAX_CARDS]
+    cdef uint8_t battle_start_move_name[MAX_CARDS]
+    cdef uint8_t voluntary_retreat_name[MAX_CARDS]
+    cdef uint8_t after_empty_extra_move_force[MAX_CARDS]
+    cdef uint8_t reactive_maneuver_name[MAX_CARDS]
+    cdef uint8_t recover_bond_on_completion_name[MAX_CARDS]
+    cdef uint8_t neris_rear_force[MAX_CARDS]
+    cdef uint8_t neris_retreat_name[MAX_CARDS]
+    cdef uint8_t veyra_force[MAX_CARDS]
+    cdef uint8_t veyra_name[MAX_CARDS]
+    cdef uint8_t recover_story_on_completion_name[MAX_CARDS]
+    cdef uint8_t optional_alda_protect_force[MAX_CARDS]
+    cdef uint8_t late_banner_force[MAX_CARDS]
+    cdef uint8_t torren_name[MAX_CARDS]
+    cdef uint8_t banner_singers_force[MAX_CARDS]
+    cdef uint8_t carried_oath_bond[MAX_CARDS]
+    cdef uint8_t succession_name[MAX_CARDS]
+    cdef uint8_t narrative_secondary[MAX_CARDS]
+    cdef uint8_t narrative_end_kind[MAX_CARDS]
+    cdef int8_t narrative_end_gain[MAX_CARDS]
+    cdef uint8_t narrative_end_draw[MAX_CARDS]
+    cdef uint8_t narrative_end_recover_bond[MAX_CARDS]
+    cdef uint8_t narrative_end_discard[MAX_CARDS]
+    cdef uint8_t feigned_retreat_strat[MAX_CARDS]
     cdef int8_t strat_maneuver_cost[MAX_CARDS]
     cdef uint8_t strat_unnamed_maneuver[MAX_CARDS]
     cdef uint8_t strat_tie_control[MAX_CARDS]
@@ -715,6 +764,44 @@ cdef class FastEngine:
         memset(self.retreat_command_gain, 0, sizeof(self.retreat_command_gain))
         memset(self.capture_retreating_bond, 0, sizeof(self.capture_retreating_bond))
         memset(self.combat_frontline_only, 0, sizeof(self.combat_frontline_only))
+        memset(self.completion_free_maneuver_self, 0, sizeof(self.completion_free_maneuver_self))
+        memset(self.completion_swap_adjacent, 0, sizeof(self.completion_swap_adjacent))
+        memset(self.iria_name, 0, sizeof(self.iria_name))
+        memset(self.skirmisher_contribution, 0, sizeof(self.skirmisher_contribution))
+        memset(self.after_empty_follow_move, 0, sizeof(self.after_empty_follow_move))
+        memset(self.after_swap_free_other, 0, sizeof(self.after_swap_free_other))
+        memset(self.kept_pace_bond, 0, sizeof(self.kept_pace_bond))
+        memset(self.covered_withdrawal_bond, 0, sizeof(self.covered_withdrawal_bond))
+        memset(self.teren_name, 0, sizeof(self.teren_name))
+        memset(self.mara_name, 0, sizeof(self.mara_name))
+        memset(self.suppress_rear_force, 0, sizeof(self.suppress_rear_force))
+        memset(self.first_strike_force, 0, sizeof(self.first_strike_force))
+        memset(self.sacrifice_bond, 0, sizeof(self.sacrifice_bond))
+        memset(self.intercept_name, 0, sizeof(self.intercept_name))
+        memset(self.retreat_sideways_name, 0, sizeof(self.retreat_sideways_name))
+        memset(self.battle_start_move_name, 0, sizeof(self.battle_start_move_name))
+        memset(self.voluntary_retreat_name, 0, sizeof(self.voluntary_retreat_name))
+        memset(self.after_empty_extra_move_force, 0, sizeof(self.after_empty_extra_move_force))
+        memset(self.reactive_maneuver_name, 0, sizeof(self.reactive_maneuver_name))
+        memset(self.recover_bond_on_completion_name, 0, sizeof(self.recover_bond_on_completion_name))
+        memset(self.neris_rear_force, 0, sizeof(self.neris_rear_force))
+        memset(self.neris_retreat_name, 0, sizeof(self.neris_retreat_name))
+        memset(self.veyra_force, 0, sizeof(self.veyra_force))
+        memset(self.veyra_name, 0, sizeof(self.veyra_name))
+        memset(self.recover_story_on_completion_name, 0, sizeof(self.recover_story_on_completion_name))
+        memset(self.optional_alda_protect_force, 0, sizeof(self.optional_alda_protect_force))
+        memset(self.late_banner_force, 0, sizeof(self.late_banner_force))
+        memset(self.torren_name, 0, sizeof(self.torren_name))
+        memset(self.banner_singers_force, 0, sizeof(self.banner_singers_force))
+        memset(self.carried_oath_bond, 0, sizeof(self.carried_oath_bond))
+        memset(self.succession_name, 0, sizeof(self.succession_name))
+        memset(self.narrative_secondary, 0, sizeof(self.narrative_secondary))
+        memset(self.narrative_end_kind, 0, sizeof(self.narrative_end_kind))
+        memset(self.narrative_end_gain, 0, sizeof(self.narrative_end_gain))
+        memset(self.narrative_end_draw, 0, sizeof(self.narrative_end_draw))
+        memset(self.narrative_end_recover_bond, 0, sizeof(self.narrative_end_recover_bond))
+        memset(self.narrative_end_discard, 0, sizeof(self.narrative_end_discard))
+        memset(self.feigned_retreat_strat, 0, sizeof(self.feigned_retreat_strat))
         memset(self.strat_maneuver_cost, 0xff, sizeof(self.strat_maneuver_cost))
         memset(self.strat_unnamed_maneuver, 0, sizeof(self.strat_unnamed_maneuver))
         memset(self.strat_tie_control, 0, sizeof(self.strat_tie_control))
@@ -942,6 +1029,72 @@ cdef class FastEngine:
                 self.capture_retreating_bond[code] = 1
             if design.get("combat") == "frontline_only_comparison":
                 self.combat_frontline_only[code] = 1
+            if design.get("trigger") == "opposing_formation_in_same_front_becomes_named":
+                self.iria_name[code] = 1
+            completion_design = design.get("on_completion") or {}
+            if completion_design.get("effect") == "optional_swap_adjacent_friendly_formation":
+                self.completion_swap_adjacent[code] = 1
+            if (name_design.get("on_completion") or {}).get("effect") == "free_maneuver_self":
+                self.completion_free_maneuver_self[code] = 1
+            if name_design.get("on_completion") == "return_one_bond_from_discard_to_hand":
+                self.recover_bond_on_completion_name[code] = 1
+            if name_design.get("on_completion") == "return_one_story_from_discard_to_hand":
+                self.recover_story_on_completion_name[code] = 1
+            front_resolution = design.get("front_resolution") or {}
+            if front_resolution.get("contribution") == "chosen_front_instead_of_own":
+                self.skirmisher_contribution[code] = 1
+            if (design.get("after_maneuver_into_empty") or {}).get("effect") == "optional_move_adjacent_friendly_to_vacated_position":
+                self.after_empty_follow_move[code] = 1
+            if (design.get("after_maneuver_swap") or {}).get("effect") == "optional_zero_cost_maneuver_swapped_formation":
+                self.after_swap_free_other[code] = 1
+            if design.get("trigger") == "adjacent_friendly_named_formation_maneuvers_away":
+                self.kept_pace_bond[code] = 1
+            if design.get("trigger") == "adjacent_friendly_formation_retreats":
+                self.covered_withdrawal_bond[code] = 1
+            if (design.get("after_maneuver") or {}).get("effect") == "optional_swap_two_adjacent_friendly_formations_excluding_self":
+                self.teren_name[code] = 1
+            if design.get("trigger") == "opposing_formation_maneuvers_into_same_front":
+                self.mara_name[code] = 1
+            if design.get("combat") == "skirmish":
+                self.suppress_rear_force[code] = 1
+            if design.get("combat") == "first_strike":
+                self.first_strike_force[code] = 1
+            if design.get("combat") == "sacrifice":
+                self.sacrifice_bond[code] = 1
+            if design.get("combat") == "interception":
+                self.intercept_name[code] = 1
+            if design.get("persistence") == "retreat_sideways":
+                self.retreat_sideways_name[code] = 1
+            if design.get("persistence") == "start_battle_reposition":
+                self.battle_start_move_name[code] = 1
+            if design.get("persistence") == "voluntary_retreat_if_rear_empty":
+                self.voluntary_retreat_name[code] = 1
+            if force_design.get("after_maneuver_into_empty") == "optional_move_one_more_front_if_empty":
+                self.after_empty_extra_move_force[code] = 1
+            if name_design.get("trigger") == "opponent_maneuvers_into_adjacent_front":
+                self.reactive_maneuver_name[code] = 1
+            if force_design.get("combat") == "optional_ignore_opposing_rear_strength":
+                self.suppress_rear_force[code] = 1
+            if force_design.get("effect") == "optional_drive_off_self_prevent_frontline_named_retreat":
+                self.optional_alda_protect_force[code] = 1
+            if force_design.get("after_frontline_retreat") == "optional_sideways_rear_move":
+                self.neris_rear_force[code] = 1
+            if name_design.get("after_self_retreat") == "optional_sideways_rear_move":
+                self.neris_retreat_name[code] = 1
+            if force_design.get("on_play") == "optional_take_adjacent_prepared_bond_or_name":
+                self.veyra_force[code] = 1
+            if name_design.get("on_play") == "optional_take_adjacent_open_bond":
+                self.veyra_name[code] = 1
+            if design.get("build_around") == "prepared_position":
+                self.late_banner_force[code] = 1
+            if design.get("after_self_maneuver") == "optional_zero_cost_other_friendly_named_maneuver":
+                self.torren_name[code] = 1
+            if design.get("trigger") == "regain_command_from_narrative":
+                self.banner_singers_force[code] = 1
+            if design.get("build_around") == "open_bond_transfer":
+                self.carried_oath_bond[code] = 1
+            if design.get("build_around") == "succession":
+                self.succession_name[code] = 1
             if design.get("combat") == "tie_control":
                 self.strat_tie_control[code] = 1
             if design.get("command") == "high_cost_battle_investment":
@@ -961,6 +1114,8 @@ cdef class FastEngine:
                 self.strat_refuse_flank[code] = 1
             if design.get("stratagem") == "encirclement":
                 self.strat_encirclement[code] = 1
+            if design.get("stratagem") == "feigned_retreat":
+                self.feigned_retreat_strat[code] = 1
             if design.get("stratagem") == "battle_turns_direction":
                 self.strat_directional_maneuver[code] = 1
 
@@ -1035,6 +1190,26 @@ cdef class FastEngine:
             self.narrative_trigger_discard[code] = bool(
                 design.get("discard_self", False)
             )
+            secondary = design.get("secondary")
+            if secondary == "optional_zero_cost_maneuver_that_formation":
+                self.narrative_secondary[code] = NARR_SECONDARY_FREE_TRIGGERED
+            elif secondary == "optional_sideways_rear_move":
+                self.narrative_secondary[code] = NARR_SECONDARY_SIDEWAYS_TRIGGERED
+            elif secondary == "optional_zero_cost_friendly_named_maneuver":
+                self.narrative_secondary[code] = NARR_SECONDARY_FREE_ANY_NAMED
+            elif secondary == "optional_move_adjacent_friendly_into_vacated_position":
+                self.narrative_secondary[code] = NARR_SECONDARY_MOVE_VACATED
+            battle_end = design.get("at_battle_end") or {}
+            if battle_end.get("condition") == "chosen_front_not_lost":
+                self.narrative_end_kind[code] = NARR_END_NOT_LOST
+            elif battle_end.get("condition") == "chosen_front_won":
+                self.narrative_end_kind[code] = NARR_END_WON
+            elif battle_end.get("condition") == "chosen_formation_still_on_battlefield":
+                self.narrative_end_kind[code] = NARR_END_TARGET_SURVIVES
+            self.narrative_end_gain[code] = int(battle_end.get("gain_command", 0))
+            self.narrative_end_draw[code] = 1 if battle_end.get("secondary") == "draw_1" else 0
+            self.narrative_end_recover_bond[code] = 1 if battle_end.get("bonus_if_won") == "return_one_bond_from_discard_to_hand" else 0
+            self.narrative_end_discard[code] = bool(battle_end.get("discard_self", False))
             scheme = rules.get("scheme") or {}
             self.scheme_trigger[code] = scheme_trigger_map.get(scheme.get("trigger"), EVENT_NONE)
             self.scheme_effect[code] = scheme_effect_map.get(scheme.get("effect"), SCHEME_NONE)
