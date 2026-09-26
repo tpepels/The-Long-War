@@ -168,20 +168,12 @@ def main() -> None:
         default=Path("cards/cards.json"),
         help="Card data file for this simulation variant.",
     )
-    reshuffle_group = parser.add_mutually_exclusive_group()
-    reshuffle_group.add_argument("--reshuffle-on-empty", dest="reshuffle", action="store_true")
-    reshuffle_group.add_argument("--no-reshuffle-on-empty", dest="reshuffle", action="store_false")
-    parser.set_defaults(reshuffle=defaults.reshuffle_on_empty)
     parser.add_argument(
         "--completion-draw-names",
         nargs="*",
         default=[],
         help="Name ids that draw 1 when their formation becomes complete.",
     )
-    command_group = parser.add_mutually_exclusive_group()
-    command_group.add_argument("--command", action="store_true")
-    command_group.add_argument("--no-command", dest="command", action="store_false")
-    parser.set_defaults(command=defaults.command_enabled)
     parser.add_argument("--starting-command", type=int, default=20)
     parser.add_argument("--command-cap", type=int, default=20)
     parser.add_argument(
@@ -261,11 +253,9 @@ def main() -> None:
     rules = GameRules(
         opening_hand_size=args.hand_size,
         completion_draw_names=tuple(args.completion_draw_names),
-        command_enabled=args.command,
         starting_command=args.starting_command,
         command_cap=args.command_cap,
         cycle_command_cost=args.cycle_command_cost,
-        reshuffle_on_empty=args.reshuffle,
         cycle_enabled=args.cycle_enabled,
         completion_command_refund=args.completion_command_refund,
     )
@@ -382,13 +372,11 @@ def main() -> None:
         "battle_one_starter_bonus": 0,
         "completion_draw_names": sorted(rules.completion_draw_names),
         "deck_sizes": [len(deck_a), len(deck_b)],
-        "reshuffle_on_empty": rules.reshuffle_on_empty,
-        "command_enabled": rules.command_enabled,
-        "starting_command": rules.starting_command if rules.command_enabled else None,
-        "command_cap": rules.command_cap if rules.command_enabled else None,
+        "starting_command": rules.starting_command,
+        "command_cap": rules.command_cap,
         "cycle_command_cost": (
             rules.cycle_command_cost
-            if rules.command_enabled and rules.cycle_enabled
+            if rules.cycle_enabled
             else None
         ),
         "cycle_enabled": rules.cycle_enabled,
@@ -410,8 +398,6 @@ def main() -> None:
         f"hand={rules.opening_hand_size} "
         f"completion_draw_names={','.join(sorted(rules.completion_draw_names)) or 'none'} "
         f"decks={len(deck_a)}/{len(deck_b)} "
-        f"reshuffle_on_empty={'on' if rules.reshuffle_on_empty else 'off'} "
-        f"command={'on' if rules.command_enabled else 'off'} "
         f"cycle={'on' if rules.cycle_enabled else 'off'} "
         f"completion_refund={rules.completion_command_refund} "
         "starter_bonus=turn-draw"

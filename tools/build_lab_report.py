@@ -25,10 +25,7 @@ def serialized_rule_metadata(rules: GameRules) -> dict[str, object]:
     metadata["base_hand_size"] = metadata.pop("opening_hand_size")
     metadata["completion_draw_names"] = sorted(rules.completion_draw_names)
 
-    if not rules.command_enabled:
-        metadata["starting_command"] = None
-        metadata["command_cap"] = None
-    if not (rules.command_enabled and rules.cycle_enabled):
+    if not rules.cycle_enabled:
         metadata["cycle_command_cost"] = None
 
     return metadata
