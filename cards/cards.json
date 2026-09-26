@@ -12,15 +12,26 @@
         "warband"
       ],
       "role": "swordsman",
-      "text": "",
+      "text": "While this Force is in the **Frontline**, it gets +1 **Strength**.",
       "rules": {},
       "balance": {
         "dynamic": true
       },
-      "rule_blocks": [],
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "FRONTLINE",
+          "text": "While this Force is in the **Frontline**, it gets +1 **Strength**."
+        }
+      ],
       "command_cost": 2,
       "design_status": "approved",
-      "design_batch": 1
+      "design_batch": 1,
+      "design_rules": {
+        "printed_role_effect": "frontline_strength_bonus",
+        "amount": 1
+      },
+      "engine_sync": "pending-first-80-migration"
     },
     {
       "id": "seven-black-ships",
@@ -33,15 +44,26 @@
         "fleet"
       ],
       "role": "ship",
-      "text": "",
+      "text": "While this Force is in the **Rear**, it gets +1 **Strength**.",
       "rules": {},
       "balance": {
         "dynamic": true
       },
-      "rule_blocks": [],
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "REAR",
+          "text": "While this Force is in the **Rear**, it gets +1 **Strength**."
+        }
+      ],
       "command_cost": 2,
       "design_status": "approved",
-      "design_batch": 1
+      "design_batch": 1,
+      "design_rules": {
+        "printed_role_effect": "rear_strength_bonus",
+        "amount": 1
+      },
+      "engine_sync": "pending-first-80-migration"
     },
     {
       "id": "those-who-came-back",
@@ -180,7 +202,7 @@
         "healer"
       ],
       "role": "healer",
-      "text": "**Deploy - Rear only.**",
+      "text": "**Deploy - Rear only.** While this Force is in the **Rear**, the friendly Force directly in front of it gets +2 **Strength**.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -195,11 +217,21 @@
           "kind": "property",
           "label": "DEPLOY",
           "text": "**Rear only.**"
+        },
+        {
+          "kind": "continuous",
+          "label": "REAR",
+          "text": "While this Force is in the **Rear**, the friendly Force directly in front of it gets +2 **Strength**."
         }
       ],
       "command_cost": 1,
       "design_status": "approved",
-      "design_batch": 1
+      "design_batch": 1,
+      "design_rules": {
+        "printed_role_effect": "support_force_ahead_strength_bonus",
+        "amount": 2
+      },
+      "engine_sync": "pending-first-80-migration"
     },
     {
       "id": "avaros-the-bronze-king",
@@ -214,7 +246,7 @@
         "hero"
       ],
       "role": "swordsman",
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** After Avaros **Maneuvers**, you may **Maneuver** one adjacent friendly **Named Formation** without paying Command. **Name -** When this formation becomes **Named**, you may **Maneuver** it once without paying Command.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** While Avaros is in the **Frontline**, he gets +1 **Strength**. After Avaros **Maneuvers**, you may **Maneuver** one adjacent friendly **Named Formation** without paying Command. **Name -** When this formation becomes **Named**, you may **Maneuver** it once without paying Command.",
       "rules": {
         "placement": {
           "rank": "front"
@@ -1047,7 +1079,7 @@
         "guard"
       ],
       "role": "spearman",
-      "text": "**Deploy - Frontline only.**",
+      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 **Strength**.",
       "rules": {
         "placement": {
           "rank": "front"
@@ -1062,11 +1094,21 @@
           "kind": "property",
           "label": "DEPLOY",
           "text": "**Frontline only.**"
+        },
+        {
+          "kind": "continuous",
+          "label": "FRONTLINE",
+          "text": "If a friendly Force is directly behind this Force, it gets +1 **Strength**."
         }
       ],
       "command_cost": 2,
       "design_status": "approved",
-      "design_batch": 2
+      "design_batch": 2,
+      "design_rules": {
+        "printed_role_effect": "frontline_strength_bonus_if_force_behind",
+        "amount": 1
+      },
+      "engine_sync": "pending-first-80-migration"
     },
     {
       "id": "the-crow-archers",
@@ -1079,7 +1121,7 @@
         "company"
       ],
       "role": "archer",
-      "text": "**Deploy - Rear only.**",
+      "text": "**Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 **Strength**.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -1094,11 +1136,21 @@
           "kind": "property",
           "label": "DEPLOY",
           "text": "**Rear only.**"
+        },
+        {
+          "kind": "continuous",
+          "label": "REAR",
+          "text": "If a friendly Force is directly in front of this Force, it gets +2 **Strength**."
         }
       ],
       "command_cost": 2,
       "design_status": "approved",
-      "design_batch": 2
+      "design_batch": 2,
+      "design_rules": {
+        "printed_role_effect": "rear_strength_bonus_if_force_ahead",
+        "amount": 2
+      },
+      "engine_sync": "pending-first-80-migration"
     },
     {
       "id": "the-house-of-reed",
@@ -1111,7 +1163,7 @@
         "stronghold"
       ],
       "role": "stronghold",
-      "text": "**Stronghold. Deploy - Rear only.** Cannot move, **Maneuver**, or swap positions. If you lose this Front while you have a **Named Formation** in the Frontline, drive off this Stronghold instead of Retreating that formation.",
+      "text": "**Deploy - Rear only.** This Force cannot move, **Maneuver**, or swap positions. If you lose this Front while you have a **Named Formation** in the Frontline, drive off this Force instead of Retreating that formation.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -1906,7 +1958,7 @@
         "riders"
       ],
       "role": "skirmisher",
-      "text": "**Skirmisher.** May **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Grey Riders contribute their Strength to the chosen Front instead of their own.",
+      "text": "This Force may **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Grey Riders contribute their Strength to the chosen Front instead of their own.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -1935,6 +1987,288 @@
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 2
+    },
+    {
+      "id": "the-dust-riders",
+      "title": "The Dust Riders",
+      "type": "force",
+      "strength": 2,
+      "unique": false,
+      "classes": [
+        "human",
+        "riders"
+      ],
+      "role": "skirmisher",
+      "command_cost": 2,
+      "text": "This Force may **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Dust Riders contribute their Strength to the chosen Front instead of their own. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "MANEUVER",
+          "text": "This Force may **Maneuver** even while not Named."
+        },
+        {
+          "kind": "timing",
+          "label": "FRONT RESOLUTION",
+          "text": "Choose this Front or one adjacent Front. The Dust Riders contribute their Strength to the chosen Front instead of their own."
+        },
+        {
+          "kind": "trigger",
+          "label": "AFTER MANEUVER",
+          "text": "If this Force Maneuvered into an empty position, you may move an adjacent friendly formation into the position it left."
+        }
+      ],
+      "design_rules": {
+        "can_maneuver_while_unnamed": true,
+        "front_resolution": {
+          "choose": "own_or_adjacent_front",
+          "contribution": "chosen_front_instead_of_own"
+        },
+        "after_maneuver_into_empty": {
+          "effect": "optional_move_adjacent_friendly_to_vacated_position"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 3
+    },
+    {
+      "id": "the-black-company",
+      "title": "The Black Company",
+      "type": "force",
+      "strength": 4,
+      "unique": false,
+      "classes": [
+        "human",
+        "company"
+      ],
+      "role": "swordsman",
+      "command_cost": 2,
+      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this formation swaps positions during a **Maneuver**, you may **Maneuver** the formation it swapped with for 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "DEPLOY",
+          "text": "**Frontline only.**"
+        },
+        {
+          "kind": "continuous",
+          "label": "FRONTLINE",
+          "text": "While this Force is in the **Frontline**, it gets +1 **Strength**."
+        },
+        {
+          "kind": "trigger",
+          "label": "AFTER SWAP",
+          "text": "After this formation swaps positions during a **Maneuver**, you may **Maneuver** the formation it swapped with for 0 Command."
+        }
+      ],
+      "design_rules": {
+        "printed_role_effect": "frontline_strength_bonus",
+        "amount": 1,
+        "after_maneuver_swap": {
+          "effect": "optional_zero_cost_maneuver_swapped_formation"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 3
+    },
+    {
+      "id": "kept-pace-with",
+      "title": "Kept Pace With",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "companionship"
+      ],
+      "command_cost": 1,
+      "text": "After an adjacent friendly **Named Formation** Maneuvers away, you may move this formation into the position it left.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "AFTER ADJACENT MANEUVER",
+          "text": "After an adjacent friendly **Named Formation** Maneuvers away, you may move this formation into the position it left."
+        }
+      ],
+      "design_rules": {
+        "trigger": "adjacent_friendly_named_formation_maneuvers_away",
+        "effect": "optional_move_into_vacated_position"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 3
+    },
+    {
+      "id": "covered-the-withdrawal",
+      "title": "Covered the Withdrawal",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "loyalty"
+      ],
+      "command_cost": 1,
+      "text": "When an adjacent friendly formation **Retreats**, after that Retreat resolves you may **Maneuver** this formation for 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "AFTER ADJACENT RETREAT",
+          "text": "When an adjacent friendly formation **Retreats**, after that Retreat resolves you may **Maneuver** this formation for 0 Command."
+        }
+      ],
+      "design_rules": {
+        "trigger": "adjacent_friendly_formation_retreats",
+        "timing": "after_retreat_resolves",
+        "effect": "optional_zero_cost_maneuver_this_formation"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 3
+    },
+    {
+      "id": "teren",
+      "title": "Teren",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "captain"
+      ],
+      "command_cost": 2,
+      "text": "After this formation **Maneuvers**, you may swap two adjacent friendly formations other than this one.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "AFTER MANEUVER",
+          "text": "After this formation **Maneuvers**, you may swap two adjacent friendly formations other than this one."
+        }
+      ],
+      "design_rules": {
+        "after_maneuver": {
+          "effect": "optional_swap_two_adjacent_friendly_formations_excluding_self"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 3
+    },
+    {
+      "id": "mara",
+      "title": "Mara",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "scout"
+      ],
+      "command_cost": 1,
+      "text": "When an opposing formation **Maneuvers** into this Front, you may **Maneuver** this formation for 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "ENEMY MANEUVER",
+          "text": "When an opposing formation **Maneuvers** into this Front, you may **Maneuver** this formation for 0 Command."
+        }
+      ],
+      "design_rules": {
+        "trigger": "opposing_formation_maneuvers_into_same_front",
+        "effect": "optional_zero_cost_maneuver_this_formation"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 3
+    },
+    {
+      "id": "blocked-the-road",
+      "title": "Blocked the Road",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "defence"
+      ],
+      "command_cost": 1,
+      "text": "Opponent card effects cannot move formations into this Front from an adjacent Front.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "BLOCKED",
+          "text": "Opponent card effects cannot move formations into this Front from an adjacent Front."
+        }
+      ],
+      "design_rules": {
+        "prevent_opponent_card_effect_move_into_front_from_adjacent": true
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 3
+    },
+    {
+      "id": "the-long-march",
+      "title": "The Long March",
+      "type": "story",
+      "unique": false,
+      "classes": [
+        "journey"
+      ],
+      "story_form": "saga",
+      "ongoing": true,
+      "command_cost": 2,
+      "text": "**Ongoing.** The first **Maneuver** you make each turn costs 0 Command if it moves a formation into an empty position rather than swapping.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "ONGOING",
+          "text": "This Story remains in play until an effect ends it."
+        },
+        {
+          "kind": "continuous",
+          "label": "FIRST MANEUVER",
+          "text": "The first **Maneuver** you make each turn costs 0 Command if it moves a formation into an empty position rather than swapping."
+        }
+      ],
+      "design_rules": {
+        "ongoing": true,
+        "first_maneuver_each_turn": {
+          "condition": "moves_into_empty_position_not_swap",
+          "cost": 0
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 3
     }
   ]
 }
