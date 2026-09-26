@@ -105,7 +105,7 @@ class GameEngine:
         self.command_collapse_threshold = rules.command_collapse_threshold
         self.maneuver_command_cost = rules.maneuver_command_cost
         self.hand_limit = rules.hand_limit
-        self.ongoing_story_limit = rules.ongoing_story_limit
+        self.ongoing_narrative_limit = rules.ongoing_narrative_limit
 
         missing_costs = [
             card_id
