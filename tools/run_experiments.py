@@ -621,27 +621,6 @@ def validate() -> None:
     )
 
 
-def _ismcts_cutoff_summary(info: dict[str, Any]) -> dict[str, float | int | None]:
-    terminal = int(info.get("ismcts_rollouts_stopped_terminal", 0))
-    boundary = int(info.get("ismcts_rollouts_stopped_battle_boundary", 0))
-    depth = int(info.get("ismcts_rollouts_stopped_depth", 0))
-    rollout_actions = int(info.get("ismcts_rollout_actions", 0))
-    iterations = terminal + boundary + depth
-    return {
-        "iterations": iterations,
-        "terminal": terminal,
-        "battle_boundary": boundary,
-        "depth": depth,
-        "terminal_rate": terminal / iterations if iterations else None,
-        "battle_boundary_rate": boundary / iterations if iterations else None,
-        "depth_rate": depth / iterations if iterations else None,
-        "rollout_actions": rollout_actions,
-        "mean_rollout_actions_per_iteration": (
-            rollout_actions / iterations if iterations else None
-        ),
-    }
-
-
 def _print_ismcts_cutoffs(cutoffs: dict[str, float | int | None]) -> None:
     iterations = int(cutoffs["iterations"] or 0)
     if not iterations:
@@ -675,38 +654,6 @@ def paired_strength_interval(outcomes: dict[str, dict[str, list[dict[str, int]]]
             "ci95": [max(0.0, (effect.ci95[0] + 1) / 2), min(1.0, (effect.ci95[1] + 1) / 2)],
             "independent_deals": len(contrasts), "ci_method": effect.ci_method,
             "resampling_unit": "same-seed mirrored seat pair"}
-
-
-def paired_ismcts_interval(
-    outcomes: dict[str, dict[str, list[dict[str, int]]]],
-) -> dict[str, Any]:
-    """Bootstrap matched deals for candidate A versus candidate B."""
-    from longwar.counterfactual import estimate
-
-    contrasts = []
-    for orientations in outcomes.values():
-        first = {row["seed"]: row for row in orientations["a-first"]}
-        second = {row["seed"]: row for row in orientations["b-first"]}
-        if first.keys() != second.keys():
-            raise ValueError("Mirrored ISMCTS cells must contain identical deal seeds")
-        for seed, left in first.items():
-            right = second[seed]
-            contrasts.append(
-                int(left["winner"] == 0)
-                + int(right["winner"] == 1)
-                - 1
-            )
-    effect = estimate(contrasts, seed=1701, bootstrap_resamples=2000)
-    return {
-        "a_win_rate": (effect.mean + 1) / 2,
-        "ci95": [
-            max(0.0, (effect.ci95[0] + 1) / 2),
-            min(1.0, (effect.ci95[1] + 1) / 2),
-        ],
-        "independent_deals": len(contrasts),
-        "ci_method": effect.ci_method,
-        "resampling_unit": "same-seed mirrored seat pair",
-    }
 
 
 def benchmark_strength(
