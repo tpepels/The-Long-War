@@ -1618,7 +1618,10 @@ cdef class FastEngine:
     ) noexcept:
         cdef int strat = state.stratagem[player]
         cdef int mask = state.stratagem_front_mask[player]
-        cdef int value, rank, slot, formation_bonus = 0
+        cdef int value = 0
+        cdef int rank, slot, local, physical_front, chosen_front
+        cdef int formation_bonus = 0
+        cdef int enemy, link
         cdef bint frontline_only = self.frontline_only_resolution(state, front)
 
         if (
@@ -1628,19 +1631,47 @@ cdef class FastEngine:
         ):
             return 0
 
-        if frontline_only:
-            value = self.position_strength_fast(
-                state,
-                slot_index(player, front, 0),
-            )
-        else:
-            value = self.front_strength_fast(state, player, front)
+        # Resolution choices can redirect a skirmisher's contribution and
+        # suppress a specific formation without mutating its printed Strength.
+        for local in range(8):
+            slot = player * 8 + local
+            if state.subject[slot] < 0:
+                continue
+            if state.resolution_suppressed_mask & (<uint16_t>1 << slot):
+                continue
+            physical_front = local >> 1
+            rank = local & 1
+            chosen_front = state.resolution_contribution_front[slot]
+            if chosen_front >= 0:
+                if chosen_front != front:
+                    continue
+            elif physical_front != front:
+                continue
+            if frontline_only and rank == 1:
+                continue
+            value += self.position_strength_fast(state, slot)
+
+        # Preserve any explicit opposing-Bond modifier from the canonical
+        # strength calculation.
+        enemy = 1 - player
+        for rank in range(2):
+            slot = slot_index(enemy, front, rank)
+            if self.slot_complete(state, slot):
+                link = state.link[slot]
+                if link >= 0:
+                    value += self.link_opposing[link]
 
         if strat >= 0 and self.strat_refuse_flank[strat]:
             if (mask == 1 and front == 1) or (mask == 8 and front == 2):
                 for rank in range(1 if frontline_only else 2):
                     slot = slot_index(player, front, rank)
-                    if state.subject[slot] >= 0:
+                    if (
+                        state.subject[slot] >= 0
+                        and not (
+                            state.resolution_suppressed_mask
+                            & (<uint16_t>1 << slot)
+                        )
+                    ):
                         formation_bonus += 1
                 value += formation_bonus
         return value
