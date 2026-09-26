@@ -39,7 +39,6 @@ class GameRules:
     battle_end_hand_limit: int | None = None
 
     pass_requires_both_acted: bool = True
-    first_passer_starts_next_battle: bool = True
     completion_command_refund: int = 0
     public_stratagems: bool = True
 
