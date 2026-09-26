@@ -2281,7 +2281,7 @@
         "duelists"
       ],
       "command_cost": 2,
-      "text": "**Deploy - Frontline only.** Rear formations in this Front do not contribute Strength while this Front is resolved.",
+      "text": "**Deploy - Frontline only.** When comparing Strength in this Front, ignore Rear formations.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2294,13 +2294,13 @@
         },
         {
           "kind": "timing",
-          "label": "FRONT RESOLUTION",
-          "text": "Rear formations in this Front do not contribute Strength while this Front is resolved."
+          "label": "COMPARE STRENGTH",
+          "text": "When comparing Strength in this Front, ignore Rear formations."
         }
       ],
       "design_rules": {
-        "combat": "frontline_only_resolution",
-        "effect": "rear_formations_in_this_front_do_not_contribute_strength"
+        "combat": "frontline_only_comparison",
+        "effect": "ignore_rear_formations_when_comparing_strength"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "draft",
