@@ -2061,12 +2061,12 @@ cdef class FastEngine:
                         flags=EFFECT_OPTIONAL,
                     )
                 if self.recover_bond_on_completion_name[state.name[slot]]:
-                    self.enqueue_effect(
-                        state, EFFECT_RECOVER, player, aux=CARD_LINK
+                    self.queue_recover_from_discard(
+                        state, player, CARD_LINK, False
                     )
                 if self.recover_story_on_completion_name[state.name[slot]]:
-                    self.enqueue_effect(
-                        state, EFFECT_RECOVER, player, aux=CARD_PLOT
+                    self.queue_recover_from_discard(
+                        state, player, CARD_PLOT, False
                     )
             for other in range((1 - player) * 8, (1 - player) * 8 + 8):
                 if (
@@ -3151,6 +3151,36 @@ cdef class FastEngine:
             ):
                 return False
         return True
+
+    cdef bint discard_has_type(
+        self,
+        FastState state,
+        int player,
+        int card_type,
+    ) noexcept:
+        cdef int i, card
+        for i in range(state.discard_len[player]):
+            card = state.discard[player][i]
+            if self.card_type[card] == card_type:
+                return True
+        return False
+
+    cdef void queue_recover_from_discard(
+        self,
+        FastState state,
+        int player,
+        int card_type,
+        bint optional=False,
+    ) except *:
+        if not self.discard_has_type(state, player, card_type):
+            return
+        self.enqueue_effect(
+            state,
+            EFFECT_RECOVER,
+            player,
+            aux=card_type,
+            flags=EFFECT_OPTIONAL if optional else 0,
+        )
 
     cdef void queue_free_maneuver(
         self,
@@ -4441,12 +4471,8 @@ cdef class FastEngine:
                     and won
                     and self.narrative_end_recover_bond[card]
                 ):
-                    self.enqueue_effect(
-                        state,
-                        EFFECT_RECOVER,
-                        player,
-                        aux=CARD_LINK,
-                        flags=EFFECT_OPTIONAL,
+                    self.queue_recover_from_discard(
+                        state, player, CARD_LINK, True
                     )
 
                 # These cards all end at Battle end whether or not their
