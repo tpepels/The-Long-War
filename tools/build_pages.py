@@ -17,7 +17,7 @@ WEB = ROOT / "web"
 DIST = ROOT / "dist"
 RULEBOOK = ROOT / "rules" / "rulebook.md"
 CARDS = ROOT / "cards" / "cards.json"
-REFERENCE_DECK = ROOT / "decks" / "reference.json"
+REFERENCE_DECK = ROOT / "decks" / "mobility-open-bonds.json"
 BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
 
 
