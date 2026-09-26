@@ -16,7 +16,7 @@ await initializeBrowserEngine({
 });
 
 const cards = JSON.parse(fs.readFileSync(path.join(root, "cards/cards.json"), "utf8"));
-const deck = JSON.parse(fs.readFileSync(path.join(root, "decks/reference.json"), "utf8"));
+const deck = JSON.parse(fs.readFileSync(path.join(root, "decks/mobility-open-bonds.json"), "utf8"));
 const contractIndex = process.argv.indexOf("--contract");
 const contractPath = contractIndex < 0
   ? path.join(root, "artifacts/browser-engine-contract.json")
