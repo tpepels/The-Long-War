@@ -561,7 +561,7 @@ class PlaySession:
         if isinstance(action, PlayStory):
             card = self.cards[action.card_id]
             title = card["title"]
-            form = str(card.get("story_form", "Narrative")).title()
+            form = str(card.get("narrative_form", "Narrative")).title()
             detail = ""
             if action.fronts:
                 detail = " beside " + ", ".join(
