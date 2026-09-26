@@ -766,6 +766,22 @@ function renderInteraction() {
     return;
   }
 
+  const effectChoices = state.legal_actions.filter(
+    (action) => action.kind === "EffectChoice"
+  );
+  if (effectChoices.length) {
+    choiceActions = effectChoices;
+    title.textContent = "Resolve card effect";
+    hint.textContent =
+      "Choose how to resolve the pending printed effect. Optional effects can be declined.";
+    cancel.hidden = true;
+    renderChoiceTray();
+    return;
+  }
+  if (choiceActions.some((action) => action.kind === "EffectChoice")) {
+    choiceActions = [];
+  }
+
   if (!selectedCardId) {
     if (stagedManeuverSource) {
       title.textContent = "Maneuver";
@@ -795,6 +811,7 @@ function renderInteraction() {
 
 function choiceLabel(action) {
   const card = cards[action.card_id];
+  if (action.kind === "EffectChoice") return action.label;
   if (action.kind === "Discard") return "Discard, then draw";
   if (card?.hero && action.kind === "PlayForce") {
     return "Deploy as Force";
@@ -918,8 +935,13 @@ function renderHand() {
 
   $("hand-title").textContent = (state.mode === "hotseat" ? "Player " + (state.viewer + 1) : "Your hand") + " · " + state.hand.length;
 
+  const resolvingEffect = state.legal_actions.some(
+    (action) => action.kind === "EffectChoice"
+  );
   hand.innerHTML = state.hand.map((cardId, index) => {
-    const playable = state.legal_actions.some((action) => action.card_id === cardId);
+    const playable = !resolvingEffect && state.legal_actions.some(
+      (action) => action.card_id === cardId
+    );
     return playCardMarkup(cardId, {
       playable,
       selected: selectedCardId === cardId && selectedHandIndex === index,
@@ -931,7 +953,9 @@ function renderHand() {
   hand.querySelectorAll("[data-hand-card]").forEach((cardEl) => {
     const cardId = cardEl.dataset.handCard;
     cardEl.addEventListener("click", () => {
-      const playable = state.legal_actions.some((a) => a.card_id === cardId);
+      const playable =
+        !state.legal_actions.some((a) => a.kind === "EffectChoice") &&
+        state.legal_actions.some((a) => a.card_id === cardId);
       if (!playable || (selectedCardId === cardId && selectedHandIndex === Number(cardEl.dataset.handIndex))) {
         openCardInspector(cardId, currentViewer(), "hand");
         return;
@@ -1247,6 +1271,8 @@ function renderActionFeedback() {
   } else if (action.kind === "Discard") {
     kicker = own ? "YOU DISCARD" : "OPPONENT DISCARDS";
     title = "Then draw 1";
+  } else if (action.kind === "EffectChoice") {
+    kicker = own ? "YOU RESOLVE AN EFFECT" : "OPPONENT RESOLVES AN EFFECT";
   } else if (action.kind === "Maneuver") {
     kicker = own ? "YOU MANEUVER" : "OPPONENT MANEUVERS";
   } else if (action.kind === "PlayForce") {
