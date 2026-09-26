@@ -3808,16 +3808,126 @@
       "design_batch": 8
     },
     {
-      "id": "the-reserve-was-committed",
-      "title": "The Reserve Was Committed",
+      "id": "no-step-back",
+      "title": "No Step Back",
       "type": "stratagem",
       "unique": false,
       "classes": [
         "battle",
-        "reserve"
+        "resolve"
       ],
       "command_cost": 2,
-      "text": "When you play this Stratagem, you may move one friendly formation from the Rear to the empty Frontline position in the same Front.",
+      "text": "When you play this Stratagem, choose a Front and place it beside that Front. **During this Battle**, when a player loses that Front, their Frontline Named Formation is driven off instead of Retreating.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "WHEN PLAYED",
+          "text": "Choose a Front and place this Stratagem beside it."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "When a player loses that Front, their Frontline Named Formation is driven off instead of Retreating."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "no_retreat_front",
+        "chosen_front": true,
+        "effect": "losing_frontline_named_driven_off_instead_of_retreating",
+        "affects": "both_players"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
+    },
+    {
+      "id": "the-center-must-hold",
+      "title": "The Center Must Hold",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "center"
+      ],
+      "command_cost": 3,
+      "text": "When you play this Stratagem, choose two adjacent Fronts. At Battle end, add your Strength across both Fronts and your opponent does the same. The player with more combined Strength wins both Fronts. If the totals are equal, both Fronts are tied.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "WHEN PLAYED",
+          "text": "Choose two adjacent Fronts."
+        },
+        {
+          "kind": "effect",
+          "label": "BATTLE END",
+          "text": "Add each player's Strength across both Fronts. Higher combined Strength wins both; equal totals tie both."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "combine_two_adjacent_fronts",
+        "chosen_fronts": 2,
+        "outcome": "higher_combined_strength_wins_both"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
+    },
+    {
+      "id": "the-flank-was-refused",
+      "title": "The Flank Was Refused",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "flank"
+      ],
+      "command_cost": 2,
+      "text": "When you play this Stratagem, choose Front 1 or Front 4. **During this Battle**, ignore the Strength of your formations in that Front. Each of your formations in the adjacent Front gets +1 Strength.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "WHEN PLAYED",
+          "text": "Choose Front 1 or Front 4."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "Ignore your formations' Strength in that Front. Each of your formations in the adjacent Front gets +1 Strength."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "refuse_flank",
+        "chosen_edge_front": true,
+        "abandoned_front_strength_ignored": true,
+        "adjacent_front_formation_strength_bonus": 1
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
+    },
+    {
+      "id": "the-line-wheeled",
+      "title": "The Line Wheeled",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "maneuver"
+      ],
+      "command_cost": 2,
+      "text": "When you play this Stratagem, choose left or right. Move any number of your formations one Front in that direction, staying in the same rank. A formation may move only if its destination position was empty before you played this Stratagem.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3826,28 +3936,35 @@
         {
           "kind": "effect",
           "label": "WHEN PLAYED",
-          "text": "You may move one friendly formation from the Rear to the empty Frontline position in the same Front."
+          "text": "Choose left or right. Move any number of your formations one Front that way, same rank, but only into positions that were empty before this Stratagem was played."
         }
       ],
       "design_rules": {
-        "stratagem": "commit_reserve",
-        "on_play": "optional_move_friendly_rear_formation_to_empty_frontline_same_front"
+        "stratagem": "wheel_line",
+        "direction_choice": [
+          "left",
+          "right"
+        ],
+        "move_any_number": true,
+        "distance_fronts": 1,
+        "same_rank": true,
+        "destination_must_have_been_empty_before_effect": true
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "draft",
       "design_batch": 9
     },
     {
-      "id": "the-ranks-were-reversed",
-      "title": "The Ranks Were Reversed",
+      "id": "the-trap-closed",
+      "title": "The Trap Closed",
       "type": "stratagem",
       "unique": false,
       "classes": [
         "battle",
-        "deployment"
+        "encirclement"
       ],
-      "command_cost": 1,
-      "text": "**During this Battle**, the next Force you play may be played in the Frontline or Rear, even if its card says **Deploy - Frontline only** or **Deploy - Rear only**.",
+      "command_cost": 3,
+      "text": "**During this Battle**, if you win both Fronts adjacent to a Front you also win, drive off the opposing Frontline Named Formation in the middle Front instead of Retreating it.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3856,114 +3973,21 @@
         {
           "kind": "continuous",
           "label": "DURING THIS BATTLE",
-          "text": "The next Force you play may be played in the Frontline or Rear, even if its card has a rank-only Deploy restriction."
+          "text": "If you win a Front and both Fronts adjacent to it, drive off the opposing Frontline Named Formation in the middle Front instead of Retreating it."
         }
       ],
       "design_rules": {
-        "stratagem": "override_next_force_deploy_rank",
-        "uses": 1,
-        "duration": "battle"
+        "stratagem": "encirclement",
+        "condition": "win_middle_and_both_adjacent_fronts",
+        "effect": "middle_opposing_frontline_named_driven_off_instead_of_retreating"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "draft",
       "design_batch": 9
     },
     {
-      "id": "the-line-was-changed",
-      "title": "The Line Was Changed",
-      "type": "stratagem",
-      "unique": false,
-      "classes": [
-        "battle",
-        "maneuver"
-      ],
-      "command_cost": 2,
-      "text": "When you play this Stratagem, you may swap two adjacent friendly formations. Neither formation needs to be Named.",
-      "rules": {},
-      "balance": {
-        "dynamic": true
-      },
-      "rule_blocks": [
-        {
-          "kind": "effect",
-          "label": "WHEN PLAYED",
-          "text": "You may swap two adjacent friendly formations. Neither formation needs to be Named."
-        }
-      ],
-      "design_rules": {
-        "stratagem": "immediate_adjacent_swap",
-        "requires_named": false
-      },
-      "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
-      "design_batch": 9
-    },
-    {
-      "id": "the-rear-guard-turned",
-      "title": "The Rear Guard Turned",
-      "type": "stratagem",
-      "unique": false,
-      "classes": [
-        "battle",
-        "retreat"
-      ],
-      "command_cost": 2,
-      "text": "**During this Battle**, the first time one of your Named Formations **Retreats**, you may **Maneuver** one adjacent friendly Named Formation for 0 Command.",
-      "rules": {},
-      "balance": {
-        "dynamic": true
-      },
-      "rule_blocks": [
-        {
-          "kind": "trigger",
-          "label": "FIRST RETREAT",
-          "text": "The first time one of your Named Formations **Retreats**, you may **Maneuver** one adjacent friendly Named Formation for 0 Command."
-        }
-      ],
-      "design_rules": {
-        "stratagem": "cover_retreat",
-        "trigger_once": "first_friendly_named_retreat",
-        "effect": "optional_zero_cost_adjacent_friendly_named_maneuver",
-        "duration": "battle"
-      },
-      "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
-      "design_batch": 9
-    },
-    {
-      "id": "they-withdrew-in-order",
-      "title": "They Withdrew in Order",
-      "type": "stratagem",
-      "unique": false,
-      "classes": [
-        "battle",
-        "withdrawal"
-      ],
-      "command_cost": 2,
-      "text": "**During this Battle**, the first time one of your Rear Named Formations would be driven off, you may move it one Front left or right if that Rear position is empty. If you do, it is not driven off.",
-      "rules": {},
-      "balance": {
-        "dynamic": true
-      },
-      "rule_blocks": [
-        {
-          "kind": "replacement",
-          "label": "FIRST DRIVEN OFF",
-          "text": "The first time one of your Rear Named Formations would be driven off, you may move it one Front left or right to an empty Rear position instead."
-        }
-      ],
-      "design_rules": {
-        "stratagem": "orderly_withdrawal",
-        "trigger_once": "first_rear_named_would_be_driven_off",
-        "replacement": "optional_sideways_rear_move_if_empty"
-      },
-      "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
-      "design_batch": 9
-    },
-    {
-      "id": "the-blow-fell-elsewhere",
-      "title": "The Blow Fell Elsewhere",
+      "id": "they-let-them-through",
+      "title": "They Let Them Through",
       "type": "stratagem",
       "unique": false,
       "classes": [
@@ -3971,7 +3995,7 @@
         "feint"
       ],
       "command_cost": 2,
-      "text": "At Battle end, before comparing Strength, choose one of your Forces and one adjacent Front. Count that Force's Strength only in the chosen Front this Battle.",
+      "text": "At Battle end, before comparing Strength, you may swap your Frontline and Rear formations in one Front. Move all Bonds and Names with their Forces.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3980,52 +4004,53 @@
         {
           "kind": "effect",
           "label": "BATTLE END",
-          "text": "Before comparing Strength, choose one of your Forces and one adjacent Front. Count that Force's Strength only in the chosen Front this Battle."
+          "text": "Before comparing Strength, you may swap your Frontline and Rear formations in one Front. Move all Bonds and Names with their Forces."
         }
       ],
       "design_rules": {
-        "stratagem": "redirect_force_strength",
+        "stratagem": "feigned_retreat",
         "timing": "battle_end_before_strength_comparison",
-        "target": "one_friendly_force",
-        "destination": "adjacent_front"
+        "effect": "optional_swap_friendly_frontline_and_rear_formations_one_front"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "draft",
       "design_batch": 9
     },
     {
-      "id": "the-rear-was-screened",
-      "title": "The Rear Was Screened",
+      "id": "all-reserves-forward",
+      "title": "All Reserves Forward",
       "type": "stratagem",
       "unique": false,
       "classes": [
         "battle",
-        "defence"
+        "reserve"
       ],
       "command_cost": 2,
-      "text": "**During this Battle**, always count Strength from your Rear formations, even if an opponent's card says to ignore it.",
+      "text": "When you play this Stratagem, you may move any number of your Rear formations into the empty Frontline position in their own Front. The first move costs 0 Command. Pay 1 Command for each additional formation you move.",
       "rules": {},
       "balance": {
         "dynamic": true
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "DURING THIS BATTLE",
-          "text": "Always count Strength from your Rear formations, even if an opponent's card says to ignore it."
+          "kind": "effect",
+          "label": "WHEN PLAYED",
+          "text": "Move any number of Rear formations into empty Frontline positions in their own Fronts. First move costs 0 Command; each additional move costs 1 Command."
         }
       ],
       "design_rules": {
-        "stratagem": "protect_rear_strength_from_ignore",
-        "duration": "battle"
+        "stratagem": "all_reserves_forward",
+        "first_move_extra_cost": 0,
+        "additional_move_extra_cost": 1,
+        "destination": "empty_frontline_same_front"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "draft",
       "design_batch": 9
     },
     {
-      "id": "the-countermarch-began",
-      "title": "The Countermarch Began",
+      "id": "the-battle-turned-east",
+      "title": "The Battle Turned East",
       "type": "stratagem",
       "unique": false,
       "classes": [
@@ -4033,23 +4058,30 @@
         "maneuver"
       ],
       "command_cost": 2,
-      "text": "**During this Battle**, the first time your opponent **Maneuvers**, your next **Maneuver** costs 0 Command.",
+      "text": "When you play this Stratagem, choose left or right. **During this Battle**, each of your Named Formations may Maneuver once for 0 Command if that Maneuver moves it in the chosen direction.",
       "rules": {},
       "balance": {
         "dynamic": true
       },
       "rule_blocks": [
         {
-          "kind": "trigger",
-          "label": "FIRST ENEMY MANEUVER",
-          "text": "The first time your opponent **Maneuvers**, your next **Maneuver** costs 0 Command."
+          "kind": "property",
+          "label": "WHEN PLAYED",
+          "text": "Choose left or right."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "Each of your Named Formations may Maneuver once for 0 Command if it moves in the chosen direction."
         }
       ],
       "design_rules": {
-        "stratagem": "countermarch",
-        "trigger_once": "first_opponent_maneuver",
-        "effect": "next_own_maneuver_cost_0",
-        "duration": "battle"
+        "stratagem": "battle_turns_direction",
+        "direction_choice": [
+          "left",
+          "right"
+        ],
+        "free_maneuver_once_per_named_formation": true
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "draft",
