@@ -620,6 +620,7 @@ cdef class FastEngine:
     cdef uint8_t capture_retreating_bond[MAX_CARDS]
     cdef uint8_t combat_frontline_only[MAX_CARDS]
     cdef uint8_t completion_free_maneuver_self[MAX_CARDS]
+    cdef uint8_t after_maneuver_free_adjacent[MAX_CARDS]
     cdef uint8_t completion_swap_adjacent[MAX_CARDS]
     cdef uint8_t iria_name[MAX_CARDS]
     cdef uint8_t skirmisher_contribution[MAX_CARDS]
@@ -765,6 +766,7 @@ cdef class FastEngine:
         memset(self.capture_retreating_bond, 0, sizeof(self.capture_retreating_bond))
         memset(self.combat_frontline_only, 0, sizeof(self.combat_frontline_only))
         memset(self.completion_free_maneuver_self, 0, sizeof(self.completion_free_maneuver_self))
+        memset(self.after_maneuver_free_adjacent, 0, sizeof(self.after_maneuver_free_adjacent))
         memset(self.completion_swap_adjacent, 0, sizeof(self.completion_swap_adjacent))
         memset(self.iria_name, 0, sizeof(self.iria_name))
         memset(self.skirmisher_contribution, 0, sizeof(self.skirmisher_contribution))
@@ -1036,6 +1038,8 @@ cdef class FastEngine:
                 self.completion_swap_adjacent[code] = 1
             if (name_design.get("on_completion") or {}).get("effect") == "free_maneuver_self":
                 self.completion_free_maneuver_self[code] = 1
+            if (force_design.get("after_maneuver") or {}).get("effect") == "free_maneuver_adjacent_friendly_named_formation":
+                self.after_maneuver_free_adjacent[code] = 1
             if name_design.get("on_completion") == "return_one_bond_from_discard_to_hand":
                 self.recover_bond_on_completion_name[code] = 1
             if name_design.get("on_completion") == "return_one_story_from_discard_to_hand":
@@ -2008,7 +2012,39 @@ cdef class FastEngine:
             self.resolve_completion_effect_fast(
                 state, player, state.name[slot], front
             )
-            self.resolve_named_narratives(state, player)
+            if state.name[slot] >= 0:
+                if self.completion_free_maneuver_self[state.name[slot]]:
+                    self.queue_free_maneuver(
+                        state, player, <uint16_t>(1 << slot), True
+                    )
+                if self.completion_swap_adjacent[state.name[slot]]:
+                    self.enqueue_effect(
+                        state,
+                        EFFECT_SWAP,
+                        player,
+                        source_mask=<uint16_t>(1 << slot),
+                        dest_mask=self.adjacent_formation_mask(
+                            state, player, slot, False
+                        ),
+                        flags=EFFECT_OPTIONAL,
+                    )
+                if self.recover_bond_on_completion_name[state.name[slot]]:
+                    self.enqueue_effect(
+                        state, EFFECT_RECOVER, player, aux=CARD_LINK
+                    )
+                if self.recover_story_on_completion_name[state.name[slot]]:
+                    self.enqueue_effect(
+                        state, EFFECT_RECOVER, player, aux=CARD_PLOT
+                    )
+            for other in range((1 - player) * 8, (1 - player) * 8 + 8):
+                if (
+                    front_from_slot(other) == front
+                    and state.name[other] >= 0
+                    and state.subject[other] >= 0
+                    and self.iria_name[state.name[other]]
+                ):
+                    state.free_maneuver_available[1 - player] = 1
+            self.resolve_named_narratives(state, player, slot)
 
     cdef inline bint opponent_blocks_card_move_into_front(
         self,
@@ -2289,13 +2325,16 @@ cdef class FastEngine:
             for source in range(player * 8, player * 8 + 8):
                 if not (source_mask & (1 << source)):
                     continue
-                dest = state.pending_aux[0]
-                if dest < 0:
-                    continue
-                if state.link[source] >= 0 and state.link[dest] < 0:
-                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, state.link[source], source, dest, player, kind))
-                if state.name[source] >= 0 and state.name[dest] < 0:
-                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, state.name[source], source, dest, player, kind))
+                for dest in range(player * 8, player * 8 + 8):
+                    if state.pending_aux[0] >= 0:
+                        if dest != state.pending_aux[0]:
+                            continue
+                    elif not (dest_mask & (1 << dest)):
+                        continue
+                    if state.link[source] >= 0 and state.link[dest] < 0:
+                        n = _append_action(actions, n, encode_action(TYPE_EFFECT, state.link[source], source, dest, player, kind))
+                    if state.name[source] >= 0 and state.name[dest] < 0:
+                        n = _append_action(actions, n, encode_action(TYPE_EFFECT, state.name[source], source, dest, player, kind))
         elif kind == EFFECT_SUCCESSION:
             source = state.pending_source[0]
             for dest in range(player * 8, player * 8 + 8):
@@ -3013,12 +3052,134 @@ cdef class FastEngine:
         self.compact_ongoing_stories(state, controller)
         self.append_discard(state, controller, card, True)
 
+    cdef uint16_t named_formation_mask(
+        self,
+        FastState state,
+        int player,
+        int exclude=-1,
+    ) noexcept:
+        cdef int slot
+        cdef uint16_t mask = 0
+        for slot in range(player * 8, player * 8 + 8):
+            if slot != exclude and self.slot_complete(state, slot):
+                mask |= <uint16_t>(1 << slot)
+        return mask
+
+    cdef uint16_t adjacent_formation_mask(
+        self,
+        FastState state,
+        int player,
+        int slot,
+        bint named_only=False,
+    ) noexcept:
+        cdef int front = front_from_slot(slot)
+        cdef int rank = rank_from_slot(slot)
+        cdef int other
+        cdef uint16_t mask = 0
+        if front > 0:
+            other = slot_index(player, front - 1, rank)
+            if state.subject[other] >= 0 and (not named_only or self.slot_complete(state, other)):
+                mask |= <uint16_t>(1 << other)
+        if front < 3:
+            other = slot_index(player, front + 1, rank)
+            if state.subject[other] >= 0 and (not named_only or self.slot_complete(state, other)):
+                mask |= <uint16_t>(1 << other)
+        return mask
+
+    cdef uint16_t adjacent_empty_mask(
+        self,
+        FastState state,
+        int player,
+        int slot,
+    ) noexcept:
+        cdef int front = front_from_slot(slot)
+        cdef int rank = rank_from_slot(slot)
+        cdef int other
+        cdef uint16_t mask = 0
+        if front > 0:
+            other = slot_index(player, front - 1, rank)
+            if self.slot_is_empty(state, other):
+                mask |= <uint16_t>(1 << other)
+        if front < 3:
+            other = slot_index(player, front + 1, rank)
+            if self.slot_is_empty(state, other):
+                mask |= <uint16_t>(1 << other)
+        return mask
+
+    cdef bint force_in_all_fronts(self, FastState state, int player) noexcept:
+        cdef int front
+        for front in range(4):
+            if (
+                state.subject[slot_index(player, front, 0)] < 0
+                and state.subject[slot_index(player, front, 1)] < 0
+            ):
+                return False
+        return True
+
+    cdef void queue_free_maneuver(
+        self,
+        FastState state,
+        int player,
+        uint16_t source_mask,
+        bint optional=True,
+    ) except *:
+        if source_mask == 0:
+            return
+        self.enqueue_effect(
+            state,
+            EFFECT_FREE_MANEUVER,
+            player,
+            source_mask=source_mask,
+            flags=EFFECT_OPTIONAL if optional else 0,
+        )
+
+    cdef void queue_move_to_mask(
+        self,
+        FastState state,
+        int player,
+        uint16_t source_mask,
+        uint16_t dest_mask,
+        bint optional=True,
+    ) except *:
+        if source_mask == 0 or dest_mask == 0:
+            return
+        self.enqueue_effect(
+            state,
+            EFFECT_MOVE,
+            player,
+            source_mask=source_mask,
+            dest_mask=dest_mask,
+            flags=(EFFECT_OPTIONAL if optional else 0) | EFFECT_CARD_MOVE,
+        )
+
+    cdef void gain_command_from_narrative(
+        self,
+        FastState state,
+        int player,
+        int amount,
+    ) except *:
+        cdef int front, slot, force
+        cdef uint16_t named
+        if amount <= 0:
+            return
+        self.gain_command_fast(state, player, amount)
+        named = self.named_formation_mask(state, player)
+        if named == 0:
+            return
+        for front in range(4):
+            slot = slot_index(player, front, 1)
+            force = state.subject[slot]
+            if force >= 0 and self.banner_singers_force[force]:
+                self.queue_free_maneuver(state, player, named, True)
+
     cdef void resolve_named_narratives(
         self,
         FastState state,
         int named_player,
-    ) noexcept:
-        cdef int controller, story_slot, ix, card, trigger, amount
+        int named_slot,
+    ) except *:
+        cdef int controller, story_slot, ix, card, trigger, amount, secondary
+        cdef uint16_t sources
         for controller in range(2):
             story_slot = self.ongoing_story_limit - 1
             while story_slot >= 0:
@@ -3035,7 +3196,15 @@ cdef class FastEngine:
                     ):
                         amount = self.narrative_trigger_gain[card]
                         if amount:
-                            self.gain_command_fast(state, controller, amount)
+                            self.gain_command_from_narrative(state, controller, amount)
+                        secondary = self.narrative_secondary[card]
+                        if secondary == NARR_SECONDARY_FREE_TRIGGERED and controller == named_player:
+                            self.queue_free_maneuver(
+                                state, controller, <uint16_t>(1 << named_slot), True
+                            )
+                        elif secondary == NARR_SECONDARY_FREE_ANY_NAMED:
+                            sources = self.named_formation_mask(state, controller)
+                            self.queue_free_maneuver(state, controller, sources, True)
                         if self.narrative_trigger_discard[card]:
                             self.discard_ongoing_narrative(
                                 state, controller, story_slot
@@ -3046,8 +3215,10 @@ cdef class FastEngine:
         self,
         FastState state,
         int player,
-    ) noexcept:
+        int retreated_slot,
+    ) except *:
         cdef int story_slot, ix, card, amount
+        cdef uint16_t destinations
         story_slot = self.ongoing_story_limit - 1
         while story_slot >= 0:
             ix = player * 4 + story_slot
@@ -3058,7 +3229,16 @@ cdef class FastEngine:
             ):
                 amount = self.narrative_trigger_gain[card]
                 if amount:
-                    self.gain_command_fast(state, player, amount)
+                    self.gain_command_from_narrative(state, player, amount)
+                if self.narrative_secondary[card] == NARR_SECONDARY_SIDEWAYS_TRIGGERED:
+                    destinations = self.adjacent_empty_mask(state, player, retreated_slot)
+                    self.queue_move_to_mask(
+                        state,
+                        player,
+                        <uint16_t>(1 << retreated_slot),
+                        destinations,
+                        True,
+                    )
                 if self.narrative_trigger_discard[card]:
                     self.discard_ongoing_narrative(
                         state, player, story_slot
@@ -3093,7 +3273,14 @@ cdef class FastEngine:
             ):
                 amount = self.narrative_trigger_gain[card]
                 if amount:
-                    self.gain_command_fast(state, controller, amount)
+                    self.gain_command_from_narrative(state, controller, amount)
+                if self.narrative_secondary[card] == NARR_SECONDARY_FREE_ANY_NAMED:
+                    self.queue_free_maneuver(
+                        state,
+                        controller,
+                        self.named_formation_mask(state, controller),
+                        True,
+                    )
                 if self.narrative_trigger_discard[card]:
                     self.discard_ongoing_narrative(
                         state, controller, story_slot
@@ -3104,8 +3291,10 @@ cdef class FastEngine:
         self,
         FastState state,
         int player,
-    ) noexcept:
+        int vacated_slot,
+    ) except *:
         cdef int story_slot, ix, card, amount
+        cdef uint16_t sources
         for story_slot in range(self.ongoing_story_limit):
             ix = player * 4 + story_slot
             card = state.scheme[ix]
@@ -3115,7 +3304,162 @@ cdef class FastEngine:
             if amount <= 0:
                 continue
             state.scheme_used[ix] = 1
-            self.gain_command_fast(state, player, amount)
+            self.gain_command_from_narrative(state, player, amount)
+            if self.narrative_secondary[card] == NARR_SECONDARY_MOVE_VACATED:
+                sources = self.adjacent_formation_mask(
+                    state, player, vacated_slot, False
+                )
+                self.queue_move_to_mask(
+                    state,
+                    player,
+                    sources,
+                    <uint16_t>(1 << vacated_slot),
+                    True,
+                )
+
+    cdef void resolve_force_move_triggers(
+        self,
+        FastState state,
+        int player,
+        int old_slot,
+        int new_slot,
+    ) except *:
+        cdef int bond, front, rank, other
+        cdef uint16_t destinations = 0
+        if new_slot < 0 or state.subject[new_slot] < 0:
+            return
+        bond = state.link[new_slot]
+        if bond < 0 or state.name[new_slot] >= 0 or not self.carried_oath_bond[bond]:
+            return
+        front = front_from_slot(new_slot)
+        rank = rank_from_slot(new_slot)
+        if front > 0:
+            other = slot_index(player, front - 1, rank)
+            if state.subject[other] >= 0 and state.link[other] < 0:
+                destinations |= <uint16_t>(1 << other)
+        if front < 3:
+            other = slot_index(player, front + 1, rank)
+            if state.subject[other] >= 0 and state.link[other] < 0:
+                destinations |= <uint16_t>(1 << other)
+        if destinations:
+            self.enqueue_effect(
+                state,
+                EFFECT_TRANSFER_COMPONENT,
+                player,
+                source_mask=<uint16_t>(1 << new_slot),
+                dest_mask=destinations,
+                flags=EFFECT_OPTIONAL,
+            )
+
+    cdef void resolve_maneuver_triggers(
+        self,
+        FastState state,
+        int player,
+        int vacated_slot,
+        int arrived_slot,
+        bint moved_into_empty,
+    ) except *:
+        cdef int force = state.subject[arrived_slot]
+        cdef int name = state.name[arrived_slot]
+        cdef int front = front_from_slot(arrived_slot)
+        cdef int rank = rank_from_slot(arrived_slot)
+        cdef int opponent = 1 - player
+        cdef int other, other_name, bond
+        cdef uint16_t sources, destinations, swap_mask
+
+        self.resolve_force_move_triggers(state, player, vacated_slot, arrived_slot)
+
+        if moved_into_empty:
+            self.resolve_maneuver_into_empty_narratives(
+                state, player, vacated_slot
+            )
+            if force >= 0 and self.after_empty_follow_move[force]:
+                sources = self.adjacent_formation_mask(
+                    state, player, vacated_slot, False
+                )
+                self.queue_move_to_mask(
+                    state, player, sources, <uint16_t>(1 << vacated_slot), True
+                )
+            if force >= 0 and self.after_empty_extra_move_force[force]:
+                destinations = self.adjacent_empty_mask(
+                    state, player, arrived_slot
+                )
+                self.queue_move_to_mask(
+                    state,
+                    player,
+                    <uint16_t>(1 << arrived_slot),
+                    destinations,
+                    True,
+                )
+            sources = self.adjacent_formation_mask(
+                state, player, vacated_slot, False
+            )
+            for other in range(player * 8, player * 8 + 8):
+                if not (sources & (1 << other)):
+                    continue
+                bond = state.link[other]
+                if bond >= 0 and self.kept_pace_bond[bond]:
+                    self.queue_move_to_mask(
+                        state,
+                        player,
+                        <uint16_t>(1 << other),
+                        <uint16_t>(1 << vacated_slot),
+                        True,
+                    )
+        elif force >= 0 and self.after_swap_free_other[force]:
+            if state.subject[vacated_slot] >= 0:
+                self.queue_free_maneuver(
+                    state, player, <uint16_t>(1 << vacated_slot), True
+                )
+
+        if force >= 0 and self.after_maneuver_free_adjacent[force]:
+            self.queue_free_maneuver(
+                state,
+                player,
+                self.adjacent_formation_mask(
+                    state, player, arrived_slot, True
+                ),
+                True,
+            )
+
+        if name >= 0 and self.teren_name[name]:
+            swap_mask = 0
+            for other in range(player * 8, player * 8 + 8):
+                if other != arrived_slot and state.subject[other] >= 0:
+                    swap_mask |= <uint16_t>(1 << other)
+            if swap_mask:
+                self.enqueue_effect(
+                    state,
+                    EFFECT_SWAP,
+                    player,
+                    source_mask=swap_mask,
+                    dest_mask=swap_mask,
+                    flags=EFFECT_OPTIONAL | EFFECT_ADJACENT_PAIR,
+                )
+
+        if name >= 0 and self.torren_name[name] and self.force_in_all_fronts(state, player):
+            self.queue_free_maneuver(
+                state,
+                player,
+                self.named_formation_mask(state, player, arrived_slot),
+                True,
+            )
+
+        for other in range(opponent * 8, opponent * 8 + 8):
+            other_name = state.name[other]
+            if other_name < 0 or state.subject[other] < 0:
+                continue
+            if front_from_slot(other) == front and self.mara_name[other_name]:
+                self.queue_free_maneuver(
+                    state, opponent, <uint16_t>(1 << other), True
+                )
+            if (
+                abs(front_from_slot(other) - front) == 1
+                and self.reactive_maneuver_name[other_name]
+            ):
+                self.queue_free_maneuver(
+                    state, opponent, <uint16_t>(1 << other), True
+                )
 
     cdef void resolve_plot_target_scheme(self, FastState state, int actor, int pos):
         cdef int opponent = 1 - actor
@@ -3348,7 +3692,7 @@ cdef class FastEngine:
         """Move a formation by Retreat and apply mandatory Retreat text."""
         cdef int bond = state.link[source]
         self.move_slot(state, source, destination)
-        self.resolve_retreat_narratives(state, player)
+        self.resolve_retreat_narratives(state, player, destination)
         if bond >= 0 and self.retreat_command_gain[bond] > 0:
             self.gain_command_fast(
                 state,
@@ -3909,7 +4253,7 @@ cdef class FastEngine:
             if state.free_maneuver_available[actor]:
                 state.free_maneuver_available[actor] = 0
             if target:
-                self.resolve_maneuver_into_empty_narratives(state, actor)
+                self.resolve_maneuver_into_empty_narratives(state, actor, pos)
             self.resolve_force_pair_narratives(state, actor)
             self.resolve_maneuver_triggers(state, actor, pos, dest, bool(target))
             self.resume_pending_flow(state)
