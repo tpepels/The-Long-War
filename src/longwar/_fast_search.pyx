@@ -392,10 +392,7 @@ cdef class FastEngine:
     cdef public int max_deck_size
     cdef int n_cards
     cdef int opening_hand_size
-    cdef bint draw_action_enabled
-    cdef bint recycle_between_battles
     cdef bint command_enabled
-    cdef int battle_command_gain
     cdef int command_cap
     cdef object command_recovery_schedule
     cdef int32_t command_recovery_values[MAX_RECOVERY_SCHEDULE]
@@ -410,8 +407,6 @@ cdef class FastEngine:
     cdef bint paid_draw_enabled
     cdef int paid_draw_command_cost
     cdef bint paid_draw_consumes_operation
-    cdef int automatic_draw_hand_limit
-    cdef int battle_end_hand_limit
     cdef bint cycle_enabled
     cdef int completion_command_refund
 
@@ -532,10 +527,7 @@ cdef class FastEngine:
         self.card_ids = tuple(engine.cards)
         self.n_cards = len(self.card_ids)
         self.opening_hand_size = int(engine.opening_hand_size)
-        self.draw_action_enabled = bool(engine.draw_action_enabled)
-        self.recycle_between_battles = bool(engine.recycle_between_battles)
         self.command_enabled = bool(engine.command_enabled)
-        self.battle_command_gain = int(engine.battle_command_gain)
         self.command_cap = int(engine.command_cap)
         self.command_recovery_schedule = tuple(engine.command_recovery_schedule)
         if len(self.command_recovery_schedule) > MAX_RECOVERY_SCHEDULE:
@@ -560,21 +552,11 @@ cdef class FastEngine:
         self.paid_draw_consumes_operation = bool(
             engine.paid_draw_consumes_operation
         )
-        self.automatic_draw_hand_limit = (
-            -1
-            if engine.automatic_draw_hand_limit is None
-            else int(engine.automatic_draw_hand_limit)
-        )
-        self.battle_end_hand_limit = (
-            -1
-            if engine.battle_end_hand_limit is None
-            else int(engine.battle_end_hand_limit)
-        )
         self.cycle_enabled = bool(engine.cycle_enabled)
         self.completion_command_refund = int(engine.completion_command_refund)
         if self.n_cards > MAX_CARDS:
             raise ValueError(f"The native engine supports at most {MAX_CARDS} card identities")
-        if max(engine.starting_command, self.command_cap, self.battle_command_gain) > 32767:
+        if max(engine.starting_command, self.command_cap) > 32767:
             raise ValueError("Command settings exceed the native signed 16-bit capacity")
         self.id_to_code = {card_id: i for i, card_id in enumerate(self.card_ids)}
 
@@ -1653,31 +1635,6 @@ cdef class FastEngine:
 
     cdef inline uint32_t next_shuffle_seed(self, uint32_t seed) noexcept:
         return seed * <uint32_t>1664525 + <uint32_t>1013904223
-
-    cdef void recycle_non_hand_cards(self, FastState state):
-        cdef int player, i, j, card, target
-        cdef uint32_t seed = state.shuffle_seed
-        for player in range(2):
-            for i in range(state.discard_len[player]):
-                card = state.discard[player][i]
-                state.deck[player][state.deck_len[player]] = card
-                state.deck_len[player] += 1
-                state.deck_counts[player][card] += 1
-            state.discard_len[player] = 0
-
-            i = state.deck_len[player] - 1
-            while i > 0:
-                seed = self.next_shuffle_seed(seed)
-                j = seed % (i + 1)
-                card = state.deck[player][i]
-                state.deck[player][i] = state.deck[player][j]
-                state.deck[player][j] = card
-                i -= 1
-
-            target = self.opening_hand_size - state.hand_len[player]
-            if target > 0:
-                self.draw(state, player, target)
-        state.shuffle_seed = seed
 
     cdef void discard_slot_components(
         self,

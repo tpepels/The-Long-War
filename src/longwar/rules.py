@@ -12,15 +12,10 @@ class GameRules:
     """
 
     opening_hand_size: int = 10
-    draw_action_enabled: bool = False
     completion_draw_names: tuple[str, ...] = ()
-    recycle_between_battles: bool = False
 
     command_enabled: bool = True
     starting_command: int = 20
-    # Deprecated compatibility knobs are retained until the browser migration
-    # is complete, but canonical recovery uses command_recovery_schedule.
-    battle_command_gain: int = 0
     command_cap: int = 20
     command_recovery_schedule: tuple[int, ...] = (10, 7, 5, 4, 3, 2, 1)
     command_collapse_threshold: int = 5
@@ -35,8 +30,6 @@ class GameRules:
     paid_draw_enabled: bool = False
     paid_draw_command_cost: int = 1
     paid_draw_consumes_operation: bool = True
-    automatic_draw_hand_limit: int | None = 10
-    battle_end_hand_limit: int | None = None
 
     completion_command_refund: int = 0
 
@@ -46,9 +39,7 @@ class GameRules:
             if isinstance(field.default, bool):
                 if type(value) is not bool:
                     raise ValueError(f"{name} must be boolean")
-            elif isinstance(field.default, int) or name.endswith("hand_limit"):
-                if value is None and name.endswith("hand_limit"):
-                    continue
+            elif isinstance(field.default, int):
                 if type(value) is not int:
                     raise ValueError(f"{name} must be an integer")
         if not isinstance(self.completion_draw_names, tuple) or any(
@@ -67,7 +58,6 @@ class GameRules:
             raise ValueError("opening_hand_size must be positive")
         if min(
             self.starting_command,
-            self.battle_command_gain,
             self.command_cap,
             self.cycle_command_cost,
             self.paid_draw_command_cost,
@@ -86,16 +76,6 @@ class GameRules:
             )
         if self.paid_draw_enabled and not self.command_enabled:
             raise ValueError("paid_draw_enabled requires Command mode")
-        for name, value in (
-            ("automatic_draw_hand_limit", self.automatic_draw_hand_limit),
-            ("battle_end_hand_limit", self.battle_end_hand_limit),
-        ):
-            if value is not None and value < 1:
-                raise ValueError(f"{name} must be positive when enabled")
-        if self.automatic_draw_hand_limit is not None and not self.automatic_draw:
-            raise ValueError(
-                "automatic_draw_hand_limit requires automatic_draw"
-            )
 
     @classmethod
     def standard(cls) -> "GameRules":

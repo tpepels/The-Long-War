@@ -82,12 +82,9 @@ class GameEngine:
         *,
         rules: GameRules | None = None,
         opening_hand_size: int = 10,
-        draw_action_enabled: bool = False,
         completion_draw_names: Iterable[str] = (),
-        recycle_between_battles: bool = False,
         command_enabled: bool = True,
         starting_command: int = 20,
-        battle_command_gain: int = 0,
         command_cap: int = 20,
         cycle_command_cost: int = 1,
         reshuffle_on_empty: bool = True,
@@ -95,8 +92,6 @@ class GameEngine:
         paid_draw_enabled: bool = False,
         paid_draw_command_cost: int = 1,
         paid_draw_consumes_operation: bool = True,
-        automatic_draw_hand_limit: int | None = 10,
-        battle_end_hand_limit: int | None = None,
         cycle_enabled: bool = False,
         completion_command_refund: int = 0,
     ):
@@ -104,12 +99,9 @@ class GameEngine:
         if rules is None:
             rules = GameRules(
                 opening_hand_size=opening_hand_size,
-                draw_action_enabled=draw_action_enabled,
                 completion_draw_names=tuple(completion_draw_names),
-                recycle_between_battles=recycle_between_battles,
                 command_enabled=command_enabled,
                 starting_command=starting_command,
-                battle_command_gain=battle_command_gain,
                 command_cap=command_cap,
                 cycle_command_cost=cycle_command_cost,
                 reshuffle_on_empty=reshuffle_on_empty,
@@ -117,8 +109,6 @@ class GameEngine:
                 paid_draw_enabled=paid_draw_enabled,
                 paid_draw_command_cost=paid_draw_command_cost,
                 paid_draw_consumes_operation=paid_draw_consumes_operation,
-                automatic_draw_hand_limit=automatic_draw_hand_limit,
-                battle_end_hand_limit=battle_end_hand_limit,
                 cycle_enabled=cycle_enabled,
                 completion_command_refund=completion_command_refund,
             )
@@ -128,12 +118,9 @@ class GameEngine:
         self.cards = card_index(card_data)
 
         self.opening_hand_size = rules.opening_hand_size
-        self.draw_action_enabled = rules.draw_action_enabled
         self.completion_draw_names = frozenset(rules.completion_draw_names)
-        self.recycle_between_battles = rules.recycle_between_battles
         self.command_enabled = rules.command_enabled
         self.starting_command = rules.starting_command
-        self.battle_command_gain = rules.battle_command_gain
         self.command_cap = rules.command_cap
         self.command_recovery_schedule = rules.command_recovery_schedule
         self.command_collapse_threshold = rules.command_collapse_threshold
@@ -146,8 +133,6 @@ class GameEngine:
         self.paid_draw_enabled = rules.paid_draw_enabled
         self.paid_draw_command_cost = rules.paid_draw_command_cost
         self.paid_draw_consumes_operation = rules.paid_draw_consumes_operation
-        self.automatic_draw_hand_limit = rules.automatic_draw_hand_limit
-        self.battle_end_hand_limit = rules.battle_end_hand_limit
         self.cycle_enabled = rules.cycle_enabled
         self.completion_command_refund = rules.completion_command_refund
 
