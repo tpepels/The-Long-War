@@ -430,6 +430,37 @@ def test_breakthrough_drives_off_frontline_named_instead_of_retreating() -> None
     assert state.slot(1, pos(0, Rank.REAR)).force is None
 
 
+def test_open_bond_first_maneuver_is_free_only_once_per_battle() -> None:
+    engine, state = setup_state()
+    source = pos(1, Rank.FRONT)
+    right = pos(2, Rank.FRONT)
+    state.slot(0, source).force = "the-unnamed-host"
+    state.slot(0, source).bond = "followed"
+
+    maneuver = Maneuver(source, right)
+    assert maneuver in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, maneuver) == 0
+
+    engine.apply(state, maneuver)
+    state.active_player = 0
+    state.pending_draw_discard_for = None
+    state.pending_draw_count = 0
+    state.pending_draw_finish_operation = False
+    back = Maneuver(right, source)
+    assert back in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, back) == 1
+
+
+def test_arel_first_maneuver_is_free_while_controller_has_empty_front() -> None:
+    engine, state = setup_state()
+    source = pos(1, Rank.FRONT)
+    right = pos(2, Rank.FRONT)
+    make_named(state, 0, source, name="arel")
+
+    maneuver = Maneuver(source, right)
+    assert engine.command_cost_for_action(state, maneuver) == 0
+
+
 def test_battle_only_temporary_strength_resets_after_battle() -> None:
     engine, state = setup_state()
     target = pos(0, Rank.FRONT)

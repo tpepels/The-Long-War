@@ -236,6 +236,7 @@ cdef class FastState:
     cdef int8_t link[SLOT_COUNT]
     cdef int8_t name[SLOT_COUNT]
     cdef int16_t temporary[SLOT_COUNT]
+    cdef uint8_t maneuver_count[SLOT_COUNT]
 
     cdef int8_t scheme[SCHEME_COUNT]
     cdef uint8_t scheme_revealed[SCHEME_COUNT]
@@ -304,6 +305,7 @@ cdef class FastState:
         memset(self.link, 0xff, sizeof(self.link))
         memset(self.name, 0xff, sizeof(self.name))
         memset(self.temporary, 0, sizeof(self.temporary))
+        memset(self.maneuver_count, 0, sizeof(self.maneuver_count))
         memset(self.scheme, 0xff, sizeof(self.scheme))
         memset(self.scheme_revealed, 0, sizeof(self.scheme_revealed))
         memset(self.scheme_front_mask, 0, sizeof(self.scheme_front_mask))
@@ -368,6 +370,7 @@ cdef class FastState:
         memcpy(self.link, other.link, sizeof(self.link))
         memcpy(self.name, other.name, sizeof(self.name))
         memcpy(self.temporary, other.temporary, sizeof(self.temporary))
+        memcpy(self.maneuver_count, other.maneuver_count, sizeof(self.maneuver_count))
         memcpy(self.scheme, other.scheme, sizeof(self.scheme))
         memcpy(self.scheme_revealed, other.scheme_revealed, sizeof(self.scheme_revealed))
         memcpy(self.scheme_front_mask, other.scheme_front_mask, sizeof(self.scheme_front_mask))
@@ -464,6 +467,8 @@ cdef class FastEngine:
     cdef uint8_t bond_maneuver_adjacent_hero[MAX_CARDS]
     cdef uint8_t force_breakthrough[MAX_CARDS]
     cdef uint8_t name_breakthrough[MAX_CARDS]
+    cdef uint8_t first_maneuver_free[MAX_CARDS]
+    cdef uint8_t first_maneuver_free_empty_front[MAX_CARDS]
     cdef uint8_t immobile_force[MAX_CARDS]
     cdef uint8_t cannot_swap_target[MAX_CARDS]
     cdef uint8_t catchup_zero_cost[MAX_CARDS]
@@ -553,6 +558,8 @@ cdef class FastEngine:
         memset(self.bond_maneuver_adjacent_hero, 0, sizeof(self.bond_maneuver_adjacent_hero))
         memset(self.force_breakthrough, 0, sizeof(self.force_breakthrough))
         memset(self.name_breakthrough, 0, sizeof(self.name_breakthrough))
+        memset(self.first_maneuver_free, 0, sizeof(self.first_maneuver_free))
+        memset(self.first_maneuver_free_empty_front, 0, sizeof(self.first_maneuver_free_empty_front))
         memset(self.immobile_force, 0, sizeof(self.immobile_force))
         memset(self.cannot_swap_target, 0, sizeof(self.cannot_swap_target))
         memset(self.catchup_zero_cost, 0, sizeof(self.catchup_zero_cost))
@@ -720,6 +727,10 @@ cdef class FastEngine:
                 self.maneuver_requires_open_bond[code] = 1
             if design.get("build_around") == "hero_retinue":
                 self.bond_maneuver_adjacent_hero[code] = 1
+            if design.get("first_maneuver_each_battle_cost") == 0:
+                self.first_maneuver_free[code] = 1
+            if design.get("first_self_maneuver_each_battle_cost") == 0:
+                self.first_maneuver_free_empty_front[code] = 1
             if force_design.get("combat") == "breakthrough":
                 self.force_breakthrough[code] = 1
             name_design = design.get("name") or {}
@@ -943,6 +954,7 @@ cdef class FastEngine:
                     if py_slot.name is not None:
                         fast.name[slot] = self.id_to_code[py_slot.name]
                     fast.temporary[slot] = py_slot.temporary_strength
+                    fast.maneuver_count[slot] = int(py_slot.maneuvers_this_battle)
 
             for i, story in enumerate(state.stories[p][:self.ongoing_story_limit]):
                 fast.scheme[p * 4 + i] = self.id_to_code[story.card_id]
@@ -1304,6 +1316,36 @@ cdef class FastEngine:
         if kind == TYPE_PASS:
             return 0
         if kind == TYPE_MANEUVER:
+            if state.maneuver_count[action_pos(action)] == 0:
+                card = state.subject[action_pos(action)]
+                if (
+                    card >= 0
+                    and self.first_maneuver_free[card]
+                    and (
+                        not self.maneuver_requires_open_bond[card]
+                        or (
+                            state.link[action_pos(action)] >= 0
+                            and state.name[action_pos(action)] < 0
+                        )
+                    )
+                ):
+                    return 0
+                card = state.link[action_pos(action)]
+                if (
+                    card >= 0
+                    and self.first_maneuver_free[card]
+                    and self.adjacent_hero_formation(
+                        state, player, action_pos(action)
+                    )
+                ):
+                    return 0
+                card = state.name[action_pos(action)]
+                if (
+                    card >= 0
+                    and self.first_maneuver_free_empty_front[card]
+                    and self.player_has_empty_front(state, player)
+                ):
+                    return 0
             strat = state.stratagem[player]
             if strat >= 0 and self.strat_maneuver_cost[strat] >= 0:
                 return self.strat_maneuver_cost[strat]
@@ -1450,6 +1492,20 @@ cdef class FastEngine:
                     state.scheme_revealed[enemy_ix] = 1
             elif effect == COMPLETE_RECOVER_LINK:
                 self.recover_recent_link_fast(state, player)
+
+    cdef inline bint player_has_empty_front(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int front
+        for front in range(4):
+            if (
+                state.subject[slot_index(player, front, 0)] < 0
+                and state.subject[slot_index(player, front, 1)] < 0
+            ):
+                return True
+        return False
 
     cdef inline bint adjacent_hero_formation(
         self,
@@ -2060,10 +2116,12 @@ cdef class FastEngine:
         state.link[dest] = state.link[source]
         state.name[dest] = state.name[source]
         state.temporary[dest] = state.temporary[source]
+        state.maneuver_count[dest] = state.maneuver_count[source]
         state.subject[source] = -1
         state.link[source] = -1
         state.name[source] = -1
         state.temporary[source] = 0
+        state.maneuver_count[source] = 0
 
     cdef void swap_slots(self, FastState state, int a, int b) noexcept:
         cdef int ix
@@ -2076,14 +2134,17 @@ cdef class FastEngine:
         cdef int8_t bond = state.link[a]
         cdef int8_t name = state.name[a]
         cdef int16_t temporary = state.temporary[a]
+        cdef uint8_t maneuvers = state.maneuver_count[a]
         state.subject[a] = state.subject[b]
         state.link[a] = state.link[b]
         state.name[a] = state.name[b]
         state.temporary[a] = state.temporary[b]
+        state.maneuver_count[a] = state.maneuver_count[b]
         state.subject[b] = force
         state.link[b] = bond
         state.name[b] = name
         state.temporary[b] = temporary
+        state.maneuver_count[b] = maneuvers
 
     cdef void resolve_plot(self, FastState state, int actor, int card, int pos, int dest):
         cdef int effect = self.plot_effect[card]
@@ -2255,6 +2316,7 @@ cdef class FastEngine:
         state.link[slot] = -1
         state.name[slot] = -1
         state.temporary[slot] = 0
+        state.maneuver_count[slot] = 0
 
     cdef void drive_off_slot(
         self,
@@ -2279,6 +2341,7 @@ cdef class FastEngine:
                     self.return_to_hand(state, player, name)
                 state.name[slot] = -1
                 state.temporary[slot] = 0
+                state.maneuver_count[slot] = 0
                 return
             if self.driven_bond_returns[bond]:
                 self.return_to_hand(state, player, bond)
@@ -2295,6 +2358,7 @@ cdef class FastEngine:
         state.link[slot] = -1
         state.name[slot] = -1
         state.temporary[slot] = 0
+        state.maneuver_count[slot] = 0
 
     cdef void retreat_slot(
         self,
@@ -2626,6 +2690,8 @@ cdef class FastEngine:
             state.completion_count_this_battle[p] = 0
             state.stratagem_used[p] = 0
             state.hero_used[p] = 0
+            for front in range(8):
+                state.maneuver_count[p * 8 + front] = 0
 
             # Hand/deck/discard persist. Refill only to 10; draw() reshuffles
             # discard only if the draw pile is actually empty.
@@ -2693,6 +2759,7 @@ cdef class FastEngine:
 
         if kind == TYPE_MANEUVER:
             self.swap_slots(state, pos, dest)
+            state.maneuver_count[dest] += 1
             self.finish_operation_fast(state, actor)
             return
 
@@ -2849,6 +2916,7 @@ cdef class FastEngine:
                 &h,
                 <uint16_t>state.temporary[slot],
             )
+            _info_hash_feed(&h, state.maneuver_count[slot])
 
         for ix in range(SCHEME_COUNT):
             _info_hash_feed(&h, <uint8_t>(state.scheme[ix] + 1))
@@ -2952,6 +3020,7 @@ cdef class FastEngine:
                     h,
                     <uint16_t>state.temporary[slot],
                 )
+                _info_emit(buf, &n, h, state.maneuver_count[slot])
 
         # Ongoing Stories and Stratagems are public in the canonical rules.
         for owner in range(2):
@@ -3314,6 +3383,9 @@ cdef class FastEngine:
                             ),
                             "temporary_strength": (
                                 state.temporary[slot_index(p, f, r)]
+                            ),
+                            "maneuvers_this_battle": (
+                                state.maneuver_count[slot_index(p, f, r)]
                             ),
                         }
                         for r in range(2)

@@ -40,6 +40,7 @@ class Slot:
     bond: str | None = None
     name: str | None = None
     temporary_strength: int = 0
+    maneuvers_this_battle: int = 0
 
     @property
     def occupied(self) -> bool:
@@ -168,6 +169,7 @@ class GameState:
                         bond=slot.bond,
                         name=slot.name,
                         temporary_strength=slot.temporary_strength,
+                        maneuvers_this_battle=slot.maneuvers_this_battle,
                     )
                     for slot in front
                 ]
@@ -261,6 +263,7 @@ class GameState:
                     target_slot.bond = source_slot.bond
                     target_slot.name = source_slot.name
                     target_slot.temporary_strength = source_slot.temporary_strength
+                    target_slot.maneuvers_this_battle = source_slot.maneuvers_this_battle
 
             self.stories[player][:] = [
                 StoryState(

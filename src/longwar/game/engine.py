@@ -279,6 +279,9 @@ class GameEngine:
                     target_slot.temporary_strength = int(
                         source_slot["temporary_strength"]
                     )
+                    target_slot.maneuvers_this_battle = int(
+                        source_slot.get("maneuvers_this_battle", 0)
+                    )
 
             synced_stories: list[StoryState] = []
             for story in data["stories"][player]:
