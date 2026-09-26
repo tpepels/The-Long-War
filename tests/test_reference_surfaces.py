@@ -111,7 +111,7 @@ def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:
 
 def test_mccfr_suite_builder_covers_all_four_profile_policies() -> None:
     builder = text("tools/build_mccfr_suite.py")
-    for profile in ("reference", "avaros", "mara", "sera"):
+    for profile in ("mobility", "elite", "narrative", "control"):
         assert f'("{profile}",' in builder
     assert 'mccfr-policy-{profile_id}.json' in builder
     assert 'mccfr-{profile_id}-vs-heuristic.json' in builder
