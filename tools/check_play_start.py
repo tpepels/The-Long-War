@@ -172,7 +172,7 @@ def main() -> None:
     }
 
     if (stage === "cancel") {
-      const card = document.querySelector("#hand .play-card.playable.card-subject[data-hand-card]");
+      const card = document.querySelector("#hand .play-card.playable.card-force[data-hand-card]");
       if (!card) return;
       card.click();
       if (!document.querySelector(".digital-slot.targetable")) {
@@ -190,7 +190,7 @@ def main() -> None:
 
     if (stage === "select") {
       const card =
-        document.querySelector("#hand .play-card.playable.card-subject[data-hand-card]") ||
+        document.querySelector("#hand .play-card.playable.card-force[data-hand-card]") ||
         document.querySelector("#hand .play-card.playable[data-hand-card]");
       if (!card) return;
       beforeHistory = historyCount();
@@ -219,7 +219,7 @@ def main() -> None:
       }
 
       const target = document.querySelector(
-        ".digital-slot.targetable, .story-marker.targetable"
+        ".digital-slot.targetable, .narrative-marker.targetable"
       );
       if (!target) return;
       target.click();
