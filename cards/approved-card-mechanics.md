@@ -1,9 +1,9 @@
 # Approved card mechanics
 
-This file is a compact reference for the currently approved first-80 card designs.
+This file is a compact reference for the currently approved card designs.
 
 **Source of truth:** `cards/cards.json`  
-**Approved cards:** 80
+**Approved cards:** 87
 
 ## Vocabulary
 
@@ -25,7 +25,7 @@ This file is a compact reference for the currently approved first-80 card design
 
 | # | Card | Type | Cost | Strength | Approved mechanic |
 |---:|---|---|---:|---:|---|
-| 1 | **The Fifty Men** | Force | 2 | 4 | While in the **Frontline**, this Force gets +1 **Strength**. |
+| 1 | **The Fifty Men** | Force | 2 | 4 | No special rules. |
 | 2 | **Seven Black Ships** | Force | 2 | 4 | While in the **Rear**, this Force gets +1 **Strength**. |
 | 3 | **The White Hands of Elara** | Force | 1 | 2 | **Deploy - Rear only.** While in the Rear, the Force directly in front of this one gets +2 **Strength**. |
 | 4 | **Stood Fast With** | Bond | 1 | - | This formation gets +2 **Strength**. |
@@ -173,3 +173,18 @@ This file is a compact reference for the currently approved first-80 card design
 | 79 | **Carried the Oath of** | Bond | 1 | - | While this Bond is open, after this Force moves or **Maneuvers**, you may move the Bond to an adjacent Force you control with no Bond. |
 | 80 | **Eira** | Name | 2 | +1 | If this formation is driven off, you may move Eira to an adjacent Force you control that has a Bond and no Name instead of discarding her. |
 
+
+
+## Batch 11 - Baseline Force expansion
+
+Naming rule: mechanically generic Forces may have plain descriptive names. A Force with a distinctive property should normally have a distinctive cultural or legendary name.
+
+| # | Card | Type | Cost | Strength | Approved mechanic |
+|---:|---|---|---:|---:|---|
+| 81 | **Thirty Spears** | Force | 1 | 3 | No special rules. |
+| 82 | **A Hundred Shields** | Force | 3 | 6 | No special rules. |
+| 83 | **The Vardai** | Force | 2 | 3 | This formation may **Maneuver** even if it is not Named. |
+| 84 | **The Aradai** | Force | 2 | 3 | While this formation is **Named**, this Force gets +2 **Strength**. |
+| 85 | **The Ilyri** | Force | 2 | 3 | While this formation has an open Bond, this Force gets +2 **Strength**. |
+| 86 | **The Damar** | Force | 2 | 5 | **Deploy - Frontline only.** |
+| 87 | **The Serekh** | Force | 2 | 3 | Opposing cards cannot ignore this Force's **Strength**. |
