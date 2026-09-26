@@ -3966,7 +3966,7 @@
         "encirclement"
       ],
       "command_cost": 3,
-      "text": "**During this Battle**, if you win three consecutive Fronts, drive off the opposing Frontline Named Formation in the middle Front instead of Retreating it.",
+      "text": "**During this Battle**, if you win Fronts 1, 2, and 3, drive off the opposing Frontline Named Formation in Front 2 instead of Retreating it. Do the same in Front 3 if you win Fronts 2, 3, and 4.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3975,7 +3975,7 @@
         {
           "kind": "continuous",
           "label": "DURING THIS BATTLE",
-          "text": "If you win a Front and both Fronts adjacent to it, drive off the opposing Frontline Named Formation in the middle Front instead of Retreating it."
+          "text": "If you win Fronts 1, 2, and 3, drive off the opposing Frontline Named Formation in Front 2 instead of Retreating it. Do the same in Front 3 if you win Fronts 2, 3, and 4."
         }
       ],
       "design_rules": {
