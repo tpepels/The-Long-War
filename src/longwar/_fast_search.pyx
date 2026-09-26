@@ -242,6 +242,7 @@ cdef class FastState:
     cdef uint8_t scheme_revealed[SCHEME_COUNT]
     cdef uint8_t scheme_front_mask[SCHEME_COUNT]
     cdef int8_t scheme_target_slot[SCHEME_COUNT]
+    cdef uint8_t scheme_used[SCHEME_COUNT]
     cdef int8_t stratagem[2]
     cdef uint8_t stratagem_revealed[2]
     cdef uint8_t stratagem_front_mask[2]
@@ -313,6 +314,7 @@ cdef class FastState:
         memset(self.scheme_revealed, 0, sizeof(self.scheme_revealed))
         memset(self.scheme_front_mask, 0, sizeof(self.scheme_front_mask))
         memset(self.scheme_target_slot, 0xff, sizeof(self.scheme_target_slot))
+        memset(self.scheme_used, 0, sizeof(self.scheme_used))
         memset(self.stratagem, 0xff, sizeof(self.stratagem))
         memset(self.stratagem_revealed, 0, sizeof(self.stratagem_revealed))
         memset(self.stratagem_front_mask, 0, sizeof(self.stratagem_front_mask))
@@ -381,6 +383,7 @@ cdef class FastState:
         memcpy(self.scheme_revealed, other.scheme_revealed, sizeof(self.scheme_revealed))
         memcpy(self.scheme_front_mask, other.scheme_front_mask, sizeof(self.scheme_front_mask))
         memcpy(self.scheme_target_slot, other.scheme_target_slot, sizeof(self.scheme_target_slot))
+        memcpy(self.scheme_used, other.scheme_used, sizeof(self.scheme_used))
         memcpy(self.stratagem, other.stratagem, sizeof(self.stratagem))
         memcpy(self.stratagem_revealed, other.stratagem_revealed, sizeof(self.stratagem_revealed))
         memcpy(self.stratagem_front_mask, other.stratagem_front_mask, sizeof(self.stratagem_front_mask))
@@ -481,6 +484,7 @@ cdef class FastEngine:
     cdef uint8_t local_catchup_discount_name[MAX_CARDS]
     cdef uint8_t first_front_card_battle_discount_name[MAX_CARDS]
     cdef uint8_t first_narrative_battle_discount_force[MAX_CARDS]
+    cdef int8_t narrative_maneuver_empty_gain[MAX_CARDS]
     cdef uint8_t immobile_force[MAX_CARDS]
     cdef uint8_t cannot_swap_target[MAX_CARDS]
     cdef uint8_t catchup_zero_cost[MAX_CARDS]
@@ -575,6 +579,7 @@ cdef class FastEngine:
         memset(self.local_catchup_discount_name, 0, sizeof(self.local_catchup_discount_name))
         memset(self.first_front_card_battle_discount_name, 0, sizeof(self.first_front_card_battle_discount_name))
         memset(self.first_narrative_battle_discount_force, 0, sizeof(self.first_narrative_battle_discount_force))
+        memset(self.narrative_maneuver_empty_gain, 0, sizeof(self.narrative_maneuver_empty_gain))
         memset(self.immobile_force, 0, sizeof(self.immobile_force))
         memset(self.cannot_swap_target, 0, sizeof(self.cannot_swap_target))
         memset(self.catchup_zero_cost, 0, sizeof(self.catchup_zero_cost))
@@ -852,6 +857,10 @@ cdef class FastEngine:
                 self.story_choice_kind[code] = STORY_CHOICE_FRONT
             elif design.get("placement") == "chosen_named_formation":
                 self.story_choice_kind[code] = STORY_CHOICE_NAMED_FORMATION
+            if design.get("trigger") == "first_friendly_maneuver_into_empty_each_battle":
+                self.narrative_maneuver_empty_gain[code] = int(
+                    design.get("gain_command", 0)
+                )
             scheme = rules.get("scheme") or {}
             self.scheme_trigger[code] = scheme_trigger_map.get(scheme.get("trigger"), EVENT_NONE)
             self.scheme_effect[code] = scheme_effect_map.get(scheme.get("effect"), SCHEME_NONE)
@@ -986,6 +995,7 @@ cdef class FastEngine:
             for i, story in enumerate(state.stories[p][:self.ongoing_story_limit]):
                 fast.scheme[p * 4 + i] = self.id_to_code[story.card_id]
                 fast.scheme_revealed[p * 4 + i] = 1
+                fast.scheme_used[p * 4 + i] = bool(story.triggered_this_battle)
                 for front_choice in story.fronts:
                     fast.scheme_front_mask[p * 4 + i] |= 1 << int(front_choice)
                 if story.target_position is not None and story.target_player is not None:
@@ -2109,10 +2119,12 @@ cdef class FastEngine:
                 state.scheme_revealed[dst] = state.scheme_revealed[src]
                 state.scheme_front_mask[dst] = state.scheme_front_mask[src]
                 state.scheme_target_slot[dst] = state.scheme_target_slot[src]
+                state.scheme_used[dst] = state.scheme_used[src]
                 state.scheme[src] = -1
                 state.scheme_revealed[src] = 0
                 state.scheme_front_mask[src] = 0
                 state.scheme_target_slot[src] = -1
+                state.scheme_used[src] = 0
             write_slot += 1
 
     cdef void reveal_scheme(self, FastState state, int controller, int front, int actor, int trigger_slot=-1):
@@ -2255,6 +2267,23 @@ cdef class FastEngine:
                 state.temporary[pos] -= 2
         elif effect == PLOT_MOVE_SUBJECT:
             self.move_slot(state, pos, dest)
+
+    cdef void resolve_maneuver_into_empty_narratives(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int story_slot, ix, card, amount
+        for story_slot in range(self.ongoing_story_limit):
+            ix = player * 4 + story_slot
+            card = state.scheme[ix]
+            if card < 0 or state.scheme_used[ix]:
+                continue
+            amount = self.narrative_maneuver_empty_gain[card]
+            if amount <= 0:
+                continue
+            state.scheme_used[ix] = 1
+            self.gain_command_fast(state, player, amount)
 
     cdef void resolve_plot_target_scheme(self, FastState state, int actor, int pos):
         cdef int opponent = 1 - actor
@@ -2784,6 +2813,8 @@ cdef class FastEngine:
             state.completion_count_this_battle[p] = 0
             state.stratagem_used[p] = 0
             state.hero_used[p] = 0
+            for front in range(self.ongoing_story_limit):
+                state.scheme_used[p * 4 + front] = 0
             for front in range(8):
                 state.maneuver_count[p * 8 + front] = 0
 
@@ -2852,8 +2883,11 @@ cdef class FastEngine:
         self.spend_command_fast(state, actor, cost)
 
         if kind == TYPE_MANEUVER:
+            target = 1 if state.subject[dest] < 0 else 0
             self.swap_slots(state, pos, dest)
             state.maneuver_count[dest] += 1
+            if target:
+                self.resolve_maneuver_into_empty_narratives(state, actor)
             self.finish_operation_fast(state, actor)
             return
 
@@ -3024,6 +3058,7 @@ cdef class FastEngine:
             _info_hash_feed(&h, <uint8_t>(state.scheme[ix] + 1))
             _info_hash_feed(&h, state.scheme_revealed[ix])
             _info_hash_feed(&h, state.scheme_front_mask[ix])
+            _info_hash_feed(&h, state.scheme_used[ix])
             _info_hash_feed(&h, <uint8_t>(state.scheme_target_slot[ix] + 1))
         for p in range(2):
             _info_hash_feed(&h, <uint8_t>(state.stratagem[p] + 1))
@@ -3143,6 +3178,12 @@ cdef class FastEngine:
                         &n,
                         h,
                         state.scheme_front_mask[owner * 4 + story_slot],
+                    )
+                    _info_emit(
+                        buf,
+                        &n,
+                        h,
+                        state.scheme_used[owner * 4 + story_slot],
                     )
                     _info_emit(
                         buf,
@@ -3504,6 +3545,7 @@ cdef class FastEngine:
                     {
                         "card_id": self.card_ids[state.scheme[p * 4 + i]],
                         "front_mask": state.scheme_front_mask[p * 4 + i],
+                        "triggered_this_battle": bool(state.scheme_used[p * 4 + i]),
                         "target_slot": (
                             None
                             if state.scheme_target_slot[p * 4 + i] < 0

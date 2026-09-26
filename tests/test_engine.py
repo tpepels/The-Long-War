@@ -20,7 +20,7 @@ from longwar.game import (
     Position,
     Rank,
 )
-from longwar.game.model import FRONT_COUNT, Phase, StratagemState
+from longwar.game.model import FRONT_COUNT, Phase, StoryState, StratagemState
 from longwar.rules import GameRules
 
 
@@ -520,6 +520,29 @@ def test_yara_discounts_only_first_narrative_each_battle() -> None:
     second = PlayStory("no-road-was-too-long", ongoing_slot=1)
     assert second in engine.legal_actions(state)
     assert engine.command_cost_for_action(state, second) == 2
+
+
+def test_long_march_regains_command_only_on_first_maneuver_into_empty_each_battle() -> None:
+    engine, state = setup_state()
+    state.players[0].command = 5
+    state.stories[0] = [StoryState("the-long-march")]
+    first = pos(1, Rank.FRONT)
+    second = pos(2, Rank.FRONT)
+    third = pos(3, Rank.FRONT)
+    make_named(state, 0, first)
+
+    engine.apply(state, Maneuver(first, second))
+
+    assert state.players[0].command == 5
+    assert state.stories[0][0].triggered_this_battle is True
+
+    state.active_player = 0
+    state.pending_draw_discard_for = None
+    state.pending_draw_count = 0
+    state.pending_draw_finish_operation = False
+    engine.apply(state, Maneuver(second, third))
+
+    assert state.players[0].command == 4
 
 
 def test_battle_only_temporary_strength_resets_after_battle() -> None:

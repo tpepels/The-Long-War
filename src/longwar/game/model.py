@@ -68,6 +68,7 @@ class StoryState:
     fronts: tuple[Front, ...] = ()
     target_player: int | None = None
     target_position: Position | None = None
+    triggered_this_battle: bool = False
 
 
 @dataclass
@@ -194,6 +195,7 @@ class GameState:
                     fronts=tuple(story.fronts),
                     target_player=story.target_player,
                     target_position=story.target_position,
+                    triggered_this_battle=story.triggered_this_battle,
                 )
                 for story in side
             ]
@@ -290,6 +292,7 @@ class GameState:
                     fronts=tuple(story.fronts),
                     target_player=story.target_player,
                     target_position=story.target_position,
+                    triggered_this_battle=story.triggered_this_battle,
                 )
                 for story in source.stories[player]
             ]

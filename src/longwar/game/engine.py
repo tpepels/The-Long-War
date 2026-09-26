@@ -306,6 +306,9 @@ class GameEngine:
                         ),
                         target_player=target_player,
                         target_position=target_position,
+                        triggered_this_battle=bool(
+                            story.get("triggered_this_battle", False)
+                        ),
                     )
                 )
             state.stories[player][:] = synced_stories
