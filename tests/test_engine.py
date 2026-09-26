@@ -388,6 +388,48 @@ def test_completion_draw_at_hand_limit_pauses_for_discard_then_finishes_operatio
     assert state.active_player == 1
 
 
+def test_unnamed_host_requires_open_bond_to_maneuver_unnamed() -> None:
+    engine, state = setup_state()
+    source = pos(1, Rank.FRONT)
+    destination = pos(2, Rank.FRONT)
+    state.slot(0, source).force = "the-unnamed-host"
+
+    assert Maneuver(source, destination) not in engine.legal_actions(state)
+
+    state.slot(0, source).bond = "followed"
+    assert Maneuver(source, destination) in engine.legal_actions(state)
+
+
+def test_hero_retinue_bond_allows_unnamed_maneuver_only_when_adjacent_to_hero() -> None:
+    engine, state = setup_state()
+    source = pos(1, Rank.FRONT)
+    destination = pos(2, Rank.FRONT)
+    state.slot(0, source).force = "the-fifty-men"
+    state.slot(0, source).bond = "marched-beneath-the-banner-of"
+
+    assert Maneuver(source, destination) not in engine.legal_actions(state)
+
+    state.slot(0, pos(0, Rank.FRONT)).force = "avaros-the-bronze-king"
+    assert Maneuver(source, destination) in engine.legal_actions(state)
+
+
+def test_breakthrough_drives_off_frontline_named_instead_of_retreating() -> None:
+    engine, state = setup_state()
+    make_named(
+        state,
+        0,
+        pos(0, Rank.FRONT),
+        force="the-iron-boars",
+        temporary=10,
+    )
+    make_named(state, 1, pos(0, Rank.FRONT))
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.slot(1, pos(0, Rank.FRONT)).force is None
+    assert state.slot(1, pos(0, Rank.REAR)).force is None
+
+
 def test_battle_only_temporary_strength_resets_after_battle() -> None:
     engine, state = setup_state()
     target = pos(0, Rank.FRONT)

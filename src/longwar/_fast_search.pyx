@@ -460,6 +460,10 @@ cdef class FastEngine:
     cdef int8_t force_text_effect[MAX_CARDS]
     cdef int8_t force_text_amount[MAX_CARDS]
     cdef uint8_t can_maneuver_unnamed[MAX_CARDS]
+    cdef uint8_t maneuver_requires_open_bond[MAX_CARDS]
+    cdef uint8_t bond_maneuver_adjacent_hero[MAX_CARDS]
+    cdef uint8_t force_breakthrough[MAX_CARDS]
+    cdef uint8_t name_breakthrough[MAX_CARDS]
     cdef uint8_t immobile_force[MAX_CARDS]
     cdef uint8_t cannot_swap_target[MAX_CARDS]
     cdef uint8_t catchup_zero_cost[MAX_CARDS]
@@ -545,6 +549,10 @@ cdef class FastEngine:
         memset(self.force_text_effect, 0, sizeof(self.force_text_effect))
         memset(self.force_text_amount, 0, sizeof(self.force_text_amount))
         memset(self.can_maneuver_unnamed, 0, sizeof(self.can_maneuver_unnamed))
+        memset(self.maneuver_requires_open_bond, 0, sizeof(self.maneuver_requires_open_bond))
+        memset(self.bond_maneuver_adjacent_hero, 0, sizeof(self.bond_maneuver_adjacent_hero))
+        memset(self.force_breakthrough, 0, sizeof(self.force_breakthrough))
+        memset(self.name_breakthrough, 0, sizeof(self.name_breakthrough))
         memset(self.immobile_force, 0, sizeof(self.immobile_force))
         memset(self.cannot_swap_target, 0, sizeof(self.cannot_swap_target))
         memset(self.catchup_zero_cost, 0, sizeof(self.catchup_zero_cost))
@@ -708,6 +716,15 @@ cdef class FastEngine:
                 force_design.get("can_maneuver_while_unnamed")
                 or design.get("can_maneuver_while_unnamed")
             )
+            if design.get("build_around") == "open_bond":
+                self.maneuver_requires_open_bond[code] = 1
+            if design.get("build_around") == "hero_retinue":
+                self.bond_maneuver_adjacent_hero[code] = 1
+            if force_design.get("combat") == "breakthrough":
+                self.force_breakthrough[code] = 1
+            name_design = design.get("name") or {}
+            if name_design.get("combat") == "breakthrough_if_opponent_no_rear_force":
+                self.name_breakthrough[code] = 1
             self.immobile_force[code] = bool(
                 force_design.get("immobile") or design.get("immobile")
             )
@@ -1183,6 +1200,25 @@ cdef class FastEngine:
                 value += formation_bonus
         return value
 
+    cdef inline bint breakthrough_active(
+        self,
+        FastState state,
+        int player,
+        int front,
+    ) noexcept:
+        cdef int rank, slot, force, name
+        for rank in range(2):
+            slot = slot_index(player, front, rank)
+            force = state.subject[slot]
+            if force < 0:
+                continue
+            if self.force_breakthrough[force]:
+                return True
+            name = state.name[slot]
+            if name >= 0 and self.name_breakthrough[name]:
+                return True
+        return False
+
     cdef inline bint tie_control_active(
         self,
         FastState state,
@@ -1415,19 +1451,59 @@ cdef class FastEngine:
             elif effect == COMPLETE_RECOVER_LINK:
                 self.recover_recent_link_fast(state, player)
 
+    cdef inline bint adjacent_hero_formation(
+        self,
+        FastState state,
+        int player,
+        int slot,
+    ) noexcept:
+        cdef int local = local_slot(slot)
+        cdef int front = local >> 1
+        cdef int rank = local & 1
+        cdef int adjacent, force, name
+        if front > 0:
+            adjacent = slot_index(player, front - 1, rank)
+            force = state.subject[adjacent]
+            name = state.name[adjacent]
+            if force >= 0 and (
+                self.hero[force]
+                or (name >= 0 and self.hero[name])
+            ):
+                return True
+        if front < 3:
+            adjacent = slot_index(player, front + 1, rank)
+            force = state.subject[adjacent]
+            name = state.name[adjacent]
+            if force >= 0 and (
+                self.hero[force]
+                or (name >= 0 and self.hero[name])
+            ):
+                return True
+        return False
+
     cdef inline bint maneuver_source_legal(
         self,
         FastState state,
         int player,
         int slot,
     ) noexcept:
-        cdef int force, strat
+        cdef int force, bond, strat
         force = state.subject[slot]
         if force < 0 or self.immobile_force[force]:
             return False
         if self.slot_complete(state, slot):
             return True
         if self.can_maneuver_unnamed[force]:
+            if not self.maneuver_requires_open_bond[force]:
+                return True
+            if state.link[slot] >= 0 and state.name[slot] < 0:
+                return True
+        bond = state.link[slot]
+        if (
+            bond >= 0
+            and self.bond_maneuver_adjacent_hero[bond]
+            and self.adjacent_hero_formation(state, player, slot)
+        ):
             return True
         strat = state.stratagem[player]
         return strat >= 0 and self.strat_unnamed_maneuver[strat]
@@ -2406,6 +2482,23 @@ cdef class FastEngine:
 
         losses0 = popcount16(lost_mask0 & 15)
         losses1 = popcount16(lost_mask1 & 15)
+
+        # Breakthrough effects replace the losing Frontline Named
+        # Formation's Retreat when the winner has the printed effect and the
+        # loser has no Rear Force in that Front.
+        for front in range(4):
+            if (
+                lost_mask0 & (1 << front)
+                and state.subject[slot_index(0, front, 1)] < 0
+                and self.breakthrough_active(state, 1, front)
+            ):
+                drive_mask0 |= 1 << front
+            if (
+                lost_mask1 & (1 << front)
+                and state.subject[slot_index(1, front, 1)] < 0
+                and self.breakthrough_active(state, 0, front)
+            ):
+                drive_mask1 |= 1 << front
 
         # No Step Back drives off the losing Frontline Named Formation on its
         # chosen Front for either player.
