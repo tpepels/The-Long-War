@@ -54,8 +54,8 @@ This file is a compact reference for the currently approved first-80 card design
 | 17 | **The Dust Riders** | Force | 2 | 2 | This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or an adjacent Front. Count this Force's **Strength** only there. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left. |
 | 18 | **The Black Company** | Force | 2 | 4 | **Deploy - Frontline only.** While in the **Frontline**, this Force gets +1 **Strength**. After this formation swaps positions with another formation during a **Maneuver**, you may **Maneuver** that other formation for 0 Command. |
 | 19 | **Kept Pace With** | Bond | 1 | - | After an adjacent **Named Formation** you control Maneuvers away, you may move this formation into the position it left. |
-| 20 | **Covered the Withdrawal of** | Bond | 1 | - | After an adjacent friendly formation **Retreats**, you may **Maneuver** this formation for 0 Command. |
-| 21 | **Teren** | Name | 2 | +1 | After this formation **Maneuvers**, you may swap two adjacent friendly formations other than this one. |
+| 20 | **Covered the Withdrawal of** | Bond | 1 | - | After an adjacent formation you control **Retreats**, you may **Maneuver** this formation for 0 Command. |
+| 21 | **Teren** | Name | 2 | +1 | After this formation **Maneuvers**, you may swap two adjacent formations you control other than this one. |
 | 22 | **Mara** | Name | 1 | +1 | When an opposing formation **Maneuvers** into this Front, you may **Maneuver** this formation for 0 Command. |
 | 23 | **Blocked the Road for** | Bond | 1 | - | Cards your opponent plays cannot move a formation from an adjacent Front into this Front. |
 | 24 | **The Long March** | Story | 2 | - | **Saga - Ongoing.** The first time each Battle one of your formations **Maneuvers** into an empty position, regain 1 Command. |
