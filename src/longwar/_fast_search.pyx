@@ -2096,12 +2096,22 @@ cdef class FastEngine:
     cdef inline bint card_move_destination_legal(
         self,
         FastState state,
-        int player,
+        int controller,
         int source,
         int dest,
     ) noexcept:
         cdef int force = state.subject[source]
+        cdef int owner = owner_from_slot(source)
+        cdef int bond = state.link[source]
         if force < 0 or self.immobile_force[force]:
+            return False
+        if owner_from_slot(dest) != owner:
+            return False
+        if (
+            controller != owner
+            and bond >= 0
+            and self.bond_guarded_from_opponent_card_move[bond]
+        ):
             return False
         if (
             state.subject[dest] >= 0
@@ -2112,7 +2122,7 @@ cdef class FastEngine:
         if (
             abs(front_from_slot(source) - front_from_slot(dest)) == 1
             and self.opponent_blocks_card_move_into_front(
-                state, player, front_from_slot(dest)
+                state, owner, front_from_slot(dest)
             )
         ):
             return False
@@ -2301,14 +2311,27 @@ cdef class FastEngine:
                     if self.maneuver_destination_legal(state, dest):
                         n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
         elif kind == EFFECT_MOVE:
-            for source in range(player * 8, player * 8 + 8):
+            for source in range(SLOT_COUNT):
                 if not (source_mask & (1 << source)) or state.subject[source] < 0:
                     continue
-                for dest in range(player * 8, player * 8 + 8):
+                for dest in range(SLOT_COUNT):
                     if not (dest_mask & (1 << dest)):
                         continue
-                    if self.card_move_destination_legal(state, player, source, dest):
-                        n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+                    if self.card_move_destination_legal(
+                        state, player, source, dest
+                    ):
+                        n = _append_action(
+                            actions,
+                            n,
+                            encode_action(
+                                TYPE_EFFECT,
+                                -1,
+                                source,
+                                dest,
+                                player,
+                                kind,
+                            ),
+                        )
         elif kind == EFFECT_SWAP:
             for source in range(player * 8, player * 8 + 8):
                 if not (source_mask & (1 << source)) or state.subject[source] < 0:
@@ -3946,7 +3969,7 @@ cdef class FastEngine:
         int losses1,
         int drive0,
         int drive1,
-    ) noexcept:
+    ) except *:
         cdef int player, front, front_slot, rear_slot
         cdef bint lost, protected_frontline
         for player in range(2):
