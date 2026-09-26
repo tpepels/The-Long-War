@@ -174,7 +174,7 @@ Use these terms consistently in rules and card text:
 
 ## Batch 6 - Command
 
-Status: draft for review.
+Status: approved for the first-80 design pool.
 
 This batch tests Command as a decision resource without directly damaging the opponent's Command. The cards focus on discounts, extra spending, refunds, conversion, recovery, catch-up, and one expensive Battle-wide commitment.
 
