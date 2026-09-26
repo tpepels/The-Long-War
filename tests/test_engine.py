@@ -437,6 +437,66 @@ def test_retreat_frontline_only_rear_only_both_and_tie() -> None:
     assert state.slot(1, pos(3, Rank.FRONT)).complete is True
 
 
+def test_drive_off_persistence_bonds_and_names_apply() -> None:
+    engine, state = setup_state(seed=4690)
+
+    stayed = pos(0, Rank.REAR)
+    make_named(
+        state,
+        0,
+        stayed,
+        force="seven-black-ships",
+        bond="stayed-behind-for",
+        name="namar",
+    )
+    make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
+
+    returned = pos(1, Rank.REAR)
+    make_named(
+        state,
+        0,
+        returned,
+        force="seven-black-ships",
+        bond="swore-again-to",
+        name="edrin",
+    )
+    make_named(state, 1, pos(1, Rank.FRONT), temporary=100)
+
+    resolve_battle_by_passing(engine, state)
+
+    stayed_slot = state.slot(0, stayed)
+    assert stayed_slot.force is None
+    assert stayed_slot.bond == "stayed-behind-for"
+    assert stayed_slot.name is None
+    assert "namar" in state.players[0].hand
+
+    returned_slot = state.slot(0, returned)
+    assert returned_slot.occupied is False
+    assert "swore-again-to" in state.players[0].hand
+    assert "edrin" in state.players[0].hand
+
+
+def test_endured_with_regains_command_when_formation_retreats() -> None:
+    engine, state = setup_state(seed=4691)
+    state.battle = 8
+    state.players[0].command = 10
+    state.players[1].command = 10
+    state.battle_start_command[:] = [10, 10]
+
+    make_named(
+        state,
+        0,
+        pos(0, Rank.FRONT),
+        bond="endured-with",
+    )
+    make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.slot(0, pos(0, Rank.REAR)).bond == "endured-with"
+    assert state.players[0].command == 11
+
+
 def test_maneuver_rejects_prepared_only_destination_and_immobile_force() -> None:
     engine, state = setup_state()
     source = pos(0, Rank.FRONT)

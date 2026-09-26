@@ -413,6 +413,10 @@ cdef class FastEngine:
     cdef int8_t frontline_force_discount[MAX_CARDS]
     cdef uint8_t frontline_force_discount_requires_named[MAX_CARDS]
     cdef uint8_t recovery_protected_front[MAX_CARDS]
+    cdef uint8_t driven_bond_stays[MAX_CARDS]
+    cdef uint8_t driven_bond_returns[MAX_CARDS]
+    cdef uint8_t driven_name_returns[MAX_CARDS]
+    cdef int8_t retreat_command_gain[MAX_CARDS]
     cdef uint8_t combat_frontline_only[MAX_CARDS]
     cdef int8_t strat_maneuver_cost[MAX_CARDS]
     cdef uint8_t strat_unnamed_maneuver[MAX_CARDS]
@@ -487,6 +491,10 @@ cdef class FastEngine:
         memset(self.frontline_force_discount, 0, sizeof(self.frontline_force_discount))
         memset(self.frontline_force_discount_requires_named, 0, sizeof(self.frontline_force_discount_requires_named))
         memset(self.recovery_protected_front, 0, sizeof(self.recovery_protected_front))
+        memset(self.driven_bond_stays, 0, sizeof(self.driven_bond_stays))
+        memset(self.driven_bond_returns, 0, sizeof(self.driven_bond_returns))
+        memset(self.driven_name_returns, 0, sizeof(self.driven_name_returns))
+        memset(self.retreat_command_gain, 0, sizeof(self.retreat_command_gain))
         memset(self.combat_frontline_only, 0, sizeof(self.combat_frontline_only))
         memset(self.strat_maneuver_cost, 0xff, sizeof(self.strat_maneuver_cost))
         memset(self.strat_unnamed_maneuver, 0, sizeof(self.strat_unnamed_maneuver))
@@ -652,6 +660,17 @@ cdef class FastEngine:
                 self.frontline_force_discount[code] = 1
             if force_design.get("command") == "lost_front_here_does_not_reduce_recovery":
                 self.recovery_protected_front[code] = 1
+            if design.get("persistence") == "inherited_bond":
+                self.driven_bond_stays[code] = 1
+            if design.get("persistence") == "bond_returns_to_hand_when_force_driven_off":
+                self.driven_bond_returns[code] = 1
+            if (
+                design.get("persistence") == "name_returns_to_hand_when_formation_driven_off"
+                or (design.get("name") or {}).get("effect") == "return_hero_to_hand_if_driven_off"
+            ):
+                self.driven_name_returns[code] = 1
+            if design.get("persistence") == "retreat_command_compensation":
+                self.retreat_command_gain[code] = int(design.get("amount", 1))
             if design.get("combat") == "frontline_only_comparison":
                 self.combat_frontline_only[code] = 1
             if design.get("combat") == "tie_control":
@@ -1798,6 +1817,63 @@ cdef class FastEngine:
         state.name[slot] = -1
         state.temporary[slot] = 0
 
+    cdef void drive_off_slot(
+        self,
+        FastState state,
+        int player,
+        int slot,
+    ) noexcept:
+        """Drive off one complete formation, applying printed persistence text."""
+        cdef int force = state.subject[slot]
+        cdef int bond = state.link[slot]
+        cdef int name = state.name[slot]
+
+        if force >= 0:
+            self.append_discard(state, player, force, False)
+
+        if bond >= 0:
+            if self.driven_bond_stays[bond]:
+                # Stayed Behind For remains as a prepared Bond after the Force
+                # is driven off; its Name is returned rather than discarded.
+                state.subject[slot] = -1
+                if name >= 0:
+                    self.return_to_hand(state, player, name)
+                state.name[slot] = -1
+                state.temporary[slot] = 0
+                return
+            if self.driven_bond_returns[bond]:
+                self.return_to_hand(state, player, bond)
+            else:
+                self.append_discard(state, player, bond, False)
+
+        if name >= 0:
+            if self.driven_name_returns[name]:
+                self.return_to_hand(state, player, name)
+            else:
+                self.append_discard(state, player, name, False)
+
+        state.subject[slot] = -1
+        state.link[slot] = -1
+        state.name[slot] = -1
+        state.temporary[slot] = 0
+
+    cdef void retreat_slot(
+        self,
+        FastState state,
+        int player,
+        int source,
+        int destination,
+    ) noexcept:
+        """Move a formation by Retreat and apply mandatory Retreat text."""
+        cdef int bond = state.link[source]
+        self.move_slot(state, source, destination)
+        if bond >= 0 and self.retreat_command_gain[bond] > 0:
+            self.gain_command_fast(
+                state,
+                player,
+                self.retreat_command_gain[bond],
+            )
+
     cdef void discard_incomplete_formations(self, FastState state) noexcept:
         cdef int player, slot
         for player in range(2):
@@ -1831,9 +1907,9 @@ cdef class FastEngine:
                 # Rear is driven off first, then a surviving Frontline Named
                 # Formation retreats into the now-empty Rear.
                 if self.slot_complete(state, rear_slot):
-                    self.discard_slot_components(state, player, rear_slot)
+                    self.drive_off_slot(state, player, rear_slot)
                 if self.slot_complete(state, front_slot):
-                    self.move_slot(state, front_slot, rear_slot)
+                    self.retreat_slot(state, player, front_slot, rear_slot)
 
     cdef void discard_battle_stratagems(self, FastState state) noexcept:
         cdef int player, card
