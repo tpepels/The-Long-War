@@ -1209,6 +1209,8 @@ cdef class FastEngine:
         uint64_t action,
     ) noexcept:
         cdef int kind, card, pos, target_front=-1, cost, discount, rear, support, strat
+        cdef int selected
+        cdef uint32_t extra
         cdef int player = state.active_player
         kind = action_kind(action)
         if kind == TYPE_PASS:
@@ -1223,6 +1225,14 @@ cdef class FastEngine:
             return 0
         cost = self.card_command_cost[card]
         pos = action_pos(action)
+        extra = action_extra(action)
+        if (
+            kind == TYPE_STRATAGEM
+            and self.strat_choice_kind[card] == STRAT_CHOICE_RESERVES
+        ):
+            selected = popcount16(extra)
+            if selected > 1:
+                cost += selected - 1
 
         if self.catchup_zero_cost[card] and state.command[player] < state.command[1 - player]:
             cost = 0
@@ -2400,7 +2410,8 @@ cdef class FastEngine:
         cdef int pos = action_pos(action)
         cdef int dest = action_dest(action)
         cdef int actor = state.active_player
-        cdef int front, before_mask = 0, cost = 0
+        cdef int front, before_mask = 0, cost = 0, source, target, local, choice
+        cdef uint32_t extra = action_extra(action)
         cdef bint cancelled
 
         if kind == TYPE_PASS:
@@ -2468,12 +2479,41 @@ cdef class FastEngine:
             self.take_from_hand(state, actor, card, 0)
             state.scheme[actor * 4 + pos] = card
             state.scheme_revealed[actor * 4 + pos] = 1
+            state.scheme_front_mask[actor * 4 + pos] = <uint8_t>(extra & 15)
+            state.scheme_target_slot[actor * 4 + pos] = dest
 
         elif kind == TYPE_STRATAGEM:
             self.take_from_hand(state, actor, card, 0)
             state.stratagem[actor] = card
             state.stratagem_revealed[actor] = 1
+            state.stratagem_front_mask[actor] = (
+                <uint8_t>pos if pos >= 0 else 0
+            )
+            state.stratagem_direction[actor] = (
+                <uint8_t>(dest + 1) if dest >= 0 else 0
+            )
+            state.stratagem_target_mask[actor] = <uint16_t>(extra & 0xFFFF)
             state.stratagem_used[actor] = 1
+
+            choice = self.strat_choice_kind[card]
+            if choice == STRAT_CHOICE_WHEEL and dest >= 0:
+                for source in range(actor * 8, actor * 8 + 8):
+                    if not (extra & (<uint32_t>1 << source)):
+                        continue
+                    local = local_slot(source)
+                    front = local >> 1
+                    if dest == 0:
+                        target = slot_index(actor, front - 1, local & 1)
+                    else:
+                        target = slot_index(actor, front + 1, local & 1)
+                    self.move_slot(state, source, target)
+            elif choice == STRAT_CHOICE_RESERVES:
+                for front in range(4):
+                    source = slot_index(actor, front, 1)
+                    if extra & (<uint32_t>1 << source):
+                        target = slot_index(actor, front, 0)
+                        self.move_slot(state, source, target)
+
             self.finish_operation_fast(state, actor)
             return
 
