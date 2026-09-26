@@ -62,6 +62,16 @@ def project_state(state: GameState) -> dict[str, object]:
                 {
                     "card_id": story.card_id,
                     "ongoing": story.ongoing,
+                    "fronts": [int(front) for front in story.fronts],
+                    "target_player": story.target_player,
+                    "target_position": (
+                        None
+                        if story.target_position is None
+                        else {
+                            "front": int(story.target_position.front),
+                            "rank": story.target_position.rank.value,
+                        }
+                    ),
                 }
                 for story in side
             ]
@@ -71,7 +81,19 @@ def project_state(state: GameState) -> dict[str, object]:
             (
                 None
                 if stratagem is None
-                else {"card_id": stratagem.card_id}
+                else {
+                    "card_id": stratagem.card_id,
+                    "fronts": [int(front) for front in stratagem.fronts],
+                    "direction": stratagem.direction,
+                    "targets": [
+                        {
+                            "player": player,
+                            "front": int(position.front),
+                            "rank": position.rank.value,
+                        }
+                        for player, position in stratagem.targets
+                    ],
+                }
             )
             for stratagem in state.stratagems
         ],
