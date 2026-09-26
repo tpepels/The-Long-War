@@ -2408,19 +2408,9 @@ cdef class FastEngine:
             if (lost_mask0 & 14) == 14:
                 drive_mask0 |= 1 << 2
 
-        self.discard_incomplete_formations(state)
-        self.resolve_retreats(
-            state,
-            lost_mask0,
-            lost_mask1,
-            drive_mask0,
-            drive_mask1,
-        )
-        self.discard_battle_stratagems(state)
-        self.clear_battle_temporary_strength(state)
-
-        # Ongoing Narratives remain in state.scheme. Recovery modifiers use
-        # the actual lost Fronts, without changing the Front results.
+        # Lock in recovery-loss modifiers from the board and public
+        # Stratagems that existed when the Front results were determined.
+        # Retreat/drive-off and Stratagem discard happen afterwards.
         recovery_losses0 = losses0
         recovery_losses1 = losses1
         for front in range(4):
@@ -2453,6 +2443,20 @@ cdef class FastEngine:
                 recovery_losses1,
                 self.strat_recovery_loss_reduction[strat],
             )
+
+        self.discard_incomplete_formations(state)
+        self.resolve_retreats(
+            state,
+            lost_mask0,
+            lost_mask1,
+            drive_mask0,
+            drive_mask1,
+        )
+        self.discard_battle_stratagems(state)
+        self.clear_battle_temporary_strength(state)
+
+        # Ongoing Narratives remain in play unless their own Battle-end text
+        # has ended them.
 
         base_recovery = self.command_recovery_for_battle(state.battle)
         for p in range(2):
