@@ -58,7 +58,7 @@ Status: approved for the first-80 design pool.
 | 9 | **The Red Shields** | Force - Human, Guard - Spearman | **Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 **Strength**. |
 | 10 | **The Crow Archers** | Force - Human, Company - Archer | **Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 **Strength**. |
 | 11 | **The House of Reed** | Force - Place, Stronghold | **Deploy - Rear only.** This Force cannot move, **Maneuver**, or swap positions. If you lose this Front while you have a **Named Formation** in the Frontline, drive off this Force instead of Retreating that formation. |
-| 12 | **The Grey Riders** | Force - Human, Riders - Skirmisher | This Force may **Maneuver** even while not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front. |
+| 12 | **The Grey Riders** | Force - Human, Riders - Skirmisher | This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front. |
 | 13 | **Guarded** | Bond | Cards your opponent plays cannot move this formation. |
 | 14 | **Marched With** | Bond | When you play this Bond on a Force, you may move that formation to an adjacent empty position. |
 | 15 | **Iria** | Name - Human, Seer - Unique | When an opposing formation in this Front becomes **Named**, your next **Maneuver** this Battle costs 0 Command. If this happens again before you Maneuver, you still get only one free Maneuver. |
@@ -82,7 +82,7 @@ Status: approved for the first-80 design pool.
 
 | # | Card | Type | Cost | Strength | Rules text |
 | --- | --- | --- | ---: | ---: | --- |
-| 17 | **The Dust Riders** | Force - Human, Riders - Skirmisher | This Force may **Maneuver** even while not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left. |
+| 17 | **The Dust Riders** | Force - Human, Riders - Skirmisher | This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left. |
 | 18 | **The Black Company** | Force - Human, Company - Swordsman | **Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this formation swaps positions with another formation during a **Maneuver**, you may **Maneuver** that other formation for 0 Command. |
 | 19 | **Kept Pace With** | Bond | After an adjacent friendly **Named Formation** Maneuvers away, you may move this formation into the position it left. |
 | 20 | **Covered the Withdrawal of** | Bond | After an adjacent friendly formation **Retreats**, you may **Maneuver** this formation for 0 Command. |
@@ -136,14 +136,14 @@ This batch tests what survives a loss, how Retreat can change position, and how 
 
 | # | Card | Type | Cost | Strength | Rules text |
 | --- | --- | --- | ---: | ---: | --- |
-| 33 | **Stayed Behind For** | Bond | 1 | - | If this Force is driven off, leave this Bond in its position instead of discarding it. If this formation has a Name, return that Name to its owner's hand. The next friendly Force played in this position takes this Bond. |
-| 34 | **Swore Again To** | Bond | 1 | - | If this Force is driven off, return this Bond to your hand instead of discarding it. |
-| 35 | **Edrin** | Name - Human, Survivor - Unique | 1 | +1 | If this formation is driven off, return this Name to your hand instead of discarding it. |
-| 36 | **Sela** | Name - Human, Wanderer - Unique | 1 | +1 | After this formation **Retreats** to the Rear, you may move it one Front left or right if that Rear position is empty. |
-| 37 | **The Old Guard** | Force - Human, Veterans | 2 | 2 | **Deploy - Rear only.** If this Force is Named, a Force you play in the Frontline of this Front costs 1 less Command (minimum 1). |
-| 38 | **Meren** | Name - Human, Captain - Unique | 2 | +1 | At the start of each Battle, you may move this formation one Front left or right, staying in the same rank, if that position is empty. |
-| 39 | **Endured With** | Bond | 1 | - | When this formation **Retreats**, regain 1 Command. |
-| 40 | **Tala** | Name - Human, Captain - Unique | 1 | +1 | Before comparing Strength in this Front, if this formation is in the Frontline and its Rear position is empty, you may **Retreat** it. |
+| 33 | **Stayed Behind For** | Bond | If this Force is driven off, leave this Bond in its position instead of discarding it. If this formation has a Name, return that Name to its owner's hand. The next friendly Force played in this position takes this Bond. |
+| 34 | **Swore Again To** | Bond | If this Force is driven off, return this Bond to your hand instead of discarding it. |
+| 35 | **Edrin** | Name - Human, Survivor - Unique | If this formation is driven off, return this Name to your hand instead of discarding it. |
+| 36 | **Sela** | Name - Human, Wanderer - Unique | After this formation **Retreats** to the Rear, you may move it one Front left or right if that Rear position is empty. |
+| 37 | **The Old Guard** | Force - Human, Veterans | **Deploy - Rear only.** If this formation is **Named**, a Force you play in the Frontline of this Front costs 1 less Command (minimum 1). |
+| 38 | **Meren** | Name - Human, Captain - Unique | At the start of each Battle, you may move this formation one Front left or right, staying in the same rank, if that position is empty. |
+| 39 | **Endured With** | Bond | When this formation **Retreats**, regain 1 Command. |
+| 40 | **Tala** | Name - Human, Captain - Unique | Before comparing Strength in this Front, if this formation is in the Frontline and its Rear position is empty, you may **Retreat** it. |
 
 ### Mechanics under test
 
@@ -155,3 +155,18 @@ This batch tests what survives a loss, how Retreat can change position, and how 
 - **Persistent preparation** - a Named Formation can reposition at the start of a later Battle.
 - **Loss compensation** - Retreat can return a small amount of Command.
 - **Voluntary Retreat** - one Name can leave the Frontline before Strength is compared, but only if its Rear position is empty.
+
+
+## Canonical card vocabulary
+
+Use these terms consistently in rules and card text:
+
+- **Force / Bond / Name** - the card types.
+- **Formation** - a Force plus any Bond and/or Name in the same position.
+- **Has a Bond** - a Bond is present. This does not imply a Name is present.
+- **Has a Name** - a Name is present. This does not imply a Bond is present.
+- **Named Formation / is Named** - exactly **Force + Bond + Name**.
+- **Prepared Bond / Prepared Name** - the card is in a position without a Force. It is not a formation yet.
+- **Open Bond** - a Bond attached to a Force when that formation has no Name.
+- Never use **Named** to mean merely “has a Name.”
+- Never say a **Force is Named**. Say **the formation is Named**.
