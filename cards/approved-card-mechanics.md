@@ -3,7 +3,7 @@
 This file is a compact reference for the currently approved card designs.
 
 **Source of truth:** `cards/cards.json`  
-**Approved cards:** 87
+**Approved cards:** 95
 
 ## Vocabulary
 
@@ -188,3 +188,19 @@ Naming rule: mechanically generic Forces may have plain descriptive names. A For
 | 85 | **The Ilyri** | Force | 2 | 3 | While this formation has an open Bond, this Force gets +2 **Strength**. |
 | 86 | **The Damar** | Force | 2 | 5 | **Deploy - Frontline only.** |
 | 87 | **The Serekh** | Force | 2 | 3 | Opposing cards cannot ignore this Force's **Strength**. |
+
+
+## Batch 12 - Necessity and compulsion
+
+Design principle: force can act on the player by narrowing future choices. These cards use ordinary rules language such as **must** and **if possible** rather than introducing a new keyword. Compulsion should be visible, local, and usually short-lived; several effects bind both players or the player who chose to invoke them.
+
+| # | Card | Type | Cost | Strength | Approved mechanic |
+|---:|---|---|---:|---:|---|
+| 88 | **The Battle Had Chosen Them** | Narrative - Omen | 1 | - | **Ongoing.** Choose a Front. The first time each player plays a card there this Battle, that player's next operation must affect that Front, if possible. After both players have done this, discard the Omen. |
+| 89 | **No One Would Be First to Leave** | Narrative - Saga | 1 | - | **Ongoing.** Choose a Front. Named Formations there cannot **Maneuver** away. When a Named Formation there **Retreats**, discard the Saga. |
+| 90 | **The King Had Given the Order** | Narrative - Warning | 1 | - | **Ongoing.** Choose one of your Named Formations and left or right. On your next turn, if it can **Maneuver** one Front that way, your operation must be that Maneuver. Then discard the Warning. |
+| 91 | **They Had Gone Too Far** | Narrative - Omen | 1 | - | **Ongoing.** When either player wins their third Front in a Battle, that player's first operation next Battle must be a **Maneuver**, if possible. Then discard the Omen. |
+| 92 | **There Was No Road Back** | Stratagem | 2 | - | Choose a Front. **During this Battle**, formations may **Maneuver** into it but cannot Maneuver away. |
+| 93 | **The Line Had Begun to Move** | Stratagem | 2 | - | Choose left or right. **During this Battle**, the first **Maneuver** each player makes must be in that direction, if possible. |
+| 94 | **Every Banner Turned Toward Them** | Stratagem | 3 | - | Choose a Front. **During this Battle**, each player's first operation each turn must affect that Front, if possible. |
+| 95 | **Had Been Ordered Forward** | Bond | 1 | - | This formation gets +2 **Strength**. After it **Maneuvers**, its next Maneuver this Battle must continue in the same direction, if possible. |
