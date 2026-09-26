@@ -91,6 +91,17 @@ There is no generic Draw operation, no generic Advance, and no attack step.
 
 ## Force - Bond - Name {#cards}
 
+### Vocabulary
+
+- **Force**, **Bond**, and **Name** refer to the card types themselves.
+- A **formation** is a Force together with any Bond and/or Name in the same position.
+- A formation **has a Bond** if a Bond is present, whether or not it has a Name.
+- A formation **has a Name** if a Name is present, whether or not it has a Bond.
+- A **Named Formation** - or a formation that **is Named** - contains all three: **Force + Bond + Name**.
+- A **prepared Bond** or **prepared Name** is in a battlefield position with no Force yet. It is not a formation.
+- An **open Bond** is a Bond attached to a Force when that formation has no Name.
+- The word **Named** is reserved for a complete Force + Bond + Name. A Force + Name without a Bond is not Named.
+
 Each battlefield position can hold at most one **Force**, one **Bond**, and one **Name**.
 
 <div class="legend-sentence">
@@ -113,7 +124,7 @@ A Bond or Name may be played before its Force. Until a Force arrives it is **pre
 
 Once a Force is present, apply the Bond and Name normally.
 
-A Bond without a Name is an **open Bond**.
+A Bond attached to a Force while that formation has no Name is an **open Bond**.
 
 Every printed Name is **Unique**.
 
