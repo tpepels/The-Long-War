@@ -195,7 +195,7 @@ CHECK_SCRIPT = r"""
       if (document.querySelectorAll(".digital-slot").length !== 16) fail("formation-positions-missing");
       if (document.querySelectorAll(".narrative-marker").length !== 4) fail("narrative-slots-missing");
       if (!document.querySelector(".stratagem-marker:not(.hidden)")) fail("public-stratagem-zone-missing");
-      document.querySelectorAll(".story-marker [data-inspect-card]").forEach((card) => { if (!card.dataset.inspectCard) fail("narrative-card-not-public"); });
+      document.querySelectorAll(".narrative-marker [data-inspect-card]").forEach((card) => { if (!card.dataset.inspectCard) fail("narrative-card-not-public"); });
     }
     document.querySelectorAll("#hand > .play-card").forEach((card, index) => {
       withinViewport(card, "hand-card-" + index + "-clipped");
