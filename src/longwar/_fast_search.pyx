@@ -10,7 +10,7 @@ import json
 from time import perf_counter
 
 DEF MAX_CARDS = 127
-DEF MAX_DECK = 64
+DEF MAX_DECK = 254
 DEF SLOT_COUNT = 16
 DEF SCHEME_COUNT = 8
 DEF MAX_ACTIONS = 1024
@@ -374,7 +374,6 @@ cdef class FastState:
 cdef class FastEngine:
     cdef public object card_ids
     cdef public object id_to_code
-    cdef public int max_deck_size
     cdef int n_cards
     cdef int opening_hand_size
     cdef int command_cap
@@ -439,7 +438,6 @@ cdef class FastEngine:
     cdef uint8_t strat_global_story_lock[MAX_CARDS]
 
     def __cinit__(self):
-        self.max_deck_size = MAX_DECK
         self.command_recovery_len = 0
         memset(
             self.command_recovery_values,

@@ -114,11 +114,17 @@ def test_rules_do_not_silently_coerce_values(changes):
         GameRules(**changes)
 
 
-def test_runtime_deck_validation_rejects_malformed_entries_but_not_large_known_decks(data):
+def test_runtime_deck_validation_has_no_arbitrary_64_card_cap(data):
     engine = GameEngine(data)
-    engine.validate_deck(["followed"] * 65)
+    maximal_legal = [
+        card["id"]
+        for card in data["cards"]
+        for _ in range(1 if card["unique"] else 2)
+    ]
+    assert len(maximal_legal) > 64
+    engine.validate_deck(maximal_legal)
     with pytest.raises(InvalidDeck, match="list of card ids"):
-        engine.validate_deck([{}] * 30)
+        engine.validate_deck([{}] * 34)
 
 
 def _expanded_pool(data, size):

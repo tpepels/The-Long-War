@@ -4,6 +4,7 @@ import random
 from typing import Any
 
 from ..cards import card_index, load_card_file, validate_card_data
+from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
 from .actions import Action, action_from_key, action_key
 from .model import (
@@ -152,28 +153,11 @@ class GameEngine:
         return evaluator
 
     def validate_deck(self, deck: list[str]) -> None:
-        """Validate only what the runtime needs to play a supplied deck.
-
-        Deck-construction format rules such as current playtest size and copy
-        limits live outside the game engine.
-        """
-        if not isinstance(deck, (list, tuple)) or any(
-            not isinstance(card_id, str) for card_id in deck
-        ):
-            raise InvalidDeck("A deck must be a list of card ids")
-        if not deck:
-            raise InvalidDeck("A deck must contain at least one card")
-
-        maximum = int(self._native_core_instance.max_deck_size)
-        if len(deck) > maximum:
-            raise InvalidDeck(
-                f"The native engine supports decks of at most {maximum} cards, "
-                f"got {len(deck)}"
-            )
-
-        unknown = sorted({card_id for card_id in deck if card_id not in self.cards})
-        if unknown:
-            raise InvalidDeck("Unknown card: " + ", ".join(unknown))
+        """Validate the canonical deck-construction rules."""
+        try:
+            validate_deck_definition(deck, self.cards)
+        except InvalidDeckDefinition as exc:
+            raise InvalidDeck(str(exc)) from exc
 
     def new_game(
         self,
