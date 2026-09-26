@@ -15,7 +15,7 @@ Status: approved for the first-80 design pool.
 | 1 | **The Fifty Men** | Force - Human, Warband - Swordsman | 2 | 4 | - | Baseline Frontline Force. |
 | 2 | **Seven Black Ships** | Force - Ship, Fleet - Ship | 2 | 4 | - | Baseline Rear Force. |
 | 3 | **The White Hands of Elara** | Force - Human, Healer | 1 | 2 | **Deploy - Rear only.** | Baseline support Force. |
-| 4 | **Held Fast** | Bond | 1 | - | **This formation gets +2 Strength.** | Pure baseline Bond. |
+| 4 | **Stood Fast With** | Bond | 1 | - | **This formation gets +2 Strength.** | Pure baseline Bond. |
 | 5 | **Followed** | Bond | 1 | - | **This formation gets +1 Strength. While it is Named, it gets +2 more.** | Teaches the value of completing a Named Formation. |
 | 6 | **Namar** | Name - Human, King - Unique | 1 | +1 | **When this formation becomes Named, regain 1 Command.** | Simple completion payoff. |
 | 7 | **Oren** | Name - Human, Warrior - Unique | 2 | +2 | **When this formation becomes Named, draw 1 card.** | Simple completion payoff with card flow. |
@@ -25,7 +25,7 @@ Status: approved for the first-80 design pool.
 
 - **The Fifty Men** and **Seven Black Ships** establish the basic positional baseline. Their positional effects are printed explicitly on the cards.
 - **The White Hands of Elara** is intentionally simple. Its final cost may need tuning because Healer converts Rear presence into effective Front strength.
-- **Held Fast** is intentionally plain. The set needs uncomplicated Bonds that establish the baseline value of a Bond.
+- **Stood Fast With** is intentionally plain. The set needs uncomplicated Bonds that establish the baseline value of a Bond.
 - **Followed** is conceptually approved; the +1 / +2 numbers remain balance targets rather than locked values.
 - **Namar** is allowed to be unusually Command-efficient as a distinctive completion reward, but this should not become a common pattern.
 - **Oren** is conceptually approved; its persistent value plus card replacement should be tested carefully.
@@ -37,6 +37,8 @@ Status: approved for the first-80 design pool.
 - Avoid arithmetic-heavy designs whose main identity is stacking Strength modifiers.
 - Most cards should do one clear thing.
 - Role and classification names never substitute for rules text. If a card has a mechanic, the complete mechanic is printed on that card.
+- Bond titles should normally form a grammatical phrase between the Force and a future Name: `Force + Bond + Name`.
+- Prefer short, literal card text over new vocabulary or compressed rules language. A player should normally understand an effect from the card without checking the rulebook.
 - No new universal counters, wounds, exhaustion, Renown, veteran state, movement points, resources, phases, or hidden memory state.
 - Use canonical timing language consistently: **when you play**, **when this formation becomes Named**, **while**, **after this formation Maneuvers**, **when this formation Retreats**, **when this formation is driven off**, **at Battle end**.
 - **Maneuver** means the core named movement action; **move** is reserved for card-effect movement that does not automatically inherit Maneuver rules.
@@ -81,10 +83,10 @@ Status: approved for the first-80 design pool.
 | 17 | **The Dust Riders** | Force - Human, Riders - Skirmisher | 2 | 2 | This Force may **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Dust Riders contribute their Strength to the chosen Front instead of their own. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left. |
 | 18 | **The Black Company** | Force - Human, Company - Swordsman | 2 | 4 | **Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this formation swaps positions during a **Maneuver**, you may **Maneuver** the formation it swapped with for 0 Command. |
 | 19 | **Kept Pace With** | Bond | 1 | - | After an adjacent friendly **Named Formation** Maneuvers away, you may move this formation into the position it left. |
-| 20 | **Covered the Withdrawal** | Bond | 1 | - | When an adjacent friendly formation **Retreats**, after that Retreat resolves you may **Maneuver** this formation for 0 Command. |
+| 20 | **Covered the Withdrawal of** | Bond | 1 | - | When an adjacent friendly formation **Retreats**, after that Retreat resolves you may **Maneuver** this formation for 0 Command. |
 | 21 | **Teren** | Name - Human, Captain - Unique | 2 | +1 | After this formation **Maneuvers**, you may swap two adjacent friendly formations other than this one. |
 | 22 | **Mara** | Name - Human, Scout - Unique | 1 | +1 | When an opposing formation **Maneuvers** into this Front, you may **Maneuver** this formation for 0 Command. |
-| 23 | **Blocked the Road** | Bond | 1 | - | Opponent card effects cannot move formations into this Front from an adjacent Front. |
+| 23 | **Blocked the Road for** | Bond | 1 | - | Opponent card effects cannot move formations into this Front from an adjacent Front. |
 | 24 | **The Long March** | Story - Saga - Ongoing | 2 | - | **Ongoing.** The first **Maneuver** you make each turn costs 0 Command if it moves a formation into an empty position rather than swapping. |
 
 ### Batch 3 notes
@@ -103,18 +105,18 @@ This batch deliberately expands what can happen when a Front resolves without in
 
 | # | Card | Type | Cost | Strength | Rules text |
 | --- | --- | --- | ---: | ---: | --- |
-| 25 | **The Red Duelists** | Force - Human, Duelists | 2 | 3 | **Deploy - Frontline only.** When resolving this Front, if your opponent has a Frontline formation, ignore both Rear formations. |
+| 25 | **The Red Duelists** | Force - Human, Duelists | 2 | 3 | **Deploy - Frontline only.** Rear formations in this Front do not contribute Strength while this Front is resolved. |
 | 26 | **The Thornbow Hunters** | Force - Human, Hunters - Archer | 2 | 1 | **Deploy - Rear only.** While in the Rear with a friendly Force directly ahead, this Force gets +2 Strength. When resolving this Front, you may choose an opposing Rear Force. It does not contribute Strength this resolution. |
 | 27 | **The Iron Boars** | Force - Human, Raiders - Swordsman | 3 | 3 | **Deploy - Frontline only.** While in the Frontline, this Force gets +1 Strength. If you win this Front while the opponent has no Force in the Rear, drive off their Frontline Named Formation instead of Retreating it. |
 | 28 | **The First Spear** | Force - Human, Guard - Spearman | 3 | 3 | **Deploy - Frontline only.** While in the Frontline with a friendly Force directly behind it, this Force gets +1 Strength. Before Strength is compared, you may choose an opposing Frontline Force with lower printed Strength. It does not contribute this resolution. |
-| 29 | **Held the Line** | Bond | 1 | - | Before Strength is compared, you may discard this Force and all attached cards. If you do, choose one opposing formation here. It does not contribute Strength this resolution. |
+| 29 | **Held the Line for** | Bond | 1 | - | Before Strength is compared, you may discard this Force and all attached cards. If you do, choose one opposing formation here. It does not contribute Strength this resolution. |
 | 30 | **Seized the Standard of** | Bond | 1 | - | When this formation wins its Front and an opposing Frontline Named Formation Retreats, after the Retreat return that formation's Bond to its owner's hand. |
 | 31 | **Asha, the Shield-Bearer** | Name - Human, Shield-Bearer - Unique | 1 | +1 | When an opponent's combat effect would make another friendly formation in this Front not contribute Strength, you may have this formation not contribute instead. The other formation contributes normally. |
 | 32 | **The Ground Was Held** | Stratagem | 2 | - | **During this Battle**, when a Front is tied, if exactly one player has a Named Formation in the Frontline there, that player wins the Front. Otherwise the Front remains tied. |
 
 ### Mechanics under test
 
-- **Frontline-only resolution** - a card can make a Front resolve using only the two Frontline formations.
+- **Frontline-only resolution** - Rear formations in that Front do not contribute Strength during resolution.
 - **Skirmish / suppression** - stop a specific enemy formation contributing without damaging it.
 - **Breakthrough** - convert a favorable battlefield shape into a harsher Retreat result.
 - **First strike** - neutralize a weaker opposing Force before comparison.
