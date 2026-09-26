@@ -4086,6 +4086,271 @@
       "engine_sync": "pending-first-80-migration",
       "design_status": "draft",
       "design_batch": 9
+    },
+    {
+      "id": "the-unnamed-host",
+      "title": "The Unnamed Host",
+      "type": "force",
+      "strength": 3,
+      "unique": false,
+      "classes": [
+        "human",
+        "warband"
+      ],
+      "command_cost": 2,
+      "text": "While this formation has a Bond and no Name, it may **Maneuver** even though it is not Named. Its first **Maneuver** each Battle costs 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "OPEN BOND",
+          "text": "While this formation has a Bond and no Name, it may **Maneuver** even though it is not Named. Its first **Maneuver** each Battle costs 0 Command."
+        }
+      ],
+      "design_rules": {
+        "build_around": "open_bond",
+        "condition": "has_bond_and_no_name",
+        "can_maneuver_while_unnamed": true,
+        "first_maneuver_each_battle_cost": 0
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 10
+    },
+    {
+      "id": "the-late-banner",
+      "title": "The Late Banner",
+      "type": "force",
+      "strength": 3,
+      "unique": false,
+      "classes": [
+        "human",
+        "company"
+      ],
+      "command_cost": 2,
+      "text": "When you play this Force into a position that already has a prepared Bond or Name, it may **Maneuver** once for 0 Command, even if it is not Named.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "PREPARED POSITION",
+          "text": "When played into a position that already has a prepared Bond or Name, this formation may **Maneuver** once for 0 Command, even if it is not Named."
+        }
+      ],
+      "design_rules": {
+        "build_around": "prepared_position",
+        "on_play_condition": "position_has_prepared_bond_or_name",
+        "effect": "optional_zero_cost_maneuver_even_if_unnamed"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 10
+    },
+    {
+      "id": "arel",
+      "title": "Arel",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "general"
+      ],
+      "command_cost": 1,
+      "text": "While one of your Fronts has no Force, this formation's **Maneuvers** cost 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "EMPTY FRONT",
+          "text": "While one of your Fronts has no Force, this formation's **Maneuvers** cost 0 Command."
+        }
+      ],
+      "design_rules": {
+        "build_around": "empty_front",
+        "condition": "controller_has_front_with_no_force",
+        "effect": "self_maneuver_cost_0"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 10
+    },
+    {
+      "id": "torren",
+      "title": "Torren",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "marshal"
+      ],
+      "command_cost": 2,
+      "text": "While you have at least one Force in all four Fronts, after this formation **Maneuvers**, you may **Maneuver** one other friendly Named Formation for 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "ALL FOUR FRONTS",
+          "text": "While you have at least one Force in all four Fronts, after this formation **Maneuvers**, you may **Maneuver** one other friendly Named Formation for 0 Command."
+        }
+      ],
+      "design_rules": {
+        "build_around": "wide_line",
+        "condition": "friendly_force_in_all_four_fronts",
+        "after_self_maneuver": "optional_zero_cost_other_friendly_named_maneuver"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 10
+    },
+    {
+      "id": "the-banner-singers",
+      "title": "The Banner Singers",
+      "type": "force",
+      "strength": 2,
+      "unique": false,
+      "classes": [
+        "human",
+        "retinue"
+      ],
+      "command_cost": 1,
+      "text": "**Deploy - Rear only.** While this Force is in the Rear, after you regain Command from a Legend, Omen, Myth, Prophecy, Warning, Saga, or Conspiracy, you may **Maneuver** one friendly Named Formation for 0 Command.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "DEPLOY",
+          "text": "**Rear only.**"
+        },
+        {
+          "kind": "trigger",
+          "label": "NARRATIVE",
+          "text": "While in the Rear, after you regain Command from a Legend, Omen, Myth, Prophecy, Warning, Saga, or Conspiracy, you may **Maneuver** one friendly Named Formation for 0 Command."
+        }
+      ],
+      "design_rules": {
+        "build_around": "narrative",
+        "deploy_rank": "rear",
+        "trigger": "regain_command_from_narrative",
+        "effect": "optional_zero_cost_friendly_named_maneuver"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 10
+    },
+    {
+      "id": "marched-beneath-the-banner-of",
+      "title": "Marched Beneath the Banner of",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "retinue"
+      ],
+      "command_cost": 1,
+      "text": "While this formation is adjacent to a formation containing a Hero, it may **Maneuver** even if it is not Named. Its first **Maneuver** each Battle costs 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "HERO RETINUE",
+          "text": "While adjacent to a formation containing a Hero, this formation may **Maneuver** even if it is not Named. Its first **Maneuver** each Battle costs 0 Command."
+        }
+      ],
+      "design_rules": {
+        "build_around": "hero_retinue",
+        "condition": "adjacent_friendly_formation_contains_hero",
+        "can_maneuver_while_unnamed": true,
+        "first_maneuver_each_battle_cost": 0
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 10
+    },
+    {
+      "id": "carried-the-oath-of",
+      "title": "Carried the Oath of",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "oath"
+      ],
+      "command_cost": 1,
+      "text": "While this Bond is open, after this Force moves or **Maneuvers**, you may move this Bond to an adjacent friendly Force with no Bond.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "OPEN BOND",
+          "text": "While this Bond is open, after this Force moves or **Maneuvers**, you may move this Bond to an adjacent friendly Force with no Bond."
+        }
+      ],
+      "design_rules": {
+        "build_around": "open_bond_transfer",
+        "condition": "bond_is_open",
+        "trigger": "force_moves_or_maneuvers",
+        "effect": "optional_move_this_bond_to_adjacent_friendly_force_without_bond"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 10
+    },
+    {
+      "id": "eira",
+      "title": "Eira",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "heir"
+      ],
+      "command_cost": 2,
+      "text": "If this formation is driven off, instead of discarding this Name, you may move it to an adjacent friendly Force that has a Bond and no Name.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "replacement",
+          "label": "SUCCESSION",
+          "text": "If this formation is driven off, instead of discarding this Name, you may move it to an adjacent friendly Force that has a Bond and no Name."
+        }
+      ],
+      "design_rules": {
+        "build_around": "succession",
+        "trigger": "formation_driven_off",
+        "replacement": "optional_move_name_to_adjacent_friendly_force_with_bond_no_name"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 10
     }
   ]
 }
