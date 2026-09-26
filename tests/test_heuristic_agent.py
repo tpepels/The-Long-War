@@ -8,7 +8,7 @@ import pytest
 from longwar.agents import HeuristicAgent
 from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
-from longwar.game import Discard, Front, GameEngine, Pass, Position, Rank
+from longwar.game import Discard, Front, GameEngine, Pass, PlayBond, Position, Rank
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -349,3 +349,110 @@ def test_heuristic_prefers_strength_that_changes_a_front_over_overcommitment() -
 
     assert contested_delta > safe_delta
 
+
+
+def test_heuristic_values_fresh_battle_initiative() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=21, exploration=0.0)
+
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+    state.operations_this_battle[:] = [0, 0]
+    state.pass_order = []
+    state.players[0].passed = False
+    state.players[1].passed = False
+
+    first = state.clone()
+    first.active_player = 0
+    second = state.clone()
+    second.active_player = 1
+
+    assert agent.evaluate(engine, first, 0) > agent.evaluate(
+        engine,
+        second,
+        0,
+    )
+
+
+def test_pending_pass_exposes_incomplete_formation_liability() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=22, exploration=0.0)
+
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+    state.operations_this_battle[:] = [1, 1]
+    state.active_player = 0
+    state.players[1].passed = True
+    state.pass_order = [1]
+
+    own_liability = state.clone()
+    own_slot = own_liability.slot(
+        0,
+        Position(Front.FIRST, Rank.FRONT),
+    )
+    own_slot.bond = "followed"
+    own_slot.name = "namar"
+
+    enemy_liability = state.clone()
+    enemy_slot = enemy_liability.slot(
+        1,
+        Position(Front.FIRST, Rank.FRONT),
+    )
+    enemy_slot.bond = "followed"
+    enemy_slot.name = "namar"
+
+    assert agent.evaluate(engine, enemy_liability, 0) > agent.evaluate(
+        engine,
+        own_liability,
+        0,
+    )
+
+
+def test_first_pass_score_includes_opponent_normal_draw() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=23, exploration=0.0)
+
+    state.operations_this_battle[:] = [1, 1]
+    state.active_player = 0
+    state.players[0].hand = []
+    state.players[0].deck = []
+    state.players[1].hand = ["namar"] * 9
+    state.players[1].deck = ["followed"]
+    state.players[0].command = 10
+    state.players[1].command = 10
+
+    with_draw = agent._score_action(engine, state, 0, Pass())
+
+    no_draw = state.clone()
+    no_draw.players[1].deck = []
+    without_draw = agent._score_action(engine, no_draw, 0, Pass())
+
+    assert with_draw < without_draw
+
+
+def test_action_order_prefers_bond_on_active_force_over_empty_preparation() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=24, exploration=0.0)
+
+    state.players[0].hand = ["followed"]
+    state.players[0].command = 20
+    active = Position(Front.FIRST, Rank.FRONT)
+    empty = Position(Front.SECOND, Rank.FRONT)
+    state.slot(0, active).force = "the-fifty-men"
+
+    on_force = PlayBond("followed", active)
+    prepared = PlayBond("followed", empty)
+    legal = engine.legal_actions(state)
+    assert on_force in legal
+    assert prepared in legal
+
+    assert agent._score_action(engine, state, 0, on_force) > agent._score_action(
+        engine,
+        state,
+        0,
+        prepared,
+    )
