@@ -1065,8 +1065,6 @@ cdef class FastEngine:
         pos = action_pos(action)
         if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
             target_front = front_from_slot(pos)
-        elif kind == TYPE_SCHEME:
-            target_front = pos
         if target_front >= 0:
             discount = self.adjacent_discount_fast(
                 state,
