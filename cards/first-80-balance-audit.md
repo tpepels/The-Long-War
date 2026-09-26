@@ -15,10 +15,11 @@ The approved first-80 pool currently contains:
 
 That is 80 designed cards total, of which 28 are Unique.
 
-Current 34-card deck construction requires:
+Current deck construction requires:
 
-- exactly 14 Force-type cards;
-- exactly 6 printed Names;
+- at least 34 cards;
+- at least 14 Force-type cards;
+- at least 6 printed Names;
 - maximum 2 copies of a non-Unique title;
 - maximum 1 copy of a Unique title;
 - Heroes count among Force-type cards and may instead be played as Names.
@@ -152,20 +153,20 @@ This is not automatically too many. Most of the count follows directly from the 
 
 ### Printed Names
 
-Exactly 6 printed Names are required in a 34-card deck, and all 16 available Names are Unique.
+At least 6 printed Names are required, and all 16 available Names are Unique.
 
 Consequences:
 
 - every deck has six distinct printed Names;
 - Name-heavy combos cannot be made consistent by running duplicate copies;
 - deck identity comes partly from which 6 of the 16 Names are selected;
-- in an opening 10-card hand, six printed Names in a 34-card deck give about a 90% chance of seeing at least one printed Name.
+- in a minimum 34-card deck containing exactly six printed Names, an opening 10-card hand has about a 90% chance of seeing at least one printed Name; larger decks or higher Name counts change that consistency.
 
 This looks healthy.
 
 ### Heroes
 
-There are 9 Heroes. They count among the 14 Force-type deck slots, can instead be played as Names, and only one Hero card may be played from hand each Battle.
+There are 9 Heroes. They count toward the minimum 14 Force-type cards, can instead be played as Names, and only one Hero card may be played from hand each Battle.
 
 There is currently **no Hero deck-building cap**.
 
@@ -182,7 +183,7 @@ Opening-hand pressure for a 10-card opening hand:
 - 6 Heroes: about 58%
 - 9 Heroes: about 83%
 
-Suggested first test: **maximum 4 Heroes per 34-card deck**.
+A Hero cap remains an open balance question. Do not impose one yet; first test Hero-heavy decks under the minimum-size deck rules.
 
 Four keeps Heroes important, forces a real choice among the nine available designs, and avoids making the Force/Name split mostly cosmetic.
 
