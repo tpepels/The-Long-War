@@ -50,6 +50,7 @@ cdef int EFFECT_OPTIONAL = 1
 cdef int EFFECT_ALLOW_UNNAMED = 2
 cdef int EFFECT_ADJACENT_PAIR = 4
 cdef int EFFECT_CARD_MOVE = 8
+cdef int EFFECT_SAME_FRONT_PAIR = 16
 
 cdef int RESUME_NONE = 0
 cdef int RESUME_FINISH_OPERATION = 1
@@ -2278,6 +2279,9 @@ cdef class FastEngine:
                         continue
                     if flags & EFFECT_ADJACENT_PAIR:
                         if rank_from_slot(source) != rank_from_slot(dest) or abs(front_from_slot(source) - front_from_slot(dest)) != 1:
+                            continue
+                    if flags & EFFECT_SAME_FRONT_PAIR:
+                        if front_from_slot(source) != front_from_slot(dest) or rank_from_slot(source) == rank_from_slot(dest):
                             continue
                     if self.immobile_force[state.subject[source]] or self.immobile_force[state.subject[dest]]:
                         continue
