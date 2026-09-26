@@ -277,20 +277,6 @@ def main() -> None:
         default=defaults.battle_end_hand_limit,
     )
 
-    pass_gate_group = parser.add_mutually_exclusive_group()
-    pass_gate_group.add_argument(
-        "--pass-requires-both-acted",
-        dest="pass_requires_both_acted",
-        action="store_true",
-        help="Do not allow the first Pass until both players performed an operation.",
-    )
-    pass_gate_group.add_argument(
-        "--pass-does-not-require-both-acted",
-        dest="pass_requires_both_acted",
-        action="store_false",
-    )
-    parser.set_defaults(pass_requires_both_acted=defaults.pass_requires_both_acted)
-
     parser.add_argument(
         "--completion-command-refund",
         type=int,
@@ -377,7 +363,6 @@ def main() -> None:
         automatic_draw_hand_limit=args.automatic_draw_hand_limit,
         battle_end_hand_limit=args.battle_end_hand_limit,
         cycle_enabled=args.cycle_enabled,
-        pass_requires_both_acted=args.pass_requires_both_acted,
         completion_command_refund=args.completion_command_refund,
         public_stratagems=args.public_stratagems,
     )
@@ -519,7 +504,6 @@ def main() -> None:
         "paid_draw_consumes_operation": rules.paid_draw_consumes_operation,
         "automatic_draw_hand_limit": rules.automatic_draw_hand_limit,
         "battle_end_hand_limit": rules.battle_end_hand_limit,
-        "pass_requires_both_acted": rules.pass_requires_both_acted,
         "completion_command_refund": rules.completion_command_refund,
         "public_stratagems": rules.public_stratagems,
         "card_file": str(args.card_file),
