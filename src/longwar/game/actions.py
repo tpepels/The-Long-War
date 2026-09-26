@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import TypeAlias
 
-from .model import Position, Rank
+from .model import Front, Position, Rank
 
 
 @dataclass(frozen=True)
