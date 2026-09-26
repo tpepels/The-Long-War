@@ -245,7 +245,7 @@ The engine may keep `story` as the umbrella family, but player-facing cards use 
 
 ## Batch 8 - Narratives
 
-Status: draft for review.
+Status: approved for the first-80 design pool.
 
 Command gain is the common identity of this batch. The secondary effect expresses the specific narrative form.
 
