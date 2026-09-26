@@ -246,7 +246,7 @@
         "hero"
       ],
       "role": "swordsman",
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** While Avaros is in the **Frontline**, he gets +1 **Strength**. After Avaros **Maneuvers**, you may **Maneuver** one adjacent friendly **Named Formation** without paying Command. **Name -** When this formation becomes **Named**, you may **Maneuver** it once without paying Command.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this Force **Maneuvers**, you may **Maneuver** one adjacent friendly **Named Formation** for 0 Command. **Name -** When this formation becomes **Named**, you may **Maneuver** it once for 0 Command.",
       "rules": {
         "placement": {
           "rank": "front"
@@ -305,7 +305,7 @@
       "classes": [
         "loyalty"
       ],
-      "text": "This formation gets +1 **Strength**. While it is **Named**, it gets +2 more.",
+      "text": "This formation gets +1 **Strength**. If it is **Named**, it gets +3 **Strength** instead.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 2
@@ -503,7 +503,7 @@
         "human",
         "seer"
       ],
-      "text": "Whenever an opposing formation in this Front becomes **Named**, your next **Maneuver** this Battle costs 0 Command. Additional triggers do not accumulate.",
+      "text": "When an opposing formation in this Front becomes **Named**, your next **Maneuver** this Battle costs 0 Command. If this happens again before you Maneuver, you still get only one free Maneuver.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -1353,7 +1353,7 @@
       "classes": [
         "ward"
       ],
-      "text": "Opponent card effects cannot move this formation.",
+      "text": "Cards your opponent plays cannot move this formation.",
       "rules": {},
       "balance": {
         "strength_bonus": 1,
@@ -1925,7 +1925,7 @@
       "classes": [
         "companionship"
       ],
-      "text": "When you play this Bond onto a Force, you may move that formation to an adjacent empty position.",
+      "text": "When you play this Bond on a Force, you may move that formation to an adjacent empty position.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -1958,7 +1958,7 @@
         "riders"
       ],
       "role": "skirmisher",
-      "text": "This Force may **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Grey Riders contribute their Strength to the chosen Front instead of their own.",
+      "text": "This Force may **Maneuver** even while not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2000,7 +2000,7 @@
       ],
       "role": "skirmisher",
       "command_cost": 2,
-      "text": "This Force may **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Dust Riders contribute their Strength to the chosen Front instead of their own. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left.",
+      "text": "This Force may **Maneuver** even while not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2048,7 +2048,7 @@
       ],
       "role": "swordsman",
       "command_cost": 2,
-      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this formation swaps positions during a **Maneuver**, you may **Maneuver** the formation it swapped with for 0 Command.",
+      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this formation swaps positions with another formation during a **Maneuver**, you may **Maneuver** that other formation for 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2119,7 +2119,7 @@
         "loyalty"
       ],
       "command_cost": 1,
-      "text": "When an adjacent friendly formation **Retreats**, after that Retreat resolves you may **Maneuver** this formation for 0 Command.",
+      "text": "After an adjacent friendly formation **Retreats**, you may **Maneuver** this formation for 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2212,7 +2212,7 @@
         "defence"
       ],
       "command_cost": 1,
-      "text": "Opponent card effects cannot move formations into this Front from an adjacent Front.",
+      "text": "Cards your opponent plays cannot move a formation from an adjacent Front into this Front.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2242,7 +2242,7 @@
       "story_form": "saga",
       "ongoing": true,
       "command_cost": 2,
-      "text": "**Ongoing.** The first **Maneuver** you make each turn costs 0 Command if it moves a formation into an empty position rather than swapping.",
+      "text": "**Ongoing.** Your first **Maneuver** each turn costs 0 Command if it moves into an empty position instead of swapping.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2281,7 +2281,7 @@
         "duelists"
       ],
       "command_cost": 2,
-      "text": "**Deploy - Frontline only.** When comparing Strength in this Front, ignore Rear formations.",
+      "text": "**Deploy - Frontline only.** When comparing **Strength** in this Front, ignore Strength from Rear formations.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2295,7 +2295,7 @@
         {
           "kind": "timing",
           "label": "COMPARE STRENGTH",
-          "text": "When comparing Strength in this Front, ignore Rear formations."
+          "text": "When comparing **Strength** in this Front, ignore Strength from Rear formations."
         }
       ],
       "design_rules": {
@@ -2318,7 +2318,7 @@
       ],
       "role": "archer",
       "command_cost": 2,
-      "text": "**Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 Strength. When resolving this Front, you may choose an opposing Rear Force. That Force does not contribute Strength to this Front this resolution.",
+      "text": "**Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 **Strength**. When comparing Strength in this Front, you may ignore one opposing Rear Force's Strength.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2332,12 +2332,12 @@
         {
           "kind": "continuous",
           "label": "REAR",
-          "text": "If a friendly Force is directly in front of this Force, it gets +2 Strength."
+          "text": "While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 **Strength**."
         },
         {
           "kind": "timing",
-          "label": "FRONT RESOLUTION",
-          "text": "You may choose an opposing Rear Force. That Force does not contribute Strength to this Front this resolution."
+          "label": "COMPARE STRENGTH",
+          "text": "You may ignore one opposing Rear Force's Strength."
         }
       ],
       "design_rules": {
@@ -2362,7 +2362,7 @@
       ],
       "role": "swordsman",
       "command_cost": 3,
-      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 Strength. If you win this Front while the opponent has no Force in the Rear, drive off their Frontline Named Formation instead of Retreating it.",
+      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. If you win this Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2407,7 +2407,7 @@
       ],
       "role": "spearman",
       "command_cost": 3,
-      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 Strength. When resolving this Front, before Strength is compared, you may choose an opposing Frontline Force with lower printed Strength than this Force. That Force does not contribute Strength this resolution.",
+      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 **Strength**. When comparing Strength in this Front, you may ignore an opposing Frontline Force's Strength if the Strength printed on that card is lower than the Strength printed on this one.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2421,12 +2421,12 @@
         {
           "kind": "continuous",
           "label": "FRONTLINE",
-          "text": "If a friendly Force is directly behind this Force, it gets +1 Strength."
+          "text": "While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 **Strength**."
         },
         {
           "kind": "timing",
-          "label": "BEFORE COMPARISON",
-          "text": "You may choose an opposing Frontline Force with lower printed Strength than this Force. That Force does not contribute Strength this resolution."
+          "label": "COMPARE STRENGTH",
+          "text": "You may ignore an opposing Frontline Force's Strength if the Strength printed on that card is lower than the Strength printed on this one."
         }
       ],
       "design_rules": {
@@ -2449,7 +2449,7 @@
         "sacrifice"
       ],
       "command_cost": 1,
-      "text": "When resolving this Front, before Strength is compared, you may discard the Force in this formation and all cards attached to it. If you do, choose one opposing formation in this Front. It does not contribute Strength this resolution.",
+      "text": "Before comparing Strength in this Front, you may discard this Force and all cards attached to it. If you do, choose one opposing formation here and ignore its Strength.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2457,8 +2457,8 @@
       "rule_blocks": [
         {
           "kind": "timing",
-          "label": "BEFORE COMPARISON",
-          "text": "You may discard the Force in this formation and all cards attached to it. If you do, choose one opposing formation in this Front. It does not contribute Strength this resolution."
+          "label": "BEFORE COMPARING STRENGTH",
+          "text": "You may discard this Force and all cards attached to it. If you do, choose one opposing formation here and ignore its Strength."
         }
       ],
       "design_rules": {
@@ -2479,7 +2479,7 @@
         "capture"
       ],
       "command_cost": 1,
-      "text": "When this formation wins its Front and an opposing Frontline Named Formation Retreats, after the Retreat return that formation's Bond to its owner's hand.",
+      "text": "If this formation wins its Front and an opposing Frontline Named Formation **Retreats**, return that formation's Bond to its owner's hand after it Retreats.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2512,7 +2512,7 @@
         "shield-bearer"
       ],
       "command_cost": 1,
-      "text": "When an opponent's combat effect would make another friendly formation in this Front not contribute Strength, you may have this formation not contribute instead. The other formation contributes normally.",
+      "text": "If an opponent's card would make another friendly formation's Strength not count in this Front, you may make this formation's Strength not count instead. The other formation counts normally.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2520,8 +2520,8 @@
       "rule_blocks": [
         {
           "kind": "replacement",
-          "label": "INTERCEPT",
-          "text": "When an opponent's combat effect would make another friendly formation in this Front not contribute Strength, you may have this formation not contribute instead. The other formation contributes normally."
+          "label": "PROTECT",
+          "text": "If an opponent's card would make another friendly formation's Strength not count in this Front, you may make this formation's Strength not count instead. The other formation counts normally."
         }
       ],
       "design_rules": {
@@ -2543,7 +2543,7 @@
         "resolve"
       ],
       "command_cost": 2,
-      "text": "**During this Battle**, when a Front is tied, if exactly one player has a Named Formation in the Frontline there, that player wins the Front. Otherwise the Front remains tied.",
+      "text": "**During this Battle**, if a Front is tied and only one player has a Named Formation in its Frontline, that player wins the Front. If both or neither do, it stays tied.",
       "rules": {},
       "balance": {
         "dynamic": true
