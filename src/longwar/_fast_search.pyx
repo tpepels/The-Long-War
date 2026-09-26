@@ -44,6 +44,13 @@ cdef int ROLE_HEALER = 4
 cdef int ROLE_SHIP = 5
 cdef int ROLE_STRONGHOLD = 6
 
+cdef int FORCE_TEXT_NONE = 0
+cdef int FORCE_TEXT_FRONT_BONUS = 1
+cdef int FORCE_TEXT_REAR_BONUS = 2
+cdef int FORCE_TEXT_SUPPORT_AHEAD = 3
+cdef int FORCE_TEXT_FRONT_IF_REAR = 4
+cdef int FORCE_TEXT_REAR_IF_FRONT = 5
+
 cdef int NAME_NONE = 0
 cdef int NAME_MOVE_ADJACENT = 1
 cdef int NAME_REVEAL_SCHEME = 2
@@ -396,6 +403,8 @@ cdef class FastEngine:
     cdef int8_t name_strength[MAX_CARDS]
     cdef uint8_t hero[MAX_CARDS]
     cdef int8_t placement_rank[MAX_CARDS]
+    cdef int8_t force_text_effect[MAX_CARDS]
+    cdef int8_t force_text_amount[MAX_CARDS]
     cdef int8_t on_link_bonus[MAX_CARDS]
     cdef int8_t aura[MAX_CARDS]
     cdef int8_t aura_rank[MAX_CARDS]
@@ -455,6 +464,8 @@ cdef class FastEngine:
         memset(self.name_strength, 0, sizeof(self.name_strength))
         memset(self.hero, 0, sizeof(self.hero))
         memset(self.placement_rank, 0xff, sizeof(self.placement_rank))
+        memset(self.force_text_effect, 0, sizeof(self.force_text_effect))
+        memset(self.force_text_amount, 0, sizeof(self.force_text_amount))
         memset(self.on_link_bonus, 0, sizeof(self.on_link_bonus))
         memset(self.aura, 0, sizeof(self.aura))
         memset(self.aura_rank, 0xff, sizeof(self.aura_rank))
@@ -534,6 +545,13 @@ cdef class FastEngine:
         strat_event_map = {"subject_played": EVENT_SUBJECT, "pass": EVENT_PASS, "immediate_story_played": EVENT_IMMEDIATE_STORY, "name_played": EVENT_NAME}
         actor_map = {"either": ACTOR_EITHER, "opponent": ACTOR_OPPONENT, "controller": ACTOR_CONTROLLER}
         rank_map = {"front": 0, "rear": 1}
+        force_text_map = {
+            "frontline_strength_bonus": FORCE_TEXT_FRONT_BONUS,
+            "rear_strength_bonus": FORCE_TEXT_REAR_BONUS,
+            "support_force_ahead_strength_bonus": FORCE_TEXT_SUPPORT_AHEAD,
+            "frontline_strength_bonus_if_force_behind": FORCE_TEXT_FRONT_IF_REAR,
+            "rear_strength_bonus_if_force_ahead": FORCE_TEXT_REAR_IF_FRONT,
+        }
 
         for code, card_id in enumerate(self.card_ids):
             card = engine.cards[card_id]
@@ -548,14 +566,42 @@ cdef class FastEngine:
             )
             self.hero[code] = bool(card.get("hero", False))
             rules = card.get("rules", {})
+            design = card.get("design_rules") or {}
+            force_design = design.get("force") or design
             self.card_command_cost[code] = int(card.get("command_cost", 0))
             self.adjacent_command_discount[code] = int(rules.get("adjacent_command_discount", 0))
+
             completion = rules.get("on_completion") or {}
             self.completion_effect[code] = completion_effect_map.get(completion.get("effect"), COMPLETE_NONE)
             self.completion_amount[code] = int(completion.get("amount", 1))
+            if (
+                design.get("trigger") == "friendly_formation_becomes_named"
+                and design.get("scope") == "this_formation"
+            ):
+                if design.get("gain_command"):
+                    self.completion_effect[code] = COMPLETE_GAIN_COMMAND
+                    self.completion_amount[code] = int(design["gain_command"])
+                elif design.get("draw_cards"):
+                    self.completion_effect[code] = COMPLETE_DRAW
+                    self.completion_amount[code] = int(design["draw_cards"])
+            if design.get("command") == "completion_refund":
+                completion_design = design.get("on_completion") or {}
+                if completion_design.get("gain_command"):
+                    self.completion_effect[code] = COMPLETE_GAIN_COMMAND
+                    self.completion_amount[code] = int(completion_design["gain_command"])
+
             self.complete_plot_protection[code] = bool(rules.get("complete_protection_from_opponent_plot"))
-            placement = rules.get("placement", {}).get("rank")
+            placement = (
+                force_design.get("deploy_rank")
+                or design.get("deploy_rank")
+                or rules.get("placement", {}).get("rank")
+            )
             self.placement_rank[code] = rank_map.get(placement, -1)
+            printed_effect = force_design.get("printed_role_effect") or design.get("printed_role_effect")
+            self.force_text_effect[code] = force_text_map.get(printed_effect, FORCE_TEXT_NONE)
+            self.force_text_amount[code] = int(
+                force_design.get("amount", design.get("amount", 0))
+            )
 
             self.on_link_bonus[code] = int(rules.get("on_link_attached", {}).get("temporary_strength", 0))
             self.aura[code] = int(rules.get("adjacent_strength_aura", 0))
@@ -568,8 +614,15 @@ cdef class FastEngine:
                 self.subject_mod_discard_min[code] = int(condition.get("own_discard_at_least", 0))
                 self.subject_mod_adj_named[code] = bool(condition.get("adjacent_subject_has_name"))
 
-            self.link_bonus[code] = int(rules.get("strength_bonus", 0))
-            self.link_named_bonus[code] = int(rules.get("named_strength_bonus", 0))
+            self.link_bonus[code] = int(
+                design.get("strength_bonus", rules.get("strength_bonus", 0))
+            )
+            self.link_named_bonus[code] = int(
+                design.get(
+                    "named_additional_strength_bonus",
+                    rules.get("named_strength_bonus", 0),
+                )
+            )
             discard_bonus = rules.get("discard_strength_bonus") or {}
             self.link_discard_per[code] = int(discard_bonus.get("per_card", 0))
             self.link_discard_max[code] = int(discard_bonus.get("maximum", 0))
@@ -765,6 +818,31 @@ cdef class FastEngine:
         rank = local & 1
         role = self.role[card]
         value = self.strength[card] + state.temporary[slot]
+
+        # Printed card effects are explicit metadata; roles remain labels only.
+        mod = self.force_text_effect[card]
+        if mod == FORCE_TEXT_FRONT_BONUS and rank == 0:
+            value += self.force_text_amount[card]
+        elif mod == FORCE_TEXT_REAR_BONUS and rank == 1:
+            value += self.force_text_amount[card]
+        elif mod == FORCE_TEXT_FRONT_IF_REAR and rank == 0:
+            rear = slot_index(player, front, 1)
+            if state.subject[rear] >= 0:
+                value += self.force_text_amount[card]
+        elif mod == FORCE_TEXT_REAR_IF_FRONT and rank == 1:
+            frontslot = slot_index(player, front, 0)
+            if state.subject[frontslot] >= 0:
+                value += self.force_text_amount[card]
+
+        # Rear support effects add Strength to the Force directly ahead.
+        if rank == 0:
+            rear = slot_index(player, front, 1)
+            other = state.subject[rear]
+            if (
+                other >= 0
+                and self.force_text_effect[other] == FORCE_TEXT_SUPPORT_AHEAD
+            ):
+                value += self.force_text_amount[other]
 
         # Roles and classifications are labels only. They never grant
         # intrinsic Strength; any such effect must come from explicit card

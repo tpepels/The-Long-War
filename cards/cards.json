@@ -160,7 +160,9 @@
           "deploy_rank": "front",
           "after_maneuver": {
             "effect": "free_maneuver_adjacent_friendly_named_formation"
-          }
+          },
+          "printed_role_effect": "frontline_strength_bonus",
+          "amount": 1
         },
         "name": {
           "on_completion": {

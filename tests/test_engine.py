@@ -101,31 +101,55 @@ def test_battlefield_is_four_fronts_by_two_ranks() -> None:
     ]
 
 
-def test_role_labels_do_not_grant_hidden_strength_rules() -> None:
+def test_printed_strength_effects_apply_without_hidden_role_rules() -> None:
     engine, state = setup_state()
 
-    cases = (
-        ("the-fifty-men", pos(0, Rank.FRONT)),
-        ("those-who-came-back", pos(1, Rank.FRONT)),
-        ("the-crow-archers", pos(2, Rank.REAR)),
-        ("seven-black-ships", pos(3, Rank.REAR)),
-        ("the-house-of-reed", pos(0, Rank.REAR)),
-    )
-    for card_id, position in cases:
-        slot = state.slot(0, position)
-        slot.force = card_id
-        assert engine.position_strength(state, 0, position) == int(
-            engine.cards[card_id]["strength"]
-        )
-        slot.force = None
+    frontline = pos(0, Rank.FRONT)
+    rear = pos(0, Rank.REAR)
 
-    frontline = pos(1, Rank.FRONT)
-    rear = pos(1, Rank.REAR)
     state.slot(0, frontline).force = "the-fifty-men"
-    before = engine.position_strength(state, 0, frontline)
-    state.slot(0, rear).force = "the-white-hands-of-elara"
+    assert engine.position_strength(state, 0, frontline) == 5
+    state.slot(0, frontline).force = "seven-black-ships"
+    assert engine.position_strength(state, 0, frontline) == 4
 
-    assert engine.position_strength(state, 0, frontline) == before
+    state.slot(0, rear).force = "seven-black-ships"
+    assert engine.position_strength(state, 0, rear) == 5
+
+    state.slot(0, frontline).force = "the-red-shields"
+    state.slot(0, rear).force = None
+    assert engine.position_strength(state, 0, frontline) == 4
+    state.slot(0, rear).force = "the-white-hands-of-elara"
+    # Red Shields gets its printed +1 for a Force behind it, while White Hands
+    # separately gives the Force directly ahead +2.
+    assert engine.position_strength(state, 0, frontline) == 7
+
+    state.slot(0, rear).force = "the-crow-archers"
+    assert engine.position_strength(state, 0, rear) == 6
+
+
+def test_role_labels_alone_do_not_add_strength() -> None:
+    engine, state = setup_state()
+    target = pos(0, Rank.REAR)
+    state.slot(0, target).force = "the-house-of-reed"
+    assert engine.position_strength(state, 0, target) == 3
+
+
+def test_printed_deploy_restrictions_are_enforced() -> None:
+    engine, state = setup_state()
+    state.players[0].hand = [
+        "the-red-shields",
+        "the-white-hands-of-elara",
+        "avaros-the-bronze-king",
+    ]
+    state.players[0].command = 20
+    legal = engine.legal_actions(state)
+
+    assert PlayForce("the-red-shields", pos(0, Rank.FRONT)) in legal
+    assert PlayForce("the-red-shields", pos(0, Rank.REAR)) not in legal
+    assert PlayForce("the-white-hands-of-elara", pos(1, Rank.REAR)) in legal
+    assert PlayForce("the-white-hands-of-elara", pos(1, Rank.FRONT)) not in legal
+    assert PlayForce("avaros-the-bronze-king", pos(2, Rank.FRONT)) in legal
+    assert PlayForce("avaros-the-bronze-king", pos(2, Rank.REAR)) not in legal
 
 
 def test_bond_and_name_can_be_prepared_before_force_and_contribute_zero() -> None:
