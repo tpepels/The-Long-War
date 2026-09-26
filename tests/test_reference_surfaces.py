@@ -170,7 +170,9 @@ def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
     assert float(typography.group(2)) >= 1.15
     assert "Frontline +1 if Rear occupied" in card_rules
     assert "Rear: Force in front +2" in card_rules
-    for surface in ("web/card-rules.js", "web/cards.js", "web/playtest-kit.js", "web/balance.html", "web/balance.js", "web/tokens.html"):\n        assert "Subject" not in text(surface)\n
+    for surface in ("web/card-rules.js", "web/cards.js", "web/playtest-kit.js", "web/balance.html", "web/balance.js", "web/tokens.html"):
+        assert "Subject" not in text(surface)
+
 
 def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bonus() -> None:
     page = text("web/tokens.html")
