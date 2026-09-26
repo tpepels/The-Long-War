@@ -93,3 +93,32 @@ Status: approved for the first-80 design pool.
 - The Dust Riders print the complete Skirmisher mechanic; the label itself carries no hidden rule.
 - The Black Company prints its positional Swordsman effect; the label itself carries no hidden rule.
 - **The Long March** is intentionally the most experimental card in the batch and tests whether recurring movement economy creates useful battlefield activity without making position trivial.
+
+
+## Batch 4 - Combat
+
+Status: draft for review.
+
+This batch deliberately expands what can happen when a Front resolves without introducing hit points, wounds, damage tracking, or a separate attack phase. Every combat mechanic is printed in full on the card; labels such as Duelist or Raider do not carry hidden rules.
+
+| # | Card | Type | Cost | Strength | Rules text |
+| --- | --- | --- | ---: | ---: | --- |
+| 25 | **The Red Duelists** | Force - Human, Duelists | 2 | 3 | **Deploy - Frontline only.** When resolving this Front, if there is an opposing Frontline formation, you may choose it. If you do, only this formation and that opposing formation contribute Strength to this Front. |
+| 26 | **The Thornbow Hunters** | Force - Human, Hunters - Archer | 2 | 1 | **Deploy - Rear only.** While in the Rear with a friendly Force directly ahead, this Force gets +2 Strength. When resolving this Front, you may choose an opposing Rear Force. It does not contribute Strength this resolution. |
+| 27 | **The Iron Boars** | Force - Human, Raiders - Swordsman | 3 | 3 | **Deploy - Frontline only.** While in the Frontline, this Force gets +1 Strength. If you win this Front while the opponent has no Force in the Rear, drive off their Frontline Named Formation instead of Retreating it. |
+| 28 | **The First Spear** | Force - Human, Guard - Spearman | 3 | 3 | **Deploy - Frontline only.** While in the Frontline with a friendly Force directly behind it, this Force gets +1 Strength. Before Strength is compared, you may choose an opposing Frontline Force with lower printed Strength. It does not contribute this resolution. |
+| 29 | **Held the Line** | Bond | 1 | - | Before Strength is compared, you may discard this Force and all attached cards. If you do, choose one opposing formation here. It does not contribute Strength this resolution. |
+| 30 | **Seized the Standard** | Bond | 1 | - | When this formation wins its Front and an opposing Frontline Named Formation Retreats, after the Retreat return that formation's Bond to its owner's hand. |
+| 31 | **Asha, the Shield-Bearer** | Name - Human, Shield-Bearer - Unique | 1 | +1 | When an opponent's combat effect would make another friendly formation in this Front not contribute Strength, you may have this formation not contribute instead. The other formation contributes normally. |
+| 32 | **The Ground Was Held** | Stratagem | 2 | - | **During this Battle**, when a Front is tied, if exactly one player has a Named Formation in the Frontline there, that player wins the Front. Otherwise the Front remains tied. |
+
+### Mechanics under test
+
+- **Challenge / engagement** - isolate opposing formations during a Front comparison.
+- **Skirmish / suppression** - stop a specific enemy formation contributing without damaging it.
+- **Breakthrough** - convert a favorable battlefield shape into a harsher Retreat result.
+- **First strike** - neutralize a weaker opposing Force before comparison.
+- **Sacrifice** - give up your own formation to neutralize an enemy formation for the resolution.
+- **Capture** - winning combat can disrupt the identity/structure of a retreating formation.
+- **Interception** - redirect an enemy combat effect onto another friendly formation.
+- **Tie control** - battlefield presence can matter when raw Strength is equal.
