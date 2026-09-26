@@ -433,7 +433,6 @@ cdef class FastEngine:
     cdef int automatic_draw_hand_limit
     cdef int battle_end_hand_limit
     cdef bint cycle_enabled
-    cdef bint pass_requires_both_acted
     cdef int completion_command_refund
     cdef bint public_stratagems
 
@@ -577,7 +576,6 @@ cdef class FastEngine:
             else int(engine.battle_end_hand_limit)
         )
         self.cycle_enabled = bool(engine.cycle_enabled)
-        self.pass_requires_both_acted = bool(engine.pass_requires_both_acted)
         self.completion_command_refund = int(engine.completion_command_refund)
         self.public_stratagems = bool(engine.public_stratagems)
         if self.n_cards > MAX_CARDS:
@@ -1341,11 +1339,8 @@ cdef class FastEngine:
             n = kept
 
         can_pass = (
-            (not self.pass_requires_both_acted)
-            or (
-                state.operations_this_battle[0] > 0
-                and state.operations_this_battle[1] > 0
-            )
+            state.operations_this_battle[0] > 0
+            and state.operations_this_battle[1] > 0
         )
         if can_pass or n == 0:
             for i in range(n, 0, -1):
