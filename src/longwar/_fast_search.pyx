@@ -3449,7 +3449,15 @@ cdef class FastEngine:
         cdef int other, other_name, bond
         cdef uint16_t sources, destinations, swap_mask
 
-        self.resolve_force_move_triggers(state, player, vacated_slot, arrived_slot)
+        self.resolve_force_move_triggers(
+            state, player, vacated_slot, arrived_slot
+        )
+        if not moved_into_empty:
+            # The swapped formation also moved, even though it did not
+            # initiate the Maneuver.
+            self.resolve_force_move_triggers(
+                state, player, arrived_slot, vacated_slot
+            )
 
         if moved_into_empty:
             self.resolve_maneuver_into_empty_narratives(
@@ -3488,10 +3496,20 @@ cdef class FastEngine:
                         <uint16_t>(1 << vacated_slot),
                         True,
                     )
-        elif force >= 0 and self.after_swap_free_other[force]:
-            if state.subject[vacated_slot] >= 0:
+        else:
+            if force >= 0 and self.after_swap_free_other[force]:
+                if state.subject[vacated_slot] >= 0:
+                    self.queue_free_maneuver(
+                        state, player, <uint16_t>(1 << vacated_slot), True
+                    )
+            if (
+                state.subject[vacated_slot] >= 0
+                and self.after_swap_free_other[
+                    state.subject[vacated_slot]
+                ]
+            ):
                 self.queue_free_maneuver(
-                    state, player, <uint16_t>(1 << vacated_slot), True
+                    state, player, <uint16_t>(1 << arrived_slot), True
                 )
 
         if force >= 0 and self.after_maneuver_free_adjacent[force]:
