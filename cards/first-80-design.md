@@ -199,3 +199,32 @@ This batch tests Command as a decision resource without directly damaging the op
 - **Recovery improvement** - reduce the Command penalty from lost Fronts.
 - **Persistent catch-up** - a Named Formation can improve efficiency while behind on Command.
 - **Large investment** - spend substantial Command now for a Battle-wide change in action economy.
+
+
+## Batch 7 - Heroes
+
+Status: draft for review.
+
+Each Hero can be played as a Force or as a Name. Both modes are printed in full. The design goal is that neither mode is automatically correct.
+
+| # | Card | Cost | Force Strength | Name Strength | Rules text |
+| --- | --- | ---: | ---: | ---: | --- |
+| 49 | **Kael, the Roadless** | 3 | 3 | +1 | **Force -** This formation may **Maneuver** even if it is not Named. After it Maneuvers into an empty position, you may move it one more Front left or right if that position is empty. **Name -** When an opposing formation Maneuvers into an adjacent Front, you may Maneuver this formation for 0 Command. |
+| 50 | **Rovan, the Gatebreaker** | 3 | 5 | +1 | **Force - Deploy - Frontline only.** When comparing Strength in this Front, you may ignore the opposing Rear Force's Strength. **Name -** If this formation wins its Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it. |
+| 51 | **Alda, Keeper of the Ford** | 2 | 3 | +1 | **Force - Deploy - Rear only.** If your Frontline Named Formation here would Retreat, you may drive off Alda instead. The Frontline formation stays. **Name -** If this formation is driven off, return Alda to your hand instead of discarding her. |
+| 52 | **Tovan, the Quartermaster** | 3 | 2 | +1 | **Force - Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command recovery. **Name -** While this formation is Named, the first card you play in this Front each turn costs 1 less Command (minimum 1). |
+| 53 | **Nara, Builder of Walls** | 3 | 3 | +1 | **Force - Deploy - Rear only.** A Force you play in the Frontline of this Front costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return one Bond from your discard pile to your hand. |
+| 54 | **Neris, the Ferryman** | 3 | 4 | +1 | **Force - Deploy - Rear only.** After your Frontline formation here Retreats, you may move it one Front left or right if that Rear position is empty. **Name -** After this formation Retreats, you may move it one Front left or right if that Rear position is empty. |
+| 55 | **Veyra, Keeper of Oaths** | 3 | 4 | +1 | **Force -** When you play Veyra, you may move a Bond or Name from an adjacent position with no Force into Veyra's position, if that slot is empty. **Name -** When you play Veyra on a Force with no Bond, you may move a Bond from an adjacent formation with no Name onto this formation. |
+| 56 | **Yara, the Chronicler** | 3 | 3 | +1 | **Force - Deploy - Rear only.** The first Story you play each Battle costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return one Story from your discard pile to your hand. |
+
+### Hero mechanics under test
+
+- proactive movement vs reactive movement;
+- immediate combat suppression vs persistent breakthrough;
+- protecting another formation vs preserving the Hero;
+- Battle-end Command protection vs repeated local efficiency;
+- rebuilding a Front vs recovering a Bond;
+- moving retreating allies vs moving the Hero's own formation;
+- taking prepared cards vs transferring an open Bond;
+- making Stories cheaper vs recovering a Story.
