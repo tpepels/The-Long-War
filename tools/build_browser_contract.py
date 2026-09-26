@@ -301,7 +301,7 @@ def story_limit_scenario(
         if key.startswith("story:the-lamps-went-dark:ongoing:")
     ]
 
-    assert engine.ongoing_story_limit == 2
+    assert engine.ongoing_narrative_limit == 2
     assert story_actions == [
         "story:the-lamps-went-dark:ongoing:0",
         "story:the-lamps-went-dark:ongoing:1",
