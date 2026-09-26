@@ -15,6 +15,7 @@ DEF SLOT_COUNT = 16
 DEF SCHEME_COUNT = 8
 DEF MAX_ACTIONS = 1024
 DEF MAX_RECOVERY_SCHEDULE = 32
+DEF MAX_PENDING_EFFECTS = 32
 DEF NONE = -1
 
 cdef int PHASE_BATTLE = 0
@@ -29,6 +30,38 @@ cdef int TYPE_SCHEME = 6
 cdef int TYPE_STRATAGEM = 7
 cdef int TYPE_DISCARD = 10
 cdef int TYPE_MANEUVER = 11
+cdef int TYPE_EFFECT = 12
+
+cdef int EFFECT_NONE = 0
+cdef int EFFECT_FREE_MANEUVER = 1
+cdef int EFFECT_MOVE = 2
+cdef int EFFECT_SWAP = 3
+cdef int EFFECT_RECOVER = 4
+cdef int EFFECT_FRONT_CONTRIBUTION = 5
+cdef int EFFECT_SUPPRESS = 6
+cdef int EFFECT_SACRIFICE = 7
+cdef int EFFECT_INTERCEPT = 8
+cdef int EFFECT_RETREAT = 9
+cdef int EFFECT_PROTECT_RETREAT = 10
+cdef int EFFECT_TRANSFER_COMPONENT = 11
+cdef int EFFECT_SUCCESSION = 12
+
+cdef int EFFECT_OPTIONAL = 1
+cdef int EFFECT_ALLOW_UNNAMED = 2
+cdef int EFFECT_ADJACENT_PAIR = 4
+cdef int EFFECT_CARD_MOVE = 8
+
+cdef int RESUME_NONE = 0
+cdef int RESUME_FINISH_OPERATION = 1
+cdef int RESUME_BATTLE_RESOLUTION = 2
+cdef int RESUME_START_BATTLE = 3
+
+cdef int RESOLUTION_NONE = 0
+cdef int RESOLUTION_PREPARE = 1
+cdef int RESOLUTION_COMPARE = 2
+cdef int RESOLUTION_RETREATS = 3
+cdef int RESOLUTION_NARRATIVES = 4
+cdef int RESOLUTION_RECOVERY = 5
 
 cdef int CARD_SUBJECT = 1
 cdef int CARD_LINK = 2
@@ -296,6 +329,29 @@ cdef class FastState:
     cdef uint8_t pending_draw_count
     cdef uint8_t pending_draw_finish_operation
 
+    cdef int8_t pending_kind[MAX_PENDING_EFFECTS]
+    cdef int8_t pending_player[MAX_PENDING_EFFECTS]
+    cdef int8_t pending_card[MAX_PENDING_EFFECTS]
+    cdef int8_t pending_source[MAX_PENDING_EFFECTS]
+    cdef int8_t pending_aux[MAX_PENDING_EFFECTS]
+    cdef uint16_t pending_source_mask[MAX_PENDING_EFFECTS]
+    cdef uint16_t pending_dest_mask[MAX_PENDING_EFFECTS]
+    cdef uint8_t pending_flags[MAX_PENDING_EFFECTS]
+    cdef uint8_t pending_len
+    cdef uint8_t pending_resume
+    cdef int8_t pending_resume_player
+    cdef uint8_t free_maneuver_available[2]
+
+    cdef uint8_t resolution_stage
+    cdef uint8_t resolution_lost_mask[2]
+    cdef uint8_t resolution_drive_mask[2]
+    cdef uint8_t resolution_protected_mask[2]
+    cdef uint8_t resolution_recovery_losses[2]
+    cdef uint16_t resolution_suppressed_mask
+    cdef int8_t resolution_contribution_front[SLOT_COUNT]
+    cdef uint8_t resolution_cursor
+    cdef int8_t resolution_starter
+
     cdef int8_t active_player
     cdef int16_t battle
     cdef int8_t phase
@@ -364,6 +420,27 @@ cdef class FastState:
         self.cleanup_pending = 0
         self.pending_draw_count = 0
         self.pending_draw_finish_operation = 0
+        memset(self.pending_kind, 0, sizeof(self.pending_kind))
+        memset(self.pending_player, 0xff, sizeof(self.pending_player))
+        memset(self.pending_card, 0xff, sizeof(self.pending_card))
+        memset(self.pending_source, 0xff, sizeof(self.pending_source))
+        memset(self.pending_aux, 0xff, sizeof(self.pending_aux))
+        memset(self.pending_source_mask, 0, sizeof(self.pending_source_mask))
+        memset(self.pending_dest_mask, 0, sizeof(self.pending_dest_mask))
+        memset(self.pending_flags, 0, sizeof(self.pending_flags))
+        self.pending_len = 0
+        self.pending_resume = RESUME_NONE
+        self.pending_resume_player = -1
+        memset(self.free_maneuver_available, 0, sizeof(self.free_maneuver_available))
+        self.resolution_stage = RESOLUTION_NONE
+        memset(self.resolution_lost_mask, 0, sizeof(self.resolution_lost_mask))
+        memset(self.resolution_drive_mask, 0, sizeof(self.resolution_drive_mask))
+        memset(self.resolution_protected_mask, 0, sizeof(self.resolution_protected_mask))
+        memset(self.resolution_recovery_losses, 0, sizeof(self.resolution_recovery_losses))
+        self.resolution_suppressed_mask = 0
+        memset(self.resolution_contribution_front, 0xff, sizeof(self.resolution_contribution_front))
+        self.resolution_cursor = 0
+        self.resolution_starter = -1
         self.pass_len = 0
         self.active_player = 0
         self.battle = 1
@@ -433,6 +510,27 @@ cdef class FastState:
         self.cleanup_pending = other.cleanup_pending
         self.pending_draw_count = other.pending_draw_count
         self.pending_draw_finish_operation = other.pending_draw_finish_operation
+        memcpy(self.pending_kind, other.pending_kind, sizeof(self.pending_kind))
+        memcpy(self.pending_player, other.pending_player, sizeof(self.pending_player))
+        memcpy(self.pending_card, other.pending_card, sizeof(self.pending_card))
+        memcpy(self.pending_source, other.pending_source, sizeof(self.pending_source))
+        memcpy(self.pending_aux, other.pending_aux, sizeof(self.pending_aux))
+        memcpy(self.pending_source_mask, other.pending_source_mask, sizeof(self.pending_source_mask))
+        memcpy(self.pending_dest_mask, other.pending_dest_mask, sizeof(self.pending_dest_mask))
+        memcpy(self.pending_flags, other.pending_flags, sizeof(self.pending_flags))
+        self.pending_len = other.pending_len
+        self.pending_resume = other.pending_resume
+        self.pending_resume_player = other.pending_resume_player
+        memcpy(self.free_maneuver_available, other.free_maneuver_available, sizeof(self.free_maneuver_available))
+        self.resolution_stage = other.resolution_stage
+        memcpy(self.resolution_lost_mask, other.resolution_lost_mask, sizeof(self.resolution_lost_mask))
+        memcpy(self.resolution_drive_mask, other.resolution_drive_mask, sizeof(self.resolution_drive_mask))
+        memcpy(self.resolution_protected_mask, other.resolution_protected_mask, sizeof(self.resolution_protected_mask))
+        memcpy(self.resolution_recovery_losses, other.resolution_recovery_losses, sizeof(self.resolution_recovery_losses))
+        self.resolution_suppressed_mask = other.resolution_suppressed_mask
+        memcpy(self.resolution_contribution_front, other.resolution_contribution_front, sizeof(self.resolution_contribution_front))
+        self.resolution_cursor = other.resolution_cursor
+        self.resolution_starter = other.resolution_starter
         self.pass_len = other.pass_len
         self.active_player = other.active_player
         self.battle = other.battle
@@ -1095,6 +1193,48 @@ cdef class FastEngine:
         fast.pending_draw_finish_operation = bool(
             state.pending_draw_finish_operation
         )
+        resume_map = {
+            None: RESUME_NONE,
+            "finish_operation": RESUME_FINISH_OPERATION,
+            "battle_resolution": RESUME_BATTLE_RESOLUTION,
+            "start_battle": RESUME_START_BATTLE,
+        }
+        fast.pending_resume = resume_map.get(state.pending_resume, RESUME_NONE)
+        fast.pending_resume_player = (
+            -1 if state.pending_resume_player is None else int(state.pending_resume_player)
+        )
+        fast.free_maneuver_available[0] = bool(state.free_maneuver_available[0])
+        fast.free_maneuver_available[1] = bool(state.free_maneuver_available[1])
+        for i, effect_state in enumerate(state.pending_effects[:MAX_PENDING_EFFECTS]):
+            fast.pending_kind[i] = int(effect_state.get("kind", EFFECT_NONE))
+            fast.pending_player[i] = int(effect_state.get("player", -1))
+            fast.pending_card[i] = int(effect_state.get("card", -1))
+            fast.pending_source[i] = int(effect_state.get("source", -1))
+            fast.pending_aux[i] = int(effect_state.get("aux", -1))
+            fast.pending_source_mask[i] = int(effect_state.get("source_mask", 0))
+            fast.pending_dest_mask[i] = int(effect_state.get("dest_mask", 0))
+            fast.pending_flags[i] = int(effect_state.get("flags", 0))
+            fast.pending_len += 1
+        resolution_state = state.battle_resolution
+        if resolution_state is not None:
+            fast.resolution_stage = int(resolution_state.get("stage", RESOLUTION_NONE))
+            lost_masks = resolution_state.get("lost_masks", (0, 0))
+            drive_masks = resolution_state.get("drive_masks", (0, 0))
+            protected_masks = resolution_state.get("protected_masks", (0, 0))
+            recovery_losses = resolution_state.get("recovery_losses", (0, 0))
+            for p in range(2):
+                fast.resolution_lost_mask[p] = int(lost_masks[p])
+                fast.resolution_drive_mask[p] = int(drive_masks[p])
+                fast.resolution_protected_mask[p] = int(protected_masks[p])
+                fast.resolution_recovery_losses[p] = int(recovery_losses[p])
+            fast.resolution_suppressed_mask = int(
+                resolution_state.get("suppressed_mask", 0)
+            )
+            contribution = resolution_state.get("contribution_front", ())
+            for i in range(min(SLOT_COUNT, len(contribution))):
+                fast.resolution_contribution_front[i] = int(contribution[i])
+            fast.resolution_cursor = int(resolution_state.get("cursor", 0))
+            fast.resolution_starter = int(resolution_state.get("starter", -1))
         for i, p in enumerate(state.pass_order):
             fast.pass_order[i] = p
 
@@ -1479,9 +1619,11 @@ cdef class FastEngine:
         cdef uint32_t extra
         cdef int player = state.active_player
         kind = action_kind(action)
-        if kind == TYPE_PASS:
+        if kind == TYPE_PASS or kind == TYPE_EFFECT:
             return 0
         if kind == TYPE_MANEUVER:
+            if state.free_maneuver_available[player]:
+                return 0
             if state.maneuver_count[action_pos(action)] == 0:
                 card = state.subject[action_pos(action)]
                 if (
@@ -1817,6 +1959,175 @@ cdef class FastEngine:
             )
         return state.link[slot] < 0 and state.name[slot] < 0
 
+    cdef void enqueue_effect(
+        self,
+        FastState state,
+        int kind,
+        int player,
+        int card=-1,
+        int source=-1,
+        int aux=-1,
+        uint16_t source_mask=0,
+        uint16_t dest_mask=0,
+        int flags=0,
+    ) except *:
+        cdef int i = state.pending_len
+        if i >= MAX_PENDING_EFFECTS:
+            raise RuntimeError("Pending card-effect capacity exceeded")
+        state.pending_kind[i] = kind
+        state.pending_player[i] = player
+        state.pending_card[i] = card
+        state.pending_source[i] = source
+        state.pending_aux[i] = aux
+        state.pending_source_mask[i] = source_mask
+        state.pending_dest_mask[i] = dest_mask
+        state.pending_flags[i] = flags
+        state.pending_len += 1
+        if state.pending_len == 1:
+            state.active_player = player
+
+    cdef void pop_pending_effect(self, FastState state) noexcept:
+        cdef int i
+        if state.pending_len == 0:
+            return
+        for i in range(1, state.pending_len):
+            state.pending_kind[i - 1] = state.pending_kind[i]
+            state.pending_player[i - 1] = state.pending_player[i]
+            state.pending_card[i - 1] = state.pending_card[i]
+            state.pending_source[i - 1] = state.pending_source[i]
+            state.pending_aux[i - 1] = state.pending_aux[i]
+            state.pending_source_mask[i - 1] = state.pending_source_mask[i]
+            state.pending_dest_mask[i - 1] = state.pending_dest_mask[i]
+            state.pending_flags[i - 1] = state.pending_flags[i]
+        state.pending_len -= 1
+        if state.pending_len > 0:
+            state.active_player = state.pending_player[0]
+
+    cdef inline bint slot_is_empty(self, FastState state, int slot) noexcept:
+        return (
+            state.subject[slot] < 0
+            and state.link[slot] < 0
+            and state.name[slot] < 0
+        )
+
+    cdef int legal_pending_effect_actions(
+        self,
+        FastState state,
+        uint64_t* actions,
+    ) except -1:
+        cdef int n = 0
+        cdef int kind, player, source, dest, front, rank, card, i, j
+        cdef uint16_t source_mask, dest_mask
+        cdef uint8_t flags
+        if state.pending_len == 0:
+            return 0
+        kind = state.pending_kind[0]
+        player = state.pending_player[0]
+        source = state.pending_source[0]
+        source_mask = state.pending_source_mask[0]
+        dest_mask = state.pending_dest_mask[0]
+        flags = state.pending_flags[0]
+
+        if flags & EFFECT_OPTIONAL:
+            n = _append_action(
+                actions, n, encode_action(TYPE_EFFECT, -1, -1, -1, player, kind)
+            )
+
+        if kind == EFFECT_FREE_MANEUVER:
+            for source in range(player * 8, player * 8 + 8):
+                if not (source_mask & (1 << source)):
+                    continue
+                if state.subject[source] < 0 or self.immobile_force[state.subject[source]]:
+                    continue
+                front = front_from_slot(source)
+                rank = rank_from_slot(source)
+                if front > 0:
+                    dest = slot_index(player, front - 1, rank)
+                    if self.maneuver_destination_legal(state, dest):
+                        n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+                if front < 3:
+                    dest = slot_index(player, front + 1, rank)
+                    if self.maneuver_destination_legal(state, dest):
+                        n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+        elif kind == EFFECT_MOVE:
+            for source in range(player * 8, player * 8 + 8):
+                if not (source_mask & (1 << source)) or state.subject[source] < 0:
+                    continue
+                for dest in range(player * 8, player * 8 + 8):
+                    if not (dest_mask & (1 << dest)):
+                        continue
+                    if self.card_move_destination_legal(state, player, source, dest):
+                        n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+        elif kind == EFFECT_SWAP:
+            for source in range(player * 8, player * 8 + 8):
+                if not (source_mask & (1 << source)) or state.subject[source] < 0:
+                    continue
+                for dest in range(source + 1, player * 8 + 8):
+                    if not (dest_mask & (1 << dest)) or state.subject[dest] < 0:
+                        continue
+                    if flags & EFFECT_ADJACENT_PAIR:
+                        if rank_from_slot(source) != rank_from_slot(dest) or abs(front_from_slot(source) - front_from_slot(dest)) != 1:
+                            continue
+                    if self.immobile_force[state.subject[source]] or self.immobile_force[state.subject[dest]]:
+                        continue
+                    if self.cannot_swap_target[state.subject[source]] or self.cannot_swap_target[state.subject[dest]]:
+                        continue
+                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+        elif kind == EFFECT_RECOVER:
+            for i in range(state.discard_len[player]):
+                card = state.discard[player][i]
+                if state.pending_aux[0] == CARD_LINK and self.card_type[card] != CARD_LINK:
+                    continue
+                if state.pending_aux[0] == CARD_PLOT and self.card_type[card] != CARD_PLOT:
+                    continue
+                n = _append_action(actions, n, encode_action(TYPE_EFFECT, card, -1, -1, player, kind))
+        elif kind == EFFECT_FRONT_CONTRIBUTION:
+            source = state.pending_source[0]
+            if source >= 0 and state.subject[source] >= 0:
+                front = front_from_slot(source)
+                for dest in range(max(0, front - 1), min(3, front + 1) + 1):
+                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+        elif kind == EFFECT_SUPPRESS:
+            for dest in range(SLOT_COUNT):
+                if dest_mask & (1 << dest) and state.subject[dest] >= 0:
+                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, -1, dest, player, kind))
+        elif kind == EFFECT_SACRIFICE:
+            source = state.pending_source[0]
+            if source >= 0 and state.subject[source] >= 0:
+                for dest in range(SLOT_COUNT):
+                    if dest_mask & (1 << dest) and state.subject[dest] >= 0:
+                        n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+        elif kind == EFFECT_INTERCEPT:
+            for source in range(player * 8, player * 8 + 8):
+                if source_mask & (1 << source) and self.slot_complete(state, source):
+                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, -1, player, kind))
+        elif kind == EFFECT_RETREAT:
+            source = state.pending_source[0]
+            dest = state.pending_aux[0]
+            if source >= 0 and dest >= 0 and self.slot_complete(state, source) and self.slot_is_empty(state, dest):
+                n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+        elif kind == EFFECT_PROTECT_RETREAT:
+            source = state.pending_source[0]
+            if source >= 0 and state.subject[source] >= 0:
+                n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, state.pending_aux[0], player, kind))
+        elif kind == EFFECT_TRANSFER_COMPONENT:
+            for source in range(player * 8, player * 8 + 8):
+                if not (source_mask & (1 << source)):
+                    continue
+                dest = state.pending_aux[0]
+                if dest < 0:
+                    continue
+                if state.link[source] >= 0 and state.link[dest] < 0:
+                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, state.link[source], source, dest, player, kind))
+                if state.name[source] >= 0 and state.name[dest] < 0:
+                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, state.name[source], source, dest, player, kind))
+        elif kind == EFFECT_SUCCESSION:
+            source = state.pending_source[0]
+            for dest in range(player * 8, player * 8 + 8):
+                if dest_mask & (1 << dest) and state.subject[dest] >= 0 and state.link[dest] >= 0 and state.name[dest] < 0:
+                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+        return n
+
     cdef int legal_actions_into(
         self,
         FastState state,
@@ -1844,6 +2155,8 @@ cdef class FastEngine:
                         encode_action(TYPE_DISCARD, card, -1, -1, player),
                     )
             return n
+        if state.pending_len > 0:
+            return self.legal_pending_effect_actions(state, actions)
 
         opponent = 1 - player
 
@@ -3462,6 +3775,28 @@ cdef class FastEngine:
         _info_hash_feed(&h, state.cleanup_pending)
         _info_hash_feed(&h, state.pending_draw_count)
         _info_hash_feed(&h, state.pending_draw_finish_operation)
+        _info_hash_feed(&h, state.pending_len)
+        for i in range(state.pending_len):
+            _info_hash_feed(&h, state.pending_kind[i])
+            _info_hash_feed(&h, <uint8_t>(state.pending_player[i] + 1))
+            _info_hash_feed(&h, <uint8_t>(state.pending_card[i] + 1))
+            _info_hash_feed(&h, <uint8_t>(state.pending_source[i] + 1))
+            _info_hash_feed(&h, <uint8_t>(state.pending_aux[i] + 1))
+            _info_hash_feed_u16(&h, state.pending_source_mask[i])
+            _info_hash_feed_u16(&h, state.pending_dest_mask[i])
+            _info_hash_feed(&h, state.pending_flags[i])
+        _info_hash_feed(&h, state.pending_resume)
+        _info_hash_feed(&h, <uint8_t>(state.pending_resume_player + 1))
+        _info_hash_feed(&h, state.free_maneuver_available[0])
+        _info_hash_feed(&h, state.free_maneuver_available[1])
+        _info_hash_feed(&h, state.resolution_stage)
+        _info_hash_feed(&h, state.resolution_lost_mask[0])
+        _info_hash_feed(&h, state.resolution_lost_mask[1])
+        _info_hash_feed(&h, state.resolution_drive_mask[0])
+        _info_hash_feed(&h, state.resolution_drive_mask[1])
+        _info_hash_feed_u16(&h, state.resolution_suppressed_mask)
+        for slot in range(SLOT_COUNT):
+            _info_hash_feed(&h, <uint8_t>(state.resolution_contribution_front[slot] + 1))
         return h
 
     cpdef tuple state_hash(self, FastState state):
@@ -3524,6 +3859,28 @@ cdef class FastEngine:
         _info_emit(buf, &n, h, <uint8_t>pending_draw)
         _info_emit(buf, &n, h, state.pending_draw_count)
         _info_emit(buf, &n, h, state.pending_draw_finish_operation)
+        _info_emit(buf, &n, h, state.pending_len)
+        for i in range(state.pending_len):
+            _info_emit(buf, &n, h, state.pending_kind[i])
+            _info_emit(buf, &n, h, <uint8_t>(state.pending_player[i] + 1))
+            _info_emit(buf, &n, h, <uint8_t>(state.pending_card[i] + 1))
+            _info_emit(buf, &n, h, <uint8_t>(state.pending_source[i] + 1))
+            _info_emit(buf, &n, h, <uint8_t>(state.pending_aux[i] + 1))
+            _info_emit_u16(buf, &n, h, state.pending_source_mask[i])
+            _info_emit_u16(buf, &n, h, state.pending_dest_mask[i])
+            _info_emit(buf, &n, h, state.pending_flags[i])
+        _info_emit(buf, &n, h, state.pending_resume)
+        _info_emit(buf, &n, h, <uint8_t>(state.pending_resume_player + 1))
+        _info_emit(buf, &n, h, state.free_maneuver_available[0])
+        _info_emit(buf, &n, h, state.free_maneuver_available[1])
+        _info_emit(buf, &n, h, state.resolution_stage)
+        _info_emit(buf, &n, h, state.resolution_lost_mask[0])
+        _info_emit(buf, &n, h, state.resolution_lost_mask[1])
+        _info_emit(buf, &n, h, state.resolution_drive_mask[0])
+        _info_emit(buf, &n, h, state.resolution_drive_mask[1])
+        _info_emit_u16(buf, &n, h, state.resolution_suppressed_mask)
+        for i in range(SLOT_COUNT):
+            _info_emit(buf, &n, h, <uint8_t>(state.resolution_contribution_front[i] + 1))
 
         for owner in range(2):
             for slot in range(owner * 8, owner * 8 + 8):
@@ -3684,6 +4041,53 @@ cdef class FastEngine:
             return "pass"
         if kind == TYPE_DISCARD:
             return f"discard:{self.card_ids[card]}"
+        if kind == TYPE_EFFECT:
+            choice = <int>extra
+            if choice == EFFECT_FREE_MANEUVER:
+                key = "effect:free-maneuver"
+            elif choice == EFFECT_MOVE:
+                key = "effect:move"
+            elif choice == EFFECT_SWAP:
+                key = "effect:swap"
+            elif choice == EFFECT_RECOVER:
+                key = "effect:recover"
+            elif choice == EFFECT_FRONT_CONTRIBUTION:
+                key = "effect:front-contribution"
+            elif choice == EFFECT_SUPPRESS:
+                key = "effect:suppress"
+            elif choice == EFFECT_SACRIFICE:
+                key = "effect:sacrifice"
+            elif choice == EFFECT_INTERCEPT:
+                key = "effect:intercept"
+            elif choice == EFFECT_RETREAT:
+                key = "effect:retreat"
+            elif choice == EFFECT_PROTECT_RETREAT:
+                key = "effect:protect-retreat"
+            elif choice == EFFECT_TRANSFER_COMPONENT:
+                key = "effect:transfer-component"
+            elif choice == EFFECT_SUCCESSION:
+                key = "effect:succession"
+            else:
+                key = f"effect:unknown-{choice}"
+            if card < 0 and pos < 0 and dest < 0:
+                return key + ":skip"
+            if card >= 0:
+                key += f":card:{self.card_ids[card]}"
+            if pos >= 0:
+                key += (
+                    f":source:{owner_from_slot(pos)},"
+                    f"{front_from_slot(pos)},"
+                    f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+                )
+            if choice == EFFECT_FRONT_CONTRIBUTION and dest >= 0:
+                key += f":front:{dest}"
+            elif dest >= 0:
+                key += (
+                    f":destination:{owner_from_slot(dest)},"
+                    f"{front_from_slot(dest)},"
+                    f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                )
+            return key
         if kind == TYPE_MANEUVER:
             return (
                 f"maneuver:{front_from_slot(pos)}:"
@@ -4044,6 +4448,50 @@ cdef class FastEngine:
             "pending_draw_count": state.pending_draw_count,
             "pending_draw_finish_operation": bool(
                 state.pending_draw_finish_operation
+            ),
+            "pending_effects": [
+                {
+                    "kind": state.pending_kind[i],
+                    "player": state.pending_player[i],
+                    "card": state.pending_card[i],
+                    "source": state.pending_source[i],
+                    "aux": state.pending_aux[i],
+                    "source_mask": state.pending_source_mask[i],
+                    "dest_mask": state.pending_dest_mask[i],
+                    "flags": state.pending_flags[i],
+                }
+                for i in range(state.pending_len)
+            ],
+            "pending_resume": (
+                "finish_operation"
+                if state.pending_resume == RESUME_FINISH_OPERATION
+                else "battle_resolution"
+                if state.pending_resume == RESUME_BATTLE_RESOLUTION
+                else "start_battle"
+                if state.pending_resume == RESUME_START_BATTLE
+                else None
+            ),
+            "pending_resume_player": (
+                None if state.pending_resume_player < 0 else state.pending_resume_player
+            ),
+            "free_maneuver_available": [
+                bool(state.free_maneuver_available[0]),
+                bool(state.free_maneuver_available[1]),
+            ],
+            "battle_resolution": (
+                None
+                if state.resolution_stage == RESOLUTION_NONE
+                else {
+                    "stage": state.resolution_stage,
+                    "lost_masks": [state.resolution_lost_mask[0], state.resolution_lost_mask[1]],
+                    "drive_masks": [state.resolution_drive_mask[0], state.resolution_drive_mask[1]],
+                    "protected_masks": [state.resolution_protected_mask[0], state.resolution_protected_mask[1]],
+                    "recovery_losses": [state.resolution_recovery_losses[0], state.resolution_recovery_losses[1]],
+                    "suppressed_mask": state.resolution_suppressed_mask,
+                    "contribution_front": [state.resolution_contribution_front[i] for i in range(SLOT_COUNT)],
+                    "cursor": state.resolution_cursor,
+                    "starter": state.resolution_starter,
+                }
             ),
             "pass_order": [
                 state.pass_order[i]
