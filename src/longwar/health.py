@@ -48,11 +48,7 @@ def _z(value: float | None, values: list[float]) -> float | None:
 
 
 def _playability_family(card: dict[str, Any]) -> str:
-    if card["type"] == "plot":
-        return "veiled_story" if card.get("veiled", False) else "story"
-    if card["type"] == "link":
-        return "bond"
-    return str(card["type"])
+    return "narrative" if card["type"] == "story" else str(card["type"])
 
 
 def _flag(code: str, severity: str, message: str, value: float | None = None) -> dict[str, Any]:
@@ -338,10 +334,10 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         for flag in flags:
             counts[flag["severity"]] += 1
 
-        subject, link, name = key.split(" | ")
+        force, bond, name = key.split(" | ")
         formations.append({
             "id": key,
-            "title": " — ".join(meta[x]["title"] for x in (subject, link, name)),
+            "title": " — ".join(meta[x]["title"] for x in (force, bond, name)),
             "completions": int(stats.get("completions", 0)),
             "games_seen": seen,
             "mean_strength_at_completion": strength,
@@ -386,7 +382,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "notes": [
                 "Conditional win rates are observational rather than causal values.",
                 "Board-swing z-scores are computed within card type; cards explicitly marked as delayed utility are not graded on immediate swing.",
-                "Playability flags compare each card with the median of its rules family (Subject, Bond, Name, Story, or Veiled Story), so normal structural gating is not mistaken for an individual card defect.",
+                "Playability flags compare each card with the median of its rules family (Force, Bond, Name, Narrative, or Stratagem), so normal structural gating is not mistaken for an individual card defect.",
                 "Flags identify cases for inspection; they are not automatic nerf/buff instructions.",
                 "Counterfactual and MCCFR reports are merged when explicitly run; neither is required for routine health analysis.",
             ],
@@ -411,7 +407,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     ]
     for row in [r for r in report["cards"] if r["flags"]]:
         lines.append(f"- **{row['title']}** ({row['type']}): " + ", ".join(f["code"] for f in row["flags"]))
-    lines += ["", "## Flagged Subject–Bond–Name sequences", ""]
+    lines += ["", "## Flagged Force–Bond–Name formations", ""]
     for row in [r for r in report["formations"] if r["flags"]][:30]:
         lines.append(f"- **{row['title']}**: " + ", ".join(f["code"] for f in row["flags"]))
     lines += [
