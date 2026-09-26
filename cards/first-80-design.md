@@ -295,7 +295,7 @@ This batch treats a Stratagem as the plan for the Battle: a temporary commitment
 | 66 | **The Center Must Hold** | 3 | Choose two adjacent Fronts. At Battle end, add each player's Strength across both Fronts. Higher combined Strength wins both; equal totals tie both. |
 | 67 | **The Flank Was Refused** | 2 | Choose Front 1 or Front 4. **During this Battle**, ignore your Strength there. Each of your formations in the adjacent Front gets +1 Strength. |
 | 68 | **The Line Wheeled** | 2 | Choose left or right. Move any number of your formations one Front that way, same rank, if their destination position was empty before this Stratagem was played. |
-| 69 | **The Trap Closed** | 3 | **During this Battle**, if you win three consecutive Fronts, drive off the opposing Frontline Named Formation in the middle Front instead of Retreating it. |
+| 69 | **The Trap Closed** | 3 | **During this Battle**, if you win Fronts 1, 2, and 3, drive off the opposing Frontline Named Formation in Front 2 instead of Retreating it. Do the same in Front 3 if you win Fronts 2, 3, and 4. |
 | 70 | **They Let Them Through** | 2 | At Battle end, before comparing Strength, you may swap your Frontline and Rear formations in one Front. Bonds and Names move with their Forces. |
 | 71 | **All Reserves Forward** | 2 | Move any number of Rear formations into empty Frontline positions in their own Fronts. The first costs 0 Command; each additional move costs 1 Command. |
 | 72 | **The Battle Turned East** | 3 | Choose left or right. **During this Battle**, each of your Named Formations may Maneuver once for 0 Command if it moves in that direction. |
