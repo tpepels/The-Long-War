@@ -483,6 +483,9 @@ cdef class FastEngine:
     cdef uint8_t can_maneuver_unnamed[MAX_CARDS]
     cdef uint8_t maneuver_requires_open_bond[MAX_CARDS]
     cdef uint8_t bond_maneuver_adjacent_hero[MAX_CARDS]
+    cdef uint8_t bond_blocks_opponent_card_move[MAX_CARDS]
+    cdef uint8_t bond_guarded_from_opponent_card_move[MAX_CARDS]
+    cdef uint8_t rear_force_prevents_frontline_retreat[MAX_CARDS]
     cdef uint8_t force_breakthrough[MAX_CARDS]
     cdef uint8_t name_breakthrough[MAX_CARDS]
     cdef uint8_t first_maneuver_free[MAX_CARDS]
@@ -586,6 +589,9 @@ cdef class FastEngine:
         memset(self.can_maneuver_unnamed, 0, sizeof(self.can_maneuver_unnamed))
         memset(self.maneuver_requires_open_bond, 0, sizeof(self.maneuver_requires_open_bond))
         memset(self.bond_maneuver_adjacent_hero, 0, sizeof(self.bond_maneuver_adjacent_hero))
+        memset(self.bond_blocks_opponent_card_move, 0, sizeof(self.bond_blocks_opponent_card_move))
+        memset(self.bond_guarded_from_opponent_card_move, 0, sizeof(self.bond_guarded_from_opponent_card_move))
+        memset(self.rear_force_prevents_frontline_retreat, 0, sizeof(self.rear_force_prevents_frontline_retreat))
         memset(self.force_breakthrough, 0, sizeof(self.force_breakthrough))
         memset(self.name_breakthrough, 0, sizeof(self.name_breakthrough))
         memset(self.first_maneuver_free, 0, sizeof(self.first_maneuver_free))
@@ -769,6 +775,13 @@ cdef class FastEngine:
                 self.maneuver_requires_open_bond[code] = 1
             if design.get("build_around") == "hero_retinue":
                 self.bond_maneuver_adjacent_hero[code] = 1
+            if design.get("prevent_opponent_card_effect_move_into_front_from_adjacent"):
+                self.bond_blocks_opponent_card_move[code] = 1
+            if design.get("prevent_opponent_card_effect_movement"):
+                self.bond_guarded_from_opponent_card_move[code] = 1
+            lost_front = design.get("lost_front") or {}
+            if lost_front.get("effect") == "drive_off_self_prevent_frontline_retreat":
+                self.rear_force_prevents_frontline_retreat[code] = 1
             if design.get("first_maneuver_each_battle_cost") == 0:
                 self.first_maneuver_free[code] = 1
             if design.get("first_self_maneuver_each_battle_cost") == 0:
@@ -1669,6 +1682,46 @@ cdef class FastEngine:
             )
             self.resolve_named_narratives(state, player)
 
+    cdef inline bint opponent_blocks_card_move_into_front(
+        self,
+        FastState state,
+        int player,
+        int front,
+    ) noexcept:
+        cdef int opponent = 1 - player
+        cdef int rank, slot, bond
+        for rank in range(2):
+            slot = slot_index(opponent, front, rank)
+            bond = state.link[slot]
+            if bond >= 0 and self.bond_blocks_opponent_card_move[bond]:
+                return True
+        return False
+
+    cdef inline bint card_move_destination_legal(
+        self,
+        FastState state,
+        int player,
+        int source,
+        int dest,
+    ) noexcept:
+        cdef int force = state.subject[source]
+        if force < 0 or self.immobile_force[force]:
+            return False
+        if (
+            state.subject[dest] >= 0
+            or state.link[dest] >= 0
+            or state.name[dest] >= 0
+        ):
+            return False
+        if (
+            abs(front_from_slot(source) - front_from_slot(dest)) == 1
+            and self.opponent_blocks_card_move_into_front(
+                state, player, front_from_slot(dest)
+            )
+        ):
+            return False
+        return True
+
     cdef inline bint player_has_empty_front(
         self,
         FastState state,
@@ -1847,10 +1900,8 @@ cdef class FastEngine:
                         rank = local & 1
                         if front > 0:
                             dest = slot_index(player, front - 1, rank)
-                            if (
-                                state.subject[dest] < 0
-                                and state.link[dest] < 0
-                                and state.name[dest] < 0
+                            if self.card_move_destination_legal(
+                                state, player, slot, dest
                             ):
                                 n = _append_action(
                                     actions,
@@ -1865,10 +1916,8 @@ cdef class FastEngine:
                                 )
                         if front < 3:
                             dest = slot_index(player, front + 1, rank)
-                            if (
-                                state.subject[dest] < 0
-                                and state.link[dest] < 0
-                                and state.name[dest] < 0
+                            if self.card_move_destination_legal(
+                                state, player, slot, dest
                             ):
                                 n = _append_action(
                                     actions,
@@ -2085,10 +2134,8 @@ cdef class FastEngine:
                                     if front == 3:
                                         continue
                                     dest = slot_index(player, front + 1, rank)
-                                if (
-                                    state.subject[dest] < 0
-                                    and state.link[dest] < 0
-                                    and state.name[dest] < 0
+                                if self.card_move_destination_legal(
+                                    state, player, source, dest
                                 ):
                                     eligible_mask |= <uint32_t>(1 << source)
                             subset = eligible_mask
@@ -2115,6 +2162,7 @@ cdef class FastEngine:
                             dest = slot_index(player, front, 0)
                             if (
                                 state.subject[source] >= 0
+                                and not self.immobile_force[state.subject[source]]
                                 and state.subject[dest] < 0
                                 and state.link[dest] < 0
                                 and state.name[dest] < 0
@@ -2779,7 +2827,7 @@ cdef class FastEngine:
         int drive1,
     ) noexcept:
         cdef int player, front, front_slot, rear_slot
-        cdef bint lost
+        cdef bint lost, protected_frontline
         for player in range(2):
             for front in range(4):
                 lost = (
@@ -2792,10 +2840,21 @@ cdef class FastEngine:
                 rear_slot = slot_index(player, front, 1)
 
                 # Rear is driven off first, then a surviving Frontline Named
-                # Formation retreats into the now-empty Rear.
+                # Formation retreats into the now-empty Rear. House of Reed
+                # replaces that Retreat: it is driven off, but the Frontline
+                # Named Formation stays where it is.
+                protected_frontline = (
+                    self.slot_complete(state, front_slot)
+                    and state.subject[rear_slot] >= 0
+                    and self.rear_force_prevents_frontline_retreat[
+                        state.subject[rear_slot]
+                    ]
+                )
                 if self.slot_complete(state, rear_slot):
                     self.drive_off_slot(state, player, rear_slot)
                 if self.slot_complete(state, front_slot):
+                    if protected_frontline:
+                        continue
                     if (
                         (player == 0 and (drive0 & (1 << front)) != 0)
                         or (player == 1 and (drive1 & (1 << front)) != 0)

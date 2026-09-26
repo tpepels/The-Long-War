@@ -683,6 +683,60 @@ def test_trusted_bond_refunds_command_when_formation_becomes_named() -> None:
     assert state.players[0].command == 5
 
 
+def test_house_of_reed_is_driven_off_instead_of_frontline_retreat() -> None:
+    engine, state = setup_state()
+    make_named(state, 0, pos(0, Rank.FRONT))
+    make_named(
+        state,
+        0,
+        pos(0, Rank.REAR),
+        force="the-house-of-reed",
+    )
+    make_named(state, 1, pos(0, Rank.FRONT), temporary=20)
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.slot(0, pos(0, Rank.REAR)).force is None
+    assert state.slot(0, pos(0, Rank.FRONT)).named is True
+
+
+def test_blocked_road_prevents_opponent_card_move_into_its_front() -> None:
+    engine, state = setup_state()
+    source = pos(0, Rank.FRONT)
+    destination = pos(1, Rank.FRONT)
+    state.slot(0, source).force = "the-fifty-men"
+    state.slot(1, pos(1, Rank.REAR)).force = "the-fifty-men"
+    state.slot(1, pos(1, Rank.REAR)).bond = "blocked-the-road-for"
+    state.players[0].hand = ["marched-with"]
+
+    blocked_move = PlayBond(
+        "marched-with",
+        source,
+        move_destination=destination,
+    )
+    assert blocked_move not in engine.legal_actions(state)
+    assert PlayBond("marched-with", source) in engine.legal_actions(state)
+
+
+def test_immobile_force_cannot_be_moved_by_line_wheeled() -> None:
+    engine, state = setup_state()
+    source = pos(1, Rank.REAR)
+    state.slot(0, source).force = "the-house-of-reed"
+    state.players[0].hand = ["the-line-wheeled"]
+
+    actions = [
+        action
+        for action in engine.legal_actions(state)
+        if isinstance(action, PlayStratagem)
+        and action.card_id == "the-line-wheeled"
+    ]
+    assert actions
+    assert all(
+        all(target.position != source for target in action.targets)
+        for action in actions
+    )
+
+
 def test_battle_only_temporary_strength_resets_after_battle() -> None:
     engine, state = setup_state()
     target = pos(0, Rank.FRONT)
