@@ -3841,7 +3841,7 @@
         "affects": "both_players"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 9
     },
     {
@@ -3877,7 +3877,7 @@
         "outcome": "higher_combined_strength_wins_both"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 9
     },
     {
@@ -3914,7 +3914,7 @@
         "adjacent_front_formation_strength_bonus": 1
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 9
     },
     {
@@ -3951,7 +3951,7 @@
         "destination_must_have_been_empty_before_effect": true
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 9
     },
     {
@@ -3982,7 +3982,7 @@
         "effect": "middle_opposing_frontline_named_driven_off_instead_of_retreating"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 9
     },
     {
@@ -4013,7 +4013,7 @@
         "effect": "optional_swap_friendly_frontline_and_rear_formations_one_front"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 9
     },
     {
@@ -4045,7 +4045,7 @@
         "destination": "empty_frontline_same_front"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 9
     },
     {
@@ -4084,7 +4084,7 @@
         "free_maneuver_once_per_named_formation": true
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 9
     },
     {
@@ -4117,7 +4117,7 @@
         "first_maneuver_each_battle_cost": 0
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 10
     },
     {
@@ -4149,7 +4149,7 @@
         "effect": "optional_zero_cost_maneuver_even_if_unnamed"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 10
     },
     {
@@ -4181,7 +4181,7 @@
         "effect": "self_maneuver_cost_0"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 10
     },
     {
@@ -4213,7 +4213,7 @@
         "after_self_maneuver": "optional_zero_cost_other_friendly_named_maneuver"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 10
     },
     {
@@ -4255,7 +4255,7 @@
         "effect": "optional_zero_cost_friendly_named_maneuver"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 10
     },
     {
@@ -4286,7 +4286,7 @@
         "first_maneuver_each_battle_cost": 0
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 10
     },
     {
@@ -4317,7 +4317,7 @@
         "effect": "optional_move_this_bond_to_adjacent_friendly_force_without_bond"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 10
     },
     {
@@ -4349,7 +4349,7 @@
         "replacement": "optional_move_name_to_adjacent_friendly_force_with_bond_no_name"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 10
     }
   ]
