@@ -285,7 +285,7 @@ Stratagems are public tactical plans for the current Battle.
 
 ## Batch 9 - Stratagems
 
-Status: draft for review.
+Status: approved for the first-80 design pool.
 
 This batch treats a Stratagem as the plan for the Battle: a temporary commitment that changes the geometry or stakes of several decisions, rather than a small tactical bonus.
 
@@ -324,7 +324,7 @@ The final first-80 batch rewards unusual but already visible army structures. Th
 
 ## Batch 10 - Build-around
 
-Status: draft for review.
+Status: approved for the first-80 design pool.
 
 | # | Card | Type | Cost | Strength | Rules text |
 | --- | --- | --- | ---: | ---: | --- |
