@@ -86,6 +86,18 @@ cdef int ACTOR_EITHER = 0
 cdef int ACTOR_OPPONENT = 1
 cdef int ACTOR_CONTROLLER = 2
 
+cdef int STORY_CHOICE_NONE = 0
+cdef int STORY_CHOICE_FRONT = 1
+cdef int STORY_CHOICE_NAMED_FORMATION = 2
+
+cdef int STRAT_CHOICE_NONE = 0
+cdef int STRAT_CHOICE_FRONT = 1
+cdef int STRAT_CHOICE_ADJACENT_FRONTS = 2
+cdef int STRAT_CHOICE_EDGE_FRONT = 3
+cdef int STRAT_CHOICE_DIRECTION = 4
+cdef int STRAT_CHOICE_WHEEL = 5
+cdef int STRAT_CHOICE_RESERVES = 6
+
 cdef inline int slot_index(int player, int front, int rank) noexcept:
     return player * 8 + front * 2 + rank
 
@@ -469,12 +481,14 @@ cdef class FastEngine:
 
     cdef int8_t plot_effect[MAX_CARDS]
     cdef uint8_t veiled[MAX_CARDS]
+    cdef uint8_t story_choice_kind[MAX_CARDS]
     cdef int8_t scheme_trigger[MAX_CARDS]
     cdef int8_t scheme_effect[MAX_CARDS]
     cdef int8_t scheme_amount[MAX_CARDS]
     cdef uint8_t scheme_requires_subject[MAX_CARDS]
     cdef int8_t scheme_face_bonus[MAX_CARDS]
 
+    cdef uint8_t strat_choice_kind[MAX_CARDS]
     cdef int8_t strat_trigger_event[MAX_CARDS]
     cdef int8_t strat_actor[MAX_CARDS]
     cdef uint16_t strat_role_mask[MAX_CARDS]
@@ -544,11 +558,13 @@ cdef class FastEngine:
         memset(self.name_effect, 0, sizeof(self.name_effect))
         memset(self.plot_effect, 0, sizeof(self.plot_effect))
         memset(self.veiled, 0, sizeof(self.veiled))
+        memset(self.story_choice_kind, 0, sizeof(self.story_choice_kind))
         memset(self.scheme_trigger, 0, sizeof(self.scheme_trigger))
         memset(self.scheme_effect, 0, sizeof(self.scheme_effect))
         memset(self.scheme_amount, 0, sizeof(self.scheme_amount))
         memset(self.scheme_requires_subject, 0, sizeof(self.scheme_requires_subject))
         memset(self.scheme_face_bonus, 0, sizeof(self.scheme_face_bonus))
+        memset(self.strat_choice_kind, 0, sizeof(self.strat_choice_kind))
         memset(self.strat_trigger_event, 0, sizeof(self.strat_trigger_event))
         memset(self.strat_actor, 0, sizeof(self.strat_actor))
         memset(self.strat_role_mask, 0, sizeof(self.strat_role_mask))
@@ -745,12 +761,29 @@ cdef class FastEngine:
 
             self.plot_effect[code] = plot_effect_map.get(rules.get("effect"), PLOT_NONE)
             self.veiled[code] = bool(card.get("ongoing", False))
+            if design.get("placement") == "chosen_front":
+                self.story_choice_kind[code] = STORY_CHOICE_FRONT
+            elif design.get("placement") == "chosen_named_formation":
+                self.story_choice_kind[code] = STORY_CHOICE_NAMED_FORMATION
             scheme = rules.get("scheme") or {}
             self.scheme_trigger[code] = scheme_trigger_map.get(scheme.get("trigger"), EVENT_NONE)
             self.scheme_effect[code] = scheme_effect_map.get(scheme.get("effect"), SCHEME_NONE)
             self.scheme_amount[code] = int(scheme.get("amount", 0))
             self.scheme_requires_subject[code] = bool(scheme.get("requires_own_subject"))
             self.scheme_face_bonus[code] = int(scheme.get("face_down_front_bonus", 0))
+
+            if design.get("stratagem") == "all_reserves_forward":
+                self.strat_choice_kind[code] = STRAT_CHOICE_RESERVES
+            elif design.get("stratagem") == "wheel_line":
+                self.strat_choice_kind[code] = STRAT_CHOICE_WHEEL
+            elif design.get("chosen_fronts") == 2:
+                self.strat_choice_kind[code] = STRAT_CHOICE_ADJACENT_FRONTS
+            elif design.get("chosen_edge_front"):
+                self.strat_choice_kind[code] = STRAT_CHOICE_EDGE_FRONT
+            elif design.get("chosen_front"):
+                self.strat_choice_kind[code] = STRAT_CHOICE_FRONT
+            elif design.get("direction_choice"):
+                self.strat_choice_kind[code] = STRAT_CHOICE_DIRECTION
 
             strat = rules.get("stratagem") or {}
             trigger = strat.get("trigger") or {}
