@@ -1743,6 +1743,14 @@ cdef class FastEngine:
             state.stratagem[player] = -1
             state.stratagem_revealed[player] = 0
 
+    cdef inline void clear_battle_temporary_strength(
+        self,
+        FastState state,
+    ) noexcept:
+        cdef int slot
+        for slot in range(SLOT_COUNT):
+            state.temporary[slot] = 0
+
     cdef int command_recovery_for_battle(
         self,
         int battle,
@@ -1811,6 +1819,7 @@ cdef class FastEngine:
         self.discard_incomplete_formations(state)
         self.resolve_retreats(state, lost_mask0, lost_mask1)
         self.discard_battle_stratagems(state)
+        self.clear_battle_temporary_strength(state)
 
         # Ongoing Stories remain in state.scheme. Battle-only allowances reset
         # only if the war continues.
