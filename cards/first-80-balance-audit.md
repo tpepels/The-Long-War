@@ -1,6 +1,20 @@
 # First 80 - balance audit
 
-Status: discussion draft. No balance changes in this file are approved automatically.
+Status: active playtest audit.
+
+## Applied conservative balance changes
+
+The following changes are now in the approved card data:
+
+- **The Long March** - reduced from one free qualifying Maneuver every turn to one Command refund on the first qualifying Maneuver each Battle.
+- **Iven** - discount now applies only to the first card played in Iven's Front each turn.
+- **Trusted** - recurring Battle-end Command generation replaced by a one-time +1 Command when the formation becomes Named.
+- **Sorin** - base cost 2; costs 1 when played on a Force that already has a Bond.
+- **Tovan, the Quartermaster** - Name-mode discount changed from once each turn to once each Battle.
+- **Before Sunset, the Ford Would Be Ours** - cost increased from 1 to 2.
+- **Arel** - only the formation's first Maneuver each Battle is free while the empty-Front condition holds.
+- **The Battle Turned East** - cost increased from 2 to 3; the per-formation once tracking was removed in favor of free Maneuvers only in the chosen direction.
+
 
 ## Pool and deck snapshot
 
