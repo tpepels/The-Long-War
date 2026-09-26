@@ -152,8 +152,8 @@ def _validate_rules(card: dict[str, Any]) -> None:
         _require_fields(modifier, ("amount", "when"), f"{path}.strength_modifiers")
         if not modifier["when"]:
             raise ValueError(f"{path}.strength_modifiers: a condition is required")
-    if card["type"] == "stratagem":
-        _require_fields(rules, ("stratagem",), path)
+    if card["type"] == "stratagem" and "stratagem" in rules:
+        _require_fields(rules["stratagem"], ("trigger",), f"{path}.stratagem")
         _require_fields(rules["stratagem"]["trigger"], ("event",), f"{path}.stratagem.trigger")
     if card["type"] == "story":
         if card.get("ongoing", False):

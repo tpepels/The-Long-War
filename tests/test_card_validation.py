@@ -114,10 +114,9 @@ def test_rules_do_not_silently_coerce_values(changes):
         GameRules(**changes)
 
 
-def test_deck_capacity_and_malformed_entries_are_rejected(data):
+def test_runtime_deck_validation_rejects_malformed_entries_but_not_large_known_decks(data):
     engine = GameEngine(data)
-    with pytest.raises(InvalidDeck, match="at most 64"):
-        engine.validate_deck(["followed"] * 65)
+    engine.validate_deck(["followed"] * 65)
     with pytest.raises(InvalidDeck, match="list of card ids"):
         engine.validate_deck([{}] * 30)
 

@@ -487,6 +487,14 @@ def test_heuristic_has_no_deleted_global_rule_switches() -> None:
     assert "command_enabled" not in heuristic
 
 
+def test_legacy_card_backup_is_inert() -> None:
+    forbidden = "cards.legacy-before-first-80.json"
+    for root in (SRC, ROOT / "tools", ROOT / "web"):
+        for path in root.rglob("*"):
+            if path.is_file() and path.suffix in {".py", ".pyx", ".pxi", ".js", ".mjs", ".html"}:
+                assert forbidden not in path.read_text(encoding="utf-8"), path
+
+
 def test_global_completion_rule_variants_are_removed() -> None:
     rules = (SRC / "rules.py").read_text(encoding="utf-8")
     engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
