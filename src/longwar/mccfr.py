@@ -481,7 +481,7 @@ class MCCFRTrainer:
                     "own hand identities",
                     "own remaining deck multiset",
                     "public hand/deck counts",
-                    "own hidden Scheme identity",
+                    "public ongoing Story identities",
                 ],
                 "excludes": [
                     "opponent hand identities",
