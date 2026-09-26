@@ -582,9 +582,15 @@ cdef class NativeHeuristicEvaluator:
         score = self.evaluate_fast(child, player)
 
         if kind == TYPE_LINK:
-            score += 0.10 if state.subject[pos] >= 0 else 1.35
+            if state.subject[pos] >= 0:
+                score += 0.85
+            else:
+                score += 0.25
         elif kind == TYPE_NAME:
-            score += 0.35 if state.subject[pos] >= 0 else 1.50
+            if state.subject[pos] >= 0:
+                score += 0.90
+            else:
+                score += 0.30
         elif kind == TYPE_SCHEME:
             score += 0.20
         elif kind == TYPE_STRATAGEM:
