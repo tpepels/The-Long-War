@@ -379,6 +379,13 @@ class GameEngine:
         state.pending_draw_discard_for = data["pending_draw_discard_for"]
         state.pending_draw_count = int(data["pending_draw_count"])
         state.pending_draw_finish_operation = bool(data["pending_draw_finish_operation"])
+        state.pending_effects[:] = data.get("pending_effects", [])
+        state.pending_resume = data.get("pending_resume")
+        state.pending_resume_player = data.get("pending_resume_player")
+        state.free_maneuver_available[:] = data.get(
+            "free_maneuver_available", [False, False]
+        )
+        state.battle_resolution = data.get("battle_resolution")
         state.last_battle_snapshot = data["last_battle_snapshot"]
         state.pass_order[:] = data["pass_order"]
         state.winner = data["winner"]
