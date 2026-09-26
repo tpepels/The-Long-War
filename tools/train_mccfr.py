@@ -37,8 +37,8 @@ def main() -> None:
         default=1,
         help="1 = fast sequential native solver (default); 0 = all detected CPUs; >1 = experimental parallel replicas",
     )
-    parser.add_argument("--deck-a", type=Path, default=Path("decks/reference.json"))
-    parser.add_argument("--deck-b", type=Path, default=Path("decks/reference.json"))
+    parser.add_argument("--deck-a", type=Path, default=Path("decks/mobility-open-bonds.json"))
+    parser.add_argument("--deck-b", type=Path, default=Path("decks/mobility-open-bonds.json"))
     parser.add_argument("--output", type=Path, default=Path("artifacts/mccfr-policy.json"))
     args = parser.parse_args()
 
