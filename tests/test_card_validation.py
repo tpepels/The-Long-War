@@ -34,27 +34,24 @@ def test_malformed_payload_is_a_validation_error(invalid):
 
 @pytest.mark.parametrize("rules", [
     {"strength_bouns": 1},
-    {"strength_modifiers": [{"amount": 1, "when": {"unknown": True}}]},
     {"placement": {"rank": "back"}},
     {"placement": {}},
-    {"on_link_attached": {"temporary_strength": True}},
-    {"adjacent_strength_aura": 128},
-    {"strength_modifiers": [{"amount": 1, "when": {"own_discard_at_least": 1}}] * 2},
+    {"adjacent_strength_aura": 1},
 ])
-def test_unsupported_subject_rules_cannot_silently_become_noops(data, rules):
-    data["cards"][0]["rules"] = rules
+def test_unsupported_force_rules_cannot_silently_become_noops(data, rules):
+    force = next(card for card in data["cards"] if card["type"] == "force")
+    force["rules"] = rules
     with pytest.raises(ValueError):
         validate_card_data(data)
 
 
 @pytest.mark.parametrize("card_id, rules", [
     ("iria", {"on_name_attached": "teleport"}),
-    ("the-story-is-false", {"effect": "destroy_everything"}),
-    ("the-lamps-went-dark", {"scheme": {"trigger": "oponent_passes", "effect": "reinforce_front"}}),
-    ("the-storm-broke", {"stratagem": {"trigger": {"event": "subject_played", "roles": ["wizard"]}}}),
-    ("the-storm-broke", {"stratagem": {"trigger": {"event": "subject_played"}, "continuous": {"rank_strength_modifiers": {"back": 1}}}}),
+    ("the-baggage-was-abandoned", {"effect": "destroy_everything"}),
+    ("the-ground-was-held", {"stratagem": {"unexpected": True}}),
+    ("followed", {"opposing_front_modifier": 1}),
 ])
-def test_effect_trigger_and_role_references_are_validated(data, card_id, rules):
+def test_unsupported_canonical_rules_are_rejected(data, card_id, rules):
     next(card for card in data["cards"] if card["id"] == card_id)["rules"] = rules
     with pytest.raises(ValueError):
         validate_card_data(data)
