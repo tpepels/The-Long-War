@@ -79,7 +79,7 @@ def test_start_match_real_browser_interaction_smoke_is_maintained() -> None:
     assert "form.requestSubmit()" in checker
     assert 'confirm.click()' in checker
     assert '.play-card.playable[data-hand-card]' in checker
-    assert '.digital-slot.targetable, .story-marker.targetable' in checker
+    assert '.digital-slot.targetable, .narrative-marker.targetable' in checker
     assert 'data-play-smoke="pass"' in checker
     assert '<button type="button" class="' in play
     assert "legal-target-cue" in play
