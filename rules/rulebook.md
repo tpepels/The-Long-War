@@ -108,7 +108,7 @@ Force, Bond, and Name may be played in **any order**.
 
 ### Force
 
-A Force contributes its printed Strength and makes the cards in its position a formation.
+A Force has its printed Strength and makes the cards in its position a formation.
 
 Play a Force into any position without a Force, subject to its printed deployment restriction.
 
@@ -172,7 +172,7 @@ You cannot normally Maneuver between Battles or change rank with a Maneuver.
 Narratives are always face-up.
 
 - A Narrative marked **Ongoing** stays in play until its text ends it.
-- Any other Narrative resolves when played and is then discarded.
+- For any other Narrative, follow its text when played, then discard it.
 - You may have at most **2 Ongoing Narratives** in play.
 
 The narrative forms have no hidden rules of their own.
