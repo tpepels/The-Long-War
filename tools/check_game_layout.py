@@ -56,7 +56,7 @@ def presentation_snapshots() -> dict[str, dict]:
     from longwar.web_api import PlaySession
 
     card_json = (ROOT / "cards/cards.json").read_text(encoding="utf-8")
-    deck_json = (ROOT / "decks/reference.json").read_text(encoding="utf-8")
+    deck_json = (ROOT / "decks/mobility-open-bonds.json").read_text(encoding="utf-8")
     cards = json.loads(card_json)["cards"]
     by_type = {kind: sorted((card for card in cards if card["type"] == kind),
                            key=lambda card: len(card["title"]), reverse=True)
@@ -240,7 +240,7 @@ def prepare_fixture(directory: Path) -> None:
     shutil.copytree(ROOT / "web", directory, dirs_exist_ok=True)
     (directory / "data").mkdir(exist_ok=True)
     shutil.copy2(ROOT / "cards/cards.json", directory / "data/cards.json")
-    shutil.copy2(ROOT / "decks/reference.json", directory / "data/reference-deck.json")
+    shutil.copy2(ROOT / "decks/mobility-open-bonds.json", directory / "data/reference-deck.json")
     (directory / "qa-snapshots.json").write_text(json.dumps(presentation_snapshots()), encoding="utf-8")
     (directory / "qa-engine.mjs").write_text(TRANSPORT, encoding="utf-8")
     play = (directory / "play.js").read_text(encoding="utf-8")
