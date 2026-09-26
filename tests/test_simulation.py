@@ -21,7 +21,7 @@ pytestmark = pytest.mark.integration
 def test_random_games_finish() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
 
@@ -40,7 +40,7 @@ def test_random_games_finish() -> None:
 def test_simulation_supports_distinct_agent_labels() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
 
@@ -90,7 +90,7 @@ def test_simulation_cli_resolves_canonical_defaults_and_explicit_overrides(tmp_p
 def test_simulation_reclaims_memory_between_moves_and_games(monkeypatch) -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
     releases = []
