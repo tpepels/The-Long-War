@@ -282,6 +282,8 @@ cdef class FastState:
     cdef int8_t last_pass_order[2]
     cdef uint8_t last_pass_len
     cdef uint8_t cleanup_pending
+    cdef uint8_t pending_draw_count
+    cdef uint8_t pending_draw_finish_operation
 
     cdef int8_t active_player
     cdef int16_t battle
@@ -344,6 +346,8 @@ cdef class FastState:
         memset(self.last_pass_order, 0xff, sizeof(self.last_pass_order))
         self.last_pass_len = 0
         self.cleanup_pending = 0
+        self.pending_draw_count = 0
+        self.pending_draw_finish_operation = 0
         self.pass_len = 0
         self.active_player = 0
         self.battle = 1
@@ -406,6 +410,8 @@ cdef class FastState:
         memcpy(self.last_pass_order, other.last_pass_order, sizeof(self.last_pass_order))
         self.last_pass_len = other.last_pass_len
         self.cleanup_pending = other.cleanup_pending
+        self.pending_draw_count = other.pending_draw_count
+        self.pending_draw_finish_operation = other.pending_draw_finish_operation
         self.pass_len = other.pass_len
         self.active_player = other.active_player
         self.battle = other.battle
@@ -943,6 +949,10 @@ cdef class FastEngine:
         fast.cleanup_pending = (
             state.pending_draw_discard_for is not None
         )
+        fast.pending_draw_count = int(state.pending_draw_count)
+        fast.pending_draw_finish_operation = bool(
+            state.pending_draw_finish_operation
+        )
         for i, p in enumerate(state.pass_order):
             fast.pass_order[i] = p
 
@@ -1396,7 +1406,7 @@ cdef class FastEngine:
             if effect == COMPLETE_GAIN_COMMAND:
                 self.gain_command_fast(state, player, amount)
             elif effect == COMPLETE_DRAW:
-                self.draw_for_battle(state, player, amount)
+                self.queue_battle_draws(state, player, amount)
             elif effect == COMPLETE_REVEAL_SCHEME:
                 front = local >> 1
                 enemy_ix = (1 - player) * 4 + front
@@ -2089,17 +2099,30 @@ cdef class FastEngine:
         self.draw(state, player, count)
         state.cards_drawn_this_battle[player] += state.hand_len[player] - before
 
+    cdef void queue_battle_draws(
+        self,
+        FastState state,
+        int player,
+        int count,
+    ) noexcept:
+        """Process draws one at a time and pause for discard at hand limit."""
+        state.pending_draw_count = 0
+        while count > 0 and self.can_draw_fast(state, player):
+            if state.hand_len[player] >= self.hand_limit:
+                state.active_player = player
+                state.cleanup_pending = 1
+                state.pending_draw_count = count
+                return
+            self.draw_for_battle(state, player, 1)
+            count -= 1
+
     cdef void start_turn_fast(self, FastState state, int player) noexcept:
         state.active_player = player
         state.cleanup_pending = 0
-        if (
-            state.phase == PHASE_BATTLE
-            and self.can_draw_fast(state, player)
-        ):
-            if state.hand_len[player] >= self.hand_limit:
-                state.cleanup_pending = 1
-            else:
-                self.draw_for_battle(state, player, 1)
+        state.pending_draw_count = 0
+        state.pending_draw_finish_operation = 0
+        if state.phase == PHASE_BATTLE:
+            self.queue_battle_draws(state, player, 1)
 
     cpdef initialize_opening_turn(
         self,
@@ -2556,7 +2579,20 @@ cdef class FastEngine:
             self.take_from_hand(state, actor, card, 0)
             self.append_discard(state, actor, card, False)
             state.cleanup_pending = 0
+            if state.pending_draw_count > 0:
+                state.pending_draw_count -= 1
             self.draw_for_battle(state, actor, 1)
+            if state.pending_draw_count > 0:
+                self.queue_battle_draws(
+                    state,
+                    actor,
+                    state.pending_draw_count,
+                )
+                if state.cleanup_pending:
+                    return
+            if state.pending_draw_finish_operation:
+                state.pending_draw_finish_operation = 0
+                self.finish_operation_fast(state, actor)
             return
 
         cost = self.command_cost_fast(state, action)
@@ -2652,6 +2688,9 @@ cdef class FastEngine:
         if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
             self.resolve_new_completions_fast(state, actor, before_mask)
 
+        if state.cleanup_pending:
+            state.pending_draw_finish_operation = 1
+            return
         self.finish_operation_fast(state, actor)
 
     cpdef FastState next_state(self, FastState state, uint64_t action):
@@ -2732,6 +2771,8 @@ cdef class FastEngine:
             _info_hash_feed(&h, state.stratagem_used[p])
 
         _info_hash_feed(&h, state.cleanup_pending)
+        _info_hash_feed(&h, state.pending_draw_count)
+        _info_hash_feed(&h, state.pending_draw_finish_operation)
         return h
 
     cpdef tuple state_hash(self, FastState state):
@@ -2789,6 +2830,8 @@ cdef class FastEngine:
             )
 
         _info_emit(buf, &n, h, <uint8_t>pending_draw)
+        _info_emit(buf, &n, h, state.pending_draw_count)
+        _info_emit(buf, &n, h, state.pending_draw_finish_operation)
 
         for owner in range(2):
             for slot in range(owner * 8, owner * 8 + 8):
@@ -3270,6 +3313,10 @@ cdef class FastEngine:
             "pending_draw_discard_for": (
                 state.active_player if state.cleanup_pending else None
             ),
+            "pending_draw_count": state.pending_draw_count,
+            "pending_draw_finish_operation": bool(
+                state.pending_draw_finish_operation
+            ),
             "pass_order": [
                 state.pass_order[i]
                 for i in range(state.pass_len)
@@ -3303,6 +3350,8 @@ cdef class FastEngine:
             "command": [state.command[0], state.command[1]],
             "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
             "pending_draw_discard_for": state.active_player if state.cleanup_pending else None,
+            "pending_draw_count": state.pending_draw_count,
+            "pending_draw_finish_operation": bool(state.pending_draw_finish_operation),
             "hands": [
                 {self.card_ids[card]: state.hand[p][card] for card in range(self.n_cards) if state.hand[p][card]}
                 for p in range(2)

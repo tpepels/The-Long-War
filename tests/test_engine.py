@@ -361,6 +361,33 @@ def test_turn_at_hand_limit_requires_discard_then_draw_before_operation() -> Non
     assert state.active_player == 0
 
 
+def test_completion_draw_at_hand_limit_pauses_for_discard_then_finishes_operation() -> None:
+    engine, state = setup_state()
+    state.active_player = 0
+    state.players[0].hand = ["the-fifty-men"] * 9 + ["oren"]
+    state.players[0].deck = ["the-red-shields", "seven-black-ships"]
+    target = pos(0, Rank.FRONT)
+    state.slot(0, target).force = "the-fifty-men"
+    state.slot(0, target).bond = "followed"
+
+    engine.apply(state, PlayName("oren", target))
+
+    assert state.pending_draw_discard_for == 0
+    assert state.pending_draw_count == 1
+    assert state.pending_draw_finish_operation is True
+    assert state.active_player == 0
+    assert len(state.players[0].hand) == 10
+    assert all(isinstance(action, Discard) for action in engine.legal_actions(state))
+
+    engine.apply(state, engine.legal_actions(state)[0])
+
+    assert state.pending_draw_discard_for is None
+    assert state.pending_draw_count == 0
+    assert state.pending_draw_finish_operation is False
+    assert len(state.players[0].hand) == 10
+    assert state.active_player == 1
+
+
 def test_battle_only_temporary_strength_resets_after_battle() -> None:
     engine, state = setup_state()
     target = pos(0, Rank.FRONT)

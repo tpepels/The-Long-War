@@ -362,6 +362,8 @@ class GameEngine:
         state.reshuffle_card_totals[:] = data["reshuffle_card_totals"]
         state.reshuffle_hand_card_totals[:] = data["reshuffle_hand_card_totals"]
         state.pending_draw_discard_for = data["pending_draw_discard_for"]
+        state.pending_draw_count = int(data["pending_draw_count"])
+        state.pending_draw_finish_operation = bool(data["pending_draw_finish_operation"])
         state.last_battle_snapshot = data["last_battle_snapshot"]
         state.pass_order[:] = data["pass_order"]
         state.winner = data["winner"]
