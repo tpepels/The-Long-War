@@ -1742,3 +1742,426 @@ def test_meren_repositions_before_first_turn_of_next_battle() -> None:
     engine.apply(state, move)
 
     assert state.slot(0, pos(2, Rank.FRONT)).name == "meren"
+
+
+def test_dust_riders_can_fill_the_position_they_vacated() -> None:
+    engine, state = setup_state(seed=4820)
+    source = pos(1, Rank.FRONT)
+    destination = pos(2, Rank.FRONT)
+    follower = pos(0, Rank.FRONT)
+    state.slot(0, source).force = "the-dust-riders"
+    make_named(state, 0, follower)
+    state.players[0].command = 5
+
+    engine.apply(state, Maneuver(source, destination))
+
+    move = next(
+        action
+        for action in effect_choices(engine, state, "move")
+        if (
+            not action.skip
+            and action.source is not None
+            and action.source.position == follower
+            and action.destination is not None
+            and action.destination.position == source
+        )
+    )
+    engine.apply(state, move)
+
+    assert state.slot(0, source).named is True
+    assert state.slot(0, follower).occupied is False
+
+
+def test_black_company_grants_the_swapped_formation_a_free_maneuver() -> None:
+    engine, state = setup_state(seed=4821)
+    source = pos(1, Rank.FRONT)
+    destination = pos(2, Rank.FRONT)
+    make_named(state, 0, source, force="the-black-company")
+    make_named(state, 0, destination, force="seven-black-ships")
+    state.players[0].command = 5
+
+    engine.apply(state, Maneuver(source, destination))
+
+    choices = effect_choices(engine, state, "free-maneuver")
+    assert any(
+        not action.skip
+        and action.source is not None
+        and action.source.position == source
+        for action in choices
+    )
+
+
+def test_kept_pace_with_follows_only_a_named_formation_maneuver() -> None:
+    engine, state = setup_state(seed=4822)
+    mover = pos(1, Rank.FRONT)
+    destination = pos(2, Rank.FRONT)
+    follower = pos(0, Rank.FRONT)
+    make_named(state, 0, mover)
+    make_named(state, 0, follower, bond="kept-pace-with")
+    state.players[0].command = 5
+
+    engine.apply(state, Maneuver(mover, destination))
+
+    choices = effect_choices(engine, state, "move")
+    assert any(
+        not action.skip
+        and action.source is not None
+        and action.source.position == follower
+        and action.destination is not None
+        and action.destination.position == mover
+        for action in choices
+    )
+
+    engine2, state2 = setup_state(seed=4823)
+    state2.slot(0, mover).force = "the-grey-riders"
+    make_named(state2, 0, follower, bond="kept-pace-with")
+    state2.players[0].command = 5
+
+    engine2.apply(state2, Maneuver(mover, destination))
+
+    assert not effect_choices(engine2, state2, "move")
+
+
+def test_teren_can_swap_two_other_adjacent_formations() -> None:
+    engine, state = setup_state(seed=4824)
+    source = pos(0, Rank.FRONT)
+    destination = pos(1, Rank.FRONT)
+    left = pos(2, Rank.FRONT)
+    right = pos(3, Rank.FRONT)
+    make_named(state, 0, source, name="teren")
+    make_named(state, 0, left, force="the-fifty-men")
+    make_named(state, 0, right, force="seven-black-ships")
+    state.players[0].command = 5
+
+    engine.apply(state, Maneuver(source, destination))
+
+    swap = next(
+        action
+        for action in effect_choices(engine, state, "swap")
+        if (
+            not action.skip
+            and action.source is not None
+            and action.destination is not None
+            and {
+                action.source.position,
+                action.destination.position,
+            }
+            == {left, right}
+        )
+    )
+    engine.apply(state, swap)
+
+    assert state.slot(0, left).force == "seven-black-ships"
+    assert state.slot(0, right).force == "the-fifty-men"
+
+
+def test_mara_reacts_when_opponent_maneuvers_into_her_front() -> None:
+    engine, state = setup_state(seed=4825)
+    make_named(state, 0, pos(0, Rank.FRONT))
+    mara_slot = pos(1, Rank.REAR)
+    make_named(state, 1, mara_slot, name="mara")
+    state.players[0].command = 5
+    state.active_player = 0
+
+    engine.apply(
+        state,
+        Maneuver(pos(0, Rank.FRONT), pos(1, Rank.FRONT)),
+    )
+
+    choices = effect_choices(engine, state, "free-maneuver")
+    assert state.active_player == 1
+    assert any(
+        not action.skip
+        and action.source is not None
+        and action.source.position == mara_slot
+        for action in choices
+    )
+
+
+def test_first_spear_can_suppress_lower_printed_frontline_strength() -> None:
+    engine, state = setup_state(seed=4826)
+    make_named(
+        state,
+        0,
+        pos(0, Rank.FRONT),
+        force="the-first-spear",
+    )
+    make_named(
+        state,
+        1,
+        pos(0, Rank.FRONT),
+        force="the-thornbow-hunters",
+    )
+
+    resolve_battle_by_passing(engine, state)
+
+    suppress = next(
+        action
+        for action in effect_choices(engine, state, "suppress")
+        if (
+            not action.skip
+            and action.destination is not None
+            and action.destination.player == 1
+            and action.destination.position == pos(0, Rank.FRONT)
+        )
+    )
+    engine.apply(state, suppress)
+
+    assert state.last_battle_snapshot["front_scores"][0][1] == 0
+
+
+def test_old_guard_discount_requires_a_named_rear_formation() -> None:
+    engine, state = setup_state(seed=4827)
+    rear = pos(0, Rank.REAR)
+    front = pos(0, Rank.FRONT)
+    state.players[0].hand = ["the-fifty-men"]
+    state.players[0].command = 20
+
+    state.slot(0, rear).force = "the-old-guard"
+    assert (
+        engine.command_cost_for_action(
+            state,
+            PlayForce("the-fifty-men", front),
+        )
+        == 2
+    )
+
+    state.slot(0, rear).bond = "followed"
+    state.slot(0, rear).name = "namar"
+    assert (
+        engine.command_cost_for_action(
+            state,
+            PlayForce("the-fifty-men", front),
+        )
+        == 1
+    )
+
+
+def test_rovan_force_can_ignore_opposing_rear_strength() -> None:
+    engine, state = setup_state(seed=4828)
+    make_named(
+        state,
+        0,
+        pos(0, Rank.FRONT),
+        force="rovan-the-gatebreaker",
+    )
+    make_named(
+        state,
+        1,
+        pos(0, Rank.REAR),
+        force="seven-black-ships",
+    )
+
+    resolve_battle_by_passing(engine, state)
+
+    assert any(
+        not action.skip
+        and action.destination is not None
+        and action.destination.player == 1
+        and action.destination.position == pos(0, Rank.REAR)
+        for action in effect_choices(engine, state, "suppress")
+    )
+
+
+def test_alda_can_be_driven_off_to_prevent_frontline_retreat() -> None:
+    engine, state = setup_state(seed=4829)
+    frontline = pos(0, Rank.FRONT)
+    rear = pos(0, Rank.REAR)
+    make_named(state, 0, frontline)
+    make_named(
+        state,
+        0,
+        rear,
+        force="alda-keeper-of-the-ford",
+    )
+    make_named(
+        state,
+        1,
+        pos(0, Rank.FRONT),
+        temporary=100,
+    )
+
+    resolve_battle_by_passing(engine, state)
+
+    protect = next(
+        action
+        for action in effect_choices(engine, state, "protect-retreat")
+        if not action.skip
+    )
+    engine.apply(state, protect)
+
+    assert state.slot(0, frontline).named is True
+    assert state.slot(0, rear).occupied is False
+    assert "alda-keeper-of-the-ford" in state.players[0].discard
+
+
+def test_they_lived_to_tell_it_rewards_a_surviving_target() -> None:
+    engine, state = setup_state(seed=4830)
+    state.battle = 8
+    state.players[0].command = 10
+    state.players[1].command = 10
+    state.battle_start_command[:] = [10, 10]
+    state.players[0].hand = []
+    target = pos(0, Rank.FRONT)
+    make_named(state, 0, target)
+    state.stories[0] = [
+        StoryState(
+            "they-lived-to-tell-it",
+            target_player=0,
+            target_position=target,
+        )
+    ]
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.players[0].command == 11
+    assert state.last_battle_snapshot["cards_drawn"][0] >= 1
+    assert "they-lived-to-tell-it" in state.players[0].discard
+
+
+def test_all_reserves_forward_charges_only_additional_moves() -> None:
+    engine, state = setup_state(seed=4831)
+    make_named(state, 0, pos(0, Rank.REAR))
+    make_named(
+        state,
+        0,
+        pos(1, Rank.REAR),
+        force="seven-black-ships",
+    )
+    state.players[0].hand = ["all-reserves-forward"]
+    state.players[0].command = 20
+
+    actions = [
+        action
+        for action in engine.legal_actions(state)
+        if isinstance(action, PlayStratagem)
+        and action.card_id == "all-reserves-forward"
+    ]
+    one = next(action for action in actions if len(action.targets) == 1)
+    two = next(action for action in actions if len(action.targets) == 2)
+    assert engine.command_cost_for_action(state, one) == 2
+    assert engine.command_cost_for_action(state, two) == 3
+
+    engine.apply(state, two)
+
+    assert state.slot(0, pos(0, Rank.FRONT)).force is not None
+    assert state.slot(0, pos(1, Rank.FRONT)).force is not None
+    assert state.slot(0, pos(0, Rank.REAR)).occupied is False
+    assert state.slot(0, pos(1, Rank.REAR)).occupied is False
+
+
+def test_torren_grants_another_named_formation_a_free_maneuver() -> None:
+    engine, state = setup_state(seed=4832)
+    for front in range(4):
+        make_named(
+            state,
+            0,
+            pos(front, Rank.FRONT),
+            force=(
+                "seven-black-ships"
+                if front == 1
+                else "the-fifty-men"
+            ),
+            name="torren" if front == 0 else "namar",
+        )
+    state.players[0].command = 5
+
+    engine.apply(
+        state,
+        Maneuver(pos(0, Rank.FRONT), pos(1, Rank.FRONT)),
+    )
+
+    choices = effect_choices(engine, state, "free-maneuver")
+    assert any(
+        not action.skip
+        and action.source is not None
+        and action.source.position != pos(1, Rank.FRONT)
+        for action in choices
+    )
+
+
+def test_banner_singers_trigger_after_narrative_command_gain() -> None:
+    engine, state = setup_state(seed=4833)
+    source = pos(0, Rank.FRONT)
+    destination = pos(1, Rank.FRONT)
+    make_named(state, 0, source)
+    state.slot(0, pos(3, Rank.REAR)).force = "the-banner-singers"
+    state.stories[0] = [StoryState("the-long-march")]
+    state.players[0].command = 5
+
+    engine.apply(state, Maneuver(source, destination))
+
+    choices = effect_choices(engine, state, "free-maneuver")
+    assert any(
+        not action.skip
+        and action.source is not None
+        and action.source.position == destination
+        for action in choices
+    )
+
+
+def test_guarded_blocks_an_opponents_pending_card_move() -> None:
+    engine, state = setup_state(seed=4834)
+    source = pos(0, Rank.FRONT)
+    destination = pos(1, Rank.FRONT)
+    make_named(state, 1, source, bond="guarded")
+
+    # Synthetic pending effect: no first-80 card currently moves an opposing
+    # formation directly, but Guarded is a continuous restriction on exactly
+    # that shared card-effect movement path.
+    state.pending_effects = [
+        {
+            "kind": 2,
+            "player": 0,
+            "card": -1,
+            "source": -1,
+            "aux": -1,
+            "source_mask": 1 << 8,
+            "dest_mask": 1 << 10,
+            "flags": 1,
+        }
+    ]
+    state.active_player = 0
+
+    choices = effect_choices(engine, state, "move")
+    assert choices
+    assert all(choice.skip for choice in choices)
+
+
+def test_eira_succession_resolver_moves_name_then_drives_off_source() -> None:
+    engine, state = setup_state(seed=4835)
+    source = pos(0, Rank.FRONT)
+    destination = pos(1, Rank.FRONT)
+    make_named(state, 0, source, name="eira")
+    target = state.slot(0, destination)
+    target.force = "the-fifty-men"
+    target.bond = "followed"
+
+    # Exercise the resumable replacement resolver directly. Normal Battle-end
+    # cleanup removes incomplete formations before drive-off, so this state is
+    # intentionally synthetic.
+    state.pending_effects = [
+        {
+            "kind": 12,
+            "player": 0,
+            "card": -1,
+            "source": 0,
+            "aux": -1,
+            "source_mask": 0,
+            "dest_mask": 1 << 2,
+            "flags": 1,
+        }
+    ]
+    state.active_player = 0
+
+    succession = next(
+        action
+        for action in effect_choices(engine, state, "succession")
+        if not action.skip
+    )
+    engine.apply(state, succession)
+
+    assert state.slot(0, destination).name == "eira"
+    assert state.slot(0, source).occupied is False
+    assert "the-fifty-men" in state.players[0].discard
+    assert "followed" in state.players[0].discard
