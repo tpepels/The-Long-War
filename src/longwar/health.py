@@ -301,13 +301,13 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "flags": flags,
         })
 
-    combo_stats = telemetry.get("legend_combinations", {})
+    combo_stats = telemetry.get("formation_combinations", {})
     combo_strengths = [
         float(s["mean_strength_at_completion"])
         for s in combo_stats.values()
         if s.get("mean_strength_at_completion") is not None and int(s.get("completions", 0)) >= 10
     ]
-    legends: list[dict[str, Any]] = []
+    formations: list[dict[str, Any]] = []
     for key, stats in combo_stats.items():
         seen = int(stats.get("games_seen", 0))
         wins = int(stats.get("wins_when_seen", 0))
@@ -339,7 +339,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             counts[flag["severity"]] += 1
 
         subject, link, name = key.split(" | ")
-        legends.append({
+        formations.append({
             "id": key,
             "title": " — ".join(meta[x]["title"] for x in (subject, link, name)),
             "completions": int(stats.get("completions", 0)),
@@ -355,7 +355,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         counts[flag["severity"]] += 1
 
     cards.sort(key=lambda r: (-sum(2 if f["severity"] == "high" else 1 for f in r["flags"]), r["title"]))
-    legends.sort(key=lambda r: (-sum(2 if f["severity"] == "high" else 1 for f in r["flags"]), -r["games_seen"], r["title"]))
+    formations.sort(key=lambda r: (-sum(2 if f["severity"] == "high" else 1 for f in r["flags"]), -r["games_seen"], r["title"]))
 
     return {
         "schema_version": 1,
@@ -373,14 +373,14 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         },
         "summary": {
             "cards_analyzed": len(cards),
-            "legends_observed": len(legends),
+            "formations_observed": len(formations),
             "flags_high": counts["high"],
             "flags_watch": counts["watch"],
             "flags_diagnostic": counts["diagnostic"],
             "card_levels": dict(Counter(row["balance_level"] for row in cards)),
         },
         "cards": cards,
-        "legends": legends,
+        "formations": formations,
         "methodology": {
             "win_intervals": "Wilson score interval, 95%",
             "notes": [
@@ -412,7 +412,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     for row in [r for r in report["cards"] if r["flags"]]:
         lines.append(f"- **{row['title']}** ({row['type']}): " + ", ".join(f["code"] for f in row["flags"]))
     lines += ["", "## Flagged Subject–Bond–Name sequences", ""]
-    for row in [r for r in report["legends"] if r["flags"]][:30]:
+    for row in [r for r in report["formations"] if r["flags"]][:30]:
         lines.append(f"- **{row['title']}**: " + ", ".join(f["code"] for f in row["flags"]))
     lines += [
         "",
