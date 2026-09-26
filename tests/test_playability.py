@@ -12,22 +12,21 @@ def simulation(*, fingerprint: str = "rules-a") -> dict:
         "game_fingerprint": fingerprint,
         "telemetry": {
             "actions": {
-                "ChooseFirst": 5,
-                "Draw": 10,
+                "Discard": 10,
+                "Maneuver": 5,
                 "Pass": 50,
-                "PlayLink": 25,
+                "PlayBond": 25,
+                "PlayForce": 50,
                 "PlayName": 10,
-                "PlayPlot": 5,
-                "PlayScheme": 10,
-                "PlaySubject": 50,
-                "SetStratagem": 15,
+                "PlayStory": 15,
+                "PlayStratagem": 15,
             },
             "battles": {"count": 25},
             "passes": {
                 "events": 50,
                 "mean_hand_size": 4.0,
                 "mean_dead_cards": 1.0,
-                "first_passer_battle_win_rate": 0.4,
+                "first_pass_rate": 0.5,
             },
             "cards": {
                 "example": {
@@ -62,26 +61,25 @@ def test_build_playability_report_derives_human_pacing_metrics() -> None:
         "battles": 25,
     }
     assert report["match_pacing"]["mean_battles_per_match"] == 2.5
-    assert report["match_pacing"]["two_battle_matches"] == 5
-    assert report["match_pacing"]["three_battle_matches"] == 5
     assert report["match_pacing"]["mean_cards_played_per_match"] == 11.5
 
     battle = report["battle_pacing"]
-    assert battle["mean_action_events_per_battle"] == 7.0
-    assert battle["mean_normal_turn_actions_per_battle"] == 6.4
+    assert battle["mean_action_events_per_battle"] == 7.2
+    assert battle["mean_action_events_per_player_battle"] == 3.6
     assert battle["mean_cards_played_per_battle"] == 4.6
-    assert battle["mean_complete_legends_created_per_battle"] == 0.4
+    assert battle["mean_named_formations_created_per_battle"] == 0.4
+    assert battle["mean_maneuvers_per_battle"] == 0.2
 
-    assert report["draw"]["opportunity_use_rate"] == 0.2
+    assert report["draw"]["cards_drawn"] == 200
     assert report["stratagem"]["opportunity_use_rate"] == 0.3
     assert report["hand_pressure"]["dead_card_share_at_pass"] == 0.25
     assert report["hand_pressure"]["unplayable_card_turn_share"] == 0.25
-    assert report["passing"]["first_passer_battle_win_rate"] == 0.4
+    assert report["passing"]["first_pass_share"] == 0.5
     assert report["decision_load"]["mean_legal_candidates_per_heuristic_decision"] == 12.0
 
     markdown = render_markdown(report)
     assert "Cards played per Battle" in markdown
-    assert "Draw opportunity used" in markdown
+    assert "Maneuvers per Battle" in markdown
     assert "AI self-play measures structural pacing" in markdown
 
 
