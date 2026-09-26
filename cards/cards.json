@@ -1446,8 +1446,8 @@
       "command_cost": 1
     },
     {
-      "id": "held-fast",
-      "title": "Held Fast",
+      "id": "stood-fast-with",
+      "title": "Stood Fast With",
       "type": "bond",
       "unique": false,
       "classes": [
@@ -2111,8 +2111,8 @@
       "design_batch": 3
     },
     {
-      "id": "covered-the-withdrawal",
-      "title": "Covered the Withdrawal",
+      "id": "covered-the-withdrawal-of",
+      "title": "Covered the Withdrawal of",
       "type": "bond",
       "unique": false,
       "classes": [
@@ -2204,8 +2204,8 @@
       "design_batch": 3
     },
     {
-      "id": "blocked-the-road",
-      "title": "Blocked the Road",
+      "id": "blocked-the-road-for",
+      "title": "Blocked the Road for",
       "type": "bond",
       "unique": false,
       "classes": [
@@ -2281,7 +2281,7 @@
         "duelists"
       ],
       "command_cost": 2,
-      "text": "**Deploy - Frontline only.** When resolving this Front, if your opponent has a Frontline formation, ignore both Rear formations.",
+      "text": "**Deploy - Frontline only.** Rear formations in this Front do not contribute Strength while this Front is resolved.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2295,13 +2295,12 @@
         {
           "kind": "timing",
           "label": "FRONT RESOLUTION",
-          "text": "If your opponent has a Frontline formation, ignore both Rear formations."
+          "text": "Rear formations in this Front do not contribute Strength while this Front is resolved."
         }
       ],
       "design_rules": {
         "combat": "frontline_only_resolution",
-        "condition": "opponent_has_frontline_formation",
-        "effect": "ignore_both_rear_formations"
+        "effect": "rear_formations_in_this_front_do_not_contribute_strength"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "draft",
@@ -2442,8 +2441,8 @@
       "design_batch": 4
     },
     {
-      "id": "held-the-line",
-      "title": "Held the Line",
+      "id": "held-the-line-for",
+      "title": "Held the Line for",
       "type": "bond",
       "unique": false,
       "classes": [
