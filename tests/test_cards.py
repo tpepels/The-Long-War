@@ -65,7 +65,7 @@ def test_player_facing_card_text_uses_canonical_vocabulary() -> None:
 def test_active_decks_use_only_canonical_cards_and_current_minimum_rules() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     cards = {card["id"]: card for card in data["cards"]}
-    for filename in ("reference.json", "avaros-line.json", "mara-rear.json", "sera-support.json"):
+    for filename in ("mobility-open-bonds.json", "persistent-elite-heroes.json", "narrative-command.json", "battlefield-control-stratagems.json"):
         deck = json.loads((ROOT / "decks" / filename).read_text(encoding="utf-8"))["cards"]
         assert set(deck) <= set(cards)
         validate_deck_definition(deck, cards)
