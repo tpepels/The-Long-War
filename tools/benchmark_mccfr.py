@@ -69,7 +69,7 @@ def main() -> None:
     parser.add_argument("--iterations", type=int, default=25)
     parser.add_argument("--depth", type=int, default=2)
     parser.add_argument("--seed", type=int, default=1701)
-    parser.add_argument("--deck", type=Path, default=Path("decks/reference.json"))
+    parser.add_argument("--deck", type=Path, default=Path("decks/mobility-open-bonds.json"))
     parser.add_argument(
         "--compare-python",
         action="store_true",
