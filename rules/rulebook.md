@@ -303,6 +303,16 @@ For a Maneuver, choose the formation and destination, pay 1 Command, then move o
 
 Effects that mention Battle end, a Front result, or Retreat happen when that event occurs.
 
+Some cards require a later operation to do something **if possible**.
+
+An operation **affects a Front** if it does at least one of these things:
+
+- plays a Force, Bond, or Name in that Front;
+- plays a card that chooses that Front;
+- Maneuvers a formation into or out of that Front.
+
+If several effects require your next operation to do particular things, satisfy all of them together if one legal operation can do so. If no legal operation can satisfy all requirements, choose one requirement that can be satisfied. If none can be satisfied, take your turn normally.
+
 ## Deck construction
 
 A legal playtest deck has:
