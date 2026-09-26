@@ -456,3 +456,66 @@ def test_action_order_prefers_bond_on_active_force_over_empty_preparation() -> N
         0,
         prepared,
     )
+
+def test_pending_pass_makes_incomplete_preparation_a_liability() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=15, exploration=0.0)
+
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+    state.players[0].command = 10
+    state.players[1].command = 10
+
+    prepared = state.clone()
+    slot = prepared.slot(0, Position(Front.FIRST, Rank.FRONT))
+    slot.bond = "followed"
+    slot.name = "namar"
+
+    # Without a pending Pass, these prepared cards contribute no Strength and
+    # the basic evaluator does not treat them as already lost.
+    assert agent.evaluate(engine, prepared, 0) == pytest.approx(
+        agent.evaluate(engine, state, 0)
+    )
+
+    clean_pending = state.clone()
+    clean_pending.players[0].passed = True
+    clean_pending.pass_order = [0]
+
+    prepared_pending = prepared.clone()
+    prepared_pending.players[0].passed = True
+    prepared_pending.pass_order = [0]
+
+    assert agent.evaluate(engine, prepared_pending, 0) < agent.evaluate(
+        engine,
+        clean_pending,
+        0,
+    )
+
+
+def test_fresh_battle_heuristic_values_actual_starting_player_initiative() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=16, exploration=0.0)
+
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+    state.players[0].command = 10
+    state.players[1].command = 10
+    state.operations_this_battle[:] = [0, 0]
+    state.pass_order = []
+
+    player_zero_starts = state.clone()
+    player_zero_starts.active_player = 0
+
+    player_one_starts = state.clone()
+    player_one_starts.active_player = 1
+
+    assert agent.evaluate(engine, player_zero_starts, 0) > agent.evaluate(
+        engine,
+        player_one_starts,
+        0,
+    )
+
