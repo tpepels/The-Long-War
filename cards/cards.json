@@ -2814,6 +2814,254 @@
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 5
+    },
+    {
+      "id": "rallied-behind",
+      "title": "Rallied Behind",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "loyalty"
+      ],
+      "command_cost": 1,
+      "text": "If you have less Command than your opponent, this Bond costs 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "cost",
+          "label": "COST",
+          "text": "If you have less Command than your opponent, this Bond costs 0 Command."
+        }
+      ],
+      "design_rules": {
+        "command": "catch_up_discount",
+        "condition": "controller_command_lower_than_opponent",
+        "cost": 0
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 6
+    },
+    {
+      "id": "sorin",
+      "title": "Sorin",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "captain"
+      ],
+      "command_cost": 1,
+      "text": "If you play this Name on a Force that already has a Bond, it costs 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "cost",
+          "label": "COST",
+          "text": "If you play this Name on a Force that already has a Bond, it costs 0 Command."
+        }
+      ],
+      "design_rules": {
+        "command": "completion_discount",
+        "condition": "target_force_already_has_bond",
+        "cost": 0
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 6
+    },
+    {
+      "id": "bought-time-for",
+      "title": "Bought Time For",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "support"
+      ],
+      "command_cost": 1,
+      "text": "When you play this Bond, you may pay 1 extra Command. If you do, draw 2 cards.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "EXTRA COMMAND",
+          "text": "You may pay 1 extra Command. If you do, draw 2 cards."
+        }
+      ],
+      "design_rules": {
+        "command": "optional_extra_payment",
+        "extra_cost": 1,
+        "effect": "draw_2"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 6
+    },
+    {
+      "id": "trusted",
+      "title": "Trusted",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "faith"
+      ],
+      "command_cost": 1,
+      "text": "At Battle end, if this formation wins its Front, regain 1 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "BATTLE END",
+          "text": "If this formation wins its Front, regain 1 Command."
+        }
+      ],
+      "design_rules": {
+        "command": "refund_on_front_win",
+        "amount": 1
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 6
+    },
+    {
+      "id": "the-baggage-was-abandoned",
+      "title": "The Baggage Was Abandoned",
+      "type": "story",
+      "unique": false,
+      "classes": [
+        "loss",
+        "march"
+      ],
+      "story_form": "warning",
+      "ongoing": false,
+      "command_cost": 1,
+      "text": "When you play this Story, you may discard 1 other card. If you do, regain 2 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "WHEN PLAYED",
+          "text": "You may discard 1 other card. If you do, regain 2 Command."
+        }
+      ],
+      "design_rules": {
+        "command": "card_for_command",
+        "discard_cards": 1,
+        "gain_command": 2
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 6
+    },
+    {
+      "id": "the-lines-held",
+      "title": "The Lines Held",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "defence"
+      ],
+      "command_cost": 2,
+      "text": "At Battle end, when you recover Command, count one fewer Front lost.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BATTLE END",
+          "text": "When you recover Command, count one fewer Front lost."
+        }
+      ],
+      "design_rules": {
+        "command": "improve_recovery",
+        "lost_front_adjustment": -1
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 6
+    },
+    {
+      "id": "iven",
+      "title": "Iven",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "steward"
+      ],
+      "command_cost": 2,
+      "text": "While you have less Command than your opponent, the first card you play each turn costs 1 less Command (minimum 1).",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "LOWER COMMAND",
+          "text": "The first card you play each turn costs 1 less Command (minimum 1)."
+        }
+      ],
+      "design_rules": {
+        "command": "ongoing_catch_up_discount",
+        "condition": "controller_command_lower_than_opponent",
+        "first_card_each_turn_discount": 1,
+        "minimum_cost": 1
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 6
+    },
+    {
+      "id": "all-banners-forward",
+      "title": "All Banners Forward",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "battle",
+        "muster"
+      ],
+      "command_cost": 5,
+      "text": "**During this Battle**, your **Maneuvers** cost 0 Command, and your formations may **Maneuver** even if they are not Named.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "Your **Maneuvers** cost 0 Command, and your formations may **Maneuver** even if they are not Named."
+        }
+      ],
+      "design_rules": {
+        "command": "high_cost_battle_investment",
+        "maneuver_cost": 0,
+        "unnamed_formations_can_maneuver": true,
+        "duration": "battle"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 6
     }
   ]
 }
