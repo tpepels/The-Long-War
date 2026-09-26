@@ -12,7 +12,7 @@
         "warband"
       ],
       "role": "swordsman",
-      "text": "While this Force is in the **Frontline**, it gets +1 **Strength**.",
+      "text": "While in the **Frontline**, this Force gets +1 **Strength**.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -44,7 +44,7 @@
         "fleet"
       ],
       "role": "ship",
-      "text": "While this Force is in the **Rear**, it gets +1 **Strength**.",
+      "text": "While in the **Rear**, this Force gets +1 **Strength**.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -202,7 +202,7 @@
         "healer"
       ],
       "role": "healer",
-      "text": "**Deploy - Rear only.** While this Force is in the **Rear**, the friendly Force directly in front of it gets +2 **Strength**.",
+      "text": "**Deploy - Rear only.** While in the Rear, the Force directly in front of this one gets +2 **Strength**.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -246,7 +246,7 @@
         "hero"
       ],
       "role": "swordsman",
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this Force **Maneuvers**, you may **Maneuver** one adjacent friendly **Named Formation** for 0 Command. **Name -** When this formation becomes **Named**, you may **Maneuver** it once for 0 Command.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** While in the Frontline, Avaros gets +1 **Strength**. After Avaros **Maneuvers**, you may **Maneuver** an adjacent **Named Formation** you control for 0 Command. **Name -** When this formation becomes **Named**, you may **Maneuver** it for 0 Command.",
       "rules": {
         "placement": {
           "rank": "front"
@@ -503,7 +503,7 @@
         "human",
         "seer"
       ],
-      "text": "When an opposing formation in this Front becomes **Named**, your next **Maneuver** this Battle costs 0 Command. If this happens again before you Maneuver, you still get only one free Maneuver.",
+      "text": "When an opposing formation in this Front becomes **Named**, your next **Maneuver** this Battle costs 0 Command. If this happens again before you use that free Maneuver, you do not gain another.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -1079,7 +1079,7 @@
         "guard"
       ],
       "role": "spearman",
-      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 **Strength**.",
+      "text": "**Deploy - Frontline only.** While in the Frontline, if you have a Force directly behind this one, this Force gets +1 **Strength**.",
       "rules": {
         "placement": {
           "rank": "front"
@@ -1121,7 +1121,7 @@
         "company"
       ],
       "role": "archer",
-      "text": "**Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 **Strength**.",
+      "text": "**Deploy - Rear only.** While in the Rear, if you have a Force directly in front of this one, this Force gets +2 **Strength**.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -1163,7 +1163,7 @@
         "stronghold"
       ],
       "role": "stronghold",
-      "text": "**Deploy - Rear only.** This Force cannot move, **Maneuver**, or swap positions. If you lose this Front while you have a **Named Formation** in the Frontline, drive off this Force instead of Retreating that formation.",
+      "text": "**Deploy - Rear only.** This Force cannot change position. If you lose this Front while you have a **Named Formation** in the Frontline, drive off this Force instead of Retreating that formation.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -1353,7 +1353,7 @@
       "classes": [
         "ward"
       ],
-      "text": "Cards your opponent plays cannot move this formation.",
+      "text": "Your opponent's cards cannot move this formation.",
       "rules": {},
       "balance": {
         "strength_bonus": 1,
@@ -1539,7 +1539,7 @@
         "human",
         "wanderer"
       ],
-      "text": "When this formation becomes **Named**, you may swap it with an adjacent friendly formation.",
+      "text": "When this formation becomes **Named**, you may swap it with an adjacent formation you control.",
       "rules": {},
       "balance": {
         "dynamic": true,
@@ -1958,7 +1958,7 @@
         "riders"
       ],
       "role": "skirmisher",
-      "text": "This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front.",
+      "text": "This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or an adjacent Front. Count this Force's **Strength** only there.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2000,7 +2000,7 @@
       ],
       "role": "skirmisher",
       "command_cost": 2,
-      "text": "This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left.",
+      "text": "This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or an adjacent Front. Count this Force's **Strength** only there. After this Force **Maneuvers** into an empty position, you may move an adjacent formation you control into the position it left.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2048,7 +2048,7 @@
       ],
       "role": "swordsman",
       "command_cost": 2,
-      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this formation swaps positions with another formation during a **Maneuver**, you may **Maneuver** that other formation for 0 Command.",
+      "text": "**Deploy - Frontline only.** While in the Frontline, this Force gets +1 **Strength**. After this formation swaps during a **Maneuver**, you may **Maneuver** the other formation for 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2090,7 +2090,7 @@
         "companionship"
       ],
       "command_cost": 1,
-      "text": "After an adjacent friendly **Named Formation** Maneuvers away, you may move this formation into the position it left.",
+      "text": "After an adjacent **Named Formation** you control Maneuvers away, you may move this formation into the position it left.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2242,7 +2242,7 @@
       "story_form": "saga",
       "ongoing": true,
       "command_cost": 2,
-      "text": "**Ongoing.** Your first **Maneuver** each turn costs 0 Command if it moves into an empty position instead of swapping.",
+      "text": "**Saga - Ongoing.** The first time each Battle one of your formations **Maneuvers** into an empty position, regain 1 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2260,11 +2260,9 @@
         }
       ],
       "design_rules": {
-        "ongoing": true,
-        "first_maneuver_each_turn": {
-          "condition": "moves_into_empty_position_not_swap",
-          "cost": 0
-        }
+        "narrative_form": "saga",
+        "trigger": "first_friendly_maneuver_into_empty_each_battle",
+        "gain_command": 1
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -2318,7 +2316,7 @@
       ],
       "role": "archer",
       "command_cost": 2,
-      "text": "**Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 **Strength**. When comparing Strength in this Front, you may ignore one opposing Rear Force's Strength.",
+      "text": "**Deploy - Rear only.** While in the Rear, if you have a Force directly in front of this one, this Force gets +2 **Strength**. When comparing Strength here, you may ignore one opposing Rear Force's Strength.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2362,7 +2360,7 @@
       ],
       "role": "swordsman",
       "command_cost": 3,
-      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. If you win this Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it.",
+      "text": "**Deploy - Frontline only.** While in the Frontline, this Force gets +1 **Strength**. If you win this Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2407,7 +2405,7 @@
       ],
       "role": "spearman",
       "command_cost": 3,
-      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 **Strength**. When comparing Strength in this Front, you may ignore an opposing Frontline Force's Strength if the Strength printed on that card is lower than the Strength printed on this one.",
+      "text": "**Deploy - Frontline only.** While in the Frontline, if you have a Force directly behind this one, this Force gets +1 **Strength**. When comparing Strength here, you may ignore an opposing Frontline Force's Strength if its printed Strength is lower than this Force's.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2449,7 +2447,7 @@
         "sacrifice"
       ],
       "command_cost": 1,
-      "text": "Before comparing Strength in this Front, you may discard this Force and all cards attached to it. If you do, choose one opposing formation here and ignore its Strength.",
+      "text": "Before comparing Strength here, you may discard this Force and all cards attached to it. If you do, choose one opposing formation here and ignore its Strength.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2512,7 +2510,7 @@
         "shield-bearer"
       ],
       "command_cost": 1,
-      "text": "If an opponent's card would make another friendly formation's Strength not count in this Front, you may make this formation's Strength not count instead. The other formation counts normally.",
+      "text": "If an opponent's card would ignore another formation's Strength in this Front, you may have it ignore this formation's Strength instead.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2574,7 +2572,7 @@
         "legacy"
       ],
       "command_cost": 1,
-      "text": "If this Force is driven off, leave this Bond in its position instead of discarding it. If this formation has a Name, return that Name to its owner's hand. The next friendly Force played in this position takes this Bond.",
+      "text": "If this Force is driven off, leave this Bond in its position. Return its Name, if any, to its owner's hand. The next Force you play there takes this Bond.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2672,7 +2670,7 @@
         "wanderer"
       ],
       "command_cost": 1,
-      "text": "After this formation **Retreats** to the Rear, you may move it one Front left or right if that Rear position is empty.",
+      "text": "After this formation **Retreats**, you may move it one Front left or right to an empty Rear position.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2737,7 +2735,7 @@
         "captain"
       ],
       "command_cost": 2,
-      "text": "At the start of each Battle, you may move this formation one Front left or right, staying in the same rank, if that position is empty.",
+      "text": "At the start of each Battle, you may move this formation one Front left or right to an empty position in the same rank.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2796,7 +2794,7 @@
         "captain"
       ],
       "command_cost": 1,
-      "text": "Before comparing Strength in this Front, if this formation is in the Frontline and its Rear position is empty, you may **Retreat** it.",
+      "text": "Before comparing Strength here, if this formation is in the Frontline and its Rear is empty, you may **Retreat** it.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2855,8 +2853,8 @@
         "human",
         "captain"
       ],
-      "command_cost": 1,
-      "text": "If you play this Name on a Force that already has a Bond, it costs 0 Command.",
+      "command_cost": 2,
+      "text": "If you play Sorin on a Force that already has a Bond, Sorin costs 1 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2870,8 +2868,9 @@
       ],
       "design_rules": {
         "command": "completion_discount",
-        "condition": "target_force_already_has_bond",
-        "cost": 0
+        "condition": "played_on_force_with_bond",
+        "normal_cost": 2,
+        "discounted_cost": 1
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -2886,7 +2885,7 @@
         "support"
       ],
       "command_cost": 1,
-      "text": "When you play this Bond, you may pay 1 extra Command. If you do, draw 2 cards.",
+      "text": "When you play this Bond, you may pay 1 extra Command to draw 2 cards.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2916,7 +2915,7 @@
         "faith"
       ],
       "command_cost": 1,
-      "text": "At Battle end, if this formation wins its Front, regain 1 Command.",
+      "text": "When this formation becomes **Named**, regain 1 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2929,8 +2928,10 @@
         }
       ],
       "design_rules": {
-        "command": "refund_on_front_win",
-        "amount": 1
+        "command": "completion_refund",
+        "on_completion": {
+          "gain_command": 1
+        }
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -2948,7 +2949,7 @@
       "story_form": "warning",
       "ongoing": false,
       "command_cost": 1,
-      "text": "When you play this Story, you may discard 1 other card. If you do, regain 2 Command.",
+      "text": "**Warning.** When you play this, you may discard 1 other card to regain 2 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2978,7 +2979,7 @@
         "defence"
       ],
       "command_cost": 2,
-      "text": "At Battle end, when you recover Command, count one fewer Front lost.",
+      "text": "At Battle end, one Front you lost does not reduce your Command recovery.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3009,7 +3010,7 @@
         "steward"
       ],
       "command_cost": 2,
-      "text": "While you have less Command than your opponent, the first card you play each turn costs 1 less Command (minimum 1).",
+      "text": "While you have less Command than your opponent, the first card you play in this Front each turn costs 1 less Command (minimum 1).",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3022,8 +3023,9 @@
         }
       ],
       "design_rules": {
-        "command": "ongoing_catch_up_discount",
+        "command": "local_catch_up_discount",
         "condition": "controller_command_lower_than_opponent",
+        "scope": "this_front",
         "first_card_each_turn_discount": 1,
         "minimum_cost": 1
       },
@@ -3077,7 +3079,7 @@
         "hero"
       ],
       "command_cost": 3,
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force -** This formation may **Maneuver** even if it is not Named. After it Maneuvers into an empty position, you may move it one more Front left or right if that position is empty. **Name -** When an opposing formation Maneuvers into an adjacent Front, you may Maneuver this formation for 0 Command.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force -** This formation may **Maneuver** even if it is not Named. After it Maneuvers into an empty position, you may move it one more Front left or right to an empty position in the same rank. **Name -** When an opposing formation Maneuvers into an adjacent Front, you may Maneuver this formation for 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3127,7 +3129,7 @@
         "hero"
       ],
       "command_cost": 3,
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** When comparing Strength in this Front, you may ignore the opposing Rear Force's Strength. **Name -** If this formation wins its Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** When comparing Strength here, you may ignore the opposing Rear Force's Strength. **Name -** If this formation wins its Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it.",
       "rules": {
         "placement": {
           "rank": "front"
@@ -3180,7 +3182,7 @@
         "hero"
       ],
       "command_cost": 2,
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** If your Frontline Named Formation here would Retreat, you may drive off Alda instead. The Frontline formation stays. **Name -** If this formation is driven off, return Alda to your hand instead of discarding her.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** If your Frontline Named Formation here would Retreat, you may drive off Alda instead; that formation stays. **Name -** If this formation is driven off, return Alda to your hand.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -3233,7 +3235,7 @@
         "hero"
       ],
       "command_cost": 3,
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command recovery. **Name -** While this formation is Named, the first card you play in this Front each turn costs 1 less Command (minimum 1).",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command recovery. **Name -** While this formation is Named, the first card you play in this Front each Battle costs 1 less Command (minimum 1).",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -3265,7 +3267,7 @@
           "command": "lost_front_here_does_not_reduce_recovery"
         },
         "name": {
-          "command": "first_card_in_front_each_turn_discount_1_min_1"
+          "command": "first_card_in_front_each_battle_discount_1_min_1"
         }
       },
       "engine_sync": "pending-first-80-migration",
@@ -3286,7 +3288,7 @@
         "hero"
       ],
       "command_cost": 3,
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** A Force you play in the Frontline of this Front costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return one Bond from your discard pile to your hand.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** A Force you play in the Frontline of this Front costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return a Bond from your discard pile to your hand.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -3339,7 +3341,7 @@
         "hero"
       ],
       "command_cost": 3,
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** After your Frontline formation here Retreats, you may move it one Front left or right if that Rear position is empty. **Name -** After this formation Retreats, you may move it one Front left or right if that Rear position is empty.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** After your Frontline formation here Retreats, you may move it one Front left or right to an empty Rear position. **Name -** After this formation Retreats, you may move it one Front left or right to an empty Rear position.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -3392,7 +3394,7 @@
         "hero"
       ],
       "command_cost": 3,
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force -** When you play Veyra, you may move a Bond or Name from an adjacent position with no Force into Veyra's position, if that slot is empty. **Name -** When you play Veyra on a Force with no Bond, you may move a Bond from an adjacent formation with no Name onto this formation.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force -** When you play Veyra, you may move a prepared Bond or Name from an adjacent position into Veyra's position, if that slot is empty. **Name -** When you play Veyra on a Force with no Bond, you may move an open Bond from an adjacent formation onto this one.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3440,7 +3442,7 @@
         "hero"
       ],
       "command_cost": 3,
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** The first Story you play each Battle costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return one Story from your discard pile to your hand.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** The first **Narrative** you play each Battle costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return a Narrative from your discard pile to your hand.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -3491,7 +3493,7 @@
         "defence"
       ],
       "command_cost": 1,
-      "text": "**Legend - Ongoing.** When you play this Legend, choose a Front and place it beside that Front. At Battle end, if you did not lose that Front, regain 1 Command. If you won that Front, you may also return one Bond from your discard pile to your hand. Then discard this Legend.",
+      "text": "**Legend - Ongoing.** Choose a Front when you play this and place it beside that Front. At Battle end, if you did not lose that Front, regain 1 Command. If you won it, you may also return a Bond from your discard pile to your hand. Then discard this Legend.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3534,7 +3536,7 @@
         "identity"
       ],
       "command_cost": 1,
-      "text": "**Legend - Ongoing.** When one of your formations becomes Named, regain 1 Command. You may Maneuver that formation for 0 Command. Then discard this Legend.",
+      "text": "**Legend - Ongoing.** When one of your formations becomes Named, regain 1 Command. You may Maneuver it for 0 Command. Then discard this Legend.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3574,7 +3576,7 @@
         "retreat"
       ],
       "command_cost": 1,
-      "text": "**Omen - Ongoing.** When one of your Named Formations Retreats, regain 1 Command. You may move it one Front left or right if that Rear position is empty. Then discard this Omen.",
+      "text": "**Omen - Ongoing.** When one of your Named Formations Retreats, regain 1 Command. You may then move it one Front left or right to an empty Rear position. Discard this Omen.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3614,7 +3616,7 @@
         "positioning"
       ],
       "command_cost": 1,
-      "text": "**Warning - Ongoing.** When an opposing formation becomes Named, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Warning.",
+      "text": "**Warning - Ongoing.** When an opposing formation becomes Named, regain 1 Command. You may Maneuver one Named Formation you control for 0 Command. Then discard this Warning.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3653,8 +3655,8 @@
         "prophecy",
         "battle"
       ],
-      "command_cost": 1,
-      "text": "**Prophecy - Ongoing.** When you play this Prophecy, choose a Front and place it beside that Front. At Battle end, if you win that Front, regain 2 Command and draw 1 card. Then discard this Prophecy.",
+      "command_cost": 2,
+      "text": "**Prophecy - Ongoing.** Choose a Front when you play this and place it beside that Front. At Battle end, if you win that Front, regain 2 Command and draw 1 card. Then discard this Prophecy.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3697,7 +3699,7 @@
         "survival"
       ],
       "command_cost": 1,
-      "text": "**Saga - Ongoing.** When you play this Saga, place it beside one of your Named Formations. At Battle end, if that formation is still on the battlefield, regain 1 Command and draw 1 card. Then discard this Saga.",
+      "text": "**Saga - Ongoing.** Place this beside one of your Named Formations when you play it. At Battle end, if that formation is still on the battlefield, regain 1 Command and draw 1 card. Then discard this Saga.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3740,7 +3742,7 @@
         "movement"
       ],
       "command_cost": 2,
-      "text": "**Myth - Ongoing.** The first time each Battle one of your formations Maneuvers into an empty position, regain 1 Command. You may move an adjacent friendly formation into the position it left.",
+      "text": "**Myth - Ongoing.** The first time each Battle one of your formations Maneuvers into an empty position, regain 1 Command. You may then move an adjacent formation you control into the position it left.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3779,7 +3781,7 @@
         "positioning"
       ],
       "command_cost": 1,
-      "text": "**Conspiracy - Ongoing.** When your opponent has a Force in both the Frontline and Rear of the same Front, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Conspiracy.",
+      "text": "**Conspiracy - Ongoing.** As soon as your opponent has a Force in both ranks of one Front, regain 1 Command. You may Maneuver one Named Formation you control for 0 Command. Then discard this Conspiracy.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3817,7 +3819,7 @@
         "resolve"
       ],
       "command_cost": 2,
-      "text": "When you play this Stratagem, choose a Front and place it beside that Front. **During this Battle**, when a player loses that Front, their Frontline Named Formation is driven off instead of Retreating.",
+      "text": "Choose a Front when you play this and place it beside that Front. **During this Battle**, a Frontline Named Formation that loses that Front is driven off instead of Retreating.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3854,7 +3856,7 @@
         "center"
       ],
       "command_cost": 3,
-      "text": "When you play this Stratagem, choose two adjacent Fronts. At Battle end, add your Strength across both Fronts and your opponent does the same. The player with more combined Strength wins both Fronts. If the totals are equal, both Fronts are tied.",
+      "text": "Choose two adjacent Fronts when you play this. At Battle end, total each player's Strength across those Fronts. Higher total wins both; equal totals tie both.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3890,7 +3892,7 @@
         "flank"
       ],
       "command_cost": 2,
-      "text": "When you play this Stratagem, choose Front 1 or Front 4. **During this Battle**, ignore the Strength of your formations in that Front. Each of your formations in the adjacent Front gets +1 Strength.",
+      "text": "Choose Front 1 or Front 4 when you play this. **During this Battle**, your formations there count no Strength. Each of your formations in the adjacent Front gets +1 Strength.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3927,7 +3929,7 @@
         "maneuver"
       ],
       "command_cost": 2,
-      "text": "When you play this Stratagem, choose left or right. Move any number of your formations one Front in that direction, staying in the same rank. A formation may move only if its destination position was empty before you played this Stratagem.",
+      "text": "Choose left or right when you play this. Move any number of your formations one Front that way, staying in the same rank, but only into positions that were empty when you played this card.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3964,7 +3966,7 @@
         "encirclement"
       ],
       "command_cost": 3,
-      "text": "**During this Battle**, if you win both Fronts adjacent to a Front you also win, drive off the opposing Frontline Named Formation in the middle Front instead of Retreating it.",
+      "text": "**During this Battle**, if you win three consecutive Fronts, drive off the opposing Frontline Named Formation in the middle Front instead of Retreating it.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -3995,7 +3997,7 @@
         "feint"
       ],
       "command_cost": 2,
-      "text": "At Battle end, before comparing Strength, you may swap your Frontline and Rear formations in one Front. Move all Bonds and Names with their Forces.",
+      "text": "At Battle end, before comparing Strength, you may swap your Frontline and Rear formations in one Front. Bonds and Names move with their Forces.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -4026,7 +4028,7 @@
         "reserve"
       ],
       "command_cost": 2,
-      "text": "When you play this Stratagem, you may move any number of your Rear formations into the empty Frontline position in their own Front. The first move costs 0 Command. Pay 1 Command for each additional formation you move.",
+      "text": "When you play this, you may move any number of your Rear formations to the empty Frontline position in their own Front. Moving the first costs no extra Command; pay 1 Command for each additional formation.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -4057,8 +4059,8 @@
         "battle",
         "maneuver"
       ],
-      "command_cost": 2,
-      "text": "When you play this Stratagem, choose left or right. **During this Battle**, each of your Named Formations may Maneuver once for 0 Command if that Maneuver moves it in the chosen direction.",
+      "command_cost": 3,
+      "text": "Choose left or right when you play this. **During this Battle**, your Named Formations may **Maneuver** in that direction for 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -4081,7 +4083,8 @@
           "left",
           "right"
         ],
-        "free_maneuver_once_per_named_formation": true
+        "friendly_named_maneuver_cost": 0,
+        "restriction": "chosen_direction"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -4098,7 +4101,7 @@
         "warband"
       ],
       "command_cost": 2,
-      "text": "While this formation has a Bond and no Name, it may **Maneuver** even though it is not Named. Its first **Maneuver** each Battle costs 0 Command.",
+      "text": "While this formation has a Bond and no Name, it may **Maneuver** even if it is not Named. Its first **Maneuver** each Battle costs 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -4131,7 +4134,7 @@
         "company"
       ],
       "command_cost": 2,
-      "text": "When you play this Force into a position that already has a prepared Bond or Name, it may **Maneuver** once for 0 Command, even if it is not Named.",
+      "text": "When you play this Force into a position with a prepared Bond or Name, it may **Maneuver** once for 0 Command even if it is not Named.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -4163,7 +4166,7 @@
         "general"
       ],
       "command_cost": 1,
-      "text": "While one of your Fronts has no Force, this formation's **Maneuvers** cost 0 Command.",
+      "text": "While one of your Fronts has no Force, this formation's first **Maneuver** each Battle costs 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -4178,7 +4181,7 @@
       "design_rules": {
         "build_around": "empty_front",
         "condition": "controller_has_front_with_no_force",
-        "effect": "self_maneuver_cost_0"
+        "first_self_maneuver_each_battle_cost": 0
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -4195,7 +4198,7 @@
         "marshal"
       ],
       "command_cost": 2,
-      "text": "While you have at least one Force in all four Fronts, after this formation **Maneuvers**, you may **Maneuver** one other friendly Named Formation for 0 Command.",
+      "text": "While you have a Force in all four Fronts, after this formation **Maneuvers**, you may **Maneuver** one other Named Formation you control for 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -4227,7 +4230,7 @@
         "retinue"
       ],
       "command_cost": 1,
-      "text": "**Deploy - Rear only.** While this Force is in the Rear, after you regain Command from a Legend, Omen, Myth, Prophecy, Warning, Saga, or Conspiracy, you may **Maneuver** one friendly Named Formation for 0 Command.",
+      "text": "**Deploy - Rear only.** While in the Rear, after you regain Command from a **Narrative**, you may **Maneuver** one Named Formation you control for 0 Command.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -4267,7 +4270,7 @@
         "retinue"
       ],
       "command_cost": 1,
-      "text": "While this formation is adjacent to a formation containing a Hero, it may **Maneuver** even if it is not Named. Its first **Maneuver** each Battle costs 0 Command.",
+      "text": "While this formation is adjacent to a formation containing one of your Heroes, it may **Maneuver** even if it is not Named. Its first **Maneuver** each Battle costs 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -4298,7 +4301,7 @@
         "oath"
       ],
       "command_cost": 1,
-      "text": "While this Bond is open, after this Force moves or **Maneuvers**, you may move this Bond to an adjacent friendly Force with no Bond.",
+      "text": "While this Bond is open, after this Force moves or **Maneuvers**, you may move the Bond to an adjacent Force you control with no Bond.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -4331,7 +4334,7 @@
         "heir"
       ],
       "command_cost": 2,
-      "text": "If this formation is driven off, instead of discarding this Name, you may move it to an adjacent friendly Force that has a Bond and no Name.",
+      "text": "If this formation is driven off, you may move Eira to an adjacent Force you control that has a Bond and no Name instead of discarding her.",
       "rules": {},
       "balance": {
         "dynamic": true
