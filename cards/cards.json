@@ -103,7 +103,8 @@
       "design_batch": 1,
       "design_rules": {
         "printed_role_effect": "support_force_ahead_strength_bonus",
-        "amount": 2
+        "amount": 2,
+        "deploy_rank": "rear"
       },
       "engine_sync": "pending-first-80-migration"
     },
@@ -202,7 +203,11 @@
       ],
       "command_cost": 1,
       "design_status": "approved",
-      "design_batch": 1
+      "design_batch": 1,
+      "design_rules": {
+        "strength_bonus": 1,
+        "named_additional_strength_bonus": 2
+      }
     },
     {
       "id": "namar",
@@ -233,7 +238,12 @@
       ],
       "command_cost": 1,
       "design_status": "approved",
-      "design_batch": 1
+      "design_batch": 1,
+      "design_rules": {
+        "trigger": "friendly_formation_becomes_named",
+        "gain_command": 1,
+        "scope": "this_formation"
+      }
     },
     {
       "id": "iria",
@@ -294,7 +304,12 @@
       ],
       "command_cost": 2,
       "design_status": "approved",
-      "design_batch": 1
+      "design_batch": 1,
+      "design_rules": {
+        "trigger": "friendly_formation_becomes_named",
+        "draw_cards": 1,
+        "scope": "this_formation"
+      }
     },
     {
       "id": "the-red-shields",
@@ -334,7 +349,8 @@
       "design_batch": 2,
       "design_rules": {
         "printed_role_effect": "frontline_strength_bonus_if_force_behind",
-        "amount": 1
+        "amount": 1,
+        "deploy_rank": "front"
       },
       "engine_sync": "pending-first-80-migration"
     },
@@ -376,7 +392,8 @@
       "design_batch": 2,
       "design_rules": {
         "printed_role_effect": "rear_strength_bonus_if_force_ahead",
-        "amount": 2
+        "amount": 2,
+        "deploy_rank": "rear"
       },
       "engine_sync": "pending-first-80-migration"
     },
@@ -421,7 +438,8 @@
         "lost_front": {
           "if_frontline_friendly_named": true,
           "effect": "drive_off_self_prevent_frontline_retreat"
-        }
+        },
+        "deploy_rank": "rear"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -484,7 +502,10 @@
       ],
       "command_cost": 1,
       "design_status": "approved",
-      "design_batch": 1
+      "design_batch": 1,
+      "design_rules": {
+        "strength_bonus": 2
+      }
     },
     {
       "id": "elian",
@@ -677,7 +698,8 @@
         "amount": 1,
         "after_maneuver_swap": {
           "effect": "optional_zero_cost_maneuver_swapped_formation"
-        }
+        },
+        "deploy_rank": "front"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -900,7 +922,8 @@
       ],
       "design_rules": {
         "combat": "frontline_only_comparison",
-        "effect": "ignore_rear_formations_when_comparing_strength"
+        "effect": "ignore_rear_formations_when_comparing_strength",
+        "deploy_rank": "front"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -944,7 +967,8 @@
         "printed_role_effect": "rear_strength_bonus_if_force_ahead",
         "amount": 2,
         "combat": "skirmish",
-        "effect": "suppress_opposing_rear_force_for_resolution"
+        "effect": "suppress_opposing_rear_force_for_resolution",
+        "deploy_rank": "rear"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -989,7 +1013,8 @@
         "amount": 1,
         "combat": "breakthrough",
         "condition": "win_front_and_opponent_rear_has_no_force",
-        "effect": "drive_off_opposing_frontline_named_instead_of_retreat"
+        "effect": "drive_off_opposing_frontline_named_instead_of_retreat",
+        "deploy_rank": "front"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -1034,7 +1059,8 @@
         "amount": 1,
         "combat": "first_strike",
         "target": "opposing_frontline_force_with_lower_printed_strength",
-        "effect": "target_does_not_contribute_this_resolution"
+        "effect": "target_does_not_contribute_this_resolution",
+        "deploy_rank": "front"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -1320,7 +1346,8 @@
         }
       ],
       "design_rules": {
-        "persistence": "rear_rebuild_cost_reduction"
+        "persistence": "rear_rebuild_cost_reduction",
+        "deploy_rank": "rear"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
