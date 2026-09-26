@@ -136,8 +136,8 @@ def test_progress_snapshot_contains_partial_wins_and_replaces_atomically(tmp_pat
 def test_live_progress_aggregates_partial_cell_scores_without_tty(tmp_path, capsys):
     cells = []
     snapshots = [
-        ("reference", "a-first", [2, 0]),
-        ("avaros", "b-first", [1, 1]),
+        ("mobility", "a-first", [2, 0]),
+        ("elite", "b-first", [1, 1]),
     ]
     for deck, orientation, wins in snapshots:
         output = tmp_path / f"{deck}-{orientation}.json"
@@ -177,7 +177,7 @@ def test_live_progress_aggregates_partial_cell_scores_without_tty(tmp_path, caps
         format_progress=format_progress,
     )
 
-    assert sorted(results) == ["avaros", "reference"]
+    assert sorted(results) == ["elite", "mobility"]
     output = capsys.readouterr().out
     assert "TOTAL A 3 - B 1" in output
     assert "4/4" in output
@@ -269,7 +269,7 @@ def test_live_skip_raises_partial_score_from_progress(
         }),
         encoding="utf-8",
     )
-    cell = ("reference", "a-first", tmp_path / "out.json", progress, [])
+    cell = ("mobility", "a-first", tmp_path / "out.json", progress, [])
 
     @contextmanager
     def fake_skip_reader():
@@ -446,7 +446,7 @@ def test_validation_can_repeat_after_inputs_change(tmp_path, monkeypatch, change
 
 
 def test_strength_uncertainty_pairs_orientations_by_seed():
-    outcomes = {"reference": {
+    outcomes = {"mobility": {
         "mcts-first": [{"seed": 1, "winner": 0}, {"seed": 2, "winner": 1}],
         "alpha-first": [{"seed": 2, "winner": 0}, {"seed": 1, "winner": 1}],
     }}
@@ -454,7 +454,7 @@ def test_strength_uncertainty_pairs_orientations_by_seed():
     assert result["independent_deals"] == 2
     assert result["win_rate"] == 0.5
     assert result["ci95"][0] < 0.5 < result["ci95"][1]
-    outcomes["reference"]["alpha-first"][0]["seed"] = 3
+    outcomes["mobility"]["alpha-first"][0]["seed"] = 3
     with pytest.raises(ValueError, match="identical deal seeds"):
         runner.paired_strength_interval(outcomes)
 
@@ -468,7 +468,7 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     summary = json.loads((output / "summary.json").read_text())
     assert summary["simulation_games"] == 4
     assert summary["config"]["seed"] == 71
-    match = json.loads((output / "reference--reference.json").read_text())
+    match = json.loads((output / "mobility--mobility.json").read_text())
     assert len(match["deck_a"]) == 34
     assert "deck_size" not in match["rules"]
     assert match["game_fingerprint"] == summary["game_fingerprint"]
