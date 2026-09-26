@@ -270,3 +270,41 @@ Command gain is the common identity of this batch. The secondary effect expresse
 - **Saga - survival:** Command from keeping a chosen Named Formation alive through the Battle.
 - **Myth - recurring belief:** once-per-Battle Command from behaving according to the Myth, plus movement.
 - **Conspiracy - overcommitment:** Command from the opponent filling both ranks of a Front, plus repositioning.
+
+
+## Stratagem identity
+
+Stratagems are public tactical plans for the current Battle.
+
+- Play a Stratagem face-up in your separate Stratagem area.
+- Normally only one Stratagem may be played from hand by each player per Battle.
+- A Stratagem applies only during the Battle in which it is played and is discarded at Battle end.
+- Stratagems change deployment, movement, Front comparison, Retreat, or other tactical rules. They do not normally generate Command; that is the shared identity of narrative cards.
+- Immediate Stratagem effects still occupy the player's Stratagem allowance for that Battle.
+
+
+## Batch 9 - Stratagems
+
+Status: draft for review.
+
+| # | Card | Cost | Rules text |
+| --- | --- | ---: | --- |
+| 65 | **The Reserve Was Committed** | 2 | When you play this Stratagem, you may move one friendly formation from the Rear to the empty Frontline position in the same Front. |
+| 66 | **The Ranks Were Reversed** | 1 | **During this Battle**, the next Force you play may be played in the Frontline or Rear, even if its card says **Deploy - Frontline only** or **Deploy - Rear only**. |
+| 67 | **The Line Was Changed** | 2 | When you play this Stratagem, you may swap two adjacent friendly formations. Neither formation needs to be Named. |
+| 68 | **The Rear Guard Turned** | 2 | **During this Battle**, the first time one of your Named Formations **Retreats**, you may **Maneuver** one adjacent friendly Named Formation for 0 Command. |
+| 69 | **They Withdrew in Order** | 2 | **During this Battle**, the first time one of your Rear Named Formations would be driven off, you may move it one Front left or right if that Rear position is empty. If you do, it is not driven off. |
+| 70 | **The Blow Fell Elsewhere** | 2 | At Battle end, before comparing Strength, choose one of your Forces and one adjacent Front. Count that Force's Strength only in the chosen Front this Battle. |
+| 71 | **The Rear Was Screened** | 2 | **During this Battle**, always count Strength from your Rear formations, even if an opponent's card says to ignore it. |
+| 72 | **The Countermarch Began** | 2 | **During this Battle**, the first time your opponent **Maneuvers**, your next **Maneuver** costs 0 Command. |
+
+### Stratagem mechanics under test
+
+- commit a Rear formation directly to the Frontline;
+- temporarily override a printed deployment-rank restriction;
+- make an immediate adjacent swap without requiring Named formations;
+- turn a Retreat into a free adjacent Maneuver;
+- save one Rear Named Formation from being driven off by withdrawing sideways;
+- redirect one Force's Strength into an adjacent Front;
+- protect Rear Strength from effects that would ignore it;
+- answer the opponent's first Maneuver with a free Maneuver.
