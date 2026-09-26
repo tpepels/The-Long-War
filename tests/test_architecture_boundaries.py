@@ -380,6 +380,26 @@ def test_native_algorithms_do_not_contain_rule_switches() -> None:
         assert not any(term in source for term in forbidden), filename
 
 
+def test_dead_rule_switches_are_removed() -> None:
+    rules = (SRC / "rules.py").read_text(encoding="utf-8")
+    engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
+    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
+    simulate = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
+
+    obsolete = (
+        "draw_action_enabled",
+        "recycle_between_battles",
+        "battle_command_gain",
+        "automatic_draw_hand_limit",
+        "battle_end_hand_limit",
+    )
+    for name in obsolete:
+        assert name not in rules
+        assert name not in engine
+        assert name not in native
+        assert name not in simulate
+
+
 def test_public_stratagems_are_not_a_rule_variant() -> None:
     rules = (SRC / "rules.py").read_text(encoding="utf-8")
     engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")

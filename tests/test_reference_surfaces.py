@@ -47,7 +47,6 @@ def test_rulebook_core_constants_match_standard_engine() -> None:
     assert standard.command_recovery_schedule == (10, 7, 5, 4, 3, 2, 1)
     assert standard.command_collapse_threshold == 5
     assert standard.automatic_draw is True
-    assert standard.draw_action_enabled is False
     assert standard.cycle_enabled is False
     assert standard.paid_draw_enabled is False
 

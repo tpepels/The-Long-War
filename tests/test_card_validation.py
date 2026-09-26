@@ -87,14 +87,12 @@ def test_rule_overrides_use_canonical_cards():
             automatic_draw=False,
             paid_draw_enabled=True,
         ),
-        GameRules.standard().with_overrides(battle_end_hand_limit=7),
-        GameRules.standard().with_overrides(automatic_draw_hand_limit=10),
     )
     for rules in variants:
         GameEngine(data, rules=rules)
 
 
-@pytest.mark.parametrize("changes", [{"opening_hand_size": 0}, {"opening_hand_size": True}, {"automatic_draw": 1}, {"command_cap": "20"}, {"battle_end_hand_limit": 7.5}, {"completion_draw_names": "oren"}])
+@pytest.mark.parametrize("changes", [{"opening_hand_size": 0}, {"opening_hand_size": True}, {"automatic_draw": 1}, {"command_cap": "20"}, {"hand_limit": 7.5}, {"completion_draw_names": "oren"}])
 def test_rules_do_not_silently_coerce_values(changes):
     with pytest.raises(ValueError):
         GameRules(**changes)
