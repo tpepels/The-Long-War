@@ -352,8 +352,6 @@ def test_native_engine_section_contains_no_search_implementation() -> None:
 def test_alpha_beta_algorithm_contains_no_rule_switches() -> None:
     source = (SRC / "algorithms" / "alpha_beta.py").read_text(encoding="utf-8")
     forbidden = (
-        "automatic_draw",
-        "paid_draw_enabled",
         "pass_final_operation",
         "completion_command_refund",
         "public_stratagems",
@@ -364,8 +362,6 @@ def test_alpha_beta_algorithm_contains_no_rule_switches() -> None:
 
 def test_native_algorithms_do_not_contain_rule_switches() -> None:
     forbidden = (
-        "automatic_draw",
-        "paid_draw_enabled",
         "pass_final_operation",
         "completion_command_refund",
         "public_stratagems",
@@ -385,6 +381,7 @@ def test_dead_rule_switches_are_removed() -> None:
     engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
     native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
     simulate = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
+    actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
 
     obsolete = (
         "draw_action_enabled",
@@ -392,12 +389,22 @@ def test_dead_rule_switches_are_removed() -> None:
         "battle_command_gain",
         "automatic_draw_hand_limit",
         "battle_end_hand_limit",
+        "automatic_draw",
+        "paid_draw_enabled",
+        "paid_draw_command_cost",
+        "paid_draw_consumes_operation",
     )
     for name in obsolete:
         assert name not in rules
         assert name not in engine
         assert name not in native
         assert name not in simulate
+
+    assert "class Draw" not in actions
+    assert '"draw"' not in actions
+    assert "--automatic-draw" not in simulate
+    assert "--paid-draw" not in simulate
+    assert "--no-turn-draw" not in simulate
 
 
 def test_public_stratagems_are_not_a_rule_variant() -> None:
