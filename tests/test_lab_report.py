@@ -15,7 +15,7 @@ def standard_variant(**extra):
 
 
 def test_health_preserves_source_fingerprint() -> None:
-    provenance = {"automatic_draw": True}
+    provenance = {"command_cap": 20}
     report = analyze_simulation(
         {
             "game_fingerprint": "old-engine",
@@ -81,12 +81,12 @@ def test_lab_rejects_profile_labels_instead_of_explicit_rules() -> None:
 
 
 def test_lab_rejects_incomplete_or_nonstandard_provenance() -> None:
-    incomplete = {"automatic_draw": True, "card_file": "cards/cards.json"}
+    incomplete = {"command_cap": 20, "card_file": "cards/cards.json"}
     assert not build_lab_report.canonical_variant({
         "simulation_variant": incomplete,
     })
 
-    changed = standard_variant(automatic_draw=False)
+    changed = standard_variant(starting_command=19)
     assert not build_lab_report.canonical_variant({
         "simulation_variant": changed,
     })
@@ -101,7 +101,7 @@ def test_lab_rejects_experimental_health_with_current_source(monkeypatch) -> Non
     artifacts = {
         "balance-health.json": {
             "game_fingerprint": "current",
-            "simulation_variant": standard_variant(automatic_draw=False),
+            "simulation_variant": standard_variant(starting_command=19),
         },
         "balance-report.json": {"game_fingerprint": "current"},
     }
