@@ -97,10 +97,10 @@ def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:
     canonical = {card["id"] for card in cards["cards"]}
     covered: set[str] = set()
     for deck in (
-        "decks/reference.json",
-        "decks/avaros-line.json",
-        "decks/mara-rear.json",
-        "decks/sera-support.json",
+        "decks/mobility-open-bonds.json",
+        "decks/persistent-elite-heroes.json",
+        "decks/narrative-command.json",
+        "decks/battlefield-control-stratagems.json",
     ):
         data = json.loads((ROOT / deck).read_text(encoding="utf-8"))
         covered.update(data["cards"])
