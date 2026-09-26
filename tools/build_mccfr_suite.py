@@ -11,10 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
 
 PROFILES = (
-    ("reference", "Reference", "decks/reference.json"),
-    ("avaros", "Avaros Line", "decks/avaros-line.json"),
-    ("mara", "Mara Rear", "decks/mara-rear.json"),
-    ("sera", "Sera Support", "decks/sera-support.json"),
+    ("reference", "Reference", "decks/mobility-open-bonds.json"),
+    ("avaros", "Avaros Line", "decks/persistent-elite-heroes.json"),
+    ("mara", "Mara Rear", "decks/narrative-command.json"),
+    ("sera", "Sera Support", "decks/battlefield-control-stratagems.json"),
 )
 
 
