@@ -600,6 +600,121 @@ def test_lines_held_and_tovan_reduce_recovery_front_loss_penalty() -> None:
     assert state.players[0].command == 15
 
 
+def test_targeted_stratagem_play_choices_are_legal_actions() -> None:
+    engine, state = setup_state(seed=4710)
+    state.players[0].hand = [
+        "no-step-back",
+        "the-center-must-hold",
+        "the-flank-was-refused",
+        "the-battle-turned-east",
+    ]
+    state.players[0].command = 20
+
+    legal = engine.legal_actions(state)
+
+    assert PlayStratagem(
+        "no-step-back",
+        fronts=(Front.FIRST,),
+    ) in legal
+    assert PlayStratagem(
+        "the-center-must-hold",
+        fronts=(Front.SECOND, Front.THIRD),
+    ) in legal
+    assert PlayStratagem(
+        "the-flank-was-refused",
+        fronts=(Front.FOURTH,),
+    ) in legal
+    assert PlayStratagem(
+        "the-battle-turned-east",
+        direction="left",
+    ) in legal
+    assert PlayStratagem(
+        "the-battle-turned-east",
+        direction="right",
+    ) in legal
+
+
+def test_battle_turned_east_makes_only_chosen_direction_free() -> None:
+    engine, state = setup_state(seed=4711)
+    source = pos(1)
+    make_named(state, 0, source)
+    state.stratagems[0] = StratagemState(
+        "the-battle-turned-east",
+        direction="right",
+    )
+
+    assert engine.command_cost_for_action(
+        state,
+        Maneuver(source, pos(2)),
+    ) == 0
+    assert engine.command_cost_for_action(
+        state,
+        Maneuver(source, pos(0)),
+    ) == 1
+
+
+def test_no_step_back_drives_off_instead_of_retreating() -> None:
+    engine, state = setup_state(seed=4712)
+    state.stratagems[0] = StratagemState(
+        "no-step-back",
+        fronts=(Front.FIRST,),
+    )
+    make_named(state, 0, pos(0, Rank.FRONT))
+    make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.slot(0, pos(0, Rank.FRONT)).occupied is False
+    assert state.slot(0, pos(0, Rank.REAR)).occupied is False
+    assert "the-fifty-men" in state.players[0].discard
+
+
+def test_center_must_hold_resolves_chosen_pair_by_combined_strength() -> None:
+    engine, state = setup_state(seed=4713)
+    state.stratagems[0] = StratagemState(
+        "the-center-must-hold",
+        fronts=(Front.FIRST, Front.SECOND),
+    )
+    make_named(state, 0, pos(0), temporary=2)
+    make_named(state, 1, pos(1))
+
+    resolve_battle_by_passing(engine, state)
+
+    snapshot = state.last_battle_snapshot
+    assert snapshot is not None
+    assert snapshot["front_results"][:2] == [0, 0]
+
+
+def test_flank_refused_ignores_edge_and_bonuses_adjacent_formations() -> None:
+    engine, state = setup_state(seed=4714)
+    state.stratagems[0] = StratagemState(
+        "the-flank-was-refused",
+        fronts=(Front.FIRST,),
+    )
+    make_named(state, 0, pos(0))
+    make_named(state, 0, pos(1, Rank.FRONT))
+    make_named(state, 0, pos(1, Rank.REAR), force="seven-black-ships")
+
+    resolve_battle_by_passing(engine, state)
+
+    scores = state.last_battle_snapshot["front_scores"]
+    assert scores[0][0] == 0
+    assert scores[1][0] == 12
+
+
+def test_trap_closed_drives_off_encircled_middle_frontline() -> None:
+    engine, state = setup_state(seed=4715)
+    state.stratagems[0] = StratagemState("the-trap-closed")
+    for front in range(3):
+        make_named(state, 0, pos(front), temporary=100)
+    make_named(state, 1, pos(1))
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.slot(1, pos(1, Rank.FRONT)).occupied is False
+    assert state.slot(1, pos(1, Rank.REAR)).occupied is False
+
+
 @pytest.mark.parametrize(
     ("battle", "expected"),
     [
