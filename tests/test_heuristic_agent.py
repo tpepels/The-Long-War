@@ -8,7 +8,7 @@ import pytest
 from longwar.agents import HeuristicAgent
 from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine, Pass, Position, Rank
+from longwar.game import Discard, Front, GameEngine, Pass, Position, Rank
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -86,6 +86,22 @@ def test_random_agent_does_not_pass_before_pass_is_legal() -> None:
 
     assert action in legal
     assert not isinstance(action, Pass)
+
+
+def test_discard_scoring_does_not_peek_at_own_unknown_deck_order() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=6, exploration=0.0)
+    state.pending_draw_discard_for = 0
+    state.active_player = 0
+
+    action = Discard(state.players[0].hand[0])
+    first = agent._score_action(engine, state, 0, action)
+
+    reordered = state.clone()
+    reordered.players[0].deck.reverse()
+    second = agent._score_action(engine, reordered, 0, action)
+
+    assert first == pytest.approx(second)
 
 
 def test_heuristic_does_not_use_opponent_hidden_hand_identities() -> None:
