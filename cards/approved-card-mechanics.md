@@ -3,7 +3,7 @@
 This file is a compact reference for the currently approved first-80 card designs.
 
 **Source of truth:** `cards/cards.json`  
-**Approved cards:** 40
+**Approved cards:** 48
 
 ## Vocabulary
 
@@ -93,3 +93,19 @@ This file is a compact reference for the currently approved first-80 card design
 - **Maneuver:** chained movement, swaps, reactive movement, vacated-position movement, conditional free Maneuvers.
 - **Combat:** Rear suppression, Frontline-only comparisons, breakthrough, sacrifice, interception, tie control.
 - **Persistence & Retreat:** inherited Bonds, salvage, Name survival, Retreat repositioning, rebuilding, voluntary Retreat.
+- **Command:** catch-up discounts, completion discounts, optional investment, refunds, hand-to-Command conversion, recovery, and Battle-wide spending.
+
+
+## Batch 6 - Command
+
+| # | Card | Type | Cost | Strength | Approved mechanic |
+|---:|---|---|---:|---:|---|
+| 41 | **Rallied Behind** | Bond | 1 | - | If you have less Command than your opponent, this Bond costs 0 Command. |
+| 42 | **Sorin** | Name | 1 | +1 | If you play this Name on a Force that already has a Bond, it costs 0 Command. |
+| 43 | **Bought Time For** | Bond | 1 | - | When you play this Bond, you may pay 1 extra Command. If you do, draw 2 cards. |
+| 44 | **Trusted** | Bond | 1 | - | At Battle end, if this formation wins its Front, regain 1 Command. |
+| 45 | **The Baggage Was Abandoned** | Story | 1 | - | When you play this Story, you may discard 1 other card. If you do, regain 2 Command. |
+| 46 | **The Lines Held** | Stratagem | 2 | - | At Battle end, when you recover Command, count one fewer Front lost. |
+| 47 | **Iven** | Name | 2 | +1 | While you have less Command than your opponent, the first card you play each turn costs 1 less Command (minimum 1). |
+| 48 | **All Banners Forward** | Stratagem | 5 | - | **During this Battle**, your **Maneuvers** cost 0 Command, and your formations may **Maneuver** even if they are not Named. |
+
