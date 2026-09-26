@@ -2564,6 +2564,256 @@
       "engine_sync": "pending-first-80-migration",
       "design_status": "draft",
       "design_batch": 4
+    },
+    {
+      "id": "stayed-behind-for",
+      "title": "Stayed Behind For",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "legacy"
+      ],
+      "command_cost": 1,
+      "text": "If this Force is driven off, leave this Bond in its position instead of discarding it. If this formation has a Name, return that Name to its owner's hand. The next friendly Force played in this position takes this Bond.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "IF DRIVEN OFF",
+          "text": "Leave this Bond in its position instead of discarding it."
+        },
+        {
+          "kind": "effect",
+          "label": "NAME",
+          "text": "If this formation has a Name, return that Name to its owner's hand."
+        },
+        {
+          "kind": "continuous",
+          "label": "INHERIT",
+          "text": "The next friendly Force played in this position takes this Bond."
+        }
+      ],
+      "design_rules": {
+        "persistence": "inherited_bond"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 5
+    },
+    {
+      "id": "swore-again-to",
+      "title": "Swore Again To",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "loyalty"
+      ],
+      "command_cost": 1,
+      "text": "If this Force is driven off, return this Bond to your hand instead of discarding it.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "IF DRIVEN OFF",
+          "text": "Return this Bond to your hand instead of discarding it."
+        }
+      ],
+      "design_rules": {
+        "persistence": "bond_returns_to_hand_when_force_driven_off"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 5
+    },
+    {
+      "id": "edrin",
+      "title": "Edrin",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "survivor"
+      ],
+      "command_cost": 1,
+      "text": "If this formation is driven off, return this Name to your hand instead of discarding it.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "IF DRIVEN OFF",
+          "text": "Return this Name to your hand instead of discarding it."
+        }
+      ],
+      "design_rules": {
+        "persistence": "name_returns_to_hand_when_formation_driven_off"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 5
+    },
+    {
+      "id": "sela",
+      "title": "Sela",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "wanderer"
+      ],
+      "command_cost": 1,
+      "text": "After this formation **Retreats** to the Rear, you may move it one Front left or right if that Rear position is empty.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "AFTER RETREAT",
+          "text": "You may move this formation one Front left or right if that Rear position is empty."
+        }
+      ],
+      "design_rules": {
+        "persistence": "retreat_sideways"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 5
+    },
+    {
+      "id": "the-old-guard",
+      "title": "The Old Guard",
+      "type": "force",
+      "strength": 2,
+      "unique": false,
+      "classes": [
+        "human",
+        "veterans"
+      ],
+      "command_cost": 2,
+      "text": "**Deploy - Rear only.** If this Force is Named, a Force you play in the Frontline of this Front costs 1 less Command (minimum 1).",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "DEPLOY",
+          "text": "**Rear only.**"
+        },
+        {
+          "kind": "continuous",
+          "label": "REBUILD",
+          "text": "If this Force is Named, a Force you play in the Frontline of this Front costs 1 less Command (minimum 1)."
+        }
+      ],
+      "design_rules": {
+        "persistence": "rear_rebuild_cost_reduction"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 5
+    },
+    {
+      "id": "meren",
+      "title": "Meren",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "captain"
+      ],
+      "command_cost": 2,
+      "text": "At the start of each Battle, you may move this formation one Front left or right, staying in the same rank, if that position is empty.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "START OF BATTLE",
+          "text": "You may move this formation one Front left or right, staying in the same rank, if that position is empty."
+        }
+      ],
+      "design_rules": {
+        "persistence": "start_battle_reposition"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 5
+    },
+    {
+      "id": "endured-with",
+      "title": "Endured With",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "resolve"
+      ],
+      "command_cost": 1,
+      "text": "When this formation **Retreats**, regain 1 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN RETREATING",
+          "text": "Regain 1 Command."
+        }
+      ],
+      "design_rules": {
+        "persistence": "retreat_command_compensation",
+        "amount": 1
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 5
+    },
+    {
+      "id": "tala",
+      "title": "Tala",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "captain"
+      ],
+      "command_cost": 1,
+      "text": "Before comparing Strength in this Front, if this formation is in the Frontline and its Rear position is empty, you may **Retreat** it.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "timing",
+          "label": "BEFORE COMPARING STRENGTH",
+          "text": "If this formation is in the Frontline and its Rear position is empty, you may **Retreat** it."
+        }
+      ],
+      "design_rules": {
+        "persistence": "voluntary_retreat_if_rear_empty"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 5
     }
   ]
 }
