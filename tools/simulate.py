@@ -411,7 +411,7 @@ def main() -> None:
     passes = report.telemetry["passes"]
     print(
         "Passes: "
-        f"first-passer battle WR={passes['first_passer_battle_win_rate']}, "
+        f"first-pass share={passes['first_pass_rate']}, "
         f"mean hand={passes['mean_hand_size']}"
     )
 
