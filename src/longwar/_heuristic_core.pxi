@@ -6,6 +6,27 @@ cdef class NativeHeuristicEvaluator:
     def __init__(self, FastEngine engine):
         self.engine = engine
 
+    cdef double incomplete_liability_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        """Cards in incomplete formations are lost if the Battle ends now."""
+        cdef int local, slot, components
+        cdef double value = 0.0
+        for local in range(8):
+            slot = player * 8 + local
+            components = (
+                (1 if state.subject[slot] >= 0 else 0)
+                + (1 if state.link[slot] >= 0 else 0)
+                + (1 if state.name[slot] >= 0 else 0)
+            )
+            if components == 1:
+                value += 0.55
+            elif components == 2:
+                value += 1.60
+        return value
+
     cdef double evaluate_fast(self, FastState state, int player) noexcept:
         cdef int opponent = 1 - player
         cdef int front, margin, raw_margin, controls=0, enemy_controls=0
@@ -18,10 +39,21 @@ cdef class NativeHeuristicEvaluator:
         cdef int own_projected=0, opponent_projected=0
         cdef int current_delta=0, projected_delta=0
         cdef int own_vulnerability=0, opponent_vulnerability=0
+        cdef double own_liability=0.0, opponent_liability=0.0
         cdef double score = 0.0, option = 0.0
 
         if state.phase == PHASE_COMPLETE:
             return 10000.0 if state.winner == player else -10000.0
+
+        # The first player of a fresh Battle gets the first operation after
+        # the normal start-of-turn draw. This is the concrete value of being
+        # the first of two consecutive passers in the previous Battle.
+        if (
+            state.operations_this_battle[0] == 0
+            and state.operations_this_battle[1] == 0
+            and state.pass_len == 0
+        ):
+            score += 0.70 if state.active_player == player else -0.70
 
         for front in range(4):
             raw_margin = (
@@ -174,6 +206,16 @@ cdef class NativeHeuristicEvaluator:
                     + 0.9 * reachable
                 )
 
+            # Once one Pass is pending, the Battle can end on the current
+            # turn. Incomplete formations are then discarded before Retreat,
+            # so two-card preparations become genuine short-term liabilities.
+            own_liability = self.incomplete_liability_fast(state, player)
+            opponent_liability = self.incomplete_liability_fast(
+                state,
+                opponent,
+            )
+            score += 1.10 * (opponent_liability - own_liability)
+
         for slot in range(player * 8, player * 8 + 8):
             if self.engine.slot_complete(state, slot):
                 named_delta += 1
@@ -217,9 +259,6 @@ cdef class NativeHeuristicEvaluator:
             if best > 0:
                 option += 0.45 * best
         score += option
-
-        if state.passed[player] and state.phase == PHASE_BATTLE:
-            score -= 2.0
 
         return score
 
@@ -447,38 +486,18 @@ cdef class NativeHeuristicEvaluator:
         int player,
         FastState child,
     ):
-        cdef int front, margin, total_margin=0, wins=0, losses=0, tied=0
-        cdef int opponent = 1 - player
-        cdef double score
-
         child.copy_from_fast(state)
         self.engine.pass_action(child, player)
+
+        # A second consecutive Pass has already resolved cleanup, Retreat,
+        # Command recovery/Collapse and next-Battle initiative.
         if child.phase != PHASE_BATTLE or child.battle != state.battle:
             return self.battle_boundary_evaluate_fast(child, player)
 
-        score = self.evaluate_fast(child, player)
-        for front in range(4):
-            margin = (
-                self.engine.front_strength_fast(state, player, front)
-                - self.engine.front_strength_fast(state, opponent, front)
-            )
-            total_margin += margin
-            if margin > 0:
-                wins += 1
-            elif margin < 0:
-                losses += 1
-            else:
-                tied += 1
-
-        # A first Pass offers the opponent a normal turn; an intervening
-        # operation clears that Pass, while a consecutive Pass ends the Battle.
-        score += 4.0 * (wins - losses)
-        score += 0.35 * total_margin
-        score += 0.4 * tied
-        score -= min(8.0, 0.8 * child.hand_len[opponent])
-        if state.pass_len == 0:
-            score += 1.5
-        return score
+        # A first Pass gives the opponent a completely normal turn. Evaluate
+        # that actual resulting state - including their start-of-turn draw -
+        # rather than the pre-Pass board plus hand-written proxies.
+        return self.evaluate_fast(child, player)
 
     cdef double rollout_prior_fast(
         self,
