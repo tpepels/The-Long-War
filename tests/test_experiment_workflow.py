@@ -35,7 +35,7 @@ simulate_spec.loader.exec_module(simulate_tool)
 def test_fingerprint_tracks_native_includes_and_experiment_inputs(tmp_path, monkeypatch):
     monkeypatch.setattr(fingerprint, "ROOT", tmp_path)
     paths = ["src/longwar/_ismcts_core.pxi", "cards/cards.json",
-             "decks/reference.json", "tools/run_experiments.py"]
+             "decks/mobility-open-bonds.json", "tools/run_experiments.py"]
     previous = fingerprint.current_game_fingerprint()
     for name in paths:
         path = tmp_path / name
