@@ -26,7 +26,7 @@ from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
 CARD_FILE = ROOT / "cards" / "cards.json"
-DECK_FILE = ROOT / "decks" / "reference.json"
+DECK_FILE = ROOT / "decks" / "mobility-open-bonds.json"
 
 
 def setup_state(
