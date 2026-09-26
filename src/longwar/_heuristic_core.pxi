@@ -450,24 +450,21 @@ cdef class NativeHeuristicEvaluator:
             - self.hand_construction_value_fast(state, opponent)
         )
 
-        if not self.engine.recycle_between_battles:
-            value += 0.18 * (
-                state.deck_len[player] - state.deck_len[opponent]
-            )
-            value += 0.55 * (
-                self.future_formation_sets_fast(state, player)
-                - self.future_formation_sets_fast(state, opponent)
-            )
-            value += 0.40 * (
-                self.future_force_availability_fast(state, player)
-                - self.future_force_availability_fast(state, opponent)
-            )
-
-        if self.engine.command_enabled:
-            value += 0.12 * (
-                self.affordable_hand_count_fast(state, player)
-                - self.affordable_hand_count_fast(state, opponent)
-            )
+        value += 0.18 * (
+            state.deck_len[player] - state.deck_len[opponent]
+        )
+        value += 0.55 * (
+            self.future_formation_sets_fast(state, player)
+            - self.future_formation_sets_fast(state, opponent)
+        )
+        value += 0.40 * (
+            self.future_force_availability_fast(state, player)
+            - self.future_force_availability_fast(state, opponent)
+        )
+        value += 0.12 * (
+            self.affordable_hand_count_fast(state, player)
+            - self.affordable_hand_count_fast(state, opponent)
+        )
 
         return value
 
