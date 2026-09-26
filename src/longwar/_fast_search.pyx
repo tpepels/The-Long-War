@@ -1060,28 +1060,52 @@ cdef class FastEngine:
         FastState state,
         uint64_t action,
     ) noexcept:
-        cdef int kind, card, pos, target_front=-1, cost, discount
+        cdef int kind, card, pos, target_front=-1, cost, discount, rear, support, strat
+        cdef int player = state.active_player
         kind = action_kind(action)
         if kind == TYPE_PASS:
             return 0
         if kind == TYPE_MANEUVER:
+            strat = state.stratagem[player]
+            if strat >= 0 and self.strat_maneuver_cost[strat] >= 0:
+                return self.strat_maneuver_cost[strat]
             return self.maneuver_command_cost
         card = action_card(action)
         if card < 0:
             return 0
         cost = self.card_command_cost[card]
         pos = action_pos(action)
+
+        if self.catchup_zero_cost[card] and state.command[player] < state.command[1 - player]:
+            cost = 0
+        elif (
+            self.completion_discount_cost[card] >= 0
+            and kind == TYPE_NAME
+            and pos >= 0
+            and state.subject[pos] >= 0
+            and state.link[pos] >= 0
+        ):
+            cost = self.completion_discount_cost[card]
+
         if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
             target_front = front_from_slot(pos)
         if target_front >= 0:
-            discount = self.adjacent_discount_fast(
-                state,
-                state.active_player,
-                target_front,
-            )
+            discount = self.adjacent_discount_fast(state, player, target_front)
+            if kind == TYPE_SUBJECT and rank_from_slot(pos) == 0:
+                rear = slot_index(player, target_front, 1)
+                support = state.subject[rear]
+                if (
+                    support >= 0
+                    and self.frontline_force_discount[support] > discount
+                    and (
+                        not self.frontline_force_discount_requires_named[support]
+                        or self.slot_complete(state, rear)
+                    )
+                ):
+                    discount = self.frontline_force_discount[support]
             if discount:
                 cost -= discount
-                if cost < 1:
+                if cost < 1 and not self.catchup_zero_cost[card]:
                     cost = 1
         return cost
 
@@ -1163,6 +1187,36 @@ cdef class FastEngine:
                     state.scheme_revealed[enemy_ix] = 1
             elif effect == COMPLETE_RECOVER_LINK:
                 self.recover_recent_link_fast(state, player)
+
+    cdef inline bint maneuver_source_legal(
+        self,
+        FastState state,
+        int player,
+        int slot,
+    ) noexcept:
+        cdef int force, strat
+        force = state.subject[slot]
+        if force < 0 or self.immobile_force[force]:
+            return False
+        if self.slot_complete(state, slot):
+            return True
+        if self.can_maneuver_unnamed[force]:
+            return True
+        strat = state.stratagem[player]
+        return strat >= 0 and self.strat_unnamed_maneuver[strat]
+
+    cdef inline bint maneuver_destination_legal(
+        self,
+        FastState state,
+        int slot,
+    ) noexcept:
+        cdef int force = state.subject[slot]
+        if force >= 0:
+            return (
+                not self.immobile_force[force]
+                and not self.cannot_swap_target[force]
+            )
+        return state.link[slot] < 0 and state.name[slot] < 0
 
     cdef int legal_actions_into(
         self,
@@ -1323,28 +1377,30 @@ cdef class FastEngine:
                         encode_action(TYPE_STRATAGEM, card, -1, -1, player),
                     )
 
-        # Maneuver is a core operation. Only the initiator must be Named; the
-        # destination may contain any friendly formation and is swapped whole.
+        # Maneuver moves to an empty position or swaps with another formation.
+        # A prepared-only Bond/Name position is occupied but is not a formation.
         for local in range(8):
             source = player * 8 + local
-            if not self.slot_complete(state, source):
+            if not self.maneuver_source_legal(state, player, source):
                 continue
             front = local >> 1
             rank = local & 1
             if front > 0:
                 dest = slot_index(player, front - 1, rank)
-                n = _append_action(
-                    actions,
-                    n,
-                    encode_action(TYPE_MANEUVER, -1, source, dest, player),
-                )
+                if self.maneuver_destination_legal(state, dest):
+                    n = _append_action(
+                        actions,
+                        n,
+                        encode_action(TYPE_MANEUVER, -1, source, dest, player),
+                    )
             if front < 3:
                 dest = slot_index(player, front + 1, rank)
-                n = _append_action(
-                    actions,
-                    n,
-                    encode_action(TYPE_MANEUVER, -1, source, dest, player),
-                )
+                if self.maneuver_destination_legal(state, dest):
+                    n = _append_action(
+                        actions,
+                        n,
+                        encode_action(TYPE_MANEUVER, -1, source, dest, player),
+                    )
 
         available = state.command[player]
         kept = 0
