@@ -3718,6 +3718,16 @@ cdef class FastEngine:
     cdef inline uint32_t next_shuffle_seed(self, uint32_t seed) noexcept:
         return seed * <uint32_t>1664525 + <uint32_t>1013904223
 
+    cdef void clear_story_targets_at_slot(
+        self,
+        FastState state,
+        int slot,
+    ) noexcept:
+        cdef int ix
+        for ix in range(SCHEME_COUNT):
+            if state.scheme_target_slot[ix] == slot:
+                state.scheme_target_slot[ix] = -1
+
     cdef void discard_slot_components(
         self,
         FastState state,
@@ -3725,6 +3735,8 @@ cdef class FastEngine:
         int slot,
     ) noexcept:
         cdef int card
+        if state.subject[slot] >= 0:
+            self.clear_story_targets_at_slot(state, slot)
         card = state.subject[slot]
         if card >= 0:
             self.append_discard(state, player, card, False)
@@ -3780,6 +3792,7 @@ cdef class FastEngine:
         cdef int name = state.name[slot]
 
         if force >= 0:
+            self.clear_story_targets_at_slot(state, slot)
             self.append_discard(state, player, force, False)
 
         if bond >= 0:
@@ -4518,6 +4531,23 @@ cdef class FastEngine:
                 return True
         return False
 
+    cdef void clear_resolution_state(self, FastState state) noexcept:
+        cdef int slot
+        state.resolution_stage = RESOLUTION_NONE
+        state.resolution_cursor = 0
+        state.resolution_lost_mask[0] = 0
+        state.resolution_lost_mask[1] = 0
+        state.resolution_drive_mask[0] = 0
+        state.resolution_drive_mask[1] = 0
+        state.resolution_protected_mask[0] = 0
+        state.resolution_protected_mask[1] = 0
+        state.resolution_recovery_losses[0] = 0
+        state.resolution_recovery_losses[1] = 0
+        state.resolution_suppressed_mask = 0
+        state.resolution_starter = -1
+        for slot in range(SLOT_COUNT):
+            state.resolution_contribution_front[slot] = -1
+
     cdef void finish_battle_recovery(self, FastState state) except *:
         cdef int p, base_recovery, actual, target, starter, front
 
@@ -4546,7 +4576,8 @@ cdef class FastEngine:
             if state.phase == PHASE_COMPLETE:
                 state.cleanup_pending = 0
                 state.pending_resume = RESUME_NONE
-                state.resolution_stage = RESOLUTION_NONE
+                state.pending_resume_player = -1
+                self.clear_resolution_state(state)
                 return
 
         starter = state.resolution_starter
@@ -4580,11 +4611,7 @@ cdef class FastEngine:
                 self.draw(state, p, target)
             state.battle_start_command[p] = state.command[p]
 
-        state.resolution_stage = RESOLUTION_NONE
-        state.resolution_cursor = 0
-        state.resolution_suppressed_mask = 0
-        for front in range(SLOT_COUNT):
-            state.resolution_contribution_front[front] = -1
+        self.clear_resolution_state(state)
         state.pending_resume = RESUME_NONE
         state.pending_resume_player = -1
         self.begin_next_battle_fast(state, starter)
