@@ -450,7 +450,6 @@ cdef class FastEngine:
     cdef int8_t strat_controller_rank_mod[MAX_CARDS][2]
     cdef int8_t strat_named_mod[MAX_CARDS]
     cdef int8_t strat_unnamed_mod[MAX_CARDS]
-    cdef uint8_t strat_disable_line[MAX_CARDS]
     cdef uint8_t strat_story_lock[MAX_CARDS]
     cdef uint8_t strat_global_story_lock[MAX_CARDS]
 
@@ -508,7 +507,6 @@ cdef class FastEngine:
         memset(self.strat_controller_rank_mod, 0, sizeof(self.strat_controller_rank_mod))
         memset(self.strat_named_mod, 0, sizeof(self.strat_named_mod))
         memset(self.strat_unnamed_mod, 0, sizeof(self.strat_unnamed_mod))
-        memset(self.strat_disable_line, 0, sizeof(self.strat_disable_line))
         memset(self.strat_story_lock, 0, sizeof(self.strat_story_lock))
         memset(self.strat_global_story_lock, 0, sizeof(self.strat_global_story_lock))
 
@@ -641,7 +639,6 @@ cdef class FastEngine:
                 self.strat_controller_rank_mod[code][rank_map[rank_name]] = int(amount)
             self.strat_named_mod[code] = int(continuous.get("named_subject_modifier", 0))
             self.strat_unnamed_mod[code] = int(continuous.get("unnamed_subject_modifier", 0))
-            self.strat_disable_line[code] = bool(continuous.get("disable_line_defense"))
             self.strat_story_lock[code] = bool(continuous.get("controller_immediate_story_lock"))
             self.strat_global_story_lock[code] = bool(continuous.get("global_immediate_story_lock"))
 
@@ -779,14 +776,6 @@ cdef class FastEngine:
 
     cdef inline int hand_size(self, FastState state, int player) noexcept:
         return state.hand_len[player]
-
-    cdef inline bint line_disabled(self, FastState state) noexcept:
-        cdef int p, card
-        for p in range(2):
-            card = state.stratagem[p]
-            if card >= 0 and state.stratagem_revealed[p] and self.strat_disable_line[card]:
-                return True
-        return False
 
     cdef int position_strength_fast(self, FastState state, int slot) noexcept:
         cdef int card = state.subject[slot]

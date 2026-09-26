@@ -410,6 +410,12 @@ def test_dead_rule_switches_are_removed() -> None:
     assert "--no-reshuffle-on-empty" not in simulate
 
 
+def test_no_universal_line_defense_native_state() -> None:
+    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
+    assert "line_disabled" not in native
+    assert "strat_disable_line" not in native
+
+
 def test_public_stratagems_are_not_a_rule_variant() -> None:
     rules = (SRC / "rules.py").read_text(encoding="utf-8")
     engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
