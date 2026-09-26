@@ -204,57 +204,6 @@ def main() -> None:
     )
     parser.set_defaults(cycle_enabled=defaults.cycle_enabled)
 
-    turn_draw_group = parser.add_mutually_exclusive_group()
-    turn_draw_group.add_argument(
-        "--automatic-draw",
-        dest="turn_draw_mode",
-        action="store_const",
-        const="automatic",
-        help="At the start of every turn, draw one card before the operation.",
-    )
-    turn_draw_group.add_argument(
-        "--paid-draw",
-        dest="turn_draw_mode",
-        action="store_const",
-        const="paid",
-        help="Enable Draw as a paid Command operation with no discard.",
-    )
-    turn_draw_group.add_argument(
-        "--no-turn-draw",
-        dest="turn_draw_mode",
-        action="store_const",
-        const="none",
-        help="Disable both automatic and paid Command draw modes.",
-    )
-    parser.set_defaults(
-        turn_draw_mode=(
-            "automatic"
-            if defaults.automatic_draw
-            else "paid"
-            if defaults.paid_draw_enabled
-            else "none"
-        )
-    )
-    parser.add_argument(
-        "--paid-draw-command-cost",
-        type=int,
-        default=defaults.paid_draw_command_cost,
-    )
-
-    paid_operation_group = parser.add_mutually_exclusive_group()
-    paid_operation_group.add_argument(
-        "--paid-draw-consumes-operation",
-        dest="paid_draw_consumes_operation",
-        action="store_true",
-    )
-    paid_operation_group.add_argument(
-        "--paid-draw-keeps-operation",
-        dest="paid_draw_consumes_operation",
-        action="store_false",
-    )
-    parser.set_defaults(
-        paid_draw_consumes_operation=defaults.paid_draw_consumes_operation
-    )
     parser.add_argument(
         "--completion-command-refund",
         type=int,
@@ -317,10 +266,6 @@ def main() -> None:
         command_cap=args.command_cap,
         cycle_command_cost=args.cycle_command_cost,
         reshuffle_on_empty=args.reshuffle,
-        automatic_draw=args.turn_draw_mode == "automatic",
-        paid_draw_enabled=args.turn_draw_mode == "paid",
-        paid_draw_command_cost=args.paid_draw_command_cost,
-        paid_draw_consumes_operation=args.paid_draw_consumes_operation,
         cycle_enabled=args.cycle_enabled,
         completion_command_refund=args.completion_command_refund,
     )
@@ -434,9 +379,7 @@ def main() -> None:
     )
     payload["simulation_variant"] = {
         "base_hand_size": rules.opening_hand_size,
-        "battle_one_starter_bonus": (
-            0 if (rules.automatic_draw or rules.paid_draw_enabled) else 1
-        ),
+        "battle_one_starter_bonus": 0,
         "completion_draw_names": sorted(rules.completion_draw_names),
         "deck_sizes": [len(deck_a), len(deck_b)],
         "reshuffle_on_empty": rules.reshuffle_on_empty,
@@ -449,12 +392,6 @@ def main() -> None:
             else None
         ),
         "cycle_enabled": rules.cycle_enabled,
-        "automatic_draw": rules.automatic_draw,
-        "paid_draw_enabled": rules.paid_draw_enabled,
-        "paid_draw_command_cost": (
-            rules.paid_draw_command_cost if rules.paid_draw_enabled else None
-        ),
-        "paid_draw_consumes_operation": rules.paid_draw_consumes_operation,
         "completion_command_refund": rules.completion_command_refund,
         "card_file": str(args.card_file),
     }
@@ -476,11 +413,8 @@ def main() -> None:
         f"reshuffle_on_empty={'on' if rules.reshuffle_on_empty else 'off'} "
         f"command={'on' if rules.command_enabled else 'off'} "
         f"cycle={'on' if rules.cycle_enabled else 'off'} "
-        f"auto_draw={'on' if rules.automatic_draw else 'off'} "
-        f"paid_draw={'on' if rules.paid_draw_enabled else 'off'} "
-        f"paid_draw_operation={'yes' if rules.paid_draw_consumes_operation else 'no'} "
         f"completion_refund={rules.completion_command_refund} "
-        f"starter_bonus={'turn-draw' if rules.automatic_draw else ('none' if rules.paid_draw_enabled else '+1')}"
+        "starter_bonus=turn-draw"
     )
     print(f"Games: {report.games}")
     print(f"Wins: P0={report.wins[0]} P1={report.wins[1]}")
