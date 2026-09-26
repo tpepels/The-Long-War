@@ -130,7 +130,7 @@ This batch deliberately expands what can happen when a Front resolves without in
 
 ## Batch 5 - Persistence & Retreat
 
-Status: draft for review.
+Status: approved for the first-80 design pool.
 
 This batch tests what survives a loss, how Retreat can change position, and how persistent formations help rebuild the next Battle. Card text remains literal and self-contained.
 
