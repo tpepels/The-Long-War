@@ -39,7 +39,6 @@ class GameRules:
     battle_end_hand_limit: int | None = None
 
     completion_command_refund: int = 0
-    public_stratagems: bool = True
 
     def __post_init__(self) -> None:
         for name, field in self.__dataclass_fields__.items():

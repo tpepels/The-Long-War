@@ -99,7 +99,6 @@ class GameEngine:
         battle_end_hand_limit: int | None = None,
         cycle_enabled: bool = False,
         completion_command_refund: int = 0,
-        public_stratagems: bool = True,
     ):
         validate_card_data(card_data)
         if rules is None:
@@ -122,7 +121,6 @@ class GameEngine:
                 battle_end_hand_limit=battle_end_hand_limit,
                 cycle_enabled=cycle_enabled,
                 completion_command_refund=completion_command_refund,
-                public_stratagems=public_stratagems,
             )
 
         self.rules = rules
@@ -152,7 +150,6 @@ class GameEngine:
         self.battle_end_hand_limit = rules.battle_end_hand_limit
         self.cycle_enabled = rules.cycle_enabled
         self.completion_command_refund = rules.completion_command_refund
-        self.public_stratagems = rules.public_stratagems
 
         if self.command_enabled:
             missing_costs = [

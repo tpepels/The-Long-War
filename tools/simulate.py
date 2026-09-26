@@ -282,20 +282,6 @@ def main() -> None:
         type=int,
         default=defaults.completion_command_refund,
     )
-    stratagem_group = parser.add_mutually_exclusive_group()
-    stratagem_group.add_argument(
-        "--public-stratagems",
-        dest="public_stratagems",
-        action="store_true",
-        help="Play Stratagems face-up so their Battle rule is active immediately.",
-    )
-    stratagem_group.add_argument(
-        "--hidden-stratagems",
-        dest="public_stratagems",
-        action="store_false",
-        help="Use hidden triggered Stratagems for legacy experiments.",
-    )
-    parser.set_defaults(public_stratagems=defaults.public_stratagems)
     parser.add_argument(
         "--deck-a",
         type=Path,
@@ -364,7 +350,6 @@ def main() -> None:
         battle_end_hand_limit=args.battle_end_hand_limit,
         cycle_enabled=args.cycle_enabled,
         completion_command_refund=args.completion_command_refund,
-        public_stratagems=args.public_stratagems,
     )
     engine = GameEngine(card_data, rules=rules)
     deck_a = load_deck(args.deck_a)
@@ -505,7 +490,6 @@ def main() -> None:
         "automatic_draw_hand_limit": rules.automatic_draw_hand_limit,
         "battle_end_hand_limit": rules.battle_end_hand_limit,
         "completion_command_refund": rules.completion_command_refund,
-        "public_stratagems": rules.public_stratagems,
         "card_file": str(args.card_file),
     }
 
@@ -534,7 +518,6 @@ def main() -> None:
         f"auto_hand_limit={rules.automatic_draw_hand_limit or 'none'} "
         f"battle_hand_limit={rules.battle_end_hand_limit or 'none'} "
         f"completion_refund={rules.completion_command_refund} "
-        f"stratagems={'public' if rules.public_stratagems else 'hidden'} "
         f"starter_bonus={'turn-draw' if rules.automatic_draw else ('none' if rules.paid_draw_enabled else '+1')}"
     )
     print(f"Games: {report.games}")

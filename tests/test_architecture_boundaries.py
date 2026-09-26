@@ -380,6 +380,19 @@ def test_native_algorithms_do_not_contain_rule_switches() -> None:
         assert not any(term in source for term in forbidden), filename
 
 
+def test_public_stratagems_are_not_a_rule_variant() -> None:
+    rules = (SRC / "rules.py").read_text(encoding="utf-8")
+    engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
+    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
+    simulate = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
+
+    assert "public_stratagems" not in rules
+    assert "public_stratagems" not in engine
+    assert "public_stratagems" not in native
+    assert "--hidden-stratagems" not in simulate
+    assert "--public-stratagems" not in simulate
+
+
 def test_canonical_game_vocabulary_has_no_obsolete_aliases() -> None:
     actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
     model = (SRC / "game" / "model.py").read_text(encoding="utf-8")

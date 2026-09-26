@@ -414,7 +414,6 @@ cdef class FastEngine:
     cdef int battle_end_hand_limit
     cdef bint cycle_enabled
     cdef int completion_command_refund
-    cdef bint public_stratagems
 
     cdef int8_t card_type[MAX_CARDS]
     cdef int8_t card_command_cost[MAX_CARDS]
@@ -530,7 +529,6 @@ cdef class FastEngine:
 
     def __init__(self, engine):
         cdef int code, r
-        cdef bint has_played_stratagem_trigger = False
         self.card_ids = tuple(engine.cards)
         self.n_cards = len(self.card_ids)
         self.opening_hand_size = int(engine.opening_hand_size)
@@ -574,26 +572,10 @@ cdef class FastEngine:
         )
         self.cycle_enabled = bool(engine.cycle_enabled)
         self.completion_command_refund = int(engine.completion_command_refund)
-        self.public_stratagems = bool(engine.public_stratagems)
         if self.n_cards > MAX_CARDS:
             raise ValueError(f"The native engine supports at most {MAX_CARDS} card identities")
         if max(engine.starting_command, self.command_cap, self.battle_command_gain) > 32767:
             raise ValueError("Command settings exceed the native signed 16-bit capacity")
-        if not self.public_stratagems:
-            for card in engine.cards.values():
-                if (
-                    card.get("rules", {})
-                    .get("stratagem", {})
-                    .get("trigger", {})
-                    .get("event")
-                    == "played"
-                ):
-                    has_played_stratagem_trigger = True
-                    break
-            if has_played_stratagem_trigger:
-                raise ValueError(
-                    "Stratagem trigger 'played' requires public_stratagems"
-                )
         self.id_to_code = {card_id: i for i, card_id in enumerate(self.card_ids)}
 
         type_map = {"force": CARD_SUBJECT, "bond": CARD_LINK, "name": CARD_NAME, "story": CARD_PLOT, "stratagem": CARD_STRATAGEM}
@@ -2025,14 +2007,9 @@ cdef class FastEngine:
             state.scheme_revealed[actor * 4 + pos] = 1
 
         elif kind == TYPE_STRATAGEM:
-            self.take_from_hand(
-                state,
-                actor,
-                card,
-                0 if self.public_stratagems else 2,
-            )
+            self.take_from_hand(state, actor, card, 0)
             state.stratagem[actor] = card
-            state.stratagem_revealed[actor] = 1 if self.public_stratagems else 0
+            state.stratagem_revealed[actor] = 1
             state.stratagem_used[actor] = 1
             if self.command_enabled:
                 self.finish_operation_fast(state, actor)

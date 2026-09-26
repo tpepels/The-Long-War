@@ -93,10 +93,6 @@ def test_rule_overrides_use_canonical_cards():
     for rules in variants:
         GameEngine(data, rules=rules)
 
-    hidden = GameRules.standard().with_overrides(public_stratagems=False)
-    with pytest.raises(ValueError, match="requires public_stratagems"):
-        GameEngine(data, rules=hidden)
-
 
 @pytest.mark.parametrize("changes", [{"opening_hand_size": 0}, {"opening_hand_size": True}, {"automatic_draw": 1}, {"command_cap": "20"}, {"battle_end_hand_limit": 7.5}, {"completion_draw_names": "oren"}])
 def test_rules_do_not_silently_coerce_values(changes):
