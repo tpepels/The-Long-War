@@ -424,13 +424,18 @@ function renderStorySlot(owner, slot) {
         : 'empty') +
       '</b></div>';
   }
+  const association = story.fronts?.length
+    ? " · " + story.fronts.map((front) => frontNames[front]).join(" + ")
+    : story.target
+      ? " · " + story.target.front_name + " " + story.target.rank_name
+      : "";
   return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
     '<span>Ongoing Narrative ' + (slot + 1) + '</span>' +
     '<button type="button" class="public-card-link" ' +
       'data-inspect-card="' + esc(story.card_id) + '" ' +
       'data-inspect-owner="' + owner + '" ' +
       'data-inspect-zone="ongoing narrative">' +
-      esc(cardTitle(story.card_id)) +
+      esc(cardTitle(story.card_id)) + esc(association) +
     '</button></div>';
 }
 
@@ -453,8 +458,13 @@ function renderStratagem(owner) {
   const title = stratagem?.card_id
     ? cardTitle(stratagem.card_id)
     : "Stratagem";
+  const publicChoice = stratagem?.fronts?.length
+    ? stratagem.fronts.map((front) => frontNames[front]).join(" + ")
+    : stratagem?.direction
+      ? stratagem.direction.toUpperCase()
+      : "";
   const label = stratagem?.card_id
-    ? "in play"
+    ? publicChoice || "in play"
     : targetable
       ? "PLAY · " + commandCostLabel(actions)
       : "empty";
@@ -684,6 +694,15 @@ function interactionHintFor(card) {
     return "Choose a formation position for this Name.";
   }
   if (actions.some((a) => a.kind === "PlayStratagem")) {
+    if (actions.some((a) => a.fronts?.length)) {
+      return "Choose the Front or Fronts for this public Stratagem.";
+    }
+    if (actions.some((a) => a.direction)) {
+      return "Choose left or right for this public Stratagem.";
+    }
+    if (actions.some((a) => a.targets?.length)) {
+      return "Choose the formations affected by this public Stratagem.";
+    }
     return "Play this as your public Stratagem.";
   }
   if (actions.some((a) => a.kind === "PlayStory")) {
@@ -790,13 +809,25 @@ function renderChoiceTray() {
   const tray = $("choice-tray");
   let actions = choiceActions;
   if (!actions.length && selectedCardId) {
-    const direct = selectedActions().filter((a) =>
+    const selected = selectedActions();
+    const direct = selected.filter((a) =>
       a.kind === "Discard" ||
       (a.kind === "PlayStory" &&
         a.targets.length === 0 &&
         a.ongoing_slot == null)
     );
     if (direct.length === 1) actions = direct;
+
+    const simpleStratagems = selected.filter(
+      (a) => a.kind === "PlayStratagem" && a.targets.length === 0
+    );
+    if (
+      selected.length === simpleStratagems.length &&
+      simpleStratagems.length > 0 &&
+      simpleStratagems.length <= 8
+    ) {
+      actions = simpleStratagems;
+    }
   }
   if (!actions.length) {
     tray.hidden = true;
@@ -1058,10 +1089,19 @@ function bindBoardTargets() {
   document.querySelectorAll("[data-stratagem-owner]").forEach((el) => {
     bindTarget(el, () => {
       if (Number(el.dataset.stratagemOwner) !== currentViewer()) return;
-      const action = selectedActions().find(
+      const matches = selectedActions().filter(
         (candidate) => candidate.kind === "PlayStratagem"
       );
-      if (action) executeAction(action);
+      if (matches.length === 1) {
+        executeAction(matches[0]);
+      } else if (
+        matches.length > 1 &&
+        matches.length <= 8 &&
+        matches.every((action) => action.targets.length === 0)
+      ) {
+        choiceActions = matches;
+        renderChoiceTray();
+      }
     });
   });
 }
