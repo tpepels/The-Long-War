@@ -168,20 +168,10 @@ def main() -> None:
         default=Path("cards/cards.json"),
         help="Card data file for this simulation variant.",
     )
-    recycle_group = parser.add_mutually_exclusive_group()
-    recycle_group.add_argument("--between-battle-recycle", dest="recycle", action="store_true")
-    recycle_group.add_argument("--no-between-battle-recycle", dest="recycle", action="store_false")
     reshuffle_group = parser.add_mutually_exclusive_group()
     reshuffle_group.add_argument("--reshuffle-on-empty", dest="reshuffle", action="store_true")
     reshuffle_group.add_argument("--no-reshuffle-on-empty", dest="reshuffle", action="store_false")
-    draw_group = parser.add_mutually_exclusive_group()
-    draw_group.add_argument("--enable-draw", dest="draw_enabled", action="store_true")
-    draw_group.add_argument("--disable-draw", dest="draw_enabled", action="store_false")
-    parser.set_defaults(
-        recycle=defaults.recycle_between_battles,
-        reshuffle=defaults.reshuffle_on_empty,
-        draw_enabled=defaults.draw_action_enabled,
-    )
+    parser.set_defaults(reshuffle=defaults.reshuffle_on_empty)
     parser.add_argument(
         "--completion-draw-names",
         nargs="*",
@@ -193,7 +183,6 @@ def main() -> None:
     command_group.add_argument("--no-command", dest="command", action="store_false")
     parser.set_defaults(command=defaults.command_enabled)
     parser.add_argument("--starting-command", type=int, default=20)
-    parser.add_argument("--battle-command-gain", type=int, default=10)
     parser.add_argument("--command-cap", type=int, default=20)
     parser.add_argument(
         "--cycle-command-cost",
@@ -267,17 +256,6 @@ def main() -> None:
         paid_draw_consumes_operation=defaults.paid_draw_consumes_operation
     )
     parser.add_argument(
-        "--automatic-draw-hand-limit",
-        type=int,
-        default=defaults.automatic_draw_hand_limit,
-    )
-    parser.add_argument(
-        "--battle-end-hand-limit",
-        type=int,
-        default=defaults.battle_end_hand_limit,
-    )
-
-    parser.add_argument(
         "--completion-command-refund",
         type=int,
         default=defaults.completion_command_refund,
@@ -333,12 +311,9 @@ def main() -> None:
     card_data = load_card_file(resolve(args.card_file))
     rules = GameRules(
         opening_hand_size=args.hand_size,
-        draw_action_enabled=args.draw_enabled,
         completion_draw_names=tuple(args.completion_draw_names),
-        recycle_between_battles=args.recycle,
         command_enabled=args.command,
         starting_command=args.starting_command,
-        battle_command_gain=args.battle_command_gain,
         command_cap=args.command_cap,
         cycle_command_cost=args.cycle_command_cost,
         reshuffle_on_empty=args.reshuffle,
@@ -346,8 +321,6 @@ def main() -> None:
         paid_draw_enabled=args.turn_draw_mode == "paid",
         paid_draw_command_cost=args.paid_draw_command_cost,
         paid_draw_consumes_operation=args.paid_draw_consumes_operation,
-        automatic_draw_hand_limit=args.automatic_draw_hand_limit,
-        battle_end_hand_limit=args.battle_end_hand_limit,
         cycle_enabled=args.cycle_enabled,
         completion_command_refund=args.completion_command_refund,
     )
@@ -461,19 +434,14 @@ def main() -> None:
     )
     payload["simulation_variant"] = {
         "base_hand_size": rules.opening_hand_size,
-        "draw_action_enabled": rules.draw_action_enabled,
         "battle_one_starter_bonus": (
             0 if (rules.automatic_draw or rules.paid_draw_enabled) else 1
         ),
         "completion_draw_names": sorted(rules.completion_draw_names),
         "deck_sizes": [len(deck_a), len(deck_b)],
-        "recycle_between_battles": rules.recycle_between_battles,
         "reshuffle_on_empty": rules.reshuffle_on_empty,
         "command_enabled": rules.command_enabled,
         "starting_command": rules.starting_command if rules.command_enabled else None,
-        "battle_command_gain": (
-            rules.battle_command_gain if rules.command_enabled else None
-        ),
         "command_cap": rules.command_cap if rules.command_enabled else None,
         "cycle_command_cost": (
             rules.cycle_command_cost
@@ -487,8 +455,6 @@ def main() -> None:
             rules.paid_draw_command_cost if rules.paid_draw_enabled else None
         ),
         "paid_draw_consumes_operation": rules.paid_draw_consumes_operation,
-        "automatic_draw_hand_limit": rules.automatic_draw_hand_limit,
-        "battle_end_hand_limit": rules.battle_end_hand_limit,
         "completion_command_refund": rules.completion_command_refund,
         "card_file": str(args.card_file),
     }
@@ -505,18 +471,14 @@ def main() -> None:
     print(
         "Variant: "
         f"hand={rules.opening_hand_size} "
-        f"draw={'on' if rules.draw_action_enabled else 'off'} "
         f"completion_draw_names={','.join(sorted(rules.completion_draw_names)) or 'none'} "
         f"decks={len(deck_a)}/{len(deck_b)} "
-        f"recycle={'on' if rules.recycle_between_battles else 'off'} "
         f"reshuffle_on_empty={'on' if rules.reshuffle_on_empty else 'off'} "
         f"command={'on' if rules.command_enabled else 'off'} "
         f"cycle={'on' if rules.cycle_enabled else 'off'} "
         f"auto_draw={'on' if rules.automatic_draw else 'off'} "
         f"paid_draw={'on' if rules.paid_draw_enabled else 'off'} "
         f"paid_draw_operation={'yes' if rules.paid_draw_consumes_operation else 'no'} "
-        f"auto_hand_limit={rules.automatic_draw_hand_limit or 'none'} "
-        f"battle_hand_limit={rules.battle_end_hand_limit or 'none'} "
         f"completion_refund={rules.completion_command_refund} "
         f"starter_bonus={'turn-draw' if rules.automatic_draw else ('none' if rules.paid_draw_enabled else '+1')}"
     )

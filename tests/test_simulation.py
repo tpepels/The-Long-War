@@ -72,15 +72,13 @@ def test_simulation_cli_resolves_canonical_defaults_and_explicit_overrides(tmp_p
         "--games", "2", "--seed", "401", "--output", str(output),
     ]
     if legacy:
-        command.extend(["--no-command", "--enable-draw", "--between-battle-recycle", "--no-reshuffle-on-empty"])
+        command.extend(["--no-command", "--no-reshuffle-on-empty"])
     result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
     report = json.loads(output.read_text())
     rules = GameRules.standard()
     expected = {
         "command_enabled": False if legacy else rules.command_enabled,
-        "draw_action_enabled": True if legacy else rules.draw_action_enabled,
-        "recycle_between_battles": True if legacy else rules.recycle_between_battles,
         "reshuffle_on_empty": False if legacy else rules.reshuffle_on_empty,
     }
     assert {key: report["simulation_variant"][key] for key in expected} == expected
