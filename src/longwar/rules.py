@@ -18,7 +18,7 @@ class GameRules:
     command_collapse_threshold: int = 5
     maneuver_command_cost: int = 1
     hand_limit: int = 10
-    ongoing_story_limit: int = 2
+    ongoing_narrative_limit: int = 2
     def __post_init__(self) -> None:
         for name, field in self.__dataclass_fields__.items():
             value = getattr(self, name)
@@ -43,7 +43,7 @@ class GameRules:
             self.command_collapse_threshold,
             self.maneuver_command_cost,
             self.hand_limit,
-            self.ongoing_story_limit,
+            self.ongoing_narrative_limit,
         ) < 0:
             raise ValueError("Command settings must be non-negative")
         if self.starting_command > self.command_cap:
