@@ -133,22 +133,13 @@ A restriction such as **Deploy - Frontline only** or **Deploy - Rear only** appl
 
 It does not prevent later movement caused by Retreat or card text.
 
-## Force roles {#roles}
+## Roles and classifications {#roles}
 
-Every Force has a printed role.
+Cards may have roles or classifications such as *Swordsman*, *Spearman*, *Archer*, *Healer*, *Ship*, *Stronghold*, *Skirmisher*, *Human*, *God*, *King*, *Fleet*, or *Warband*.
 
-| Role | Rule |
-| --- | --- |
-| *Swordsman* | +1 Strength in the Frontline. |
-| *Spearman* | +1 Strength in the Frontline if a friendly Force is directly behind it. |
-| *Archer* | +2 Strength in the Rear if a friendly Force is directly in front of it. |
-| *Healer* | While in the Rear, the friendly Force directly in front of it gets +2 Strength. |
-| *Ship* | +1 Strength in the Rear. |
-| *Stronghold* | +1 Strength in the Rear. |
+**Roles and classifications do not carry hidden rules.** Any mechanic associated with a card is printed on that card. Other cards may refer to a role or classification by name.
 
 **Adjacent** means immediately left or right in the same rank. **In front of** and **behind** mean the other rank in the same Front.
-
-Cards may also have classifications such as *Human*, *God*, *King*, *Ship*, *Fleet*, *Warband*, or *Stronghold*. A classification has no rule by itself unless a card refers to it.
 
 ## Heroes {#heroes}
 
