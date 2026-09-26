@@ -20,7 +20,7 @@ class HeuristicAgent:
     """One-ply, public-information agent.
 
     The agent may inspect its own hand, all public battlefield information,
-    public hand sizes, decks/discards sizes, Victory markers, and revealed
+    public hand/deck/discard sizes, Command, Stories, Stratagems, and Pass
     state. It never evaluates the identities of cards in the opponent's hand.
     """
 
