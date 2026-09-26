@@ -437,6 +437,112 @@ def test_retreat_frontline_only_rear_only_both_and_tie() -> None:
     assert state.slot(1, pos(3, Rank.FRONT)).complete is True
 
 
+def test_maneuver_rejects_prepared_only_destination_and_immobile_force() -> None:
+    engine, state = setup_state()
+    source = pos(0, Rank.FRONT)
+    destination = pos(1, Rank.FRONT)
+    make_named(state, 0, source)
+    state.slot(0, destination).bond = "followed"
+
+    assert Maneuver(source, destination) not in engine.legal_actions(state)
+
+    state.slot(0, destination).bond = None
+    assert Maneuver(source, destination) in engine.legal_actions(state)
+
+    reed = pos(2, Rank.REAR)
+    make_named(state, 0, reed, force="the-house-of-reed")
+    assert not any(
+        isinstance(action, Maneuver) and action.source == reed
+        for action in engine.legal_actions(state)
+    )
+
+
+def test_explicit_unnamed_maneuver_and_all_banners_forward() -> None:
+    engine, state = setup_state()
+    source = pos(0, Rank.FRONT)
+    destination = pos(1, Rank.FRONT)
+    state.slot(0, source).force = "the-grey-riders"
+    assert Maneuver(source, destination) in engine.legal_actions(state)
+
+    state.slot(0, source).force = "the-fifty-men"
+    assert Maneuver(source, destination) not in engine.legal_actions(state)
+
+    state.stratagems[0].card_id = "all-banners-forward"
+    state.stratagems[0].revealed = True
+    action = Maneuver(source, destination)
+    assert action in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, action) == 0
+
+
+def test_rallied_behind_sorin_and_rear_support_use_printed_costs() -> None:
+    engine, state = setup_state()
+    target = pos(0, Rank.FRONT)
+    state.players[0].hand = ["rallied-behind", "sorin", "the-fifty-men"]
+    state.players[0].command = 5
+    state.players[1].command = 10
+
+    assert engine.command_cost_for_action(
+        state, PlayBond("rallied-behind", target)
+    ) == 0
+
+    state.slot(0, target).force = "the-fifty-men"
+    state.slot(0, target).bond = "followed"
+    assert engine.command_cost_for_action(state, PlayName("sorin", target)) == 1
+
+    state.slot(0, pos(0, Rank.REAR)).force = "nara-builder-of-walls"
+    assert engine.command_cost_for_action(
+        state, PlayForce("the-fifty-men", target)
+    ) == 1
+
+
+def test_red_duelists_ignore_rear_strength_during_front_resolution() -> None:
+    engine, state = setup_state()
+    state.slot(0, pos(0, Rank.FRONT)).force = "the-red-duelists"
+    state.slot(0, pos(0, Rank.REAR)).force = "seven-black-ships"
+    state.slot(1, pos(0, Rank.FRONT)).force = "the-fifty-men"
+    state.slot(1, pos(0, Rank.REAR)).force = "seven-black-ships"
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.last_battle_snapshot["front_scores"][0] == [3, 5]
+
+
+def test_ground_was_held_breaks_tie_only_for_single_frontline_named_side() -> None:
+    engine, state = setup_state()
+    make_named(state, 0, pos(0, Rank.FRONT))
+    make_named(state, 1, pos(0, Rank.REAR))
+    state.stratagems[0].card_id = "the-ground-was-held"
+    state.stratagems[0].revealed = True
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.last_battle_snapshot["fronts_lost"][1] >= 1
+    assert state.last_battle_snapshot["fronts_lost"][0] == 0
+
+
+def test_lines_held_and_tovan_reduce_recovery_front_loss_penalty() -> None:
+    engine, state = setup_state()
+    state.players[0].command = 5
+    state.players[1].command = 20
+    state.battle_start_command[:] = [5, 20]
+    make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
+    state.stratagems[0].card_id = "the-lines-held"
+    state.stratagems[0].revealed = True
+
+    resolve_battle_by_passing(engine, state)
+    assert state.players[0].command == 15
+
+    engine, state = setup_state(seed=4702)
+    state.players[0].command = 5
+    state.players[1].command = 20
+    state.battle_start_command[:] = [5, 20]
+    state.slot(0, pos(0, Rank.REAR)).force = "tovan-the-quartermaster"
+    make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
+
+    resolve_battle_by_passing(engine, state)
+    assert state.players[0].command == 15
+
+
 @pytest.mark.parametrize(
     ("battle", "expected"),
     [
