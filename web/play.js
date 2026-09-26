@@ -78,8 +78,8 @@ const TERM_HINTS = {
   "rear": "The position behind the Frontline in the same Front.",
   "rear force": "The Force occupying the Rear position of that Front.",
   "rear forces": "Forces occupying Rear positions.",
-  "stories": "Stories are public. An ongoing Story remains in play until its own text ends it; each player may have at most two.",
-  "story": "A public Story card. Some resolve immediately; ongoing Stories remain in play according to their text.",
+  "narratives": "Narratives are public. An Ongoing Narrative remains in play until its own text ends it; each player may have at most two.",
+  "narrative": "A public Narrative card. A Narrative marked Ongoing remains in play according to its text.",
   "strength": "The value compared in each Front. Higher total Strength controls that Front.",
   "force": "The unit or place that activates a formation's Strength and Force-dependent Bond or Name text.",
   "forces": "Cards that activate formations in Frontline or Rear positions.",
@@ -102,17 +102,9 @@ function formatGameText(value) {
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
-const canonicalType = (card) => ({
-  subject: "force",
-  link: "bond",
-  plot: "story",
-}[card?.type] || card?.type);
+const canonicalType = (card) => card?.type;
 
-const cssCardType = (card) => ({
-  force: "subject",
-  bond: "link",
-  story: "plot",
-}[canonicalType(card)] || canonicalType(card));
+const cssCardType = (card) => canonicalType(card);
 
 function titleCase(value) {
   return String(value ?? "")
@@ -164,9 +156,9 @@ function cardTitle(cardId) {
 function cardType(card) {
   const type = canonicalType(card);
   if (type === "story") {
-    const form = titleCase(card.story_form);
-    const ongoing = card.ongoing ?? card.veiled ?? false;
-    return form ? form + (ongoing ? " · Ongoing Story" : " · Story") : (ongoing ? "Ongoing Story" : "Story");
+    const form = titleCase(card.narrative_form);
+    const ongoing = card.ongoing ?? false;
+    return form ? form + (ongoing ? " · Ongoing Narrative" : " · Narrative") : (ongoing ? "Ongoing Narrative" : "Narrative");
   }
   if (type === "bond") return "Bond";
   if (type === "stratagem") return "Stratagem";
@@ -179,7 +171,6 @@ function playCardMarkup(cardId, options = {}) {
   const card = cards[cardId];
   const count = options.count || 1;
   const classes = ["play-card", "card-" + cssCardType(card)];
-  if (card.veiled) classes.push("card-scheme");
   if (card.hero) classes.push("card-hero");
   if (options.playable) classes.push("playable");
   if (options.selected) classes.push("selected");
@@ -220,8 +211,7 @@ function boardCardMarkup(cardId, role, owner) {
   const visibleStrength = card.hero && role === "name"
     ? card.hero_name_strength
     : card.strength;
-  return '<button type="button" class="board-card board-card-' + role + ' card-' + cssCardType(card) +
-    (card.veiled ? " card-scheme" : "") + (card.hero ? " card-hero" : "") +
+  return '<button type="button" class="board-card board-card-' + role + ' card-' + cssCardType(card) + (card.hero ? " card-hero" : "") +
     '" data-inspect-card="' + esc(cardId) + '" data-inspect-owner="' + owner + '" data-inspect-zone="' + esc(role) +
     '" aria-label="Inspect ' + esc(card.title) + '">' +
     '<span class="board-card-face">' +
@@ -428,18 +418,18 @@ function renderStorySlot(owner, slot) {
 
   if (!story) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
-      '<span>Ongoing Story ' + (slot + 1) + '</span><b>' +
+      '<span>Ongoing Narrative ' + (slot + 1) + '</span><b>' +
       (targetable
         ? 'PLAY · ' + commandCostLabel(actions)
         : 'empty') +
       '</b></div>';
   }
   return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
-    '<span>Ongoing Story ' + (slot + 1) + '</span>' +
+    '<span>Ongoing Narrative ' + (slot + 1) + '</span>' +
     '<button type="button" class="public-card-link" ' +
       'data-inspect-card="' + esc(story.card_id) + '" ' +
       'data-inspect-owner="' + owner + '" ' +
-      'data-inspect-zone="ongoing story">' +
+      'data-inspect-zone="ongoing narrative">' +
       esc(cardTitle(story.card_id)) +
     '</button></div>';
 }
@@ -509,7 +499,7 @@ function renderRankRow(owner, rank, label) {
 }
 
 function renderStoryRow(owner) {
-  return '<div class="scheme-row story-row"><span class="rank-label">Stories</span>' +
+  return '<div class="scheme-row story-row"><span class="rank-label">Narratives</span>' +
     renderStorySlot(owner, 0) +
     renderStorySlot(owner, 1) +
     '<div class="story-spacer" aria-hidden="true"></div>' +
@@ -698,7 +688,7 @@ function interactionHintFor(card) {
   }
   if (actions.some((a) => a.kind === "PlayStory")) {
     if (actions.some((a) => a.ongoing_slot != null)) {
-      return "Choose one of your two ongoing Story slots.";
+      return "Choose one of your two Ongoing Narrative slots.";
     }
     if (stagedPlotSource) {
       return "Now choose the destination for " + card.title + ".";
@@ -709,7 +699,7 @@ function interactionHintFor(card) {
     if (actions.some((a) => a.targets.length === 1)) {
       return "Choose a highlighted target.";
     }
-    return "Play this Story.";
+    return "Play this Narrative.";
   }
   return "Choose a legal action.";
 }
@@ -1220,7 +1210,7 @@ function renderActionFeedback() {
   } else if (action.kind === "PlayName") {
     kicker = own ? "YOU PLAY A NAME" : "OPPONENT PLAYS A NAME";
   } else if (action.kind === "PlayStory") {
-    kicker = own ? "YOU PLAY A STORY" : "OPPONENT PLAYS A STORY";
+    kicker = own ? "YOU PLAY A NARRATIVE" : "OPPONENT PLAYS A NARRATIVE";
   } else if (action.kind === "PlayStratagem") {
     kicker = own ? "YOU PLAY A STRATAGEM" : "OPPONENT PLAYS A STRATAGEM";
   }
