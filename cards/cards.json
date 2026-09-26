@@ -2269,6 +2269,301 @@
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 3
+    },
+    {
+      "id": "the-red-duelists",
+      "title": "The Red Duelists",
+      "type": "force",
+      "strength": 3,
+      "unique": false,
+      "classes": [
+        "human",
+        "duelists"
+      ],
+      "command_cost": 2,
+      "text": "**Deploy - Frontline only.** When resolving this Front, if there is an opposing Frontline formation, you may choose it. If you do, only this formation and that opposing formation contribute Strength to this Front.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "DEPLOY",
+          "text": "**Frontline only.**"
+        },
+        {
+          "kind": "timing",
+          "label": "FRONT RESOLUTION",
+          "text": "If there is an opposing Frontline formation, you may choose it. If you do, only this formation and that opposing formation contribute Strength to this Front."
+        }
+      ],
+      "design_rules": {
+        "combat": "challenge",
+        "effect": "only_self_and_chosen_opposing_frontline_formation_contribute"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 4
+    },
+    {
+      "id": "the-thornbow-hunters",
+      "title": "The Thornbow Hunters",
+      "type": "force",
+      "strength": 1,
+      "unique": false,
+      "classes": [
+        "human",
+        "hunters"
+      ],
+      "role": "archer",
+      "command_cost": 2,
+      "text": "**Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 Strength. When resolving this Front, you may choose an opposing Rear Force. That Force does not contribute Strength to this Front this resolution.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "DEPLOY",
+          "text": "**Rear only.**"
+        },
+        {
+          "kind": "continuous",
+          "label": "REAR",
+          "text": "If a friendly Force is directly in front of this Force, it gets +2 Strength."
+        },
+        {
+          "kind": "timing",
+          "label": "FRONT RESOLUTION",
+          "text": "You may choose an opposing Rear Force. That Force does not contribute Strength to this Front this resolution."
+        }
+      ],
+      "design_rules": {
+        "printed_role_effect": "rear_strength_bonus_if_force_ahead",
+        "amount": 2,
+        "combat": "skirmish",
+        "effect": "suppress_opposing_rear_force_for_resolution"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 4
+    },
+    {
+      "id": "the-iron-boars",
+      "title": "The Iron Boars",
+      "type": "force",
+      "strength": 3,
+      "unique": false,
+      "classes": [
+        "human",
+        "raiders"
+      ],
+      "role": "swordsman",
+      "command_cost": 3,
+      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 Strength. If you win this Front while the opponent has no Force in the Rear, drive off their Frontline Named Formation instead of Retreating it.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "DEPLOY",
+          "text": "**Frontline only.**"
+        },
+        {
+          "kind": "continuous",
+          "label": "FRONTLINE",
+          "text": "While this Force is in the **Frontline**, it gets +1 Strength."
+        },
+        {
+          "kind": "trigger",
+          "label": "IF YOU WIN",
+          "text": "If the opponent has no Force in the Rear, drive off their Frontline Named Formation instead of Retreating it."
+        }
+      ],
+      "design_rules": {
+        "printed_role_effect": "frontline_strength_bonus",
+        "amount": 1,
+        "combat": "breakthrough",
+        "condition": "win_front_and_opponent_rear_has_no_force",
+        "effect": "drive_off_opposing_frontline_named_instead_of_retreat"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 4
+    },
+    {
+      "id": "the-first-spear",
+      "title": "The First Spear",
+      "type": "force",
+      "strength": 3,
+      "unique": false,
+      "classes": [
+        "human",
+        "guard"
+      ],
+      "role": "spearman",
+      "command_cost": 3,
+      "text": "**Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 Strength. When resolving this Front, before Strength is compared, you may choose an opposing Frontline Force with lower printed Strength than this Force. That Force does not contribute Strength this resolution.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "DEPLOY",
+          "text": "**Frontline only.**"
+        },
+        {
+          "kind": "continuous",
+          "label": "FRONTLINE",
+          "text": "If a friendly Force is directly behind this Force, it gets +1 Strength."
+        },
+        {
+          "kind": "timing",
+          "label": "BEFORE COMPARISON",
+          "text": "You may choose an opposing Frontline Force with lower printed Strength than this Force. That Force does not contribute Strength this resolution."
+        }
+      ],
+      "design_rules": {
+        "printed_role_effect": "frontline_strength_bonus_if_force_behind",
+        "amount": 1,
+        "combat": "first_strike",
+        "target": "opposing_frontline_force_with_lower_printed_strength",
+        "effect": "target_does_not_contribute_this_resolution"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 4
+    },
+    {
+      "id": "held-the-line",
+      "title": "Held the Line",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "sacrifice"
+      ],
+      "command_cost": 1,
+      "text": "When resolving this Front, before Strength is compared, you may discard the Force in this formation and all cards attached to it. If you do, choose one opposing formation in this Front. It does not contribute Strength this resolution.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "timing",
+          "label": "BEFORE COMPARISON",
+          "text": "You may discard the Force in this formation and all cards attached to it. If you do, choose one opposing formation in this Front. It does not contribute Strength this resolution."
+        }
+      ],
+      "design_rules": {
+        "combat": "sacrifice",
+        "cost": "discard_own_force_and_all_attached_cards",
+        "effect": "chosen_opposing_formation_does_not_contribute_this_resolution"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 4
+    },
+    {
+      "id": "seized-the-standard",
+      "title": "Seized the Standard",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "capture"
+      ],
+      "command_cost": 1,
+      "text": "When this formation wins its Front and an opposing Frontline Named Formation Retreats, after the Retreat return that formation's Bond to its owner's hand.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "AFTER WINNING",
+          "text": "When an opposing Frontline Named Formation Retreats, after the Retreat return that formation's Bond to its owner's hand."
+        }
+      ],
+      "design_rules": {
+        "combat": "capture",
+        "trigger": "own_front_wins_and_opposing_frontline_named_retreats",
+        "timing": "after_retreat",
+        "effect": "return_retreating_formation_bond_to_owner_hand"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 4
+    },
+    {
+      "id": "asha-the-shield-bearer",
+      "title": "Asha, the Shield-Bearer",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "shield-bearer"
+      ],
+      "command_cost": 1,
+      "text": "When an opponent's combat effect would make another friendly formation in this Front not contribute Strength, you may have this formation not contribute instead. The other formation contributes normally.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "replacement",
+          "label": "INTERCEPT",
+          "text": "When an opponent's combat effect would make another friendly formation in this Front not contribute Strength, you may have this formation not contribute instead. The other formation contributes normally."
+        }
+      ],
+      "design_rules": {
+        "combat": "interception",
+        "trigger": "opponent_effect_would_prevent_other_friendly_formation_contribution",
+        "replacement": "this_formation_does_not_contribute_instead"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 4
+    },
+    {
+      "id": "the-ground-was-held",
+      "title": "The Ground Was Held",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "resolve"
+      ],
+      "command_cost": 2,
+      "text": "**During this Battle**, when a Front is tied, if exactly one player has a Named Formation in the Frontline there, that player wins the Front. Otherwise the Front remains tied.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "When a Front is tied, if exactly one player has a Named Formation in the Frontline there, that player wins the Front. Otherwise the Front remains tied."
+        }
+      ],
+      "design_rules": {
+        "combat": "tie_control",
+        "duration": "battle",
+        "condition": "front_tied_and_exactly_one_side_has_frontline_named",
+        "effect": "that_side_wins_front"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 4
     }
   ]
 }
