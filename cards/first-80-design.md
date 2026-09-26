@@ -42,3 +42,37 @@ Status: approved for the first-80 design pool.
 - Direct opponent Command destruction should be rare or absent from the first set.
 - Temporary effects must state their duration.
 - Stories are public; each player may have at most **2 ongoing Stories**.
+
+
+## Batch 2 - Positioning
+
+Status: approved for the first-80 design pool.
+
+| # | Card | Type | Cost | Strength | Rules text |
+| --- | --- | --- | ---: | ---: | --- |
+| 9 | **The Red Shields** | Force - Human, Guard - Spearman | 2 | 4 | **Deploy - Frontline only.** |
+| 10 | **The Crow Archers** | Force - Human, Company - Archer | 2 | 4 | **Deploy - Rear only.** |
+| 11 | **The House of Reed** | Force - Place, Stronghold | 2 | 3 | **Stronghold. Deploy - Rear only.** Cannot move, Maneuver, or swap positions. If you lose this Front while you have a Named Formation in the Frontline, drive off this Stronghold instead of Retreating that formation. |
+| 12 | **The Grey Riders** | Force - Human, Riders - Skirmisher | 2 | 2 | **Skirmisher.** May Maneuver even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Grey Riders contribute their Strength to the chosen Front instead of their own. |
+| 13 | **Guarded** | Bond | 1 | - | Opponent card effects cannot move this formation. |
+| 14 | **Marched With** | Bond | 1 | - | When you play this Bond onto a Force, you may move that formation to an adjacent empty position. |
+| 15 | **Iria** | Name - Human, Seer - Unique | 1 | +1 | Whenever an opposing formation in this Front becomes Named, your next Maneuver this Battle costs 0 Command. Additional triggers do not accumulate. |
+| 16 | **Elian** | Name - Human, Wanderer - Unique | 1 | +1 | When this formation becomes Named, you may swap it with an adjacent friendly formation. |
+
+### Batch 2 role definitions
+
+**Stronghold**
+- Deploy - Rear only.
+- Cannot move, Maneuver, or swap positions.
+- If its controller loses the Front while a Named Formation is in the Frontline, drive off the Stronghold instead of Retreating that formation.
+
+**Skirmisher**
+- May Maneuver even while not Named.
+- At Front resolution, may contribute its Strength to its own Front or one adjacent Front, not both.
+
+### Batch 2 notes
+
+- **The Three Brothers of Avar** were not included in this approved batch; the Skirmisher slot adds more positional vocabulary.
+- Stronghold is intentionally low-Strength. Its value is defensive structure, not winning through raw arithmetic.
+- Skirmisher creates lateral pressure without attacks, damage, wounds, or a separate combat step.
+- Iria changes Maneuver cost rather than moving automatically. Her discount lasts only for the current Battle and does not accumulate.
