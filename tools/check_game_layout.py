@@ -60,11 +60,11 @@ def presentation_snapshots() -> dict[str, dict]:
     cards = json.loads(card_json)["cards"]
     by_type = {kind: sorted((card for card in cards if card["type"] == kind),
                            key=lambda card: len(card["title"]), reverse=True)
-               for kind in ("subject", "link", "name", "stratagem")}
-    by_type["subject"] = [
-        card for card in by_type["subject"] if not card.get("hero", False)
+               for kind in ("force", "bond", "name", "story", "stratagem")}
+    by_type["force"] = [
+        card for card in by_type["force"] if not card.get("hero", False)
     ]
-    veiled = next(card["id"] for card in cards if card.get("veiled"))
+    ongoing_narrative = next(card["id"] for card in cards if card["type"] == "story" and card.get("ongoing"))
     session = PlaySession(card_json, deck_json, "computer", 1701, paced_ai=True)
     opening = session.snapshot(0)
     session.mulligan([], 0)
@@ -74,23 +74,23 @@ def presentation_snapshots() -> dict[str, dict]:
     for owner in range(2):
         for index, position in enumerate(all_positions()):
             slot = session.state.slot(owner, position)
-            slot.force = by_type["subject"][index % len(by_type["subject"])]["id"]
-            slot.bond = by_type["link"][index % len(by_type["link"])]["id"]
+            slot.force = by_type["force"][index % len(by_type["force"])]["id"]
+            slot.bond = by_type["bond"][index % len(by_type["bond"])]["id"]
             slot.name = by_type["name"][index % len(by_type["name"])]["id"]
-        session.state.stories[owner] = [StoryState(veiled) for _ in range(2)]
+        session.state.stories[owner] = [StoryState(ongoing_narrative) for _ in range(2)]
         session.state.stratagems[owner] = StratagemState(
             by_type["stratagem"][owner]["id"],
         )
     session.state.players[0].hand = [card["id"] for card in sorted(cards, key=lambda card: len(card["title"]), reverse=True)[:18]]
     session.state.players[1].hand = [card["id"] for card in cards[:18]]
-    session.state.players[0].discard = [by_type["subject"][0]["id"]]
+    session.state.players[0].discard = [by_type["force"][0]["id"]]
     session.state.players[1].discard = [by_type["name"][0]["id"]]
     crowded = session.snapshot(0)
     cases = {name: copy.deepcopy(crowded) for name in ("battle", "inspector", "drawer")}
     # One free Force destination exercises legal-target highlighting using an
     # action encoded by the real engine, with the rest of the formations full.
     session.state.board[0][0][1].force = None
-    session.state.players[0].hand.append(by_type["subject"][0]["id"])
+    session.state.players[0].hand.append(by_type["force"][0]["id"])
     cases["targeting"] = session.snapshot(0)
     session.state.active_player = 1
     cases["ai"] = session.snapshot(0)
@@ -147,7 +147,7 @@ CHECK_SCRIPT = r"""
     await new Promise((resolve) => setTimeout(resolve, 120));
     const stableZones = [...document.querySelectorAll(".opponent-rack, .hand-dock, .campaign-hud, #battlefield")].map((element) => [element, rect(element)]);
     if (scenario === "targeting") {
-      const card = document.querySelector("#hand .play-card.playable.card-subject");
+      const card = document.querySelector("#hand .play-card.playable.card-force");
       if (!card) fail("targeting-card-unavailable");
       else card.click();
       if (!document.querySelector(".digital-slot.targetable")) fail("targeting-highlight-missing");
@@ -193,9 +193,9 @@ CHECK_SCRIPT = r"""
       essential($("battlefield"), "battlefield");
       if (rect($("battlefield")).height < innerHeight * .38) fail("battlefield-too-small");
       if (document.querySelectorAll(".digital-slot").length !== 16) fail("formation-positions-missing");
-      if (document.querySelectorAll(".story-marker").length !== 4) fail("story-slots-missing");
+      if (document.querySelectorAll(".narrative-marker").length !== 4) fail("narrative-slots-missing");
       if (!document.querySelector(".stratagem-marker:not(.hidden)")) fail("public-stratagem-zone-missing");
-      document.querySelectorAll(".story-marker [data-inspect-card]").forEach((card) => { if (!card.dataset.inspectCard) fail("story-card-not-public"); });
+      document.querySelectorAll(".story-marker [data-inspect-card]").forEach((card) => { if (!card.dataset.inspectCard) fail("narrative-card-not-public"); });
     }
     document.querySelectorAll("#hand > .play-card").forEach((card, index) => {
       withinViewport(card, "hand-card-" + index + "-clipped");
