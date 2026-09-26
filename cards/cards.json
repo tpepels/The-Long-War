@@ -1958,7 +1958,7 @@
         "riders"
       ],
       "role": "skirmisher",
-      "text": "This Force may **Maneuver** even while not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front.",
+      "text": "This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2000,7 +2000,7 @@
       ],
       "role": "skirmisher",
       "command_cost": 2,
-      "text": "This Force may **Maneuver** even while not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left.",
+      "text": "This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2702,7 +2702,7 @@
         "veterans"
       ],
       "command_cost": 2,
-      "text": "**Deploy - Rear only.** If this Force is Named, a Force you play in the Frontline of this Front costs 1 less Command (minimum 1).",
+      "text": "**Deploy - Rear only.** If this formation is **Named**, a Force you play in the Frontline of this Front costs 1 less Command (minimum 1).",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2716,7 +2716,7 @@
         {
           "kind": "continuous",
           "label": "REBUILD",
-          "text": "If this Force is Named, a Force you play in the Frontline of this Front costs 1 less Command (minimum 1)."
+          "text": "If this formation is **Named**, a Force you play in the Frontline of this Front costs 1 less Command (minimum 1)."
         }
       ],
       "design_rules": {
