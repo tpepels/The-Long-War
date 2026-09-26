@@ -90,6 +90,12 @@ cdef int STORY_CHOICE_NONE = 0
 cdef int STORY_CHOICE_FRONT = 1
 cdef int STORY_CHOICE_NAMED_FORMATION = 2
 
+cdef int NARR_TRIGGER_NONE = 0
+cdef int NARR_TRIGGER_FRIENDLY_NAMED = 1
+cdef int NARR_TRIGGER_FRIENDLY_RETREAT = 2
+cdef int NARR_TRIGGER_OPPONENT_NAMED = 3
+cdef int NARR_TRIGGER_OPPONENT_BOTH_RANKS = 4
+
 cdef int STRAT_CHOICE_NONE = 0
 cdef int STRAT_CHOICE_FRONT = 1
 cdef int STRAT_CHOICE_ADJACENT_FRONTS = 2
@@ -485,6 +491,9 @@ cdef class FastEngine:
     cdef uint8_t first_front_card_battle_discount_name[MAX_CARDS]
     cdef uint8_t first_narrative_battle_discount_force[MAX_CARDS]
     cdef int8_t narrative_maneuver_empty_gain[MAX_CARDS]
+    cdef int8_t narrative_trigger[MAX_CARDS]
+    cdef int8_t narrative_trigger_gain[MAX_CARDS]
+    cdef uint8_t narrative_trigger_discard[MAX_CARDS]
     cdef uint8_t immobile_force[MAX_CARDS]
     cdef uint8_t cannot_swap_target[MAX_CARDS]
     cdef uint8_t catchup_zero_cost[MAX_CARDS]
@@ -580,6 +589,9 @@ cdef class FastEngine:
         memset(self.first_front_card_battle_discount_name, 0, sizeof(self.first_front_card_battle_discount_name))
         memset(self.first_narrative_battle_discount_force, 0, sizeof(self.first_narrative_battle_discount_force))
         memset(self.narrative_maneuver_empty_gain, 0, sizeof(self.narrative_maneuver_empty_gain))
+        memset(self.narrative_trigger, 0, sizeof(self.narrative_trigger))
+        memset(self.narrative_trigger_gain, 0, sizeof(self.narrative_trigger_gain))
+        memset(self.narrative_trigger_discard, 0, sizeof(self.narrative_trigger_discard))
         memset(self.immobile_force, 0, sizeof(self.immobile_force))
         memset(self.cannot_swap_target, 0, sizeof(self.cannot_swap_target))
         memset(self.catchup_zero_cost, 0, sizeof(self.catchup_zero_cost))
@@ -861,6 +873,20 @@ cdef class FastEngine:
                 self.narrative_maneuver_empty_gain[code] = int(
                     design.get("gain_command", 0)
                 )
+            if design.get("trigger") == "friendly_formation_becomes_named":
+                self.narrative_trigger[code] = NARR_TRIGGER_FRIENDLY_NAMED
+            elif design.get("trigger") == "friendly_named_formation_retreats":
+                self.narrative_trigger[code] = NARR_TRIGGER_FRIENDLY_RETREAT
+            elif design.get("trigger") == "opposing_formation_becomes_named":
+                self.narrative_trigger[code] = NARR_TRIGGER_OPPONENT_NAMED
+            elif design.get("trigger") == "opponent_has_force_in_both_ranks_same_front":
+                self.narrative_trigger[code] = NARR_TRIGGER_OPPONENT_BOTH_RANKS
+            self.narrative_trigger_gain[code] = int(
+                design.get("gain_command", 0)
+            )
+            self.narrative_trigger_discard[code] = bool(
+                design.get("discard_self", False)
+            )
             scheme = rules.get("scheme") or {}
             self.scheme_trigger[code] = scheme_trigger_map.get(scheme.get("trigger"), EVENT_NONE)
             self.scheme_effect[code] = scheme_effect_map.get(scheme.get("effect"), SCHEME_NONE)
@@ -1592,6 +1618,7 @@ cdef class FastEngine:
                     state.scheme_revealed[enemy_ix] = 1
             elif effect == COMPLETE_RECOVER_LINK:
                 self.recover_recent_link_fast(state, player)
+            self.resolve_named_narratives(state, player)
 
     cdef inline bint player_has_empty_front(
         self,
@@ -2268,6 +2295,111 @@ cdef class FastEngine:
         elif effect == PLOT_MOVE_SUBJECT:
             self.move_slot(state, pos, dest)
 
+    cdef void discard_ongoing_narrative(
+        self,
+        FastState state,
+        int controller,
+        int story_slot,
+    ) noexcept:
+        cdef int ix = controller * 4 + story_slot
+        cdef int card = state.scheme[ix]
+        if card < 0:
+            return
+        state.scheme[ix] = -1
+        state.scheme_revealed[ix] = 0
+        state.scheme_front_mask[ix] = 0
+        state.scheme_target_slot[ix] = -1
+        state.scheme_used[ix] = 0
+        self.compact_ongoing_stories(state, controller)
+        self.append_discard(state, controller, card, True)
+
+    cdef void resolve_named_narratives(
+        self,
+        FastState state,
+        int named_player,
+    ) noexcept:
+        cdef int controller, story_slot, ix, card, trigger, amount
+        for controller in range(2):
+            story_slot = self.ongoing_story_limit - 1
+            while story_slot >= 0:
+                ix = controller * 4 + story_slot
+                card = state.scheme[ix]
+                if card >= 0:
+                    trigger = self.narrative_trigger[card]
+                    if (
+                        (controller == named_player and trigger == NARR_TRIGGER_FRIENDLY_NAMED)
+                        or (
+                            controller != named_player
+                            and trigger == NARR_TRIGGER_OPPONENT_NAMED
+                        )
+                    ):
+                        amount = self.narrative_trigger_gain[card]
+                        if amount:
+                            self.gain_command_fast(state, controller, amount)
+                        if self.narrative_trigger_discard[card]:
+                            self.discard_ongoing_narrative(
+                                state, controller, story_slot
+                            )
+                story_slot -= 1
+
+    cdef void resolve_retreat_narratives(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int story_slot, ix, card, amount
+        story_slot = self.ongoing_story_limit - 1
+        while story_slot >= 0:
+            ix = player * 4 + story_slot
+            card = state.scheme[ix]
+            if (
+                card >= 0
+                and self.narrative_trigger[card] == NARR_TRIGGER_FRIENDLY_RETREAT
+            ):
+                amount = self.narrative_trigger_gain[card]
+                if amount:
+                    self.gain_command_fast(state, player, amount)
+                if self.narrative_trigger_discard[card]:
+                    self.discard_ongoing_narrative(
+                        state, player, story_slot
+                    )
+            story_slot -= 1
+
+    cdef void resolve_force_pair_narratives(
+        self,
+        FastState state,
+        int force_player,
+    ) noexcept:
+        cdef int controller = 1 - force_player
+        cdef int front, story_slot, ix, card, amount
+        cdef bint pair_exists = False
+        for front in range(4):
+            if (
+                state.subject[slot_index(force_player, front, 0)] >= 0
+                and state.subject[slot_index(force_player, front, 1)] >= 0
+            ):
+                pair_exists = True
+                break
+        if not pair_exists:
+            return
+        story_slot = self.ongoing_story_limit - 1
+        while story_slot >= 0:
+            ix = controller * 4 + story_slot
+            card = state.scheme[ix]
+            if (
+                card >= 0
+                and self.narrative_trigger[card]
+                == NARR_TRIGGER_OPPONENT_BOTH_RANKS
+            ):
+                amount = self.narrative_trigger_gain[card]
+                if amount:
+                    self.gain_command_fast(state, controller, amount)
+                if self.narrative_trigger_discard[card]:
+                    self.discard_ongoing_narrative(
+                        state, controller, story_slot
+                    )
+            story_slot -= 1
+
     cdef void resolve_maneuver_into_empty_narratives(
         self,
         FastState state,
@@ -2490,6 +2622,7 @@ cdef class FastEngine:
         """Move a formation by Retreat and apply mandatory Retreat text."""
         cdef int bond = state.link[source]
         self.move_slot(state, source, destination)
+        self.resolve_retreat_narratives(state, player)
         if bond >= 0 and self.retreat_command_gain[bond] > 0:
             self.gain_command_fast(
                 state,
@@ -2888,6 +3021,7 @@ cdef class FastEngine:
             state.maneuver_count[dest] += 1
             if target:
                 self.resolve_maneuver_into_empty_narratives(state, actor)
+            self.resolve_force_pair_narratives(state, actor)
             self.finish_operation_fast(state, actor)
             return
 
@@ -2902,6 +3036,7 @@ cdef class FastEngine:
         if kind == TYPE_SUBJECT:
             self.take_from_hand(state, actor, card, 0)
             state.subject[pos] = card
+            self.resolve_force_pair_narratives(state, actor)
             front = front_from_slot(pos)
             self.resolve_scheme_event(state, actor, EVENT_SUBJECT, front, pos)
             self.resolve_strat_event(state, EVENT_SUBJECT, actor, card, pos)
@@ -2968,12 +3103,14 @@ cdef class FastEngine:
                     else:
                         target = slot_index(actor, front + 1, local & 1)
                     self.move_slot(state, source, target)
+                self.resolve_force_pair_narratives(state, actor)
             elif choice == STRAT_CHOICE_RESERVES:
                 for front in range(4):
                     source = slot_index(actor, front, 1)
                     if extra & (<uint32_t>1 << source):
                         target = slot_index(actor, front, 0)
                         self.move_slot(state, source, target)
+                self.resolve_force_pair_narratives(state, actor)
 
             self.finish_operation_fast(state, actor)
             return

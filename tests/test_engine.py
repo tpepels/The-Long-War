@@ -545,6 +545,52 @@ def test_long_march_regains_command_only_on_first_maneuver_into_empty_each_battl
     assert state.players[0].command == 4
 
 
+def test_named_narrative_trigger_regains_command_and_discards_itself() -> None:
+    engine, state = setup_state()
+    state.players[0].command = 5
+    state.stories[0] = [StoryState("they-returned-with-names")]
+    target = pos(0, Rank.FRONT)
+    state.slot(0, target).force = "the-fifty-men"
+    state.slot(0, target).bond = "followed"
+    state.players[0].hand = ["asha-the-shield-bearer"]
+
+    engine.apply(state, PlayName("asha-the-shield-bearer", target))
+
+    assert state.players[0].command == 5
+    assert state.stories[0] == []
+    assert "they-returned-with-names" in state.players[0].discard
+
+
+def test_opposing_named_narrative_trigger_belongs_to_other_player() -> None:
+    engine, state = setup_state()
+    state.players[1].command = 5
+    state.stories[1] = [StoryState("they-were-gathering-there")]
+    target = pos(0, Rank.FRONT)
+    state.slot(0, target).force = "the-fifty-men"
+    state.slot(0, target).bond = "followed"
+    state.players[0].hand = ["asha-the-shield-bearer"]
+
+    engine.apply(state, PlayName("asha-the-shield-bearer", target))
+
+    assert state.players[1].command == 6
+    assert state.stories[1] == []
+    assert "they-were-gathering-there" in state.players[1].discard
+
+
+def test_muster_false_triggers_when_opponent_fills_both_ranks_of_front() -> None:
+    engine, state = setup_state()
+    state.players[1].command = 5
+    state.stories[1] = [StoryState("the-muster-was-false")]
+    state.slot(0, pos(0, Rank.REAR)).force = "the-fifty-men"
+    state.players[0].hand = ["the-fifty-men"]
+
+    engine.apply(state, PlayForce("the-fifty-men", pos(0, Rank.FRONT)))
+
+    assert state.players[1].command == 6
+    assert state.stories[1] == []
+    assert "the-muster-was-false" in state.players[1].discard
+
+
 def test_battle_only_temporary_strength_resets_after_battle() -> None:
     engine, state = setup_state()
     target = pos(0, Rank.FRONT)
