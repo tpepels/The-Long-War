@@ -150,6 +150,11 @@ class GameState:
     pending_draw_discard_for: int | None = None
     pending_draw_count: int = 0
     pending_draw_finish_operation: bool = False
+    pending_effects: list[dict[str, object]] = field(default_factory=list)
+    pending_resume: str | None = None
+    pending_resume_player: int | None = None
+    free_maneuver_available: list[bool] = field(default_factory=lambda: [False, False])
+    battle_resolution: dict[str, object] | None = None
     last_battle_snapshot: dict[str, object] | None = None
     pass_order: list[int] = field(default_factory=list)
     winner: int | None = None
@@ -248,6 +253,18 @@ class GameState:
             pending_draw_discard_for=self.pending_draw_discard_for,
             pending_draw_count=self.pending_draw_count,
             pending_draw_finish_operation=self.pending_draw_finish_operation,
+            pending_effects=[dict(effect) for effect in self.pending_effects],
+            pending_resume=self.pending_resume,
+            pending_resume_player=self.pending_resume_player,
+            free_maneuver_available=list(self.free_maneuver_available),
+            battle_resolution=(
+                None
+                if self.battle_resolution is None
+                else {
+                    key: (list(value) if isinstance(value, list) else value)
+                    for key, value in self.battle_resolution.items()
+                }
+            ),
             last_battle_snapshot=(
                 None
                 if self.last_battle_snapshot is None
@@ -339,6 +356,18 @@ class GameState:
         self.pending_draw_discard_for = source.pending_draw_discard_for
         self.pending_draw_count = source.pending_draw_count
         self.pending_draw_finish_operation = source.pending_draw_finish_operation
+        self.pending_effects[:] = [dict(effect) for effect in source.pending_effects]
+        self.pending_resume = source.pending_resume
+        self.pending_resume_player = source.pending_resume_player
+        self.free_maneuver_available[:] = source.free_maneuver_available
+        self.battle_resolution = (
+            None
+            if source.battle_resolution is None
+            else {
+                key: (list(value) if isinstance(value, list) else value)
+                for key, value in source.battle_resolution.items()
+            }
+        )
         self.last_battle_snapshot = (
             None
             if source.last_battle_snapshot is None
