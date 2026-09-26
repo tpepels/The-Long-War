@@ -17,10 +17,10 @@ from longwar.decks import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DECK_FILES = (
-    "reference.json",
-    "avaros-line.json",
-    "mara-rear.json",
-    "sera-support.json",
+    "mobility-open-bonds.json",
+    "persistent-elite-heroes.json",
+    "narrative-command.json",
+    "battlefield-control-stratagems.json",
 )
 
 
@@ -46,7 +46,7 @@ def test_active_reference_decks_are_canonical_and_legal() -> None:
 
 def test_deck_minimums_are_not_exact_caps() -> None:
     cards = _cards()
-    base = _deck("reference.json")
+    base = _deck("mobility-open-bonds.json")
     extra = next(
         card_id for card_id, card in cards.items()
         if not card["unique"] and base.count(card_id) < 2
@@ -59,12 +59,12 @@ def test_deck_minimums_are_not_exact_caps() -> None:
 def test_33_cards_are_rejected() -> None:
     cards = _cards()
     with pytest.raises(InvalidDeckDefinition, match="at least 34"):
-        validate_deck_definition(_deck("reference.json")[:33], cards)
+        validate_deck_definition(_deck("mobility-open-bonds.json")[:33], cards)
 
 
 def test_force_and_name_minimums_are_enforced() -> None:
     cards = _cards()
-    deck = _deck("reference.json")
+    deck = _deck("mobility-open-bonds.json")
 
     too_few_forces = [card_id for card_id in deck if cards[card_id]["type"] != "force"]
     while len(too_few_forces) < 34:
@@ -89,7 +89,7 @@ def test_force_and_name_minimums_are_enforced() -> None:
 
 def test_unique_and_non_unique_copy_limits() -> None:
     cards = _cards()
-    deck = _deck("reference.json")
+    deck = _deck("mobility-open-bonds.json")
 
     unique = next(card_id for card_id in deck if cards[card_id]["unique"])
     with pytest.raises(InvalidDeckDefinition, match="maximum is 1"):
@@ -107,6 +107,6 @@ def test_heroes_have_no_deck_cap_beyond_unique_titles() -> None:
     cards = _cards()
     heroes = [card_id for card_id, card in cards.items() if card.get("hero")]
     assert len(heroes) >= 6
-    deck = _deck("mara-rear.json")
+    deck = _deck("narrative-command.json")
     assert len([card_id for card_id in deck if cards[card_id].get("hero")]) >= 4
     validate_deck_definition(deck, cards)
