@@ -134,7 +134,7 @@ def test_heuristic_values_all_four_fronts_independently() -> None:
     assert agent.evaluate(engine, ahead, 0) > agent.evaluate(engine, behind, 0)
 
 
-def test_passing_state_is_penalized_while_opponent_has_final_turn() -> None:
+def test_first_pass_is_penalized_while_opponent_has_normal_reply_turn() -> None:
     engine, state = engine_and_state()
     state.players[0].hand = ["oren", "iria"]
     state.players[1].hand = ["namar", "teyra", "followed", "swore-to"]
