@@ -1618,13 +1618,36 @@ cdef class FastEngine:
             self.return_to_hand(state, player, card)
             return
 
+    cdef void resolve_completion_effect_fast(
+        self,
+        FastState state,
+        int player,
+        int card,
+        int front,
+    ):
+        cdef int effect, amount, enemy_ix
+        if card < 0:
+            return
+        effect = self.completion_effect[card]
+        amount = self.completion_amount[card]
+        if effect == COMPLETE_GAIN_COMMAND:
+            self.gain_command_fast(state, player, amount)
+        elif effect == COMPLETE_DRAW:
+            self.queue_battle_draws(state, player, amount)
+        elif effect == COMPLETE_REVEAL_SCHEME:
+            enemy_ix = (1 - player) * 4 + front
+            if state.scheme[enemy_ix] >= 0:
+                state.scheme_revealed[enemy_ix] = 1
+        elif effect == COMPLETE_RECOVER_LINK:
+            self.recover_recent_link_fast(state, player)
+
     cdef void resolve_new_completions_fast(
         self,
         FastState state,
         int player,
         int before_mask,
     ):
-        cdef int local, slot, name, effect, amount, front, enemy_ix
+        cdef int local, slot, front
         cdef int after_mask = self.complete_mask(state, player)
         cdef int new_mask = after_mask & ~before_mask
         if new_mask == 0:
@@ -1633,23 +1656,17 @@ cdef class FastEngine:
             if not (new_mask & (1 << local)):
                 continue
             slot = player * 8 + local
+            front = local >> 1
             state.completion_count_this_battle[player] += 1
-            name = state.name[slot]
-            if name < 0:
-                continue
-            effect = self.completion_effect[name]
-            amount = self.completion_amount[name]
-            if effect == COMPLETE_GAIN_COMMAND:
-                self.gain_command_fast(state, player, amount)
-            elif effect == COMPLETE_DRAW:
-                self.queue_battle_draws(state, player, amount)
-            elif effect == COMPLETE_REVEAL_SCHEME:
-                front = local >> 1
-                enemy_ix = (1 - player) * 4 + front
-                if state.scheme[enemy_ix] >= 0:
-                    state.scheme_revealed[enemy_ix] = 1
-            elif effect == COMPLETE_RECOVER_LINK:
-                self.recover_recent_link_fast(state, player)
+            self.resolve_completion_effect_fast(
+                state, player, state.subject[slot], front
+            )
+            self.resolve_completion_effect_fast(
+                state, player, state.link[slot], front
+            )
+            self.resolve_completion_effect_fast(
+                state, player, state.name[slot], front
+            )
             self.resolve_named_narratives(state, player)
 
     cdef inline bint player_has_empty_front(

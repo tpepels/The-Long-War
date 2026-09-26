@@ -669,6 +669,20 @@ def test_marched_with_can_move_formation_when_played_onto_force() -> None:
     assert state.slot(0, destination).bond == "marched-with"
 
 
+def test_trusted_bond_refunds_command_when_formation_becomes_named() -> None:
+    engine, state = setup_state()
+    target = pos(0, Rank.FRONT)
+    state.players[0].command = 5
+    state.slot(0, target).force = "the-fifty-men"
+    state.slot(0, target).bond = "trusted"
+    state.players[0].hand = ["asha-the-shield-bearer"]
+
+    engine.apply(state, PlayName("asha-the-shield-bearer", target))
+
+    assert state.slot(0, target).named is True
+    assert state.players[0].command == 5
+
+
 def test_battle_only_temporary_strength_resets_after_battle() -> None:
     engine, state = setup_state()
     target = pos(0, Rank.FRONT)
