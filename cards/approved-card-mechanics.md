@@ -3,7 +3,7 @@
 This file is a compact reference for the currently approved first-80 card designs.
 
 **Source of truth:** `cards/cards.json`  
-**Approved cards:** 56
+**Approved cards:** 64
 
 ## Vocabulary
 
@@ -95,6 +95,7 @@ This file is a compact reference for the currently approved first-80 card design
 - **Persistence & Retreat:** inherited Bonds, salvage, Name survival, Retreat repositioning, rebuilding, voluntary Retreat.
 - **Command:** catch-up discounts, completion discounts, optional investment, refunds, hand-to-Command conversion, recovery, and Battle-wide spending.
 - **Heroes:** dual-use Force/Name choices across movement, combat, Retreat, Command, rebuilding, card recovery, and Story support.
+- **Narratives:** Legends, Omens, Warnings, Prophecies, Sagas, Myths, and Conspiracies turn battlefield events into Command plus a secondary effect.
 
 
 ## Batch 6 - Command
@@ -124,4 +125,19 @@ This file is a compact reference for the currently approved first-80 card design
 | 54 | **Neris, the Ferryman** | Hero | 3 | 4 | +1 | **Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** After your Frontline formation here Retreats, you may move it one Front left or right if that Rear position is empty. **Name -** After this formation Retreats, you may move it one Front left or right if that Rear position is empty. |
 | 55 | **Veyra, Keeper of Oaths** | Hero | 3 | 4 | +1 | **Hero.** Play as a **Force** or **Name**. **Force -** When you play Veyra, you may move a Bond or Name from an adjacent position with no Force into Veyra's position, if that slot is empty. **Name -** When you play Veyra on a Force with no Bond, you may move a Bond from an adjacent formation with no Name onto this formation. |
 | 56 | **Yara, the Chronicler** | Hero | 3 | 3 | +1 | **Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** The first Story you play each Battle costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return one Story from your discard pile to your hand. |
+
+
+
+## Batch 8 - Narratives
+
+| # | Card | Form | Cost | Approved mechanic |
+|---:|---|---|---:|---|
+| 57 | **The Wall Did Not Break** | Legend | 1 | **Legend - Ongoing.** When you play this Legend, choose a Front and place it beside that Front. At Battle end, if you did not lose that Front, regain 1 Command. If you won that Front, you may also return one Bond from your discard pile to your hand. Then discard this Legend. |
+| 58 | **They Returned With Names** | Legend | 1 | **Legend - Ongoing.** When one of your formations becomes Named, regain 1 Command. You may Maneuver that formation for 0 Command. Then discard this Legend. |
+| 59 | **The Crows Came Down** | Omen | 1 | **Omen - Ongoing.** When one of your Named Formations Retreats, regain 1 Command. You may move it one Front left or right if that Rear position is empty. Then discard this Omen. |
+| 60 | **They Were Gathering There** | Warning | 1 | **Warning - Ongoing.** When an opposing formation becomes Named, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Warning. |
+| 61 | **Before Sunset, the Ford Would Be Ours** | Prophecy | 1 | **Prophecy - Ongoing.** When you play this Prophecy, choose a Front and place it beside that Front. At Battle end, if you win that Front, regain 2 Command and draw 1 card. Then discard this Prophecy. |
+| 62 | **They Lived to Tell It** | Saga | 1 | **Saga - Ongoing.** When you play this Saga, place it beside one of your Named Formations. At Battle end, if that formation is still on the battlefield, regain 1 Command and draw 1 card. Then discard this Saga. |
+| 63 | **No Road Was Too Long** | Myth | 2 | **Myth - Ongoing.** The first time each Battle one of your formations Maneuvers into an empty position, regain 1 Command. You may move an adjacent friendly formation into the position it left. |
+| 64 | **The Muster Was False** | Conspiracy | 1 | **Conspiracy - Ongoing.** When your opponent has a Force in both the Frontline and Rear of the same Front, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Conspiracy. |
 
