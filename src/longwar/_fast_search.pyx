@@ -508,6 +508,7 @@ cdef class FastEngine:
     cdef uint8_t driven_bond_returns[MAX_CARDS]
     cdef uint8_t driven_name_returns[MAX_CARDS]
     cdef int8_t retreat_command_gain[MAX_CARDS]
+    cdef uint8_t capture_retreating_bond[MAX_CARDS]
     cdef uint8_t combat_frontline_only[MAX_CARDS]
     cdef int8_t strat_maneuver_cost[MAX_CARDS]
     cdef uint8_t strat_unnamed_maneuver[MAX_CARDS]
@@ -614,6 +615,7 @@ cdef class FastEngine:
         memset(self.driven_bond_returns, 0, sizeof(self.driven_bond_returns))
         memset(self.driven_name_returns, 0, sizeof(self.driven_name_returns))
         memset(self.retreat_command_gain, 0, sizeof(self.retreat_command_gain))
+        memset(self.capture_retreating_bond, 0, sizeof(self.capture_retreating_bond))
         memset(self.combat_frontline_only, 0, sizeof(self.combat_frontline_only))
         memset(self.strat_maneuver_cost, 0xff, sizeof(self.strat_maneuver_cost))
         memset(self.strat_unnamed_maneuver, 0, sizeof(self.strat_unnamed_maneuver))
@@ -831,6 +833,15 @@ cdef class FastEngine:
                 self.driven_name_returns[code] = 1
             if design.get("persistence") == "retreat_command_compensation":
                 self.retreat_command_gain[code] = int(design.get("amount", 1))
+            if (
+                design.get("combat") == "capture"
+                and design.get("trigger")
+                == "own_front_wins_and_opposing_frontline_named_retreats"
+                and design.get("timing") == "after_retreat"
+                and design.get("effect")
+                == "return_retreating_formation_bond_to_owner_hand"
+            ):
+                self.capture_retreating_bond[code] = 1
             if design.get("combat") == "frontline_only_comparison":
                 self.combat_frontline_only[code] = 1
             if design.get("combat") == "tie_control":
@@ -2300,6 +2311,19 @@ cdef class FastEngine:
         if name >= 0:
             self.return_to_hand(state, player, name)
 
+    cdef inline void return_bond_to_hand_from_slot(
+        self,
+        FastState state,
+        int player,
+        int slot,
+    ) noexcept:
+        """Return only the Bond; Force and Name remain in place."""
+        cdef int bond = state.link[slot]
+        if bond < 0:
+            return
+        state.link[slot] = -1
+        self.return_to_hand(state, player, bond)
+
     cdef void compact_ongoing_stories(
         self,
         FastState state,
@@ -2807,6 +2831,22 @@ cdef class FastEngine:
                 self.retreat_command_gain[bond],
             )
 
+    cdef inline bint front_has_capture_bond(
+        self,
+        FastState state,
+        int player,
+        int front,
+    ) noexcept:
+        cdef int rank, slot, bond
+        for rank in range(2):
+            slot = slot_index(player, front, rank)
+            if not self.slot_complete(state, slot):
+                continue
+            bond = state.link[slot]
+            if bond >= 0 and self.capture_retreating_bond[bond]:
+                return True
+        return False
+
     cdef void discard_incomplete_formations(self, FastState state) noexcept:
         cdef int player, slot
         for player in range(2):
@@ -2862,6 +2902,12 @@ cdef class FastEngine:
                         self.drive_off_slot(state, player, front_slot)
                     else:
                         self.retreat_slot(state, player, front_slot, rear_slot)
+                        if self.front_has_capture_bond(
+                            state, 1 - player, front
+                        ):
+                            self.return_bond_to_hand_from_slot(
+                                state, player, rear_slot
+                            )
 
     cdef void discard_battle_stratagems(self, FastState state) noexcept:
         cdef int player, card
