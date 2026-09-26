@@ -3806,6 +3806,254 @@
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 8
+    },
+    {
+      "id": "the-reserve-was-committed",
+      "title": "The Reserve Was Committed",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "reserve"
+      ],
+      "command_cost": 2,
+      "text": "When you play this Stratagem, you may move one friendly formation from the Rear to the empty Frontline position in the same Front.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "WHEN PLAYED",
+          "text": "You may move one friendly formation from the Rear to the empty Frontline position in the same Front."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "commit_reserve",
+        "on_play": "optional_move_friendly_rear_formation_to_empty_frontline_same_front"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
+    },
+    {
+      "id": "the-ranks-were-reversed",
+      "title": "The Ranks Were Reversed",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "deployment"
+      ],
+      "command_cost": 1,
+      "text": "**During this Battle**, the next Force you play may be played in the Frontline or Rear, even if its card says **Deploy - Frontline only** or **Deploy - Rear only**.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "The next Force you play may be played in the Frontline or Rear, even if its card has a rank-only Deploy restriction."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "override_next_force_deploy_rank",
+        "uses": 1,
+        "duration": "battle"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
+    },
+    {
+      "id": "the-line-was-changed",
+      "title": "The Line Was Changed",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "maneuver"
+      ],
+      "command_cost": 2,
+      "text": "When you play this Stratagem, you may swap two adjacent friendly formations. Neither formation needs to be Named.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "WHEN PLAYED",
+          "text": "You may swap two adjacent friendly formations. Neither formation needs to be Named."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "immediate_adjacent_swap",
+        "requires_named": false
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
+    },
+    {
+      "id": "the-rear-guard-turned",
+      "title": "The Rear Guard Turned",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "retreat"
+      ],
+      "command_cost": 2,
+      "text": "**During this Battle**, the first time one of your Named Formations **Retreats**, you may **Maneuver** one adjacent friendly Named Formation for 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "FIRST RETREAT",
+          "text": "The first time one of your Named Formations **Retreats**, you may **Maneuver** one adjacent friendly Named Formation for 0 Command."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "cover_retreat",
+        "trigger_once": "first_friendly_named_retreat",
+        "effect": "optional_zero_cost_adjacent_friendly_named_maneuver",
+        "duration": "battle"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
+    },
+    {
+      "id": "they-withdrew-in-order",
+      "title": "They Withdrew in Order",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "withdrawal"
+      ],
+      "command_cost": 2,
+      "text": "**During this Battle**, the first time one of your Rear Named Formations would be driven off, you may move it one Front left or right if that Rear position is empty. If you do, it is not driven off.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "replacement",
+          "label": "FIRST DRIVEN OFF",
+          "text": "The first time one of your Rear Named Formations would be driven off, you may move it one Front left or right to an empty Rear position instead."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "orderly_withdrawal",
+        "trigger_once": "first_rear_named_would_be_driven_off",
+        "replacement": "optional_sideways_rear_move_if_empty"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
+    },
+    {
+      "id": "the-blow-fell-elsewhere",
+      "title": "The Blow Fell Elsewhere",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "feint"
+      ],
+      "command_cost": 2,
+      "text": "At Battle end, before comparing Strength, choose one of your Forces and one adjacent Front. Count that Force's Strength only in the chosen Front this Battle.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BATTLE END",
+          "text": "Before comparing Strength, choose one of your Forces and one adjacent Front. Count that Force's Strength only in the chosen Front this Battle."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "redirect_force_strength",
+        "timing": "battle_end_before_strength_comparison",
+        "target": "one_friendly_force",
+        "destination": "adjacent_front"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
+    },
+    {
+      "id": "the-rear-was-screened",
+      "title": "The Rear Was Screened",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "defence"
+      ],
+      "command_cost": 2,
+      "text": "**During this Battle**, always count Strength from your Rear formations, even if an opponent's card says to ignore it.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "Always count Strength from your Rear formations, even if an opponent's card says to ignore it."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "protect_rear_strength_from_ignore",
+        "duration": "battle"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
+    },
+    {
+      "id": "the-countermarch-began",
+      "title": "The Countermarch Began",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "maneuver"
+      ],
+      "command_cost": 2,
+      "text": "**During this Battle**, the first time your opponent **Maneuvers**, your next **Maneuver** costs 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "FIRST ENEMY MANEUVER",
+          "text": "The first time your opponent **Maneuvers**, your next **Maneuver** costs 0 Command."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "countermarch",
+        "trigger_once": "first_opponent_maneuver",
+        "effect": "next_own_maneuver_cost_0",
+        "duration": "battle"
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 9
     }
   ]
 }
