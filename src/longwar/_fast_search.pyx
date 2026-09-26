@@ -4553,6 +4553,12 @@ cdef class FastEngine:
 
         base_recovery = self.command_recovery_for_battle(state.battle)
         for p in range(2):
+            # Battle-end card effects can draw/refund after resolution began;
+            # snapshot those counters only once every such effect is done.
+            state.last_command_spent[p] = state.command_spent_this_battle[p]
+            state.last_command_refunded[p] = state.command_refunded_this_battle[p]
+            state.last_cards_drawn[p] = state.cards_drawn_this_battle[p]
+            state.last_completion_count[p] = state.completion_count_this_battle[p]
             actual = base_recovery - state.resolution_recovery_losses[p]
             if actual < 0:
                 actual = 0
