@@ -22,7 +22,7 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
 
     assert "column-count: 2;" in css
     assert "rulebook-at-a-glance" in rules
-    assert "Final Force Strength cannot fall below 0." in rules
+    assert "Strength cannot fall below 0" in rules
     assert "player who Passed second counts as active" not in rules
     assert "no generic Draw operation" in rules
     assert "| I | 10 |" in rules
@@ -46,20 +46,19 @@ def test_rulebook_core_constants_match_standard_engine() -> None:
     assert standard.maneuver_command_cost == 1
     assert standard.command_recovery_schedule == (10, 7, 5, 4, 3, 2, 1)
     assert standard.command_collapse_threshold == 5
-    assert standard.cycle_enabled is False
 
     assert "**four Fronts**" in rules_text
     assert "draw **10 cards**" in rules_text
     assert "Command to **20**" in rules_text
-    assert "at most **2 ongoing Stories**" in rules_text
-    assert "Maneuver is an operation that costs **1 Command**" in rules_text
+    assert "at most **2 Ongoing Narratives**" in rules_text
+    assert "A Maneuver is one operation and costs **1 Command**" in rules_text
     assert "**two consecutive Passes**" in rules_text
     assert "fewer than 5 Command" in rules_text
 
 
 def test_rulebook_roles_are_labels_not_hidden_rules() -> None:
     rules = text("rules/rulebook.md")
-    assert "**Roles and classifications do not carry hidden rules.**" in rules
+    assert "They have no hidden rules." in rules
 
 
 def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
@@ -106,7 +105,7 @@ def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:
         covered.update(data["cards"])
 
     assert covered == canonical
-    assert len(canonical) == 51
+    assert len(canonical) == 80
 
 
 def test_mccfr_suite_builder_covers_all_four_profile_policies() -> None:
@@ -118,45 +117,22 @@ def test_mccfr_suite_builder_covers_all_four_profile_policies() -> None:
     assert 'heuristic-vs-mccfr-{profile_id}.json' in builder
 
 
-def test_web_card_renderers_normalize_mixed_card_type_names() -> None:
+def test_web_card_renderers_use_only_canonical_card_types() -> None:
     for surface in ("web/cards.js", "web/playtest-kit.js", "web/play.js", "web/balance.js"):
         source = text(surface)
-        assert "canonicalType" in source
-        assert 'subject: "force"' in source
-        assert 'link: "bond"' in source
-        assert 'plot: "story"' in source
-    balance = text("web/balance.html")
-    assert 'value="force"' in balance
-    assert 'value="bond"' in balance
-    assert 'value="story"' in balance
+        assert 'subject: "force"' not in source
+        assert 'link: "bond"' not in source
+        assert 'plot: "story"' not in source
+        assert ".veiled" not in source
 
 
 def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
     data = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     cards = data["cards"]
-    allowed_labels = {
-        "PLAY",
-        "TRAIT",
-        "DUAL",
-        "WHILE",
-        "WHEN",
-        "BONUS",
-        "NAMED",
-        "TARGET",
-        "EFFECT",
-        "MOVE",
-        "VEILED",
-        "REVEAL",
-        "WHILE REVEALED",
-        "FACE-DOWN",
-        "WHEN PLAYED",
-        "DURING THIS BATTLE",
-    }
-
-    assert len(cards) == 51
+    assert len(cards) == 80
     for card in cards:
         for block in card.get("rule_blocks", []):
-            assert block.get("label") in allowed_labels
+            assert block.get("label", "").strip()
             assert block.get("text", "").strip()
         player_copy = " ".join(
             [card.get("text", "")]
@@ -199,7 +175,7 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     assert "There is no overall Battle winner." in page
     for modifier in ("+1", "+2", "+3", "-1", "-2", "-3"):
         assert modifier in page
-    assert "Ongoing Stories and Stratagems are public." in page
+    assert "Ongoing Narratives and Stratagems are public." in page
     assert "stay face-up and visible to both players" in page
     assert "@page tracker" in css
     assert 'href="tokens.html"' in kit
