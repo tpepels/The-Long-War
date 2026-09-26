@@ -183,14 +183,14 @@ def main() -> None:
         card["id"]: card["title"]
         for card in health.get("cards", [])
     }
-    observed_formations = {
+    observed_legends = {
         row["id"]: row
-        for row in health.get("formations", [])
+        for row in health.get("legends", [])
     }
-    all_formations: list[dict[str, Any]] = []
-    for row in static.get("all_static_formations", []):
-        key = " | ".join((row["force"], row["bond"], row["name"]))
-        observed = observed_formations.get(key)
+    all_legends: list[dict[str, Any]] = []
+    for row in static.get("all_static_legends", []):
+        key = " | ".join((row["subject"], row["link"], row["name"]))
+        observed = observed_legends.get(key)
         if observed is not None:
             merged = dict(observed)
             merged["observed"] = True
@@ -201,7 +201,7 @@ def main() -> None:
                 "id": key,
                 "title": " — ".join(
                     card_titles.get(part, part)
-                    for part in (row["force"], row["bond"], row["name"])
+                    for part in (row["subject"], row["link"], row["name"])
                 ),
                 "completions": 0,
                 "games_seen": 0,
@@ -214,7 +214,7 @@ def main() -> None:
                 "static_strength": row["static_strength"],
                 "static_z": row["z_score"],
             }
-        all_formations.append(merged)
+        all_legends.append(merged)
 
     downloads = sorted(
         path.name
@@ -235,7 +235,7 @@ def main() -> None:
         "counterfactual": counterfactual,
         "targeted_counterfactual": targeted,
         "raw_telemetry": raw_telemetry,
-        "all_formations": all_formations,
+        "all_legends": all_legends,
         "downloads": downloads,
     }
 
