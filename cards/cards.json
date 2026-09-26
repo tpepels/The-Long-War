@@ -511,8 +511,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "WHEN ENEMY IS NAMED",
-          "text": "Whenever an opposing formation in this Front becomes **Named**, your next **Maneuver** this Battle costs 0 Command. Additional triggers do not accumulate."
+          "label": "ENEMY NAMED",
+          "text": "When an opposing formation in this Front becomes **Named**, your next **Maneuver** this Battle costs 0 Command. If this happens again before you use it, you do not gain another."
         }
       ],
       "command_cost": 1,
@@ -2250,13 +2250,13 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "ONGOING",
-          "text": "This Story remains in play until an effect ends it."
+          "label": "SAGA",
+          "text": "**Ongoing.**"
         },
         {
-          "kind": "continuous",
-          "label": "FIRST MANEUVER",
-          "text": "The first **Maneuver** you make each turn costs 0 Command if it moves a formation into an empty position rather than swapping."
+          "kind": "trigger",
+          "label": "FIRST EACH BATTLE",
+          "text": "The first time each Battle one of your formations **Maneuvers** into an empty position, regain 1 Command."
         }
       ],
       "design_rules": {
@@ -2863,7 +2863,7 @@
         {
           "kind": "cost",
           "label": "COST",
-          "text": "If you play this Name on a Force that already has a Bond, it costs 0 Command."
+          "text": "If you play Sorin on a Force that already has a Bond, Sorin costs 1 Command."
         }
       ],
       "design_rules": {
@@ -2923,8 +2923,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "BATTLE END",
-          "text": "If this formation wins its Front, regain 1 Command."
+          "label": "WHEN NAMED",
+          "text": "When this formation becomes **Named**, regain 1 Command."
         }
       ],
       "design_rules": {
@@ -3019,7 +3019,7 @@
         {
           "kind": "continuous",
           "label": "LOWER COMMAND",
-          "text": "The first card you play each turn costs 1 less Command (minimum 1)."
+          "text": "While you have less Command than your opponent, the first card you play in this Front each turn costs 1 less Command (minimum 1)."
         }
       ],
       "design_rules": {
@@ -3258,7 +3258,7 @@
         {
           "kind": "continuous",
           "label": "NAME",
-          "text": "While this formation is Named, the first card you play in this Front each turn costs 1 less Command (minimum 1)."
+          "text": "While this formation is Named, the first card you play in this Front each Battle costs 1 less Command (minimum 1)."
         }
       ],
       "design_rules": {
@@ -3460,12 +3460,12 @@
         {
           "kind": "property",
           "label": "FORCE",
-          "text": "**Deploy - Rear only.** The first Story you play each Battle costs 1 less Command (minimum 1)."
+          "text": "**Deploy - Rear only.** The first **Narrative** you play each Battle costs 1 less Command (minimum 1)."
         },
         {
           "kind": "trigger",
           "label": "NAME",
-          "text": "When this formation becomes Named, return one Story from your discard pile to your hand."
+          "text": "When this formation becomes Named, return a Narrative from your discard pile to your hand."
         }
       ],
       "design_rules": {
@@ -4037,7 +4037,7 @@
         {
           "kind": "effect",
           "label": "WHEN PLAYED",
-          "text": "Move any number of Rear formations into empty Frontline positions in their own Fronts. First move costs 0 Command; each additional move costs 1 Command."
+          "text": "Move any number of your Rear formations to empty Frontline positions in their own Fronts. The first costs no extra Command; each additional formation costs 1 Command."
         }
       ],
       "design_rules": {
@@ -4074,7 +4074,7 @@
         {
           "kind": "continuous",
           "label": "DURING THIS BATTLE",
-          "text": "Each of your Named Formations may Maneuver once for 0 Command if it moves in the chosen direction."
+          "text": "Your Named Formations may **Maneuver** in that direction for 0 Command."
         }
       ],
       "design_rules": {
@@ -4175,7 +4175,7 @@
         {
           "kind": "continuous",
           "label": "EMPTY FRONT",
-          "text": "While one of your Fronts has no Force, this formation's **Maneuvers** cost 0 Command."
+          "text": "While one of your Fronts has no Force, this formation's first **Maneuver** each Battle costs 0 Command."
         }
       ],
       "design_rules": {
