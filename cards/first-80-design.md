@@ -101,7 +101,7 @@ Status: approved for the first-80 design pool.
 
 ## Batch 4 - Combat
 
-Status: draft for review.
+Status: approved for the first-80 design pool.
 
 This batch deliberately expands what can happen when a Front resolves without introducing hit points, wounds, damage tracking, or a separate attack phase. Every combat mechanic is printed in full on the card; labels such as Duelist or Raider do not carry hidden rules.
 
