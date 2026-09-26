@@ -126,3 +126,32 @@ This batch deliberately expands what can happen when a Front resolves without in
 - **Capture** - winning combat can disrupt the identity/structure of a retreating formation.
 - **Interception** - redirect an enemy combat effect onto another friendly formation.
 - **Tie control** - battlefield presence can matter when raw Strength is equal.
+
+
+## Batch 5 - Persistence & Retreat
+
+Status: draft for review.
+
+This batch tests what survives a loss, how Retreat can change position, and how persistent formations help rebuild the next Battle. Card text remains literal and self-contained.
+
+| # | Card | Type | Cost | Strength | Rules text |
+| --- | --- | --- | ---: | ---: | --- |
+| 33 | **Stayed Behind For** | Bond | 1 | - | If this Force is driven off, leave this Bond in its position instead of discarding it. If this formation has a Name, return that Name to its owner's hand. The next friendly Force played in this position takes this Bond. |
+| 34 | **Swore Again To** | Bond | 1 | - | If this Force is driven off, return this Bond to your hand instead of discarding it. |
+| 35 | **Edrin** | Name - Human, Survivor - Unique | 1 | +1 | If this formation is driven off, return this Name to your hand instead of discarding it. |
+| 36 | **Sela** | Name - Human, Wanderer - Unique | 1 | +1 | After this formation **Retreats** to the Rear, you may move it one Front left or right if that Rear position is empty. |
+| 37 | **The Old Guard** | Force - Human, Veterans | 2 | 2 | **Deploy - Rear only.** If this Force is Named, a Force you play in the Frontline of this Front costs 1 less Command (minimum 1). |
+| 38 | **Meren** | Name - Human, Captain - Unique | 2 | +1 | At the start of each Battle, you may move this formation one Front left or right, staying in the same rank, if that position is empty. |
+| 39 | **Endured With** | Bond | 1 | - | When this formation **Retreats**, regain 1 Command. |
+| 40 | **Tala** | Name - Human, Captain - Unique | 1 | +1 | Before comparing Strength in this Front, if this formation is in the Frontline and its Rear position is empty, you may **Retreat** it. |
+
+### Mechanics under test
+
+- **Inherited Bond** - a Bond can stay in a battlefield position and attach to the next friendly Force played there.
+- **Bond salvage** - a Bond can return to hand when its Force is driven off.
+- **Name survival** - a Name can return to hand when its formation is driven off.
+- **Retreat repositioning** - a retreating formation can shift sideways after reaching the Rear.
+- **Rebuilding** - a persistent Rear formation can make the next Frontline Force cheaper.
+- **Persistent preparation** - a Named Formation can reposition at the start of a later Battle.
+- **Loss compensation** - Retreat can return a small amount of Command.
+- **Voluntary Retreat** - one Name can leave the Frontline before Strength is compared, but only if its Rear position is empty.
