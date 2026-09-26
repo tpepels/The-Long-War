@@ -310,3 +310,40 @@ This batch treats a Stratagem as the plan for the Battle: a temporary commitment
 - **Feigned retreat:** reverse Frontline and Rear immediately before Strength is compared.
 - **Commit reserves:** push several Rear formations forward at once, with escalating Command cost.
 - **Directional offensive:** give every Named Formation one free Maneuver, but only toward the chosen side.
+
+
+## Build-around identity
+
+The final first-80 batch rewards unusual but already visible army structures. These cards do not introduce a new resource, phase, counter, or hidden state.
+
+- Build-around cards may reward **open Bonds**, **prepared Bonds/Names**, empty Fronts, occupying all four Fronts, narratives, Heroes, or succession.
+- Their conditions should be visible directly on the battlefield.
+- Build-around effects should create alternative ways to assemble and move an army rather than simply adding large Strength bonuses.
+- Synergy is intentional: several cards may combine into a small package, but each should still be understandable on its own.
+
+
+## Batch 10 - Build-around
+
+Status: draft for review.
+
+| # | Card | Type | Cost | Strength | Rules text |
+| --- | --- | --- | ---: | ---: | --- |
+| 73 | **The Unnamed Host** | Force - Human, Warband | 2 | 3 | While this formation has a Bond and no Name, it may **Maneuver** even though it is not Named. Its first **Maneuver** each Battle costs 0 Command. |
+| 74 | **The Late Banner** | Force - Human, Company | 2 | 3 | When you play this Force into a position that already has a prepared Bond or Name, it may **Maneuver** once for 0 Command, even if it is not Named. |
+| 75 | **Arel** | Name - Human, General - Unique | 1 | +1 | While one of your Fronts has no Force, this formation's **Maneuvers** cost 0 Command. |
+| 76 | **Torren** | Name - Human, Marshal - Unique | 2 | +1 | While you have at least one Force in all four Fronts, after this formation **Maneuvers**, you may **Maneuver** one other friendly Named Formation for 0 Command. |
+| 77 | **The Banner Singers** | Force - Human, Retinue | 1 | 2 | **Deploy - Rear only.** While this Force is in the Rear, after you regain Command from a Legend, Omen, Myth, Prophecy, Warning, Saga, or Conspiracy, you may **Maneuver** one friendly Named Formation for 0 Command. |
+| 78 | **Marched Beneath the Banner of** | Bond | 1 | - | While this formation is adjacent to a formation containing a Hero, it may **Maneuver** even if it is not Named. Its first **Maneuver** each Battle costs 0 Command. |
+| 79 | **Carried the Oath of** | Bond | 1 | - | While this Bond is open, after this Force moves or **Maneuvers**, you may move this Bond to an adjacent friendly Force with no Bond. |
+| 80 | **Eira** | Name - Human, Heir - Unique | 2 | +1 | If this formation is driven off, instead of discarding this Name, you may move it to an adjacent friendly Force that has a Bond and no Name. |
+
+### Build-around mechanics under test
+
+- **Open Bond army:** an unnamed bonded formation can Maneuver efficiently.
+- **Prepared position:** playing a Force onto a prepared Bond or Name produces immediate movement.
+- **Concentrated army:** deliberately leave a Front empty to make one Named Formation highly mobile.
+- **Wide army:** occupying all four Fronts enables chained Maneuver.
+- **Narrative army:** Command gained from narratives can immediately become battlefield movement.
+- **Hero retinue:** an adjacent Hero lets an incomplete formation move like an organized retinue.
+- **Travelling Bond:** an open Bond can move between Forces after movement.
+- **Succession:** a Name can survive a formation being driven off by completing a neighboring bonded Force.
