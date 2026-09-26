@@ -634,7 +634,7 @@ class Telemetry:
             "command": command,
             "depletion": depletion,
             "cards": cards,
-            "formation_combinations": combos,
+            "legend_combinations": combos,
             "decisions": decisions,
             "policy_sources": dict(sorted(self.policy_sources.items())),
             "search_backends": dict(sorted(self.search_backends.items())),
@@ -695,11 +695,11 @@ class Telemetry:
         actor: int,
     ) -> None:
         before_counts = Counter(
-            self._complete_formation(before, actor, position)
+            self._complete_legend(before, actor, position)
             for position in all_positions()
         )
         after_entries = [
-            (position, self._complete_formation(state, actor, position))
+            (position, self._complete_legend(state, actor, position))
             for position in all_positions()
         ]
         after_counts = Counter(combo for _, combo in after_entries)
@@ -726,7 +726,7 @@ class Telemetry:
                 remaining -= 1
 
     @staticmethod
-    def _complete_formation(
+    def _complete_legend(
         state: GameState,
         player: int,
         position,
