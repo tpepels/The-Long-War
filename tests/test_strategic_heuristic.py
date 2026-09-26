@@ -14,7 +14,7 @@ from longwar.simulate import simulate_games
 
 ROOT = Path(__file__).resolve().parents[1]
 CARD_FILE = ROOT / "cards" / "cards.json"
-DECK_FILE = ROOT / "decks" / "reference.json"
+DECK_FILE = ROOT / "decks" / "mobility-open-bonds.json"
 
 
 def load_deck() -> list[str]:
