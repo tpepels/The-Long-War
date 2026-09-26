@@ -291,22 +291,6 @@ def main() -> None:
     )
     parser.set_defaults(pass_requires_both_acted=defaults.pass_requires_both_acted)
 
-    next_starter_group = parser.add_mutually_exclusive_group()
-    next_starter_group.add_argument(
-        "--first-passer-starts-next-battle",
-        dest="first_passer_starts_next_battle",
-        action="store_true",
-        help="The first passer starts the next Battle.",
-    )
-    next_starter_group.add_argument(
-        "--loser-chooses-next-battle",
-        dest="first_passer_starts_next_battle",
-        action="store_false",
-    )
-    parser.set_defaults(
-        first_passer_starts_next_battle=defaults.first_passer_starts_next_battle
-    )
-
     parser.add_argument(
         "--completion-command-refund",
         type=int,
@@ -394,7 +378,6 @@ def main() -> None:
         battle_end_hand_limit=args.battle_end_hand_limit,
         cycle_enabled=args.cycle_enabled,
         pass_requires_both_acted=args.pass_requires_both_acted,
-        first_passer_starts_next_battle=args.first_passer_starts_next_battle,
         completion_command_refund=args.completion_command_refund,
         public_stratagems=args.public_stratagems,
     )
@@ -537,7 +520,6 @@ def main() -> None:
         "automatic_draw_hand_limit": rules.automatic_draw_hand_limit,
         "battle_end_hand_limit": rules.battle_end_hand_limit,
         "pass_requires_both_acted": rules.pass_requires_both_acted,
-        "first_passer_starts_next_battle": rules.first_passer_starts_next_battle,
         "completion_command_refund": rules.completion_command_refund,
         "public_stratagems": rules.public_stratagems,
         "card_file": str(args.card_file),
