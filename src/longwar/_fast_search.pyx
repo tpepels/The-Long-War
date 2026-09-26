@@ -3504,21 +3504,22 @@ cdef class FastEngine:
                     destinations,
                     True,
                 )
-            sources = self.adjacent_formation_mask(
-                state, player, vacated_slot, False
-            )
-            for other in range(player * 8, player * 8 + 8):
-                if not (sources & (1 << other)):
-                    continue
-                bond = state.link[other]
-                if bond >= 0 and self.kept_pace_bond[bond]:
-                    self.queue_move_to_mask(
-                        state,
-                        player,
-                        <uint16_t>(1 << other),
-                        <uint16_t>(1 << vacated_slot),
-                        True,
-                    )
+            if self.slot_complete(state, arrived_slot):
+                sources = self.adjacent_formation_mask(
+                    state, player, vacated_slot, False
+                )
+                for other in range(player * 8, player * 8 + 8):
+                    if not (sources & (1 << other)):
+                        continue
+                    bond = state.link[other]
+                    if bond >= 0 and self.kept_pace_bond[bond]:
+                        self.queue_move_to_mask(
+                            state,
+                            player,
+                            <uint16_t>(1 << other),
+                            <uint16_t>(1 << vacated_slot),
+                            True,
+                        )
         else:
             if force >= 0 and self.after_swap_free_other[force]:
                 if state.subject[vacated_slot] >= 0:
