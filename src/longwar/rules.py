@@ -26,10 +26,6 @@ class GameRules:
     cycle_enabled: bool = False
 
     reshuffle_on_empty: bool = True
-    automatic_draw: bool = True
-    paid_draw_enabled: bool = False
-    paid_draw_command_cost: int = 1
-    paid_draw_consumes_operation: bool = True
 
     completion_command_refund: int = 0
 
@@ -60,7 +56,6 @@ class GameRules:
             self.starting_command,
             self.command_cap,
             self.cycle_command_cost,
-            self.paid_draw_command_cost,
             self.completion_command_refund,
             self.command_collapse_threshold,
             self.maneuver_command_cost,
@@ -70,12 +65,6 @@ class GameRules:
             raise ValueError("Command settings must be non-negative")
         if self.starting_command > self.command_cap:
             raise ValueError("starting_command cannot exceed command_cap")
-        if self.automatic_draw and self.paid_draw_enabled:
-            raise ValueError(
-                "automatic_draw and paid_draw_enabled are mutually exclusive"
-            )
-        if self.paid_draw_enabled and not self.command_enabled:
-            raise ValueError("paid_draw_enabled requires Command mode")
 
     @classmethod
     def standard(cls) -> "GameRules":

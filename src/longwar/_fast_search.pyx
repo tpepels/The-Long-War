@@ -27,7 +27,6 @@ cdef int TYPE_NAME = 4
 cdef int TYPE_PLOT = 5
 cdef int TYPE_SCHEME = 6
 cdef int TYPE_STRATAGEM = 7
-cdef int TYPE_DRAW = 8
 cdef int TYPE_CYCLE = 9
 cdef int TYPE_DISCARD = 10
 cdef int TYPE_MANEUVER = 11
@@ -206,7 +205,6 @@ cdef class FastState:
     cdef uint8_t stratagem_revealed[2]
     cdef uint8_t stratagem_used[2]
     cdef uint8_t hero_used[2]
-    cdef uint8_t draw_used[2]
 
     cdef uint8_t known_hidden[2][2][MAX_CARDS]
 
@@ -270,7 +268,6 @@ cdef class FastState:
         memset(self.stratagem_revealed, 0, sizeof(self.stratagem_revealed))
         memset(self.stratagem_used, 0, sizeof(self.stratagem_used))
         memset(self.hero_used, 0, sizeof(self.hero_used))
-        memset(self.draw_used, 0, sizeof(self.draw_used))
         memset(self.known_hidden, 0, sizeof(self.known_hidden))
         memset(self.passed, 0, sizeof(self.passed))
         memset(self.pass_order, 0xff, sizeof(self.pass_order))
@@ -331,7 +328,6 @@ cdef class FastState:
         memcpy(self.stratagem_revealed, other.stratagem_revealed, sizeof(self.stratagem_revealed))
         memcpy(self.stratagem_used, other.stratagem_used, sizeof(self.stratagem_used))
         memcpy(self.hero_used, other.hero_used, sizeof(self.hero_used))
-        memcpy(self.draw_used, other.draw_used, sizeof(self.draw_used))
         memcpy(self.known_hidden, other.known_hidden, sizeof(self.known_hidden))
         memcpy(self.passed, other.passed, sizeof(self.passed))
         memcpy(self.pass_order, other.pass_order, sizeof(self.pass_order))
@@ -403,10 +399,6 @@ cdef class FastEngine:
     cdef int ongoing_story_limit
     cdef int cycle_command_cost
     cdef bint reshuffle_on_empty
-    cdef bint automatic_draw
-    cdef bint paid_draw_enabled
-    cdef int paid_draw_command_cost
-    cdef bint paid_draw_consumes_operation
     cdef bint cycle_enabled
     cdef int completion_command_refund
 
@@ -546,12 +538,6 @@ cdef class FastEngine:
         self.ongoing_story_limit = int(engine.ongoing_story_limit)
         self.cycle_command_cost = int(engine.cycle_command_cost)
         self.reshuffle_on_empty = bool(engine.reshuffle_on_empty)
-        self.automatic_draw = bool(engine.automatic_draw)
-        self.paid_draw_enabled = bool(engine.paid_draw_enabled)
-        self.paid_draw_command_cost = int(engine.paid_draw_command_cost)
-        self.paid_draw_consumes_operation = bool(
-            engine.paid_draw_consumes_operation
-        )
         self.cycle_enabled = bool(engine.cycle_enabled)
         self.completion_command_refund = int(engine.completion_command_refund)
         if self.n_cards > MAX_CARDS:
@@ -992,8 +978,6 @@ cdef class FastEngine:
             return 0
         if kind == TYPE_MANEUVER:
             return self.maneuver_command_cost
-        if kind == TYPE_DRAW:
-            return self.paid_draw_command_cost if self.paid_draw_enabled else 0
         if kind == TYPE_CYCLE:
             return 0 if state.free_cycle[state.active_player] else self.cycle_command_cost
         card = action_card(action)
@@ -1589,8 +1573,7 @@ cdef class FastEngine:
         state.active_player = player
         state.cleanup_pending = 0
         if (
-            self.automatic_draw
-            and state.phase == PHASE_BATTLE
+            state.phase == PHASE_BATTLE
             and self.can_draw_fast(state, player)
         ):
             if state.hand_len[player] >= self.hand_limit:
@@ -1607,10 +1590,7 @@ cdef class FastEngine:
         state.active_player = active_player
         if not opening_bonus:
             return
-        if self.automatic_draw:
-            self.start_turn_fast(state, active_player)
-        elif not self.paid_draw_enabled:
-            self.draw(state, active_player, 1)
+        self.start_turn_fast(state, active_player)
 
     cdef inline void clear_pass_sequence_fast(
         self,
@@ -1876,19 +1856,6 @@ cdef class FastEngine:
             self.pass_action(state, actor)
             return
 
-        if kind == TYPE_DRAW:
-            if self.command_enabled and self.paid_draw_enabled:
-                cost = self.command_cost_fast(state, action)
-                self.spend_command_fast(state, actor, cost)
-            else:
-                state.draw_used[actor] = 1
-            self.draw_for_battle(state, actor, 1)
-            if self.paid_draw_enabled and not self.paid_draw_consumes_operation:
-                state.turn_number += 1
-                return
-            self.finish_operation_fast(state, actor)
-            return
-
         if kind == TYPE_DISCARD:
             if not state.cleanup_pending:
                 raise ValueError("Discard is only legal before a mandatory draw")
@@ -2017,7 +1984,6 @@ cdef class FastEngine:
                 &h,
                 state.operations_this_battle[p],
             )
-            _info_hash_feed(&h, state.draw_used[p])
             for card in range(self.n_cards):
                 _info_hash_feed(
                     &h,
@@ -2582,7 +2548,6 @@ cdef class FastEngine:
             ],
             "stratagem_used": [bool(state.stratagem_used[0]), bool(state.stratagem_used[1])],
             "hero_used": [bool(state.hero_used[0]), bool(state.hero_used[1])],
-            "draw_used": [bool(state.draw_used[0]), bool(state.draw_used[1])],
         }
 
 # Keep one compiled extension/shared packed state, but separate policies and

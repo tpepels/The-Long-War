@@ -88,10 +88,6 @@ class GameEngine:
         command_cap: int = 20,
         cycle_command_cost: int = 1,
         reshuffle_on_empty: bool = True,
-        automatic_draw: bool = True,
-        paid_draw_enabled: bool = False,
-        paid_draw_command_cost: int = 1,
-        paid_draw_consumes_operation: bool = True,
         cycle_enabled: bool = False,
         completion_command_refund: int = 0,
     ):
@@ -105,10 +101,6 @@ class GameEngine:
                 command_cap=command_cap,
                 cycle_command_cost=cycle_command_cost,
                 reshuffle_on_empty=reshuffle_on_empty,
-                automatic_draw=automatic_draw,
-                paid_draw_enabled=paid_draw_enabled,
-                paid_draw_command_cost=paid_draw_command_cost,
-                paid_draw_consumes_operation=paid_draw_consumes_operation,
                 cycle_enabled=cycle_enabled,
                 completion_command_refund=completion_command_refund,
             )
@@ -129,10 +121,6 @@ class GameEngine:
         self.ongoing_story_limit = rules.ongoing_story_limit
         self.cycle_command_cost = rules.cycle_command_cost
         self.reshuffle_on_empty = rules.reshuffle_on_empty
-        self.automatic_draw = rules.automatic_draw
-        self.paid_draw_enabled = rules.paid_draw_enabled
-        self.paid_draw_command_cost = rules.paid_draw_command_cost
-        self.paid_draw_consumes_operation = rules.paid_draw_consumes_operation
         self.cycle_enabled = rules.cycle_enabled
         self.completion_command_refund = rules.completion_command_refund
 
