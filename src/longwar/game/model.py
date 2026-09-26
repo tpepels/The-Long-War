@@ -11,11 +11,6 @@ class Front(IntEnum):
     THIRD = 2
     FOURTH = 3
 
-    # Transitional internal aliases while old adapters/tests are migrated.
-    LEFT = 0
-    CENTER = 1
-    RIGHT = 2
-
 
 class Rank(str, Enum):
     FRONT = "front"
@@ -65,33 +60,11 @@ class Slot:
     def named(self) -> bool:
         return self.complete
 
-    # Temporary compatibility aliases for old card/native adapters. New engine,
-    # API, tests and UI code must use Force/Bond terminology.
-    @property
-    def subject(self) -> str | None:
-        return self.force
-
-    @subject.setter
-    def subject(self, value: str | None) -> None:
-        self.force = value
-
-    @property
-    def link(self) -> str | None:
-        return self.bond
-
-    @link.setter
-    def link(self, value: str | None) -> None:
-        self.bond = value
-
-
 @dataclass
 class StoryState:
     card_id: str
     ongoing: bool = True
 
-
-# Temporary import compatibility while web/belief code is migrated.
-SchemeState = StoryState
 
 
 @dataclass

@@ -22,32 +22,32 @@ def engine_and_state():
     state.players[1].passed = False
 
     # A representative mid-Battle board deliberately contains:
-    # - an empty own position for Subjects,
-    # - a bare own Subject for Links,
-    # - an own Subject with an open Link for Names,
-    # - an own linked Subject plus another bare Subject for movement Plots,
-    # - enemy linked / named Subjects for disruption Plots,
-    # - empty Scheme slots.
-    own_left = state.slot(0, Position(Front.LEFT, Rank.FRONT))
-    own_left.subject = "the-fifty-men"
-    own_left.link = "followed"
-    own_left.name = "oren"
+    # - an empty own position for Forces,
+    # - a bare own Force for Bonds,
+    # - an own Force with an open Bond for Names,
+    # - an own bonded Force plus another bare Force for movement Stories,
+    # - enemy bonded / Named Formations for disruption Stories,
+    # - empty ongoing Story slots.
+    own_first = state.slot(0, Position(Front.FIRST, Rank.FRONT))
+    own_first.force = "the-fifty-men"
+    own_first.bond = "followed"
+    own_first.name = "oren"
 
-    own_center = state.slot(0, Position(Front.CENTER, Rank.REAR))
-    own_center.subject = "the-house-at-orra"
+    own_second = state.slot(0, Position(Front.SECOND, Rank.REAR))
+    own_second.force = "the-house-at-orra"
 
-    own_right = state.slot(0, Position(Front.RIGHT, Rank.REAR))
-    own_right.subject = "seven-black-ships"
-    own_right.link = "carried"
+    own_third = state.slot(0, Position(Front.THIRD, Rank.REAR))
+    own_third.force = "seven-black-ships"
+    own_third.bond = "carried"
 
-    enemy_left = state.slot(1, Position(Front.LEFT, Rank.FRONT))
-    enemy_left.subject = "those-who-came-back"
-    enemy_left.link = "defied"
-    enemy_left.name = "teyra"
+    enemy_first = state.slot(1, Position(Front.FIRST, Rank.FRONT))
+    enemy_first.force = "those-who-came-back"
+    enemy_first.bond = "defied"
+    enemy_first.name = "teyra"
 
-    enemy_center = state.slot(1, Position(Front.CENTER, Rank.FRONT))
-    enemy_center.subject = "the-children-of-the-salt-road"
-    enemy_center.link = "avenged"
+    enemy_second = state.slot(1, Position(Front.SECOND, Rank.FRONT))
+    enemy_second.force = "the-children-of-the-salt-road"
+    enemy_second.bond = "avenged"
 
     return engine, state, data
 

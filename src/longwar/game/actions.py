@@ -59,13 +59,6 @@ class Pass:
     pass
 
 
-# Transitional import aliases while the native/browser adapters are migrated.
-PlaySubject = PlayForce
-PlayLink = PlayBond
-PlayPlot = PlayStory
-SetStratagem = PlayStratagem
-
-
 @dataclass(frozen=True)
 class Draw:
     """Obsolete compatibility type; never legal in canonical rules."""
@@ -75,13 +68,6 @@ class Draw:
 class Cycle:
     """Obsolete compatibility type; never legal in canonical rules."""
     card_id: str
-
-
-@dataclass(frozen=True)
-class PlayScheme:
-    """Obsolete compatibility type for pre-migration serialized actions."""
-    card_id: str
-    front: Front
 
 
 Action: TypeAlias = (
@@ -140,8 +126,6 @@ def action_key(action: object) -> str:
         return "draw"
     if isinstance(action, Cycle):
         return f"cycle:{action.card_id}"
-    if isinstance(action, PlayScheme):
-        return f"scheme:{action.card_id}:{int(action.front)}"
     raise TypeError(f"Unsupported action type: {type(action)!r}")
 
 
@@ -150,7 +134,7 @@ def _position(front: str, rank: str) -> Position:
 
 
 def action_from_key(key: str) -> object:
-    """Inverse of action_key, accepting a narrow legacy key set."""
+    """Inverse of the canonical action-key format."""
     if key == "pass":
         return Pass()
     if key == "draw":
@@ -161,9 +145,9 @@ def action_from_key(key: str) -> object:
         return Discard(key.split(":", 1)[1])
 
     parts = key.split(":")
-    if parts[0] in {"force", "subject"}:
+    if parts[0] == "force":
         return PlayForce(parts[1], _position(parts[2], parts[3]))
-    if parts[0] in {"bond", "link"}:
+    if parts[0] == "bond":
         return PlayBond(parts[1], _position(parts[2], parts[3]))
     if parts[0] == "name":
         return PlayName(parts[1], _position(parts[2], parts[3]))
@@ -187,17 +171,4 @@ def action_from_key(key: str) -> object:
                     BoardTarget(int(player), _position(front, rank))
                 )
         return PlayStory(card_id, tuple(targets))
-    if parts[0] == "plot":
-        card_id = parts[1]
-        targets: list[BoardTarget] = []
-        payload = ":".join(parts[2:])
-        if payload:
-            for encoded in payload.split(";"):
-                player, front, rank = encoded.split(":")
-                targets.append(
-                    BoardTarget(int(player), _position(front, rank))
-                )
-        return PlayStory(card_id, tuple(targets))
-    if parts[0] == "scheme":
-        return PlayStory(parts[1], ongoing_slot=int(parts[2]))
     raise ValueError(f"Unknown action key: {key}")

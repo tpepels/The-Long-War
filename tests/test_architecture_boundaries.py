@@ -380,6 +380,35 @@ def test_native_algorithms_do_not_contain_rule_switches() -> None:
         assert not any(term in source for term in forbidden), filename
 
 
+def test_canonical_game_vocabulary_has_no_obsolete_aliases() -> None:
+    actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
+    model = (SRC / "game" / "model.py").read_text(encoding="utf-8")
+    game_init = (SRC / "game" / "__init__.py").read_text(encoding="utf-8")
+
+    for obsolete in (
+        "PlaySubject",
+        "PlayLink",
+        "PlayPlot",
+        "PlayScheme",
+        "SetStratagem",
+        "SchemeState",
+        "Front.LEFT",
+        "Front.CENTER",
+        "Front.RIGHT",
+    ):
+        assert obsolete not in actions
+        assert obsolete not in model
+        assert obsolete not in game_init
+
+    assert 'parts[0] == "force"' in actions
+    assert 'parts[0] == "bond"' in actions
+    assert 'parts[0] == "story"' in actions
+    assert '"subject"' not in actions
+    assert '"link"' not in actions
+    assert '"plot"' not in actions
+    assert '"scheme"' not in actions
+
+
 def test_obsolete_choose_first_state_is_gone() -> None:
     actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
     model = (SRC / "game" / "model.py").read_text(encoding="utf-8")

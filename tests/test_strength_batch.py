@@ -58,11 +58,11 @@ def test_name_option_delta_matches_full_strength_recalculation() -> None:
     names = ["namar", "iria", "oren", "teyra"]
 
     for rank in (Rank.FRONT, Rank.REAR):
-        position = Position(Front.CENTER, rank)
+        position = Position(Front.SECOND, rank)
         slot = state.slot(0, position)
-        slot.subject = "the-fifty-men"
+        slot.force = "the-fifty-men"
         for bond_id in bonds:
-            slot.link = bond_id
+            slot.bond = bond_id
             slot.name = None
             for discarded in (0, 2, 5):
                 state.discarded_this_battle[0] = discarded
