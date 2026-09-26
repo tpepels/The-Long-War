@@ -172,3 +172,164 @@ def test_heuristic_values_unused_hero_as_flexible_force_or_name_resource() -> No
     )
 
     assert available > unavailable
+
+def test_complete_named_formation_is_distinguished_from_force_plus_name() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=11, exploration=0.0)
+
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+    state.players[0].command = 10
+    state.players[1].command = 10
+
+    target = Position(Front.FIRST, Rank.FRONT)
+
+    incomplete = state.clone()
+    incomplete_slot = incomplete.slot(0, target)
+    incomplete_slot.force = "those-who-came-back"
+    incomplete_slot.name = "namar"
+    # Equalize current Strength with the complete comparison state so the
+    # difference is the Named Formation rule, not raw Strength.
+    incomplete_slot.temporary_strength = 2
+
+    complete = state.clone()
+    complete_slot = complete.slot(0, target)
+    complete_slot.force = "those-who-came-back"
+    complete_slot.bond = "held-fast"
+    complete_slot.name = "namar"
+
+    assert (
+        engine.position_strength(incomplete, 0, target)
+        == engine.position_strength(complete, 0, target)
+    )
+    assert agent.evaluate(engine, complete, 0) > agent.evaluate(
+        engine,
+        incomplete,
+        0,
+    )
+
+
+def test_heuristic_penalizes_rear_named_formation_that_would_be_driven_off() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=12, exploration=0.0)
+
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+    state.players[0].command = 10
+    state.players[1].command = 10
+
+    front_position = Position(Front.FIRST, Rank.FRONT)
+    rear_position = Position(Front.FIRST, Rank.REAR)
+
+    def named_at(test_state, position):
+        slot = test_state.slot(0, position)
+        slot.force = "those-who-came-back"
+        slot.bond = "held-fast"
+        slot.name = "namar"
+
+    frontline = state.clone()
+    named_at(frontline, front_position)
+    enemy = frontline.slot(1, front_position)
+    enemy.force = "the-fifty-men"
+    enemy.temporary_strength = 20
+
+    rear = state.clone()
+    named_at(rear, rear_position)
+    enemy = rear.slot(1, front_position)
+    enemy.force = "the-fifty-men"
+    enemy.temporary_strength = 20
+
+    assert (
+        engine.front_strength(frontline, 0, Front.FIRST)
+        == engine.front_strength(rear, 0, Front.FIRST)
+    )
+    assert agent.evaluate(engine, frontline, 0) > agent.evaluate(
+        engine,
+        rear,
+        0,
+    )
+
+
+def test_heuristic_accounts_for_projected_command_collapse_after_recovery() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=13, exploration=0.0)
+
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+    state.battle = 7
+    state.players[0].command = 4
+    state.players[1].command = 6
+
+    safe = state.clone()
+    collapse_risk = state.clone()
+    enemy = collapse_risk.slot(
+        1,
+        Position(Front.FIRST, Rank.FRONT),
+    )
+    enemy.force = "the-fifty-men"
+
+    safe_value = agent.evaluate(engine, safe, 0)
+    collapse_value = agent.evaluate(engine, collapse_risk, 0)
+
+    # Battle VII recovers 1 Command. With no lost Front, player 0 projects to
+    # 5 and avoids Collapse. Losing one Front projects to 4 vs 7 and loses if
+    # the Battle ended in the current position.
+    assert safe_value - collapse_value > 20.0
+
+
+def test_heuristic_prefers_strength_that_changes_a_front_over_overcommitment() -> None:
+    engine, state = engine_and_state()
+    agent = HeuristicAgent(seed=14, exploration=0.0)
+
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+    state.players[0].command = 10
+    state.players[1].command = 10
+
+    contested = state.clone()
+    contested.slot(
+        0,
+        Position(Front.FIRST, Rank.FRONT),
+    ).force = "those-who-came-back"
+    contested.slot(
+        1,
+        Position(Front.FIRST, Rank.FRONT),
+    ).force = "those-who-came-back"
+    contested_gain = contested.clone()
+    contested_gain.slot(
+        0,
+        Position(Front.FIRST, Rank.FRONT),
+    ).temporary_strength += 2
+
+    safe = state.clone()
+    safe_slot = safe.slot(
+        0,
+        Position(Front.FIRST, Rank.FRONT),
+    )
+    safe_slot.force = "those-who-came-back"
+    safe_slot.temporary_strength = 3  # margin 6
+    safe_gain = safe.clone()
+    safe_gain.slot(
+        0,
+        Position(Front.FIRST, Rank.FRONT),
+    ).temporary_strength += 2
+
+    contested_delta = (
+        agent.evaluate(engine, contested_gain, 0)
+        - agent.evaluate(engine, contested, 0)
+    )
+    safe_delta = (
+        agent.evaluate(engine, safe_gain, 0)
+        - agent.evaluate(engine, safe, 0)
+    )
+
+    assert contested_delta > safe_delta
+
