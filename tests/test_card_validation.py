@@ -138,7 +138,7 @@ def _expanded_pool(data, size):
 
 def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
     engine = GameEngine(_expanded_pool(data, 127))
-    deck = json.loads((ROOT / "decks/reference.json").read_text())["cards"]
+    deck = json.loads((ROOT / "decks/mobility-open-bonds.json").read_text())["cards"]
     state = engine.new_game(deck, deck, seed=17, first_player=0)
     # 60 distinct Bonds produce 360 legal placements, beyond the old buffer.
     state.players[0].deck = []
