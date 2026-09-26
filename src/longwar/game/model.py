@@ -133,6 +133,15 @@ class GameState:
     cards_drawn_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     completion_count_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     operations_this_battle: list[int] = field(default_factory=lambda: [0, 0])
+    cards_played_this_turn_front_mask: list[int] = field(
+        default_factory=lambda: [0, 0]
+    )
+    cards_played_this_battle_front_mask: list[int] = field(
+        default_factory=lambda: [0, 0]
+    )
+    narratives_played_this_battle: list[int] = field(
+        default_factory=lambda: [0, 0]
+    )
     deck_reshuffles: list[int] = field(default_factory=lambda: [0, 0])
     reshuffle_card_totals: list[int] = field(default_factory=lambda: [0, 0])
     reshuffle_hand_card_totals: list[int] = field(default_factory=lambda: [0, 0])
@@ -221,6 +230,15 @@ class GameState:
             cards_drawn_this_battle=list(self.cards_drawn_this_battle),
             completion_count_this_battle=list(self.completion_count_this_battle),
             operations_this_battle=list(self.operations_this_battle),
+            cards_played_this_turn_front_mask=list(
+                self.cards_played_this_turn_front_mask
+            ),
+            cards_played_this_battle_front_mask=list(
+                self.cards_played_this_battle_front_mask
+            ),
+            narratives_played_this_battle=list(
+                self.narratives_played_this_battle
+            ),
             deck_reshuffles=list(self.deck_reshuffles),
             reshuffle_card_totals=list(self.reshuffle_card_totals),
             reshuffle_hand_card_totals=list(self.reshuffle_hand_card_totals),
@@ -301,6 +319,15 @@ class GameState:
         self.cards_drawn_this_battle[:] = source.cards_drawn_this_battle
         self.completion_count_this_battle[:] = source.completion_count_this_battle
         self.operations_this_battle[:] = source.operations_this_battle
+        self.cards_played_this_turn_front_mask[:] = (
+            source.cards_played_this_turn_front_mask
+        )
+        self.cards_played_this_battle_front_mask[:] = (
+            source.cards_played_this_battle_front_mask
+        )
+        self.narratives_played_this_battle[:] = (
+            source.narratives_played_this_battle
+        )
         self.deck_reshuffles[:] = source.deck_reshuffles
         self.reshuffle_card_totals[:] = source.reshuffle_card_totals
         self.reshuffle_hand_card_totals[:] = source.reshuffle_hand_card_totals

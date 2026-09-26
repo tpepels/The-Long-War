@@ -461,6 +461,67 @@ def test_arel_first_maneuver_is_free_while_controller_has_empty_front() -> None:
     assert engine.command_cost_for_action(state, maneuver) == 0
 
 
+def test_iven_discounts_card_in_its_front_while_behind_on_command() -> None:
+    engine, state = setup_state()
+    make_named(state, 0, pos(0, Rank.FRONT), name="iven")
+    state.players[0].command = 5
+    state.players[1].command = 10
+    state.players[0].hand = ["the-fifty-men"]
+
+    action = PlayForce("the-fifty-men", pos(0, Rank.REAR))
+    assert action in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, action) == 1
+
+
+def test_tovan_name_discount_applies_only_to_first_card_in_front_each_battle() -> None:
+    engine, state = setup_state()
+    make_named(
+        state,
+        0,
+        pos(0, Rank.FRONT),
+        name="tovan-the-quartermaster",
+    )
+    state.players[0].hand = ["the-fifty-men", "oren"]
+
+    first = PlayForce("the-fifty-men", pos(0, Rank.REAR))
+    assert engine.command_cost_for_action(state, first) == 1
+    engine.apply(state, first)
+
+    state.active_player = 0
+    state.pending_draw_discard_for = None
+    state.pending_draw_count = 0
+    state.pending_draw_finish_operation = False
+    second = PlayName("oren", pos(0, Rank.REAR))
+    assert second in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, second) == 2
+
+
+def test_yara_discounts_only_first_narrative_each_battle() -> None:
+    engine, state = setup_state()
+    state.slot(0, pos(0, Rank.REAR)).force = "yara-the-chronicler"
+    state.players[0].hand = [
+        "before-sunset-the-ford-would-be-ours",
+        "no-road-was-too-long",
+    ]
+
+    first = PlayStory(
+        "before-sunset-the-ford-would-be-ours",
+        ongoing_slot=0,
+        fronts=(Front.FIRST,),
+    )
+    assert first in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, first) == 1
+    engine.apply(state, first)
+
+    state.active_player = 0
+    state.pending_draw_discard_for = None
+    state.pending_draw_count = 0
+    state.pending_draw_finish_operation = False
+    second = PlayStory("no-road-was-too-long", ongoing_slot=1)
+    assert second in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, second) == 2
+
+
 def test_battle_only_temporary_strength_resets_after_battle() -> None:
     engine, state = setup_state()
     target = pos(0, Rank.FRONT)

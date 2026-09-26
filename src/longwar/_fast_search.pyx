@@ -258,6 +258,9 @@ cdef class FastState:
     cdef uint8_t discarded_this_battle[2]
     cdef int16_t command[2]
     cdef uint16_t operations_this_battle[2]
+    cdef uint8_t cards_played_this_turn_front_mask[2]
+    cdef uint8_t cards_played_this_battle_front_mask[2]
+    cdef uint8_t narratives_played_this_battle[2]
     cdef int16_t command_spent_this_battle[2]
     cdef int16_t command_refunded_this_battle[2]
     cdef int16_t battle_start_command[2]
@@ -323,6 +326,9 @@ cdef class FastState:
         memset(self.discarded_this_battle, 0, sizeof(self.discarded_this_battle))
         memset(self.command, 0, sizeof(self.command))
         memset(self.operations_this_battle, 0, sizeof(self.operations_this_battle))
+        memset(self.cards_played_this_turn_front_mask, 0, sizeof(self.cards_played_this_turn_front_mask))
+        memset(self.cards_played_this_battle_front_mask, 0, sizeof(self.cards_played_this_battle_front_mask))
+        memset(self.narratives_played_this_battle, 0, sizeof(self.narratives_played_this_battle))
         memset(self.command_spent_this_battle, 0, sizeof(self.command_spent_this_battle))
         memset(self.command_refunded_this_battle, 0, sizeof(self.command_refunded_this_battle))
         memset(self.battle_start_command, 0, sizeof(self.battle_start_command))
@@ -388,6 +394,9 @@ cdef class FastState:
         memcpy(self.discarded_this_battle, other.discarded_this_battle, sizeof(self.discarded_this_battle))
         memcpy(self.command, other.command, sizeof(self.command))
         memcpy(self.operations_this_battle, other.operations_this_battle, sizeof(self.operations_this_battle))
+        memcpy(self.cards_played_this_turn_front_mask, other.cards_played_this_turn_front_mask, sizeof(self.cards_played_this_turn_front_mask))
+        memcpy(self.cards_played_this_battle_front_mask, other.cards_played_this_battle_front_mask, sizeof(self.cards_played_this_battle_front_mask))
+        memcpy(self.narratives_played_this_battle, other.narratives_played_this_battle, sizeof(self.narratives_played_this_battle))
         memcpy(self.command_spent_this_battle, other.command_spent_this_battle, sizeof(self.command_spent_this_battle))
         memcpy(self.command_refunded_this_battle, other.command_refunded_this_battle, sizeof(self.command_refunded_this_battle))
         memcpy(self.battle_start_command, other.battle_start_command, sizeof(self.battle_start_command))
@@ -469,6 +478,9 @@ cdef class FastEngine:
     cdef uint8_t name_breakthrough[MAX_CARDS]
     cdef uint8_t first_maneuver_free[MAX_CARDS]
     cdef uint8_t first_maneuver_free_empty_front[MAX_CARDS]
+    cdef uint8_t local_catchup_discount_name[MAX_CARDS]
+    cdef uint8_t first_front_card_battle_discount_name[MAX_CARDS]
+    cdef uint8_t first_narrative_battle_discount_force[MAX_CARDS]
     cdef uint8_t immobile_force[MAX_CARDS]
     cdef uint8_t cannot_swap_target[MAX_CARDS]
     cdef uint8_t catchup_zero_cost[MAX_CARDS]
@@ -560,6 +572,9 @@ cdef class FastEngine:
         memset(self.name_breakthrough, 0, sizeof(self.name_breakthrough))
         memset(self.first_maneuver_free, 0, sizeof(self.first_maneuver_free))
         memset(self.first_maneuver_free_empty_front, 0, sizeof(self.first_maneuver_free_empty_front))
+        memset(self.local_catchup_discount_name, 0, sizeof(self.local_catchup_discount_name))
+        memset(self.first_front_card_battle_discount_name, 0, sizeof(self.first_front_card_battle_discount_name))
+        memset(self.first_narrative_battle_discount_force, 0, sizeof(self.first_narrative_battle_discount_force))
         memset(self.immobile_force, 0, sizeof(self.immobile_force))
         memset(self.cannot_swap_target, 0, sizeof(self.cannot_swap_target))
         memset(self.catchup_zero_cost, 0, sizeof(self.catchup_zero_cost))
@@ -731,6 +746,15 @@ cdef class FastEngine:
                 self.first_maneuver_free[code] = 1
             if design.get("first_self_maneuver_each_battle_cost") == 0:
                 self.first_maneuver_free_empty_front[code] = 1
+            if design.get("command") == "local_catch_up_discount":
+                self.local_catchup_discount_name[code] = int(
+                    design.get("first_card_each_turn_discount", 1)
+                )
+            name_design = design.get("name") or {}
+            if name_design.get("command") == "first_card_in_front_each_battle_discount_1_min_1":
+                self.first_front_card_battle_discount_name[code] = 1
+            if force_design.get("story") == "first_story_each_battle_discount_1_min_1":
+                self.first_narrative_battle_discount_force[code] = 1
             if force_design.get("combat") == "breakthrough":
                 self.force_breakthrough[code] = 1
             name_design = design.get("name") or {}
@@ -910,6 +934,9 @@ cdef class FastEngine:
             fast.passed[p] = state.players[p].passed
             fast.command[p] = state.players[p].command
             fast.operations_this_battle[p] = state.operations_this_battle[p]
+            fast.cards_played_this_turn_front_mask[p] = state.cards_played_this_turn_front_mask[p]
+            fast.cards_played_this_battle_front_mask[p] = state.cards_played_this_battle_front_mask[p]
+            fast.narratives_played_this_battle[p] = state.narratives_played_this_battle[p]
             fast.command_spent_this_battle[p] = state.command_spent_this_battle[p]
             fast.command_refunded_this_battle[p] = state.command_refunded_this_battle[p]
             fast.battle_start_command[p] = state.battle_start_command[p]
@@ -1284,6 +1311,59 @@ cdef class FastEngine:
     cpdef bint can_draw(self, FastState state, int player):
         return self.can_draw_fast(state, player)
 
+    cdef inline int local_front_discount_fast(
+        self,
+        FastState state,
+        int player,
+        int front,
+    ) noexcept:
+        cdef int rank, slot, name, discount = 0
+        cdef uint8_t bit = <uint8_t>(1 << front)
+        for rank in range(2):
+            slot = slot_index(player, front, rank)
+            if state.subject[slot] < 0:
+                continue
+            name = state.name[slot]
+            if name < 0:
+                continue
+            if (
+                self.local_catchup_discount_name[name]
+                and state.command[player] < state.command[1 - player]
+                and not (state.cards_played_this_turn_front_mask[player] & bit)
+            ):
+                discount = max(
+                    discount,
+                    self.local_catchup_discount_name[name],
+                )
+            if (
+                self.first_front_card_battle_discount_name[name]
+                and self.slot_complete(state, slot)
+                and not (state.cards_played_this_battle_front_mask[player] & bit)
+            ):
+                discount = max(
+                    discount,
+                    self.first_front_card_battle_discount_name[name],
+                )
+        return discount
+
+    cdef inline int first_narrative_discount_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int front, slot, force
+        if state.narratives_played_this_battle[player]:
+            return 0
+        for front in range(4):
+            slot = slot_index(player, front, 1)
+            force = state.subject[slot]
+            if (
+                force >= 0
+                and self.first_narrative_battle_discount_force[force]
+            ):
+                return 1
+        return 0
+
     cdef inline int adjacent_discount_fast(
         self,
         FastState state,
@@ -1394,8 +1474,18 @@ cdef class FastEngine:
 
         if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
             target_front = front_from_slot(pos)
+        if kind == TYPE_PLOT or kind == TYPE_SCHEME:
+            discount = self.first_narrative_discount_fast(state, player)
+            if discount:
+                cost -= discount
+                if cost < 1:
+                    cost = 1
         if target_front >= 0:
             discount = self.adjacent_discount_fast(state, player, target_front)
+            if self.local_front_discount_fast(state, player, target_front) > discount:
+                discount = self.local_front_discount_fast(
+                    state, player, target_front
+                )
             if kind == TYPE_SUBJECT and rank_from_slot(pos) == 0:
                 rear = slot_index(player, target_front, 1)
                 support = state.subject[rear]
@@ -2255,6 +2345,7 @@ cdef class FastEngine:
 
     cdef void start_turn_fast(self, FastState state, int player) noexcept:
         state.active_player = player
+        state.cards_played_this_turn_front_mask[player] = 0
         state.cleanup_pending = 0
         state.pending_draw_count = 0
         state.pending_draw_finish_operation = 0
@@ -2684,6 +2775,9 @@ cdef class FastEngine:
             state.passed[p] = 0
             state.discarded_this_battle[p] = 0
             state.operations_this_battle[p] = 0
+            state.cards_played_this_turn_front_mask[p] = 0
+            state.cards_played_this_battle_front_mask[p] = 0
+            state.narratives_played_this_battle[p] = 0
             state.command_spent_this_battle[p] = 0
             state.command_refunded_this_battle[p] = 0
             state.cards_drawn_this_battle[p] = 0
@@ -2765,6 +2859,9 @@ cdef class FastEngine:
 
         if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
             before_mask = self.complete_mask(state, actor)
+            front = front_from_slot(pos)
+            state.cards_played_this_turn_front_mask[actor] |= 1 << front
+            state.cards_played_this_battle_front_mask[actor] |= 1 << front
         if (kind == TYPE_SUBJECT or kind == TYPE_NAME) and card >= 0 and self.hero[card]:
             state.hero_used[actor] = 1
 
@@ -2797,6 +2894,7 @@ cdef class FastEngine:
 
         elif kind == TYPE_PLOT:
             self.take_from_hand(state, actor, card, 0)
+            state.narratives_played_this_battle[actor] += 1
             cancelled = self.pre_story_cancel(state, actor)
             if not cancelled:
                 self.resolve_plot(state, actor, card, pos, dest)
@@ -2805,6 +2903,7 @@ cdef class FastEngine:
 
         elif kind == TYPE_SCHEME:
             self.take_from_hand(state, actor, card, 0)
+            state.narratives_played_this_battle[actor] += 1
             state.scheme[actor * 4 + pos] = card
             state.scheme_revealed[actor * 4 + pos] = 1
             state.scheme_front_mask[actor * 4 + pos] = <uint8_t>(extra & 15)
@@ -2892,6 +2991,9 @@ cdef class FastEngine:
                 &h,
                 state.operations_this_battle[p],
             )
+            _info_hash_feed(&h, state.cards_played_this_turn_front_mask[p])
+            _info_hash_feed(&h, state.cards_played_this_battle_front_mask[p])
+            _info_hash_feed(&h, state.narratives_played_this_battle[p])
             for card in range(self.n_cards):
                 _info_hash_feed(
                     &h,
@@ -2989,6 +3091,9 @@ cdef class FastEngine:
                 h,
                 state.operations_this_battle[i],
             )
+            _info_emit(buf, &n, h, state.cards_played_this_turn_front_mask[i])
+            _info_emit(buf, &n, h, state.cards_played_this_battle_front_mask[i])
+            _info_emit(buf, &n, h, state.narratives_played_this_battle[i])
 
         _info_emit(buf, &n, h, <uint8_t>pending_draw)
         _info_emit(buf, &n, h, state.pending_draw_count)
@@ -3462,6 +3567,18 @@ cdef class FastEngine:
             "operations_this_battle": [
                 state.operations_this_battle[0],
                 state.operations_this_battle[1],
+            ],
+            "cards_played_this_turn_front_mask": [
+                state.cards_played_this_turn_front_mask[0],
+                state.cards_played_this_turn_front_mask[1],
+            ],
+            "cards_played_this_battle_front_mask": [
+                state.cards_played_this_battle_front_mask[0],
+                state.cards_played_this_battle_front_mask[1],
+            ],
+            "narratives_played_this_battle": [
+                state.narratives_played_this_battle[0],
+                state.narratives_played_this_battle[1],
             ],
             "deck_reshuffles": [
                 state.deck_reshuffles[0],

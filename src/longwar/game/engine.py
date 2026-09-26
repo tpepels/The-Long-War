@@ -361,6 +361,15 @@ class GameEngine:
         state.cards_drawn_this_battle[:] = data["cards_drawn_this_battle"]
         state.completion_count_this_battle[:] = data["completion_count_this_battle"]
         state.operations_this_battle[:] = data["operations_this_battle"]
+        state.cards_played_this_turn_front_mask[:] = (
+            data["cards_played_this_turn_front_mask"]
+        )
+        state.cards_played_this_battle_front_mask[:] = (
+            data["cards_played_this_battle_front_mask"]
+        )
+        state.narratives_played_this_battle[:] = (
+            data["narratives_played_this_battle"]
+        )
         state.deck_reshuffles[:] = data["deck_reshuffles"]
         state.reshuffle_card_totals[:] = data["reshuffle_card_totals"]
         state.reshuffle_hand_card_totals[:] = data["reshuffle_hand_card_totals"]
