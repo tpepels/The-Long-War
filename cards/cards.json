@@ -2119,7 +2119,7 @@
         "loyalty"
       ],
       "command_cost": 1,
-      "text": "After an adjacent friendly formation **Retreats**, you may **Maneuver** this formation for 0 Command.",
+      "text": "After an adjacent formation you control **Retreats**, you may **Maneuver** this formation for 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2151,7 +2151,7 @@
         "captain"
       ],
       "command_cost": 2,
-      "text": "After this formation **Maneuvers**, you may swap two adjacent friendly formations other than this one.",
+      "text": "After this formation **Maneuvers**, you may swap two adjacent formations you control other than this one.",
       "rules": {},
       "balance": {
         "dynamic": true
