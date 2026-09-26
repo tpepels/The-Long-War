@@ -23,7 +23,7 @@ Status: approved for the first-80 design pool.
 
 ### Batch 1 notes
 
-- **The Fifty Men** and **Seven Black Ships** establish the basic positional baseline through their roles rather than extra rules text.
+- **The Fifty Men** and **Seven Black Ships** establish the basic positional baseline. Their positional effects are printed explicitly on the cards.
 - **The White Hands of Elara** is intentionally simple. Its final cost may need tuning because Healer converts Rear presence into effective Front strength.
 - **Held Fast** is intentionally plain. The set needs uncomplicated Bonds that establish the baseline value of a Bond.
 - **Followed** is conceptually approved; the +1 / +2 numbers remain balance targets rather than locked values.
@@ -36,6 +36,7 @@ Status: approved for the first-80 design pool.
 - Prefer cards that interact with existing core rules instead of introducing new subsystems.
 - Avoid arithmetic-heavy designs whose main identity is stacking Strength modifiers.
 - Most cards should do one clear thing.
+- Role and classification names never substitute for rules text. If a card has a mechanic, the complete mechanic is printed on that card.
 - No new universal counters, wounds, exhaustion, Renown, veteran state, movement points, resources, phases, or hidden memory state.
 - Use canonical timing language consistently: **when you play**, **when this formation becomes Named**, **while**, **after this formation Maneuvers**, **when this formation Retreats**, **when this formation is driven off**, **at Battle end**.
 - **Maneuver** means the core named movement action; **move** is reserved for card-effect movement that does not automatically inherit Maneuver rules.
@@ -50,25 +51,18 @@ Status: approved for the first-80 design pool.
 
 | # | Card | Type | Cost | Strength | Rules text |
 | --- | --- | --- | ---: | ---: | --- |
-| 9 | **The Red Shields** | Force - Human, Guard - Spearman | 2 | 4 | **Deploy - Frontline only.** |
-| 10 | **The Crow Archers** | Force - Human, Company - Archer | 2 | 4 | **Deploy - Rear only.** |
-| 11 | **The House of Reed** | Force - Place, Stronghold | 2 | 3 | **Stronghold. Deploy - Rear only.** Cannot move, Maneuver, or swap positions. If you lose this Front while you have a Named Formation in the Frontline, drive off this Stronghold instead of Retreating that formation. |
-| 12 | **The Grey Riders** | Force - Human, Riders - Skirmisher | 2 | 2 | **Skirmisher.** May Maneuver even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Grey Riders contribute their Strength to the chosen Front instead of their own. |
+| 9 | **The Red Shields** | Force - Human, Guard - Spearman | 2 | 4 | **Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 **Strength**. |
+| 10 | **The Crow Archers** | Force - Human, Company - Archer | 2 | 4 | **Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 **Strength**. |
+| 11 | **The House of Reed** | Force - Place, Stronghold | 2 | 3 | **Deploy - Rear only.** This Force cannot move, Maneuver, or swap positions. If you lose this Front while you have a Named Formation in the Frontline, drive off this Force instead of Retreating that formation. |
+| 12 | **The Grey Riders** | Force - Human, Riders - Skirmisher | 2 | 2 | This Force may **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Grey Riders contribute their Strength to the chosen Front instead of their own. |
 | 13 | **Guarded** | Bond | 1 | - | Opponent card effects cannot move this formation. |
 | 14 | **Marched With** | Bond | 1 | - | When you play this Bond onto a Force, you may move that formation to an adjacent empty position. |
 | 15 | **Iria** | Name - Human, Seer - Unique | 1 | +1 | Whenever an opposing formation in this Front becomes Named, your next Maneuver this Battle costs 0 Command. Additional triggers do not accumulate. |
 | 16 | **Elian** | Name - Human, Wanderer - Unique | 1 | +1 | When this formation becomes Named, you may swap it with an adjacent friendly formation. |
 
-### Batch 2 role definitions
+### Batch 2 card-text principle
 
-**Stronghold**
-- Deploy - Rear only.
-- Cannot move, Maneuver, or swap positions.
-- If its controller loses the Front while a Named Formation is in the Frontline, drive off the Stronghold instead of Retreating that formation.
-
-**Skirmisher**
-- May Maneuver even while not Named.
-- At Front resolution, may contribute its Strength to its own Front or one adjacent Front, not both.
+Stronghold and Skirmisher are useful labels, but their mechanics are printed in full on every card that uses them. The player never needs a role lookup table to know what a card does.
 
 ### Batch 2 notes
 
@@ -76,3 +70,26 @@ Status: approved for the first-80 design pool.
 - Stronghold is intentionally low-Strength. Its value is defensive structure, not winning through raw arithmetic.
 - Skirmisher creates lateral pressure without attacks, damage, wounds, or a separate combat step.
 - Iria changes Maneuver cost rather than moving automatically. Her discount lasts only for the current Battle and does not accumulate.
+
+
+## Batch 3 - Maneuver
+
+Status: approved for the first-80 design pool.
+
+| # | Card | Type | Cost | Strength | Rules text |
+| --- | --- | --- | ---: | ---: | --- |
+| 17 | **The Dust Riders** | Force - Human, Riders - Skirmisher | 2 | 2 | This Force may **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Dust Riders contribute their Strength to the chosen Front instead of their own. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left. |
+| 18 | **The Black Company** | Force - Human, Company - Swordsman | 2 | 4 | **Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this formation swaps positions during a **Maneuver**, you may **Maneuver** the formation it swapped with for 0 Command. |
+| 19 | **Kept Pace With** | Bond | 1 | - | After an adjacent friendly **Named Formation** Maneuvers away, you may move this formation into the position it left. |
+| 20 | **Covered the Withdrawal** | Bond | 1 | - | When an adjacent friendly formation **Retreats**, after that Retreat resolves you may **Maneuver** this formation for 0 Command. |
+| 21 | **Teren** | Name - Human, Captain - Unique | 2 | +1 | After this formation **Maneuvers**, you may swap two adjacent friendly formations other than this one. |
+| 22 | **Mara** | Name - Human, Scout - Unique | 1 | +1 | When an opposing formation **Maneuvers** into this Front, you may **Maneuver** this formation for 0 Command. |
+| 23 | **Blocked the Road** | Bond | 1 | - | Opponent card effects cannot move formations into this Front from an adjacent Front. |
+| 24 | **The Long March** | Story - Saga - Ongoing | 2 | - | **Ongoing.** The first **Maneuver** you make each turn costs 0 Command if it moves a formation into an empty position rather than swapping. |
+
+### Batch 3 notes
+
+- Movement effects use **move** when they are card-effect movement and **Maneuver** only when they invoke the core Maneuver action.
+- The Dust Riders print the complete Skirmisher mechanic; the label itself carries no hidden rule.
+- The Black Company prints its positional Swordsman effect; the label itself carries no hidden rule.
+- **The Long March** is intentionally the most experimental card in the batch and tests whether recurring movement economy creates useful battlefield activity without making position trivial.
