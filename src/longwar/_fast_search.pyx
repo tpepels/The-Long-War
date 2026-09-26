@@ -470,6 +470,11 @@ cdef class FastEngine:
     cdef uint8_t strat_unnamed_maneuver[MAX_CARDS]
     cdef uint8_t strat_tie_control[MAX_CARDS]
     cdef uint8_t strat_recovery_loss_reduction[MAX_CARDS]
+    cdef uint8_t strat_no_retreat[MAX_CARDS]
+    cdef uint8_t strat_combine_fronts[MAX_CARDS]
+    cdef uint8_t strat_refuse_flank[MAX_CARDS]
+    cdef uint8_t strat_encirclement[MAX_CARDS]
+    cdef uint8_t strat_directional_maneuver[MAX_CARDS]
     cdef int8_t on_link_bonus[MAX_CARDS]
     cdef int8_t aura[MAX_CARDS]
     cdef int8_t aura_rank[MAX_CARDS]
@@ -550,6 +555,11 @@ cdef class FastEngine:
         memset(self.strat_unnamed_maneuver, 0, sizeof(self.strat_unnamed_maneuver))
         memset(self.strat_tie_control, 0, sizeof(self.strat_tie_control))
         memset(self.strat_recovery_loss_reduction, 0, sizeof(self.strat_recovery_loss_reduction))
+        memset(self.strat_no_retreat, 0, sizeof(self.strat_no_retreat))
+        memset(self.strat_combine_fronts, 0, sizeof(self.strat_combine_fronts))
+        memset(self.strat_refuse_flank, 0, sizeof(self.strat_refuse_flank))
+        memset(self.strat_encirclement, 0, sizeof(self.strat_encirclement))
+        memset(self.strat_directional_maneuver, 0, sizeof(self.strat_directional_maneuver))
         memset(self.on_link_bonus, 0, sizeof(self.on_link_bonus))
         memset(self.aura, 0, sizeof(self.aura))
         memset(self.aura_rank, 0xff, sizeof(self.aura_rank))
@@ -736,6 +746,16 @@ cdef class FastEngine:
                 self.strat_recovery_loss_reduction[code] = max(
                     0, -int(design.get("lost_front_adjustment", 0))
                 )
+            if design.get("stratagem") == "no_retreat_front":
+                self.strat_no_retreat[code] = 1
+            if design.get("stratagem") == "combine_two_adjacent_fronts":
+                self.strat_combine_fronts[code] = 1
+            if design.get("stratagem") == "refuse_flank":
+                self.strat_refuse_flank[code] = 1
+            if design.get("stratagem") == "encirclement":
+                self.strat_encirclement[code] = 1
+            if design.get("stratagem") == "battle_turns_direction":
+                self.strat_directional_maneuver[code] = 1
 
             self.on_link_bonus[code] = int(rules.get("on_link_attached", {}).get("temporary_strength", 0))
             self.aura[code] = int(rules.get("adjacent_strength_aura", 0))
