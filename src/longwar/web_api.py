@@ -257,6 +257,15 @@ class PlaySession:
                 {
                     "card_id": story.card_id,
                     "ongoing": story.ongoing,
+                    "fronts": [int(front) for front in story.fronts],
+                    "target": (
+                        None
+                        if story.target_position is None
+                        else {
+                            "player": story.target_player,
+                            **self._position_payload(story.target_position),
+                        }
+                    ),
                 }
                 for story in state.stories[owner][
                     : self.engine.ongoing_story_limit
@@ -269,7 +278,22 @@ class PlaySession:
             (
                 None
                 if state.stratagems[owner] is None
-                else {"card_id": state.stratagems[owner].card_id}
+                else {
+                    "card_id": state.stratagems[owner].card_id,
+                    "fronts": [
+                        int(front)
+                        for front in state.stratagems[owner].fronts
+                    ],
+                    "direction": state.stratagems[owner].direction,
+                    "targets": [
+                        {
+                            "player": target_player,
+                            **self._position_payload(target_position),
+                        }
+                        for target_player, target_position
+                        in state.stratagems[owner].targets
+                    ],
+                }
             )
             for owner in range(2)
         ]
@@ -444,6 +468,8 @@ class PlaySession:
             "source": None,
             "destination": None,
             "ongoing_slot": None,
+            "fronts": [],
+            "direction": None,
             "targets": [],
         }
 
@@ -458,6 +484,17 @@ class PlaySession:
             )
         elif isinstance(action, PlayStory):
             payload["ongoing_slot"] = action.ongoing_slot
+            payload["fronts"] = [int(front) for front in action.fronts]
+            payload["targets"] = [
+                {
+                    "player": target.player,
+                    **self._position_payload(target.position),
+                }
+                for target in action.targets
+            ]
+        elif isinstance(action, PlayStratagem):
+            payload["fronts"] = [int(front) for front in action.fronts]
+            payload["direction"] = action.direction
             payload["targets"] = [
                 {
                     "player": target.player,
@@ -522,24 +559,37 @@ class PlaySession:
                 f"{RANK_NAMES[action.position.rank]}."
             )
         if isinstance(action, PlayStory):
-            title = self.cards[action.card_id]["title"]
-            if action.ongoing_slot is not None:
-                return (
-                    f"{prefix} plays {title} as an ongoing Story."
+            card = self.cards[action.card_id]
+            title = card["title"]
+            form = str(card.get("story_form", "Narrative")).title()
+            detail = ""
+            if action.fronts:
+                detail = " beside " + ", ".join(
+                    FRONT_NAMES[front] for front in action.fronts
                 )
-            if not action.targets:
-                return f"{prefix} plays the Story {title}."
-            targets = ", ".join(
-                self._target_label(target)
-                for target in action.targets
-            )
-            return (
-                f"{prefix} plays the Story {title} targeting {targets}."
-            )
+            elif action.targets:
+                detail = " beside " + ", ".join(
+                    self._target_label(target)
+                    for target in action.targets
+                )
+            return f"{prefix} plays the {form} {title}{detail}."
         if isinstance(action, PlayStratagem):
+            detail = ""
+            if action.fronts:
+                detail = " choosing " + ", ".join(
+                    FRONT_NAMES[front] for front in action.fronts
+                )
+            elif action.direction:
+                detail = f" choosing {action.direction}"
+            elif action.targets:
+                detail = " moving " + ", ".join(
+                    self._target_label(target)
+                    for target in action.targets
+                )
             return (
                 f"{prefix} plays "
-                f"{self.cards[action.card_id]['title']} as their Stratagem."
+                f"{self.cards[action.card_id]['title']} as their Stratagem"
+                f"{detail}."
             )
         return repr(action)
 
@@ -576,10 +626,10 @@ class PlaySession:
         if isinstance(action, PlayStory):
             if action.ongoing_slot is not None:
                 return (
-                    "You have an open ongoing Story slot. Each player may "
-                    "have at most 2 ongoing Stories."
+                    "You have an open ongoing Narrative slot. Each player may "
+                    "have at most 2 ongoing Narratives."
                 )
-            return "The Story has all targets required by its rules text."
+            return "The Narrative has all choices required by its rules text."
         if isinstance(action, PlayStratagem):
             return (
                 "You have not played a Stratagem this Battle. Pay its printed "
