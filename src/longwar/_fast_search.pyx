@@ -1780,7 +1780,7 @@ cdef class FastEngine:
                 state.winner = 0
             if state.phase == PHASE_COMPLETE:
                 state.cleanup_pending = 0
-                        return
+                return
 
         first_passer = (
             state.pass_order[0]
