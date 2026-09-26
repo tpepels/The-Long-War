@@ -228,3 +228,45 @@ Each Hero can be played as a Force or as a Name. Both modes are printed in full.
 - moving retreating allies vs moving the Hero's own formation;
 - taking prepared cards vs transferring an open Bond;
 - making Stories cheaper vs recovering a Story.
+
+
+## Narrative-card identity
+
+The engine may keep `story` as the umbrella family, but player-facing cards use their specific narrative form: **Legend, Omen, Myth, Prophecy, Warning, Saga, Conspiracy**, and future forms where useful.
+
+- Command is the shared mechanical identity of narrative cards: stories about the war increase a player's Command over the army.
+- Most successful narrative conditions regain **1 Command**.
+- **2 Command** is reserved for more demanding or uncertain conditions.
+- Each narrative card also has a smaller secondary effect that expresses what kind of narrative it is.
+- Narrative cards are public. There is no face-down or Veiled narrative system.
+- A narrative card that refers to a chosen Front or formation is physically placed beside it so the remembered state is visible.
+- Do not use generic **Story** as the player-facing card type when a more specific form applies.
+
+
+## Batch 8 - Narratives
+
+Status: draft for review.
+
+Command gain is the common identity of this batch. The secondary effect expresses the specific narrative form.
+
+| # | Card | Form | Cost | Rules text |
+| --- | --- | --- | ---: | --- |
+| 57 | **The Wall Did Not Break** | Legend | 1 | **Ongoing.** Choose a Front and place this beside it. At Battle end, if you did not lose that Front, regain 1 Command. If you won it, you may also return one Bond from your discard pile to your hand. Then discard this Legend. |
+| 58 | **They Returned With Names** | Legend | 1 | **Ongoing.** When one of your formations becomes Named, regain 1 Command. You may Maneuver that formation for 0 Command. Then discard this Legend. |
+| 59 | **The Crows Came Down** | Omen | 1 | **Ongoing.** When one of your Named Formations Retreats, regain 1 Command. You may move it one Front left or right if that Rear position is empty. Then discard this Omen. |
+| 60 | **They Were Gathering There** | Warning | 1 | **Ongoing.** When an opposing formation becomes Named, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Warning. |
+| 61 | **Before Sunset, the Ford Would Be Ours** | Prophecy | 1 | **Ongoing.** Choose a Front and place this beside it. At Battle end, if you win that Front, regain 2 Command and draw 1 card. Then discard this Prophecy. |
+| 62 | **They Lived to Tell It** | Saga | 1 | **Ongoing.** Place this beside one of your Named Formations. At Battle end, if that formation is still on the battlefield, regain 1 Command and draw 1 card. Then discard this Saga. |
+| 63 | **No Road Was Too Long** | Myth | 2 | **Ongoing.** The first time each Battle one of your formations Maneuvers into an empty position, regain 1 Command. You may move an adjacent friendly formation into the position it left. |
+| 64 | **The Muster Was False** | Conspiracy | 1 | **Ongoing.** When your opponent has a Force in both the Frontline and Rear of the same Front, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Conspiracy. |
+
+### Narrative mechanics under test
+
+- **Legend - hold ground:** Command from surviving or winning a chosen Front; stronger success can recover a Bond.
+- **Legend - identity:** Command from completing a Named Formation; secondary free Maneuver.
+- **Omen - Retreat:** Command from a visible loss event; secondary repositioning.
+- **Warning - enemy commitment:** Command from an opposing formation becoming Named; secondary reaction Maneuver.
+- **Prophecy - declared objective:** larger Command reward for winning a visibly chosen Front.
+- **Saga - survival:** Command from keeping a chosen Named Formation alive through the Battle.
+- **Myth - recurring belief:** once-per-Battle Command from behaving according to the Myth, plus movement.
+- **Conspiracy - overcommitment:** Command from the opponent filling both ranks of a Front, plus repositioning.
