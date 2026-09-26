@@ -173,12 +173,12 @@ def main() -> None:
     parser.add_argument(
         "--deck-a",
         type=Path,
-        default=Path("decks/reference.json"),
+        default=Path("decks/mobility-open-bonds.json"),
     )
     parser.add_argument(
         "--deck-b",
         type=Path,
-        default=Path("decks/reference.json"),
+        default=Path("decks/mobility-open-bonds.json"),
     )
     parser.add_argument(
         "--output",
