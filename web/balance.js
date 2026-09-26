@@ -20,17 +20,9 @@ function formatGameText(value) {
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
-const canonicalType = (card) => ({
-  subject: "force",
-  link: "bond",
-  plot: "story",
-}[card?.type] || card?.type);
+const canonicalType = (card) => card?.type;
 
-const cssCardType = (card) => ({
-  force: "subject",
-  bond: "link",
-  story: "plot",
-}[canonicalType(card)] || canonicalType(card));
+const cssCardType = (card) => canonicalType(card);
 
 function titleCase(value) {
   return String(value ?? "")
@@ -329,10 +321,10 @@ function renderTargetedCounterfactual(lab) {
 }
 
 function renderSequences(lab) {
-  const rows = [...(lab.all_legends || lab.health.legends)];
+  const rows = [...(lab.all_formations || lab.health.formations)];
   const observed = rows.filter((row) => row.observed !== false).length;
-  document.getElementById("legend-count").textContent = `${rows.length} possible · ${observed} observed`;
-  document.getElementById("legend-table").innerHTML = rows.map((row) => `
+  document.getElementById("formation-count").textContent = `${rows.length} possible · ${observed} observed`;
+  document.getElementById("formation-table").innerHTML = rows.map((row) => `
     <tr class="${row.flags.length ? "flagged-row" : ""}">
       <td><strong>${esc(row.title)}</strong></td>
       <td>${row.completions} / ${row.games_seen}</td>
@@ -469,7 +461,7 @@ function staticTable(rows) {
     <table class="mini-table fitted-mini-table">
       <thead><tr><th>Force · Bond · Name</th><th>Strength</th><th>z</th></tr></thead>
       <tbody>
-        ${rows.map((r) => `<tr><td><code>${esc([r.subject,r.link,r.name].join(" · "))}</code></td><td>${r.static_strength}</td><td>${num(r.z_score,2)}</td></tr>`).join("")}
+        ${rows.map((r) => `<tr><td><code>${esc([r.force,r.bond,r.name].join(" · "))}</code></td><td>${r.static_strength}</td><td>${num(r.z_score,2)}</td></tr>`).join("")}
       </tbody>
     </table>
   `;
@@ -478,12 +470,12 @@ function staticTable(rows) {
 function renderStatic(lab) {
   const s = lab.static;
   document.getElementById("static-overview").innerHTML = [
-    metric("Static combinations", s.legend_count, "Force × Bond × Name"),
+    metric("Static combinations", s.formation_count, "Force × Bond × Name"),
     metric("Mean Strength", num(s.static_strength.mean, 2), `σ ${num(s.static_strength.population_sd, 2)}`),
     metric("Range", `${s.static_strength.min}–${s.static_strength.max}`, "static Strength only"),
   ].join("");
-  document.getElementById("static-high").innerHTML = staticTable(s.highest_static_legends);
-  document.getElementById("static-low").innerHTML = staticTable(s.lowest_static_legends);
+  document.getElementById("static-high").innerHTML = staticTable(s.highest_static_formations);
+  document.getElementById("static-low").innerHTML = staticTable(s.lowest_static_formations);
 }
 
 function renderDownloads(lab) {
