@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from longwar.cards import STORY_FORMS, cards_by_type, load_card_file, validate_card_data
+from longwar.cards import NARRATIVE_FORMS, cards_by_type, load_card_file, validate_card_data
 from longwar.decks import validate_deck_definition
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,7 +40,7 @@ def test_names_and_heroes_are_unique() -> None:
 def test_narratives_have_specific_forms_and_public_ongoing_metadata() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     narratives = cards_by_type(data, "story")
-    assert {card["story_form"] for card in narratives} == STORY_FORMS
+    assert {card["narrative_form"] for card in narratives} == NARRATIVE_FORMS
     assert all(isinstance(card["ongoing"], bool) for card in narratives)
 
 
