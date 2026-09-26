@@ -36,11 +36,15 @@ class PlayStory:
     card_id: str
     targets: tuple[BoardTarget, ...] = ()
     ongoing_slot: int | None = None
+    fronts: tuple[Front, ...] = ()
 
 
 @dataclass(frozen=True)
 class PlayStratagem:
     card_id: str
+    fronts: tuple[Front, ...] = ()
+    direction: str | None = None
+    targets: tuple[BoardTarget, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -100,7 +104,15 @@ def action_key(action: object) -> str:
         )
     if isinstance(action, PlayStory):
         if action.ongoing_slot is not None:
-            return f"story:{action.card_id}:ongoing:{action.ongoing_slot}"
+            key = f"story:{action.card_id}:ongoing:{action.ongoing_slot}"
+            if action.fronts:
+                key += ":fronts:" + ",".join(str(int(front)) for front in action.fronts)
+            if action.targets:
+                key += ":targets:" + ";".join(
+                    f"{target.player},{int(target.position.front)},{target.position.rank.value}"
+                    for target in action.targets
+                )
+            return key
         targets = ";".join(
             f"{target.player}:{int(target.position.front)}:"
             f"{target.position.rank.value}"
@@ -108,7 +120,17 @@ def action_key(action: object) -> str:
         )
         return f"story:{action.card_id}:{targets}"
     if isinstance(action, PlayStratagem):
-        return f"stratagem:{action.card_id}"
+        key = f"stratagem:{action.card_id}"
+        if action.fronts:
+            key += ":fronts:" + ",".join(str(int(front)) for front in action.fronts)
+        if action.direction is not None:
+            key += f":direction:{action.direction}"
+        if action.targets:
+            key += ":targets:" + ";".join(
+                f"{target.player},{int(target.position.front)},{target.position.rank.value}"
+                for target in action.targets
+            )
+        return key
 
     raise TypeError(f"Unsupported action type: {type(action)!r}")
 
@@ -137,11 +159,56 @@ def action_from_key(key: str) -> object:
             _position(parts[3], parts[4]),
         )
     if parts[0] == "stratagem":
-        return PlayStratagem(parts[1])
+        card_id = parts[1]
+        fronts: tuple[Front, ...] = ()
+        direction: str | None = None
+        targets: tuple[BoardTarget, ...] = ()
+        index = 2
+        while index < len(parts):
+            label = parts[index]
+            value = parts[index + 1]
+            if label == "fronts":
+                fronts = tuple(Front(int(front)) for front in value.split(",") if front)
+            elif label == "direction":
+                if value not in {"left", "right"}:
+                    raise ValueError(f"Invalid direction in action key: {value}")
+                direction = value
+            elif label == "targets":
+                parsed: list[BoardTarget] = []
+                for encoded in value.split(";"):
+                    if not encoded:
+                        continue
+                    player, front, rank = encoded.split(",")
+                    parsed.append(BoardTarget(int(player), _position(front, rank)))
+                targets = tuple(parsed)
+            else:
+                raise ValueError(f"Unknown Stratagem action field: {label}")
+            index += 2
+        return PlayStratagem(card_id, fronts, direction, targets)
     if parts[0] == "story":
         card_id = parts[1]
         if len(parts) >= 4 and parts[2] == "ongoing":
-            return PlayStory(card_id, ongoing_slot=int(parts[3]))
+            slot = int(parts[3])
+            fronts: tuple[Front, ...] = ()
+            targets: tuple[BoardTarget, ...] = ()
+            index = 4
+            while index < len(parts):
+                label = parts[index]
+                value = parts[index + 1]
+                if label == "fronts":
+                    fronts = tuple(Front(int(front)) for front in value.split(",") if front)
+                elif label == "targets":
+                    parsed: list[BoardTarget] = []
+                    for encoded in value.split(";"):
+                        if not encoded:
+                            continue
+                        player, front, rank = encoded.split(",")
+                        parsed.append(BoardTarget(int(player), _position(front, rank)))
+                    targets = tuple(parsed)
+                else:
+                    raise ValueError(f"Unknown Narrative action field: {label}")
+                index += 2
+            return PlayStory(card_id, targets=targets, ongoing_slot=slot, fronts=fronts)
         payload = ":".join(parts[2:])
         targets: list[BoardTarget] = []
         if payload:

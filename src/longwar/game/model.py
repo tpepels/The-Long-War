@@ -64,12 +64,17 @@ class Slot:
 class StoryState:
     card_id: str
     ongoing: bool = True
-
+    fronts: tuple[Front, ...] = ()
+    target_player: int | None = None
+    target_position: Position | None = None
 
 
 @dataclass
 class StratagemState:
     card_id: str
+    fronts: tuple[Front, ...] = ()
+    direction: str | None = None
+    targets: tuple[tuple[int, Position], ...] = ()
 
 
 @dataclass
@@ -169,11 +174,29 @@ class GameState:
             for side in self.board
         ]
         stories = [
-            [StoryState(card_id=story.card_id, ongoing=story.ongoing) for story in side]
+            [
+                StoryState(
+                    card_id=story.card_id,
+                    ongoing=story.ongoing,
+                    fronts=tuple(story.fronts),
+                    target_player=story.target_player,
+                    target_position=story.target_position,
+                )
+                for story in side
+            ]
             for side in self.stories
         ]
         stratagems = [
-            None if stratagem is None else StratagemState(card_id=stratagem.card_id)
+            (
+                None
+                if stratagem is None
+                else StratagemState(
+                    card_id=stratagem.card_id,
+                    fronts=tuple(stratagem.fronts),
+                    direction=stratagem.direction,
+                    targets=tuple(stratagem.targets),
+                )
+            )
             for stratagem in self.stratagems
         ]
         return GameState(
@@ -236,7 +259,13 @@ class GameState:
                     target_slot.temporary_strength = source_slot.temporary_strength
 
             self.stories[player][:] = [
-                StoryState(card_id=story.card_id, ongoing=story.ongoing)
+                StoryState(
+                    card_id=story.card_id,
+                    ongoing=story.ongoing,
+                    fronts=tuple(story.fronts),
+                    target_player=story.target_player,
+                    target_position=story.target_position,
+                )
                 for story in source.stories[player]
             ]
 
@@ -244,7 +273,12 @@ class GameState:
             self.stratagems[player] = (
                 None
                 if source_stratagem is None
-                else StratagemState(card_id=source_stratagem.card_id)
+                else StratagemState(
+                    card_id=source_stratagem.card_id,
+                    fronts=tuple(source_stratagem.fronts),
+                    direction=source_stratagem.direction,
+                    targets=tuple(source_stratagem.targets),
+                )
             )
 
         self.stratagem_used[:] = source.stratagem_used

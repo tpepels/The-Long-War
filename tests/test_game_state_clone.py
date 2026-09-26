@@ -33,8 +33,8 @@ def test_game_state_clone_is_fully_isolated() -> None:
     slot.force = "seven-black-ships"
     slot.bond = "followed"
     slot.name = "namar"
-    state.stories[0].append(StoryState("the-lamps-went-dark"))
-    state.stratagems[0] = StratagemState("the-storm-broke")
+    state.stories[0].append(StoryState("the-wall-did-not-break", fronts=(Front.SECOND,)))
+    state.stratagems[0] = StratagemState("no-step-back", fronts=(Front.THIRD,))
     state.stratagem_used[0] = True
     state.pending_draw_discard_for = 1
 
@@ -42,15 +42,17 @@ def test_game_state_clone_is_fully_isolated() -> None:
 
     clone.players[0].hand.clear()
     clone.slot(0, position).force = "the-fifty-men"
-    clone.stories[0][0].card_id = "the-road-was-cut"
-    clone.stratagems[0].card_id = "the-tide-rose"
+    clone.stories[0][0].card_id = "the-long-march"
+    clone.stratagems[0].card_id = "the-center-must-hold"
     clone.pass_order.append(0)
     clone.pending_draw_discard_for = None
 
     assert state.players[0].hand
     assert state.slot(0, position).force == "seven-black-ships"
-    assert state.stories[0][0].card_id == "the-lamps-went-dark"
-    assert state.stratagems[0].card_id == "the-storm-broke"
+    assert state.stories[0][0].card_id == "the-wall-did-not-break"
+    assert state.stratagems[0].card_id == "no-step-back"
+    assert state.stories[0][0].fronts == (Front.SECOND,)
+    assert state.stratagems[0].fronts == (Front.THIRD,)
     assert state.pass_order == []
     assert state.pending_draw_discard_for == 1
 
