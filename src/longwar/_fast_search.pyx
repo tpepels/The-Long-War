@@ -544,6 +544,7 @@ cdef class FastEngine:
 
     def __init__(self, engine):
         cdef int code, r
+        cdef bint has_played_stratagem_trigger = False
         self.card_ids = tuple(engine.cards)
         self.n_cards = len(self.card_ids)
         self.opening_hand_size = int(engine.opening_hand_size)
@@ -582,11 +583,21 @@ cdef class FastEngine:
             raise ValueError(f"The native engine supports at most {MAX_CARDS} card identities")
         if max(engine.starting_command, self.command_cap, self.battle_command_gain) > 32767:
             raise ValueError("Command settings exceed the native signed 16-bit capacity")
-        if not self.public_stratagems and any(
-            card.get("rules", {}).get("stratagem", {}).get("trigger", {}).get("event") == "played"
-            for card in engine.cards.values()
-        ):
-            raise ValueError("Stratagem trigger 'played' requires public_stratagems")
+        if not self.public_stratagems:
+            for card in engine.cards.values():
+                if (
+                    card.get("rules", {})
+                    .get("stratagem", {})
+                    .get("trigger", {})
+                    .get("event")
+                    == "played"
+                ):
+                    has_played_stratagem_trigger = True
+                    break
+            if has_played_stratagem_trigger:
+                raise ValueError(
+                    "Stratagem trigger 'played' requires public_stratagems"
+                )
         self.id_to_code = {card_id: i for i, card_id in enumerate(self.card_ids)}
 
         type_map = {"force": CARD_SUBJECT, "bond": CARD_LINK, "name": CARD_NAME, "story": CARD_PLOT, "stratagem": CARD_STRATAGEM}
@@ -2344,9 +2355,22 @@ cdef class FastEngine:
 
     cpdef dict export_state(self, FastState state):
         cdef int p, f, r, i, card, viewer, owner, ix
+        cdef int lost0 = 0
+        cdef int lost1 = 0
         cdef object last_snapshot = None
 
         if state.last_battle_valid:
+            for f in range(4):
+                if (
+                    state.last_front_scores[f][0]
+                    < state.last_front_scores[f][1]
+                ):
+                    lost0 += 1
+                elif (
+                    state.last_front_scores[f][1]
+                    < state.last_front_scores[f][0]
+                ):
+                    lost1 += 1
             last_snapshot = {
                 "battle": state.last_battle,
                 "front_scores": [
@@ -2368,20 +2392,7 @@ cdef class FastEngine:
                     )
                     for f in range(4)
                 ],
-                "fronts_lost": [
-                    sum(
-                        1
-                        for f in range(4)
-                        if state.last_front_scores[f][0]
-                        < state.last_front_scores[f][1]
-                    ),
-                    sum(
-                        1
-                        for f in range(4)
-                        if state.last_front_scores[f][1]
-                        < state.last_front_scores[f][0]
-                    ),
-                ],
+                "fronts_lost": [lost0, lost1],
                 "command_start": [
                     state.last_command_start[0],
                     state.last_command_start[1],
