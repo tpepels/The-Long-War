@@ -456,7 +456,7 @@ cdef class NativeHeuristicEvaluator:
         if child.phase != PHASE_BATTLE or child.battle != state.battle:
             return self.battle_boundary_evaluate_fast(child, player)
 
-        score = self.evaluate_fast(state, player)
+        score = self.evaluate_fast(child, player)
         for front in range(4):
             margin = (
                 self.engine.front_strength_fast(state, player, front)
@@ -475,7 +475,7 @@ cdef class NativeHeuristicEvaluator:
         score += 4.0 * (wins - losses)
         score += 0.35 * total_margin
         score += 0.4 * tied
-        score -= min(8.0, 0.8 * state.hand_len[opponent])
+        score -= min(8.0, 0.8 * child.hand_len[opponent])
         if state.pass_len == 0:
             score += 1.5
         return score
@@ -547,16 +547,22 @@ cdef class NativeHeuristicEvaluator:
         if kind == TYPE_PASS:
             return self.pass_score_fast(state, player, child)
 
-        child.copy_from_fast(state)
-        self.engine.apply_fast(child, action)
-        score = self.evaluate_fast(child, player)
-
         if kind == TYPE_DISCARD:
+            child.copy_from_fast(state)
+            card = action_card(action)
+            self.engine.take_from_hand(child, player, card, 0)
+            score = self.evaluate_fast(child, player)
             score += 0.55 * self.hand_construction_value_fast(
                 child,
                 player,
             )
-        elif kind == TYPE_LINK:
+            return score
+
+        child.copy_from_fast(state)
+        self.engine.apply_fast(child, action)
+        score = self.evaluate_fast(child, player)
+
+        if kind == TYPE_LINK:
             score += 0.10 if state.subject[pos] >= 0 else 1.35
         elif kind == TYPE_NAME:
             score += 0.35 if state.subject[pos] >= 0 else 1.50
