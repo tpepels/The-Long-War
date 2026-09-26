@@ -852,6 +852,61 @@ def test_drive_off_persistence_bonds_and_names_apply() -> None:
     assert "edrin" in state.players[0].hand
 
 
+def test_seized_standard_returns_bond_only_after_an_actual_retreat() -> None:
+    engine, state = setup_state(seed=4692)
+    state.battle = 8
+    state.players[0].command = 10
+    state.players[1].command = 10
+    state.battle_start_command[:] = [10, 10]
+    state.players[1].hand = ["the-fifty-men"] * 9
+    state.players[1].deck = ["the-fifty-men"] * 20
+    state.players[1].discard = []
+
+    make_named(
+        state,
+        0,
+        pos(0, Rank.FRONT),
+        bond="seized-the-standard-of",
+        temporary=20,
+    )
+    make_named(
+        state,
+        1,
+        pos(0, Rank.FRONT),
+        bond="followed",
+        name="namar",
+    )
+
+    make_named(
+        state,
+        0,
+        pos(1, Rank.FRONT),
+        force="the-iron-boars",
+        bond="seized-the-standard-of",
+        temporary=20,
+    )
+    make_named(
+        state,
+        1,
+        pos(1, Rank.FRONT),
+        bond="endured-with",
+        name="edrin",
+    )
+
+    resolve_battle_by_passing(engine, state)
+
+    retreated = state.slot(1, pos(0, Rank.REAR))
+    assert retreated.force == "the-fifty-men"
+    assert retreated.bond is None
+    assert retreated.name == "namar"
+    assert "followed" in state.players[1].hand
+
+    assert state.slot(1, pos(1, Rank.FRONT)).occupied is False
+    assert state.slot(1, pos(1, Rank.REAR)).occupied is False
+    assert "endured-with" in state.players[1].discard
+    assert "endured-with" not in state.players[1].hand
+
+
 def test_endured_with_regains_command_when_formation_retreats() -> None:
     engine, state = setup_state(seed=4691)
     state.battle = 8
