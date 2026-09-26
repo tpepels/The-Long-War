@@ -2600,7 +2600,7 @@
         "persistence": "inherited_bond"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 5
     },
     {
@@ -2628,7 +2628,7 @@
         "persistence": "bond_returns_to_hand_when_force_driven_off"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 5
     },
     {
@@ -2658,7 +2658,7 @@
         "persistence": "name_returns_to_hand_when_formation_driven_off"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 5
     },
     {
@@ -2688,7 +2688,7 @@
         "persistence": "retreat_sideways"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 5
     },
     {
@@ -2723,7 +2723,7 @@
         "persistence": "rear_rebuild_cost_reduction"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 5
     },
     {
@@ -2753,7 +2753,7 @@
         "persistence": "start_battle_reposition"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 5
     },
     {
@@ -2782,7 +2782,7 @@
         "amount": 1
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 5
     },
     {
@@ -2812,7 +2812,7 @@
         "persistence": "voluntary_retreat_if_rear_empty"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 5
     }
   ]
