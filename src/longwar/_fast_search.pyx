@@ -3641,13 +3641,41 @@ cdef class FastEngine:
         state.temporary[slot] = 0
         state.maneuver_count[slot] = 0
 
-    cdef void drive_off_slot(
+    cdef uint16_t succession_destinations(
         self,
         FastState state,
         int player,
         int slot,
     ) noexcept:
-        """Drive off one complete formation, applying printed persistence text."""
+        cdef int front = front_from_slot(slot)
+        cdef int rank = rank_from_slot(slot)
+        cdef int dest
+        cdef uint16_t mask = 0
+        if front > 0:
+            dest = slot_index(player, front - 1, rank)
+            if (
+                state.subject[dest] >= 0
+                and state.link[dest] >= 0
+                and state.name[dest] < 0
+            ):
+                mask |= <uint16_t>(1 << dest)
+        if front < 3:
+            dest = slot_index(player, front + 1, rank)
+            if (
+                state.subject[dest] >= 0
+                and state.link[dest] >= 0
+                and state.name[dest] < 0
+            ):
+                mask |= <uint16_t>(1 << dest)
+        return mask
+
+    cdef void finish_pending_drive_off(
+        self,
+        FastState state,
+        int player,
+        int slot,
+    ) noexcept:
+        """Finish a drive-off after any replacement choice has resolved."""
         cdef int force = state.subject[slot]
         cdef int bond = state.link[slot]
         cdef int name = state.name[slot]
@@ -3657,8 +3685,6 @@ cdef class FastEngine:
 
         if bond >= 0:
             if self.driven_bond_stays[bond]:
-                # Stayed Behind For remains as a prepared Bond after the Force
-                # is driven off; its Name is returned rather than discarded.
                 state.subject[slot] = -1
                 if name >= 0:
                     self.return_to_hand(state, player, name)
@@ -3683,23 +3709,96 @@ cdef class FastEngine:
         state.temporary[slot] = 0
         state.maneuver_count[slot] = 0
 
+    cdef void drive_off_slot(
+        self,
+        FastState state,
+        int player,
+        int slot,
+    ) except *:
+        """Drive off one formation, pausing for Eira's succession if legal."""
+        cdef int name = state.name[slot]
+        cdef uint16_t destinations
+        if name >= 0 and self.succession_name[name]:
+            destinations = self.succession_destinations(state, player, slot)
+            if destinations:
+                self.enqueue_effect(
+                    state,
+                    EFFECT_SUCCESSION,
+                    player,
+                    source=slot,
+                    dest_mask=destinations,
+                    flags=EFFECT_OPTIONAL,
+                )
+                return
+        self.finish_pending_drive_off(state, player, slot)
+
     cdef void retreat_slot(
         self,
         FastState state,
         int player,
         int source,
         int destination,
-    ) noexcept:
-        """Move a formation by Retreat and apply mandatory Retreat text."""
+    ) except *:
+        """Move a formation by Retreat and queue printed after-Retreat effects."""
         cdef int bond = state.link[source]
+        cdef int name = state.name[source]
+        cdef int front = front_from_slot(destination)
+        cdef int rank = rank_from_slot(destination)
+        cdef int other, other_bond
+        cdef uint16_t destinations
+
         self.move_slot(state, source, destination)
         self.resolve_retreat_narratives(state, player, destination)
+
         if bond >= 0 and self.retreat_command_gain[bond] > 0:
             self.gain_command_fast(
                 state,
                 player,
                 self.retreat_command_gain[bond],
             )
+
+        if (
+            name >= 0
+            and (
+                self.retreat_sideways_name[name]
+                or self.neris_retreat_name[name]
+            )
+        ):
+            destinations = self.adjacent_empty_mask(
+                state, player, destination
+            )
+            self.queue_move_to_mask(
+                state,
+                player,
+                <uint16_t>(1 << destination),
+                destinations,
+                True,
+            )
+
+        # Covered the Withdrawal of triggers from an adjacent formation in
+        # the same Rear rank after the Retreat has resolved.
+        if front > 0:
+            other = slot_index(player, front - 1, rank)
+            other_bond = state.link[other]
+            if (
+                state.subject[other] >= 0
+                and other_bond >= 0
+                and self.covered_withdrawal_bond[other_bond]
+            ):
+                self.queue_free_maneuver(
+                    state, player, <uint16_t>(1 << other), True
+                )
+        if front < 3:
+            other = slot_index(player, front + 1, rank)
+            other_bond = state.link[other]
+            if (
+                state.subject[other] >= 0
+                and other_bond >= 0
+                and self.covered_withdrawal_bond[other_bond]
+            ):
+                self.queue_free_maneuver(
+                    state, player, <uint16_t>(1 << other), True
+                )
 
     cdef inline bint front_has_capture_bond(
         self,
@@ -4178,8 +4277,16 @@ cdef class FastEngine:
             if not skip and source >= 0 and dest >= 0:
                 self.retreat_slot(state, player, source, dest)
         elif kind == EFFECT_PROTECT_RETREAT:
+            if source < 0:
+                source = trigger_source
+            if source >= 0:
+                state.resolution_protected_mask[player] |= <uint8_t>(
+                    1 << (front_from_slot(source) + 4)
+                )
             if not skip and source >= 0:
-                state.resolution_protected_mask[player] |= <uint8_t>(1 << front_from_slot(source))
+                state.resolution_protected_mask[player] |= <uint8_t>(
+                    1 << front_from_slot(source)
+                )
                 self.drive_off_slot(state, player, source)
         elif kind == EFFECT_TRANSFER_COMPONENT:
             if not skip and source >= 0 and dest >= 0 and card >= 0:
