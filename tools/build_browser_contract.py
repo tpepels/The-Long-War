@@ -438,7 +438,7 @@ def main() -> None:
 
     cards = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(
             encoding="utf-8"
         )
     )["cards"]
