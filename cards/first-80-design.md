@@ -12,14 +12,14 @@ Status: approved for the first-80 design pool.
 
 | # | Card | Type | Cost | Strength | Rules text | Design role |
 | --- | --- | --- | ---: | ---: | --- | --- |
-| 1 | **The Fifty Men** | Force - Human, Warband - Swordsman | 2 | 4 | - | Baseline Frontline Force. |
-| 2 | **Seven Black Ships** | Force - Ship, Fleet - Ship | 2 | 4 | - | Baseline Rear Force. |
-| 3 | **The White Hands of Elara** | Force - Human, Healer | 1 | 2 | **Deploy - Rear only.** | Baseline support Force. |
-| 4 | **Stood Fast With** | Bond | 1 | - | **This formation gets +2 Strength.** | Pure baseline Bond. |
-| 5 | **Followed** | Bond | 1 | - | **This formation gets +1 Strength. While it is Named, it gets +2 more.** | Teaches the value of completing a Named Formation. |
-| 6 | **Namar** | Name - Human, King - Unique | 1 | +1 | **When this formation becomes Named, regain 1 Command.** | Simple completion payoff. |
-| 7 | **Oren** | Name - Human, Warrior - Unique | 2 | +2 | **When this formation becomes Named, draw 1 card.** | Simple completion payoff with card flow. |
-| 8 | **Avaros, the Bronze King** | Hero - Human, King - Unique | 3 | Force: 5 | **Force:** Swordsman. **Deploy - Frontline only.** After Avaros Maneuvers, you may Maneuver one adjacent friendly Named Formation without paying Command. **Name:** When this formation becomes Named, you may Maneuver it once without paying Command. | Maneuver-focused Hero; both modes change board position rather than adding Strength arithmetic. |
+| 1 | **The Fifty Men** | Force - Human, Warband - Swordsman | While this Force is in the **Frontline**, it gets +1 **Strength**. |
+| 2 | **Seven Black Ships** | Force - Ship, Fleet - Ship | While this Force is in the **Rear**, it gets +1 **Strength**. |
+| 3 | **The White Hands of Elara** | Force - Human, Healer | **Deploy - Rear only.** While this Force is in the **Rear**, the friendly Force directly in front of it gets +2 **Strength**. |
+| 4 | **Stood Fast With** | Bond | This formation gets +2 **Strength**. |
+| 5 | **Followed** | Bond | This formation gets +1 **Strength**. If it is **Named**, it gets +3 **Strength** instead. |
+| 6 | **Namar** | Name - Human, King - Unique | When this formation becomes **Named**, regain 1 **Command**. |
+| 7 | **Oren** | Name - Human, Warrior - Unique | When this formation becomes **Named**, draw 1 card. |
+| 8 | **Avaros, the Bronze King** | Hero - Human, King - Unique | **Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this Force **Maneuvers**, you may **Maneuver** one adjacent friendly **Named Formation** for 0 Command. **Name -** When this formation becomes **Named**, you may **Maneuver** it once for 0 Command. |
 
 ### Batch 1 notes
 
@@ -40,6 +40,7 @@ Status: approved for the first-80 design pool.
 - Bond titles should normally form a grammatical phrase between the Force and a future Name: `Force + Bond + Name`.
 - Prefer short, literal card text over new vocabulary or compressed rules language. A player should normally understand an effect from the card without checking the rulebook.
 - Prefer player-facing phrases such as **when comparing Strength** over abstract rules terms such as **when this Front is resolved**.
+- Avoid engine-facing words on card faces such as **resolve/resolution**, **contribute**, **trigger**, **accumulate**, and **combat effect** when a literal instruction such as **count**, **ignore**, **move**, or **discard** says the same thing.
 - No new universal counters, wounds, exhaustion, Renown, veteran state, movement points, resources, phases, or hidden memory state.
 - Use canonical timing language consistently: **when you play**, **when this formation becomes Named**, **while**, **after this formation Maneuvers**, **when this formation Retreats**, **when this formation is driven off**, **at Battle end**.
 - **Maneuver** means the core named movement action; **move** is reserved for card-effect movement that does not automatically inherit Maneuver rules.
@@ -54,14 +55,14 @@ Status: approved for the first-80 design pool.
 
 | # | Card | Type | Cost | Strength | Rules text |
 | --- | --- | --- | ---: | ---: | --- |
-| 9 | **The Red Shields** | Force - Human, Guard - Spearman | 2 | 4 | **Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 **Strength**. |
-| 10 | **The Crow Archers** | Force - Human, Company - Archer | 2 | 4 | **Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 **Strength**. |
-| 11 | **The House of Reed** | Force - Place, Stronghold | 2 | 3 | **Deploy - Rear only.** This Force cannot move, Maneuver, or swap positions. If you lose this Front while you have a Named Formation in the Frontline, drive off this Force instead of Retreating that formation. |
-| 12 | **The Grey Riders** | Force - Human, Riders - Skirmisher | 2 | 2 | This Force may **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Grey Riders contribute their Strength to the chosen Front instead of their own. |
-| 13 | **Guarded** | Bond | 1 | - | Opponent card effects cannot move this formation. |
-| 14 | **Marched With** | Bond | 1 | - | When you play this Bond onto a Force, you may move that formation to an adjacent empty position. |
-| 15 | **Iria** | Name - Human, Seer - Unique | 1 | +1 | Whenever an opposing formation in this Front becomes Named, your next Maneuver this Battle costs 0 Command. Additional triggers do not accumulate. |
-| 16 | **Elian** | Name - Human, Wanderer - Unique | 1 | +1 | When this formation becomes Named, you may swap it with an adjacent friendly formation. |
+| 9 | **The Red Shields** | Force - Human, Guard - Spearman | **Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 **Strength**. |
+| 10 | **The Crow Archers** | Force - Human, Company - Archer | **Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 **Strength**. |
+| 11 | **The House of Reed** | Force - Place, Stronghold | **Deploy - Rear only.** This Force cannot move, **Maneuver**, or swap positions. If you lose this Front while you have a **Named Formation** in the Frontline, drive off this Force instead of Retreating that formation. |
+| 12 | **The Grey Riders** | Force - Human, Riders - Skirmisher | This Force may **Maneuver** even while not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front. |
+| 13 | **Guarded** | Bond | Cards your opponent plays cannot move this formation. |
+| 14 | **Marched With** | Bond | When you play this Bond on a Force, you may move that formation to an adjacent empty position. |
+| 15 | **Iria** | Name - Human, Seer - Unique | When an opposing formation in this Front becomes **Named**, your next **Maneuver** this Battle costs 0 Command. If this happens again before you Maneuver, you still get only one free Maneuver. |
+| 16 | **Elian** | Name - Human, Wanderer - Unique | When this formation becomes **Named**, you may swap it with an adjacent friendly formation. |
 
 ### Batch 2 card-text principle
 
@@ -81,14 +82,14 @@ Status: approved for the first-80 design pool.
 
 | # | Card | Type | Cost | Strength | Rules text |
 | --- | --- | --- | ---: | ---: | --- |
-| 17 | **The Dust Riders** | Force - Human, Riders - Skirmisher | 2 | 2 | This Force may **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Dust Riders contribute their Strength to the chosen Front instead of their own. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left. |
-| 18 | **The Black Company** | Force - Human, Company - Swordsman | 2 | 4 | **Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this formation swaps positions during a **Maneuver**, you may **Maneuver** the formation it swapped with for 0 Command. |
-| 19 | **Kept Pace With** | Bond | 1 | - | After an adjacent friendly **Named Formation** Maneuvers away, you may move this formation into the position it left. |
-| 20 | **Covered the Withdrawal of** | Bond | 1 | - | When an adjacent friendly formation **Retreats**, after that Retreat resolves you may **Maneuver** this formation for 0 Command. |
-| 21 | **Teren** | Name - Human, Captain - Unique | 2 | +1 | After this formation **Maneuvers**, you may swap two adjacent friendly formations other than this one. |
-| 22 | **Mara** | Name - Human, Scout - Unique | 1 | +1 | When an opposing formation **Maneuvers** into this Front, you may **Maneuver** this formation for 0 Command. |
-| 23 | **Blocked the Road for** | Bond | 1 | - | Opponent card effects cannot move formations into this Front from an adjacent Front. |
-| 24 | **The Long March** | Story - Saga - Ongoing | 2 | - | **Ongoing.** The first **Maneuver** you make each turn costs 0 Command if it moves a formation into an empty position rather than swapping. |
+| 17 | **The Dust Riders** | Force - Human, Riders - Skirmisher | This Force may **Maneuver** even while not Named. At Battle end, choose this Front or one adjacent Front. Count this Force's **Strength** only in the chosen Front. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left. |
+| 18 | **The Black Company** | Force - Human, Company - Swordsman | **Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. After this formation swaps positions with another formation during a **Maneuver**, you may **Maneuver** that other formation for 0 Command. |
+| 19 | **Kept Pace With** | Bond | After an adjacent friendly **Named Formation** Maneuvers away, you may move this formation into the position it left. |
+| 20 | **Covered the Withdrawal of** | Bond | After an adjacent friendly formation **Retreats**, you may **Maneuver** this formation for 0 Command. |
+| 21 | **Teren** | Name - Human, Captain - Unique | After this formation **Maneuvers**, you may swap two adjacent friendly formations other than this one. |
+| 22 | **Mara** | Name - Human, Scout - Unique | When an opposing formation **Maneuvers** into this Front, you may **Maneuver** this formation for 0 Command. |
+| 23 | **Blocked the Road for** | Bond | Cards your opponent plays cannot move a formation from an adjacent Front into this Front. |
+| 24 | **The Long March** | Story - Saga - Ongoing | **Ongoing.** Your first **Maneuver** each turn costs 0 Command if it moves into an empty position instead of swapping. |
 
 ### Batch 3 notes
 
@@ -106,14 +107,14 @@ This batch deliberately expands what can happen when a Front resolves without in
 
 | # | Card | Type | Cost | Strength | Rules text |
 | --- | --- | --- | ---: | ---: | --- |
-| 25 | **The Red Duelists** | Force - Human, Duelists | 2 | 3 | **Deploy - Frontline only.** When comparing Strength in this Front, ignore Rear formations. |
-| 26 | **The Thornbow Hunters** | Force - Human, Hunters - Archer | 2 | 1 | **Deploy - Rear only.** While in the Rear with a friendly Force directly ahead, this Force gets +2 Strength. When resolving this Front, you may choose an opposing Rear Force. It does not contribute Strength this resolution. |
-| 27 | **The Iron Boars** | Force - Human, Raiders - Swordsman | 3 | 3 | **Deploy - Frontline only.** While in the Frontline, this Force gets +1 Strength. If you win this Front while the opponent has no Force in the Rear, drive off their Frontline Named Formation instead of Retreating it. |
-| 28 | **The First Spear** | Force - Human, Guard - Spearman | 3 | 3 | **Deploy - Frontline only.** While in the Frontline with a friendly Force directly behind it, this Force gets +1 Strength. Before Strength is compared, you may choose an opposing Frontline Force with lower printed Strength. It does not contribute this resolution. |
-| 29 | **Held the Line for** | Bond | 1 | - | Before Strength is compared, you may discard this Force and all attached cards. If you do, choose one opposing formation here. It does not contribute Strength this resolution. |
-| 30 | **Seized the Standard of** | Bond | 1 | - | When this formation wins its Front and an opposing Frontline Named Formation Retreats, after the Retreat return that formation's Bond to its owner's hand. |
-| 31 | **Asha, the Shield-Bearer** | Name - Human, Shield-Bearer - Unique | 1 | +1 | When an opponent's combat effect would make another friendly formation in this Front not contribute Strength, you may have this formation not contribute instead. The other formation contributes normally. |
-| 32 | **The Ground Was Held** | Stratagem | 2 | - | **During this Battle**, when a Front is tied, if exactly one player has a Named Formation in the Frontline there, that player wins the Front. Otherwise the Front remains tied. |
+| 25 | **The Red Duelists** | Force - Human, Duelists | **Deploy - Frontline only.** When comparing **Strength** in this Front, ignore Strength from Rear formations. |
+| 26 | **The Thornbow Hunters** | Force - Human, Hunters - Archer | **Deploy - Rear only.** While this Force is in the **Rear**, if a friendly Force is directly in front of it, this Force gets +2 **Strength**. When comparing Strength in this Front, you may ignore one opposing Rear Force's Strength. |
+| 27 | **The Iron Boars** | Force - Human, Raiders - Swordsman | **Deploy - Frontline only.** While this Force is in the **Frontline**, it gets +1 **Strength**. If you win this Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it. |
+| 28 | **The First Spear** | Force - Human, Guard - Spearman | **Deploy - Frontline only.** While this Force is in the **Frontline**, if a friendly Force is directly behind it, this Force gets +1 **Strength**. When comparing Strength in this Front, you may ignore an opposing Frontline Force's Strength if the Strength printed on that card is lower than the Strength printed on this one. |
+| 29 | **Held the Line for** | Bond | Before comparing Strength in this Front, you may discard this Force and all cards attached to it. If you do, choose one opposing formation here and ignore its Strength. |
+| 30 | **Seized the Standard of** | Bond | If this formation wins its Front and an opposing Frontline Named Formation **Retreats**, return that formation's Bond to its owner's hand after it Retreats. |
+| 31 | **Asha, the Shield-Bearer** | Name - Human, Shield-Bearer - Unique | If an opponent's card would make another friendly formation's Strength not count in this Front, you may make this formation's Strength not count instead. The other formation counts normally. |
+| 32 | **The Ground Was Held** | Stratagem | **During this Battle**, if a Front is tied and only one player has a Named Formation in its Frontline, that player wins the Front. If both or neither do, it stays tied. |
 
 ### Mechanics under test
 
