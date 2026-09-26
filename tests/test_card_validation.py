@@ -69,6 +69,25 @@ def test_strength_and_command_cost_fit_the_native_schema(data, value):
             validate_card_data(card)
 
 
+def test_force_roles_are_optional_descriptive_labels(data):
+    force = next(card for card in data["cards"] if card["type"] == "force")
+    force.pop("role", None)
+    validate_card_data(data)
+
+    force["role"] = "skirmisher"
+    validate_card_data(data)
+
+
+def test_extended_rule_block_kinds_and_command_costs_are_valid(data):
+    card = data["cards"][0]
+    card["command_cost"] = 5
+    card["rule_blocks"] = [
+        {"kind": "cost", "label": "COST", "text": "Costs 1 less Command."},
+        {"kind": "replacement", "label": "REPLACE", "text": "Use this instead."},
+    ]
+    validate_card_data(data)
+
+
 def test_direct_engine_input_is_validated_before_indexing(data):
     data["cards"].append(copy.deepcopy(data["cards"][0]))
     with pytest.raises(ValueError, match="Duplicate card id"):

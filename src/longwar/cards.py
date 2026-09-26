@@ -19,6 +19,7 @@ FORCE_ROLES = {
     "healer",
     "ship",
     "stronghold",
+    "skirmisher",
 }
 
 STORY_FORMS = {
@@ -31,7 +32,7 @@ STORY_FORMS = {
     "conspiracy",
 }
 
-RULE_BLOCK_KINDS = {"property", "timing", "trigger", "effect", "continuous"}
+RULE_BLOCK_KINDS = {"property", "timing", "trigger", "effect", "continuous", "cost", "replacement"}
 
 # This is the data contract accepted by the canonical engine, not an
 # implementation of the effects. Unknown keys must fail rather than silently
@@ -223,7 +224,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
         if not isinstance(card["text"], str):
             raise ValueError(f"{card_id}: text must be a string")
         if "command_cost" in card:
-            _validate_rule_value(card["command_cost"], range(1, 4), f"{card_id}.command_cost")
+            _validate_rule_value(card["command_cost"], range(1, 128), f"{card_id}.command_cost")
 
         classes = card.get("classes")
         if (
@@ -266,8 +267,12 @@ def validate_card_data(data: dict[str, Any]) -> None:
 
         if card_type == "force":
             role = card.get("role")
-            if not isinstance(role, str) or role not in FORCE_ROLES:
-                raise ValueError(f"{card_id}: invalid Force role {role!r}")
+            if role is not None and (
+                not isinstance(role, str)
+                or not role.strip()
+                or role != role.strip()
+            ):
+                raise ValueError(f"{card_id}: Force role must be a non-empty string when present")
 
         if card_type == "story":
             form = card.get("story_form")
