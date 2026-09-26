@@ -16,21 +16,13 @@ const TYPE_LABELS = {
   force: "Force",
   bond: "Bond",
   name: "Name",
-  story: "Story",
+  story: "Narrative",
   stratagem: "Stratagem",
 };
 
-const canonicalType = (card) => ({
-  subject: "force",
-  link: "bond",
-  plot: "story",
-}[card?.type] || card?.type);
+const canonicalType = (card) => card?.type;
 
-const cssCardType = (card) => ({
-  force: "subject",
-  bond: "link",
-  story: "plot",
-}[canonicalType(card)] || canonicalType(card));
+const cssCardType = (card) => canonicalType(card);
 
 const titleCase = (value) =>
   String(value ?? "")
@@ -42,9 +34,9 @@ const titleCase = (value) =>
 function typeLabel(card) {
   const type = canonicalType(card);
   if (type === "story") {
-    const form = titleCase(card.story_form);
-    const ongoing = card.ongoing ?? card.veiled ?? false;
-    return form ? form + (ongoing ? " · Ongoing Story" : " · Story") : (ongoing ? "Ongoing Story" : "Story");
+    const form = titleCase(card.narrative_form);
+    const ongoing = card.ongoing ?? false;
+    return form ? form + (ongoing ? " · Ongoing Narrative" : " · Narrative") : (ongoing ? "Ongoing Narrative" : "Narrative");
   }
   if (type === "force" && card.hero) return "Hero · Force / Name";
   return TYPE_LABELS[type] ?? type;
@@ -60,7 +52,7 @@ function cardMotif(card) {
 
 function cardSymbol(card) {
   const type = canonicalType(card);
-  if (type === "story") return (card.ongoing ?? card.veiled ?? false) ? "◐" : "⌁";
+  if (type === "story") return (card.ongoing ?? false) ? "◐" : "⌁";
   return { force: "◆", bond: "⛓", name: "✦", stratagem: "⚑" }[type] || "•";
 }
 
@@ -102,7 +94,6 @@ function cardMarkup(card) {
   const unique = card.unique ? '<span class="unique"><em>Unique</em></span>' : "";
 
   return '<article class="game-card card-' + cssCardType(card) +
-    (card.veiled ? " card-veiled" : "") +
     (card.hero ? " card-hero" : "") + '" data-card-id="' + esc(card.id) + '">' +
     '<div class="card-meta"><span class="card-type">' + esc(typeLabel(card)) + "</span>" + commandCost + strength + "</div>" +
     '<h2 class="card-title">' + esc(card.title) + "</h2>" +
