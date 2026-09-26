@@ -153,7 +153,7 @@ This file is a compact reference for the currently approved first-80 card design
 | 66 | **The Center Must Hold** | 3 | Choose two adjacent Fronts when you play this. At Battle end, total each player's Strength across those Fronts. Higher total wins both; equal totals tie both. |
 | 67 | **The Flank Was Refused** | 2 | Choose Front 1 or Front 4 when you play this. **During this Battle**, your formations there count no Strength. Each of your formations in the adjacent Front gets +1 Strength. |
 | 68 | **The Line Wheeled** | 2 | Choose left or right when you play this. Move any number of your formations one Front that way, staying in the same rank, but only into positions that were empty when you played this card. |
-| 69 | **The Trap Closed** | 3 | **During this Battle**, if you win three consecutive Fronts, drive off the opposing Frontline Named Formation in the middle Front instead of Retreating it. |
+| 69 | **The Trap Closed** | 3 | **During this Battle**, if you win Fronts 1, 2, and 3, drive off the opposing Frontline Named Formation in Front 2 instead of Retreating it. Do the same in Front 3 if you win Fronts 2, 3, and 4. |
 | 70 | **They Let Them Through** | 2 | At Battle end, before comparing Strength, you may swap your Frontline and Rear formations in one Front. Bonds and Names move with their Forces. |
 | 71 | **All Reserves Forward** | 2 | When you play this, you may move any number of your Rear formations to the empty Frontline position in their own Front. Moving the first costs no extra Command; pay 1 Command for each additional formation. |
 | 72 | **The Battle Turned East** | 3 | Choose left or right when you play this. **During this Battle**, your Named Formations may **Maneuver** in that direction for 0 Command. |
