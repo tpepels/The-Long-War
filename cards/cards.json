@@ -3110,7 +3110,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 7
     },
     {
@@ -3163,7 +3163,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 7
     },
     {
@@ -3216,7 +3216,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 7
     },
     {
@@ -3269,7 +3269,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 7
     },
     {
@@ -3322,7 +3322,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 7
     },
     {
@@ -3375,7 +3375,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 7
     },
     {
@@ -3423,7 +3423,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 7
     },
     {
@@ -3476,7 +3476,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 7
     }
   ]
