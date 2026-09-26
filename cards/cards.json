@@ -2842,7 +2842,7 @@
         "cost": 0
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 6
     },
     {
@@ -2874,7 +2874,7 @@
         "cost": 0
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 6
     },
     {
@@ -2904,7 +2904,7 @@
         "effect": "draw_2"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 6
     },
     {
@@ -2933,7 +2933,7 @@
         "amount": 1
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 6
     },
     {
@@ -2966,7 +2966,7 @@
         "gain_command": 2
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 6
     },
     {
@@ -2995,7 +2995,7 @@
         "lost_front_adjustment": -1
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 6
     },
     {
@@ -3028,7 +3028,7 @@
         "minimum_cost": 1
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 6
     },
     {
@@ -3060,7 +3060,7 @@
         "duration": "battle"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 6
     }
   ]
