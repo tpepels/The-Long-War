@@ -8,6 +8,7 @@ import pytest
 from longwar.cards import load_card_file
 from longwar.game import (
     Discard,
+    EffectChoice,
     Front,
     GameEngine,
     Maneuver,
@@ -68,6 +69,21 @@ def make_named(
     slot.name = name
     slot.temporary_strength = temporary
     return slot
+
+
+def effect_choices(
+    engine: GameEngine,
+    state,
+    effect: str | None = None,
+) -> list[EffectChoice]:
+    actions = [
+        action
+        for action in engine.legal_actions(state)
+        if isinstance(action, EffectChoice)
+    ]
+    if effect is not None:
+        actions = [action for action in actions if action.effect == effect]
+    return actions
 
 
 def resolve_battle_by_passing(engine: GameEngine, state) -> None:
@@ -1321,3 +1337,408 @@ def test_first_passer_starts_next_battle() -> None:
     resolve_battle_by_passing(engine, state)
     assert state.battle == 2
     assert state.active_player == 0
+
+
+def test_iria_makes_only_the_next_maneuver_free() -> None:
+    engine, state = setup_state(seed=4801)
+    make_named(state, 0, pos(0, Rank.FRONT), name="iria")
+    state.slot(1, pos(0, Rank.FRONT)).force = "the-fifty-men"
+    state.slot(1, pos(0, Rank.FRONT)).bond = "followed"
+    state.players[0].hand = []
+    state.players[0].command = 5
+    state.players[1].hand = ["namar"]
+    state.players[1].command = 5
+    state.active_player = 1
+
+    engine.apply(state, PlayName("namar", pos(0, Rank.FRONT)))
+
+    assert state.free_maneuver_available[0] is True
+    maneuver = Maneuver(pos(0, Rank.FRONT), pos(1, Rank.FRONT))
+    assert maneuver in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, maneuver) == 0
+
+    engine.apply(state, maneuver)
+    assert state.free_maneuver_available[0] is False
+
+
+def test_elian_completion_exposes_optional_adjacent_swap() -> None:
+    engine, state = setup_state(seed=4802)
+    make_named(state, 0, pos(0, Rank.FRONT))
+    target = state.slot(0, pos(1, Rank.FRONT))
+    target.force = "seven-black-ships"
+    target.bond = "stood-fast-with"
+    state.players[0].hand = ["elian"]
+
+    engine.apply(state, PlayName("elian", pos(1, Rank.FRONT)))
+
+    choices = effect_choices(engine, state, "swap")
+    assert any(choice.skip for choice in choices)
+    swap = next(choice for choice in choices if not choice.skip)
+    engine.apply(state, swap)
+
+    assert state.slot(0, pos(0, Rank.FRONT)).name == "elian"
+    assert state.slot(0, pos(1, Rank.FRONT)).name == "namar"
+
+
+def test_veyra_force_can_take_an_adjacent_prepared_component() -> None:
+    engine, state = setup_state(seed=4803)
+    state.slot(0, pos(0, Rank.FRONT)).bond = "stood-fast-with"
+    state.players[0].hand = ["veyra-keeper-of-oaths"]
+
+    engine.apply(
+        state,
+        PlayForce("veyra-keeper-of-oaths", pos(1, Rank.FRONT)),
+    )
+
+    choices = effect_choices(engine, state, "transfer-component")
+    transfer = next(
+        choice
+        for choice in choices
+        if not choice.skip and choice.card_id == "stood-fast-with"
+    )
+    engine.apply(state, transfer)
+
+    assert state.slot(0, pos(0, Rank.FRONT)).bond is None
+    assert state.slot(0, pos(1, Rank.FRONT)).bond == "stood-fast-with"
+
+
+def test_late_banner_gets_its_free_maneuver_even_while_unnamed() -> None:
+    engine, state = setup_state(seed=4804)
+    state.slot(0, pos(1, Rank.FRONT)).bond = "followed"
+    state.players[0].hand = ["the-late-banner"]
+
+    engine.apply(state, PlayForce("the-late-banner", pos(1, Rank.FRONT)))
+
+    choices = effect_choices(engine, state, "free-maneuver")
+    assert any(not choice.skip for choice in choices)
+
+
+def test_carried_oath_can_transfer_after_unnamed_force_maneuvers() -> None:
+    engine, state = setup_state(seed=4805)
+    source = pos(0, Rank.FRONT)
+    arrived = pos(1, Rank.FRONT)
+    receiver = pos(2, Rank.FRONT)
+    state.slot(0, source).force = "the-grey-riders"
+    state.slot(0, source).bond = "carried-the-oath-of"
+    state.slot(0, receiver).force = "the-fifty-men"
+    state.players[0].command = 5
+
+    engine.apply(state, Maneuver(source, arrived))
+
+    transfer = next(
+        choice
+        for choice in effect_choices(engine, state, "transfer-component")
+        if not choice.skip
+    )
+    engine.apply(state, transfer)
+
+    assert state.slot(0, arrived).bond is None
+    assert state.slot(0, receiver).bond == "carried-the-oath-of"
+
+
+def test_grey_riders_choose_which_adjacent_front_gets_their_strength() -> None:
+    engine, state = setup_state(seed=4806)
+    source = pos(0, Rank.FRONT)
+    state.slot(0, source).force = "the-grey-riders"
+    expected = engine.position_strength(state, 0, source)
+
+    resolve_battle_by_passing(engine, state)
+
+    choices = effect_choices(engine, state, "front-contribution")
+    choice = next(
+        action for action in choices if action.front == Front.SECOND
+    )
+    engine.apply(state, choice)
+
+    scores = state.last_battle_snapshot["front_scores"]
+    assert scores[0][0] == 0
+    assert scores[1][0] == expected
+
+
+def test_thornbow_suppression_can_be_redirected_to_asha() -> None:
+    engine, state = setup_state(seed=4807)
+    make_named(
+        state,
+        0,
+        pos(0, Rank.REAR),
+        force="the-thornbow-hunters",
+    )
+    make_named(
+        state,
+        1,
+        pos(0, Rank.FRONT),
+        name="asha-the-shield-bearer",
+    )
+    make_named(
+        state,
+        1,
+        pos(0, Rank.REAR),
+        force="seven-black-ships",
+    )
+    rear_strength = engine.position_strength(
+        state, 1, pos(0, Rank.REAR)
+    )
+
+    resolve_battle_by_passing(engine, state)
+
+    suppress = next(
+        action
+        for action in effect_choices(engine, state, "suppress")
+        if not action.skip
+    )
+    engine.apply(state, suppress)
+
+    intercept = next(
+        action
+        for action in effect_choices(engine, state, "intercept")
+        if not action.skip
+    )
+    engine.apply(state, intercept)
+
+    assert state.last_battle_snapshot["front_scores"][0][1] == rear_strength
+
+
+def test_held_the_line_for_sacrifices_formation_and_suppresses_target() -> None:
+    engine, state = setup_state(seed=4808)
+    source = pos(0, Rank.FRONT)
+    make_named(state, 0, source, bond="held-the-line-for")
+    make_named(state, 1, pos(0, Rank.FRONT))
+    make_named(
+        state,
+        1,
+        pos(0, Rank.REAR),
+        force="seven-black-ships",
+    )
+    rear_strength = engine.position_strength(
+        state, 1, pos(0, Rank.REAR)
+    )
+
+    resolve_battle_by_passing(engine, state)
+
+    sacrifice = next(
+        action
+        for action in effect_choices(engine, state, "sacrifice")
+        if (
+            not action.skip
+            and action.destination is not None
+            and action.destination.position == pos(0, Rank.FRONT)
+        )
+    )
+    engine.apply(state, sacrifice)
+
+    assert "held-the-line-for" in state.players[0].discard
+    assert state.last_battle_snapshot["front_scores"][0][1] == rear_strength
+
+
+def test_tala_can_retreat_before_strength_comparison() -> None:
+    engine, state = setup_state(seed=4809)
+    make_named(state, 0, pos(0, Rank.FRONT), name="tala")
+
+    resolve_battle_by_passing(engine, state)
+
+    retreat = next(
+        action
+        for action in effect_choices(engine, state, "retreat")
+        if not action.skip
+    )
+    engine.apply(state, retreat)
+
+    assert state.slot(0, pos(0, Rank.FRONT)).occupied is False
+    assert state.slot(0, pos(0, Rank.REAR)).name == "tala"
+
+
+def test_feigned_retreat_swaps_one_front_before_comparison() -> None:
+    engine, state = setup_state(seed=4810)
+    make_named(
+        state,
+        0,
+        pos(0, Rank.FRONT),
+        force="the-fifty-men",
+    )
+    make_named(
+        state,
+        0,
+        pos(0, Rank.REAR),
+        force="seven-black-ships",
+    )
+    state.stratagems[0] = StratagemState("they-let-them-through")
+
+    resolve_battle_by_passing(engine, state)
+
+    swap = next(
+        action
+        for action in effect_choices(engine, state, "swap")
+        if not action.skip
+    )
+    engine.apply(state, swap)
+
+    assert state.slot(0, pos(0, Rank.FRONT)).force == "seven-black-ships"
+    assert state.slot(0, pos(0, Rank.REAR)).force == "the-fifty-men"
+
+
+def test_sela_can_move_sideways_after_forced_retreat() -> None:
+    engine, state = setup_state(seed=4811)
+    make_named(state, 0, pos(0, Rank.FRONT), name="sela")
+    make_named(
+        state,
+        1,
+        pos(0, Rank.FRONT),
+        temporary=100,
+    )
+
+    resolve_battle_by_passing(engine, state)
+
+    move = next(
+        action
+        for action in effect_choices(engine, state, "move")
+        if (
+            not action.skip
+            and action.destination is not None
+            and action.destination.position == pos(1, Rank.REAR)
+        )
+    )
+    engine.apply(state, move)
+
+    assert state.slot(0, pos(1, Rank.REAR)).name == "sela"
+
+
+def test_neris_force_can_move_retreating_frontline_sideways() -> None:
+    engine, state = setup_state(seed=4812)
+    make_named(state, 0, pos(0, Rank.FRONT))
+    make_named(
+        state,
+        0,
+        pos(0, Rank.REAR),
+        force="neris-the-ferryman",
+    )
+    make_named(
+        state,
+        1,
+        pos(0, Rank.FRONT),
+        temporary=100,
+    )
+
+    resolve_battle_by_passing(engine, state)
+
+    move = next(
+        action
+        for action in effect_choices(engine, state, "move")
+        if (
+            not action.skip
+            and action.destination is not None
+            and action.destination.position == pos(1, Rank.REAR)
+        )
+    )
+    engine.apply(state, move)
+
+    assert state.slot(0, pos(1, Rank.REAR)).force == "the-fifty-men"
+    assert "neris-the-ferryman" in state.players[0].discard
+
+
+def test_covered_withdrawal_grants_free_maneuver_after_adjacent_retreat() -> None:
+    engine, state = setup_state(seed=4813)
+    make_named(state, 0, pos(0, Rank.FRONT))
+    make_named(
+        state,
+        0,
+        pos(1, Rank.REAR),
+        bond="covered-the-withdrawal-of",
+    )
+    make_named(
+        state,
+        1,
+        pos(0, Rank.FRONT),
+        temporary=100,
+    )
+
+    resolve_battle_by_passing(engine, state)
+
+    maneuver = next(
+        action
+        for action in effect_choices(engine, state, "free-maneuver")
+        if (
+            not action.skip
+            and action.destination is not None
+            and action.destination.position == pos(2, Rank.REAR)
+        )
+    )
+    engine.apply(state, maneuver)
+
+    assert (
+        state.slot(0, pos(2, Rank.REAR)).bond
+        == "covered-the-withdrawal-of"
+    )
+
+
+def test_wall_did_not_break_resolves_battle_end_reward_and_recovery() -> None:
+    engine, state = setup_state(seed=4814)
+    state.battle = 8
+    state.players[0].command = 10
+    state.players[1].command = 10
+    state.battle_start_command[:] = [10, 10]
+    state.players[0].hand = []
+    state.players[0].discard = ["followed"]
+    make_named(state, 0, pos(0, Rank.FRONT))
+    state.stories[0] = [
+        StoryState(
+            "the-wall-did-not-break",
+            fronts=(Front.FIRST,),
+        )
+    ]
+
+    resolve_battle_by_passing(engine, state)
+
+    recover = next(
+        action
+        for action in effect_choices(engine, state, "recover")
+        if not action.skip and action.card_id == "followed"
+    )
+    engine.apply(state, recover)
+
+    assert state.players[0].command == 11
+    assert "followed" in state.players[0].hand
+    assert "the-wall-did-not-break" in state.players[0].discard
+
+
+def test_before_sunset_draws_at_battle_end_and_records_refund() -> None:
+    engine, state = setup_state(seed=4815)
+    state.battle = 8
+    state.players[0].command = 10
+    state.players[1].command = 10
+    state.battle_start_command[:] = [10, 10]
+    state.players[0].hand = []
+    make_named(state, 0, pos(0, Rank.FRONT))
+    state.stories[0] = [
+        StoryState(
+            "before-sunset-the-ford-would-be-ours",
+            fronts=(Front.FIRST,),
+        )
+    ]
+
+    resolve_battle_by_passing(engine, state)
+
+    snapshot = state.last_battle_snapshot
+    assert snapshot["command_refunded"][0] >= 2
+    assert snapshot["cards_drawn"][0] >= 1
+    assert "before-sunset-the-ford-would-be-ours" in state.players[0].discard
+
+
+def test_meren_repositions_before_first_turn_of_next_battle() -> None:
+    engine, state = setup_state(seed=4816)
+    make_named(state, 0, pos(1, Rank.FRONT), name="meren")
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.battle == 2
+    move = next(
+        action
+        for action in effect_choices(engine, state, "move")
+        if (
+            not action.skip
+            and action.destination is not None
+            and action.destination.position == pos(2, Rank.FRONT)
+        )
+    )
+    engine.apply(state, move)
+
+    assert state.slot(0, pos(2, Rank.FRONT)).name == "meren"
