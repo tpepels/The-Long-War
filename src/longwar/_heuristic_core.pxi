@@ -14,7 +14,8 @@ cdef class NativeHeuristicEvaluator:
         cdef int card, own_forces=0, own_board_subjects=0, hero_force=0
         cdef int own_losses=0, opponent_losses=0
         cdef int own_front_slot, own_rear_slot, opp_front_slot, opp_rear_slot
-        cdef int recovery=0, own_projected=0, opponent_projected=0
+        cdef int recovery=0, own_recovery=0, opponent_recovery=0
+        cdef int own_projected=0, opponent_projected=0
         cdef int current_delta=0, projected_delta=0
         cdef int own_vulnerability=0, opponent_vulnerability=0
         cdef double score = 0.0, option = 0.0
@@ -113,13 +114,15 @@ cdef class NativeHeuristicEvaluator:
             # Front results. This makes late-war Command and likely Collapse
             # visible to shallow search and rollouts.
             recovery = self.engine.command_recovery_for_battle(state.battle)
-            own_projected = (
-                state.command[player]
-                + max(0, recovery - own_losses)
-            )
+            own_recovery = recovery - own_losses
+            if own_recovery < 0:
+                own_recovery = 0
+            opponent_recovery = recovery - opponent_losses
+            if opponent_recovery < 0:
+                opponent_recovery = 0
+            own_projected = state.command[player] + own_recovery
             opponent_projected = (
-                state.command[opponent]
-                + max(0, recovery - opponent_losses)
+                state.command[opponent] + opponent_recovery
             )
             if own_projected > self.engine.command_cap:
                 own_projected = self.engine.command_cap
