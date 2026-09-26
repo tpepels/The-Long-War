@@ -69,6 +69,7 @@ def presentation_snapshots() -> dict[str, dict]:
     opening = session.snapshot(0)
     session.mulligan([], 0)
     session.state.active_player = 0
+    session.state.pending_draw_discard_for = None
     session.opening_player = None  # No opening announcement over the layout cases.
     for owner in range(2):
         for index, position in enumerate(all_positions()):
@@ -86,7 +87,7 @@ def presentation_snapshots() -> dict[str, dict]:
     session.state.players[1].discard = [by_type["name"][0]["id"]]
     crowded = session.snapshot(0)
     cases = {name: copy.deepcopy(crowded) for name in ("battle", "inspector", "drawer")}
-    # One free Subject destination exercises legal-target highlighting using an
+    # One free Force destination exercises legal-target highlighting using an
     # action encoded by the real engine, with the rest of the formations full.
     session.state.board[0][0][1].force = None
     session.state.players[0].hand.append(by_type["subject"][0]["id"])
