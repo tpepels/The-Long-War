@@ -48,7 +48,11 @@ def _z(value: float | None, values: list[float]) -> float | None:
 
 
 def _playability_family(card: dict[str, Any]) -> str:
-    return "narrative" if card["type"] == "story" else str(card["type"])
+    if card["type"] == "plot":
+        return "veiled_story" if card.get("veiled", False) else "story"
+    if card["type"] == "link":
+        return "bond"
+    return str(card["type"])
 
 
 def _flag(code: str, severity: str, message: str, value: float | None = None) -> dict[str, Any]:
@@ -297,13 +301,13 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "flags": flags,
         })
 
-    combo_stats = telemetry.get("formation_combinations", {})
+    combo_stats = telemetry.get("legend_combinations", {})
     combo_strengths = [
         float(s["mean_strength_at_completion"])
         for s in combo_stats.values()
         if s.get("mean_strength_at_completion") is not None and int(s.get("completions", 0)) >= 10
     ]
-    formations: list[dict[str, Any]] = []
+    legends: list[dict[str, Any]] = []
     for key, stats in combo_stats.items():
         seen = int(stats.get("games_seen", 0))
         wins = int(stats.get("wins_when_seen", 0))
@@ -334,10 +338,10 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         for flag in flags:
             counts[flag["severity"]] += 1
 
-        force, bond, name = key.split(" | ")
-        formations.append({
+        subject, link, name = key.split(" | ")
+        legends.append({
             "id": key,
-            "title": " — ".join(meta[x]["title"] for x in (force, bond, name)),
+            "title": " — ".join(meta[x]["title"] for x in (subject, link, name)),
             "completions": int(stats.get("completions", 0)),
             "games_seen": seen,
             "mean_strength_at_completion": strength,
@@ -351,7 +355,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         counts[flag["severity"]] += 1
 
     cards.sort(key=lambda r: (-sum(2 if f["severity"] == "high" else 1 for f in r["flags"]), r["title"]))
-    formations.sort(key=lambda r: (-sum(2 if f["severity"] == "high" else 1 for f in r["flags"]), -r["games_seen"], r["title"]))
+    legends.sort(key=lambda r: (-sum(2 if f["severity"] == "high" else 1 for f in r["flags"]), -r["games_seen"], r["title"]))
 
     return {
         "schema_version": 1,
@@ -369,20 +373,20 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         },
         "summary": {
             "cards_analyzed": len(cards),
-            "formations_observed": len(formations),
+            "legends_observed": len(legends),
             "flags_high": counts["high"],
             "flags_watch": counts["watch"],
             "flags_diagnostic": counts["diagnostic"],
             "card_levels": dict(Counter(row["balance_level"] for row in cards)),
         },
         "cards": cards,
-        "formations": formations,
+        "legends": legends,
         "methodology": {
             "win_intervals": "Wilson score interval, 95%",
             "notes": [
                 "Conditional win rates are observational rather than causal values.",
                 "Board-swing z-scores are computed within card type; cards explicitly marked as delayed utility are not graded on immediate swing.",
-                "Playability flags compare each card with the median of its rules family (Force, Bond, Name, Narrative, or Stratagem), so normal structural gating is not mistaken for an individual card defect.",
+                "Playability flags compare each card with the median of its rules family (Subject, Bond, Name, Story, or Veiled Story), so normal structural gating is not mistaken for an individual card defect.",
                 "Flags identify cases for inspection; they are not automatic nerf/buff instructions.",
                 "Counterfactual and MCCFR reports are merged when explicitly run; neither is required for routine health analysis.",
             ],
@@ -407,8 +411,8 @@ def render_markdown(report: dict[str, Any]) -> str:
     ]
     for row in [r for r in report["cards"] if r["flags"]]:
         lines.append(f"- **{row['title']}** ({row['type']}): " + ", ".join(f["code"] for f in row["flags"]))
-    lines += ["", "## Flagged Force–Bond–Name formations", ""]
-    for row in [r for r in report["formations"] if r["flags"]][:30]:
+    lines += ["", "## Flagged Subject–Bond–Name sequences", ""]
+    for row in [r for r in report["legends"] if r["flags"]][:30]:
         lines.append(f"- **{row['title']}**: " + ", ".join(f["code"] for f in row["flags"]))
     lines += [
         "",
