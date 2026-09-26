@@ -486,7 +486,6 @@ class MCCFRTrainer:
                 "excludes": [
                     "opponent hand identities",
                     "both deck orders",
-                    "opponent unrevealed Scheme identity",
                     "full action history",
                 ],
                 "note": "This is an imperfect-recall state abstraction, not an exact perfect-recall game tree.",
