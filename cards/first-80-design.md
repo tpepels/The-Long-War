@@ -85,8 +85,8 @@ Status: approved for the first-80 design pool.
 | 17 | **The Dust Riders** | Force - Human, Riders - Skirmisher | This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or an adjacent Front. Count this Force's **Strength** only there. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left. |
 | 18 | **The Black Company** | Force - Human, Company - Swordsman | **Deploy - Frontline only.** While in the **Frontline**, this Force gets +1 **Strength**. After this formation swaps positions with another formation during a **Maneuver**, you may **Maneuver** that other formation for 0 Command. |
 | 19 | **Kept Pace With** | Bond | After an adjacent **Named Formation** you control Maneuvers away, you may move this formation into the position it left. |
-| 20 | **Covered the Withdrawal of** | Bond | After an adjacent friendly formation **Retreats**, you may **Maneuver** this formation for 0 Command. |
-| 21 | **Teren** | Name - Human, Captain - Unique | After this formation **Maneuvers**, you may swap two adjacent friendly formations other than this one. |
+| 20 | **Covered the Withdrawal of** | Bond | After an adjacent formation you control **Retreats**, you may **Maneuver** this formation for 0 Command. |
+| 21 | **Teren** | Name - Human, Captain - Unique | After this formation **Maneuvers**, you may swap two adjacent formations you control other than this one. |
 | 22 | **Mara** | Name - Human, Scout - Unique | When an opposing formation **Maneuvers** into this Front, you may **Maneuver** this formation for 0 Command. |
 | 23 | **Blocked the Road for** | Bond | Cards your opponent plays cannot move a formation from an adjacent Front into this Front. |
 | 24 | **The Long March** | Story - Saga - Ongoing | **Saga - Ongoing.** The first time each Battle one of your formations **Maneuvers** into an empty position, regain 1 Command. |
