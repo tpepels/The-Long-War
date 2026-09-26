@@ -3062,6 +3062,422 @@
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 6
+    },
+    {
+      "id": "kael-the-roadless",
+      "title": "Kael, the Roadless",
+      "type": "force",
+      "strength": 3,
+      "unique": true,
+      "hero": true,
+      "hero_name_strength": 1,
+      "classes": [
+        "human",
+        "scout",
+        "hero"
+      ],
+      "command_cost": 3,
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force -** This formation may **Maneuver** even if it is not Named. After it Maneuvers into an empty position, you may move it one more Front left or right if that position is empty. **Name -** When an opposing formation Maneuvers into an adjacent Front, you may Maneuver this formation for 0 Command.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "HERO",
+          "text": "Play as a **Force** or **Name**."
+        },
+        {
+          "kind": "property",
+          "label": "FORCE",
+          "text": "This formation may **Maneuver** even if it is not Named. After it Maneuvers into an empty position, you may move it one more Front left or right if that position is empty."
+        },
+        {
+          "kind": "trigger",
+          "label": "NAME",
+          "text": "When an opposing formation Maneuvers into an adjacent Front, you may Maneuver this formation for 0 Command."
+        }
+      ],
+      "design_rules": {
+        "force": {
+          "can_maneuver_while_unnamed": true,
+          "after_maneuver_into_empty": "optional_move_one_more_front_if_empty"
+        },
+        "name": {
+          "trigger": "opponent_maneuvers_into_adjacent_front",
+          "effect": "optional_zero_cost_maneuver"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 7
+    },
+    {
+      "id": "rovan-the-gatebreaker",
+      "title": "Rovan, the Gatebreaker",
+      "type": "force",
+      "strength": 5,
+      "unique": true,
+      "hero": true,
+      "hero_name_strength": 1,
+      "classes": [
+        "human",
+        "warrior",
+        "hero"
+      ],
+      "command_cost": 3,
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** When comparing Strength in this Front, you may ignore the opposing Rear Force's Strength. **Name -** If this formation wins its Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it.",
+      "rules": {
+        "placement": {
+          "rank": "front"
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "HERO",
+          "text": "Play as a **Force** or **Name**."
+        },
+        {
+          "kind": "property",
+          "label": "FORCE",
+          "text": "**Deploy - Frontline only.** When comparing Strength in this Front, you may ignore the opposing Rear Force's Strength."
+        },
+        {
+          "kind": "effect",
+          "label": "NAME",
+          "text": "If this formation wins its Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it."
+        }
+      ],
+      "design_rules": {
+        "force": {
+          "deploy_rank": "front",
+          "combat": "optional_ignore_opposing_rear_strength"
+        },
+        "name": {
+          "combat": "breakthrough_if_opponent_no_rear_force"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 7
+    },
+    {
+      "id": "alda-keeper-of-the-ford",
+      "title": "Alda, Keeper of the Ford",
+      "type": "force",
+      "strength": 3,
+      "unique": true,
+      "hero": true,
+      "hero_name_strength": 1,
+      "classes": [
+        "human",
+        "guardian",
+        "hero"
+      ],
+      "command_cost": 2,
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** If your Frontline Named Formation here would Retreat, you may drive off Alda instead. The Frontline formation stays. **Name -** If this formation is driven off, return Alda to your hand instead of discarding her.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "HERO",
+          "text": "Play as a **Force** or **Name**."
+        },
+        {
+          "kind": "property",
+          "label": "FORCE",
+          "text": "**Deploy - Rear only.** If your Frontline Named Formation here would Retreat, you may drive off Alda instead. The Frontline formation stays."
+        },
+        {
+          "kind": "effect",
+          "label": "NAME",
+          "text": "If this formation is driven off, return Alda to your hand instead of discarding her."
+        }
+      ],
+      "design_rules": {
+        "force": {
+          "deploy_rank": "rear",
+          "effect": "optional_drive_off_self_prevent_frontline_named_retreat"
+        },
+        "name": {
+          "effect": "return_hero_to_hand_if_driven_off"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 7
+    },
+    {
+      "id": "tovan-the-quartermaster",
+      "title": "Tovan, the Quartermaster",
+      "type": "force",
+      "strength": 2,
+      "unique": true,
+      "hero": true,
+      "hero_name_strength": 1,
+      "classes": [
+        "human",
+        "steward",
+        "hero"
+      ],
+      "command_cost": 3,
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command recovery. **Name -** While this formation is Named, the first card you play in this Front each turn costs 1 less Command (minimum 1).",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "HERO",
+          "text": "Play as a **Force** or **Name**."
+        },
+        {
+          "kind": "property",
+          "label": "FORCE",
+          "text": "**Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command recovery."
+        },
+        {
+          "kind": "continuous",
+          "label": "NAME",
+          "text": "While this formation is Named, the first card you play in this Front each turn costs 1 less Command (minimum 1)."
+        }
+      ],
+      "design_rules": {
+        "force": {
+          "deploy_rank": "rear",
+          "command": "lost_front_here_does_not_reduce_recovery"
+        },
+        "name": {
+          "command": "first_card_in_front_each_turn_discount_1_min_1"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 7
+    },
+    {
+      "id": "nara-builder-of-walls",
+      "title": "Nara, Builder of Walls",
+      "type": "force",
+      "strength": 3,
+      "unique": true,
+      "hero": true,
+      "hero_name_strength": 1,
+      "classes": [
+        "human",
+        "builder",
+        "hero"
+      ],
+      "command_cost": 3,
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** A Force you play in the Frontline of this Front costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return one Bond from your discard pile to your hand.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "HERO",
+          "text": "Play as a **Force** or **Name**."
+        },
+        {
+          "kind": "property",
+          "label": "FORCE",
+          "text": "**Deploy - Rear only.** A Force you play in the Frontline of this Front costs 1 less Command (minimum 1)."
+        },
+        {
+          "kind": "trigger",
+          "label": "NAME",
+          "text": "When this formation becomes Named, return one Bond from your discard pile to your hand."
+        }
+      ],
+      "design_rules": {
+        "force": {
+          "deploy_rank": "rear",
+          "command": "frontline_force_discount_1_min_1"
+        },
+        "name": {
+          "on_completion": "return_one_bond_from_discard_to_hand"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 7
+    },
+    {
+      "id": "neris-the-ferryman",
+      "title": "Neris, the Ferryman",
+      "type": "force",
+      "strength": 4,
+      "unique": true,
+      "hero": true,
+      "hero_name_strength": 1,
+      "classes": [
+        "human",
+        "ferryman",
+        "hero"
+      ],
+      "command_cost": 3,
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** After your Frontline formation here Retreats, you may move it one Front left or right if that Rear position is empty. **Name -** After this formation Retreats, you may move it one Front left or right if that Rear position is empty.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "HERO",
+          "text": "Play as a **Force** or **Name**."
+        },
+        {
+          "kind": "property",
+          "label": "FORCE",
+          "text": "**Deploy - Rear only.** After your Frontline formation here Retreats, you may move it one Front left or right if that Rear position is empty."
+        },
+        {
+          "kind": "trigger",
+          "label": "NAME",
+          "text": "After this formation Retreats, you may move it one Front left or right if that Rear position is empty."
+        }
+      ],
+      "design_rules": {
+        "force": {
+          "deploy_rank": "rear",
+          "after_frontline_retreat": "optional_sideways_rear_move"
+        },
+        "name": {
+          "after_self_retreat": "optional_sideways_rear_move"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 7
+    },
+    {
+      "id": "veyra-keeper-of-oaths",
+      "title": "Veyra, Keeper of Oaths",
+      "type": "force",
+      "strength": 4,
+      "unique": true,
+      "hero": true,
+      "hero_name_strength": 1,
+      "classes": [
+        "human",
+        "oathkeeper",
+        "hero"
+      ],
+      "command_cost": 3,
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force -** When you play Veyra, you may move a Bond or Name from an adjacent position with no Force into Veyra's position, if that slot is empty. **Name -** When you play Veyra on a Force with no Bond, you may move a Bond from an adjacent formation with no Name onto this formation.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "HERO",
+          "text": "Play as a **Force** or **Name**."
+        },
+        {
+          "kind": "trigger",
+          "label": "FORCE",
+          "text": "When you play Veyra, you may move a Bond or Name from an adjacent position with no Force into Veyra's position, if that slot is empty."
+        },
+        {
+          "kind": "trigger",
+          "label": "NAME",
+          "text": "When you play Veyra on a Force with no Bond, you may move a Bond from an adjacent formation with no Name onto this formation."
+        }
+      ],
+      "design_rules": {
+        "force": {
+          "on_play": "optional_take_adjacent_prepared_bond_or_name"
+        },
+        "name": {
+          "on_play": "optional_take_adjacent_open_bond"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 7
+    },
+    {
+      "id": "yara-the-chronicler",
+      "title": "Yara, the Chronicler",
+      "type": "force",
+      "strength": 3,
+      "unique": true,
+      "hero": true,
+      "hero_name_strength": 1,
+      "classes": [
+        "human",
+        "chronicler",
+        "hero"
+      ],
+      "command_cost": 3,
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** The first Story you play each Battle costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return one Story from your discard pile to your hand.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "HERO",
+          "text": "Play as a **Force** or **Name**."
+        },
+        {
+          "kind": "property",
+          "label": "FORCE",
+          "text": "**Deploy - Rear only.** The first Story you play each Battle costs 1 less Command (minimum 1)."
+        },
+        {
+          "kind": "trigger",
+          "label": "NAME",
+          "text": "When this formation becomes Named, return one Story from your discard pile to your hand."
+        }
+      ],
+      "design_rules": {
+        "force": {
+          "deploy_rank": "rear",
+          "story": "first_story_each_battle_discount_1_min_1"
+        },
+        "name": {
+          "on_completion": "return_one_story_from_discard_to_hand"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "draft",
+      "design_batch": 7
     }
   ]
 }
