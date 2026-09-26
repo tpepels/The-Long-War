@@ -3519,7 +3519,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 8
     },
     {
@@ -3559,7 +3559,7 @@
         "discard_self": true
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 8
     },
     {
@@ -3599,7 +3599,7 @@
         "discard_self": true
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 8
     },
     {
@@ -3639,7 +3639,7 @@
         "discard_self": true
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 8
     },
     {
@@ -3682,7 +3682,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 8
     },
     {
@@ -3725,7 +3725,7 @@
         }
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 8
     },
     {
@@ -3764,7 +3764,7 @@
         "secondary": "optional_move_adjacent_friendly_into_vacated_position"
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 8
     },
     {
@@ -3804,7 +3804,7 @@
         "discard_self": true
       },
       "engine_sync": "pending-first-80-migration",
-      "design_status": "draft",
+      "design_status": "approved",
       "design_batch": 8
     }
   ]
