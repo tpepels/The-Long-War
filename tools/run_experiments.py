@@ -52,10 +52,10 @@ RUNNER = ROOT / "tools" / "run_experiments.py"
 VALIDATION_ROOT = ROOT / "artifacts" / "search-validation"
 BENCH_ROOT = ROOT / "artifacts" / "search-benchmark"
 CANONICAL_DECK_PATHS = {
-    "reference": "decks/reference.json",
-    "avaros": "decks/avaros-line.json",
-    "mara": "decks/mara-rear.json",
-    "sera": "decks/sera-support.json",
+    "reference": "decks/mobility-open-bonds.json",
+    "avaros": "decks/persistent-elite-heroes.json",
+    "mara": "decks/narrative-command.json",
+    "sera": "decks/battlefield-control-stratagems.json",
 }
 
 
@@ -523,9 +523,9 @@ def standard_backend_parity(*, seed: int) -> None:
         "--card-file",
         "cards/cards.json",
         "--deck-a",
-        "decks/reference.json",
+        "decks/mobility-open-bonds.json",
         "--deck-b",
-        "decks/reference.json",
+        "decks/mobility-open-bonds.json",
         "--agent-a",
         "strategic_heuristic",
         "--agent-b",
