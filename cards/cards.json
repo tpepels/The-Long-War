@@ -18,7 +18,9 @@
         "dynamic": true
       },
       "rule_blocks": [],
-      "command_cost": 2
+      "command_cost": 2,
+      "design_status": "approved",
+      "design_batch": 1
     },
     {
       "id": "seven-black-ships",
@@ -37,7 +39,9 @@
         "dynamic": true
       },
       "rule_blocks": [],
-      "command_cost": 2
+      "command_cost": 2,
+      "design_status": "approved",
+      "design_batch": 1
     },
     {
       "id": "those-who-came-back",
@@ -193,7 +197,9 @@
           "text": "**Rear only.**"
         }
       ],
-      "command_cost": 1
+      "command_cost": 1,
+      "design_status": "approved",
+      "design_batch": 1
     },
     {
       "id": "avaros-the-bronze-king",
@@ -255,7 +261,9 @@
           }
         }
       },
-      "engine_sync": "pending-first-80-migration"
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 1
     },
     {
       "id": "followed",
@@ -286,7 +294,9 @@
           "text": "While this formation is **Named**, it gets +2 more."
         }
       ],
-      "command_cost": 1
+      "command_cost": 1,
+      "design_status": "approved",
+      "design_batch": 1
     },
     {
       "id": "swore-to",
@@ -447,7 +457,9 @@
           "text": "When this formation becomes **Named**, regain 1 **Command**."
         }
       ],
-      "command_cost": 1
+      "command_cost": 1,
+      "design_status": "approved",
+      "design_batch": 1
     },
     {
       "id": "iria",
@@ -459,21 +471,27 @@
         "human",
         "seer"
       ],
-      "text": "When you play *Iria* onto a **Subject**, you may **move** that formation to an **adjacent** empty position.",
-      "rules": {
-        "on_name_attached": "move_adjacent_optional"
-      },
+      "text": "Whenever an opposing formation in this Front becomes **Named**, your next **Maneuver** this Battle costs 0 Command. Additional triggers do not accumulate.",
+      "rules": {},
       "balance": {
         "dynamic": true
       },
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "WHEN",
-          "text": "When you play *Iria* onto a **Subject**, you may **move** that formation to an **adjacent** empty position."
+          "label": "WHEN ENEMY IS NAMED",
+          "text": "Whenever an opposing formation in this Front becomes **Named**, your next **Maneuver** this Battle costs 0 Command. Additional triggers do not accumulate."
         }
       ],
-      "command_cost": 1
+      "command_cost": 1,
+      "design_rules": {
+        "trigger": "opposing_formation_in_same_front_becomes_named",
+        "effect": "next_maneuver_cost_zero_this_battle",
+        "accumulates": false
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 2
     },
     {
       "id": "oren",
@@ -500,7 +518,9 @@
           "text": "When this formation becomes **Named**, draw 1 card."
         }
       ],
-      "command_cost": 2
+      "command_cost": 2,
+      "design_status": "approved",
+      "design_batch": 1
     },
     {
       "id": "teyra",
@@ -1019,15 +1039,15 @@
     {
       "id": "the-red-shields",
       "title": "The Red Shields",
-      "type": "subject",
-      "strength": 5,
+      "type": "force",
+      "strength": 4,
       "unique": false,
       "classes": [
         "human",
         "guard"
       ],
       "role": "spearman",
-      "text": "*Frontline only.*",
+      "text": "**Deploy - Frontline only.**",
       "rules": {
         "placement": {
           "rank": "front"
@@ -1040,16 +1060,18 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "PLAY",
-          "text": "**Frontline** only."
+          "label": "DEPLOY",
+          "text": "**Frontline only.**"
         }
       ],
-      "command_cost": 2
+      "command_cost": 2,
+      "design_status": "approved",
+      "design_batch": 2
     },
     {
       "id": "the-crow-archers",
       "title": "The Crow Archers",
-      "type": "subject",
+      "type": "force",
       "strength": 4,
       "unique": false,
       "classes": [
@@ -1057,7 +1079,7 @@
         "company"
       ],
       "role": "archer",
-      "text": "*Rear only.*",
+      "text": "**Deploy - Rear only.**",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -1070,24 +1092,26 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "PLAY",
-          "text": "**Rear** only."
+          "label": "DEPLOY",
+          "text": "**Rear only.**"
         }
       ],
-      "command_cost": 2
+      "command_cost": 2,
+      "design_status": "approved",
+      "design_batch": 2
     },
     {
       "id": "the-house-of-reed",
       "title": "The House of Reed",
-      "type": "subject",
-      "strength": 5,
+      "type": "force",
+      "strength": 3,
       "unique": false,
       "classes": [
         "place",
         "stronghold"
       ],
       "role": "stronghold",
-      "text": "*Rear only.*",
+      "text": "**Stronghold. Deploy - Rear only.** Cannot move, **Maneuver**, or swap positions. If you lose this Front while you have a **Named Formation** in the Frontline, drive off this Stronghold instead of Retreating that formation.",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -1100,11 +1124,28 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "PLAY",
-          "text": "**Rear** only."
+          "label": "STRONGHOLD",
+          "text": "**Deploy - Rear only.** Cannot move, **Maneuver**, or swap positions."
+        },
+        {
+          "kind": "effect",
+          "label": "ON LOST FRONT",
+          "text": "If you have a **Named Formation** in the Frontline, drive off this Stronghold instead of Retreating that formation."
         }
       ],
-      "command_cost": 2
+      "command_cost": 2,
+      "design_rules": {
+        "role": "stronghold",
+        "immobile": true,
+        "cannot_be_swap_target": true,
+        "lost_front": {
+          "if_frontline_friendly_named": true,
+          "effect": "drive_off_self_prevent_frontline_retreat"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 2
     },
     {
       "id": "the-lantern-bearers",
@@ -1255,18 +1296,13 @@
     {
       "id": "guarded",
       "title": "Guarded",
-      "type": "link",
+      "type": "bond",
       "unique": false,
       "classes": [
         "ward"
       ],
-      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, that **Subject** cannot be chosen by an opponent's **Story**, and the opponent has -1 **Strength** in this **Front**.",
-      "rules": {
-        "strength_bonus": 1,
-        "named_strength_bonus": 0,
-        "opposing_front_modifier": -1,
-        "protect_subject_from_opponent_plot": true
-      },
+      "text": "Opponent card effects cannot move this formation.",
+      "rules": {},
       "balance": {
         "strength_bonus": 1,
         "dynamic": true,
@@ -1275,17 +1311,18 @@
       },
       "rule_blocks": [
         {
-          "kind": "effect",
-          "label": "BONUS",
-          "text": "Its **Subject** gets +1 **Strength**."
-        },
-        {
           "kind": "continuous",
-          "label": "NAMED",
-          "text": "Its **Subject** cannot be chosen by an opponent's **Story**; opponent gets -1 **Strength** in this **Front**."
+          "label": "GUARDED",
+          "text": "Opponent card effects cannot move this formation."
         }
       ],
-      "command_cost": 2
+      "command_cost": 1,
+      "design_rules": {
+        "prevent_opponent_card_effect_movement": true
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 2
     },
     {
       "id": "feared",
@@ -1380,7 +1417,9 @@
           "text": "This formation gets +2 **Strength**."
         }
       ],
-      "command_cost": 1
+      "command_cost": 1,
+      "design_status": "approved",
+      "design_batch": 1
     },
     {
       "id": "maela",
@@ -1442,28 +1481,34 @@
       "id": "elian",
       "title": "Elian",
       "type": "name",
-      "strength": 0,
+      "strength": 1,
       "unique": true,
       "classes": [
         "human",
         "wanderer"
       ],
-      "text": "While this formation has a **Subject**, **Bond**, and **Name**, cards you play into **adjacent Fronts** cost 1 less **Command** (minimum 1).",
-      "rules": {
-        "adjacent_command_discount": 1
-      },
+      "text": "When this formation becomes **Named**, you may swap it with an adjacent friendly formation.",
+      "rules": {},
       "balance": {
         "dynamic": true,
         "candidate": true
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "WHILE",
-          "text": "While this formation has a **Subject**, **Bond**, and **Name**, cards you play into **adjacent Fronts** cost 1 less **Command** (minimum 1)."
+          "kind": "trigger",
+          "label": "WHEN NAMED",
+          "text": "When this formation becomes **Named**, you may swap it with an adjacent friendly formation."
         }
       ],
-      "command_cost": 1
+      "command_cost": 1,
+      "design_rules": {
+        "on_completion": {
+          "effect": "optional_swap_adjacent_friendly_formation"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 2
     },
     {
       "id": "the-crows-returned",
@@ -1819,6 +1864,77 @@
         }
       ],
       "command_cost": 3
+    },
+    {
+      "id": "marched-with",
+      "title": "Marched With",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "companionship"
+      ],
+      "text": "When you play this Bond onto a Force, you may move that formation to an adjacent empty position.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN PLAYED",
+          "text": "When you play this Bond onto a Force, you may move that formation to an adjacent empty position."
+        }
+      ],
+      "command_cost": 1,
+      "design_rules": {
+        "on_play_onto_force": {
+          "effect": "optional_move_formation_adjacent_empty_position"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 2
+    },
+    {
+      "id": "the-grey-riders",
+      "title": "The Grey Riders",
+      "type": "force",
+      "strength": 2,
+      "unique": false,
+      "classes": [
+        "human",
+        "riders"
+      ],
+      "role": "skirmisher",
+      "text": "**Skirmisher.** May **Maneuver** even while not Named. When Fronts are resolved, choose this Front or one adjacent Front. The Grey Riders contribute their Strength to the chosen Front instead of their own.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "SKIRMISHER",
+          "text": "May **Maneuver** even while not Named."
+        },
+        {
+          "kind": "timing",
+          "label": "FRONT RESOLUTION",
+          "text": "Choose this Front or one adjacent Front. The Grey Riders contribute their Strength to the chosen Front instead of their own."
+        }
+      ],
+      "command_cost": 2,
+      "design_rules": {
+        "role": "skirmisher",
+        "can_maneuver_while_unnamed": true,
+        "front_resolution": {
+          "choose": "own_or_adjacent_front",
+          "contribution": "chosen_front_instead_of_own"
+        }
+      },
+      "engine_sync": "pending-first-80-migration",
+      "design_status": "approved",
+      "design_batch": 2
     }
   ]
 }
