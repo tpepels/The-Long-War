@@ -2585,6 +2585,22 @@ cdef class FastEngine:
         state.hand_len[player] += 1
         state.known_hidden[1 - player][player][card] += 1
 
+    cdef bint remove_from_discard(
+        self,
+        FastState state,
+        int player,
+        int card,
+    ) noexcept:
+        cdef int i, j
+        for i in range(state.discard_len[player] - 1, -1, -1):
+            if state.discard[player][i] != card:
+                continue
+            for j in range(i, state.discard_len[player] - 1):
+                state.discard[player][j] = state.discard[player][j + 1]
+            state.discard_len[player] -= 1
+            return True
+        return False
+
     cdef inline void take_from_hand(self, FastState state, int player, int card, int hidden_kind) noexcept:
         cdef int viewer = 1 - player
         cdef int known
@@ -3047,6 +3063,27 @@ cdef class FastEngine:
         state.pass_len = 0
         state.pass_order[0] = -1
         state.pass_order[1] = -1
+
+    cdef void resume_pending_flow(self, FastState state):
+        cdef int resume, player
+        if state.cleanup_pending:
+            if state.pending_resume == RESUME_FINISH_OPERATION:
+                state.pending_draw_finish_operation = 1
+            return
+        if state.pending_len > 0:
+            state.active_player = state.pending_player[0]
+            return
+        resume = state.pending_resume
+        player = state.pending_resume_player
+        state.pending_resume = RESUME_NONE
+        state.pending_resume_player = -1
+        state.pending_draw_finish_operation = 0
+        if resume == RESUME_FINISH_OPERATION and player >= 0:
+            self.finish_operation_fast(state, player)
+        elif resume == RESUME_BATTLE_RESOLUTION:
+            self.advance_battle_resolution(state)
+        elif resume == RESUME_START_BATTLE:
+            self.finish_start_battle(state, player)
 
     cdef void finish_operation_fast(self, FastState state, int actor):
         cdef int opponent = 1 - actor
@@ -3523,6 +3560,129 @@ cdef class FastEngine:
 
         state.turn_number += 1
 
+    cdef uint16_t asha_mask_for_suppression(
+        self,
+        FastState state,
+        int defender,
+        int front,
+        int original_target,
+    ) noexcept:
+        cdef int rank, slot, name
+        cdef uint16_t mask = 0
+        for rank in range(2):
+            slot = slot_index(defender, front, rank)
+            if slot == original_target or not self.slot_complete(state, slot):
+                continue
+            name = state.name[slot]
+            if name >= 0 and self.intercept_name[name]:
+                mask |= <uint16_t>(1 << slot)
+        return mask
+
+    cdef void suppress_with_interception(
+        self,
+        FastState state,
+        int controller,
+        int target,
+    ) except *:
+        cdef int defender = owner_from_slot(target)
+        cdef int front = front_from_slot(target)
+        cdef uint16_t interceptors = self.asha_mask_for_suppression(
+            state, defender, front, target
+        )
+        if interceptors:
+            self.enqueue_effect(
+                state,
+                EFFECT_INTERCEPT,
+                defender,
+                source=target,
+                aux=target,
+                source_mask=interceptors,
+                flags=EFFECT_OPTIONAL,
+            )
+        else:
+            state.resolution_suppressed_mask |= <uint16_t>(1 << target)
+
+    cdef void apply_pending_effect(self, FastState state, uint64_t action) except *:
+        cdef int kind = state.pending_kind[0]
+        cdef int player = state.pending_player[0]
+        cdef int card = action_card(action)
+        cdef int source = action_pos(action)
+        cdef int dest = action_dest(action)
+        cdef int trigger_source = state.pending_source[0]
+        cdef int aux = state.pending_aux[0]
+        cdef bint skip = card < 0 and source < 0 and dest < 0
+        cdef bint was_empty
+        cdef int before_mask, moved
+
+        self.pop_pending_effect(state)
+
+        if kind == EFFECT_FREE_MANEUVER:
+            if not skip:
+                was_empty = state.subject[dest] < 0
+                self.swap_slots(state, source, dest)
+                state.maneuver_count[dest] += 1
+                if state.free_maneuver_available[player]:
+                    state.free_maneuver_available[player] = 0
+                self.resolve_maneuver_triggers(
+                    state, player, source, dest, was_empty
+                )
+        elif kind == EFFECT_MOVE:
+            if not skip:
+                self.move_slot(state, source, dest)
+                self.resolve_force_move_triggers(state, player, source, dest)
+        elif kind == EFFECT_SWAP:
+            if not skip:
+                self.swap_slots(state, source, dest)
+                self.resolve_force_move_triggers(state, player, source, dest)
+                self.resolve_force_move_triggers(state, player, dest, source)
+        elif kind == EFFECT_RECOVER:
+            if not skip and card >= 0 and self.remove_from_discard(state, player, card):
+                self.return_to_hand(state, player, card)
+        elif kind == EFFECT_FRONT_CONTRIBUTION:
+            if not skip and source >= 0 and dest >= 0:
+                state.resolution_contribution_front[source] = dest
+        elif kind == EFFECT_SUPPRESS:
+            if not skip and dest >= 0:
+                self.suppress_with_interception(state, player, dest)
+        elif kind == EFFECT_SACRIFICE:
+            if not skip and source >= 0 and dest >= 0:
+                self.discard_slot_components(state, player, source)
+                self.suppress_with_interception(state, player, dest)
+        elif kind == EFFECT_INTERCEPT:
+            if skip:
+                if aux >= 0:
+                    state.resolution_suppressed_mask |= <uint16_t>(1 << aux)
+            elif source >= 0:
+                state.resolution_suppressed_mask |= <uint16_t>(1 << source)
+        elif kind == EFFECT_RETREAT:
+            if not skip and source >= 0 and dest >= 0:
+                self.retreat_slot(state, player, source, dest)
+        elif kind == EFFECT_PROTECT_RETREAT:
+            if not skip and source >= 0:
+                state.resolution_protected_mask[player] |= <uint8_t>(1 << front_from_slot(source))
+                self.drive_off_slot(state, player, source)
+        elif kind == EFFECT_TRANSFER_COMPONENT:
+            if not skip and source >= 0 and dest >= 0 and card >= 0:
+                before_mask = self.complete_mask(state, player)
+                if state.link[source] == card and state.link[dest] < 0:
+                    state.link[source] = -1
+                    state.link[dest] = card
+                elif state.name[source] == card and state.name[dest] < 0:
+                    state.name[source] = -1
+                    state.name[dest] = card
+                self.resolve_new_completions_fast(state, player, before_mask)
+        elif kind == EFFECT_SUCCESSION:
+            if not skip and trigger_source >= 0 and dest >= 0:
+                moved = state.name[trigger_source]
+                if moved >= 0:
+                    before_mask = self.complete_mask(state, player)
+                    state.name[trigger_source] = -1
+                    state.name[dest] = moved
+                    self.resolve_new_completions_fast(state, player, before_mask)
+            self.finish_pending_drive_off(state, player, trigger_source)
+
+        self.resume_pending_flow(state)
+
     cdef void apply_fast(self, FastState state, uint64_t action):
         cdef int kind = action_kind(action)
         cdef int card = action_card(action)
@@ -3535,6 +3695,10 @@ cdef class FastEngine:
 
         if kind == TYPE_PASS:
             self.pass_action(state, actor)
+            return
+
+        if kind == TYPE_EFFECT:
+            self.apply_pending_effect(state, action)
             return
 
         if kind == TYPE_DISCARD:
@@ -3554,11 +3718,12 @@ cdef class FastEngine:
                 )
                 if state.cleanup_pending:
                     return
-            if state.pending_draw_finish_operation:
-                state.pending_draw_finish_operation = 0
-                self.finish_operation_fast(state, actor)
+            if not state.cleanup_pending:
+                self.resume_pending_flow(state)
             return
 
+        state.pending_resume = RESUME_FINISH_OPERATION
+        state.pending_resume_player = actor
         cost = self.command_cost_fast(state, action)
         self.spend_command_fast(state, actor, cost)
 
@@ -3566,10 +3731,13 @@ cdef class FastEngine:
             target = 1 if state.subject[dest] < 0 else 0
             self.swap_slots(state, pos, dest)
             state.maneuver_count[dest] += 1
+            if state.free_maneuver_available[actor]:
+                state.free_maneuver_available[actor] = 0
             if target:
                 self.resolve_maneuver_into_empty_narratives(state, actor)
             self.resolve_force_pair_narratives(state, actor)
-            self.finish_operation_fast(state, actor)
+            self.resolve_maneuver_triggers(state, actor, pos, dest, bool(target))
+            self.resume_pending_flow(state)
             return
 
         if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
@@ -3679,16 +3847,13 @@ cdef class FastEngine:
                         self.move_slot(state, source, target)
                 self.resolve_force_pair_narratives(state, actor)
 
-            self.finish_operation_fast(state, actor)
+            self.resume_pending_flow(state)
             return
 
         if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
             self.resolve_new_completions_fast(state, actor, before_mask)
 
-        if state.cleanup_pending:
-            state.pending_draw_finish_operation = 1
-            return
-        self.finish_operation_fast(state, actor)
+        self.resume_pending_flow(state)
 
     cpdef FastState next_state(self, FastState state, uint64_t action):
         cdef FastState child = state.clone_fast()
