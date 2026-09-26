@@ -42,7 +42,7 @@ def test_rulebook_core_constants_match_standard_engine() -> None:
     assert standard.starting_command == 20
     assert standard.command_cap == 20
     assert standard.hand_limit == 10
-    assert standard.ongoing_story_limit == 2
+    assert standard.ongoing_narrative_limit == 2
     assert standard.maneuver_command_cost == 1
     assert standard.command_recovery_schedule == (10, 7, 5, 4, 3, 2, 1)
     assert standard.command_collapse_threshold == 5
