@@ -54,7 +54,7 @@ Losing a Front can drive formations backward or off the battlefield and reduces 
 
 ## Setup {#setup}
 
-1. Each player takes a **34-card playtest deck**.
+1. Each player takes a playtest deck of **at least 34 cards**.
 2. Set your Command to **20** on a d20.
 3. Shuffle and draw **10 cards**.
 4. You may shuffle up to 2 cards from your hand back into your deck, then draw the same number.
@@ -317,9 +317,9 @@ Card text that refers to a Front result, Retreat, or Battle end resolves when th
 
 The current playtest format uses:
 
-- exactly **34 cards**;
-- exactly **14 Force-type cards**;
-- exactly **6 printed Names**;
+- at least **34 cards**;
+- at least **14 Force-type cards**;
+- at least **6 printed Names**;
 - maximum 2 copies of a non-Unique title;
 - maximum 1 copy of a Unique title.
 
