@@ -170,3 +170,32 @@ Use these terms consistently in rules and card text:
 - **Open Bond** - a Bond attached to a Force when that formation has no Name.
 - Never use **Named** to mean merely “has a Name.”
 - Never say a **Force is Named**. Say **the formation is Named**.
+
+
+## Batch 6 - Command
+
+Status: draft for review.
+
+This batch tests Command as a decision resource without directly damaging the opponent's Command. The cards focus on discounts, extra spending, refunds, conversion, recovery, catch-up, and one expensive Battle-wide commitment.
+
+| # | Card | Type | Cost | Strength | Rules text |
+| --- | --- | --- | ---: | ---: | --- |
+| 41 | **Rallied Behind** | Bond | 1 | - | If you have less Command than your opponent, this Bond costs 0 Command. |
+| 42 | **Sorin** | Name - Human, Captain - Unique | 1 | +1 | If you play this Name on a Force that already has a Bond, it costs 0 Command. |
+| 43 | **Bought Time For** | Bond | 1 | - | When you play this Bond, you may pay 1 extra Command. If you do, draw 2 cards. |
+| 44 | **Trusted** | Bond | 1 | - | At Battle end, if this formation wins its Front, regain 1 Command. |
+| 45 | **The Baggage Was Abandoned** | Story - Warning | 1 | - | When you play this Story, you may discard 1 other card. If you do, regain 2 Command. |
+| 46 | **The Lines Held** | Stratagem | 2 | - | At Battle end, when you recover Command, count one fewer Front lost. |
+| 47 | **Iven** | Name - Human, Steward - Unique | 2 | +1 | While you have less Command than your opponent, the first card you play each turn costs 1 less Command (minimum 1). |
+| 48 | **All Banners Forward** | Stratagem - Unique | 5 | - | **During this Battle**, your **Maneuvers** cost 0 Command, and your formations may **Maneuver** even if they are not Named. |
+
+### Mechanics under test
+
+- **Catch-up discount** - a card becomes cheaper while you have less Command.
+- **Completion discount** - finishing a Force + Bond + Name can be cheaper.
+- **Extra investment** - voluntarily pay more Command for a stronger effect.
+- **Success refund** - regain Command if the formation wins its Front.
+- **Hand-to-Command conversion** - discard a card to regain Command.
+- **Recovery improvement** - reduce the Command penalty from lost Fronts.
+- **Persistent catch-up** - a Named Formation can improve efficiency while behind on Command.
+- **Large investment** - spend substantial Command now for a Battle-wide change in action economy.
