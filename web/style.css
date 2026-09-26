@@ -995,7 +995,6 @@ button, .button {
 .game-card.card-bond { --card-accent: #536d78; --card-wash: #e2e8e5; --card-deep: #2f4249; }
 .game-card.card-name { --card-accent: #59705a; --card-wash: #e4ead7; --card-deep: #334934; }
 .game-card.card-story { --card-accent: #8a5148; --card-wash: #eee0da; --card-deep: #56342f; }
-.game-card.card-veiled { --card-accent: #65587f; --card-wash: #e5e0ed; --card-deep: #403a54; }
 .game-card.card-stratagem { --card-accent: #8a6e3f; --card-wash: #e9dfc8; --card-deep: #4e4029; }
 
 .card-meta {
