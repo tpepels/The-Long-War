@@ -7,7 +7,7 @@ let cards = {};
 let state = null;
 let selectedCardId = null;
 let selectedHandIndex = null;
-let stagedNarrativeSource = null;
+let stagedPlotSource = null;
 let stagedManeuverSource = null;
 let choiceActions = [];
 let mulliganSelection = new Set();
@@ -275,10 +275,10 @@ function targetActionsForSlot(owner, front, rank) {
       continue;
     }
     if (action.targets.length === 2) {
-      if (!stagedNarrativeSource) {
+      if (!stagedPlotSource) {
         if (locEquals(action.targets[0], owner, front, rank)) matches.push(action);
       } else if (
-        locEquals(action.targets[0], stagedNarrativeSource.player, stagedNarrativeSource.front, stagedNarrativeSource.rank) &&
+        locEquals(action.targets[0], stagedPlotSource.player, stagedPlotSource.front, stagedPlotSource.rank) &&
         locEquals(action.targets[1], owner, front, rank)
       ) {
         matches.push(action);
@@ -329,8 +329,8 @@ function renderSlot(owner, front, rank) {
   if (hasFormation && !slot?.force) classes.push("prepared");
   if (targetable) classes.push("targetable");
   if (
-    stagedNarrativeSource &&
-    locEquals(stagedNarrativeSource, owner, front, rank)
+    stagedPlotSource &&
+    locEquals(stagedPlotSource, owner, front, rank)
   ) classes.push("staged-source");
   if (
     stagedManeuverSource &&
@@ -380,7 +380,7 @@ function renderSlot(owner, front, rank) {
           termMarkup("Prepared") +
           '<small>Force open</small></span>') +
       (slot.bond
-        ? '<div class="board-attachment bond">' +
+        ? '<div class="board-attachment link">' +
           boardCardMarkup(slot.bond, "bond", owner) + '</div>'
         : "") +
       (slot.name
@@ -398,21 +398,21 @@ function renderSlot(owner, front, rank) {
   '</div>';
 }
 
-function renderNarrativeSlot(owner, slot) {
+function renderStorySlot(owner, slot) {
   const story = state.stories?.[owner]?.[slot] || null;
   const actions =
     owner === currentViewer()
       ? targetActionsForStorySlot(slot)
       : [];
   const targetable = actions.length > 0;
-  const classes = ["narrative-marker"];
+  const classes = ["scheme-marker", "story-marker"];
   if (targetable) classes.push("targetable");
   if (!story) classes.push("empty");
   const attrs =
-    'data-narrative-owner="' + owner +
-    '" data-narrative-slot="' + slot + '"' +
+    'data-story-owner="' + owner +
+    '" data-story-slot="' + slot + '"' +
     (targetable
-      ? ' role="button" tabindex="0" aria-label="Play Ongoing Narrative in slot ' +
+      ? ' role="button" tabindex="0" aria-label="Play ongoing Story in slot ' +
         (slot + 1) + '"'
       : '');
 
@@ -508,12 +508,12 @@ function renderRankRow(owner, rank, label) {
   '</div>';
 }
 
-function renderNarrativeRow(owner) {
-  return '<div class="narrative-row"><span class="rank-label">Narratives</span>' +
-    renderNarrativeSlot(owner, 0) +
-    renderNarrativeSlot(owner, 1) +
-    '<div class="narrative-spacer" aria-hidden="true"></div>' +
-    '<div class="narrative-spacer" aria-hidden="true"></div>' +
+function renderStoryRow(owner) {
+  return '<div class="scheme-row story-row"><span class="rank-label">Narratives</span>' +
+    renderStorySlot(owner, 0) +
+    renderStorySlot(owner, 1) +
+    '<div class="story-spacer" aria-hidden="true"></div>' +
+    '<div class="story-spacer" aria-hidden="true"></div>' +
   '</div>';
 }
 
@@ -534,7 +534,7 @@ function renderBattlefield() {
         frontNames.map((name, front) => frontBanner(name, front, bottom, top)).join("") +
       '</div>' +
       '<div class="army-side opponent-army">' +
-        renderNarrativeRow(top) +
+        renderStoryRow(top) +
         renderRankRow(top, "rear", "Rear") +
         renderRankRow(top, "front", "Frontline") +
       '</div>' +
@@ -542,7 +542,7 @@ function renderBattlefield() {
       '<div class="army-side player-army">' +
         renderRankRow(bottom, "front", "Frontline") +
         renderRankRow(bottom, "rear", "Rear") +
-        renderNarrativeRow(bottom) +
+        renderStoryRow(bottom) +
       '</div>' +
       '<div class="battle-stratagem-zone player"><span>Your Stratagem</span>' + renderStratagem(bottom) + '</div>' +
     '</div>';
@@ -659,7 +659,7 @@ function renderPrivacy() {
 function clearSelection() {
   selectedCardId = null;
   selectedHandIndex = null;
-  stagedNarrativeSource = null;
+  stagedPlotSource = null;
   stagedManeuverSource = null;
   choiceActions = [];
   mulliganSelection = new Set();
@@ -671,7 +671,7 @@ function selectCard(cardId, index) {
   } else {
     selectedCardId = cardId;
     selectedHandIndex = index;
-    stagedNarrativeSource = null;
+    stagedPlotSource = null;
     stagedManeuverSource = null;
     choiceActions = [];
   }
@@ -709,7 +709,7 @@ function interactionHintFor(card) {
     if (actions.some((a) => a.ongoing_slot != null)) {
       return "Choose one of your two Ongoing Narrative slots.";
     }
-    if (stagedNarrativeSource) {
+    if (stagedPlotSource) {
       return "Now choose the destination for " + card.title + ".";
     }
     if (actions.some((a) => a.targets.length === 2)) {
@@ -1073,7 +1073,7 @@ function bindBoardTargets() {
     );
   });
 
-  document.querySelectorAll("[data-narrative-slot]").forEach((el) => {
+  document.querySelectorAll("[data-story-slot]").forEach((el) => {
     bindTarget(el, () => {
       if (Number(el.dataset.storyOwner) !== currentViewer()) return;
       const slot = Number(el.dataset.storySlot);
@@ -1129,17 +1129,17 @@ function handleBoardTarget(owner, front, rank) {
   }
 
   const all = selectedActions();
-  const isTwoTargetNarrative = all.some(
+  const isTwoTargetStory = all.some(
     (a) => a.kind === "PlayStory" && a.targets.length === 2
   );
-  if (isTwoTargetNarrative && !stagedNarrativeSource) {
+  if (isTwoTargetStory && !stagedPlotSource) {
     const sourceMatches = all.filter(
       (a) =>
         a.targets.length === 2 &&
         locEquals(a.targets[0], owner, front, rank)
     );
     if (!sourceMatches.length) return;
-    stagedNarrativeSource = { player: owner, front, rank };
+    stagedPlotSource = { player: owner, front, rank };
     choiceActions = [];
     renderInteractiveState();
     return;
@@ -1528,7 +1528,7 @@ document.addEventListener("keydown", (event) => {
 function focusIdentity() {
   const el = document.activeElement;
   if (!el || el === document.body) return null;
-  const names = ["hand-index", "mulligan-index", "inspect-card", "inspect-owner", "inspect-zone", "board-owner", "board-front", "board-rank", "stratagem-owner"];
+  const names = ["hand-index", "mulligan-index", "inspect-card", "inspect-owner", "inspect-zone", "board-owner", "board-front", "board-rank", "scheme-owner", "scheme-front", "stratagem-owner"];
   if (el.id) return { id: el.id };
   const attrs = names.filter((name) => el.hasAttribute("data-" + name)).map((name) => ["data-" + name, el.getAttribute("data-" + name)]);
   return { el, attrs };
@@ -1617,13 +1617,13 @@ function captureCardAnchors(snapshot) {
   const anchors = [];
   document.querySelectorAll("#hand [data-card-id], #battlefield [data-inspect-card]").forEach((node) => {
     const slot = node.closest("[data-board-owner]");
-    const story = node.closest("[data-narrative-slot]");
+    const story = node.closest("[data-story-slot]");
     const stratagem = node.closest("[data-stratagem-owner]");
     const owner = node.closest("#hand") ? snapshot.viewer : Number(node.dataset.inspectOwner);
     const zone = slot
       ? `slot:${slot.dataset.boardFront}:${slot.dataset.boardRank}:${node.dataset.inspectZone}`
       : story
-        ? "narrative:" + story.dataset.narrativeSlot
+        ? "story:" + story.dataset.storySlot
         : stratagem
           ? "stratagem"
           : "hand";
@@ -1691,7 +1691,7 @@ window.render_game_to_text = () => JSON.stringify({
   ...(state ? Object.fromEntries(["phase", "battle", "viewer", "active_player", "needs_ai", "needs_reveal", "winner", "players", "hand", "board", "stories", "story_limit", "stratagems", "pass_order", "pending_draw_discard_for", "front_strengths", "front_control", "legal_actions", "last_action"].map((key) => [key, state[key]])) : { phase: "setup" }),
   selected_card: selectedCardId,
   selected_hand_index: selectedHandIndex,
-  selected_source: stagedNarrativeSource,
+  selected_source: stagedPlotSource,
   mulligan_selection: [...mulliganSelection],
   drawer: activeDrawer,
   inspector: !$("card-inspector").hidden ? $("card-inspector-title").textContent : null,
