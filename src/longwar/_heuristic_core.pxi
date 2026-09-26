@@ -512,8 +512,6 @@ cdef class NativeHeuristicEvaluator:
 
         if kind == TYPE_PASS:
             return 0.20
-        if kind == TYPE_DRAW:
-            return 0.85
         if kind == TYPE_CYCLE:
             return 0.45
         if kind == TYPE_DISCARD:

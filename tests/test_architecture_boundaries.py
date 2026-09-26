@@ -481,6 +481,12 @@ def test_obsolete_choose_first_state_is_gone() -> None:
     assert "choose_first" not in mccfr
 
 
+def test_native_algorithms_do_not_reference_deleted_draw_action() -> None:
+    for filename in ("_heuristic_core.pxi", "_alpha_beta_core.pxi", "_ismcts_core.pxi", "_mccfr_core.pxi"):
+        source = (SRC / filename).read_text(encoding="utf-8")
+        assert "TYPE_DRAW" not in source, filename
+
+
 def test_native_search_uses_current_heuristic_interface() -> None:
     for filename in ("_alpha_beta_core.pxi", "_ismcts_core.pxi"):
         source = (SRC / filename).read_text(encoding="utf-8")

@@ -181,7 +181,7 @@ cdef int ordered_actions_into(
     cdef int n, i, j, selected_n, kind, preferred_ix=-1
     cdef uint64_t tmp_action
     cdef double tmp_score
-    cdef bint have_pass=False, have_draw=False
+    cdef bint have_pass=False
 
     n = engine.legal_actions_into(state, &actions[0])
     if n <= 0:
@@ -215,8 +215,6 @@ cdef int ordered_actions_into(
         kind = action_kind(actions[i])
         if kind == TYPE_PASS:
             have_pass = True
-        elif kind == TYPE_DRAW:
-            have_draw = True
 
     if selected_n < n:
         for i in range(selected_n, n):
@@ -225,10 +223,6 @@ cdef int ordered_actions_into(
                 selected[selected_n] = actions[i]
                 selected_n += 1
                 have_pass = True
-            elif kind == TYPE_DRAW and not have_draw:
-                selected[selected_n] = actions[i]
-                selected_n += 1
-                have_draw = True
 
     if preferred_action != 0:
         for i in range(selected_n):
