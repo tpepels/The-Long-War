@@ -346,6 +346,18 @@ def test_turn_at_hand_limit_requires_discard_then_draw_before_operation() -> Non
     assert state.active_player == 0
 
 
+def test_battle_only_temporary_strength_resets_after_battle() -> None:
+    engine, state = setup_state()
+    target = pos(0, Rank.FRONT)
+    make_named(state, 0, target, temporary=4)
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.battle == 2
+    assert state.slot(0, target).complete is True
+    assert state.slot(0, target).temporary_strength == 0
+
+
 def test_battle_resolves_four_fronts_independently_without_battle_winner() -> None:
     engine, state = setup_state()
 
