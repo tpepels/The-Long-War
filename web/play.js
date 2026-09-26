@@ -613,7 +613,7 @@ function renderOpponentRack() {
   const ps = state.players[opponent];
   const handCount = ps.hand_count || 0;
 
-  $("opponent-label").textContent = (state.mode === "hotseat" ? "Player " + (opponent + 1) : "Opponent") + " · " + handCount + " cards" + (ps.passed ? " · PASSED" : "");
+  $("opponent-label").textContent = (state.mode === "hotseat" ? "Player " + (opponent + 1) : "Opponent") + " · " + handCount + " cards" + (ps.passed ? " · PASS PENDING" : "");
 
   const visibleBacks = Math.min(handCount, 12);
   $("opponent-hand").innerHTML = Array.from({ length: visibleBacks }, (_, index) => {
@@ -976,7 +976,7 @@ function renderPublicZones() {
     const discard = [...ps.discard].reverse();
     return '<details class="public-zone" data-public-owner="' + player + '"><summary>Player ' + (player + 1) +
       " · deck " + ps.deck_count + " · discard " + discard.length +
-      (ps.passed ? " · PASSED" : "") + "</summary>" +
+      (ps.passed ? " · PASS PENDING" : "") + "</summary>" +
       '<div class="discard-list">' +
       (discard.length ? discard.map((id) => '<button type="button" class="public-card-link" data-inspect-card="' + esc(id) + '" data-inspect-owner="' + player + '" data-inspect-zone="discard">' + esc(cardTitle(id)) + "</button>").join("") : "<span>Empty discard</span>") +
       "</div></details>";
