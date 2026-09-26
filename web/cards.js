@@ -13,11 +13,24 @@ function formatGameText(value) {
 }
 
 const TYPE_LABELS = {
-  subject: "Force",
-  link: "Bond",
+  force: "Force",
+  bond: "Bond",
   name: "Name",
+  story: "Story",
   stratagem: "Stratagem",
 };
+
+const canonicalType = (card) => ({
+  subject: "force",
+  link: "bond",
+  plot: "story",
+}[card?.type] || card?.type);
+
+const cssCardType = (card) => ({
+  force: "subject",
+  bond: "link",
+  story: "plot",
+}[canonicalType(card)] || canonicalType(card));
 
 const titleCase = (value) =>
   String(value ?? "")
@@ -27,12 +40,14 @@ const titleCase = (value) =>
     .join(" ");
 
 function typeLabel(card) {
-  if (card.type === "plot") {
+  const type = canonicalType(card);
+  if (type === "story") {
     const form = titleCase(card.story_form);
-    return card.veiled ? form + " · Veiled Story" : form + " · Story";
+    const ongoing = card.ongoing ?? card.veiled ?? false;
+    return form ? form + (ongoing ? " · Ongoing Story" : " · Story") : (ongoing ? "Ongoing Story" : "Story");
   }
-  if (card.type === "subject" && card.hero) return "Hero · Force / Name";
-  return TYPE_LABELS[card.type] ?? card.type;
+  if (type === "force" && card.hero) return "Hero · Force / Name";
+  return TYPE_LABELS[type] ?? type;
 }
 
 
@@ -44,8 +59,9 @@ function cardMotif(card) {
 }
 
 function cardSymbol(card) {
-  if (card.type === "plot") return card.veiled ? "◐" : "⌁";
-  return { subject: "◆", link: "⛓", name: "✦", stratagem: "⚑" }[card.type] || "•";
+  const type = canonicalType(card);
+  if (type === "story") return (card.ongoing ?? card.veiled ?? false) ? "◐" : "⌁";
+  return { force: "◆", bond: "⛓", name: "✦", stratagem: "⚑" }[type] || "•";
 }
 
 function cardArtMarkup(card) {
@@ -60,7 +76,7 @@ function propertyLabel(card) {
   const classes = (card.classes || [])
     .filter((value) => value !== "hero" && value !== card.role)
     .map((value) => titleCase(value));
-  const role = card.type === "subject" && card.role
+  const role = canonicalType(card) === "force" && card.role
     ? '<span class="card-role"><strong>' + esc(titleCase(card.role)) + '</strong></span>'
     : "";
   const classMarkup = classes.length
@@ -85,7 +101,7 @@ function cardMarkup(card) {
     : "";
   const unique = card.unique ? '<span class="unique"><em>Unique</em></span>' : "";
 
-  return '<article class="game-card card-' + card.type +
+  return '<article class="game-card card-' + cssCardType(card) +
     (card.veiled ? " card-veiled" : "") +
     (card.hero ? " card-hero" : "") + '" data-card-id="' + esc(card.id) + '">' +
     '<div class="card-meta"><span class="card-type">' + esc(typeLabel(card)) + "</span>" + commandCost + strength + "</div>" +

@@ -102,6 +102,18 @@ function formatGameText(value) {
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
+const canonicalType = (card) => ({
+  subject: "force",
+  link: "bond",
+  plot: "story",
+}[card?.type] || card?.type);
+
+const cssCardType = (card) => ({
+  force: "subject",
+  bond: "link",
+  story: "plot",
+}[canonicalType(card)] || canonicalType(card));
+
 function titleCase(value) {
   return String(value ?? "")
     .split(/[-_ ]+/)
@@ -114,7 +126,7 @@ function cardPropertyMarkup(card) {
   const classes = (card.classes || [])
     .filter((value) => value !== "hero" && value !== card.role)
     .map((value) => titleCase(value));
-  const role = card.type === "subject" && card.role
+  const role = canonicalType(card) === "force" && card.role
     ? '<span class="play-card-role"><strong>' + esc(titleCase(card.role)) + '</strong></span>'
     : "";
   const classMarkup = classes.length
@@ -150,21 +162,23 @@ function cardTitle(cardId) {
 }
 
 function cardType(card) {
-  if (card.type === "plot") {
+  const type = canonicalType(card);
+  if (type === "story") {
     const form = titleCase(card.story_form);
-    return card.veiled ? form + " · Ongoing Story" : form + " · Story";
+    const ongoing = card.ongoing ?? card.veiled ?? false;
+    return form ? form + (ongoing ? " · Ongoing Story" : " · Story") : (ongoing ? "Ongoing Story" : "Story");
   }
-  if (card.type === "link") return "Bond";
-  if (card.type === "stratagem") return "Stratagem";
-  if (card.type === "subject" && card.hero) return "Hero · Force / Name";
-  if (card.type === "subject") return "Force";
-  return card.type[0].toUpperCase() + card.type.slice(1);
+  if (type === "bond") return "Bond";
+  if (type === "stratagem") return "Stratagem";
+  if (type === "force" && card.hero) return "Hero · Force / Name";
+  if (type === "force") return "Force";
+  return type[0].toUpperCase() + type.slice(1);
 }
 
 function playCardMarkup(cardId, options = {}) {
   const card = cards[cardId];
   const count = options.count || 1;
-  const classes = ["play-card", "card-" + card.type];
+  const classes = ["play-card", "card-" + cssCardType(card)];
   if (card.veiled) classes.push("card-scheme");
   if (card.hero) classes.push("card-hero");
   if (options.playable) classes.push("playable");
@@ -206,7 +220,7 @@ function boardCardMarkup(cardId, role, owner) {
   const visibleStrength = card.hero && role === "name"
     ? card.hero_name_strength
     : card.strength;
-  return '<button type="button" class="board-card board-card-' + role + ' card-' + card.type +
+  return '<button type="button" class="board-card board-card-' + role + ' card-' + cssCardType(card) +
     (card.veiled ? " card-scheme" : "") + (card.hero ? " card-hero" : "") +
     '" data-inspect-card="' + esc(cardId) + '" data-inspect-owner="' + owner + '" data-inspect-zone="' + esc(role) +
     '" aria-label="Inspect ' + esc(card.title) + '">' +

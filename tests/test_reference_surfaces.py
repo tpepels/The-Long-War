@@ -118,6 +118,19 @@ def test_mccfr_suite_builder_covers_all_four_profile_policies() -> None:
     assert 'heuristic-vs-mccfr-{profile_id}.json' in builder
 
 
+def test_web_card_renderers_normalize_mixed_card_type_names() -> None:
+    for surface in ("web/cards.js", "web/playtest-kit.js", "web/play.js", "web/balance.js"):
+        source = text(surface)
+        assert "canonicalType" in source
+        assert 'subject: "force"' in source
+        assert 'link: "bond"' in source
+        assert 'plot: "story"' in source
+    balance = text("web/balance.html")
+    assert 'value="force"' in balance
+    assert 'value="bond"' in balance
+    assert 'value="story"' in balance
+
+
 def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
     data = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     cards = data["cards"]

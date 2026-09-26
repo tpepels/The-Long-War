@@ -20,6 +20,18 @@ function formatGameText(value) {
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
+const canonicalType = (card) => ({
+  subject: "force",
+  link: "bond",
+  plot: "story",
+}[card?.type] || card?.type);
+
+const cssCardType = (card) => ({
+  force: "subject",
+  bond: "link",
+  story: "plot",
+}[canonicalType(card)] || canonicalType(card));
+
 function titleCase(value) {
   return String(value ?? "")
     .split(/[-_ ]+/)
@@ -29,13 +41,15 @@ function titleCase(value) {
 }
 
 function displayCardType(row) {
-  if (row.type === "plot") {
+  const type = canonicalType(row);
+  if (type === "story") {
     const form = titleCase(row.story_form);
-    return row.veiled ? form + " · Veiled Story" : form + " · Story";
+    const ongoing = row.ongoing ?? row.veiled ?? false;
+    return form ? form + (ongoing ? " · Ongoing Story" : " · Story") : (ongoing ? "Ongoing Story" : "Story");
   }
-  if (row.type === "link") return "Bond";
-  if (row.type === "subject") return row.hero ? "Hero · Force" : "Force";
-  return titleCase(row.type);
+  if (type === "bond") return "Bond";
+  if (type === "force") return row.hero ? "Hero · Force" : "Force";
+  return titleCase(type);
 }
 
 function displayProperties(row) {
@@ -178,8 +192,8 @@ function renderCards(lab) {
   const filter = document.getElementById("card-filter").value;
   let rows = [...lab.health.cards];
 
-  if (["subject", "link", "name", "plot", "stratagem"].includes(filter)) {
-    rows = rows.filter((row) => row.type === filter);
+  if (["force", "bond", "name", "story", "stratagem"].includes(filter)) {
+    rows = rows.filter((row) => canonicalType(row) === filter);
   } else if (["red", "orange", "yellow", "green", "dark_green"].includes(filter)) {
     rows = rows.filter((row) => row.balance_level === filter);
   }
