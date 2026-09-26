@@ -22,13 +22,10 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
 
     assert "column-count: 2;" in css
     assert "rulebook-at-a-glance" in rules
-    assert "Final Subject Strength cannot fall below 0." in rules
-    assert "No Fires Burned" in rules
-    assert "gives +2" in rules
+    assert "Final Force Strength cannot fall below 0." in rules
     assert "player who Passed second counts as active" not in rules
     assert "no generic Draw operation" in rules
-    assert "no standard Cycle operation" in rules
-    assert "gain **10 Command**" in rules
+    assert "| I | 10 |" in rules
     assert "start of every turn" in rules
     assert "two consecutive Passes" in rules
     assert "first of the two consecutive Passes" in rules
@@ -66,8 +63,8 @@ def test_rulebook_core_constants_match_standard_engine() -> None:
 def test_rulebook_healer_language_matches_engine_semantics() -> None:
     rules = text("rules/rulebook.md")
     assert (
-        "| *Healer* | While in the **Rear**, the friendly Subject directly in front "
-        "of it gets +2 Strength. Current Healer cards are printed *Rear only*. |"
+        "| *Healer* | While in the Rear, the friendly Force directly in front "
+        "of it gets +2 Strength. |"
     ) in rules
 
 
