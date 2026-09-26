@@ -62,6 +62,16 @@ class Discard:
 
 
 @dataclass(frozen=True)
+class EffectChoice:
+    effect: str
+    source: BoardTarget | None = None
+    destination: BoardTarget | None = None
+    card_id: str | None = None
+    front: Front | None = None
+    skip: bool = False
+
+
+@dataclass(frozen=True)
 class Pass:
     pass
 
@@ -74,6 +84,7 @@ Action: TypeAlias = (
     | PlayStratagem
     | Maneuver
     | Discard
+    | EffectChoice
     | Pass
 )
 
@@ -85,6 +96,27 @@ def action_key(action: object) -> str:
         return "pass"
     if isinstance(action, Discard):
         return f"discard:{action.card_id}"
+    if isinstance(action, EffectChoice):
+        key = f"effect:{action.effect}"
+        if action.skip:
+            return key + ":skip"
+        if action.card_id is not None:
+            key += f":card:{action.card_id}"
+        if action.source is not None:
+            key += (
+                f":source:{action.source.player},"
+                f"{int(action.source.position.front)},"
+                f"{action.source.position.rank.value}"
+            )
+        if action.destination is not None:
+            key += (
+                f":destination:{action.destination.player},"
+                f"{int(action.destination.position.front)},"
+                f"{action.destination.position.rank.value}"
+            )
+        if action.front is not None:
+            key += f":front:{int(action.front)}"
+        return key
     if isinstance(action, Maneuver):
         return (
             f"maneuver:{int(action.source.front)}:{action.source.rank.value}:"
@@ -160,6 +192,42 @@ def action_from_key(key: str) -> object:
         return Discard(key.split(":", 1)[1])
 
     parts = key.split(":")
+    if parts[0] == "effect":
+        effect = parts[1]
+        if len(parts) == 3 and parts[2] == "skip":
+            return EffectChoice(effect, skip=True)
+        source: BoardTarget | None = None
+        destination: BoardTarget | None = None
+        card_id: str | None = None
+        front: Front | None = None
+        index = 2
+        while index < len(parts):
+            label = parts[index]
+            value = parts[index + 1]
+            if label == "card":
+                card_id = value
+            elif label in {"source", "destination"}:
+                player, encoded_front, rank = value.split(",")
+                target = BoardTarget(
+                    int(player),
+                    _position(encoded_front, rank),
+                )
+                if label == "source":
+                    source = target
+                else:
+                    destination = target
+            elif label == "front":
+                front = Front(int(value))
+            else:
+                raise ValueError(f"Unknown EffectChoice field: {label}")
+            index += 2
+        return EffectChoice(
+            effect,
+            source=source,
+            destination=destination,
+            card_id=card_id,
+            front=front,
+        )
     if parts[0] == "force":
         return PlayForce(parts[1], _position(parts[2], parts[3]))
     if parts[0] == "bond":
