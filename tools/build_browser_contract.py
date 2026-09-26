@@ -277,7 +277,7 @@ def consecutive_pass_scenario(
     return scenario
 
 
-def story_limit_scenario(
+def narrative_limit_scenario(
     engine: GameEngine,
     deck: list[str],
 ) -> dict[str, object]:
@@ -288,27 +288,27 @@ def story_limit_scenario(
         first_player=0,
         opening_bonus=False,
     )
-    state.players[0].hand[:] = ["the-lamps-went-dark"]
+    state.players[0].hand[:] = ["they-returned-with-names"]
     state.players[0].command = 20
 
     legal = sorted(
         action_key(action)
         for action in engine.legal_actions(state)
     )
-    story_actions = [
+    narrative_actions = [
         key
         for key in legal
-        if key.startswith("story:the-lamps-went-dark:ongoing:")
+        if key.startswith("story:they-returned-with-names:ongoing:")
     ]
 
     assert engine.ongoing_narrative_limit == 2
-    assert story_actions == [
-        "story:the-lamps-went-dark:ongoing:0",
-        "story:the-lamps-went-dark:ongoing:1",
+    assert narrative_actions == [
+        "story:they-returned-with-names:ongoing:0",
+        "story:they-returned-with-names:ongoing:1",
     ]
 
     return {
-        "name": "two-ongoing-story-slots",
+        "name": "two-ongoing-narrative-slots",
         "initial": project_state(state),
         "legal": legal,
         "front_strengths": front_strengths(engine, state),
@@ -471,7 +471,7 @@ def main() -> None:
         "scenarios": [
             trace_scenario(engine, deck),
             consecutive_pass_scenario(engine, deck),
-            story_limit_scenario(engine, deck),
+            narrative_limit_scenario(engine, deck),
         ],
         "sessions": [
             session_trace(cards, deck, mode, seed)
