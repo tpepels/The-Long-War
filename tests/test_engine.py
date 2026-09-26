@@ -320,6 +320,7 @@ def test_two_consecutive_passes_end_the_battle() -> None:
     resolve_battle_by_passing(engine, state)
 
     assert state.battle == 2
+    assert state.active_player == 0  # first of the two consecutive passers
     assert state.pass_order == []
     assert state.players[0].passed is False
     assert state.players[1].passed is False
