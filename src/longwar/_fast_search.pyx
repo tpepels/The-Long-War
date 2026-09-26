@@ -14,6 +14,7 @@ DEF MAX_DECK = 64
 DEF SLOT_COUNT = 16
 DEF SCHEME_COUNT = 8
 DEF MAX_ACTIONS = 1024
+DEF MAX_RECOVERY_SCHEDULE = 32
 DEF NONE = -1
 
 cdef int PHASE_BATTLE = 0
@@ -420,6 +421,8 @@ cdef class FastEngine:
     cdef int battle_command_gain
     cdef int command_cap
     cdef object command_recovery_schedule
+    cdef int32_t command_recovery_values[MAX_RECOVERY_SCHEDULE]
+    cdef uint8_t command_recovery_len
     cdef int command_collapse_threshold
     cdef int maneuver_command_cost
     cdef int hand_limit
@@ -492,6 +495,12 @@ cdef class FastEngine:
 
     def __cinit__(self):
         self.max_deck_size = MAX_DECK
+        self.command_recovery_len = 0
+        memset(
+            self.command_recovery_values,
+            0,
+            sizeof(self.command_recovery_values),
+        )
         memset(self.card_type, 0, sizeof(self.card_type))
         memset(self.card_command_cost, 0, sizeof(self.card_command_cost))
         memset(self.adjacent_command_discount, 0, sizeof(self.adjacent_command_discount))
@@ -554,6 +563,16 @@ cdef class FastEngine:
         self.battle_command_gain = int(engine.battle_command_gain)
         self.command_cap = int(engine.command_cap)
         self.command_recovery_schedule = tuple(engine.command_recovery_schedule)
+        if len(self.command_recovery_schedule) > MAX_RECOVERY_SCHEDULE:
+            raise ValueError(
+                f"Command recovery schedule supports at most "
+                f"{MAX_RECOVERY_SCHEDULE} entries"
+            )
+        self.command_recovery_len = len(self.command_recovery_schedule)
+        for r in range(self.command_recovery_len):
+            self.command_recovery_values[r] = int(
+                self.command_recovery_schedule[r]
+            )
         self.command_collapse_threshold = int(engine.command_collapse_threshold)
         self.maneuver_command_cost = int(engine.maneuver_command_cost)
         self.hand_limit = int(engine.hand_limit)
@@ -1762,14 +1781,20 @@ cdef class FastEngine:
         for slot in range(SLOT_COUNT):
             state.temporary[slot] = 0
 
+    cdef inline int command_recovery_fast(
+        self,
+        int battle,
+    ) noexcept:
+        cdef int index = battle - 1
+        if index < 0 or index >= self.command_recovery_len:
+            return 0
+        return self.command_recovery_values[index]
+
     cdef int command_recovery_for_battle(
         self,
         int battle,
     ):
-        cdef int index = battle - 1
-        if index < 0 or index >= len(self.command_recovery_schedule):
-            return 0
-        return <int>self.command_recovery_schedule[index]
+        return self.command_recovery_fast(battle)
 
     cdef void begin_next_battle_fast(
         self,
