@@ -20,7 +20,7 @@ from longwar.game import (
     Position,
     Rank,
 )
-from longwar.game.model import FRONT_COUNT, Phase
+from longwar.game.model import FRONT_COUNT, Phase, StratagemState
 from longwar.rules import GameRules
 
 
@@ -183,24 +183,24 @@ def test_force_deploy_rank_restriction_does_not_block_retreat() -> None:
     engine, state = setup_state()
     front = pos(0, Rank.FRONT)
     rear = pos(0, Rank.REAR)
-    state.players[0].hand = ["the-three-brothers-of-avar"]
+    state.players[0].hand = ["the-red-shields"]
     state.players[0].command = 20
 
     legal = engine.legal_actions(state)
-    assert PlayForce("the-three-brothers-of-avar", front) in legal
-    assert PlayForce("the-three-brothers-of-avar", rear) not in legal
+    assert PlayForce("the-red-shields", front) in legal
+    assert PlayForce("the-red-shields", rear) not in legal
 
     make_named(
         state,
         0,
         front,
-        force="the-three-brothers-of-avar",
+        force="the-red-shields",
     )
     make_named(state, 1, front, temporary=100)
     resolve_battle_by_passing(engine, state)
 
     assert state.slot(0, front).force is None
-    assert state.slot(0, rear).force == "the-three-brothers-of-avar"
+    assert state.slot(0, rear).force == "the-red-shields"
 
 
 def test_maneuver_moves_named_formation_to_adjacent_empty_same_rank() -> None:
@@ -226,7 +226,7 @@ def test_maneuver_swaps_complete_contents_with_incomplete_formation() -> None:
     destination = pos(2, Rank.REAR)
     make_named(state, 0, source, force="seven-black-ships")
     target = state.slot(0, destination)
-    target.bond = "swore-to"
+    target.bond = "stood-fast-with"
     target.name = "iria"
     state.players[0].command = 5
 
@@ -238,7 +238,7 @@ def test_maneuver_swaps_complete_contents_with_incomplete_formation() -> None:
     assert state.slot(0, destination).bond == "followed"
     assert state.slot(0, destination).name == "namar"
     assert state.slot(0, source).force is None
-    assert state.slot(0, source).bond == "swore-to"
+    assert state.slot(0, source).bond == "stood-fast-with"
     assert state.slot(0, source).name == "iria"
 
 
@@ -527,8 +527,7 @@ def test_explicit_unnamed_maneuver_and_all_banners_forward() -> None:
     state.slot(0, source).force = "the-fifty-men"
     assert Maneuver(source, destination) not in engine.legal_actions(state)
 
-    state.stratagems[0].card_id = "all-banners-forward"
-    state.stratagems[0].revealed = True
+    state.stratagems[0] = StratagemState("all-banners-forward")
     action = Maneuver(source, destination)
     assert action in engine.legal_actions(state)
     assert engine.command_cost_for_action(state, action) == 0
@@ -571,8 +570,7 @@ def test_ground_was_held_breaks_tie_only_for_single_frontline_named_side() -> No
     engine, state = setup_state()
     make_named(state, 0, pos(0, Rank.FRONT))
     make_named(state, 1, pos(0, Rank.REAR))
-    state.stratagems[0].card_id = "the-ground-was-held"
-    state.stratagems[0].revealed = True
+    state.stratagems[0] = StratagemState("the-ground-was-held")
 
     resolve_battle_by_passing(engine, state)
 
@@ -586,8 +584,7 @@ def test_lines_held_and_tovan_reduce_recovery_front_loss_penalty() -> None:
     state.players[1].command = 20
     state.battle_start_command[:] = [5, 20]
     make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
-    state.stratagems[0].card_id = "the-lines-held"
-    state.stratagems[0].revealed = True
+    state.stratagems[0] = StratagemState("the-lines-held")
 
     resolve_battle_by_passing(engine, state)
     assert state.players[0].command == 15
@@ -707,21 +704,21 @@ def test_ongoing_story_slot_does_not_receive_adjacent_front_discount() -> None:
     slot.force = "the-fifty-men"
     slot.bond = "followed"
     slot.name = "elian"
-    state.players[0].hand = ["the-lamps-went-dark"]
+    state.players[0].hand = ["the-long-march"]
     state.players[0].command = 20
 
-    story = PlayStory("the-lamps-went-dark", ongoing_slot=1)
+    story = PlayStory("the-long-march", ongoing_slot=1)
     assert story in engine.legal_actions(state)
     assert engine.command_cost_for_action(state, story) == 2
 
 
 def test_ongoing_stories_are_public_and_limited_to_two_per_player() -> None:
     engine, state = setup_state()
-    assert engine.ongoing_story_limit == 2
+    assert engine.ongoing_narrative_limit == 2
     stories = [
-        "the-lamps-went-dark",
-        "the-road-was-cut",
-        "the-hidden-oars",
+        "the-long-march",
+        "they-returned-with-names",
+        "the-crows-came-down",
     ]
     state.players[0].hand = list(stories)
     state.players[0].command = 20
@@ -747,8 +744,8 @@ def test_ongoing_stories_are_public_and_limited_to_two_per_player() -> None:
 def test_hero_and_stratagem_allowances_are_once_per_battle() -> None:
     engine, state = setup_state()
     hero_a = "avaros-the-bronze-king"
-    hero_b = "mara-queen-of-cinders"
-    state.players[0].hand = [hero_a, hero_b, "the-storm-broke", "the-tide-rose"]
+    hero_b = "kael-the-roadless"
+    state.players[0].hand = [hero_a, hero_b, "the-ground-was-held", "the-lines-held"]
     state.players[0].command = 20
 
     engine.apply(state, PlayForce(hero_a, pos(0)))
@@ -762,12 +759,12 @@ def test_hero_and_stratagem_allowances_are_once_per_battle() -> None:
         for action in legal
     )
 
-    engine.apply(state, PlayStratagem("the-storm-broke"))
+    engine.apply(state, PlayStratagem("the-ground-was-held"))
     assert state.stratagem_used[0] is True
 
     state.active_player = 0
     legal = engine.legal_actions(state)
-    assert PlayStratagem("the-tide-rose") not in legal
+    assert PlayStratagem("the-lines-held") not in legal
 
 
 def test_first_passer_starts_next_battle() -> None:
