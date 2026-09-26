@@ -487,6 +487,16 @@ def test_heuristic_has_no_deleted_global_rule_switches() -> None:
     assert "command_enabled" not in heuristic
 
 
+def test_global_completion_rule_variants_are_removed() -> None:
+    rules = (SRC / "rules.py").read_text(encoding="utf-8")
+    engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
+    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
+    for obsolete in ("completion_draw_names", "completion_command_refund", "legacy_completion_draw", "completion_command_refunded"):
+        assert obsolete not in rules
+        assert obsolete not in engine
+        assert obsolete not in native
+
+
 def test_cycle_operation_is_fully_removed() -> None:
     actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
     rules = (SRC / "rules.py").read_text(encoding="utf-8")

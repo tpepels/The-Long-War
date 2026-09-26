@@ -214,7 +214,6 @@ cdef class FastState:
     cdef uint16_t operations_this_battle[2]
     cdef int16_t command_spent_this_battle[2]
     cdef int16_t command_refunded_this_battle[2]
-    cdef int16_t completion_command_refunded_this_battle[2]
     cdef int16_t battle_start_command[2]
     cdef int16_t battle_start_hand_size[2]
     cdef int16_t cards_drawn_this_battle[2]
@@ -228,7 +227,6 @@ cdef class FastState:
     cdef int16_t last_command_start[2]
     cdef int16_t last_command_spent[2]
     cdef int16_t last_command_refunded[2]
-    cdef int16_t last_completion_command_refunded[2]
     cdef int16_t last_command_remaining[2]
     cdef int16_t last_deck_remaining[2]
     cdef int16_t last_hand_size[2]
@@ -273,7 +271,6 @@ cdef class FastState:
         memset(self.operations_this_battle, 0, sizeof(self.operations_this_battle))
         memset(self.command_spent_this_battle, 0, sizeof(self.command_spent_this_battle))
         memset(self.command_refunded_this_battle, 0, sizeof(self.command_refunded_this_battle))
-        memset(self.completion_command_refunded_this_battle, 0, sizeof(self.completion_command_refunded_this_battle))
         memset(self.battle_start_command, 0, sizeof(self.battle_start_command))
         memset(self.battle_start_hand_size, 0, sizeof(self.battle_start_hand_size))
         memset(self.cards_drawn_this_battle, 0, sizeof(self.cards_drawn_this_battle))
@@ -287,7 +284,6 @@ cdef class FastState:
         memset(self.last_command_start, 0, sizeof(self.last_command_start))
         memset(self.last_command_spent, 0, sizeof(self.last_command_spent))
         memset(self.last_command_refunded, 0, sizeof(self.last_command_refunded))
-        memset(self.last_completion_command_refunded, 0, sizeof(self.last_completion_command_refunded))
         memset(self.last_command_remaining, 0, sizeof(self.last_command_remaining))
         memset(self.last_deck_remaining, 0, sizeof(self.last_deck_remaining))
         memset(self.last_hand_size, 0, sizeof(self.last_hand_size))
@@ -332,7 +328,6 @@ cdef class FastState:
         memcpy(self.operations_this_battle, other.operations_this_battle, sizeof(self.operations_this_battle))
         memcpy(self.command_spent_this_battle, other.command_spent_this_battle, sizeof(self.command_spent_this_battle))
         memcpy(self.command_refunded_this_battle, other.command_refunded_this_battle, sizeof(self.command_refunded_this_battle))
-        memcpy(self.completion_command_refunded_this_battle, other.completion_command_refunded_this_battle, sizeof(self.completion_command_refunded_this_battle))
         memcpy(self.battle_start_command, other.battle_start_command, sizeof(self.battle_start_command))
         memcpy(self.battle_start_hand_size, other.battle_start_hand_size, sizeof(self.battle_start_hand_size))
         memcpy(self.cards_drawn_this_battle, other.cards_drawn_this_battle, sizeof(self.cards_drawn_this_battle))
@@ -346,7 +341,6 @@ cdef class FastState:
         memcpy(self.last_command_start, other.last_command_start, sizeof(self.last_command_start))
         memcpy(self.last_command_spent, other.last_command_spent, sizeof(self.last_command_spent))
         memcpy(self.last_command_refunded, other.last_command_refunded, sizeof(self.last_command_refunded))
-        memcpy(self.last_completion_command_refunded, other.last_completion_command_refunded, sizeof(self.last_completion_command_refunded))
         memcpy(self.last_command_remaining, other.last_command_remaining, sizeof(self.last_command_remaining))
         memcpy(self.last_deck_remaining, other.last_deck_remaining, sizeof(self.last_deck_remaining))
         memcpy(self.last_hand_size, other.last_hand_size, sizeof(self.last_hand_size))
@@ -391,7 +385,6 @@ cdef class FastEngine:
     cdef int maneuver_command_cost
     cdef int hand_limit
     cdef int ongoing_story_limit
-    cdef int completion_command_refund
 
     cdef int8_t card_type[MAX_CARDS]
     cdef int8_t card_command_cost[MAX_CARDS]
@@ -399,7 +392,6 @@ cdef class FastEngine:
     cdef int8_t completion_effect[MAX_CARDS]
     cdef int8_t completion_amount[MAX_CARDS]
     cdef uint8_t complete_plot_protection[MAX_CARDS]
-    cdef uint8_t legacy_completion_draw[MAX_CARDS]
     cdef int8_t role[MAX_CARDS]
     cdef int8_t strength[MAX_CARDS]
     cdef int8_t name_strength[MAX_CARDS]
@@ -460,7 +452,6 @@ cdef class FastEngine:
         memset(self.completion_effect, 0, sizeof(self.completion_effect))
         memset(self.completion_amount, 0, sizeof(self.completion_amount))
         memset(self.complete_plot_protection, 0, sizeof(self.complete_plot_protection))
-        memset(self.legacy_completion_draw, 0, sizeof(self.legacy_completion_draw))
         memset(self.role, 0, sizeof(self.role))
         memset(self.strength, 0, sizeof(self.strength))
         memset(self.name_strength, 0, sizeof(self.name_strength))
@@ -524,7 +515,6 @@ cdef class FastEngine:
         self.maneuver_command_cost = int(engine.maneuver_command_cost)
         self.hand_limit = int(engine.hand_limit)
         self.ongoing_story_limit = int(engine.ongoing_story_limit)
-        self.completion_command_refund = int(engine.completion_command_refund)
         if self.n_cards > MAX_CARDS:
             raise ValueError(f"The native engine supports at most {MAX_CARDS} card identities")
         if max(engine.starting_command, self.command_cap) > 32767:
@@ -566,7 +556,6 @@ cdef class FastEngine:
             self.completion_effect[code] = completion_effect_map.get(completion.get("effect"), COMPLETE_NONE)
             self.completion_amount[code] = int(completion.get("amount", 1))
             self.complete_plot_protection[code] = bool(rules.get("complete_protection_from_opponent_plot"))
-            self.legacy_completion_draw[code] = card_id in engine.completion_draw_names
             placement = rules.get("placement", {}).get("rank")
             self.placement_rank[code] = rank_map.get(placement, -1)
 
@@ -1009,7 +998,7 @@ cdef class FastEngine:
         int player,
         int before_mask,
     ):
-        cdef int local, slot, name, effect, amount, front, enemy_ix, command_before
+        cdef int local, slot, name, effect, amount, front, enemy_ix
         cdef int after_mask = self.complete_mask(state, player)
         cdef int new_mask = after_mask & ~before_mask
         if new_mask == 0:
@@ -1019,21 +1008,9 @@ cdef class FastEngine:
                 continue
             slot = player * 8 + local
             state.completion_count_this_battle[player] += 1
-            if self.completion_command_refund:
-                command_before = state.command[player]
-                self.gain_command_fast(
-                    state,
-                    player,
-                    self.completion_command_refund,
-                )
-                state.completion_command_refunded_this_battle[player] += (
-                    state.command[player] - command_before
-                )
             name = state.name[slot]
             if name < 0:
                 continue
-            if self.legacy_completion_draw[name]:
-                self.draw(state, player, 1)
             effect = self.completion_effect[name]
             amount = self.completion_amount[name]
             if effect == COMPLETE_GAIN_COMMAND:
@@ -1688,7 +1665,6 @@ cdef class FastEngine:
             state.last_command_start[p] = state.battle_start_command[p]
             state.last_command_spent[p] = state.command_spent_this_battle[p]
             state.last_command_refunded[p] = state.command_refunded_this_battle[p]
-            state.last_completion_command_refunded[p] = 0
             state.last_battle_start_hand_size[p] = state.battle_start_hand_size[p]
             state.last_cards_drawn[p] = state.cards_drawn_this_battle[p]
             state.last_completion_count[p] = state.completion_count_this_battle[p]
@@ -1761,7 +1737,6 @@ cdef class FastEngine:
             state.operations_this_battle[p] = 0
             state.command_spent_this_battle[p] = 0
             state.command_refunded_this_battle[p] = 0
-            state.completion_command_refunded_this_battle[p] = 0
             state.cards_drawn_this_battle[p] = 0
             state.completion_count_this_battle[p] = 0
             state.stratagem_used[p] = 0

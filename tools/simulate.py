@@ -168,19 +168,8 @@ def main() -> None:
         default=Path("cards/cards.json"),
         help="Card data file for this simulation variant.",
     )
-    parser.add_argument(
-        "--completion-draw-names",
-        nargs="*",
-        default=[],
-        help="Name ids that draw 1 when their formation becomes complete.",
-    )
     parser.add_argument("--starting-command", type=int, default=20)
     parser.add_argument("--command-cap", type=int, default=20)
-    parser.add_argument(
-        "--completion-command-refund",
-        type=int,
-        default=defaults.completion_command_refund,
-    )
     parser.add_argument(
         "--deck-a",
         type=Path,
@@ -232,10 +221,8 @@ def main() -> None:
     card_data = load_card_file(resolve(args.card_file))
     rules = GameRules(
         opening_hand_size=args.hand_size,
-        completion_draw_names=tuple(args.completion_draw_names),
         starting_command=args.starting_command,
         command_cap=args.command_cap,
-        completion_command_refund=args.completion_command_refund,
     )
     engine = GameEngine(card_data, rules=rules)
     deck_a = load_deck(args.deck_a)
@@ -348,11 +335,9 @@ def main() -> None:
     payload["simulation_variant"] = {
         "base_hand_size": rules.opening_hand_size,
         "battle_one_starter_bonus": 0,
-        "completion_draw_names": sorted(rules.completion_draw_names),
         "deck_sizes": [len(deck_a), len(deck_b)],
         "starting_command": rules.starting_command,
         "command_cap": rules.command_cap,
-        "completion_command_refund": rules.completion_command_refund,
         "card_file": str(args.card_file),
     }
 
@@ -368,9 +353,7 @@ def main() -> None:
     print(
         "Variant: "
         f"hand={rules.opening_hand_size} "
-        f"completion_draw_names={','.join(sorted(rules.completion_draw_names)) or 'none'} "
         f"decks={len(deck_a)}/{len(deck_b)} "
-        f"completion_refund={rules.completion_command_refund} "
         "starter_bonus=turn-draw"
     )
     print(f"Games: {report.games}")

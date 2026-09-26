@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from typing import Any, Iterable
+from typing import Any
 
 from ..cards import card_index, load_card_file, validate_card_data
 from ..rules import GameRules
@@ -82,19 +82,15 @@ class GameEngine:
         *,
         rules: GameRules | None = None,
         opening_hand_size: int = 10,
-        completion_draw_names: Iterable[str] = (),
         starting_command: int = 20,
         command_cap: int = 20,
-        completion_command_refund: int = 0,
     ):
         validate_card_data(card_data)
         if rules is None:
             rules = GameRules(
                 opening_hand_size=opening_hand_size,
-                completion_draw_names=tuple(completion_draw_names),
                 starting_command=starting_command,
                 command_cap=command_cap,
-                completion_command_refund=completion_command_refund,
             )
 
         self.rules = rules
@@ -102,7 +98,6 @@ class GameEngine:
         self.cards = card_index(card_data)
 
         self.opening_hand_size = rules.opening_hand_size
-        self.completion_draw_names = frozenset(rules.completion_draw_names)
         self.starting_command = rules.starting_command
         self.command_cap = rules.command_cap
         self.command_recovery_schedule = rules.command_recovery_schedule
@@ -110,7 +105,6 @@ class GameEngine:
         self.maneuver_command_cost = rules.maneuver_command_cost
         self.hand_limit = rules.hand_limit
         self.ongoing_story_limit = rules.ongoing_story_limit
-        self.completion_command_refund = rules.completion_command_refund
 
         missing_costs = [
             card_id
@@ -121,17 +115,6 @@ class GameEngine:
             raise ValueError(
                 "Every card requires command_cost: "
                 + ", ".join(sorted(missing_costs))
-            )
-
-        invalid_completion_names = [
-            card_id
-            for card_id in self.completion_draw_names
-            if card_id not in self.cards or self.cards[card_id]["type"] != "name"
-        ]
-        if invalid_completion_names:
-            raise ValueError(
-                "completion_draw_names must contain only Name ids: "
-                + ", ".join(sorted(invalid_completion_names))
             )
 
         self._native_core_instance = self._build_native_core()

@@ -12,8 +12,6 @@ class GameRules:
     """
 
     opening_hand_size: int = 10
-    completion_draw_names: tuple[str, ...] = ()
-
     starting_command: int = 20
     command_cap: int = 20
     command_recovery_schedule: tuple[int, ...] = (10, 7, 5, 4, 3, 2, 1)
@@ -21,8 +19,6 @@ class GameRules:
     maneuver_command_cost: int = 1
     hand_limit: int = 10
     ongoing_story_limit: int = 2
-    completion_command_refund: int = 0
-
     def __post_init__(self) -> None:
         for name, field in self.__dataclass_fields__.items():
             value = getattr(self, name)
@@ -32,11 +28,6 @@ class GameRules:
             elif isinstance(field.default, int):
                 if type(value) is not int:
                     raise ValueError(f"{name} must be an integer")
-        if not isinstance(self.completion_draw_names, tuple) or any(
-            not isinstance(card_id, str) or not card_id
-            for card_id in self.completion_draw_names
-        ):
-            raise ValueError("completion_draw_names must be a tuple of card ids")
         if (
             not isinstance(self.command_recovery_schedule, tuple)
             or any(type(value) is not int or value < 0 for value in self.command_recovery_schedule)
@@ -49,7 +40,6 @@ class GameRules:
         if min(
             self.starting_command,
             self.command_cap,
-            self.completion_command_refund,
             self.command_collapse_threshold,
             self.maneuver_command_cost,
             self.hand_limit,
