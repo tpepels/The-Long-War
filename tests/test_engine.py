@@ -695,11 +695,14 @@ def test_flank_refused_ignores_edge_and_bonuses_adjacent_formations() -> None:
     make_named(state, 0, pos(1, Rank.FRONT))
     make_named(state, 0, pos(1, Rank.REAR), force="seven-black-ships")
 
+    raw_adjacent_strength = engine.front_strength(
+        state, 0, Front.SECOND
+    )
     resolve_battle_by_passing(engine, state)
 
     scores = state.last_battle_snapshot["front_scores"]
     assert scores[0][0] == 0
-    assert scores[1][0] == 12
+    assert scores[1][0] == raw_adjacent_strength + 2
 
 
 def test_trap_closed_drives_off_encircled_middle_frontline() -> None:
