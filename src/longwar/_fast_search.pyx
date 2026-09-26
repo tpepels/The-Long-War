@@ -110,13 +110,21 @@ cdef inline int _append_action(uint64_t* actions, int n, uint64_t action) except
     return n + 1
 
 
-cdef inline uint64_t encode_action(int kind, int card=-1, int pos=-1, int dest=-1, int player=0) noexcept:
+cdef inline uint64_t encode_action(
+    int kind,
+    int card=-1,
+    int pos=-1,
+    int dest=-1,
+    int player=0,
+    uint32_t extra=0,
+) noexcept:
     return (
         <uint64_t>(kind & 15)
         | (<uint64_t>(card + 1) << 4)
         | (<uint64_t>(pos + 1) << 11)
         | (<uint64_t>(dest + 1) << 16)
         | (<uint64_t>(player & 1) << 21)
+        | (<uint64_t>extra << 22)
     )
 
 cdef inline int action_kind(uint64_t action) noexcept:
@@ -133,6 +141,10 @@ cdef inline int action_dest(uint64_t action) noexcept:
 
 cdef inline int action_player(uint64_t action) noexcept:
     return <int>((action >> 21) & 1)
+
+
+cdef inline uint32_t action_extra(uint64_t action) noexcept:
+    return <uint32_t>(action >> 22)
 
 
 cdef struct InfoHash128:
@@ -206,8 +218,13 @@ cdef class FastState:
 
     cdef int8_t scheme[SCHEME_COUNT]
     cdef uint8_t scheme_revealed[SCHEME_COUNT]
+    cdef uint8_t scheme_front_mask[SCHEME_COUNT]
+    cdef int8_t scheme_target_slot[SCHEME_COUNT]
     cdef int8_t stratagem[2]
     cdef uint8_t stratagem_revealed[2]
+    cdef uint8_t stratagem_front_mask[2]
+    cdef uint8_t stratagem_direction[2]
+    cdef uint16_t stratagem_target_mask[2]
     cdef uint8_t stratagem_used[2]
     cdef uint8_t hero_used[2]
 
@@ -266,8 +283,13 @@ cdef class FastState:
         memset(self.temporary, 0, sizeof(self.temporary))
         memset(self.scheme, 0xff, sizeof(self.scheme))
         memset(self.scheme_revealed, 0, sizeof(self.scheme_revealed))
+        memset(self.scheme_front_mask, 0, sizeof(self.scheme_front_mask))
+        memset(self.scheme_target_slot, 0xff, sizeof(self.scheme_target_slot))
         memset(self.stratagem, 0xff, sizeof(self.stratagem))
         memset(self.stratagem_revealed, 0, sizeof(self.stratagem_revealed))
+        memset(self.stratagem_front_mask, 0, sizeof(self.stratagem_front_mask))
+        memset(self.stratagem_direction, 0, sizeof(self.stratagem_direction))
+        memset(self.stratagem_target_mask, 0, sizeof(self.stratagem_target_mask))
         memset(self.stratagem_used, 0, sizeof(self.stratagem_used))
         memset(self.hero_used, 0, sizeof(self.hero_used))
         memset(self.known_hidden, 0, sizeof(self.known_hidden))
@@ -323,8 +345,13 @@ cdef class FastState:
         memcpy(self.temporary, other.temporary, sizeof(self.temporary))
         memcpy(self.scheme, other.scheme, sizeof(self.scheme))
         memcpy(self.scheme_revealed, other.scheme_revealed, sizeof(self.scheme_revealed))
+        memcpy(self.scheme_front_mask, other.scheme_front_mask, sizeof(self.scheme_front_mask))
+        memcpy(self.scheme_target_slot, other.scheme_target_slot, sizeof(self.scheme_target_slot))
         memcpy(self.stratagem, other.stratagem, sizeof(self.stratagem))
         memcpy(self.stratagem_revealed, other.stratagem_revealed, sizeof(self.stratagem_revealed))
+        memcpy(self.stratagem_front_mask, other.stratagem_front_mask, sizeof(self.stratagem_front_mask))
+        memcpy(self.stratagem_direction, other.stratagem_direction, sizeof(self.stratagem_direction))
+        memcpy(self.stratagem_target_mask, other.stratagem_target_mask, sizeof(self.stratagem_target_mask))
         memcpy(self.stratagem_used, other.stratagem_used, sizeof(self.stratagem_used))
         memcpy(self.hero_used, other.hero_used, sizeof(self.hero_used))
         memcpy(self.known_hidden, other.known_hidden, sizeof(self.known_hidden))
