@@ -203,7 +203,7 @@ This batch tests Command as a decision resource without directly damaging the op
 
 ## Batch 7 - Heroes
 
-Status: draft for review.
+Status: approved for the first-80 design pool.
 
 Each Hero can be played as a Force or as a Name. Both modes are printed in full. The design goal is that neither mode is automatically correct.
 
