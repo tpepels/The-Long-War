@@ -503,7 +503,7 @@ body.game-body {
   display: contents;
 }
 .rank-row,
-.narrative-row,
+.scheme-row,
 .front-banner-row {
   display: grid;
   grid-template-columns: 68px repeat(4, minmax(0, 1fr));
@@ -524,7 +524,7 @@ body.game-body {
 .battle-stratagem-zone.opponent {
   grid-row: 1;
 }
-.opponent-army .narrative-row {
+.opponent-army .scheme-row {
   grid-row: 2;
 }
 .opponent-army .rank-rear {
@@ -542,7 +542,7 @@ body.game-body {
 .player-army .rank-rear {
   grid-row: 7;
 }
-.player-army .narrative-row {
+.player-army .scheme-row {
   grid-row: 8;
 }
 .battle-stratagem-zone.player {
@@ -668,7 +668,7 @@ body.game-body {
   box-shadow: 1px 3px 5px #0004;
   text-align: left;
 }
-.board-card-force {
+.board-card-subject {
   width: 56%;
   height: 100%;
 }
@@ -706,7 +706,7 @@ body.game-body {
   height: calc(50% - 2px);
   z-index: 2;
 }
-.board-attachment.bond {
+.board-attachment.link {
   top: 0;
   transform: rotate(1deg);
 }
@@ -728,7 +728,7 @@ body.game-body {
 .board-attachment .board-card strong {
   font-size: clamp(10px, 1.1vh, 12px);
 }
-.board-card.card-bond {
+.board-card.card-link {
   --board-accent: #597883;
 }
 .board-card.card-name {
@@ -783,7 +783,7 @@ body.game-body {
   opacity: 0.45;
   border-style: dashed;
 }
-.narrative-marker,
+.scheme-marker,
 .stratagem-marker {
   min-width: 0;
   min-height: 0;
@@ -798,15 +798,15 @@ body.game-body {
     8px/1.1 system-ui,
     sans-serif;
 }
-.narrative-marker {
+.scheme-marker {
   width: 100%;
   padding: 2px 9px;
 }
-.narrative-marker > span {
+.scheme-marker > span {
   text-transform: uppercase;
   letter-spacing: 0.065em;
 }
-.narrative-marker.empty b {
+.scheme-marker.empty b {
   display: none;
 }
 .stratagem-marker {
@@ -820,11 +820,11 @@ body.game-body {
   white-space: nowrap;
 }
 .stratagem-marker b,
-.narrative-marker b {
+.scheme-marker b {
   font-size: 8px;
   font-weight: 500;
 }
-.narrative-marker.hidden,
+.scheme-marker.hidden,
 .stratagem-marker.hidden {
   border-style: solid;
   border-color: #969272;
@@ -1102,11 +1102,11 @@ body.game-body {
   border: 1px solid #7b705044;
   border-radius: 3px;
 }
-.play-card.card-force {
+.play-card.card-subject {
   --card-accent: #826039;
   --card-wash: #e3d2af;
 }
-.play-card.card-bond {
+.play-card.card-link {
   --card-accent: #526e77;
   --card-wash: #d2d7cc;
 }
@@ -1114,9 +1114,13 @@ body.game-body {
   --card-accent: #5b704b;
   --card-wash: #d5d9bf;
 }
-.play-card.card-story {
+.play-card.card-plot {
   --card-accent: #885c50;
   --card-wash: #ddc9bc;
+}
+.play-card.card-scheme {
+  --card-accent: #716080;
+  --card-wash: #d1c9d8;
 }
 .play-card.card-stratagem {
   --card-accent: #857046;
@@ -1719,9 +1723,9 @@ body.game-body {
   opacity: .72;
 }
 
-.narrative-row .narrative-spacer {
+.story-row .story-spacer {
   min-width: 0;
 }
-.narrative-marker {
+.story-marker {
   min-width: 0;
 }
