@@ -2,14 +2,12 @@
 
 These four 40-card decks are initial balance/playtest reference decks built from the approved first-80 pool. They are deliberately strategic builds, not coverage decks: cards were selected for the deck plan rather than to ensure every title appeared somewhere.
 
-The filenames are retained for compatibility with existing tooling while the executable project is migrated.
-
 | File | Deck | Forces | Bonds | Names | Narratives | Stratagems | Heroes | Unique cards |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `decks/reference.json` | Mobility / Open Bonds | 15 | 9 | 7 | 4 | 5 | 3 | 12 |
-| `decks/avaros-line.json` | Persistent Elite / Heroes | 16 | 9 | 7 | 3 | 5 | 5 | 13 |
-| `decks/mara-rear.json` | Narrative / Command | 14 | 9 | 7 | 7 | 3 | 2 | 11 |
-| `decks/sera-support.json` | Battlefield Control / Stratagems | 15 | 8 | 6 | 4 | 7 | 2 | 8 |
+| `decks/mobility-open-bonds.json` | Mobility / Open Bonds | 15 | 9 | 7 | 4 | 5 | 3 | 12 |
+| `decks/persistent-elite-heroes.json` | Persistent Elite / Heroes | 16 | 9 | 7 | 3 | 5 | 5 | 13 |
+| `decks/narrative-command.json` | Narrative / Command | 14 | 9 | 7 | 7 | 3 | 2 | 11 |
+| `decks/battlefield-control-stratagems.json` | Battlefield Control / Stratagems | 15 | 8 | 6 | 4 | 7 | 2 | 8 |
 
 All four decks:
 
