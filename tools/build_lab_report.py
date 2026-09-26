@@ -27,12 +27,9 @@ def serialized_rule_metadata(rules: GameRules) -> dict[str, object]:
 
     if not rules.command_enabled:
         metadata["starting_command"] = None
-        metadata["battle_command_gain"] = None
         metadata["command_cap"] = None
     if not (rules.command_enabled and rules.cycle_enabled):
         metadata["cycle_command_cost"] = None
-    if not rules.paid_draw_enabled:
-        metadata["paid_draw_command_cost"] = None
 
     return metadata
 
