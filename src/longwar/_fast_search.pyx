@@ -2802,6 +2802,9 @@ cdef class FastEngine:
         cdef int pos = action_pos(action)
         cdef int dest = action_dest(action)
         cdef int player = action_player(action)
+        cdef int choice, mask, slot
+        cdef uint32_t extra = action_extra(action)
+        cdef object key, fronts, targets
 
         if kind == TYPE_PASS:
             return "pass"
@@ -2830,9 +2833,55 @@ cdef class FastEngine:
                 f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
             )
         if kind == TYPE_SCHEME:
-            return f"story:{self.card_ids[card]}:ongoing:{pos}"
+            key = f"story:{self.card_ids[card]}:ongoing:{pos}"
+            choice = self.story_choice_kind[card]
+            if choice == STORY_CHOICE_FRONT:
+                fronts = ",".join(
+                    str(front)
+                    for front in range(4)
+                    if extra & (1 << front)
+                )
+                key += f":fronts:{fronts}"
+            elif choice == STORY_CHOICE_NAMED_FORMATION and dest >= 0:
+                key += (
+                    f":targets:{owner_from_slot(dest)},"
+                    f"{front_from_slot(dest)},"
+                    f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                )
+            return key
         if kind == TYPE_STRATAGEM:
-            return f"stratagem:{self.card_ids[card]}"
+            key = f"stratagem:{self.card_ids[card]}"
+            choice = self.strat_choice_kind[card]
+            if (
+                choice == STRAT_CHOICE_FRONT
+                or choice == STRAT_CHOICE_ADJACENT_FRONTS
+                or choice == STRAT_CHOICE_EDGE_FRONT
+            ) and pos >= 0:
+                fronts = ",".join(
+                    str(front)
+                    for front in range(4)
+                    if pos & (1 << front)
+                )
+                key += f":fronts:{fronts}"
+            if (
+                choice == STRAT_CHOICE_DIRECTION
+                or choice == STRAT_CHOICE_WHEEL
+            ) and dest >= 0:
+                key += f":direction:{'left' if dest == 0 else 'right'}"
+            if (
+                choice == STRAT_CHOICE_WHEEL
+                or choice == STRAT_CHOICE_RESERVES
+            ) and extra:
+                targets = []
+                for slot in range(SLOT_COUNT):
+                    if extra & (<uint32_t>1 << slot):
+                        targets.append(
+                            f"{owner_from_slot(slot)},"
+                            f"{front_from_slot(slot)},"
+                            f"{'front' if rank_from_slot(slot) == 0 else 'rear'}"
+                        )
+                key += ":targets:" + ";".join(targets)
+            return key
         if kind == TYPE_PLOT:
             if dest >= 0:
                 return (
