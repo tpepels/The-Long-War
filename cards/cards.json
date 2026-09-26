@@ -2281,7 +2281,7 @@
         "duelists"
       ],
       "command_cost": 2,
-      "text": "**Deploy - Frontline only.** When resolving this Front, if there is an opposing Frontline formation, you may choose it. If you do, only this formation and that opposing formation contribute Strength to this Front.",
+      "text": "**Deploy - Frontline only.** When resolving this Front, if your opponent has a Frontline formation, ignore both Rear formations.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -2295,12 +2295,13 @@
         {
           "kind": "timing",
           "label": "FRONT RESOLUTION",
-          "text": "If there is an opposing Frontline formation, you may choose it. If you do, only this formation and that opposing formation contribute Strength to this Front."
+          "text": "If your opponent has a Frontline formation, ignore both Rear formations."
         }
       ],
       "design_rules": {
-        "combat": "challenge",
-        "effect": "only_self_and_chosen_opposing_frontline_formation_contribute"
+        "combat": "frontline_only_resolution",
+        "condition": "opponent_has_frontline_formation",
+        "effect": "ignore_both_rear_formations"
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "draft",
