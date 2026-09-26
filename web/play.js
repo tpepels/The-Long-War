@@ -64,8 +64,7 @@ const TERM_HINTS = {
   "discard": "Move a card to its owner's discard pile.",
   "discarded": "Moved to the discard pile.",
   "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
-  "command": "Your operation budget. Start at 20; gain 10 between Battles, up to 20. Unspent Command carries over.",
-  "cycle": "Some experimental rules use Cycle, but it is not part of the standard game.",
+  "command": "Your operation budget. Start at 20. After each Battle, recover the scheduled amount minus Fronts lost, to a maximum of 20. Unspent Command carries over.",
   "draw": "At the start of each turn, draw 1 card. Your draw pile persists; shuffle the discard only when an empty deck must supply a draw.",
   "front": "One of four lanes: Front 1, Front 2, Front 3, or Front 4.",
   "hero": "A Unique dual-use card. Play one Hero per side per Battle, either as a Force or as a Name.",
@@ -252,25 +251,10 @@ function actionForPass() {
   return state.legal_actions.find((action) => action.kind === "Pass") || null;
 }
 
-function actionForCycle() {
-  if (!state || !selectedCardId || state.phase !== "battle") return null;
-  return selectedActions().find((action) => action.kind === "Cycle") || null;
-}
-
 function commandCostLabel(actions) {
   const costs = [...new Set(actions.map((action) => action.command_cost).filter(Number.isInteger))];
   if (!costs.length) return "";
   return (costs.length === 1 ? costs[0] : Math.min(...costs) + "–" + Math.max(...costs)) + " C";
-}
-
-function renderCycleControl() {
-  const button = $("cycle-button");
-  const action = actionForCycle();
-  const cycleAvailable = state.legal_actions.some((item) => item.kind === "Cycle");
-  button.hidden = state.phase !== "battle" || state.viewer == null || state.needs_ai || !cycleAvailable;
-  button.disabled = !action;
-  button.textContent = action ? "Cycle · " + commandCostLabel([action]) : "Cycle";
-  button.title = action ? "Discard " + cardTitle(selectedCardId) + ", then draw one card (C)" : "Select a card to Cycle it";
 }
 
 function targetActionsForSlot(owner, front, rank) {
@@ -561,7 +545,6 @@ function renderStrip() {
       (state.active_player + 1) +
       ' · choose up to 2 returns</div>';
     $("pass-button").hidden = true;
-    $("cycle-button").hidden = true;
     return;
   }
 
@@ -718,7 +701,6 @@ function interactionHintFor(card) {
 }
 
 function renderInteraction() {
-  renderCycleControl();
   const title = $("interaction-title");
   const hint = $("interaction-hint");
   const cancel = $("cancel-selection");
@@ -779,7 +761,7 @@ function renderInteraction() {
     const card = cards[selectedCardId];
     title.textContent = card.title;
     let message = interactionHintFor(card);
-    const plays = selectedActions().filter((action) => action.kind !== "Cycle");
+    const plays = selectedActions();
     if (plays.length) message += " Play: " + commandCostLabel(plays) + ".";
     hint.textContent = message;
     cancel.hidden = false;
@@ -896,13 +878,12 @@ function renderHand() {
   $("hand-title").textContent = (state.mode === "hotseat" ? "Player " + (state.viewer + 1) : "Your hand") + " · " + state.hand.length;
 
   hand.innerHTML = state.hand.map((cardId, index) => {
-    const playable = state.legal_actions.some((action) => action.card_id === cardId && action.kind !== "Cycle");
-    const cyclable = state.legal_actions.some((action) => action.card_id === cardId && action.kind === "Cycle");
+    const playable = state.legal_actions.some((action) => action.card_id === cardId);
     return playCardMarkup(cardId, {
       playable,
       selected: selectedCardId === cardId && selectedHandIndex === index,
       attrs: 'data-hand-card="' + esc(cardId) + '" data-hand-index="' + index + '" aria-pressed="' + (selectedCardId === cardId && selectedHandIndex === index) + '"',
-      footer: playable ? "SELECT · CLICK AGAIN TO INSPECT" : cyclable ? "SELECT TO CYCLE · CLICK AGAIN TO INSPECT" : "INSPECT",
+      footer: playable ? "SELECT · CLICK AGAIN TO INSPECT" : "INSPECT",
     });
   }).join("");
 
@@ -1424,11 +1405,6 @@ document.querySelectorAll("[data-inspector-close]").forEach((el) => {
   el.addEventListener("click", closeCardInspector);
 });
 
-$("cycle-button").addEventListener("click", () => {
-  const cycle = actionForCycle();
-  if (cycle) executeAction(cycle);
-});
-
 $("pass-button").addEventListener("click", () => {
   const pass = actionForPass();
   if (pass) executeAction(pass);
@@ -1498,10 +1474,6 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   if (!state || state.viewer == null || state.phase !== "battle") return;
-  if (event.key.toLowerCase() === "c") {
-    const cycle = actionForCycle();
-    if (cycle) executeAction(cycle);
-  }
   if (event.key.toLowerCase() === "p") {
     const pass = actionForPass();
     if (pass) executeAction(pass);

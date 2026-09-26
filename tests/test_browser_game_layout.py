@@ -125,11 +125,11 @@ def test_standard_ui_exposes_command_automatic_draw_paced_actions_and_term_help(
     smoke = text("tools/check_play_start.py")
 
     assert 'id="draw-button"' not in html
-    assert 'id="cycle-button"' in html  # retained for non-standard experimental profiles
+    assert 'id="cycle-button"' not in html
     assert 'id="action-banner"' in html
     assert 'id="term-hint"' in html
     assert "actionForDraw" not in play
-    assert "actionForCycle" in play
+    assert "actionForCycle" not in play
     assert "standard game exposed Draw or Cycle" in text("tools/check_play_start.py")
     assert "Command" in play
     assert "Hero · Force / Name" in play
@@ -145,7 +145,7 @@ def test_standard_ui_exposes_command_automatic_draw_paced_actions_and_term_help(
     assert ".action-banner" in css
     assert ".term-hint" in css
     assert ".command-counter" in css
-    assert ".cycle-button" in css
+    assert ".cycle-button" not in css
     assert "human action did not produce a visible action banner" in smoke
     assert "opponent action was not shown before returning control" in smoke
     assert "openingAnnouncementShown" in play

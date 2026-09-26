@@ -1008,11 +1008,6 @@ body.game-body {
   color: var(--gold);
   border: 1px solid #8f926761;
 }
-.hand-controls .cycle-button {
-  color: #19291e;
-  background: #d7b974;
-  border-color: #d7b974;
-}
 .hand-controls button:hover {
   filter: brightness(1.2);
 }
