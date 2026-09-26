@@ -2334,7 +2334,13 @@ cdef class FastEngine:
             if pos >= 0:
                 return (
                     f"story:{self.card_ids[card]}:"
-                    f"{    cpdef dict export_state(self, FastState state):
+                    f"{player}:{front_from_slot(pos)}:"
+                    f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+                )
+            return f"story:{self.card_ids[card]}:"
+        raise ValueError("Unknown fast action")
+
+    cpdef dict export_state(self, FastState state):
         cdef int p, f, r, i, card, viewer, owner, ix
         cdef object last_snapshot = None
 
