@@ -287,24 +287,26 @@ Stratagems are public tactical plans for the current Battle.
 
 Status: draft for review.
 
+This batch treats a Stratagem as the plan for the Battle: a temporary commitment that changes the geometry or stakes of several decisions, rather than a small tactical bonus.
+
 | # | Card | Cost | Rules text |
 | --- | --- | ---: | --- |
-| 65 | **The Reserve Was Committed** | 2 | When you play this Stratagem, you may move one friendly formation from the Rear to the empty Frontline position in the same Front. |
-| 66 | **The Ranks Were Reversed** | 1 | **During this Battle**, the next Force you play may be played in the Frontline or Rear, even if its card says **Deploy - Frontline only** or **Deploy - Rear only**. |
-| 67 | **The Line Was Changed** | 2 | When you play this Stratagem, you may swap two adjacent friendly formations. Neither formation needs to be Named. |
-| 68 | **The Rear Guard Turned** | 2 | **During this Battle**, the first time one of your Named Formations **Retreats**, you may **Maneuver** one adjacent friendly Named Formation for 0 Command. |
-| 69 | **They Withdrew in Order** | 2 | **During this Battle**, the first time one of your Rear Named Formations would be driven off, you may move it one Front left or right if that Rear position is empty. If you do, it is not driven off. |
-| 70 | **The Blow Fell Elsewhere** | 2 | At Battle end, before comparing Strength, choose one of your Forces and one adjacent Front. Count that Force's Strength only in the chosen Front this Battle. |
-| 71 | **The Rear Was Screened** | 2 | **During this Battle**, always count Strength from your Rear formations, even if an opponent's card says to ignore it. |
-| 72 | **The Countermarch Began** | 2 | **During this Battle**, the first time your opponent **Maneuvers**, your next **Maneuver** costs 0 Command. |
+| 65 | **No Step Back** | 2 | Choose a Front. **During this Battle**, when a player loses that Front, their Frontline Named Formation is driven off instead of Retreating. |
+| 66 | **The Center Must Hold** | 3 | Choose two adjacent Fronts. At Battle end, add each player's Strength across both Fronts. Higher combined Strength wins both; equal totals tie both. |
+| 67 | **The Flank Was Refused** | 2 | Choose Front 1 or Front 4. **During this Battle**, ignore your Strength there. Each of your formations in the adjacent Front gets +1 Strength. |
+| 68 | **The Line Wheeled** | 2 | Choose left or right. Move any number of your formations one Front that way, same rank, if their destination position was empty before this Stratagem was played. |
+| 69 | **The Trap Closed** | 3 | **During this Battle**, if you win both Fronts adjacent to a Front you also win, drive off the opposing Frontline Named Formation in the middle Front instead of Retreating it. |
+| 70 | **They Let Them Through** | 2 | At Battle end, before comparing Strength, you may swap your Frontline and Rear formations in one Front. Bonds and Names move with their Forces. |
+| 71 | **All Reserves Forward** | 2 | Move any number of Rear formations into empty Frontline positions in their own Fronts. The first costs 0 Command; each additional move costs 1 Command. |
+| 72 | **The Battle Turned East** | 2 | Choose left or right. **During this Battle**, each of your Named Formations may Maneuver once for 0 Command if it moves in that direction. |
 
 ### Stratagem mechanics under test
 
-- commit a Rear formation directly to the Frontline;
-- temporarily override a printed deployment-rank restriction;
-- make an immediate adjacent swap without requiring Named formations;
-- turn a Retreat into a free adjacent Maneuver;
-- save one Rear Named Formation from being driven off by withdrawing sideways;
-- redirect one Force's Strength into an adjacent Front;
-- protect Rear Strength from effects that would ignore it;
-- answer the opponent's first Maneuver with a free Maneuver.
+- **No retreat:** make one Front lethal for both players.
+- **Combined center:** collapse two adjacent Fronts into one high-stakes Strength contest.
+- **Refused flank:** deliberately concede Strength on an edge to reinforce the neighboring Front.
+- **Wheel the line:** shift multiple formations laterally in one operation.
+- **Encirclement:** turn control of three neighboring Fronts into a harsher result in the middle.
+- **Feigned retreat:** reverse Frontline and Rear immediately before Strength is compared.
+- **Commit reserves:** push several Rear formations forward at once, with escalating Command cost.
+- **Directional offensive:** give every Named Formation one free Maneuver, but only toward the chosen side.
