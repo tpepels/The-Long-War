@@ -519,6 +519,21 @@ def test_empty_draw_pile_reshuffles_discard_only_when_draw_is_required() -> None
     assert state.deck_reshuffles[1] == 1
 
 
+def test_ongoing_story_slot_does_not_receive_adjacent_front_discount() -> None:
+    engine, state = setup_state()
+    target = pos(0, Rank.FRONT)
+    slot = state.slot(0, target)
+    slot.force = "the-fifty-men"
+    slot.bond = "followed"
+    slot.name = "elian"
+    state.players[0].hand = ["the-lamps-went-dark"]
+    state.players[0].command = 20
+
+    story = PlayStory("the-lamps-went-dark", ongoing_slot=1)
+    assert story in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, story) == 2
+
+
 def test_ongoing_stories_are_public_and_limited_to_two_per_player() -> None:
     engine, state = setup_state()
     assert engine.ongoing_story_limit == 2
