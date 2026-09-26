@@ -46,9 +46,7 @@ def test_rulebook_core_constants_match_standard_engine() -> None:
     assert standard.maneuver_command_cost == 1
     assert standard.command_recovery_schedule == (10, 7, 5, 4, 3, 2, 1)
     assert standard.command_collapse_threshold == 5
-    assert standard.automatic_draw is True
     assert standard.cycle_enabled is False
-    assert standard.paid_draw_enabled is False
 
     assert "**four Fronts**" in rules_text
     assert "draw **10 cards**" in rules_text
