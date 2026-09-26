@@ -233,7 +233,7 @@ A tied Front does nothing. Formations on a won Front hold their positions.
 
 After resolving Retreat:
 
-1. discard Stratagems and end Battle-only effects;
+1. discard Stratagems and end Battle-only effects, including all temporary Strength modifiers marked **this Battle**;
 2. leave ongoing Stories in play according to their text;
 3. recover Command;
 4. check Command Collapse;
