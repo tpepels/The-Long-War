@@ -18,11 +18,9 @@ DEF MAX_RECOVERY_SCHEDULE = 32
 DEF NONE = -1
 
 cdef int PHASE_BATTLE = 0
-cdef int PHASE_CHOOSE = 1
 cdef int PHASE_COMPLETE = 2
 
 cdef int TYPE_PASS = 0
-cdef int TYPE_CHOOSE = 1
 cdef int TYPE_SUBJECT = 2
 cdef int TYPE_LINK = 3
 cdef int TYPE_NAME = 4
@@ -212,7 +210,6 @@ cdef class FastState:
 
     cdef uint8_t known_hidden[2][2][MAX_CARDS]
 
-    cdef uint8_t victories[2]
     cdef uint8_t passed[2]
     cdef int8_t pass_order[2]
     cdef uint8_t pass_len
@@ -232,10 +229,7 @@ cdef class FastState:
     cdef int16_t reshuffle_hand_card_totals[2]
     cdef uint8_t last_battle_valid
     cdef int16_t last_battle
-    cdef int8_t last_battle_winner
     cdef int16_t last_front_scores[4][2]
-    cdef int16_t last_total_strength
-    cdef int16_t last_abs_total_margin
     cdef int16_t last_command_start[2]
     cdef int16_t last_command_spent[2]
     cdef int16_t last_command_refunded[2]
@@ -250,13 +244,10 @@ cdef class FastState:
     cdef int8_t last_pass_order[2]
     cdef uint8_t last_pass_len
     cdef uint8_t cleanup_pending
-    cdef int8_t cleanup_next_starter
-    cdef int8_t cleanup_next_chooser
 
     cdef int8_t active_player
     cdef int16_t battle
     cdef int8_t phase
-    cdef int8_t chooser
     cdef int8_t winner
     cdef int32_t turn_number
     cdef uint32_t shuffle_seed
@@ -281,7 +272,6 @@ cdef class FastState:
         memset(self.hero_used, 0, sizeof(self.hero_used))
         memset(self.draw_used, 0, sizeof(self.draw_used))
         memset(self.known_hidden, 0, sizeof(self.known_hidden))
-        memset(self.victories, 0, sizeof(self.victories))
         memset(self.passed, 0, sizeof(self.passed))
         memset(self.pass_order, 0xff, sizeof(self.pass_order))
         memset(self.discarded_this_battle, 0, sizeof(self.discarded_this_battle))
@@ -300,10 +290,7 @@ cdef class FastState:
         memset(self.reshuffle_hand_card_totals, 0, sizeof(self.reshuffle_hand_card_totals))
         self.last_battle_valid = 0
         self.last_battle = 0
-        self.last_battle_winner = -1
         memset(self.last_front_scores, 0, sizeof(self.last_front_scores))
-        self.last_total_strength = 0
-        self.last_abs_total_margin = 0
         memset(self.last_command_start, 0, sizeof(self.last_command_start))
         memset(self.last_command_spent, 0, sizeof(self.last_command_spent))
         memset(self.last_command_refunded, 0, sizeof(self.last_command_refunded))
@@ -318,13 +305,10 @@ cdef class FastState:
         memset(self.last_pass_order, 0xff, sizeof(self.last_pass_order))
         self.last_pass_len = 0
         self.cleanup_pending = 0
-        self.cleanup_next_starter = -1
-        self.cleanup_next_chooser = -1
         self.pass_len = 0
         self.active_player = 0
         self.battle = 1
         self.phase = PHASE_BATTLE
-        self.chooser = -1
         self.winner = -1
         self.turn_number = 0
         self.shuffle_seed = 0
@@ -349,7 +333,6 @@ cdef class FastState:
         memcpy(self.hero_used, other.hero_used, sizeof(self.hero_used))
         memcpy(self.draw_used, other.draw_used, sizeof(self.draw_used))
         memcpy(self.known_hidden, other.known_hidden, sizeof(self.known_hidden))
-        memcpy(self.victories, other.victories, sizeof(self.victories))
         memcpy(self.passed, other.passed, sizeof(self.passed))
         memcpy(self.pass_order, other.pass_order, sizeof(self.pass_order))
         memcpy(self.discarded_this_battle, other.discarded_this_battle, sizeof(self.discarded_this_battle))
@@ -368,10 +351,7 @@ cdef class FastState:
         memcpy(self.reshuffle_hand_card_totals, other.reshuffle_hand_card_totals, sizeof(self.reshuffle_hand_card_totals))
         self.last_battle_valid = other.last_battle_valid
         self.last_battle = other.last_battle
-        self.last_battle_winner = other.last_battle_winner
         memcpy(self.last_front_scores, other.last_front_scores, sizeof(self.last_front_scores))
-        self.last_total_strength = other.last_total_strength
-        self.last_abs_total_margin = other.last_abs_total_margin
         memcpy(self.last_command_start, other.last_command_start, sizeof(self.last_command_start))
         memcpy(self.last_command_spent, other.last_command_spent, sizeof(self.last_command_spent))
         memcpy(self.last_command_refunded, other.last_command_refunded, sizeof(self.last_command_refunded))
@@ -386,13 +366,10 @@ cdef class FastState:
         memcpy(self.last_pass_order, other.last_pass_order, sizeof(self.last_pass_order))
         self.last_pass_len = other.last_pass_len
         self.cleanup_pending = other.cleanup_pending
-        self.cleanup_next_starter = other.cleanup_next_starter
-        self.cleanup_next_chooser = other.cleanup_next_chooser
         self.pass_len = other.pass_len
         self.active_player = other.active_player
         self.battle = other.battle
         self.phase = other.phase
-        self.chooser = other.chooser
         self.winner = other.winner
         self.turn_number = other.turn_number
         self.shuffle_seed = other.shuffle_seed
@@ -728,7 +705,6 @@ cdef class FastEngine:
         cdef object card_id, py_slot, story, strat, counter
         phase_map = {
             "battle": PHASE_BATTLE,
-            "choose_first": PHASE_CHOOSE,
             "complete": PHASE_COMPLETE,
         }
 
@@ -793,7 +769,6 @@ cdef class FastEngine:
         fast.active_player = state.active_player
         fast.battle = state.battle
         fast.phase = phase_map[state.phase.value]
-        fast.chooser = -1
         fast.winner = -1 if state.winner is None else state.winner
         fast.turn_number = state.turn_number
         fast.shuffle_seed = state.shuffle_seed
@@ -814,7 +789,6 @@ cdef class FastEngine:
         if snapshot is not None:
             fast.last_battle_valid = 1
             fast.last_battle = int(snapshot.get("battle", 0))
-            fast.last_battle_winner = -1
             front_scores = snapshot.get("front_scores", ())
             for f in range(min(4, len(front_scores))):
                 fast.last_front_scores[f][0] = int(front_scores[f][0])
@@ -1050,7 +1024,7 @@ cdef class FastEngine:
         if not self.command_enabled:
             return 0
         kind = action_kind(action)
-        if kind == TYPE_PASS or kind == TYPE_CHOOSE:
+        if kind == TYPE_PASS:
             return 0
         if kind == TYPE_MANEUVER:
             return self.maneuver_command_cost
@@ -1183,8 +1157,6 @@ cdef class FastEngine:
         cdef uint64_t action
 
         if state.phase == PHASE_COMPLETE:
-            return 0
-        if state.phase == PHASE_CHOOSE:
             return 0
 
         player = state.active_player
@@ -1822,10 +1794,7 @@ cdef class FastEngine:
     ) noexcept:
         cdef int p
         state.cleanup_pending = 0
-        state.cleanup_next_starter = -1
-        state.cleanup_next_chooser = -1
         state.phase = PHASE_BATTLE
-        state.chooser = -1
         for p in range(2):
             state.battle_start_hand_size[p] = state.hand_len[p]
         self.start_turn_fast(state, starter)
@@ -1839,9 +1808,6 @@ cdef class FastEngine:
 
         state.last_battle_valid = 1
         state.last_battle = state.battle
-        state.last_battle_winner = -1
-        state.last_total_strength = 0
-        state.last_abs_total_margin = 0
         state.last_pass_len = state.pass_len
 
         for p in range(2):
@@ -1905,8 +1871,7 @@ cdef class FastEngine:
                 state.winner = 0
             if state.phase == PHASE_COMPLETE:
                 state.cleanup_pending = 0
-                state.chooser = -1
-                return
+                        return
 
         first_passer = (
             state.pass_order[0]
@@ -1967,13 +1932,6 @@ cdef class FastEngine:
         cdef int actor = state.active_player
         cdef int front, before_mask = 0, cost = 0
         cdef bint cancelled
-
-        if kind == TYPE_CHOOSE:
-            state.chooser = -1
-            state.phase = PHASE_BATTLE
-            self.start_turn_fast(state, pos)
-            state.turn_number += 1
-            return
 
         if kind == TYPE_PASS:
             self.pass_action(state, actor)
@@ -2101,7 +2059,6 @@ cdef class FastEngine:
         _info_hash_feed(&h, <uint8_t>(state.phase + 1))
         _info_hash_feed_u16(&h, <uint16_t>state.battle)
         _info_hash_feed(&h, <uint8_t>(state.active_player + 1))
-        _info_hash_feed(&h, <uint8_t>(state.chooser + 1))
         _info_hash_feed(&h, <uint8_t>(state.winner + 1))
         _info_hash_feed_u32(&h, <uint32_t>state.shuffle_seed)
 
@@ -2161,8 +2118,6 @@ cdef class FastEngine:
             _info_hash_feed(&h, state.stratagem_used[p])
 
         _info_hash_feed(&h, state.cleanup_pending)
-        _info_hash_feed(&h, <uint8_t>(state.cleanup_next_starter + 1))
-        _info_hash_feed(&h, <uint8_t>(state.cleanup_next_chooser + 1))
         return h
 
     cpdef tuple state_hash(self, FastState state):
@@ -2488,8 +2443,6 @@ cdef class FastEngine:
                 "battle"
                 if state.phase == PHASE_BATTLE
                 else "complete"
-                if state.phase == PHASE_COMPLETE
-                else "choose_first"
             ),
             "battle": state.battle,
             "active_player": state.active_player,
@@ -2649,7 +2602,6 @@ cdef class FastEngine:
             "phase": state.phase,
             "battle": state.battle,
             "active_player": state.active_player,
-            "chooser": state.chooser,
             "winner": state.winner,
             "turn_number": state.turn_number,
             "passed": [bool(state.passed[0]), bool(state.passed[1])],
@@ -2659,8 +2611,6 @@ cdef class FastEngine:
             "free_cycle": [bool(state.free_cycle[0]), bool(state.free_cycle[1])],
             "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
             "pending_draw_discard_for": state.active_player if state.cleanup_pending else None,
-            "cleanup_next_starter": None if state.cleanup_next_starter < 0 else state.cleanup_next_starter,
-            "cleanup_next_chooser": None if state.cleanup_next_chooser < 0 else state.cleanup_next_chooser,
             "hands": [
                 {self.card_ids[card]: state.hand[p][card] for card in range(self.n_cards) if state.hand[p][card]}
                 for p in range(2)

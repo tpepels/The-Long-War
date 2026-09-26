@@ -1,7 +1,6 @@
 from .actions import (
     Action,
     BoardTarget,
-    ChooseFirst,
     Cycle,
     Discard,
     Draw,
@@ -24,7 +23,6 @@ from .model import Front, GameState, Phase, Position, Rank
 __all__ = [
     "Action",
     "BoardTarget",
-    "ChooseFirst",
     "Cycle",
     "Discard",
     "Draw",

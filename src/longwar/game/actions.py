@@ -78,12 +78,6 @@ class Cycle:
 
 
 @dataclass(frozen=True)
-class ChooseFirst:
-    """Obsolete compatibility type; canonical rules never enter this phase."""
-    player: int
-
-
-@dataclass(frozen=True)
 class PlayScheme:
     """Obsolete compatibility type for pre-migration serialized actions."""
     card_id: str
@@ -146,8 +140,6 @@ def action_key(action: object) -> str:
         return "draw"
     if isinstance(action, Cycle):
         return f"cycle:{action.card_id}"
-    if isinstance(action, ChooseFirst):
-        return f"choose_first:{action.player}"
     if isinstance(action, PlayScheme):
         return f"scheme:{action.card_id}:{int(action.front)}"
     raise TypeError(f"Unsupported action type: {type(action)!r}")
@@ -167,8 +159,6 @@ def action_from_key(key: str) -> object:
         return Cycle(key.split(":", 1)[1])
     if key.startswith("discard:"):
         return Discard(key.split(":", 1)[1])
-    if key.startswith("choose_first:"):
-        return ChooseFirst(int(key.split(":", 1)[1]))
 
     parts = key.split(":")
     if parts[0] in {"force", "subject"}:

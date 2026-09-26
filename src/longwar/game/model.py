@@ -24,8 +24,6 @@ class Rank(str, Enum):
 
 class Phase(str, Enum):
     BATTLE = "battle"
-    # Retained only so old serialized states fail gracefully during migration.
-    CHOOSE_FIRST = "choose_first"
     COMPLETE = "complete"
 
 

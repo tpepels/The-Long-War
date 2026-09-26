@@ -380,6 +380,29 @@ def test_native_algorithms_do_not_contain_rule_switches() -> None:
         assert not any(term in source for term in forbidden), filename
 
 
+def test_obsolete_choose_first_state_is_gone() -> None:
+    actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
+    model = (SRC / "game" / "model.py").read_text(encoding="utf-8")
+    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
+    heuristic = (SRC / "_heuristic_core.pxi").read_text(encoding="utf-8")
+    mccfr = (SRC / "_mccfr_core.pxi").read_text(encoding="utf-8")
+
+    assert "ChooseFirst" not in actions
+    assert "choose_first" not in actions
+    assert "CHOOSE_FIRST" not in model
+    for obsolete in (
+        "PHASE_CHOOSE",
+        "TYPE_CHOOSE",
+        "cleanup_next_starter",
+        "cleanup_next_chooser",
+        "victories",
+        "chooser",
+    ):
+        assert obsolete not in native
+    assert "TYPE_CHOOSE" not in heuristic
+    assert "choose_first" not in mccfr
+
+
 def test_native_search_uses_current_heuristic_interface() -> None:
     for filename in ("_alpha_beta_core.pxi", "_ismcts_core.pxi"):
         source = (SRC / filename).read_text(encoding="utf-8")

@@ -349,7 +349,12 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i += 1
     phase_code = data[i] - 1
     i += 1
-    phase = ("battle", "choose_first", "complete")[phase_code]
+    if phase_code == PHASE_BATTLE:
+        phase = "battle"
+    elif phase_code == PHASE_COMPLETE:
+        phase = "complete"
+    else:
+        raise ValueError(f"Unsupported fast phase code: {phase_code}")
     battle = data[i] | (data[i + 1] << 8)
     i += 2
     active_player = data[i] - 1
