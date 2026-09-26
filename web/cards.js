@@ -61,8 +61,7 @@ function propertyLabel(card) {
     .filter((value) => value !== "hero" && value !== card.role)
     .map((value) => titleCase(value));
   const role = card.type === "subject" && card.role
-    ? '<span class="card-role"><strong>' + esc(titleCase(card.role)) + '</strong><span>' +
-      esc(window.CardRules.roleHint(card)) + '</span></span>'
+    ? '<span class="card-role"><strong>' + esc(titleCase(card.role)) + '</strong></span>'
     : "";
   const classMarkup = classes.length
     ? '<span class="card-classes">' + classes.map((value) => "<em>" + esc(value) + "</em>").join(" · ") + "</span>"

@@ -57,12 +57,9 @@ def test_rulebook_core_constants_match_standard_engine() -> None:
     assert "fewer than 5 Command" in rules_text
 
 
-def test_rulebook_healer_language_matches_engine_semantics() -> None:
+def test_rulebook_roles_are_labels_not_hidden_rules() -> None:
     rules = text("rules/rulebook.md")
-    assert (
-        "| *Healer* | While in the Rear, the friendly Force directly in front "
-        "of it gets +2 Strength. |"
-    ) in rules
+    assert "**Roles and classifications do not carry hidden rules.**" in rules
 
 
 def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
@@ -72,7 +69,7 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     assert "reference-v3" in page
     assert "Battlefield & turn order" in page
     assert "WHERE CARDS GO" in page
-    assert "ROLE BONUSES" in page
+    assert "CARD TEXT" in page
     assert "AFTER TWO CONSECUTIVE PASSES" in page
     assert "BETWEEN BATTLES" in page
     assert "Hero" in page
@@ -165,8 +162,9 @@ def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
     assert typography is not None
     assert float(typography.group(1)) >= 11
     assert float(typography.group(2)) >= 1.15
-    assert "Frontline +1 if Rear occupied" in card_rules
-    assert "Rear: Force in front +2" in card_rules
+    assert "Frontline +1 if Rear occupied" not in card_rules
+    assert "Rear: Force in front +2" not in card_rules
+    assert "roleHint" not in card_rules
     for surface in ("web/card-rules.js", "web/cards.js", "web/playtest-kit.js", "web/balance.html", "web/balance.js", "web/tokens.html"):
         assert "Subject" not in text(surface)
 

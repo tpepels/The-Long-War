@@ -116,8 +116,7 @@ function cardPropertyMarkup(card) {
     .filter((value) => value !== "hero" && value !== card.role)
     .map((value) => titleCase(value));
   const role = card.type === "subject" && card.role
-    ? '<span class="play-card-role"><strong>' + esc(titleCase(card.role)) + '</strong><span>' +
-      esc(window.CardRules.roleHint(card)) + '</span></span>'
+    ? '<span class="play-card-role"><strong>' + esc(titleCase(card.role)) + '</strong></span>'
     : "";
   const classMarkup = classes.length
     ? '<span class="play-card-classes">' + classes.map((value) => '<em>' + esc(value) + '</em>').join(' · ') + '</span>'
