@@ -816,7 +816,13 @@ function renderChoiceTray() {
         a.targets.length === 0 &&
         a.ongoing_slot == null)
     );
-    if (direct.length === 1) actions = direct;
+    if (
+      direct.length > 0 &&
+      direct.length === selected.length &&
+      direct.length <= 8
+    ) {
+      actions = direct;
+    }
 
     const simpleStratagems = selected.filter(
       (a) => a.kind === "PlayStratagem" && a.targets.length === 0

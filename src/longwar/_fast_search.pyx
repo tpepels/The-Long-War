@@ -528,6 +528,11 @@ cdef class FastEngine:
     cdef int8_t link_discard_max[MAX_CARDS]
     cdef int8_t link_opposing[MAX_CARDS]
     cdef uint8_t link_protect[MAX_CARDS]
+    cdef uint8_t bond_move_on_play[MAX_CARDS]
+    cdef int8_t bond_optional_extra_cost[MAX_CARDS]
+    cdef int8_t bond_optional_draw_count[MAX_CARDS]
+    cdef int8_t story_discard_count[MAX_CARDS]
+    cdef int8_t story_discard_gain_command[MAX_CARDS]
 
     cdef int8_t name_rank_bonus_rank[MAX_CARDS]
     cdef int8_t name_rank_bonus_amount[MAX_CARDS]
@@ -625,6 +630,11 @@ cdef class FastEngine:
         memset(self.link_discard_max, 0, sizeof(self.link_discard_max))
         memset(self.link_opposing, 0, sizeof(self.link_opposing))
         memset(self.link_protect, 0, sizeof(self.link_protect))
+        memset(self.bond_move_on_play, 0, sizeof(self.bond_move_on_play))
+        memset(self.bond_optional_extra_cost, 0, sizeof(self.bond_optional_extra_cost))
+        memset(self.bond_optional_draw_count, 0, sizeof(self.bond_optional_draw_count))
+        memset(self.story_discard_count, 0, sizeof(self.story_discard_count))
+        memset(self.story_discard_gain_command, 0, sizeof(self.story_discard_gain_command))
         memset(self.name_rank_bonus_rank, 0xff, sizeof(self.name_rank_bonus_rank))
         memset(self.name_rank_bonus_amount, 0, sizeof(self.name_rank_bonus_amount))
         memset(self.name_effect, 0, sizeof(self.name_effect))
@@ -857,6 +867,22 @@ cdef class FastEngine:
             self.link_discard_max[code] = int(discard_bonus.get("maximum", 0))
             self.link_opposing[code] = int(rules.get("opposing_front_modifier", 0))
             self.link_protect[code] = bool(rules.get("protect_subject_from_opponent_plot"))
+            on_play_bond = design.get("on_play_onto_force") or {}
+            if on_play_bond.get("effect") == "optional_move_formation_adjacent_empty_position":
+                self.bond_move_on_play[code] = 1
+            if design.get("command") == "optional_extra_payment":
+                self.bond_optional_extra_cost[code] = int(
+                    design.get("extra_cost", 0)
+                )
+                if design.get("effect") == "draw_2":
+                    self.bond_optional_draw_count[code] = 2
+            if design.get("command") == "card_for_command":
+                self.story_discard_count[code] = int(
+                    design.get("discard_cards", 0)
+                )
+                self.story_discard_gain_command[code] = int(
+                    design.get("gain_command", 0)
+                )
 
             rank_bonus = rules.get("rank_strength_bonus") or {}
             self.name_rank_bonus_rank[code] = rank_map.get(rank_bonus.get("rank"), -1)
@@ -1490,6 +1516,12 @@ cdef class FastEngine:
         pos = action_pos(action)
         extra = action_extra(action)
         if (
+            kind == TYPE_LINK
+            and extra
+            and self.bond_optional_extra_cost[card] > 0
+        ):
+            cost += self.bond_optional_extra_cost[card]
+        if (
             kind == TYPE_STRATAGEM
             and self.strat_choice_kind[card] == STRAT_CHOICE_RESERVES
         ):
@@ -1769,12 +1801,69 @@ cdef class FastEngine:
             elif self.card_type[card] == CARD_LINK:
                 for local in range(8):
                     slot = player * 8 + local
-                    if state.link[slot] < 0:
+                    if state.link[slot] >= 0:
+                        continue
+                    n = _append_action(
+                        actions,
+                        n,
+                        encode_action(TYPE_LINK, card, slot, -1, player),
+                    )
+                    if self.bond_optional_extra_cost[card] > 0:
                         n = _append_action(
                             actions,
                             n,
-                            encode_action(TYPE_LINK, card, slot, -1, player),
+                            encode_action(
+                                TYPE_LINK,
+                                card,
+                                slot,
+                                -1,
+                                player,
+                                1,
+                            ),
                         )
+                    if (
+                        self.bond_move_on_play[card]
+                        and state.subject[slot] >= 0
+                        and not self.immobile_force[state.subject[slot]]
+                    ):
+                        front = local >> 1
+                        rank = local & 1
+                        if front > 0:
+                            dest = slot_index(player, front - 1, rank)
+                            if (
+                                state.subject[dest] < 0
+                                and state.link[dest] < 0
+                                and state.name[dest] < 0
+                            ):
+                                n = _append_action(
+                                    actions,
+                                    n,
+                                    encode_action(
+                                        TYPE_LINK,
+                                        card,
+                                        slot,
+                                        dest,
+                                        player,
+                                    ),
+                                )
+                        if front < 3:
+                            dest = slot_index(player, front + 1, rank)
+                            if (
+                                state.subject[dest] < 0
+                                and state.link[dest] < 0
+                                and state.name[dest] < 0
+                            ):
+                                n = _append_action(
+                                    actions,
+                                    n,
+                                    encode_action(
+                                        TYPE_LINK,
+                                        card,
+                                        slot,
+                                        dest,
+                                        player,
+                                    ),
+                                )
 
             elif self.card_type[card] == CARD_NAME:
                 for local in range(8):
@@ -1885,6 +1974,24 @@ cdef class FastEngine:
                             n,
                             encode_action(TYPE_PLOT, card, -1, -1, player),
                         )
+                        if self.story_discard_count[card] == 1:
+                            for i in range(self.n_cards):
+                                if state.hand[player][i] <= 0:
+                                    continue
+                                if i == card and state.hand[player][i] < 2:
+                                    continue
+                                n = _append_action(
+                                    actions,
+                                    n,
+                                    encode_action(
+                                        TYPE_PLOT,
+                                        card,
+                                        -1,
+                                        -1,
+                                        player,
+                                        <uint32_t>(i + 1),
+                                    ),
+                                )
 
             elif self.card_type[card] == CARD_STRATAGEM:
                 if (
@@ -2494,6 +2601,11 @@ cdef class FastEngine:
         int count,
     ) noexcept:
         """Process draws one at a time and pause for discard at hand limit."""
+        if count <= 0:
+            return
+        if state.cleanup_pending:
+            state.pending_draw_count += count
+            return
         state.pending_draw_count = 0
         while count > 0 and self.can_draw_fast(state, player):
             if state.hand_len[player] >= self.hand_limit:
@@ -3046,6 +3158,16 @@ cdef class FastEngine:
             state.link[pos] = card
             if state.subject[pos] >= 0:
                 state.temporary[pos] += self.on_link_bonus[state.subject[pos]]
+            if dest >= 0:
+                self.move_slot(state, pos, dest)
+                pos = dest
+                self.resolve_force_pair_narratives(state, actor)
+            if extra and self.bond_optional_draw_count[card] > 0:
+                self.queue_battle_draws(
+                    state,
+                    actor,
+                    self.bond_optional_draw_count[card],
+                )
             front = front_from_slot(pos)
             self.resolve_scheme_event(state, actor, EVENT_LINK, front, pos)
 
@@ -3064,6 +3186,16 @@ cdef class FastEngine:
         elif kind == TYPE_PLOT:
             self.take_from_hand(state, actor, card, 0)
             state.narratives_played_this_battle[actor] += 1
+            if extra and self.story_discard_count[card] == 1:
+                target = <int>extra - 1
+                if target >= 0 and state.hand[actor][target] > 0:
+                    self.take_from_hand(state, actor, target, 0)
+                    self.append_discard(state, actor, target, True)
+                    self.gain_command_fast(
+                        state,
+                        actor,
+                        self.story_discard_gain_command[card],
+                    )
             cancelled = self.pre_story_cancel(state, actor)
             if not cancelled:
                 self.resolve_plot(state, actor, card, pos, dest)
@@ -3443,10 +3575,18 @@ cdef class FastEngine:
                 f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
             )
         if kind == TYPE_LINK:
-            return (
+            key = (
                 f"bond:{self.card_ids[card]}:{front_from_slot(pos)}:"
                 f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
             )
+            if dest >= 0:
+                key += (
+                    f":move:{front_from_slot(dest)}:"
+                    f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                )
+            if extra:
+                key += f":extra:{self.bond_optional_extra_cost[card]}"
+            return key
         if kind == TYPE_NAME:
             return (
                 f"name:{self.card_ids[card]}:{front_from_slot(pos)}:"
@@ -3505,6 +3645,11 @@ cdef class FastEngine:
                 key += ":targets:" + ";".join(targets)
             return key
         if kind == TYPE_PLOT:
+            if extra and self.story_discard_count[card] == 1:
+                return (
+                    f"story:{self.card_ids[card]}:discard:"
+                    f"{self.card_ids[<int>extra - 1]}"
+                )
             if dest >= 0:
                 return (
                     f"story:{self.card_ids[card]}:"

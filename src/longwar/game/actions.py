@@ -23,6 +23,8 @@ class PlayForce:
 class PlayBond:
     card_id: str
     position: Position
+    move_destination: Position | None = None
+    extra_payment: int = 0
 
 
 @dataclass(frozen=True)
@@ -37,6 +39,7 @@ class PlayStory:
     targets: tuple[BoardTarget, ...] = ()
     ongoing_slot: int | None = None
     fronts: tuple[Front, ...] = ()
+    discard_card_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -93,10 +96,18 @@ def action_key(action: object) -> str:
             f"{action.position.rank.value}"
         )
     if isinstance(action, PlayBond):
-        return (
+        key = (
             f"bond:{action.card_id}:{int(action.position.front)}:"
             f"{action.position.rank.value}"
         )
+        if action.move_destination is not None:
+            key += (
+                f":move:{int(action.move_destination.front)}:"
+                f"{action.move_destination.rank.value}"
+            )
+        if action.extra_payment:
+            key += f":extra:{action.extra_payment}"
+        return key
     if isinstance(action, PlayName):
         return (
             f"name:{action.card_id}:{int(action.position.front)}:"
@@ -113,6 +124,8 @@ def action_key(action: object) -> str:
                     for target in action.targets
                 )
             return key
+        if action.discard_card_id is not None:
+            return f"story:{action.card_id}:discard:{action.discard_card_id}"
         targets = ";".join(
             f"{target.player}:{int(target.position.front)}:"
             f"{target.position.rank.value}"
@@ -150,7 +163,22 @@ def action_from_key(key: str) -> object:
     if parts[0] == "force":
         return PlayForce(parts[1], _position(parts[2], parts[3]))
     if parts[0] == "bond":
-        return PlayBond(parts[1], _position(parts[2], parts[3]))
+        position = _position(parts[2], parts[3])
+        move_destination: Position | None = None
+        extra_payment = 0
+        index = 4
+        while index < len(parts):
+            label = parts[index]
+            if label == "move":
+                move_destination = _position(parts[index + 1], parts[index + 2])
+                index += 3
+                continue
+            if label == "extra":
+                extra_payment = int(parts[index + 1])
+                index += 2
+                continue
+            raise ValueError(f"Unknown Bond action field: {label}")
+        return PlayBond(parts[1], position, move_destination, extra_payment)
     if parts[0] == "name":
         return PlayName(parts[1], _position(parts[2], parts[3]))
     if parts[0] == "maneuver":
@@ -187,6 +215,8 @@ def action_from_key(key: str) -> object:
         return PlayStratagem(card_id, fronts, direction, targets)
     if parts[0] == "story":
         card_id = parts[1]
+        if len(parts) >= 4 and parts[2] == "discard":
+            return PlayStory(card_id, discard_card_id=parts[3])
         if len(parts) >= 4 and parts[2] == "ongoing":
             slot = int(parts[3])
             fronts: tuple[Front, ...] = ()

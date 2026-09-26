@@ -467,6 +467,9 @@ class PlaySession:
             "position": None,
             "source": None,
             "destination": None,
+            "move_destination": None,
+            "extra_payment": 0,
+            "discard_card_id": None,
             "ongoing_slot": None,
             "fronts": [],
             "direction": None,
@@ -477,6 +480,12 @@ class PlaySession:
             payload["position"] = self._position_payload(
                 action.position
             )
+            if isinstance(action, PlayBond):
+                payload["extra_payment"] = action.extra_payment
+                if action.move_destination is not None:
+                    payload["move_destination"] = self._position_payload(
+                        action.move_destination
+                    )
         elif isinstance(action, Maneuver):
             payload["source"] = self._position_payload(action.source)
             payload["destination"] = self._position_payload(
@@ -484,6 +493,7 @@ class PlaySession:
             )
         elif isinstance(action, PlayStory):
             payload["ongoing_slot"] = action.ongoing_slot
+            payload["discard_card_id"] = action.discard_card_id
             payload["fronts"] = [int(front) for front in action.fronts]
             payload["targets"] = [
                 {
@@ -546,11 +556,23 @@ class PlaySession:
                 f"{RANK_NAMES[action.position.rank]}."
             )
         if isinstance(action, PlayBond):
+            detail = ""
+            if action.move_destination is not None:
+                detail = (
+                    " and moves that formation to "
+                    f"{FRONT_NAMES[action.move_destination.front]} "
+                    f"{RANK_NAMES[action.move_destination.rank]}"
+                )
+            elif action.extra_payment:
+                detail = (
+                    f", pays {action.extra_payment} extra Command, "
+                    "and draws 2 cards"
+                )
             return (
                 f"{prefix} plays the Bond "
                 f"{self.cards[action.card_id]['title']} in "
                 f"{FRONT_NAMES[action.position.front]} "
-                f"{RANK_NAMES[action.position.rank]}."
+                f"{RANK_NAMES[action.position.rank]}{detail}."
             )
         if isinstance(action, PlayName):
             return (
@@ -561,8 +583,16 @@ class PlaySession:
         if isinstance(action, PlayStory):
             card = self.cards[action.card_id]
             title = card["title"]
-            form = str(card.get("story_form", "Narrative")).title()
+            form = str(
+                card.get("narrative_form", card.get("story_form", "Narrative"))
+            ).title()
             detail = ""
+            if action.discard_card_id is not None:
+                detail = (
+                    ", discarding "
+                    + self.cards[action.discard_card_id]["title"]
+                    + " to regain 2 Command"
+                )
             if action.fronts:
                 detail = " beside " + ", ".join(
                     FRONT_NAMES[front] for front in action.fronts

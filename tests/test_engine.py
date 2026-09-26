@@ -591,6 +591,84 @@ def test_muster_false_triggers_when_opponent_fills_both_ranks_of_front() -> None
     assert "the-muster-was-false" in state.players[1].discard
 
 
+def test_bought_time_for_can_pay_extra_to_draw_two_with_sequential_hand_limit() -> None:
+    engine, state = setup_state()
+    target = pos(0, Rank.FRONT)
+    state.players[0].command = 10
+    state.players[0].hand = ["bought-time-for"] + ["the-fifty-men"] * 9
+    state.players[0].deck = ["seven-black-ships", "the-red-shields"]
+
+    normal = PlayBond("bought-time-for", target)
+    invested = PlayBond("bought-time-for", target, extra_payment=1)
+    legal = engine.legal_actions(state)
+    assert normal in legal
+    assert invested in legal
+    assert engine.command_cost_for_action(state, normal) == 1
+    assert engine.command_cost_for_action(state, invested) == 2
+
+    engine.apply(state, invested)
+
+    assert state.players[0].command == 8
+    assert len(state.players[0].hand) == 10
+    assert state.pending_draw_discard_for == 0
+    assert state.pending_draw_count == 1
+    assert state.pending_draw_finish_operation is True
+
+    engine.apply(state, engine.legal_actions(state)[0])
+    assert len(state.players[0].hand) == 10
+    assert state.pending_draw_discard_for is None
+    assert state.active_player == 1
+
+
+def test_baggage_warning_can_discard_another_card_to_regain_command() -> None:
+    engine, state = setup_state()
+    state.players[0].command = 5
+    state.players[0].hand = [
+        "the-baggage-was-abandoned",
+        "the-fifty-men",
+    ]
+
+    decline = PlayStory("the-baggage-was-abandoned")
+    trade = PlayStory(
+        "the-baggage-was-abandoned",
+        discard_card_id="the-fifty-men",
+    )
+    legal = engine.legal_actions(state)
+    assert decline in legal
+    assert trade in legal
+
+    engine.apply(state, trade)
+
+    assert state.players[0].command == 6
+    assert "the-fifty-men" in state.players[0].discard
+    assert "the-baggage-was-abandoned" in state.players[0].discard
+
+
+def test_marched_with_can_move_formation_when_played_onto_force() -> None:
+    engine, state = setup_state()
+    source = pos(1, Rank.FRONT)
+    destination = pos(2, Rank.FRONT)
+    state.slot(0, source).force = "the-fifty-men"
+    state.players[0].hand = ["marched-with"]
+
+    decline = PlayBond("marched-with", source)
+    move = PlayBond(
+        "marched-with",
+        source,
+        move_destination=destination,
+    )
+    legal = engine.legal_actions(state)
+    assert decline in legal
+    assert move in legal
+
+    engine.apply(state, move)
+
+    assert state.slot(0, source).force is None
+    assert state.slot(0, source).bond is None
+    assert state.slot(0, destination).force == "the-fifty-men"
+    assert state.slot(0, destination).bond == "marched-with"
+
+
 def test_battle_only_temporary_strength_resets_after_battle() -> None:
     engine, state = setup_state()
     target = pos(0, Rank.FRONT)
