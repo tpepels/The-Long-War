@@ -209,7 +209,7 @@ button, .button {
   text-overflow: ellipsis;
 }
 
-.card-link .card-art {
+.card-bond .card-art {
   background:
     repeating-linear-gradient(135deg, transparent 0 4mm, rgba(0,0,0,.055) 4mm 4.5mm);
 }
@@ -218,7 +218,7 @@ button, .button {
   border-radius: 50% 50% 0 0;
 }
 
-.card-plot .card-art {
+.card-story .card-art {
   background:
     radial-gradient(circle at 50% 50%, rgba(0,0,0,.09), transparent 45%),
     #f8f3e9;
@@ -991,10 +991,10 @@ button, .button {
   pointer-events: none;
 }
 
-.game-card.card-subject { --card-accent: #8b6337; --card-wash: #eee0c2; --card-deep: #4a3827; }
-.game-card.card-link { --card-accent: #536d78; --card-wash: #e2e8e5; --card-deep: #2f4249; }
+.game-card.card-force { --card-accent: #8b6337; --card-wash: #eee0c2; --card-deep: #4a3827; }
+.game-card.card-bond { --card-accent: #536d78; --card-wash: #e2e8e5; --card-deep: #2f4249; }
 .game-card.card-name { --card-accent: #59705a; --card-wash: #e4ead7; --card-deep: #334934; }
-.game-card.card-plot { --card-accent: #8a5148; --card-wash: #eee0da; --card-deep: #56342f; }
+.game-card.card-story { --card-accent: #8a5148; --card-wash: #eee0da; --card-deep: #56342f; }
 .game-card.card-veiled { --card-accent: #65587f; --card-wash: #e5e0ed; --card-deep: #403a54; }
 .game-card.card-stratagem { --card-accent: #8a6e3f; --card-wash: #e9dfc8; --card-deep: #4e4029; }
 
@@ -1178,7 +1178,7 @@ button, .button {
   opacity: .48;
 }
 
-.card-link .card-art { border-style: dashed; }
+.card-bond .card-art { border-style: dashed; }
 .card-name .card-art { border-radius: 9mm 9mm 1mm 1mm; }
 .card-stratagem .card-art { border-style: double; border-width: .7mm; }
 
