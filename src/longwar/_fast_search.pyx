@@ -1144,12 +1144,34 @@ cdef class FastEngine:
         int player,
         int front,
     ) noexcept:
-        if self.frontline_only_resolution(state, front):
-            return self.position_strength_fast(
+        cdef int strat = state.stratagem[player]
+        cdef int mask = state.stratagem_front_mask[player]
+        cdef int value, rank, slot, formation_bonus = 0
+        cdef bint frontline_only = self.frontline_only_resolution(state, front)
+
+        if (
+            strat >= 0
+            and self.strat_refuse_flank[strat]
+            and (mask & (1 << front))
+        ):
+            return 0
+
+        if frontline_only:
+            value = self.position_strength_fast(
                 state,
                 slot_index(player, front, 0),
             )
-        return self.front_strength_fast(state, player, front)
+        else:
+            value = self.front_strength_fast(state, player, front)
+
+        if strat >= 0 and self.strat_refuse_flank[strat]:
+            if (mask == 1 and front == 1) or (mask == 8 and front == 2):
+                for rank in range(1 if frontline_only else 2):
+                    slot = slot_index(player, front, rank)
+                    if state.subject[slot] >= 0:
+                        formation_bonus += 1
+                value += formation_bonus
+        return value
 
     cdef inline bint tie_control_active(
         self,
@@ -1239,6 +1261,23 @@ cdef class FastEngine:
             strat = state.stratagem[player]
             if strat >= 0 and self.strat_maneuver_cost[strat] >= 0:
                 return self.strat_maneuver_cost[strat]
+            if (
+                strat >= 0
+                and self.strat_directional_maneuver[strat]
+                and self.slot_complete(state, action_pos(action))
+            ):
+                if (
+                    state.stratagem_direction[player] == 1
+                    and front_from_slot(action_dest(action))
+                    < front_from_slot(action_pos(action))
+                ):
+                    return 0
+                if (
+                    state.stratagem_direction[player] == 2
+                    and front_from_slot(action_dest(action))
+                    > front_from_slot(action_pos(action))
+                ):
+                    return 0
             return self.maneuver_command_cost
         card = action_card(action)
         if card < 0:
@@ -2191,6 +2230,8 @@ cdef class FastEngine:
         FastState state,
         int losses0,
         int losses1,
+        int drive0,
+        int drive1,
     ) noexcept:
         cdef int player, front, front_slot, rear_slot
         cdef bint lost
@@ -2210,7 +2251,13 @@ cdef class FastEngine:
                 if self.slot_complete(state, rear_slot):
                     self.drive_off_slot(state, player, rear_slot)
                 if self.slot_complete(state, front_slot):
-                    self.retreat_slot(state, player, front_slot, rear_slot)
+                    if (
+                        (player == 0 and (drive0 & (1 << front)) != 0)
+                        or (player == 1 and (drive1 & (1 << front)) != 0)
+                    ):
+                        self.drive_off_slot(state, player, front_slot)
+                    else:
+                        self.retreat_slot(state, player, front_slot, rear_slot)
 
     cdef void discard_battle_stratagems(self, FastState state) noexcept:
         cdef int player, card
@@ -2262,7 +2309,9 @@ cdef class FastEngine:
     cdef void score_battle(self, FastState state):
         """Resolve four independent Fronts and the Battle-end sequence."""
         cdef int front, a, b, p, first_passer, strat, protected, card
+        cdef int controller, mask, combined0, combined1
         cdef int lost_mask0=0, lost_mask1=0
+        cdef int drive_mask0=0, drive_mask1=0
         cdef int losses0=0, losses1=0
         cdef int recovery_losses0=0, recovery_losses1=0
         cdef int base_recovery, actual, target
@@ -2306,8 +2355,67 @@ cdef class FastEngine:
                         lost_mask0 |= 1 << front
                         losses0 += 1
 
+        # The Center Must Hold resolves its chosen adjacent pair as one
+        # combined Strength comparison.
+        for controller in range(2):
+            strat = state.stratagem[controller]
+            if strat < 0 or not self.strat_combine_fronts[strat]:
+                continue
+            mask = state.stratagem_front_mask[controller] & 15
+            if popcount16(mask) != 2:
+                continue
+            combined0 = 0
+            combined1 = 0
+            for front in range(4):
+                if mask & (1 << front):
+                    combined0 += self.resolution_front_strength_fast(
+                        state, 0, front
+                    )
+                    combined1 += self.resolution_front_strength_fast(
+                        state, 1, front
+                    )
+            lost_mask0 &= ~mask
+            lost_mask1 &= ~mask
+            if combined0 < combined1:
+                lost_mask0 |= mask
+            elif combined1 < combined0:
+                lost_mask1 |= mask
+
+        losses0 = popcount16(lost_mask0 & 15)
+        losses1 = popcount16(lost_mask1 & 15)
+
+        # No Step Back drives off the losing Frontline Named Formation on its
+        # chosen Front for either player.
+        for controller in range(2):
+            strat = state.stratagem[controller]
+            if strat >= 0 and self.strat_no_retreat[strat]:
+                mask = state.stratagem_front_mask[controller] & 15
+                drive_mask0 |= lost_mask0 & mask
+                drive_mask1 |= lost_mask1 & mask
+
+        # The Trap Closed replaces Retreat on the middle Front of a won
+        # three-Front encirclement.
+        strat = state.stratagem[0]
+        if strat >= 0 and self.strat_encirclement[strat]:
+            if (lost_mask1 & 7) == 7:
+                drive_mask1 |= 1 << 1
+            if (lost_mask1 & 14) == 14:
+                drive_mask1 |= 1 << 2
+        strat = state.stratagem[1]
+        if strat >= 0 and self.strat_encirclement[strat]:
+            if (lost_mask0 & 7) == 7:
+                drive_mask0 |= 1 << 1
+            if (lost_mask0 & 14) == 14:
+                drive_mask0 |= 1 << 2
+
         self.discard_incomplete_formations(state)
-        self.resolve_retreats(state, lost_mask0, lost_mask1)
+        self.resolve_retreats(
+            state,
+            lost_mask0,
+            lost_mask1,
+            drive_mask0,
+            drive_mask1,
+        )
         self.discard_battle_stratagems(state)
         self.clear_battle_temporary_strength(state)
 
