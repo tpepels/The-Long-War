@@ -59,12 +59,6 @@ class Pass:
     pass
 
 
-@dataclass(frozen=True)
-class Cycle:
-    """Obsolete compatibility type; never legal in canonical rules."""
-    card_id: str
-
-
 Action: TypeAlias = (
     PlayForce
     | PlayBond
@@ -116,9 +110,6 @@ def action_key(action: object) -> str:
     if isinstance(action, PlayStratagem):
         return f"stratagem:{action.card_id}"
 
-    # Serialized compatibility only. These are never returned by legal_actions.
-    if isinstance(action, Cycle):
-        return f"cycle:{action.card_id}"
     raise TypeError(f"Unsupported action type: {type(action)!r}")
 
 
@@ -130,8 +121,6 @@ def action_from_key(key: str) -> object:
     """Inverse of the canonical action-key format."""
     if key == "pass":
         return Pass()
-    if key.startswith("cycle:"):
-        return Cycle(key.split(":", 1)[1])
     if key.startswith("discard:"):
         return Discard(key.split(":", 1)[1])
 

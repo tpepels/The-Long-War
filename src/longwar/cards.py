@@ -42,7 +42,7 @@ RANKS = {"front", "rear"}
 _NONNEGATIVE = range(128)
 _SIGNED = range(-128, 128)
 _COMPLETION = {
-    "effect": {"gain_command", "grant_free_cycle", "draw_card", "reveal_enemy_scheme", "recover_recent_link"},
+    "effect": {"gain_command", "draw_card", "reveal_enemy_scheme", "recover_recent_link"},
     "amount": _NONNEGATIVE,
 }
 _SCHEME = {

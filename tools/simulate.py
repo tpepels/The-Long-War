@@ -177,26 +177,6 @@ def main() -> None:
     parser.add_argument("--starting-command", type=int, default=20)
     parser.add_argument("--command-cap", type=int, default=20)
     parser.add_argument(
-        "--cycle-command-cost",
-        type=int,
-        default=defaults.cycle_command_cost,
-    )
-    cycle_group = parser.add_mutually_exclusive_group()
-    cycle_group.add_argument(
-        "--enable-cycle",
-        dest="cycle_enabled",
-        action="store_true",
-        help="Enable the Command Cycle operation.",
-    )
-    cycle_group.add_argument(
-        "--disable-cycle",
-        dest="cycle_enabled",
-        action="store_false",
-        help="Disable the Command Cycle operation.",
-    )
-    parser.set_defaults(cycle_enabled=defaults.cycle_enabled)
-
-    parser.add_argument(
         "--completion-command-refund",
         type=int,
         default=defaults.completion_command_refund,
@@ -255,8 +235,6 @@ def main() -> None:
         completion_draw_names=tuple(args.completion_draw_names),
         starting_command=args.starting_command,
         command_cap=args.command_cap,
-        cycle_command_cost=args.cycle_command_cost,
-        cycle_enabled=args.cycle_enabled,
         completion_command_refund=args.completion_command_refund,
     )
     engine = GameEngine(card_data, rules=rules)
@@ -374,12 +352,6 @@ def main() -> None:
         "deck_sizes": [len(deck_a), len(deck_b)],
         "starting_command": rules.starting_command,
         "command_cap": rules.command_cap,
-        "cycle_command_cost": (
-            rules.cycle_command_cost
-            if rules.cycle_enabled
-            else None
-        ),
-        "cycle_enabled": rules.cycle_enabled,
         "completion_command_refund": rules.completion_command_refund,
         "card_file": str(args.card_file),
     }
@@ -398,7 +370,6 @@ def main() -> None:
         f"hand={rules.opening_hand_size} "
         f"completion_draw_names={','.join(sorted(rules.completion_draw_names)) or 'none'} "
         f"decks={len(deck_a)}/{len(deck_b)} "
-        f"cycle={'on' if rules.cycle_enabled else 'off'} "
         f"completion_refund={rules.completion_command_refund} "
         "starter_bonus=turn-draw"
     )

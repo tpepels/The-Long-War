@@ -130,7 +130,7 @@ def test_standard_ui_exposes_command_automatic_draw_paced_actions_and_term_help(
     assert 'id="term-hint"' in html
     assert "actionForDraw" not in play
     assert "actionForCycle" not in play
-    assert "standard game exposed Draw or Cycle" in text("tools/check_play_start.py")
+    assert "standard game exposed Draw as an operation" in text("tools/check_play_start.py")
     assert "Command" in play
     assert "Hero · Force / Name" in play
     assert "Hero ready" in play and "Hero used" in play
@@ -160,7 +160,6 @@ def test_desktop_fixtures_cover_crowded_and_interrupting_states() -> None:
     snapshots = presentation_snapshots()
     crowded = snapshots["battle"]
     assert len(crowded["hand"]) >= 18
-    assert not any(action["kind"] == "Cycle" for action in crowded["legal_actions"])
     assert all(slot["force"] and slot["bond"] and slot["name"] for side in crowded["board"] for slot in side)
     assert len(crowded["stories"][1]) == 2
     assert all(story["card_id"] for story in crowded["stories"][1])

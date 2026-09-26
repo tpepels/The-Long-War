@@ -85,8 +85,6 @@ class GameEngine:
         completion_draw_names: Iterable[str] = (),
         starting_command: int = 20,
         command_cap: int = 20,
-        cycle_command_cost: int = 1,
-        cycle_enabled: bool = False,
         completion_command_refund: int = 0,
     ):
         validate_card_data(card_data)
@@ -96,8 +94,6 @@ class GameEngine:
                 completion_draw_names=tuple(completion_draw_names),
                 starting_command=starting_command,
                 command_cap=command_cap,
-                cycle_command_cost=cycle_command_cost,
-                cycle_enabled=cycle_enabled,
                 completion_command_refund=completion_command_refund,
             )
 
@@ -114,8 +110,6 @@ class GameEngine:
         self.maneuver_command_cost = rules.maneuver_command_cost
         self.hand_limit = rules.hand_limit
         self.ongoing_story_limit = rules.ongoing_story_limit
-        self.cycle_command_cost = rules.cycle_command_cost
-        self.cycle_enabled = rules.cycle_enabled
         self.completion_command_refund = rules.completion_command_refund
 
         missing_costs = [

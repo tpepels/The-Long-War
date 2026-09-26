@@ -27,7 +27,6 @@ cdef int TYPE_NAME = 4
 cdef int TYPE_PLOT = 5
 cdef int TYPE_SCHEME = 6
 cdef int TYPE_STRATAGEM = 7
-cdef int TYPE_CYCLE = 9
 cdef int TYPE_DISCARD = 10
 cdef int TYPE_MANEUVER = 11
 
@@ -51,7 +50,6 @@ cdef int NAME_REVEAL_SCHEME = 2
 
 cdef int COMPLETE_NONE = 0
 cdef int COMPLETE_GAIN_COMMAND = 1
-cdef int COMPLETE_FREE_CYCLE = 2
 cdef int COMPLETE_DRAW = 3
 cdef int COMPLETE_REVEAL_SCHEME = 4
 cdef int COMPLETE_RECOVER_LINK = 5
@@ -213,7 +211,6 @@ cdef class FastState:
     cdef uint8_t pass_len
     cdef uint8_t discarded_this_battle[2]
     cdef int16_t command[2]
-    cdef uint8_t free_cycle[2]
     cdef uint16_t operations_this_battle[2]
     cdef int16_t command_spent_this_battle[2]
     cdef int16_t command_refunded_this_battle[2]
@@ -273,7 +270,6 @@ cdef class FastState:
         memset(self.pass_order, 0xff, sizeof(self.pass_order))
         memset(self.discarded_this_battle, 0, sizeof(self.discarded_this_battle))
         memset(self.command, 0, sizeof(self.command))
-        memset(self.free_cycle, 0, sizeof(self.free_cycle))
         memset(self.operations_this_battle, 0, sizeof(self.operations_this_battle))
         memset(self.command_spent_this_battle, 0, sizeof(self.command_spent_this_battle))
         memset(self.command_refunded_this_battle, 0, sizeof(self.command_refunded_this_battle))
@@ -333,7 +329,6 @@ cdef class FastState:
         memcpy(self.pass_order, other.pass_order, sizeof(self.pass_order))
         memcpy(self.discarded_this_battle, other.discarded_this_battle, sizeof(self.discarded_this_battle))
         memcpy(self.command, other.command, sizeof(self.command))
-        memcpy(self.free_cycle, other.free_cycle, sizeof(self.free_cycle))
         memcpy(self.operations_this_battle, other.operations_this_battle, sizeof(self.operations_this_battle))
         memcpy(self.command_spent_this_battle, other.command_spent_this_battle, sizeof(self.command_spent_this_battle))
         memcpy(self.command_refunded_this_battle, other.command_refunded_this_battle, sizeof(self.command_refunded_this_battle))
@@ -396,8 +391,6 @@ cdef class FastEngine:
     cdef int maneuver_command_cost
     cdef int hand_limit
     cdef int ongoing_story_limit
-    cdef int cycle_command_cost
-    cdef bint cycle_enabled
     cdef int completion_command_refund
 
     cdef int8_t card_type[MAX_CARDS]
@@ -531,8 +524,6 @@ cdef class FastEngine:
         self.maneuver_command_cost = int(engine.maneuver_command_cost)
         self.hand_limit = int(engine.hand_limit)
         self.ongoing_story_limit = int(engine.ongoing_story_limit)
-        self.cycle_command_cost = int(engine.cycle_command_cost)
-        self.cycle_enabled = bool(engine.cycle_enabled)
         self.completion_command_refund = int(engine.completion_command_refund)
         if self.n_cards > MAX_CARDS:
             raise ValueError(f"The native engine supports at most {MAX_CARDS} card identities")
@@ -545,7 +536,6 @@ cdef class FastEngine:
         name_effect_map = {"move_adjacent_optional": NAME_MOVE_ADJACENT, "reveal_enemy_scheme": NAME_REVEAL_SCHEME}
         completion_effect_map = {
             "gain_command": COMPLETE_GAIN_COMMAND,
-            "grant_free_cycle": COMPLETE_FREE_CYCLE,
             "draw_card": COMPLETE_DRAW,
             "reveal_enemy_scheme": COMPLETE_REVEAL_SCHEME,
             "recover_recent_link": COMPLETE_RECOVER_LINK,
@@ -948,8 +938,6 @@ cdef class FastEngine:
             return 0
         if kind == TYPE_MANEUVER:
             return self.maneuver_command_cost
-        if kind == TYPE_CYCLE:
-            return 0 if state.free_cycle[state.active_player] else self.cycle_command_cost
         card = action_card(action)
         if card < 0:
             return 0
@@ -1050,9 +1038,6 @@ cdef class FastEngine:
             amount = self.completion_amount[name]
             if effect == COMPLETE_GAIN_COMMAND:
                 self.gain_command_fast(state, player, amount)
-            elif effect == COMPLETE_FREE_CYCLE:
-                if self.cycle_enabled:
-                    state.free_cycle[player] = 1
             elif effect == COMPLETE_DRAW:
                 self.draw_for_battle(state, player, amount)
             elif effect == COMPLETE_REVEAL_SCHEME:
@@ -1781,8 +1766,6 @@ cdef class FastEngine:
             state.completion_count_this_battle[p] = 0
             state.stratagem_used[p] = 0
             state.hero_used[p] = 0
-            state.draw_used[p] = 0
-            state.free_cycle[p] = 0
 
             # Hand/deck/discard persist. Refill only to 10; draw() reshuffles
             # discard only if the draw pile is actually empty.
@@ -1829,17 +1812,6 @@ cdef class FastEngine:
             self.append_discard(state, actor, card, False)
             state.cleanup_pending = 0
             self.draw_for_battle(state, actor, 1)
-            return
-
-        if kind == TYPE_CYCLE:
-            cost = self.command_cost_fast(state, action)
-            self.spend_command_fast(state, actor, cost)
-            self.take_from_hand(state, actor, card, 0)
-            self.append_discard(state, actor, card, True)
-            self.draw_for_battle(state, actor, 1)
-            if state.free_cycle[actor]:
-                state.free_cycle[actor] = 0
-            self.finish_operation_fast(state, actor)
             return
 
         cost = self.command_cost_fast(state, action)
@@ -1942,7 +1914,6 @@ cdef class FastEngine:
                 )
             _info_hash_feed(&h, state.passed[p])
             _info_hash_feed_u16(&h, <uint16_t>state.command[p])
-            _info_hash_feed(&h, state.free_cycle[p])
             _info_hash_feed(&h, state.hero_used[p])
             _info_hash_feed_u16(
                 &h,
@@ -2472,7 +2443,6 @@ cdef class FastEngine:
             "pass_order": [state.pass_order[i] for i in range(state.pass_len)],
             "discarded_this_battle": [state.discarded_this_battle[0], state.discarded_this_battle[1]],
             "command": [state.command[0], state.command[1]],
-            "free_cycle": [bool(state.free_cycle[0]), bool(state.free_cycle[1])],
             "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
             "pending_draw_discard_for": state.active_player if state.cleanup_pending else None,
             "hands": [

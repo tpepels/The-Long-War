@@ -21,9 +21,6 @@ class GameRules:
     maneuver_command_cost: int = 1
     hand_limit: int = 10
     ongoing_story_limit: int = 2
-    cycle_command_cost: int = 1
-    cycle_enabled: bool = False
-
     completion_command_refund: int = 0
 
     def __post_init__(self) -> None:
@@ -52,7 +49,6 @@ class GameRules:
         if min(
             self.starting_command,
             self.command_cap,
-            self.cycle_command_cost,
             self.completion_command_refund,
             self.command_collapse_threshold,
             self.maneuver_command_cost,

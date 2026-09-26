@@ -282,13 +282,8 @@ def main() -> None:
     if (stage === "verify-standard") {
       const snapshot = JSON.parse(window.render_game_to_text());
       if (snapshot.needs_ai) return;
-      if (snapshot.legal_actions.some((action) => action.kind === "Draw" || action.kind === "Cycle")) {
-        fail("standard game exposed Draw or Cycle as an operation");
-        return;
-      }
-      const cycle = document.getElementById("cycle-button");
-      if (cycle && !cycle.hidden && getComputedStyle(cycle).display !== "none") {
-        fail("Cycle control was visible in the standard game");
+      if (snapshot.legal_actions.some((action) => action.kind === "Draw")) {
+        fail("standard game exposed Draw as an operation");
         return;
       }
       if (document.documentElement.scrollWidth > innerWidth + 2 || document.documentElement.scrollHeight > innerHeight + 2) {

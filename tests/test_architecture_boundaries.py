@@ -487,6 +487,20 @@ def test_heuristic_has_no_deleted_global_rule_switches() -> None:
     assert "command_enabled" not in heuristic
 
 
+def test_cycle_operation_is_fully_removed() -> None:
+    actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
+    rules = (SRC / "rules.py").read_text(encoding="utf-8")
+    engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
+    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
+    heuristic = (SRC / "_heuristic_core.pxi").read_text(encoding="utf-8")
+    for obsolete in ("Cycle", "cycle_enabled", "cycle_command_cost", "TYPE_CYCLE", "free_cycle", "grant_free_cycle"):
+        assert obsolete not in actions
+        assert obsolete not in rules
+        assert obsolete not in engine
+        assert obsolete not in native
+        assert obsolete not in heuristic
+
+
 def test_native_algorithms_do_not_reference_deleted_draw_action() -> None:
     for filename in ("_heuristic_core.pxi", "_alpha_beta_core.pxi", "_ismcts_core.pxi", "_mccfr_core.pxi"):
         source = (SRC / filename).read_text(encoding="utf-8")
