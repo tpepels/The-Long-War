@@ -2802,7 +2802,7 @@ cdef class FastEngine:
         cdef int pos = action_pos(action)
         cdef int dest = action_dest(action)
         cdef int player = action_player(action)
-        cdef int choice, mask, slot
+        cdef int choice, mask, slot, front
         cdef uint32_t extra = action_extra(action)
         cdef object key, fronts, targets
 
@@ -2836,11 +2836,12 @@ cdef class FastEngine:
             key = f"story:{self.card_ids[card]}:ongoing:{pos}"
             choice = self.story_choice_kind[card]
             if choice == STORY_CHOICE_FRONT:
-                fronts = ",".join(
-                    str(front)
-                    for front in range(4)
-                    if extra & (1 << front)
-                )
+                fronts = ""
+                for front in range(4):
+                    if extra & (1 << front):
+                        if fronts:
+                            fronts += ","
+                        fronts += str(front)
                 key += f":fronts:{fronts}"
             elif choice == STORY_CHOICE_NAMED_FORMATION and dest >= 0:
                 key += (
@@ -2857,11 +2858,12 @@ cdef class FastEngine:
                 or choice == STRAT_CHOICE_ADJACENT_FRONTS
                 or choice == STRAT_CHOICE_EDGE_FRONT
             ) and pos >= 0:
-                fronts = ",".join(
-                    str(front)
-                    for front in range(4)
-                    if pos & (1 << front)
-                )
+                fronts = ""
+                for front in range(4):
+                    if pos & (1 << front):
+                        if fronts:
+                            fronts += ","
+                        fronts += str(front)
                 key += f":fronts:{fronts}"
             if (
                 choice == STRAT_CHOICE_DIRECTION
