@@ -3,7 +3,7 @@
 This file is a compact reference for the currently approved first-80 card designs.
 
 **Source of truth:** `cards/cards.json`  
-**Approved cards:** 64
+**Approved cards:** 80
 
 ## Vocabulary
 
@@ -96,6 +96,8 @@ This file is a compact reference for the currently approved first-80 card design
 - **Command:** catch-up discounts, completion discounts, optional investment, refunds, hand-to-Command conversion, recovery, and Battle-wide spending.
 - **Heroes:** dual-use Force/Name choices across movement, combat, Retreat, Command, rebuilding, card recovery, and Story support.
 - **Narratives:** Legends, Omens, Warnings, Prophecies, Sagas, Myths, and Conspiracies turn battlefield events into Command plus a secondary effect.
+- **Stratagems:** one-Battle plans that can reshape Front geometry, Retreat, deployment, and movement.
+- **Build-around:** unusual visible board states such as open Bonds, prepared cards, wide or concentrated lines, narratives, Heroes, and succession.
 
 
 ## Batch 6 - Command
@@ -140,4 +142,34 @@ This file is a compact reference for the currently approved first-80 card design
 | 62 | **They Lived to Tell It** | Saga | 1 | **Saga - Ongoing.** When you play this Saga, place it beside one of your Named Formations. At Battle end, if that formation is still on the battlefield, regain 1 Command and draw 1 card. Then discard this Saga. |
 | 63 | **No Road Was Too Long** | Myth | 2 | **Myth - Ongoing.** The first time each Battle one of your formations Maneuvers into an empty position, regain 1 Command. You may move an adjacent friendly formation into the position it left. |
 | 64 | **The Muster Was False** | Conspiracy | 1 | **Conspiracy - Ongoing.** When your opponent has a Force in both the Frontline and Rear of the same Front, regain 1 Command. You may Maneuver one friendly Named Formation for 0 Command. Then discard this Conspiracy. |
+
+
+
+## Batch 9 - Stratagems
+
+| # | Card | Cost | Approved mechanic |
+|---:|---|---:|---|
+| 65 | **No Step Back** | 2 | When you play this Stratagem, choose a Front and place it beside that Front. **During this Battle**, when a player loses that Front, their Frontline Named Formation is driven off instead of Retreating. |
+| 66 | **The Center Must Hold** | 3 | When you play this Stratagem, choose two adjacent Fronts. At Battle end, add your Strength across both Fronts and your opponent does the same. The player with more combined Strength wins both Fronts. If the totals are equal, both Fronts are tied. |
+| 67 | **The Flank Was Refused** | 2 | When you play this Stratagem, choose Front 1 or Front 4. **During this Battle**, ignore the Strength of your formations in that Front. Each of your formations in the adjacent Front gets +1 Strength. |
+| 68 | **The Line Wheeled** | 2 | When you play this Stratagem, choose left or right. Move any number of your formations one Front in that direction, staying in the same rank. A formation may move only if its destination position was empty before you played this Stratagem. |
+| 69 | **The Trap Closed** | 3 | **During this Battle**, if you win both Fronts adjacent to a Front you also win, drive off the opposing Frontline Named Formation in the middle Front instead of Retreating it. |
+| 70 | **They Let Them Through** | 2 | At Battle end, before comparing Strength, you may swap your Frontline and Rear formations in one Front. Move all Bonds and Names with their Forces. |
+| 71 | **All Reserves Forward** | 2 | When you play this Stratagem, you may move any number of your Rear formations into the empty Frontline position in their own Front. The first move costs 0 Command. Pay 1 Command for each additional formation you move. |
+| 72 | **The Battle Turned East** | 2 | When you play this Stratagem, choose left or right. **During this Battle**, each of your Named Formations may Maneuver once for 0 Command if that Maneuver moves it in the chosen direction. |
+
+
+
+## Batch 10 - Build-around
+
+| # | Card | Type | Cost | Strength | Approved mechanic |
+|---:|---|---|---:|---:|---|
+| 73 | **The Unnamed Host** | Force | 2 | 3 | While this formation has a Bond and no Name, it may **Maneuver** even though it is not Named. Its first **Maneuver** each Battle costs 0 Command. |
+| 74 | **The Late Banner** | Force | 2 | 3 | When you play this Force into a position that already has a prepared Bond or Name, it may **Maneuver** once for 0 Command, even if it is not Named. |
+| 75 | **Arel** | Name | 1 | +1 | While one of your Fronts has no Force, this formation's **Maneuvers** cost 0 Command. |
+| 76 | **Torren** | Name | 2 | +1 | While you have at least one Force in all four Fronts, after this formation **Maneuvers**, you may **Maneuver** one other friendly Named Formation for 0 Command. |
+| 77 | **The Banner Singers** | Force | 1 | 2 | **Deploy - Rear only.** While this Force is in the Rear, after you regain Command from a Legend, Omen, Myth, Prophecy, Warning, Saga, or Conspiracy, you may **Maneuver** one friendly Named Formation for 0 Command. |
+| 78 | **Marched Beneath the Banner of** | Bond | 1 | - | While this formation is adjacent to a formation containing a Hero, it may **Maneuver** even if it is not Named. Its first **Maneuver** each Battle costs 0 Command. |
+| 79 | **Carried the Oath of** | Bond | 1 | - | While this Bond is open, after this Force moves or **Maneuvers**, you may move this Bond to an adjacent friendly Force with no Bond. |
+| 80 | **Eira** | Name | 2 | +1 | If this formation is driven off, instead of discarding this Name, you may move it to an adjacent friendly Force that has a Bond and no Name. |
 
