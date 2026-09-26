@@ -1,0 +1,1804 @@
+{
+  "schema_version": 1,
+  "cards": [
+    {
+      "id": "the-fifty-men",
+      "title": "The Fifty Men",
+      "type": "subject",
+      "strength": 4,
+      "unique": false,
+      "classes": [
+        "human",
+        "warband"
+      ],
+      "role": "swordsman",
+      "text": "",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [],
+      "command_cost": 2
+    },
+    {
+      "id": "seven-black-ships",
+      "title": "Seven Black Ships",
+      "type": "subject",
+      "strength": 4,
+      "unique": false,
+      "classes": [
+        "ship",
+        "fleet"
+      ],
+      "role": "ship",
+      "text": "",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [],
+      "command_cost": 2
+    },
+    {
+      "id": "those-who-came-back",
+      "title": "Those Who Came Back",
+      "type": "subject",
+      "strength": 3,
+      "unique": false,
+      "classes": [
+        "human",
+        "veteran"
+      ],
+      "role": "spearman",
+      "text": "While your **discard pile** contains at least 5 cards, this **Subject** gets +1 **Strength**.",
+      "rules": {
+        "strength_modifiers": [
+          {
+            "amount": 1,
+            "when": {
+              "own_discard_at_least": 5
+            }
+          }
+        ]
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "You have 5+ cards in your **discard pile**: this **Subject** gets +1 **Strength**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-house-at-orra",
+      "title": "The House at Orra",
+      "type": "subject",
+      "strength": 4,
+      "unique": false,
+      "classes": [
+        "place",
+        "stronghold"
+      ],
+      "role": "stronghold",
+      "text": "While an **adjacent Subject** you control has both a **Bond** and a **Name**, this **Subject** gets +1 **Strength**.",
+      "rules": {
+        "strength_modifiers": [
+          {
+            "amount": 1,
+            "when": {
+              "adjacent_subject_has_name": true
+            }
+          }
+        ]
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "An **adjacent Subject** you control has both a **Bond** and a **Name**: this **Subject** gets +1 **Strength**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-children-of-the-salt-road",
+      "title": "The Children of the Salt Road",
+      "type": "subject",
+      "strength": 3,
+      "unique": false,
+      "classes": [
+        "human",
+        "company"
+      ],
+      "role": "archer",
+      "text": "When you play a **Bond** on this **Subject**, it gets +1 **Strength** for this **Battle**.",
+      "rules": {
+        "on_link_attached": {
+          "temporary_strength": 1
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "You play a **Bond** on this **Subject**: it gets +1 **Strength** for this **Battle**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-three-brothers-of-avar",
+      "title": "The Three Brothers of Avar",
+      "type": "subject",
+      "strength": 5,
+      "unique": false,
+      "classes": [
+        "human",
+        "noble"
+      ],
+      "role": "swordsman",
+      "text": "*Frontline only.*",
+      "rules": {
+        "placement": {
+          "rank": "front"
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "**Frontline** only."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-white-hands-of-elara",
+      "title": "The White Hands of Elara",
+      "type": "subject",
+      "strength": 2,
+      "unique": false,
+      "classes": [
+        "human",
+        "healer"
+      ],
+      "role": "healer",
+      "text": "*Rear only.*",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "**Rear** only."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "avaros-the-bronze-king",
+      "title": "Avaros, the Bronze King",
+      "type": "subject",
+      "strength": 6,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "king",
+        "hero"
+      ],
+      "role": "swordsman",
+      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, while this **Subject** is in the **Frontline**, **adjacent Subjects** you control get +1 **Strength**.",
+      "rules": {
+        "adjacent_strength_aura": 1,
+        "aura_requires_rank": "front"
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "TRAIT",
+          "text": "*Hero.*"
+        },
+        {
+          "kind": "property",
+          "label": "DUAL",
+          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "In the **Frontline**: **adjacent Subjects** you control get +1 **Strength**."
+        }
+      ],
+      "command_cost": 3,
+      "hero_name_strength": 2
+    },
+    {
+      "id": "followed",
+      "title": "Followed",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "loyalty"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +2 more **Strength**.",
+      "rules": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 2
+      },
+      "balance": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 2
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BONUS",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "NAMED",
+          "text": "Its **Subject** gets +2 more **Strength**."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "swore-to",
+      "title": "Swore To",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "oath"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +3 more **Strength**.",
+      "rules": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 3
+      },
+      "balance": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 3
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BONUS",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "NAMED",
+          "text": "Its **Subject** gets +3 more **Strength**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "defied",
+      "title": "Defied",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "feud"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 more **Strength** and the opponent has -2 **Strength** in this **Front**.",
+      "rules": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 1,
+        "opposing_front_modifier": -2
+      },
+      "balance": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 1,
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BONUS",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "NAMED",
+          "text": "Its **Subject** gets +1 more **Strength**; opponent gets -2 **Strength** in this **Front**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "carried",
+      "title": "Carried",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "burden"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 more **Strength** and cannot be chosen by an opponent's **Story**.",
+      "rules": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 1,
+        "protect_subject_from_opponent_plot": true
+      },
+      "balance": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 1,
+        "dynamic": true,
+        "delayed_utility": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BONUS",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "NAMED",
+          "text": "Its **Subject** gets +1 more **Strength** and cannot be chosen by an opponent's **Story**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "avenged",
+      "title": "Avenged",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "vengeance"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 **Strength** for each of your cards **discarded** this **Battle**, up to +3.",
+      "rules": {
+        "strength_bonus": 1,
+        "discard_strength_bonus": {
+          "per_card": 1,
+          "maximum": 3
+        }
+      },
+      "balance": {
+        "strength_bonus": 1,
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BONUS",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "NAMED",
+          "text": "Its **Subject** gets +1 **Strength** per card you **discarded** this **Battle** (max +3)."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "namar",
+      "title": "Namar",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "king"
+      ],
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, regain 1 **Command**.",
+      "rules": {
+        "on_completion": {
+          "effect": "gain_command",
+          "amount": 1
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, regain 1 **Command**."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "iria",
+      "title": "Iria",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "seer"
+      ],
+      "text": "When you play *Iria* onto a **Subject**, you may **move** that formation to an **adjacent** empty position.",
+      "rules": {
+        "on_name_attached": "move_adjacent_optional"
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "When you play *Iria* onto a **Subject**, you may **move** that formation to an **adjacent** empty position."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "oren",
+      "title": "Oren",
+      "type": "name",
+      "strength": 2,
+      "unique": true,
+      "classes": [
+        "human",
+        "warrior"
+      ],
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, draw 1 card.",
+      "rules": {
+        "on_completion": {
+          "effect": "draw_card",
+          "amount": 1
+        }
+      },
+      "balance": {},
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, draw 1 card."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "teyra",
+      "title": "Teyra",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "god",
+        "oracle"
+      ],
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, flip the opponent's **Veiled Story** in this **Front** face-up, if any.",
+      "rules": {
+        "on_completion": {
+          "effect": "reveal_enemy_scheme"
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, flip the opponent's **Veiled Story** in this **Front** face-up, if any."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "the-story-is-false",
+      "title": "The Story Is False",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "rumour",
+        "deception"
+      ],
+      "story_form": "myth",
+      "veiled": false,
+      "text": "Choose an opponent's **Subject**. If it has a **Bond**, **discard** that **Bond**. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**.",
+      "rules": {
+        "effect": "discredit_subject"
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "TARGET",
+          "text": "An opponent's **Subject**."
+        },
+        {
+          "kind": "effect",
+          "label": "EFFECT",
+          "text": "If it has a **Bond**, **discard** it. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "he-never-came",
+      "title": "He Never Came",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "absence",
+        "memory"
+      ],
+      "story_form": "legend",
+      "veiled": false,
+      "text": "Choose an opponent's **Subject**. If it has a **Name**, **return** that **Name** to its owner's hand. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**.",
+      "rules": {
+        "effect": "return_name_or_weaken"
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "TARGET",
+          "text": "An opponent's **Subject**."
+        },
+        {
+          "kind": "effect",
+          "label": "EFFECT",
+          "text": "If it has a **Name**, **return** it to its owner's hand. Otherwise, that **Subject** gets -2 **Strength** for this **Battle**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "they-chose-another",
+      "title": "They Chose Another",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "choice",
+        "exile"
+      ],
+      "story_form": "saga",
+      "veiled": false,
+      "text": "**Move** one of your **Subjects**, together with all attached cards, to any legal empty position on your side.",
+      "rules": {
+        "effect": "move_subject"
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "MOVE",
+          "text": "One of your **Subjects** and all attached cards to any legal empty position on your side."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "the-lamps-went-dark",
+      "title": "The Lamps Went Dark",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "darkness",
+        "omen"
+      ],
+      "story_form": "omen",
+      "veiled": true,
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** Opponent plays a **Subject** here. Flip this card face-up. That **Subject** gets -3 **Strength** for this **Battle**.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_plays_subject",
+          "effect": "penalize_played_subject",
+          "amount": 3,
+          "face_down_front_bonus": 1
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "Opponent plays a **Subject** here. Flip this card face-up. That **Subject** gets -3 **Strength** for this **Battle**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-road-was-cut",
+      "title": "The Road Was Cut",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "ambush",
+        "warning"
+      ],
+      "story_form": "warning",
+      "veiled": true,
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** Opponent plays a **Bond** here. Flip this card face-up. **Discard** that **Bond**.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_plays_link",
+          "effect": "discard_played_link",
+          "face_down_front_bonus": 1
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "Opponent plays a **Bond** here. Flip this card face-up. **Discard** that **Bond**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-hidden-oars",
+      "title": "The Hidden Oars",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "sea",
+        "prophecy"
+      ],
+      "story_form": "prophecy",
+      "veiled": true,
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** Opponent **Passes** while you control a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_passes",
+          "effect": "reinforce_front",
+          "amount": 3,
+          "requires_own_subject": true,
+          "face_down_front_bonus": 1
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "Opponent **Passes** while you control a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-witness-lied",
+      "title": "The Witness Lied",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "deception",
+        "conspiracy"
+      ],
+      "story_form": "conspiracy",
+      "veiled": true,
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** After an opponent's **Story** targets a card you control here. Flip this card face-up. Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_plot_targets_your_card",
+          "effect": "reinforce_front",
+          "amount": 3,
+          "requires_own_subject": true,
+          "face_down_front_bonus": 1
+        }
+      },
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "After an opponent's **Story** targets a card you control here. Flip this card face-up. Your **Frontline Subject** here gets +3 **Strength** this **Battle**; if none, your **Rear Subject** does."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-storm-broke",
+      "title": "The Storm Broke",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "weather",
+        "sea"
+      ],
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — *Ships* get +2 **Strength**; *Archers* get -2 **Strength**.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "played",
+            "actor": "controller"
+          },
+          "continuous": {
+            "role_strength_modifiers": {
+              "ship": 2,
+              "archer": -2
+            }
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "*Ships* get +2 **Strength**; *Archers* get -2 **Strength**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-tide-rose",
+      "title": "The Tide Rose",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "sea",
+        "tide"
+      ],
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — *Ships* get +1 **Strength**; **Line Defense** gives no bonus.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "played",
+            "actor": "controller"
+          },
+          "continuous": {
+            "role_strength_modifiers": {
+              "ship": 1
+            },
+            "disable_line_defense": true
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "*Ships* get +1 **Strength**; **Line Defense** gives no bonus."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-ground-gave-way",
+      "title": "The Ground Gave Way",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "terrain",
+        "hazard"
+      ],
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Rear Subjects** get +1 **Strength**; **Frontline Subjects** get -1 **Strength**.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "played",
+            "actor": "controller"
+          },
+          "continuous": {
+            "rank_strength_modifiers": {
+              "rear": 1,
+              "front": -1
+            }
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "**Rear Subjects** get +1 **Strength**; **Frontline Subjects** get -1 **Strength**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-bronze-teeth",
+      "title": "The Bronze Teeth",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "weapon",
+        "preparation"
+      ],
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Frontline Subjects** get -1 **Strength**.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "played",
+            "actor": "controller"
+          },
+          "continuous": {
+            "rank_strength_modifiers": {
+              "front": -1
+            }
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "**Frontline Subjects** get -1 **Strength**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-false-muster",
+      "title": "The False Muster",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "misinformation",
+        "deception"
+      ],
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — Immediate **Stories** cannot be played.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "played",
+            "actor": "controller"
+          },
+          "continuous": {
+            "global_immediate_story_lock": true
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "Immediate **Stories** cannot be played."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-wooden-gift",
+      "title": "The Wooden Gift",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "deception",
+        "preparation"
+      ],
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Subjects** with a **Name** get -2 **Strength**; those without a **Name** get +1.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "played",
+            "actor": "controller"
+          },
+          "continuous": {
+            "named_subject_modifier": -2,
+            "unnamed_subject_modifier": 1
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "**Subjects** with a **Name** get -2 **Strength**; those without a **Name** get +1."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-red-shields",
+      "title": "The Red Shields",
+      "type": "subject",
+      "strength": 5,
+      "unique": false,
+      "classes": [
+        "human",
+        "guard"
+      ],
+      "role": "spearman",
+      "text": "*Frontline only.*",
+      "rules": {
+        "placement": {
+          "rank": "front"
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "**Frontline** only."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-crow-archers",
+      "title": "The Crow Archers",
+      "type": "subject",
+      "strength": 4,
+      "unique": false,
+      "classes": [
+        "human",
+        "company"
+      ],
+      "role": "archer",
+      "text": "*Rear only.*",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "**Rear** only."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-house-of-reed",
+      "title": "The House of Reed",
+      "type": "subject",
+      "strength": 5,
+      "unique": false,
+      "classes": [
+        "place",
+        "stronghold"
+      ],
+      "role": "stronghold",
+      "text": "*Rear only.*",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "**Rear** only."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-lantern-bearers",
+      "title": "The Lantern Bearers",
+      "type": "subject",
+      "strength": 1,
+      "unique": false,
+      "classes": [
+        "human",
+        "healer"
+      ],
+      "role": "healer",
+      "text": "*Rear only.* While your **discard pile** contains at least 5 cards, this **Subject** gets +1 **Strength**.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        },
+        "strength_modifiers": [
+          {
+            "amount": 1,
+            "when": {
+              "own_discard_at_least": 5
+            }
+          }
+        ]
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "**Rear** only."
+        },
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "You have 5+ cards in your **discard pile**: this **Subject** gets +1 **Strength**."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "mara-queen-of-cinders",
+      "title": "Mara, Queen of Cinders",
+      "type": "subject",
+      "strength": 5,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "queen",
+        "hero"
+      ],
+      "role": "archer",
+      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, this **Subject** is *Rear only*. While it is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        },
+        "adjacent_strength_aura": 1,
+        "aura_requires_rank": "rear"
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "TRAIT",
+          "text": "*Hero.*"
+        },
+        {
+          "kind": "property",
+          "label": "DUAL",
+          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+        },
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "**Rear** only."
+        },
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "In the **Rear**: **adjacent Subjects** you control get +1 **Strength**."
+        }
+      ],
+      "command_cost": 3,
+      "hero_name_strength": 2
+    },
+    {
+      "id": "sera-mother-of-white-hands",
+      "title": "Sera, Mother of White Hands",
+      "type": "subject",
+      "strength": 3,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "healer",
+        "hero"
+      ],
+      "role": "healer",
+      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, this **Subject** is *Rear only*. While it is in the **Rear**, **adjacent Subjects** you control get +1 **Strength**.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        },
+        "adjacent_strength_aura": 1,
+        "aura_requires_rank": "rear"
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "TRAIT",
+          "text": "*Hero.*"
+        },
+        {
+          "kind": "property",
+          "label": "DUAL",
+          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+        },
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "**Rear** only."
+        },
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "In the **Rear**: **adjacent Subjects** you control get +1 **Strength**."
+        }
+      ],
+      "command_cost": 2,
+      "hero_name_strength": 2
+    },
+    {
+      "id": "guarded",
+      "title": "Guarded",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "ward"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, that **Subject** cannot be chosen by an opponent's **Story**, and the opponent has -1 **Strength** in this **Front**.",
+      "rules": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 0,
+        "opposing_front_modifier": -1,
+        "protect_subject_from_opponent_plot": true
+      },
+      "balance": {
+        "strength_bonus": 1,
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BONUS",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "NAMED",
+          "text": "Its **Subject** cannot be chosen by an opponent's **Story**; opponent gets -1 **Strength** in this **Front**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "feared",
+      "title": "Feared",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "dread"
+      ],
+      "text": "Its **Subject** gets +2 **Strength**. While this **Bond** has a **Name**, the opponent has -1 **Strength** in this **Front**.",
+      "rules": {
+        "strength_bonus": 2,
+        "named_strength_bonus": 0,
+        "opposing_front_modifier": -1
+      },
+      "balance": {
+        "strength_bonus": 2,
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BONUS",
+          "text": "Its **Subject** gets +2 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "NAMED",
+          "text": "Opponent gets -1 **Strength** in this **Front**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "remembered",
+      "title": "Remembered",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "memory"
+      ],
+      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +1 more **Strength**, plus +1 more if you have **discarded** a card this **Battle**.",
+      "rules": {
+        "strength_bonus": 1,
+        "named_strength_bonus": 1,
+        "discard_strength_bonus": {
+          "per_card": 1,
+          "maximum": 1
+        }
+      },
+      "balance": {
+        "strength_bonus": 1,
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BONUS",
+          "text": "Its **Subject** gets +1 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "NAMED",
+          "text": "Its **Subject** gets +1 more **Strength**; if you **discarded** a card this **Battle**, +1 more."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "held-fast",
+      "title": "Held Fast",
+      "type": "link",
+      "unique": false,
+      "classes": [
+        "resolve"
+      ],
+      "text": "Its **Subject** gets +2 **Strength**.",
+      "rules": {
+        "strength_bonus": 2,
+        "named_strength_bonus": 0
+      },
+      "balance": {
+        "strength_bonus": 2,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BONUS",
+          "text": "Its **Subject** gets +2 **Strength**."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "maela",
+      "title": "Maela",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "navigator"
+      ],
+      "text": "While this formation has a **Subject**, **Bond**, and **Name**, this **Subject** cannot be chosen by an opponent's immediate **Story**.",
+      "rules": {
+        "complete_protection_from_opponent_plot": true
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "While this formation has a **Subject**, **Bond**, and **Name**, this **Subject** cannot be chosen by an opponent's immediate **Story**."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "vara",
+      "title": "Vara",
+      "type": "name",
+      "strength": 1,
+      "unique": true,
+      "classes": [
+        "human",
+        "seer"
+      ],
+      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, **return** your most recently **discarded Bond** to your hand, if any.",
+      "rules": {
+        "on_completion": {
+          "effect": "recover_recent_link"
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, **return** your most recently **discarded Bond** to your hand, if any."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "elian",
+      "title": "Elian",
+      "type": "name",
+      "strength": 0,
+      "unique": true,
+      "classes": [
+        "human",
+        "wanderer"
+      ],
+      "text": "While this formation has a **Subject**, **Bond**, and **Name**, cards you play into **adjacent Fronts** cost 1 less **Command** (minimum 1).",
+      "rules": {
+        "adjacent_command_discount": 1
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "While this formation has a **Subject**, **Bond**, and **Name**, cards you play into **adjacent Fronts** cost 1 less **Command** (minimum 1)."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "the-crows-returned",
+      "title": "The Crows Returned",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "battle",
+        "omen"
+      ],
+      "story_form": "omen",
+      "veiled": true,
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** Opponent plays a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_plays_subject",
+          "effect": "reinforce_front",
+          "amount": 2,
+          "requires_own_subject": true,
+          "face_down_front_bonus": 1
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "Opponent plays a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "the-oath-was-heard",
+      "title": "The Oath Was Heard",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "oath",
+        "warning"
+      ],
+      "story_form": "warning",
+      "veiled": true,
+      "text": "**FACE-DOWN** — +1 **Strength** in this **Front**. **WHEN** Opponent plays a **Bond** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_plays_link",
+          "effect": "reinforce_front",
+          "amount": 2,
+          "requires_own_subject": true,
+          "face_down_front_bonus": 1
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "FACE-DOWN",
+          "text": "+1 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "Opponent plays a **Bond** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
+        }
+      ],
+      "command_cost": 1
+    },
+    {
+      "id": "no-fires-burned",
+      "title": "No Fires Burned",
+      "type": "plot",
+      "unique": false,
+      "classes": [
+        "silence",
+        "prophecy"
+      ],
+      "story_form": "prophecy",
+      "veiled": true,
+      "text": "**FACE-DOWN** — +2 **Strength** in this **Front**. **WHEN** Opponent **Passes** while you control a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does.",
+      "rules": {
+        "scheme": {
+          "trigger": "opponent_passes",
+          "effect": "reinforce_front",
+          "amount": 2,
+          "requires_own_subject": true,
+          "face_down_front_bonus": 2
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "FACE-DOWN",
+          "text": "+2 **Strength** in this **Front**."
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "Opponent **Passes** while you control a **Subject** here. Flip this card face-up. Your **Frontline Subject** here gets +2 **Strength** this **Battle**; if none, your **Rear Subject** does."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-broken-mast",
+      "title": "The Broken Mast",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "weather",
+        "sea"
+      ],
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — *Archers* get +2 **Strength**; *Ships* get -2 **Strength**.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "played",
+            "actor": "controller"
+          },
+          "continuous": {
+            "role_strength_modifiers": {
+              "archer": 2,
+              "ship": -2
+            }
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "*Archers* get +2 **Strength**; *Ships* get -2 **Strength**."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "the-quiet-field",
+      "title": "The Quiet Field",
+      "type": "stratagem",
+      "unique": true,
+      "classes": [
+        "silence",
+        "ritual"
+      ],
+      "text": "**WHEN PLAYED** — Place this face-up in your **Stratagem** area. **DURING THIS BATTLE** — **Subjects** with a **Name** get +1 **Strength**; those without a **Name** get -1.",
+      "rules": {
+        "stratagem": {
+          "trigger": {
+            "event": "played",
+            "actor": "controller"
+          },
+          "continuous": {
+            "named_subject_modifier": 1,
+            "unnamed_subject_modifier": -1
+          }
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "trigger",
+          "label": "WHEN PLAYED",
+          "text": "Place this face-up in your **Stratagem** area."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "**Subjects** with a **Name** get +1 **Strength**; those without a **Name** get -1."
+        }
+      ],
+      "command_cost": 2
+    },
+    {
+      "id": "daran-the-red-shield",
+      "title": "Daran, the Red Shield",
+      "type": "subject",
+      "strength": 5,
+      "hero_name_strength": 2,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "guardian",
+        "hero"
+      ],
+      "role": "spearman",
+      "text": "*Hero.* Play as a **Subject** or **Name**. **Name**: +2 **Strength**. **Subject**: *Frontline only*. +1 **Strength** while an **adjacent Subject** you control has a **Name**.",
+      "rules": {
+        "placement": {
+          "rank": "front"
+        },
+        "strength_modifiers": [
+          {
+            "amount": 1,
+            "when": {
+              "adjacent_subject_has_name": true
+            }
+          }
+        ]
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "DUAL",
+          "text": "**Subject** or **Name**. **Name**: +2 **Strength**."
+        },
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "*Frontline only*."
+        },
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "An **adjacent Subject** you control has a **Name**: +1 **Strength**."
+        }
+      ],
+      "command_cost": 3
+    },
+    {
+      "id": "lysa-of-the-salt-road",
+      "title": "Lysa of the Salt Road",
+      "type": "subject",
+      "strength": 4,
+      "hero_name_strength": 2,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "scout",
+        "hero"
+      ],
+      "role": "archer",
+      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, this card is *Rear only*. When you attach a **Bond** to this **Subject**, it gets +2 **Strength** this **Battle**.",
+      "rules": {
+        "placement": {
+          "rank": "rear"
+        },
+        "on_link_attached": {
+          "temporary_strength": 2
+        }
+      },
+      "balance": {
+        "dynamic": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "TRAIT",
+          "text": "*Hero.*"
+        },
+        {
+          "kind": "property",
+          "label": "DUAL",
+          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+        },
+        {
+          "kind": "property",
+          "label": "PLAY",
+          "text": "As a **Subject**: **Rear** only."
+        },
+        {
+          "kind": "trigger",
+          "label": "WHEN",
+          "text": "You attach a **Bond** to this **Subject**: it gets +2 **Strength** this **Battle**."
+        }
+      ],
+      "command_cost": 3
+    },
+    {
+      "id": "theron-the-oathkeeper",
+      "title": "Theron, the Oathkeeper",
+      "type": "subject",
+      "strength": 4,
+      "hero_name_strength": 2,
+      "unique": true,
+      "hero": true,
+      "classes": [
+        "human",
+        "oathkeeper",
+        "hero"
+      ],
+      "role": "swordsman",
+      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, while your **discard pile** contains at least 5 cards, this **Subject** gets +2 **Strength**.",
+      "rules": {
+        "strength_modifiers": [
+          {
+            "amount": 2,
+            "when": {
+              "own_discard_at_least": 5
+            }
+          }
+        ]
+      },
+      "balance": {
+        "dynamic": true,
+        "delayed_utility": true,
+        "candidate": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "TRAIT",
+          "text": "*Hero.*"
+        },
+        {
+          "kind": "property",
+          "label": "DUAL",
+          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+        },
+        {
+          "kind": "continuous",
+          "label": "WHILE",
+          "text": "You have 5+ cards in your **discard pile**: this **Subject** gets +2 **Strength**."
+        }
+      ],
+      "command_cost": 3
+    }
+  ]
+}
