@@ -12,24 +12,17 @@
         "warband"
       ],
       "role": "swordsman",
-      "text": "While in the **Frontline**, this Force gets +1 **Strength**.",
+      "text": "",
       "rules": {},
       "balance": {
         "dynamic": true
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "FRONTLINE",
-          "text": "While this Force is in the **Frontline**, it gets +1 **Strength**."
-        }
-      ],
+      "rule_blocks": [],
       "command_cost": 2,
       "design_status": "approved",
       "design_batch": 1,
       "design_rules": {
-        "printed_role_effect": "frontline_strength_bonus",
-        "amount": 1
+        "baseline_force": "vanilla"
       },
       "engine_sync": "pending-first-80-migration"
     },
@@ -2985,6 +2978,192 @@
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 10
+    },
+    {
+      "id": "thirty-spears",
+      "title": "Thirty Spears",
+      "type": "force",
+      "unique": false,
+      "classes": [
+        "human",
+        "warband"
+      ],
+      "role": "spearman",
+      "strength": 3,
+      "command_cost": 1,
+      "text": "",
+      "rules": {},
+      "rule_blocks": [],
+      "design_batch": 11,
+      "design_status": "approved",
+      "design_rules": {
+        "baseline_force": "vanilla"
+      }
+    },
+    {
+      "id": "a-hundred-shields",
+      "title": "A Hundred Shields",
+      "type": "force",
+      "unique": false,
+      "classes": [
+        "human",
+        "warband"
+      ],
+      "role": "spearman",
+      "strength": 6,
+      "command_cost": 3,
+      "text": "",
+      "rules": {},
+      "rule_blocks": [],
+      "design_batch": 11,
+      "design_status": "approved",
+      "design_rules": {
+        "baseline_force": "vanilla"
+      }
+    },
+    {
+      "id": "the-vardai",
+      "title": "The Vardai",
+      "type": "force",
+      "unique": false,
+      "classes": [
+        "human",
+        "riders"
+      ],
+      "role": "skirmisher",
+      "strength": 3,
+      "command_cost": 2,
+      "text": "This formation may **Maneuver** even if it is not Named.",
+      "rules": {},
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "MANEUVER",
+          "text": "This formation may **Maneuver** even if it is not Named."
+        }
+      ],
+      "design_batch": 11,
+      "design_status": "approved",
+      "design_rules": {
+        "identity": "mobile_people",
+        "maneuver_while_unnamed": true
+      }
+    },
+    {
+      "id": "the-aradai",
+      "title": "The Aradai",
+      "type": "force",
+      "unique": false,
+      "classes": [
+        "human",
+        "warband"
+      ],
+      "role": "swordsman",
+      "strength": 3,
+      "command_cost": 2,
+      "text": "While this formation is **Named**, this Force gets +2 **Strength**.",
+      "rules": {},
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "NAMED",
+          "text": "While this formation is **Named**, this Force gets +2 **Strength**."
+        }
+      ],
+      "design_batch": 11,
+      "design_status": "approved",
+      "design_rules": {
+        "identity": "named_people",
+        "named_strength_bonus": 2
+      }
+    },
+    {
+      "id": "the-ilyri",
+      "title": "The Ilyri",
+      "type": "force",
+      "unique": false,
+      "classes": [
+        "human",
+        "warband"
+      ],
+      "role": "swordsman",
+      "strength": 3,
+      "command_cost": 2,
+      "text": "While this formation has an open Bond, this Force gets +2 **Strength**.",
+      "rules": {},
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "OPEN BOND",
+          "text": "While this formation has an open Bond, this Force gets +2 **Strength**."
+        }
+      ],
+      "design_batch": 11,
+      "design_status": "approved",
+      "design_rules": {
+        "identity": "open_bond_people",
+        "open_bond_strength_bonus": 2
+      }
+    },
+    {
+      "id": "the-damar",
+      "title": "The Damar",
+      "type": "force",
+      "unique": false,
+      "classes": [
+        "human",
+        "guard"
+      ],
+      "role": "spearman",
+      "strength": 5,
+      "command_cost": 2,
+      "text": "**Deploy - Frontline only.**",
+      "rules": {
+        "placement": {
+          "rank": "front"
+        }
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "DEPLOY",
+          "text": "**Frontline only.**"
+        }
+      ],
+      "design_batch": 11,
+      "design_status": "approved",
+      "design_rules": {
+        "identity": "frontline_people",
+        "deploy_rank": "front"
+      }
+    },
+    {
+      "id": "the-serekh",
+      "title": "The Serekh",
+      "type": "force",
+      "unique": false,
+      "classes": [
+        "human",
+        "guard"
+      ],
+      "role": "spearman",
+      "strength": 3,
+      "command_cost": 2,
+      "text": "Opposing cards cannot ignore this Force's **Strength**.",
+      "rules": {},
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "STEADFAST",
+          "text": "Opposing cards cannot ignore this Force's **Strength**."
+        }
+      ],
+      "design_batch": 11,
+      "design_status": "approved",
+      "design_rules": {
+        "identity": "steadfast_people",
+        "strength_cannot_be_ignored_by_opponent": true
+      }
     }
   ]
 }
