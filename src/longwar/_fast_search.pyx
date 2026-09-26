@@ -800,23 +800,10 @@ cdef class FastEngine:
         role = self.role[card]
         value = self.strength[card] + state.temporary[slot]
 
-        if role == ROLE_SWORDSMAN and rank == 0:
-            value += 1
-        elif role == ROLE_SPEARMAN and rank == 0:
-            rear = slot_index(player, front, 1)
-            if state.subject[rear] >= 0:
-                value += 1
-        elif role == ROLE_ARCHER and rank == 1:
-            frontslot = slot_index(player, front, 0)
-            if state.subject[frontslot] >= 0:
-                value += 2
-        elif (role == ROLE_SHIP or role == ROLE_STRONGHOLD) and rank == 1:
-            value += 1
-
-        if rank == 0:
-            rear = slot_index(player, front, 1)
-            if state.subject[rear] >= 0 and self.role[state.subject[rear]] == ROLE_HEALER:
-                value += 2
+        # Roles and classifications are labels only. They never grant
+        # intrinsic Strength; any such effect must come from explicit card
+        # rules. The role code remains available for cards that refer to a
+        # role by name (for example a Stratagem affecting Archers).
 
         if front > 0:
             adj = slot_index(player, front - 1, rank)

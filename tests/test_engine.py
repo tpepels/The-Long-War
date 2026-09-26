@@ -101,40 +101,31 @@ def test_battlefield_is_four_fronts_by_two_ranks() -> None:
     ]
 
 
-def test_role_bonuses_apply_without_universal_line_defense() -> None:
+def test_role_labels_do_not_grant_hidden_strength_rules() -> None:
     engine, state = setup_state()
 
-    ship_front = pos(0, Rank.FRONT)
-    state.slot(0, ship_front).force = "seven-black-ships"
-    assert engine.position_strength(state, 0, ship_front) == 4
+    cases = (
+        ("the-fifty-men", pos(0, Rank.FRONT)),
+        ("those-who-came-back", pos(1, Rank.FRONT)),
+        ("the-crow-archers", pos(2, Rank.REAR)),
+        ("seven-black-ships", pos(3, Rank.REAR)),
+        ("the-house-of-reed", pos(0, Rank.REAR)),
+    )
+    for card_id, position in cases:
+        slot = state.slot(0, position)
+        slot.force = card_id
+        assert engine.position_strength(state, 0, position) == int(
+            engine.cards[card_id]["strength"]
+        )
+        slot.force = None
 
-    sword_front = pos(1, Rank.FRONT)
-    state.slot(0, sword_front).force = "the-fifty-men"
-    assert engine.position_strength(state, 0, sword_front) == 5
+    frontline = pos(1, Rank.FRONT)
+    rear = pos(1, Rank.REAR)
+    state.slot(0, frontline).force = "the-fifty-men"
+    before = engine.position_strength(state, 0, frontline)
+    state.slot(0, rear).force = "the-white-hands-of-elara"
 
-    spear_front = pos(2, Rank.FRONT)
-    spear_rear = pos(2, Rank.REAR)
-    state.slot(0, spear_front).force = "those-who-came-back"
-    state.slot(0, spear_rear).force = "seven-black-ships"
-    assert engine.position_strength(state, 0, spear_front) == 4
-
-    archer_front = pos(3, Rank.FRONT)
-    archer_rear = pos(3, Rank.REAR)
-    state.slot(0, archer_front).force = "the-fifty-men"
-    state.slot(0, archer_rear).force = "the-crow-archers"
-    assert engine.position_strength(state, 0, archer_rear) == 6
-
-    healer_rear = pos(1, Rank.REAR)
-    state.slot(0, healer_rear).force = "the-white-hands-of-elara"
-    assert engine.position_strength(state, 0, sword_front) == 7
-
-    ship_rear = pos(0, Rank.REAR)
-    state.slot(0, ship_rear).force = "seven-black-ships"
-    assert engine.position_strength(state, 0, ship_rear) == 5
-
-    stronghold_rear = pos(2, Rank.REAR)
-    state.slot(0, stronghold_rear).force = "the-house-of-reed"
-    assert engine.position_strength(state, 0, stronghold_rear) == 6
+    assert engine.position_strength(state, 0, frontline) == before
 
 
 def test_bond_and_name_can_be_prepared_before_force_and_contribute_zero() -> None:
