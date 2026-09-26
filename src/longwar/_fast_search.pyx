@@ -388,7 +388,6 @@ cdef class FastEngine:
     cdef public int max_deck_size
     cdef int n_cards
     cdef int opening_hand_size
-    cdef bint command_enabled
     cdef int command_cap
     cdef object command_recovery_schedule
     cdef int32_t command_recovery_values[MAX_RECOVERY_SCHEDULE]
@@ -398,7 +397,6 @@ cdef class FastEngine:
     cdef int hand_limit
     cdef int ongoing_story_limit
     cdef int cycle_command_cost
-    cdef bint reshuffle_on_empty
     cdef bint cycle_enabled
     cdef int completion_command_refund
 
@@ -519,7 +517,6 @@ cdef class FastEngine:
         self.card_ids = tuple(engine.cards)
         self.n_cards = len(self.card_ids)
         self.opening_hand_size = int(engine.opening_hand_size)
-        self.command_enabled = bool(engine.command_enabled)
         self.command_cap = int(engine.command_cap)
         self.command_recovery_schedule = tuple(engine.command_recovery_schedule)
         if len(self.command_recovery_schedule) > MAX_RECOVERY_SCHEDULE:
@@ -537,7 +534,6 @@ cdef class FastEngine:
         self.hand_limit = int(engine.hand_limit)
         self.ongoing_story_limit = int(engine.ongoing_story_limit)
         self.cycle_command_cost = int(engine.cycle_command_cost)
-        self.reshuffle_on_empty = bool(engine.reshuffle_on_empty)
         self.cycle_enabled = bool(engine.cycle_enabled)
         self.completion_command_refund = int(engine.completion_command_refund)
         if self.n_cards > MAX_CARDS:
@@ -940,7 +936,7 @@ cdef class FastEngine:
     cdef inline bint can_draw_fast(self, FastState state, int player) noexcept:
         return (
             state.deck_len[player] > 0
-            or (self.reshuffle_on_empty and state.discard_len[player] > 0)
+            or state.discard_len[player] > 0
         )
 
     cpdef bint can_draw(self, FastState state, int player):
@@ -971,8 +967,6 @@ cdef class FastEngine:
         uint64_t action,
     ) noexcept:
         cdef int kind, card, pos, target_front=-1, cost, discount
-        if not self.command_enabled:
-            return 0
         kind = action_kind(action)
         if kind == TYPE_PASS:
             return 0
@@ -1061,7 +1055,7 @@ cdef class FastEngine:
                 continue
             slot = player * 8 + local
             state.completion_count_this_battle[player] += 1
-            if self.command_enabled and self.completion_command_refund:
+            if self.completion_command_refund:
                 command_before = state.command[player]
                 self.gain_command_fast(
                     state,
@@ -1079,10 +1073,9 @@ cdef class FastEngine:
             effect = self.completion_effect[name]
             amount = self.completion_amount[name]
             if effect == COMPLETE_GAIN_COMMAND:
-                if self.command_enabled:
-                    self.gain_command_fast(state, player, amount)
+                self.gain_command_fast(state, player, amount)
             elif effect == COMPLETE_FREE_CYCLE:
-                if self.command_enabled and self.cycle_enabled:
+                if self.cycle_enabled:
                     state.free_cycle[player] = 1
             elif effect == COMPLETE_DRAW:
                 self.draw_for_battle(state, player, amount)
@@ -1276,15 +1269,14 @@ cdef class FastEngine:
                     encode_action(TYPE_MANEUVER, -1, source, dest, player),
                 )
 
-        if self.command_enabled:
-            available = state.command[player]
-            kept = 0
-            for i in range(n):
-                action = actions[i]
-                if self.command_cost_fast(state, action) <= available:
-                    actions[kept] = action
-                    kept += 1
-            n = kept
+        available = state.command[player]
+        kept = 0
+        for i in range(n):
+            action = actions[i]
+            if self.command_cost_fast(state, action) <= available:
+                actions[kept] = action
+                kept += 1
+        n = kept
 
         can_pass = (
             state.operations_this_battle[0] > 0
@@ -1520,8 +1512,7 @@ cdef class FastEngine:
         cdef int i, j, card
         cdef uint32_t seed
         if (
-            not self.reshuffle_on_empty
-            or state.deck_len[player] > 0
+            state.deck_len[player] > 0
             or state.discard_len[player] == 0
         ):
             return
@@ -1768,10 +1759,9 @@ cdef class FastEngine:
             actual = base_recovery - (losses0 if p == 0 else losses1)
             if actual < 0:
                 actual = 0
-            if self.command_enabled:
-                state.command[p] += actual
-                if state.command[p] > self.command_cap:
-                    state.command[p] = self.command_cap
+            state.command[p] += actual
+            if state.command[p] > self.command_cap:
+                state.command[p] = self.command_cap
             state.last_command_remaining[p] = state.command[p]
             state.last_deck_remaining[p] = state.deck_len[p]
             state.last_hand_size[p] = state.hand_len[p]
@@ -1876,9 +1866,8 @@ cdef class FastEngine:
             self.finish_operation_fast(state, actor)
             return
 
-        if self.command_enabled:
-            cost = self.command_cost_fast(state, action)
-            self.spend_command_fast(state, actor, cost)
+        cost = self.command_cost_fast(state, action)
+        self.spend_command_fast(state, actor, cost)
 
         if kind == TYPE_MANEUVER:
             self.swap_slots(state, pos, dest)
@@ -1935,8 +1924,7 @@ cdef class FastEngine:
             state.stratagem[actor] = card
             state.stratagem_revealed[actor] = 1
             state.stratagem_used[actor] = 1
-            if self.command_enabled:
-                self.finish_operation_fast(state, actor)
+            self.finish_operation_fast(state, actor)
             return
 
         if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:

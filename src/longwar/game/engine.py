@@ -83,11 +83,9 @@ class GameEngine:
         rules: GameRules | None = None,
         opening_hand_size: int = 10,
         completion_draw_names: Iterable[str] = (),
-        command_enabled: bool = True,
         starting_command: int = 20,
         command_cap: int = 20,
         cycle_command_cost: int = 1,
-        reshuffle_on_empty: bool = True,
         cycle_enabled: bool = False,
         completion_command_refund: int = 0,
     ):
@@ -96,11 +94,9 @@ class GameEngine:
             rules = GameRules(
                 opening_hand_size=opening_hand_size,
                 completion_draw_names=tuple(completion_draw_names),
-                command_enabled=command_enabled,
                 starting_command=starting_command,
                 command_cap=command_cap,
                 cycle_command_cost=cycle_command_cost,
-                reshuffle_on_empty=reshuffle_on_empty,
                 cycle_enabled=cycle_enabled,
                 completion_command_refund=completion_command_refund,
             )
@@ -111,7 +107,6 @@ class GameEngine:
 
         self.opening_hand_size = rules.opening_hand_size
         self.completion_draw_names = frozenset(rules.completion_draw_names)
-        self.command_enabled = rules.command_enabled
         self.starting_command = rules.starting_command
         self.command_cap = rules.command_cap
         self.command_recovery_schedule = rules.command_recovery_schedule
@@ -120,21 +115,19 @@ class GameEngine:
         self.hand_limit = rules.hand_limit
         self.ongoing_story_limit = rules.ongoing_story_limit
         self.cycle_command_cost = rules.cycle_command_cost
-        self.reshuffle_on_empty = rules.reshuffle_on_empty
         self.cycle_enabled = rules.cycle_enabled
         self.completion_command_refund = rules.completion_command_refund
 
-        if self.command_enabled:
-            missing_costs = [
-                card_id
-                for card_id, card in self.cards.items()
-                if not isinstance(card.get("command_cost"), int)
-            ]
-            if missing_costs:
-                raise ValueError(
-                    "Command mode requires command_cost on every card: "
-                    + ", ".join(sorted(missing_costs))
-                )
+        missing_costs = [
+            card_id
+            for card_id, card in self.cards.items()
+            if not isinstance(card.get("command_cost"), int)
+        ]
+        if missing_costs:
+            raise ValueError(
+                "Every card requires command_cost: "
+                + ", ".join(sorted(missing_costs))
+            )
 
         invalid_completion_names = [
             card_id
@@ -271,7 +264,7 @@ class GameEngine:
                 PlayerState(
                     deck=decks[player],
                     hand=hand,
-                    command=self.starting_command if self.command_enabled else 0,
+                    command=self.starting_command,
                 )
             )
 
@@ -283,8 +276,8 @@ class GameEngine:
                 else rng.randrange(0x1_0000_0000)
             ),
             battle_start_command=[
-                self.starting_command if self.command_enabled else 0,
-                self.starting_command if self.command_enabled else 0,
+                self.starting_command,
+                self.starting_command,
             ],
         )
         state.opening_hands = [

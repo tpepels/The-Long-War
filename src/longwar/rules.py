@@ -14,7 +14,6 @@ class GameRules:
     opening_hand_size: int = 10
     completion_draw_names: tuple[str, ...] = ()
 
-    command_enabled: bool = True
     starting_command: int = 20
     command_cap: int = 20
     command_recovery_schedule: tuple[int, ...] = (10, 7, 5, 4, 3, 2, 1)
@@ -24,8 +23,6 @@ class GameRules:
     ongoing_story_limit: int = 2
     cycle_command_cost: int = 1
     cycle_enabled: bool = False
-
-    reshuffle_on_empty: bool = True
 
     completion_command_refund: int = 0
 
