@@ -405,6 +405,19 @@ cdef class FastEngine:
     cdef int8_t placement_rank[MAX_CARDS]
     cdef int8_t force_text_effect[MAX_CARDS]
     cdef int8_t force_text_amount[MAX_CARDS]
+    cdef uint8_t can_maneuver_unnamed[MAX_CARDS]
+    cdef uint8_t immobile_force[MAX_CARDS]
+    cdef uint8_t cannot_swap_target[MAX_CARDS]
+    cdef uint8_t catchup_zero_cost[MAX_CARDS]
+    cdef int8_t completion_discount_cost[MAX_CARDS]
+    cdef int8_t frontline_force_discount[MAX_CARDS]
+    cdef uint8_t frontline_force_discount_requires_named[MAX_CARDS]
+    cdef uint8_t recovery_protected_front[MAX_CARDS]
+    cdef uint8_t combat_frontline_only[MAX_CARDS]
+    cdef int8_t strat_maneuver_cost[MAX_CARDS]
+    cdef uint8_t strat_unnamed_maneuver[MAX_CARDS]
+    cdef uint8_t strat_tie_control[MAX_CARDS]
+    cdef uint8_t strat_recovery_loss_reduction[MAX_CARDS]
     cdef int8_t on_link_bonus[MAX_CARDS]
     cdef int8_t aura[MAX_CARDS]
     cdef int8_t aura_rank[MAX_CARDS]
@@ -466,6 +479,19 @@ cdef class FastEngine:
         memset(self.placement_rank, 0xff, sizeof(self.placement_rank))
         memset(self.force_text_effect, 0, sizeof(self.force_text_effect))
         memset(self.force_text_amount, 0, sizeof(self.force_text_amount))
+        memset(self.can_maneuver_unnamed, 0, sizeof(self.can_maneuver_unnamed))
+        memset(self.immobile_force, 0, sizeof(self.immobile_force))
+        memset(self.cannot_swap_target, 0, sizeof(self.cannot_swap_target))
+        memset(self.catchup_zero_cost, 0, sizeof(self.catchup_zero_cost))
+        memset(self.completion_discount_cost, 0xff, sizeof(self.completion_discount_cost))
+        memset(self.frontline_force_discount, 0, sizeof(self.frontline_force_discount))
+        memset(self.frontline_force_discount_requires_named, 0, sizeof(self.frontline_force_discount_requires_named))
+        memset(self.recovery_protected_front, 0, sizeof(self.recovery_protected_front))
+        memset(self.combat_frontline_only, 0, sizeof(self.combat_frontline_only))
+        memset(self.strat_maneuver_cost, 0xff, sizeof(self.strat_maneuver_cost))
+        memset(self.strat_unnamed_maneuver, 0, sizeof(self.strat_unnamed_maneuver))
+        memset(self.strat_tie_control, 0, sizeof(self.strat_tie_control))
+        memset(self.strat_recovery_loss_reduction, 0, sizeof(self.strat_recovery_loss_reduction))
         memset(self.on_link_bonus, 0, sizeof(self.on_link_bonus))
         memset(self.aura, 0, sizeof(self.aura))
         memset(self.aura_rank, 0xff, sizeof(self.aura_rank))
@@ -602,6 +628,43 @@ cdef class FastEngine:
             self.force_text_amount[code] = int(
                 force_design.get("amount", design.get("amount", 0))
             )
+            self.can_maneuver_unnamed[code] = bool(
+                force_design.get("can_maneuver_while_unnamed")
+                or design.get("can_maneuver_while_unnamed")
+            )
+            self.immobile_force[code] = bool(
+                force_design.get("immobile") or design.get("immobile")
+            )
+            self.cannot_swap_target[code] = bool(
+                force_design.get("cannot_be_swap_target")
+                or design.get("cannot_be_swap_target")
+            )
+            if design.get("command") == "catch_up_discount":
+                self.catchup_zero_cost[code] = 1
+            if design.get("command") == "completion_discount":
+                self.completion_discount_cost[code] = int(
+                    design.get("discounted_cost", card.get("command_cost", 0))
+                )
+            if design.get("persistence") == "rear_rebuild_cost_reduction":
+                self.frontline_force_discount[code] = 1
+                self.frontline_force_discount_requires_named[code] = 1
+            if force_design.get("command") == "frontline_force_discount_1_min_1":
+                self.frontline_force_discount[code] = 1
+            if force_design.get("command") == "lost_front_here_does_not_reduce_recovery":
+                self.recovery_protected_front[code] = 1
+            if design.get("combat") == "frontline_only_comparison":
+                self.combat_frontline_only[code] = 1
+            if design.get("combat") == "tie_control":
+                self.strat_tie_control[code] = 1
+            if design.get("command") == "high_cost_battle_investment":
+                self.strat_maneuver_cost[code] = int(design.get("maneuver_cost", -1))
+                self.strat_unnamed_maneuver[code] = bool(
+                    design.get("unnamed_formations_can_maneuver")
+                )
+            if design.get("command") == "improve_recovery":
+                self.strat_recovery_loss_reduction[code] = max(
+                    0, -int(design.get("lost_front_adjustment", 0))
+                )
 
             self.on_link_bonus[code] = int(rules.get("on_link_attached", {}).get("temporary_strength", 0))
             self.aura[code] = int(rules.get("adjacent_strength_aura", 0))
