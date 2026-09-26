@@ -994,6 +994,43 @@ cdef class FastEngine:
                 value += self.link_opposing[link]
         return value
 
+    cdef inline bint frontline_only_resolution(
+        self,
+        FastState state,
+        int front,
+    ) noexcept:
+        cdef int player, rank, force
+        for player in range(2):
+            for rank in range(2):
+                force = state.subject[slot_index(player, front, rank)]
+                if force >= 0 and self.combat_frontline_only[force]:
+                    return True
+        return False
+
+    cdef inline int resolution_front_strength_fast(
+        self,
+        FastState state,
+        int player,
+        int front,
+    ) noexcept:
+        if self.frontline_only_resolution(state, front):
+            return self.position_strength_fast(
+                state,
+                slot_index(player, front, 0),
+            )
+        return self.front_strength_fast(state, player, front)
+
+    cdef inline bint tie_control_active(
+        self,
+        FastState state,
+    ) noexcept:
+        cdef int p, strat
+        for p in range(2):
+            strat = state.stratagem[p]
+            if strat >= 0 and self.strat_tie_control[strat]:
+                return True
+        return False
+
     cpdef int front_strength(self, FastState state, int player, int front):
         return self.front_strength_fast(state, player, front)
 
@@ -1844,10 +1881,12 @@ cdef class FastEngine:
 
     cdef void score_battle(self, FastState state):
         """Resolve four independent Fronts and the Battle-end sequence."""
-        cdef int front, a, b, p, first_passer
+        cdef int front, a, b, p, first_passer, strat, protected, card
         cdef int lost_mask0=0, lost_mask1=0
         cdef int losses0=0, losses1=0
+        cdef int recovery_losses0=0, recovery_losses1=0
         cdef int base_recovery, actual, target
+        cdef bint tie_control = self.tie_control_active(state)
 
         state.last_battle_valid = 1
         state.last_battle = state.battle
@@ -1868,8 +1907,8 @@ cdef class FastEngine:
         # Front results are fixed before any cleanup or Retreat changes board
         # Strength. There is intentionally no overall Battle winner.
         for front in range(4):
-            a = self.front_strength_fast(state, 0, front)
-            b = self.front_strength_fast(state, 1, front)
+            a = self.resolution_front_strength_fast(state, 0, front)
+            b = self.resolution_front_strength_fast(state, 1, front)
             state.last_front_scores[front][0] = a
             state.last_front_scores[front][1] = b
             if a < b:
@@ -1878,17 +1917,60 @@ cdef class FastEngine:
             elif b < a:
                 lost_mask1 |= 1 << front
                 losses1 += 1
+            elif tie_control:
+                if self.slot_complete(state, slot_index(0, front, 0)) != self.slot_complete(state, slot_index(1, front, 0)):
+                    if self.slot_complete(state, slot_index(0, front, 0)):
+                        lost_mask1 |= 1 << front
+                        losses1 += 1
+                    else:
+                        lost_mask0 |= 1 << front
+                        losses0 += 1
 
         self.discard_incomplete_formations(state)
         self.resolve_retreats(state, lost_mask0, lost_mask1)
         self.discard_battle_stratagems(state)
         self.clear_battle_temporary_strength(state)
 
-        # Ongoing Stories remain in state.scheme. Battle-only allowances reset
-        # only if the war continues.
+        # Ongoing Narratives remain in state.scheme. Recovery modifiers use
+        # the actual lost Fronts, without changing the Front results.
+        recovery_losses0 = losses0
+        recovery_losses1 = losses1
+        for front in range(4):
+            if lost_mask0 & (1 << front):
+                protected = 0
+                for p in range(2):
+                    card = state.subject[slot_index(0, front, p)]
+                    if card >= 0 and self.recovery_protected_front[card]:
+                        protected = 1
+                if protected and recovery_losses0 > 0:
+                    recovery_losses0 -= 1
+            if lost_mask1 & (1 << front):
+                protected = 0
+                for p in range(2):
+                    card = state.subject[slot_index(1, front, p)]
+                    if card >= 0 and self.recovery_protected_front[card]:
+                        protected = 1
+                if protected and recovery_losses1 > 0:
+                    recovery_losses1 -= 1
+
+        strat = state.stratagem[0]
+        if strat >= 0 and self.strat_recovery_loss_reduction[strat]:
+            recovery_losses0 -= min(
+                recovery_losses0,
+                self.strat_recovery_loss_reduction[strat],
+            )
+        strat = state.stratagem[1]
+        if strat >= 0 and self.strat_recovery_loss_reduction[strat]:
+            recovery_losses1 -= min(
+                recovery_losses1,
+                self.strat_recovery_loss_reduction[strat],
+            )
+
         base_recovery = self.command_recovery_for_battle(state.battle)
         for p in range(2):
-            actual = base_recovery - (losses0 if p == 0 else losses1)
+            actual = base_recovery - (
+                recovery_losses0 if p == 0 else recovery_losses1
+            )
             if actual < 0:
                 actual = 0
             state.command[p] += actual
