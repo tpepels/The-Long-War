@@ -98,7 +98,6 @@ class GameEngine:
         automatic_draw_hand_limit: int | None = 10,
         battle_end_hand_limit: int | None = None,
         cycle_enabled: bool = False,
-        pass_requires_both_acted: bool = True,
         completion_command_refund: int = 0,
         public_stratagems: bool = True,
     ):
@@ -122,7 +121,6 @@ class GameEngine:
                 automatic_draw_hand_limit=automatic_draw_hand_limit,
                 battle_end_hand_limit=battle_end_hand_limit,
                 cycle_enabled=cycle_enabled,
-                pass_requires_both_acted=pass_requires_both_acted,
                 completion_command_refund=completion_command_refund,
                 public_stratagems=public_stratagems,
             )
@@ -153,7 +151,6 @@ class GameEngine:
         self.automatic_draw_hand_limit = rules.automatic_draw_hand_limit
         self.battle_end_hand_limit = rules.battle_end_hand_limit
         self.cycle_enabled = rules.cycle_enabled
-        self.pass_requires_both_acted = rules.pass_requires_both_acted
         self.completion_command_refund = rules.completion_command_refund
         self.public_stratagems = rules.public_stratagems
 
