@@ -2471,8 +2471,8 @@
       "design_batch": 4
     },
     {
-      "id": "seized-the-standard",
-      "title": "Seized the Standard",
+      "id": "seized-the-standard-of",
+      "title": "Seized the Standard of",
       "type": "bond",
       "unique": false,
       "classes": [
