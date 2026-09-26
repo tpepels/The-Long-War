@@ -4,7 +4,7 @@
     {
       "id": "the-fifty-men",
       "title": "The Fifty Men",
-      "type": "subject",
+      "type": "force",
       "strength": 4,
       "unique": false,
       "classes": [
@@ -23,7 +23,7 @@
     {
       "id": "seven-black-ships",
       "title": "Seven Black Ships",
-      "type": "subject",
+      "type": "force",
       "strength": 4,
       "unique": false,
       "classes": [
@@ -168,7 +168,7 @@
     {
       "id": "the-white-hands-of-elara",
       "title": "The White Hands of Elara",
-      "type": "subject",
+      "type": "force",
       "strength": 2,
       "unique": false,
       "classes": [
@@ -176,7 +176,7 @@
         "healer"
       ],
       "role": "healer",
-      "text": "*Rear only.*",
+      "text": "**Deploy - Rear only.**",
       "rules": {
         "placement": {
           "rank": "rear"
@@ -189,8 +189,8 @@
       "rule_blocks": [
         {
           "kind": "property",
-          "label": "PLAY",
-          "text": "**Rear** only."
+          "label": "DEPLOY",
+          "text": "**Rear only.**"
         }
       ],
       "command_cost": 1
@@ -198,8 +198,8 @@
     {
       "id": "avaros-the-bronze-king",
       "title": "Avaros, the Bronze King",
-      "type": "subject",
-      "strength": 6,
+      "type": "force",
+      "strength": 5,
       "unique": true,
       "hero": true,
       "classes": [
@@ -208,10 +208,11 @@
         "hero"
       ],
       "role": "swordsman",
-      "text": "*Hero.* Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**. As a **Subject**, while this **Subject** is in the **Frontline**, **adjacent Subjects** you control get +1 **Strength**.",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Frontline only.** After Avaros **Maneuvers**, you may **Maneuver** one adjacent friendly **Named Formation** without paying Command. **Name -** When this formation becomes **Named**, you may **Maneuver** it once without paying Command.",
       "rules": {
-        "adjacent_strength_aura": 1,
-        "aura_requires_rank": "front"
+        "placement": {
+          "rank": "front"
+        }
       },
       "balance": {
         "dynamic": true,
@@ -221,31 +222,50 @@
         {
           "kind": "property",
           "label": "TRAIT",
-          "text": "*Hero.*"
+          "text": "**Hero.** Play as a **Force** or **Name**."
         },
         {
           "kind": "property",
-          "label": "DUAL",
-          "text": "Play as a **Subject** or **Name**. As a **Name**, +2 **Strength**."
+          "label": "FORCE",
+          "text": "**Deploy - Frontline only.**"
         },
         {
-          "kind": "continuous",
-          "label": "WHILE",
-          "text": "In the **Frontline**: **adjacent Subjects** you control get +1 **Strength**."
+          "kind": "trigger",
+          "label": "AFTER MANEUVER",
+          "text": "After Avaros **Maneuvers**, you may **Maneuver** one adjacent friendly **Named Formation** without paying Command."
+        },
+        {
+          "kind": "trigger",
+          "label": "NAME - WHEN NAMED",
+          "text": "When this formation becomes **Named**, you may **Maneuver** it once without paying Command."
         }
       ],
       "command_cost": 3,
-      "hero_name_strength": 2
+      "hero_name_strength": 0,
+      "design_rules": {
+        "force": {
+          "deploy_rank": "front",
+          "after_maneuver": {
+            "effect": "free_maneuver_adjacent_friendly_named_formation"
+          }
+        },
+        "name": {
+          "on_completion": {
+            "effect": "free_maneuver_self"
+          }
+        }
+      },
+      "engine_sync": "pending-first-80-migration"
     },
     {
       "id": "followed",
       "title": "Followed",
-      "type": "link",
+      "type": "bond",
       "unique": false,
       "classes": [
         "loyalty"
       ],
-      "text": "Its **Subject** gets +1 **Strength**. While this **Bond** has a **Name**, its **Subject** gets +2 more **Strength**.",
+      "text": "This formation gets +1 **Strength**. While it is **Named**, it gets +2 more.",
       "rules": {
         "strength_bonus": 1,
         "named_strength_bonus": 2
@@ -258,12 +278,12 @@
         {
           "kind": "effect",
           "label": "BONUS",
-          "text": "Its **Subject** gets +1 **Strength**."
+          "text": "This formation gets +1 **Strength**."
         },
         {
           "kind": "continuous",
           "label": "NAMED",
-          "text": "Its **Subject** gets +2 more **Strength**."
+          "text": "While this formation is **Named**, it gets +2 more."
         }
       ],
       "command_cost": 1
@@ -410,7 +430,7 @@
         "human",
         "king"
       ],
-      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, regain 1 **Command**.",
+      "text": "When this formation becomes **Named**, regain 1 **Command**.",
       "rules": {
         "on_completion": {
           "effect": "gain_command",
@@ -423,8 +443,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "WHEN",
-          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, regain 1 **Command**."
+          "label": "WHEN NAMED",
+          "text": "When this formation becomes **Named**, regain 1 **Command**."
         }
       ],
       "command_cost": 1
@@ -465,7 +485,7 @@
         "human",
         "warrior"
       ],
-      "text": "When this formation first has a **Subject**, **Bond**, and **Name**, draw 1 card.",
+      "text": "When this formation becomes **Named**, draw 1 card.",
       "rules": {
         "on_completion": {
           "effect": "draw_card",
@@ -476,8 +496,8 @@
       "rule_blocks": [
         {
           "kind": "trigger",
-          "label": "WHEN",
-          "text": "When this formation first has a **Subject**, **Bond**, and **Name**, draw 1 card."
+          "label": "WHEN NAMED",
+          "text": "When this formation becomes **Named**, draw 1 card."
         }
       ],
       "command_cost": 2
@@ -1339,12 +1359,12 @@
     {
       "id": "held-fast",
       "title": "Held Fast",
-      "type": "link",
+      "type": "bond",
       "unique": false,
       "classes": [
         "resolve"
       ],
-      "text": "Its **Subject** gets +2 **Strength**.",
+      "text": "This formation gets +2 **Strength**.",
       "rules": {
         "strength_bonus": 2,
         "named_strength_bonus": 0
@@ -1357,7 +1377,7 @@
         {
           "kind": "effect",
           "label": "BONUS",
-          "text": "Its **Subject** gets +2 **Strength**."
+          "text": "This formation gets +2 **Strength**."
         }
       ],
       "command_cost": 1
