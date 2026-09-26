@@ -3164,6 +3164,338 @@
         "identity": "steadfast_people",
         "strength_cannot_be_ignored_by_opponent": true
       }
+    },
+    {
+      "id": "the-battle-had-chosen-them",
+      "title": "The Battle Had Chosen Them",
+      "type": "story",
+      "unique": false,
+      "classes": [
+        "omen",
+        "necessity"
+      ],
+      "ongoing": true,
+      "command_cost": 1,
+      "text": "**Omen - Ongoing.** Choose a Front when you play this. The first time each player plays a card in that Front this Battle, that player's next operation must affect that Front, if possible. After this has happened for both players, discard this Omen.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "OMEN",
+          "text": "**Ongoing.** Choose a Front."
+        },
+        {
+          "kind": "trigger",
+          "label": "FIRST CARD EACH PLAYER",
+          "text": "The first time each player plays a card in that Front this Battle, that player's next operation must affect that Front, if possible."
+        },
+        {
+          "kind": "effect",
+          "label": "AFTER BOTH",
+          "text": "After this has happened for both players, discard this Omen."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "omen",
+        "chosen_front": true,
+        "per_player_first_card_in_front_each_battle": true,
+        "next_operation_must_affect_chosen_front_if_possible": true,
+        "discard_after_both_players_trigger": true
+      },
+      "engine_sync": "pending-compulsion-mechanics",
+      "design_status": "approved",
+      "design_batch": 12,
+      "narrative_form": "omen"
+    },
+    {
+      "id": "no-one-would-be-first-to-leave",
+      "title": "No One Would Be First to Leave",
+      "type": "story",
+      "unique": false,
+      "classes": [
+        "saga",
+        "necessity"
+      ],
+      "ongoing": true,
+      "command_cost": 1,
+      "text": "**Saga - Ongoing.** Choose a Front when you play this. Named Formations in that Front cannot **Maneuver** away from it. When a Named Formation there **Retreats**, discard this Saga.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "SAGA",
+          "text": "**Ongoing.** Choose a Front."
+        },
+        {
+          "kind": "continuous",
+          "label": "NO ONE LEAVES",
+          "text": "Named Formations in that Front cannot **Maneuver** away from it."
+        },
+        {
+          "kind": "trigger",
+          "label": "RETREAT",
+          "text": "When a Named Formation there **Retreats**, discard this Saga."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "saga",
+        "chosen_front": true,
+        "named_formations_cannot_maneuver_away": true,
+        "discard_when_named_formation_retreated": true,
+        "affects": "both_players"
+      },
+      "engine_sync": "pending-compulsion-mechanics",
+      "design_status": "approved",
+      "design_batch": 12,
+      "narrative_form": "saga"
+    },
+    {
+      "id": "the-king-had-given-the-order",
+      "title": "The King Had Given the Order",
+      "type": "story",
+      "unique": false,
+      "classes": [
+        "warning",
+        "order"
+      ],
+      "ongoing": true,
+      "command_cost": 1,
+      "text": "**Warning - Ongoing.** Choose one of your Named Formations and choose left or right. On your next turn, if that formation can **Maneuver** one Front in that direction, your operation must be that Maneuver. Then discard this Warning.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "WARNING",
+          "text": "**Ongoing.** Choose one of your Named Formations and choose left or right."
+        },
+        {
+          "kind": "constraint",
+          "label": "NEXT TURN",
+          "text": "If that formation can **Maneuver** one Front in that direction, your operation must be that Maneuver."
+        },
+        {
+          "kind": "effect",
+          "label": "THEN",
+          "text": "Discard this Warning."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "warning",
+        "choose_friendly_named_formation": true,
+        "choose_direction": true,
+        "next_turn_forced_maneuver_if_legal": true,
+        "discard_after_next_turn_constraint": true
+      },
+      "engine_sync": "pending-compulsion-mechanics",
+      "design_status": "approved",
+      "design_batch": 12,
+      "narrative_form": "warning"
+    },
+    {
+      "id": "they-had-gone-too-far",
+      "title": "They Had Gone Too Far",
+      "type": "story",
+      "unique": false,
+      "classes": [
+        "omen",
+        "victory",
+        "necessity"
+      ],
+      "ongoing": true,
+      "command_cost": 1,
+      "text": "**Omen - Ongoing.** When either player wins their third Front in a Battle, that player's first operation next Battle must be a **Maneuver**, if possible. Then discard this Omen.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "OMEN",
+          "text": "**Ongoing.**"
+        },
+        {
+          "kind": "trigger",
+          "label": "THIRD FRONT",
+          "text": "When either player wins their third Front in a Battle, that player's first operation next Battle must be a **Maneuver**, if possible."
+        },
+        {
+          "kind": "effect",
+          "label": "THEN",
+          "text": "Discard this Omen."
+        }
+      ],
+      "design_rules": {
+        "narrative_form": "omen",
+        "trigger": "player_wins_third_front_in_battle",
+        "affected_player": "triggering_player",
+        "next_battle_first_operation_must_be_maneuver_if_possible": true,
+        "discard_self": true
+      },
+      "engine_sync": "pending-compulsion-mechanics",
+      "design_status": "approved",
+      "design_batch": 12,
+      "narrative_form": "omen"
+    },
+    {
+      "id": "there-was-no-road-back",
+      "title": "There Was No Road Back",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "necessity",
+        "maneuver"
+      ],
+      "command_cost": 2,
+      "text": "Choose a Front when you play this. **During this Battle**, formations may **Maneuver** into that Front but cannot Maneuver away from it.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "WHEN PLAYED",
+          "text": "Choose a Front."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "Formations may **Maneuver** into that Front but cannot Maneuver away from it."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "no_road_back",
+        "chosen_front": true,
+        "formations_cannot_maneuver_away_from_chosen_front": true,
+        "affects": "both_players"
+      },
+      "engine_sync": "pending-compulsion-mechanics",
+      "design_status": "approved",
+      "design_batch": 12
+    },
+    {
+      "id": "the-line-had-begun-to-move",
+      "title": "The Line Had Begun to Move",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "necessity",
+        "maneuver"
+      ],
+      "command_cost": 2,
+      "text": "Choose left or right when you play this. **During this Battle**, the first **Maneuver** each player makes must be in that direction, if possible.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "WHEN PLAYED",
+          "text": "Choose left or right."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "The first **Maneuver** each player makes must be in that direction, if possible."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "line_begun_to_move",
+        "choose_direction": true,
+        "first_maneuver_each_player_must_use_direction_if_possible": true,
+        "affects": "both_players"
+      },
+      "engine_sync": "pending-compulsion-mechanics",
+      "design_status": "approved",
+      "design_batch": 12
+    },
+    {
+      "id": "every-banner-turned-toward-them",
+      "title": "Every Banner Turned Toward Them",
+      "type": "stratagem",
+      "unique": false,
+      "classes": [
+        "battle",
+        "necessity",
+        "focus"
+      ],
+      "command_cost": 3,
+      "text": "Choose a Front when you play this. **During this Battle**, each player's first operation each turn must affect that Front, if possible.",
+      "rules": {},
+      "balance": {
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "property",
+          "label": "WHEN PLAYED",
+          "text": "Choose a Front."
+        },
+        {
+          "kind": "continuous",
+          "label": "DURING THIS BATTLE",
+          "text": "Each player's first operation each turn must affect that Front, if possible."
+        }
+      ],
+      "design_rules": {
+        "stratagem": "every_banner_turned",
+        "chosen_front": true,
+        "first_operation_each_turn_must_affect_chosen_front_if_possible": true,
+        "affects": "both_players"
+      },
+      "engine_sync": "pending-compulsion-mechanics",
+      "design_status": "approved",
+      "design_batch": 12
+    },
+    {
+      "id": "had-been-ordered-forward",
+      "title": "Had Been Ordered Forward",
+      "type": "bond",
+      "unique": false,
+      "classes": [
+        "order",
+        "necessity"
+      ],
+      "command_cost": 1,
+      "text": "This formation gets +2 **Strength**. After it **Maneuvers**, its next Maneuver this Battle must continue in the same direction, if possible.",
+      "rules": {},
+      "balance": {
+        "strength_bonus": 2,
+        "dynamic": true
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "BONUS",
+          "text": "This formation gets +2 **Strength**."
+        },
+        {
+          "kind": "trigger",
+          "label": "AFTER MANEUVER",
+          "text": "After it **Maneuvers**, its next Maneuver this Battle must continue in the same direction, if possible."
+        }
+      ],
+      "design_rules": {
+        "strength_bonus": 2,
+        "after_maneuver_next_maneuver_same_direction_if_possible": true,
+        "duration": "battle"
+      },
+      "engine_sync": "pending-compulsion-mechanics",
+      "design_status": "approved",
+      "design_batch": 12
     }
   ]
 }
