@@ -434,7 +434,6 @@ cdef class FastEngine:
     cdef int battle_end_hand_limit
     cdef bint cycle_enabled
     cdef bint pass_requires_both_acted
-    cdef bint first_passer_starts_next_battle
     cdef int completion_command_refund
     cdef bint public_stratagems
 
@@ -579,7 +578,6 @@ cdef class FastEngine:
         )
         self.cycle_enabled = bool(engine.cycle_enabled)
         self.pass_requires_both_acted = bool(engine.pass_requires_both_acted)
-        self.first_passer_starts_next_battle = bool(engine.first_passer_starts_next_battle)
         self.completion_command_refund = int(engine.completion_command_refund)
         self.public_stratagems = bool(engine.public_stratagems)
         if self.n_cards > MAX_CARDS:
