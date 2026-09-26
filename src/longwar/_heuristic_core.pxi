@@ -8,32 +8,68 @@ cdef class NativeHeuristicEvaluator:
 
     cdef double evaluate_fast(self, FastState state, int player) noexcept:
         cdef int opponent = 1 - player
-        cdef int front, margin, controls=0, enemy_controls=0, hand_delta
-        cdef int named_delta=0, scheme_delta=0, strat_delta=0
+        cdef int front, margin, raw_margin, controls=0, enemy_controls=0
+        cdef int hand_delta, named_delta=0, scheme_delta=0, strat_delta=0
         cdef int exposed=0, reachable=0, slot, name_card, before, after, best
         cdef int card, own_forces=0, own_board_subjects=0, hero_force=0
+        cdef int own_losses=0, opponent_losses=0
+        cdef int own_front_slot, own_rear_slot, opp_front_slot, opp_rear_slot
+        cdef int recovery=0, own_projected=0, opponent_projected=0
+        cdef int current_delta=0, projected_delta=0
+        cdef int own_vulnerability=0, opponent_vulnerability=0
         cdef double score = 0.0, option = 0.0
 
         if state.phase == PHASE_COMPLETE:
             return 10000.0 if state.winner == player else -10000.0
 
         for front in range(4):
-            margin = (
+            raw_margin = (
                 self.engine.front_strength_fast(state, player, front)
                 - self.engine.front_strength_fast(state, opponent, front)
             )
-            if margin > 0:
+            margin = raw_margin
+
+            if raw_margin > 0:
                 controls += 1
-                if margin <= 3:
+                opponent_losses += 1
+                if raw_margin <= 3:
                     score += 1.25
-                if margin <= 4:
+                if raw_margin <= 4:
                     exposed += 1
-            elif margin < 0:
+
+                # A lost Front drives off a Rear Named Formation and only
+                # Retreats a Frontline Named Formation. Value persistence,
+                # not just current Strength.
+                opp_front_slot = slot_index(opponent, front, 0)
+                opp_rear_slot = slot_index(opponent, front, 1)
+                if self.engine.slot_complete(state, opp_rear_slot):
+                    score += 4.0
+                if self.engine.slot_complete(state, opp_front_slot):
+                    score += 0.75
+
+                # Margin beyond a comfortable buffer has no core scoring
+                # value. Keep a little value for resilience, but strongly
+                # prefer Strength that can change another Front result.
+                if raw_margin > 5:
+                    score -= 0.45 * (raw_margin - 5)
+
+            elif raw_margin < 0:
                 enemy_controls += 1
-                if margin >= -3:
+                own_losses += 1
+                if raw_margin >= -3:
                     score -= 1.25
-                if margin >= -4:
+                if raw_margin >= -4:
                     reachable += 1
+
+                own_front_slot = slot_index(player, front, 0)
+                own_rear_slot = slot_index(player, front, 1)
+                if self.engine.slot_complete(state, own_rear_slot):
+                    score -= 4.0
+                if self.engine.slot_complete(state, own_front_slot):
+                    score -= 0.75
+
+                if raw_margin < -5:
+                    score += 0.45 * ((-raw_margin) - 5)
             else:
                 reachable += 1
 
@@ -70,9 +106,53 @@ cdef class NativeHeuristicEvaluator:
             score -= 2.0
 
         if self.engine.command_enabled:
-            score += 0.45 * (
-                state.command[player] - state.command[opponent]
+            current_delta = state.command[player] - state.command[opponent]
+            score += 0.45 * current_delta
+
+            # Project the rulebook's exact recovery formula using the current
+            # Front results. This makes late-war Command and likely Collapse
+            # visible to shallow search and rollouts.
+            recovery = self.engine.command_recovery_for_battle(state.battle)
+            own_projected = (
+                state.command[player]
+                + max(0, recovery - own_losses)
             )
+            opponent_projected = (
+                state.command[opponent]
+                + max(0, recovery - opponent_losses)
+            )
+            if own_projected > self.engine.command_cap:
+                own_projected = self.engine.command_cap
+            if opponent_projected > self.engine.command_cap:
+                opponent_projected = self.engine.command_cap
+
+            projected_delta = own_projected - opponent_projected
+            score += 0.35 * (projected_delta - current_delta)
+
+            own_vulnerability = (
+                self.engine.command_collapse_threshold + 3 - own_projected
+            )
+            if own_vulnerability < 0:
+                own_vulnerability = 0
+            opponent_vulnerability = (
+                self.engine.command_collapse_threshold + 3
+                - opponent_projected
+            )
+            if opponent_vulnerability < 0:
+                opponent_vulnerability = 0
+            score += 0.8 * (
+                opponent_vulnerability - own_vulnerability
+            )
+
+            if (
+                own_projected < self.engine.command_collapse_threshold
+                or opponent_projected
+                < self.engine.command_collapse_threshold
+            ):
+                if own_projected < opponent_projected:
+                    score -= 28.0
+                elif own_projected > opponent_projected:
+                    score += 28.0
 
         if (
             state.phase == PHASE_BATTLE
@@ -92,10 +172,10 @@ cdef class NativeHeuristicEvaluator:
                 )
 
         for slot in range(player * 8, player * 8 + 8):
-            if state.subject[slot] >= 0 and state.name[slot] >= 0:
+            if self.engine.slot_complete(state, slot):
                 named_delta += 1
         for slot in range(opponent * 8, opponent * 8 + 8):
-            if state.subject[slot] >= 0 and state.name[slot] >= 0:
+            if self.engine.slot_complete(state, slot):
                 named_delta -= 1
         score += 1.5 * named_delta
 
@@ -393,7 +473,7 @@ cdef class NativeHeuristicEvaluator:
         score += 0.35 * total_margin
         score += 0.4 * tied
         score -= min(8.0, 0.8 * state.hand_len[opponent])
-        if self.engine.first_passer_starts_next_battle and state.pass_len == 0:
+        if state.pass_len == 0:
             score += 1.5
         return score
 
@@ -468,7 +548,12 @@ cdef class NativeHeuristicEvaluator:
         self.engine.apply_fast(child, action)
         score = self.evaluate_fast(child, player)
 
-        if kind == TYPE_LINK:
+        if kind == TYPE_DISCARD:
+            score += 0.55 * self.hand_construction_value_fast(
+                child,
+                player,
+            )
+        elif kind == TYPE_LINK:
             score += 0.10 if state.subject[pos] >= 0 else 1.35
         elif kind == TYPE_NAME:
             score += 0.35 if state.subject[pos] >= 0 else 1.50
