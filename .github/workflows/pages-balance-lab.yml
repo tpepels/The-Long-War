@@ -3,7 +3,7 @@ name: Deploy Balance Lab
 on:
   push:
     branches:
-      - balance-lab-progression
+      - main
 
 permissions:
   contents: read
