@@ -52,18 +52,15 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
     assert baseline_card(index["the-storm-broke"])["rules"] == {}
 
 
-@pytest.mark.parametrize(
-    "card_id",
-    [card["id"] for card in data()["cards"]],
-)
-def test_every_single_card_counterfactual_baseline_validates(card_id: str) -> None:
+def test_every_single_card_counterfactual_baseline_validates() -> None:
     card_data = data()
-    experiment = build_experiment_card_data(card_data, [card_id])
-    index = {card["id"]: card for card in experiment["cards"]}
-    baseline = index[baseline_id(card_id)]
+    for card in card_data["cards"]:
+        experiment = build_experiment_card_data(card_data, [card["id"]])
+        index = {row["id"]: row for row in experiment["cards"]}
+        baseline = index[baseline_id(card["id"])]
 
-    assert baseline["baseline_for"] == card_id
-    GameEngine(experiment)
+        assert baseline["baseline_for"] == card["id"]
+        GameEngine(experiment)
 
 
 def test_non_command_experiment_baselines_allow_cards_without_command_cost() -> None:
@@ -307,17 +304,19 @@ def test_stratagem_baseline_preserves_public_play_commitment() -> None:
     assert "no continuing effect" in baseline["text"]
 
 
-def test_hero_baseline_preserves_hero_deck_constraint() -> None:
+def test_hero_baseline_preserves_hero_chassis() -> None:
     card_data = data()
     index = {card["id"]: card for card in card_data["cards"]}
-    baseline = baseline_card(index["avaros-the-bronze-king"])
+    original = index["avaros-the-bronze-king"]
+    baseline = baseline_card(original)
 
     assert baseline["hero"] is True
-    assert baseline["unique"] is True
-    assert baseline["role"] == "swordsman"
+    assert baseline["unique"] is original["unique"]
+    assert baseline["role"] == original["role"]
     assert "hero" in baseline["classes"]
-    assert baseline["strength"] == 6
-    assert baseline["hero_name_strength"] == 2
+    assert baseline["strength"] == original["strength"]
+    assert baseline["hero_name_strength"] == original["hero_name_strength"]
+    assert baseline["rules"] == {}
 
 
 def test_counterfactual_mulligan_preview_excludes_opening_bonus(
