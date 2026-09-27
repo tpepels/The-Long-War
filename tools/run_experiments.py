@@ -124,20 +124,31 @@ def balance_run(args: argparse.Namespace) -> Path:
             cells.extend([(left, right), (right, left)])
     save("static", {**build_report(data), **identity})
     simulations = []
+    total_censored = 0
     for index, (left, right) in enumerate(cells):
         seed = args.seed + index * games
         report = simulate_games(engine, decks[left], decks[right], games=games, seed=seed)
+        total_censored += report.censored_games
         payload = {**asdict(report), "game_fingerprint": identity["game_fingerprint"],
                    "seed": seed, "rules": asdict(engine.rules),
                    "deck_a": decks[left], "deck_b": decks[right],
+                   "decisive_games": report.decisive_games,
+                   "censor_rate": report.censor_rate,
+                   "win_rates": report.win_rates,
                    "first_player_win_rate": report.first_player_win_rate,
-                   "first_player_wilson_95": wilson_interval(report.first_player_wins, games)}
+                   "first_player_wilson_95": wilson_interval(
+                       report.first_player_wins, report.decisive_games
+                   )}
         name = f"{left}--{right}"
         save(name, payload)
         save(f"{name}-health", analyze_simulation(payload, data))
         simulations.append(payload)
-        print(f"{name}: {games} games, first-player wins {report.first_player_wins}; "
-              f"95% interval {payload['first_player_wilson_95']}")
+        print(
+            f"{name}: {games} games, {report.decisive_games} decisive, "
+            f"{report.censored_games} censored, first-player wins "
+            f"{report.first_player_wins}; 95% interval "
+            f"{payload['first_player_wilson_95']}"
+        )
     save("playability", build_playability_report(simulations))
     if args.preset == "deep":
         causal = run_counterfactual_card_sweep(
@@ -145,8 +156,19 @@ def balance_run(args: argparse.Namespace) -> Path:
             seed=args.seed, bootstrap_resamples=2000,
         )
         save("counterfactual", {**causal, "game_fingerprint": identity["game_fingerprint"]})
-    save("summary", {**identity, "cells": len(cells), "simulation_games": games * len(cells),
-                     "interpretation": "Policy-specific diagnostics. Conditional win rates are correlations; use paired counterfactual intervals for card value."})
+    total_games = games * len(cells)
+    save("summary", {
+        **identity,
+        "cells": len(cells),
+        "simulation_games": total_games,
+        "decisive_simulation_games": total_games - total_censored,
+        "censored_simulation_games": total_censored,
+        "interpretation": (
+            "Policy-specific diagnostics. Conditional win rates use decisive "
+            "games only; censored games remain structural progression evidence. "
+            "Use paired counterfactual intervals for card value."
+        ),
+    })
     print(f"Balance artifacts: {output}")
     return output
 
