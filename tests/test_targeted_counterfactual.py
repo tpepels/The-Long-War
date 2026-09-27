@@ -139,6 +139,59 @@ def test_targeted_sweep_uses_each_card_context_and_reports_uncertainty(monkeypat
     assert report["cards"][0]["online"]["confidence_excludes_zero"] is False
 
 
+def test_targeted_validation_scopes_synthetic_baselines_to_target(
+    monkeypatch,
+) -> None:
+    import longwar.targeted_counterfactual as targeted
+
+    card_data = load_card_file(ROOT / "cards" / "cards.json")
+    generation = {"seed": 104766, "required_cards": ["namar"]}
+    broad = {
+        "contexts": 1,
+        "games_per_context": 1,
+        "seed": 37,
+        "cards": [{
+            "id": "namar",
+            "title": "Namar",
+            "delta_win_probability": 0.2,
+            "ci95": [-1.0, 1.0],
+            "level": "yellow",
+            "confidence_excludes_zero": False,
+            "samples": 1,
+            "attempted_samples": 1,
+            "sample_generation": generation,
+        }],
+    }
+
+    captured: list[tuple[str, ...]] = []
+    real_builder = targeted.build_experiment_card_data
+
+    def scoped_builder(data, baseline_card_ids=None):
+        captured.append(tuple(baseline_card_ids or ()))
+        return real_builder(data, baseline_card_ids)
+
+    monkeypatch.setattr(targeted, "build_experiment_card_data", scoped_builder)
+    monkeypatch.setattr(
+        targeted,
+        "_play_online_outcome",
+        lambda *args, **kwargs: 0,
+    )
+
+    run_targeted_online_validation(
+        card_data,
+        broad,
+        contexts=1,
+        games_per_context=1,
+        online_iterations=1,
+        online_depth=1,
+        max_cards=1,
+        max_pairs=0,
+        max_triples=0,
+    )
+
+    assert captured == [("namar",)]
+
+
 def test_targeted_online_censoring_is_reported_not_fatal(monkeypatch) -> None:
     import longwar.targeted_counterfactual as targeted
 
@@ -195,7 +248,7 @@ def test_targeted_play_uses_the_agents_opening_mulligans(monkeypatch) -> None:
     sample = build_samples(
         data, contexts=1, games_per_context=1, seed=37, required_cards=["namar"],
     )[0]
-    engine = GameEngine(build_experiment_card_data(data))
+    engine = GameEngine(build_experiment_card_data(data, ["namar"]))
     original_new_game = engine.new_game
     starts = []
 
