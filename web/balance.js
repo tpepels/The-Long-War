@@ -447,6 +447,7 @@ function renderProgression(lab) {
   const contest = p.contestability || {};
   const choice = p.mechanical_choice || {};
   const resources = p.resources || {};
+  const matchLength = p.match_length || {};
   const trajectory = lab.progression_trajectory || {};
   const trajectoryMetrics = trajectory.metrics || {};
   const trajectoryElement = document.getElementById("progression-trajectory");
@@ -483,7 +484,11 @@ function renderProgression(lab) {
     progressionMetric("Force → Name time", life.force_to_name_actions, "median actions"),
   ].join("");
 
+  const reach = matchLength.battle_reach || {};
   document.getElementById("progression-contestability").innerHTML = [
+    progressionMetric("Battles resolved / match", matchLength.resolved_battles_per_match, "median per simulated match"),
+    metric("Reach Battle III", pct(reach["3"]?.rate), `${reach["3"]?.matches ?? 0} matches`),
+    metric("Reach Battle IV+", pct(reach["4"]?.rate), `${reach["4"]?.matches ?? 0} matches`),
     progressionMetric("Front-control changes", contest.front_control_changes_per_battle, "median per Battle"),
     progressionMetric("Final |margin|", contest.final_abs_margin, "median total-Strength margin"),
     progressionMetric("Max |margin|", contest.maximum_abs_margin, "median Battle maximum"),
