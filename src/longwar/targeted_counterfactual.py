@@ -39,6 +39,9 @@ class TargetCandidate:
     broad_ci95: tuple[float, float]
     broad_level: str
     broad_excludes_zero: bool
+    broad_samples: int
+    broad_attempted_samples: int
+    broad_censored_pairs: int
     sample_generation: dict[str, Any] | None = None
 
 
@@ -62,6 +65,11 @@ def _candidate_from_row(kind: str, row: dict[str, Any]) -> TargetCandidate:
         broad_ci95=(float(ci[0]), float(ci[1])),
         broad_level=str(row.get("level", "green")),
         broad_excludes_zero=bool(row.get("confidence_excludes_zero", False)),
+        broad_samples=int(row.get("samples", 0) or 0),
+        broad_attempted_samples=int(
+            row.get("attempted_samples", row.get("samples", 0)) or 0
+        ),
+        broad_censored_pairs=int(row.get("censored_pairs", 0) or 0),
         sample_generation=row.get("sample_generation"),
     )
 
@@ -102,7 +110,12 @@ def select_targets(
     for kind, rows, maximum in specs:
         if maximum <= 0:
             continue
-        candidates = [_candidate_from_row(kind, row) for row in rows]
+        candidates = [
+            _candidate_from_row(kind, row)
+            for row in rows
+            if row.get(_effect_field(kind)) is not None
+            and int(row.get("samples", 0) or 0) > 0
+        ]
         suspicious = [
             candidate
             for candidate in candidates
@@ -196,7 +209,7 @@ def _play_online_outcome(
     online_iterations: int,
     online_depth: int,
     max_actions: int = 500,
-) -> int:
+) -> int | None:
     if sample.focal_player == 0:
         deck_a, deck_b = focal_deck, list(sample.opponent_deck)
     else:
@@ -256,9 +269,7 @@ def _play_online_outcome(
     action_count = 0
     while state.phase is not Phase.COMPLETE:
         if action_count >= max_actions:
-            raise RuntimeError(
-                f"Targeted sample {sample.sample_id} exceeded {max_actions} actions"
-            )
+            return None
         actor = state.active_player
         action = agents[actor].choose(engine, state)
         engine.apply(state, action)
@@ -323,8 +334,10 @@ def _sign(value: float, epsilon: float = 1e-12) -> int:
 
 def _confirmation(
     candidate: TargetCandidate,
-    effect: EffectEstimate,
+    effect: EffectEstimate | None,
 ) -> str:
+    if effect is None:
+        return "inconclusive"
     low, high = effect.ci95
     online_excludes = low > 0 or high < 0
     broad_sign = _sign(candidate.broad_effect)
@@ -347,19 +360,29 @@ def run_targeted_online_validation(
     games_per_context: int,
     online_iterations: int,
     online_depth: int,
-    max_cards: int = 2,
-    max_pairs: int = 2,
-    max_triples: int = 2,
+    max_cards: int = 8,
+    max_pairs: int = 0,
+    max_triples: int = 0,
     minimum_abs_effect: float = 0.05,
     bootstrap_resamples: int = 1000,
     force_top: bool = False,
 ) -> dict[str, Any]:
+    """Re-test suspicious broad A/B signals with online MCCFR.
+
+    The exact broad deck contexts, seats, seeds and intervention definitions
+    are reused. A targeted paired sample is decisive only when every condition
+    required for that contrast finishes before the action horizon.
+    """
     if bootstrap_resamples <= 0:
         raise ValueError("bootstrap_resamples must be positive")
     if contexts <= 0 or games_per_context <= 0:
         raise ValueError("contexts and games_per_context must be positive")
-    if contexts > int(broad_report["contexts"]) or games_per_context > int(broad_report["games_per_context"]):
-        raise ValueError("Targeted validation must use a subset of the broad experiment")
+    if contexts > int(broad_report["contexts"]) or games_per_context > int(
+        broad_report["games_per_context"]
+    ):
+        raise ValueError(
+            "Targeted validation must use a subset of the broad experiment"
+        )
     selected = select_targets(
         broad_report,
         max_cards=max_cards,
@@ -372,6 +395,9 @@ def run_targeted_online_validation(
 
     results: list[dict[str, Any]] = []
     total_matches = 0
+    censored_matches = 0
+    decisive_paired_samples = 0
+    censored_paired_samples = 0
 
     for target_index, candidate in enumerate(selected):
         samples = _subset_samples(
@@ -382,57 +408,103 @@ def run_targeted_online_validation(
             sample_generation=candidate.sample_generation,
         )
         conditions = _powerset(candidate.cards)
-        outcomes: dict[frozenset[str], list[int]] = {
+        outcomes: dict[frozenset[str], list[int | None]] = {
             condition: [] for condition in conditions
         }
 
         for sample in samples:
             for condition in conditions:
                 focal_deck = replace_cards(sample.focal_deck, condition)
-                outcomes[condition].append(
-                    _play_online_outcome(
-                        engine,
-                        sample,
-                        focal_deck,
-                        target_cards=candidate.cards,
-                        online_iterations=online_iterations,
-                        online_depth=online_depth,
-                    )
+                outcome = _play_online_outcome(
+                    engine,
+                    sample,
+                    focal_deck,
+                    target_cards=candidate.cards,
+                    online_iterations=online_iterations,
+                    online_depth=online_depth,
                 )
+                outcomes[condition].append(outcome)
                 total_matches += 1
+                if outcome is None:
+                    censored_matches += 1
 
-        values = _contrast(candidate.kind, outcomes, candidate.cards)
-        effect = estimate(
-            values,
-            seed=int(broad_report["seed"]) + 70_000 + target_index,
-            bootstrap_resamples=bootstrap_resamples,
-            contrast_bound=float(2 ** (len(candidate.cards) - 1)),
+        complete_indices = [
+            index
+            for index in range(len(samples))
+            if all(outcomes[condition][index] is not None for condition in conditions)
+        ]
+        filtered: dict[frozenset[str], list[int]] = {
+            condition: [
+                int(outcomes[condition][index])
+                for index in complete_indices
+                if outcomes[condition][index] is not None
+            ]
+            for condition in conditions
+        }
+        pair_censored = len(samples) - len(complete_indices)
+        decisive_paired_samples += len(complete_indices)
+        censored_paired_samples += pair_censored
+
+        values = (
+            _contrast(candidate.kind, filtered, candidate.cards)
+            if complete_indices
+            else []
         )
-        severity = _severity(effect)
+        effect = (
+            estimate(
+                values,
+                seed=int(broad_report["seed"]) + 70_000 + target_index,
+                bootstrap_resamples=bootstrap_resamples,
+                contrast_bound=float(2 ** (len(candidate.cards) - 1)),
+            )
+            if values
+            else None
+        )
+        severity = (
+            _severity(effect)
+            if effect is not None
+            else {
+                "level": "unobserved",
+                "direction": "unresolved",
+                "confidence_excludes_zero": False,
+            }
+        )
         results.append({
             "kind": candidate.kind,
             "cards": list(candidate.cards),
             "title": candidate.title,
-            "sample_generation": candidate.sample_generation or broad_report["sample_generation"],
+            "sample_generation": (
+                candidate.sample_generation or broad_report.get("sample_generation")
+            ),
             "broad": {
                 "effect": candidate.broad_effect,
                 "ci95": list(candidate.broad_ci95),
                 "level": candidate.broad_level,
                 "confidence_excludes_zero": candidate.broad_excludes_zero,
                 "policy": broad_report.get("policy"),
-                "samples": broad_report.get("samples"),
+                "samples": candidate.broad_samples,
+                "attempted_samples": candidate.broad_attempted_samples,
+                "censored_pairs": candidate.broad_censored_pairs,
             },
             "online": {
-                "effect": effect.mean,
-                "ci95": list(effect.ci95),
-                "ci_method": effect.ci_method,
-                "standard_error": effect.standard_error,
-                "samples": effect.samples,
+                "effect": effect.mean if effect is not None else None,
+                "ci95": list(effect.ci95) if effect is not None else [None, None],
+                "ci_method": effect.ci_method if effect is not None else None,
+                "standard_error": (
+                    effect.standard_error if effect is not None else None
+                ),
+                "samples": effect.samples if effect is not None else 0,
+                "attempted_samples": len(samples),
+                "censored_pairs": pair_censored,
+                "paired_censor_rate": (
+                    pair_censored / len(samples) if samples else 0.0
+                ),
                 **severity,
             },
             "confirmation": _confirmation(candidate, effect),
             "direction_agreement": (
-                _sign(candidate.broad_effect) != 0
+                effect is not None
+                and _sign(candidate.broad_effect) != 0
                 and _sign(candidate.broad_effect) == _sign(effect.mean)
             ),
             "factorial_conditions": len(conditions),
@@ -442,6 +514,7 @@ def run_targeted_online_validation(
         kind: [row for row in results if row["kind"] == kind]
         for kind in ("card", "pair", "triple")
     }
+    attempted_pairs = decisive_paired_samples + censored_paired_samples
 
     return {
         "schema_version": 1,
@@ -464,6 +537,17 @@ def run_targeted_online_validation(
         "online_iterations": online_iterations,
         "online_depth": online_depth,
         "total_matches": total_matches,
+        "decisive_matches": total_matches - censored_matches,
+        "censored_matches": censored_matches,
+        "match_censor_rate": (
+            censored_matches / total_matches if total_matches else 0.0
+        ),
+        "decisive_paired_samples": decisive_paired_samples,
+        "censored_paired_samples": censored_paired_samples,
+        "pair_censor_rate": (
+            censored_paired_samples / attempted_pairs
+            if attempted_pairs else 0.0
+        ),
         "targets": results,
         "cards": by_kind["card"],
         "pairs": by_kind["pair"],
@@ -476,6 +560,11 @@ def run_targeted_online_validation(
             "pairing": (
                 "Uses a subset of the exact broad experiment deck contexts, "
                 "game seeds, focal seats, and intervention definitions."
+            ),
+            "censoring": (
+                "A targeted paired contrast is estimated only when every "
+                "required intervention condition finishes before the action "
+                "horizon. Censored conditions remain reported explicitly."
             ),
             "epistemic_fairness": (
                 "The opponent receives the same uniform hypothesis prior over "
@@ -495,3 +584,4 @@ def run_targeted_online_validation(
             ),
         },
     }
+
