@@ -106,7 +106,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     return h
 
 cdef tuple _fe_state_hash(FastEngine self, FastState state):
-    cdef InfoHash128 h = self.state_hash_fast(state)
+    cdef InfoHash128 h = _fe_state_hash_fast(self, state)
     return (h.a, h.b)
 
 cdef int _fe__information_state_encode(
@@ -311,7 +311,7 @@ cdef InfoHash128 _fe_information_hash_fast(
     cdef InfoHash128 h
     cdef int n
     _info_hash_init(&h)
-    n = self._information_state_encode(
+    n = _fe__information_state_encode(self, 
         state,
         player,
         NULL,
@@ -320,12 +320,12 @@ cdef InfoHash128 _fe_information_hash_fast(
     return h
 
 cdef tuple _fe_information_hash(FastEngine self, FastState state, int player):
-    cdef InfoHash128 h = self.information_hash_fast(state, player)
+    cdef InfoHash128 h = _fe_information_hash_fast(self, state, player)
     return (h.a, h.b)
 
 cdef bytes _fe_information_key_fast(FastEngine self, FastState state, int player):
     cdef unsigned char buf[3 * MAX_CARDS + 2 * MAX_DECK + 1024]
-    cdef int n = self._information_state_encode(
+    cdef int n = _fe__information_state_encode(self, 
         state,
         player,
         &buf[0],
@@ -334,10 +334,10 @@ cdef bytes _fe_information_key_fast(FastEngine self, FastState state, int player
     return <bytes>PyBytes_FromStringAndSize(<char*>buf, n)
 
 cdef bytes _fe_information_key(FastEngine self, FastState state, int player):
-    return self.information_key_fast(state, player)
+    return _fe_information_key_fast(self, state, player)
 
 cdef str _fe_information_id(FastEngine self, FastState state, int player):
-    return hashlib.sha256(self.information_key_fast(state, player)).hexdigest()
+    return hashlib.sha256(_fe_information_key_fast(self, state, player)).hexdigest()
 
 cdef str _fe_action_key(FastEngine self, uint64_t action):
     cdef int kind = action_kind(action)
