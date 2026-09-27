@@ -408,11 +408,9 @@ function renderProgression(lab) {
     metric("Force → Name", pct(life.force_to_name_rate), `${life.forces_ever_named ?? 0} eventually Named`),
     progressionMetric("Active Fronts", field.active_fronts, "median per Battle decision"),
     progressionMetric("Contested Fronts", field.contested_fronts, "median per Battle decision"),
-    metric(
-      "Partial at Battle end",
-      field.battles ? num((life.incomplete_at_battle_end || 0) / field.battles, 1) : "—",
-      "mean across both players"
-    ),
+    progressionMetric("Partial at Battle end", life.partial_at_battle_end_per_player, "median per player-Battle"),
+    progressionMetric("Empty Fronts", field.empty_fronts, "median per Battle decision"),
+    progressionMetric("Strength concentration", field.strength_concentration, "median strongest-Front share per player"),
     progressionMetric("Force → Name time", life.force_to_name_actions, "median actions"),
   ].join("");
 
@@ -446,6 +444,7 @@ function renderProgression(lab) {
   const zeroRate = commandDist.count ? (commandBuckets["0"] || 0) / commandDist.count : null;
   document.getElementById("progression-resources").innerHTML = [
     progressionMetric("Command at Battle end", commandDist, "median per player-Battle"),
+    progressionMetric("Command at first pass", resources.command_at_first_pass, "median first passer"),
     metric("Ends at 0 Command", pct(zeroRate), `${commandBuckets["0"] || 0} player-Battles`),
     metric("Free Maneuvers", resources.free_maneuvers ?? 0, "actual zero-Command Maneuvers"),
     metric("Discounted actions", resources.discount_actions ?? 0, `${resources.discount_command_saved ?? 0} Command saved`),
@@ -462,7 +461,7 @@ function renderProgression(lab) {
   document.getElementById("progression-battles").innerHTML = ["1", "2", "3", "4+"].map((key) => {
     const row = battles[key] || { battles: 0 };
     if (!row.battles) {
-      return `<tr><td><strong>${esc(key)}</strong></td><td colspan="10" class="muted">No observations</td></tr>`;
+      return `<tr><td><strong>${esc(key)}</strong></td><td colspan="12" class="muted">No observations</td></tr>`;
     }
     return `
       <tr>
@@ -475,7 +474,15 @@ function renderProgression(lab) {
         <td>${num(row.occupied_positions, 1)}</td>
         <td>${num(row.active_fronts, 1)} / ${num(row.contested_fronts, 1)}</td>
         <td>${num(row.front_control_changes, 1)}</td>
-        <td>${num(row.legal_actions, 1)}</td>
+        <td>
+          ${num(row.legal_actions, 1)}
+          <span class="muted">constraint source/active ${num(row.constraint_rule_source_decisions, 1)} / ${num(row.constraint_active_decisions, 1)}</span>
+        </td>
+        <td>${num(row.hand_size, 1)} / ${num(row.deck_size, 1)}</td>
+        <td>
+          cmd ${num(row.first_pass_command, 1)}
+          <span class="muted">unplayable ${num(row.first_pass_unplayable_cards, 1)} · alternatives ${num(row.first_pass_legal_alternatives, 1)}</span>
+        </td>
         <td>
           ${num(row.command_start, 1)} / ${num(row.command_spent, 1)} / ${num(row.command_remaining, 1)}
           <span class="muted">next ${num(row.next_battle_command, 1)}</span>
@@ -497,9 +504,14 @@ function renderProgression(lab) {
         <td>${pct(row.force_usage_rate)}</td>
         <td>${pct(row.name_usage_rate)}</td>
         <td>${row.force_completions ?? 0} / ${row.name_completions ?? 0}<span class="muted">Force / Name</span></td>
+        <td>
+          ${num(row.mean_force_front_swing, 1)} / ${num(row.mean_name_front_swing, 1)}
+          <span class="muted">Front swing</span>
+        </td>
+        <td>${row.force_battle_end_presence ?? 0} / ${row.name_battle_end_presence ?? 0}</td>
       </tr>
     `).join("")
-    : '<tr><td colspan="6" class="muted">No Hero plays observed.</td></tr>';
+    : '<tr><td colspan="8" class="muted">No Hero plays observed.</td></tr>';
 
   const firstPass = contest.first_pass_outcomes || {};
   const passRows = [

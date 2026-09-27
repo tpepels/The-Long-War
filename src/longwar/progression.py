@@ -202,15 +202,6 @@ class ProgressionTelemetry:
                 )
             self._card_plays_by_battle[card_id][self._battle_key(state.battle)] += 1
 
-        if isinstance(action, PlayForce):
-            self._battle_events["forces_played"] += 1
-        elif isinstance(action, PlayBond):
-            self._battle_events["bonds_played"] += 1
-        elif isinstance(action, PlayName):
-            self._battle_events["names_played"] += 1
-        if isinstance(action, CARD_ACTIONS):
-            self._battle_events["cards_played"] += 1
-
         if pass_context is not None:
             alternatives_count = int(pass_context.get("legal_alternatives", 0))
             pass_context.update({
@@ -261,6 +252,15 @@ class ProgressionTelemetry:
             self._battle_lead_changes += 1
         if lead_sign != 0:
             self._last_lead_sign = lead_sign
+
+        if isinstance(action, PlayForce):
+            self._battle_events["forces_played"] += 1
+        elif isinstance(action, PlayBond):
+            self._battle_events["bonds_played"] += 1
+        elif isinstance(action, PlayName):
+            self._battle_events["names_played"] += 1
+        if isinstance(action, CARD_ACTIONS):
+            self._battle_events["cards_played"] += 1
 
     def after_action(
         self,
@@ -356,7 +356,11 @@ class ProgressionTelemetry:
             "tied": self._pass_outcome_group(first_pass, lambda row: row["total_margin"] == 0),
             "behind": self._pass_outcome_group(first_pass, lambda row: row["total_margin"] < 0),
             "with_playable_alternatives": self._pass_outcome_group(
-                first_pass, lambda row: row["legal_alternatives"] > 0
+                first_pass,
+                lambda row: (
+                    row.get("playable_card_actions", 0) > 0
+                    or row.get("maneuver_actions", 0) > 0
+                ),
             ),
             "no_alternative": self._pass_outcome_group(
                 first_pass, lambda row: row["legal_alternatives"] == 0
@@ -367,6 +371,9 @@ class ProgressionTelemetry:
             value
             for record in self._battle_records
             for value in record["command_remaining"]
+        ]
+        first_pass_rows = [
+            row for row in self._pass_contexts if row["first_pass"]
         ]
         resource = {
             "command_spend": dict(sorted(self._command_spend.items())),
@@ -380,6 +387,9 @@ class ProgressionTelemetry:
             "discount_actions": self._discount_actions,
             "discount_command_saved": self._discount_command,
             "command_remaining_at_battle_end": self._distribution(command_end),
+            "command_at_first_pass": self._distribution(
+                row["command_remaining"] for row in first_pass_rows
+            ),
             "command_end_buckets": {
                 "0": sum(value == 0 for value in command_end),
                 "1-3": sum(1 <= value <= 3 for value in command_end),
@@ -393,11 +403,34 @@ class ProgressionTelemetry:
             "occupied_positions": self._distribution(
                 [row["mean_total_occupied"] for row in self._battle_records]
             ),
+            "occupied_positions_per_player": self._distribution(
+                [
+                    value
+                    for row in self._battle_records
+                    for value in row["mean_occupied_per_player"]
+                ]
+            ),
             "active_fronts": self._distribution(
                 [row["mean_active_fronts"] for row in self._battle_records]
             ),
             "contested_fronts": self._distribution(
                 [row["mean_contested_fronts"] for row in self._battle_records]
+            ),
+            "uncontested_fronts": self._distribution(
+                [row["mean_uncontested_fronts"] for row in self._battle_records]
+            ),
+            "empty_fronts": self._distribution(
+                [row["mean_empty_fronts"] for row in self._battle_records]
+            ),
+            "tied_fronts": self._distribution(
+                [row["mean_tied_fronts"] for row in self._battle_records]
+            ),
+            "controlled_fronts_per_player": self._distribution(
+                [
+                    value
+                    for row in self._battle_records
+                    for value in row["mean_controlled_fronts"]
+                ]
             ),
             "complete_formations": self._distribution(
                 [row["mean_complete_formations"] for row in self._battle_records]
@@ -405,6 +438,21 @@ class ProgressionTelemetry:
             "partial_formations": self._distribution(
                 [row["mean_partial_formations"] for row in self._battle_records]
             ),
+            "total_strength_per_player": self._distribution(
+                [
+                    value
+                    for row in self._battle_records
+                    for value in row["mean_total_strength_per_player"]
+                ]
+            ),
+            "strength_by_front": {
+                str(front + 1): self._distribution([
+                    row["mean_strength_by_front"][player][front]
+                    for row in self._battle_records
+                    for player in range(2)
+                ])
+                for front in range(4)
+            },
             "strength_concentration": self._distribution(
                 [
                     value
@@ -505,6 +553,13 @@ class ProgressionTelemetry:
                 "incomplete_at_battle_end": sum(
                     sum(record["incomplete_at_end"]) for record in self._battle_records
                 ),
+                "partial_at_battle_end_per_player": self._distribution(
+                    [
+                        value
+                        for record in self._battle_records
+                        for value in record["incomplete_at_end"]
+                    ]
+                ),
                 "force_to_bond_rate": self._ratio(ever_bonded, forces),
                 "force_to_name_rate": self._ratio(ever_named, forces),
                 "bond_to_name_rate": self._ratio(
@@ -540,7 +595,13 @@ class ProgressionTelemetry:
                     "A formation lifecycle is anchored to its Force. Explicit Maneuvers "
                     "and moves preserve that identity; reconciliation then matches unchanged "
                     "positions, component signatures, and Force multisets without creating "
-                    "new lifecycles for movement."
+                    "new lifecycles for movement. If a simultaneous mass move leaves fully "
+                    "identical formations indistinguishable, identity is matched deterministically "
+                    "in stable board order while aggregate creation/removal counts are preserved."
+                ),
+                "battle_end_formation_state": (
+                    "Complete and partial formation counts at Battle end use the final "
+                    "pre-resolution Battle state, before cleanup removes the board."
                 ),
                 "partial_formation": "A board position with a Force that is not yet both Bonded and Named.",
                 "active_front": "A Front containing at least one Force for either player.",
@@ -551,7 +612,7 @@ class ProgressionTelemetry:
                     "a positive total-Strength lead that remains positive in every later recorded state."
                 ),
                 "constraint_rule_source": (
-                    "A card marked by canonical rule metadata as necessity/order/constraint "
+                    "A necessity-classed card or card with an explicit constraint rule block "
                     "is present in play. This does not mean its restriction is implemented or active."
                 ),
                 "constraint_active": (
@@ -565,6 +626,10 @@ class ProgressionTelemetry:
                 "drawn_after_reshuffle": (
                     "A card copy was in that player's discard pile when it was reshuffled, "
                     "then a matching copy was subsequently drawn. Duplicate copies are matched by count."
+                ),
+                "held_across_battle_boundary": (
+                    "Hand survival across a Battle boundary is a multiset intersection by card id; "
+                    "identical duplicate copies are not physically distinguishable."
                 ),
                 "battle_index": "Battle 1, 2 and 3 are separate; all later Battles aggregate into 4+.",
                 "command_gained_or_refunded": (
@@ -945,6 +1010,15 @@ class ProgressionTelemetry:
             for player in range(2)
         ]
 
+        battle_passes = [
+            row for row in self._pass_contexts
+            if row["game"] == self._game_index and row["battle"] == before.battle
+        ]
+        first_pass_row = next(
+            (row for row in battle_passes if row["first_pass"]),
+            None,
+        )
+
         record = {
             "game": self._game_index,
             "battle": int(before.battle),
@@ -956,10 +1030,32 @@ class ProgressionTelemetry:
             "incomplete_at_end": incomplete_end,
             "complete_at_end": complete_end,
             "mean_total_occupied": mean(sum(row["occupied"]) for row in rows),
+            "mean_occupied_per_player": [
+                mean(row["occupied"][player] for row in rows)
+                for player in range(2)
+            ],
             "mean_active_fronts": mean(row["active_fronts"] for row in rows),
             "mean_contested_fronts": mean(row["contested_fronts"] for row in rows),
+            "mean_uncontested_fronts": mean(row["uncontested_fronts"] for row in rows),
+            "mean_empty_fronts": mean(row["empty_fronts"] for row in rows),
+            "mean_tied_fronts": mean(row["tied_fronts"] for row in rows),
+            "mean_controlled_fronts": [
+                mean(row["controlled_fronts"][player] for row in rows)
+                for player in range(2)
+            ],
             "mean_complete_formations": mean(sum(row["complete_formations"]) for row in rows),
             "mean_partial_formations": mean(sum(row["partial_formations"]) for row in rows),
+            "mean_total_strength_per_player": [
+                mean(row["total_strength"][player] for row in rows)
+                for player in range(2)
+            ],
+            "mean_strength_by_front": [
+                [
+                    mean(row["strength_by_front"][player][front] for row in rows)
+                    for front in range(4)
+                ]
+                for player in range(2)
+            ],
             "mean_strength_concentration": [
                 self._mean_optional([row["strength_concentration"][player] for row in rows])
                 for player in range(2)
@@ -998,6 +1094,30 @@ class ProgressionTelemetry:
                 bool(row["constraint_active"]) for row in rows
             ),
             "cards_played": self._battle_events["cards_played"],
+            "pass_events": len(battle_passes),
+            "first_pass_command": (
+                None if first_pass_row is None else first_pass_row["command_remaining"]
+            ),
+            "first_pass_unplayable_cards": (
+                None
+                if first_pass_row is None
+                else first_pass_row.get("unplayable_cards_remaining", 0)
+            ),
+            "first_pass_legal_alternatives": (
+                None
+                if first_pass_row is None
+                else first_pass_row.get("legal_alternatives", 0)
+            ),
+            "first_pass_playable_card_actions": (
+                None
+                if first_pass_row is None
+                else first_pass_row.get("playable_card_actions", 0)
+            ),
+            "first_pass_maneuver_actions": (
+                None
+                if first_pass_row is None
+                else first_pass_row.get("maneuver_actions", 0)
+            ),
             "free_maneuvers": self._battle_events["free_maneuvers"],
             "command_gained": self._battle_events["command_gained"],
         }
@@ -1268,6 +1388,21 @@ class ProgressionTelemetry:
                 "constraint_active_decisions": self._mean_field(
                     rows, "constraint_active_decisions"
                 ),
+                "first_pass_command": self._mean_optional([
+                    row["first_pass_command"] for row in rows
+                ]),
+                "first_pass_unplayable_cards": self._mean_optional([
+                    row["first_pass_unplayable_cards"] for row in rows
+                ]),
+                "first_pass_legal_alternatives": self._mean_optional([
+                    row["first_pass_legal_alternatives"] for row in rows
+                ]),
+                "first_pass_playable_card_actions": self._mean_optional([
+                    row["first_pass_playable_card_actions"] for row in rows
+                ]),
+                "first_pass_maneuver_actions": self._mean_optional([
+                    row["first_pass_maneuver_actions"] for row in rows
+                ]),
                 "free_maneuvers": self._mean_field(rows, "free_maneuvers"),
                 "command_gained": self._mean_field(rows, "command_gained"),
                 "eventual_completion_rate_for_forces_deployed": self._ratio(

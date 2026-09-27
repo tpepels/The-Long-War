@@ -364,10 +364,20 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
         "incomplete_at_end": [1, 1],
         "complete_at_end": [1, 0],
         "mean_total_occupied": 3.0,
+        "mean_occupied_per_player": [1.5, 1.5],
         "mean_active_fronts": 2.0,
         "mean_contested_fronts": 1.0,
+        "mean_uncontested_fronts": 1.0,
+        "mean_empty_fronts": 2.0,
+        "mean_tied_fronts": 1.0,
+        "mean_controlled_fronts": [1.5, 1.0],
         "mean_complete_formations": 1.0,
         "mean_partial_formations": 2.0,
+        "mean_total_strength_per_player": [8.0, 7.0],
+        "mean_strength_by_front": [
+            [3.0, 2.0, 2.0, 1.0],
+            [2.0, 2.0, 2.0, 1.0],
+        ],
         "mean_strength_concentration": [0.6, 0.7],
         "front_control_changes": 2,
         "control_balance_changes": 1,
@@ -389,6 +399,12 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
         "constraint_source_decisions": 0,
         "constraint_active_decisions": 0,
         "cards_played": 5,
+        "pass_events": 2,
+        "first_pass_command": 6,
+        "first_pass_unplayable_cards": 2,
+        "first_pass_legal_alternatives": 3,
+        "first_pass_playable_card_actions": 2,
+        "first_pass_maneuver_actions": 1,
         "free_maneuvers": 1,
         "command_gained": 1,
     }
@@ -401,6 +417,8 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
     assert by_battle["3"]["battles"] == 1
     assert by_battle["4+"]["battles"] == 2
     assert by_battle["1"]["eventual_completion_rate_for_forces_deployed"] is None
+    assert by_battle["1"]["first_pass_unplayable_cards"] == pytest.approx(2.0)
+    assert by_battle["1"]["command_start"] == pytest.approx(20.0)
 
 
 
@@ -485,3 +503,85 @@ def test_reshuffled_card_is_counted_only_when_that_discard_copy_reappears() -> N
     cards = progression.summary()["cards"]
     assert cards["the-fifty-men"]["drawn_after_reshuffle"] == 1
     assert cards["the-vardai"]["drawn_after_reshuffle"] == 0
+
+
+
+def test_snapshot_cards_played_so_far_is_pre_action_count() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=613, first_player=0)
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+
+    play = next(
+        action for action in engine.legal_actions(state)
+        if isinstance(action, PlayForce)
+    )
+    progression.before_action(engine, state, 0, play, [play])
+    assert progression._battle_snapshots[-1]["cards_played_so_far"] == 0
+    assert progression._battle_events["cards_played"] == 1
+
+    progression.before_action(engine, state, 0, Pass(), [Pass()])
+    assert progression._battle_snapshots[-1]["cards_played_so_far"] == 1
+
+
+def test_progression_exposes_per_player_battlefield_distributions() -> None:
+    progression = ProgressionTelemetry()
+    progression._battle_records.append({
+        "battle": 1,
+        "actions": 4,
+        "forces_played": 2,
+        "bonds_played": 1,
+        "names_played": 1,
+        "completed_formations": 1,
+        "incomplete_at_end": [1, 0],
+        "complete_at_end": [1, 1],
+        "mean_total_occupied": 3.0,
+        "mean_occupied_per_player": [2.0, 1.0],
+        "mean_active_fronts": 3.0,
+        "mean_contested_fronts": 1.0,
+        "mean_uncontested_fronts": 2.0,
+        "mean_empty_fronts": 1.0,
+        "mean_tied_fronts": 1.0,
+        "mean_controlled_fronts": [2.0, 1.0],
+        "mean_complete_formations": 2.0,
+        "mean_partial_formations": 1.0,
+        "mean_total_strength_per_player": [9.0, 7.0],
+        "mean_strength_by_front": [
+            [4.0, 3.0, 2.0, 0.0],
+            [3.0, 2.0, 2.0, 0.0],
+        ],
+        "mean_strength_concentration": [4 / 9, 3 / 7],
+        "front_control_changes": 2,
+        "control_balance_changes": 1,
+        "lead_changes": 1,
+        "maximum_abs_margin": 5,
+        "midpoint_abs_margin": 2,
+        "final_abs_margin": 3,
+        "durable_lead_action": 2,
+        "actions_remaining_after_durable_lead": 2,
+        "no_control_change_after_midpoint": False,
+        "command_start": [20, 20],
+        "command_spent": [12, 11],
+        "command_refunded": [0, 0],
+        "command_remaining": [8, 9],
+        "next_battle_command": [13, 14],
+        "hand_remaining": [5, 5],
+        "deck_remaining": [10, 9],
+        "mean_legal_actions": 6.0,
+        "constraint_source_decisions": 0,
+        "constraint_active_decisions": 0,
+        "cards_played": 5,
+        "pass_events": 2,
+        "first_pass_command": 8,
+        "first_pass_unplayable_cards": 1,
+        "first_pass_legal_alternatives": 2,
+        "first_pass_playable_card_actions": 1,
+        "first_pass_maneuver_actions": 1,
+        "free_maneuvers": 0,
+        "command_gained": 0,
+    })
+
+    battlefield = progression.summary()["battlefield_development"]
+    assert battlefield["occupied_positions_per_player"]["median"] == pytest.approx(1.5)
+    assert battlefield["empty_fronts"]["median"] == pytest.approx(1.0)
+    assert battlefield["total_strength_per_player"]["median"] == pytest.approx(8.0)
