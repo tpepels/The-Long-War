@@ -225,57 +225,6 @@ cdef void _fe_discard_incomplete_formations(FastEngine self, FastState state) no
             ) and not _fe_slot_complete(self, state, slot):
                 _fe_discard_slot_components(self, state, player, slot)
 
-cdef void _fe_resolve_retreats(
-    FastEngine self,
-    FastState state,
-    int losses0,
-    int losses1,
-    int drive0,
-    int drive1,
-) except *:
-    cdef int player, front, front_slot, rear_slot
-    cdef bint lost, protected_frontline
-    for player in range(2):
-        for front in range(4):
-            lost = (
-                (player == 0 and (losses0 & (1 << front)) != 0)
-                or (player == 1 and (losses1 & (1 << front)) != 0)
-            )
-            if not lost:
-                continue
-            front_slot = slot_index(player, front, 0)
-            rear_slot = slot_index(player, front, 1)
-
-            # Rear is driven off first, then a surviving Frontline Named
-            # Formation retreats into the now-empty Rear. House of Reed
-            # replaces that Retreat: it is driven off, but the Frontline
-            # Named Formation stays where it is.
-            protected_frontline = (
-                _fe_slot_complete(self, state, front_slot)
-                and state.subject[rear_slot] >= 0
-                and self.rear_force_prevents_frontline_retreat[
-                    state.subject[rear_slot]
-                ]
-            )
-            if _fe_slot_complete(self, state, rear_slot):
-                _fe_drive_off_slot(self, state, player, rear_slot)
-            if _fe_slot_complete(self, state, front_slot):
-                if protected_frontline:
-                    continue
-                if (
-                    (player == 0 and (drive0 & (1 << front)) != 0)
-                    or (player == 1 and (drive1 & (1 << front)) != 0)
-                ):
-                    _fe_drive_off_slot(self, state, player, front_slot)
-                else:
-                    _fe_retreat_slot(self, state, player, front_slot, rear_slot)
-                    if _fe_front_has_capture_bond(self, 
-                        state, 1 - player, front
-                    ):
-                        _fe_return_bond_to_hand_from_slot(self, 
-                            state, player, rear_slot
-                        )
-
 cdef void _fe_discard_battle_stratagems(FastEngine self, FastState state) noexcept:
     cdef int player, card
     for player in range(2):
