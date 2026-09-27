@@ -145,9 +145,13 @@ def test_print_renderer_preserves_catalogue_content_and_hero_modes() -> None:
             assert not output.all("strength")
         if isinstance(card.get("command_cost"), int):
             assert output.one("card-meta") in output.one("command-cost")["ancestors"]
+            assert output.one("command-cost") in output.one("command-seal")["ancestors"]
             assert re.findall(r"-?\d+", output.one("command-cost")["text"]) == [str(card["command_cost"])]
         else:
             assert not output.all("command-cost")
+        if not card["rule_blocks"] and not card.get("text"):
+            assert not output.all("rule-block")
+            assert "No special rules" not in output.one("card-rule")["text"]
 
 
 def test_print_renderer_keeps_zero_negative_values_and_escapes_content() -> None:

@@ -10,16 +10,18 @@ margins. Print at **100% / actual size**, without browser headers or footers.
 The border is the cutting guide. These are home-print sheets, without commercial
 bleed or crop marks. Enable background graphics for the intended paper tints.
 
-Heroes use a single bronze frame, a full-width title, and equal Force/Name
-strength compartments. Corresponding rule groups follow the existing explicit
+Heroes use a single bronze frame, a full-width title, and one integrated bronze
+Force/Name strength crest. Corresponding rule groups follow the existing explicit
 FORCE and NAME labels; following trigger blocks stay with their preceding mode.
 No card-specific rules or rewritten game text live in the renderer.
 
-The Command pennant is a vector symbol with a persistent numeric value and an
+Command cost uses a compact double-ring medallion with a dominant numeral and an
 explicit label. EB Garamond provides display type; Gentium Book provides regular,
 bold and italic rules text. Unmodified fonts and their SIL Open Font Licenses are
-bundled under `web/fonts/`. Rules use approximately 9.8 pt text, or 10.6 pt on
-short cards. Long timing labels get their own line. Type names, labels and numbers
+bundled under `web/fonts/`. Rules use approximately 9.7 pt text, tightening only on the densest cards, while
+short cards open up to roughly 10.3 pt. Long titles and timing labels scale or wrap
+without stealing unnecessary rule space. Truly vanilla Forces remain textless; their
+open area is treated as deliberate composition rather than filled with invented copy. Type names, labels and numbers
 remain explicit when printed in grayscale.
 
 ## Verify and export

@@ -23,9 +23,8 @@
   function commandMarkup(card) {
     if (!Number.isInteger(card.command_cost)) return "";
     return '<div class="command-cost" aria-label="Command cost ' + card.command_cost + '">' +
-      '<small>Command</small><span class="command-seal">' +
-      '<svg viewBox="0 0 32 38" aria-hidden="true"><path d="M2 2H30V29L16 36L2 29Z"/></svg>' +
-      '<b>' + card.command_cost + '</b></span></div>';
+      '<small>Command</small><span class="command-seal"><b>' +
+      card.command_cost + '</b></span></div>';
   }
 
   function statsMarkup(card) {
@@ -54,11 +53,11 @@
     // Preserve canonical labels, copy and order. Mode styling follows explicit
     // FORCE / NAME headings, including any following timing/trigger blocks.
     if (!card.rule_blocks?.length) {
-      return window.CardRules.markup(card, format, "<em>No special rules.</em>");
+      return card.text ? window.CardRules.markup(card, format, "") : "";
     }
     const renderBlock = (block) => {
       const rendered = window.CardRules.markup({ ...card, rule_blocks: [block] }, format);
-      return (block.label || "").length > 22
+      return (block.label || "").length > 20
         ? rendered.replace('class="rule-label"', 'class="rule-label rule-label-long"') : rendered;
     };
     if (!card.hero) return card.rule_blocks.map(renderBlock).join("");
@@ -74,19 +73,33 @@
     }).join("");
   }
 
+  function layoutClasses(card) {
+    const blocks = card.rule_blocks || [];
+    const rulesLength = blocks.length
+      ? blocks.reduce((length, block) =>
+          length + (block.label || "").length + (block.text || "").length, 0)
+      : (card.text || "").length;
+    const titleLength = String(card.title || "").length;
+    return [
+      titleLength >= 33 ? "title-very-long" : titleLength >= 25 ? "title-long" : "",
+      rulesLength >= 310 ? "card-very-dense" : rulesLength >= 235 ? "card-dense" : "",
+      !card.hero && blocks.length <= 2 && rulesLength <= 130 ? "card-brief" : "",
+    ].filter(Boolean);
+  }
+
   function markup(card, deckLabel) {
     const empty = !card.rule_blocks?.length && !card.text;
-    const blocks = card.rule_blocks || [];
-    const rulesLength = blocks.length ? blocks.reduce((length, block) => length + block.text.length, 0) : (card.text || "").length;
-    const brief = !card.hero && blocks.length <= 2 && rulesLength <= 130;
+    const layout = layoutClasses(card);
+    const brief = layout.includes("card-brief");
     return '<article class="game-card card-' + esc(card.type) +
-      (card.hero ? ' card-hero' : '') + (empty ? ' card-vanilla' : '') + (brief ? ' card-brief' : '') +
+      (card.hero ? ' card-hero' : '') + (empty ? ' card-vanilla' : '') +
+      (layout.length ? ' ' + layout.join(' ') : '') +
       (deckLabel ? ' deck-card' : '') + '" data-card-id="' + esc(card.id) + '">' +
       '<div class="card-meta">' + typeMarkup(card) + commandMarkup(card) + '</div>' +
       '<h2 class="card-title">' + esc(card.title) + '</h2>' +
       statsMarkup(card) + propertiesMarkup(card) +
       '<div class="card-rule">' + rulesMarkup(card) + '</div>' +
-      (brief ? '<div class="card-ornament" aria-hidden="true"><svg viewBox="0 0 100 24"><path d="M0 12H35M65 12H100M50 7L55 12L50 17L45 12Z"/></svg></div>' : '') +
+      (brief ? '<div class="card-ornament" aria-hidden="true"><svg viewBox="0 0 120 32"><path d="M2 16H40M80 16H118M60 5L71 16L60 27L49 16Z"/></svg></div>' : '') +
       '<footer class="card-footer"><span>' + (card.unique ? '<em class="unique">Unique</em>' : 'The Long War') +
       '</span><span class="card-id">' + esc(deckLabel || card.id) + '</span></footer></article>';
   }
