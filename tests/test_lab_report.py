@@ -340,6 +340,81 @@ def test_lab_can_promote_observationally_unobserved_card_with_causal_evidence(
     assert card["balance_label"] == "Watch"
     assert card["balance_direction"] == "strong"
 
+def test_broad_counterfactual_is_only_a_screen_until_online_confirmation(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    fingerprint = "current-engine"
+    base_artifacts = {
+        "balance-health.json": {
+            "game_fingerprint": fingerprint,
+            "simulation_variant": standard_variant(),
+            "cards": [{
+                "id": "card-a",
+                "title": "Card A",
+                "balance_level": "green",
+                "balance_label": "Looks healthy",
+                "balance_direction": "neutral",
+                "observed": True,
+            }],
+            "formations": [],
+        },
+        "balance-report.json": {
+            "game_fingerprint": fingerprint,
+            "card_static_marginals": [],
+            "all_static_formations": [],
+        },
+        "counterfactual-balance.json": {
+            "game_fingerprint": fingerprint,
+            "cards": [{
+                "id": "card-a",
+                "samples": 12,
+                "level": "red",
+                "direction": "stronger_than_baseline",
+                "delta_win_probability": 0.2,
+                "ci95": [0.08, 0.3],
+                "confidence_excludes_zero": True,
+            }],
+        },
+    }
+    monkeypatch.setattr(build_lab_report, "ARTIFACTS", tmp_path)
+    monkeypatch.setattr(
+        build_lab_report,
+        "current_game_fingerprint",
+        lambda: fingerprint,
+    )
+    for name, payload in base_artifacts.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+
+    build_lab_report.main()
+    screened = json.loads((tmp_path / "lab-report.json").read_text())["health"]["cards"][0]
+    assert screened["balance_level"] == "yellow"
+    assert screened["balance_evidence_source"] == "heuristic_screen"
+
+    targeted = {
+        "game_fingerprint": fingerprint,
+        "cards": [{
+            "cards": ["card-a"],
+            "confirmation": "confirmed",
+            "online": {
+                "samples": 8,
+                "level": "red",
+                "direction": "stronger_than_baseline",
+                "effect": 0.16,
+                "ci95": [0.04, 0.27],
+            },
+        }],
+    }
+    (tmp_path / "targeted-online-counterfactual.json").write_text(
+        json.dumps(targeted),
+        encoding="utf-8",
+    )
+    build_lab_report.main()
+    confirmed = json.loads((tmp_path / "lab-report.json").read_text())["health"]["cards"][0]
+    assert confirmed["balance_level"] == "red"
+    assert confirmed["balance_evidence_source"] == "online_mccfr"
+
+
 def test_lab_uses_aggregate_selfplay_for_matchup_and_detailed_progression_source(
     tmp_path,
     monkeypatch,
