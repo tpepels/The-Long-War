@@ -6,7 +6,13 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Protocol
 
-from .decks import NON_UNIQUE_COPY_LIMIT, UNIQUE_COPY_LIMIT
+from .decks import (
+    MINIMUM_DECK_SIZE,
+    MINIMUM_FORCE_COUNT,
+    MINIMUM_PRINTED_NAME_COUNT,
+    NON_UNIQUE_COPY_LIMIT,
+    UNIQUE_COPY_LIMIT,
+)
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState
 
@@ -103,8 +109,11 @@ class CardPoolDeckPrior:
         card_weights: dict[str, float] | None = None,
     ):
         self.engine = engine
-        if deck_size < 1:
-            raise ValueError("deck_size must be positive")
+        if deck_size < MINIMUM_DECK_SIZE:
+            raise ValueError(
+                f"deck_size must be at least {MINIMUM_DECK_SIZE} "
+                "for a canonical legal deck"
+            )
         if non_unique_copy_limit < 1 or unique_copy_limit < 1:
             raise ValueError("copy limits must be positive")
         self.deck_size = deck_size
@@ -121,8 +130,14 @@ class CardPoolDeckPrior:
         *,
         hidden_requirements: HiddenRequirements = (),
     ) -> list[str]:
-        if any(card not in self.engine.cards or count < 0 for card, count in required.items()):
-            raise BeliefStateError("Observed cards contain unknown IDs or negative counts")
+        del hidden_requirements
+        if any(
+            card not in self.engine.cards or count < 0
+            for card, count in required.items()
+        ):
+            raise BeliefStateError(
+                "Observed cards contain unknown IDs or negative counts"
+            )
         if sum(required.values()) > self.deck_size:
             raise BeliefStateError("Observed cards exceed deck size")
 
@@ -140,7 +155,8 @@ class CardPoolDeckPrior:
             )
             if required[card_id] > maximum:
                 raise BeliefStateError(
-                    f"Observed {required[card_id]} copies of {card_id}, maximum is {maximum}"
+                    f"Observed {required[card_id]} copies of {card_id}, "
+                    f"maximum is {maximum}"
                 )
             capacities[card_id] = maximum - required[card_id]
 
@@ -149,30 +165,67 @@ class CardPoolDeckPrior:
             for card_id, count in required.items()
             for _ in range(count)
         ]
-
         slots = self.deck_size - len(deck)
-        if sum(capacities.values()) < slots:
+
+        required_forces = sum(
+            count
+            for card_id, count in required.items()
+            if self.engine.cards[card_id]["type"] == "force"
+        )
+        required_names = sum(
+            count
+            for card_id, count in required.items()
+            if self.engine.cards[card_id]["type"] == "name"
+        )
+        force_needed = max(0, MINIMUM_FORCE_COUNT - required_forces)
+        name_needed = max(
+            0,
+            MINIMUM_PRINTED_NAME_COUNT - required_names,
+        )
+        if force_needed + name_needed > slots:
             raise BeliefStateError(
-                "Card pool cannot construct a legal deck consistent with observations"
+                "Observed cards leave too few hidden slots to satisfy "
+                "canonical Force/Name deck minimums"
             )
 
-        for _ in range(slots):
+        def draw_one(card_type: str | None = None) -> None:
             candidates = [
-                card_id for card_id, capacity in capacities.items()
+                card_id
+                for card_id, capacity in capacities.items()
                 if capacity > 0
+                and (
+                    card_type is None
+                    or self.engine.cards[card_id]["type"] == card_type
+                )
             ]
             weights = [
-                capacities[card_id] * self.card_weights.get(card_id, 1.0)
+                capacities[card_id]
+                * self.card_weights.get(card_id, 1.0)
                 for card_id in candidates
             ]
             if not candidates or sum(weights) <= 0:
-                raise BeliefStateError("No legal card remains for deck prior")
+                label = card_type or "legal"
+                raise BeliefStateError(
+                    f"No weighted {label} card remains for deck prior"
+                )
             selected = rng.choices(candidates, weights=weights, k=1)[0]
             deck.append(selected)
             capacities[selected] -= 1
 
+        for _ in range(force_needed):
+            draw_one("force")
+        for _ in range(name_needed):
+            draw_one("name")
+        while len(deck) < self.deck_size:
+            draw_one()
+
         rng.shuffle(deck)
-        self.engine.validate_deck(deck)
+        try:
+            self.engine.validate_deck(deck)
+        except ValueError as exc:
+            raise BeliefStateError(
+                f"Deck prior produced an invalid deck: {exc}"
+            ) from exc
         return deck
 
 
