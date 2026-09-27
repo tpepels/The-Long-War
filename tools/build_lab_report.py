@@ -166,6 +166,7 @@ def main() -> None:
     for card in health.get("cards", []):
         card["static"] = static_by_card.get(card["id"])
         card["observational_balance_level"] = card["balance_level"]
+        card["balance_evidence_source"] = "observational"
         causal = causal_by_card.get(card["id"])
         card["counterfactual"] = causal
         card["targeted_online"] = targeted_by_card.get(card["id"])
@@ -191,6 +192,7 @@ def main() -> None:
                 card["balance_level"] = "yellow"
                 card["balance_label"] = "Watch"
                 card["balance_direction"] = "heuristic_counterfactual_screen"
+                card["balance_evidence_source"] = "heuristic_screen"
 
         online = card["targeted_online"]
         if online is not None:
@@ -224,6 +226,7 @@ def main() -> None:
                     if confirmation == "reversed"
                     else direction
                 )
+                card["balance_evidence_source"] = "online_mccfr"
             elif (
                 confirmation in {"direction_agrees", "inconclusive"}
                 and causal is not None
@@ -234,6 +237,7 @@ def main() -> None:
                 card["balance_level"] = "yellow"
                 card["balance_label"] = "Watch"
                 card["balance_direction"] = "strategic_validation_inconclusive"
+                card["balance_evidence_source"] = "heuristic_screen"
 
     matchup_files = {
         "heuristic_selfplay": "heuristic-selfplay.json",
