@@ -279,7 +279,7 @@ def _play_focal_outcome(
     *,
     agent_name: str,
     max_actions: int = 500,
-) -> int:
+) -> int | None:
     if agent_name not in {"heuristic", "random"}:
         raise ValueError(
             "Counterfactual experiments currently support heuristic or random "
@@ -327,9 +327,7 @@ def _play_focal_outcome(
     actions = 0
     while state.phase is not Phase.COMPLETE:
         if actions >= max_actions:
-            raise RuntimeError(
-                f"Counterfactual sample {sample.sample_id} exceeded {max_actions} actions"
-            )
+            return None
         actor = state.active_player
         action = agents[actor].choose(engine, state)
         engine.apply(state, action)
@@ -476,8 +474,13 @@ def run_counterfactual_card_sweep(
 
     Each card is evaluated in its own legal paired contexts. This preserves
     the causal replacement interpretation without pretending the entire card
-    pool can coexist in one canonical-size deck. Pair/triple interactions require an explicit
-    compatible subset and remain the responsibility of the grouped runner.
+    pool can coexist in one canonical-size deck. Pair/triple interactions
+    require an explicit compatible subset and remain the responsibility of
+    the grouped runner.
+
+    A matched sample is decisive only when both the original and replacement
+    condition finish before the action horizon. Censored conditions remain
+    reported as attempted evidence but never enter the paired effect estimate.
     """
     canonical = card_index(card_data)
     selected = (
@@ -493,6 +496,9 @@ def run_counterfactual_card_sweep(
 
     rows: list[dict[str, Any]] = []
     total_matches = 0
+    censored_matches = 0
+    decisive_paired_samples = 0
+    censored_paired_samples = 0
     reports: list[dict[str, Any]] = []
     for index, card_id in enumerate(selected):
         report = run_counterfactual_experiment(
@@ -507,16 +513,32 @@ def run_counterfactual_card_sweep(
             card_ids=[card_id],
         )
         reports.append(report)
-        rows.extend({**row, "sample_generation": report["sample_generation"]} for row in report["cards"])
+        rows.extend(
+            {**row, "sample_generation": report["sample_generation"]}
+            for row in report["cards"]
+        )
         total_matches += int(report["total_matches"])
+        censored_matches += int(report.get("censored_matches", 0))
+        decisive_paired_samples += sum(
+            int(row.get("samples", 0))
+            for row in report["cards"]
+        )
+        censored_paired_samples += sum(
+            int(row.get("censored_pairs", 0))
+            for row in report["cards"]
+        )
 
     rows.sort(
         key=lambda row: (
-            -abs(row["delta_win_probability"]),
+            row.get("delta_win_probability") is None,
+            -abs(float(row["delta_win_probability"]))
+            if row.get("delta_win_probability") is not None
+            else 0.0,
             row["title"],
         )
     )
     first = reports[0] if reports else None
+    attempted_paired_samples = decisive_paired_samples + censored_paired_samples
     return {
         "schema_version": 1,
         "method": "paired_common_random_numbers_per_card_context_sweep",
@@ -529,6 +551,18 @@ def run_counterfactual_card_sweep(
         "samples_per_card": contexts * games_per_context,
         "conditions_evaluated_per_sample": 2,
         "total_matches": total_matches,
+        "censored_matches": censored_matches,
+        "decisive_matches": total_matches - censored_matches,
+        "match_censor_rate": (
+            censored_matches / total_matches if total_matches else 0.0
+        ),
+        "decisive_paired_samples": decisive_paired_samples,
+        "censored_paired_samples": censored_paired_samples,
+        "pair_censor_rate": (
+            censored_paired_samples / attempted_paired_samples
+            if attempted_paired_samples
+            else 0.0
+        ),
         "baseline_definition": first["baseline_definition"] if first else {},
         "pairing": first["pairing"] if first else {},
         "cards": rows,
@@ -539,6 +573,11 @@ def run_counterfactual_card_sweep(
                 "base outcome - same legal deck context with the focal card "
                 "replaced by its matched baseline"
             ),
+            "censoring": (
+                "A paired card sample is excluded from the effect estimate if "
+                "either matched condition reaches the action horizon. Censored "
+                "matches and pairs remain reported explicitly."
+            ),
             "pair_interaction": (
                 "Not evaluated in full-pool sweep; select a compatible card "
                 "subset to evaluate interactions."
@@ -547,7 +586,11 @@ def run_counterfactual_card_sweep(
                 "Not evaluated in full-pool sweep; select a compatible card "
                 "subset to evaluate interactions."
             ),
-            "ci95": "paired percentile bootstrap over per-card matched samples; bounded Hoeffding interval when observed contrasts are constant",
+            "ci95": (
+                "paired percentile bootstrap over decisive per-card matched "
+                "samples; bounded Hoeffding interval when observed contrasts "
+                "are constant"
+            ),
             "interpretation": (
                 "Each card is tested in legal contexts containing that card. "
                 "Effects are policy- and context-distribution-specific, not "
@@ -629,15 +672,13 @@ def run_counterfactual_experiment(
     required_conditions.update(frozenset(pair) for pair in pair_ids)
     if include_legend_triples:
         required_conditions.update(frozenset(triple) for triple in triple_ids)
-        # Triple contrasts require every lower-order intervention even when
-        # the caller does not request pair rows in the output.
         required_conditions.update(
             frozenset(pair)
             for triple in triple_ids
             for pair in itertools.combinations(triple, 2)
         )
 
-    per_condition: dict[frozenset[str], list[int]] = {
+    per_condition: dict[frozenset[str], list[int | None]] = {
         condition: [] for condition in required_conditions
     }
 
@@ -655,33 +696,69 @@ def run_counterfactual_experiment(
             )
             per_condition[condition].append(outcome)
 
+    total_matches = len(samples) * len(required_conditions)
+    censored_matches = sum(
+        value is None
+        for outcomes in per_condition.values()
+        for value in outcomes
+    )
     base = per_condition[frozenset()]
+
+    def complete_rows(*series: list[int | None]) -> list[tuple[int, ...]]:
+        return [
+            tuple(int(value) for value in values)
+            for values in zip(*series)
+            if all(value is not None for value in values)
+        ]
+
+    def empty_effect_fields(field: str) -> dict[str, Any]:
+        return {
+            field: None,
+            "ci95": [None, None],
+            "ci_method": None,
+            "standard_error": None,
+            "samples": 0,
+            "level": "unobserved",
+            "direction": "unresolved",
+            "confidence_excludes_zero": False,
+        }
 
     cards: list[dict[str, Any]] = []
     for index, card_id in enumerate(selected_cards):
         replaced = per_condition[frozenset([card_id])]
-        differences = [
-            original - control
-            for original, control in zip(base, replaced)
-        ]
-        effect = estimate(
-            differences,
-            seed=seed + 10_000 + index,
-            bootstrap_resamples=bootstrap_resamples,
-        )
-        row = {
+        paired = complete_rows(base, replaced)
+        differences = [original - control for original, control in paired]
+        if differences:
+            effect = estimate(
+                differences,
+                seed=seed + 10_000 + index,
+                bootstrap_resamples=bootstrap_resamples,
+            )
+            effect_fields = {
+                "delta_win_probability": effect.mean,
+                "ci95": list(effect.ci95),
+                "ci_method": effect.ci_method,
+                "standard_error": effect.standard_error,
+                "samples": effect.samples,
+                **_severity(effect),
+            }
+        else:
+            effect_fields = empty_effect_fields("delta_win_probability")
+        cards.append({
             "id": card_id,
             "title": canonical_cards[card_id]["title"],
             "type": canonical_cards[card_id]["type"],
             "baseline_id": baseline_id(card_id),
             "baseline": baseline_card(canonical_cards[card_id]),
-            "delta_win_probability": effect.mean,
-            "ci95": list(effect.ci95),
-            "ci_method": effect.ci_method,
-            "standard_error": effect.standard_error,
-            "samples": effect.samples,
-            "original_wins": sum(base),
-            "replacement_wins": sum(replaced),
+            **effect_fields,
+            "attempted_samples": len(samples),
+            "censored_pairs": len(samples) - len(paired),
+            "paired_censor_rate": (
+                (len(samples) - len(paired)) / len(samples)
+                if samples else 0.0
+            ),
+            "original_wins": sum(original for original, _control in paired),
+            "replacement_wins": sum(control for _original, control in paired),
             "discordant_original_better": sum(
                 1 for value in differences if value > 0
             ),
@@ -689,25 +766,35 @@ def run_counterfactual_experiment(
                 1 for value in differences if value < 0
             ),
             "ties": sum(1 for value in differences if value == 0),
-            **_severity(effect),
-        }
-        cards.append(row)
+        })
 
     pairs: list[dict[str, Any]] = []
     for index, (a, b) in enumerate(pair_ids):
         ra = per_condition[frozenset([a])]
         rb = per_condition[frozenset([b])]
         rab = per_condition[frozenset([a, b])]
+        paired = complete_rows(base, ra, rb, rab)
         values = [
             pair_contrast(v0, va, vb, vab)
-            for v0, va, vb, vab in zip(base, ra, rb, rab)
+            for v0, va, vb, vab in paired
         ]
-        effect = estimate(
-            values,
-            seed=seed + 20_000 + index,
-            bootstrap_resamples=bootstrap_resamples,
-            contrast_bound=2.0,
-        )
+        if values:
+            effect = estimate(
+                values,
+                seed=seed + 20_000 + index,
+                bootstrap_resamples=bootstrap_resamples,
+                contrast_bound=2.0,
+            )
+            effect_fields = {
+                "interaction_delta": effect.mean,
+                "ci95": list(effect.ci95),
+                "ci_method": effect.ci_method,
+                "standard_error": effect.standard_error,
+                "samples": effect.samples,
+                **_severity(effect),
+            }
+        else:
+            effect_fields = empty_effect_fields("interaction_delta")
         pairs.append({
             "cards": [a, b],
             "title": f"{canonical_cards[a]['title']} × {canonical_cards[b]['title']}",
@@ -715,12 +802,9 @@ def run_counterfactual_experiment(
                 canonical_cards[a]["type"],
                 canonical_cards[b]["type"],
             ],
-            "interaction_delta": effect.mean,
-            "ci95": list(effect.ci95),
-            "ci_method": effect.ci_method,
-            "standard_error": effect.standard_error,
-            "samples": effect.samples,
-            **_severity(effect),
+            **effect_fields,
+            "attempted_samples": len(samples),
+            "censored_pairs": len(samples) - len(paired),
         })
 
     triples: list[dict[str, Any]] = []
@@ -732,51 +816,51 @@ def run_counterfactual_experiment(
         rac = per_condition[frozenset([a, c])]
         rbc = per_condition[frozenset([b, c])]
         rabc = per_condition[frozenset([a, b, c])]
+        paired = complete_rows(base, ra, rb, rc, rab, rac, rbc, rabc)
         values = [
             triple_contrast(v0, va, vb, vc, vab, vac, vbc, vabc)
-            for v0, va, vb, vc, vab, vac, vbc, vabc in zip(
-                base, ra, rb, rc, rab, rac, rbc, rabc
-            )
+            for v0, va, vb, vc, vab, vac, vbc, vabc in paired
         ]
-        effect = estimate(
-            values,
-            seed=seed + 30_000 + index,
-            bootstrap_resamples=bootstrap_resamples,
-            contrast_bound=4.0,
-        )
+        if values:
+            effect = estimate(
+                values,
+                seed=seed + 30_000 + index,
+                bootstrap_resamples=bootstrap_resamples,
+                contrast_bound=4.0,
+            )
+            effect_fields = {
+                "interaction_delta": effect.mean,
+                "ci95": list(effect.ci95),
+                "ci_method": effect.ci_method,
+                "standard_error": effect.standard_error,
+                "samples": effect.samples,
+                **_severity(effect),
+            }
+        else:
+            effect_fields = empty_effect_fields("interaction_delta")
         triples.append({
             "cards": [a, b, c],
             "title": (
-                f"{canonical_cards[a]['title']} — "
-                f"{canonical_cards[b]['title']} — "
+                f"{canonical_cards[a]['title']} - "
+                f"{canonical_cards[b]['title']} - "
                 f"{canonical_cards[c]['title']}"
             ),
-            "interaction_delta": effect.mean,
-            "ci95": list(effect.ci95),
-            "ci_method": effect.ci_method,
-            "standard_error": effect.standard_error,
-            "samples": effect.samples,
-            **_severity(effect),
+            **effect_fields,
+            "attempted_samples": len(samples),
+            "censored_pairs": len(samples) - len(paired),
         })
 
-    cards.sort(
-        key=lambda row: (
-            -abs(row["delta_win_probability"]),
-            row["title"],
+    def effect_sort_key(row: dict[str, Any], field: str) -> tuple[bool, float, str]:
+        value = row.get(field)
+        return (
+            value is None,
+            -abs(float(value)) if value is not None else 0.0,
+            str(row["title"]),
         )
-    )
-    pairs.sort(
-        key=lambda row: (
-            -abs(row["interaction_delta"]),
-            row["title"],
-        )
-    )
-    triples.sort(
-        key=lambda row: (
-            -abs(row["interaction_delta"]),
-            row["title"],
-        )
-    )
+
+    cards.sort(key=lambda row: effect_sort_key(row, "delta_win_probability"))
+    pairs.sort(key=lambda row: effect_sort_key(row, "interaction_delta"))
+    triples.sort(key=lambda row: effect_sort_key(row, "interaction_delta"))
 
     return {
         "schema_version": 1,
@@ -789,7 +873,12 @@ def run_counterfactual_experiment(
         "sample_generation": {"seed": seed, "required_cards": selected_cards},
         "samples": len(samples),
         "conditions_evaluated_per_sample": len(required_conditions),
-        "total_matches": len(samples) * len(required_conditions),
+        "total_matches": total_matches,
+        "decisive_matches": total_matches - censored_matches,
+        "censored_matches": censored_matches,
+        "match_censor_rate": (
+            censored_matches / total_matches if total_matches else 0.0
+        ),
         "baseline_definition": {
             "force": "Vanilla Force, 4 Strength",
             "hero": "Matched Hero chassis: printed Force/Name Strength, Command cost, uniqueness and dual-mode status preserved; special rules removed",
@@ -812,7 +901,12 @@ def run_counterfactual_experiment(
             "card_effect": "base outcome - same deck with one copy replaced by its matched baseline",
             "pair_interaction": "f(AB)-f(A0)-f(0B)+f(00)",
             "triple_interaction": "third-order factorial contrast over original/baseline states",
-            "ci95": "paired percentile bootstrap over per-sample contrasts; bounded Hoeffding interval when observed contrasts are constant",
+            "censoring": (
+                "A paired contrast is estimated only when every intervention "
+                "condition required for that contrast finishes before the action "
+                "horizon. Censored conditions remain counted in the report."
+            ),
+            "ci95": "paired percentile bootstrap over decisive per-sample contrasts; bounded Hoeffding interval when observed contrasts are constant",
             "uncertainty_limits": "Intervals are unadjusted for multiple comparisons and condition on the generated deck contexts; targeted reuse of those contexts is not an independent replication.",
             "interpretation": (
                 "Effects are causal for the evaluated policy and generated deck-context "
@@ -820,3 +914,4 @@ def run_counterfactual_experiment(
             ),
         },
     }
+
