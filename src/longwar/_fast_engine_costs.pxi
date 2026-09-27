@@ -24,7 +24,7 @@ cdef inline int _fe_local_front_discount_fast(
             )
         if (
             self.first_front_card_battle_discount_name[name]
-            and self.slot_complete(state, slot)
+            and _fe_slot_complete(self, state, slot)
             and not (state.cards_played_this_battle_front_mask[player] & bit)
         ):
             discount = max(
@@ -60,7 +60,7 @@ cdef inline int _fe_adjacent_discount_fast(
     cdef int local, slot, front, name, discount = 0
     for local in range(8):
         slot = player * 8 + local
-        if not self.slot_complete(state, slot):
+        if not _fe_slot_complete(self, state, slot):
             continue
         front = local >> 1
         if abs(front - target_front) != 1:
@@ -103,7 +103,7 @@ cdef inline int _fe_command_cost_fast(
             if (
                 card >= 0
                 and self.first_maneuver_free[card]
-                and self.adjacent_hero_formation(
+                and _fe_adjacent_hero_formation(self, 
                     state, player, action_pos(action)
                 )
             ):
@@ -112,7 +112,7 @@ cdef inline int _fe_command_cost_fast(
             if (
                 card >= 0
                 and self.first_maneuver_free_empty_front[card]
-                and self.player_has_empty_front(state, player)
+                and _fe_player_has_empty_front(self, state, player)
             ):
                 return 0
         strat = state.stratagem[player]
@@ -121,7 +121,7 @@ cdef inline int _fe_command_cost_fast(
         if (
             strat >= 0
             and self.strat_directional_maneuver[strat]
-            and self.slot_complete(state, action_pos(action))
+            and _fe_slot_complete(self, state, action_pos(action))
         ):
             if (
                 state.stratagem_direction[player] == 1
@@ -170,15 +170,15 @@ cdef inline int _fe_command_cost_fast(
     if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
         target_front = front_from_slot(pos)
     if kind == TYPE_PLOT or kind == TYPE_SCHEME:
-        discount = self.first_narrative_discount_fast(state, player)
+        discount = _fe_first_narrative_discount_fast(self, state, player)
         if discount:
             cost -= discount
             if cost < 1:
                 cost = 1
     if target_front >= 0:
-        discount = self.adjacent_discount_fast(state, player, target_front)
-        if self.local_front_discount_fast(state, player, target_front) > discount:
-            discount = self.local_front_discount_fast(
+        discount = _fe_adjacent_discount_fast(self, state, player, target_front)
+        if _fe_local_front_discount_fast(self, state, player, target_front) > discount:
+            discount = _fe_local_front_discount_fast(self, 
                 state, player, target_front
             )
         if kind == TYPE_SUBJECT and rank_from_slot(pos) == 0:
@@ -189,7 +189,7 @@ cdef inline int _fe_command_cost_fast(
                 and self.frontline_force_discount[support] > discount
                 and (
                     not self.frontline_force_discount_requires_named[support]
-                    or self.slot_complete(state, rear)
+                    or _fe_slot_complete(self, state, rear)
                 )
             ):
                 discount = self.frontline_force_discount[support]
@@ -200,7 +200,7 @@ cdef inline int _fe_command_cost_fast(
     return cost
 
 cdef int _fe_command_cost(FastEngine self, FastState state, uint64_t action):
-    return self.command_cost_fast(state, action)
+    return _fe_command_cost_fast(self, state, action)
 
 cdef inline void _fe_spend_command_fast(
     FastEngine self,
@@ -229,7 +229,7 @@ cdef inline int _fe_complete_mask(FastEngine self, FastState state, int player) 
     cdef int local, slot, mask=0
     for local in range(8):
         slot = player * 8 + local
-        if self.slot_complete(state, slot):
+        if _fe_slot_complete(self, state, slot):
             mask |= 1 << local
     return mask
 
@@ -242,7 +242,7 @@ cdef void _fe_recover_recent_link_fast(FastEngine self, FastState state, int pla
         for j in range(i, state.discard_len[player] - 1):
             state.discard[player][j] = state.discard[player][j + 1]
         state.discard_len[player] -= 1
-        self.return_to_hand(state, player, card)
+        _fe_return_to_hand(self, state, player, card)
         return
 
 cdef void _fe_resolve_completion_effect_fast(
@@ -258,15 +258,15 @@ cdef void _fe_resolve_completion_effect_fast(
     effect = self.completion_effect[card]
     amount = self.completion_amount[card]
     if effect == COMPLETE_GAIN_COMMAND:
-        self.gain_command_fast(state, player, amount)
+        _fe_gain_command_fast(self, state, player, amount)
     elif effect == COMPLETE_DRAW:
-        self.queue_battle_draws(state, player, amount)
+        _fe_queue_battle_draws(self, state, player, amount)
     elif effect == COMPLETE_REVEAL_SCHEME:
         enemy_ix = (1 - player) * 4 + front
         if state.scheme[enemy_ix] >= 0:
             state.scheme_revealed[enemy_ix] = 1
     elif effect == COMPLETE_RECOVER_LINK:
-        self.recover_recent_link_fast(state, player)
+        _fe_recover_recent_link_fast(self, state, player)
 
 cdef void _fe_resolve_new_completions_fast(
     FastEngine self,
@@ -275,7 +275,7 @@ cdef void _fe_resolve_new_completions_fast(
     int before_mask,
 ):
     cdef int local, slot, front
-    cdef int after_mask = self.complete_mask(state, player)
+    cdef int after_mask = _fe_complete_mask(self, state, player)
     cdef int new_mask = after_mask & ~before_mask
     if new_mask == 0:
         return
@@ -285,22 +285,22 @@ cdef void _fe_resolve_new_completions_fast(
         slot = player * 8 + local
         front = local >> 1
         state.completion_count_this_battle[player] += 1
-        self.resolve_completion_effect_fast(
+        _fe_resolve_completion_effect_fast(self, 
             state, player, state.subject[slot], front
         )
-        self.resolve_completion_effect_fast(
+        _fe_resolve_completion_effect_fast(self, 
             state, player, state.link[slot], front
         )
-        self.resolve_completion_effect_fast(
+        _fe_resolve_completion_effect_fast(self, 
             state, player, state.name[slot], front
         )
         if state.name[slot] >= 0:
             if self.completion_free_maneuver_self[state.name[slot]]:
-                self.queue_free_maneuver(
+                _fe_queue_free_maneuver(self, 
                     state, player, <uint16_t>(1 << slot), True
                 )
             if self.completion_swap_adjacent[state.name[slot]]:
-                self.enqueue_effect(
+                _fe_enqueue_effect(self, 
                     state,
                     EFFECT_SWAP,
                     player,
@@ -308,17 +308,17 @@ cdef void _fe_resolve_new_completions_fast(
                     -1,
                     -1,
                     <uint16_t>(1 << slot),
-                    self.adjacent_formation_mask(
+                    _fe_adjacent_formation_mask(self, 
                         state, player, slot, False
                     ),
                     EFFECT_OPTIONAL,
                 )
             if self.recover_bond_on_completion_name[state.name[slot]]:
-                self.queue_recover_from_discard(
+                _fe_queue_recover_from_discard(self, 
                     state, player, CARD_LINK, False
                 )
             if self.recover_story_on_completion_name[state.name[slot]]:
-                self.queue_recover_from_discard(
+                _fe_queue_recover_from_discard(self, 
                     state, player, CARD_PLOT, False
                 )
         for other in range((1 - player) * 8, (1 - player) * 8 + 8):
@@ -329,4 +329,4 @@ cdef void _fe_resolve_new_completions_fast(
                 and self.iria_name[state.name[other]]
             ):
                 state.free_maneuver_available[1 - player] = 1
-        self.resolve_named_narratives(state, player, slot)
+        _fe_resolve_named_narratives(self, state, player, slot)
