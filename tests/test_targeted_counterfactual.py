@@ -240,6 +240,34 @@ def test_targeted_online_censoring_is_reported_not_fatal(monkeypatch) -> None:
     assert row["confirmation"] == "inconclusive"
 
 
+def test_real_online_mccfr_counterfactual_can_enter_search() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    sample = build_samples(
+        data,
+        contexts=1,
+        games_per_context=1,
+        seed=37,
+        required_cards=["namar"],
+    )[0]
+    engine = GameEngine(build_experiment_card_data(data, ["namar"]))
+
+    outcome = _play_online_outcome(
+        engine,
+        sample,
+        list(sample.focal_deck),
+        target_cards=("namar",),
+        online_iterations=1,
+        online_depth=1,
+        max_actions=1,
+    )
+
+    # The one-action horizon intentionally censors the game; reaching it proves
+    # that the real resolver, counterfactual family prior and generic legal
+    # deck prior all initialized and executed without leaking simulator truth
+    # or constructing an illegal hidden deck.
+    assert outcome is None
+
+
 def test_targeted_play_uses_the_agents_opening_mulligans(monkeypatch) -> None:
     import longwar.targeted_counterfactual as targeted
     from longwar.agents.heuristic_agent import HeuristicAgent
