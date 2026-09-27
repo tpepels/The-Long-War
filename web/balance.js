@@ -447,7 +447,12 @@ function renderProgression(lab) {
     metric("Ends at 0 Command", pct(zeroRate), `${commandBuckets["0"] || 0} player-Battles`),
     metric("Free Maneuvers", resources.free_maneuvers ?? 0, "actual zero-Command Maneuvers"),
     metric("Discounted actions", resources.discount_actions ?? 0, `${resources.discount_command_saved ?? 0} Command saved`),
-    metric("Command regained", resources.command_gained_or_refunded ?? 0, "observed gains/refunds after actions"),
+    metric("Command regained", resources.command_gained_or_refunded ?? 0, "operation gains/refunds; Battle recovery excluded"),
+    metric(
+      "Card / Maneuver spend",
+      `${resources.command_spend?.card_play ?? 0} / ${resources.command_spend?.maneuver ?? 0}`,
+      "actual Command paid by category"
+    ),
     metric("Free operations", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
   ].join("");
 
@@ -469,7 +474,10 @@ function renderProgression(lab) {
         <td>${num(row.active_fronts, 1)} / ${num(row.contested_fronts, 1)}</td>
         <td>${num(row.front_control_changes, 1)}</td>
         <td>${num(row.legal_actions, 1)}</td>
-        <td>${num(row.command_remaining, 1)}</td>
+        <td>
+          ${num(row.command_start, 1)} / ${num(row.command_spent, 1)} / ${num(row.command_remaining, 1)}
+          <span class="muted">next ${num(row.next_battle_command, 1)}</span>
+        </td>
       </tr>
     `;
   }).join("");

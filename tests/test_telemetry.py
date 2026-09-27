@@ -363,7 +363,11 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
         "durable_lead_action": 3,
         "actions_remaining_after_durable_lead": 1,
         "no_control_change_after_midpoint": False,
+        "command_start": [20, 20],
+        "command_spent": [10, 9],
+        "command_refunded": [1, 0],
         "command_remaining": [4, 5],
+        "next_battle_command": [9, 10],
         "hand_remaining": [5, 6],
         "deck_remaining": [10, 11],
         "mean_legal_actions": 7.0,
@@ -382,3 +386,56 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
     assert by_battle["3"]["battles"] == 1
     assert by_battle["4+"]["battles"] == 2
     assert by_battle["1"]["completion_rate_per_force_played"] == pytest.approx(0.5)
+
+
+
+def test_front_control_changes_are_detected_between_decision_states() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=608, first_player=0)
+    position = _position(Front.FIRST)
+    state.slot(0, position).force = "the-fifty-men"
+
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+    pass_action = Pass()
+    progression.before_action(engine, state, 0, pass_action, [pass_action])
+
+    state.slot(0, position).force = None
+    state.slot(1, position).force = "the-vardai"
+    progression.before_action(engine, state, 1, pass_action, [pass_action])
+
+    assert progression._battle_control_changes >= 1
+    assert progression._battle_lead_changes >= 1
+
+
+def test_command_flow_uses_actual_cost_and_excludes_between_battle_recovery() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=609, first_player=0)
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+
+    action = next(
+        candidate
+        for candidate in engine.legal_actions(state)
+        if isinstance(candidate, PlayForce)
+    )
+    before = state.clone()
+    actual_cost = engine.command_cost_for_action(before, action)
+    engine.apply(state, action)
+    progression._record_command_flow(engine, before, state, 0, action)
+
+    resources = progression.summary()["resources"]
+    assert resources["command_spend"]["card_play"] == actual_cost
+    if actual_cost == 0:
+        assert resources["free_operations"] == 1
+
+
+def test_partial_formation_counter_is_force_anchored() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=610, first_player=0)
+    state.slot(0, _position(Front.FIRST)).force = "the-fifty-men"
+    state.slot(0, _position(Front.SECOND)).bond = "had-been-ordered-forward"
+
+    progression = ProgressionTelemetry()
+    assert progression._count_partial(state, 0) == 1
+    assert progression._count_complete(state, 0) == 0

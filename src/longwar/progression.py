@@ -22,7 +22,7 @@ from .game.model import Front, GameState, Phase, Position
 
 CARD_ACTIONS = (PlayForce, PlayBond, PlayName, PlayStory, PlayStratagem)
 OPERATION_ACTIONS = CARD_ACTIONS + (Maneuver,)
-CONSTRAINT_CLASSES = {"necessity", "order"}
+CONSTRAINT_CLASSES = {"necessity"}
 
 
 class ProgressionTelemetry:
@@ -530,6 +530,10 @@ class ProgressionTelemetry:
                     "paired draw-to-play in FIFO order for timing aggregates."
                 ),
                 "battle_index": "Battle 1, 2 and 3 are separate; all later Battles aggregate into 4+.",
+                "command_gained_or_refunded": (
+                    "Command gained after an operation beyond its actual paid cost. "
+                    "Between-Battle recovery is excluded and remains visible in the Battle-indexed trajectory."
+                ),
             },
         }
 
@@ -681,6 +685,7 @@ class ProgressionTelemetry:
                 )
 
         self._formation_at = dict(assigned)
+        new_completions = 0
         for key in remaining_keys:
             player, position = key
             formation_id = self._create_formation(
@@ -690,10 +695,11 @@ class ProgressionTelemetry:
                 position,
                 created_action=self._current_action,
             )
+            if self._formations[formation_id]["completion_action"] is not None:
+                new_completions += 1
             assigned[key] = formation_id
         self._formation_at = dict(assigned)
 
-        new_completions = 0
         for (player, position), formation_id in self._formation_at.items():
             slot = state.slot(player, position)
             row = self._formations[formation_id]
@@ -781,8 +787,15 @@ class ProgressionTelemetry:
             self._discount_command += saved
             self._battle_events["discount_actions"] += 1
 
+        battle_transition = (
+            state.phase is Phase.COMPLETE or state.battle != before.battle
+        )
         expected_after = before.players[actor].command - actual_cost
-        gained = max(0, state.players[actor].command - expected_after)
+        gained = (
+            0
+            if battle_transition
+            else max(0, state.players[actor].command - expected_after)
+        )
         if gained:
             self._command_gained += gained
             self._battle_events["command_gained"] += gained
@@ -920,7 +933,15 @@ class ProgressionTelemetry:
                 None if durable_index is None else len(rows) - 1 - durable_index
             ),
             "no_control_change_after_midpoint": no_change_after_midpoint,
+            "command_start": [int(value) for value in before.battle_start_command],
+            "command_spent": [int(value) for value in before.command_spent_this_battle],
+            "command_refunded": [int(value) for value in before.command_refunded_this_battle],
             "command_remaining": final_command,
+            "next_battle_command": (
+                None
+                if state.phase is Phase.COMPLETE
+                else [int(player.command) for player in state.players]
+            ),
             "hand_remaining": [len(player.hand) for player in before.players],
             "deck_remaining": [len(player.deck) for player in before.players],
             "mean_legal_actions": mean(
@@ -948,16 +969,17 @@ class ProgressionTelemetry:
             ):
                 pass_row["battle_won"] = pass_row["player"] == winner
 
-        for (player, position), _formation_id in self._formation_at.items():
-            slot = before.slot(player, position)
-            if slot.force is None:
-                continue
-            force_card = engine.cards.get(slot.force, {})
-            name_card = engine.cards.get(slot.name or "", {})
-            if force_card.get("hero"):
-                self._hero_modes[slot.force]["force_battle_end_presence"] += 1
-            if name_card.get("hero"):
-                self._hero_modes[slot.name]["name_battle_end_presence"] += 1
+        for player in range(2):
+            for position in all_positions():
+                slot = before.slot(player, position)
+                if slot.force is None:
+                    continue
+                force_card = engine.cards.get(slot.force, {})
+                name_card = engine.cards.get(slot.name or "", {})
+                if force_card.get("hero"):
+                    self._hero_modes[slot.force]["force_battle_end_presence"] += 1
+                if name_card.get("hero"):
+                    self._hero_modes[slot.name]["name_battle_end_presence"] += 1
 
     def _reset_battle(self, state: GameState) -> None:
         self._battle_number = int(state.battle)
@@ -1169,9 +1191,23 @@ class ProgressionTelemetry:
                 "contested_fronts": self._mean_field(rows, "mean_contested_fronts"),
                 "front_control_changes": self._mean_field(rows, "front_control_changes"),
                 "cards_played": self._mean_field(rows, "cards_played"),
+                "command_start": mean(
+                    value for row in rows for value in row["command_start"]
+                ),
+                "command_spent": mean(
+                    value for row in rows for value in row["command_spent"]
+                ),
+                "command_refunded": mean(
+                    value for row in rows for value in row["command_refunded"]
+                ),
                 "command_remaining": mean(
                     value for row in rows for value in row["command_remaining"]
                 ),
+                "next_battle_command": self._mean_optional([
+                    value
+                    for row in rows
+                    for value in (row["next_battle_command"] or [])
+                ]),
                 "hand_size": mean(
                     value for row in rows for value in row["hand_remaining"]
                 ),
