@@ -685,7 +685,7 @@ function renderMccfr(lab) {
   if (suite) {
     document.getElementById("mccfr-overview").innerHTML = [
       metric("Card coverage", `${suite.covered_cards}/${suite.card_pool_size}`, pct(suite.coverage_fraction) + " of current pool"),
-      metric("Deck profiles", suite.profiles.length, "Reference · Avaros · Mara · Sera"),
+      metric("Deck profiles", suite.profiles.length, "all canonical reference decks"),
       metric("Policies", suite.profiles.length, "one mirror policy per deck profile"),
       metric("Missing cards", suite.missing_cards.length, suite.missing_cards.length ? suite.missing_cards.join(", ") : "none"),
     ].join("");
