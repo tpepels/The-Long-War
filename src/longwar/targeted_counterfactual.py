@@ -392,8 +392,6 @@ def run_targeted_online_validation(
         minimum_abs_effect=minimum_abs_effect,
         force_top=force_top,
     )
-    engine = GameEngine(build_experiment_card_data(card_data))
-
     results: list[dict[str, Any]] = []
     total_matches = 0
     censored_matches = 0
@@ -401,6 +399,13 @@ def run_targeted_online_validation(
     censored_paired_samples = 0
 
     for target_index, candidate in enumerate(selected):
+        # Only the focal intervention identities belong in this solver.
+        # The canonical pool already has 95 cards; adding baselines for the
+        # entire pool would exceed the native engine's 127-card identity cap.
+        # A card/pair/triple target adds at most 1/2/3 synthetic identities.
+        engine = GameEngine(
+            build_experiment_card_data(card_data, candidate.cards)
+        )
         samples = _subset_samples(
             card_data,
             broad_report,
