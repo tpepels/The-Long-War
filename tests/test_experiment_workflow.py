@@ -484,6 +484,11 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     output = runner.balance_run(Namespace(preset="quick", games=1, seed=71, contexts=1, games_per_context=1))
     summary = json.loads((output / "summary.json").read_text())
     assert summary["simulation_games"] == len(runner.CANONICAL_DECK_PATHS)
+    assert (
+        summary["decisive_simulation_games"]
+        + summary["censored_simulation_games"]
+        == summary["simulation_games"]
+    )
     assert summary["config"]["seed"] == 71
     match = json.loads(
         (output / "mobility-open-bonds--mobility-open-bonds.json").read_text()
@@ -492,6 +497,10 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
         json.loads((ROOT / "decks/mobility-open-bonds.json").read_text())["cards"]
     )
     assert "deck_size" not in match["rules"]
+    assert match["decisive_games"] + match["censored_games"] == match["games"]
+    assert match["censor_rate"] == pytest.approx(
+        match["censored_games"] / match["games"]
+    )
     assert match["game_fingerprint"] == summary["game_fingerprint"]
     assert (output / "playability.json").is_file()
 
