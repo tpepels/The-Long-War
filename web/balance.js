@@ -82,6 +82,12 @@ function signedPct(value) {
   return (Number(value) >= 0 ? "+" : "") + pct(value);
 }
 
+function signedNum(value, digits = 1) {
+  if (value == null) return "—";
+  const number = Number(value);
+  return (number >= 0 ? "+" : "") + number.toFixed(digits);
+}
+
 function renderOverview(lab) {
   const h = lab.health;
   const g = h.global;
@@ -91,9 +97,16 @@ function renderOverview(lab) {
   const progression = lab.progression || lab.raw_telemetry?.progression;
   const lifecycle = progression?.formation_lifecycle || {};
   const choice = progression?.mechanical_choice || {};
+  const totalGames = Number(h.source.games || 0);
+  const censoredGames = Number(h.source.censored_games || 0);
+  const decisiveGames = Number(h.source.decisive_games ?? (totalGames - censoredGames));
   document.getElementById("overview").innerHTML = [
-    metric("Games", Number(h.source.games).toLocaleString(), h.source.agents.join(" vs ")),
-    metric("First-player win", pct(g.first_player_win_rate), `95% ${interval(g.first_player_win_rate_95)}`),
+    metric(
+      "Games",
+      totalGames.toLocaleString(),
+      `${decisiveGames.toLocaleString()} decisive · ${censoredGames.toLocaleString()} censored · ${h.source.agents.join(" vs ")}`
+    ),
+    metric("First-player win", pct(g.first_player_win_rate), `decisive games · 95% ${interval(g.first_player_win_rate_95)}`),
     metric("Cards", s.cards_analyzed, `${s.flags_high} high · ${s.flags_watch} watch flags`),
     metric("Forces becoming Named", pct(lifecycle.force_to_name_rate), progression ? `${lifecycle.forces_ever_named ?? 0} / ${lifecycle.forces ?? 0} Force lifecycles` : "progression not generated"),
     metric("Forced choice", pct(choice.exactly_one_legal_action_rate), progression ? "decisions with exactly one legal action" : "progression not generated"),
@@ -124,6 +137,16 @@ function renderAttention(lab) {
       "pending",
       "Solver evidence needs a fresh run for this ruleset",
       `Draw and the playtest deck profiles changed. ${lab.stale_evidence.length} restored dynamic/solver artifact${lab.stale_evidence.length === 1 ? "" : "s"} from an older game fingerprint ${lab.stale_evidence.length === 1 ? "is" : "are"} hidden rather than being presented as current evidence.`
+    ));
+  }
+
+  const censoredGames = Number(lab.health.source.censored_games || 0);
+  if (censoredGames > 0) {
+    const totalGames = Number(lab.health.source.games || 0);
+    items.push(attentionItem(
+      "pending",
+      "Some simulations reached the action horizon",
+      `${censoredGames} of ${totalGames} games were censored at the configured action horizon. They remain progression evidence but are excluded from win-rate and outcome-association denominators.`
     ));
   }
 
@@ -353,7 +376,10 @@ function renderMatchups(lab) {
           <tr>
             <td><strong>${esc(name.replaceAll("_", " "))}</strong></td>
             <td>${esc((row.agents || []).join(" vs "))}</td>
-            <td>${row.games ?? "—"}</td>
+            <td>
+              ${row.games ?? "—"}
+              <span class="muted">${row.decisive_games ?? ((row.games ?? 0) - (row.censored_games ?? 0))} decisive · ${row.censored_games ?? 0} censored</span>
+            </td>
             <td>${(row.win_rates || []).map((v) => pct(v)).join(" / ")}</td>
             <td>${pct(row.first_player_win_rate)}</td>
             <td>
@@ -361,6 +387,7 @@ function renderMatchups(lab) {
                 <summary>details</summary>
                 <dl>
                   <div><dt>Wins</dt><dd>${(row.wins || []).join("–")}</dd></div>
+                  <div><dt>Censor rate</dt><dd>${pct(row.censor_rate)}</dd></div>
                   <div><dt>Mean actions</dt><dd>${num(row.mean_turns, 1)}</dd></div>
                   <div><dt>Policy sources</dt><dd><code>${esc(JSON.stringify(row.policy_sources || {}))}</code></dd></div>
                 </dl>
@@ -396,6 +423,30 @@ function renderProgression(lab) {
   const contest = p.contestability || {};
   const choice = p.mechanical_choice || {};
   const resources = p.resources || {};
+  const trajectory = lab.progression_trajectory || {};
+  const trajectoryMetrics = trajectory.metrics || {};
+  const trajectoryElement = document.getElementById("progression-trajectory");
+  if (trajectoryElement) {
+    const label = trajectory.early_battle && trajectory.late_battle
+      ? `Battle ${trajectory.early_battle} → ${trajectory.late_battle}`
+      : "first → latest observed Battle";
+    const trajectoryCard = (title, field, percent = false) => {
+      const row = trajectoryMetrics[field] || {};
+      const format = percent ? pct : (value) => num(value, 1);
+      const delta = percent ? signedPct(row.delta) : signedNum(row.delta, 1);
+      return metric(title, `${format(row.early)} → ${format(row.late)}`, `${label} · Δ ${delta}`);
+    };
+    trajectoryElement.innerHTML = [
+      trajectoryCard("Command at Battle end", "command_remaining"),
+      trajectoryCard("First-pass Command", "first_pass_command"),
+      trajectoryCard("Occupied positions", "occupied_positions"),
+      trajectoryCard("Contested Fronts", "contested_fronts"),
+      trajectoryCard("Completed formations", "completed_formations"),
+      trajectoryCard("Force completion rate", "eventual_completion_rate_for_forces_deployed", true),
+      trajectoryCard("Legal choices", "legal_actions"),
+      trajectoryCard("Deck cards remaining", "deck_size"),
+    ].join("");
+  }
 
   document.getElementById("progression-battlefield").innerHTML = [
     metric("Force → Bond", pct(life.force_to_bond_rate), `${life.forces_ever_bonded ?? 0} of ${life.forces ?? 0} Force lifecycles`),
