@@ -585,3 +585,39 @@ def test_progression_exposes_per_player_battlefield_distributions() -> None:
     assert battlefield["occupied_positions_per_player"]["median"] == pytest.approx(1.5)
     assert battlefield["empty_fronts"]["median"] == pytest.approx(1.0)
     assert battlefield["total_strength_per_player"]["median"] == pytest.approx(8.0)
+
+
+
+def test_first_pass_outcomes_use_front_balance_not_invented_battle_winner() -> None:
+    progression = ProgressionTelemetry()
+    rows = [
+        {
+            "total_margin": 2,
+            "legal_alternatives": 1,
+            "playable_card_actions": 1,
+            "maneuver_actions": 0,
+            "final_front_balance": 2,
+        },
+        {
+            "total_margin": 3,
+            "legal_alternatives": 1,
+            "playable_card_actions": 0,
+            "maneuver_actions": 1,
+            "final_front_balance": -1,
+        },
+    ]
+    group = progression._pass_outcome_group(
+        rows,
+        lambda row: row["total_margin"] > 0,
+    )
+    assert group["events"] == 2
+    assert group["resolved"] == 2
+    assert group["mean_final_front_balance"] == pytest.approx(0.5)
+    assert group["positive_final_front_balance_rate"] == pytest.approx(0.5)
+    assert "battle_win_rate" not in group
+
+
+def test_front_result_balance_preserves_no_overall_battle_winner_semantics() -> None:
+    assert ProgressionTelemetry._front_result_balances(
+        [[5, 3], [2, 4], [1, 1], [7, 6]]
+    ) == [1, -1]

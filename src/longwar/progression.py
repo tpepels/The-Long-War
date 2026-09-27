@@ -215,7 +215,7 @@ class ProgressionTelemetry:
                     if alternatives_count == 1
                     else "multiple_alternatives"
                 ),
-                "battle_won": None,
+                "final_front_balance": None,
             })
             self._pass_contexts.append(pass_context)
 
@@ -608,8 +608,14 @@ class ProgressionTelemetry:
                 "contested_front": "A Front containing at least one Force for both players.",
                 "front_control_change": "One Front's controller changes between consecutive operation decisions.",
                 "durable_lead": (
-                    "Earliest recorded decision state where the eventual Battle winner has "
-                    "a positive total-Strength lead that remains positive in every later recorded state."
+                    "Earliest recorded decision state after which the same player's non-zero "
+                    "total-Strength lead keeps the same sign through every later recorded state. "
+                    "The Long War has no overall Battle winner, so this is a persistence measure, "
+                    "not an outcome or winner claim."
+                ),
+                "first_pass_result": (
+                    "There is no overall Battle winner. First-pass outcome groups therefore use "
+                    "final Front balance: Fronts won minus Fronts lost by the first passer."
                 ),
                 "constraint_rule_source": (
                     "A necessity-classed card or card with an explicit constraint rule block "
@@ -973,19 +979,22 @@ class ProgressionTelemetry:
         middle = rows[len(rows) // 2]
         snapshot = state.last_battle_snapshot or {}
         front_scores = snapshot.get("front_scores", [])
-        winner = self._battle_winner(front_scores)
 
         durable_index = None
-        if winner is not None:
-            oriented = [
-                (row["total_strength"][0] - row["total_strength"][1])
-                * (1 if winner == 0 else -1)
-                for row in rows
-            ]
-            for index, value in enumerate(oriented):
-                if value > 0 and all(later > 0 for later in oriented[index:]):
-                    durable_index = index
-                    break
+        strength_differences = [
+            row["total_strength"][0] - row["total_strength"][1]
+            for row in rows
+        ]
+        for index, value in enumerate(strength_differences):
+            lead_sign = self._sign(value)
+            if lead_sign == 0:
+                continue
+            if all(
+                self._sign(later) == lead_sign
+                for later in strength_differences[index:]
+            ):
+                durable_index = index
+                break
 
         midpoint = len(rows) // 2
         no_change_after_midpoint = all(
@@ -1123,15 +1132,16 @@ class ProgressionTelemetry:
         }
         self._battle_records.append(record)
 
+        front_balances = self._front_result_balances(front_scores)
         for pass_row in self._pass_contexts:
             if (
                 pass_row["game"] == self._game_index
                 and pass_row["battle"] == before.battle
                 and pass_row["first_pass"]
-                and pass_row["battle_won"] is None
-                and winner is not None
+                and pass_row["final_front_balance"] is None
+                and front_balances is not None
             ):
-                pass_row["battle_won"] = pass_row["player"] == winner
+                pass_row["final_front_balance"] = front_balances[pass_row["player"]]
 
         for player in range(2):
             for position in all_positions():
@@ -1428,29 +1438,41 @@ class ProgressionTelemetry:
 
     def _pass_outcome_group(self, rows: list[dict[str, Any]], predicate) -> dict[str, Any]:
         selected = [row for row in rows if predicate(row)]
-        resolved = [row for row in selected if row["battle_won"] is not None]
+        resolved = [
+            row for row in selected
+            if row["final_front_balance"] is not None
+        ]
+        balances = [
+            int(row["final_front_balance"])
+            for row in resolved
+        ]
         return {
             "events": len(selected),
             "resolved": len(resolved),
-            "battle_win_rate": self._ratio(
-                sum(bool(row["battle_won"]) for row in resolved),
-                len(resolved),
+            "mean_final_front_balance": (
+                mean(balances) if balances else None
+            ),
+            "positive_final_front_balance_rate": self._ratio(
+                sum(value > 0 for value in balances),
+                len(balances),
             ),
         }
 
     @staticmethod
-    def _battle_winner(front_scores: Any) -> int | None:
+    def _front_result_balances(front_scores: Any) -> list[int] | None:
         if not front_scores:
             return None
-        wins = [0, 0]
+        balances = [0, 0]
         for pair in front_scores:
-            if int(pair[0]) > int(pair[1]):
-                wins[0] += 1
-            elif int(pair[1]) > int(pair[0]):
-                wins[1] += 1
-        if wins[0] == wins[1]:
-            return None
-        return 0 if wins[0] > wins[1] else 1
+            left = int(pair[0])
+            right = int(pair[1])
+            if left > right:
+                balances[0] += 1
+                balances[1] -= 1
+            elif right > left:
+                balances[1] += 1
+                balances[0] -= 1
+        return balances
 
     @staticmethod
     def _count_complete(state: GameState, player: int) -> int:

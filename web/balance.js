@@ -532,11 +532,17 @@ function renderProgression(lab) {
   document.getElementById("progression-diagnostics").innerHTML = `
     <div class="two-column-tables">
       <div>
-        <h3>First-pass state and Battle result</h3>
+        <h3>First-pass state and final Front balance</h3>
         <table class="mini-table">
-          <thead><tr><th>State</th><th>Events</th><th>Resolved</th><th>Battle win rate</th></tr></thead>
+          <thead><tr><th>State</th><th>Events</th><th>Resolved</th><th>Mean final Front balance</th><th>Positive balance</th></tr></thead>
           <tbody>${passRows.map(([label, row]) => `
-            <tr><td>${esc(label)}</td><td>${row?.events ?? 0}</td><td>${row?.resolved ?? 0}</td><td>${pct(row?.battle_win_rate)}</td></tr>
+            <tr>
+              <td>${esc(label)}</td>
+              <td>${row?.events ?? 0}</td>
+              <td>${row?.resolved ?? 0}</td>
+              <td>${num(row?.mean_final_front_balance, 2)}</td>
+              <td>${pct(row?.positive_final_front_balance_rate)}</td>
+            </tr>
           `).join("")}</tbody>
         </table>
       </div>
