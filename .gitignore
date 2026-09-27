@@ -28,9 +28,6 @@ src/longwar/_mccfr_accel.c
 src/longwar/_fast_search.c
 src/longwar/_alphabeta_accel.c
 
-# Local experiment and analysis output
-artifacts/
-
 # Editor / OS noise
 .vscode/
 .idea/
