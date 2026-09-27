@@ -56,9 +56,9 @@ def build_playability_report(
         game_count = int(simulation["games"])
         telemetry = simulation["telemetry"]
         battle_count = int(telemetry["battles"]["count"])
-        if game_count <= 0 or battle_count <= 0:
+        if game_count <= 0:
             raise ValueError(
-                "Simulation reports must contain games and Battle telemetry"
+                "Simulation reports must contain at least one attempted game"
             )
 
         run_actions = Counter(
@@ -155,14 +155,16 @@ def build_playability_report(
                     float(final_battle["mean"])
                     if final_count else None
                 ),
-                "mean_cards_played_per_battle": (
-                    cards_played / battle_count
+                "mean_cards_played_per_battle": _ratio(
+                    cards_played,
+                    battle_count,
                 ),
                 "mean_cards_played_per_match": (
                     cards_played / game_count
                 ),
-                "mean_action_events_per_battle": (
-                    battle_actions / battle_count
+                "mean_action_events_per_battle": _ratio(
+                    battle_actions,
+                    battle_count,
                 ),
             }
         )
@@ -198,23 +200,29 @@ def build_playability_report(
             "mean_cards_played_per_match": cards_played / games,
         },
         "battle_pacing": {
-            "mean_action_events_per_battle": (
-                battle_actions / battles
+            "mean_action_events_per_battle": _ratio(
+                battle_actions,
+                battles,
             ),
-            "mean_action_events_per_player_battle": (
-                battle_actions / (2 * battles)
+            "mean_action_events_per_player_battle": _ratio(
+                battle_actions,
+                2 * battles,
             ),
-            "mean_cards_played_per_battle": (
-                cards_played / battles
+            "mean_cards_played_per_battle": _ratio(
+                cards_played,
+                battles,
             ),
-            "mean_cards_played_per_player_battle": (
-                cards_played / (2 * battles)
+            "mean_cards_played_per_player_battle": _ratio(
+                cards_played,
+                2 * battles,
             ),
-            "mean_named_formations_created_per_battle": (
-                combo_completions / battles
+            "mean_named_formations_created_per_battle": _ratio(
+                combo_completions,
+                battles,
             ),
-            "mean_maneuvers_per_battle": (
-                actions["Maneuver"] / battles
+            "mean_maneuvers_per_battle": _ratio(
+                actions["Maneuver"],
+                battles,
             ),
         },
         "card_mix": {
@@ -224,23 +232,26 @@ def build_playability_report(
                     actions[name],
                     cards_played,
                 ),
-                "mean_per_battle": actions[name] / battles,
+                "mean_per_battle": _ratio(actions[name], battles),
             }
             for name in CARD_ACTIONS
         },
         "draw": {
             "cards_drawn": card_totals["draws"],
-            "mean_cards_drawn_per_battle": (
-                card_totals["draws"] / battles
+            "mean_cards_drawn_per_battle": _ratio(
+                card_totals["draws"],
+                battles,
             ),
         },
         "stratagem": {
             "plays": actions["PlayStratagem"],
-            "mean_per_battle": (
-                actions["PlayStratagem"] / battles
+            "mean_per_battle": _ratio(
+                actions["PlayStratagem"],
+                battles,
             ),
-            "opportunity_use_rate": (
-                actions["PlayStratagem"] / (2 * battles)
+            "opportunity_use_rate": _ratio(
+                actions["PlayStratagem"],
+                2 * battles,
             ),
         },
         "hand_pressure": {
@@ -267,7 +278,7 @@ def build_playability_report(
         },
         "passing": {
             "events": pass_events,
-            "mean_passes_per_battle": pass_events / battles,
+            "mean_passes_per_battle": _ratio(pass_events, battles),
             "first_pass_share": _ratio(
                 first_pass_events,
                 pass_events,
