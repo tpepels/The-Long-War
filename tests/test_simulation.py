@@ -69,6 +69,12 @@ def test_action_horizon_is_recorded_as_censoring() -> None:
         "winner": None,
         "censored": True,
     }]
+    match_length = report.telemetry["progression"]["match_length"]
+    assert match_length["matches"] == 1
+    assert match_length["censored_matches"] == 1
+    assert match_length["final_battle_number"]["median"] == 1
+    assert match_length["censored_final_battle_number"]["median"] == 1
+    assert match_length["resolved_battles_per_match"]["median"] == 0
 
 
 def test_simulation_supports_distinct_agent_labels() -> None:
