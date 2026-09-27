@@ -1309,6 +1309,7 @@ class ProgressionTelemetry:
             | set(self._card_drawn_after_reshuffle)
             | set(self._card_unplayed_match_end)
             | set(self._card_plays_by_battle)
+            | {card_id for (_player, card_id) in self._draw_queues}
         )
         return {
             card_id: {
