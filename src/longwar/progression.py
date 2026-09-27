@@ -105,6 +105,9 @@ class ProgressionTelemetry:
         self._formation_age_at_battle_end: list[int] = []
 
     def start_game(self, engine: GameEngine, state: GameState) -> None:
+        if self._constraint_active_streak:
+            self._constraint_active_streaks.append(self._constraint_active_streak)
+            self._constraint_active_streak = 0
         self._game_index += 1
         self._action_index = 0
         self._current_action = 0
