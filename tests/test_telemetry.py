@@ -491,6 +491,58 @@ def test_forced_maneuver_is_separate_from_zero_cost_maneuver() -> None:
 
 
 
+def test_discarded_without_play_ignores_battle_cleanup_cards() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=612, first_player=0)
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+
+    before = state.clone()
+    cleanup_card = "the-fifty-men"
+    state.players[0].discard.append(cleanup_card)
+    progression._record_unplayed_discards(before, state, Pass())
+    assert progression._card_discarded_unplayed[cleanup_card] == 0
+
+    before = state.clone()
+    discarded_from_hand = before.players[0].hand[0]
+    state = before.clone()
+    state.players[0].hand.remove(discarded_from_hand)
+    state.players[0].discard.append(discarded_from_hand)
+    progression._record_unplayed_discards(before, state, Pass())
+    assert progression._card_discarded_unplayed[discarded_from_hand] == 1
+
+
+def test_explicit_active_constraint_marker_is_counted() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=613, first_player=0)
+    state.active_constraints = [{"source": "test-constraint"}]
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+
+    progression.before_action(engine, state, 0, Pass(), [Pass()])
+    choice = progression.summary()["mechanical_choice"]
+
+    assert choice["constraint_active_decisions"] == 1
+    assert choice["constraint_active_rate"] == pytest.approx(1.0)
+    assert progression._sample_traces[0]["constraint_active"] is True
+
+
+def test_partial_formation_is_recorded_at_battle_end() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=614, first_player=0)
+    state.slot(0, _position(Front.FIRST)).force = "the-fifty-men"
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+    progression.before_action(engine, state, 0, Pass(), [Pass()])
+
+    next_state = state.clone()
+    next_state.battle = state.battle + 1
+    progression._record_battle_end(engine, state, next_state)
+
+    assert progression._battle_records[-1]["incomplete_at_end"] == [1, 0]
+    assert progression.summary()["formation_lifecycle"]["incomplete_at_battle_end"] == 1
+
+
 def test_reshuffled_card_is_counted_only_when_that_discard_copy_reappears() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=612, first_player=0)

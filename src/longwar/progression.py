@@ -947,12 +947,24 @@ class ProgressionTelemetry:
     ) -> None:
         played_id = action.card_id if isinstance(action, CARD_ACTIONS) else None
         for player in range(2):
-            added = Counter(state.players[player].discard) - Counter(before.players[player].discard)
-            if played_id is not None and player == before.active_player and added.get(played_id, 0):
-                added[played_id] -= 1
-                if added[played_id] <= 0:
-                    del added[played_id]
-            for card_id, count in added.items():
+            added_to_discard = (
+                Counter(state.players[player].discard)
+                - Counter(before.players[player].discard)
+            )
+            removed_from_hand = (
+                Counter(before.players[player].hand)
+                - Counter(state.players[player].hand)
+            )
+            unplayed = added_to_discard & removed_from_hand
+            if (
+                played_id is not None
+                and player == before.active_player
+                and unplayed.get(played_id, 0)
+            ):
+                unplayed[played_id] -= 1
+                if unplayed[played_id] <= 0:
+                    del unplayed[played_id]
+            for card_id, count in unplayed.items():
                 self._card_discarded_unplayed[card_id] += count
                 queue = self._draw_queues.get((player, card_id), [])
                 for _ in range(min(count, len(queue))):
