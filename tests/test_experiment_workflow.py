@@ -471,7 +471,9 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     match = json.loads(
         (output / "mobility-open-bonds--mobility-open-bonds.json").read_text()
     )
-    assert len(match["deck_a"]) == 34
+    assert len(match["deck_a"]) == len(
+        json.loads((ROOT / "decks/mobility-open-bonds.json").read_text())["cards"]
+    )
     assert "deck_size" not in match["rules"]
     assert match["game_fingerprint"] == summary["game_fingerprint"]
     assert (output / "playability.json").is_file()
