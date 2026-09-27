@@ -97,7 +97,10 @@ def balance_run(args: argparse.Namespace) -> Path:
     """Canonical balance pipeline; experimental rules stay in `run`."""
     from longwar.balance import build_report
     from longwar.counterfactual import run_counterfactual_card_sweep
-    from longwar.health import analyze_simulation
+    from longwar.health import (
+        aggregate_simulations_for_health,
+        analyze_simulation,
+    )
     from longwar.playability import build_playability_report
     from longwar.simulate import simulate_games
 
@@ -122,53 +125,123 @@ def balance_run(args: argparse.Namespace) -> Path:
     if args.preset == "deep":
         for left, right in combinations(decks, 2):
             cells.extend([(left, right), (right, left)])
-    save("static", {**build_report(data), **identity})
+    static_payload = {**build_report(data), **identity}
+    save("static", static_payload)
     simulations = []
+    selfplay_simulations: dict[str, dict[str, Any]] = {}
     total_censored = 0
     for index, (left, right) in enumerate(cells):
         seed = args.seed + index * games
         report = simulate_games(engine, decks[left], decks[right], games=games, seed=seed)
         total_censored += report.censored_games
-        payload = {**asdict(report), "game_fingerprint": identity["game_fingerprint"],
-                   "seed": seed, "rules": asdict(engine.rules),
-                   "deck_a": decks[left], "deck_b": decks[right],
-                   "decisive_games": report.decisive_games,
-                   "censor_rate": report.censor_rate,
-                   "win_rates": report.win_rates,
-                   "first_player_win_rate": report.first_player_win_rate,
-                   "first_player_wilson_95": wilson_interval(
-                       report.first_player_wins, report.decisive_games
-                   )}
+        payload = {
+            **asdict(report),
+            "game_fingerprint": identity["game_fingerprint"],
+            "seed": seed,
+            "rules": asdict(engine.rules),
+            "deck_a": decks[left],
+            "deck_b": decks[right],
+            "decisive_games": report.decisive_games,
+            "censor_rate": report.censor_rate,
+            "win_rates": report.win_rates,
+            "first_player_win_rate": report.first_player_win_rate,
+            "first_player_wilson_95": wilson_interval(
+                report.first_player_wins, report.decisive_games
+            ),
+            "simulation_variant": {
+                "base_hand_size": engine.rules.opening_hand_size,
+                "battle_one_starter_bonus": 0,
+                "deck_sizes": [len(decks[left]), len(decks[right])],
+                "starting_command": engine.rules.starting_command,
+                "command_cap": engine.rules.command_cap,
+                "card_file": "cards/cards.json",
+            },
+        }
         name = f"{left}--{right}"
         save(name, payload)
         save(f"{name}-health", analyze_simulation(payload, data))
         simulations.append(payload)
+        if left == right:
+            selfplay_simulations[left] = payload
         print(
             f"{name}: {games} games, {report.decisive_games} decisive, "
             f"{report.censored_games} censored, first-player wins "
             f"{report.first_player_wins}; 95% interval "
             f"{payload['first_player_wilson_95']}"
         )
-    save("playability", build_playability_report(simulations))
+    playability = build_playability_report(simulations)
+    save("playability", playability)
+
+    aggregate_selfplay = aggregate_simulations_for_health(
+        list(selfplay_simulations.values())
+    )
+    aggregate_health = analyze_simulation(aggregate_selfplay, data)
+    save("aggregate-selfplay", aggregate_selfplay)
+    save("aggregate-health", aggregate_health)
+
+    causal_payload = None
     if args.preset == "deep":
         causal = run_counterfactual_card_sweep(
             data, contexts=args.contexts, games_per_context=args.games_per_context,
             seed=args.seed, bootstrap_resamples=2000,
         )
-        save("counterfactual", {**causal, "game_fingerprint": identity["game_fingerprint"]})
+        causal_payload = {
+            **causal,
+            "game_fingerprint": identity["game_fingerprint"],
+        }
+        save("counterfactual", causal_payload)
     total_games = games * len(cells)
-    save("summary", {
+    summary_payload = {
         **identity,
         "cells": len(cells),
         "simulation_games": total_games,
         "decisive_simulation_games": total_games - total_censored,
         "censored_simulation_games": total_censored,
+        "aggregate_health_games": aggregate_selfplay["games"],
+        "aggregate_health_decks": sorted(selfplay_simulations),
         "interpretation": (
-            "Policy-specific diagnostics. Conditional win rates use decisive "
-            "games only; censored games remain structural progression evidence. "
-            "Use paired counterfactual intervals for card value."
+            "Policy-specific diagnostics. Aggregate card health uses the six "
+            "same-deck canonical self-play cells so deck-strength differences "
+            "do not become card outcome signals. Conditional win rates use "
+            "decisive games only; censored games remain structural progression "
+            "evidence. Use paired counterfactual intervals for card value."
         ),
-    })
+    }
+    save("summary", summary_payload)
+
+    if args.preset == "deep":
+        artifacts = ROOT / "artifacts"
+        artifacts.mkdir(parents=True, exist_ok=True)
+
+        def publish(name: str, payload: dict[str, Any]) -> None:
+            (artifacts / name).write_text(
+                json.dumps(payload, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+        progression_source = selfplay_simulations.get("mobility-open-bonds")
+        if progression_source is None:
+            progression_source = next(iter(selfplay_simulations.values()))
+        progression_source = {
+            **progression_source,
+            "_label": "Mobility / Open Bonds self-play",
+            "progression_scope": (
+                "Detailed progression reference; aggregate card health uses "
+                "all canonical same-deck self-play cells."
+            ),
+        }
+
+        publish("balance-report.json", static_payload)
+        publish("balance-health.json", aggregate_health)
+        publish("heuristic-selfplay.json", progression_source)
+        publish("playability-report.json", playability)
+        publish("balance-run-summary.json", summary_payload)
+        if causal_payload is not None:
+            publish("counterfactual-balance.json", causal_payload)
+
+        from tools import build_lab_report
+        build_lab_report.main()
+
     print(f"Balance artifacts: {output}")
     return output
 
