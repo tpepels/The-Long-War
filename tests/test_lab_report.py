@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from longwar.health import analyze_simulation, simulation_summary
@@ -133,3 +135,48 @@ def test_report_builders_share_simulation_summary_and_preserve_provenance() -> N
     assert summary["ismcts_config"] == data["ismcts_config"]
     assert summary["simulation_variant"] == provenance
     assert summary["policy_sources"] == {"search": 12}
+
+
+
+def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeypatch) -> None:
+    fingerprint = "current-engine"
+    progression = {
+        "by_battle": {"1": {"battles": 1}},
+        "formation_lifecycle": {"forces": 2},
+    }
+    artifacts = {
+        "balance-health.json": {
+            "game_fingerprint": fingerprint,
+            "cards": [],
+            "legends": [],
+        },
+        "balance-report.json": {
+            "game_fingerprint": fingerprint,
+            "card_static_marginals": [],
+            "all_static_legends": [],
+        },
+        "heuristic-selfplay.json": {
+            "game_fingerprint": fingerprint,
+            "simulation_variant": standard_variant(),
+            "games": 1,
+            "agents": ["heuristic", "heuristic"],
+            "wins": [1, 0],
+            "telemetry": {"progression": progression},
+        },
+    }
+    monkeypatch.setattr(build_lab_report, "ARTIFACTS", tmp_path)
+    monkeypatch.setattr(
+        build_lab_report,
+        "current_game_fingerprint",
+        lambda: fingerprint,
+    )
+    for name, payload in artifacts.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+
+    build_lab_report.main()
+
+    report = json.loads(
+        (tmp_path / "lab-report.json").read_text(encoding="utf-8")
+    )
+    assert report["progression"] == progression
+    assert report["raw_telemetry"]["progression"] == progression

@@ -247,7 +247,11 @@ def main() -> None:
 
     output = ARTIFACTS / "lab-report.json"
     output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    print(f"Wrote {output.relative_to(ROOT)}")
+    try:
+        display_output = output.relative_to(ROOT)
+    except ValueError:
+        display_output = output
+    print(f"Wrote {display_output}")
 
 
 if __name__ == "__main__":

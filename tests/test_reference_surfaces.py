@@ -85,6 +85,13 @@ def test_balance_lab_is_human_first_and_collapsible() -> None:
     assert 'id="attention-summary"' in page
     assert page.count('class="dashboard-disclosure"') >= 5
     assert "renderAttention(lab)" in script
+    assert "renderProgression(lab)" in script
+    assert 'id="progression-title"' in page
+    assert "Is the battlefield developing?" in page
+    assert "Are Battles staying contestable?" in page
+    assert "Are players retaining mechanical choice?" in page
+    assert "Are resources progressing correctly?" in page
+    assert "progression.html" not in page
     assert "mccfr_suite" in script
     assert "card-health-table" in page
     assert "min-width: 0 !important;" in css
