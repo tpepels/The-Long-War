@@ -28,6 +28,12 @@ src/longwar/_mccfr_accel.c
 src/longwar/_fast_search.c
 src/longwar/_alphabeta_accel.c
 
+# Local experiment and analysis output
+# Keep versioned/raw experiment runs local, but allow root JSON snapshots that
+# are published by GitHub Pages to be committed.
+artifacts/**
+!artifacts/*.json
+
 # Editor / OS noise
 .vscode/
 .idea/
