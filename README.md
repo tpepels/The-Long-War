@@ -22,6 +22,7 @@ make verify
 | Search/evaluation change | Algorithm's native `.pxi`, its Python adapter, or `_heuristic_core.pxi` | `make native-build && make verify-algorithms` |
 | Quick balance/playability signal | Canonical cards and decks | `make balance` |
 | Deeper balance evidence | Canonical cards and decks | `make balance BALANCE_PRESET=deep` |
+| Exhaustive structural sample | Canonical cards and decks | `make balance BALANCE_PRESET=exhaustive` |
 
 Add a focused regression at the changed boundary. `make verify` checks every shipped card/deck against the current standard rules, the ordinary fast tests, and native/browser parity. `make verify-algorithms` validates search/AI only against the current standard rules. Historical non-standard rule-variant tests are marked `legacy_rule_experiment` and run under the full `make test`, not the canonical verification path. Variants are explicit rule-value overrides, not named profiles. `make test-integration` checks multi-game and report pipelines.
 
@@ -105,7 +106,7 @@ make experiments EXPERIMENT_ARGS="--games 8"
 
 `make experiments` runs algorithm verification first and then `strength-bench`. Both solvers receive the same 5-second wall-clock search budget per non-forced move. ISMCTS automatically uses the canonical baseline above; the experiment CLI no longer exposes rollout/PW/reuse tuning knobs. Game/card balance analysis remains separate under `make balance`.
 
-For game-design evidence, use **ISMCTS as the primary hidden-information policy**, with **strategic alpha-beta as an occasional independent sanity check**. MCCFR and online MCCFR remain research-only and are not part of the production search-selection workflow.
+For product-facing game AI, use **ISMCTS as the primary hidden-information search policy**, with **strategic alpha-beta as an occasional independent sanity check**. Offline trained MCCFR remains solver-research infrastructure. **Online MCCFR is also used by the Balance Lab as a targeted strategic validator for suspicious paired card effects**; it is not the browser opponent or a replacement for the broad structural simulation.
 
 
 ## Balance and analysis
@@ -116,7 +117,8 @@ Make is the supported command surface. `tools/run_experiments.py` implements the
 | --- | --- | --- |
 | Are data/decks/runtime valid? | `make verify` | Data, fast tests and browser/native parity |
 | Does ordinary play look healthy? | `make balance` | Quick static/playability/health signal |
-| Need deeper balance evidence? | `make balance BALANCE_PRESET=deep` | Larger canonical balance pipeline |
+| Need deeper balance evidence? | `make balance BALANCE_PRESET=deep` | 250 games/cell structural screen + 95-card paired A/B screen + targeted online-MCCFR confirmation |
+| Need the old maximum structural sample? | `make balance BALANCE_PRESET=exhaustive` | Same evidence hierarchy with 2,000 games/cell |
 | Does canonical ISMCTS still behave sensibly against alpha-beta? | `make experiments` | Equal-time 5-second sanity check; no optimizer |
 | What is a card's paired replacement value? | `python tools/counterfactual_balance.py --cards followed --contexts 3 --games-per-context 4 --no-pairs --no-triples` | Specialist analysis, outside the Make lifecycle surface |
 
@@ -124,16 +126,17 @@ Quick runs check plumbing and playability, not statistical balance. Deep runs ar
 
 ```bash
 python tools/run_experiments.py balance --preset quick --games 2 --seed 1701
-python tools/run_experiments.py balance --preset deep --games 2000 --seed 1701 --contexts 3 --games-per-context 4
+python tools/run_experiments.py balance --preset deep --seed 1701 --contexts 3 --games-per-context 4
+python tools/run_experiments.py balance --preset exhaustive --seed 1701 --contexts 3 --games-per-context 4
 ```
 
 Outputs live under `artifacts/balance/<preset>/<identity>/` and `artifacts/search-benchmark/`. Each run saves configuration and source/card/deck fingerprints.
 
-`simulate.py` records action/card/pass/decision telemetry. `health.py` adds confidence-aware observational flags; `playability.py` summarizes card flow. `balance.py` handles static combinations. `counterfactual.py` estimates paired replacement and factorial contrasts; `targeted_counterfactual.py` preserves exact broad-sweep contexts for stronger follow-up. Lab builders aggregate these outputs and reject stale evidence.
+`simulate.py` records action/card/pass/decision telemetry. `health.py` adds confidence-aware observational flags; `playability.py` summarizes card flow. `balance.py` handles static combinations. `counterfactual.py` runs the broad heuristic paired replacement screen. In `deep` and `exhaustive`, `targeted_counterfactual.py` automatically re-tests suspicious single-card signals with online MCCFR using the exact same deck contexts, seats, seeds and interventions. Lab builders aggregate these outputs and reject stale evidence.
 
 “Win when played” is an observational correlation. It is not a card-value estimate. Paired replacements use identical focal seats, game/agent seeds and shuffle permutations. Uncertainty is reported explicitly; a singleton or constant tiny sample cannot establish certainty. Even a narrow interval is specific to the tested policy and deck contexts.
 
-Full-pool causal analysis uses per-card sweeps because all cards/Heroes cannot fit in a legal deck. Selected compatible subsets can request pair/triple factorial analysis. Solver training/verification and targeted online analysis remain separate optional expensive stages:
+Full-pool causal analysis uses per-card sweeps because all cards/Heroes cannot fit in a legal deck. Selected compatible subsets can request pair/triple factorial analysis. The broad sweep is deliberately a screening policy: it may nominate a card for Watch status, but red/orange strategic card-value claims require the automatic targeted online-MCCFR stage. Offline solver training and formal MCCFR verification remain separate specialist stages:
 
 ```bash
 python tools/verify_mccfr.py --iterations 30000
