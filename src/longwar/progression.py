@@ -47,6 +47,8 @@ class ProgressionTelemetry:
         self._battle_events: Counter[str] = Counter()
         self._battle_snapshots: list[dict[str, Any]] = []
         self._battle_records: list[dict[str, Any]] = []
+        self._match_records: list[dict[str, Any]] = []
+        self._game_battle_record_start = 0
         self._sample_traces: list[dict[str, Any]] = []
         self._last_controllers: tuple[int, ...] | None = None
         self._last_control_balance: int | None = None
@@ -109,6 +111,7 @@ class ProgressionTelemetry:
             self._constraint_active_streaks.append(self._constraint_active_streak)
             self._constraint_active_streak = 0
         self._game_index += 1
+        self._game_battle_record_start = len(self._battle_records)
         self._action_index = 0
         self._current_action = 0
         self._battle_action = 0
@@ -309,11 +312,24 @@ class ProgressionTelemetry:
 
         self._action_index = self._current_action
 
-    def finish_game(self, state: GameState | None = None) -> None:
+    def finish_game(
+        self,
+        state: GameState | None = None,
+        *,
+        censored: bool = False,
+    ) -> None:
         if state is not None:
             for player in range(2):
                 for card_id, count in Counter(state.players[player].hand).items():
                     self._card_unplayed_match_end[card_id] += count
+            self._match_records.append({
+                "game": self._game_index,
+                "resolved_battles": (
+                    len(self._battle_records) - self._game_battle_record_start
+                ),
+                "final_battle": int(state.battle),
+                "censored": bool(censored),
+            })
 
     def summary(self) -> dict[str, Any]:
         lifecycles = list(self._formations.values())
@@ -353,6 +369,30 @@ class ProgressionTelemetry:
         ]
 
         by_battle = self._summarize_battles()
+        match_records = list(self._match_records)
+        final_battles = [row["final_battle"] for row in match_records]
+        censored_final_battles = [
+            row["final_battle"] for row in match_records if row["censored"]
+        ]
+        battle_reach = {}
+        for battle in (1, 2, 3, 4):
+            reached = sum(row["final_battle"] >= battle for row in match_records)
+            battle_reach[str(battle)] = {
+                "matches": reached,
+                "rate": self._ratio(reached, len(match_records)),
+            }
+        match_length = {
+            "matches": len(match_records),
+            "censored_matches": sum(row["censored"] for row in match_records),
+            "resolved_battles_per_match": self._distribution(
+                row["resolved_battles"] for row in match_records
+            ),
+            "final_battle_number": self._distribution(final_battles),
+            "censored_final_battle_number": self._distribution(
+                censored_final_battles
+            ),
+            "battle_reach": battle_reach,
+        }
         first_pass = [row for row in self._pass_contexts if row["first_pass"]]
         first_pass_outcomes = {
             "ahead": self._pass_outcome_group(first_pass, lambda row: row["total_margin"] > 0),
@@ -546,6 +586,7 @@ class ProgressionTelemetry:
         }
 
         return {
+            "match_length": match_length,
             "formation_lifecycle": {
                 "forces": forces,
                 "forces_ever_bonded": ever_bonded,
@@ -648,6 +689,10 @@ class ProgressionTelemetry:
                     "Copies still in hand when the match ends. Cards remaining unseen in the deck are not counted."
                 ),
                 "battle_index": "Battle 1, 2 and 3 are separate; all later Battles aggregate into 4+.",
+                "match_length": (
+                    "Battle reach uses the final Battle number observed in each match. "
+                    "Censored matches count as having reached their current Battle but not as having resolved it."
+                ),
                 "command_gained_or_refunded": (
                     "Command gained after an operation beyond its actual paid cost. "
                     "Between-Battle recovery is excluded and remains visible in the Battle-indexed trajectory."
