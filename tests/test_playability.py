@@ -109,6 +109,80 @@ def test_build_playability_report_derives_human_pacing_metrics() -> None:
     assert "AI self-play measures structural pacing" in markdown
 
 
+def test_playability_accepts_fully_censored_zero_battle_cell() -> None:
+    censored = simulation()
+    censored["games"] = 1
+    censored["censored_games"] = 1
+    censored["mean_turns"] = 500.0
+    censored["telemetry"]["battles"]["count"] = 0
+    censored["telemetry"]["actions"] = {
+        name: 0 for name in censored["telemetry"]["actions"]
+    }
+    censored["telemetry"]["passes"] = {
+        "events": 0,
+        "mean_hand_size": None,
+        "mean_dead_cards": None,
+        "first_pass_rate": None,
+    }
+    censored["telemetry"]["cards"] = {}
+    censored["telemetry"]["legend_combinations"] = {}
+    censored["telemetry"]["decisions"] = {}
+    censored["telemetry"]["progression"] = {
+        "match_length": {
+            "final_battle_number": {"count": 0, "mean": None},
+            "battle_reach": {"1": {"matches": 1, "rate": 1.0}},
+        },
+    }
+
+    report = build_playability_report([simulation(), censored])
+
+    assert report["scope"]["games"] == 11
+    assert report["scope"]["censored_games"] == 3
+    assert report["scope"]["battles"] == 25
+    assert report["by_simulation"][1]["mean_cards_played_per_battle"] is None
+    assert report["by_simulation"][1]["mean_action_events_per_battle"] is None
+    assert report["match_pacing"]["battle_reach"]["1"]["matches"] == 11
+
+
+def test_playability_allows_all_games_censored_before_first_resolution() -> None:
+    censored = simulation()
+    censored["games"] = 1
+    censored["censored_games"] = 1
+    censored["mean_turns"] = 500.0
+    censored["telemetry"]["battles"]["count"] = 0
+    censored["telemetry"]["actions"] = {
+        name: 0 for name in censored["telemetry"]["actions"]
+    }
+    censored["telemetry"]["passes"] = {
+        "events": 0,
+        "mean_hand_size": None,
+        "mean_dead_cards": None,
+        "first_pass_rate": None,
+    }
+    censored["telemetry"]["cards"] = {}
+    censored["telemetry"]["legend_combinations"] = {}
+    censored["telemetry"]["decisions"] = {}
+    censored["telemetry"]["progression"] = {
+        "match_length": {
+            "final_battle_number": {"count": 0, "mean": None},
+            "battle_reach": {"1": {"matches": 1, "rate": 1.0}},
+        },
+    }
+
+    report = build_playability_report([censored])
+
+    assert report["scope"] == {
+        "simulation_reports": 1,
+        "games": 1,
+        "decisive_games": 0,
+        "censored_games": 1,
+        "battles": 0,
+    }
+    assert report["battle_pacing"]["mean_cards_played_per_battle"] is None
+    assert report["passing"]["mean_passes_per_battle"] is None
+    assert report["stratagem"]["opportunity_use_rate"] is None
+
+
 def test_playability_report_refuses_to_mix_rulesets() -> None:
     with pytest.raises(ValueError, match="different game fingerprints"):
         build_playability_report(
