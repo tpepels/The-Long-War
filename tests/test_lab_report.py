@@ -254,3 +254,23 @@ def test_progression_trajectory_handles_missing_or_single_bucket() -> None:
     assert result["metrics"]["command_remaining"]["delta"] == 0.0
     assert result["metrics"]["contested_fronts"]["delta"] is None
 
+def test_mccfr_suite_excludes_censored_games_from_seat_swapped_rate() -> None:
+    forward = {
+        "games": 10,
+        "censored_games": 2,
+        "wins": [5, 3],
+    }
+    reverse = {
+        "games": 10,
+        "censored_games": 1,
+        "wins": [5, 4],
+    }
+
+    result = build_mccfr_suite.seat_swapped_evaluation(forward, reverse)
+
+    assert result["games"] == 20
+    assert result["decisive_games"] == 17
+    assert result["censored_games"] == 3
+    assert result["censor_rate"] == pytest.approx(3 / 20)
+    assert result["seat_swapped_mccfr_win_rate"] == pytest.approx(9 / 17)
+
