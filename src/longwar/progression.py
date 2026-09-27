@@ -6,7 +6,6 @@ from typing import Any, Iterable
 
 from .game.actions import (
     Action,
-    Discard,
     EffectChoice,
     Maneuver,
     Pass,
@@ -60,10 +59,14 @@ class ProgressionTelemetry:
         self._choice_card: list[int] = []
         self._choice_maneuver: list[int] = []
         self._forced_decisions = 0
+        self._forced_maneuvers = 0
         self._pass_plus_one = 0
         self._constraint_source_decisions = 0
         self._constraint_active_decisions = 0
+        self._constraint_effect_choice_decisions = 0
         self._effect_choice_decisions = 0
+        self._constraint_active_streak = 0
+        self._constraint_active_streaks: list[int] = []
         self._pass_contexts: list[dict[str, Any]] = []
 
         self._command_spend: Counter[str] = Counter()
@@ -99,6 +102,7 @@ class ProgressionTelemetry:
         self._card_unplayed_match_end: Counter[str] = Counter()
         self._card_plays_by_battle: dict[str, Counter[str]] = defaultdict(Counter)
         self._reshuffled_player = [False, False]
+        self._formation_age_at_battle_end: list[int] = []
 
     def start_game(self, engine: GameEngine, state: GameState) -> None:
         self._game_index += 1
@@ -157,10 +161,22 @@ class ProgressionTelemetry:
         self._choice_card.append(len(card_actions))
         self._choice_maneuver.append(len(maneuver_actions))
         self._forced_decisions += int(len(legal) == 1)
+        self._forced_maneuvers += int(
+            len(legal) == 1 and isinstance(legal[0], Maneuver)
+        )
         self._pass_plus_one += int(bool(pass_actions) and len(alternatives) == 1)
         self._constraint_source_decisions += int(bool(constraint_sources))
         self._constraint_active_decisions += int(constraint_active)
-        self._effect_choice_decisions += int(any(isinstance(x, EffectChoice) for x in legal))
+        effect_choice_available = any(isinstance(x, EffectChoice) for x in legal)
+        self._effect_choice_decisions += int(effect_choice_available)
+        self._constraint_effect_choice_decisions += int(
+            constraint_active and effect_choice_available
+        )
+        if constraint_active:
+            self._constraint_active_streak += 1
+        elif self._constraint_active_streak:
+            self._constraint_active_streaks.append(self._constraint_active_streak)
+            self._constraint_active_streak = 0
 
         if isinstance(action, CARD_ACTIONS):
             card_id = action.card_id
@@ -273,6 +289,14 @@ class ProgressionTelemetry:
             before.phase is Phase.BATTLE
             and (state.phase is Phase.COMPLETE or state.battle != before.battle)
         )
+        battle_end_ages = (
+            [
+                self._current_action - self._formations[formation_id]["created_action"]
+                for formation_id in set(self._formation_at.values())
+            ]
+            if battle_resolved
+            else []
+        )
         new_completions = self._reconcile_formations(
             engine,
             before,
@@ -291,6 +315,7 @@ class ProgressionTelemetry:
 
         if battle_resolved:
             self._record_held_across_boundary(before, state)
+            self._formation_age_at_battle_end.extend(battle_end_ages)
             self._record_battle_end(engine, before, state)
             self._reset_battle(state)
 
@@ -360,6 +385,10 @@ class ProgressionTelemetry:
         ]
         resource = {
             "command_spend": dict(sorted(self._command_spend.items())),
+            "command_spend_by_battle": {
+                battle: dict(sorted(counts.items()))
+                for battle, counts in sorted(self._command_spend_by_battle.items())
+            },
             "command_gained_or_refunded": self._command_gained,
             "free_operations": self._free_operations,
             "free_maneuvers": self._free_maneuvers,
@@ -411,6 +440,9 @@ class ProgressionTelemetry:
             "lead_changes_per_battle": self._distribution(
                 [row["lead_changes"] for row in self._battle_records]
             ),
+            "actions_per_battle": self._distribution(
+                [row["actions"] for row in self._battle_records]
+            ),
             "maximum_abs_margin": self._distribution(
                 [row["maximum_abs_margin"] for row in self._battle_records]
             ),
@@ -450,6 +482,10 @@ class ProgressionTelemetry:
             "exactly_one_legal_action_rate": self._ratio(
                 self._forced_decisions, len(self._choice_legal)
             ),
+            "forced_maneuvers": self._forced_maneuvers,
+            "forced_maneuver_rate": self._ratio(
+                self._forced_maneuvers, len(self._choice_legal)
+            ),
             "pass_plus_one_alternative": self._pass_plus_one,
             "pass_plus_one_alternative_rate": self._ratio(
                 self._pass_plus_one, len(self._choice_legal)
@@ -461,6 +497,11 @@ class ProgressionTelemetry:
             "constraint_active_decisions": self._constraint_active_decisions,
             "constraint_active_rate": self._ratio(
                 self._constraint_active_decisions, len(self._choice_legal)
+            ),
+            "constraint_effect_choice_decisions": self._constraint_effect_choice_decisions,
+            "constraint_duration_decisions": self._distribution(
+                self._constraint_active_streaks
+                + ([self._constraint_active_streak] if self._constraint_active_streak else [])
             ),
             "effect_choice_decisions": self._effect_choice_decisions,
             "pass_mechanical_categories": dict(sorted(Counter(
@@ -493,6 +534,9 @@ class ProgressionTelemetry:
                 "force_to_name_actions": self._distribution(force_to_name),
                 "completion_age_actions": self._distribution(completion_age),
                 "removal_age_actions": self._distribution(removal_age),
+                "battle_end_age_actions": self._distribution(
+                    self._formation_age_at_battle_end
+                ),
             },
             "battlefield_development": battlefield,
             "contestability": contestability,
@@ -533,6 +577,13 @@ class ProgressionTelemetry:
                 "command_gained_or_refunded": (
                     "Command gained after an operation beyond its actual paid cost. "
                     "Between-Battle recovery is excluded and remains visible in the Battle-indexed trajectory."
+                ),
+                "eventual_completion_rate_for_forces_deployed": (
+                    "Among Force lifecycles created in that Battle number, the share "
+                    "that eventually become complete Force-Bond-Name formations later in the match."
+                ),
+                "forced_maneuver": (
+                    "A decision whose complete legal action set contains exactly one action, and that action is Maneuver."
                 ),
             },
         }
@@ -982,6 +1033,9 @@ class ProgressionTelemetry:
                     self._hero_modes[slot.name]["name_battle_end_presence"] += 1
 
     def _reset_battle(self, state: GameState) -> None:
+        if self._constraint_active_streak:
+            self._constraint_active_streaks.append(self._constraint_active_streak)
+            self._constraint_active_streak = 0
         self._battle_number = int(state.battle)
         self._battle_action = 0
         self._battle_events = Counter()
@@ -1223,9 +1277,17 @@ class ProgressionTelemetry:
                 ),
                 "free_maneuvers": self._mean_field(rows, "free_maneuvers"),
                 "command_gained": self._mean_field(rows, "command_gained"),
-                "completion_rate_per_force_played": self._ratio(
-                    sum(row["completed_formations"] for row in rows),
-                    sum(row["forces_played"] for row in rows),
+                "eventual_completion_rate_for_forces_deployed": self._ratio(
+                    sum(
+                        row["completion_action"] is not None
+                        for row in self._formations.values()
+                        if self._battle_key(row["created_battle"]) == key
+                    ),
+                    sum(
+                        1
+                        for row in self._formations.values()
+                        if self._battle_key(row["created_battle"]) == key
+                    ),
                 ),
                 "command_end_buckets": {
                     "0": sum(value == 0 for row in rows for value in row["command_remaining"]),

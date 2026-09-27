@@ -420,6 +420,7 @@ function renderProgression(lab) {
     progressionMetric("Front-control changes", contest.front_control_changes_per_battle, "median per Battle"),
     progressionMetric("Final |margin|", contest.final_abs_margin, "median total-Strength margin"),
     progressionMetric("Max |margin|", contest.maximum_abs_margin, "median Battle maximum"),
+    progressionMetric("Battle length", contest.actions_per_battle, "median operation decisions"),
     progressionMetric("Durable lead", contest.durable_lead_action, "median action when measurable"),
     progressionMetric("Actions after durable lead", contest.actions_remaining_after_durable_lead, "median when measurable"),
     metric("No later control change", pct(contest.no_control_change_after_midpoint_rate), "after Battle midpoint"),
@@ -431,6 +432,7 @@ function renderProgression(lab) {
     progressionMetric("Card-play options", choice.card_play_option_count, "median legal card actions"),
     progressionMetric("Maneuver options", choice.maneuver_option_count, "median legal Maneuvers"),
     metric("Exactly one legal action", pct(choice.exactly_one_legal_action_rate), `${choice.exactly_one_legal_action ?? 0} decisions`),
+    metric("Forced Maneuver", pct(choice.forced_maneuver_rate), `${choice.forced_maneuvers ?? 0} decisions`),
     metric("Pass with no alternative", passCategories.no_alternative ?? 0, "mechanically no non-Pass action"),
     metric(
       "Constraint source / active",
@@ -468,7 +470,7 @@ function renderProgression(lab) {
         <td>${num(row.forces_played, 1)}</td>
         <td>${num(row.bonds_played, 1)}</td>
         <td>${num(row.names_played, 1)}</td>
-        <td>${num(row.completed_formations, 1)}<span class="muted">${pct(row.completion_rate_per_force_played)} / Force</span></td>
+        <td>${num(row.completed_formations, 1)}<span class="muted">${pct(row.eventual_completion_rate_for_forces_deployed)} eventual / deployed</span></td>
         <td>${num(row.incomplete_formations_end, 1)}</td>
         <td>${num(row.occupied_positions, 1)}</td>
         <td>${num(row.active_fronts, 1)} / ${num(row.contested_fronts, 1)}</td>

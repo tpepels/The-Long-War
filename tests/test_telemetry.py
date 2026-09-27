@@ -385,7 +385,7 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
     assert by_battle["2"]["battles"] == 1
     assert by_battle["3"]["battles"] == 1
     assert by_battle["4+"]["battles"] == 2
-    assert by_battle["1"]["completion_rate_per_force_played"] == pytest.approx(0.5)
+    assert by_battle["1"]["eventual_completion_rate_for_forces_deployed"] is None
 
 
 
@@ -439,3 +439,19 @@ def test_partial_formation_counter_is_force_anchored() -> None:
     progression = ProgressionTelemetry()
     assert progression._count_partial(state, 0) == 1
     assert progression._count_complete(state, 0) == 0
+
+
+
+def test_forced_maneuver_is_separate_from_zero_cost_maneuver() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=611, first_player=0)
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+    maneuver = Maneuver(
+        source=_position(Front.FIRST),
+        destination=_position(Front.SECOND),
+    )
+    progression.before_action(engine, state, 0, maneuver, [maneuver])
+    choice = progression.summary()["mechanical_choice"]
+    assert choice["forced_maneuvers"] == 1
+    assert choice["forced_maneuver_rate"] == pytest.approx(1.0)
