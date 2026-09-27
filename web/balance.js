@@ -701,8 +701,11 @@ function renderMccfr(lab) {
               <td>${row.policy.iterations ?? "—"}</td>
               <td>${Number(row.policy.information_sets || 0).toLocaleString()}</td>
               <td>${row.policy.max_depth ?? "—"}</td>
-              <td><strong>${pct(row.evaluation.seat_swapped_mccfr_win_rate)}</strong><span class="muted">seat-swapped</span></td>
-              <td>${row.evaluation.games}</td>
+              <td><strong>${pct(row.evaluation.seat_swapped_mccfr_win_rate)}</strong><span class="muted">seat-swapped · decisive games</span></td>
+              <td>
+                ${row.evaluation.games}
+                <span class="muted">${row.evaluation.decisive_games ?? row.evaluation.games} decisive · ${row.evaluation.censored_games ?? 0} censored</span>
+              </td>
             </tr>
           `).join("")}
         </tbody>
