@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - "web/**"
+      - "artifacts/*.json"
       - "rules/**"
       - "cards/**"
       - "decks/*.json"
