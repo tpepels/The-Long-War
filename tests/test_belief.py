@@ -24,7 +24,7 @@ CENTER = Position(Front.SECOND, Rank.FRONT)
 def setup():
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
     state = engine.new_game(
@@ -35,6 +35,26 @@ def setup():
         opening_bonus=False,
     )
     return engine, deck, state
+
+
+def test_card_pool_prior_always_satisfies_force_and_name_minimums() -> None:
+    engine, _reference, _state = setup()
+    prior = CardPoolDeckPrior(engine, deck_size=34)
+
+    for seed in range(32):
+        sampled = prior.sample_deck(Counter(), random.Random(seed))
+        force_count = sum(
+            engine.cards[card_id]["type"] == "force"
+            for card_id in sampled
+        )
+        name_count = sum(
+            engine.cards[card_id]["type"] == "name"
+            for card_id in sampled
+        )
+        assert len(sampled) == 34
+        assert force_count >= 14
+        assert name_count >= 6
+        validate_deck_definition(sampled, engine.cards)
 
 
 def test_card_pool_prior_samples_multiple_legal_deck_compositions() -> None:
@@ -50,8 +70,8 @@ def test_card_pool_prior_samples_multiple_legal_deck_compositions() -> None:
 def test_hypothesis_prior_conditions_on_observed_public_cards() -> None:
     engine, reference, _state = setup()
     alternative = list(reference)
-    alternative.remove("the-fifty-men")
-    alternative.append("seven-black-ships")
+    alternative.remove("the-grey-riders")
+    alternative.append("the-fifty-men")
     prior = HypothesisDeckPrior(
         engine,
         [
@@ -60,7 +80,7 @@ def test_hypothesis_prior_conditions_on_observed_public_cards() -> None:
         ],
     )
 
-    posterior = prior.posterior(Counter({"the-fifty-men": 2}))
+    posterior = prior.posterior(Counter({"the-grey-riders": 2}))
     assert [hypothesis.label for hypothesis, _ in posterior] == ["reference"]
 
 
@@ -72,8 +92,8 @@ def test_belief_sample_preserves_all_public_zones() -> None:
     slot.force = "the-fifty-men"
     slot.bond = "followed"
     slot.name = "namar"
-    state.stories[opponent] = [StoryState("the-lamps-went-dark")]
-    state.stratagems[opponent] = StratagemState("the-storm-broke")
+    state.stories[opponent] = [StoryState("the-long-march")]
+    state.stratagems[opponent] = StratagemState("the-ground-was-held")
 
     sampler = BeliefSampler(engine)
     sampled = sampler.sample(state, 0, random.Random(11))
@@ -85,17 +105,17 @@ def test_belief_sample_preserves_all_public_zones() -> None:
         "namar",
     )
     assert [story.card_id for story in sampled.stories[opponent]] == [
-        "the-lamps-went-dark"
+        "the-long-march"
     ]
     assert sampled.stratagems[opponent] is not None
-    assert sampled.stratagems[opponent].card_id == "the-storm-broke"
+    assert sampled.stratagems[opponent].card_id == "the-ground-was-held"
     assert sampled.players[opponent].discard == state.players[opponent].discard
 
 
 def test_belief_sampler_reports_no_hidden_story_or_stratagem_zones() -> None:
     engine, _reference, state = setup()
-    state.stories[1] = [StoryState("the-lamps-went-dark")]
-    state.stratagems[1] = StratagemState("the-storm-broke")
+    state.stories[1] = [StoryState("the-long-march")]
+    state.stratagems[1] = StratagemState("the-ground-was-held")
 
     diagnostics = BeliefSampler(engine).diagnostics(state, 0)
 
@@ -145,7 +165,7 @@ def test_belief_reuse_context_changes_when_public_story_changes() -> None:
     sampler = BeliefSampler(engine)
 
     before = sampler.reuse_context(state, 0)
-    state.stories[1].append(StoryState("the-lamps-went-dark"))
+    state.stories[1].append(StoryState("the-long-march"))
     after = sampler.reuse_context(state, 0)
 
     assert before != after
@@ -157,7 +177,8 @@ def test_card_pool_prior_excludes_unobserved_experimental_cards() -> None:
     engine, _reference, _state = setup()
     experiment_engine = GameEngine(
         build_experiment_card_data(
-            load_card_file(ROOT / "cards" / "cards.json")
+            load_card_file(ROOT / "cards" / "cards.json"),
+            ["namar"],
         )
     )
     prior = CardPoolDeckPrior(experiment_engine, deck_size=34)
@@ -172,8 +193,8 @@ def test_card_pool_prior_allows_multiple_distinct_heroes() -> None:
     prior = CardPoolDeckPrior(engine, deck_size=34)
     required = Counter(
         {
-            "mara-queen-of-cinders": 1,
-            "sera-mother-of-white-hands": 1,
+            "avaros-the-bronze-king": 1,
+            "kael-the-roadless": 1,
         }
     )
 
@@ -184,10 +205,11 @@ def test_card_pool_prior_allows_multiple_distinct_heroes() -> None:
         if engine.cards[card_id].get("hero", False)
     ]
 
-    assert "mara-queen-of-cinders" in heroes
-    assert "sera-mother-of-white-hands" in heroes
+    assert "avaros-the-bronze-king" in heroes
+    assert "kael-the-roadless" in heroes
     assert len(heroes) == len(set(heroes))
-    validate_deck_definition(sampled, engine.cards, exact_size=34)
+    assert len(sampled) == 34
+    validate_deck_definition(sampled, engine.cards)
 
 
 def test_card_pool_prior_uses_explicit_deck_size_not_engine_rules() -> None:
@@ -199,4 +221,4 @@ def test_card_pool_prior_uses_explicit_deck_size_not_engine_rules() -> None:
 
     assert prior.deck_size == 40
     assert len(sampled) == 40
-    validate_deck_definition(sampled, engine.cards, exact_size=40)
+    validate_deck_definition(sampled, engine.cards)
