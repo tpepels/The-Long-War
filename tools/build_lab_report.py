@@ -240,6 +240,17 @@ def main() -> None:
         else None
     )
     trajectory = progression_trajectory(progression)
+    progression_source = (
+        {
+            "label": selfplay.get("_label"),
+            "scope": selfplay.get("progression_scope"),
+            "games": selfplay.get("games"),
+            "decisive_games": selfplay.get("decisive_games"),
+            "censored_games": selfplay.get("censored_games"),
+        }
+        if selfplay is not None
+        else None
+    )
 
     card_titles = {
         card["id"]: card["title"]
@@ -302,6 +313,7 @@ def main() -> None:
         "raw_telemetry": raw_telemetry,
         "progression": progression,
         "progression_trajectory": trajectory,
+        "progression_source": progression_source,
         "all_formations": all_formations,
         "downloads": downloads,
     }
