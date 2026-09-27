@@ -206,6 +206,9 @@ class ProgressionTelemetry:
             alternatives_count = int(pass_context.get("legal_alternatives", 0))
             pass_context.update({
                 "game": self._game_index,
+                "command_remaining": pass_context.get(
+                    "command_remaining", state.players[actor].command
+                ),
                 "constraint_active": constraint_active,
                 "constraint_rule_sources": constraint_sources,
                 "mechanical_category": (
