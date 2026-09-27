@@ -272,7 +272,7 @@ def simulate_games(
             first_player=first_player,
             mulligan_indices=mulligan_indices,
         )
-        telemetry.start_game(state)
+        telemetry.start_game(state, engine)
         human_flow.start_game(engine, state)
 
         action_count = 0
@@ -315,7 +315,7 @@ def simulate_games(
         if winner is None:
             raise RuntimeError("Completed game has no winner")
 
-        telemetry.finish_game(winner)
+        telemetry.finish_game(winner, state)
         game_outcomes.append({
             "seed": seed + game_index,
             "first_player": first_player,

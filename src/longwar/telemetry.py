@@ -16,6 +16,7 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase
+from .progression import ProgressionTelemetry
 
 
 @dataclass
@@ -90,6 +91,7 @@ class Telemetry:
             "known_hidden_total": 0.0,
         }
         self.online_prior_counts: Counter[str] = Counter()
+        self.progression = ProgressionTelemetry()
 
         self._drawn_this_game: list[set[str]] = [set(), set()]
         self._played_this_game: list[set[str]] = [set(), set()]
@@ -104,13 +106,16 @@ class Telemetry:
         self._deck_empty_decisions = 0
         self._match_count = 0
 
-    def start_game(self, state: GameState) -> None:
+    def start_game(self, state: GameState, engine: GameEngine | None = None) -> None:
         self._drawn_this_game = [set(), set()]
         self._played_this_game = [set(), set()]
         self._combos_this_game = [set(), set()]
         self._battle_actions = [0, 0]
         self._deck_exhausted_this_game = [False, False]
         self._reshuffled_this_game = [False, False]
+
+        if engine is not None:
+            self.progression.start_game(engine, state)
 
         for player in range(2):
             for card_id in state.players[player].hand:
@@ -126,6 +131,9 @@ class Telemetry:
     ) -> GameState:
         before = state.clone()
         self.action_counts[type(action).__name__] += 1
+        legal: list[Action] = []
+        if state.phase is Phase.BATTLE:
+            legal = engine.legal_actions(state)
 
         if state.phase is Phase.BATTLE and state.pending_draw_discard_for is None:
             self._battle_actions[actor] += 1
@@ -134,7 +142,6 @@ class Telemetry:
                 self._deck_empty_decisions += 1
                 if not engine.can_draw(state, actor):
                     self._deck_exhausted_this_game[actor] = True
-            legal = engine.legal_actions(state)
             playable_ids = {
                 card_id
                 for legal_action in legal
@@ -179,6 +186,14 @@ class Telemetry:
         if card_id is not None:
             self.cards[card_id].plays += 1
             self._played_this_game[actor].add(card_id)
+
+        self.progression.before_action(
+            engine,
+            state,
+            actor,
+            action,
+            legal,
+        )
 
         if decision_info:
             agent_name = str(decision_info.get("agent", "unknown"))
@@ -305,6 +320,7 @@ class Telemetry:
             stats.immediate_control_swing_total += after_control - before_control
 
         self._record_new_completions(engine, before, state, actor)
+        self.progression.after_action(engine, before, state, actor, action)
 
         battle_resolved = (
             before.phase is Phase.BATTLE
@@ -317,8 +333,9 @@ class Telemetry:
             self._record_battle(engine, before, state)
             self._battle_actions = [0, 0]
 
-    def finish_game(self, winner: int) -> None:
+    def finish_game(self, winner: int, state: GameState | None = None) -> None:
         self._match_count += 1
+        self.progression.finish_game(state)
         self._deck_exhausted_player_games += sum(self._deck_exhausted_this_game)
         self._reshuffle_player_games += sum(self._reshuffled_this_game)
         for player in range(2):
@@ -634,7 +651,9 @@ class Telemetry:
             "command": command,
             "depletion": depletion,
             "cards": cards,
+            "formation_combinations": combos,
             "legend_combinations": combos,
+            "progression": self.progression.summary(),
             "decisions": decisions,
             "policy_sources": dict(sorted(self.policy_sources.items())),
             "search_backends": dict(sorted(self.search_backends.items())),
@@ -668,6 +687,8 @@ class Telemetry:
                 for card_id, count in added.items():
                     for _ in range(count):
                         self._record_draw(player, card_id)
+                self.progression.record_draw(player, card_id, state)
+                        self.progression.record_draw(player, card_id, state)
             return
 
         for player in range(2):
@@ -678,6 +699,8 @@ class Telemetry:
                 for card_id, count in added.items():
                     for _ in range(count):
                         self._record_draw(player, card_id)
+                self.progression.record_draw(player, card_id, state)
+                        self.progression.record_draw(player, card_id, state)
                 continue
 
             count = len(before.players[player].deck) - len(state.players[player].deck)
@@ -686,6 +709,7 @@ class Telemetry:
             drawn = list(reversed(before.players[player].deck[-count:]))
             for card_id in drawn:
                 self._record_draw(player, card_id)
+                self.progression.record_draw(player, card_id, state)
 
     def _record_new_completions(
         self,
