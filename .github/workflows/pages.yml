@@ -37,6 +37,7 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install -e .
+      - run: python -m compileall -q src tools tests
       - run: python tools/build_pages.py
       - uses: actions/upload-pages-artifact@v4
         with:
