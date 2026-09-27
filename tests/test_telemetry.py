@@ -7,22 +7,24 @@ from pathlib import Path
 
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
+from longwar.game.actions import Maneuver, Pass, PlayForce, PlayName
+from longwar.game.model import Front, Position, Rank, StoryState
+from longwar.progression import ProgressionTelemetry
 from longwar.simulate import simulate_games
 from longwar.telemetry import Telemetry
 
 ROOT = Path(__file__).resolve().parents[1]
 
-pytestmark = pytest.mark.integration
-
 
 def setup():
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     return GameEngine(data), deck
 
 
+@pytest.mark.integration
 def test_telemetry_contains_card_pass_battle_and_combo_metrics() -> None:
     engine, deck = setup()
     report = simulate_games(
@@ -49,6 +51,7 @@ def test_telemetry_contains_card_pass_battle_and_combo_metrics() -> None:
     assert telemetry["legend_combinations"]
 
 
+@pytest.mark.integration
 def test_heuristic_beats_random_in_small_fixed_benchmark() -> None:
     engine, deck = setup()
     report = simulate_games(
@@ -66,7 +69,7 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=505, first_player=0)
     telemetry = Telemetry()
-    telemetry.start_game(state)
+    telemetry.start_game(state, engine)
     action = engine.legal_actions(state)[0]
 
     telemetry.before_action(
@@ -132,3 +135,250 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
     assert decisions["timeout_rate"] == pytest.approx(1.0)
     assert decisions["searched_decisions"] == 1
     assert decisions["mean_searched_decision_seconds"] == pytest.approx(1.25)
+
+
+
+def _position(front: Front = Front.FIRST, rank: Rank = Rank.FRONT) -> Position:
+    return Position(front=front, rank=rank)
+
+
+def test_formation_lifecycle_tracks_force_bond_name_without_resetting_identity() -> None:
+    engine, _deck = setup()
+    state = engine.new_game(_deck, _deck, seed=601, first_player=0)
+    position = _position()
+    state.slot(0, position).force = "the-fifty-men"
+
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+    formation_id = progression._formation_at[(0, position)]
+
+    before = state.clone()
+    state.slot(0, position).bond = "had-been-ordered-forward"
+    progression._current_action = 3
+    progression._reconcile_formations(
+        engine, before, state, 0, Pass(), battle_resolved=False
+    )
+
+    before = state.clone()
+    state.slot(0, position).name = "arel"
+    progression._current_action = 7
+    completions = progression._reconcile_formations(
+        engine, before, state, 0, Pass(), battle_resolved=False
+    )
+
+    row = progression._formations[formation_id]
+    assert progression._formation_at[(0, position)] == formation_id
+    assert row["created_action"] == 0
+    assert row["bond_action"] == 3
+    assert row["name_action"] == 7
+    assert row["completion_action"] == 7
+    assert completions == 1
+
+    lifecycle = progression.summary()["formation_lifecycle"]
+    assert lifecycle["forces"] == 1
+    assert lifecycle["forces_ever_bonded"] == 1
+    assert lifecycle["forces_ever_named"] == 1
+    assert lifecycle["force_to_bond_actions"]["median"] == 3
+    assert lifecycle["bond_to_name_actions"]["median"] == 4
+    assert lifecycle["force_to_name_actions"]["median"] == 7
+
+
+def test_maneuver_preserves_formation_identity_and_age() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=602, first_player=0)
+    source = _position(Front.FIRST)
+    destination = _position(Front.SECOND)
+    state.slot(0, source).force = "the-fifty-men"
+    state.slot(0, source).bond = "had-been-ordered-forward"
+
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+    formation_id = progression._formation_at[(0, source)]
+
+    before = state.clone()
+    moving = state.slot(0, source)
+    target = state.slot(0, destination)
+    target.force, target.bond, target.name = moving.force, moving.bond, moving.name
+    moving.force = moving.bond = moving.name = None
+    progression._current_action = 5
+    progression._reconcile_formations(
+        engine,
+        before,
+        state,
+        0,
+        Maneuver(source=source, destination=destination),
+        battle_resolved=False,
+    )
+
+    assert (0, source) not in progression._formation_at
+    assert progression._formation_at[(0, destination)] == formation_id
+    assert progression._formations[formation_id]["created_action"] == 0
+    assert progression._formations[formation_id]["removed_action"] is None
+
+
+def test_incomplete_formation_removal_is_recorded_once() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=603, first_player=0)
+    position = _position()
+    state.slot(0, position).force = "the-fifty-men"
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+    formation_id = progression._formation_at[(0, position)]
+
+    before = state.clone()
+    state.slot(0, position).force = None
+    progression._current_action = 4
+    progression._reconcile_formations(
+        engine, before, state, 0, Pass(), battle_resolved=False
+    )
+
+    row = progression._formations[formation_id]
+    assert row["removed_action"] == 4
+    assert row["removed_reason"] == "effect_or_retreat"
+    assert progression.summary()["formation_lifecycle"][
+        "incomplete_removed_before_completion"
+    ] == 1
+
+
+def test_battlefield_snapshot_counts_occupied_active_and_contested_fronts() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=604, first_player=0)
+    state.slot(0, _position(Front.FIRST)).force = "the-fifty-men"
+    state.slot(0, _position(Front.SECOND)).force = "the-vardai"
+    state.slot(1, _position(Front.FIRST)).force = "the-vardai"
+
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+    snapshot = progression._snapshot(
+        engine,
+        state,
+        actor=0,
+        legal_count=6,
+        constraint_active=False,
+        constraint_sources=[],
+    )
+
+    assert snapshot["occupied"] == [2, 1]
+    assert snapshot["active_fronts"] == 2
+    assert snapshot["contested_fronts"] == 1
+    assert snapshot["uncontested_fronts"] == 1
+    assert snapshot["empty_fronts"] == 2
+    assert snapshot["legal_actions"] == 6
+    json.dumps(snapshot)
+
+
+def test_mechanical_choice_and_pass_context_use_actual_legal_set() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=605, first_player=0)
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+
+    pass_action = Pass()
+    progression.before_action(engine, state, 0, pass_action, [pass_action])
+    choice = progression.summary()["mechanical_choice"]
+
+    assert choice["exactly_one_legal_action"] == 1
+    assert choice["exactly_one_legal_action_rate"] == pytest.approx(1.0)
+    assert choice["pass_mechanical_categories"] == {"no_alternative": 1}
+
+
+def test_constraint_rule_source_is_not_misreported_as_active_constraint() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=606, first_player=0)
+    state.stories[0].append(
+        StoryState(card_id="the-king-had-given-the-order", ongoing=True)
+    )
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+    pass_action = Pass()
+    progression.before_action(engine, state, 0, pass_action, [pass_action])
+
+    choice = progression.summary()["mechanical_choice"]
+    assert choice["constraint_rule_source_decisions"] == 1
+    assert choice["constraint_active_decisions"] == 0
+    assert progression._sample_traces[0]["constraint_rule_sources"] == [
+        "the-king-had-given-the-order"
+    ]
+    assert progression._sample_traces[0]["constraint_active"] is False
+
+
+def test_hero_modes_are_counted_separately() -> None:
+    engine, deck = setup()
+    progression = ProgressionTelemetry()
+
+    state = engine.new_game(deck, deck, seed=607, first_player=0)
+    progression.start_game(engine, state)
+    position = _position()
+    before = state.clone()
+    state.slot(0, position).force = "avaros-the-bronze-king"
+    progression._record_hero_action(
+        engine,
+        before,
+        state,
+        0,
+        PlayForce("avaros-the-bronze-king", position),
+    )
+
+    before = state.clone()
+    state.slot(0, position).bond = "had-been-ordered-forward"
+    state.slot(0, position).name = "kael-the-roadless"
+    progression._record_hero_action(
+        engine,
+        before,
+        state,
+        0,
+        PlayName("kael-the-roadless", position),
+    )
+
+    heroes = progression.summary()["hero_modes"]
+    assert heroes["avaros-the-bronze-king"]["force_plays"] == 1
+    assert heroes["avaros-the-bronze-king"]["name_plays"] == 0
+    assert heroes["kael-the-roadless"]["force_plays"] == 0
+    assert heroes["kael-the-roadless"]["name_plays"] == 1
+
+
+def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
+    progression = ProgressionTelemetry()
+    base = {
+        "game": 0,
+        "actions": 4,
+        "forces_played": 2,
+        "bonds_played": 1,
+        "names_played": 1,
+        "completed_formations": 1,
+        "incomplete_at_end": [1, 1],
+        "complete_at_end": [1, 0],
+        "mean_total_occupied": 3.0,
+        "mean_active_fronts": 2.0,
+        "mean_contested_fronts": 1.0,
+        "mean_complete_formations": 1.0,
+        "mean_partial_formations": 2.0,
+        "mean_strength_concentration": [0.6, 0.7],
+        "front_control_changes": 2,
+        "control_balance_changes": 1,
+        "lead_changes": 1,
+        "maximum_abs_margin": 4,
+        "midpoint_abs_margin": 2,
+        "final_abs_margin": 3,
+        "durable_lead_action": 3,
+        "actions_remaining_after_durable_lead": 1,
+        "no_control_change_after_midpoint": False,
+        "command_remaining": [4, 5],
+        "hand_remaining": [5, 6],
+        "deck_remaining": [10, 11],
+        "mean_legal_actions": 7.0,
+        "constraint_source_decisions": 0,
+        "constraint_active_decisions": 0,
+        "cards_played": 5,
+        "free_maneuvers": 1,
+        "command_gained": 1,
+    }
+    for battle in (1, 2, 3, 4, 5):
+        progression._battle_records.append({**base, "battle": battle})
+
+    by_battle = progression.summary()["by_battle"]
+    assert by_battle["1"]["battles"] == 1
+    assert by_battle["2"]["battles"] == 1
+    assert by_battle["3"]["battles"] == 1
+    assert by_battle["4+"]["battles"] == 2
+    assert by_battle["1"]["completion_rate_per_force_played"] == pytest.approx(0.5)
