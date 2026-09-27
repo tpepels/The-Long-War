@@ -357,7 +357,7 @@ class Telemetry:
 
     def finish_game(self, winner: int | None, state: GameState | None = None) -> None:
         self._match_count += 1
-        self.progression.finish_game(state)
+        self.progression.finish_game(state, censored=winner is None)
         self._deck_exhausted_player_games += sum(self._deck_exhausted_this_game)
         self._reshuffle_player_games += sum(self._reshuffled_this_game)
         if winner is None:
