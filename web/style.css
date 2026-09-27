@@ -537,6 +537,12 @@ button, .button {
   border-color: #c7a229;
 }
 
+.grade-unobserved {
+  background: #e1dbcf;
+  color: #5f584e;
+  border-color: #9d9589;
+}
+
 .grade-green {
   background: #9dbd82;
   color: #181714;
@@ -559,6 +565,10 @@ button, .button {
 
 .grade-row-yellow {
   box-shadow: inset 5px 0 0 #edc64a;
+}
+
+.grade-row-unobserved {
+  box-shadow: inset 5px 0 0 #9d9589;
 }
 
 .grade-row-green {
