@@ -34,6 +34,84 @@
 
     <section id="overview" class="metric-grid overview-metrics" aria-live="polite"></section>
 
+    <section class="dashboard-section progression-analysis" aria-labelledby="progression-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Game progression</p>
+          <h2 id="progression-title">What kind of match is actually happening?</h2>
+          <p class="dashboard-note">
+            Mechanics-only evidence from the same simulations used for balance analysis. No composite health score is inferred.
+          </p>
+        </div>
+      </div>
+
+      <div id="progression-unavailable" class="verification verification-missing" hidden>
+        Progression telemetry is not present in this artifact. Regenerate the simulation and Balance Lab.
+      </div>
+
+      <div class="progression-question-grid">
+        <article class="progression-question">
+          <header><span>A</span><h3>Is the battlefield developing?</h3></header>
+          <div id="progression-battlefield" class="metric-grid compact-grid progression-metrics"></div>
+        </article>
+        <article class="progression-question">
+          <header><span>B</span><h3>Are Battles staying contestable?</h3></header>
+          <div id="progression-contestability" class="metric-grid compact-grid progression-metrics"></div>
+        </article>
+        <article class="progression-question">
+          <header><span>C</span><h3>Are players retaining mechanical choice?</h3></header>
+          <div id="progression-choice" class="metric-grid compact-grid progression-metrics"></div>
+        </article>
+        <article class="progression-question">
+          <header><span>D</span><h3>Are resources progressing correctly?</h3></header>
+          <div id="progression-resources" class="metric-grid compact-grid progression-metrics"></div>
+        </article>
+      </div>
+
+      <div class="progression-detail-grid">
+        <section>
+          <h3>Battle I / II / III progression</h3>
+          <p class="dashboard-note">Per-Battle means; Battles IV and later are grouped as 4+.</p>
+          <div class="table-wrap fitted-table">
+            <table class="mini-table progression-battle-table">
+              <thead>
+                <tr>
+                  <th>Battle</th>
+                  <th>Forces</th>
+                  <th>Bonds</th>
+                  <th>Names</th>
+                  <th>Complete</th>
+                  <th>Partial end</th>
+                  <th>Occupied</th>
+                  <th>Active / contested Fronts</th>
+                  <th>Control changes</th>
+                  <th>Legal choices</th>
+                  <th>Command end</th>
+                </tr>
+              </thead>
+              <tbody id="progression-battles"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <h3>Hero mode use</h3>
+          <p class="dashboard-note">Force and Name plays are counted separately; no mode is treated as preferable.</p>
+          <div class="table-wrap fitted-table">
+            <table class="mini-table hero-mode-table">
+              <thead><tr><th>Hero</th><th>Force</th><th>Name</th><th>Force share</th><th>Name share</th><th>Completion</th></tr></thead>
+              <tbody id="hero-mode-table"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <details class="diagnostic-details progression-diagnostics">
+        <summary>Pass conditions, card lifecycle and metric definitions</summary>
+        <div id="progression-diagnostics"></div>
+      </details>
+    </section>
+
     <section class="dashboard-section primary-analysis">
       <div class="section-heading">
         <div>
@@ -144,7 +222,7 @@
 
     <details class="dashboard-disclosure">
       <summary>
-        <span><small>Three-card sequences</small><strong>Observed Force–Bond–Name combinations</strong></span>
+        <span><small>Formations</small><strong>Force–Bond–Name combinations</strong></span>
         <i id="legend-count">collapsed by default</i>
       </summary>
       <div class="disclosure-body">

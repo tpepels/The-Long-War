@@ -178,6 +178,11 @@ def main() -> None:
         }
 
     raw_telemetry = selfplay.get("telemetry") if selfplay is not None else None
+    progression = (
+        raw_telemetry.get("progression")
+        if raw_telemetry is not None
+        else None
+    )
 
     card_titles = {
         card["id"]: card["title"]
@@ -235,6 +240,7 @@ def main() -> None:
         "counterfactual": counterfactual,
         "targeted_counterfactual": targeted,
         "raw_telemetry": raw_telemetry,
+        "progression": progression,
         "all_legends": all_legends,
         "downloads": downloads,
     }

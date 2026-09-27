@@ -98,10 +98,15 @@ function renderOverview(lab) {
   const s = h.summary;
   const verification = lab.verification;
   const suite = lab.mccfr_suite;
+  const progression = lab.progression || lab.raw_telemetry?.progression;
+  const lifecycle = progression?.formation_lifecycle || {};
+  const choice = progression?.mechanical_choice || {};
   document.getElementById("overview").innerHTML = [
     metric("Games", Number(h.source.games).toLocaleString(), h.source.agents.join(" vs ")),
     metric("First-player win", pct(g.first_player_win_rate), `95% ${interval(g.first_player_win_rate_95)}`),
     metric("Cards", s.cards_analyzed, `${s.flags_high} high · ${s.flags_watch} watch flags`),
+    metric("Forces becoming Named", pct(lifecycle.force_to_name_rate), progression ? `${lifecycle.forces_ever_named ?? 0} / ${lifecycle.forces ?? 0} Force lifecycles` : "progression not generated"),
+    metric("Forced choice", pct(choice.exactly_one_legal_action_rate), progression ? "decisions with exactly one legal action" : "progression not generated"),
     metric("Causal coverage", lab.counterfactual ? lab.counterfactual.cards.length : "—", lab.counterfactual ? "paired card estimates" : "not generated"),
     metric("MCCFR card coverage", suite ? `${suite.covered_cards}/${suite.card_pool_size}` : "—", suite ? `${suite.profiles.length} deck profiles` : "not generated"),
     metric("Solver verification", verification ? (verification.passed ? "PASS" : "FAIL") : "—",
@@ -374,6 +379,168 @@ function renderMatchups(lab) {
   `;
 }
 
+function distributionValue(distribution, field = "median", digits = 1) {
+  if (!distribution || distribution[field] == null) return "—";
+  return num(distribution[field], digits);
+}
+
+function progressionMetric(label, distribution, note) {
+  return metric(label, distributionValue(distribution), note || `median · n=${distribution?.count ?? 0}`);
+}
+
+function renderProgression(lab) {
+  const p = lab.progression || lab.raw_telemetry?.progression;
+  const unavailable = document.getElementById("progression-unavailable");
+  if (!p) {
+    unavailable.hidden = false;
+    return;
+  }
+  unavailable.hidden = true;
+
+  const life = p.formation_lifecycle || {};
+  const field = p.battlefield_development || {};
+  const contest = p.contestability || {};
+  const choice = p.mechanical_choice || {};
+  const resources = p.resources || {};
+
+  document.getElementById("progression-battlefield").innerHTML = [
+    metric("Force → Bond", pct(life.force_to_bond_rate), `${life.forces_ever_bonded ?? 0} of ${life.forces ?? 0} Force lifecycles`),
+    metric("Force → Name", pct(life.force_to_name_rate), `${life.forces_ever_named ?? 0} eventually Named`),
+    progressionMetric("Active Fronts", field.active_fronts, "median per Battle decision"),
+    progressionMetric("Contested Fronts", field.contested_fronts, "median per Battle decision"),
+    metric(
+      "Partial at Battle end",
+      field.battles ? num((life.incomplete_at_battle_end || 0) / field.battles, 1) : "—",
+      "mean across both players"
+    ),
+    progressionMetric("Force → Name time", life.force_to_name_actions, "median actions"),
+  ].join("");
+
+  document.getElementById("progression-contestability").innerHTML = [
+    progressionMetric("Front-control changes", contest.front_control_changes_per_battle, "median per Battle"),
+    progressionMetric("Final |margin|", contest.final_abs_margin, "median total-Strength margin"),
+    progressionMetric("Max |margin|", contest.maximum_abs_margin, "median Battle maximum"),
+    progressionMetric("Durable lead", contest.durable_lead_action, "median action when measurable"),
+    progressionMetric("Actions after durable lead", contest.actions_remaining_after_durable_lead, "median when measurable"),
+    metric("No later control change", pct(contest.no_control_change_after_midpoint_rate), "after Battle midpoint"),
+  ].join("");
+
+  const passCategories = choice.pass_mechanical_categories || {};
+  document.getElementById("progression-choice").innerHTML = [
+    progressionMetric("Legal actions", choice.legal_action_count, "median per operation decision"),
+    progressionMetric("Card-play options", choice.card_play_option_count, "median legal card actions"),
+    progressionMetric("Maneuver options", choice.maneuver_option_count, "median legal Maneuvers"),
+    metric("Exactly one legal action", pct(choice.exactly_one_legal_action_rate), `${choice.exactly_one_legal_action ?? 0} decisions`),
+    metric("Pass with no alternative", passCategories.no_alternative ?? 0, "mechanically no non-Pass action"),
+    metric(
+      "Constraint source / active",
+      `${pct(choice.constraint_rule_source_rate)} / ${pct(choice.constraint_active_rate)}`,
+      "source present is not the same as engine-enforced restriction"
+    ),
+  ].join("");
+
+  const commandDist = resources.command_remaining_at_battle_end || {};
+  const commandBuckets = resources.command_end_buckets || {};
+  const zeroRate = commandDist.count ? (commandBuckets["0"] || 0) / commandDist.count : null;
+  document.getElementById("progression-resources").innerHTML = [
+    progressionMetric("Command at Battle end", commandDist, "median per player-Battle"),
+    metric("Ends at 0 Command", pct(zeroRate), `${commandBuckets["0"] || 0} player-Battles`),
+    metric("Free Maneuvers", resources.free_maneuvers ?? 0, "actual zero-Command Maneuvers"),
+    metric("Discounted actions", resources.discount_actions ?? 0, `${resources.discount_command_saved ?? 0} Command saved`),
+    metric("Command regained", resources.command_gained_or_refunded ?? 0, "observed gains/refunds after actions"),
+    metric("Free operations", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
+  ].join("");
+
+  const battles = p.by_battle || {};
+  document.getElementById("progression-battles").innerHTML = ["1", "2", "3", "4+"].map((key) => {
+    const row = battles[key] || { battles: 0 };
+    if (!row.battles) {
+      return `<tr><td><strong>${esc(key)}</strong></td><td colspan="10" class="muted">No observations</td></tr>`;
+    }
+    return `
+      <tr>
+        <td><strong>${esc(key)}</strong><span class="muted">n=${row.battles}</span></td>
+        <td>${num(row.forces_played, 1)}</td>
+        <td>${num(row.bonds_played, 1)}</td>
+        <td>${num(row.names_played, 1)}</td>
+        <td>${num(row.completed_formations, 1)}<span class="muted">${pct(row.completion_rate_per_force_played)} / Force</span></td>
+        <td>${num(row.incomplete_formations_end, 1)}</td>
+        <td>${num(row.occupied_positions, 1)}</td>
+        <td>${num(row.active_fronts, 1)} / ${num(row.contested_fronts, 1)}</td>
+        <td>${num(row.front_control_changes, 1)}</td>
+        <td>${num(row.legal_actions, 1)}</td>
+        <td>${num(row.command_remaining, 1)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const titles = new Map((lab.health.cards || []).map((card) => [card.id, card.title]));
+  const heroes = Object.entries(p.hero_modes || {}).sort((a, b) =>
+    (titles.get(a[0]) || a[0]).localeCompare(titles.get(b[0]) || b[0])
+  );
+  document.getElementById("hero-mode-table").innerHTML = heroes.length
+    ? heroes.map(([cardId, row]) => `
+      <tr>
+        <td><strong>${esc(titles.get(cardId) || cardId)}</strong></td>
+        <td>${row.force_plays ?? 0}</td>
+        <td>${row.name_plays ?? 0}</td>
+        <td>${pct(row.force_usage_rate)}</td>
+        <td>${pct(row.name_usage_rate)}</td>
+        <td>${row.force_completions ?? 0} / ${row.name_completions ?? 0}<span class="muted">Force / Name</span></td>
+      </tr>
+    `).join("")
+    : '<tr><td colspan="6" class="muted">No Hero plays observed.</td></tr>';
+
+  const firstPass = contest.first_pass_outcomes || {};
+  const passRows = [
+    ["Already ahead", firstPass.ahead],
+    ["Tied", firstPass.tied],
+    ["Behind", firstPass.behind],
+    ["Playable alternatives", firstPass.with_playable_alternatives],
+    ["No alternative", firstPass.no_alternative],
+  ];
+  const cardLifecycle = Object.entries(p.cards || {})
+    .sort((a, b) =>
+      ((b[1].unplayed_at_match_end || 0) + (b[1].held_across_battle_boundaries || 0) + (b[1].discarded_without_play || 0)) -
+      ((a[1].unplayed_at_match_end || 0) + (a[1].held_across_battle_boundaries || 0) + (a[1].discarded_without_play || 0))
+    )
+    .slice(0, 12);
+  const definitions = Object.entries(p.definitions || {});
+
+  document.getElementById("progression-diagnostics").innerHTML = `
+    <div class="two-column-tables">
+      <div>
+        <h3>First-pass state and Battle result</h3>
+        <table class="mini-table">
+          <thead><tr><th>State</th><th>Events</th><th>Resolved</th><th>Battle win rate</th></tr></thead>
+          <tbody>${passRows.map(([label, row]) => `
+            <tr><td>${esc(label)}</td><td>${row?.events ?? 0}</td><td>${row?.resolved ?? 0}</td><td>${pct(row?.battle_win_rate)}</td></tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Card lifecycle pressure</h3>
+        <table class="mini-table">
+          <thead><tr><th>Card</th><th>Draw → play</th><th>Held across Battles</th><th>Discarded unplayed</th><th>Unplayed at match end</th></tr></thead>
+          <tbody>${cardLifecycle.map(([cardId, row]) => `
+            <tr>
+              <td>${esc(titles.get(cardId) || cardId)}</td>
+              <td>${distributionValue(row.draw_to_play_actions)}</td>
+              <td>${row.held_across_battle_boundaries ?? 0}</td>
+              <td>${row.discarded_without_play ?? 0}</td>
+              <td>${row.unplayed_at_match_end ?? 0}</td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="progression-definitions">
+      <h3>Exact definitions</h3>
+      <dl>${definitions.map(([key, value]) => `<div><dt>${esc(key.replaceAll("_", " "))}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>
+    </div>
+  `;
+}
+
 function renderTelemetry(lab) {
   const t = lab.raw_telemetry;
   if (!t) return;
@@ -511,6 +678,7 @@ async function main() {
 
   renderAttention(lab);
   renderOverview(lab);
+  renderProgression(lab);
   renderCards(lab);
   renderCounterfactual(lab);
   renderTargetedCounterfactual(lab);
