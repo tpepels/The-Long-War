@@ -20,15 +20,13 @@ def load(name: str) -> dict[str, Any] | None:
 
 
 def serialized_rule_metadata(rules: GameRules) -> dict[str, object]:
-    """Serialize rules exactly as tools/simulate.py records provenance."""
-    metadata: dict[str, object] = dict(rules.as_dict())
-    metadata["base_hand_size"] = metadata.pop("opening_hand_size")
-    metadata["completion_draw_names"] = sorted(rules.completion_draw_names)
-
-    if not rules.cycle_enabled:
-        metadata["cycle_command_cost"] = None
-
-    return metadata
+    """Serialize the canonical rule fields recorded by tools/simulate.py."""
+    return {
+        "base_hand_size": rules.opening_hand_size,
+        "battle_one_starter_bonus": 0,
+        "starting_command": rules.starting_command,
+        "command_cap": rules.command_cap,
+    }
 
 
 def canonical_variant(data: dict[str, Any]) -> bool:
@@ -193,8 +191,8 @@ def main() -> None:
         for row in health.get("formations", [])
     }
     all_formations: list[dict[str, Any]] = []
-    for row in static.get("all_static_legends", []):
-        key = " | ".join((row["subject"], row["link"], row["name"]))
+    for row in static.get("all_static_formations", []):
+        key = " | ".join((row["force"], row["bond"], row["name"]))
         observed = observed_formations.get(key)
         if observed is not None:
             merged = dict(observed)
@@ -206,7 +204,7 @@ def main() -> None:
                 "id": key,
                 "title": " — ".join(
                     card_titles.get(part, part)
-                    for part in (row["subject"], row["link"], row["name"])
+                    for part in (row["force"], row["bond"], row["name"])
                 ),
                 "completions": 0,
                 "games_seen": 0,
@@ -219,8 +217,8 @@ def main() -> None:
                 "static_strength": row["static_strength"],
                 "static_z": row["z_score"],
             }
-        merged.setdefault("force", row["subject"])
-        merged.setdefault("bond", row["link"])
+        merged.setdefault("force", row["force"])
+        merged.setdefault("bond", row["bond"])
         merged.setdefault("name", row["name"])
         all_formations.append(merged)
 
