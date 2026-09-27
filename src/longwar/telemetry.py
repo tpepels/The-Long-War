@@ -7,6 +7,7 @@ from typing import Any
 
 from .game.actions import (
     Action,
+    Maneuver,
     Pass,
     PlayBond,
     PlayForce,
@@ -92,6 +93,7 @@ class Telemetry:
         }
         self.online_prior_counts: Counter[str] = Counter()
         self.progression = ProgressionTelemetry()
+        self._progression_started = False
 
         self._drawn_this_game: list[set[str]] = [set(), set()]
         self._played_this_game: list[set[str]] = [set(), set()]
@@ -113,9 +115,11 @@ class Telemetry:
         self._battle_actions = [0, 0]
         self._deck_exhausted_this_game = [False, False]
         self._reshuffled_this_game = [False, False]
+        self._progression_started = False
 
         if engine is not None:
             self.progression.start_game(engine, state)
+            self._progression_started = True
 
         for player in range(2):
             for card_id in state.players[player].hand:
@@ -134,7 +138,11 @@ class Telemetry:
         legal: list[Action] = []
         if state.phase is Phase.BATTLE:
             legal = engine.legal_actions(state)
+        if not self._progression_started:
+            self.progression.start_game(engine, state)
+            self._progression_started = True
 
+        pass_record: dict[str, Any] | None = None
         if state.phase is Phase.BATTLE and state.pending_draw_discard_for is None:
             self._battle_actions[actor] += 1
             self._battle_decisions += 1
@@ -168,8 +176,20 @@ class Telemetry:
                     "command_remaining": state.players[actor].command,
                     "controlled_fronts": sum(margin > 0 for margin in margins),
                     "tied_fronts": sum(margin == 0 for margin in margins),
+                    "lost_fronts": sum(margin < 0 for margin in margins),
                     "total_margin": sum(margins),
                     "actions_taken_this_battle": self._battle_actions[actor],
+                    "playable_cards_remaining": len(playable_ids),
+                    "legal_alternatives": sum(
+                        not isinstance(candidate, Pass) for candidate in legal
+                    ),
+                    "playable_card_actions": sum(
+                        self._action_card_id(candidate) is not None
+                        for candidate in legal
+                    ),
+                    "maneuver_actions": sum(
+                        isinstance(candidate, Maneuver) for candidate in legal
+                    ),
                     "dead_cards": 0,
                 }
 
@@ -180,6 +200,7 @@ class Telemetry:
                         stats.dead_on_pass += copies
                         pass_record["dead_cards"] += copies
 
+                pass_record["unplayable_cards_remaining"] = pass_record["dead_cards"]
                 self.pass_events.append(pass_record)
 
         card_id = self._action_card_id(action)
@@ -193,6 +214,7 @@ class Telemetry:
             actor,
             action,
             legal,
+            pass_context=pass_record,
         )
 
         if decision_info:
@@ -681,6 +703,11 @@ class Telemetry:
         )
         if battle_changed:
             for player in range(2):
+                if state.deck_reshuffles[player] > before.deck_reshuffles[player]:
+                    self.progression.note_reshuffle(
+                        player,
+                        before.players[player].discard,
+                    )
                 added = Counter(state.players[player].hand) - Counter(
                     before.players[player].hand
                 )
@@ -692,6 +719,10 @@ class Telemetry:
 
         for player in range(2):
             if state.deck_reshuffles[player] > before.deck_reshuffles[player]:
+                self.progression.note_reshuffle(
+                    player,
+                    before.players[player].discard,
+                )
                 added = Counter(state.players[player].hand) - Counter(
                     before.players[player].hand
                 )

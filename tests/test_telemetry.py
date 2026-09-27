@@ -274,7 +274,22 @@ def test_mechanical_choice_and_pass_context_use_actual_legal_set() -> None:
     progression.start_game(engine, state)
 
     pass_action = Pass()
-    progression.before_action(engine, state, 0, pass_action, [pass_action])
+    pass_context = {
+        "game": 0,
+        "battle": state.battle,
+        "player": 0,
+        "first_pass": True,
+        "total_margin": 0,
+        "legal_alternatives": 0,
+    }
+    progression.before_action(
+        engine,
+        state,
+        0,
+        pass_action,
+        [pass_action],
+        pass_context=pass_context,
+    )
     choice = progression.summary()["mechanical_choice"]
 
     assert choice["exactly_one_legal_action"] == 1
@@ -455,3 +470,18 @@ def test_forced_maneuver_is_separate_from_zero_cost_maneuver() -> None:
     choice = progression.summary()["mechanical_choice"]
     assert choice["forced_maneuvers"] == 1
     assert choice["forced_maneuver_rate"] == pytest.approx(1.0)
+
+
+
+def test_reshuffled_card_is_counted_only_when_that_discard_copy_reappears() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=612, first_player=0)
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+    progression.note_reshuffle(0, ["the-fifty-men"])
+    progression.record_draw(0, "the-vardai", state)
+    progression.record_draw(0, "the-fifty-men", state)
+
+    cards = progression.summary()["cards"]
+    assert cards["the-fifty-men"]["drawn_after_reshuffle"] == 1
+    assert cards["the-vardai"]["drawn_after_reshuffle"] == 0

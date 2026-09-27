@@ -94,6 +94,7 @@ class ProgressionTelemetry:
         )
 
         self._draw_queues: dict[tuple[int, str], list[tuple[int, int, int]]] = defaultdict(list)
+        self._reshuffled_pending: list[Counter[str]] = [Counter(), Counter()]
         self._card_actions_to_play: dict[str, list[int]] = defaultdict(list)
         self._card_turns_to_play: dict[str, list[int]] = defaultdict(list)
         self._card_held_boundaries: Counter[str] = Counter()
@@ -101,7 +102,6 @@ class ProgressionTelemetry:
         self._card_drawn_after_reshuffle: Counter[str] = Counter()
         self._card_unplayed_match_end: Counter[str] = Counter()
         self._card_plays_by_battle: dict[str, Counter[str]] = defaultdict(Counter)
-        self._reshuffled_player = [False, False]
         self._formation_age_at_battle_end: list[int] = []
 
     def start_game(self, engine: GameEngine, state: GameState) -> None:
@@ -123,7 +123,7 @@ class ProgressionTelemetry:
         self._battle_control_balance_changes = 0
         self._battle_lead_changes = 0
         self._draw_queues = defaultdict(list)
-        self._reshuffled_player = [False, False]
+        self._reshuffled_pending = [Counter(), Counter()]
 
         for player in range(2):
             for card_id in state.players[player].hand:
@@ -133,8 +133,15 @@ class ProgressionTelemetry:
     def record_draw(self, player: int, card_id: str, state: GameState) -> None:
         entry = (self._current_action, int(state.turn_number), int(state.battle))
         self._draw_queues[(player, card_id)].append(entry)
-        if self._reshuffled_player[player]:
+        pending = self._reshuffled_pending[player]
+        if pending.get(card_id, 0) > 0:
             self._card_drawn_after_reshuffle[card_id] += 1
+            pending[card_id] -= 1
+            if pending[card_id] <= 0:
+                del pending[card_id]
+
+    def note_reshuffle(self, player: int, card_ids: Iterable[str]) -> None:
+        self._reshuffled_pending[player].update(card_ids)
 
     def before_action(
         self,
@@ -143,6 +150,7 @@ class ProgressionTelemetry:
         actor: int,
         action: Action,
         legal_actions: Iterable[Action],
+        pass_context: dict[str, Any] | None = None,
     ) -> None:
         self._current_action = self._action_index + 1
         if state.phase is not Phase.BATTLE:
@@ -203,44 +211,22 @@ class ProgressionTelemetry:
         if isinstance(action, CARD_ACTIONS):
             self._battle_events["cards_played"] += 1
 
-        if isinstance(action, Pass):
-            playable_ids = {
-                candidate.card_id
-                for candidate in card_actions
-            }
-            hand = Counter(state.players[actor].hand)
-            unplayable_copies = sum(
-                count for card_id, count in hand.items()
-                if card_id not in playable_ids
-            )
-            margins = list(engine.front_margins(state, actor))
-            self._pass_contexts.append({
+        if pass_context is not None:
+            alternatives_count = int(pass_context.get("legal_alternatives", 0))
+            pass_context.update({
                 "game": self._game_index,
-                "battle": state.battle,
-                "player": actor,
-                "first_pass": len(state.pass_order) == 0,
-                "hand_size": len(state.players[actor].hand),
-                "playable_cards_remaining": len(playable_ids),
-                "unplayable_cards_remaining": unplayable_copies,
-                "command_remaining": state.players[actor].command,
-                "controlled_fronts": sum(value > 0 for value in margins),
-                "tied_fronts": sum(value == 0 for value in margins),
-                "lost_fronts": sum(value < 0 for value in margins),
-                "total_margin": sum(margins),
-                "legal_alternatives": len(alternatives),
-                "playable_card_actions": len(card_actions),
-                "maneuver_actions": len(maneuver_actions),
                 "constraint_active": constraint_active,
                 "constraint_rule_sources": constraint_sources,
                 "mechanical_category": (
                     "no_alternative"
-                    if not alternatives
+                    if alternatives_count == 0
                     else "one_alternative"
-                    if len(alternatives) == 1
+                    if alternatives_count == 1
                     else "multiple_alternatives"
                 ),
                 "battle_won": None,
             })
+            self._pass_contexts.append(pass_context)
 
         snapshot = self._snapshot(
             engine,
@@ -309,10 +295,6 @@ class ProgressionTelemetry:
             battle_resolved=battle_resolved,
         )
         self._battle_events["completed_formations"] += new_completions
-
-        for player in range(2):
-            if state.deck_reshuffles[player] > before.deck_reshuffles[player]:
-                self._reshuffled_player[player] = True
 
         self._record_unplayed_discards(before, state, action)
 
@@ -575,6 +557,10 @@ class ProgressionTelemetry:
                 "card_draw_to_play": (
                     "Physical card copies are not engine-identified, so duplicate copies are "
                     "paired draw-to-play in FIFO order for timing aggregates."
+                ),
+                "drawn_after_reshuffle": (
+                    "A card copy was in that player's discard pile when it was reshuffled, "
+                    "then a matching copy was subsequently drawn. Duplicate copies are matched by count."
                 ),
                 "battle_index": "Battle 1, 2 and 3 are separate; all later Battles aggregate into 4+.",
                 "command_gained_or_refunded": (
