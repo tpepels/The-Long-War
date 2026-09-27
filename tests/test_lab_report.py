@@ -153,7 +153,7 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
         "balance-report.json": {
             "game_fingerprint": fingerprint,
             "card_static_marginals": [],
-            "all_static_legends": [],
+            "all_static_formations": [],
         },
         "heuristic-selfplay.json": {
             "game_fingerprint": fingerprint,
