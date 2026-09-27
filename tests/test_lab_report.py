@@ -340,3 +340,82 @@ def test_lab_can_promote_observationally_unobserved_card_with_causal_evidence(
     assert card["balance_label"] == "Watch"
     assert card["balance_direction"] == "strong"
 
+def test_lab_uses_aggregate_selfplay_for_matchup_and_detailed_progression_source(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    fingerprint = "current-engine"
+    aggregate = {
+        "game_fingerprint": fingerprint,
+        "simulation_variant": standard_variant(),
+        "games": 60,
+        "decisive_games": 58,
+        "censored_games": 2,
+        "censor_rate": 2 / 60,
+        "agents": ["heuristic", "heuristic"],
+        "wins": [29, 29],
+        "win_rates": [0.5, 0.5],
+        "first_player_win_rate": 0.5,
+        "mean_turns": 40.0,
+        "max_turns": 500,
+        "_label": "Six canonical same-deck self-play aggregate",
+        "telemetry": {
+            "passes": {},
+            "battles": {},
+            "cards": {},
+            "formation_combinations": {},
+        },
+    }
+    progression = {
+        "by_battle": {"1": {"battles": 10, "command_remaining": 14.0}},
+        "formation_lifecycle": {"forces": 20},
+    }
+    detailed = {
+        "game_fingerprint": fingerprint,
+        "simulation_variant": standard_variant(),
+        "games": 10,
+        "decisive_games": 9,
+        "censored_games": 1,
+        "agents": ["heuristic", "heuristic"],
+        "wins": [5, 4],
+        "_label": "Mobility / Open Bonds self-play",
+        "progression_scope": "Detailed progression reference.",
+        "telemetry": {"progression": progression},
+    }
+    artifacts = {
+        "balance-health.json": {
+            "game_fingerprint": fingerprint,
+            "cards": [],
+            "formations": [],
+        },
+        "balance-report.json": {
+            "game_fingerprint": fingerprint,
+            "card_static_marginals": [],
+            "all_static_formations": [],
+        },
+        "heuristic-selfplay.json": aggregate,
+        "progression-selfplay.json": detailed,
+    }
+    monkeypatch.setattr(build_lab_report, "ARTIFACTS", tmp_path)
+    monkeypatch.setattr(
+        build_lab_report,
+        "current_game_fingerprint",
+        lambda: fingerprint,
+    )
+    for name, payload in artifacts.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+
+    build_lab_report.main()
+    report = json.loads((tmp_path / "lab-report.json").read_text())
+
+    assert report["matchups"]["heuristic_selfplay"]["games"] == 60
+    assert report["progression"] == progression
+    assert report["raw_telemetry"]["progression"] == progression
+    assert report["progression_source"] == {
+        "label": "Mobility / Open Bonds self-play",
+        "scope": "Detailed progression reference.",
+        "games": 10,
+        "decisive_games": 9,
+        "censored_games": 1,
+    }
+
