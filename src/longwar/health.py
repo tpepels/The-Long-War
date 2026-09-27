@@ -444,6 +444,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"Games: **{report['source']['games']}** · decisive: **{g['decisive_games']}** · "
         f"censored: **{g['censored_games']}** ({100*g['censor_rate']:.1f}%) · "
         f"Agents: **{' vs '.join(report['source']['agents'])}**  ",
+        f"Card exposure: **{s.get('cards_observed', s['cards_analyzed'])}/{s['cards_analyzed']} observed** · "
+        f"**{s.get('cards_unobserved', 0)} unobserved**  ",
         first_player_line,
         f"High flags: **{s['flags_high']}** · Watch flags: **{s['flags_watch']}** · Diagnostic associations: **{s.get('flags_diagnostic', 0)}**",
         "",
