@@ -27,6 +27,8 @@ def broad_fixture():
                 "ci95": [-0.02, 0.06],
                 "level": "green",
                 "confidence_excludes_zero": False,
+                "samples": 12,
+                "attempted_samples": 12,
             },
             {
                 "id": "b",
@@ -35,6 +37,8 @@ def broad_fixture():
                 "ci95": [0.02, 0.15],
                 "level": "red",
                 "confidence_excludes_zero": True,
+                "samples": 12,
+                "attempted_samples": 12,
             },
         ],
         "pairs": [
@@ -45,6 +49,8 @@ def broad_fixture():
                 "ci95": [-0.13, 0.01],
                 "level": "yellow",
                 "confidence_excludes_zero": False,
+                "samples": 12,
+                "attempted_samples": 12,
             },
         ],
         "triples": [],
@@ -110,7 +116,9 @@ def test_targeted_sweep_uses_each_card_context_and_reports_uncertainty(monkeypat
         "contexts": 2, "games_per_context": 2, "seed": 37,
         "cards": [{
             "id": "namar", "title": "Namar", "delta_win_probability": 1.0,
-            "ci95": [-1.0, 1.0], "level": "yellow", "sample_generation": generation,
+            "ci95": [-1.0, 1.0], "level": "yellow",
+            "confidence_excludes_zero": False, "samples": 4,
+            "attempted_samples": 4, "sample_generation": generation,
         }],
     }
     seen = []
@@ -129,6 +137,54 @@ def test_targeted_sweep_uses_each_card_context_and_reports_uncertainty(monkeypat
     assert report["cards"][0]["sample_generation"] == generation
     assert report["cards"][0]["confirmation"] == "direction_agrees"
     assert report["cards"][0]["online"]["confidence_excludes_zero"] is False
+
+
+def test_targeted_online_censoring_is_reported_not_fatal(monkeypatch) -> None:
+    import longwar.targeted_counterfactual as targeted
+
+    card_data = load_card_file(ROOT / "cards" / "cards.json")
+    generation = {"seed": 104766, "required_cards": ["namar"]}
+    broad = {
+        "contexts": 1,
+        "games_per_context": 1,
+        "seed": 37,
+        "cards": [{
+            "id": "namar",
+            "title": "Namar",
+            "delta_win_probability": 0.2,
+            "ci95": [0.01, 0.4],
+            "level": "yellow",
+            "confidence_excludes_zero": True,
+            "samples": 1,
+            "attempted_samples": 1,
+            "sample_generation": generation,
+        }],
+    }
+    outcomes = iter([1, None])
+    monkeypatch.setattr(
+        targeted,
+        "_play_online_outcome",
+        lambda *args, **kwargs: next(outcomes),
+    )
+
+    report = run_targeted_online_validation(
+        card_data,
+        broad,
+        contexts=1,
+        games_per_context=1,
+        online_iterations=1,
+        online_depth=1,
+        max_cards=1,
+        max_pairs=0,
+        max_triples=0,
+    )
+
+    row = report["cards"][0]
+    assert report["censored_matches"] == 1
+    assert report["censored_paired_samples"] == 1
+    assert row["online"]["samples"] == 0
+    assert row["online"]["censored_pairs"] == 1
+    assert row["confirmation"] == "inconclusive"
 
 
 def test_targeted_play_uses_the_agents_opening_mulligans(monkeypatch) -> None:
