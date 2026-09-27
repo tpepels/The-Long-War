@@ -154,6 +154,7 @@ def main() -> None:
         if row.get("cards")
     }
     level_rank = {
+        "unobserved": -1,
         "dark_green": 0,
         "green": 1,
         "yellow": 2,
