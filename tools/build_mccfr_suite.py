@@ -15,6 +15,8 @@ PROFILES = (
     ("elite", "Persistent Elite / Heroes", "decks/persistent-elite-heroes.json"),
     ("narrative", "Narrative / Command", "decks/narrative-command.json"),
     ("control", "Battlefield Control / Stratagems", "decks/battlefield-control-stratagems.json"),
+    ("momentum", "Momentum / Orders", "decks/momentum-orders.json"),
+    ("necessity", "Necessity / Attrition", "decks/necessity-attrition.json"),
 )
 
 
