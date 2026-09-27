@@ -57,8 +57,8 @@ cdef class NativeHeuristicEvaluator:
 
         for front in range(4):
             raw_margin = (
-                self.engine.front_strength_fast(state, player, front)
-                - self.engine.front_strength_fast(state, opponent, front)
+                _fe_front_strength_fast(self.engine, state, player, front)
+                - _fe_front_strength_fast(self.engine, state, opponent, front)
             )
             margin = raw_margin
 
@@ -75,9 +75,9 @@ cdef class NativeHeuristicEvaluator:
                 # not just current Strength.
                 opp_front_slot = slot_index(opponent, front, 0)
                 opp_rear_slot = slot_index(opponent, front, 1)
-                if self.engine.slot_complete(state, opp_rear_slot):
+                if _fe_slot_complete(self.engine, state, opp_rear_slot):
                     score += 4.0
-                if self.engine.slot_complete(state, opp_front_slot):
+                if _fe_slot_complete(self.engine, state, opp_front_slot):
                     score += 0.75
 
                 # Margin beyond a comfortable buffer has no core scoring
@@ -96,9 +96,9 @@ cdef class NativeHeuristicEvaluator:
 
                 own_front_slot = slot_index(player, front, 0)
                 own_rear_slot = slot_index(player, front, 1)
-                if self.engine.slot_complete(state, own_rear_slot):
+                if _fe_slot_complete(self.engine, state, own_rear_slot):
                     score -= 4.0
-                if self.engine.slot_complete(state, own_front_slot):
+                if _fe_slot_complete(self.engine, state, own_front_slot):
                     score -= 0.75
 
                 if raw_margin < -5:
@@ -144,7 +144,7 @@ cdef class NativeHeuristicEvaluator:
         # Project the rulebook's exact recovery formula using the current
         # Front results. This makes late-war Command and likely Collapse
         # visible to shallow search and rollouts.
-        recovery = self.engine.command_recovery_fast(state.battle)
+        recovery = _fe_command_recovery_fast(self.engine, state.battle)
         own_recovery = recovery - own_losses
         if own_recovery < 0:
             own_recovery = 0
@@ -216,10 +216,10 @@ cdef class NativeHeuristicEvaluator:
             score += 1.10 * (opponent_liability - own_liability)
 
         for slot in range(player * 8, player * 8 + 8):
-            if self.engine.slot_complete(state, slot):
+            if _fe_slot_complete(self.engine, state, slot):
                 named_delta += 1
         for slot in range(opponent * 8, opponent * 8 + 8):
-            if self.engine.slot_complete(state, slot):
+            if _fe_slot_complete(self.engine, state, slot):
                 named_delta -= 1
         score += 1.5 * named_delta
 
@@ -239,7 +239,7 @@ cdef class NativeHeuristicEvaluator:
         for slot in range(player * 8, player * 8 + 8):
             if state.subject[slot] < 0 or state.name[slot] >= 0:
                 continue
-            before = self.engine.position_strength_fast(state, slot)
+            before = _fe_position_strength_fast(self.engine, state, slot)
             best = -32768
             for name_card in range(self.engine.n_cards):
                 if state.hand[player][name_card] == 0:
@@ -251,7 +251,7 @@ cdef class NativeHeuristicEvaluator:
                     ):
                         continue
                 state.name[slot] = name_card
-                after = self.engine.position_strength_fast(state, slot)
+                after = _fe_position_strength_fast(self.engine, state, slot)
                 if after - before > best:
                     best = after - before
                 state.name[slot] = -1
@@ -481,7 +481,7 @@ cdef class NativeHeuristicEvaluator:
         FastState child,
     ):
         child.copy_from_fast(state)
-        self.engine.pass_action(child, player)
+        _fe_pass_action(self.engine, child, player)
 
         # A second consecutive Pass has already resolved cleanup, Retreat,
         # Command recovery/Collapse and next-Battle initiative.
@@ -557,7 +557,7 @@ cdef class NativeHeuristicEvaluator:
         if kind == TYPE_DISCARD:
             child.copy_from_fast(state)
             card = action_card(action)
-            self.engine.take_from_hand(child, player, card, 0)
+            _fe_take_from_hand(self.engine, child, player, card, 0)
             score = self.evaluate_fast(child, player)
             score += 0.55 * self.hand_construction_value_fast(
                 child,
@@ -566,7 +566,7 @@ cdef class NativeHeuristicEvaluator:
             return score
 
         child.copy_from_fast(state)
-        self.engine.apply_fast(child, action)
+        _fe_apply_fast(self.engine, child, action)
         score = self.evaluate_fast(child, player)
 
         if kind == TYPE_LINK:
