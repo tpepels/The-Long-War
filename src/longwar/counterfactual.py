@@ -77,7 +77,7 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         )
         result["rules"] = {
             "strength_bonus": 1,
-            "named_additional_strength_bonus": 2,
+            "named_strength_bonus": 2,
         }
     elif card_type == "name":
         result["strength"] = 2
