@@ -273,12 +273,27 @@ def balance_run(args: argparse.Namespace) -> Path:
             f"{args.contexts} contexts x {args.games_per_context} samples",
             flush=True,
         )
+        def broad_progress(
+            completed: int,
+            total: int,
+            row: dict[str, Any],
+        ) -> None:
+            effect = row.get("delta_win_probability")
+            effect_text = "—" if effect is None else f"{float(effect):+.1%}"
+            print(
+                f"  [{completed:>2}/{total}] {row['title']}: "
+                f"ΔWP {effect_text}, {row.get('samples', 0)} decisive pairs, "
+                f"{row.get('censored_pairs', 0)} censored",
+                flush=True,
+            )
+
         causal = run_counterfactual_card_sweep(
             data,
             contexts=args.contexts,
             games_per_context=args.games_per_context,
             seed=args.seed,
             bootstrap_resamples=2000,
+            progress_callback=broad_progress,
         )
         causal_payload = {
             **causal,
@@ -301,6 +316,22 @@ def balance_run(args: argparse.Namespace) -> Path:
                 f"{online_iterations} iterations / depth {online_depth}",
                 flush=True,
             )
+            def targeted_progress(
+                completed: int,
+                total: int,
+                row: dict[str, Any],
+            ) -> None:
+                online = row.get("online", {})
+                effect = online.get("effect")
+                effect_text = "—" if effect is None else f"{float(effect):+.1%}"
+                print(
+                    f"  [{completed:>2}/{total}] {row['title']}: "
+                    f"online ΔWP {effect_text}, {row['confirmation']}, "
+                    f"{online.get('samples', 0)} decisive pairs, "
+                    f"{online.get('censored_pairs', 0)} censored",
+                    flush=True,
+                )
+
             targeted = run_targeted_online_validation(
                 data,
                 causal_payload,
@@ -314,6 +345,7 @@ def balance_run(args: argparse.Namespace) -> Path:
                 minimum_abs_effect=target_min_effect,
                 bootstrap_resamples=1000,
                 force_top=False,
+                progress_callback=targeted_progress,
             )
             targeted_payload = {
                 **targeted,
