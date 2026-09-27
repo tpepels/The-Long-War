@@ -34,6 +34,21 @@
 
     <section id="overview" class="metric-grid overview-metrics" aria-live="polite"></section>
 
+    <section class="dashboard-section evidence-pipeline" aria-labelledby="evidence-pipeline-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Evidence hierarchy</p>
+          <h2 id="evidence-pipeline-title">What each simulation can actually tell us</h2>
+          <p class="dashboard-note">
+            High-volume heuristic play describes structure. Paired heuristic A/B is a broad card screen.
+            Suspicious card effects are only treated as strategically resolved after targeted online-MCCFR validation.
+          </p>
+        </div>
+      </div>
+      <div id="evidence-pipeline" class="metric-grid compact-grid"></div>
+      <div id="evidence-guidance" class="attention-list"></div>
+    </section>
+
     <section class="dashboard-section progression-analysis" aria-labelledby="progression-title">
       <div class="section-heading">
         <div>
@@ -168,8 +183,8 @@
               <th>Use</th>
               <th>Dead on pass</th>
               <th>Front swing</th>
-              <th>Causal ΔWP</th>
-              <th>Online check</th>
+              <th>Screen ΔWP</th>
+              <th>MCCFR validation</th>
               <th>Evidence</th>
             </tr>
           </thead>
@@ -185,8 +200,8 @@
       </summary>
       <div class="disclosure-body">
         <p class="dashboard-note">
-          These estimates compare identical seeded games while replacing only the focal card with a neutral same-type baseline.
-          Pair and triple values are factorial interaction contrasts.
+          The broad screen compares identical seeded games while replacing only the focal card with a neutral same-type baseline.
+          It is intentionally cheap and heuristic-driven. Suspicious single-card signals are then rerun with online MCCFR in the same paired contexts.
         </p>
         <div id="counterfactual-overview" class="metric-grid compact-grid"></div>
         <div id="targeted-counterfactual"></div>
@@ -203,9 +218,9 @@
       </div>
     </details>
 
-    <details class="dashboard-disclosure" open>
+    <details class="dashboard-disclosure">
       <summary>
-        <span><small>MCCFR</small><strong>Current-card solver coverage</strong></span>
+        <span><small>Solver research</small><strong>Offline MCCFR policy coverage</strong></span>
         <i>open solver evidence</i>
       </summary>
       <div class="disclosure-body">
