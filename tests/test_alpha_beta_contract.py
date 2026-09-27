@@ -66,7 +66,7 @@ def test_python_state_key_includes_search_relevant_flags():
 
     root = Path(__file__).resolve().parents[1]
     engine = GameEngine(load_card_file(root / "cards/cards.json"))
-    deck = json.loads((root / "decks/reference.json").read_text())["cards"]
+    deck = json.loads((root / "decks/mobility-open-bonds.json").read_text())["cards"]
     state = engine.new_game(
         deck,
         deck,
