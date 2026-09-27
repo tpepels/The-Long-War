@@ -207,6 +207,56 @@ def test_triples_compute_required_pair_conditions_without_pair_output(monkeypatc
     assert report["triples"][0]["ci95"] == [-4.0, 4.0]
 
 
+def test_counterfactual_censoring_excludes_incomplete_pairs(monkeypatch) -> None:
+    import longwar.counterfactual as counterfactual
+
+    outcomes = iter([1, None, 1, 0])
+    monkeypatch.setattr(
+        counterfactual,
+        "_play_focal_outcome",
+        lambda *args, **kwargs: next(outcomes),
+    )
+    report = run_counterfactual_experiment(
+        data(),
+        contexts=1,
+        games_per_context=2,
+        seed=37,
+        card_ids=["namar"],
+        include_pairs=False,
+        include_legend_triples=False,
+    )
+
+    row = report["cards"][0]
+    assert report["total_matches"] == 4
+    assert report["censored_matches"] == 1
+    assert row["attempted_samples"] == 2
+    assert row["samples"] == 1
+    assert row["censored_pairs"] == 1
+    assert row["delta_win_probability"] == pytest.approx(1.0)
+
+
+def test_action_horizon_returns_censored_counterfactual_outcome() -> None:
+    card_data = data()
+    deck = generate_context_decks(card_data, count=1, seed=41)[0]
+    engine = GameEngine(build_experiment_card_data(card_data))
+    sample = ExperimentSample(
+        sample_id=0,
+        context_id=0,
+        focal_player=0,
+        game_seed=1701,
+        focal_deck=tuple(deck),
+        opponent_deck=tuple(deck),
+    )
+
+    assert _play_focal_outcome(
+        engine,
+        sample,
+        list(deck),
+        agent_name="heuristic",
+        max_actions=0,
+    ) is None
+
+
 def test_per_card_sweep_keeps_each_seed_and_required_deck_cards(monkeypatch) -> None:
     import longwar.counterfactual as counterfactual
 
