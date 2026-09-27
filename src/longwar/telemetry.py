@@ -698,7 +698,6 @@ class Telemetry:
             "depletion": depletion,
             "cards": cards,
             "formation_combinations": combos,
-            "legend_combinations": combos,
             "progression": self.progression.summary(),
             "decisions": decisions,
             "policy_sources": dict(sorted(self.policy_sources.items())),

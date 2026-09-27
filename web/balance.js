@@ -334,10 +334,16 @@ function renderTargetedCounterfactual(lab) {
 }
 
 function renderSequences(lab) {
-  const rows = [...(lab.all_legends || lab.health.legends)];
+  const rows = [...(
+    lab.all_formations
+    || lab.all_legends
+    || lab.health.formations
+    || lab.health.legends
+    || []
+  )];
   const observed = rows.filter((row) => row.observed !== false).length;
-  document.getElementById("legend-count").textContent = `${rows.length} possible · ${observed} observed`;
-  document.getElementById("legend-table").innerHTML = rows.map((row) => `
+  document.getElementById("formation-count").textContent = `${rows.length} possible · ${observed} observed`;
+  document.getElementById("formation-table").innerHTML = rows.map((row) => `
     <tr class="${row.flags.length ? "flagged-row" : ""}">
       <td><strong>${esc(row.title)}</strong></td>
       <td>${row.completions} / ${row.games_seen}</td>

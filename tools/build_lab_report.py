@@ -188,14 +188,14 @@ def main() -> None:
         card["id"]: card["title"]
         for card in health.get("cards", [])
     }
-    observed_legends = {
+    observed_formations = {
         row["id"]: row
-        for row in health.get("legends", [])
+        for row in health.get("formations", [])
     }
-    all_legends: list[dict[str, Any]] = []
+    all_formations: list[dict[str, Any]] = []
     for row in static.get("all_static_legends", []):
         key = " | ".join((row["subject"], row["link"], row["name"]))
-        observed = observed_legends.get(key)
+        observed = observed_formations.get(key)
         if observed is not None:
             merged = dict(observed)
             merged["observed"] = True
@@ -219,7 +219,10 @@ def main() -> None:
                 "static_strength": row["static_strength"],
                 "static_z": row["z_score"],
             }
-        all_legends.append(merged)
+        merged.setdefault("force", row["subject"])
+        merged.setdefault("bond", row["link"])
+        merged.setdefault("name", row["name"])
+        all_formations.append(merged)
 
     downloads = sorted(
         path.name
@@ -241,7 +244,7 @@ def main() -> None:
         "targeted_counterfactual": targeted,
         "raw_telemetry": raw_telemetry,
         "progression": progression,
-        "all_legends": all_legends,
+        "all_formations": all_formations,
         "downloads": downloads,
     }
 

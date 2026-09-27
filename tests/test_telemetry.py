@@ -48,7 +48,8 @@ def test_telemetry_contains_card_pass_battle_and_combo_metrics() -> None:
     assert fifty["plays_per_draw"] >= 0
     assert 0 <= fifty["unplayable_turn_rate"] <= 1
 
-    assert telemetry["legend_combinations"]
+    assert telemetry["formation_combinations"]
+    assert "legend_combinations" not in telemetry
 
 
 @pytest.mark.integration

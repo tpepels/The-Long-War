@@ -148,7 +148,7 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
         "balance-health.json": {
             "game_fingerprint": fingerprint,
             "cards": [],
-            "legends": [],
+            "formations": [],
         },
         "balance-report.json": {
             "game_fingerprint": fingerprint,
@@ -180,3 +180,4 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
     )
     assert report["progression"] == progression
     assert report["raw_telemetry"]["progression"] == progression
+    assert report["all_formations"] == []

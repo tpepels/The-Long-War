@@ -87,7 +87,7 @@ def test_health_flags_dead_card_and_strong_outcome() -> None:
                     "win_rate_when_played": 0.50,
                 },
             },
-            "legend_combinations": {},
+            "formation_combinations": {},
         },
     }
     report = analyze_simulation(simulation, cards)
@@ -143,7 +143,7 @@ def test_delayed_utility_is_not_judged_by_immediate_swing() -> None:
                 "passes": {},
                 "battles": {},
                 "cards": telemetry_cards,
-                "legend_combinations": {},
+                "formation_combinations": {},
             },
         },
         {"schema_version": 1, "cards": card_rows},
@@ -188,7 +188,7 @@ def test_combo_outcome_association_is_diagnostic_not_balance_failure() -> None:
                 "passes": {},
                 "battles": {},
                 "cards": {key: dict(neutral) for key in ("subject", "bond", "name")},
-                "legend_combinations": {
+                "formation_combinations": {
                     "subject | bond | name": {
                         "games_seen": 100,
                         "wins_when_seen": 80,
@@ -201,9 +201,10 @@ def test_combo_outcome_association_is_diagnostic_not_balance_failure() -> None:
         },
         cards,
     )
-    combo = report["legends"][0]
+    combo = report["formations"][0]
     assert combo["flags"][0]["code"] == "combo_positive_association"
     assert combo["flags"][0]["severity"] == "diagnostic"
     assert report["summary"]["flags_high"] == 0
     assert report["summary"]["flags_diagnostic"] == 1
+    assert report["summary"]["formations_observed"] == 1
 
