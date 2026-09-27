@@ -208,3 +208,80 @@ def test_combo_outcome_association_is_diagnostic_not_balance_failure() -> None:
     assert report["summary"]["flags_diagnostic"] == 1
     assert report["summary"]["formations_observed"] == 1
 
+def test_health_keeps_unobserved_canonical_cards_explicit() -> None:
+    cards = {
+        "schema_version": 1,
+        "cards": [
+            {
+                "id": "observed-card",
+                "title": "Observed Card",
+                "type": "force",
+                "strength": 3,
+                "unique": False,
+                "text": "",
+                "rules": {},
+                "balance": {},
+            },
+            {
+                "id": "unobserved-card",
+                "title": "Unobserved Card",
+                "type": "bond",
+                "unique": False,
+                "text": "",
+                "rules": {},
+                "balance": {},
+            },
+        ],
+    }
+    report = analyze_simulation(
+        {
+            "games": 10,
+            "agents": ["heuristic", "heuristic"],
+            "wins": [5, 5],
+            "first_player_wins": 5,
+            "mean_turns": 20.0,
+            "max_turns": 30,
+            "telemetry": {
+                "passes": {},
+                "battles": {},
+                "cards": {
+                    "observed-card": {
+                        "draws": 10,
+                        "plays": 4,
+                        "turns_in_hand": 15,
+                        "playable_turns": 10,
+                        "unplayable_turns": 5,
+                        "held_on_pass": 3,
+                        "dead_on_pass": 1,
+                        "games_drawn": 8,
+                        "wins_when_drawn": 4,
+                        "games_played": 4,
+                        "wins_when_played": 2,
+                        "play_rate_per_draw": 0.5,
+                        "unplayable_turn_rate": 1 / 3,
+                        "dead_on_pass_rate": 1 / 3,
+                        "mean_immediate_front_swing": 1.0,
+                        "mean_immediate_control_swing": 0.0,
+                        "win_rate_when_drawn": 0.5,
+                        "win_rate_when_played": 0.5,
+                    },
+                },
+                "formation_combinations": {},
+            },
+        },
+        cards,
+    )
+
+    assert report["summary"]["cards_analyzed"] == 2
+    assert report["summary"]["cards_observed"] == 1
+    assert report["summary"]["cards_unobserved"] == 1
+    rows = {row["id"]: row for row in report["cards"]}
+    assert rows["observed-card"]["observed"] is True
+    assert rows["unobserved-card"]["observed"] is False
+    assert rows["unobserved-card"]["balance_level"] == "unobserved"
+    assert rows["unobserved-card"]["balance_label"] == "Unobserved"
+    assert rows["unobserved-card"]["balance_direction"] == "unobserved"
+    assert rows["unobserved-card"]["draws"] == 0
+    assert rows["unobserved-card"]["play_rate_per_draw"] is None
+    assert rows["unobserved-card"]["win_rate_when_played_95"] == [None, None]
+
