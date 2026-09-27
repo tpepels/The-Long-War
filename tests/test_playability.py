@@ -8,6 +8,7 @@ from longwar.playability import build_playability_report, render_markdown
 def simulation(*, fingerprint: str = "rules-a") -> dict:
     return {
         "games": 10,
+        "censored_games": 2,
         "mean_turns": 30.0,
         "game_fingerprint": fingerprint,
         "telemetry": {
@@ -48,6 +49,20 @@ def simulation(*, fingerprint: str = "rules-a") -> dict:
                     "mean_candidate_count": 12.0,
                 }
             },
+            "progression": {
+                "match_length": {
+                    "final_battle_number": {
+                        "count": 10,
+                        "mean": 3.0,
+                    },
+                    "battle_reach": {
+                        "1": {"matches": 10, "rate": 1.0},
+                        "2": {"matches": 9, "rate": 0.9},
+                        "3": {"matches": 7, "rate": 0.7},
+                        "4": {"matches": 3, "rate": 0.3},
+                    },
+                },
+            },
         },
     }
 
@@ -58,10 +73,19 @@ def test_build_playability_report_derives_human_pacing_metrics() -> None:
     assert report["scope"] == {
         "simulation_reports": 1,
         "games": 10,
+        "decisive_games": 8,
+        "censored_games": 2,
         "battles": 25,
     }
-    assert report["match_pacing"]["mean_battles_per_match"] == 2.5
-    assert report["match_pacing"]["mean_cards_played_per_match"] == 11.5
+    match = report["match_pacing"]
+    assert match["mean_battles_per_match"] == 2.5
+    assert match["mean_resolved_battles_per_match"] == 2.5
+    assert match["mean_final_battle_reached"] == 3.0
+    assert match["battle_reach"]["3"] == {
+        "matches": 7,
+        "rate": pytest.approx(0.7),
+    }
+    assert match["mean_cards_played_per_match"] == 11.5
 
     battle = report["battle_pacing"]
     assert battle["mean_action_events_per_battle"] == 7.2
@@ -78,6 +102,8 @@ def test_build_playability_report_derives_human_pacing_metrics() -> None:
     assert report["decision_load"]["mean_legal_candidates_per_heuristic_decision"] == 12.0
 
     markdown = render_markdown(report)
+    assert "Resolved Battles per match" in markdown
+    assert "2 censored matches" in markdown
     assert "Cards played per Battle" in markdown
     assert "Maneuvers per Battle" in markdown
     assert "AI self-play measures structural pacing" in markdown
