@@ -2054,11 +2054,14 @@ cdef class FastEngine:
                         state,
                         EFFECT_SWAP,
                         player,
-                        source_mask=<uint16_t>(1 << slot),
-                        dest_mask=self.adjacent_formation_mask(
+                        -1,
+                        -1,
+                        -1,
+                        <uint16_t>(1 << slot),
+                        self.adjacent_formation_mask(
                             state, player, slot, False
                         ),
-                        flags=EFFECT_OPTIONAL,
+                        EFFECT_OPTIONAL,
                     )
                 if self.recover_bond_on_completion_name[state.name[slot]]:
                     self.queue_recover_from_discard(
@@ -3213,8 +3216,12 @@ cdef class FastEngine:
             state,
             EFFECT_RECOVER,
             player,
-            aux=card_type,
-            flags=EFFECT_OPTIONAL if optional else 0,
+            -1,
+            -1,
+            card_type,
+            0,
+            0,
+            EFFECT_OPTIONAL if optional else 0,
         )
 
     cdef void queue_free_maneuver(
@@ -3234,8 +3241,12 @@ cdef class FastEngine:
             state,
             EFFECT_FREE_MANEUVER,
             player,
-            source_mask=source_mask,
-            flags=flags,
+            -1,
+            -1,
+            -1,
+            source_mask,
+            0,
+            flags,
         )
 
     cdef void queue_move_to_mask(
@@ -3252,9 +3263,12 @@ cdef class FastEngine:
             state,
             EFFECT_MOVE,
             player,
-            source_mask=source_mask,
-            dest_mask=dest_mask,
-            flags=(EFFECT_OPTIONAL if optional else 0) | EFFECT_CARD_MOVE,
+            -1,
+            -1,
+            -1,
+            source_mask,
+            dest_mask,
+            (EFFECT_OPTIONAL if optional else 0) | EFFECT_CARD_MOVE,
         )
 
     cdef void gain_command_from_narrative(
@@ -3451,9 +3465,12 @@ cdef class FastEngine:
                 state,
                 EFFECT_TRANSFER_COMPONENT,
                 player,
-                source_mask=<uint16_t>(1 << new_slot),
-                dest_mask=destinations,
-                flags=EFFECT_OPTIONAL,
+                -1,
+                -1,
+                -1,
+                <uint16_t>(1 << new_slot),
+                destinations,
+                EFFECT_OPTIONAL,
             )
 
     cdef void resolve_maneuver_triggers(
@@ -3556,9 +3573,12 @@ cdef class FastEngine:
                     state,
                     EFFECT_SWAP,
                     player,
-                    source_mask=swap_mask,
-                    dest_mask=swap_mask,
-                    flags=EFFECT_OPTIONAL | EFFECT_ADJACENT_PAIR,
+                    -1,
+                    -1,
+                    -1,
+                    swap_mask,
+                    swap_mask,
+                    EFFECT_OPTIONAL | EFFECT_ADJACENT_PAIR,
                 )
 
         if name >= 0 and self.torren_name[name] and self.force_in_all_fronts(state, player):
@@ -3861,9 +3881,12 @@ cdef class FastEngine:
                     state,
                     EFFECT_SUCCESSION,
                     player,
-                    source=slot,
-                    dest_mask=destinations,
-                    flags=EFFECT_OPTIONAL,
+                    -1,
+                    slot,
+                    -1,
+                    0,
+                    destinations,
+                    EFFECT_OPTIONAL,
                 )
                 return
         self.finish_pending_drive_off(state, player, slot)
@@ -4127,9 +4150,12 @@ cdef class FastEngine:
                         state,
                         EFFECT_SWAP,
                         controller,
-                        source_mask=mask,
-                        dest_mask=mask,
-                        flags=EFFECT_OPTIONAL | EFFECT_SAME_FRONT_PAIR,
+                        -1,
+                        -1,
+                        -1,
+                        mask,
+                        mask,
+                        EFFECT_OPTIONAL | EFFECT_SAME_FRONT_PAIR,
                     )
             return
 
@@ -4154,9 +4180,12 @@ cdef class FastEngine:
                         state,
                         EFFECT_RETREAT,
                         owner_from_slot(slot),
-                        source=slot,
-                        aux=rear,
-                        flags=EFFECT_OPTIONAL,
+                        -1,
+                        slot,
+                        rear,
+                        0,
+                        0,
+                        EFFECT_OPTIONAL,
                     )
             return
 
@@ -4170,7 +4199,12 @@ cdef class FastEngine:
                     state,
                     EFFECT_FRONT_CONTRIBUTION,
                     owner_from_slot(slot),
-                    source=slot,
+                    -1,
+                    slot,
+                    -1,
+                    0,
+                    0,
+                    0,
                 )
             return
 
@@ -4202,9 +4236,12 @@ cdef class FastEngine:
                     state,
                     EFFECT_SUPPRESS,
                     controller,
-                    source=slot,
-                    dest_mask=<uint16_t>(1 << target),
-                    flags=EFFECT_OPTIONAL,
+                    -1,
+                    slot,
+                    -1,
+                    0,
+                    <uint16_t>(1 << target),
+                    EFFECT_OPTIONAL,
                 )
             return
 
@@ -4233,9 +4270,12 @@ cdef class FastEngine:
                     state,
                     EFFECT_SACRIFICE,
                     controller,
-                    source=slot,
-                    dest_mask=target_mask,
-                    flags=EFFECT_OPTIONAL,
+                    -1,
+                    slot,
+                    -1,
+                    0,
+                    target_mask,
+                    EFFECT_OPTIONAL,
                 )
             return
 
@@ -4426,9 +4466,12 @@ cdef class FastEngine:
                         state,
                         EFFECT_PROTECT_RETREAT,
                         player,
-                        source=rear_slot,
-                        aux=front_slot,
-                        flags=EFFECT_OPTIONAL,
+                        -1,
+                        rear_slot,
+                        front_slot,
+                        0,
+                        0,
+                        EFFECT_OPTIONAL,
                     )
                     return
 
@@ -4777,10 +4820,12 @@ cdef class FastEngine:
                 state,
                 EFFECT_INTERCEPT,
                 defender,
-                source=target,
-                aux=target,
-                source_mask=interceptors,
-                flags=EFFECT_OPTIONAL,
+                -1,
+                target,
+                target,
+                interceptors,
+                0,
+                EFFECT_OPTIONAL,
             )
         else:
             state.resolution_suppressed_mask |= <uint16_t>(1 << target)
@@ -4903,9 +4948,12 @@ cdef class FastEngine:
                 state,
                 EFFECT_TRANSFER_COMPONENT,
                 player,
-                source_mask=sources,
-                aux=destination,
-                flags=EFFECT_OPTIONAL,
+                -1,
+                -1,
+                destination,
+                sources,
+                0,
+                EFFECT_OPTIONAL,
             )
 
     cdef void queue_veyra_name_on_play(
@@ -4941,9 +4989,12 @@ cdef class FastEngine:
                 state,
                 EFFECT_TRANSFER_COMPONENT,
                 player,
-                source_mask=sources,
-                aux=destination,
-                flags=EFFECT_OPTIONAL,
+                -1,
+                -1,
+                destination,
+                sources,
+                0,
+                EFFECT_OPTIONAL,
             )
 
     cdef void apply_fast(self, FastState state, uint64_t action):
