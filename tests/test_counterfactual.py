@@ -21,6 +21,7 @@ from longwar.counterfactual import (
     run_counterfactual_card_sweep,
     run_counterfactual_experiment,
     triple_contrast,
+    validate_counterfactual_baselines,
 )
 from longwar.game import GameEngine
 
@@ -54,13 +55,12 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
 
 def test_every_single_card_counterfactual_baseline_validates() -> None:
     card_data = data()
+    validate_counterfactual_baselines(card_data)
+
     for card in card_data["cards"]:
         experiment = build_experiment_card_data(card_data, [card["id"]])
         index = {row["id"]: row for row in experiment["cards"]}
-        baseline = index[baseline_id(card["id"])]
-
-        assert baseline["baseline_for"] == card["id"]
-        GameEngine(experiment)
+        assert index[baseline_id(card["id"])]["baseline_for"] == card["id"]
 
 
 def test_non_command_experiment_baselines_allow_cards_without_command_cost() -> None:
