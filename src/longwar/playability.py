@@ -301,15 +301,20 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         (
             f"Source: **{scope['games']:,} matches / "
-            f"{scope['battles']:,} Battles** across "
-            f"{scope['simulation_reports']} simulation reports."
+            f"{scope['battles']:,} resolved Battles** across "
+            f"{scope['simulation_reports']} simulation reports "
+            f"({scope.get('censored_games', 0):,} censored matches)."
         ),
         "",
         "| Metric | Result |",
         "| --- | ---: |",
         (
-            f"| Battles per match | "
-            f"{_num(match['mean_battles_per_match'])} |"
+            f"| Resolved Battles per match | "
+            f"{_num(match['mean_resolved_battles_per_match'])} |"
+        ),
+        (
+            f"| Final Battle reached | "
+            f"{_num(match.get('mean_final_battle_reached'))} |"
         ),
         (
             f"| Cards played per match | "
