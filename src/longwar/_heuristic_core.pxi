@@ -138,56 +138,55 @@ cdef class NativeHeuristicEvaluator:
         if own_forces == 0 and own_board_subjects == 0:
             score -= 2.0
 
-        if self.engine.command_enabled:
-            current_delta = state.command[player] - state.command[opponent]
-            score += 0.45 * current_delta
+        current_delta = state.command[player] - state.command[opponent]
+        score += 0.45 * current_delta
 
-            # Project the rulebook's exact recovery formula using the current
-            # Front results. This makes late-war Command and likely Collapse
-            # visible to shallow search and rollouts.
-            recovery = self.engine.command_recovery_fast(state.battle)
-            own_recovery = recovery - own_losses
-            if own_recovery < 0:
-                own_recovery = 0
-            opponent_recovery = recovery - opponent_losses
-            if opponent_recovery < 0:
-                opponent_recovery = 0
-            own_projected = state.command[player] + own_recovery
-            opponent_projected = (
-                state.command[opponent] + opponent_recovery
-            )
-            if own_projected > self.engine.command_cap:
-                own_projected = self.engine.command_cap
-            if opponent_projected > self.engine.command_cap:
-                opponent_projected = self.engine.command_cap
+        # Project the rulebook's exact recovery formula using the current
+        # Front results. This makes late-war Command and likely Collapse
+        # visible to shallow search and rollouts.
+        recovery = self.engine.command_recovery_fast(state.battle)
+        own_recovery = recovery - own_losses
+        if own_recovery < 0:
+            own_recovery = 0
+        opponent_recovery = recovery - opponent_losses
+        if opponent_recovery < 0:
+            opponent_recovery = 0
+        own_projected = state.command[player] + own_recovery
+        opponent_projected = (
+            state.command[opponent] + opponent_recovery
+        )
+        if own_projected > self.engine.command_cap:
+            own_projected = self.engine.command_cap
+        if opponent_projected > self.engine.command_cap:
+            opponent_projected = self.engine.command_cap
 
-            projected_delta = own_projected - opponent_projected
-            score += 0.35 * (projected_delta - current_delta)
+        projected_delta = own_projected - opponent_projected
+        score += 0.35 * (projected_delta - current_delta)
 
-            own_vulnerability = (
-                self.engine.command_collapse_threshold + 3 - own_projected
-            )
-            if own_vulnerability < 0:
-                own_vulnerability = 0
-            opponent_vulnerability = (
-                self.engine.command_collapse_threshold + 3
-                - opponent_projected
-            )
-            if opponent_vulnerability < 0:
-                opponent_vulnerability = 0
-            score += 0.8 * (
-                opponent_vulnerability - own_vulnerability
-            )
+        own_vulnerability = (
+            self.engine.command_collapse_threshold + 3 - own_projected
+        )
+        if own_vulnerability < 0:
+            own_vulnerability = 0
+        opponent_vulnerability = (
+            self.engine.command_collapse_threshold + 3
+            - opponent_projected
+        )
+        if opponent_vulnerability < 0:
+            opponent_vulnerability = 0
+        score += 0.8 * (
+            opponent_vulnerability - own_vulnerability
+        )
 
-            if (
-                own_projected < self.engine.command_collapse_threshold
-                or opponent_projected
-                < self.engine.command_collapse_threshold
-            ):
-                if own_projected < opponent_projected:
-                    score -= 28.0
-                elif own_projected > opponent_projected:
-                    score += 28.0
+        if (
+            own_projected < self.engine.command_collapse_threshold
+            or opponent_projected
+            < self.engine.command_collapse_threshold
+        ):
+            if own_projected < opponent_projected:
+                score -= 28.0
+            elif own_projected > opponent_projected:
+                score += 28.0
 
         if (
             state.phase == PHASE_BATTLE
@@ -421,8 +420,6 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ) noexcept:
         cdef int card, total=0
-        if not self.engine.command_enabled:
-            return state.hand_len[player]
         for card in range(self.engine.n_cards):
             if (
                 state.hand[player][card]
