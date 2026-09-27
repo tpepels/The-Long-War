@@ -19,16 +19,16 @@ cdef void _fe_discard_slot_components(
 ) noexcept:
     cdef int card
     if state.subject[slot] >= 0:
-        self.clear_story_targets_at_slot(state, slot)
+        _fe_clear_story_targets_at_slot(self, state, slot)
     card = state.subject[slot]
     if card >= 0:
-        self.append_discard(state, player, card, False)
+        _fe_append_discard(self, state, player, card, False)
     card = state.link[slot]
     if card >= 0:
-        self.append_discard(state, player, card, False)
+        _fe_append_discard(self, state, player, card, False)
     card = state.name[slot]
     if card >= 0:
-        self.append_discard(state, player, card, False)
+        _fe_append_discard(self, state, player, card, False)
     state.subject[slot] = -1
     state.link[slot] = -1
     state.name[slot] = -1
@@ -75,28 +75,28 @@ cdef void _fe_finish_pending_drive_off(
     cdef int name = state.name[slot]
 
     if force >= 0:
-        self.clear_story_targets_at_slot(state, slot)
-        self.append_discard(state, player, force, False)
+        _fe_clear_story_targets_at_slot(self, state, slot)
+        _fe_append_discard(self, state, player, force, False)
 
     if bond >= 0:
         if self.driven_bond_stays[bond]:
             state.subject[slot] = -1
             if name >= 0:
-                self.return_to_hand(state, player, name)
+                _fe_return_to_hand(self, state, player, name)
             state.name[slot] = -1
             state.temporary[slot] = 0
             state.maneuver_count[slot] = 0
             return
         if self.driven_bond_returns[bond]:
-            self.return_to_hand(state, player, bond)
+            _fe_return_to_hand(self, state, player, bond)
         else:
-            self.append_discard(state, player, bond, False)
+            _fe_append_discard(self, state, player, bond, False)
 
     if name >= 0:
         if self.driven_name_returns[name]:
-            self.return_to_hand(state, player, name)
+            _fe_return_to_hand(self, state, player, name)
         else:
-            self.append_discard(state, player, name, False)
+            _fe_append_discard(self, state, player, name, False)
 
     state.subject[slot] = -1
     state.link[slot] = -1
@@ -114,9 +114,9 @@ cdef void _fe_drive_off_slot(
     cdef int name = state.name[slot]
     cdef uint16_t destinations
     if name >= 0 and self.succession_name[name]:
-        destinations = self.succession_destinations(state, player, slot)
+        destinations = _fe_succession_destinations(self, state, player, slot)
         if destinations:
-            self.enqueue_effect(
+            _fe_enqueue_effect(self, 
                 state,
                 EFFECT_SUCCESSION,
                 player,
@@ -128,7 +128,7 @@ cdef void _fe_drive_off_slot(
                 EFFECT_OPTIONAL,
             )
             return
-    self.finish_pending_drive_off(state, player, slot)
+    _fe_finish_pending_drive_off(self, state, player, slot)
 
 cdef void _fe_retreat_slot(
     FastEngine self,
@@ -145,11 +145,11 @@ cdef void _fe_retreat_slot(
     cdef int other, other_bond
     cdef uint16_t destinations
 
-    self.move_slot(state, source, destination)
-    self.resolve_retreat_narratives(state, player, destination)
+    _fe_move_slot(self, state, source, destination)
+    _fe_resolve_retreat_narratives(self, state, player, destination)
 
     if bond >= 0 and self.retreat_command_gain[bond] > 0:
-        self.gain_command_fast(
+        _fe_gain_command_fast(self, 
             state,
             player,
             self.retreat_command_gain[bond],
@@ -162,10 +162,10 @@ cdef void _fe_retreat_slot(
             or self.neris_retreat_name[name]
         )
     ):
-        destinations = self.adjacent_empty_mask(
+        destinations = _fe_adjacent_empty_mask(self, 
             state, player, destination
         )
-        self.queue_move_to_mask(
+        _fe_queue_move_to_mask(self, 
             state,
             player,
             <uint16_t>(1 << destination),
@@ -183,7 +183,7 @@ cdef void _fe_retreat_slot(
             and other_bond >= 0
             and self.covered_withdrawal_bond[other_bond]
         ):
-            self.queue_free_maneuver(
+            _fe_queue_free_maneuver(self, 
                 state, player, <uint16_t>(1 << other), True
             )
     if front < 3:
@@ -194,7 +194,7 @@ cdef void _fe_retreat_slot(
             and other_bond >= 0
             and self.covered_withdrawal_bond[other_bond]
         ):
-            self.queue_free_maneuver(
+            _fe_queue_free_maneuver(self, 
                 state, player, <uint16_t>(1 << other), True
             )
 
@@ -207,7 +207,7 @@ cdef inline bint _fe_front_has_capture_bond(
     cdef int rank, slot, bond
     for rank in range(2):
         slot = slot_index(player, front, rank)
-        if not self.slot_complete(state, slot):
+        if not _fe_slot_complete(self, state, slot):
             continue
         bond = state.link[slot]
         if bond >= 0 and self.capture_retreating_bond[bond]:
@@ -222,8 +222,8 @@ cdef void _fe_discard_incomplete_formations(FastEngine self, FastState state) no
                 state.subject[slot] >= 0
                 or state.link[slot] >= 0
                 or state.name[slot] >= 0
-            ) and not self.slot_complete(state, slot):
-                self.discard_slot_components(state, player, slot)
+            ) and not _fe_slot_complete(self, state, slot):
+                _fe_discard_slot_components(self, state, player, slot)
 
 cdef void _fe_resolve_retreats(
     FastEngine self,
@@ -251,28 +251,28 @@ cdef void _fe_resolve_retreats(
             # replaces that Retreat: it is driven off, but the Frontline
             # Named Formation stays where it is.
             protected_frontline = (
-                self.slot_complete(state, front_slot)
+                _fe_slot_complete(self, state, front_slot)
                 and state.subject[rear_slot] >= 0
                 and self.rear_force_prevents_frontline_retreat[
                     state.subject[rear_slot]
                 ]
             )
-            if self.slot_complete(state, rear_slot):
-                self.drive_off_slot(state, player, rear_slot)
-            if self.slot_complete(state, front_slot):
+            if _fe_slot_complete(self, state, rear_slot):
+                _fe_drive_off_slot(self, state, player, rear_slot)
+            if _fe_slot_complete(self, state, front_slot):
                 if protected_frontline:
                     continue
                 if (
                     (player == 0 and (drive0 & (1 << front)) != 0)
                     or (player == 1 and (drive1 & (1 << front)) != 0)
                 ):
-                    self.drive_off_slot(state, player, front_slot)
+                    _fe_drive_off_slot(self, state, player, front_slot)
                 else:
-                    self.retreat_slot(state, player, front_slot, rear_slot)
-                    if self.front_has_capture_bond(
+                    _fe_retreat_slot(self, state, player, front_slot, rear_slot)
+                    if _fe_front_has_capture_bond(self, 
                         state, 1 - player, front
                     ):
-                        self.return_bond_to_hand_from_slot(
+                        _fe_return_bond_to_hand_from_slot(self, 
                             state, player, rear_slot
                         )
 
@@ -281,7 +281,7 @@ cdef void _fe_discard_battle_stratagems(FastEngine self, FastState state) noexce
     for player in range(2):
         card = state.stratagem[player]
         if card >= 0:
-            self.append_discard(state, player, card, False)
+            _fe_append_discard(self, state, player, card, False)
         state.stratagem[player] = -1
         state.stratagem_revealed[player] = 0
         state.stratagem_front_mask[player] = 0
@@ -309,7 +309,7 @@ cdef int _fe_command_recovery_for_battle(
     FastEngine self,
     int battle,
 ):
-    return self.command_recovery_fast(battle)
+    return _fe_command_recovery_fast(self, battle)
 
 cdef void _fe_finish_start_battle(
     FastEngine self,
@@ -323,7 +323,7 @@ cdef void _fe_finish_start_battle(
     state.phase = PHASE_BATTLE
     for p in range(2):
         state.battle_start_hand_size[p] = state.hand_len[p]
-    self.start_turn_fast(state, starter)
+    _fe_start_turn_fast(self, state, starter)
 
 cdef void _fe_begin_next_battle_fast(
     FastEngine self,
@@ -341,13 +341,13 @@ cdef void _fe_begin_next_battle_fast(
     for offset in range(2):
         player = starter if offset == 0 else 1 - starter
         for slot in range(player * 8, player * 8 + 8):
-            if not self.slot_complete(state, slot):
+            if not _fe_slot_complete(self, state, slot):
                 continue
             name = state.name[slot]
             if name < 0 or not self.battle_start_move_name[name]:
                 continue
-            destinations = self.adjacent_empty_mask(state, player, slot)
-            self.queue_move_to_mask(
+            destinations = _fe_adjacent_empty_mask(self, state, player, slot)
+            _fe_queue_move_to_mask(self, 
                 state,
                 player,
                 <uint16_t>(1 << slot),
@@ -356,4 +356,4 @@ cdef void _fe_begin_next_battle_fast(
             )
 
     if state.pending_len == 0:
-        self.finish_start_battle(state, starter)
+        _fe_finish_start_battle(self, state, starter)
