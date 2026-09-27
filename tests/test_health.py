@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from longwar.health import analyze_simulation, wilson_interval
+from longwar.health import (
+    aggregate_simulations_for_health,
+    analyze_simulation,
+    wilson_interval,
+)
 
 
 def test_wilson_interval_contains_half_for_even_sample() -> None:
@@ -284,4 +288,97 @@ def test_health_keeps_unobserved_canonical_cards_explicit() -> None:
     assert rows["unobserved-card"]["draws"] == 0
     assert rows["unobserved-card"]["play_rate_per_draw"] is None
     assert rows["unobserved-card"]["win_rate_when_played_95"] == [None, None]
+
+def test_health_aggregation_sums_raw_counts_before_deriving_rates() -> None:
+    base = {
+        "agents": ["heuristic", "heuristic"],
+        "game_fingerprint": "rules-a",
+        "simulation_variant": {"base_hand_size": 10},
+        "max_turns": 40,
+    }
+    first = {
+        **base,
+        "games": 2,
+        "censored_games": 0,
+        "wins": [1, 1],
+        "first_player_wins": 1,
+        "mean_turns": 20.0,
+        "telemetry": {
+            "passes": {"events": 4, "mean_hand_size": 6.0},
+            "battles": {"count": 5, "mean_actions": 8.0, "continuing_battles": 3},
+            "cards": {
+                "card-a": {
+                    "draws": 10,
+                    "plays": 4,
+                    "turns_in_hand": 20,
+                    "playable_turns": 15,
+                    "unplayable_turns": 5,
+                    "held_on_pass": 4,
+                    "dead_on_pass": 1,
+                    "immediate_front_swing_total": 8.0,
+                    "immediate_control_swing_total": 2.0,
+                    "games_drawn": 4,
+                    "decisive_games_drawn": 4,
+                    "wins_when_drawn": 2,
+                    "games_played": 2,
+                    "decisive_games_played": 2,
+                    "wins_when_played": 1,
+                }
+            },
+            "formation_combinations": {},
+        },
+    }
+    second = {
+        **base,
+        "games": 1,
+        "censored_games": 1,
+        "wins": [0, 0],
+        "first_player_wins": 0,
+        "mean_turns": 40.0,
+        "telemetry": {
+            "passes": {"events": 2, "mean_hand_size": 3.0},
+            "battles": {"count": 2, "mean_actions": 10.0, "continuing_battles": 2},
+            "cards": {
+                "card-a": {
+                    "draws": 6,
+                    "plays": 3,
+                    "turns_in_hand": 12,
+                    "playable_turns": 9,
+                    "unplayable_turns": 3,
+                    "held_on_pass": 2,
+                    "dead_on_pass": 1,
+                    "immediate_front_swing_total": 9.0,
+                    "immediate_control_swing_total": 3.0,
+                    "games_drawn": 2,
+                    "decisive_games_drawn": 0,
+                    "wins_when_drawn": 0,
+                    "games_played": 2,
+                    "decisive_games_played": 0,
+                    "wins_when_played": 0,
+                }
+            },
+            "formation_combinations": {},
+        },
+    }
+
+    aggregate = aggregate_simulations_for_health([first, second])
+    stats = aggregate["telemetry"]["cards"]["card-a"]
+
+    assert aggregate["games"] == 3
+    assert aggregate["decisive_games"] == 2
+    assert aggregate["censored_games"] == 1
+    assert aggregate["wins"] == [1, 1]
+    assert aggregate["mean_turns"] == pytest.approx(80 / 3)
+    assert stats["draws"] == 16
+    assert stats["plays"] == 7
+    assert stats["games_drawn"] == 6
+    assert stats["decisive_games_drawn"] == 4
+    assert stats["games_played"] == 4
+    assert stats["decisive_games_played"] == 2
+    assert stats["play_rate_per_draw"] == pytest.approx(4 / 6)
+    assert stats["win_rate_when_drawn"] == pytest.approx(0.5)
+    assert stats["win_rate_when_played"] == pytest.approx(0.5)
+    assert stats["mean_immediate_front_swing"] == pytest.approx(17 / 7)
+    assert aggregate["telemetry"]["passes"]["mean_hand_size"] == pytest.approx(5.0)
+    assert aggregate["telemetry"]["battles"]["mean_actions"] == pytest.approx(60 / 7)
 
