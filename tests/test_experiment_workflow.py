@@ -504,14 +504,34 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     assert match["game_fingerprint"] == summary["game_fingerprint"]
     assert (output / "playability.json").is_file()
 
-def test_only_deep_balance_run_publishes_root_lab_snapshot() -> None:
+def test_deep_balance_pipeline_publishes_screen_and_online_validation() -> None:
     source = inspect.getsource(runner.balance_run)
 
-    assert 'if args.preset == "deep":' in source
+    assert 'deep_pipeline = args.preset in {"deep", "exhaustive"}' in source
+    assert '"deep": 250' in source
+    assert '"exhaustive": 2000' in source
+    assert "run_targeted_online_validation" in source
     assert 'publish("balance-report.json", static_payload)' in source
     assert 'publish("balance-health.json", aggregate_health)' in source
     assert 'publish("heuristic-selfplay.json", aggregate_selfplay)' in source
     assert 'publish("progression-selfplay.json", progression_source)' in source
     assert 'publish("counterfactual-balance.json", causal_payload)' in source
+    assert '"targeted-online-counterfactual.json"' in source
     assert '"tools" / "build_lab_report.py"' in source
+
+
+def test_balance_cli_exposes_evidence_hierarchy_controls(monkeypatch) -> None:
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "balance", "--preset", "deep"],
+    )
+    args = runner.parse_args()
+    assert args.preset == "deep"
+    assert args.games is None
+    assert args.online_iterations == 16
+    assert args.online_depth == 2
+    assert args.target_max_cards == 8
+    assert args.target_min_effect == pytest.approx(0.05)
+    assert args.skip_online_validation is False
 
