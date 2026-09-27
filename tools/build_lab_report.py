@@ -129,6 +129,7 @@ def main() -> None:
     health = current("balance-health.json")
     static = current("balance-report.json")
     selfplay = current("heuristic-selfplay.json") or current("pages-selfplay.json")
+    progression_selfplay = current("progression-selfplay.json") or selfplay
     policy = current("mccfr-policy.json")
     mccfr_suite = current("mccfr-suite.json")
     verification = load("mccfr-verification.json")
@@ -233,7 +234,11 @@ def main() -> None:
             "average_policy": policy.get("average_policy"),
         }
 
-    raw_telemetry = selfplay.get("telemetry") if selfplay is not None else None
+    raw_telemetry = (
+        progression_selfplay.get("telemetry")
+        if progression_selfplay is not None
+        else None
+    )
     progression = (
         raw_telemetry.get("progression")
         if raw_telemetry is not None
@@ -242,13 +247,13 @@ def main() -> None:
     trajectory = progression_trajectory(progression)
     progression_source = (
         {
-            "label": selfplay.get("_label"),
-            "scope": selfplay.get("progression_scope"),
-            "games": selfplay.get("games"),
-            "decisive_games": selfplay.get("decisive_games"),
-            "censored_games": selfplay.get("censored_games"),
+            "label": progression_selfplay.get("_label"),
+            "scope": progression_selfplay.get("progression_scope"),
+            "games": progression_selfplay.get("games"),
+            "decisive_games": progression_selfplay.get("decisive_games"),
+            "censored_games": progression_selfplay.get("censored_games"),
         }
-        if selfplay is not None
+        if progression_selfplay is not None
         else None
     )
 
