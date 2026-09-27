@@ -714,7 +714,7 @@ def benchmark_strength(
     if time_budget_seconds <= 0.0:
         raise SystemExit("--time-budget-seconds must be positive")
 
-    decks = ("mobility", "elite", "narrative", "control")
+    decks = tuple(CANONICAL_DECK_PATHS)
     c_label = f"{exploration:g}".replace(".", "p")
     tree_label = "reuse" if reuse_tree else "cold"
     parts = ["strength", tree_label, f"c-{c_label}"]
