@@ -1484,13 +1484,24 @@ def parse_args() -> argparse.Namespace:
         "--games",
         type=int,
         help=(
-            "Games per matchup cell "
-            "(quick: 8; deep: 250; exhaustive: 2000)."
+            "Structural heuristic games per matchup cell "
+            "(quick: 8; deep: 250; exhaustive: 2000). "
+            "This does not change paired card-screen sample counts."
         ),
     )
     balance.add_argument("--seed", type=int, default=1701)
-    balance.add_argument("--contexts", type=int, default=3)
-    balance.add_argument("--games-per-context", type=int, default=4)
+    balance.add_argument(
+        "--contexts",
+        type=int,
+        default=3,
+        help="Legal deck contexts per card in the broad paired A/B screen.",
+    )
+    balance.add_argument(
+        "--games-per-context",
+        type=int,
+        default=4,
+        help="Paired samples per context/card in the broad A/B screen.",
+    )
     balance.add_argument(
         "--online-iterations",
         type=int,
