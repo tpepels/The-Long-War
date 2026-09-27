@@ -155,7 +155,7 @@ function renderAttention(lab) {
       `${unobservedCards.length} card${unobservedCards.length === 1 ? "" : "s"} lack self-play evidence`,
       unobservedCards.slice(0, 6).map((row) => `<b>${esc(row.title)}</b>`).join(", ") +
         (unobservedCards.length > 6 ? ` and ${unobservedCards.length - 6} more` : "") +
-        ". They remain visible as Unobserved; static analysis alone is not presented as a health verdict."
+        ". Their observational status remains Unobserved; independent causal or online evidence is surfaced separately when available."
     ));
   }
 
