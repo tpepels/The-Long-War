@@ -631,10 +631,14 @@ def _print_ismcts_cutoffs(cutoffs: dict[str, float | int | None]) -> None:
     )
 
 
-def paired_strength_interval(outcomes: dict[str, dict[str, list[dict[str, int]]]]) -> dict[str, Any]:
-    """Bootstrap deals, keeping the two seat orientations together."""
+def paired_strength_interval(
+    outcomes: dict[str, dict[str, list[dict[str, Any]]]],
+) -> dict[str, Any]:
+    """Bootstrap decisive deals, keeping the two seat orientations together."""
     from longwar.counterfactual import estimate
+
     contrasts = []
+    censored_pairs = 0
     for orientations in outcomes.values():
         first = {row["seed"]: row for row in orientations["mcts-first"]}
         second = {row["seed"]: row for row in orientations["alpha-first"]}
@@ -642,12 +646,35 @@ def paired_strength_interval(outcomes: dict[str, dict[str, list[dict[str, int]]]
             raise ValueError("Mirrored strength cells must contain identical deal seeds")
         for seed, left in first.items():
             right = second[seed]
-            contrasts.append(int(left["winner"] == 0) + int(right["winner"] == 1) - 1)
+            if left.get("winner") is None or right.get("winner") is None:
+                censored_pairs += 1
+                continue
+            contrasts.append(
+                int(left["winner"] == 0) + int(right["winner"] == 1) - 1
+            )
+
+    if not contrasts:
+        return {
+            "win_rate": None,
+            "ci95": [None, None],
+            "independent_deals": 0,
+            "censored_pairs": censored_pairs,
+            "ci_method": None,
+            "resampling_unit": "same-seed mirrored seat pair",
+        }
+
     effect = estimate(contrasts, seed=1701, bootstrap_resamples=2000)
-    return {"win_rate": (effect.mean + 1) / 2,
-            "ci95": [max(0.0, (effect.ci95[0] + 1) / 2), min(1.0, (effect.ci95[1] + 1) / 2)],
-            "independent_deals": len(contrasts), "ci_method": effect.ci_method,
-            "resampling_unit": "same-seed mirrored seat pair"}
+    return {
+        "win_rate": (effect.mean + 1) / 2,
+        "ci95": [
+            max(0.0, (effect.ci95[0] + 1) / 2),
+            min(1.0, (effect.ci95[1] + 1) / 2),
+        ],
+        "independent_deals": len(contrasts),
+        "censored_pairs": censored_pairs,
+        "ci_method": effect.ci_method,
+        "resampling_unit": "same-seed mirrored seat pair",
+    }
 
 
 def benchmark_strength(
@@ -853,12 +880,12 @@ def benchmark_strength(
     ]
 
     totals = {
-        deck: {"mcts": 0, "alpha": 0, "games": 0}
+        deck: {"mcts": 0, "alpha": 0, "games": 0, "censored": 0}
         for deck in decks
     }
     overall_mcts = 0
     overall_alpha = 0
-    paired_outcomes: dict[str, dict[str, list[dict[str, int]]]] = {}
+    paired_outcomes: dict[str, dict[str, list[dict[str, Any]]]] = {}
     wall_sum = 0.0
     resource_totals = {
         "ismcts": {
@@ -902,7 +929,9 @@ def benchmark_strength(
         alpha_wins = int(wins[alpha_index])
         totals[deck]["mcts"] += mcts_wins
         totals[deck]["alpha"] += alpha_wins
-        totals[deck]["games"] += int(payload["games"])
+        censored = int(payload.get("censored_games", 0))
+        totals[deck]["censored"] += censored
+        totals[deck]["games"] += int(payload["games"]) - censored
         overall_mcts += mcts_wins
         overall_alpha += alpha_wins
         paired_outcomes.setdefault(deck, {})[orientation] = payload["game_outcomes"]
