@@ -9,7 +9,7 @@ on:
       - "web/**"
       - "rules/**"
       - "cards/**"
-      - "decks/reference.json"
+      - "decks/*.json"
       - "src/**"
       - "setup.py"
       - "pyproject.toml"
