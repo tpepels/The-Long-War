@@ -135,6 +135,7 @@ def main() -> None:
     verification = load("mccfr-verification.json")
     counterfactual = current("counterfactual-balance.json")
     targeted = current("targeted-online-counterfactual.json")
+    run_summary = current("balance-run-summary.json")
 
     if health is None:
         raise SystemExit("A current balance-health.json is required; regenerate its source simulation and health report")
@@ -168,39 +169,71 @@ def main() -> None:
         causal = causal_by_card.get(card["id"])
         card["counterfactual"] = causal
         card["targeted_online"] = targeted_by_card.get(card["id"])
+        card["screening_balance_level"] = (
+            causal.get("level") if causal is not None else None
+        )
+        card["strategic_validation"] = (
+            card["targeted_online"].get("confirmation")
+            if card["targeted_online"] is not None
+            else None
+        )
+
+        # The broad heuristic A/B sweep is a screen, not strong-play
+        # confirmation. It may promote an otherwise healthy card to Watch, but
+        # red/orange causal claims require targeted online-MCCFR evidence.
         if causal is not None and int(causal.get("samples", 0)) >= 12:
             causal_level = causal.get("level", "green")
-            if level_rank.get(causal_level, 1) > level_rank.get(card["balance_level"], 1):
-                card["balance_level"] = causal_level
-                card["balance_label"] = {
-                    "red": "Critical",
-                    "orange": "Needs balancing",
-                    "yellow": "Watch",
-                    "green": "Looks healthy",
-                    "dark_green": "Well-supported healthy",
-                }[causal_level]
-                card["balance_direction"] = causal.get("direction", card["balance_direction"])
+            if (
+                causal_level in {"yellow", "orange", "red"}
+                and level_rank.get(card["balance_level"], 1)
+                < level_rank["yellow"]
+            ):
+                card["balance_level"] = "yellow"
+                card["balance_label"] = "Watch"
+                card["balance_direction"] = "heuristic_counterfactual_screen"
 
         online = card["targeted_online"]
-        if (
-            online is not None
-            and online.get("confirmation") == "confirmed"
-            and int(online.get("online", {}).get("samples", 0)) >= 8
-        ):
-            online_level = online["online"].get("level", "green")
-            if level_rank.get(online_level, 1) > level_rank.get(card["balance_level"], 1):
-                card["balance_level"] = online_level
-                card["balance_label"] = {
-                    "red": "Critical",
-                    "orange": "Needs balancing",
-                    "yellow": "Watch",
-                    "green": "Looks healthy",
-                    "dark_green": "Well-supported healthy",
-                }[online_level]
-                card["balance_direction"] = online["online"].get(
+        if online is not None:
+            confirmation = online.get("confirmation")
+            online_samples = int(online.get("online", {}).get("samples", 0))
+            online_level = online.get("online", {}).get("level", "green")
+            if (
+                confirmation in {"confirmed", "reversed"}
+                and online_samples >= 8
+            ):
+                # A statistically resolved online result is strategic evidence
+                # whether it agrees with the screen or reverses it.
+                if level_rank.get(online_level, 1) > level_rank.get(
+                    card["balance_level"],
+                    1,
+                ):
+                    card["balance_level"] = online_level
+                    card["balance_label"] = {
+                        "red": "Critical",
+                        "orange": "Needs balancing",
+                        "yellow": "Watch",
+                        "green": "Looks healthy",
+                        "dark_green": "Well-supported healthy",
+                    }[online_level]
+                direction = online.get("online", {}).get(
                     "direction",
                     card["balance_direction"],
                 )
+                card["balance_direction"] = (
+                    f"strategic_reversal:{direction}"
+                    if confirmation == "reversed"
+                    else direction
+                )
+            elif (
+                confirmation in {"direction_agrees", "inconclusive"}
+                and causal is not None
+                and causal.get("level") in {"yellow", "orange", "red"}
+                and level_rank.get(card["balance_level"], 1)
+                < level_rank["yellow"]
+            ):
+                card["balance_level"] = "yellow"
+                card["balance_label"] = "Watch"
+                card["balance_direction"] = "strategic_validation_inconclusive"
 
     matchup_files = {
         "heuristic_selfplay": "heuristic-selfplay.json",
@@ -315,6 +348,7 @@ def main() -> None:
         "verification": verification,
         "counterfactual": counterfactual,
         "targeted_counterfactual": targeted,
+        "run_summary": run_summary,
         "raw_telemetry": raw_telemetry,
         "progression": progression,
         "progression_trajectory": trajectory,
