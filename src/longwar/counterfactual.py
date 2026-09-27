@@ -6,7 +6,7 @@ import math
 import random
 from dataclasses import dataclass
 from statistics import mean, stdev
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 from .cards import card_index, validate_card_data
 from .decks import (
@@ -469,6 +469,7 @@ def run_counterfactual_card_sweep(
     agent_name: str = "heuristic",
     bootstrap_resamples: int = 2000,
     card_ids: list[str] | None = None,
+    progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Evaluate card main effects across a pool larger than one legal deck.
 
@@ -527,6 +528,8 @@ def run_counterfactual_card_sweep(
             int(row.get("censored_pairs", 0))
             for row in report["cards"]
         )
+        if progress_callback is not None:
+            progress_callback(index + 1, len(selected), report["cards"][0])
 
     rows.sort(
         key=lambda row: (
