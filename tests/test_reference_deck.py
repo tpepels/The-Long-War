@@ -112,3 +112,16 @@ def test_heroes_have_no_deck_cap_beyond_unique_titles() -> None:
     deck = _deck("persistent-elite-heroes.json")
     assert len([card_id for card_id in deck if cards[card_id].get("hero")]) >= 4
     validate_deck_definition(deck, cards)
+
+def test_reference_decks_make_observational_coverage_gap_explicit() -> None:
+    cards = _cards()
+    covered = {
+        card_id
+        for filename in DECK_FILES
+        for card_id in _deck(filename)
+    }
+
+    assert len(cards) == 95
+    assert len(covered) == 94
+    assert set(cards) - covered == {"covered-the-withdrawal-of"}
+
