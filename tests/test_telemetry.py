@@ -397,8 +397,8 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
         "hand_remaining": [5, 6],
         "deck_remaining": [10, 11],
         "mean_legal_actions": 7.0,
-        "constraint_source_decisions": 0,
-        "constraint_active_decisions": 0,
+        "constraint_source_decisions": 2,
+        "constraint_active_decisions": 1,
         "cards_played": 5,
         "pass_events": 2,
         "first_pass_command": 6,
@@ -420,6 +420,8 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
     assert by_battle["1"]["eventual_completion_rate_for_forces_deployed"] is None
     assert by_battle["1"]["first_pass_unplayable_cards"] == pytest.approx(2.0)
     assert by_battle["1"]["command_start"] == pytest.approx(20.0)
+    assert by_battle["1"]["constraint_rule_source_rate"] == pytest.approx(0.5)
+    assert by_battle["1"]["constraint_active_rate"] == pytest.approx(0.25)
 
 
 

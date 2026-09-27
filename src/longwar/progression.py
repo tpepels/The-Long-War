@@ -1410,6 +1410,14 @@ class ProgressionTelemetry:
                 "constraint_active_decisions": self._mean_field(
                     rows, "constraint_active_decisions"
                 ),
+                "constraint_rule_source_rate": self._ratio(
+                    sum(row["constraint_source_decisions"] for row in rows),
+                    sum(row["actions"] for row in rows),
+                ),
+                "constraint_active_rate": self._ratio(
+                    sum(row["constraint_active_decisions"] for row in rows),
+                    sum(row["actions"] for row in rows),
+                ),
                 "first_pass_command": self._mean_optional([
                     row["first_pass_command"] for row in rows
                 ]),

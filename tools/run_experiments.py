@@ -56,6 +56,8 @@ CANONICAL_DECK_PATHS = {
     "elite": "decks/persistent-elite-heroes.json",
     "narrative": "decks/narrative-command.json",
     "control": "decks/battlefield-control-stratagems.json",
+    "momentum": "decks/momentum-orders.json",
+    "necessity": "decks/necessity-attrition.json",
 }
 
 

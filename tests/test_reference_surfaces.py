@@ -77,6 +77,16 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     assert "page: battlefield-reference" in css
 
 
+def test_balance_validation_covers_all_reference_decks() -> None:
+    from tools.run_experiments import CANONICAL_DECK_PATHS
+
+    shipped = {
+        f"decks/{path.name}"
+        for path in (ROOT / "decks").glob("*.json")
+    }
+    assert set(CANONICAL_DECK_PATHS.values()) == shipped
+
+
 def test_balance_lab_is_human_first_and_collapsible() -> None:
     page = text("web/balance.html")
     script = text("web/balance.js")

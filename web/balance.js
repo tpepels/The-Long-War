@@ -467,7 +467,7 @@ function renderProgression(lab) {
   document.getElementById("progression-battles").innerHTML = ["1", "2", "3", "4+"].map((key) => {
     const row = battles[key] || { battles: 0 };
     if (!row.battles) {
-      return `<tr><td><strong>${esc(key)}</strong></td><td colspan="12" class="muted">No observations</td></tr>`;
+      return `<tr><td><strong>${esc(key)}</strong></td><td colspan="13" class="muted">No observations</td></tr>`;
     }
     return `
       <tr>
@@ -475,6 +475,7 @@ function renderProgression(lab) {
         <td>${num(row.forces_played, 1)}</td>
         <td>${num(row.bonds_played, 1)}</td>
         <td>${num(row.names_played, 1)}</td>
+        <td>${num(row.cards_played, 1)}</td>
         <td>${num(row.completed_formations, 1)}<span class="muted">${pct(row.eventual_completion_rate_for_forces_deployed)} eventual / deployed</span></td>
         <td>${num(row.incomplete_formations_end, 1)}</td>
         <td>${num(row.occupied_positions, 1)}</td>
@@ -482,12 +483,12 @@ function renderProgression(lab) {
         <td>${num(row.front_control_changes, 1)}</td>
         <td>
           ${num(row.legal_actions, 1)}
-          <span class="muted">constraint source/active ${num(row.constraint_rule_source_decisions, 1)} / ${num(row.constraint_active_decisions, 1)}</span>
+          <span class="muted">constraint source/active ${pct(row.constraint_rule_source_rate)} / ${pct(row.constraint_active_rate)}</span>
         </td>
         <td>${num(row.hand_size, 1)} / ${num(row.deck_size, 1)}</td>
         <td>
           cmd ${num(row.first_pass_command, 1)}
-          <span class="muted">unplayable ${num(row.first_pass_unplayable_cards, 1)} · alternatives ${num(row.first_pass_legal_alternatives, 1)}</span>
+          <span class="muted">unplayable ${num(row.first_pass_unplayable_cards, 1)} · card ${num(row.first_pass_playable_card_actions, 1)} · Maneuver ${num(row.first_pass_maneuver_actions, 1)} · alternatives ${num(row.first_pass_legal_alternatives, 1)}</span>
         </td>
         <td>
           ${num(row.command_start, 1)} / ${num(row.command_spent, 1)} / ${num(row.command_remaining, 1)}
