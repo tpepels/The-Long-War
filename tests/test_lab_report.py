@@ -121,6 +121,9 @@ def test_report_builders_share_simulation_summary_and_preserve_provenance() -> N
     provenance = standard_variant()
     data = {
         "games": 2,
+        "decisive_games": 1,
+        "censored_games": 1,
+        "censor_rate": 0.5,
         "seed": 37,
         "game_fingerprint": "current-engine",
         "ismcts_config": {"iterations": 100000, "exploration": 0.3},
@@ -131,6 +134,9 @@ def test_report_builders_share_simulation_summary_and_preserve_provenance() -> N
     assert build_mccfr_suite.simulation_summary is simulation_summary
     summary = simulation_summary(data)
     assert summary["seed"] == 37
+    assert summary["decisive_games"] == 1
+    assert summary["censored_games"] == 1
+    assert summary["censor_rate"] == 0.5
     assert summary["game_fingerprint"] == "current-engine"
     assert summary["ismcts_config"] == data["ismcts_config"]
     assert summary["simulation_variant"] == provenance
@@ -141,7 +147,41 @@ def test_report_builders_share_simulation_summary_and_preserve_provenance() -> N
 def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeypatch) -> None:
     fingerprint = "current-engine"
     progression = {
-        "by_battle": {"1": {"battles": 1}},
+        "by_battle": {
+            "1": {
+                "battles": 1,
+                "command_remaining": 14.0,
+                "first_pass_command": 12.0,
+                "occupied_positions": 3.0,
+                "active_fronts": 2.0,
+                "contested_fronts": 1.0,
+                "completed_formations": 0.5,
+                "incomplete_formations_end": 2.0,
+                "eventual_completion_rate_for_forces_deployed": 0.4,
+                "cards_played": 6.0,
+                "legal_actions": 7.0,
+                "hand_size": 7.0,
+                "deck_size": 17.0,
+                "command_start": 20.0,
+            },
+            "2": {"battles": 0},
+            "3": {
+                "battles": 1,
+                "command_remaining": 7.0,
+                "first_pass_command": 6.0,
+                "occupied_positions": 5.0,
+                "active_fronts": 3.0,
+                "contested_fronts": 2.0,
+                "completed_formations": 1.5,
+                "incomplete_formations_end": 1.0,
+                "eventual_completion_rate_for_forces_deployed": 0.7,
+                "cards_played": 5.0,
+                "legal_actions": 5.0,
+                "hand_size": 6.0,
+                "deck_size": 8.0,
+                "command_start": 11.0,
+            },
+        },
         "formation_lifecycle": {"forces": 2},
     }
     artifacts = {
@@ -180,4 +220,37 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
     )
     assert report["progression"] == progression
     assert report["raw_telemetry"]["progression"] == progression
+    trajectory = report["progression_trajectory"]
+    assert trajectory["observed_buckets"] == ["1", "3"]
+    assert trajectory["early_battle"] == "1"
+    assert trajectory["late_battle"] == "3"
+    assert trajectory["metrics"]["command_remaining"] == {
+        "early": 14.0,
+        "late": 7.0,
+        "delta": -7.0,
+    }
+    assert trajectory["metrics"]["occupied_positions"]["delta"] == 2.0
+    assert trajectory["metrics"][
+        "eventual_completion_rate_for_forces_deployed"
+    ]["delta"] == pytest.approx(0.3)
     assert report["all_formations"] == []
+
+def test_progression_trajectory_handles_missing_or_single_bucket() -> None:
+    assert build_lab_report.progression_trajectory(None) is None
+    assert build_lab_report.progression_trajectory({"by_battle": {}}) is None
+
+    result = build_lab_report.progression_trajectory({
+        "by_battle": {
+            "1": {
+                "battles": 2,
+                "command_remaining": 13.5,
+            },
+            "2": {"battles": 0},
+        }
+    })
+    assert result is not None
+    assert result["observed_buckets"] == ["1"]
+    assert result["early_battle"] == result["late_battle"] == "1"
+    assert result["metrics"]["command_remaining"]["delta"] == 0.0
+    assert result["metrics"]["contested_fronts"]["delta"] is None
+
