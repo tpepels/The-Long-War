@@ -130,6 +130,18 @@ def build_experiment_card_data(
     return data
 
 
+def validate_counterfactual_baselines(card_data: dict[str, Any]) -> None:
+    """Validate every synthetic baseline against schema and native engine limits.
+
+    Each baseline is instantiated separately because the full canonical pool
+    plus all synthetic identities can exceed the native card-identity capacity,
+    while any real counterfactual experiment only adds a small subset.
+    """
+    for card in card_data["cards"]:
+        experiment = build_experiment_card_data(card_data, [card["id"]])
+        GameEngine(experiment)
+
+
 def replace_cards(
     deck: Iterable[str],
     replacements: Iterable[str],
