@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from math import inf
 
-from ..game.actions import Action, Draw, Pass, action_key
+from ..game.actions import Action, Pass, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState, Phase
 from ..heuristics import StrategicEvaluator
@@ -147,9 +147,9 @@ class AlphaBetaSearch:
             return ranked
 
         selected = list(ranked[:width])
-        # Resource/tempo decisions must survive beam pruning.
+        # The tempo decision must survive beam pruning.
         for action in ranked[width:]:
-            if isinstance(action, (Pass, Draw)) and action not in selected:
+            if isinstance(action, Pass) and action not in selected:
                 selected.append(action)
         return selected
 
