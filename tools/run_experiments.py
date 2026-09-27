@@ -37,9 +37,7 @@ from longwar.agents.ismcts_agent import (
 from longwar.balance import validate_command_costs
 from longwar.cards import load_card_file
 from longwar.decks import (
-    PLAYTEST_DECK_SIZE,
-    PLAYTEST_FORCE_COUNT,
-    PLAYTEST_PRINTED_NAME_COUNT,
+    MINIMUM_DECK_SIZE,
     validate_deck_definition,
 )
 from longwar.game import GameEngine
@@ -56,6 +54,8 @@ CANONICAL_DECK_PATHS = {
     "elite": "decks/persistent-elite-heroes.json",
     "narrative": "decks/narrative-command.json",
     "control": "decks/battlefield-control-stratagems.json",
+    "momentum": "decks/momentum-orders.json",
+    "necessity": "decks/necessity-attrition.json",
 }
 
 
@@ -83,19 +83,13 @@ def validate_data() -> None:
     engine = GameEngine(data, rules=GameRules.standard())
     for path in deck_paths:
         deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
-        validate_deck_definition(
-            deck,
-            engine.cards,
-            exact_size=PLAYTEST_DECK_SIZE,
-            exact_force_count=PLAYTEST_FORCE_COUNT,
-            exact_printed_name_count=PLAYTEST_PRINTED_NAME_COUNT,
-        )
+        validate_deck_definition(deck, engine.cards)
         engine.validate_deck(deck)
         engine.legal_actions(engine.new_game(deck, deck, seed=1701))
     print(
         f"Validated canonical data: {len(data['cards'])} cards, "
-        f"{len(deck_paths)} {PLAYTEST_DECK_SIZE}-card playtest decks, "
-        "standard rules"
+        f"{len(deck_paths)} canonical reference decks "
+        f"(minimum {MINIMUM_DECK_SIZE} cards), standard rules"
     )
 
 
@@ -103,7 +97,10 @@ def balance_run(args: argparse.Namespace) -> Path:
     """Canonical balance pipeline; experimental rules stay in `run`."""
     from longwar.balance import build_report
     from longwar.counterfactual import run_counterfactual_card_sweep
-    from longwar.health import analyze_simulation
+    from longwar.health import (
+        aggregate_simulations_for_health,
+        analyze_simulation,
+    )
     from longwar.playability import build_playability_report
     from longwar.simulate import simulate_games
 
@@ -128,31 +125,132 @@ def balance_run(args: argparse.Namespace) -> Path:
     if args.preset == "deep":
         for left, right in combinations(decks, 2):
             cells.extend([(left, right), (right, left)])
-    save("static", {**build_report(data), **identity})
+    static_payload = {**build_report(data), **identity}
+    save("static", static_payload)
     simulations = []
+    selfplay_simulations: dict[str, dict[str, Any]] = {}
+    total_censored = 0
     for index, (left, right) in enumerate(cells):
         seed = args.seed + index * games
         report = simulate_games(engine, decks[left], decks[right], games=games, seed=seed)
-        payload = {**asdict(report), "game_fingerprint": identity["game_fingerprint"],
-                   "seed": seed, "rules": asdict(engine.rules),
-                   "deck_a": decks[left], "deck_b": decks[right],
-                   "first_player_win_rate": report.first_player_win_rate,
-                   "first_player_wilson_95": wilson_interval(report.first_player_wins, games)}
+        total_censored += report.censored_games
+        payload = {
+            **asdict(report),
+            "game_fingerprint": identity["game_fingerprint"],
+            "seed": seed,
+            "rules": asdict(engine.rules),
+            "deck_a": decks[left],
+            "deck_b": decks[right],
+            "decisive_games": report.decisive_games,
+            "censor_rate": report.censor_rate,
+            "win_rates": report.win_rates,
+            "first_player_win_rate": report.first_player_win_rate,
+            "first_player_wilson_95": wilson_interval(
+                report.first_player_wins, report.decisive_games
+            ),
+            "simulation_variant": {
+                "base_hand_size": engine.rules.opening_hand_size,
+                "battle_one_starter_bonus": 0,
+                "deck_sizes": [len(decks[left]), len(decks[right])],
+                "starting_command": engine.rules.starting_command,
+                "command_cap": engine.rules.command_cap,
+                "card_file": "cards/cards.json",
+            },
+        }
         name = f"{left}--{right}"
         save(name, payload)
         save(f"{name}-health", analyze_simulation(payload, data))
         simulations.append(payload)
-        print(f"{name}: {games} games, first-player wins {report.first_player_wins}; "
-              f"95% interval {payload['first_player_wilson_95']}")
-    save("playability", build_playability_report(simulations))
+        if left == right:
+            selfplay_simulations[left] = payload
+        print(
+            f"{name}: {games} games, {report.decisive_games} decisive, "
+            f"{report.censored_games} censored, first-player wins "
+            f"{report.first_player_wins}; 95% interval "
+            f"{payload['first_player_wilson_95']}"
+        )
+    playability = build_playability_report(simulations)
+    save("playability", playability)
+
+    aggregate_selfplay = aggregate_simulations_for_health(
+        list(selfplay_simulations.values())
+    )
+    aggregate_health = analyze_simulation(aggregate_selfplay, data)
+    save("aggregate-selfplay", aggregate_selfplay)
+    save("aggregate-health", aggregate_health)
+
+    causal_payload = None
     if args.preset == "deep":
         causal = run_counterfactual_card_sweep(
             data, contexts=args.contexts, games_per_context=args.games_per_context,
             seed=args.seed, bootstrap_resamples=2000,
         )
-        save("counterfactual", {**causal, "game_fingerprint": identity["game_fingerprint"]})
-    save("summary", {**identity, "cells": len(cells), "simulation_games": games * len(cells),
-                     "interpretation": "Policy-specific diagnostics. Conditional win rates are correlations; use paired counterfactual intervals for card value."})
+        causal_payload = {
+            **causal,
+            "game_fingerprint": identity["game_fingerprint"],
+        }
+        save("counterfactual", causal_payload)
+    total_games = games * len(cells)
+    summary_payload = {
+        **identity,
+        "cells": len(cells),
+        "simulation_games": total_games,
+        "decisive_simulation_games": total_games - total_censored,
+        "censored_simulation_games": total_censored,
+        "aggregate_health_games": aggregate_selfplay["games"],
+        "aggregate_health_decks": sorted(selfplay_simulations),
+        "interpretation": (
+            "Policy-specific diagnostics. Aggregate card health uses the six "
+            "same-deck canonical self-play cells so deck-strength differences "
+            "do not become card outcome signals. Conditional win rates use "
+            "decisive games only; censored games remain structural progression "
+            "evidence. Use paired counterfactual intervals for card value."
+        ),
+    }
+    save("summary", summary_payload)
+
+    if args.preset == "deep":
+        artifacts = ROOT / "artifacts"
+        artifacts.mkdir(parents=True, exist_ok=True)
+
+        def publish(name: str, payload: dict[str, Any]) -> None:
+            (artifacts / name).write_text(
+                json.dumps(payload, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+        progression_source = selfplay_simulations.get("mobility-open-bonds")
+        if progression_source is None:
+            progression_source = next(iter(selfplay_simulations.values()))
+        progression_source = {
+            **progression_source,
+            "_label": "Mobility / Open Bonds self-play",
+            "progression_scope": (
+                "Detailed progression reference; aggregate card health and "
+                "heuristic self-play outcome evidence use all canonical "
+                "same-deck self-play cells."
+            ),
+        }
+        aggregate_selfplay = {
+            **aggregate_selfplay,
+            "_label": "Six canonical same-deck self-play aggregate",
+        }
+
+        publish("balance-report.json", static_payload)
+        publish("balance-health.json", aggregate_health)
+        publish("heuristic-selfplay.json", aggregate_selfplay)
+        publish("progression-selfplay.json", progression_source)
+        publish("playability-report.json", playability)
+        publish("balance-run-summary.json", summary_payload)
+        if causal_payload is not None:
+            publish("counterfactual-balance.json", causal_payload)
+
+        subprocess.run(
+            [sys.executable, str(ROOT / "tools" / "build_lab_report.py")],
+            cwd=ROOT,
+            check=True,
+        )
+
     print(f"Balance artifacts: {output}")
     return output
 
@@ -637,10 +735,14 @@ def _print_ismcts_cutoffs(cutoffs: dict[str, float | int | None]) -> None:
     )
 
 
-def paired_strength_interval(outcomes: dict[str, dict[str, list[dict[str, int]]]]) -> dict[str, Any]:
-    """Bootstrap deals, keeping the two seat orientations together."""
+def paired_strength_interval(
+    outcomes: dict[str, dict[str, list[dict[str, Any]]]],
+) -> dict[str, Any]:
+    """Bootstrap decisive deals, keeping the two seat orientations together."""
     from longwar.counterfactual import estimate
+
     contrasts = []
+    censored_pairs = 0
     for orientations in outcomes.values():
         first = {row["seed"]: row for row in orientations["mcts-first"]}
         second = {row["seed"]: row for row in orientations["alpha-first"]}
@@ -648,12 +750,35 @@ def paired_strength_interval(outcomes: dict[str, dict[str, list[dict[str, int]]]
             raise ValueError("Mirrored strength cells must contain identical deal seeds")
         for seed, left in first.items():
             right = second[seed]
-            contrasts.append(int(left["winner"] == 0) + int(right["winner"] == 1) - 1)
+            if left.get("winner") is None or right.get("winner") is None:
+                censored_pairs += 1
+                continue
+            contrasts.append(
+                int(left["winner"] == 0) + int(right["winner"] == 1) - 1
+            )
+
+    if not contrasts:
+        return {
+            "win_rate": None,
+            "ci95": [None, None],
+            "independent_deals": 0,
+            "censored_pairs": censored_pairs,
+            "ci_method": None,
+            "resampling_unit": "same-seed mirrored seat pair",
+        }
+
     effect = estimate(contrasts, seed=1701, bootstrap_resamples=2000)
-    return {"win_rate": (effect.mean + 1) / 2,
-            "ci95": [max(0.0, (effect.ci95[0] + 1) / 2), min(1.0, (effect.ci95[1] + 1) / 2)],
-            "independent_deals": len(contrasts), "ci_method": effect.ci_method,
-            "resampling_unit": "same-seed mirrored seat pair"}
+    return {
+        "win_rate": (effect.mean + 1) / 2,
+        "ci95": [
+            max(0.0, (effect.ci95[0] + 1) / 2),
+            min(1.0, (effect.ci95[1] + 1) / 2),
+        ],
+        "independent_deals": len(contrasts),
+        "censored_pairs": censored_pairs,
+        "ci_method": effect.ci_method,
+        "resampling_unit": "same-seed mirrored seat pair",
+    }
 
 
 def benchmark_strength(
@@ -693,7 +818,7 @@ def benchmark_strength(
     if time_budget_seconds <= 0.0:
         raise SystemExit("--time-budget-seconds must be positive")
 
-    decks = ("mobility", "elite", "narrative", "control")
+    decks = tuple(CANONICAL_DECK_PATHS)
     c_label = f"{exploration:g}".replace(".", "p")
     tree_label = "reuse" if reuse_tree else "cold"
     parts = ["strength", tree_label, f"c-{c_label}"]
@@ -859,12 +984,12 @@ def benchmark_strength(
     ]
 
     totals = {
-        deck: {"mcts": 0, "alpha": 0, "games": 0}
+        deck: {"mcts": 0, "alpha": 0, "games": 0, "censored": 0}
         for deck in decks
     }
     overall_mcts = 0
     overall_alpha = 0
-    paired_outcomes: dict[str, dict[str, list[dict[str, int]]]] = {}
+    paired_outcomes: dict[str, dict[str, list[dict[str, Any]]]] = {}
     wall_sum = 0.0
     resource_totals = {
         "ismcts": {
@@ -908,7 +1033,9 @@ def benchmark_strength(
         alpha_wins = int(wins[alpha_index])
         totals[deck]["mcts"] += mcts_wins
         totals[deck]["alpha"] += alpha_wins
-        totals[deck]["games"] += int(payload["games"])
+        censored = int(payload.get("censored_games", 0))
+        totals[deck]["censored"] += censored
+        totals[deck]["games"] += int(payload["games"]) - censored
         overall_mcts += mcts_wins
         overall_alpha += alpha_wins
         paired_outcomes.setdefault(deck, {})[orientation] = payload["game_outcomes"]

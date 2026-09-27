@@ -225,11 +225,11 @@ cdef double _packed_traverse(
         return tanh(evaluator.evaluate_fast(state, traverser) / leaf_scale)
 
     actor = state.active_player
-    n = engine.legal_actions_into(state, &actions[0])
+    n = _fe_legal_actions_into(engine, state, &actions[0])
     if n <= 0:
         raise RuntimeError("Packed non-terminal state has no legal actions")
 
-    info_key = engine.information_key_fast(state, actor)
+    info_key = _fe_information_key_fast(engine, state, actor)
     raw_node = nodes.get(info_key)
     if raw_node is None:
         node = FastCFRNode()
@@ -246,7 +246,7 @@ cdef double _packed_traverse(
             probability = probabilities[i]
             child = <FastState>scratch[child_depth]
             child.copy_from_fast(state)
-            engine.apply_fast(child, actions[i])
+            _fe_apply_fast(engine, child, actions[i])
             if actor == 0:
                 utility = _packed_traverse(
                     engine, evaluator, child, traverser, child_depth, max_depth,
@@ -281,7 +281,7 @@ cdef double _packed_traverse(
     probability = probabilities[sampled_index]
     child = <FastState>scratch[child_depth]
     child.copy_from_fast(state)
-    engine.apply_fast(child, actions[sampled_index])
+    _fe_apply_fast(engine, child, actions[sampled_index])
     if actor == 0:
         return _packed_traverse(
             engine, evaluator, child, traverser, child_depth, max_depth,

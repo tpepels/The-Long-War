@@ -27,14 +27,63 @@ def test_random_games_finish() -> None:
 
     report = simulate_games(engine, deck, deck, games=25, seed=99)
 
-    assert sum(report.wins) == 25
-    assert 0 <= report.first_player_wins <= 25
-    assert report.max_turns < 500
+    assert sum(report.wins) + report.censored_games == 25
+    assert 0 <= report.first_player_wins <= sum(report.wins)
+    assert report.max_turns <= 500
     assert [outcome["seed"] for outcome in report.game_outcomes] == list(range(99, 124))
     assert [outcome["first_player"] for outcome in report.game_outcomes] == [index % 2 for index in range(25)]
     assert tuple(sum(outcome["winner"] == player for outcome in report.game_outcomes) for player in range(2)) == report.wins
-    assert sum(outcome["winner"] == outcome["first_player"] for outcome in report.game_outcomes) == report.first_player_wins
+    assert sum(bool(outcome["censored"]) for outcome in report.game_outcomes) == report.censored_games
+    assert sum(
+        outcome["winner"] is not None
+        and outcome["winner"] == outcome["first_player"]
+        for outcome in report.game_outcomes
+    ) == report.first_player_wins
     assert json.loads(json.dumps(asdict(report)))["game_outcomes"] == report.game_outcomes
+
+
+def test_action_horizon_is_recorded_as_censoring() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data)
+
+    report = simulate_games(
+        engine,
+        deck,
+        deck,
+        games=1,
+        seed=198,
+        max_actions=1,
+        agent_names=("random", "random"),
+    )
+
+    assert report.wins == (0, 0)
+    assert report.censored_games == 1
+    assert report.decisive_games == 0
+    assert report.censor_rate == pytest.approx(1.0)
+    assert report.game_outcomes == [{
+        "seed": 198,
+        "first_player": 0,
+        "winner": None,
+        "censored": True,
+    }]
+    match_length = report.telemetry["progression"]["match_length"]
+    assert match_length["matches"] == 1
+    assert match_length["censored_matches"] == 1
+    assert match_length["final_battle_number"]["median"] == 1
+    assert match_length["censored_final_battle_number"]["median"] == 1
+    assert match_length["resolved_battles_per_match"]["median"] == 0
+
+    exposed = [
+        stats
+        for stats in report.telemetry["cards"].values()
+        if stats["games_drawn"] > 0
+    ]
+    assert exposed
+    assert all(stats["decisive_games_drawn"] == 0 for stats in exposed)
+    assert all(stats["win_rate_when_drawn"] is None for stats in exposed)
 
 
 def test_simulation_supports_distinct_agent_labels() -> None:
@@ -82,7 +131,8 @@ def test_simulation_cli_resolves_canonical_defaults_and_explicit_overrides(tmp_p
         "command_cap": 19 if override else rules.command_cap,
     }
     assert {key: report["simulation_variant"][key] for key in expected} == expected
-    assert sum(report["wins"]) == 2
+    assert sum(report["wins"]) + report["censored_games"] == 2
+    assert report["censor_rate"] == pytest.approx(report["censored_games"] / 2)
     assert report["heuristic_config"]["exploration"] == pytest.approx(0.0)
     assert "Draw" not in report["telemetry"]["actions"]
 

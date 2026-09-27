@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from math import inf
 
-from ..game.actions import Action, Draw, Pass, action_key
+from ..game.actions import Action, Pass, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState, Phase
 from ..heuristics import StrategicEvaluator
@@ -11,6 +11,18 @@ from ..heuristics import StrategicEvaluator
 
 class SearchLimit(RuntimeError):
     pass
+
+
+def _freeze_state_value(value: object) -> object:
+    """Convert nested mutable engine state into a deterministic hashable value."""
+    if isinstance(value, dict):
+        return tuple(
+            (key, _freeze_state_value(item))
+            for key, item in sorted(value.items())
+        )
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze_state_value(item) for item in value)
+    return value
 
 
 @dataclass
@@ -147,15 +159,15 @@ class AlphaBetaSearch:
             return ranked
 
         selected = list(ranked[:width])
-        # Resource/tempo decisions must survive beam pruning.
+        # The tempo decision must survive beam pruning.
         for action in ranked[width:]:
-            if isinstance(action, (Pass, Draw)) and action not in selected:
+            if isinstance(action, Pass) and action not in selected:
                 selected.append(action)
         return selected
 
     @staticmethod
     def state_key(state: GameState) -> tuple[object, ...]:
-        """Cache key for canonical state that can affect search."""
+        """Cache key for every canonical state component that can affect search."""
         players = tuple(
             (
                 tuple(player.deck),
@@ -172,17 +184,37 @@ class AlphaBetaSearch:
                 slot.bond,
                 slot.name,
                 slot.temporary_strength,
+                slot.maneuvers_this_battle,
             )
             for side in state.board
             for front in side
             for slot in front
         )
         stories = tuple(
-            tuple(story.card_id for story in side)
+            tuple(
+                (
+                    story.card_id,
+                    story.ongoing,
+                    tuple(story.fronts),
+                    story.target_player,
+                    story.target_position,
+                    story.triggered_this_battle,
+                )
+                for story in side
+            )
             for side in state.stories
         )
         stratagems = tuple(
-            None if stratagem is None else stratagem.card_id
+            (
+                None
+                if stratagem is None
+                else (
+                    stratagem.card_id,
+                    tuple(stratagem.fronts),
+                    stratagem.direction,
+                    tuple(stratagem.targets),
+                )
+            )
             for stratagem in state.stratagems
         )
         return (
@@ -200,6 +232,17 @@ class AlphaBetaSearch:
             tuple(state.discarded_this_battle),
             tuple(state.pass_order),
             tuple(state.operations_this_battle),
+            tuple(state.cards_played_this_turn_front_mask),
+            tuple(state.cards_played_this_battle_front_mask),
+            tuple(state.narratives_played_this_battle),
             state.pending_draw_discard_for,
+            state.pending_draw_count,
+            state.pending_draw_finish_operation,
+            _freeze_state_value(state.pending_effects),
+            state.pending_resume,
+            state.pending_resume_player,
+            tuple(state.free_maneuver_available),
+            _freeze_state_value(state.battle_resolution),
             state.turn_number,
         )
+

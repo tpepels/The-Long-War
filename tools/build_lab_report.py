@@ -20,15 +20,13 @@ def load(name: str) -> dict[str, Any] | None:
 
 
 def serialized_rule_metadata(rules: GameRules) -> dict[str, object]:
-    """Serialize rules exactly as tools/simulate.py records provenance."""
-    metadata: dict[str, object] = dict(rules.as_dict())
-    metadata["base_hand_size"] = metadata.pop("opening_hand_size")
-    metadata["completion_draw_names"] = sorted(rules.completion_draw_names)
-
-    if not rules.cycle_enabled:
-        metadata["cycle_command_cost"] = None
-
-    return metadata
+    """Serialize the canonical rule fields recorded by tools/simulate.py."""
+    return {
+        "base_hand_size": rules.opening_hand_size,
+        "battle_one_starter_bonus": 0,
+        "starting_command": rules.starting_command,
+        "command_cap": rules.command_cap,
+    }
 
 
 def canonical_variant(data: dict[str, Any]) -> bool:
@@ -53,6 +51,63 @@ def canonical_variant(data: dict[str, Any]) -> bool:
     return all(variant[key] == value for key, value in expected.items())
 
 
+TRAJECTORY_FIELDS = (
+    "command_start",
+    "command_remaining",
+    "first_pass_command",
+    "occupied_positions",
+    "active_fronts",
+    "contested_fronts",
+    "completed_formations",
+    "incomplete_formations_end",
+    "eventual_completion_rate_for_forces_deployed",
+    "cards_played",
+    "legal_actions",
+    "hand_size",
+    "deck_size",
+)
+
+
+def progression_trajectory(
+    progression: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Compare the first and latest observed Battle buckets without grading them."""
+    if not progression:
+        return None
+    by_battle = progression.get("by_battle") or {}
+    observed = [
+        key
+        for key in ("1", "2", "3", "4+")
+        if int((by_battle.get(key) or {}).get("battles", 0) or 0) > 0
+    ]
+    if not observed:
+        return None
+
+    early_key = observed[0]
+    late_key = observed[-1]
+    early = by_battle[early_key]
+    late = by_battle[late_key]
+    metrics: dict[str, dict[str, float | int | None]] = {}
+    for field in TRAJECTORY_FIELDS:
+        early_value = early.get(field)
+        late_value = late.get(field)
+        delta = None
+        if early_value is not None and late_value is not None:
+            delta = float(late_value) - float(early_value)
+        metrics[field] = {
+            "early": early_value,
+            "late": late_value,
+            "delta": delta,
+        }
+
+    return {
+        "observed_buckets": observed,
+        "early_battle": early_key,
+        "late_battle": late_key,
+        "metrics": metrics,
+    }
+
+
 def main() -> None:
     game_fingerprint = current_game_fingerprint()
     stale_files: set[str] = set()
@@ -74,6 +129,7 @@ def main() -> None:
     health = current("balance-health.json")
     static = current("balance-report.json")
     selfplay = current("heuristic-selfplay.json") or current("pages-selfplay.json")
+    progression_selfplay = current("progression-selfplay.json") or selfplay
     policy = current("mccfr-policy.json")
     mccfr_suite = current("mccfr-suite.json")
     verification = load("mccfr-verification.json")
@@ -99,6 +155,7 @@ def main() -> None:
         if row.get("cards")
     }
     level_rank = {
+        "unobserved": -1,
         "dark_green": 0,
         "green": 1,
         "yellow": 2,
@@ -177,20 +234,41 @@ def main() -> None:
             "average_policy": policy.get("average_policy"),
         }
 
-    raw_telemetry = selfplay.get("telemetry") if selfplay is not None else None
+    raw_telemetry = (
+        progression_selfplay.get("telemetry")
+        if progression_selfplay is not None
+        else None
+    )
+    progression = (
+        raw_telemetry.get("progression")
+        if raw_telemetry is not None
+        else None
+    )
+    trajectory = progression_trajectory(progression)
+    progression_source = (
+        {
+            "label": progression_selfplay.get("_label"),
+            "scope": progression_selfplay.get("progression_scope"),
+            "games": progression_selfplay.get("games"),
+            "decisive_games": progression_selfplay.get("decisive_games"),
+            "censored_games": progression_selfplay.get("censored_games"),
+        }
+        if progression_selfplay is not None
+        else None
+    )
 
     card_titles = {
         card["id"]: card["title"]
         for card in health.get("cards", [])
     }
-    observed_legends = {
+    observed_formations = {
         row["id"]: row
-        for row in health.get("legends", [])
+        for row in health.get("formations", [])
     }
-    all_legends: list[dict[str, Any]] = []
-    for row in static.get("all_static_legends", []):
-        key = " | ".join((row["subject"], row["link"], row["name"]))
-        observed = observed_legends.get(key)
+    all_formations: list[dict[str, Any]] = []
+    for row in static.get("all_static_formations", []):
+        key = " | ".join((row["force"], row["bond"], row["name"]))
+        observed = observed_formations.get(key)
         if observed is not None:
             merged = dict(observed)
             merged["observed"] = True
@@ -201,7 +279,7 @@ def main() -> None:
                 "id": key,
                 "title": " — ".join(
                     card_titles.get(part, part)
-                    for part in (row["subject"], row["link"], row["name"])
+                    for part in (row["force"], row["bond"], row["name"])
                 ),
                 "completions": 0,
                 "games_seen": 0,
@@ -214,7 +292,10 @@ def main() -> None:
                 "static_strength": row["static_strength"],
                 "static_z": row["z_score"],
             }
-        all_legends.append(merged)
+        merged.setdefault("force", row["force"])
+        merged.setdefault("bond", row["bond"])
+        merged.setdefault("name", row["name"])
+        all_formations.append(merged)
 
     downloads = sorted(
         path.name
@@ -235,13 +316,20 @@ def main() -> None:
         "counterfactual": counterfactual,
         "targeted_counterfactual": targeted,
         "raw_telemetry": raw_telemetry,
-        "all_legends": all_legends,
+        "progression": progression,
+        "progression_trajectory": trajectory,
+        "progression_source": progression_source,
+        "all_formations": all_formations,
         "downloads": downloads,
     }
 
     output = ARTIFACTS / "lab-report.json"
     output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    print(f"Wrote {output.relative_to(ROOT)}")
+    try:
+        display_output = output.relative_to(ROOT)
+    except ValueError:
+        display_output = output
+    print(f"Wrote {display_output}")
 
 
 if __name__ == "__main__":

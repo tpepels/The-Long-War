@@ -57,8 +57,8 @@ cdef class NativeHeuristicEvaluator:
 
         for front in range(4):
             raw_margin = (
-                self.engine.front_strength_fast(state, player, front)
-                - self.engine.front_strength_fast(state, opponent, front)
+                _fe_front_strength_fast(self.engine, state, player, front)
+                - _fe_front_strength_fast(self.engine, state, opponent, front)
             )
             margin = raw_margin
 
@@ -75,9 +75,9 @@ cdef class NativeHeuristicEvaluator:
                 # not just current Strength.
                 opp_front_slot = slot_index(opponent, front, 0)
                 opp_rear_slot = slot_index(opponent, front, 1)
-                if self.engine.slot_complete(state, opp_rear_slot):
+                if _fe_slot_complete(self.engine, state, opp_rear_slot):
                     score += 4.0
-                if self.engine.slot_complete(state, opp_front_slot):
+                if _fe_slot_complete(self.engine, state, opp_front_slot):
                     score += 0.75
 
                 # Margin beyond a comfortable buffer has no core scoring
@@ -96,9 +96,9 @@ cdef class NativeHeuristicEvaluator:
 
                 own_front_slot = slot_index(player, front, 0)
                 own_rear_slot = slot_index(player, front, 1)
-                if self.engine.slot_complete(state, own_rear_slot):
+                if _fe_slot_complete(self.engine, state, own_rear_slot):
                     score -= 4.0
-                if self.engine.slot_complete(state, own_front_slot):
+                if _fe_slot_complete(self.engine, state, own_front_slot):
                     score -= 0.75
 
                 if raw_margin < -5:
@@ -138,56 +138,55 @@ cdef class NativeHeuristicEvaluator:
         if own_forces == 0 and own_board_subjects == 0:
             score -= 2.0
 
-        if self.engine.command_enabled:
-            current_delta = state.command[player] - state.command[opponent]
-            score += 0.45 * current_delta
+        current_delta = state.command[player] - state.command[opponent]
+        score += 0.45 * current_delta
 
-            # Project the rulebook's exact recovery formula using the current
-            # Front results. This makes late-war Command and likely Collapse
-            # visible to shallow search and rollouts.
-            recovery = self.engine.command_recovery_fast(state.battle)
-            own_recovery = recovery - own_losses
-            if own_recovery < 0:
-                own_recovery = 0
-            opponent_recovery = recovery - opponent_losses
-            if opponent_recovery < 0:
-                opponent_recovery = 0
-            own_projected = state.command[player] + own_recovery
-            opponent_projected = (
-                state.command[opponent] + opponent_recovery
-            )
-            if own_projected > self.engine.command_cap:
-                own_projected = self.engine.command_cap
-            if opponent_projected > self.engine.command_cap:
-                opponent_projected = self.engine.command_cap
+        # Project the rulebook's exact recovery formula using the current
+        # Front results. This makes late-war Command and likely Collapse
+        # visible to shallow search and rollouts.
+        recovery = _fe_command_recovery_fast(self.engine, state.battle)
+        own_recovery = recovery - own_losses
+        if own_recovery < 0:
+            own_recovery = 0
+        opponent_recovery = recovery - opponent_losses
+        if opponent_recovery < 0:
+            opponent_recovery = 0
+        own_projected = state.command[player] + own_recovery
+        opponent_projected = (
+            state.command[opponent] + opponent_recovery
+        )
+        if own_projected > self.engine.command_cap:
+            own_projected = self.engine.command_cap
+        if opponent_projected > self.engine.command_cap:
+            opponent_projected = self.engine.command_cap
 
-            projected_delta = own_projected - opponent_projected
-            score += 0.35 * (projected_delta - current_delta)
+        projected_delta = own_projected - opponent_projected
+        score += 0.35 * (projected_delta - current_delta)
 
-            own_vulnerability = (
-                self.engine.command_collapse_threshold + 3 - own_projected
-            )
-            if own_vulnerability < 0:
-                own_vulnerability = 0
-            opponent_vulnerability = (
-                self.engine.command_collapse_threshold + 3
-                - opponent_projected
-            )
-            if opponent_vulnerability < 0:
-                opponent_vulnerability = 0
-            score += 0.8 * (
-                opponent_vulnerability - own_vulnerability
-            )
+        own_vulnerability = (
+            self.engine.command_collapse_threshold + 3 - own_projected
+        )
+        if own_vulnerability < 0:
+            own_vulnerability = 0
+        opponent_vulnerability = (
+            self.engine.command_collapse_threshold + 3
+            - opponent_projected
+        )
+        if opponent_vulnerability < 0:
+            opponent_vulnerability = 0
+        score += 0.8 * (
+            opponent_vulnerability - own_vulnerability
+        )
 
-            if (
-                own_projected < self.engine.command_collapse_threshold
-                or opponent_projected
-                < self.engine.command_collapse_threshold
-            ):
-                if own_projected < opponent_projected:
-                    score -= 28.0
-                elif own_projected > opponent_projected:
-                    score += 28.0
+        if (
+            own_projected < self.engine.command_collapse_threshold
+            or opponent_projected
+            < self.engine.command_collapse_threshold
+        ):
+            if own_projected < opponent_projected:
+                score -= 28.0
+            elif own_projected > opponent_projected:
+                score += 28.0
 
         if (
             state.phase == PHASE_BATTLE
@@ -217,10 +216,10 @@ cdef class NativeHeuristicEvaluator:
             score += 1.10 * (opponent_liability - own_liability)
 
         for slot in range(player * 8, player * 8 + 8):
-            if self.engine.slot_complete(state, slot):
+            if _fe_slot_complete(self.engine, state, slot):
                 named_delta += 1
         for slot in range(opponent * 8, opponent * 8 + 8):
-            if self.engine.slot_complete(state, slot):
+            if _fe_slot_complete(self.engine, state, slot):
                 named_delta -= 1
         score += 1.5 * named_delta
 
@@ -240,7 +239,7 @@ cdef class NativeHeuristicEvaluator:
         for slot in range(player * 8, player * 8 + 8):
             if state.subject[slot] < 0 or state.name[slot] >= 0:
                 continue
-            before = self.engine.position_strength_fast(state, slot)
+            before = _fe_position_strength_fast(self.engine, state, slot)
             best = -32768
             for name_card in range(self.engine.n_cards):
                 if state.hand[player][name_card] == 0:
@@ -252,7 +251,7 @@ cdef class NativeHeuristicEvaluator:
                     ):
                         continue
                 state.name[slot] = name_card
-                after = self.engine.position_strength_fast(state, slot)
+                after = _fe_position_strength_fast(self.engine, state, slot)
                 if after - before > best:
                     best = after - before
                 state.name[slot] = -1
@@ -421,8 +420,6 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ) noexcept:
         cdef int card, total=0
-        if not self.engine.command_enabled:
-            return state.hand_len[player]
         for card in range(self.engine.n_cards):
             if (
                 state.hand[player][card]
@@ -484,7 +481,7 @@ cdef class NativeHeuristicEvaluator:
         FastState child,
     ):
         child.copy_from_fast(state)
-        self.engine.pass_action(child, player)
+        _fe_pass_action(self.engine, child, player)
 
         # A second consecutive Pass has already resolved cleanup, Retreat,
         # Command recovery/Collapse and next-Battle initiative.
@@ -560,7 +557,7 @@ cdef class NativeHeuristicEvaluator:
         if kind == TYPE_DISCARD:
             child.copy_from_fast(state)
             card = action_card(action)
-            self.engine.take_from_hand(child, player, card, 0)
+            _fe_take_from_hand(self.engine, child, player, card, 0)
             score = self.evaluate_fast(child, player)
             score += 0.55 * self.hand_construction_value_fast(
                 child,
@@ -569,7 +566,7 @@ cdef class NativeHeuristicEvaluator:
             return score
 
         child.copy_from_fast(state)
-        self.engine.apply_fast(child, action)
+        _fe_apply_fast(self.engine, child, action)
         score = self.evaluate_fast(child, player)
 
         if kind == TYPE_LINK:

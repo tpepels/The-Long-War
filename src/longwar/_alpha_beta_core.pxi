@@ -183,7 +183,7 @@ cdef int ordered_actions_into(
     cdef double tmp_score
     cdef bint have_pass=False
 
-    n = engine.legal_actions_into(state, &actions[0])
+    n = _fe_legal_actions_into(engine, state, &actions[0])
     if n <= 0:
         return 0
 
@@ -275,7 +275,7 @@ cdef double native_alphabeta(
     if state.phase == PHASE_COMPLETE or depth <= 0:
         return evaluator.strategic_evaluate_fast(state, root_player)
 
-    key = engine.state_hash_fast(state)
+    key = _fe_state_hash_fast(engine, state)
     if table is not None and table.probe(
         key,
         root_player,
@@ -308,7 +308,7 @@ cdef double native_alphabeta(
 
     for i in range(n):
         child.copy_from_fast(state)
-        engine.apply_fast(child, actions[i])
+        _fe_apply_fast(engine, child, actions[i])
         child_value = native_alphabeta(
             engine,
             evaluator,

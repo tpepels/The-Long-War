@@ -29,7 +29,8 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "start of every turn" in rules
     assert "two consecutive Passes" in rules
     assert "first of the two consecutive Passes" in rules
-    assert "draw 1 card automatically" in text("web/playmat.html").lower()
+    playmat = text("web/playmat.html").lower()
+    assert "<b>start turn:</b> draw 1." in playmat
     assert "reshuffle discard only if deck empties" in text("web/playmat.html")
 
 
@@ -72,9 +73,20 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     assert "AFTER TWO CONSECUTIVE PASSES" in page
     assert "BETWEEN BATTLES" in page
     assert "Hero" in page
-    assert "only 1 Hero per side per Battle" in page
+    assert "max 1 Hero card from hand per Battle" in page
     assert "font-size: 3.1mm;" in css
     assert "page: battlefield-reference" in css
+
+
+def test_balance_validation_covers_all_reference_decks() -> None:
+    from tools.run_experiments import CANONICAL_DECK_PATHS
+
+    shipped = {
+        f"decks/{path.name}"
+        for path in (ROOT / "decks").glob("*.json")
+    }
+    assert set(CANONICAL_DECK_PATHS.values()) == shipped
+    assert "six shipped reference deck templates" in text("README.md")
 
 
 def test_balance_lab_is_human_first_and_collapsible() -> None:
@@ -85,13 +97,26 @@ def test_balance_lab_is_human_first_and_collapsible() -> None:
     assert 'id="attention-summary"' in page
     assert page.count('class="dashboard-disclosure"') >= 5
     assert "renderAttention(lab)" in script
+    assert "renderProgression(lab)" in script
+    assert 'id="progression-title"' in page
+    assert 'id="progression-source-note"' in page
+    assert "Unobserved" in page
+    assert "unobserved = no self-play exposure" in script
+    assert "Is the battlefield developing?" in page
+    assert "Are Battles staying contestable?" in page
+    assert "Are players retaining mechanical choice?" in page
+    assert "Are resources progressing correctly?" in page
+    assert "progression.html" not in page
     assert "mccfr_suite" in script
     assert "card-health-table" in page
     assert "min-width: 0 !important;" in css
     assert "row-evidence" in script
+    assert "In hand at match end" in script
+    assert "all_legends" not in script
+    assert "health.legends" not in script
 
 
-def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:
+def test_mccfr_profiles_use_only_current_cards() -> None:
     cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     canonical = {card["id"] for card in cards["cards"]}
     covered: set[str] = set()
@@ -100,17 +125,27 @@ def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:
         "decks/persistent-elite-heroes.json",
         "decks/narrative-command.json",
         "decks/battlefield-control-stratagems.json",
+        "decks/momentum-orders.json",
+        "decks/necessity-attrition.json",
     ):
         data = json.loads((ROOT / deck).read_text(encoding="utf-8"))
         covered.update(data["cards"])
 
-    assert covered == canonical
-    assert len(canonical) == 80
+    assert len(canonical) == 95
+    assert len(covered) == 94
+    assert canonical - covered == {"covered-the-withdrawal-of"}
 
 
-def test_mccfr_suite_builder_covers_all_four_profile_policies() -> None:
+def test_mccfr_suite_builder_covers_all_six_profile_policies() -> None:
     builder = text("tools/build_mccfr_suite.py")
-    for profile in ("mobility", "elite", "narrative", "control"):
+    for profile in (
+        "mobility",
+        "elite",
+        "narrative",
+        "control",
+        "momentum",
+        "necessity",
+    ):
         assert f'("{profile}",' in builder
     assert 'mccfr-policy-{profile_id}.json' in builder
     assert 'mccfr-{profile_id}-vs-heuristic.json' in builder
@@ -129,7 +164,7 @@ def test_web_card_renderers_use_only_canonical_card_types() -> None:
 def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
     data = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     cards = data["cards"]
-    assert len(cards) == 80
+    assert len(cards) == 95
     for card in cards:
         for block in card.get("rule_blocks", []):
             assert block.get("label", "").strip()

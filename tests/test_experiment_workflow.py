@@ -307,6 +307,8 @@ def test_strength_benchmark_reports_live_progress():
     source = inspect.getsource(runner.benchmark_strength)
     assert '"--progress-file", str(progress)' in source
     assert "_run_cells_with_live_progress" in source
+    assert "tuple(CANONICAL_DECK_PATHS)" in source
+    assert len(runner.CANONICAL_DECK_PATHS) == 6
 
 
 def test_strength_sanity_check_defaults(monkeypatch):
@@ -454,6 +456,21 @@ def test_strength_uncertainty_pairs_orientations_by_seed():
     assert result["independent_deals"] == 2
     assert result["win_rate"] == 0.5
     assert result["ci95"][0] < 0.5 < result["ci95"][1]
+
+    censored = {"mobility": {
+        "mcts-first": [
+            {"seed": 1, "winner": None, "censored": True},
+            {"seed": 2, "winner": 1, "censored": False},
+        ],
+        "alpha-first": [
+            {"seed": 2, "winner": 0, "censored": False},
+            {"seed": 1, "winner": 1, "censored": False},
+        ],
+    }}
+    censored_result = runner.paired_strength_interval(censored)
+    assert censored_result["independent_deals"] == 1
+    assert censored_result["censored_pairs"] == 1
+
     outcomes["mobility"]["alpha-first"][0]["seed"] = 3
     with pytest.raises(ValueError, match="identical deal seeds"):
         runner.paired_strength_interval(outcomes)
@@ -466,11 +483,35 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     monkeypatch.setattr(runner, "artifact_directory", lambda base, identity: artifact_directory(tmp_path, identity))
     output = runner.balance_run(Namespace(preset="quick", games=1, seed=71, contexts=1, games_per_context=1))
     summary = json.loads((output / "summary.json").read_text())
-    assert summary["simulation_games"] == 4
+    assert summary["simulation_games"] == len(runner.CANONICAL_DECK_PATHS)
+    assert (
+        summary["decisive_simulation_games"]
+        + summary["censored_simulation_games"]
+        == summary["simulation_games"]
+    )
     assert summary["config"]["seed"] == 71
-    match = json.loads((output / "mobility--mobility.json").read_text())
-    assert len(match["deck_a"]) == 34
+    match = json.loads(
+        (output / "mobility-open-bonds--mobility-open-bonds.json").read_text()
+    )
+    assert len(match["deck_a"]) == len(
+        json.loads((ROOT / "decks/mobility-open-bonds.json").read_text())["cards"]
+    )
     assert "deck_size" not in match["rules"]
+    assert match["decisive_games"] + match["censored_games"] == match["games"]
+    assert match["censor_rate"] == pytest.approx(
+        match["censored_games"] / match["games"]
+    )
     assert match["game_fingerprint"] == summary["game_fingerprint"]
     assert (output / "playability.json").is_file()
+
+def test_only_deep_balance_run_publishes_root_lab_snapshot() -> None:
+    source = inspect.getsource(runner.balance_run)
+
+    assert 'if args.preset == "deep":' in source
+    assert 'publish("balance-report.json", static_payload)' in source
+    assert 'publish("balance-health.json", aggregate_health)' in source
+    assert 'publish("heuristic-selfplay.json", aggregate_selfplay)' in source
+    assert 'publish("progression-selfplay.json", progression_source)' in source
+    assert 'publish("counterfactual-balance.json", causal_payload)' in source
+    assert '"tools" / "build_lab_report.py"' in source
 

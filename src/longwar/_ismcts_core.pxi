@@ -393,7 +393,7 @@ cdef uint64_t _ismcts_rollout_action(
 ) except *:
     cdef uint64_t actions[MAX_ACTIONS]
     cdef double weights[MAX_ACTIONS]
-    cdef int n = engine.legal_actions_into(state, &actions[0])
+    cdef int n = _fe_legal_actions_into(engine, state, &actions[0])
     cdef int actor = state.active_player
     cdef int i, best_ix=0
     cdef double value, best=-1.0e300
@@ -524,7 +524,7 @@ def ismcts_search(
     if not isinstance(root_states[0], FastState):
         raise TypeError("ISMCTS belief samples must be FastState instances")
     sampled = <FastState>root_states[0]
-    root_key = engine.information_hash_fast(sampled, root_player)
+    root_key = _fe_information_hash_fast(engine, sampled, root_player)
     for candidate in root_states:
         if not isinstance(candidate, FastState):
             raise TypeError("ISMCTS belief samples must be FastState instances")
@@ -533,7 +533,7 @@ def ismcts_search(
             raise ValueError("ISMCTS cannot search a completed state")
         if sampled.active_player != root_player:
             raise ValueError("ISMCTS root_player must be the acting player")
-        key = engine.information_hash_fast(sampled, root_player)
+        key = _fe_information_hash_fast(engine, sampled, root_player)
         if key.a != root_key.a or key.b != root_key.b:
             raise ValueError("ISMCTS belief samples must share a root information set")
 
@@ -578,14 +578,14 @@ def ismcts_search(
 
         while state.phase != PHASE_COMPLETE and depth < tree_depth_limit:
             actor = state.active_player
-            n = engine.legal_actions_into(state, &actions[0])
+            n = _fe_legal_actions_into(engine, state, &actions[0])
             if n <= 0:
                 break
 
             # If the tree deliberately continues past a Battle boundary,
             # the previous boundary is no longer the rollout leaf.
             rollout_boundary = False
-            key = engine.information_hash_fast(state, actor)
+            key = _fe_information_hash_fast(engine, state, actor)
             # A persistent arena must not grow with game length. Existing
             # information sets still learn at capacity; unseen leaves rollout.
             if tree.node_count >= tree.max_nodes and tree.find(key) < 0:
@@ -611,7 +611,7 @@ def ismcts_search(
             path_nodes[depth] = node_index
             path_indices[depth] = <uint16_t>ix
             action_battle = state.battle
-            engine.apply_fast(state, action)
+            _fe_apply_fast(engine, state, action)
             depth += 1
             if (
                 state.phase != PHASE_COMPLETE
@@ -641,7 +641,7 @@ def ismcts_search(
                 rollout_epsilon,
                 rollout_policy,
             )
-            engine.apply_fast(state, action)
+            _fe_apply_fast(engine, state, action)
             rollout_steps += 1
             rollout_actions += 1
             if (

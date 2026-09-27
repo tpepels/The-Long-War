@@ -537,6 +537,12 @@ button, .button {
   border-color: #c7a229;
 }
 
+.grade-unobserved {
+  background: #e1dbcf;
+  color: #5f584e;
+  border-color: #9d9589;
+}
+
 .grade-green {
   background: #9dbd82;
   color: #181714;
@@ -559,6 +565,10 @@ button, .button {
 
 .grade-row-yellow {
   box-shadow: inset 5px 0 0 #edc64a;
+}
+
+.grade-row-unobserved {
+  box-shadow: inset 5px 0 0 #9d9589;
 }
 
 .grade-row-green {
@@ -1819,4 +1829,123 @@ button, .button {
   max-width: 40mm;
   font-size: 2.15mm;
   letter-spacing: .025em;
+}
+
+
+.progression-analysis {
+  padding-top: 6px;
+}
+
+.progression-question-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.progression-question {
+  border: 1px solid #181714;
+  background: rgba(248,243,233,.72);
+  padding: 16px;
+}
+
+.progression-question > header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.progression-question > header span {
+  display: inline-grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: 1px solid #181714;
+  border-radius: 50%;
+  font: 700 11px/1 system-ui, sans-serif;
+}
+
+.progression-question h3,
+.progression-detail-grid h3,
+.progression-definitions h3 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.progression-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 0;
+}
+
+.progression-metrics .metric-card {
+  min-height: 118px;
+}
+
+.progression-metrics .metric-card strong {
+  font-size: 28px;
+}
+
+.progression-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, .8fr);
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.progression-detail-grid > section {
+  min-width: 0;
+}
+
+.progression-battle-table {
+  min-width: 860px !important;
+}
+
+.progression-battle-table .muted,
+.hero-mode-table .muted {
+  display: block;
+  margin-top: 3px;
+}
+
+.progression-diagnostics {
+  margin-top: 20px;
+}
+
+.progression-definitions {
+  margin-top: 18px;
+}
+
+.progression-definitions dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 18px;
+  margin: 10px 0 0;
+}
+
+.progression-definitions dl > div {
+  padding-top: 8px;
+  border-top: 1px solid rgba(24,23,20,.18);
+}
+
+.progression-definitions dt {
+  font: 700 10px/1.2 system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.progression-definitions dd {
+  margin: 5px 0 0;
+  font: 12px/1.4 system-ui, sans-serif;
+}
+
+@media (max-width: 900px) {
+  .progression-question-grid,
+  .progression-detail-grid,
+  .progression-definitions dl {
+    grid-template-columns: 1fr;
+  }
+
+  .progression-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

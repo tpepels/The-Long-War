@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from longwar.health import analyze_simulation, simulation_summary
@@ -119,6 +121,9 @@ def test_report_builders_share_simulation_summary_and_preserve_provenance() -> N
     provenance = standard_variant()
     data = {
         "games": 2,
+        "decisive_games": 1,
+        "censored_games": 1,
+        "censor_rate": 0.5,
         "seed": 37,
         "game_fingerprint": "current-engine",
         "ismcts_config": {"iterations": 100000, "exploration": 0.3},
@@ -129,7 +134,288 @@ def test_report_builders_share_simulation_summary_and_preserve_provenance() -> N
     assert build_mccfr_suite.simulation_summary is simulation_summary
     summary = simulation_summary(data)
     assert summary["seed"] == 37
+    assert summary["decisive_games"] == 1
+    assert summary["censored_games"] == 1
+    assert summary["censor_rate"] == 0.5
     assert summary["game_fingerprint"] == "current-engine"
     assert summary["ismcts_config"] == data["ismcts_config"]
     assert summary["simulation_variant"] == provenance
     assert summary["policy_sources"] == {"search": 12}
+
+
+
+def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeypatch) -> None:
+    fingerprint = "current-engine"
+    progression = {
+        "by_battle": {
+            "1": {
+                "battles": 1,
+                "command_remaining": 14.0,
+                "first_pass_command": 12.0,
+                "occupied_positions": 3.0,
+                "active_fronts": 2.0,
+                "contested_fronts": 1.0,
+                "completed_formations": 0.5,
+                "incomplete_formations_end": 2.0,
+                "eventual_completion_rate_for_forces_deployed": 0.4,
+                "cards_played": 6.0,
+                "legal_actions": 7.0,
+                "hand_size": 7.0,
+                "deck_size": 17.0,
+                "command_start": 20.0,
+            },
+            "2": {"battles": 0},
+            "3": {
+                "battles": 1,
+                "command_remaining": 7.0,
+                "first_pass_command": 6.0,
+                "occupied_positions": 5.0,
+                "active_fronts": 3.0,
+                "contested_fronts": 2.0,
+                "completed_formations": 1.5,
+                "incomplete_formations_end": 1.0,
+                "eventual_completion_rate_for_forces_deployed": 0.7,
+                "cards_played": 5.0,
+                "legal_actions": 5.0,
+                "hand_size": 6.0,
+                "deck_size": 8.0,
+                "command_start": 11.0,
+            },
+        },
+        "formation_lifecycle": {"forces": 2},
+    }
+    artifacts = {
+        "balance-health.json": {
+            "game_fingerprint": fingerprint,
+            "cards": [],
+            "formations": [],
+        },
+        "balance-report.json": {
+            "game_fingerprint": fingerprint,
+            "card_static_marginals": [],
+            "all_static_formations": [],
+        },
+        "heuristic-selfplay.json": {
+            "game_fingerprint": fingerprint,
+            "simulation_variant": standard_variant(),
+            "games": 1,
+            "agents": ["heuristic", "heuristic"],
+            "wins": [1, 0],
+            "telemetry": {"progression": progression},
+        },
+    }
+    monkeypatch.setattr(build_lab_report, "ARTIFACTS", tmp_path)
+    monkeypatch.setattr(
+        build_lab_report,
+        "current_game_fingerprint",
+        lambda: fingerprint,
+    )
+    for name, payload in artifacts.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+
+    build_lab_report.main()
+
+    report = json.loads(
+        (tmp_path / "lab-report.json").read_text(encoding="utf-8")
+    )
+    assert report["progression"] == progression
+    assert report["raw_telemetry"]["progression"] == progression
+    trajectory = report["progression_trajectory"]
+    assert trajectory["observed_buckets"] == ["1", "3"]
+    assert trajectory["early_battle"] == "1"
+    assert trajectory["late_battle"] == "3"
+    assert trajectory["metrics"]["command_remaining"] == {
+        "early": 14.0,
+        "late": 7.0,
+        "delta": -7.0,
+    }
+    assert trajectory["metrics"]["occupied_positions"]["delta"] == 2.0
+    assert trajectory["metrics"][
+        "eventual_completion_rate_for_forces_deployed"
+    ]["delta"] == pytest.approx(0.3)
+    assert report["all_formations"] == []
+
+def test_progression_trajectory_handles_missing_or_single_bucket() -> None:
+    assert build_lab_report.progression_trajectory(None) is None
+    assert build_lab_report.progression_trajectory({"by_battle": {}}) is None
+
+    result = build_lab_report.progression_trajectory({
+        "by_battle": {
+            "1": {
+                "battles": 2,
+                "command_remaining": 13.5,
+            },
+            "2": {"battles": 0},
+        }
+    })
+    assert result is not None
+    assert result["observed_buckets"] == ["1"]
+    assert result["early_battle"] == result["late_battle"] == "1"
+    assert result["metrics"]["command_remaining"]["delta"] == 0.0
+    assert result["metrics"]["contested_fronts"]["delta"] is None
+
+def test_mccfr_suite_excludes_censored_games_from_seat_swapped_rate() -> None:
+    forward = {
+        "games": 10,
+        "censored_games": 2,
+        "wins": [5, 3],
+    }
+    reverse = {
+        "games": 10,
+        "censored_games": 1,
+        "wins": [5, 4],
+    }
+
+    result = build_mccfr_suite.seat_swapped_evaluation(forward, reverse)
+
+    assert result["games"] == 20
+    assert result["decisive_games"] == 17
+    assert result["censored_games"] == 3
+    assert result["censor_rate"] == pytest.approx(3 / 20)
+    assert result["seat_swapped_mccfr_win_rate"] == pytest.approx(9 / 17)
+
+def test_mccfr_suite_profiles_match_current_canonical_decks() -> None:
+    assert {profile_id for profile_id, _label, _path in build_mccfr_suite.PROFILES} == {
+        "mobility",
+        "elite",
+        "narrative",
+        "control",
+        "momentum",
+        "necessity",
+    }
+    assert len(build_mccfr_suite.PROFILES) == 6
+
+def test_lab_can_promote_observationally_unobserved_card_with_causal_evidence(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    fingerprint = "current-engine"
+    artifacts = {
+        "balance-health.json": {
+            "game_fingerprint": fingerprint,
+            "simulation_variant": standard_variant(),
+            "cards": [{
+                "id": "card-a",
+                "title": "Card A",
+                "balance_level": "unobserved",
+                "balance_label": "Unobserved",
+                "balance_direction": "unobserved",
+                "observed": False,
+            }],
+            "formations": [],
+        },
+        "balance-report.json": {
+            "game_fingerprint": fingerprint,
+            "card_static_marginals": [],
+            "all_static_formations": [],
+        },
+        "counterfactual-balance.json": {
+            "game_fingerprint": fingerprint,
+            "cards": [{
+                "id": "card-a",
+                "samples": 12,
+                "level": "yellow",
+                "direction": "strong",
+                "delta_win_probability": 0.08,
+                "ci95": [0.01, 0.15],
+            }],
+        },
+    }
+    monkeypatch.setattr(build_lab_report, "ARTIFACTS", tmp_path)
+    monkeypatch.setattr(
+        build_lab_report,
+        "current_game_fingerprint",
+        lambda: fingerprint,
+    )
+    for name, payload in artifacts.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+
+    build_lab_report.main()
+    report = json.loads((tmp_path / "lab-report.json").read_text())
+    card = report["health"]["cards"][0]
+
+    assert card["observed"] is False
+    assert card["observational_balance_level"] == "unobserved"
+    assert card["balance_level"] == "yellow"
+    assert card["balance_label"] == "Watch"
+    assert card["balance_direction"] == "strong"
+
+def test_lab_uses_aggregate_selfplay_for_matchup_and_detailed_progression_source(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    fingerprint = "current-engine"
+    aggregate = {
+        "game_fingerprint": fingerprint,
+        "simulation_variant": standard_variant(),
+        "games": 60,
+        "decisive_games": 58,
+        "censored_games": 2,
+        "censor_rate": 2 / 60,
+        "agents": ["heuristic", "heuristic"],
+        "wins": [29, 29],
+        "win_rates": [0.5, 0.5],
+        "first_player_win_rate": 0.5,
+        "mean_turns": 40.0,
+        "max_turns": 500,
+        "_label": "Six canonical same-deck self-play aggregate",
+        "telemetry": {
+            "passes": {},
+            "battles": {},
+            "cards": {},
+            "formation_combinations": {},
+        },
+    }
+    progression = {
+        "by_battle": {"1": {"battles": 10, "command_remaining": 14.0}},
+        "formation_lifecycle": {"forces": 20},
+    }
+    detailed = {
+        "game_fingerprint": fingerprint,
+        "simulation_variant": standard_variant(),
+        "games": 10,
+        "decisive_games": 9,
+        "censored_games": 1,
+        "agents": ["heuristic", "heuristic"],
+        "wins": [5, 4],
+        "_label": "Mobility / Open Bonds self-play",
+        "progression_scope": "Detailed progression reference.",
+        "telemetry": {"progression": progression},
+    }
+    artifacts = {
+        "balance-health.json": {
+            "game_fingerprint": fingerprint,
+            "cards": [],
+            "formations": [],
+        },
+        "balance-report.json": {
+            "game_fingerprint": fingerprint,
+            "card_static_marginals": [],
+            "all_static_formations": [],
+        },
+        "heuristic-selfplay.json": aggregate,
+        "progression-selfplay.json": detailed,
+    }
+    monkeypatch.setattr(build_lab_report, "ARTIFACTS", tmp_path)
+    monkeypatch.setattr(
+        build_lab_report,
+        "current_game_fingerprint",
+        lambda: fingerprint,
+    )
+    for name, payload in artifacts.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+
+    build_lab_report.main()
+    report = json.loads((tmp_path / "lab-report.json").read_text())
+
+    assert report["matchups"]["heuristic_selfplay"]["games"] == 60
+    assert report["progression"] == progression
+    assert report["raw_telemetry"]["progression"] == progression
+    assert report["progression_source"] == {
+        "label": "Mobility / Open Bonds self-play",
+        "scope": "Detailed progression reference.",
+        "games": 10,
+        "decisive_games": 9,
+        "censored_games": 1,
+    }
+

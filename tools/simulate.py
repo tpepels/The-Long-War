@@ -292,7 +292,9 @@ def main() -> None:
     payload = asdict(report)
     payload["game_fingerprint"] = game_fingerprint
     payload["seed"] = args.seed
+    payload["decisive_games"] = report.decisive_games
     payload["win_rates"] = report.win_rates
+    payload["censor_rate"] = report.censor_rate
     payload["first_player_win_rate"] = report.first_player_win_rate
     payload["heuristic_config"] = {
         "exploration": args.heuristic_exploration,
@@ -358,7 +360,8 @@ def main() -> None:
     )
     print(f"Games: {report.games}")
     print(f"Wins: P0={report.wins[0]} P1={report.wins[1]}")
-    print(f"First-player win rate: {report.first_player_win_rate:.3f}")
+    print(f"Censored: {report.censored_games} ({report.censor_rate:.3%})")
+    print(f"First-player win rate (decisive games): {report.first_player_win_rate:.3f}")
     print(f"Mean actions: {report.mean_turns:.2f}")
     print(f"Max actions: {report.max_turns}")
 

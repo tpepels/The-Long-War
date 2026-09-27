@@ -55,19 +55,32 @@ class SimulationReport:
     games: int
     agents: tuple[str, str]
     wins: tuple[int, int]
+    censored_games: int
     first_player_wins: int
     mean_turns: float
     max_turns: int
     telemetry: dict[str, Any]
-    game_outcomes: list[dict[str, int]]
+    game_outcomes: list[dict[str, int | bool | None]]
+
+    @property
+    def decisive_games(self) -> int:
+        return self.games - self.censored_games
 
     @property
     def win_rates(self) -> tuple[float, float]:
-        return tuple(win / self.games for win in self.wins)  # type: ignore[return-value]
+        denominator = self.decisive_games
+        if denominator <= 0:
+            return (0.0, 0.0)
+        return tuple(win / denominator for win in self.wins)  # type: ignore[return-value]
+
+    @property
+    def censor_rate(self) -> float:
+        return self.censored_games / self.games
 
     @property
     def first_player_win_rate(self) -> float:
-        return self.first_player_wins / self.games
+        denominator = self.decisive_games
+        return self.first_player_wins / denominator if denominator > 0 else 0.0
 
 
 def make_agent(
@@ -184,10 +197,11 @@ def simulate_games(
         raise ValueError("games must be positive")
 
     wins = [0, 0]
+    censored_games = 0
     first_player_wins = 0
     total_turns = 0
     maximum_turns = 0
-    game_outcomes: list[dict[str, int]] = []
+    game_outcomes: list[dict[str, int | bool | None]] = []
     telemetry = Telemetry()
     human_flow = HumanFlowDiagnostics()
     priors: tuple[DeckPrior, DeckPrior] = (
@@ -272,15 +286,15 @@ def simulate_games(
             first_player=first_player,
             mulligan_indices=mulligan_indices,
         )
-        telemetry.start_game(state)
+        telemetry.start_game(state, engine)
         human_flow.start_game(engine, state)
 
         action_count = 0
+        censored = False
         while state.phase is not Phase.COMPLETE:
             if action_count >= max_actions:
-                raise RuntimeError(
-                    f"Simulation exceeded {max_actions} actions in game {game_index}"
-                )
+                censored = True
+                break
 
             actor = state.active_player
             agent = agents[actor]
@@ -311,19 +325,23 @@ def simulate_games(
             del decision_info, before, action, agent
             _release_process_memory()
 
-        winner = state.winner
-        if winner is None:
+        winner = None if censored else state.winner
+        if not censored and winner is None:
             raise RuntimeError("Completed game has no winner")
 
-        telemetry.finish_game(winner)
+        telemetry.finish_game(winner, state)
         game_outcomes.append({
             "seed": seed + game_index,
             "first_player": first_player,
             "winner": winner,
+            "censored": censored,
         })
-        wins[winner] += 1
-        if winner == first_player:
-            first_player_wins += 1
+        if censored:
+            censored_games += 1
+        else:
+            wins[winner] += 1
+            if winner == first_player:
+                first_player_wins += 1
         total_turns += action_count
         maximum_turns = max(maximum_turns, action_count)
         if progress_callback is not None:
@@ -343,6 +361,7 @@ def simulate_games(
         games=games,
         agents=labels,
         wins=(wins[0], wins[1]),
+        censored_games=censored_games,
         first_player_wins=first_player_wins,
         mean_turns=total_turns / games,
         max_turns=maximum_turns,

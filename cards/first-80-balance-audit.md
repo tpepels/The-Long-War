@@ -1,6 +1,6 @@
 # First 80 - balance audit
 
-Status: active playtest audit.
+Status: historical audit of the original 80-card pool. The canonical pool now contains 95 cards; use the current Balance Lab and canonical card/deck data for active balance evidence.
 
 ## Applied conservative balance changes
 
