@@ -118,8 +118,13 @@ function renderOverview(lab) {
     ),
     metric("Forces becoming Named", pct(lifecycle.force_to_name_rate), progression ? `${lifecycle.forces_ever_named ?? 0} / ${lifecycle.forces ?? 0} Force lifecycles` : "progression not generated"),
     metric("Forced choice", pct(choice.exactly_one_legal_action_rate), progression ? "decisions with exactly one legal action" : "progression not generated"),
-    metric("Causal coverage", lab.counterfactual ? lab.counterfactual.cards.length : "—", lab.counterfactual ? "paired card estimates" : "not generated"),
-    metric("MCCFR card coverage", suite ? `${suite.covered_cards}/${suite.card_pool_size}` : "—", suite ? `${suite.profiles.length} deck profiles` : "not generated"),
+    metric("Broad card screen", lab.counterfactual ? lab.counterfactual.cards.length : "—", lab.counterfactual ? "heuristic paired A/B estimates" : "not generated"),
+    metric(
+      "Strategic checks",
+      lab.targeted_counterfactual ? lab.targeted_counterfactual.targets.length : "—",
+      lab.targeted_counterfactual ? "targeted online-MCCFR validations" : "not generated"
+    ),
+    metric("Offline MCCFR coverage", suite ? `${suite.covered_cards}/${suite.card_pool_size}` : "—", suite ? `${suite.profiles.length} trained deck policies` : "optional research evidence"),
     metric("Solver verification", verification ? (verification.passed ? "PASS" : "FAIL") : "—",
       verification ? `exploitability ${num(verification.exploitability, 4)}` : "not generated"),
   ].join("");
@@ -138,6 +143,7 @@ function renderAttention(lab) {
     .sort((a, b) => Math.abs(b.delta_win_probability) - Math.abs(a.delta_win_probability));
   const firstPlayer = Number(lab.health.global.first_player_win_rate);
   const suite = lab.mccfr_suite;
+  const targeted = lab.targeted_counterfactual;
   const items = [];
 
   if ((lab.stale_evidence || []).length) {
@@ -190,14 +196,41 @@ function renderAttention(lab) {
     const lead = causal[0];
     items.push(attentionItem(
       "watch",
-      "Strongest current causal signal",
-      `<b>${esc(lead.title)}</b> has paired ΔWP ${signedPct(lead.delta_win_probability)} with 95% interval ${interval(lead.ci95)}. ${causal.length} card signal${causal.length === 1 ? "" : "s"} currently exclude zero.`
+      "Broad card screen found candidates",
+      `<b>${esc(lead.title)}</b> has heuristic paired ΔWP ${signedPct(lead.delta_win_probability)} with 95% interval ${interval(lead.ci95)}. ${causal.length} card signal${causal.length === 1 ? "" : "s"} currently exclude zero and should be read as screening evidence until MCCFR validation.`
     ));
-  } else {
+  } else if (lab.counterfactual) {
     items.push(attentionItem(
       "good",
-      "No paired card effect currently excludes zero",
-      "The counterfactual sweep is not identifying a high-confidence single-card causal outlier at its current sample size."
+      "Broad card screen found no resolved outlier",
+      "No single-card heuristic A/B interval currently excludes zero at this sample size."
+    ));
+  }
+
+  if (targeted) {
+    const confirmed = targeted.targets.filter((row) => row.confirmation === "confirmed");
+    const reversed = targeted.targets.filter((row) => row.confirmation === "reversed");
+    const unresolved = targeted.targets.filter((row) =>
+      ["direction_agrees", "inconclusive"].includes(row.confirmation)
+    );
+    if (!targeted.targets.length) {
+      items.push(attentionItem(
+        "good",
+        "No strategic card validation was needed",
+        "The broad screen nominated no card above the configured threshold."
+      ));
+    } else {
+      items.push(attentionItem(
+        reversed.length ? "watch" : (confirmed.length ? "watch" : "pending"),
+        "Online-MCCFR strategic confirmation",
+        `${confirmed.length} confirmed · ${reversed.length} reversed · ${unresolved.length} unresolved across ${targeted.targets.length} targeted card checks. A reversal means the stronger online solver found a resolved effect in the opposite direction from the heuristic screen.`
+      ));
+    }
+  } else if (lab.counterfactual) {
+    items.push(attentionItem(
+      "pending",
+      "Strategic confirmation missing",
+      "A broad heuristic card screen exists, but targeted online-MCCFR validation has not been generated for this snapshot."
     ));
   }
 
@@ -223,18 +256,65 @@ function renderAttention(lab) {
   if (suite) {
     items.push(attentionItem(
       suite.covered_cards === suite.card_pool_size ? "good" : "watch",
-      "MCCFR coverage",
-      `${suite.profiles.length} deck-profile policies cover ${suite.covered_cards}/${suite.card_pool_size} current cards. Use the profile table below to compare solver/heuristic behavior by deck.`
-    ));
-  } else {
-    items.push(attentionItem(
-      "pending",
-      "MCCFR suite not generated yet",
-      "The card and heuristic reports are available, but there is no current-card MCCFR suite in this build."
+      "Offline solver research available",
+      `${suite.profiles.length} trained deck-profile policies cover ${suite.covered_cards}/${suite.card_pool_size} current cards. This is separate from the targeted online-MCCFR card validation above.`
     ));
   }
 
   document.getElementById("attention-summary").innerHTML = items.join("");
+}
+
+function renderEvidencePipeline(lab) {
+  const summary = lab.run_summary?.evidence_pipeline || {};
+  const structural = summary.structural_play || {};
+  const broad = summary.broad_card_screen || {};
+  const strategic = summary.strategic_confirmation || {};
+  const cf = lab.counterfactual;
+  const targeted = lab.targeted_counterfactual;
+
+  document.getElementById("evidence-pipeline").innerHTML = [
+    metric(
+      "1 · Structural play",
+      structural.attempted_games != null
+        ? Number(structural.attempted_games).toLocaleString()
+        : Number(lab.health.source.games || 0).toLocaleString(),
+      "heuristic games · pacing, exposure, progression"
+    ),
+    metric(
+      "2 · Broad A/B screen",
+      cf ? `${cf.cards.length} cards` : "—",
+      cf
+        ? `${cf.decisive_paired_samples ?? 0} decisive pairs · ${cf.censored_paired_samples ?? 0} censored`
+        : "not generated"
+    ),
+    metric(
+      "3 · Strategic confirmation",
+      targeted ? `${targeted.targets.length} cards` : "—",
+      targeted
+        ? `online MCCFR · ${targeted.online_iterations} iterations · depth ${targeted.online_depth}`
+        : "not generated"
+    ),
+  ].join("");
+
+  const notes = [];
+  notes.push(attentionItem(
+    "good",
+    "Structural evidence is descriptive",
+    "Use heuristic self-play for how often mechanics, cards and game states occur. Do not read its deck win rates as strong-play equilibrium estimates."
+  ));
+  notes.push(attentionItem(
+    "watch",
+    "Broad ΔWP is a screen",
+    "The heuristic paired replacement controls seed, seat and deck context, but its effect is still policy-specific. Red/orange strategic card claims require the online-MCCFR stage."
+  ));
+  if (targeted?.targets?.length) {
+    notes.push(attentionItem(
+      "good",
+      "Targeted solver evidence is the strongest card-value layer",
+      "Online MCCFR re-solves each decision in the same paired contexts. Confirmed and reversed results are treated as strategically resolved; inconclusive results remain Watch items."
+    ));
+  }
+  document.getElementById("evidence-guidance").innerHTML = notes.join("");
 }
 
 function renderCards(lab) {
@@ -276,8 +356,8 @@ function renderCards(lab) {
         </td>
         <td data-label="Dead on pass">${pct(row.dead_on_pass_rate)}</td>
         <td data-label="Front swing">${num(row.mean_immediate_front_swing, 1)} <span class="muted">z ${num(row.front_swing_z_within_type, 1)}</span></td>
-        <td data-label="Causal ΔWP">${causal ? signedPct(causal.delta_win_probability) : "—"}<span class="muted">${causal ? interval(causal.ci95) : ""}</span></td>
-        <td data-label="Online check">${online ? `${signedPct(online.online.effect)}<span class="muted">${esc(online.confirmation.replaceAll("_", " "))}</span>` : "—"}</td>
+        <td data-label="Screen ΔWP">${causal ? signedPct(causal.delta_win_probability) : "—"}<span class="muted">${causal ? interval(causal.ci95) : ""}</span></td>
+        <td data-label="MCCFR validation">${online ? `${signedPct(online.online.effect)}<span class="muted">${esc(online.confirmation.replaceAll("_", " "))}</span>` : "—"}</td>
         <td data-label="Evidence">
           <details class="row-evidence">
             <summary>details</summary>
@@ -327,10 +407,10 @@ function renderCounterfactual(lab) {
 
   const significantCards = cf.cards.filter((row) => row.confidence_excludes_zero).length;
   document.getElementById("counterfactual-overview").innerHTML = [
-    metric("Paired samples", cf.samples, `${cf.contexts} contexts × ${cf.games_per_context} games`),
-    metric("Matches", Number(cf.total_matches).toLocaleString(), `${cf.conditions_evaluated_per_sample} intervention states/sample`),
-    metric("Causal card signals", significantCards, `of ${cf.cards.length} cards exclude zero`),
-    metric("Policy", esc(cf.policy), "common-random-number pairing"),
+    metric("Attempted pairs/card", cf.samples, `${cf.contexts} contexts × ${cf.games_per_context} games`),
+    metric("Decisive paired samples", Number(cf.decisive_paired_samples ?? 0).toLocaleString(), `${Number(cf.censored_paired_samples ?? 0).toLocaleString()} censored · ${pct(cf.pair_censor_rate ?? 0)} censor rate`),
+    metric("Screening signals", significantCards, `of ${cf.cards.length} cards exclude zero under heuristic play`),
+    metric("Screen policy", esc(cf.policy), "common-random-number pairing"),
   ].join("");
 
   document.getElementById("counterfactual-pairs").innerHTML =
@@ -355,9 +435,9 @@ function renderTargetedCounterfactual(lab) {
     <h3>Targeted online-MCCFR validation</h3>
     <div class="metric-grid compact-grid">
       ${metric("Targets", report.targets.length, `${report.total_matches} online matches`)}
-      ${metric("Samples / target", report.samples, `${report.contexts} contexts × ${report.games_per_context} games`)}
+      ${metric("Decisive paired samples", report.decisive_paired_samples ?? 0, `${report.censored_paired_samples ?? 0} censored · ${pct(report.pair_censor_rate ?? 0)} censor rate`)}
       ${metric("Resolver", `${report.online_iterations} iterations`, `depth ${report.online_depth}`)}
-      ${metric("Confirmed", report.targets.filter((r) => r.confirmation === "confirmed").length, "same-direction online CI excludes zero")}
+      ${metric("Resolved", report.targets.filter((r) => ["confirmed", "reversed"].includes(r.confirmation)).length, "confirmed or strategically reversed")}
     </div>
     <div class="table-wrap fitted-table">
       <table class="balance-table targeted-table">
@@ -799,8 +879,9 @@ function renderMethod(lab) {
     <p><strong>Card status:</strong> red = multiple high-confidence issues; orange = one high-confidence or multiple watch issues; yellow = one watch issue; unobserved = no self-play exposure; green = no current issue but thinner evidence; dark green = no issue with strong evidence.</p>
     <p><strong>Intervals:</strong> ${esc(report.methodology.win_intervals)}.</p>
     <p><strong>Board swing:</strong> standardized within card type.</p>
-    <p><strong>Causal ΔWP:</strong> paired win-probability difference between the canonical card and a neutral same-type baseline under identical random seeds.</p>
-    <p><strong>Targeted online validation:</strong> suspicious heuristic effects are rerun with online MCCFR. “Confirmed” means the online interval excludes zero in the same direction.</p>
+    <p><strong>Screen ΔWP:</strong> heuristic paired win-probability difference between the canonical card and a neutral same-type baseline under identical random seeds. It nominates candidates; it is not strong-play confirmation.</p>
+    <p><strong>Online MCCFR validation:</strong> suspicious screen effects are rerun in the same paired contexts with online MCCFR. “Confirmed” means the online interval excludes zero in the same direction; “reversed” means it excludes zero in the opposite direction.</p>
+    <p><strong>Censoring:</strong> if either side of a paired A/B comparison reaches the action horizon, that pair is reported as censored and excluded from the effect estimate.</p>
     <ul>${report.methodology.notes.map((note) => `<li>${esc(note)}</li>`).join("")}</ul>
   `;
 }
@@ -812,6 +893,7 @@ async function main() {
 
   renderAttention(lab);
   renderOverview(lab);
+  renderEvidencePipeline(lab);
   renderProgression(lab);
   renderCards(lab);
   renderCounterfactual(lab);
