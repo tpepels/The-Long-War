@@ -307,6 +307,8 @@ def test_strength_benchmark_reports_live_progress():
     source = inspect.getsource(runner.benchmark_strength)
     assert '"--progress-file", str(progress)' in source
     assert "_run_cells_with_live_progress" in source
+    assert "tuple(CANONICAL_DECK_PATHS)" in source
+    assert len(runner.CANONICAL_DECK_PATHS) == 6
 
 
 def test_strength_sanity_check_defaults(monkeypatch):
