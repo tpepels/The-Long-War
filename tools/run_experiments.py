@@ -239,8 +239,11 @@ def balance_run(args: argparse.Namespace) -> Path:
         if causal_payload is not None:
             publish("counterfactual-balance.json", causal_payload)
 
-        from tools import build_lab_report
-        build_lab_report.main()
+        subprocess.run(
+            [sys.executable, str(ROOT / "tools" / "build_lab_report.py")],
+            cwd=ROOT,
+            check=True,
+        )
 
     print(f"Balance artifacts: {output}")
     return output
