@@ -49,12 +49,21 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
     }
     assert baseline_card(index["namar"])["strength"] == 2
     assert baseline_card(index["he-never-came"])["rules"] == {}
-    assert baseline_card(index["the-storm-broke"])["rules"] == {
-        "stratagem": {
-            "trigger": {"event": "played", "actor": "controller"},
-            "continuous": {},
-        }
-    }
+    assert baseline_card(index["the-storm-broke"])["rules"] == {}
+
+
+@pytest.mark.parametrize(
+    "card_id",
+    [card["id"] for card in data()["cards"]],
+)
+def test_every_single_card_counterfactual_baseline_validates(card_id: str) -> None:
+    card_data = data()
+    experiment = build_experiment_card_data(card_data, [card_id])
+    index = {card["id"]: card for card in experiment["cards"]}
+    baseline = index[baseline_id(card_id)]
+
+    assert baseline["baseline_for"] == card_id
+    GameEngine(experiment)
 
 
 def test_non_command_experiment_baselines_allow_cards_without_command_cost() -> None:
@@ -276,17 +285,16 @@ def test_context_decks_do_not_depend_on_required_card_iteration_order() -> None:
     assert generate_context_decks(data(), count=2, seed=7, required_cards=cards) == generate_context_decks(data(), count=2, seed=7, required_cards=reversed(cards))
 
 
-def test_scheme_baseline_preserves_scheme_commitment() -> None:
+def test_story_baseline_preserves_narrative_chassis() -> None:
     card_data = data()
     index = {card["id"]: card for card in card_data["cards"]}
-    baseline = baseline_card(index["the-lamps-went-dark"])
+    original = index["the-lamps-went-dark"]
+    baseline = baseline_card(original)
 
-    assert baseline["type"] == "plot"
-    assert baseline["story_form"] == "omen"
-    assert baseline["veiled"] is True
-    assert baseline["rules"]["scheme"]["trigger"] == "never"
-    assert baseline["rules"]["scheme"]["face_down_front_bonus"] == 1
-
+    assert baseline["type"] == "story"
+    assert baseline["narrative_form"] == original["narrative_form"]
+    assert baseline["ongoing"] == original["ongoing"]
+    assert baseline["rules"] == {}
 
 
 def test_stratagem_baseline_preserves_public_play_commitment() -> None:
@@ -295,7 +303,8 @@ def test_stratagem_baseline_preserves_public_play_commitment() -> None:
     baseline = baseline_card(index["the-storm-broke"])
 
     assert baseline["type"] == "stratagem"
-    assert baseline["rules"]["stratagem"]["trigger"]["event"] == "played"
+    assert baseline["rules"] == {}
+    assert "no continuing effect" in baseline["text"]
 
 
 def test_hero_baseline_preserves_hero_deck_constraint() -> None:
