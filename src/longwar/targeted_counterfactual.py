@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 from .agents.online_mccfr_agent import OnlineMCCFRAgent
 from .belief import CardPoolDeckPrior, DeckHypothesis, HypothesisDeckPrior
@@ -366,6 +366,7 @@ def run_targeted_online_validation(
     minimum_abs_effect: float = 0.05,
     bootstrap_resamples: int = 1000,
     force_top: bool = False,
+    progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Re-test suspicious broad A/B signals with online MCCFR.
 
@@ -509,6 +510,8 @@ def run_targeted_online_validation(
             ),
             "factorial_conditions": len(conditions),
         })
+        if progress_callback is not None:
+            progress_callback(target_index + 1, len(selected), results[-1])
 
     by_kind = {
         kind: [row for row in results if row["kind"] == kind]
