@@ -176,11 +176,18 @@ function renderAttention(lab) {
   }
 
   if (critical.length) {
+    const strategicallyResolved = critical.filter(
+      (row) => row.balance_evidence_source === "online_mccfr"
+    );
+    const observationalOnly = critical.filter(
+      (row) => row.balance_evidence_source !== "online_mccfr"
+    );
     items.push(attentionItem(
       "high",
       `${critical.length} card${critical.length === 1 ? "" : "s"} need direct balance review`,
       critical.slice(0, 6).map((row) => `<b>${esc(row.title)}</b>`).join(", ") +
-        (critical.length > 6 ? ` and ${critical.length - 6} more` : "") + "."
+        (critical.length > 6 ? ` and ${critical.length - 6} more` : "") +
+        `. ${strategicallyResolved.length} strategically resolved by online MCCFR; ${observationalOnly.length} currently come from observational evidence and still need strategic confirmation.`
     ));
   } else {
     items.push(attentionItem(
