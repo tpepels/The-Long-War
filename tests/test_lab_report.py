@@ -274,3 +274,14 @@ def test_mccfr_suite_excludes_censored_games_from_seat_swapped_rate() -> None:
     assert result["censor_rate"] == pytest.approx(3 / 20)
     assert result["seat_swapped_mccfr_win_rate"] == pytest.approx(9 / 17)
 
+def test_mccfr_suite_profiles_match_current_canonical_decks() -> None:
+    assert {profile_id for profile_id, _label, _path in build_mccfr_suite.PROFILES} == {
+        "mobility",
+        "elite",
+        "narrative",
+        "control",
+        "momentum",
+        "necessity",
+    }
+    assert len(build_mccfr_suite.PROFILES) == 6
+
