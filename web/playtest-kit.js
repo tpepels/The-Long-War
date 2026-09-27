@@ -1,25 +1,54 @@
-async function main() {
-  const [cardsResponse, deckResponse] = await Promise.all([
-    fetch("data/cards.json"),
-    fetch("data/reference-deck.json"),
-  ]);
-  if (!cardsResponse.ok || !deckResponse.ok) throw new Error("Could not load playtest data");
-  const cardData = await cardsResponse.json();
-  const deckData = await deckResponse.json();
-  const index = Object.fromEntries(cardData.cards.map((card) => [card.id, card]));
-  const labels = ["Player 1", "Player 2"];
+function esc(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
 
-  document.getElementById("playtest-decks").innerHTML = labels.map((label) =>
-    '<section class="print-deck">' +
-      '<header class="deck-sheet-heading"><strong>The Long War · v0.9</strong>' +
-      '<span>' + label + ' · ' + deckData.name + ' · ' + deckData.cards.length + ' cards</span></header>' +
+function shortDeckLabel(name, index) {
+  const primary = String(name || "").split(" / ")[0].trim();
+  return primary || "Deck " + (index + 1);
+}
+
+async function main() {
+  const [cardsResponse, decksResponse] = await Promise.all([
+    fetch("data/cards.json"),
+    fetch("data/reference-decks.json"),
+  ]);
+  if (!cardsResponse.ok || !decksResponse.ok) {
+    throw new Error("Could not load reference deck data");
+  }
+
+  const cardData = await cardsResponse.json();
+  const deckData = await decksResponse.json();
+  const decks = Array.isArray(deckData.decks) ? deckData.decks : [];
+  if (!decks.length) throw new Error("No reference decks were published");
+
+  const index = Object.fromEntries(cardData.cards.map((card) => [card.id, card]));
+  for (const deck of decks) {
+    const missing = deck.cards.filter((id) => !index[id]);
+    if (missing.length) {
+      throw new Error(deck.name + " contains unknown cards: " + missing.join(", "));
+    }
+  }
+
+  const root = document.getElementById("playtest-decks");
+  root.innerHTML = decks.map((deck, deckIndex) => {
+    const label = shortDeckLabel(deck.name, deckIndex);
+    return '<section class="print-deck" data-deck-file="' + esc(deck.file) + '">' +
+      '<header class="deck-sheet-heading"><strong>The Long War · reference deck ' +
+      (deckIndex + 1) + ' of ' + decks.length + '</strong>' +
+      '<span>' + esc(deck.name) + ' · ' + deck.cards.length + ' cards</span></header>' +
       '<div class="deck-card-grid">' +
-      deckData.cards.map((id) => window.PrintCards.markup(index[id], label)).join("") +
-      '</div></section>'
-  ).join("");
+      deck.cards.map((id) => window.PrintCards.markup(index[id], label)).join("") +
+      '</div></section>';
+  }).join("");
+
+  const totalCards = decks.reduce((total, deck) => total + deck.cards.length, 0);
   document.getElementById("kit-count").textContent =
-    "2 × " + deckData.cards.length + "-card reference decks";
-  window.CardLayoutGuard?.schedule(document.getElementById("playtest-decks"));
+    decks.length + " reference decks · " + totalCards + " cards";
+  window.CardLayoutGuard?.schedule(root);
 }
 
 main().catch((error) => {

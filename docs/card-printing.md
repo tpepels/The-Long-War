@@ -1,9 +1,13 @@
 # Printed cards
 
-`web/print-cards.js` is the shared catalogue/playtest-kit renderer. It consumes
+`web/print-cards.js` is the shared catalogue/reference-deck renderer. It consumes
 canonical `cards/cards.json` and delegates rules formatting to `CardRules`.
 `web/print-cards.css` owns print geometry independently of the website and play
 table. The existing Pages build copies these files and `web/fonts/` unchanged.
+
+The reference-deck print page renders all six canonical 40-card decks, one copy of
+each. `tools/build_pages.py` publishes them together as `data/reference-decks.json`,
+so the page and the repository deck definitions cannot drift apart.
 
 Cards are **63 × 88 mm**, arranged nine per A4 portrait sheet with 8 mm page
 margins. Print at **100% / actual size**, without browser headers or footers.

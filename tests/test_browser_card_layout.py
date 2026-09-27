@@ -184,6 +184,28 @@ def test_print_renderer_keeps_zero_negative_values_and_escapes_content() -> None
     assert re.findall(r"-?\d+", hero.one("command-cost")["text"]) == ["0"]
 
 
+def test_print_kit_publishes_and_renders_all_six_reference_decks() -> None:
+    builder = text("tools/build_pages.py")
+    script = text("web/playtest-kit.js")
+    page = text("web/playtest-kit.html")
+    filenames = (
+        "mobility-open-bonds.json",
+        "persistent-elite-heroes.json",
+        "narrative-command.json",
+        "battlefield-control-stratagems.json",
+        "momentum-orders.json",
+        "necessity-attrition.json",
+    )
+    for filename in filenames:
+        assert filename in builder
+    assert 'data/reference-decks.json' in script
+    assert 'decks.map(' in script
+    assert 'window.PrintCards.markup(index[id], label)' in script
+    assert "Print all reference decks" in page
+    assert 'data/reference-deck.json' not in builder
+    assert 'data/reference-deck.json' not in script
+
+
 def test_semantic_rule_renderer_is_shared_by_all_card_surfaces() -> None:
     helper = text("web/card-rules.js")
     assert "rule-block rule-" in helper

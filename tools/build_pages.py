@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import shutil
 from pathlib import Path
@@ -17,7 +18,17 @@ WEB = ROOT / "web"
 DIST = ROOT / "dist"
 RULEBOOK = ROOT / "rules" / "rulebook.md"
 CARDS = ROOT / "cards" / "cards.json"
-REFERENCE_DECK = ROOT / "decks" / "mobility-open-bonds.json"
+REFERENCE_DECKS = tuple(
+    ROOT / "decks" / filename
+    for filename in (
+        "mobility-open-bonds.json",
+        "persistent-elite-heroes.json",
+        "narrative-command.json",
+        "battlefield-control-stratagems.json",
+        "momentum-orders.json",
+        "necessity-attrition.json",
+    )
+)
 BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
 
 
@@ -29,7 +40,7 @@ def version_static_assets() -> str:
         and (
             path.suffix in {".js", ".mjs", ".css", ".whl"}
             or path.relative_to(DIST).as_posix()
-            in {"data/cards.json", "data/reference-deck.json"}
+            in {"data/cards.json", "data/reference-decks.json"}
         )
     ]
     digest = hashlib.sha256()
@@ -87,7 +98,21 @@ def main() -> None:
     data_dir = DIST / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(CARDS, data_dir / "cards.json")
-    shutil.copy2(REFERENCE_DECK, data_dir / "reference-deck.json")
+
+    known_cards = {card["id"] for card in card_data["cards"]}
+    reference_decks = []
+    for deck_path in REFERENCE_DECKS:
+        deck = json.loads(deck_path.read_text(encoding="utf-8"))
+        missing = sorted(set(deck["cards"]) - known_cards)
+        if missing:
+            raise ValueError(
+                f"{deck_path.name} references unknown cards: {', '.join(missing)}"
+            )
+        reference_decks.append({"file": deck_path.name, **deck})
+    (data_dir / "reference-decks.json").write_text(
+        json.dumps({"decks": reference_decks}, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
     if BALANCE_HEALTH.exists():
         shutil.copy2(BALANCE_HEALTH, data_dir / "balance-health.json")
