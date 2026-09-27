@@ -687,7 +687,6 @@ class Telemetry:
                 for card_id, count in added.items():
                     for _ in range(count):
                         self._record_draw(player, card_id)
-                self.progression.record_draw(player, card_id, state)
                         self.progression.record_draw(player, card_id, state)
             return
 
@@ -699,7 +698,6 @@ class Telemetry:
                 for card_id, count in added.items():
                     for _ in range(count):
                         self._record_draw(player, card_id)
-                self.progression.record_draw(player, card_id, state)
                         self.progression.record_draw(player, card_id, state)
                 continue
 
