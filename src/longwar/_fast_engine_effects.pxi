@@ -60,9 +60,9 @@ cdef void _fe_remove_link(FastEngine self, FastState state, int player, int slot
     state.link[slot] = -1
     state.name[slot] = -1
     if link >= 0:
-        self.append_discard(state, player, link, True)
+        _fe_append_discard(self, state, player, link, True)
     if name >= 0:
-        self.return_to_hand(state, player, name)
+        _fe_return_to_hand(self, state, player, name)
 
 cdef inline void _fe_return_bond_to_hand_from_slot(
     FastEngine self,
@@ -75,7 +75,7 @@ cdef inline void _fe_return_bond_to_hand_from_slot(
     if bond < 0:
         return
     state.link[slot] = -1
-    self.return_to_hand(state, player, bond)
+    _fe_return_to_hand(self, state, player, bond)
 
 cdef void _fe_compact_ongoing_stories(
     FastEngine self,
@@ -115,17 +115,17 @@ cdef void _fe_reveal_scheme(FastEngine self, FastState state, int controller, in
     if effect == SCHEME_PENALIZE_SUBJECT and trigger_slot >= 0 and state.subject[trigger_slot] >= 0:
         state.temporary[trigger_slot] -= amount
     elif effect == SCHEME_DISCARD_LINK and trigger_slot >= 0 and state.link[trigger_slot] >= 0:
-        self.remove_link(state, actor, trigger_slot)
+        _fe_remove_link(self, state, actor, trigger_slot)
     elif effect == SCHEME_REINFORCE:
-        target = self.preferred_slot(state, controller, front)
+        target = _fe_preferred_slot(self, state, controller, front)
         if target >= 0:
             state.temporary[target] += amount
     state.scheme[ix] = -1
     state.scheme_revealed[ix] = 0
     state.scheme_front_mask[ix] = 0
     state.scheme_target_slot[ix] = -1
-    self.compact_ongoing_stories(state, controller)
-    self.append_discard(state, controller, card, True)
+    _fe_compact_ongoing_stories(self, state, controller)
+    _fe_append_discard(self, state, controller, card, True)
 
 cdef void _fe_resolve_scheme_event(FastEngine self, FastState state, int actor, int event, int front, int trigger_slot=-1):
     cdef int controller, ix, card
@@ -136,9 +136,9 @@ cdef void _fe_resolve_scheme_event(FastEngine self, FastState state, int actor, 
             continue
         if self.scheme_trigger[card] != event or actor == controller:
             continue
-        if self.scheme_requires_subject[card] and not self.front_has_subject(state, controller, front):
+        if self.scheme_requires_subject[card] and not _fe_front_has_subject(self, state, controller, front):
             continue
-        self.reveal_scheme(state, controller, front, actor, trigger_slot)
+        _fe_reveal_scheme(self, state, controller, front, actor, trigger_slot)
 
 cdef bint _fe_strat_trigger_matches(FastEngine self, FastState state, int controller, int card, int event, int actor, int played_card=-1, int pos=-1) noexcept:
     cdef int role, rank, scope
@@ -169,7 +169,7 @@ cdef void _fe_resolve_strat_event(FastEngine self, FastState state, int event, i
         card = state.stratagem[controller]
         if card < 0 or state.stratagem_revealed[controller]:
             continue
-        if not self.strat_trigger_matches(state, controller, card, event, actor, played_card, pos):
+        if not _fe_strat_trigger_matches(self, state, controller, card, event, actor, played_card, pos):
             continue
         state.stratagem_revealed[controller] = 1
         if self.strat_reveal_effect[card] == STRAT_REVEAL_PENALIZE and pos >= 0 and state.subject[pos] >= 0:
@@ -180,7 +180,7 @@ cdef bint _fe_pre_story_cancel(FastEngine self, FastState state, int actor):
     cdef int card = state.stratagem[controller]
     if card < 0 or state.stratagem_revealed[controller]:
         return False
-    if not self.strat_trigger_matches(state, controller, card, EVENT_IMMEDIATE_STORY, actor):
+    if not _fe_strat_trigger_matches(self, state, controller, card, EVENT_IMMEDIATE_STORY, actor):
         return False
     state.stratagem_revealed[controller] = 1
     return self.strat_cancel_story[card]
@@ -230,7 +230,7 @@ cdef void _fe_resolve_plot(FastEngine self, FastState state, int actor, int card
     if effect == PLOT_DISCREDIT:
         owner = owner_from_slot(pos)
         if state.link[pos] >= 0:
-            self.remove_link(state, owner, pos)
+            _fe_remove_link(self, state, owner, pos)
         elif state.subject[pos] >= 0:
             state.temporary[pos] -= 2
     elif effect == PLOT_RETURN_NAME:
@@ -238,12 +238,12 @@ cdef void _fe_resolve_plot(FastEngine self, FastState state, int actor, int card
         if state.name[pos] >= 0:
             card = state.name[pos]
             state.name[pos] = -1
-            self.return_to_hand(state, owner, card)
+            _fe_return_to_hand(self, state, owner, card)
         elif state.subject[pos] >= 0:
             state.temporary[pos] -= 2
     elif effect == PLOT_MOVE_SUBJECT:
-        self.move_slot(state, pos, dest)
-        self.resolve_force_move_triggers(state, actor, pos, dest)
+        _fe_move_slot(self, state, pos, dest)
+        _fe_resolve_force_move_triggers(self, state, actor, pos, dest)
 
 cdef void _fe_discard_ongoing_narrative(
     FastEngine self,
@@ -260,8 +260,8 @@ cdef void _fe_discard_ongoing_narrative(
     state.scheme_front_mask[ix] = 0
     state.scheme_target_slot[ix] = -1
     state.scheme_used[ix] = 0
-    self.compact_ongoing_stories(state, controller)
-    self.append_discard(state, controller, card, True)
+    _fe_compact_ongoing_stories(self, state, controller)
+    _fe_append_discard(self, state, controller, card, True)
 
 cdef uint16_t _fe_named_formation_mask(
     FastEngine self,
@@ -272,7 +272,7 @@ cdef uint16_t _fe_named_formation_mask(
     cdef int slot
     cdef uint16_t mask = 0
     for slot in range(player * 8, player * 8 + 8):
-        if slot != exclude and self.slot_complete(state, slot):
+        if slot != exclude and _fe_slot_complete(self, state, slot):
             mask |= <uint16_t>(1 << slot)
     return mask
 
@@ -289,11 +289,11 @@ cdef uint16_t _fe_adjacent_formation_mask(
     cdef uint16_t mask = 0
     if front > 0:
         other = slot_index(player, front - 1, rank)
-        if state.subject[other] >= 0 and (not named_only or self.slot_complete(state, other)):
+        if state.subject[other] >= 0 and (not named_only or _fe_slot_complete(self, state, other)):
             mask |= <uint16_t>(1 << other)
     if front < 3:
         other = slot_index(player, front + 1, rank)
-        if state.subject[other] >= 0 and (not named_only or self.slot_complete(state, other)):
+        if state.subject[other] >= 0 and (not named_only or _fe_slot_complete(self, state, other)):
             mask |= <uint16_t>(1 << other)
     return mask
 
@@ -309,11 +309,11 @@ cdef uint16_t _fe_adjacent_empty_mask(
     cdef uint16_t mask = 0
     if front > 0:
         other = slot_index(player, front - 1, rank)
-        if self.slot_is_empty(state, other):
+        if _fe_slot_is_empty(self, state, other):
             mask |= <uint16_t>(1 << other)
     if front < 3:
         other = slot_index(player, front + 1, rank)
-        if self.slot_is_empty(state, other):
+        if _fe_slot_is_empty(self, state, other):
             mask |= <uint16_t>(1 << other)
     return mask
 
@@ -347,9 +347,9 @@ cdef void _fe_queue_recover_from_discard(
     int card_type,
     bint optional=False,
 ) except *:
-    if not self.discard_has_type(state, player, card_type):
+    if not _fe_discard_has_type(self, state, player, card_type):
         return
-    self.enqueue_effect(
+    _fe_enqueue_effect(self, 
         state,
         EFFECT_RECOVER,
         player,
@@ -374,7 +374,7 @@ cdef void _fe_queue_free_maneuver(
         return
     if allow_unnamed:
         flags |= EFFECT_ALLOW_UNNAMED
-    self.enqueue_effect(
+    _fe_enqueue_effect(self, 
         state,
         EFFECT_FREE_MANEUVER,
         player,
@@ -396,7 +396,7 @@ cdef void _fe_queue_move_to_mask(
 ) except *:
     if source_mask == 0 or dest_mask == 0:
         return
-    self.enqueue_effect(
+    _fe_enqueue_effect(self, 
         state,
         EFFECT_MOVE,
         player,
@@ -418,15 +418,15 @@ cdef void _fe_gain_command_from_narrative(
     cdef uint16_t named
     if amount <= 0:
         return
-    self.gain_command_fast(state, player, amount)
-    named = self.named_formation_mask(state, player)
+    _fe_gain_command_fast(self, state, player, amount)
+    named = _fe_named_formation_mask(self, state, player)
     if named == 0:
         return
     for front in range(4):
         slot = slot_index(player, front, 1)
         force = state.subject[slot]
         if force >= 0 and self.banner_singers_force[force]:
-            self.queue_free_maneuver(state, player, named, True)
+            _fe_queue_free_maneuver(self, state, player, named, True)
 
 cdef void _fe_resolve_named_narratives(
     FastEngine self,
@@ -452,17 +452,17 @@ cdef void _fe_resolve_named_narratives(
                 ):
                     amount = self.narrative_trigger_gain[card]
                     if amount:
-                        self.gain_command_from_narrative(state, controller, amount)
+                        _fe_gain_command_from_narrative(self, state, controller, amount)
                     secondary = self.narrative_secondary[card]
                     if secondary == NARR_SECONDARY_FREE_TRIGGERED and controller == named_player:
-                        self.queue_free_maneuver(
+                        _fe_queue_free_maneuver(self, 
                             state, controller, <uint16_t>(1 << named_slot), True
                         )
                     elif secondary == NARR_SECONDARY_FREE_ANY_NAMED:
-                        sources = self.named_formation_mask(state, controller)
-                        self.queue_free_maneuver(state, controller, sources, True)
+                        sources = _fe_named_formation_mask(self, state, controller)
+                        _fe_queue_free_maneuver(self, state, controller, sources, True)
                     if self.narrative_trigger_discard[card]:
-                        self.discard_ongoing_narrative(
+                        _fe_discard_ongoing_narrative(self, 
                             state, controller, story_slot
                         )
             story_slot -= 1
@@ -485,10 +485,10 @@ cdef void _fe_resolve_retreat_narratives(
         ):
             amount = self.narrative_trigger_gain[card]
             if amount:
-                self.gain_command_from_narrative(state, player, amount)
+                _fe_gain_command_from_narrative(self, state, player, amount)
             if self.narrative_secondary[card] == NARR_SECONDARY_SIDEWAYS_TRIGGERED:
-                destinations = self.adjacent_empty_mask(state, player, retreated_slot)
-                self.queue_move_to_mask(
+                destinations = _fe_adjacent_empty_mask(self, state, player, retreated_slot)
+                _fe_queue_move_to_mask(self, 
                     state,
                     player,
                     <uint16_t>(1 << retreated_slot),
@@ -496,7 +496,7 @@ cdef void _fe_resolve_retreat_narratives(
                     True,
                 )
             if self.narrative_trigger_discard[card]:
-                self.discard_ongoing_narrative(
+                _fe_discard_ongoing_narrative(self, 
                     state, player, story_slot
                 )
         story_slot -= 1
@@ -529,16 +529,16 @@ cdef void _fe_resolve_force_pair_narratives(
         ):
             amount = self.narrative_trigger_gain[card]
             if amount:
-                self.gain_command_from_narrative(state, controller, amount)
+                _fe_gain_command_from_narrative(self, state, controller, amount)
             if self.narrative_secondary[card] == NARR_SECONDARY_FREE_ANY_NAMED:
-                self.queue_free_maneuver(
+                _fe_queue_free_maneuver(self, 
                     state,
                     controller,
-                    self.named_formation_mask(state, controller),
+                    _fe_named_formation_mask(self, state, controller),
                     True,
                 )
             if self.narrative_trigger_discard[card]:
-                self.discard_ongoing_narrative(
+                _fe_discard_ongoing_narrative(self, 
                     state, controller, story_slot
                 )
         story_slot -= 1
@@ -560,12 +560,12 @@ cdef void _fe_resolve_maneuver_into_empty_narratives(
         if amount <= 0:
             continue
         state.scheme_used[ix] = 1
-        self.gain_command_from_narrative(state, player, amount)
+        _fe_gain_command_from_narrative(self, state, player, amount)
         if self.narrative_secondary[card] == NARR_SECONDARY_MOVE_VACATED:
-            sources = self.adjacent_formation_mask(
+            sources = _fe_adjacent_formation_mask(self, 
                 state, player, vacated_slot, False
             )
-            self.queue_move_to_mask(
+            _fe_queue_move_to_mask(self, 
                 state,
                 player,
                 sources,
@@ -598,7 +598,7 @@ cdef void _fe_resolve_force_move_triggers(
         if state.subject[other] >= 0 and state.link[other] < 0:
             destinations |= <uint16_t>(1 << other)
     if destinations:
-        self.enqueue_effect(
+        _fe_enqueue_effect(self, 
             state,
             EFFECT_TRANSFER_COMPONENT,
             player,
@@ -626,40 +626,40 @@ cdef void _fe_resolve_maneuver_triggers(
     cdef int other, other_name, bond
     cdef uint16_t sources, destinations, swap_mask
 
-    self.resolve_force_move_triggers(
+    _fe_resolve_force_move_triggers(self, 
         state, player, vacated_slot, arrived_slot
     )
     if not moved_into_empty:
         # The swapped formation also moved, even though it did not
         # initiate the Maneuver.
-        self.resolve_force_move_triggers(
+        _fe_resolve_force_move_triggers(self, 
             state, player, arrived_slot, vacated_slot
         )
 
     if moved_into_empty:
-        self.resolve_maneuver_into_empty_narratives(
+        _fe_resolve_maneuver_into_empty_narratives(self, 
             state, player, vacated_slot
         )
         if force >= 0 and self.after_empty_follow_move[force]:
-            sources = self.adjacent_formation_mask(
+            sources = _fe_adjacent_formation_mask(self, 
                 state, player, vacated_slot, False
             )
-            self.queue_move_to_mask(
+            _fe_queue_move_to_mask(self, 
                 state, player, sources, <uint16_t>(1 << vacated_slot), True
             )
         if force >= 0 and self.after_empty_extra_move_force[force]:
-            destinations = self.adjacent_empty_mask(
+            destinations = _fe_adjacent_empty_mask(self, 
                 state, player, arrived_slot
             )
-            self.queue_move_to_mask(
+            _fe_queue_move_to_mask(self, 
                 state,
                 player,
                 <uint16_t>(1 << arrived_slot),
                 destinations,
                 True,
             )
-        if self.slot_complete(state, arrived_slot):
-            sources = self.adjacent_formation_mask(
+        if _fe_slot_complete(self, state, arrived_slot):
+            sources = _fe_adjacent_formation_mask(self, 
                 state, player, vacated_slot, False
             )
             for other in range(player * 8, player * 8 + 8):
@@ -667,7 +667,7 @@ cdef void _fe_resolve_maneuver_triggers(
                     continue
                 bond = state.link[other]
                 if bond >= 0 and self.kept_pace_bond[bond]:
-                    self.queue_move_to_mask(
+                    _fe_queue_move_to_mask(self, 
                         state,
                         player,
                         <uint16_t>(1 << other),
@@ -677,7 +677,7 @@ cdef void _fe_resolve_maneuver_triggers(
     else:
         if force >= 0 and self.after_swap_free_other[force]:
             if state.subject[vacated_slot] >= 0:
-                self.queue_free_maneuver(
+                _fe_queue_free_maneuver(self, 
                     state, player, <uint16_t>(1 << vacated_slot), True
                 )
         if (
@@ -686,15 +686,15 @@ cdef void _fe_resolve_maneuver_triggers(
                 state.subject[vacated_slot]
             ]
         ):
-            self.queue_free_maneuver(
+            _fe_queue_free_maneuver(self, 
                 state, player, <uint16_t>(1 << arrived_slot), True
             )
 
     if force >= 0 and self.after_maneuver_free_adjacent[force]:
-        self.queue_free_maneuver(
+        _fe_queue_free_maneuver(self, 
             state,
             player,
-            self.adjacent_formation_mask(
+            _fe_adjacent_formation_mask(self, 
                 state, player, arrived_slot, True
             ),
             True,
@@ -706,7 +706,7 @@ cdef void _fe_resolve_maneuver_triggers(
             if other != arrived_slot and state.subject[other] >= 0:
                 swap_mask |= <uint16_t>(1 << other)
         if swap_mask:
-            self.enqueue_effect(
+            _fe_enqueue_effect(self, 
                 state,
                 EFFECT_SWAP,
                 player,
@@ -718,11 +718,11 @@ cdef void _fe_resolve_maneuver_triggers(
                 EFFECT_OPTIONAL | EFFECT_ADJACENT_PAIR,
             )
 
-    if name >= 0 and self.torren_name[name] and self.force_in_all_fronts(state, player):
-        self.queue_free_maneuver(
+    if name >= 0 and self.torren_name[name] and _fe_force_in_all_fronts(self, state, player):
+        _fe_queue_free_maneuver(self, 
             state,
             player,
-            self.named_formation_mask(state, player, arrived_slot),
+            _fe_named_formation_mask(self, state, player, arrived_slot),
             True,
         )
 
@@ -731,14 +731,14 @@ cdef void _fe_resolve_maneuver_triggers(
         if other_name < 0 or state.subject[other] < 0:
             continue
         if front_from_slot(other) == front and self.mara_name[other_name]:
-            self.queue_free_maneuver(
+            _fe_queue_free_maneuver(self, 
                 state, opponent, <uint16_t>(1 << other), True
             )
         if (
             abs(front_from_slot(other) - front) == 1
             and self.reactive_maneuver_name[other_name]
         ):
-            self.queue_free_maneuver(
+            _fe_queue_free_maneuver(self, 
                 state, opponent, <uint16_t>(1 << other), True
             )
 
@@ -752,9 +752,9 @@ cdef void _fe_resolve_plot_target_scheme(FastEngine self, FastState state, int a
     card = state.scheme[ix]
     if card < 0 or self.scheme_trigger[card] != EVENT_PLOT_TARGET:
         return
-    if self.scheme_requires_subject[card] and not self.front_has_subject(state, opponent, front):
+    if self.scheme_requires_subject[card] and not _fe_front_has_subject(self, state, opponent, front):
         return
-    self.reveal_scheme(state, opponent, front, actor, -1)
+    _fe_reveal_scheme(self, state, opponent, front, actor, -1)
 
 cdef void _fe_reshuffle_discard_into_deck(
     FastEngine self,
@@ -780,7 +780,7 @@ cdef void _fe_reshuffle_discard_into_deck(
     seed = state.shuffle_seed
     i = state.deck_len[player] - 1
     while i > 0:
-        seed = self.next_shuffle_seed(seed)
+        seed = _fe_next_shuffle_seed(self, seed)
         j = seed % (i + 1)
         card = state.deck[player][i]
         state.deck[player][i] = state.deck[player][j]
@@ -792,7 +792,7 @@ cdef void _fe_draw(FastEngine self, FastState state, int player, int count) noex
     cdef int card
     while count > 0:
         if state.deck_len[player] == 0:
-            self.reshuffle_discard_into_deck(state, player)
+            _fe_reshuffle_discard_into_deck(self, state, player)
         if state.deck_len[player] == 0:
             break
         state.deck_len[player] -= 1
@@ -809,7 +809,7 @@ cdef void _fe_draw_for_battle(
     int count,
 ) noexcept:
     cdef int before = state.hand_len[player]
-    self.draw(state, player, count)
+    _fe_draw(self, state, player, count)
     state.cards_drawn_this_battle[player] += state.hand_len[player] - before
 
 cdef void _fe_queue_battle_draws(
@@ -825,13 +825,13 @@ cdef void _fe_queue_battle_draws(
         state.pending_draw_count += count
         return
     state.pending_draw_count = 0
-    while count > 0 and self.can_draw_fast(state, player):
+    while count > 0 and _fe_can_draw_fast(self, state, player):
         if state.hand_len[player] >= self.hand_limit:
             state.active_player = player
             state.cleanup_pending = 1
             state.pending_draw_count = count
             return
-        self.draw_for_battle(state, player, 1)
+        _fe_draw_for_battle(self, state, player, 1)
         count -= 1
 
 cdef void _fe_start_turn_fast(FastEngine self, FastState state, int player) noexcept:
@@ -841,7 +841,7 @@ cdef void _fe_start_turn_fast(FastEngine self, FastState state, int player) noex
     state.pending_draw_count = 0
     state.pending_draw_finish_operation = 0
     if state.phase == PHASE_BATTLE:
-        self.queue_battle_draws(state, player, 1)
+        _fe_queue_battle_draws(self, state, player, 1)
 
 cdef _fe_initialize_opening_turn(
     FastEngine self,
@@ -852,7 +852,7 @@ cdef _fe_initialize_opening_turn(
     state.active_player = active_player
     if not opening_bonus:
         return
-    self.start_turn_fast(state, active_player)
+    _fe_start_turn_fast(self, state, active_player)
 
 cdef inline void _fe_clear_pass_sequence_fast(
     FastEngine self,
@@ -879,11 +879,11 @@ cdef void _fe_resume_pending_flow(FastEngine self, FastState state):
     state.pending_resume_player = -1
     state.pending_draw_finish_operation = 0
     if resume == RESUME_FINISH_OPERATION and player >= 0:
-        self.finish_operation_fast(state, player)
+        _fe_finish_operation_fast(self, state, player)
     elif resume == RESUME_BATTLE_RESOLUTION:
-        self.advance_battle_resolution(state)
+        _fe_advance_battle_resolution(self, state)
     elif resume == RESUME_START_BATTLE:
-        self.finish_start_battle(state, player)
+        _fe_finish_start_battle(self, state, player)
 
 cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor):
     cdef int opponent = 1 - actor
@@ -891,7 +891,7 @@ cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor)
 
     # Any non-Pass operation breaks a pending consecutive-Pass sequence.
     if state.pass_len > 0:
-        self.clear_pass_sequence_fast(state)
+        _fe_clear_pass_sequence_fast(self, state)
 
-    self.start_turn_fast(state, opponent)
+    _fe_start_turn_fast(self, state, opponent)
     state.turn_number += 1
