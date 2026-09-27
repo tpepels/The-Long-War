@@ -33,6 +33,7 @@ RULE_BLOCK_KINDS = {
     "trigger",
     "effect",
     "continuous",
+    "constraint",
     "cost",
     "replacement",
 }

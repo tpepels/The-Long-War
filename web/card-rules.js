@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const KINDS = new Set(["property", "timing", "trigger", "effect", "continuous"]);
+  const KINDS = new Set(["property", "timing", "trigger", "effect", "continuous", "constraint", "replacement"]);
   function fallbackLabel(card, block) {
     if (block?.label) return String(block.label);
     if (block?.kind === "property") return "PLAY";
