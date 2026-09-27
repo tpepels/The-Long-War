@@ -451,6 +451,18 @@ function progressionMetric(label, distribution, note) {
 
 function renderProgression(lab) {
   const p = lab.progression || lab.raw_telemetry?.progression;
+  const source = lab.progression_source;
+  const sourceNote = document.getElementById("progression-source-note");
+  if (sourceNote) {
+    if (source?.label || source?.scope) {
+      const counts = source.games == null
+        ? ""
+        : ` ${source.games} games · ${source.decisive_games ?? source.games} decisive · ${source.censored_games ?? 0} censored.`;
+      sourceNote.textContent = ` Detailed panel: ${source.label || "self-play"}.${counts} ${source.scope || ""}`;
+    } else {
+      sourceNote.textContent = "";
+    }
+  }
   const unavailable = document.getElementById("progression-unavailable");
   if (!p) {
     unavailable.hidden = false;
