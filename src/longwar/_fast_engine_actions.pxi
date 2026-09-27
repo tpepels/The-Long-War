@@ -41,7 +41,7 @@ cdef inline bint _fe_card_move_destination_legal(
         return False
     if (
         abs(front_from_slot(source) - front_from_slot(dest)) == 1
-        and self.opponent_blocks_card_move_into_front(
+        and _fe_opponent_blocks_card_move_into_front(self, 
             state, owner, front_from_slot(dest)
         )
     ):
@@ -102,7 +102,7 @@ cdef inline bint _fe_maneuver_source_legal(
     force = state.subject[slot]
     if force < 0 or self.immobile_force[force]:
         return False
-    if self.slot_complete(state, slot):
+    if _fe_slot_complete(self, state, slot):
         return True
     if self.can_maneuver_unnamed[force]:
         if not self.maneuver_requires_open_bond[force]:
@@ -113,7 +113,7 @@ cdef inline bint _fe_maneuver_source_legal(
     if (
         bond >= 0
         and self.bond_maneuver_adjacent_hero[bond]
-        and self.adjacent_hero_formation(state, player, slot)
+        and _fe_adjacent_hero_formation(self, state, player, slot)
     ):
         return True
     strat = state.stratagem[player]
@@ -216,7 +216,7 @@ cdef int _fe_legal_pending_effect_actions(
                     or self.immobile_force[state.subject[source]]
                 ):
                     continue
-            elif not self.maneuver_source_legal(
+            elif not _fe_maneuver_source_legal(self, 
                 state, player, source
             ):
                 continue
@@ -224,11 +224,11 @@ cdef int _fe_legal_pending_effect_actions(
             rank = rank_from_slot(source)
             if front > 0:
                 dest = slot_index(player, front - 1, rank)
-                if self.maneuver_destination_legal(state, dest):
+                if _fe_maneuver_destination_legal(self, state, dest):
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
             if front < 3:
                 dest = slot_index(player, front + 1, rank)
-                if self.maneuver_destination_legal(state, dest):
+                if _fe_maneuver_destination_legal(self, state, dest):
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_MOVE:
         for source in range(SLOT_COUNT):
@@ -237,7 +237,7 @@ cdef int _fe_legal_pending_effect_actions(
             for dest in range(SLOT_COUNT):
                 if not (dest_mask & (1 << dest)):
                     continue
-                if self.card_move_destination_legal(
+                if _fe_card_move_destination_legal(self, 
                     state, player, source, dest
                 ):
                     n = _append_action(
@@ -300,12 +300,12 @@ cdef int _fe_legal_pending_effect_actions(
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_INTERCEPT:
         for source in range(player * 8, player * 8 + 8):
-            if source_mask & (1 << source) and self.slot_complete(state, source):
+            if source_mask & (1 << source) and _fe_slot_complete(self, state, source):
                 n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, -1, player, kind))
     elif kind == EFFECT_RETREAT:
         source = state.pending_source[0]
         dest = state.pending_aux[0]
-        if source >= 0 and dest >= 0 and self.slot_complete(state, source) and self.slot_is_empty(state, dest):
+        if source >= 0 and dest >= 0 and _fe_slot_complete(self, state, source) and _fe_slot_is_empty(self, state, dest):
             n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_PROTECT_RETREAT:
         source = state.pending_source[0]
@@ -360,7 +360,7 @@ cdef int _fe_legal_actions_into(
                 )
         return n
     if state.pending_len > 0:
-        return self.legal_pending_effect_actions(state, actions)
+        return _fe_legal_pending_effect_actions(self, state, actions)
 
     opponent = 1 - player
 
@@ -428,7 +428,7 @@ cdef int _fe_legal_actions_into(
                     rank = local & 1
                     if front > 0:
                         dest = slot_index(player, front - 1, rank)
-                        if self.card_move_destination_legal(
+                        if _fe_card_move_destination_legal(self, 
                             state, player, slot, dest
                         ):
                             n = _append_action(
@@ -444,7 +444,7 @@ cdef int _fe_legal_actions_into(
                             )
                     if front < 3:
                         dest = slot_index(player, front + 1, rank)
-                        if self.card_move_destination_legal(
+                        if _fe_card_move_destination_legal(self, 
                             state, player, slot, dest
                         ):
                             n = _append_action(
@@ -495,7 +495,7 @@ cdef int _fe_legal_actions_into(
                     elif choice == STORY_CHOICE_NAMED_FORMATION:
                         for local in range(8):
                             slot = player * 8 + local
-                            if self.slot_complete(state, slot):
+                            if _fe_slot_complete(self, state, slot):
                                 n = _append_action(
                                     actions,
                                     n,
@@ -526,7 +526,7 @@ cdef int _fe_legal_actions_into(
                         slot = opponent * 8 + local
                         if (
                             state.subject[slot] >= 0
-                            and not self.subject_protected(state, slot)
+                            and not _fe_subject_protected(self, state, slot)
                         ):
                             n = _append_action(
                                 actions,
@@ -662,7 +662,7 @@ cdef int _fe_legal_actions_into(
                                 if front == 3:
                                     continue
                                 dest = slot_index(player, front + 1, rank)
-                            if self.card_move_destination_legal(
+                            if _fe_card_move_destination_legal(self, 
                                 state, player, source, dest
                             ):
                                 eligible_mask |= <uint32_t>(1 << source)
@@ -730,13 +730,13 @@ cdef int _fe_legal_actions_into(
     # A prepared-only Bond/Name position is occupied but is not a formation.
     for local in range(8):
         source = player * 8 + local
-        if not self.maneuver_source_legal(state, player, source):
+        if not _fe_maneuver_source_legal(self, state, player, source):
             continue
         front = local >> 1
         rank = local & 1
         if front > 0:
             dest = slot_index(player, front - 1, rank)
-            if self.maneuver_destination_legal(state, dest):
+            if _fe_maneuver_destination_legal(self, state, dest):
                 n = _append_action(
                     actions,
                     n,
@@ -744,7 +744,7 @@ cdef int _fe_legal_actions_into(
                 )
         if front < 3:
             dest = slot_index(player, front + 1, rank)
-            if self.maneuver_destination_legal(state, dest):
+            if _fe_maneuver_destination_legal(self, state, dest):
                 n = _append_action(
                     actions,
                     n,
@@ -755,7 +755,7 @@ cdef int _fe_legal_actions_into(
     kept = 0
     for i in range(n):
         action = actions[i]
-        if self.command_cost_fast(state, action) <= available:
+        if _fe_command_cost_fast(self, state, action) <= available:
             actions[kept] = action
             kept += 1
     n = kept
@@ -774,6 +774,6 @@ cdef int _fe_legal_actions_into(
 
 cdef list _fe_legal_actions(FastEngine self, FastState state):
     cdef uint64_t actions[MAX_ACTIONS]
-    cdef int n = self.legal_actions_into(state, &actions[0])
+    cdef int n = _fe_legal_actions_into(self, state, &actions[0])
     cdef int i
     return [actions[i] for i in range(n)]
