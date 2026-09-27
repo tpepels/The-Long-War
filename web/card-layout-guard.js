@@ -5,8 +5,10 @@
     "game-card": [
       ["meta", ".card-meta"],
       ["title", ".card-title"],
+      ["stats", ".card-stats"],
       ["properties", ".card-properties"],
       ["rules", ".card-rule"],
+      ["ornament", ".card-ornament"],
       ["footer", ".card-footer"],
     ],
     "play-card": [
@@ -60,7 +62,7 @@
 
   function inspectCard(card) {
     const type = card.classList.contains("game-card") ? "game-card" : "play-card";
-    const regions = REGION_MAP[type];
+    const regions = REGION_MAP[type].filter(([, selector]) => card.querySelector(selector));
     const failures = [];
 
     for (const [label, selector] of regions) {
@@ -96,7 +98,7 @@
       const badge = card.querySelector(".strength");
       const meta = card.querySelector(".card-meta");
       if (badge && outside(card, badge)) failures.push("strength-outside");
-      if (badge && meta) {
+      if (badge && meta && meta.contains(badge)) {
         const metaRect = meta.getBoundingClientRect();
         const badgeRect = badge.getBoundingClientRect();
         const overflow = getComputedStyle(meta).overflow;

@@ -1,0 +1,117 @@
+/* Printed cards have their own stylesheet; the play table and website do not
+   inherit this geometry. Fonts are bundled so exports do not depend on OS fonts. */
+@font-face { font-family: "LW Display"; src: url("fonts/EBGaramond-SemiBold.otf") format("opentype"); font-weight: 600; font-display: block; }
+@font-face { font-family: "LW Text"; src: url("fonts/GentiumBook-Regular.ttf") format("truetype"); font-weight: 400; font-display: block; }
+@font-face { font-family: "LW Text"; src: url("fonts/GentiumBook-Bold.ttf") format("truetype"); font-weight: 700; font-display: block; }
+@font-face { font-family: "LW Text"; src: url("fonts/GentiumBook-Italic.ttf") format("truetype"); font-style: italic; font-display: block; }
+
+* { box-sizing: border-box; }
+body { margin: 0; color: #262821; background: #e7e4dd; }
+a { color: inherit; }
+.screen-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; color: #faf8f2; background: #292d27; font: 13px/1.4 Arial, sans-serif; }
+.screen-toolbar > a { font: 600 24px/1 "LW Display", Georgia, serif; text-decoration: none; }
+.screen-toolbar > div { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; }
+button, .button { padding: 8px 12px; border: 1px solid #a9aa9f; color: inherit; background: transparent; font: inherit; cursor: pointer; text-decoration: none; }
+.card-sheets, .playtest-decks { width: 210mm; margin: 24px auto; }
+.card-sheets, .deck-card-grid { display: grid; grid-template-columns: repeat(3, 63mm); grid-auto-rows: 88mm; gap: 5mm 2.5mm; justify-content: center; }
+.print-deck + .print-deck { margin-top: 16mm; }
+.deck-sheet-heading { display: flex; justify-content: space-between; padding: 0 8mm 5mm; font: 12px/1.3 Arial, sans-serif; }
+
+.game-card {
+  --accent: #5c6256;
+  --paper: #faf8f1;
+  width: 63mm;
+  height: 88mm;
+  padding: 2.8mm 3.2mm 1.8mm;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  break-inside: avoid;
+  border: .28mm solid #484a40;
+  border-radius: 2.6mm;
+  background: var(--paper);
+  color: #25271f;
+  box-shadow: 0 1mm 2mm #29271922;
+  font: 3.45mm/1.12 "LW Text", Georgia, serif;
+}
+.game-card::before { content: ""; position: absolute; inset: 1.15mm; z-index: -1; border: .18mm solid var(--accent); border-radius: 1.6mm; opacity: .5; pointer-events: none; }
+.game-card::after { content: ""; position: absolute; top: 0; left: 7mm; right: 7mm; height: .8mm; background: var(--accent); }
+.game-card.card-force { --accent: #5d6553; }
+.game-card.card-bond { --accent: #775341; --paper: #fcf7ee; }
+.game-card.card-name { --accent: #3c6558; --paper: #f5f8f1; }
+.game-card.card-story { --accent: #735568; --paper: #fbf7f5; }
+.game-card.card-stratagem { --accent: #405d70; --paper: #f6f8f8; }
+.game-card.card-hero { --accent: #8a6027; --paper: #fbf6e9; border-color: #765525; border-width: .42mm; }
+.card-hero::before { border-width: .28mm; opacity: .8; }
+.card-hero::after { height: 1.05mm; }
+
+.card-meta { display: flex; align-items: center; justify-content: space-between; gap: 1.5mm; min-height: 7.2mm; flex: 0 0 auto; }
+.card-type { color: var(--accent); font: 700 2.45mm/1.15 Arial, sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+.card-type small { display: block; margin-top: .6mm; color: #55584c; font-size: 2.05mm; font-weight: 400; letter-spacing: .025em; }
+.command-cost { flex: 0 0 auto; display: flex; align-items: center; gap: .9mm; }
+.command-cost > small { font: 700 1.65mm/1 Arial, sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+.command-seal { position: relative; display: grid; place-items: center; width: 6.7mm; height: 7.5mm; }
+.command-seal svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: #303b30; }
+.command-seal b { position: relative; padding-bottom: .7mm; color: #fffdf5; font: 600 4.7mm/1 "LW Display", Georgia, serif; }
+.card-hero .command-seal svg { fill: #795522; }
+.card-title { flex: 0 0 auto; margin: 1mm 0 1.5mm; font: 600 5.3mm/1.15 "LW Display", Georgia, serif; letter-spacing: -.025em; text-wrap: balance; }
+
+.card-stats { flex: 0 0 auto; min-height: 5.6mm; display: flex; align-items: center; gap: 1.1mm; margin-bottom: .8mm; color: var(--accent); }
+.strength { display: grid; place-items: center; width: 5.8mm; height: 5.8mm; border: .25mm solid var(--accent); border-radius: 50%; font: 600 4.5mm/1 "LW Display", Georgia, serif; }
+.stat-label { font: 700 1.95mm/1.2 Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+.hero-modes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; border-top: .2mm solid #b5a07b; border-bottom: .2mm solid #b5a07b; padding: .7mm 0; }
+.hero-mode { display: flex; align-items: center; justify-content: space-between; gap: 1mm; padding: 0 2mm; }
+.hero-mode:first-child { padding-left: 0; border-right: .2mm solid #b5a07b; }
+.hero-mode:last-child { padding-right: 0; color: #3c6558; }
+.hero-mode .stat-label small { display: block; margin-top: .25mm; font-size: 1.65mm; font-weight: 400; letter-spacing: .025em; }
+.stat-value { font: 600 5mm/1 "LW Display", Georgia, serif; }
+.card-properties { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25mm 1.5mm; margin: .2mm 0 1.4mm; color: #52584b; font-size: 2.7mm; line-height: 1.05; }
+.card-properties:empty { display: none; }
+.card-role { font-weight: 700; }
+.card-role + .card-classes { border-left: .18mm solid #b9b9a8; padding-left: 1.5mm; }
+.card-classes { font-style: italic; }
+
+.card-rule { position: relative; flex: 1 1 auto; min-height: 0; padding: 1.6mm 0 1mm; border-top: .2mm solid #b9b9a8; }
+.rule-block + .rule-block { margin-top: 1.55mm; }
+.rule-label { display: inline; color: var(--accent); font: 700 1.95mm/1.1 Arial, sans-serif; letter-spacing: .065em; text-transform: uppercase; margin-right: .9mm; }
+.rule-label::after { content: " /"; opacity: .65; }
+.rule-label-long { display: block; margin-bottom: .65mm; }
+.rule-label-long::after { content: none; }
+.rule-text { font: inherit; }
+.rule-text strong { font-weight: 700; }
+.hero-trait { font-size: 2.9mm; line-height: 1.12; margin-bottom: 1.4mm; }
+.hero-rule + .hero-rule { margin-top: 1.25mm; }
+.rule-mode-start { border-top: .18mm solid #c5b69a; padding-top: 1.1mm; }
+.hero-trait + .rule-mode-start { border-top: 0; padding-top: 0; }
+.rule-mode-name .rule-label { color: #3c6558; }
+.card-footer { display: flex; align-items: end; justify-content: space-between; gap: 2mm; flex: 0 0 auto; min-height: 3.5mm; padding-top: .8mm; border-top: .18mm solid #b9b9a8; color: #5d6356; font: 1.65mm/1.15 Arial, sans-serif; }
+.unique { color: var(--accent); font-weight: 700; font-style: normal; letter-spacing: .12em; text-transform: uppercase; }
+.card-id { text-align: right; overflow-wrap: anywhere; }
+.card-brief .card-rule { flex: 0 0 auto; font-size: 3.75mm; line-height: 1.16; }
+.card-ornament { display: flex; flex: 1 1 auto; min-height: 0; align-items: center; justify-content: center; }
+.card-ornament svg { width: 18mm; height: 4.3mm; fill: var(--accent); stroke: var(--accent); stroke-width: .8; opacity: .38; }
+.card-vanilla .card-rule { padding-top: 8mm; text-align: center; color: #62695b; }
+.game-card.layout-overflow { outline: .6mm solid #a52f28; outline-offset: .4mm; }
+
+@page cards { size: A4 portrait; margin: 8mm; }
+@media screen and (max-width: 800px) {
+  .card-sheets, .playtest-decks { width: 100%; }
+  .card-sheets, .deck-card-grid { grid-template-columns: repeat(2, 63mm); }
+}
+@media screen and (max-width: 510px) {
+  .screen-toolbar { align-items: start; flex-direction: column; }
+  .card-sheets, .deck-card-grid { grid-template-columns: 63mm; }
+}
+@media print {
+  body { background: white; }
+  .screen-toolbar, .deck-sheet-heading { display: none; }
+  .card-sheets, .playtest-decks { width: auto; margin: 0; }
+  .card-sheets, .print-deck { page: cards; }
+  .card-sheets, .deck-card-grid { grid-template-columns: repeat(3, 63mm); grid-auto-rows: 88mm; gap: 5mm 2.5mm; }
+  .game-card { box-shadow: none; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .game-card:nth-child(9n + 1) { break-before: page; }
+  .game-card:first-child { break-before: auto; }
+  .print-deck + .print-deck { break-before: page; margin-top: 0; }
+}

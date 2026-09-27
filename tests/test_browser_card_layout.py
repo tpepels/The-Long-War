@@ -1,6 +1,13 @@
 from __future__ import annotations
 
+import json
+import re
+import shutil
+import subprocess
+from html.parser import HTMLParser
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -19,18 +26,158 @@ def test_browser_hand_cards_use_one_fixed_internal_geometry() -> None:
     assert "card-density-" not in css
 
 
-def test_print_cards_use_five_fixed_information_zones() -> None:
-    css = text("web/style.css")
-    assert "grid-template-rows: 7mm 15mm 10mm minmax(0, 1fr) 6mm;" in css
+def test_print_pages_load_the_shared_renderer_and_styles() -> None:
+    for page, renderer in (
+        ("web/cards.html", "cards.js"),
+        ("web/playtest-kit.html", "playtest-kit.js"),
+    ):
+        source = text(page)
+        assert 'href="print-cards.css"' in source
+        assert source.index('src="card-rules.js"') < source.index('src="print-cards.js"')
+        assert source.index('src="print-cards.js"') < source.index(f'src="{renderer}"')
+        assert "PrintCards.markup(" in text("web/" + renderer)
 
-    for renderer in ("web/cards.js", "web/playtest-kit.js"):
-        source = text(renderer)
-        assert 'class="card-meta"' in source
-        assert 'class="card-title"' in source
-        assert 'class="card-properties"' in source
-        assert 'cardArtMarkup(card) +' not in source
-        assert 'class="card-rule"' in source
-        assert 'class="card-footer"' in source
+
+class RenderedCard(HTMLParser):
+    """Collect decoded text and structure without introducing a DOM dependency."""
+
+    def __init__(self, markup: str) -> None:
+        super().__init__(convert_charrefs=True)
+        self.elements: list[dict] = []
+        self.stack: list[dict] = []
+        self.feed(markup)
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        element = {
+            "tag": tag,
+            "attrs": dict(attrs),
+            "text": "",
+            "ancestors": self.stack.copy(),
+        }
+        self.elements.append(element)
+        if tag not in {"br", "hr", "img", "input", "meta", "link"}:
+            self.stack.append(element)
+
+    def handle_endtag(self, tag: str) -> None:
+        if self.stack:
+            assert self.stack[-1]["tag"] == tag
+            self.stack.pop()
+
+    def handle_data(self, data: str) -> None:
+        for element in self.stack:
+            element["text"] += data
+
+    def all(self, class_name: str) -> list[dict]:
+        return [
+            element
+            for element in self.elements
+            if class_name in element["attrs"].get("class", "").split()
+        ]
+
+    def one(self, class_name: str) -> dict:
+        elements = self.all(class_name)
+        assert len(elements) == 1, (class_name, elements)
+        return elements[0]
+
+
+def render_print_cards(cards: list[dict], deck_label: str | None = None) -> list[RenderedCard]:
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node.js is required to exercise the shared print renderer")
+    script = """
+const fs = require("node:fs");
+global.window = {};
+eval(fs.readFileSync("web/card-rules.js", "utf8"));
+eval(fs.readFileSync("web/print-cards.js", "utf8"));
+const input = JSON.parse(fs.readFileSync(0, "utf8"));
+process.stdout.write(JSON.stringify(input.cards.map(card => window.PrintCards.markup(card, input.deckLabel))));
+"""
+    result = subprocess.run(
+        [node, "-e", script],
+        input=json.dumps({"cards": cards, "deckLabel": deck_label}),
+        text=True,
+        capture_output=True,
+        cwd=ROOT,
+        timeout=10,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    return [RenderedCard(markup) for markup in json.loads(result.stdout)]
+
+
+def test_print_renderer_preserves_catalogue_content_and_hero_modes() -> None:
+    cards = json.loads(text("cards/cards.json"))["cards"]
+    rendered = render_print_cards(cards)
+    for card, output in zip(cards, rendered, strict=True):
+        assert output.one("game-card")["attrs"]["data-card-id"] == card["id"]
+        assert output.one("card-title")["text"] == card["title"]
+        assert output.one("card-id")["text"] == card["id"]
+        assert bool(output.all("unique")) == bool(card.get("unique"))
+        properties = output.one("card-properties")["text"].lower()
+        for value in card.get("classes", []):
+            if value != "hero":
+                assert value.replace("-", " ").replace("_", " ") in properties
+        if card["type"] == "force" and card.get("role"):
+            assert output.one("card-role")["text"].lower() == card["role"].replace("-", " ").replace("_", " ")
+        region_classes = ["card-meta", "card-title"]
+        if card.get("hero") or isinstance(card.get("strength"), int):
+            region_classes.append("card-stats")
+        region_classes.extend(["card-properties", "card-rule", "card-footer"])
+        regions = [output.one(name) for name in region_classes]
+        assert [output.elements.index(region) for region in regions] == sorted(
+            output.elements.index(region) for region in regions
+        )
+        for block, rendered_block in zip(card["rule_blocks"], output.all("rule-block"), strict=bool(card["rule_blocks"])):
+            assert block["text"].replace("*", "") in rendered_block["text"]
+            assert block["label"] in rendered_block["text"]
+        if card.get("hero"):
+            modes = output.all("hero-mode")
+            assert len(modes) == 2
+            assert "Force" in modes[0]["text"]
+            assert "Name" in modes[1]["text"]
+            values = output.all("stat-value")
+            for mode, expected in zip(modes, (card["strength"], card["hero_name_strength"]), strict=True):
+                assert [value["text"] for value in values if mode in value["ancestors"]] == [str(expected)]
+        elif isinstance(card.get("strength"), int):
+            assert output.one("card-stats") in output.one("strength")["ancestors"]
+            assert output.one("strength")["text"] == str(card["strength"])
+        else:
+            assert not output.all("strength")
+        if isinstance(card.get("command_cost"), int):
+            assert output.one("card-meta") in output.one("command-cost")["ancestors"]
+            assert re.findall(r"-?\d+", output.one("command-cost")["text"]) == [str(card["command_cost"])]
+        else:
+            assert not output.all("command-cost")
+
+
+def test_print_renderer_keeps_zero_negative_values_and_escapes_content() -> None:
+    hostile = '<img src=x onerror="bad()"> & </script>'
+    cards = [
+        {
+            "id": hostile, "title": hostile, "type": "force", "strength": -1,
+            "command_cost": 0, "role": "swordsman", "classes": ["human"],
+            "unique": True,
+            "rule_blocks": [{"kind": "effect", "label": hostile, "text": "**Strength** " + hostile}],
+        },
+        {
+            "id": "zero-hero", "title": "Zero Hero", "type": "force", "hero": True,
+            "strength": 0, "hero_name_strength": -2, "command_cost": 0,
+            "classes": ["hero"], "rule_blocks": [],
+        },
+    ]
+    deck_label = "Deck " + hostile
+    first, hero = render_print_cards(cards, deck_label)
+    assert first.one("card-title")["text"] == hostile
+    assert first.one("game-card")["attrs"]["data-card-id"] == hostile
+    assert first.one("card-id")["text"] == deck_label
+    assert first.one("rule-label")["text"] == hostile
+    assert first.one("rule-text")["text"] == "Strength " + hostile
+    assert deck_label in first.one("card-footer")["text"]
+    assert not any(element["tag"] in {"img", "script"} for element in first.elements)
+    assert re.findall(r"-?\d+", first.one("command-cost")["text"]) == ["0"]
+    assert first.one("strength")["text"] == "-1"
+    assert [value["text"] for value in hero.all("stat-value") if hero.one("card-stats") in value["ancestors"]] == ["0", "-2"]
+    assert re.findall(r"-?\d+", hero.one("command-cost")["text"]) == ["0"]
 
 
 def test_semantic_rule_renderer_is_shared_by_all_card_surfaces() -> None:
