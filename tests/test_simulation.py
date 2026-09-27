@@ -76,6 +76,15 @@ def test_action_horizon_is_recorded_as_censoring() -> None:
     assert match_length["censored_final_battle_number"]["median"] == 1
     assert match_length["resolved_battles_per_match"]["median"] == 0
 
+    exposed = [
+        stats
+        for stats in report.telemetry["cards"].values()
+        if stats["games_drawn"] > 0
+    ]
+    assert exposed
+    assert all(stats["decisive_games_drawn"] == 0 for stats in exposed)
+    assert all(stats["win_rate_when_drawn"] is None for stats in exposed)
+
 
 def test_simulation_supports_distinct_agent_labels() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
