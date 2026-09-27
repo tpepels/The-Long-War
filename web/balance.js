@@ -106,7 +106,11 @@ function renderOverview(lab) {
       totalGames.toLocaleString(),
       `${decisiveGames.toLocaleString()} decisive · ${censoredGames.toLocaleString()} censored · ${h.source.agents.join(" vs ")}`
     ),
-    metric("First-player win", pct(g.first_player_win_rate), `decisive games · 95% ${interval(g.first_player_win_rate_95)}`),
+    metric(
+      "First-player win",
+      decisiveGames > 0 ? pct(g.first_player_win_rate) : "—",
+      decisiveGames > 0 ? `decisive games · 95% ${interval(g.first_player_win_rate_95)}` : "no decisive games"
+    ),
     metric("Cards", s.cards_analyzed, `${s.flags_high} high · ${s.flags_watch} watch flags`),
     metric("Forces becoming Named", pct(lifecycle.force_to_name_rate), progression ? `${lifecycle.forces_ever_named ?? 0} / ${lifecycle.forces ?? 0} Force lifecycles` : "progression not generated"),
     metric("Forced choice", pct(choice.exactly_one_legal_action_rate), progression ? "decisions with exactly one legal action" : "progression not generated"),
@@ -182,12 +186,24 @@ function renderAttention(lab) {
     ));
   }
 
-  const seatDelta = Math.abs(firstPlayer - 0.5);
-  items.push(attentionItem(
-    seatDelta > 0.05 ? "watch" : "good",
-    "Turn-order check",
-    `First player wins ${pct(firstPlayer)} of the current self-play sample${seatDelta > 0.05 ? ", so turn order deserves follow-up." : ", inside the 45–55% working band."}`
-  ));
+  const decisiveGames = Number(
+    lab.health.source.decisive_games ??
+    (Number(lab.health.source.games || 0) - Number(lab.health.source.censored_games || 0))
+  );
+  if (decisiveGames > 0) {
+    const seatDelta = Math.abs(firstPlayer - 0.5);
+    items.push(attentionItem(
+      seatDelta > 0.05 ? "watch" : "good",
+      "Turn-order check",
+      `First player wins ${pct(firstPlayer)} of ${decisiveGames} decisive self-play games${seatDelta > 0.05 ? ", so turn order deserves follow-up." : ", inside the 45–55% working band."}`
+    ));
+  } else {
+    items.push(attentionItem(
+      "pending",
+      "Turn-order evidence unavailable",
+      "No simulated game produced a decisive outcome within the action horizon."
+    ));
+  }
 
   if (suite) {
     items.push(attentionItem(
@@ -380,8 +396,16 @@ function renderMatchups(lab) {
               ${row.games ?? "—"}
               <span class="muted">${row.decisive_games ?? ((row.games ?? 0) - (row.censored_games ?? 0))} decisive · ${row.censored_games ?? 0} censored</span>
             </td>
-            <td>${(row.win_rates || []).map((v) => pct(v)).join(" / ")}</td>
-            <td>${pct(row.first_player_win_rate)}</td>
+            <td>${
+              (row.decisive_games ?? ((row.games ?? 0) - (row.censored_games ?? 0))) > 0
+                ? (row.win_rates || []).map((v) => pct(v)).join(" / ")
+                : "—"
+            }</td>
+            <td>${
+              (row.decisive_games ?? ((row.games ?? 0) - (row.censored_games ?? 0))) > 0
+                ? pct(row.first_player_win_rate)
+                : "—"
+            }</td>
             <td>
               <details class="row-evidence">
                 <summary>details</summary>
