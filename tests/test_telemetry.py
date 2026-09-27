@@ -54,6 +54,13 @@ def test_telemetry_contains_card_pass_battle_and_combo_metrics() -> None:
     assert telemetry["formation_combinations"]
     assert "legend_combinations" not in telemetry
 
+    match_length = telemetry["progression"]["match_length"]
+    assert match_length["matches"] == 20
+    assert match_length["censored_matches"] == report.censored_games
+    assert match_length["battle_reach"]["1"]["matches"] == 20
+    assert match_length["battle_reach"]["1"]["rate"] == pytest.approx(1.0)
+    assert match_length["resolved_battles_per_match"]["count"] == 20
+
 
 @pytest.mark.integration
 def test_heuristic_beats_random_in_small_fixed_benchmark() -> None:
