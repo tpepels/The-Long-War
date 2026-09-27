@@ -14,7 +14,8 @@ def simulation_summary(data: dict[str, Any] | None) -> dict[str, Any] | None:
     result = {
         key: data.get(key)
         for key in (
-            "games", "agents", "wins", "win_rates", "first_player_win_rate",
+            "games", "agents", "wins", "censored_games", "censor_rate",
+            "win_rates", "first_player_win_rate",
             "mean_turns", "max_turns", "game_fingerprint", "seed", "config",
             "simulation_variant", "heuristic_config", "online_config",
             "strategic_config", "ismcts_config",
@@ -66,10 +67,12 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
     telemetry = simulation["telemetry"]
     meta = {card["id"]: card for card in card_data["cards"]}
     games = int(simulation["games"])
+    censored_games = int(simulation.get("censored_games", 0))
+    decisive_games = max(0, games - censored_games)
 
     fp = int(simulation["first_player_wins"])
-    fp_rate = fp / games
-    fp_ci = wilson_interval(fp, games)
+    fp_rate = fp / decisive_games if decisive_games else 0.0
+    fp_ci = wilson_interval(fp, decisive_games)
     global_flags: list[dict[str, Any]] = []
     if fp_ci[0] is not None:
         if fp_ci[0] > 0.55 or fp_ci[1] < 0.45:
@@ -361,7 +364,14 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         "schema_version": 1,
         "game_fingerprint": simulation.get("game_fingerprint"),
         "simulation_variant": simulation.get("simulation_variant"),
-        "source": {"games": games, "agents": simulation["agents"], "wins": simulation["wins"]},
+        "source": {
+            "games": games,
+            "decisive_games": decisive_games,
+            "censored_games": censored_games,
+            "censor_rate": (censored_games / games if games else 0.0),
+            "agents": simulation["agents"],
+            "wins": simulation["wins"],
+        },
         "global": {
             "first_player_win_rate": fp_rate,
             "first_player_win_rate_95": list(fp_ci),
