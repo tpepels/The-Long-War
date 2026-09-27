@@ -22,6 +22,34 @@ def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def seat_swapped_evaluation(
+    forward: dict[str, Any],
+    reverse: dict[str, Any],
+) -> dict[str, Any]:
+    """Combine mirrored evaluations using decisive games only."""
+    forward_games = int(forward.get("games", 0))
+    reverse_games = int(reverse.get("games", 0))
+    forward_censored = int(forward.get("censored_games", 0))
+    reverse_censored = int(reverse.get("censored_games", 0))
+    attempted_games = forward_games + reverse_games
+    censored_games = forward_censored + reverse_censored
+    decisive_games = max(0, attempted_games - censored_games)
+    mccfr_wins = int(forward.get("wins", [0, 0])[0]) + int(
+        reverse.get("wins", [0, 0])[1]
+    )
+    return {
+        "seat_swapped_mccfr_win_rate": (
+            mccfr_wins / decisive_games if decisive_games else None
+        ),
+        "games": attempted_games,
+        "decisive_games": decisive_games,
+        "censored_games": censored_games,
+        "censor_rate": (
+            censored_games / attempted_games if attempted_games else 0.0
+        ),
+    }
+
+
 def main() -> None:
     game_fingerprint = current_game_fingerprint()
     card_data = load(ROOT / "cards" / "cards.json")
@@ -48,15 +76,7 @@ def main() -> None:
                 "rerun evaluation for the current ruleset"
             )
 
-        forward_games = int(forward.get("games", 0))
-        reverse_games = int(reverse.get("games", 0))
-        total_games = forward_games + reverse_games
-        mccfr_wins = int(forward.get("wins", [0, 0])[0]) + int(
-            reverse.get("wins", [0, 0])[1]
-        )
-        seat_swapped_rate = (
-            mccfr_wins / total_games if total_games else None
-        )
+        combined_evaluation = seat_swapped_evaluation(forward, reverse)
 
         profiles.append(
             {
@@ -81,8 +101,7 @@ def main() -> None:
                 "evaluation": {
                     "mccfr_vs_heuristic": simulation_summary(forward),
                     "heuristic_vs_mccfr": simulation_summary(reverse),
-                    "seat_swapped_mccfr_win_rate": seat_swapped_rate,
-                    "games": total_games,
+                    **combined_evaluation,
                 },
             }
         )
