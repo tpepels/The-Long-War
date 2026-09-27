@@ -41,7 +41,9 @@ def build_playability_report(
             "Simulation reports belong to different game fingerprints"
         )
 
-    games = battles = pass_events = decisions = 0
+    games = battles = censored_games = pass_events = decisions = 0
+    final_battle_weight = final_battle_count = 0.0
+    battle_reach: Counter[str] = Counter()
     match_actions = pass_hand_total = pass_dead_total = 0.0
     candidate_total = 0.0
     first_pass_events = 0.0
@@ -73,9 +75,22 @@ def build_playability_report(
         passes = telemetry["passes"]
         run_pass_events = int(passes["events"])
 
+        run_censored = int(simulation.get("censored_games", 0) or 0)
         games += game_count
+        censored_games += run_censored
         battles += battle_count
         match_actions += float(simulation["mean_turns"]) * game_count
+
+        match_length = (
+            telemetry.get("progression", {}).get("match_length", {})
+        )
+        final_battle = match_length.get("final_battle_number", {})
+        final_count = int(final_battle.get("count", 0) or 0)
+        if final_count:
+            final_battle_weight += float(final_battle["mean"]) * final_count
+            final_battle_count += final_count
+        for key, row in match_length.get("battle_reach", {}).items():
+            battle_reach[key] += int(row.get("matches", 0) or 0)
         actions.update(run_actions)
         pass_events += run_pass_events
         pass_hand_total += (
@@ -128,8 +143,17 @@ def build_playability_report(
                     or f"simulation-{index + 1}"
                 ),
                 "games": game_count,
+                "decisive_games": game_count - run_censored,
+                "censored_games": run_censored,
                 "mean_battles_per_match": (
                     battle_count / game_count
+                ),
+                "mean_resolved_battles_per_match": (
+                    battle_count / game_count
+                ),
+                "mean_final_battle_reached": (
+                    float(final_battle["mean"])
+                    if final_count else None
                 ),
                 "mean_cards_played_per_battle": (
                     cards_played / battle_count
@@ -152,10 +176,24 @@ def build_playability_report(
         "scope": {
             "simulation_reports": len(simulations),
             "games": games,
+            "decisive_games": games - censored_games,
+            "censored_games": censored_games,
             "battles": battles,
         },
         "match_pacing": {
             "mean_battles_per_match": battles / games,
+            "mean_resolved_battles_per_match": battles / games,
+            "mean_final_battle_reached": (
+                final_battle_weight / final_battle_count
+                if final_battle_count else None
+            ),
+            "battle_reach": {
+                key: {
+                    "matches": battle_reach[key],
+                    "rate": battle_reach[key] / games,
+                }
+                for key in sorted(battle_reach, key=int)
+            },
             "mean_action_events_per_match": match_actions / games,
             "mean_cards_played_per_match": cards_played / games,
         },
