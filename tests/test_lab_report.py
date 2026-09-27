@@ -285,3 +285,58 @@ def test_mccfr_suite_profiles_match_current_canonical_decks() -> None:
     }
     assert len(build_mccfr_suite.PROFILES) == 6
 
+def test_lab_can_promote_observationally_unobserved_card_with_causal_evidence(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    fingerprint = "current-engine"
+    artifacts = {
+        "balance-health.json": {
+            "game_fingerprint": fingerprint,
+            "simulation_variant": standard_variant(),
+            "cards": [{
+                "id": "card-a",
+                "title": "Card A",
+                "balance_level": "unobserved",
+                "balance_label": "Unobserved",
+                "balance_direction": "unobserved",
+                "observed": False,
+            }],
+            "formations": [],
+        },
+        "balance-report.json": {
+            "game_fingerprint": fingerprint,
+            "card_static_marginals": [],
+            "all_static_formations": [],
+        },
+        "counterfactual-balance.json": {
+            "game_fingerprint": fingerprint,
+            "cards": [{
+                "id": "card-a",
+                "samples": 12,
+                "level": "yellow",
+                "direction": "strong",
+                "delta_win_probability": 0.08,
+                "ci95": [0.01, 0.15],
+            }],
+        },
+    }
+    monkeypatch.setattr(build_lab_report, "ARTIFACTS", tmp_path)
+    monkeypatch.setattr(
+        build_lab_report,
+        "current_game_fingerprint",
+        lambda: fingerprint,
+    )
+    for name, payload in artifacts.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+
+    build_lab_report.main()
+    report = json.loads((tmp_path / "lab-report.json").read_text())
+    card = report["health"]["cards"][0]
+
+    assert card["observed"] is False
+    assert card["observational_balance_level"] == "unobserved"
+    assert card["balance_level"] == "yellow"
+    assert card["balance_label"] == "Watch"
+    assert card["balance_direction"] == "strong"
+
