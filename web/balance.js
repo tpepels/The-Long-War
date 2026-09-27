@@ -796,7 +796,7 @@ function renderDownloads(lab) {
 function renderMethod(lab) {
   const report = lab.health;
   document.getElementById("methodology").innerHTML = `
-    <p><strong>Card status:</strong> red = multiple high-confidence issues; orange = one high-confidence or multiple watch issues; yellow = one watch issue; green = no current issue but thinner evidence; dark green = no issue with strong evidence.</p>
+    <p><strong>Card status:</strong> red = multiple high-confidence issues; orange = one high-confidence or multiple watch issues; yellow = one watch issue; unobserved = no self-play exposure; green = no current issue but thinner evidence; dark green = no issue with strong evidence.</p>
     <p><strong>Intervals:</strong> ${esc(report.methodology.win_intervals)}.</p>
     <p><strong>Board swing:</strong> standardized within card type.</p>
     <p><strong>Causal ΔWP:</strong> paired win-probability difference between the canonical card and a neutral same-type baseline under identical random seeds.</p>
