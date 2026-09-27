@@ -68,7 +68,7 @@ def test_heuristic_beats_random_in_small_fixed_benchmark() -> None:
 
 def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=505, first_player=0)
+    state = engine.new_game(deck, deck, seed=505, first_player=0, opening_bonus=False)
     telemetry = Telemetry()
     telemetry.start_game(state, engine)
     action = engine.legal_actions(state)[0]
@@ -145,7 +145,7 @@ def _position(front: Front = Front.FIRST, rank: Rank = Rank.FRONT) -> Position:
 
 def test_formation_lifecycle_tracks_force_bond_name_without_resetting_identity() -> None:
     engine, _deck = setup()
-    state = engine.new_game(_deck, _deck, seed=601, first_player=0)
+    state = engine.new_game(_deck, _deck, seed=601, first_player=0, opening_bonus=False)
     position = _position()
     state.slot(0, position).force = "the-fifty-men"
 
@@ -186,7 +186,7 @@ def test_formation_lifecycle_tracks_force_bond_name_without_resetting_identity()
 
 def test_maneuver_preserves_formation_identity_and_age() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=602, first_player=0)
+    state = engine.new_game(deck, deck, seed=602, first_player=0, opening_bonus=False)
     source = _position(Front.FIRST)
     destination = _position(Front.SECOND)
     state.slot(0, source).force = "the-fifty-men"
@@ -219,7 +219,7 @@ def test_maneuver_preserves_formation_identity_and_age() -> None:
 
 def test_incomplete_formation_removal_is_recorded_once() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=603, first_player=0)
+    state = engine.new_game(deck, deck, seed=603, first_player=0, opening_bonus=False)
     position = _position()
     state.slot(0, position).force = "the-fifty-men"
     progression = ProgressionTelemetry()
@@ -243,7 +243,7 @@ def test_incomplete_formation_removal_is_recorded_once() -> None:
 
 def test_battlefield_snapshot_counts_occupied_active_and_contested_fronts() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=604, first_player=0)
+    state = engine.new_game(deck, deck, seed=604, first_player=0, opening_bonus=False)
     state.slot(0, _position(Front.FIRST)).force = "the-fifty-men"
     state.slot(0, _position(Front.SECOND)).force = "the-vardai"
     state.slot(1, _position(Front.FIRST)).force = "the-vardai"
@@ -270,7 +270,7 @@ def test_battlefield_snapshot_counts_occupied_active_and_contested_fronts() -> N
 
 def test_mechanical_choice_and_pass_context_use_actual_legal_set() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=605, first_player=0)
+    state = engine.new_game(deck, deck, seed=605, first_player=0, opening_bonus=False)
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
 
@@ -300,7 +300,7 @@ def test_mechanical_choice_and_pass_context_use_actual_legal_set() -> None:
 
 def test_constraint_rule_source_is_not_misreported_as_active_constraint() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=606, first_player=0)
+    state = engine.new_game(deck, deck, seed=606, first_player=0, opening_bonus=False)
     state.stories[0].append(
         StoryState(card_id="the-king-had-given-the-order", ongoing=True)
     )
@@ -322,7 +322,7 @@ def test_hero_modes_are_counted_separately() -> None:
     engine, deck = setup()
     progression = ProgressionTelemetry()
 
-    state = engine.new_game(deck, deck, seed=607, first_player=0)
+    state = engine.new_game(deck, deck, seed=607, first_player=0, opening_bonus=False)
     progression.start_game(engine, state)
     position = _position()
     before = state.clone()
@@ -427,7 +427,7 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
 
 def test_front_control_changes_are_detected_between_decision_states() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=608, first_player=0)
+    state = engine.new_game(deck, deck, seed=608, first_player=0, opening_bonus=False)
     position = _position(Front.FIRST)
     state.slot(0, position).force = "the-fifty-men"
 
@@ -446,7 +446,7 @@ def test_front_control_changes_are_detected_between_decision_states() -> None:
 
 def test_command_flow_uses_actual_cost_and_excludes_between_battle_recovery() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=609, first_player=0)
+    state = engine.new_game(deck, deck, seed=609, first_player=0, opening_bonus=False)
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
 
@@ -468,7 +468,7 @@ def test_command_flow_uses_actual_cost_and_excludes_between_battle_recovery() ->
 
 def test_partial_formation_counter_is_force_anchored() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=610, first_player=0)
+    state = engine.new_game(deck, deck, seed=610, first_player=0, opening_bonus=False)
     state.slot(0, _position(Front.FIRST)).force = "the-fifty-men"
     state.slot(0, _position(Front.SECOND)).bond = "had-been-ordered-forward"
 
@@ -480,7 +480,7 @@ def test_partial_formation_counter_is_force_anchored() -> None:
 
 def test_forced_maneuver_is_separate_from_zero_cost_maneuver() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=611, first_player=0)
+    state = engine.new_game(deck, deck, seed=611, first_player=0, opening_bonus=False)
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
     maneuver = Maneuver(
@@ -496,7 +496,7 @@ def test_forced_maneuver_is_separate_from_zero_cost_maneuver() -> None:
 
 def test_discarded_without_play_ignores_battle_cleanup_cards() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=612, first_player=0)
+    state = engine.new_game(deck, deck, seed=612, first_player=0, opening_bonus=False)
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
 
@@ -517,7 +517,7 @@ def test_discarded_without_play_ignores_battle_cleanup_cards() -> None:
 
 def test_explicit_active_constraint_marker_is_counted() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=613, first_player=0)
+    state = engine.new_game(deck, deck, seed=613, first_player=0, opening_bonus=False)
     state.active_constraints = [{"source": "test-constraint"}]
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
@@ -532,7 +532,7 @@ def test_explicit_active_constraint_marker_is_counted() -> None:
 
 def test_partial_formation_is_recorded_at_battle_end() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=614, first_player=0)
+    state = engine.new_game(deck, deck, seed=614, first_player=0, opening_bonus=False)
     state.slot(0, _position(Front.FIRST)).force = "the-fifty-men"
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
@@ -548,7 +548,7 @@ def test_partial_formation_is_recorded_at_battle_end() -> None:
 
 def test_reshuffled_card_is_counted_only_when_that_discard_copy_reappears() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=612, first_player=0)
+    state = engine.new_game(deck, deck, seed=612, first_player=0, opening_bonus=False)
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
     progression.note_reshuffle(0, ["the-fifty-men"])
@@ -563,7 +563,7 @@ def test_reshuffled_card_is_counted_only_when_that_discard_copy_reappears() -> N
 
 def test_progression_sample_traces_are_bounded() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=615, first_player=0)
+    state = engine.new_game(deck, deck, seed=615, first_player=0, opening_bonus=False)
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
 
@@ -575,7 +575,7 @@ def test_progression_sample_traces_are_bounded() -> None:
 
 def test_snapshot_cards_played_so_far_is_pre_action_count() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=613, first_player=0)
+    state = engine.new_game(deck, deck, seed=613, first_player=0, opening_bonus=False)
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
 
