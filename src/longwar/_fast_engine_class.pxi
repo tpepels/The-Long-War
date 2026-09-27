@@ -1,3 +1,7 @@
+# FastEngine is intentionally a thin compiled-data/public-API boundary.
+# Internal game/search behavior lives in module-level _fe_* helpers so the
+# extension type does not become a second implementation hierarchy.
+
 cdef class FastEngine:
     cdef public object card_ids
     cdef public object id_to_code
