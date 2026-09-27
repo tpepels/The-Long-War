@@ -561,6 +561,18 @@ def test_reshuffled_card_is_counted_only_when_that_discard_copy_reappears() -> N
 
 
 
+def test_progression_sample_traces_are_bounded() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=615, first_player=0)
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+
+    for _ in range(260):
+        progression.before_action(engine, state, 0, Pass(), [Pass()])
+
+    assert len(progression.summary()["sample_traces"]) == 240
+
+
 def test_snapshot_cards_played_so_far_is_pre_action_count() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=613, first_player=0)

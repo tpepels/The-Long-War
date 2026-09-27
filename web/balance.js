@@ -336,9 +336,7 @@ function renderTargetedCounterfactual(lab) {
 function renderSequences(lab) {
   const rows = [...(
     lab.all_formations
-    || lab.all_legends
     || lab.health.formations
-    || lab.health.legends
     || []
   )];
   const observed = rows.filter((row) => row.observed !== false).length;

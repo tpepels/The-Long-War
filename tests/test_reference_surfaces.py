@@ -108,6 +108,8 @@ def test_balance_lab_is_human_first_and_collapsible() -> None:
     assert "min-width: 0 !important;" in css
     assert "row-evidence" in script
     assert "In hand at match end" in script
+    assert "all_legends" not in script
+    assert "health.legends" not in script
 
 
 def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:
