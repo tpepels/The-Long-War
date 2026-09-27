@@ -89,6 +89,16 @@ def test_balance_validation_covers_all_reference_decks() -> None:
     assert "six shipped reference deck templates" in text("README.md")
 
 
+def test_browser_runtime_copies_every_fast_search_include() -> None:
+    from tools.build_browser_runtime import BROWSER_NATIVE_FILES
+
+    fast_includes = {
+        path.name
+        for path in (ROOT / "src" / "longwar").glob("_fast_*.pxi")
+    }
+    assert fast_includes <= set(BROWSER_NATIVE_FILES)
+
+
 def test_balance_lab_is_human_first_and_collapsible() -> None:
     page = text("web/balance.html")
     script = text("web/balance.js")
