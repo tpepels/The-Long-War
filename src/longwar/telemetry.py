@@ -446,6 +446,30 @@ class Telemetry:
                 len(self.pass_events),
             ),
             "mean_dead_cards": self._mean_field(self.pass_events, "dead_cards"),
+            "mean_playable_cards_remaining": self._mean_field(
+                self.pass_events,
+                "playable_cards_remaining",
+            ),
+            "mean_legal_alternatives": self._mean_field(
+                self.pass_events,
+                "legal_alternatives",
+            ),
+            "mean_playable_card_actions": self._mean_field(
+                self.pass_events,
+                "playable_card_actions",
+            ),
+            "mean_maneuver_actions": self._mean_field(
+                self.pass_events,
+                "maneuver_actions",
+            ),
+            "no_alternative_rate": self._ratio(
+                sum(event["legal_alternatives"] == 0 for event in self.pass_events),
+                len(self.pass_events),
+            ),
+            "playable_alternative_rate": self._ratio(
+                sum(event["playable_card_actions"] > 0 for event in self.pass_events),
+                len(self.pass_events),
+            ),
             "mean_actions_before_pass": self._mean_field(
                 self.pass_events,
                 "actions_taken_this_battle",

@@ -152,14 +152,14 @@ class ProgressionTelemetry:
         legal_actions: Iterable[Action],
         pass_context: dict[str, Any] | None = None,
     ) -> None:
-        self._current_action = self._action_index + 1
         if state.phase is not Phase.BATTLE:
             return
-
-        legal = list(legal_actions)
         if state.pending_draw_discard_for is not None:
+            self._current_action = self._action_index
             return
 
+        self._current_action = self._action_index + 1
+        legal = list(legal_actions)
         self._battle_action += 1
         card_actions = [candidate for candidate in legal if isinstance(candidate, CARD_ACTIONS)]
         maneuver_actions = [candidate for candidate in legal if isinstance(candidate, Maneuver)]
@@ -532,6 +532,10 @@ class ProgressionTelemetry:
             "by_battle": by_battle,
             "sample_traces": self._sample_traces,
             "definitions": {
+                "lifecycle_action": (
+                    "Formation timing counts Battle decision actions, including effect choices, "
+                    "but excludes mandatory draw-cleanup discards."
+                ),
                 "formation_identity": (
                     "A formation lifecycle is anchored to its Force. Explicit Maneuvers "
                     "and moves preserve that identity; reconciliation then matches unchanged "
