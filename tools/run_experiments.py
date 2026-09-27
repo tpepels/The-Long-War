@@ -226,14 +226,20 @@ def balance_run(args: argparse.Namespace) -> Path:
             **progression_source,
             "_label": "Mobility / Open Bonds self-play",
             "progression_scope": (
-                "Detailed progression reference; aggregate card health uses "
-                "all canonical same-deck self-play cells."
+                "Detailed progression reference; aggregate card health and "
+                "heuristic self-play outcome evidence use all canonical "
+                "same-deck self-play cells."
             ),
+        }
+        aggregate_selfplay = {
+            **aggregate_selfplay,
+            "_label": "Six canonical same-deck self-play aggregate",
         }
 
         publish("balance-report.json", static_payload)
         publish("balance-health.json", aggregate_health)
-        publish("heuristic-selfplay.json", progression_source)
+        publish("heuristic-selfplay.json", aggregate_selfplay)
+        publish("progression-selfplay.json", progression_source)
         publish("playability-report.json", playability)
         publish("balance-run-summary.json", summary_payload)
         if causal_payload is not None:
