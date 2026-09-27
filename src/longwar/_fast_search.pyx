@@ -878,7 +878,7 @@ cdef class FastEngine:
         self.command_collapse_threshold = int(engine.command_collapse_threshold)
         self.maneuver_command_cost = int(engine.maneuver_command_cost)
         self.hand_limit = int(engine.hand_limit)
-        self.ongoing_story_limit = int(engine.ongoing_story_limit)
+        self.ongoing_story_limit = int(engine.ongoing_narrative_limit)
         if self.n_cards > MAX_CARDS:
             raise ValueError(f"The native engine supports at most {MAX_CARDS} card identities")
         if max(engine.starting_command, self.command_cap) > 32767:
