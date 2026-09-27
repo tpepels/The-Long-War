@@ -9,7 +9,12 @@ from statistics import mean, stdev
 from typing import Any, Iterable
 
 from .cards import card_index, validate_card_data
-from .decks import PLAYTEST_DECK_SIZE
+from .decks import (
+    MINIMUM_DECK_SIZE,
+    MINIMUM_FORCE_COUNT,
+    MINIMUM_PRINTED_NAME_COUNT,
+    validate_deck_definition,
+)
 from .game.engine import GameEngine
 from .game.model import Phase
 from .simulate import make_agent
@@ -52,55 +57,36 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         "text": "Experimental matched baseline.",
         "rules": {},
         "rule_blocks": [],
-        "balance": {},
         "experimental": True,
         "baseline_for": card["id"],
     }
     if "command_cost" in card:
         result["command_cost"] = card["command_cost"]
 
-    if card_type == "subject":
-        result["role"] = card["role"]
+    if card_type == "force":
         result["hero"] = bool(card.get("hero", False))
-        result["strength"] = 6 if result["hero"] else 4
+        result["strength"] = (
+            int(card["strength"]) if result["hero"] else 4
+        )
         if result["hero"]:
             result["hero_name_strength"] = int(card["hero_name_strength"])
-    elif card_type == "link":
+    elif card_type == "bond":
         result["text"] = (
-            "Experimental matched baseline. Its **Subject** gets +1 **Strength**. "
-            "While this **Bond** has a **Name**, its **Subject** gets +2 additional **Strength**."
+            "Experimental matched baseline. Its **Force** gets +1 **Strength**. "
+            "While this **Bond** has a **Name**, its **Force** gets +2 additional **Strength**."
         )
         result["rules"] = {
             "strength_bonus": 1,
-            "named_strength_bonus": 2,
-        }
-        result["balance"] = {
-            "strength_bonus": 1,
-            "named_strength_bonus": 2,
+            "named_additional_strength_bonus": 2,
         }
     elif card_type == "name":
         result["strength"] = 2
-    elif card_type == "plot":
-        result["story_form"] = card["story_form"]
-        result["veiled"] = bool(card.get("veiled", False))
-        if result["veiled"]:
-            # Preserve the face-down Story commitment/bluff structure while
-            # removing the specific trigger/effect.
-            result["text"] = (
-                "*Veiled.* Experimental matched baseline. While this is face-down, "
-                "you have +1 **Strength** in this **Front**. It has no trigger."
-            )
-            result["rules"] = {
-                "scheme": {
-                    "trigger": "never",
-                    "effect": "none",
-                    "face_down_front_bonus": 1,
-                }
-            }
-        else:
-            # A no-op Story preserves the card/turn cost and universal
-            # playability while removing the card-specific effect.
-            result["rules"] = {}
+    elif card_type == "story":
+        result["narrative_form"] = card["narrative_form"]
+        result["ongoing"] = bool(card.get("ongoing", False))
+        # A no-op Story preserves the paid public Narrative play while
+        # removing the card-specific trigger or continuous effect.
+        result["rules"] = {}
     elif card_type == "stratagem":
         # Preserve the paid public one-per-Battle slot while removing all
         # card-specific payoff.
@@ -108,22 +94,36 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
             "Experimental matched baseline. Play this face-up in your "
             "**Stratagem** area. It has no continuing effect."
         )
-        result["rules"] = {
-            "stratagem": {
-                "trigger": {"event": "played", "actor": "controller"},
-                "continuous": {},
-            }
-        }
+        result["rules"] = {}
     else:
         raise ValueError(f"Unsupported card type: {card_type}")
 
     return result
 
 
-def build_experiment_card_data(card_data: dict[str, Any]) -> dict[str, Any]:
+def build_experiment_card_data(
+    card_data: dict[str, Any],
+    baseline_card_ids: Iterable[str] | None = None,
+) -> dict[str, Any]:
+    """Add matched baselines only for cards used by an intervention.
+
+    Building baselines for the entire expanding canonical pool can exceed the
+    native engine's card-identity capacity even though any one experiment only
+    needs a small subset of those synthetic identities.
+    """
     data = copy.deepcopy(card_data)
     original_cards = list(data["cards"])
-    data["cards"].extend(baseline_card(card) for card in original_cards)
+    if baseline_card_ids is None:
+        selected = original_cards
+    else:
+        by_id = {card["id"]: card for card in original_cards}
+        requested = list(dict.fromkeys(baseline_card_ids))
+        unknown = [card_id for card_id in requested if card_id not in by_id]
+        if unknown:
+            raise ValueError(f"Unknown cards requested for baselines: {unknown}")
+        selected = [by_id[card_id] for card_id in requested]
+
+    data["cards"].extend(baseline_card(card) for card in selected)
     validate_card_data(data)
     return data
 
@@ -151,9 +151,8 @@ def generate_context_decks(
 ) -> list[list[str]]:
     """Generate legal canonical-size contexts for an expandable card pool.
 
-    ``required_cards`` are included in every generated deck. Without required
-    cards, the generator rotates coverage so the union of contexts reaches the
-    whole canonical pool. Different Unique Heroes may coexist in one deck.
+    Required cards appear in every context. Remaining slots rotate pool
+    coverage while always satisfying canonical Force/printed-Name minimums.
     """
     if count <= 0:
         raise ValueError("count must be positive")
@@ -165,47 +164,57 @@ def generate_context_decks(
     unknown = [card_id for card_id in required if card_id not in meta]
     if unknown:
         raise ValueError(f"Unknown required cards: {unknown}")
-    deck_size = PLAYTEST_DECK_SIZE
+
+    deck_size = MINIMUM_DECK_SIZE
     if len(required) > deck_size:
         raise ValueError(
             f"At most {deck_size} distinct cards can be required in a deck context"
         )
 
+    required_forces = sum(meta[card_id]["type"] == "force" for card_id in required)
+    required_names = sum(meta[card_id]["type"] == "name" for card_id in required)
+    force_needed = max(0, MINIMUM_FORCE_COUNT - required_forces)
+    name_needed = max(0, MINIMUM_PRINTED_NAME_COUNT - required_names)
+    if len(required) + force_needed + name_needed > deck_size:
+        raise ValueError(
+            "Required cards leave too few slots to satisfy canonical Force/Name minimums"
+        )
+
     rng = random.Random(seed)
     uncovered = set(all_ids) - set(required)
     contexts: list[list[str]] = []
-    seen: set[tuple[str, ...]] = set()
 
-    for context_index in range(count):
+    def ordered_candidates(card_ids: Iterable[str]) -> list[str]:
+        coverage = [card_id for card_id in card_ids if card_id in uncovered]
+        remainder = [card_id for card_id in card_ids if card_id not in uncovered]
+        rng.shuffle(coverage)
+        rng.shuffle(remainder)
+        return coverage + remainder
+
+    for _context_index in range(count):
         deck = list(required)
 
-        eligible_unique = [
+        force_candidates = [
             card_id
             for card_id in all_ids
-            if card_id not in deck
+            if meta[card_id]["type"] == "force" and card_id not in deck
         ]
-        coverage = [card_id for card_id in eligible_unique if card_id in uncovered]
-        rng.shuffle(coverage)
-        remainder = [card_id for card_id in eligible_unique if card_id not in uncovered]
-        rng.shuffle(remainder)
-        for card_id in coverage + remainder:
+        for card_id in ordered_candidates(force_candidates)[:force_needed]:
+            deck.append(card_id)
+
+        name_candidates = [
+            card_id
+            for card_id in all_ids
+            if meta[card_id]["type"] == "name" and card_id not in deck
+        ]
+        for card_id in ordered_candidates(name_candidates)[:name_needed]:
+            deck.append(card_id)
+
+        remaining = [card_id for card_id in all_ids if card_id not in deck]
+        for card_id in ordered_candidates(remaining):
             if len(deck) >= deck_size:
                 break
             deck.append(card_id)
-
-        if len(deck) < deck_size:
-            duplicate_candidates = [
-                card["id"]
-                for card in cards
-                if not card["unique"]
-                and not card.get("hero", False)
-                and deck.count(card["id"]) < 2
-            ]
-            rng.shuffle(duplicate_candidates)
-            for card_id in duplicate_candidates:
-                if len(deck) >= deck_size:
-                    break
-                deck.append(card_id)
 
         if len(deck) != deck_size:
             raise ValueError(
@@ -213,23 +222,7 @@ def generate_context_decks(
                 f"the requested cards (built {len(deck)})"
             )
 
-        signature = tuple(sorted(deck))
-        if signature in seen:
-            alternatives = [card_id for card_id in eligible_unique if card_id not in deck]
-            if alternatives:
-                replaced = next(
-                    (
-                        index
-                        for index in range(len(deck) - 1, -1, -1)
-                        if deck[index] not in required
-                    ),
-                    None,
-                )
-                if replaced is not None:
-                    deck[replaced] = rng.choice(alternatives)
-                    signature = tuple(sorted(deck))
-
-        seen.add(signature)
+        validate_deck_definition(deck, meta)
         uncovered.difference_update(deck)
         contexts.append(deck)
 
@@ -590,9 +583,9 @@ def run_counterfactual_experiment(
     if bootstrap_resamples <= 0:
         raise ValueError("bootstrap_resamples must be positive")
 
-    experiment_data = build_experiment_card_data(card_data)
+    experiment_data = build_experiment_card_data(card_data, selected_cards)
     engine = GameEngine(experiment_data)
-    deck_size = PLAYTEST_DECK_SIZE
+    deck_size = MINIMUM_DECK_SIZE
     if len(selected_cards) > deck_size:
         raise ValueError(
             f"A single paired counterfactual run requires at most {deck_size} "
@@ -613,20 +606,20 @@ def run_counterfactual_experiment(
         else []
     )
 
-    subjects = [
+    forces = [
         card_id for card_id in selected_cards
-        if canonical_cards[card_id]["type"] == "subject"
+        if canonical_cards[card_id]["type"] == "force"
     ]
-    links = [
+    bonds = [
         card_id for card_id in selected_cards
-        if canonical_cards[card_id]["type"] == "link"
+        if canonical_cards[card_id]["type"] == "bond"
     ]
     names = [
         card_id for card_id in selected_cards
         if canonical_cards[card_id]["type"] == "name"
     ]
     triple_ids = (
-        list(itertools.product(subjects, links, names))
+        list(itertools.product(forces, bonds, names))
         if include_legend_triples
         else []
     )
@@ -798,11 +791,12 @@ def run_counterfactual_experiment(
         "conditions_evaluated_per_sample": len(required_conditions),
         "total_matches": len(samples) * len(required_conditions),
         "baseline_definition": {
-            "subject": "Vanilla Subject, 4 Strength",
-            "link": "Vanilla Link, +1 Strength immediately and +2 more while it has a Name",
+            "force": "Vanilla Force, 4 Strength",
+            "hero": "Matched Hero chassis: printed Force/Name Strength, Command cost, uniqueness and dual-mode status preserved; special rules removed",
+            "bond": "Vanilla Bond, +1 Strength immediately and +2 more while it has a Name",
             "name": "Vanilla Name, 2 Strength",
-            "plot": "Universally playable no-op Story",
-            "stratagem": "Face-down inert Stratagem with no trigger or effect",
+            "story": "Public no-op Narrative preserving form and Ongoing status",
+            "stratagem": "Public inert Stratagem with no continuing effect",
         },
         "pairing": {
             "common_game_seed": True,
