@@ -31,6 +31,268 @@ def simulation_summary(data: dict[str, Any] | None) -> dict[str, Any] | None:
     return result
 
 
+CARD_AGGREGATE_FIELDS = (
+    "draws",
+    "plays",
+    "turns_in_hand",
+    "playable_turns",
+    "unplayable_turns",
+    "held_on_pass",
+    "dead_on_pass",
+    "immediate_front_swing_total",
+    "immediate_control_swing_total",
+    "games_drawn",
+    "decisive_games_drawn",
+    "wins_when_drawn",
+    "games_played",
+    "decisive_games_played",
+    "wins_when_played",
+)
+
+COMBO_AGGREGATE_FIELDS = (
+    "completions",
+    "strength_at_completion_total",
+    "games_seen",
+    "decisive_games_seen",
+    "wins_when_seen",
+)
+
+
+def _safe_ratio(numerator: float, denominator: float) -> float | None:
+    return None if denominator == 0 else numerator / denominator
+
+
+def _weighted_section(
+    simulations: list[dict[str, Any]],
+    *,
+    section: str,
+    count_field: str,
+    fields: tuple[str, ...],
+) -> dict[str, Any]:
+    count = sum(
+        int(simulation.get("telemetry", {}).get(section, {}).get(count_field, 0) or 0)
+        for simulation in simulations
+    )
+    result: dict[str, Any] = {count_field: count}
+    for field in fields:
+        weighted = 0.0
+        weight = 0
+        for simulation in simulations:
+            row = simulation.get("telemetry", {}).get(section, {})
+            value = row.get(field)
+            row_count = int(row.get(count_field, 0) or 0)
+            if value is None or row_count <= 0:
+                continue
+            weighted += float(value) * row_count
+            weight += row_count
+        result[field] = weighted / weight if weight else None
+    return result
+
+
+def aggregate_simulations_for_health(
+    simulations: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Merge simulation telemetry from one ruleset using raw sufficient statistics."""
+    if not simulations:
+        raise ValueError("At least one simulation is required")
+
+    fingerprints = {
+        simulation.get("game_fingerprint")
+        for simulation in simulations
+        if simulation.get("game_fingerprint") is not None
+    }
+    if len(fingerprints) > 1:
+        raise ValueError("Cannot aggregate simulations from different game fingerprints")
+
+    agents = {
+        tuple(simulation.get("agents", ()))
+        for simulation in simulations
+    }
+    if len(agents) > 1:
+        raise ValueError("Cannot aggregate health across different agent matchups")
+
+    cards: dict[str, dict[str, float]] = defaultdict(
+        lambda: defaultdict(float)
+    )
+    combos: dict[str, dict[str, float]] = defaultdict(
+        lambda: defaultdict(float)
+    )
+
+    for simulation in simulations:
+        telemetry = simulation.get("telemetry", {})
+        for card_id, stats in telemetry.get("cards", {}).items():
+            for field in CARD_AGGREGATE_FIELDS:
+                if field.startswith("decisive_") and field not in stats:
+                    legacy_field = field.removeprefix("decisive_")
+                    cards[card_id][field] += float(
+                        stats.get(legacy_field, 0) or 0
+                    )
+                else:
+                    cards[card_id][field] += float(stats.get(field, 0) or 0)
+
+        for combo_id, stats in telemetry.get(
+            "formation_combinations", {}
+        ).items():
+            for field in COMBO_AGGREGATE_FIELDS:
+                if field == "decisive_games_seen" and field not in stats:
+                    combos[combo_id][field] += float(
+                        stats.get("games_seen", 0) or 0
+                    )
+                else:
+                    combos[combo_id][field] += float(stats.get(field, 0) or 0)
+
+    card_rows: dict[str, dict[str, Any]] = {}
+    for card_id, raw in cards.items():
+        row = {field: raw[field] for field in CARD_AGGREGATE_FIELDS}
+        for field in (
+            "draws",
+            "plays",
+            "turns_in_hand",
+            "playable_turns",
+            "unplayable_turns",
+            "held_on_pass",
+            "dead_on_pass",
+            "games_drawn",
+            "decisive_games_drawn",
+            "wins_when_drawn",
+            "games_played",
+            "decisive_games_played",
+            "wins_when_played",
+        ):
+            row[field] = int(row[field])
+        row["plays_per_draw"] = _safe_ratio(row["plays"], row["draws"])
+        row["play_rate_per_draw"] = _safe_ratio(
+            row["games_played"], row["games_drawn"]
+        )
+        row["unplayable_turn_rate"] = _safe_ratio(
+            row["unplayable_turns"], row["turns_in_hand"]
+        )
+        row["dead_on_pass_rate"] = _safe_ratio(
+            row["dead_on_pass"], row["held_on_pass"]
+        )
+        row["mean_immediate_front_swing"] = _safe_ratio(
+            row["immediate_front_swing_total"], row["plays"]
+        )
+        row["mean_immediate_control_swing"] = _safe_ratio(
+            row["immediate_control_swing_total"], row["plays"]
+        )
+        row["win_rate_when_drawn"] = _safe_ratio(
+            row["wins_when_drawn"], row["decisive_games_drawn"]
+        )
+        row["win_rate_when_played"] = _safe_ratio(
+            row["wins_when_played"], row["decisive_games_played"]
+        )
+        card_rows[card_id] = row
+
+    combo_rows: dict[str, dict[str, Any]] = {}
+    for combo_id, raw in combos.items():
+        row = {field: raw[field] for field in COMBO_AGGREGATE_FIELDS}
+        for field in (
+            "completions",
+            "games_seen",
+            "decisive_games_seen",
+            "wins_when_seen",
+        ):
+            row[field] = int(row[field])
+        row["mean_strength_at_completion"] = _safe_ratio(
+            row["strength_at_completion_total"], row["completions"]
+        )
+        row["win_rate_when_seen"] = _safe_ratio(
+            row["wins_when_seen"], row["decisive_games_seen"]
+        )
+        combo_rows[combo_id] = row
+
+    games = sum(int(simulation.get("games", 0)) for simulation in simulations)
+    censored_games = sum(
+        int(simulation.get("censored_games", 0) or 0)
+        for simulation in simulations
+    )
+    decisive_games = games - censored_games
+    wins = [
+        sum(int(simulation.get("wins", [0, 0])[player]) for simulation in simulations)
+        for player in range(2)
+    ]
+    first_player_wins = sum(
+        int(simulation.get("first_player_wins", 0) or 0)
+        for simulation in simulations
+    )
+    mean_turns = _safe_ratio(
+        sum(
+            float(simulation.get("mean_turns", 0.0)) * int(simulation.get("games", 0))
+            for simulation in simulations
+        ),
+        games,
+    ) or 0.0
+
+    passes = _weighted_section(
+        simulations,
+        section="passes",
+        count_field="events",
+        fields=(
+            "mean_hand_size",
+            "mean_command_remaining",
+            "mean_deck_remaining",
+            "command_exhausted_rate",
+            "mean_dead_cards",
+            "mean_playable_cards_remaining",
+            "mean_legal_alternatives",
+            "mean_playable_card_actions",
+            "mean_maneuver_actions",
+            "no_alternative_rate",
+            "playable_alternative_rate",
+            "mean_actions_before_pass",
+            "first_pass_rate",
+        ),
+    )
+    battles = _weighted_section(
+        simulations,
+        section="battles",
+        count_field="count",
+        fields=(
+            "mean_actions",
+            "mean_total_strength",
+            "mean_abs_total_margin",
+        ),
+    )
+    battles["continuing_battles"] = sum(
+        int(
+            simulation.get("telemetry", {})
+            .get("battles", {})
+            .get("continuing_battles", 0)
+            or 0
+        )
+        for simulation in simulations
+    )
+
+    first = simulations[0]
+    return {
+        "games": games,
+        "decisive_games": decisive_games,
+        "censored_games": censored_games,
+        "censor_rate": _safe_ratio(censored_games, games) or 0.0,
+        "agents": list(next(iter(agents))),
+        "wins": wins,
+        "win_rates": [
+            (_safe_ratio(win, decisive_games) or 0.0)
+            for win in wins
+        ],
+        "first_player_wins": first_player_wins,
+        "first_player_win_rate": (
+            _safe_ratio(first_player_wins, decisive_games) or 0.0
+        ),
+        "mean_turns": mean_turns,
+        "max_turns": max(int(simulation.get("max_turns", 0)) for simulation in simulations),
+        "game_fingerprint": next(iter(fingerprints), None),
+        "simulation_variant": first.get("simulation_variant"),
+        "telemetry": {
+            "passes": passes,
+            "battles": battles,
+            "cards": card_rows,
+            "formation_combinations": combo_rows,
+        },
+    }
+
+
 def wilson_interval(successes: int, trials: int, z: float = 1.96) -> tuple[float | None, float | None]:
     if trials <= 0:
         return (None, None)
