@@ -94,7 +94,17 @@ def validate_data() -> None:
 
 
 def balance_run(args: argparse.Namespace) -> Path:
-    """Canonical balance pipeline; experimental rules stay in `run`."""
+    """Canonical balance pipeline; experimental rules stay in `run`.
+
+    quick:
+        cheap structural smoke test using canonical same-deck cells only.
+    deep:
+        broad heuristic evidence across all canonical matchups, full-pool
+        paired card screening, then targeted online-MCCFR confirmation.
+    exhaustive:
+        the same evidence hierarchy as deep with the old 2,000-games-per-cell
+        structural sample size.
+    """
     from longwar.balance import build_report
     from longwar.counterfactual import run_counterfactual_card_sweep
     from longwar.health import (
@@ -103,28 +113,96 @@ def balance_run(args: argparse.Namespace) -> Path:
     )
     from longwar.playability import build_playability_report
     from longwar.simulate import simulate_games
+    from longwar.targeted_counterfactual import run_targeted_online_validation
 
-    games = args.games if args.games is not None else (8 if args.preset == "quick" else 2000)
-    if games <= 0 or args.contexts <= 0 or args.games_per_context <= 0:
-        raise SystemExit("Game/context counts must be positive")
+    deep_pipeline = args.preset in {"deep", "exhaustive"}
+    default_games = {
+        "quick": 8,
+        "deep": 250,
+        "exhaustive": 2000,
+    }[args.preset]
+    games = args.games if args.games is not None else default_games
+
+    online_iterations = int(getattr(args, "online_iterations", 16))
+    online_depth = int(getattr(args, "online_depth", 2))
+    target_max_cards = int(getattr(args, "target_max_cards", 8))
+    target_min_effect = float(getattr(args, "target_min_effect", 0.05))
+    target_contexts_arg = getattr(args, "target_contexts", None)
+    target_games_arg = getattr(args, "target_games_per_context", None)
+    skip_online_validation = bool(
+        getattr(args, "skip_online_validation", False)
+    )
+    target_contexts = (
+        args.contexts
+        if target_contexts_arg is None
+        else min(args.contexts, int(target_contexts_arg))
+    )
+    target_games_per_context = (
+        args.games_per_context
+        if target_games_arg is None
+        else min(args.games_per_context, int(target_games_arg))
+    )
+
+    if (
+        games <= 0
+        or args.contexts <= 0
+        or args.games_per_context <= 0
+        or target_contexts <= 0
+        or target_games_per_context <= 0
+        or online_iterations <= 0
+        or online_depth <= 0
+        or target_max_cards < 0
+        or target_min_effect < 0
+    ):
+        raise SystemExit("Game/context/search counts must be positive")
+
     validate_data()
-    config = {"preset": args.preset, "games_per_cell": games, "seed": args.seed,
-              "agents": ["heuristic", "heuristic"], "rules": GameRules.standard().as_dict(),
-              "contexts": args.contexts, "games_per_context": args.games_per_context}
+    config = {
+        "preset": args.preset,
+        "games_per_cell": games,
+        "seed": args.seed,
+        "agents": ["heuristic", "heuristic"],
+        "rules": GameRules.standard().as_dict(),
+        "contexts": args.contexts,
+        "games_per_context": args.games_per_context,
+        "targeted_online_mccfr": {
+            "enabled": deep_pipeline and not skip_online_validation,
+            "iterations": online_iterations,
+            "depth": online_depth,
+            "contexts": target_contexts,
+            "games_per_context": target_games_per_context,
+            "max_cards": target_max_cards,
+            "minimum_abs_effect": target_min_effect,
+        },
+    }
     identity = experiment_identity(config)
-    output = artifact_directory(ROOT / "artifacts" / "balance" / args.preset, identity)
+    output = artifact_directory(
+        ROOT / "artifacts" / "balance" / args.preset,
+        identity,
+    )
 
     def save(name: str, data: dict[str, Any]) -> None:
-        (output / f"{name}.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        (output / f"{name}.json").write_text(
+            json.dumps(data, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
     data = load_card_file(ROOT / "cards" / "cards.json")
     engine = GameEngine(data)
-    decks = {p.stem: json.loads(p.read_text(encoding="utf-8"))["cards"]
-             for p in sorted((ROOT / "decks").glob("*.json"))}
+    decks = {
+        p.stem: json.loads(p.read_text(encoding="utf-8"))["cards"]
+        for p in sorted((ROOT / "decks").glob("*.json"))
+    }
     cells = [(name, name) for name in decks]
-    if args.preset == "deep":
+    if deep_pipeline:
         for left, right in combinations(decks, 2):
             cells.extend([(left, right), (right, left)])
+
+    print(
+        f"[1/4] Structural heuristic play: {len(cells)} matchup cells x "
+        f"{games} games = {len(cells) * games:,} attempted games",
+        flush=True,
+    )
     static_payload = {**build_report(data), **identity}
     save("static", static_payload)
     simulations = []
@@ -132,7 +210,13 @@ def balance_run(args: argparse.Namespace) -> Path:
     total_censored = 0
     for index, (left, right) in enumerate(cells):
         seed = args.seed + index * games
-        report = simulate_games(engine, decks[left], decks[right], games=games, seed=seed)
+        report = simulate_games(
+            engine,
+            decks[left],
+            decks[right],
+            games=games,
+            seed=seed,
+        )
         total_censored += report.censored_games
         payload = {
             **asdict(report),
@@ -146,7 +230,8 @@ def balance_run(args: argparse.Namespace) -> Path:
             "win_rates": report.win_rates,
             "first_player_win_rate": report.first_player_win_rate,
             "first_player_wilson_95": wilson_interval(
-                report.first_player_wins, report.decisive_games
+                report.first_player_wins,
+                report.decisive_games,
             ),
             "simulation_variant": {
                 "base_hand_size": engine.rules.opening_hand_size,
@@ -169,6 +254,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             f"{report.first_player_wins}; 95% interval "
             f"{payload['first_player_wilson_95']}"
         )
+
     playability = build_playability_report(simulations)
     save("playability", playability)
 
@@ -179,17 +265,95 @@ def balance_run(args: argparse.Namespace) -> Path:
     save("aggregate-selfplay", aggregate_selfplay)
     save("aggregate-health", aggregate_health)
 
-    causal_payload = None
-    if args.preset == "deep":
+    causal_payload: dict[str, Any] | None = None
+    targeted_payload: dict[str, Any] | None = None
+    if deep_pipeline:
+        print(
+            f"[2/4] Broad paired card screen: {len(data['cards'])} cards x "
+            f"{args.contexts} contexts x {args.games_per_context} samples",
+            flush=True,
+        )
         causal = run_counterfactual_card_sweep(
-            data, contexts=args.contexts, games_per_context=args.games_per_context,
-            seed=args.seed, bootstrap_resamples=2000,
+            data,
+            contexts=args.contexts,
+            games_per_context=args.games_per_context,
+            seed=args.seed,
+            bootstrap_resamples=2000,
         )
         causal_payload = {
             **causal,
             "game_fingerprint": identity["game_fingerprint"],
         }
         save("counterfactual", causal_payload)
+        print(
+            "Broad screen complete: "
+            f"{causal_payload['decisive_paired_samples']} decisive paired "
+            f"samples, {causal_payload['censored_paired_samples']} censored "
+            f"pairs ({causal_payload['pair_censor_rate']:.1%}).",
+            flush=True,
+        )
+
+        if not skip_online_validation:
+            print(
+                f"[3/4] Strategic confirmation: online MCCFR, up to "
+                f"{target_max_cards} suspicious cards, "
+                f"{target_contexts} x {target_games_per_context} paired samples, "
+                f"{online_iterations} iterations / depth {online_depth}",
+                flush=True,
+            )
+            targeted = run_targeted_online_validation(
+                data,
+                causal_payload,
+                contexts=target_contexts,
+                games_per_context=target_games_per_context,
+                online_iterations=online_iterations,
+                online_depth=online_depth,
+                max_cards=target_max_cards,
+                max_pairs=0,
+                max_triples=0,
+                minimum_abs_effect=target_min_effect,
+                bootstrap_resamples=1000,
+                force_top=False,
+            )
+            targeted_payload = {
+                **targeted,
+                "game_fingerprint": identity["game_fingerprint"],
+            }
+            save("targeted-online-counterfactual", targeted_payload)
+            selected = int(
+                targeted_payload.get("selection", {}).get(
+                    "targets_selected",
+                    0,
+                )
+            )
+            confirmations = {
+                state: sum(
+                    row.get("confirmation") == state
+                    for row in targeted_payload.get("targets", [])
+                )
+                for state in (
+                    "confirmed",
+                    "reversed",
+                    "direction_agrees",
+                    "inconclusive",
+                )
+            }
+            print(
+                "Online MCCFR complete: "
+                f"{selected} targets - "
+                + ", ".join(
+                    f"{name} {count}"
+                    for name, count in confirmations.items()
+                    if count
+                ),
+                flush=True,
+            )
+        else:
+            print(
+                "[3/4] Strategic confirmation skipped by request.",
+                flush=True,
+            )
+
     total_games = games * len(cells)
     summary_payload = {
         **identity,
@@ -199,17 +363,63 @@ def balance_run(args: argparse.Namespace) -> Path:
         "censored_simulation_games": total_censored,
         "aggregate_health_games": aggregate_selfplay["games"],
         "aggregate_health_decks": sorted(selfplay_simulations),
+        "evidence_pipeline": {
+            "structural_play": {
+                "policy": "heuristic",
+                "purpose": (
+                    "High-volume structural, pacing, exposure and matchup "
+                    "screening; not a strong-play claim."
+                ),
+                "attempted_games": total_games,
+            },
+            "broad_card_screen": (
+                {
+                    "policy": causal_payload.get("policy"),
+                    "purpose": (
+                        "Paired real-card versus neutral-baseline screening "
+                        "under a fixed cheap policy."
+                    ),
+                    "cards": len(causal_payload.get("cards", [])),
+                    "decisive_paired_samples": causal_payload.get(
+                        "decisive_paired_samples",
+                        0,
+                    ),
+                    "censored_paired_samples": causal_payload.get(
+                        "censored_paired_samples",
+                        0,
+                    ),
+                }
+                if causal_payload is not None
+                else None
+            ),
+            "strategic_confirmation": (
+                {
+                    "policy": "online_mccfr",
+                    "purpose": (
+                        "Targeted re-solving of suspicious paired card signals "
+                        "using the exact same contexts and interventions."
+                    ),
+                    "targets": len(targeted_payload.get("targets", [])),
+                    "iterations": targeted_payload.get("online_iterations"),
+                    "depth": targeted_payload.get("online_depth"),
+                }
+                if targeted_payload is not None
+                else None
+            ),
+        },
         "interpretation": (
-            "Policy-specific diagnostics. Aggregate card health uses the six "
-            "same-deck canonical self-play cells so deck-strength differences "
-            "do not become card outcome signals. Conditional win rates use "
-            "decisive games only; censored games remain structural progression "
-            "evidence. Use paired counterfactual intervals for card value."
+            "Evidence is hierarchical. Heuristic self-play describes broad "
+            "structure and exposure. Heuristic paired replacements are a "
+            "screen for candidate card effects. A suspicious card is only "
+            "treated as strategically confirmed when targeted online-MCCFR "
+            "validation agrees. Censored games and paired samples remain "
+            "structural evidence but are excluded from outcome estimates."
         ),
     }
     save("summary", summary_payload)
 
-    if args.preset == "deep":
+    if deep_pipeline:
+        print("[4/4] Publishing Balance Lab snapshot.", flush=True)
         artifacts = ROOT / "artifacts"
         artifacts.mkdir(parents=True, exist_ok=True)
 
@@ -244,6 +454,11 @@ def balance_run(args: argparse.Namespace) -> Path:
         publish("balance-run-summary.json", summary_payload)
         if causal_payload is not None:
             publish("counterfactual-balance.json", causal_payload)
+        if targeted_payload is not None:
+            publish(
+                "targeted-online-counterfactual.json",
+                targeted_payload,
+            )
 
         subprocess.run(
             [sys.executable, str(ROOT / "tools" / "build_lab_report.py")],
@@ -253,7 +468,6 @@ def balance_run(args: argparse.Namespace) -> Path:
 
     print(f"Balance artifacts: {output}")
     return output
-
 
 def run_command(
     command: list[str],
@@ -1229,15 +1443,61 @@ def parse_args() -> argparse.Namespace:
         "balance",
         help="Canonical static, playability and paired balance pipeline.",
     )
-    balance.add_argument("--preset", choices=("quick", "deep"), default="quick")
+    balance.add_argument(
+        "--preset",
+        choices=("quick", "deep", "exhaustive"),
+        default="quick",
+    )
     balance.add_argument(
         "--games",
         type=int,
-        help="Games per matchup cell (quick: 8; deep: 2000).",
+        help=(
+            "Games per matchup cell "
+            "(quick: 8; deep: 250; exhaustive: 2000)."
+        ),
     )
     balance.add_argument("--seed", type=int, default=1701)
     balance.add_argument("--contexts", type=int, default=3)
     balance.add_argument("--games-per-context", type=int, default=4)
+    balance.add_argument(
+        "--online-iterations",
+        type=int,
+        default=16,
+        help="Online-MCCFR iterations per non-forced decision in targeted validation.",
+    )
+    balance.add_argument(
+        "--online-depth",
+        type=int,
+        default=2,
+        help="Online-MCCFR resolve depth for targeted validation.",
+    )
+    balance.add_argument(
+        "--target-max-cards",
+        type=int,
+        default=8,
+        help="Maximum suspicious card signals to confirm with online MCCFR.",
+    )
+    balance.add_argument(
+        "--target-min-effect",
+        type=float,
+        default=0.05,
+        help="Minimum absolute broad ΔWP that can nominate a card for validation.",
+    )
+    balance.add_argument(
+        "--target-contexts",
+        type=int,
+        help="Optional subset of broad contexts for online-MCCFR validation.",
+    )
+    balance.add_argument(
+        "--target-games-per-context",
+        type=int,
+        help="Optional subset of broad games/context for online-MCCFR validation.",
+    )
+    balance.add_argument(
+        "--skip-online-validation",
+        action="store_true",
+        help="Run the broad deep screen without targeted online-MCCFR confirmation.",
+    )
 
     sub.add_parser(
         "validate",
