@@ -21,6 +21,8 @@ DECK_FILES = (
     "persistent-elite-heroes.json",
     "narrative-command.json",
     "battlefield-control-stratagems.json",
+    "momentum-orders.json",
+    "necessity-attrition.json",
 )
 
 
@@ -107,6 +109,6 @@ def test_heroes_have_no_deck_cap_beyond_unique_titles() -> None:
     cards = _cards()
     heroes = [card_id for card_id, card in cards.items() if card.get("hero")]
     assert len(heroes) >= 6
-    deck = _deck("narrative-command.json")
+    deck = _deck("persistent-elite-heroes.json")
     assert len([card_id for card_id in deck if cards[card_id].get("hero")]) >= 4
     validate_deck_definition(deck, cards)
