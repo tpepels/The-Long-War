@@ -25,7 +25,7 @@ cdef void _fe_queue_pre_resolution_choice(
                     mask |= <uint16_t>(1 << slot)
                     mask |= <uint16_t>(1 << rear)
             if mask:
-                self.enqueue_effect(
+                _fe_enqueue_effect(self, 
                     state,
                     EFFECT_SWAP,
                     controller,
@@ -44,7 +44,7 @@ cdef void _fe_queue_pre_resolution_choice(
         state.resolution_cursor += 1
         if (
             state.subject[slot] >= 0
-            and self.slot_complete(state, slot)
+            and _fe_slot_complete(self, state, slot)
             and rank_from_slot(slot) == 0
             and state.name[slot] >= 0
             and self.voluntary_retreat_name[state.name[slot]]
@@ -54,8 +54,8 @@ cdef void _fe_queue_pre_resolution_choice(
                 front_from_slot(slot),
                 1,
             )
-            if self.slot_is_empty(state, rear):
-                self.enqueue_effect(
+            if _fe_slot_is_empty(self, state, rear):
+                _fe_enqueue_effect(self, 
                     state,
                     EFFECT_RETREAT,
                     owner_from_slot(slot),
@@ -74,7 +74,7 @@ cdef void _fe_queue_pre_resolution_choice(
         state.resolution_cursor += 1
         force = state.subject[slot]
         if force >= 0 and self.skirmisher_contribution[force]:
-            self.enqueue_effect(
+            _fe_enqueue_effect(self, 
                 state,
                 EFFECT_FRONT_CONTRIBUTION,
                 owner_from_slot(slot),
@@ -111,7 +111,7 @@ cdef void _fe_queue_pre_resolution_choice(
             ):
                 target = -1
         if target >= 0:
-            self.enqueue_effect(
+            _fe_enqueue_effect(self, 
                 state,
                 EFFECT_SUPPRESS,
                 controller,
@@ -145,7 +145,7 @@ cdef void _fe_queue_pre_resolution_choice(
         if state.subject[target] >= 0:
             target_mask |= <uint16_t>(1 << target)
         if target_mask:
-            self.enqueue_effect(
+            _fe_enqueue_effect(self, 
                 state,
                 EFFECT_SACRIFICE,
                 controller,
@@ -165,7 +165,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     cdef int front, a, b, p, strat, protected, card
     cdef int controller, mask, combined0, combined1
     cdef int losses0, losses1
-    cdef bint tie_control = self.tie_control_active(state)
+    cdef bint tie_control = _fe_tie_control_active(self, state)
 
     state.resolution_lost_mask[0] = 0
     state.resolution_lost_mask[1] = 0
@@ -173,8 +173,8 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     state.resolution_drive_mask[1] = 0
 
     for front in range(4):
-        a = self.resolution_front_strength_fast(state, 0, front)
-        b = self.resolution_front_strength_fast(state, 1, front)
+        a = _fe_resolution_front_strength_fast(self, state, 0, front)
+        b = _fe_resolution_front_strength_fast(self, state, 1, front)
         state.last_front_scores[front][0] = a
         state.last_front_scores[front][1] = b
         if a < b:
@@ -183,10 +183,10 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
             state.resolution_lost_mask[1] |= <uint8_t>(1 << front)
         elif tie_control:
             if (
-                self.slot_complete(state, slot_index(0, front, 0))
-                != self.slot_complete(state, slot_index(1, front, 0))
+                _fe_slot_complete(self, state, slot_index(0, front, 0))
+                != _fe_slot_complete(self, state, slot_index(1, front, 0))
             ):
-                if self.slot_complete(
+                if _fe_slot_complete(self, 
                     state, slot_index(0, front, 0)
                 ):
                     state.resolution_lost_mask[1] |= <uint8_t>(
@@ -209,10 +209,10 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         combined1 = 0
         for front in range(4):
             if mask & (1 << front):
-                combined0 += self.resolution_front_strength_fast(
+                combined0 += _fe_resolution_front_strength_fast(self, 
                     state, 0, front
                 )
-                combined1 += self.resolution_front_strength_fast(
+                combined1 += _fe_resolution_front_strength_fast(self, 
                     state, 1, front
                 )
         state.resolution_lost_mask[0] &= <uint8_t>(~mask)
@@ -227,13 +227,13 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         if (
             state.resolution_lost_mask[0] & (1 << front)
             and state.subject[slot_index(0, front, 1)] < 0
-            and self.breakthrough_active(state, 1, front)
+            and _fe_breakthrough_active(self, state, 1, front)
         ):
             state.resolution_drive_mask[0] |= <uint8_t>(1 << front)
         if (
             state.resolution_lost_mask[1] & (1 << front)
             and state.subject[slot_index(1, front, 1)] < 0
-            and self.breakthrough_active(state, 0, front)
+            and _fe_breakthrough_active(self, state, 0, front)
         ):
             state.resolution_drive_mask[1] |= <uint8_t>(1 << front)
 
@@ -297,7 +297,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
             self.strat_recovery_loss_reduction[strat],
         )
 
-    self.discard_incomplete_formations(state)
+    _fe_discard_incomplete_formations(self, state)
     state.resolution_stage = RESOLUTION_RETREATS
     state.resolution_cursor = 0
 
@@ -325,7 +325,7 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
                 1 << (front + 4)
             )
 
-        if self.slot_complete(state, front_slot) and force >= 0:
+        if _fe_slot_complete(self, state, front_slot) and force >= 0:
             if self.rear_force_prevents_frontline_retreat[force]:
                 state.resolution_protected_mask[player] |= <uint8_t>(
                     1 << front
@@ -341,7 +341,7 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
                 state.resolution_protected_mask[player] |= <uint8_t>(
                     1 << (front + 4)
                 )
-                self.enqueue_effect(
+                _fe_enqueue_effect(self, 
                     state,
                     EFFECT_PROTECT_RETREAT,
                     player,
@@ -354,12 +354,12 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
                 )
                 return
 
-        if self.slot_complete(state, rear_slot):
-            self.drive_off_slot(state, player, rear_slot)
+        if _fe_slot_complete(self, state, rear_slot):
+            _fe_drive_off_slot(self, state, player, rear_slot)
             if state.pending_len > 0:
                 return
 
-        if not self.slot_complete(state, front_slot):
+        if not _fe_slot_complete(self, state, front_slot):
             state.resolution_cursor += 1
             continue
 
@@ -368,7 +368,7 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
             continue
 
         if state.resolution_drive_mask[player] & (1 << front):
-            self.drive_off_slot(state, player, front_slot)
+            _fe_drive_off_slot(self, state, player, front_slot)
             if state.pending_len > 0:
                 return
             state.resolution_cursor += 1
@@ -376,18 +376,18 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
 
         # Mark this Front complete before after-Retreat effects pause play.
         state.resolution_cursor += 1
-        self.retreat_slot(state, player, front_slot, rear_slot)
+        _fe_retreat_slot(self, state, player, front_slot, rear_slot)
 
-        if self.front_has_capture_bond(state, 1 - player, front):
-            self.return_bond_to_hand_from_slot(
+        if _fe_front_has_capture_bond(self, state, 1 - player, front):
+            _fe_return_bond_to_hand_from_slot(self, 
                 state, player, rear_slot
             )
 
         if state.resolution_drive_mask[player] & (1 << (front + 4)):
-            destinations = self.adjacent_empty_mask(
+            destinations = _fe_adjacent_empty_mask(self, 
                 state, player, rear_slot
             )
-            self.queue_move_to_mask(
+            _fe_queue_move_to_mask(self, 
                 state,
                 player,
                 <uint16_t>(1 << rear_slot),
@@ -398,8 +398,8 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
         if state.pending_len > 0 or state.cleanup_pending:
             return
 
-    self.discard_battle_stratagems(state)
-    self.clear_battle_temporary_strength(state)
+    _fe_discard_battle_stratagems(self, state)
+    _fe_clear_battle_temporary_strength(self, state)
     state.resolution_stage = RESOLUTION_NARRATIVES
     state.resolution_cursor = 0
 
@@ -454,24 +454,24 @@ cdef bint _fe_resolve_one_battle_end_narrative(
 
             gain = self.narrative_end_gain[card]
             if condition and gain:
-                self.gain_command_from_narrative(
+                _fe_gain_command_from_narrative(self, 
                     state, player, gain
                 )
             if condition and self.narrative_end_draw[card]:
-                self.queue_battle_draws(state, player, 1)
+                _fe_queue_battle_draws(self, state, player, 1)
             if (
                 condition
                 and won
                 and self.narrative_end_recover_bond[card]
             ):
-                self.queue_recover_from_discard(
+                _fe_queue_recover_from_discard(self, 
                     state, player, CARD_LINK, True
                 )
 
             # These cards all end at Battle end whether or not their
             # condition succeeded.
             if self.narrative_end_discard[card]:
-                self.discard_ongoing_narrative(
+                _fe_discard_ongoing_narrative(self, 
                     state, player, story_slot
                 )
             return True
@@ -497,7 +497,7 @@ cdef void _fe_clear_resolution_state(FastEngine self, FastState state) noexcept:
 cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
     cdef int p, base_recovery, actual, target, starter, front
 
-    base_recovery = self.command_recovery_for_battle(state.battle)
+    base_recovery = _fe_command_recovery_for_battle(self, state.battle)
     for p in range(2):
         # Battle-end card effects can draw/refund after resolution began;
         # snapshot those counters only once every such effect is done.
@@ -529,7 +529,7 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
             state.cleanup_pending = 0
             state.pending_resume = RESUME_NONE
             state.pending_resume_player = -1
-            self.clear_resolution_state(state)
+            _fe_clear_resolution_state(self, state)
             return
 
     starter = state.resolution_starter
@@ -560,13 +560,13 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
 
         target = self.hand_limit - state.hand_len[p]
         if target > 0:
-            self.draw(state, p, target)
+            _fe_draw(self, state, p, target)
         state.battle_start_command[p] = state.command[p]
 
-    self.clear_resolution_state(state)
+    _fe_clear_resolution_state(self, state)
     state.pending_resume = RESUME_NONE
     state.pending_resume_player = -1
-    self.begin_next_battle_fast(state, starter)
+    _fe_begin_next_battle_fast(self, state, starter)
 
 cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except *:
     # Any choice queued here must return control to this state machine.
@@ -578,23 +578,23 @@ cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except
             return
 
         if state.resolution_stage == RESOLUTION_PREPARE:
-            self.queue_pre_resolution_choice(state)
+            _fe_queue_pre_resolution_choice(self, state)
             if state.pending_len > 0:
                 return
             continue
 
         if state.resolution_stage == RESOLUTION_COMPARE:
-            self.compare_battle_fronts(state)
+            _fe_compare_battle_fronts(self, state)
             continue
 
         if state.resolution_stage == RESOLUTION_RETREATS:
-            self.advance_retreat_resolution(state)
+            _fe_advance_retreat_resolution(self, state)
             if state.pending_len > 0 or state.cleanup_pending:
                 return
             continue
 
         if state.resolution_stage == RESOLUTION_NARRATIVES:
-            if self.resolve_one_battle_end_narrative(state):
+            if _fe_resolve_one_battle_end_narrative(self, state):
                 if state.pending_len > 0 or state.cleanup_pending:
                     return
                 continue
@@ -602,7 +602,7 @@ cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except
             continue
 
         if state.resolution_stage == RESOLUTION_RECOVERY:
-            self.finish_battle_recovery(state)
+            _fe_finish_battle_recovery(self, state)
             return
 
         state.pending_resume = RESUME_NONE
@@ -647,7 +647,7 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
     for slot in range(SLOT_COUNT):
         state.resolution_contribution_front[slot] = -1
 
-    self.advance_battle_resolution(state)
+    _fe_advance_battle_resolution(self, state)
 
 cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     cdef int opponent = 1 - player
@@ -655,12 +655,12 @@ cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     state.passed[player] = 1
     state.pass_order[state.pass_len] = player
     state.pass_len += 1
-    self.resolve_strat_event(state, EVENT_PASS, player)
+    _fe_resolve_strat_event(self, state, EVENT_PASS, player)
 
     if state.pass_len >= 2:
-        self.score_battle(state)
+        _fe_score_battle(self, state)
     else:
         # A first Pass hands the opponent a completely normal turn.
-        self.start_turn_fast(state, opponent)
+        _fe_start_turn_fast(self, state, opponent)
 
     state.turn_number += 1
