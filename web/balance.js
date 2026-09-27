@@ -556,7 +556,7 @@ function renderProgression(lab) {
       <div>
         <h3>Card lifecycle pressure</h3>
         <table class="mini-table">
-          <thead><tr><th>Card</th><th>Draw → play</th><th>Held across Battles</th><th>Discarded unplayed</th><th>Unplayed at match end</th></tr></thead>
+          <thead><tr><th>Card</th><th>Draw → play</th><th>Held across Battles</th><th>Discarded unplayed</th><th>In hand at match end</th></tr></thead>
           <tbody>${cardLifecycle.map(([cardId, row]) => `
             <tr>
               <td>${esc(titles.get(cardId) || cardId)}</td>

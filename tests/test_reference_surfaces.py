@@ -85,6 +85,7 @@ def test_balance_validation_covers_all_reference_decks() -> None:
         for path in (ROOT / "decks").glob("*.json")
     }
     assert set(CANONICAL_DECK_PATHS.values()) == shipped
+    assert "six shipped reference deck templates" in text("README.md")
 
 
 def test_balance_lab_is_human_first_and_collapsible() -> None:
@@ -106,6 +107,7 @@ def test_balance_lab_is_human_first_and_collapsible() -> None:
     assert "card-health-table" in page
     assert "min-width: 0 !important;" in css
     assert "row-evidence" in script
+    assert "In hand at match end" in script
 
 
 def test_mccfr_profiles_cover_the_entire_current_card_pool() -> None:

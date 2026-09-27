@@ -637,6 +637,13 @@ class ProgressionTelemetry:
                     "Hand survival across a Battle boundary is a multiset intersection by card id; "
                     "identical duplicate copies are not physically distinguishable."
                 ),
+                "discarded_without_play": (
+                    "A card moved from hand into discard without being the card action just played. "
+                    "Cards leaving the battlefield during Battle cleanup do not count."
+                ),
+                "unplayed_at_match_end": (
+                    "Copies still in hand when the match ends. Cards remaining unseen in the deck are not counted."
+                ),
                 "battle_index": "Battle 1, 2 and 3 are separate; all later Battles aggregate into 4+.",
                 "command_gained_or_refunded": (
                     "Command gained after an operation beyond its actual paid cost. "
