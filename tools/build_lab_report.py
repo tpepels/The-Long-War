@@ -51,6 +51,63 @@ def canonical_variant(data: dict[str, Any]) -> bool:
     return all(variant[key] == value for key, value in expected.items())
 
 
+TRAJECTORY_FIELDS = (
+    "command_start",
+    "command_remaining",
+    "first_pass_command",
+    "occupied_positions",
+    "active_fronts",
+    "contested_fronts",
+    "completed_formations",
+    "incomplete_formations_end",
+    "eventual_completion_rate_for_forces_deployed",
+    "cards_played",
+    "legal_actions",
+    "hand_size",
+    "deck_size",
+)
+
+
+def progression_trajectory(
+    progression: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Compare the first and latest observed Battle buckets without grading them."""
+    if not progression:
+        return None
+    by_battle = progression.get("by_battle") or {}
+    observed = [
+        key
+        for key in ("1", "2", "3", "4+")
+        if int((by_battle.get(key) or {}).get("battles", 0) or 0) > 0
+    ]
+    if not observed:
+        return None
+
+    early_key = observed[0]
+    late_key = observed[-1]
+    early = by_battle[early_key]
+    late = by_battle[late_key]
+    metrics: dict[str, dict[str, float | int | None]] = {}
+    for field in TRAJECTORY_FIELDS:
+        early_value = early.get(field)
+        late_value = late.get(field)
+        delta = None
+        if early_value is not None and late_value is not None:
+            delta = float(late_value) - float(early_value)
+        metrics[field] = {
+            "early": early_value,
+            "late": late_value,
+            "delta": delta,
+        }
+
+    return {
+        "observed_buckets": observed,
+        "early_battle": early_key,
+        "late_battle": late_key,
+        "metrics": metrics,
+    }
+
+
 def main() -> None:
     game_fingerprint = current_game_fingerprint()
     stale_files: set[str] = set()
@@ -181,6 +238,7 @@ def main() -> None:
         if raw_telemetry is not None
         else None
     )
+    trajectory = progression_trajectory(progression)
 
     card_titles = {
         card["id"]: card["title"]
@@ -242,6 +300,7 @@ def main() -> None:
         "targeted_counterfactual": targeted,
         "raw_telemetry": raw_telemetry,
         "progression": progression,
+        "progression_trajectory": trajectory,
         "all_formations": all_formations,
         "downloads": downloads,
     }
