@@ -454,6 +454,21 @@ def test_strength_uncertainty_pairs_orientations_by_seed():
     assert result["independent_deals"] == 2
     assert result["win_rate"] == 0.5
     assert result["ci95"][0] < 0.5 < result["ci95"][1]
+
+    censored = {"mobility": {
+        "mcts-first": [
+            {"seed": 1, "winner": None, "censored": True},
+            {"seed": 2, "winner": 1, "censored": False},
+        ],
+        "alpha-first": [
+            {"seed": 2, "winner": 0, "censored": False},
+            {"seed": 1, "winner": 1, "censored": False},
+        ],
+    }}
+    censored_result = runner.paired_strength_interval(censored)
+    assert censored_result["independent_deals"] == 1
+    assert censored_result["censored_pairs"] == 1
+
     outcomes["mobility"]["alpha-first"][0]["seed"] = 3
     with pytest.raises(ValueError, match="identical deal seeds"):
         runner.paired_strength_interval(outcomes)
