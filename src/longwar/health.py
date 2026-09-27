@@ -115,8 +115,20 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
 
     counts: Counter[str] = Counter()
     cards: list[dict[str, Any]] = []
-    for card_id, stats in telemetry["cards"].items():
-        card = meta[card_id]
+    telemetry_cards = telemetry.get("cards", {})
+    for card in card_data["cards"]:
+        card_id = card["id"]
+        stats = telemetry_cards.get(card_id, {})
+        observed = any(
+            int(stats.get(field, 0) or 0) > 0
+            for field in (
+                "draws",
+                "plays",
+                "turns_in_hand",
+                "games_drawn",
+                "games_played",
+            )
+        )
         played_n = int(stats.get("games_played", 0))
         played_w = int(stats.get("wins_when_played", 0))
         drawn_n = int(stats.get("games_drawn", 0))
@@ -223,7 +235,10 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         watch_count = sum(flag["severity"] == "watch" for flag in flags)
         evidence_strong = draws >= 150 and played_n >= 100 and held >= 200
 
-        if high_count >= 2:
+        if not observed:
+            balance_level = "unobserved"
+            balance_label = "Unobserved"
+        elif high_count >= 2:
             balance_level = "red"
             balance_label = "Critical"
         elif high_count >= 1 or watch_count >= 2:
@@ -251,7 +266,9 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         codes = {flag["code"] for flag in flags}
         has_strong = bool(codes & strong_signals)
         has_weak = bool(codes & weak_signals)
-        if has_strong and has_weak:
+        if not observed:
+            balance_direction = "unobserved"
+        elif has_strong and has_weak:
             balance_direction = "mixed"
         elif has_strong:
             balance_direction = "strong"
@@ -276,6 +293,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "balance_level": balance_level,
             "balance_label": balance_label,
             "balance_direction": balance_direction,
+            "observed": observed,
             "evidence_strong": evidence_strong,
             "delayed_utility": delayed_utility,
             "playability_family": family,
@@ -386,6 +404,8 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         },
         "summary": {
             "cards_analyzed": len(cards),
+            "cards_observed": sum(bool(row["observed"]) for row in cards),
+            "cards_unobserved": sum(not row["observed"] for row in cards),
             "formations_observed": len(formations),
             "flags_high": counts["high"],
             "flags_watch": counts["watch"],
@@ -401,6 +421,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
                 "Board-swing z-scores are computed within card type; cards explicitly marked as delayed utility are not graded on immediate swing.",
                 "Playability flags compare each card with the median of its rules family (Force, Bond, Name, Narrative, or Stratagem), so normal structural gating is not mistaken for an individual card defect.",
                 "Flags identify cases for inspection; they are not automatic nerf/buff instructions.",
+                "Every canonical card remains in the report. Cards with no observed self-play exposure are labelled Unobserved rather than healthy.",
                 "Counterfactual and MCCFR reports are merged when explicitly run; neither is required for routine health analysis.",
             ],
         },
