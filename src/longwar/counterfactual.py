@@ -68,6 +68,8 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         result["strength"] = (
             int(card["strength"]) if result["hero"] else 4
         )
+        if "role" in card:
+            result["role"] = card["role"]
         if result["hero"]:
             result["hero_name_strength"] = int(card["hero_name_strength"])
     elif card_type == "bond":
