@@ -17,6 +17,7 @@ on:
       - "tools/build_pages.py"
       - "tools/run_experiments.py"
       - "tools/build_browser_runtime.py"
+      - "tests/test_counterfactual.py"
       - ".github/workflows/pages.yml"
 
 permissions:
