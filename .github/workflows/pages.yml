@@ -15,6 +15,7 @@ on:
       - "setup.py"
       - "pyproject.toml"
       - "tools/build_pages.py"
+      - "tools/run_experiments.py"
       - "tools/build_browser_runtime.py"
       - ".github/workflows/pages.yml"
 
