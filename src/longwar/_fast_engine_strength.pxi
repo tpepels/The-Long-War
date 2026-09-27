@@ -109,12 +109,12 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
     return value if value > 0 else 0
 
 cdef int _fe_position_strength(FastEngine self, FastState state, int player, int front, int rank):
-    return self.position_strength_fast(state, slot_index(player, front, rank))
+    return _fe_position_strength_fast(self, state, slot_index(player, front, rank))
 
 cdef int _fe_front_strength_fast(FastEngine self, FastState state, int player, int front) noexcept:
     cdef int value, scheme, enemy, slot, link
-    value = self.position_strength_fast(state, slot_index(player, front, 0))
-    value += self.position_strength_fast(state, slot_index(player, front, 1))
+    value = _fe_position_strength_fast(self, state, slot_index(player, front, 0))
+    value += _fe_position_strength_fast(self, state, slot_index(player, front, 1))
     scheme = state.scheme[player * 4 + front]
     if scheme >= 0 and not state.scheme_revealed[player * 4 + front]:
         value += self.scheme_face_bonus[scheme]
@@ -150,7 +150,7 @@ cdef inline int _fe_resolution_front_strength_fast(
     cdef int rank, slot, local, physical_front, chosen_front
     cdef int formation_bonus = 0
     cdef int enemy, link
-    cdef bint frontline_only = self.frontline_only_resolution(state, front)
+    cdef bint frontline_only = _fe_frontline_only_resolution(self, state, front)
 
     if (
         strat >= 0
@@ -177,14 +177,14 @@ cdef inline int _fe_resolution_front_strength_fast(
             continue
         if frontline_only and rank == 1:
             continue
-        value += self.position_strength_fast(state, slot)
+        value += _fe_position_strength_fast(self, state, slot)
 
     # Preserve any explicit opposing-Bond modifier from the canonical
     # strength calculation.
     enemy = 1 - player
     for rank in range(2):
         slot = slot_index(enemy, front, rank)
-        if self.slot_complete(state, slot):
+        if _fe_slot_complete(self, state, slot):
             link = state.link[slot]
             if link >= 0:
                 value += self.link_opposing[link]
@@ -235,7 +235,7 @@ cdef inline bint _fe_tie_control_active(
     return False
 
 cdef int _fe_front_strength(FastEngine self, FastState state, int player, int front):
-    return self.front_strength_fast(state, player, front)
+    return _fe_front_strength_fast(self, state, player, front)
 
 cdef inline bint _fe_slot_complete(FastEngine self, FastState state, int slot) noexcept:
     return (
@@ -250,7 +250,7 @@ cdef inline bint _fe_subject_protected(FastEngine self, FastState state, int slo
     if link >= 0 and name >= 0 and self.link_protect[link]:
         return True
     return (
-        self.slot_complete(state, slot)
+        _fe_slot_complete(self, state, slot)
         and name >= 0
         and self.complete_plot_protection[name]
     )
@@ -274,4 +274,4 @@ cdef inline bint _fe_can_draw_fast(FastEngine self, FastState state, int player)
     )
 
 cdef bint _fe_can_draw(FastEngine self, FastState state, int player):
-    return self.can_draw_fast(state, player)
+    return _fe_can_draw_fast(self, state, player)
