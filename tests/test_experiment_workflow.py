@@ -466,9 +466,11 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     monkeypatch.setattr(runner, "artifact_directory", lambda base, identity: artifact_directory(tmp_path, identity))
     output = runner.balance_run(Namespace(preset="quick", games=1, seed=71, contexts=1, games_per_context=1))
     summary = json.loads((output / "summary.json").read_text())
-    assert summary["simulation_games"] == 4
+    assert summary["simulation_games"] == len(runner.CANONICAL_DECK_PATHS)
     assert summary["config"]["seed"] == 71
-    match = json.loads((output / "mobility--mobility.json").read_text())
+    match = json.loads(
+        (output / "mobility-open-bonds--mobility-open-bonds.json").read_text()
+    )
     assert len(match["deck_a"]) == 34
     assert "deck_size" not in match["rules"]
     assert match["game_fingerprint"] == summary["game_fingerprint"]
