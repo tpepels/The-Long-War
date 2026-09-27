@@ -292,6 +292,7 @@ def main() -> None:
     payload = asdict(report)
     payload["game_fingerprint"] = game_fingerprint
     payload["seed"] = args.seed
+    payload["decisive_games"] = report.decisive_games
     payload["win_rates"] = report.win_rates
     payload["censor_rate"] = report.censor_rate
     payload["first_player_win_rate"] = report.first_player_win_rate
