@@ -111,7 +111,11 @@ function renderOverview(lab) {
       decisiveGames > 0 ? pct(g.first_player_win_rate) : "—",
       decisiveGames > 0 ? `decisive games · 95% ${interval(g.first_player_win_rate_95)}` : "no decisive games"
     ),
-    metric("Cards", s.cards_analyzed, `${s.flags_high} high · ${s.flags_watch} watch flags`),
+    metric(
+      "Cards",
+      s.cards_analyzed,
+      `${s.cards_observed ?? s.cards_analyzed} observed · ${s.cards_unobserved ?? 0} unobserved · ${s.flags_high} high · ${s.flags_watch} watch`
+    ),
     metric("Forces becoming Named", pct(lifecycle.force_to_name_rate), progression ? `${lifecycle.forces_ever_named ?? 0} / ${lifecycle.forces ?? 0} Force lifecycles` : "progression not generated"),
     metric("Forced choice", pct(choice.exactly_one_legal_action_rate), progression ? "decisions with exactly one legal action" : "progression not generated"),
     metric("Causal coverage", lab.counterfactual ? lab.counterfactual.cards.length : "—", lab.counterfactual ? "paired card estimates" : "not generated"),
@@ -141,6 +145,17 @@ function renderAttention(lab) {
       "pending",
       "Solver evidence needs a fresh run for this ruleset",
       `Draw and the playtest deck profiles changed. ${lab.stale_evidence.length} restored dynamic/solver artifact${lab.stale_evidence.length === 1 ? "" : "s"} from an older game fingerprint ${lab.stale_evidence.length === 1 ? "is" : "are"} hidden rather than being presented as current evidence.`
+    ));
+  }
+
+  const unobservedCards = cards.filter((row) => row.observed === false);
+  if (unobservedCards.length) {
+    items.push(attentionItem(
+      "pending",
+      `${unobservedCards.length} card${unobservedCards.length === 1 ? "" : "s"} lack self-play evidence`,
+      unobservedCards.slice(0, 6).map((row) => `<b>${esc(row.title)}</b>`).join(", ") +
+        (unobservedCards.length > 6 ? ` and ${unobservedCards.length - 6} more` : "") +
+        ". They remain visible as Unobserved; static analysis alone is not presented as a health verdict."
     ));
   }
 
@@ -228,11 +243,11 @@ function renderCards(lab) {
 
   if (["force", "bond", "name", "story", "stratagem"].includes(filter)) {
     rows = rows.filter((row) => canonicalType(row) === filter);
-  } else if (["red", "orange", "yellow", "green", "dark_green"].includes(filter)) {
+  } else if (["red", "orange", "yellow", "unobserved", "green", "dark_green"].includes(filter)) {
     rows = rows.filter((row) => row.balance_level === filter);
   }
 
-  const order = { red: 0, orange: 1, yellow: 2, green: 3, dark_green: 4 };
+  const order = { red: 0, orange: 1, yellow: 2, unobserved: 3, green: 4, dark_green: 5 };
   rows.sort((a, b) =>
     order[a.balance_level] - order[b.balance_level] ||
     a.title.localeCompare(b.title)
@@ -256,8 +271,8 @@ function renderCards(lab) {
           ${row.unique ? '<span class="muted"><em>Unique</em></span>' : ""}
         </td>
         <td data-label="Use">
-          <strong>${pct(row.play_rate_per_draw)}</strong>
-          <span class="muted">${row.plays}/${row.draws} plays/draws</span>
+          <strong>${row.observed === false ? "—" : pct(row.play_rate_per_draw)}</strong>
+          <span class="muted">${row.observed === false ? "no self-play exposure" : `${row.plays}/${row.draws} plays/draws`}</span>
         </td>
         <td data-label="Dead on pass">${pct(row.dead_on_pass_rate)}</td>
         <td data-label="Front swing">${num(row.mean_immediate_front_swing, 1)} <span class="muted">z ${num(row.front_swing_z_within_type, 1)}</span></td>
@@ -267,6 +282,7 @@ function renderCards(lab) {
           <details class="row-evidence">
             <summary>details</summary>
             <dl>
+              <div><dt>Observed</dt><dd>${row.observed === false ? "No self-play exposure" : "Yes"}</dd></div>
               <div><dt>Dead turns</dt><dd>${pct(row.unplayable_turn_rate)}</dd></div>
               <div><dt>Control swing</dt><dd>${num(row.mean_immediate_control_swing, 2)}</dd></div>
               <div><dt>Win when drawn</dt><dd>${pct(row.win_rate_when_drawn)} · ${interval(row.win_rate_when_drawn_95)}</dd></div>
