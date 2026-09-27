@@ -106,7 +106,10 @@ def balance_run(args: argparse.Namespace) -> Path:
         structural sample size.
     """
     from longwar.balance import build_report
-    from longwar.counterfactual import run_counterfactual_card_sweep
+    from longwar.counterfactual import (
+        run_counterfactual_card_sweep,
+        validate_counterfactual_baselines,
+    )
     from longwar.health import (
         aggregate_simulations_for_health,
         analyze_simulation,
@@ -188,6 +191,12 @@ def balance_run(args: argparse.Namespace) -> Path:
         )
 
     data = load_card_file(ROOT / "cards" / "cards.json")
+    if deep_pipeline:
+        validate_counterfactual_baselines(data)
+        print(
+            f"Validated {len(data['cards'])} counterfactual baselines",
+            flush=True,
+        )
     engine = GameEngine(data)
     decks = {
         p.stem: json.loads(p.read_text(encoding="utf-8"))["cards"]
