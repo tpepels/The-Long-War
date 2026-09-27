@@ -375,6 +375,9 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         "global": {
             "first_player_win_rate": fp_rate,
             "first_player_win_rate_95": list(fp_ci),
+            "decisive_games": decisive_games,
+            "censored_games": censored_games,
+            "censor_rate": (censored_games / games if games else 0.0),
             "mean_actions": simulation["mean_turns"],
             "max_actions": simulation["max_turns"],
             "passes": telemetry["passes"],
@@ -408,12 +411,19 @@ def render_markdown(report: dict[str, Any]) -> str:
     g = report["global"]
     s = report["summary"]
     low, high = g["first_player_win_rate_95"]
+    first_player_line = (
+        f"First-player win: **{100*g['first_player_win_rate']:.1f}%** "
+        f"(95% Wilson {100*low:.1f}%–{100*high:.1f}%)  "
+        if low is not None and high is not None
+        else "First-player win: **n/a** (no decisive games)  "
+    )
     lines = [
         "# The Long War — Balance Health Report",
         "",
-        f"Games: **{report['source']['games']}** · Agents: **{' vs '.join(report['source']['agents'])}**  ",
-        f"First-player win: **{100*g['first_player_win_rate']:.1f}%** "
-        f"(95% Wilson {100*low:.1f}%–{100*high:.1f}%)  ",
+        f"Games: **{report['source']['games']}** · decisive: **{g['decisive_games']}** · "
+        f"censored: **{g['censored_games']}** ({100*g['censor_rate']:.1f}%) · "
+        f"Agents: **{' vs '.join(report['source']['agents'])}**  ",
+        first_player_line,
         f"High flags: **{s['flags_high']}** · Watch flags: **{s['flags_watch']}** · Diagnostic associations: **{s.get('flags_diagnostic', 0)}**",
         "",
         "## Flagged cards",
