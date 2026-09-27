@@ -504,3 +504,14 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     assert match["game_fingerprint"] == summary["game_fingerprint"]
     assert (output / "playability.json").is_file()
 
+def test_only_deep_balance_run_publishes_root_lab_snapshot() -> None:
+    source = inspect.getsource(runner.balance_run)
+
+    assert 'if args.preset == "deep":' in source
+    assert 'publish("balance-report.json", static_payload)' in source
+    assert 'publish("balance-health.json", aggregate_health)' in source
+    assert 'publish("heuristic-selfplay.json", aggregate_selfplay)' in source
+    assert 'publish("progression-selfplay.json", progression_source)' in source
+    assert 'publish("counterfactual-balance.json", causal_payload)' in source
+    assert '"tools" / "build_lab_report.py"' in source
+
