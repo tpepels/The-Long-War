@@ -363,6 +363,9 @@ function renderCards(lab) {
             <summary>details</summary>
             <dl>
               <div><dt>Observed</dt><dd>${row.observed === false ? "No self-play exposure" : "Yes"}</dd></div>
+              <div><dt>Final status source</dt><dd>${esc((row.balance_evidence_source || "observational").replaceAll("_", " "))}</dd></div>
+              <div><dt>Heuristic screen</dt><dd>${causal ? `${signedPct(causal.delta_win_probability)} · ${interval(causal.ci95)} · ${causal.samples ?? 0} decisive pairs` : "—"}</dd></div>
+              <div><dt>Strategic validation</dt><dd>${online ? `${esc(online.confirmation.replaceAll("_", " "))} · ${signedPct(online.online.effect)} · ${online.online.samples ?? 0} decisive pairs` : "not targeted"}</dd></div>
               <div><dt>Dead turns</dt><dd>${pct(row.unplayable_turn_rate)}</dd></div>
               <div><dt>Control swing</dt><dd>${num(row.mean_immediate_control_swing, 2)}</dd></div>
               <div><dt>Win when drawn</dt><dd>${pct(row.win_rate_when_drawn)} · ${interval(row.win_rate_when_drawn_95)}</dd></div>
