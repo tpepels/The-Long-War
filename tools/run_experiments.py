@@ -37,9 +37,7 @@ from longwar.agents.ismcts_agent import (
 from longwar.balance import validate_command_costs
 from longwar.cards import load_card_file
 from longwar.decks import (
-    PLAYTEST_DECK_SIZE,
-    PLAYTEST_FORCE_COUNT,
-    PLAYTEST_PRINTED_NAME_COUNT,
+    MINIMUM_DECK_SIZE,
     validate_deck_definition,
 )
 from longwar.game import GameEngine
@@ -85,19 +83,13 @@ def validate_data() -> None:
     engine = GameEngine(data, rules=GameRules.standard())
     for path in deck_paths:
         deck = json.loads(path.read_text(encoding="utf-8"))["cards"]
-        validate_deck_definition(
-            deck,
-            engine.cards,
-            exact_size=PLAYTEST_DECK_SIZE,
-            exact_force_count=PLAYTEST_FORCE_COUNT,
-            exact_printed_name_count=PLAYTEST_PRINTED_NAME_COUNT,
-        )
+        validate_deck_definition(deck, engine.cards)
         engine.validate_deck(deck)
         engine.legal_actions(engine.new_game(deck, deck, seed=1701))
     print(
         f"Validated canonical data: {len(data['cards'])} cards, "
-        f"{len(deck_paths)} {PLAYTEST_DECK_SIZE}-card playtest decks, "
-        "standard rules"
+        f"{len(deck_paths)} canonical reference decks "
+        f"(minimum {MINIMUM_DECK_SIZE} cards), standard rules"
     )
 
 
