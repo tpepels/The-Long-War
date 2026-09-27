@@ -129,9 +129,13 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
                 "games_played",
             )
         )
-        played_n = int(stats.get("games_played", 0))
+        played_n = int(
+            stats.get("decisive_games_played", stats.get("games_played", 0))
+        )
         played_w = int(stats.get("wins_when_played", 0))
-        drawn_n = int(stats.get("games_drawn", 0))
+        drawn_n = int(
+            stats.get("decisive_games_drawn", stats.get("games_drawn", 0))
+        )
         drawn_w = int(stats.get("wins_when_drawn", 0))
         played_ci = wilson_interval(played_w, played_n)
         drawn_ci = wilson_interval(drawn_w, drawn_n)
@@ -307,8 +311,10 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "unplayable_turns": int(stats.get("unplayable_turns", 0)),
             "held_on_pass": held_pass,
             "dead_on_pass": int(stats.get("dead_on_pass", 0)),
-            "games_drawn": drawn_n,
-            "games_played": played_n,
+            "games_drawn": int(stats.get("games_drawn", 0)),
+            "decisive_games_drawn": drawn_n,
+            "games_played": int(stats.get("games_played", 0)),
+            "decisive_games_played": played_n,
             "play_rate_per_draw": play_rate,
             "unplayable_turn_rate": dead,
             "dead_on_pass_rate": dead_pass,
@@ -330,7 +336,10 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
     ]
     formations: list[dict[str, Any]] = []
     for key, stats in combo_stats.items():
-        seen = int(stats.get("games_seen", 0))
+        games_seen = int(stats.get("games_seen", 0))
+        seen = int(
+            stats.get("decisive_games_seen", games_seen)
+        )
         wins = int(stats.get("wins_when_seen", 0))
         ci = wilson_interval(wins, seen)
         strength = stats.get("mean_strength_at_completion")
@@ -364,7 +373,8 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "id": key,
             "title": " — ".join(meta[x]["title"] for x in (subject, link, name)),
             "completions": int(stats.get("completions", 0)),
-            "games_seen": seen,
+            "games_seen": games_seen,
+            "decisive_games_seen": seen,
             "mean_strength_at_completion": strength,
             "completion_strength_z": strength_z,
             "win_rate_when_seen": stats.get("win_rate_when_seen"),
