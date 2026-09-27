@@ -32,8 +32,10 @@ class CardStats:
     immediate_front_swing_total: float = 0.0
     immediate_control_swing_total: float = 0.0
     games_drawn: int = 0
+    decisive_games_drawn: int = 0
     wins_when_drawn: int = 0
     games_played: int = 0
+    decisive_games_played: int = 0
     wins_when_played: int = 0
 
 
@@ -42,6 +44,7 @@ class ComboStats:
     completions: int = 0
     strength_at_completion_total: float = 0.0
     games_seen: int = 0
+    decisive_games_seen: int = 0
     wins_when_seen: int = 0
 
 
@@ -360,26 +363,30 @@ class Telemetry:
         self.progression.finish_game(state, censored=winner is None)
         self._deck_exhausted_player_games += sum(self._deck_exhausted_this_game)
         self._reshuffle_player_games += sum(self._reshuffled_this_game)
-        if winner is None:
-            return
         for player in range(2):
             for card_id in self._drawn_this_game[player]:
                 stats = self.cards[card_id]
                 stats.games_drawn += 1
-                if player == winner:
-                    stats.wins_when_drawn += 1
+                if winner is not None:
+                    stats.decisive_games_drawn += 1
+                    if player == winner:
+                        stats.wins_when_drawn += 1
 
             for card_id in self._played_this_game[player]:
                 stats = self.cards[card_id]
                 stats.games_played += 1
-                if player == winner:
-                    stats.wins_when_played += 1
+                if winner is not None:
+                    stats.decisive_games_played += 1
+                    if player == winner:
+                        stats.wins_when_played += 1
 
             for combo in self._combos_this_game[player]:
                 stats = self.combos[combo]
                 stats.games_seen += 1
-                if player == winner:
-                    stats.wins_when_seen += 1
+                if winner is not None:
+                    stats.decisive_games_seen += 1
+                    if player == winner:
+                        stats.wins_when_seen += 1
 
     def summary(self) -> dict[str, Any]:
         cards: dict[str, Any] = {}
@@ -408,11 +415,11 @@ class Telemetry:
             )
             payload["win_rate_when_drawn"] = self._ratio(
                 stats.wins_when_drawn,
-                stats.games_drawn,
+                stats.decisive_games_drawn,
             )
             payload["win_rate_when_played"] = self._ratio(
                 stats.wins_when_played,
-                stats.games_played,
+                stats.decisive_games_played,
             )
             cards[card_id] = payload
 
@@ -425,7 +432,7 @@ class Telemetry:
             )
             payload["win_rate_when_seen"] = self._ratio(
                 stats.wins_when_seen,
-                stats.games_seen,
+                stats.decisive_games_seen,
             )
             combos[combo] = payload
 
