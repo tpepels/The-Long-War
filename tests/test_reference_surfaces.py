@@ -99,6 +99,9 @@ def test_balance_lab_is_human_first_and_collapsible() -> None:
     assert "renderAttention(lab)" in script
     assert "renderProgression(lab)" in script
     assert 'id="progression-title"' in page
+    assert 'id="progression-source-note"' in page
+    assert "Unobserved" in page
+    assert "unobserved = no self-play exposure" in script
     assert "Is the battlefield developing?" in page
     assert "Are Battles staying contestable?" in page
     assert "Are players retaining mechanical choice?" in page
@@ -122,18 +125,27 @@ def test_mccfr_profiles_use_only_current_cards() -> None:
         "decks/persistent-elite-heroes.json",
         "decks/narrative-command.json",
         "decks/battlefield-control-stratagems.json",
+        "decks/momentum-orders.json",
+        "decks/necessity-attrition.json",
     ):
         data = json.loads((ROOT / deck).read_text(encoding="utf-8"))
         covered.update(data["cards"])
 
-    # MCCFR profiles are strategic deck profiles, not a card-coverage fixture.
-    assert covered <= canonical
     assert len(canonical) == 95
+    assert len(covered) == 94
+    assert canonical - covered == {"covered-the-withdrawal-of"}
 
 
-def test_mccfr_suite_builder_covers_all_four_profile_policies() -> None:
+def test_mccfr_suite_builder_covers_all_six_profile_policies() -> None:
     builder = text("tools/build_mccfr_suite.py")
-    for profile in ("mobility", "elite", "narrative", "control"):
+    for profile in (
+        "mobility",
+        "elite",
+        "narrative",
+        "control",
+        "momentum",
+        "necessity",
+    ):
         assert f'("{profile}",' in builder
     assert 'mccfr-policy-{profile_id}.json' in builder
     assert 'mccfr-{profile_id}-vs-heuristic.json' in builder
