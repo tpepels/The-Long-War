@@ -36,3 +36,4 @@ artifacts/
 .idea/
 .DS_Store
 Thumbs.db
+src/longwar/_search.c
