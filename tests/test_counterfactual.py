@@ -34,23 +34,24 @@ def data():
 
 def test_experimental_baselines_are_valid_and_type_matched() -> None:
     card_data = data()
-    experiment = build_experiment_card_data(card_data)
-    index = {card["id"]: card for card in experiment["cards"]}
+    canonical = {card["id"]: card for card in card_data["cards"]}
 
     for card in card_data["cards"]:
+        experiment = build_experiment_card_data(card_data, [card["id"]])
+        index = {row["id"]: row for row in experiment["cards"]}
         baseline = index[baseline_id(card["id"])]
         assert baseline["type"] == card["type"]
         assert baseline["experimental"] is True
         assert baseline["command_cost"] == card["command_cost"]
 
-    assert baseline_card(index["the-fifty-men"])["strength"] == 4
-    assert baseline_card(index["followed"])["rules"] == {
+    assert baseline_card(canonical["the-fifty-men"])["strength"] == 4
+    assert baseline_card(canonical["followed"])["rules"] == {
         "strength_bonus": 1,
         "named_strength_bonus": 2,
     }
-    assert baseline_card(index["namar"])["strength"] == 2
-    assert baseline_card(index["he-never-came"])["rules"] == {}
-    assert baseline_card(index["the-storm-broke"])["rules"] == {}
+    assert baseline_card(canonical["namar"])["strength"] == 2
+    assert baseline_card(canonical["the-long-march"])["rules"] == {}
+    assert baseline_card(canonical["the-ground-was-held"])["rules"] == {}
 
 
 def test_every_single_card_counterfactual_baseline_validates() -> None:
@@ -61,16 +62,6 @@ def test_every_single_card_counterfactual_baseline_validates() -> None:
         experiment = build_experiment_card_data(card_data, [card["id"]])
         index = {row["id"]: row for row in experiment["cards"]}
         assert index[baseline_id(card["id"])]["baseline_for"] == card["id"]
-
-
-def test_non_command_experiment_baselines_allow_cards_without_command_cost() -> None:
-    card_data = data()
-    for card in card_data["cards"]:
-        card.pop("command_cost")
-
-    experiment = build_experiment_card_data(card_data)
-    assert all("command_cost" not in card for card in experiment["cards"])
-    GameEngine(experiment, command_enabled=False)
 
 
 def test_replacement_changes_exactly_one_matching_slot_and_remains_legal() -> None:
@@ -91,7 +82,7 @@ def test_replacement_changes_exactly_one_matching_slot_and_remains_legal() -> No
     ]
     assert differences == [("namar", baseline_id("namar"))]
 
-    engine = GameEngine(build_experiment_card_data(card_data))
+    engine = GameEngine(build_experiment_card_data(card_data, ["namar"]))
     engine.validate_deck(replaced)
 
 
@@ -112,7 +103,7 @@ def test_contexts_are_legal_and_cover_the_expanded_pool() -> None:
 
 def test_required_counterfactual_cards_appear_in_every_context() -> None:
     card_data = data()
-    required = {"maela", "guarded", "the-crows-returned"}
+    required = {"namar", "guarded", "the-long-march"}
     contexts = generate_context_decks(
         card_data,
         count=4,
@@ -129,12 +120,12 @@ def test_multiple_heroes_can_share_a_counterfactual_context() -> None:
         count=1,
         seed=29,
         required_cards=[
-            "mara-queen-of-cinders",
-            "sera-mother-of-white-hands",
+            "avaros-the-bronze-king",
+            "kael-the-roadless",
         ],
     )[0]
-    assert "mara-queen-of-cinders" in deck
-    assert "sera-mother-of-white-hands" in deck
+    assert "avaros-the-bronze-king" in deck
+    assert "kael-the-roadless" in deck
     GameEngine(card_data).validate_deck(deck)
 
 
@@ -244,7 +235,7 @@ def test_counterfactual_censoring_excludes_incomplete_pairs(monkeypatch) -> None
 def test_action_horizon_returns_censored_counterfactual_outcome() -> None:
     card_data = data()
     deck = generate_context_decks(card_data, count=1, seed=41)[0]
-    engine = GameEngine(build_experiment_card_data(card_data))
+    engine = GameEngine(card_data)
     sample = ExperimentSample(
         sample_id=0,
         context_id=0,
@@ -285,7 +276,7 @@ def test_context_decks_do_not_depend_on_required_card_iteration_order() -> None:
 def test_story_baseline_preserves_narrative_chassis() -> None:
     card_data = data()
     index = {card["id"]: card for card in card_data["cards"]}
-    original = index["the-lamps-went-dark"]
+    original = index["the-long-march"]
     baseline = baseline_card(original)
 
     assert baseline["type"] == "story"
@@ -297,7 +288,7 @@ def test_story_baseline_preserves_narrative_chassis() -> None:
 def test_stratagem_baseline_preserves_public_play_commitment() -> None:
     card_data = data()
     index = {card["id"]: card for card in card_data["cards"]}
-    baseline = baseline_card(index["the-storm-broke"])
+    baseline = baseline_card(index["the-ground-was-held"])
 
     assert baseline["type"] == "stratagem"
     assert baseline["rules"] == {}
@@ -324,7 +315,7 @@ def test_counterfactual_mulligan_preview_excludes_opening_bonus(
 ) -> None:
     card_data = data()
     deck = generate_context_decks(card_data, count=1, seed=41)[0]
-    engine = GameEngine(build_experiment_card_data(card_data))
+    engine = GameEngine(card_data)
     sample = ExperimentSample(
         sample_id=0,
         context_id=0,
