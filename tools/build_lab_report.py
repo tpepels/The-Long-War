@@ -77,7 +77,7 @@ def progression_trajectory(
     by_battle = progression.get("by_battle") or {}
     observed = [
         key
-        for key in ("1", "2", "3", "4+")
+        for key in ("1", "2", "3", "4-7")
         if int((by_battle.get(key) or {}).get("battles", 0) or 0) > 0
     ]
     if not observed:
@@ -130,6 +130,7 @@ def main() -> None:
     static = current("balance-report.json")
     selfplay = current("heuristic-selfplay.json") or current("pages-selfplay.json")
     progression_selfplay = current("progression-selfplay.json") or selfplay
+    progression_profiles_artifact = current("progression-profiles.json")
     policy = current("mccfr-policy.json")
     mccfr_suite = current("mccfr-suite.json")
     verification = load("mccfr-verification.json")
@@ -281,6 +282,13 @@ def main() -> None:
         if raw_telemetry is not None
         else None
     )
+    progression_profiles = {}
+    if progression_profiles_artifact is not None:
+        for key, profile in progression_profiles_artifact.get("profiles", {}).items():
+            row = dict(profile)
+            row["trajectory"] = progression_trajectory(row.get("progression"))
+            progression_profiles[key] = row
+
     trajectory = progression_trajectory(progression)
     progression_source = (
         {
@@ -357,6 +365,7 @@ def main() -> None:
         "progression": progression,
         "progression_trajectory": trajectory,
         "progression_source": progression_source,
+        "progression_profiles": progression_profiles,
         "all_formations": all_formations,
         "downloads": downloads,
     }
