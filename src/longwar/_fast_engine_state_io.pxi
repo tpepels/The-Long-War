@@ -211,6 +211,12 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         for f in range(min(4, len(front_scores))):
             fast.last_front_scores[f][0] = int(front_scores[f][0])
             fast.last_front_scores[f][1] = int(front_scores[f][1])
+        front_results = snapshot.get("front_results", ())
+        for f in range(min(4, len(front_results))):
+            if front_results[f] == 0:
+                fast.last_lost_mask[1] |= <uint8_t>(1 << f)
+            elif front_results[f] == 1:
+                fast.last_lost_mask[0] |= <uint8_t>(1 << f)
         for p in range(2):
             fast.last_command_start[p] = int(
                 snapshot.get("command_start", (0, 0))[p]
@@ -256,17 +262,8 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
     cdef object last_snapshot = None
 
     if state.last_battle_valid:
-        for f in range(4):
-            if (
-                state.last_front_scores[f][0]
-                < state.last_front_scores[f][1]
-            ):
-                lost0 += 1
-            elif (
-                state.last_front_scores[f][1]
-                < state.last_front_scores[f][0]
-            ):
-                lost1 += 1
+        lost0 = popcount16(state.last_lost_mask[0] & 15)
+        lost1 = popcount16(state.last_lost_mask[1] & 15)
         last_snapshot = {
             "battle": state.last_battle,
             "front_scores": [
@@ -278,12 +275,10 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             ],
             "front_results": [
                 (
-                    0
-                    if state.last_front_scores[f][0]
-                    > state.last_front_scores[f][1]
-                    else 1
-                    if state.last_front_scores[f][1]
-                    > state.last_front_scores[f][0]
+                    1
+                    if state.last_lost_mask[0] & (1 << f)
+                    else 0
+                    if state.last_lost_mask[1] & (1 << f)
                     else None
                 )
                 for f in range(4)
