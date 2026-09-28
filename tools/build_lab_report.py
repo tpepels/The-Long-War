@@ -138,6 +138,14 @@ def main() -> None:
     targeted = current("targeted-online-counterfactual.json")
     run_summary = current("balance-run-summary.json")
 
+    balance_comparisons = load("balance-comparisons.json")
+    if (
+        balance_comparisons is not None
+        and balance_comparisons.get("game_fingerprint") != game_fingerprint
+    ):
+        stale_files.add("balance-comparisons.json")
+        balance_comparisons = None
+
     if health is None:
         raise SystemExit("A current balance-health.json is required; regenerate its source simulation and health report")
     if static is None:
@@ -361,6 +369,7 @@ def main() -> None:
         "counterfactual": counterfactual,
         "targeted_counterfactual": targeted,
         "run_summary": run_summary,
+        "balance_comparisons": balance_comparisons,
         "raw_telemetry": raw_telemetry,
         "progression": progression,
         "progression_trajectory": trajectory,
