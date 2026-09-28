@@ -655,6 +655,23 @@ function renderProgression(lab) {
     unavailable.hidden = false;
     return;
   }
+  const currentProgressionSchema = (
+    p.mechanical_choice?.effect_resolution_decisions != null
+    && Object.prototype.hasOwnProperty.call(
+      p.formation_lifecycle || {},
+      "incomplete_removed_during_battle"
+    )
+    && (
+      Object.prototype.hasOwnProperty.call(p.by_battle || {}, "4-7")
+      || Object.prototype.hasOwnProperty.call(p.by_battle || {}, "8+")
+    )
+  );
+  if (!currentProgressionSchema) {
+    unavailable.hidden = false;
+    unavailable.textContent =
+      "Published progression telemetry predates the corrected measurement semantics. Run a fresh balance simulation to regenerate all six reference-deck profiles.";
+    return;
+  }
   unavailable.hidden = true;
 
   const life = p.formation_lifecycle || {};
