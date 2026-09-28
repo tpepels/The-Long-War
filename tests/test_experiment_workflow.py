@@ -562,3 +562,4 @@ def test_command_matrix_cli_uses_four_agent_recovery_cells(monkeypatch) -> None:
         assert pair in source
     assert "cell.skip_card_screen = True" in source
     assert "cell.publish_lab = True" in source
+    assert '"tools" / "build_lab_report.py"' in source
