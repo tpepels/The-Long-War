@@ -83,6 +83,61 @@ def test_parallel_random_simulation_preserves_seeded_results_and_telemetry() -> 
     assert parallel.telemetry["human_flow"] == serial.telemetry["human_flow"]
 
 
+def test_simulation_can_skip_one_failed_game_without_polluting_aggregates(monkeypatch) -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data)
+
+    original_make_agent = simulation_module.make_agent
+    failing_agent_seeds = {7_010_003, 7_010_004}
+
+    class FailingAgent:
+        def __init__(self, wrapped):
+            self.wrapped = wrapped
+
+        def __getattr__(self, name):
+            return getattr(self.wrapped, name)
+
+        def choose(self, engine, state):
+            raise RuntimeError("synthetic game failure")
+
+    def flaky_make_agent(name, engine, agent_seed, **kwargs):
+        agent = original_make_agent(name, engine, agent_seed, **kwargs)
+        if agent_seed in failing_agent_seeds:
+            return FailingAgent(agent)
+        return agent
+
+    monkeypatch.setattr(simulation_module, "make_agent", flaky_make_agent)
+
+    report = simulate_games(
+        engine,
+        deck,
+        deck,
+        games=3,
+        seed=701,
+        jobs=1,
+        agent_names=("random", "random"),
+        skip_failed_games=True,
+    )
+
+    assert report.games == 3
+    assert report.completed_games == 2
+    assert report.failed_games == 1
+    assert report.decisive_games + report.censored_games + report.failed_games == 3
+    assert [outcome["game"] for outcome in report.game_outcomes] == [0, 2]
+    assert report.failed_game_outcomes == [{
+        "game": 1,
+        "seed": 702,
+        "first_player": 1,
+        "error_type": "RuntimeError",
+        "error": "synthetic game failure",
+        "actions_completed": 0,
+    }]
+    assert report.telemetry["progression"]["match_length"]["matches"] == 2
+
+
 def test_action_horizon_is_recorded_as_censoring() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
