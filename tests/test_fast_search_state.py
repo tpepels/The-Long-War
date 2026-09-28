@@ -173,6 +173,30 @@ def test_packed_state_matches_canonical_engine_on_random_games(
     assert checked >= 100
 
 
+def test_ongoing_narrative_uses_only_first_empty_native_slot() -> None:
+    engine, deck, native = setup()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=9899,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.players[0].hand[:] = ["the-long-march"]
+    state.players[0].command = 20
+    packed = native.from_game_state(state)
+
+    keys = {
+        native.action_key(action)
+        for action in native.legal_actions(packed)
+        if native.action_key(action).startswith(
+            "story:the-long-march:ongoing:"
+        )
+    }
+
+    assert keys == {"story:the-long-march:ongoing:0"}
+
+
 def test_native_state_hash_distinguishes_turn_number() -> None:
     engine, deck, native = setup()
     state = engine.new_game(
