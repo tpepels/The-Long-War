@@ -188,6 +188,9 @@ cdef class FastEngine:
     cpdef int command_cost(self, FastState state, uint64_t action):
         return _fe_command_cost(self, state, action)
 
+    cpdef int command_recovery_for_battle(self, int battle):
+        return _fe_command_recovery_for_battle(self, battle)
+
     cpdef list legal_actions(self, FastState state):
         return _fe_legal_actions(self, state)
 
