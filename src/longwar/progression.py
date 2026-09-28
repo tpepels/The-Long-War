@@ -681,7 +681,7 @@ class ProgressionTelemetry:
 
         battle_records = [
             self._battle_record_view(row)
-            for row in battle_records
+            for row in self._battle_records
         ]
         by_battle = self._summarize_battles(battle_records)
         match_records = [
