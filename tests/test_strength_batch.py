@@ -6,7 +6,6 @@ from pathlib import Path
 
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Phase, Position, Rank
-from longwar.game.model import StratagemState
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -52,10 +51,8 @@ def test_batched_front_strength_matches_scalar_engine_across_play() -> None:
 def test_name_option_delta_matches_full_strength_recalculation() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=91, first_player=0)
-    state.stratagems[1] = StratagemState("the-wooden-gift", revealed=True)
-
-    bonds = ["followed", "swore-to", "defied", "carried", "avenged"]
-    names = ["namar", "iria", "oren", "teyra"]
+    bonds = ["followed", "guarded", "stood-fast-with", "endured-with", "trusted"]
+    names = ["namar", "iria", "oren", "mara"]
 
     for rank in (Rank.FRONT, Rank.REAR):
         position = Position(Front.SECOND, rank)
