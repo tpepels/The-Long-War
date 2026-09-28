@@ -4,7 +4,7 @@ import inspect
 import re
 from pathlib import Path
 
-from longwar.cards import load_card_file
+from longwar.cards import CARD_CAPABILITY_BITS, load_card_file
 from longwar.game import GameEngine
 from longwar.heuristics import StrategicEvaluator
 from longwar.rules import GameRules
@@ -49,6 +49,25 @@ def test_game_core_dependencies_point_inward_only() -> None:
     for path in core_files:
         source = path.read_text(encoding="utf-8")
         assert not any(term in source for term in forbidden), path
+
+
+def test_native_engine_consumes_compiled_card_mechanics() -> None:
+    """Raw design JSON stops at cards.py; native runtime sees compiled mechanics."""
+    engine_source = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
+    native_cards = (SRC / "_fast_engine_cards.pxi").read_text(encoding="utf-8")
+    native_class = (SRC / "_fast_engine_class.pxi").read_text(encoding="utf-8")
+
+    assert "compile_card_mechanics" in engine_source
+    assert "self.card_mechanics" in engine_source
+    assert "engine.card_mechanics[card_id]" in native_cards
+    assert 'card.get("design_rules")' not in native_cards
+    assert "_capability_bits" in native_cards
+    assert "cdef uint64_t card_capabilities[MAX_CARDS]" in native_class
+
+    # Registered boolean capabilities share the bitset instead of growing one
+    # MAX_CARDS array per mechanic.
+    for capability in CARD_CAPABILITY_BITS:
+        assert f"cdef uint8_t {capability}[MAX_CARDS]" not in native_class
 
 
 def test_runtime_and_search_do_not_special_case_card_ids() -> None:
