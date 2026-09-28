@@ -24,6 +24,10 @@ class GameScenario:
         self.state.active_player = int(player)
         return self
 
+    def command(self, player: int, value: int) -> "GameScenario":
+        self.state.players[player].command = int(value)
+        return self
+
     def commands(self, player_zero: int, player_one: int) -> "GameScenario":
         self.state.players[0].command = int(player_zero)
         self.state.players[1].command = int(player_one)
