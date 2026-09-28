@@ -47,6 +47,28 @@ class HumanFlowDiagnostics:
         self.reshuffled_cards_total = 0
         self.reshuffle_hand_cards_total = 0
 
+    def merge(self, other: "HumanFlowDiagnostics") -> None:
+        """Merge completed-match diagnostics from an independent worker."""
+        self.opening_force_distribution.update(other.opening_force_distribution)
+        self.opening_role_counts.update(other.opening_role_counts)
+        self.opening_rank_counts.update(other.opening_rank_counts)
+        self.first_force_operations.extend(other.first_force_operations)
+        self.longest_no_force_streak = max(
+            self.longest_no_force_streak,
+            other.longest_no_force_streak,
+        )
+        for name in (
+            "opening_players", "opening_force_total", "decisions",
+            "force_hand_total", "hand_size_total", "no_playable_force_decisions",
+            "battles", "player_battles", "cards_drawn_total",
+            "deck_seen_fraction_total", "completion_events_total",
+            "command_spent_total", "pass_events", "first_pass_events",
+            "early_first_pass_events", "pass_hand_total",
+            "pass_operations_total", "pre_draw_discards", "reshuffles",
+            "reshuffled_cards_total", "reshuffle_hand_cards_total",
+        ):
+            setattr(self, name, getattr(self, name) + getattr(other, name))
+
     def start_game(self, engine: GameEngine, state: GameState) -> None:
         self._no_force_streak = [0, 0]
         self._first_force_seen = [False, False]
