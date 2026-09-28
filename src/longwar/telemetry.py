@@ -7,6 +7,7 @@ from typing import Any
 
 from .game.actions import (
     Action,
+    EffectChoice,
     Maneuver,
     Pass,
     PlayBond,
@@ -27,8 +28,14 @@ class CardStats:
     turns_in_hand: int = 0
     playable_turns: int = 0
     unplayable_turns: int = 0
+    affordable_turns: int = 0
+    unaffordable_turns: int = 0
+    structurally_unplayable_turns: int = 0
     held_on_pass: int = 0
     dead_on_pass: int = 0
+    affordable_on_pass: int = 0
+    unaffordable_on_pass: int = 0
+    structurally_dead_on_pass: int = 0
     immediate_front_swing_total: float = 0.0
     immediate_control_swing_total: float = 0.0
     games_drawn: int = 0
@@ -146,26 +153,49 @@ class Telemetry:
             self._progression_started = True
 
         pass_record: dict[str, Any] | None = None
-        if state.phase is Phase.BATTLE and state.pending_draw_discard_for is None:
+        effect_resolution = (
+            isinstance(action, EffectChoice)
+            or (
+                bool(legal)
+                and all(isinstance(candidate, EffectChoice) for candidate in legal)
+            )
+        )
+        operation_decision = (
+            state.phase is Phase.BATTLE
+            and state.pending_draw_discard_for is None
+            and not effect_resolution
+        )
+        if operation_decision:
             self._battle_actions[actor] += 1
             self._battle_decisions += 1
             if not state.players[actor].deck:
                 self._deck_empty_decisions += 1
                 if not engine.can_draw(state, actor):
                     self._deck_exhausted_this_game[actor] = True
+
             playable_ids = {
                 card_id
                 for legal_action in legal
                 for card_id in [self._action_card_id(legal_action)]
                 if card_id is not None
             }
-            for card_id, copies in Counter(state.players[actor].hand).items():
+            command = int(state.players[actor].command)
+            hand = Counter(state.players[actor].hand)
+            for card_id, copies in hand.items():
                 stats = self.cards[card_id]
                 stats.turns_in_hand += copies
+                cost = int(engine.cards.get(card_id, {}).get("command_cost", 0) or 0)
+                affordable = command >= cost
+                if affordable:
+                    stats.affordable_turns += copies
+                else:
+                    stats.unaffordable_turns += copies
                 if card_id in playable_ids:
                     stats.playable_turns += copies
                 else:
                     stats.unplayable_turns += copies
+                    if affordable:
+                        stats.structurally_unplayable_turns += copies
 
             if isinstance(action, Pass):
                 first_pass = len(state.pass_order) == 0
@@ -176,7 +206,7 @@ class Telemetry:
                     "first_pass": first_pass,
                     "hand_size": len(state.players[actor].hand),
                     "deck_remaining": len(state.players[actor].deck),
-                    "command_remaining": state.players[actor].command,
+                    "command_remaining": command,
                     "controlled_fronts": sum(margin > 0 for margin in margins),
                     "tied_fronts": sum(margin == 0 for margin in margins),
                     "lost_fronts": sum(margin < 0 for margin in margins),
@@ -194,14 +224,28 @@ class Telemetry:
                         isinstance(candidate, Maneuver) for candidate in legal
                     ),
                     "dead_cards": 0,
+                    "structurally_dead_cards": 0,
+                    "unaffordable_cards": 0,
+                    "affordable_cards": 0,
                 }
 
-                for card_id, copies in Counter(state.players[actor].hand).items():
+                for card_id, copies in hand.items():
                     stats = self.cards[card_id]
                     stats.held_on_pass += copies
+                    cost = int(engine.cards.get(card_id, {}).get("command_cost", 0) or 0)
+                    affordable = command >= cost
+                    if affordable:
+                        stats.affordable_on_pass += copies
+                        pass_record["affordable_cards"] += copies
+                    else:
+                        stats.unaffordable_on_pass += copies
+                        pass_record["unaffordable_cards"] += copies
                     if card_id not in playable_ids:
                         stats.dead_on_pass += copies
                         pass_record["dead_cards"] += copies
+                        if affordable:
+                            stats.structurally_dead_on_pass += copies
+                            pass_record["structurally_dead_cards"] += copies
 
                 pass_record["unplayable_cards_remaining"] = pass_record["dead_cards"]
                 self.pass_events.append(pass_record)
@@ -401,8 +445,24 @@ class Telemetry:
                 stats.unplayable_turns,
                 stats.turns_in_hand,
             )
+            payload["structural_unplayable_turn_rate"] = self._ratio(
+                stats.structurally_unplayable_turns,
+                stats.affordable_turns,
+            )
+            payload["resource_blocked_turn_rate"] = self._ratio(
+                stats.unaffordable_turns,
+                stats.turns_in_hand,
+            )
             payload["dead_on_pass_rate"] = self._ratio(
                 stats.dead_on_pass,
+                stats.held_on_pass,
+            )
+            payload["structural_dead_on_pass_rate"] = self._ratio(
+                stats.structurally_dead_on_pass,
+                stats.affordable_on_pass,
+            )
+            payload["resource_blocked_on_pass_rate"] = self._ratio(
+                stats.unaffordable_on_pass,
                 stats.held_on_pass,
             )
             payload["mean_immediate_front_swing"] = self._ratio(
@@ -455,6 +515,15 @@ class Telemetry:
                 len(self.pass_events),
             ),
             "mean_dead_cards": self._mean_field(self.pass_events, "dead_cards"),
+            "mean_structurally_dead_cards": self._mean_field(
+                self.pass_events, "structurally_dead_cards"
+            ),
+            "mean_unaffordable_cards": self._mean_field(
+                self.pass_events, "unaffordable_cards"
+            ),
+            "mean_affordable_cards": self._mean_field(
+                self.pass_events, "affordable_cards"
+            ),
             "mean_playable_cards_remaining": self._mean_field(
                 self.pass_events,
                 "playable_cards_remaining",
