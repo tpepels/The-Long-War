@@ -137,7 +137,6 @@ cdef void _fe___cinit__(FastEngine self) except *:
 
 cdef void _fe___init__(FastEngine self, engine) except *:
     cdef int code, r
-    cdef object capability
     self.card_ids = tuple(engine.cards)
     self.n_cards = len(self.card_ids)
     self.opening_hand_size = int(engine.opening_hand_size)
@@ -187,24 +186,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         "frontline_strength_bonus_if_force_behind": FORCE_TEXT_FRONT_IF_REAR,
         "rear_strength_bonus_if_force_ahead": FORCE_TEXT_REAR_IF_FRONT,
     }
-    capability_map = {
-        "adjacent_retreat_free_maneuver": CAP_ADJACENT_RETREAT_FREE_MANEUVER,
-        "after_frontline_retreat_sideways_force": CAP_AFTER_FRONTLINE_RETREAT_SIDEWAYS_FORCE,
-        "after_maneuver_swap_other_friendlies": CAP_AFTER_MANEUVER_SWAP_OTHER_FRIENDLIES,
-        "after_self_maneuver_free_other_named_if_wide_name": CAP_AFTER_SELF_MANEUVER_FREE_OTHER_NAMED_IF_WIDE,
-        "after_self_retreat_sideways_name": CAP_AFTER_SELF_RETREAT_SIDEWAYS_NAME,
-        "follow_into_vacated_after_adjacent_maneuver": CAP_FOLLOW_INTO_VACATED_AFTER_ADJACENT_MANEUVER,
-        "narrative_command_gain_free_maneuver_force": CAP_NARRATIVE_COMMAND_GAIN_FREE_MANEUVER_FORCE,
-        "on_play_take_adjacent_open_bond_name": CAP_ON_PLAY_TAKE_ADJACENT_OPEN_BOND_NAME,
-        "on_play_take_adjacent_prepared_component_force": CAP_ON_PLAY_TAKE_ADJACENT_PREPARED_COMPONENT_FORCE,
-        "opposing_maneuver_same_front_free_maneuver": CAP_OPPOSING_MANEUVER_SAME_FRONT_FREE_MANEUVER,
-        "opposing_named_same_front_free_maneuver": CAP_OPPOSING_NAMED_SAME_FRONT_FREE_MANEUVER,
-        "optional_self_drive_prevent_frontline_retreat_force": CAP_OPTIONAL_SELF_DRIVE_PREVENT_FRONTLINE_RETREAT_FORCE,
-        "prepared_on_play_free_maneuver_force": CAP_PREPARED_ON_PLAY_FREE_MANEUVER_FORCE,
-        "succession_on_drive_off_name": CAP_SUCCESSION_ON_DRIVE_OFF_NAME,
-        "transfer_open_bond_after_move_bond": CAP_TRANSFER_OPEN_BOND_AFTER_MOVE_BOND,
-    }
-
     for code, card_id in enumerate(self.card_ids):
         card = engine.cards[card_id]
         self.card_type[code] = type_map[card["type"]]
@@ -219,8 +200,10 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         self.hero[code] = bool(card.get("hero", False))
         rules = card.get("rules", {})
         design = engine.card_mechanics[card_id]
-        for capability in design.get("_capabilities", ()):
-            self.card_capabilities[code] |= <uint64_t>capability_map[capability]
+        self.card_capabilities[code] = <uint64_t>design.get(
+            "_capability_bits",
+            0,
+        )
         force_design = design.get("force") or design
 
         self.narrative_first_card_front_constraint[code] = bool(
