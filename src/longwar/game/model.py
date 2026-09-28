@@ -22,6 +22,12 @@ class Phase(str, Enum):
     COMPLETE = "complete"
 
 
+class ConstraintKind(str, Enum):
+    AFFECT_FRONT = "affect_front"
+    MANEUVER = "maneuver"
+    SPECIFIC_MANEUVER = "specific_maneuver"
+
+
 RANK_INDEX = {Rank.FRONT: 0, Rank.REAR: 1}
 FRONT_COUNT = 4
 RANK_COUNT = 2
@@ -68,7 +74,26 @@ class StoryState:
     fronts: tuple[Front, ...] = ()
     target_player: int | None = None
     target_position: Position | None = None
+    direction: str | None = None
     triggered_this_battle: bool = False
+    triggered_players_mask: int = 0
+
+
+@dataclass
+class OperationConstraint:
+    source_card: str
+    player: int
+    kind: ConstraintKind
+    source_owner: int
+    front: Front | None = None
+    direction: str | None = None
+    source_position: Position | None = None
+    activate_turn: int = 0
+    expires_after_operation: bool = True
+    persists_between_battles: bool = False
+    zero_cost: bool = False
+    draw_after_satisfied: int = 0
+    discard_source_story: bool = False
 
 
 @dataclass
@@ -154,6 +179,7 @@ class GameState:
     pending_resume: str | None = None
     pending_resume_player: int | None = None
     free_maneuver_available: list[bool] = field(default_factory=lambda: [False, False])
+    constraints: list[OperationConstraint] = field(default_factory=list)
     battle_resolution: dict[str, object] | None = None
     last_battle_snapshot: dict[str, object] | None = None
     pass_order: list[int] = field(default_factory=list)
@@ -200,7 +226,9 @@ class GameState:
                     fronts=tuple(story.fronts),
                     target_player=story.target_player,
                     target_position=story.target_position,
+                    direction=story.direction,
                     triggered_this_battle=story.triggered_this_battle,
+                    triggered_players_mask=story.triggered_players_mask,
                 )
                 for story in side
             ]
@@ -257,6 +285,24 @@ class GameState:
             pending_resume=self.pending_resume,
             pending_resume_player=self.pending_resume_player,
             free_maneuver_available=list(self.free_maneuver_available),
+            constraints=[
+                OperationConstraint(
+                    source_card=item.source_card,
+                    player=item.player,
+                    kind=item.kind,
+                    source_owner=item.source_owner,
+                    front=item.front,
+                    direction=item.direction,
+                    source_position=item.source_position,
+                    activate_turn=item.activate_turn,
+                    expires_after_operation=item.expires_after_operation,
+                    persists_between_battles=item.persists_between_battles,
+                    zero_cost=item.zero_cost,
+                    draw_after_satisfied=item.draw_after_satisfied,
+                    discard_source_story=item.discard_source_story,
+                )
+                for item in self.constraints
+            ],
             battle_resolution=(
                 None
                 if self.battle_resolution is None
@@ -309,7 +355,9 @@ class GameState:
                     fronts=tuple(story.fronts),
                     target_player=story.target_player,
                     target_position=story.target_position,
+                    direction=story.direction,
                     triggered_this_battle=story.triggered_this_battle,
+                    triggered_players_mask=story.triggered_players_mask,
                 )
                 for story in source.stories[player]
             ]
@@ -360,6 +408,24 @@ class GameState:
         self.pending_resume = source.pending_resume
         self.pending_resume_player = source.pending_resume_player
         self.free_maneuver_available[:] = source.free_maneuver_available
+        self.constraints[:] = [
+            OperationConstraint(
+                source_card=item.source_card,
+                player=item.player,
+                kind=item.kind,
+                source_owner=item.source_owner,
+                front=item.front,
+                direction=item.direction,
+                source_position=item.source_position,
+                activate_turn=item.activate_turn,
+                expires_after_operation=item.expires_after_operation,
+                persists_between_battles=item.persists_between_battles,
+                zero_cost=item.zero_cost,
+                draw_after_satisfied=item.draw_after_satisfied,
+                discard_source_story=item.discard_source_story,
+            )
+            for item in source.constraints
+        ]
         self.battle_resolution = (
             None
             if source.battle_resolution is None
