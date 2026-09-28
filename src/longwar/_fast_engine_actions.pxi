@@ -212,6 +212,7 @@ cdef inline bint _fe_action_affects_front(
     int front,
 ) noexcept:
     cdef int kind = action_kind(action)
+    cdef int card
     cdef int pos = action_pos(action)
     cdef int dest = action_dest(action)
     cdef uint32_t extra = action_extra(action)
@@ -225,7 +226,12 @@ cdef inline bint _fe_action_affects_front(
             or (dest >= 0 and front_from_slot(dest) == front)
         )
     if kind == TYPE_SCHEME:
-        return bool(extra & (<uint32_t>1 << front))
+        card = action_card(action)
+        return (
+            card >= 0
+            and self.story_choice_kind[card] == STORY_CHOICE_FRONT
+            and bool(extra & (<uint32_t>1 << front))
+        )
     if kind == TYPE_STRATAGEM:
         return pos >= 0 and bool(pos & (1 << front))
     return False
