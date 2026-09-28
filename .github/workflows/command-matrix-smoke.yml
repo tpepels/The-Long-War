@@ -1,0 +1,35 @@
+name: Command matrix smoke
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/command-matrix-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Run quick Command matrix
+        run: >
+          python tools/run_experiments.py balance
+          --preset quick
+          --command-matrix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: command-matrix-smoke
+          path: |
+            artifacts/balance-comparisons.json
+            artifacts/lab-report.json
+            artifacts/balance-health.json
+            artifacts/balance-report.json
