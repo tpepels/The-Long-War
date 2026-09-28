@@ -163,6 +163,23 @@ def test_packed_state_matches_canonical_engine_on_random_games(
     assert checked >= 100
 
 
+def test_native_state_hash_distinguishes_turn_number() -> None:
+    engine, deck, native = setup()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=9900,
+        first_player=0,
+        opening_bonus=False,
+    )
+    baseline = native.state_hash(native.from_game_state(state))
+
+    changed = state.clone()
+    changed.turn_number += 1
+
+    assert native.state_hash(native.from_game_state(changed)) != baseline
+
+
 def test_native_state_hash_distinguishes_draw_order() -> None:
     engine, deck, native = setup()
     state = engine.new_game(
