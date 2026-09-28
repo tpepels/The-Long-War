@@ -341,7 +341,8 @@ def balance_run(args: argparse.Namespace) -> Path:
             cells.extend([(left, right), (right, left)])
 
     print(
-        f"[1/4] Structural {agent_name} play ({recovery_variant} recovery): "
+        f"[1/4] Structural {agent_name} play ({recovery_variant} recovery, "
+        f"floor {recovery_floor}): "
         f"{len(cells)} matchup cells x "
         f"{games} games = {len(cells) * games:,} attempted games",
         flush=True,
@@ -749,6 +750,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         comparisons.setdefault("profiles", {})[comparison_key] = {
             "agent": agent_name,
             "recovery_variant": recovery_variant,
+            "recovery_floor": recovery_floor,
             "rules": rules.as_dict(),
             "agent_profile": config["agent_profile"],
             "summary": summary_payload,
