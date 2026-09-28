@@ -662,7 +662,7 @@ class ProgressionTelemetry:
         consecutive_equal_low_battles = 0
         rows_by_game: dict[int, list[dict[str, Any]]] = defaultdict(list)
         for row in self._battle_records:
-            rows_by_game[int(row["game"])].append(row)
+            rows_by_game[int(row.get("game", 0))].append(row)
         for game_rows in rows_by_game.values():
             current_streak = 0
             first_equal_low_recorded = False
@@ -775,8 +775,15 @@ class ProgressionTelemetry:
             "collapse_threshold": threshold,
             "diagnostic_battles": len(stall_rows),
             "both_below_collapse_threshold": sum(
-                all(value < threshold for value in row["command_after_recovery"])
+                command_after_recovery is not None
+                and all(value < threshold for value in command_after_recovery)
                 for row in self._battle_records
+                if (
+                    command_after_recovery := row.get(
+                        "command_after_recovery",
+                        row.get("next_battle_command"),
+                    )
+                ) is not None
             ),
             "equal_low_continuations": len(equal_low_rows),
             "consecutive_equal_low_battles": consecutive_equal_low_battles,
