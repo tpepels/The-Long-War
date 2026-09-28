@@ -12,18 +12,28 @@ from .actions import (
     PlayStratagem,
 )
 from .engine import GameEngine, IllegalAction
-from .model import Front, GameState, Phase, Position, Rank
+from .model import (
+    ConstraintKind,
+    Front,
+    GameState,
+    OperationConstraint,
+    Phase,
+    Position,
+    Rank,
+)
 
 __all__ = [
     "Action",
     "BoardTarget",
     "Discard",
     "EffectChoice",
+    "ConstraintKind",
     "Front",
     "GameEngine",
     "GameState",
     "IllegalAction",
     "Maneuver",
+    "OperationConstraint",
     "Pass",
     "Phase",
     "PlayBond",
