@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - ".github/workflows/command-matrix-smoke.yml"
+      - "src/longwar/_ismcts_core.pxi"
 
 permissions:
   contents: read
