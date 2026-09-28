@@ -670,6 +670,10 @@ class ProgressionTelemetry:
                 not bool(row.get("strength_changed"))
                 for row in self._battle_records
             ),
+            "battles_with_no_command_change": sum(
+                not bool(row.get("command_changed"))
+                for row in self._battle_records
+            ),
             "forced_passes": sum(
                 int(row.get("forced_passes", 0))
                 for row in self._battle_records
