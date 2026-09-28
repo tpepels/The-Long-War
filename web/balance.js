@@ -885,6 +885,7 @@ function renderProgression(lab) {
   const contest = p.contestability || {};
   const choice = p.mechanical_choice || {};
   const resources = p.resources || {};
+  const lowCommand = p.low_command_stalls || {};
   const matchLength = p.match_length || {};
   const trajectory = profile?.trajectory || lab.progression_trajectory || {};
   const trajectoryMetrics = trajectory.metrics || {};
@@ -990,6 +991,10 @@ function renderProgression(lab) {
       "actual Command paid by category"
     ),
     metric("Free operations", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
+    metric("Equal-low continuations", lowCommand.equal_low_continuations ?? 0, "post-recovery Command equal and below collapse threshold"),
+    metric("0/0 Battle starts", lowCommand.both_zero_command_battle_starts ?? 0, "both players begin a Battle at zero Command"),
+    metric("No paid operation", lowCommand.battles_with_no_paid_operation ?? 0, "Battles with no Command-paying card play or Maneuver"),
+    metric("No in-Battle board change", lowCommand.battles_with_no_board_change ?? 0, "board unchanged between first and final decision state"),
   ].join("");
 
   const battles = p.by_battle || {};
