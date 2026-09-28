@@ -20,7 +20,7 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install -e '.[dev]'
-      - name: Validate native search identity
+      - name: Validate native search identity and parity
         run: python -m pytest -q tests/test_fast_search_state.py tests/test_ismcts.py
       - name: Run quick Command matrix
         run: >
