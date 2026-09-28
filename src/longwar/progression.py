@@ -1554,10 +1554,10 @@ class ProgressionTelemetry:
                     row["first_pass_unplayable_cards"] for row in rows
                 ]),
                 "first_pass_structurally_dead_cards": self._mean_optional([
-                    row["first_pass_structurally_dead_cards"] for row in rows
+                    row.get("first_pass_structurally_dead_cards") for row in rows
                 ]),
                 "first_pass_unaffordable_cards": self._mean_optional([
-                    row["first_pass_unaffordable_cards"] for row in rows
+                    row.get("first_pass_unaffordable_cards") for row in rows
                 ]),
                 "first_pass_legal_alternatives": self._mean_optional([
                     row["first_pass_legal_alternatives"] for row in rows
