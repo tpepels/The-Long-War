@@ -277,6 +277,18 @@ function renderAttention(lab) {
     ));
   }
 
+  const progression = lab.progression || lab.raw_telemetry?.progression;
+  const zeroCommandLoops = Number(
+    progression?.match_length?.censored_zero_command_matches || 0
+  );
+  if (zeroCommandLoops > 0) {
+    items.push(attentionItem(
+      "high",
+      "Equal low-Command terminal rule is still unresolved",
+      `${zeroCommandLoops} censored match${zeroCommandLoops === 1 ? "" : "es"} ended at equal 0-0 Command. The current rule says equal low Command continues, so the engine cannot choose a winner without a canonical tie/draw rule. This is a rules ambiguity, not an agent or telemetry fix.`
+    ));
+  }
+
   const censoredGames = Number(lab.health.source.censored_games || 0);
   if (censoredGames > 0) {
     const totalGames = Number(lab.health.source.games || 0);
