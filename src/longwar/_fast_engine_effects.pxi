@@ -96,11 +96,15 @@ cdef void _fe_compact_ongoing_stories(
             state.scheme_front_mask[dst] = state.scheme_front_mask[src]
             state.scheme_target_slot[dst] = state.scheme_target_slot[src]
             state.scheme_used[dst] = state.scheme_used[src]
+            state.scheme_direction[dst] = state.scheme_direction[src]
+            state.scheme_trigger_mask[dst] = state.scheme_trigger_mask[src]
             state.scheme[src] = -1
             state.scheme_revealed[src] = 0
             state.scheme_front_mask[src] = 0
             state.scheme_target_slot[src] = -1
             state.scheme_used[src] = 0
+            state.scheme_direction[src] = 0
+            state.scheme_trigger_mask[src] = 0
         write_slot += 1
 
 cdef void _fe_reveal_scheme(FastEngine self, FastState state, int controller, int front, int actor, int trigger_slot=-1):
@@ -190,16 +194,21 @@ cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) 
     for ix in range(SCHEME_COUNT):
         if state.scheme_target_slot[ix] == source:
             state.scheme_target_slot[ix] = dest
+    for ix in range(state.constraint_len):
+        if state.constraint_source_slot[ix] == source:
+            state.constraint_source_slot[ix] = dest
     state.subject[dest] = state.subject[source]
     state.link[dest] = state.link[source]
     state.name[dest] = state.name[source]
     state.temporary[dest] = state.temporary[source]
     state.maneuver_count[dest] = state.maneuver_count[source]
+    state.maneuver_direction[dest] = state.maneuver_direction[source]
     state.subject[source] = -1
     state.link[source] = -1
     state.name[source] = -1
     state.temporary[source] = 0
     state.maneuver_count[source] = 0
+    state.maneuver_direction[source] = 0
 
 cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcept:
     cdef int ix
@@ -208,21 +217,29 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
             state.scheme_target_slot[ix] = b
         elif state.scheme_target_slot[ix] == b:
             state.scheme_target_slot[ix] = a
+    for ix in range(state.constraint_len):
+        if state.constraint_source_slot[ix] == a:
+            state.constraint_source_slot[ix] = b
+        elif state.constraint_source_slot[ix] == b:
+            state.constraint_source_slot[ix] = a
     cdef int8_t force = state.subject[a]
     cdef int8_t bond = state.link[a]
     cdef int8_t name = state.name[a]
     cdef int16_t temporary = state.temporary[a]
     cdef uint8_t maneuvers = state.maneuver_count[a]
+    cdef int8_t maneuver_direction = state.maneuver_direction[a]
     state.subject[a] = state.subject[b]
     state.link[a] = state.link[b]
     state.name[a] = state.name[b]
     state.temporary[a] = state.temporary[b]
     state.maneuver_count[a] = state.maneuver_count[b]
+    state.maneuver_direction[a] = state.maneuver_direction[b]
     state.subject[b] = force
     state.link[b] = bond
     state.name[b] = name
     state.temporary[b] = temporary
     state.maneuver_count[b] = maneuvers
+    state.maneuver_direction[b] = maneuver_direction
 
 cdef void _fe_resolve_plot(FastEngine self, FastState state, int actor, int card, int pos, int dest):
     cdef int effect = self.plot_effect[card]
@@ -260,6 +277,8 @@ cdef void _fe_discard_ongoing_narrative(
     state.scheme_front_mask[ix] = 0
     state.scheme_target_slot[ix] = -1
     state.scheme_used[ix] = 0
+    state.scheme_direction[ix] = 0
+    state.scheme_trigger_mask[ix] = 0
     _fe_compact_ongoing_stories(self, state, controller)
     _fe_append_discard(self, state, controller, card, True)
 
