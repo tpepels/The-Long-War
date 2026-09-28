@@ -168,40 +168,65 @@ def test_equal_low_command_remains_an_explicit_canonical_ambiguity() -> None:
     assert [player.command for player in state.players] == [0, 0]
 
 
-def test_recovery_floor_one_breaks_the_exact_zero_zero_recovery_fixed_point() -> None:
+def test_recovery_floor_prevents_front_loss_from_cancelling_candidate_tail() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
-    rules = GameRules.standard().with_overrides(command_recovery_floor=1)
-    engine = GameEngine(data, rules=rules)
-    state = engine.new_game(
-        deck,
-        deck,
-        seed=26092802,
-        first_player=0,
-        opening_bonus=False,
-    )
-    state.battle = 8
-    state.players[0].command = 0
-    state.players[1].command = 0
-    state.operations_this_battle[:] = [1, 1]
-    state.players[0].hand.clear()
-    state.players[1].hand.clear()
 
-    engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    def resolve_with_floor(floor: int):
+        rules = GameRules.standard().with_overrides(
+            command_recovery_schedule=(10, 8, 6, 5, 4, 3, 2),
+            command_recovery_tail=1,
+            command_recovery_floor=floor,
+        )
+        engine = GameEngine(data, rules=rules)
+        state = engine.new_game(
+            deck,
+            deck,
+            seed=26092802,
+            first_player=0,
+            opening_bonus=False,
+        )
+        state.battle = 8
+        state.players[0].command = 0
+        state.players[1].command = 0
+        state.battle_start_command[:] = [0, 0]
+        state.operations_this_battle[:] = [1, 1]
+        state.players[0].hand.clear()
+        state.players[1].hand.clear()
 
-    assert state.phase.value == "battle"
-    assert state.winner is None
-    assert state.battle == 9
-    assert [player.command for player in state.players] == [1, 1]
-    snapshot = state.last_battle_snapshot
-    assert snapshot is not None
-    assert snapshot["command_before_recovery"] == [0, 0]
-    assert snapshot["recovery_loss"] == [0, 0]
-    assert snapshot["recovery_actual"] == [1, 1]
-    assert snapshot["command_remaining"] == [1, 1]
+        # Each player loses one different Front. Candidate Battle-VIII+
+        # recovery is 1, so without a floor each loss cancels recovery to 0.
+        state.slot(1, Position(Front.FIRST, Rank.FRONT)).force = "the-fifty-men"
+        state.slot(0, Position(Front.SECOND, Rank.FRONT)).force = "the-fifty-men"
+
+        engine.apply(state, Pass())
+        engine.apply(state, Pass())
+        return state
+
+    baseline = resolve_with_floor(0)
+    assert baseline.phase.value == "battle"
+    assert baseline.winner is None
+    assert baseline.battle == 9
+    assert [player.command for player in baseline.players] == [0, 0]
+    baseline_snapshot = baseline.last_battle_snapshot
+    assert baseline_snapshot is not None
+    assert baseline_snapshot["fronts_lost"] == [1, 1]
+    assert baseline_snapshot["recovery_loss"] == [1, 1]
+    assert baseline_snapshot["recovery_actual"] == [0, 0]
+
+    floored = resolve_with_floor(1)
+    assert floored.phase.value == "battle"
+    assert floored.winner is None
+    assert floored.battle == 9
+    assert [player.command for player in floored.players] == [1, 1]
+    floored_snapshot = floored.last_battle_snapshot
+    assert floored_snapshot is not None
+    assert floored_snapshot["fronts_lost"] == [1, 1]
+    assert floored_snapshot["recovery_loss"] == [1, 1]
+    assert floored_snapshot["recovery_actual"] == [1, 1]
+    assert floored_snapshot["command_remaining"] == [1, 1]
 
 
 def test_negative_recovery_floor_is_invalid() -> None:
