@@ -131,6 +131,8 @@ def test_candidate_recovery_tail_applies_from_battle_eight_onward() -> None:
     state.battle = 8
     state.players[0].command = 10
     state.players[1].command = 10
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
     state.operations_this_battle[:] = [1, 1]
 
     engine.apply(state, Pass())
