@@ -120,7 +120,7 @@ def test_action_payload_uses_canonical_force_and_story_targets() -> None:
     active = session.state.active_player
     session.state.players[active].hand = [
         "the-fifty-men",
-        "the-lamps-went-dark",
+        "the-long-march",
     ]
     session.state.players[active].command = 20
     snapshot = session.snapshot(active)
@@ -139,7 +139,7 @@ def test_action_payload_uses_canonical_force_and_story_targets() -> None:
         action
         for action in snapshot["legal_actions"]
         if action["kind"] == "PlayStory"
-        and action["card_id"] == "the-lamps-went-dark"
+        and action["card_id"] == "the-long-march"
     ]
     assert stories
     assert {action["ongoing_slot"] for action in stories} <= {0, 1}
@@ -167,11 +167,10 @@ def test_stratagem_action_is_paid_and_public_to_opponent() -> None:
     opponent = 1 - active
 
     player = session.state.players[active]
-    if "the-storm-broke" in player.deck:
-        player.deck.remove("the-storm-broke")
-        player.hand.append("the-storm-broke")
-    elif "the-storm-broke" not in player.hand:
-        raise AssertionError("Expected Stratagem in the player's zones")
+    stratagem_id = "the-ground-was-held"
+    player.hand = [stratagem_id]
+    player.command = 20
+    session.state.pending_draw_discard_for = None
 
     before_command = player.command
     before = session.snapshot(active)
@@ -179,20 +178,20 @@ def test_stratagem_action_is_paid_and_public_to_opponent() -> None:
         item
         for item in before["legal_actions"]
         if item["kind"] == "PlayStratagem"
-        and item["card_id"] == "the-storm-broke"
+        and item["card_id"] == stratagem_id
     )
     result = session.act(action["key"], active)
 
     assert player.command == before_command - action["command_cost"]
     assert result["viewer"] is None
     assert result["active_player"] == opponent
-    assert session.state.stratagems[active].card_id == "the-storm-broke"
+    assert session.state.stratagems[active].card_id == stratagem_id
 
     public = session.snapshot(opponent)
     assert public["stratagems"][active] == {
-        "card_id": "the-storm-broke",
+        "card_id": stratagem_id,
     }
-    assert public["last_action"]["card_id"] == "the-storm-broke"
+    assert public["last_action"]["card_id"] == stratagem_id
 
 
 def test_standard_browser_session_has_no_draw_or_cycle_operation() -> None:
