@@ -183,6 +183,8 @@ def test_king_had_given_order_forces_exact_free_next_turn_maneuver():
     target = Position(Front.FIRST, Rank.FRONT)
     named(state, 0, source)
     state.players[0].hand = ["the-king-had-given-the-order"]
+    state.players[1].hand = []
+    state.operations_this_battle[1] = 1
 
     play = PlayStory(
         "the-king-had-given-the-order",
@@ -192,11 +194,10 @@ def test_king_had_given_order_forces_exact_free_next_turn_maneuver():
     )
     assert play in engine.legal_actions(state)
     engine.apply(state, play)
+    assert state.active_player == 1
+    engine.apply(state, Pass())
+    assert state.active_player == 0
 
-    state.active_player = 0
-    # The Warning was played on turn 1. The same player's next turn is 3:
-    # turn 2 belongs to the opponent.
-    state.turn_number = 3
     legal = engine.legal_actions(state)
     assert legal == [Maneuver(source, target)]
     assert engine.command_cost_for_action(state, legal[0]) == 0
@@ -208,8 +209,10 @@ def test_they_had_gone_too_far_creates_next_battle_maneuver_obligation():
     for front in (Front.FIRST, Front.SECOND, Front.THIRD):
         state.slot(0, Position(front, Rank.FRONT)).force = "the-fifty-men"
     state.operations_this_battle[:] = [1, 1]
+    state.players[1].hand = []
 
     engine.apply(state, Pass())
+    assert state.active_player == 1
     engine.apply(state, Pass())
 
     assert state.battle == 2
@@ -267,6 +270,7 @@ def test_line_had_begun_to_move_forces_direction_and_makes_first_maneuver_free()
 def test_every_banner_turned_toward_them_constrains_both_next_operations():
     engine, state = fresh()
     state.players[0].hand = ["every-banner-turned-toward-them"]
+    state.players[1].hand = []
     play = PlayStratagem(
         "every-banner-turned-toward-them",
         fronts=(Front.SECOND,),
@@ -299,12 +303,15 @@ def test_had_been_ordered_forward_gains_strength_and_keeps_direction_if_possible
     )
     before = engine.position_strength(state, 0, source)
     state.operations_this_battle[:] = [1, 1]
+    state.players[1].hand = []
 
     engine.apply(state, Maneuver(source, middle))
     after = engine.position_strength(state, 0, middle)
     assert after == before + 2
 
-    state.active_player = 0
+    assert state.active_player == 1
+    engine.apply(state, Pass())
+    assert state.active_player == 0
     legal = engine.legal_actions(state)
     assert Maneuver(middle, left) in legal
     assert Maneuver(middle, right) not in legal
