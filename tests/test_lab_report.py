@@ -126,6 +126,7 @@ def test_report_builders_share_simulation_summary_and_preserve_provenance() -> N
         "censor_rate": 0.5,
         "seed": 37,
         "game_fingerprint": "current-engine",
+        "experiment_fingerprint": "current-runner",
         "ismcts_config": {"iterations": 100000, "exploration": 0.3},
         "simulation_variant": provenance,
         "telemetry": {"policy_sources": {"search": 12}},
@@ -138,6 +139,7 @@ def test_report_builders_share_simulation_summary_and_preserve_provenance() -> N
     assert summary["censored_games"] == 1
     assert summary["censor_rate"] == 0.5
     assert summary["game_fingerprint"] == "current-engine"
+    assert summary["experiment_fingerprint"] == "current-runner"
     assert summary["ismcts_config"] == data["ismcts_config"]
     assert summary["simulation_variant"] == provenance
     assert summary["policy_sources"] == {"search": 12}
