@@ -198,6 +198,11 @@ function renderOverview(lab) {
       `${s.cards_observed ?? s.cards_analyzed} observed · ${s.cards_unobserved ?? 0} unobserved · ${s.flags_high} high · ${s.flags_watch} watch`
     ),
     metric(
+      "Executable mechanics",
+      `${lab.mechanics_implemented_cards ?? s.cards_analyzed}/${s.cards_analyzed}`,
+      `${(lab.mechanics_pending_cards || []).length} approved compulsion cards pending native implementation`
+    ),
+    metric(
       "Progression coverage",
       progressionProfileCount ? `${progressionProfileCount}/6` : (progression ? "1/6" : "—"),
       progressionProfileCount ? "canonical reference-deck profiles" : (progression ? "legacy single-deck progression artifact" : "progression not generated")
