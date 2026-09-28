@@ -15,7 +15,8 @@ def simulation_summary(data: dict[str, Any] | None) -> dict[str, Any] | None:
         key: data.get(key)
         for key in (
             "games", "agents", "wins", "decisive_games",
-            "censored_games", "censor_rate", "win_rates", "first_player_win_rate",
+            "censored_games", "failed_games", "censor_rate", "failure_rate",
+            "win_rates", "first_player_win_rate",
             "mean_turns", "max_turns", "game_fingerprint",
             "experiment_fingerprint", "experiment_fingerprints", "seed", "config",
             "simulation_variant", "heuristic_config", "online_config",
@@ -238,7 +239,12 @@ def aggregate_simulations_for_health(
         int(simulation.get("censored_games", 0) or 0)
         for simulation in simulations
     )
-    decisive_games = games - censored_games
+    failed_games = sum(
+        int(simulation.get("failed_games", 0) or 0)
+        for simulation in simulations
+    )
+    completed_games = games - failed_games
+    decisive_games = completed_games - censored_games
     wins = [
         sum(int(simulation.get("wins", [0, 0])[player]) for simulation in simulations)
         for player in range(2)
@@ -249,10 +255,14 @@ def aggregate_simulations_for_health(
     )
     mean_turns = _safe_ratio(
         sum(
-            float(simulation.get("mean_turns", 0.0)) * int(simulation.get("games", 0))
+            float(simulation.get("mean_turns", 0.0))
+            * (
+                int(simulation.get("games", 0))
+                - int(simulation.get("failed_games", 0) or 0)
+            )
             for simulation in simulations
         ),
-        games,
+        completed_games,
     ) or 0.0
 
     passes = _weighted_section(
@@ -301,9 +311,12 @@ def aggregate_simulations_for_health(
     first = simulations[0]
     return {
         "games": games,
+        "completed_games": completed_games,
         "decisive_games": decisive_games,
         "censored_games": censored_games,
+        "failed_games": failed_games,
         "censor_rate": _safe_ratio(censored_games, games) or 0.0,
+        "failure_rate": _safe_ratio(failed_games, games) or 0.0,
         "agents": list(next(iter(agents))),
         "wins": wins,
         "win_rates": [
@@ -370,7 +383,8 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
     meta = {card["id"]: card for card in card_data["cards"]}
     games = int(simulation["games"])
     censored_games = int(simulation.get("censored_games", 0))
-    decisive_games = max(0, games - censored_games)
+    failed_games = int(simulation.get("failed_games", 0))
+    decisive_games = max(0, games - censored_games - failed_games)
 
     fp = int(simulation["first_player_wins"])
     fp_rate = fp / decisive_games if decisive_games else 0.0
