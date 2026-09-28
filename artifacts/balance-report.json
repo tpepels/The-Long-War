@@ -118457,15 +118457,43 @@
     "Position, timing, hand economy, movement, persistence, Narratives, Stratagems, and dynamic effects require game simulation.",
     "Static outliers are diagnostics, not automatic balance failures."
   ],
-  "game_fingerprint": "d540a7ea1efad7c4",
+  "game_fingerprint": "594b36f86c8fc50f",
   "config": {
-    "preset": "deep",
-    "games_per_cell": 250,
+    "preset": "quick",
+    "games_per_cell": 100,
     "seed": 1701,
     "agents": [
       "heuristic",
       "heuristic"
     ],
+    "agent_profile": {
+      "name": "heuristic",
+      "ismcts": {
+        "belief_samples": 6,
+        "iterations": 2000,
+        "time_budget_seconds": null,
+        "rollout_depth": 5,
+        "tree_depth_limit": 96,
+        "exploration": 0.3,
+        "progressive_widening": 0.0,
+        "tree_reuse": true,
+        "max_tree_nodes": 8000,
+        "rollout_epsilon": 0.12,
+        "rollout_policy": "greedy"
+      },
+      "strategic_heuristic": {
+        "belief_samples": 3,
+        "rollout_plies": 5,
+        "candidate_width": 6,
+        "node_budget": 20000,
+        "time_budget_seconds": null
+      },
+      "online_mccfr": {
+        "iterations": 16,
+        "depth": 2
+      }
+    },
+    "recovery_variant": "current",
     "rules": {
       "opening_hand_size": 10,
       "starting_command": 20,
@@ -118479,6 +118507,7 @@
         2,
         1
       ],
+      "command_recovery_tail": 0,
       "command_collapse_threshold": 5,
       "maneuver_command_cost": 1,
       "hand_limit": 10,
@@ -118487,7 +118516,7 @@
     "contexts": 3,
     "games_per_context": 4,
     "targeted_online_mccfr": {
-      "enabled": true,
+      "enabled": false,
       "iterations": 16,
       "depth": 2,
       "contexts": 3,
