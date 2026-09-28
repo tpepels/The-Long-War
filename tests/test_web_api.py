@@ -190,6 +190,9 @@ def test_stratagem_action_is_paid_and_public_to_opponent() -> None:
     public = session.snapshot(opponent)
     assert public["stratagems"][active] == {
         "card_id": stratagem_id,
+        "fronts": [],
+        "direction": None,
+        "targets": [],
     }
     assert public["last_action"]["card_id"] == stratagem_id
 

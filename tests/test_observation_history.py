@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from longwar.cards import load_card_file
@@ -14,15 +13,12 @@ FRONT_2 = Position(Front.SECOND, Rank.FRONT)
 
 def setup_return_state():
     data = load_card_file(ROOT / "cards" / "cards.json")
-    deck = json.loads(
-        (ROOT / "decks" / "persistent-elite-heroes.json").read_text(encoding="utf-8")
-    )["cards"]
     engine = GameEngine(data)
 
     state = GameState(
         players=[
-            PlayerState(deck=list(deck), hand=[], command=engine.starting_command),
-            PlayerState(deck=list(deck), hand=[], command=engine.starting_command),
+            PlayerState(deck=[], hand=[], command=engine.starting_command),
+            PlayerState(deck=[], hand=[], command=engine.starting_command),
         ],
         active_player=0,
         operations_this_battle=[1, 1],

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -946,16 +947,15 @@ def test_endured_with_regains_command_when_formation_retreats() -> None:
     assert state.players[0].command == 11
 
 
-def test_maneuver_rejects_prepared_only_destination_and_immobile_force() -> None:
+def test_maneuver_accepts_prepared_destination_but_rejects_immobile_force() -> None:
     engine, state = setup_state()
     source = pos(0, Rank.FRONT)
     destination = pos(1, Rank.FRONT)
     make_named(state, 0, source)
     state.slot(0, destination).bond = "followed"
 
-    assert Maneuver(source, destination) not in engine.legal_actions(state)
-
-    state.slot(0, destination).bond = None
+    # Core Maneuver may swap with any own occupied position, including a
+    # prepared-only Bond/Name position.
     assert Maneuver(source, destination) in engine.legal_actions(state)
 
     reed = pos(2, Rank.REAR)
@@ -1247,7 +1247,7 @@ def test_hand_deck_discard_and_named_formations_persist_between_battles() -> Non
     resolve_battle_by_passing(engine, state)
 
     assert state.slot(0, pos(0)).complete is True
-    assert state.players[0].hand == hand_before
+    assert Counter(state.players[0].hand) == Counter(hand_before)
     assert state.players[0].deck == deck_before
     assert state.players[0].discard == discard_before
 

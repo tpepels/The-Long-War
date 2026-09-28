@@ -339,7 +339,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i = 0
     version = data[i]
     i += 1
-    if version != 5:
+    if version not in (5, 6):
         raise ValueError(f"Unsupported fast information-key version: {version}")
 
     card_ids = engine.card_ids
@@ -359,6 +359,11 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i += 2
     active_player = data[i] - 1
     i += 1
+    if version >= 6:
+        # v6 adds the full observable turn number. The stable public policy id
+        # intentionally keeps the legacy observation schema, so consume it
+        # without adding it to the JSON payload below.
+        i += 4
 
     passed = [bool(data[i]), bool(data[i + 1])]
     i += 2
@@ -380,12 +385,33 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         hero_used.append(bool(data[i + 3]))
         operations_this_battle.append(data[i + 4] | (data[i + 5] << 8))
         i += 6
+        if version >= 6:
+            # Front/card-play masks and Narrative count are search identity
+            # fields added in v6, not part of the stable exported policy id.
+            i += 3
 
     pending_draw_raw = data[i] - 1
     i += 1
     pending_draw_discard_for = (
         None if pending_draw_raw < 0 else pending_draw_raw
     )
+
+    if version >= 6:
+        # Consume the additional resumable-flow/search identity state.
+        i += 2  # pending draw count, finish-operation flag
+        pending_len = data[i]
+        i += 1
+        i += pending_len * 10
+        i += 2  # pending resume kind/player
+        i += 2  # free Maneuver flags
+        i += 4  # per-player Maneuver counts (u16 each)
+        i += 16  # per-slot Maneuver directions
+        constraint_len = data[i]
+        i += 1
+        i += constraint_len * 12
+        # resolution stage + masks/counters + suppressed mask + cursor/starter
+        # + per-slot contribution Fronts
+        i += 29
 
     board = [[], []]
     for owner in range(2):
@@ -397,6 +423,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             if temporary >= 32768:
                 temporary -= 65536
             i += 5
+            if version >= 6:
+                i += 1  # per-slot Maneuver count
             board[owner].append([
                 local // 2,
                 "front" if (local & 1) == 0 else "rear",
@@ -413,6 +441,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         for _ in range(story_count):
             stories[owner].append(card_ids[data[i] - 1])
             i += 1
+            if version >= 6:
+                i += 5  # Front mask, used, direction, trigger mask, target slot
 
     stratagems = []
     for owner in range(2):
@@ -421,6 +451,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         stratagems.append(
             None if card_code == 0 else card_ids[card_code - 1]
         )
+        if version >= 6 and card_code != 0:
+            i += 4  # Front mask, direction, target mask (u16)
 
     stratagem_used = [bool(data[i]), bool(data[i + 1])]
     i += 2

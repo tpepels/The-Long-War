@@ -64,6 +64,7 @@ cdef class FastState:
     cdef uint8_t last_battle_valid
     cdef int16_t last_battle
     cdef int16_t last_front_scores[4][2]
+    cdef uint8_t last_lost_mask[2]
     cdef int16_t last_command_start[2]
     cdef int16_t last_command_spent[2]
     cdef int16_t last_command_refunded[2]
@@ -170,6 +171,7 @@ cdef class FastState:
         self.last_battle_valid = 0
         self.last_battle = 0
         memset(self.last_front_scores, 0, sizeof(self.last_front_scores))
+        memset(self.last_lost_mask, 0, sizeof(self.last_lost_mask))
         memset(self.last_command_start, 0, sizeof(self.last_command_start))
         memset(self.last_command_spent, 0, sizeof(self.last_command_spent))
         memset(self.last_command_refunded, 0, sizeof(self.last_command_refunded))
@@ -274,6 +276,7 @@ cdef class FastState:
         self.last_battle_valid = other.last_battle_valid
         self.last_battle = other.last_battle
         memcpy(self.last_front_scores, other.last_front_scores, sizeof(self.last_front_scores))
+        memcpy(self.last_lost_mask, other.last_lost_mask, sizeof(self.last_lost_mask))
         memcpy(self.last_command_start, other.last_command_start, sizeof(self.last_command_start))
         memcpy(self.last_command_spent, other.last_command_spent, sizeof(self.last_command_spent))
         memcpy(self.last_command_refunded, other.last_command_refunded, sizeof(self.last_command_refunded))
