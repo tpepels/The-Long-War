@@ -426,7 +426,8 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
     assert by_battle["1"]["battles"] == 1
     assert by_battle["2"]["battles"] == 1
     assert by_battle["3"]["battles"] == 1
-    assert by_battle["4+"]["battles"] == 2
+    assert by_battle["4-7"]["battles"] == 2
+    assert by_battle["8+"]["battles"] == 0
     assert by_battle["1"]["eventual_completion_rate_for_forces_deployed"] is None
     assert by_battle["1"]["first_pass_unplayable_cards"] == pytest.approx(2.0)
     assert by_battle["1"]["command_start"] == pytest.approx(20.0)
