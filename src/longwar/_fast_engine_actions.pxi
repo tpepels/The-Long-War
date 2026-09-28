@@ -716,6 +716,19 @@ cdef int _fe_legal_pending_effect_actions(
         for dest in range(player * 8, player * 8 + 8):
             if dest_mask & (1 << dest) and state.subject[dest] >= 0 and state.link[dest] >= 0 and state.name[dest] < 0:
                 n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+
+    # A mandatory choice can become impossible after it was queued. The most
+    # important case is multiple recover-from-discard triggers queued by one
+    # transition: an earlier recovery can consume the last eligible card before
+    # a later recovery reaches the front of the queue. Resolving that later
+    # effect as a forced no-op is the rules-correct "do as much as possible"
+    # outcome and keeps every non-terminal state actionable.
+    if n == 0:
+        n = _append_action(
+            actions,
+            n,
+            encode_action(TYPE_EFFECT, -1, -1, -1, player, kind),
+        )
     return n
 
 cdef int _fe_legal_actions_into(
