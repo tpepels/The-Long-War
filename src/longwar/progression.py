@@ -52,6 +52,9 @@ class ProgressionTelemetry:
 
     def __init__(self) -> None:
         self._game_index = -1
+        self._simulation_game_index: int | None = None
+        self._game_seed: int | None = None
+        self._first_player: int | None = None
         self._action_index = 0
         self._current_action = 0
         self._battle_action = 0
@@ -220,7 +223,15 @@ class ProgressionTelemetry:
             for battle, counts in source["by_battle"].items():
                 target["by_battle"][battle].update(counts)
 
-    def start_game(self, engine: GameEngine, state: GameState) -> None:
+    def start_game(
+        self,
+        engine: GameEngine,
+        state: GameState,
+        *,
+        simulation_game_index: int | None = None,
+        seed: int | None = None,
+        first_player: int | None = None,
+    ) -> None:
         threshold = int(engine.rules.command_collapse_threshold)
         if self._collapse_threshold is None:
             self._collapse_threshold = threshold
@@ -230,6 +241,11 @@ class ProgressionTelemetry:
             self._constraint_active_streaks.append(self._constraint_active_streak)
             self._constraint_active_streak = 0
         self._game_index += 1
+        self._simulation_game_index = (
+            None if simulation_game_index is None else int(simulation_game_index)
+        )
+        self._game_seed = None if seed is None else int(seed)
+        self._first_player = None if first_player is None else int(first_player)
         self._constraint_active_supported = (
             self._constraint_active_supported
             or hasattr(state, "constraints")
@@ -367,6 +383,8 @@ class ProgressionTelemetry:
                 for candidate in legal
             ),
             "command_before": int(state.players[actor].command),
+            "hand_before": len(state.players[actor].hand),
+            "deck_before": len(state.players[actor].deck),
         })
         if effect_resolution:
             self._effect_choice_decisions += 1
@@ -426,6 +444,9 @@ class ProgressionTelemetry:
             alternatives_count = int(pass_context.get("legal_alternatives", 0))
             pass_context.update({
                 "game": self._game_index,
+                "simulation_game_index": self._simulation_game_index,
+                "seed": self._game_seed,
+                "first_player": self._first_player,
                 "command_remaining": pass_context.get(
                     "command_remaining", state.players[actor].command
                 ),
@@ -555,6 +576,9 @@ class ProgressionTelemetry:
                     self._card_unplayed_match_end[card_id] += count
             self._match_records.append({
                 "game": self._game_index,
+                "simulation_game_index": self._simulation_game_index,
+                "seed": self._game_seed,
+                "first_player": self._first_player,
                 "resolved_battles": (
                     len(self._battle_records) - self._game_battle_record_start
                 ),
@@ -669,6 +693,84 @@ class ProgressionTelemetry:
                 or row in equal_low_rows
             )
         ]
+        match_by_game = {
+            int(row["game"]): row
+            for row in match_records
+        }
+        low_command_games = []
+        for game, game_rows in sorted(rows_by_game.items()):
+            game_rows = sorted(game_rows, key=lambda row: int(row["battle"]))
+            diagnostic_rows = [
+                row
+                for row in game_rows
+                if (
+                    any(value < threshold for value in row["command_start"])
+                    or row in equal_low_rows
+                )
+            ]
+            if not diagnostic_rows:
+                continue
+
+            streak = 0
+            longest_streak = 0
+            equal_low_count = 0
+            first_equal_low = None
+            for row in game_rows:
+                is_equal_low = (
+                    row.get("next_battle_command") is not None
+                    and row["next_battle_command"][0] == row["next_battle_command"][1]
+                    and row["next_battle_command"][0] < threshold
+                )
+                if is_equal_low:
+                    equal_low_count += 1
+                    streak += 1
+                    longest_streak = max(longest_streak, streak)
+                    if first_equal_low is None:
+                        first_equal_low = int(row["battle"])
+                else:
+                    streak = 0
+
+            match = match_by_game.get(game, {})
+            identity_row = diagnostic_rows[0]
+            low_command_games.append({
+                "game": game,
+                "simulation_game_index": match.get(
+                    "simulation_game_index",
+                    identity_row.get("simulation_game_index"),
+                ),
+                "seed": match.get("seed", identity_row.get("seed")),
+                "first_player": match.get(
+                    "first_player",
+                    identity_row.get("first_player"),
+                ),
+                "censored": bool(match.get("censored", False)),
+                "final_battle": match.get("final_battle"),
+                "resolved_battles": match.get("resolved_battles"),
+                "diagnostic_battles": len(diagnostic_rows),
+                "first_low_command_battle": min(
+                    int(row["battle"]) for row in diagnostic_rows
+                ),
+                "first_equal_low_continuation_battle": first_equal_low,
+                "equal_low_continuations": equal_low_count,
+                "longest_equal_low_streak": longest_streak,
+                "both_zero_command_battle_starts": sum(
+                    row["command_start"] == [0, 0]
+                    for row in diagnostic_rows
+                ),
+                "battles_with_no_paid_operation": sum(
+                    bool(row.get("no_paid_operation"))
+                    for row in diagnostic_rows
+                ),
+                "battles_with_no_board_change": sum(
+                    not bool(row.get("board_changed"))
+                    for row in diagnostic_rows
+                ),
+                "battles_with_no_strength_change": sum(
+                    not bool(row.get("strength_changed"))
+                    for row in diagnostic_rows
+                ),
+            })
+
         low_command_stalls = {
             "collapse_threshold": threshold,
             "diagnostic_battles": len(stall_rows),
@@ -722,11 +824,15 @@ class ProgressionTelemetry:
                 first_equal_low_battles,
                 histogram=True,
             ),
+            "games": low_command_games,
             "battle_records": [
                 {
                     key: row.get(key)
                     for key in (
                         "game",
+                        "simulation_game_index",
+                        "seed",
+                        "first_player",
                         "battle",
                         "command_start",
                         "command_remaining",
@@ -1381,6 +1487,63 @@ class ProgressionTelemetry:
             self._command_spend[category] += actual_cost
             self._command_spend_by_battle[bucket][category] += actual_cost
 
+        battle_transition = (
+            state.phase is Phase.COMPLETE or state.battle != before.battle
+        )
+        if self._battle_operation_trace:
+            trace = self._battle_operation_trace[-1]
+            if (
+                trace.get("player") == int(actor)
+                and trace.get("action") == action_key(action)
+            ):
+                before_board = [
+                    [
+                        before.slot(player, position).force,
+                        before.slot(player, position).bond,
+                        before.slot(player, position).name,
+                    ]
+                    for player in range(2)
+                    for position in all_positions()
+                ]
+                after_board = [
+                    [
+                        state.slot(player, position).force,
+                        state.slot(player, position).bond,
+                        state.slot(player, position).name,
+                    ]
+                    for player in range(2)
+                    for position in all_positions()
+                ]
+                before_strength = [
+                    [
+                        engine.front_strength(before, player, front)
+                        for front in Front
+                    ]
+                    for player in range(2)
+                ]
+                after_strength = [
+                    [
+                        engine.front_strength(state, player, front)
+                        for front in Front
+                    ]
+                    for player in range(2)
+                ]
+                trace.update({
+                    "command_cost": actual_cost,
+                    "command_after_transition": int(state.players[actor].command),
+                    "command_delta_transition": (
+                        int(state.players[actor].command)
+                        - int(before.players[actor].command)
+                    ),
+                    "battle_transition": battle_transition,
+                    "board_changed_transition": before_board != after_board,
+                    "strength_changed_transition": (
+                        before_strength != after_strength
+                    ),
+                    "hand_after": len(state.players[actor].hand),
+                    "deck_after": len(state.players[actor].deck),
+                })
+
         if isinstance(action, OPERATION_ACTIONS) and actual_cost > 0:
             self._battle_events["paid_operations"] += 1
         if isinstance(action, OPERATION_ACTIONS) and actual_cost == 0:
@@ -1402,9 +1565,6 @@ class ProgressionTelemetry:
             self._discount_command += saved
             self._battle_events["discount_actions"] += 1
 
-        battle_transition = (
-            state.phase is Phase.COMPLETE or state.battle != before.battle
-        )
         expected_after = before.players[actor].command - actual_cost
         gained = (
             0
@@ -1623,6 +1783,9 @@ class ProgressionTelemetry:
 
         record = {
             "game": self._game_index,
+            "simulation_game_index": self._simulation_game_index,
+            "seed": self._game_seed,
+            "first_player": self._first_player,
             "battle": int(before.battle),
             "actions": len(rows),
             "operations_taken": [
@@ -1889,6 +2052,9 @@ class ProgressionTelemetry:
         ]
         return {
             "game": self._game_index,
+            "simulation_game_index": self._simulation_game_index,
+            "seed": self._game_seed,
+            "first_player": self._first_player,
             "battle": int(state.battle),
             "action": self._battle_action,
             "actor": actor,
