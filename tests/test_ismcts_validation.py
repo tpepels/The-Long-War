@@ -539,9 +539,9 @@ def test_boundary_evaluator_rewards_next_battle_readiness() -> None:
         "namar",
     ]
     poor.players[0].hand[:] = [
-        "the-story-is-false",
-        "he-never-came",
-        "they-chose-another",
+        "the-muster-was-false",
+        "the-baggage-was-abandoned",
+        "no-one-would-be-first-to-leave",
     ]
 
     fast = FastEngine(engine)
