@@ -32,20 +32,43 @@ simulate_tool = importlib.util.module_from_spec(simulate_spec)
 simulate_spec.loader.exec_module(simulate_tool)
 
 
-def test_fingerprint_tracks_native_includes_and_experiment_inputs(tmp_path, monkeypatch):
+def test_game_fingerprint_tracks_trajectory_inputs_only(tmp_path, monkeypatch):
     monkeypatch.setattr(fingerprint, "ROOT", tmp_path)
-    paths = ["src/longwar/_ismcts_core.pxi", "cards/cards.json",
-             "decks/mobility-open-bonds.json", "tools/run_experiments.py"]
+
     previous = fingerprint.current_game_fingerprint()
-    for name in paths:
+    for name in (
+        "src/longwar/_ismcts_core.pxi",
+        "src/longwar/game/engine.py",
+        "cards/cards.json",
+        "decks/mobility-open-bonds.json",
+    ):
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("changed")
+        path.write_text("changed", encoding="utf-8")
         current = fingerprint.current_game_fingerprint()
         assert current != previous
         previous = current
+
+    for name in (
+        "src/longwar/progression.py",
+        "src/longwar/telemetry.py",
+        "src/longwar/health.py",
+        "tools/build_lab_report.py",
+    ):
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("analysis-only", encoding="utf-8")
+        assert fingerprint.current_game_fingerprint() == previous
+
+    runner = tmp_path / "tools" / "run_experiments.py"
+    experiment_before = fingerprint.current_experiment_fingerprint()
+    runner.parent.mkdir(parents=True, exist_ok=True)
+    runner.write_text("changed", encoding="utf-8")
+    assert fingerprint.current_game_fingerprint() == previous
+    assert fingerprint.current_experiment_fingerprint() != experiment_before
+
     product = tmp_path / "src/longwar/build.so"
-    product.write_text("host-specific")
+    product.write_text("host-specific", encoding="utf-8")
     assert fingerprint.current_game_fingerprint() == previous
 
 
@@ -66,10 +89,26 @@ def test_artifact_fingerprint_guard_rejects_missing_stale_and_invalid_json(tmp_p
 
 def test_artifact_identity_keeps_budgets_seeds_and_sources_separate(tmp_path):
     config = {"iterations": 100_000, "seed": 1}
-    first = fingerprint.artifact_directory(tmp_path, {"config": config, "game_fingerprint": "a"})
-    for change in ({"iterations": 1, "seed": 1}, {"iterations": 100_000, "seed": 2}):
-        assert fingerprint.artifact_directory(tmp_path, {"config": change, "game_fingerprint": "a"}) != first
-    assert fingerprint.artifact_directory(tmp_path, {"config": config, "game_fingerprint": "b"}) != first
+    base = {
+        "config": config,
+        "game_fingerprint": "game-a",
+        "experiment_fingerprint": "runner-a",
+    }
+    first = fingerprint.artifact_directory(tmp_path, base)
+    for change in (
+        {"iterations": 1, "seed": 1},
+        {"iterations": 100_000, "seed": 2},
+    ):
+        identity = {**base, "config": change}
+        assert fingerprint.artifact_directory(tmp_path, identity) != first
+    assert fingerprint.artifact_directory(
+        tmp_path,
+        {**base, "game_fingerprint": "game-b"},
+    ) != first
+    assert fingerprint.artifact_directory(
+        tmp_path,
+        {**base, "experiment_fingerprint": "runner-b"},
+    ) != first
     assert json.loads((first / "config.json").read_text())["config"] == config
 
 
