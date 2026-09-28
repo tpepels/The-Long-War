@@ -6,7 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from longwar.cards import NARRATIVE_FORMS, cards_by_type, load_card_file, validate_card_data
+from longwar.cards import (
+    CARD_CAPABILITY_BITS,
+    NARRATIVE_FORMS,
+    cards_by_type,
+    compile_card_mechanics,
+    load_card_file,
+    validate_card_data,
+)
 from longwar.decks import validate_deck_definition
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -108,3 +115,23 @@ def test_ordinary_new_card_can_reuse_existing_mechanics_without_catalogue_edits(
     data["cards"].append(clone)
 
     validate_card_data(data)
+
+
+def test_card_capability_registry_is_compact_and_native_safe() -> None:
+    bits = list(CARD_CAPABILITY_BITS.values())
+    assert bits
+    assert len(bits) == len(set(bits))
+    assert len(bits) <= 64
+    assert all(bit > 0 and bit & (bit - 1) == 0 for bit in bits)
+
+
+def test_every_compiled_capability_comes_from_the_shared_registry() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    for card in data["cards"]:
+        compiled = compile_card_mechanics(card)
+        capabilities = compiled["_capabilities"]
+        assert set(capabilities) <= set(CARD_CAPABILITY_BITS)
+        assert compiled["_capability_bits"] == sum(
+            CARD_CAPABILITY_BITS[name]
+            for name in capabilities
+        )
