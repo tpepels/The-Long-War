@@ -353,7 +353,7 @@ cdef void _fe_resolve_new_completions_fast(
                 front_from_slot(other) == front
                 and state.name[other] >= 0
                 and state.subject[other] >= 0
-                and self.opposing_named_same_front_free_maneuver[state.name[other]]
+                and (self.card_capabilities[state.name[other]] & CAP_OPPOSING_NAMED_SAME_FRONT_FREE_MANEUVER)
             ):
                 state.free_maneuver_available[1 - player] = 1
         _fe_resolve_named_narratives(self, state, player, slot)
