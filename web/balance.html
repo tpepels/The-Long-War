@@ -59,6 +59,9 @@
             <span id="progression-source-note"></span>
           </p>
         </div>
+        <div class="section-controls">
+          <select id="progression-profile" aria-label="Reference deck progression profile" hidden></select>
+        </div>
       </div>
 
       <div id="progression-unavailable" class="verification verification-missing" hidden>
@@ -95,7 +98,7 @@
       <div class="progression-detail-grid">
         <section>
           <h3>Battle I / II / III progression</h3>
-          <p class="dashboard-note">Per-Battle means; Battles IV and later are grouped as 4+.</p>
+          <p class="dashboard-note">Per-Battle means; Battles IV-VII and VIII+ are separated so late zero-resource stalls cannot distort normal late-war play.</p>
           <div class="table-wrap fitted-table">
             <table class="mini-table progression-battle-table">
               <thead>
@@ -113,7 +116,7 @@
                   <th>Legal choices</th>
                   <th>Hand / deck end</th>
                   <th>First pass</th>
-                  <th>Command start / spent / end</th>
+                  <th>Command start / spent / before recovery</th>
                 </tr>
               </thead>
               <tbody id="progression-battles"></tbody>
@@ -181,7 +184,7 @@
               <th>Card</th>
               <th>Type / Strength</th>
               <th>Use</th>
-              <th>Dead on pass</th>
+              <th>Structural deadness</th>
               <th>Front swing</th>
               <th>Screen ΔWP</th>
               <th>MCCFR validation</th>
