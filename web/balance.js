@@ -759,6 +759,8 @@ function renderProgression(lab) {
     progressionMetric("Active Fronts", field.active_fronts, "median per Battle decision"),
     progressionMetric("Contested Fronts", field.contested_fronts, "median per Battle decision"),
     progressionMetric("Partial at Battle end", life.partial_at_battle_end_per_player, "median per player-Battle"),
+    metric("Incomplete cleared at Battle end", life.incomplete_cleared_at_battle_end ?? 0, "normal cleanup, not in-Battle removal"),
+    metric("Incomplete removed during Battle", life.incomplete_removed_during_battle ?? 0, "effect / Retreat removal before completion"),
     progressionMetric("Empty Fronts", field.empty_fronts, "median per Battle decision"),
     progressionMetric("Strength concentration", field.strength_concentration, "median strongest-Front share per player"),
     progressionMetric("Force → Name time", life.force_to_name_actions, "median actions"),
