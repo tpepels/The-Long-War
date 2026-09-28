@@ -3,31 +3,108 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 ROOT = Path(__file__).resolve().parents[2]
 
-# Balance/search artifacts depend on the exact rules, card pool, deck profiles,
-# and heuristic leaf policy. UI-only changes deliberately do not invalidate them.
+
+# A game fingerprint answers one narrow question: could this source change alter
+# legal actions, state transitions, hidden information, evaluation/search
+# choices, or the supplied card/deck content? Analysis and presentation code are
+# deliberately excluded so a graph, telemetry summary, or report edit does not
+# invalidate expensive match evidence.
+_GAMEPLAY_PYTHON = {
+    "belief.py",
+    "cards.py",
+    "decks.py",
+    "heuristics.py",
+    "mccfr.py",
+    "mccfr_core.py",
+    "online_mccfr.py",
+    "parallel_mccfr.py",
+    "rules.py",
+    "simulate.py",
+    "web_api.py",
+}
+_GAMEPLAY_DIRS = {"agents", "algorithms", "game"}
+_NATIVE_GAME_PREFIXES = (
+    "_alpha_beta_core.pxi",
+    "_fast_constants.pxi",
+    "_fast_engine_",
+    "_fast_search.pyx",
+    "_fast_state.pxi",
+    "_heuristic_core.pxi",
+    "_ismcts_core.pxi",
+    "_mccfr_accel.pyx",
+    "_mccfr_core.pxi",
+)
+
+
+def _unique_sorted(paths: Iterable[Path]) -> list[Path]:
+    return sorted(set(paths))
+
+
 def fingerprint_paths() -> list[Path]:
-    """Include native includes and experimental inputs, never build products."""
-    paths = [
-        path for path in (ROOT / "src" / "longwar").rglob("*")
-        if path.suffix in {".py", ".pyx", ".pxi"}
-    ]
+    """Return trajectory-affecting source/content paths.
+
+    Keep this function as the compatibility surface used by existing tooling,
+    but make its meaning precise: it fingerprints game/search semantics rather
+    than every Python file in the repository.
+    """
+    package = ROOT / "src" / "longwar"
+    paths: list[Path] = []
+
+    for path in package.rglob("*"):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(package)
+        if len(relative.parts) == 1:
+            name = relative.name
+            if name in _GAMEPLAY_PYTHON or any(
+                name == prefix or name.startswith(prefix)
+                for prefix in _NATIVE_GAME_PREFIXES
+            ):
+                paths.append(path)
+        elif relative.parts[0] in _GAMEPLAY_DIRS and path.suffix == ".py":
+            paths.append(path)
+
     for directory in ("cards", "decks"):
-        paths.extend((ROOT / directory).rglob("*.json"))
-    for name in ("run_experiments.py", "simulate.py", "train_mccfr.py",
-                 "counterfactual_balance.py", "targeted_online_counterfactual.py"):
-        path = ROOT / "tools" / name
+        root = ROOT / directory
+        if root.exists():
+            paths.extend(root.rglob("*.json"))
+
+    setup = ROOT / "setup.py"
+    if setup.exists():
+        paths.append(setup)
+
+    return _unique_sorted(paths)
+
+
+def experiment_fingerprint_paths() -> list[Path]:
+    """Return orchestration inputs that can change what an experiment runs.
+
+    These are kept separate from the game fingerprint: changing an experiment
+    runner may create a different artifact identity, but it does not make old
+    matches claim to have been played under different game semantics.
+    """
+    paths = list(fingerprint_paths())
+    tools = ROOT / "tools"
+    for name in (
+        "run_experiments.py",
+        "simulate.py",
+        "train_mccfr.py",
+        "counterfactual_balance.py",
+        "targeted_online_counterfactual.py",
+    ):
+        path = tools / name
         if path.exists():
             paths.append(path)
-    return sorted(paths)
+    return _unique_sorted(paths)
 
 
-def current_game_fingerprint() -> str:
+def _fingerprint(paths: Iterable[Path]) -> str:
     digest = hashlib.sha256()
-    for path in fingerprint_paths():
+    for path in _unique_sorted(paths):
         relative = path.relative_to(ROOT).as_posix()
         digest.update(relative.encode("utf-8"))
         digest.update(b"\0")
@@ -36,12 +113,29 @@ def current_game_fingerprint() -> str:
     return digest.hexdigest()[:16]
 
 
+def current_game_fingerprint() -> str:
+    return _fingerprint(fingerprint_paths())
+
+
+def current_experiment_fingerprint() -> str:
+    return _fingerprint(experiment_fingerprint_paths())
+
+
 def experiment_identity(config: dict[str, Any]) -> dict[str, Any]:
-    """A stable identity for a fully specified run and its source inputs."""
-    return {"game_fingerprint": current_game_fingerprint(), "config": config}
+    """Stable identity for one run without conflating runner and game changes."""
+    return {
+        "game_fingerprint": current_game_fingerprint(),
+        "experiment_fingerprint": current_experiment_fingerprint(),
+        "config": config,
+    }
 
 
-def artifact_directory(base: Path, identity: dict[str, Any], *, write: bool = True) -> Path:
+def artifact_directory(
+    base: Path,
+    identity: dict[str, Any],
+    *,
+    write: bool = True,
+) -> Path:
     """Separate configurations so a smoke run cannot erase a serious run."""
     encoded = json.dumps(identity, sort_keys=True, separators=(",", ":"))
     token = hashlib.sha256(encoded.encode()).hexdigest()[:12]
@@ -49,6 +143,7 @@ def artifact_directory(base: Path, identity: dict[str, Any], *, write: bool = Tr
     if write:
         output.mkdir(parents=True, exist_ok=True)
         (output / "config.json").write_text(
-            json.dumps(identity, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            json.dumps(identity, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
         )
     return output
