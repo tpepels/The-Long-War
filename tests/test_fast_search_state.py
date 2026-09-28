@@ -90,8 +90,14 @@ def native_public_snapshot(native, fast_state):
             for player in exported["players"]
         ],
         "board": exported["board"],
-        "stories": exported["stories"],
-        "stratagems": exported["stratagems"],
+        "stories": [
+            [{"card_id": story["card_id"]} for story in side]
+            for side in exported["stories"]
+        ],
+        "stratagems": [
+            None if stratagem is None else {"card_id": stratagem["card_id"]}
+            for stratagem in exported["stratagems"]
+        ],
         "stratagem_used": exported["stratagem_used"],
         "hero_used": exported["hero_used"],
         "pending_draw_discard_for": exported["pending_draw_discard_for"],
