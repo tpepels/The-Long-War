@@ -7,6 +7,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed_u16(&h, <uint16_t>state.battle)
     _info_hash_feed(&h, <uint8_t>(state.active_player + 1))
     _info_hash_feed(&h, <uint8_t>(state.winner + 1))
+    _info_hash_feed_u32(&h, <uint32_t>state.turn_number)
     _info_hash_feed_u32(&h, <uint32_t>state.shuffle_seed)
 
     for p in range(2):
@@ -142,11 +143,17 @@ cdef int _fe__information_state_encode(
         else 0
     )
 
-    _info_emit(buf, &n, h, 5)
+    _info_emit(buf, &n, h, 6)
     _info_emit(buf, &n, h, <uint8_t>player)
     _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
     _info_emit_u16(buf, &n, h, <uint16_t>state.battle)
     _info_emit(buf, &n, h, <uint8_t>(state.active_player + 1))
+    _info_emit_u16(
+        buf, &n, h, <uint16_t>(state.turn_number & 0xFFFF)
+    )
+    _info_emit_u16(
+        buf, &n, h, <uint16_t>((state.turn_number >> 16) & 0xFFFF)
+    )
 
     for i in range(2):
         _info_emit(buf, &n, h, state.passed[i])
