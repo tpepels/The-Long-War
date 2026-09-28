@@ -1,0 +1,76 @@
+{
+  "game_fingerprint": "d540a7ea1efad7c4",
+  "config": {
+    "preset": "deep",
+    "games_per_cell": 250,
+    "seed": 1701,
+    "agents": [
+      "heuristic",
+      "heuristic"
+    ],
+    "rules": {
+      "opening_hand_size": 10,
+      "starting_command": 20,
+      "command_cap": 20,
+      "command_recovery_schedule": [
+        10,
+        7,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "command_collapse_threshold": 5,
+      "maneuver_command_cost": 1,
+      "hand_limit": 10,
+      "ongoing_narrative_limit": 2
+    },
+    "contexts": 3,
+    "games_per_context": 4,
+    "targeted_online_mccfr": {
+      "enabled": true,
+      "iterations": 16,
+      "depth": 2,
+      "contexts": 3,
+      "games_per_context": 4,
+      "max_cards": 8,
+      "minimum_abs_effect": 0.05
+    }
+  },
+  "cells": 36,
+  "simulation_games": 9000,
+  "decisive_simulation_games": 8129,
+  "censored_simulation_games": 871,
+  "aggregate_health_games": 1500,
+  "aggregate_health_decks": [
+    "battlefield-control-stratagems",
+    "mobility-open-bonds",
+    "momentum-orders",
+    "narrative-command",
+    "necessity-attrition",
+    "persistent-elite-heroes"
+  ],
+  "evidence_pipeline": {
+    "structural_play": {
+      "policy": "heuristic",
+      "purpose": "High-volume structural, pacing, exposure and matchup screening; not a strong-play claim.",
+      "attempted_games": 9000
+    },
+    "broad_card_screen": {
+      "policy": "heuristic",
+      "purpose": "Paired real-card versus neutral-baseline screening under a fixed cheap policy.",
+      "cards": 95,
+      "decisive_paired_samples": 1026,
+      "censored_paired_samples": 114
+    },
+    "strategic_confirmation": {
+      "policy": "online_mccfr",
+      "purpose": "Targeted re-solving of suspicious paired card signals using the exact same contexts and interventions.",
+      "targets": 8,
+      "iterations": 16,
+      "depth": 2
+    }
+  },
+  "interpretation": "Evidence is hierarchical. Heuristic self-play describes broad structure and exposure. Heuristic paired replacements are a screen for candidate card effects. A suspicious card is only treated as strategically confirmed when targeted online-MCCFR validation agrees. Censored games and paired samples remain structural evidence but are excluded from outcome estimates."
+}
