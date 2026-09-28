@@ -146,13 +146,18 @@ class ProgressionTelemetry:
         self._game_index += other._game_index + 1
 
         for row in other._formations.values():
-            self._formations[self._next_formation_id] = dict(row)
+            merged = dict(row)
+            merged["id"] = self._next_formation_id
+            merged["game"] = game_offset + int(row.get("game", 0))
+            self._formations[self._next_formation_id] = merged
             self._next_formation_id += 1
 
         if len(self._sample_traces) < 240:
-            self._sample_traces.extend(
-                other._sample_traces[: 240 - len(self._sample_traces)]
-            )
+            for row in other._sample_traces[: 240 - len(self._sample_traces)]:
+                merged = dict(row)
+                if "game" in merged:
+                    merged["game"] = game_offset + int(merged["game"])
+                self._sample_traces.append(merged)
 
         for name in ("_choice_legal", "_choice_card", "_choice_maneuver",
                      "_constraint_options_removed", "_constraint_options_added",
