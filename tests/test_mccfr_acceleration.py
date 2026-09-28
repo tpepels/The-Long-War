@@ -63,8 +63,8 @@ def test_fast_information_key_preserves_exported_id() -> None:
     own.bond = "followed"
     own.name = "namar"
 
-    state.stories[0].append(StoryState("the-lamps-went-dark"))
-    state.stratagems[0] = StratagemState("the-tide-rose")
+    state.stories[0].append(StoryState("the-long-march"))
+    state.stratagems[0] = StratagemState("the-ground-was-held")
     state.stratagem_used[0] = True
 
     assert information_set_id(state, 0) == legacy_information_set_id(state, 0)
