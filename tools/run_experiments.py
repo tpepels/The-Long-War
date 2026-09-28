@@ -666,16 +666,25 @@ def balance_run(args: argparse.Namespace) -> Path:
                     targeted_payload,
                 )
 
+        else:
+            print(
+                "Stored comparison profile "
+                f"{comparison_key}; canonical balance evidence left unchanged.",
+                flush=True,
+            )
+
+        # Rebuild the single Lab surface after every published comparison when
+        # a canonical base snapshot is available. This lets a sequence of
+        # heuristic/ISMCTS and current/candidate runs accumulate side by side
+        # without replacing the canonical card-balance evidence.
+        if (
+            (artifacts / "balance-health.json").exists()
+            and (artifacts / "balance-report.json").exists()
+        ):
             subprocess.run(
                 [sys.executable, str(ROOT / "tools" / "build_lab_report.py")],
                 cwd=ROOT,
                 check=True,
-            )
-        else:
-            print(
-                "Stored comparison profile "
-                f"{comparison_key}; canonical Lab snapshot left unchanged.",
-                flush=True,
             )
 
     print(f"Balance artifacts: {output}")
