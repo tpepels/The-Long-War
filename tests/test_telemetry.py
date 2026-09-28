@@ -7,7 +7,7 @@ from pathlib import Path
 
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
-from longwar.game.actions import Maneuver, Pass, PlayForce, PlayName
+from longwar.game.actions import EffectChoice, Maneuver, Pass, PlayForce, PlayName
 from longwar.game.model import Front, Position, Rank, StoryState
 from longwar.progression import ProgressionTelemetry
 from longwar.simulate import simulate_games
@@ -698,3 +698,43 @@ def test_front_result_balance_preserves_no_overall_battle_winner_semantics() -> 
     assert ProgressionTelemetry._front_result_balances(
         [[5, 3], [2, 4], [1, 1], [7, 6]]
     ) == [1, -1]
+
+
+def test_effect_resolution_is_excluded_from_operation_choice_metrics() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=700, first_player=0, opening_bonus=False)
+    progression = ProgressionTelemetry()
+    progression.start_game(engine, state)
+
+    effect = EffectChoice("recover", skip=True)
+    progression.before_action(engine, state, 0, effect, [effect])
+    choice = progression.summary()["mechanical_choice"]
+
+    assert choice["decisions"] == 0
+    assert choice["effect_resolution_decisions"] == 1
+    assert choice["exactly_one_legal_action"] == 0
+
+
+def test_card_deadness_separates_command_shortfall_from_structural_illegality() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=701, first_player=0, opening_bonus=False)
+    state.players[0].hand[:] = ["the-fifty-men"]
+    state.players[0].command = 0
+
+    telemetry = Telemetry()
+    telemetry.start_game(state, engine)
+    telemetry.before_action(engine, state, 0, Pass(), None)
+    stats = telemetry.summary()["cards"]["the-fifty-men"]
+
+    assert stats["turns_in_hand"] == 1
+    assert stats["unaffordable_turns"] == 1
+    assert stats["structurally_unplayable_turns"] == 0
+    assert stats["resource_blocked_turn_rate"] == pytest.approx(1.0)
+    assert stats["structural_unplayable_turn_rate"] is None
+
+
+def test_battle_buckets_isolate_battle_eight_plus() -> None:
+    assert ProgressionTelemetry._battle_key(3) == "3"
+    assert ProgressionTelemetry._battle_key(4) == "4-7"
+    assert ProgressionTelemetry._battle_key(7) == "4-7"
+    assert ProgressionTelemetry._battle_key(8) == "8+"
