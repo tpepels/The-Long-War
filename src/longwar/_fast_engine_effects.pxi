@@ -444,7 +444,7 @@ cdef void _fe_gain_command_from_narrative(
     for front in range(4):
         slot = slot_index(player, front, 1)
         force = state.subject[slot]
-        if force >= 0 and self.banner_singers_force[force]:
+        if force >= 0 and self.narrative_command_gain_free_maneuver_force[force]:
             _fe_queue_free_maneuver(self, state, player, named, True)
 
 cdef void _fe_resolve_named_narratives(
@@ -604,7 +604,7 @@ cdef void _fe_resolve_force_move_triggers(
     if new_slot < 0 or state.subject[new_slot] < 0:
         return
     bond = state.link[new_slot]
-    if bond < 0 or state.name[new_slot] >= 0 or not self.carried_oath_bond[bond]:
+    if bond < 0 or state.name[new_slot] >= 0 or not self.transfer_open_bond_after_move_bond[bond]:
         return
     front = front_from_slot(new_slot)
     rank = rank_from_slot(new_slot)
@@ -685,7 +685,7 @@ cdef void _fe_resolve_maneuver_triggers(
                 if not (sources & (1 << other)):
                     continue
                 bond = state.link[other]
-                if bond >= 0 and self.kept_pace_bond[bond]:
+                if bond >= 0 and self.follow_into_vacated_after_adjacent_maneuver[bond]:
                     _fe_queue_move_to_mask(self, 
                         state,
                         player,
@@ -719,7 +719,7 @@ cdef void _fe_resolve_maneuver_triggers(
             True,
         )
 
-    if name >= 0 and self.teren_name[name]:
+    if name >= 0 and self.after_maneuver_swap_other_friendlies[name]:
         swap_mask = 0
         for other in range(player * 8, player * 8 + 8):
             if other != arrived_slot and state.subject[other] >= 0:
@@ -737,7 +737,7 @@ cdef void _fe_resolve_maneuver_triggers(
                 EFFECT_OPTIONAL | EFFECT_ADJACENT_PAIR,
             )
 
-    if name >= 0 and self.torren_name[name] and _fe_force_in_all_fronts(self, state, player):
+    if name >= 0 and self.after_self_maneuver_free_other_named_if_wide_name[name] and _fe_force_in_all_fronts(self, state, player):
         _fe_queue_free_maneuver(self, 
             state,
             player,
@@ -749,7 +749,7 @@ cdef void _fe_resolve_maneuver_triggers(
         other_name = state.name[other]
         if other_name < 0 or state.subject[other] < 0:
             continue
-        if front_from_slot(other) == front and self.mara_name[other_name]:
+        if front_from_slot(other) == front and self.opposing_maneuver_same_front_free_maneuver[other_name]:
             _fe_queue_free_maneuver(self, 
                 state, opponent, <uint16_t>(1 << other), True
             )
