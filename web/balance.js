@@ -97,8 +97,12 @@ function annotateMechanicsCoverage(lab, cardData) {
 
   const summary = lab.health?.summary;
   if (summary) {
+    const rows = lab.health.cards || [];
     summary.cards_mechanics_pending = pending.length;
-    summary.card_levels = (lab.health.cards || []).reduce((counts, row) => {
+    summary.flags_high = rows.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "high").length;
+    summary.flags_watch = rows.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "watch").length;
+    summary.flags_diagnostic = rows.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "diagnostic").length;
+    summary.card_levels = rows.reduce((counts, row) => {
       counts[row.balance_level] = (counts[row.balance_level] || 0) + 1;
       return counts;
     }, {});
