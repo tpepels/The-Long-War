@@ -41,6 +41,10 @@ def fresh():
     )
     state.players[0].command = 20
     state.players[1].command = 20
+    # Keep turn-flow tests below out of the mandatory discard-before-draw
+    # substep. Individual tests install the exact cards they need.
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
     return engine, state
 
 
@@ -190,7 +194,9 @@ def test_king_had_given_order_forces_exact_free_next_turn_maneuver():
     engine.apply(state, play)
 
     state.active_player = 0
-    state.turn_number = 2
+    # The Warning was played on turn 1. The same player's next turn is 3:
+    # turn 2 belongs to the opponent.
+    state.turn_number = 3
     legal = engine.legal_actions(state)
     assert legal == [Maneuver(source, target)]
     assert engine.command_cost_for_action(state, legal[0]) == 0
