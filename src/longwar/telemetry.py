@@ -942,11 +942,13 @@ class Telemetry:
                 "command_spent_total": sum(before.command_spent_this_battle),
                 "command_refunded_total": sum(before.command_refunded_this_battle),
                 "command_remaining_total": sum(
-                    int(value)
-                    for value in snapshot.get(
-                        "command_remaining",
-                        [player.command for player in state.players],
+                    max(
+                        0,
+                        int(before.battle_start_command[player])
+                        - int(before.command_spent_this_battle[player])
+                        + int(before.command_refunded_this_battle[player]),
                     )
+                    for player in range(2)
                 ),
                 "deck_remaining_total": sum(
                     int(value)
