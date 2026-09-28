@@ -51,14 +51,14 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.completion_free_maneuver_self, 0, sizeof(self.completion_free_maneuver_self))
     memset(self.after_maneuver_free_adjacent, 0, sizeof(self.after_maneuver_free_adjacent))
     memset(self.completion_swap_adjacent, 0, sizeof(self.completion_swap_adjacent))
-    memset(self.iria_name, 0, sizeof(self.iria_name))
+    memset(self.opposing_named_same_front_free_maneuver, 0, sizeof(self.opposing_named_same_front_free_maneuver))
     memset(self.skirmisher_contribution, 0, sizeof(self.skirmisher_contribution))
     memset(self.after_empty_follow_move, 0, sizeof(self.after_empty_follow_move))
     memset(self.after_swap_free_other, 0, sizeof(self.after_swap_free_other))
-    memset(self.kept_pace_bond, 0, sizeof(self.kept_pace_bond))
-    memset(self.covered_withdrawal_bond, 0, sizeof(self.covered_withdrawal_bond))
-    memset(self.teren_name, 0, sizeof(self.teren_name))
-    memset(self.mara_name, 0, sizeof(self.mara_name))
+    memset(self.follow_into_vacated_after_adjacent_maneuver, 0, sizeof(self.follow_into_vacated_after_adjacent_maneuver))
+    memset(self.adjacent_retreat_free_maneuver, 0, sizeof(self.adjacent_retreat_free_maneuver))
+    memset(self.after_maneuver_swap_other_friendlies, 0, sizeof(self.after_maneuver_swap_other_friendlies))
+    memset(self.opposing_maneuver_same_front_free_maneuver, 0, sizeof(self.opposing_maneuver_same_front_free_maneuver))
     memset(self.suppress_rear_force, 0, sizeof(self.suppress_rear_force))
     memset(self.first_strike_force, 0, sizeof(self.first_strike_force))
     memset(self.sacrifice_bond, 0, sizeof(self.sacrifice_bond))
@@ -69,17 +69,17 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.after_empty_extra_move_force, 0, sizeof(self.after_empty_extra_move_force))
     memset(self.reactive_maneuver_name, 0, sizeof(self.reactive_maneuver_name))
     memset(self.recover_bond_on_completion_name, 0, sizeof(self.recover_bond_on_completion_name))
-    memset(self.neris_rear_force, 0, sizeof(self.neris_rear_force))
-    memset(self.neris_retreat_name, 0, sizeof(self.neris_retreat_name))
-    memset(self.veyra_force, 0, sizeof(self.veyra_force))
-    memset(self.veyra_name, 0, sizeof(self.veyra_name))
+    memset(self.after_frontline_retreat_sideways_force, 0, sizeof(self.after_frontline_retreat_sideways_force))
+    memset(self.after_self_retreat_sideways_name, 0, sizeof(self.after_self_retreat_sideways_name))
+    memset(self.on_play_take_adjacent_prepared_component_force, 0, sizeof(self.on_play_take_adjacent_prepared_component_force))
+    memset(self.on_play_take_adjacent_open_bond_name, 0, sizeof(self.on_play_take_adjacent_open_bond_name))
     memset(self.recover_story_on_completion_name, 0, sizeof(self.recover_story_on_completion_name))
-    memset(self.optional_alda_protect_force, 0, sizeof(self.optional_alda_protect_force))
-    memset(self.late_banner_force, 0, sizeof(self.late_banner_force))
-    memset(self.torren_name, 0, sizeof(self.torren_name))
-    memset(self.banner_singers_force, 0, sizeof(self.banner_singers_force))
-    memset(self.carried_oath_bond, 0, sizeof(self.carried_oath_bond))
-    memset(self.succession_name, 0, sizeof(self.succession_name))
+    memset(self.optional_self_drive_prevent_frontline_retreat_force, 0, sizeof(self.optional_self_drive_prevent_frontline_retreat_force))
+    memset(self.prepared_on_play_free_maneuver_force, 0, sizeof(self.prepared_on_play_free_maneuver_force))
+    memset(self.after_self_maneuver_free_other_named_if_wide_name, 0, sizeof(self.after_self_maneuver_free_other_named_if_wide_name))
+    memset(self.narrative_command_gain_free_maneuver_force, 0, sizeof(self.narrative_command_gain_free_maneuver_force))
+    memset(self.transfer_open_bond_after_move_bond, 0, sizeof(self.transfer_open_bond_after_move_bond))
+    memset(self.succession_on_drive_off_name, 0, sizeof(self.succession_on_drive_off_name))
     memset(self.narrative_secondary, 0, sizeof(self.narrative_secondary))
     memset(self.narrative_end_kind, 0, sizeof(self.narrative_end_kind))
     memset(self.narrative_end_gain, 0, sizeof(self.narrative_end_gain))
@@ -357,7 +357,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         if design.get("combat") == "frontline_only_comparison":
             self.combat_frontline_only[code] = 1
         if design.get("trigger") == "opposing_formation_in_same_front_becomes_named":
-            self.iria_name[code] = 1
+            self.opposing_named_same_front_free_maneuver[code] = 1
         completion_design = design.get("on_completion") or {}
         if completion_design.get("effect") == "optional_swap_adjacent_friendly_formation":
             self.completion_swap_adjacent[code] = 1
@@ -381,13 +381,13 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         if (design.get("after_maneuver_swap") or {}).get("effect") == "optional_zero_cost_maneuver_swapped_formation":
             self.after_swap_free_other[code] = 1
         if design.get("trigger") == "adjacent_friendly_named_formation_maneuvers_away":
-            self.kept_pace_bond[code] = 1
+            self.follow_into_vacated_after_adjacent_maneuver[code] = 1
         if design.get("trigger") == "adjacent_friendly_formation_retreats":
-            self.covered_withdrawal_bond[code] = 1
+            self.adjacent_retreat_free_maneuver[code] = 1
         if (design.get("after_maneuver") or {}).get("effect") == "optional_swap_two_adjacent_friendly_formations_excluding_self":
-            self.teren_name[code] = 1
+            self.after_maneuver_swap_other_friendlies[code] = 1
         if design.get("trigger") == "opposing_formation_maneuvers_into_same_front":
-            self.mara_name[code] = 1
+            self.opposing_maneuver_same_front_free_maneuver[code] = 1
         if design.get("combat") == "skirmish":
             self.suppress_rear_force[code] = 1
         if design.get("combat") == "first_strike":
@@ -409,25 +409,25 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         if force_design.get("combat") == "optional_ignore_opposing_rear_strength":
             self.suppress_rear_force[code] = 1
         if force_design.get("effect") == "optional_drive_off_self_prevent_frontline_named_retreat":
-            self.optional_alda_protect_force[code] = 1
+            self.optional_self_drive_prevent_frontline_retreat_force[code] = 1
         if force_design.get("after_frontline_retreat") == "optional_sideways_rear_move":
-            self.neris_rear_force[code] = 1
+            self.after_frontline_retreat_sideways_force[code] = 1
         if name_design.get("after_self_retreat") == "optional_sideways_rear_move":
-            self.neris_retreat_name[code] = 1
+            self.after_self_retreat_sideways_name[code] = 1
         if force_design.get("on_play") == "optional_take_adjacent_prepared_bond_or_name":
-            self.veyra_force[code] = 1
+            self.on_play_take_adjacent_prepared_component_force[code] = 1
         if name_design.get("on_play") == "optional_take_adjacent_open_bond":
-            self.veyra_name[code] = 1
+            self.on_play_take_adjacent_open_bond_name[code] = 1
         if design.get("build_around") == "prepared_position":
-            self.late_banner_force[code] = 1
+            self.prepared_on_play_free_maneuver_force[code] = 1
         if design.get("after_self_maneuver") == "optional_zero_cost_other_friendly_named_maneuver":
-            self.torren_name[code] = 1
+            self.after_self_maneuver_free_other_named_if_wide_name[code] = 1
         if design.get("trigger") == "regain_command_from_narrative":
-            self.banner_singers_force[code] = 1
+            self.narrative_command_gain_free_maneuver_force[code] = 1
         if design.get("build_around") == "open_bond_transfer":
-            self.carried_oath_bond[code] = 1
+            self.transfer_open_bond_after_move_bond[code] = 1
         if design.get("build_around") == "succession":
-            self.succession_name[code] = 1
+            self.succession_on_drive_off_name[code] = 1
         if design.get("combat") == "tie_control":
             self.strat_tie_control[code] = 1
         if design.get("command") == "high_cost_battle_investment":
