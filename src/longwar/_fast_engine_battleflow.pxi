@@ -113,7 +113,7 @@ cdef void _fe_drive_off_slot(
     """Drive off one formation, pausing for an optional succession effect if legal."""
     cdef int name = state.name[slot]
     cdef uint16_t destinations
-    if name >= 0 and self.succession_on_drive_off_name[name]:
+    if name >= 0 and (self.card_capabilities[name] & CAP_SUCCESSION_ON_DRIVE_OFF_NAME):
         destinations = _fe_succession_destinations(self, state, player, slot)
         if destinations:
             _fe_enqueue_effect(self, 
@@ -185,7 +185,7 @@ cdef void _fe_retreat_slot(
         name >= 0
         and (
             self.retreat_sideways_name[name]
-            or self.after_self_retreat_sideways_name[name]
+            or (self.card_capabilities[name] & CAP_AFTER_SELF_RETREAT_SIDEWAYS_NAME)
         )
     ):
         destinations = _fe_adjacent_empty_mask(self, 
@@ -207,7 +207,7 @@ cdef void _fe_retreat_slot(
         if (
             state.subject[other] >= 0
             and other_bond >= 0
-            and self.adjacent_retreat_free_maneuver[other_bond]
+            and (self.card_capabilities[other_bond] & CAP_ADJACENT_RETREAT_FREE_MANEUVER)
         ):
             _fe_queue_free_maneuver(self, 
                 state, player, <uint16_t>(1 << other), True
@@ -218,7 +218,7 @@ cdef void _fe_retreat_slot(
         if (
             state.subject[other] >= 0
             and other_bond >= 0
-            and self.adjacent_retreat_free_maneuver[other_bond]
+            and (self.card_capabilities[other_bond] & CAP_ADJACENT_RETREAT_FREE_MANEUVER)
         ):
             _fe_queue_free_maneuver(self, 
                 state, player, <uint16_t>(1 << other), True
