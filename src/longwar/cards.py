@@ -73,6 +73,7 @@ _DESIGN_BOOL_PATHS = {
     "chosen_front_requires_friendly_named_formation",
     "destination_must_have_been_empty_before_effect",
     "discard_after_both_players_trigger",
+    "at_battle_end.discard_self",
     "discard_after_next_turn_constraint",
     "discard_self",
     "discard_when_named_formation_retreated",
@@ -83,6 +84,7 @@ _DESIGN_BOOL_PATHS = {
     "later_maneuvers_same_direction_if_possible",
     "lost_front.if_frontline_friendly_named",
     "move_any_number",
+    "maneuver_while_unnamed",
     "named_formations_cannot_maneuver_away",
     "next_battle_first_operation_must_be_maneuver_if_possible",
     "next_operation_each_player_must_affect_chosen_front_if_possible",
@@ -343,6 +345,22 @@ _DESIGN_LIST_VALUES: dict[str, set[str]] = {
 
 def _validate_design_rule_value(value: Any, path: str, card_id: str) -> None:
     location = f"{card_id}.design_rules.{path}"
+
+    # Two established mechanics deliberately accept either a shorthand scalar
+    # or a structured form. Keep that compatibility explicit rather than
+    # weakening validation for every design-rule path.
+    if path == "cost":
+        if (
+            (type(value) is int and value in _SIGNED)
+            or value == "discard_own_force_and_all_attached_cards"
+        ):
+            return
+        raise ValueError(f"{location}: unsupported value {value!r}")
+    if path == "name.on_completion" and isinstance(value, str):
+        if value in _DESIGN_STRING_VALUES[path]:
+            return
+        raise ValueError(f"{location}: unsupported value {value!r}")
+
     if path in _DESIGN_OBJECT_PATHS:
         if not isinstance(value, dict):
             raise ValueError(f"{location}: must be an object")
