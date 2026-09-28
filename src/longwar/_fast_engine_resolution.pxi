@@ -327,7 +327,7 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
         # Snapshot persistent Rear effects before that formation is driven
         # off. Upper drive-mask bits are temporary sideways-retreat markers.
         force = state.subject[rear_slot]
-        if force >= 0 and self.after_frontline_retreat_sideways_force[force]:
+        if force >= 0 and (self.card_capabilities[force] & CAP_AFTER_FRONTLINE_RETREAT_SIDEWAYS_FORCE):
             state.resolution_drive_mask[player] |= <uint8_t>(
                 1 << (front + 4)
             )
@@ -338,7 +338,7 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
                     1 << front
                 )
             elif (
-                self.optional_self_drive_prevent_frontline_retreat_force[force]
+                (self.card_capabilities[force] & CAP_OPTIONAL_SELF_DRIVE_PREVENT_FRONTLINE_RETREAT_FORCE)
                 and not (
                     state.resolution_protected_mask[player]
                     & (1 << (front + 4))
