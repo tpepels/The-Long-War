@@ -356,6 +356,7 @@ class ProgressionTelemetry:
                     len(self._battle_records) - self._game_battle_record_start
                 ),
                 "final_battle": int(state.battle),
+                "final_command": [int(player.command) for player in state.players],
                 "censored": bool(censored),
             })
 
@@ -369,6 +370,14 @@ class ProgressionTelemetry:
         removed_incomplete = [
             row for row in lifecycles
             if row["removed_action"] is not None and row["completion_action"] is None
+        ]
+        removed_incomplete_during_battle = [
+            row for row in removed_incomplete
+            if row.get("removed_reason") != "battle_resolution"
+        ]
+        cleared_incomplete_at_battle_end = [
+            row for row in removed_incomplete
+            if row.get("removed_reason") == "battle_resolution"
         ]
 
         force_to_bond = [
@@ -403,7 +412,7 @@ class ProgressionTelemetry:
             row["final_battle"] for row in match_records if row["censored"]
         ]
         battle_reach = {}
-        for battle in (1, 2, 3, 4):
+        for battle in (1, 2, 3, 4, 8):
             reached = sum(row["final_battle"] >= battle for row in match_records)
             battle_reach[str(battle)] = {
                 "matches": reached,
@@ -420,6 +429,17 @@ class ProgressionTelemetry:
                 censored_final_battles
             ),
             "battle_reach": battle_reach,
+            "battle_8_plus_count": sum(
+                row["battle"] >= 8 for row in self._battle_records
+            ),
+            "zero_command_start_battles": sum(
+                row["command_start"][0] == 0 and row["command_start"][1] == 0
+                for row in self._battle_records
+            ),
+            "censored_zero_command_matches": sum(
+                row["censored"] and row.get("final_command") == [0, 0]
+                for row in match_records
+            ),
         }
         first_pass = [row for row in self._pass_contexts if row["first_pass"]]
         first_pass_outcomes = {
@@ -627,7 +647,9 @@ class ProgressionTelemetry:
                 "forces_ever_named": ever_named,
                 "bonded_formations": len(bonded),
                 "completed_formations": len(completed),
-                "incomplete_removed_before_completion": len(removed_incomplete),
+                "incomplete_removed_before_completion": len(removed_incomplete_during_battle),
+                "incomplete_removed_during_battle": len(removed_incomplete_during_battle),
+                "incomplete_cleared_at_battle_end": len(cleared_incomplete_at_battle_end),
                 "incomplete_at_battle_end": sum(
                     sum(record["incomplete_at_end"]) for record in self._battle_records
                 ),
@@ -679,7 +701,8 @@ class ProgressionTelemetry:
                 ),
                 "battle_end_formation_state": (
                     "Complete and partial formation counts at Battle end use the final "
-                    "pre-resolution Battle state, before cleanup removes the board."
+                    "pre-resolution Battle state, before cleanup removes the board. Normal "
+                    "Battle cleanup is reported separately from in-Battle formation removal."
                 ),
                 "partial_formation": "A board position with a Force that is not yet both Bonded and Named.",
                 "active_front": "A Front containing at least one Force for either player.",
@@ -726,7 +749,7 @@ class ProgressionTelemetry:
                 "unplayed_at_match_end": (
                     "Copies still in hand when the match ends. Cards remaining unseen in the deck are not counted."
                 ),
-                "battle_index": "Battle 1, 2 and 3 are separate; all later Battles aggregate into 4+.",
+                "battle_index": "Battle 1, 2 and 3 are separate; Battles 4-7 and 8+ are separated so zero-resource late-game stalls cannot dominate the normal late-war bucket.",
                 "match_length": (
                     "Battle reach uses the final Battle number observed in each match. "
                     "Censored matches count as having reached their current Battle but not as having resolved it."
@@ -1108,11 +1131,13 @@ class ProgressionTelemetry:
         )
 
         final_command = [
-            int(value)
-            for value in snapshot.get(
-                "command_remaining",
-                [player.command for player in before.players],
+            max(
+                0,
+                int(before.battle_start_command[player])
+                - int(before.command_spent_this_battle[player])
+                + int(before.command_refunded_this_battle[player]),
             )
+            for player in range(2)
         ]
 
         incomplete_end = [
@@ -1455,7 +1480,7 @@ class ProgressionTelemetry:
         for row in self._battle_records:
             groups[self._battle_key(row["battle"])].append(row)
         result = {}
-        for key in ("1", "2", "3", "4+"):
+        for key in ("1", "2", "3", "4-7", "8+"):
             rows = groups.get(key, [])
             if not rows:
                 result[key] = {"battles": 0}
@@ -1602,7 +1627,11 @@ class ProgressionTelemetry:
 
     @staticmethod
     def _battle_key(battle: int) -> str:
-        return str(battle) if battle <= 3 else "4+"
+        if battle <= 3:
+            return str(battle)
+        if battle <= 7:
+            return "4-7"
+        return "8+"
 
     @staticmethod
     def _sign(value: int | float) -> int:
