@@ -171,7 +171,15 @@ class Telemetry:
         self._match_count += other._match_count
         self._progression_started = self._progression_started or other._progression_started
 
-    def start_game(self, state: GameState, engine: GameEngine | None = None) -> None:
+    def start_game(
+        self,
+        state: GameState,
+        engine: GameEngine | None = None,
+        *,
+        simulation_game_index: int | None = None,
+        seed: int | None = None,
+        first_player: int | None = None,
+    ) -> None:
         self._drawn_this_game = [set(), set()]
         self._played_this_game = [set(), set()]
         self._combos_this_game = [set(), set()]
@@ -181,7 +189,13 @@ class Telemetry:
         self._progression_started = False
 
         if engine is not None:
-            self.progression.start_game(engine, state)
+            self.progression.start_game(
+                engine,
+                state,
+                simulation_game_index=simulation_game_index,
+                seed=seed,
+                first_player=first_player,
+            )
             self._progression_started = True
 
         for player in range(2):
