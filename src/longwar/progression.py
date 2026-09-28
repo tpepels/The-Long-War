@@ -66,7 +66,9 @@ class ProgressionTelemetry:
         self._constraint_source_decisions = 0
         self._constraint_active_decisions = 0
         self._constraint_effect_choice_decisions = 0
+        self._constraint_source_effect_choice_decisions = 0
         self._effect_choice_decisions = 0
+        self._constraint_active_supported = False
         self._constraint_active_streak = 0
         self._constraint_active_streaks: list[int] = []
         self._pass_contexts: list[dict[str, Any]] = []
@@ -111,6 +113,10 @@ class ProgressionTelemetry:
             self._constraint_active_streaks.append(self._constraint_active_streak)
             self._constraint_active_streak = 0
         self._game_index += 1
+        self._constraint_active_supported = (
+            self._constraint_active_supported
+            or hasattr(state, "active_constraints")
+        )
         self._game_battle_record_start = len(self._battle_records)
         self._action_index = 0
         self._current_action = 0
@@ -163,13 +169,39 @@ class ProgressionTelemetry:
 
         self._current_action = self._action_index + 1
         legal = list(legal_actions)
+        constraint_sources = self._constraint_rule_sources(engine, state)
+        constraint_active = (
+            self._constraint_effect_active(state)
+            if self._constraint_active_supported
+            else False
+        )
+        effect_resolution = (
+            isinstance(action, EffectChoice)
+            or (
+                bool(legal)
+                and all(isinstance(candidate, EffectChoice) for candidate in legal)
+            )
+        )
+        if effect_resolution:
+            self._effect_choice_decisions += 1
+            self._constraint_source_effect_choice_decisions += int(
+                bool(constraint_sources)
+            )
+            self._constraint_effect_choice_decisions += int(
+                self._constraint_active_supported and constraint_active
+            )
+            if self._constraint_active_supported and constraint_active:
+                self._constraint_active_streak += 1
+            elif self._constraint_active_streak:
+                self._constraint_active_streaks.append(self._constraint_active_streak)
+                self._constraint_active_streak = 0
+            return
+
         self._battle_action += 1
         card_actions = [candidate for candidate in legal if isinstance(candidate, CARD_ACTIONS)]
         maneuver_actions = [candidate for candidate in legal if isinstance(candidate, Maneuver)]
         pass_actions = [candidate for candidate in legal if isinstance(candidate, Pass)]
         alternatives = [candidate for candidate in legal if not isinstance(candidate, Pass)]
-        constraint_sources = self._constraint_rule_sources(engine, state)
-        constraint_active = self._constraint_effect_active(state)
 
         self._choice_legal.append(len(legal))
         self._choice_card.append(len(card_actions))
@@ -180,13 +212,9 @@ class ProgressionTelemetry:
         )
         self._pass_plus_one += int(bool(pass_actions) and len(alternatives) == 1)
         self._constraint_source_decisions += int(bool(constraint_sources))
-        self._constraint_active_decisions += int(constraint_active)
-        effect_choice_available = any(isinstance(x, EffectChoice) for x in legal)
-        self._effect_choice_decisions += int(effect_choice_available)
-        self._constraint_effect_choice_decisions += int(
-            constraint_active and effect_choice_available
-        )
-        if constraint_active:
+        if self._constraint_active_supported:
+            self._constraint_active_decisions += int(constraint_active)
+        if self._constraint_active_supported and constraint_active:
             self._constraint_active_streak += 1
         elif self._constraint_active_streak:
             self._constraint_active_streaks.append(self._constraint_active_streak)
@@ -571,15 +599,21 @@ class ProgressionTelemetry:
                 self._constraint_source_decisions, len(self._choice_legal)
             ),
             "constraint_active_decisions": self._constraint_active_decisions,
-            "constraint_active_rate": self._ratio(
-                self._constraint_active_decisions, len(self._choice_legal)
+            "constraint_active_supported": self._constraint_active_supported,
+            "constraint_active_rate": (
+                self._ratio(
+                    self._constraint_active_decisions, len(self._choice_legal)
+                )
+                if self._constraint_active_supported
+                else None
             ),
             "constraint_effect_choice_decisions": self._constraint_effect_choice_decisions,
+            "constraint_source_effect_choice_decisions": self._constraint_source_effect_choice_decisions,
+            "effect_resolution_decisions": self._effect_choice_decisions,
             "constraint_duration_decisions": self._distribution(
                 self._constraint_active_streaks
                 + ([self._constraint_active_streak] if self._constraint_active_streak else [])
             ),
-            "effect_choice_decisions": self._effect_choice_decisions,
             "pass_mechanical_categories": dict(sorted(Counter(
                 row["mechanical_category"] for row in self._pass_contexts
             ).items())),
@@ -666,8 +700,12 @@ class ProgressionTelemetry:
                     "is present in play. This does not mean its restriction is implemented or active."
                 ),
                 "constraint_active": (
-                    "Requires an explicit engine-exposed active constraint marker. Telemetry "
-                    "does not reconstruct hypothetical legality from card text."
+                    "Only reported when the engine exposes an explicit active-constraint marker. "
+                    "If unsupported, the Balance Lab reports this metric as not instrumented rather than 0%."
+                ),
+                "effect_resolution_decision": (
+                    "Pending EffectChoice resolution is counted separately and excluded from ordinary "
+                    "operation-choice, forced-choice and card-playability statistics."
                 ),
                 "card_draw_to_play": (
                     "Physical card copies are not engine-identified, so duplicate copies are "
