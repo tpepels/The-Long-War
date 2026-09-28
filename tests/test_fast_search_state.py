@@ -51,6 +51,8 @@ def public_snapshot(state):
                         "bond": slot.bond,
                         "name": slot.name,
                         "temporary_strength": slot.temporary_strength,
+                        "maneuvers_this_battle": slot.maneuvers_this_battle,
+                        "maneuver_direction": slot.maneuver_direction,
                     }
                     for slot in front
                 ]
