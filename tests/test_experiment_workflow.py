@@ -517,6 +517,7 @@ def test_deep_balance_pipeline_publishes_screen_and_online_validation() -> None:
     assert 'publish("progression-selfplay.json", progression_source)' in source
     assert 'publish("counterfactual-balance.json", causal_payload)' in source
     assert '"targeted-online-counterfactual.json"' in source
+    assert '"tools" / "build_lab_report.py"' in source
 
 
 def test_balance_cli_exposes_evidence_hierarchy_controls(monkeypatch) -> None:
@@ -561,4 +562,3 @@ def test_command_matrix_cli_uses_four_agent_recovery_cells(monkeypatch) -> None:
         assert pair in source
     assert "cell.skip_card_screen = True" in source
     assert "cell.publish_lab = True" in source
-    assert '"tools" / "build_lab_report.py"' in source
