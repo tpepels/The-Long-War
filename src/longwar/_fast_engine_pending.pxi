@@ -59,8 +59,11 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
     if kind == EFFECT_FREE_MANEUVER:
         if not skip:
             was_empty = state.subject[dest] < 0
+            moved = 1 if front_from_slot(dest) < front_from_slot(source) else 2
             _fe_swap_slots(self, state, source, dest)
             state.maneuver_count[dest] += 1
+            state.maneuver_direction[dest] = moved
+            state.player_maneuver_count[player] += 1
             if state.free_maneuver_available[player]:
                 state.free_maneuver_available[player] = 0
             _fe_resolve_maneuver_triggers(self, 
@@ -209,6 +212,100 @@ cdef void _fe_queue_veyra_name_on_play(
             EFFECT_OPTIONAL,
         )
 
+
+cdef void _fe_discard_story_by_card(
+    FastEngine self,
+    FastState state,
+    int controller,
+    int card,
+) noexcept:
+    cdef int story_slot, ix
+    for story_slot in range(self.ongoing_story_limit):
+        ix = controller * 4 + story_slot
+        if state.scheme[ix] == card:
+            _fe_discard_ongoing_narrative(
+                self, state, controller, story_slot
+            )
+            return
+
+
+cdef void _fe_first_card_front_constraint_triggers(
+    FastEngine self,
+    FastState state,
+    int actor,
+    int front,
+) except *:
+    cdef int controller, story_slot, ix, card, mask
+    for controller in range(2):
+        story_slot = 0
+        while story_slot < self.ongoing_story_limit:
+            ix = controller * 4 + story_slot
+            card = state.scheme[ix]
+            if card < 0:
+                story_slot += 1
+                continue
+            if (
+                not self.narrative_first_card_front_constraint[card]
+                or not (state.scheme_front_mask[ix] & (1 << front))
+                or state.scheme_trigger_mask[ix] & (1 << actor)
+            ):
+                story_slot += 1
+                continue
+
+            state.scheme_trigger_mask[ix] |= <uint8_t>(1 << actor)
+            _fe_add_constraint(
+                state,
+                CONSTRAINT_AFFECT_FRONT,
+                actor,
+                card,
+                controller,
+                front,
+                0,
+                -1,
+                state.turn_number + 2,
+                CONSTRAINT_EXPIRES_AFTER_OPERATION,
+            )
+            mask = state.scheme_trigger_mask[ix]
+            if mask == 3:
+                _fe_discard_ongoing_narrative(
+                    self, state, controller, story_slot
+                )
+                continue
+            story_slot += 1
+
+
+cdef void _fe_consume_operation_constraints(
+    FastEngine self,
+    FastState state,
+    int actor,
+    uint64_t action,
+) except *:
+    cdef int i, flags, card, owner
+    cdef bint satisfied
+    i = state.constraint_len - 1
+    while i >= 0:
+        if (
+            state.constraint_player[i] != actor
+            or state.turn_number < state.constraint_activate_turn[i]
+            or not (
+                state.constraint_flags[i]
+                & CONSTRAINT_EXPIRES_AFTER_OPERATION
+            )
+        ):
+            i -= 1
+            continue
+        flags = state.constraint_flags[i]
+        card = state.constraint_source_card[i]
+        owner = state.constraint_source_owner[i]
+        satisfied = _fe_constraint_satisfied(self, state, i, action)
+        _fe_remove_constraint_at(state, i)
+        if satisfied and flags & CONSTRAINT_DRAW_ON_SATISFY:
+            _fe_queue_battle_draws(self, state, actor, 1)
+        if flags & CONSTRAINT_DISCARD_SOURCE_STORY:
+            _fe_discard_story_by_card(self, state, owner, card)
+        i -= 1
+
+
 cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     cdef int kind = action_kind(action)
     cdef int card = action_card(action)
@@ -255,12 +352,17 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
 
     if kind == TYPE_MANEUVER:
         target = 1 if state.subject[dest] < 0 else 0
+        choice = 1 if front_from_slot(dest) < front_from_slot(pos) else 2
         _fe_swap_slots(self, state, pos, dest)
         state.maneuver_count[dest] += 1
+        state.maneuver_direction[dest] = choice
+        state.player_maneuver_count[actor] += 1
         if state.free_maneuver_available[actor]:
             state.free_maneuver_available[actor] = 0
         _fe_resolve_force_pair_narratives(self, state, actor)
         _fe_resolve_maneuver_triggers(self, state, actor, pos, dest, bool(target))
+        _fe_consume_operation_constraints(self, state, actor, action)
+        _fe_consume_operation_constraints(self, state, actor, action)
         _fe_resume_pending_flow(self, state)
         return
 
@@ -354,6 +456,27 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.scheme_revealed[actor * 4 + pos] = 1
         state.scheme_front_mask[actor * 4 + pos] = <uint8_t>(extra & 15)
         state.scheme_target_slot[actor * 4 + pos] = dest
+        if self.story_choice_kind[card] == STORY_CHOICE_NAMED_DIRECTION:
+            state.scheme_direction[actor * 4 + pos] = <uint8_t>extra
+        if self.narrative_forced_named_direction[card]:
+            _fe_add_constraint(
+                state,
+                CONSTRAINT_SPECIFIC_MANEUVER,
+                actor,
+                card,
+                actor,
+                -1,
+                <int>extra,
+                dest,
+                state.turn_number + 2,
+                (
+                    CONSTRAINT_EXPIRES_AFTER_OPERATION
+                    | CONSTRAINT_PERSISTS_BATTLE
+                    | CONSTRAINT_ZERO_COST
+                    | CONSTRAINT_DRAW_ON_SATISFY
+                    | CONSTRAINT_DISCARD_SOURCE_STORY
+                ),
+            )
 
     elif kind == TYPE_STRATAGEM:
         _fe_take_from_hand(self, state, actor, card, 0)
@@ -367,6 +490,36 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         )
         state.stratagem_target_mask[actor] = <uint16_t>(extra & 0xFFFF)
         state.stratagem_used[actor] = 1
+
+        if self.strat_next_operation_front[card] and pos >= 0:
+            front = 0
+            while front < 4 and not (pos & (1 << front)):
+                front += 1
+            if front < 4:
+                _fe_add_constraint(
+                    state,
+                    CONSTRAINT_AFFECT_FRONT,
+                    actor,
+                    card,
+                    actor,
+                    front,
+                    0,
+                    -1,
+                    state.turn_number + 2,
+                    CONSTRAINT_EXPIRES_AFTER_OPERATION,
+                )
+                _fe_add_constraint(
+                    state,
+                    CONSTRAINT_AFFECT_FRONT,
+                    1 - actor,
+                    card,
+                    actor,
+                    front,
+                    0,
+                    -1,
+                    state.turn_number + 1,
+                    CONSTRAINT_EXPIRES_AFTER_OPERATION,
+                )
 
         choice = self.strat_choice_kind[card]
         if choice == STRAT_CHOICE_WHEEL and dest >= 0:
@@ -400,7 +553,11 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
 
     if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
         _fe_resolve_new_completions_fast(self, state, actor, before_mask)
+        _fe_first_card_front_constraint_triggers(
+            self, state, actor, front_from_slot(pos)
+        )
 
+    _fe_consume_operation_constraints(self, state, actor, action)
     _fe_resume_pending_flow(self, state)
 
 cdef FastState _fe_next_state(FastEngine self, FastState state, uint64_t action):
