@@ -717,6 +717,23 @@ function renderCommandExperiment(lab) {
     const matches = sum(deckProfiles, (deck) => deck.progression?.match_length?.matches);
     const reach3 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["3"]?.matches);
     const reach8 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["8"]?.matches);
+    const reach12 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["12"]?.matches);
+    const meanBattles = weighted(deckProfiles, (deck) => {
+      const d = deck.progression?.match_length?.resolved_battles_per_match;
+      return { value: d?.mean, weight: d?.count };
+    });
+    const maxBattle = Math.max(
+      0,
+      ...deckProfiles.map((deck) =>
+        Number(deck.progression?.match_length?.final_battle_number?.max || 0)
+      )
+    );
+    const longestEqualLowStreak = Math.max(
+      0,
+      ...deckProfiles.map((deck) =>
+        Number(deck.progression?.low_command_stalls?.equal_low_streak_length?.max || 0)
+      )
+    );
     const resolvedBattles = sum(deckProfiles, (deck) => deck.progression?.battlefield_development?.battles);
     const equalLowContinuations = sum(deckProfiles, (deck) =>
       deck.progression?.low_command_stalls?.equal_low_continuations
@@ -761,6 +778,10 @@ function renderCommandExperiment(lab) {
       endZeroRate: endCount ? endZero / endCount : null,
       reach3: matches ? reach3 / matches : null,
       reach8: matches ? reach8 / matches : null,
+      reach12: matches ? reach12 / matches : null,
+      meanBattles,
+      maxBattle,
+      longestEqualLowStreak,
       battle47Command: lateCommand("4-7"),
       battle8Command: lateCommand("8+"),
       search: profile.agent_profile || {},
@@ -783,7 +804,8 @@ function renderCommandExperiment(lab) {
         <th>Agent</th><th>Recovery</th><th>Floor</th><th>Games</th><th>Censored</th>
         <th>Equal-low cont.</th><th>0/0 Battle starts</th><th>No paid op.</th>
         <th>First-pass Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Pass w/ alternatives</th>
-        <th>Battle-end Command</th><th>Ends at 0</th><th>Reach III</th><th>Reach VIII+</th>
+        <th>Battle-end Command</th><th>Ends at 0</th><th>Mean Battles</th><th>Max Battle</th>
+        <th>Reach III</th><th>Reach VIII+</th><th>Reach XII+</th><th>Longest equal-low</th>
         <th>Command IV-VII</th><th>Command VIII+</th><th>Policy coverage</th><th>Search settings</th>
       </tr></thead>
       <tbody>${summaries.map((row) => `
@@ -802,8 +824,12 @@ function renderCommandExperiment(lab) {
           <td>${pct(row.passWithAlternativesRate)}</td>
           <td>${num(row.battleEndCommand, 1)}</td>
           <td>${pct(row.endZeroRate)}</td>
+          <td>${num(row.meanBattles, 1)}</td>
+          <td>${row.maxBattle || "—"}</td>
           <td>${pct(row.reach3)}</td>
           <td>${pct(row.reach8)}</td>
+          <td>${pct(row.reach12)}</td>
+          <td>${row.longestEqualLowStreak || 0}</td>
           <td>${num(row.battle47Command, 1)}</td>
           <td>${num(row.battle8Command, 1)}</td>
           <td>${row.agent === "mccfr"
