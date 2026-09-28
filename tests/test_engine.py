@@ -2107,6 +2107,36 @@ def test_banner_singers_trigger_after_narrative_command_gain() -> None:
     )
 
 
+def test_chained_mandatory_recoveries_do_not_dead_end_after_first_consumes_target() -> None:
+    engine, state = setup_state(seed=48334)
+
+    state.players[0].discard[:] = ["followed"]
+    recovery = {
+        "kind": 4,  # EFFECT_RECOVER
+        "player": 0,
+        "card": -1,
+        "source": -1,
+        "aux": 2,  # CARD_LINK
+        "source_mask": 0,
+        "dest_mask": 0,
+        "flags": 0,
+    }
+    state.pending_effects = [dict(recovery), dict(recovery)]
+    state.active_player = 0
+
+    first = effect_choices(engine, state, "recover")
+    assert first == [EffectChoice("recover", card_id="followed")]
+    engine.apply(state, first[0])
+
+    second = effect_choices(engine, state, "recover")
+    assert second == [EffectChoice("recover", skip=True)]
+    engine.apply(state, second[0])
+
+    assert state.pending_effects == []
+    assert "followed" in state.players[0].hand
+    assert engine.legal_actions(state)
+
+
 def test_stale_mandatory_pending_effect_resolves_as_forced_noop() -> None:
     engine, state = setup_state(seed=48335)
 
