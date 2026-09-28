@@ -585,6 +585,10 @@ def balance_run(args: argparse.Namespace) -> Path:
         progression_profiles = {
             "game_fingerprint": identity["game_fingerprint"],
             "_label": "Six canonical reference-deck progression profiles",
+            "agent": agent_name,
+            "agent_profile": config["agent_profile"],
+            "recovery_variant": recovery_variant,
+            "rules": rules.as_dict(),
             "progression_scope": (
                 "Detailed progression is stratified by all canonical same-deck "
                 "reference profiles; no single deck is treated as representative "
@@ -613,26 +617,66 @@ def balance_run(args: argparse.Namespace) -> Path:
             "_label": "Six canonical same-deck self-play aggregate",
         }
 
-        publish("balance-report.json", static_payload)
-        publish("balance-health.json", aggregate_health)
-        publish("heuristic-selfplay.json", aggregate_selfplay)
-        publish("progression-selfplay.json", progression_source)
-        publish("progression-profiles.json", progression_profiles)
-        publish("playability-report.json", playability)
-        publish("balance-run-summary.json", summary_payload)
-        if causal_payload is not None:
-            publish("counterfactual-balance.json", causal_payload)
-        if targeted_payload is not None:
-            publish(
-                "targeted-online-counterfactual.json",
-                targeted_payload,
+        comparison_key = f"{agent_name}--{recovery_variant}"
+        comparisons_path = artifacts / "balance-comparisons.json"
+        comparisons: dict[str, Any] = {
+            "schema_version": 1,
+            "game_fingerprint": identity["game_fingerprint"],
+            "profiles": {},
+        }
+        if comparisons_path.exists():
+            existing = json.loads(
+                comparisons_path.read_text(encoding="utf-8")
             )
+            if (
+                existing.get("game_fingerprint")
+                == identity["game_fingerprint"]
+            ):
+                comparisons = existing
+        comparisons.setdefault("profiles", {})[comparison_key] = {
+            "agent": agent_name,
+            "recovery_variant": recovery_variant,
+            "rules": rules.as_dict(),
+            "agent_profile": config["agent_profile"],
+            "summary": summary_payload,
+            "playability": playability,
+            "aggregate_selfplay": aggregate_selfplay,
+            "aggregate_health": aggregate_health,
+            "progression_profiles": progression_profiles,
+        }
+        publish("balance-comparisons.json", comparisons)
 
-        subprocess.run(
-            [sys.executable, str(ROOT / "tools" / "build_lab_report.py")],
-            cwd=ROOT,
-            check=True,
+        canonical_lab_profile = (
+            agent_name == "heuristic"
+            and recovery_variant == "current"
         )
+        if canonical_lab_profile:
+            publish("balance-report.json", static_payload)
+            publish("balance-health.json", aggregate_health)
+            publish("heuristic-selfplay.json", aggregate_selfplay)
+            publish("progression-selfplay.json", progression_source)
+            publish("progression-profiles.json", progression_profiles)
+            publish("playability-report.json", playability)
+            publish("balance-run-summary.json", summary_payload)
+            if causal_payload is not None:
+                publish("counterfactual-balance.json", causal_payload)
+            if targeted_payload is not None:
+                publish(
+                    "targeted-online-counterfactual.json",
+                    targeted_payload,
+                )
+
+            subprocess.run(
+                [sys.executable, str(ROOT / "tools" / "build_lab_report.py")],
+                cwd=ROOT,
+                check=True,
+            )
+        else:
+            print(
+                "Stored comparison profile "
+                f"{comparison_key}; canonical Lab snapshot left unchanged.",
+                flush=True,
+            )
 
     print(f"Balance artifacts: {output}")
     return output
