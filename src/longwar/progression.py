@@ -671,6 +671,7 @@ class ProgressionTelemetry:
         ]
         low_command_stalls = {
             "collapse_threshold": threshold,
+            "diagnostic_battles": len(stall_rows),
             "both_below_collapse_threshold": sum(
                 all(value < threshold for value in row["command_after_recovery"])
                 for row in self._battle_records
@@ -691,27 +692,27 @@ class ProgressionTelemetry:
             ),
             "battles_with_no_paid_operation": sum(
                 bool(row.get("no_paid_operation"))
-                for row in self._battle_records
+                for row in stall_rows
             ),
             "battles_with_no_board_change": sum(
                 not bool(row.get("board_changed"))
-                for row in self._battle_records
+                for row in stall_rows
             ),
             "battles_with_no_strength_change": sum(
                 not bool(row.get("strength_changed"))
-                for row in self._battle_records
+                for row in stall_rows
             ),
             "battles_with_no_command_change": sum(
                 not bool(row.get("command_changed"))
-                for row in self._battle_records
+                for row in stall_rows
             ),
             "forced_passes": sum(
                 int(row.get("forced_passes", 0))
-                for row in self._battle_records
+                for row in stall_rows
             ),
             "passes_with_no_playable_alternative": sum(
                 int(row.get("passes_with_no_playable_alternative", 0))
-                for row in self._battle_records
+                for row in stall_rows
             ),
             "equal_low_streak_length": self._distribution(
                 streak_lengths,
