@@ -790,6 +790,27 @@ function renderCommandExperiment(lab) {
     };
   }).sort((a, b) => a.key.localeCompare(b.key));
 
+  const lowCommandMatches = rows.flatMap(([profileKey, profile]) =>
+    Object.entries(profile.progression_profiles?.profiles || {}).flatMap(([deckName, deck]) =>
+      (deck.progression?.low_command_stalls?.games || []).map((game) => ({
+        profileKey,
+        deckName,
+        agent: profile.agent || profileKey.split("--")[0],
+        recovery: profile.recovery_variant || profileKey.split("--")[1],
+        recoveryFloor: Number(profile.recovery_floor ?? profile.rules?.command_recovery_floor ?? 0),
+        ...game,
+      }))
+    )
+  ).sort((left, right) =>
+    Number(right.censored || 0) - Number(left.censored || 0)
+    || Number(right.final_battle || 0) - Number(left.final_battle || 0)
+    || Number(right.longest_equal_low_streak || 0) - Number(left.longest_equal_low_streak || 0)
+    || String(left.profileKey).localeCompare(String(right.profileKey))
+    || String(left.deckName).localeCompare(String(right.deckName))
+    || Number(left.simulation_game_index ?? left.game ?? 0) - Number(right.simulation_game_index ?? right.game ?? 0)
+  );
+  const diagnosticMatches = lowCommandMatches.slice(0, 24);
+
   overview.innerHTML = [
     metric("Profiles", summaries.length, "agent × recovery × floor conditions retained for this ruleset"),
     metric("Agents", new Set(summaries.map((row) => row.agent)).size, "distinct policies represented"),
@@ -839,6 +860,37 @@ function renderCommandExperiment(lab) {
         </tr>
       `).join("")}</tbody>
     </table>
+    ${diagnosticMatches.length ? `
+      <h3>Longest low-Command matches</h3>
+      <p class="dashboard-note">Top 24 diagnostic matches across the retained comparison profiles, ordered by censoring, final Battle, then equal-low streak. Game index and seed identify the exact simulation.</p>
+      <table class="mini-table">
+        <thead><tr>
+          <th>Agent</th><th>Recovery</th><th>Floor</th><th>Deck</th><th>Game</th><th>Seed</th><th>First</th>
+          <th>Final Battle</th><th>Censored</th><th>First low</th><th>First equal-low</th>
+          <th>Equal-low</th><th>Longest streak</th><th>0/0 starts</th><th>No paid op.</th><th>No board change</th>
+        </tr></thead>
+        <tbody>${diagnosticMatches.map((row) => `
+          <tr>
+            <td>${esc(row.agent)}</td>
+            <td>${esc(row.recovery)}</td>
+            <td>${row.recoveryFloor}</td>
+            <td>${esc(row.deckName)}</td>
+            <td>${row.simulation_game_index ?? row.game ?? "—"}</td>
+            <td><code>${row.seed ?? "—"}</code></td>
+            <td>${row.first_player ?? "—"}</td>
+            <td>${row.final_battle ?? "—"}</td>
+            <td>${row.censored ? "yes" : "no"}</td>
+            <td>${row.first_low_command_battle ?? "—"}</td>
+            <td>${row.first_equal_low_continuation_battle ?? "—"}</td>
+            <td>${row.equal_low_continuations ?? 0}</td>
+            <td>${row.longest_equal_low_streak ?? 0}</td>
+            <td>${row.both_zero_command_battle_starts ?? 0}</td>
+            <td>${row.battles_with_no_paid_operation ?? 0}</td>
+            <td>${row.battles_with_no_board_change ?? 0}</td>
+          </tr>
+        `).join("")}</tbody>
+      </table>
+    ` : ""}
   `;
 }
 
