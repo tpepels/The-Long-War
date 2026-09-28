@@ -786,19 +786,23 @@ def test_low_command_stall_telemetry_reconstructs_equal_zero_continuation() -> N
     state.players[0].hand.clear()
     state.players[1].hand.clear()
 
-    progression = ProgressionTelemetry()
-    progression.start_game(engine, state)
+    telemetry = Telemetry()
+    telemetry.start_game(state, engine)
 
     for _ in range(2):
         actor = state.active_player
         action = Pass()
-        legal = engine.legal_actions(state)
-        before = state.clone()
-        progression.before_action(engine, state, actor, action, legal)
+        before = telemetry.before_action(
+            engine,
+            state,
+            actor,
+            action,
+            decision_info=None,
+        )
         engine.apply(state, action)
-        progression.after_action(engine, before, state, actor, action)
+        telemetry.after_action(engine, before, state, actor, action)
 
-    stall = progression.summary()["low_command_stalls"]
+    stall = telemetry.summary()["progression"]["low_command_stalls"]
     assert stall["both_below_collapse_threshold"] == 1
     assert stall["equal_low_continuations"] == 1
     assert stall["both_zero_command_battle_starts"] == 1
