@@ -946,16 +946,15 @@ def test_endured_with_regains_command_when_formation_retreats() -> None:
     assert state.players[0].command == 11
 
 
-def test_maneuver_rejects_prepared_only_destination_and_immobile_force() -> None:
+def test_maneuver_accepts_prepared_destination_but_rejects_immobile_force() -> None:
     engine, state = setup_state()
     source = pos(0, Rank.FRONT)
     destination = pos(1, Rank.FRONT)
     make_named(state, 0, source)
     state.slot(0, destination).bond = "followed"
 
-    assert Maneuver(source, destination) not in engine.legal_actions(state)
-
-    state.slot(0, destination).bond = None
+    # Core Maneuver may swap with any own occupied position, including a
+    # prepared-only Bond/Name position.
     assert Maneuver(source, destination) in engine.legal_actions(state)
 
     reed = pos(2, Rank.REAR)
