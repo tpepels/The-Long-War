@@ -27,14 +27,14 @@ def setup():
 
 def test_information_set_hides_opponent_hand_identities() -> None:
     _, _, state = setup()
-    state.players[1].hand = ["namar", "iria", "oren", "teyra"]
+    state.players[1].hand = ["namar", "iria", "oren", "mara"]
     first = information_set_id(state, 0)
 
     state.players[1].hand = [
         "the-fifty-men",
         "seven-black-ships",
         "followed",
-        "swore-to",
+        "swore-again-to",
     ]
     second = information_set_id(state, 0)
     assert first == second
