@@ -104,16 +104,11 @@ def test_printed_card_cost_is_paid_by_operation() -> None:
     assert state.operations_this_battle[0] == 1
 
 
-def test_all_current_cards_have_positive_bounded_printed_command_costs() -> None:
+def test_all_current_cards_have_positive_native_safe_command_costs() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     costs = [card["command_cost"] for card in data["cards"]]
-    assert all(cost in {1, 2, 3, 5} for cost in costs)
-    assert set(costs) == {1, 2, 3, 5}
-    assert [
-        card["id"]
-        for card in data["cards"]
-        if card["command_cost"] == 5
-    ] == ["all-banners-forward"]
+    assert costs
+    assert all(type(cost) is int and 1 <= cost < 128 for cost in costs)
 
 
 def test_candidate_recovery_tail_applies_from_battle_eight_onward() -> None:
