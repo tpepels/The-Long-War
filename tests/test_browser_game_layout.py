@@ -149,7 +149,7 @@ def test_standard_ui_exposes_command_automatic_draw_paced_actions_and_term_help(
     assert "human action did not produce a visible action banner" in smoke
     assert "opponent action was not shown before returning control" in smoke
     assert "openingAnnouncementShown" in play
-    assert "Draw 1 to start the turn" in play
+    assert "At the start of each turn, draw 1 card" in play
     assert '"opening_player":' in text("src/longwar/web_api.py")
 
 
