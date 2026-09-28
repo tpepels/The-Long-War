@@ -1348,10 +1348,95 @@ class ProgressionTelemetry:
             None,
         )
 
+        recovery_base = int(engine.command_recovery_for_battle(before.battle))
+        fronts_lost = [
+            int(value) for value in snapshot.get("fronts_lost", (0, 0))
+        ]
+        recovery_loss = [
+            int(value) for value in snapshot.get("recovery_loss", fronts_lost)
+        ]
+        recovery_actual = [
+            int(value)
+            for value in snapshot.get(
+                "recovery_actual",
+                [
+                    max(
+                        int(engine.rules.command_recovery_floor),
+                        recovery_base - recovery_loss[player],
+                    )
+                    for player in range(2)
+                ],
+            )
+        ]
+        command_before_recovery = [
+            int(value)
+            for value in snapshot.get("command_before_recovery", final_command)
+        ]
+        command_after_recovery = [
+            int(value)
+            for value in snapshot.get(
+                "command_remaining",
+                [int(player.command) for player in state.players],
+            )
+        ]
+        threshold = int(engine.rules.command_collapse_threshold)
+        collapse_comparison = {
+            "threshold": threshold,
+            "commands": command_after_recovery,
+            "triggered": any(value < threshold for value in command_after_recovery),
+            "equal": command_after_recovery[0] == command_after_recovery[1],
+            "winner": state.winner if state.phase is Phase.COMPLETE else None,
+            "continued": state.phase is not Phase.COMPLETE,
+        }
+        pass_diagnostics = [
+            {
+                "player": int(row["player"]),
+                "first_pass": bool(row["first_pass"]),
+                "command": int(row["command_remaining"]),
+                "legal_alternatives": int(row.get("legal_alternatives", 0)),
+                "playable_card_actions": int(row.get("playable_card_actions", 0)),
+                "maneuver_actions": int(row.get("maneuver_actions", 0)),
+                "forced": int(row.get("legal_alternatives", 0)) == 0,
+            }
+            for row in battle_passes
+        ]
+        next_board_signature = (
+            None
+            if state.phase is Phase.COMPLETE
+            else [
+                [
+                    state.slot(player, position).force,
+                    state.slot(player, position).bond,
+                    state.slot(player, position).name,
+                ]
+                for player in range(2)
+                for position in all_positions()
+            ]
+        )
+        next_strength_by_front = (
+            None
+            if state.phase is Phase.COMPLETE
+            else [
+                [
+                    engine.front_strength(state, player, front)
+                    for front in Front
+                ]
+                for player in range(2)
+            ]
+        )
+
         record = {
             "game": self._game_index,
             "battle": int(before.battle),
             "actions": len(rows),
+            "operations_taken": [
+                int(value)
+                for value in snapshot.get(
+                    "operations",
+                    before.operations_this_battle,
+                )
+            ],
+            "maneuvers": self._battle_events["maneuvers"],
             "forces_played": self._battle_events["forces_played"],
             "bonds_played": self._battle_events["bonds_played"],
             "names_played": self._battle_events["names_played"],
@@ -1406,11 +1491,27 @@ class ProgressionTelemetry:
             "command_spent": [int(value) for value in before.command_spent_this_battle],
             "command_refunded": [int(value) for value in before.command_refunded_this_battle],
             "command_remaining": final_command,
+            "recovery_base": recovery_base,
+            "fronts_lost": fronts_lost,
+            "recovery_loss": recovery_loss,
+            "recovery_actual": recovery_actual,
+            "command_before_recovery": command_before_recovery,
+            "command_after_recovery": command_after_recovery,
+            "collapse_comparison": collapse_comparison,
             "next_battle_command": (
                 None
                 if state.phase is Phase.COMPLETE
                 else [int(player.command) for player in state.players]
             ),
+            "board_start_signature": rows[0]["board_signature"],
+            "board_end_signature": final["board_signature"],
+            "next_battle_board_signature": next_board_signature,
+            "strength_start": rows[0]["strength_by_front"],
+            "strength_end": final["strength_by_front"],
+            "next_battle_strength_by_front": next_strength_by_front,
+            "board_changed": rows[0]["board_signature"] != final["board_signature"],
+            "strength_changed": rows[0]["strength_by_front"] != final["strength_by_front"],
+            "no_paid_operation": sum(before.command_spent_this_battle) == 0,
             "hand_remaining": [len(player.hand) for player in before.players],
             "deck_remaining": [len(player.deck) for player in before.players],
             "mean_legal_actions": mean(
@@ -1424,6 +1525,13 @@ class ProgressionTelemetry:
             ),
             "cards_played": self._battle_events["cards_played"],
             "pass_events": len(battle_passes),
+            "pass_diagnostics": pass_diagnostics,
+            "forced_passes": sum(row["forced"] for row in pass_diagnostics),
+            "passes_with_no_playable_alternative": sum(
+                row["playable_card_actions"] == 0
+                and row["maneuver_actions"] == 0
+                for row in pass_diagnostics
+            ),
             "first_pass_command": (
                 None if first_pass_row is None else first_pass_row["command_remaining"]
             ),
