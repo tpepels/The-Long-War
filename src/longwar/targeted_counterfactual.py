@@ -496,7 +496,7 @@ def run_targeted_online_validation(
     minimum_abs_effect: float = 0.05,
     bootstrap_resamples: int = 1000,
     force_top: bool = False,
-    jobs: int = 8,
+    jobs: int = 1,
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Re-test suspicious broad A/B signals with online MCCFR.
