@@ -470,6 +470,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             games_per_context=args.games_per_context,
             seed=args.seed,
             bootstrap_resamples=2000,
+            jobs=args.jobs,
             progress_callback=broad_progress,
         )
         causal_payload = {
@@ -522,6 +523,7 @@ def balance_run(args: argparse.Namespace) -> Path:
                 minimum_abs_effect=target_min_effect,
                 bootstrap_resamples=1000,
                 force_top=False,
+                jobs=args.jobs,
                 progress_callback=targeted_progress,
             )
             targeted_payload = {
