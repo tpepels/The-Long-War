@@ -709,6 +709,8 @@ def balance_run(args: argparse.Namespace) -> Path:
                     "censor_rate": payload["censor_rate"],
                     "policy_sources": payload.get("telemetry", {}).get("policy_sources", {}),
                     "policy_fingerprints": payload.get("policy_fingerprints", []),
+                    "seed": payload.get("seed"),
+                    "game_outcomes": payload.get("game_outcomes", []),
                     "decisions": payload.get("telemetry", {}).get("decisions", {}),
                     "progression": payload.get("telemetry", {}).get("progression"),
                 }
