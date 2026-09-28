@@ -46,11 +46,11 @@ def test_opening_mulligan_is_deterministic_and_limited_to_two_cards() -> None:
         "the-fifty-men",
         "seven-black-ships",
         "followed",
-        "the-storm-broke",
-        "the-house-at-orra",
-        "the-children-of-the-salt-road",
-        "the-road-was-cut",
-        "the-three-brothers-of-avar",
+        "the-ground-was-held",
+        "the-long-march",
+        "the-wall-did-not-break",
+        "the-baggage-was-abandoned",
+        "the-lines-held",
     ]
     agent = HeuristicAgent(seed=5, exploration=0.0)
 
@@ -110,13 +110,13 @@ def test_heuristic_does_not_use_opponent_hidden_hand_identities() -> None:
         "the-fifty-men",
         "followed",
         "namar",
-        "the-story-is-false",
+        "the-muster-was-false",
     ]
     state.players[1].hand = [
         "oren",
         "iria",
-        "teyra",
-        "he-never-came",
+        "mara",
+        "the-baggage-was-abandoned",
     ]
 
     first = HeuristicAgent(seed=7, exploration=0.0).choose(engine, state)
@@ -125,7 +125,7 @@ def test_heuristic_does_not_use_opponent_hidden_hand_identities() -> None:
         "the-fifty-men",
         "seven-black-ships",
         "followed",
-        "swore-to",
+        "swore-again-to",
     ]
     second = HeuristicAgent(seed=7, exploration=0.0).choose(engine, state)
 
@@ -153,7 +153,7 @@ def test_heuristic_values_all_four_fronts_independently() -> None:
 def test_first_pass_is_penalized_while_opponent_has_normal_reply_turn() -> None:
     engine, state = engine_and_state()
     state.players[0].hand = ["oren", "iria"]
-    state.players[1].hand = ["namar", "teyra", "followed", "swore-to"]
+    state.players[1].hand = ["namar", "mara", "followed", "swore-again-to"]
 
     live_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, state, 0)
 
@@ -171,7 +171,7 @@ def test_first_pass_is_penalized_while_opponent_has_normal_reply_turn() -> None:
 
 def test_heuristic_values_unused_hero_as_flexible_force_or_name_resource() -> None:
     engine, state = engine_and_state()
-    state.players[0].hand = ["daran-the-red-shield"]
+    state.players[0].hand = ["kael-the-roadless"]
     state.players[1].hand = []
     slot = state.slot(0, Position(Front.SECOND, Rank.FRONT))
     slot.force = "the-fifty-men"
@@ -204,7 +204,7 @@ def test_complete_named_formation_is_distinguished_from_force_plus_name() -> Non
 
     incomplete = state.clone()
     incomplete_slot = incomplete.slot(0, target)
-    incomplete_slot.force = "those-who-came-back"
+    incomplete_slot.force = "the-fifty-men"
     incomplete_slot.name = "namar"
     # Equalize current Strength with the complete comparison state so the
     # difference is the Named Formation rule, not raw Strength.
@@ -212,8 +212,8 @@ def test_complete_named_formation_is_distinguished_from_force_plus_name() -> Non
 
     complete = state.clone()
     complete_slot = complete.slot(0, target)
-    complete_slot.force = "those-who-came-back"
-    complete_slot.bond = "held-fast"
+    complete_slot.force = "the-fifty-men"
+    complete_slot.bond = "stood-fast-with"
     complete_slot.name = "namar"
 
     assert (
@@ -243,8 +243,8 @@ def test_heuristic_penalizes_rear_named_formation_that_would_be_driven_off() -> 
 
     def named_at(test_state, position):
         slot = test_state.slot(0, position)
-        slot.force = "those-who-came-back"
-        slot.bond = "held-fast"
+        slot.force = "the-fifty-men"
+        slot.bond = "stood-fast-with"
         slot.name = "namar"
 
     frontline = state.clone()
@@ -314,11 +314,11 @@ def test_heuristic_prefers_strength_that_changes_a_front_over_overcommitment() -
     contested.slot(
         0,
         Position(Front.FIRST, Rank.FRONT),
-    ).force = "those-who-came-back"
+    ).force = "the-fifty-men"
     contested.slot(
         1,
         Position(Front.FIRST, Rank.FRONT),
-    ).force = "those-who-came-back"
+    ).force = "the-fifty-men"
     contested_gain = contested.clone()
     contested_gain.slot(
         0,
@@ -330,7 +330,7 @@ def test_heuristic_prefers_strength_that_changes_a_front_over_overcommitment() -
         0,
         Position(Front.FIRST, Rank.FRONT),
     )
-    safe_slot.force = "those-who-came-back"
+    safe_slot.force = "the-fifty-men"
     safe_slot.temporary_strength = 3  # margin 6
     safe_gain = safe.clone()
     safe_gain.slot(
