@@ -8,7 +8,14 @@ from pathlib import Path
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.game.actions import EffectChoice, Maneuver, Pass, PlayForce, PlayName
-from longwar.game.model import Front, Position, Rank, StoryState
+from longwar.game.model import (
+    ConstraintKind,
+    Front,
+    OperationConstraint,
+    Position,
+    Rank,
+    StoryState,
+)
 from longwar.progression import ProgressionTelemetry
 from longwar.simulate import simulate_games
 from longwar.telemetry import Telemetry
@@ -526,18 +533,40 @@ def test_discarded_without_play_ignores_battle_cleanup_cards() -> None:
     assert progression._card_discarded_unplayed[discarded_from_hand] == 1
 
 
-def test_explicit_active_constraint_marker_is_counted() -> None:
+def test_native_active_constraint_is_counted_and_measures_narrowing() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=613, first_player=0, opening_bonus=False)
-    state.active_constraints = [{"source": "test-constraint"}]
+    source = _position(Front.FIRST)
+    slot = state.slot(0, source)
+    slot.force = "the-fifty-men"
+    slot.bond = "had-been-ordered-forward"
+    slot.name = "arel"
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
+    state.operations_this_battle[:] = [1, 1]
+    state.constraints.append(
+        OperationConstraint(
+            source_card="every-banner-turned-toward-them",
+            player=0,
+            kind=ConstraintKind.MANEUVER,
+            source_owner=0,
+            activate_turn=state.turn_number,
+        )
+    )
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
 
-    progression.before_action(engine, state, 0, Pass(), [Pass()])
+    legal = engine.legal_actions(state)
+    assert legal and all(isinstance(action, Maneuver) for action in legal)
+    progression.before_action(engine, state, 0, legal[0], legal)
     choice = progression.summary()["mechanical_choice"]
 
     assert choice["constraint_active_decisions"] == 1
     assert choice["constraint_active_rate"] == pytest.approx(1.0)
+    assert choice["constraint_kinds"]["maneuver"] == 1
+    assert choice["constraint_sources"]["every-banner-turned-toward-them"] == 1
+    assert choice["constraint_options_removed"]["count"] == 1
+    assert choice["constraint_options_removed"]["max"] >= 1
     assert progression._sample_traces[0]["constraint_active"] is True
 
 
