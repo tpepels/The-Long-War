@@ -585,11 +585,21 @@ cdef int _fe_legal_pending_effect_actions(
             rank = rank_from_slot(source)
             if front > 0:
                 dest = slot_index(player, front - 1, rank)
-                if _fe_maneuver_destination_legal(self, state, dest):
+                if (
+                    _fe_maneuver_destination_legal(self, state, dest)
+                    and _fe_maneuver_allowed_by_continuous(
+                        self, state, player, source, dest
+                    )
+                ):
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
             if front < 3:
                 dest = slot_index(player, front + 1, rank)
-                if _fe_maneuver_destination_legal(self, state, dest):
+                if (
+                    _fe_maneuver_destination_legal(self, state, dest)
+                    and _fe_maneuver_allowed_by_continuous(
+                        self, state, player, source, dest
+                    )
+                ):
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_MOVE:
         for source in range(SLOT_COUNT):
