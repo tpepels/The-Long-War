@@ -155,6 +155,10 @@ class GameEngine:
             self._native_heuristic_instance = evaluator
         return evaluator
 
+    def command_recovery_for_battle(self, battle: int) -> int:
+        """Return the canonical base Command recovery for one Battle."""
+        return int(self._native_core_instance.command_recovery_for_battle(battle))
+
     def validate_deck(self, deck: list[str]) -> None:
         """Validate the canonical deck-construction rules."""
         try:
