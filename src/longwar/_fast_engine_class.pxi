@@ -155,6 +155,16 @@ cdef class FastEngine:
     cdef uint8_t strat_story_lock[MAX_CARDS]
     cdef uint8_t strat_global_story_lock[MAX_CARDS]
 
+    cdef uint8_t narrative_first_card_front_constraint[MAX_CARDS]
+    cdef uint8_t narrative_no_maneuver_away[MAX_CARDS]
+    cdef uint8_t narrative_forced_named_direction[MAX_CARDS]
+    cdef uint8_t narrative_three_front_next_maneuver[MAX_CARDS]
+    cdef uint8_t narrative_front_requires_named[MAX_CARDS]
+    cdef uint8_t strat_no_maneuver_away[MAX_CARDS]
+    cdef uint8_t strat_first_maneuver_direction[MAX_CARDS]
+    cdef uint8_t strat_next_operation_front[MAX_CARDS]
+    cdef uint8_t bond_momentum_direction[MAX_CARDS]
+
     def __cinit__(self):
         _fe___cinit__(self)
 
