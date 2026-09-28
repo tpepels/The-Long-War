@@ -405,6 +405,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             "deck_b": decks[right],
             "decisive_games": report.decisive_games,
             "censor_rate": report.censor_rate,
+            "failure_rate": report.failure_rate,
             "win_rates": report.win_rates,
             "first_player_win_rate": report.first_player_win_rate,
             "first_player_wilson_95": wilson_interval(
