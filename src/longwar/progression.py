@@ -720,12 +720,15 @@ class ProgressionTelemetry:
                         "deck_remaining",
                         "board_changed",
                         "strength_changed",
+                        "command_changed_before_recovery",
                         "command_changed",
                         "board_start_signature",
                         "board_end_signature",
+                        "post_resolution_board_signature",
                         "next_battle_board_signature",
                         "strength_start",
                         "strength_end",
+                        "post_resolution_strength_by_front",
                         "next_battle_strength_by_front",
                     )
                 }
@@ -1555,29 +1558,31 @@ class ProgressionTelemetry:
             }
             for row in battle_passes
         ]
+        post_resolution_board_signature = [
+            [
+                state.slot(player, position).force,
+                state.slot(player, position).bond,
+                state.slot(player, position).name,
+            ]
+            for player in range(2)
+            for position in all_positions()
+        ]
+        post_resolution_strength_by_front = [
+            [
+                engine.front_strength(state, player, front)
+                for front in Front
+            ]
+            for player in range(2)
+        ]
         next_board_signature = (
             None
             if state.phase is Phase.COMPLETE
-            else [
-                [
-                    state.slot(player, position).force,
-                    state.slot(player, position).bond,
-                    state.slot(player, position).name,
-                ]
-                for player in range(2)
-                for position in all_positions()
-            ]
+            else post_resolution_board_signature
         )
         next_strength_by_front = (
             None
             if state.phase is Phase.COMPLETE
-            else [
-                [
-                    engine.front_strength(state, player, front)
-                    for front in Front
-                ]
-                for player in range(2)
-            ]
+            else post_resolution_strength_by_front
         )
 
         record = {
@@ -1664,15 +1669,27 @@ class ProgressionTelemetry:
             ),
             "board_start_signature": rows[0]["board_signature"],
             "board_end_signature": final["board_signature"],
+            "post_resolution_board_signature": post_resolution_board_signature,
             "next_battle_board_signature": next_board_signature,
             "strength_start": rows[0]["strength_by_front"],
             "strength_end": final["strength_by_front"],
+            "post_resolution_strength_by_front": post_resolution_strength_by_front,
             "next_battle_strength_by_front": next_strength_by_front,
-            "board_changed": rows[0]["board_signature"] != final["board_signature"],
-            "strength_changed": rows[0]["strength_by_front"] != final["strength_by_front"],
-            "command_changed": (
+            "board_changed": (
+                rows[0]["board_signature"]
+                != post_resolution_board_signature
+            ),
+            "strength_changed": (
+                rows[0]["strength_by_front"]
+                != post_resolution_strength_by_front
+            ),
+            "command_changed_before_recovery": (
                 [int(value) for value in before.battle_start_command]
                 != final_command
+            ),
+            "command_changed": (
+                [int(value) for value in before.battle_start_command]
+                != command_after_recovery
             ),
             "no_paid_operation": self._battle_events["paid_operations"] == 0,
             "hand_remaining": [len(player.hand) for player in before.players],
