@@ -545,8 +545,37 @@ function progressionMetric(label, distribution, note) {
 }
 
 function renderProgression(lab) {
-  const p = lab.progression || lab.raw_telemetry?.progression;
-  const source = lab.progression_source;
+  const profiles = lab.progression_profiles || {};
+  const selector = document.getElementById("progression-profile");
+  const profileKeys = Object.keys(profiles);
+  let profile = null;
+
+  if (selector && profileKeys.length) {
+    if (!selector.options.length) {
+      selector.innerHTML = profileKeys.map((key) =>
+        '<option value="' + esc(key) + '">' + esc(profiles[key].label || titleCase(key)) + '</option>'
+      ).join("");
+    }
+    selector.hidden = false;
+    const selectedKey = selector.value && profiles[selector.value]
+      ? selector.value
+      : profileKeys[0];
+    selector.value = selectedKey;
+    profile = profiles[selectedKey];
+  } else if (selector) {
+    selector.hidden = true;
+  }
+
+  const p = profile?.progression || lab.progression || lab.raw_telemetry?.progression;
+  const source = profile
+    ? {
+        label: profile.label,
+        games: profile.games,
+        decisive_games: profile.decisive_games,
+        censored_games: profile.censored_games,
+        scope: "One of six canonical same-deck progression profiles.",
+      }
+    : lab.progression_source;
   const sourceNote = document.getElementById("progression-source-note");
   if (sourceNote) {
     if (source?.label || source?.scope) {
@@ -571,7 +600,7 @@ function renderProgression(lab) {
   const choice = p.mechanical_choice || {};
   const resources = p.resources || {};
   const matchLength = p.match_length || {};
-  const trajectory = lab.progression_trajectory || {};
+  const trajectory = profile?.trajectory || lab.progression_trajectory || {};
   const trajectoryMetrics = trajectory.metrics || {};
   const trajectoryElement = document.getElementById("progression-trajectory");
   if (trajectoryElement) {
