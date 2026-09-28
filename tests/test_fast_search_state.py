@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 pytestmark = pytest.mark.algorithm
 
 
-def setup(deck_file: str = "reference.json"):
+def setup(deck_file: str = "mobility-open-bonds.json"):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (ROOT / "decks" / deck_file).read_text(encoding="utf-8")
@@ -121,10 +121,12 @@ def assert_fast_matches(engine, native, state, fast_state):
 @pytest.mark.parametrize(
     "deck_file",
     (
-        "reference.json",
-        "avaros-line.json",
-        "mara-rear.json",
-        "sera-support.json",
+        "battlefield-control-stratagems.json",
+        "mobility-open-bonds.json",
+        "momentum-orders.json",
+        "narrative-command.json",
+        "necessity-attrition.json",
+        "persistent-elite-heroes.json",
     ),
 )
 def test_packed_state_matches_canonical_engine_on_random_games(
