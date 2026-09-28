@@ -8,9 +8,11 @@ from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
 from .actions import Action, action_from_key, action_key
 from .model import (
+    ConstraintKind,
     Front,
     GameState,
     ObservationEvent,
+    OperationConstraint,
     Phase,
     PlayerState,
     Position,
@@ -282,6 +284,9 @@ class GameEngine:
                     target_slot.maneuvers_this_battle = int(
                         source_slot.get("maneuvers_this_battle", 0)
                     )
+                    target_slot.maneuver_direction = source_slot.get(
+                        "maneuver_direction"
+                    )
 
             synced_stories: list[StoryState] = []
             for story in data["stories"][player]:
@@ -306,8 +311,12 @@ class GameEngine:
                         ),
                         target_player=target_player,
                         target_position=target_position,
+                        direction=story.get("direction"),
                         triggered_this_battle=bool(
                             story.get("triggered_this_battle", False)
+                        ),
+                        triggered_players_mask=int(
+                            story.get("triggered_players_mask", 0)
                         ),
                     )
                 )
@@ -364,6 +373,9 @@ class GameEngine:
         state.cards_drawn_this_battle[:] = data["cards_drawn_this_battle"]
         state.completion_count_this_battle[:] = data["completion_count_this_battle"]
         state.operations_this_battle[:] = data["operations_this_battle"]
+        state.maneuvers_this_battle[:] = data.get(
+            "maneuvers_this_battle", [0, 0]
+        )
         state.cards_played_this_turn_front_mask[:] = (
             data["cards_played_this_turn_front_mask"]
         )
@@ -385,6 +397,43 @@ class GameEngine:
         state.free_maneuver_available[:] = data.get(
             "free_maneuver_available", [False, False]
         )
+        constraints: list[OperationConstraint] = []
+        for item in data.get("constraints", []):
+            source_slot = item.get("source_slot")
+            source_position = None
+            if source_slot is not None:
+                local = int(source_slot) % 8
+                source_position = Position(
+                    Front(local // 2),
+                    Rank.FRONT if local % 2 == 0 else Rank.REAR,
+                )
+            front = item.get("front")
+            constraints.append(
+                OperationConstraint(
+                    source_card=str(item["source_card"]),
+                    player=int(item["player"]),
+                    kind=ConstraintKind(str(item["kind"])),
+                    source_owner=int(item["source_owner"]),
+                    front=None if front is None else Front(int(front)),
+                    direction=item.get("direction"),
+                    source_position=source_position,
+                    activate_turn=int(item.get("activate_turn", 0)),
+                    expires_after_operation=bool(
+                        item.get("expires_after_operation", True)
+                    ),
+                    persists_between_battles=bool(
+                        item.get("persists_between_battles", False)
+                    ),
+                    zero_cost=bool(item.get("zero_cost", False)),
+                    draw_after_satisfied=int(
+                        item.get("draw_after_satisfied", 0)
+                    ),
+                    discard_source_story=bool(
+                        item.get("discard_source_story", False)
+                    ),
+                )
+            )
+        state.constraints[:] = constraints
         state.battle_resolution = data.get("battle_resolution")
         state.last_battle_snapshot = data["last_battle_snapshot"]
         state.pass_order[:] = data["pass_order"]
