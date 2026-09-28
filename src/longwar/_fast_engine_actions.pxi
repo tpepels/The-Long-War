@@ -331,6 +331,11 @@ cdef bint _fe_had_been_ordered_allows(
         and _fe_basic_maneuver_locks_allow(
             self, state, player, source, preferred
         )
+        and _fe_command_cost_fast(
+            self,
+            state,
+            encode_action(TYPE_MANEUVER, -1, source, preferred, player),
+        ) <= state.command[player]
     ):
         return False
     return True
