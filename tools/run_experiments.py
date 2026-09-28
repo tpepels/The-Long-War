@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import hashlib
 import json
 import select
 import subprocess
@@ -304,11 +305,15 @@ def balance_run(args: argparse.Namespace) -> Path:
             raise SystemExit(
                 f"Missing {path.relative_to(ROOT)}; train current policies first."
             )
-        policy = json.loads(path.read_text(encoding="utf-8"))
+        raw_policy = path.read_bytes()
+        policy = json.loads(raw_policy)
         if policy.get("game_fingerprint") != identity["game_fingerprint"]:
             raise SystemExit(
                 f"Stale MCCFR policy for {deck_name}; retrain for current rules."
             )
+        policy["_policy_fingerprint"] = hashlib.sha256(
+            raw_policy
+        ).hexdigest()[:16]
         return policy
 
     cells = [(name, name) for name in decks]
@@ -366,7 +371,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             "agent_profile": config["agent_profile"],
             "recovery_variant": recovery_variant,
             "policy_fingerprints": [
-                policy.get("game_fingerprint") if policy else None
+                policy.get("_policy_fingerprint") if policy else None
                 for policy in policies
             ],
             "deck_a": decks[left],
@@ -573,6 +578,12 @@ def balance_run(args: argparse.Namespace) -> Path:
         ),
     }
 
+    profile_policy_fingerprints = sorted({
+        fingerprint
+        for payload in selfplay_simulations.values()
+        for fingerprint in payload.get("policy_fingerprints", [])
+        if fingerprint
+    })
     summary_payload = {
         **identity,
         "cells": len(cells),
@@ -582,6 +593,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         "aggregate_health_games": aggregate_selfplay["games"],
         "aggregate_health_decks": sorted(selfplay_simulations),
         "policy_coverage": policy_coverage,
+        "policy_fingerprints": profile_policy_fingerprints,
         "evidence_pipeline": {
             "structural_play": {
                 "policy": agent_name,
@@ -671,6 +683,7 @@ def balance_run(args: argparse.Namespace) -> Path:
                     "censored_games": payload["censored_games"],
                     "censor_rate": payload["censor_rate"],
                     "policy_sources": payload.get("telemetry", {}).get("policy_sources", {}),
+                    "policy_fingerprints": payload.get("policy_fingerprints", []),
                     "decisions": payload.get("telemetry", {}).get("decisions", {}),
                     "progression": payload.get("telemetry", {}).get("progression"),
                 }
