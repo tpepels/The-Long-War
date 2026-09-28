@@ -16,7 +16,8 @@ def simulation_summary(data: dict[str, Any] | None) -> dict[str, Any] | None:
         for key in (
             "games", "agents", "wins", "decisive_games",
             "censored_games", "censor_rate", "win_rates", "first_player_win_rate",
-            "mean_turns", "max_turns", "game_fingerprint", "seed", "config",
+            "mean_turns", "max_turns", "game_fingerprint",
+            "experiment_fingerprint", "experiment_fingerprints", "seed", "config",
             "simulation_variant", "heuristic_config", "online_config",
             "strategic_config", "ismcts_config",
         )
@@ -109,6 +110,12 @@ def aggregate_simulations_for_health(
     }
     if len(fingerprints) > 1:
         raise ValueError("Cannot aggregate simulations from different game fingerprints")
+
+    experiment_fingerprints = sorted({
+        str(simulation["experiment_fingerprint"])
+        for simulation in simulations
+        if simulation.get("experiment_fingerprint") is not None
+    })
 
     agents = {
         tuple(simulation.get("agents", ()))
@@ -310,6 +317,12 @@ def aggregate_simulations_for_health(
         "mean_turns": mean_turns,
         "max_turns": max(int(simulation.get("max_turns", 0)) for simulation in simulations),
         "game_fingerprint": next(iter(fingerprints), None),
+        "experiment_fingerprint": (
+            experiment_fingerprints[0]
+            if len(experiment_fingerprints) == 1
+            else None
+        ),
+        "experiment_fingerprints": experiment_fingerprints,
         "simulation_variant": first.get("simulation_variant"),
         "telemetry": {
             "passes": passes,
@@ -690,6 +703,8 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
     return {
         "schema_version": 1,
         "game_fingerprint": simulation.get("game_fingerprint"),
+        "experiment_fingerprint": simulation.get("experiment_fingerprint"),
+        "experiment_fingerprints": simulation.get("experiment_fingerprints", []),
         "simulation_variant": simulation.get("simulation_variant"),
         "source": {
             "games": games,
