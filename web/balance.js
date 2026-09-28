@@ -748,6 +748,7 @@ function renderCommandExperiment(lab) {
       battle8Command: lateCommand("8+"),
       search: profile.agent_profile || {},
       policyCoverage: profile.summary?.policy_coverage || {},
+      policyFingerprints: profile.summary?.policy_fingerprints || [],
     };
   }).sort((a, b) => a.key.localeCompare(b.key));
 
@@ -783,7 +784,7 @@ function renderCommandExperiment(lab) {
           <td>${num(row.battle47Command, 1)}</td>
           <td>${num(row.battle8Command, 1)}</td>
           <td>${row.agent === "mccfr"
-            ? `${pct(row.policyCoverage.mccfr_coverage_rate)} MCCFR · ${pct(row.policyCoverage.fallback_rate)} fallback`
+            ? `${pct(row.policyCoverage.mccfr_coverage_rate)} MCCFR · ${pct(row.policyCoverage.fallback_rate)} fallback${row.policyFingerprints.length ? ` · <code>${esc(row.policyFingerprints.join(", "))}</code>` : ""}`
             : "—"}</td>
           <td><code>${esc(JSON.stringify(row.search[row.agent] || row.search))}</code></td>
         </tr>
