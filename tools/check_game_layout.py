@@ -99,7 +99,7 @@ def presentation_snapshots() -> dict[str, dict]:
     # One free Force destination exercises legal-target highlighting using an
     # action encoded by the real engine, with the rest of the formations full.
     session.state.board[0][0][1].force = None
-    session.state.players[0].hand.append(by_type["subject"][0]["id"])
+    session.state.players[0].hand.append(by_type["force"][0]["id"])
     cases["targeting"] = session.snapshot(0)
     session.state.active_player = 1
     cases["ai"] = session.snapshot(0)
