@@ -822,5 +822,7 @@ def test_low_command_stall_telemetry_reconstructs_equal_zero_continuation() -> N
     assert record["command_after_recovery"] == [0, 0]
     assert record["collapse_comparison"]["equal"] is True
     assert record["collapse_comparison"]["continued"] is True
+    assert [row["action"] for row in record["operation_trace"]] == ["pass", "pass"]
+    assert all(row["forced"] for row in record["operation_trace"])
     assert record["next_battle_board_signature"] == record["board_end_signature"]
 
