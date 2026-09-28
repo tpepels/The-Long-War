@@ -88,6 +88,30 @@ def test_replica_merge_pools_reach_weighted_strategy_sums() -> None:
     assert summary["traversals"] == 8
 
 
+def test_parallel_training_can_preserve_a_fixed_total_iteration_budget() -> None:
+    card_data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+
+    policy, summary = train_parallel_mccfr(
+        card_data,
+        deck,
+        deck,
+        seed=702,
+        total_iterations=5,
+        workers=2,
+        max_depth=1,
+        leaf_scale=100.0,
+    )
+
+    assert summary["iterations"] == 5
+    assert summary["workers"] == 2
+    assert summary["worker_iterations"] == [3, 2]
+    assert policy["parallel_training"]["total_iterations"] == 5
+    assert policy["parallel_training"]["worker_iterations"] == [3, 2]
+
+
 def test_two_worker_training_exports_a_usable_policy() -> None:
     card_data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(

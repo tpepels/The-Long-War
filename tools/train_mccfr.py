@@ -27,15 +27,20 @@ def resolve(path: Path) -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--iterations", type=int, default=50)
+    parser.add_argument(
+        "--iterations",
+        type=int,
+        default=50,
+        help="Total MCCFR iterations, distributed across workers.",
+    )
     parser.add_argument("--depth", type=int, default=3)
     parser.add_argument("--seed", type=int, default=1701)
     parser.add_argument("--leaf-scale", type=float, default=100.0)
     parser.add_argument(
         "--workers",
         type=int,
-        default=1,
-        help="1 = fast sequential native solver (default); 0 = all detected CPUs; >1 = experimental parallel replicas",
+        default=8,
+        help="Parallel training replicas (default: 8); 1 = sequential; 0 = all detected CPUs.",
     )
     parser.add_argument("--deck-a", type=Path, default=Path("decks/mobility-open-bonds.json"))
     parser.add_argument("--deck-b", type=Path, default=Path("decks/mobility-open-bonds.json"))
@@ -70,7 +75,7 @@ def main() -> None:
             deck_a,
             deck_b,
             seed=args.seed,
-            iterations_per_worker=args.iterations,
+            total_iterations=args.iterations,
             workers=workers,
             max_depth=args.depth,
             leaf_scale=args.leaf_scale,
@@ -87,7 +92,7 @@ def main() -> None:
     print(f"Seed: {args.seed}")
     print(f"Backend: {BACKEND}")
     print(f"Algorithm: {payload['algorithm']}")
-    print(f"Workers: {workers}")
+    print(f"Workers: {summary.get('workers', 1 if workers == 1 else workers)}")
     print(f"Iterations: {summary['iterations']}")
     print(f"Traversals: {summary['traversals']}")
     print(f"Information sets: {summary['information_sets']}")
