@@ -639,7 +639,7 @@ class ProgressionTelemetry:
             row["final_battle"] for row in match_records if row["censored"]
         ]
         battle_reach = {}
-        for battle in (1, 2, 3, 4, 8):
+        for battle in (1, 2, 3, 4, 8, 12):
             reached = sum(row["final_battle"] >= battle for row in match_records)
             battle_reach[str(battle)] = {
                 "matches": reached,
@@ -891,6 +891,9 @@ class ProgressionTelemetry:
             "battle_reach": battle_reach,
             "battle_8_plus_count": sum(
                 row["battle"] >= 8 for row in self._battle_records
+            ),
+            "battle_12_plus_count": sum(
+                row["battle"] >= 12 for row in self._battle_records
             ),
             "zero_command_start_battles": sum(
                 row["command_start"][0] == 0 and row["command_start"][1] == 0
