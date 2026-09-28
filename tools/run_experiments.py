@@ -385,6 +385,18 @@ def balance_run(args: argparse.Namespace) -> Path:
                 "deck_sizes": [len(decks[left]), len(decks[right])],
                 "starting_command": engine.rules.starting_command,
                 "command_cap": engine.rules.command_cap,
+                "command_recovery_schedule": list(
+                    engine.rules.command_recovery_schedule
+                ),
+                "command_recovery_tail": engine.rules.command_recovery_tail,
+                "command_collapse_threshold": (
+                    engine.rules.command_collapse_threshold
+                ),
+                "maneuver_command_cost": engine.rules.maneuver_command_cost,
+                "hand_limit": engine.rules.hand_limit,
+                "ongoing_narrative_limit": (
+                    engine.rules.ongoing_narrative_limit
+                ),
                 "card_file": "cards/cards.json",
             },
         }
