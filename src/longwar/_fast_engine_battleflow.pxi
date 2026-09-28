@@ -130,6 +130,28 @@ cdef void _fe_drive_off_slot(
             return
     _fe_finish_pending_drive_off(self, state, player, slot)
 
+cdef void _fe_discard_retreat_sagas(
+    FastEngine self,
+    FastState state,
+    int front,
+) noexcept:
+    cdef int controller, story_slot, ix, card
+    for controller in range(2):
+        story_slot = self.ongoing_story_limit - 1
+        while story_slot >= 0:
+            ix = controller * 4 + story_slot
+            card = state.scheme[ix]
+            if (
+                card >= 0
+                and self.narrative_no_maneuver_away[card]
+                and state.scheme_front_mask[ix] & (1 << front)
+            ):
+                _fe_discard_ongoing_narrative(
+                    self, state, controller, story_slot
+                )
+            story_slot -= 1
+
+
 cdef void _fe_retreat_slot(
     FastEngine self,
     FastState state,
@@ -141,11 +163,15 @@ cdef void _fe_retreat_slot(
     cdef int bond = state.link[source]
     cdef int name = state.name[source]
     cdef int front = front_from_slot(destination)
+    cdef int source_front = front_from_slot(source)
     cdef int rank = rank_from_slot(destination)
+    cdef bint was_named = _fe_slot_complete(self, state, source)
     cdef int other, other_bond
     cdef uint16_t destinations
 
     _fe_move_slot(self, state, source, destination)
+    if was_named:
+        _fe_discard_retreat_sagas(self, state, source_front)
     _fe_resolve_retreat_narratives(self, state, player, destination)
 
     if bond >= 0 and self.retreat_command_gain[bond] > 0:
