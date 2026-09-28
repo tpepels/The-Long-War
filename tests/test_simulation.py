@@ -30,6 +30,7 @@ def test_random_games_finish() -> None:
     assert sum(report.wins) + report.censored_games == 25
     assert 0 <= report.first_player_wins <= sum(report.wins)
     assert report.max_turns <= 500
+    assert [outcome["game"] for outcome in report.game_outcomes] == list(range(25))
     assert [outcome["seed"] for outcome in report.game_outcomes] == list(range(99, 124))
     assert [outcome["first_player"] for outcome in report.game_outcomes] == [index % 2 for index in range(25)]
     assert tuple(sum(outcome["winner"] == player for outcome in report.game_outcomes) for player in range(2)) == report.wins
@@ -104,6 +105,7 @@ def test_action_horizon_is_recorded_as_censoring() -> None:
     assert report.decisive_games == 0
     assert report.censor_rate == pytest.approx(1.0)
     assert report.game_outcomes == [{
+        "game": 0,
         "seed": 198,
         "first_player": 0,
         "winner": None,
