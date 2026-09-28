@@ -49,6 +49,7 @@ jobs:
           cache: pip
       - run: pip install -e '.[dev]'
       - run: python -m compileall -q src tools tests
+      - run: node --check web/balance.js
       - run: python -m pytest -q tests/test_counterfactual.py tests/test_playability.py tests/test_targeted_counterfactual.py tests/test_belief.py tests/test_operation_constraints.py
       - run: python -m pytest -q -m "not integration" tests/test_telemetry.py
       - run: python -m pytest -q tests/test_command_economy.py tests/test_lab_report.py
