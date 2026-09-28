@@ -134,7 +134,7 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
 
     _fe_resume_pending_flow(self, state)
 
-cdef void _fe_queue_on_play_take_adjacent_prepared_component_force_on_play(
+cdef void _fe_queue_take_adjacent_prepared_component_on_force_play(
     FastEngine self,
     FastState state,
     int player,
@@ -171,7 +171,7 @@ cdef void _fe_queue_on_play_take_adjacent_prepared_component_force_on_play(
             EFFECT_OPTIONAL,
         )
 
-cdef void _fe_queue_on_play_take_adjacent_open_bond_name_on_play(
+cdef void _fe_queue_take_adjacent_open_bond_on_name_play(
     FastEngine self,
     FastState state,
     int player,
@@ -314,7 +314,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     cdef int actor = state.active_player
     cdef int front, before_mask = 0, cost = 0, source, target, local, choice
     cdef uint32_t extra = action_extra(action)
-    cdef bint cancelled, prepared_before, on_play_take_adjacent_open_bond_name_ready
+    cdef bint cancelled, prepared_before, take_adjacent_open_bond_ready
 
     if kind == TYPE_PASS:
         _fe_pass_action(self, state, actor)
@@ -377,12 +377,12 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         prepared_before = state.link[pos] >= 0 or state.name[pos] >= 0
         _fe_take_from_hand(self, state, actor, card, 0)
         state.subject[pos] = card
-        if self.prepared_on_play_free_maneuver_force[card] and prepared_before:
+        if (self.card_capabilities[card] & CAP_PREPARED_ON_PLAY_FREE_MANEUVER_FORCE) and prepared_before:
             _fe_queue_free_maneuver(self, 
                 state, actor, <uint16_t>(1 << pos), True, True
             )
-        if self.on_play_take_adjacent_prepared_component_force[card]:
-            _fe_queue_on_play_take_adjacent_prepared_component_force_on_play(self, state, actor, pos)
+        if (self.card_capabilities[card] & CAP_ON_PLAY_TAKE_ADJACENT_PREPARED_COMPONENT_FORCE):
+            _fe_queue_take_adjacent_prepared_component_on_force_play(self, state, actor, pos)
         _fe_resolve_force_pair_narratives(self, state, actor)
         front = front_from_slot(pos)
         _fe_resolve_scheme_event(self, state, actor, EVENT_SUBJECT, front, pos)
@@ -409,15 +409,15 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_resolve_scheme_event(self, state, actor, EVENT_LINK, front, pos)
 
     elif kind == TYPE_NAME:
-        on_play_take_adjacent_open_bond_name_ready = (
-            self.on_play_take_adjacent_open_bond_name[card]
+        take_adjacent_open_bond_ready = (
+            (self.card_capabilities[card] & CAP_ON_PLAY_TAKE_ADJACENT_OPEN_BOND_NAME)
             and state.subject[pos] >= 0
             and state.link[pos] < 0
         )
         _fe_take_from_hand(self, state, actor, card, 0)
         state.name[pos] = card
-        if on_play_take_adjacent_open_bond_name_ready:
-            _fe_queue_on_play_take_adjacent_open_bond_name_on_play(self, state, actor, pos)
+        if take_adjacent_open_bond_ready:
+            _fe_queue_take_adjacent_open_bond_on_name_play(self, state, actor, pos)
         if self.name_effect[card] == NAME_REVEAL_SCHEME:
             front = front_from_slot(pos)
             if state.scheme[(1 - actor) * 4 + front] >= 0:
