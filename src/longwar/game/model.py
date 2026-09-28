@@ -47,6 +47,7 @@ class Slot:
     name: str | None = None
     temporary_strength: int = 0
     maneuvers_this_battle: int = 0
+    maneuver_direction: str | None = None
 
     @property
     def occupied(self) -> bool:
@@ -159,6 +160,7 @@ class GameState:
     cards_drawn_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     completion_count_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     operations_this_battle: list[int] = field(default_factory=lambda: [0, 0])
+    maneuvers_this_battle: list[int] = field(default_factory=lambda: [0, 0])
     cards_played_this_turn_front_mask: list[int] = field(
         default_factory=lambda: [0, 0]
     )
@@ -211,6 +213,7 @@ class GameState:
                         name=slot.name,
                         temporary_strength=slot.temporary_strength,
                         maneuvers_this_battle=slot.maneuvers_this_battle,
+                        maneuver_direction=slot.maneuver_direction,
                     )
                     for slot in front
                 ]
@@ -265,6 +268,7 @@ class GameState:
             cards_drawn_this_battle=list(self.cards_drawn_this_battle),
             completion_count_this_battle=list(self.completion_count_this_battle),
             operations_this_battle=list(self.operations_this_battle),
+            maneuvers_this_battle=list(self.maneuvers_this_battle),
             cards_played_this_turn_front_mask=list(
                 self.cards_played_this_turn_front_mask
             ),
@@ -347,6 +351,7 @@ class GameState:
                     target_slot.name = source_slot.name
                     target_slot.temporary_strength = source_slot.temporary_strength
                     target_slot.maneuvers_this_battle = source_slot.maneuvers_this_battle
+                    target_slot.maneuver_direction = source_slot.maneuver_direction
 
             self.stories[player][:] = [
                 StoryState(
@@ -387,6 +392,7 @@ class GameState:
         self.cards_drawn_this_battle[:] = source.cards_drawn_this_battle
         self.completion_count_this_battle[:] = source.completion_count_this_battle
         self.operations_this_battle[:] = source.operations_this_battle
+        self.maneuvers_this_battle[:] = source.maneuvers_this_battle
         self.cards_played_this_turn_front_mask[:] = (
             source.cards_played_this_turn_front_mask
         )
