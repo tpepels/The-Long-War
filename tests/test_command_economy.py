@@ -17,6 +17,7 @@ from longwar.game import (
 )
 from longwar.game.engine import IllegalAction
 from longwar.rules import GameRules
+from longwar.testing import GameScenario
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,8 +55,7 @@ def test_standard_command_profile_matches_canonical_rules() -> None:
 def test_unaffordable_card_play_is_not_legal_and_does_not_mutate_state() -> None:
     engine, state = standard_game()
     target = Position(Front.FIRST, Rank.FRONT)
-    state.players[0].hand = ["the-fifty-men"]
-    state.players[0].command = 1
+    GameScenario(state).hand(0, "the-fifty-men").commands(1, state.players[1].command)
     action = PlayForce("the-fifty-men", target)
     before = state.clone()
 
@@ -70,19 +70,23 @@ def test_unaffordable_maneuver_is_not_legal() -> None:
     engine, state = standard_game()
     source = Position(Front.FIRST, Rank.FRONT)
     destination = Position(Front.SECOND, Rank.FRONT)
-    slot = state.slot(0, source)
-    slot.force = "the-fifty-men"
-    slot.bond = "followed"
-    slot.name = "namar"
-    state.players[0].command = 0
+    GameScenario(state).formation(
+        0,
+        source,
+        force="the-fifty-men",
+        bond="followed",
+        name="namar",
+    ).commands(0, state.players[1].command)
 
     assert Maneuver(source, destination) not in engine.legal_actions(state)
 
 
 def test_command_never_goes_below_zero() -> None:
     engine, state = standard_game()
-    state.players[0].command = 0
-    state.players[0].hand = ["the-fifty-men"]
+    GameScenario(state).commands(
+        0,
+        state.players[1].command,
+    ).hand(0, "the-fifty-men")
 
     assert engine.legal_actions(state) == [Pass()]
     engine.apply(state, Pass())
@@ -92,8 +96,10 @@ def test_command_never_goes_below_zero() -> None:
 def test_printed_card_cost_is_paid_by_operation() -> None:
     engine, state = standard_game()
     target = Position(Front.FIRST, Rank.FRONT)
-    state.players[0].hand = ["the-fifty-men"]
-    state.players[0].command = 7
+    GameScenario(state).hand(0, "the-fifty-men").commands(
+        7,
+        state.players[1].command,
+    )
     action = PlayForce("the-fifty-men", target)
 
     assert engine.command_cost_for_action(state, action) == 2
@@ -128,12 +134,7 @@ def test_candidate_recovery_tail_applies_from_battle_eight_onward() -> None:
         first_player=0,
         opening_bonus=False,
     )
-    state.battle = 8
-    state.players[0].command = 10
-    state.players[1].command = 10
-    state.players[0].hand.clear()
-    state.players[1].hand.clear()
-    state.operations_this_battle[:] = [1, 1]
+    GameScenario(state).battle(8).commands(10, 10).clear_hands().operations(1, 1)
 
     engine.apply(state, Pass())
     engine.apply(state, Pass())
@@ -144,12 +145,10 @@ def test_candidate_recovery_tail_applies_from_battle_eight_onward() -> None:
 
 def test_equal_low_command_remains_an_explicit_canonical_ambiguity() -> None:
     engine, state = standard_game()
-    state.battle = 8
-    state.players[0].command = 0
-    state.players[1].command = 0
-    state.operations_this_battle[:] = [1, 1]
-    state.players[0].hand.clear()
-    state.players[1].hand.clear()
+    GameScenario(state).battle(8).commands(0, 0).operations(
+        1,
+        1,
+    ).clear_hands()
 
     engine.apply(state, Pass())
     engine.apply(state, Pass())
@@ -183,18 +182,20 @@ def test_recovery_floor_prevents_front_loss_from_cancelling_candidate_tail() -> 
             first_player=0,
             opening_bonus=False,
         )
-        state.battle = 8
-        state.players[0].command = 0
-        state.players[1].command = 0
-        state.battle_start_command[:] = [0, 0]
-        state.operations_this_battle[:] = [1, 1]
-        state.players[0].hand.clear()
-        state.players[1].hand.clear()
-
         # Each player loses one different Front. Candidate Battle-VIII+
         # recovery is 1, so without a floor each loss cancels recovery to 0.
-        state.slot(1, Position(Front.FIRST, Rank.FRONT)).force = "the-fifty-men"
-        state.slot(0, Position(Front.SECOND, Rank.FRONT)).force = "the-fifty-men"
+        GameScenario(state).battle(8).commands(0, 0).battle_start_commands(
+            0,
+            0,
+        ).operations(1, 1).clear_hands().formation(
+            1,
+            Position(Front.FIRST, Rank.FRONT),
+            force="the-fifty-men",
+        ).formation(
+            0,
+            Position(Front.SECOND, Rank.FRONT),
+            force="the-fifty-men",
+        )
 
         engine.apply(state, Pass())
         engine.apply(state, Pass())
