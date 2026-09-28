@@ -95,7 +95,8 @@ function renderOverview(lab) {
   const verification = lab.verification;
   const suite = lab.mccfr_suite;
   const progression = lab.progression || lab.raw_telemetry?.progression;
-  const lifecycle = progression?.formation_lifecycle || {};
+  const progressionProfiles = lab.progression_profiles || {};
+  const progressionProfileCount = Object.keys(progressionProfiles).length;
   const choice = progression?.mechanical_choice || {};
   const totalGames = Number(h.source.games || 0);
   const censoredGames = Number(h.source.censored_games || 0);
@@ -116,7 +117,11 @@ function renderOverview(lab) {
       s.cards_analyzed,
       `${s.cards_observed ?? s.cards_analyzed} observed · ${s.cards_unobserved ?? 0} unobserved · ${s.flags_high} high · ${s.flags_watch} watch`
     ),
-    metric("Forces becoming Named", pct(lifecycle.force_to_name_rate), progression ? `${lifecycle.forces_ever_named ?? 0} / ${lifecycle.forces ?? 0} Force lifecycles` : "progression not generated"),
+    metric(
+      "Progression coverage",
+      progressionProfileCount ? `${progressionProfileCount}/6` : (progression ? "1/6" : "—"),
+      progressionProfileCount ? "canonical reference-deck profiles" : (progression ? "legacy single-deck progression artifact" : "progression not generated")
+    ),
     metric("Forced choice", pct(choice.exactly_one_legal_action_rate), progression ? "decisions with exactly one legal action" : "progression not generated"),
     metric("Broad card screen", lab.counterfactual ? lab.counterfactual.cards.length : "—", lab.counterfactual ? "heuristic paired A/B estimates" : "not generated"),
     metric(
