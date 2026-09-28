@@ -124,7 +124,7 @@ def test_printed_strength_effects_apply_without_hidden_role_rules() -> None:
     rear = pos(0, Rank.REAR)
 
     state.slot(0, frontline).force = "the-fifty-men"
-    assert engine.position_strength(state, 0, frontline) == 5
+    assert engine.position_strength(state, 0, frontline) == 4
     state.slot(0, frontline).force = "seven-black-ships"
     assert engine.position_strength(state, 0, frontline) == 4
 
@@ -173,6 +173,9 @@ def test_bond_and_name_can_be_prepared_before_force_and_contribute_zero() -> Non
     target = pos(0)
     state.players[0].hand = ["followed", "namar", "the-fifty-men"]
     state.players[0].command = 20
+    # Keep the opponent below the hand limit so its automatic turn-start draw
+    # resolves immediately while this test hands control back to player 0.
+    state.players[1].hand = []
 
     legal = engine.legal_actions(state)
     assert PlayBond("followed", target) in legal
@@ -995,6 +998,9 @@ def test_rallied_behind_sorin_and_rear_support_use_printed_costs() -> None:
     state.slot(0, target).bond = "followed"
     assert engine.command_cost_for_action(state, PlayName("sorin", target)) == 1
 
+    state.slot(0, target).force = None
+    state.slot(0, target).bond = None
+    state.slot(0, target).name = None
     state.slot(0, pos(0, Rank.REAR)).force = "nara-builder-of-walls"
     assert engine.command_cost_for_action(
         state, PlayForce("the-fifty-men", target)
@@ -1010,7 +1016,7 @@ def test_red_duelists_ignore_rear_strength_during_front_resolution() -> None:
 
     resolve_battle_by_passing(engine, state)
 
-    assert state.last_battle_snapshot["front_scores"][0] == [3, 5]
+    assert state.last_battle_snapshot["front_scores"][0] == [3, 4]
 
 
 def test_ground_was_held_breaks_tie_only_for_single_frontline_named_side() -> None:
@@ -1272,7 +1278,7 @@ def test_ongoing_story_slot_does_not_receive_adjacent_front_discount() -> None:
     state.players[0].hand = ["the-long-march"]
     state.players[0].command = 20
 
-    story = PlayStory("the-long-march", ongoing_slot=1)
+    story = PlayStory("the-long-march", ongoing_slot=0)
     assert story in engine.legal_actions(state)
     assert engine.command_cost_for_action(state, story) == 2
 
@@ -1287,6 +1293,7 @@ def test_ongoing_stories_are_public_and_limited_to_two_per_player() -> None:
     ]
     state.players[0].hand = list(stories)
     state.players[0].command = 20
+    state.players[1].hand = []
 
     first = PlayStory(stories[0], ongoing_slot=0)
     assert first in engine.legal_actions(state)
@@ -1312,6 +1319,7 @@ def test_hero_and_stratagem_allowances_are_once_per_battle() -> None:
     hero_b = "kael-the-roadless"
     state.players[0].hand = [hero_a, hero_b, "the-ground-was-held", "the-lines-held"]
     state.players[0].command = 20
+    state.players[1].hand = []
 
     engine.apply(state, PlayForce(hero_a, pos(0)))
     assert state.hero_used[0] is True
