@@ -37,8 +37,14 @@ CARD_AGGREGATE_FIELDS = (
     "turns_in_hand",
     "playable_turns",
     "unplayable_turns",
+    "affordable_turns",
+    "unaffordable_turns",
+    "structurally_unplayable_turns",
     "held_on_pass",
     "dead_on_pass",
+    "affordable_on_pass",
+    "unaffordable_on_pass",
+    "structurally_dead_on_pass",
     "immediate_front_swing_total",
     "immediate_control_swing_total",
     "games_drawn",
@@ -150,8 +156,14 @@ def aggregate_simulations_for_health(
             "turns_in_hand",
             "playable_turns",
             "unplayable_turns",
+            "affordable_turns",
+            "unaffordable_turns",
+            "structurally_unplayable_turns",
             "held_on_pass",
             "dead_on_pass",
+            "affordable_on_pass",
+            "unaffordable_on_pass",
+            "structurally_dead_on_pass",
             "games_drawn",
             "decisive_games_drawn",
             "wins_when_drawn",
@@ -167,8 +179,20 @@ def aggregate_simulations_for_health(
         row["unplayable_turn_rate"] = _safe_ratio(
             row["unplayable_turns"], row["turns_in_hand"]
         )
+        row["structural_unplayable_turn_rate"] = _safe_ratio(
+            row["structurally_unplayable_turns"], row["affordable_turns"]
+        )
+        row["resource_blocked_turn_rate"] = _safe_ratio(
+            row["unaffordable_turns"], row["turns_in_hand"]
+        )
         row["dead_on_pass_rate"] = _safe_ratio(
             row["dead_on_pass"], row["held_on_pass"]
+        )
+        row["structural_dead_on_pass_rate"] = _safe_ratio(
+            row["structurally_dead_on_pass"], row["affordable_on_pass"]
+        )
+        row["resource_blocked_on_pass_rate"] = _safe_ratio(
+            row["unaffordable_on_pass"], row["held_on_pass"]
         )
         row["mean_immediate_front_swing"] = _safe_ratio(
             row["immediate_front_swing_total"], row["plays"]
@@ -234,6 +258,9 @@ def aggregate_simulations_for_health(
             "mean_deck_remaining",
             "command_exhausted_rate",
             "mean_dead_cards",
+            "mean_structurally_dead_cards",
+            "mean_unaffordable_cards",
+            "mean_affordable_cards",
             "mean_playable_cards_remaining",
             "mean_legal_alternatives",
             "mean_playable_card_actions",
@@ -355,11 +382,11 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         card = meta[card_id]
         family = _playability_family(card)
         draws = int(stats.get("draws", 0))
-        held = int(stats.get("turns_in_hand", 0))
-        held_pass = int(stats.get("held_on_pass", 0))
+        held = int(stats.get("affordable_turns", stats.get("turns_in_hand", 0)))
+        held_pass = int(stats.get("affordable_on_pass", stats.get("held_on_pass", 0)))
         play_rate = stats.get("play_rate_per_draw")
-        dead = stats.get("unplayable_turn_rate")
-        dead_pass = stats.get("dead_on_pass_rate")
+        dead = stats.get("structural_unplayable_turn_rate", stats.get("unplayable_turn_rate"))
+        dead_pass = stats.get("structural_dead_on_pass_rate", stats.get("dead_on_pass_rate"))
         if draws >= 100 and play_rate is not None:
             family_values[family]["play_rate"].append(float(play_rate))
         if held >= 200 and dead is not None:
@@ -404,11 +431,11 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
 
         draws = int(stats.get("draws", 0))
         plays = int(stats.get("plays", 0))
-        held = int(stats.get("turns_in_hand", 0))
-        held_pass = int(stats.get("held_on_pass", 0))
+        held = int(stats.get("affordable_turns", stats.get("turns_in_hand", 0)))
+        held_pass = int(stats.get("affordable_on_pass", stats.get("held_on_pass", 0)))
         play_rate = stats.get("play_rate_per_draw")
-        dead = stats.get("unplayable_turn_rate")
-        dead_pass = stats.get("dead_on_pass_rate")
+        dead = stats.get("structural_unplayable_turn_rate", stats.get("unplayable_turn_rate"))
+        dead_pass = stats.get("structural_dead_on_pass_rate", stats.get("dead_on_pass_rate"))
         swing = stats.get("mean_immediate_front_swing")
         swing_z = _z(float(swing) if swing is not None else None, swings[card["type"]])
         delayed_utility = bool(card.get("balance", {}).get("delayed_utility"))
@@ -447,7 +474,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             flags.append(_flag(
                 "dead_draw",
                 severity,
-                "Unplayable substantially more often than cards in the same rules family.",
+                "Structurally unplayable while affordable substantially more often than cards in the same rules family.",
                 float(dead),
             ))
 
@@ -461,7 +488,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             flags.append(_flag(
                 "dead_on_pass",
                 "watch",
-                "Still unplayable on Pass substantially more often than its rules family.",
+                "Structurally unplayable at Pass while affordable substantially more often than its rules family.",
                 float(dead_pass),
             ))
 
@@ -568,18 +595,28 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "family_dead_on_pass_rate_median": family_dead_pass,
             "draws": draws,
             "plays": plays,
-            "turns_in_hand": held,
+            "turns_in_hand": int(stats.get("turns_in_hand", 0)),
             "playable_turns": int(stats.get("playable_turns", 0)),
             "unplayable_turns": int(stats.get("unplayable_turns", 0)),
-            "held_on_pass": held_pass,
+            "affordable_turns": int(stats.get("affordable_turns", 0)),
+            "unaffordable_turns": int(stats.get("unaffordable_turns", 0)),
+            "structurally_unplayable_turns": int(stats.get("structurally_unplayable_turns", 0)),
+            "held_on_pass": int(stats.get("held_on_pass", 0)),
+            "affordable_on_pass": int(stats.get("affordable_on_pass", 0)),
+            "unaffordable_on_pass": int(stats.get("unaffordable_on_pass", 0)),
             "dead_on_pass": int(stats.get("dead_on_pass", 0)),
+            "structurally_dead_on_pass": int(stats.get("structurally_dead_on_pass", 0)),
             "games_drawn": int(stats.get("games_drawn", 0)),
             "decisive_games_drawn": drawn_n,
             "games_played": int(stats.get("games_played", 0)),
             "decisive_games_played": played_n,
             "play_rate_per_draw": play_rate,
-            "unplayable_turn_rate": dead,
-            "dead_on_pass_rate": dead_pass,
+            "unplayable_turn_rate": stats.get("unplayable_turn_rate"),
+            "structural_unplayable_turn_rate": dead,
+            "resource_blocked_turn_rate": stats.get("resource_blocked_turn_rate"),
+            "dead_on_pass_rate": stats.get("dead_on_pass_rate"),
+            "structural_dead_on_pass_rate": dead_pass,
+            "resource_blocked_on_pass_rate": stats.get("resource_blocked_on_pass_rate"),
             "mean_immediate_front_swing": swing,
             "mean_immediate_control_swing": stats.get("mean_immediate_control_swing"),
             "front_swing_z_within_type": swing_z,
@@ -691,7 +728,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "notes": [
                 "Conditional win rates are observational rather than causal values.",
                 "Board-swing z-scores are computed within card type; cards explicitly marked as delayed utility are not graded on immediate swing.",
-                "Playability flags compare each card with the median of its rules family (Force, Bond, Name, Narrative, or Stratagem), so normal structural gating is not mistaken for an individual card defect.",
+                "Card deadness flags use only normal operation decisions and compare structural illegality while the card is affordable; pending effect-resolution choices and simple Command shortfall are measured separately.",
                 "Flags identify cases for inspection; they are not automatic nerf/buff instructions.",
                 "Every canonical card remains in the report. Cards with no observed self-play exposure are labelled Unobserved rather than healthy.",
                 "Counterfactual and MCCFR reports are merged when explicitly run; neither is required for routine health analysis.",
