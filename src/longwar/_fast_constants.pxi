@@ -42,6 +42,25 @@ cdef int EFFECT_ADJACENT_PAIR = 4
 cdef int EFFECT_CARD_MOVE = 8
 cdef int EFFECT_SAME_FRONT_PAIR = 16
 
+# Reusable boolean card capabilities. These live in one per-card bitset so
+# adding another boolean mechanic does not require another MAX_CARDS array on
+# FastEngine.
+cdef uint64_t CAP_ADJACENT_RETREAT_FREE_MANEUVER = (<uint64_t>1) << 0
+cdef uint64_t CAP_AFTER_FRONTLINE_RETREAT_SIDEWAYS_FORCE = (<uint64_t>1) << 1
+cdef uint64_t CAP_AFTER_MANEUVER_SWAP_OTHER_FRIENDLIES = (<uint64_t>1) << 2
+cdef uint64_t CAP_AFTER_SELF_MANEUVER_FREE_OTHER_NAMED_IF_WIDE = (<uint64_t>1) << 3
+cdef uint64_t CAP_AFTER_SELF_RETREAT_SIDEWAYS_NAME = (<uint64_t>1) << 4
+cdef uint64_t CAP_FOLLOW_INTO_VACATED_AFTER_ADJACENT_MANEUVER = (<uint64_t>1) << 5
+cdef uint64_t CAP_NARRATIVE_COMMAND_GAIN_FREE_MANEUVER_FORCE = (<uint64_t>1) << 6
+cdef uint64_t CAP_ON_PLAY_TAKE_ADJACENT_OPEN_BOND_NAME = (<uint64_t>1) << 7
+cdef uint64_t CAP_ON_PLAY_TAKE_ADJACENT_PREPARED_COMPONENT_FORCE = (<uint64_t>1) << 8
+cdef uint64_t CAP_OPPOSING_MANEUVER_SAME_FRONT_FREE_MANEUVER = (<uint64_t>1) << 9
+cdef uint64_t CAP_OPPOSING_NAMED_SAME_FRONT_FREE_MANEUVER = (<uint64_t>1) << 10
+cdef uint64_t CAP_OPTIONAL_SELF_DRIVE_PREVENT_FRONTLINE_RETREAT_FORCE = (<uint64_t>1) << 11
+cdef uint64_t CAP_PREPARED_ON_PLAY_FREE_MANEUVER_FORCE = (<uint64_t>1) << 12
+cdef uint64_t CAP_SUCCESSION_ON_DRIVE_OFF_NAME = (<uint64_t>1) << 13
+cdef uint64_t CAP_TRANSFER_OPEN_BOND_AFTER_MOVE_BOND = (<uint64_t>1) << 14
+
 cdef int RESUME_NONE = 0
 cdef int RESUME_FINISH_OPERATION = 1
 cdef int RESUME_BATTLE_RESOLUTION = 2
