@@ -800,15 +800,6 @@ def run_command_matrix(args: argparse.Namespace) -> list[Path]:
             flush=True,
         )
         outputs.append(balance_run(cell))
-
-    # The canonical first cell rebuilds the Lab before the remaining three
-    # comparison profiles exist. Rebuild once more after the matrix so the
-    # published report contains all four agent/recovery profiles.
-    subprocess.run(
-        [sys.executable, str(ROOT / "tools" / "build_lab_report.py")],
-        cwd=ROOT,
-        check=True,
-    )
     return outputs
 
 
