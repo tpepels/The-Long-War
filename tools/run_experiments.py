@@ -152,6 +152,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         "strategic_time_budget_seconds": None,
         "online_agent_iterations": 16,
         "online_agent_depth": 2,
+        "jobs": 8,
     }
     for option, default in balance_defaults.items():
         if not hasattr(args, option):
@@ -211,6 +212,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         or (run_card_screen and args.games_per_context <= 0)
         or (run_card_screen and target_contexts <= 0)
         or (run_card_screen and target_games_per_context <= 0)
+        or args.jobs <= 0
         or online_iterations <= 0
         or online_depth <= 0
         or target_max_cards < 0
@@ -252,6 +254,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             },
         },
         "recovery_variant": recovery_variant,
+        "jobs": args.jobs,
         "rules": rules.as_dict(),
         "contexts": args.contexts,
         "games_per_context": args.games_per_context,
@@ -351,6 +354,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             decks[right],
             games=games,
             seed=seed,
+            jobs=args.jobs,
             agent_names=(agent_name, agent_name),
             agent_policies=policies,
             online_iterations=args.online_agent_iterations,
@@ -1858,6 +1862,12 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     balance.add_argument("--seed", type=int, default=1701)
+    balance.add_argument(
+        "--jobs",
+        type=int,
+        default=8,
+        help="Parallel worker processes for long-running simulation work (default: 8).",
+    )
     balance.add_argument(
         "--contexts",
         type=int,
