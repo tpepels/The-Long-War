@@ -338,7 +338,9 @@ def test_lab_can_promote_observationally_unobserved_card_with_causal_evidence(
     assert card["observational_balance_level"] == "unobserved"
     assert card["balance_level"] == "yellow"
     assert card["balance_label"] == "Watch"
-    assert card["balance_direction"] == "strong"
+    assert card["balance_direction"] == "heuristic_counterfactual_screen"
+    assert card["balance_evidence_source"] == "heuristic_screen"
+    assert card["counterfactual"]["direction"] == "strong"
 
 def test_broad_counterfactual_is_only_a_screen_until_online_confirmation(
     tmp_path,
