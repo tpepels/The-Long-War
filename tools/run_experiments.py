@@ -119,6 +119,7 @@ def balance_run(args: argparse.Namespace) -> Path:
     from longwar.targeted_counterfactual import run_targeted_online_validation
 
     deep_pipeline = args.preset in {"deep", "exhaustive"}
+    publish_lab = deep_pipeline or bool(getattr(args, "publish_lab", False))
     default_games = {
         "quick": 8,
         "deep": 250,
@@ -459,7 +460,7 @@ def balance_run(args: argparse.Namespace) -> Path:
     }
     save("summary", summary_payload)
 
-    if deep_pipeline:
+    if publish_lab:
         print("[4/4] Publishing Balance Lab snapshot.", flush=True)
         artifacts = ROOT / "artifacts"
         artifacts.mkdir(parents=True, exist_ok=True)
@@ -1564,6 +1565,15 @@ def parse_args() -> argparse.Namespace:
         "--skip-online-validation",
         action="store_true",
         help="Run the broad deep screen without targeted online-MCCFR confirmation.",
+    )
+    balance.add_argument(
+        "--publish-lab",
+        action="store_true",
+        help=(
+            "Publish this run as the root Balance Lab snapshot. Intended for "
+            "CI observational/progression refreshes; ordinary quick runs do "
+            "not overwrite the serious Lab."
+        ),
     )
 
     sub.add_parser(
