@@ -24,6 +24,22 @@ OPERATION_ACTIONS = CARD_ACTIONS + (Maneuver,)
 CONSTRAINT_CLASSES = {"necessity"}
 
 
+def _new_hero_mode() -> dict[str, Any]:
+    return {
+        "force_plays": 0,
+        "name_plays": 0,
+        "force_completions": 0,
+        "name_completions": 0,
+        "force_front_swing_total": 0.0,
+        "name_front_swing_total": 0.0,
+        "force_control_swing_total": 0.0,
+        "name_control_swing_total": 0.0,
+        "force_battle_end_presence": 0,
+        "name_battle_end_presence": 0,
+        "by_battle": defaultdict(Counter),
+    }
+
+
 class ProgressionTelemetry:
     """Compact, mechanics-only match-progression telemetry.
 
@@ -92,21 +108,7 @@ class ProgressionTelemetry:
         self._discount_actions = 0
         self._discount_command = 0
 
-        self._hero_modes: dict[str, dict[str, Any]] = defaultdict(
-            lambda: {
-                "force_plays": 0,
-                "name_plays": 0,
-                "force_completions": 0,
-                "name_completions": 0,
-                "force_front_swing_total": 0.0,
-                "name_front_swing_total": 0.0,
-                "force_control_swing_total": 0.0,
-                "name_control_swing_total": 0.0,
-                "force_battle_end_presence": 0,
-                "name_battle_end_presence": 0,
-                "by_battle": defaultdict(Counter),
-            }
-        )
+        self._hero_modes: dict[str, dict[str, Any]] = defaultdict(_new_hero_mode)
 
         self._draw_queues: dict[tuple[int, str], list[tuple[int, int, int]]] = defaultdict(list)
         self._reshuffled_pending: list[Counter[str]] = [Counter(), Counter()]
@@ -118,6 +120,90 @@ class ProgressionTelemetry:
         self._card_unplayed_match_end: Counter[str] = Counter()
         self._card_plays_by_battle: dict[str, Counter[str]] = defaultdict(Counter)
         self._formation_age_at_battle_end: list[int] = []
+
+    def merge(self, other: "ProgressionTelemetry") -> None:
+        """Merge completed-match telemetry from an independent worker."""
+        if self._constraint_active_streak:
+            self._constraint_active_streaks.append(self._constraint_active_streak)
+            self._constraint_active_streak = 0
+        self._constraint_active_streaks.extend(other._constraint_active_streaks)
+        if other._constraint_active_streak:
+            self._constraint_active_streaks.append(other._constraint_active_streak)
+
+        game_offset = self._game_index + 1
+        for row in other._match_records:
+            merged = dict(row)
+            merged["game"] = game_offset + int(row.get("game", 0))
+            self._match_records.append(merged)
+        for row in other._battle_records:
+            merged = dict(row)
+            merged["game"] = game_offset + int(row.get("game", 0))
+            self._battle_records.append(merged)
+        for row in other._pass_contexts:
+            merged = dict(row)
+            merged["game"] = game_offset + int(row.get("game", 0))
+            self._pass_contexts.append(merged)
+        self._game_index += other._game_index + 1
+
+        for row in other._formations.values():
+            self._formations[self._next_formation_id] = dict(row)
+            self._next_formation_id += 1
+
+        if len(self._sample_traces) < 240:
+            self._sample_traces.extend(
+                other._sample_traces[: 240 - len(self._sample_traces)]
+            )
+
+        for name in ("_choice_legal", "_choice_card", "_choice_maneuver",
+                     "_constraint_options_removed", "_constraint_options_added",
+                     "_formation_age_at_battle_end"):
+            getattr(self, name).extend(getattr(other, name))
+
+        for name in (
+            "_forced_decisions", "_forced_maneuvers", "_pass_plus_one",
+            "_constraint_source_decisions", "_constraint_active_decisions",
+            "_constraint_effect_choice_decisions",
+            "_constraint_source_effect_choice_decisions", "_effect_choice_decisions",
+            "_constraint_expired", "_constraint_forced_maneuver_decisions",
+            "_constraint_forced_front_decisions", "_constraint_carried_between_battles",
+            "_constraint_future_operations_affected", "_command_gained",
+            "_free_operations", "_free_maneuvers", "_discount_actions",
+            "_discount_command",
+        ):
+            setattr(self, name, getattr(self, name) + getattr(other, name))
+        self._constraint_active_supported = (
+            self._constraint_active_supported or other._constraint_active_supported
+        )
+
+        for name in (
+            "_constraint_source_active", "_constraint_kind_active",
+            "_constraint_satisfied", "_constraint_impossible", "_command_spend",
+            "_card_held_boundaries", "_card_discarded_unplayed",
+            "_card_drawn_after_reshuffle", "_card_unplayed_match_end",
+        ):
+            getattr(self, name).update(getattr(other, name))
+
+        for battle, counts in other._command_spend_by_battle.items():
+            self._command_spend_by_battle[battle].update(counts)
+        for battle, counts in other._card_plays_by_battle.items():
+            self._card_plays_by_battle[battle].update(counts)
+        for card_id, values in other._card_actions_to_play.items():
+            self._card_actions_to_play[card_id].extend(values)
+        for card_id, values in other._card_turns_to_play.items():
+            self._card_turns_to_play[card_id].extend(values)
+
+        scalar_hero_fields = (
+            "force_plays", "name_plays", "force_completions", "name_completions",
+            "force_front_swing_total", "name_front_swing_total",
+            "force_control_swing_total", "name_control_swing_total",
+            "force_battle_end_presence", "name_battle_end_presence",
+        )
+        for card_id, source in other._hero_modes.items():
+            target = self._hero_modes[card_id]
+            for field in scalar_hero_fields:
+                target[field] += source[field]
+            for battle, counts in source["by_battle"].items():
+                target["by_battle"][battle].update(counts)
 
     def start_game(self, engine: GameEngine, state: GameState) -> None:
         if self._constraint_active_streak:
