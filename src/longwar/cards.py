@@ -42,6 +42,352 @@ RANKS = {"front", "rear"}
 _NONNEGATIVE = range(128)
 _SIGNED = range(-128, 128)
 
+# design_rules is executable card data, not free-form design prose. Keep its
+# vocabulary explicit so ordinary cards can reuse existing mechanics without
+# touching engine code, while typos and genuinely new mechanics fail at load
+# time instead of silently compiling to no behavior.
+_DESIGN_OBJECT_PATHS = {
+    "after_maneuver",
+    "after_maneuver_into_empty",
+    "after_maneuver_swap",
+    "at_battle_end",
+    "force",
+    "force.after_maneuver",
+    "front_resolution",
+    "lost_front",
+    "name",
+    "name.on_completion",
+    "on_completion",
+    "on_play_onto_force",
+}
+
+_DESIGN_BOOL_PATHS = {
+    "abandoned_front_strength_ignored",
+    "accumulates",
+    "can_maneuver_while_unnamed",
+    "cannot_be_swap_target",
+    "choose_direction",
+    "choose_friendly_named_formation",
+    "chosen_edge_front",
+    "chosen_front",
+    "chosen_front_requires_friendly_named_formation",
+    "destination_must_have_been_empty_before_effect",
+    "discard_after_both_players_trigger",
+    "discard_after_next_turn_constraint",
+    "discard_self",
+    "discard_when_named_formation_retreated",
+    "first_maneuver_each_player_must_use_direction_if_possible",
+    "force.can_maneuver_while_unnamed",
+    "formations_cannot_maneuver_away_from_chosen_front",
+    "immobile",
+    "later_maneuvers_same_direction_if_possible",
+    "lost_front.if_frontline_friendly_named",
+    "move_any_number",
+    "named_formations_cannot_maneuver_away",
+    "next_battle_first_operation_must_be_maneuver_if_possible",
+    "next_operation_each_player_must_affect_chosen_front_if_possible",
+    "next_operation_must_affect_chosen_front_if_possible",
+    "next_turn_forced_maneuver_if_legal",
+    "per_player_first_card_in_front_each_battle",
+    "prevent_opponent_card_effect_move_into_front_from_adjacent",
+    "prevent_opponent_card_effect_movement",
+    "same_rank",
+    "strength_cannot_be_ignored_by_opponent",
+    "unnamed_formations_can_maneuver",
+}
+
+_DESIGN_INT_PATHS = {
+    "additional_move_extra_cost",
+    "additional_strength_after_first_maneuver_this_battle",
+    "adjacent_front_formation_strength_bonus",
+    "amount",
+    "at_battle_end.gain_command",
+    "chosen_fronts",
+    "cost",
+    "discard_cards",
+    "discounted_cost",
+    "distance_fronts",
+    "draw_after_forced_maneuver",
+    "draw_cards",
+    "extra_cost",
+    "first_card_each_turn_discount",
+    "first_maneuver_each_battle_cost",
+    "first_maneuver_each_player_cost",
+    "first_move_extra_cost",
+    "first_self_maneuver_each_battle_cost",
+    "force.amount",
+    "forced_maneuver_cost",
+    "friendly_named_maneuver_cost",
+    "gain_command",
+    "lost_front_adjustment",
+    "maneuver_cost",
+    "minimum_cost",
+    "named_additional_strength_bonus",
+    "named_strength_bonus",
+    "normal_cost",
+    "on_completion.gain_command",
+    "open_bond_strength_bonus",
+    "strength_bonus",
+}
+
+_DESIGN_STRING_VALUES: dict[str, set[str]] = {
+    "affected_player": {"player_who_won_at_least_three_fronts"},
+    "affects": {"both_players"},
+    "after_maneuver.effect": {
+        "optional_swap_two_adjacent_friendly_formations_excluding_self",
+    },
+    "after_maneuver_into_empty.effect": {
+        "optional_move_adjacent_friendly_to_vacated_position",
+    },
+    "after_maneuver_swap.effect": {
+        "optional_zero_cost_maneuver_swapped_formation",
+    },
+    "after_self_maneuver": {
+        "optional_zero_cost_other_friendly_named_maneuver",
+    },
+    "at_battle_end.bonus_if_won": {"return_one_bond_from_discard_to_hand"},
+    "at_battle_end.condition": {
+        "chosen_front_not_lost",
+        "chosen_front_won",
+        "chosen_formation_still_on_battlefield",
+    },
+    "at_battle_end.secondary": {"draw_1"},
+    "baseline_force": {"vanilla"},
+    "build_around": {
+        "empty_front",
+        "hero_retinue",
+        "narrative",
+        "open_bond",
+        "open_bond_transfer",
+        "prepared_position",
+        "succession",
+        "wide_line",
+    },
+    "combat": {
+        "breakthrough",
+        "capture",
+        "first_strike",
+        "frontline_only_comparison",
+        "interception",
+        "sacrifice",
+        "skirmish",
+        "tie_control",
+    },
+    "command": {
+        "card_for_command",
+        "catch_up_discount",
+        "completion_discount",
+        "completion_refund",
+        "high_cost_battle_investment",
+        "improve_recovery",
+        "local_catch_up_discount",
+        "optional_extra_payment",
+    },
+    "condition": {
+        "adjacent_friendly_formation_contains_hero",
+        "bond_is_open",
+        "controller_command_lower_than_opponent",
+        "controller_has_front_with_no_force",
+        "friendly_force_in_all_four_fronts",
+        "front_tied_and_exactly_one_side_has_frontline_named",
+        "has_bond_and_no_name",
+        "played_on_force_with_bond",
+        "win_front_and_opponent_rear_has_no_force",
+        "win_middle_and_both_adjacent_fronts",
+    },
+    "deploy_rank": RANKS,
+    "destination": {"empty_frontline_same_front"},
+    "duration": {"battle", "until_each_player_completes_next_operation_or_battle_ends"},
+    "effect": {
+        "chosen_opposing_formation_does_not_contribute_this_resolution",
+        "drive_off_opposing_frontline_named_instead_of_retreat",
+        "draw_2",
+        "ignore_rear_formations_when_comparing_strength",
+        "losing_frontline_named_driven_off_instead_of_retreating",
+        "middle_opposing_frontline_named_driven_off_instead_of_retreating",
+        "next_maneuver_cost_zero_this_battle",
+        "optional_move_into_vacated_position",
+        "optional_move_this_bond_to_adjacent_friendly_force_without_bond",
+        "optional_swap_friendly_frontline_and_rear_formations_one_front",
+        "optional_zero_cost_friendly_named_maneuver",
+        "optional_zero_cost_maneuver_even_if_unnamed",
+        "optional_zero_cost_maneuver_this_formation",
+        "return_retreating_formation_bond_to_owner_hand",
+        "suppress_opposing_rear_force_for_resolution",
+        "target_does_not_contribute_this_resolution",
+        "that_side_wins_front",
+    },
+    "force.after_frontline_retreat": {"optional_sideways_rear_move"},
+    "force.after_maneuver.effect": {
+        "free_maneuver_adjacent_friendly_named_formation",
+    },
+    "force.after_maneuver_into_empty": {
+        "optional_move_one_more_front_if_empty",
+    },
+    "force.combat": {"optional_ignore_opposing_rear_strength"},
+    "force.command": {
+        "frontline_force_discount_1_min_1",
+        "lost_front_here_does_not_reduce_recovery",
+    },
+    "force.deploy_rank": RANKS,
+    "force.effect": {
+        "optional_drive_off_self_prevent_frontline_named_retreat",
+    },
+    "force.on_play": {"optional_take_adjacent_prepared_bond_or_name"},
+    "force.printed_role_effect": {"frontline_strength_bonus"},
+    "force.story": {"first_story_each_battle_discount_1_min_1"},
+    "front_resolution.choose": {"own_or_adjacent_front"},
+    "front_resolution.contribution": {"chosen_front_instead_of_own"},
+    "identity": {
+        "frontline_people",
+        "mobile_people",
+        "named_people",
+        "open_bond_people",
+        "steadfast_people",
+    },
+    "lost_front.effect": {"drive_off_self_prevent_frontline_retreat"},
+    "name.after_self_retreat": {"optional_sideways_rear_move"},
+    "name.combat": {"breakthrough_if_opponent_no_rear_force"},
+    "name.command": {"first_card_in_front_each_battle_discount_1_min_1"},
+    "name.effect": {
+        "optional_zero_cost_maneuver",
+        "return_hero_to_hand_if_driven_off",
+    },
+    "name.on_completion": {
+        "return_one_bond_from_discard_to_hand",
+        "return_one_story_from_discard_to_hand",
+    },
+    "name.on_completion.effect": {"free_maneuver_self"},
+    "name.on_play": {"optional_take_adjacent_open_bond"},
+    "name.trigger": {"opponent_maneuvers_into_adjacent_front"},
+    "narrative_form": NARRATIVE_FORMS,
+    "on_completion.effect": {"optional_swap_adjacent_friendly_formation"},
+    "on_play_condition": {"position_has_prepared_bond_or_name"},
+    "on_play_onto_force.effect": {
+        "optional_move_formation_adjacent_empty_position",
+    },
+    "outcome": {"higher_combined_strength_wins_both"},
+    "persistence": {
+        "bond_returns_to_hand_when_force_driven_off",
+        "inherited_bond",
+        "name_returns_to_hand_when_formation_driven_off",
+        "rear_rebuild_cost_reduction",
+        "retreat_command_compensation",
+        "retreat_sideways",
+        "start_battle_reposition",
+        "voluntary_retreat_if_rear_empty",
+    },
+    "placement": {"chosen_front", "chosen_named_formation"},
+    "printed_role_effect": {
+        "frontline_strength_bonus",
+        "frontline_strength_bonus_if_force_behind",
+        "rear_strength_bonus",
+        "rear_strength_bonus_if_force_ahead",
+        "support_force_ahead_strength_bonus",
+    },
+    "replacement": {
+        "optional_move_name_to_adjacent_friendly_force_with_bond_no_name",
+        "this_formation_does_not_contribute_instead",
+    },
+    "restriction": {"chosen_direction"},
+    "role": FORCE_ROLES,
+    "scope": {"this_formation", "this_front"},
+    "secondary": {
+        "optional_move_adjacent_friendly_into_vacated_position",
+        "optional_sideways_rear_move",
+        "optional_zero_cost_friendly_named_maneuver",
+        "optional_zero_cost_maneuver_that_formation",
+    },
+    "stratagem": {
+        "all_reserves_forward",
+        "battle_turns_direction",
+        "combine_two_adjacent_fronts",
+        "encirclement",
+        "every_banner_turned",
+        "feigned_retreat",
+        "line_begun_to_move",
+        "no_retreat_front",
+        "no_road_back",
+        "refuse_flank",
+        "wheel_line",
+    },
+    "target": {"opposing_frontline_force_with_lower_printed_strength"},
+    "timing": {
+        "after_retreat",
+        "after_retreat_resolves",
+        "battle_end_before_strength_comparison",
+    },
+    "trigger": {
+        "adjacent_friendly_formation_retreats",
+        "adjacent_friendly_named_formation_maneuvers_away",
+        "battle_end_player_won_at_least_three_fronts",
+        "first_friendly_maneuver_into_empty_each_battle",
+        "force_moves_or_maneuvers",
+        "formation_driven_off",
+        "friendly_formation_becomes_named",
+        "friendly_named_formation_retreats",
+        "opponent_effect_would_prevent_other_friendly_formation_contribution",
+        "opponent_has_force_in_both_ranks_same_front",
+        "opposing_formation_becomes_named",
+        "opposing_formation_in_same_front_becomes_named",
+        "opposing_formation_maneuvers_into_same_front",
+        "own_front_wins_and_opposing_frontline_named_retreats",
+        "regain_command_from_narrative",
+    },
+}
+
+_DESIGN_LIST_VALUES: dict[str, set[str]] = {
+    "direction_choice": {"left", "right"},
+}
+
+
+def _validate_design_rule_value(value: Any, path: str, card_id: str) -> None:
+    location = f"{card_id}.design_rules.{path}"
+    if path in _DESIGN_OBJECT_PATHS:
+        if not isinstance(value, dict):
+            raise ValueError(f"{location}: must be an object")
+        for key, item in value.items():
+            _validate_design_rule_value(item, f"{path}.{key}", card_id)
+        return
+    if path in _DESIGN_BOOL_PATHS:
+        if type(value) is not bool:
+            raise ValueError(f"{location}: must be boolean")
+        return
+    if path in _DESIGN_INT_PATHS:
+        if type(value) is not int or value not in _SIGNED:
+            raise ValueError(
+                f"{location}: must be an integer between "
+                f"{_SIGNED.start} and {_SIGNED.stop - 1}"
+            )
+        return
+    if path in _DESIGN_STRING_VALUES:
+        allowed = _DESIGN_STRING_VALUES[path]
+        if not isinstance(value, str) or value not in allowed:
+            raise ValueError(f"{location}: unsupported value {value!r}")
+        return
+    if path in _DESIGN_LIST_VALUES:
+        allowed = _DESIGN_LIST_VALUES[path]
+        if (
+            not isinstance(value, list)
+            or not value
+            or any(not isinstance(item, str) or item not in allowed for item in value)
+            or len(value) != len(set(value))
+        ):
+            raise ValueError(f"{location}: unsupported list {value!r}")
+        return
+    raise ValueError(f"{location}: unsupported mechanic")
+
+
+def _validate_design_rules(card: dict[str, Any]) -> None:
+    design = card.get("design_rules")
+    if design is None:
+        return
+    if not isinstance(design, dict):
+        raise ValueError(f"{card['id']}.design_rules: must be an object")
+    for key, value in design.items():
+        _validate_design_rule_value(value, key, card["id"])
+
+
 _RULE_SCHEMAS: dict[str, dict[str, Any]] = {
     "force": {
         "placement": {"rank": RANKS},
@@ -265,6 +611,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
             raise ValueError(f"{card_id}: every Name must be Unique")
 
         _validate_rules(card)
+        _validate_design_rules(card)
 
 
 def cards_by_type(
