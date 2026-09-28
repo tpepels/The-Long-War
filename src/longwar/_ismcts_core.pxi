@@ -292,74 +292,6 @@ cdef class ISMCTSTree:
                 return i
         return -1
 
-    cdef int _add_action(
-        self,
-        ISMCTSNodeRecord* node,
-        uint64_t action,
-    ) except -1:
-        """Extend an information-set node with an action newly available in
-        this determinization.
-
-        ISMCTS nodes represent the union of actions available across hidden
-        states in one information set. Availability counts below ensure UCT
-        only compares an action on determinizations where it is legal.
-        """
-        cdef int old_count = node.action_count
-        cdef int new_count = old_count + 1
-        cdef uint64_t* actions
-        cdef uint64_t* visits
-        cdef uint64_t* availability
-        cdef double* value_sum
-
-        if new_count > 65535:
-            raise RuntimeError("Too many actions in one ISMCTS information set")
-
-        actions = <uint64_t*>malloc(new_count * sizeof(uint64_t))
-        visits = <uint64_t*>malloc(new_count * sizeof(uint64_t))
-        availability = <uint64_t*>malloc(new_count * sizeof(uint64_t))
-        value_sum = <double*>malloc(new_count * sizeof(double))
-        if (
-            actions == NULL
-            or visits == NULL
-            or availability == NULL
-            or value_sum == NULL
-        ):
-            if actions != NULL:
-                free(actions)
-            if visits != NULL:
-                free(visits)
-            if availability != NULL:
-                free(availability)
-            if value_sum != NULL:
-                free(value_sum)
-            raise MemoryError("Unable to grow native ISMCTS action set")
-
-        if old_count > 0:
-            memcpy(actions, node.actions, old_count * sizeof(uint64_t))
-            memcpy(visits, node.visits, old_count * sizeof(uint64_t))
-            memcpy(
-                availability,
-                node.availability,
-                old_count * sizeof(uint64_t),
-            )
-            memcpy(value_sum, node.value_sum, old_count * sizeof(double))
-
-        actions[old_count] = action
-        visits[old_count] = 0
-        availability[old_count] = 0
-        value_sum[old_count] = 0.0
-
-        free(node.actions)
-        free(node.visits)
-        free(node.availability)
-        free(node.value_sum)
-        node.actions = actions
-        node.visits = visits
-        node.availability = availability
-        node.value_sum = value_sum
-        node.action_count = <uint16_t>new_count
-        return old_count
-
     cdef int choose(
         self,
         int node_index,
@@ -378,7 +310,9 @@ cdef class ISMCTSTree:
         for i in range(n):
             ix = self._find_action(node, legal[i])
             if ix < 0:
-                ix = self._add_action(node, legal[i])
+                raise RuntimeError(
+                    "Legal-action set changed inside an information set"
+                )
             node.availability[ix] += 1
             if node.visits[ix] == 0:
                 unvisited += 1
