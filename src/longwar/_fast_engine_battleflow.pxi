@@ -276,8 +276,10 @@ cdef inline int _fe_command_recovery_fast(
     int battle,
 ) noexcept:
     cdef int index = battle - 1
-    if index < 0 or index >= self.command_recovery_len:
+    if index < 0:
         return 0
+    if index >= self.command_recovery_len:
+        return self.command_recovery_tail
     return self.command_recovery_values[index]
 
 cdef int _fe_command_recovery_for_battle(
