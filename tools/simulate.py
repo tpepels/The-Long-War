@@ -19,7 +19,10 @@ from longwar.agents.ismcts_agent import (
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.rules import GameRules
-from longwar.fingerprint import current_game_fingerprint
+from longwar.fingerprint import (
+    current_experiment_fingerprint,
+    current_game_fingerprint,
+)
 from longwar.simulate import simulate_games
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -293,6 +296,7 @@ def main() -> None:
 
     payload = asdict(report)
     payload["game_fingerprint"] = game_fingerprint
+    payload["experiment_fingerprint"] = current_experiment_fingerprint()
     payload["seed"] = args.seed
     payload["decisive_games"] = report.decisive_games
     payload["win_rates"] = report.win_rates
