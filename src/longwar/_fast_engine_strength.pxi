@@ -81,6 +81,11 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
     name = state.name[slot]
     if link >= 0:
         value += self.link_bonus[link]
+        if (
+            self.bond_momentum_direction[link]
+            and state.maneuver_count[slot] > 0
+        ):
+            value += 2
         if name >= 0:
             value += self.link_named_bonus[link]
             if self.link_discard_per[link]:
