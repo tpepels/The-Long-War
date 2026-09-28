@@ -109,3 +109,53 @@ def test_all_current_cards_have_small_printed_command_costs() -> None:
     costs = [card["command_cost"] for card in data["cards"]]
     assert all(cost in {1, 2, 3} for cost in costs)
     assert set(costs) == {1, 2, 3}
+
+
+def test_candidate_recovery_tail_applies_from_battle_eight_onward() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+    )["cards"]
+    rules = GameRules.standard().with_overrides(
+        command_recovery_schedule=(10, 8, 6, 5, 4, 3, 2),
+        command_recovery_tail=1,
+    )
+    engine = GameEngine(data, rules=rules)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=26092801,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.battle = 8
+    state.players[0].command = 10
+    state.players[1].command = 10
+    state.operations_this_battle[:] = [1, 1]
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.battle == 9
+    assert [player.command for player in state.players] == [11, 11]
+
+
+def test_equal_low_command_remains_an_explicit_canonical_ambiguity() -> None:
+    engine, state = standard_game()
+    state.battle = 8
+    state.players[0].command = 0
+    state.players[1].command = 0
+    state.operations_this_battle[:] = [1, 1]
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    # Current rulebook: lower Command loses, equal Command continues.
+    # This deliberately documents the unresolved 0-0 loop instead of
+    # inventing a winner in engine code.
+    assert state.phase.value == "battle"
+    assert state.winner is None
+    assert state.battle == 9
+    assert [player.command for player in state.players] == [0, 0]
