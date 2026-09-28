@@ -56,7 +56,8 @@ def merge_replica_policies(
     summaries: list[dict[str, Any]],
     *,
     seeds: list[int],
-    iterations_per_worker: int,
+    iterations_per_worker: int | None = None,
+    worker_iterations: list[int] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     if not policies:
         raise ValueError("At least one MCCFR replica is required")
@@ -116,7 +117,19 @@ def merge_replica_policies(
         )
 
     workers = len(policies)
-    total_iterations = iterations_per_worker * workers
+    if worker_iterations is None:
+        if iterations_per_worker is None:
+            raise ValueError(
+                "Provide iterations_per_worker or worker_iterations"
+            )
+        worker_iterations = [iterations_per_worker] * workers
+    if len(worker_iterations) != workers or any(
+        iterations <= 0 for iterations in worker_iterations
+    ):
+        raise ValueError(
+            "worker_iterations must contain one positive count per worker"
+        )
+    total_iterations = sum(worker_iterations)
     total_traversals = sum(int(summary["traversals"]) for summary in summaries)
     mean_p0 = sum(
         float(summary["mean_sampled_utility_p0"])
@@ -138,7 +151,12 @@ def merge_replica_policies(
     merged_policy["infosets"] = merged_infosets
     merged_policy["parallel_training"] = {
         "workers": workers,
-        "iterations_per_worker": iterations_per_worker,
+        "iterations_per_worker": (
+            worker_iterations[0]
+            if len(set(worker_iterations)) == 1
+            else None
+        ),
+        "worker_iterations": list(worker_iterations),
         "total_iterations": total_iterations,
         "replica_seeds": seeds,
         "aggregation": (
@@ -160,7 +178,12 @@ def merge_replica_policies(
         "mean_sampled_utility_p0": mean_p0,
         "mean_sampled_utility_p1": mean_p1,
         "workers": workers,
-        "iterations_per_worker": iterations_per_worker,
+        "iterations_per_worker": (
+            worker_iterations[0]
+            if len(set(worker_iterations)) == 1
+            else None
+        ),
+        "worker_iterations": list(worker_iterations),
     }
     return merged_policy, merged_summary
 
@@ -171,15 +194,32 @@ def train_parallel_mccfr(
     deck_b: list[str],
     *,
     seed: int,
-    iterations_per_worker: int,
+    iterations_per_worker: int | None = None,
+    total_iterations: int | None = None,
     workers: int,
     max_depth: int,
     leaf_scale: float,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     if workers < 2:
         raise ValueError("Parallel MCCFR requires at least two workers")
-    if iterations_per_worker <= 0:
-        raise ValueError("iterations_per_worker must be positive")
+    if (iterations_per_worker is None) == (total_iterations is None):
+        raise ValueError(
+            "Provide exactly one of iterations_per_worker or total_iterations"
+        )
+    if total_iterations is not None:
+        if total_iterations <= 0:
+            raise ValueError("total_iterations must be positive")
+        workers = min(workers, total_iterations)
+        base = total_iterations // workers
+        remainder = total_iterations % workers
+        worker_iterations = [
+            base + (1 if index < remainder else 0)
+            for index in range(workers)
+        ]
+    else:
+        if iterations_per_worker is None or iterations_per_worker <= 0:
+            raise ValueError("iterations_per_worker must be positive")
+        worker_iterations = [iterations_per_worker] * workers
 
     seeds = replica_seeds(seed, workers)
     args = [
@@ -188,11 +228,11 @@ def train_parallel_mccfr(
             list(deck_a),
             list(deck_b),
             worker_seed,
-            iterations_per_worker,
+            worker_iterations[index],
             max_depth,
             leaf_scale,
         )
-        for worker_seed in seeds
+        for index, worker_seed in enumerate(seeds)
     ]
 
     with ProcessPoolExecutor(max_workers=workers) as executor:
@@ -204,7 +244,7 @@ def train_parallel_mccfr(
         policies,
         summaries,
         seeds=seeds,
-        iterations_per_worker=iterations_per_worker,
+        worker_iterations=worker_iterations,
     )
 
 
