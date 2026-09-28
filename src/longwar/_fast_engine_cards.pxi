@@ -139,6 +139,15 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.strat_unnamed_mod, 0, sizeof(self.strat_unnamed_mod))
     memset(self.strat_story_lock, 0, sizeof(self.strat_story_lock))
     memset(self.strat_global_story_lock, 0, sizeof(self.strat_global_story_lock))
+    memset(self.narrative_first_card_front_constraint, 0, sizeof(self.narrative_first_card_front_constraint))
+    memset(self.narrative_no_maneuver_away, 0, sizeof(self.narrative_no_maneuver_away))
+    memset(self.narrative_forced_named_direction, 0, sizeof(self.narrative_forced_named_direction))
+    memset(self.narrative_three_front_next_maneuver, 0, sizeof(self.narrative_three_front_next_maneuver))
+    memset(self.narrative_front_requires_named, 0, sizeof(self.narrative_front_requires_named))
+    memset(self.strat_no_maneuver_away, 0, sizeof(self.strat_no_maneuver_away))
+    memset(self.strat_first_maneuver_direction, 0, sizeof(self.strat_first_maneuver_direction))
+    memset(self.strat_next_operation_front, 0, sizeof(self.strat_next_operation_front))
+    memset(self.bond_momentum_direction, 0, sizeof(self.bond_momentum_direction))
 
 cdef void _fe___init__(FastEngine self, engine) except *:
     cdef int code, r
@@ -205,6 +214,37 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         rules = card.get("rules", {})
         design = card.get("design_rules") or {}
         force_design = design.get("force") or design
+
+        self.narrative_first_card_front_constraint[code] = bool(
+            design.get("per_player_first_card_in_front_each_battle")
+            and design.get("next_operation_must_affect_chosen_front_if_possible")
+        )
+        self.narrative_no_maneuver_away[code] = bool(
+            design.get("named_formations_cannot_maneuver_away")
+        )
+        self.narrative_forced_named_direction[code] = bool(
+            design.get("choose_friendly_named_formation")
+            and design.get("choose_direction")
+            and design.get("next_turn_forced_maneuver_if_legal")
+        )
+        self.narrative_three_front_next_maneuver[code] = bool(
+            design.get("next_battle_first_operation_must_be_maneuver_if_possible")
+        )
+        self.narrative_front_requires_named[code] = bool(
+            design.get("chosen_front_requires_friendly_named_formation")
+        )
+        self.strat_no_maneuver_away[code] = bool(
+            design.get("formations_cannot_maneuver_away_from_chosen_front")
+        )
+        self.strat_first_maneuver_direction[code] = bool(
+            design.get("first_maneuver_each_player_must_use_direction_if_possible")
+        )
+        self.strat_next_operation_front[code] = bool(
+            design.get("next_operation_each_player_must_affect_chosen_front_if_possible")
+        )
+        self.bond_momentum_direction[code] = bool(
+            design.get("later_maneuvers_same_direction_if_possible")
+        )
         self.card_command_cost[code] = int(card.get("command_cost", 0))
         self.adjacent_command_discount[code] = int(rules.get("adjacent_command_discount", 0))
 
@@ -459,9 +499,18 @@ cdef void _fe___init__(FastEngine self, engine) except *:
 
         self.plot_effect[code] = plot_effect_map.get(rules.get("effect"), PLOT_NONE)
         self.veiled[code] = bool(card.get("ongoing", False))
-        if design.get("placement") == "chosen_front":
+        if (
+            design.get("placement") == "chosen_front"
+            or design.get("chosen_front")
+            or design.get("chosen_front_requires_friendly_named_formation")
+        ):
             self.story_choice_kind[code] = STORY_CHOICE_FRONT
-        elif design.get("placement") == "chosen_named_formation":
+        elif self.narrative_forced_named_direction[code]:
+            self.story_choice_kind[code] = STORY_CHOICE_NAMED_DIRECTION
+        elif (
+            design.get("placement") == "chosen_named_formation"
+            or design.get("choose_friendly_named_formation")
+        ):
             self.story_choice_kind[code] = STORY_CHOICE_NAMED_FORMATION
         if design.get("trigger") == "first_friendly_maneuver_into_empty_each_battle":
             self.narrative_maneuver_empty_gain[code] = int(
@@ -518,7 +567,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.strat_choice_kind[code] = STRAT_CHOICE_EDGE_FRONT
         elif design.get("chosen_front"):
             self.strat_choice_kind[code] = STRAT_CHOICE_FRONT
-        elif design.get("direction_choice"):
+        elif design.get("direction_choice") or design.get("choose_direction"):
             self.strat_choice_kind[code] = STRAT_CHOICE_DIRECTION
 
         strat = rules.get("stratagem") or {}
