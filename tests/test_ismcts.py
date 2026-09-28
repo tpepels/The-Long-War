@@ -115,6 +115,10 @@ def test_information_key_distinguishes_public_resource_state() -> None:
     assert key(changed) != baseline
 
     changed = base.clone()
+    changed.turn_number += 1
+    assert key(changed) != baseline
+
+    changed = base.clone()
     changed.pending_draw_discard_for = 0
     assert key(changed) != baseline
 
