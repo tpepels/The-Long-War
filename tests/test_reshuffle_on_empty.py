@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 
 from longwar.cards import load_card_file
@@ -68,10 +69,12 @@ def test_empty_pile_reshuffle_is_deterministic_for_same_shuffle_seed() -> None:
     engine, first = setup_state(seed=7501)
     _engine, second = setup_state(seed=7502)
 
+    drawn = []
     for state in (first, second):
         state.shuffle_seed = 991122
         player = state.players[1]
         player.hand = player.hand[:9]
+        before = Counter(player.hand)
         player.deck = []
         player.discard = [
             "followed",
@@ -81,8 +84,11 @@ def test_empty_pile_reshuffle_is_deterministic_for_same_shuffle_seed() -> None:
             "the-fifty-men",
         ]
         start_final_turn(engine, state)
+        added = Counter(player.hand) - before
+        assert sum(added.values()) == 1
+        drawn.append(next(iter(added)))
 
-    assert first.players[1].hand[-1] == second.players[1].hand[-1]
+    assert drawn[0] == drawn[1]
     assert first.players[1].deck == second.players[1].deck
     assert first.shuffle_seed == second.shuffle_seed
 
