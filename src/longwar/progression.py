@@ -750,7 +750,11 @@ class ProgressionTelemetry:
                         "hand_remaining",
                         "deck_remaining",
                         "board_changed",
+                        "board_changed_during_battle",
+                        "board_changed_during_resolution",
                         "strength_changed",
+                        "strength_changed_during_battle",
+                        "strength_changed_during_resolution",
                         "command_changed_before_recovery",
                         "command_changed",
                         "board_start_signature",
@@ -1709,10 +1713,26 @@ class ProgressionTelemetry:
             "next_battle_strength_by_front": next_strength_by_front,
             "board_changed": (
                 rows[0]["board_signature"]
+                != final["board_signature"]
+            ),
+            "board_changed_during_battle": (
+                rows[0]["board_signature"]
+                != final["board_signature"]
+            ),
+            "board_changed_during_resolution": (
+                final["board_signature"]
                 != post_resolution_board_signature
             ),
             "strength_changed": (
                 rows[0]["strength_by_front"]
+                != final["strength_by_front"]
+            ),
+            "strength_changed_during_battle": (
+                rows[0]["strength_by_front"]
+                != final["strength_by_front"]
+            ),
+            "strength_changed_during_resolution": (
+                final["strength_by_front"]
                 != post_resolution_strength_by_front
             ),
             "command_changed_before_recovery": (
