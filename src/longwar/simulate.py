@@ -343,6 +343,7 @@ def _simulate_games_serial(
 
         telemetry.finish_game(winner, state)
         game_outcomes.append({
+            "game": global_game_index,
             "seed": seed + global_game_index,
             "first_player": first_player,
             "winner": winner,
