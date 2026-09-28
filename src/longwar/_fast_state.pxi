@@ -18,6 +18,8 @@ cdef class FastState:
     cdef uint8_t scheme_front_mask[SCHEME_COUNT]
     cdef int8_t scheme_target_slot[SCHEME_COUNT]
     cdef uint8_t scheme_used[SCHEME_COUNT]
+    cdef uint8_t scheme_direction[SCHEME_COUNT]
+    cdef uint8_t scheme_trigger_mask[SCHEME_COUNT]
     cdef int8_t stratagem[2]
     cdef uint8_t stratagem_revealed[2]
     cdef uint8_t stratagem_front_mask[2]
@@ -25,6 +27,19 @@ cdef class FastState:
     cdef uint16_t stratagem_target_mask[2]
     cdef uint8_t stratagem_used[2]
     cdef uint8_t hero_used[2]
+    cdef uint16_t player_maneuver_count[2]
+    cdef int8_t maneuver_direction[SLOT_COUNT]
+
+    cdef int8_t constraint_kind[MAX_CONSTRAINTS]
+    cdef int8_t constraint_player[MAX_CONSTRAINTS]
+    cdef int8_t constraint_source_card[MAX_CONSTRAINTS]
+    cdef int8_t constraint_source_owner[MAX_CONSTRAINTS]
+    cdef int8_t constraint_front[MAX_CONSTRAINTS]
+    cdef int8_t constraint_direction[MAX_CONSTRAINTS]
+    cdef int8_t constraint_source_slot[MAX_CONSTRAINTS]
+    cdef int32_t constraint_activate_turn[MAX_CONSTRAINTS]
+    cdef uint8_t constraint_flags[MAX_CONSTRAINTS]
+    cdef uint8_t constraint_len
 
     cdef uint8_t known_hidden[2][2][MAX_CARDS]
 
@@ -113,6 +128,8 @@ cdef class FastState:
         memset(self.scheme_front_mask, 0, sizeof(self.scheme_front_mask))
         memset(self.scheme_target_slot, 0xff, sizeof(self.scheme_target_slot))
         memset(self.scheme_used, 0, sizeof(self.scheme_used))
+        memset(self.scheme_direction, 0, sizeof(self.scheme_direction))
+        memset(self.scheme_trigger_mask, 0, sizeof(self.scheme_trigger_mask))
         memset(self.stratagem, 0xff, sizeof(self.stratagem))
         memset(self.stratagem_revealed, 0, sizeof(self.stratagem_revealed))
         memset(self.stratagem_front_mask, 0, sizeof(self.stratagem_front_mask))
@@ -120,6 +137,18 @@ cdef class FastState:
         memset(self.stratagem_target_mask, 0, sizeof(self.stratagem_target_mask))
         memset(self.stratagem_used, 0, sizeof(self.stratagem_used))
         memset(self.hero_used, 0, sizeof(self.hero_used))
+        memset(self.player_maneuver_count, 0, sizeof(self.player_maneuver_count))
+        memset(self.maneuver_direction, 0, sizeof(self.maneuver_direction))
+        memset(self.constraint_kind, 0, sizeof(self.constraint_kind))
+        memset(self.constraint_player, 0xff, sizeof(self.constraint_player))
+        memset(self.constraint_source_card, 0xff, sizeof(self.constraint_source_card))
+        memset(self.constraint_source_owner, 0xff, sizeof(self.constraint_source_owner))
+        memset(self.constraint_front, 0xff, sizeof(self.constraint_front))
+        memset(self.constraint_direction, 0, sizeof(self.constraint_direction))
+        memset(self.constraint_source_slot, 0xff, sizeof(self.constraint_source_slot))
+        memset(self.constraint_activate_turn, 0, sizeof(self.constraint_activate_turn))
+        memset(self.constraint_flags, 0, sizeof(self.constraint_flags))
+        self.constraint_len = 0
         memset(self.known_hidden, 0, sizeof(self.known_hidden))
         memset(self.passed, 0, sizeof(self.passed))
         memset(self.pass_order, 0xff, sizeof(self.pass_order))
@@ -203,6 +232,8 @@ cdef class FastState:
         memcpy(self.scheme_front_mask, other.scheme_front_mask, sizeof(self.scheme_front_mask))
         memcpy(self.scheme_target_slot, other.scheme_target_slot, sizeof(self.scheme_target_slot))
         memcpy(self.scheme_used, other.scheme_used, sizeof(self.scheme_used))
+        memcpy(self.scheme_direction, other.scheme_direction, sizeof(self.scheme_direction))
+        memcpy(self.scheme_trigger_mask, other.scheme_trigger_mask, sizeof(self.scheme_trigger_mask))
         memcpy(self.stratagem, other.stratagem, sizeof(self.stratagem))
         memcpy(self.stratagem_revealed, other.stratagem_revealed, sizeof(self.stratagem_revealed))
         memcpy(self.stratagem_front_mask, other.stratagem_front_mask, sizeof(self.stratagem_front_mask))
@@ -210,6 +241,18 @@ cdef class FastState:
         memcpy(self.stratagem_target_mask, other.stratagem_target_mask, sizeof(self.stratagem_target_mask))
         memcpy(self.stratagem_used, other.stratagem_used, sizeof(self.stratagem_used))
         memcpy(self.hero_used, other.hero_used, sizeof(self.hero_used))
+        memcpy(self.player_maneuver_count, other.player_maneuver_count, sizeof(self.player_maneuver_count))
+        memcpy(self.maneuver_direction, other.maneuver_direction, sizeof(self.maneuver_direction))
+        memcpy(self.constraint_kind, other.constraint_kind, sizeof(self.constraint_kind))
+        memcpy(self.constraint_player, other.constraint_player, sizeof(self.constraint_player))
+        memcpy(self.constraint_source_card, other.constraint_source_card, sizeof(self.constraint_source_card))
+        memcpy(self.constraint_source_owner, other.constraint_source_owner, sizeof(self.constraint_source_owner))
+        memcpy(self.constraint_front, other.constraint_front, sizeof(self.constraint_front))
+        memcpy(self.constraint_direction, other.constraint_direction, sizeof(self.constraint_direction))
+        memcpy(self.constraint_source_slot, other.constraint_source_slot, sizeof(self.constraint_source_slot))
+        memcpy(self.constraint_activate_turn, other.constraint_activate_turn, sizeof(self.constraint_activate_turn))
+        memcpy(self.constraint_flags, other.constraint_flags, sizeof(self.constraint_flags))
+        self.constraint_len = other.constraint_len
         memcpy(self.known_hidden, other.known_hidden, sizeof(self.known_hidden))
         memcpy(self.passed, other.passed, sizeof(self.passed))
         memcpy(self.pass_order, other.pass_order, sizeof(self.pass_order))
