@@ -707,6 +707,12 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
 
 cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     cdef int opponent = 1 - player
+    cdef uint64_t pass_action = encode_action(TYPE_PASS, -1, -1, -1, player)
+
+    # Pass is one of the three canonical operations. It can only remain
+    # legal while an active requirement is impossible, but once chosen it
+    # still consumes that player's "next operation" requirements.
+    _fe_consume_operation_constraints(self, state, player, pass_action)
 
     state.passed[player] = 1
     state.pass_order[state.pass_len] = player
