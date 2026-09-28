@@ -932,6 +932,10 @@ cdef int _fe_legal_actions_into(
                                 player,
                             ),
                         )
+                    # Ongoing Narrative slots are storage, not a player choice.
+                    # Use the first empty slot so GameState round-trips cannot
+                    # change the semantic action identity.
+                    break
             else:
                 effect = self.plot_effect[card]
                 if effect == PLOT_DISCREDIT or effect == PLOT_RETURN_NAME:
