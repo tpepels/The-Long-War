@@ -17,6 +17,7 @@ from longwar.game.model import (
     StoryState,
 )
 from longwar.progression import ProgressionTelemetry
+from longwar.rules import GameRules
 from longwar.simulate import simulate_games
 from longwar.telemetry import Telemetry
 
@@ -769,8 +770,15 @@ def test_battle_buckets_isolate_battle_eight_plus() -> None:
     assert ProgressionTelemetry._battle_key(7) == "4-7"
     assert ProgressionTelemetry._battle_key(8) == "8+"
 
-def test_low_command_stall_telemetry_reconstructs_equal_zero_continuation() -> None:
-    engine, deck = setup()
+def test_low_command_stall_telemetry_reconstructs_front_loss_cancellation() -> None:
+    base_engine, deck = setup()
+    engine = GameEngine(
+        base_engine.card_data,
+        rules=GameRules.standard().with_overrides(
+            command_recovery_schedule=(10, 8, 6, 5, 4, 3, 2),
+            command_recovery_tail=1,
+        ),
+    )
     state = engine.new_game(
         deck,
         deck,
@@ -785,6 +793,8 @@ def test_low_command_stall_telemetry_reconstructs_equal_zero_continuation() -> N
     state.operations_this_battle[:] = [1, 1]
     state.players[0].hand.clear()
     state.players[1].hand.clear()
+    state.slot(1, Position(Front.FIRST, Rank.FRONT)).force = "the-fifty-men"
+    state.slot(0, Position(Front.SECOND, Rank.FRONT)).force = "the-fifty-men"
 
     telemetry = Telemetry()
     telemetry.start_game(state, engine)
@@ -816,13 +826,15 @@ def test_low_command_stall_telemetry_reconstructs_equal_zero_continuation() -> N
     record = stall["battle_records"][0]
     assert record["battle"] == 8
     assert record["command_start"] == [0, 0]
-    assert record["recovery_base"] == 0
-    assert record["recovery_loss"] == [0, 0]
+    assert record["recovery_base"] == 1
+    assert record["fronts_lost"] == [1, 1]
+    assert record["recovery_loss"] == [1, 1]
     assert record["recovery_actual"] == [0, 0]
     assert record["command_after_recovery"] == [0, 0]
     assert record["collapse_comparison"]["equal"] is True
     assert record["collapse_comparison"]["continued"] is True
     assert [row["action"] for row in record["operation_trace"]] == ["pass", "pass"]
     assert all(row["forced"] for row in record["operation_trace"])
-    assert record["next_battle_board_signature"] == record["board_end_signature"]
+    assert record["board_changed_during_battle"] is False
+    assert record["board_changed_during_resolution"] is True
 
