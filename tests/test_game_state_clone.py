@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def setup(seed: int, first_player: int = 0):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
     return engine.new_game(
