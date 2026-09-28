@@ -587,6 +587,53 @@ class ProgressionTelemetry:
                 "censored": bool(censored),
             })
 
+    @staticmethod
+    def _battle_record_view(row: dict[str, Any]) -> dict[str, Any]:
+        """Return a summary-safe view of a Battle record.
+
+        Battle telemetry is append-only: new diagnostic fields must not make
+        older retained records or focused unit fixtures invalid. Missing
+        diagnostics stay unknown (None) rather than being interpreted as false.
+        """
+        view = dict(row)
+        view.setdefault("game", 0)
+        view.setdefault("simulation_game_index", None)
+        view.setdefault("seed", None)
+        view.setdefault("first_player", None)
+        view.setdefault("operation_trace", [])
+        view.setdefault("pass_diagnostics", [])
+        view.setdefault("paid_card_operations", 0)
+        view.setdefault("free_card_operations", 0)
+        view.setdefault("paid_maneuvers", 0)
+        view.setdefault("effect_choices", 0)
+        view.setdefault("forced_effect_choices", 0)
+        view.setdefault("no_paid_operation", None)
+        view.setdefault("board_changed", None)
+        view.setdefault("board_changed_during_battle", None)
+        view.setdefault("board_changed_during_resolution", None)
+        view.setdefault("strength_changed", None)
+        view.setdefault("strength_changed_during_battle", None)
+        view.setdefault("strength_changed_during_resolution", None)
+        view.setdefault("command_changed_before_recovery", None)
+        view.setdefault("command_changed", None)
+        view.setdefault("forced_passes", 0)
+        view.setdefault("passes_with_no_playable_alternative", 0)
+        if "command_after_recovery" not in view:
+            view["command_after_recovery"] = view.get("next_battle_command")
+        return view
+
+    @staticmethod
+    def _match_record_view(row: dict[str, Any]) -> dict[str, Any]:
+        """Keep match-summary metadata append-only for retained evidence."""
+        view = dict(row)
+        view.setdefault("game", 0)
+        view.setdefault("simulation_game_index", None)
+        view.setdefault("seed", None)
+        view.setdefault("first_player", None)
+        view.setdefault("censored", False)
+        view.setdefault("resolved_battles", 0)
+        return view
+
     def summary(self) -> dict[str, Any]:
         lifecycles = list(self._formations.values())
         forces = len(lifecycles)
@@ -632,8 +679,15 @@ class ProgressionTelemetry:
             if row["removed_action"] is not None
         ]
 
-        by_battle = self._summarize_battles()
-        match_records = list(self._match_records)
+        battle_records = [
+            self._battle_record_view(row)
+            for row in battle_records
+        ]
+        by_battle = self._summarize_battles(battle_records)
+        match_records = [
+            self._match_record_view(row)
+            for row in self._match_records
+        ]
         final_battles = [row["final_battle"] for row in match_records]
         censored_final_battles = [
             row["final_battle"] for row in match_records if row["censored"]
@@ -652,7 +706,7 @@ class ProgressionTelemetry:
         )
         equal_low_rows = [
             row
-            for row in self._battle_records
+            for row in battle_records
             if row.get("next_battle_command") is not None
             and row["next_battle_command"][0] == row["next_battle_command"][1]
             and row["next_battle_command"][0] < threshold
@@ -661,7 +715,7 @@ class ProgressionTelemetry:
         first_equal_low_battles: list[int] = []
         consecutive_equal_low_battles = 0
         rows_by_game: dict[int, list[dict[str, Any]]] = defaultdict(list)
-        for row in self._battle_records:
+        for row in battle_records:
             rows_by_game[int(row.get("game", 0))].append(row)
         for game_rows in rows_by_game.values():
             current_streak = 0
@@ -687,7 +741,7 @@ class ProgressionTelemetry:
 
         stall_rows = [
             row
-            for row in self._battle_records
+            for row in battle_records
             if (
                 any(value < threshold for value in row["command_start"])
                 or row in equal_low_rows
@@ -762,11 +816,11 @@ class ProgressionTelemetry:
                     for row in diagnostic_rows
                 ),
                 "battles_with_no_board_change": sum(
-                    not bool(row.get("board_changed"))
+                    row.get("board_changed") is False
                     for row in diagnostic_rows
                 ),
                 "battles_with_no_strength_change": sum(
-                    not bool(row.get("strength_changed"))
+                    row.get("strength_changed") is False
                     for row in diagnostic_rows
                 ),
             })
@@ -777,7 +831,7 @@ class ProgressionTelemetry:
             "both_below_collapse_threshold": sum(
                 command_after_recovery is not None
                 and all(value < threshold for value in command_after_recovery)
-                for row in self._battle_records
+                for row in battle_records
                 if (
                     command_after_recovery := row.get(
                         "command_after_recovery",
@@ -789,30 +843,30 @@ class ProgressionTelemetry:
             "consecutive_equal_low_battles": consecutive_equal_low_battles,
             "zero_command_battle_starts": sum(
                 any(value == 0 for value in row["command_start"])
-                for row in self._battle_records
+                for row in battle_records
             ),
             "both_zero_command_battle_starts": sum(
                 row["command_start"] == [0, 0]
-                for row in self._battle_records
+                for row in battle_records
             ),
             "low_command_battle_starts": sum(
                 any(value < threshold for value in row["command_start"])
-                for row in self._battle_records
+                for row in battle_records
             ),
             "battles_with_no_paid_operation": sum(
                 bool(row.get("no_paid_operation"))
                 for row in stall_rows
             ),
             "battles_with_no_board_change": sum(
-                not bool(row.get("board_changed"))
+                row.get("board_changed") is False
                 for row in stall_rows
             ),
             "battles_with_no_strength_change": sum(
-                not bool(row.get("strength_changed"))
+                row.get("strength_changed") is False
                 for row in stall_rows
             ),
             "battles_with_no_command_change": sum(
-                not bool(row.get("command_changed"))
+                row.get("command_changed") is False
                 for row in stall_rows
             ),
             "forced_passes": sum(
@@ -900,14 +954,14 @@ class ProgressionTelemetry:
             ),
             "battle_reach": battle_reach,
             "battle_8_plus_count": sum(
-                row["battle"] >= 8 for row in self._battle_records
+                row["battle"] >= 8 for row in battle_records
             ),
             "battle_12_plus_count": sum(
-                row["battle"] >= 12 for row in self._battle_records
+                row["battle"] >= 12 for row in battle_records
             ),
             "zero_command_start_battles": sum(
                 row["command_start"][0] == 0 and row["command_start"][1] == 0
-                for row in self._battle_records
+                for row in battle_records
             ),
             "censored_zero_command_matches": sum(
                 row["censored"] and row.get("final_command") == [0, 0]
@@ -933,7 +987,7 @@ class ProgressionTelemetry:
 
         command_end = [
             value
-            for record in self._battle_records
+            for record in battle_records
             for value in record["command_remaining"]
         ]
         first_pass_rows = [
@@ -968,56 +1022,56 @@ class ProgressionTelemetry:
         }
 
         battlefield = {
-            "battles": len(self._battle_records),
+            "battles": len(battle_records),
             "occupied_positions": self._distribution(
-                [row["mean_total_occupied"] for row in self._battle_records]
+                [row["mean_total_occupied"] for row in battle_records]
             ),
             "occupied_positions_per_player": self._distribution(
                 [
                     value
-                    for row in self._battle_records
+                    for row in battle_records
                     for value in row["mean_occupied_per_player"]
                 ]
             ),
             "active_fronts": self._distribution(
-                [row["mean_active_fronts"] for row in self._battle_records]
+                [row["mean_active_fronts"] for row in battle_records]
             ),
             "contested_fronts": self._distribution(
-                [row["mean_contested_fronts"] for row in self._battle_records]
+                [row["mean_contested_fronts"] for row in battle_records]
             ),
             "uncontested_fronts": self._distribution(
-                [row["mean_uncontested_fronts"] for row in self._battle_records]
+                [row["mean_uncontested_fronts"] for row in battle_records]
             ),
             "empty_fronts": self._distribution(
-                [row["mean_empty_fronts"] for row in self._battle_records]
+                [row["mean_empty_fronts"] for row in battle_records]
             ),
             "tied_fronts": self._distribution(
-                [row["mean_tied_fronts"] for row in self._battle_records]
+                [row["mean_tied_fronts"] for row in battle_records]
             ),
             "controlled_fronts_per_player": self._distribution(
                 [
                     value
-                    for row in self._battle_records
+                    for row in battle_records
                     for value in row["mean_controlled_fronts"]
                 ]
             ),
             "complete_formations": self._distribution(
-                [row["mean_complete_formations"] for row in self._battle_records]
+                [row["mean_complete_formations"] for row in battle_records]
             ),
             "partial_formations": self._distribution(
-                [row["mean_partial_formations"] for row in self._battle_records]
+                [row["mean_partial_formations"] for row in battle_records]
             ),
             "total_strength_per_player": self._distribution(
                 [
                     value
-                    for row in self._battle_records
+                    for row in battle_records
                     for value in row["mean_total_strength_per_player"]
                 ]
             ),
             "strength_by_front": {
                 str(front + 1): self._distribution([
                     row["mean_strength_by_front"][player][front]
-                    for row in self._battle_records
+                    for row in battle_records
                     for player in range(2)
                 ])
                 for front in range(4)
@@ -1025,7 +1079,7 @@ class ProgressionTelemetry:
             "strength_concentration": self._distribution(
                 [
                     value
-                    for row in self._battle_records
+                    for row in battle_records
                     for value in row["mean_strength_concentration"]
                     if value is not None
                 ]
@@ -1034,43 +1088,43 @@ class ProgressionTelemetry:
 
         contestability = {
             "front_control_changes_per_battle": self._distribution(
-                [row["front_control_changes"] for row in self._battle_records]
+                [row["front_control_changes"] for row in battle_records]
             ),
             "control_balance_changes_per_battle": self._distribution(
-                [row["control_balance_changes"] for row in self._battle_records]
+                [row["control_balance_changes"] for row in battle_records]
             ),
             "lead_changes_per_battle": self._distribution(
-                [row["lead_changes"] for row in self._battle_records]
+                [row["lead_changes"] for row in battle_records]
             ),
             "actions_per_battle": self._distribution(
-                [row["actions"] for row in self._battle_records]
+                [row["actions"] for row in battle_records]
             ),
             "maximum_abs_margin": self._distribution(
-                [row["maximum_abs_margin"] for row in self._battle_records]
+                [row["maximum_abs_margin"] for row in battle_records]
             ),
             "midpoint_abs_margin": self._distribution(
-                [row["midpoint_abs_margin"] for row in self._battle_records]
+                [row["midpoint_abs_margin"] for row in battle_records]
             ),
             "final_abs_margin": self._distribution(
-                [row["final_abs_margin"] for row in self._battle_records]
+                [row["final_abs_margin"] for row in battle_records]
             ),
             "durable_lead_action": self._distribution(
                 [
                     row["durable_lead_action"]
-                    for row in self._battle_records
+                    for row in battle_records
                     if row["durable_lead_action"] is not None
                 ]
             ),
             "actions_remaining_after_durable_lead": self._distribution(
                 [
                     row["actions_remaining_after_durable_lead"]
-                    for row in self._battle_records
+                    for row in battle_records
                     if row["actions_remaining_after_durable_lead"] is not None
                 ]
             ),
             "no_control_change_after_midpoint_rate": self._ratio(
-                sum(row["no_control_change_after_midpoint"] for row in self._battle_records),
-                len(self._battle_records),
+                sum(row["no_control_change_after_midpoint"] for row in battle_records),
+                len(battle_records),
             ),
             "first_pass_outcomes": first_pass_outcomes,
         }
@@ -1144,12 +1198,12 @@ class ProgressionTelemetry:
                 "incomplete_removed_during_battle": len(removed_incomplete_during_battle),
                 "incomplete_cleared_at_battle_end": len(cleared_incomplete_at_battle_end),
                 "incomplete_at_battle_end": sum(
-                    sum(record["incomplete_at_end"]) for record in self._battle_records
+                    sum(record["incomplete_at_end"]) for record in battle_records
                 ),
                 "partial_at_battle_end_per_player": self._distribution(
                     [
                         value
-                        for record in self._battle_records
+                        for record in battle_records
                         for value in record["incomplete_at_end"]
                     ]
                 ),
@@ -2000,7 +2054,7 @@ class ProgressionTelemetry:
             "free_maneuvers": self._battle_events["free_maneuvers"],
             "command_gained": self._battle_events["command_gained"],
         }
-        self._battle_records.append(record)
+        battle_records.append(record)
 
         front_balances = self._front_result_balances(front_scores)
         for pass_row in self._pass_contexts:
@@ -2277,9 +2331,17 @@ class ProgressionTelemetry:
             }
         return result
 
-    def _summarize_battles(self) -> dict[str, Any]:
+    def _summarize_battles(
+        self,
+        battle_records: Iterable[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
-        for row in self._battle_records:
+        rows_source = (
+            self._battle_records
+            if battle_records is None
+            else battle_records
+        )
+        for row in rows_source:
             groups[self._battle_key(row["battle"])].append(row)
         result = {}
         for key in ("1", "2", "3", "4-7", "8+"):
