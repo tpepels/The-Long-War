@@ -68,6 +68,9 @@ cdef class FastState:
     cdef int16_t last_command_start[2]
     cdef int16_t last_command_spent[2]
     cdef int16_t last_command_refunded[2]
+    cdef int16_t last_command_before_recovery[2]
+    cdef int16_t last_recovery_loss[2]
+    cdef int16_t last_recovery_actual[2]
     cdef int16_t last_command_remaining[2]
     cdef int16_t last_deck_remaining[2]
     cdef int16_t last_hand_size[2]
@@ -175,6 +178,9 @@ cdef class FastState:
         memset(self.last_command_start, 0, sizeof(self.last_command_start))
         memset(self.last_command_spent, 0, sizeof(self.last_command_spent))
         memset(self.last_command_refunded, 0, sizeof(self.last_command_refunded))
+        memset(self.last_command_before_recovery, 0, sizeof(self.last_command_before_recovery))
+        memset(self.last_recovery_loss, 0, sizeof(self.last_recovery_loss))
+        memset(self.last_recovery_actual, 0, sizeof(self.last_recovery_actual))
         memset(self.last_command_remaining, 0, sizeof(self.last_command_remaining))
         memset(self.last_deck_remaining, 0, sizeof(self.last_deck_remaining))
         memset(self.last_hand_size, 0, sizeof(self.last_hand_size))
@@ -280,6 +286,9 @@ cdef class FastState:
         memcpy(self.last_command_start, other.last_command_start, sizeof(self.last_command_start))
         memcpy(self.last_command_spent, other.last_command_spent, sizeof(self.last_command_spent))
         memcpy(self.last_command_refunded, other.last_command_refunded, sizeof(self.last_command_refunded))
+        memcpy(self.last_command_before_recovery, other.last_command_before_recovery, sizeof(self.last_command_before_recovery))
+        memcpy(self.last_recovery_loss, other.last_recovery_loss, sizeof(self.last_recovery_loss))
+        memcpy(self.last_recovery_actual, other.last_recovery_actual, sizeof(self.last_recovery_actual))
         memcpy(self.last_command_remaining, other.last_command_remaining, sizeof(self.last_command_remaining))
         memcpy(self.last_deck_remaining, other.last_deck_remaining, sizeof(self.last_deck_remaining))
         memcpy(self.last_hand_size, other.last_hand_size, sizeof(self.last_hand_size))
