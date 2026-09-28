@@ -791,16 +791,23 @@ function renderCommandExperiment(lab) {
   }).sort((a, b) => a.key.localeCompare(b.key));
 
   const lowCommandMatches = rows.flatMap(([profileKey, profile]) =>
-    Object.entries(profile.progression_profiles?.profiles || {}).flatMap(([deckName, deck]) =>
-      (deck.progression?.low_command_stalls?.games || []).map((game) => ({
+    Object.entries(profile.progression_profiles?.profiles || {}).flatMap(([deckName, deck]) => {
+      const stalls = deck.progression?.low_command_stalls || {};
+      const battleRecords = stalls.battle_records || [];
+      return (stalls.games || []).map((game) => ({
         profileKey,
         deckName,
         agent: profile.agent || profileKey.split("--")[0],
         recovery: profile.recovery_variant || profileKey.split("--")[1],
         recoveryFloor: Number(profile.recovery_floor ?? profile.rules?.command_recovery_floor ?? 0),
+        battleRecords: battleRecords.filter((record) =>
+          game.simulation_game_index != null && record.simulation_game_index != null
+            ? Number(record.simulation_game_index) === Number(game.simulation_game_index)
+            : Number(record.game) === Number(game.game)
+        ),
         ...game,
-      }))
-    )
+      }));
+    })
   ).sort((left, right) =>
     Number(right.censored || 0) - Number(left.censored || 0)
     || Number(right.final_battle || 0) - Number(left.final_battle || 0)
@@ -810,6 +817,21 @@ function renderCommandExperiment(lab) {
     || Number(left.simulation_game_index ?? left.game ?? 0) - Number(right.simulation_game_index ?? right.game ?? 0)
   );
   const diagnosticMatches = lowCommandMatches.slice(0, 24);
+  const focusMatch = diagnosticMatches[0] || null;
+  const focusBattles = focusMatch
+    ? [...(focusMatch.battleRecords || [])].sort((left, right) => Number(left.battle) - Number(right.battle))
+    : [];
+  const pair = (value) => Array.isArray(value) ? value.join(" / ") : "—";
+  const operationTrace = (record) => (record.operation_trace || []).map((row) => {
+    const alternatives = `${row.playable_card_actions ?? 0} card / ${row.maneuver_actions ?? 0} maneuver`;
+    const cost = row.command_cost == null ? "" : ` · cost ${row.command_cost}`;
+    const forced = row.forced ? " · forced" : "";
+    const changes = [
+      row.board_changed_transition ? "board" : null,
+      row.strength_changed_transition ? "Strength" : null,
+    ].filter(Boolean).join("+") || "no board/Strength change";
+    return `P${row.player} ${row.category}${cost}${forced} · ${alternatives} · ${changes}`;
+  }).join(" | ");
 
   overview.innerHTML = [
     metric("Profiles", summaries.length, "agent × recovery × floor conditions retained for this ruleset"),
@@ -890,6 +912,45 @@ function renderCommandExperiment(lab) {
           </tr>
         `).join("")}</tbody>
       </table>
+      ${focusMatch ? `
+        <h3>Focused low-Command Battle trace</h3>
+        <p class="dashboard-note">
+          ${esc(focusMatch.agent)} · ${esc(focusMatch.recovery)} · floor ${focusMatch.recoveryFloor} ·
+          ${esc(focusMatch.deckName)} · game ${focusMatch.simulation_game_index ?? focusMatch.game ?? "—"} ·
+          seed <code>${focusMatch.seed ?? "—"}</code>. This is the first row above.
+        </p>
+        <table class="mini-table">
+          <thead><tr>
+            <th>Battle</th><th>Command start</th><th>Before recovery</th><th>Base</th><th>Fronts lost</th>
+            <th>Recovery loss</th><th>Actual</th><th>After recovery</th><th>Collapse</th>
+            <th>Operations and alternatives</th><th>Battlefield change</th><th>State</th>
+          </tr></thead>
+          <tbody>${focusBattles.map((record) => `
+            <tr>
+              <td>${record.battle ?? "—"}</td>
+              <td>${esc(pair(record.command_start))}</td>
+              <td>${esc(pair(record.command_before_recovery))}</td>
+              <td>${record.recovery_base ?? "—"}</td>
+              <td>${esc(pair(record.fronts_lost))}</td>
+              <td>${esc(pair(record.recovery_loss))}</td>
+              <td>${esc(pair(record.recovery_actual))}</td>
+              <td>${esc(pair(record.command_after_recovery))}</td>
+              <td>${record.collapse_comparison?.equal ? "equal" : "unequal"} · ${record.collapse_comparison?.continued ? "continue" : "end"}</td>
+              <td><code>${esc(operationTrace(record) || "—")}</code></td>
+              <td>board ${record.board_changed_during_battle ? "changed" : "same"} · Strength ${record.strength_changed_during_battle ? "changed" : "same"} · resolution board ${record.board_changed_during_resolution ? "changed" : "same"}</td>
+              <td>
+                <details><summary>signatures</summary>
+                  <code>start ${esc(JSON.stringify(record.board_start_signature))}</code><br>
+                  <code>end ${esc(JSON.stringify(record.board_end_signature))}</code><br>
+                  <code>next ${esc(JSON.stringify(record.next_battle_board_signature))}</code><br>
+                  <code>Strength start ${esc(JSON.stringify(record.strength_start))}</code><br>
+                  <code>Strength next ${esc(JSON.stringify(record.next_battle_strength_by_front))}</code>
+                </details>
+              </td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+      ` : ""}
     ` : ""}
   `;
 }
