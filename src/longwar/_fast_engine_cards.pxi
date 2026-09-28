@@ -214,7 +214,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         )
         self.hero[code] = bool(card.get("hero", False))
         rules = card.get("rules", {})
-        design = card.get("design_rules") or {}
+        design = engine.card_mechanics[card_id]
         force_design = design.get("force") or design
 
         self.narrative_first_card_front_constraint[code] = bool(
