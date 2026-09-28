@@ -63,6 +63,8 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, state.scheme_revealed[ix])
         _info_hash_feed(&h, state.scheme_front_mask[ix])
         _info_hash_feed(&h, state.scheme_used[ix])
+        _info_hash_feed(&h, state.scheme_direction[ix])
+        _info_hash_feed(&h, state.scheme_trigger_mask[ix])
         _info_hash_feed(&h, <uint8_t>(state.scheme_target_slot[ix] + 1))
     for p in range(2):
         _info_hash_feed(&h, <uint8_t>(state.stratagem[p] + 1))
@@ -89,6 +91,21 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed(&h, <uint8_t>(state.pending_resume_player + 1))
     _info_hash_feed(&h, state.free_maneuver_available[0])
     _info_hash_feed(&h, state.free_maneuver_available[1])
+    _info_hash_feed_u16(&h, state.player_maneuver_count[0])
+    _info_hash_feed_u16(&h, state.player_maneuver_count[1])
+    for slot in range(SLOT_COUNT):
+        _info_hash_feed(&h, state.maneuver_direction[slot])
+    _info_hash_feed(&h, state.constraint_len)
+    for i in range(state.constraint_len):
+        _info_hash_feed(&h, state.constraint_kind[i])
+        _info_hash_feed(&h, <uint8_t>(state.constraint_player[i] + 1))
+        _info_hash_feed(&h, <uint8_t>(state.constraint_source_card[i] + 1))
+        _info_hash_feed(&h, <uint8_t>(state.constraint_source_owner[i] + 1))
+        _info_hash_feed(&h, <uint8_t>(state.constraint_front[i] + 1))
+        _info_hash_feed(&h, state.constraint_direction[i])
+        _info_hash_feed(&h, <uint8_t>(state.constraint_source_slot[i] + 1))
+        _info_hash_feed_u32(&h, <uint32_t>state.constraint_activate_turn[i])
+        _info_hash_feed(&h, state.constraint_flags[i])
     _info_hash_feed(&h, state.resolution_stage)
     _info_hash_feed(&h, state.resolution_lost_mask[0])
     _info_hash_feed(&h, state.resolution_lost_mask[1])
@@ -179,6 +196,28 @@ cdef int _fe__information_state_encode(
     _info_emit(buf, &n, h, <uint8_t>(state.pending_resume_player + 1))
     _info_emit(buf, &n, h, state.free_maneuver_available[0])
     _info_emit(buf, &n, h, state.free_maneuver_available[1])
+    _info_emit_u16(buf, &n, h, state.player_maneuver_count[0])
+    _info_emit_u16(buf, &n, h, state.player_maneuver_count[1])
+    for i in range(SLOT_COUNT):
+        _info_emit(buf, &n, h, state.maneuver_direction[i])
+    _info_emit(buf, &n, h, state.constraint_len)
+    for i in range(state.constraint_len):
+        _info_emit(buf, &n, h, state.constraint_kind[i])
+        _info_emit(buf, &n, h, <uint8_t>(state.constraint_player[i] + 1))
+        _info_emit(buf, &n, h, <uint8_t>(state.constraint_source_card[i] + 1))
+        _info_emit(buf, &n, h, <uint8_t>(state.constraint_source_owner[i] + 1))
+        _info_emit(buf, &n, h, <uint8_t>(state.constraint_front[i] + 1))
+        _info_emit(buf, &n, h, state.constraint_direction[i])
+        _info_emit(buf, &n, h, <uint8_t>(state.constraint_source_slot[i] + 1))
+        _info_emit_u16(
+            buf, &n, h,
+            <uint16_t>(state.constraint_activate_turn[i] & 0xFFFF)
+        )
+        _info_emit_u16(
+            buf, &n, h,
+            <uint16_t>((state.constraint_activate_turn[i] >> 16) & 0xFFFF)
+        )
+        _info_emit(buf, &n, h, state.constraint_flags[i])
     _info_emit(buf, &n, h, state.resolution_stage)
     _info_emit(buf, &n, h, state.resolution_lost_mask[0])
     _info_emit(buf, &n, h, state.resolution_lost_mask[1])
@@ -244,6 +283,18 @@ cdef int _fe__information_state_encode(
                     &n,
                     h,
                     state.scheme_used[owner * 4 + story_slot],
+                )
+                _info_emit(
+                    buf,
+                    &n,
+                    h,
+                    state.scheme_direction[owner * 4 + story_slot],
+                )
+                _info_emit(
+                    buf,
+                    &n,
+                    h,
+                    state.scheme_trigger_mask[owner * 4 + story_slot],
                 )
                 _info_emit(
                     buf,
@@ -441,12 +492,19 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
                         fronts += ","
                     fronts += str(front)
             key += f":fronts:{fronts}"
-        elif choice == STORY_CHOICE_NAMED_FORMATION and dest >= 0:
+        elif (
+            choice == STORY_CHOICE_NAMED_FORMATION
+            or choice == STORY_CHOICE_NAMED_DIRECTION
+        ) and dest >= 0:
             key += (
                 f":targets:{owner_from_slot(dest)},"
                 f"{front_from_slot(dest)},"
                 f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
             )
+            if choice == STORY_CHOICE_NAMED_DIRECTION:
+                key += (
+                    f":direction:{'left' if extra == 1 else 'right'}"
+                )
         return key
     if kind == TYPE_STRATAGEM:
         key = f"stratagem:{self.card_ids[card]}"
