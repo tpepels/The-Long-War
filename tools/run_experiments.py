@@ -823,28 +823,31 @@ def balance_run(args: argparse.Namespace) -> Path:
     return output
 
 def run_command_matrix(args: argparse.Namespace) -> list[Path]:
-    """Run the four Command-economy comparison cells into one Lab surface."""
+    """Run the planning-capable Command-economy comparison into one Lab."""
     outputs: list[Path] = []
     print(
-        "Command matrix: current/candidate recovery × heuristic/ISMCTS. "
-        "Card counterfactual screening is skipped; this experiment isolates "
-        "progression and resource behavior.",
+        "Command matrix: ISMCTS under current recovery, candidate recovery, "
+        "and candidate recovery with a minimum recovery floor of 1. "
+        "Heuristic self-play is intentionally excluded because it cannot "
+        "plan across Battles and is not evidence about long-term Command "
+        "economy behavior.",
         flush=True,
     )
-    for agent_name, recovery_variant in (
-        ("heuristic", "current"),
-        ("heuristic", "candidate"),
-        ("ismcts", "current"),
-        ("ismcts", "candidate"),
+    for recovery_variant, recovery_floor in (
+        ("current", 0),
+        ("candidate", 0),
+        ("candidate", 1),
     ):
         cell = argparse.Namespace(**vars(args))
         cell.command_matrix = False
-        cell.agent = agent_name
+        cell.agent = "ismcts"
         cell.recovery = recovery_variant
+        cell.recovery_floor = recovery_floor
         cell.skip_card_screen = True
         cell.publish_lab = True
         print(
-            f"\n=== {agent_name} / {recovery_variant} recovery ===",
+            f"\n=== ISMCTS / {recovery_variant} recovery "
+            f"/ floor {recovery_floor} ===",
             flush=True,
         )
         outputs.append(balance_run(cell))
@@ -1866,9 +1869,10 @@ def parse_args() -> argparse.Namespace:
         "--command-matrix",
         action="store_true",
         help=(
-            "Run current/candidate recovery with both heuristic and ISMCTS, "
-            "store all four profiles in the single Balance Lab, and skip the "
-            "unrelated card counterfactual sweep."
+            "Run planning-capable Command-economy comparisons using ISMCTS: "
+            "current recovery, candidate recovery, and candidate recovery with "
+            "recovery floor 1. Heuristic self-play is excluded because it does "
+            "not plan across Battles."
         ),
     )
     balance.add_argument(
