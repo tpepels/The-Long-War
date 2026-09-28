@@ -163,6 +163,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         )
     self.command_recovery_len = len(self.command_recovery_schedule)
     self.command_recovery_tail = int(engine.rules.command_recovery_tail)
+    self.command_recovery_floor = int(engine.rules.command_recovery_floor)
     for r in range(self.command_recovery_len):
         self.command_recovery_values[r] = int(
             self.command_recovery_schedule[r]
