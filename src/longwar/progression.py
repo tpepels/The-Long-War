@@ -55,6 +55,7 @@ class ProgressionTelemetry:
         self._current_action = 0
         self._battle_action = 0
         self._battle_number = 1
+        self._collapse_threshold: int | None = None
 
         self._next_formation_id = 1
         self._formation_at: dict[tuple[int, Position], int] = {}
@@ -123,6 +124,13 @@ class ProgressionTelemetry:
 
     def merge(self, other: "ProgressionTelemetry") -> None:
         """Merge completed-match telemetry from an independent worker."""
+        if self._collapse_threshold is None:
+            self._collapse_threshold = other._collapse_threshold
+        elif (
+            other._collapse_threshold is not None
+            and self._collapse_threshold != other._collapse_threshold
+        ):
+            raise ValueError("Cannot merge progression telemetry from different collapse thresholds")
         if self._constraint_active_streak:
             self._constraint_active_streaks.append(self._constraint_active_streak)
             self._constraint_active_streak = 0
@@ -211,6 +219,11 @@ class ProgressionTelemetry:
                 target["by_battle"][battle].update(counts)
 
     def start_game(self, engine: GameEngine, state: GameState) -> None:
+        threshold = int(engine.rules.command_collapse_threshold)
+        if self._collapse_threshold is None:
+            self._collapse_threshold = threshold
+        elif self._collapse_threshold != threshold:
+            raise ValueError("Progression telemetry cannot mix collapse thresholds")
         if self._constraint_active_streak:
             self._constraint_active_streaks.append(self._constraint_active_streak)
             self._constraint_active_streak = 0
@@ -438,6 +451,8 @@ class ProgressionTelemetry:
             self._battle_events["names_played"] += 1
         if isinstance(action, CARD_ACTIONS):
             self._battle_events["cards_played"] += 1
+        if isinstance(action, Maneuver):
+            self._battle_events["maneuvers"] += 1
 
     def after_action(
         self,
@@ -1556,6 +1571,15 @@ class ProgressionTelemetry:
             "total_strength": totals,
             "strength_by_front": strengths,
             "strength_concentration": concentration,
+            "board_signature": [
+                [
+                    state.slot(player, position).force,
+                    state.slot(player, position).bond,
+                    state.slot(player, position).name,
+                ]
+                for player in range(2)
+                for position in all_positions()
+            ],
             "legal_actions": legal_count,
             "constraint_active": constraint_active,
             "constraint_rule_sources": constraint_sources,
