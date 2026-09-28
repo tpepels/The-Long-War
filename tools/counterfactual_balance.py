@@ -25,6 +25,7 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=20260921)
     parser.add_argument("--agent", choices=["heuristic", "random"], default="heuristic")
     parser.add_argument("--bootstrap-resamples", type=int, default=2000)
+    parser.add_argument("--jobs", type=int, default=8, help="Parallel worker processes for the full-pool sweep (default: 8).")
     parser.add_argument("--no-pairs", action="store_true")
     parser.add_argument("--no-triples", action="store_true")
     parser.add_argument(
@@ -65,6 +66,7 @@ def main() -> None:
             seed=args.seed,
             agent_name=args.agent,
             bootstrap_resamples=args.bootstrap_resamples,
+            jobs=args.jobs,
         )
     else:
         report = run_counterfactual_experiment(

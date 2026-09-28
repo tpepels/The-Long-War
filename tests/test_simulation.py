@@ -42,6 +42,46 @@ def test_random_games_finish() -> None:
     assert json.loads(json.dumps(asdict(report)))["game_outcomes"] == report.game_outcomes
 
 
+def test_parallel_random_simulation_preserves_seeded_results_and_telemetry() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data)
+
+    serial = simulate_games(
+        engine,
+        deck,
+        deck,
+        games=8,
+        seed=501,
+        jobs=1,
+        agent_names=("random", "random"),
+    )
+    parallel = simulate_games(
+        engine,
+        deck,
+        deck,
+        games=8,
+        seed=501,
+        jobs=8,
+        agent_names=("random", "random"),
+    )
+
+    assert parallel.game_outcomes == serial.game_outcomes
+    assert parallel.wins == serial.wins
+    assert parallel.censored_games == serial.censored_games
+    assert parallel.first_player_wins == serial.first_player_wins
+    assert parallel.mean_turns == pytest.approx(serial.mean_turns)
+    assert parallel.max_turns == serial.max_turns
+    assert parallel.telemetry["actions"] == serial.telemetry["actions"]
+    assert parallel.telemetry["cards"] == serial.telemetry["cards"]
+    assert parallel.telemetry["passes"] == serial.telemetry["passes"]
+    assert parallel.telemetry["battles"] == serial.telemetry["battles"]
+    assert parallel.telemetry["progression"] == serial.telemetry["progression"]
+    assert parallel.telemetry["human_flow"] == serial.telemetry["human_flow"]
+
+
 def test_action_horizon_is_recorded_as_censoring() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(

@@ -483,6 +483,7 @@ def run_counterfactual_card_sweep(
     agent_name: str = "heuristic",
     bootstrap_resamples: int = 2000,
     card_ids: list[str] | None = None,
+    jobs: int = 1,
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Evaluate card main effects across a pool larger than one legal deck.
@@ -509,25 +510,61 @@ def run_counterfactual_card_sweep(
     if not selected:
         raise ValueError("At least one selected card is required")
 
+    if jobs <= 0:
+        raise ValueError("jobs must be positive")
+
     rows: list[dict[str, Any]] = []
     total_matches = 0
     censored_matches = 0
     decisive_paired_samples = 0
     censored_paired_samples = 0
-    reports: list[dict[str, Any]] = []
-    for index, card_id in enumerate(selected):
-        report = run_counterfactual_experiment(
-            card_data,
-            contexts=contexts,
-            games_per_context=games_per_context,
-            seed=seed + index * 104729,
-            agent_name=agent_name,
-            include_pairs=False,
-            include_legend_triples=False,
-            bootstrap_resamples=bootstrap_resamples,
-            card_ids=[card_id],
-        )
-        reports.append(report)
+    indexed_reports: list[tuple[int, dict[str, Any]]] = []
+    worker_count = min(jobs, len(selected))
+    if worker_count == 1:
+        for index, card_id in enumerate(selected):
+            report = run_counterfactual_experiment(
+                card_data,
+                contexts=contexts,
+                games_per_context=games_per_context,
+                seed=seed + index * 104729,
+                agent_name=agent_name,
+                include_pairs=False,
+                include_legend_triples=False,
+                bootstrap_resamples=bootstrap_resamples,
+                card_ids=[card_id],
+            )
+            indexed_reports.append((index, report))
+            if progress_callback is not None:
+                progress_callback(index + 1, len(selected), report["cards"][0])
+    else:
+        completed = 0
+        with ProcessPoolExecutor(max_workers=worker_count) as pool:
+            future_to_index = {
+                pool.submit(
+                    run_counterfactual_experiment,
+                    card_data,
+                    contexts=contexts,
+                    games_per_context=games_per_context,
+                    seed=seed + index * 104729,
+                    agent_name=agent_name,
+                    include_pairs=False,
+                    include_legend_triples=False,
+                    bootstrap_resamples=bootstrap_resamples,
+                    card_ids=[card_id],
+                ): index
+                for index, card_id in enumerate(selected)
+            }
+            for future in as_completed(future_to_index):
+                index = future_to_index[future]
+                report = future.result()
+                indexed_reports.append((index, report))
+                completed += 1
+                if progress_callback is not None:
+                    progress_callback(completed, len(selected), report["cards"][0])
+
+    indexed_reports.sort(key=lambda item: item[0])
+    reports = [report for _index, report in indexed_reports]
+    for report in reports:
         rows.extend(
             {**row, "sample_generation": report["sample_generation"]}
             for row in report["cards"]
@@ -542,8 +579,6 @@ def run_counterfactual_card_sweep(
             int(row.get("censored_pairs", 0))
             for row in report["cards"]
         )
-        if progress_callback is not None:
-            progress_callback(index + 1, len(selected), report["cards"][0])
 
     rows.sort(
         key=lambda row: (

@@ -84,6 +84,7 @@ def test_game_rules_have_no_named_experiment_profile_api():
 
 
 def test_provisional_ismcts_exploration_default_is_shared():
+    assert inspect.signature(simulate_games).parameters["jobs"].default == 1
     assert DEFAULT_ISMCTS_EXPLORATION == pytest.approx(0.3)
     assert inspect.signature(ISMCTSAgent).parameters["exploration"].default == DEFAULT_ISMCTS_EXPLORATION
     assert inspect.signature(make_agent).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
@@ -326,6 +327,18 @@ def test_strength_benchmark_reports_live_progress():
     assert len(runner.CANONICAL_DECK_PATHS) == 6
 
 
+def test_balance_defaults_to_eight_worker_processes(monkeypatch):
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "balance", "--preset", "quick"],
+    )
+    args = runner.parse_args()
+    assert args.jobs == 8
+    source = inspect.getsource(runner.balance_run)
+    assert "jobs=args.jobs" in source
+
+
 def test_strength_sanity_check_defaults(monkeypatch):
     monkeypatch.setattr(
         runner.sys,
@@ -338,6 +351,16 @@ def test_strength_sanity_check_defaults(monkeypatch):
     assert args.iterations == 100_000
     assert args.alpha_nodes == 20_000
     assert args.time_budget_seconds == pytest.approx(5.0)
+
+
+def test_long_running_cli_entrypoints_default_to_eight_workers() -> None:
+    simulate_source = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
+    counterfactual_source = (ROOT / "tools" / "counterfactual_balance.py").read_text(encoding="utf-8")
+    targeted_source = (ROOT / "tools" / "targeted_online_counterfactual.py").read_text(encoding="utf-8")
+
+    assert 'parser.add_argument("--jobs", type=int, default=8' in simulate_source
+    assert 'parser.add_argument("--jobs", type=int, default=8' in counterfactual_source
+    assert 'parser.add_argument("--jobs", type=int, default=8' in targeted_source
 
 
 def test_makefile_has_one_configurable_experiment_entrypoint():

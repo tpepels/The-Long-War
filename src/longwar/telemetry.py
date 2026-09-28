@@ -118,6 +118,59 @@ class Telemetry:
         self._deck_empty_decisions = 0
         self._match_count = 0
 
+    def merge(self, other: "Telemetry") -> None:
+        """Merge completed-match telemetry from an independent worker."""
+        for card_id, source in other.cards.items():
+            target = self.cards[card_id]
+            for field_name in CardStats.__dataclass_fields__:
+                setattr(
+                    target,
+                    field_name,
+                    getattr(target, field_name) + getattr(source, field_name),
+                )
+        for combo_id, source in other.combos.items():
+            target = self.combos[combo_id]
+            for field_name in ComboStats.__dataclass_fields__:
+                setattr(
+                    target,
+                    field_name,
+                    getattr(target, field_name) + getattr(source, field_name),
+                )
+        self.action_counts.update(other.action_counts)
+        self.pass_events.extend(other.pass_events)
+        self.battle_records.extend(other.battle_records)
+
+        for agent, source in other.decision_stats.items():
+            target = self.decision_stats[agent]
+            for field_name in DecisionStats.__dataclass_fields__:
+                if field_name == "decision_seconds_max":
+                    target.decision_seconds_max = max(
+                        target.decision_seconds_max,
+                        source.decision_seconds_max,
+                    )
+                elif field_name == "ismcts_tree_resets":
+                    target.ismcts_tree_resets.update(source.ismcts_tree_resets)
+                else:
+                    setattr(
+                        target,
+                        field_name,
+                        getattr(target, field_name) + getattr(source, field_name),
+                    )
+
+        self.policy_sources.update(other.policy_sources)
+        self.search_backends.update(other.search_backends)
+        for key in self.online_resolution:
+            self.online_resolution[key] += other.online_resolution[key]
+        self.online_prior_counts.update(other.online_prior_counts)
+        self.progression.merge(other.progression)
+        self._deck_exhausted_player_games += other._deck_exhausted_player_games
+        self._reshuffle_player_games += other._reshuffle_player_games
+        self._reshuffles_total += other._reshuffles_total
+        self._battle_decisions += other._battle_decisions
+        self._deck_empty_decisions += other._deck_empty_decisions
+        self._match_count += other._match_count
+        self._progression_started = self._progression_started or other._progression_started
+
     def start_game(self, state: GameState, engine: GameEngine | None = None) -> None:
         self._drawn_this_game = [set(), set()]
         self._played_this_game = [set(), set()]

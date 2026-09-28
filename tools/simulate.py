@@ -64,6 +64,7 @@ def main() -> None:
     defaults = GameRules.standard()
     parser.add_argument("--games", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=1701)
+    parser.add_argument("--jobs", type=int, default=8, help="Parallel worker processes (default: 8).")
     choices = ["heuristic", "strategic_heuristic", "ismcts", "random", "mccfr", "online_mccfr"]
     parser.add_argument("--agent-a", choices=choices, default="heuristic")
     parser.add_argument("--agent-b", choices=choices, default="heuristic")
@@ -261,6 +262,7 @@ def main() -> None:
         deck_b,
         games=args.games,
         seed=args.seed,
+        jobs=args.jobs,
         agent_names=(args.agent_a, args.agent_b),
         agent_policies=policies,
         heuristic_exploration=args.heuristic_exploration,

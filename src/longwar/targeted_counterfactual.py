@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import itertools
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable
 
@@ -352,6 +353,135 @@ def _confirmation(
     return "inconclusive"
 
 
+def _run_targeted_candidate(
+    target_index: int,
+    candidate: TargetCandidate,
+    card_data: dict[str, Any],
+    broad_report: dict[str, Any],
+    contexts: int,
+    games_per_context: int,
+    online_iterations: int,
+    online_depth: int,
+    bootstrap_resamples: int,
+) -> tuple[int, dict[str, Any], int, int, int, int]:
+    # Only the focal intervention identities belong in this solver. A target
+    # adds at most 1/2/3 synthetic identities to the canonical card pool.
+    engine = GameEngine(build_experiment_card_data(card_data, candidate.cards))
+    samples = _subset_samples(
+        card_data,
+        broad_report,
+        contexts=contexts,
+        games_per_context=games_per_context,
+        sample_generation=candidate.sample_generation,
+    )
+    conditions = _powerset(candidate.cards)
+    outcomes: dict[frozenset[str], list[int | None]] = {
+        condition: [] for condition in conditions
+    }
+    total_matches = 0
+    censored_matches = 0
+    for sample in samples:
+        for condition in conditions:
+            focal_deck = replace_cards(sample.focal_deck, condition)
+            outcome = _play_online_outcome(
+                engine,
+                sample,
+                focal_deck,
+                target_cards=candidate.cards,
+                online_iterations=online_iterations,
+                online_depth=online_depth,
+            )
+            outcomes[condition].append(outcome)
+            total_matches += 1
+            if outcome is None:
+                censored_matches += 1
+
+    complete_indices = [
+        index
+        for index in range(len(samples))
+        if all(outcomes[condition][index] is not None for condition in conditions)
+    ]
+    filtered: dict[frozenset[str], list[int]] = {
+        condition: [
+            int(outcomes[condition][index])
+            for index in complete_indices
+            if outcomes[condition][index] is not None
+        ]
+        for condition in conditions
+    }
+    pair_censored = len(samples) - len(complete_indices)
+    values = (
+        _contrast(candidate.kind, filtered, candidate.cards)
+        if complete_indices
+        else []
+    )
+    effect = (
+        estimate(
+            values,
+            seed=int(broad_report["seed"]) + 70_000 + target_index,
+            bootstrap_resamples=bootstrap_resamples,
+            contrast_bound=float(2 ** (len(candidate.cards) - 1)),
+        )
+        if values
+        else None
+    )
+    severity = (
+        _severity(effect)
+        if effect is not None
+        else {
+            "level": "unobserved",
+            "direction": "unresolved",
+            "confidence_excludes_zero": False,
+        }
+    )
+    result = {
+        "kind": candidate.kind,
+        "cards": list(candidate.cards),
+        "title": candidate.title,
+        "sample_generation": (
+            candidate.sample_generation or broad_report.get("sample_generation")
+        ),
+        "broad": {
+            "effect": candidate.broad_effect,
+            "ci95": list(candidate.broad_ci95),
+            "level": candidate.broad_level,
+            "confidence_excludes_zero": candidate.broad_excludes_zero,
+            "policy": broad_report.get("policy"),
+            "samples": candidate.broad_samples,
+            "attempted_samples": candidate.broad_attempted_samples,
+            "censored_pairs": candidate.broad_censored_pairs,
+        },
+        "online": {
+            "effect": effect.mean if effect is not None else None,
+            "ci95": list(effect.ci95) if effect is not None else [None, None],
+            "ci_method": effect.ci_method if effect is not None else None,
+            "standard_error": effect.standard_error if effect is not None else None,
+            "samples": effect.samples if effect is not None else 0,
+            "attempted_samples": len(samples),
+            "censored_pairs": pair_censored,
+            "paired_censor_rate": (
+                pair_censored / len(samples) if samples else 0.0
+            ),
+            **severity,
+        },
+        "confirmation": _confirmation(candidate, effect),
+        "direction_agreement": (
+            effect is not None
+            and _sign(candidate.broad_effect) != 0
+            and _sign(candidate.broad_effect) == _sign(effect.mean)
+        ),
+        "factorial_conditions": len(conditions),
+    }
+    return (
+        target_index,
+        result,
+        total_matches,
+        censored_matches,
+        len(complete_indices),
+        pair_censored,
+    )
+
+
 def run_targeted_online_validation(
     card_data: dict[str, Any],
     broad_report: dict[str, Any],
@@ -366,6 +496,7 @@ def run_targeted_online_validation(
     minimum_abs_effect: float = 0.05,
     bootstrap_resamples: int = 1000,
     force_top: bool = False,
+    jobs: int = 1,
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Re-test suspicious broad A/B signals with online MCCFR.
@@ -392,131 +523,72 @@ def run_targeted_online_validation(
         minimum_abs_effect=minimum_abs_effect,
         force_top=force_top,
     )
+    if jobs <= 0:
+        raise ValueError("jobs must be positive")
+
     results: list[dict[str, Any]] = []
     total_matches = 0
     censored_matches = 0
     decisive_paired_samples = 0
     censored_paired_samples = 0
 
-    for target_index, candidate in enumerate(selected):
-        # Only the focal intervention identities belong in this solver.
-        # The canonical pool already has 95 cards; adding baselines for the
-        # entire pool would exceed the native engine's 127-card identity cap.
-        # A card/pair/triple target adds at most 1/2/3 synthetic identities.
-        engine = GameEngine(
-            build_experiment_card_data(card_data, candidate.cards)
-        )
-        samples = _subset_samples(
-            card_data,
-            broad_report,
-            contexts=contexts,
-            games_per_context=games_per_context,
-            sample_generation=candidate.sample_generation,
-        )
-        conditions = _powerset(candidate.cards)
-        outcomes: dict[frozenset[str], list[int | None]] = {
-            condition: [] for condition in conditions
-        }
-
-        for sample in samples:
-            for condition in conditions:
-                focal_deck = replace_cards(sample.focal_deck, condition)
-                outcome = _play_online_outcome(
-                    engine,
-                    sample,
-                    focal_deck,
-                    target_cards=candidate.cards,
-                    online_iterations=online_iterations,
-                    online_depth=online_depth,
-                )
-                outcomes[condition].append(outcome)
-                total_matches += 1
-                if outcome is None:
-                    censored_matches += 1
-
-        complete_indices = [
-            index
-            for index in range(len(samples))
-            if all(outcomes[condition][index] is not None for condition in conditions)
-        ]
-        filtered: dict[frozenset[str], list[int]] = {
-            condition: [
-                int(outcomes[condition][index])
-                for index in complete_indices
-                if outcomes[condition][index] is not None
-            ]
-            for condition in conditions
-        }
-        pair_censored = len(samples) - len(complete_indices)
-        decisive_paired_samples += len(complete_indices)
-        censored_paired_samples += pair_censored
-
-        values = (
-            _contrast(candidate.kind, filtered, candidate.cards)
-            if complete_indices
-            else []
-        )
-        effect = (
-            estimate(
-                values,
-                seed=int(broad_report["seed"]) + 70_000 + target_index,
-                bootstrap_resamples=bootstrap_resamples,
-                contrast_bound=float(2 ** (len(candidate.cards) - 1)),
+    completed_rows: list[tuple[int, dict[str, Any], int, int, int, int]] = []
+    worker_count = min(jobs, len(selected)) if selected else 0
+    if worker_count <= 1:
+        for target_index, candidate in enumerate(selected):
+            row = _run_targeted_candidate(
+                target_index,
+                candidate,
+                card_data,
+                broad_report,
+                contexts,
+                games_per_context,
+                online_iterations,
+                online_depth,
+                bootstrap_resamples,
             )
-            if values
-            else None
-        )
-        severity = (
-            _severity(effect)
-            if effect is not None
-            else {
-                "level": "unobserved",
-                "direction": "unresolved",
-                "confidence_excludes_zero": False,
-            }
-        )
-        results.append({
-            "kind": candidate.kind,
-            "cards": list(candidate.cards),
-            "title": candidate.title,
-            "sample_generation": (
-                candidate.sample_generation or broad_report.get("sample_generation")
-            ),
-            "broad": {
-                "effect": candidate.broad_effect,
-                "ci95": list(candidate.broad_ci95),
-                "level": candidate.broad_level,
-                "confidence_excludes_zero": candidate.broad_excludes_zero,
-                "policy": broad_report.get("policy"),
-                "samples": candidate.broad_samples,
-                "attempted_samples": candidate.broad_attempted_samples,
-                "censored_pairs": candidate.broad_censored_pairs,
-            },
-            "online": {
-                "effect": effect.mean if effect is not None else None,
-                "ci95": list(effect.ci95) if effect is not None else [None, None],
-                "ci_method": effect.ci_method if effect is not None else None,
-                "standard_error": (
-                    effect.standard_error if effect is not None else None
-                ),
-                "samples": effect.samples if effect is not None else 0,
-                "attempted_samples": len(samples),
-                "censored_pairs": pair_censored,
-                "paired_censor_rate": (
-                    pair_censored / len(samples) if samples else 0.0
-                ),
-                **severity,
-            },
-            "confirmation": _confirmation(candidate, effect),
-            "direction_agreement": (
-                effect is not None
-                and _sign(candidate.broad_effect) != 0
-                and _sign(candidate.broad_effect) == _sign(effect.mean)
-            ),
-            "factorial_conditions": len(conditions),
-        })
-        if progress_callback is not None:
-            progress_callback(target_index + 1, len(selected), results[-1])
+            completed_rows.append(row)
+            if progress_callback is not None:
+                progress_callback(target_index + 1, len(selected), row[1])
+    else:
+        completed = 0
+        with ProcessPoolExecutor(max_workers=worker_count) as pool:
+            futures = [
+                pool.submit(
+                    _run_targeted_candidate,
+                    target_index,
+                    candidate,
+                    card_data,
+                    broad_report,
+                    contexts,
+                    games_per_context,
+                    online_iterations,
+                    online_depth,
+                    bootstrap_resamples,
+                )
+                for target_index, candidate in enumerate(selected)
+            ]
+            for future in as_completed(futures):
+                row = future.result()
+                completed_rows.append(row)
+                completed += 1
+                if progress_callback is not None:
+                    progress_callback(completed, len(selected), row[1])
+
+    completed_rows.sort(key=lambda row: row[0])
+    for (
+        _target_index,
+        result,
+        row_total_matches,
+        row_censored_matches,
+        row_decisive_pairs,
+        row_censored_pairs,
+    ) in completed_rows:
+        results.append(result)
+        total_matches += row_total_matches
+        censored_matches += row_censored_matches
+        decisive_paired_samples += row_decisive_pairs
+        censored_paired_samples += row_censored_pairs
 
     by_kind = {
         kind: [row for row in results if row["kind"] == kind]
