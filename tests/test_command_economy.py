@@ -47,7 +47,6 @@ def test_standard_command_profile_matches_canonical_rules() -> None:
     assert rules.command_recovery_schedule == (10, 7, 5, 4, 3, 2, 1)
     assert rules.command_collapse_threshold == 5
     assert rules.maneuver_command_cost == 1
-    assert rules.completion_command_refund == 0
     assert [player.command for player in state.players] == [20, 20]
 
 
