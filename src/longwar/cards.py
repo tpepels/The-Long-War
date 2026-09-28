@@ -478,6 +478,18 @@ def normalize_card_data(data: dict[str, Any]) -> dict[str, Any]:
     return copy.deepcopy(data)
 
 
+def compile_card_mechanics(card: dict[str, Any]) -> dict[str, Any]:
+    """Compile one card's executable design vocabulary for the native engine.
+
+    The current representation intentionally stays dictionary-shaped so this
+    refactor does not alter runtime semantics. The important boundary is that
+    native code consumes this validated compiler output, never raw design_rules
+    from catalogue JSON.
+    """
+    _validate_design_rules(card)
+    return copy.deepcopy(card.get("design_rules") or {})
+
+
 def load_card_file(path: str | Path) -> dict[str, Any]:
     path = Path(path)
     with path.open("r", encoding="utf-8") as handle:
