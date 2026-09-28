@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def setup(seed: int, first_player: int = 0):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
     return engine.new_game(
@@ -66,8 +66,8 @@ def test_game_state_copy_from_reuses_containers_without_aliasing_source() -> Non
     source.players[1].passed = True
     source.pass_order.append(1)
     source.stratagem_used[0] = True
-    source.stories[0].append(StoryState("the-lamps-went-dark"))
-    source.stratagems[0] = StratagemState("the-storm-broke")
+    source.stories[0].append(StoryState("the-long-march"))
+    source.stratagems[0] = StratagemState("the-ground-was-held")
     slot = source.slot(0, position)
     slot.force = "seven-black-ships"
     slot.bond = "followed"
@@ -90,15 +90,15 @@ def test_game_state_copy_from_reuses_containers_without_aliasing_source() -> Non
     assert target.players[1].passed is True
     assert target.pass_order == [1]
     assert target.stratagem_used[0] is True
-    assert target.stories[0][0].card_id == "the-lamps-went-dark"
-    assert target.stratagems[0].card_id == "the-storm-broke"
+    assert target.stories[0][0].card_id == "the-long-march"
+    assert target.stratagems[0].card_id == "the-ground-was-held"
     assert target.slot(0, position).force == "seven-black-ships"
     assert target.slot(0, position).temporary_strength == 2
 
     target.players[0].hand.clear()
     target.slot(0, position).force = "the-fifty-men"
-    target.stories[0][0].card_id = "the-road-was-cut"
+    target.stories[0][0].card_id = "the-wall-did-not-break"
 
     assert source.players[0].hand
     assert source.slot(0, position).force == "seven-black-ships"
-    assert source.stories[0][0].card_id == "the-lamps-went-dark"
+    assert source.stories[0][0].card_id == "the-long-march"

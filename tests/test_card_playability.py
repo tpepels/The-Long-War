@@ -12,10 +12,16 @@ ROOT = Path(__file__).resolve().parents[1]
 def engine_and_state():
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
-    state = engine.new_game(deck, deck, seed=99, first_player=0)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=99,
+        first_player=0,
+        opening_bonus=False,
+    )
     state.phase = Phase.BATTLE
     state.active_player = 0
     state.players[0].passed = False
@@ -34,20 +40,20 @@ def engine_and_state():
     own_first.name = "oren"
 
     own_second = state.slot(0, Position(Front.SECOND, Rank.REAR))
-    own_second.force = "the-house-at-orra"
+    own_second.force = "the-house-of-reed"
 
     own_third = state.slot(0, Position(Front.THIRD, Rank.REAR))
     own_third.force = "seven-black-ships"
-    own_third.bond = "carried"
+    own_third.bond = "carried-the-oath-of"
 
     enemy_first = state.slot(1, Position(Front.FIRST, Rank.FRONT))
-    enemy_first.force = "those-who-came-back"
-    enemy_first.bond = "defied"
-    enemy_first.name = "teyra"
+    enemy_first.force = "the-black-company"
+    enemy_first.bond = "guarded"
+    enemy_first.name = "mara"
 
     enemy_second = state.slot(1, Position(Front.SECOND, Rank.FRONT))
-    enemy_second.force = "the-children-of-the-salt-road"
-    enemy_second.bond = "avenged"
+    enemy_second.force = "the-vardai"
+    enemy_second.bond = "stood-fast-with"
 
     return engine, state, data
 

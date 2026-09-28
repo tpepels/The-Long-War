@@ -185,6 +185,7 @@ class AlphaBetaSearch:
                 slot.name,
                 slot.temporary_strength,
                 slot.maneuvers_this_battle,
+                slot.maneuver_direction,
             )
             for side in state.board
             for front in side
@@ -199,6 +200,8 @@ class AlphaBetaSearch:
                     story.target_player,
                     story.target_position,
                     story.triggered_this_battle,
+                    story.direction,
+                    story.triggered_players_mask,
                 )
                 for story in side
             )
@@ -232,6 +235,7 @@ class AlphaBetaSearch:
             tuple(state.discarded_this_battle),
             tuple(state.pass_order),
             tuple(state.operations_this_battle),
+            tuple(state.maneuvers_this_battle),
             tuple(state.cards_played_this_turn_front_mask),
             tuple(state.cards_played_this_battle_front_mask),
             tuple(state.narratives_played_this_battle),
@@ -242,6 +246,24 @@ class AlphaBetaSearch:
             state.pending_resume,
             state.pending_resume_player,
             tuple(state.free_maneuver_available),
+            tuple(
+                (
+                    constraint.source_card,
+                    constraint.player,
+                    constraint.kind.value,
+                    constraint.source_owner,
+                    constraint.front,
+                    constraint.direction,
+                    constraint.source_position,
+                    constraint.activate_turn,
+                    constraint.expires_after_operation,
+                    constraint.persists_between_battles,
+                    constraint.zero_cost,
+                    constraint.draw_after_satisfied,
+                    constraint.discard_source_story,
+                )
+                for constraint in state.constraints
+            ),
             _freeze_state_value(state.battle_resolution),
             state.turn_number,
         )

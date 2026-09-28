@@ -58,13 +58,22 @@ def presentation_snapshots() -> dict[str, dict]:
     card_json = (ROOT / "cards/cards.json").read_text(encoding="utf-8")
     deck_json = (ROOT / "decks/mobility-open-bonds.json").read_text(encoding="utf-8")
     cards = json.loads(card_json)["cards"]
-    by_type = {kind: sorted((card for card in cards if card["type"] == kind),
-                           key=lambda card: len(card["title"]), reverse=True)
-               for kind in ("subject", "link", "name", "stratagem")}
-    by_type["subject"] = [
-        card for card in by_type["subject"] if not card.get("hero", False)
+    by_type = {
+        kind: sorted(
+            (card for card in cards if card["type"] == kind),
+            key=lambda card: len(card["title"]),
+            reverse=True,
+        )
+        for kind in ("force", "bond", "name", "stratagem")
+    }
+    by_type["force"] = [
+        card for card in by_type["force"] if not card.get("hero", False)
     ]
-    veiled = next(card["id"] for card in cards if card.get("veiled"))
+    ongoing_story = next(
+        card["id"]
+        for card in cards
+        if card["type"] == "story" and card.get("ongoing", False)
+    )
     session = PlaySession(card_json, deck_json, "computer", 1701, paced_ai=True)
     opening = session.snapshot(0)
     session.mulligan([], 0)
@@ -74,16 +83,16 @@ def presentation_snapshots() -> dict[str, dict]:
     for owner in range(2):
         for index, position in enumerate(all_positions()):
             slot = session.state.slot(owner, position)
-            slot.force = by_type["subject"][index % len(by_type["subject"])]["id"]
-            slot.bond = by_type["link"][index % len(by_type["link"])]["id"]
+            slot.force = by_type["force"][index % len(by_type["force"])]["id"]
+            slot.bond = by_type["bond"][index % len(by_type["bond"])]["id"]
             slot.name = by_type["name"][index % len(by_type["name"])]["id"]
-        session.state.stories[owner] = [StoryState(veiled) for _ in range(2)]
+        session.state.stories[owner] = [StoryState(ongoing_story) for _ in range(2)]
         session.state.stratagems[owner] = StratagemState(
             by_type["stratagem"][owner]["id"],
         )
     session.state.players[0].hand = [card["id"] for card in sorted(cards, key=lambda card: len(card["title"]), reverse=True)[:18]]
     session.state.players[1].hand = [card["id"] for card in cards[:18]]
-    session.state.players[0].discard = [by_type["subject"][0]["id"]]
+    session.state.players[0].discard = [by_type["force"][0]["id"]]
     session.state.players[1].discard = [by_type["name"][0]["id"]]
     crowded = session.snapshot(0)
     cases = {name: copy.deepcopy(crowded) for name in ("battle", "inspector", "drawer")}

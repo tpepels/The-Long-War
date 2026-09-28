@@ -136,12 +136,19 @@ def _expanded_pool(data, size):
 def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
     engine = GameEngine(_expanded_pool(data, 127))
     deck = json.loads((ROOT / "decks/mobility-open-bonds.json").read_text())["cards"]
-    state = engine.new_game(deck, deck, seed=17, first_player=0)
-    # 60 distinct Bonds produce 360 legal placements, beyond the old buffer.
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=17,
+        first_player=0,
+        opening_bonus=False,
+    )
+    # 60 distinct Bonds x 8 battlefield positions produce 480 legal placements,
+    # comfortably beyond the historical fixed action buffer.
     state.players[0].deck = []
     state.players[0].hand = [card_id for card_id in engine.cards if card_id.startswith("test-bond-")][-60:]
     legal = engine.legal_actions(state)
-    assert len(legal) == 360
+    assert len(legal) == 480
     assert all(getattr(action, "card_id", None) is not None for action in legal)
     assert any(getattr(action, "card_id", None) == "test-bond-126" for action in legal)
     for player in state.players:

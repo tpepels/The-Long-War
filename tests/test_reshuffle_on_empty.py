@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def setup_state(seed: int = 7401):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data, rules=GameRules.standard())
     state = engine.new_game(
@@ -39,13 +39,13 @@ def test_draw_uses_existing_draw_pile_without_touching_discard() -> None:
     player = state.players[1]
     player.hand = player.hand[:9]
     player.deck = ["namar"]
-    player.discard = ["followed", "swore-to"]
+    player.discard = ["followed", "swore-again-to"]
 
     start_final_turn(engine, state)
 
     assert "namar" in player.hand
     assert player.deck == []
-    assert player.discard == ["followed", "swore-to"]
+    assert player.discard == ["followed", "swore-again-to"]
     assert state.deck_reshuffles[1] == 0
 
 
@@ -54,7 +54,7 @@ def test_required_draw_reshuffles_discard_when_draw_pile_is_empty() -> None:
     player = state.players[1]
     player.hand = player.hand[:9]
     player.deck = []
-    player.discard = ["followed", "swore-to", "namar"]
+    player.discard = ["followed", "swore-again-to", "namar"]
 
     start_final_turn(engine, state)
 
@@ -75,9 +75,9 @@ def test_empty_pile_reshuffle_is_deterministic_for_same_shuffle_seed() -> None:
         player.deck = []
         player.discard = [
             "followed",
-            "swore-to",
+            "swore-again-to",
             "namar",
-            "teyra",
+            "mara",
             "the-fifty-men",
         ]
         start_final_turn(engine, state)
@@ -91,7 +91,7 @@ def test_battle_end_does_not_recycle_discard_without_a_draw() -> None:
     engine, state = setup_state()
     state.players[0].hand = state.players[0].hand[:10]
     state.players[0].deck = []
-    state.players[0].discard = ["followed", "swore-to", "namar"]
+    state.players[0].discard = ["followed", "swore-again-to", "namar"]
 
     # Make the final opponent turn drawable without touching player 0.
     state.players[1].hand = state.players[1].hand[:9]
@@ -101,6 +101,6 @@ def test_battle_end_does_not_recycle_discard_without_a_draw() -> None:
     engine.apply(state, Pass())
 
     assert state.battle == 2
-    assert state.players[0].discard == ["followed", "swore-to", "namar"]
+    assert state.players[0].discard == ["followed", "swore-again-to", "namar"]
     assert state.deck_reshuffles[0] == 0
     assert state.pending_draw_discard_for == 0

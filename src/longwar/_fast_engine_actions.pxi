@@ -130,7 +130,11 @@ cdef inline bint _fe_maneuver_destination_legal(
             not self.immobile_force[force]
             and not self.cannot_swap_target[force]
         )
-    return state.link[slot] < 0 and state.name[slot] < 0
+    # A prepared Bond/Name still occupies the position. Core Maneuver permits
+    # swapping with any own occupied position; only the initiating formation
+    # must be Named. With no Force here there is no Force-specific movement
+    # restriction to block the destination.
+    return True
 
 
 cdef void _fe_remove_constraint_at(
@@ -1143,8 +1147,8 @@ cdef int _fe_legal_actions_into(
                         ),
                     )
 
-    # Maneuver moves to an empty position or swaps with another formation.
-    # A prepared-only Bond/Name position is occupied but is not a formation.
+    # Maneuver moves to an empty position or swaps with any own occupied
+    # position, including a prepared-only Bond/Name position.
     for local in range(8):
         source = player * 8 + local
         if not _fe_maneuver_source_legal(self, state, player, source):

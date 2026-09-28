@@ -6,14 +6,14 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
 
 
-def test_github_actions_are_pages_deployment_only() -> None:
+def test_github_actions_use_one_pages_workflow() -> None:
     workflows = sorted(path.name for path in WORKFLOWS.glob("*.yml"))
     assert workflows == ["pages.yml"]
 
     content = (WORKFLOWS / "pages.yml").read_text(encoding="utf-8")
     assert "workflow_dispatch:" in content
+    assert "push:" in content
     for automatic_trigger in (
-        "push:",
         "pull_request:",
         "schedule:",
         "workflow_run:",

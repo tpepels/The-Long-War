@@ -48,7 +48,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def make_engine_and_state():
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
     state = engine.new_game(deck, deck, seed=41, first_player=0)
@@ -63,8 +63,8 @@ def test_fast_information_key_preserves_exported_id() -> None:
     own.bond = "followed"
     own.name = "namar"
 
-    state.stories[0].append(StoryState("the-lamps-went-dark"))
-    state.stratagems[0] = StratagemState("the-tide-rose")
+    state.stories[0].append(StoryState("the-long-march"))
+    state.stratagems[0] = StratagemState("the-ground-was-held")
     state.stratagem_used[0] = True
 
     assert information_set_id(state, 0) == legacy_information_set_id(state, 0)
@@ -129,7 +129,7 @@ def test_cython_node_regret_matching_matches_expected() -> None:
 def test_longwar_action_keys_are_unique_across_live_states() -> None:
     engine, _ = make_engine_and_state()
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     rng = random.Random(441)
 

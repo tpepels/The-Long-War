@@ -12,10 +12,10 @@ from longwar.decks import validate_deck_definition
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_canonical_card_pool_has_exactly_80_unique_cards() -> None:
+def test_canonical_card_pool_has_exactly_95_unique_cards() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     ids = [card["id"] for card in data["cards"]]
-    assert len(ids) == 80
+    assert len(ids) == 95
     assert len(ids) == len(set(ids))
     assert {card["type"] for card in data["cards"]} == {
         "force", "bond", "name", "story", "stratagem"
@@ -46,7 +46,7 @@ def test_narratives_have_specific_forms_and_public_ongoing_metadata() -> None:
 
 def test_all_cards_define_valid_rule_blocks() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    allowed = {"property", "timing", "trigger", "effect", "continuous", "cost", "replacement"}
+    allowed = {"property", "timing", "trigger", "effect", "continuous", "cost", "replacement", "constraint"}
     for card in data["cards"]:
         blocks = card["rule_blocks"]
         assert all(block["kind"] in allowed for block in blocks)
@@ -65,7 +65,14 @@ def test_player_facing_card_text_uses_canonical_vocabulary() -> None:
 def test_active_decks_use_only_canonical_cards_and_current_minimum_rules() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     cards = {card["id"]: card for card in data["cards"]}
-    for filename in ("mobility-open-bonds.json", "persistent-elite-heroes.json", "narrative-command.json", "battlefield-control-stratagems.json"):
+    for filename in (
+        "mobility-open-bonds.json",
+        "persistent-elite-heroes.json",
+        "narrative-command.json",
+        "battlefield-control-stratagems.json",
+        "momentum-orders.json",
+        "necessity-attrition.json",
+    ):
         deck = json.loads((ROOT / "decks" / filename).read_text(encoding="utf-8"))["cards"]
         assert set(deck) <= set(cards)
         validate_deck_definition(deck, cards)

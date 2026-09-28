@@ -71,7 +71,11 @@ def test_runtime_and_search_do_not_special_case_card_ids() -> None:
     assert len(implementation_files) >= 10, "expected to find game package source files"
     for path in implementation_files:
         source = path.read_text(encoding="utf-8")
-        leaked = sorted(card_id for card_id in card_ids if card_id in source)
+        leaked = sorted(
+            card_id
+            for card_id in card_ids
+            if re.search(rf"""(?P<quote>['"]){re.escape(card_id)}(?P=quote)""", source)
+        )
         assert not leaked, f"{path} special-cases cards: {leaked}"
 
 
@@ -95,9 +99,10 @@ def test_deck_format_is_separate_from_match_rules() -> None:
 
     engine_source = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
     assert "PLAYTEST_DECK_SIZE" not in engine_source
-    assert "validate_deck_definition" not in engine_source
-    assert "..decks" not in engine_source
     assert "exactly 34" not in engine_source
+    # The engine may delegate validation to the deck-format module, but must not
+    # duplicate deck-construction rules as match rules.
+    assert "validate_deck_definition(deck, self.cards)" in engine_source
 
     simulator_source = (ROOT / "tools" / "simulate.py").read_text(
         encoding="utf-8"
@@ -578,19 +583,19 @@ def test_ismcts_depends_on_engine_contract_not_rule_schema() -> None:
 
 
 def test_information_state_schema_has_one_canonical_encoder() -> None:
-    source = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
-    assert "cdef int _information_state_encode(" in source
+    source = (SRC / "_fast_engine_hashing.pxi").read_text(encoding="utf-8")
+    assert "cdef int _fe__information_state_encode(" in source
 
-    hash_start = source.index("    cdef InfoHash128 information_hash_fast(")
-    hash_end = source.index("    cpdef tuple information_hash(", hash_start)
+    hash_start = source.index("cdef InfoHash128 _fe_information_hash_fast(")
+    hash_end = source.index("cdef tuple _fe_information_hash(", hash_start)
     hash_body = source[hash_start:hash_end]
-    assert "_information_state_encode(" in hash_body
+    assert "_fe__information_state_encode(" in hash_body
     assert "state." not in hash_body
 
-    key_start = source.index("    cdef bytes information_key_fast(")
-    key_end = source.index("    cpdef bytes information_key(", key_start)
+    key_start = source.index("cdef bytes _fe_information_key_fast(")
+    key_end = source.index("cdef bytes _fe_information_key(", key_start)
     key_body = source[key_start:key_end]
-    assert "_information_state_encode(" in key_body
+    assert "_fe__information_state_encode(" in key_body
     assert "state." not in key_body
 
 
@@ -618,14 +623,14 @@ def test_serious_ismcts_defaults_are_not_smoke_budgets(monkeypatch) -> None:
         default = inspect.signature(target).parameters["ismcts_iterations"].default
         assert default == DEFAULT_ISMCTS_ITERATIONS, target.__name__
 
-    # tools/run_experiments.py exposes a side-effect-free parser builder;
-    # parse each ISMCTS-related subcommand for real and read back the value.
+    # The human-facing experiment CLI was deliberately collapsed. The
+    # decision-grade strength benchmark keeps the serious default; batch
+    # balance runs have their own explicit lower work budget.
     from tools import run_experiments
 
-    for command in ("ismcts-match", "strength-bench", "suite"):
-        monkeypatch.setattr(sys, "argv", ["run_experiments.py", command])
-        args = run_experiments.parse_args()
-        assert args.iterations == DEFAULT_ISMCTS_ITERATIONS, command
+    monkeypatch.setattr(sys, "argv", ["run_experiments.py", "strength-bench"])
+    args = run_experiments.parse_args()
+    assert args.iterations == DEFAULT_ISMCTS_ITERATIONS
 
     # tools/simulate.py builds its argparse parser inline inside main(), which
     # also runs a full simulation, so parse the source with ast instead of

@@ -18,7 +18,7 @@ pytestmark = pytest.mark.algorithm
 def setup():
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
     state = engine.new_game(deck, deck, seed=77, first_player=0)
@@ -27,14 +27,14 @@ def setup():
 
 def test_information_set_hides_opponent_hand_identities() -> None:
     _, _, state = setup()
-    state.players[1].hand = ["namar", "iria", "oren", "teyra"]
+    state.players[1].hand = ["namar", "iria", "oren", "mara"]
     first = information_set_id(state, 0)
 
     state.players[1].hand = [
         "the-fifty-men",
         "seven-black-ships",
         "followed",
-        "swore-to",
+        "swore-again-to",
     ]
     second = information_set_id(state, 0)
     assert first == second
