@@ -470,17 +470,31 @@ def balance_run(args: argparse.Namespace) -> Path:
                 encoding="utf-8",
             )
 
-        progression_source = selfplay_simulations.get("mobility-open-bonds")
-        if progression_source is None:
-            progression_source = next(iter(selfplay_simulations.values()))
+        progression_profiles = {
+            "game_fingerprint": identity["game_fingerprint"],
+            "_label": "Six canonical reference-deck progression profiles",
+            "progression_scope": (
+                "Detailed progression is stratified by all canonical same-deck "
+                "reference profiles; no single deck is treated as representative "
+                "of the whole game."
+            ),
+            "profiles": {
+                name: {
+                    "label": name.replace("-", " ").replace("-", " ").title(),
+                    "games": payload["games"],
+                    "decisive_games": payload["decisive_games"],
+                    "censored_games": payload["censored_games"],
+                    "censor_rate": payload["censor_rate"],
+                    "progression": payload.get("telemetry", {}).get("progression"),
+                }
+                for name, payload in sorted(selfplay_simulations.items())
+            },
+        }
+        progression_source = next(iter(selfplay_simulations.values()))
         progression_source = {
             **progression_source,
-            "_label": "Mobility / Open Bonds self-play",
-            "progression_scope": (
-                "Detailed progression reference; aggregate card health and "
-                "heuristic self-play outcome evidence use all canonical "
-                "same-deck self-play cells."
-            ),
+            "_label": "Reference-deck progression fallback",
+            "progression_scope": progression_profiles["progression_scope"],
         }
         aggregate_selfplay = {
             **aggregate_selfplay,
@@ -491,6 +505,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         publish("balance-health.json", aggregate_health)
         publish("heuristic-selfplay.json", aggregate_selfplay)
         publish("progression-selfplay.json", progression_source)
+        publish("progression-profiles.json", progression_profiles)
         publish("playability-report.json", playability)
         publish("balance-run-summary.json", summary_payload)
         if causal_payload is not None:
