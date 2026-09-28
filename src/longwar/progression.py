@@ -850,6 +850,9 @@ class ProgressionTelemetry:
                         "maneuvers",
                         "paid_operations",
                         "free_operations",
+                        "paid_card_operations",
+                        "free_card_operations",
+                        "paid_maneuvers",
                         "effect_choices",
                         "forced_effect_choices",
                         "no_paid_operation",
@@ -1531,8 +1534,19 @@ class ProgressionTelemetry:
                     ]
                     for player in range(2)
                 ]
+                is_operation = isinstance(action, OPERATION_ACTIONS)
                 trace.update({
                     "command_cost": actual_cost,
+                    "paid_operation": is_operation and actual_cost > 0,
+                    "free_operation": is_operation and actual_cost == 0,
+                    "card_operation": isinstance(action, CARD_ACTIONS),
+                    "maneuver": isinstance(action, Maneuver),
+                    "pass": isinstance(action, Pass),
+                    "effect_choice": isinstance(action, EffectChoice),
+                    "forced_effect_choice": (
+                        isinstance(action, EffectChoice)
+                        and bool(trace.get("forced"))
+                    ),
                     "command_after_transition": int(state.players[actor].command),
                     "command_delta_transition": (
                         int(state.players[actor].command)
@@ -1802,6 +1816,18 @@ class ProgressionTelemetry:
             "maneuvers": self._battle_events["maneuvers"],
             "paid_operations": self._battle_events["paid_operations"],
             "free_operations": self._battle_events["free_operations"],
+            "paid_card_operations": sum(
+                bool(row.get("paid_operation")) and row.get("category") == "card"
+                for row in self._battle_operation_trace
+            ),
+            "free_card_operations": sum(
+                bool(row.get("free_operation")) and row.get("category") == "card"
+                for row in self._battle_operation_trace
+            ),
+            "paid_maneuvers": sum(
+                bool(row.get("paid_operation")) and row.get("category") == "maneuver"
+                for row in self._battle_operation_trace
+            ),
             "effect_choices": self._battle_events["effect_choices"],
             "forced_effect_choices": self._battle_events["forced_effect_choices"],
             "forces_played": self._battle_events["forces_played"],
