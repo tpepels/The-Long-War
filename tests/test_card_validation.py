@@ -159,7 +159,8 @@ def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
     for player in state.players:
         player.deck = []
         player.hand = []
-        player.discard = ["followed"] * 64
+        # Native card zones support up to 254 entries.
+        player.discard = ["followed"] * 254
     native = engine._native_core()
     key = native.information_key(native.from_game_state(state), 0)
     assert len(key) > 512
