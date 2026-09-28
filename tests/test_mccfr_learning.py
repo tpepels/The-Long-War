@@ -17,7 +17,7 @@ pytestmark = pytest.mark.algorithm
 def setup():
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
     state = engine.new_game(deck, deck, seed=19, first_player=0)
