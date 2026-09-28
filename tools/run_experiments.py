@@ -134,15 +134,15 @@ def balance_run(args: argparse.Namespace) -> Path:
     # Supply the same defaults as parse_args instead of requiring every caller
     # to construct a parser-complete Namespace.
     balance_defaults = {
-        "ismcts_belief_samples": 6,
-        "ismcts_iterations": 2000,
+        "ismcts_belief_samples": DEFAULT_ISMCTS_BELIEF_SAMPLES,
+        "ismcts_iterations": DEFAULT_ISMCTS_ITERATIONS,
         "ismcts_time_budget_seconds": None,
         "ismcts_rollout_depth": DEFAULT_ISMCTS_ROLLOUT_DEPTH,
         "ismcts_tree_depth_limit": 96,
         "ismcts_exploration": DEFAULT_ISMCTS_EXPLORATION,
-        "ismcts_progressive_widening": 0.0,
+        "ismcts_progressive_widening": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
         "ismcts_no_tree_reuse": False,
-        "ismcts_max_tree_nodes": 8000,
+        "ismcts_max_tree_nodes": DEFAULT_ISMCTS_MAX_TREE_NODES,
         "ismcts_rollout_epsilon": DEFAULT_ISMCTS_ROLLOUT_EPSILON,
         "ismcts_rollout_policy": DEFAULT_ISMCTS_ROLLOUT_POLICY,
         "strategic_belief_samples": 3,
@@ -1911,13 +1911,13 @@ def parse_args() -> argparse.Namespace:
     balance.add_argument(
         "--ismcts-belief-samples",
         type=int,
-        default=6,
+        default=DEFAULT_ISMCTS_BELIEF_SAMPLES,
         help="Belief determinizations per ISMCTS decision in balance runs.",
     )
     balance.add_argument(
         "--ismcts-iterations",
         type=int,
-        default=2000,
+        default=DEFAULT_ISMCTS_ITERATIONS,
         help="ISMCTS iterations per searched decision in balance runs.",
     )
     balance.add_argument(
@@ -1942,7 +1942,7 @@ def parse_args() -> argparse.Namespace:
     balance.add_argument(
         "--ismcts-progressive-widening",
         type=float,
-        default=0.0,
+        default=DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
     )
     balance.add_argument(
         "--ismcts-no-tree-reuse",
@@ -1951,7 +1951,7 @@ def parse_args() -> argparse.Namespace:
     balance.add_argument(
         "--ismcts-max-tree-nodes",
         type=int,
-        default=8000,
+        default=DEFAULT_ISMCTS_MAX_TREE_NODES,
     )
     balance.add_argument(
         "--ismcts-rollout-epsilon",
