@@ -2054,7 +2054,7 @@ class ProgressionTelemetry:
             "free_maneuvers": self._battle_events["free_maneuvers"],
             "command_gained": self._battle_events["command_gained"],
         }
-        battle_records.append(record)
+        self._battle_records.append(record)
 
         front_balances = self._front_result_balances(front_scores)
         for pass_row in self._pass_contexts:
