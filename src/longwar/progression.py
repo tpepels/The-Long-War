@@ -612,6 +612,7 @@ class ProgressionTelemetry:
             rows_by_game[int(row["game"])].append(row)
         for game_rows in rows_by_game.values():
             current_streak = 0
+            first_equal_low_recorded = False
             for row in game_rows:
                 is_equal_low = (
                     row.get("next_battle_command") is not None
@@ -619,9 +620,10 @@ class ProgressionTelemetry:
                     and row["next_battle_command"][0] < threshold
                 )
                 if is_equal_low:
-                    if current_streak == 0:
+                    if current_streak == 0 and not first_equal_low_recorded:
                         first_equal_low_battles.append(int(row["battle"]))
-                    else:
+                        first_equal_low_recorded = True
+                    elif current_streak > 0:
                         consecutive_equal_low_battles += 1
                     current_streak += 1
                 elif current_streak:
@@ -641,7 +643,7 @@ class ProgressionTelemetry:
         low_command_stalls = {
             "collapse_threshold": threshold,
             "both_below_collapse_threshold": sum(
-                all(value < threshold for value in row["command_start"])
+                all(value < threshold for value in row["command_after_recovery"])
                 for row in self._battle_records
             ),
             "equal_low_continuations": len(equal_low_rows),
