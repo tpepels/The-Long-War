@@ -16,7 +16,7 @@ from .game.actions import (
     PlayStratagem,
 )
 from .game.engine import GameEngine, all_positions
-from .game.model import Front, GameState, Phase, Position
+from .game.model import ConstraintKind, Front, GameState, Phase, Position
 
 
 CARD_ACTIONS = (PlayForce, PlayBond, PlayName, PlayStory, PlayStratagem)
@@ -71,6 +71,17 @@ class ProgressionTelemetry:
         self._constraint_active_supported = False
         self._constraint_active_streak = 0
         self._constraint_active_streaks: list[int] = []
+        self._constraint_source_active: Counter[str] = Counter()
+        self._constraint_kind_active: Counter[str] = Counter()
+        self._constraint_satisfied: Counter[str] = Counter()
+        self._constraint_impossible: Counter[str] = Counter()
+        self._constraint_expired = 0
+        self._constraint_options_removed: list[int] = []
+        self._constraint_options_added: list[int] = []
+        self._constraint_forced_maneuver_decisions = 0
+        self._constraint_forced_front_decisions = 0
+        self._constraint_carried_between_battles = 0
+        self._constraint_future_operations_affected = 0
         self._pass_contexts: list[dict[str, Any]] = []
 
         self._command_spend: Counter[str] = Counter()
@@ -115,7 +126,7 @@ class ProgressionTelemetry:
         self._game_index += 1
         self._constraint_active_supported = (
             self._constraint_active_supported
-            or hasattr(state, "active_constraints")
+            or hasattr(state, "constraints")
         )
         self._game_battle_record_start = len(self._battle_records)
         self._action_index = 0
@@ -170,11 +181,52 @@ class ProgressionTelemetry:
         self._current_action = self._action_index + 1
         legal = list(legal_actions)
         constraint_sources = self._constraint_rule_sources(engine, state)
-        constraint_active = (
-            self._constraint_effect_active(state)
-            if self._constraint_active_supported
-            else False
-        )
+        active_constraints = self._active_operation_constraints(state, actor)
+        constraint_active = bool(active_constraints)
+        unconstrained_legal = legal
+        if active_constraints:
+            unconstrained = state.clone()
+            unconstrained.constraints.clear()
+            unconstrained_legal = engine.legal_actions(unconstrained)
+
+            before_count = len(unconstrained_legal)
+            after_count = len(legal)
+            self._constraint_options_removed.append(max(0, before_count - after_count))
+            self._constraint_options_added.append(max(0, after_count - before_count))
+            self._constraint_future_operations_affected += 1
+
+            for item in active_constraints:
+                source = str(item.source_card)
+                kind = item.kind.value
+                self._constraint_source_active[source] += 1
+                self._constraint_kind_active[kind] += 1
+                satisfiable = any(
+                    self._constraint_matches_action(item, candidate)
+                    for candidate in legal
+                )
+                if satisfiable:
+                    if self._constraint_matches_action(item, action):
+                        self._constraint_satisfied[kind] += 1
+                else:
+                    self._constraint_impossible[kind] += 1
+
+            if (
+                len(legal) == 1
+                and isinstance(legal[0], Maneuver)
+                and any(
+                    item.kind in {
+                        ConstraintKind.MANEUVER,
+                        ConstraintKind.SPECIFIC_MANEUVER,
+                    }
+                    for item in active_constraints
+                )
+            ):
+                self._constraint_forced_maneuver_decisions += 1
+            if any(
+                item.kind is ConstraintKind.AFFECT_FRONT
+                for item in active_constraints
+            ):
+                self._constraint_forced_front_decisions += 1
         effect_resolution = (
             isinstance(action, EffectChoice)
             or (
@@ -336,7 +388,19 @@ class ProgressionTelemetry:
             self._record_held_across_boundary(before, state)
             self._formation_age_at_battle_end.extend(battle_end_ages)
             self._record_battle_end(engine, before, state)
+            self._constraint_carried_between_battles += len(state.constraints)
             self._reset_battle(state)
+
+        if before.phase is Phase.BATTLE and not isinstance(action, EffectChoice):
+            before_active = self._active_operation_constraints(before, actor)
+            after_keys = {
+                self._constraint_identity(item)
+                for item in state.constraints
+            }
+            self._constraint_expired += sum(
+                self._constraint_identity(item) not in after_keys
+                for item in before_active
+            )
 
         self._action_index = self._current_action
 
@@ -634,6 +698,21 @@ class ProgressionTelemetry:
                 self._constraint_active_streaks
                 + ([self._constraint_active_streak] if self._constraint_active_streak else [])
             ),
+            "constraint_sources": dict(sorted(self._constraint_source_active.items())),
+            "constraint_kinds": dict(sorted(self._constraint_kind_active.items())),
+            "constraint_satisfied": dict(sorted(self._constraint_satisfied.items())),
+            "constraint_impossible": dict(sorted(self._constraint_impossible.items())),
+            "constraint_expired": self._constraint_expired,
+            "constraint_options_removed": self._distribution(
+                self._constraint_options_removed
+            ),
+            "constraint_options_added": self._distribution(
+                self._constraint_options_added
+            ),
+            "constraint_forced_maneuver_decisions": self._constraint_forced_maneuver_decisions,
+            "constraint_forced_front_decisions": self._constraint_forced_front_decisions,
+            "constraint_carried_between_battles": self._constraint_carried_between_battles,
+            "constraint_future_operations_affected": self._constraint_future_operations_affected,
             "pass_mechanical_categories": dict(sorted(Counter(
                 row["mechanical_category"] for row in self._pass_contexts
             ).items())),
@@ -1417,9 +1496,58 @@ class ProgressionTelemetry:
         return result
 
     @staticmethod
-    def _constraint_effect_active(state: GameState) -> bool:
-        marker = getattr(state, "active_constraints", None)
-        return bool(marker)
+    def _active_operation_constraints(
+        state: GameState,
+        actor: int,
+    ) -> list[Any]:
+        return [
+            item
+            for item in state.constraints
+            if item.player == actor and state.turn_number >= item.activate_turn
+        ]
+
+    @staticmethod
+    def _constraint_identity(item: Any) -> tuple[Any, ...]:
+        return (
+            item.source_card,
+            item.player,
+            item.kind,
+            item.source_owner,
+            item.front,
+            item.direction,
+            item.source_position,
+            item.activate_turn,
+        )
+
+    @staticmethod
+    def _constraint_matches_action(item: Any, action: Action) -> bool:
+        if item.kind is ConstraintKind.MANEUVER:
+            return isinstance(action, Maneuver)
+        if item.kind is ConstraintKind.SPECIFIC_MANEUVER:
+            if not isinstance(action, Maneuver):
+                return False
+            if item.source_position is not None and action.source != item.source_position:
+                return False
+            if item.direction == "left":
+                return int(action.destination.front) < int(action.source.front)
+            if item.direction == "right":
+                return int(action.destination.front) > int(action.source.front)
+            return True
+        if item.kind is not ConstraintKind.AFFECT_FRONT or item.front is None:
+            return False
+        front = item.front
+        if isinstance(action, (PlayForce, PlayBond, PlayName)):
+            return action.position.front == front
+        if isinstance(action, Maneuver):
+            return action.source.front == front or action.destination.front == front
+        if isinstance(action, (PlayStory, PlayStratagem)):
+            if front in action.fronts:
+                return True
+            return any(
+                target.position.front == front
+                for target in action.targets
+            )
+        return False
 
     def _card_lifecycle_summary(self) -> dict[str, Any]:
         ids = (
