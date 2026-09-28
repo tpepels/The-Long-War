@@ -454,7 +454,11 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.narratives_played_this_battle[actor] += 1
         state.scheme[actor * 4 + pos] = card
         state.scheme_revealed[actor * 4 + pos] = 1
-        state.scheme_front_mask[actor * 4 + pos] = <uint8_t>(extra & 15)
+        state.scheme_front_mask[actor * 4 + pos] = (
+            <uint8_t>(extra & 15)
+            if self.story_choice_kind[card] == STORY_CHOICE_FRONT
+            else 0
+        )
         state.scheme_target_slot[actor * 4 + pos] = dest
         if self.story_choice_kind[card] == STORY_CHOICE_NAMED_DIRECTION:
             state.scheme_direction[actor * 4 + pos] = <uint8_t>extra
