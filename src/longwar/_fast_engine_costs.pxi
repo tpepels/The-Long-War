@@ -76,13 +76,40 @@ cdef inline int _fe_command_cost_fast(
     uint64_t action,
 ) noexcept:
     cdef int kind, card, pos, target_front=-1, cost, discount, rear, support, strat
-    cdef int selected
+    cdef int selected, i, controller, dest, direction
     cdef uint32_t extra
     cdef int player = state.active_player
     kind = action_kind(action)
     if kind == TYPE_PASS or kind == TYPE_EFFECT:
         return 0
     if kind == TYPE_MANEUVER:
+        pos = action_pos(action)
+        dest = action_dest(action)
+        direction = (
+            1 if front_from_slot(dest) < front_from_slot(pos) else 2
+        )
+        # A specific compelled Maneuver may explicitly be free.
+        for i in range(state.constraint_len):
+            if (
+                state.constraint_player[i] == player
+                and state.turn_number >= state.constraint_activate_turn[i]
+                and state.constraint_kind[i] == CONSTRAINT_SPECIFIC_MANEUVER
+                and state.constraint_flags[i] & CONSTRAINT_ZERO_COST
+                and state.constraint_source_slot[i] == pos
+                and state.constraint_direction[i] == direction
+            ):
+                return 0
+        # The Line Had Begun to Move makes each player's first Maneuver
+        # this Battle cost 0, regardless of whether its preferred direction
+        # is currently satisfiable.
+        if state.player_maneuver_count[player] == 0:
+            for controller in range(2):
+                strat = state.stratagem[controller]
+                if (
+                    strat >= 0
+                    and self.strat_first_maneuver_direction[strat]
+                ):
+                    return 0
         if state.free_maneuver_available[player]:
             return 0
         if state.maneuver_count[action_pos(action)] == 0:
