@@ -53,6 +53,7 @@ def test_game_fingerprint_tracks_trajectory_inputs_only(tmp_path, monkeypatch):
         "src/longwar/progression.py",
         "src/longwar/telemetry.py",
         "src/longwar/health.py",
+        "src/longwar/web_api.py",
         "tools/build_lab_report.py",
     ):
         path = tmp_path / name
