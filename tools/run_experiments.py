@@ -119,6 +119,33 @@ def balance_run(args: argparse.Namespace) -> Path:
     from longwar.simulate import simulate_games
     from longwar.targeted_counterfactual import run_targeted_online_validation
 
+    # balance_run is also called directly by tests and research helpers.
+    # Supply the same defaults as parse_args instead of requiring every caller
+    # to construct a parser-complete Namespace.
+    balance_defaults = {
+        "ismcts_belief_samples": 6,
+        "ismcts_iterations": 2000,
+        "ismcts_time_budget_seconds": None,
+        "ismcts_rollout_depth": DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+        "ismcts_tree_depth_limit": 96,
+        "ismcts_exploration": DEFAULT_ISMCTS_EXPLORATION,
+        "ismcts_progressive_widening": 0.0,
+        "ismcts_no_tree_reuse": False,
+        "ismcts_max_tree_nodes": 8000,
+        "ismcts_rollout_epsilon": DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+        "ismcts_rollout_policy": DEFAULT_ISMCTS_ROLLOUT_POLICY,
+        "strategic_belief_samples": 3,
+        "strategic_rollout_plies": 5,
+        "strategic_candidate_width": 6,
+        "strategic_node_budget": 20000,
+        "strategic_time_budget_seconds": None,
+        "online_agent_iterations": 16,
+        "online_agent_depth": 2,
+    }
+    for option, default in balance_defaults.items():
+        if not hasattr(args, option):
+            setattr(args, option, default)
+
     deep_pipeline = args.preset in {"deep", "exhaustive"}
     publish_lab = deep_pipeline or bool(getattr(args, "publish_lab", False))
     agent_name = str(getattr(args, "agent", "heuristic"))
