@@ -813,6 +813,7 @@ def test_low_command_stall_telemetry_reconstructs_front_loss_cancellation() -> N
         telemetry.after_action(engine, before, state, actor, action)
 
     stall = telemetry.summary()["progression"]["low_command_stalls"]
+    assert stall["diagnostic_battles"] == 1
     assert stall["both_below_collapse_threshold"] == 1
     assert stall["equal_low_continuations"] == 1
     assert stall["both_zero_command_battle_starts"] == 1
