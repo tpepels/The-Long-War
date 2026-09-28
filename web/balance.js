@@ -660,9 +660,12 @@ function renderProgression(lab) {
     metric("Pass with no alternative", passCategories.no_alternative ?? 0, "mechanically no non-Pass action"),
     metric(
       "Constraint source / active",
-      `${pct(choice.constraint_rule_source_rate)} / ${pct(choice.constraint_active_rate)}`,
-      "source present is not the same as engine-enforced restriction"
+      `${pct(choice.constraint_rule_source_rate)} / ${choice.constraint_active_supported ? pct(choice.constraint_active_rate) : "not instrumented"}`,
+      choice.constraint_active_supported
+        ? "source present is not the same as engine-enforced restriction"
+        : "active restriction needs an explicit engine marker"
     ),
+    metric("Effect-resolution decisions", choice.effect_resolution_decisions ?? 0, "excluded from ordinary operation-choice metrics"),
   ].join("");
 
   const commandDist = resources.command_remaining_at_battle_end || {};
@@ -684,7 +687,7 @@ function renderProgression(lab) {
   ].join("");
 
   const battles = p.by_battle || {};
-  document.getElementById("progression-battles").innerHTML = ["1", "2", "3", "4+"].map((key) => {
+  document.getElementById("progression-battles").innerHTML = ["1", "2", "3", "4-7", "8+"].map((key) => {
     const row = battles[key] || { battles: 0 };
     if (!row.battles) {
       return `<tr><td><strong>${esc(key)}</strong></td><td colspan="13" class="muted">No observations</td></tr>`;
@@ -703,16 +706,16 @@ function renderProgression(lab) {
         <td>${num(row.front_control_changes, 1)}</td>
         <td>
           ${num(row.legal_actions, 1)}
-          <span class="muted">constraint source/active ${pct(row.constraint_rule_source_rate)} / ${pct(row.constraint_active_rate)}</span>
+          <span class="muted">constraint source/active ${pct(row.constraint_rule_source_rate)} / ${choice.constraint_active_supported ? pct(row.constraint_active_rate) : "not instrumented"}</span>
         </td>
         <td>${num(row.hand_size, 1)} / ${num(row.deck_size, 1)}</td>
         <td>
           cmd ${num(row.first_pass_command, 1)}
-          <span class="muted">unplayable ${num(row.first_pass_unplayable_cards, 1)} · card ${num(row.first_pass_playable_card_actions, 1)} · Maneuver ${num(row.first_pass_maneuver_actions, 1)} · alternatives ${num(row.first_pass_legal_alternatives, 1)}</span>
+          <span class="muted">structural ${num(row.first_pass_structurally_dead_cards, 1)} · unaffordable ${num(row.first_pass_unaffordable_cards, 1)} · card ${num(row.first_pass_playable_card_actions, 1)} · Maneuver ${num(row.first_pass_maneuver_actions, 1)}</span>
         </td>
         <td>
           ${num(row.command_start, 1)} / ${num(row.command_spent, 1)} / ${num(row.command_remaining, 1)}
-          <span class="muted">next ${num(row.next_battle_command, 1)}</span>
+          <span class="muted">before recovery · next ${num(row.next_battle_command, 1)}</span>
         </td>
       </tr>
     `;
