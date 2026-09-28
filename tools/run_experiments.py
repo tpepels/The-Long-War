@@ -95,6 +95,16 @@ def validate_data() -> None:
     )
 
 
+
+
+def artifact_matches_game_fingerprint(path: Path, expected: str) -> bool:
+    """Return whether a JSON artifact belongs to the current game build."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return payload.get("game_fingerprint") == expected
+
 def balance_run(args: argparse.Namespace) -> Path:
     """Canonical balance pipeline; experimental rules stay in `run`.
 
@@ -761,14 +771,30 @@ def balance_run(args: argparse.Namespace) -> Path:
         # a canonical base snapshot is available. This lets a sequence of
         # heuristic/ISMCTS and current/candidate runs accumulate side by side
         # without replacing the canonical card-balance evidence.
-        if (
-            (artifacts / "balance-health.json").exists()
-            and (artifacts / "balance-report.json").exists()
-        ):
+        canonical_health = artifacts / "balance-health.json"
+        canonical_report = artifacts / "balance-report.json"
+        canonical_base_is_current = (
+            artifact_matches_game_fingerprint(
+                canonical_health,
+                identity["game_fingerprint"],
+            )
+            and artifact_matches_game_fingerprint(
+                canonical_report,
+                identity["game_fingerprint"],
+            )
+        )
+        if canonical_base_is_current:
             subprocess.run(
                 [sys.executable, str(ROOT / "tools" / "build_lab_report.py")],
                 cwd=ROOT,
                 check=True,
+            )
+        elif not canonical_lab_profile:
+            print(
+                "Skipped Lab rebuild: canonical health/static evidence is "
+                "missing or stale for the current game fingerprint. The "
+                "comparison profile was still published.",
+                flush=True,
             )
 
     print(f"Balance artifacts: {output}")
