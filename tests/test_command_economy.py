@@ -167,7 +167,8 @@ def test_equal_low_command_remains_an_explicit_canonical_ambiguity() -> None:
     assert state.battle == 9
     assert [player.command for player in state.players] == [0, 0]
 
-def test_recovery_floor_one_breaks_the_zero_zero_absorbing_cycle() -> None:
+
+def test_recovery_floor_one_breaks_the_exact_zero_zero_recovery_fixed_point() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
