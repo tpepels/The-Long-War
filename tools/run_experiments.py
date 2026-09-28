@@ -120,11 +120,30 @@ def balance_run(args: argparse.Namespace) -> Path:
 
     deep_pipeline = args.preset in {"deep", "exhaustive"}
     publish_lab = deep_pipeline or bool(getattr(args, "publish_lab", False))
-    default_games = {
-        "quick": 8,
-        "deep": 250,
-        "exhaustive": 2000,
-    }[args.preset]
+    agent_name = str(getattr(args, "agent", "heuristic"))
+    recovery_variant = str(getattr(args, "recovery", "current"))
+    skip_card_screen = bool(getattr(args, "skip_card_screen", False))
+    run_card_screen = deep_pipeline and not skip_card_screen
+
+    if recovery_variant == "current":
+        rules = GameRules.standard()
+    elif recovery_variant == "candidate":
+        rules = GameRules.standard().with_overrides(
+            command_recovery_schedule=(10, 8, 6, 5, 4, 3, 2),
+            command_recovery_tail=1,
+        )
+    else:
+        raise SystemExit(f"Unknown recovery variant: {recovery_variant}")
+
+    default_games_by_agent = {
+        "heuristic": {"quick": 8, "deep": 250, "exhaustive": 2000},
+        "random": {"quick": 8, "deep": 250, "exhaustive": 2000},
+        "strategic_heuristic": {"quick": 2, "deep": 8, "exhaustive": 24},
+        "ismcts": {"quick": 1, "deep": 8, "exhaustive": 24},
+        "mccfr": {"quick": 2, "deep": 8, "exhaustive": 24},
+        "online_mccfr": {"quick": 1, "deep": 4, "exhaustive": 12},
+    }
+    default_games = default_games_by_agent[agent_name][args.preset]
     games = args.games if args.games is not None else default_games
 
     online_iterations = int(getattr(args, "online_iterations", 16))
@@ -149,10 +168,10 @@ def balance_run(args: argparse.Namespace) -> Path:
 
     if (
         games <= 0
-        or args.contexts <= 0
-        or args.games_per_context <= 0
-        or target_contexts <= 0
-        or target_games_per_context <= 0
+        or (run_card_screen and args.contexts <= 0)
+        or (run_card_screen and args.games_per_context <= 0)
+        or (run_card_screen and target_contexts <= 0)
+        or (run_card_screen and target_games_per_context <= 0)
         or online_iterations <= 0
         or online_depth <= 0
         or target_max_cards < 0
@@ -165,12 +184,40 @@ def balance_run(args: argparse.Namespace) -> Path:
         "preset": args.preset,
         "games_per_cell": games,
         "seed": args.seed,
-        "agents": ["heuristic", "heuristic"],
-        "rules": GameRules.standard().as_dict(),
+        "agents": [agent_name, agent_name],
+        "agent_profile": {
+            "name": agent_name,
+            "ismcts": {
+                "belief_samples": args.ismcts_belief_samples,
+                "iterations": args.ismcts_iterations,
+                "time_budget_seconds": args.ismcts_time_budget_seconds,
+                "rollout_depth": args.ismcts_rollout_depth,
+                "tree_depth_limit": args.ismcts_tree_depth_limit,
+                "exploration": args.ismcts_exploration,
+                "progressive_widening": args.ismcts_progressive_widening,
+                "tree_reuse": not args.ismcts_no_tree_reuse,
+                "max_tree_nodes": args.ismcts_max_tree_nodes,
+                "rollout_epsilon": args.ismcts_rollout_epsilon,
+                "rollout_policy": args.ismcts_rollout_policy,
+            },
+            "strategic_heuristic": {
+                "belief_samples": args.strategic_belief_samples,
+                "rollout_plies": args.strategic_rollout_plies,
+                "candidate_width": args.strategic_candidate_width,
+                "node_budget": args.strategic_node_budget,
+                "time_budget_seconds": args.strategic_time_budget_seconds,
+            },
+            "online_mccfr": {
+                "iterations": args.online_agent_iterations,
+                "depth": args.online_agent_depth,
+            },
+        },
+        "recovery_variant": recovery_variant,
+        "rules": rules.as_dict(),
         "contexts": args.contexts,
         "games_per_context": args.games_per_context,
         "targeted_online_mccfr": {
-            "enabled": deep_pipeline and not skip_online_validation,
+            "enabled": run_card_screen and not skip_online_validation,
             "iterations": online_iterations,
             "depth": online_depth,
             "contexts": target_contexts,
@@ -192,24 +239,58 @@ def balance_run(args: argparse.Namespace) -> Path:
         )
 
     data = load_card_file(ROOT / "cards" / "cards.json")
-    if deep_pipeline:
+    if run_card_screen:
         validate_counterfactual_baselines(data)
         print(
             f"Validated {len(data['cards'])} counterfactual baselines",
             flush=True,
         )
-    engine = GameEngine(data)
+    engine = GameEngine(data, rules=rules)
     decks = {
         p.stem: json.loads(p.read_text(encoding="utf-8"))["cards"]
         for p in sorted((ROOT / "decks").glob("*.json"))
     }
+    profile_ids = {
+        "mobility-open-bonds": "mobility",
+        "persistent-elite-heroes": "elite",
+        "narrative-command": "narrative",
+        "battlefield-control-stratagems": "control",
+        "momentum-orders": "momentum",
+        "necessity-attrition": "necessity",
+    }
+
+    def policy_for(deck_name: str) -> dict[str, Any] | None:
+        if agent_name != "mccfr":
+            return None
+        if recovery_variant != "current":
+            raise SystemExit(
+                "Offline MCCFR policies are only valid for the canonical "
+                "recovery rules. Retrain variant-specific policies before "
+                "using MCCFR with --recovery candidate."
+            )
+        profile = profile_ids.get(deck_name)
+        if profile is None:
+            raise SystemExit(f"No MCCFR profile mapping for {deck_name}")
+        path = ROOT / "artifacts" / f"mccfr-policy-{profile}.json"
+        if not path.exists():
+            raise SystemExit(
+                f"Missing {path.relative_to(ROOT)}; train current policies first."
+            )
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        if policy.get("game_fingerprint") != identity["game_fingerprint"]:
+            raise SystemExit(
+                f"Stale MCCFR policy for {deck_name}; retrain for current rules."
+            )
+        return policy
+
     cells = [(name, name) for name in decks]
     if deep_pipeline:
         for left, right in combinations(decks, 2):
             cells.extend([(left, right), (right, left)])
 
     print(
-        f"[1/4] Structural heuristic play: {len(cells)} matchup cells x "
+        f"[1/4] Structural {agent_name} play ({recovery_variant} recovery): "
+        f"{len(cells)} matchup cells x "
         f"{games} games = {len(cells) * games:,} attempted games",
         flush=True,
     )
@@ -220,12 +301,33 @@ def balance_run(args: argparse.Namespace) -> Path:
     total_censored = 0
     for index, (left, right) in enumerate(cells):
         seed = args.seed + index * games
+        policies = (policy_for(left), policy_for(right))
         report = simulate_games(
             engine,
             decks[left],
             decks[right],
             games=games,
             seed=seed,
+            agent_names=(agent_name, agent_name),
+            agent_policies=policies,
+            online_iterations=args.online_agent_iterations,
+            online_depth=args.online_agent_depth,
+            strategic_belief_samples=args.strategic_belief_samples,
+            strategic_rollout_plies=args.strategic_rollout_plies,
+            strategic_candidate_width=args.strategic_candidate_width,
+            strategic_node_budget=args.strategic_node_budget,
+            strategic_time_budget_seconds=args.strategic_time_budget_seconds,
+            ismcts_belief_samples=args.ismcts_belief_samples,
+            ismcts_iterations=args.ismcts_iterations,
+            ismcts_time_budget_seconds=args.ismcts_time_budget_seconds,
+            ismcts_rollout_depth=args.ismcts_rollout_depth,
+            ismcts_tree_depth_limit=args.ismcts_tree_depth_limit,
+            ismcts_exploration=args.ismcts_exploration,
+            ismcts_progressive_widening=args.ismcts_progressive_widening,
+            ismcts_reuse_tree=not args.ismcts_no_tree_reuse,
+            ismcts_max_tree_nodes=args.ismcts_max_tree_nodes,
+            ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
+            ismcts_rollout_policy=args.ismcts_rollout_policy,
         )
         total_censored += report.censored_games
         payload = {
@@ -233,6 +335,12 @@ def balance_run(args: argparse.Namespace) -> Path:
             "game_fingerprint": identity["game_fingerprint"],
             "seed": seed,
             "rules": asdict(engine.rules),
+            "agent_profile": config["agent_profile"],
+            "recovery_variant": recovery_variant,
+            "policy_fingerprints": [
+                policy.get("game_fingerprint") if policy else None
+                for policy in policies
+            ],
             "deck_a": decks[left],
             "deck_b": decks[right],
             "decisive_games": report.decisive_games,
@@ -277,7 +385,7 @@ def balance_run(args: argparse.Namespace) -> Path:
 
     causal_payload: dict[str, Any] | None = None
     targeted_payload: dict[str, Any] | None = None
-    if deep_pipeline:
+    if run_card_screen:
         print(
             f"[2/4] Broad paired card screen: {len(data['cards'])} cards x "
             f"{args.contexts} contexts x {args.games_per_context} samples",
@@ -407,9 +515,11 @@ def balance_run(args: argparse.Namespace) -> Path:
         "aggregate_health_decks": sorted(selfplay_simulations),
         "evidence_pipeline": {
             "structural_play": {
-                "policy": "heuristic",
+                "policy": agent_name,
+                "agent_profile": config["agent_profile"],
+                "recovery_variant": recovery_variant,
                 "purpose": (
-                    "High-volume structural, pacing, exposure and matchup "
+                    "Structural, pacing, exposure and matchup "
                     "screening; not a strong-play claim."
                 ),
                 "attempted_games": total_games,
@@ -450,8 +560,9 @@ def balance_run(args: argparse.Namespace) -> Path:
             ),
         },
         "interpretation": (
-            "Evidence is hierarchical. Heuristic self-play describes broad "
-            "structure and exposure. Heuristic paired replacements are a "
+            f"Evidence is hierarchical. {agent_name} self-play describes "
+            "structure and exposure for the selected recovery variant. "
+            "Heuristic paired replacements are a "
             "screen for candidate card effects. A suspicious card is only "
             "treated as strategically confirmed when targeted online-MCCFR "
             "validation agrees. Censored games and paired samples remain "
