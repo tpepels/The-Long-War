@@ -358,6 +358,14 @@ class ProgressionTelemetry:
             "operation": not effect_resolution,
             "forced": len(legal) == 1,
             "legal_actions": len(legal),
+            "playable_card_actions": sum(
+                isinstance(candidate, CARD_ACTIONS)
+                for candidate in legal
+            ),
+            "maneuver_actions": sum(
+                isinstance(candidate, Maneuver)
+                for candidate in legal
+            ),
             "command_before": int(state.players[actor].command),
         })
         if effect_resolution:
