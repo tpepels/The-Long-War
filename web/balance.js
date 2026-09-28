@@ -1098,6 +1098,12 @@ function renderProgression(lab) {
     )
     .slice(0, 12);
   const definitions = Object.entries(p.definitions || {});
+  const lowCommandGames = [...(lowCommand.games || [])].sort((left, right) =>
+    Number(right.censored || 0) - Number(left.censored || 0)
+    || Number(right.final_battle || 0) - Number(left.final_battle || 0)
+    || Number(right.longest_equal_low_streak || 0) - Number(left.longest_equal_low_streak || 0)
+    || Number(left.simulation_game_index ?? left.game ?? 0) - Number(right.simulation_game_index ?? right.game ?? 0)
+  );
 
   document.getElementById("progression-diagnostics").innerHTML = `
     <div class="two-column-tables">
@@ -1129,6 +1135,35 @@ function renderProgression(lab) {
               <td>${row.unplayed_at_match_end ?? 0}</td>
             </tr>
           `).join("")}</tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h3>Low-Command match diagnosis</h3>
+      <p class="dashboard-note">Exact simulation identity is retained so a pathological match can be replayed from its seed. Rows are ordered by censoring, final Battle, then equal-low streak length.</p>
+      <div class="table-wrap fitted-table">
+        <table class="mini-table">
+          <thead><tr>
+            <th>Game</th><th>Seed</th><th>First</th><th>Final Battle</th><th>Censored</th>
+            <th>First low</th><th>First equal-low</th><th>Equal-low</th><th>Longest streak</th>
+            <th>0/0 starts</th><th>No paid op.</th><th>No board change</th>
+          </tr></thead>
+          <tbody>${lowCommandGames.length ? lowCommandGames.map((row) => `
+            <tr>
+              <td>${row.simulation_game_index ?? row.game ?? "—"}</td>
+              <td><code>${row.seed ?? "—"}</code></td>
+              <td>${row.first_player ?? "—"}</td>
+              <td>${row.final_battle ?? "—"}</td>
+              <td>${row.censored ? "yes" : "no"}</td>
+              <td>${row.first_low_command_battle ?? "—"}</td>
+              <td>${row.first_equal_low_continuation_battle ?? "—"}</td>
+              <td>${row.equal_low_continuations ?? 0}</td>
+              <td>${row.longest_equal_low_streak ?? 0}</td>
+              <td>${row.both_zero_command_battle_starts ?? 0}</td>
+              <td>${row.battles_with_no_paid_operation ?? 0}</td>
+              <td>${row.battles_with_no_board_change ?? 0}</td>
+            </tr>
+          `).join("") : '<tr><td colspan="12" class="muted">No low-Command diagnostic matches observed.</td></tr>'}</tbody>
         </table>
       </div>
     </div>
