@@ -24,7 +24,6 @@ _GAMEPLAY_PYTHON = {
     "parallel_mccfr.py",
     "rules.py",
     "simulate.py",
-    "web_api.py",
 }
 _GAMEPLAY_DIRS = {"agents", "algorithms", "game"}
 _NATIVE_GAME_PREFIXES = (
