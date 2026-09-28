@@ -478,16 +478,97 @@ def normalize_card_data(data: dict[str, Any]) -> dict[str, Any]:
     return copy.deepcopy(data)
 
 
+CARD_CAPABILITY_NAMES = frozenset({
+    "adjacent_retreat_free_maneuver",
+    "after_frontline_retreat_sideways_force",
+    "after_maneuver_swap_other_friendlies",
+    "after_self_maneuver_free_other_named_if_wide_name",
+    "after_self_retreat_sideways_name",
+    "follow_into_vacated_after_adjacent_maneuver",
+    "narrative_command_gain_free_maneuver_force",
+    "on_play_take_adjacent_open_bond_name",
+    "on_play_take_adjacent_prepared_component_force",
+    "opposing_maneuver_same_front_free_maneuver",
+    "opposing_named_same_front_free_maneuver",
+    "optional_self_drive_prevent_frontline_retreat_force",
+    "prepared_on_play_free_maneuver_force",
+    "succession_on_drive_off_name",
+    "transfer_open_bond_after_move_bond",
+})
+
+
+def _compile_card_capabilities(design: dict[str, Any]) -> tuple[str, ...]:
+    """Translate reusable design vocabulary into engine capability names."""
+    force_design = design.get("force") or design
+    name_design = design.get("name") or {}
+    capabilities: set[str] = set()
+
+    if design.get("trigger") == "opposing_formation_in_same_front_becomes_named":
+        capabilities.add("opposing_named_same_front_free_maneuver")
+    if design.get("trigger") == "adjacent_friendly_named_formation_maneuvers_away":
+        capabilities.add("follow_into_vacated_after_adjacent_maneuver")
+    if design.get("trigger") == "adjacent_friendly_formation_retreats":
+        capabilities.add("adjacent_retreat_free_maneuver")
+    if (
+        (design.get("after_maneuver") or {}).get("effect")
+        == "optional_swap_two_adjacent_friendly_formations_excluding_self"
+    ):
+        capabilities.add("after_maneuver_swap_other_friendlies")
+    if design.get("trigger") == "opposing_formation_maneuvers_into_same_front":
+        capabilities.add("opposing_maneuver_same_front_free_maneuver")
+    if (
+        force_design.get("after_frontline_retreat")
+        == "optional_sideways_rear_move"
+    ):
+        capabilities.add("after_frontline_retreat_sideways_force")
+    if name_design.get("after_self_retreat") == "optional_sideways_rear_move":
+        capabilities.add("after_self_retreat_sideways_name")
+    if (
+        force_design.get("on_play")
+        == "optional_take_adjacent_prepared_bond_or_name"
+    ):
+        capabilities.add("on_play_take_adjacent_prepared_component_force")
+    if name_design.get("on_play") == "optional_take_adjacent_open_bond":
+        capabilities.add("on_play_take_adjacent_open_bond_name")
+    if (
+        force_design.get("effect")
+        == "optional_drive_off_self_prevent_frontline_named_retreat"
+    ):
+        capabilities.add("optional_self_drive_prevent_frontline_retreat_force")
+    if design.get("build_around") == "prepared_position":
+        capabilities.add("prepared_on_play_free_maneuver_force")
+    if (
+        design.get("after_self_maneuver")
+        == "optional_zero_cost_other_friendly_named_maneuver"
+    ):
+        capabilities.add("after_self_maneuver_free_other_named_if_wide_name")
+    if design.get("trigger") == "regain_command_from_narrative":
+        capabilities.add("narrative_command_gain_free_maneuver_force")
+    if design.get("build_around") == "open_bond_transfer":
+        capabilities.add("transfer_open_bond_after_move_bond")
+    if design.get("build_around") == "succession":
+        capabilities.add("succession_on_drive_off_name")
+
+    unknown = capabilities - CARD_CAPABILITY_NAMES
+    if unknown:
+        raise ValueError(
+            "Compiler produced unsupported card capabilities: "
+            + ", ".join(sorted(unknown))
+        )
+    return tuple(sorted(capabilities))
+
+
 def compile_card_mechanics(card: dict[str, Any]) -> dict[str, Any]:
     """Compile one card's executable design vocabulary for the native engine.
 
-    The current representation intentionally stays dictionary-shaped so this
-    refactor does not alter runtime semantics. The important boundary is that
-    native code consumes this validated compiler output, never raw design_rules
-    from catalogue JSON.
+    Native code consumes only this validated compiler output, never raw
+    design_rules from catalogue JSON. Existing structured design data remains
+    available during the migration to reusable capability primitives.
     """
     _validate_design_rules(card)
-    return copy.deepcopy(card.get("design_rules") or {})
+    design = copy.deepcopy(card.get("design_rules") or {})
+    design["_capabilities"] = _compile_card_capabilities(design)
+    return design
 
 
 def load_card_file(path: str | Path) -> dict[str, Any]:
