@@ -655,6 +655,127 @@ function progressionMetric(label, distribution, note) {
   return metric(label, distributionValue(distribution), note || `median · n=${distribution?.count ?? 0}`);
 }
 
+function renderCommandExperiment(lab) {
+  const container = document.getElementById("command-experiment");
+  const overview = document.getElementById("command-experiment-overview");
+  const unavailable = document.getElementById("command-experiment-unavailable");
+  if (!container || !overview || !unavailable) return;
+
+  const profiles = lab.balance_comparisons?.profiles || {};
+  const rows = Object.entries(profiles);
+  if (!rows.length) {
+    unavailable.hidden = false;
+    overview.innerHTML = "";
+    container.innerHTML = "";
+    return;
+  }
+  unavailable.hidden = true;
+
+  const weighted = (deckProfiles, getter) => {
+    let total = 0;
+    let weight = 0;
+    for (const deck of deckProfiles) {
+      const result = getter(deck);
+      if (!result || result.value == null || !result.weight) continue;
+      total += Number(result.value) * Number(result.weight);
+      weight += Number(result.weight);
+    }
+    return weight ? total / weight : null;
+  };
+  const sum = (deckProfiles, getter) =>
+    deckProfiles.reduce((total, deck) => total + Number(getter(deck) || 0), 0);
+
+  const summaries = rows.map(([key, profile]) => {
+    const deckProfiles = Object.values(profile.progression_profiles?.profiles || {});
+    const games = sum(deckProfiles, (deck) => deck.games);
+    const censored = sum(deckProfiles, (deck) => deck.censored_games);
+    const firstPassCommand = weighted(deckProfiles, (deck) => {
+      const d = deck.progression?.resources?.command_at_first_pass;
+      return { value: d?.mean, weight: d?.count };
+    });
+    const battleEndCommand = weighted(deckProfiles, (deck) => {
+      const d = deck.progression?.resources?.command_remaining_at_battle_end;
+      return { value: d?.mean, weight: d?.count };
+    });
+    const firstPassCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_at_first_pass?.count);
+    const passZero = sum(deckProfiles, (deck) => deck.progression?.resources?.first_pass_command_buckets?.["0"]);
+    const passFourPlus = sum(deckProfiles, (deck) => deck.progression?.resources?.first_pass_command_buckets?.["4+"]);
+    const endCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_remaining_at_battle_end?.count);
+    const endZero = sum(deckProfiles, (deck) => deck.progression?.resources?.command_end_buckets?.["0"]);
+    const matches = sum(deckProfiles, (deck) => deck.progression?.match_length?.matches);
+    const reach3 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["3"]?.matches);
+    const reach8 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["8"]?.matches);
+    const lateCommand = (bucket) => weighted(deckProfiles, (deck) => {
+      const d = deck.progression?.by_battle?.[bucket];
+      return { value: d?.command_remaining, weight: d?.battles };
+    });
+    const alternativePasses = sum(deckProfiles, (deck) =>
+      deck.progression?.contestability?.first_pass_outcomes?.with_playable_alternatives?.events
+    );
+    const firstPassEvents = sum(deckProfiles, (deck) =>
+      ["ahead", "tied", "behind"].reduce(
+        (n, state) => n + Number(deck.progression?.contestability?.first_pass_outcomes?.[state]?.events || 0),
+        0
+      )
+    );
+    return {
+      key,
+      agent: profile.agent || key.split("--")[0],
+      recovery: profile.recovery_variant || key.split("--")[1],
+      games,
+      censorRate: games ? censored / games : null,
+      firstPassCommand,
+      passZeroRate: firstPassCount ? passZero / firstPassCount : null,
+      passFourPlusRate: firstPassCount ? passFourPlus / firstPassCount : null,
+      passWithAlternativesRate: firstPassEvents ? alternativePasses / firstPassEvents : null,
+      battleEndCommand,
+      endZeroRate: endCount ? endZero / endCount : null,
+      reach3: matches ? reach3 / matches : null,
+      reach8: matches ? reach8 / matches : null,
+      battle47Command: lateCommand("4-7"),
+      battle8Command: lateCommand("8+"),
+      search: profile.agent_profile || {},
+    };
+  }).sort((a, b) => a.key.localeCompare(b.key));
+
+  overview.innerHTML = [
+    metric("Profiles", summaries.length, "agent × recovery conditions retained for this ruleset"),
+    metric("Agents", new Set(summaries.map((row) => row.agent)).size, "distinct policies represented"),
+    metric("Recovery variants", new Set(summaries.map((row) => row.recovery)).size, "current and/or experimental candidate"),
+    metric("Simulated games", summaries.reduce((n, row) => n + row.games, 0), "same-deck progression games across profiles"),
+  ].join("");
+
+  container.innerHTML = `
+    <table class="mini-table">
+      <thead><tr>
+        <th>Agent</th><th>Recovery</th><th>Games</th><th>Censored</th>
+        <th>First-pass Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Pass w/ alternatives</th>
+        <th>Battle-end Command</th><th>Ends at 0</th><th>Reach III</th><th>Reach VIII+</th>
+        <th>Command IV-VII</th><th>Command VIII+</th><th>Search settings</th>
+      </tr></thead>
+      <tbody>${summaries.map((row) => `
+        <tr>
+          <td><strong>${esc(row.agent)}</strong></td>
+          <td>${esc(row.recovery)}</td>
+          <td>${row.games}</td>
+          <td>${pct(row.censorRate)}</td>
+          <td>${num(row.firstPassCommand, 1)}</td>
+          <td>${pct(row.passZeroRate)}</td>
+          <td>${pct(row.passFourPlusRate)}</td>
+          <td>${pct(row.passWithAlternativesRate)}</td>
+          <td>${num(row.battleEndCommand, 1)}</td>
+          <td>${pct(row.endZeroRate)}</td>
+          <td>${pct(row.reach3)}</td>
+          <td>${pct(row.reach8)}</td>
+          <td>${num(row.battle47Command, 1)}</td>
+          <td>${num(row.battle8Command, 1)}</td>
+          <td><code>${esc(JSON.stringify(row.search[row.agent] || row.search))}</code></td>
+        </tr>
+      `).join("")}</tbody>
+    </table>
+  `;
+}
+
 function renderProgression(lab) {
   const profiles = lab.progression_profiles || {};
   const selector = document.getElementById("progression-profile");
@@ -1096,6 +1217,7 @@ async function main() {
   renderAttention(lab);
   renderOverview(lab);
   renderEvidencePipeline(lab);
+  renderCommandExperiment(lab);
   renderProgression(lab);
   renderCards(lab);
   renderCounterfactual(lab);
