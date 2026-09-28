@@ -57,15 +57,17 @@ class SimulationReport:
     agents: tuple[str, str]
     wins: tuple[int, int]
     censored_games: int
+    failed_games: int
     first_player_wins: int
     mean_turns: float
     max_turns: int
     telemetry: dict[str, Any]
     game_outcomes: list[dict[str, int | bool | None]]
+    failed_game_outcomes: list[dict[str, Any]]
 
     @property
     def decisive_games(self) -> int:
-        return self.games - self.censored_games
+        return self.games - self.censored_games - self.failed_games
 
     @property
     def win_rates(self) -> tuple[float, float]:
@@ -77,6 +79,14 @@ class SimulationReport:
     @property
     def censor_rate(self) -> float:
         return self.censored_games / self.games
+
+    @property
+    def failure_rate(self) -> float:
+        return self.failed_games / self.games
+
+    @property
+    def completed_games(self) -> int:
+        return self.games - self.failed_games
 
     @property
     def first_player_win_rate(self) -> float:
@@ -202,6 +212,7 @@ def _simulate_games_serial(
     agent_seed_offsets: tuple[int, int] | None = None,
     progress_callback: Callable[[int, int, tuple[int, int]], None] | None = None,
     game_index_start: int = 0,
+    skip_failed_games: bool = False,
     _return_raw: bool = False,
 ) -> SimulationReport | _RawSimulationResult:
     if games <= 0:
@@ -209,10 +220,12 @@ def _simulate_games_serial(
 
     wins = [0, 0]
     censored_games = 0
+    failed_games = 0
     first_player_wins = 0
     total_turns = 0
     maximum_turns = 0
     game_outcomes: list[dict[str, int | bool | None]] = []
+    failed_game_outcomes: list[dict[str, Any]] = []
     telemetry = Telemetry()
     human_flow = HumanFlowDiagnostics()
     priors: tuple[DeckPrior, DeckPrior] = (
@@ -256,136 +269,156 @@ def _simulate_games_serial(
     for game_index in range(games):
         global_game_index = game_index_start + game_index
         first_player = global_game_index % 2
-        preview = engine.new_game(
-            deck_a,
-            deck_b,
-            seed=seed + global_game_index,
-            first_player=first_player,
-            opening_bonus=False,
-        )
-        agents = []
-        for player in range(2):
-            options = dict(base_agent_options)
-            override = agent_overrides[player]
-            if override is not None:
-                if not isinstance(override, dict):
-                    raise TypeError("agent override must be a dict or None")
-                options.update(override)
-            agents.append(
-                make_agent(
-                    agent_names[player],
-                    engine,
-                    (
-                        seed * 10_000 + global_game_index * 2 + player + 1
-                        if agent_seed_offsets is None
-                        else seed * 10_000 + global_game_index * 100 + agent_seed_offsets[player]
-                    ),
-                    policy=agent_policies[player],
-                    priors=priors,
-                    **options,
-                )
-            )
-        mulligan_indices = tuple(
-            agent.choose_mulligan(engine, preview.players[player].hand)
-            if hasattr(agent, "choose_mulligan")
-            else ()
-            for player, agent in enumerate(agents)
-        )
-        state = engine.new_game(
-            deck_a,
-            deck_b,
-            seed=seed + global_game_index,
-            first_player=first_player,
-            mulligan_indices=mulligan_indices,
-        )
-        telemetry.start_game(
-            state,
-            engine,
-            simulation_game_index=global_game_index,
-            seed=seed + global_game_index,
-            first_player=first_player,
-        )
-        human_flow.start_game(engine, state)
-
+        game_seed = seed + global_game_index
+        agents: list[object] = []
+        preview = None
+        state = None
+        game_telemetry = Telemetry()
+        game_human_flow = HumanFlowDiagnostics()
         action_count = 0
         censored = False
-        while state.phase is not Phase.COMPLETE:
-            if action_count >= max_actions:
-                censored = True
-                break
 
-            actor = state.active_player
-            agent = agents[actor]
-            action = agent.choose(engine, state)
-
-            decision_info = getattr(agent, "last_decision", None)
-            if decision_info is not None:
-                decision_info = dict(decision_info)
-                decision_info["agent"] = labels[actor]
-
-            human_flow.before_action(engine, state, actor, action)
-            before = telemetry.before_action(
-                engine,
-                state,
-                actor,
-                action,
-                decision_info,
+        try:
+            preview = engine.new_game(
+                deck_a,
+                deck_b,
+                seed=game_seed,
+                first_player=first_player,
+                opening_bonus=False,
             )
-            engine.apply(state, action)
-            telemetry.after_action(engine, before, state, actor, action)
-            human_flow.after_action(engine, before, state, actor, action)
-            action_count += 1
+            for player in range(2):
+                options = dict(base_agent_options)
+                override = agent_overrides[player]
+                if override is not None:
+                    if not isinstance(override, dict):
+                        raise TypeError("agent override must be a dict or None")
+                    options.update(override)
+                agents.append(
+                    make_agent(
+                        agent_names[player],
+                        engine,
+                        (
+                            seed * 10_000 + global_game_index * 2 + player + 1
+                            if agent_seed_offsets is None
+                            else seed * 10_000 + global_game_index * 100 + agent_seed_offsets[player]
+                        ),
+                        policy=agent_policies[player],
+                        priors=priors,
+                        **options,
+                    )
+                )
+            mulligan_indices = tuple(
+                agent.choose_mulligan(engine, preview.players[player].hand)
+                if hasattr(agent, "choose_mulligan")
+                else ()
+                for player, agent in enumerate(agents)
+            )
+            state = engine.new_game(
+                deck_a,
+                deck_b,
+                seed=game_seed,
+                first_player=first_player,
+                mulligan_indices=mulligan_indices,
+            )
+            game_telemetry.start_game(
+                state,
+                engine,
+                simulation_game_index=global_game_index,
+                seed=game_seed,
+                first_player=first_player,
+            )
+            game_human_flow.start_game(engine, state)
 
-            # Search creates large short-lived belief states, packed states,
-            # and native scratch allocations. Reclaim dead objects after each
-            # move without clearing an ISMCTS tree that is intentionally
-            # reused within the same game.
-            del decision_info, before, action, agent
+            while state.phase is not Phase.COMPLETE:
+                if action_count >= max_actions:
+                    censored = True
+                    break
+
+                actor = state.active_player
+                agent = agents[actor]
+                action = agent.choose(engine, state)
+
+                decision_info = getattr(agent, "last_decision", None)
+                if decision_info is not None:
+                    decision_info = dict(decision_info)
+                    decision_info["agent"] = labels[actor]
+
+                game_human_flow.before_action(engine, state, actor, action)
+                before = game_telemetry.before_action(
+                    engine,
+                    state,
+                    actor,
+                    action,
+                    decision_info,
+                )
+                engine.apply(state, action)
+                game_telemetry.after_action(engine, before, state, actor, action)
+                game_human_flow.after_action(engine, before, state, actor, action)
+                action_count += 1
+
+                del decision_info, before, action, agent
+                _release_process_memory()
+
+            winner = None if censored else state.winner
+            if not censored and winner is None:
+                raise RuntimeError("Completed game has no winner")
+
+            game_telemetry.finish_game(winner, state)
+            telemetry.merge(game_telemetry)
+            human_flow.merge(game_human_flow)
+            game_outcomes.append({
+                "game": global_game_index,
+                "seed": game_seed,
+                "first_player": first_player,
+                "winner": winner,
+                "censored": censored,
+            })
+            if censored:
+                censored_games += 1
+            else:
+                wins[winner] += 1
+                if winner == first_player:
+                    first_player_wins += 1
+            total_turns += action_count
+            maximum_turns = max(maximum_turns, action_count)
+
+        except Exception as exc:
+            if not skip_failed_games:
+                raise
+            failed_games += 1
+            failed_game_outcomes.append({
+                "game": global_game_index,
+                "seed": game_seed,
+                "first_player": first_player,
+                "error_type": type(exc).__name__,
+                "error": str(exc),
+                "actions_completed": action_count,
+            })
+
+        finally:
+            if progress_callback is not None:
+                progress_callback(game_index + 1, games, (wins[0], wins[1]))
+            for finished_agent in agents:
+                _release_agent_search_memory(finished_agent)
+            del agents, state, preview, game_telemetry, game_human_flow
             _release_process_memory()
-
-        winner = None if censored else state.winner
-        if not censored and winner is None:
-            raise RuntimeError("Completed game has no winner")
-
-        telemetry.finish_game(winner, state)
-        game_outcomes.append({
-            "game": global_game_index,
-            "seed": seed + global_game_index,
-            "first_player": first_player,
-            "winner": winner,
-            "censored": censored,
-        })
-        if censored:
-            censored_games += 1
-        else:
-            wins[winner] += 1
-            if winner == first_player:
-                first_player_wins += 1
-        total_turns += action_count
-        maximum_turns = max(maximum_turns, action_count)
-        if progress_callback is not None:
-            progress_callback(game_index + 1, games, (wins[0], wins[1]))
-
-        # No search state is useful across games. Explicitly release native
-        # trees/tables before dropping the agents, then trim allocator caches.
-        for finished_agent in agents:
-            _release_agent_search_memory(finished_agent)
-        del agents, state, preview
-        _release_process_memory()
 
     telemetry_summary = telemetry.summary()
     _release_process_memory()
     telemetry_summary["human_flow"] = human_flow.summary()
+    completed_games = games - failed_games
     report = SimulationReport(
         games=games,
         agents=labels,
         wins=(wins[0], wins[1]),
         censored_games=censored_games,
+        failed_games=failed_games,
         first_player_wins=first_player_wins,
-        mean_turns=total_turns / games,
+        mean_turns=(total_turns / completed_games if completed_games else 0.0),
         max_turns=maximum_turns,
         telemetry=telemetry_summary,
         game_outcomes=game_outcomes,
+        failed_game_outcomes=failed_game_outcomes,
     )
     if _return_raw:
         return _RawSimulationResult(
@@ -458,6 +491,7 @@ def simulate_games(
     agent_labels: tuple[str, str] | None = None,
     agent_seed_offsets: tuple[int, int] | None = None,
     progress_callback: Callable[[int, int, tuple[int, int]], None] | None = None,
+    skip_failed_games: bool = False,
 ) -> SimulationReport:
     """Simulate matches, using independent worker processes when requested."""
     if jobs <= 0:
@@ -490,6 +524,7 @@ def simulate_games(
         "agent_overrides": agent_overrides,
         "agent_labels": agent_labels,
         "agent_seed_offsets": agent_seed_offsets,
+        "skip_failed_games": skip_failed_games,
     }
 
     if jobs == 1 or games == 1:
@@ -547,10 +582,13 @@ def simulate_games(
     human_flow = HumanFlowDiagnostics()
     wins = [0, 0]
     censored_games = 0
+    failed_games = 0
     first_player_wins = 0
     total_turns = 0.0
+    completed_games = 0
     maximum_turns = 0
     game_outcomes: list[dict[str, int | bool | None]] = []
+    failed_game_outcomes: list[dict[str, Any]] = []
     agents = results[0].report.agents
 
     for result in results:
@@ -560,10 +598,13 @@ def simulate_games(
         wins[0] += report.wins[0]
         wins[1] += report.wins[1]
         censored_games += report.censored_games
+        failed_games += report.failed_games
         first_player_wins += report.first_player_wins
-        total_turns += report.mean_turns * report.games
+        completed_games += report.completed_games
+        total_turns += report.mean_turns * report.completed_games
         maximum_turns = max(maximum_turns, report.max_turns)
         game_outcomes.extend(report.game_outcomes)
+        failed_game_outcomes.extend(report.failed_game_outcomes)
 
     telemetry_summary = telemetry.summary()
     telemetry_summary["human_flow"] = human_flow.summary()
@@ -572,9 +613,11 @@ def simulate_games(
         agents=agents,
         wins=(wins[0], wins[1]),
         censored_games=censored_games,
+        failed_games=failed_games,
         first_player_wins=first_player_wins,
-        mean_turns=total_turns / games,
+        mean_turns=(total_turns / completed_games if completed_games else 0.0),
         max_turns=maximum_turns,
         telemetry=telemetry_summary,
         game_outcomes=game_outcomes,
+        failed_game_outcomes=failed_game_outcomes,
     )
