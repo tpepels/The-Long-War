@@ -315,3 +315,23 @@ def test_had_been_ordered_forward_gains_strength_and_keeps_direction_if_possible
     legal = engine.legal_actions(state)
     assert Maneuver(middle, left) in legal
     assert Maneuver(middle, right) not in legal
+
+
+def test_pass_consumes_an_impossible_next_operation_requirement():
+    engine, state = fresh()
+    state.players[0].hand = ["the-fifty-men"]
+    state.operations_this_battle[:] = [1, 1]
+    state.constraints[:] = [
+        OperationConstraint(
+            "the-king-had-given-the-order",
+            0,
+            ConstraintKind.SPECIFIC_MANEUVER,
+            0,
+            source_position=Position(Front.SECOND, Rank.FRONT),
+            direction="left",
+        )
+    ]
+
+    assert Pass() in engine.legal_actions(state)
+    engine.apply(state, Pass())
+    assert not state.constraints
