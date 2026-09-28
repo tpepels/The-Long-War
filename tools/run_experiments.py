@@ -1617,11 +1617,42 @@ def parse_args() -> argparse.Namespace:
         default="quick",
     )
     balance.add_argument(
+        "--agent",
+        choices=(
+            "heuristic",
+            "strategic_heuristic",
+            "ismcts",
+            "random",
+            "mccfr",
+            "online_mccfr",
+        ),
+        default="heuristic",
+        help="Agent used for structural/progression self-play.",
+    )
+    balance.add_argument(
+        "--recovery",
+        choices=("current", "candidate"),
+        default="current",
+        help=(
+            "Command recovery profile. candidate is experimental only: "
+            "10/8/6/5/4/3/2 then 1 for Battle VIII+."
+        ),
+    )
+    balance.add_argument(
+        "--skip-card-screen",
+        action="store_true",
+        help=(
+            "Skip the heuristic all-card A/B screen and targeted online-MCCFR "
+            "stage. Useful for agent/recovery progression comparisons."
+        ),
+    )
+    balance.add_argument(
         "--games",
         type=int,
         help=(
-            "Structural heuristic games per matchup cell "
-            "(quick: 8; deep: 250; exhaustive: 2000). "
+            "Structural games per matchup cell. Defaults depend on agent "
+            "(heuristic: quick 8/deep 250/exhaustive 2000; search agents use "
+            "smaller defaults). "
             "This does not change paired card-screen sample counts."
         ),
     )
@@ -1637,6 +1668,97 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=4,
         help="Paired samples per context/card in the broad A/B screen.",
+    )
+    balance.add_argument(
+        "--ismcts-belief-samples",
+        type=int,
+        default=6,
+        help="Belief determinizations per ISMCTS decision in balance runs.",
+    )
+    balance.add_argument(
+        "--ismcts-iterations",
+        type=int,
+        default=2000,
+        help="ISMCTS iterations per searched decision in balance runs.",
+    )
+    balance.add_argument(
+        "--ismcts-time-budget-seconds",
+        type=float,
+    )
+    balance.add_argument(
+        "--ismcts-rollout-depth",
+        type=int,
+        default=DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+    )
+    balance.add_argument(
+        "--ismcts-tree-depth-limit",
+        type=int,
+        default=96,
+    )
+    balance.add_argument(
+        "--ismcts-exploration",
+        type=float,
+        default=DEFAULT_ISMCTS_EXPLORATION,
+    )
+    balance.add_argument(
+        "--ismcts-progressive-widening",
+        type=float,
+        default=0.0,
+    )
+    balance.add_argument(
+        "--ismcts-no-tree-reuse",
+        action="store_true",
+    )
+    balance.add_argument(
+        "--ismcts-max-tree-nodes",
+        type=int,
+        default=8000,
+    )
+    balance.add_argument(
+        "--ismcts-rollout-epsilon",
+        type=float,
+        default=DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+    )
+    balance.add_argument(
+        "--ismcts-rollout-policy",
+        choices=("greedy", "cheap", "random"),
+        default=DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    )
+    balance.add_argument(
+        "--strategic-belief-samples",
+        type=int,
+        default=3,
+    )
+    balance.add_argument(
+        "--strategic-rollout-plies",
+        type=int,
+        default=5,
+    )
+    balance.add_argument(
+        "--strategic-candidate-width",
+        type=int,
+        default=6,
+    )
+    balance.add_argument(
+        "--strategic-node-budget",
+        type=int,
+        default=20000,
+    )
+    balance.add_argument(
+        "--strategic-time-budget-seconds",
+        type=float,
+    )
+    balance.add_argument(
+        "--online-agent-iterations",
+        type=int,
+        default=16,
+        help="Online-MCCFR iterations when it is the structural agent.",
+    )
+    balance.add_argument(
+        "--online-agent-depth",
+        type=int,
+        default=2,
+        help="Online-MCCFR depth when it is the structural agent.",
     )
     balance.add_argument(
         "--online-iterations",
