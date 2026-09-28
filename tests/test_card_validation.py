@@ -143,12 +143,17 @@ def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
         first_player=0,
         opening_bonus=False,
     )
-    # 60 distinct Bonds x 8 battlefield positions produce 480 legal placements,
-    # comfortably beyond the historical fixed action buffer.
+    # The 127-card native cap leaves 32 synthetic Bonds on top of the
+    # canonical pool. Combine those with the canonical Bonds so the legal
+    # action set still exceeds the historical 256-action buffer.
     state.players[0].deck = []
-    state.players[0].hand = [card_id for card_id in engine.cards if card_id.startswith("test-bond-")][-60:]
+    state.players[0].hand = [
+        card_id
+        for card_id, card in engine.cards.items()
+        if card["type"] == "bond"
+    ]
     legal = engine.legal_actions(state)
-    assert len(legal) == 480
+    assert len(legal) > 256
     assert all(getattr(action, "card_id", None) is not None for action in legal)
     assert any(getattr(action, "card_id", None) == "test-bond-126" for action in legal)
     for player in state.players:
