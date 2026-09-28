@@ -11,6 +11,7 @@ cdef class FastEngine:
     cdef object command_recovery_schedule
     cdef int32_t command_recovery_values[MAX_RECOVERY_SCHEDULE]
     cdef uint8_t command_recovery_len
+    cdef int16_t command_recovery_tail
     cdef int command_collapse_threshold
     cdef int maneuver_command_cost
     cdef int hand_limit
