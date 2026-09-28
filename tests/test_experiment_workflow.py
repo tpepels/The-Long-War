@@ -535,3 +535,30 @@ def test_balance_cli_exposes_evidence_hierarchy_controls(monkeypatch) -> None:
     assert args.target_min_effect == pytest.approx(0.05)
     assert args.skip_online_validation is False
 
+
+
+def test_command_matrix_cli_uses_four_agent_recovery_cells(monkeypatch) -> None:
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        [
+            "run_experiments.py",
+            "balance",
+            "--preset",
+            "deep",
+            "--command-matrix",
+        ],
+    )
+    args = runner.parse_args()
+    assert args.command_matrix is True
+
+    source = inspect.getsource(runner.run_command_matrix)
+    for pair in (
+        '("heuristic", "current")',
+        '("heuristic", "candidate")',
+        '("ismcts", "current")',
+        '("ismcts", "candidate")',
+    ):
+        assert pair in source
+    assert "cell.skip_card_screen = True" in source
+    assert "cell.publish_lab = True" in source
