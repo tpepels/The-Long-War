@@ -14,6 +14,7 @@ from .game.actions import (
     PlayName,
     PlayStory,
     PlayStratagem,
+    action_key,
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import ConstraintKind, Front, GameState, Phase, Position
@@ -62,6 +63,7 @@ class ProgressionTelemetry:
         self._formations: dict[int, dict[str, Any]] = {}
 
         self._battle_events: Counter[str] = Counter()
+        self._battle_operation_trace: list[dict[str, Any]] = []
         self._battle_snapshots: list[dict[str, Any]] = []
         self._battle_records: list[dict[str, Any]] = []
         self._match_records: list[dict[str, Any]] = []
@@ -239,6 +241,7 @@ class ProgressionTelemetry:
         self._battle_number = state.battle
         self._formation_at = {}
         self._battle_events = Counter()
+        self._battle_operation_trace = []
         self._battle_snapshots = []
         self._last_controllers = None
         self._last_control_balance = None
@@ -338,6 +341,25 @@ class ProgressionTelemetry:
                 and all(isinstance(candidate, EffectChoice) for candidate in legal)
             )
         )
+        self._battle_operation_trace.append({
+            "player": int(actor),
+            "action": action_key(action),
+            "category": (
+                "effect_choice"
+                if effect_resolution
+                else "pass"
+                if isinstance(action, Pass)
+                else "maneuver"
+                if isinstance(action, Maneuver)
+                else "card"
+                if isinstance(action, CARD_ACTIONS)
+                else type(action).__name__
+            ),
+            "operation": not effect_resolution,
+            "forced": len(legal) == 1,
+            "legal_actions": len(legal),
+            "command_before": int(state.players[actor].command),
+        })
         if effect_resolution:
             self._effect_choice_decisions += 1
             self._battle_events["effect_choices"] += 1
@@ -707,6 +729,7 @@ class ProgressionTelemetry:
                         "command_after_recovery",
                         "collapse_comparison",
                         "operations_taken",
+                        "operation_trace",
                         "actions",
                         "cards_played",
                         "maneuvers",
@@ -1596,6 +1619,7 @@ class ProgressionTelemetry:
                     before.operations_this_battle,
                 )
             ],
+            "operation_trace": list(self._battle_operation_trace),
             "maneuvers": self._battle_events["maneuvers"],
             "paid_operations": self._battle_events["paid_operations"],
             "free_operations": self._battle_events["free_operations"],
@@ -1780,6 +1804,7 @@ class ProgressionTelemetry:
         self._battle_number = int(state.battle)
         self._battle_action = 0
         self._battle_events = Counter()
+        self._battle_operation_trace = []
         self._battle_snapshots = []
         self._last_controllers = None
         self._last_control_balance = None
