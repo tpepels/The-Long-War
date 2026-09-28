@@ -588,6 +588,135 @@ class ProgressionTelemetry:
                 "matches": reached,
                 "rate": self._ratio(reached, len(match_records)),
             }
+        threshold = (
+            int(self._collapse_threshold)
+            if self._collapse_threshold is not None
+            else 0
+        )
+        equal_low_rows = [
+            row
+            for row in self._battle_records
+            if row.get("next_battle_command") is not None
+            and row["next_battle_command"][0] == row["next_battle_command"][1]
+            and row["next_battle_command"][0] < threshold
+        ]
+        streak_lengths: list[int] = []
+        first_equal_low_battles: list[int] = []
+        consecutive_equal_low_battles = 0
+        rows_by_game: dict[int, list[dict[str, Any]]] = defaultdict(list)
+        for row in self._battle_records:
+            rows_by_game[int(row["game"])].append(row)
+        for game_rows in rows_by_game.values():
+            current_streak = 0
+            for row in game_rows:
+                is_equal_low = (
+                    row.get("next_battle_command") is not None
+                    and row["next_battle_command"][0] == row["next_battle_command"][1]
+                    and row["next_battle_command"][0] < threshold
+                )
+                if is_equal_low:
+                    if current_streak == 0:
+                        first_equal_low_battles.append(int(row["battle"]))
+                    else:
+                        consecutive_equal_low_battles += 1
+                    current_streak += 1
+                elif current_streak:
+                    streak_lengths.append(current_streak)
+                    current_streak = 0
+            if current_streak:
+                streak_lengths.append(current_streak)
+
+        stall_rows = [
+            row
+            for row in self._battle_records
+            if (
+                any(value < threshold for value in row["command_start"])
+                or row in equal_low_rows
+            )
+        ]
+        low_command_stalls = {
+            "collapse_threshold": threshold,
+            "both_below_collapse_threshold": sum(
+                all(value < threshold for value in row["command_start"])
+                for row in self._battle_records
+            ),
+            "equal_low_continuations": len(equal_low_rows),
+            "consecutive_equal_low_battles": consecutive_equal_low_battles,
+            "zero_command_battle_starts": sum(
+                any(value == 0 for value in row["command_start"])
+                for row in self._battle_records
+            ),
+            "both_zero_command_battle_starts": sum(
+                row["command_start"] == [0, 0]
+                for row in self._battle_records
+            ),
+            "low_command_battle_starts": sum(
+                any(value < threshold for value in row["command_start"])
+                for row in self._battle_records
+            ),
+            "battles_with_no_paid_operation": sum(
+                bool(row.get("no_paid_operation"))
+                for row in self._battle_records
+            ),
+            "battles_with_no_board_change": sum(
+                not bool(row.get("board_changed"))
+                for row in self._battle_records
+            ),
+            "battles_with_no_strength_change": sum(
+                not bool(row.get("strength_changed"))
+                for row in self._battle_records
+            ),
+            "forced_passes": sum(
+                int(row.get("forced_passes", 0))
+                for row in self._battle_records
+            ),
+            "passes_with_no_playable_alternative": sum(
+                int(row.get("passes_with_no_playable_alternative", 0))
+                for row in self._battle_records
+            ),
+            "equal_low_streak_length": self._distribution(
+                streak_lengths,
+                histogram=True,
+            ),
+            "first_equal_low_continuation_battle": self._distribution(
+                first_equal_low_battles,
+                histogram=True,
+            ),
+            "battle_records": [
+                {
+                    key: row.get(key)
+                    for key in (
+                        "game",
+                        "battle",
+                        "command_start",
+                        "command_remaining",
+                        "recovery_base",
+                        "fronts_lost",
+                        "recovery_loss",
+                        "recovery_actual",
+                        "command_before_recovery",
+                        "command_after_recovery",
+                        "collapse_comparison",
+                        "operations_taken",
+                        "actions",
+                        "cards_played",
+                        "maneuvers",
+                        "no_paid_operation",
+                        "pass_diagnostics",
+                        "board_changed",
+                        "strength_changed",
+                        "board_start_signature",
+                        "board_end_signature",
+                        "next_battle_board_signature",
+                        "strength_start",
+                        "strength_end",
+                        "next_battle_strength_by_front",
+                    )
+                }
+                for row in stall_rows
+            ],
+        }
+
         match_length = {
             "matches": len(match_records),
             "censored_matches": sum(row["censored"] for row in match_records),
@@ -872,6 +1001,7 @@ class ProgressionTelemetry:
             "contestability": contestability,
             "mechanical_choice": choice,
             "resources": resource,
+            "low_command_stalls": low_command_stalls,
             "cards": self._card_lifecycle_summary(),
             "hero_modes": self._hero_summary(),
             "by_battle": by_battle,
@@ -903,6 +1033,13 @@ class ProgressionTelemetry:
                     "total-Strength lead keeps the same sign through every later recorded state. "
                     "The Long War has no overall Battle winner, so this is a persistence measure, "
                     "not an outcome or winner claim."
+                ),
+                "low_command_stall": (
+                    "Low Command means at least one player starts below the configured "
+                    "collapse threshold. Equal-low continuation means a resolved Battle "
+                    "continues with equal post-recovery Command below that threshold. "
+                    "A consecutive equal-low Battle extends an already-active equal-low "
+                    "continuation streak."
                 ),
                 "first_pass_result": (
                     "There is no overall Battle winner. First-pass outcome groups therefore use "
