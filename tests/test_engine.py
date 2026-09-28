@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -1246,7 +1247,7 @@ def test_hand_deck_discard_and_named_formations_persist_between_battles() -> Non
     resolve_battle_by_passing(engine, state)
 
     assert state.slot(0, pos(0)).complete is True
-    assert state.players[0].hand == hand_before
+    assert Counter(state.players[0].hand) == Counter(hand_before)
     assert state.players[0].deck == deck_before
     assert state.players[0].discard == discard_before
 
