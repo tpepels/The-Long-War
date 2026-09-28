@@ -717,6 +717,16 @@ function renderCommandExperiment(lab) {
     const matches = sum(deckProfiles, (deck) => deck.progression?.match_length?.matches);
     const reach3 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["3"]?.matches);
     const reach8 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["8"]?.matches);
+    const resolvedBattles = sum(deckProfiles, (deck) => deck.progression?.battlefield_development?.battles);
+    const equalLowContinuations = sum(deckProfiles, (deck) =>
+      deck.progression?.low_command_stalls?.equal_low_continuations
+    );
+    const bothZeroStarts = sum(deckProfiles, (deck) =>
+      deck.progression?.low_command_stalls?.both_zero_command_battle_starts
+    );
+    const noPaidOperations = sum(deckProfiles, (deck) =>
+      deck.progression?.low_command_stalls?.battles_with_no_paid_operation
+    );
     const lateCommand = (bucket) => weighted(deckProfiles, (deck) => {
       const d = deck.progression?.by_battle?.[bucket];
       return { value: d?.command_remaining, weight: d?.battles };
@@ -734,8 +744,12 @@ function renderCommandExperiment(lab) {
       key,
       agent: profile.agent || key.split("--")[0],
       recovery: profile.recovery_variant || key.split("--")[1],
+      recoveryFloor: Number(profile.recovery_floor ?? profile.rules?.command_recovery_floor ?? 0),
       games,
       censorRate: games ? censored / games : null,
+      equalLowContinuationRate: resolvedBattles ? equalLowContinuations / resolvedBattles : null,
+      bothZeroStartRate: resolvedBattles ? bothZeroStarts / resolvedBattles : null,
+      noPaidOperationRate: resolvedBattles ? noPaidOperations / resolvedBattles : null,
       firstPassCommand,
       passZeroRate: firstPassCount ? passZero / firstPassCount : null,
       passFourPlusRate: firstPassCount ? passFourPlus / firstPassCount : null,
@@ -753,16 +767,18 @@ function renderCommandExperiment(lab) {
   }).sort((a, b) => a.key.localeCompare(b.key));
 
   overview.innerHTML = [
-    metric("Profiles", summaries.length, "agent × recovery conditions retained for this ruleset"),
+    metric("Profiles", summaries.length, "agent × recovery × floor conditions retained for this ruleset"),
     metric("Agents", new Set(summaries.map((row) => row.agent)).size, "distinct policies represented"),
     metric("Recovery variants", new Set(summaries.map((row) => row.recovery)).size, "current and/or experimental candidate"),
+    metric("Recovery floors", [...new Set(summaries.map((row) => row.recoveryFloor))].join(", "), "minimum actual recovery after Front-loss penalties"),
     metric("Simulated games", summaries.reduce((n, row) => n + row.games, 0), "same-deck progression games across profiles"),
   ].join("");
 
   container.innerHTML = `
     <table class="mini-table">
       <thead><tr>
-        <th>Agent</th><th>Recovery</th><th>Games</th><th>Censored</th>
+        <th>Agent</th><th>Recovery</th><th>Floor</th><th>Games</th><th>Censored</th>
+        <th>Equal-low cont.</th><th>0/0 Battle starts</th><th>No paid op.</th>
         <th>First-pass Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Pass w/ alternatives</th>
         <th>Battle-end Command</th><th>Ends at 0</th><th>Reach III</th><th>Reach VIII+</th>
         <th>Command IV-VII</th><th>Command VIII+</th><th>Policy coverage</th><th>Search settings</th>
@@ -771,8 +787,12 @@ function renderCommandExperiment(lab) {
         <tr>
           <td><strong>${esc(row.agent)}</strong></td>
           <td>${esc(row.recovery)}</td>
+          <td>${row.recoveryFloor}</td>
           <td>${row.games}</td>
           <td>${pct(row.censorRate)}</td>
+          <td>${pct(row.equalLowContinuationRate)}</td>
+          <td>${pct(row.bothZeroStartRate)}</td>
+          <td>${pct(row.noPaidOperationRate)}</td>
           <td>${num(row.firstPassCommand, 1)}</td>
           <td>${pct(row.passZeroRate)}</td>
           <td>${pct(row.passFourPlusRate)}</td>
