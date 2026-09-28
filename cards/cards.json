@@ -3205,7 +3205,7 @@
         "next_operation_must_affect_chosen_front_if_possible": true,
         "discard_after_both_players_trigger": true
       },
-      "engine_sync": "pending-compulsion-mechanics",
+      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12,
       "narrative_form": "omen"
@@ -3250,7 +3250,7 @@
         "discard_when_named_formation_retreated": true,
         "affects": "both_players"
       },
-      "engine_sync": "pending-compulsion-mechanics",
+      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12,
       "narrative_form": "saga"
@@ -3297,7 +3297,7 @@
         "draw_after_forced_maneuver": 1,
         "discard_after_next_turn_constraint": true
       },
-      "engine_sync": "pending-compulsion-mechanics",
+      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12,
       "narrative_form": "warning"
@@ -3343,7 +3343,7 @@
         "next_battle_first_operation_must_be_maneuver_if_possible": true,
         "discard_self": true
       },
-      "engine_sync": "pending-compulsion-mechanics",
+      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12,
       "narrative_form": "omen"
@@ -3382,7 +3382,7 @@
         "formations_cannot_maneuver_away_from_chosen_front": true,
         "affects": "both_players"
       },
-      "engine_sync": "pending-compulsion-mechanics",
+      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12
     },
@@ -3421,7 +3421,7 @@
         "first_maneuver_each_player_must_use_direction_if_possible": true,
         "affects": "both_players"
       },
-      "engine_sync": "pending-compulsion-mechanics",
+      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12
     },
@@ -3460,7 +3460,7 @@
         "duration": "until_each_player_completes_next_operation_or_battle_ends",
         "affects": "both_players"
       },
-      "engine_sync": "pending-compulsion-mechanics",
+      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12
     },
@@ -3503,7 +3503,7 @@
         "later_maneuvers_same_direction_if_possible": true,
         "duration": "battle"
       },
-      "engine_sync": "pending-compulsion-mechanics",
+      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12
     }
