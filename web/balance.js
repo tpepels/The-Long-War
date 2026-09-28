@@ -727,6 +727,9 @@ function renderCommandExperiment(lab) {
     const noPaidOperations = sum(deckProfiles, (deck) =>
       deck.progression?.low_command_stalls?.battles_with_no_paid_operation
     );
+    const stallDiagnosticBattles = sum(deckProfiles, (deck) =>
+      deck.progression?.low_command_stalls?.diagnostic_battles
+    );
     const lateCommand = (bucket) => weighted(deckProfiles, (deck) => {
       const d = deck.progression?.by_battle?.[bucket];
       return { value: d?.command_remaining, weight: d?.battles };
@@ -749,7 +752,7 @@ function renderCommandExperiment(lab) {
       censorRate: games ? censored / games : null,
       equalLowContinuationRate: resolvedBattles ? equalLowContinuations / resolvedBattles : null,
       bothZeroStartRate: resolvedBattles ? bothZeroStarts / resolvedBattles : null,
-      noPaidOperationRate: resolvedBattles ? noPaidOperations / resolvedBattles : null,
+      noPaidOperationRate: stallDiagnosticBattles ? noPaidOperations / stallDiagnosticBattles : null,
       firstPassCommand,
       passZeroRate: firstPassCount ? passZero / firstPassCount : null,
       passFourPlusRate: firstPassCount ? passFourPlus / firstPassCount : null,
