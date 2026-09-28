@@ -48,7 +48,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def make_engine_and_state():
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
     state = engine.new_game(deck, deck, seed=41, first_player=0)
@@ -129,7 +129,7 @@ def test_cython_node_regret_matching_matches_expected() -> None:
 def test_longwar_action_keys_are_unique_across_live_states() -> None:
     engine, _ = make_engine_and_state()
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     rng = random.Random(441)
 
