@@ -478,23 +478,24 @@ def normalize_card_data(data: dict[str, Any]) -> dict[str, Any]:
     return copy.deepcopy(data)
 
 
-CARD_CAPABILITY_NAMES = frozenset({
-    "adjacent_retreat_free_maneuver",
-    "after_frontline_retreat_sideways_force",
-    "after_maneuver_swap_other_friendlies",
-    "after_self_maneuver_free_other_named_if_wide_name",
-    "after_self_retreat_sideways_name",
-    "follow_into_vacated_after_adjacent_maneuver",
-    "narrative_command_gain_free_maneuver_force",
-    "on_play_take_adjacent_open_bond_name",
-    "on_play_take_adjacent_prepared_component_force",
-    "opposing_maneuver_same_front_free_maneuver",
-    "opposing_named_same_front_free_maneuver",
-    "optional_self_drive_prevent_frontline_retreat_force",
-    "prepared_on_play_free_maneuver_force",
-    "succession_on_drive_off_name",
-    "transfer_open_bond_after_move_bond",
-})
+CARD_CAPABILITY_BITS = {
+    "adjacent_retreat_free_maneuver": 1 << 0,
+    "after_frontline_retreat_sideways_force": 1 << 1,
+    "after_maneuver_swap_other_friendlies": 1 << 2,
+    "after_self_maneuver_free_other_named_if_wide_name": 1 << 3,
+    "after_self_retreat_sideways_name": 1 << 4,
+    "follow_into_vacated_after_adjacent_maneuver": 1 << 5,
+    "narrative_command_gain_free_maneuver_force": 1 << 6,
+    "on_play_take_adjacent_open_bond_name": 1 << 7,
+    "on_play_take_adjacent_prepared_component_force": 1 << 8,
+    "opposing_maneuver_same_front_free_maneuver": 1 << 9,
+    "opposing_named_same_front_free_maneuver": 1 << 10,
+    "optional_self_drive_prevent_frontline_retreat_force": 1 << 11,
+    "prepared_on_play_free_maneuver_force": 1 << 12,
+    "succession_on_drive_off_name": 1 << 13,
+    "transfer_open_bond_after_move_bond": 1 << 14,
+}
+CARD_CAPABILITY_NAMES = frozenset(CARD_CAPABILITY_BITS)
 
 
 def _compile_card_capabilities(design: dict[str, Any]) -> tuple[str, ...]:
@@ -567,7 +568,12 @@ def compile_card_mechanics(card: dict[str, Any]) -> dict[str, Any]:
     """
     _validate_design_rules(card)
     design = copy.deepcopy(card.get("design_rules") or {})
-    design["_capabilities"] = _compile_card_capabilities(design)
+    capabilities = _compile_card_capabilities(design)
+    design["_capabilities"] = capabilities
+    design["_capability_bits"] = sum(
+        CARD_CAPABILITY_BITS[capability]
+        for capability in capabilities
+    )
     return design
 
 
