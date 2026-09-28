@@ -31,6 +31,7 @@ def main() -> None:
     parser.add_argument("--max-triples", type=int, default=2)
     parser.add_argument("--minimum-abs-effect", type=float, default=0.05)
     parser.add_argument("--bootstrap-resamples", type=int, default=1000)
+    parser.add_argument("--jobs", type=int, default=8, help="Parallel worker processes for target validation (default: 8).")
     parser.add_argument("--force-top", action="store_true")
     parser.add_argument(
         "--output",
@@ -57,6 +58,7 @@ def main() -> None:
         minimum_abs_effect=args.minimum_abs_effect,
         bootstrap_resamples=args.bootstrap_resamples,
         force_top=args.force_top,
+        jobs=args.jobs,
     )
 
     report["game_fingerprint"] = fingerprint
