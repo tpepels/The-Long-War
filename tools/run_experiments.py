@@ -261,6 +261,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         "recovery_variant": recovery_variant,
         "recovery_floor": recovery_floor,
         "jobs": args.jobs,
+        "skip_failed_games": bool(args.skip_failed_games),
         "rules": rules.as_dict(),
         "contexts": args.contexts,
         "games_per_context": args.games_per_context,
@@ -352,6 +353,7 @@ def balance_run(args: argparse.Namespace) -> Path:
     simulations = []
     selfplay_simulations: dict[str, dict[str, Any]] = {}
     total_censored = 0
+    total_failed = 0
     for index, (left, right) in enumerate(cells):
         seed = args.seed + index * games
         policies = (policy_for(left), policy_for(right))
@@ -382,8 +384,10 @@ def balance_run(args: argparse.Namespace) -> Path:
             ismcts_max_tree_nodes=args.ismcts_max_tree_nodes,
             ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
             ismcts_rollout_policy=args.ismcts_rollout_policy,
+            skip_failed_games=args.skip_failed_games,
         )
         total_censored += report.censored_games
+        total_failed += report.failed_games
         payload = {
             **asdict(report),
             "game_fingerprint": identity["game_fingerprint"],
@@ -437,7 +441,8 @@ def balance_run(args: argparse.Namespace) -> Path:
             selfplay_simulations[left] = payload
         print(
             f"{name}: {games} games, {report.decisive_games} decisive, "
-            f"{report.censored_games} censored, first-player wins "
+            f"{report.censored_games} censored, {report.failed_games} failed, "
+            f"first-player wins "
             f"{report.first_player_wins}; 95% interval "
             f"{payload['first_player_wilson_95']}"
         )
@@ -614,8 +619,10 @@ def balance_run(args: argparse.Namespace) -> Path:
         **identity,
         "cells": len(cells),
         "simulation_games": total_games,
-        "decisive_simulation_games": total_games - total_censored,
+        "completed_simulation_games": total_games - total_failed,
+        "decisive_simulation_games": total_games - total_censored - total_failed,
         "censored_simulation_games": total_censored,
+        "failed_simulation_games": total_failed,
         "aggregate_health_games": aggregate_selfplay["games"],
         "aggregate_health_decks": sorted(selfplay_simulations),
         "policy_coverage": policy_coverage,
@@ -1900,6 +1907,14 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=8,
         help="Parallel worker processes for long-running simulation work (default: 8).",
+    )
+    balance.add_argument(
+        "--skip-failed-games",
+        action="store_true",
+        help=(
+            "Record and exclude individual simulation failures instead of "
+            "aborting the whole balance run."
+        ),
     )
     balance.add_argument(
         "--contexts",
