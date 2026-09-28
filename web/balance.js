@@ -366,7 +366,7 @@ function renderCards(lab) {
           <strong>${row.observed === false ? "—" : pct(row.play_rate_per_draw)}</strong>
           <span class="muted">${row.observed === false ? "no self-play exposure" : `${row.plays}/${row.draws} plays/draws`}</span>
         </td>
-        <td data-label="Dead on pass">${pct(row.dead_on_pass_rate)}</td>
+        <td data-label="Structural deadness">${pct(row.structural_dead_on_pass_rate)}<span class="muted">resource ${pct(row.resource_blocked_on_pass_rate)}</span></td>
         <td data-label="Front swing">${num(row.mean_immediate_front_swing, 1)} <span class="muted">z ${num(row.front_swing_z_within_type, 1)}</span></td>
         <td data-label="Screen ΔWP">${causal ? signedPct(causal.delta_win_probability) : "—"}<span class="muted">${causal ? interval(causal.ci95) : ""}</span></td>
         <td data-label="MCCFR validation">${online ? `${signedPct(online.online.effect)}<span class="muted">${esc(online.confirmation.replaceAll("_", " "))}</span>` : "—"}</td>
@@ -378,7 +378,10 @@ function renderCards(lab) {
               <div><dt>Final status source</dt><dd>${esc((row.balance_evidence_source || "observational").replaceAll("_", " "))}</dd></div>
               <div><dt>Heuristic screen</dt><dd>${causal ? `${signedPct(causal.delta_win_probability)} · ${interval(causal.ci95)} · ${causal.samples ?? 0} decisive pairs` : "—"}</dd></div>
               <div><dt>Strategic validation</dt><dd>${online ? `${esc(online.confirmation.replaceAll("_", " "))} · ${signedPct(online.online.effect)} · ${online.online.samples ?? 0} decisive pairs` : "not targeted"}</dd></div>
-              <div><dt>Dead turns</dt><dd>${pct(row.unplayable_turn_rate)}</dd></div>
+              <div><dt>Structural dead turns</dt><dd>${pct(row.structural_unplayable_turn_rate)}</dd></div>
+              <div><dt>Resource-blocked turns</dt><dd>${pct(row.resource_blocked_turn_rate)}</dd></div>
+              <div><dt>Structural dead at Pass</dt><dd>${pct(row.structural_dead_on_pass_rate)}</dd></div>
+              <div><dt>Unaffordable at Pass</dt><dd>${pct(row.resource_blocked_on_pass_rate)}</dd></div>
               <div><dt>Control swing</dt><dd>${num(row.mean_immediate_control_swing, 2)}</dd></div>
               <div><dt>Win when drawn</dt><dd>${pct(row.win_rate_when_drawn)} · ${interval(row.win_rate_when_drawn_95)}</dd></div>
               <div><dt>Win when played</dt><dd>${pct(row.win_rate_when_played)} · ${interval(row.win_rate_when_played_95)}</dd></div>
@@ -954,6 +957,10 @@ async function main() {
   renderMethod(lab);
 
   document.getElementById("card-filter").addEventListener("change", () => renderCards(lab));
+  const progressionProfile = document.getElementById("progression-profile");
+  if (progressionProfile && !progressionProfile.hidden) {
+    progressionProfile.addEventListener("change", () => renderProgression(lab));
+  }
 }
 
 main().catch((error) => {
