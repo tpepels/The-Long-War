@@ -47,14 +47,14 @@ def test_online_resolver_handles_second_consecutive_pass_with_unknown_deck() -> 
     engine, deck = setup()
 
     p0_hidden = list(deck)
-    p0_hidden.remove("the-fifty-men")
-    p0_hidden.remove("the-three-brothers-of-avar")
-    p0_hidden.remove("seven-black-ships")
+    p0_hidden.remove("the-grey-riders")
+    p0_hidden.remove("the-black-company")
+    p0_hidden.remove("the-dust-riders")
     state = GameState(
         players=[
             PlayerState(
                 deck=p0_hidden,
-                hand=["seven-black-ships"],
+                hand=["the-dust-riders"],
                 command=engine.starting_command,
             ),
             PlayerState(
@@ -69,8 +69,8 @@ def test_online_resolver_handles_second_consecutive_pass_with_unknown_deck() -> 
         pass_order=[1],
         operations_this_battle=[1, 1],
     )
-    state.slot(0, Position(Front.FIRST, Rank.FRONT)).force = "the-fifty-men"
-    state.slot(0, Position(Front.SECOND, Rank.FRONT)).force = "the-three-brothers-of-avar"
+    state.slot(0, Position(Front.FIRST, Rank.FRONT)).force = "the-grey-riders"
+    state.slot(0, Position(Front.SECOND, Rank.FRONT)).force = "the-black-company"
 
     legal = engine.legal_actions(state)
     legal_keys = {action_key(action) for action in legal}
