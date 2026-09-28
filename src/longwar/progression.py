@@ -717,6 +717,8 @@ class ProgressionTelemetry:
                         "forced_effect_choices",
                         "no_paid_operation",
                         "pass_diagnostics",
+                        "hand_remaining",
+                        "deck_remaining",
                         "board_changed",
                         "strength_changed",
                         "command_changed",
