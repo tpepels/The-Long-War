@@ -1,7 +1,7 @@
 cdef FastState _fe_from_game_state(FastEngine self, state):
     cdef FastState fast = FastState()
     cdef int p, i, f, r, slot, code, viewer, owner
-    cdef object card_id, py_slot, story, strat, counter
+    cdef object card_id, py_slot, story, strat, counter, constraint
     phase_map = {
         "battle": PHASE_BATTLE,
         "complete": PHASE_COMPLETE,
@@ -31,6 +31,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         fast.passed[p] = state.players[p].passed
         fast.command[p] = state.players[p].command
         fast.operations_this_battle[p] = state.operations_this_battle[p]
+        fast.player_maneuver_count[p] = state.maneuvers_this_battle[p]
         fast.cards_played_this_turn_front_mask[p] = state.cards_played_this_turn_front_mask[p]
         fast.cards_played_this_battle_front_mask[p] = state.cards_played_this_battle_front_mask[p]
         fast.narratives_played_this_battle[p] = state.narratives_played_this_battle[p]
@@ -79,11 +80,20 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     fast.name[slot] = self.id_to_code[py_slot.name]
                 fast.temporary[slot] = py_slot.temporary_strength
                 fast.maneuver_count[slot] = int(py_slot.maneuvers_this_battle)
+                if py_slot.maneuver_direction == "left":
+                    fast.maneuver_direction[slot] = 1
+                elif py_slot.maneuver_direction == "right":
+                    fast.maneuver_direction[slot] = 2
 
         for i, story in enumerate(state.stories[p][:self.ongoing_story_limit]):
             fast.scheme[p * 4 + i] = self.id_to_code[story.card_id]
             fast.scheme_revealed[p * 4 + i] = 1
             fast.scheme_used[p * 4 + i] = bool(story.triggered_this_battle)
+            fast.scheme_trigger_mask[p * 4 + i] = int(story.triggered_players_mask)
+            if story.direction == "left":
+                fast.scheme_direction[p * 4 + i] = 1
+            elif story.direction == "right":
+                fast.scheme_direction[p * 4 + i] = 2
             for front_choice in story.fronts:
                 fast.scheme_front_mask[p * 4 + i] |= 1 << int(front_choice)
             if story.target_position is not None and story.target_player is not None:
@@ -129,6 +139,41 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         fast.pending_dest_mask[i] = int(effect_state.get("dest_mask", 0))
         fast.pending_flags[i] = int(effect_state.get("flags", 0))
         fast.pending_len += 1
+    for i, constraint in enumerate(state.constraints[:MAX_CONSTRAINTS]):
+        fast.constraint_kind[i] = {
+            "affect_front": CONSTRAINT_AFFECT_FRONT,
+            "maneuver": CONSTRAINT_MANEUVER,
+            "specific_maneuver": CONSTRAINT_SPECIFIC_MANEUVER,
+        }.get(constraint.kind.value, CONSTRAINT_NONE)
+        fast.constraint_player[i] = int(constraint.player)
+        fast.constraint_source_card[i] = self.id_to_code[constraint.source_card]
+        fast.constraint_source_owner[i] = int(constraint.source_owner)
+        fast.constraint_front[i] = (
+            -1 if constraint.front is None else int(constraint.front)
+        )
+        fast.constraint_direction[i] = (
+            1 if constraint.direction == "left"
+            else 2 if constraint.direction == "right"
+            else 0
+        )
+        fast.constraint_source_slot[i] = (
+            -1
+            if constraint.source_position is None
+            else slot_index(
+                int(constraint.player),
+                int(constraint.source_position.front),
+                0 if constraint.source_position.rank.value == "front" else 1,
+            )
+        )
+        fast.constraint_activate_turn[i] = int(constraint.activate_turn)
+        fast.constraint_flags[i] = (
+            (CONSTRAINT_EXPIRES_AFTER_OPERATION if constraint.expires_after_operation else 0)
+            | (CONSTRAINT_PERSISTS_BATTLE if constraint.persists_between_battles else 0)
+            | (CONSTRAINT_ZERO_COST if constraint.zero_cost else 0)
+            | (CONSTRAINT_DRAW_ON_SATISFY if constraint.draw_after_satisfied else 0)
+            | (CONSTRAINT_DISCARD_SOURCE_STORY if constraint.discard_source_story else 0)
+        )
+        fast.constraint_len += 1
     resolution_state = state.battle_resolution
     if resolution_state is not None:
         fast.resolution_stage = int(resolution_state.get("stage", RESOLUTION_NONE))
@@ -352,6 +397,13 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                         "maneuvers_this_battle": (
                             state.maneuver_count[slot_index(p, f, r)]
                         ),
+                        "maneuver_direction": (
+                            "left"
+                            if state.maneuver_direction[slot_index(p, f, r)] == 1
+                            else "right"
+                            if state.maneuver_direction[slot_index(p, f, r)] == 2
+                            else None
+                        ),
                     }
                     for r in range(2)
                 ]
@@ -365,6 +417,14 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     "card_id": self.card_ids[state.scheme[p * 4 + i]],
                     "front_mask": state.scheme_front_mask[p * 4 + i],
                     "triggered_this_battle": bool(state.scheme_used[p * 4 + i]),
+                    "triggered_players_mask": state.scheme_trigger_mask[p * 4 + i],
+                    "direction": (
+                        "left"
+                        if state.scheme_direction[p * 4 + i] == 1
+                        else "right"
+                        if state.scheme_direction[p * 4 + i] == 2
+                        else None
+                    ),
                     "target_slot": (
                         None
                         if state.scheme_target_slot[p * 4 + i] < 0
@@ -429,6 +489,10 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             state.operations_this_battle[0],
             state.operations_this_battle[1],
         ],
+        "maneuvers_this_battle": [
+            state.player_maneuver_count[0],
+            state.player_maneuver_count[1],
+        ],
         "cards_played_this_turn_front_mask": [
             state.cards_played_this_turn_front_mask[0],
             state.cards_played_this_turn_front_mask[1],
@@ -488,6 +552,56 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
         "free_maneuver_available": [
             bool(state.free_maneuver_available[0]),
             bool(state.free_maneuver_available[1]),
+        ],
+        "constraints": [
+            {
+                "source_card": self.card_ids[state.constraint_source_card[i]],
+                "player": state.constraint_player[i],
+                "kind": (
+                    "affect_front"
+                    if state.constraint_kind[i] == CONSTRAINT_AFFECT_FRONT
+                    else "maneuver"
+                    if state.constraint_kind[i] == CONSTRAINT_MANEUVER
+                    else "specific_maneuver"
+                ),
+                "source_owner": state.constraint_source_owner[i],
+                "front": (
+                    None
+                    if state.constraint_front[i] < 0
+                    else state.constraint_front[i]
+                ),
+                "direction": (
+                    "left"
+                    if state.constraint_direction[i] == 1
+                    else "right"
+                    if state.constraint_direction[i] == 2
+                    else None
+                ),
+                "source_slot": (
+                    None
+                    if state.constraint_source_slot[i] < 0
+                    else state.constraint_source_slot[i]
+                ),
+                "activate_turn": state.constraint_activate_turn[i],
+                "expires_after_operation": bool(
+                    state.constraint_flags[i] & CONSTRAINT_EXPIRES_AFTER_OPERATION
+                ),
+                "persists_between_battles": bool(
+                    state.constraint_flags[i] & CONSTRAINT_PERSISTS_BATTLE
+                ),
+                "zero_cost": bool(
+                    state.constraint_flags[i] & CONSTRAINT_ZERO_COST
+                ),
+                "draw_after_satisfied": (
+                    1
+                    if state.constraint_flags[i] & CONSTRAINT_DRAW_ON_SATISFY
+                    else 0
+                ),
+                "discard_source_story": bool(
+                    state.constraint_flags[i] & CONSTRAINT_DISCARD_SOURCE_STORY
+                ),
+            }
+            for i in range(state.constraint_len)
         ],
         "battle_resolution": (
             None
