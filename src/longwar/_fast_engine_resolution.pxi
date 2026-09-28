@@ -261,6 +261,13 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         if (state.resolution_lost_mask[0] & 14) == 14:
             state.resolution_drive_mask[0] |= <uint8_t>(1 << 2)
 
+    # Preserve the effective Front outcomes before retreat/cleanup clears the
+    # live resolution masks. These can differ from the raw Strength comparison
+    # because Stratagems such as The Ground Was Held and The Center Must Hold
+    # replace tied or per-Front results.
+    state.last_lost_mask[0] = state.resolution_lost_mask[0] & 15
+    state.last_lost_mask[1] = state.resolution_lost_mask[1] & 15
+
     losses0 = popcount16(state.resolution_lost_mask[0] & 15)
     losses1 = popcount16(state.resolution_lost_mask[1] & 15)
     state.resolution_recovery_losses[0] = losses0
