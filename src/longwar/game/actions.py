@@ -40,6 +40,7 @@ class PlayStory:
     ongoing_slot: int | None = None
     fronts: tuple[Front, ...] = ()
     discard_card_id: str | None = None
+    direction: str | None = None
 
 
 @dataclass(frozen=True)
@@ -155,6 +156,8 @@ def action_key(action: object) -> str:
                     f"{target.player},{int(target.position.front)},{target.position.rank.value}"
                     for target in action.targets
                 )
+            if action.direction is not None:
+                key += f":direction:{action.direction}"
             return key
         if action.discard_card_id is not None:
             return f"story:{action.card_id}:discard:{action.discard_card_id}"
@@ -289,12 +292,17 @@ def action_from_key(key: str) -> object:
             slot = int(parts[3])
             fronts: tuple[Front, ...] = ()
             targets: tuple[BoardTarget, ...] = ()
+            direction: str | None = None
             index = 4
             while index < len(parts):
                 label = parts[index]
                 value = parts[index + 1]
                 if label == "fronts":
                     fronts = tuple(Front(int(front)) for front in value.split(",") if front)
+                elif label == "direction":
+                    if value not in {"left", "right"}:
+                        raise ValueError(f"Invalid Narrative direction: {value}")
+                    direction = value
                 elif label == "targets":
                     parsed: list[BoardTarget] = []
                     for encoded in value.split(";"):
@@ -306,7 +314,13 @@ def action_from_key(key: str) -> object:
                 else:
                     raise ValueError(f"Unknown Narrative action field: {label}")
                 index += 2
-            return PlayStory(card_id, targets=targets, ongoing_slot=slot, fronts=fronts)
+            return PlayStory(
+                card_id,
+                targets=targets,
+                ongoing_slot=slot,
+                fronts=fronts,
+                direction=direction,
+            )
         payload = ":".join(parts[2:])
         targets: list[BoardTarget] = []
         if payload:
