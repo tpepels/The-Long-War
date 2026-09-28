@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 import ctypes
 import gc
@@ -83,6 +84,14 @@ class SimulationReport:
         return self.first_player_wins / denominator if denominator > 0 else 0.0
 
 
+@dataclass
+class _RawSimulationResult:
+    game_index_start: int
+    report: SimulationReport
+    telemetry: Telemetry
+    human_flow: HumanFlowDiagnostics
+
+
 def make_agent(
     name: str,
     engine: GameEngine,
@@ -158,7 +167,7 @@ def make_agent(
     raise ValueError(f"Unknown agent: {name}")
 
 
-def simulate_games(
+def _simulate_games_serial(
     engine: GameEngine,
     deck_a: list[str],
     deck_b: list[str],
@@ -192,7 +201,9 @@ def simulate_games(
     agent_labels: tuple[str, str] | None = None,
     agent_seed_offsets: tuple[int, int] | None = None,
     progress_callback: Callable[[int, int, tuple[int, int]], None] | None = None,
-) -> SimulationReport:
+    game_index_start: int = 0,
+    _return_raw: bool = False,
+) -> SimulationReport | _RawSimulationResult:
     if games <= 0:
         raise ValueError("games must be positive")
 
@@ -243,11 +254,12 @@ def simulate_games(
     }
 
     for game_index in range(games):
-        first_player = game_index % 2
+        global_game_index = game_index_start + game_index
+        first_player = global_game_index % 2
         preview = engine.new_game(
             deck_a,
             deck_b,
-            seed=seed + game_index,
+            seed=seed + global_game_index,
             first_player=first_player,
             opening_bonus=False,
         )
@@ -264,9 +276,9 @@ def simulate_games(
                     agent_names[player],
                     engine,
                     (
-                        seed * 10_000 + game_index * 2 + player + 1
+                        seed * 10_000 + global_game_index * 2 + player + 1
                         if agent_seed_offsets is None
-                        else seed * 10_000 + game_index * 100 + agent_seed_offsets[player]
+                        else seed * 10_000 + global_game_index * 100 + agent_seed_offsets[player]
                     ),
                     policy=agent_policies[player],
                     priors=priors,
@@ -282,7 +294,7 @@ def simulate_games(
         state = engine.new_game(
             deck_a,
             deck_b,
-            seed=seed + game_index,
+            seed=seed + global_game_index,
             first_player=first_player,
             mulligan_indices=mulligan_indices,
         )
@@ -331,7 +343,7 @@ def simulate_games(
 
         telemetry.finish_game(winner, state)
         game_outcomes.append({
-            "seed": seed + game_index,
+            "seed": seed + global_game_index,
             "first_player": first_player,
             "winner": winner,
             "censored": censored,
@@ -357,9 +369,136 @@ def simulate_games(
     telemetry_summary = telemetry.summary()
     _release_process_memory()
     telemetry_summary["human_flow"] = human_flow.summary()
-    return SimulationReport(
+    report = SimulationReport(
         games=games,
         agents=labels,
+        wins=(wins[0], wins[1]),
+        censored_games=censored_games,
+        first_player_wins=first_player_wins,
+        mean_turns=total_turns / games,
+        max_turns=maximum_turns,
+        telemetry=telemetry_summary,
+        game_outcomes=game_outcomes,
+    )
+    if _return_raw:
+        return _RawSimulationResult(
+            game_index_start=game_index_start,
+            report=report,
+            telemetry=telemetry,
+            human_flow=human_flow,
+        )
+    return report
+
+
+
+def _simulate_games_worker(
+    card_data: dict[str, Any],
+    rules,
+    deck_a: list[str],
+    deck_b: list[str],
+    seed: int,
+    game_index: int,
+    options: dict[str, Any],
+) -> _RawSimulationResult:
+    engine = GameEngine(card_data, rules=rules)
+    result = _simulate_games_serial(
+        engine,
+        deck_a,
+        deck_b,
+        games=1,
+        seed=seed,
+        game_index_start=game_index,
+        _return_raw=True,
+        **options,
+    )
+    assert isinstance(result, _RawSimulationResult)
+    return result
+
+
+def simulate_games(
+    engine: GameEngine,
+    deck_a: list[str],
+    deck_b: list[str],
+    *,
+    games: int,
+    seed: int = 0,
+    jobs: int = 1,
+    progress_callback: Callable[[int, int, tuple[int, int]], None] | None = None,
+    **options: Any,
+) -> SimulationReport:
+    """Simulate matches, using independent worker processes when requested."""
+    if jobs <= 0:
+        raise ValueError("jobs must be positive")
+    if jobs == 1 or games == 1:
+        result = _simulate_games_serial(
+            engine,
+            deck_a,
+            deck_b,
+            games=games,
+            seed=seed,
+            progress_callback=progress_callback,
+            **options,
+        )
+        assert isinstance(result, SimulationReport)
+        return result
+
+    worker_count = min(jobs, games)
+    worker_options = dict(options)
+    worker_options.pop("progress_callback", None)
+    results: list[_RawSimulationResult] = []
+    completed = 0
+    live_wins = [0, 0]
+    with ProcessPoolExecutor(max_workers=worker_count) as pool:
+        futures = [
+            pool.submit(
+                _simulate_games_worker,
+                engine.card_data,
+                engine.rules,
+                deck_a,
+                deck_b,
+                seed,
+                game_index,
+                worker_options,
+            )
+            for game_index in range(games)
+        ]
+        for future in as_completed(futures):
+            result = future.result()
+            results.append(result)
+            live_wins[0] += result.report.wins[0]
+            live_wins[1] += result.report.wins[1]
+            completed += 1
+            if progress_callback is not None:
+                progress_callback(completed, games, (live_wins[0], live_wins[1]))
+
+    results.sort(key=lambda item: item.game_index_start)
+    telemetry = Telemetry()
+    human_flow = HumanFlowDiagnostics()
+    wins = [0, 0]
+    censored_games = 0
+    first_player_wins = 0
+    total_turns = 0.0
+    maximum_turns = 0
+    game_outcomes: list[dict[str, int | bool | None]] = []
+    agents = results[0].report.agents
+
+    for result in results:
+        report = result.report
+        telemetry.merge(result.telemetry)
+        human_flow.merge(result.human_flow)
+        wins[0] += report.wins[0]
+        wins[1] += report.wins[1]
+        censored_games += report.censored_games
+        first_player_wins += report.first_player_wins
+        total_turns += report.mean_turns * report.games
+        maximum_turns = max(maximum_turns, report.max_turns)
+        game_outcomes.extend(report.game_outcomes)
+
+    telemetry_summary = telemetry.summary()
+    telemetry_summary["human_flow"] = human_flow.summary()
+    return SimulationReport(
+        games=games,
+        agents=agents,
         wins=(wins[0], wins[1]),
         censored_games=censored_games,
         first_player_wins=first_player_wins,
