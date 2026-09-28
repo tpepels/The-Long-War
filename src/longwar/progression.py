@@ -453,6 +453,10 @@ class ProgressionTelemetry:
             self._battle_events["cards_played"] += 1
         if isinstance(action, Maneuver):
             self._battle_events["maneuvers"] += 1
+        if isinstance(action, EffectChoice):
+            self._battle_events["effect_choices"] += 1
+            if len(legal) == 1:
+                self._battle_events["forced_effect_choices"] += 1
 
     def after_action(
         self,
@@ -701,10 +705,15 @@ class ProgressionTelemetry:
                         "actions",
                         "cards_played",
                         "maneuvers",
+                        "paid_operations",
+                        "free_operations",
+                        "effect_choices",
+                        "forced_effect_choices",
                         "no_paid_operation",
                         "pass_diagnostics",
                         "board_changed",
                         "strength_changed",
+                        "command_changed",
                         "board_start_signature",
                         "board_end_signature",
                         "next_battle_board_signature",
@@ -1326,6 +1335,8 @@ class ProgressionTelemetry:
             self._command_spend[category] += actual_cost
             self._command_spend_by_battle[bucket][category] += actual_cost
 
+        if isinstance(action, OPERATION_ACTIONS) and actual_cost > 0:
+            self._battle_events["paid_operations"] += 1
         if isinstance(action, OPERATION_ACTIONS) and actual_cost == 0:
             self._free_operations += 1
             self._battle_events["free_operations"] += 1
@@ -1574,6 +1585,10 @@ class ProgressionTelemetry:
                 )
             ],
             "maneuvers": self._battle_events["maneuvers"],
+            "paid_operations": self._battle_events["paid_operations"],
+            "free_operations": self._battle_events["free_operations"],
+            "effect_choices": self._battle_events["effect_choices"],
+            "forced_effect_choices": self._battle_events["forced_effect_choices"],
             "forces_played": self._battle_events["forces_played"],
             "bonds_played": self._battle_events["bonds_played"],
             "names_played": self._battle_events["names_played"],
@@ -1648,7 +1663,11 @@ class ProgressionTelemetry:
             "next_battle_strength_by_front": next_strength_by_front,
             "board_changed": rows[0]["board_signature"] != final["board_signature"],
             "strength_changed": rows[0]["strength_by_front"] != final["strength_by_front"],
-            "no_paid_operation": sum(before.command_spent_this_battle) == 0,
+            "command_changed": (
+                [int(value) for value in before.battle_start_command]
+                != final_command
+            ),
+            "no_paid_operation": self._battle_events["paid_operations"] == 0,
             "hand_remaining": [len(player.hand) for player in before.players],
             "deck_remaining": [len(player.deck) for player in before.players],
             "mean_legal_actions": mean(
