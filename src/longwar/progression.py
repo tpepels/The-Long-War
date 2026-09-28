@@ -545,6 +545,11 @@ class ProgressionTelemetry:
             "command_at_first_pass": self._distribution(
                 row["command_remaining"] for row in first_pass_rows
             ),
+            "first_pass_command_buckets": {
+                "0": sum(row["command_remaining"] == 0 for row in first_pass_rows),
+                "1-3": sum(1 <= row["command_remaining"] <= 3 for row in first_pass_rows),
+                "4+": sum(row["command_remaining"] >= 4 for row in first_pass_rows),
+            },
             "command_end_buckets": {
                 "0": sum(value == 0 for value in command_end),
                 "1-3": sum(1 <= value <= 3 for value in command_end),
