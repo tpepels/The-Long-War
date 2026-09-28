@@ -397,7 +397,8 @@ def _simulate_games_worker(
     deck_a: list[str],
     deck_b: list[str],
     seed: int,
-    game_index: int,
+    game_index_start: int,
+    games: int,
     options: dict[str, Any],
 ) -> _RawSimulationResult:
     engine = GameEngine(card_data, rules=rules)
@@ -405,9 +406,9 @@ def _simulate_games_worker(
         engine,
         deck_a,
         deck_b,
-        games=1,
+        games=games,
         seed=seed,
-        game_index_start=game_index,
+        game_index_start=game_index_start,
         _return_raw=True,
         **options,
     )
@@ -498,6 +499,15 @@ def simulate_games(
         return result
 
     worker_count = min(jobs, games)
+    base_chunk = games // worker_count
+    remainder = games % worker_count
+    chunks: list[tuple[int, int]] = []
+    next_index = 0
+    for worker_index in range(worker_count):
+        chunk_games = base_chunk + (1 if worker_index < remainder else 0)
+        chunks.append((next_index, chunk_games))
+        next_index += chunk_games
+
     results: list[_RawSimulationResult] = []
     completed = 0
     live_wins = [0, 0]
@@ -510,17 +520,18 @@ def simulate_games(
                 deck_a,
                 deck_b,
                 seed,
-                game_index,
+                game_index_start,
+                chunk_games,
                 options,
             )
-            for game_index in range(games)
+            for game_index_start, chunk_games in chunks
         ]
         for future in as_completed(futures):
             result = future.result()
             results.append(result)
             live_wins[0] += result.report.wins[0]
             live_wins[1] += result.report.wins[1]
-            completed += 1
+            completed += result.report.games
             if progress_callback is not None:
                 progress_callback(completed, games, (live_wins[0], live_wins[1]))
 
