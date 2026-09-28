@@ -45,6 +45,7 @@ def test_standard_command_profile_matches_canonical_rules() -> None:
     assert rules.starting_command == 20
     assert rules.command_cap == 20
     assert rules.command_recovery_schedule == (10, 7, 5, 4, 3, 2, 1)
+    assert rules.command_recovery_floor == 0
     assert rules.command_collapse_threshold == 5
     assert rules.maneuver_command_cost == 1
     assert [player.command for player in state.players] == [20, 20]
@@ -165,3 +166,44 @@ def test_equal_low_command_remains_an_explicit_canonical_ambiguity() -> None:
     assert state.winner is None
     assert state.battle == 9
     assert [player.command for player in state.players] == [0, 0]
+
+def test_recovery_floor_one_breaks_the_zero_zero_absorbing_cycle() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    rules = GameRules.standard().with_overrides(command_recovery_floor=1)
+    engine = GameEngine(data, rules=rules)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=26092802,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.battle = 8
+    state.players[0].command = 0
+    state.players[1].command = 0
+    state.operations_this_battle[:] = [1, 1]
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.phase.value == "battle"
+    assert state.winner is None
+    assert state.battle == 9
+    assert [player.command for player in state.players] == [1, 1]
+    snapshot = state.last_battle_snapshot
+    assert snapshot is not None
+    assert snapshot["command_before_recovery"] == [0, 0]
+    assert snapshot["recovery_loss"] == [0, 0]
+    assert snapshot["recovery_actual"] == [1, 1]
+    assert snapshot["command_remaining"] == [1, 1]
+
+
+def test_negative_recovery_floor_is_invalid() -> None:
+    with pytest.raises(ValueError):
+        GameRules.standard().with_overrides(command_recovery_floor=-1)
+
