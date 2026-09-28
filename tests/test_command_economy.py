@@ -55,7 +55,7 @@ def test_standard_command_profile_matches_canonical_rules() -> None:
 def test_unaffordable_card_play_is_not_legal_and_does_not_mutate_state() -> None:
     engine, state = standard_game()
     target = Position(Front.FIRST, Rank.FRONT)
-    GameScenario(state).hand(0, "the-fifty-men").commands(1, state.players[1].command)
+    GameScenario(state).hand(0, "the-fifty-men").command(0, 1)
     action = PlayForce("the-fifty-men", target)
     before = state.clone()
 
@@ -76,17 +76,14 @@ def test_unaffordable_maneuver_is_not_legal() -> None:
         force="the-fifty-men",
         bond="followed",
         name="namar",
-    ).commands(0, state.players[1].command)
+    ).command(0, 0)
 
     assert Maneuver(source, destination) not in engine.legal_actions(state)
 
 
 def test_command_never_goes_below_zero() -> None:
     engine, state = standard_game()
-    GameScenario(state).commands(
-        0,
-        state.players[1].command,
-    ).hand(0, "the-fifty-men")
+    GameScenario(state).command(0, 0).hand(0, "the-fifty-men")
 
     assert engine.legal_actions(state) == [Pass()]
     engine.apply(state, Pass())
@@ -96,10 +93,7 @@ def test_command_never_goes_below_zero() -> None:
 def test_printed_card_cost_is_paid_by_operation() -> None:
     engine, state = standard_game()
     target = Position(Front.FIRST, Rank.FRONT)
-    GameScenario(state).hand(0, "the-fifty-men").commands(
-        7,
-        state.players[1].command,
-    )
+    GameScenario(state).hand(0, "the-fifty-men").command(0, 7)
     action = PlayForce("the-fifty-men", target)
 
     assert engine.command_cost_for_action(state, action) == 2
