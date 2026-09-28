@@ -494,8 +494,61 @@ cdef void _fe_clear_resolution_state(FastEngine self, FastState state) noexcept:
     for slot in range(SLOT_COUNT):
         state.resolution_contribution_front[slot] = -1
 
+cdef void _fe_resolve_battle_end_operation_constraints(
+    FastEngine self,
+    FastState state,
+) except *:
+    cdef int controller, story_slot, ix, card, winner = -1
+    if popcount16(state.resolution_lost_mask[1]) >= 3:
+        winner = 0
+    elif popcount16(state.resolution_lost_mask[0]) >= 3:
+        winner = 1
+
+    for controller in range(2):
+        story_slot = self.ongoing_story_limit - 1
+        while story_slot >= 0:
+            ix = controller * 4 + story_slot
+            card = state.scheme[ix]
+            if card >= 0 and self.narrative_three_front_next_maneuver[card]:
+                if winner >= 0:
+                    _fe_add_constraint(
+                        state,
+                        CONSTRAINT_MANEUVER,
+                        winner,
+                        card,
+                        controller,
+                        -1,
+                        0,
+                        -1,
+                        state.turn_number,
+                        (
+                            CONSTRAINT_EXPIRES_AFTER_OPERATION
+                            | CONSTRAINT_PERSISTS_BATTLE
+                        ),
+                    )
+                # Printed "Then discard this Omen" is unconditional at
+                # Battle end; only the obligation is conditional.
+                _fe_discard_ongoing_narrative(
+                    self, state, controller, story_slot
+                )
+            story_slot -= 1
+
+
+cdef void _fe_drop_nonpersistent_constraints(
+    FastState state,
+) noexcept:
+    cdef int i = state.constraint_len - 1
+    while i >= 0:
+        if not (state.constraint_flags[i] & CONSTRAINT_PERSISTS_BATTLE):
+            _fe_remove_constraint_at(state, i)
+        i -= 1
+
+
 cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
     cdef int p, base_recovery, actual, target, starter, front
+
+    _fe_resolve_battle_end_operation_constraints(self, state)
+    _fe_drop_nonpersistent_constraints(state)
 
     base_recovery = _fe_command_recovery_for_battle(self, state.battle)
     for p in range(2):
@@ -553,10 +606,13 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.stratagem_used[p] = 0
         state.hero_used[p] = 0
         state.free_maneuver_available[p] = 0
+        state.player_maneuver_count[p] = 0
         for front in range(self.ongoing_story_limit):
             state.scheme_used[p * 4 + front] = 0
+            state.scheme_trigger_mask[p * 4 + front] = 0
         for front in range(8):
             state.maneuver_count[p * 8 + front] = 0
+            state.maneuver_direction[p * 8 + front] = 0
 
         target = self.hand_limit - state.hand_len[p]
         if target > 0:
