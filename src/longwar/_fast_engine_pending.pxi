@@ -362,7 +362,6 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_resolve_force_pair_narratives(self, state, actor)
         _fe_resolve_maneuver_triggers(self, state, actor, pos, dest, bool(target))
         _fe_consume_operation_constraints(self, state, actor, action)
-        _fe_consume_operation_constraints(self, state, actor, action)
         _fe_resume_pending_flow(self, state)
         return
 
