@@ -15,7 +15,13 @@ def engine_and_state():
         (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data)
-    state = engine.new_game(deck, deck, seed=99, first_player=0)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=99,
+        first_player=0,
+        opening_bonus=False,
+    )
     state.phase = Phase.BATTLE
     state.active_player = 0
     state.players[0].passed = False
