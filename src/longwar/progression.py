@@ -340,6 +340,9 @@ class ProgressionTelemetry:
         )
         if effect_resolution:
             self._effect_choice_decisions += 1
+            self._battle_events["effect_choices"] += 1
+            if len(legal) == 1:
+                self._battle_events["forced_effect_choices"] += 1
             self._constraint_source_effect_choice_decisions += int(
                 bool(constraint_sources)
             )
@@ -453,10 +456,6 @@ class ProgressionTelemetry:
             self._battle_events["cards_played"] += 1
         if isinstance(action, Maneuver):
             self._battle_events["maneuvers"] += 1
-        if isinstance(action, EffectChoice):
-            self._battle_events["effect_choices"] += 1
-            if len(legal) == 1:
-                self._battle_events["forced_effect_choices"] += 1
 
     def after_action(
         self,
