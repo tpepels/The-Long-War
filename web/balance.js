@@ -77,6 +77,34 @@ function grade(row) {
   return `<span class="grade grade-${row.balance_level}" title="${esc(row.balance_direction)}">${esc(row.balance_label)}</span>`;
 }
 
+function annotateMechanicsCoverage(lab, cardData) {
+  const meta = new Map((cardData?.cards || []).map((card) => [card.id, card]));
+  const pending = [];
+  for (const row of lab.health?.cards || []) {
+    const card = meta.get(row.id);
+    if (card?.engine_sync !== "pending-compulsion-mechanics") continue;
+    row.mechanics_implemented = false;
+    row.engine_sync = card.engine_sync;
+    row.balance_level = "mechanics_pending";
+    row.balance_label = "Mechanics pending";
+    row.balance_direction = "unimplemented";
+    row.balance_evidence_source = "engine_pending";
+    row.flags = [];
+    pending.push(row);
+  }
+  lab.mechanics_pending_cards = pending;
+  lab.mechanics_implemented_cards = (cardData?.cards || []).length - pending.length;
+
+  const summary = lab.health?.summary;
+  if (summary) {
+    summary.cards_mechanics_pending = pending.length;
+    summary.card_levels = (lab.health.cards || []).reduce((counts, row) => {
+      counts[row.balance_level] = (counts[row.balance_level] || 0) + 1;
+      return counts;
+    }, {});
+  }
+}
+
 function normalizeLegacyTelemetry(lab) {
   const cards = lab.health?.cards || [];
   const hasCurrentDeadness = cards.some((row) =>
@@ -202,6 +230,16 @@ function renderAttention(lab) {
   const suite = lab.mccfr_suite;
   const targeted = lab.targeted_counterfactual;
   const items = [];
+
+  const mechanicsPending = lab.mechanics_pending_cards || [];
+  if (mechanicsPending.length) {
+    items.push(attentionItem(
+      "pending",
+      "Approved compulsion mechanics are not executable yet",
+      mechanicsPending.map((row) => `<b>${esc(row.title)}</b>`).join(", ") +
+        ". Their balance status is suppressed until the native engine implements the approved necessity/compulsion rules."
+    ));
+  }
 
   if (lab.legacy_telemetry_filtered) {
     items.push(attentionItem(
@@ -399,7 +437,7 @@ function renderCards(lab) {
     rows = rows.filter((row) => row.balance_level === filter);
   }
 
-  const order = { red: 0, orange: 1, yellow: 2, unobserved: 3, green: 4, dark_green: 5 };
+  const order = { red: 0, orange: 1, yellow: 2, mechanics_pending: 3, unobserved: 4, green: 5, dark_green: 6 };
   rows.sort((a, b) =>
     order[a.balance_level] - order[b.balance_level] ||
     a.title.localeCompare(b.title)
@@ -436,6 +474,7 @@ function renderCards(lab) {
             <dl>
               <div><dt>Observed</dt><dd>${row.observed === false ? "No self-play exposure" : "Yes"}</dd></div>
               <div><dt>Final status source</dt><dd>${esc((row.balance_evidence_source || "observational").replaceAll("_", " "))}</dd></div>
+              <div><dt>Engine sync</dt><dd>${esc(row.engine_sync || "implemented / no known pending marker")}</dd></div>
               <div><dt>Heuristic screen</dt><dd>${causal ? `${signedPct(causal.delta_win_probability)} · ${interval(causal.ci95)} · ${causal.samples ?? 0} decisive pairs` : "—"}</dd></div>
               <div><dt>Strategic validation</dt><dd>${online ? `${esc(online.confirmation.replaceAll("_", " "))} · ${signedPct(online.online.effect)} · ${online.online.samples ?? 0} decisive pairs` : "not targeted"}</dd></div>
               <div><dt>Structural dead turns</dt><dd>${pct(row.structural_unplayable_turn_rate)}</dd></div>
@@ -1015,10 +1054,15 @@ function renderMethod(lab) {
 }
 
 async function main() {
-  const response = await fetch("data/lab-report.json", { cache: "no-store" });
+  const [response, cardsResponse] = await Promise.all([
+    fetch("data/lab-report.json", { cache: "no-store" }),
+    fetch("data/cards.json", { cache: "no-store" }),
+  ]);
   if (!response.ok) throw new Error("Full Balance Lab report is not available yet.");
   const lab = await response.json();
+  const cardData = cardsResponse.ok ? await cardsResponse.json() : { cards: [] };
   normalizeLegacyTelemetry(lab);
+  annotateMechanicsCoverage(lab, cardData);
 
   renderAttention(lab);
   renderOverview(lab);

@@ -537,6 +537,12 @@ button, .button {
   border-color: #c7a229;
 }
 
+.grade-mechanics_pending {
+  background: #d9d1c2;
+  color: #493f34;
+  border-color: #756858;
+}
+
 .grade-unobserved {
   background: #e1dbcf;
   color: #5f584e;
@@ -565,6 +571,10 @@ button, .button {
 
 .grade-row-yellow {
   box-shadow: inset 5px 0 0 #edc64a;
+}
+
+.grade-row-mechanics_pending {
+  box-shadow: inset 5px 0 0 #756858;
 }
 
 .grade-row-unobserved {
