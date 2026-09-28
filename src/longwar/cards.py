@@ -498,6 +498,21 @@ CARD_CAPABILITY_BITS = {
 CARD_CAPABILITY_NAMES = frozenset(CARD_CAPABILITY_BITS)
 
 
+def _validate_card_capability_registry() -> None:
+    bits = tuple(CARD_CAPABILITY_BITS.values())
+    if len(bits) > 64:
+        raise RuntimeError("Native card capability bitset supports at most 64 capabilities")
+    if len(bits) != len(set(bits)):
+        raise RuntimeError("Card capability bits must be unique")
+    if any(bit <= 0 or bit & (bit - 1) for bit in bits):
+        raise RuntimeError("Card capability values must be single positive bits")
+    if bits and max(bits).bit_length() > 64:
+        raise RuntimeError("Card capability bit exceeds native uint64 capacity")
+
+
+_validate_card_capability_registry()
+
+
 def _compile_card_capabilities(design: dict[str, Any]) -> tuple[str, ...]:
     """Translate reusable design vocabulary into engine capability names."""
     force_design = design.get("force") or design
