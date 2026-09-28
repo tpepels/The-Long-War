@@ -2107,6 +2107,35 @@ def test_banner_singers_trigger_after_narrative_command_gain() -> None:
     )
 
 
+def test_stale_mandatory_pending_effect_resolves_as_forced_noop() -> None:
+    engine, state = setup_state(seed=48335)
+
+    # A mandatory recovery may have been legal when queued but become
+    # impossible because an earlier queued recovery consumed the last Bond.
+    state.players[0].discard.clear()
+    state.pending_effects = [
+        {
+            "kind": 4,  # EFFECT_RECOVER
+            "player": 0,
+            "card": -1,
+            "source": -1,
+            "aux": 2,  # CARD_LINK
+            "source_mask": 0,
+            "dest_mask": 0,
+            "flags": 0,
+        }
+    ]
+    state.active_player = 0
+
+    choices = effect_choices(engine, state, "recover")
+    assert choices == [EffectChoice("recover", skip=True)]
+
+    engine.apply(state, choices[0])
+
+    assert state.pending_effects == []
+    assert engine.legal_actions(state)
+
+
 def test_guarded_blocks_an_opponents_pending_card_move() -> None:
     engine, state = setup_state(seed=4834)
     source = pos(0, Rank.FRONT)
