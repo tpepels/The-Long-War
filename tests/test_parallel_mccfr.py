@@ -91,7 +91,7 @@ def test_replica_merge_pools_reach_weighted_strategy_sums() -> None:
 def test_two_worker_training_exports_a_usable_policy() -> None:
     card_data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
 
     policy, summary = train_parallel_mccfr(
