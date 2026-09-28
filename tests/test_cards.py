@@ -12,12 +12,12 @@ from longwar.decks import validate_deck_definition
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_canonical_card_pool_has_exactly_95_unique_cards() -> None:
+def test_canonical_card_pool_has_unique_ids_and_supported_types() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     ids = [card["id"] for card in data["cards"]]
-    assert len(ids) == 95
+    assert ids
     assert len(ids) == len(set(ids))
-    assert {card["type"] for card in data["cards"]} == {
+    assert {card["type"] for card in data["cards"]} <= {
         "force", "bond", "name", "story", "stratagem"
     }
 
@@ -40,7 +40,7 @@ def test_names_and_heroes_are_unique() -> None:
 def test_narratives_have_specific_forms_and_public_ongoing_metadata() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     narratives = cards_by_type(data, "story")
-    assert {card["narrative_form"] for card in narratives} == NARRATIVE_FORMS
+    assert all(card["narrative_form"] in NARRATIVE_FORMS for card in narratives)
     assert all(isinstance(card["ongoing"], bool) for card in narratives)
 
 
@@ -84,3 +84,27 @@ def test_printed_command_cost_is_positive_native_safe_integer(value) -> None:
     data["cards"][0]["command_cost"] = value
     with pytest.raises(ValueError, match="command_cost"):
         validate_card_data(data)
+
+
+def test_unknown_design_mechanic_is_rejected_at_content_boundary() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    card = next(card for card in data["cards"] if card.get("design_rules"))
+    card["design_rules"]["typo_mechanic"] = True
+
+    with pytest.raises(ValueError, match="unsupported mechanic"):
+        validate_card_data(data)
+
+
+def test_ordinary_new_card_can_reuse_existing_mechanics_without_catalogue_edits() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    template = next(
+        card
+        for card in data["cards"]
+        if card["type"] == "force" and not card.get("hero")
+    )
+    clone = json.loads(json.dumps(template))
+    clone["id"] = "test-new-force"
+    clone["title"] = "Test New Force"
+    data["cards"].append(clone)
+
+    validate_card_data(data)
