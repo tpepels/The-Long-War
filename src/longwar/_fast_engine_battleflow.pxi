@@ -110,10 +110,10 @@ cdef void _fe_drive_off_slot(
     int player,
     int slot,
 ) except *:
-    """Drive off one formation, pausing for Eira's succession if legal."""
+    """Drive off one formation, pausing for an optional succession effect if legal."""
     cdef int name = state.name[slot]
     cdef uint16_t destinations
-    if name >= 0 and self.succession_name[name]:
+    if name >= 0 and self.succession_on_drive_off_name[name]:
         destinations = _fe_succession_destinations(self, state, player, slot)
         if destinations:
             _fe_enqueue_effect(self, 
@@ -185,7 +185,7 @@ cdef void _fe_retreat_slot(
         name >= 0
         and (
             self.retreat_sideways_name[name]
-            or self.neris_retreat_name[name]
+            or self.after_self_retreat_sideways_name[name]
         )
     ):
         destinations = _fe_adjacent_empty_mask(self, 
@@ -199,7 +199,7 @@ cdef void _fe_retreat_slot(
             True,
         )
 
-    # Covered the Withdrawal of triggers from an adjacent formation in
+    # An adjacent-retreat trigger activates from an adjacent formation in
     # the same Rear rank after the Retreat has resolved.
     if front > 0:
         other = slot_index(player, front - 1, rank)
@@ -207,7 +207,7 @@ cdef void _fe_retreat_slot(
         if (
             state.subject[other] >= 0
             and other_bond >= 0
-            and self.covered_withdrawal_bond[other_bond]
+            and self.adjacent_retreat_free_maneuver[other_bond]
         ):
             _fe_queue_free_maneuver(self, 
                 state, player, <uint16_t>(1 << other), True
@@ -218,7 +218,7 @@ cdef void _fe_retreat_slot(
         if (
             state.subject[other] >= 0
             and other_bond >= 0
-            and self.covered_withdrawal_bond[other_bond]
+            and self.adjacent_retreat_free_maneuver[other_bond]
         ):
             _fe_queue_free_maneuver(self, 
                 state, player, <uint16_t>(1 << other), True
