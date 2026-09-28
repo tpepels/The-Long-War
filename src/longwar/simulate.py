@@ -423,12 +423,67 @@ def simulate_games(
     games: int,
     seed: int = 0,
     jobs: int = 1,
+    max_actions: int = 500,
+    agent_names: tuple[str, str] = ("heuristic", "heuristic"),
+    agent_policies: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
+    heuristic_exploration: float = 0.0,
+    online_iterations: int = 8,
+    online_depth: int = 2,
+    strategic_belief_samples: int = 3,
+    strategic_rollout_plies: int = 3,
+    strategic_candidate_width: int = 8,
+    strategic_node_budget: int = 20_000,
+    strategic_time_budget_seconds: float | None = None,
+    strategic_search_backend: str = "auto",
+    ismcts_belief_samples: int = DEFAULT_ISMCTS_BELIEF_SAMPLES,
+    ismcts_iterations: int = DEFAULT_ISMCTS_ITERATIONS,
+    ismcts_time_budget_seconds: float | None = None,
+    ismcts_rollout_depth: int = DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+    ismcts_tree_depth_limit: int = 96,
+    ismcts_exploration: float = DEFAULT_ISMCTS_EXPLORATION,
+    ismcts_progressive_widening: float = DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    ismcts_reuse_tree: bool = DEFAULT_ISMCTS_REUSE_TREE,
+    ismcts_max_tree_nodes: int | None = DEFAULT_ISMCTS_MAX_TREE_NODES,
+    ismcts_rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+    ismcts_rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    agent_overrides: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
+    agent_labels: tuple[str, str] | None = None,
+    agent_seed_offsets: tuple[int, int] | None = None,
     progress_callback: Callable[[int, int, tuple[int, int]], None] | None = None,
-    **options: Any,
 ) -> SimulationReport:
     """Simulate matches, using independent worker processes when requested."""
     if jobs <= 0:
         raise ValueError("jobs must be positive")
+
+    options: dict[str, Any] = {
+        "max_actions": max_actions,
+        "agent_names": agent_names,
+        "agent_policies": agent_policies,
+        "heuristic_exploration": heuristic_exploration,
+        "online_iterations": online_iterations,
+        "online_depth": online_depth,
+        "strategic_belief_samples": strategic_belief_samples,
+        "strategic_rollout_plies": strategic_rollout_plies,
+        "strategic_candidate_width": strategic_candidate_width,
+        "strategic_node_budget": strategic_node_budget,
+        "strategic_time_budget_seconds": strategic_time_budget_seconds,
+        "strategic_search_backend": strategic_search_backend,
+        "ismcts_belief_samples": ismcts_belief_samples,
+        "ismcts_iterations": ismcts_iterations,
+        "ismcts_time_budget_seconds": ismcts_time_budget_seconds,
+        "ismcts_rollout_depth": ismcts_rollout_depth,
+        "ismcts_tree_depth_limit": ismcts_tree_depth_limit,
+        "ismcts_exploration": ismcts_exploration,
+        "ismcts_progressive_widening": ismcts_progressive_widening,
+        "ismcts_reuse_tree": ismcts_reuse_tree,
+        "ismcts_max_tree_nodes": ismcts_max_tree_nodes,
+        "ismcts_rollout_epsilon": ismcts_rollout_epsilon,
+        "ismcts_rollout_policy": ismcts_rollout_policy,
+        "agent_overrides": agent_overrides,
+        "agent_labels": agent_labels,
+        "agent_seed_offsets": agent_seed_offsets,
+    }
+
     if jobs == 1 or games == 1:
         result = _simulate_games_serial(
             engine,
@@ -443,8 +498,6 @@ def simulate_games(
         return result
 
     worker_count = min(jobs, games)
-    worker_options = dict(options)
-    worker_options.pop("progress_callback", None)
     results: list[_RawSimulationResult] = []
     completed = 0
     live_wins = [0, 0]
@@ -458,7 +511,7 @@ def simulate_games(
                 deck_b,
                 seed,
                 game_index,
-                worker_options,
+                options,
             )
             for game_index in range(games)
         ]
