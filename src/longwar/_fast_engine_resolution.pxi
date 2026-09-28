@@ -566,8 +566,8 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.last_cards_drawn[p] = state.cards_drawn_this_battle[p]
         state.last_completion_count[p] = state.completion_count_this_battle[p]
         actual = base_recovery - state.resolution_recovery_losses[p]
-        if actual < 0:
-            actual = 0
+        if actual < self.command_recovery_floor:
+            actual = self.command_recovery_floor
         state.command[p] += actual
         if state.command[p] > self.command_cap:
             state.command[p] = self.command_cap
