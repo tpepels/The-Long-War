@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 from typing import Any
 
-from ..cards import card_index, load_card_file, validate_card_data
+from ..cards import card_index, compile_card_mechanics, load_card_file, validate_card_data
 from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
 from .actions import Action, action_from_key, action_key
@@ -99,6 +99,10 @@ class GameEngine:
         self.rules = rules
         self.card_data = card_data
         self.cards = card_index(card_data)
+        self.card_mechanics = {
+            card_id: compile_card_mechanics(card)
+            for card_id, card in self.cards.items()
+        }
 
         self.opening_hand_size = rules.opening_hand_size
         self.starting_command = rules.starting_command
