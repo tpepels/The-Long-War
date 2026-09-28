@@ -795,8 +795,23 @@ function renderProgression(lab) {
       "Constraint source / active",
       `${pct(choice.constraint_rule_source_rate)} / ${choice.constraint_active_supported ? pct(choice.constraint_active_rate) : "not instrumented"}`,
       choice.constraint_active_supported
-        ? "source present is not the same as engine-enforced restriction"
-        : "active restriction needs an explicit engine marker"
+        ? "public source present / native next-operation obligation active"
+        : "active restriction needs native constraint state"
+    ),
+    metric(
+      "Constraint options removed",
+      num(choice.constraint_options_removed?.mean, 1),
+      `${choice.constraint_options_removed?.count ?? 0} constrained decisions · max ${num(choice.constraint_options_removed?.max, 0)}`
+    ),
+    metric(
+      "Constraint outcomes",
+      `${Object.values(choice.constraint_satisfied || {}).reduce((a, b) => a + b, 0)} satisfied / ${Object.values(choice.constraint_impossible || {}).reduce((a, b) => a + b, 0)} impossible`,
+      `${choice.constraint_expired ?? 0} expired · ${choice.constraint_carried_between_battles ?? 0} carried across Battle`
+    ),
+    metric(
+      "Constraint forcing",
+      `${choice.constraint_forced_maneuver_decisions ?? 0} Maneuver / ${choice.constraint_forced_front_decisions ?? 0} Front`,
+      `${choice.constraint_future_operations_affected ?? 0} future-operation decisions affected`
     ),
     metric("Effect-resolution decisions", choice.effect_resolution_decisions ?? 0, "excluded from ordinary operation-choice metrics"),
   ].join("");
