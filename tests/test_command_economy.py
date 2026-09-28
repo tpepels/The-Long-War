@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def standard_game(*, opening_bonus: bool = False):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     engine = GameEngine(data, rules=GameRules.standard())
     state = engine.new_game(
@@ -104,17 +104,22 @@ def test_printed_card_cost_is_paid_by_operation() -> None:
     assert state.operations_this_battle[0] == 1
 
 
-def test_all_current_cards_have_small_printed_command_costs() -> None:
+def test_all_current_cards_have_positive_bounded_printed_command_costs() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     costs = [card["command_cost"] for card in data["cards"]]
-    assert all(cost in {1, 2, 3} for cost in costs)
-    assert set(costs) == {1, 2, 3}
+    assert all(cost in {1, 2, 3, 5} for cost in costs)
+    assert set(costs) == {1, 2, 3, 5}
+    assert [
+        card["id"]
+        for card in data["cards"]
+        if card["command_cost"] == 5
+    ] == ["all-banners-forward"]
 
 
 def test_candidate_recovery_tail_applies_from_battle_eight_onward() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "reference.json").read_text(encoding="utf-8")
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
     rules = GameRules.standard().with_overrides(
         command_recovery_schedule=(10, 8, 6, 5, 4, 3, 2),
