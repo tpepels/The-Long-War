@@ -15,6 +15,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.strength, 0, sizeof(self.strength))
     memset(self.name_strength, 0, sizeof(self.name_strength))
     memset(self.hero, 0, sizeof(self.hero))
+    memset(self.card_capabilities, 0, sizeof(self.card_capabilities))
     memset(self.placement_rank, 0xff, sizeof(self.placement_rank))
     memset(self.force_text_effect, 0, sizeof(self.force_text_effect))
     memset(self.force_text_amount, 0, sizeof(self.force_text_amount))
@@ -51,14 +52,9 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.completion_free_maneuver_self, 0, sizeof(self.completion_free_maneuver_self))
     memset(self.after_maneuver_free_adjacent, 0, sizeof(self.after_maneuver_free_adjacent))
     memset(self.completion_swap_adjacent, 0, sizeof(self.completion_swap_adjacent))
-    memset(self.opposing_named_same_front_free_maneuver, 0, sizeof(self.opposing_named_same_front_free_maneuver))
     memset(self.skirmisher_contribution, 0, sizeof(self.skirmisher_contribution))
     memset(self.after_empty_follow_move, 0, sizeof(self.after_empty_follow_move))
     memset(self.after_swap_free_other, 0, sizeof(self.after_swap_free_other))
-    memset(self.follow_into_vacated_after_adjacent_maneuver, 0, sizeof(self.follow_into_vacated_after_adjacent_maneuver))
-    memset(self.adjacent_retreat_free_maneuver, 0, sizeof(self.adjacent_retreat_free_maneuver))
-    memset(self.after_maneuver_swap_other_friendlies, 0, sizeof(self.after_maneuver_swap_other_friendlies))
-    memset(self.opposing_maneuver_same_front_free_maneuver, 0, sizeof(self.opposing_maneuver_same_front_free_maneuver))
     memset(self.suppress_rear_force, 0, sizeof(self.suppress_rear_force))
     memset(self.first_strike_force, 0, sizeof(self.first_strike_force))
     memset(self.sacrifice_bond, 0, sizeof(self.sacrifice_bond))
@@ -69,17 +65,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.after_empty_extra_move_force, 0, sizeof(self.after_empty_extra_move_force))
     memset(self.reactive_maneuver_name, 0, sizeof(self.reactive_maneuver_name))
     memset(self.recover_bond_on_completion_name, 0, sizeof(self.recover_bond_on_completion_name))
-    memset(self.after_frontline_retreat_sideways_force, 0, sizeof(self.after_frontline_retreat_sideways_force))
-    memset(self.after_self_retreat_sideways_name, 0, sizeof(self.after_self_retreat_sideways_name))
-    memset(self.on_play_take_adjacent_prepared_component_force, 0, sizeof(self.on_play_take_adjacent_prepared_component_force))
-    memset(self.on_play_take_adjacent_open_bond_name, 0, sizeof(self.on_play_take_adjacent_open_bond_name))
     memset(self.recover_story_on_completion_name, 0, sizeof(self.recover_story_on_completion_name))
-    memset(self.optional_self_drive_prevent_frontline_retreat_force, 0, sizeof(self.optional_self_drive_prevent_frontline_retreat_force))
-    memset(self.prepared_on_play_free_maneuver_force, 0, sizeof(self.prepared_on_play_free_maneuver_force))
-    memset(self.after_self_maneuver_free_other_named_if_wide_name, 0, sizeof(self.after_self_maneuver_free_other_named_if_wide_name))
-    memset(self.narrative_command_gain_free_maneuver_force, 0, sizeof(self.narrative_command_gain_free_maneuver_force))
-    memset(self.transfer_open_bond_after_move_bond, 0, sizeof(self.transfer_open_bond_after_move_bond))
-    memset(self.succession_on_drive_off_name, 0, sizeof(self.succession_on_drive_off_name))
     memset(self.narrative_secondary, 0, sizeof(self.narrative_secondary))
     memset(self.narrative_end_kind, 0, sizeof(self.narrative_end_kind))
     memset(self.narrative_end_gain, 0, sizeof(self.narrative_end_gain))
@@ -151,6 +137,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
 
 cdef void _fe___init__(FastEngine self, engine) except *:
     cdef int code, r
+    cdef object capability
     self.card_ids = tuple(engine.cards)
     self.n_cards = len(self.card_ids)
     self.opening_hand_size = int(engine.opening_hand_size)
@@ -200,6 +187,23 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         "frontline_strength_bonus_if_force_behind": FORCE_TEXT_FRONT_IF_REAR,
         "rear_strength_bonus_if_force_ahead": FORCE_TEXT_REAR_IF_FRONT,
     }
+    capability_map = {
+        "adjacent_retreat_free_maneuver": CAP_ADJACENT_RETREAT_FREE_MANEUVER,
+        "after_frontline_retreat_sideways_force": CAP_AFTER_FRONTLINE_RETREAT_SIDEWAYS_FORCE,
+        "after_maneuver_swap_other_friendlies": CAP_AFTER_MANEUVER_SWAP_OTHER_FRIENDLIES,
+        "after_self_maneuver_free_other_named_if_wide_name": CAP_AFTER_SELF_MANEUVER_FREE_OTHER_NAMED_IF_WIDE,
+        "after_self_retreat_sideways_name": CAP_AFTER_SELF_RETREAT_SIDEWAYS_NAME,
+        "follow_into_vacated_after_adjacent_maneuver": CAP_FOLLOW_INTO_VACATED_AFTER_ADJACENT_MANEUVER,
+        "narrative_command_gain_free_maneuver_force": CAP_NARRATIVE_COMMAND_GAIN_FREE_MANEUVER_FORCE,
+        "on_play_take_adjacent_open_bond_name": CAP_ON_PLAY_TAKE_ADJACENT_OPEN_BOND_NAME,
+        "on_play_take_adjacent_prepared_component_force": CAP_ON_PLAY_TAKE_ADJACENT_PREPARED_COMPONENT_FORCE,
+        "opposing_maneuver_same_front_free_maneuver": CAP_OPPOSING_MANEUVER_SAME_FRONT_FREE_MANEUVER,
+        "opposing_named_same_front_free_maneuver": CAP_OPPOSING_NAMED_SAME_FRONT_FREE_MANEUVER,
+        "optional_self_drive_prevent_frontline_retreat_force": CAP_OPTIONAL_SELF_DRIVE_PREVENT_FRONTLINE_RETREAT_FORCE,
+        "prepared_on_play_free_maneuver_force": CAP_PREPARED_ON_PLAY_FREE_MANEUVER_FORCE,
+        "succession_on_drive_off_name": CAP_SUCCESSION_ON_DRIVE_OFF_NAME,
+        "transfer_open_bond_after_move_bond": CAP_TRANSFER_OPEN_BOND_AFTER_MOVE_BOND,
+    }
 
     for code, card_id in enumerate(self.card_ids):
         card = engine.cards[card_id]
@@ -215,6 +219,8 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         self.hero[code] = bool(card.get("hero", False))
         rules = card.get("rules", {})
         design = engine.card_mechanics[card_id]
+        for capability in design.get("_capabilities", ()):
+            self.card_capabilities[code] |= <uint64_t>capability_map[capability]
         force_design = design.get("force") or design
 
         self.narrative_first_card_front_constraint[code] = bool(
@@ -356,8 +362,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.capture_retreating_bond[code] = 1
         if design.get("combat") == "frontline_only_comparison":
             self.combat_frontline_only[code] = 1
-        if design.get("trigger") == "opposing_formation_in_same_front_becomes_named":
-            self.opposing_named_same_front_free_maneuver[code] = 1
         completion_design = design.get("on_completion") or {}
         if completion_design.get("effect") == "optional_swap_adjacent_friendly_formation":
             self.completion_swap_adjacent[code] = 1
@@ -380,14 +384,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.after_empty_follow_move[code] = 1
         if (design.get("after_maneuver_swap") or {}).get("effect") == "optional_zero_cost_maneuver_swapped_formation":
             self.after_swap_free_other[code] = 1
-        if design.get("trigger") == "adjacent_friendly_named_formation_maneuvers_away":
-            self.follow_into_vacated_after_adjacent_maneuver[code] = 1
-        if design.get("trigger") == "adjacent_friendly_formation_retreats":
-            self.adjacent_retreat_free_maneuver[code] = 1
-        if (design.get("after_maneuver") or {}).get("effect") == "optional_swap_two_adjacent_friendly_formations_excluding_self":
-            self.after_maneuver_swap_other_friendlies[code] = 1
-        if design.get("trigger") == "opposing_formation_maneuvers_into_same_front":
-            self.opposing_maneuver_same_front_free_maneuver[code] = 1
         if design.get("combat") == "skirmish":
             self.suppress_rear_force[code] = 1
         if design.get("combat") == "first_strike":
@@ -408,26 +404,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.reactive_maneuver_name[code] = 1
         if force_design.get("combat") == "optional_ignore_opposing_rear_strength":
             self.suppress_rear_force[code] = 1
-        if force_design.get("effect") == "optional_drive_off_self_prevent_frontline_named_retreat":
-            self.optional_self_drive_prevent_frontline_retreat_force[code] = 1
-        if force_design.get("after_frontline_retreat") == "optional_sideways_rear_move":
-            self.after_frontline_retreat_sideways_force[code] = 1
-        if name_design.get("after_self_retreat") == "optional_sideways_rear_move":
-            self.after_self_retreat_sideways_name[code] = 1
-        if force_design.get("on_play") == "optional_take_adjacent_prepared_bond_or_name":
-            self.on_play_take_adjacent_prepared_component_force[code] = 1
-        if name_design.get("on_play") == "optional_take_adjacent_open_bond":
-            self.on_play_take_adjacent_open_bond_name[code] = 1
-        if design.get("build_around") == "prepared_position":
-            self.prepared_on_play_free_maneuver_force[code] = 1
-        if design.get("after_self_maneuver") == "optional_zero_cost_other_friendly_named_maneuver":
-            self.after_self_maneuver_free_other_named_if_wide_name[code] = 1
-        if design.get("trigger") == "regain_command_from_narrative":
-            self.narrative_command_gain_free_maneuver_force[code] = 1
-        if design.get("build_around") == "open_bond_transfer":
-            self.transfer_open_bond_after_move_bond[code] = 1
-        if design.get("build_around") == "succession":
-            self.succession_on_drive_off_name[code] = 1
         if design.get("combat") == "tie_control":
             self.strat_tie_control[code] = 1
         if design.get("command") == "high_cost_battle_investment":
