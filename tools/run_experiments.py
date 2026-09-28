@@ -152,6 +152,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         "strategic_time_budget_seconds": None,
         "online_agent_iterations": 16,
         "online_agent_depth": 2,
+        "recovery_floor": 0,
         "jobs": 8,
     }
     for option, default in balance_defaults.items():
@@ -162,6 +163,7 @@ def balance_run(args: argparse.Namespace) -> Path:
     publish_lab = deep_pipeline or bool(getattr(args, "publish_lab", False))
     agent_name = str(getattr(args, "agent", "heuristic"))
     recovery_variant = str(getattr(args, "recovery", "current"))
+    recovery_floor = int(getattr(args, "recovery_floor", 0))
     skip_card_screen = bool(getattr(args, "skip_card_screen", False))
     run_card_screen = deep_pipeline and not skip_card_screen
 
@@ -174,6 +176,9 @@ def balance_run(args: argparse.Namespace) -> Path:
         )
     else:
         raise SystemExit(f"Unknown recovery variant: {recovery_variant}")
+    if recovery_floor not in (0, 1):
+        raise SystemExit("Recovery floor must be 0 or 1")
+    rules = rules.with_overrides(command_recovery_floor=recovery_floor)
 
     default_games_by_agent = {
         "heuristic": {"quick": 8, "deep": 250, "exhaustive": 2000},
@@ -254,6 +259,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             },
         },
         "recovery_variant": recovery_variant,
+        "recovery_floor": recovery_floor,
         "jobs": args.jobs,
         "rules": rules.as_dict(),
         "contexts": args.contexts,
@@ -304,11 +310,11 @@ def balance_run(args: argparse.Namespace) -> Path:
     def policy_for(deck_name: str) -> dict[str, Any] | None:
         if agent_name != "mccfr":
             return None
-        if recovery_variant != "current":
+        if recovery_variant != "current" or recovery_floor != 0:
             raise SystemExit(
-                "Offline MCCFR policies are only valid for the canonical "
-                "recovery rules. Retrain variant-specific policies before "
-                "using MCCFR with --recovery candidate."
+                "Offline MCCFR policies are only valid for canonical Command "
+                "recovery. Retrain variant-specific policies before using "
+                "MCCFR with an experimental recovery profile or floor."
             )
         profile = profile_ids.get(deck_name)
         if profile is None:
@@ -384,6 +390,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             "rules": asdict(engine.rules),
             "agent_profile": config["agent_profile"],
             "recovery_variant": recovery_variant,
+            "recovery_floor": recovery_floor,
             "policy_fingerprints": [
                 policy.get("_policy_fingerprint") if policy else None
                 for policy in policies
@@ -408,6 +415,7 @@ def balance_run(args: argparse.Namespace) -> Path:
                     engine.rules.command_recovery_schedule
                 ),
                 "command_recovery_tail": engine.rules.command_recovery_tail,
+                "command_recovery_floor": engine.rules.command_recovery_floor,
                 "command_collapse_threshold": (
                     engine.rules.command_collapse_threshold
                 ),
@@ -685,6 +693,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             "agent": agent_name,
             "agent_profile": config["agent_profile"],
             "recovery_variant": recovery_variant,
+            "recovery_floor": recovery_floor,
             "rules": rules.as_dict(),
             "progression_scope": (
                 "Detailed progression is stratified by all canonical same-deck "
@@ -718,6 +727,8 @@ def balance_run(args: argparse.Namespace) -> Path:
         }
 
         comparison_key = f"{agent_name}--{recovery_variant}"
+        if recovery_floor:
+            comparison_key += f"--floor-{recovery_floor}"
         comparisons_path = artifacts / "balance-comparisons.json"
         comparisons: dict[str, Any] = {
             "schema_version": 1,
@@ -749,6 +760,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         canonical_lab_profile = (
             agent_name == "heuristic"
             and recovery_variant == "current"
+            and recovery_floor == 0
         )
         if canonical_lab_profile:
             publish("balance-report.json", static_payload)
@@ -1834,6 +1846,16 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Command recovery profile. candidate is experimental only: "
             "10/8/6/5/4/3/2 then 1 for Battle VIII+."
+        ),
+    )
+    balance.add_argument(
+        "--recovery-floor",
+        type=int,
+        choices=(0, 1),
+        default=0,
+        help=(
+            "Experimental minimum actual recovery after Front-loss penalties. "
+            "Canonical rules use 0; use 1 only for low-Command stall experiments."
         ),
     )
     balance.add_argument(
