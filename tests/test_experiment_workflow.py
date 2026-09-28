@@ -49,6 +49,21 @@ def test_fingerprint_tracks_native_includes_and_experiment_inputs(tmp_path, monk
     assert fingerprint.current_game_fingerprint() == previous
 
 
+def test_artifact_fingerprint_guard_rejects_missing_stale_and_invalid_json(tmp_path):
+    artifact = tmp_path / "artifact.json"
+
+    assert runner.artifact_matches_game_fingerprint(artifact, "current") is False
+
+    artifact.write_text("{not-json", encoding="utf-8")
+    assert runner.artifact_matches_game_fingerprint(artifact, "current") is False
+
+    artifact.write_text(json.dumps({"game_fingerprint": "old"}), encoding="utf-8")
+    assert runner.artifact_matches_game_fingerprint(artifact, "current") is False
+
+    artifact.write_text(json.dumps({"game_fingerprint": "current"}), encoding="utf-8")
+    assert runner.artifact_matches_game_fingerprint(artifact, "current") is True
+
+
 def test_artifact_identity_keeps_budgets_seeds_and_sources_separate(tmp_path):
     config = {"iterations": 100_000, "seed": 1}
     first = fingerprint.artifact_directory(tmp_path, {"config": config, "game_fingerprint": "a"})
