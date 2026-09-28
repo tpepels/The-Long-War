@@ -77,6 +77,58 @@ function grade(row) {
   return `<span class="grade grade-${row.balance_level}" title="${esc(row.balance_direction)}">${esc(row.balance_label)}</span>`;
 }
 
+function normalizeLegacyTelemetry(lab) {
+  const cards = lab.health?.cards || [];
+  const hasCurrentDeadness = cards.some((row) =>
+    Object.prototype.hasOwnProperty.call(row, "structural_unplayable_turn_rate")
+  );
+  if (!cards.length || hasCurrentDeadness) return false;
+
+  const invalidDeadnessCodes = new Set(["dead_draw", "dead_on_pass"]);
+  const labels = {
+    red: "Critical",
+    orange: "Needs balancing",
+    yellow: "Watch",
+    green: "Looks healthy",
+    dark_green: "Well-supported healthy",
+    unobserved: "Unobserved",
+  };
+
+  for (const row of cards) {
+    row.flags = (row.flags || []).filter((flag) => !invalidDeadnessCodes.has(flag.code));
+    row.structural_unplayable_turn_rate = null;
+    row.resource_blocked_turn_rate = null;
+    row.structural_dead_on_pass_rate = null;
+    row.resource_blocked_on_pass_rate = null;
+
+    if ((row.balance_evidence_source || "observational") !== "observational") {
+      continue;
+    }
+    if (row.observed === false) {
+      row.balance_level = "unobserved";
+    } else {
+      const high = row.flags.filter((flag) => flag.severity === "high").length;
+      const watch = row.flags.filter((flag) => flag.severity === "watch").length;
+      if (high >= 2) row.balance_level = "red";
+      else if (high >= 1 || watch >= 2) row.balance_level = "orange";
+      else if (watch === 1) row.balance_level = "yellow";
+      else row.balance_level = row.evidence_strong ? "dark_green" : "green";
+    }
+    row.balance_label = labels[row.balance_level] || row.balance_label;
+  }
+
+  const summary = lab.health.summary || {};
+  summary.flags_high = cards.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "high").length;
+  summary.flags_watch = cards.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "watch").length;
+  summary.flags_diagnostic = cards.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "diagnostic").length;
+  summary.card_levels = cards.reduce((counts, row) => {
+    counts[row.balance_level] = (counts[row.balance_level] || 0) + 1;
+    return counts;
+  }, {});
+  lab.legacy_telemetry_filtered = true;
+  return true;
+}
+
 function signedPct(value) {
   if (value == null) return "—";
   return (Number(value) >= 0 ? "+" : "") + pct(value);
@@ -150,6 +202,14 @@ function renderAttention(lab) {
   const suite = lab.mccfr_suite;
   const targeted = lab.targeted_counterfactual;
   const items = [];
+
+  if (lab.legacy_telemetry_filtered) {
+    items.push(attentionItem(
+      "pending",
+      "Card deadness telemetry needs a fresh balance run",
+      "This published artifact predates the corrected measurement semantics. Legacy dead-draw/dead-on-pass flags are hidden here rather than being treated as balance defects. A fresh run will separate structural illegality from Command exhaustion."
+    ));
+  }
 
   if ((lab.stale_evidence || []).length) {
     items.push(attentionItem(
@@ -932,6 +992,7 @@ function renderMethod(lab) {
     <p><strong>Screen ΔWP:</strong> heuristic paired win-probability difference between the canonical card and a neutral same-type baseline under identical random seeds. It nominates candidates; it is not strong-play confirmation.</p>
     <p><strong>Online MCCFR validation:</strong> suspicious screen effects are rerun in the same paired contexts with online MCCFR. “Confirmed” means the online interval excludes zero in the same direction; “reversed” means it excludes zero in the opposite direction.</p>
     <p><strong>Censoring:</strong> if either side of a paired A/B comparison reaches the action horizon, that pair is reported as censored and excluded from the effect estimate.</p>
+    <p><strong>Card deadness:</strong> current telemetry separates structural illegality while a card is affordable from simple Command shortfall, and excludes pending effect-resolution choices from operation playability.</p>
     <ul>${report.methodology.notes.map((note) => `<li>${esc(note)}</li>`).join("")}</ul>
   `;
 }
@@ -940,6 +1001,7 @@ async function main() {
   const response = await fetch("data/lab-report.json", { cache: "no-store" });
   if (!response.ok) throw new Error("Full Balance Lab report is not available yet.");
   const lab = await response.json();
+  normalizeLegacyTelemetry(lab);
 
   renderAttention(lab);
   renderOverview(lab);
