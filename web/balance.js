@@ -735,6 +735,7 @@ function renderCommandExperiment(lab) {
       battle47Command: lateCommand("4-7"),
       battle8Command: lateCommand("8+"),
       search: profile.agent_profile || {},
+      policyCoverage: profile.summary?.policy_coverage || {},
     };
   }).sort((a, b) => a.key.localeCompare(b.key));
 
@@ -751,7 +752,7 @@ function renderCommandExperiment(lab) {
         <th>Agent</th><th>Recovery</th><th>Games</th><th>Censored</th>
         <th>First-pass Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Pass w/ alternatives</th>
         <th>Battle-end Command</th><th>Ends at 0</th><th>Reach III</th><th>Reach VIII+</th>
-        <th>Command IV-VII</th><th>Command VIII+</th><th>Search settings</th>
+        <th>Command IV-VII</th><th>Command VIII+</th><th>Policy coverage</th><th>Search settings</th>
       </tr></thead>
       <tbody>${summaries.map((row) => `
         <tr>
@@ -769,6 +770,9 @@ function renderCommandExperiment(lab) {
           <td>${pct(row.reach8)}</td>
           <td>${num(row.battle47Command, 1)}</td>
           <td>${num(row.battle8Command, 1)}</td>
+          <td>${row.agent === "mccfr"
+            ? `${pct(row.policyCoverage.mccfr_coverage_rate)} MCCFR · ${pct(row.policyCoverage.fallback_rate)} fallback`
+            : "—"}</td>
           <td><code>${esc(JSON.stringify(row.search[row.agent] || row.search))}</code></td>
         </tr>
       `).join("")}</tbody>
