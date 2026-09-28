@@ -10,6 +10,7 @@ import tempfile
 import threading
 import time
 from contextlib import contextmanager
+from collections import Counter
 from dataclasses import asdict
 from itertools import combinations
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
@@ -505,6 +506,34 @@ def balance_run(args: argparse.Namespace) -> Path:
             )
 
     total_games = games * len(cells)
+    policy_sources: Counter[str] = Counter()
+    for payload in selfplay_simulations.values():
+        policy_sources.update(
+            payload.get("telemetry", {}).get("policy_sources", {})
+        )
+    fallback_decisions = sum(
+        count
+        for source, count in policy_sources.items()
+        if str(source).startswith("fallback:")
+    )
+    mccfr_decisions = int(policy_sources.get("mccfr", 0))
+    covered_policy_decisions = mccfr_decisions + fallback_decisions
+    policy_coverage = {
+        "sources": dict(sorted(policy_sources.items())),
+        "mccfr_decisions": mccfr_decisions,
+        "fallback_decisions": fallback_decisions,
+        "fallback_rate": (
+            fallback_decisions / covered_policy_decisions
+            if covered_policy_decisions
+            else None
+        ),
+        "mccfr_coverage_rate": (
+            mccfr_decisions / covered_policy_decisions
+            if covered_policy_decisions
+            else None
+        ),
+    }
+
     summary_payload = {
         **identity,
         "cells": len(cells),
@@ -513,6 +542,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         "censored_simulation_games": total_censored,
         "aggregate_health_games": aggregate_selfplay["games"],
         "aggregate_health_decks": sorted(selfplay_simulations),
+        "policy_coverage": policy_coverage,
         "evidence_pipeline": {
             "structural_play": {
                 "policy": agent_name,
@@ -601,6 +631,8 @@ def balance_run(args: argparse.Namespace) -> Path:
                     "decisive_games": payload["decisive_games"],
                     "censored_games": payload["censored_games"],
                     "censor_rate": payload["censor_rate"],
+                    "policy_sources": payload.get("telemetry", {}).get("policy_sources", {}),
+                    "decisions": payload.get("telemetry", {}).get("decisions", {}),
                     "progression": payload.get("telemetry", {}).get("progression"),
                 }
                 for name, payload in sorted(selfplay_simulations.items())
