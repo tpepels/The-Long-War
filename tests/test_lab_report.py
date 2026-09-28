@@ -526,6 +526,11 @@ def test_lab_report_keeps_same_fingerprint_agent_recovery_comparisons(
                     "agent": "ismcts",
                     "recovery_variant": "candidate",
                 },
+                "ismcts--candidate--floor-1": {
+                    "agent": "ismcts",
+                    "recovery_variant": "candidate",
+                    "recovery_floor": 1,
+                },
             },
         },
     }
@@ -543,7 +548,14 @@ def test_lab_report_keeps_same_fingerprint_agent_recovery_comparisons(
     assert set(report["balance_comparisons"]["profiles"]) == {
         "heuristic--current",
         "ismcts--candidate",
+        "ismcts--candidate--floor-1",
     }
+    assert (
+        report["balance_comparisons"]["profiles"]["ismcts--candidate--floor-1"][
+            "recovery_floor"
+        ]
+        == 1
+    )
 
 
 def test_lab_report_rejects_stale_agent_recovery_comparisons(
