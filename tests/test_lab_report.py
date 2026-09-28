@@ -581,3 +581,22 @@ def test_lab_report_rejects_stale_agent_recovery_comparisons(
     report = json.loads((tmp_path / "lab-report.json").read_text())
     assert report["balance_comparisons"] is None
     assert "balance-comparisons.json" in report["stale_evidence"]
+
+
+def test_progression_trajectory_uses_battle_eight_plus_when_observed() -> None:
+    result = build_lab_report.progression_trajectory({
+        "by_battle": {
+            "1": {"battles": 2, "command_remaining": 14.0},
+            "4-7": {"battles": 1, "command_remaining": 6.0},
+            "8+": {"battles": 3, "command_remaining": 1.0},
+        }
+    })
+    assert result is not None
+    assert result["observed_buckets"] == ["1", "4-7", "8+"]
+    assert result["early_battle"] == "1"
+    assert result["late_battle"] == "8+"
+    assert result["metrics"]["command_remaining"] == {
+        "early": 14.0,
+        "late": 1.0,
+        "delta": -13.0,
+    }
