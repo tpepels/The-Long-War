@@ -387,6 +387,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         payload = {
             **asdict(report),
             "game_fingerprint": identity["game_fingerprint"],
+            "experiment_fingerprint": identity["experiment_fingerprint"],
             "seed": seed,
             "rules": asdict(engine.rules),
             "agent_profile": config["agent_profile"],
