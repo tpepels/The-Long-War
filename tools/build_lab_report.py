@@ -83,7 +83,7 @@ def progression_trajectory(
     by_battle = progression.get("by_battle") or {}
     observed = [
         key
-        for key in ("1", "2", "3", "4-7")
+        for key in ("1", "2", "3", "4-7", "8+")
         if int((by_battle.get(key) or {}).get("battles", 0) or 0) > 0
     ]
     if not observed:
