@@ -494,3 +494,88 @@ def test_lab_uses_aggregate_selfplay_for_matchup_and_detailed_progression_source
         "censored_games": 1,
     }
 
+
+
+def test_lab_report_keeps_same_fingerprint_agent_recovery_comparisons(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    fingerprint = "current-engine"
+    artifacts = {
+        "balance-health.json": {
+            "game_fingerprint": fingerprint,
+            "cards": [],
+            "formations": [],
+        },
+        "balance-report.json": {
+            "game_fingerprint": fingerprint,
+            "card_static_marginals": [],
+            "all_static_formations": [],
+        },
+        "balance-comparisons.json": {
+            "schema_version": 1,
+            "game_fingerprint": fingerprint,
+            "profiles": {
+                "heuristic--current": {
+                    "agent": "heuristic",
+                    "recovery_variant": "current",
+                },
+                "ismcts--candidate": {
+                    "agent": "ismcts",
+                    "recovery_variant": "candidate",
+                },
+            },
+        },
+    }
+    monkeypatch.setattr(build_lab_report, "ARTIFACTS", tmp_path)
+    monkeypatch.setattr(
+        build_lab_report,
+        "current_game_fingerprint",
+        lambda: fingerprint,
+    )
+    for name, payload in artifacts.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+
+    build_lab_report.main()
+    report = json.loads((tmp_path / "lab-report.json").read_text())
+    assert set(report["balance_comparisons"]["profiles"]) == {
+        "heuristic--current",
+        "ismcts--candidate",
+    }
+
+
+def test_lab_report_rejects_stale_agent_recovery_comparisons(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    fingerprint = "current-engine"
+    artifacts = {
+        "balance-health.json": {
+            "game_fingerprint": fingerprint,
+            "cards": [],
+            "formations": [],
+        },
+        "balance-report.json": {
+            "game_fingerprint": fingerprint,
+            "card_static_marginals": [],
+            "all_static_formations": [],
+        },
+        "balance-comparisons.json": {
+            "schema_version": 1,
+            "game_fingerprint": "old-engine",
+            "profiles": {"heuristic--current": {}},
+        },
+    }
+    monkeypatch.setattr(build_lab_report, "ARTIFACTS", tmp_path)
+    monkeypatch.setattr(
+        build_lab_report,
+        "current_game_fingerprint",
+        lambda: fingerprint,
+    )
+    for name, payload in artifacts.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+
+    build_lab_report.main()
+    report = json.loads((tmp_path / "lab-report.json").read_text())
+    assert report["balance_comparisons"] is None
+    assert "balance-comparisons.json" in report["stale_evidence"]
