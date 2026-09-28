@@ -298,7 +298,13 @@ def _simulate_games_serial(
             first_player=first_player,
             mulligan_indices=mulligan_indices,
         )
-        telemetry.start_game(state, engine)
+        telemetry.start_game(
+            state,
+            engine,
+            simulation_game_index=global_game_index,
+            seed=seed + global_game_index,
+            first_player=first_player,
+        )
         human_flow.start_game(engine, state)
 
         action_count = 0
