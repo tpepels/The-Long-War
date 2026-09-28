@@ -722,6 +722,35 @@ def balance_run(args: argparse.Namespace) -> Path:
     print(f"Balance artifacts: {output}")
     return output
 
+def run_command_matrix(args: argparse.Namespace) -> list[Path]:
+    """Run the four Command-economy comparison cells into one Lab surface."""
+    outputs: list[Path] = []
+    print(
+        "Command matrix: current/candidate recovery × heuristic/ISMCTS. "
+        "Card counterfactual screening is skipped; this experiment isolates "
+        "progression and resource behavior.",
+        flush=True,
+    )
+    for agent_name, recovery_variant in (
+        ("heuristic", "current"),
+        ("heuristic", "candidate"),
+        ("ismcts", "current"),
+        ("ismcts", "candidate"),
+    ):
+        cell = argparse.Namespace(**vars(args))
+        cell.command_matrix = False
+        cell.agent = agent_name
+        cell.recovery = recovery_variant
+        cell.skip_card_screen = True
+        cell.publish_lab = True
+        print(
+            f"\n=== {agent_name} / {recovery_variant} recovery ===",
+            flush=True,
+        )
+        outputs.append(balance_run(cell))
+    return outputs
+
+
 def run_command(
     command: list[str],
     *,
@@ -1724,6 +1753,15 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     balance.add_argument(
+        "--command-matrix",
+        action="store_true",
+        help=(
+            "Run current/candidate recovery with both heuristic and ISMCTS, "
+            "store all four profiles in the single Balance Lab, and skip the "
+            "unrelated card counterfactual sweep."
+        ),
+    )
+    balance.add_argument(
         "--skip-card-screen",
         action="store_true",
         help=(
@@ -1935,7 +1973,10 @@ def main() -> None:
     if args.command == "validate-data":
         validate_data()
     elif args.command == "balance":
-        balance_run(args)
+        if args.command_matrix:
+            run_command_matrix(args)
+        else:
+            balance_run(args)
     elif args.command == "validate":
         validate()
     elif args.command == "strength-bench":
