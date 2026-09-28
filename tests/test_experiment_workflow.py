@@ -84,6 +84,7 @@ def test_game_rules_have_no_named_experiment_profile_api():
 
 
 def test_provisional_ismcts_exploration_default_is_shared():
+    assert inspect.signature(simulate_games).parameters["jobs"].default == 1
     assert DEFAULT_ISMCTS_EXPLORATION == pytest.approx(0.3)
     assert inspect.signature(ISMCTSAgent).parameters["exploration"].default == DEFAULT_ISMCTS_EXPLORATION
     assert inspect.signature(make_agent).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
@@ -324,6 +325,18 @@ def test_strength_benchmark_reports_live_progress():
     assert "_run_cells_with_live_progress" in source
     assert "tuple(CANONICAL_DECK_PATHS)" in source
     assert len(runner.CANONICAL_DECK_PATHS) == 6
+
+
+def test_balance_defaults_to_eight_worker_processes(monkeypatch):
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "balance", "--preset", "quick"],
+    )
+    args = runner.parse_args()
+    assert args.jobs == 8
+    source = inspect.getsource(runner.balance_run)
+    assert "jobs=args.jobs" in source
 
 
 def test_strength_sanity_check_defaults(monkeypatch):
