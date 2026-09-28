@@ -1242,6 +1242,16 @@ class ProgressionTelemetry:
                 if first_pass_row is None
                 else first_pass_row.get("unplayable_cards_remaining", 0)
             ),
+            "first_pass_structurally_dead_cards": (
+                None
+                if first_pass_row is None
+                else first_pass_row.get("structurally_dead_cards", 0)
+            ),
+            "first_pass_unaffordable_cards": (
+                None
+                if first_pass_row is None
+                else first_pass_row.get("unaffordable_cards", 0)
+            ),
             "first_pass_legal_alternatives": (
                 None
                 if first_pass_row is None
@@ -1542,6 +1552,12 @@ class ProgressionTelemetry:
                 ]),
                 "first_pass_unplayable_cards": self._mean_optional([
                     row["first_pass_unplayable_cards"] for row in rows
+                ]),
+                "first_pass_structurally_dead_cards": self._mean_optional([
+                    row["first_pass_structurally_dead_cards"] for row in rows
+                ]),
+                "first_pass_unaffordable_cards": self._mean_optional([
+                    row["first_pass_unaffordable_cards"] for row in rows
                 ]),
                 "first_pass_legal_alternatives": self._mean_optional([
                     row["first_pass_legal_alternatives"] for row in rows
