@@ -380,30 +380,26 @@ def test_turn_at_hand_limit_requires_discard_then_draw_before_operation() -> Non
     assert state.active_player == 0
 
 
-def test_completion_draw_at_hand_limit_pauses_for_discard_then_finishes_operation() -> None:
+def test_completion_draw_resolves_before_the_next_players_turn_draw() -> None:
     engine, state = setup_state()
     state.active_player = 0
     state.players[0].hand = ["the-fifty-men"] * 9 + ["oren"]
     state.players[0].deck = ["the-red-shields", "seven-black-ships"]
+    # Avoid conflating Oren's completion draw with player 1's ordinary
+    # discard-before-draw substep after the operation finishes.
+    state.players[1].hand = []
     target = pos(0, Rank.FRONT)
     state.slot(0, target).force = "the-fifty-men"
     state.slot(0, target).bond = "followed"
+    deck_before = len(state.players[0].deck)
 
     engine.apply(state, PlayName("oren", target))
-
-    assert state.pending_draw_discard_for == 0
-    assert state.pending_draw_count == 1
-    assert state.pending_draw_finish_operation is True
-    assert state.active_player == 0
-    assert len(state.players[0].hand) == 10
-    assert all(isinstance(action, Discard) for action in engine.legal_actions(state))
-
-    engine.apply(state, engine.legal_actions(state)[0])
 
     assert state.pending_draw_discard_for is None
     assert state.pending_draw_count == 0
     assert state.pending_draw_finish_operation is False
     assert len(state.players[0].hand) == 10
+    assert len(state.players[0].deck) == deck_before - 1
     assert state.active_player == 1
 
 
@@ -616,6 +612,9 @@ def test_bought_time_for_can_pay_extra_to_draw_two_with_sequential_hand_limit() 
     state.players[0].command = 10
     state.players[0].hand = ["bought-time-for"] + ["the-fifty-men"] * 9
     state.players[0].deck = ["seven-black-ships", "the-red-shields"]
+    # Let player 1's normal turn-start draw resolve immediately after the
+    # invested operation finishes.
+    state.players[1].hand = []
 
     normal = PlayBond("bought-time-for", target)
     invested = PlayBond("bought-time-for", target, extra_payment=1)
