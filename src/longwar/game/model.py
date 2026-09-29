@@ -48,6 +48,7 @@ class Slot:
     temporary_strength: int = 0
     maneuvers_this_battle: int = 0
     maneuver_direction: str | None = None
+    maneuvered_in_operation: bool = False
 
     @property
     def occupied(self) -> bool:
@@ -214,6 +215,7 @@ class GameState:
                         temporary_strength=slot.temporary_strength,
                         maneuvers_this_battle=slot.maneuvers_this_battle,
                         maneuver_direction=slot.maneuver_direction,
+                        maneuvered_in_operation=slot.maneuvered_in_operation,
                     )
                     for slot in front
                 ]
@@ -352,6 +354,9 @@ class GameState:
                     target_slot.temporary_strength = source_slot.temporary_strength
                     target_slot.maneuvers_this_battle = source_slot.maneuvers_this_battle
                     target_slot.maneuver_direction = source_slot.maneuver_direction
+                    target_slot.maneuvered_in_operation = (
+                        source_slot.maneuvered_in_operation
+                    )
 
             self.stories[player][:] = [
                 StoryState(
