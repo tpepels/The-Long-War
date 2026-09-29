@@ -575,8 +575,8 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.last_hand_size[p] = state.hand_len[p]
 
     if (
-        state.command[0] < self.command_collapse_threshold
-        or state.command[1] < self.command_collapse_threshold
+        state.command[0] <= self.command_collapse_threshold
+        or state.command[1] <= self.command_collapse_threshold
     ):
         if state.command[0] < state.command[1]:
             state.phase = PHASE_COMPLETE
@@ -591,7 +591,7 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
             _fe_clear_resolution_state(self, state)
             return
 
-    # Equal low Command continues. Only a continuing war receives recovery.
+    # Equal exhausted Command continues. Only a continuing war receives recovery.
     for p in range(2):
         actual = base_recovery - state.resolution_recovery_losses[p]
         if actual < self.command_recovery_floor:
