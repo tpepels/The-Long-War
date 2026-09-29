@@ -384,7 +384,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             ismcts_max_tree_nodes=args.ismcts_max_tree_nodes,
             ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
             ismcts_rollout_policy=args.ismcts_rollout_policy,
-            skip_failed_games=args.skip_failed_games,
+            skip_failed_games=bool(getattr(args, "skip_failed_games", False)),
         )
         total_censored += report.censored_games
         total_failed += report.failed_games
