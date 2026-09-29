@@ -200,7 +200,8 @@ def aggregate_simulations_for_health(
             row["unplayable_turns"], row["turns_in_hand"]
         )
         row["structural_unplayable_turn_rate"] = _safe_ratio(
-            row["structurally_unplayable_turns"], row["affordable_turns"]
+            row["structurally_unplayable_turns"],
+            row["affordable_turns"] - row["hero_allowance_blocked_turns"],
         )
         row["resource_blocked_turn_rate"] = _safe_ratio(
             row["unaffordable_turns"], row["turns_in_hand"]
@@ -218,7 +219,8 @@ def aggregate_simulations_for_health(
             row["dead_on_pass"], row["held_on_pass"]
         )
         row["structural_dead_on_pass_rate"] = _safe_ratio(
-            row["structurally_dead_on_pass"], row["affordable_on_pass"]
+            row["structurally_dead_on_pass"],
+            row["affordable_on_pass"] - row["hero_allowance_blocked_on_pass"],
         )
         row["resource_blocked_on_pass_rate"] = _safe_ratio(
             row["unaffordable_on_pass"], row["held_on_pass"]
@@ -439,8 +441,8 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         card = meta[card_id]
         family = _playability_family(card)
         draws = int(stats.get("draws", 0))
-        held = int(stats.get("affordable_turns", stats.get("turns_in_hand", 0)))
-        held_pass = int(stats.get("affordable_on_pass", stats.get("held_on_pass", 0)))
+        held = max(0, int(stats.get("affordable_turns", stats.get("turns_in_hand", 0))) - int(stats.get("hero_allowance_blocked_turns", 0)))
+        held_pass = max(0, int(stats.get("affordable_on_pass", stats.get("held_on_pass", 0))) - int(stats.get("hero_allowance_blocked_on_pass", 0)))
         play_rate = stats.get("play_rate_per_draw")
         dead = stats.get("structural_unplayable_turn_rate", stats.get("unplayable_turn_rate"))
         dead_pass = stats.get("structural_dead_on_pass_rate", stats.get("dead_on_pass_rate"))
@@ -488,8 +490,8 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
 
         draws = int(stats.get("draws", 0))
         plays = int(stats.get("plays", 0))
-        held = int(stats.get("affordable_turns", stats.get("turns_in_hand", 0)))
-        held_pass = int(stats.get("affordable_on_pass", stats.get("held_on_pass", 0)))
+        held = max(0, int(stats.get("affordable_turns", stats.get("turns_in_hand", 0))) - int(stats.get("hero_allowance_blocked_turns", 0)))
+        held_pass = max(0, int(stats.get("affordable_on_pass", stats.get("held_on_pass", 0))) - int(stats.get("hero_allowance_blocked_on_pass", 0)))
         play_rate = stats.get("play_rate_per_draw")
         dead = stats.get("structural_unplayable_turn_rate", stats.get("unplayable_turn_rate"))
         dead_pass = stats.get("structural_dead_on_pass_rate", stats.get("dead_on_pass_rate"))
