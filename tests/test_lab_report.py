@@ -93,6 +93,11 @@ def test_lab_rejects_incomplete_or_nonstandard_provenance() -> None:
         "simulation_variant": changed,
     })
 
+    old_floor = standard_variant(command_recovery_floor=0)
+    assert not build_lab_report.canonical_variant({
+        "simulation_variant": old_floor,
+    })
+
     wrong_cards = standard_variant(card_file="cards/noncanonical.json")
     assert not build_lab_report.canonical_variant({
         "simulation_variant": wrong_cards,
