@@ -19,6 +19,7 @@ from .game.actions import (
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase
 from .progression import ProgressionTelemetry
+from .heuristics import command_preserving_actions
 
 
 @dataclass
@@ -299,12 +300,12 @@ class Telemetry:
             if isinstance(action, Pass):
                 first_pass = len(state.pass_order) == 0
                 margins = self._front_margins(engine, state, actor)
-                exhausting_alternatives = sum(
-                    not isinstance(candidate, Pass)
-                    and command > engine.rules.command_collapse_threshold
-                    and engine.command_cost_for_action(state, candidate) >= command
-                    for candidate in legal
+                preserving, exhausting_alternatives = command_preserving_actions(
+                    engine,
+                    state,
+                    legal,
                 )
+                exhausting_alternatives = int(exhausting_alternatives)
                 paid_alternatives = sum(
                     not isinstance(candidate, Pass)
                     and engine.command_cost_for_action(state, candidate) > 0
@@ -328,7 +329,9 @@ class Telemetry:
                     ),
                     "paid_alternatives": paid_alternatives,
                     "command_exhausting_alternatives": exhausting_alternatives,
-                    "pass_avoids_command_exhaustion": exhausting_alternatives > 0,
+                    "pass_avoids_command_exhaustion": (
+                        exhausting_alternatives > 0 and action in preserving
+                    ),
                     "playable_card_actions": sum(
                         self._action_card_id(candidate) is not None
                         for candidate in legal
