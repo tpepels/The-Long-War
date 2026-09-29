@@ -12,11 +12,13 @@ from longwar.game import (
     Maneuver,
     Pass,
     PlayForce,
+    PlayName,
     Position,
     Rank,
 )
 from longwar.game.engine import IllegalAction
 from longwar.rules import GameRules
+from longwar.heuristics import command_preserving_actions
 from longwar.testing import GameScenario
 
 
@@ -204,6 +206,52 @@ def test_canonical_recovery_floor_is_one_after_front_losses() -> None:
     assert snapshot["recovery_actual"] == [1, 1]
     assert snapshot["command_remaining"] == [5, 5]
 
+
+
+def test_command_guard_filters_avoidable_final_command_spend() -> None:
+    engine, state = standard_game()
+    source = Position(Front.FIRST, Rank.FRONT)
+    destination = Position(Front.SECOND, Rank.FRONT)
+    GameScenario(state).formation(
+        0,
+        source,
+        force="the-fifty-men",
+        bond="followed",
+        name="namar",
+    ).commands(1, 5).operations(1, 1).clear_hands()
+
+    maneuver = Maneuver(source, destination)
+    legal = engine.legal_actions(state)
+    preserving, filtered = command_preserving_actions(engine, state, legal)
+
+    assert Pass() in legal
+    assert maneuver in legal
+    assert Pass() in preserving
+    assert maneuver not in preserving
+    assert filtered >= 1
+
+
+def test_command_guard_keeps_immediate_command_refund_action() -> None:
+    engine, state = standard_game()
+    target = Position(Front.FIRST, Rank.FRONT)
+    GameScenario(state).formation(
+        0,
+        target,
+        force="the-fifty-men",
+        bond="followed",
+    ).commands(1, 5).operations(1, 1).clear_hands().hand(0, "namar")
+
+    play_name = PlayName("namar", target)
+    preserving, _filtered = command_preserving_actions(
+        engine,
+        state,
+        engine.legal_actions(state),
+    )
+
+    assert play_name in preserving
+    child = state.clone()
+    engine.apply(child, play_name)
+    assert child.players[0].command == 1
 
 
 def test_pass_is_valued_over_spending_the_final_command() -> None:
