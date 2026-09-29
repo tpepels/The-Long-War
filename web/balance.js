@@ -500,6 +500,7 @@ function renderCards(lab) {
               <div><dt>Strategic validation</dt><dd>${online ? `${esc(online.confirmation.replaceAll("_", " "))} · ${signedPct(online.online.effect)} · ${online.online.samples ?? 0} decisive pairs` : "not targeted"}</dd></div>
               <div><dt>Structural dead turns</dt><dd>${pct(row.structural_unplayable_turn_rate)}</dd></div>
               <div><dt>Resource-blocked turns</dt><dd>${pct(row.resource_blocked_turn_rate)}</dd></div>
+              ${row.hero ? `<div><dt>Hero allowance blocked</dt><dd>${pct(row.hero_allowance_blocked_turn_rate)}</dd></div><div><dt>Hero Command blocked</dt><dd>${pct(row.hero_command_blocked_turn_rate)}</dd></div><div><dt>Hero structurally blocked</dt><dd>${pct(row.hero_structural_blocked_turn_rate)}</dd></div>` : ""}
               <div><dt>Structural dead at Pass</dt><dd>${pct(row.structural_dead_on_pass_rate)}</dd></div>
               <div><dt>Unaffordable at Pass</dt><dd>${pct(row.resource_blocked_on_pass_rate)}</dd></div>
               <div><dt>Control swing</dt><dd>${num(row.mean_immediate_control_swing, 2)}</dd></div>
