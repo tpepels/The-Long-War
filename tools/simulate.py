@@ -157,7 +157,7 @@ def main() -> None:
     parser.add_argument("--ismcts-rollout-epsilon", type=float, default=DEFAULT_ISMCTS_ROLLOUT_EPSILON)
     parser.add_argument(
         "--ismcts-rollout-policy",
-        choices=("greedy", "cheap", "random"),
+        choices=("greedy", "cheap", "random", "decisive"),
         default=DEFAULT_ISMCTS_ROLLOUT_POLICY,
     )
     parser.add_argument(
