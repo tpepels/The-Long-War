@@ -7,7 +7,7 @@ import pytest
 
 from longwar.agents.mccfr_agent import MCCFRAgent
 from longwar.cards import load_card_file
-from longwar.game import GameEngine
+from longwar.game import Front, GameEngine, Pass, Position, Rank
 from longwar.game.model import StoryState
 from longwar.mccfr import CFRNode, MCCFRTrainer, information_set_id
 
@@ -88,6 +88,40 @@ def test_regret_matching_prefers_positive_regret() -> None:
     strategy = node.strategy(["a", "b"])
     assert strategy["a"] == 1.0
     assert strategy["b"] == 0.0
+
+
+def test_mccfr_policy_cannot_spend_last_command_when_pass_is_safe() -> None:
+    engine, _deck, state = setup()
+    state.players[0].command = 1
+    state.players[1].command = 5
+    state.operations_this_battle[:] = [1, 1]
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
+    slot = state.slot(0, Position(Front.FIRST, Rank.FRONT))
+    slot.force = "the-fifty-men"
+    slot.bond = "followed"
+    slot.name = "namar"
+
+    legal = engine.legal_actions(state)
+    unsafe = next(action for action in legal if not isinstance(action, Pass))
+    info_id = information_set_id(state, 0)
+    policy = {
+        "schema_version": 1,
+        "infosets": {
+            info_id: {
+                "average_strategy": {
+                    action_key(unsafe): 1.0,
+                    "pass": 0.0,
+                },
+            },
+        },
+    }
+
+    agent = MCCFRAgent(seed=10, policy=policy, deterministic=True)
+    action = agent.choose(engine, state)
+
+    assert isinstance(action, Pass)
+    assert agent.last_decision["command_guard_applied"] is True
 
 
 def test_mccfr_training_produces_policy_and_legal_agent_action() -> None:
