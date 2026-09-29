@@ -787,7 +787,12 @@ class Telemetry:
                 decisions[agent]["ismcts_rollout_cutoffs"] = {
                     "iterations": cutoff_total,
                     "rollout_actions": stats.ismcts_rollout_actions,
+                    "decisive_probes": stats.ismcts_decisive_rollout_probes,
                     "decisive_actions": stats.ismcts_decisive_rollout_actions,
+                    "decisive_probe_hit_rate": self._ratio(
+                        stats.ismcts_decisive_rollout_actions,
+                        stats.ismcts_decisive_rollout_probes,
+                    ),
                     "decisive_action_rate": self._ratio(
                         stats.ismcts_decisive_rollout_actions,
                         stats.ismcts_rollout_actions,
