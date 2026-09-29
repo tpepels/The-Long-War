@@ -748,7 +748,7 @@ class ProgressionTelemetry:
             row
             for row in battle_records
             if (
-                any(value < threshold for value in row["command_start"])
+                any(value <= threshold for value in row["command_start"])
                 or bool((row.get("collapse_comparison") or {}).get("triggered"))
             )
         ]
@@ -763,7 +763,7 @@ class ProgressionTelemetry:
                 row
                 for row in game_rows
                 if (
-                    any(value < threshold for value in row["command_start"])
+                    any(value <= threshold for value in row["command_start"])
                     or bool((row.get("collapse_comparison") or {}).get("triggered"))
                 )
             ]
@@ -888,11 +888,28 @@ class ProgressionTelemetry:
         low_command_stalls = {
             "collapse_threshold": threshold,
             "diagnostic_battles": len(stall_rows),
-            "both_below_collapse_threshold": sum(
-                all(value < threshold for value in row["command_before_collapse"])
+            "both_at_collapse_point": sum(
+                all(value <= threshold for value in row["command_before_collapse"])
                 for row in battle_records
             ),
             "equal_low_continuations": len(equal_low_rows),
+            "zero_zero_continuations": sum(
+                (row.get("collapse_comparison") or {}).get("commands") == [0, 0]
+                for row in equal_low_rows
+            ),
+            "zero_zero_recovered": sum(
+                (row.get("collapse_comparison") or {}).get("commands") == [0, 0]
+                and all(value >= 1 for value in row.get("command_after_recovery", []))
+                for row in equal_low_rows
+            ),
+            "zero_vs_positive_collapses": sum(
+                bool((row.get("collapse_comparison") or {}).get("triggered"))
+                and not bool((row.get("collapse_comparison") or {}).get("equal"))
+                and 0 in (row.get("collapse_comparison") or {}).get("commands", [])
+                and max((row.get("collapse_comparison") or {}).get("commands", [0, 0])) > 0
+                and (row.get("collapse_comparison") or {}).get("winner") is not None
+                for row in battle_records
+            ),
             "consecutive_equal_low_battles": consecutive_equal_low_battles,
             "zero_command_battle_starts": sum(
                 any(value == 0 for value in row["command_start"])
@@ -902,8 +919,8 @@ class ProgressionTelemetry:
                 row["command_start"] == [0, 0]
                 for row in battle_records
             ),
-            "low_command_battle_starts": sum(
-                any(value < threshold for value in row["command_start"])
+            "collapse_point_battle_starts": sum(
+                any(value <= threshold for value in row["command_start"])
                 for row in battle_records
             ),
             "battles_with_no_paid_operation": sum(
@@ -1021,6 +1038,26 @@ class ProgressionTelemetry:
                 row["censored"] and row.get("final_command") == [0, 0]
                 for row in match_records
             ),
+            "decisive_battle_one_endings": sum(
+                not row["censored"] and row["final_battle"] == 1
+                for row in match_records
+            ),
+            "decisive_battle_one_ending_rate": self._ratio(
+                sum(
+                    not row["censored"] and row["final_battle"] == 1
+                    for row in match_records
+                ),
+                len(match_records),
+            ),
+            "battles_with_no_paid_operation": sum(
+                bool(row.get("no_paid_operation")) for row in battle_records
+            ),
+            "battles_with_no_board_change": sum(
+                row.get("board_changed") is False for row in battle_records
+            ),
+            "battles_with_no_strength_change": sum(
+                row.get("strength_changed") is False for row in battle_records
+            ),
         }
         first_pass = [row for row in self._pass_contexts if row["first_pass"]]
         first_pass_outcomes = {
@@ -1067,6 +1104,20 @@ class ProgressionTelemetry:
             "command_before_collapse": self._distribution(command_before_collapse),
             "command_at_first_pass": self._distribution(
                 row["command_remaining"] for row in first_pass_rows
+            ),
+            "first_passes_with_paid_alternatives": sum(
+                row.get("paid_alternatives", 0) > 0 for row in first_pass_rows
+            ),
+            "first_passes_avoiding_command_exhaustion": sum(
+                bool(row.get("pass_avoids_command_exhaustion"))
+                for row in first_pass_rows
+            ),
+            "first_pass_avoids_command_exhaustion_rate": self._ratio(
+                sum(
+                    bool(row.get("pass_avoids_command_exhaustion"))
+                    for row in first_pass_rows
+                ),
+                len(first_pass_rows),
             ),
             "first_pass_command_buckets": {
                 "0": sum(row["command_remaining"] == 0 for row in first_pass_rows),
@@ -1330,11 +1381,11 @@ class ProgressionTelemetry:
                     "not an outcome or winner claim."
                 ),
                 "low_command_stall": (
-                    "Low Command means at least one player starts below the configured "
-                    "collapse threshold. Equal-low continuation means a resolved Battle "
-                    "reaches the pre-recovery Collapse check with equal Command below that threshold. "
-                    "A consecutive equal-low Battle extends an already-active equal-low "
-                    "continuation streak."
+                    "Collapse-point Command means at least one player starts at the configured "
+                    "collapse point. Equal-low continuation means a resolved Battle reaches "
+                    "the pre-recovery Collapse check with equal exhausted Command; under the "
+                    "current zero-Command rule this is 0-0, which continues into recovery. "
+                    "A consecutive equal-low Battle extends an already-active continuation streak."
                 ),
                 "first_pass_result": (
                     "There is no overall Battle winner. First-pass outcome groups therefore use "
@@ -1883,7 +1934,7 @@ class ProgressionTelemetry:
         collapse_comparison = {
             "threshold": threshold,
             "commands": command_before_collapse,
-            "triggered": any(value < threshold for value in command_before_collapse),
+            "triggered": any(value <= threshold for value in command_before_collapse),
             "equal": command_before_collapse[0] == command_before_collapse[1],
             "winner": state.winner if state.phase is Phase.COMPLETE else None,
             "continued": state.phase is not Phase.COMPLETE,
@@ -1896,6 +1947,13 @@ class ProgressionTelemetry:
                 "legal_alternatives": int(row.get("legal_alternatives", 0)),
                 "playable_card_actions": int(row.get("playable_card_actions", 0)),
                 "maneuver_actions": int(row.get("maneuver_actions", 0)),
+                "paid_alternatives": int(row.get("paid_alternatives", 0)),
+                "command_exhausting_alternatives": int(
+                    row.get("command_exhausting_alternatives", 0)
+                ),
+                "pass_avoids_command_exhaustion": bool(
+                    row.get("pass_avoids_command_exhaustion", False)
+                ),
                 "forced": int(row.get("legal_alternatives", 0)) == 0,
             }
             for row in battle_passes
