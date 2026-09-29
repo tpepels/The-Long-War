@@ -396,6 +396,8 @@ def test_hero_blocking_telemetry_distinguishes_allowance_command_and_structure()
     assert allowance_stats["hero_allowance_blocked_on_pass"] == 1
     assert allowance_stats["structurally_unplayable_turns"] == 0
     assert allowance_stats["structurally_dead_on_pass"] == 0
+    assert allowance_stats["structural_unplayable_turn_rate"] is None
+    assert allowance_stats["structural_dead_on_pass_rate"] is None
 
     command_state = hero_state()
     command_state.players[0].command = 0
