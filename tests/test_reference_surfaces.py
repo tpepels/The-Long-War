@@ -25,7 +25,7 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "Strength cannot fall below 0" in rules
     assert "player who Passed second counts as active" not in rules
     assert "no generic Draw operation" in rules
-    assert "| I | 10 |" in rules
+    assert "Base recovery = max(0, X - Y × (Battle - 1))" in rules
     assert "start of every turn" in rules
     assert "two consecutive Passes" in rules
     assert "first of the two consecutive Passes" in rules
