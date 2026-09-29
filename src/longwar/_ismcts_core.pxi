@@ -391,6 +391,7 @@ cdef uint64_t _ismcts_rollout_action(
     uint64_t* rng,
     double epsilon,
     int policy,
+    long* decisive_probes,
     long* decisive_actions,
 ) except *:
     cdef uint64_t actions[MAX_ACTIONS]
@@ -398,6 +399,7 @@ cdef uint64_t _ismcts_rollout_action(
     cdef int n = _fe_legal_actions_into(engine, state, &actions[0])
     cdef int actor = state.active_player
     cdef int i, best_ix=0
+    cdef int base_recovery, minimum_recovery
     cdef double value, best=-1.0e300
     cdef double total=0.0, target, cumulative=0.0
 
@@ -412,18 +414,33 @@ cdef uint64_t _ismcts_rollout_action(
         # war winner is only assigned during Battle-end recovery/collapse, so
         # the only exact action worth probing here is a second Pass.
         if state.pass_len == 1:
-            for i in range(n):
-                if action_kind(actions[i]) != TYPE_PASS:
-                    continue
-                score_scratch.copy_from_fast(state)
-                _fe_apply_fast(engine, score_scratch, actions[i])
-                if (
-                    score_scratch.phase == PHASE_COMPLETE
-                    and score_scratch.winner == actor
-                ):
-                    decisive_actions[0] += 1
-                    return actions[i]
-                break
+            # Collapse is the only way a Battle-ending Pass can end the war.
+            # At most four Fronts can be lost, and resolution effects can only
+            # add Command. If even worst-case recovery leaves both players at
+            # or above the Collapse threshold, an exact Pass probe cannot win.
+            base_recovery = _fe_command_recovery_fast(engine, state.battle)
+            minimum_recovery = base_recovery - 4
+            if minimum_recovery < engine.command_recovery_floor:
+                minimum_recovery = engine.command_recovery_floor
+            if (
+                state.command[0] + minimum_recovery
+                    < engine.command_collapse_threshold
+                or state.command[1] + minimum_recovery
+                    < engine.command_collapse_threshold
+            ):
+                for i in range(n):
+                    if action_kind(actions[i]) != TYPE_PASS:
+                        continue
+                    decisive_probes[0] += 1
+                    score_scratch.copy_from_fast(state)
+                    _fe_apply_fast(engine, score_scratch, actions[i])
+                    if (
+                        score_scratch.phase == PHASE_COMPLETE
+                        and score_scratch.winner == actor
+                    ):
+                        decisive_actions[0] += 1
+                        return actions[i]
+                    break
         if _ismcts_rand_unit(rng) >= DECISIVE_ROLLOUT_GREEDY_PROBABILITY:
             return actions[_ismcts_rand_index(rng, n)]
     elif policy == 2 or _ismcts_rand_unit(rng) < epsilon:
@@ -502,6 +519,7 @@ def ismcts_search(
     cdef long rollouts_stopped_battle_boundary=0
     cdef long rollouts_stopped_depth=0
     cdef long rollout_actions=0
+    cdef long decisive_rollout_probes=0
     cdef long decisive_rollout_actions=0
     cdef long tree_capacity_cutoffs=0
     cdef size_t tree_nodes_discarded=0
@@ -664,6 +682,7 @@ def ismcts_search(
                 &rng,
                 rollout_epsilon,
                 rollout_policy,
+                &decisive_rollout_probes,
                 &decisive_rollout_actions,
             )
             _fe_apply_fast(engine, state, action)
@@ -794,6 +813,7 @@ def ismcts_search(
         "rollouts_stopped_battle_boundary": rollouts_stopped_battle_boundary,
         "rollouts_stopped_depth": rollouts_stopped_depth,
         "rollout_actions": rollout_actions,
+        "decisive_rollout_probes": decisive_rollout_probes,
         "decisive_rollout_actions": decisive_rollout_actions,
         "tree_storage": "native-hash-arena",
         "progressive_widening": progressive_widening,
