@@ -299,6 +299,17 @@ class Telemetry:
             if isinstance(action, Pass):
                 first_pass = len(state.pass_order) == 0
                 margins = self._front_margins(engine, state, actor)
+                exhausting_alternatives = sum(
+                    not isinstance(candidate, Pass)
+                    and command > engine.rules.command_collapse_threshold
+                    and engine.command_cost_for_action(state, candidate) >= command
+                    for candidate in legal
+                )
+                paid_alternatives = sum(
+                    not isinstance(candidate, Pass)
+                    and engine.command_cost_for_action(state, candidate) > 0
+                    for candidate in legal
+                )
                 pass_record = {
                     "battle": state.battle,
                     "player": actor,
@@ -315,6 +326,9 @@ class Telemetry:
                     "legal_alternatives": sum(
                         not isinstance(candidate, Pass) for candidate in legal
                     ),
+                    "paid_alternatives": paid_alternatives,
+                    "command_exhausting_alternatives": exhausting_alternatives,
+                    "pass_avoids_command_exhaustion": exhausting_alternatives > 0,
                     "playable_card_actions": sum(
                         self._action_card_id(candidate) is not None
                         for candidate in legal
@@ -693,6 +707,24 @@ class Telemetry:
             ),
             "playable_alternative_rate": self._ratio(
                 sum(event["playable_card_actions"] > 0 for event in self.pass_events),
+                len(self.pass_events),
+            ),
+            "paid_alternative_rate": self._ratio(
+                sum(event.get("paid_alternatives", 0) > 0 for event in self.pass_events),
+                len(self.pass_events),
+            ),
+            "command_exhausting_alternative_rate": self._ratio(
+                sum(
+                    event.get("command_exhausting_alternatives", 0) > 0
+                    for event in self.pass_events
+                ),
+                len(self.pass_events),
+            ),
+            "pass_avoids_command_exhaustion_rate": self._ratio(
+                sum(
+                    bool(event.get("pass_avoids_command_exhaustion"))
+                    for event in self.pass_events
+                ),
                 len(self.pass_events),
             ),
             "mean_actions_before_pass": self._mean_field(
