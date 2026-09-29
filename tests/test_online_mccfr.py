@@ -44,7 +44,7 @@ def test_online_resolver_has_root_coverage_without_true_opponent_deck() -> None:
     assert result.belief_prior == "CardPoolDeckPrior"
 
 
-def test_online_mccfr_agent_preserves_last_command_without_resolving() -> None:
+def test_online_mccfr_agent_preserves_last_command() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=13, first_player=0)
     state.players[0].command = 1
