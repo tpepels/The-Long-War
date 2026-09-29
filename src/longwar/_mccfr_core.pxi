@@ -339,7 +339,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i = 0
     version = data[i]
     i += 1
-    if version not in (5, 6):
+    if version not in (5, 6, 7):
         raise ValueError(f"Unsupported fast information-key version: {version}")
 
     card_ids = engine.card_ids
@@ -425,6 +425,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             i += 5
             if version >= 6:
                 i += 1  # per-slot Maneuver count
+            if version >= 7:
+                i += 1  # per-operation Maneuver-chain flag
             board[owner].append([
                 local // 2,
                 "front" if (local & 1) == 0 else "rear",
