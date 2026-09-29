@@ -393,7 +393,9 @@ def test_hero_blocking_telemetry_distinguishes_allowance_command_and_structure()
     assert allowance_stats["hero_allowance_blocked_turns"] == 1
     assert allowance_stats["hero_command_blocked_turns"] == 0
     assert allowance_stats["hero_structural_blocked_turns"] == 0
+    assert allowance_stats["hero_allowance_blocked_on_pass"] == 1
     assert allowance_stats["structurally_unplayable_turns"] == 0
+    assert allowance_stats["structurally_dead_on_pass"] == 0
 
     command_state = hero_state()
     command_state.players[0].command = 0
@@ -405,6 +407,7 @@ def test_hero_blocking_telemetry_distinguishes_allowance_command_and_structure()
     assert command_stats["hero_allowance_blocked_turns"] == 0
     assert command_stats["hero_command_blocked_turns"] == 1
     assert command_stats["hero_structural_blocked_turns"] == 0
+    assert command_stats["hero_command_blocked_on_pass"] == 1
 
     structural_state = hero_state()
     force_id = next(
@@ -428,7 +431,9 @@ def test_hero_blocking_telemetry_distinguishes_allowance_command_and_structure()
     assert structural_stats["hero_allowance_blocked_turns"] == 0
     assert structural_stats["hero_command_blocked_turns"] == 0
     assert structural_stats["hero_structural_blocked_turns"] == 1
+    assert structural_stats["hero_structural_blocked_on_pass"] == 1
     assert structural_stats["structurally_unplayable_turns"] == 1
+    assert structural_stats["structurally_dead_on_pass"] == 1
 
 
 def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
