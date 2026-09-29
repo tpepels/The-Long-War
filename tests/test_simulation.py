@@ -11,7 +11,7 @@ from pathlib import Path
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 import longwar.simulate as simulation_module
-from longwar.simulate import simulate_games
+from longwar.simulate import SimulationBatchCell, simulate_games, simulate_games_batch
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -81,6 +81,63 @@ def test_parallel_random_simulation_preserves_seeded_results_and_telemetry() -> 
     assert parallel.telemetry["battles"] == serial.telemetry["battles"]
     assert parallel.telemetry["progression"] == serial.telemetry["progression"]
     assert parallel.telemetry["human_flow"] == serial.telemetry["human_flow"]
+
+
+def test_shared_batch_scheduler_preserves_seeded_cell_results() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    mobility = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    elite = json.loads(
+        (ROOT / "decks" / "persistent-elite-heroes.json").read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data)
+
+    expected_mobility = simulate_games(
+        engine,
+        mobility,
+        mobility,
+        games=6,
+        seed=901,
+        jobs=1,
+        agent_names=("random", "random"),
+    )
+    expected_elite = simulate_games(
+        engine,
+        elite,
+        elite,
+        games=6,
+        seed=907,
+        jobs=1,
+        agent_names=("random", "random"),
+    )
+
+    reports = simulate_games_batch(
+        engine,
+        [
+            SimulationBatchCell(
+                key="mobility",
+                deck_a=mobility,
+                deck_b=mobility,
+                games=6,
+                seed=901,
+            ),
+            SimulationBatchCell(
+                key="elite",
+                deck_a=elite,
+                deck_b=elite,
+                games=6,
+                seed=907,
+            ),
+        ],
+        jobs=8,
+        common_options={"agent_names": ("random", "random")},
+    )
+
+    assert reports["mobility"].game_outcomes == expected_mobility.game_outcomes
+    assert reports["mobility"].telemetry == expected_mobility.telemetry
+    assert reports["elite"].game_outcomes == expected_elite.game_outcomes
+    assert reports["elite"].telemetry == expected_elite.telemetry
 
 
 def test_simulation_can_skip_one_failed_game_without_polluting_aggregates(monkeypatch) -> None:
