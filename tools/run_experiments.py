@@ -835,8 +835,9 @@ def run_command_matrix(args: argparse.Namespace) -> list[Path]:
     """Run the planning-capable Command-economy comparison into one Lab."""
     outputs: list[Path] = []
     print(
-        "Command matrix: ISMCTS under current recovery, candidate recovery, "
-        "and candidate recovery with a minimum recovery floor of 1. "
+        "Command matrix: ISMCTS under current and candidate recovery, "
+        "each with recovery floors 0 and 1. This isolates the effect of the "
+        "minimum-recovery floor from the recovery-curve change. "
         "Heuristic self-play is intentionally excluded because it cannot "
         "plan across Battles and is not evidence about long-term Command "
         "economy behavior.",
@@ -844,6 +845,7 @@ def run_command_matrix(args: argparse.Namespace) -> list[Path]:
     )
     for recovery_variant, recovery_floor in (
         ("current", 0),
+        ("current", 1),
         ("candidate", 0),
         ("candidate", 1),
     ):
