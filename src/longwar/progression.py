@@ -2444,6 +2444,9 @@ class ProgressionTelemetry:
                 "command_remaining": mean(
                     value for row in rows for value in row["command_remaining"]
                 ),
+                "command_before_collapse": mean(
+                    value for row in rows for value in row["command_before_collapse"]
+                ),
                 "next_battle_command": self._mean_optional([
                     value
                     for row in rows
@@ -2510,6 +2513,12 @@ class ProgressionTelemetry:
                     "1-3": sum(1 <= value <= 3 for row in rows for value in row["command_remaining"]),
                     "4-6": sum(4 <= value <= 6 for row in rows for value in row["command_remaining"]),
                     "7+": sum(value >= 7 for row in rows for value in row["command_remaining"]),
+                },
+                "command_before_collapse_buckets": {
+                    "0": sum(value == 0 for row in rows for value in row["command_before_collapse"]),
+                    "1-3": sum(1 <= value <= 3 for row in rows for value in row["command_before_collapse"]),
+                    "4-6": sum(4 <= value <= 6 for row in rows for value in row["command_before_collapse"]),
+                    "7+": sum(value >= 7 for row in rows for value in row["command_before_collapse"]),
                 },
             }
         return result
