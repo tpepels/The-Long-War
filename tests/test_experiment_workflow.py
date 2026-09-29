@@ -376,7 +376,7 @@ def test_balance_defaults_to_eight_worker_processes(monkeypatch):
     )
     args = runner.parse_args()
     assert args.jobs == 8
-    assert args.recovery_floor == 0
+    assert args.recovery_floor == 1
     source = inspect.getsource(runner.balance_run)
     assert "jobs=args.jobs" in source
 
