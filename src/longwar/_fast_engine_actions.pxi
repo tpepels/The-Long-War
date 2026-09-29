@@ -521,8 +521,18 @@ cdef void _fe_enqueue_effect(
     int flags=0,
 ) except *:
     cdef int i = state.pending_len
+    cdef int j
+    cdef list queued_kinds
     if i >= MAX_PENDING_EFFECTS:
-        raise RuntimeError("Pending card-effect capacity exceeded")
+        queued_kinds = []
+        for j in range(state.pending_len):
+            queued_kinds.append(int(state.pending_kind[j]))
+        raise RuntimeError(
+            "Pending card-effect capacity exceeded: "
+            f"battle={state.battle} turn={state.turn_number} "
+            f"attempted_kind={kind} player={player} "
+            f"queued_kinds={queued_kinds}"
+        )
     state.pending_kind[i] = kind
     state.pending_player[i] = player
     state.pending_card[i] = card
