@@ -161,6 +161,10 @@ Choose one of your Named Formations and move it:
 
 If the destination is empty, move there. If it contains one of your formations, swap the two positions. Only the formation starting the Maneuver must be Named.
 
+During the resolution of a single operation, each formation may initiate at most one Maneuver.
+
+When formations swap, only the formation chosen to Maneuver is considered to have Maneuvered. The other formation is displaced by the swap.
+
 Move every Bond and Name with its Force.
 
 You cannot normally Maneuver between Battles or change rank with a Maneuver.
