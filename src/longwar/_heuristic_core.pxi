@@ -141,52 +141,57 @@ cdef class NativeHeuristicEvaluator:
         current_delta = state.command[player] - state.command[opponent]
         score += 0.45 * current_delta
 
-        # Project the rulebook's exact recovery formula using the current
-        # Front results. This makes late-war Command and likely Collapse
-        # visible to shallow search and rollouts.
-        recovery = _fe_command_recovery_fast(self.engine, state.battle)
-        own_recovery = recovery - own_losses
-        if own_recovery < 0:
-            own_recovery = 0
-        opponent_recovery = recovery - opponent_losses
-        if opponent_recovery < 0:
-            opponent_recovery = 0
-        own_projected = state.command[player] + own_recovery
-        opponent_projected = (
-            state.command[opponent] + opponent_recovery
-        )
-        if own_projected > self.engine.command_cap:
-            own_projected = self.engine.command_cap
-        if opponent_projected > self.engine.command_cap:
-            opponent_projected = self.engine.command_cap
-
-        projected_delta = own_projected - opponent_projected
-        score += 0.35 * (projected_delta - current_delta)
-
+        # Collapse is checked on current Command before recovery. With the
+        # zero-Command rule, preserving even 1 Command can decide whether a
+        # side survives long enough to receive the next recovery.
         own_vulnerability = (
-            self.engine.command_collapse_threshold + 3 - own_projected
+            self.engine.command_collapse_threshold + 3
+            - state.command[player]
         )
         if own_vulnerability < 0:
             own_vulnerability = 0
         opponent_vulnerability = (
             self.engine.command_collapse_threshold + 3
-            - opponent_projected
+            - state.command[opponent]
         )
         if opponent_vulnerability < 0:
             opponent_vulnerability = 0
-        score += 0.8 * (
+        score += 1.20 * (
             opponent_vulnerability - own_vulnerability
         )
 
         if (
-            own_projected < self.engine.command_collapse_threshold
-            or opponent_projected
-            < self.engine.command_collapse_threshold
+            (
+                state.command[player] <= self.engine.command_collapse_threshold
+                or state.command[opponent] <= self.engine.command_collapse_threshold
+            )
+            and state.command[player] != state.command[opponent]
         ):
-            if own_projected < opponent_projected:
-                score -= 28.0
-            elif own_projected > opponent_projected:
-                score += 28.0
+            if state.command[player] < state.command[opponent]:
+                score -= 48.0
+            else:
+                score += 48.0
+        else:
+            # Recovery is relevant only after surviving the Collapse check.
+            # Equal 0-0 survives, so both sides still receive the floor.
+            recovery = _fe_command_recovery_fast(self.engine, state.battle)
+            own_recovery = recovery - own_losses
+            if own_recovery < self.engine.command_recovery_floor:
+                own_recovery = self.engine.command_recovery_floor
+            opponent_recovery = recovery - opponent_losses
+            if opponent_recovery < self.engine.command_recovery_floor:
+                opponent_recovery = self.engine.command_recovery_floor
+            own_projected = state.command[player] + own_recovery
+            opponent_projected = (
+                state.command[opponent] + opponent_recovery
+            )
+            if own_projected > self.engine.command_cap:
+                own_projected = self.engine.command_cap
+            if opponent_projected > self.engine.command_cap:
+                opponent_projected = self.engine.command_cap
+
+            projected_delta = own_projected - opponent_projected
+            score += 0.35 * (projected_delta - current_delta)
 
         if (
             state.phase == PHASE_BATTLE
@@ -470,8 +475,9 @@ cdef class NativeHeuristicEvaluator:
         FastState state,
         int player,
     ) noexcept:
-        # Battle resolution already applied cleanup, Retreat, recovery and
-        # Command Collapse. The resulting state is the correct strategic leaf.
+        # Battle resolution already applied cleanup and Retreat, checked
+        # Command Collapse, and recovered only if the war survived. The
+        # resulting state is the correct strategic leaf.
         return self.strategic_evaluate_fast(state, player)
 
     cdef double pass_score_fast(
@@ -483,8 +489,8 @@ cdef class NativeHeuristicEvaluator:
         child.copy_from_fast(state)
         _fe_pass_action(self.engine, child, player)
 
-        # A second consecutive Pass has already resolved cleanup, Retreat,
-        # Command recovery/Collapse and next-Battle initiative.
+        # A second consecutive Pass has already resolved cleanup and Retreat,
+        # checked Collapse, applied surviving recovery, and set next initiative.
         if child.phase != PHASE_BATTLE or child.battle != state.battle:
             return self.battle_boundary_evaluate_fast(child, player)
 
@@ -505,6 +511,16 @@ cdef class NativeHeuristicEvaluator:
         cdef double weight = 1.0
 
         if kind == TYPE_PASS:
+            if (
+                state.command[player]
+                <= self.engine.command_collapse_threshold + 1
+            ):
+                return 1.50
+            if (
+                state.command[player]
+                <= self.engine.command_collapse_threshold + 3
+            ):
+                return 0.55
             return 0.20
         if kind == TYPE_DISCARD:
             return 1.0
