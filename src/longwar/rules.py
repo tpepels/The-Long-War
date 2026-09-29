@@ -14,10 +14,12 @@ class GameRules:
     opening_hand_size: int = 10
     starting_command: int = 20
     command_cap: int = 20
-    command_recovery_schedule: tuple[int, ...] = (10, 7, 5, 4, 3, 2, 1)
-    command_recovery_tail: int = 0
+    # Current balance candidate. The model is intentionally arithmetic:
+    # max(0, start - decrement * (Battle - 1)).
+    command_recovery_start: int = 12
+    command_recovery_decrement: int = 3
     command_recovery_floor: int = 1
-    command_collapse_threshold: int = 5
+    command_collapse_threshold: int = 0
     maneuver_command_cost: int = 1
     hand_limit: int = 10
     ongoing_narrative_limit: int = 2
@@ -30,19 +32,13 @@ class GameRules:
             elif isinstance(field.default, int):
                 if type(value) is not int:
                     raise ValueError(f"{name} must be an integer")
-        if (
-            not isinstance(self.command_recovery_schedule, tuple)
-            or any(type(value) is not int or value < 0 for value in self.command_recovery_schedule)
-        ):
-            raise ValueError("command_recovery_schedule must be a tuple of non-negative integers")
-        if not self.command_recovery_schedule:
-            raise ValueError("command_recovery_schedule must not be empty")
         if self.opening_hand_size < 1:
             raise ValueError("opening_hand_size must be positive")
         if min(
             self.starting_command,
             self.command_cap,
-            self.command_recovery_tail,
+            self.command_recovery_start,
+            self.command_recovery_decrement,
             self.command_recovery_floor,
             self.command_collapse_threshold,
             self.maneuver_command_cost,
