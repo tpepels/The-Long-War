@@ -191,6 +191,7 @@ class ISMCTSAgent:
                 "ismcts_rollouts_stopped_battle_boundary": 0,
                 "ismcts_rollouts_stopped_depth": 0,
                 "ismcts_rollout_actions": 0,
+                "ismcts_decisive_rollout_probes": 0,
                 "ismcts_decisive_rollout_actions": 0,
                 "ismcts_rollout_policy": self.rollout_policy,
                 "ismcts_progressive_widening": self.progressive_widening,
@@ -309,6 +310,9 @@ class ISMCTSAgent:
                 result["rollouts_stopped_depth"]
             ),
             "ismcts_rollout_actions": int(result["rollout_actions"]),
+            "ismcts_decisive_rollout_probes": int(
+                result["decisive_rollout_probes"]
+            ),
             "ismcts_decisive_rollout_actions": int(
                 result["decisive_rollout_actions"]
             ),
