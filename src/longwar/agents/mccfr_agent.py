@@ -39,8 +39,8 @@ class MCCFRAgent:
         return self.fallback_agent.choose_mulligan(engine, hand)
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
-        legal = engine.legal_actions(state)
-        actions, guarded = command_preserving_actions(engine, state, legal)
+        actions = engine.legal_actions(state)
+        preserving, guarded = command_preserving_actions(engine, state, actions)
         if len(actions) == 1:
             self.last_decision = {
                 "candidate_count": 1,
@@ -95,6 +95,41 @@ class MCCFRAgent:
         else:
             selected_key = self._sample(normalized)
 
+        guard_overrode_selection = action_map[selected_key] not in preserving
+        if guard_overrode_selection:
+            safe_keys = {
+                action_key(action)
+                for action in preserving
+            }
+            safe_probabilities = {
+                key: value
+                for key, value in normalized.items()
+                if key in safe_keys
+            }
+            safe_total = sum(safe_probabilities.values())
+            if safe_total > 0:
+                safe_probabilities = {
+                    key: value / safe_total
+                    for key, value in safe_probabilities.items()
+                }
+                if self.deterministic:
+                    selected_key = max(
+                        safe_probabilities,
+                        key=lambda key: (safe_probabilities[key], key),
+                    )
+                else:
+                    selected_key = self._sample(safe_probabilities)
+            else:
+                action = self.fallback_agent.choose(engine, state)
+                self.last_decision = dict(self.fallback_agent.last_decision)
+                self.last_decision["policy_source"] = (
+                    f"guard-fallback:{self.fallback_name}"
+                )
+                self.last_decision["command_guard_applied"] = guarded > 0
+                self.last_decision["command_guard_filtered_actions"] = guarded
+                self.last_decision["command_guard_overrode_selection"] = True
+                return action
+
         best = ranked[0][1]
         second = ranked[1][1] if len(ranked) > 1 else 0.0
         self.last_decision = {
@@ -105,6 +140,7 @@ class MCCFRAgent:
             "policy_source": "mccfr",
             "command_guard_applied": guarded > 0,
             "command_guard_filtered_actions": guarded,
+            "command_guard_overrode_selection": guard_overrode_selection,
         }
         return action_map[selected_key]
 
