@@ -851,6 +851,11 @@ cdef void _fe_queue_battle_draws(
 
 cdef void _fe_start_turn_fast(FastEngine self, FastState state, int player) noexcept:
     state.active_player = player
+    memset(
+        state.maneuvered_in_operation,
+        0,
+        sizeof(state.maneuvered_in_operation),
+    )
     state.cards_played_this_turn_front_mask[player] = 0
     state.cleanup_pending = 0
     state.pending_draw_count = 0
