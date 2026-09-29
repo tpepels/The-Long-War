@@ -8,7 +8,7 @@ import pytest
 from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
-from longwar.game import GameEngine
+from longwar.game import Front, GameEngine, Pass, Position, Rank
 from longwar.rules import GameRules
 from longwar.simulate import simulate_games
 
@@ -77,6 +77,36 @@ def test_strategic_heuristic_returns_legal_action_without_true_hand_access() -> 
     assert agent.last_decision["belief_samples"] == 2
     assert 0 <= agent.last_decision["completed_depth"] <= 3
     assert agent.last_decision["search_nodes"] <= 2_000
+
+
+def test_strategic_root_guard_preserves_last_command() -> None:
+    deck = load_deck()
+    engine = standard_engine()
+    state = engine.new_game(deck, deck, seed=7315, first_player=0)
+    state.players[0].command = 1
+    state.players[1].command = 5
+    state.operations_this_battle[:] = [1, 1]
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
+    slot = state.slot(0, Position(Front.FIRST, Rank.FRONT))
+    slot.force = "the-fifty-men"
+    slot.bond = "followed"
+    slot.name = "namar"
+
+    agent = StrategicHeuristicAgent(
+        engine,
+        seed=7316,
+        belief_samples=1,
+        rollout_plies=1,
+        candidate_width=4,
+        node_budget=100,
+        search_backend="python",
+    )
+    action = agent.choose(engine, state)
+
+    assert isinstance(action, Pass)
+    assert agent.last_decision["command_guard_applied"] is True
+    assert agent.last_decision["command_guard_filtered_actions"] >= 1
 
 
 def test_short_strategic_candidate_simulation_finishes() -> None:
