@@ -46,7 +46,7 @@ def test_standard_command_profile_matches_canonical_rules() -> None:
     assert rules.starting_command == 20
     assert rules.command_cap == 20
     assert rules.command_recovery_schedule == (10, 7, 5, 4, 3, 2, 1)
-    assert rules.command_recovery_floor == 0
+    assert rules.command_recovery_floor == 1
     assert rules.command_collapse_threshold == 5
     assert rules.maneuver_command_cost == 1
     assert [player.command for player in state.players] == [20, 20]
@@ -137,7 +137,7 @@ def test_candidate_recovery_tail_applies_from_battle_eight_onward() -> None:
     assert [player.command for player in state.players] == [11, 11]
 
 
-def test_equal_low_command_remains_an_explicit_canonical_ambiguity() -> None:
+def test_equal_zero_command_continues_then_recovers_to_floor_one() -> None:
     engine, state = standard_game()
     GameScenario(state).battle(8).commands(0, 0).operations(
         1,
@@ -147,76 +147,74 @@ def test_equal_low_command_remains_an_explicit_canonical_ambiguity() -> None:
     engine.apply(state, Pass())
     engine.apply(state, Pass())
 
-    # Current rulebook: lower Command loses, equal Command continues.
-    # This deliberately documents the unresolved 0-0 loop instead of
-    # inventing a winner in engine code.
+    # Collapse is checked before recovery. Equal low Command continues, then
+    # the canonical recovery floor guarantees that 0-0 is not absorbing.
     assert state.phase.value == "battle"
     assert state.winner is None
     assert state.battle == 9
-    assert [player.command for player in state.players] == [0, 0]
+    assert [player.command for player in state.players] == [1, 1]
+    snapshot = state.last_battle_snapshot
+    assert snapshot is not None
+    assert snapshot["command_before_recovery"] == [0, 0]
+    assert snapshot["recovery_actual"] == [1, 1]
+    assert snapshot["command_remaining"] == [1, 1]
 
 
-def test_recovery_floor_prevents_front_loss_from_cancelling_candidate_tail() -> None:
-    data = load_card_file(ROOT / "cards" / "cards.json")
-    deck = json.loads(
-        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
-    )["cards"]
+def test_unequal_low_command_collapses_before_recovery() -> None:
+    engine, state = standard_game()
+    GameScenario(state).battle(1).commands(4, 5).operations(
+        1,
+        1,
+    ).clear_hands()
 
-    def resolve_with_floor(floor: int):
-        rules = GameRules.standard().with_overrides(
-            command_recovery_schedule=(10, 8, 6, 5, 4, 3, 2),
-            command_recovery_tail=1,
-            command_recovery_floor=floor,
-        )
-        engine = GameEngine(data, rules=rules)
-        state = engine.new_game(
-            deck,
-            deck,
-            seed=26092802,
-            first_player=0,
-            opening_bonus=False,
-        )
-        # Each player loses one different Front. Candidate Battle-VIII+
-        # recovery is 1, so without a floor each loss cancels recovery to 0.
-        GameScenario(state).battle(8).commands(0, 0).battle_start_commands(
-            0,
-            0,
-        ).operations(1, 1).clear_hands().formation(
-            1,
-            Position(Front.FIRST, Rank.FRONT),
-            force="the-fifty-men",
-        ).formation(
-            0,
-            Position(Front.SECOND, Rank.FRONT),
-            force="the-fifty-men",
-        )
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
 
-        engine.apply(state, Pass())
-        engine.apply(state, Pass())
-        return state
+    # Battle-I recovery would otherwise rescue both players. It must not be
+    # applied because 4-5 already decides Command Collapse.
+    assert state.phase.value == "complete"
+    assert state.winner == 1
+    assert state.battle == 1
+    assert [player.command for player in state.players] == [4, 5]
+    snapshot = state.last_battle_snapshot
+    assert snapshot is not None
+    assert snapshot["command_before_recovery"] == [4, 5]
+    assert snapshot["recovery_actual"] == [0, 0]
+    assert snapshot["command_remaining"] == [4, 5]
 
-    baseline = resolve_with_floor(0)
-    assert baseline.phase.value == "battle"
-    assert baseline.winner is None
-    assert baseline.battle == 9
-    assert [player.command for player in baseline.players] == [0, 0]
-    baseline_snapshot = baseline.last_battle_snapshot
-    assert baseline_snapshot is not None
-    assert baseline_snapshot["fronts_lost"] == [1, 1]
-    assert baseline_snapshot["recovery_loss"] == [1, 1]
-    assert baseline_snapshot["recovery_actual"] == [0, 0]
 
-    floored = resolve_with_floor(1)
-    assert floored.phase.value == "battle"
-    assert floored.winner is None
-    assert floored.battle == 9
-    assert [player.command for player in floored.players] == [1, 1]
-    floored_snapshot = floored.last_battle_snapshot
-    assert floored_snapshot is not None
-    assert floored_snapshot["fronts_lost"] == [1, 1]
-    assert floored_snapshot["recovery_loss"] == [1, 1]
-    assert floored_snapshot["recovery_actual"] == [1, 1]
-    assert floored_snapshot["command_remaining"] == [1, 1]
+def test_canonical_recovery_floor_is_one_after_front_losses() -> None:
+    engine, state = standard_game()
+    # Battle VIII+ has base recovery 0. Equal low Command survives Collapse,
+    # and each player must still recover exactly 1 despite losing a Front.
+    GameScenario(state).battle(8).commands(4, 4).battle_start_commands(
+        4,
+        4,
+    ).operations(1, 1).clear_hands().formation(
+        1,
+        Position(Front.FIRST, Rank.FRONT),
+        force="the-fifty-men",
+    ).formation(
+        0,
+        Position(Front.SECOND, Rank.FRONT),
+        force="the-fifty-men",
+    )
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.phase.value == "battle"
+    assert state.winner is None
+    assert state.battle == 9
+    assert [player.command for player in state.players] == [5, 5]
+    snapshot = state.last_battle_snapshot
+    assert snapshot is not None
+    assert snapshot["fronts_lost"] == [1, 1]
+    assert snapshot["recovery_loss"] == [1, 1]
+    assert snapshot["command_before_recovery"] == [4, 4]
+    assert snapshot["recovery_actual"] == [1, 1]
+    assert snapshot["command_remaining"] == [5, 5]
+
 
 
 def test_negative_recovery_floor_is_invalid() -> None:
