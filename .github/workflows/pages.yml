@@ -57,6 +57,15 @@ jobs:
       - run: python -m pytest -q -m "not integration" tests/test_telemetry.py
       - run: python -m pytest -q tests/test_command_economy.py tests/test_lab_report.py
       - run: python -m pytest -q -m "not integration" tests/test_experiment_workflow.py
+      - name: Command economy search and engine regression suite
+        run: >-
+          python -m pytest -q
+          tests/test_engine.py
+          tests/test_simulation.py
+          tests/test_reference_surfaces.py
+          tests/test_strategic_heuristic.py
+          tests/test_mccfr.py
+          tests/test_online_mccfr.py
       - name: Build Pages from committed Balance Lab evidence
         run: python tools/build_pages.py
       - uses: actions/upload-pages-artifact@v4
