@@ -414,12 +414,12 @@ cdef uint64_t _ismcts_rollout_action(
         # worth probing here is a second Pass.
         if state.pass_len == 1:
             # Battle resolution can add Command but does not spend it. If both
-            # players are already at or above the Collapse threshold, the
-            # second Pass cannot end the war. If either is below, resolve the
-            # Pass exactly because Battle-end effects may still change Command.
+            # players are above the Collapse point, the second Pass cannot end
+            # the war. If either is exhausted, resolve the Pass exactly because
+            # Battle-end effects may still change Command before Collapse.
             if (
-                state.command[0] < engine.command_collapse_threshold
-                or state.command[1] < engine.command_collapse_threshold
+                state.command[0] <= engine.command_collapse_threshold
+                or state.command[1] <= engine.command_collapse_threshold
             ):
                 for i in range(n):
                     if action_kind(actions[i]) != TYPE_PASS:
