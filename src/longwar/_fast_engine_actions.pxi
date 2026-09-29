@@ -596,6 +596,8 @@ cdef int _fe_legal_pending_effect_actions(
         for source in range(player * 8, player * 8 + 8):
             if not (source_mask & (1 << source)):
                 continue
+            if state.maneuvered_in_operation[source]:
+                continue
             if flags & EFFECT_ALLOW_UNNAMED:
                 if (
                     state.subject[source] < 0
