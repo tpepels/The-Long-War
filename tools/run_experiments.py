@@ -152,7 +152,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         "strategic_time_budget_seconds": None,
         "online_agent_iterations": 16,
         "online_agent_depth": 2,
-        "recovery_floor": 0,
+        "recovery_floor": 1,
         "jobs": 8,
     }
     for option, default in balance_defaults.items():
@@ -163,7 +163,7 @@ def balance_run(args: argparse.Namespace) -> Path:
     publish_lab = deep_pipeline or bool(getattr(args, "publish_lab", False))
     agent_name = str(getattr(args, "agent", "heuristic"))
     recovery_variant = str(getattr(args, "recovery", "current"))
-    recovery_floor = int(getattr(args, "recovery_floor", 0))
+    recovery_floor = int(getattr(args, "recovery_floor", 1))
     skip_card_screen = bool(getattr(args, "skip_card_screen", False))
     run_card_screen = deep_pipeline and not skip_card_screen
 
@@ -311,7 +311,7 @@ def balance_run(args: argparse.Namespace) -> Path:
     def policy_for(deck_name: str) -> dict[str, Any] | None:
         if agent_name != "mccfr":
             return None
-        if recovery_variant != "current" or recovery_floor != 0:
+        if recovery_variant != "current" or recovery_floor != 1:
             raise SystemExit(
                 "Offline MCCFR policies are only valid for canonical Command "
                 "recovery. Retrain variant-specific policies before using "
@@ -801,7 +801,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         canonical_lab_profile = (
             agent_name == "ismcts"
             and recovery_variant == "current"
-            and recovery_floor == 0
+            and recovery_floor == 1
         )
         if canonical_lab_profile:
             publish("balance-report.json", static_payload)
@@ -1898,10 +1898,10 @@ def parse_args() -> argparse.Namespace:
         "--recovery-floor",
         type=int,
         choices=(0, 1),
-        default=0,
+        default=1,
         help=(
-            "Experimental minimum actual recovery after Front-loss penalties. "
-            "Canonical rules use 0; use 1 only for low-Command stall experiments."
+            "Minimum actual recovery after Front-loss penalties. "
+            "Canonical rules use 1; use 0 only for historical comparison."
         ),
     )
     balance.add_argument(
