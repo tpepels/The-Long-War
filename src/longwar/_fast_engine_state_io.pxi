@@ -80,6 +80,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     fast.name[slot] = self.id_to_code[py_slot.name]
                 fast.temporary[slot] = py_slot.temporary_strength
                 fast.maneuver_count[slot] = int(py_slot.maneuvers_this_battle)
+                fast.maneuvered_in_operation[slot] = bool(
+                    py_slot.maneuvered_in_operation
+                )
                 if py_slot.maneuver_direction == "left":
                     fast.maneuver_direction[slot] = 1
                 elif py_slot.maneuver_direction == "right":
@@ -412,6 +415,9 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                         ),
                         "maneuvers_this_battle": (
                             state.maneuver_count[slot_index(p, f, r)]
+                        ),
+                        "maneuvered_in_operation": bool(
+                            state.maneuvered_in_operation[slot_index(p, f, r)]
                         ),
                         "maneuver_direction": (
                             "left"
