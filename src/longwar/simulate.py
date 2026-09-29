@@ -418,12 +418,25 @@ def _simulate_games_serial(
             game_telemetry.finish_game(winner, state)
             telemetry.merge(game_telemetry)
             human_flow.merge(game_human_flow)
+            censor_reason = None
+            if censored:
+                if state.pending_effects:
+                    censor_reason = "pending-effect-action-horizon"
+                elif (
+                    state.players[0].command == 0
+                    and state.players[1].command == 0
+                ):
+                    censor_reason = "zero-command-action-horizon"
+                else:
+                    censor_reason = "active-action-horizon"
+
             game_outcomes.append({
                 "game": global_game_index,
                 "seed": game_seed,
                 "first_player": first_player,
                 "winner": winner,
                 "censored": censored,
+                "censor_reason": censor_reason,
                 "actions_completed": action_count,
                 "final_battle": int(state.battle),
                 "final_command": [
