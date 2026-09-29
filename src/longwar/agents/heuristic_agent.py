@@ -51,8 +51,8 @@ class HeuristicAgent:
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
         player = state.active_player
-        legal = engine.legal_actions(state)
-        actions, guarded = command_preserving_actions(engine, state, legal)
+        actions = engine.legal_actions(state)
+        preserving, guarded = command_preserving_actions(engine, state, actions)
 
         if len(actions) == 1:
             self.last_decision = {
@@ -83,7 +83,18 @@ class HeuristicAgent:
         else:
             selected = scored[0]
 
-        second = scored[1].score if len(scored) > 1 else selected.score
+        guard_overrode_selection = selected.action not in preserving
+        if guard_overrode_selection:
+            safe_scored = [item for item in scored if item.action in preserving]
+            selected = safe_scored[0]
+            second = (
+                safe_scored[1].score
+                if len(safe_scored) > 1
+                else selected.score
+            )
+        else:
+            second = scored[1].score if len(scored) > 1 else selected.score
+
         self.last_decision = {
             "candidate_count": len(scored),
             "selected_score": selected.score,
@@ -91,6 +102,7 @@ class HeuristicAgent:
             "selected_action": type(selected.action).__name__,
             "command_guard_applied": guarded > 0,
             "command_guard_filtered_actions": guarded,
+            "command_guard_overrode_selection": guard_overrode_selection,
         }
         return selected.action
 
