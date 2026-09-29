@@ -72,6 +72,9 @@ class DecisionStats:
     decision_seconds_total: float = 0.0
     decision_seconds_max: float = 0.0
     timed_out_decisions: int = 0
+    command_guard_decisions: int = 0
+    command_guard_filtered_actions: int = 0
+    command_guard_overrides: int = 0
     searched_decisions: int = 0
     searched_decision_seconds_total: float = 0.0
     ismcts_terminal_cutoffs: int = 0
@@ -412,6 +415,23 @@ class Telemetry:
             )
             stats.timed_out_decisions += int(
                 bool(decision_info.get("search_timed_out", False))
+            )
+            guarded_actions = int(
+                decision_info.get("command_guard_filtered_actions", 0)
+            )
+            if guarded_actions > 0:
+                stats.command_guard_decisions += 1
+                stats.command_guard_filtered_actions += guarded_actions
+            stats.command_guard_overrides += int(
+                bool(
+                    decision_info.get(
+                        "command_guard_overrode_selection",
+                        decision_info.get(
+                            "command_guard_overrode_search",
+                            False,
+                        ),
+                    )
+                )
             )
             if search_nodes > 0:
                 stats.searched_decisions += 1
@@ -831,6 +851,19 @@ class Telemetry:
                 "timeout_rate": self._ratio(
                     stats.timed_out_decisions,
                     stats.decisions,
+                ),
+                "command_guard_decisions": stats.command_guard_decisions,
+                "command_guard_opportunity_rate": self._ratio(
+                    stats.command_guard_decisions,
+                    stats.decisions,
+                ),
+                "command_guard_filtered_actions": (
+                    stats.command_guard_filtered_actions
+                ),
+                "command_guard_overrides": stats.command_guard_overrides,
+                "command_guard_override_rate": self._ratio(
+                    stats.command_guard_overrides,
+                    stats.command_guard_decisions,
                 ),
                 "searched_decisions": stats.searched_decisions,
                 "mean_searched_decision_seconds": self._ratio(
