@@ -396,9 +396,10 @@ cdef uint64_t _ismcts_rollout_action(
 ) except *:
     cdef uint64_t actions[MAX_ACTIONS]
     cdef double weights[MAX_ACTIONS]
+    cdef int safe_indices[MAX_ACTIONS]
     cdef int n = _fe_legal_actions_into(engine, state, &actions[0])
     cdef int actor = state.active_player
-    cdef int i, best_ix=0
+    cdef int i, best_ix=0, safe_n=0, pick
     cdef double value, best=-1.0e300
     cdef double total=0.0, target, cumulative=0.0
 
@@ -406,6 +407,23 @@ cdef uint64_t _ismcts_rollout_action(
         raise RuntimeError("Non-terminal ISMCTS state has no legal action")
     if n == 1:
         return actions[0]
+
+    # Do not let random rollouts teach the tree that spending the final
+    # Command while the opponent remains positive is ordinary play. Inspect
+    # exact child states so immediate Command gains/refunds remain available.
+    for i in range(n):
+        if not evaluator.action_exhausts_command_fast(
+            state,
+            actor,
+            actions[i],
+            score_scratch,
+        ):
+            safe_indices[safe_n] = i
+            safe_n += 1
+    if safe_n == 0:
+        for i in range(n):
+            safe_indices[i] = i
+        safe_n = n
 
     if policy == 3:
         # Historical rollout style: exact decisive move when cheaply provable,
@@ -435,12 +453,17 @@ cdef uint64_t _ismcts_rollout_action(
                         return actions[i]
                     break
         if _ismcts_rand_unit(rng) >= DECISIVE_ROLLOUT_GREEDY_PROBABILITY:
-            return actions[_ismcts_rand_index(rng, n)]
+            pick = safe_indices[_ismcts_rand_index(rng, safe_n)]
+            return actions[pick]
     elif policy == 2 or _ismcts_rand_unit(rng) < epsilon:
-        return actions[_ismcts_rand_index(rng, n)]
+        pick = safe_indices[_ismcts_rand_index(rng, safe_n)]
+        return actions[pick]
 
     if policy == 1:
         for i in range(n):
+            weights[i] = 0.0
+        for pick in range(safe_n):
+            i = safe_indices[pick]
             weights[i] = evaluator.rollout_prior_fast(
                 state,
                 actor,
@@ -450,13 +473,16 @@ cdef uint64_t _ismcts_rollout_action(
                 weights[i] = 0.001
             total += weights[i]
         target = _ismcts_rand_unit(rng) * total
-        for i in range(n):
+        for pick in range(safe_n):
+            i = safe_indices[pick]
             cumulative += weights[i]
             if cumulative >= target:
                 return actions[i]
-        return actions[n - 1]
+        return actions[safe_indices[safe_n - 1]]
 
-    for i in range(n):
+    best_ix = safe_indices[0]
+    for pick in range(safe_n):
+        i = safe_indices[pick]
         value = evaluator.action_order_score_fast(
             state,
             actor,
