@@ -570,7 +570,7 @@ class Telemetry:
             )
             payload["structural_unplayable_turn_rate"] = self._ratio(
                 stats.structurally_unplayable_turns,
-                stats.affordable_turns,
+                stats.affordable_turns - stats.hero_allowance_blocked_turns,
             )
             payload["resource_blocked_turn_rate"] = self._ratio(
                 stats.unaffordable_turns,
@@ -594,7 +594,7 @@ class Telemetry:
             )
             payload["structural_dead_on_pass_rate"] = self._ratio(
                 stats.structurally_dead_on_pass,
-                stats.affordable_on_pass,
+                stats.affordable_on_pass - stats.hero_allowance_blocked_on_pass,
             )
             payload["resource_blocked_on_pass_rate"] = self._ratio(
                 stats.unaffordable_on_pass,
