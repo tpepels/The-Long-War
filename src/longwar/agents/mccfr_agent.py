@@ -8,6 +8,7 @@ from ..game.engine import GameEngine
 from ..game.model import GameState
 from ..mccfr import action_key, information_set_id
 from .heuristic_agent import HeuristicAgent
+from ..heuristics import command_preserving_actions
 
 
 class MCCFRAgent:
@@ -38,7 +39,8 @@ class MCCFRAgent:
         return self.fallback_agent.choose_mulligan(engine, hand)
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
-        actions = engine.legal_actions(state)
+        legal = engine.legal_actions(state)
+        actions, guarded = command_preserving_actions(engine, state, legal)
         if len(actions) == 1:
             self.last_decision = {
                 "candidate_count": 1,
@@ -46,6 +48,8 @@ class MCCFRAgent:
                 "score_gap": 1.0,
                 "selected_action": type(actions[0]).__name__,
                 "policy_source": "forced",
+                "command_guard_applied": guarded > 0,
+                "command_guard_filtered_actions": guarded,
             }
             return actions[0]
 
@@ -56,6 +60,8 @@ class MCCFRAgent:
             action = self.fallback_agent.choose(engine, state)
             self.last_decision = dict(self.fallback_agent.last_decision)
             self.last_decision["policy_source"] = f"fallback:{self.fallback_name}"
+            self.last_decision["command_guard_applied"] = guarded > 0
+            self.last_decision["command_guard_filtered_actions"] = guarded
             return action
 
         probabilities = entry.get("average_strategy") or entry.get("current_strategy") or {}
@@ -70,6 +76,8 @@ class MCCFRAgent:
             action = self.fallback_agent.choose(engine, state)
             self.last_decision = dict(self.fallback_agent.last_decision)
             self.last_decision["policy_source"] = f"fallback:{self.fallback_name}"
+            self.last_decision["command_guard_applied"] = guarded > 0
+            self.last_decision["command_guard_filtered_actions"] = guarded
             return action
 
         normalized = {
@@ -95,6 +103,8 @@ class MCCFRAgent:
             "score_gap": best - second,
             "selected_action": type(action_map[selected_key]).__name__,
             "policy_source": "mccfr",
+            "command_guard_applied": guarded > 0,
+            "command_guard_filtered_actions": guarded,
         }
         return action_map[selected_key]
 
