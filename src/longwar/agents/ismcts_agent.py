@@ -152,12 +152,12 @@ class ISMCTSAgent:
         root_player = state.active_player
         legal = engine.legal_actions(state)
         guarded_legal, guarded = command_preserving_actions(engine, state, legal)
-        if len(guarded_legal) == 1:
+        if len(legal) == 1:
             self.last_decision = {
                 "candidate_count": 1,
                 "selected_score": 0.0,
                 "score_gap": 0.0,
-                "selected_action": type(guarded_legal[0]).__name__,
+                "selected_action": type(legal[0]).__name__,
                 "policy_source": "ismcts",
                 "belief_samples": 0,
                 "search_nodes": 0,
@@ -200,7 +200,7 @@ class ISMCTSAgent:
                 "command_guard_applied": guarded > 0,
                 "command_guard_filtered_actions": guarded,
             }
-            return guarded_legal[0]
+            return legal[0]
 
         sampled_states = [
             self.belief.sample(state, root_player, self.rng)
