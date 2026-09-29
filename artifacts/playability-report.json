@@ -1,174 +1,178 @@
 {
   "schema_version": 2,
-  "game_fingerprint": "594b36f86c8fc50f",
+  "game_fingerprint": "ee053c31ae5a9ca2",
   "scope": {
     "simulation_reports": 6,
-    "games": 600,
-    "decisive_games": 562,
-    "censored_games": 38,
-    "battles": 2360
+    "games": 144,
+    "decisive_games": 140,
+    "censored_games": 4,
+    "battles": 921
   },
   "match_pacing": {
-    "mean_battles_per_match": 3.933333333333333,
-    "mean_resolved_battles_per_match": 3.933333333333333,
-    "mean_final_battle_reached": 3.9966666666666666,
+    "mean_battles_per_match": 6.395833333333333,
+    "mean_resolved_battles_per_match": 6.395833333333333,
+    "mean_final_battle_reached": 6.423611111111111,
     "battle_reach": {
       "1": {
-        "matches": 600,
+        "matches": 144,
         "rate": 1.0
       },
       "2": {
-        "matches": 580,
-        "rate": 0.9666666666666667
+        "matches": 143,
+        "rate": 0.9930555555555556
       },
       "3": {
-        "matches": 380,
-        "rate": 0.6333333333333333
+        "matches": 128,
+        "rate": 0.8888888888888888
       },
       "4": {
         "matches": 99,
-        "rate": 0.165
+        "rate": 0.6875
       },
       "8": {
-        "matches": 9,
-        "rate": 0.015
+        "matches": 11,
+        "rate": 0.0763888888888889
+      },
+      "12": {
+        "matches": 4,
+        "rate": 0.027777777777777776
       }
     },
-    "mean_action_events_per_match": 104.27,
-    "mean_cards_played_per_match": 30.588333333333335
+    "mean_action_events_per_match": 110.55555555555556,
+    "mean_cards_played_per_match": 41.104166666666664
   },
   "battle_pacing": {
-    "mean_action_events_per_battle": 26.509322033898304,
-    "mean_action_events_per_player_battle": 13.254661016949152,
-    "mean_cards_played_per_battle": 7.776694915254238,
-    "mean_cards_played_per_player_battle": 3.888347457627119,
-    "mean_named_formations_created_per_battle": 0.9186440677966101,
-    "mean_maneuvers_per_battle": 3.2610169491525425
+    "mean_action_events_per_battle": 17.28555917480999,
+    "mean_action_events_per_player_battle": 8.642779587404995,
+    "mean_cards_played_per_battle": 6.4267100977198695,
+    "mean_cards_played_per_player_battle": 3.2133550488599347,
+    "mean_named_formations_created_per_battle": 0.8067318132464713,
+    "mean_maneuvers_per_battle": 1.780673181324647
   },
   "card_mix": {
     "Forces": {
-      "count": 11338,
-      "share_of_card_plays": 0.6177736609818558,
-      "mean_per_battle": 4.804237288135593
+      "count": 3202,
+      "share_of_card_plays": 0.540969758405136,
+      "mean_per_battle": 3.476655808903366
     },
     "Bonds": {
-      "count": 3113,
-      "share_of_card_plays": 0.16961804609600611,
-      "mean_per_battle": 1.3190677966101696
+      "count": 1051,
+      "share_of_card_plays": 0.17756377766514614,
+      "mean_per_battle": 1.1411509229098806
     },
     "Names": {
-      "count": 3233,
-      "share_of_card_plays": 0.17615648667792733,
-      "mean_per_battle": 1.369915254237288
+      "count": 1015,
+      "share_of_card_plays": 0.17148166920087854,
+      "mean_per_battle": 1.1020629750271445
     },
     "Stories": {
-      "count": 446,
-      "share_of_card_plays": 0.02430120416280717,
-      "mean_per_battle": 0.18898305084745762
+      "count": 489,
+      "share_of_card_plays": 0.08261530663963507,
+      "mean_per_battle": 0.5309446254071661
     },
     "Stratagems": {
-      "count": 223,
-      "share_of_card_plays": 0.012150602081403585,
-      "mean_per_battle": 0.09449152542372881
+      "count": 162,
+      "share_of_card_plays": 0.027369488089204256,
+      "mean_per_battle": 0.1758957654723127
     }
   },
   "draw": {
-    "cards_drawn": 44372,
-    "mean_cards_drawn_per_battle": 18.801694915254238
+    "cards_drawn": 13410,
+    "mean_cards_drawn_per_battle": 14.560260586319218
   },
   "stratagem": {
-    "plays": 223,
-    "mean_per_battle": 0.09449152542372881,
-    "opportunity_use_rate": 0.047245762711864404
+    "plays": 162,
+    "mean_per_battle": 0.1758957654723127,
+    "opportunity_use_rate": 0.08794788273615635
   },
   "hand_pressure": {
-    "mean_hand_size_at_pass": 9.995467730239303,
-    "mean_dead_cards_at_pass": 8.913524292965917,
-    "dead_card_share_at_pass": 0.8917565974426408,
-    "unplayable_card_turn_share": 0.23640089831834551,
-    "card_play_rate_per_draw": 0.4136166952131975
+    "mean_hand_size_at_pass": 10.058220432076162,
+    "mean_dead_cards_at_pass": 5.735994141340169,
+    "dead_card_share_at_pass": 0.5702792238523426,
+    "unplayable_card_turn_share": 0.2430725346373268,
+    "card_play_rate_per_draw": 0.4413870246085011
   },
   "passing": {
-    "events": 5516,
-    "mean_passes_per_battle": 2.3372881355932202,
-    "first_pass_share": 0.5721537345902828
+    "events": 2731,
+    "mean_passes_per_battle": 2.965255157437568,
+    "first_pass_share": 0.6627608934456243
   },
   "decision_load": {
-    "heuristic_decisions": 62562,
-    "mean_legal_candidates_per_heuristic_decision": 23.061059429046384
+    "heuristic_decisions": 0,
+    "mean_legal_candidates_per_heuristic_decision": null
   },
   "by_simulation": [
     {
       "label": "simulation-1",
-      "games": 100,
-      "decisive_games": 99,
+      "games": 24,
+      "decisive_games": 23,
       "censored_games": 1,
-      "mean_battles_per_match": 4.01,
-      "mean_resolved_battles_per_match": 4.01,
-      "mean_final_battle_reached": 4.02,
-      "mean_cards_played_per_battle": 7.423940149625935,
-      "mean_cards_played_per_match": 29.77,
-      "mean_action_events_per_battle": 19.219451371571072
+      "mean_battles_per_match": 9.0,
+      "mean_resolved_battles_per_match": 9.0,
+      "mean_final_battle_reached": 9.041666666666666,
+      "mean_cards_played_per_battle": 4.3657407407407405,
+      "mean_cards_played_per_match": 39.291666666666664,
+      "mean_action_events_per_battle": 11.958333333333334
     },
     {
       "label": "simulation-2",
-      "games": 100,
-      "decisive_games": 84,
-      "censored_games": 16,
-      "mean_battles_per_match": 3.01,
-      "mean_resolved_battles_per_match": 3.01,
-      "mean_final_battle_reached": 3.17,
-      "mean_cards_played_per_battle": 9.541528239202657,
-      "mean_cards_played_per_match": 28.72,
-      "mean_action_events_per_battle": 48.51495016611295
+      "games": 24,
+      "decisive_games": 24,
+      "censored_games": 0,
+      "mean_battles_per_match": 3.8333333333333335,
+      "mean_resolved_battles_per_match": 3.8333333333333335,
+      "mean_final_battle_reached": 3.8333333333333335,
+      "mean_cards_played_per_battle": 9.347826086956522,
+      "mean_cards_played_per_match": 35.833333333333336,
+      "mean_action_events_per_battle": 22.282608695652176
     },
     {
       "label": "simulation-3",
-      "games": 100,
-      "decisive_games": 83,
-      "censored_games": 17,
-      "mean_battles_per_match": 4.22,
-      "mean_resolved_battles_per_match": 4.22,
-      "mean_final_battle_reached": 4.39,
-      "mean_cards_played_per_battle": 7.2725118483412325,
-      "mean_cards_played_per_match": 30.69,
-      "mean_action_events_per_battle": 36.796208530805686
+      "games": 24,
+      "decisive_games": 23,
+      "censored_games": 1,
+      "mean_battles_per_match": 4.291666666666667,
+      "mean_resolved_battles_per_match": 4.291666666666667,
+      "mean_final_battle_reached": 4.333333333333333,
+      "mean_cards_played_per_battle": 9.514563106796116,
+      "mean_cards_played_per_match": 40.833333333333336,
+      "mean_action_events_per_battle": 28.650485436893202
     },
     {
       "label": "simulation-4",
-      "games": 100,
-      "decisive_games": 99,
-      "censored_games": 1,
-      "mean_battles_per_match": 3.69,
-      "mean_resolved_battles_per_match": 3.69,
-      "mean_final_battle_reached": 3.7,
-      "mean_cards_played_per_battle": 9.178861788617887,
-      "mean_cards_played_per_match": 33.87,
-      "mean_action_events_per_battle": 25.387533875338754
+      "games": 24,
+      "decisive_games": 24,
+      "censored_games": 0,
+      "mean_battles_per_match": 4.958333333333333,
+      "mean_resolved_battles_per_match": 4.958333333333333,
+      "mean_final_battle_reached": 4.958333333333333,
+      "mean_cards_played_per_battle": 10.941176470588236,
+      "mean_cards_played_per_match": 54.25,
+      "mean_action_events_per_battle": 26.554621848739497
     },
     {
       "label": "simulation-5",
-      "games": 100,
-      "decisive_games": 99,
+      "games": 24,
+      "decisive_games": 23,
       "censored_games": 1,
-      "mean_battles_per_match": 3.99,
-      "mean_resolved_battles_per_match": 3.99,
-      "mean_final_battle_reached": 4.0,
-      "mean_cards_played_per_battle": 7.706766917293233,
-      "mean_cards_played_per_match": 30.75,
-      "mean_action_events_per_battle": 18.531328320802004
+      "mean_battles_per_match": 7.958333333333333,
+      "mean_resolved_battles_per_match": 7.958333333333333,
+      "mean_final_battle_reached": 8.0,
+      "mean_cards_played_per_battle": 4.9162303664921465,
+      "mean_cards_played_per_match": 39.125,
+      "mean_action_events_per_battle": 12.895287958115183
     },
     {
       "label": "simulation-6",
-      "games": 100,
-      "decisive_games": 98,
-      "censored_games": 2,
-      "mean_battles_per_match": 4.68,
-      "mean_resolved_battles_per_match": 4.68,
-      "mean_final_battle_reached": 4.7,
-      "mean_cards_played_per_battle": 6.352564102564102,
-      "mean_cards_played_per_match": 29.73,
-      "mean_action_events_per_battle": 17.012820512820515
+      "games": 24,
+      "decisive_games": 23,
+      "censored_games": 1,
+      "mean_battles_per_match": 8.333333333333334,
+      "mean_resolved_battles_per_match": 8.333333333333334,
+      "mean_final_battle_reached": 8.375,
+      "mean_cards_played_per_battle": 4.475,
+      "mean_cards_played_per_match": 37.291666666666664,
+      "mean_action_events_per_battle": 13.565
     }
   ]
 }
