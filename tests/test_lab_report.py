@@ -525,17 +525,20 @@ def test_lab_report_keeps_same_fingerprint_agent_recovery_comparisons(
             "schema_version": 1,
             "game_fingerprint": fingerprint,
             "profiles": {
-                "heuristic--current": {
+                "heuristic--recovery-12-3": {
                     "agent": "heuristic",
-                    "recovery_variant": "current",
+                    "recovery_start": 12,
+                    "recovery_decrement": 3,
                 },
-                "ismcts--candidate": {
+                "ismcts--recovery-10-2": {
                     "agent": "ismcts",
-                    "recovery_variant": "candidate",
+                    "recovery_start": 10,
+                    "recovery_decrement": 2,
                 },
-                "ismcts--candidate--floor-1": {
+                "ismcts--recovery-12-3": {
                     "agent": "ismcts",
-                    "recovery_variant": "candidate",
+                    "recovery_start": 12,
+                    "recovery_decrement": 3,
                     "recovery_floor": 1,
                 },
             },
@@ -553,12 +556,12 @@ def test_lab_report_keeps_same_fingerprint_agent_recovery_comparisons(
     build_lab_report.main()
     report = json.loads((tmp_path / "lab-report.json").read_text())
     assert set(report["balance_comparisons"]["profiles"]) == {
-        "heuristic--current",
-        "ismcts--candidate",
-        "ismcts--candidate--floor-1",
+        "heuristic--recovery-12-3",
+        "ismcts--recovery-10-2",
+        "ismcts--recovery-12-3",
     }
     assert (
-        report["balance_comparisons"]["profiles"]["ismcts--candidate--floor-1"][
+        report["balance_comparisons"]["profiles"]["ismcts--recovery-12-3"][
             "recovery_floor"
         ]
         == 1
