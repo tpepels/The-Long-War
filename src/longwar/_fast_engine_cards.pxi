@@ -1,10 +1,4 @@
 cdef void _fe___cinit__(FastEngine self) except *:
-    self.command_recovery_len = 0
-    memset(
-        self.command_recovery_values,
-        0,
-        sizeof(self.command_recovery_values),
-    )
     memset(self.card_type, 0, sizeof(self.card_type))
     memset(self.card_command_cost, 0, sizeof(self.card_command_cost))
     memset(self.adjacent_command_discount, 0, sizeof(self.adjacent_command_discount))
@@ -136,24 +130,14 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.bond_momentum_direction, 0, sizeof(self.bond_momentum_direction))
 
 cdef void _fe___init__(FastEngine self, engine) except *:
-    cdef int code, r
+    cdef int code
     self.card_ids = tuple(engine.cards)
     self.n_cards = len(self.card_ids)
     self.opening_hand_size = int(engine.opening_hand_size)
     self.command_cap = int(engine.command_cap)
-    self.command_recovery_schedule = tuple(engine.command_recovery_schedule)
-    if len(self.command_recovery_schedule) > MAX_RECOVERY_SCHEDULE:
-        raise ValueError(
-            f"Command recovery schedule supports at most "
-            f"{MAX_RECOVERY_SCHEDULE} entries"
-        )
-    self.command_recovery_len = len(self.command_recovery_schedule)
-    self.command_recovery_tail = int(engine.rules.command_recovery_tail)
+    self.command_recovery_start = int(engine.command_recovery_start)
+    self.command_recovery_decrement = int(engine.command_recovery_decrement)
     self.command_recovery_floor = int(engine.rules.command_recovery_floor)
-    for r in range(self.command_recovery_len):
-        self.command_recovery_values[r] = int(
-            self.command_recovery_schedule[r]
-        )
     self.command_collapse_threshold = int(engine.command_collapse_threshold)
     self.maneuver_command_cost = int(engine.maneuver_command_cost)
     self.hand_limit = int(engine.hand_limit)
