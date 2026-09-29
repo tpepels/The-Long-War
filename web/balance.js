@@ -765,6 +765,15 @@ function renderCommandExperiment(lab) {
         0
       )
     );
+    const guardDecisions = sum(deckProfiles, (deck) =>
+      deck.decisions?.[profile.agent]?.command_guard_decisions
+    );
+    const guardOverrides = sum(deckProfiles, (deck) =>
+      deck.decisions?.[profile.agent]?.command_guard_overrides
+    );
+    const agentDecisions = sum(deckProfiles, (deck) =>
+      deck.decisions?.[profile.agent]?.decisions
+    );
     return {
       key,
       agent: profile.agent || key.split("--")[0],
@@ -780,6 +789,9 @@ function renderCommandExperiment(lab) {
       passZeroRate: firstPassCount ? passZero / firstPassCount : null,
       passFourPlusRate: firstPassCount ? passFourPlus / firstPassCount : null,
       passWithAlternativesRate: firstPassEvents ? alternativePasses / firstPassEvents : null,
+      guardOpportunityRate: agentDecisions ? guardDecisions / agentDecisions : null,
+      guardOverrideRate: guardDecisions ? guardOverrides / guardDecisions : null,
+      guardOverrides,
       commandBeforeCollapse,
       collapseZeroRate: collapseCount ? collapseZero / collapseCount : null,
       reach3: matches ? reach3 / matches : null,
@@ -842,7 +854,7 @@ function renderCommandExperiment(lab) {
   overview.innerHTML = [
     metric("Profiles", summaries.length, "agent × recovery × floor conditions retained for this ruleset"),
     metric("Agents", new Set(summaries.map((row) => row.agent)).size, "distinct policies represented"),
-    metric("Recovery variants", new Set(summaries.map((row) => row.recovery)).size, "current and/or experimental candidate"),
+    metric("Recovery formulas", new Set(summaries.map((row) => row.recovery)).size, "arithmetic start-decrement candidates"),
     metric("Recovery floors", [...new Set(summaries.map((row) => row.recoveryFloor))].join(", "), "minimum actual recovery after Front-loss penalties"),
     metric("Simulated games", summaries.reduce((n, row) => n + row.games, 0), "same-deck progression games across profiles"),
   ].join("");
@@ -853,6 +865,7 @@ function renderCommandExperiment(lab) {
         <th>Agent</th><th>Recovery</th><th>Floor</th><th>Games</th><th>Censored</th>
         <th>Equal-low cont.</th><th>Any 0-Command start</th><th>0/0 Battle starts</th><th>No paid op.</th>
         <th>First-pass Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Pass w/ alternatives</th>
+        <th>Guard opportunity</th><th>Guard override</th>
         <th>Command before Collapse</th><th>Collapse check at 0</th><th>Mean Battles</th><th>Max Battle</th>
         <th>Reach III</th><th>Reach VIII+</th><th>Reach XII+</th><th>Longest equal-low</th>
         <th>Pre-collapse Command IV-VII</th><th>Pre-collapse Command VIII+</th><th>Policy coverage</th><th>Search settings</th>
@@ -872,6 +885,8 @@ function renderCommandExperiment(lab) {
           <td>${pct(row.passZeroRate)}</td>
           <td>${pct(row.passFourPlusRate)}</td>
           <td>${pct(row.passWithAlternativesRate)}</td>
+          <td>${pct(row.guardOpportunityRate)}</td>
+          <td>${pct(row.guardOverrideRate)}${row.guardOverrides ? ` <span class="muted">(${row.guardOverrides})</span>` : ""}</td>
           <td>${num(row.commandBeforeCollapse, 1)}</td>
           <td>${pct(row.collapseZeroRate)}</td>
           <td>${num(row.meanBattles, 1)}</td>
