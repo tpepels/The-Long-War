@@ -34,6 +34,7 @@ cdef void _fe_discard_slot_components(
     state.name[slot] = -1
     state.temporary[slot] = 0
     state.maneuver_count[slot] = 0
+    state.maneuvered_in_operation[slot] = 0
 
 cdef uint16_t _fe_succession_destinations(
     FastEngine self,
@@ -86,6 +87,7 @@ cdef void _fe_finish_pending_drive_off(
             state.name[slot] = -1
             state.temporary[slot] = 0
             state.maneuver_count[slot] = 0
+            state.maneuvered_in_operation[slot] = 0
             return
         if self.driven_bond_returns[bond]:
             _fe_return_to_hand(self, state, player, bond)
@@ -103,6 +105,7 @@ cdef void _fe_finish_pending_drive_off(
     state.name[slot] = -1
     state.temporary[slot] = 0
     state.maneuver_count[slot] = 0
+    state.maneuvered_in_operation[slot] = 0
 
 cdef void _fe_drive_off_slot(
     FastEngine self,
