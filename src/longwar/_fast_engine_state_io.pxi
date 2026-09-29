@@ -1,7 +1,7 @@
 cdef FastState _fe_from_game_state(FastEngine self, state):
     cdef FastState fast = FastState()
     cdef int p, i, f, r, slot, code, viewer, owner
-    cdef object card_id, py_slot, story, strat, counter, constraint
+    cdef object card_id, py_slot, story, strat, counter, constraint, before_collapse
     phase_map = {
         "battle": PHASE_BATTLE,
         "complete": PHASE_COMPLETE,
