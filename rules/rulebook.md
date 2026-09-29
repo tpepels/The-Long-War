@@ -231,7 +231,7 @@ A tie does nothing. Formations in a won Front stay where they are.
 
 After Retreat:
 
-1. discard Stratagems and end effects that last only for this Battle;
+1. resolve Battle-end card effects, then discard Stratagems and effects that last only for this Battle;
 2. leave Ongoing Narratives in play if their text has not ended them;
 3. check Command Collapse using each player's current Command;
 4. if the war continues, recover Command;
