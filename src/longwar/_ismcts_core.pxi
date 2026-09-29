@@ -391,6 +391,7 @@ cdef uint64_t _ismcts_rollout_action(
     uint64_t* rng,
     double epsilon,
     int policy,
+    long* decisive_actions,
 ) except *:
     cdef uint64_t actions[MAX_ACTIONS]
     cdef double weights[MAX_ACTIONS]
@@ -420,6 +421,7 @@ cdef uint64_t _ismcts_rollout_action(
                     score_scratch.phase == PHASE_COMPLETE
                     and score_scratch.winner == actor
                 ):
+                    decisive_actions[0] += 1
                     return actions[i]
                 break
         if _ismcts_rand_unit(rng) >= DECISIVE_ROLLOUT_GREEDY_PROBABILITY:
@@ -500,6 +502,7 @@ def ismcts_search(
     cdef long rollouts_stopped_battle_boundary=0
     cdef long rollouts_stopped_depth=0
     cdef long rollout_actions=0
+    cdef long decisive_rollout_actions=0
     cdef long tree_capacity_cutoffs=0
     cdef size_t tree_nodes_discarded=0
     cdef object search_context
@@ -661,6 +664,7 @@ def ismcts_search(
                 &rng,
                 rollout_epsilon,
                 rollout_policy,
+                &decisive_rollout_actions,
             )
             _fe_apply_fast(engine, state, action)
             rollout_steps += 1
@@ -790,6 +794,7 @@ def ismcts_search(
         "rollouts_stopped_battle_boundary": rollouts_stopped_battle_boundary,
         "rollouts_stopped_depth": rollouts_stopped_depth,
         "rollout_actions": rollout_actions,
+        "decisive_rollout_actions": decisive_rollout_actions,
         "tree_storage": "native-hash-arena",
         "progressive_widening": progressive_widening,
         "progressive_widening_alpha": 0.5 if progressive_widening > 0.0 else 0.0,
