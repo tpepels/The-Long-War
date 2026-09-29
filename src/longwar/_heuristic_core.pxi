@@ -499,6 +499,24 @@ cdef class NativeHeuristicEvaluator:
         # rather than the pre-Pass board plus hand-written proxies.
         return self.evaluate_fast(child, player)
 
+    cdef bint action_exhausts_command_fast(
+        self,
+        FastState state,
+        int player,
+        uint64_t action,
+        FastState child,
+    ):
+        """True when this action avoidably leaves one side at Collapse Command."""
+        cdef int opponent = 1 - player
+        child.copy_from_fast(state)
+        _fe_apply_fast(self.engine, child, action)
+        if child.phase == PHASE_COMPLETE and child.winner == player:
+            return False
+        return (
+            child.command[player] <= self.engine.command_collapse_threshold
+            and child.command[opponent] > self.engine.command_collapse_threshold
+        )
+
     cdef double rollout_prior_fast(
         self,
         FastState state,
