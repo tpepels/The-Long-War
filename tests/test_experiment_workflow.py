@@ -449,6 +449,19 @@ def test_makefile_has_one_configurable_experiment_entrypoint():
         assert obsolete_target not in source
 
 
+def test_make_balance_uses_serious_fixed_iteration_ismcts() -> None:
+    source = (ROOT / "Makefile").read_text(encoding="utf-8")
+    balance_line = next(
+        line for line in source.splitlines()
+        if line.startswith("BALANCE_ARGS ?=")
+    )
+    assert "--agent ismcts" in balance_line
+    assert "--games 24" in balance_line
+    assert "--jobs 8" in balance_line
+    assert "--ismcts-iterations 100000" in balance_line
+    assert "--ismcts-time-budget-seconds" not in balance_line
+
+
 def test_no_dedicated_rule_experiment_runner() -> None:
     source = (ROOT / "tools" / "run_experiments.py").read_text(encoding="utf-8")
     assert "longwar.cardflow" not in source
