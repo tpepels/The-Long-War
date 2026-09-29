@@ -50,8 +50,10 @@ SIMULATE_ARGS ?= --games 25 --seed 99 --agent-a heuristic --agent-b heuristic
 simulate:
 	python tools/simulate.py $(SIMULATE_ARGS)
 
+# Canonical Balance Lab: planning-capable ISMCTS evidence, generated locally
+# and committed for GitHub Pages. Override BALANCE_ARGS for larger/special runs.
 BALANCE_PRESET ?= quick
-BALANCE_ARGS ?=
+BALANCE_ARGS ?= --agent ismcts --games 64 --jobs 8 --publish-lab --skip-card-screen --ismcts-time-budget-seconds 0.5
 balance:
 	python tools/run_experiments.py balance --preset $(BALANCE_PRESET) $(BALANCE_ARGS)
 
