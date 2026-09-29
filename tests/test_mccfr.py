@@ -25,6 +25,21 @@ def setup():
     return engine, deck, state
 
 
+def test_mccfr_leaf_values_command_exhaustion_before_recovery() -> None:
+    engine, deck, state = setup()
+    trainer = MCCFRTrainer(engine, deck, deck, seed=8, max_depth=1)
+
+    exhausted = state.clone()
+    exhausted.players[0].command = 0
+    exhausted.players[1].command = 1
+
+    equal_zero = state.clone()
+    equal_zero.players[0].command = 0
+    equal_zero.players[1].command = 0
+
+    assert trainer._leaf_value(exhausted, 0) < trainer._leaf_value(equal_zero, 0)
+
+
 def test_information_set_hides_opponent_hand_identities() -> None:
     _, _, state = setup()
     state.players[1].hand = ["namar", "iria", "oren", "mara"]
