@@ -212,6 +212,11 @@ def test_action_horizon_is_recorded_as_censoring() -> None:
         "winner": None,
         "censored": True,
     }
+    assert outcome["censor_reason"] in {
+        "zero-command-action-horizon",
+        "pending-effect-action-horizon",
+        "active-action-horizon",
+    }
     assert outcome["actions_completed"] == 1
     assert outcome["final_battle"] == 1
     assert len(outcome["final_command"]) == 2
