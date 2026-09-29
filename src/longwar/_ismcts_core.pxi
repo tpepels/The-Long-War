@@ -424,8 +424,7 @@ cdef uint64_t _ismcts_rollout_action(
                 break
         if _ismcts_rand_unit(rng) >= DECISIVE_ROLLOUT_GREEDY_PROBABILITY:
             return actions[_ismcts_rand_index(rng, n)]
-
-    if policy == 2 or _ismcts_rand_unit(rng) < epsilon:
+    elif policy == 2 or _ismcts_rand_unit(rng) < epsilon:
         return actions[_ismcts_rand_index(rng, n)]
 
     if policy == 1:
