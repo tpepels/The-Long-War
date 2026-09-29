@@ -735,7 +735,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         }
         aggregate_selfplay = {
             **aggregate_selfplay,
-            "_label": "Six canonical same-deck self-play aggregate",
+            "_label": f"Six canonical same-deck {agent_name} self-play aggregate",
         }
 
         comparison_key = f"{agent_name}--{recovery_variant}"
@@ -771,14 +771,14 @@ def balance_run(args: argparse.Namespace) -> Path:
         publish("balance-comparisons.json", comparisons)
 
         canonical_lab_profile = (
-            agent_name == "heuristic"
+            agent_name == "ismcts"
             and recovery_variant == "current"
             and recovery_floor == 0
         )
         if canonical_lab_profile:
             publish("balance-report.json", static_payload)
             publish("balance-health.json", aggregate_health)
-            publish("heuristic-selfplay.json", aggregate_selfplay)
+            publish("balance-selfplay.json", aggregate_selfplay)
             publish("progression-selfplay.json", progression_source)
             publish("progression-profiles.json", progression_profiles)
             publish("playability-report.json", playability)
