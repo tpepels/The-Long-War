@@ -562,7 +562,50 @@ def _aggregate_raw_simulation_results(
     if not results:
         raise ValueError("At least one simulation result is required")
 
-    return _aggregate_raw_simulation_results(results, games)
+    results.sort(key=lambda item: item.game_index_start)
+    telemetry = Telemetry()
+    human_flow = HumanFlowDiagnostics()
+    wins = [0, 0]
+    censored_games = 0
+    failed_games = 0
+    first_player_wins = 0
+    total_turns = 0.0
+    completed_games = 0
+    maximum_turns = 0
+    game_outcomes: list[dict[str, Any]] = []
+    failed_game_outcomes: list[dict[str, Any]] = []
+    agents = results[0].report.agents
+
+    for result in results:
+        report = result.report
+        telemetry.merge(result.telemetry)
+        human_flow.merge(result.human_flow)
+        wins[0] += report.wins[0]
+        wins[1] += report.wins[1]
+        censored_games += report.censored_games
+        failed_games += report.failed_games
+        first_player_wins += report.first_player_wins
+        completed_games += report.completed_games
+        total_turns += report.mean_turns * report.completed_games
+        maximum_turns = max(maximum_turns, report.max_turns)
+        game_outcomes.extend(report.game_outcomes)
+        failed_game_outcomes.extend(report.failed_game_outcomes)
+
+    telemetry_summary = telemetry.summary()
+    telemetry_summary["human_flow"] = human_flow.summary()
+    return SimulationReport(
+        games=games,
+        agents=agents,
+        wins=(wins[0], wins[1]),
+        censored_games=censored_games,
+        failed_games=failed_games,
+        first_player_wins=first_player_wins,
+        mean_turns=(total_turns / completed_games if completed_games else 0.0),
+        max_turns=maximum_turns,
+        telemetry=telemetry_summary,
+        game_outcomes=game_outcomes,
+        failed_game_outcomes=failed_game_outcomes,
+    )
 
 
 def simulate_games_batch(
