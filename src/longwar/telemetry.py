@@ -71,6 +71,7 @@ class DecisionStats:
     ismcts_battle_boundary_cutoffs: int = 0
     ismcts_depth_cutoffs: int = 0
     ismcts_rollout_actions: int = 0
+    ismcts_decisive_rollout_probes: int = 0
     ismcts_decisive_rollout_actions: int = 0
     ismcts_iterations_total: int = 0
     ismcts_setup_seconds_total: float = 0.0
@@ -374,6 +375,9 @@ class Telemetry:
             )
             stats.ismcts_rollout_actions += int(
                 decision_info.get("ismcts_rollout_actions", 0)
+            )
+            stats.ismcts_decisive_rollout_probes += int(
+                decision_info.get("ismcts_decisive_rollout_probes", 0)
             )
             stats.ismcts_decisive_rollout_actions += int(
                 decision_info.get("ismcts_decisive_rollout_actions", 0)
