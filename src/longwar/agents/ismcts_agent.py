@@ -167,6 +167,8 @@ class ISMCTSAgent:
                 "search_backend_detail": "packed-ismcts",
                 "evaluated_candidates": 1,
                 "ismcts_iterations": 0,
+                "ismcts_setup_seconds": 0.0,
+                "ismcts_search_seconds": 0.0,
                 "ismcts_tree_nodes": (
                     self._tree.size() if self._tree is not None else 0
                 ),
@@ -221,6 +223,7 @@ class ISMCTSAgent:
                 max_nodes=self.max_tree_nodes,
             )
 
+        search_started = perf_counter()
         result = ismcts_search(
             self.fast_engine,
             self.evaluator,
@@ -239,6 +242,7 @@ class ISMCTSAgent:
             time_limit_seconds=remaining_time,
             seed=self.rng.getrandbits(64),
         )
+        native_search_seconds = perf_counter() - search_started
         selected_key = self.fast_engine.action_key(result["action"])
         selected = next(
             action
@@ -267,6 +271,8 @@ class ISMCTSAgent:
             "search_backend_detail": "packed-ismcts",
             "evaluated_candidates": len(legal),
             "ismcts_iterations": int(result["iterations"]),
+            "ismcts_setup_seconds": elapsed_setup,
+            "ismcts_search_seconds": native_search_seconds,
             "ismcts_tree_nodes": int(result["tree_nodes"]),
             "ismcts_tree_nodes_before": int(result["tree_nodes_before"]),
             "ismcts_tree_nodes_added": int(result["tree_nodes_added"]),
