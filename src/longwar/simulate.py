@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import ctypes
 import gc
 import sys
+import traceback
 from typing import Any, Callable
 
 from .agents import HeuristicAgent, ISMCTSAgent, RandomAgent
@@ -392,6 +393,7 @@ def _simulate_games_serial(
                 "first_player": first_player,
                 "error_type": type(exc).__name__,
                 "error": str(exc),
+                "traceback": traceback.format_exc(),
                 "actions_completed": action_count,
             })
 
