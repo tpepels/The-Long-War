@@ -202,12 +202,14 @@ cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) 
     state.name[dest] = state.name[source]
     state.temporary[dest] = state.temporary[source]
     state.maneuver_count[dest] = state.maneuver_count[source]
+    state.maneuvered_in_operation[dest] = state.maneuvered_in_operation[source]
     state.maneuver_direction[dest] = state.maneuver_direction[source]
     state.subject[source] = -1
     state.link[source] = -1
     state.name[source] = -1
     state.temporary[source] = 0
     state.maneuver_count[source] = 0
+    state.maneuvered_in_operation[source] = 0
     state.maneuver_direction[source] = 0
 
 cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcept:
@@ -227,18 +229,21 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     cdef int8_t name = state.name[a]
     cdef int16_t temporary = state.temporary[a]
     cdef uint8_t maneuvers = state.maneuver_count[a]
+    cdef uint8_t maneuvered_in_operation = state.maneuvered_in_operation[a]
     cdef int8_t maneuver_direction = state.maneuver_direction[a]
     state.subject[a] = state.subject[b]
     state.link[a] = state.link[b]
     state.name[a] = state.name[b]
     state.temporary[a] = state.temporary[b]
     state.maneuver_count[a] = state.maneuver_count[b]
+    state.maneuvered_in_operation[a] = state.maneuvered_in_operation[b]
     state.maneuver_direction[a] = state.maneuver_direction[b]
     state.subject[b] = force
     state.link[b] = bond
     state.name[b] = name
     state.temporary[b] = temporary
     state.maneuver_count[b] = maneuvers
+    state.maneuvered_in_operation[b] = maneuvered_in_operation
     state.maneuver_direction[b] = maneuver_direction
 
 cdef void _fe_resolve_plot(FastEngine self, FastState state, int actor, int card, int pos, int dest):
@@ -699,15 +704,6 @@ cdef void _fe_resolve_maneuver_triggers(
                 _fe_queue_free_maneuver(self, 
                     state, player, <uint16_t>(1 << vacated_slot), True
                 )
-        if (
-            state.subject[vacated_slot] >= 0
-            and self.after_swap_free_other[
-                state.subject[vacated_slot]
-            ]
-        ):
-            _fe_queue_free_maneuver(self, 
-                state, player, <uint16_t>(1 << arrived_slot), True
-            )
 
     if force >= 0 and self.after_maneuver_free_adjacent[force]:
         _fe_queue_free_maneuver(self, 
