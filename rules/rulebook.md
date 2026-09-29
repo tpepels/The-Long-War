@@ -233,9 +233,9 @@ After Retreat:
 
 1. discard Stratagems and end effects that last only for this Battle;
 2. leave Ongoing Narratives in play if their text has not ended them;
-3. recover Command;
-4. check Command Collapse;
-5. if the war continues, draw until you have 10 cards;
+3. check Command Collapse using each player's current Command;
+4. if the war continues, recover Command;
+5. draw until you have 10 cards;
 6. reset the Hero and Stratagem allowances;
 7. start the next Battle with the player who made the first of the two consecutive Passes.
 
@@ -266,16 +266,16 @@ After each Battle, start with the base recovery below:
 | VII | 1 |
 | VIII and later | 0 |
 
-Subtract **1 for each Front you lost**, to a minimum recovery of 0.
+Subtract **1 for each Front you lost**, to a minimum recovery of 1.
 
 Add the result to your current Command, to a maximum of 20.
 
 ### Command Collapse
 
-After recovery, if either player has **fewer than 5 Command**, compare Command.
+After Battle resolution, cleanup, and Retreats - **before Command recovery** - if either player has **fewer than 5 Command**, compare current Command.
 
 - Lower Command loses the war.
-- If Command is equal, the war continues.
+- If Command is equal, the war continues and both players recover Command normally.
 
 The threshold and recovery schedule are current playtest values.
 
