@@ -490,7 +490,7 @@ def ismcts_search(
     double exploration=1.4142135623730951,
     double progressive_widening=0.0,
     double rollout_epsilon=0.12,
-    int rollout_policy=1,
+    int rollout_policy=3,
     double leaf_scale=100.0,
     double time_limit_seconds=0.0,
     unsigned long long seed=1701,
