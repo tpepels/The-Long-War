@@ -2087,6 +2087,102 @@ def test_torren_grants_another_named_formation_a_free_maneuver() -> None:
     )
 
 
+def test_black_company_after_swap_triggers_only_as_maneuver_initiator() -> None:
+    engine, state = setup_state(seed=48321)
+    source = pos(0, Rank.FRONT)
+    destination = pos(1, Rank.FRONT)
+    make_named(
+        state,
+        0,
+        source,
+        force="seven-black-ships",
+    )
+    make_named(
+        state,
+        0,
+        destination,
+        force="the-black-company",
+    )
+    state.players[0].command = 10
+
+    # Black Company is displaced by the other formation's Maneuver. That is
+    # movement caused by a swap, not Black Company initiating a Maneuver.
+    engine.apply(state, Maneuver(source, destination))
+    assert effect_choices(engine, state, "free-maneuver") == []
+
+    engine, state = setup_state(seed=48322)
+    make_named(
+        state,
+        0,
+        source,
+        force="the-black-company",
+    )
+    make_named(
+        state,
+        0,
+        destination,
+        force="seven-black-ships",
+    )
+    state.players[0].command = 10
+
+    engine.apply(state, Maneuver(source, destination))
+    choices = effect_choices(engine, state, "free-maneuver")
+    assert any(
+        not choice.skip
+        and choice.source is not None
+        and choice.source.position == source
+        for choice in choices
+    )
+
+
+def test_free_maneuver_chain_cannot_return_to_same_formation() -> None:
+    engine, state = setup_state(seed=48323)
+    avaros = pos(0, Rank.FRONT)
+    torren = pos(1, Rank.FRONT)
+
+    make_named(
+        state,
+        0,
+        avaros,
+        force="avaros-the-bronze-king",
+        name="namar",
+    )
+    make_named(
+        state,
+        0,
+        torren,
+        force="the-fifty-men",
+        name="torren",
+    )
+    state.slot(0, pos(2, Rank.FRONT)).force = "seven-black-ships"
+    state.slot(0, pos(3, Rank.FRONT)).force = "the-grey-riders"
+    state.players[0].command = 10
+
+    # Avaros initiates the operation and grants Torren a free Maneuver.
+    engine.apply(state, Maneuver(avaros, torren))
+    first_chain = [
+        choice
+        for choice in effect_choices(engine, state, "free-maneuver")
+        if not choice.skip
+    ]
+    torren_maneuver = next(
+        choice
+        for choice in first_chain
+        if choice.source is not None
+        and choice.source.position == avaros
+        and choice.destination is not None
+        and choice.destination.position == torren
+    )
+    engine.apply(state, torren_maneuver)
+
+    # Torren's trigger may offer another Named Formation, but Avaros already
+    # initiated a Maneuver in this operation. The chain therefore cannot
+    # return to Avaros.
+    follow_up = effect_choices(engine, state, "free-maneuver")
+    assert follow_up
+    assert all(choice.skip for choice in follow_up)
+
+
 def test_banner_singers_trigger_after_narrative_command_gain() -> None:
     engine, state = setup_state(seed=4833)
     source = pos(0, Rank.FRONT)
