@@ -620,6 +620,10 @@ class ProgressionTelemetry:
         view.setdefault("passes_with_no_playable_alternative", 0)
         if "command_after_recovery" not in view:
             view["command_after_recovery"] = view.get("next_battle_command")
+        view.setdefault(
+            "command_before_collapse",
+            view.get("command_before_recovery", view.get("command_remaining")),
+        )
         return view
 
     @staticmethod
@@ -704,12 +708,17 @@ class ProgressionTelemetry:
             if self._collapse_threshold is not None
             else 0
         )
+        def is_equal_low_continuation(row: dict[str, Any]) -> bool:
+            comparison = row.get("collapse_comparison") or {}
+            return (
+                bool(comparison.get("triggered"))
+                and bool(comparison.get("equal"))
+                and bool(comparison.get("continued"))
+            )
+
         equal_low_rows = [
-            row
-            for row in battle_records
-            if row.get("next_battle_command") is not None
-            and row["next_battle_command"][0] == row["next_battle_command"][1]
-            and row["next_battle_command"][0] < threshold
+            row for row in battle_records
+            if is_equal_low_continuation(row)
         ]
         streak_lengths: list[int] = []
         first_equal_low_battles: list[int] = []
@@ -721,11 +730,7 @@ class ProgressionTelemetry:
             current_streak = 0
             first_equal_low_recorded = False
             for row in game_rows:
-                is_equal_low = (
-                    row.get("next_battle_command") is not None
-                    and row["next_battle_command"][0] == row["next_battle_command"][1]
-                    and row["next_battle_command"][0] < threshold
-                )
+                is_equal_low = is_equal_low_continuation(row)
                 if is_equal_low:
                     if current_streak == 0 and not first_equal_low_recorded:
                         first_equal_low_battles.append(int(row["battle"]))
@@ -744,7 +749,7 @@ class ProgressionTelemetry:
             for row in battle_records
             if (
                 any(value < threshold for value in row["command_start"])
-                or row in equal_low_rows
+                or bool((row.get("collapse_comparison") or {}).get("triggered"))
             )
         ]
         match_by_game = {
@@ -759,7 +764,7 @@ class ProgressionTelemetry:
                 for row in game_rows
                 if (
                     any(value < threshold for value in row["command_start"])
-                    or row in equal_low_rows
+                    or bool((row.get("collapse_comparison") or {}).get("triggered"))
                 )
             ]
             if not diagnostic_rows:
@@ -770,11 +775,7 @@ class ProgressionTelemetry:
             equal_low_count = 0
             first_equal_low = None
             for row in game_rows:
-                is_equal_low = (
-                    row.get("next_battle_command") is not None
-                    and row["next_battle_command"][0] == row["next_battle_command"][1]
-                    and row["next_battle_command"][0] < threshold
-                )
+                is_equal_low = is_equal_low_continuation(row)
                 if is_equal_low:
                     equal_low_count += 1
                     streak += 1
@@ -888,15 +889,8 @@ class ProgressionTelemetry:
             "collapse_threshold": threshold,
             "diagnostic_battles": len(stall_rows),
             "both_below_collapse_threshold": sum(
-                command_after_recovery is not None
-                and all(value < threshold for value in command_after_recovery)
+                all(value < threshold for value in row["command_before_collapse"])
                 for row in battle_records
-                if (
-                    command_after_recovery := row.get(
-                        "command_after_recovery",
-                        row.get("next_battle_command"),
-                    )
-                ) is not None
             ),
             "equal_low_continuations": len(equal_low_rows),
             "consecutive_equal_low_battles": consecutive_equal_low_battles,
@@ -961,6 +955,7 @@ class ProgressionTelemetry:
                         "recovery_loss",
                         "recovery_actual",
                         "command_before_recovery",
+                        "command_before_collapse",
                         "command_after_recovery",
                         "collapse_comparison",
                         "operations_taken",
@@ -1049,6 +1044,11 @@ class ProgressionTelemetry:
             for record in battle_records
             for value in record["command_remaining"]
         ]
+        command_before_collapse = [
+            value
+            for record in battle_records
+            for value in record["command_before_collapse"]
+        ]
         first_pass_rows = [
             row for row in self._pass_contexts if row["first_pass"]
         ]
@@ -1064,6 +1064,7 @@ class ProgressionTelemetry:
             "discount_actions": self._discount_actions,
             "discount_command_saved": self._discount_command,
             "command_remaining_at_battle_end": self._distribution(command_end),
+            "command_before_collapse": self._distribution(command_before_collapse),
             "command_at_first_pass": self._distribution(
                 row["command_remaining"] for row in first_pass_rows
             ),
@@ -1077,6 +1078,12 @@ class ProgressionTelemetry:
                 "1-3": sum(1 <= value <= 3 for value in command_end),
                 "4-6": sum(4 <= value <= 6 for value in command_end),
                 "7+": sum(value >= 7 for value in command_end),
+            },
+            "command_before_collapse_buckets": {
+                "0": sum(value == 0 for value in command_before_collapse),
+                "1-3": sum(1 <= value <= 3 for value in command_before_collapse),
+                "4-6": sum(4 <= value <= 6 for value in command_before_collapse),
+                "7+": sum(value >= 7 for value in command_before_collapse),
             },
         }
 
@@ -1325,7 +1332,7 @@ class ProgressionTelemetry:
                 "low_command_stall": (
                     "Low Command means at least one player starts below the configured "
                     "collapse threshold. Equal-low continuation means a resolved Battle "
-                    "continues with equal post-recovery Command below that threshold. "
+                    "reaches the pre-recovery Collapse check with equal Command below that threshold. "
                     "A consecutive equal-low Battle extends an already-active equal-low "
                     "continuation streak."
                 ),
@@ -1864,6 +1871,7 @@ class ProgressionTelemetry:
             int(value)
             for value in snapshot.get("command_before_recovery", final_command)
         ]
+        command_before_collapse = list(command_before_recovery)
         command_after_recovery = [
             int(value)
             for value in snapshot.get(
@@ -1874,9 +1882,9 @@ class ProgressionTelemetry:
         threshold = int(engine.rules.command_collapse_threshold)
         collapse_comparison = {
             "threshold": threshold,
-            "commands": command_after_recovery,
-            "triggered": any(value < threshold for value in command_after_recovery),
-            "equal": command_after_recovery[0] == command_after_recovery[1],
+            "commands": command_before_collapse,
+            "triggered": any(value < threshold for value in command_before_collapse),
+            "equal": command_before_collapse[0] == command_before_collapse[1],
             "winner": state.winner if state.phase is Phase.COMPLETE else None,
             "continued": state.phase is not Phase.COMPLETE,
         }
@@ -2010,6 +2018,7 @@ class ProgressionTelemetry:
             "recovery_loss": recovery_loss,
             "recovery_actual": recovery_actual,
             "command_before_recovery": command_before_recovery,
+            "command_before_collapse": command_before_collapse,
             "command_after_recovery": command_after_recovery,
             "collapse_comparison": collapse_comparison,
             "next_battle_command": (
