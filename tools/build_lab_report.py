@@ -134,7 +134,11 @@ def main() -> None:
     # need the same freshness check as their underlying match telemetry.
     health = current("balance-health.json")
     static = current("balance-report.json")
-    selfplay = current("heuristic-selfplay.json") or current("pages-selfplay.json")
+    selfplay = (
+        current("balance-selfplay.json")
+        or current("heuristic-selfplay.json")
+        or current("pages-selfplay.json")
+    )
     progression_selfplay = current("progression-selfplay.json") or selfplay
     progression_profiles_artifact = current("progression-profiles.json")
     policy = current("mccfr-policy.json")
@@ -255,6 +259,7 @@ def main() -> None:
                 card["balance_evidence_source"] = "heuristic_screen"
 
     matchup_files = {
+        "canonical_selfplay": "balance-selfplay.json",
         "heuristic_selfplay": "heuristic-selfplay.json",
         "heuristic_vs_random": "heuristic-vs-random.json",
         "random_vs_heuristic": "random-vs-heuristic.json",
@@ -266,8 +271,8 @@ def main() -> None:
         key: simulation_summary(current(filename))
         for key, filename in matchup_files.items()
     }
-    if matchups["heuristic_selfplay"] is None:
-        matchups["heuristic_selfplay"] = simulation_summary(selfplay)
+    if matchups["canonical_selfplay"] is None:
+        matchups["canonical_selfplay"] = simulation_summary(selfplay)
 
     mccfr: dict[str, Any] | None = None
     if policy is None and mccfr_suite and mccfr_suite.get("profiles"):
