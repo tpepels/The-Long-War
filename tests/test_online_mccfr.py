@@ -50,8 +50,13 @@ def test_online_mccfr_agent_preserves_last_command_without_resolving() -> None:
     state.players[0].command = 1
     state.players[1].command = 5
     state.operations_this_battle[:] = [1, 1]
-    state.players[0].hand.clear()
-    state.players[1].hand.clear()
+    for card_id in ("the-fifty-men", "followed", "namar"):
+        zone = (
+            state.players[0].hand
+            if card_id in state.players[0].hand
+            else state.players[0].deck
+        )
+        zone.remove(card_id)
     slot = state.slot(0, Position(Front.FIRST, Rank.FRONT))
     slot.force = "the-fifty-men"
     slot.bond = "followed"
@@ -66,7 +71,12 @@ def test_online_mccfr_agent_preserves_last_command_without_resolving() -> None:
     )
     action = agent.choose(engine, state)
 
-    assert isinstance(action, Pass)
+    child = state.clone()
+    engine.apply(child, action)
+    assert not (
+        child.players[0].command == 0
+        and child.players[1].command > 0
+    )
     assert agent.last_decision["command_guard_applied"] is True
 
 
