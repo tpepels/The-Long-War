@@ -944,7 +944,7 @@ def test_endured_with_regains_command_when_formation_retreats() -> None:
     resolve_battle_by_passing(engine, state)
 
     assert state.slot(0, pos(0, Rank.REAR)).bond == "endured-with"
-    assert state.players[0].command == 11
+    assert state.players[0].command == 12
 
 
 def test_maneuver_accepts_prepared_destination_but_rejects_immobile_force() -> None:
@@ -1180,8 +1180,8 @@ def test_trap_closed_drives_off_encircled_middle_frontline() -> None:
         (5, 13),
         (6, 12),
         (7, 11),
-        (8, 10),
-        (9, 10),
+        (8, 11),
+        (9, 11),
     ],
 )
 def test_command_recovery_schedule(battle: int, expected: int) -> None:
@@ -1702,7 +1702,7 @@ def test_wall_did_not_break_resolves_battle_end_reward_and_recovery() -> None:
     )
     engine.apply(state, recover)
 
-    assert state.players[0].command == 11
+    assert state.players[0].command == 12
     assert "followed" in state.players[0].hand
     assert "the-wall-did-not-break" in state.players[0].discard
 
@@ -2062,7 +2062,7 @@ def test_they_lived_to_tell_it_rewards_a_surviving_target() -> None:
 
     resolve_battle_by_passing(engine, state)
 
-    assert state.players[0].command == 11
+    assert state.players[0].command == 12
     assert state.last_battle_snapshot["cards_drawn"][0] >= 1
     assert "they-lived-to-tell-it" in state.players[0].discard
 
