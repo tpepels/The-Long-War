@@ -261,7 +261,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         "recovery_variant": recovery_variant,
         "recovery_floor": recovery_floor,
         "jobs": args.jobs,
-        "skip_failed_games": bool(args.skip_failed_games),
+        "skip_failed_games": bool(getattr(args, "skip_failed_games", False)),
         "rules": rules.as_dict(),
         "contexts": args.contexts,
         "games_per_context": args.games_per_context,
