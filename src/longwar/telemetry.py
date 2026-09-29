@@ -276,8 +276,10 @@ class Telemetry:
                     hero_block_reasons[card_id] = block_reason
                     if block_reason == "hero_allowance":
                         stats.hero_allowance_blocked_turns += copies
+                        affordable = True
                     elif block_reason == "command":
                         stats.hero_command_blocked_turns += copies
+                        affordable = False
                     else:
                         stats.hero_structural_blocked_turns += copies
 
