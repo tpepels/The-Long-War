@@ -172,6 +172,21 @@ cdef void _fe_retreat_slot(
     cdef int other, other_bond
     cdef uint16_t destinations
 
+    # Battle-resolution drive-off effects can leave a prepared/open component
+    # in the Rear immediately before the Frontline Named Formation must
+    # Retreat there (for example Stayed Behind For). A Retreat moves the
+    # complete source stack, so the two component sets cannot coexist.
+    # Explicitly discard the prepared destination components instead of
+    # letting _fe_move_slot overwrite them and violate card conservation.
+    if (
+        state.subject[destination] < 0
+        and (
+            state.link[destination] >= 0
+            or state.name[destination] >= 0
+        )
+    ):
+        _fe_discard_slot_components(self, state, player, destination)
+
     _fe_move_slot(self, state, source, destination)
     if was_named:
         _fe_discard_retreat_sagas(self, state, source_front)
