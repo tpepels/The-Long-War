@@ -16,7 +16,7 @@ class GameRules:
     command_cap: int = 20
     command_recovery_schedule: tuple[int, ...] = (10, 7, 5, 4, 3, 2, 1)
     command_recovery_tail: int = 0
-    command_recovery_floor: int = 0
+    command_recovery_floor: int = 1
     command_collapse_threshold: int = 5
     maneuver_command_cost: int = 1
     hand_limit: int = 10
