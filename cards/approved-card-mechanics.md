@@ -13,6 +13,8 @@ This file is a compact reference for the currently approved card designs.
 - **Prepared Bond / Prepared Name** = present in a battlefield position with no Force.
 - **Open Bond** = a Bond attached to a Force while that formation has no Name.
 - **Maneuver** is the core movement action. **Move** means movement caused by card text.
+- During the resolution of one operation, each formation may initiate at most one **Maneuver**.
+- If two formations swap during a **Maneuver**, only the initiating formation is considered to have Maneuvered; the other is displaced.
 
 ## Editorial rules
 
@@ -52,7 +54,7 @@ This file is a compact reference for the currently approved card designs.
 | # | Card | Type | Cost | Strength | Approved mechanic |
 |---:|---|---|---:|---:|---|
 | 17 | **The Dust Riders** | Force | 2 | 2 | This formation may **Maneuver** even if it is not Named. At Battle end, choose this Front or an adjacent Front. Count this Force's **Strength** only there. After this Force **Maneuvers** into an empty position, you may move an adjacent friendly formation into the position it left. |
-| 18 | **The Black Company** | Force | 2 | 4 | **Deploy - Frontline only.** While in the **Frontline**, this Force gets +1 **Strength**. After this formation swaps positions with another formation during a **Maneuver**, you may **Maneuver** that other formation for 0 Command. |
+| 18 | **The Black Company** | Force | 2 | 4 | **Deploy - Frontline only.** While in the **Frontline**, this Force gets +1 **Strength**. After this formation **Maneuvers** and swaps positions with another formation, you may **Maneuver** that other formation for 0 Command. |
 | 19 | **Kept Pace With** | Bond | 1 | - | After an adjacent **Named Formation** you control Maneuvers away, you may move this formation into the position it left. |
 | 20 | **Covered the Withdrawal of** | Bond | 1 | - | After an adjacent formation you control **Retreats**, you may **Maneuver** this formation for 0 Command. |
 | 21 | **Teren** | Name | 2 | +1 | After this formation **Maneuvers**, you may swap two adjacent formations you control other than this one. |
