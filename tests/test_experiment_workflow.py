@@ -640,7 +640,7 @@ def test_balance_cli_exposes_evidence_hierarchy_controls(monkeypatch) -> None:
 
 
 
-def test_command_matrix_cli_uses_four_agent_recovery_cells(monkeypatch) -> None:
+def test_command_matrix_cli_uses_planning_recovery_cells(monkeypatch) -> None:
     monkeypatch.setattr(
         runner.sys,
         "argv",
@@ -657,11 +657,12 @@ def test_command_matrix_cli_uses_four_agent_recovery_cells(monkeypatch) -> None:
 
     source = inspect.getsource(runner.run_command_matrix)
     for pair in (
-        '("heuristic", "current")',
-        '("heuristic", "candidate")',
-        '("ismcts", "current")',
-        '("ismcts", "candidate")',
+        '("current", 0)',
+        '("candidate", 0)',
+        '("candidate", 1)',
     ):
         assert pair in source
+    assert 'cell.agent = "ismcts"' in source
+    assert "Heuristic self-play is intentionally excluded" in source
     assert "cell.skip_card_screen = True" in source
     assert "cell.publish_lab = True" in source
