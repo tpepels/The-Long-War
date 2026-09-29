@@ -399,7 +399,6 @@ cdef uint64_t _ismcts_rollout_action(
     cdef int n = _fe_legal_actions_into(engine, state, &actions[0])
     cdef int actor = state.active_player
     cdef int i, best_ix=0
-    cdef int base_recovery, minimum_recovery
     cdef double value, best=-1.0e300
     cdef double total=0.0, target, cumulative=0.0
 
@@ -410,23 +409,17 @@ cdef uint64_t _ismcts_rollout_action(
 
     if policy == 3:
         # Historical rollout style: exact decisive move when cheaply provable,
-        # otherwise 5% full greedy and 95% random. In the current rules the
-        # war winner is only assigned during Battle-end recovery/collapse, so
-        # the only exact action worth probing here is a second Pass.
+        # otherwise 5% full greedy and 95% random. The war winner is assigned
+        # at the pre-recovery Command Collapse check, so the only exact action
+        # worth probing here is a second Pass.
         if state.pass_len == 1:
-            # Collapse is the only way a Battle-ending Pass can end the war.
-            # At most four Fronts can be lost, and resolution effects can only
-            # add Command. If even worst-case recovery leaves both players at
-            # or above the Collapse threshold, an exact Pass probe cannot win.
-            base_recovery = _fe_command_recovery_fast(engine, state.battle)
-            minimum_recovery = base_recovery - 4
-            if minimum_recovery < engine.command_recovery_floor:
-                minimum_recovery = engine.command_recovery_floor
+            # Battle resolution can add Command but does not spend it. If both
+            # players are already at or above the Collapse threshold, the
+            # second Pass cannot end the war. If either is below, resolve the
+            # Pass exactly because Battle-end effects may still change Command.
             if (
-                state.command[0] + minimum_recovery
-                    < engine.command_collapse_threshold
-                or state.command[1] + minimum_recovery
-                    < engine.command_collapse_threshold
+                state.command[0] < engine.command_collapse_threshold
+                or state.command[1] < engine.command_collapse_threshold
             ):
                 for i in range(n):
                     if action_kind(actions[i]) != TYPE_PASS:
