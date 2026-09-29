@@ -45,9 +45,10 @@ def test_standard_command_profile_matches_canonical_rules() -> None:
 
     assert rules.starting_command == 20
     assert rules.command_cap == 20
-    assert rules.command_recovery_schedule == (10, 7, 5, 4, 3, 2, 1)
+    assert rules.command_recovery_start == 12
+    assert rules.command_recovery_decrement == 3
     assert rules.command_recovery_floor == 1
-    assert rules.command_collapse_threshold == 5
+    assert rules.command_collapse_threshold == 0
     assert rules.maneuver_command_cost == 1
     assert [player.command for player in state.players] == [20, 20]
 
@@ -111,30 +112,18 @@ def test_all_current_cards_have_positive_native_safe_command_costs() -> None:
     assert all(type(cost) is int and 1 <= cost < 128 for cost in costs)
 
 
-def test_candidate_recovery_tail_applies_from_battle_eight_onward() -> None:
+def test_arithmetic_recovery_formula_can_be_overridden() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    deck = json.loads(
-        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
-    )["cards"]
     rules = GameRules.standard().with_overrides(
-        command_recovery_schedule=(10, 8, 6, 5, 4, 3, 2),
-        command_recovery_tail=1,
+        command_recovery_start=10,
+        command_recovery_decrement=2,
     )
     engine = GameEngine(data, rules=rules)
-    state = engine.new_game(
-        deck,
-        deck,
-        seed=26092801,
-        first_player=0,
-        opening_bonus=False,
-    )
-    GameScenario(state).battle(8).commands(10, 10).clear_hands().operations(1, 1)
 
-    engine.apply(state, Pass())
-    engine.apply(state, Pass())
-
-    assert state.battle == 9
-    assert [player.command for player in state.players] == [11, 11]
+    assert [
+        engine.command_recovery_for_battle(battle)
+        for battle in range(1, 9)
+    ] == [10, 8, 6, 4, 2, 0, 0, 0]
 
 
 def test_equal_zero_command_continues_then_recovers_to_floor_one() -> None:
@@ -147,8 +136,8 @@ def test_equal_zero_command_continues_then_recovers_to_floor_one() -> None:
     engine.apply(state, Pass())
     engine.apply(state, Pass())
 
-    # Collapse is checked before recovery. Equal low Command continues, then
-    # the canonical recovery floor guarantees that 0-0 is not absorbing.
+    # Collapse is checked before recovery. Equal zero Command continues, then
+    # the recovery floor guarantees that 0-0 is not absorbing.
     assert state.phase.value == "battle"
     assert state.winner is None
     assert state.battle == 9
@@ -160,9 +149,9 @@ def test_equal_zero_command_continues_then_recovers_to_floor_one() -> None:
     assert snapshot["command_remaining"] == [1, 1]
 
 
-def test_unequal_low_command_collapses_before_recovery() -> None:
+def test_zero_vs_positive_command_collapses_before_recovery() -> None:
     engine, state = standard_game()
-    GameScenario(state).battle(1).commands(4, 5).operations(
+    GameScenario(state).battle(1).commands(0, 5).operations(
         1,
         1,
     ).clear_hands()
@@ -170,22 +159,22 @@ def test_unequal_low_command_collapses_before_recovery() -> None:
     engine.apply(state, Pass())
     engine.apply(state, Pass())
 
-    # Battle-I recovery would otherwise rescue both players. It must not be
-    # applied because 4-5 already decides Command Collapse.
+    # Battle-I recovery would otherwise rescue the exhausted player. It must
+    # not be applied because 0-vs-positive already decides Command Collapse.
     assert state.phase.value == "complete"
     assert state.winner == 1
     assert state.battle == 1
-    assert [player.command for player in state.players] == [4, 5]
+    assert [player.command for player in state.players] == [0, 5]
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
-    assert snapshot["command_before_recovery"] == [4, 5]
+    assert snapshot["command_before_recovery"] == [0, 5]
     assert snapshot["recovery_actual"] == [0, 0]
-    assert snapshot["command_remaining"] == [4, 5]
+    assert snapshot["command_remaining"] == [0, 5]
 
 
 def test_canonical_recovery_floor_is_one_after_front_losses() -> None:
     engine, state = standard_game()
-    # Battle VIII+ has base recovery 0. Equal low Command survives Collapse,
+    # Battle VIII+ has base recovery 0. Positive Command survives Collapse,
     # and each player must still recover exactly 1 despite losing a Front.
     GameScenario(state).battle(8).commands(4, 4).battle_start_commands(
         4,
@@ -217,7 +206,48 @@ def test_canonical_recovery_floor_is_one_after_front_losses() -> None:
 
 
 
-def test_negative_recovery_floor_is_invalid() -> None:
+def test_pass_is_valued_over_spending_the_final_command() -> None:
+    engine, state = standard_game()
+    source = Position(Front.FIRST, Rank.FRONT)
+    destination = Position(Front.SECOND, Rank.FRONT)
+    GameScenario(state).formation(
+        0,
+        source,
+        force="the-fifty-men",
+        bond="followed",
+        name="namar",
+    ).commands(1, 5).operations(1, 1)
+
+    pass_score = engine._native_heuristic().score_action(
+        engine._native_core().from_game_state(state),
+        0,
+        engine._native_action(
+            engine._native_core().from_game_state(state),
+            Pass(),
+        ),
+    )
+    maneuver = Maneuver(source, destination)
+    packed = engine._native_core().from_game_state(state)
+    maneuver_score = engine._native_heuristic().score_action(
+        packed,
+        0,
+        engine._native_action(packed, maneuver),
+    )
+
+    assert Pass() in engine.legal_actions(state)
+    assert maneuver in engine.legal_actions(state)
+    assert pass_score > maneuver_score
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("command_recovery_start", -1),
+        ("command_recovery_decrement", -1),
+        ("command_recovery_floor", -1),
+    ],
+)
+def test_negative_recovery_settings_are_invalid(field: str, value: int) -> None:
     with pytest.raises(ValueError):
-        GameRules.standard().with_overrides(command_recovery_floor=-1)
+        GameRules.standard().with_overrides(**{field: value})
 
