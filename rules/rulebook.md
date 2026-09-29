@@ -253,31 +253,25 @@ Command stays between **0 and 20**.
 
 Use a d20 to track 20 down to 1. At 0, set the die aside.
 
-After each Battle, start with the base recovery below:
+After each Battle, calculate base recovery with one arithmetic rule:
 
-| Battle just ended | Base recovery |
-| --- | ---: |
-| I | 10 |
-| II | 7 |
-| III | 5 |
-| IV | 4 |
-| V | 3 |
-| VI | 2 |
-| VII | 1 |
-| VIII and later | 0 |
+**Base recovery = max(0, X - Y × (Battle - 1)).**
 
-Subtract **1 for each Front you lost**, to a minimum recovery of 1.
+The current balance candidate uses **X = 12** and **Y = 3**, giving **12, 9, 6, 3, 0, 0...**. The start and decrement are still being tuned; the arithmetic structure is the playtest rule.
+
+Subtract **1 for each Front you lost**, to a minimum recovery of **1**.
 
 Add the result to your current Command, to a maximum of 20.
 
 ### Command Collapse
 
-After Battle resolution, cleanup, and Retreats - **before Command recovery** - if either player has **fewer than 5 Command**, compare current Command.
+After Battle resolution, cleanup, Retreats, and relevant Battle-end effects - **before Command recovery** - check current Command.
 
-- Lower Command loses the war.
-- If Command is equal, the war continues and both players recover Command normally.
+- If exactly one player is at **0 Command**, that player loses the war.
+- If both players are at **0 Command**, the war continues.
+- Only a continuing war receives Command recovery.
 
-The threshold and recovery schedule are current playtest values.
+Because surviving recovery is at least 1, a 0-0 continuation begins the next Battle at at least 1-1.
 
 ---
 
