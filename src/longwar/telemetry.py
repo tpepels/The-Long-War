@@ -333,6 +333,11 @@ class Telemetry:
                     stats.held_on_pass += copies
                     cost = int(engine.cards.get(card_id, {}).get("command_cost", 0) or 0)
                     affordable = command >= cost
+                    block_reason = hero_block_reasons.get(card_id)
+                    if block_reason == "hero_allowance":
+                        affordable = True
+                    elif block_reason == "command":
+                        affordable = False
                     if affordable:
                         stats.affordable_on_pass += copies
                         pass_record["affordable_cards"] += copies
@@ -342,7 +347,6 @@ class Telemetry:
                     if card_id not in playable_ids:
                         stats.dead_on_pass += copies
                         pass_record["dead_cards"] += copies
-                        block_reason = hero_block_reasons.get(card_id)
                         if block_reason == "hero_allowance":
                             stats.hero_allowance_blocked_on_pass += copies
                         elif block_reason == "command":
