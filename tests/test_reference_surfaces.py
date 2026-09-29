@@ -45,8 +45,10 @@ def test_rulebook_core_constants_match_standard_engine() -> None:
     assert standard.hand_limit == 10
     assert standard.ongoing_narrative_limit == 2
     assert standard.maneuver_command_cost == 1
-    assert standard.command_recovery_schedule == (10, 7, 5, 4, 3, 2, 1)
-    assert standard.command_collapse_threshold == 5
+    assert standard.command_recovery_start == 12
+    assert standard.command_recovery_decrement == 3
+    assert standard.command_recovery_floor == 1
+    assert standard.command_collapse_threshold == 0
 
     assert "**four Fronts**" in rules_text
     assert "draw **10 cards**" in rules_text
@@ -54,7 +56,9 @@ def test_rulebook_core_constants_match_standard_engine() -> None:
     assert "at most **2 Ongoing Narratives**" in rules_text
     assert "A Maneuver is one operation and costs **1 Command**" in rules_text
     assert "**two consecutive Passes**" in rules_text
-    assert "fewer than 5 Command" in rules_text
+    assert "exactly one player is at **0 Command**" in rules_text
+    assert "X = 12" in rules_text
+    assert "Y = 3" in rules_text
 
 
 def test_rulebook_roles_are_labels_not_hidden_rules() -> None:
