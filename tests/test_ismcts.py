@@ -172,7 +172,7 @@ def test_native_information_hash_matches_information_identity() -> None:
     )
 
 
-@pytest.mark.parametrize("policy", ("greedy", "cheap", "random"))
+@pytest.mark.parametrize("policy", ("greedy", "cheap", "random", "decisive"))
 def test_ismcts_rollout_policies_return_legal_action(policy: str) -> None:
     engine, deck, priors = setup()
     state = engine.new_game(deck, deck, seed=8150, first_player=0, opening_bonus=False)
