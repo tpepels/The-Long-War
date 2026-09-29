@@ -230,9 +230,11 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             fast.last_command_refunded[p] = int(
                 snapshot.get("command_refunded", (0, 0))[p]
             )
-            fast.last_command_before_recovery[p] = int(
-                snapshot.get("command_before_recovery", (0, 0))[p]
+            before_collapse = snapshot.get(
+                "command_before_collapse",
+                snapshot.get("command_before_recovery", (0, 0)),
             )
+            fast.last_command_before_recovery[p] = int(before_collapse[p])
             fast.last_recovery_loss[p] = int(
                 snapshot.get("recovery_loss", (0, 0))[p]
             )
@@ -309,6 +311,10 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                 state.last_command_refunded[1],
             ],
             "command_before_recovery": [
+                state.last_command_before_recovery[0],
+                state.last_command_before_recovery[1],
+            ],
+            "command_before_collapse": [
                 state.last_command_before_recovery[0],
                 state.last_command_before_recovery[1],
             ],
