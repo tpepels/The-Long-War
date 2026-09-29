@@ -9,7 +9,7 @@ import pytest
 from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
-from longwar.game import GameEngine
+from longwar.game import Front, GameEngine, Pass, Position, Rank
 from longwar.rules import GameRules
 
 fast_search = pytest.importorskip("longwar._fast_search")
@@ -188,6 +188,40 @@ def test_ismcts_rollout_policies_return_legal_action(policy: str) -> None:
     )
     assert agent.choose(engine, state) in legal
     assert agent.last_decision["ismcts_rollout_policy"] == policy
+
+
+def test_ismcts_root_guard_preserves_last_command() -> None:
+    engine, deck, priors = setup()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=8155,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.players[0].command = 1
+    state.players[1].command = 5
+    state.operations_this_battle[:] = [1, 1]
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
+    slot = state.slot(0, Position(Front.FIRST, Rank.FRONT))
+    slot.force = "the-fifty-men"
+    slot.bond = "followed"
+    slot.name = "namar"
+
+    agent = ISMCTSAgent(
+        engine,
+        8156,
+        priors=priors,
+        belief_samples=2,
+        iterations=20,
+        rollout_depth=2,
+    )
+    action = agent.choose(engine, state)
+
+    assert isinstance(action, Pass)
+    assert agent.last_decision["command_guard_applied"] is True
+    assert agent.last_decision["command_guard_filtered_actions"] >= 1
 
 
 def test_ismcts_wall_clock_budget_reports_actual_work() -> None:
