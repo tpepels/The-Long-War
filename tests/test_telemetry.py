@@ -870,7 +870,13 @@ def test_low_command_telemetry_records_pre_recovery_collapse_and_floor() -> None
         engine.apply(state, action)
         telemetry.after_action(engine, before, state, actor, action)
 
-    stall = telemetry.summary()["progression"]["low_command_stalls"]
+    progression = telemetry.summary()["progression"]
+    resources = progression["resources"]
+    assert resources["command_before_collapse"]["count"] == 2
+    assert resources["command_before_collapse"]["mean"] == pytest.approx(0.0)
+    assert resources["command_before_collapse_buckets"]["0"] == 2
+
+    stall = progression["low_command_stalls"]
     assert stall["diagnostic_battles"] == 1
     assert stall["both_below_collapse_threshold"] == 1
     assert stall["equal_low_continuations"] == 1
