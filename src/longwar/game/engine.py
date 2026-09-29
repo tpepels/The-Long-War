@@ -107,7 +107,8 @@ class GameEngine:
         self.opening_hand_size = rules.opening_hand_size
         self.starting_command = rules.starting_command
         self.command_cap = rules.command_cap
-        self.command_recovery_schedule = rules.command_recovery_schedule
+        self.command_recovery_start = rules.command_recovery_start
+        self.command_recovery_decrement = rules.command_recovery_decrement
         self.command_recovery_floor = rules.command_recovery_floor
         self.command_collapse_threshold = rules.command_collapse_threshold
         self.maneuver_command_cost = rules.maneuver_command_cost
