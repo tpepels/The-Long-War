@@ -666,7 +666,7 @@
       ],
       "role": "swordsman",
       "command_cost": 2,
-      "text": "**Deploy - Frontline only.** While in the Frontline, this Force gets +1 **Strength**. After this formation swaps during a **Maneuver**, you may **Maneuver** the other formation for 0 Command.",
+      "text": "**Deploy - Frontline only.** While in the Frontline, this Force gets +1 **Strength**. After this formation **Maneuvers** and swaps positions with another formation, you may **Maneuver** that other formation for 0 Command.",
       "rules": {},
       "balance": {
         "dynamic": true
@@ -685,7 +685,7 @@
         {
           "kind": "trigger",
           "label": "AFTER SWAP",
-          "text": "After this formation swaps positions during a **Maneuver**, you may **Maneuver** the formation it swapped with for 0 Command."
+          "text": "After this formation **Maneuvers** and swaps positions with another formation, you may **Maneuver** that other formation for 0 Command."
         }
       ],
       "design_rules": {
