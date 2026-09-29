@@ -116,6 +116,8 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
             "ismcts_tree_nodes_discarded": 70,
             "ismcts_tree_capacity_cutoffs": 4,
             "ismcts_tree_reset_reason": "context_changed",
+            "command_guard_filtered_actions": 2,
+            "command_guard_overrode_search": True,
         },
     )
 
@@ -153,6 +155,11 @@ def test_telemetry_aggregates_ismcts_rollout_cutoffs() -> None:
     assert decisions["max_decision_seconds"] == pytest.approx(1.25)
     assert decisions["timed_out_decisions"] == 1
     assert decisions["timeout_rate"] == pytest.approx(1.0)
+    assert decisions["command_guard_decisions"] == 1
+    assert decisions["command_guard_opportunity_rate"] == pytest.approx(1.0)
+    assert decisions["command_guard_filtered_actions"] == 2
+    assert decisions["command_guard_overrides"] == 1
+    assert decisions["command_guard_override_rate"] == pytest.approx(1.0)
     assert decisions["searched_decisions"] == 1
     assert decisions["mean_searched_decision_seconds"] == pytest.approx(1.25)
 
