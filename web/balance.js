@@ -503,6 +503,7 @@ function renderCards(lab) {
               ${row.hero ? `<div><dt>Hero allowance blocked</dt><dd>${pct(row.hero_allowance_blocked_turn_rate)}</dd></div><div><dt>Hero Command blocked</dt><dd>${pct(row.hero_command_blocked_turn_rate)}</dd></div><div><dt>Hero structurally blocked</dt><dd>${pct(row.hero_structural_blocked_turn_rate)}</dd></div>` : ""}
               <div><dt>Structural dead at Pass</dt><dd>${pct(row.structural_dead_on_pass_rate)}</dd></div>
               <div><dt>Unaffordable at Pass</dt><dd>${pct(row.resource_blocked_on_pass_rate)}</dd></div>
+              ${row.hero ? `<div><dt>Hero allowance blocked at Pass</dt><dd>${pct(row.hero_allowance_blocked_on_pass_rate)}</dd></div><div><dt>Hero Command blocked at Pass</dt><dd>${pct(row.hero_command_blocked_on_pass_rate)}</dd></div><div><dt>Hero structurally blocked at Pass</dt><dd>${pct(row.hero_structural_blocked_on_pass_rate)}</dd></div>` : ""}
               <div><dt>Control swing</dt><dd>${num(row.mean_immediate_control_swing, 2)}</dd></div>
               <div><dt>Win when drawn</dt><dd>${pct(row.win_rate_when_drawn)} · ${interval(row.win_rate_when_drawn_95)}</dd></div>
               <div><dt>Win when played</dt><dd>${pct(row.win_rate_when_played)} · ${interval(row.win_rate_when_played_95)}</dd></div>
