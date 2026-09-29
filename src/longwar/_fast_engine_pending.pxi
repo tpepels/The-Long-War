@@ -62,6 +62,7 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
             moved = 1 if front_from_slot(dest) < front_from_slot(source) else 2
             _fe_swap_slots(self, state, source, dest)
             state.maneuver_count[dest] += 1
+            state.maneuvered_in_operation[dest] = 1
             state.maneuver_direction[dest] = moved
             state.player_maneuver_count[player] += 1
             if state.free_maneuver_available[player]:
@@ -316,6 +317,15 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     cdef uint32_t extra = action_extra(action)
     cdef bint cancelled, prepared_before, take_adjacent_open_bond_ready
 
+    # A new operation starts a fresh Maneuver-resolution chain. Effect choices
+    # and mandatory discard-before-draw steps continue the current operation.
+    if kind != TYPE_EFFECT and kind != TYPE_DISCARD:
+        memset(
+            state.maneuvered_in_operation,
+            0,
+            sizeof(state.maneuvered_in_operation),
+        )
+
     if kind == TYPE_PASS:
         _fe_pass_action(self, state, actor)
         return
@@ -355,6 +365,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         choice = 1 if front_from_slot(dest) < front_from_slot(pos) else 2
         _fe_swap_slots(self, state, pos, dest)
         state.maneuver_count[dest] += 1
+        state.maneuvered_in_operation[dest] = 1
         state.maneuver_direction[dest] = choice
         state.player_maneuver_count[actor] += 1
         if state.free_maneuver_available[actor]:
