@@ -450,6 +450,8 @@ cdef int _fe_filter_operation_constraints(
     cdef uint64_t action
 
     enforced[0] = False
+    if state.constraint_len == 0:
+        return n
     memset(satisfiable, 0, sizeof(satisfiable))
 
     for j in range(state.constraint_len):
