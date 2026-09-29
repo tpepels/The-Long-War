@@ -44,8 +44,8 @@ class OnlineMCCFRAgent:
         return opening_mulligan_indices(engine, hand)
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
-        legal = engine.legal_actions(state)
-        actions, guarded = command_preserving_actions(engine, state, legal)
+        actions = engine.legal_actions(state)
+        preserving, guarded = command_preserving_actions(engine, state, actions)
         if len(actions) == 1:
             self.last_decision = {
                 "candidate_count": 1,
@@ -86,6 +86,34 @@ class OnlineMCCFRAgent:
             reverse=True,
         )
         selected_key = ranked[0][0] if self.deterministic else self._sample(probabilities)
+        guard_overrode_selection = action_map[selected_key] not in preserving
+        if guard_overrode_selection:
+            safe_keys = {action_key(action) for action in preserving}
+            safe_probabilities = {
+                key: value
+                for key, value in probabilities.items()
+                if key in safe_keys
+            }
+            safe_total = sum(safe_probabilities.values())
+            if safe_total <= 0:
+                probability = 1.0 / len(safe_probabilities)
+                safe_probabilities = {
+                    key: probability for key in safe_probabilities
+                }
+            else:
+                safe_probabilities = {
+                    key: value / safe_total
+                    for key, value in safe_probabilities.items()
+                }
+            selected_key = (
+                max(
+                    safe_probabilities,
+                    key=lambda key: (safe_probabilities[key], key),
+                )
+                if self.deterministic
+                else self._sample(safe_probabilities)
+            )
+
         best = ranked[0][1]
         second = ranked[1][1] if len(ranked) > 1 else 0.0
 
@@ -103,6 +131,7 @@ class OnlineMCCFRAgent:
             "belief_prior": result.belief_prior,
             "command_guard_applied": guarded > 0,
             "command_guard_filtered_actions": guarded,
+            "command_guard_overrode_selection": guard_overrode_selection,
         }
         return action_map[selected_key]
 
