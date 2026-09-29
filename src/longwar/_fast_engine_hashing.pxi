@@ -58,6 +58,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
             <uint16_t>state.temporary[slot],
         )
         _info_hash_feed(&h, state.maneuver_count[slot])
+        _info_hash_feed(&h, state.maneuvered_in_operation[slot])
 
     for ix in range(SCHEME_COUNT):
         _info_hash_feed(&h, <uint8_t>(state.scheme[ix] + 1))
@@ -143,7 +144,7 @@ cdef int _fe__information_state_encode(
         else 0
     )
 
-    _info_emit(buf, &n, h, 6)
+    _info_emit(buf, &n, h, 7)
     _info_emit(buf, &n, h, <uint8_t>player)
     _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
     _info_emit_u16(buf, &n, h, <uint16_t>state.battle)
@@ -267,6 +268,12 @@ cdef int _fe__information_state_encode(
                 <uint16_t>state.temporary[slot],
             )
             _info_emit(buf, &n, h, state.maneuver_count[slot])
+            _info_emit(
+                buf,
+                &n,
+                h,
+                state.maneuvered_in_operation[slot],
+            )
 
     # Ongoing Stories and Stratagems are public in the canonical rules.
     for owner in range(2):
