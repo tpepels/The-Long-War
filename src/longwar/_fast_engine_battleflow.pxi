@@ -293,12 +293,14 @@ cdef inline int _fe_command_recovery_fast(
     FastEngine self,
     int battle,
 ) noexcept:
-    cdef int index = battle - 1
-    if index < 0:
+    cdef int recovery
+    if battle < 1:
         return 0
-    if index >= self.command_recovery_len:
-        return self.command_recovery_tail
-    return self.command_recovery_values[index]
+    recovery = (
+        self.command_recovery_start
+        - self.command_recovery_decrement * (battle - 1)
+    )
+    return recovery if recovery > 0 else 0
 
 cdef int _fe_command_recovery_for_battle(
     FastEngine self,
