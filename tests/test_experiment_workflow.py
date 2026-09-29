@@ -132,10 +132,10 @@ def test_provisional_ismcts_exploration_default_is_shared():
     assert inspect.signature(simulate_games).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
 
 
-def test_canonical_ismcts_rollout_policy_default_is_greedy():
-    assert inspect.signature(ISMCTSAgent).parameters["rollout_policy"].default == "greedy"
-    assert inspect.signature(make_agent).parameters["ismcts_rollout_policy"].default == "greedy"
-    assert inspect.signature(simulate_games).parameters["ismcts_rollout_policy"].default == "greedy"
+def test_canonical_ismcts_rollout_policy_default_is_decisive():
+    assert inspect.signature(ISMCTSAgent).parameters["rollout_policy"].default == "decisive"
+    assert inspect.signature(make_agent).parameters["ismcts_rollout_policy"].default == "decisive"
+    assert inspect.signature(simulate_games).parameters["ismcts_rollout_policy"].default == "decisive"
 
 
 def test_live_progress_helpers_are_robust(tmp_path):
