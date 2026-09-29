@@ -705,15 +705,15 @@ function renderCommandExperiment(lab) {
       const d = deck.progression?.resources?.command_at_first_pass;
       return { value: d?.mean, weight: d?.count };
     });
-    const battleEndCommand = weighted(deckProfiles, (deck) => {
-      const d = deck.progression?.resources?.command_remaining_at_battle_end;
+    const commandBeforeCollapse = weighted(deckProfiles, (deck) => {
+      const d = deck.progression?.resources?.command_before_collapse;
       return { value: d?.mean, weight: d?.count };
     });
     const firstPassCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_at_first_pass?.count);
     const passZero = sum(deckProfiles, (deck) => deck.progression?.resources?.first_pass_command_buckets?.["0"]);
     const passFourPlus = sum(deckProfiles, (deck) => deck.progression?.resources?.first_pass_command_buckets?.["4+"]);
-    const endCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_remaining_at_battle_end?.count);
-    const endZero = sum(deckProfiles, (deck) => deck.progression?.resources?.command_end_buckets?.["0"]);
+    const collapseCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_before_collapse?.count);
+    const collapseZero = sum(deckProfiles, (deck) => deck.progression?.resources?.command_before_collapse_buckets?.["0"]);
     const matches = sum(deckProfiles, (deck) => deck.progression?.match_length?.matches);
     const reach3 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["3"]?.matches);
     const reach8 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["8"]?.matches);
@@ -749,7 +749,7 @@ function renderCommandExperiment(lab) {
     );
     const lateCommand = (bucket) => weighted(deckProfiles, (deck) => {
       const d = deck.progression?.by_battle?.[bucket];
-      return { value: d?.command_remaining, weight: d?.battles };
+      return { value: d?.command_before_collapse, weight: d?.battles };
     });
     const alternativePasses = sum(deckProfiles, (deck) =>
       deck.progression?.contestability?.first_pass_outcomes?.with_playable_alternatives?.events
@@ -774,8 +774,8 @@ function renderCommandExperiment(lab) {
       passZeroRate: firstPassCount ? passZero / firstPassCount : null,
       passFourPlusRate: firstPassCount ? passFourPlus / firstPassCount : null,
       passWithAlternativesRate: firstPassEvents ? alternativePasses / firstPassEvents : null,
-      battleEndCommand,
-      endZeroRate: endCount ? endZero / endCount : null,
+      commandBeforeCollapse,
+      collapseZeroRate: collapseCount ? collapseZero / collapseCount : null,
       reach3: matches ? reach3 / matches : null,
       reach8: matches ? reach8 / matches : null,
       reach12: matches ? reach12 / matches : null,
@@ -847,9 +847,9 @@ function renderCommandExperiment(lab) {
         <th>Agent</th><th>Recovery</th><th>Floor</th><th>Games</th><th>Censored</th>
         <th>Equal-low cont.</th><th>0/0 Battle starts</th><th>No paid op.</th>
         <th>First-pass Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Pass w/ alternatives</th>
-        <th>Battle-end Command</th><th>Ends at 0</th><th>Mean Battles</th><th>Max Battle</th>
+        <th>Command before Collapse</th><th>Collapse check at 0</th><th>Mean Battles</th><th>Max Battle</th>
         <th>Reach III</th><th>Reach VIII+</th><th>Reach XII+</th><th>Longest equal-low</th>
-        <th>Command IV-VII</th><th>Command VIII+</th><th>Policy coverage</th><th>Search settings</th>
+        <th>Pre-collapse Command IV-VII</th><th>Pre-collapse Command VIII+</th><th>Policy coverage</th><th>Search settings</th>
       </tr></thead>
       <tbody>${summaries.map((row) => `
         <tr>
@@ -865,8 +865,8 @@ function renderCommandExperiment(lab) {
           <td>${pct(row.passZeroRate)}</td>
           <td>${pct(row.passFourPlusRate)}</td>
           <td>${pct(row.passWithAlternativesRate)}</td>
-          <td>${num(row.battleEndCommand, 1)}</td>
-          <td>${pct(row.endZeroRate)}</td>
+          <td>${num(row.commandBeforeCollapse, 1)}</td>
+          <td>${pct(row.collapseZeroRate)}</td>
           <td>${num(row.meanBattles, 1)}</td>
           <td>${row.maxBattle || "—"}</td>
           <td>${pct(row.reach3)}</td>
