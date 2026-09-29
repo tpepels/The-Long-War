@@ -257,6 +257,11 @@ class ISMCTSAgent:
         )
 
         guard_overrode_search = False
+        selected_stat = next(
+            stat
+            for stat in result["root_stats"]
+            if self.fast_engine.action_key(stat["action"]) == selected_key
+        )
         if selected not in guarded_legal:
             safe_keys = {action_key(action): action for action in guarded_legal}
             safe_stats = [
@@ -274,6 +279,7 @@ class ISMCTSAgent:
                 )
                 selected_key = self.fast_engine.action_key(best_safe["action"])
                 selected = safe_keys[selected_key]
+                selected_stat = best_safe
                 guard_overrode_search = True
                 score = float(best_safe["mean_value"])
                 other_safe = [
@@ -325,13 +331,13 @@ class ISMCTSAgent:
             ),
             "ismcts_root_reused": bool(result["root_reused"]),
             "ismcts_selected_action_visits": int(
-                result["selected_action_new_visits"]
+                selected_stat["new_visits"]
             ),
             "ismcts_selected_action_visits_lifetime": int(
-                result["selected_action_visits"]
+                selected_stat["visits"]
             ),
             "ismcts_selected_action_prior_visits": int(
-                result["selected_action_visits_before"]
+                selected_stat["prior_visits"]
             ),
             "ismcts_rollouts_stopped_terminal": int(
                 result["rollouts_stopped_terminal"]
