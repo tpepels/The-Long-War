@@ -138,8 +138,8 @@ class StrategicHeuristicAgent(HeuristicAgent):
     def choose(self, engine: GameEngine, state: GameState) -> Action:
         decision_started = perf_counter()
         root_player = state.active_player
-        legal = engine.legal_actions(state)
-        actions, guarded = command_preserving_actions(engine, state, legal)
+        actions = engine.legal_actions(state)
+        preserving, guarded = command_preserving_actions(engine, state, actions)
         if len(actions) == 1:
             self.last_decision = {
                 "candidate_count": 1,
@@ -166,23 +166,30 @@ class StrategicHeuristicAgent(HeuristicAgent):
             }
             return actions[0]
 
-        candidates = [
-            action
-            for action in self._python_search.ordered_actions(
-                state,
-                root_player,
-                width=self.candidate_width,
-            )
-            if action in actions
-        ]
-        if not candidates:
-            candidates = list(actions)
+        candidates = self._python_search.ordered_actions(
+            state,
+            root_player,
+            width=self.candidate_width,
+        )
 
         # Pass is strategically unusual. Preserve it even when candidate
         # pruning is active.
         for action in actions:
             if isinstance(action, Pass) and action not in candidates:
                 candidates.append(action)
+
+        if guarded and not any(action in preserving for action in candidates):
+            candidates.append(
+                max(
+                    preserving,
+                    key=lambda action: self.evaluator._score_action(
+                        engine,
+                        state,
+                        root_player,
+                        action,
+                    ),
+                )
+            )
 
         scores = {
             action: self.evaluator._score_action(
@@ -290,7 +297,19 @@ class StrategicHeuristicAgent(HeuristicAgent):
             )
         )
         selected = ranked[0]
-        second = ranked[1].score if len(ranked) > 1 else selected.score
+        guard_overrode_selection = selected.action not in preserving
+        if guard_overrode_selection:
+            safe_ranked = [
+                item for item in ranked if item.action in preserving
+            ]
+            selected = safe_ranked[0]
+            second = (
+                safe_ranked[1].score
+                if len(safe_ranked) > 1
+                else selected.score
+            )
+        else:
+            second = ranked[1].score if len(ranked) > 1 else selected.score
 
         self.last_decision = {
             "candidate_count": len(actions),
@@ -324,5 +343,6 @@ class StrategicHeuristicAgent(HeuristicAgent):
             ),
             "command_guard_applied": guarded > 0,
             "command_guard_filtered_actions": guarded,
+            "command_guard_overrode_selection": guard_overrode_selection,
         }
         return selected.action
