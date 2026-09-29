@@ -9,6 +9,7 @@ from ..game.model import GameState
 from ..mccfr import action_key
 from ..online_mccfr import OnlineMCCFRResolver
 from .heuristic_agent import opening_mulligan_indices
+from ..heuristics import command_preserving_actions
 
 
 class OnlineMCCFRAgent:
@@ -43,7 +44,8 @@ class OnlineMCCFRAgent:
         return opening_mulligan_indices(engine, hand)
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
-        actions = engine.legal_actions(state)
+        legal = engine.legal_actions(state)
+        actions, guarded = command_preserving_actions(engine, state, legal)
         if len(actions) == 1:
             self.last_decision = {
                 "candidate_count": 1,
@@ -57,6 +59,8 @@ class OnlineMCCFRAgent:
                 "resolver_information_sets": 0,
                 "known_hidden_cards": 0,
                 "belief_prior": "none",
+                "command_guard_applied": guarded > 0,
+                "command_guard_filtered_actions": guarded,
             }
             return actions[0]
 
@@ -97,6 +101,8 @@ class OnlineMCCFRAgent:
             "resolver_information_sets": result.information_sets,
             "known_hidden_cards": result.known_hidden_cards,
             "belief_prior": result.belief_prior,
+            "command_guard_applied": guarded > 0,
+            "command_guard_filtered_actions": guarded,
         }
         return action_map[selected_key]
 
