@@ -168,9 +168,9 @@ cdef class NativeHeuristicEvaluator:
             and state.command[player] != state.command[opponent]
         ):
             if state.command[player] < state.command[opponent]:
-                score -= 48.0
+                score -= 250.0
             else:
-                score += 48.0
+                score += 250.0
         else:
             # Recovery is relevant only after surviving the Collapse check.
             # Equal 0-0 survives, so both sides still receive the floor.
