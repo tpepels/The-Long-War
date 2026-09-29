@@ -127,14 +127,27 @@ def test_simulation_can_skip_one_failed_game_without_polluting_aggregates(monkey
     assert report.failed_games == 1
     assert report.decisive_games + report.censored_games + report.failed_games == 3
     assert [outcome["game"] for outcome in report.game_outcomes] == [0, 2]
-    assert report.failed_game_outcomes == [{
+    assert len(report.failed_game_outcomes) == 1
+    failure = report.failed_game_outcomes[0]
+    assert {
+        key: failure[key]
+        for key in (
+            "game",
+            "seed",
+            "first_player",
+            "error_type",
+            "error",
+            "actions_completed",
+        )
+    } == {
         "game": 1,
         "seed": 702,
         "first_player": 1,
         "error_type": "RuntimeError",
         "error": "synthetic game failure",
         "actions_completed": 0,
-    }]
+    }
+    assert "synthetic game failure" in failure["traceback"]
     assert report.telemetry["progression"]["match_length"]["matches"] == 2
 
 
