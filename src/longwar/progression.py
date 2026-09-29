@@ -845,7 +845,7 @@ class ProgressionTelemetry:
                 "resolved_battles": match.get("resolved_battles"),
                 "final_command": match.get("final_command"),
                 "low_command_battles": sum(
-                    any(value < threshold for value in row["command_start"])
+                    any(value <= threshold for value in row["command_start"])
                     for row in game_rows
                 ),
                 "both_zero_command_battle_starts": sum(
