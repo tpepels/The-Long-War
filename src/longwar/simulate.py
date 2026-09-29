@@ -145,6 +145,18 @@ class _RawSimulationResult:
     human_flow: HumanFlowDiagnostics
 
 
+@dataclass(frozen=True)
+class SimulationBatchCell:
+    """One independently seeded simulation cell for a shared worker pool."""
+
+    key: str
+    deck_a: list[str]
+    deck_b: list[str]
+    games: int
+    seed: int
+    options: dict[str, Any] | None = None
+
+
 def make_agent(
     name: str,
     engine: GameEngine,
@@ -540,6 +552,84 @@ def _simulate_games_worker(
     )
     assert isinstance(result, _RawSimulationResult)
     return result
+
+
+def _aggregate_raw_simulation_results(
+    results: list[_RawSimulationResult],
+    games: int,
+) -> SimulationReport:
+    """Merge deterministic one-game worker results into one report."""
+    if not results:
+        raise ValueError("At least one simulation result is required")
+
+    return _aggregate_raw_simulation_results(results, games)
+
+
+def simulate_games_batch(
+    engine: GameEngine,
+    cells: list[SimulationBatchCell],
+    *,
+    jobs: int,
+    common_options: dict[str, Any],
+    progress_callback: Callable[[str, int, int], None] | None = None,
+) -> dict[str, SimulationReport]:
+    """Run multiple simulation cells through one work-conserving process pool.
+
+    Games from every cell are queued together, so a worker that finishes the
+    tail of one matchup can immediately start a game from another matchup.
+    """
+    if jobs <= 0:
+        raise ValueError("jobs must be positive")
+    if not cells:
+        return {}
+
+    keys = [cell.key for cell in cells]
+    if len(keys) != len(set(keys)):
+        raise ValueError("Simulation batch cell keys must be unique")
+    if any(cell.games <= 0 for cell in cells):
+        raise ValueError("Simulation batch cell game counts must be positive")
+
+    worker_count = min(jobs, sum(cell.games for cell in cells))
+    raw_by_key: dict[str, list[_RawSimulationResult]] = {
+        cell.key: [] for cell in cells
+    }
+    completed_by_key = {cell.key: 0 for cell in cells}
+
+    with ProcessPoolExecutor(max_workers=worker_count) as pool:
+        future_keys = {}
+        for cell in cells:
+            options = dict(common_options)
+            if cell.options:
+                options.update(cell.options)
+            for game_index in range(cell.games):
+                future = pool.submit(
+                    _simulate_games_worker,
+                    engine.card_data,
+                    engine.rules,
+                    cell.deck_a,
+                    cell.deck_b,
+                    cell.seed,
+                    game_index,
+                    1,
+                    options,
+                )
+                future_keys[future] = cell.key
+
+        for future in as_completed(future_keys):
+            key = future_keys[future]
+            raw_by_key[key].append(future.result())
+            completed_by_key[key] += 1
+            if progress_callback is not None:
+                total = next(cell.games for cell in cells if cell.key == key)
+                progress_callback(key, completed_by_key[key], total)
+
+    return {
+        cell.key: _aggregate_raw_simulation_results(
+            raw_by_key[cell.key],
+            cell.games,
+        )
+        for cell in cells
+    }
 
 
 def simulate_games(
