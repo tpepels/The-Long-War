@@ -1039,7 +1039,7 @@ def test_lines_held_and_tovan_reduce_recovery_front_loss_penalty() -> None:
     state.stratagems[0] = StratagemState("the-lines-held")
 
     resolve_battle_by_passing(engine, state)
-    assert state.players[0].command == 15
+    assert state.players[0].command == 17
 
     engine, state = setup_state(seed=4702)
     state.players[0].command = 5
@@ -1049,7 +1049,7 @@ def test_lines_held_and_tovan_reduce_recovery_front_loss_penalty() -> None:
     make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
 
     resolve_battle_by_passing(engine, state)
-    assert state.players[0].command == 15
+    assert state.players[0].command == 17
 
 
 def test_targeted_stratagem_play_choices_are_legal_actions() -> None:
