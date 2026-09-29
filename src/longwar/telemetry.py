@@ -71,6 +71,9 @@ class DecisionStats:
     ismcts_battle_boundary_cutoffs: int = 0
     ismcts_depth_cutoffs: int = 0
     ismcts_rollout_actions: int = 0
+    ismcts_iterations_total: int = 0
+    ismcts_setup_seconds_total: float = 0.0
+    ismcts_search_seconds_total: float = 0.0
     ismcts_searched_decisions: int = 0
     ismcts_root_reused_decisions: int = 0
     ismcts_tree_nodes_before_total: int = 0
@@ -375,6 +378,13 @@ class Telemetry:
                 decision_info.get("ismcts_iterations", 0)
             )
             if ismcts_iterations > 0:
+                stats.ismcts_iterations_total += ismcts_iterations
+                stats.ismcts_setup_seconds_total += float(
+                    decision_info.get("ismcts_setup_seconds", 0.0)
+                )
+                stats.ismcts_search_seconds_total += float(
+                    decision_info.get("ismcts_search_seconds", 0.0)
+                )
                 stats.ismcts_searched_decisions += 1
                 stats.ismcts_root_reused_decisions += int(
                     bool(decision_info.get("ismcts_root_reused", False))
@@ -726,6 +736,21 @@ class Telemetry:
             if stats.ismcts_searched_decisions:
                 decisions[agent]["ismcts_tree_reuse"] = {
                     "searched_decisions": stats.ismcts_searched_decisions,
+                    "iterations_total": stats.ismcts_iterations_total,
+                    "setup_seconds_total": stats.ismcts_setup_seconds_total,
+                    "search_seconds_total": stats.ismcts_search_seconds_total,
+                    "simulations_per_second": self._ratio(
+                        stats.ismcts_iterations_total,
+                        stats.ismcts_search_seconds_total,
+                    ),
+                    "mean_setup_seconds": self._ratio(
+                        stats.ismcts_setup_seconds_total,
+                        stats.ismcts_searched_decisions,
+                    ),
+                    "mean_search_seconds": self._ratio(
+                        stats.ismcts_search_seconds_total,
+                        stats.ismcts_searched_decisions,
+                    ),
                     "root_reused_decisions": stats.ismcts_root_reused_decisions,
                     "root_reuse_rate": self._ratio(
                         stats.ismcts_root_reused_decisions,
