@@ -412,7 +412,16 @@ cdef uint64_t _ismcts_rollout_action(
     # Command while the opponent remains positive is ordinary play. Inspect
     # exact child states so immediate Command gains/refunds remain available.
     for i in range(n):
-        if not evaluator.action_exhausts_command_fast(
+        # Exact child inspection is only needed when the operation can reach
+        # the Collapse point. This keeps ordinary high-Command rollouts cheap.
+        if (
+            state.command[actor] > engine.command_collapse_threshold
+            and _fe_command_cost_fast(engine, state, actions[i])
+            < state.command[actor]
+        ):
+            safe_indices[safe_n] = i
+            safe_n += 1
+        elif not evaluator.action_exhausts_command_fast(
             state,
             actor,
             actions[i],
