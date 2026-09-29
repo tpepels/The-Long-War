@@ -293,6 +293,9 @@ class GameEngine:
                     target_slot.maneuvers_this_battle = int(
                         source_slot.get("maneuvers_this_battle", 0)
                     )
+                    target_slot.maneuvered_in_operation = bool(
+                        source_slot.get("maneuvered_in_operation", False)
+                    )
                     target_slot.maneuver_direction = source_slot.get(
                         "maneuver_direction"
                     )
