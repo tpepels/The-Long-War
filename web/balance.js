@@ -738,6 +738,9 @@ function renderCommandExperiment(lab) {
     const equalLowContinuations = sum(deckProfiles, (deck) =>
       deck.progression?.low_command_stalls?.equal_low_continuations
     );
+    const zeroStarts = sum(deckProfiles, (deck) =>
+      deck.progression?.low_command_stalls?.zero_command_battle_starts
+    );
     const bothZeroStarts = sum(deckProfiles, (deck) =>
       deck.progression?.low_command_stalls?.both_zero_command_battle_starts
     );
@@ -768,6 +771,7 @@ function renderCommandExperiment(lab) {
       games,
       censorRate: games ? censored / games : null,
       equalLowContinuationRate: resolvedBattles ? equalLowContinuations / resolvedBattles : null,
+      zeroStartRate: resolvedBattles ? zeroStarts / resolvedBattles : null,
       bothZeroStartRate: resolvedBattles ? bothZeroStarts / resolvedBattles : null,
       noPaidOperationRate: stallDiagnosticBattles ? noPaidOperations / stallDiagnosticBattles : null,
       firstPassCommand,
@@ -845,7 +849,7 @@ function renderCommandExperiment(lab) {
     <table class="mini-table">
       <thead><tr>
         <th>Agent</th><th>Recovery</th><th>Floor</th><th>Games</th><th>Censored</th>
-        <th>Equal-low cont.</th><th>0/0 Battle starts</th><th>No paid op.</th>
+        <th>Equal-low cont.</th><th>Any 0-Command start</th><th>0/0 Battle starts</th><th>No paid op.</th>
         <th>First-pass Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Pass w/ alternatives</th>
         <th>Command before Collapse</th><th>Collapse check at 0</th><th>Mean Battles</th><th>Max Battle</th>
         <th>Reach III</th><th>Reach VIII+</th><th>Reach XII+</th><th>Longest equal-low</th>
@@ -859,6 +863,7 @@ function renderCommandExperiment(lab) {
           <td>${row.games}</td>
           <td>${pct(row.censorRate)}</td>
           <td>${pct(row.equalLowContinuationRate)}</td>
+          <td>${pct(row.zeroStartRate)}</td>
           <td>${pct(row.bothZeroStartRate)}</td>
           <td>${pct(row.noPaidOperationRate)}</td>
           <td>${num(row.firstPassCommand, 1)}</td>
