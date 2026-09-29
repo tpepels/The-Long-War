@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter, deque
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 import ctypes
@@ -24,7 +25,8 @@ from .agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from .agents.online_mccfr_agent import OnlineMCCFRAgent
 from .belief import DeckHypothesis, DeckPrior, HypothesisDeckPrior
 from .agents.mccfr_agent import MCCFRAgent
-from .game.engine import GameEngine
+from .game.actions import action_key
+from .game.engine import GameEngine, all_positions
 from .game.model import Phase
 from .human_flow import HumanFlowDiagnostics
 from .telemetry import Telemetry
@@ -51,6 +53,46 @@ def _release_agent_search_memory(agent: object) -> None:
         release()
 
 
+def _owned_card_counter(state, player: int) -> Counter[str]:
+    """Count every card currently owned by one player across canonical zones."""
+    cards: Counter[str] = Counter(state.players[player].deck)
+    cards.update(state.players[player].hand)
+    cards.update(state.players[player].discard)
+    for position in all_positions():
+        slot = state.slot(player, position)
+        cards.update(
+            card_id
+            for card_id in (slot.force, slot.bond, slot.name)
+            if card_id is not None
+        )
+    cards.update(story.card_id for story in state.stories[player])
+    stratagem = state.stratagems[player]
+    if stratagem is not None:
+        cards[stratagem.card_id] += 1
+    return cards
+
+
+def _assert_card_conservation(
+    state,
+    expected: tuple[Counter[str], Counter[str]],
+    *,
+    action: object | None = None,
+) -> None:
+    """Fail at the first transition that loses, duplicates, or changes ownership."""
+    for player in range(2):
+        actual = _owned_card_counter(state, player)
+        if actual == expected[player]:
+            continue
+        missing = expected[player] - actual
+        extra = actual - expected[player]
+        action_text = "<initial-state>" if action is None else action_key(action)
+        raise RuntimeError(
+            "Card conservation violated: "
+            f"player={player} battle={state.battle} turn={state.turn_number} "
+            f"action={action_text}; missing={dict(sorted(missing.items()))} "
+            f"extra={dict(sorted(extra.items()))}"
+        )
+
 
 @dataclass(frozen=True)
 class SimulationReport:
@@ -63,7 +105,7 @@ class SimulationReport:
     mean_turns: float
     max_turns: int
     telemetry: dict[str, Any]
-    game_outcomes: list[dict[str, int | bool | None]]
+    game_outcomes: list[dict[str, Any]]
     failed_game_outcomes: list[dict[str, Any]]
 
     @property
@@ -225,7 +267,7 @@ def _simulate_games_serial(
     first_player_wins = 0
     total_turns = 0
     maximum_turns = 0
-    game_outcomes: list[dict[str, int | bool | None]] = []
+    game_outcomes: list[dict[str, Any]] = []
     failed_game_outcomes: list[dict[str, Any]] = []
     telemetry = Telemetry()
     human_flow = HumanFlowDiagnostics()
@@ -278,6 +320,8 @@ def _simulate_games_serial(
         game_human_flow = HumanFlowDiagnostics()
         action_count = 0
         censored = False
+        recent_actions: deque[str] = deque(maxlen=24)
+        expected_cards = (Counter(deck_a), Counter(deck_b))
 
         try:
             preview = engine.new_game(
@@ -321,6 +365,7 @@ def _simulate_games_serial(
                 first_player=first_player,
                 mulligan_indices=mulligan_indices,
             )
+            _assert_card_conservation(state, expected_cards)
             game_telemetry.start_game(
                 state,
                 engine,
@@ -352,7 +397,13 @@ def _simulate_games_serial(
                     action,
                     decision_info,
                 )
+                recent_actions.append(action_key(action))
                 engine.apply(state, action)
+                _assert_card_conservation(
+                    state,
+                    expected_cards,
+                    action=action,
+                )
                 game_telemetry.after_action(engine, before, state, actor, action)
                 game_human_flow.after_action(engine, before, state, actor, action)
                 action_count += 1
@@ -373,6 +424,14 @@ def _simulate_games_serial(
                 "first_player": first_player,
                 "winner": winner,
                 "censored": censored,
+                "actions_completed": action_count,
+                "final_battle": int(state.battle),
+                "final_command": [
+                    int(state.players[0].command),
+                    int(state.players[1].command),
+                ],
+                "pending_effects": len(state.pending_effects),
+                "recent_actions": list(recent_actions),
             })
             if censored:
                 censored_games += 1
@@ -395,6 +454,18 @@ def _simulate_games_serial(
                 "error": str(exc),
                 "traceback": traceback.format_exc(),
                 "actions_completed": action_count,
+                "final_battle": (
+                    None if state is None else int(state.battle)
+                ),
+                "final_command": (
+                    None
+                    if state is None
+                    else [
+                        int(state.players[0].command),
+                        int(state.players[1].command),
+                    ]
+                ),
+                "recent_actions": list(recent_actions),
             })
 
         finally:
@@ -589,7 +660,7 @@ def simulate_games(
     total_turns = 0.0
     completed_games = 0
     maximum_turns = 0
-    game_outcomes: list[dict[str, int | bool | None]] = []
+    game_outcomes: list[dict[str, Any]] = []
     failed_game_outcomes: list[dict[str, Any]] = []
     agents = results[0].report.agents
 
