@@ -2002,6 +2002,47 @@ def test_alda_can_be_driven_off_to_prevent_frontline_retreat() -> None:
     assert "alda-keeper-of-the-ford" in state.players[0].discard
 
 
+def test_stayed_behind_for_is_discarded_if_mandatory_retreat_displaces_it() -> None:
+    engine, state = setup_state(seed=48291)
+    frontline = pos(0, Rank.FRONT)
+    rear = pos(0, Rank.REAR)
+
+    make_named(state, 0, frontline)
+    make_named(
+        state,
+        0,
+        rear,
+        force="alda-keeper-of-the-ford",
+        bond="stayed-behind-for",
+        name="namar",
+    )
+    make_named(
+        state,
+        1,
+        pos(0, Rank.FRONT),
+        temporary=100,
+    )
+
+    resolve_battle_by_passing(engine, state)
+
+    decline = next(
+        action
+        for action in effect_choices(engine, state, "protect-retreat")
+        if action.skip
+    )
+    engine.apply(state, decline)
+
+    # Alda is driven off normally. Stayed Behind For persists through that
+    # drive-off, but the mandatory Frontline Retreat then needs the same Rear
+    # position. The prepared Bond is displaced to discard rather than silently
+    # overwritten.
+    assert state.slot(0, frontline).occupied is False
+    assert state.slot(0, rear).named is True
+    assert state.slot(0, rear).bond != "stayed-behind-for"
+    assert "stayed-behind-for" in state.players[0].discard
+    assert "namar" in state.players[0].hand
+
+
 def test_they_lived_to_tell_it_rewards_a_surviving_target() -> None:
     engine, state = setup_state(seed=4830)
     state.battle = 8
