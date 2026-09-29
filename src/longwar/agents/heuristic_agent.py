@@ -6,7 +6,11 @@ from dataclasses import dataclass
 from ..game.actions import Action
 from ..game.engine import GameEngine
 from ..game.model import GameState
-from ..heuristics import HeuristicEvaluator, opening_mulligan_indices
+from ..heuristics import (
+    HeuristicEvaluator,
+    command_preserving_actions,
+    opening_mulligan_indices,
+)
 
 
 
@@ -47,7 +51,8 @@ class HeuristicAgent:
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
         player = state.active_player
-        actions = engine.legal_actions(state)
+        legal = engine.legal_actions(state)
+        actions, guarded = command_preserving_actions(engine, state, legal)
 
         if len(actions) == 1:
             self.last_decision = {
@@ -55,6 +60,8 @@ class HeuristicAgent:
                 "selected_score": 0.0,
                 "score_gap": 0.0,
                 "selected_action": type(actions[0]).__name__,
+                "command_guard_applied": guarded > 0,
+                "command_guard_filtered_actions": guarded,
             }
             return actions[0]
 
@@ -82,6 +89,8 @@ class HeuristicAgent:
             "selected_score": selected.score,
             "score_gap": selected.score - second,
             "selected_action": type(selected.action).__name__,
+            "command_guard_applied": guarded > 0,
+            "command_guard_filtered_actions": guarded,
         }
         return selected.action
 
