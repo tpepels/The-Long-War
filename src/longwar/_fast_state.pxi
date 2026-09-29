@@ -12,6 +12,7 @@ cdef class FastState:
     cdef int8_t name[SLOT_COUNT]
     cdef int16_t temporary[SLOT_COUNT]
     cdef uint8_t maneuver_count[SLOT_COUNT]
+    cdef uint8_t maneuvered_in_operation[SLOT_COUNT]
 
     cdef int8_t scheme[SCHEME_COUNT]
     cdef uint8_t scheme_revealed[SCHEME_COUNT]
@@ -127,6 +128,7 @@ cdef class FastState:
         memset(self.name, 0xff, sizeof(self.name))
         memset(self.temporary, 0, sizeof(self.temporary))
         memset(self.maneuver_count, 0, sizeof(self.maneuver_count))
+        memset(self.maneuvered_in_operation, 0, sizeof(self.maneuvered_in_operation))
         memset(self.scheme, 0xff, sizeof(self.scheme))
         memset(self.scheme_revealed, 0, sizeof(self.scheme_revealed))
         memset(self.scheme_front_mask, 0, sizeof(self.scheme_front_mask))
@@ -235,6 +237,7 @@ cdef class FastState:
         memcpy(self.name, other.name, sizeof(self.name))
         memcpy(self.temporary, other.temporary, sizeof(self.temporary))
         memcpy(self.maneuver_count, other.maneuver_count, sizeof(self.maneuver_count))
+        memcpy(self.maneuvered_in_operation, other.maneuvered_in_operation, sizeof(self.maneuvered_in_operation))
         memcpy(self.scheme, other.scheme, sizeof(self.scheme))
         memcpy(self.scheme_revealed, other.scheme_revealed, sizeof(self.scheme_revealed))
         memcpy(self.scheme_front_mask, other.scheme_front_mask, sizeof(self.scheme_front_mask))
