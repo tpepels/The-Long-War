@@ -1174,17 +1174,17 @@ def test_trap_closed_drives_off_encircled_middle_frontline() -> None:
     ("battle", "expected"),
     [
         (1, 20),
-        (2, 17),
-        (3, 15),
-        (4, 14),
-        (5, 13),
-        (6, 12),
+        (2, 19),
+        (3, 16),
+        (4, 13),
+        (5, 11),
+        (6, 11),
         (7, 11),
         (8, 11),
         (9, 11),
     ],
 )
-def test_command_recovery_schedule(battle: int, expected: int) -> None:
+def test_command_recovery_formula(battle: int, expected: int) -> None:
     engine, state = setup_state(seed=4200 + battle)
     state.battle = battle
     state.players[0].command = 10
@@ -1209,7 +1209,7 @@ def test_command_recovery_loses_one_per_lost_front_and_caps_at_twenty() -> None:
     resolve_battle_by_passing(engine, state)
 
     assert state.last_battle_snapshot["fronts_lost"] == [2, 0]
-    assert state.players[0].command == 13
+    assert state.players[0].command == 15
     assert state.players[1].command == 20
 
 
