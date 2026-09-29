@@ -42,11 +42,17 @@ CARD_AGGREGATE_FIELDS = (
     "affordable_turns",
     "unaffordable_turns",
     "structurally_unplayable_turns",
+    "hero_allowance_blocked_turns",
+    "hero_command_blocked_turns",
+    "hero_structural_blocked_turns",
     "held_on_pass",
     "dead_on_pass",
     "affordable_on_pass",
     "unaffordable_on_pass",
     "structurally_dead_on_pass",
+    "hero_allowance_blocked_on_pass",
+    "hero_command_blocked_on_pass",
+    "hero_structural_blocked_on_pass",
     "immediate_front_swing_total",
     "immediate_control_swing_total",
     "games_drawn",
@@ -167,11 +173,17 @@ def aggregate_simulations_for_health(
             "affordable_turns",
             "unaffordable_turns",
             "structurally_unplayable_turns",
+            "hero_allowance_blocked_turns",
+            "hero_command_blocked_turns",
+            "hero_structural_blocked_turns",
             "held_on_pass",
             "dead_on_pass",
             "affordable_on_pass",
             "unaffordable_on_pass",
             "structurally_dead_on_pass",
+            "hero_allowance_blocked_on_pass",
+            "hero_command_blocked_on_pass",
+            "hero_structural_blocked_on_pass",
             "games_drawn",
             "decisive_games_drawn",
             "wins_when_drawn",
@@ -193,6 +205,15 @@ def aggregate_simulations_for_health(
         row["resource_blocked_turn_rate"] = _safe_ratio(
             row["unaffordable_turns"], row["turns_in_hand"]
         )
+        row["hero_allowance_blocked_turn_rate"] = _safe_ratio(
+            row["hero_allowance_blocked_turns"], row["turns_in_hand"]
+        )
+        row["hero_command_blocked_turn_rate"] = _safe_ratio(
+            row["hero_command_blocked_turns"], row["turns_in_hand"]
+        )
+        row["hero_structural_blocked_turn_rate"] = _safe_ratio(
+            row["hero_structural_blocked_turns"], row["turns_in_hand"]
+        )
         row["dead_on_pass_rate"] = _safe_ratio(
             row["dead_on_pass"], row["held_on_pass"]
         )
@@ -201,6 +222,15 @@ def aggregate_simulations_for_health(
         )
         row["resource_blocked_on_pass_rate"] = _safe_ratio(
             row["unaffordable_on_pass"], row["held_on_pass"]
+        )
+        row["hero_allowance_blocked_on_pass_rate"] = _safe_ratio(
+            row["hero_allowance_blocked_on_pass"], row["held_on_pass"]
+        )
+        row["hero_command_blocked_on_pass_rate"] = _safe_ratio(
+            row["hero_command_blocked_on_pass"], row["held_on_pass"]
+        )
+        row["hero_structural_blocked_on_pass_rate"] = _safe_ratio(
+            row["hero_structural_blocked_on_pass"], row["held_on_pass"]
         )
         row["mean_immediate_front_swing"] = _safe_ratio(
             row["immediate_front_swing_total"], row["plays"]
@@ -628,11 +658,17 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "affordable_turns": int(stats.get("affordable_turns", 0)),
             "unaffordable_turns": int(stats.get("unaffordable_turns", 0)),
             "structurally_unplayable_turns": int(stats.get("structurally_unplayable_turns", 0)),
+            "hero_allowance_blocked_turns": int(stats.get("hero_allowance_blocked_turns", 0)),
+            "hero_command_blocked_turns": int(stats.get("hero_command_blocked_turns", 0)),
+            "hero_structural_blocked_turns": int(stats.get("hero_structural_blocked_turns", 0)),
             "held_on_pass": int(stats.get("held_on_pass", 0)),
             "affordable_on_pass": int(stats.get("affordable_on_pass", 0)),
             "unaffordable_on_pass": int(stats.get("unaffordable_on_pass", 0)),
             "dead_on_pass": int(stats.get("dead_on_pass", 0)),
             "structurally_dead_on_pass": int(stats.get("structurally_dead_on_pass", 0)),
+            "hero_allowance_blocked_on_pass": int(stats.get("hero_allowance_blocked_on_pass", 0)),
+            "hero_command_blocked_on_pass": int(stats.get("hero_command_blocked_on_pass", 0)),
+            "hero_structural_blocked_on_pass": int(stats.get("hero_structural_blocked_on_pass", 0)),
             "games_drawn": int(stats.get("games_drawn", 0)),
             "decisive_games_drawn": drawn_n,
             "games_played": int(stats.get("games_played", 0)),
@@ -641,9 +677,15 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "unplayable_turn_rate": stats.get("unplayable_turn_rate"),
             "structural_unplayable_turn_rate": dead,
             "resource_blocked_turn_rate": stats.get("resource_blocked_turn_rate"),
+            "hero_allowance_blocked_turn_rate": stats.get("hero_allowance_blocked_turn_rate"),
+            "hero_command_blocked_turn_rate": stats.get("hero_command_blocked_turn_rate"),
+            "hero_structural_blocked_turn_rate": stats.get("hero_structural_blocked_turn_rate"),
             "dead_on_pass_rate": stats.get("dead_on_pass_rate"),
             "structural_dead_on_pass_rate": dead_pass,
             "resource_blocked_on_pass_rate": stats.get("resource_blocked_on_pass_rate"),
+            "hero_allowance_blocked_on_pass_rate": stats.get("hero_allowance_blocked_on_pass_rate"),
+            "hero_command_blocked_on_pass_rate": stats.get("hero_command_blocked_on_pass_rate"),
+            "hero_structural_blocked_on_pass_rate": stats.get("hero_structural_blocked_on_pass_rate"),
             "mean_immediate_front_swing": swing,
             "mean_immediate_control_swing": stats.get("mean_immediate_control_swing"),
             "front_swing_z_within_type": swing_z,
