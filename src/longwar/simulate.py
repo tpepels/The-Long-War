@@ -627,15 +627,13 @@ def simulate_games(
         return result
 
     worker_count = min(jobs, games)
-    base_chunk = games // worker_count
-    remainder = games % worker_count
-    chunks: list[tuple[int, int]] = []
-    next_index = 0
-    for worker_index in range(worker_count):
-        chunk_games = base_chunk + (1 if worker_index < remainder else 0)
-        chunks.append((next_index, chunk_games))
-        next_index += chunk_games
 
+    # Schedule one game per future rather than assigning fixed multi-game
+    # chunks to workers. ProcessPoolExecutor keeps at most worker_count
+    # processes active and immediately feeds the next queued game to whichever
+    # worker finishes first. This avoids the long low-utilization tail caused
+    # by uneven ISMCTS game runtimes while preserving deterministic per-game
+    # seeds through game_index_start.
     results: list[_RawSimulationResult] = []
     completed = 0
     live_wins = [0, 0]
@@ -648,18 +646,18 @@ def simulate_games(
                 deck_a,
                 deck_b,
                 seed,
-                game_index_start,
-                chunk_games,
+                game_index,
+                1,
                 options,
             )
-            for game_index_start, chunk_games in chunks
+            for game_index in range(games)
         ]
         for future in as_completed(futures):
             result = future.result()
             results.append(result)
             live_wins[0] += result.report.wins[0]
             live_wins[1] += result.report.wins[1]
-            completed += result.report.games
+            completed += 1
             if progress_callback is not None:
                 progress_callback(completed, games, (live_wins[0], live_wins[1]))
 
