@@ -616,7 +616,7 @@ def test_deep_balance_pipeline_publishes_screen_and_online_validation() -> None:
     assert "run_targeted_online_validation" in source
     assert 'publish("balance-report.json", static_payload)' in source
     assert 'publish("balance-health.json", aggregate_health)' in source
-    assert 'publish("heuristic-selfplay.json", aggregate_selfplay)' in source
+    assert 'publish("balance-selfplay.json", aggregate_selfplay)' in source
     assert 'publish("progression-selfplay.json", progression_source)' in source
     assert 'publish("counterfactual-balance.json", causal_payload)' in source
     assert '"targeted-online-counterfactual.json"' in source
