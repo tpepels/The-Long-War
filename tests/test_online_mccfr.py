@@ -5,8 +5,9 @@ from pathlib import Path
 
 import pytest
 
+from longwar.agents.online_mccfr_agent import OnlineMCCFRAgent
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine, GameState, Position, Rank
+from longwar.game import Front, GameEngine, GameState, Pass, Position, Rank
 from longwar.game.model import PlayerState
 from longwar.mccfr import action_key
 from longwar.online_mccfr import OnlineMCCFRResolver
@@ -41,6 +42,33 @@ def test_online_resolver_has_root_coverage_without_true_opponent_deck() -> None:
     assert set(result.strategy) == legal_keys
     assert sum(result.strategy.values()) == pytest.approx(1.0)
     assert result.belief_prior == "CardPoolDeckPrior"
+
+
+def test_online_mccfr_agent_preserves_last_command_without_resolving() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=13, first_player=0)
+    state.players[0].command = 1
+    state.players[1].command = 5
+    state.operations_this_battle[:] = [1, 1]
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
+    slot = state.slot(0, Position(Front.FIRST, Rank.FRONT))
+    slot.force = "the-fifty-men"
+    slot.bond = "followed"
+    slot.name = "namar"
+
+    agent = OnlineMCCFRAgent(
+        engine,
+        seed=45,
+        iterations=1,
+        max_depth=1,
+        deterministic=True,
+    )
+    action = agent.choose(engine, state)
+
+    assert isinstance(action, Pass)
+    assert agent.last_decision["resolver_iterations"] == 0
+    assert agent.last_decision["command_guard_applied"] is True
 
 
 def test_online_resolver_handles_second_consecutive_pass_with_unknown_deck() -> None:
