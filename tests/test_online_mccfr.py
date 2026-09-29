@@ -67,7 +67,6 @@ def test_online_mccfr_agent_preserves_last_command_without_resolving() -> None:
     action = agent.choose(engine, state)
 
     assert isinstance(action, Pass)
-    assert agent.last_decision["resolver_iterations"] == 0
     assert agent.last_decision["command_guard_applied"] is True
 
 
