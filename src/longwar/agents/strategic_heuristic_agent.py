@@ -9,7 +9,7 @@ from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, Pass, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState
-from ..heuristics import StrategicEvaluator
+from ..heuristics import StrategicEvaluator, command_preserving_actions
 from .heuristic_agent import HeuristicAgent, ScoredAction
 
 try:
@@ -138,7 +138,8 @@ class StrategicHeuristicAgent(HeuristicAgent):
     def choose(self, engine: GameEngine, state: GameState) -> Action:
         decision_started = perf_counter()
         root_player = state.active_player
-        actions = engine.legal_actions(state)
+        legal = engine.legal_actions(state)
+        actions, guarded = command_preserving_actions(engine, state, legal)
         if len(actions) == 1:
             self.last_decision = {
                 "candidate_count": 1,
@@ -160,14 +161,22 @@ class StrategicHeuristicAgent(HeuristicAgent):
                     "packed-native" if self._use_native else "python"
                 ),
                 "evaluated_candidates": 1,
+                "command_guard_applied": guarded > 0,
+                "command_guard_filtered_actions": guarded,
             }
             return actions[0]
 
-        candidates = self._python_search.ordered_actions(
-            state,
-            root_player,
-            width=self.candidate_width,
-        )
+        candidates = [
+            action
+            for action in self._python_search.ordered_actions(
+                state,
+                root_player,
+                width=self.candidate_width,
+            )
+            if action in actions
+        ]
+        if not candidates:
+            candidates = list(actions)
 
         # Pass is strategically unusual. Preserve it even when candidate
         # pruning is active.
@@ -313,5 +322,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
             "transposition_stores": (
                 int(self._native_tt.stores) if self._use_native else 0
             ),
+            "command_guard_applied": guarded > 0,
+            "command_guard_filtered_actions": guarded,
         }
         return selected.action
