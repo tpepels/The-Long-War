@@ -346,9 +346,20 @@ class BeliefSampler:
         unknown_hand_slots = hand_count - len(known_hand)
         expected = unknown_hand_slots + deck_count
         if len(unknown_pool) != expected:
+            sampled_counts = Counter(sampled_full_deck)
+            visible_zone_counts = Counter(public_cards)
+            visible_zone_counts.update(state.players[opponent].hand)
+            visible_zone_counts.update(state.players[opponent].deck)
+            missing = sampled_counts - visible_zone_counts
+            extra = visible_zone_counts - sampled_counts
             raise BeliefStateError(
                 "Sampled deck/public-zone accounting mismatch: "
-                f"remaining={len(unknown_pool)} expected={expected}"
+                f"remaining={len(unknown_pool)} expected={expected}; "
+                f"battle={state.battle} turn={state.turn_number} "
+                f"viewer={viewer} opponent={opponent}; "
+                f"public={len(public_cards)} hand={hand_count} deck={deck_count}; "
+                f"missing={dict(sorted(missing.items()))} "
+                f"extra={dict(sorted(extra.items()))}"
             )
 
         rng.shuffle(unknown_pool)
