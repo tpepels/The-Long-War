@@ -6,7 +6,7 @@ import pytest
 from pathlib import Path
 
 from longwar.cards import load_card_file
-from longwar.game import GameEngine
+from longwar.game import GameEngine, all_positions
 from longwar.game.actions import EffectChoice, Maneuver, Pass, PlayForce, PlayName
 from longwar.game.model import (
     ConstraintKind,
@@ -369,6 +369,66 @@ def test_hero_modes_are_counted_separately() -> None:
     assert heroes["avaros-the-bronze-king"]["name_plays"] == 0
     assert heroes["kael-the-roadless"]["force_plays"] == 0
     assert heroes["kael-the-roadless"]["name_plays"] == 1
+
+
+def test_hero_blocking_telemetry_distinguishes_allowance_command_and_structure() -> None:
+    engine, deck = setup()
+    hero_id = "avaros-the-bronze-king"
+
+    def hero_state():
+        state = engine.new_game(
+            deck, deck, seed=608, first_player=0, opening_bonus=False
+        )
+        state.players[0].hand[:] = [hero_id]
+        state.operations_this_battle[:] = [1, 1]
+        return state
+
+    allowance_state = hero_state()
+    allowance_state.hero_used[0] = True
+    allowance = Telemetry()
+    allowance.before_action(
+        engine, allowance_state, 0, Pass(), decision_info=None
+    )
+    allowance_stats = allowance.summary()["cards"][hero_id]
+    assert allowance_stats["hero_allowance_blocked_turns"] == 1
+    assert allowance_stats["hero_command_blocked_turns"] == 0
+    assert allowance_stats["hero_structural_blocked_turns"] == 0
+    assert allowance_stats["structurally_unplayable_turns"] == 0
+
+    command_state = hero_state()
+    command_state.players[0].command = 0
+    command = Telemetry()
+    command.before_action(
+        engine, command_state, 0, Pass(), decision_info=None
+    )
+    command_stats = command.summary()["cards"][hero_id]
+    assert command_stats["hero_allowance_blocked_turns"] == 0
+    assert command_stats["hero_command_blocked_turns"] == 1
+    assert command_stats["hero_structural_blocked_turns"] == 0
+
+    structural_state = hero_state()
+    force_id = next(
+        card["id"]
+        for card in engine.card_data["cards"]
+        if card["type"] == "force" and not card.get("hero")
+    )
+    name_id = next(
+        card["id"]
+        for card in engine.card_data["cards"]
+        if card["type"] == "name"
+    )
+    for position in all_positions():
+        structural_state.slot(0, position).force = force_id
+        structural_state.slot(0, position).name = name_id
+    structural = Telemetry()
+    structural.before_action(
+        engine, structural_state, 0, Pass(), decision_info=None
+    )
+    structural_stats = structural.summary()["cards"][hero_id]
+    assert structural_stats["hero_allowance_blocked_turns"] == 0
+    assert structural_stats["hero_command_blocked_turns"] == 0
+    assert structural_stats["hero_structural_blocked_turns"] == 1
+    assert structural_stats["structurally_unplayable_turns"] == 1
 
 
 def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
@@ -770,15 +830,8 @@ def test_battle_buckets_isolate_battle_eight_plus() -> None:
     assert ProgressionTelemetry._battle_key(7) == "4-7"
     assert ProgressionTelemetry._battle_key(8) == "8+"
 
-def test_low_command_stall_telemetry_reconstructs_front_loss_cancellation() -> None:
-    base_engine, deck = setup()
-    engine = GameEngine(
-        base_engine.card_data,
-        rules=GameRules.standard().with_overrides(
-            command_recovery_schedule=(10, 8, 6, 5, 4, 3, 2),
-            command_recovery_tail=1,
-        ),
-    )
+def test_low_command_telemetry_records_pre_recovery_collapse_and_floor() -> None:
+    engine, deck = setup()
     state = engine.new_game(
         deck,
         deck,
@@ -827,11 +880,14 @@ def test_low_command_stall_telemetry_reconstructs_front_loss_cancellation() -> N
     record = stall["battle_records"][0]
     assert record["battle"] == 8
     assert record["command_start"] == [0, 0]
-    assert record["recovery_base"] == 1
+    assert record["recovery_base"] == 0
     assert record["fronts_lost"] == [1, 1]
     assert record["recovery_loss"] == [1, 1]
-    assert record["recovery_actual"] == [0, 0]
-    assert record["command_after_recovery"] == [0, 0]
+    assert record["command_before_collapse"] == [0, 0]
+    assert record["recovery_actual"] == [1, 1]
+    assert record["command_after_recovery"] == [1, 1]
+    assert record["collapse_comparison"]["commands"] == [0, 0]
+    assert record["collapse_comparison"]["triggered"] is True
     assert record["collapse_comparison"]["equal"] is True
     assert record["collapse_comparison"]["continued"] is True
     assert [row["action"] for row in record["operation_trace"]] == ["pass", "pass"]
