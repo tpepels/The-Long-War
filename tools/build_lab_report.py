@@ -61,6 +61,7 @@ def canonical_variant(data: dict[str, Any]) -> bool:
 TRAJECTORY_FIELDS = (
     "command_start",
     "command_remaining",
+    "command_before_collapse",
     "first_pass_command",
     "occupied_positions",
     "active_fronts",
