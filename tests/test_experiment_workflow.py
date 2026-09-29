@@ -640,7 +640,7 @@ def test_balance_cli_exposes_evidence_hierarchy_controls(monkeypatch) -> None:
 
 
 
-def test_command_matrix_cli_uses_planning_recovery_cells(monkeypatch) -> None:
+def test_command_matrix_cli_uses_four_planning_recovery_cells(monkeypatch) -> None:
     monkeypatch.setattr(
         runner.sys,
         "argv",
@@ -658,6 +658,7 @@ def test_command_matrix_cli_uses_planning_recovery_cells(monkeypatch) -> None:
     source = inspect.getsource(runner.run_command_matrix)
     for pair in (
         '("current", 0)',
+        '("current", 1)',
         '("candidate", 0)',
         '("candidate", 1)',
     ):
