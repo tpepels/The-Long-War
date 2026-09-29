@@ -284,8 +284,8 @@ function renderAttention(lab) {
   if (zeroCommandLoops > 0) {
     items.push(attentionItem(
       "high",
-      "Equal low-Command terminal rule is still unresolved",
-      `${zeroCommandLoops} censored match${zeroCommandLoops === 1 ? "" : "es"} ended at equal 0-0 Command. The current rule says equal low Command continues, so the engine cannot choose a winner without a canonical tie/draw rule. This is a rules ambiguity, not an agent or telemetry fix.`
+      "0-0 continuation reached the simulation horizon",
+      `${zeroCommandLoops} censored match${zeroCommandLoops === 1 ? "" : "es"} ended at equal 0-0 Command. Under the current rule 0-0 continues and then recovers at least 1 each, so persistent 0-0 censoring points to an engine/search loop or a later return to zero rather than a missing terminal rule.`
     ));
   }
 
@@ -768,8 +768,8 @@ function renderCommandExperiment(lab) {
     return {
       key,
       agent: profile.agent || key.split("--")[0],
-      recovery: profile.recovery_variant || key.split("--")[1],
-      recoveryFloor: Number(profile.recovery_floor ?? profile.rules?.command_recovery_floor ?? 0),
+      recovery: `${profile.recovery_start ?? profile.rules?.command_recovery_start ?? "?"}-${profile.recovery_decrement ?? profile.rules?.command_recovery_decrement ?? "?"}`,
+      recoveryFloor: Number(profile.recovery_floor ?? profile.rules?.command_recovery_floor ?? 1),
       games,
       censorRate: games ? censored / games : null,
       equalLowContinuationRate: resolvedBattles ? equalLowContinuations / resolvedBattles : null,
@@ -804,8 +804,8 @@ function renderCommandExperiment(lab) {
         profileKey,
         deckName,
         agent: profile.agent || profileKey.split("--")[0],
-        recovery: profile.recovery_variant || profileKey.split("--")[1],
-        recoveryFloor: Number(profile.recovery_floor ?? profile.rules?.command_recovery_floor ?? 0),
+        recovery: `${profile.recovery_start ?? profile.rules?.command_recovery_start ?? "?"}-${profile.recovery_decrement ?? profile.rules?.command_recovery_decrement ?? "?"}`,
+        recoveryFloor: Number(profile.recovery_floor ?? profile.rules?.command_recovery_floor ?? 1),
         battleRecords: battleRecords.filter((record) =>
           game.simulation_game_index != null && record.simulation_game_index != null
             ? Number(record.simulation_game_index) === Number(game.simulation_game_index)
@@ -1140,8 +1140,9 @@ function renderProgression(lab) {
       "actual Command paid by category"
     ),
     metric("Free operations", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
-    metric("Equal-low continuations", lowCommand.equal_low_continuations ?? 0, "post-recovery Command equal and below collapse threshold"),
+    metric("0-0 continuations", lowCommand.zero_zero_continuations ?? lowCommand.equal_low_continuations ?? 0, "pre-recovery Collapse check is 0-0; both survive and recover"),
     metric("0/0 Battle starts", lowCommand.both_zero_command_battle_starts ?? 0, "both players begin a Battle at zero Command"),
+    metric("Pass preserves Command", resources.first_passes_avoiding_command_exhaustion ?? 0, "first Passes with a legal alternative that would spend all remaining Command"),
     metric("No paid operation", lowCommand.battles_with_no_paid_operation ?? 0, "Battles with no Command-paying card play or Maneuver"),
     metric("No in-Battle board change", lowCommand.battles_with_no_board_change ?? 0, "board unchanged between first and final decision state"),
   ].join("");
