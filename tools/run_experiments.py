@@ -60,6 +60,15 @@ CANONICAL_DECK_PATHS = {
     "necessity": "decks/necessity-attrition.json",
 }
 
+# Deliberately small, human-readable arithmetic recovery grid. The rule
+# structure is fixed; only start/decrement are tuned.
+COMMAND_RECOVERY_CANDIDATES = (
+    (10, 2),
+    (12, 2),
+    (12, 3),
+    (15, 3),
+)
+
 
 class ExperimentSkipped(RuntimeError):
     """Raised when the user skips a comparison, carrying its live score."""
@@ -152,7 +161,8 @@ def balance_run(args: argparse.Namespace) -> Path:
         "strategic_time_budget_seconds": None,
         "online_agent_iterations": 16,
         "online_agent_depth": 2,
-        "recovery_floor": 1,
+        "recovery_start": GameRules.standard().command_recovery_start,
+        "recovery_decrement": GameRules.standard().command_recovery_decrement,
         "jobs": 8,
     }
     for option, default in balance_defaults.items():
@@ -162,23 +172,25 @@ def balance_run(args: argparse.Namespace) -> Path:
     deep_pipeline = args.preset in {"deep", "exhaustive"}
     publish_lab = deep_pipeline or bool(getattr(args, "publish_lab", False))
     agent_name = str(getattr(args, "agent", "heuristic"))
-    recovery_variant = str(getattr(args, "recovery", "current"))
-    recovery_floor = int(getattr(args, "recovery_floor", 1))
+    recovery_start = int(getattr(
+        args,
+        "recovery_start",
+        GameRules.standard().command_recovery_start,
+    ))
+    recovery_decrement = int(getattr(
+        args,
+        "recovery_decrement",
+        GameRules.standard().command_recovery_decrement,
+    ))
     skip_card_screen = bool(getattr(args, "skip_card_screen", False))
     run_card_screen = deep_pipeline and not skip_card_screen
 
-    if recovery_variant == "current":
-        rules = GameRules.standard()
-    elif recovery_variant == "candidate":
-        rules = GameRules.standard().with_overrides(
-            command_recovery_schedule=(10, 8, 6, 5, 4, 3, 2),
-            command_recovery_tail=1,
-        )
-    else:
-        raise SystemExit(f"Unknown recovery variant: {recovery_variant}")
-    if recovery_floor not in (0, 1):
-        raise SystemExit("Recovery floor must be 0 or 1")
-    rules = rules.with_overrides(command_recovery_floor=recovery_floor)
+    if recovery_start < 0 or recovery_decrement < 0:
+        raise SystemExit("Recovery start and decrement must be non-negative")
+    rules = GameRules.standard().with_overrides(
+        command_recovery_start=recovery_start,
+        command_recovery_decrement=recovery_decrement,
+    )
 
     default_games_by_agent = {
         "heuristic": {"quick": 8, "deep": 250, "exhaustive": 2000},
@@ -258,8 +270,8 @@ def balance_run(args: argparse.Namespace) -> Path:
                 "depth": args.online_agent_depth,
             },
         },
-        "recovery_variant": recovery_variant,
-        "recovery_floor": recovery_floor,
+        "recovery_start": recovery_start,
+        "recovery_decrement": recovery_decrement,
         "jobs": args.jobs,
         "skip_failed_games": bool(getattr(args, "skip_failed_games", False)),
         "rules": rules.as_dict(),
@@ -311,11 +323,11 @@ def balance_run(args: argparse.Namespace) -> Path:
     def policy_for(deck_name: str) -> dict[str, Any] | None:
         if agent_name != "mccfr":
             return None
-        if recovery_variant != "current" or recovery_floor != 1:
+        if rules != GameRules.standard():
             raise SystemExit(
-                "Offline MCCFR policies are only valid for canonical Command "
-                "recovery. Retrain variant-specific policies before using "
-                "MCCFR with an experimental recovery profile or floor."
+                "Offline MCCFR policies are only valid for the current Command "
+                "recovery candidate. Retrain policies before using MCCFR with "
+                "an experimental start/decrement pair."
             )
         profile = profile_ids.get(deck_name)
         if profile is None:
@@ -342,8 +354,8 @@ def balance_run(args: argparse.Namespace) -> Path:
             cells.extend([(left, right), (right, left)])
 
     print(
-        f"[1/4] Structural {agent_name} play ({recovery_variant} recovery, "
-        f"floor {recovery_floor}): "
+        f"[1/4] Structural {agent_name} play "
+        f"(recovery {recovery_start}-{recovery_decrement}x(Battle-1), floor 1): "
         f"{len(cells)} matchup cells x "
         f"{games} games = {len(cells) * games:,} attempted games",
         flush=True,
@@ -424,8 +436,8 @@ def balance_run(args: argparse.Namespace) -> Path:
             "seed": seed,
             "rules": asdict(engine.rules),
             "agent_profile": config["agent_profile"],
-            "recovery_variant": recovery_variant,
-            "recovery_floor": recovery_floor,
+            "recovery_start": recovery_start,
+            "recovery_decrement": recovery_decrement,
             "policy_fingerprints": [
                 policy.get("_policy_fingerprint") if policy else None
                 for policy in policies
@@ -447,10 +459,10 @@ def balance_run(args: argparse.Namespace) -> Path:
                 "deck_sizes": [len(decks[left]), len(decks[right])],
                 "starting_command": engine.rules.starting_command,
                 "command_cap": engine.rules.command_cap,
-                "command_recovery_schedule": list(
-                    engine.rules.command_recovery_schedule
+                "command_recovery_start": engine.rules.command_recovery_start,
+                "command_recovery_decrement": (
+                    engine.rules.command_recovery_decrement
                 ),
-                "command_recovery_tail": engine.rules.command_recovery_tail,
                 "command_recovery_floor": engine.rules.command_recovery_floor,
                 "command_collapse_threshold": (
                     engine.rules.command_collapse_threshold
@@ -660,7 +672,8 @@ def balance_run(args: argparse.Namespace) -> Path:
             "structural_play": {
                 "policy": agent_name,
                 "agent_profile": config["agent_profile"],
-                "recovery_variant": recovery_variant,
+                "recovery_start": recovery_start,
+                "recovery_decrement": recovery_decrement,
                 "purpose": (
                     "Structural, pacing, exposure and matchup "
                     "screening; not a strong-play claim."
@@ -704,7 +717,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         },
         "interpretation": (
             f"Evidence is hierarchical. {agent_name} self-play describes "
-            "structure and exposure for the selected recovery variant. "
+            "structure and exposure for the selected arithmetic recovery formula. "
             "Heuristic paired replacements are a "
             "screen for candidate card effects. A suspicious card is only "
             "treated as strategically confirmed when targeted online-MCCFR "
@@ -730,8 +743,9 @@ def balance_run(args: argparse.Namespace) -> Path:
             "_label": "Six canonical reference-deck progression profiles",
             "agent": agent_name,
             "agent_profile": config["agent_profile"],
-            "recovery_variant": recovery_variant,
-            "recovery_floor": recovery_floor,
+            "recovery_start": recovery_start,
+            "recovery_decrement": recovery_decrement,
+            "recovery_floor": rules.command_recovery_floor,
             "rules": rules.as_dict(),
             "progression_scope": (
                 "Detailed progression is stratified by all canonical same-deck "
@@ -766,9 +780,9 @@ def balance_run(args: argparse.Namespace) -> Path:
             "_label": f"Six canonical same-deck {agent_name} self-play aggregate",
         }
 
-        comparison_key = f"{agent_name}--{recovery_variant}"
-        if recovery_floor:
-            comparison_key += f"--floor-{recovery_floor}"
+        comparison_key = (
+            f"{agent_name}--recovery-{recovery_start}-{recovery_decrement}"
+        )
         comparisons_path = artifacts / "balance-comparisons.json"
         comparisons: dict[str, Any] = {
             "schema_version": 1,
@@ -786,8 +800,9 @@ def balance_run(args: argparse.Namespace) -> Path:
                 comparisons = existing
         comparisons.setdefault("profiles", {})[comparison_key] = {
             "agent": agent_name,
-            "recovery_variant": recovery_variant,
-            "recovery_floor": recovery_floor,
+            "recovery_start": recovery_start,
+            "recovery_decrement": recovery_decrement,
+            "recovery_floor": rules.command_recovery_floor,
             "rules": rules.as_dict(),
             "agent_profile": config["agent_profile"],
             "summary": summary_payload,
@@ -800,8 +815,7 @@ def balance_run(args: argparse.Namespace) -> Path:
 
         canonical_lab_profile = (
             agent_name == "ismcts"
-            and recovery_variant == "current"
-            and recovery_floor == 1
+            and rules == GameRules.standard()
         )
         if canonical_lab_profile:
             publish("balance-report.json", static_payload)
@@ -860,33 +874,27 @@ def balance_run(args: argparse.Namespace) -> Path:
     return output
 
 def run_command_matrix(args: argparse.Namespace) -> list[Path]:
-    """Run the planning-capable Command-economy comparison into one Lab."""
+    """Compare simple arithmetic Command-recovery formulas with ISMCTS."""
     outputs: list[Path] = []
     print(
-        "Command matrix: ISMCTS under current and candidate recovery, "
-        "each with recovery floors 0 and 1. This isolates the effect of the "
-        "minimum-recovery floor from the recovery-curve change. "
-        "Heuristic self-play is intentionally excluded because it cannot "
-        "plan across Battles and is not evidence about long-term Command "
-        "economy behavior.",
+        "Command matrix: ISMCTS across arithmetic (start, decrement) recovery "
+        "pairs. Collapse-at-zero and recovery floor 1 remain fixed; only the "
+        "two human-memory parameters vary. Heuristic self-play is intentionally "
+        "excluded because it cannot plan across Battles and is not evidence "
+        "about long-term Command economy behavior.",
         flush=True,
     )
-    for recovery_variant, recovery_floor in (
-        ("current", 0),
-        ("current", 1),
-        ("candidate", 0),
-        ("candidate", 1),
-    ):
+    for recovery_start, recovery_decrement in COMMAND_RECOVERY_CANDIDATES:
         cell = argparse.Namespace(**vars(args))
         cell.command_matrix = False
         cell.agent = "ismcts"
-        cell.recovery = recovery_variant
-        cell.recovery_floor = recovery_floor
+        cell.recovery_start = recovery_start
+        cell.recovery_decrement = recovery_decrement
         cell.skip_card_screen = True
         cell.publish_lab = True
         print(
-            f"\n=== ISMCTS / {recovery_variant} recovery "
-            f"/ floor {recovery_floor} ===",
+            f"\n=== ISMCTS / recovery start {recovery_start} "
+            f"/ decrement {recovery_decrement} ===",
             flush=True,
         )
         outputs.append(balance_run(cell))
@@ -1886,32 +1894,24 @@ def parse_args() -> argparse.Namespace:
         help="Agent used for structural/progression self-play.",
     )
     balance.add_argument(
-        "--recovery",
-        choices=("current", "candidate"),
-        default="current",
-        help=(
-            "Command recovery profile. candidate is experimental only: "
-            "10/8/6/5/4/3/2 then 1 for Battle VIII+."
-        ),
+        "--recovery-start",
+        type=int,
+        default=GameRules.standard().command_recovery_start,
+        help="Base Command recovery in Battle I for the arithmetic recovery rule.",
     )
     balance.add_argument(
-        "--recovery-floor",
+        "--recovery-decrement",
         type=int,
-        choices=(0, 1),
-        default=1,
-        help=(
-            "Minimum actual recovery after Front-loss penalties. "
-            "Canonical rules use 1; use 0 only for historical comparison."
-        ),
+        default=GameRules.standard().command_recovery_decrement,
+        help="Amount subtracted from base Command recovery after each Battle.",
     )
     balance.add_argument(
         "--command-matrix",
         action="store_true",
         help=(
-            "Run planning-capable Command-economy comparisons using ISMCTS: "
-            "current recovery, candidate recovery, and candidate recovery with "
-            "recovery floor 1. Heuristic self-play is excluded because it does "
-            "not plan across Battles."
+            "Run planning-capable ISMCTS comparisons across the configured "
+            "arithmetic (recovery start, decrement) candidate grid. Collapse "
+            "at zero and the recovery floor remain fixed."
         ),
     )
     balance.add_argument(
