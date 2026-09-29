@@ -565,15 +565,11 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.last_command_refunded[p] = state.command_refunded_this_battle[p]
         state.last_cards_drawn[p] = state.cards_drawn_this_battle[p]
         state.last_completion_count[p] = state.completion_count_this_battle[p]
+        # Collapse is checked on current Command after Battle resolution,
+        # cleanup, Retreats, and Battle-end effects, before any recovery.
         state.last_command_before_recovery[p] = state.command[p]
         state.last_recovery_loss[p] = state.resolution_recovery_losses[p]
-        actual = base_recovery - state.resolution_recovery_losses[p]
-        if actual < self.command_recovery_floor:
-            actual = self.command_recovery_floor
-        state.last_recovery_actual[p] = actual
-        state.command[p] += actual
-        if state.command[p] > self.command_cap:
-            state.command[p] = self.command_cap
+        state.last_recovery_actual[p] = 0
         state.last_command_remaining[p] = state.command[p]
         state.last_deck_remaining[p] = state.deck_len[p]
         state.last_hand_size[p] = state.hand_len[p]
@@ -594,6 +590,17 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
             state.pending_resume_player = -1
             _fe_clear_resolution_state(self, state)
             return
+
+    # Equal low Command continues. Only a continuing war receives recovery.
+    for p in range(2):
+        actual = base_recovery - state.resolution_recovery_losses[p]
+        if actual < self.command_recovery_floor:
+            actual = self.command_recovery_floor
+        state.last_recovery_actual[p] = actual
+        state.command[p] += actual
+        if state.command[p] > self.command_cap:
+            state.command[p] = self.command_cap
+        state.last_command_remaining[p] = state.command[p]
 
     starter = state.resolution_starter
     state.battle += 1
