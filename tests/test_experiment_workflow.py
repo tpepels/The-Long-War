@@ -376,12 +376,13 @@ def test_balance_defaults_to_eight_worker_processes(monkeypatch):
     )
     args = runner.parse_args()
     assert args.jobs == 8
-    assert args.recovery_floor == 1
+    assert args.recovery_start == 12
+    assert args.recovery_decrement == 3
     source = inspect.getsource(runner.balance_run)
     assert "jobs=args.jobs" in source
 
 
-def test_balance_accepts_experimental_recovery_floor_without_new_entrypoint(monkeypatch):
+def test_balance_accepts_experimental_arithmetic_recovery_without_new_entrypoint(monkeypatch):
     monkeypatch.setattr(
         runner.sys,
         "argv",
@@ -390,15 +391,15 @@ def test_balance_accepts_experimental_recovery_floor_without_new_entrypoint(monk
             "balance",
             "--preset",
             "quick",
-            "--recovery",
-            "candidate",
-            "--recovery-floor",
-            "1",
+            "--recovery-start",
+            "10",
+            "--recovery-decrement",
+            "2",
         ],
     )
     args = runner.parse_args()
-    assert args.recovery == "candidate"
-    assert args.recovery_floor == 1
+    assert args.recovery_start == 10
+    assert args.recovery_decrement == 2
 
 
 def test_strength_sanity_check_defaults(monkeypatch):
@@ -668,15 +669,17 @@ def test_command_matrix_cli_uses_four_planning_recovery_cells(monkeypatch) -> No
     args = runner.parse_args()
     assert args.command_matrix is True
 
+    assert runner.COMMAND_RECOVERY_CANDIDATES == (
+        (10, 2),
+        (12, 2),
+        (12, 3),
+        (15, 3),
+    )
     source = inspect.getsource(runner.run_command_matrix)
-    for pair in (
-        '("current", 0)',
-        '("current", 1)',
-        '("candidate", 0)',
-        '("candidate", 1)',
-    ):
-        assert pair in source
+    assert "for recovery_start, recovery_decrement in COMMAND_RECOVERY_CANDIDATES" in source
     assert 'cell.agent = "ismcts"' in source
-    assert "Heuristic self-play is intentionally excluded" in source
+    assert "Heuristic self-play is intentionally" in source
+    assert "cell.recovery_start = recovery_start" in source
+    assert "cell.recovery_decrement = recovery_decrement" in source
     assert "cell.skip_card_screen = True" in source
     assert "cell.publish_lab = True" in source
