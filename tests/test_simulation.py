@@ -151,6 +151,35 @@ def test_simulation_can_skip_one_failed_game_without_polluting_aggregates(monkey
     assert report.telemetry["progression"]["match_length"]["matches"] == 2
 
 
+def test_card_conservation_guard_identifies_first_missing_card() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "persistent-elite-heroes.json").read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=1761,
+        first_player=0,
+        opening_bonus=False,
+    )
+    expected = (
+        simulation_module.Counter(deck),
+        simulation_module.Counter(deck),
+    )
+
+    simulation_module._assert_card_conservation(state, expected)
+
+    missing = state.players[0].hand.pop()
+    with pytest.raises(RuntimeError, match=rf"missing=.*{missing}"):
+        simulation_module._assert_card_conservation(
+            state,
+            expected,
+            action=None,
+        )
+
+
 def test_action_horizon_is_recorded_as_censoring() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
@@ -172,13 +201,21 @@ def test_action_horizon_is_recorded_as_censoring() -> None:
     assert report.censored_games == 1
     assert report.decisive_games == 0
     assert report.censor_rate == pytest.approx(1.0)
-    assert report.game_outcomes == [{
+    outcome = report.game_outcomes[0]
+    assert {
+        key: outcome[key]
+        for key in ("game", "seed", "first_player", "winner", "censored")
+    } == {
         "game": 0,
         "seed": 198,
         "first_player": 0,
         "winner": None,
         "censored": True,
-    }]
+    }
+    assert outcome["actions_completed"] == 1
+    assert outcome["final_battle"] == 1
+    assert len(outcome["final_command"]) == 2
+    assert outcome["recent_actions"]
     match_length = report.telemetry["progression"]["match_length"]
     assert match_length["matches"] == 1
     assert match_length["censored_matches"] == 1
