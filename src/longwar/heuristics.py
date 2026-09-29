@@ -2,7 +2,50 @@ from __future__ import annotations
 
 from .game.actions import Action
 from .game.engine import GameEngine
-from .game.model import GameState
+from .game.model import GameState, Phase
+
+
+def command_preserving_actions(
+    engine: GameEngine,
+    state: GameState,
+    actions: list[Action] | None = None,
+) -> tuple[list[Action], int]:
+    """Remove avoidable unilateral Command-exhaustion blunders.
+
+    This is deliberately a final-action safety guard, not a rules restriction.
+    If every legal action leaves the acting side exhausted, nothing is removed.
+    Exact child states are inspected so an action that immediately restores
+    Command or produces a terminal win is not falsely rejected.
+    """
+    legal = list(engine.legal_actions(state) if actions is None else actions)
+    if len(legal) <= 1:
+        return legal, 0
+
+    actor = state.active_player
+    opponent = 1 - actor
+    threshold = int(engine.rules.command_collapse_threshold)
+    preserving: list[Action] = []
+    exhausting: list[Action] = []
+
+    for action in legal:
+        child = state.clone()
+        engine.apply(child, action, validate=False)
+        unilateral_exhaustion = (
+            child.players[actor].command <= threshold
+            and child.players[opponent].command > threshold
+            and not (
+                child.phase is Phase.COMPLETE
+                and child.winner == actor
+            )
+        )
+        if unilateral_exhaustion:
+            exhausting.append(action)
+        else:
+            preserving.append(action)
+
+    if not preserving:
+        return legal, 0
+    return preserving, len(exhausting)
 
 
 def opening_mulligan_indices(
