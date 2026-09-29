@@ -7,7 +7,7 @@ from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState
-from ..heuristics import opening_mulligan_indices
+from ..heuristics import command_preserving_actions, opening_mulligan_indices
 
 DEFAULT_ISMCTS_EXPLORATION = 0.3
 # Canonical production/search baseline. Keep experiment runners and simulation
@@ -151,12 +151,13 @@ class ISMCTSAgent:
         decision_started = perf_counter()
         root_player = state.active_player
         legal = engine.legal_actions(state)
-        if len(legal) == 1:
+        guarded_legal, guarded = command_preserving_actions(engine, state, legal)
+        if len(guarded_legal) == 1:
             self.last_decision = {
                 "candidate_count": 1,
                 "selected_score": 0.0,
                 "score_gap": 0.0,
-                "selected_action": type(legal[0]).__name__,
+                "selected_action": type(guarded_legal[0]).__name__,
                 "policy_source": "ismcts",
                 "belief_samples": 0,
                 "search_nodes": 0,
@@ -196,8 +197,10 @@ class ISMCTSAgent:
                 "ismcts_rollout_policy": self.rollout_policy,
                 "ismcts_progressive_widening": self.progressive_widening,
                 "ismcts_tree_reuse_enabled": self.reuse_tree,
+                "command_guard_applied": guarded > 0,
+                "command_guard_filtered_actions": guarded,
             }
-            return legal[0]
+            return guarded_legal[0]
 
         sampled_states = [
             self.belief.sample(state, root_player, self.rng)
@@ -253,8 +256,38 @@ class ISMCTSAgent:
             if action_key(action) == selected_key
         )
 
-        score = float(result["mean_value"])
-        second = float(result["second_mean_value"])
+        guard_overrode_search = False
+        if selected not in guarded_legal:
+            safe_keys = {action_key(action): action for action in guarded_legal}
+            safe_stats = [
+                stat
+                for stat in result["root_stats"]
+                if self.fast_engine.action_key(stat["action"]) in safe_keys
+            ]
+            if safe_stats:
+                best_safe = max(
+                    safe_stats,
+                    key=lambda stat: (
+                        int(stat["visits"]),
+                        float(stat["mean_value"]),
+                    ),
+                )
+                selected_key = self.fast_engine.action_key(best_safe["action"])
+                selected = safe_keys[selected_key]
+                guard_overrode_search = True
+                score = float(best_safe["mean_value"])
+                other_safe = [
+                    float(stat["mean_value"])
+                    for stat in safe_stats
+                    if stat is not best_safe
+                ]
+                second = max(other_safe) if other_safe else score
+            else:
+                score = float(result["mean_value"])
+                second = float(result["second_mean_value"])
+        else:
+            score = float(result["mean_value"])
+            second = float(result["second_mean_value"])
         self.last_decision = {
             "candidate_count": len(legal),
             "selected_score": score,
@@ -320,6 +353,9 @@ class ISMCTSAgent:
             "ismcts_rollout_policy": self.rollout_policy,
             "ismcts_progressive_widening": self.progressive_widening,
             "ismcts_tree_reuse_enabled": self.reuse_tree,
+            "command_guard_applied": guarded > 0,
+            "command_guard_filtered_actions": guarded,
+            "command_guard_overrode_search": guard_overrode_search,
             "ismcts_progressive_widening_alpha": float(
                 result["progressive_widening_alpha"]
             ),
