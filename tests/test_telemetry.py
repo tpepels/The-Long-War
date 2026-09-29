@@ -881,8 +881,11 @@ def test_low_command_telemetry_records_pre_recovery_collapse_and_floor() -> None
 
     stall = progression["low_command_stalls"]
     assert stall["diagnostic_battles"] == 1
-    assert stall["both_below_collapse_threshold"] == 1
+    assert stall["both_at_collapse_point"] == 1
     assert stall["equal_low_continuations"] == 1
+    assert stall["zero_zero_continuations"] == 1
+    assert stall["zero_zero_recovered"] == 1
+    assert stall["zero_vs_positive_collapses"] == 0
     assert stall["both_zero_command_battle_starts"] == 1
     assert stall["battles_with_no_paid_operation"] == 1
     assert stall["battles_with_no_board_change"] == 1
