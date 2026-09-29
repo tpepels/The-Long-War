@@ -82,9 +82,9 @@ class ISMCTSAgent:
             raise ValueError("progressive_widening must be non-negative")
         if not 0.0 <= rollout_epsilon <= 1.0:
             raise ValueError("rollout_epsilon must be between 0 and 1")
-        if rollout_policy not in {"greedy", "cheap", "random"}:
+        if rollout_policy not in {"greedy", "cheap", "random", "decisive"}:
             raise ValueError(
-                "rollout_policy must be greedy, cheap, or random"
+                "rollout_policy must be greedy, cheap, random, or decisive"
             )
         if not isfinite(leaf_scale) or leaf_scale <= 0:
             raise ValueError("leaf_scale must be positive")
@@ -109,6 +109,7 @@ class ISMCTSAgent:
             "greedy": 0,
             "cheap": 1,
             "random": 2,
+            "decisive": 3,
         }[rollout_policy]
         self.leaf_scale = leaf_scale
         self.fast_engine = FastEngine(engine)
