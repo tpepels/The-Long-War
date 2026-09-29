@@ -8,6 +8,7 @@
 from libc.math cimport isfinite
 
 DEF MAX_ISMCTS_DEPTH = 256
+DEF DECISIVE_ROLLOUT_GREEDY_PROBABILITY = 0.05
 
 cdef inline uint64_t _ismcts_next(uint64_t* state) noexcept:
     cdef uint64_t x = state[0]
@@ -403,6 +404,27 @@ cdef uint64_t _ismcts_rollout_action(
         raise RuntimeError("Non-terminal ISMCTS state has no legal action")
     if n == 1:
         return actions[0]
+
+    if policy == 3:
+        # Historical rollout style: exact decisive move when cheaply provable,
+        # otherwise 5% full greedy and 95% random. In the current rules the
+        # war winner is only assigned during Battle-end recovery/collapse, so
+        # the only exact action worth probing here is a second Pass.
+        if state.pass_len == 1:
+            for i in range(n):
+                if action_kind(actions[i]) != TYPE_PASS:
+                    continue
+                score_scratch.copy_from_fast(state)
+                _fe_apply_fast(engine, score_scratch, actions[i])
+                if (
+                    score_scratch.phase == PHASE_COMPLETE
+                    and score_scratch.winner == actor
+                ):
+                    return actions[i]
+                break
+        if _ismcts_rand_unit(rng) >= DECISIVE_ROLLOUT_GREEDY_PROBABILITY:
+            return actions[_ismcts_rand_index(rng, n)]
+
     if policy == 2 or _ismcts_rand_unit(rng) < epsilon:
         return actions[_ismcts_rand_index(rng, n)]
 
@@ -507,8 +529,8 @@ def ismcts_search(
         raise ValueError("progressive_widening must be non-negative")
     if not isfinite(rollout_epsilon) or not 0.0 <= rollout_epsilon <= 1.0:
         raise ValueError("rollout_epsilon must be between 0 and 1")
-    if rollout_policy not in (0, 1, 2):
-        raise ValueError("rollout_policy must be 0, 1, or 2")
+    if rollout_policy not in (0, 1, 2, 3):
+        raise ValueError("rollout_policy must be 0, 1, 2, or 3")
     if not isfinite(leaf_scale) or leaf_scale <= 0.0:
         raise ValueError("leaf_scale must be positive")
     if not isfinite(time_limit_seconds) or time_limit_seconds < 0.0:
@@ -775,6 +797,7 @@ def ismcts_search(
         "rollout_policy": (
             "cheap" if rollout_policy == 1
             else "random" if rollout_policy == 2
+            else "decisive" if rollout_policy == 3
             else "greedy"
         ),
     }
