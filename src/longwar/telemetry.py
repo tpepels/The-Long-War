@@ -31,11 +31,17 @@ class CardStats:
     affordable_turns: int = 0
     unaffordable_turns: int = 0
     structurally_unplayable_turns: int = 0
+    hero_allowance_blocked_turns: int = 0
+    hero_command_blocked_turns: int = 0
+    hero_structural_blocked_turns: int = 0
     held_on_pass: int = 0
     dead_on_pass: int = 0
     affordable_on_pass: int = 0
     unaffordable_on_pass: int = 0
     structurally_dead_on_pass: int = 0
+    hero_allowance_blocked_on_pass: int = 0
+    hero_command_blocked_on_pass: int = 0
+    hero_structural_blocked_on_pass: int = 0
     immediate_front_swing_total: float = 0.0
     immediate_control_swing_total: float = 0.0
     games_drawn: int = 0
@@ -253,11 +259,28 @@ class Telemetry:
             }
             command = int(state.players[actor].command)
             hand = Counter(state.players[actor].hand)
+            hero_block_reasons: dict[str, str] = {}
             for card_id, copies in hand.items():
                 stats = self.cards[card_id]
                 stats.turns_in_hand += copies
                 cost = int(engine.cards.get(card_id, {}).get("command_cost", 0) or 0)
                 affordable = command >= cost
+                block_reason = None
+                if (
+                    card_id not in playable_ids
+                    and engine.cards.get(card_id, {}).get("hero")
+                ):
+                    block_reason = self._hero_block_reason(
+                        engine, state, actor, card_id
+                    )
+                    hero_block_reasons[card_id] = block_reason
+                    if block_reason == "hero_allowance":
+                        stats.hero_allowance_blocked_turns += copies
+                    elif block_reason == "command":
+                        stats.hero_command_blocked_turns += copies
+                    else:
+                        stats.hero_structural_blocked_turns += copies
+
                 if affordable:
                     stats.affordable_turns += copies
                 else:
@@ -266,7 +289,9 @@ class Telemetry:
                     stats.playable_turns += copies
                 else:
                     stats.unplayable_turns += copies
-                    if affordable:
+                    # The one-Hero-from-hand allowance is not structural card
+                    # illegality and must not create false dead-draw warnings.
+                    if affordable and block_reason != "hero_allowance":
                         stats.structurally_unplayable_turns += copies
 
             if isinstance(action, Pass):
@@ -315,7 +340,14 @@ class Telemetry:
                     if card_id not in playable_ids:
                         stats.dead_on_pass += copies
                         pass_record["dead_cards"] += copies
-                        if affordable:
+                        block_reason = hero_block_reasons.get(card_id)
+                        if block_reason == "hero_allowance":
+                            stats.hero_allowance_blocked_on_pass += copies
+                        elif block_reason == "command":
+                            stats.hero_command_blocked_on_pass += copies
+                        elif block_reason == "structural":
+                            stats.hero_structural_blocked_on_pass += copies
+                        if affordable and block_reason != "hero_allowance":
                             stats.structurally_dead_on_pass += copies
                             pass_record["structurally_dead_cards"] += copies
 
@@ -538,6 +570,18 @@ class Telemetry:
                 stats.unaffordable_turns,
                 stats.turns_in_hand,
             )
+            payload["hero_allowance_blocked_turn_rate"] = self._ratio(
+                stats.hero_allowance_blocked_turns,
+                stats.turns_in_hand,
+            )
+            payload["hero_command_blocked_turn_rate"] = self._ratio(
+                stats.hero_command_blocked_turns,
+                stats.turns_in_hand,
+            )
+            payload["hero_structural_blocked_turn_rate"] = self._ratio(
+                stats.hero_structural_blocked_turns,
+                stats.turns_in_hand,
+            )
             payload["dead_on_pass_rate"] = self._ratio(
                 stats.dead_on_pass,
                 stats.held_on_pass,
@@ -548,6 +592,18 @@ class Telemetry:
             )
             payload["resource_blocked_on_pass_rate"] = self._ratio(
                 stats.unaffordable_on_pass,
+                stats.held_on_pass,
+            )
+            payload["hero_allowance_blocked_on_pass_rate"] = self._ratio(
+                stats.hero_allowance_blocked_on_pass,
+                stats.held_on_pass,
+            )
+            payload["hero_command_blocked_on_pass_rate"] = self._ratio(
+                stats.hero_command_blocked_on_pass,
+                stats.held_on_pass,
+            )
+            payload["hero_structural_blocked_on_pass_rate"] = self._ratio(
+                stats.hero_structural_blocked_on_pass,
                 stats.held_on_pass,
             )
             payload["mean_immediate_front_swing"] = self._ratio(
@@ -896,6 +952,39 @@ class Telemetry:
                 "matches": self._match_count,
             },
         }
+
+    def _hero_block_reason(
+        self,
+        engine: GameEngine,
+        state: GameState,
+        actor: int,
+        card_id: str,
+    ) -> str:
+        """Classify why a Hero in hand has no legal play.
+
+        "hero_allowance" means restoring only the once-per-Battle Hero
+        allowance makes the card legal at current Command. "command" means
+        the card becomes legal only after also restoring Command. Everything
+        else is structural, including placement and active constraints.
+        """
+        allowance_probe = state.clone()
+        allowance_probe.hero_used[actor] = False
+        allowance_legal = engine.legal_actions(allowance_probe)
+        if any(
+            self._action_card_id(candidate) == card_id
+            for candidate in allowance_legal
+        ):
+            return "hero_allowance"
+
+        command_probe = allowance_probe.clone()
+        command_probe.players[actor].command = engine.rules.command_cap
+        command_legal = engine.legal_actions(command_probe)
+        if any(
+            self._action_card_id(candidate) == card_id
+            for candidate in command_legal
+        ):
+            return "command"
+        return "structural"
 
     def _record_draw(self, player: int, card_id: str) -> None:
         self.cards[card_id].draws += 1
