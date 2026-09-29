@@ -1983,7 +1983,7 @@ def parse_args() -> argparse.Namespace:
     )
     balance.add_argument(
         "--ismcts-rollout-policy",
-        choices=("greedy", "cheap", "random"),
+        choices=("greedy", "cheap", "random", "decisive"),
         default=DEFAULT_ISMCTS_ROLLOUT_POLICY,
     )
     balance.add_argument(
