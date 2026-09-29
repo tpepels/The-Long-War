@@ -825,6 +825,65 @@ class ProgressionTelemetry:
                 ),
             })
 
+        censored_game_diagnostics = []
+        for match in match_records:
+            if not match.get("censored"):
+                continue
+            game = int(match.get("game", 0))
+            game_rows = sorted(
+                rows_by_game.get(game, []),
+                key=lambda row: int(row.get("battle", 0)),
+            )
+            tail = game_rows[-8:]
+            censored_game_diagnostics.append({
+                "game": game,
+                "simulation_game_index": match.get("simulation_game_index"),
+                "seed": match.get("seed"),
+                "first_player": match.get("first_player"),
+                "final_battle": match.get("final_battle"),
+                "resolved_battles": match.get("resolved_battles"),
+                "final_command": match.get("final_command"),
+                "low_command_battles": sum(
+                    any(value < threshold for value in row["command_start"])
+                    for row in game_rows
+                ),
+                "both_zero_command_battle_starts": sum(
+                    row["command_start"] == [0, 0]
+                    for row in game_rows
+                ),
+                "battles_with_no_paid_operation": sum(
+                    bool(row.get("no_paid_operation"))
+                    for row in game_rows
+                ),
+                "battles_with_no_board_change": sum(
+                    row.get("board_changed") is False
+                    for row in game_rows
+                ),
+                "battles_with_no_strength_change": sum(
+                    row.get("strength_changed") is False
+                    for row in game_rows
+                ),
+                "battles_with_no_command_change": sum(
+                    row.get("command_changed") is False
+                    for row in game_rows
+                ),
+                "last_battles": [
+                    {
+                        "battle": int(row.get("battle", 0)),
+                        "command_start": row.get("command_start"),
+                        "command_after_recovery": row.get(
+                            "command_after_recovery",
+                            row.get("next_battle_command"),
+                        ),
+                        "no_paid_operation": row.get("no_paid_operation"),
+                        "board_changed": row.get("board_changed"),
+                        "strength_changed": row.get("strength_changed"),
+                        "command_changed": row.get("command_changed"),
+                    }
+                    for row in tail
+                ],
+            })
+
         low_command_stalls = {
             "collapse_threshold": threshold,
             "diagnostic_battles": len(stall_rows),
@@ -1230,6 +1289,7 @@ class ProgressionTelemetry:
             "mechanical_choice": choice,
             "resources": resource,
             "low_command_stalls": low_command_stalls,
+            "censored_games": censored_game_diagnostics,
             "cards": self._card_lifecycle_summary(),
             "hero_modes": self._hero_summary(),
             "by_battle": by_battle,
