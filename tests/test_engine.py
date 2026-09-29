@@ -2187,7 +2187,9 @@ def test_banner_singers_trigger_after_narrative_command_gain() -> None:
     engine, state = setup_state(seed=4833)
     source = pos(0, Rank.FRONT)
     destination = pos(1, Rank.FRONT)
+    other_named = pos(2, Rank.FRONT)
     make_named(state, 0, source)
+    make_named(state, 0, other_named)
     state.slot(0, pos(3, Rank.REAR)).force = "the-banner-singers"
     state.stories[0] = [StoryState("the-long-march")]
     state.players[0].command = 5
@@ -2195,10 +2197,19 @@ def test_banner_singers_trigger_after_narrative_command_gain() -> None:
     engine.apply(state, Maneuver(source, destination))
 
     choices = effect_choices(engine, state, "free-maneuver")
+    # Banner Singers still triggers, but the formation that initiated the
+    # operation's Maneuver cannot initiate a second Maneuver in the same
+    # operation-resolution chain.
+    assert all(
+        action.skip
+        or action.source is None
+        or action.source.position != destination
+        for action in choices
+    )
     assert any(
         not action.skip
         and action.source is not None
-        and action.source.position == destination
+        and action.source.position == other_named
         for action in choices
     )
 
