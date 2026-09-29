@@ -127,7 +127,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         analyze_simulation,
     )
     from longwar.playability import build_playability_report
-    from longwar.simulate import simulate_games
+    from longwar.simulate import SimulationBatchCell, simulate_games_batch
     from longwar.targeted_counterfactual import run_targeted_online_validation
 
     # balance_run is also called directly by tests and research helpers.
@@ -354,38 +354,67 @@ def balance_run(args: argparse.Namespace) -> Path:
     selfplay_simulations: dict[str, dict[str, Any]] = {}
     total_censored = 0
     total_failed = 0
+
+    cell_metadata: dict[
+        str,
+        tuple[str, str, int, tuple[dict[str, Any] | None, dict[str, Any] | None]],
+    ] = {}
+    batch_cells: list[SimulationBatchCell] = []
     for index, (left, right) in enumerate(cells):
         seed = args.seed + index * games
         policies = (policy_for(left), policy_for(right))
-        report = simulate_games(
-            engine,
-            decks[left],
-            decks[right],
-            games=games,
-            seed=seed,
-            jobs=args.jobs,
-            agent_names=(agent_name, agent_name),
-            agent_policies=policies,
-            online_iterations=args.online_agent_iterations,
-            online_depth=args.online_agent_depth,
-            strategic_belief_samples=args.strategic_belief_samples,
-            strategic_rollout_plies=args.strategic_rollout_plies,
-            strategic_candidate_width=args.strategic_candidate_width,
-            strategic_node_budget=args.strategic_node_budget,
-            strategic_time_budget_seconds=args.strategic_time_budget_seconds,
-            ismcts_belief_samples=args.ismcts_belief_samples,
-            ismcts_iterations=args.ismcts_iterations,
-            ismcts_time_budget_seconds=args.ismcts_time_budget_seconds,
-            ismcts_rollout_depth=args.ismcts_rollout_depth,
-            ismcts_tree_depth_limit=args.ismcts_tree_depth_limit,
-            ismcts_exploration=args.ismcts_exploration,
-            ismcts_progressive_widening=args.ismcts_progressive_widening,
-            ismcts_reuse_tree=not args.ismcts_no_tree_reuse,
-            ismcts_max_tree_nodes=args.ismcts_max_tree_nodes,
-            ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
-            ismcts_rollout_policy=args.ismcts_rollout_policy,
-            skip_failed_games=bool(getattr(args, "skip_failed_games", False)),
+        name = f"{left}--{right}"
+        cell_metadata[name] = (left, right, seed, policies)
+        batch_cells.append(
+            SimulationBatchCell(
+                key=name,
+                deck_a=decks[left],
+                deck_b=decks[right],
+                games=games,
+                seed=seed,
+                options={"agent_policies": policies},
+            )
         )
+
+    common_simulation_options = {
+        "agent_names": (agent_name, agent_name),
+        "online_iterations": args.online_agent_iterations,
+        "online_depth": args.online_agent_depth,
+        "strategic_belief_samples": args.strategic_belief_samples,
+        "strategic_rollout_plies": args.strategic_rollout_plies,
+        "strategic_candidate_width": args.strategic_candidate_width,
+        "strategic_node_budget": args.strategic_node_budget,
+        "strategic_time_budget_seconds": args.strategic_time_budget_seconds,
+        "ismcts_belief_samples": args.ismcts_belief_samples,
+        "ismcts_iterations": args.ismcts_iterations,
+        "ismcts_time_budget_seconds": args.ismcts_time_budget_seconds,
+        "ismcts_rollout_depth": args.ismcts_rollout_depth,
+        "ismcts_tree_depth_limit": args.ismcts_tree_depth_limit,
+        "ismcts_exploration": args.ismcts_exploration,
+        "ismcts_progressive_widening": args.ismcts_progressive_widening,
+        "ismcts_reuse_tree": not args.ismcts_no_tree_reuse,
+        "ismcts_max_tree_nodes": args.ismcts_max_tree_nodes,
+        "ismcts_rollout_epsilon": args.ismcts_rollout_epsilon,
+        "ismcts_rollout_policy": args.ismcts_rollout_policy,
+        "skip_failed_games": bool(getattr(args, "skip_failed_games", False)),
+    }
+
+    def structural_progress(key: str, completed: int, total: int) -> None:
+        if completed == total:
+            print(f"  completed {key}: {completed}/{total} games", flush=True)
+
+    reports = simulate_games_batch(
+        engine,
+        batch_cells,
+        jobs=args.jobs,
+        common_options=common_simulation_options,
+        progress_callback=structural_progress,
+    )
+
+    for left, right in cells:
+        name = f"{left}--{right}"
+        _meta_left, _meta_right, seed, policies = cell_metadata[name]
+        report = reports[name]
         total_censored += report.censored_games
         total_failed += report.failed_games
         payload = {
@@ -434,7 +463,6 @@ def balance_run(args: argparse.Namespace) -> Path:
                 "card_file": "cards/cards.json",
             },
         }
-        name = f"{left}--{right}"
         save(name, payload)
         save(f"{name}-health", analyze_simulation(payload, data))
         simulations.append(payload)
