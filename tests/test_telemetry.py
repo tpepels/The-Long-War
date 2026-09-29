@@ -6,7 +6,8 @@ import pytest
 from pathlib import Path
 
 from longwar.cards import load_card_file
-from longwar.game import GameEngine, all_positions
+from longwar.game import GameEngine
+from longwar.game.engine import all_positions
 from longwar.game.actions import EffectChoice, Maneuver, Pass, PlayForce, PlayName
 from longwar.game.model import (
     ConstraintKind,
