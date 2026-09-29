@@ -28,6 +28,7 @@ def serialized_rule_metadata(rules: GameRules) -> dict[str, object]:
         "command_cap": rules.command_cap,
         "command_recovery_schedule": list(rules.command_recovery_schedule),
         "command_recovery_tail": rules.command_recovery_tail,
+        "command_recovery_floor": rules.command_recovery_floor,
         "command_collapse_threshold": rules.command_collapse_threshold,
         "maneuver_command_cost": rules.maneuver_command_cost,
         "hand_limit": rules.hand_limit,
