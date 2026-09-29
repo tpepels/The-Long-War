@@ -71,6 +71,7 @@ class DecisionStats:
     ismcts_battle_boundary_cutoffs: int = 0
     ismcts_depth_cutoffs: int = 0
     ismcts_rollout_actions: int = 0
+    ismcts_decisive_rollout_actions: int = 0
     ismcts_iterations_total: int = 0
     ismcts_setup_seconds_total: float = 0.0
     ismcts_search_seconds_total: float = 0.0
@@ -373,6 +374,9 @@ class Telemetry:
             )
             stats.ismcts_rollout_actions += int(
                 decision_info.get("ismcts_rollout_actions", 0)
+            )
+            stats.ismcts_decisive_rollout_actions += int(
+                decision_info.get("ismcts_decisive_rollout_actions", 0)
             )
             ismcts_iterations = int(
                 decision_info.get("ismcts_iterations", 0)
@@ -778,6 +782,12 @@ class Telemetry:
             if cutoff_total:
                 decisions[agent]["ismcts_rollout_cutoffs"] = {
                     "iterations": cutoff_total,
+                    "rollout_actions": stats.ismcts_rollout_actions,
+                    "decisive_actions": stats.ismcts_decisive_rollout_actions,
+                    "decisive_action_rate": self._ratio(
+                        stats.ismcts_decisive_rollout_actions,
+                        stats.ismcts_rollout_actions,
+                    ),
                     "terminal": stats.ismcts_terminal_cutoffs,
                     "battle_boundary": stats.ismcts_battle_boundary_cutoffs,
                     "depth": stats.ismcts_depth_cutoffs,
