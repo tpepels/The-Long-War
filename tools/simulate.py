@@ -172,8 +172,16 @@ def main() -> None:
         default=Path("cards/cards.json"),
         help="Card data file for this simulation variant.",
     )
-    parser.add_argument("--starting-command", type=int, default=20)
-    parser.add_argument("--command-cap", type=int, default=20)
+    parser.add_argument(
+        "--starting-command",
+        type=int,
+        default=defaults.starting_command,
+    )
+    parser.add_argument(
+        "--command-cap",
+        type=int,
+        default=defaults.command_cap,
+    )
     parser.add_argument(
         "--deck-a",
         type=Path,
@@ -223,7 +231,7 @@ def main() -> None:
     )
 
     card_data = load_card_file(resolve(args.card_file))
-    rules = GameRules(
+    rules = defaults.with_overrides(
         opening_hand_size=args.hand_size,
         starting_command=args.starting_command,
         command_cap=args.command_cap,
