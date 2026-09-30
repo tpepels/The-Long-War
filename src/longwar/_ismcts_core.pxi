@@ -119,7 +119,10 @@ cdef class ISMCTSTree:
     def clear(self):
         """Discard statistics while retaining reusable node and edge arenas."""
         cdef size_t i
-        memset(self.nodes, 0, self.node_capacity * sizeof(ISMCTSNodeRecord))
+        # Buckets must be cleared because they index the old tree. Node records
+        # do not: get_or_create overwrites every field before a recycled record
+        # becomes reachable again, so zeroing the full node capacity here only
+        # burns memory bandwidth on large persistent trees.
         memset(self.buckets, 0, self.bucket_capacity * sizeof(int32_t))
         for i in range(self.edge_slab_count):
             self.edge_slabs[i].used = 0
