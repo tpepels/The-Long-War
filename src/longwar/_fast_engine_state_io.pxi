@@ -136,6 +136,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         fast.pending_kind[i] = int(effect_state.get("kind", EFFECT_NONE))
         fast.pending_player[i] = int(effect_state.get("player", -1))
         fast.pending_card[i] = int(effect_state.get("card", -1))
+        fast.pending_command_source[i] = int(
+            effect_state.get("command_source", -1)
+        )
         fast.pending_source[i] = int(effect_state.get("source", -1))
         fast.pending_aux[i] = int(effect_state.get("aux", -1))
         fast.pending_source_mask[i] = int(effect_state.get("source_mask", 0))
@@ -611,6 +614,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                 "kind": state.pending_kind[i],
                 "player": state.pending_player[i],
                 "card": state.pending_card[i],
+                "command_source": state.pending_command_source[i],
                 "source": state.pending_source[i],
                 "aux": state.pending_aux[i],
                 "source_mask": state.pending_source_mask[i],

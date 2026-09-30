@@ -49,6 +49,7 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
     cdef int source = action_pos(action)
     cdef int dest = action_dest(action)
     cdef int trigger_source = state.pending_source[0]
+    cdef int command_source = state.pending_command_source[0]
     cdef int aux = state.pending_aux[0]
     cdef bint skip = card < 0 and source < 0 and dest < 0
     cdef bint was_empty
@@ -67,8 +68,17 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
             state.player_maneuver_count[player] += 1
             if state.free_maneuver_available[player]:
                 state.free_maneuver_available[player] = 0
-            _fe_resolve_maneuver_triggers(self, 
-                state, player, source, dest, was_empty
+            _fe_record_command_diag(
+                self,
+                COMMAND_DIAG_DISCOUNT,
+                COMMAND_DETAIL_FREE_MANEUVER,
+                player,
+                command_source,
+                self.maneuver_command_cost,
+                self.maneuver_command_cost,
+            )
+            _fe_resolve_maneuver_triggers(
+                self, state, player, source, dest, was_empty
             )
     elif kind == EFFECT_MOVE:
         if not skip:
@@ -389,8 +399,9 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_take_from_hand(self, state, actor, card, 0)
         state.force[pos] = card
         if (self.card_capabilities[card] & CAP_PREPARED_ON_PLAY_FREE_MANEUVER_FORCE) and prepared_before:
-            _fe_queue_free_maneuver(self, 
-                state, actor, <uint16_t>(1 << pos), True, True
+            _fe_queue_free_maneuver(
+                self, state, actor, <uint16_t>(1 << pos),
+                True, True, card
             )
         if (self.card_capabilities[card] & CAP_ON_PLAY_TAKE_ADJACENT_PREPARED_COMPONENT_FORCE):
             _fe_queue_take_adjacent_prepared_component_on_force_play(self, state, actor, pos)

@@ -392,6 +392,7 @@ cdef void _fe_queue_free_maneuver(
     uint16_t source_mask,
     bint optional=True,
     bint allow_unnamed=False,
+    int source_card=-1,
 ) except *:
     cdef int flags = EFFECT_OPTIONAL if optional else 0
     if source_mask == 0:
@@ -408,6 +409,7 @@ cdef void _fe_queue_free_maneuver(
         source_mask,
         0,
         flags,
+        source_card,
     )
 
 cdef void _fe_queue_move_to_mask(
@@ -453,7 +455,9 @@ cdef void _fe_gain_command_from_narrative(
         slot = slot_index(player, front, 1)
         force = state.force[slot]
         if force >= 0 and (self.card_capabilities[force] & CAP_NARRATIVE_COMMAND_GAIN_FREE_MANEUVER_FORCE):
-            _fe_queue_free_maneuver(self, state, player, named, True)
+            _fe_queue_free_maneuver(
+                self, state, player, named, True, False, force
+            )
 
 cdef void _fe_resolve_named_narratives(
     FastEngine self,
@@ -482,12 +486,15 @@ cdef void _fe_resolve_named_narratives(
                         _fe_gain_command_from_narrative(self, state, controller, card, amount)
                     secondary = self.narrative_secondary[card]
                     if secondary == NARR_SECONDARY_FREE_TRIGGERED and controller == named_player:
-                        _fe_queue_free_maneuver(self, 
-                            state, controller, <uint16_t>(1 << named_slot), True
+                        _fe_queue_free_maneuver(
+                            self, state, controller,
+                            <uint16_t>(1 << named_slot), True, False, card
                         )
                     elif secondary == NARR_SECONDARY_FREE_ANY_NAMED:
                         sources = _fe_named_formation_mask(self, state, controller)
-                        _fe_queue_free_maneuver(self, state, controller, sources, True)
+                        _fe_queue_free_maneuver(
+                            self, state, controller, sources, True, False, card
+                        )
                     if self.narrative_trigger_discard[card]:
                         _fe_discard_ongoing_narrative(self, 
                             state, controller, story_slot
@@ -558,11 +565,14 @@ cdef void _fe_resolve_force_pair_narratives(
             if amount:
                 _fe_gain_command_from_narrative(self, state, controller, card, amount)
             if self.narrative_secondary[card] == NARR_SECONDARY_FREE_ANY_NAMED:
-                _fe_queue_free_maneuver(self, 
+                _fe_queue_free_maneuver(
+                    self,
                     state,
                     controller,
                     _fe_named_formation_mask(self, state, controller),
                     True,
+                    False,
+                    card,
                 )
             if self.narrative_trigger_discard[card]:
                 _fe_discard_ongoing_narrative(self, 
@@ -704,18 +714,22 @@ cdef void _fe_resolve_maneuver_triggers(
     else:
         if force >= 0 and self.after_swap_free_other[force]:
             if state.force[vacated_slot] >= 0:
-                _fe_queue_free_maneuver(self, 
-                    state, player, <uint16_t>(1 << vacated_slot), True
+                _fe_queue_free_maneuver(
+                    self, state, player, <uint16_t>(1 << vacated_slot),
+                    True, False, force
                 )
 
     if force >= 0 and self.after_maneuver_free_adjacent[force]:
-        _fe_queue_free_maneuver(self, 
+        _fe_queue_free_maneuver(
+            self,
             state,
             player,
-            _fe_adjacent_formation_mask(self, 
-                state, player, arrived_slot, True
+            _fe_adjacent_formation_mask(
+                self, state, player, arrived_slot, True
             ),
             True,
+            False,
+            force,
         )
 
     if name >= 0 and (self.card_capabilities[name] & CAP_AFTER_MANEUVER_SWAP_OTHER_FRIENDLIES):
@@ -737,11 +751,14 @@ cdef void _fe_resolve_maneuver_triggers(
             )
 
     if name >= 0 and (self.card_capabilities[name] & CAP_AFTER_SELF_MANEUVER_FREE_OTHER_NAMED_IF_WIDE) and _fe_force_in_all_fronts(self, state, player):
-        _fe_queue_free_maneuver(self, 
+        _fe_queue_free_maneuver(
+            self,
             state,
             player,
             _fe_named_formation_mask(self, state, player, arrived_slot),
             True,
+            False,
+            name,
         )
 
     for other in range(opponent * 8, opponent * 8 + 8):
@@ -749,15 +766,17 @@ cdef void _fe_resolve_maneuver_triggers(
         if other_name < 0 or state.force[other] < 0:
             continue
         if front_from_slot(other) == front and (self.card_capabilities[other_name] & CAP_OPPOSING_MANEUVER_SAME_FRONT_FREE_MANEUVER):
-            _fe_queue_free_maneuver(self, 
-                state, opponent, <uint16_t>(1 << other), True
+            _fe_queue_free_maneuver(
+                self, state, opponent, <uint16_t>(1 << other),
+                True, False, other_name
             )
         if (
             abs(front_from_slot(other) - front) == 1
             and self.reactive_maneuver_name[other_name]
         ):
-            _fe_queue_free_maneuver(self, 
-                state, opponent, <uint16_t>(1 << other), True
+            _fe_queue_free_maneuver(
+                self, state, opponent, <uint16_t>(1 << other),
+                True, False, other_name
             )
 
 cdef void _fe_resolve_plot_target_scheme(FastEngine self, FastState state, int actor, int pos):

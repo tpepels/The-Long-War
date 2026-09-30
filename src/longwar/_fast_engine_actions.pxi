@@ -521,6 +521,7 @@ cdef void _fe_enqueue_effect(
     uint16_t source_mask=0,
     uint16_t dest_mask=0,
     int flags=0,
+    int command_source=-1,
 ) except *:
     cdef int i = state.pending_len
     cdef int j
@@ -538,6 +539,7 @@ cdef void _fe_enqueue_effect(
     state.pending_kind[i] = kind
     state.pending_player[i] = player
     state.pending_card[i] = card
+    state.pending_command_source[i] = command_source
     state.pending_source[i] = source
     state.pending_aux[i] = aux
     state.pending_source_mask[i] = source_mask
@@ -555,6 +557,7 @@ cdef void _fe_pop_pending_effect(FastEngine self, FastState state) noexcept:
         state.pending_kind[i - 1] = state.pending_kind[i]
         state.pending_player[i - 1] = state.pending_player[i]
         state.pending_card[i - 1] = state.pending_card[i]
+        state.pending_command_source[i - 1] = state.pending_command_source[i]
         state.pending_source[i - 1] = state.pending_source[i]
         state.pending_aux[i - 1] = state.pending_aux[i]
         state.pending_source_mask[i - 1] = state.pending_source_mask[i]

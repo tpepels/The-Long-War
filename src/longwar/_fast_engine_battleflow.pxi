@@ -229,8 +229,9 @@ cdef void _fe_retreat_slot(
             and other_bond >= 0
             and (self.card_capabilities[other_bond] & CAP_ADJACENT_RETREAT_FREE_MANEUVER)
         ):
-            _fe_queue_free_maneuver(self, 
-                state, player, <uint16_t>(1 << other), True
+            _fe_queue_free_maneuver(
+                self, state, player, <uint16_t>(1 << other),
+                True, False, other_bond
             )
     if front < 3:
         other = slot_index(player, front + 1, rank)
@@ -240,8 +241,9 @@ cdef void _fe_retreat_slot(
             and other_bond >= 0
             and (self.card_capabilities[other_bond] & CAP_ADJACENT_RETREAT_FREE_MANEUVER)
         ):
-            _fe_queue_free_maneuver(self, 
-                state, player, <uint16_t>(1 << other), True
+            _fe_queue_free_maneuver(
+                self, state, player, <uint16_t>(1 << other),
+                True, False, other_bond
             )
 
 cdef inline bint _fe_front_has_capture_bond(

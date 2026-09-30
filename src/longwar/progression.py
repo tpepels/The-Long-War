@@ -1838,6 +1838,12 @@ class ProgressionTelemetry:
                 gained_from_diagnostics += amount
             elif event.get("kind") == "discount":
                 stats["discount_saved"] += amount
+                if (
+                    detail == "free_maneuver"
+                    and isinstance(action, EffectChoice)
+                    and amount > 0
+                ):
+                    stats["free_operations"] += 1
                 if amount > 0:
                     discount_sources.append(source)
             elif event.get("kind") == "recovery_protection":

@@ -451,8 +451,9 @@ cdef void _fe_resolve_new_completions_fast(
         )
         if state.name[slot] >= 0:
             if self.completion_free_maneuver_self[state.name[slot]]:
-                _fe_queue_free_maneuver(self, 
-                    state, player, <uint16_t>(1 << slot), True
+                _fe_queue_free_maneuver(
+                    self, state, player, <uint16_t>(1 << slot),
+                    True, False, state.name[slot]
                 )
             if self.completion_swap_adjacent[state.name[slot]]:
                 _fe_enqueue_effect(self, 

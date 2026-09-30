@@ -88,6 +88,7 @@ cdef class FastState:
     cdef int8_t pending_kind[MAX_PENDING_EFFECTS]
     cdef int8_t pending_player[MAX_PENDING_EFFECTS]
     cdef int8_t pending_card[MAX_PENDING_EFFECTS]
+    cdef int8_t pending_command_source[MAX_PENDING_EFFECTS]
     cdef int8_t pending_source[MAX_PENDING_EFFECTS]
     cdef int8_t pending_aux[MAX_PENDING_EFFECTS]
     cdef uint16_t pending_source_mask[MAX_PENDING_EFFECTS]
@@ -198,6 +199,7 @@ cdef class FastState:
         memset(self.pending_kind, 0, sizeof(self.pending_kind))
         memset(self.pending_player, 0xff, sizeof(self.pending_player))
         memset(self.pending_card, 0xff, sizeof(self.pending_card))
+        memset(self.pending_command_source, 0xff, sizeof(self.pending_command_source))
         memset(self.pending_source, 0xff, sizeof(self.pending_source))
         memset(self.pending_aux, 0xff, sizeof(self.pending_aux))
         memset(self.pending_source_mask, 0, sizeof(self.pending_source_mask))
@@ -307,6 +309,7 @@ cdef class FastState:
         memcpy(self.pending_kind, other.pending_kind, sizeof(self.pending_kind))
         memcpy(self.pending_player, other.pending_player, sizeof(self.pending_player))
         memcpy(self.pending_card, other.pending_card, sizeof(self.pending_card))
+        memcpy(self.pending_command_source, other.pending_command_source, sizeof(self.pending_command_source))
         memcpy(self.pending_source, other.pending_source, sizeof(self.pending_source))
         memcpy(self.pending_aux, other.pending_aux, sizeof(self.pending_aux))
         memcpy(self.pending_source_mask, other.pending_source_mask, sizeof(self.pending_source_mask))
