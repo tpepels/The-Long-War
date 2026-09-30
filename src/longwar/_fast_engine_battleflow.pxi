@@ -7,7 +7,7 @@ cdef void _fe_clear_story_targets_at_slot(
     int slot,
 ) noexcept:
     cdef int ix
-    for ix in range(SCHEME_COUNT):
+    for ix in range(NARRATIVE_COUNT):
         if state.narrative_target_slot[ix] == slot:
             state.narrative_target_slot[ix] = -1
 
