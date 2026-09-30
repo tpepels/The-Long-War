@@ -313,6 +313,19 @@ def test_makefile_is_a_small_lifecycle_surface() -> None:
     }
 
 
+def test_game_engine_delegates_rule_fields_without_mirroring() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    rules = GameRules.standard()
+    engine = GameEngine(data, rules=rules)
+
+    for field in GameRules.__dataclass_fields__:
+        assert getattr(engine, field) == getattr(rules, field)
+
+    source = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
+    for field in GameRules.__dataclass_fields__:
+        assert f"self.{field} = rules.{field}" not in source
+
+
 def test_public_game_engine_uses_native_engine_facade() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     engine = GameEngine(data)
