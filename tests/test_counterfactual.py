@@ -292,7 +292,8 @@ def test_stratagem_baseline_preserves_public_play_commitment() -> None:
     baseline = baseline_card(index["the-ground-was-held"])
 
     assert baseline["type"] == "stratagem"
-    assert baseline["rules"] == {}
+    assert baseline["design_rules"] == {}
+    assert "rules" not in baseline
     assert "no continuing effect" in baseline["text"]
 
 
@@ -308,7 +309,8 @@ def test_hero_baseline_preserves_hero_chassis() -> None:
     assert "hero" in baseline["classes"]
     assert baseline["strength"] == original["strength"]
     assert baseline["hero_name_strength"] == original["hero_name_strength"]
-    assert baseline["rules"] == {}
+    assert baseline["design_rules"] == {}
+    assert "rules" not in baseline
 
 
 def test_counterfactual_mulligan_preview_excludes_opening_bonus(
