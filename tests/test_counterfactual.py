@@ -45,13 +45,14 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
         assert baseline["command_cost"] == card["command_cost"]
 
     assert baseline_card(canonical["the-fifty-men"])["strength"] == 4
-    assert baseline_card(canonical["followed"])["rules"] == {
+    assert baseline_card(canonical["followed"])["design_rules"] == {
         "strength_bonus": 1,
-        "named_strength_bonus": 2,
+        "named_additional_strength_bonus": 2,
     }
     assert baseline_card(canonical["namar"])["strength"] == 2
-    assert baseline_card(canonical["the-long-march"])["rules"] == {}
-    assert baseline_card(canonical["the-ground-was-held"])["rules"] == {}
+    assert baseline_card(canonical["the-long-march"])["design_rules"] == {}
+    assert baseline_card(canonical["the-ground-was-held"])["design_rules"] == {}
+    assert "rules" not in baseline_card(canonical["followed"])
 
 
 def test_every_single_card_counterfactual_baseline_validates() -> None:

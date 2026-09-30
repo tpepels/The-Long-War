@@ -55,7 +55,7 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         "unique": bool(card["unique"]),
         "classes": list(card.get("classes", ["experimental"])),
         "text": "Experimental matched baseline.",
-        "rules": {},
+        "design_rules": {},
         "rule_blocks": [],
         "experimental": True,
         "baseline_for": card["id"],
@@ -77,9 +77,9 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
             "Experimental matched baseline. Its **Force** gets +1 **Strength**. "
             "While this **Bond** has a **Name**, its **Force** gets +2 additional **Strength**."
         )
-        result["rules"] = {
+        result["design_rules"] = {
             "strength_bonus": 1,
-            "named_strength_bonus": 2,
+            "named_additional_strength_bonus": 2,
         }
     elif card_type == "name":
         result["strength"] = 2
@@ -88,7 +88,7 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         result["ongoing"] = bool(card.get("ongoing", False))
         # A no-op Story preserves the paid public Narrative play while
         # removing the card-specific trigger or continuous effect.
-        result["rules"] = {}
+        result["design_rules"] = {}
     elif card_type == "stratagem":
         # Preserve the paid public one-per-Battle slot while removing all
         # card-specific payoff.
