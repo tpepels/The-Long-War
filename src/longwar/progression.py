@@ -109,6 +109,7 @@ class ProgressionTelemetry:
         self._command_spend: Counter[str] = Counter()
         self._command_spend_by_battle: dict[str, Counter[str]] = defaultdict(Counter)
         self._command_gained = 0
+        self._command_sources: dict[str, Counter[str]] = defaultdict(Counter)
         self._free_operations = 0
         self._free_maneuvers = 0
         self._discount_actions = 0
@@ -203,6 +204,8 @@ class ProgressionTelemetry:
 
         for battle, counts in other._command_spend_by_battle.items():
             self._command_spend_by_battle[battle].update(counts)
+        for source, counts in other._command_sources.items():
+            self._command_sources[source].update(counts)
         for battle, counts in other._card_plays_by_battle.items():
             self._card_plays_by_battle[battle].update(counts)
         for card_id, values in other._card_actions_to_play.items():
@@ -756,6 +759,57 @@ class ProgressionTelemetry:
             int(row["game"]): row
             for row in match_records
         }
+
+        low_positive_games = []
+        low_positive_streaks: list[int] = []
+        low_positive_battles = 0
+        for game, game_rows in sorted(rows_by_game.items()):
+            game_rows = sorted(game_rows, key=lambda row: int(row["battle"]))
+            count = 0
+            current = 0
+            longest = 0
+            first_battle = None
+            for row in game_rows:
+                commands = row.get("command_before_collapse") or ()
+                is_low_positive = (
+                    len(commands) == 2
+                    and all(1 <= int(value) <= 3 for value in commands)
+                )
+                if is_low_positive:
+                    count += 1
+                    low_positive_battles += 1
+                    current += 1
+                    longest = max(longest, current)
+                    if first_battle is None:
+                        first_battle = int(row["battle"])
+                else:
+                    if current:
+                        low_positive_streaks.append(current)
+                    current = 0
+            if current:
+                low_positive_streaks.append(current)
+            if count:
+                match = match_by_game.get(game, {})
+                identity_row = game_rows[0]
+                low_positive_games.append({
+                    "game": game,
+                    "simulation_game_index": match.get(
+                        "simulation_game_index",
+                        identity_row.get("simulation_game_index"),
+                    ),
+                    "seed": match.get("seed", identity_row.get("seed")),
+                    "first_player": match.get(
+                        "first_player",
+                        identity_row.get("first_player"),
+                    ),
+                    "censored": bool(match.get("censored", False)),
+                    "final_battle": match.get("final_battle"),
+                    "resolved_battles": match.get("resolved_battles"),
+                    "low_positive_battles": count,
+                    "first_low_positive_battle": first_battle,
+                    "longest_low_positive_streak": longest,
+                })
+
         low_command_games = []
         for game, game_rows in sorted(rows_by_game.items()):
             game_rows = sorted(game_rows, key=lambda row: int(row["battle"]))
@@ -884,6 +938,16 @@ class ProgressionTelemetry:
                     for row in tail
                 ],
             })
+
+        low_positive_stalls = {
+            "band": [1, 3],
+            "battles": low_positive_battles,
+            "streak_length": self._distribution(
+                low_positive_streaks,
+                histogram=True,
+            ),
+            "games": low_positive_games,
+        }
 
         low_command_stalls = {
             "collapse_threshold": threshold,
@@ -1089,6 +1153,20 @@ class ProgressionTelemetry:
         first_pass_rows = [
             row for row in self._pass_contexts if row["first_pass"]
         ]
+        command_by_source = {}
+        for source, counts in sorted(self._command_sources.items()):
+            row = {
+                key: int(value)
+                for key, value in counts.items()
+                if not key.startswith("effect:")
+            }
+            row["effects"] = {
+                key.split(":", 1)[1]: int(value)
+                for key, value in sorted(counts.items())
+                if key.startswith("effect:")
+            }
+            command_by_source[source] = row
+
         resource = {
             "command_spend": dict(sorted(self._command_spend.items())),
             "command_spend_by_battle": {
@@ -1096,6 +1174,7 @@ class ProgressionTelemetry:
                 for battle, counts in sorted(self._command_spend_by_battle.items())
             },
             "command_gained_or_refunded": self._command_gained,
+            "command_by_source": command_by_source,
             "free_operations": self._free_operations,
             "free_maneuvers": self._free_maneuvers,
             "discount_actions": self._discount_actions,
@@ -1347,6 +1426,7 @@ class ProgressionTelemetry:
             "mechanical_choice": choice,
             "resources": resource,
             "low_command_stalls": low_command_stalls,
+            "low_positive_stalls": low_positive_stalls,
             "censored_games": censored_game_diagnostics,
             "cards": self._card_lifecycle_summary(),
             "hero_modes": self._hero_summary(),
@@ -1428,8 +1508,18 @@ class ProgressionTelemetry:
                     "Censored matches count as having reached their current Battle but not as having resolved it."
                 ),
                 "command_gained_or_refunded": (
-                    "Command gained after an operation beyond its actual paid cost. "
-                    "Between-Battle recovery is excluded and remains visible in the Battle-indexed trajectory."
+                    "Actual Command gains/refunds emitted by the engine, including card-triggered "
+                    "Battle-end gains. Canonical between-Battle recovery is excluded."
+                ),
+                "command_source": (
+                    "Command attribution is recorded from real engine transitions only. Per-source "
+                    "rows count actual gain/refund triggers, Command saved by discounts, zero-cost "
+                    "operations, and recovery penalties prevented by cards. Search traversals are excluded."
+                ),
+                "low_positive_stall": (
+                    "A low-positive Battle ends with both players at 1-3 Command before the Collapse "
+                    "check. Streaks measure consecutive Battles in that band independently of the "
+                    "literal Collapse threshold."
                 ),
                 "eventual_completion_rate_for_forces_deployed": (
                     "Among Force lifecycles created in that Battle number, the share "
@@ -1761,15 +1851,29 @@ class ProgressionTelemetry:
             self._discount_command += saved
             self._battle_events["discount_actions"] += 1
 
-        expected_after = before.players[actor].command - actual_cost
-        gained = (
-            0
-            if battle_transition
-            else max(0, state.players[actor].command - expected_after)
-        )
-        if gained:
-            self._command_gained += gained
-            self._battle_events["command_gained"] += gained
+        for event in getattr(engine, "last_command_events", ()):
+            source = str(event.get("source_card") or "_unattributed")
+            kind = str(event.get("kind") or "unknown")
+            amount = int(event.get("amount", 0) or 0)
+            effect = str(event.get("effect") or kind)
+            stats = self._command_sources[source]
+            stats["events"] += 1
+            stats[f"{kind}_triggers"] += 1
+            stats[f"effect:{effect}"] += 1
+            if kind == "gain":
+                stats["command_gained"] += amount
+                self._command_gained += amount
+                self._battle_events["command_gained"] += amount
+            elif kind == "refund":
+                stats["command_refunded"] += amount
+                self._command_gained += amount
+                self._battle_events["command_gained"] += amount
+            elif kind == "discount":
+                stats["discount_command_saved"] += amount
+            elif kind == "free_operation":
+                stats["free_operations"] += amount
+            elif kind == "recovery_saved":
+                stats["recovery_command_saved"] += amount
 
     def _record_hero_action(
         self,
