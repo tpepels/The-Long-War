@@ -46,7 +46,13 @@ def test_online_resolver_has_root_coverage_without_true_opponent_deck() -> None:
 
 def test_online_mccfr_agent_preserves_last_command() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=13, first_player=0)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=13,
+        first_player=0,
+        opening_bonus=False,
+    )
     state.players[0].command = 1
     state.players[1].command = 5
     state.operations_this_battle[:] = [1, 1]
