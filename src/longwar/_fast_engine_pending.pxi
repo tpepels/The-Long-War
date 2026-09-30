@@ -448,10 +448,12 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             if target >= 0 and state.hand[actor][target] > 0:
                 _fe_take_from_hand(self, state, actor, target, 0)
                 _fe_append_discard(self, state, actor, target, True)
-                _fe_gain_command_fast(self, 
+                _fe_gain_command_fast(self,
                     state,
                     actor,
                     self.story_discard_gain_command[card],
+                    card,
+                    COMMAND_DETAIL_DISCARD_GAIN,
                 )
         cancelled = _fe_pre_story_cancel(self, state, actor)
         if not cancelled:

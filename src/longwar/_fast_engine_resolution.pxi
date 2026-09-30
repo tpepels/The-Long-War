@@ -282,6 +282,11 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
                     protected = 1
             if protected and state.resolution_recovery_losses[0] > 0:
                 state.resolution_recovery_losses[0] -= 1
+                _fe_record_command_diag(
+                    self, COMMAND_DIAG_RECOVERY_PROTECTION,
+                    COMMAND_DETAIL_RECOVERY_PROTECTED_FRONT,
+                    0, card, 1, 1,
+                )
         if state.resolution_lost_mask[1] & (1 << front):
             protected = 0
             for p in range(2):
@@ -290,19 +295,38 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
                     protected = 1
             if protected and state.resolution_recovery_losses[1] > 0:
                 state.resolution_recovery_losses[1] -= 1
+                _fe_record_command_diag(
+                    self, COMMAND_DIAG_RECOVERY_PROTECTION,
+                    COMMAND_DETAIL_RECOVERY_PROTECTED_FRONT,
+                    1, card, 1, 1,
+                )
 
     strat = state.stratagem[0]
     if strat >= 0 and self.strat_recovery_loss_reduction[strat]:
-        state.resolution_recovery_losses[0] -= min(
+        protected = min(
             state.resolution_recovery_losses[0],
             self.strat_recovery_loss_reduction[strat],
         )
+        state.resolution_recovery_losses[0] -= protected
+        if protected:
+            _fe_record_command_diag(
+                self, COMMAND_DIAG_RECOVERY_PROTECTION,
+                COMMAND_DETAIL_RECOVERY_STRATAGEM,
+                0, strat, protected, protected,
+            )
     strat = state.stratagem[1]
     if strat >= 0 and self.strat_recovery_loss_reduction[strat]:
-        state.resolution_recovery_losses[1] -= min(
+        protected = min(
             state.resolution_recovery_losses[1],
             self.strat_recovery_loss_reduction[strat],
         )
+        state.resolution_recovery_losses[1] -= protected
+        if protected:
+            _fe_record_command_diag(
+                self, COMMAND_DIAG_RECOVERY_PROTECTION,
+                COMMAND_DETAIL_RECOVERY_STRATAGEM,
+                1, strat, protected, protected,
+            )
 
     _fe_discard_incomplete_formations(self, state)
     state.resolution_stage = RESOLUTION_RETREATS
@@ -459,8 +483,8 @@ cdef bint _fe_resolve_one_battle_end_narrative(
 
             gain = self.narrative_end_gain[card]
             if condition and gain:
-                _fe_gain_command_from_narrative(self, 
-                    state, player, gain
+                _fe_gain_command_from_narrative(self,
+                    state, player, card, gain
                 )
             if condition and self.narrative_end_draw[card]:
                 _fe_queue_battle_draws(self, state, player, 1)

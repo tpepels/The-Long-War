@@ -143,6 +143,8 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     self.maneuver_command_cost = int(rules.maneuver_command_cost)
     self.hand_limit = int(rules.hand_limit)
     self.ongoing_story_limit = int(rules.ongoing_narrative_limit)
+    self.command_diag_capture = False
+    self.command_diag_len = 0
     if self.n_cards > MAX_CARDS:
         raise ValueError(f"The native engine supports at most {MAX_CARDS} card identities")
     if max(rules.starting_command, self.command_cap) > 32767:

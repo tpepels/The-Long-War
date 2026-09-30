@@ -193,10 +193,12 @@ cdef void _fe_retreat_slot(
     _fe_resolve_retreat_narratives(self, state, player, destination)
 
     if bond >= 0 and self.retreat_command_gain[bond] > 0:
-        _fe_gain_command_fast(self, 
+        _fe_gain_command_fast(self,
             state,
             player,
             self.retreat_command_gain[bond],
+            bond,
+            COMMAND_DETAIL_RETREAT_GAIN,
         )
 
     if (

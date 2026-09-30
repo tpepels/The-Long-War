@@ -15,6 +15,14 @@ cdef class FastEngine:
     cdef int maneuver_command_cost
     cdef int hand_limit
     cdef int ongoing_story_limit
+    cdef bint command_diag_capture
+    cdef int command_diag_len
+    cdef int16_t command_diag_kind[MAX_COMMAND_DIAG_EVENTS]
+    cdef int16_t command_diag_detail[MAX_COMMAND_DIAG_EVENTS]
+    cdef int16_t command_diag_player[MAX_COMMAND_DIAG_EVENTS]
+    cdef int16_t command_diag_card[MAX_COMMAND_DIAG_EVENTS]
+    cdef int16_t command_diag_amount[MAX_COMMAND_DIAG_EVENTS]
+    cdef int16_t command_diag_nominal[MAX_COMMAND_DIAG_EVENTS]
 
     cdef int8_t card_type[MAX_CARDS]
     cdef int8_t card_command_cost[MAX_CARDS]
@@ -208,6 +216,52 @@ cdef class FastEngine:
 
     cpdef apply(self, FastState state, uint64_t action):
         return _fe_apply(self, state, action)
+
+    cpdef list apply_with_command_diagnostics(self, FastState state, uint64_t action):
+        cdef int i, kind, detail, card
+        cdef object kind_name, detail_name, source
+        cdef list events = []
+        self.command_diag_len = 0
+        self.command_diag_capture = True
+        try:
+            _fe_apply(self, state, action)
+        finally:
+            self.command_diag_capture = False
+        for i in range(self.command_diag_len):
+            kind = self.command_diag_kind[i]
+            detail = self.command_diag_detail[i]
+            card = self.command_diag_card[i]
+            kind_name = (
+                "gain" if kind == COMMAND_DIAG_GAIN else
+                "discount" if kind == COMMAND_DIAG_DISCOUNT else
+                "recovery_protection"
+            )
+            detail_name = {
+                COMMAND_DETAIL_COMPLETION_GAIN: "completion_gain",
+                COMMAND_DETAIL_NARRATIVE_GAIN: "narrative_gain",
+                COMMAND_DETAIL_RETREAT_GAIN: "retreat_gain",
+                COMMAND_DETAIL_DISCARD_GAIN: "discard_for_command",
+                COMMAND_DETAIL_CATCHUP_DISCOUNT: "catchup_discount",
+                COMMAND_DETAIL_COMPLETION_DISCOUNT: "completion_discount",
+                COMMAND_DETAIL_NARRATIVE_DISCOUNT: "narrative_discount",
+                COMMAND_DETAIL_LOCAL_FRONT_DISCOUNT: "local_front_discount",
+                COMMAND_DETAIL_ADJACENT_DISCOUNT: "adjacent_discount",
+                COMMAND_DETAIL_FRONTLINE_DISCOUNT: "frontline_discount",
+                COMMAND_DETAIL_FREE_MANEUVER: "free_maneuver",
+                COMMAND_DETAIL_STRATAGEM_MANEUVER: "stratagem_maneuver_discount",
+                COMMAND_DETAIL_RECOVERY_PROTECTED_FRONT: "recovery_protected_front",
+                COMMAND_DETAIL_RECOVERY_STRATAGEM: "recovery_stratagem",
+            }.get(detail, "other")
+            source = None if card < 0 else self.card_ids[card]
+            events.append({
+                "kind": kind_name,
+                "detail": detail_name,
+                "player": int(self.command_diag_player[i]),
+                "source_card": source,
+                "amount": int(self.command_diag_amount[i]),
+                "nominal_amount": int(self.command_diag_nominal[i]),
+            })
+        return events
 
     cpdef tuple state_hash(self, FastState state):
         return _fe_state_hash(self, state)
