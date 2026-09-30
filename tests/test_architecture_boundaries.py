@@ -193,7 +193,10 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     assert not forbidden & packaged
 
     native = set(build_browser_runtime.BROWSER_NATIVE_FILES)
-    assert "_fast_search.pyx" in native
+    assert "_fast_search.pyx" not in native
+    assert "_alpha_beta_core.pxi" not in native
+    assert "_ismcts_core.pxi" not in native
+    assert "_mccfr_core.pxi" not in native
     assert "_mccfr_accel.pyx" not in native
 
     source = tmp_path / "browser-source"
@@ -209,6 +212,11 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
         path.name for path in package.rglob("*.pyx")
     }
     assert "_mccfr_accel" not in (source / "setup.py").read_text(encoding="utf-8")
+    browser_fast = (package / "_fast_search.pyx").read_text(encoding="utf-8")
+    assert 'include "_heuristic_core.pxi"' in browser_fast
+    assert 'include "_ismcts_core.pxi"' not in browser_fast
+    assert 'include "_mccfr_core.pxi"' not in browser_fast
+    assert 'include "_alpha_beta_core.pxi"' not in browser_fast
 
 
 def test_browser_runtime_dependency_closure_includes_engine_imports() -> None:

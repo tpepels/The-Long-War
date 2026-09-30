@@ -201,10 +201,9 @@ layout or a particular search implementation.
 The following existing structures predate this contract and should be reduced
 carefully rather than duplicated further:
 
-- `_fast_search.pyx` physically bundles the engine and several native search
-  cores into one extension;
-- the browser's `_fast_search` extension still physically contains native
-  search cores that browser play does not use because the engine/search split
-  has not yet been performed.
+- the host `_fast_search.pyx` still physically bundles the engine and several
+  native search cores into one extension. Browser builds already generate a
+  lean `longwar._fast_search` containing only the engine and production
+  heuristic.
 
-These are migration items, not patterns to copy.
+The remaining host split is a migration item, not a pattern to copy.

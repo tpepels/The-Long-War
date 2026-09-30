@@ -35,8 +35,10 @@ by `tests/test_architecture_boundaries.py`.
 - Dependency direction is one-way: content -> core -> consumers -> analysis.
   Nothing points back toward analysis or a particular experiment.
 
-The current native extension still physically bundles engine and search cores.
-Treat that as cleanup debt, not as permission to couple their semantics.
+The host native extension still physically bundles engine and search cores.
+The browser build is lean and includes only the engine plus production
+heuristic. Treat the host bundling as cleanup debt, not as permission to couple
+their semantics.
 
 ## Command surface
 
