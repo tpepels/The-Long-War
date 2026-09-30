@@ -122,7 +122,7 @@ cdef int _fe_front_strength_fast(FastEngine self, FastState state, int player, i
     value += _fe_position_strength_fast(self, state, slot_index(player, front, 1))
     narrative = state.narrative[player * 4 + front]
     if narrative >= 0 and not state.narrative_revealed[player * 4 + front]:
-        value += self.narrative_face_bonus[narrative]
+        value += self.ongoing_reveal_face_bonus[narrative]
     enemy = 1 - player
     for slot in (slot_index(enemy, front, 0), slot_index(enemy, front, 1)):
         if state.force[slot] >= 0 and state.bond[slot] >= 0 and state.name[slot] >= 0:
