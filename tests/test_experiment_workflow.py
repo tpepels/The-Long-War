@@ -454,7 +454,7 @@ def test_makefile_has_one_configurable_experiment_entrypoint():
         assert obsolete_target not in source
 
 
-def test_make_balance_uses_serious_fixed_iteration_ismcts() -> None:
+def test_make_balance_uses_shared_ismcts_default() -> None:
     source = (ROOT / "Makefile").read_text(encoding="utf-8")
     balance_line = next(
         line for line in source.splitlines()
@@ -463,7 +463,7 @@ def test_make_balance_uses_serious_fixed_iteration_ismcts() -> None:
     assert "--agent ismcts" in balance_line
     assert "--games 24" in balance_line
     assert "--jobs 8" in balance_line
-    assert "--ismcts-iterations 100000" in balance_line
+    assert "--ismcts-iterations" not in balance_line
     assert "--ismcts-time-budget-seconds" not in balance_line
 
 
