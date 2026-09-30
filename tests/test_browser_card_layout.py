@@ -301,9 +301,11 @@ def test_rulebook_print_uses_four_explicit_pages() -> None:
     assert ".rulebook-print-page:last-child" in explicit_css
     assert "page-break-after: auto;" in explicit_css
     assert ".rulebook-print-columns {" in explicit_css
-    assert "display: grid;" in explicit_css
-    assert "grid-template-columns: minmax(0,1fr) minmax(0,1fr);" in explicit_css
+    assert "display: flex;" in explicit_css
+    assert "width: calc(50% - 4.5mm);" in explicit_css
     assert "column-count" not in explicit_css
+    assert ".rulebook-print-goal-copy {" in explicit_css
+    assert "flex: 0 0 42%;" in explicit_css
     assert ".rulebook-battlefield-figure img" in explicit_css
     assert "overflow: hidden;" in explicit_css
 
@@ -312,6 +314,22 @@ def test_rulebook_print_uses_four_explicit_pages() -> None:
     assert 'page.name != "rulebook.html"' in builder
     assert 'source.replace("{{PRINT_VERSION}}", version)' in builder
 
+
+
+
+def test_rulebook_uses_generated_pdf_for_printing() -> None:
+    pyproject = text("pyproject.toml")
+    workflow = text(".github/workflows/pages.yml")
+    template = text("web/rulebook.template.html")
+    generator = text("tools/build_rulebook_pdf.py")
+
+    assert "WeasyPrint>=66.0" in pyproject
+    assert "python tools/build_rulebook_pdf.py" in workflow
+    assert '"rulebook.pdf"' in template
+    assert "window.print()" not in template
+    assert "EXPECTED_PAGES = 4" in generator
+    assert "len(document.pages) != EXPECTED_PAGES" in generator
+    assert "document.write_pdf" in generator
 
 def test_stale_build_legends_copy_is_gone() -> None:
     for path in (
