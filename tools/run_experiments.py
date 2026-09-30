@@ -1235,6 +1235,48 @@ def normalized_payload(path: Path) -> dict[str, Any]:
     return payload
 
 
+def first_payload_difference(
+    left: object,
+    right: object,
+    path: str = "$",
+) -> tuple[str, object, object] | None:
+    if type(left) is not type(right):
+        return path, left, right
+    if isinstance(left, dict):
+        left_keys = set(left)
+        right_keys = set(right)
+        if left_keys != right_keys:
+            return (
+                path + ".<keys>",
+                sorted(left_keys),
+                sorted(right_keys),
+            )
+        for key in sorted(left):
+            difference = first_payload_difference(
+                left[key],
+                right[key],
+                f"{path}.{key}",
+            )
+            if difference is not None:
+                return difference
+        return None
+    if isinstance(left, list):
+        if len(left) != len(right):
+            return path + ".<length>", len(left), len(right)
+        for index, (left_item, right_item) in enumerate(zip(left, right)):
+            difference = first_payload_difference(
+                left_item,
+                right_item,
+                f"{path}[{index}]",
+            )
+            if difference is not None:
+                return difference
+        return None
+    if left != right:
+        return path, left, right
+    return None
+
+
 def standard_backend_parity(*, seed: int) -> None:
     """Compare Python/Cython strategic search under current standard rules."""
     print("\nBackend parity: standard rules")
@@ -1302,9 +1344,23 @@ def standard_backend_parity(*, seed: int) -> None:
             json.dumps(cython_payload, indent=2) + "\n",
             encoding="utf-8",
         )
+        difference = first_payload_difference(
+            python_payload,
+            cython_payload,
+        )
+        detail = ""
+        if difference is not None:
+            diff_path, python_value, cython_value = difference
+            detail = (
+                f"\nFirst difference: {diff_path}\n"
+                f"  python={python_value!r}\n"
+                f"  cython={cython_value!r}"
+            )
         raise SystemExit(
-            "Backend parity FAILED for standard rules.\n"
-            f"Normalized outputs written to:\n  {left}\n  {right}"
+            "Backend parity FAILED for standard rules."
+            + detail
+            + "\nNormalized outputs written to:"
+            + f"\n  {left}\n  {right}"
         )
 
     print("Backend parity standard: OK")
