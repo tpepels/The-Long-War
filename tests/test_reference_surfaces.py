@@ -186,18 +186,15 @@ def test_balance_lab_is_human_first_and_collapsible() -> None:
 
 
 def test_mccfr_profiles_use_only_current_cards() -> None:
+    from tools.deck_catalog import DECK_CATALOG
+
     cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     canonical = {card["id"] for card in cards["cards"]}
     covered: set[str] = set()
-    for deck in (
-        "decks/mobility-open-bonds.json",
-        "decks/persistent-elite-heroes.json",
-        "decks/narrative-command.json",
-        "decks/battlefield-control-stratagems.json",
-        "decks/momentum-orders.json",
-        "decks/necessity-attrition.json",
-    ):
-        data = json.loads((ROOT / deck).read_text(encoding="utf-8"))
+    for entry in DECK_CATALOG:
+        data = json.loads(
+            (ROOT / "decks" / entry["file"]).read_text(encoding="utf-8")
+        )
         covered.update(data["cards"])
 
     assert canonical
