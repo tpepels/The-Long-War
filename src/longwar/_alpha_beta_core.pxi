@@ -181,6 +181,7 @@ cdef int ordered_actions_into(
     cdef int n, i, j, selected_n, kind, preferred_ix=-1
     cdef uint64_t tmp_action
     cdef double tmp_score
+    cdef object tmp_key=None
     cdef bint have_pass=False
 
     n = _fe_legal_actions_into(engine, state, &actions[0])
@@ -201,8 +202,18 @@ cdef int ordered_actions_into(
     for i in range(1, n):
         tmp_action = actions[i]
         tmp_score = scores[i]
+        tmp_key = None
         j = i - 1
-        while j >= 0 and scores[j] < tmp_score:
+        while j >= 0:
+            if scores[j] < tmp_score:
+                pass
+            elif scores[j] == tmp_score:
+                if tmp_key is None:
+                    tmp_key = _fe_action_key(engine, tmp_action)
+                if _fe_action_key(engine, actions[j]) <= tmp_key:
+                    break
+            else:
+                break
             actions[j + 1] = actions[j]
             scores[j + 1] = scores[j]
             j -= 1
