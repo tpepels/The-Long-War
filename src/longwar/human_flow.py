@@ -95,7 +95,9 @@ class HumanFlowDiagnostics:
             self.opening_force_distribution[count] += 1
             for card in forces:
                 self.opening_role_counts[str(card.get("role", "unknown"))] += 1
-                rank = card.get("rules", {}).get("placement", {}).get("rank")
+                design = engine.card_mechanics[card["id"]]
+                force_design = design.get("force") or design
+                rank = force_design.get("deploy_rank") or design.get("deploy_rank")
                 self.opening_rank_counts[str(rank or "unrestricted")] += 1
 
     def before_action(
