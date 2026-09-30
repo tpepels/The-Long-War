@@ -203,20 +203,19 @@ def build_rulebook_print_pages(rendered: str) -> str:
     )
 
     goal = sections["Goal and battlefield"]
-    goal = re.sub(
-        r'<pre>.*?</pre>',
-        (
-            '<figure class="rulebook-battlefield-figure">'
-            '<img src="assets/rulebook-battlefield.svg" '
-            'alt="Four Front battlefield with Rear and Frontline positions '
-            'for both players, separated by the Battle Line.">'
-            '<figcaption>Four Fronts. Frontline faces the Battle Line; Rear sits behind it.</figcaption>'
-            '</figure>'
-        ),
-        goal,
-        count=1,
-        flags=re.DOTALL,
+    battlefield_figure = (
+        '<figure class="rulebook-battlefield-figure">'
+        '<img src="assets/rulebook-battlefield.svg" '
+        'alt="Four Front battlefield with Rear and Frontline positions '
+        'for both players, separated by the Battle Line.">'
+        '<figcaption>Four Fronts. Frontline faces the Battle Line; Rear sits behind it.</figcaption>'
+        '</figure>'
     )
+    # Markdown nests the indented ASCII battlefield inside the final list item.
+    # Remove that legacy block first, then insert the generated image as a
+    # direct child of the section so print-grid placement is deterministic.
+    goal = re.sub(r'<pre>.*?</pre>', '', goal, count=1, flags=re.DOTALL)
+    goal = goal.replace('</ul>', '</ul>' + battlefield_figure, 1)
 
     def stack(*titles: str) -> str:
         return "".join(sections[title] for title in titles)
