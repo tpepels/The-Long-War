@@ -403,7 +403,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_take_from_hand(self, state, actor, card, 0)
         state.bond[pos] = card
         if state.force[pos] >= 0:
-            state.temporary[pos] += self.on_link_bonus[state.force[pos]]
+            state.temporary[pos] += self.on_bond_bonus[state.force[pos]]
         if dest >= 0:
             source = pos
             _fe_move_slot(self, state, source, dest)
