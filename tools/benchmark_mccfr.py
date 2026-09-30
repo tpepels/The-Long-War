@@ -7,7 +7,10 @@ import time
 from copy import deepcopy
 from pathlib import Path
 
-from tools.deck_catalog import DEFAULT_DECK_PATH
+if __package__:
+    from .deck_catalog import DEFAULT_DECK_PATH
+else:
+    from deck_catalog import DEFAULT_DECK_PATH
 
 import longwar.mccfr as mccfr_module
 from longwar.cards import load_card_file
