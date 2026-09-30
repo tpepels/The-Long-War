@@ -310,7 +310,8 @@ def test_two_consecutive_passes_end_battle_and_first_passer_starts_next() -> Non
 
 
 def test_remote_mode_keeps_each_players_own_hand_private_but_visible() -> None:
-    session = session_for("remote")
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="remote", seed=1701)
     p0 = session.snapshot(0)
     p1 = session.snapshot(1)
 
@@ -345,7 +346,8 @@ def test_remote_mode_keeps_each_players_own_hand_private_but_visible() -> None:
 
 
 def test_remote_mode_has_no_ai_step() -> None:
-    session = session_for("remote")
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="remote", seed=1701)
     session.mulligan([], 0)
     session.mulligan([], 1)
     with pytest.raises(ValueError, match="AI opponent"):
