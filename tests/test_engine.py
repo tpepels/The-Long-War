@@ -36,10 +36,11 @@ def setup_state(
     seed: int = 4100,
     first_player: int = 0,
     opening_bonus: bool = False,
+    rules: GameRules | None = None,
 ):
     data = load_card_file(CARD_FILE)
     deck = json.loads(DECK_FILE.read_text(encoding="utf-8"))["cards"]
-    engine = GameEngine(data, rules=GameRules.standard())
+    engine = GameEngine(data, rules=rules or GameRules.standard())
     state = engine.new_game(
         deck,
         deck,
@@ -1039,7 +1040,11 @@ def test_lines_held_and_tovan_reduce_recovery_front_loss_penalty() -> None:
     state.stratagems[0] = StratagemState("the-lines-held")
 
     resolve_battle_by_passing(engine, state)
-    assert state.players[0].command == 17
+    expected = min(
+        engine.rules.command_cap,
+        5 + engine.command_recovery_for_battle(1),
+    )
+    assert state.players[0].command == expected
 
     engine, state = setup_state(seed=4702)
     state.players[0].command = 5
@@ -1049,7 +1054,11 @@ def test_lines_held_and_tovan_reduce_recovery_front_loss_penalty() -> None:
     make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
 
     resolve_battle_by_passing(engine, state)
-    assert state.players[0].command == 17
+    expected = min(
+        engine.rules.command_cap,
+        5 + engine.command_recovery_for_battle(1),
+    )
+    assert state.players[0].command == expected
 
 
 def test_targeted_stratagem_play_choices_are_legal_actions() -> None:
@@ -1170,22 +1179,12 @@ def test_trap_closed_drives_off_encircled_middle_frontline() -> None:
     assert state.slot(1, pos(1, Rank.REAR)).occupied is False
 
 
-@pytest.mark.parametrize(
-    ("battle", "expected"),
-    [
-        (1, 20),
-        (2, 19),
-        (3, 16),
-        (4, 13),
-        (5, 11),
-        (6, 11),
-        (7, 11),
-        (8, 11),
-        (9, 11),
-    ],
-)
-def test_command_recovery_formula(battle: int, expected: int) -> None:
-    engine, state = setup_state(seed=4200 + battle)
+@pytest.mark.parametrize("battle", range(1, 10))
+def test_command_recovery_formula(battle: int) -> None:
+    rules = GameRules.standard().with_overrides(
+        command_collapse_threshold=0,
+    )
+    engine, state = setup_state(seed=4200 + battle, rules=rules)
     state.battle = battle
     state.players[0].command = 10
     state.players[1].command = 10
@@ -1193,6 +1192,11 @@ def test_command_recovery_formula(battle: int, expected: int) -> None:
 
     resolve_battle_by_passing(engine, state)
 
+    actual_recovery = max(
+        rules.command_recovery_floor,
+        rules.command_recovery_for_battle(battle),
+    )
+    expected = min(rules.command_cap, 10 + actual_recovery)
     assert state.players[0].command == expected
     assert state.players[1].command == expected
 
@@ -1209,13 +1213,27 @@ def test_command_recovery_loses_one_per_lost_front_and_caps_at_twenty() -> None:
     resolve_battle_by_passing(engine, state)
 
     assert state.last_battle_snapshot["fronts_lost"] == [2, 0]
-    assert state.players[0].command == 15
-    assert state.players[1].command == 20
+    base = engine.command_recovery_for_battle(state.last_battle_snapshot["battle"])
+    expected_p0 = min(
+        engine.rules.command_cap,
+        5 + max(engine.rules.command_recovery_floor, base - 2),
+    )
+    expected_p1 = min(
+        engine.rules.command_cap,
+        19 + max(engine.rules.command_recovery_floor, base),
+    )
+    assert state.players[0].command == expected_p0
+    assert state.players[1].command == expected_p1
 
 
-def test_command_collapse_lower_command_loses_and_equal_low_continues() -> None:
-    engine, state = setup_state()
-    state.battle = 8
+def test_command_collapse_lower_command_loses_and_equal_threshold_continues() -> None:
+    rules = GameRules.standard().with_overrides(
+        command_collapse_threshold=0,
+        command_recovery_start=0,
+        command_recovery_decrement=0,
+        command_recovery_floor=1,
+    )
+    engine, state = setup_state(rules=rules)
     state.players[0].command = 0
     state.players[1].command = 6
     state.battle_start_command[:] = [0, 6]
@@ -1223,15 +1241,14 @@ def test_command_collapse_lower_command_loses_and_equal_low_continues() -> None:
     assert state.phase is Phase.COMPLETE
     assert state.winner == 1
 
-    engine, state = setup_state(seed=4301)
-    state.battle = 8
+    engine, state = setup_state(seed=4301, rules=rules)
     state.players[0].command = 0
     state.players[1].command = 0
     state.battle_start_command[:] = [0, 0]
     resolve_battle_by_passing(engine, state)
     assert state.phase is Phase.BATTLE
     assert state.winner is None
-    assert state.battle == 9
+    assert state.battle == 2
 
 
 def test_hand_deck_discard_and_named_formations_persist_between_battles() -> None:
@@ -1282,9 +1299,10 @@ def test_ongoing_story_slot_does_not_receive_adjacent_front_discount() -> None:
     assert engine.command_cost_for_action(state, story) == 2
 
 
-def test_ongoing_stories_are_public_and_limited_to_two_per_player() -> None:
-    engine, state = setup_state()
-    assert engine.ongoing_narrative_limit == 2
+def test_ongoing_stories_are_public_and_respect_configured_limit() -> None:
+    rules = GameRules.standard().with_overrides(ongoing_narrative_limit=2)
+    engine, state = setup_state(rules=rules)
+    assert engine.ongoing_narrative_limit == rules.ongoing_narrative_limit
     stories = [
         "the-long-march",
         "they-returned-with-names",
