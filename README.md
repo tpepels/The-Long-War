@@ -1,153 +1,198 @@
 # The Long War
 
-A two-player card game fought across four Fronts. Forces occupy the line; Bonds and Names build on them; Named Formations and cards in hand can persist into later Battles.
+The Long War is a two-player card game with one canonical rules engine shared by browser play, simulations, AI/search, and analysis.
 
-**Force → Bond → Name**, for example **The Fifty Men → Followed → Namar**.
+This README is the developer entry point. Player-facing rules live in `rules/rulebook.md`; architecture and repository ownership rules live in `ARCHITECTURE.md` and `AGENTS.md`.
 
-## Setup and everyday commands
+## Development setup
 
-Use Python 3.14 for the complete workflow, including the browser build, plus Node.js, a C compiler, and `make`. Native tools also support Python 3.11+. The first browser build downloads a pinned Pyodide/Emscripten toolchain; subsequent builds reuse local caches.
+The complete workflow uses Python 3.14, Node.js, a C compiler, `make`, and Typst 0.15.1. Native Python development supports Python 3.11+, but the browser/Pyodide and Pages workflow currently target Python 3.14.
+
+The first browser build downloads a pinned Pyodide/Emscripten toolchain. Later builds reuse local artifacts.
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 make install
+make native-build
 make verify
 ```
 
-| Work | Edit | Verify |
-| --- | --- | --- |
-| Rule change | `src/longwar/rules.py` for configuration; `_fast_search.pyx` for transitions; update `rules/rulebook.md` | `make native-build && make verify` |
-| Card addition/change | `cards/cards.json`; update appropriate `decks/*.json` | `make verify` |
-| Search/evaluation change | Algorithm's native `.pxi`, its Python adapter, or `_heuristic_core.pxi` | `make native-build && make verify-algorithms` |
-| Quick balance/playability signal | Canonical cards and decks | `make balance` |
-| Deeper balance evidence | Canonical cards and decks | `make balance BALANCE_PRESET=deep` |
-| Exhaustive structural sample | Canonical cards and decks | `make balance BALANCE_PRESET=exhaustive` |
+Rebuild the native extension after every `.pyx` or `.pxi` change.
 
-Add a focused regression at the changed boundary. `make verify` checks every shipped card/deck against the current standard rules, the ordinary fast tests, and native/browser parity. `make verify-algorithms` validates search/AI only against the current standard rules. Historical non-standard rule-variant tests are marked `legacy_rule_experiment` and run under the full `make test`, not the canonical verification path. Variants are explicit rule-value overrides, not named profiles. `make test-integration` checks multi-game and report pipelines.
+## Supported command surface
 
-Rebuild after every `.pyx` or `.pxi` edit. Browser builds automatically detect changed package sources. The first browser build is slower; a current build is reused. No GitHub Actions run is needed for local verification. GitHub Actions rebuild and deploy Pages on relevant pushes, but simulations, balance analysis and solver research still run locally; Pages only publishes committed results.
+Make is intentionally small. Parameter combinations belong in arguments, not new targets.
 
-Browser/Pyodide build chatter is written to `artifacts/browser/browser-build.log`, and complete browser-parity output to `artifacts/logs/browser-parity.log`. Successful verification prints only concise status. On failure, only a bounded/truncated tail is shown.
+| Command | Purpose |
+| --- | --- |
+| `make install` | Install the editable package and development dependencies |
+| `make native-build` | Rebuild the host Cython extension |
+| `make browser-build` | Rebuild the browser/Pyodide runtime only |
+| `make verify` | Canonical data validation, fast tests, browser static integrity, Pages build, and browser/native parity |
+| `make verify-algorithms` | Search/solver correctness against the current canonical engine |
+| `make test` | Full pytest suite |
+| `make test-fast` | Fast non-algorithm, non-integration tests |
+| `make test-integration` | Multi-game/report pipeline tests |
+| `make simulate` | Configurable AI-vs-AI simulation |
+| `make balance` | Canonical Balance Lab quick/deep/exhaustive pipeline |
+| `make experiments` | Supported search-strength experiment entry point |
+| `make full-lab` | Resumable complete Balance Lab publication workflow |
+| `make browser-parity` | Browser build plus exact browser/native session parity |
+| `make pages` | Build the static site and Typst rulebook PDF |
 
-## One rules engine
-
-The canonical native engine composition is `src/longwar/_fast_engine_core.pxi`. It owns the packed game state and composes legal actions, transitions, scoring, visibility, card effects, and information-state encoding. `GameRules` in `rules.py` is tunable match configuration; `game/engine.py` is the Python-facing facade and reaches native execution only through `native_engine.py`. Search agents use `native_search.py`, so the physical compiled-module layout is not part of the game-core API. Cards and decks are inputs to the engine, not alternate rule implementations. Deck construction policy lives in `decks.py`; shipped reference-deck membership lives in `decks/index.json`. See `ARCHITECTURE.md` for the enforced dependency map.
-
-Current numeric playtest values are intentionally not duplicated here. `GameRules.standard()` is the single source for configurable match defaults; generated rulebook/reference surfaces and browser rule hints derive from it. The rulebook describes the current turn, Battle, Command, Narrative, Stratagem, Hero, movement, persistence, and cleanup semantics. Deck construction constraints are likewise owned by `decks.py`, not by this README.
-
-The static browser runs the **same canonical Cython engine composition** through Pyodide. Its Python wheel is intentionally minimal: cards, rules, game state/actions/engine, heuristic evaluation, `web_api.PlaySession`, and the current Tactical AI only. Browser modes are product-facing `computer` / `hotseat`; the current computer implementation is `HeuristicAgent`. Simulation, telemetry, balance, counterfactual, MCCFR Python tooling, and other search agents are not packaged into browser play. The browser build resolves the same `_fast_engine_core.pxi` include graph automatically and adds only the production heuristic. `web/browser-engine.mjs` only transports JSON to `web_api.PlaySession`.
+Common overrides:
 
 ```bash
-make browser-parity   # build/cache wasm, build Pages, compare complete session traces
-make pages
-python -m http.server 8000 --directory dist
-# Open http://localhost:8000/play.html
+make simulate SIMULATE_ARGS="--games 10 --seed 1701 --agent-a heuristic --agent-b heuristic"
+make balance BALANCE_PRESET=deep BALANCE_ARGS="--agent ismcts --games 24 --jobs 8 --publish-lab"
+make experiments EXPERIMENT_ARGS="--games 8"
+make full-lab FULL_LAB_ARGS="--force"
 ```
 
-`tools/build_browser_runtime.py` pins Pyodide 314.0.7 and pyodide-build 0.39.1. Cross compilation uses an isolated source directory under `artifacts/browser/`, so it cannot replace host extensions. The runtime, wheel, toolchain environment, contracts and logs are generated artifacts. `dist/` is the generated Pages site. Both directories are ignored by Git.
+## What to edit
 
-The play client is a fixed desktop table, verified at 1280×720, 1366×768, 1440×900 and 1920×1080. Click a hand card, then a highlighted destination. Hover or focus lifts a card; click a selected card again, right-click, or press `I` while focused to inspect it. Inspection also works during mulligans. Select a hand card to see its legal plays and Command costs. `Esc` cancels/closes, `P` passes and `F` toggles fullscreen. Rules, piles, the log and New Match live in the game menu. Motion respects the browser's reduced-motion preference.
+| Change | Primary source | Normal verification |
+| --- | --- | --- |
+| Configurable match rule | `src/longwar/rules.py` | focused regression; rebuild native code if affected |
+| Engine transition/effect primitive | `src/longwar/_fast_engine_*.pxi` under `_fast_engine_core.pxi` | `make native-build && make verify` |
+| Card data/mechanics | `cards/cards.json` | `make verify` |
+| Shipped deck membership | `decks/*.json`, catalogued by `decks/index.json` | `make verify` |
+| Browser session adapter | `src/longwar/web_api.py` | `make verify` |
+| Browser UI | `web/play.html`, `web/play.js`, `web/play.css` | `make verify` |
+| Remote peer transport | `web/remote-peer.mjs` | `make verify` |
+| Search/evaluation | search `.pxi`, agent adapters, heuristic core | `make native-build && make verify-algorithms` |
+| Rulebook prose | `rules/rulebook.md` | `make pages` |
+| Balance/reporting | analysis modules and tools | focused tests first; expensive evidence only when needed |
 
-`web/play.css` owns the scene and card geometry; the client does not load website layout styles. `web/play.js` renders snapshots and routes legal actions. Its card motion compares visible snapshots, without predicting engine results. After UI changes, run:
+Add regressions at the semantic or contract boundary that changed. Do not duplicate a rule in several consumers just to make tests pass.
+
+## Canonical engine
+
+The canonical native engine composition is:
+
+```text
+src/longwar/_fast_engine_core.pxi
+```
+
+It owns packed state, legal actions, transitions, scoring, visibility, card effects, and information-state encoding. `GameRules` is configuration. `game/engine.py` is the Python-facing facade and reaches native rule execution through `native_engine.py`.
+
+Search layers on top through `native_search.py`. The compiled extension layout is an implementation detail, not a second rules engine.
+
+Cards and decks are inputs:
+
+- `cards/cards.json` is the canonical card pool.
+- `design_rules` is the only executable card-mechanics schema.
+- `decks.py` owns construction validation.
+- `decks/index.json` is the single catalogue of shipped/canonical deck profiles.
+
+Configurable numeric rule values are deliberately not copied into developer docs. `GameRules.standard()` is the source of truth and generated rule/reference surfaces derive from it.
+
+See `ARCHITECTURE.md` for the enforced dependency map.
+
+## Browser architecture
+
+The static web game uses the same canonical Cython engine through Pyodide.
+
+The browser runtime intentionally contains only the game core, heuristic evaluation/current Tactical AI, and `web_api.PlaySession`. Analysis, telemetry, counterfactual, solver training, MCCFR research, and Balance Lab code are excluded.
+
+`web/browser-engine.mjs` is the JSON/Pyodide bridge. `web/play.js` renders snapshots and submits canonical action keys; it does not predict engine results.
+
+### Play modes
+
+The browser exposes:
+
+- **Tactical AI** - local `computer` session;
+- **hot-seat** - two players sharing one browser;
+- **remote host / remote join** - two browsers on different machines.
+
+Remote play is host-authoritative:
+
+1. Player 1 owns `PlaySession(mode="remote")`.
+2. Player 2 receives only its viewer-specific snapshot.
+3. Player 2 sends mulligan choices and canonical action keys back.
+4. The host applies all transitions and returns a new redacted snapshot.
+
+`web/remote-peer.mjs` is transport only. It contains no card, legality, or transition logic.
+
+The current static deployment uses WebRTC with a manual invite-token/response-token handshake and STUN. There is no rendezvous service or TURN relay yet. A future short room code or relay therefore belongs to signaling/transport, not to the game engine.
+
+## Browser verification
+
+`make browser-parity` performs:
+
+1. authored browser JS/module syntax checks;
+2. HTML/module/DOM-id reference checks;
+3. a Pages build;
+4. built data/runtime/asset reference checks;
+5. browser-engine contract generation;
+6. browser/native session-trace parity.
+
+The static checker can also be run directly:
 
 ```bash
-make test-fast browser-parity
+python tools/check_web_static.py
+python tools/check_web_static.py --dist dist
+```
+
+It catches missing generated data files, missing modules, malformed JavaScript, stale DOM ids, and broken runtime-manifest references.
+
+For visual changes:
+
+```bash
 python tools/check_card_layout.py --require-browser
 python tools/check_game_layout.py --require-browser
 python tools/check_play_start.py --require-browser --viewport 1280x720
 python tools/check_play_start.py --require-browser --viewport 1440x900 --reduced-motion
 ```
 
-The [issue #21 desktop-client handoff](reports/issue-21-desktop-client.md) records the redesign, visual QA and remaining human-playtesting questions.
+Browser/Pyodide build logs live under `artifacts/browser/`; browser-parity output lives under `artifacts/logs/browser-parity.log`.
 
-## Cards and fixtures
+## Pages and printable rulebook
 
-`cards/cards.json` is the canonical card pool. Each card has a stable unique `id`, title, type, classes, uniqueness, display text/rule blocks, and machine-readable `rules`. Preserve IDs when revising cards: decks and policy artifacts refer to them.
+`tools/build_pages.py` builds the static site into `dist/`.
 
-`cards.py` validates required fields, nested rule/effect/trigger names, types and native numeric limits. `decks.py` validates optional construction policy; the shipped playtest decks currently use 34 cards, at most two copies of ordinary cards and one copy of Unique cards. `GameEngine` itself accepts any non-empty supplied deck of known cards up to the native 64-card capacity. `make verify` checks the shipped decks against today's playtest format without turning that format into a match rule. Larger future decks or different construction formats therefore do not require another rules engine. New effect kinds require explicit schema and native-engine support plus a regression; misspellings fail instead of silently producing vanilla cards.
+The printable rulebook is independent of browser pagination:
 
-The packed engine supports up to 127 card identities, 64 cards per player deck, and 1024 generated actions, with checked boundaries. Counterfactual neutral cards are generated in memory and never added to printable canonical data.
-
-- `decks/*.json`: canonical reference and archetype decks.
-- Historical rule variants: retained only as focused regression tests using explicit `GameRules.with_overrides(...)` values; there is no dedicated experiment runner for them.
-- `reports/`: retained historical playtest analyses. They are context, not current balance evidence.
-- `artifacts/`: generated local results, manifests, policies and build output.
-
-Static strength diagnostics read machine rules, not the optional historical `balance` annotations. Display tooling renders authored rule blocks; it does not calculate game effects.
-
-## Search contracts and supported experiments
-
-| Responsibility | Implementation |
-| --- | --- |
-| Engine and information encoding | `_fast_search.pyx` |
-| Shared heuristic / Battle-boundary evaluator | `_heuristic_core.pxi`, `heuristics.py` |
-| Alpha-beta | `_alpha_beta_core.pxi`; `algorithms/alpha_beta.py` is the maintained Python reference |
-| ISMCTS | `_ismcts_core.pxi`, `agents/ismcts_agent.py` |
-| MCCFR | `_mccfr_core.pxi`, `_mccfr_accel.pyx`, `mccfr_core.py`; trainer in `mccfr.py` |
-| Online MCCFR | `online_mccfr.py` over externally sampled beliefs |
-| Hidden-state/deck priors | `belief.py` |
-
-Algorithms consume engine/evaluator contracts without rule-profile branches. Beliefs stay outside traversal. MCCFR uses external sampling with depth-limited heuristic leaves and an imperfect-recall observation abstraction; a policy is not a full-game equilibrium proof. Generic Python/Cython traversal and the Kuhn-poker reference remain independent correctness checks. Replica multiprocessing is experimental because table serialization/merging can dominate runtime.
-
-ISMCTS uses one shared canonical baseline for current engine work. Its values live in the `DEFAULT_ISMCTS_*` constants in `agents/ismcts_agent.py`; simulation, balance, and experiment entry points consume those constants rather than restating them. The baseline is intentionally not an ongoing optimizer target while cards and rules are still moving.
-
-The repository intentionally no longer carries the knockout/A-B configuration optimizer. During the current card and rules migration, AI configuration is held fixed so search changes do not become another moving variable. The only supported AI experiment is an occasional **equal-time ISMCTS vs alpha-beta sanity check**:
-
-```bash
-make verify-algorithms
-
-# Canonical AI sanity check: 192 games, 5 seconds per searched move.
-make experiments
-
-# Optional smaller/larger sanity sample without changing the AI baseline.
-make experiments EXPERIMENT_ARGS="--games 8"
+```text
+rules/rulebook.md
+  -> rule-token rendering from GameRules.standard()
+  -> Markdown-to-Typst conversion
+  -> dist/rulebook.typ
+  -> Typst compile
+  -> dist/rulebook.pdf
 ```
 
-`make experiments` runs algorithm verification first and then `strength-bench`. Both solvers receive the same 5-second wall-clock search budget per non-forced move. ISMCTS automatically uses the canonical baseline above; the experiment CLI no longer exposes rollout/PW/reuse tuning knobs. Game/card balance analysis remains separate under `make balance`.
+`tools/build_rulebook_pdf.py` owns and verifies that pipeline. `make pages` builds both the static site and PDF.
 
-For product-facing game AI, use **ISMCTS as the primary hidden-information search policy**, with **strategic alpha-beta as an occasional independent sanity check**. Offline trained MCCFR remains solver-research infrastructure. **Online MCCFR is also used by the Balance Lab as a targeted strategic validator for suspicious paired card effects**; it is not the browser opponent or a replacement for the broad structural simulation.
+GitHub Pages is deployment-only infrastructure. The workflow performs compile/static build-integrity checks and publishes `dist/`; it does not run simulations, balance analysis, pytest research suites, or solver training.
 
+## Balance Lab
 
-## Balance and analysis
+`tools/run_experiments.py` is the main experiment orchestrator. `make balance` uses it for canonical quick/deep/exhaustive evidence.
 
-Make is the supported command surface. `tools/run_experiments.py` implements the experiment orchestration underneath it; specialized tools remain available for individual stages.
+`make full-lab` is the complete resumable publication workflow. It composes validation, Narrative/Command in-memory ablations, canonical deep ISMCTS balance/progression, broad heuristic paired screening, targeted online MCCFR, solver-strength evidence, six offline MCCFR policies/evaluations, MCCFR verification/suite assembly, and final Lab/Pages builds.
 
-| Question | Command | Meaning |
-| --- | --- | --- |
-| Are data/decks/runtime valid? | `make verify` | Data, fast tests and browser/native parity |
-| Does ordinary play look healthy? | `make balance` | Quick static/playability/health signal |
-| Need deeper balance evidence? | `make balance BALANCE_PRESET=deep` | 250 games/cell structural screen + 95-card paired A/B screen + targeted online-MCCFR confirmation |
-| Need the old maximum structural sample? | `make balance BALANCE_PRESET=exhaustive` | Same evidence hierarchy with 2,000 games/cell |
-| Populate the complete resumable Balance Lab? | `make full-lab` | Validation + Narrative ablations + deep ISMCTS/card screen/online MCCFR + solver strength + six offline MCCFR profiles + Pages |
-| Does canonical ISMCTS still behave sensibly against alpha-beta? | `make experiments` | Equal-time 5-second sanity check; no optimizer |
-| What is a card's paired replacement value? | `python tools/counterfactual_balance.py --cards followed --contexts 3 --games-per-context 4 --no-pairs --no-triples` | Specialist analysis, outside the Make lifecycle surface |
+Completed stages are recorded under `artifacts/full-lab/stages/`. Reuse is keyed to the current **game fingerprint plus stage configuration**. The experiment fingerprint remains provenance, but unrelated presentation/tooling changes do not force expensive retraining. Use `--force` only for deliberate regeneration.
 
-Quick runs check plumbing and playability, not statistical balance. Deep runs are explicitly opt-in. `make full-lab` is the one-command research publication path. It records completed stages under `artifacts/full-lab/stages/`, reuses current-fingerprint expensive stages after later build failures, and accepts `FULL_LAB_ARGS="--force"` to deliberately regenerate everything. It never edits canonical card data for the Narrative/Command ablations.
+Keep evidence types distinct:
 
-Override sizes and seeds for development:
+1. ISMCTS self-play - strategic progression/pacing.
+2. Heuristic paired counterfactual - broad card screening.
+3. Online MCCFR - targeted confirmation.
+4. Offline MCCFR - learned-policy evidence with visible fallback coverage.
+5. ISMCTS vs alpha-beta - search-strength sanity check.
 
-```bash
-python tools/run_experiments.py balance --preset quick --games 2 --seed 1701
-python tools/run_experiments.py balance --preset deep --seed 1701 --contexts 3 --games-per-context 4
-python tools/run_experiments.py balance --preset exhaustive --seed 1701 --contexts 3 --games-per-context 4
-```
+They are not one balance score.
 
-Outputs live under `artifacts/balance/<preset>/<identity>/` and `artifacts/search-benchmark/`. Each run saves configuration and source/card/deck fingerprints.
+## Generated files and repository discipline
 
-`simulate.py` records action/card/pass/decision telemetry. `health.py` adds confidence-aware observational flags; `playability.py` summarizes card flow. `balance.py` handles static combinations. `counterfactual.py` runs the broad heuristic paired replacement screen. In `deep` and `exhaustive`, `targeted_counterfactual.py` automatically re-tests suspicious single-card signals with online MCCFR using the exact same deck contexts, seats, seeds and interventions. Lab builders aggregate these outputs and reject stale evidence.
+Generated material belongs under `artifacts/` or `dist/`.
 
-“Win when played” is an observational correlation. It is not a card-value estimate. Paired replacements use identical focal seats, game/agent seeds and shuffle permutations. Uncertainty is reported explicitly; a singleton or constant tiny sample cannot establish certainty. Even a narrow interval is specific to the tested policy and deck contexts.
+- `dist/` is disposable Pages output.
+- Browser toolchains, runtime builds, logs, raw reports, policies, and full-Lab stage markers are generated.
+- The curated versioned Lab snapshots are `artifacts/lab-report.json` and `artifacts/balance-health.json`.
+- Native/wasm binaries are never committed.
+- Historical reports under `reports/` are context, not current evidence.
 
-Full-pool causal analysis uses per-card sweeps because all cards/Heroes cannot fit in a legal deck. Selected compatible subsets can request pair/triple factorial analysis. The broad sweep is deliberately a screening policy: it may nominate a card for Watch status, but red/orange strategic card-value claims require the automatic targeted online-MCCFR stage. Offline solver training and formal MCCFR verification remain separate specialist stages:
-
-```bash
-python tools/verify_mccfr.py --iterations 30000
-python tools/train_mccfr.py --iterations 5000 --depth 3 --workers 1 --output artifacts/mccfr-policy.json
-```
-
-These are specialist research tools rather than permanent Make targets.
-
-Policies and old balance artifacts must be regenerated after fingerprint-changing rule, card, search or evaluation edits. Pages can display saved compatible evidence without rerunning deep analysis.
-
-The [issue #20 engineering review](reports/issue-20-engineering-review.md) records the fixes, removed paths, exact local verification and remaining gameplay-data questions.
+Work directly on `main` unless isolation is genuinely useful. Preserve unrelated changes and refresh current `main` before substantial writes.

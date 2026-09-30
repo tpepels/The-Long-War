@@ -1,224 +1,214 @@
 # Architecture
 
-The Long War is a game first. The architecture exists to make rules easy to
-change, cards and decks easy to extend, and every consumer play exactly the
-same game.
+The architecture exists to make The Long War easy to change while ensuring every consumer plays the same game.
 
 ## Dependency map
 
 ```text
-content / construction
+content / configuration
   cards/cards.json
-  decks/*.json
-  decks.py
+  decks/*.json + decks/index.json
+  rules.py / cards.py / decks.py
   rules/rulebook.md
-        |
-        v
-game core
-  cards.py
-  rules.py
+            |
+            v
+canonical game core
   game/model.py
   game/actions.py
   game/engine.py
-        |
-        +-------------------+-------------------+
-        v                   v                   v
-AI/search               browser play        simulation
-agents/*                web_api.py           simulate.py
-belief.py               web/*                tools/simulate.py
-heuristics.py
-algorithms/*
-native search cores
-        \                   |                   /
-         \                  |                  /
-          +------------------+-----------------+
-                             v
-                    analysis / design tools
-                    telemetry.py
-                    human_flow.py
-                    balance.py
-                    health.py
-                    playability.py
-                    counterfactual.py
-                    tools/*
+  _fast_engine_core.pxi
+            |
+   +--------+-------------------+--------------------+
+   |                            |                    |
+   v                            v                    v
+AI/search                  application adapters   simulation
+agents/*                   web_api.py             simulate.py
+belief.py                  native_engine.py       tools/simulate.py
+heuristics.py              browser-engine.mjs
+algorithms/*                    |
+native search cores             v
+                           browser UI/transport
+                           play.js / play.css
+                           remote-peer.mjs
+   \                            |                    /
+    \                           |                   /
+     +--------------------------+------------------+
+                                |
+                                v
+                     analysis / research / reports
+                     telemetry.py
+                     progression.py
+                     balance.py
+                     health.py
+                     playability.py
+                     counterfactual.py
+                     MCCFR tooling
+                     tools/run_experiments.py
+                     tools/full_lab.py
 ```
 
-Dependencies point downward in this diagram. Analysis and search may consume the
-game core. The game core must never depend on them.
+Dependencies point downward. The core must never depend on search, browser, simulation, or analysis. Browser transport must never become a second rules engine.
 
-## 1. Game core
+## 1. Canonical game core
 
-The game core is the sole semantic authority.
+The core is the sole semantic authority for state, legal actions, transitions, visibility, card effects, scoring, and configurable match rules.
 
-It owns:
+`GameRules` is plain configuration. Experiments use `GameRules.standard().with_overrides(...)`, not alternate engines or named rule implementations.
 
-- state;
-- legal actions;
-- applying actions;
-- Battle and match transitions;
-- visibility and hidden information;
-- card effect interpretation;
-- scoring;
-- configurable match rules.
+Configurable defaults are single-source. UI hints, generated references, simulations, and tests derive values from `GameRules`; they do not re-literalize a balance candidate.
 
-`GameRules` is deliberately a plain configuration object. Rule experiments
-should change values through `with_overrides(...)`, so a rule can be tested
-without creating another engine, mode, or implementation.
+Native composition is rooted at `_fast_engine_core.pxi`. Host engine/search may share one compiled extension for packed types and performance, but that packaging is not an architectural dependency. Core Python reaches transitions through `native_engine.py`.
 
-Configurable defaults are single-source. UI rule hints, generated reference
-surfaces, simulation provenance, and tests derive values from `GameRules`;
-they must not re-literalize the current balance candidate. Numeric tuning
-should normally change `GameRules` (or an explicit experiment override), not
-force synchronized edits across consumers.
+## 2. Cards and decks
 
-The browser, simulations, and every AI algorithm must ask the same engine for
-legal actions and transitions. They must not reproduce rule logic.
+Cards are data interpreted by the core. `design_rules` is the only executable mechanics schema; presentation text/rule blocks are not another machine-rules channel.
 
-## 2. Cards
+Runtime code may understand reusable capabilities, but must not branch on a canonical card id/title. New behavior requires a reusable schema/engine primitive.
 
-Cards are data interpreted by the game core. `design_rules` is the single
-executable mechanics schema; presentation text and `rule_blocks` do not form
-a second machine-rules channel.
+Decks are match input:
 
-Adding ordinary cards should require data changes, not search/UI changes.
-Reusable effect primitives belong to the game core; algorithms must not contain
-card-specific behavior.
+- `decks.py` owns construction validation;
+- `decks/index.json` is the only shipped/canonical deck catalogue;
+- `GameEngine.new_game()` delegates construction validation;
+- beliefs/search take deck shape from match context, not `GameRules`.
 
-**No runtime implementation may special-case a card identity.** The engine,
-heuristics, and search agents may understand capabilities such as "Hero",
-"move a formation", "gain Command", or "play in more than one role", but they
-must not branch on a particular card id or title. A card that needs a new kind
-of behavior requires a reusable capability/effect primitive in the card schema
-and engine, not an `if card_id == ...` patch.
+Experiment-only variants are copied/in-memory data with explicit provenance, not edits to canonical files.
 
-This is especially important for future rule-breaking cards: exceptions remain
-data-driven and visible to every consumer through the same engine.
+## 3. AI and search
 
-The card catalogue is independent from any particular deck.
+Agents/search algorithms consume the core.
 
-## 3. Decks
+They may own search trees, beliefs, evaluators, transposition tables, rollout policies, training tables, and performance optimizations.
 
-A deck is input to a match, not part of the rules engine.
+They may not own turn/Battle transitions, card legality, Command semantics, card effects, deck assumptions, or alternate state semantics.
 
-The engine accepts two deck compositions when creating a game. Reference decks
-are examples/playtest content, not engine constants. Future decks may contain
-different cards and may be larger than today's playtest decks.
+Research/search capabilities are exposed through `native_search.py`. The product browser opponent is a separate product decision; research solvers do not become browser modes merely because they exist.
 
-`decks.py` owns construction policy. The current construction constraints, copy limits, and Force/Name minimums
-live in `decks.py`. Those constraints are not fields of `GameRules`. `GameEngine.new_game()` delegates
-deck validation to `decks.py` so every match starts from a legal deck without
-duplicating construction rules inside the match-rules configuration.
+## 4. Application adapters
 
-`decks/index.json` is the single catalogue of shipped/canonical deck
-profiles. Pages, experiments and solver-suite tooling derive their deck lists
-from that catalogue rather than maintaining parallel filename/profile lists.
+### Browser session
 
-AI beliefs must likewise take deck size from the supplied game/deck context,
-not from match rules. A future deck format may change size or copy limits
-without changing the engine or search algorithms.
+`web_api.PlaySession` adapts canonical engine state/actions to JSON snapshots. It owns viewer-specific visibility, mulligan/session pacing, action serialization, production local-opponent integration, and public log formatting. It does not own alternate rules.
 
-## 4. AI/search
+### Pyodide bridge
 
-Agents and search algorithms are consumers of the game core.
+`web/browser-engine.mjs` loads the generated browser runtime and forwards JSON calls to `PlaySession`.
 
-Browser play exposes product modes (`computer` and `hotseat`), not solver
-identities. The current production computer opponent is `HeuristicAgent`.
-Changing the production opponent must not change the browser protocol or create
-a new play mode. ISMCTS, alpha-beta, MCCFR and online MCCFR are research/search
-implementations unless explicitly promoted by a separate product decision.
+The browser wheel excludes analysis, telemetry, counterfactual, solver training, and research agents. It compiles the same engine core as the host plus only the production heuristic.
 
-They may own:
+### Browser UI
 
-- search trees;
-- beliefs;
-- evaluation functions;
-- transposition tables;
-- rollout policies;
-- performance optimizations.
+`web/play.js` renders snapshots and submits canonical action keys. It may animate snapshot differences but must not predict action results.
 
-They may not own:
+`web/play.css` owns game-scene/card geometry.
 
-- turn/Battle transitions;
-- card legality;
-- Command rules;
-- card effects;
-- deck assumptions;
-- alternate state semantics.
+## 5. Multiplayer transport
 
-An algorithm should continue working when a `GameRules` constant changes
-unless the algorithm's own search parameters are intentionally changed.
+Remote browser play is host-authoritative.
 
-## 5. Application adapters
+The product UI exposes remote host/join setup states, while the underlying application uses one `PlaySession(mode="remote")`.
 
-`web_api.py` adapts the game to browser sessions. It may depend on the core
-and the chosen production play agent. It must not depend on balance,
-counterfactual, telemetry, training, or solver-research modules.
+- Host owns the canonical session and performs every transition.
+- Guest receives only `snapshot(1)`.
+- Guest sends canonical action keys or mulligan selections.
+- Host validates/applies them and returns a redacted snapshot.
+- Hidden information remains protected by the viewer boundary.
 
-`simulate.py` is the one programmatic match loop for AI-vs-AI play. Analysis
-may consume its output rather than creating alternate game loops.
+`web/remote-peer.mjs` is a rule-free WebRTC transport. It may move JSON and encode signaling tokens, but must not know cards, legal actions, or engine semantics.
 
-## 6. Analysis and developer tooling
+The current static deployment uses manual offer/answer tokens and STUN. Future signaling, room codes, or TURN belong to transport infrastructure and do not justify duplicating game semantics server-side.
 
-Analysis exists to help design the game. It sits outside the browser runtime
-and may be deleted or replaced without changing game semantics.
+## 6. Simulation
 
-Canonical verification covers the current standard rules. Historical/non-standard
-rule variants may retain explicit tests for design archaeology, but those tests
-are expressed as ordinary `GameRules.standard().with_overrides(...)` values,
-marked `legacy_rule_experiment`, and are not part of `make verify` or
-`make verify-algorithms`.
+`src/longwar/simulate.py` is the one AI-vs-AI match loop.
 
-Tools may compose simulations and reports, but a new experiment is not a reason
-to add:
+Analysis and experiments consume its output rather than creating parallel game loops.
 
-- another rules engine;
-- another simulation loop;
-- another browser mode;
-- another named rules profile;
-- another Make target.
+## 7. Analysis and research
 
-Experiment variation belongs in data/configuration and command arguments.
+Analysis sits outside the runtime boundary and may evolve without changing game semantics.
 
-## 7. Command surface
+It includes telemetry, progression, playability, health, balance, counterfactual analysis, solver verification/training, experiment orchestration, and Lab assembly.
 
-Make is a small human-facing convenience layer, not an API for every script or
-experiment.
+Historical/non-standard variants may remain as explicit `GameRules.with_overrides(...)` tests marked `legacy_rule_experiment`. They are not another supported rules profile.
 
-New experimental variations should use arguments to an existing command.
-Adding a Make target requires a new lifecycle operation, not merely a new
-parameter combination.
+A new experiment is not a reason to add another engine, simulation loop, browser rules implementation, permanent rules profile, or Make target for a parameter combination.
+
+## 8. Full Balance Lab
+
+`tools/full_lab.py` composes existing validation, balance, search, MCCFR, report, and Pages stages. It is lifecycle orchestration, not another analysis implementation.
+
+A completed expensive stage is reusable when its outputs exist and its stored **game fingerprint plus stage configuration** match. The broader experiment fingerprint is retained for provenance, but unrelated presentation/tooling edits do not invalidate expensive game evidence.
+
+The Lab preserves evidence provenance rather than reducing different methods to one score.
+
+## 9. Browser static integrity and Pages
+
+`tools/build_pages.py` builds the static site into `dist/`.
+
+`tools/check_web_static.py` guards cross-file/build contracts that ordinary syntax checks can miss:
+
+- authored JS/module syntax;
+- HTML local assets;
+- module imports;
+- `play.js` DOM ids;
+- built `data/*.json` references;
+- runtime/Pyodide references and wheel manifest.
+
+`make browser-parity` runs the checker before and after building Pages, then compares canonical browser/native session traces.
+
+The Pages workflow is deployment infrastructure. It performs compile/static build-integrity checks and publishes `dist/`, but does not run research simulations, balance analysis, pytest suites, or solver training.
+
+## 10. Rulebook and print pipeline
+
+Player-facing rules are authored in `rules/rulebook.md`.
+
+Two presentation paths consume them:
+
+- `tools/build_pages.py` renders the web rulebook/reference site;
+- `tools/build_rulebook_pdf.py` renders rule tokens from `GameRules.standard()`, converts the supported Markdown subset to Typst, compiles `dist/rulebook.pdf`, and verifies the PDF.
+
+Printable pagination is therefore independent of browser print layout. `dist/rulebook.typ` is generated intermediate source, not canonical authored rules.
+
+## 11. Command surface
+
+Make is a small lifecycle layer, not an API for every script.
+
+Permanent targets are:
+
+```text
+install
+native-build
+browser-build
+verify
+verify-algorithms
+test
+test-fast
+test-integration
+simulate
+balance
+experiments
+full-lab
+pages
+browser-parity
+```
+
+Variations belong in arguments to those operations or to the underlying runners.
 
 ## Enforced invariants
 
-Architecture tests must enforce these properties:
+Architecture/tests should protect durable ownership boundaries:
 
 1. Core modules do not import agents, search, simulation, analysis, or web code.
 2. Browser runtime adapters do not import analysis/training modules.
-3. Search algorithms do not inspect individual `GameRules` fields.
-4. Action serialization belongs to `game.actions`, not to an algorithm.
-5. Deck files/names are not referenced by the game core.
+3. Search algorithms do not reimplement rules or branch on canonical card ids.
+4. Action serialization belongs to game/application boundaries, not a solver.
+5. Deck filenames/profile membership are not game-core constants.
 6. Python game transitions are not duplicated outside the canonical engine.
-7. Experiment-specific command combinations do not become new Make targets.
-8. Engine, heuristic, and search implementation files contain no canonical card ids.
-9. `GameRules` contains no deck-construction fields such as deck size or copy limits.
+7. Experiment parameter combinations do not become permanent Make targets.
+8. `GameRules` contains match configuration, not deck-construction policy.
+9. Remote transport contains no game semantics and is never authoritative.
+10. Browser asset names referenced by consumers must exist in the built site.
+11. Configurable numeric rules are not duplicated across developer docs/consumers.
 
-Tests should enforce dependency direction and ownership, not incidental file
-layout or a particular search implementation.
-
-## Native composition boundary
-
-Native code has one explicit source boundary:
-
-- `_fast_engine_core.pxi` composes the canonical packed state and game engine;
-- `_fast_search.pyx` includes that engine core, then layers heuristic/search
-  implementations on top;
-- browser builds include the same engine core plus only the production
-  heuristic, and derive the Cython include closure automatically;
-- Python code reaches native rule execution through `native_engine.py` and
-  research/search capabilities through `native_search.py`.
-
-The host may compile engine and search code into one extension for shared packed
-types and low call overhead. That binary packaging is an implementation detail,
-not an architectural dependency and not cleanup debt. A rule change should
-normally affect `GameRules`, card mechanics, and/or engine implementation
-without requiring search or browser packaging edits.
+Tests should protect ownership and behavior, not incidental file layout.
