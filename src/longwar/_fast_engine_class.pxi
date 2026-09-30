@@ -160,6 +160,23 @@ cdef class FastEngine:
     cpdef FastState from_game_state(self, state):
         return _fe_from_game_state(self, state)
 
+    cpdef FastState determinize_hidden_zones(
+        self,
+        FastState state,
+        int viewer,
+        object viewer_deck,
+        object opponent_hand,
+        object opponent_deck,
+    ):
+        return _fe_determinize_hidden_zones(
+            self,
+            state,
+            viewer,
+            viewer_deck,
+            opponent_hand,
+            opponent_deck,
+        )
+
     cpdef int position_strength(self, FastState state, int player, int front, int rank):
         return _fe_position_strength(self, state, player, front, rank)
 
