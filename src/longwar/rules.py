@@ -70,3 +70,12 @@ class GameRules:
             field: getattr(self, field)
             for field in self.__dataclass_fields__
         }
+
+    def simulation_metadata(self) -> dict[str, object]:
+        """Stable artifact provenance for the complete match-rule schema."""
+        values = self.as_dict()
+        # Preserve the existing artifact key while keeping the canonical Python
+        # field name free to evolve independently of report compatibility.
+        values["base_hand_size"] = values.pop("opening_hand_size")
+        values["battle_one_starter_bonus"] = 0
+        return values
