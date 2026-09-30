@@ -2297,13 +2297,14 @@
   .rulebook-page-version { right: 0; }
 
   .rulebook-print-columns {
-    display: grid;
-    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    display: flex;
     gap: 9mm;
-    align-items: start;
+    align-items: flex-start;
   }
 
   .rulebook-print-column {
+    flex: 1 1 0;
+    width: calc(50% - 4.5mm);
     min-width: 0;
   }
 
@@ -2456,13 +2457,14 @@
 
   .rulebook-print-opening .rulebook-at-a-glance {
     margin: 0 0 4mm;
-    display: grid;
-    grid-template-columns: repeat(4,minmax(0,1fr));
+    display: flex;
     border-top: .45mm solid #181714;
     border-bottom: .45mm solid #181714;
   }
 
   .rulebook-print-opening .rulebook-at-a-glance > div {
+    flex: 1 1 0;
+    width: 25%;
     min-height: 17mm;
     padding: 2.4mm 2.6mm;
   }
@@ -2477,29 +2479,27 @@
     line-height: 1.25;
   }
 
-  .rulebook-print-goal .rule-section {
-    display: grid;
-    grid-template-columns: minmax(0,.72fr) minmax(0,1.28fr);
-    grid-template-rows: auto auto auto auto auto;
-    column-gap: 7mm;
-    align-items: start;
+  .rulebook-print-goal .rulebook-print-goal-section {
+    display: flex;
+    gap: 7mm;
+    align-items: flex-start;
   }
 
-  .rulebook-print-goal .rule-section > h2 {
-    grid-column: 1 / -1;
+  .rulebook-print-goal-copy {
+    flex: 0 0 42%;
+    min-width: 0;
+  }
+
+  .rulebook-print-goal-copy > h2 {
     margin-bottom: 2.5mm;
   }
 
-  .rulebook-print-goal .rule-section > p,
-  .rulebook-print-goal .rule-section > ul {
-    grid-column: 1;
-  }
-
   .rulebook-battlefield-figure {
-    grid-column: 2;
-    grid-row: 2 / span 6;
+    flex: 1 1 0;
+    width: auto;
+    max-width: none;
     margin: 0;
-    align-self: start;
+    align-self: flex-start;
   }
 
   .rulebook-battlefield-figure img {

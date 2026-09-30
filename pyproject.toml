@@ -16,6 +16,7 @@ dev = [
   "pytest>=8.0",
   "Cython>=3.0",
   "setuptools>=75",
+  "WeasyPrint>=66.0",
 ]
 
 [tool.setuptools]

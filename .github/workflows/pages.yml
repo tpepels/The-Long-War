@@ -15,6 +15,7 @@ on:
       - "setup.py"
       - "pyproject.toml"
       - "tools/build_pages.py"
+      - "tools/build_rulebook_pdf.py"
       - "tools/build_lab_report.py"
       - "tools/build_browser_runtime.py"
       - ".github/workflows/pages.yml"
@@ -42,6 +43,8 @@ jobs:
       - run: node --check web/balance.js
       - name: Build Pages from committed Balance Lab evidence
         run: python tools/build_pages.py
+      - name: Build canonical rulebook PDF
+        run: python tools/build_rulebook_pdf.py
       - uses: actions/upload-pages-artifact@v4
         with:
           path: dist
