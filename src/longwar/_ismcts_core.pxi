@@ -299,6 +299,7 @@ cdef class ISMCTSTree:
         cdef size_t bucket, mask
         cdef int index, i
         cdef ISMCTSNodeRecord* node
+        cdef ISMCTSEdgeRecord* edges
         if found >= 0:
             created[0] = False
             return found
@@ -308,6 +309,8 @@ cdef class ISMCTSTree:
         if self.node_count >= self.node_capacity:
             self._grow_nodes()
 
+        node = NULL
+        edges = self._alloc_edges(n)
         index = <int>self.node_count
         self.node_count += 1
         node = &self.nodes[index]
@@ -316,7 +319,7 @@ cdef class ISMCTSTree:
         node.player = <int8_t>player
         node.action_count = <uint16_t>n
         node.total_visits = 0
-        node.edges = self._alloc_edges(n)
+        node.edges = edges
 
         for i in range(n):
             node.edges[i].action = actions[i]

@@ -421,7 +421,6 @@ def _simulate_games_serial(
                 action_count += 1
 
                 del decision_info, before, action, agent
-                _release_process_memory()
 
             winner = None if censored else state.winner
             if not censored and winner is None:

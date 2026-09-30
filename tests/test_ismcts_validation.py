@@ -687,12 +687,20 @@ def test_belief_reuse_context_tracks_observed_evidence_only() -> None:
     changed.players[0].discard.append(changed.players[0].hand.pop())
     assert belief.reuse_context(changed, 0) == baseline
 
-    # Drawing a previously unknown card changes the owner's belief context.
+    # Observable changes reroot by information hash; they do not invalidate
+    # every node built under the same deck prior.
+    fast = FastEngine(engine)
+
     changed = state.clone()
     changed.players[0].hand.append(changed.players[0].deck.pop())
-    assert belief.reuse_context(changed, 0) != baseline
+    assert belief.reuse_context(changed, 0) == baseline
+    assert fast.information_hash(
+        fast.from_game_state(changed), 0
+    ) != fast.information_hash(fast.from_game_state(state), 0)
 
-    # A public opponent play changes hard evidence even at unchanged zone sizes.
     changed = state.clone()
     changed.players[1].discard.append(changed.players[1].hand.pop())
-    assert belief.reuse_context(changed, 0) != baseline
+    assert belief.reuse_context(changed, 0) == baseline
+    assert fast.information_hash(
+        fast.from_game_state(changed), 0
+    ) != fast.information_hash(fast.from_game_state(state), 0)

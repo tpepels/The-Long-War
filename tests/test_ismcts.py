@@ -64,6 +64,8 @@ def test_cython_ismcts_returns_legal_action() -> None:
         0 < agent.last_decision["ismcts_selected_action_visits"] <= 200
     )
     assert agent.last_decision["ismcts_tree_nodes"] > 0
+    assert agent.last_decision["ismcts_tree_storage"] == "native-hash-node-edge-slab"
+    assert agent.last_decision["ismcts_tree_edge_slabs"] > 0
     assert (
         agent.last_decision["ismcts_rollouts_stopped_terminal"]
         + agent.last_decision["ismcts_rollouts_stopped_battle_boundary"]

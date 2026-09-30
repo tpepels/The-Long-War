@@ -7,7 +7,7 @@ from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState
-from ..heuristics import command_preserving_actions, opening_mulligan_indices
+from ..heuristics import opening_mulligan_indices
 
 DEFAULT_ISMCTS_EXPLORATION = 0.3
 # Canonical production/search baseline. Keep experiment runners and simulation
@@ -151,8 +151,8 @@ class ISMCTSAgent:
         decision_started = perf_counter()
         root_player = state.active_player
         legal = engine.legal_actions(state)
-        guarded_legal, guarded = command_preserving_actions(engine, state, legal)
         if len(legal) == 1:
+            guarded = 0
             self.last_decision = {
                 "candidate_count": 1,
                 "selected_score": 0.0,
@@ -179,6 +179,7 @@ class ISMCTSAgent:
                 ),
                 "ismcts_tree_nodes_added": 0,
                 "ismcts_tree_nodes_discarded": 0,
+                "ismcts_tree_edge_slabs": 0,
                 "ismcts_tree_reset_reason": "none",
                 "ismcts_tree_capacity_cutoffs": 0,
                 "ismcts_root_total_visits": 0,
@@ -201,6 +202,20 @@ class ISMCTSAgent:
                 "command_guard_filtered_actions": guarded,
             }
             return legal[0]
+
+        guard_state = self.fast_engine.from_game_state(state)
+        guard_codes, guarded = self.evaluator.command_preserving_action_codes(
+            guard_state
+        )
+        guarded_keys = {
+            self.fast_engine.action_key(code)
+            for code in guard_codes
+        }
+        safe_keys = {
+            action_key(action): action
+            for action in legal
+            if action_key(action) in guarded_keys
+        }
 
         sampled_states = [
             self.belief.sample(state, root_player, self.rng)
@@ -262,8 +277,7 @@ class ISMCTSAgent:
             for stat in result["root_stats"]
             if self.fast_engine.action_key(stat["action"]) == selected_key
         )
-        if selected not in guarded_legal:
-            safe_keys = {action_key(action): action for action in guarded_legal}
+        if selected_key not in guarded_keys:
             safe_stats = [
                 stat
                 for stat in result["root_stats"]
@@ -319,6 +333,7 @@ class ISMCTSAgent:
             "ismcts_tree_nodes_before": int(result["tree_nodes_before"]),
             "ismcts_tree_nodes_added": int(result["tree_nodes_added"]),
             "ismcts_tree_nodes_discarded": int(result["tree_nodes_discarded"]),
+            "ismcts_tree_edge_slabs": int(result["tree_edge_slabs"]),
             "ismcts_tree_reset_reason": str(result["tree_reset_reason"]),
             "ismcts_tree_capacity_cutoffs": int(result["tree_capacity_cutoffs"]),
             "ismcts_tree_max_nodes": int(result["tree_max_nodes"]),

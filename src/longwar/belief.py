@@ -254,26 +254,19 @@ class BeliefSampler:
         self.priors = priors
 
     def reuse_context(self, state: GameState, viewer: int) -> tuple[object, ...]:
-        """Hard evidence whose change invalidates root-sampled search values.
+        """Global context for values that are not encoded in information sets.
 
-        Public deterministic moves can reuse matching information sets. A draw,
-        reveal, hidden-zone change or observer change conditions a different
-        belief and must not inherit values from the previous distribution.
-        Opponent hidden card identities and deck order never enter this key.
+        The native information hash already contains the full observable game
+        state, including own hand/deck composition, public opponent cards,
+        known hidden cards and hidden-zone counts. Those observations therefore
+        reroot the persistent tree instead of flushing it. Only changing the
+        observer or the external deck prior invalidates every stored value.
         """
         self._validate_viewer(viewer)
         opponent = 1 - viewer
-        diagnostics = self.diagnostics(state, viewer)
         return (
             viewer,
             self._prior_identity(state, opponent),
-            tuple(sorted(state.players[viewer].deck)),
-            tuple(sorted(self._public_opponent_cards(state, opponent))),
-            tuple(sorted(state.known_hidden_cards(viewer, opponent, "hand"))),
-            diagnostics.hidden_hand_cards,
-            diagnostics.hidden_deck_cards,
-            diagnostics.hidden_schemes,
-            diagnostics.hidden_stratagems,
         )
 
     def diagnostics(self, state: GameState, viewer: int) -> BeliefDiagnostics:
