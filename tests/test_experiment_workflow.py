@@ -780,3 +780,9 @@ def test_full_lab_stage_reuse_is_game_fingerprint_scoped_not_global_experiment_s
     assert 'payload.get("game_fingerprint")' in stage_current
     assert 'payload.get("experiment_fingerprint")' not in stage_current
     assert 'payload.get("config")' in stage_current
+
+
+def test_narrative_ablation_uses_catalogued_narrative_deck_id():
+    source = (ROOT / "tools" / "run_experiments.py").read_text(encoding="utf-8")
+    assert 'CANONICAL_DECK_PATHS["narrative"]' in source
+    assert 'CANONICAL_DECK_PATHS["narrative-command"]' not in source

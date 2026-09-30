@@ -2010,7 +2010,7 @@ def narrative_ablation_run(args: argparse.Namespace) -> Path:
         raise SystemExit("--games and --jobs must be positive")
 
     base_data = load_card_file(ROOT / "cards" / "cards.json")
-    deck_path = ROOT / CANONICAL_DECK_PATHS["narrative-command"]
+    deck_path = ROOT / CANONICAL_DECK_PATHS["narrative"]
     deck = list(json.loads(deck_path.read_text(encoding="utf-8"))["cards"])
     root = ROOT / "artifacts" / "narrative-ablation"
     root.mkdir(parents=True, exist_ok=True)
@@ -2120,7 +2120,7 @@ def narrative_ablation_run(args: argparse.Namespace) -> Path:
     aggregate = {
         "schema_version": 1,
         **aggregate_identity,
-        "deck": "narrative-command",
+        "deck": "narrative",
         "agent": "ismcts",
         "games_per_variant": args.games,
         "seed": args.seed,
