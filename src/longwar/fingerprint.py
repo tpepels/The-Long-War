@@ -81,6 +81,8 @@ def experiment_fingerprint_paths() -> list[Path]:
         "run_experiments.py",
         "simulate.py",
         "train_mccfr.py",
+        "verify_mccfr.py",
+        "build_mccfr_suite.py",
         "counterfactual_balance.py",
         "targeted_online_counterfactual.py",
     ):

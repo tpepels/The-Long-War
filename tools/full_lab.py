@@ -48,6 +48,8 @@ def _stage_current(
         return False
     if payload.get("game_fingerprint") != current_game_fingerprint():
         return False
+    if payload.get("experiment_fingerprint") != current_experiment_fingerprint():
+        return False
     if payload.get("config") != config:
         return False
     if require_game_fingerprint:

@@ -763,3 +763,12 @@ def test_full_lab_runner_contains_resumable_expensive_stages():
     assert "_stage_current" in source
     assert "tools/build_lab_report.py" in source
     assert "tools/build_pages.py" in source
+
+
+def test_full_lab_stage_reuse_checks_experiment_fingerprint():
+    source = (ROOT / "tools" / "full_lab.py").read_text(encoding="utf-8")
+    assert 'payload.get("experiment_fingerprint") != current_experiment_fingerprint()' in source
+    paths = fingerprint.experiment_fingerprint_paths()
+    names = {path.name for path in paths}
+    assert "verify_mccfr.py" in names
+    assert "build_mccfr_suite.py" in names
