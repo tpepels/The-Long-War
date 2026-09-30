@@ -122,6 +122,10 @@ def test_python_state_key_tracks_every_game_state_field() -> None:
             "used only by the ISMCTS information-set hash (a separate cache "
             "key), not by legal_actions or StrategicEvaluator"
         ),
+        "free_maneuver_source": (
+            "diagnostic attribution only: identifies which card granted an "
+            "already-free Maneuver, but does not affect legality, cost, or evaluation"
+        ),
         "players": "nested PlayerState fields verified individually above and by construction",
         "board": "nested Slot fields (force/bond/name/temporary_strength) all represented above",
         "stories": "nested StoryState card ids are represented above",

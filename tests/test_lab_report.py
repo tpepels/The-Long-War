@@ -627,7 +627,9 @@ def test_progression_trajectory_uses_battle_eight_plus_when_observed() -> None:
 
 
 def test_lab_builder_does_not_grade_stale_optional_legacy_fallbacks_as_current_evidence():
-    source = (ROOT / "tools" / "build_lab_report.py").read_text(encoding="utf-8")
+    source = (build_lab_report.ROOT / "tools" / "build_lab_report.py").read_text(
+        encoding="utf-8"
+    )
     assert 'current("mccfr-policy.json", track_stale=False)' in source
     assert 'track_stale=(key == "canonical_selfplay")' in source
     assert 'solver_strength = current("solver-strength.json")' in source

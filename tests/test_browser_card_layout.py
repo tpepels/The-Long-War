@@ -325,7 +325,7 @@ def test_rulebook_uses_generated_pdf_for_printing() -> None:
 
     assert "WeasyPrint>=66.0" in pyproject
     assert "python tools/build_rulebook_pdf.py" in workflow
-    assert '"rulebook.pdf"' in template
+    assert 'href="rulebook.pdf?v={{PRINT_VERSION}}"' in template
     assert "window.print()" not in template
     assert "EXPECTED_PAGES = 4" in generator
     assert "len(document.pages) != EXPECTED_PAGES" in generator

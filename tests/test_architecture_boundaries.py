@@ -305,6 +305,7 @@ def test_makefile_is_a_small_lifecycle_surface() -> None:
         "simulate",
         "balance",
         "experiments",
+        "full-lab",
         "pages",
         "browser-parity",
     }
