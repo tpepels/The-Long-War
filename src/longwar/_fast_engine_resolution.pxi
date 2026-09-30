@@ -19,8 +19,8 @@ cdef void _fe_queue_pre_resolution_choice(
                 slot = slot_index(controller, front, 0)
                 rear = slot_index(controller, front, 1)
                 if (
-                    state.subject[slot] >= 0
-                    and state.subject[rear] >= 0
+                    state.force[slot] >= 0
+                    and state.force[rear] >= 0
                 ):
                     mask |= <uint16_t>(1 << slot)
                     mask |= <uint16_t>(1 << rear)
@@ -43,7 +43,7 @@ cdef void _fe_queue_pre_resolution_choice(
         slot = cursor - 2
         state.resolution_cursor += 1
         if (
-            state.subject[slot] >= 0
+            state.force[slot] >= 0
             and _fe_slot_complete(self, state, slot)
             and rank_from_slot(slot) == 0
             and state.name[slot] >= 0
@@ -72,7 +72,7 @@ cdef void _fe_queue_pre_resolution_choice(
     if cursor < 34:
         slot = cursor - 18
         state.resolution_cursor += 1
-        force = state.subject[slot]
+        force = state.force[slot]
         if force >= 0 and self.skirmisher_contribution[force]:
             _fe_enqueue_effect(self, 
                 state,
@@ -91,7 +91,7 @@ cdef void _fe_queue_pre_resolution_choice(
     if cursor < 50:
         slot = cursor - 34
         state.resolution_cursor += 1
-        force = state.subject[slot]
+        force = state.force[slot]
         if force < 0:
             return
         controller = owner_from_slot(slot)
@@ -100,13 +100,13 @@ cdef void _fe_queue_pre_resolution_choice(
         target = -1
         if self.suppress_rear_force[force]:
             rear = slot_index(opponent, front, 1)
-            if state.subject[rear] >= 0:
+            if state.force[rear] >= 0:
                 target = rear
         elif self.first_strike_force[force]:
             target = slot_index(opponent, front, 0)
             if (
-                state.subject[target] < 0
-                or self.strength[state.subject[target]]
+                state.force[target] < 0
+                or self.strength[state.force[target]]
                 >= self.strength[force]
             ):
                 target = -1
@@ -129,9 +129,9 @@ cdef void _fe_queue_pre_resolution_choice(
     if cursor < 66:
         slot = cursor - 50
         state.resolution_cursor += 1
-        if state.subject[slot] < 0:
+        if state.force[slot] < 0:
             return
-        bond = state.link[slot]
+        bond = state.bond[slot]
         if bond < 0 or not self.sacrifice_bond[bond]:
             return
         controller = owner_from_slot(slot)
@@ -139,10 +139,10 @@ cdef void _fe_queue_pre_resolution_choice(
         front = front_from_slot(slot)
         target_mask = 0
         target = slot_index(opponent, front, 0)
-        if state.subject[target] >= 0:
+        if state.force[target] >= 0:
             target_mask |= <uint16_t>(1 << target)
         target = slot_index(opponent, front, 1)
-        if state.subject[target] >= 0:
+        if state.force[target] >= 0:
             target_mask |= <uint16_t>(1 << target)
         if target_mask:
             _fe_enqueue_effect(self, 
@@ -226,13 +226,13 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     for front in range(4):
         if (
             state.resolution_lost_mask[0] & (1 << front)
-            and state.subject[slot_index(0, front, 1)] < 0
+            and state.force[slot_index(0, front, 1)] < 0
             and _fe_breakthrough_active(self, state, 1, front)
         ):
             state.resolution_drive_mask[0] |= <uint8_t>(1 << front)
         if (
             state.resolution_lost_mask[1] & (1 << front)
-            and state.subject[slot_index(1, front, 1)] < 0
+            and state.force[slot_index(1, front, 1)] < 0
             and _fe_breakthrough_active(self, state, 0, front)
         ):
             state.resolution_drive_mask[1] |= <uint8_t>(1 << front)
@@ -277,7 +277,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         if state.resolution_lost_mask[0] & (1 << front):
             protected = 0
             for p in range(2):
-                card = state.subject[slot_index(0, front, p)]
+                card = state.force[slot_index(0, front, p)]
                 if card >= 0 and self.recovery_protected_front[card]:
                     protected = 1
             if protected and state.resolution_recovery_losses[0] > 0:
@@ -285,7 +285,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         if state.resolution_lost_mask[1] & (1 << front):
             protected = 0
             for p in range(2):
-                card = state.subject[slot_index(1, front, p)]
+                card = state.force[slot_index(1, front, p)]
                 if card >= 0 and self.recovery_protected_front[card]:
                     protected = 1
             if protected and state.resolution_recovery_losses[1] > 0:
@@ -326,7 +326,7 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
 
         # Snapshot persistent Rear effects before that formation is driven
         # off. Upper drive-mask bits are temporary sideways-retreat markers.
-        force = state.subject[rear_slot]
+        force = state.force[rear_slot]
         if force >= 0 and (self.card_capabilities[force] & CAP_AFTER_FRONTLINE_RETREAT_SIDEWAYS_FORCE):
             state.resolution_drive_mask[player] |= <uint8_t>(
                 1 << (front + 4)
@@ -419,7 +419,7 @@ cdef bint _fe_resolve_one_battle_end_narrative(
     for player in range(2):
         for story_slot in range(self.ongoing_story_limit):
             ix = player * 4 + story_slot
-            card = state.scheme[ix]
+            card = state.narrative[ix]
             if card < 0:
                 continue
             kind = self.narrative_end_kind[card]
@@ -428,7 +428,7 @@ cdef bint _fe_resolve_one_battle_end_narrative(
 
             condition = False
             won = False
-            front_mask = state.scheme_front_mask[ix]
+            front_mask = state.narrative_front_mask[ix]
             front = -1
             for target_slot in range(4):
                 if front_mask & (1 << target_slot):
@@ -451,10 +451,10 @@ cdef bint _fe_resolve_one_battle_end_narrative(
                 )
                 condition = won
             elif kind == NARR_END_TARGET_SURVIVES:
-                target_slot = state.scheme_target_slot[ix]
+                target_slot = state.narrative_target_slot[ix]
                 condition = (
                     target_slot >= 0
-                    and state.subject[target_slot] >= 0
+                    and state.force[target_slot] >= 0
                 )
 
             gain = self.narrative_end_gain[card]
@@ -513,7 +513,7 @@ cdef void _fe_resolve_battle_end_operation_constraints(
         story_slot = self.ongoing_story_limit - 1
         while story_slot >= 0:
             ix = controller * 4 + story_slot
-            card = state.scheme[ix]
+            card = state.narrative[ix]
             if card >= 0 and self.narrative_three_front_next_maneuver[card]:
                 if winner >= 0:
                     _fe_add_constraint(
@@ -623,8 +623,8 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.free_maneuver_available[p] = 0
         state.player_maneuver_count[p] = 0
         for front in range(self.ongoing_story_limit):
-            state.scheme_used[p * 4 + front] = 0
-            state.scheme_trigger_mask[p * 4 + front] = 0
+            state.narrative_used[p * 4 + front] = 0
+            state.narrative_trigger_mask[p * 4 + front] = 0
         for front in range(8):
             state.maneuver_count[p * 8 + front] = 0
             state.maneuver_direction[p * 8 + front] = 0
