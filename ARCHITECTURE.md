@@ -65,6 +65,12 @@ It owns:
 should change values through `with_overrides(...)`, so a rule can be tested
 without creating another engine, mode, or implementation.
 
+Configurable defaults are single-source. UI rule hints, generated reference
+surfaces, simulation provenance, and tests derive values from `GameRules`;
+they must not re-literalize the current balance candidate. Numeric tuning
+should normally change `GameRules` (or an explicit experiment override), not
+force synchronized edits across consumers.
+
 The browser, simulations, and every AI algorithm must ask the same engine for
 legal actions and transitions. They must not reproduce rule logic.
 
@@ -103,6 +109,10 @@ at least 34 cards with the current copy limits and Force/Name minimums. Those
 constraints are not fields of `GameRules`. `GameEngine.new_game()` delegates
 deck validation to `decks.py` so every match starts from a legal deck without
 duplicating construction rules inside the match-rules configuration.
+
+`decks/index.json` is the single catalogue of shipped/canonical deck
+profiles. Pages, experiments and solver-suite tooling derive their deck lists
+from that catalogue rather than maintaining parallel filename/profile lists.
 
 AI beliefs must likewise take deck size from the supplied game/deck context,
 not from match rules. A future deck format may change size or copy limits
