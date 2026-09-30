@@ -398,31 +398,45 @@ function renderAttention(lab) {
 function renderEvidencePipeline(lab) {
   const summary = lab.run_summary?.evidence_pipeline || {};
   const structural = summary.structural_play || {};
-  const broad = summary.broad_card_screen || {};
-  const strategic = summary.strategic_confirmation || {};
   const cf = lab.counterfactual;
   const targeted = lab.targeted_counterfactual;
+  const suite = lab.mccfr_suite;
+  const strength = lab.solver_strength;
 
   document.getElementById("evidence-pipeline").innerHTML = [
     metric(
-      "1 · Structural play",
+      "1 · ISMCTS self-play",
       structural.attempted_games != null
         ? Number(structural.attempted_games).toLocaleString()
         : Number(lab.health.source.games || 0).toLocaleString(),
-      "heuristic games · pacing, exposure, progression"
+      `${esc(structural.policy || "ismcts")} · strategic progression, pacing, Command economy`
     ),
     metric(
-      "2 · Broad A/B screen",
+      "2 · Heuristic paired screen",
       cf ? `${cf.cards.length} cards` : "—",
       cf
         ? `${cf.decisive_paired_samples ?? 0} decisive pairs · ${cf.censored_paired_samples ?? 0} censored`
         : "not generated"
     ),
     metric(
-      "3 · Strategic confirmation",
-      targeted ? `${targeted.targets.length} cards` : "—",
+      "3 · Online MCCFR",
+      targeted ? `${targeted.targets.length} targeted cards` : "—",
       targeted
-        ? `online MCCFR · ${targeted.online_iterations} iterations · depth ${targeted.online_depth}`
+        ? `${targeted.online_iterations} iterations · depth ${targeted.online_depth}`
+        : "not generated"
+    ),
+    metric(
+      "4 · Offline MCCFR",
+      suite ? `${suite.profiles.length} policies` : "—",
+      suite
+        ? `${suite.covered_cards}/${suite.card_pool_size} card coverage · fallback reported per seat-swapped evaluation`
+        : "not generated"
+    ),
+    metric(
+      "5 · Search-strength check",
+      strength ? `${strength.overall?.games ?? 0} decisive games` : "—",
+      strength
+        ? `ISMCTS vs alpha-beta · ${strength.games_per_orientation ?? "—"} games/deck/orientation`
         : "not generated"
     ),
   ].join("");
@@ -430,21 +444,35 @@ function renderEvidencePipeline(lab) {
   const notes = [];
   notes.push(attentionItem(
     "good",
-    "Structural evidence is descriptive",
-    "Use heuristic self-play for how often mechanics, cards and game states occur. Do not read its deck win rates as strong-play equilibrium estimates."
+    "ISMCTS self-play is progression evidence",
+    "Use canonical ISMCTS self-play to inspect pacing, Command preservation, Battle length and strategic progression. It is not collapsed into a single balance score."
   ));
   notes.push(attentionItem(
     "watch",
-    "Broad ΔWP is a screen",
-    "The heuristic paired replacement controls seed, seat and deck context, but its effect is still policy-specific. Red/orange strategic card claims require the online-MCCFR stage."
+    "Broad ΔWP is only a screen",
+    "The paired heuristic replacement controls seed, seat and deck context, but remains policy-specific. It nominates suspicious cards rather than resolving their value."
   ));
-  if (targeted?.targets?.length) {
-    notes.push(attentionItem(
-      "good",
-      "Targeted solver evidence is the strongest card-value layer",
-      "Online MCCFR re-solves each decision in the same paired contexts. Confirmed and reversed results are treated as strategically resolved; inconclusive results remain Watch items."
-    ));
-  }
+  notes.push(attentionItem(
+    targeted?.targets?.length ? "good" : "pending",
+    "Online MCCFR is targeted confirmation",
+    targeted?.targets?.length
+      ? "Online MCCFR re-solves the nominated paired contexts. Confirmed, reversed and inconclusive outcomes remain distinct."
+      : "No targeted online-MCCFR result is present for this snapshot."
+  ));
+  notes.push(attentionItem(
+    suite ? "good" : "pending",
+    "Offline MCCFR is learned-policy evidence",
+    suite
+      ? "Each canonical deck has its own trained policy and seat-swapped evaluation. Policy coverage and heuristic fallback are shown rather than hidden."
+      : "The six-profile offline MCCFR suite has not been generated for this snapshot."
+  ));
+  notes.push(attentionItem(
+    strength ? "good" : "pending",
+    "Solver strength is a separate sanity check",
+    strength
+      ? "The mirrored ISMCTS-vs-alpha-beta benchmark reports budgets, censoring, uncertainty and search-resource diagnostics. It does not override card or pacing evidence."
+      : "No current solver-strength benchmark is present."
+  ));
   document.getElementById("evidence-guidance").innerHTML = notes.join("");
 }
 
