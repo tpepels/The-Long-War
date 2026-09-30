@@ -428,3 +428,26 @@ def test_web_static_checker_catches_missing_built_data_reference(tmp_path) -> No
         and "missing built data asset" in error
         for error in errors
     )
+
+
+def test_web_static_checker_catches_missing_play_dom_id(tmp_path) -> None:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "check_web_static_dom",
+        ROOT / "tools" / "check_web_static.py",
+    )
+    assert spec and spec.loader
+    checker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(checker)
+
+    web = tmp_path / "web"
+    web.mkdir()
+    (web / "play.html").write_text('<div id="present"></div>', encoding="utf-8")
+    (web / "play.js").write_text(
+        '$("present"); $("missing");',
+        encoding="utf-8",
+    )
+
+    errors = checker._play_dom_errors(web)
+    assert errors == ["web/play.js references missing DOM id #missing"]

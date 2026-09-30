@@ -27,6 +27,11 @@ META_RUNTIME_RE = re.compile(
 IMPORT_META_RE = re.compile(
     r'new URL\(\s*["\']([^"\']+)["\']\s*,\s*import\.meta\.url\s*\)'
 )
+DOM_HELPER_ID_RE = re.compile(r'\$\(\s*["\']([^"\']+)["\']\s*\)')
+GET_ELEMENT_ID_RE = re.compile(
+    r'getElementById\(\s*["\']([^"\']+)["\']\s*\)'
+)
+DECLARED_ID_RE = re.compile(r'\bid=["\']([^"\']+)["\']')
 CHECKED_HTML_SUFFIXES = {
     ".css", ".js", ".mjs", ".json", ".svg", ".png", ".jpg", ".jpeg", ".webp",
 }
@@ -67,6 +72,29 @@ def _node_syntax_errors(root: Path) -> list[str]:
     return errors
 
 
+def _play_dom_errors(root: Path) -> list[str]:
+    page = root / "play.html"
+    script = root / "play.js"
+    if not page.exists() or not script.exists():
+        return []
+
+    js = script.read_text(encoding="utf-8")
+    declared = set(
+        DECLARED_ID_RE.findall(page.read_text(encoding="utf-8"))
+    )
+    # Controls such as reveal-hand and confirm-mulligan are authored as HTML
+    # strings inside play.js, so include literal ids created there too.
+    declared.update(DECLARED_ID_RE.findall(js))
+
+    referenced = set(DOM_HELPER_ID_RE.findall(js))
+    referenced.update(GET_ELEMENT_ID_RE.findall(js))
+    missing = sorted(referenced - declared)
+    return [
+        f"{script.relative_to(ROOT)} references missing DOM id #{value}"
+        for value in missing
+    ]
+
+
 def _source_reference_errors(root: Path) -> list[str]:
     errors: list[str] = []
     for page in sorted(root.glob("*.html")):
@@ -99,6 +127,7 @@ def _source_reference_errors(root: Path) -> list[str]:
                 errors.append(
                     f"{script.relative_to(ROOT)} imports missing module {value}"
                 )
+    errors.extend(_play_dom_errors(root))
     return errors
 
 
