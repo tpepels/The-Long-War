@@ -4,8 +4,6 @@ import argparse
 import json
 from pathlib import Path
 
-from longwar.reference_decks import DEFAULT_DECK_PATH
-
 from longwar.cards import load_card_file
 from longwar.game import (
     Discard,
@@ -450,6 +448,7 @@ def session_trace(
 
 def main() -> None:
     from longwar.fingerprint import current_game_fingerprint
+    from longwar.reference_decks import DEFAULT_DECK_PATH
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
