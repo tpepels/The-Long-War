@@ -7,6 +7,8 @@ import time
 from copy import deepcopy
 from pathlib import Path
 
+from tools.deck_catalog import DEFAULT_DECK_PATH
+
 import longwar.mccfr as mccfr_module
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
@@ -69,7 +71,7 @@ def main() -> None:
     parser.add_argument("--iterations", type=int, default=25)
     parser.add_argument("--depth", type=int, default=2)
     parser.add_argument("--seed", type=int, default=1701)
-    parser.add_argument("--deck", type=Path, default=Path("decks/mobility-open-bonds.json"))
+    parser.add_argument("--deck", type=Path, default=Path(DEFAULT_DECK_PATH))
     parser.add_argument(
         "--compare-python",
         action="store_true",
