@@ -283,7 +283,7 @@ def test_story_baseline_preserves_narrative_chassis() -> None:
     assert baseline["type"] == "story"
     assert baseline["narrative_form"] == original["narrative_form"]
     assert baseline["ongoing"] == original["ongoing"]
-    assert baseline["rules"] == {}
+    assert baseline["design_rules"] == {}
 
 
 def test_stratagem_baseline_preserves_public_play_commitment() -> None:

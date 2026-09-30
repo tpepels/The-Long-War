@@ -19,7 +19,7 @@ def data():
     return load_card_file(ROOT / "cards/cards.json")
 
 
-@pytest.mark.parametrize("field", ["id", "title", "type", "unique", "classes", "text", "rules", "rule_blocks"])
+@pytest.mark.parametrize("field", ["id", "title", "type", "unique", "classes", "text", "design_rules", "rule_blocks"])
 def test_required_card_fields_are_validated(data, field):
     del data["cards"][0][field]
     with pytest.raises(ValueError, match="missing required fields"):
@@ -32,28 +32,33 @@ def test_malformed_payload_is_a_validation_error(invalid):
         validate_card_data(invalid)
 
 
-@pytest.mark.parametrize("rules", [
+@pytest.mark.parametrize("mechanics", [
     {"strength_bouns": 1},
-    {"placement": {"rank": "back"}},
-    {"placement": {}},
+    {"deploy_rank": "back"},
     {"adjacent_strength_aura": 1},
 ])
-def test_unsupported_force_rules_cannot_silently_become_noops(data, rules):
+def test_unsupported_force_mechanics_cannot_silently_become_noops(data, mechanics):
     force = next(card for card in data["cards"] if card["type"] == "force")
-    force["rules"] = rules
+    force["design_rules"] = mechanics
     with pytest.raises(ValueError):
         validate_card_data(data)
 
 
-@pytest.mark.parametrize("card_id, rules", [
+@pytest.mark.parametrize("card_id, mechanics", [
     ("iria", {"on_name_attached": "teleport"}),
     ("the-baggage-was-abandoned", {"effect": "destroy_everything"}),
     ("the-ground-was-held", {"stratagem": {"unexpected": True}}),
     ("followed", {"opposing_front_modifier": 1}),
 ])
-def test_unsupported_canonical_rules_are_rejected(data, card_id, rules):
-    next(card for card in data["cards"] if card["id"] == card_id)["rules"] = rules
+def test_unsupported_canonical_mechanics_are_rejected(data, card_id, mechanics):
+    next(card for card in data["cards"] if card["id"] == card_id)["design_rules"] = mechanics
     with pytest.raises(ValueError):
+        validate_card_data(data)
+
+
+def test_legacy_rules_channel_is_rejected(data):
+    data["cards"][0]["rules"] = {}
+    with pytest.raises(ValueError, match="legacy rules field"):
         validate_card_data(data)
 
 
