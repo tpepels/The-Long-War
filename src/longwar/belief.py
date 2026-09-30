@@ -290,18 +290,19 @@ class BeliefSampler:
             ),
         )
 
-    def sample(
+    def sample_hidden_zones(
         self,
         state: GameState,
         viewer: int,
         rng: random.Random,
-    ) -> GameState:
+    ) -> tuple[list[str], list[str], list[str]]:
+        """Sample only hidden card zones for one information-set determinization."""
         self._validate_viewer(viewer)
         opponent = 1 - viewer
-        sampled = state.clone()
 
         # The viewer knows their own remaining deck composition, never its order.
-        rng.shuffle(sampled.players[viewer].deck)
+        viewer_deck = list(state.players[viewer].deck)
+        rng.shuffle(viewer_deck)
 
         public_cards = self._public_opponent_cards(state, opponent)
         known_hand = state.known_hidden_cards(viewer, opponent, "hand")
@@ -356,11 +357,29 @@ class BeliefSampler:
             )
 
         rng.shuffle(unknown_pool)
-        sampled.players[opponent].hand = (
+        opponent_hand = (
             list(known_hand) + list(unknown_pool[:unknown_hand_slots])
         )
-        rng.shuffle(sampled.players[opponent].hand)
-        sampled.players[opponent].deck = list(unknown_pool[unknown_hand_slots:])
+        rng.shuffle(opponent_hand)
+        opponent_deck = list(unknown_pool[unknown_hand_slots:])
+        return viewer_deck, opponent_hand, opponent_deck
+
+    def sample(
+        self,
+        state: GameState,
+        viewer: int,
+        rng: random.Random,
+    ) -> GameState:
+        viewer_deck, opponent_hand, opponent_deck = self.sample_hidden_zones(
+            state,
+            viewer,
+            rng,
+        )
+        sampled = state.clone()
+        opponent = 1 - viewer
+        sampled.players[viewer].deck = viewer_deck
+        sampled.players[opponent].hand = opponent_hand
+        sampled.players[opponent].deck = opponent_deck
         return sampled
 
     def _prior_for_state(
