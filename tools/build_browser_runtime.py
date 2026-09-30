@@ -115,7 +115,7 @@ BROWSER_PYTHON_FILES = browser_python_files()
 # edit.
 BROWSER_NATIVE_ROOTS = ("_fast_engine_core.pxi", "_heuristic_core.pxi")
 _CYTHON_INCLUDE_RE = re.compile(
-    r"^\\s*include\\s+['\\\"]([^'\\\"]+)['\\\"]",
+    r"^\s*include\s+['\"]([^'\"]+)['\"]",
     re.MULTILINE,
 )
 
