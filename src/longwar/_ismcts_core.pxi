@@ -335,17 +335,6 @@ cdef class ISMCTSTree:
         created[0] = True
         return index
 
-    cdef int _find_action(
-        self,
-        ISMCTSNodeRecord* node,
-        uint64_t action,
-    ) noexcept:
-        cdef int i
-        for i in range(node.action_count):
-            if node.edges[i].action == action:
-                return i
-        return -1
-
     cdef int choose(
         self,
         int node_index,
@@ -357,28 +346,28 @@ cdef class ISMCTSTree:
         bint* expanded,
     ) except -1:
         cdef ISMCTSNodeRecord* node = &self.nodes[node_index]
-        cdef int i, ix, chosen=-1, unvisited=0, visited_legal=0
+        cdef int i, chosen=-1, unvisited=0, visited_legal=0
         cdef int allowed=n
-        cdef bint direct_order = n == node.action_count
         cdef double mean, bonus, score, allowance, best=-1.0e300
 
-        if direct_order:
-            for i in range(n):
-                if node.edges[i].action != legal[i]:
-                    direct_order = False
-                    break
-
+        # Information-set identity includes every observable fact relevant to
+        # legality, so all determinizations of one node must expose the same
+        # canonical action list in the same order. Rely on that invariant
+        # directly instead of linearly searching stored edges on every visit.
+        if n != node.action_count:
+            raise RuntimeError(
+                "Legal-action count changed inside an information set"
+            )
         for i in range(n):
-            ix = i if direct_order else self._find_action(node, legal[i])
-            if ix < 0:
+            if node.edges[i].action != legal[i]:
                 raise RuntimeError(
-                    "Legal-action set changed inside an information set"
+                    "Legal-action ordering changed inside an information set"
                 )
-            node.edges[ix].availability += 1
-            if node.edges[ix].visits == 0:
+            node.edges[i].availability += 1
+            if node.edges[i].visits == 0:
                 unvisited += 1
                 if _ismcts_rand_index(rng, unvisited) == 0:
-                    chosen = ix
+                    chosen = i
             else:
                 visited_legal += 1
 
@@ -403,18 +392,17 @@ cdef class ISMCTSTree:
         expanded[0] = False
         chosen = -1
         for i in range(n):
-            ix = i if direct_order else self._find_action(node, legal[i])
-            if node.edges[ix].visits == 0:
+            if node.edges[i].visits == 0:
                 continue
-            mean = node.edges[ix].value_sum / node.edges[ix].visits
+            mean = node.edges[i].value_sum / node.edges[i].visits
             bonus = exploration * sqrt(
-                log(<double>(node.edges[ix].availability + 1))
-                / node.edges[ix].visits
+                log(<double>(node.edges[i].availability + 1))
+                / node.edges[i].visits
             )
             score = mean + bonus
             if score > best:
                 best = score
-                chosen = ix
+                chosen = i
 
         # This can only happen when the current determinization exposes no
         # previously visited action. Expand one available action regardless
@@ -422,11 +410,10 @@ cdef class ISMCTSTree:
         # usable across hidden-state samples.
         if chosen < 0:
             for i in range(n):
-                ix = i if direct_order else self._find_action(node, legal[i])
-                if node.edges[ix].visits == 0:
+                if node.edges[i].visits == 0:
                     unvisited -= 1
                     if unvisited <= 0:
-                        chosen = ix
+                        chosen = i
                         break
             expanded[0] = True
         return chosen

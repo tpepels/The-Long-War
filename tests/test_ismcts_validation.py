@@ -197,9 +197,14 @@ def test_hidden_determinizations_share_root_information_identity() -> None:
     ]
     keys = {fast.information_key(sample, 0) for sample in packed}
     hashes = {fast.information_hash(sample, 0) for sample in packed}
+    action_lists = {
+        tuple(fast.legal_actions(sample))
+        for sample in packed
+    }
 
     assert len(keys) == 1
     assert len(hashes) == 1
+    assert len(action_lists) == 1
 
 
 def test_ismcts_is_bit_reproducible_for_fixed_beliefs_and_seed() -> None:
