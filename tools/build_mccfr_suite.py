@@ -7,10 +7,7 @@ from typing import Any
 from longwar.fingerprint import current_game_fingerprint
 from longwar.health import simulation_summary
 
-if __package__:
-    from .deck_catalog import MCCFR_PROFILES as PROFILES
-else:
-    from deck_catalog import MCCFR_PROFILES as PROFILES
+from longwar.reference_decks import MCCFR_PROFILES as PROFILES
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
