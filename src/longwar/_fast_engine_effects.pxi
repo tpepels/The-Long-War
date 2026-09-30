@@ -36,7 +36,7 @@ cdef inline void _fe_take_from_hand(FastEngine self, FastState state, int player
             if state.known_hidden[viewer][player][known] == 0:
                 continue
             if hidden_kind == 1:
-                if self.card_type[known] == CARD_PLOT and self.ongoing_narrative[known]:
+                if self.card_type[known] == CARD_NARRATIVE and self.ongoing_narrative[known]:
                     state.known_hidden[viewer][player][known] -= 1
             elif hidden_kind == 2:
                 if self.card_type[known] == CARD_STRATAGEM:
@@ -116,11 +116,11 @@ cdef void _fe_reveal_scheme(FastEngine self, FastState state, int controller, in
     state.narrative_revealed[ix] = 1
     effect = self.narrative_effect[card]
     amount = self.narrative_amount[card]
-    if effect == SCHEME_PENALIZE_SUBJECT and trigger_slot >= 0 and state.force[trigger_slot] >= 0:
+    if effect == ONGOING_EFFECT_PENALIZE_FORCE and trigger_slot >= 0 and state.force[trigger_slot] >= 0:
         state.temporary[trigger_slot] -= amount
-    elif effect == SCHEME_DISCARD_LINK and trigger_slot >= 0 and state.bond[trigger_slot] >= 0:
+    elif effect == SCHEME_DISCARD_BOND and trigger_slot >= 0 and state.bond[trigger_slot] >= 0:
         _fe_remove_link(self, state, actor, trigger_slot)
-    elif effect == SCHEME_REINFORCE:
+    elif effect == ONGOING_EFFECT_REINFORCE:
         target = _fe_preferred_slot(self, state, controller, front)
         if target >= 0:
             state.temporary[target] += amount
@@ -184,14 +184,14 @@ cdef bint _fe_pre_story_cancel(FastEngine self, FastState state, int actor):
     cdef int card = state.stratagem[controller]
     if card < 0 or state.stratagem_revealed[controller]:
         return False
-    if not _fe_strat_trigger_matches(self, state, controller, card, EVENT_IMMEDIATE_STORY, actor):
+    if not _fe_strat_trigger_matches(self, state, controller, card, EVENT_IMMEDIATE_NARRATIVE, actor):
         return False
     state.stratagem_revealed[controller] = 1
     return self.strat_cancel_story[card]
 
 cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) noexcept:
     cdef int ix
-    for ix in range(SCHEME_COUNT):
+    for ix in range(NARRATIVE_COUNT):
         if state.narrative_target_slot[ix] == source:
             state.narrative_target_slot[ix] = dest
     for ix in range(state.constraint_len):
@@ -214,7 +214,7 @@ cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) 
 
 cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcept:
     cdef int ix
-    for ix in range(SCHEME_COUNT):
+    for ix in range(NARRATIVE_COUNT):
         if state.narrative_target_slot[ix] == a:
             state.narrative_target_slot[ix] = b
         elif state.narrative_target_slot[ix] == b:
@@ -249,13 +249,13 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
 cdef void _fe_resolve_plot(FastEngine self, FastState state, int actor, int card, int pos, int dest):
     cdef int effect = self.narrative_effect[card]
     cdef int owner
-    if effect == PLOT_DISCREDIT:
+    if effect == NARRATIVE_DISCREDIT:
         owner = owner_from_slot(pos)
         if state.bond[pos] >= 0:
             _fe_remove_link(self, state, owner, pos)
         elif state.force[pos] >= 0:
             state.temporary[pos] -= 2
-    elif effect == PLOT_RETURN_NAME:
+    elif effect == NARRATIVE_RETURN_NAME:
         owner = owner_from_slot(pos)
         if state.name[pos] >= 0:
             card = state.name[pos]
@@ -263,7 +263,7 @@ cdef void _fe_resolve_plot(FastEngine self, FastState state, int actor, int card
             _fe_return_to_hand(self, state, owner, card)
         elif state.force[pos] >= 0:
             state.temporary[pos] -= 2
-    elif effect == PLOT_MOVE_SUBJECT:
+    elif effect == NARRATIVE_MOVE_FORCE:
         _fe_move_slot(self, state, pos, dest)
         _fe_resolve_force_move_triggers(self, state, actor, pos, dest)
 
@@ -765,7 +765,7 @@ cdef void _fe_resolve_plot_target_scheme(FastEngine self, FastState state, int a
     front = front_from_slot(pos)
     ix = opponent * 4 + front
     card = state.narrative[ix]
-    if card < 0 or self.narrative_trigger[card] != EVENT_PLOT_TARGET:
+    if card < 0 or self.narrative_trigger[card] != EVENT_NARRATIVE_TARGET:
         return
     if self.narrative_requires_force[card] and not _fe_front_has_force(self, state, opponent, front):
         return
