@@ -147,7 +147,7 @@ def group_rulebook_sections(rendered: str) -> str:
 
 
 def build_rulebook_print_pages(rendered: str) -> str:
-    """Build four explicit A4 pages; never rely on browser column pagination."""
+    """Build three composed A4 pages; never rely on browser column pagination."""
     section_pattern = re.compile(
         r'<section class="rule-section">(.*?)</section>',
         re.DOTALL,
@@ -235,7 +235,7 @@ def build_rulebook_print_pages(rendered: str) -> str:
             f'<section class="rulebook-print-page {classes}" data-page="{number}">'
             f'<div class="rulebook-print-page-label">{label}</div>'
             f'{body}'
-            f'<span class="rulebook-print-page-number">Page {number} of 4</span>'
+            f'<span class="rulebook-print-page-number">Page {number} of 3</span>'
             f'<span class="rulebook-page-version">TLW print v{{{{PRINT_VERSION}}}}</span>'
             '</section>'
         )
@@ -243,40 +243,53 @@ def build_rulebook_print_pages(rendered: str) -> str:
     first = (
         '<div class="rulebook-print-opening">' + opening + '</div>'
         '<div class="rulebook-print-goal">' + goal + '</div>'
+        '<div class="rulebook-print-columns rulebook-print-page1-lower">'
+        '<div class="rulebook-print-column">'
+        + stack("Setup")
+        + '</div><div class="rulebook-print-column">'
+        + stack("Your turn")
+        + '</div></div>'
     )
     second = (
-        '<div class="rulebook-print-columns">'
+        '<div class="rulebook-print-columns rulebook-print-play-page">'
         '<div class="rulebook-print-column">'
-        '<div class="rulebook-print-kicker">PLAYING A BATTLE</div>'
-        + stack("Setup", "Your turn")
+        + stack(
+            "Force - Bond - Name",
+            "Roles and classifications",
+            "Unique cards",
+            "Heroes",
+            "Maneuver",
+        )
         + '</div><div class="rulebook-print-column">'
-        + stack("Force - Bond - Name", "Roles and classifications", "Unique cards", "Heroes")
+        + stack(
+            "Narratives and Stratagems",
+            "Passing",
+            "Compare the Fronts",
+            "Retreat",
+        )
         + '</div></div>'
     )
     third = (
-        '<div class="rulebook-print-columns">'
+        '<div class="rulebook-print-reference-page">'
+        '<div class="rulebook-print-columns rulebook-print-reference-row">'
         '<div class="rulebook-print-column">'
-        + stack("Maneuver", "Narratives and Stratagems", "Passing")
+        + stack("After the Battle")
         + '</div><div class="rulebook-print-column">'
-        '<div class="rulebook-print-kicker">ENDING A BATTLE</div>'
-        + stack("Compare the Fronts", "Retreat", "After the Battle")
+        + stack("Command")
         + '</div></div>'
-    )
-    fourth = (
-        '<div class="rulebook-print-columns">'
+        '<div class="rulebook-print-columns rulebook-print-reference-row">'
         '<div class="rulebook-print-column">'
-        '<div class="rulebook-print-kicker">THE LONG WAR / REFERENCE</div>'
-        + stack("Command", "Card movement and removal")
+        + stack("Card movement and removal")
         + '</div><div class="rulebook-print-column">'
         + stack("Timing", "Deck construction")
         + '</div></div>'
+        '</div>'
     )
     return "".join(
         (
             page(1, "THE LONG WAR", first, "rulebook-print-page-first"),
-            page(2, "PLAYING THE WAR", second),
-            page(3, "RESOLVING BATTLES", third),
-            page(4, "REFERENCE", fourth),
+            page(2, "PLAYING A BATTLE", second),
+            page(3, "ENDING THE BATTLE / REFERENCE", third),
         )
     )
 
