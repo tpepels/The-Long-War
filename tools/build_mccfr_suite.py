@@ -36,6 +36,28 @@ def policy_coverage(simulation: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def combined_policy_coverage(
+    forward: dict[str, Any],
+    reverse: dict[str, Any],
+) -> dict[str, Any]:
+    """Combine policy/fallback decision coverage across both seat orientations."""
+    first = policy_coverage(forward)
+    second = policy_coverage(reverse)
+    mccfr = first["mccfr_decisions"] + second["mccfr_decisions"]
+    fallback = (
+        first["heuristic_fallback_decisions"]
+        + second["heuristic_fallback_decisions"]
+    )
+    total = mccfr + fallback
+    return {
+        "mccfr_decisions": mccfr,
+        "heuristic_fallback_decisions": fallback,
+        "mccfr_coverage_rate": mccfr / total if total else None,
+        "heuristic_fallback_rate": fallback / total if total else None,
+    }
+
+
 def seat_swapped_evaluation(
     forward: dict[str, Any],
     reverse: dict[str, Any],
@@ -121,6 +143,9 @@ def main() -> None:
                     "heuristic_vs_mccfr": simulation_summary(reverse),
                     "mccfr_vs_heuristic_policy_coverage": policy_coverage(forward),
                     "heuristic_vs_mccfr_policy_coverage": policy_coverage(reverse),
+                    "seat_swapped_policy_coverage": combined_policy_coverage(
+                        forward, reverse
+                    ),
                     **combined_evaluation,
                 },
             }

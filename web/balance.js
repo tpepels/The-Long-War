@@ -1503,7 +1503,7 @@ function renderMccfr(lab) {
               <td>${row.policy.iterations ?? "—"}<span class="muted">${Number(row.policy.traversals || row.policy.training_summary?.traversals || 0).toLocaleString()} traversals</span></td>
               <td>${Number(row.policy.information_sets || 0).toLocaleString()}</td>
               <td>${row.policy.max_depth ?? "—"}</td>
-              <td><strong>${pct(row.evaluation.seat_swapped_mccfr_win_rate)}</strong><span class="muted">seat-swapped · decisive games</span></td><td>${pct(row.evaluation.mccfr_vs_heuristic_policy_coverage?.mccfr_coverage_rate)}<span class="muted">forward MCCFR · ${pct(row.evaluation.mccfr_vs_heuristic_policy_coverage?.heuristic_fallback_rate)} fallback</span>${pct(row.evaluation.heuristic_vs_mccfr_policy_coverage?.mccfr_coverage_rate)}<span class="muted">reverse MCCFR · ${pct(row.evaluation.heuristic_vs_mccfr_policy_coverage?.heuristic_fallback_rate)} fallback</span></td>
+              <td><strong>${pct(row.evaluation.seat_swapped_mccfr_win_rate)}</strong><span class="muted">seat-swapped · decisive games</span></td><td><strong>${pct(row.evaluation.seat_swapped_policy_coverage?.mccfr_coverage_rate)}</strong><span class="muted">${Number(row.evaluation.seat_swapped_policy_coverage?.mccfr_decisions || 0).toLocaleString()} MCCFR decisions · ${Number(row.evaluation.seat_swapped_policy_coverage?.heuristic_fallback_decisions || 0).toLocaleString()} heuristic fallbacks (${pct(row.evaluation.seat_swapped_policy_coverage?.heuristic_fallback_rate)})</span></td>
               <td>
                 ${row.evaluation.games}
                 <span class="muted">${row.evaluation.decisive_games ?? row.evaluation.games} decisive · ${row.evaluation.censored_games ?? 0} censored</span>
