@@ -414,10 +414,10 @@ cdef uint64_t _ismcts_rollout_action(
     for i in range(n):
         # Exact child inspection is only needed when the operation can reach
         # the Collapse point. This keeps ordinary high-Command rollouts cheap.
-        if (
-            state.command[actor] > engine.command_collapse_threshold
-            and _fe_command_cost_fast(engine, state, actions[i])
-            < state.command[actor]
+        if not evaluator.action_needs_command_guard_probe_fast(
+            state,
+            actor,
+            actions[i],
         ):
             safe_indices[safe_n] = i
             safe_n += 1
@@ -444,10 +444,7 @@ cdef uint64_t _ismcts_rollout_action(
             # players are above the Collapse point, the second Pass cannot end
             # the war. If either is exhausted, resolve the Pass exactly because
             # Battle-end effects may still change Command before Collapse.
-            if (
-                state.command[0] <= engine.command_collapse_threshold
-                or state.command[1] <= engine.command_collapse_threshold
-            ):
+            if evaluator.battle_end_collapse_probe_needed_fast(state):
                 for i in range(n):
                     if action_kind(actions[i]) != TYPE_PASS:
                         continue
