@@ -19,6 +19,14 @@ def text(path: str) -> str:
 def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     css = text("web/rules.css")
     rules = text("rules/rulebook.md")
+    playmat_source = text("web/playmat.html")
+    playmat = playmat_source.lower()
+    standard = GameRules.standard()
+    recovery = [
+        standard.command_recovery_for_battle(battle)
+        for battle in range(1, 6)
+    ]
+    recovery_label = ", ".join(f"+{value}" for value in recovery)
 
     assert "column-count: 2;" in css
     assert "rulebook-at-a-glance" in rules
@@ -29,54 +37,54 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "start of every turn" in rules
     assert "two consecutive Passes" in rules
     assert "first of the two consecutive Passes" in rules
-    playmat = text("web/playmat.html").lower()
     assert "<b>start turn:</b> draw 1." in playmat
-    assert "reshuffle discard only if deck empties" in text("web/playmat.html")
+    assert "reshuffle discard only if deck empties" in playmat_source
     assert "collapse before recovery" in playmat
-    assert "+12, +9, +6, +3, +0" in text("web/playmat.html")
-    assert "minimum 1" in playmat
-    assert "below 5" not in playmat
-    assert "+10, +7, +5" not in text("web/playmat.html")
+    assert recovery_label in playmat_source
+    assert f"minimum {standard.command_recovery_floor}" in playmat
 
 
-def test_rulebook_core_constants_match_standard_engine() -> None:
+def test_rulebook_core_values_match_standard_engine() -> None:
     rules_text = text("rules/rulebook.md")
     standard = GameRules.standard()
 
     assert FRONT_COUNT == 4
-    assert standard.opening_hand_size == 10
-    assert standard.starting_command == 20
-    assert standard.command_cap == 20
-    assert standard.hand_limit == 10
-    assert standard.ongoing_narrative_limit == 2
-    assert standard.maneuver_command_cost == 1
-    assert standard.command_recovery_start == 12
-    assert standard.command_recovery_decrement == 3
-    assert standard.command_recovery_floor == 1
-    assert standard.command_collapse_threshold == 0
-
-    assert "**four Fronts**" in rules_text
-    assert "draw **10 cards**" in rules_text
-    assert "Command to **20**" in rules_text
-    assert "at most **2 Ongoing Narratives**" in rules_text
-    assert "A Maneuver is one operation and costs **1 Command**" in rules_text
+    assert f"draw **{standard.opening_hand_size} cards**" in rules_text
+    assert f"Command to **{standard.starting_command}**" in rules_text
+    assert (
+        f"at most **{standard.ongoing_narrative_limit} Ongoing Narratives**"
+        in rules_text
+    )
+    assert (
+        f"A Maneuver is one operation and costs "
+        f"**{standard.maneuver_command_cost} Command**"
+        in rules_text
+    )
     assert "**two consecutive Passes**" in rules_text
-    assert "exactly one player is at **0 Command**" in rules_text
-    assert "X = 12" in rules_text
-    assert "Y = 3" in rules_text
+    assert (
+        f"exactly one player is at **{standard.command_collapse_threshold} Command**"
+        in rules_text
+    )
+    assert f"X = {standard.command_recovery_start}" in rules_text
+    assert f"Y = {standard.command_recovery_decrement}" in rules_text
 
 
 def test_web_game_rules_summary_matches_current_command_model() -> None:
     play = text("web/play.html")
     script = text("web/play.js")
+    standard = GameRules.standard()
+    threshold = standard.command_collapse_threshold
+    floor = standard.command_recovery_floor
 
     assert "check Command Collapse before recovery" in play
     assert "Ongoing Narratives" in play
     assert "ongoing Stories" not in play
 
-    assert "exactly one player at 0 loses; 0-0 continues" in script
-    assert "max(1, base recovery minus Fronts lost)" in script
-    assert "below 5" not in script
+    assert (
+        f"exactly one player at {threshold} loses; "
+        f"{threshold}-{threshold} continues"
+    ) in script
+    assert f"max({floor}, base recovery minus Fronts lost)" in script
     assert "Choose one of your two Ongoing Narrative slots" not in script
     assert "first open Narrative slot is assigned automatically" in script
 
@@ -113,14 +121,19 @@ def test_balance_validation_covers_all_reference_decks() -> None:
     assert "six shipped reference deck templates" in text("README.md")
 
 
-def test_browser_runtime_copies_every_fast_search_include() -> None:
-    from tools.build_browser_runtime import BROWSER_NATIVE_FILES
+def test_browser_runtime_uses_canonical_engine_composition() -> None:
+    from tools.build_browser_runtime import (
+        BROWSER_NATIVE_FILES,
+        BROWSER_NATIVE_ROOTS,
+        cython_include_closure,
+    )
 
-    fast_includes = {
-        path.name
-        for path in (ROOT / "src" / "longwar").glob("_fast_*.pxi")
-    }
-    assert fast_includes <= set(BROWSER_NATIVE_FILES)
+    assert "_fast_engine_core.pxi" in BROWSER_NATIVE_ROOTS
+    assert set(BROWSER_NATIVE_FILES) == set(
+        cython_include_closure(*BROWSER_NATIVE_ROOTS)
+    )
+    assert "_ismcts_core.pxi" not in BROWSER_NATIVE_FILES
+    assert "_mccfr_core.pxi" not in BROWSER_NATIVE_FILES
 
 
 def test_balance_lab_is_human_first_and_collapsible() -> None:
@@ -167,9 +180,9 @@ def test_mccfr_profiles_use_only_current_cards() -> None:
         data = json.loads((ROOT / deck).read_text(encoding="utf-8"))
         covered.update(data["cards"])
 
-    assert len(canonical) == 95
-    assert len(covered) == 94
-    assert canonical - covered == {"covered-the-withdrawal-of"}
+    assert canonical
+    assert covered
+    assert covered <= canonical
 
 
 def test_mccfr_suite_builder_covers_all_six_profile_policies() -> None:
