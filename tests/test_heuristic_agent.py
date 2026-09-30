@@ -270,7 +270,7 @@ def test_heuristic_penalizes_rear_named_formation_that_would_be_driven_off() -> 
     )
 
 
-def test_heuristic_accounts_for_projected_command_collapse_after_recovery() -> None:
+def test_heuristic_accounts_for_pre_recovery_command_collapse() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=13, exploration=0.0)
 
@@ -278,24 +278,20 @@ def test_heuristic_accounts_for_projected_command_collapse_after_recovery() -> N
         player.hand = []
         player.deck = []
         player.discard = []
-    state.battle = 7
-    state.players[0].command = 4
-    state.players[1].command = 6
 
     safe = state.clone()
+    safe.players[0].command = 1
+    safe.players[1].command = 1
+
     collapse_risk = state.clone()
-    enemy = collapse_risk.slot(
-        1,
-        Position(Front.FIRST, Rank.FRONT),
-    )
-    enemy.force = "the-fifty-men"
+    collapse_risk.players[0].command = 0
+    collapse_risk.players[1].command = 1
 
     safe_value = agent.evaluate(engine, safe, 0)
     collapse_value = agent.evaluate(engine, collapse_risk, 0)
 
-    # Battle VII recovers 1 Command. With no lost Front, player 0 projects to
-    # 5 and avoids Collapse. Losing one Front projects to 4 vs 7 and loses if
-    # the Battle ended in the current position.
+    # Collapse is checked before recovery. Equal positive Command continues,
+    # while unilateral 0 vs positive Command is a near-terminal losing state.
     assert safe_value - collapse_value > 20.0
 
 
