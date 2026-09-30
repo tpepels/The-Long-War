@@ -470,7 +470,7 @@ cdef bint _fe_resolve_one_battle_end_narrative(
                 and self.narrative_end_recover_bond[card]
             ):
                 _fe_queue_recover_from_discard(self, 
-                    state, player, CARD_LINK, True
+                    state, player, CARD_BOND, True
                 )
 
             # These cards all end at Battle end whether or not their
