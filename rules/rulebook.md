@@ -348,6 +348,18 @@ Unless a card says otherwise:
 | Named Formation Maneuvers or Retreats | Move Force, Bond, and Name together. |
 | Rear Named Formation is driven off | Discard Force, Bond, and Name together. |
 
+## First-game reminders {#reminders}
+
+These are the rules most worth checking during a first game:
+
+- **Draw first**, then take exactly one operation.
+- A **Pass is provisional**. If the other player takes a non-Pass operation, the Pass is cleared.
+- Only **Force + Bond + Name** persists normally from one Battle to the next.
+- A Maneuver goes **one Front sideways in the same rank**.
+- On a lost Front, **drive off the Rear first**, then Retreat the Frontline formation.
+- Check **Command Collapse before recovery**.
+- If both players reach 0 Command together, the war continues and surviving recovery is still at least {{RECOVERY_FLOOR}}.
+
 ## Timing
 
 There is no reaction stack.
