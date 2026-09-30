@@ -97,7 +97,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.name_rank_bonus_amount, 0, sizeof(self.name_rank_bonus_amount))
     memset(self.name_effect, 0, sizeof(self.name_effect))
     memset(self.plot_effect, 0, sizeof(self.plot_effect))
-    memset(self.veiled, 0, sizeof(self.veiled))
+    memset(self.ongoing_narrative, 0, sizeof(self.ongoing_narrative))
     memset(self.story_choice_kind, 0, sizeof(self.story_choice_kind))
     memset(self.scheme_trigger, 0, sizeof(self.scheme_trigger))
     memset(self.scheme_effect, 0, sizeof(self.scheme_effect))
@@ -397,7 +397,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
                 design.get("gain_command", 0)
             )
 
-        self.veiled[code] = bool(card.get("ongoing", False))
+        self.ongoing_narrative[code] = bool(card.get("ongoing", False))
         if (
             design.get("placement") == "chosen_front"
             or design.get("chosen_front")

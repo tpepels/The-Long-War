@@ -885,7 +885,7 @@ cdef int _fe_legal_actions_into(
                 )
 
         elif self.card_type[card] == CARD_PLOT:
-            if self.veiled[card]:
+            if self.ongoing_narrative[card]:
                 # Ongoing Narratives may carry a public Front or formation
                 # association selected when the card is played.
                 choice = self.story_choice_kind[card]

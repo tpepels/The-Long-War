@@ -36,7 +36,7 @@ cdef inline void _fe_take_from_hand(FastEngine self, FastState state, int player
             if state.known_hidden[viewer][player][known] == 0:
                 continue
             if hidden_kind == 1:
-                if self.card_type[known] == CARD_PLOT and self.veiled[known]:
+                if self.card_type[known] == CARD_PLOT and self.ongoing_narrative[known]:
                     state.known_hidden[viewer][player][known] -= 1
             elif hidden_kind == 2:
                 if self.card_type[known] == CARD_STRATAGEM:
