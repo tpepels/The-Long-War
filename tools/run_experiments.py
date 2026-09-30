@@ -450,24 +450,8 @@ def balance_run(args: argparse.Namespace) -> Path:
                 report.decisive_games,
             ),
             "simulation_variant": {
-                "base_hand_size": engine.rules.opening_hand_size,
-                "battle_one_starter_bonus": 0,
+                **engine.rules.simulation_metadata(),
                 "deck_sizes": [len(decks[left]), len(decks[right])],
-                "starting_command": engine.rules.starting_command,
-                "command_cap": engine.rules.command_cap,
-                "command_recovery_start": engine.rules.command_recovery_start,
-                "command_recovery_decrement": (
-                    engine.rules.command_recovery_decrement
-                ),
-                "command_recovery_floor": engine.rules.command_recovery_floor,
-                "command_collapse_threshold": (
-                    engine.rules.command_collapse_threshold
-                ),
-                "maneuver_command_cost": engine.rules.maneuver_command_cost,
-                "hand_limit": engine.rules.hand_limit,
-                "ongoing_narrative_limit": (
-                    engine.rules.ongoing_narrative_limit
-                ),
                 "card_file": "cards/cards.json",
             },
         }
