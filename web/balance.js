@@ -977,6 +977,93 @@ function renderCommandExperiment(lab) {
   `;
 }
 
+
+function renderNarrativeAblation(lab) {
+  const container = document.getElementById("narrative-ablation");
+  if (!container) return;
+  const report = lab.narrative_ablation;
+  if (!report) {
+    container.innerHTML = '<p class="muted">Narrative/Command ablation evidence not generated.</p>';
+    return;
+  }
+  const labels = {
+    "baseline": "Baseline",
+    "no-baggage-command": "Baggage gain disabled",
+    "no-rallied-discount": "Rallied discount disabled",
+    "no-no-road-command": "No Road gain disabled",
+    "no-three-command-package": "All three disabled",
+  };
+  const source = (row, id) => row.command_by_source?.[id] || {};
+  const rows = Object.entries(report.variants || {}).map(([key, row]) => {
+    const match = row.match_length || {};
+    const baggage = source(row, "the-baggage-was-abandoned");
+    const rallied = source(row, "rallied-behind");
+    const noRoad = source(row, "no-road-was-too-long");
+    return "<tr>"
+      + "<td><strong>" + esc(labels[key] || key) + "</strong></td>"
+      + "<td>" + (row.decisive_games ?? 0) + " / " + (row.games ?? 0) + "</td>"
+      + "<td>" + (row.censored_games ?? 0) + " (" + pct(row.censor_rate) + ")</td>"
+      + "<td>" + num(match.resolved_battles_per_match?.mean, 1) + "</td>"
+      + "<td>" + (match.final_battle_number?.max ?? "—") + "</td>"
+      + "<td>" + (match.battle_reach?.["8"]?.matches ?? 0) + "</td>"
+      + "<td>" + (match.battle_reach?.["12"]?.matches ?? 0) + "</td>"
+      + "<td>" + num(row.command_before_collapse?.mean, 1) + "</td>"
+      + "<td>" + num(row.command_at_first_pass?.mean, 1) + "</td>"
+      + "<td>" + (row.low_positive_stalls?.streak_length?.max ?? 0) + "</td>"
+      + "<td>" + (baggage.command_gained ?? 0) + '<span class="muted">' + (baggage.gain_triggers ?? 0) + " triggers</span></td>"
+      + "<td>" + (rallied.discount_command_saved ?? 0) + '<span class="muted">' + (rallied.discount_triggers ?? 0) + " discounts</span></td>"
+      + "<td>" + (noRoad.command_gained ?? 0) + '<span class="muted">' + (noRoad.gain_triggers ?? 0) + " triggers</span></td>"
+      + "</tr>";
+  }).join("");
+  container.innerHTML =
+    "<h3>Narrative / Command diagnostic ablations</h3>"
+    + '<p class="dashboard-note">Noncanonical same-seed ISMCTS mirror experiments. Only the named Command mechanic is disabled in memory; canonical card data and the global Collapse rule are unchanged.</p>'
+    + '<div class="table-wrap fitted-table"><table class="mini-table">'
+    + "<thead><tr><th>Variant</th><th>Decisive / games</th><th>Censored</th>"
+    + "<th>Mean Battles</th><th>Max Battle</th><th>Reach VIII</th><th>Reach XII</th>"
+    + "<th>Before Collapse</th><th>First Pass</th><th>Longest 1-3 streak</th>"
+    + "<th>Baggage gain</th><th>Rallied saved</th><th>No Road gain</th></tr></thead>"
+    + "<tbody>" + rows + "</tbody></table></div>";
+}
+
+
+function renderSolverStrength(lab) {
+  const overview = document.getElementById("solver-strength-overview");
+  const decks = document.getElementById("solver-strength-decks");
+  if (!overview || !decks) return;
+  const report = lab.solver_strength;
+  if (!report) {
+    overview.innerHTML = metric("Solver strength", "—", "current benchmark not generated");
+    decks.innerHTML = "";
+    return;
+  }
+  const overall = report.overall || {};
+  const uncertainty = overall.paired_uncertainty || {};
+  const censored = Object.values(report.decks || {})
+    .reduce((sum, row) => sum + Number(row.censored || 0), 0);
+  const cutoff = report.ismcts?.rollout_cutoffs || {};
+  overview.innerHTML = [
+    metric("ISMCTS decisive win rate", pct(overall.mcts_win_rate), "95% " + interval(uncertainty.ci95) + " - mirrored same-seed deals"),
+    metric("Decisive games", overall.games ?? 0, censored + " censored games excluded from the win-rate denominator"),
+    metric("Search budget", num(report.ismcts?.time_budget_seconds, 1) + "s / move", "equal wall-clock budget; alpha-beta " + num(report.alpha_beta?.time_budget_seconds, 1) + "s"),
+    metric("Independent mirrored deals", uncertainty.independent_deals ?? "—", (uncertainty.censored_pairs ?? 0) + " censored pairs"),
+    metric("ISMCTS rollout cutoffs", cutoff.iterations?.toLocaleString?.() ?? cutoff.iterations ?? "—", "terminal " + pct(cutoff.terminal_rate) + " - Battle boundary " + pct(cutoff.battle_boundary_rate) + " - depth " + pct(cutoff.depth_rate)),
+    metric("Tree root reuse", pct(report.ismcts?.tree_reuse?.root_reuse_rate), num(report.ismcts?.tree_reuse?.mean_tree_nodes_added, 0) + " new infosets / searched decision"),
+  ].join("");
+  const rows = Object.entries(report.decks || {}).map(([name, row]) =>
+    "<tr><td><strong>" + esc(titleCase(name)) + "</strong></td>"
+    + "<td>" + (row.mcts ?? 0) + "</td>"
+    + "<td>" + (row.alpha ?? 0) + "</td>"
+    + "<td>" + (row.games ?? 0) + "</td>"
+    + "<td>" + (row.censored ?? 0) + "</td></tr>"
+  ).join("");
+  decks.innerHTML =
+    '<table class="mini-table"><thead><tr><th>Deck</th><th>ISMCTS</th>'
+    + "<th>Alpha-beta</th><th>Decisive</th><th>Censored</th></tr></thead>"
+    + "<tbody>" + rows + "</tbody></table>";
+}
+
+
 function renderProgression(lab) {
   const profiles = lab.progression_profiles || {};
   const selector = document.getElementById("progression-profile");
@@ -1501,6 +1588,7 @@ async function main() {
   renderOverview(lab);
   renderEvidencePipeline(lab);
   renderCommandExperiment(lab);
+  renderNarrativeAblation(lab);
   renderProgression(lab);
   renderCards(lab);
   renderCounterfactual(lab);
@@ -1508,6 +1596,7 @@ async function main() {
   renderSequences(lab);
   renderMatchups(lab);
   renderTelemetry(lab);
+  renderSolverStrength(lab);
   renderMccfr(lab);
   renderStatic(lab);
   renderMethod(lab);
