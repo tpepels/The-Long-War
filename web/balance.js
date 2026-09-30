@@ -1017,6 +1017,15 @@ function renderNarrativeAblation(lab) {
   }
   const dmean = (d) => d?.mean == null ? "—" : num(d.mean, 1);
   const dmax = (d) => d?.max == null ? "—" : num(d.max, 0);
+  const commandSources = (summary) => {
+    const sources = summary?.command_by_source || {};
+    const baggage = sources["the-baggage-was-abandoned"] || {};
+    const rallied = sources["rallied-behind"] || {};
+    const noRoad = sources["no-road-was-too-long"] || {};
+    return "Baggage +" + Number(baggage.command_gained || 0).toLocaleString()
+      + " · Rallied saved " + Number(rallied.discount_saved || 0).toLocaleString()
+      + " · No Road +" + Number(noRoad.command_gained || 0).toLocaleString();
+  };
   let body = "";
   for (const row of rows) {
     const s = row.summary || {};
@@ -1029,6 +1038,7 @@ function renderNarrativeAblation(lab) {
       + "<td>" + dmax(s.final_battle_number) + "</td>"
       + "<td>" + dmean(s.command_before_collapse) + "</td>"
       + "<td>" + dmean(s.command_at_first_pass) + "</td>"
+      + "<td>" + esc(commandSources(s)) + "</td>"
       + "<td>" + (s.longest_low_positive_streak ?? "—") + "</td>"
       + "</tr>";
   }
@@ -1038,7 +1048,7 @@ function renderNarrativeAblation(lab) {
     + "<table class=\"mini-table\"><thead><tr>"
     + "<th>Variant</th><th>Decisive / games</th><th>Censored</th>"
     + "<th>Mean Battles</th><th>Max Battle</th><th>Pre-collapse Command</th>"
-    + "<th>First-pass Command</th><th>Longest 1-3 streak</th>"
+    + "<th>First-pass Command</th><th>Suspect Command sources</th><th>Longest 1-3 streak</th>"
     + "</tr></thead><tbody>" + body + "</tbody></table>";
 }
 
