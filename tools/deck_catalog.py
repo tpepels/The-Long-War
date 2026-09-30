@@ -23,6 +23,12 @@ def load_deck_catalog() -> tuple[dict[str, Any], ...]:
 
 
 DECK_CATALOG = load_deck_catalog()
+_DEFAULT_DECKS = tuple(entry for entry in DECK_CATALOG if entry.get("default"))
+if len(_DEFAULT_DECKS) != 1:
+    raise ValueError("decks/index.json must mark exactly one default deck")
+DEFAULT_DECK = _DEFAULT_DECKS[0]
+DEFAULT_DECK_PATH = f"decks/{DEFAULT_DECK['file']}"
+
 CANONICAL_DECK_PATHS = {
     entry["id"]: f"decks/{entry['file']}"
     for entry in DECK_CATALOG
