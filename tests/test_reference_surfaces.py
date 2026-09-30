@@ -32,7 +32,7 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     playmat = text("web/playmat.html").lower()
     assert "<b>start turn:</b> draw 1." in playmat
     assert "reshuffle discard only if deck empties" in text("web/playmat.html")
-    assert "Collapse before recovery" in playmat
+    assert "collapse before recovery" in playmat
     assert "+12, +9, +6, +3, +0" in text("web/playmat.html")
     assert "minimum 1" in playmat
     assert "below 5" not in playmat
