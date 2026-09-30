@@ -207,23 +207,23 @@ class ISMCTSAgent:
         guard_codes, guarded = self.evaluator.command_preserving_action_codes(
             guard_state
         )
+        guarded_code_set = set(guard_codes)
         guarded_keys = {
             self.fast_engine.action_key(code)
-            for code in guard_codes
+            for code in guarded_code_set
         }
-        safe_keys = {
+        legal_by_key = {
             action_key(action): action
             for action in legal
-            if action_key(action) in guarded_keys
         }
 
-        sampled_states = [
-            self.belief.sample(state, root_player, self.rng)
-            for _ in range(self.belief_samples)
-        ]
+        # Pack each determinization immediately so the temporary Python
+        # GameState can be released instead of retaining a second root list.
         packed_states = [
-            self.fast_engine.from_game_state(sampled)
-            for sampled in sampled_states
+            self.fast_engine.from_game_state(
+                self.belief.sample(state, root_player, self.rng)
+            )
+            for _ in range(self.belief_samples)
         ]
 
         elapsed_setup = perf_counter() - decision_started
@@ -264,24 +264,21 @@ class ISMCTSAgent:
             seed=self.rng.getrandbits(64),
         )
         native_search_seconds = perf_counter() - search_started
-        selected_key = self.fast_engine.action_key(result["action"])
-        selected = next(
-            action
-            for action in legal
-            if action_key(action) == selected_key
-        )
+        selected_native = result["action"]
+        selected_key = self.fast_engine.action_key(selected_native)
+        selected = legal_by_key[selected_key]
 
         guard_overrode_search = False
         selected_stat = next(
             stat
             for stat in result["root_stats"]
-            if self.fast_engine.action_key(stat["action"]) == selected_key
+            if stat["action"] == selected_native
         )
-        if selected_key not in guarded_keys:
+        if selected_native not in guarded_code_set:
             safe_stats = [
                 stat
                 for stat in result["root_stats"]
-                if self.fast_engine.action_key(stat["action"]) in safe_keys
+                if stat["action"] in guarded_code_set
             ]
             if safe_stats:
                 best_safe = max(
@@ -292,7 +289,7 @@ class ISMCTSAgent:
                     ),
                 )
                 selected_key = self.fast_engine.action_key(best_safe["action"])
-                selected = safe_keys[selected_key]
+                selected = legal_by_key[selected_key]
                 selected_stat = best_safe
                 guard_overrode_search = True
                 score = float(best_safe["mean_value"])
