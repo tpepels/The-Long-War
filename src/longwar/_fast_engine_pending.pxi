@@ -376,15 +376,15 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_resume_pending_flow(self, state)
         return
 
-    if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
+    if kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME:
         before_mask = _fe_complete_mask(self, state, actor)
         front = front_from_slot(pos)
         state.cards_played_this_turn_front_mask[actor] |= 1 << front
         state.cards_played_this_battle_front_mask[actor] |= 1 << front
-    if (kind == TYPE_SUBJECT or kind == TYPE_NAME) and card >= 0 and self.hero[card]:
+    if (kind == TYPE_FORCE or kind == TYPE_NAME) and card >= 0 and self.hero[card]:
         state.hero_used[actor] = 1
 
-    if kind == TYPE_SUBJECT:
+    if kind == TYPE_FORCE:
         prepared_before = state.bond[pos] >= 0 or state.name[pos] >= 0
         _fe_take_from_hand(self, state, actor, card, 0)
         state.force[pos] = card
@@ -396,10 +396,10 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             _fe_queue_take_adjacent_prepared_component_on_force_play(self, state, actor, pos)
         _fe_resolve_force_pair_narratives(self, state, actor)
         front = front_from_slot(pos)
-        _fe_resolve_scheme_event(self, state, actor, EVENT_SUBJECT, front, pos)
-        _fe_resolve_strat_event(self, state, EVENT_SUBJECT, actor, card, pos)
+        _fe_resolve_scheme_event(self, state, actor, EVENT_FORCE, front, pos)
+        _fe_resolve_strat_event(self, state, EVENT_FORCE, actor, card, pos)
 
-    elif kind == TYPE_LINK:
+    elif kind == TYPE_BOND:
         _fe_take_from_hand(self, state, actor, card, 0)
         state.bond[pos] = card
         if state.force[pos] >= 0:
@@ -417,7 +417,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 self.bond_optional_draw_count[card],
             )
         front = front_from_slot(pos)
-        _fe_resolve_scheme_event(self, state, actor, EVENT_LINK, front, pos)
+        _fe_resolve_scheme_event(self, state, actor, EVENT_BOND, front, pos)
 
     elif kind == TYPE_NAME:
         take_adjacent_open_bond_ready = (
@@ -429,7 +429,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.name[pos] = card
         if take_adjacent_open_bond_ready:
             _fe_queue_take_adjacent_open_bond_on_name_play(self, state, actor, pos)
-        if self.name_effect[card] == NAME_REVEAL_SCHEME:
+        if self.name_effect[card] == NAME_REVEAL_NARRATIVE:
             front = front_from_slot(pos)
             if state.narrative[(1 - actor) * 4 + front] >= 0:
                 state.narrative_revealed[(1 - actor) * 4 + front] = 1
@@ -440,7 +440,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             _fe_resolve_force_move_triggers(self, state, actor, source, dest)
         _fe_resolve_strat_event(self, state, EVENT_NAME, actor, card, pos)
 
-    elif kind == TYPE_PLOT:
+    elif kind == TYPE_NARRATIVE:
         _fe_take_from_hand(self, state, actor, card, 0)
         state.narratives_played_this_battle[actor] += 1
         if extra and self.story_discard_count[card] == 1:
@@ -459,7 +459,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             _fe_resolve_plot_target_scheme(self, state, actor, pos)
         _fe_append_discard(self, state, actor, card, True)
 
-    elif kind == TYPE_SCHEME:
+    elif kind == TYPE_ONGOING_NARRATIVE:
         _fe_take_from_hand(self, state, actor, card, 0)
         state.narratives_played_this_battle[actor] += 1
         state.narrative[actor * 4 + pos] = card
@@ -565,7 +565,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_resume_pending_flow(self, state)
         return
 
-    if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
+    if kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME:
         _fe_resolve_new_completions_fast(self, state, actor, before_mask)
         _fe_first_card_front_constraint_triggers(
             self, state, actor, front_from_slot(pos)
