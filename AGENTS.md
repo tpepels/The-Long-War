@@ -64,6 +64,7 @@ make test-fast
 make test-integration
 make simulate
 make balance
+make full-lab
 make experiments
 make pages
 make browser-parity
@@ -74,8 +75,14 @@ Variations use arguments:
 ```bash
 make simulate SIMULATE_ARGS="..."
 make balance BALANCE_PRESET=deep BALANCE_ARGS="..."
+make full-lab FULL_LAB_ARGS="..."
 make experiments EXPERIMENT=ismcts-match EXPERIMENT_ARGS="..."
 ```
+
+`make full-lab` is the single complete research/dashboard lifecycle: validation,
+Narrative Command ablations, deep canonical ISMCTS balance, broad and targeted
+card evidence, solver strength, six-profile offline MCCFR, and Pages build. It
+reuses current-fingerprint stages unless `--force` is supplied.
 
 `make experiments` defaults to the canonical search suite and keeps the machine
 awake with `systemd-inhibit`. The runner, not Make, owns experiment defaults.
