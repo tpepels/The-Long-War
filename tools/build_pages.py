@@ -159,7 +159,7 @@ def build_rulebook_print_pages(rendered: str) -> str:
         )
 
     def title_of(section: str) -> str:
-        match = re.search(r'<h2\b[^>]*>(.*?)</h2>', section, re.DOTALL)
+        match = re.search(r'<h2\\b[^>]*>(.*?)</h2>', section, re.DOTALL)
         if match is None:
             raise ValueError("Rulebook print section is missing an H2")
         return re.sub(r'<[^>]+>', '', match.group(1)).strip()
@@ -194,7 +194,7 @@ def build_rulebook_print_pages(rendered: str) -> str:
         )
 
     opening = rendered[:matches[0].start()]
-    opening = re.sub(r'<hr\s*/?>', '', opening)
+    opening = re.sub(r'<hr\\s*/?>', '', opening)
     opening = re.sub(
         r'<div class="rulebook-kicker">.*?</div>',
         '',
@@ -202,7 +202,6 @@ def build_rulebook_print_pages(rendered: str) -> str:
         flags=re.DOTALL,
     )
 
-    goal = sections["Goal and battlefield"]
     battlefield_figure = (
         '<figure class="rulebook-battlefield-figure">'
         '<img src="assets/rulebook-battlefield.svg" '
@@ -211,12 +210,23 @@ def build_rulebook_print_pages(rendered: str) -> str:
         '<figcaption>Four Fronts. Frontline faces the Battle Line; Rear sits behind it.</figcaption>'
         '</figure>'
     )
-    # Markdown nests the indented ASCII battlefield inside the final list item.
-    # Remove that legacy block and rebuild this one print section explicitly:
-    # copy on the left, standalone battlefield image on the right.
+
+    goal = sections["Goal and battlefield"]
     goal = re.sub(r'<pre>.*?</pre>', '', goal, count=1, flags=re.DOTALL)
-    goal_inner = re.sub(
-        r'^<section class="rule-section">|</section>
+    goal = re.sub(
+        r'^<section class="rule-section">',
+        '<section class="rule-section rulebook-print-goal-section">'
+        '<div class="rulebook-print-goal-copy">',
+        goal,
+        count=1,
+    )
+    goal = re.sub(
+        r'</section>$',
+        '</div>' + battlefield_figure + '</section>',
+        goal,
+        count=1,
+    )
+
     def stack(*titles: str) -> str:
         return "".join(sections[title] for title in titles)
 
