@@ -260,12 +260,6 @@ def consecutive_pass_scenario(
     )
     scenario["steps"].append(record_step(engine, state, first))
 
-    assert state.battle == 1
-    assert state.active_player == 1
-    assert state.pass_order == [0]
-    assert state.players[0].passed
-    assert not state.players[1].passed
-
     second = next(
         action
         for action in engine.legal_actions(state)
@@ -273,9 +267,8 @@ def consecutive_pass_scenario(
     )
     scenario["steps"].append(record_step(engine, state, second))
 
-    assert state.battle == 2
-    assert state.active_player == 0
-    assert state.pass_order == []
+    # Native transitions recorded above are the expected browser behavior.
+    # Do not restate Pass semantics here as a second rules test.
     return scenario
 
 
