@@ -21,10 +21,7 @@ import urllib.request
 from urllib.parse import quote
 from pathlib import Path
 
-if __package__:
-    from .deck_catalog import DEFAULT_DECK_PATH
-else:
-    from deck_catalog import DEFAULT_DECK_PATH
+from longwar.reference_decks import DEFAULT_DECK_PATH
 
 ROOT = Path(__file__).resolve().parents[1]
 VIEWPORTS = [(1280, 720), (1366, 768), (1440, 900), (1920, 1080)]
