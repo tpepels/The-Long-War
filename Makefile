@@ -1,4 +1,4 @@
-.PHONY: install native-build browser-build verify verify-algorithms test test-fast test-integration simulate balance experiments pages browser-parity
+.PHONY: install native-build browser-build verify verify-algorithms test test-fast test-integration simulate balance full-lab experiments pages browser-parity
 
 # Make is a small human-facing lifecycle surface.
 # Variations belong in *_ARGS or the underlying runner, not new targets.
@@ -56,6 +56,10 @@ BALANCE_PRESET ?= quick
 BALANCE_ARGS ?= --agent ismcts --games 24 --jobs 8 --publish-lab --skip-card-screen
 balance:
 	python tools/run_experiments.py balance --preset $(BALANCE_PRESET) $(BALANCE_ARGS)
+
+FULL_LAB_ARGS ?=
+full-lab:
+	python tools/run_experiments.py full-lab $(FULL_LAB_ARGS)
 
 EXPERIMENT ?= strength-bench
 EXPERIMENT_ARGS ?=
