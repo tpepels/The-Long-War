@@ -2014,17 +2014,34 @@ def _narrative_ablation_card_data(
 def _compact_narrative_ablation(
     report,
 ) -> dict[str, Any]:
-    progression = report.telemetry.get("progression", {})
+    if isinstance(report, dict):
+        telemetry = report.get("telemetry", {})
+        games = int(report.get("games", 0) or 0)
+        censored = int(report.get("censored_games", 0) or 0)
+        failed = int(report.get("failed_games", 0) or 0)
+        decisive = max(0, games - censored - failed)
+        censor_rate = censored / games if games else 0.0
+        mean_actions = report.get("mean_turns", 0.0)
+        max_actions = report.get("max_turns", 0)
+    else:
+        telemetry = report.telemetry
+        games = report.games
+        censored = report.censored_games
+        decisive = report.decisive_games
+        censor_rate = report.censor_rate
+        mean_actions = report.mean_turns
+        max_actions = report.max_turns
+    progression = telemetry.get("progression", {})
     resources = progression.get("resources", {})
     match_length = progression.get("match_length", {})
     low_positive = progression.get("low_positive_stalls", {})
     return {
-        "games": report.games,
-        "decisive_games": report.decisive_games,
-        "censored_games": report.censored_games,
-        "censor_rate": report.censor_rate,
-        "mean_actions": report.mean_turns,
-        "max_actions": report.max_turns,
+        "games": games,
+        "decisive_games": decisive,
+        "censored_games": censored,
+        "censor_rate": censor_rate,
+        "mean_actions": mean_actions,
+        "max_actions": max_actions,
         "match_length": {
             "resolved_battles_per_match": match_length.get(
                 "resolved_battles_per_match"
@@ -2104,53 +2121,75 @@ def run_narrative_ablation(args: argparse.Namespace) -> Path:
 
     for index, (name, disabled) in enumerate(NARRATIVE_ABLATIONS, start=1):
         variant_path = raw_dir / f"{name}.json"
-        print(
-            f"[Narrative ablation {index}/{len(NARRATIVE_ABLATIONS)}] {name}: "
-            f"{args.games} ISMCTS mirror games",
-            flush=True,
-        )
-        data = _narrative_ablation_card_data(base, disabled)
-        engine = GameEngine(data, rules=GameRules.standard())
-        report = simulate_games(
-            engine,
-            deck,
-            deck,
-            games=args.games,
-            seed=args.seed,
-            jobs=args.jobs,
-            agent_names=("ismcts", "ismcts"),
-            ismcts_belief_samples=DEFAULT_ISMCTS_BELIEF_SAMPLES,
-            ismcts_iterations=DEFAULT_ISMCTS_ITERATIONS,
-            ismcts_rollout_depth=DEFAULT_ISMCTS_ROLLOUT_DEPTH,
-            ismcts_exploration=DEFAULT_ISMCTS_EXPLORATION,
-            ismcts_progressive_widening=DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
-            ismcts_reuse_tree=DEFAULT_ISMCTS_REUSE_TREE,
-            ismcts_max_tree_nodes=DEFAULT_ISMCTS_MAX_TREE_NODES,
-            ismcts_rollout_epsilon=DEFAULT_ISMCTS_ROLLOUT_EPSILON,
-            ismcts_rollout_policy=DEFAULT_ISMCTS_ROLLOUT_POLICY,
-        )
-        raw_payload = {
-            **asdict(report),
-            "game_fingerprint": game_fingerprint,
-            "experiment_fingerprint": current_experiment_fingerprint(),
-            "seed": args.seed,
-            "noncanonical_experiment": True,
-            "disabled_command_mechanics": sorted(disabled),
-            "rules": GameRules.standard().as_dict(),
-        }
-        variant_path.write_text(
-            json.dumps(raw_payload, indent=2) + "\n",
-            encoding="utf-8",
-        )
+        raw_payload = None
+        if not bool(getattr(args, "force", False)) and variant_path.exists():
+            try:
+                candidate = json.loads(variant_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                candidate = None
+            if (
+                candidate is not None
+                and candidate.get("game_fingerprint") == game_fingerprint
+                and int(candidate.get("games", -1)) == int(args.games)
+                and int(candidate.get("seed", -1)) == int(args.seed)
+                and candidate.get("disabled_command_mechanics")
+                == sorted(disabled)
+            ):
+                raw_payload = candidate
+        if raw_payload is None:
+            print(
+                f"[Narrative ablation {index}/{len(NARRATIVE_ABLATIONS)}] {name}: "
+                f"{args.games} ISMCTS mirror games",
+                flush=True,
+            )
+            data = _narrative_ablation_card_data(base, disabled)
+            engine = GameEngine(data, rules=GameRules.standard())
+            report = simulate_games(
+                engine,
+                deck,
+                deck,
+                games=args.games,
+                seed=args.seed,
+                jobs=args.jobs,
+                agent_names=("ismcts", "ismcts"),
+                ismcts_belief_samples=DEFAULT_ISMCTS_BELIEF_SAMPLES,
+                ismcts_iterations=DEFAULT_ISMCTS_ITERATIONS,
+                ismcts_rollout_depth=DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+                ismcts_exploration=DEFAULT_ISMCTS_EXPLORATION,
+                ismcts_progressive_widening=DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+                ismcts_reuse_tree=DEFAULT_ISMCTS_REUSE_TREE,
+                ismcts_max_tree_nodes=DEFAULT_ISMCTS_MAX_TREE_NODES,
+                ismcts_rollout_epsilon=DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+                ismcts_rollout_policy=DEFAULT_ISMCTS_ROLLOUT_POLICY,
+            )
+            raw_payload = {
+                **asdict(report),
+                "game_fingerprint": game_fingerprint,
+                "experiment_fingerprint": current_experiment_fingerprint(),
+                "seed": args.seed,
+                "noncanonical_experiment": True,
+                "disabled_command_mechanics": sorted(disabled),
+                "rules": GameRules.standard().as_dict(),
+            }
+            variant_path.write_text(
+                json.dumps(raw_payload, indent=2) + "\n",
+                encoding="utf-8",
+            )
+        else:
+            print(
+                f"[Narrative ablation {index}/{len(NARRATIVE_ABLATIONS)}] "
+                f"reused {name}",
+                flush=True,
+            )
         variants[name] = {
             "disabled_command_mechanics": sorted(disabled),
-            **_compact_narrative_ablation(report),
+            **_compact_narrative_ablation(raw_payload),
         }
+        final_battle = variants[name]["match_length"].get("final_battle_number") or {}
         print(
-            f"  decisive {report.decisive_games}/{report.games}; "
-            f"censored {report.censored_games}; "
-            f"max Battle "
-            f"{variants[name]['match_length']['final_battle_number'].get('max')}",
+            f"  decisive {variants[name]['decisive_games']}/{variants[name]['games']}; "
+            f"censored {variants[name]['censored_games']}; "
+            f"max Battle {final_battle.get('max')}",
             flush=True,
         )
 
