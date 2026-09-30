@@ -6,6 +6,8 @@ import os
 from dataclasses import asdict
 from pathlib import Path
 
+from tools.deck_catalog import DEFAULT_DECK_PATH
+
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.fingerprint import current_game_fingerprint
@@ -42,8 +44,8 @@ def main() -> None:
         default=8,
         help="Parallel training replicas (default: 8); 1 = sequential; 0 = all detected CPUs.",
     )
-    parser.add_argument("--deck-a", type=Path, default=Path("decks/mobility-open-bonds.json"))
-    parser.add_argument("--deck-b", type=Path, default=Path("decks/mobility-open-bonds.json"))
+    parser.add_argument("--deck-a", type=Path, default=Path(DEFAULT_DECK_PATH))
+    parser.add_argument("--deck-b", type=Path, default=Path(DEFAULT_DECK_PATH))
     parser.add_argument("--output", type=Path, default=Path("artifacts/mccfr-policy.json"))
     args = parser.parse_args()
 
