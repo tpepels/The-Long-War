@@ -128,14 +128,16 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
 
 
 def test_balance_validation_covers_all_reference_decks() -> None:
+    from tools.deck_catalog import DECK_CATALOG
     from tools.run_experiments import CANONICAL_DECK_PATHS
 
-    shipped = {
-        f"decks/{path.name}"
-        for path in (ROOT / "decks").glob("*.json")
-    }
     canonical = set(CANONICAL_DECK_PATHS.values())
-    assert canonical == shipped
+    catalogued = {
+        f"decks/{entry['file']}"
+        for entry in DECK_CATALOG
+    }
+    assert canonical == catalogued
+    assert all((ROOT / path).is_file() for path in canonical)
     assert str(len(canonical)) in text("README.md")
 
 
