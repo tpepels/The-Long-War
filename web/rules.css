@@ -2297,29 +2297,27 @@
   .rulebook-page-version { right: 0; }
 
   .rulebook-print-columns {
-    display: flex;
-    gap: 9mm;
-    align-items: flex-start;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   .rulebook-print-column {
-    flex: 1 1 0;
-    width: calc(50% - 4.5mm);
+    display: table-cell;
+    width: 50%;
+    vertical-align: top;
     min-width: 0;
   }
 
-  .rulebook-print-column + .rulebook-print-column {
-    position: relative;
+  .rulebook-print-column:first-child {
+    padding-right: 4.5mm;
   }
 
-  .rulebook-print-column + .rulebook-print-column::before {
-    content: "";
-    position: absolute;
-    left: -4.6mm;
-    top: 0;
-    bottom: 0;
-    width: .2mm;
-    background: rgba(24,23,20,.2);
+  .rulebook-print-column + .rulebook-print-column {
+    padding-left: 4.5mm;
+    border-left: .2mm solid rgba(24,23,20,.2);
   }
 
   .rulebook-print-kicker {
