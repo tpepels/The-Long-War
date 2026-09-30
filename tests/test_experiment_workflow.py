@@ -16,6 +16,7 @@ import pytest
 from longwar import fingerprint
 from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_EXPLORATION,
+    DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_ROLLOUT_POLICY,
     ISMCTSAgent,
 )
@@ -414,7 +415,7 @@ def test_strength_sanity_check_defaults(monkeypatch):
     args = runner.parse_args()
     assert args.games == 24
     assert args.jobs == 8
-    assert args.iterations == 100_000
+    assert args.iterations == DEFAULT_ISMCTS_ITERATIONS
     assert args.alpha_nodes == 20_000
     assert args.time_budget_seconds == pytest.approx(5.0)
 
