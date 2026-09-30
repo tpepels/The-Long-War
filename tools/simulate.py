@@ -341,11 +341,8 @@ def main() -> None:
         list(agent_seed_offsets) if agent_seed_offsets is not None else None
     )
     payload["simulation_variant"] = {
-        "base_hand_size": rules.opening_hand_size,
-        "battle_one_starter_bonus": 0,
+        **rules.simulation_metadata(),
         "deck_sizes": [len(deck_a), len(deck_b)],
-        "starting_command": rules.starting_command,
-        "command_cap": rules.command_cap,
         "card_file": str(args.card_file),
     }
 
