@@ -787,3 +787,9 @@ def test_narrative_ablation_uses_catalogued_narrative_deck_id():
     source = (ROOT / "tools" / "run_experiments.py").read_text(encoding="utf-8")
     assert 'CANONICAL_DECK_PATHS["narrative"]' in source
     assert 'CANONICAL_DECK_PATHS["narrative-command"]' not in source
+
+
+def test_full_lab_pins_deep_ismcts_game_count_instead_of_using_runner_default():
+    source = (ROOT / "tools" / "full_lab.py").read_text(encoding="utf-8")
+    assert 'parser.add_argument("--balance-games", type=int, default=8)' in source
+    assert 'balance_cmd.extend(["--games", str(args.balance_games)])' in source

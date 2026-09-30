@@ -166,7 +166,7 @@ def main() -> None:
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--jobs", type=int, default=8)
     parser.add_argument("--seed", type=int, default=1701)
-    parser.add_argument("--balance-games", type=int)
+    parser.add_argument("--balance-games", type=int, default=8)
     parser.add_argument("--ablation-games", type=int, default=24)
     parser.add_argument("--strength-games", type=int, default=24)
     parser.add_argument("--mccfr-iterations", type=int, default=5000)
@@ -187,7 +187,7 @@ def main() -> None:
         args.mccfr_verification_iterations,
     ) <= 0:
         raise SystemExit("Full-Lab counts and worker settings must be positive")
-    if args.balance_games is not None and args.balance_games <= 0:
+    if args.balance_games <= 0:
         raise SystemExit("--balance-games must be positive")
 
     STATE_ROOT.mkdir(parents=True, exist_ok=True)
@@ -279,8 +279,7 @@ def main() -> None:
         str(args.jobs),
         "--publish-lab",
     )
-    if args.balance_games is not None:
-        balance_cmd.extend(["--games", str(args.balance_games)])
+    balance_cmd.extend(["--games", str(args.balance_games)])
     _stage(
         "canonical-deep-balance",
         balance_config,
