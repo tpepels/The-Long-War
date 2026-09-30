@@ -301,8 +301,8 @@ def test_rulebook_print_uses_three_composed_pages() -> None:
     assert ".rulebook-print-page:last-child" in explicit_css
     assert "page-break-after: auto;" in explicit_css
     assert ".rulebook-print-columns {" in explicit_css
-    assert "display: flex;" in explicit_css
-    assert "width: calc(50% - 4.5mm);" in explicit_css
+    assert "display: table;" in explicit_css
+    assert "display: table-cell;" in explicit_css
     assert "column-count" not in explicit_css
     assert ".rulebook-print-page1-lower" in explicit_css
     assert ".rulebook-print-reference-row" in explicit_css
