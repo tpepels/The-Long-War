@@ -1250,6 +1250,22 @@ function renderProgression(lab) {
         + Number(row.free_operations || 0);
       return impact(b[1]) - impact(a[1]);
     });
+  const commandSourceRows = commandSources.length
+    ? commandSources.map(([cardId, row]) =>
+        "<tr>"
+        + "<td><strong>" + esc(titles.get(cardId) || (cardId === "_unattributed" ? "Unattributed" : cardId)) + "</strong></td>"
+        + "<td>" + (row.command_gained ?? 0) + "</td>"
+        + "<td>" + (row.gain_triggers ?? 0) + "</td>"
+        + "<td>" + (row.command_refunded ?? 0) + "</td>"
+        + "<td>" + (row.discount_command_saved ?? 0) + "</td>"
+        + "<td>" + (row.discount_triggers ?? 0) + "</td>"
+        + "<td>" + (row.free_operations ?? 0) + "</td>"
+        + "<td>" + (row.recovery_command_saved ?? 0) + "</td>"
+        + "<td>" + (row.recovery_saved_triggers ?? 0) + "</td>"
+        + "<td>" + esc(Object.entries(row.effects || {}).map(([name, count]) => name + " ×" + count).join(", ") || "—") + "</td>"
+        + "</tr>"
+      ).join("")
+    : '<tr><td colspan="10" class="muted">No source-attributed Command events observed.</td></tr>';
   const definitions = Object.entries(p.definitions || {});
   const lowCommandGames = [...(lowCommand.games || [])].sort((left, right) =>
     Number(right.censored || 0) - Number(left.censored || 0)
