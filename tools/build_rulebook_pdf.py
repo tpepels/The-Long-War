@@ -236,6 +236,10 @@ def markdown_to_typst(source: str, version: str) -> str:
                 out.append("#columns(2, gutter: 9mm)[")
                 columns_started = True
             title = re.sub(r"\s+\{#[A-Za-z0-9_-]+\}\s*$", "", line[3:].strip())
+            if title == "Timing":
+                # The final reference page reads better as two balanced
+                # reference columns than as one long half-empty column.
+                out.append("#colbreak(weak: true)")
             out.append(f"== {title}")
             continue
 
