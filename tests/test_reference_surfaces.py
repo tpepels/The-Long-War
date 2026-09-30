@@ -128,7 +128,7 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
 
 
 def test_balance_validation_covers_all_reference_decks() -> None:
-    from tools.deck_catalog import DECK_CATALOG
+    from longwar.reference_decks import DECK_CATALOG
     from tools.run_experiments import CANONICAL_DECK_PATHS
 
     canonical = set(CANONICAL_DECK_PATHS.values())
