@@ -131,20 +131,21 @@ cdef void _fe___cinit__(FastEngine self) except *:
 
 cdef void _fe___init__(FastEngine self, engine) except *:
     cdef int code
+    cdef object rules = engine.rules
     self.card_ids = tuple(engine.cards)
     self.n_cards = len(self.card_ids)
-    self.opening_hand_size = int(engine.opening_hand_size)
-    self.command_cap = int(engine.command_cap)
-    self.command_recovery_start = int(engine.command_recovery_start)
-    self.command_recovery_decrement = int(engine.command_recovery_decrement)
-    self.command_recovery_floor = int(engine.rules.command_recovery_floor)
-    self.command_collapse_threshold = int(engine.command_collapse_threshold)
-    self.maneuver_command_cost = int(engine.maneuver_command_cost)
-    self.hand_limit = int(engine.hand_limit)
-    self.ongoing_story_limit = int(engine.ongoing_narrative_limit)
+    self.opening_hand_size = int(rules.opening_hand_size)
+    self.command_cap = int(rules.command_cap)
+    self.command_recovery_start = int(rules.command_recovery_start)
+    self.command_recovery_decrement = int(rules.command_recovery_decrement)
+    self.command_recovery_floor = int(rules.command_recovery_floor)
+    self.command_collapse_threshold = int(rules.command_collapse_threshold)
+    self.maneuver_command_cost = int(rules.maneuver_command_cost)
+    self.hand_limit = int(rules.hand_limit)
+    self.ongoing_story_limit = int(rules.ongoing_narrative_limit)
     if self.n_cards > MAX_CARDS:
         raise ValueError(f"The native engine supports at most {MAX_CARDS} card identities")
-    if max(engine.starting_command, self.command_cap) > 32767:
+    if max(rules.starting_command, self.command_cap) > 32767:
         raise ValueError("Command settings exceed the native signed 16-bit capacity")
     self.id_to_code = {card_id: i for i, card_id in enumerate(self.card_ids)}
 
