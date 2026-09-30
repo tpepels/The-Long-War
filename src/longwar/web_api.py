@@ -366,6 +366,7 @@ class PlaySession:
             "board": board,
             "stories": stories,
             "story_limit": self.engine.ongoing_narrative_limit,
+            "rules": self.engine.rules.as_dict(),
             "stratagems": stratagems,
             "stratagem_used": list(state.stratagem_used),
             "hero_used": list(state.hero_used),
