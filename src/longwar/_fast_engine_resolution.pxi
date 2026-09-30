@@ -162,7 +162,7 @@ cdef void _fe_queue_pre_resolution_choice(
     state.resolution_cursor = 0
 
 cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
-    cdef int front, a, b, p, strat, protected, card
+    cdef int front, a, b, p, strat, protected, protected_card, card
     cdef int controller, mask, combined0, combined1
     cdef int losses0, losses1
     cdef bint tie_control = _fe_tie_control_active(self, state)
@@ -276,29 +276,33 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     for front in range(4):
         if state.resolution_lost_mask[0] & (1 << front):
             protected = 0
+            protected_card = -1
             for p in range(2):
                 card = state.force[slot_index(0, front, p)]
                 if card >= 0 and self.recovery_protected_front[card]:
                     protected = 1
+                    protected_card = card
             if protected and state.resolution_recovery_losses[0] > 0:
                 state.resolution_recovery_losses[0] -= 1
                 _fe_record_command_diag(
                     self, COMMAND_DIAG_RECOVERY_PROTECTION,
                     COMMAND_DETAIL_RECOVERY_PROTECTED_FRONT,
-                    0, card, 1, 1,
+                    0, protected_card, 1, 1,
                 )
         if state.resolution_lost_mask[1] & (1 << front):
             protected = 0
+            protected_card = -1
             for p in range(2):
                 card = state.force[slot_index(1, front, p)]
                 if card >= 0 and self.recovery_protected_front[card]:
                     protected = 1
+                    protected_card = card
             if protected and state.resolution_recovery_losses[1] > 0:
                 state.resolution_recovery_losses[1] -= 1
                 _fe_record_command_diag(
                     self, COMMAND_DIAG_RECOVERY_PROTECTION,
                     COMMAND_DETAIL_RECOVERY_PROTECTED_FRONT,
-                    1, card, 1, 1,
+                    1, protected_card, 1, 1,
                 )
 
     strat = state.stratagem[0]

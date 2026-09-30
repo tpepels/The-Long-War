@@ -556,7 +556,7 @@ cdef void _fe_resolve_force_pair_narratives(
         ):
             amount = self.narrative_trigger_gain[card]
             if amount:
-                _fe_gain_command_from_narrative(self, state, controller, amount)
+                _fe_gain_command_from_narrative(self, state, controller, card, amount)
             if self.narrative_secondary[card] == NARR_SECONDARY_FREE_ANY_NAMED:
                 _fe_queue_free_maneuver(self, 
                     state,
@@ -587,7 +587,7 @@ cdef void _fe_resolve_maneuver_into_empty_narratives(
         if amount <= 0:
             continue
         state.narrative_used[ix] = 1
-        _fe_gain_command_from_narrative(self, state, player, amount)
+        _fe_gain_command_from_narrative(self, state, player, card, amount)
         if self.narrative_secondary[card] == NARR_SECONDARY_MOVE_VACATED:
             sources = _fe_adjacent_formation_mask(self, 
                 state, player, vacated_slot, False
