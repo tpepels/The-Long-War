@@ -3,7 +3,8 @@
     {
       "id": "mobility",
       "label": "Mobility / Open Bonds",
-      "file": "mobility-open-bonds.json"
+      "file": "mobility-open-bonds.json",
+      "default": true
     },
     {
       "id": "elite",
