@@ -91,12 +91,12 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         result["design_rules"] = {}
     elif card_type == "stratagem":
         # Preserve the paid public one-per-Battle slot while removing all
-        # card-specific payoff.
+        # card-specific payoff. design_rules is already the canonical empty
+        # mechanics schema for this baseline.
         result["text"] = (
             "Experimental matched baseline. Play this face-up in your "
             "**Stratagem** area. It has no continuing effect."
         )
-        result["rules"] = {}
     else:
         raise ValueError(f"Unsupported card type: {card_type}")
 
