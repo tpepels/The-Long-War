@@ -23,7 +23,11 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     playmat = playmat_source.lower()
     standard = GameRules.standard()
     recovery = [
-        standard.command_recovery_for_battle(battle)
+        max(
+            0,
+            standard.command_recovery_start
+            - standard.command_recovery_decrement * (battle - 1),
+        )
         for battle in range(1, 6)
     ]
     recovery_label = ", ".join(f"+{value}" for value in recovery)
