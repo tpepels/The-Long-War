@@ -1197,13 +1197,16 @@ def test_trap_closed_drives_off_encircled_middle_frontline() -> None:
 @pytest.mark.parametrize("battle", range(1, 10))
 def test_command_recovery_formula(battle: int) -> None:
     rules = GameRules.standard().with_overrides(
+        starting_command=20,
+        command_cap=100,
         command_collapse_threshold=0,
     )
     engine, state = setup_state(seed=4200 + battle, rules=rules)
+    initial_command = 10
     state.battle = battle
-    state.players[0].command = 10
-    state.players[1].command = 10
-    state.battle_start_command[:] = [10, 10]
+    state.players[0].command = initial_command
+    state.players[1].command = initial_command
+    state.battle_start_command[:] = [initial_command, initial_command]
 
     resolve_battle_by_passing(engine, state)
 
@@ -1211,16 +1214,20 @@ def test_command_recovery_formula(battle: int) -> None:
         rules.command_recovery_floor,
         rules.command_recovery_for_battle(battle),
     )
-    expected = min(rules.command_cap, 10 + actual_recovery)
+    expected = initial_command + actual_recovery
     assert state.players[0].command == expected
     assert state.players[1].command == expected
 
 
-def test_command_recovery_loses_one_per_lost_front_and_caps_at_twenty() -> None:
-    engine, state = setup_state()
+def test_command_recovery_loses_one_per_lost_front_and_caps_at_configured_limit() -> None:
+    rules = GameRules.standard().with_overrides(
+        starting_command=20,
+        command_cap=20,
+    )
+    engine, state = setup_state(rules=rules)
     state.players[0].command = 5
-    state.players[1].command = 19
-    state.battle_start_command[:] = [5, 19]
+    state.players[1].command = rules.command_cap - 1
+    state.battle_start_command[:] = [5, rules.command_cap - 1]
 
     make_named(state, 1, pos(0))
     make_named(state, 1, pos(1))
@@ -1235,7 +1242,7 @@ def test_command_recovery_loses_one_per_lost_front_and_caps_at_twenty() -> None:
     )
     expected_p1 = min(
         engine.rules.command_cap,
-        19 + max(engine.rules.command_recovery_floor, base),
+        (rules.command_cap - 1) + max(engine.rules.command_recovery_floor, base),
     )
     assert state.players[0].command == expected_p0
     assert state.players[1].command == expected_p1
@@ -1270,7 +1277,7 @@ def test_hand_deck_discard_and_named_formations_persist_between_battles() -> Non
     engine, state = setup_state()
     make_named(state, 0, pos(0))
     state.players[0].discard.append(state.players[0].hand.pop())
-    # Restore hand size to ten from deck so Battle-end refill does not move cards.
+    # Restore the configured hand-limit size so Battle-end refill does not move cards.
     state.players[0].hand.append(state.players[0].deck.pop())
     hand_before = list(state.players[0].hand)
     deck_before = list(state.players[0].deck)
