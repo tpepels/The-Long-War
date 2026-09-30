@@ -73,9 +73,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 slot = slot_index(p, f, r)
                 py_slot = state.board[p][f][r]
                 if py_slot.force is not None:
-                    fast.subject[slot] = self.id_to_code[py_slot.force]
+                    fast.force[slot] = self.id_to_code[py_slot.force]
                 if py_slot.bond is not None:
-                    fast.link[slot] = self.id_to_code[py_slot.bond]
+                    fast.bond[slot] = self.id_to_code[py_slot.bond]
                 if py_slot.name is not None:
                     fast.name[slot] = self.id_to_code[py_slot.name]
                 fast.temporary[slot] = py_slot.temporary_strength
@@ -89,18 +89,18 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     fast.maneuver_direction[slot] = 2
 
         for i, story in enumerate(state.stories[p][:self.ongoing_story_limit]):
-            fast.scheme[p * 4 + i] = self.id_to_code[story.card_id]
-            fast.scheme_revealed[p * 4 + i] = 1
-            fast.scheme_used[p * 4 + i] = bool(story.triggered_this_battle)
-            fast.scheme_trigger_mask[p * 4 + i] = int(story.triggered_players_mask)
+            fast.narrative[p * 4 + i] = self.id_to_code[story.card_id]
+            fast.narrative_revealed[p * 4 + i] = 1
+            fast.narrative_used[p * 4 + i] = bool(story.triggered_this_battle)
+            fast.narrative_trigger_mask[p * 4 + i] = int(story.triggered_players_mask)
             if story.direction == "left":
-                fast.scheme_direction[p * 4 + i] = 1
+                fast.narrative_direction[p * 4 + i] = 1
             elif story.direction == "right":
-                fast.scheme_direction[p * 4 + i] = 2
+                fast.narrative_direction[p * 4 + i] = 2
             for front_choice in story.fronts:
-                fast.scheme_front_mask[p * 4 + i] |= 1 << int(front_choice)
+                fast.narrative_front_mask[p * 4 + i] |= 1 << int(front_choice)
             if story.target_position is not None and story.target_player is not None:
-                fast.scheme_target_slot[p * 4 + i] = slot_index(
+                fast.narrative_target_slot[p * 4 + i] = slot_index(
                     int(story.target_player),
                     int(story.target_position.front),
                     0 if story.target_position.rank.value == "front" else 1,
@@ -397,16 +397,16 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     {
                         "force": (
                             None
-                            if state.subject[slot_index(p, f, r)] < 0
+                            if state.force[slot_index(p, f, r)] < 0
                             else self.card_ids[
-                                state.subject[slot_index(p, f, r)]
+                                state.force[slot_index(p, f, r)]
                             ]
                         ),
                         "bond": (
                             None
-                            if state.link[slot_index(p, f, r)] < 0
+                            if state.bond[slot_index(p, f, r)] < 0
                             else self.card_ids[
-                                state.link[slot_index(p, f, r)]
+                                state.bond[slot_index(p, f, r)]
                             ]
                         ),
                         "name": (
@@ -442,25 +442,25 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
         "stories": [
             [
                 {
-                    "card_id": self.card_ids[state.scheme[p * 4 + i]],
-                    "front_mask": state.scheme_front_mask[p * 4 + i],
-                    "triggered_this_battle": bool(state.scheme_used[p * 4 + i]),
-                    "triggered_players_mask": state.scheme_trigger_mask[p * 4 + i],
+                    "card_id": self.card_ids[state.narrative[p * 4 + i]],
+                    "front_mask": state.narrative_front_mask[p * 4 + i],
+                    "triggered_this_battle": bool(state.narrative_used[p * 4 + i]),
+                    "triggered_players_mask": state.narrative_trigger_mask[p * 4 + i],
                     "direction": (
                         "left"
-                        if state.scheme_direction[p * 4 + i] == 1
+                        if state.narrative_direction[p * 4 + i] == 1
                         else "right"
-                        if state.scheme_direction[p * 4 + i] == 2
+                        if state.narrative_direction[p * 4 + i] == 2
                         else None
                     ),
                     "target_slot": (
                         None
-                        if state.scheme_target_slot[p * 4 + i] < 0
-                        else state.scheme_target_slot[p * 4 + i]
+                        if state.narrative_target_slot[p * 4 + i] < 0
+                        else state.narrative_target_slot[p * 4 + i]
                     ),
                 }
                 for i in range(self.ongoing_story_limit)
-                if state.scheme[p * 4 + i] >= 0
+                if state.narrative[p * 4 + i] >= 0
             ]
             for p in range(2)
         ],
@@ -696,8 +696,8 @@ cdef dict _fe_debug_snapshot(FastEngine self, FastState state):
         "board": [
             [
                 (
-                    None if state.subject[slot_index(p, f, r)] < 0 else self.card_ids[state.subject[slot_index(p, f, r)]],
-                    None if state.link[slot_index(p, f, r)] < 0 else self.card_ids[state.link[slot_index(p, f, r)]],
+                    None if state.force[slot_index(p, f, r)] < 0 else self.card_ids[state.force[slot_index(p, f, r)]],
+                    None if state.bond[slot_index(p, f, r)] < 0 else self.card_ids[state.bond[slot_index(p, f, r)]],
                     None if state.name[slot_index(p, f, r)] < 0 else self.card_ids[state.name[slot_index(p, f, r)]],
                     state.temporary[slot_index(p, f, r)],
                 )
@@ -707,7 +707,7 @@ cdef dict _fe_debug_snapshot(FastEngine self, FastState state):
         ],
         "schemes": [
             [
-                None if state.scheme[p * 4 + f] < 0 else (self.card_ids[state.scheme[p * 4 + f]], bool(state.scheme_revealed[p * 4 + f]))
+                None if state.narrative[p * 4 + f] < 0 else (self.card_ids[state.narrative[p * 4 + f]], bool(state.narrative_revealed[p * 4 + f]))
                 for f in range(4)
             ]
             for p in range(2)
