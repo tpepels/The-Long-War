@@ -49,6 +49,7 @@ def _run_logged(command: list[str]) -> None:
 BROWSER_PYTHON_FILES = (
     "__init__.py",
     "cards.py",
+    "decks.py",
     "rules.py",
     "heuristics.py",
     "web_api.py",
