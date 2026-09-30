@@ -202,7 +202,7 @@ def test_ismcts_root_guard_preserves_last_command() -> None:
     state.players[0].command = 1
     state.players[1].command = 5
     state.operations_this_battle[:] = [1, 1]
-    for card_id in ("the-fifty-men", "followed", "namar"):
+    for card_id in ("the-grey-riders", "marched-with", "elian"):
         zone = (
             state.players[0].hand
             if card_id in state.players[0].hand
@@ -210,9 +210,9 @@ def test_ismcts_root_guard_preserves_last_command() -> None:
         )
         zone.remove(card_id)
     slot = state.slot(0, Position(Front.FIRST, Rank.FRONT))
-    slot.force = "the-fifty-men"
-    slot.bond = "followed"
-    slot.name = "namar"
+    slot.force = "the-grey-riders"
+    slot.bond = "marched-with"
+    slot.name = "elian"
 
     agent = ISMCTSAgent(
         engine,
