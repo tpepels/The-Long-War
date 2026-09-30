@@ -1,0 +1,34 @@
+{
+  "decks": [
+    {
+      "id": "mobility",
+      "label": "Mobility / Open Bonds",
+      "file": "mobility-open-bonds.json"
+    },
+    {
+      "id": "elite",
+      "label": "Persistent Elite / Heroes",
+      "file": "persistent-elite-heroes.json"
+    },
+    {
+      "id": "narrative",
+      "label": "Narrative / Command",
+      "file": "narrative-command.json"
+    },
+    {
+      "id": "control",
+      "label": "Battlefield Control / Stratagems",
+      "file": "battlefield-control-stratagems.json"
+    },
+    {
+      "id": "momentum",
+      "label": "Momentum / Orders",
+      "file": "momentum-orders.json"
+    },
+    {
+      "id": "necessity",
+      "label": "Necessity / Attrition",
+      "file": "necessity-attrition.json"
+    }
+  ]
+}
