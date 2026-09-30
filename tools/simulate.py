@@ -19,7 +19,10 @@ from longwar.agents.ismcts_agent import (
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.rules import GameRules
-from tools.deck_catalog import DEFAULT_DECK_PATH
+if __package__:
+    from .deck_catalog import DEFAULT_DECK_PATH
+else:
+    from deck_catalog import DEFAULT_DECK_PATH
 from longwar.fingerprint import (
     current_experiment_fingerprint,
     current_game_fingerprint,
