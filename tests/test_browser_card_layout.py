@@ -451,3 +451,14 @@ def test_web_static_checker_catches_missing_play_dom_id(tmp_path) -> None:
 
     errors = checker._play_dom_errors(web)
     assert errors == ["web/play.js references missing DOM id #missing"]
+
+
+def test_browser_hand_uses_available_width_at_readable_resting_scale() -> None:
+    script = text("web/play.js")
+    style = text("web/play.css")
+
+    assert "Math.min(.9, Math.max(.5" in script
+    assert "150 * scale" in script
+    assert "hand.clientWidth - 204 * scale - 24" in script
+    assert "padding: 0 clamp(14px, 2vw, 30px);" in style
+    assert "--inspect-scale: 0.98;" in style

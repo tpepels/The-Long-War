@@ -1264,8 +1264,14 @@ function layoutHand() {
   cancelAnimationFrame(handLayoutFrame);
   hand.classList.add("laying-out");
   const elements = [...hand.querySelectorAll(".play-card")];
-  const scale = Math.min(.78, Math.max(.42, (hand.clientHeight - 24) / 286));
-  const spread = Math.max(0, Math.min(110 * scale, (hand.clientWidth - 204 * scale - 44) / Math.max(1, elements.length - 1)));
+  const scale = Math.min(.9, Math.max(.5, (hand.clientHeight - 18) / 286));
+  const spread = Math.max(
+    0,
+    Math.min(
+      150 * scale,
+      (hand.clientWidth - 204 * scale - 24) / Math.max(1, elements.length - 1),
+    ),
+  );
   const middle = (elements.length - 1) / 2;
   elements.forEach((el, index) => {
     const t = middle ? (index - middle) / middle : 0;

@@ -372,7 +372,7 @@ body.game-body {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
-  padding: 0 4vw;
+  padding: 0 clamp(14px, 2vw, 30px);
   min-height: 0;
 }
 .rack-player {
@@ -1066,7 +1066,7 @@ body.game-body {
 .play-card {
   --card-accent: #796a50;
   --card-wash: #e0d2b5;
-  --inspect-scale: 0.92;
+  --inspect-scale: 0.98;
   flex: 0 0 204px;
   width: 204px;
   height: 286px;
