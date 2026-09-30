@@ -50,8 +50,8 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, state.discarded_this_battle[p])
 
     for slot in range(SLOT_COUNT):
-        _info_hash_feed(&h, <uint8_t>(state.subject[slot] + 1))
-        _info_hash_feed(&h, <uint8_t>(state.link[slot] + 1))
+        _info_hash_feed(&h, <uint8_t>(state.force[slot] + 1))
+        _info_hash_feed(&h, <uint8_t>(state.bond[slot] + 1))
         _info_hash_feed(&h, <uint8_t>(state.name[slot] + 1))
         _info_hash_feed_u16(
             &h,
@@ -61,13 +61,13 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, state.maneuvered_in_operation[slot])
 
     for ix in range(SCHEME_COUNT):
-        _info_hash_feed(&h, <uint8_t>(state.scheme[ix] + 1))
-        _info_hash_feed(&h, state.scheme_revealed[ix])
-        _info_hash_feed(&h, state.scheme_front_mask[ix])
-        _info_hash_feed(&h, state.scheme_used[ix])
-        _info_hash_feed(&h, state.scheme_direction[ix])
-        _info_hash_feed(&h, state.scheme_trigger_mask[ix])
-        _info_hash_feed(&h, <uint8_t>(state.scheme_target_slot[ix] + 1))
+        _info_hash_feed(&h, <uint8_t>(state.narrative[ix] + 1))
+        _info_hash_feed(&h, state.narrative_revealed[ix])
+        _info_hash_feed(&h, state.narrative_front_mask[ix])
+        _info_hash_feed(&h, state.narrative_used[ix])
+        _info_hash_feed(&h, state.narrative_direction[ix])
+        _info_hash_feed(&h, state.narrative_trigger_mask[ix])
+        _info_hash_feed(&h, <uint8_t>(state.narrative_target_slot[ix] + 1))
     for p in range(2):
         _info_hash_feed(&h, <uint8_t>(state.stratagem[p] + 1))
         _info_hash_feed(&h, state.stratagem_revealed[p])
@@ -247,13 +247,13 @@ cdef int _fe__information_state_encode(
                 buf,
                 &n,
                 h,
-                <uint8_t>(state.subject[slot] + 1),
+                <uint8_t>(state.force[slot] + 1),
             )
             _info_emit(
                 buf,
                 &n,
                 h,
-                <uint8_t>(state.link[slot] + 1),
+                <uint8_t>(state.bond[slot] + 1),
             )
             _info_emit(
                 buf,
@@ -279,43 +279,43 @@ cdef int _fe__information_state_encode(
     for owner in range(2):
         story_count = 0
         for story_slot in range(self.ongoing_story_limit):
-            if state.scheme[owner * 4 + story_slot] >= 0:
+            if state.narrative[owner * 4 + story_slot] >= 0:
                 story_count += 1
         _info_emit(buf, &n, h, <uint8_t>story_count)
         for story_slot in range(self.ongoing_story_limit):
-            card = state.scheme[owner * 4 + story_slot]
+            card = state.narrative[owner * 4 + story_slot]
             if card >= 0:
                 _info_emit(buf, &n, h, <uint8_t>(card + 1))
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.scheme_front_mask[owner * 4 + story_slot],
+                    state.narrative_front_mask[owner * 4 + story_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.scheme_used[owner * 4 + story_slot],
+                    state.narrative_used[owner * 4 + story_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.scheme_direction[owner * 4 + story_slot],
+                    state.narrative_direction[owner * 4 + story_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.scheme_trigger_mask[owner * 4 + story_slot],
+                    state.narrative_trigger_mask[owner * 4 + story_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
                     <uint8_t>(
-                        state.scheme_target_slot[owner * 4 + story_slot] + 1
+                        state.narrative_target_slot[owner * 4 + story_slot] + 1
                     ),
                 )
 
