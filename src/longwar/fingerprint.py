@@ -26,17 +26,6 @@ _GAMEPLAY_PYTHON = {
     "simulate.py",
 }
 _GAMEPLAY_DIRS = {"agents", "algorithms", "game"}
-_NATIVE_GAME_PREFIXES = (
-    "_alpha_beta_core",
-    "_fast_constants",
-    "_fast_engine_",
-    "_fast_search",
-    "_fast_state",
-    "_heuristic_core",
-    "_ismcts_core",
-    "_mccfr_accel",
-    "_mccfr_core",
-)
 _NATIVE_GAME_SUFFIXES = {".pxi", ".pyx"}
 
 
@@ -60,13 +49,7 @@ def fingerprint_paths() -> list[Path]:
         relative = path.relative_to(package)
         if len(relative.parts) == 1:
             name = relative.name
-            if name in _GAMEPLAY_PYTHON or (
-                path.suffix in _NATIVE_GAME_SUFFIXES
-                and any(
-                    name.startswith(prefix)
-                    for prefix in _NATIVE_GAME_PREFIXES
-                )
-            ):
+            if name in _GAMEPLAY_PYTHON or path.suffix in _NATIVE_GAME_SUFFIXES:
                 paths.append(path)
         elif relative.parts[0] in _GAMEPLAY_DIRS and path.suffix == ".py":
             paths.append(path)
