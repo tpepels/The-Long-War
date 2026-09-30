@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from dataclasses import asdict
 from pathlib import Path
@@ -41,7 +42,10 @@ def load_deck(path: Path) -> list[str]:
 def load_policy(path: Path | None) -> dict[str, Any] | None:
     if path is None:
         return None
-    return json.loads(resolve(path).read_text(encoding="utf-8"))
+    raw = resolve(path).read_bytes()
+    policy = json.loads(raw)
+    policy["_policy_fingerprint"] = hashlib.sha256(raw).hexdigest()[:16]
+    return policy
 
 
 def _write_progress_snapshot(
@@ -346,6 +350,11 @@ def main() -> None:
     }
     payload["agent_overrides"] = [agent_overrides[0], agent_overrides[1]]
     payload["agent_labels"] = list(agent_labels)
+    payload["policy_fingerprints"] = [
+        policy.get("_policy_fingerprint") if policy is not None else None
+        for policy in policies
+        if policy is not None
+    ]
     payload["agent_seed_offsets"] = (
         list(agent_seed_offsets) if agent_seed_offsets is not None else None
     )
