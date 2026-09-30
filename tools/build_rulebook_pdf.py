@@ -97,6 +97,7 @@ def markdown_to_typst(source: str, version: str) -> str:
 #set heading(numbering: none)
 
 #show heading.where(level: 2): it => block(
+  sticky: true,
   above: 10pt,
   below: 5pt,
   breakable: false,
@@ -105,6 +106,7 @@ def markdown_to_typst(source: str, version: str) -> str:
 )[#text(size: 15pt, weight: "semibold")[#it.body]]
 
 #show heading.where(level: 3): it => block(
+  sticky: true,
   above: 7pt,
   below: 3pt,
   breakable: false,

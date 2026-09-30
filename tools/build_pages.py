@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 import markdown
@@ -40,8 +41,31 @@ def print_build_version() -> str:
     if re.fullmatch(r"[0-9a-f]{7,40}", github_sha):
         return github_sha[:8]
 
-    # Local builds still get a stable version that changes with printable
-    # rules/cards/layout inputs, rather than an ambiguous "dev" label.
+    # A clean local checkout prints the same Git revision as CI. If the
+    # checkout is dirty, say so explicitly rather than stamping changed
+    # physical artifacts as an unchanged commit.
+    try:
+        git_sha = subprocess.check_output(
+            ["git", "rev-parse", "--short=8", "HEAD"],
+            cwd=ROOT,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip().lower()
+        if re.fullmatch(r"[0-9a-f]{8}", git_sha):
+            dirty = bool(
+                subprocess.check_output(
+                    ["git", "status", "--porcelain", "--untracked-files=normal"],
+                    cwd=ROOT,
+                    text=True,
+                    stderr=subprocess.DEVNULL,
+                ).strip()
+            )
+            return git_sha + ("-dirty" if dirty else "")
+    except (OSError, subprocess.CalledProcessError):
+        pass
+
+    # Source archives without Git metadata still get a deterministic,
+    # unmistakably non-commit identifier.
     inputs = [
         RULEBOOK,
         CARDS,
