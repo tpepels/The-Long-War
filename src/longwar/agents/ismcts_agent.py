@@ -8,6 +8,7 @@ from ..game.actions import Action, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState
 from ..heuristics import opening_mulligan_indices
+from ..native_search import ismcts_backend
 
 DEFAULT_ISMCTS_EXPLORATION = 0.3
 # Canonical production/search baseline. Keep experiment runners and simulation
@@ -23,15 +24,12 @@ DEFAULT_ISMCTS_MAX_TREE_NODES = 400_000
 
 
 try:
-    from .._fast_search import (
-        FastEngine,
-        ISMCTSTree,
-        NativeHeuristicEvaluator,
-        ismcts_search,
+    FastEngine, ISMCTSTree, NativeHeuristicEvaluator, ismcts_search = (
+        ismcts_backend()
     )
 except ImportError as exc:  # canonical extension is required by normal install
     raise RuntimeError(
-        "Cython ISMCTS requires the canonical _fast_search extension; "
+        "Cython ISMCTS requires the canonical native search backend; "
         "run python -m pip install -e '.[dev]'"
     ) from exc
 
