@@ -53,7 +53,7 @@ simulate:
 # Canonical Balance Lab: planning-capable ISMCTS evidence, generated locally
 # and committed for GitHub Pages. Override BALANCE_ARGS for larger/special runs.
 BALANCE_PRESET ?= quick
-BALANCE_ARGS ?= --agent ismcts --games 24 --jobs 8 --publish-lab --skip-card-screen --ismcts-iterations 100000
+BALANCE_ARGS ?= --agent ismcts --games 24 --jobs 8 --publish-lab --skip-card-screen
 balance:
 	python tools/run_experiments.py balance --preset $(BALANCE_PRESET) $(BALANCE_ARGS)
 
