@@ -176,7 +176,7 @@ def markdown_to_typst(source: str, version: str) -> str:
                 code_lines.append(line)
             continue
 
-        image_match = re.fullmatch(r"!\\[([^]]*)\\]\\(([^)]+)\\)", line.strip())
+        image_match = re.fullmatch(r"!\[([^]]*)\]\(([^)]+)\)", line.strip())
         if image_match:
             _flush_paragraph(paragraph, out)
             finish_quote()
