@@ -2226,3 +2226,295 @@
     break-inside: avoid;
   }
 }
+
+
+/* v0.8 explicit print pages -------------------------------------------------
+   Printing no longer uses CSS multicolumn pagination. Every physical page is
+   an explicit A4 content box with two ordinary grid columns where needed. */
+.rulebook-print-shell {
+  display: none;
+}
+
+@media print {
+  .screen-toolbar,
+  .rulebook-shell,
+  body > .print-version {
+    display: none !important;
+  }
+
+  .rulebook-body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .rulebook-print-shell {
+    display: block;
+    margin: 0;
+    padding: 0;
+    color: #181714;
+    background: #fff;
+  }
+
+  .rulebook-print-page {
+    page: rulebook;
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: 270mm;
+    margin: 0;
+    padding: 0 0 7mm;
+    overflow: hidden;
+    break-after: page;
+    page-break-after: always;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .rulebook-print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .rulebook-print-page-label {
+    margin: 0 0 3mm;
+    padding-bottom: 1.7mm;
+    border-bottom: .35mm solid #181714;
+    font: 800 2mm/1 Arial, sans-serif;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+
+  .rulebook-print-page-number,
+  .rulebook-page-version {
+    position: absolute;
+    bottom: 0;
+    color: #666;
+    font: 1.7mm/1 Arial, sans-serif;
+    letter-spacing: .04em;
+  }
+
+  .rulebook-print-page-number { left: 0; }
+  .rulebook-page-version { right: 0; }
+
+  .rulebook-print-columns {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    gap: 9mm;
+    align-items: start;
+  }
+
+  .rulebook-print-column {
+    min-width: 0;
+  }
+
+  .rulebook-print-column + .rulebook-print-column {
+    position: relative;
+  }
+
+  .rulebook-print-column + .rulebook-print-column::before {
+    content: "";
+    position: absolute;
+    left: -4.6mm;
+    top: 0;
+    bottom: 0;
+    width: .2mm;
+    background: rgba(24,23,20,.2);
+  }
+
+  .rulebook-print-kicker {
+    margin: 0 0 2.5mm;
+    padding-bottom: 1.5mm;
+    border-bottom: .3mm solid #181714;
+    font: 800 2mm/1 Arial, sans-serif;
+    letter-spacing: .15em;
+  }
+
+  .rulebook-print-page .rule-section {
+    display: block;
+    margin: 0 0 3.4mm;
+    break-inside: auto;
+  }
+
+  .rulebook-print-page .rule-section h2 {
+    position: relative;
+    margin: 0 0 1.6mm;
+    padding: 1.7mm 0 0 8mm;
+    border-top: .32mm solid #181714;
+    font: 500 5.2mm/1.02 Georgia, serif;
+    letter-spacing: -.02em;
+  }
+
+  .rulebook-print-page .rule-section h2::before {
+    top: 2mm;
+    font-size: 1.75mm;
+  }
+
+  .rulebook-print-page .rule-section h3 {
+    margin: 2.6mm 0 1mm;
+    font: 700 2.25mm/1.15 Arial, sans-serif;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .rulebook-print-page .rule-section p,
+  .rulebook-print-page .rule-section li {
+    margin-top: 0;
+    font-size: 2.62mm;
+    line-height: 1.34;
+    orphans: auto;
+    widows: auto;
+  }
+
+  .rulebook-print-page .rule-section p {
+    margin-bottom: 2.2mm;
+  }
+
+  .rulebook-print-page .rule-section ul,
+  .rulebook-print-page .rule-section ol {
+    margin: 1.2mm 0 2.2mm;
+    padding-left: 4.7mm;
+  }
+
+  .rulebook-print-page .rule-section li + li {
+    margin-top: .45mm;
+  }
+
+  .rulebook-print-page .rule-section table {
+    width: 100%;
+    margin: 2mm 0 3mm;
+    border-collapse: collapse;
+  }
+
+  .rulebook-print-page .rule-section th,
+  .rulebook-print-page .rule-section td {
+    padding: 1.2mm 1.1mm;
+    font-size: 2.15mm;
+    line-height: 1.18;
+  }
+
+  .rulebook-print-page .rule-section th {
+    font: 700 1.65mm/1.1 Arial, sans-serif;
+    letter-spacing: .05em;
+  }
+
+  .rulebook-print-page .legend-sentence {
+    margin: 2.6mm 0;
+    padding: 2.6mm;
+  }
+
+  .rulebook-print-page .legend-sentence span {
+    padding: 1.7mm 2.2mm;
+    font-size: 2.65mm;
+  }
+
+  .rulebook-print-page .start-playing-box {
+    margin: 3mm 0 0;
+    padding: 3.5mm 4mm;
+  }
+
+  .rulebook-print-page .start-playing-box b {
+    font-size: 5mm;
+  }
+
+  .rulebook-print-page .start-playing-box span {
+    font-size: 2.4mm;
+  }
+
+  /* Page 1: deliberately single-page composition. */
+  .rulebook-print-opening > h1:first-child {
+    margin: 0;
+    padding: 0 0 2.8mm;
+    border-bottom: .65mm solid #181714;
+    font: 500 12mm/.88 Georgia, serif;
+    letter-spacing: -.045em;
+  }
+
+  .rulebook-print-opening > h1:first-child + p {
+    margin: 2.8mm 0 4mm;
+    font-size: 3.7mm;
+    line-height: 1.2;
+    font-style: italic;
+    opacity: .72;
+  }
+
+  .rulebook-print-opening .rulebook-opening {
+    margin: 0 0 4mm;
+    padding: 3.6mm 4.5mm;
+    border: .28mm solid #181714;
+    background: #f6f1e7;
+  }
+
+  .rulebook-print-opening .rulebook-opening p {
+    margin: 0 0 1.7mm;
+    font-size: 2.7mm;
+    line-height: 1.32;
+  }
+
+  .rulebook-print-opening .rulebook-opening p:last-child {
+    margin-bottom: 0;
+  }
+
+  .rulebook-print-opening .rulebook-at-a-glance {
+    margin: 0 0 4mm;
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    border-top: .45mm solid #181714;
+    border-bottom: .45mm solid #181714;
+  }
+
+  .rulebook-print-opening .rulebook-at-a-glance > div {
+    min-height: 17mm;
+    padding: 2.4mm 2.6mm;
+  }
+
+  .rulebook-print-opening .rulebook-at-a-glance b {
+    margin-bottom: .9mm;
+    font-size: 1.65mm;
+  }
+
+  .rulebook-print-opening .rulebook-at-a-glance span {
+    font-size: 2.2mm;
+    line-height: 1.25;
+  }
+
+  .rulebook-print-goal .rule-section {
+    display: grid;
+    grid-template-columns: minmax(0,.72fr) minmax(0,1.28fr);
+    grid-template-rows: auto auto auto auto auto;
+    column-gap: 7mm;
+    align-items: start;
+  }
+
+  .rulebook-print-goal .rule-section > h2 {
+    grid-column: 1 / -1;
+    margin-bottom: 2.5mm;
+  }
+
+  .rulebook-print-goal .rule-section > p,
+  .rulebook-print-goal .rule-section > ul {
+    grid-column: 1;
+  }
+
+  .rulebook-battlefield-figure {
+    grid-column: 2;
+    grid-row: 2 / span 6;
+    margin: 0;
+    align-self: start;
+  }
+
+  .rulebook-battlefield-figure img {
+    display: block;
+    width: 100%;
+    max-height: 125mm;
+    object-fit: contain;
+    border: .3mm solid #181714;
+    background: #ece4d2;
+  }
+
+  .rulebook-battlefield-figure figcaption {
+    margin-top: 1.2mm;
+    font: 1.8mm/1.25 Arial, sans-serif;
+    color: #555;
+    text-align: center;
+  }
+}
