@@ -8,7 +8,15 @@ from pathlib import Path
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.game.engine import all_positions
-from longwar.game.actions import EffectChoice, Maneuver, Pass, PlayForce, PlayName
+from longwar.game.actions import (
+    EffectChoice,
+    Maneuver,
+    Pass,
+    PlayBond,
+    PlayForce,
+    PlayName,
+    PlayStory,
+)
 from longwar.game.model import (
     ConstraintKind,
     Front,
@@ -919,3 +927,128 @@ def test_low_command_telemetry_records_pre_recovery_collapse_and_floor() -> None
     assert record["board_changed_during_battle"] is False
     assert record["board_changed_during_resolution"] is True
 
+
+
+
+def test_baggage_command_gain_is_attributed_to_triggering_card() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=810, first_player=0, opening_bonus=False)
+    state.players[0].hand[:] = [
+        "the-baggage-was-abandoned",
+        "the-fifty-men",
+    ]
+    state.players[0].command = 5
+    action = next(
+        candidate
+        for candidate in engine.legal_actions(state)
+        if isinstance(candidate, PlayStory)
+        and candidate.card_id == "the-baggage-was-abandoned"
+        and candidate.discard_card_id is not None
+    )
+
+    telemetry = Telemetry()
+    telemetry.start_game(state, engine)
+    before = telemetry.before_action(
+        engine, state, 0, action, decision_info=None
+    )
+    engine.apply(state, action)
+    telemetry.after_action(engine, before, state, 0, action)
+
+    source = telemetry.summary()["progression"]["resources"][
+        "command_by_source"
+    ]["the-baggage-was-abandoned"]
+    assert source["command_gained"] == 2
+    assert source["gain_triggers"] == 1
+    assert source["effects"]["card_for_command"] == 1
+
+
+def test_rallied_discount_is_attributed_to_rallied_behind() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=811, first_player=0, opening_bonus=False)
+    state.players[0].hand[:] = ["rallied-behind"]
+    state.players[0].command = 1
+    state.players[1].command = 5
+    action = next(
+        candidate
+        for candidate in engine.legal_actions(state)
+        if isinstance(candidate, PlayBond)
+        and candidate.card_id == "rallied-behind"
+    )
+
+    engine.apply(state, action)
+    events = [
+        event
+        for event in engine.last_command_events
+        if event.get("source_card") == "rallied-behind"
+    ]
+    discount = next(event for event in events if event["kind"] == "discount")
+    free = next(event for event in events if event["kind"] == "free_operation")
+    assert discount["amount"] > 0
+    assert free["amount"] == 1
+
+
+def test_no_road_counts_actual_recurring_command_trigger() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=812, first_player=0, opening_bonus=False)
+    state.stories[0].append(
+        StoryState(card_id="no-road-was-too-long", ongoing=True)
+    )
+    source = Position(Front.FIRST, Rank.FRONT)
+    destination = Position(Front.SECOND, Rank.FRONT)
+    slot = state.slot(0, source)
+    slot.force = "the-fifty-men"
+    slot.bond = "followed"
+    slot.name = "namar"
+    state.players[0].command = 5
+    action = Maneuver(source, destination)
+    assert action in engine.legal_actions(state)
+
+    engine.apply(state, action)
+    gains = [
+        event
+        for event in engine.last_command_events
+        if event.get("source_card") == "no-road-was-too-long"
+        and event.get("kind") == "gain"
+    ]
+    assert len(gains) == 1
+    assert gains[0]["amount"] == 1
+
+
+def test_low_positive_streak_is_independent_of_zero_collapse_threshold() -> None:
+    engine, deck = setup()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=813,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.battle = 8
+    state.players[0].command = 2
+    state.players[1].command = 2
+    state.battle_start_command[:] = [2, 2]
+    state.operations_this_battle[:] = [1, 1]
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
+
+    telemetry = Telemetry()
+    telemetry.start_game(state, engine)
+    for _ in range(2):
+        actor = state.active_player
+        action = Pass()
+        before = telemetry.before_action(
+            engine,
+            state,
+            actor,
+            action,
+            decision_info=None,
+        )
+        engine.apply(state, action)
+        telemetry.after_action(engine, before, state, actor, action)
+
+    progression = telemetry.summary()["progression"]
+    assert progression["low_command_stalls"]["diagnostic_battles"] == 0
+    low_positive = progression["low_positive_stalls"]
+    assert low_positive["battles"] == 1
+    assert low_positive["streak_length"]["max"] == 1
+    assert low_positive["games"][0]["first_low_positive_battle"] == 8
