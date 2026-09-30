@@ -2,7 +2,7 @@ cdef inline int _fe_hand_size(FastEngine self, FastState state, int player) noex
     return state.hand_len[player]
 
 cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) noexcept:
-    cdef int card = state.subject[slot]
+    cdef int card = state.force[slot]
     cdef int player, local, front, rank, value, rear, frontslot, other, adj, link, name, role, mod, strat, controller
     if card < 0:
         return 0
@@ -21,17 +21,17 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
         value += self.force_text_amount[card]
     elif mod == FORCE_TEXT_FRONT_IF_REAR and rank == 0:
         rear = slot_index(player, front, 1)
-        if state.subject[rear] >= 0:
+        if state.force[rear] >= 0:
             value += self.force_text_amount[card]
     elif mod == FORCE_TEXT_REAR_IF_FRONT and rank == 1:
         frontslot = slot_index(player, front, 0)
-        if state.subject[frontslot] >= 0:
+        if state.force[frontslot] >= 0:
             value += self.force_text_amount[card]
 
     # Rear support effects add Strength to the Force directly ahead.
     if rank == 0:
         rear = slot_index(player, front, 1)
-        other = state.subject[rear]
+        other = state.force[rear]
         if (
             other >= 0
             and self.force_text_effect[other] == FORCE_TEXT_SUPPORT_AHEAD
@@ -45,12 +45,12 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
 
     if front > 0:
         adj = slot_index(player, front - 1, rank)
-        other = state.subject[adj]
+        other = state.force[adj]
         if other >= 0 and self.aura[other] and (self.aura_rank[other] < 0 or self.aura_rank[other] == rank):
             value += self.aura[other]
     if front < 3:
         adj = slot_index(player, front + 1, rank)
-        other = state.subject[adj]
+        other = state.force[adj]
         if other >= 0 and self.aura[other] and (self.aura_rank[other] < 0 or self.aura_rank[other] == rank):
             value += self.aura[other]
 
@@ -62,13 +62,13 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
             other = 0
             if (
                 front > 0
-                and state.subject[slot_index(player, front - 1, rank)] >= 0
+                and state.force[slot_index(player, front - 1, rank)] >= 0
                 and state.name[slot_index(player, front - 1, rank)] >= 0
             ):
                 other = 1
             if (
                 front < 3
-                and state.subject[slot_index(player, front + 1, rank)] >= 0
+                and state.force[slot_index(player, front + 1, rank)] >= 0
                 and state.name[slot_index(player, front + 1, rank)] >= 0
             ):
                 other = 1
@@ -77,7 +77,7 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
         else:
             value += mod
 
-    link = state.link[slot]
+    link = state.bond[slot]
     name = state.name[slot]
     if link >= 0:
         value += self.link_bonus[link]
@@ -120,13 +120,13 @@ cdef int _fe_front_strength_fast(FastEngine self, FastState state, int player, i
     cdef int value, scheme, enemy, slot, link
     value = _fe_position_strength_fast(self, state, slot_index(player, front, 0))
     value += _fe_position_strength_fast(self, state, slot_index(player, front, 1))
-    scheme = state.scheme[player * 4 + front]
-    if scheme >= 0 and not state.scheme_revealed[player * 4 + front]:
+    scheme = state.narrative[player * 4 + front]
+    if scheme >= 0 and not state.narrative_revealed[player * 4 + front]:
         value += self.scheme_face_bonus[scheme]
     enemy = 1 - player
     for slot in (slot_index(enemy, front, 0), slot_index(enemy, front, 1)):
-        if state.subject[slot] >= 0 and state.link[slot] >= 0 and state.name[slot] >= 0:
-            link = state.link[slot]
+        if state.force[slot] >= 0 and state.bond[slot] >= 0 and state.name[slot] >= 0:
+            link = state.bond[slot]
             value += self.link_opposing[link]
     return value
 
@@ -138,7 +138,7 @@ cdef inline bint _fe_frontline_only_resolution(
     cdef int player, rank, force
     for player in range(2):
         for rank in range(2):
-            force = state.subject[slot_index(player, front, rank)]
+            force = state.force[slot_index(player, front, rank)]
             if force >= 0 and self.combat_frontline_only[force]:
                 return True
     return False
@@ -168,7 +168,7 @@ cdef inline int _fe_resolution_front_strength_fast(
     # suppress a specific formation without mutating its printed Strength.
     for local in range(8):
         slot = player * 8 + local
-        if state.subject[slot] < 0:
+        if state.force[slot] < 0:
             continue
         if state.resolution_suppressed_mask & (<uint16_t>1 << slot):
             continue
@@ -190,7 +190,7 @@ cdef inline int _fe_resolution_front_strength_fast(
     for rank in range(2):
         slot = slot_index(enemy, front, rank)
         if _fe_slot_complete(self, state, slot):
-            link = state.link[slot]
+            link = state.bond[slot]
             if link >= 0:
                 value += self.link_opposing[link]
 
@@ -199,7 +199,7 @@ cdef inline int _fe_resolution_front_strength_fast(
             for rank in range(1 if frontline_only else 2):
                 slot = slot_index(player, front, rank)
                 if (
-                    state.subject[slot] >= 0
+                    state.force[slot] >= 0
                     and not (
                         state.resolution_suppressed_mask
                         & (<uint16_t>1 << slot)
@@ -218,7 +218,7 @@ cdef inline bint _fe_breakthrough_active(
     cdef int rank, slot, force, name
     for rank in range(2):
         slot = slot_index(player, front, rank)
-        force = state.subject[slot]
+        force = state.force[slot]
         if force < 0:
             continue
         if self.force_breakthrough[force]:
@@ -244,13 +244,13 @@ cdef int _fe_front_strength(FastEngine self, FastState state, int player, int fr
 
 cdef inline bint _fe_slot_complete(FastEngine self, FastState state, int slot) noexcept:
     return (
-        state.subject[slot] >= 0
-        and state.link[slot] >= 0
+        state.force[slot] >= 0
+        and state.bond[slot] >= 0
         and state.name[slot] >= 0
     )
 
 cdef inline bint _fe_subject_protected(FastEngine self, FastState state, int slot) noexcept:
-    cdef int link = state.link[slot]
+    cdef int link = state.bond[slot]
     cdef int name = state.name[slot]
     if link >= 0 and name >= 0 and self.link_protect[link]:
         return True
