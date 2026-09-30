@@ -91,15 +91,15 @@ def markdown_to_typst(source: str, version: str) -> str:
   ],
 )
 #set text(size: 9.2pt, fill: rgb("#222222"))
-#set par(justify: true, leading: 0.58em)
-#set list(indent: 12pt, body-indent: 6pt, spacing: 3pt)
-#set enum(indent: 12pt, body-indent: 6pt, spacing: 3pt)
+#set par(justify: true, leading: 0.5em)
+#set list(indent: 12pt, body-indent: 6pt, spacing: 2pt)
+#set enum(indent: 12pt, body-indent: 6pt, spacing: 2pt)
 #set heading(numbering: none)
 
 #show heading.where(level: 2): it => block(
   sticky: true,
-  above: 10pt,
-  below: 5pt,
+  above: 8pt,
+  below: 4pt,
   breakable: false,
   stroke: (top: 0.7pt + rgb("#222222")),
   inset: (top: 5pt),
@@ -107,8 +107,8 @@ def markdown_to_typst(source: str, version: str) -> str:
 
 #show heading.where(level: 3): it => block(
   sticky: true,
-  above: 7pt,
-  below: 3pt,
+  above: 6pt,
+  below: 2.5pt,
   breakable: false,
 )[#text(size: 9pt, weight: "bold")[#it.body]]
 
