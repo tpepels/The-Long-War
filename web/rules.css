@@ -2341,7 +2341,7 @@
     margin: 0 0 1.6mm;
     padding: 1.7mm 0 0 8mm;
     border-top: .32mm solid #181714;
-    font: 500 5.2mm/1.02 Georgia, serif;
+    font: 500 5.5mm/1.02 Georgia, serif;
     letter-spacing: -.02em;
   }
 
@@ -2360,8 +2360,8 @@
   .rulebook-print-page .rule-section p,
   .rulebook-print-page .rule-section li {
     margin-top: 0;
-    font-size: 2.62mm;
-    line-height: 1.34;
+    font-size: 2.9mm;
+    line-height: 1.31;
     orphans: auto;
     widows: auto;
   }
@@ -2389,7 +2389,7 @@
   .rulebook-print-page .rule-section th,
   .rulebook-print-page .rule-section td {
     padding: 1.2mm 1.1mm;
-    font-size: 2.15mm;
+    font-size: 2.4mm;
     line-height: 1.18;
   }
 
@@ -2516,5 +2516,44 @@
     font: 1.8mm/1.25 Arial, sans-serif;
     color: #555;
     text-align: center;
+  }
+
+  /* Three-page composition: use the lower half of page 1 instead of leaving
+     it empty, and build page 3 as two balanced reference rows. */
+  .rulebook-print-page1-lower {
+    margin-top: 5mm;
+    padding-top: 3mm;
+    border-top: .35mm solid #181714;
+  }
+
+  .rulebook-print-page1-lower .rule-section {
+    margin-bottom: 0;
+  }
+
+  .rulebook-print-page1-lower .rule-section h2 {
+    font-size: 4.8mm;
+  }
+
+  .rulebook-print-play-page .rule-section {
+    margin-bottom: 3mm;
+  }
+
+  .rulebook-print-reference-page {
+    display: flex;
+    flex-direction: column;
+    gap: 5mm;
+  }
+
+  .rulebook-print-reference-row {
+    align-items: flex-start;
+  }
+
+  .rulebook-print-reference-row + .rulebook-print-reference-row {
+    padding-top: 4mm;
+    border-top: .35mm solid #181714;
+  }
+
+  .rulebook-print-reference-page .rule-section {
+    margin-bottom: 2.8mm;
   }
 }
