@@ -55,6 +55,7 @@ def print_build_version() -> str:
         WEB / "cards.js",
         WEB / "playmat.html",
         WEB / "tokens.html",
+        WEB / "assets" / "rulebook-battlefield.svg",
         *REFERENCE_DECKS,
     ]
     digest = hashlib.sha256()
