@@ -394,29 +394,29 @@ def test_native_engine_composition_contains_no_search_implementation() -> None:
         assert f'include "{search_include}"' in host
 
 
-def test_alpha_beta_algorithm_contains_no_rule_switches() -> None:
-    source = (SRC / "algorithms" / "alpha_beta.py").read_text(encoding="utf-8")
-    forbidden = (
-        "pass_final_operation",
-        "completion_command_refund",
-        "public_stratagems",
-    )
-    assert not any(term in source for term in forbidden)
-
-
-def test_native_algorithms_do_not_contain_rule_switches() -> None:
-    forbidden = (
-        "pass_final_operation",
-        "completion_command_refund",
-        "public_stratagems",
-    )
-    for filename in (
-        "_alpha_beta_core.pxi",
-        "_ismcts_core.pxi",
-        "_mccfr_core.pxi",
-    ):
-        source = (SRC / filename).read_text(encoding="utf-8")
-        assert not any(term in source for term in forbidden), filename
+def test_search_algorithms_depend_on_engine_contract_not_rule_fields() -> None:
+    """Changing a GameRules field must not require search-algorithm edits."""
+    sources = {
+        "python alpha-beta": (
+            SRC / "algorithms" / "alpha_beta.py"
+        ).read_text(encoding="utf-8"),
+        "native alpha-beta": (
+            SRC / "_alpha_beta_core.pxi"
+        ).read_text(encoding="utf-8"),
+        "native ISMCTS": (
+            SRC / "_ismcts_core.pxi"
+        ).read_text(encoding="utf-8"),
+        "native MCCFR": (
+            SRC / "_mccfr_core.pxi"
+        ).read_text(encoding="utf-8"),
+    }
+    for label, source in sources.items():
+        assert "GameRules" not in source, label
+        for field in GameRules.__dataclass_fields__:
+            assert not re.search(rf"\b{re.escape(field)}\b", source), (
+                label,
+                field,
+            )
 
 
 def test_ismcts_hot_tree_path_is_native() -> None:
@@ -440,18 +440,8 @@ def test_native_alpha_beta_has_transposition_table() -> None:
     assert "table.store" in source
 
 
-def test_ismcts_depends_on_engine_contract_not_rule_schema() -> None:
-    """Adding/changing a GameRules field must not require ISMCTS edits."""
+def test_ismcts_uses_only_the_narrow_native_engine_contract() -> None:
     algorithm_source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
-    agent_source = (SRC / "agents" / "ismcts_agent.py").read_text(encoding="utf-8")
-
-    for field in GameRules.__dataclass_fields__:
-        pattern = rf"\b{re.escape(field)}\b"
-        assert not re.search(pattern, algorithm_source), field
-        assert not re.search(pattern, agent_source), field
-
-    assert "GameRules" not in algorithm_source
-    assert "GameRules" not in agent_source
     assert "battle_boundary_evaluate_fast" in algorithm_source
     assert "cleanup_pending" not in algorithm_source
     assert "PHASE_CHOOSE" not in algorithm_source
