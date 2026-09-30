@@ -6,6 +6,8 @@ import os
 import time
 from pathlib import Path
 
+from tools.deck_catalog import DEFAULT_DECK_PATH
+
 from longwar.cards import load_card_file
 from longwar.parallel_mccfr import train_parallel_mccfr
 
@@ -28,7 +30,7 @@ def main() -> None:
 
     card_data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+        (ROOT / DEFAULT_DECK_PATH).read_text(encoding="utf-8")
     )["cards"]
 
     started = time.perf_counter()
