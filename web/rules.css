@@ -2084,3 +2084,33 @@
     grid-template-columns: auto 1fr;
   }
 }
+
+
+/* Final paged-media guard for the rulebook.
+   Chromium fragments multicolumn containers badly when their screen min-height
+   survives into print, and column-span on late decorative blocks can create an
+   empty trailing fragment. Keep only the opening material full-width. */
+@media print {
+  html,
+  body.rulebook-body,
+  .rulebook-shell,
+  .rulebook {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .rulebook > pre,
+  .rulebook > .rulebook-big-rule,
+  .rulebook > .legend-sentence,
+  .rulebook > .start-playing-box,
+  .rulebook > blockquote:first-of-type {
+    column-span: none;
+  }
+
+  .rulebook > h1:first-child,
+  .rulebook > h1:first-child + p,
+  .rulebook > .rulebook-opening,
+  .rulebook > .rulebook-at-a-glance {
+    column-span: all;
+  }
+}

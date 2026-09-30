@@ -296,6 +296,16 @@ def test_rulebook_print_keeps_two_columns_without_section_holes() -> None:
     print_rule = css.index(".rule-section {", print_override)
     assert print_rule > base_section
 
+    final_guard = css.index("Final paged-media guard for the rulebook")
+    assert final_guard > css.index("min-height: 297mm;")
+    final_print = css[final_guard:]
+    assert "min-height: 0 !important;" in final_print
+    assert "height: auto !important;" in final_print
+    assert ".rulebook > .start-playing-box" in final_print
+    assert "column-span: none;" in final_print
+    assert ".rulebook > .rulebook-at-a-glance" in final_print
+    assert "column-span: all;" in final_print
+
 
 def test_stale_build_legends_copy_is_gone() -> None:
     for path in (
