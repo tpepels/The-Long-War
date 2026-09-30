@@ -25,7 +25,11 @@ except ImportError:  # pragma: no cover - interactive skip is POSIX-only
     termios = None
     tty = None
 
-from longwar.reference_decks import CANONICAL_DECK_PATHS, DEFAULT_DECK_PATH
+from longwar.reference_decks import (
+    CANONICAL_DECK_PATHS,
+    DECK_CATALOG,
+    DEFAULT_DECK_PATH,
+)
 
 from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_BELIEF_SAMPLES,
@@ -301,16 +305,14 @@ def balance_run(args: argparse.Namespace) -> Path:
         )
     engine = GameEngine(data, rules=rules)
     decks = {
-        p.stem: json.loads(p.read_text(encoding="utf-8"))["cards"]
-        for p in sorted((ROOT / "decks").glob("*.json"))
+        Path(entry["file"]).stem: json.loads(
+            (ROOT / "decks" / entry["file"]).read_text(encoding="utf-8")
+        )["cards"]
+        for entry in DECK_CATALOG
     }
     profile_ids = {
-        "mobility-open-bonds": "mobility",
-        "persistent-elite-heroes": "elite",
-        "narrative-command": "narrative",
-        "battlefield-control-stratagems": "control",
-        "momentum-orders": "momentum",
-        "necessity-attrition": "necessity",
+        Path(entry["file"]).stem: entry["id"]
+        for entry in DECK_CATALOG
     }
 
     def policy_for(deck_name: str) -> dict[str, Any] | None:
