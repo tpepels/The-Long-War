@@ -39,20 +39,8 @@ def load(name: str) -> dict[str, Any] | None:
 
 
 def serialized_rule_metadata(rules: GameRules) -> dict[str, object]:
-    """Serialize the canonical rule fields recorded by tools/simulate.py."""
-    return {
-        "base_hand_size": rules.opening_hand_size,
-        "battle_one_starter_bonus": 0,
-        "starting_command": rules.starting_command,
-        "command_cap": rules.command_cap,
-        "command_recovery_start": rules.command_recovery_start,
-        "command_recovery_decrement": rules.command_recovery_decrement,
-        "command_recovery_floor": rules.command_recovery_floor,
-        "command_collapse_threshold": rules.command_collapse_threshold,
-        "maneuver_command_cost": rules.maneuver_command_cost,
-        "hand_limit": rules.hand_limit,
-        "ongoing_narrative_limit": rules.ongoing_narrative_limit,
-    }
+    """Serialize the complete canonical rule schema for artifact provenance."""
+    return rules.simulation_metadata()
 
 
 def canonical_variant(data: dict[str, Any]) -> bool:
