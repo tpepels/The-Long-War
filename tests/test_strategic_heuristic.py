@@ -82,7 +82,13 @@ def test_strategic_heuristic_returns_legal_action_without_true_hand_access() -> 
 def test_strategic_root_guard_preserves_last_command() -> None:
     deck = load_deck()
     engine = standard_engine()
-    state = engine.new_game(deck, deck, seed=7315, first_player=0)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=7315,
+        first_player=0,
+        opening_bonus=False,
+    )
     state.players[0].command = 1
     state.players[1].command = 5
     state.operations_this_battle[:] = [1, 1]
