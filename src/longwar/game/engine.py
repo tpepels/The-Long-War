@@ -85,17 +85,10 @@ class GameEngine:
         card_data: dict[str, Any],
         *,
         rules: GameRules | None = None,
-        opening_hand_size: int = 10,
-        starting_command: int = 20,
-        command_cap: int = 20,
     ):
         validate_card_data(card_data)
         if rules is None:
-            rules = GameRules(
-                opening_hand_size=opening_hand_size,
-                starting_command=starting_command,
-                command_cap=command_cap,
-            )
+            rules = GameRules.standard()
 
         self.rules = rules
         self.card_data = card_data
