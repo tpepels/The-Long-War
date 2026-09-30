@@ -111,6 +111,7 @@ class GameEngine:
 
         self._native_core_instance = self._build_native_core()
         self._native_heuristic_instance = None
+        self.last_command_events: list[dict[str, Any]] = []
 
     def __getattr__(self, name: str):
         """Expose GameRules fields without mirroring configuration values."""
@@ -482,7 +483,16 @@ class GameEngine:
         native = self._native_core_instance
         fast_state = native.from_game_state(state)
         candidate = self._native_action(fast_state, action)
-        native.apply(fast_state, candidate)
+        native.begin_command_event_capture()
+        try:
+            native.apply(fast_state, candidate)
+            self.last_command_events = list(
+                native.end_command_event_capture()
+            )
+        except Exception:
+            native.end_command_event_capture()
+            self.last_command_events = []
+            raise
         self._sync_from_native(state, fast_state)
 
     def can_draw(self, state: GameState, player: int) -> bool:
