@@ -265,6 +265,11 @@ def test_rulebook_print_keeps_two_columns_without_section_holes() -> None:
     assert "break-inside: auto;" in print_section
     assert "break-after: avoid;" in print_section
 
+    base_section = css.index(".rule-section {", css.index("v0.6 rulebook flow"))
+    print_override = css.index("@media print {", base_section)
+    print_rule = css.index(".rule-section {", print_override)
+    assert print_rule > base_section
+
 
 def test_stale_build_legends_copy_is_gone() -> None:
     for path in (
