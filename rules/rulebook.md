@@ -1,35 +1,41 @@
 # The Long War
 
-*Four Fronts. One hand. One long war.*
+*Fight now. Live with it later.*
 
-<div class="rulebook-opening" markdown="1">
+**The Long War** is a two-player card game played over a series of rounds. In each round, you commit cards to four contested areas, build groups that can survive into later rounds, and decide how much of a limited resource you are willing to spend.
 
-**The Long War** is a two-player card game about persistent formations and attrition. You fight across four Fronts and spend Command to shape the battlefield.
+When both players are ready to stop, the four areas are resolved separately. Some groups hold their ground, some fall back, and some disappear. Then the next round begins from whatever survived.
 
-A complete **Force - Bond - Name** is a **Named Formation**. Named Formations can survive from one Battle to the next. Lose a Front and they fall back: Frontline formations Retreat to the Rear; Rear formations are driven off.
+Nothing resets just because a round ended. A position you fought hard to build can become the foundation of the next round, while resources you spend now may leave you vulnerable later. The game ends when one side has exhausted the resource that keeps it fighting while the other side still has some left.
 
-There is no overall Battle winner. What matters is the position and Command you carry into the next Battle. The war ends through **Command Collapse**.
+> The central question is rarely "Can I win this round?" It is "How much can I afford to spend on it?"
 
-</div>
+## How the war unfolds {#learn}
 
-<div class="rulebook-at-a-glance">
-  <div><b>YOUR TURN</b><span>Draw 1, then play 1 card, Maneuver, or Pass.</span></div>
-  <div><b>FOUR FRONTS</b><span>Compare each Front separately. Higher Strength wins; ties do nothing.</span></div>
-  <div><b>PERSISTENCE</b><span>Named Formations survive Battles. Lost Fronts force Retreat.</span></div>
-  <div><b>THE LONG WAR</b><span>Command carries forward and becomes harder to recover.</span></div>
-</div>
+A round of the game is called a **Battle**.
 
----
+Each of the four contested areas is called a **Front**.
 
-<div class="rulebook-kicker">START HERE</div>
+The resource you spend to play cards and move established groups is called **Command**. Each player begins the war with **{{STARTING_COMMAND}} Command**.
 
-## Goal and battlefield {#learn}
+A Battle follows a simple rhythm:
 
-The battlefield has **four Fronts**. Each Front has two positions on each player's side:
+1. Players alternate turns, adding cards, moving established groups, or choosing not to act.
+2. When both players choose not to act one after the other, the Battle ends.
+3. Resolve the four Fronts separately.
+4. Some cards survive into the next Battle; others are removed or pushed back.
+5. Check whether either side has exhausted its Command.
+6. If the war continues, recover some Command, refill hands, and begin the next Battle.
 
-- **Frontline**
-- **Rear**
+A war may last several Battles. The board you build and the Command you preserve matter from one Battle to the next.
 
+## The battlefield
+
+Each Front has two positions on each player's side.
+
+The position nearest the centre is the **Frontline**. The position behind it is the **Rear**.
+
+```
                          OPPONENT
 
               FRONT 1   FRONT 2   FRONT 3   FRONT 4
@@ -43,78 +49,57 @@ The battlefield has **four Fronts**. Each Front has two positions on each player
               FRONT 1   FRONT 2   FRONT 3   FRONT 4
 
                            YOU
+```
 
-At Battle end, compare each Front separately.
+**Strength** is the number used to compare the two sides of a Front.
 
-- Higher Strength wins.
-- Equal Strength is a tie.
-- There is **no overall Battle winner**.
+At the end of a Battle, total the Strength that counts at each Front.
 
-Losing a Front can push formations back or off the battlefield and reduces the Command you recover.
+- Higher total wins that Front.
+- Equal totals tie.
+- There is no overall Battle winner.
 
-## Setup {#setup}
+Winning or losing a Front changes what survives and how much Command you recover. You can therefore give up ground in one place to preserve resources for the rest of the war.
 
-1. Each player takes a deck of **at least 34 cards**.
-2. Set your Command to **{{STARTING_COMMAND}}**.
-3. Shuffle and draw **{{OPENING_HAND_SIZE}} cards**.
-4. You may shuffle up to 2 cards from your hand back into your deck, then draw the same number.
-5. Randomly choose the first player.
+## Force, Bond, and Name {#cards}
 
-Hands and decks are hidden. Battlefield cards, discard piles, Narratives, Stratagems, hand size, deck size, and Command are public.
+Most of the battlefield is built from three kinds of cards.
 
-The first player's first turn is normal. If their opening hand is already at the hand limit, they discard 1 before drawing 1.
+A **Force** gives a position its body. A Force has printed Strength.
 
----
+A **Bond** is attached to a Force and helps define the group around it.
 
-<div class="rulebook-kicker">PLAYING A BATTLE</div>
+A **Name** gives that group an identity.
 
-## Your turn {#turn}
+A **formation** is a Force together with any Bond and/or Name in the same position.
 
-At the start of every turn, **draw 1 card**.
+A **Named Formation** is a complete formation containing all three:
 
-Your hand limit is **{{HAND_LIMIT}}**. If you would draw while holding {{HAND_LIMIT}} cards, discard 1 card first, then draw.
+**Force + Bond + Name**
 
-After drawing, take exactly **one operation**:
-
-1. **Play one card** and pay its Command cost.
-2. **Maneuver** one Named Formation for {{MANEUVER_COMMAND_COST}} Command.
-3. **Pass** for 0 Command, when Pass is legal.
-
-You cannot spend more Command than you have. Command never goes below 0.
-
-A cost reduction cannot reduce a card below 1 Command unless the card explicitly says it costs 0.
-
-There is no generic Draw operation, Advance, or attack step.
-
-## Force - Bond - Name {#cards}
-
-### Vocabulary
-
-Each battlefield position can hold at most one **Force**, one **Bond**, and one **Name**.
-
-- A **formation** is a Force together with any Bond and/or Name in its position.
-- A **Named Formation** contains all three: **Force + Bond + Name**.
-- A **prepared Bond** or **prepared Name** is in a position with no Force.
-- An **open Bond** is attached to a Force that has no Name.
-- A formation may **have a Name** without being Named. Force + Name without a Bond is not a Named Formation.
-
-<div class="legend-sentence">
-  <span class="subject"><em>The Fifty Men</em></span><i>-</i>
-  <span class="link"><em>Followed</em></span><i>-</i>
-  <span class="name"><em>Namar</em></span>
-</div>
+Named Formations are important because they can survive from one Battle to the next.
 
 Force, Bond, and Name may be played in **any order**.
 
+If a Bond or Name is played into a position without a Force, it is **prepared**. It stays face-up, but has no Strength and no Force-dependent effect until a Force arrives.
+
+A Force with a Bond but no Name has an **open Bond**.
+
+A Force may have a Name without being a Named Formation. Force + Name without a Bond is still incomplete.
+
+For example:
+
+**The Fifty Men - Followed - Namar**
+
 ### Force
 
-A Force has its printed Strength and makes the cards in its position a formation.
+Play a Force into any position without a Force, subject to any deployment restriction printed on the card.
 
-Play a Force into any position without a Force, subject to its printed deployment restriction.
+A Force supplies its printed Strength and makes the cards in that position a formation.
 
 ### Bond and Name
 
-You may play a Bond or Name before its Force. It stays face-up as **prepared**, but has no Strength or Force-dependent effect until a Force arrives.
+A prepared Bond or Name becomes part of a formation as soon as a Force is present.
 
 Every printed Name is **Unique**.
 
@@ -124,42 +109,76 @@ Text beginning **When this formation becomes Named...** happens when the positio
 
 ### Persistence
 
-Named Formations persist between Battles unless removed or driven off. Anything incomplete is cleared at Battle end.
+Named Formations persist between Battles unless they are removed or driven off.
+
+Anything incomplete is cleared at Battle end.
 
 ### Deployment restrictions
 
 **Deploy - Frontline only** and **Deploy - Rear only** restrict where a Force enters play. They do not prevent later movement unless the card also says so.
 
-## Roles and classifications {#roles}
+## Labels, Unique cards, and Heroes
 
-Words such as *Swordsman*, *Archer*, *Human*, *King*, or *Ship* are labels only. They have no hidden rules. If a label matters mechanically, a card will say so.
+Words such as *Swordsman*, *Archer*, *Human*, *King*, or *Ship* are classifications. They have no hidden rules. If a classification matters mechanically, a card will say so.
 
-**Adjacent** means one Front left or right in the same rank. **In front of** and **behind** mean the other rank in the same Front.
+**Adjacent** means one Front left or right in the same rank.
 
-## Unique cards
+**In front of** and **behind** mean the other rank in the same Front.
 
-**Unique** means you may include only one copy of that title in your deck.
+A card marked **Unique** may appear only once in your deck. Unique is not a shared battlefield limit: both players may control their own copy of the same Unique card.
 
-Unique is not a shared battlefield limit. Both players may control their own copy of the same Unique card.
-
-## Heroes {#heroes}
-
-A Hero is a **Unique** card that can be played as either a **Force** or a **Name**. Use the matching text on the card.
+A **Hero** is a Unique card that can be played as either a Force or a Name. Use the matching text on the card.
 
 You may play at most **one Hero from hand per Battle**.
 
-Heroes already on the battlefield do not use the next Battle's Hero allowance.
+A Hero already on the battlefield does not use the next Battle's Hero allowance.
+
+## Setup {#setup}
+
+1. Each player takes a deck of **at least 34 cards**.
+2. Set each player's Command to **{{STARTING_COMMAND}}**.
+3. Shuffle and draw **{{OPENING_HAND_SIZE}} cards**.
+4. You may shuffle up to 2 cards from your hand back into your deck, then draw the same number.
+5. Randomly choose the first player.
+
+Hands and decks are hidden.
+
+Battlefield cards, discard piles, hand size, deck size, Command, and any face-up cards outside the battlefield are public.
+
+The first player's first turn is normal. If their opening hand is already at the hand limit, they discard 1 before drawing 1.
+
+---
+
+## Your turn {#turn}
+
+At the start of every turn, **draw 1 card**.
+
+Your hand limit is **{{HAND_LIMIT}}**. If you would draw while holding {{HAND_LIMIT}} cards, discard 1 card first, then draw.
+
+After drawing, take exactly **one operation**. An operation is the one thing you choose to do on that turn:
+
+1. **Play one card** and pay its Command cost.
+2. **Maneuver** - move one Named Formation for {{MANEUVER_COMMAND_COST}} Command.
+3. **Pass** - spend 0 Command and take no other operation.
+
+You cannot spend more Command than you have. Command never goes below 0.
+
+A cost reduction cannot reduce a card below 1 Command unless the card explicitly says it costs 0.
+
+There is no generic Draw operation, Advance, or attack step.
 
 ## Maneuver {#maneuver}
 
-A Maneuver is one operation and costs **{{MANEUVER_COMMAND_COST}} Command**.
+A **Maneuver** is an operation that moves one of your Named Formations. It costs **{{MANEUVER_COMMAND_COST}} Command**.
 
 Choose one of your Named Formations and move it:
 
 - one Front left or right;
 - in the same rank.
 
-If the destination is empty, move there. If it contains one of your formations, swap the two positions. Only the formation starting the Maneuver must be Named.
+If the destination is empty, move there.
+
+If the destination contains one of your formations, swap the two positions. Only the formation starting the Maneuver must be Named.
 
 During the resolution of a single operation, each formation may initiate at most one Maneuver.
 
@@ -171,40 +190,44 @@ You cannot normally Maneuver between Battles or change rank with a Maneuver.
 
 ## Narratives and Stratagems {#stories}
 
-**Narrative** is the umbrella term for **Legend, Saga, Myth, Omen, Warning, Prophecy,** and **Conspiracy** cards. The specific form is printed on the card.
+A **Narrative** is a card that represents something the war has made true beyond a single formation.
+
+Narrative is the umbrella term for **Legend, Saga, Myth, Omen, Warning, Prophecy,** and **Conspiracy**. The specific form is printed on the card.
 
 Narratives are always face-up.
 
 - A Narrative marked **Ongoing** stays in play until its text ends it.
-- For any other Narrative, follow its text when played, then discard it.
+- Any other Narrative resolves when played, then is discarded.
 - You may have at most **{{ONGOING_NARRATIVE_LIMIT}} Ongoing Narratives** in play.
 
-The narrative forms have no hidden rules of their own.
+The individual Narrative forms have no hidden rules of their own.
 
-A **Stratagem** is a public plan for the current Battle. Play it face-up in your Stratagem area. Playing it uses your operation and its Command cost.
+A **Stratagem** is a public plan for the current Battle. Play it face-up in your Stratagem area. Playing it is your operation and you pay its Command cost.
 
-You may play at most **one Stratagem from hand per Battle**. Discard Stratagems at Battle end unless a card says otherwise.
+You may play at most **one Stratagem from hand per Battle**.
+
+Discard Stratagems at Battle end unless a card says otherwise.
 
 ## Passing {#passing}
+
+To **Pass** is to spend 0 Command and take no other operation.
 
 Normally, you cannot Pass until both players have completed at least one operation. If you have no other legal operation, you may Pass.
 
 Passing does not remove you from the Battle. The opponent takes a normal turn.
 
-- If they also **Pass**, the Battle ends.
-- If they do anything else, your Pass is cleared.
+- If the opponent also Passes, the Battle ends.
+- If the opponent does anything else, your Pass is cleared.
 
-The Battle therefore ends after **two consecutive Passes**.
+A Battle therefore ends after **two consecutive Passes**.
 
 The player who made the **first** of those two Passes starts the next Battle.
 
 ---
 
-<div class="rulebook-kicker">ENDING A BATTLE</div>
+## Ending a Battle {#scoring}
 
-## Compare the Fronts {#scoring}
-
-Compare all four Fronts.
+When a Battle ends, resolve all four Fronts.
 
 For each Front, apply card text and total the Strength that counts there.
 
@@ -216,6 +239,8 @@ For each Front, apply card text and total the Strength that counts there.
 The margin of victory has no effect unless a card says otherwise.
 
 ## Retreat {#retreat}
+
+When you lose a Front, a surviving Named Formation may be forced backward. That movement is called a **Retreat**.
 
 After all four Front results are known:
 
@@ -229,43 +254,42 @@ A tie does nothing. Formations in a won Front stay where they are.
 
 ## After the Battle {#after-battle}
 
-After Retreat:
+After Retreats are complete:
 
-1. resolve Battle-end card effects, then discard Stratagems and effects that last only for this Battle;
-2. leave Ongoing Narratives in play if their text has not ended them;
-3. check Command Collapse using each player's current Command;
-4. if the war continues, recover Command;
-5. draw until you have {{HAND_LIMIT}} cards;
-6. reset the Hero and Stratagem allowances;
-7. start the next Battle with the player who made the first of the two consecutive Passes.
+1. Resolve Battle-end card effects.
+2. Discard Stratagems and effects that last only for this Battle.
+3. Leave Ongoing Narratives in play if their text has not ended them.
+4. Check for Command Collapse using each player's current Command.
+5. If the war continues, recover Command.
+6. Draw until you have {{HAND_LIMIT}} cards.
+7. Reset the Hero and Stratagem allowances.
+8. Start the next Battle with the player who made the first of the two consecutive Passes.
 
-Keep your hand, draw pile, and discard pile. Do not reshuffle just because a Battle ended. If you must draw from an empty deck, shuffle your discard pile into a new draw pile.
+Keep your hand, draw pile, and discard pile between Battles.
+
+Do not reshuffle just because a Battle ended. If you must draw from an empty deck, shuffle your discard pile into a new draw pile.
 
 There is **no between-Battle Maneuver**.
 
----
+## Command and winning the war {#command}
 
-<div class="rulebook-kicker">THE LONG WAR</div>
+Command carries from one Battle to the next and stays between **0 and {{COMMAND_CAP}}**.
 
-## Command {#command}
+For this playtest, base recovery starts at **{{RECOVERY_START}}** in Battle I and falls by **{{RECOVERY_DECREMENT}}** every Battle:
 
-Command stays between **0 and {{COMMAND_CAP}}**.
+**{{RECOVERY_SERIES_PLAIN}}**
 
-Track Command from {{STARTING_COMMAND}} down to 0.
+Subtract **1 for each Front you lost**.
 
-After each Battle, calculate base recovery with one arithmetic rule:
-
-**Base recovery = max(0, X - Y × (Battle - 1)).**
-
-The current balance candidate uses **X = {{RECOVERY_START}}** and **Y = {{RECOVERY_DECREMENT}}**, giving **{{RECOVERY_SERIES_PLAIN}}**. The start and decrement are still being tuned; the arithmetic structure is the playtest rule.
-
-Subtract **1 for each Front you lost**, to a minimum recovery of **{{RECOVERY_FLOOR}}**.
+Your actual recovery is never less than **{{RECOVERY_FLOOR}}** while the war continues.
 
 Add the result to your current Command, to a maximum of {{COMMAND_CAP}}.
 
 ### Command Collapse
 
-After Battle resolution, cleanup, Retreats, and relevant Battle-end effects - **before Command recovery** - check current Command.
+**Command Collapse** is the check that can end the war.
+
+After Battle resolution, cleanup, Retreats, and relevant Battle-end effects - but **before Command recovery** - check current Command.
 
 - If exactly one player is at **{{COLLAPSE_THRESHOLD}} Command**, that player loses the war.
 - If both players are at **{{COLLAPSE_THRESHOLD}} Command**, the war continues.
@@ -273,9 +297,9 @@ After Battle resolution, cleanup, Retreats, and relevant Battle-end effects - **
 
 Because surviving recovery is at least {{RECOVERY_FLOOR}}, a {{COLLAPSE_THRESHOLD}}-{{COLLAPSE_THRESHOLD}} continuation begins the next Battle at at least {{RECOVERY_FLOOR}}-{{RECOVERY_FLOOR}}.
 
----
+This is the long-war pressure behind almost every decision: spending Command may win a Front now, but preserving even a little Command may be what keeps you alive after the Battle.
 
-<div class="rulebook-kicker">REFERENCE</div>
+---
 
 ## Card movement and removal {#reference}
 
@@ -309,7 +333,11 @@ An operation **affects a Front** if it does at least one of these things:
 - plays a card that chooses that Front;
 - Maneuvers a formation into or out of that Front.
 
-If several effects require your next operation to do particular things, satisfy all of them together if one legal operation can do so. If no legal operation can satisfy all requirements, choose one requirement that can be satisfied. If none can be satisfied, take your turn normally.
+If several effects require your next operation to do particular things, satisfy all of them together if one legal operation can do so.
+
+If no legal operation can satisfy all requirements, choose one requirement that can be satisfied.
+
+If none can be satisfied, take your turn normally.
 
 ## Deck construction
 
@@ -323,7 +351,4 @@ A legal playtest deck has:
 
 Heroes count toward the Force minimum even though they may be played as Names.
 
-<div class="start-playing-box">
-  <b>Fight the war, not the Battle.</b>
-  <span>Fronts change the battlefield. Command decides how long you can keep fighting.</span>
-</div>
+> **Fight the war, not the Battle.** A Front can be won and still cost too much.
