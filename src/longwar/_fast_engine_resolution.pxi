@@ -161,8 +161,8 @@ cdef void _fe_queue_pre_resolution_choice(
     state.resolution_stage = RESOLUTION_COMPARE
     state.resolution_cursor = 0
 
-cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
-    cdef int front, a, b, p, strat, protected, card
+cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) except *:
+    cdef int front, a, b, p, strat, protected, protected_card, card
     cdef int controller, mask, combined0, combined1
     cdef int losses0, losses1
     cdef bint tie_control = _fe_tie_control_active(self, state)
@@ -276,33 +276,59 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     for front in range(4):
         if state.resolution_lost_mask[0] & (1 << front):
             protected = 0
+            protected_card = -1
             for p in range(2):
                 card = state.force[slot_index(0, front, p)]
                 if card >= 0 and self.recovery_protected_front[card]:
                     protected = 1
+                    if protected_card < 0:
+                        protected_card = card
             if protected and state.resolution_recovery_losses[0] > 0:
                 state.resolution_recovery_losses[0] -= 1
+                _fe_note_command_event(
+                    self, 0, protected_card, "recovery_saved", 1,
+                    "lost_front_recovery_protection",
+                )
         if state.resolution_lost_mask[1] & (1 << front):
             protected = 0
+            protected_card = -1
             for p in range(2):
                 card = state.force[slot_index(1, front, p)]
                 if card >= 0 and self.recovery_protected_front[card]:
                     protected = 1
+                    if protected_card < 0:
+                        protected_card = card
             if protected and state.resolution_recovery_losses[1] > 0:
                 state.resolution_recovery_losses[1] -= 1
+                _fe_note_command_event(
+                    self, 1, protected_card, "recovery_saved", 1,
+                    "lost_front_recovery_protection",
+                )
 
     strat = state.stratagem[0]
     if strat >= 0 and self.strat_recovery_loss_reduction[strat]:
-        state.resolution_recovery_losses[0] -= min(
+        protected = min(
             state.resolution_recovery_losses[0],
             self.strat_recovery_loss_reduction[strat],
         )
+        state.resolution_recovery_losses[0] -= protected
+        if protected:
+            _fe_note_command_event(
+                self, 0, strat, "recovery_saved", protected,
+                "stratagem_recovery_protection",
+            )
     strat = state.stratagem[1]
     if strat >= 0 and self.strat_recovery_loss_reduction[strat]:
-        state.resolution_recovery_losses[1] -= min(
+        protected = min(
             state.resolution_recovery_losses[1],
             self.strat_recovery_loss_reduction[strat],
         )
+        state.resolution_recovery_losses[1] -= protected
+        if protected:
+            _fe_note_command_event(
+                self, 1, strat, "recovery_saved", protected,
+                "stratagem_recovery_protection",
+            )
 
     _fe_discard_incomplete_formations(self, state)
     state.resolution_stage = RESOLUTION_RETREATS
@@ -459,8 +485,8 @@ cdef bint _fe_resolve_one_battle_end_narrative(
 
             gain = self.narrative_end_gain[card]
             if condition and gain:
-                _fe_gain_command_from_narrative(self, 
-                    state, player, gain
+                _fe_gain_command_from_narrative(
+                    self, state, player, card, gain
                 )
             if condition and self.narrative_end_draw[card]:
                 _fe_queue_battle_draws(self, state, player, 1)
