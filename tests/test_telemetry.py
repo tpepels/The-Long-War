@@ -919,3 +919,25 @@ def test_low_command_telemetry_records_pre_recovery_collapse_and_floor() -> None
     assert record["board_changed_during_battle"] is False
     assert record["board_changed_during_resolution"] is True
 
+
+
+def test_progression_attributes_command_economy_by_source_card() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=709, first_player=0, opening_bonus=False)
+    target = _position(Front.FIRST)
+    state.slot(0, target).force = "the-fifty-men"
+    state.slot(0, target).bond = "followed"
+    state.players[0].hand[:] = ["namar"]
+    state.players[0].command = 1
+    state.players[1].command = 5
+
+    telemetry = Telemetry()
+    telemetry.start_game(state, engine)
+    action = PlayName("namar", target)
+    before = telemetry.before_action(engine, state, 0, action, decision_info=None)
+    engine.apply(state, action)
+    telemetry.after_action(engine, before, state, 0, action)
+
+    sources = telemetry.summary()["progression"]["resources"]["command_by_source"]
+    assert sources["namar"]["command_gained"] == 1
+    assert sources["namar"]["triggers"] >= 1

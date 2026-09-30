@@ -364,3 +364,46 @@ def test_negative_recovery_settings_are_invalid(field: str, value: int) -> None:
     with pytest.raises(ValueError):
         GameRules.standard().with_overrides(**{field: value})
 
+
+
+def test_command_diagnostics_attribute_completion_gain_to_source_card() -> None:
+    engine, state = standard_game()
+    target = Position(Front.FIRST, Rank.FRONT)
+    GameScenario(state).formation(
+        0,
+        target,
+        force="the-fifty-men",
+        bond="followed",
+    ).commands(1, 5).hand(0, "namar")
+
+    action = PlayName("namar", target)
+    engine.apply(state, action)
+
+    events = engine.last_command_diagnostics()
+    assert any(
+        event["kind"] == "gain"
+        and event["detail"] == "completion_gain"
+        and event["source_card"] == "namar"
+        and event["amount"] == 1
+        for event in events
+    )
+
+
+def test_command_diagnostics_attribute_catchup_discount_to_source_card() -> None:
+    engine, state = standard_game()
+    target = Position(Front.FIRST, Rank.FRONT)
+    GameScenario(state).formation(
+        0, target, force="the-fifty-men"
+    ).commands(1, 5).hand(0, "rallied-behind")
+
+    action = PlayBond("rallied-behind", target)
+    engine.apply(state, action)
+
+    events = engine.last_command_diagnostics()
+    assert any(
+        event["kind"] == "discount"
+        and event["detail"] == "catchup_discount"
+        and event["source_card"] == "rallied-behind"
+        and event["amount"] >= 1
+        for event in events
+    )

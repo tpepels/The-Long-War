@@ -113,6 +113,7 @@ class ProgressionTelemetry:
         self._free_maneuvers = 0
         self._discount_actions = 0
         self._discount_command = 0
+        self._command_by_source: dict[str, Counter[str]] = defaultdict(Counter)
 
         self._hero_modes: dict[str, dict[str, Any]] = defaultdict(_new_hero_mode)
 
@@ -200,6 +201,8 @@ class ProgressionTelemetry:
             "_card_drawn_after_reshuffle", "_card_unplayed_match_end",
         ):
             getattr(self, name).update(getattr(other, name))
+        for source, counts in other._command_by_source.items():
+            self._command_by_source[source].update(counts)
 
         for battle, counts in other._command_spend_by_battle.items():
             self._command_spend_by_battle[battle].update(counts)
@@ -744,6 +747,27 @@ class ProgressionTelemetry:
             if current_streak:
                 streak_lengths.append(current_streak)
 
+        low_positive_streaks: list[int] = []
+        longest_low_positive_by_game: dict[int, int] = {}
+        for game, game_rows in rows_by_game.items():
+            current = 0
+            longest = 0
+            for row in sorted(game_rows, key=lambda item: int(item["battle"])):
+                commands = row.get("command_before_collapse") or []
+                low_positive = (
+                    len(commands) == 2
+                    and all(1 <= int(value) <= 3 for value in commands)
+                )
+                if low_positive:
+                    current += 1
+                    longest = max(longest, current)
+                elif current:
+                    low_positive_streaks.append(current)
+                    current = 0
+            if current:
+                low_positive_streaks.append(current)
+            longest_low_positive_by_game[game] = longest
+
         stall_rows = [
             row
             for row in battle_records
@@ -951,6 +975,13 @@ class ProgressionTelemetry:
                 streak_lengths,
                 histogram=True,
             ),
+            "low_positive_streak_length": self._distribution(
+                low_positive_streaks,
+                histogram=True,
+            ),
+            "longest_low_positive_streak": max(
+                longest_low_positive_by_game.values(), default=0
+            ),
             "first_equal_low_continuation_battle": self._distribution(
                 first_equal_low_battles,
                 histogram=True,
@@ -1100,6 +1131,10 @@ class ProgressionTelemetry:
             "free_maneuvers": self._free_maneuvers,
             "discount_actions": self._discount_actions,
             "discount_command_saved": self._discount_command,
+            "command_by_source": {
+                source: dict(sorted(counts.items()))
+                for source, counts in sorted(self._command_by_source.items())
+            },
             "command_remaining_at_battle_end": self._distribution(command_end),
             "command_before_collapse": self._distribution(command_before_collapse),
             "command_at_first_pass": self._distribution(
@@ -1431,6 +1466,14 @@ class ProgressionTelemetry:
                     "Command gained after an operation beyond its actual paid cost. "
                     "Between-Battle recovery is excluded and remains visible in the Battle-indexed trajectory."
                 ),
+                "command_by_source": (
+                    "Source-attributed real-transition events. command_gained is the realized "
+                    "increase after the Command cap; nominal_command_gain is the authored amount; "
+                    "discount_saved is Command not paid; free_operations attributes zero-cost "
+                    "operations; recovery_loss_avoided is the Front-loss penalty prevented. "
+                    "The current card schema has no distinct refund primitive, so regain effects "
+                    "are included in command_gained."
+                ),
                 "eventual_completion_rate_for_forces_deployed": (
                     "Among Force lifecycles created in that Battle number, the share "
                     "that eventually become complete Force-Bond-Name formations later in the match."
@@ -1761,12 +1804,43 @@ class ProgressionTelemetry:
             self._discount_command += saved
             self._battle_events["discount_actions"] += 1
 
-        expected_after = before.players[actor].command - actual_cost
-        gained = (
-            0
-            if battle_transition
-            else max(0, state.players[actor].command - expected_after)
-        )
+        diagnostics = list(engine.last_command_diagnostics())
+        gained_from_diagnostics = 0
+        discount_sources: list[str] = []
+        for event in diagnostics:
+            source = event.get("source_card") or "<engine>"
+            stats = self._command_by_source[source]
+            stats["triggers"] += 1
+            detail = str(event.get("detail") or "other")
+            stats[f"trigger:{detail}"] += 1
+            amount = int(event.get("amount", 0) or 0)
+            nominal = int(event.get("nominal_amount", amount) or 0)
+            if event.get("kind") == "gain":
+                stats["command_gained"] += amount
+                stats["nominal_command_gain"] += nominal
+                gained_from_diagnostics += amount
+            elif event.get("kind") == "discount":
+                stats["discount_saved"] += amount
+                if amount > 0:
+                    discount_sources.append(source)
+            elif event.get("kind") == "recovery_protection":
+                stats["recovery_loss_avoided"] += amount
+
+        if isinstance(action, OPERATION_ACTIONS) and actual_cost == 0:
+            source = discount_sources[0] if discount_sources else "<engine>"
+            self._command_by_source[source]["free_operations"] += 1
+
+        if diagnostics:
+            gained = gained_from_diagnostics
+        else:
+            # Compatibility fallback for old native builds and focused test doubles.
+            # Between-Battle recovery is deliberately excluded.
+            expected_after = before.players[actor].command - actual_cost
+            gained = (
+                0
+                if battle_transition
+                else max(0, state.players[actor].command - expected_after)
+            )
         if gained:
             self._command_gained += gained
             self._battle_events["command_gained"] += gained
