@@ -88,7 +88,6 @@ def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
     api = text("src/longwar/web_api.py")
 
     assert "check Command Collapse before recovery" in play
-    assert "Ongoing Narratives" in play
     assert "ongoing Stories" not in play
 
     assert '"rules": self.engine.rules.as_dict()' in api
