@@ -95,9 +95,12 @@ def render_rule_tokens(source: str, rules: GameRules) -> str:
         for battle in range(1, 6)
     ]
     replacements = {
+        "{{OPENING_HAND_SIZE}}": str(rules.opening_hand_size),
         "{{STARTING_COMMAND}}": str(rules.starting_command),
         "{{COMMAND_CAP}}": str(rules.command_cap),
         "{{COLLAPSE_THRESHOLD}}": str(rules.command_collapse_threshold),
+        "{{RECOVERY_START}}": str(rules.command_recovery_start),
+        "{{RECOVERY_DECREMENT}}": str(rules.command_recovery_decrement),
         "{{RECOVERY_FLOOR}}": str(rules.command_recovery_floor),
         "{{MANEUVER_COMMAND_COST}}": str(rules.maneuver_command_cost),
         "{{HAND_LIMIT}}": str(rules.hand_limit),
@@ -105,6 +108,9 @@ def render_rule_tokens(source: str, rules: GameRules) -> str:
         "{{RECOVERY_SERIES}}": ", ".join(
             f"+{value}" for value in recovery
         ) + "…",
+        "{{RECOVERY_SERIES_PLAIN}}": ", ".join(
+            str(value) for value in recovery
+        ) + "...",
     }
     rendered = source
     for token, value in replacements.items():
@@ -154,7 +160,10 @@ def main() -> None:
         if artifact.exists():
             shutil.copy2(artifact, data_dir / filename)
 
-    rulebook_md = RULEBOOK.read_text(encoding="utf-8")
+    rulebook_md = render_rule_tokens(
+        RULEBOOK.read_text(encoding="utf-8"),
+        GameRules.standard(),
+    )
     rulebook_html = markdown.markdown(
         rulebook_md,
         extensions=["extra", "sane_lists", "attr_list", "md_in_html"],
