@@ -2114,3 +2114,115 @@
     column-span: all;
   }
 }
+
+
+/* v0.7 deterministic rulebook pagination ---------------------------------
+   The opening page is deliberately not part of the paged multicolumn
+   container. Mixing column-span with paged columns is the source of the
+   Chromium print failures seen on page 1. */
+.rulebook {
+  column-count: 1 !important;
+  column-rule: 0 !important;
+}
+
+.rulebook-first-page {
+  display: block;
+}
+
+.rulebook-columns {
+  column-count: 2;
+  column-gap: 10mm;
+  column-rule: .22mm solid rgba(24,23,20,.18);
+}
+
+.rulebook-first-page .rule-section {
+  display: grid;
+  grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr);
+  column-gap: 8mm;
+  align-items: start;
+  break-inside: auto;
+  margin-bottom: 0;
+}
+
+.rulebook-first-page .rule-section > h2 {
+  grid-column: 1 / -1;
+}
+
+.rulebook-first-page .rule-section > p,
+.rulebook-first-page .rule-section > ul {
+  grid-column: 1;
+}
+
+.rulebook-first-page .rule-section > pre {
+  grid-column: 2;
+  grid-row: 2 / span 6;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 3mm 2mm;
+  overflow: hidden;
+  white-space: pre;
+}
+
+.rulebook-first-page .rule-section > pre code {
+  font-size: 2.05mm;
+  line-height: 1.35;
+}
+
+@media print {
+  .rulebook {
+    column-count: 1 !important;
+    column-rule: 0 !important;
+  }
+
+  .rulebook-first-page {
+    break-after: page;
+    page-break-after: always;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .rulebook-columns {
+    column-count: 2;
+    column-fill: auto;
+    column-gap: 9mm;
+    column-rule: .2mm solid rgba(24,23,20,.2);
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .rulebook-first-page > *,
+  .rulebook-first-page .rule-section {
+    column-span: none !important;
+  }
+
+  .rulebook-first-page .rulebook-opening {
+    margin-bottom: 5mm;
+    padding: 4mm 5mm;
+  }
+
+  .rulebook-first-page .rulebook-at-a-glance {
+    margin-bottom: 5mm;
+  }
+
+  .rulebook-first-page .rulebook-at-a-glance > div {
+    min-height: 20mm;
+    padding: 3mm;
+  }
+
+  .rulebook-first-page > hr {
+    margin: 4mm 0;
+  }
+
+  .rulebook-first-page .rulebook-kicker {
+    margin-top: 4mm;
+  }
+
+  .rulebook-first-page .rule-section > h2 {
+    margin-top: 2mm;
+  }
+
+  .rulebook-first-page .rule-section > pre {
+    break-inside: avoid;
+  }
+}
