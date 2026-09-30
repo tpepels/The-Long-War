@@ -9,10 +9,16 @@ The reference-deck print page renders all six canonical 40-card decks, one copy 
 each. `tools/build_pages.py` publishes them together as `data/reference-decks.json`,
 so the page and the repository deck definitions cannot drift apart.
 
-Cards are **63 × 88 mm**, arranged nine per A4 portrait sheet with 8 mm page
-margins. Print at **100% / actual size**, without browser headers or footers.
-The border is the cutting guide. These are home-print sheets, without commercial
-bleed or crop marks. Enable background graphics for the intended paper tints.
+Cards are **63 × 88 mm**, arranged nine per A4 portrait sheet. Printed sheets
+reserve **12 mm at the top, 10 mm at the bottom, and at least 8 mm at each side**
+so ordinary home printers do not need borderless output. Print at **100% / actual
+size**, without browser headers or footers. The border is the cutting guide.
+These are home-print sheets, without commercial bleed or crop marks. Enable
+background graphics for the intended paper tints.
+
+Every printed card and every printable page carries the exact Pages build
+revision as `v<commit>`. Treat that printed revision as the authoritative way
+to tell two physical playtest builds apart.
 
 Heroes use a single bronze frame, a full-width title, and one integrated bronze
 Force/Name strength crest. Corresponding rule groups follow the existing explicit
