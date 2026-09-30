@@ -341,3 +341,11 @@ def test_stale_build_legends_copy_is_gone() -> None:
         "rules/rulebook.md",
     ):
         assert "Build Legends" not in text(path)
+
+
+def test_play_client_loads_published_reference_deck_catalog() -> None:
+    script = text("web/play.js")
+    assert 'data/reference-decks.json' in script
+    assert 'data/reference-deck.json' not in script
+    assert "deckCatalog.decks?.[0]" in script
+    assert '"Game failed to load"' in script

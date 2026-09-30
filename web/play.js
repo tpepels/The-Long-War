@@ -1385,16 +1385,20 @@ async function runBusy(fn) {
 }
 
 async function loadCards() {
-  const [cardsResponse, deckResponse] = await Promise.all([
+  const [cardsResponse, decksResponse] = await Promise.all([
     fetch(dataUrl("data/cards.json"), { cache: "default" }),
-    fetch(dataUrl("data/reference-deck.json"), { cache: "default" }),
+    fetch(dataUrl("data/reference-decks.json"), { cache: "default" }),
     initializeBrowserEngine(),
   ]);
-  if (!cardsResponse.ok || !deckResponse.ok) {
+  if (!cardsResponse.ok || !decksResponse.ok) {
     throw new Error("Could not load the card or deck data.");
   }
   cardData = await cardsResponse.json();
-  referenceDeck = await deckResponse.json();
+  const deckCatalog = await decksResponse.json();
+  referenceDeck = deckCatalog.decks?.[0] ?? null;
+  if (!referenceDeck?.cards?.length) {
+    throw new Error("No playable reference deck was published.");
+  }
   cards = Object.fromEntries(cardData.cards.map((card) => [card.id, card]));
   cardsReady = true;
   updateStartAvailability();
@@ -1728,4 +1732,8 @@ window.advanceTime = async (milliseconds) => {
   await new Promise(requestAnimationFrame);
 };
 
-loadCards().catch((error) => { $("setup-note").textContent = error.message; });
+loadCards().catch((error) => {
+  $("engine-status").textContent = "Game failed to load";
+  $("setup-note").textContent = error.message;
+  console.error("[play] startup failed", error);
+});
