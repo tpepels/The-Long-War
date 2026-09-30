@@ -38,6 +38,9 @@ jobs:
         with:
           python-version: "3.14"
           cache: pip
+      - uses: typst-community/setup-typst@v5
+        with:
+          typst-version: 0.15.1
       - run: pip install -e '.[dev]'
       - run: python -m compileall -q src tools
       - run: node --check web/balance.js

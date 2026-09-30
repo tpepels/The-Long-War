@@ -21,6 +21,9 @@ def test_github_actions_use_one_pages_workflow() -> None:
         assert automatic_trigger not in content
 
     assert "tools/build_pages.py" in content
+    assert "tools/build_rulebook_pdf.py" in content
+    assert "typst-community/setup-typst@v5" in content
+    assert "typst-version: 0.15.1" in content
     assert "actions/deploy-pages" in content
 
 

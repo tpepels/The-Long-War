@@ -70,3 +70,4 @@ full-lab:
 
 pages:
 	python tools/build_pages.py
+	python tools/build_rulebook_pdf.py
