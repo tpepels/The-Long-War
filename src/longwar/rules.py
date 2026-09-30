@@ -53,6 +53,15 @@ class GameRules:
     def standard(cls) -> "GameRules":
         return cls()
 
+    def command_recovery_for_battle(self, battle: int) -> int:
+        if battle < 1:
+            raise ValueError("battle must be at least 1")
+        return max(
+            0,
+            self.command_recovery_start
+            - self.command_recovery_decrement * (battle - 1),
+        )
+
     def with_overrides(self, **changes: object) -> "GameRules":
         return replace(self, **changes)
 
