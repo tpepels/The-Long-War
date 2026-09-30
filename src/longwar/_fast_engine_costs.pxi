@@ -170,7 +170,7 @@ cdef inline int _fe_command_cost_fast(
     pos = action_pos(action)
     extra = action_extra(action)
     if (
-        kind == TYPE_LINK
+        kind == TYPE_BOND
         and extra
         and self.bond_optional_extra_cost[card] > 0
     ):
@@ -194,9 +194,9 @@ cdef inline int _fe_command_cost_fast(
     ):
         cost = self.completion_discount_cost[card]
 
-    if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
+    if kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME:
         target_front = front_from_slot(pos)
-    if kind == TYPE_PLOT or kind == TYPE_SCHEME:
+    if kind == TYPE_NARRATIVE or kind == TYPE_ONGOING_NARRATIVE:
         discount = _fe_first_narrative_discount_fast(self, state, player)
         if discount:
             cost -= discount
@@ -208,7 +208,7 @@ cdef inline int _fe_command_cost_fast(
             discount = _fe_local_front_discount_fast(self, 
                 state, player, target_front
             )
-        if kind == TYPE_SUBJECT and rank_from_slot(pos) == 0:
+        if kind == TYPE_FORCE and rank_from_slot(pos) == 0:
             rear = slot_index(player, target_front, 1)
             support = state.force[rear]
             if (
@@ -264,7 +264,7 @@ cdef void _fe_recover_recent_link_fast(FastEngine self, FastState state, int pla
     cdef int i, j, card
     for i in range(state.discard_len[player] - 1, -1, -1):
         card = state.discard[player][i]
-        if self.card_type[card] != CARD_LINK:
+        if self.card_type[card] != CARD_BOND:
             continue
         for j in range(i, state.discard_len[player] - 1):
             state.discard[player][j] = state.discard[player][j + 1]
@@ -288,11 +288,11 @@ cdef void _fe_resolve_completion_effect_fast(
         _fe_gain_command_fast(self, state, player, amount)
     elif effect == COMPLETE_DRAW:
         _fe_queue_battle_draws(self, state, player, amount)
-    elif effect == COMPLETE_REVEAL_SCHEME:
+    elif effect == COMPLETE_REVEAL_NARRATIVE:
         enemy_ix = (1 - player) * 4 + front
         if state.narrative[enemy_ix] >= 0:
             state.narrative_revealed[enemy_ix] = 1
-    elif effect == COMPLETE_RECOVER_LINK:
+    elif effect == COMPLETE_RECOVER_BOND:
         _fe_recover_recent_link_fast(self, state, player)
 
 cdef void _fe_resolve_new_completions_fast(
@@ -342,11 +342,11 @@ cdef void _fe_resolve_new_completions_fast(
                 )
             if self.recover_bond_on_completion_name[state.name[slot]]:
                 _fe_queue_recover_from_discard(self, 
-                    state, player, CARD_LINK, False
+                    state, player, CARD_BOND, False
                 )
             if self.recover_story_on_completion_name[state.name[slot]]:
                 _fe_queue_recover_from_discard(self, 
-                    state, player, CARD_PLOT, False
+                    state, player, CARD_NARRATIVE, False
                 )
         for other in range((1 - player) * 8, (1 - player) * 8 + 8):
             if (
