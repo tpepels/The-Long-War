@@ -19,18 +19,18 @@ def text(path: str) -> str:
 def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     css = text("web/rules.css")
     rules = text("rules/rulebook.md")
-    playmat_source = text("web/playmat.html")
-    playmat = playmat_source.lower()
+    from tools.build_pages import render_rule_tokens
+
     standard = GameRules.standard()
-    recovery = [
-        max(
-            0,
-            standard.command_recovery_start
-            - standard.command_recovery_decrement * (battle - 1),
-        )
+    playmat_source = render_rule_tokens(
+        text("web/playmat.html"),
+        standard,
+    )
+    playmat = playmat_source.lower()
+    recovery_label = ", ".join(
+        f"+{standard.command_recovery_for_battle(battle)}"
         for battle in range(1, 6)
-    ]
-    recovery_label = ", ".join(f"+{value}" for value in recovery)
+    )
 
     assert "column-count: 2;" in css
     assert "rulebook-at-a-glance" in rules
@@ -73,22 +73,26 @@ def test_rulebook_core_values_match_standard_engine() -> None:
     assert f"Y = {standard.command_recovery_decrement}" in rules_text
 
 
-def test_web_game_rules_summary_matches_current_command_model() -> None:
+def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
     play = text("web/play.html")
     script = text("web/play.js")
-    standard = GameRules.standard()
-    threshold = standard.command_collapse_threshold
-    floor = standard.command_recovery_floor
+    api = text("src/longwar/web_api.py")
 
     assert "check Command Collapse before recovery" in play
     assert "Ongoing Narratives" in play
     assert "ongoing Stories" not in play
 
-    assert (
-        f"exactly one player at {threshold} loses; "
-        f"{threshold}-{threshold} continues"
-    ) in script
-    assert f"max({floor}, base recovery minus Fronts lost)" in script
+    assert '"rules": self.engine.rules.as_dict()' in api
+    assert "state?.rules" in script
+    for field in (
+        "starting_command",
+        "command_cap",
+        "command_collapse_threshold",
+        "command_recovery_floor",
+        "ongoing_narrative_limit",
+    ):
+        assert f"rules.{field}" in script
+
     assert "Choose one of your two Ongoing Narrative slots" not in script
     assert "first open Narrative slot is assigned automatically" in script
 
