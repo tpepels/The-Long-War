@@ -277,10 +277,10 @@ def consecutive_pass_scenario(
     return scenario
 
 
-def narrative_limit_scenario(
+def narrative_limit_scenarios(
     engine: GameEngine,
     deck: list[str],
-) -> dict[str, object]:
+) -> list[dict[str, object]]:
     state = engine.new_game(
         deck,
         deck,
@@ -291,28 +291,49 @@ def narrative_limit_scenario(
     state.players[0].hand[:] = ["they-returned-with-names"]
     state.players[0].command = 20
 
-    legal = sorted(
-        action_key(action)
-        for action in engine.legal_actions(state)
-    )
-    narrative_actions = [
-        key
-        for key in legal
-        if key.startswith("story:they-returned-with-names:ongoing:")
-    ]
+    def scenario(
+        current: GameState,
+        name: str,
+        expected_slot: int,
+    ) -> dict[str, object]:
+        legal = sorted(
+            action_key(action)
+            for action in engine.legal_actions(current)
+        )
+        narrative_actions = [
+            key
+            for key in legal
+            if key.startswith("story:they-returned-with-names:ongoing:")
+        ]
+        assert narrative_actions == [
+            f"story:they-returned-with-names:ongoing:{expected_slot}"
+        ]
+        return {
+            "name": name,
+            "initial": project_state(current),
+            "legal": legal,
+            "front_strengths": front_strengths(engine, current),
+        }
 
     assert engine.ongoing_narrative_limit == 2
-    assert narrative_actions == [
-        "story:they-returned-with-names:ongoing:0",
-        "story:they-returned-with-names:ongoing:1",
-    ]
 
-    return {
-        "name": "two-ongoing-narrative-slots",
-        "initial": project_state(state),
-        "legal": legal,
-        "front_strengths": front_strengths(engine, state),
-    }
+    # Ongoing Narrative slots are storage, not a player-facing choice. The
+    # canonical engine therefore exposes exactly the first empty slot.
+    empty = scenario(
+        state,
+        "ongoing-narrative-first-slot",
+        0,
+    )
+
+    second_state = state.clone()
+    second_state.stories[0] = [StoryState("they-returned-with-names")]
+    second = scenario(
+        second_state,
+        "ongoing-narrative-second-slot",
+        1,
+    )
+
+    return [empty, second]
 
 
 def _restore_state(values: dict[str, object]) -> GameState:
@@ -471,7 +492,7 @@ def main() -> None:
         "scenarios": [
             trace_scenario(engine, deck),
             consecutive_pass_scenario(engine, deck),
-            narrative_limit_scenario(engine, deck),
+            *narrative_limit_scenarios(engine, deck),
         ],
         "sessions": [
             session_trace(cards, deck, mode, seed)
