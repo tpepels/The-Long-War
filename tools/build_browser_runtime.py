@@ -4,6 +4,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -108,25 +109,35 @@ def browser_python_files() -> tuple[str, ...]:
 
 BROWSER_PYTHON_FILES = browser_python_files()
 
-# Browser play needs the canonical engine and production heuristic only. Build a
-# lean module under the public longwar._fast_search name rather than compiling
-# alpha-beta, ISMCTS and MCCFR into the WebAssembly wheel.
-BROWSER_NATIVE_FILES = (
-    "_fast_constants.pxi",
-    "_fast_state.pxi",
-    "_fast_engine_actions.pxi",
-    "_fast_engine_battleflow.pxi",
-    "_fast_engine_cards.pxi",
-    "_fast_engine_class.pxi",
-    "_fast_engine_costs.pxi",
-    "_fast_engine_effects.pxi",
-    "_fast_engine_hashing.pxi",
-    "_fast_engine_pending.pxi",
-    "_fast_engine_resolution.pxi",
-    "_fast_engine_state_io.pxi",
-    "_fast_engine_strength.pxi",
-    "_heuristic_core.pxi",
-)
+# Browser play compiles the same canonical engine composition as the host, plus
+# the production heuristic. Resolve Cython includes recursively so adding or
+# moving an engine implementation file never requires another browser allowlist
+# edit.
+BROWSER_NATIVE_ROOTS = ("_fast_engine_core.pxi", "_heuristic_core.pxi")
+_CYTHON_INCLUDE_RE = re.compile(r'^\\s*include\\s+["\\']([^"\\']+)["\\']', re.MULTILINE)
+
+
+def cython_include_closure(*roots: str) -> tuple[str, ...]:
+    package = ROOT / "src" / "longwar"
+    pending = list(roots)
+    seen: set[str] = set()
+    while pending:
+        relative = pending.pop()
+        if relative in seen:
+            continue
+        source = package / relative
+        if not source.is_file():
+            raise FileNotFoundError(f"Missing Cython include: {relative}")
+        seen.add(relative)
+        for dependency in _CYTHON_INCLUDE_RE.findall(
+            source.read_text(encoding="utf-8")
+        ):
+            if dependency not in seen:
+                pending.append(dependency)
+    return tuple(sorted(seen))
+
+
+BROWSER_NATIVE_FILES = cython_include_closure(*BROWSER_NATIVE_ROOTS)
 
 _BROWSER_FAST_SEARCH_SOURCE = """# cython: language_level=3, boundscheck=False, wraparound=False, initializedcheck=False, cdivision=True
 from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, uint32_t, int32_t, uint64_t
@@ -139,22 +150,7 @@ import hashlib
 import json
 from time import perf_counter
 
-include "_fast_constants.pxi"
-include "_fast_state.pxi"
-
-cdef class FastEngine
-
-include "_fast_engine_cards.pxi"
-include "_fast_engine_state_io.pxi"
-include "_fast_engine_strength.pxi"
-include "_fast_engine_costs.pxi"
-include "_fast_engine_actions.pxi"
-include "_fast_engine_effects.pxi"
-include "_fast_engine_battleflow.pxi"
-include "_fast_engine_resolution.pxi"
-include "_fast_engine_pending.pxi"
-include "_fast_engine_hashing.pxi"
-include "_fast_engine_class.pxi"
+include "_fast_engine_core.pxi"
 include "_heuristic_core.pxi"
 """
 
