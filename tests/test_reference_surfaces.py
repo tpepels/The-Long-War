@@ -66,6 +66,21 @@ def test_rulebook_core_constants_match_standard_engine() -> None:
     assert "Y = 3" in rules_text
 
 
+def test_web_game_rules_summary_matches_current_command_model() -> None:
+    play = text("web/play.html")
+    script = text("web/play.js")
+
+    assert "check Command Collapse before recovery" in play
+    assert "Ongoing Narratives" in play
+    assert "ongoing Stories" not in play
+
+    assert "exactly one player at 0 loses; 0-0 continues" in script
+    assert "max(1, base recovery minus Fronts lost)" in script
+    assert "below 5" not in script
+    assert "Choose one of your two Ongoing Narrative slots" not in script
+    assert "first open Narrative slot is assigned automatically" in script
+
+
 def test_rulebook_roles_are_labels_not_hidden_rules() -> None:
     rules = text("rules/rulebook.md")
     assert "They have no hidden rules." in rules
