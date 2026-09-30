@@ -55,14 +55,14 @@ Losing a Front can push formations back or off the battlefield and reduces the C
 ## Setup {#setup}
 
 1. Each player takes a deck of **at least 34 cards**.
-2. Set your Command to **20** on a d20.
-3. Shuffle and draw **10 cards**.
+2. Set your Command to **{{STARTING_COMMAND}}**.
+3. Shuffle and draw **{{OPENING_HAND_SIZE}} cards**.
 4. You may shuffle up to 2 cards from your hand back into your deck, then draw the same number.
 5. Randomly choose the first player.
 
 Hands and decks are hidden. Battlefield cards, discard piles, Narratives, Stratagems, hand size, deck size, and Command are public.
 
-The first player's first turn is normal. Because their hand already has 10 cards, they discard 1 before drawing 1.
+The first player's first turn is normal. If their opening hand is already at the hand limit, they discard 1 before drawing 1.
 
 ---
 
@@ -72,12 +72,12 @@ The first player's first turn is normal. Because their hand already has 10 cards
 
 At the start of every turn, **draw 1 card**.
 
-Your hand limit is **10**. If you would draw while holding 10 cards, discard 1 card first, then draw.
+Your hand limit is **{{HAND_LIMIT}}**. If you would draw while holding {{HAND_LIMIT}} cards, discard 1 card first, then draw.
 
 After drawing, take exactly **one operation**:
 
 1. **Play one card** and pay its Command cost.
-2. **Maneuver** one Named Formation for 1 Command.
+2. **Maneuver** one Named Formation for {{MANEUVER_COMMAND_COST}} Command.
 3. **Pass** for 0 Command, when Pass is legal.
 
 You cannot spend more Command than you have. Command never goes below 0.
@@ -152,7 +152,7 @@ Heroes already on the battlefield do not use the next Battle's Hero allowance.
 
 ## Maneuver {#maneuver}
 
-A Maneuver is one operation and costs **1 Command**.
+A Maneuver is one operation and costs **{{MANEUVER_COMMAND_COST}} Command**.
 
 Choose one of your Named Formations and move it:
 
@@ -177,7 +177,7 @@ Narratives are always face-up.
 
 - A Narrative marked **Ongoing** stays in play until its text ends it.
 - For any other Narrative, follow its text when played, then discard it.
-- You may have at most **2 Ongoing Narratives** in play.
+- You may have at most **{{ONGOING_NARRATIVE_LIMIT}} Ongoing Narratives** in play.
 
 The narrative forms have no hidden rules of their own.
 
@@ -235,7 +235,7 @@ After Retreat:
 2. leave Ongoing Narratives in play if their text has not ended them;
 3. check Command Collapse using each player's current Command;
 4. if the war continues, recover Command;
-5. draw until you have 10 cards;
+5. draw until you have {{HAND_LIMIT}} cards;
 6. reset the Hero and Stratagem allowances;
 7. start the next Battle with the player who made the first of the two consecutive Passes.
 
@@ -249,29 +249,29 @@ There is **no between-Battle Maneuver**.
 
 ## Command {#command}
 
-Command stays between **0 and 20**.
+Command stays between **0 and {{COMMAND_CAP}}**.
 
-Use a d20 to track 20 down to 1. At 0, set the die aside.
+Track Command from {{STARTING_COMMAND}} down to 0.
 
 After each Battle, calculate base recovery with one arithmetic rule:
 
 **Base recovery = max(0, X - Y × (Battle - 1)).**
 
-The current balance candidate uses **X = 12** and **Y = 3**, giving **12, 9, 6, 3, 0, 0...**. The start and decrement are still being tuned; the arithmetic structure is the playtest rule.
+The current balance candidate uses **X = {{RECOVERY_START}}** and **Y = {{RECOVERY_DECREMENT}}**, giving **{{RECOVERY_SERIES_PLAIN}}**. The start and decrement are still being tuned; the arithmetic structure is the playtest rule.
 
-Subtract **1 for each Front you lost**, to a minimum recovery of **1**.
+Subtract **1 for each Front you lost**, to a minimum recovery of **{{RECOVERY_FLOOR}}**.
 
-Add the result to your current Command, to a maximum of 20.
+Add the result to your current Command, to a maximum of {{COMMAND_CAP}}.
 
 ### Command Collapse
 
 After Battle resolution, cleanup, Retreats, and relevant Battle-end effects - **before Command recovery** - check current Command.
 
-- If exactly one player is at **0 Command**, that player loses the war.
-- If both players are at **0 Command**, the war continues.
+- If exactly one player is at **{{COLLAPSE_THRESHOLD}} Command**, that player loses the war.
+- If both players are at **{{COLLAPSE_THRESHOLD}} Command**, the war continues.
 - Only a continuing war receives Command recovery.
 
-Because surviving recovery is at least 1, a 0-0 continuation begins the next Battle at at least 1-1.
+Because surviving recovery is at least {{RECOVERY_FLOOR}}, a {{COLLAPSE_THRESHOLD}}-{{COLLAPSE_THRESHOLD}} continuation begins the next Battle at at least {{RECOVERY_FLOOR}}-{{RECOVERY_FLOOR}}.
 
 ---
 
@@ -297,7 +297,7 @@ There is no reaction stack.
 
 When you play a card, choose anything the card asks you to choose, pay its cost, then follow its text in order.
 
-For a Maneuver, choose the formation and destination, pay 1 Command, then move or swap.
+For a Maneuver, choose the formation and destination, pay {{MANEUVER_COMMAND_COST}} Command, then move or swap.
 
 Effects that mention Battle end, a Front result, or Retreat happen when that event occurs.
 
