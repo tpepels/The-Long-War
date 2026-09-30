@@ -8,8 +8,8 @@ cdef void _fe_clear_story_targets_at_slot(
 ) noexcept:
     cdef int ix
     for ix in range(SCHEME_COUNT):
-        if state.scheme_target_slot[ix] == slot:
-            state.scheme_target_slot[ix] = -1
+        if state.narrative_target_slot[ix] == slot:
+            state.narrative_target_slot[ix] = -1
 
 cdef void _fe_discard_slot_components(
     FastEngine self,
@@ -18,19 +18,19 @@ cdef void _fe_discard_slot_components(
     int slot,
 ) noexcept:
     cdef int card
-    if state.subject[slot] >= 0:
+    if state.force[slot] >= 0:
         _fe_clear_story_targets_at_slot(self, state, slot)
-    card = state.subject[slot]
+    card = state.force[slot]
     if card >= 0:
         _fe_append_discard(self, state, player, card, False)
-    card = state.link[slot]
+    card = state.bond[slot]
     if card >= 0:
         _fe_append_discard(self, state, player, card, False)
     card = state.name[slot]
     if card >= 0:
         _fe_append_discard(self, state, player, card, False)
-    state.subject[slot] = -1
-    state.link[slot] = -1
+    state.force[slot] = -1
+    state.bond[slot] = -1
     state.name[slot] = -1
     state.temporary[slot] = 0
     state.maneuver_count[slot] = 0
@@ -49,16 +49,16 @@ cdef uint16_t _fe_succession_destinations(
     if front > 0:
         dest = slot_index(player, front - 1, rank)
         if (
-            state.subject[dest] >= 0
-            and state.link[dest] >= 0
+            state.force[dest] >= 0
+            and state.bond[dest] >= 0
             and state.name[dest] < 0
         ):
             mask |= <uint16_t>(1 << dest)
     if front < 3:
         dest = slot_index(player, front + 1, rank)
         if (
-            state.subject[dest] >= 0
-            and state.link[dest] >= 0
+            state.force[dest] >= 0
+            and state.bond[dest] >= 0
             and state.name[dest] < 0
         ):
             mask |= <uint16_t>(1 << dest)
@@ -71,8 +71,8 @@ cdef void _fe_finish_pending_drive_off(
     int slot,
 ) noexcept:
     """Finish a drive-off after any replacement choice has resolved."""
-    cdef int force = state.subject[slot]
-    cdef int bond = state.link[slot]
+    cdef int force = state.force[slot]
+    cdef int bond = state.bond[slot]
     cdef int name = state.name[slot]
 
     if force >= 0:
@@ -81,7 +81,7 @@ cdef void _fe_finish_pending_drive_off(
 
     if bond >= 0:
         if self.driven_bond_stays[bond]:
-            state.subject[slot] = -1
+            state.force[slot] = -1
             if name >= 0:
                 _fe_return_to_hand(self, state, player, name)
             state.name[slot] = -1
@@ -100,8 +100,8 @@ cdef void _fe_finish_pending_drive_off(
         else:
             _fe_append_discard(self, state, player, name, False)
 
-    state.subject[slot] = -1
-    state.link[slot] = -1
+    state.force[slot] = -1
+    state.bond[slot] = -1
     state.name[slot] = -1
     state.temporary[slot] = 0
     state.maneuver_count[slot] = 0
@@ -143,11 +143,11 @@ cdef void _fe_discard_retreat_sagas(
         story_slot = self.ongoing_story_limit - 1
         while story_slot >= 0:
             ix = controller * 4 + story_slot
-            card = state.scheme[ix]
+            card = state.narrative[ix]
             if (
                 card >= 0
                 and self.narrative_no_maneuver_away[card]
-                and state.scheme_front_mask[ix] & (1 << front)
+                and state.narrative_front_mask[ix] & (1 << front)
             ):
                 _fe_discard_ongoing_narrative(
                     self, state, controller, story_slot
@@ -163,7 +163,7 @@ cdef void _fe_retreat_slot(
     int destination,
 ) except *:
     """Move a formation by Retreat and queue printed after-Retreat effects."""
-    cdef int bond = state.link[source]
+    cdef int bond = state.bond[source]
     cdef int name = state.name[source]
     cdef int front = front_from_slot(destination)
     cdef int source_front = front_from_slot(source)
@@ -179,9 +179,9 @@ cdef void _fe_retreat_slot(
     # Explicitly discard the prepared destination components instead of
     # letting _fe_move_slot overwrite them and violate card conservation.
     if (
-        state.subject[destination] < 0
+        state.force[destination] < 0
         and (
-            state.link[destination] >= 0
+            state.bond[destination] >= 0
             or state.name[destination] >= 0
         )
     ):
@@ -221,9 +221,9 @@ cdef void _fe_retreat_slot(
     # the same Rear rank after the Retreat has resolved.
     if front > 0:
         other = slot_index(player, front - 1, rank)
-        other_bond = state.link[other]
+        other_bond = state.bond[other]
         if (
-            state.subject[other] >= 0
+            state.force[other] >= 0
             and other_bond >= 0
             and (self.card_capabilities[other_bond] & CAP_ADJACENT_RETREAT_FREE_MANEUVER)
         ):
@@ -232,9 +232,9 @@ cdef void _fe_retreat_slot(
             )
     if front < 3:
         other = slot_index(player, front + 1, rank)
-        other_bond = state.link[other]
+        other_bond = state.bond[other]
         if (
-            state.subject[other] >= 0
+            state.force[other] >= 0
             and other_bond >= 0
             and (self.card_capabilities[other_bond] & CAP_ADJACENT_RETREAT_FREE_MANEUVER)
         ):
@@ -253,7 +253,7 @@ cdef inline bint _fe_front_has_capture_bond(
         slot = slot_index(player, front, rank)
         if not _fe_slot_complete(self, state, slot):
             continue
-        bond = state.link[slot]
+        bond = state.bond[slot]
         if bond >= 0 and self.capture_retreating_bond[bond]:
             return True
     return False
@@ -263,8 +263,8 @@ cdef void _fe_discard_incomplete_formations(FastEngine self, FastState state) no
     for player in range(2):
         for slot in range(player * 8, player * 8 + 8):
             if (
-                state.subject[slot] >= 0
-                or state.link[slot] >= 0
+                state.force[slot] >= 0
+                or state.bond[slot] >= 0
                 or state.name[slot] >= 0
             ) and not _fe_slot_complete(self, state, slot):
                 _fe_discard_slot_components(self, state, player, slot)
