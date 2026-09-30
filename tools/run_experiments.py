@@ -2805,6 +2805,11 @@ def parse_args() -> argparse.Namespace:
         help="Run the broad deep screen without targeted online-MCCFR confirmation.",
     )
     balance.add_argument(
+        "--resume",
+        action="store_true",
+        help="Reuse completed cells/stages from this exact experiment identity.",
+    )
+    balance.add_argument(
         "--publish-lab",
         action="store_true",
         help=(
