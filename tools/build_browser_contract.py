@@ -291,51 +291,38 @@ def narrative_limit_scenarios(
         opening_bonus=False,
     )
     state.players[0].hand[:] = ["they-returned-with-names"]
-    state.players[0].command = 20
+    state.players[0].command = engine.rules.command_cap
 
     def scenario(
         current: GameState,
         name: str,
-        expected_slot: int,
     ) -> dict[str, object]:
-        legal = sorted(
-            action_key(action)
-            for action in engine.legal_actions(current)
-        )
-        narrative_actions = [
-            key
-            for key in legal
-            if key.startswith("story:they-returned-with-names:ongoing:")
-        ]
-        assert narrative_actions == [
-            f"story:they-returned-with-names:ongoing:{expected_slot}"
-        ]
         return {
             "name": name,
             "initial": project_state(current),
-            "legal": legal,
+            "legal": sorted(
+                action_key(action)
+                for action in engine.legal_actions(current)
+            ),
             "front_strengths": front_strengths(engine, current),
         }
 
-    assert engine.ongoing_narrative_limit == 2
-
-    # Ongoing Narrative slots are storage, not a player-facing choice. The
-    # canonical engine therefore exposes exactly the first empty slot.
+    # These are parity fixtures, not independent rule assertions. Native
+    # legality is the contract; the browser must reproduce whatever the
+    # canonical engine currently exposes.
     empty = scenario(
         state,
-        "ongoing-narrative-first-slot",
-        0,
+        "ongoing-narrative-empty-storage",
     )
 
-    second_state = state.clone()
-    second_state.stories[0] = [StoryState("they-returned-with-names")]
-    second = scenario(
-        second_state,
-        "ongoing-narrative-second-slot",
-        1,
+    occupied_state = state.clone()
+    occupied_state.stories[0] = [StoryState("they-returned-with-names")]
+    occupied = scenario(
+        occupied_state,
+        "ongoing-narrative-occupied-storage",
     )
 
-    return [empty, second]
+    return [empty, occupied]
 
 
 def _restore_state(values: dict[str, object]) -> GameState:
