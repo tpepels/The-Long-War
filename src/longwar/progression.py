@@ -1132,7 +1132,24 @@ class ProgressionTelemetry:
             "discount_actions": self._discount_actions,
             "discount_command_saved": self._discount_command,
             "command_by_source": {
-                source: dict(sorted(counts.items()))
+                source: {
+                    "triggers": int(counts.get("triggers", 0)),
+                    "command_gained": int(counts.get("command_gained", 0)),
+                    "command_refunded": 0,
+                    "nominal_command_gain": int(
+                        counts.get("nominal_command_gain", 0)
+                    ),
+                    "discount_saved": int(counts.get("discount_saved", 0)),
+                    "free_operations": int(counts.get("free_operations", 0)),
+                    "recovery_loss_avoided": int(
+                        counts.get("recovery_loss_avoided", 0)
+                    ),
+                    "effects": {
+                        key.removeprefix("trigger:"): int(value)
+                        for key, value in sorted(counts.items())
+                        if key.startswith("trigger:")
+                    },
+                }
                 for source, counts in sorted(self._command_by_source.items())
             },
             "command_remaining_at_battle_end": self._distribution(command_end),
@@ -1471,8 +1488,8 @@ class ProgressionTelemetry:
                     "increase after the Command cap; nominal_command_gain is the authored amount; "
                     "discount_saved is Command not paid; free_operations attributes zero-cost "
                     "operations; recovery_loss_avoided is the Front-loss penalty prevented. "
-                    "The current card schema has no distinct refund primitive, so regain effects "
-                    "are included in command_gained."
+                    "The current card schema has no distinct refund primitive, so command_refunded "
+                    "is explicitly 0 and authored regain effects are included in command_gained."
                 ),
                 "eventual_completion_rate_for_forces_deployed": (
                     "Among Force lifecycles created in that Battle number, the share "

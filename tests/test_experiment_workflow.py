@@ -740,3 +740,26 @@ def test_narrative_ablation_summary_keeps_command_sources_and_tail_metrics():
     assert summary["command_by_source"]["rallied-behind"]["discount_saved"] == 4
     assert summary["longest_low_positive_streak"] == 9
     assert summary["censor_reasons"] == {"active-action-horizon": 1}
+
+
+def test_full_lab_is_one_make_lifecycle_target():
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert "full-lab:" in makefile
+    assert "python tools/full_lab.py $(FULL_LAB_ARGS)" in makefile
+
+
+def test_full_lab_runner_contains_resumable_expensive_stages():
+    source = (ROOT / "tools" / "full_lab.py").read_text(encoding="utf-8")
+    for stage in (
+        "narrative-ablation",
+        "canonical-deep-balance",
+        "solver-strength",
+        "mccfr-train-",
+        "mccfr-eval-",
+        "mccfr-suite",
+    ):
+        assert stage in source
+    assert "--force" in source
+    assert "_stage_current" in source
+    assert "tools/build_lab_report.py" in source
+    assert "tools/build_pages.py" in source

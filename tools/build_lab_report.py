@@ -127,15 +127,21 @@ def main() -> None:
     game_fingerprint = current_game_fingerprint()
     stale_files: set[str] = set()
 
-    def current(name: str) -> dict[str, Any] | None:
+    def current(
+        name: str,
+        *,
+        track_stale: bool = True,
+    ) -> dict[str, Any] | None:
         data = load(name)
         if data is None:
             return None
         if data.get("game_fingerprint") != game_fingerprint:
-            stale_files.add(name)
+            if track_stale:
+                stale_files.add(name)
             return None
         if not canonical_variant(data):
-            stale_files.add(name)
+            if track_stale:
+                stale_files.add(name)
             return None
         return data
 
@@ -145,15 +151,19 @@ def main() -> None:
     static = current("balance-report.json")
     selfplay = (
         current("balance-selfplay.json")
-        or current("heuristic-selfplay.json")
-        or current("pages-selfplay.json")
+        or current("heuristic-selfplay.json", track_stale=False)
+        or current("pages-selfplay.json", track_stale=False)
     )
     progression_selfplay = current("progression-selfplay.json") or selfplay
     progression_profiles_artifact = compact_dashboard_payload(
         current("progression-profiles.json")
     )
-    policy = current("mccfr-policy.json")
     mccfr_suite = current("mccfr-suite.json")
+    policy = (
+        None
+        if mccfr_suite is not None
+        else current("mccfr-policy.json", track_stale=False)
+    )
     verification = current("mccfr-verification.json")
     solver_strength = current("solver-strength.json")
     counterfactual = current("counterfactual-balance.json")
@@ -289,7 +299,12 @@ def main() -> None:
         "online_mccfr_vs_heuristic": "online-mccfr-vs-heuristic.json",
     }
     matchups = {
-        key: simulation_summary(current(filename))
+        key: simulation_summary(
+            current(
+                filename,
+                track_stale=(key == "canonical_selfplay"),
+            )
+        )
         for key, filename in matchup_files.items()
     }
     if matchups["canonical_selfplay"] is None:

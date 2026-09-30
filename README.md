@@ -119,10 +119,13 @@ Make is the supported command surface. `tools/run_experiments.py` implements the
 | Does ordinary play look healthy? | `make balance` | Quick static/playability/health signal |
 | Need deeper balance evidence? | `make balance BALANCE_PRESET=deep` | 250 games/cell structural screen + 95-card paired A/B screen + targeted online-MCCFR confirmation |
 | Need the old maximum structural sample? | `make balance BALANCE_PRESET=exhaustive` | Same evidence hierarchy with 2,000 games/cell |
+| Populate the complete resumable Balance Lab? | `make full-lab` | Validation + Narrative ablations + deep ISMCTS/card screen/online MCCFR + solver strength + six offline MCCFR profiles + Pages |
 | Does canonical ISMCTS still behave sensibly against alpha-beta? | `make experiments` | Equal-time 5-second sanity check; no optimizer |
 | What is a card's paired replacement value? | `python tools/counterfactual_balance.py --cards followed --contexts 3 --games-per-context 4 --no-pairs --no-triples` | Specialist analysis, outside the Make lifecycle surface |
 
-Quick runs check plumbing and playability, not statistical balance. Deep runs are explicitly opt-in. Override sizes and seeds for development:
+Quick runs check plumbing and playability, not statistical balance. Deep runs are explicitly opt-in. `make full-lab` is the one-command research publication path. It records completed stages under `artifacts/full-lab/stages/`, reuses current-fingerprint expensive stages after later build failures, and accepts `FULL_LAB_ARGS="--force"` to deliberately regenerate everything. It never edits canonical card data for the Narrative/Command ablations.
+
+Override sizes and seeds for development:
 
 ```bash
 python tools/run_experiments.py balance --preset quick --games 2 --seed 1701
