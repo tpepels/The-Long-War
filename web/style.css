@@ -1959,3 +1959,20 @@ button, .button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* Exact revision marker repeated on every printable page. */
+.print-version { display: none; }
+
+@media print {
+  .print-version {
+    display: block;
+    position: fixed;
+    right: 8mm;
+    bottom: 6mm;
+    z-index: 9999;
+    color: #666;
+    font: 1.8mm/1 Arial, sans-serif;
+    letter-spacing: .04em;
+  }
+}
