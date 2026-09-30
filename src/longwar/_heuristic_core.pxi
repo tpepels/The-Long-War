@@ -118,7 +118,7 @@ cdef class NativeHeuristicEvaluator:
         score += 1.25 * hand_delta
 
         for card in range(self.engine.n_cards):
-            if self.engine.card_type[card] == CARD_SUBJECT:
+            if self.engine.card_type[card] == CARD_FORCE:
                 if self.engine.hero[card]:
                     if (
                         not state.hero_used[player]
@@ -316,7 +316,7 @@ cdef class NativeHeuristicEvaluator:
             if count == 0:
                 continue
             typ = self.engine.card_type[card]
-            if typ == CARD_SUBJECT:
+            if typ == CARD_FORCE:
                 subject_value = 0.45 + (0.95 if needs_subject else 0.0)
                 if self.engine.hero[card]:
                     if state.hero_used[player]:
@@ -329,11 +329,11 @@ cdef class NativeHeuristicEvaluator:
                     )
                 else:
                     value += count * subject_value
-            elif typ == CARD_LINK:
+            elif typ == CARD_BOND:
                 value += count * (0.35 + (0.95 if needs_link else 0.0))
             elif typ == CARD_NAME:
                 value += count * (0.35 + (1.05 if needs_name else 0.0))
-            elif typ == CARD_PLOT:
+            elif typ == CARD_NARRATIVE:
                 value += count * 0.40
             elif typ == CARD_STRATAGEM:
                 value += count * 0.30
@@ -348,12 +348,12 @@ cdef class NativeHeuristicEvaluator:
         cdef int value, candidate
         for card in range(self.engine.n_cards):
             count = state.hand[player][card] + state.deck_counts[player][card]
-            if self.engine.card_type[card] == CARD_SUBJECT:
+            if self.engine.card_type[card] == CARD_FORCE:
                 if self.engine.hero[card]:
                     heroes += count
                 else:
                     subjects += count
-            elif self.engine.card_type[card] == CARD_LINK:
+            elif self.engine.card_type[card] == CARD_BOND:
                 links += count
             elif self.engine.card_type[card] == CARD_NAME:
                 names += count
@@ -388,7 +388,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int card, i, immediate=0, discarded=0
         cdef bint hero_available=False, discarded_hero=False
         for card in range(self.engine.n_cards):
-            if self.engine.card_type[card] == CARD_SUBJECT:
+            if self.engine.card_type[card] == CARD_FORCE:
                 if self.engine.hero[card]:
                     if (
                         not state.hero_used[player]
@@ -405,7 +405,7 @@ cdef class NativeHeuristicEvaluator:
                     )
         for i in range(state.discard_len[player]):
             card = state.discard[player][i]
-            if self.engine.card_type[card] == CARD_SUBJECT:
+            if self.engine.card_type[card] == CARD_FORCE:
                 if self.engine.hero[card]:
                     if not state.hero_used[player]:
                         discarded_hero = True
@@ -595,14 +595,14 @@ cdef class NativeHeuristicEvaluator:
             return 1.0
         if kind == TYPE_MANEUVER:
             return 0.90
-        if kind == TYPE_SUBJECT:
+        if kind == TYPE_FORCE:
             weight = 1.35
             if pos >= 0 and (
                 state.bond[pos] >= 0 or state.name[pos] >= 0
             ):
                 weight += 0.90
             return weight
-        if kind == TYPE_LINK:
+        if kind == TYPE_BOND:
             weight = 1.0
             if pos >= 0 and state.force[pos] >= 0:
                 weight += 0.80
@@ -616,9 +616,9 @@ cdef class NativeHeuristicEvaluator:
             if pos >= 0 and state.bond[pos] >= 0:
                 weight += 0.65
             return weight
-        if kind == TYPE_PLOT:
+        if kind == TYPE_NARRATIVE:
             return 0.75
-        if kind == TYPE_SCHEME:
+        if kind == TYPE_ONGOING_NARRATIVE:
             return 0.70
         if kind == TYPE_STRATAGEM:
             return 0.65
@@ -654,7 +654,7 @@ cdef class NativeHeuristicEvaluator:
         _fe_apply_fast(self.engine, child, action)
         score = self.evaluate_fast(child, player)
 
-        if kind == TYPE_LINK:
+        if kind == TYPE_BOND:
             if state.force[pos] >= 0:
                 score += 0.85
             else:
@@ -664,7 +664,7 @@ cdef class NativeHeuristicEvaluator:
                 score += 0.90
             else:
                 score += 0.30
-        elif kind == TYPE_SCHEME:
+        elif kind == TYPE_ONGOING_NARRATIVE:
             score += 0.20
         elif kind == TYPE_STRATAGEM:
             score += 0.20
