@@ -226,7 +226,8 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
         (tmp_path / "lab-report.json").read_text(encoding="utf-8")
     )
     assert report["progression"] == progression
-    assert report["raw_telemetry"]["progression"] == progression
+    assert "raw_telemetry" not in report
+    assert report["dashboard_telemetry"] == {}
     trajectory = report["progression_trajectory"]
     assert trajectory["observed_buckets"] == ["1", "3"]
     assert trajectory["early_battle"] == "1"
@@ -494,7 +495,8 @@ def test_lab_uses_aggregate_selfplay_for_matchup_and_detailed_progression_source
 
     assert report["matchups"]["heuristic_selfplay"]["games"] == 60
     assert report["progression"] == progression
-    assert report["raw_telemetry"]["progression"] == progression
+    assert "raw_telemetry" not in report
+    assert report["dashboard_telemetry"] == {}
     assert report["progression_source"] == {
         "label": "Mobility / Open Bonds self-play",
         "scope": "Detailed progression reference.",
