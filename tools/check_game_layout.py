@@ -21,6 +21,11 @@ import urllib.request
 from urllib.parse import quote
 from pathlib import Path
 
+if __package__:
+    from .deck_catalog import DEFAULT_DECK_PATH
+else:
+    from deck_catalog import DEFAULT_DECK_PATH
+
 ROOT = Path(__file__).resolve().parents[1]
 VIEWPORTS = [(1280, 720), (1366, 768), (1440, 900), (1920, 1080)]
 SCENARIOS = ("battle", "targeting", "inspector", "ai", "complete", "mulligan", "drawer")
@@ -56,7 +61,7 @@ def presentation_snapshots() -> dict[str, dict]:
     from longwar.web_api import PlaySession
 
     card_json = (ROOT / "cards/cards.json").read_text(encoding="utf-8")
-    deck_json = (ROOT / "decks/mobility-open-bonds.json").read_text(encoding="utf-8")
+    deck_json = (ROOT / DEFAULT_DECK_PATH).read_text(encoding="utf-8")
     cards = json.loads(card_json)["cards"]
     by_type = {
         kind: sorted(
@@ -249,7 +254,7 @@ def prepare_fixture(directory: Path) -> None:
     shutil.copytree(ROOT / "web", directory, dirs_exist_ok=True)
     (directory / "data").mkdir(exist_ok=True)
     shutil.copy2(ROOT / "cards/cards.json", directory / "data/cards.json")
-    shutil.copy2(ROOT / "decks/mobility-open-bonds.json", directory / "data/reference-deck.json")
+    shutil.copy2(ROOT / DEFAULT_DECK_PATH, directory / "data/reference-deck.json")
     (directory / "qa-snapshots.json").write_text(json.dumps(presentation_snapshots()), encoding="utf-8")
     (directory / "qa-engine.mjs").write_text(TRANSPORT, encoding="utf-8")
     play = (directory / "play.js").read_text(encoding="utf-8")
