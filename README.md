@@ -21,6 +21,14 @@ make verify
 | Card addition/change | `cards/cards.json`; update appropriate `decks/*.json` | `make verify` |
 | Search/evaluation change | Algorithm's native `.pxi`, its Python adapter, or `_heuristic_core.pxi` | `make native-build && make verify-algorithms` |
 | Quick balance/playability signal | Canonical cards and decks | `make balance` |
+
+For the complete, resumable Balance Lab - including Narrative Command ablations, deep ISMCTS, card screening, targeted online MCCFR, solver-strength evidence, six fresh offline MCCFR policies/evaluations, and the Pages build - run:
+
+```bash
+make full-lab
+```
+
+Use `make full-lab FULL_LAB_ARGS="--force"` only when you deliberately want to regenerate every expensive stage. Current-fingerprint stages and exact policy evaluations are otherwise reused.
 | Deeper balance evidence | Canonical cards and decks | `make balance BALANCE_PRESET=deep` |
 | Exhaustive structural sample | Canonical cards and decks | `make balance BALANCE_PRESET=exhaustive` |
 
