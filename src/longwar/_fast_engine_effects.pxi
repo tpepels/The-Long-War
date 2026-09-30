@@ -436,13 +436,16 @@ cdef void _fe_gain_command_from_narrative(
     FastEngine self,
     FastState state,
     int player,
+    int source_card,
     int amount,
 ) except *:
     cdef int front, slot, force
     cdef uint16_t named
     if amount <= 0:
         return
-    _fe_gain_command_fast(self, state, player, amount)
+    _fe_gain_command_fast(
+        self, state, player, amount, source_card, "narrative_trigger"
+    )
     named = _fe_named_formation_mask(self, state, player)
     if named == 0:
         return
@@ -476,7 +479,7 @@ cdef void _fe_resolve_named_narratives(
                 ):
                     amount = self.narrative_trigger_gain[card]
                     if amount:
-                        _fe_gain_command_from_narrative(self, state, controller, amount)
+                        _fe_gain_command_from_narrative(self, state, controller, card, amount)
                     secondary = self.narrative_secondary[card]
                     if secondary == NARR_SECONDARY_FREE_TRIGGERED and controller == named_player:
                         _fe_queue_free_maneuver(self, 
@@ -509,7 +512,7 @@ cdef void _fe_resolve_retreat_narratives(
         ):
             amount = self.narrative_trigger_gain[card]
             if amount:
-                _fe_gain_command_from_narrative(self, state, player, amount)
+                _fe_gain_command_from_narrative(self, state, player, card, amount)
             if self.narrative_secondary[card] == NARR_SECONDARY_SIDEWAYS_TRIGGERED:
                 destinations = _fe_adjacent_empty_mask(self, state, player, retreated_slot)
                 _fe_queue_move_to_mask(self, 
