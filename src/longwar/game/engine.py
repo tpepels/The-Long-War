@@ -98,17 +98,6 @@ class GameEngine:
             for card_id, card in self.cards.items()
         }
 
-        self.opening_hand_size = rules.opening_hand_size
-        self.starting_command = rules.starting_command
-        self.command_cap = rules.command_cap
-        self.command_recovery_start = rules.command_recovery_start
-        self.command_recovery_decrement = rules.command_recovery_decrement
-        self.command_recovery_floor = rules.command_recovery_floor
-        self.command_collapse_threshold = rules.command_collapse_threshold
-        self.maneuver_command_cost = rules.maneuver_command_cost
-        self.hand_limit = rules.hand_limit
-        self.ongoing_narrative_limit = rules.ongoing_narrative_limit
-
         missing_costs = [
             card_id
             for card_id, card in self.cards.items()
@@ -122,6 +111,13 @@ class GameEngine:
 
         self._native_core_instance = self._build_native_core()
         self._native_heuristic_instance = None
+
+    def __getattr__(self, name: str):
+        """Expose GameRules fields without mirroring configuration values."""
+        rules = self.__dict__.get("rules")
+        if rules is not None and name in GameRules.__dataclass_fields__:
+            return getattr(rules, name)
+        raise AttributeError(name)
 
     @classmethod
     def from_file(cls, path: str) -> "GameEngine":
