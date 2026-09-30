@@ -15,7 +15,8 @@ by `tests/test_architecture_boundaries.py`.
 - `GameRules` is configuration. Prefer tunable constants and
   `with_overrides(...)` for experiments; do not create another rules engine or
   another named mode for a parameter combination.
-- Cards are data. Ordinary new cards should not require algorithm or UI changes.
+- Cards are data. `design_rules` is the only executable card-mechanics schema.
+  Ordinary new cards should not require algorithm or UI changes.
 - Never special-case a card id/title in engine, heuristic, or search code. If a
   card needs new behavior, add a reusable capability/effect primitive to the
   card schema and canonical engine so all consumers see it.

@@ -24,14 +24,9 @@ def score_static_formation(
 ) -> FormationScore:
     """Score only unconditional printed Force/Bond/Name Strength."""
     strength = int(force["strength"])
-    bond_rules = bond.get("rules", {})
-    strength += int(bond_rules.get("strength_bonus", 0))
-    strength += int(
-        bond_rules.get(
-            "named_additional_strength_bonus",
-            bond_rules.get("named_strength_bonus", 0),
-        )
-    )
+    bond_design = bond.get("design_rules", {})
+    strength += int(bond_design.get("strength_bonus", 0))
+    strength += int(bond_design.get("named_additional_strength_bonus", 0))
     strength += int(
         name["hero_name_strength"]
         if name.get("hero")

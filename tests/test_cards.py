@@ -51,6 +51,12 @@ def test_narratives_have_specific_forms_and_public_ongoing_metadata() -> None:
     assert all(isinstance(card["ongoing"], bool) for card in narratives)
 
 
+def test_card_catalogue_has_one_executable_mechanics_schema() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    assert all("rules" not in card for card in data["cards"])
+    assert all(isinstance(card.get("design_rules"), dict) for card in data["cards"])
+
+
 def test_all_cards_define_valid_rule_blocks() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     allowed = {"property", "timing", "trigger", "effect", "continuous", "cost", "replacement", "constraint"}

@@ -406,25 +406,6 @@ def _validate_design_rules(card: dict[str, Any]) -> None:
         _validate_design_rule_value(value, key, card["id"])
 
 
-_RULE_SCHEMAS: dict[str, dict[str, Any]] = {
-    "force": {
-        "placement": {"rank": RANKS},
-    },
-    "bond": {
-        "strength_bonus": _SIGNED,
-        "named_strength_bonus": _SIGNED,
-    },
-    "name": {
-        "on_completion": {
-            "effect": {"gain_command", "draw_card"},
-            "amount": _NONNEGATIVE,
-        },
-    },
-    "story": {},
-    "stratagem": {},
-}
-
-
 def _validate_rule_value(value: Any, schema: Any, path: str) -> None:
     if isinstance(schema, dict):
         if not isinstance(value, dict):
@@ -455,21 +436,6 @@ def _require_fields(value: dict[str, Any], fields: tuple[str, ...], path: str) -
     if missing:
         raise ValueError(
             f"{path}: missing required fields: {', '.join(sorted(missing))}"
-        )
-
-
-def _validate_rules(card: dict[str, Any]) -> None:
-    rules = card["rules"]
-    path = f"{card['id']}.rules"
-    _validate_rule_value(rules, _RULE_SCHEMAS[card["type"]], path)
-
-    if "placement" in rules:
-        _require_fields(rules["placement"], ("rank",), f"{path}.placement")
-    if "on_completion" in rules:
-        _require_fields(
-            rules["on_completion"],
-            ("effect", "amount"),
-            f"{path}.on_completion",
         )
 
 
@@ -624,7 +590,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
                 "unique",
                 "classes",
                 "text",
-                "rules",
+                "design_rules",
                 "rule_blocks",
             ),
             "card",
@@ -742,7 +708,10 @@ def validate_card_data(data: dict[str, Any]) -> None:
         if card_type == "name" and card["unique"] is not True:
             raise ValueError(f"{card_id}: every Name must be Unique")
 
-        _validate_rules(card)
+        if "rules" in card:
+            raise ValueError(
+                f"{card_id}: legacy rules field is unsupported; use design_rules"
+            )
         _validate_design_rules(card)
 
 

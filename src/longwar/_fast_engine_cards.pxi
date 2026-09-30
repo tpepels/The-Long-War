@@ -150,18 +150,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
 
     type_map = {"force": CARD_SUBJECT, "bond": CARD_LINK, "name": CARD_NAME, "story": CARD_PLOT, "stratagem": CARD_STRATAGEM}
     role_map = {"swordsman": ROLE_SWORDSMAN, "spearman": ROLE_SPEARMAN, "archer": ROLE_ARCHER, "healer": ROLE_HEALER, "ship": ROLE_SHIP, "stronghold": ROLE_STRONGHOLD}
-    name_effect_map = {"move_adjacent_optional": NAME_MOVE_ADJACENT, "reveal_enemy_scheme": NAME_REVEAL_SCHEME}
-    completion_effect_map = {
-        "gain_command": COMPLETE_GAIN_COMMAND,
-        "draw_card": COMPLETE_DRAW,
-        "reveal_enemy_scheme": COMPLETE_REVEAL_SCHEME,
-        "recover_recent_link": COMPLETE_RECOVER_LINK,
-    }
-    plot_effect_map = {"discredit_subject": PLOT_DISCREDIT, "return_name_or_weaken": PLOT_RETURN_NAME, "move_subject": PLOT_MOVE_SUBJECT}
-    scheme_trigger_map = {"opponent_plays_subject": EVENT_SUBJECT, "opponent_plays_link": EVENT_LINK, "opponent_passes": EVENT_PASS, "opponent_plot_targets_your_card": EVENT_PLOT_TARGET}
-    scheme_effect_map = {"penalize_played_subject": SCHEME_PENALIZE_SUBJECT, "discard_played_link": SCHEME_DISCARD_LINK, "reinforce_front": SCHEME_REINFORCE}
-    strat_event_map = {"subject_played": EVENT_SUBJECT, "pass": EVENT_PASS, "immediate_story_played": EVENT_IMMEDIATE_STORY, "name_played": EVENT_NAME}
-    actor_map = {"either": ACTOR_EITHER, "opponent": ACTOR_OPPONENT, "controller": ACTOR_CONTROLLER}
     rank_map = {"front": 0, "rear": 1}
     force_text_map = {
         "frontline_strength_bonus": FORCE_TEXT_FRONT_BONUS,
@@ -182,7 +170,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             )
         )
         self.hero[code] = bool(card.get("hero", False))
-        rules = card.get("rules", {})
         design = engine.card_mechanics[card_id]
         self.card_capabilities[code] = <uint64_t>design.get(
             "_capability_bits",
@@ -221,11 +208,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             design.get("later_maneuvers_same_direction_if_possible")
         )
         self.card_command_cost[code] = int(card.get("command_cost", 0))
-        self.adjacent_command_discount[code] = int(rules.get("adjacent_command_discount", 0))
 
-        completion = rules.get("on_completion") or {}
-        self.completion_effect[code] = completion_effect_map.get(completion.get("effect"), COMPLETE_NONE)
-        self.completion_amount[code] = int(completion.get("amount", 1))
         if (
             design.get("trigger") == "friendly_formation_becomes_named"
             and design.get("scope") == "this_formation"
@@ -242,11 +225,9 @@ cdef void _fe___init__(FastEngine self, engine) except *:
                 self.completion_effect[code] = COMPLETE_GAIN_COMMAND
                 self.completion_amount[code] = int(completion_design["gain_command"])
 
-        self.complete_plot_protection[code] = bool(rules.get("complete_protection_from_opponent_plot"))
         placement = (
             force_design.get("deploy_rank")
             or design.get("deploy_rank")
-            or rules.get("placement", {}).get("rank")
         )
         self.placement_rank[code] = rank_map.get(placement, -1)
         printed_effect = force_design.get("printed_role_effect") or design.get("printed_role_effect")
@@ -395,31 +376,10 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         if design.get("stratagem") == "battle_turns_direction":
             self.strat_directional_maneuver[code] = 1
 
-        self.on_link_bonus[code] = int(rules.get("on_link_attached", {}).get("temporary_strength", 0))
-        self.aura[code] = int(rules.get("adjacent_strength_aura", 0))
-        self.aura_rank[code] = rank_map.get(rules.get("aura_requires_rank"), -1)
-        modifiers = rules.get("strength_modifiers", ())
-        if modifiers:
-            modifier = modifiers[0]
-            condition = modifier.get("when", {})
-            self.subject_mod_amount[code] = int(modifier.get("amount", 0))
-            self.subject_mod_discard_min[code] = int(condition.get("own_discard_at_least", 0))
-            self.subject_mod_adj_named[code] = bool(condition.get("adjacent_subject_has_name"))
-
-        self.link_bonus[code] = int(
-            design.get("strength_bonus", rules.get("strength_bonus", 0))
-        )
+        self.link_bonus[code] = int(design.get("strength_bonus", 0))
         self.link_named_bonus[code] = int(
-            design.get(
-                "named_additional_strength_bonus",
-                rules.get("named_strength_bonus", 0),
-            )
+            design.get("named_additional_strength_bonus", 0)
         )
-        discard_bonus = rules.get("discard_strength_bonus") or {}
-        self.link_discard_per[code] = int(discard_bonus.get("per_card", 0))
-        self.link_discard_max[code] = int(discard_bonus.get("maximum", 0))
-        self.link_opposing[code] = int(rules.get("opposing_front_modifier", 0))
-        self.link_protect[code] = bool(rules.get("protect_subject_from_opponent_plot"))
         on_play_bond = design.get("on_play_onto_force") or {}
         if on_play_bond.get("effect") == "optional_move_formation_adjacent_empty_position":
             self.bond_move_on_play[code] = 1
@@ -437,12 +397,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
                 design.get("gain_command", 0)
             )
 
-        rank_bonus = rules.get("rank_strength_bonus") or {}
-        self.name_rank_bonus_rank[code] = rank_map.get(rank_bonus.get("rank"), -1)
-        self.name_rank_bonus_amount[code] = int(rank_bonus.get("amount", 0))
-        self.name_effect[code] = name_effect_map.get(rules.get("on_name_attached"), NAME_NONE)
-
-        self.plot_effect[code] = plot_effect_map.get(rules.get("effect"), PLOT_NONE)
         self.veiled[code] = bool(card.get("ongoing", False))
         if (
             design.get("placement") == "chosen_front"
@@ -495,13 +449,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         self.narrative_end_draw[code] = 1 if battle_end.get("secondary") == "draw_1" else 0
         self.narrative_end_recover_bond[code] = 1 if battle_end.get("bonus_if_won") == "return_one_bond_from_discard_to_hand" else 0
         self.narrative_end_discard[code] = bool(battle_end.get("discard_self", False))
-        scheme = rules.get("scheme") or {}
-        self.scheme_trigger[code] = scheme_trigger_map.get(scheme.get("trigger"), EVENT_NONE)
-        self.scheme_effect[code] = scheme_effect_map.get(scheme.get("effect"), SCHEME_NONE)
-        self.scheme_amount[code] = int(scheme.get("amount", 0))
-        self.scheme_requires_subject[code] = bool(scheme.get("requires_own_subject"))
-        self.scheme_face_bonus[code] = int(scheme.get("face_down_front_bonus", 0))
-
         if design.get("stratagem") == "all_reserves_forward":
             self.strat_choice_kind[code] = STRAT_CHOICE_RESERVES
         elif design.get("stratagem") == "wheel_line":
@@ -515,31 +462,3 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         elif design.get("direction_choice") or design.get("choose_direction"):
             self.strat_choice_kind[code] = STRAT_CHOICE_DIRECTION
 
-        strat = rules.get("stratagem") or {}
-        trigger = strat.get("trigger") or {}
-        self.strat_trigger_event[code] = strat_event_map.get(trigger.get("event"), EVENT_NONE)
-        self.strat_actor[code] = actor_map.get(trigger.get("actor", "either"), ACTOR_EITHER)
-        for role_name in trigger.get("roles", ()):
-            r = role_map.get(role_name, ROLE_NONE)
-            self.strat_role_mask[code] |= (1 << r)
-        for rank_name in trigger.get("ranks", ()):
-            r = rank_map.get(rank_name, -1)
-            if r >= 0:
-                self.strat_rank_mask[code] |= (1 << r)
-        reveal = strat.get("reveal_effect") or {}
-        if reveal.get("effect") == "penalize_trigger_subject":
-            self.strat_reveal_effect[code] = STRAT_REVEAL_PENALIZE
-        self.strat_reveal_amount[code] = int(reveal.get("amount", 0))
-        self.strat_cancel_story[code] = bool(reveal.get("cancel_story"))
-        continuous = strat.get("continuous") or {}
-        for role_name, amount in continuous.get("role_strength_modifiers", {}).items():
-            r = role_map.get(role_name, ROLE_NONE)
-            self.strat_role_mod[code][r] = int(amount)
-        for rank_name, amount in continuous.get("rank_strength_modifiers", {}).items():
-            self.strat_rank_mod[code][rank_map[rank_name]] = int(amount)
-        for rank_name, amount in continuous.get("controller_rank_strength_modifiers", {}).items():
-            self.strat_controller_rank_mod[code][rank_map[rank_name]] = int(amount)
-        self.strat_named_mod[code] = int(continuous.get("named_subject_modifier", 0))
-        self.strat_unnamed_mod[code] = int(continuous.get("unnamed_subject_modifier", 0))
-        self.strat_story_lock[code] = bool(continuous.get("controller_immediate_story_lock"))
-        self.strat_global_story_lock[code] = bool(continuous.get("global_immediate_story_lock"))

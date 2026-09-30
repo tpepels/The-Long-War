@@ -70,7 +70,9 @@ legal actions and transitions. They must not reproduce rule logic.
 
 ## 2. Cards
 
-Cards are data interpreted by the game core.
+Cards are data interpreted by the game core. `design_rules` is the single
+executable mechanics schema; presentation text and `rule_blocks` do not form
+a second machine-rules channel.
 
 Adding ordinary cards should require data changes, not search/UI changes.
 Reusable effect primitives belong to the game core; algorithms must not contain
