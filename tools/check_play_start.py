@@ -46,6 +46,11 @@ def main() -> None:
     parser.add_argument("--require-browser", action="store_true")
     parser.add_argument("--viewport", default="1440x900", help="Desktop width x height.")
     parser.add_argument("--reduced-motion", action="store_true")
+    parser.add_argument(
+        "--remote-invite",
+        action="store_true",
+        help="Smoke-test Remote host -> Create invite instead of starting an AI game.",
+    )
     args = parser.parse_args()
     try:
         width, height = (int(value) for value in args.viewport.split("x"))
@@ -67,6 +72,67 @@ def main() -> None:
         )
 
     source = (DIST / "play.html").read_text(encoding="utf-8")
+    if args.remote_invite:
+        smoke = r"""
+<script>
+(() => {
+  const root = document.documentElement;
+  root.dataset.playSmoke = "waiting";
+  let ticks = 0;
+  let submitted = false;
+
+  function fail(detail) {
+    root.dataset.playSmoke = "fail";
+    root.dataset.playSmokeDetail = String(detail || "unknown");
+    clearInterval(timer);
+  }
+
+  const timer = setInterval(() => {
+    ticks += 1;
+    if (ticks > 260) {
+      fail(
+        document.getElementById("remote-status")?.textContent ||
+        document.getElementById("setup-note")?.textContent ||
+        document.getElementById("engine-status")?.textContent ||
+        "remote invite timeout"
+      );
+      return;
+    }
+
+    const start = document.getElementById("start-game");
+    const form = document.getElementById("new-game-form");
+    const mode = document.getElementById("mode");
+    if (!start || !form || !mode || start.disabled) return;
+
+    if (!submitted) {
+      mode.value = "remote-host";
+      mode.dispatchEvent(new Event("change", { bubbles: true }));
+      if (start.textContent.indexOf("Create invite") < 0) {
+        fail("remote host mode did not expose Create invite");
+        return;
+      }
+      submitted = true;
+      form.requestSubmit();
+      root.dataset.playSmoke = "submitted";
+      return;
+    }
+
+    const output = document.getElementById("remote-output");
+    const status = document.getElementById("remote-status");
+    if (status?.classList.contains("remote-error")) {
+      fail(status.textContent || "remote invite failed");
+      return;
+    }
+    if (output?.value && output.value.length > 40) {
+      root.dataset.playSmoke = "pass";
+      root.dataset.playSmokeDetail = "remote invite token created";
+      clearInterval(timer);
+    }
+  }, 40);
+})();
+</script>
+"""
+    else:
     smoke = r"""
 <script>
 (() => {
@@ -352,7 +418,7 @@ def main() -> None:
                     browser_window_size(browser, width, height),
                     "--force-device-scale-factor=1",
                     *(["--force-prefers-reduced-motion"] if args.reduced_motion else []),
-                    "--virtual-time-budget=12000",
+                    "--virtual-time-budget=" + ("18000" if args.remote_invite else "12000"),
                     "--dump-dom",
                     url,
                 ],
@@ -378,7 +444,10 @@ def main() -> None:
             detail = result.stdout.split(marker, 1)[1].split('"', 1)[0]
         raise SystemExit(f"Start-a-match browser smoke failed: {detail}")
 
-    print(f"PASS: {width}x{height} real browser menu, keyboard targeting/cancellation, action, inspector, paced AI and standard Force controls" + (" with reduced motion" if args.reduced_motion else ""))
+    if args.remote_invite:
+        print(f"PASS: {width}x{height} real browser remote invite creation")
+    else:
+        print(f"PASS: {width}x{height} real browser menu, keyboard targeting/cancellation, action, inspector, paced AI and standard Force controls" + (" with reduced motion" if args.reduced_motion else ""))
 
 
 if __name__ == "__main__":

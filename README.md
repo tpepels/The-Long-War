@@ -144,6 +144,7 @@ python tools/check_card_layout.py --require-browser
 python tools/check_game_layout.py --require-browser
 python tools/check_play_start.py --require-browser --viewport 1280x720
 python tools/check_play_start.py --require-browser --viewport 1440x900 --reduced-motion
+python tools/check_play_start.py --require-browser --remote-invite
 ```
 
 Browser/Pyodide build logs live under `artifacts/browser/`; browser-parity output lives under `artifacts/logs/browser-parity.log`.
