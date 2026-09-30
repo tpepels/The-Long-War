@@ -293,7 +293,7 @@ def test_first_pass_gives_opponent_a_normal_turn_with_normal_draw() -> None:
 
     moved = state.players[1].hand.pop()
     state.players[1].deck.append(moved)
-    assert len(state.players[1].hand) == 9
+    assert len(state.players[1].hand) == engine.opening_hand_size - 1
     before_drawn = state.cards_drawn_this_battle[1]
 
     engine.apply(state, Pass())
@@ -303,7 +303,7 @@ def test_first_pass_gives_opponent_a_normal_turn_with_normal_draw() -> None:
     assert state.pass_order == [0]
     assert state.players[0].passed is True
     assert state.players[1].passed is False
-    assert len(state.players[1].hand) == 10
+    assert len(state.players[1].hand) == engine.opening_hand_size
     assert state.cards_drawn_this_battle[1] == before_drawn + 1
 
 
@@ -363,8 +363,10 @@ def test_two_consecutive_passes_end_the_battle() -> None:
 
 
 def test_turn_at_hand_limit_requires_discard_then_draw_before_operation() -> None:
-    engine, state = setup_state(opening_bonus=True)
-    assert len(state.players[0].hand) == 10
+    rules = GameRules.standard()
+    rules = rules.with_overrides(opening_hand_size=rules.hand_limit)
+    engine, state = setup_state(opening_bonus=True, rules=rules)
+    assert len(state.players[0].hand) == engine.hand_limit
     assert state.pending_draw_discard_for == 0
 
     legal = engine.legal_actions(state)
@@ -376,7 +378,7 @@ def test_turn_at_hand_limit_requires_discard_then_draw_before_operation() -> Non
     engine.apply(state, legal[0])
 
     assert state.pending_draw_discard_for is None
-    assert len(state.players[0].hand) == 10
+    assert len(state.players[0].hand) == engine.hand_limit
     assert len(state.players[0].deck) == deck_before - 1
     assert discarded in state.players[0].discard
     assert state.active_player == 0
@@ -385,7 +387,9 @@ def test_turn_at_hand_limit_requires_discard_then_draw_before_operation() -> Non
 def test_completion_draw_resolves_before_the_next_players_turn_draw() -> None:
     engine, state = setup_state()
     state.active_player = 0
-    state.players[0].hand = ["the-fifty-men"] * 9 + ["oren"]
+    state.players[0].hand = (
+        ["the-fifty-men"] * (engine.hand_limit - 1) + ["oren"]
+    )
     state.players[0].deck = ["the-red-shields", "seven-black-ships"]
     # Avoid conflating Oren's completion draw with player 1's ordinary
     # discard-before-draw substep after the operation finishes.
@@ -400,7 +404,7 @@ def test_completion_draw_resolves_before_the_next_players_turn_draw() -> None:
     assert state.pending_draw_discard_for is None
     assert state.pending_draw_count == 0
     assert state.pending_draw_finish_operation is False
-    assert len(state.players[0].hand) == 10
+    assert len(state.players[0].hand) == engine.hand_limit
     assert len(state.players[0].deck) == deck_before - 1
     assert state.active_player == 1
 
@@ -612,7 +616,10 @@ def test_bought_time_for_can_pay_extra_to_draw_two_with_sequential_hand_limit() 
     engine, state = setup_state()
     target = pos(0, Rank.FRONT)
     state.players[0].command = 10
-    state.players[0].hand = ["bought-time-for"] + ["the-fifty-men"] * 9
+    state.players[0].hand = (
+        ["bought-time-for"]
+        + ["the-fifty-men"] * (engine.hand_limit - 1)
+    )
     state.players[0].deck = ["seven-black-ships", "the-red-shields"]
     # Let player 1's normal turn-start draw resolve immediately after the
     # invested operation finishes.
@@ -629,13 +636,13 @@ def test_bought_time_for_can_pay_extra_to_draw_two_with_sequential_hand_limit() 
     engine.apply(state, invested)
 
     assert state.players[0].command == 8
-    assert len(state.players[0].hand) == 10
+    assert len(state.players[0].hand) == engine.hand_limit
     assert state.pending_draw_discard_for == 0
     assert state.pending_draw_count == 1
     assert state.pending_draw_finish_operation is True
 
     engine.apply(state, engine.legal_actions(state)[0])
-    assert len(state.players[0].hand) == 10
+    assert len(state.players[0].hand) == engine.hand_limit
     assert state.pending_draw_discard_for is None
     assert state.active_player == 1
 
@@ -878,7 +885,7 @@ def test_seized_standard_returns_bond_only_after_an_actual_retreat() -> None:
     state.players[0].command = 10
     state.players[1].command = 10
     state.battle_start_command[:] = [10, 10]
-    state.players[1].hand = ["the-fifty-men"] * 9
+    state.players[1].hand = ["the-fifty-men"] * (engine.hand_limit - 1)
     state.players[1].deck = ["the-fifty-men"] * 20
     state.players[1].discard = []
 
@@ -1279,7 +1286,7 @@ def test_hand_deck_discard_and_named_formations_persist_between_battles() -> Non
 
 def test_empty_draw_pile_reshuffles_discard_only_when_draw_is_required() -> None:
     engine, state = setup_state()
-    state.players[1].hand = state.players[1].hand[:9]
+    state.players[1].hand = ["the-fifty-men"] * (engine.hand_limit - 1)
     state.players[1].deck.clear()
     state.players[1].discard = ["the-fifty-men"]
     state.operations_this_battle[:] = [1, 1]
@@ -1287,7 +1294,7 @@ def test_empty_draw_pile_reshuffles_discard_only_when_draw_is_required() -> None
 
     engine.apply(state, Pass())
 
-    assert len(state.players[1].hand) == 10
+    assert len(state.players[1].hand) == engine.hand_limit
     assert state.players[1].discard == []
     assert state.deck_reshuffles[1] == 1
 
