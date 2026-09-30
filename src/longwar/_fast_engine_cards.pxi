@@ -148,7 +148,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         raise ValueError("Command settings exceed the native signed 16-bit capacity")
     self.id_to_code = {card_id: i for i, card_id in enumerate(self.card_ids)}
 
-    type_map = {"force": CARD_SUBJECT, "bond": CARD_LINK, "name": CARD_NAME, "story": CARD_PLOT, "stratagem": CARD_STRATAGEM}
+    type_map = {"force": CARD_FORCE, "bond": CARD_BOND, "name": CARD_NAME, "story": CARD_NARRATIVE, "stratagem": CARD_STRATAGEM}
     role_map = {"swordsman": ROLE_SWORDSMAN, "spearman": ROLE_SPEARMAN, "archer": ROLE_ARCHER, "healer": ROLE_HEALER, "ship": ROLE_SHIP, "stronghold": ROLE_STRONGHOLD}
     rank_map = {"front": 0, "rear": 1}
     force_text_map = {
