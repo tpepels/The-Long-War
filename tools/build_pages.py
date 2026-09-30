@@ -138,6 +138,20 @@ def group_rulebook_sections(rendered: str) -> str:
     )
 
 
+def structure_rulebook_pages(rendered: str) -> str:
+    """Give the opening its own deterministic page; keep the rules two-column."""
+    setup_marker = '<section class="rule-section"><h2 id="setup">'
+    split_at = rendered.find(setup_marker)
+    if split_at < 0:
+        raise ValueError("Could not locate Setup section while structuring rulebook")
+    first_page = rendered[:split_at]
+    columns = rendered[split_at:]
+    return (
+        '<section class="rulebook-first-page">' + first_page + '</section>'
+        '<div class="rulebook-columns">' + columns + '</div>'
+    )
+
+
 def render_rule_tokens(source: str, rules: GameRules) -> str:
     recovery = [
         rules.command_recovery_for_battle(battle)
@@ -225,6 +239,7 @@ def main() -> None:
         extensions=["extra", "sane_lists", "attr_list", "md_in_html"],
     )
     rulebook_html = group_rulebook_sections(rulebook_html)
+    rulebook_html = structure_rulebook_pages(rulebook_html)
 
     template = (WEB / "rulebook.template.html").read_text(encoding="utf-8")
     rendered = template.replace("{{RULEBOOK}}", rulebook_html)
