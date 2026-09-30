@@ -24,7 +24,12 @@ by `tests/test_architecture_boundaries.py`.
   are not engine constants and must not leak into core code. Construction
   constraints belong in `decks.py`, never in `GameRules`; `GameEngine`
   delegates match-creation validation to that module rather than duplicating
-  the construction policy.
+  the construction policy. Shipped/canonical deck membership belongs only in
+  `decks/index.json`; tools derive profile lists from that catalogue.
+- Do not duplicate configurable `GameRules` defaults in tools, tests, web
+  copy, or generated references. Use `GameRules.standard()`,
+  `with_overrides(...)`, `simulation_metadata()`, and the rule-token
+  renderer as appropriate.
 - AI/search consumes the engine. It never reimplements rules or branches on
   individual `GameRules` fields. Belief models take deck size/format from
   supplied deck or state context, not from the rules engine.
