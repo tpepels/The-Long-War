@@ -14,7 +14,11 @@ from pathlib import Path
 import pytest
 
 from longwar import fingerprint
-from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_EXPLORATION, ISMCTSAgent
+from longwar.agents.ismcts_agent import (
+    DEFAULT_ISMCTS_EXPLORATION,
+    DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    ISMCTSAgent,
+)
 from longwar.simulate import make_agent, simulate_games
 from longwar.rules import GameRules
 
@@ -124,18 +128,17 @@ def test_game_rules_have_no_named_experiment_profile_api():
         assert not hasattr(GameRules, name)
 
 
-def test_provisional_ismcts_exploration_default_is_shared():
+def test_ismcts_exploration_default_is_shared():
     assert inspect.signature(simulate_games).parameters["jobs"].default == 1
-    assert DEFAULT_ISMCTS_EXPLORATION == pytest.approx(0.3)
     assert inspect.signature(ISMCTSAgent).parameters["exploration"].default == DEFAULT_ISMCTS_EXPLORATION
     assert inspect.signature(make_agent).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
     assert inspect.signature(simulate_games).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
 
 
-def test_canonical_ismcts_rollout_policy_default_is_decisive():
-    assert inspect.signature(ISMCTSAgent).parameters["rollout_policy"].default == "decisive"
-    assert inspect.signature(make_agent).parameters["ismcts_rollout_policy"].default == "decisive"
-    assert inspect.signature(simulate_games).parameters["ismcts_rollout_policy"].default == "decisive"
+def test_ismcts_rollout_policy_default_is_shared():
+    assert inspect.signature(ISMCTSAgent).parameters["rollout_policy"].default == DEFAULT_ISMCTS_ROLLOUT_POLICY
+    assert inspect.signature(make_agent).parameters["ismcts_rollout_policy"].default == DEFAULT_ISMCTS_ROLLOUT_POLICY
+    assert inspect.signature(simulate_games).parameters["ismcts_rollout_policy"].default == DEFAULT_ISMCTS_ROLLOUT_POLICY
 
 
 def test_live_progress_helpers_are_robust(tmp_path):
