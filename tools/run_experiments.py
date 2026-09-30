@@ -25,6 +25,11 @@ except ImportError:  # pragma: no cover - interactive skip is POSIX-only
     termios = None
     tty = None
 
+if __package__:
+    from .deck_catalog import CANONICAL_DECK_PATHS
+else:
+    from deck_catalog import CANONICAL_DECK_PATHS
+
 from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_BELIEF_SAMPLES,
     DEFAULT_ISMCTS_EXPLORATION,
@@ -51,15 +56,6 @@ ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "tools" / "run_experiments.py"
 VALIDATION_ROOT = ROOT / "artifacts" / "search-validation"
 BENCH_ROOT = ROOT / "artifacts" / "search-benchmark"
-CANONICAL_DECK_PATHS = {
-    "mobility": "decks/mobility-open-bonds.json",
-    "elite": "decks/persistent-elite-heroes.json",
-    "narrative": "decks/narrative-command.json",
-    "control": "decks/battlefield-control-stratagems.json",
-    "momentum": "decks/momentum-orders.json",
-    "necessity": "decks/necessity-attrition.json",
-}
-
 # Deliberately small, human-readable arithmetic recovery grid. The rule
 # structure is fixed; only start/decrement are tuned.
 COMMAND_RECOVERY_CANDIDATES = (
