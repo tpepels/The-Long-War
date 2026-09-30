@@ -224,7 +224,9 @@ cdef inline int _fe_command_cost_fast(
             cost -= discount
             if cost < 1 and not self.catchup_zero_cost[card]:
                 cost = 1
-    return cost
+    # Command costs are never negative. In particular, a zero-cost catch-up
+    # effect must not stack with another discount into Command generation.
+    return cost if cost > 0 else 0
 
 cdef int _fe_command_cost(FastEngine self, FastState state, uint64_t action):
     return _fe_command_cost_fast(self, state, action)
@@ -235,6 +237,8 @@ cdef inline void _fe_spend_command_fast(
     int player,
     int amount,
 ) noexcept:
+    if amount < 0:
+        amount = 0
     if amount > state.command[player]:
         amount = state.command[player]
     state.command[player] -= amount

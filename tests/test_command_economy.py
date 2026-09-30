@@ -11,6 +11,7 @@ from longwar.game import (
     GameEngine,
     Maneuver,
     Pass,
+    PlayBond,
     PlayForce,
     PlayName,
     Position,
@@ -122,6 +123,32 @@ def test_all_current_cards_have_positive_native_safe_command_costs() -> None:
     assert costs
     assert all(type(cost) is int and 1 <= cost < 128 for cost in costs)
 
+
+
+def test_catchup_zero_cost_cannot_stack_into_negative_command_cost() -> None:
+    engine, state = standard_game()
+    front = Position(Front.FIRST, Rank.FRONT)
+    rear = Position(Front.FIRST, Rank.REAR)
+    GameScenario(state).formation(
+        0,
+        rear,
+        force="the-fifty-men",
+        bond="followed",
+        name="iven",
+    ).formation(
+        0,
+        front,
+        force="the-fifty-men",
+    ).commands(1, 5).hand(0, "rallied-behind")
+
+    action = PlayBond("rallied-behind", front)
+
+    # Rallied Behind becomes free while behind. Iven can also discount the
+    # first card in this Front, but discounts may never push a cost below 0.
+    assert engine.command_cost_for_action(state, action) == 0
+    engine.apply(state, action)
+    assert state.players[0].command == 1
+    assert state.command_spent_this_battle[0] == 0
 
 def test_arithmetic_recovery_formula_can_be_overridden() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
