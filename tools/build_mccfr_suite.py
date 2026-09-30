@@ -7,17 +7,13 @@ from typing import Any
 from longwar.fingerprint import current_game_fingerprint
 from longwar.health import simulation_summary
 
+if __package__:
+    from .deck_catalog import MCCFR_PROFILES as PROFILES
+else:
+    from deck_catalog import MCCFR_PROFILES as PROFILES
+
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
-
-PROFILES = (
-    ("mobility", "Mobility / Open Bonds", "decks/mobility-open-bonds.json"),
-    ("elite", "Persistent Elite / Heroes", "decks/persistent-elite-heroes.json"),
-    ("narrative", "Narrative / Command", "decks/narrative-command.json"),
-    ("control", "Battlefield Control / Stratagems", "decks/battlefield-control-stratagems.json"),
-    ("momentum", "Momentum / Orders", "decks/momentum-orders.json"),
-    ("necessity", "Necessity / Attrition", "decks/necessity-attrition.json"),
-)
 
 
 def load(path: Path) -> dict[str, Any]:
