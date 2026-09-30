@@ -1311,7 +1311,7 @@ function renderProgression(lab) {
 }
 
 function renderTelemetry(lab) {
-  const t = lab.raw_telemetry;
+  const t = lab.dashboard_telemetry || lab.raw_telemetry;
   if (!t) return;
   const p = t.passes || {};
   const b = t.battles || {};
@@ -1441,8 +1441,8 @@ function renderMethod(lab) {
 
 async function main() {
   const [response, cardsResponse] = await Promise.all([
-    fetch("data/lab-report.json", { cache: "no-store" }),
-    fetch("data/cards.json", { cache: "no-store" }),
+    fetch("data/lab-report.json", { cache: "no-cache" }),
+    fetch("data/cards.json", { cache: "no-cache" }),
   ]);
   if (!response.ok) throw new Error("Full Balance Lab report is not available yet.");
   const lab = await response.json();
