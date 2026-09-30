@@ -1260,9 +1260,16 @@
   }
 }
 
+@page rulebook {
+  size: A4 portrait;
+  margin: 12mm 13mm 14mm;
+}
+
 @media print {
   .rulebook {
+    page: rulebook;
     column-count: 2;
+    column-fill: auto;
     column-gap: 9mm;
     column-rule: .2mm solid rgba(24,23,20,.2);
     font-size: 100%;
@@ -1270,10 +1277,22 @@
 
   .rulebook-kicker {
     break-before: auto;
+    break-after: avoid;
+  }
+
+  /* Let authored sections flow through the columns/pages. Keeping a complete
+     H2 section together creates large blank areas in paged multicolumn print. */
+  .rule-section {
+    break-inside: auto;
+    margin-bottom: 4mm;
   }
 
   .rulebook h2,
-  .rulebook h3,
+  .rulebook h3 {
+    break-inside: avoid;
+    break-after: avoid;
+  }
+
   .rulebook table,
   .rulebook blockquote {
     break-inside: avoid;

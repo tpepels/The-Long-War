@@ -247,6 +247,22 @@ def test_card_pages_load_runtime_overflow_guard() -> None:
     assert "-outside" in guard
 
 
+
+
+def test_rulebook_print_keeps_two_columns_without_section_holes() -> None:
+    css = text("web/rules.css")
+    assert "@page rulebook" in css
+    assert "size: A4 portrait;" in css
+    assert "page: rulebook;" in css
+    assert "column-count: 2;" in css
+    assert "column-fill: auto;" in css
+
+    print_section = css[css.index("@page rulebook"):]
+    assert ".rule-section {" in print_section
+    assert "break-inside: auto;" in print_section
+    assert "break-after: avoid;" in print_section
+
+
 def test_stale_build_legends_copy_is_gone() -> None:
     for path in (
         "web/play.html",
