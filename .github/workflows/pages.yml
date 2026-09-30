@@ -18,6 +18,7 @@ on:
       - "tools/build_rulebook_pdf.py"
       - "tools/build_lab_report.py"
       - "tools/build_browser_runtime.py"
+      - "tools/check_web_static.py"
       - ".github/workflows/pages.yml"
 
 permissions:

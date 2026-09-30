@@ -402,3 +402,29 @@ def test_browser_verify_checks_all_authored_and_built_static_assets() -> None:
     assert '"--check", "--input-type=module"' in checker
     assert "DATA_REF_RE" in checker
     assert "requests missing built data asset" in checker
+
+
+def test_web_static_checker_catches_missing_built_data_reference(tmp_path) -> None:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "check_web_static",
+        ROOT / "tools" / "check_web_static.py",
+    )
+    assert spec and spec.loader
+    checker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(checker)
+
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "play.js").write_text(
+        'fetch(dataUrl("data/reference-deck.json"));',
+        encoding="utf-8",
+    )
+
+    errors = checker._dist_reference_errors(dist)
+    assert any(
+        "data/reference-deck.json" in error
+        and "missing built data asset" in error
+        for error in errors
+    )
