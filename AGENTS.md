@@ -103,15 +103,14 @@ awake with `systemd-inhibit`. The runner, not Make, owns experiment defaults.
 
 ## AI/search
 
-- Serious ISMCTS default: 100,000 iterations.
-- Canonical ISMCTS baseline: 100,000 iterations, 12 belief samples, c=0.3,
-  greedy depth-5 rollouts, epsilon 0.12, tree reuse on, 400,000-node cap,
-  progressive widening off.
-- The baseline is fixed for the foreseeable future. Do not add new optimizer
-  sweeps, tournament entrants, or Make targets for search tuning.
+- Canonical ISMCTS search defaults live in the shared
+  `DEFAULT_ISMCTS_*` constants in `agents/ismcts_agent.py`. Runners and
+  Make targets must consume those defaults rather than restating their values.
+- Do not add new optimizer sweeps, tournament entrants, or Make targets for
+  search tuning without an explicit design reason.
 - Use alpha-beta only as an occasional equal-wall-clock sanity check.
-- Current provisional exploration constant: 0.3.
-- Progressive widening remains experimental and off by default.
+- Progressive widening remains experimental unless the shared default enables
+  it.
 - Tree reuse is valid only while the belief/search context remains valid.
 - Mirrored strength comparisons preserve candidate-specific RNG seeds across
   seat swaps.
