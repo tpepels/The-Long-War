@@ -43,8 +43,25 @@
               >Across the table<select id="mode" disabled>
                 <option value="computer" selected>Tactical AI</option>
                 <option value="hotseat">Two players · hot-seat</option>
+                <option value="remote-host">Remote · host a table</option>
+                <option value="remote-join">Remote · join a table</option>
               </select></label
             >
+            <section id="remote-connect" class="remote-connect" hidden>
+              <p id="remote-help"></p>
+              <label id="remote-input-wrap" hidden>
+                <span id="remote-input-label">Connection token</span>
+                <textarea id="remote-input" rows="3" autocomplete="off" spellcheck="false"></textarea>
+              </label>
+              <div id="remote-output-wrap" hidden>
+                <label>
+                  <span id="remote-output-label">Connection token</span>
+                  <textarea id="remote-output" rows="3" readonly></textarea>
+                </label>
+                <button id="remote-copy-token" type="button">Copy token</button>
+              </div>
+              <p id="remote-status" role="status"></p>
+            </section>
             <details class="setup-options">
               <summary>Replay a deal</summary>
               <label

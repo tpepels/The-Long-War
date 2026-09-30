@@ -360,3 +360,14 @@ def test_remote_peer_transport_is_rule_free_webrtc_token_exchange() -> None:
     assert "longwar." not in source
     assert "cards" not in source
     assert "legal_actions" not in source
+
+
+def test_play_setup_exposes_remote_host_and_join_token_controls() -> None:
+    page = text("web/play.html")
+    style = text("web/play.css")
+    assert 'value="remote-host"' in page
+    assert 'value="remote-join"' in page
+    assert 'id="remote-input"' in page
+    assert 'id="remote-output"' in page
+    assert 'id="remote-copy-token"' in page
+    assert ".remote-connect" in style
