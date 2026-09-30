@@ -54,11 +54,11 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
         if other >= 0 and self.aura[other] and (self.aura_rank[other] < 0 or self.aura_rank[other] == rank):
             value += self.aura[other]
 
-    mod = self.subject_mod_amount[card]
+    mod = self.force_mod_amount[card]
     if mod:
-        if self.subject_mod_discard_min[card] and state.discard_len[player] < self.subject_mod_discard_min[card]:
+        if self.force_mod_discard_min[card] and state.discard_len[player] < self.force_mod_discard_min[card]:
             pass
-        elif self.subject_mod_adj_named[card]:
+        elif self.force_mod_adj_named[card]:
             other = 0
             if (
                 front > 0
@@ -80,18 +80,18 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
     link = state.bond[slot]
     name = state.name[slot]
     if link >= 0:
-        value += self.link_bonus[link]
+        value += self.bond_bonus[link]
         if (
             self.bond_momentum_direction[link]
             and state.maneuver_count[slot] > 0
         ):
             value += 2
         if name >= 0:
-            value += self.link_named_bonus[link]
-            if self.link_discard_per[link]:
-                mod = state.discarded_this_battle[player] * self.link_discard_per[link]
-                if mod > self.link_discard_max[link]:
-                    mod = self.link_discard_max[link]
+            value += self.bond_named_bonus[link]
+            if self.bond_discard_per[link]:
+                mod = state.discarded_this_battle[player] * self.bond_discard_per[link]
+                if mod > self.bond_discard_max[link]:
+                    mod = self.bond_discard_max[link]
                 value += mod
     if name >= 0:
         value += self.name_strength[name]
@@ -122,12 +122,12 @@ cdef int _fe_front_strength_fast(FastEngine self, FastState state, int player, i
     value += _fe_position_strength_fast(self, state, slot_index(player, front, 1))
     scheme = state.narrative[player * 4 + front]
     if scheme >= 0 and not state.narrative_revealed[player * 4 + front]:
-        value += self.scheme_face_bonus[scheme]
+        value += self.narrative_face_bonus[scheme]
     enemy = 1 - player
     for slot in (slot_index(enemy, front, 0), slot_index(enemy, front, 1)):
         if state.force[slot] >= 0 and state.bond[slot] >= 0 and state.name[slot] >= 0:
             link = state.bond[slot]
-            value += self.link_opposing[link]
+            value += self.bond_opposing[link]
     return value
 
 cdef inline bint _fe_frontline_only_resolution(
@@ -192,7 +192,7 @@ cdef inline int _fe_resolution_front_strength_fast(
         if _fe_slot_complete(self, state, slot):
             link = state.bond[slot]
             if link >= 0:
-                value += self.link_opposing[link]
+                value += self.bond_opposing[link]
 
     if strat >= 0 and self.strat_refuse_flank[strat]:
         if (mask == 1 and front == 1) or (mask == 8 and front == 2):
@@ -252,7 +252,7 @@ cdef inline bint _fe_slot_complete(FastEngine self, FastState state, int slot) n
 cdef inline bint _fe_subject_protected(FastEngine self, FastState state, int slot) noexcept:
     cdef int link = state.bond[slot]
     cdef int name = state.name[slot]
-    if link >= 0 and name >= 0 and self.link_protect[link]:
+    if link >= 0 and name >= 0 and self.bond_protect[link]:
         return True
     return (
         _fe_slot_complete(self, state, slot)
