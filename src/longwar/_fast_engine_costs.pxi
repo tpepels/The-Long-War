@@ -8,7 +8,7 @@ cdef inline int _fe_local_front_discount_fast(
     cdef uint8_t bit = <uint8_t>(1 << front)
     for rank in range(2):
         slot = slot_index(player, front, rank)
-        if state.subject[slot] < 0:
+        if state.force[slot] < 0:
             continue
         name = state.name[slot]
         if name < 0:
@@ -43,7 +43,7 @@ cdef inline int _fe_first_narrative_discount_fast(
         return 0
     for front in range(4):
         slot = slot_index(player, front, 1)
-        force = state.subject[slot]
+        force = state.force[slot]
         if (
             force >= 0
             and self.first_narrative_battle_discount_force[force]
@@ -113,20 +113,20 @@ cdef inline int _fe_command_cost_fast(
         if state.free_maneuver_available[player]:
             return 0
         if state.maneuver_count[action_pos(action)] == 0:
-            card = state.subject[action_pos(action)]
+            card = state.force[action_pos(action)]
             if (
                 card >= 0
                 and self.first_maneuver_free[card]
                 and (
                     not self.maneuver_requires_open_bond[card]
                     or (
-                        state.link[action_pos(action)] >= 0
+                        state.bond[action_pos(action)] >= 0
                         and state.name[action_pos(action)] < 0
                     )
                 )
             ):
                 return 0
-            card = state.link[action_pos(action)]
+            card = state.bond[action_pos(action)]
             if (
                 card >= 0
                 and self.first_maneuver_free[card]
@@ -189,8 +189,8 @@ cdef inline int _fe_command_cost_fast(
         self.completion_discount_cost[card] >= 0
         and kind == TYPE_NAME
         and pos >= 0
-        and state.subject[pos] >= 0
-        and state.link[pos] >= 0
+        and state.force[pos] >= 0
+        and state.bond[pos] >= 0
     ):
         cost = self.completion_discount_cost[card]
 
@@ -210,7 +210,7 @@ cdef inline int _fe_command_cost_fast(
             )
         if kind == TYPE_SUBJECT and rank_from_slot(pos) == 0:
             rear = slot_index(player, target_front, 1)
-            support = state.subject[rear]
+            support = state.force[rear]
             if (
                 support >= 0
                 and self.frontline_force_discount[support] > discount
@@ -290,8 +290,8 @@ cdef void _fe_resolve_completion_effect_fast(
         _fe_queue_battle_draws(self, state, player, amount)
     elif effect == COMPLETE_REVEAL_SCHEME:
         enemy_ix = (1 - player) * 4 + front
-        if state.scheme[enemy_ix] >= 0:
-            state.scheme_revealed[enemy_ix] = 1
+        if state.narrative[enemy_ix] >= 0:
+            state.narrative_revealed[enemy_ix] = 1
     elif effect == COMPLETE_RECOVER_LINK:
         _fe_recover_recent_link_fast(self, state, player)
 
@@ -313,10 +313,10 @@ cdef void _fe_resolve_new_completions_fast(
         front = local >> 1
         state.completion_count_this_battle[player] += 1
         _fe_resolve_completion_effect_fast(self, 
-            state, player, state.subject[slot], front
+            state, player, state.force[slot], front
         )
         _fe_resolve_completion_effect_fast(self, 
-            state, player, state.link[slot], front
+            state, player, state.bond[slot], front
         )
         _fe_resolve_completion_effect_fast(self, 
             state, player, state.name[slot], front
@@ -352,7 +352,7 @@ cdef void _fe_resolve_new_completions_fast(
             if (
                 front_from_slot(other) == front
                 and state.name[other] >= 0
-                and state.subject[other] >= 0
+                and state.force[other] >= 0
                 and (self.card_capabilities[state.name[other]] & CAP_OPPOSING_NAMED_SAME_FRONT_FREE_MANEUVER)
             ):
                 state.free_maneuver_available[1 - player] = 1
