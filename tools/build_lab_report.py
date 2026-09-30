@@ -143,17 +143,18 @@ def main() -> None:
     # need the same freshness check as their underlying match telemetry.
     health = current("balance-health.json")
     static = current("balance-report.json")
-    selfplay = (
-        current("balance-selfplay.json")
-        or current("heuristic-selfplay.json")
-        or current("pages-selfplay.json")
-    )
+    selfplay = current("balance-selfplay.json")
+    if selfplay is None:
+        selfplay = (
+            current("heuristic-selfplay.json")
+            or current("pages-selfplay.json")
+        )
     progression_selfplay = current("progression-selfplay.json") or selfplay
     progression_profiles_artifact = compact_dashboard_payload(
         current("progression-profiles.json")
     )
-    policy = current("mccfr-policy.json")
     mccfr_suite = current("mccfr-suite.json")
+    policy = None if mccfr_suite is not None else current("mccfr-policy.json")
     verification = current("mccfr-verification.json")
     solver_strength = current("solver-strength.json")
     narrative_ablation = current("narrative-ablation.json")
@@ -273,21 +274,32 @@ def main() -> None:
                 card["balance_direction"] = "strategic_validation_inconclusive"
                 card["balance_evidence_source"] = "heuristic_screen"
 
-    matchup_files = {
-        "canonical_selfplay": "balance-selfplay.json",
-        "heuristic_selfplay": "heuristic-selfplay.json",
-        "heuristic_vs_random": "heuristic-vs-random.json",
-        "random_vs_heuristic": "random-vs-heuristic.json",
-        "mccfr_vs_heuristic": "mccfr-vs-heuristic.json",
-        "heuristic_vs_mccfr": "heuristic-vs-mccfr.json",
-        "online_mccfr_vs_heuristic": "online-mccfr-vs-heuristic.json",
-    }
     matchups = {
-        key: simulation_summary(current(filename))
-        for key, filename in matchup_files.items()
+        "canonical_selfplay": simulation_summary(selfplay),
+        "heuristic_selfplay": None,
+        "heuristic_vs_random": None,
+        "random_vs_heuristic": None,
+        "mccfr_vs_heuristic": None,
+        "heuristic_vs_mccfr": None,
+        "online_mccfr_vs_heuristic": None,
     }
-    if matchups["canonical_selfplay"] is None:
-        matchups["canonical_selfplay"] = simulation_summary(selfplay)
+    # Legacy matchup files are optional compatibility evidence. Once the
+    # canonical self-play and six-profile MCCFR suite exist, stale legacy
+    # files must not make a complete current Lab report look stale.
+    if selfplay is None:
+        for key, filename in {
+            "heuristic_selfplay": "heuristic-selfplay.json",
+            "heuristic_vs_random": "heuristic-vs-random.json",
+            "random_vs_heuristic": "random-vs-heuristic.json",
+        }.items():
+            matchups[key] = simulation_summary(current(filename))
+    if mccfr_suite is None:
+        for key, filename in {
+            "mccfr_vs_heuristic": "mccfr-vs-heuristic.json",
+            "heuristic_vs_mccfr": "heuristic-vs-mccfr.json",
+            "online_mccfr_vs_heuristic": "online-mccfr-vs-heuristic.json",
+        }.items():
+            matchups[key] = simulation_summary(current(filename))
 
     mccfr: dict[str, Any] | None = None
     if policy is None and mccfr_suite and mccfr_suite.get("profiles"):
