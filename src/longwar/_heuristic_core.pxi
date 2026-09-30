@@ -30,7 +30,7 @@ cdef class NativeHeuristicEvaluator:
     cdef double evaluate_fast(self, FastState state, int player) noexcept:
         cdef int opponent = 1 - player
         cdef int front, margin, raw_margin, controls=0, enemy_controls=0
-        cdef int hand_delta, named_delta=0, scheme_delta=0, strat_delta=0
+        cdef int hand_delta, named_delta=0, narrative_delta=0, strat_delta=0
         cdef int exposed=0, reachable=0, slot, name_card, before, after, best
         cdef int card, own_forces=0, own_board_subjects=0, hero_force=0
         cdef int own_losses=0, opponent_losses=0
@@ -230,10 +230,10 @@ cdef class NativeHeuristicEvaluator:
 
         for front in range(self.engine.ongoing_story_limit):
             if state.narrative[player * 4 + front] >= 0:
-                scheme_delta += 1
+                narrative_delta += 1
             if state.narrative[opponent * 4 + front] >= 0:
-                scheme_delta -= 1
-        score += 0.75 * scheme_delta
+                narrative_delta -= 1
+        score += 0.75 * narrative_delta
 
         strat_delta = (
             (1 if state.stratagem[player] >= 0 else 0)
@@ -293,15 +293,15 @@ cdef class NativeHeuristicEvaluator:
         FastState state,
         int player,
     ) noexcept:
-        cdef bint needs_subject=False, needs_link=False, needs_name=False
+        cdef bint needs_force=False, needs_link=False, needs_name=False
         cdef int local, slot, card, count, typ
-        cdef double value=0.0, subject_value=0.0, name_value=0.0
+        cdef double value=0.0, force_value=0.0, name_value=0.0
         for local in range(8):
             slot = player * 8 + local
             if state.force[slot] < 0 and (
                 state.bond[slot] >= 0 or state.name[slot] >= 0
             ):
-                needs_subject = True
+                needs_force = True
             if state.bond[slot] < 0 and (
                 state.force[slot] >= 0 or state.name[slot] >= 0
             ):
@@ -317,18 +317,18 @@ cdef class NativeHeuristicEvaluator:
                 continue
             typ = self.engine.card_type[card]
             if typ == CARD_FORCE:
-                subject_value = 0.45 + (0.95 if needs_subject else 0.0)
+                force_value = 0.45 + (0.95 if needs_force else 0.0)
                 if self.engine.hero[card]:
                     if state.hero_used[player]:
                         continue
                     name_value = 0.35 + (1.05 if needs_name else 0.0)
                     value += count * (
-                        subject_value
-                        if subject_value >= name_value
+                        force_value
+                        if force_value >= name_value
                         else name_value
                     )
                 else:
-                    value += count * subject_value
+                    value += count * force_value
             elif typ == CARD_BOND:
                 value += count * (0.35 + (0.95 if needs_link else 0.0))
             elif typ == CARD_NAME:
@@ -344,7 +344,7 @@ cdef class NativeHeuristicEvaluator:
         FastState state,
         int player,
     ) noexcept:
-        cdef int card, count, subjects=0, links=0, names=0, heroes=0
+        cdef int card, count, forces=0, bonds=0, names=0, heroes=0
         cdef int value, candidate
         for card in range(self.engine.n_cards):
             count = state.hand[player][card] + state.deck_counts[player][card]
@@ -352,28 +352,28 @@ cdef class NativeHeuristicEvaluator:
                 if self.engine.hero[card]:
                     heroes += count
                 else:
-                    subjects += count
+                    forces += count
             elif self.engine.card_type[card] == CARD_BOND:
-                links += count
+                bonds += count
             elif self.engine.card_type[card] == CARD_NAME:
                 names += count
-        value = subjects
-        if links < value:
-            value = links
+        value = forces
+        if bonds < value:
+            value = bonds
         if names < value:
             value = names
         if heroes > 0 and not state.hero_used[player]:
-            candidate = subjects + 1
-            if links < candidate:
-                candidate = links
+            candidate = forces + 1
+            if bonds < candidate:
+                candidate = bonds
             if names < candidate:
                 candidate = names
             if candidate > value:
                 value = candidate
 
-            candidate = subjects
-            if links < candidate:
-                candidate = links
+            candidate = forces
+            if bonds < candidate:
+                candidate = bonds
             if names + 1 < candidate:
                 candidate = names + 1
             if candidate > value:
