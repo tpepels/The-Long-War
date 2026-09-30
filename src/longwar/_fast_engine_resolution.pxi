@@ -649,6 +649,7 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.stratagem_used[p] = 0
         state.hero_used[p] = 0
         state.free_maneuver_available[p] = 0
+        state.free_maneuver_source[p] = -1
         state.player_maneuver_count[p] = 0
         for front in range(self.ongoing_story_limit):
             state.narrative_used[p * 4 + front] = 0

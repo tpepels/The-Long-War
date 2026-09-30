@@ -1406,6 +1406,12 @@ def test_iria_makes_only_the_next_maneuver_free() -> None:
 
     engine.apply(state, maneuver)
     assert state.free_maneuver_available[0] is False
+    assert any(
+        event["kind"] == "discount"
+        and event["detail"] == "free_maneuver"
+        and event["source_card"] == "iria"
+        for event in engine.last_command_diagnostics()
+    )
 
 
 def test_elian_completion_exposes_optional_adjacent_swap() -> None:

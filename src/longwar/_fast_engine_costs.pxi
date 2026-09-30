@@ -168,7 +168,8 @@ cdef inline int _fe_command_cost_fast(
         if state.free_maneuver_available[player]:
             _fe_record_command_diag(
                 self, COMMAND_DIAG_DISCOUNT, COMMAND_DETAIL_FREE_MANEUVER,
-                player, -1, self.maneuver_command_cost, self.maneuver_command_cost,
+                player, state.free_maneuver_source[player],
+                self.maneuver_command_cost, self.maneuver_command_cost,
             )
             return 0
         if state.maneuver_count[action_pos(action)] == 0:
@@ -485,4 +486,5 @@ cdef void _fe_resolve_new_completions_fast(
                 and (self.card_capabilities[state.name[other]] & CAP_OPPOSING_NAMED_SAME_FRONT_FREE_MANEUVER)
             ):
                 state.free_maneuver_available[1 - player] = 1
+                state.free_maneuver_source[1 - player] = state.name[other]
         _fe_resolve_named_narratives(self, state, player, slot)

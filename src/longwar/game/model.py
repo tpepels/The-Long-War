@@ -182,6 +182,7 @@ class GameState:
     pending_resume: str | None = None
     pending_resume_player: int | None = None
     free_maneuver_available: list[bool] = field(default_factory=lambda: [False, False])
+    free_maneuver_source: list[str | None] = field(default_factory=lambda: [None, None])
     constraints: list[OperationConstraint] = field(default_factory=list)
     battle_resolution: dict[str, object] | None = None
     last_battle_snapshot: dict[str, object] | None = None
@@ -291,6 +292,7 @@ class GameState:
             pending_resume=self.pending_resume,
             pending_resume_player=self.pending_resume_player,
             free_maneuver_available=list(self.free_maneuver_available),
+            free_maneuver_source=list(self.free_maneuver_source),
             constraints=[
                 OperationConstraint(
                     source_card=item.source_card,
@@ -419,6 +421,7 @@ class GameState:
         self.pending_resume = source.pending_resume
         self.pending_resume_player = source.pending_resume_player
         self.free_maneuver_available[:] = source.free_maneuver_available
+        self.free_maneuver_source[:] = source.free_maneuver_source
         self.constraints[:] = [
             OperationConstraint(
                 source_card=item.source_card,

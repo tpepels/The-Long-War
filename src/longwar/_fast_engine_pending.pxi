@@ -68,6 +68,7 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
             state.player_maneuver_count[player] += 1
             if state.free_maneuver_available[player]:
                 state.free_maneuver_available[player] = 0
+                state.free_maneuver_source[player] = -1
             _fe_record_command_diag(
                 self,
                 COMMAND_DIAG_DISCOUNT,
@@ -380,6 +381,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.player_maneuver_count[actor] += 1
         if state.free_maneuver_available[actor]:
             state.free_maneuver_available[actor] = 0
+            state.free_maneuver_source[actor] = -1
         _fe_resolve_force_pair_narratives(self, state, actor)
         _fe_resolve_maneuver_triggers(self, state, actor, pos, dest, bool(target))
         _fe_consume_operation_constraints(self, state, actor, action)

@@ -132,6 +132,11 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
     )
     fast.free_maneuver_available[0] = bool(state.free_maneuver_available[0])
     fast.free_maneuver_available[1] = bool(state.free_maneuver_available[1])
+    for p in range(2):
+        card_id = state.free_maneuver_source[p]
+        fast.free_maneuver_source[p] = (
+            -1 if card_id is None else self.id_to_code[card_id]
+        )
     for i, effect_state in enumerate(state.pending_effects[:MAX_PENDING_EFFECTS]):
         fast.pending_kind[i] = int(effect_state.get("kind", EFFECT_NONE))
         fast.pending_player[i] = int(effect_state.get("player", -1))
@@ -638,6 +643,12 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
         "free_maneuver_available": [
             bool(state.free_maneuver_available[0]),
             bool(state.free_maneuver_available[1]),
+        ],
+        "free_maneuver_source": [
+            None
+            if state.free_maneuver_source[p] < 0
+            else self.card_ids[state.free_maneuver_source[p]]
+            for p in range(2)
         ],
         "constraints": [
             {

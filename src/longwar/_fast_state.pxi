@@ -98,6 +98,7 @@ cdef class FastState:
     cdef uint8_t pending_resume
     cdef int8_t pending_resume_player
     cdef uint8_t free_maneuver_available[2]
+    cdef int8_t free_maneuver_source[2]
 
     cdef uint8_t resolution_stage
     cdef uint8_t resolution_lost_mask[2]
@@ -209,6 +210,7 @@ cdef class FastState:
         self.pending_resume = RESUME_NONE
         self.pending_resume_player = -1
         memset(self.free_maneuver_available, 0, sizeof(self.free_maneuver_available))
+        memset(self.free_maneuver_source, 0xff, sizeof(self.free_maneuver_source))
         self.resolution_stage = RESOLUTION_NONE
         memset(self.resolution_lost_mask, 0, sizeof(self.resolution_lost_mask))
         memset(self.resolution_drive_mask, 0, sizeof(self.resolution_drive_mask))
@@ -319,6 +321,7 @@ cdef class FastState:
         self.pending_resume = other.pending_resume
         self.pending_resume_player = other.pending_resume_player
         memcpy(self.free_maneuver_available, other.free_maneuver_available, sizeof(self.free_maneuver_available))
+        memcpy(self.free_maneuver_source, other.free_maneuver_source, sizeof(self.free_maneuver_source))
         self.resolution_stage = other.resolution_stage
         memcpy(self.resolution_lost_mask, other.resolution_lost_mask, sizeof(self.resolution_lost_mask))
         memcpy(self.resolution_drive_mask, other.resolution_drive_mask, sizeof(self.resolution_drive_mask))

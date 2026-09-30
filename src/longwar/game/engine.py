@@ -387,6 +387,9 @@ class GameEngine:
         state.free_maneuver_available[:] = data.get(
             "free_maneuver_available", [False, False]
         )
+        state.free_maneuver_source[:] = data.get(
+            "free_maneuver_source", [None, None]
+        )
         constraints: list[OperationConstraint] = []
         for item in data.get("constraints", []):
             source_slot = item.get("source_slot")
