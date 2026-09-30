@@ -91,7 +91,14 @@ def test_regret_matching_prefers_positive_regret() -> None:
 
 
 def test_mccfr_policy_cannot_spend_last_command_when_pass_is_safe() -> None:
-    engine, _deck, state = setup()
+    engine, deck, _state = setup()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=77,
+        first_player=0,
+        opening_bonus=False,
+    )
     state.players[0].command = 1
     state.players[1].command = 5
     state.operations_this_battle[:] = [1, 1]
