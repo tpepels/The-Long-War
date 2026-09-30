@@ -24,10 +24,19 @@ def command_preserving_actions(
     actor = state.active_player
     opponent = 1 - actor
     threshold = int(engine.rules.command_collapse_threshold)
+    actor_command = state.players[actor].command
     preserving: list[Action] = []
     exhausting: list[Action] = []
 
     for action in legal:
+        # Most legal actions cannot possibly reach the Collapse boundary.
+        # Match the native guard's cheap path and reserve exact child-state
+        # simulation for actions that can spend the remaining Command margin.
+        cost = engine.command_cost_for_action(state, action)
+        if actor_command - cost > threshold:
+            preserving.append(action)
+            continue
+
         child = state.clone()
         engine.apply(child, action, validate=False)
         unilateral_exhaustion = (
