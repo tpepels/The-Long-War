@@ -17,8 +17,8 @@ cdef class NativeHeuristicEvaluator:
         for local in range(8):
             slot = player * 8 + local
             components = (
-                (1 if state.subject[slot] >= 0 else 0)
-                + (1 if state.link[slot] >= 0 else 0)
+                (1 if state.force[slot] >= 0 else 0)
+                + (1 if state.bond[slot] >= 0 else 0)
                 + (1 if state.name[slot] >= 0 else 0)
             )
             if components == 1:
@@ -133,7 +133,7 @@ cdef class NativeHeuristicEvaluator:
         score += 0.35 * own_forces
 
         for slot in range(player * 8, player * 8 + 8):
-            if state.subject[slot] >= 0:
+            if state.force[slot] >= 0:
                 own_board_subjects += 1
         if own_forces == 0 and own_board_subjects == 0:
             score -= 2.0
@@ -229,9 +229,9 @@ cdef class NativeHeuristicEvaluator:
         score += 1.5 * named_delta
 
         for front in range(self.engine.ongoing_story_limit):
-            if state.scheme[player * 4 + front] >= 0:
+            if state.narrative[player * 4 + front] >= 0:
                 scheme_delta += 1
-            if state.scheme[opponent * 4 + front] >= 0:
+            if state.narrative[opponent * 4 + front] >= 0:
                 scheme_delta -= 1
         score += 0.75 * scheme_delta
 
@@ -242,7 +242,7 @@ cdef class NativeHeuristicEvaluator:
         score += 0.45 * strat_delta
 
         for slot in range(player * 8, player * 8 + 8):
-            if state.subject[slot] < 0 or state.name[slot] >= 0:
+            if state.force[slot] < 0 or state.name[slot] >= 0:
                 continue
             before = _fe_position_strength_fast(self.engine, state, slot)
             best = -32768
@@ -276,8 +276,8 @@ cdef class NativeHeuristicEvaluator:
         for local in range(8):
             slot = player * 8 + local
             components = (
-                (1 if state.subject[slot] >= 0 else 0)
-                + (1 if state.link[slot] >= 0 else 0)
+                (1 if state.force[slot] >= 0 else 0)
+                + (1 if state.bond[slot] >= 0 else 0)
                 + (1 if state.name[slot] >= 0 else 0)
             )
             if components == 1:
@@ -298,16 +298,16 @@ cdef class NativeHeuristicEvaluator:
         cdef double value=0.0, subject_value=0.0, name_value=0.0
         for local in range(8):
             slot = player * 8 + local
-            if state.subject[slot] < 0 and (
-                state.link[slot] >= 0 or state.name[slot] >= 0
+            if state.force[slot] < 0 and (
+                state.bond[slot] >= 0 or state.name[slot] >= 0
             ):
                 needs_subject = True
-            if state.link[slot] < 0 and (
-                state.subject[slot] >= 0 or state.name[slot] >= 0
+            if state.bond[slot] < 0 and (
+                state.force[slot] >= 0 or state.name[slot] >= 0
             ):
                 needs_link = True
             if state.name[slot] < 0 and (
-                state.subject[slot] >= 0 or state.link[slot] >= 0
+                state.force[slot] >= 0 or state.bond[slot] >= 0
             ):
                 needs_name = True
 
@@ -598,22 +598,22 @@ cdef class NativeHeuristicEvaluator:
         if kind == TYPE_SUBJECT:
             weight = 1.35
             if pos >= 0 and (
-                state.link[pos] >= 0 or state.name[pos] >= 0
+                state.bond[pos] >= 0 or state.name[pos] >= 0
             ):
                 weight += 0.90
             return weight
         if kind == TYPE_LINK:
             weight = 1.0
-            if pos >= 0 and state.subject[pos] >= 0:
+            if pos >= 0 and state.force[pos] >= 0:
                 weight += 0.80
             if pos >= 0 and state.name[pos] >= 0:
                 weight += 0.35
             return weight
         if kind == TYPE_NAME:
             weight = 1.05
-            if pos >= 0 and state.subject[pos] >= 0:
+            if pos >= 0 and state.force[pos] >= 0:
                 weight += 0.85
-            if pos >= 0 and state.link[pos] >= 0:
+            if pos >= 0 and state.bond[pos] >= 0:
                 weight += 0.65
             return weight
         if kind == TYPE_PLOT:
@@ -655,12 +655,12 @@ cdef class NativeHeuristicEvaluator:
         score = self.evaluate_fast(child, player)
 
         if kind == TYPE_LINK:
-            if state.subject[pos] >= 0:
+            if state.force[pos] >= 0:
                 score += 0.85
             else:
                 score += 0.25
         elif kind == TYPE_NAME:
-            if state.subject[pos] >= 0:
+            if state.force[pos] >= 0:
                 score += 0.90
             else:
                 score += 0.30
