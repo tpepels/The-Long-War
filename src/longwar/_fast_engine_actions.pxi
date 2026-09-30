@@ -222,14 +222,14 @@ cdef inline bint _fe_action_affects_front(
     cdef uint32_t extra = action_extra(action)
     if front < 0:
         return False
-    if kind == TYPE_SUBJECT or kind == TYPE_LINK or kind == TYPE_NAME:
+    if kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME:
         return pos >= 0 and front_from_slot(pos) == front
     if kind == TYPE_MANEUVER:
         return (
             (pos >= 0 and front_from_slot(pos) == front)
             or (dest >= 0 and front_from_slot(dest) == front)
         )
-    if kind == TYPE_SCHEME:
+    if kind == TYPE_ONGOING_NARRATIVE:
         card = action_card(action)
         return (
             card >= 0
@@ -677,9 +677,9 @@ cdef int _fe_legal_pending_effect_actions(
     elif kind == EFFECT_RECOVER:
         for i in range(state.discard_len[player]):
             card = state.discard[player][i]
-            if state.pending_aux[0] == CARD_LINK and self.card_type[card] != CARD_LINK:
+            if state.pending_aux[0] == CARD_BOND and self.card_type[card] != CARD_BOND:
                 continue
-            if state.pending_aux[0] == CARD_PLOT and self.card_type[card] != CARD_PLOT:
+            if state.pending_aux[0] == CARD_NARRATIVE and self.card_type[card] != CARD_NARRATIVE:
                 continue
             n = _append_action(actions, n, encode_action(TYPE_EFFECT, card, -1, -1, player, kind))
     elif kind == EFFECT_FRONT_CONTRIBUTION:
@@ -782,7 +782,7 @@ cdef int _fe_legal_actions_into(
         if state.hand[player][card] == 0:
             continue
 
-        if self.card_type[card] == CARD_SUBJECT:
+        if self.card_type[card] == CARD_FORCE:
             if not self.hero[card] or not state.hero_used[player]:
                 req = self.placement_rank[card]
                 for local in range(8):
@@ -795,7 +795,7 @@ cdef int _fe_legal_actions_into(
                     n = _append_action(
                         actions,
                         n,
-                        encode_action(TYPE_SUBJECT, card, slot, -1, player),
+                        encode_action(TYPE_FORCE, card, slot, -1, player),
                     )
 
                 # Heroes are dual-use Force/Name cards. Playing either mode
@@ -810,7 +810,7 @@ cdef int _fe_legal_actions_into(
                                 encode_action(TYPE_NAME, card, slot, -1, player),
                             )
 
-        elif self.card_type[card] == CARD_LINK:
+        elif self.card_type[card] == CARD_BOND:
             for local in range(8):
                 slot = player * 8 + local
                 if state.bond[slot] >= 0:
@@ -818,14 +818,14 @@ cdef int _fe_legal_actions_into(
                 n = _append_action(
                     actions,
                     n,
-                    encode_action(TYPE_LINK, card, slot, -1, player),
+                    encode_action(TYPE_BOND, card, slot, -1, player),
                 )
                 if self.bond_optional_extra_cost[card] > 0:
                     n = _append_action(
                         actions,
                         n,
                         encode_action(
-                            TYPE_LINK,
+                            TYPE_BOND,
                             card,
                             slot,
                             -1,
@@ -849,7 +849,7 @@ cdef int _fe_legal_actions_into(
                                 actions,
                                 n,
                                 encode_action(
-                                    TYPE_LINK,
+                                    TYPE_BOND,
                                     card,
                                     slot,
                                     dest,
@@ -865,7 +865,7 @@ cdef int _fe_legal_actions_into(
                                 actions,
                                 n,
                                 encode_action(
-                                    TYPE_LINK,
+                                    TYPE_BOND,
                                     card,
                                     slot,
                                     dest,
@@ -884,7 +884,7 @@ cdef int _fe_legal_actions_into(
                     encode_action(TYPE_NAME, card, slot, -1, player),
                 )
 
-        elif self.card_type[card] == CARD_PLOT:
+        elif self.card_type[card] == CARD_NARRATIVE:
             if self.ongoing_narrative[card]:
                 # Ongoing Narratives may carry a public Front or formation
                 # association selected when the card is played.
@@ -910,7 +910,7 @@ cdef int _fe_legal_actions_into(
                                 actions,
                                 n,
                                 encode_action(
-                                    TYPE_SCHEME,
+                                    TYPE_ONGOING_NARRATIVE,
                                     card,
                                     story_slot,
                                     -1,
@@ -931,7 +931,7 @@ cdef int _fe_legal_actions_into(
                                             actions,
                                             n,
                                             encode_action(
-                                                TYPE_SCHEME,
+                                                TYPE_ONGOING_NARRATIVE,
                                                 card,
                                                 story_slot,
                                                 slot,
@@ -944,7 +944,7 @@ cdef int _fe_legal_actions_into(
                                         actions,
                                         n,
                                         encode_action(
-                                            TYPE_SCHEME,
+                                            TYPE_ONGOING_NARRATIVE,
                                             card,
                                             story_slot,
                                             slot,
@@ -956,7 +956,7 @@ cdef int _fe_legal_actions_into(
                             actions,
                             n,
                             encode_action(
-                                TYPE_SCHEME,
+                                TYPE_ONGOING_NARRATIVE,
                                 card,
                                 story_slot,
                                 -1,
@@ -969,7 +969,7 @@ cdef int _fe_legal_actions_into(
                     break
             else:
                 effect = self.narrative_effect[card]
-                if effect == PLOT_DISCREDIT or effect == PLOT_RETURN_NAME:
+                if effect == NARRATIVE_DISCREDIT or effect == NARRATIVE_RETURN_NAME:
                     for local in range(8):
                         slot = opponent * 8 + local
                         if (
@@ -980,14 +980,14 @@ cdef int _fe_legal_actions_into(
                                 actions,
                                 n,
                                 encode_action(
-                                    TYPE_PLOT,
+                                    TYPE_NARRATIVE,
                                     card,
                                     slot,
                                     -1,
                                     opponent,
                                 ),
                             )
-                elif effect == PLOT_MOVE_SUBJECT:
+                elif effect == NARRATIVE_MOVE_FORCE:
                     for source in range(player * 8, player * 8 + 8):
                         if state.force[source] < 0:
                             continue
@@ -1003,7 +1003,7 @@ cdef int _fe_legal_actions_into(
                                 actions,
                                 n,
                                 encode_action(
-                                    TYPE_PLOT,
+                                    TYPE_NARRATIVE,
                                     card,
                                     source,
                                     dest,
@@ -1014,7 +1014,7 @@ cdef int _fe_legal_actions_into(
                     n = _append_action(
                         actions,
                         n,
-                        encode_action(TYPE_PLOT, card, -1, -1, player),
+                        encode_action(TYPE_NARRATIVE, card, -1, -1, player),
                     )
                     if self.story_discard_count[card] == 1:
                         for i in range(self.n_cards):
@@ -1026,7 +1026,7 @@ cdef int _fe_legal_actions_into(
                                 actions,
                                 n,
                                 encode_action(
-                                    TYPE_PLOT,
+                                    TYPE_NARRATIVE,
                                     card,
                                     -1,
                                     -1,
