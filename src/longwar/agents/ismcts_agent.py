@@ -217,14 +217,27 @@ class ISMCTSAgent:
             for action in legal
         }
 
-        # Pack each determinization immediately so the temporary Python
-        # GameState can be released instead of retaining a second root list.
-        packed_states = [
-            self.fast_engine.from_game_state(
-                self.belief.sample(state, root_player, self.rng)
+        # The public/observable root is already packed for the Command guard.
+        # Reuse it and replace only hidden deck/hand zones for each belief
+        # sample instead of cloning and repacking the full Python GameState.
+        packed_states = []
+        for _ in range(self.belief_samples):
+            viewer_deck, opponent_hand, opponent_deck = (
+                self.belief.sample_hidden_zones(
+                    state,
+                    root_player,
+                    self.rng,
+                )
             )
-            for _ in range(self.belief_samples)
-        ]
+            packed_states.append(
+                self.fast_engine.determinize_hidden_zones(
+                    guard_state,
+                    root_player,
+                    viewer_deck,
+                    opponent_hand,
+                    opponent_deck,
+                )
+            )
 
         elapsed_setup = perf_counter() - decision_started
         remaining_time = (
