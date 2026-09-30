@@ -25,10 +25,7 @@ except ImportError:  # pragma: no cover - interactive skip is POSIX-only
     termios = None
     tty = None
 
-if __package__:
-    from .deck_catalog import CANONICAL_DECK_PATHS, DEFAULT_DECK_PATH
-else:
-    from deck_catalog import CANONICAL_DECK_PATHS, DEFAULT_DECK_PATH
+from longwar.reference_decks import CANONICAL_DECK_PATHS, DEFAULT_DECK_PATH
 
 from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_BELIEF_SAMPLES,
