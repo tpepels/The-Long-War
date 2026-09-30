@@ -58,7 +58,7 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
 
     if kind == EFFECT_FREE_MANEUVER:
         if not skip:
-            was_empty = state.subject[dest] < 0
+            was_empty = state.force[dest] < 0
             moved = 1 if front_from_slot(dest) < front_from_slot(source) else 2
             _fe_swap_slots(self, state, source, dest)
             state.maneuver_count[dest] += 1
@@ -116,9 +116,9 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
     elif kind == EFFECT_TRANSFER_COMPONENT:
         if not skip and source >= 0 and dest >= 0 and card >= 0:
             before_mask = _fe_complete_mask(self, state, player)
-            if state.link[source] == card and state.link[dest] < 0:
-                state.link[source] = -1
-                state.link[dest] = card
+            if state.bond[source] == card and state.bond[dest] < 0:
+                state.bond[source] = -1
+                state.bond[dest] = card
             elif state.name[source] == card and state.name[dest] < 0:
                 state.name[source] = -1
                 state.name[dest] = card
@@ -147,15 +147,15 @@ cdef void _fe_queue_take_adjacent_prepared_component_on_force_play(
     cdef uint16_t sources = 0
     if front > 0:
         source = slot_index(player, front - 1, rank)
-        if state.subject[source] < 0 and (
-            (state.link[source] >= 0 and state.link[destination] < 0)
+        if state.force[source] < 0 and (
+            (state.bond[source] >= 0 and state.bond[destination] < 0)
             or (state.name[source] >= 0 and state.name[destination] < 0)
         ):
             sources |= <uint16_t>(1 << source)
     if front < 3:
         source = slot_index(player, front + 1, rank)
-        if state.subject[source] < 0 and (
-            (state.link[source] >= 0 and state.link[destination] < 0)
+        if state.force[source] < 0 and (
+            (state.bond[source] >= 0 and state.bond[destination] < 0)
             or (state.name[source] >= 0 and state.name[destination] < 0)
         ):
             sources |= <uint16_t>(1 << source)
@@ -182,21 +182,21 @@ cdef void _fe_queue_take_adjacent_open_bond_on_name_play(
     cdef int rank = rank_from_slot(destination)
     cdef int source
     cdef uint16_t sources = 0
-    if state.subject[destination] < 0 or state.link[destination] >= 0:
+    if state.force[destination] < 0 or state.bond[destination] >= 0:
         return
     if front > 0:
         source = slot_index(player, front - 1, rank)
         if (
-            state.subject[source] >= 0
-            and state.link[source] >= 0
+            state.force[source] >= 0
+            and state.bond[source] >= 0
             and state.name[source] < 0
         ):
             sources |= <uint16_t>(1 << source)
     if front < 3:
         source = slot_index(player, front + 1, rank)
         if (
-            state.subject[source] >= 0
-            and state.link[source] >= 0
+            state.force[source] >= 0
+            and state.bond[source] >= 0
             and state.name[source] < 0
         ):
             sources |= <uint16_t>(1 << source)
@@ -223,7 +223,7 @@ cdef void _fe_discard_story_by_card(
     cdef int story_slot, ix
     for story_slot in range(self.ongoing_story_limit):
         ix = controller * 4 + story_slot
-        if state.scheme[ix] == card:
+        if state.narrative[ix] == card:
             _fe_discard_ongoing_narrative(
                 self, state, controller, story_slot
             )
@@ -241,19 +241,19 @@ cdef void _fe_first_card_front_constraint_triggers(
         story_slot = 0
         while story_slot < self.ongoing_story_limit:
             ix = controller * 4 + story_slot
-            card = state.scheme[ix]
+            card = state.narrative[ix]
             if card < 0:
                 story_slot += 1
                 continue
             if (
                 not self.narrative_first_card_front_constraint[card]
-                or not (state.scheme_front_mask[ix] & (1 << front))
-                or state.scheme_trigger_mask[ix] & (1 << actor)
+                or not (state.narrative_front_mask[ix] & (1 << front))
+                or state.narrative_trigger_mask[ix] & (1 << actor)
             ):
                 story_slot += 1
                 continue
 
-            state.scheme_trigger_mask[ix] |= <uint8_t>(1 << actor)
+            state.narrative_trigger_mask[ix] |= <uint8_t>(1 << actor)
             _fe_add_constraint(
                 state,
                 CONSTRAINT_AFFECT_FRONT,
@@ -266,7 +266,7 @@ cdef void _fe_first_card_front_constraint_triggers(
                 state.turn_number + 2,
                 CONSTRAINT_EXPIRES_AFTER_OPERATION,
             )
-            mask = state.scheme_trigger_mask[ix]
+            mask = state.narrative_trigger_mask[ix]
             if mask == 3:
                 _fe_discard_ongoing_narrative(
                     self, state, controller, story_slot
@@ -361,7 +361,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     _fe_spend_command_fast(self, state, actor, cost)
 
     if kind == TYPE_MANEUVER:
-        target = 1 if state.subject[dest] < 0 else 0
+        target = 1 if state.force[dest] < 0 else 0
         choice = 1 if front_from_slot(dest) < front_from_slot(pos) else 2
         _fe_swap_slots(self, state, pos, dest)
         state.maneuver_count[dest] += 1
@@ -385,9 +385,9 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.hero_used[actor] = 1
 
     if kind == TYPE_SUBJECT:
-        prepared_before = state.link[pos] >= 0 or state.name[pos] >= 0
+        prepared_before = state.bond[pos] >= 0 or state.name[pos] >= 0
         _fe_take_from_hand(self, state, actor, card, 0)
-        state.subject[pos] = card
+        state.force[pos] = card
         if (self.card_capabilities[card] & CAP_PREPARED_ON_PLAY_FREE_MANEUVER_FORCE) and prepared_before:
             _fe_queue_free_maneuver(self, 
                 state, actor, <uint16_t>(1 << pos), True, True
@@ -401,9 +401,9 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
 
     elif kind == TYPE_LINK:
         _fe_take_from_hand(self, state, actor, card, 0)
-        state.link[pos] = card
-        if state.subject[pos] >= 0:
-            state.temporary[pos] += self.on_link_bonus[state.subject[pos]]
+        state.bond[pos] = card
+        if state.force[pos] >= 0:
+            state.temporary[pos] += self.on_link_bonus[state.force[pos]]
         if dest >= 0:
             source = pos
             _fe_move_slot(self, state, source, dest)
@@ -422,8 +422,8 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     elif kind == TYPE_NAME:
         take_adjacent_open_bond_ready = (
             (self.card_capabilities[card] & CAP_ON_PLAY_TAKE_ADJACENT_OPEN_BOND_NAME)
-            and state.subject[pos] >= 0
-            and state.link[pos] < 0
+            and state.force[pos] >= 0
+            and state.bond[pos] < 0
         )
         _fe_take_from_hand(self, state, actor, card, 0)
         state.name[pos] = card
@@ -431,8 +431,8 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             _fe_queue_take_adjacent_open_bond_on_name_play(self, state, actor, pos)
         if self.name_effect[card] == NAME_REVEAL_SCHEME:
             front = front_from_slot(pos)
-            if state.scheme[(1 - actor) * 4 + front] >= 0:
-                state.scheme_revealed[(1 - actor) * 4 + front] = 1
+            if state.narrative[(1 - actor) * 4 + front] >= 0:
+                state.narrative_revealed[(1 - actor) * 4 + front] = 1
         elif self.name_effect[card] == NAME_MOVE_ADJACENT and dest >= 0:
             source = pos
             _fe_move_slot(self, state, source, dest)
@@ -462,16 +462,16 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     elif kind == TYPE_SCHEME:
         _fe_take_from_hand(self, state, actor, card, 0)
         state.narratives_played_this_battle[actor] += 1
-        state.scheme[actor * 4 + pos] = card
-        state.scheme_revealed[actor * 4 + pos] = 1
-        state.scheme_front_mask[actor * 4 + pos] = (
+        state.narrative[actor * 4 + pos] = card
+        state.narrative_revealed[actor * 4 + pos] = 1
+        state.narrative_front_mask[actor * 4 + pos] = (
             <uint8_t>(extra & 15)
             if self.story_choice_kind[card] == STORY_CHOICE_FRONT
             else 0
         )
-        state.scheme_target_slot[actor * 4 + pos] = dest
+        state.narrative_target_slot[actor * 4 + pos] = dest
         if self.story_choice_kind[card] == STORY_CHOICE_NAMED_DIRECTION:
-            state.scheme_direction[actor * 4 + pos] = <uint8_t>extra
+            state.narrative_direction[actor * 4 + pos] = <uint8_t>extra
         if self.narrative_forced_named_direction[card]:
             _fe_add_constraint(
                 state,
