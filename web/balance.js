@@ -1425,12 +1425,6 @@ function renderStatic(lab) {
   document.getElementById("static-low").innerHTML = staticTable(s.lowest_static_formations);
 }
 
-function renderDownloads(lab) {
-  document.getElementById("downloads").innerHTML = (lab.downloads || []).map((file) =>
-    `<a class="artifact-link" href="data/${encodeURIComponent(file)}">${esc(file)}</a>`
-  ).join("");
-}
-
 function renderMethod(lab) {
   const report = lab.health;
   document.getElementById("methodology").innerHTML = `
@@ -1469,7 +1463,6 @@ async function main() {
   renderTelemetry(lab);
   renderMccfr(lab);
   renderStatic(lab);
-  renderDownloads(lab);
   renderMethod(lab);
 
   document.getElementById("card-filter").addEventListener("change", () => renderCards(lab));

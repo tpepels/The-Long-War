@@ -30,6 +30,7 @@ REFERENCE_DECKS = tuple(
     )
 )
 BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
+PUBLISHED_ARTIFACTS = ("lab-report.json", "balance-health.json")
 
 
 def version_static_assets() -> str:
@@ -114,13 +115,11 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    if BALANCE_HEALTH.exists():
-        shutil.copy2(BALANCE_HEALTH, data_dir / "balance-health.json")
-
     artifacts_dir = ROOT / "artifacts"
-    if artifacts_dir.exists():
-        for artifact in artifacts_dir.glob("*.json"):
-            shutil.copy2(artifact, data_dir / artifact.name)
+    for filename in PUBLISHED_ARTIFACTS:
+        artifact = artifacts_dir / filename
+        if artifact.exists():
+            shutil.copy2(artifact, data_dir / filename)
 
     rulebook_md = RULEBOOK.read_text(encoding="utf-8")
     rulebook_html = markdown.markdown(

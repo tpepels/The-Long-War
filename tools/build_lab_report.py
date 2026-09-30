@@ -11,6 +11,25 @@ from longwar.rules import GameRules
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
 
+_DASHBOARD_OMIT_KEYS = frozenset({
+    "game_outcomes",
+    "failed_game_outcomes",
+    "recent_actions",
+})
+
+
+def compact_dashboard_payload(value: Any) -> Any:
+    """Remove bulky per-game diagnostics from data embedded in the dashboard."""
+    if isinstance(value, dict):
+        return {
+            key: compact_dashboard_payload(item)
+            for key, item in value.items()
+            if key not in _DASHBOARD_OMIT_KEYS
+        }
+    if isinstance(value, list):
+        return [compact_dashboard_payload(item) for item in value]
+    return value
+
 
 def load(name: str) -> dict[str, Any] | None:
     path = ARTIFACTS / name
@@ -142,7 +161,9 @@ def main() -> None:
         or current("pages-selfplay.json")
     )
     progression_selfplay = current("progression-selfplay.json") or selfplay
-    progression_profiles_artifact = current("progression-profiles.json")
+    progression_profiles_artifact = compact_dashboard_payload(
+        current("progression-profiles.json")
+    )
     policy = current("mccfr-policy.json")
     mccfr_suite = current("mccfr-suite.json")
     verification = load("mccfr-verification.json")
@@ -150,7 +171,9 @@ def main() -> None:
     targeted = current("targeted-online-counterfactual.json")
     run_summary = current("balance-run-summary.json")
 
-    balance_comparisons = load("balance-comparisons.json")
+    balance_comparisons = compact_dashboard_payload(
+        load("balance-comparisons.json")
+    )
     if (
         balance_comparisons is not None
         and balance_comparisons.get("game_fingerprint") != game_fingerprint
@@ -363,12 +386,6 @@ def main() -> None:
         merged.setdefault("name", row["name"])
         all_formations.append(merged)
 
-    downloads = sorted(
-        path.name
-        for path in ARTIFACTS.glob("*.json")
-        if path.name not in stale_files
-    )
-
     report = {
         "schema_version": 1,
         "game_fingerprint": game_fingerprint,
@@ -389,7 +406,6 @@ def main() -> None:
         "progression_source": progression_source,
         "progression_profiles": progression_profiles,
         "all_formations": all_formations,
-        "downloads": downloads,
     }
 
     output = ARTIFACTS / "lab-report.json"
