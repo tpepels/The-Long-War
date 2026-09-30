@@ -99,8 +99,9 @@ button, .button { padding: 8px 12px; border: 1px solid #a9aa9f; color: inherit; 
 .card-very-dense .rule-block + .rule-block { margin-top: .85mm; }
 .card-very-dense .rule-label { font-size: 1.78mm; }
 
-.card-footer { display: flex; align-items: end; justify-content: space-between; gap: 2mm; flex: 0 0 auto; min-height: 3.2mm; padding-top: .7mm; border-top: .16mm solid #b9b9a8; color: #5d6356; font: 1.55mm/1.1 Arial, sans-serif; }
+.card-footer { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: end; gap: 1.2mm; flex: 0 0 auto; min-height: 3.2mm; padding-top: .7mm; border-top: .16mm solid #b9b9a8; color: #5d6356; font: 1.55mm/1.1 Arial, sans-serif; }
 .unique { color: var(--accent); font-weight: 700; font-style: normal; letter-spacing: .12em; text-transform: uppercase; }
+.card-version { white-space: nowrap; text-align: center; font-size: 1.35mm; opacity: .62; }
 .card-id { max-width: 36mm; text-align: right; overflow-wrap: anywhere; opacity: .72; }
 .card-brief .card-rule { flex: 0 0 auto; font-size: 3.65mm; line-height: 1.15; }
 .card-ornament { display: flex; flex: 1 1 auto; min-height: 0; align-items: center; justify-content: center; }
@@ -109,7 +110,7 @@ button, .button { padding: 8px 12px; border: 1px solid #a9aa9f; color: inherit; 
 .card-vanilla .card-ornament svg { width: 25mm; height: 8mm; opacity: .23; }
 .game-card.layout-overflow { outline: .6mm solid #a52f28; outline-offset: .4mm; }
 
-@page cards { size: A4 portrait; margin: 0; }
+@page cards { size: A4 portrait; margin: 12mm 8mm 10mm; }
 @media screen and (max-width: 800px) {
   .card-sheets, .playtest-decks { width: 100%; }
   .deck-card-grid, .card-sheet { grid-template-columns: repeat(2, 63mm); }
@@ -118,27 +119,45 @@ button, .button { padding: 8px 12px; border: 1px solid #a9aa9f; color: inherit; 
   .screen-toolbar { align-items: start; flex-direction: column; }
   .deck-card-grid, .card-sheet { grid-template-columns: 63mm; }
 }
+.print-version { display: none; }
+
 @media print {
   body { background: white; }
   .screen-toolbar, .deck-sheet-heading { display: none; }
   .card-sheets, .playtest-decks { width: auto; margin: 0; }
   .card-sheet {
     page: cards;
-    width: 210mm;
-    height: 297mm;
-    margin: 0;
-    padding: 10mm 8.5mm 0;
+    width: 193mm;
+    height: 272mm;
+    margin: 0 auto;
+    padding: 0;
     grid-template-columns: repeat(3, 63mm);
     grid-auto-rows: 88mm;
     gap: 4mm 2mm;
     justify-content: start;
     align-content: start;
+    overflow: hidden;
     break-after: page;
-    break-inside: avoid;
+    page-break-after: always;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
   }
   .card-sheet + .card-sheet { margin-top: 0; }
   .card-sheets > .card-sheet:last-child,
-  .print-deck:last-child .card-sheet:last-child { break-after: auto; }
+  .print-deck:last-child .card-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
   .game-card { box-shadow: none; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .print-deck + .print-deck { margin-top: 0; }
+  .print-version {
+    display: block;
+    position: fixed;
+    right: 8.5mm;
+    bottom: 5mm;
+    z-index: 9999;
+    color: #666;
+    font: 1.8mm/1 Arial, sans-serif;
+    letter-spacing: .04em;
+  }
 }
