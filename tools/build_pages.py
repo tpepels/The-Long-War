@@ -159,7 +159,7 @@ def build_rulebook_print_pages(rendered: str) -> str:
         )
 
     def title_of(section: str) -> str:
-        match = re.search(r'<h2\\b[^>]*>(.*?)</h2>', section, re.DOTALL)
+        match = re.search(r'<h2\b[^>]*>(.*?)</h2>', section, re.DOTALL)
         if match is None:
             raise ValueError("Rulebook print section is missing an H2")
         return re.sub(r'<[^>]+>', '', match.group(1)).strip()
@@ -194,7 +194,7 @@ def build_rulebook_print_pages(rendered: str) -> str:
         )
 
     opening = rendered[:matches[0].start()]
-    opening = re.sub(r'<hr\\s*/?>', '', opening)
+    opening = re.sub(r'<hr\s*/?>', '', opening)
     opening = re.sub(
         r'<div class="rulebook-kicker">.*?</div>',
         '',
