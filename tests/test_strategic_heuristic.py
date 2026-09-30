@@ -86,17 +86,18 @@ def test_strategic_root_guard_preserves_last_command() -> None:
     state.players[0].command = 1
     state.players[1].command = 5
     state.operations_this_battle[:] = [1, 1]
-    for card_id in ("the-grey-riders", "marched-with", "elian"):
-        zone = (
-            state.players[0].hand
-            if card_id in state.players[0].hand
-            else state.players[0].deck
-        )
-        zone.remove(card_id)
+    player = state.players[0]
+    for zone in (player.hand, player.deck):
+        if "the-grey-riders" in zone:
+            zone.remove("the-grey-riders")
+            break
+    else:
+        raise AssertionError("expected The Grey Riders in player 0 hidden zones")
+    if "marched-with" not in player.hand:
+        player.deck.remove("marched-with")
+        player.hand.append("marched-with")
     slot = state.slot(0, Position(Front.FIRST, Rank.FRONT))
     slot.force = "the-grey-riders"
-    slot.bond = "marched-with"
-    slot.name = "elian"
 
     agent = StrategicHeuristicAgent(
         engine,
