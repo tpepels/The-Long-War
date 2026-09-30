@@ -258,14 +258,13 @@ def build_rulebook_print_pages(rendered: str) -> str:
             "Roles and classifications",
             "Unique cards",
             "Heroes",
-            "Maneuver",
         )
         + '</div><div class="rulebook-print-column">'
         + stack(
+            "Maneuver",
             "Narratives and Stratagems",
             "Passing",
             "Compare the Fronts",
-            "Retreat",
         )
         + '</div></div>'
     )
@@ -273,7 +272,7 @@ def build_rulebook_print_pages(rendered: str) -> str:
         '<div class="rulebook-print-reference-page">'
         '<div class="rulebook-print-columns rulebook-print-reference-row">'
         '<div class="rulebook-print-column">'
-        + stack("After the Battle")
+        + stack("Retreat", "After the Battle")
         + '</div><div class="rulebook-print-column">'
         + stack("Command")
         + '</div></div>'
