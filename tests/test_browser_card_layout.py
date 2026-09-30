@@ -278,7 +278,7 @@ def test_print_build_version_is_stamped_everywhere() -> None:
     assert ".print-version" in site_css
 
 
-def test_rulebook_print_uses_four_explicit_pages() -> None:
+def test_rulebook_print_uses_three_composed_pages() -> None:
     css = text("web/rules.css")
     builder = text("tools/build_pages.py")
     template = text("web/rulebook.template.html")
@@ -288,7 +288,7 @@ def test_rulebook_print_uses_four_explicit_pages() -> None:
     assert "build_rulebook_print_pages" in builder
     assert "Expected 17 rulebook sections" in builder
     assert 'data-page="{number}"' in builder
-    assert "Page {number} of 4" in builder
+    assert "Page {number} of 3" in builder
     assert "TLW print v{{{{PRINT_VERSION}}}}" in builder
     assert 'assets/rulebook-battlefield.svg' in builder
     assert "rulebook-print-shell" in template
@@ -304,6 +304,8 @@ def test_rulebook_print_uses_four_explicit_pages() -> None:
     assert "display: flex;" in explicit_css
     assert "width: calc(50% - 4.5mm);" in explicit_css
     assert "column-count" not in explicit_css
+    assert ".rulebook-print-page1-lower" in explicit_css
+    assert ".rulebook-print-reference-row" in explicit_css
     assert ".rulebook-print-goal-copy {" in explicit_css
     assert "flex: 0 0 42%;" in explicit_css
     assert ".rulebook-battlefield-figure img" in explicit_css
@@ -327,7 +329,7 @@ def test_rulebook_uses_generated_pdf_for_printing() -> None:
     assert "python tools/build_rulebook_pdf.py" in workflow
     assert 'href="rulebook.pdf?v={{PRINT_VERSION}}"' in template
     assert "window.print()" not in template
-    assert "EXPECTED_PAGES = 4" in generator
+    assert "EXPECTED_PAGES = 3" in generator
     assert "len(document.pages) != EXPECTED_PAGES" in generator
     assert "document.write_pdf" in generator
 

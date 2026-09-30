@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the canonical four-page printable rulebook PDF."""
+"""Build the canonical three-page printable rulebook PDF."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pathlib import Path
 from weasyprint import HTML
 
 
-EXPECTED_PAGES = 4
+EXPECTED_PAGES = 3
 
 
 def build_rulebook_pdf(source: Path, output: Path) -> None:
