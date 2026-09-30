@@ -197,6 +197,12 @@ function remoteStatus(message, error = false) {
 
 function resetRemoteSetup(closePeer = true) {
   if (closePeer) closeRemotePeer();
+  if (!remoteGameStarted && session?.snapshot?.(0)?.mode === "remote") {
+    session.destroy();
+    session = null;
+    state = null;
+    renderedState = null;
+  }
   $("remote-input").value = "";
   $("remote-output").value = "";
   $("remote-output-wrap").hidden = true;
