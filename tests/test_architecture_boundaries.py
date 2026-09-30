@@ -132,6 +132,8 @@ def test_deck_format_is_separate_from_match_rules() -> None:
 
 def test_game_core_does_not_know_shipped_decks() -> None:
     """Reference/archetype decks are content passed to the engine, not rules."""
+    from tools.deck_catalog import DECK_CATALOG
+
     core = "\n".join(
         path.read_text(encoding="utf-8")
         for path in (
@@ -142,14 +144,10 @@ def test_game_core_does_not_know_shipped_decks() -> None:
             SRC / "game" / "actions.py",
         )
     )
-    for marker in (
-        "decks/",
-        "reference.json",
-        "avaros-line",
-        "mara-rear",
-        "sera-support",
-    ):
-        assert marker not in core
+    assert "decks/" not in core
+    for entry in DECK_CATALOG:
+        assert entry["id"] not in core
+        assert entry["file"] not in core
 
 
 def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
