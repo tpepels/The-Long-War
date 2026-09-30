@@ -60,7 +60,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, state.maneuver_count[slot])
         _info_hash_feed(&h, state.maneuvered_in_operation[slot])
 
-    for ix in range(SCHEME_COUNT):
+    for ix in range(NARRATIVE_COUNT):
         _info_hash_feed(&h, <uint8_t>(state.narrative[ix] + 1))
         _info_hash_feed(&h, state.narrative_revealed[ix])
         _info_hash_feed(&h, state.narrative_front_mask[ix])
@@ -472,12 +472,12 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             f"{front_from_slot(dest)}:"
             f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
         )
-    if kind == TYPE_SUBJECT:
+    if kind == TYPE_FORCE:
         return (
             f"force:{self.card_ids[card]}:{front_from_slot(pos)}:"
             f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
         )
-    if kind == TYPE_LINK:
+    if kind == TYPE_BOND:
         key = (
             f"bond:{self.card_ids[card]}:{front_from_slot(pos)}:"
             f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
@@ -495,7 +495,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             f"name:{self.card_ids[card]}:{front_from_slot(pos)}:"
             f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
         )
-    if kind == TYPE_SCHEME:
+    if kind == TYPE_ONGOING_NARRATIVE:
         key = f"story:{self.card_ids[card]}:ongoing:{pos}"
         choice = self.story_choice_kind[card]
         if choice == STORY_CHOICE_FRONT:
@@ -554,7 +554,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
                     )
             key += ":targets:" + ";".join(targets)
         return key
-    if kind == TYPE_PLOT:
+    if kind == TYPE_NARRATIVE:
         if extra and self.story_discard_count[card] == 1:
             return (
                 f"story:{self.card_ids[card]}:discard:"
