@@ -1899,7 +1899,13 @@ def benchmark_strength(
         json.dumps(summary, indent=2) + "\n",
         encoding="utf-8",
     )
+    stable_path = ROOT / "artifacts" / "solver-strength.json"
+    stable_path.write_text(
+        json.dumps(summary, indent=2) + "\n",
+        encoding="utf-8",
+    )
     print(f"Summary: {summary_path}")
+    print(f"Balance Lab solver evidence: {stable_path}")
     return summary_path
 
 
