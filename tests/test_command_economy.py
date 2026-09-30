@@ -222,34 +222,6 @@ def test_recovery_floor_applies_after_front_losses() -> None:
 
     assert state.phase.value == "battle"
     assert state.winner is None
-def test_recovery_floor_applies_after_front_losses() -> None:
-    rules = GameRules.standard().with_overrides(
-        command_recovery_start=0,
-        command_recovery_decrement=0,
-        command_recovery_floor=1,
-        command_collapse_threshold=0,
-    )
-    engine, state = standard_game(rules=rules)
-    # Base recovery is explicitly 0; each player still recovers the configured
-    # floor despite losing a Front.
-    GameScenario(state).battle(1).commands(4, 4).battle_start_commands(
-        4,
-        4,
-    ).operations(1, 1).clear_hands().formation(
-        1,
-        Position(Front.FIRST, Rank.FRONT),
-        force="the-fifty-men",
-    ).formation(
-        0,
-        Position(Front.SECOND, Rank.FRONT),
-        force="the-fifty-men",
-    )
-
-    engine.apply(state, Pass())
-    engine.apply(state, Pass())
-
-    assert state.phase.value == "battle"
-    assert state.winner is None
     assert state.battle == 2
     assert [player.command for player in state.players] == [5, 5]
     snapshot = state.last_battle_snapshot
