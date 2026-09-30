@@ -6,6 +6,7 @@ from typing import Any
 from ..cards import card_index, compile_card_mechanics, load_card_file, validate_card_data
 from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
+from ..native_engine import create_fast_engine, create_heuristic_evaluator
 from .actions import Action, action_from_key, action_key
 from .model import (
     ConstraintKind,
@@ -72,7 +73,7 @@ class GameEngine:
 
     Rules and card metadata are configured here, but legality, Strength,
     transitions, card effects, passing, drawing, battle resolution and hidden
-    information updates execute only in longwar._fast_search.FastEngine.
+    information updates execute only in the canonical native engine backend.
 
     GameState remains a readable Python view for telemetry, UI adapters,
     belief sampling and tests. It is synchronized from packed Cython state
@@ -134,14 +135,7 @@ class GameEngine:
         return cls(load_card_file(path))
 
     def _build_native_core(self):
-        try:
-            from .._fast_search import FastEngine
-        except ImportError as exc:
-            raise RuntimeError(
-                "The canonical Cython game engine is not built. "
-                "Run: python -m pip install -e '.[dev]'"
-            ) from exc
-        return FastEngine(self)
+        return create_fast_engine(self)
 
     def _native_core(self):
         return self._native_core_instance
@@ -149,14 +143,7 @@ class GameEngine:
     def _native_heuristic(self):
         evaluator = self._native_heuristic_instance
         if evaluator is None:
-            try:
-                from .._fast_search import NativeHeuristicEvaluator
-            except ImportError as exc:
-                raise RuntimeError(
-                    "The canonical Cython heuristic evaluator is not built. "
-                    "Run: python -m pip install -e '.[dev]'"
-                ) from exc
-            evaluator = NativeHeuristicEvaluator(self._native_core_instance)
+            evaluator = create_heuristic_evaluator(self._native_core_instance)
             self._native_heuristic_instance = evaluator
         return evaluator
 
