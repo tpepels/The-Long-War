@@ -108,7 +108,7 @@ def markdown_to_typst(source: str, version: str) -> str:
   above: 7pt,
   below: 3pt,
   breakable: false,
-)[#text(size: 9pt, weight: "bold")[#upper(it.body)]]
+)[#text(size: 9pt, weight: "bold")[#it.body]]
 
 #align(left)[
   #text(size: 31pt, weight: "semibold")[The Long War]
