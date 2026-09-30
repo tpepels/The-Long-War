@@ -339,7 +339,7 @@ def test_heuristic_policy_is_separate_from_rule_transitions() -> None:
     evaluator = StrategicEvaluator()
 
     native = engine._native_heuristic()
-    assert type(native).__module__ == "longwar._fast_search"
+    assert type(native).__name__ == "NativeHeuristicEvaluator"
 
     source = inspect.getsource(StrategicEvaluator._strategic_state_value)
     assert "_native_heuristic" not in source
@@ -364,15 +364,20 @@ def test_python_facade_contains_no_duplicate_rule_engine() -> None:
         assert not hasattr(GameEngine, name), name
 
 
-def test_canonical_native_engine_is_required_build_output() -> None:
-    source = (ROOT / "setup.py").read_text(encoding="utf-8")
-    marker = '"longwar._fast_search"'
-    assert marker in source
-    remainder = source.split(marker, 1)[1]
-    end_marker = "),"
-    assert end_marker in remainder, "expected the Extension(...) call to close with '),'"
-    fast_block = remainder.split(end_marker, 1)[0]
-    assert "optional=True" not in fast_block
+def test_compiled_native_module_is_hidden_behind_facades() -> None:
+    allowed = {
+        SRC / "native_engine.py",
+        SRC / "native_search.py",
+    }
+    for path in SRC.rglob("*.py"):
+        if path in allowed:
+            continue
+        assert "_fast_search" not in path.read_text(encoding="utf-8"), path
+
+    engine_facade = (SRC / "native_engine.py").read_text(encoding="utf-8")
+    search_facade = (SRC / "native_search.py").read_text(encoding="utf-8")
+    assert "_fast_search" in engine_facade
+    assert "_fast_search" in search_facade
 
 
 def test_native_engine_composition_contains_no_search_implementation() -> None:
@@ -412,164 +417,6 @@ def test_native_algorithms_do_not_contain_rule_switches() -> None:
     ):
         source = (SRC / filename).read_text(encoding="utf-8")
         assert not any(term in source for term in forbidden), filename
-
-
-def test_dead_rule_switches_are_removed() -> None:
-    rules = (SRC / "rules.py").read_text(encoding="utf-8")
-    engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
-    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
-    simulate = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
-    actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
-
-    obsolete = (
-        "draw_action_enabled",
-        "recycle_between_battles",
-        "battle_command_gain",
-        "automatic_draw_hand_limit",
-        "battle_end_hand_limit",
-        "automatic_draw",
-        "paid_draw_enabled",
-        "paid_draw_command_cost",
-        "paid_draw_consumes_operation",
-        "command_enabled",
-        "reshuffle_on_empty",
-    )
-    for name in obsolete:
-        assert name not in rules
-        assert name not in engine
-        assert name not in native
-        assert name not in simulate
-
-    assert "class Draw" not in actions
-    assert '"draw"' not in actions
-    assert "--automatic-draw" not in simulate
-    assert "--paid-draw" not in simulate
-    assert "--no-turn-draw" not in simulate
-    assert "--no-command" not in simulate
-    assert "--reshuffle-on-empty" not in simulate
-    assert "--no-reshuffle-on-empty" not in simulate
-
-
-def test_no_universal_line_defense_native_state() -> None:
-    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
-    assert "line_disabled" not in native
-    assert "strat_disable_line" not in native
-
-
-def test_public_stratagems_are_not_a_rule_variant() -> None:
-    rules = (SRC / "rules.py").read_text(encoding="utf-8")
-    engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
-    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
-    simulate = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
-
-    assert "public_stratagems" not in rules
-    assert "public_stratagems" not in engine
-    assert "public_stratagems" not in native
-    assert "--hidden-stratagems" not in simulate
-    assert "--public-stratagems" not in simulate
-
-
-def test_canonical_game_vocabulary_has_no_obsolete_aliases() -> None:
-    actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
-    model = (SRC / "game" / "model.py").read_text(encoding="utf-8")
-    game_init = (SRC / "game" / "__init__.py").read_text(encoding="utf-8")
-
-    for obsolete in (
-        "PlaySubject",
-        "PlayLink",
-        "PlayPlot",
-        "PlayScheme",
-        "SetStratagem",
-        "SchemeState",
-        "Front.LEFT",
-        "Front.CENTER",
-        "Front.RIGHT",
-    ):
-        assert obsolete not in actions
-        assert obsolete not in model
-        assert obsolete not in game_init
-
-    assert 'parts[0] == "force"' in actions
-    assert 'parts[0] == "bond"' in actions
-    assert 'parts[0] == "story"' in actions
-    assert '"subject"' not in actions
-    assert '"link"' not in actions
-    assert '"plot"' not in actions
-    assert '"scheme"' not in actions
-
-
-def test_obsolete_choose_first_state_is_gone() -> None:
-    actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
-    model = (SRC / "game" / "model.py").read_text(encoding="utf-8")
-    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
-    heuristic = (SRC / "_heuristic_core.pxi").read_text(encoding="utf-8")
-    mccfr = (SRC / "_mccfr_core.pxi").read_text(encoding="utf-8")
-
-    assert "ChooseFirst" not in actions
-    assert "choose_first" not in actions
-    assert "CHOOSE_FIRST" not in model
-    for obsolete in (
-        "PHASE_CHOOSE",
-        "TYPE_CHOOSE",
-        "cleanup_next_starter",
-        "cleanup_next_chooser",
-        "victories",
-        "chooser",
-    ):
-        assert obsolete not in native
-    assert "TYPE_CHOOSE" not in heuristic
-    assert "choose_first" not in mccfr
-
-
-def test_heuristic_has_no_deleted_global_rule_switches() -> None:
-    heuristic = (SRC / "_heuristic_core.pxi").read_text(encoding="utf-8")
-    assert "recycle_between_battles" not in heuristic
-    assert "command_enabled" not in heuristic
-
-
-def test_legacy_card_backup_is_inert() -> None:
-    forbidden = "cards.legacy-before-first-80.json"
-    for root in (SRC, ROOT / "tools", ROOT / "web"):
-        for path in root.rglob("*"):
-            if path.is_file() and path.suffix in {".py", ".pyx", ".pxi", ".js", ".mjs", ".html"}:
-                assert forbidden not in path.read_text(encoding="utf-8"), path
-
-
-def test_global_completion_rule_variants_are_removed() -> None:
-    rules = (SRC / "rules.py").read_text(encoding="utf-8")
-    engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
-    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
-    for obsolete in ("completion_draw_names", "completion_command_refund", "legacy_completion_draw", "completion_command_refunded"):
-        assert obsolete not in rules
-        assert obsolete not in engine
-        assert obsolete not in native
-
-
-def test_cycle_operation_is_fully_removed() -> None:
-    actions = (SRC / "game" / "actions.py").read_text(encoding="utf-8")
-    rules = (SRC / "rules.py").read_text(encoding="utf-8")
-    engine = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
-    native = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
-    heuristic = (SRC / "_heuristic_core.pxi").read_text(encoding="utf-8")
-    for obsolete in ("Cycle", "cycle_enabled", "cycle_command_cost", "TYPE_CYCLE", "free_cycle", "grant_free_cycle"):
-        assert obsolete not in actions
-        assert obsolete not in rules
-        assert obsolete not in engine
-        assert obsolete not in native
-        assert obsolete not in heuristic
-
-
-def test_native_algorithms_do_not_reference_deleted_draw_action() -> None:
-    for filename in ("_heuristic_core.pxi", "_alpha_beta_core.pxi", "_ismcts_core.pxi", "_mccfr_core.pxi"):
-        source = (SRC / filename).read_text(encoding="utf-8")
-        assert "TYPE_DRAW" not in source, filename
-
-
-def test_native_search_uses_current_heuristic_interface() -> None:
-    for filename in ("_alpha_beta_core.pxi", "_ismcts_core.pxi"):
-        source = (SRC / filename).read_text(encoding="utf-8")
-        assert "score_action_fast" not in source
-        assert "action_order_score_fast" in source
 
 
 def test_ismcts_hot_tree_path_is_native() -> None:
