@@ -7,20 +7,20 @@ cdef class FastState:
     cdef int8_t discard[2][MAX_DECK]
     cdef uint8_t discard_len[2]
 
-    cdef int8_t subject[SLOT_COUNT]
-    cdef int8_t link[SLOT_COUNT]
+    cdef int8_t force[SLOT_COUNT]
+    cdef int8_t bond[SLOT_COUNT]
     cdef int8_t name[SLOT_COUNT]
     cdef int16_t temporary[SLOT_COUNT]
     cdef uint8_t maneuver_count[SLOT_COUNT]
     cdef uint8_t maneuvered_in_operation[SLOT_COUNT]
 
-    cdef int8_t scheme[SCHEME_COUNT]
-    cdef uint8_t scheme_revealed[SCHEME_COUNT]
-    cdef uint8_t scheme_front_mask[SCHEME_COUNT]
-    cdef int8_t scheme_target_slot[SCHEME_COUNT]
-    cdef uint8_t scheme_used[SCHEME_COUNT]
-    cdef uint8_t scheme_direction[SCHEME_COUNT]
-    cdef uint8_t scheme_trigger_mask[SCHEME_COUNT]
+    cdef int8_t narrative[SCHEME_COUNT]
+    cdef uint8_t narrative_revealed[SCHEME_COUNT]
+    cdef uint8_t narrative_front_mask[SCHEME_COUNT]
+    cdef int8_t narrative_target_slot[SCHEME_COUNT]
+    cdef uint8_t narrative_used[SCHEME_COUNT]
+    cdef uint8_t narrative_direction[SCHEME_COUNT]
+    cdef uint8_t narrative_trigger_mask[SCHEME_COUNT]
     cdef int8_t stratagem[2]
     cdef uint8_t stratagem_revealed[2]
     cdef uint8_t stratagem_front_mask[2]
@@ -123,19 +123,19 @@ cdef class FastState:
         memset(self.hand_len, 0, sizeof(self.hand_len))
         memset(self.discard, 0xff, sizeof(self.discard))
         memset(self.discard_len, 0, sizeof(self.discard_len))
-        memset(self.subject, 0xff, sizeof(self.subject))
-        memset(self.link, 0xff, sizeof(self.link))
+        memset(self.force, 0xff, sizeof(self.force))
+        memset(self.bond, 0xff, sizeof(self.bond))
         memset(self.name, 0xff, sizeof(self.name))
         memset(self.temporary, 0, sizeof(self.temporary))
         memset(self.maneuver_count, 0, sizeof(self.maneuver_count))
         memset(self.maneuvered_in_operation, 0, sizeof(self.maneuvered_in_operation))
-        memset(self.scheme, 0xff, sizeof(self.scheme))
-        memset(self.scheme_revealed, 0, sizeof(self.scheme_revealed))
-        memset(self.scheme_front_mask, 0, sizeof(self.scheme_front_mask))
-        memset(self.scheme_target_slot, 0xff, sizeof(self.scheme_target_slot))
-        memset(self.scheme_used, 0, sizeof(self.scheme_used))
-        memset(self.scheme_direction, 0, sizeof(self.scheme_direction))
-        memset(self.scheme_trigger_mask, 0, sizeof(self.scheme_trigger_mask))
+        memset(self.narrative, 0xff, sizeof(self.narrative))
+        memset(self.narrative_revealed, 0, sizeof(self.narrative_revealed))
+        memset(self.narrative_front_mask, 0, sizeof(self.narrative_front_mask))
+        memset(self.narrative_target_slot, 0xff, sizeof(self.narrative_target_slot))
+        memset(self.narrative_used, 0, sizeof(self.narrative_used))
+        memset(self.narrative_direction, 0, sizeof(self.narrative_direction))
+        memset(self.narrative_trigger_mask, 0, sizeof(self.narrative_trigger_mask))
         memset(self.stratagem, 0xff, sizeof(self.stratagem))
         memset(self.stratagem_revealed, 0, sizeof(self.stratagem_revealed))
         memset(self.stratagem_front_mask, 0, sizeof(self.stratagem_front_mask))
@@ -232,19 +232,19 @@ cdef class FastState:
         memcpy(self.hand_len, other.hand_len, sizeof(self.hand_len))
         memcpy(self.discard, other.discard, sizeof(self.discard))
         memcpy(self.discard_len, other.discard_len, sizeof(self.discard_len))
-        memcpy(self.subject, other.subject, sizeof(self.subject))
-        memcpy(self.link, other.link, sizeof(self.link))
+        memcpy(self.force, other.force, sizeof(self.force))
+        memcpy(self.bond, other.bond, sizeof(self.bond))
         memcpy(self.name, other.name, sizeof(self.name))
         memcpy(self.temporary, other.temporary, sizeof(self.temporary))
         memcpy(self.maneuver_count, other.maneuver_count, sizeof(self.maneuver_count))
         memcpy(self.maneuvered_in_operation, other.maneuvered_in_operation, sizeof(self.maneuvered_in_operation))
-        memcpy(self.scheme, other.scheme, sizeof(self.scheme))
-        memcpy(self.scheme_revealed, other.scheme_revealed, sizeof(self.scheme_revealed))
-        memcpy(self.scheme_front_mask, other.scheme_front_mask, sizeof(self.scheme_front_mask))
-        memcpy(self.scheme_target_slot, other.scheme_target_slot, sizeof(self.scheme_target_slot))
-        memcpy(self.scheme_used, other.scheme_used, sizeof(self.scheme_used))
-        memcpy(self.scheme_direction, other.scheme_direction, sizeof(self.scheme_direction))
-        memcpy(self.scheme_trigger_mask, other.scheme_trigger_mask, sizeof(self.scheme_trigger_mask))
+        memcpy(self.narrative, other.narrative, sizeof(self.narrative))
+        memcpy(self.narrative_revealed, other.narrative_revealed, sizeof(self.narrative_revealed))
+        memcpy(self.narrative_front_mask, other.narrative_front_mask, sizeof(self.narrative_front_mask))
+        memcpy(self.narrative_target_slot, other.narrative_target_slot, sizeof(self.narrative_target_slot))
+        memcpy(self.narrative_used, other.narrative_used, sizeof(self.narrative_used))
+        memcpy(self.narrative_direction, other.narrative_direction, sizeof(self.narrative_direction))
+        memcpy(self.narrative_trigger_mask, other.narrative_trigger_mask, sizeof(self.narrative_trigger_mask))
         memcpy(self.stratagem, other.stratagem, sizeof(self.stratagem))
         memcpy(self.stratagem_revealed, other.stratagem_revealed, sizeof(self.stratagem_revealed))
         memcpy(self.stratagem_front_mask, other.stratagem_front_mask, sizeof(self.stratagem_front_mask))
