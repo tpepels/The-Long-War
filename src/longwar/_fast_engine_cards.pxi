@@ -1,4 +1,6 @@
 cdef void _fe___cinit__(FastEngine self) except *:
+    self.command_event_capture = False
+    self.command_events = []
     memset(self.card_type, 0, sizeof(self.card_type))
     memset(self.card_command_cost, 0, sizeof(self.card_command_cost))
     memset(self.adjacent_command_discount, 0, sizeof(self.adjacent_command_discount))
