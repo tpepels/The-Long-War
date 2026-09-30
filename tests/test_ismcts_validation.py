@@ -184,6 +184,38 @@ def test_native_hash_is_exact_hash_of_canonical_information_encoding() -> None:
     assert checked >= 20
 
 
+def test_packed_hidden_zone_determinization_matches_python_belief_sample() -> None:
+    engine, deck, priors = _standard_fixture()
+    state = engine.new_game(deck, deck, seed=9209, first_player=0)
+    belief = BeliefSampler(engine, priors=priors)
+    fast = FastEngine(engine)
+    base = fast.from_game_state(state)
+
+    python_sample = belief.sample(state, 0, random.Random(9210))
+    viewer_deck, opponent_hand, opponent_deck = belief.sample_hidden_zones(
+        state,
+        0,
+        random.Random(9210),
+    )
+    packed_sample = fast.determinize_hidden_zones(
+        base,
+        0,
+        viewer_deck,
+        opponent_hand,
+        opponent_deck,
+    )
+    python_packed = fast.from_game_state(python_sample)
+
+    assert fast.state_hash(packed_sample) == fast.state_hash(python_packed)
+    assert fast.information_hash(packed_sample, 0) == fast.information_hash(
+        python_packed,
+        0,
+    )
+    assert tuple(fast.legal_actions(packed_sample)) == tuple(
+        fast.legal_actions(python_packed)
+    )
+
+
 def test_hidden_determinizations_share_root_information_identity() -> None:
     engine, deck, priors = _standard_fixture()
     state = engine.new_game(deck, deck, seed=9210, first_player=0)
