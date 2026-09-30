@@ -405,8 +405,6 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
         if state.pending_len > 0 or state.cleanup_pending:
             return
 
-    _fe_discard_battle_stratagems(self, state)
-    _fe_clear_battle_temporary_strength(self, state)
     state.resolution_stage = RESOLUTION_NARRATIVES
     state.resolution_cursor = 0
 
@@ -671,6 +669,11 @@ cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except
                 if state.pending_len > 0 or state.cleanup_pending:
                     return
                 continue
+            # Printed Battle-end effects resolve while the Battle's public
+            # Stratagems and temporary Strength still exist. Only after all
+            # such effects are complete do Battle-only effects leave play.
+            _fe_discard_battle_stratagems(self, state)
+            _fe_clear_battle_temporary_strength(self, state)
             state.resolution_stage = RESOLUTION_RECOVERY
             continue
 

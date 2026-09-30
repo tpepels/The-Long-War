@@ -219,7 +219,7 @@ def main() -> None:
       }
 
       const target = document.querySelector(
-        ".digital-slot.targetable, .story-marker.targetable"
+        ".digital-slot.targetable, #choice-tray button"
       );
       if (!target) return;
       target.click();

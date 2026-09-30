@@ -64,7 +64,7 @@ const TERM_HINTS = {
   "discard": "Move a card to its owner's discard pile.",
   "discarded": "Moved to the discard pile.",
   "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
-  "command": "Your operation budget. Start at 20. After each Battle, recover the scheduled amount minus Fronts lost, to a maximum of 20. Unspent Command carries over.",
+  "command": "Your operation budget. Start at 20. After Battle-end effects, check Collapse before recovery: exactly one player at 0 loses; 0-0 continues. A continuing war recovers max(1, base recovery minus Fronts lost), to a maximum of 20.",
   "draw": "At the start of each turn, draw 1 card. Your draw pile persists; shuffle the discard only when an empty deck must supply a draw.",
   "front": "One of four lanes: Front 1, Front 2, Front 3, or Front 4.",
   "hero": "A Unique dual-use card. Play one Hero per side per Battle, either as a Force or as a Name.",
@@ -288,12 +288,6 @@ function targetActionsForSlot(owner, front, rank) {
   return matches;
 }
 
-function targetActionsForStorySlot(slot) {
-  return selectedActions().filter(
-    (action) => action.kind === "PlayStory" && action.ongoing_slot === slot
-  );
-}
-
 function maneuverActionsFrom(front, rank) {
   if (!state || selectedCardId || currentViewer() !== state.active_player) return [];
   return state.legal_actions.filter(
@@ -400,29 +394,15 @@ function renderSlot(owner, front, rank) {
 
 function renderStorySlot(owner, slot) {
   const story = state.stories?.[owner]?.[slot] || null;
-  const actions =
-    owner === currentViewer()
-      ? targetActionsForStorySlot(slot)
-      : [];
-  const targetable = actions.length > 0;
   const classes = ["scheme-marker", "story-marker"];
-  if (targetable) classes.push("targetable");
   if (!story) classes.push("empty");
   const attrs =
     'data-story-owner="' + owner +
-    '" data-story-slot="' + slot + '"' +
-    (targetable
-      ? ' role="button" tabindex="0" aria-label="Play ongoing Story in slot ' +
-        (slot + 1) + '"'
-      : '');
+    '" data-story-slot="' + slot + '"';
 
   if (!story) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
-      '<span>Ongoing Narrative ' + (slot + 1) + '</span><b>' +
-      (targetable
-        ? 'PLAY · ' + commandCostLabel(actions)
-        : 'empty') +
-      '</b></div>';
+      '<span>Ongoing Narrative ' + (slot + 1) + '</span><b>empty</b></div>';
   }
   const association = story.fronts?.length
     ? " · " + story.fronts.map((front) => frontNames[front]).join(" + ")
@@ -707,7 +687,7 @@ function interactionHintFor(card) {
   }
   if (actions.some((a) => a.kind === "PlayStory")) {
     if (actions.some((a) => a.ongoing_slot != null)) {
-      return "Choose one of your two Ongoing Narrative slots.";
+      return "Play this Ongoing Narrative. The first open Narrative slot is assigned automatically.";
     }
     if (stagedPlotSource) {
       return "Now choose the destination for " + card.title + ".";
@@ -829,9 +809,7 @@ function renderChoiceTray() {
     const selected = selectedActions();
     const direct = selected.filter((a) =>
       a.kind === "Discard" ||
-      (a.kind === "PlayStory" &&
-        a.targets.length === 0 &&
-        a.ongoing_slot == null)
+      (a.kind === "PlayStory" && a.targets.length === 0)
     );
     if (
       direct.length > 0 &&
@@ -1101,19 +1079,6 @@ function bindBoardTargets() {
         el.dataset.boardRank
       )
     );
-  });
-
-  document.querySelectorAll("[data-story-slot]").forEach((el) => {
-    bindTarget(el, () => {
-      if (Number(el.dataset.storyOwner) !== currentViewer()) return;
-      const slot = Number(el.dataset.storySlot);
-      const matches = targetActionsForStorySlot(slot);
-      if (matches.length === 1) executeAction(matches[0]);
-      else if (matches.length > 1) {
-        choiceActions = matches;
-        renderChoiceTray();
-      }
-    });
   });
 
   document.querySelectorAll("[data-stratagem-owner]").forEach((el) => {
