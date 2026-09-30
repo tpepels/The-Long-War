@@ -772,3 +772,11 @@ def test_full_lab_stage_reuse_checks_experiment_fingerprint():
     names = {path.name for path in paths}
     assert "verify_mccfr.py" in names
     assert "build_mccfr_suite.py" in names
+
+
+def test_full_lab_stage_reuse_is_game_fingerprint_scoped_not_global_experiment_scoped():
+    source = (ROOT / "tools" / "full_lab.py").read_text(encoding="utf-8")
+    stage_current = source.split("def _stage_current(", 1)[1].split("def _write_marker(", 1)[0]
+    assert 'payload.get("game_fingerprint")' in stage_current
+    assert 'payload.get("experiment_fingerprint")' not in stage_current
+    assert 'payload.get("config")' in stage_current
