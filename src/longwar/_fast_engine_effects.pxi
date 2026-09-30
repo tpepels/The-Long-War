@@ -55,12 +55,12 @@ cdef inline int _fe_preferred_slot(FastEngine self, FastState state, int player,
     return slot if state.force[slot] >= 0 else -1
 
 cdef void _fe_remove_link(FastEngine self, FastState state, int player, int slot):
-    cdef int link = state.bond[slot]
+    cdef int bond = state.bond[slot]
     cdef int name = state.name[slot]
     state.bond[slot] = -1
     state.name[slot] = -1
-    if link >= 0:
-        _fe_append_discard(self, state, player, link, True)
+    if bond >= 0:
+        _fe_append_discard(self, state, player, bond, True)
     if name >= 0:
         _fe_return_to_hand(self, state, player, name)
 
@@ -118,7 +118,7 @@ cdef void _fe_reveal_scheme(FastEngine self, FastState state, int controller, in
     amount = self.narrative_amount[card]
     if effect == ONGOING_EFFECT_PENALIZE_FORCE and trigger_slot >= 0 and state.force[trigger_slot] >= 0:
         state.temporary[trigger_slot] -= amount
-    elif effect == SCHEME_DISCARD_BOND and trigger_slot >= 0 and state.bond[trigger_slot] >= 0:
+    elif effect == ONGOING_EFFECT_DISCARD_BOND and trigger_slot >= 0 and state.bond[trigger_slot] >= 0:
         _fe_remove_link(self, state, actor, trigger_slot)
     elif effect == ONGOING_EFFECT_REINFORCE:
         target = _fe_preferred_slot(self, state, controller, front)
