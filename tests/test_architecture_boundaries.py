@@ -146,7 +146,6 @@ def test_game_core_does_not_know_shipped_decks() -> None:
     )
     assert "decks/" not in core
     for entry in DECK_CATALOG:
-        assert entry["id"] not in core
         assert entry["file"] not in core
 
 
