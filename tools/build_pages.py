@@ -9,10 +9,10 @@ from pathlib import Path
 import markdown
 if __package__:
     from .build_browser_runtime import ensure_browser_runtime
-    from .deck_catalog import REFERENCE_DECK_PATHS
+    from longwar.reference_decks import REFERENCE_DECK_PATHS
 else:
     from build_browser_runtime import ensure_browser_runtime
-    from deck_catalog import REFERENCE_DECK_PATHS
+    from longwar.reference_decks import REFERENCE_DECK_PATHS
 from longwar.cards import load_card_file
 from longwar.rules import GameRules
 
