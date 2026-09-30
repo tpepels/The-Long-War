@@ -1457,7 +1457,15 @@ def test_late_banner_gets_its_free_maneuver_even_while_unnamed() -> None:
     engine.apply(state, PlayForce("the-late-banner", pos(1, Rank.FRONT)))
 
     choices = effect_choices(engine, state, "free-maneuver")
-    assert any(not choice.skip for choice in choices)
+    choice = next(choice for choice in choices if not choice.skip)
+    engine.apply(state, choice)
+
+    assert any(
+        event["kind"] == "discount"
+        and event["detail"] == "free_maneuver"
+        and event["source_card"] == "the-late-banner"
+        for event in engine.last_command_diagnostics()
+    )
 
 
 def test_carried_oath_can_transfer_after_unnamed_force_maneuvers() -> None:
