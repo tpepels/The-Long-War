@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,28 @@ ARTIFACTS = ROOT / "artifacts"
 
 def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def policy_fingerprint(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+
+
+def policy_coverage(report: dict[str, Any]) -> dict[str, Any]:
+    sources = (report.get("telemetry") or {}).get("policy_sources") or {}
+    mccfr = int(sources.get("mccfr", 0) or 0)
+    fallback = sum(
+        int(count or 0)
+        for source, count in sources.items()
+        if str(source).startswith("fallback:")
+    )
+    total = mccfr + fallback
+    return {
+        "sources": dict(sorted(sources.items())),
+        "mccfr_decisions": mccfr,
+        "heuristic_fallback_decisions": fallback,
+        "mccfr_coverage_rate": (mccfr / total if total else None),
+        "heuristic_fallback_rate": (fallback / total if total else None),
+    }
 
 
 def seat_swapped_evaluation(
@@ -57,7 +80,8 @@ def main() -> None:
         deck_unique = set(deck)
         covered.update(deck_unique)
 
-        policy = load(ARTIFACTS / f"mccfr-policy-{profile_id}.json")
+        policy_path = ARTIFACTS / f"mccfr-policy-{profile_id}.json"
+        policy = load(policy_path)
         if policy.get("game_fingerprint") != game_fingerprint:
             raise SystemExit(f"Stale MCCFR policy for {profile_id}: rerun training for the current ruleset")
         forward = load(ARTIFACTS / f"mccfr-{profile_id}-vs-heuristic.json")
@@ -72,6 +96,29 @@ def main() -> None:
             )
 
         combined_evaluation = seat_swapped_evaluation(forward, reverse)
+        forward_coverage = policy_coverage(forward)
+        reverse_coverage = policy_coverage(reverse)
+        total_mccfr = (
+            forward_coverage["mccfr_decisions"]
+            + reverse_coverage["mccfr_decisions"]
+        )
+        total_fallback = (
+            forward_coverage["heuristic_fallback_decisions"]
+            + reverse_coverage["heuristic_fallback_decisions"]
+        )
+        total_policy_decisions = total_mccfr + total_fallback
+        combined_coverage = {
+            "mccfr_decisions": total_mccfr,
+            "heuristic_fallback_decisions": total_fallback,
+            "mccfr_coverage_rate": (
+                total_mccfr / total_policy_decisions
+                if total_policy_decisions else None
+            ),
+            "heuristic_fallback_rate": (
+                total_fallback / total_policy_decisions
+                if total_policy_decisions else None
+            ),
+        }
 
         profiles.append(
             {
@@ -92,10 +139,14 @@ def main() -> None:
                     "information_abstraction": policy.get("information_abstraction"),
                     "average_policy": policy.get("average_policy"),
                     "training_seed": policy.get("training_seed"),
+                    "policy_fingerprint": policy_fingerprint(policy_path),
                 },
                 "evaluation": {
                     "mccfr_vs_heuristic": simulation_summary(forward),
                     "heuristic_vs_mccfr": simulation_summary(reverse),
+                    "mccfr_vs_heuristic_coverage": forward_coverage,
+                    "heuristic_vs_mccfr_coverage": reverse_coverage,
+                    "combined_policy_coverage": combined_coverage,
                     **combined_evaluation,
                 },
             }
