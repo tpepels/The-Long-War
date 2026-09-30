@@ -461,4 +461,4 @@ def test_browser_hand_uses_available_width_at_readable_resting_scale() -> None:
     assert "150 * scale" in script
     assert "hand.clientWidth - 204 * scale - 24" in script
     assert "padding: 0 clamp(14px, 2vw, 30px);" in style
-    assert "--inspect-scale: 0.98;" in style
+    assert "--inspect-scale: 1.15;" in style
