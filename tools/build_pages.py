@@ -75,9 +75,16 @@ def stamp_print_version(version: str) -> None:
     )
     for page in DIST.rglob("*.html"):
         source = page.read_text(encoding="utf-8")
+        source = source.replace("{{PRINT_VERSION}}", version)
         if 'name="lw-build-version"' not in source:
             source = source.replace("</head>", f"  {meta}\n</head>")
-        if page.name in PRINTABLE_PAGES and 'class="print-version"' not in source:
+        # The rulebook owns its version footer inside each explicit print page.
+        # A fixed trailing DOM stamp can itself create an extra blank page.
+        if (
+            page.name in PRINTABLE_PAGES
+            and page.name != "rulebook.html"
+            and 'class="print-version"' not in source
+        ):
             source = source.replace("</body>", f"  {stamp}\n</body>")
         page.write_text(source, encoding="utf-8")
 
@@ -138,17 +145,129 @@ def group_rulebook_sections(rendered: str) -> str:
     )
 
 
-def structure_rulebook_pages(rendered: str) -> str:
-    """Give the opening its own deterministic page; keep the rules two-column."""
-    setup_marker = '<section class="rule-section"><h2 id="setup">'
-    split_at = rendered.find(setup_marker)
-    if split_at < 0:
-        raise ValueError("Could not locate Setup section while structuring rulebook")
-    first_page = rendered[:split_at]
-    columns = rendered[split_at:]
-    return (
-        '<section class="rulebook-first-page">' + first_page + '</section>'
-        '<div class="rulebook-columns">' + columns + '</div>'
+def build_rulebook_print_pages(rendered: str) -> str:
+    """Build four explicit A4 pages; never rely on browser column pagination."""
+    section_pattern = re.compile(
+        r'<section class="rule-section">(.*?)</section>',
+        re.DOTALL,
+    )
+    matches = list(section_pattern.finditer(rendered))
+    if len(matches) != 17:
+        raise ValueError(
+            f"Expected 17 rulebook sections for print layout, found {len(matches)}"
+        )
+
+    def title_of(section: str) -> str:
+        match = re.search(r'<h2\\b[^>]*>(.*?)</h2>', section, re.DOTALL)
+        if match is None:
+            raise ValueError("Rulebook print section is missing an H2")
+        return re.sub(r'<[^>]+>', '', match.group(1)).strip()
+
+    sections = {
+        title_of(match.group(0)): match.group(0)
+        for match in matches
+    }
+    expected = {
+        "Goal and battlefield",
+        "Setup",
+        "Your turn",
+        "Force - Bond - Name",
+        "Roles and classifications",
+        "Unique cards",
+        "Heroes",
+        "Maneuver",
+        "Narratives and Stratagems",
+        "Passing",
+        "Compare the Fronts",
+        "Retreat",
+        "After the Battle",
+        "Command",
+        "Card movement and removal",
+        "Timing",
+        "Deck construction",
+    }
+    missing = expected - sections.keys()
+    if missing:
+        raise ValueError(
+            "Missing rulebook print sections: " + ", ".join(sorted(missing))
+        )
+
+    opening = rendered[:matches[0].start()]
+    opening = re.sub(r'<hr\\s*/?>', '', opening)
+    opening = re.sub(
+        r'<div class="rulebook-kicker">.*?</div>',
+        '',
+        opening,
+        flags=re.DOTALL,
+    )
+
+    goal = sections["Goal and battlefield"]
+    goal = re.sub(
+        r'<pre>.*?</pre>',
+        (
+            '<figure class="rulebook-battlefield-figure">'
+            '<img src="assets/rulebook-battlefield.svg" '
+            'alt="Four Front battlefield with Rear and Frontline positions '
+            'for both players, separated by the Battle Line.">'
+            '<figcaption>Four Fronts. Frontline faces the Battle Line; Rear sits behind it.</figcaption>'
+            '</figure>'
+        ),
+        goal,
+        count=1,
+        flags=re.DOTALL,
+    )
+
+    def stack(*titles: str) -> str:
+        return "".join(sections[title] for title in titles)
+
+    def page(number: int, label: str, body: str, classes: str = "") -> str:
+        return (
+            f'<section class="rulebook-print-page {classes}" data-page="{number}">'
+            f'<div class="rulebook-print-page-label">{label}</div>'
+            f'{body}'
+            f'<span class="rulebook-print-page-number">Page {number} of 4</span>'
+            f'<span class="rulebook-page-version">TLW print v{{{{PRINT_VERSION}}}}</span>'
+            '</section>'
+        )
+
+    first = (
+        '<div class="rulebook-print-opening">' + opening + '</div>'
+        '<div class="rulebook-print-goal">' + goal + '</div>'
+    )
+    second = (
+        '<div class="rulebook-print-columns">'
+        '<div class="rulebook-print-column">'
+        '<div class="rulebook-print-kicker">PLAYING A BATTLE</div>'
+        + stack("Setup", "Your turn")
+        + '</div><div class="rulebook-print-column">'
+        + stack("Force - Bond - Name", "Roles and classifications", "Unique cards", "Heroes")
+        + '</div></div>'
+    )
+    third = (
+        '<div class="rulebook-print-columns">'
+        '<div class="rulebook-print-column">'
+        + stack("Maneuver", "Narratives and Stratagems", "Passing")
+        + '</div><div class="rulebook-print-column">'
+        '<div class="rulebook-print-kicker">ENDING A BATTLE</div>'
+        + stack("Compare the Fronts", "Retreat", "After the Battle")
+        + '</div></div>'
+    )
+    fourth = (
+        '<div class="rulebook-print-columns">'
+        '<div class="rulebook-print-column">'
+        '<div class="rulebook-print-kicker">THE LONG WAR / REFERENCE</div>'
+        + stack("Command", "Card movement and removal")
+        + '</div><div class="rulebook-print-column">'
+        + stack("Timing", "Deck construction")
+        + '</div></div>'
+    )
+    return "".join(
+        (
+            page(1, "THE LONG WAR", first, "rulebook-print-page-first"),
+            page(2, "PLAYING THE WAR", second),
+            page(3, "RESOLVING BATTLES", third),
+            page(4, "REFERENCE", fourth),
+        )
     )
 
 
@@ -239,10 +358,11 @@ def main() -> None:
         extensions=["extra", "sane_lists", "attr_list", "md_in_html"],
     )
     rulebook_html = group_rulebook_sections(rulebook_html)
-    rulebook_html = structure_rulebook_pages(rulebook_html)
+    rulebook_print_html = build_rulebook_print_pages(rulebook_html)
 
     template = (WEB / "rulebook.template.html").read_text(encoding="utf-8")
     rendered = template.replace("{{RULEBOOK}}", rulebook_html)
+    rendered = rendered.replace("{{RULEBOOK_PRINT}}", rulebook_print_html)
     (DIST / "rulebook.html").write_text(rendered, encoding="utf-8")
     (DIST / "rulebook.template.html").unlink(missing_ok=True)
 
