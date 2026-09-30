@@ -19,6 +19,7 @@ from longwar.agents.ismcts_agent import (
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.rules import GameRules
+from tools.deck_catalog import DEFAULT_DECK_PATH
 from longwar.fingerprint import (
     current_experiment_fingerprint,
     current_game_fingerprint,
@@ -185,12 +186,12 @@ def main() -> None:
     parser.add_argument(
         "--deck-a",
         type=Path,
-        default=Path("decks/mobility-open-bonds.json"),
+        default=Path(DEFAULT_DECK_PATH),
     )
     parser.add_argument(
         "--deck-b",
         type=Path,
-        default=Path("decks/mobility-open-bonds.json"),
+        default=Path(DEFAULT_DECK_PATH),
     )
     parser.add_argument(
         "--output",
