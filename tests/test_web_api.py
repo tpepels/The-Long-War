@@ -305,3 +305,46 @@ def test_two_consecutive_passes_end_battle_and_first_passer_starts_next() -> Non
     assert session.log[-1] == (
         f"Battle II begins. Player {first + 1} starts."
     )
+
+
+def test_remote_mode_keeps_each_players_own_hand_private_but_visible() -> None:
+    session = session_for("remote")
+    p0 = session.snapshot(0)
+    p1 = session.snapshot(1)
+
+    assert p0["mode"] == "remote"
+    assert p1["mode"] == "remote"
+    assert p0["needs_reveal"] is False
+    assert p1["needs_reveal"] is False
+    assert p0["viewer"] == 0
+    assert p1["viewer"] == 1
+
+    # During the opening mulligan only the current mulligan player sees cards.
+    assert p0["hand"]
+    assert p1["hand"] == []
+
+    session.mulligan([], 0)
+    p0_waiting = session.snapshot(0)
+    p1_turn = session.snapshot(1)
+    assert p0_waiting["hand"] == []
+    assert p1_turn["hand"]
+
+    session.mulligan([], 1)
+    p0 = session.snapshot(0)
+    p1 = session.snapshot(1)
+
+    # After setup both players keep seeing their own hand. Only the active
+    # player receives legal actions.
+    assert p0["hand"]
+    assert p1["hand"]
+    active = session.state.active_player
+    assert bool(p0["legal_actions"]) == (active == 0)
+    assert bool(p1["legal_actions"]) == (active == 1)
+
+
+def test_remote_mode_has_no_ai_step() -> None:
+    session = session_for("remote")
+    session.mulligan([], 0)
+    session.mulligan([], 1)
+    with pytest.raises(ValueError, match="AI opponent"):
+        session.ai_step()

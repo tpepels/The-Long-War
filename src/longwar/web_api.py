@@ -45,7 +45,7 @@ class PlaySession:
         seed: int = 1,
         paced_ai: bool = False,
     ):
-        if mode not in {"hotseat", "computer"}:
+        if mode not in {"hotseat", "remote", "computer"}:
             raise ValueError(f"Unsupported play mode: {mode}")
 
         card_data = json.loads(card_data_json)
@@ -62,7 +62,7 @@ class PlaySession:
         self.mode = mode
         self.seed = int(seed)
         self.paced_ai = paced_ai
-        self.human_players = {0, 1} if mode == "hotseat" else {0}
+        self.human_players = {0, 1} if mode in {"hotseat", "remote"} else {0}
         self.log: list[str] = []
         self.opening_player: int | None = None
         self.last_action: dict[str, Any] | None = None
@@ -105,7 +105,7 @@ class PlaySession:
     def ai_step(self) -> dict[str, Any]:
         if not self.setup_complete:
             raise ValueError("Complete the opening mulligan first")
-        if self.mode == "hotseat":
+        if self.mode != "computer":
             raise ValueError("AI stepping requires an AI opponent")
         if (
             self.state.phase is not Phase.COMPLETE
@@ -134,11 +134,11 @@ class PlaySession:
 
         self.mulligan_choices[viewer] = normalized
 
-        if self.mode == "hotseat" and viewer == 0:
+        if self.mode in {"hotseat", "remote"} and viewer == 0:
             self.mulligan_player = 1
             return self.snapshot(None)
 
-        if self.mode != "hotseat":
+        if self.mode == "computer":
             agent = self.agents[1]
             self.mulligan_choices[1] = (
                 agent.choose_mulligan(
@@ -150,7 +150,7 @@ class PlaySession:
             )
 
         self._finish_mulligans()
-        return self.snapshot(None if self.mode == "hotseat" else 0)
+        return self.snapshot(None if self.mode == "hotseat" else viewer)
 
     def _finish_mulligans(self) -> None:
         choices = (
@@ -201,6 +201,8 @@ class PlaySession:
             ):
                 return self.snapshot(actor)
             return self.snapshot(None)
+        if self.mode == "remote":
+            return self.snapshot(viewer)
         return self.snapshot(0)
 
     def snapshot(self, viewer: int | None = None) -> dict[str, Any]:
