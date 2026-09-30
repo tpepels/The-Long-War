@@ -1308,6 +1308,20 @@ function renderProgression(lab) {
       </div>
     </div>
     <div>
+      <h3>Command economy by source card</h3>
+      <p class="dashboard-note">Actual engine triggers from played matches only. Canonical between-Battle recovery is excluded; prevented recovery penalties are shown separately.</p>
+      <div class="table-wrap fitted-table">
+        <table class="mini-table">
+          <thead><tr>
+            <th>Source</th><th>Gain</th><th>Gain triggers</th><th>Refund</th>
+            <th>Discount saved</th><th>Discount triggers</th><th>Free operations</th>
+            <th>Recovery saved</th><th>Recovery triggers</th><th>Effects</th>
+          </tr></thead>
+          <tbody>${commandSourceRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div>
       <h3>Low-Command match diagnosis</h3>
       <p class="dashboard-note">Exact simulation identity is retained so a pathological match can be replayed from its seed. Rows are ordered by censoring, final Battle, then equal-low streak length.</p>
       <div class="table-wrap fitted-table">
