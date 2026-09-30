@@ -36,9 +36,9 @@ def test_static_strength_uses_canonical_rules_not_balance_annotations() -> None:
     cards = card_index(load_card_file(ROOT / "cards" / "cards.json"))
     bond = {
         **cards["followed"],
-        "rules": {
+        "design_rules": {
             "strength_bonus": 2,
-            "named_strength_bonus": 4,
+            "named_additional_strength_bonus": 4,
         },
         "balance": {"strength_bonus": 99},
     }
