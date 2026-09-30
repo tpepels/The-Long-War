@@ -113,10 +113,11 @@ def version_static_assets() -> str:
     play_js = DIST / "play.js"
     if play_js.exists():
         source = play_js.read_text(encoding="utf-8")
-        source = source.replace(
-            '"./browser-engine.mjs"',
-            f'"./browser-engine.mjs?v={version}"',
-        )
+        for module in ("browser-engine.mjs", "remote-peer.mjs"):
+            source = source.replace(
+                f'"./{module}"',
+                f'"./{module}?v={version}"',
+            )
         play_js.write_text(source, encoding="utf-8")
 
     asset_pattern = re.compile(

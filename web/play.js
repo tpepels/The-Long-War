@@ -1,4 +1,5 @@
 import { BrowserSession, initializeBrowserEngine } from "./browser-engine.mjs";
+import { createRemoteGuest, createRemoteHost } from "./remote-peer.mjs";
 
 let session = null;
 let cardData = null;
@@ -25,6 +26,13 @@ let aiStepRunning = false;
 let sessionGeneration = 0;
 let busy = false;
 let handLayoutFrame = null;
+let remotePeer = null;
+let remoteRole = null;
+let remoteSetupPhase = "idle";
+let remoteGameStarted = false;
+let remoteRequestSerial = 0;
+const remotePending = new Map();
+let remoteHostQueue = Promise.resolve();
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const moduleUrl = new URL(import.meta.url);
@@ -47,6 +55,7 @@ function updateStartAvailability() {
   $("engine-status").textContent = ready
     ? "Ready"
     : "Loading game…";
+  if (ready) configureRemoteSetup();
 }
 const frontNames = ["Front 1", "Front 2", "Front 3", "Front 4"];
 
@@ -164,6 +173,252 @@ async function request(payload) {
   if (payload.type === "ai_step") return session.aiStep();
   if (payload.type === "mulligan") return session.mulligan(payload.indices || [], payload.viewer);
   throw new Error("Unknown game request: " + payload.type);
+}
+
+function closeRemotePeer() {
+  for (const pending of remotePending.values()) {
+    pending.reject(new Error("Remote game ended."));
+    clearTimeout(pending.timer);
+  }
+  remotePending.clear();
+  try { remotePeer?.close(); } catch {}
+  remotePeer = null;
+  remoteRole = null;
+  remoteSetupPhase = "idle";
+  remoteGameStarted = false;
+}
+
+function remoteStatus(message, error = false) {
+  const el = $("remote-status");
+  if (!el) return;
+  el.textContent = message || "";
+  el.classList.toggle("remote-error", !!error);
+}
+
+function resetRemoteSetup(closePeer = true) {
+  if (closePeer) closeRemotePeer();
+  $("remote-input").value = "";
+  $("remote-output").value = "";
+  $("remote-output-wrap").hidden = true;
+  $("remote-status").textContent = "";
+  configureRemoteSetup();
+}
+
+function configureRemoteSetup() {
+  const mode = $("mode").value;
+  const remote = mode === "remote-host" || mode === "remote-join";
+  $("remote-connect").hidden = !remote;
+  if (!remote) {
+    $("start-game").textContent = "Take your seat ↗";
+    return;
+  }
+
+  if (mode === "remote-host") {
+    $("remote-help").textContent = remoteSetupPhase === "await-answer"
+      ? "Send the invite token to Player 2. Paste their response token below."
+      : "Create an invite token and send it to Player 2. No account or server is required.";
+    $("remote-input-wrap").hidden = remoteSetupPhase !== "await-answer";
+    $("remote-input-label").textContent = "Response token from Player 2";
+    $("start-game").textContent = remoteSetupPhase === "await-answer"
+      ? "Connect Player 2 ↗"
+      : "Create invite ↗";
+  } else {
+    $("remote-help").textContent = "Paste the invite token from Player 1. You will get a response token to send back.";
+    $("remote-input-wrap").hidden = false;
+    $("remote-input-label").textContent = "Invite token from Player 1";
+    $("start-game").textContent = remoteSetupPhase === "waiting"
+      ? "Waiting for host…"
+      : "Create response ↗";
+  }
+  $("start-game").disabled = !cardsReady || remoteSetupPhase === "waiting";
+}
+
+async function copyRemoteToken() {
+  const token = $("remote-output").value;
+  if (!token) return;
+  try {
+    await navigator.clipboard.writeText(token);
+    remoteStatus("Token copied.");
+  } catch {
+    $("remote-output").focus();
+    $("remote-output").select();
+    remoteStatus("Copy the selected token.");
+  }
+}
+
+function beginRemoteGame(snapshot) {
+  if (remoteGameStarted) return;
+  remoteGameStarted = true;
+  state = snapshot;
+  clearSelection();
+  $("play-setup").hidden = true;
+  render();
+}
+
+function syncRemoteHost(requestId = null) {
+  if (remoteRole !== "host" || !session || !remotePeer) {
+    throw new Error("Remote host session is unavailable.");
+  }
+  const hostState = session.view(0);
+  const guestState = session.view(1);
+  remotePeer.send({ type: "snapshot", requestId, state: guestState });
+  return hostState;
+}
+
+function sendRemoteCommand(command) {
+  if (remoteRole !== "guest" || !remotePeer) {
+    return Promise.reject(new Error("Remote host is unavailable."));
+  }
+  const requestId = ++remoteRequestSerial;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      remotePending.delete(requestId);
+      reject(new Error("The remote host did not respond."));
+    }, 20000);
+    remotePending.set(requestId, { resolve, reject, timer });
+    try {
+      remotePeer.send({ type: "command", requestId, command });
+    } catch (error) {
+      clearTimeout(timer);
+      remotePending.delete(requestId);
+      reject(error);
+    }
+  });
+}
+
+async function processRemoteHostCommand(message) {
+  if (remoteRole !== "host" || !session || message?.type !== "command") return;
+  const requestId = message.requestId;
+  try {
+    const command = message.command || {};
+    if (command.type === "act") {
+      session.act(command.key, 1);
+    } else if (command.type === "mulligan") {
+      session.mulligan(command.indices || [], 1);
+    } else {
+      throw new Error("Unknown remote game command.");
+    }
+    state = syncRemoteHost(requestId);
+    clearSelection();
+    render();
+  } catch (error) {
+    remotePeer?.send({
+      type: "error",
+      requestId,
+      message: error?.message || "Remote action failed.",
+    });
+  }
+}
+
+function handleRemoteMessage(message) {
+  if (remoteRole === "host") {
+    remoteHostQueue = remoteHostQueue
+      .then(() => processRemoteHostCommand(message))
+      .catch((error) => console.error("[remote] host command failed", error));
+    return;
+  }
+  if (remoteRole !== "guest") return;
+
+  if (message?.type === "snapshot") {
+    const pending = remotePending.get(message.requestId);
+    if (pending) {
+      clearTimeout(pending.timer);
+      remotePending.delete(message.requestId);
+      pending.resolve(message.state);
+    } else if (!remoteGameStarted) {
+      beginRemoteGame(message.state);
+    } else {
+      state = message.state;
+      clearSelection();
+      render();
+    }
+  } else if (message?.type === "error") {
+    const pending = remotePending.get(message.requestId);
+    if (pending) {
+      clearTimeout(pending.timer);
+      remotePending.delete(message.requestId);
+      pending.reject(new Error(message.message || "Remote action failed."));
+    }
+  }
+}
+
+function handleRemoteConnectionState(info) {
+  if (!info) return;
+  if (info.connected) {
+    remoteStatus("Connected.");
+    if (remoteRole === "host" && !remoteGameStarted) {
+      try {
+        beginRemoteGame(syncRemoteHost());
+      } catch (error) {
+        remoteStatus(error.message, true);
+      }
+    }
+    return;
+  }
+  if (remoteGameStarted && ["failed", "disconnected", "closed"].includes(info.peer)) {
+    if ($("interaction-hint")) {
+      $("interaction-hint").textContent = "Remote player disconnected.";
+      $("interaction-strip")?.classList.add("interaction-error");
+    }
+  }
+}
+
+async function startRemoteHost(seed) {
+  if (remoteSetupPhase === "idle") {
+    state = await request({ type: "new_game", mode: "remote", seed });
+    remoteRole = "host";
+    remotePeer = await createRemoteHost({
+      onMessage: handleRemoteMessage,
+      onState: handleRemoteConnectionState,
+    });
+    $("remote-output").value = remotePeer.inviteToken;
+    $("remote-output-label").textContent = "Invite token for Player 2";
+    $("remote-output-wrap").hidden = false;
+    remoteSetupPhase = "await-answer";
+    remoteStatus("Invite ready. Waiting for Player 2's response.");
+    configureRemoteSetup();
+    $("remote-input").focus();
+    return;
+  }
+  if (remoteSetupPhase === "await-answer") {
+    const answer = $("remote-input").value.trim();
+    if (!answer) throw new Error("Paste Player 2's response token.");
+    await remotePeer.acceptAnswer(answer);
+    remoteStatus("Connecting to Player 2…");
+    $("start-game").disabled = true;
+  }
+}
+
+async function startRemoteGuest() {
+  if (remoteSetupPhase !== "idle") return;
+  const invite = $("remote-input").value.trim();
+  if (!invite) throw new Error("Paste Player 1's invite token.");
+  remoteRole = "guest";
+  remotePeer = await createRemoteGuest(invite, {
+    onMessage: handleRemoteMessage,
+    onState: handleRemoteConnectionState,
+  });
+  $("remote-output").value = remotePeer.answerToken;
+  $("remote-output-label").textContent = "Response token for Player 1";
+  $("remote-output-wrap").hidden = false;
+  remoteSetupPhase = "waiting";
+  remoteStatus("Send this response token to Player 1. Waiting for connection…");
+  configureRemoteSetup();
+}
+
+async function playerRequest(payload) {
+  if (remoteRole === "guest") return sendRemoteCommand(payload);
+  if (remoteRole === "host") {
+    if (payload.type === "act") {
+      session.act(payload.key, 0);
+    } else if (payload.type === "mulligan") {
+      session.mulligan(payload.indices || [], 0);
+    } else {
+      throw new Error("Unsupported remote host request.");
+    }
+    return syncRemoteHost();
+  }
+  return request(payload);
 }
 
 function cardTitle(cardId) {
@@ -756,6 +1011,22 @@ function renderInteraction() {
     return;
   }
 
+  if (state.mode === "remote" && state.phase === "mulligan" && state.active_player !== state.viewer) {
+    title.textContent = "Opponent’s mulligan";
+    hint.textContent = "Waiting for the remote player.";
+    cancel.hidden = true;
+    tray.hidden = true;
+    return;
+  }
+
+  if (state.mode === "remote" && state.active_player !== state.viewer) {
+    title.textContent = "Opponent’s turn";
+    hint.textContent = "Waiting for the remote player.";
+    cancel.hidden = true;
+    tray.hidden = true;
+    return;
+  }
+
   if (state.needs_ai) {
     title.textContent = "Opponent’s turn";
     hint.textContent = "Thinking…";
@@ -1190,7 +1461,7 @@ function updateGameStatus() {
     status.textContent = "Match complete";
     return;
   }
-  if (state.needs_ai) {
+  if (state.needs_ai || (state.mode === "remote" && state.active_player !== state.viewer)) {
     status.textContent = "Opponent’s turn";
     return;
   }
@@ -1321,7 +1592,7 @@ async function submitMulligan() {
   if (!state || state.phase !== "mulligan" || state.viewer == null) return;
   const indices = [...mulliganSelection].sort((a, b) => a - b);
   await runBusy(async () => {
-    state = await request({
+    state = await playerRequest({
       type: "mulligan",
       indices,
       viewer: state.viewer,
@@ -1335,7 +1606,7 @@ async function submitMulligan() {
 async function executeAction(action) {
   if (!action || busy || state.viewer == null || state.needs_ai) return;
   await runBusy(async () => {
-    state = await request({ type: "act", key: action.key, viewer: state.viewer });
+    state = await playerRequest({ type: "act", key: action.key, viewer: state.viewer });
     clearSelection();
     render();
   });
@@ -1418,12 +1689,25 @@ randomizeSeed();
 updateStartAvailability();
 
 $("randomize-seed").addEventListener("click", randomizeSeed);
+$("remote-copy-token").addEventListener("click", copyRemoteToken);
+$("mode").addEventListener("change", () => {
+  if (remotePeer || remoteRole) resetRemoteSetup(true);
+  else configureRemoteSetup();
+});
 
 $("new-game-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const mode = $("mode").value;
   const seed = Math.max(0, Math.min(2147483647, Number($("seed").value) || 0));
   await runBusy(async () => {
+    if (mode === "remote-host") {
+      await startRemoteHost(seed);
+      return;
+    }
+    if (mode === "remote-join") {
+      await startRemoteGuest();
+      return;
+    }
     state = await request({ type: "new_game", mode, seed });
     clearSelection();
     $("play-setup").hidden = true;
@@ -1445,6 +1729,7 @@ function restartMatch() {
   renderedState = null;
   session?.destroy();
   session = null;
+  closeRemotePeer();
   closeDrawer(false);
   document.body.classList.remove("match-active");
   if ($("match-result")) $("match-result").hidden = true;
@@ -1452,6 +1737,7 @@ function restartMatch() {
   $("game").hidden = true;
   $("play-setup").hidden = false;
   randomizeSeed();
+  configureRemoteSetup();
   $("start-game").focus();
 }
 

@@ -371,3 +371,20 @@ def test_play_setup_exposes_remote_host_and_join_token_controls() -> None:
     assert 'id="remote-output"' in page
     assert 'id="remote-copy-token"' in page
     assert ".remote-connect" in style
+
+
+def test_remote_play_routes_actions_through_host_authoritative_session() -> None:
+    script = text("web/play.js")
+    assert 'mode: "remote"' in script
+    assert "session.act(command.key, 1)" in script
+    assert "session.mulligan(command.indices || [], 1)" in script
+    assert "session.view(0)" in script
+    assert "session.view(1)" in script
+    assert 'type: "snapshot"' in script
+    assert "createRemoteHost" in script
+    assert "createRemoteGuest" in script
+
+
+def test_pages_cache_busts_remote_peer_module() -> None:
+    builder = text("tools/build_pages.py")
+    assert '("browser-engine.mjs", "remote-peer.mjs")' in builder
