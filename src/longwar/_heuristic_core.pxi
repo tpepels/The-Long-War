@@ -499,6 +499,29 @@ cdef class NativeHeuristicEvaluator:
         # rather than the pre-Pass board plus hand-written proxies.
         return self.evaluate_fast(child, player)
 
+    cdef bint action_needs_command_guard_probe_fast(
+        self,
+        FastState state,
+        int player,
+        uint64_t action,
+    ) noexcept:
+        """Whether an action can reach the configured Collapse boundary."""
+        cdef int cost = _fe_command_cost_fast(self.engine, state, action)
+        cdef int margin = (
+            state.command[player] - self.engine.command_collapse_threshold
+        )
+        return margin <= 0 or cost >= margin
+
+    cdef bint battle_end_collapse_probe_needed_fast(
+        self,
+        FastState state,
+    ) noexcept:
+        """Whether current Command makes an exact second-Pass probe useful."""
+        return (
+            state.command[0] <= self.engine.command_collapse_threshold
+            or state.command[1] <= self.engine.command_collapse_threshold
+        )
+
     cdef bint action_exhausts_command_fast(
         self,
         FastState state,
