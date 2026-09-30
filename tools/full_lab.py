@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_ITERATIONS
 from longwar.fingerprint import (
     current_experiment_fingerprint,
     current_game_fingerprint,
@@ -173,7 +172,9 @@ def main() -> None:
     parser.add_argument(
         "--strength-ismcts-iterations",
         type=int,
-        default=DEFAULT_ISMCTS_ITERATIONS,
+        # Explicit full-Lab budget. Keep this import-free so a fresh checkout
+        # can reach the native-build validation stage before native search loads.
+        default=100_000,
     )
     parser.add_argument("--strength-alpha-nodes", type=int, default=20_000)
     parser.add_argument("--strength-time-budget-seconds", type=float, default=5.0)

@@ -802,3 +802,9 @@ def test_full_lab_pins_solver_strength_budgets():
     assert "--strength-time-budget-seconds" in source
     assert '"ismcts_iterations": args.strength_ismcts_iterations' in source
     assert '"alpha_nodes": args.strength_alpha_nodes' in source
+
+
+def test_full_lab_does_not_import_native_search_before_native_build():
+    source = (ROOT / "tools" / "full_lab.py").read_text(encoding="utf-8")
+    assert "from longwar.agents.ismcts_agent import" not in source
+    assert "default=100_000" in source
