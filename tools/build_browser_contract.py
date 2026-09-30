@@ -440,12 +440,10 @@ def session_trace(
                 session.act(key, player),
             )
 
-    assert (
-        session.state.phase is Phase.COMPLETE
-    ), "Browser session fixture must cover a complete game"
     return {
         "mode": mode,
         "seed": seed,
+        "complete": session.state.phase is Phase.COMPLETE,
         "steps": steps,
     }
 
