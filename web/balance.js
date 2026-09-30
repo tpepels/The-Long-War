@@ -1496,12 +1496,12 @@ function renderMccfr(lab) {
         <tbody>
           ${suite.profiles.map((row) => `
             <tr>
-              <td><strong>${esc(row.label)}</strong><span class="muted">${esc(row.deck)}</span></td>
+              <td><strong>${esc(row.label)}</strong><span class="muted">${esc(row.deck)}</span><span class="muted">policy <code>${esc(row.policy.policy_fingerprint || "—")}</code></span></td>
               <td>${row.deck_unique_cards}</td>
-              <td>${row.policy.iterations ?? "—"}</td>
+              <td>${row.policy.iterations ?? "—"}<span class="muted">${row.policy.traversals ?? "—"} traversals</span></td>
               <td>${Number(row.policy.information_sets || 0).toLocaleString()}</td>
               <td>${row.policy.max_depth ?? "—"}</td>
-              <td><strong>${pct(row.evaluation.seat_swapped_mccfr_win_rate)}</strong><span class="muted">seat-swapped · decisive games</span></td>
+              <td><strong>${pct(row.evaluation.seat_swapped_mccfr_win_rate)}</strong><span class="muted">seat-swapped - decisive games</span><span class="muted">${pct(row.evaluation.combined_policy_coverage?.mccfr_coverage_rate)} MCCFR coverage - ${row.evaluation.combined_policy_coverage?.heuristic_fallback_decisions ?? 0} heuristic fallbacks</span></td>
               <td>
                 ${row.evaluation.games}
                 <span class="muted">${row.evaluation.decisive_games ?? row.evaluation.games} decisive · ${row.evaluation.censored_games ?? 0} censored</span>
