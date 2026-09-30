@@ -7,8 +7,8 @@ class GameRules:
 
     Tools may override values for experiments; they do not create alternate
     named rules modes.
-    Card-specific rules remain in the card data. The engine is the only layer
-    allowed to interpret either source into legal actions and transitions.
+    Card-specific mechanics remain in card design_rules. The engine is the
+    only layer allowed to interpret them into legal actions and transitions.
     """
 
     opening_hand_size: int = 10

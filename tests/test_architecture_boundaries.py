@@ -155,7 +155,8 @@ def test_game_core_does_not_know_shipped_decks() -> None:
 def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     from tools import build_browser_runtime
 
-    expected = {
+    packaged = set(build_browser_runtime.BROWSER_PYTHON_FILES)
+    required = {
         "__init__.py",
         "cards.py",
         "decks.py",
@@ -169,8 +170,7 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
         "agents/__init__.py",
         "agents/heuristic_agent.py",
     }
-    packaged = set(build_browser_runtime.BROWSER_PYTHON_FILES)
-    assert packaged == expected
+    assert required <= packaged
 
     forbidden = {
         "simulate.py",
@@ -203,7 +203,7 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
         path.relative_to(package).as_posix()
         for path in package.rglob("*.py")
     }
-    assert copied_python == expected
+    assert copied_python == packaged
     assert not forbidden & copied_python
     assert "_mccfr_accel.pyx" not in {
         path.name for path in package.rglob("*.pyx")
@@ -211,17 +211,11 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     assert "_mccfr_accel" not in (source / "setup.py").read_text(encoding="utf-8")
 
 
-def test_browser_runtime_packages_engine_relative_dependencies() -> None:
+def test_browser_runtime_dependency_closure_includes_engine_imports() -> None:
     from tools import build_browser_runtime
 
     packaged = set(build_browser_runtime.BROWSER_PYTHON_FILES)
-    engine_source = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
-
-    # GameEngine is part of the browser wheel. Keep its direct package-level
-    # runtime dependencies in that same minimal wheel.
-    if "from ..decks import" in engine_source:
-        assert "decks.py" in packaged
-
+    assert {"cards.py", "decks.py", "rules.py"} <= packaged
 
 def test_browser_parity_replay_helper_needs_only_browser_runtime() -> None:
     source = (ROOT / "tools" / "build_browser_contract.py").read_text(

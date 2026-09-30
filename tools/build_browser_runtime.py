@@ -1,6 +1,7 @@
 """Build the minimal canonical game runtime for static Pages."""
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import shutil
@@ -44,22 +45,68 @@ def _run_logged(command: list[str]) -> None:
         raise SystemExit(result.returncode)
 
 
-# Python modules required by browser play. Keep analysis/training/simulation and
-# non-production agents out of the browser wheel.
-BROWSER_PYTHON_FILES = (
-    "__init__.py",
-    "cards.py",
-    "decks.py",
-    "rules.py",
-    "heuristics.py",
-    "web_api.py",
-    "game/__init__.py",
-    "game/actions.py",
-    "game/engine.py",
-    "game/model.py",
-    "agents/__init__.py",
-    "agents/heuristic_agent.py",
-)
+# Browser play starts from product entry points. Resolve package-local top-level
+# imports automatically so a new core dependency cannot be omitted by a stale
+# hand-maintained allowlist.
+BROWSER_PYTHON_ENTRYPOINTS = ("__init__.py", "web_api.py")
+
+
+def _browser_python_imports(relative: str) -> set[str]:
+    package = ROOT / "src" / "longwar"
+    source = package / relative
+    tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
+    parent_parts = list(Path(relative).parent.parts)
+    if parent_parts == ["."]:
+        parent_parts = []
+
+    found: set[str] = set()
+    for node in tree.body:
+        if not isinstance(node, ast.ImportFrom) or node.level <= 0:
+            continue
+
+        keep = len(parent_parts) - (node.level - 1)
+        if keep < 0:
+            raise RuntimeError(
+                f"Relative import escapes longwar package: {relative}"
+            )
+        parts = parent_parts[:keep]
+        if node.module:
+            parts.extend(node.module.split("."))
+
+        module_path = package.joinpath(*parts)
+        module_file = module_path.with_suffix(".py")
+        package_init = module_path / "__init__.py"
+        if module_file.is_file():
+            found.add(module_file.relative_to(package).as_posix())
+        elif package_init.is_file():
+            found.add(package_init.relative_to(package).as_posix())
+
+        # Importing a submodule executes each containing package __init__.
+        for depth in range(1, len(parts)):
+            init = package.joinpath(*parts[:depth], "__init__.py")
+            if init.is_file():
+                found.add(init.relative_to(package).as_posix())
+
+    return found
+
+
+def browser_python_files() -> tuple[str, ...]:
+    pending = list(BROWSER_PYTHON_ENTRYPOINTS)
+    seen: set[str] = set()
+    while pending:
+        relative = pending.pop()
+        if relative in seen:
+            continue
+        seen.add(relative)
+        pending.extend(
+            dependency
+            for dependency in _browser_python_imports(relative)
+            if dependency not in seen
+        )
+    return tuple(sorted(seen))
+
+
+BROWSER_PYTHON_FILES = browser_python_files()
 
 # _fast_search currently contains the canonical engine plus bundled native
 # search cores. Splitting that extension is separate cleanup work, so its
