@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
 from pathlib import Path
@@ -24,6 +25,62 @@ CARDS = ROOT / "cards" / "cards.json"
 REFERENCE_DECKS = REFERENCE_DECK_PATHS
 BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
 PUBLISHED_ARTIFACTS = ("lab-report.json", "balance-health.json")
+PRINTABLE_PAGES = {
+    "cards.html",
+    "playtest-kit.html",
+    "rulebook.html",
+    "playmat.html",
+    "tokens.html",
+}
+
+
+def print_build_version() -> str:
+    """Exact revision printed on every physical playtest artifact."""
+    github_sha = os.environ.get("GITHUB_SHA", "").strip().lower()
+    if re.fullmatch(r"[0-9a-f]{7,40}", github_sha):
+        return github_sha[:8]
+
+    # Local builds still get a stable version that changes with printable
+    # rules/cards/layout inputs, rather than an ambiguous "dev" label.
+    inputs = [
+        RULEBOOK,
+        CARDS,
+        ROOT / "src" / "longwar" / "rules.py",
+        WEB / "print-cards.css",
+        WEB / "print-cards.js",
+        WEB / "rules.css",
+        WEB / "style.css",
+        WEB / "tokens.css",
+        WEB / "playtest-kit.js",
+        WEB / "cards.js",
+        WEB / "playmat.html",
+        WEB / "tokens.html",
+        *REFERENCE_DECKS,
+    ]
+    digest = hashlib.sha256()
+    for path in sorted(inputs):
+        digest.update(path.relative_to(ROOT).as_posix().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return "local-" + digest.hexdigest()[:8]
+
+
+def stamp_print_version(version: str) -> None:
+    """Add machine-readable and visible print revision markers."""
+    meta = f'<meta name="lw-build-version" content="{version}">'
+    stamp = (
+        '<div class="print-version" aria-hidden="true">'
+        f'TLW print v{version}</div>'
+    )
+    for page in DIST.rglob("*.html"):
+        source = page.read_text(encoding="utf-8")
+        if 'name="lw-build-version"' not in source:
+            source = source.replace("</head>", f"  {meta}\n</head>")
+        if page.name in PRINTABLE_PAGES and 'class="print-version"' not in source:
+            source = source.replace("</body>", f"  {stamp}\n</body>")
+        page.write_text(source, encoding="utf-8")
+
 
 
 def version_static_assets() -> str:
@@ -174,11 +231,14 @@ def main() -> None:
     (DIST / "rulebook.html").write_text(rendered, encoding="utf-8")
     (DIST / "rulebook.template.html").unlink(missing_ok=True)
 
+    print_version = print_build_version()
+    stamp_print_version(print_version)
     version = version_static_assets()
     balance = "with balance data" if BALANCE_HEALTH.exists() else "without balance data"
     print(
         f"Built Pages site with {len(card_data['cards'])} cards "
-        f"({balance}), asset version {version} at {DIST}"
+        f"({balance}), print version {print_version}, "
+        f"asset version {version} at {DIST}"
     )
 
 
