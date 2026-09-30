@@ -349,3 +349,14 @@ def test_play_client_loads_published_reference_deck_catalog() -> None:
     assert 'data/reference-deck.json' not in script
     assert "deckCatalog.decks?.[0]" in script
     assert '"Game failed to load"' in script
+
+
+def test_remote_peer_transport_is_rule_free_webrtc_token_exchange() -> None:
+    source = text("web/remote-peer.mjs")
+    assert "RTCPeerConnection" in source
+    assert 'createDataChannel("the-long-war"' in source
+    assert "inviteToken" in source
+    assert "answerToken" in source
+    assert "longwar." not in source
+    assert "cards" not in source
+    assert "legal_actions" not in source
