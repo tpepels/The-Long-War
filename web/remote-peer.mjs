@@ -41,7 +41,7 @@ function decodeDescription(token, expectedType) {
   return value;
 }
 
-function waitForIceGathering(peer, timeoutMs = 12000) {
+function waitForIceGathering(peer, timeoutMs = 6000) {
   if (peer.iceGatheringState === "complete") return Promise.resolve();
   return new Promise((resolve) => {
     let done = false;
@@ -107,6 +107,9 @@ function configureChannel(channel, onMessage, onState) {
 }
 
 export async function createRemoteHost({ onMessage, onState } = {}) {
+  if (typeof RTCPeerConnection === "undefined") {
+    throw new Error("WebRTC is not available in this browser.");
+  }
   const peer = new RTCPeerConnection(ICE_CONFIG);
   let channel = peer.createDataChannel("the-long-war", { ordered: true });
   const endpoint = remoteEndpoint(peer, () => channel, onMessage, onState);
@@ -130,6 +133,9 @@ export async function createRemoteHost({ onMessage, onState } = {}) {
 }
 
 export async function createRemoteGuest(inviteToken, { onMessage, onState } = {}) {
+  if (typeof RTCPeerConnection === "undefined") {
+    throw new Error("WebRTC is not available in this browser.");
+  }
   const peer = new RTCPeerConnection(ICE_CONFIG);
   let channel = null;
   const endpoint = remoteEndpoint(peer, () => channel, onMessage, onState);

@@ -462,3 +462,18 @@ def test_browser_hand_uses_available_width_at_readable_resting_scale() -> None:
     assert "hand.clientWidth - 204 * scale - 24" in script
     assert "padding: 0 clamp(14px, 2vw, 30px);" in style
     assert "--inspect-scale: 1.15;" in style
+
+
+def test_remote_invite_creation_has_visible_progress_and_errors() -> None:
+    script = text("web/play.js")
+    peer = text("web/remote-peer.mjs")
+    style = text("web/play.css")
+
+    assert 'remoteStatus("Creating invite…")' in script
+    assert 'remoteSetupPhase = "creating"' in script
+    assert 'remoteSetupPhase === "creating"' in script
+    assert 'setupMode.startsWith("remote-")' in script
+    assert 'remoteStatus(error?.message || "Remote connection failed.", true)' in script
+    assert "timeoutMs = 6000" in peer
+    assert 'typeof RTCPeerConnection === "undefined"' in peer
+    assert "#remote-status.remote-error" in style

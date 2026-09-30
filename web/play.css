@@ -203,6 +203,9 @@ body.game-body {
   min-height: 16px;
   color: var(--gold);
 }
+#remote-status.remote-error {
+  color: #e8a59a;
+}
 
 .setup-options {
   position: relative;

@@ -225,9 +225,11 @@ function configureRemoteSetup() {
       : "Create an invite token and send it to Player 2. No account or server is required.";
     $("remote-input-wrap").hidden = remoteSetupPhase !== "await-answer";
     $("remote-input-label").textContent = "Response token from Player 2";
-    $("start-game").textContent = remoteSetupPhase === "await-answer"
-      ? "Connect Player 2 ↗"
-      : "Create invite ↗";
+    $("start-game").textContent = remoteSetupPhase === "creating"
+      ? "Creating invite…"
+      : remoteSetupPhase === "await-answer"
+        ? "Connect Player 2 ↗"
+        : "Create invite ↗";
   } else {
     $("remote-help").textContent = "Paste the invite token from Player 1. You will get a response token to send back.";
     $("remote-input-wrap").hidden = false;
@@ -236,7 +238,9 @@ function configureRemoteSetup() {
       ? "Waiting for host…"
       : "Create response ↗";
   }
-  $("start-game").disabled = !cardsReady || remoteSetupPhase === "waiting";
+  $("start-game").disabled = !cardsReady ||
+    remoteSetupPhase === "waiting" ||
+    remoteSetupPhase === "creating";
 }
 
 async function copyRemoteToken() {
@@ -371,12 +375,24 @@ function handleRemoteConnectionState(info) {
 
 async function startRemoteHost(seed) {
   if (remoteSetupPhase === "idle") {
-    state = await request({ type: "new_game", mode: "remote", seed });
+    if (typeof RTCPeerConnection === "undefined") {
+      throw new Error("This browser does not support direct remote play.");
+    }
     remoteRole = "host";
-    remotePeer = await createRemoteHost({
-      onMessage: handleRemoteMessage,
-      onState: handleRemoteConnectionState,
-    });
+    remoteSetupPhase = "creating";
+    remoteStatus("Creating invite…");
+    configureRemoteSetup();
+    try {
+      remotePeer = await createRemoteHost({
+        onMessage: handleRemoteMessage,
+        onState: handleRemoteConnectionState,
+      });
+      state = await request({ type: "new_game", mode: "remote", seed });
+    } catch (error) {
+      closeRemotePeer();
+      configureRemoteSetup();
+      throw error;
+    }
     $("remote-output").value = remotePeer.inviteToken;
     $("remote-output-label").textContent = "Invite token for Player 2";
     $("remote-output-wrap").hidden = false;
@@ -1658,6 +1674,10 @@ async function runBusy(fn) {
     $("engine-status").textContent = "Action failed";
     if ($("interaction-hint")) $("interaction-hint").textContent = error.message;
     if ($("interaction-strip")) $("interaction-strip").classList.add("interaction-error");
+    const setupMode = $("mode")?.value || "";
+    if (setupMode.startsWith("remote-")) {
+      remoteStatus(error?.message || "Remote connection failed.", true);
+    }
     if (!state) $("setup-note").textContent = error.message;
     console.error("[play]", error);
   } finally {
