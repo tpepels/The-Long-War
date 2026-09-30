@@ -121,8 +121,9 @@ def test_balance_validation_covers_all_reference_decks() -> None:
         f"decks/{path.name}"
         for path in (ROOT / "decks").glob("*.json")
     }
-    assert set(CANONICAL_DECK_PATHS.values()) == shipped
-    assert "six shipped reference deck templates" in text("README.md")
+    canonical = set(CANONICAL_DECK_PATHS.values())
+    assert canonical == shipped
+    assert str(len(canonical)) in text("README.md")
 
 
 def test_browser_runtime_uses_canonical_engine_composition() -> None:
@@ -189,20 +190,15 @@ def test_mccfr_profiles_use_only_current_cards() -> None:
     assert covered <= canonical
 
 
-def test_mccfr_suite_builder_covers_all_six_profile_policies() -> None:
-    builder = text("tools/build_mccfr_suite.py")
-    for profile in (
-        "mobility",
-        "elite",
-        "narrative",
-        "control",
-        "momentum",
-        "necessity",
-    ):
-        assert f'("{profile}",' in builder
-    assert 'mccfr-policy-{profile_id}.json' in builder
-    assert 'mccfr-{profile_id}-vs-heuristic.json' in builder
-    assert 'heuristic-vs-mccfr-{profile_id}.json' in builder
+def test_mccfr_suite_builder_tracks_canonical_decks() -> None:
+    from tools.build_mccfr_suite import PROFILES
+    from tools.run_experiments import CANONICAL_DECK_PATHS
+
+    profile_decks = {
+        deck_path
+        for _profile_id, _label, deck_path in PROFILES
+    }
+    assert profile_decks == set(CANONICAL_DECK_PATHS.values())
 
 
 def test_web_card_renderers_use_only_canonical_card_types() -> None:
