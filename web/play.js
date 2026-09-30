@@ -64,7 +64,7 @@ const TERM_HINTS = {
   "discard": "Move a card to its owner's discard pile.",
   "discarded": "Moved to the discard pile.",
   "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
-  "command": "Your operation budget. Start at 20. After Battle-end effects, check Collapse before recovery: exactly one player at 0 loses; 0-0 continues. A continuing war recovers max(1, base recovery minus Fronts lost), to a maximum of 20.",
+  "command": "Your operation budget. Unspent Command carries between Battles.",
   "draw": "At the start of each turn, draw 1 card. Your draw pile persists; shuffle the discard only when an empty deck must supply a draw.",
   "front": "One of four lanes: Front 1, Front 2, Front 3, or Front 4.",
   "hero": "A Unique dual-use card. Play one Hero per side per Battle, either as a Force or as a Name.",
@@ -78,7 +78,7 @@ const TERM_HINTS = {
   "rear": "The position behind the Frontline in the same Front.",
   "rear force": "The Force occupying the Rear position of that Front.",
   "rear forces": "Forces occupying Rear positions.",
-  "narratives": "Narratives are public. An Ongoing Narrative remains in play until its own text ends it; each player may have at most two.",
+  "narratives": "Narratives are public. An Ongoing Narrative remains in play until its own text ends it.",
   "narrative": "A public Narrative card. A Narrative marked Ongoing remains in play according to its text.",
   "strength": "The value compared in each Front. Higher total Strength controls that Front.",
   "force": "The unit or place that activates a formation's Strength and Force-dependent Bond or Name text.",
@@ -90,10 +90,28 @@ const TERM_HINTS = {
   "return": "Move a card from the battlefield back to its owner's hand."
 };
 
+function termHint(key) {
+  const rules = state?.rules;
+  if (key === "command" && rules) {
+    const threshold = rules.command_collapse_threshold;
+    return "Your operation budget. Start at " + rules.starting_command +
+      ". After Battle-end effects, check Collapse before recovery: exactly one player at " +
+      threshold + " loses; " + threshold + "-" + threshold +
+      " continues. A continuing war recovers max(" +
+      rules.command_recovery_floor +
+      ", base recovery minus Fronts lost), to a maximum of " +
+      rules.command_cap + ".";
+  }
+  if ((key === "narrative" || key === "narratives") && rules) {
+    return "Narratives are public. An Ongoing Narrative remains in play until its own text ends it; each player may have at most " +
+      rules.ongoing_narrative_limit + ".";
+  }
+  return TERM_HINTS[key] || "An important game term. See the rulebook for its full definition.";
+}
+
 function termMarkup(label) {
   const key = String(label).trim().toLowerCase();
-  const hint = TERM_HINTS[key] || "An important game term. See the rulebook for its full definition.";
-  return '<strong class="game-term" data-term-hint="' + esc(hint) + '">' + label + '</strong>';
+  return '<strong class="game-term" data-term-hint="' + esc(termHint(key)) + '">' + label + '</strong>';
 }
 
 function formatGameText(value) {
