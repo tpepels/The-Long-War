@@ -13,8 +13,9 @@ a { color: inherit; }
 .screen-toolbar > div { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; }
 button, .button { padding: 8px 12px; border: 1px solid #a9aa9f; color: inherit; background: transparent; font: inherit; cursor: pointer; text-decoration: none; }
 .card-sheets, .playtest-decks { width: 210mm; margin: 24px auto; }
-.card-sheets, .deck-card-grid { display: grid; grid-template-columns: repeat(3, 63mm); grid-auto-rows: 88mm; gap: 4mm 2mm; justify-content: center; }
+.deck-card-grid, .card-sheet { display: grid; grid-template-columns: repeat(3, 63mm); grid-auto-rows: 88mm; gap: 4mm 2mm; justify-content: center; }
 .card-sheet { break-inside: avoid; }
+.card-sheet + .card-sheet { margin-top: 16mm; }
 .print-deck + .print-deck { margin-top: 16mm; }
 .deck-sheet-heading { display: flex; justify-content: space-between; padding: 0 8mm 5mm; font: 12px/1.3 Arial, sans-serif; }
 
@@ -108,22 +109,35 @@ button, .button { padding: 8px 12px; border: 1px solid #a9aa9f; color: inherit; 
 .card-vanilla .card-ornament svg { width: 25mm; height: 8mm; opacity: .23; }
 .game-card.layout-overflow { outline: .6mm solid #a52f28; outline-offset: .4mm; }
 
-@page cards { size: A4 portrait; margin: 8mm; }
+@page cards { size: A4 portrait; margin: 0; }
 @media screen and (max-width: 800px) {
   .card-sheets, .playtest-decks { width: 100%; }
-  .card-sheets, .deck-card-grid { grid-template-columns: repeat(2, 63mm); }
+  .deck-card-grid, .card-sheet { grid-template-columns: repeat(2, 63mm); }
 }
 @media screen and (max-width: 510px) {
   .screen-toolbar { align-items: start; flex-direction: column; }
-  .card-sheets, .deck-card-grid { grid-template-columns: 63mm; }
+  .deck-card-grid, .card-sheet { grid-template-columns: 63mm; }
 }
 @media print {
   body { background: white; }
   .screen-toolbar, .deck-sheet-heading { display: none; }
   .card-sheets, .playtest-decks { width: auto; margin: 0; }
-  .card-sheets, .print-deck { page: cards; }
-  .card-sheets, .deck-card-grid { grid-template-columns: repeat(3, 63mm); grid-auto-rows: 88mm; gap: 4mm 2mm; }
-  .card-sheet { page: cards; break-after: page; break-inside: avoid; }
+  .card-sheet {
+    page: cards;
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 10mm 8.5mm 0;
+    grid-template-columns: repeat(3, 63mm);
+    grid-auto-rows: 88mm;
+    gap: 4mm 2mm;
+    justify-content: start;
+    align-content: start;
+    break-after: page;
+    break-inside: avoid;
+  }
+  .card-sheet + .card-sheet { margin-top: 0; }
+  .card-sheets > .card-sheet:last-child,
   .print-deck:last-child .card-sheet:last-child { break-after: auto; }
   .game-card { box-shadow: none; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .print-deck + .print-deck { margin-top: 0; }
