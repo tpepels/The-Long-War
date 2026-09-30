@@ -4,6 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
+from tools.deck_catalog import DEFAULT_DECK_PATH
+
 from longwar.cards import load_card_file
 from longwar.game import (
     Discard,
@@ -481,7 +483,7 @@ def main() -> None:
 
     cards = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
-        (ROOT / "decks" / "mobility-open-bonds.json").read_text(
+        (ROOT / DEFAULT_DECK_PATH).read_text(
             encoding="utf-8"
         )
     )["cards"]
