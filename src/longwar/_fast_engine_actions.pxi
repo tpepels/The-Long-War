@@ -8,7 +8,7 @@ cdef inline bint _fe_opponent_blocks_card_move_into_front(
     cdef int rank, slot, bond
     for rank in range(2):
         slot = slot_index(opponent, front, rank)
-        bond = state.link[slot]
+        bond = state.bond[slot]
         if bond >= 0 and self.bond_blocks_opponent_card_move[bond]:
             return True
     return False
@@ -20,9 +20,9 @@ cdef inline bint _fe_card_move_destination_legal(
     int source,
     int dest,
 ) noexcept:
-    cdef int force = state.subject[source]
+    cdef int force = state.force[source]
     cdef int owner = owner_from_slot(source)
-    cdef int bond = state.link[source]
+    cdef int bond = state.bond[source]
     if force < 0 or self.immobile_force[force]:
         return False
     if owner_from_slot(dest) != owner:
@@ -34,8 +34,8 @@ cdef inline bint _fe_card_move_destination_legal(
     ):
         return False
     if (
-        state.subject[dest] >= 0
-        or state.link[dest] >= 0
+        state.force[dest] >= 0
+        or state.bond[dest] >= 0
         or state.name[dest] >= 0
     ):
         return False
@@ -56,8 +56,8 @@ cdef inline bint _fe_player_has_empty_front(
     cdef int front
     for front in range(4):
         if (
-            state.subject[slot_index(player, front, 0)] < 0
-            and state.subject[slot_index(player, front, 1)] < 0
+            state.force[slot_index(player, front, 0)] < 0
+            and state.force[slot_index(player, front, 1)] < 0
         ):
             return True
     return False
@@ -74,7 +74,7 @@ cdef inline bint _fe_adjacent_hero_formation(
     cdef int adjacent, force, name
     if front > 0:
         adjacent = slot_index(player, front - 1, rank)
-        force = state.subject[adjacent]
+        force = state.force[adjacent]
         name = state.name[adjacent]
         if force >= 0 and (
             self.hero[force]
@@ -83,7 +83,7 @@ cdef inline bint _fe_adjacent_hero_formation(
             return True
     if front < 3:
         adjacent = slot_index(player, front + 1, rank)
-        force = state.subject[adjacent]
+        force = state.force[adjacent]
         name = state.name[adjacent]
         if force >= 0 and (
             self.hero[force]
@@ -99,7 +99,7 @@ cdef inline bint _fe_maneuver_source_legal(
     int slot,
 ) noexcept:
     cdef int force, bond, strat
-    force = state.subject[slot]
+    force = state.force[slot]
     if force < 0 or self.immobile_force[force]:
         return False
     if _fe_slot_complete(self, state, slot):
@@ -107,9 +107,9 @@ cdef inline bint _fe_maneuver_source_legal(
     if self.can_maneuver_unnamed[force]:
         if not self.maneuver_requires_open_bond[force]:
             return True
-        if state.link[slot] >= 0 and state.name[slot] < 0:
+        if state.bond[slot] >= 0 and state.name[slot] < 0:
             return True
-    bond = state.link[slot]
+    bond = state.bond[slot]
     if (
         bond >= 0
         and self.bond_maneuver_adjacent_hero[bond]
@@ -124,7 +124,7 @@ cdef inline bint _fe_maneuver_destination_legal(
     FastState state,
     int slot,
 ) noexcept:
-    cdef int force = state.subject[slot]
+    cdef int force = state.force[slot]
     if force >= 0:
         return (
             not self.immobile_force[force]
@@ -280,11 +280,11 @@ cdef bint _fe_basic_maneuver_locks_allow(
         for controller in range(2):
             for story_slot in range(self.ongoing_story_limit):
                 ix = controller * 4 + story_slot
-                card = state.scheme[ix]
+                card = state.narrative[ix]
                 if (
                     card >= 0
                     and self.narrative_no_maneuver_away[card]
-                    and state.scheme_front_mask[ix] & (1 << front)
+                    and state.narrative_front_mask[ix] & (1 << front)
                 ):
                     return False
 
@@ -307,7 +307,7 @@ cdef bint _fe_had_been_ordered_allows(
     int source,
     int dest,
 ) noexcept:
-    cdef int bond = state.link[source]
+    cdef int bond = state.bond[source]
     cdef int direction, front, rank, preferred
     if (
         bond < 0
@@ -566,8 +566,8 @@ cdef void _fe_pop_pending_effect(FastEngine self, FastState state) noexcept:
 
 cdef inline bint _fe_slot_is_empty(FastEngine self, FastState state, int slot) noexcept:
     return (
-        state.subject[slot] < 0
-        and state.link[slot] < 0
+        state.force[slot] < 0
+        and state.bond[slot] < 0
         and state.name[slot] < 0
     )
 
@@ -602,8 +602,8 @@ cdef int _fe_legal_pending_effect_actions(
                 continue
             if flags & EFFECT_ALLOW_UNNAMED:
                 if (
-                    state.subject[source] < 0
-                    or self.immobile_force[state.subject[source]]
+                    state.force[source] < 0
+                    or self.immobile_force[state.force[source]]
                 ):
                     continue
             elif not _fe_maneuver_source_legal(self, 
@@ -632,7 +632,7 @@ cdef int _fe_legal_pending_effect_actions(
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_MOVE:
         for source in range(SLOT_COUNT):
-            if not (source_mask & (1 << source)) or state.subject[source] < 0:
+            if not (source_mask & (1 << source)) or state.force[source] < 0:
                 continue
             for dest in range(SLOT_COUNT):
                 if not (dest_mask & (1 << dest)):
@@ -654,14 +654,14 @@ cdef int _fe_legal_pending_effect_actions(
                     )
     elif kind == EFFECT_SWAP:
         for source in range(player * 8, player * 8 + 8):
-            if not (source_mask & (1 << source)) or state.subject[source] < 0:
+            if not (source_mask & (1 << source)) or state.force[source] < 0:
                 continue
             for dest in range(player * 8, player * 8 + 8):
                 if dest == source:
                     continue
                 if source_mask == dest_mask and dest < source:
                     continue
-                if not (dest_mask & (1 << dest)) or state.subject[dest] < 0:
+                if not (dest_mask & (1 << dest)) or state.force[dest] < 0:
                     continue
                 if flags & EFFECT_ADJACENT_PAIR:
                     if rank_from_slot(source) != rank_from_slot(dest) or abs(front_from_slot(source) - front_from_slot(dest)) != 1:
@@ -669,9 +669,9 @@ cdef int _fe_legal_pending_effect_actions(
                 if flags & EFFECT_SAME_FRONT_PAIR:
                     if front_from_slot(source) != front_from_slot(dest) or rank_from_slot(source) == rank_from_slot(dest):
                         continue
-                if self.immobile_force[state.subject[source]] or self.immobile_force[state.subject[dest]]:
+                if self.immobile_force[state.force[source]] or self.immobile_force[state.force[dest]]:
                     continue
-                if self.cannot_swap_target[state.subject[source]] or self.cannot_swap_target[state.subject[dest]]:
+                if self.cannot_swap_target[state.force[source]] or self.cannot_swap_target[state.force[dest]]:
                     continue
                 n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_RECOVER:
@@ -684,19 +684,19 @@ cdef int _fe_legal_pending_effect_actions(
             n = _append_action(actions, n, encode_action(TYPE_EFFECT, card, -1, -1, player, kind))
     elif kind == EFFECT_FRONT_CONTRIBUTION:
         source = state.pending_source[0]
-        if source >= 0 and state.subject[source] >= 0:
+        if source >= 0 and state.force[source] >= 0:
             front = front_from_slot(source)
             for dest in range(max(0, front - 1), min(3, front + 1) + 1):
                 n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_SUPPRESS:
         for dest in range(SLOT_COUNT):
-            if dest_mask & (1 << dest) and state.subject[dest] >= 0:
+            if dest_mask & (1 << dest) and state.force[dest] >= 0:
                 n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, -1, dest, player, kind))
     elif kind == EFFECT_SACRIFICE:
         source = state.pending_source[0]
-        if source >= 0 and state.subject[source] >= 0:
+        if source >= 0 and state.force[source] >= 0:
             for dest in range(SLOT_COUNT):
-                if dest_mask & (1 << dest) and state.subject[dest] >= 0:
+                if dest_mask & (1 << dest) and state.force[dest] >= 0:
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_INTERCEPT:
         for source in range(player * 8, player * 8 + 8):
@@ -709,7 +709,7 @@ cdef int _fe_legal_pending_effect_actions(
             n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_PROTECT_RETREAT:
         source = state.pending_source[0]
-        if source >= 0 and state.subject[source] >= 0:
+        if source >= 0 and state.force[source] >= 0:
             n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, state.pending_aux[0], player, kind))
     elif kind == EFFECT_TRANSFER_COMPONENT:
         for source in range(player * 8, player * 8 + 8):
@@ -721,14 +721,14 @@ cdef int _fe_legal_pending_effect_actions(
                         continue
                 elif not (dest_mask & (1 << dest)):
                     continue
-                if state.link[source] >= 0 and state.link[dest] < 0:
-                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, state.link[source], source, dest, player, kind))
+                if state.bond[source] >= 0 and state.bond[dest] < 0:
+                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, state.bond[source], source, dest, player, kind))
                 if state.name[source] >= 0 and state.name[dest] < 0:
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, state.name[source], source, dest, player, kind))
     elif kind == EFFECT_SUCCESSION:
         source = state.pending_source[0]
         for dest in range(player * 8, player * 8 + 8):
-            if dest_mask & (1 << dest) and state.subject[dest] >= 0 and state.link[dest] >= 0 and state.name[dest] < 0:
+            if dest_mask & (1 << dest) and state.force[dest] >= 0 and state.bond[dest] >= 0 and state.name[dest] < 0:
                 n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
 
     # A mandatory choice can become impossible after it was queued. The most
@@ -787,7 +787,7 @@ cdef int _fe_legal_actions_into(
                 req = self.placement_rank[card]
                 for local in range(8):
                     slot = player * 8 + local
-                    if state.subject[slot] >= 0:
+                    if state.force[slot] >= 0:
                         continue
                     rank = local & 1
                     if req >= 0 and req != rank:
@@ -813,7 +813,7 @@ cdef int _fe_legal_actions_into(
         elif self.card_type[card] == CARD_LINK:
             for local in range(8):
                 slot = player * 8 + local
-                if state.link[slot] >= 0:
+                if state.bond[slot] >= 0:
                     continue
                 n = _append_action(
                     actions,
@@ -835,8 +835,8 @@ cdef int _fe_legal_actions_into(
                     )
                 if (
                     self.bond_move_on_play[card]
-                    and state.subject[slot] >= 0
-                    and not self.immobile_force[state.subject[slot]]
+                    and state.force[slot] >= 0
+                    and not self.immobile_force[state.force[slot]]
                 ):
                     front = local >> 1
                     rank = local & 1
@@ -890,7 +890,7 @@ cdef int _fe_legal_actions_into(
                 # association selected when the card is played.
                 choice = self.story_choice_kind[card]
                 for story_slot in range(self.ongoing_story_limit):
-                    if state.scheme[player * 4 + story_slot] >= 0:
+                    if state.narrative[player * 4 + story_slot] >= 0:
                         continue
                     if choice == STORY_CHOICE_FRONT:
                         for front in range(4):
@@ -973,7 +973,7 @@ cdef int _fe_legal_actions_into(
                     for local in range(8):
                         slot = opponent * 8 + local
                         if (
-                            state.subject[slot] >= 0
+                            state.force[slot] >= 0
                             and not _fe_subject_protected(self, state, slot)
                         ):
                             n = _append_action(
@@ -989,13 +989,13 @@ cdef int _fe_legal_actions_into(
                             )
                 elif effect == PLOT_MOVE_SUBJECT:
                     for source in range(player * 8, player * 8 + 8):
-                        if state.subject[source] < 0:
+                        if state.force[source] < 0:
                             continue
                         for dest in range(player * 8, player * 8 + 8):
                             if (
                                 dest == source
-                                or state.subject[dest] >= 0
-                                or state.link[dest] >= 0
+                                or state.force[dest] >= 0
+                                or state.bond[dest] >= 0
                                 or state.name[dest] >= 0
                             ):
                                 continue
@@ -1098,7 +1098,7 @@ cdef int _fe_legal_actions_into(
                         eligible_mask = 0
                         for local in range(8):
                             source = player * 8 + local
-                            if state.subject[source] < 0:
+                            if state.force[source] < 0:
                                 continue
                             front = local >> 1
                             rank = local & 1
@@ -1137,10 +1137,10 @@ cdef int _fe_legal_actions_into(
                         source = slot_index(player, front, 1)
                         dest = slot_index(player, front, 0)
                         if (
-                            state.subject[source] >= 0
-                            and not self.immobile_force[state.subject[source]]
-                            and state.subject[dest] < 0
-                            and state.link[dest] < 0
+                            state.force[source] >= 0
+                            and not self.immobile_force[state.force[source]]
+                            and state.force[dest] < 0
+                            and state.bond[dest] < 0
                             and state.name[dest] < 0
                         ):
                             eligible_mask |= <uint32_t>(1 << source)
