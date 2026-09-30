@@ -158,6 +158,7 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     expected = {
         "__init__.py",
         "cards.py",
+        "decks.py",
         "rules.py",
         "heuristics.py",
         "web_api.py",
@@ -208,6 +209,18 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
         path.name for path in package.rglob("*.pyx")
     }
     assert "_mccfr_accel" not in (source / "setup.py").read_text(encoding="utf-8")
+
+
+def test_browser_runtime_packages_engine_relative_dependencies() -> None:
+    from tools import build_browser_runtime
+
+    packaged = set(build_browser_runtime.BROWSER_PYTHON_FILES)
+    engine_source = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
+
+    # GameEngine is part of the browser wheel. Keep its direct package-level
+    # runtime dependencies in that same minimal wheel.
+    if "from ..decks import" in engine_source:
+        assert "decks.py" in packaged
 
 
 def test_browser_parity_replay_helper_needs_only_browser_runtime() -> None:
