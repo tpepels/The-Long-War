@@ -24,28 +24,19 @@ class GameRules:
     hand_limit: int = 10
     ongoing_narrative_limit: int = 2
     def __post_init__(self) -> None:
-        for name, field in self.__dataclass_fields__.items():
+        for name, rule_field in self.__dataclass_fields__.items():
             value = getattr(self, name)
-            if isinstance(field.default, bool):
+            if isinstance(rule_field.default, bool):
                 if type(value) is not bool:
                     raise ValueError(f"{name} must be boolean")
-            elif isinstance(field.default, int):
+            elif isinstance(rule_field.default, int):
                 if type(value) is not int:
                     raise ValueError(f"{name} must be an integer")
+                if value < 0:
+                    raise ValueError(f"{name} must be non-negative")
+
         if self.opening_hand_size < 1:
             raise ValueError("opening_hand_size must be positive")
-        if min(
-            self.starting_command,
-            self.command_cap,
-            self.command_recovery_start,
-            self.command_recovery_decrement,
-            self.command_recovery_floor,
-            self.command_collapse_threshold,
-            self.maneuver_command_cost,
-            self.hand_limit,
-            self.ongoing_narrative_limit,
-        ) < 0:
-            raise ValueError("Command settings must be non-negative")
         if self.starting_command > self.command_cap:
             raise ValueError("starting_command cannot exceed command_cap")
 
