@@ -44,13 +44,25 @@ cdef inline uint64_t _ismcts_bucket_hash(InfoHash128 key) noexcept:
     return x
 
 
+DEF ISMCTS_EDGE_SLAB_RECORDS = 16384
+
+cdef struct ISMCTSEdgeRecord:
+    uint64_t action
+    uint64_t visits
+    uint64_t availability
+    double value_sum
+
+
+cdef struct ISMCTSEdgeSlab:
+    ISMCTSEdgeRecord* records
+    size_t capacity
+    size_t used
+
+
 cdef struct ISMCTSNodeRecord:
     uint64_t key_a
     uint64_t key_b
-    uint64_t* actions
-    uint64_t* visits
-    uint64_t* availability
-    double* value_sum
+    ISMCTSEdgeRecord* edges
     uint64_t total_visits
     uint16_t action_count
     int8_t player
@@ -59,18 +71,26 @@ cdef struct ISMCTSNodeRecord:
 cdef class ISMCTSTree:
     cdef ISMCTSNodeRecord* nodes
     cdef int32_t* buckets
+    cdef ISMCTSEdgeSlab* edge_slabs
     cdef size_t node_count
     cdef size_t node_capacity
     cdef size_t bucket_capacity
     cdef size_t max_nodes
+    cdef size_t edge_slab_count
+    cdef size_t edge_slab_capacity
+    cdef size_t edge_slab_cursor
     cdef object search_context
 
     def __cinit__(self):
         self.nodes = NULL
         self.buckets = NULL
+        self.edge_slabs = NULL
         self.node_count = 0
         self.node_capacity = 0
         self.bucket_capacity = 0
+        self.edge_slab_count = 0
+        self.edge_slab_capacity = 0
+        self.edge_slab_cursor = 0
         self.search_context = None
 
     def __init__(self, long expected_nodes, max_nodes=None):
@@ -97,33 +117,86 @@ cdef class ISMCTSTree:
         return int(self.node_count)
 
     def clear(self):
-        """Discard statistics while retaining bounded native allocations."""
+        """Discard statistics while retaining reusable node and edge arenas."""
         cdef size_t i
-        for i in range(self.node_count):
-            free(self.nodes[i].actions)
-            free(self.nodes[i].visits)
-            free(self.nodes[i].availability)
-            free(self.nodes[i].value_sum)
         memset(self.nodes, 0, self.node_capacity * sizeof(ISMCTSNodeRecord))
         memset(self.buckets, 0, self.bucket_capacity * sizeof(int32_t))
+        for i in range(self.edge_slab_count):
+            self.edge_slabs[i].used = 0
+        self.edge_slab_cursor = 0
         self.node_count = 0
         self.search_context = None
 
     def __dealloc__(self):
         cdef size_t i
         if self.nodes != NULL:
-            for i in range(self.node_count):
-                if self.nodes[i].actions != NULL:
-                    free(self.nodes[i].actions)
-                if self.nodes[i].visits != NULL:
-                    free(self.nodes[i].visits)
-                if self.nodes[i].availability != NULL:
-                    free(self.nodes[i].availability)
-                if self.nodes[i].value_sum != NULL:
-                    free(self.nodes[i].value_sum)
             free(self.nodes)
         if self.buckets != NULL:
             free(self.buckets)
+        if self.edge_slabs != NULL:
+            for i in range(self.edge_slab_count):
+                if self.edge_slabs[i].records != NULL:
+                    free(self.edge_slabs[i].records)
+            free(self.edge_slabs)
+
+    cdef void _append_edge_slab(self, size_t minimum_records) except *:
+        cdef size_t old_capacity = self.edge_slab_capacity
+        cdef size_t new_capacity
+        cdef size_t records_capacity
+        cdef ISMCTSEdgeSlab* grown
+        cdef ISMCTSEdgeRecord* records
+
+        if self.edge_slab_count >= self.edge_slab_capacity:
+            new_capacity = 8 if old_capacity == 0 else old_capacity << 1
+            grown = <ISMCTSEdgeSlab*>realloc(
+                self.edge_slabs,
+                new_capacity * sizeof(ISMCTSEdgeSlab),
+            )
+            if grown == NULL:
+                raise MemoryError("Unable to grow ISMCTS edge-slab table")
+            self.edge_slabs = grown
+            memset(
+                &self.edge_slabs[old_capacity],
+                0,
+                (new_capacity - old_capacity) * sizeof(ISMCTSEdgeSlab),
+            )
+            self.edge_slab_capacity = new_capacity
+
+        records_capacity = (
+            ISMCTS_EDGE_SLAB_RECORDS
+            if minimum_records <= ISMCTS_EDGE_SLAB_RECORDS
+            else minimum_records
+        )
+        records = <ISMCTSEdgeRecord*>malloc(
+            records_capacity * sizeof(ISMCTSEdgeRecord)
+        )
+        if records == NULL:
+            raise MemoryError("Unable to allocate ISMCTS edge slab")
+        self.edge_slabs[self.edge_slab_count].records = records
+        self.edge_slabs[self.edge_slab_count].capacity = records_capacity
+        self.edge_slabs[self.edge_slab_count].used = 0
+        self.edge_slab_count += 1
+
+    cdef ISMCTSEdgeRecord* _alloc_edges(self, size_t n) except NULL:
+        cdef ISMCTSEdgeSlab* slab
+        cdef ISMCTSEdgeRecord* result
+        if n == 0:
+            return NULL
+
+        while self.edge_slab_cursor < self.edge_slab_count:
+            slab = &self.edge_slabs[self.edge_slab_cursor]
+            if slab.capacity - slab.used >= n:
+                result = &slab.records[slab.used]
+                slab.used += n
+                return result
+            self.edge_slab_cursor += 1
+
+        self._append_edge_slab(n)
+        self.edge_slab_cursor = self.edge_slab_count - 1
+        slab = &self.edge_slabs[self.edge_slab_cursor]
+        result = &slab.records[0]
+        slab.used = n
+        return result
 
     cdef void _allocate(
         self,
@@ -243,36 +316,13 @@ cdef class ISMCTSTree:
         node.player = <int8_t>player
         node.action_count = <uint16_t>n
         node.total_visits = 0
-        node.actions = <uint64_t*>malloc(n * sizeof(uint64_t))
-        node.visits = <uint64_t*>malloc(n * sizeof(uint64_t))
-        node.availability = <uint64_t*>malloc(n * sizeof(uint64_t))
-        node.value_sum = <double*>malloc(n * sizeof(double))
-        if (
-            node.actions == NULL
-            or node.visits == NULL
-            or node.availability == NULL
-            or node.value_sum == NULL
-        ):
-            if node.actions != NULL:
-                free(node.actions)
-            if node.visits != NULL:
-                free(node.visits)
-            if node.availability != NULL:
-                free(node.availability)
-            if node.value_sum != NULL:
-                free(node.value_sum)
-            node.actions = NULL
-            node.visits = NULL
-            node.availability = NULL
-            node.value_sum = NULL
-            self.node_count -= 1
-            raise MemoryError("Unable to allocate native ISMCTS node")
+        node.edges = self._alloc_edges(n)
 
         for i in range(n):
-            node.actions[i] = actions[i]
-            node.visits[i] = 0
-            node.availability[i] = 0
-            node.value_sum[i] = 0.0
+            node.edges[i].action = actions[i]
+            node.edges[i].visits = 0
+            node.edges[i].availability = 0
+            node.edges[i].value_sum = 0.0
 
         mask = self.bucket_capacity - 1
         bucket = <size_t>(_ismcts_bucket_hash(key)) & mask
@@ -289,7 +339,7 @@ cdef class ISMCTSTree:
     ) noexcept:
         cdef int i
         for i in range(node.action_count):
-            if node.actions[i] == action:
+            if node.edges[i].action == action:
                 return i
         return -1
 
@@ -306,16 +356,23 @@ cdef class ISMCTSTree:
         cdef ISMCTSNodeRecord* node = &self.nodes[node_index]
         cdef int i, ix, chosen=-1, unvisited=0, visited_legal=0
         cdef int allowed=n
+        cdef bint direct_order = n == node.action_count
         cdef double mean, bonus, score, allowance, best=-1.0e300
 
+        if direct_order:
+            for i in range(n):
+                if node.edges[i].action != legal[i]:
+                    direct_order = False
+                    break
+
         for i in range(n):
-            ix = self._find_action(node, legal[i])
+            ix = i if direct_order else self._find_action(node, legal[i])
             if ix < 0:
                 raise RuntimeError(
                     "Legal-action set changed inside an information set"
                 )
-            node.availability[ix] += 1
-            if node.visits[ix] == 0:
+            node.edges[ix].availability += 1
+            if node.edges[ix].visits == 0:
                 unvisited += 1
                 if _ismcts_rand_index(rng, unvisited) == 0:
                     chosen = ix
@@ -343,13 +400,13 @@ cdef class ISMCTSTree:
         expanded[0] = False
         chosen = -1
         for i in range(n):
-            ix = self._find_action(node, legal[i])
-            if node.visits[ix] == 0:
+            ix = i if direct_order else self._find_action(node, legal[i])
+            if node.edges[ix].visits == 0:
                 continue
-            mean = node.value_sum[ix] / node.visits[ix]
+            mean = node.edges[ix].value_sum / node.edges[ix].visits
             bonus = exploration * sqrt(
-                log(<double>(node.availability[ix] + 1))
-                / node.visits[ix]
+                log(<double>(node.edges[ix].availability + 1))
+                / node.edges[ix].visits
             )
             score = mean + bonus
             if score > best:
@@ -362,8 +419,8 @@ cdef class ISMCTSTree:
         # usable across hidden-state samples.
         if chosen < 0:
             for i in range(n):
-                ix = self._find_action(node, legal[i])
-                if node.visits[ix] == 0:
+                ix = i if direct_order else self._find_action(node, legal[i])
+                if node.edges[ix].visits == 0:
                     unvisited -= 1
                     if unvisited <= 0:
                         chosen = ix
@@ -378,8 +435,8 @@ cdef class ISMCTSTree:
         double utility,
     ) noexcept:
         cdef ISMCTSNodeRecord* node = &self.nodes[node_index]
-        node.visits[action_index] += 1
-        node.value_sum[action_index] += utility
+        node.edges[action_index].visits += 1
+        node.edges[action_index].value_sum += utility
         node.total_visits += 1
 
 
@@ -626,7 +683,7 @@ def ismcts_search(
         root_node = &tree.nodes[prior_root_index]
         root_total_visits_before = root_node.total_visits
         for i in range(root_node.action_count):
-            root_prior_visits[i] = root_node.visits[i]
+            root_prior_visits[i] = root_node.edges[i].visits
 
     for iteration in range(iterations):
         if (
@@ -674,7 +731,7 @@ def ismcts_search(
                 &rng,
                 &expanded,
             )
-            action = tree.nodes[node_index].actions[ix]
+            action = tree.nodes[node_index].edges[ix].action
             path_nodes[depth] = node_index
             path_indices[depth] = <uint16_t>ix
             action_battle = state.battle
@@ -761,27 +818,27 @@ def ismcts_search(
     root_stats = []
     for i in range(root_node.action_count):
         mean_value = (
-            root_node.value_sum[i] / root_node.visits[i]
-            if root_node.visits[i]
+            root_node.edges[i].value_sum / root_node.edges[i].visits
+            if root_node.edges[i].visits
             else -1.0e300
         )
         root_stats.append(
             {
-                "action": root_node.actions[i],
-                "visits": root_node.visits[i],
+                "action": root_node.edges[i].action,
+                "visits": root_node.edges[i].visits,
                 "prior_visits": root_prior_visits[i],
-                "new_visits": root_node.visits[i] - root_prior_visits[i],
-                "availability": root_node.availability[i],
+                "new_visits": root_node.edges[i].visits - root_prior_visits[i],
+                "availability": root_node.edges[i].availability,
                 "mean_value": (
-                    mean_value if root_node.visits[i] else 0.0
+                    mean_value if root_node.edges[i].visits else 0.0
                 ),
             }
         )
         if (
             best_ix < 0
-            or root_node.visits[i] > best_visits
+            or root_node.edges[i].visits > best_visits
             or (
-                root_node.visits[i] == best_visits
+                root_node.edges[i].visits == best_visits
                 and mean_value > best_mean
             )
         ):
@@ -789,18 +846,18 @@ def ismcts_search(
             second_visits = best_visits
             second_mean = best_mean
             best_ix = i
-            best_visits = root_node.visits[i]
+            best_visits = root_node.edges[i].visits
             best_mean = mean_value
         elif (
             second_ix < 0
-            or root_node.visits[i] > second_visits
+            or root_node.edges[i].visits > second_visits
             or (
-                root_node.visits[i] == second_visits
+                root_node.edges[i].visits == second_visits
                 and mean_value > second_mean
             )
         ):
             second_ix = i
-            second_visits = root_node.visits[i]
+            second_visits = root_node.edges[i].visits
             second_mean = mean_value
 
     if best_ix < 0:
@@ -808,7 +865,7 @@ def ismcts_search(
     selected_action_visits_before = root_prior_visits[best_ix]
 
     return {
-        "action": root_node.actions[best_ix],
+        "action": root_node.edges[best_ix].action,
         "root_total_visits": root_node.total_visits,
         "root_total_visits_before": root_total_visits_before,
         "root_new_visits": root_node.total_visits - root_total_visits_before,
@@ -840,7 +897,8 @@ def ismcts_search(
         "rollout_actions": rollout_actions,
         "decisive_rollout_probes": decisive_rollout_probes,
         "decisive_rollout_actions": decisive_rollout_actions,
-        "tree_storage": "native-hash-arena",
+        "tree_storage": "native-hash-node-edge-slab",
+        "tree_edge_slabs": tree.edge_slab_count,
         "progressive_widening": progressive_widening,
         "progressive_widening_alpha": 0.5 if progressive_widening > 0.0 else 0.0,
         "rollout_policy": (

@@ -540,6 +540,34 @@ cdef class NativeHeuristicEvaluator:
             and child.command[opponent] > self.engine.command_collapse_threshold
         )
 
+    cpdef tuple command_preserving_action_codes(self, FastState state):
+        """Return legal native actions after the final Command blunder shield."""
+        cdef uint64_t actions[MAX_ACTIONS]
+        cdef uint64_t safe[MAX_ACTIONS]
+        cdef FastState child = FastState()
+        cdef int n = _fe_legal_actions_into(self.engine, state, &actions[0])
+        cdef int actor = state.active_player
+        cdef int i, safe_n = 0
+
+        if n <= 1:
+            return ([actions[i] for i in range(n)], 0)
+
+        for i in range(n):
+            if (
+                not self.action_needs_command_guard_probe_fast(
+                    state, actor, actions[i]
+                )
+                or not self.action_exhausts_command_fast(
+                    state, actor, actions[i], child
+                )
+            ):
+                safe[safe_n] = actions[i]
+                safe_n += 1
+
+        if safe_n == 0:
+            return ([actions[i] for i in range(n)], 0)
+        return ([safe[i] for i in range(safe_n)], n - safe_n)
+
     cdef double rollout_prior_fast(
         self,
         FastState state,
