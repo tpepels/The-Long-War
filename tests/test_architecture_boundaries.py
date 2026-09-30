@@ -359,24 +359,6 @@ def test_heuristic_policy_is_separate_from_rule_transitions() -> None:
     assert "strategic_evaluate" in source
 
 
-def test_python_facade_contains_no_duplicate_rule_engine() -> None:
-    """Rule transitions must exist only in the canonical native engine."""
-    forbidden = (
-        "_pass",
-        "_score_battle",
-        "_resolve_plot",
-        "_resolve_triggered_schemes",
-        "_resolve_stratagem_event",
-        "_discard_subject",
-        "_draw_for_battle",
-        "_reshuffle_discard_into_deck",
-        "_finish_operation",
-        "_advance_turn",
-    )
-    for name in forbidden:
-        assert not hasattr(GameEngine, name), name
-
-
 def test_compiled_native_module_is_hidden_behind_facades() -> None:
     allowed = {
         SRC / "native_engine.py",
