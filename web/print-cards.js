@@ -2,6 +2,9 @@
   "use strict";
 
   const TYPE_LABELS = { force: "Force", bond: "Bond", name: "Name", story: "Narrative", stratagem: "Stratagem" };
+  const BUILD_VERSION = typeof document === "undefined"
+    ? "dev"
+    : document.querySelector('meta[name="lw-build-version"]')?.getAttribute("content") || "dev";
   const esc = (value) => String(value ?? "")
     .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;").replaceAll('"', "&quot;");
@@ -101,8 +104,9 @@
       '<div class="card-rule">' + rulesMarkup(card) + '</div>' +
       (brief ? '<div class="card-ornament" aria-hidden="true"><svg viewBox="0 0 120 32"><path d="M2 16H40M80 16H118M60 5L71 16L60 27L49 16Z"/></svg></div>' : '') +
       '<footer class="card-footer"><span>' + (card.unique ? '<em class="unique">Unique</em>' : 'The Long War') +
-      '</span><span class="card-id">' + esc(deckLabel || card.id) + '</span></footer></article>';
+      '</span><span class="card-version">v' + esc(BUILD_VERSION) + '</span>' +
+      '<span class="card-id">' + esc(deckLabel || card.id) + '</span></footer></article>';
   }
 
-  window.PrintCards = { markup };
+  window.PrintCards = { markup, version: BUILD_VERSION };
 })();
