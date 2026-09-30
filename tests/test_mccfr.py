@@ -9,7 +9,7 @@ from longwar.agents.mccfr_agent import MCCFRAgent
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Pass, Position, Rank
 from longwar.game.model import StoryState
-from longwar.mccfr import CFRNode, MCCFRTrainer, information_set_id
+from longwar.mccfr import CFRNode, MCCFRTrainer, action_key, information_set_id
 
 ROOT = Path(__file__).resolve().parents[1]
 pytestmark = pytest.mark.algorithm
@@ -95,15 +95,25 @@ def test_mccfr_policy_cannot_spend_last_command_when_pass_is_safe() -> None:
     state.players[0].command = 1
     state.players[1].command = 5
     state.operations_this_battle[:] = [1, 1]
-    state.players[0].hand.clear()
-    state.players[1].hand.clear()
+    player = state.players[0]
+    for zone in (player.hand, player.deck):
+        if "the-grey-riders" in zone:
+            zone.remove("the-grey-riders")
+            break
+    else:
+        raise AssertionError("expected The Grey Riders in player 0 hidden zones")
+    if "marched-with" not in player.hand:
+        player.deck.remove("marched-with")
+        player.hand.append("marched-with")
     slot = state.slot(0, Position(Front.FIRST, Rank.FRONT))
-    slot.force = "the-fifty-men"
-    slot.bond = "followed"
-    slot.name = "namar"
+    slot.force = "the-grey-riders"
 
     legal = engine.legal_actions(state)
-    unsafe = next(action for action in legal if not isinstance(action, Pass))
+    unsafe = next(
+        action
+        for action in legal
+        if getattr(action, "card_id", None) == "marched-with"
+    )
     info_id = information_set_id(state, 0)
     policy = {
         "schema_version": 1,
