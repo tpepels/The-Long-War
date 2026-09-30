@@ -9,26 +9,11 @@ import hashlib
 import json
 from time import perf_counter
 
-include "_fast_constants.pxi"
-include "_fast_state.pxi"
+# One canonical engine composition shared by host search and browser play.
+include "_fast_engine_core.pxi"
 
-cdef class FastEngine
-
-include "_fast_engine_cards.pxi"
-include "_fast_engine_state_io.pxi"
-include "_fast_engine_strength.pxi"
-include "_fast_engine_costs.pxi"
-include "_fast_engine_actions.pxi"
-include "_fast_engine_effects.pxi"
-include "_fast_engine_battleflow.pxi"
-include "_fast_engine_resolution.pxi"
-include "_fast_engine_pending.pxi"
-include "_fast_engine_hashing.pxi"
-
-include "_fast_engine_class.pxi"
-
-# Keep one compiled extension/shared packed state, but separate policies and
-# algorithms physically so rule changes do not invite heuristic/search edits.
+# Search/evaluation policies consume the engine; they do not participate in
+# rule composition.
 include "_heuristic_core.pxi"
 include "_alpha_beta_core.pxi"
 include "_ismcts_core.pxi"
