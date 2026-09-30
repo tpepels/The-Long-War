@@ -388,3 +388,17 @@ def test_remote_play_routes_actions_through_host_authoritative_session() -> None
 def test_pages_cache_busts_remote_peer_module() -> None:
     builder = text("tools/build_pages.py")
     assert '("browser-engine.mjs", "remote-peer.mjs")' in builder
+
+
+def test_browser_verify_checks_all_authored_and_built_static_assets() -> None:
+    makefile = text("Makefile")
+    workflow = text(".github/workflows/pages.yml")
+    checker = text("tools/check_web_static.py")
+
+    assert "python tools/check_web_static.py" in makefile
+    assert "python tools/check_web_static.py --dist dist" in makefile
+    assert "python tools/check_web_static.py" in workflow
+    assert "python tools/check_web_static.py --dist dist" in workflow
+    assert '"--check", "--input-type=module"' in checker
+    assert "DATA_REF_RE" in checker
+    assert "requests missing built data asset" in checker

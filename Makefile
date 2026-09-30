@@ -27,7 +27,9 @@ browser-parity:
 	@echo "Browser/native parity..."
 	@rm -f artifacts/logs/browser-parity.log
 	@{ \
+		python tools/check_web_static.py && \
 		python tools/build_pages.py && \
+		python tools/check_web_static.py --dist dist && \
 		python tools/build_browser_contract.py --output artifacts/browser-engine-contract.json && \
 		node tools/check_browser_engine.mjs --contract artifacts/browser-engine-contract.json; \
 	} > artifacts/logs/browser-parity.log 2>&1 || { \

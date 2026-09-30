@@ -43,9 +43,12 @@ jobs:
           typst-version: 0.15.1
       - run: pip install -e '.[dev]'
       - run: python -m compileall -q src tools
-      - run: node --check web/balance.js
+      - name: Check authored browser assets
+        run: python tools/check_web_static.py
       - name: Build Pages from committed Balance Lab evidence
         run: python tools/build_pages.py
+      - name: Check built browser asset references
+        run: python tools/check_web_static.py --dist dist
       - name: Build canonical rulebook PDF
         run: python tools/build_rulebook_pdf.py
       - uses: actions/upload-pages-artifact@v4
