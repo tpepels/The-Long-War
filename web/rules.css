@@ -2555,3 +2555,26 @@
     margin-bottom: 2.8mm;
   }
 }
+
+
+/* Rulebook teaching aids -------------------------------------------------- */
+.rulebook p > img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 4mm auto 5mm;
+  border: .28mm solid rgba(24,23,20,.45);
+  background: #f5efe3;
+}
+
+.rulebook blockquote strong:first-child {
+  margin-right: 1.5mm;
+  font: 800 2.25mm/1 system-ui, sans-serif;
+  letter-spacing: .08em;
+}
+
+@media print {
+  .rulebook p > img {
+    break-inside: avoid;
+  }
+}

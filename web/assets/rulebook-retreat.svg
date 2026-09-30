@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
+<rect width="900" height="360" fill="#f5efe3"/>
+<style>
+text{fill:#181714;font-family:Arial,sans-serif} .h{font-size:22px;font-weight:700;letter-spacing:1px}.t{font-size:18px}.s{font-size:15px}.box{fill:#fffaf0;stroke:#181714;stroke-width:2}.soft{fill:#eee5d5;stroke:#181714;stroke-width:2}.dark{fill:#181714}.light{fill:#f7f2e8}.arrow{stroke:#181714;stroke-width:3;fill:none;marker-end:url(#a)} .dash{stroke-dasharray:8 7}
+</style>
+<defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#181714"/></marker></defs>
+<text x="35" y="42" class="h">LOST FRONT - RESOLVE THE REAR FIRST</text>
+<g transform="translate(70 80)">
+ <text x="120" y="0" class="h" text-anchor="middle">BEFORE</text>
+ <rect class="soft" x="25" y="28" width="190" height="70" rx="8"/><text x="120" y="55" class="s" text-anchor="middle">REAR</text><rect class="dark" x="55" y="65" width="130" height="25" rx="4"/><text x="120" y="84" class="s light" text-anchor="middle">NAMED A</text>
+ <rect class="box" x="25" y="118" width="190" height="70" rx="8"/><text x="120" y="145" class="s" text-anchor="middle">FRONTLINE</text><rect class="dark" x="55" y="155" width="130" height="25" rx="4"/><text x="120" y="174" class="s light" text-anchor="middle">NAMED B</text>
+</g>
+<path class="arrow" d="M315 145 H415"/><text x="365" y="126" class="s" text-anchor="middle">1. drive off Rear</text>
+<g transform="translate(430 80)">
+ <text x="120" y="0" class="h" text-anchor="middle">STEP 1</text>
+ <rect class="soft" x="25" y="28" width="190" height="70" rx="8"/><text x="120" y="67" class="t" text-anchor="middle">EMPTY REAR</text>
+ <rect class="box" x="25" y="118" width="190" height="70" rx="8"/><text x="120" y="145" class="s" text-anchor="middle">FRONTLINE</text><rect class="dark" x="55" y="155" width="130" height="25" rx="4"/><text x="120" y="174" class="s light" text-anchor="middle">NAMED B</text>
+</g>
+<path class="arrow" d="M675 145 H755"/><text x="715" y="126" class="s" text-anchor="middle">2. Retreat</text>
+<g transform="translate(745 80)">
+ <text x="75" y="0" class="h" text-anchor="middle">AFTER</text>
+ <rect class="soft" x="0" y="28" width="150" height="70" rx="8"/><text x="75" y="55" class="s" text-anchor="middle">REAR</text><rect class="dark" x="20" y="65" width="110" height="25" rx="4"/><text x="75" y="84" class="s light" text-anchor="middle">NAMED B</text>
+ <rect class="box" x="0" y="118" width="150" height="70" rx="8"/><text x="75" y="159" class="t" text-anchor="middle">EMPTY</text>
+</g>
+<text x="450" y="323" class="s" text-anchor="middle">If only the Frontline formation exists, it simply Retreats into the empty Rear.</text>
+</svg>

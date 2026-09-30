@@ -32,6 +32,10 @@ A Battle has a simple arc:
 
 A war may last several Battles. The board you preserve and the Command you save matter later.
 
+![A Battle moves from alternating turns through two consecutive Passes, four separate Front resolutions, Retreat, the collapse check, and recovery.](assets/rulebook-battle-flow.svg)
+
+> **REMEMBER** Winning more Fronts is useful, but there is no single Battle victory. The war ends through Command Collapse.
+
 ## The battlefield
 
 Each Front has two positions on each player's side.
@@ -120,6 +124,10 @@ Named Formations matter because they can survive from one Battle to the next and
 
 Force, Bond, and Name may be played in **any order**.
 
+![A position can begin with prepared cards, become a formation when a Force arrives, and becomes a Named Formation only when Force, Bond, and Name are all present.](assets/rulebook-formation.svg)
+
+> **EXAMPLE** You may play a Bond and a Name first. They wait face-up without Strength. When a Force later enters that position, the three cards immediately form a Named Formation.
+
 ### Prepared cards
 
 If a Bond or Name is played into a position without a Force, it is **prepared**. It stays face-up, but it has no Strength and no Force-dependent effect until a Force arrives.
@@ -165,6 +173,10 @@ When formations swap, only the formation chosen to Maneuver is considered to hav
 
 Move every Bond and Name with its Force.
 
+![A Maneuver moves one Named Formation one Front left or right without changing rank; an occupied friendly destination causes a swap.](assets/rulebook-maneuver.svg)
+
+> **REMEMBER** A Maneuver moves the whole formation. Bond and Name never stay behind when their Force moves.
+
 You cannot normally Maneuver between Battles or change rank with a Maneuver.
 
 ## Passing {#passing}
@@ -179,6 +191,10 @@ Passing does not remove you from the Battle. The opponent takes a normal turn.
 - If the opponent does anything else, your Pass is cleared.
 
 A Battle therefore ends after **two consecutive Passes**.
+
+![A first Pass is only provisional: a non-Pass clears it, while a second consecutive Pass ends the Battle.](assets/rulebook-pass-flow.svg)
+
+> **REMEMBER** Passing does not take you out of the Battle. If your opponent acts, play simply continues.
 
 The player who made the **first** of those two Passes starts the next Battle.
 
@@ -207,6 +223,10 @@ For each lost Front:
 
 1. Drive off the Rear Named Formation, if there is one.
 2. Then Retreat the Frontline Named Formation into the Rear, if there is one.
+
+![When a Front is lost, its Rear Named Formation is driven off first; only then does its Frontline Named Formation Retreat into the Rear.](assets/rulebook-retreat.svg)
+
+> **REMEMBER** The order matters. Clear the Rear first, then move the Frontline group backward.
 
 A driven-off formation is discarded as Force + Bond + Name.
 
@@ -251,6 +271,8 @@ Subtract **1 for each Front you lost** in that Battle.
 Your actual recovery is never less than **{{RECOVERY_FLOOR}}** while the war continues.
 
 Add the result to your current Command, to a maximum of {{COMMAND_CAP}}.
+
+> **EXAMPLE** In Battle III the current base recovery is **{{RECOVERY_BATTLE_3}}**. If you lost two Fronts, you recover **{{RECOVERY_BATTLE_3_LOSE_2}} Command**. The minimum recovery still applies if the subtraction would take you below {{RECOVERY_FLOOR}}.
 
 The recovery numbers above are generated from the same rules configuration used by the game engine.
 

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
+<rect width="900" height="360" fill="#f5efe3"/>
+<style>
+text{fill:#181714;font-family:Arial,sans-serif} .h{font-size:22px;font-weight:700;letter-spacing:1px}.t{font-size:18px}.s{font-size:15px}.box{fill:#fffaf0;stroke:#181714;stroke-width:2}.soft{fill:#eee5d5;stroke:#181714;stroke-width:2}.dark{fill:#181714}.light{fill:#f7f2e8}.arrow{stroke:#181714;stroke-width:3;fill:none;marker-end:url(#a)} .dash{stroke-dasharray:8 7}
+</style>
+<defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#181714"/></marker></defs>
+<text x="35" y="42" class="h">MANEUVER - SAME RANK, ONE FRONT SIDEWAYS</text>
+<g transform="translate(45 83)">
+ <text x="100" y="0" class="h" text-anchor="middle">FRONT 2</text>
+ <rect class="soft" x="10" y="25" width="180" height="100" rx="8"/><text x="100" y="62" class="s" text-anchor="middle">FRONTLINE</text>
+ <rect class="dark" x="35" y="73" width="130" height="36" rx="5"/><text x="100" y="97" class="t light" text-anchor="middle">NAMED</text>
+</g>
+<path class="arrow" d="M250 160 H410"/>
+<text x="330" y="138" class="s" text-anchor="middle">pay {{MANEUVER_COMMAND_COST}} Command</text>
+<g transform="translate(430 83)">
+ <text x="100" y="0" class="h" text-anchor="middle">FRONT 3</text>
+ <rect class="soft" x="10" y="25" width="180" height="100" rx="8"/><text x="100" y="62" class="s" text-anchor="middle">FRONTLINE</text>
+ <rect class="dark" x="35" y="73" width="130" height="36" rx="5"/><text x="100" y="97" class="t light" text-anchor="middle">NAMED</text>
+</g>
+<g transform="translate(665 83)">
+ <text x="95" y="0" class="h" text-anchor="middle">IF OCCUPIED</text>
+ <rect class="box" x="10" y="25" width="170" height="100" rx="8"/><text x="95" y="58" class="s" text-anchor="middle">friendly formation</text>
+ <path class="arrow" d="M55 84 H135"/><path class="arrow" d="M135 104 H55"/>
+ <text x="95" y="150" class="t" text-anchor="middle">SWAP</text>
+</g>
+<text x="450" y="302" class="s" text-anchor="middle">No rank change. Force, Bond and Name move together.</text>
+</svg>

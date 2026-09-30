@@ -176,6 +176,19 @@ def markdown_to_typst(source: str, version: str) -> str:
                 code_lines.append(line)
             continue
 
+        image_match = re.fullmatch(r"!\\[([^]]*)\\]\\(([^)]+)\\)", line.strip())
+        if image_match:
+            _flush_paragraph(paragraph, out)
+            finish_quote()
+            finish_table()
+            alt, path = image_match.groups()
+            out.append(
+                '#block(breakable: false, above: 4pt, below: 5pt)['
+                f'#image("{_string(path)}", width: 100%)'
+                ']'
+            )
+            continue
+
         if line.strip().startswith("```"):
             _flush_paragraph(paragraph, out)
             finish_quote()

@@ -79,7 +79,7 @@ def print_build_version() -> str:
         WEB / "cards.js",
         WEB / "playmat.html",
         WEB / "tokens.html",
-        WEB / "assets" / "rulebook-battlefield.svg",
+        *sorted((WEB / "assets").glob("rulebook-*.svg")),
         *REFERENCE_DECKS,
     ]
     digest = hashlib.sha256()
@@ -194,6 +194,11 @@ def render_rule_tokens(source: str, rules: GameRules) -> str:
             "RECOVERY_SERIES_PLAIN": ", ".join(
                 str(value) for value in recovery
             ) + "...",
+            "RECOVERY_BATTLE_3": rules.command_recovery_for_battle(3),
+            "RECOVERY_BATTLE_3_LOSE_2": max(
+                rules.command_recovery_floor,
+                rules.command_recovery_for_battle(3) - 2,
+            ),
         }
     )
     rendered = source

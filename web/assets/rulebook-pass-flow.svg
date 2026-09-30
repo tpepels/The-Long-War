@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
+<rect width="900" height="360" fill="#f5efe3"/>
+<style>
+text{fill:#181714;font-family:Arial,sans-serif} .h{font-size:22px;font-weight:700;letter-spacing:1px}.t{font-size:18px}.s{font-size:15px}.box{fill:#fffaf0;stroke:#181714;stroke-width:2}.soft{fill:#eee5d5;stroke:#181714;stroke-width:2}.dark{fill:#181714}.light{fill:#f7f2e8}.arrow{stroke:#181714;stroke-width:3;fill:none;marker-end:url(#a)} .dash{stroke-dasharray:8 7}
+</style>
+<defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#181714"/></marker></defs>
+<text x="35" y="42" class="h">PASS DOES NOT END YOUR PARTICIPATION</text>
+<g transform="translate(45 92)">
+ <rect class="soft" x="0" y="0" width="170" height="70" rx="8"/><text x="85" y="29" class="h" text-anchor="middle">YOU PASS</text><text x="85" y="53" class="s" text-anchor="middle">first Pass</text>
+ <path class="arrow" d="M175 35 H255"/>
+ <rect class="box" x="265" y="0" width="200" height="70" rx="8"/><text x="365" y="29" class="h" text-anchor="middle">OPPONENT TURN</text><text x="365" y="53" class="s" text-anchor="middle">normal turn</text>
+</g>
+<path class="arrow" d="M410 185 C410 225 260 225 260 270"/>
+<text x="280" y="218" class="s">opponent acts</text>
+<rect class="box" x="130" y="270" width="260" height="60" rx="8"/><text x="260" y="296" class="h" text-anchor="middle">PASS CLEARED</text><text x="260" y="318" class="s" text-anchor="middle">Battle continues</text>
+<path class="arrow" d="M555 160 C555 205 700 205 700 250"/>
+<text x="675" y="205" class="s" text-anchor="middle">opponent Passes</text>
+<rect class="dark" x="585" y="250" width="250" height="80" rx="8"/><text x="710" y="283" class="h light" text-anchor="middle">BATTLE ENDS</text><text x="710" y="310" class="s light" text-anchor="middle">two consecutive Passes</text>
+</svg>
