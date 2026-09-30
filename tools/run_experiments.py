@@ -2666,6 +2666,54 @@ def parse_args() -> argparse.Namespace:
         ),
     )
 
+    narrative = sub.add_parser(
+        "narrative-ablation",
+        help="Diagnose Narrative/Command with noncanonical Command-mechanic ablations.",
+    )
+    narrative.add_argument("--games", type=int, default=24)
+    narrative.add_argument("--seed", type=int, default=1701)
+    narrative.add_argument("--jobs", type=int, default=8)
+    narrative.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate the ablation even when the current configuration exists.",
+    )
+
+    full_lab = sub.add_parser(
+        "full-lab",
+        help="Populate every current-fingerprint Balance Lab evidence layer.",
+    )
+    full_lab.add_argument("--seed", type=int, default=1701)
+    full_lab.add_argument("--jobs", type=int, default=8)
+    full_lab.add_argument("--force", action="store_true")
+    full_lab.add_argument("--ablation-games", type=int, default=24)
+    full_lab.add_argument(
+        "--balance-games",
+        type=int,
+        help="Optional override for deep ISMCTS games per matchup cell.",
+    )
+    full_lab.add_argument("--contexts", type=int, default=3)
+    full_lab.add_argument("--games-per-context", type=int, default=4)
+    full_lab.add_argument("--target-max-cards", type=int, default=8)
+    full_lab.add_argument("--target-min-effect", type=float, default=0.05)
+    full_lab.add_argument("--online-iterations", type=int, default=16)
+    full_lab.add_argument("--online-depth", type=int, default=2)
+    full_lab.add_argument("--strength-games", type=int, default=24)
+    full_lab.add_argument(
+        "--strength-time-budget-seconds",
+        type=float,
+        default=5.0,
+    )
+    full_lab.add_argument("--mccfr-iterations", type=int, default=5000)
+    full_lab.add_argument("--mccfr-depth", type=int, default=3)
+    full_lab.add_argument("--mccfr-workers", type=int, default=8)
+    full_lab.add_argument("--mccfr-eval-games", type=int, default=24)
+    full_lab.add_argument(
+        "--mccfr-verify-iterations",
+        type=int,
+        default=50_000,
+    )
+
     sub.add_parser(
         "validate",
         help="Run focused tests plus exact Python/Cython simulation parity.",
@@ -2711,6 +2759,10 @@ def main() -> None:
             run_command_matrix(args)
         else:
             balance_run(args)
+    elif args.command == "narrative-ablation":
+        run_narrative_ablation(args)
+    elif args.command == "full-lab":
+        run_full_lab(args)
     elif args.command == "validate":
         validate()
     elif args.command == "strength-bench":
