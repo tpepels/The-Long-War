@@ -289,7 +289,7 @@ def test_rulebook_print_uses_four_explicit_pages() -> None:
     assert "Expected 17 rulebook sections" in builder
     assert 'data-page="{number}"' in builder
     assert "Page {number} of 4" in builder
-    assert "TLW print v{{PRINT_VERSION}}" in builder
+    assert "TLW print v{{{{PRINT_VERSION}}}}" in builder
     assert 'assets/rulebook-battlefield.svg' in builder
     assert "rulebook-print-shell" in template
     assert "{{RULEBOOK_PRINT}}" in template
