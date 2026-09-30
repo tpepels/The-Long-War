@@ -687,3 +687,56 @@ def test_command_matrix_cli_uses_four_planning_recovery_cells(monkeypatch) -> No
     assert "cell.recovery_decrement = recovery_decrement" in source
     assert "cell.skip_card_screen = True" in source
     assert "cell.publish_lab = True" in source
+
+
+def test_narrative_ablation_overrides_are_in_memory_only():
+    from longwar.cards import load_card_file
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    original = json.dumps(data, sort_keys=True)
+    variant, overrides = runner._narrative_ablation_card_data(
+        data, ("baggage", "rallied", "no-road")
+    )
+
+    assert json.dumps(data, sort_keys=True) == original
+    assert len(overrides) == 3
+    cards = {card["id"]: card for card in variant["cards"]}
+    assert cards["the-baggage-was-abandoned"]["design_rules"]["gain_command"] == 0
+    assert "command" not in cards["rallied-behind"]["design_rules"]
+    assert cards["no-road-was-too-long"]["design_rules"]["gain_command"] == 0
+
+
+def test_narrative_ablation_summary_keeps_command_sources_and_tail_metrics():
+    payload = {
+        "games": 2,
+        "decisive_games": 1,
+        "censored_games": 1,
+        "censor_rate": 0.5,
+        "mean_turns": 100,
+        "max_turns": 500,
+        "game_outcomes": [{"censored": True, "censor_reason": "active-action-horizon"}],
+        "telemetry": {"progression": {
+            "resources": {
+                "command_by_source": {"rallied-behind": {"discount_saved": 4}},
+                "command_before_collapse": {"mean": 2.0},
+                "command_before_collapse_buckets": {"1-3": 4},
+                "command_at_first_pass": {"mean": 2.0},
+                "first_pass_command_buckets": {"1-3": 2},
+            },
+            "match_length": {
+                "resolved_battles_per_match": {"mean": 20.0},
+                "final_battle_number": {"max": 30},
+                "battle_reach": {"8": {"matches": 2}, "12": {"matches": 2}},
+                "battle_8_plus_count": 20,
+                "battle_12_plus_count": 12,
+            },
+            "low_command_stalls": {
+                "low_positive_streak_length": {"max": 9},
+                "longest_low_positive_streak": 9,
+            },
+        }},
+    }
+    summary = runner._narrative_ablation_summary(payload)
+    assert summary["command_by_source"]["rallied-behind"]["discount_saved"] == 4
+    assert summary["longest_low_positive_streak"] == 9
+    assert summary["censor_reasons"] == {"active-action-horizon": 1}

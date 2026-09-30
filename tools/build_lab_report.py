@@ -158,6 +158,13 @@ def main() -> None:
     counterfactual = current("counterfactual-balance.json")
     targeted = current("targeted-online-counterfactual.json")
     run_summary = current("balance-run-summary.json")
+    narrative_ablation = load("narrative-command-ablation.json")
+    if (
+        narrative_ablation is not None
+        and narrative_ablation.get("game_fingerprint") != game_fingerprint
+    ):
+        stale_files.add("narrative-command-ablation.json")
+        narrative_ablation = None
 
     balance_comparisons = compact_dashboard_payload(
         load("balance-comparisons.json")
@@ -396,6 +403,7 @@ def main() -> None:
         "counterfactual": counterfactual,
         "targeted_counterfactual": targeted,
         "run_summary": run_summary,
+        "narrative_ablation": narrative_ablation,
         "balance_comparisons": balance_comparisons,
         "dashboard_telemetry": dashboard_telemetry,
         "progression": progression,

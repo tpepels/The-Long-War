@@ -1898,6 +1898,232 @@ def benchmark_strength(
 
 
 
+
+NARRATIVE_COMMAND_ABLATIONS = (
+    ("baseline", ()),
+    ("no-baggage-command", ("baggage",)),
+    ("no-rallied-discount", ("rallied",)),
+    ("no-no-road-command", ("no-road",)),
+    ("no-three-command-engines", ("baggage", "rallied", "no-road")),
+)
+
+
+def _narrative_ablation_card_data(
+    base_data: dict[str, Any],
+    disabled: tuple[str, ...],
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    """Return an in-memory Narrative experiment without mutating canonical data."""
+    data = copy.deepcopy(base_data)
+    cards = {card["id"]: card for card in data["cards"]}
+    overrides: list[dict[str, str]] = []
+
+    if "baggage" in disabled:
+        card = cards["the-baggage-was-abandoned"]
+        card["design_rules"]["gain_command"] = 0
+        overrides.append({
+            "card": card["id"],
+            "effect": "disable discard-for-Command gain",
+        })
+
+    if "rallied" in disabled:
+        card = cards["rallied-behind"]
+        for key in ("command", "condition", "cost"):
+            card["design_rules"].pop(key, None)
+        overrides.append({
+            "card": card["id"],
+            "effect": "disable catch-up zero-cost discount",
+        })
+
+    if "no-road" in disabled:
+        card = cards["no-road-was-too-long"]
+        card["design_rules"]["gain_command"] = 0
+        overrides.append({
+            "card": card["id"],
+            "effect": "disable recurring Maneuver-into-empty Command gain",
+        })
+
+    return data, overrides
+
+
+def _narrative_ablation_summary(payload: dict[str, Any]) -> dict[str, Any]:
+    progression = payload.get("telemetry", {}).get("progression", {})
+    resources = progression.get("resources", {})
+    match_length = progression.get("match_length", {})
+    stalls = progression.get("low_command_stalls", {})
+    outcomes = payload.get("game_outcomes", [])
+    censor_reasons = Counter(
+        row.get("censor_reason")
+        for row in outcomes
+        if row.get("censored")
+    )
+    return {
+        "games": payload.get("games"),
+        "decisive_games": payload.get("decisive_games"),
+        "censored_games": payload.get("censored_games"),
+        "censor_rate": payload.get("censor_rate"),
+        "mean_actions": payload.get("mean_turns"),
+        "max_actions": payload.get("max_turns"),
+        "resolved_battles_per_match": match_length.get(
+            "resolved_battles_per_match"
+        ),
+        "final_battle_number": match_length.get("final_battle_number"),
+        "battle_reach": match_length.get("battle_reach"),
+        "battle_8_plus_count": match_length.get("battle_8_plus_count"),
+        "battle_12_plus_count": match_length.get("battle_12_plus_count"),
+        "command_before_collapse": resources.get("command_before_collapse"),
+        "command_before_collapse_buckets": resources.get(
+            "command_before_collapse_buckets"
+        ),
+        "command_at_first_pass": resources.get("command_at_first_pass"),
+        "first_pass_command_buckets": resources.get(
+            "first_pass_command_buckets"
+        ),
+        "command_by_source": resources.get("command_by_source", {}),
+        "low_positive_streak_length": stalls.get(
+            "low_positive_streak_length"
+        ),
+        "longest_low_positive_streak": stalls.get(
+            "longest_low_positive_streak"
+        ),
+        "censor_reasons": dict(sorted(censor_reasons.items())),
+    }
+
+
+def narrative_ablation_run(args: argparse.Namespace) -> Path:
+    """Run the five Narrative/Command mirror diagnostics with identical seeds."""
+    from longwar.simulate import simulate_games
+
+    if args.games <= 0 or args.jobs <= 0:
+        raise SystemExit("--games and --jobs must be positive")
+
+    base_data = load_card_file(ROOT / "cards" / "cards.json")
+    deck_path = ROOT / CANONICAL_DECK_PATHS["narrative-command"]
+    deck = list(json.loads(deck_path.read_text(encoding="utf-8"))["cards"])
+    root = ROOT / "artifacts" / "narrative-ablation"
+    root.mkdir(parents=True, exist_ok=True)
+
+    profiles: dict[str, Any] = {}
+    aggregate_identity = experiment_identity({
+        "experiment": "narrative-command-ablation-suite",
+        "games": args.games,
+        "seed": args.seed,
+    })
+    for index, (variant, disabled) in enumerate(NARRATIVE_COMMAND_ABLATIONS, 1):
+        card_data, overrides = _narrative_ablation_card_data(
+            base_data, disabled
+        )
+        config = {
+            "experiment": "narrative-command-ablation",
+            "variant": variant,
+            "disabled": list(disabled),
+            "card_overrides": overrides,
+            "games": args.games,
+            "seed": args.seed,
+            "jobs": args.jobs,
+            "agent": "ismcts",
+            "rules": GameRules.standard().as_dict(),
+            "ismcts": {
+                "belief_samples": DEFAULT_ISMCTS_BELIEF_SAMPLES,
+                "iterations": DEFAULT_ISMCTS_ITERATIONS,
+                "rollout_depth": DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+                "exploration": DEFAULT_ISMCTS_EXPLORATION,
+                "progressive_widening": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+                "tree_reuse": DEFAULT_ISMCTS_REUSE_TREE,
+                "max_tree_nodes": DEFAULT_ISMCTS_MAX_TREE_NODES,
+                "rollout_epsilon": DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+                "rollout_policy": DEFAULT_ISMCTS_ROLLOUT_POLICY,
+            },
+        }
+        identity = experiment_identity(config)
+        output = root / f"{variant}.json"
+        reuse = (
+            not args.force
+            and output.exists()
+            and artifact_matches_game_fingerprint(
+                output, identity["game_fingerprint"]
+            )
+        )
+        if reuse:
+            existing = json.loads(output.read_text(encoding="utf-8"))
+            reuse = (
+                existing.get("experiment_fingerprint")
+                == identity["experiment_fingerprint"]
+                and existing.get("config") == config
+            )
+
+        if reuse:
+            print(
+                f"[Narrative {index}/{len(NARRATIVE_COMMAND_ABLATIONS)}] "
+                f"{variant}: reusing current artifact",
+                flush=True,
+            )
+            payload = existing
+        else:
+            print(
+                f"[Narrative {index}/{len(NARRATIVE_COMMAND_ABLATIONS)}] "
+                f"{variant}: {args.games} ISMCTS mirror games",
+                flush=True,
+            )
+            engine = GameEngine(card_data, rules=GameRules.standard())
+            report = simulate_games(
+                engine,
+                deck,
+                deck,
+                games=args.games,
+                seed=args.seed,
+                jobs=args.jobs,
+                agent_names=("ismcts", "ismcts"),
+                ismcts_belief_samples=DEFAULT_ISMCTS_BELIEF_SAMPLES,
+                ismcts_iterations=DEFAULT_ISMCTS_ITERATIONS,
+                ismcts_rollout_depth=DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+                ismcts_exploration=DEFAULT_ISMCTS_EXPLORATION,
+                ismcts_progressive_widening=DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+                ismcts_reuse_tree=DEFAULT_ISMCTS_REUSE_TREE,
+                ismcts_max_tree_nodes=DEFAULT_ISMCTS_MAX_TREE_NODES,
+                ismcts_rollout_epsilon=DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+                ismcts_rollout_policy=DEFAULT_ISMCTS_ROLLOUT_POLICY,
+            )
+            payload = {
+                **asdict(report),
+                **identity,
+                "variant": variant,
+                "card_overrides": overrides,
+                "rules": GameRules.standard().as_dict(),
+                "decisive_games": report.decisive_games,
+                "censor_rate": report.censor_rate,
+            }
+            payload["summary"] = _narrative_ablation_summary(payload)
+            output.write_text(
+                json.dumps(payload, indent=2) + "\n",
+                encoding="utf-8",
+            )
+        profiles[variant] = {
+            "variant": variant,
+            "card_overrides": overrides,
+            "summary": payload.get("summary")
+            or _narrative_ablation_summary(payload),
+        }
+
+    aggregate = {
+        "schema_version": 1,
+        **aggregate_identity,
+        "deck": "narrative-command",
+        "agent": "ismcts",
+        "games_per_variant": args.games,
+        "seed": args.seed,
+        "methodology": (
+            "Five Narrative/Command mirror ISMCTS conditions use identical "
+            "seeds. Card effects are disabled only in copied in-memory card "
+            "data; canonical cards/cards.json is never modified."
+        ),
+        "profiles": profiles,
+    }
+    output = ROOT / "artifacts" / "narrative-command-ablation.json"
+    output.write_text(json.dumps(aggregate, indent=2) + "\n", encoding="utf-8")
+    print(f"Wrote {output.relative_to(ROOT)}", flush=True)
+    return output
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Local validation, canonical AI sanity checks, and gameplay analysis."
@@ -2134,6 +2360,18 @@ def parse_args() -> argparse.Namespace:
         ),
     )
 
+    ablation = sub.add_parser(
+        "narrative-ablation",
+        help="Diagnose Narrative/Command Command-economy tails with five ISMCTS ablations.",
+    )
+    ablation.add_argument("--games", type=int, default=24)
+    ablation.add_argument("--jobs", type=int, default=8)
+    ablation.add_argument("--seed", type=int, default=1773)
+    ablation.add_argument(
+        "--force", action="store_true",
+        help="Regenerate current-fingerprint ablation artifacts instead of reusing them.",
+    )
+
     sub.add_parser(
         "validate",
         help="Run focused tests plus exact Python/Cython simulation parity.",
@@ -2179,6 +2417,8 @@ def main() -> None:
             run_command_matrix(args)
         else:
             balance_run(args)
+    elif args.command == "narrative-ablation":
+        narrative_ablation_run(args)
     elif args.command == "validate":
         validate()
     elif args.command == "strength-bench":
