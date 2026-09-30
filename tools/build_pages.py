@@ -86,27 +86,34 @@ def render_rule_tokens(source: str, rules: GameRules) -> str:
         rules.command_recovery_for_battle(battle)
         for battle in range(1, 6)
     ]
-    replacements = {
-        "{{OPENING_HAND_SIZE}}": str(rules.opening_hand_size),
-        "{{STARTING_COMMAND}}": str(rules.starting_command),
-        "{{COMMAND_CAP}}": str(rules.command_cap),
-        "{{COLLAPSE_THRESHOLD}}": str(rules.command_collapse_threshold),
-        "{{RECOVERY_START}}": str(rules.command_recovery_start),
-        "{{RECOVERY_DECREMENT}}": str(rules.command_recovery_decrement),
-        "{{RECOVERY_FLOOR}}": str(rules.command_recovery_floor),
-        "{{MANEUVER_COMMAND_COST}}": str(rules.maneuver_command_cost),
-        "{{HAND_LIMIT}}": str(rules.hand_limit),
-        "{{ONGOING_NARRATIVE_LIMIT}}": str(rules.ongoing_narrative_limit),
-        "{{RECOVERY_SERIES}}": ", ".join(
-            f"+{value}" for value in recovery
-        ) + "…",
-        "{{RECOVERY_SERIES_PLAIN}}": ", ".join(
-            str(value) for value in recovery
-        ) + "...",
+    values = {
+        key.upper(): value
+        for key, value in rules.as_dict().items()
     }
+    # Short aliases keep authored reference copy readable while canonical
+    # GameRules field names remain the actual source of truth.
+    values.update(
+        {
+            "COLLAPSE_THRESHOLD": rules.command_collapse_threshold,
+            "RECOVERY_START": rules.command_recovery_start,
+            "RECOVERY_DECREMENT": rules.command_recovery_decrement,
+            "RECOVERY_FLOOR": rules.command_recovery_floor,
+            "RECOVERY_SERIES": ", ".join(
+                f"+{value}" for value in recovery
+            ) + "…",
+            "RECOVERY_SERIES_PLAIN": ", ".join(
+                str(value) for value in recovery
+            ) + "...",
+        }
+    )
     rendered = source
-    for token, value in replacements.items():
-        rendered = rendered.replace(token, value)
+    for key, value in values.items():
+        rendered = rendered.replace("{{" + key + "}}", str(value))
+    unresolved = sorted(set(re.findall(r"{{([A-Z0-9_]+)}}", rendered)))
+    if unresolved:
+        raise ValueError(
+            "Unknown rule-reference tokens: " + ", ".join(unresolved)
+        )
     return rendered
 
 
