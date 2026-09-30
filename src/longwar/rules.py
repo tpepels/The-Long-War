@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+
+
 @dataclass(frozen=True, slots=True)
 class GameRules:
     """Immutable rules configuration shared by every engine consumer.
@@ -23,6 +25,7 @@ class GameRules:
     maneuver_command_cost: int = 1
     hand_limit: int = 10
     ongoing_narrative_limit: int = 2
+
     def __post_init__(self) -> None:
         for name, rule_field in self.__dataclass_fields__.items():
             value = getattr(self, name)
