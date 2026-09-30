@@ -278,44 +278,39 @@ def test_print_build_version_is_stamped_everywhere() -> None:
     assert ".print-version" in site_css
 
 
-def test_rulebook_print_keeps_two_columns_without_section_holes() -> None:
+def test_rulebook_print_uses_four_explicit_pages() -> None:
     css = text("web/rules.css")
     builder = text("tools/build_pages.py")
+    template = text("web/rulebook.template.html")
+
     assert "@page rulebook" in css
     assert "size: A4 portrait;" in css
-    assert "page: rulebook;" in css
-    assert "column-count: 2;" in css
-    assert "column-fill: auto;" in css
-    assert "structure_rulebook_pages" in builder
-    assert 'rulebook-first-page' in builder
-    assert 'rulebook-columns' in builder
-    assert 'id="setup"' in builder
-    assert "v0.7 deterministic rulebook pagination" in css
-    assert ".rulebook-first-page {" in css
-    assert "break-after: page;" in css
-    assert ".rulebook-columns {" in css
-    assert "grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr);" in css
-    assert "overflow: hidden;" in css
+    assert "build_rulebook_print_pages" in builder
+    assert "Expected 17 rulebook sections" in builder
+    assert 'data-page="{number}"' in builder
+    assert "Page {number} of 4" in builder
+    assert "TLW print v{{{{PRINT_VERSION}}}}" in builder
+    assert 'assets/rulebook-battlefield.svg' in builder
+    assert "rulebook-print-shell" in template
+    assert "{{RULEBOOK_PRINT}}" in template
 
-    print_section = css[css.index("@page rulebook"):]
-    assert ".rule-section {" in print_section
-    assert "break-inside: auto;" in print_section
-    assert "break-after: avoid;" in print_section
+    explicit_css = css[css.index("v0.8 explicit print pages"):]
+    assert ".rulebook-print-page {" in explicit_css
+    assert "height: 270mm;" in explicit_css
+    assert "break-after: page;" in explicit_css
+    assert ".rulebook-print-page:last-child" in explicit_css
+    assert "page-break-after: auto;" in explicit_css
+    assert ".rulebook-print-columns {" in explicit_css
+    assert "display: grid;" in explicit_css
+    assert "grid-template-columns: minmax(0,1fr) minmax(0,1fr);" in explicit_css
+    assert "column-count" not in explicit_css
+    assert ".rulebook-battlefield-figure img" in explicit_css
+    assert "overflow: hidden;" in explicit_css
 
-    base_section = css.index(".rule-section {", css.index("v0.6 rulebook flow"))
-    print_override = css.index("@media print {", base_section)
-    print_rule = css.index(".rule-section {", print_override)
-    assert print_rule > base_section
-
-    final_guard = css.index("Final paged-media guard for the rulebook")
-    assert final_guard > css.index("min-height: 297mm;")
-    final_print = css[final_guard:]
-    assert "min-height: 0 !important;" in final_print
-    assert "height: auto !important;" in final_print
-    assert ".rulebook > .start-playing-box" in final_print
-    assert "column-span: none;" in final_print
-    assert ".rulebook > .rulebook-at-a-glance" in final_print
-    assert "column-span: all;" in final_print
+    # Rulebook version markers live inside every explicit page; the generic
+    # fixed stamp is deliberately skipped because it created a blank page.
+    assert 'page.name != "rulebook.html"' in builder
+    assert 'source.replace("{{PRINT_VERSION}}", version)' in builder
 
 
 def test_stale_build_legends_copy_is_gone() -> None:

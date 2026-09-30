@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" role="img" aria-labelledby="title desc">
+<title id="title">The Long War battlefield</title>
+<desc id="desc">Four Fronts. Each player has Rear and Frontline positions separated by the Battle Line.</desc>
+<defs>
+  <linearGradient id="opp" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#737456"/>
+    <stop offset="1" stop-color="#5e6348"/>
+  </linearGradient>
+  <linearGradient id="you" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#58666a"/>
+    <stop offset="1" stop-color="#46575c"/>
+  </linearGradient>
+  <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#c8b38b"/>
+    <stop offset=".5" stop-color="#e0d0a7"/>
+    <stop offset="1" stop-color="#c8b38b"/>
+  </linearGradient>
+  <pattern id="grain" width="20" height="20" patternUnits="userSpaceOnUse">
+    <circle cx="4" cy="5" r="1.2" fill="#fff" opacity=".06"/>
+    <circle cx="15" cy="13" r="1" fill="#000" opacity=".05"/>
+  </pattern>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity=".2"/>
+  </filter>
+</defs>
+
+<rect x="8" y="8" width="944" height="604" rx="18" fill="#ece4d2" stroke="#2b2a25" stroke-width="4"/>
+<rect x="20" y="20" width="920" height="272" rx="12" fill="url(#opp)"/>
+<rect x="20" y="328" width="920" height="272" rx="12" fill="url(#you)"/>
+<rect x="20" y="20" width="920" height="580" rx="12" fill="url(#grain)"/>
+
+<rect x="330" y="34" width="300" height="42" rx="9" fill="#eee0bd" stroke="#463f31" stroke-width="2"/>
+<text x="480" y="62" text-anchor="middle" font-family="Georgia,serif" font-size="24" font-weight="700" letter-spacing="4" fill="#26241f">OPPONENT</text>
+
+<rect x="330" y="544" width="300" height="42" rx="9" fill="#eee0bd" stroke="#463f31" stroke-width="2"/>
+<text x="480" y="572" text-anchor="middle" font-family="Georgia,serif" font-size="24" font-weight="700" letter-spacing="4" fill="#26241f">YOU</text>
+
+<g font-family="Arial,sans-serif" text-anchor="middle">
+  <g font-size="17" font-weight="700" letter-spacing="2.5" fill="#f7f2e8">
+    <text x="140" y="264">FRONT 1</text><text x="365" y="264">FRONT 2</text>
+    <text x="595" y="264">FRONT 3</text><text x="820" y="264">FRONT 4</text>
+    <text x="140" y="520">FRONT 1</text><text x="365" y="520">FRONT 2</text>
+    <text x="595" y="520">FRONT 3</text><text x="820" y="520">FRONT 4</text>
+  </g>
+
+  <g stroke="#f7f2e8" stroke-width="2" stroke-dasharray="10 8" opacity=".62">
+    <line x1="250" y1="86" x2="250" y2="284"/>
+    <line x1="480" y1="86" x2="480" y2="284"/>
+    <line x1="710" y1="86" x2="710" y2="284"/>
+    <line x1="250" y1="340" x2="250" y2="536"/>
+    <line x1="480" y1="340" x2="480" y2="536"/>
+    <line x1="710" y1="340" x2="710" y2="536"/>
+  </g>
+</g>
+
+<g filter="url(#shadow)" font-family="Georgia,serif" font-size="21" fill="#25231f" text-anchor="middle">
+  <!-- opponent Rear -->
+  <g fill="#d9c79f" stroke="#f1e8d1" stroke-width="2">
+    <rect x="62" y="92" width="156" height="62" rx="9"/><rect x="287" y="92" width="156" height="62" rx="9"/>
+    <rect x="517" y="92" width="156" height="62" rx="9"/><rect x="742" y="92" width="156" height="62" rx="9"/>
+  </g>
+  <text x="140" y="131">Rear</text><text x="365" y="131">Rear</text><text x="595" y="131">Rear</text><text x="820" y="131">Rear</text>
+
+  <!-- opponent Frontline -->
+  <g fill="#e6dcc5" stroke="#f5efe2" stroke-width="2">
+    <rect x="62" y="170" width="156" height="62" rx="9"/><rect x="287" y="170" width="156" height="62" rx="9"/>
+    <rect x="517" y="170" width="156" height="62" rx="9"/><rect x="742" y="170" width="156" height="62" rx="9"/>
+  </g>
+  <text x="140" y="209">Frontline</text><text x="365" y="209">Frontline</text><text x="595" y="209">Frontline</text><text x="820" y="209">Frontline</text>
+
+  <!-- your Frontline -->
+  <g fill="#a9b6b8" stroke="#d9e0df" stroke-width="2">
+    <rect x="62" y="354" width="156" height="62" rx="9"/><rect x="287" y="354" width="156" height="62" rx="9"/>
+    <rect x="517" y="354" width="156" height="62" rx="9"/><rect x="742" y="354" width="156" height="62" rx="9"/>
+  </g>
+  <text x="140" y="393">Frontline</text><text x="365" y="393">Frontline</text><text x="595" y="393">Frontline</text><text x="820" y="393">Frontline</text>
+
+  <!-- your Rear -->
+  <g fill="#c8bc9e" stroke="#e8deca" stroke-width="2">
+    <rect x="62" y="432" width="156" height="62" rx="9"/><rect x="287" y="432" width="156" height="62" rx="9"/>
+    <rect x="517" y="432" width="156" height="62" rx="9"/><rect x="742" y="432" width="156" height="62" rx="9"/>
+  </g>
+  <text x="140" y="471">Rear</text><text x="365" y="471">Rear</text><text x="595" y="471">Rear</text><text x="820" y="471">Rear</text>
+</g>
+
+<rect x="20" y="286" width="920" height="36" fill="url(#line)" stroke="#3b372f" stroke-width="2"/>
+<line x1="42" y1="304" x2="918" y2="304" stroke="#3b372f" stroke-width="4" stroke-dasharray="16 10"/>
+<rect x="350" y="282" width="260" height="44" rx="8" fill="#e7d7b3" stroke="#3b372f" stroke-width="2"/>
+<text x="480" y="311" text-anchor="middle" font-family="Georgia,serif" font-size="25" font-weight="700" letter-spacing="3" fill="#25231f">BATTLE LINE</text>
+</svg>
