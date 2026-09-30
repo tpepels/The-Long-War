@@ -621,7 +621,7 @@ def test_same_ismcts_agent_runs_under_standard_rules() -> None:
         ("exploration", -1.0),
         ("progressive_widening", float("inf")),
         ("rollout_epsilon", 1.1),
-        ("rollout_policy", 3),
+        ("rollout_policy", 4),
         ("leaf_scale", float("nan")),
     ],
 )
