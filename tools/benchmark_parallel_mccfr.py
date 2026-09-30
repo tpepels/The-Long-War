@@ -6,10 +6,7 @@ import os
 import time
 from pathlib import Path
 
-if __package__:
-    from .deck_catalog import DEFAULT_DECK_PATH
-else:
-    from deck_catalog import DEFAULT_DECK_PATH
+from longwar.reference_decks import DEFAULT_DECK_PATH
 
 from longwar.cards import load_card_file
 from longwar.parallel_mccfr import train_parallel_mccfr
