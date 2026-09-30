@@ -702,6 +702,7 @@ def test_narrative_ablation_overrides_are_in_memory_only():
     assert len(overrides) == 3
     cards = {card["id"]: card for card in variant["cards"]}
     assert cards["the-baggage-was-abandoned"]["design_rules"]["gain_command"] == 0
+    assert cards["the-baggage-was-abandoned"]["design_rules"]["discard_cards"] == 0
     assert "command" not in cards["rallied-behind"]["design_rules"]
     assert cards["no-road-was-too-long"]["design_rules"]["gain_command"] == 0
 

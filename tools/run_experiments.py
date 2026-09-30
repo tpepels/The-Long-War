@@ -1932,6 +1932,10 @@ def _narrative_ablation_card_data(
 
     if "baggage" in disabled:
         card = cards["the-baggage-was-abandoned"]
+        # Remove the optional discard-for-Command transaction entirely. Leaving
+        # discard_cards=1 with gain_command=0 would add a strategically pointless
+        # discard choice and confound the intended Command-only ablation.
+        card["design_rules"]["discard_cards"] = 0
         card["design_rules"]["gain_command"] = 0
         overrides.append({
             "card": card["id"],
