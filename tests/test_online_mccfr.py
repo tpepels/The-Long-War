@@ -59,6 +59,8 @@ def test_online_mccfr_agent_preserves_last_command() -> None:
         raise AssertionError("expected The Grey Riders in player 0 hidden zones")
     if "marched-with" not in player.hand:
         player.deck.remove("marched-with")
+        if len(player.hand) >= engine.hand_limit:
+            player.deck.append(player.hand.pop())
         player.hand.append("marched-with")
     slot = state.slot(0, Position(Front.FIRST, Rank.FRONT))
     slot.force = "the-grey-riders"
