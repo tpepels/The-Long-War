@@ -185,7 +185,7 @@ def test_balance_lab_is_human_first_and_collapsible() -> None:
 
 
 def test_mccfr_profiles_use_only_current_cards() -> None:
-    from tools.deck_catalog import DECK_CATALOG
+    from longwar.reference_decks import DECK_CATALOG
 
     cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     canonical = {card["id"] for card in cards["cards"]}
