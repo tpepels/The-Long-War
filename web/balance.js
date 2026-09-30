@@ -1050,6 +1050,7 @@ function renderProgression(lab) {
   const choice = p.mechanical_choice || {};
   const resources = p.resources || {};
   const lowCommand = p.low_command_stalls || {};
+  const lowPositive = p.low_positive_stalls || {};
   const matchLength = p.match_length || {};
   const trajectory = profile?.trajectory || lab.progression_trajectory || {};
   const trajectoryMetrics = trajectory.metrics || {};
@@ -1155,6 +1156,12 @@ function renderProgression(lab) {
       "actual Command paid by category"
     ),
     metric("Free operations", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
+    metric(
+      "Low-positive Battles",
+      lowPositive.battles ?? 0,
+      "both players at " + (lowPositive.band?.[0] ?? 1) + "-" + (lowPositive.band?.[1] ?? 3)
+        + " Command before Collapse - longest streak " + (lowPositive.streak_length?.max ?? 0)
+    ),
     metric("0-0 continuations", lowCommand.zero_zero_continuations ?? lowCommand.equal_low_continuations ?? 0, "pre-recovery Collapse check is 0-0; both survive and recover"),
     metric("0/0 Battle starts", lowCommand.both_zero_command_battle_starts ?? 0, "both players begin a Battle at zero Command"),
     metric("Pass preserves Command", resources.first_passes_avoiding_command_exhaustion ?? 0, "first Passes with a legal alternative that would spend all remaining Command"),
@@ -1233,6 +1240,16 @@ function renderProgression(lab) {
       ((a[1].unplayed_at_match_end || 0) + (a[1].held_across_battle_boundaries || 0) + (a[1].discarded_without_play || 0))
     )
     .slice(0, 12);
+  const commandSources = Object.entries(resources.command_by_source || {})
+    .sort((a, b) => {
+      const impact = (row) =>
+        Number(row.command_gained || 0)
+        + Number(row.command_refunded || 0)
+        + Number(row.discount_command_saved || 0)
+        + Number(row.recovery_command_saved || 0)
+        + Number(row.free_operations || 0);
+      return impact(b[1]) - impact(a[1]);
+    });
   const definitions = Object.entries(p.definitions || {});
   const lowCommandGames = [...(lowCommand.games || [])].sort((left, right) =>
     Number(right.censored || 0) - Number(left.censored || 0)
