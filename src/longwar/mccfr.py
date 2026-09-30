@@ -17,16 +17,17 @@ from .mccfr_core import (
     CFRNode,
     external_sampling_traverse,
 )
+from .native_search import mccfr_backend
 
 try:
-    from ._fast_search import (
-        FastCFRNode as PrimitiveCFRNode,
-        FastEngine as PrimitiveFastEngine,
-        NativeHeuristicEvaluator as PrimitiveHeuristicEvaluator,
-        make_scratch as make_primitive_scratch,
+    (
+        PrimitiveCFRNode,
+        PrimitiveFastEngine,
+        PrimitiveHeuristicEvaluator,
+        make_primitive_scratch,
         packed_external_sampling_traverse,
         stable_information_id_from_fast_key,
-    )
+    ) = mccfr_backend()
 except ImportError:
     PrimitiveCFRNode = None
     PrimitiveFastEngine = None
