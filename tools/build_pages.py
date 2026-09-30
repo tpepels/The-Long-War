@@ -9,8 +9,10 @@ from pathlib import Path
 import markdown
 if __package__:
     from .build_browser_runtime import ensure_browser_runtime
+    from .deck_catalog import REFERENCE_DECK_PATHS
 else:
     from build_browser_runtime import ensure_browser_runtime
+    from deck_catalog import REFERENCE_DECK_PATHS
 from longwar.cards import load_card_file
 from longwar.rules import GameRules
 
@@ -19,17 +21,7 @@ WEB = ROOT / "web"
 DIST = ROOT / "dist"
 RULEBOOK = ROOT / "rules" / "rulebook.md"
 CARDS = ROOT / "cards" / "cards.json"
-REFERENCE_DECKS = tuple(
-    ROOT / "decks" / filename
-    for filename in (
-        "mobility-open-bonds.json",
-        "persistent-elite-heroes.json",
-        "narrative-command.json",
-        "battlefield-control-stratagems.json",
-        "momentum-orders.json",
-        "necessity-attrition.json",
-    )
-)
+REFERENCE_DECKS = REFERENCE_DECK_PATHS
 BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
 PUBLISHED_ARTIFACTS = ("lab-report.json", "balance-health.json")
 
