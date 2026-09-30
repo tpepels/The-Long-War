@@ -968,7 +968,7 @@ cdef int _fe_legal_actions_into(
                     # change the semantic action identity.
                     break
             else:
-                effect = self.narrative_effect[card]
+                effect = self.narrative_play_effect[card]
                 if effect == NARRATIVE_DISCREDIT or effect == NARRATIVE_RETURN_NAME:
                     for local in range(8):
                         slot = opponent * 8 + local
