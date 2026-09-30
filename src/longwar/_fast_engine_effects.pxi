@@ -44,7 +44,7 @@ cdef inline void _fe_take_from_hand(FastEngine self, FastState state, int player
     state.hand[player][card] -= 1
     state.hand_len[player] -= 1
 
-cdef inline bint _fe_front_has_subject(FastEngine self, FastState state, int player, int front) noexcept:
+cdef inline bint _fe_front_has_force(FastEngine self, FastState state, int player, int front) noexcept:
     return state.force[slot_index(player, front, 0)] >= 0 or state.force[slot_index(player, front, 1)] >= 0
 
 cdef inline int _fe_preferred_slot(FastEngine self, FastState state, int player, int front) noexcept:
@@ -114,8 +114,8 @@ cdef void _fe_reveal_scheme(FastEngine self, FastState state, int controller, in
     if card < 0:
         return
     state.narrative_revealed[ix] = 1
-    effect = self.scheme_effect[card]
-    amount = self.scheme_amount[card]
+    effect = self.narrative_effect[card]
+    amount = self.narrative_amount[card]
     if effect == SCHEME_PENALIZE_SUBJECT and trigger_slot >= 0 and state.force[trigger_slot] >= 0:
         state.temporary[trigger_slot] -= amount
     elif effect == SCHEME_DISCARD_LINK and trigger_slot >= 0 and state.bond[trigger_slot] >= 0:
@@ -138,9 +138,9 @@ cdef void _fe_resolve_scheme_event(FastEngine self, FastState state, int actor, 
         card = state.narrative[ix]
         if card < 0:
             continue
-        if self.scheme_trigger[card] != event or actor == controller:
+        if self.narrative_trigger[card] != event or actor == controller:
             continue
-        if self.scheme_requires_subject[card] and not _fe_front_has_subject(self, state, controller, front):
+        if self.narrative_requires_force[card] and not _fe_front_has_force(self, state, controller, front):
             continue
         _fe_reveal_scheme(self, state, controller, front, actor, trigger_slot)
 
@@ -765,9 +765,9 @@ cdef void _fe_resolve_plot_target_scheme(FastEngine self, FastState state, int a
     front = front_from_slot(pos)
     ix = opponent * 4 + front
     card = state.narrative[ix]
-    if card < 0 or self.scheme_trigger[card] != EVENT_PLOT_TARGET:
+    if card < 0 or self.narrative_trigger[card] != EVENT_PLOT_TARGET:
         return
-    if self.scheme_requires_subject[card] and not _fe_front_has_subject(self, state, opponent, front):
+    if self.narrative_requires_force[card] and not _fe_front_has_force(self, state, opponent, front):
         return
     _fe_reveal_scheme(self, state, opponent, front, actor, -1)
 
