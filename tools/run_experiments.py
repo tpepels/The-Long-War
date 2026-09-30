@@ -29,6 +29,7 @@ from longwar.reference_decks import (
     CANONICAL_DECK_PATHS,
     DECK_CATALOG,
     DEFAULT_DECK_PATH,
+    MCCFR_PROFILES,
 )
 
 from longwar.agents.ismcts_agent import (
@@ -49,7 +50,12 @@ from longwar.decks import (
     validate_deck_definition,
 )
 from longwar.game import GameEngine
-from longwar.fingerprint import artifact_directory, experiment_identity
+from longwar.fingerprint import (
+    artifact_directory,
+    current_experiment_fingerprint,
+    current_game_fingerprint,
+    experiment_identity,
+)
 from longwar.health import wilson_interval
 from longwar.rules import GameRules
 
@@ -1896,6 +1902,526 @@ def benchmark_strength(
     print(f"Summary: {summary_path}")
     return summary_path
 
+
+
+
+NARRATIVE_ABLATIONS: tuple[tuple[str, frozenset[str]], ...] = (
+    ("baseline", frozenset()),
+    ("no-baggage-command", frozenset({"baggage"})),
+    ("no-rallied-discount", frozenset({"rallied"})),
+    ("no-no-road-command", frozenset({"no-road"})),
+    ("no-three-command-package", frozenset({"baggage", "rallied", "no-road"})),
+)
+
+
+def _narrative_ablation_card_data(
+    base: dict[str, Any],
+    disabled: frozenset[str],
+) -> dict[str, Any]:
+    """Return experiment-only card data; canonical catalogue data is untouched."""
+    data = copy.deepcopy(base)
+    cards = {card["id"]: card for card in data["cards"]}
+
+    if "baggage" in disabled:
+        cards["the-baggage-was-abandoned"]["design_rules"]["gain_command"] = 0
+    if "rallied" in disabled:
+        design = cards["rallied-behind"]["design_rules"]
+        for key in ("command", "condition", "cost"):
+            design.pop(key, None)
+    if "no-road" in disabled:
+        cards["no-road-was-too-long"]["design_rules"]["gain_command"] = 0
+
+    return data
+
+
+def _compact_narrative_ablation(
+    report,
+) -> dict[str, Any]:
+    progression = report.telemetry.get("progression", {})
+    resources = progression.get("resources", {})
+    match_length = progression.get("match_length", {})
+    low_positive = progression.get("low_positive_stalls", {})
+    return {
+        "games": report.games,
+        "decisive_games": report.decisive_games,
+        "censored_games": report.censored_games,
+        "censor_rate": report.censor_rate,
+        "mean_actions": report.mean_turns,
+        "max_actions": report.max_turns,
+        "match_length": {
+            "resolved_battles_per_match": match_length.get(
+                "resolved_battles_per_match"
+            ),
+            "final_battle_number": match_length.get("final_battle_number"),
+            "battle_reach": match_length.get("battle_reach"),
+            "battle_8_plus_count": match_length.get("battle_8_plus_count"),
+            "battle_12_plus_count": match_length.get("battle_12_plus_count"),
+        },
+        "command_before_collapse": resources.get("command_before_collapse"),
+        "command_before_collapse_buckets": resources.get(
+            "command_before_collapse_buckets"
+        ),
+        "command_at_first_pass": resources.get("command_at_first_pass"),
+        "first_pass_command_buckets": resources.get(
+            "first_pass_command_buckets"
+        ),
+        "command_by_source": resources.get("command_by_source", {}),
+        "low_positive_stalls": low_positive,
+        "decisions": report.telemetry.get("decisions", {}),
+    }
+
+
+def run_narrative_ablation(args: argparse.Namespace) -> Path:
+    """Run the five requested Narrative mirror Command-economy ablations."""
+    from longwar.simulate import simulate_games
+
+    game_fingerprint = current_game_fingerprint()
+    output = ROOT / "artifacts" / "narrative-ablation.json"
+    config = {
+        "games": int(args.games),
+        "seed": int(args.seed),
+        "jobs": int(args.jobs),
+        "agent": "ismcts",
+        "ismcts": {
+            "belief_samples": DEFAULT_ISMCTS_BELIEF_SAMPLES,
+            "iterations": DEFAULT_ISMCTS_ITERATIONS,
+            "rollout_depth": DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+            "exploration": DEFAULT_ISMCTS_EXPLORATION,
+            "progressive_widening": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+            "tree_reuse": DEFAULT_ISMCTS_REUSE_TREE,
+            "max_tree_nodes": DEFAULT_ISMCTS_MAX_TREE_NODES,
+            "rollout_epsilon": DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+            "rollout_policy": DEFAULT_ISMCTS_ROLLOUT_POLICY,
+        },
+        "variants": [name for name, _ in NARRATIVE_ABLATIONS],
+    }
+    if not bool(getattr(args, "force", False)) and output.exists():
+        try:
+            existing = json.loads(output.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing = {}
+        if (
+            existing.get("game_fingerprint") == game_fingerprint
+            and existing.get("config") == config
+            and len(existing.get("variants", {})) == len(NARRATIVE_ABLATIONS)
+        ):
+            print(
+                "[Narrative ablation] Reusing current complete artifact "
+                f"{output.relative_to(ROOT)}",
+                flush=True,
+            )
+            return output
+
+    if args.games <= 0 or args.jobs <= 0:
+        raise SystemExit("Narrative ablation games/jobs must be positive")
+
+    base = load_card_file(ROOT / "cards" / "cards.json")
+    narrative_entry = next(
+        entry for entry in DECK_CATALOG if entry["id"] == "narrative"
+    )
+    deck_path = ROOT / "decks" / narrative_entry["file"]
+    deck = list(json.loads(deck_path.read_text(encoding="utf-8"))["cards"])
+    raw_dir = ROOT / "artifacts" / "narrative-ablation" / game_fingerprint
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    variants: dict[str, Any] = {}
+
+    for index, (name, disabled) in enumerate(NARRATIVE_ABLATIONS, start=1):
+        variant_path = raw_dir / f"{name}.json"
+        print(
+            f"[Narrative ablation {index}/{len(NARRATIVE_ABLATIONS)}] {name}: "
+            f"{args.games} ISMCTS mirror games",
+            flush=True,
+        )
+        data = _narrative_ablation_card_data(base, disabled)
+        engine = GameEngine(data, rules=GameRules.standard())
+        report = simulate_games(
+            engine,
+            deck,
+            deck,
+            games=args.games,
+            seed=args.seed,
+            jobs=args.jobs,
+            agent_names=("ismcts", "ismcts"),
+            ismcts_belief_samples=DEFAULT_ISMCTS_BELIEF_SAMPLES,
+            ismcts_iterations=DEFAULT_ISMCTS_ITERATIONS,
+            ismcts_rollout_depth=DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+            ismcts_exploration=DEFAULT_ISMCTS_EXPLORATION,
+            ismcts_progressive_widening=DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+            ismcts_reuse_tree=DEFAULT_ISMCTS_REUSE_TREE,
+            ismcts_max_tree_nodes=DEFAULT_ISMCTS_MAX_TREE_NODES,
+            ismcts_rollout_epsilon=DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+            ismcts_rollout_policy=DEFAULT_ISMCTS_ROLLOUT_POLICY,
+        )
+        raw_payload = {
+            **asdict(report),
+            "game_fingerprint": game_fingerprint,
+            "experiment_fingerprint": current_experiment_fingerprint(),
+            "seed": args.seed,
+            "noncanonical_experiment": True,
+            "disabled_command_mechanics": sorted(disabled),
+            "rules": GameRules.standard().as_dict(),
+        }
+        variant_path.write_text(
+            json.dumps(raw_payload, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        variants[name] = {
+            "disabled_command_mechanics": sorted(disabled),
+            **_compact_narrative_ablation(report),
+        }
+        print(
+            f"  decisive {report.decisive_games}/{report.games}; "
+            f"censored {report.censored_games}; "
+            f"max Battle "
+            f"{variants[name]['match_length']['final_battle_number'].get('max')}",
+            flush=True,
+        )
+
+    payload = {
+        "schema_version": 1,
+        "game_fingerprint": game_fingerprint,
+        "experiment_fingerprint": current_experiment_fingerprint(),
+        "noncanonical_experiment": True,
+        "deck": str(deck_path.relative_to(ROOT)),
+        "question": (
+            "Does the Narrative mirror infinite tail come from Baggage, "
+            "Rallied Behind, No Road Was Too Long, their interaction, or "
+            "the global Command rules?"
+        ),
+        "config": config,
+        "variants": variants,
+        "methodology": {
+            "canonical_cards_modified": False,
+            "same_seed_schedule_across_variants": True,
+            "policy": "production ISMCTS",
+            "interpretation": (
+                "Ablations are diagnostic noncanonical card-mechanic overrides. "
+                "They are not balance changes and do not replace canonical "
+                "six-deck evidence."
+            ),
+        },
+    }
+    output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    print(f"Wrote {output.relative_to(ROOT)}", flush=True)
+    return output
+
+
+def _load_json_if_current(path: Path, game_fingerprint: str) -> dict[str, Any] | None:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if payload.get("game_fingerprint") != game_fingerprint:
+        return None
+    return payload
+
+
+def _policy_fingerprint(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+
+
+def _mccfr_policy_current(
+    path: Path,
+    game_fingerprint: str,
+    *,
+    iterations: int,
+    depth: int,
+    seed: int,
+) -> bool:
+    payload = _load_json_if_current(path, game_fingerprint)
+    if payload is None:
+        return False
+    summary = payload.get("training_summary") or {}
+    return (
+        int(summary.get("iterations", -1)) == int(iterations)
+        and int(summary.get("max_depth", payload.get("max_depth", -1)))
+        == int(depth)
+        and int(payload.get("training_seed", -1)) == int(seed)
+    )
+
+
+def _mccfr_evaluation_current(
+    path: Path,
+    game_fingerprint: str,
+    *,
+    games: int,
+    policy_fingerprint: str,
+) -> bool:
+    payload = _load_json_if_current(path, game_fingerprint)
+    if payload is None or int(payload.get("games", -1)) != int(games):
+        return False
+    return policy_fingerprint in payload.get("policy_fingerprints", [])
+
+
+def run_offline_mccfr_suite(args: argparse.Namespace) -> Path:
+    """Train and seat-swap evaluate all six current-fingerprint MCCFR policies."""
+    game_fingerprint = current_game_fingerprint()
+    force = bool(getattr(args, "force", False))
+    artifacts = ROOT / "artifacts"
+    artifacts.mkdir(parents=True, exist_ok=True)
+
+    for index, (profile_id, label, deck_path) in enumerate(MCCFR_PROFILES):
+        training_seed = int(args.seed) + index * 10_000
+        evaluation_seed = int(args.seed) + 100_000 + index * 10_000
+        policy = artifacts / f"mccfr-policy-{profile_id}.json"
+        deck_args = ["--deck-a", deck_path, "--deck-b", deck_path]
+
+        if force or not _mccfr_policy_current(
+            policy,
+            game_fingerprint,
+            iterations=args.mccfr_iterations,
+            depth=args.mccfr_depth,
+            seed=training_seed,
+        ):
+            print(
+                f"[MCCFR {index + 1}/{len(MCCFR_PROFILES)}] Train {label}",
+                flush=True,
+            )
+            run_command([
+                sys.executable,
+                str(ROOT / "tools" / "train_mccfr.py"),
+                "--iterations", str(args.mccfr_iterations),
+                "--depth", str(args.mccfr_depth),
+                "--workers", str(args.mccfr_workers),
+                "--seed", str(training_seed),
+                *deck_args,
+                "--output", str(policy.relative_to(ROOT)),
+            ])
+        else:
+            print(f"[MCCFR] Reusing current policy {profile_id}", flush=True)
+
+        policy_fp = _policy_fingerprint(policy)
+        evaluations = (
+            (
+                artifacts / f"mccfr-{profile_id}-vs-heuristic.json",
+                "mccfr", "heuristic", "--policy-a",
+            ),
+            (
+                artifacts / f"heuristic-vs-mccfr-{profile_id}.json",
+                "heuristic", "mccfr", "--policy-b",
+            ),
+        )
+        for eval_index, (output, agent_a, agent_b, policy_flag) in enumerate(evaluations):
+            if not force and _mccfr_evaluation_current(
+                output,
+                game_fingerprint,
+                games=args.mccfr_eval_games,
+                policy_fingerprint=policy_fp,
+            ):
+                print(
+                    f"[MCCFR] Reusing current evaluation {output.name}",
+                    flush=True,
+                )
+                continue
+            print(
+                f"[MCCFR] Evaluate {profile_id}: {agent_a} vs {agent_b}",
+                flush=True,
+            )
+            run_command([
+                sys.executable,
+                str(ROOT / "tools" / "simulate.py"),
+                "--games", str(args.mccfr_eval_games),
+                "--jobs", str(args.jobs),
+                "--seed", str(evaluation_seed + eval_index * 1000),
+                "--deck-a", deck_path,
+                "--deck-b", deck_path,
+                "--agent-a", agent_a,
+                "--agent-b", agent_b,
+                policy_flag, str(policy.relative_to(ROOT)),
+                "--output", str(output.relative_to(ROOT)),
+            ])
+
+    run_command([sys.executable, str(ROOT / "tools" / "build_mccfr_suite.py")])
+    suite = artifacts / "mccfr-suite.json"
+    if _load_json_if_current(suite, game_fingerprint) is None:
+        raise SystemExit("MCCFR suite build did not produce current evidence")
+    return suite
+
+
+def _canonical_deep_balance_current(game_fingerprint: str) -> bool:
+    required = (
+        "balance-health.json",
+        "balance-report.json",
+        "balance-selfplay.json",
+        "progression-selfplay.json",
+        "progression-profiles.json",
+        "playability-report.json",
+        "balance-run-summary.json",
+        "counterfactual-balance.json",
+        "targeted-online-counterfactual.json",
+    )
+    payloads = {
+        name: _load_json_if_current(ROOT / "artifacts" / name, game_fingerprint)
+        for name in required
+    }
+    if any(value is None for value in payloads.values()):
+        return False
+    summary = payloads["balance-run-summary.json"] or {}
+    config = summary.get("config") or {}
+    return (
+        config.get("preset") == "deep"
+        and config.get("agents") == ["ismcts", "ismcts"]
+        and (summary.get("evidence_pipeline") or {}).get(
+            "broad_card_screen"
+        ) is not None
+        and (summary.get("evidence_pipeline") or {}).get(
+            "strategic_confirmation"
+        ) is not None
+    )
+
+
+def _solver_strength_current(
+    path: Path,
+    game_fingerprint: str,
+    *,
+    games: int,
+    time_budget_seconds: float,
+) -> bool:
+    payload = _load_json_if_current(path, game_fingerprint)
+    if payload is None:
+        return False
+    return (
+        int(payload.get("games_per_orientation", -1)) == int(games)
+        and float(
+            (payload.get("ismcts") or {}).get("time_budget_seconds", -1)
+        ) == float(time_budget_seconds)
+        and float(
+            (payload.get("alpha_beta") or {}).get("time_budget_seconds", -1)
+        ) == float(time_budget_seconds)
+    )
+
+
+def run_full_lab(args: argparse.Namespace) -> Path:
+    """Populate every Balance Lab evidence layer with resumable stages."""
+    game_fingerprint = current_game_fingerprint()
+    force = bool(args.force)
+    state_path = ROOT / "artifacts" / "full-lab-state.json"
+    state = {
+        "schema_version": 1,
+        "game_fingerprint": game_fingerprint,
+        "experiment_fingerprint": current_experiment_fingerprint(),
+        "stages": {},
+    }
+
+    def stage(name: str, status: str) -> None:
+        state["stages"][name] = status
+        state_path.parent.mkdir(parents=True, exist_ok=True)
+        state_path.write_text(
+            json.dumps(state, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(f"[full-lab] {name}: {status}", flush=True)
+
+    stage("validation", "running")
+    validate_data()
+    validate()
+    verification = ROOT / "artifacts" / "mccfr-verification.json"
+    verify_payload = _load_json_if_current(verification, game_fingerprint)
+    if force or verify_payload is None or int(
+        verify_payload.get("iterations", -1)
+    ) != int(args.mccfr_verify_iterations):
+        run_command([
+            sys.executable,
+            str(ROOT / "tools" / "verify_mccfr.py"),
+            "--iterations", str(args.mccfr_verify_iterations),
+            "--seed", str(args.seed + 700_000),
+        ])
+    stage("validation", "complete")
+
+    stage("narrative_ablation", "running")
+    ablation_args = argparse.Namespace(
+        games=args.ablation_games,
+        jobs=args.jobs,
+        seed=args.seed,
+        force=force,
+    )
+    run_narrative_ablation(ablation_args)
+    stage("narrative_ablation", "complete")
+
+    if force or not _canonical_deep_balance_current(game_fingerprint):
+        stage("canonical_balance", "running")
+        balance_args = argparse.Namespace(
+            preset="deep",
+            agent="ismcts",
+            games=args.balance_games,
+            seed=args.seed,
+            jobs=args.jobs,
+            contexts=args.contexts,
+            games_per_context=args.games_per_context,
+            target_contexts=None,
+            target_games_per_context=None,
+            target_max_cards=args.target_max_cards,
+            target_min_effect=args.target_min_effect,
+            online_iterations=args.online_iterations,
+            online_depth=args.online_depth,
+            skip_online_validation=False,
+            skip_card_screen=False,
+            publish_lab=True,
+            skip_failed_games=False,
+            command_matrix=False,
+            resume=not force,
+        )
+        balance_run(balance_args)
+        stage("canonical_balance", "complete")
+    else:
+        stage("canonical_balance", "reused")
+
+    solver = ROOT / "artifacts" / "solver-strength.json"
+    if force or not _solver_strength_current(
+        solver,
+        game_fingerprint,
+        games=args.strength_games,
+        time_budget_seconds=args.strength_time_budget_seconds,
+    ):
+        stage("solver_strength", "running")
+        benchmark_strength(
+            games_per_orientation=args.strength_games,
+            jobs=args.jobs,
+            time_budget_seconds=args.strength_time_budget_seconds,
+            seed=args.seed + 800_000,
+        )
+        stage("solver_strength", "complete")
+    else:
+        stage("solver_strength", "reused")
+
+    stage("offline_mccfr", "running")
+    run_offline_mccfr_suite(args)
+    stage("offline_mccfr", "complete")
+
+    stage("lab_build", "running")
+    run_command([sys.executable, str(ROOT / "tools" / "build_lab_report.py")])
+    run_command([sys.executable, str(ROOT / "tools" / "build_pages.py")])
+    lab = ROOT / "artifacts" / "lab-report.json"
+    current_lab = _load_json_if_current(lab, game_fingerprint)
+    if current_lab is None:
+        raise SystemExit("Full Lab build did not produce a current lab-report.json")
+    missing = [
+        key for key in (
+            "counterfactual",
+            "targeted_counterfactual",
+            "narrative_ablation",
+            "solver_strength",
+            "mccfr_suite",
+            "verification",
+        )
+        if current_lab.get(key) is None
+    ]
+    if missing:
+        raise SystemExit(
+            "Full Lab completed with missing sections: " + ", ".join(missing)
+        )
+    if current_lab.get("stale_evidence"):
+        raise SystemExit(
+            "Full Lab completed with stale evidence: "
+            + ", ".join(current_lab["stale_evidence"])
+        )
+    stage("lab_build", "complete")
+    print(
+        "FULL LAB COMPLETE - current fingerprint "
+        f"{game_fingerprint}; Pages built in dist/",
+        flush=True,
+    )
+    return lab
 
 
 def parse_args() -> argparse.Namespace:
