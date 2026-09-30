@@ -977,6 +977,43 @@ function renderCommandExperiment(lab) {
   `;
 }
 
+
+function renderNarrativeAblation(lab) {
+  const el = document.getElementById("narrative-ablation");
+  if (!el) return;
+  const report = lab.narrative_ablation;
+  const rows = Object.values(report?.profiles || {});
+  if (!rows.length) {
+    el.innerHTML = '<p class="muted">Narrative/Command ablation evidence has not been generated for this ruleset.</p>';
+    return;
+  }
+  const dmean = (d) => d?.mean == null ? "—" : num(d.mean, 1);
+  const dmax = (d) => d?.max == null ? "—" : num(d.max, 0);
+  let body = "";
+  for (const row of rows) {
+    const s = row.summary || {};
+    const cards = (row.card_overrides || []).map((x) => x.card).join(", ") || "canonical baseline";
+    body += "<tr>"
+      + "<td><strong>" + esc(row.variant) + "</strong><span class=\"muted\">" + esc(cards) + "</span></td>"
+      + "<td>" + (s.decisive_games ?? "—") + " / " + (s.games ?? "—") + "</td>"
+      + "<td>" + pct(s.censor_rate) + "</td>"
+      + "<td>" + dmean(s.resolved_battles_per_match) + "</td>"
+      + "<td>" + dmax(s.final_battle_number) + "</td>"
+      + "<td>" + dmean(s.command_before_collapse) + "</td>"
+      + "<td>" + dmean(s.command_at_first_pass) + "</td>"
+      + "<td>" + (s.longest_low_positive_streak ?? "—") + "</td>"
+      + "</tr>";
+  }
+  el.innerHTML =
+    "<h3>Narrative / Command ablations</h3>"
+    + "<p class=\"dashboard-note\">" + esc(report.methodology || "") + "</p>"
+    + "<table class=\"mini-table\"><thead><tr>"
+    + "<th>Variant</th><th>Decisive / games</th><th>Censored</th>"
+    + "<th>Mean Battles</th><th>Max Battle</th><th>Pre-collapse Command</th>"
+    + "<th>First-pass Command</th><th>Longest 1-3 streak</th>"
+    + "</tr></thead><tbody>" + body + "</tbody></table>";
+}
+
 function renderProgression(lab) {
   const profiles = lab.progression_profiles || {};
   const selector = document.getElementById("progression-profile");
@@ -1162,6 +1199,36 @@ function renderProgression(lab) {
     metric("No in-Battle board change", lowCommand.battles_with_no_board_change ?? 0, "board unchanged between first and final decision state"),
   ].join("");
 
+  const commandSourceElement = document.getElementById("progression-command-sources");
+  if (commandSourceElement) {
+    const commandTitles = new Map((lab.health?.cards || []).map((card) => [card.id, card.title]));
+    const sourceRows = Object.entries(resources.command_by_source || {})
+      .map(([id, stats]) => ({ id, ...stats }))
+      .sort((a, b) =>
+        Number(b.command_gained || 0) + Number(b.discount_saved || 0) + Number(b.recovery_loss_avoided || 0)
+        - Number(a.command_gained || 0) - Number(a.discount_saved || 0) - Number(a.recovery_loss_avoided || 0)
+      );
+    let sourceBody = "";
+    for (const row of sourceRows) {
+      sourceBody += "<tr>"
+        + "<td><strong>" + esc(commandTitles.get(row.id) || row.id) + "</strong><span class=\"muted\"><code>" + esc(row.id) + "</code></span></td>"
+        + "<td>" + (row.triggers ?? 0) + "</td>"
+        + "<td>" + (row.command_gained ?? 0) + "</td>"
+        + "<td>" + (row.nominal_command_gain ?? row.command_gained ?? 0) + "</td>"
+        + "<td>" + (row.discount_saved ?? 0) + "</td>"
+        + "<td>" + (row.free_operations ?? 0) + "</td>"
+        + "<td>" + (row.recovery_loss_avoided ?? 0) + "</td>"
+        + "</tr>";
+    }
+    commandSourceElement.innerHTML = sourceRows.length
+      ? "<h3>Command economy by source</h3>"
+        + "<table class=\"mini-table\"><thead><tr>"
+        + "<th>Source</th><th>Triggers</th><th>Gained</th><th>Nominal gain</th>"
+        + "<th>Discount saved</th><th>Free operations</th><th>Recovery loss avoided</th>"
+        + "</tr></thead><tbody>" + sourceBody + "</tbody></table>"
+      : '<p class="muted">No source-attributed Command events in this profile.</p>';
+  }
+
   const battles = p.by_battle || {};
   document.getElementById("progression-battles").innerHTML = ["1", "2", "3", "4-7", "8+"].map((key) => {
     const row = battles[key] || { battles: 0 };
@@ -1342,6 +1409,47 @@ function renderTelemetry(lab) {
   `;
 }
 
+
+function renderSolverStrength(lab) {
+  const el = document.getElementById("solver-strength");
+  if (!el) return;
+  const report = lab.solver_strength;
+  if (!report) {
+    el.innerHTML = '<p class="muted">No current ISMCTS vs alpha-beta strength benchmark.</p>';
+    return;
+  }
+  const overall = report.overall || {};
+  const ci = overall.paired_uncertainty?.ci95 || [null, null];
+  const decks = report.decks || {};
+  const censored = Object.values(decks).reduce((n, row) => n + Number(row.censored || 0), 0);
+  let rows = "";
+  for (const [deck, row] of Object.entries(decks)) {
+    rows += "<tr><td><strong>" + esc(titleCase(deck)) + "</strong></td>"
+      + "<td>" + (row.mcts ?? 0) + " - " + (row.alpha ?? 0) + "</td>"
+      + "<td>" + (row.games ?? 0) + "</td>"
+      + "<td>" + (row.censored ?? 0) + "</td></tr>";
+  }
+  const cutoff = report.ismcts?.rollout_cutoffs || {};
+  const reuse = report.ismcts?.tree_reuse || {};
+  const mctsResources = report.resources?.ismcts || {};
+  const alphaResources = report.resources?.strategic_heuristic || {};
+  el.innerHTML =
+    "<h3>ISMCTS vs alpha-beta strength sanity check</h3>"
+    + "<p class=\"dashboard-note\">" + esc(report.methodology || "") + "</p>"
+    + "<div class=\"metric-grid compact-grid\">"
+    + metric("Mirrored decisive games", overall.games ?? "—", censored + " censored")
+    + metric("ISMCTS win rate", pct(overall.mcts_win_rate), "95% paired " + interval(ci))
+    + metric("Equal search budget", (report.ismcts?.time_budget_seconds ?? "—") + " s", "per non-forced searched decision")
+    + metric("ISMCTS work ceiling", Number(report.ismcts?.iterations || 0).toLocaleString(), "iterations")
+    + metric("Alpha-beta ceiling", Number(report.alpha_beta?.node_budget || 0).toLocaleString(), "nodes")
+    + metric("Root reuse", pct(reuse.root_reuse_rate), (reuse.tree_capacity_cutoffs ?? 0) + " capacity cutoffs")
+    + metric("Rollout terminal / boundary / depth", pct(cutoff.terminal_rate) + " / " + pct(cutoff.battle_boundary_rate) + " / " + pct(cutoff.depth_rate), "cutoff shares")
+    + metric("Mean search time", num(mctsResources.mean_searched_decision_seconds, 3) + " / " + num(alphaResources.mean_searched_decision_seconds, 3) + " s", "ISMCTS / alpha-beta")
+    + "</div>"
+    + "<table class=\"mini-table\"><thead><tr><th>Deck</th><th>ISMCTS - alpha-beta</th><th>Decisive</th><th>Censored</th></tr></thead><tbody>"
+    + rows + "</tbody></table>";
+}
+
 function renderMccfr(lab) {
   const suite = lab.mccfr_suite;
   const fallback = lab.mccfr;
@@ -1358,16 +1466,16 @@ function renderMccfr(lab) {
 
     profiles.innerHTML = `
       <table class="balance-table mccfr-table">
-        <thead><tr><th>Deck profile</th><th>Unique cards</th><th>Iterations</th><th>Infosets</th><th>Depth</th><th>MCCFR vs heuristic</th><th>Eval games</th></tr></thead>
+        <thead><tr><th>Deck profile</th><th>Unique cards</th><th>Iterations / traversals</th><th>Infosets</th><th>Depth</th><th>MCCFR vs heuristic</th><th>Policy coverage / fallback</th><th>Eval games</th></tr></thead>
         <tbody>
           ${suite.profiles.map((row) => `
             <tr>
-              <td><strong>${esc(row.label)}</strong><span class="muted">${esc(row.deck)}</span></td>
+              <td><strong>${esc(row.label)}</strong><span class="muted">${esc(row.deck)} · <code>${esc(row.policy.policy_fingerprint || "")}</code></span></td>
               <td>${row.deck_unique_cards}</td>
-              <td>${row.policy.iterations ?? "—"}</td>
+              <td>${row.policy.iterations ?? "—"}<span class="muted">${Number(row.policy.traversals || row.policy.training_summary?.traversals || 0).toLocaleString()} traversals</span></td>
               <td>${Number(row.policy.information_sets || 0).toLocaleString()}</td>
               <td>${row.policy.max_depth ?? "—"}</td>
-              <td><strong>${pct(row.evaluation.seat_swapped_mccfr_win_rate)}</strong><span class="muted">seat-swapped · decisive games</span></td>
+              <td><strong>${pct(row.evaluation.seat_swapped_mccfr_win_rate)}</strong><span class="muted">seat-swapped · decisive games</span></td><td>${pct(row.evaluation.mccfr_vs_heuristic_policy_coverage?.mccfr_coverage_rate)}<span class="muted">forward MCCFR · ${pct(row.evaluation.mccfr_vs_heuristic_policy_coverage?.heuristic_fallback_rate)} fallback</span>${pct(row.evaluation.heuristic_vs_mccfr_policy_coverage?.mccfr_coverage_rate)}<span class="muted">reverse MCCFR · ${pct(row.evaluation.heuristic_vs_mccfr_policy_coverage?.heuristic_fallback_rate)} fallback</span></td>
               <td>
                 ${row.evaluation.games}
                 <span class="muted">${row.evaluation.decisive_games ?? row.evaluation.games} decisive · ${row.evaluation.censored_games ?? 0} censored</span>
@@ -1454,6 +1562,7 @@ async function main() {
   renderOverview(lab);
   renderEvidencePipeline(lab);
   renderCommandExperiment(lab);
+  renderNarrativeAblation(lab);
   renderProgression(lab);
   renderCards(lab);
   renderCounterfactual(lab);
@@ -1461,6 +1570,7 @@ async function main() {
   renderSequences(lab);
   renderMatchups(lab);
   renderTelemetry(lab);
+  renderSolverStrength(lab);
   renderMccfr(lab);
   renderStatic(lab);
   renderMethod(lab);
