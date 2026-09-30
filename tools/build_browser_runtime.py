@@ -114,7 +114,10 @@ BROWSER_PYTHON_FILES = browser_python_files()
 # moving an engine implementation file never requires another browser allowlist
 # edit.
 BROWSER_NATIVE_ROOTS = ("_fast_engine_core.pxi", "_heuristic_core.pxi")
-_CYTHON_INCLUDE_RE = re.compile(r'^\\s*include\\s+["\\']([^"\\']+)["\\']', re.MULTILINE)
+_CYTHON_INCLUDE_RE = re.compile(
+    r"^\\s*include\\s+['\\\"]([^'\\\"]+)['\\\"]",
+    re.MULTILINE,
+)
 
 
 def cython_include_closure(*roots: str) -> tuple[str, ...]:
