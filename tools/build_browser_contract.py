@@ -4,7 +4,10 @@ import argparse
 import json
 from pathlib import Path
 
-from tools.deck_catalog import DEFAULT_DECK_PATH
+if __package__:
+    from .deck_catalog import DEFAULT_DECK_PATH
+else:
+    from deck_catalog import DEFAULT_DECK_PATH
 
 from longwar.cards import load_card_file
 from longwar.game import (
