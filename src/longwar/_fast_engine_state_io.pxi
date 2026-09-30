@@ -269,6 +269,60 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
 
     return fast
 
+
+cdef FastState _fe_determinize_hidden_zones(
+    FastEngine self,
+    FastState base,
+    int viewer,
+    object viewer_deck,
+    object opponent_hand,
+    object opponent_deck,
+):
+    """Clone one packed root and replace only zones hidden from the viewer."""
+    cdef FastState fast = FastState()
+    cdef int opponent, i, code
+    cdef object card_id
+
+    if viewer < 0 or viewer > 1:
+        raise ValueError("viewer must be 0 or 1")
+    opponent = 1 - viewer
+    if len(viewer_deck) != base.deck_len[viewer]:
+        raise ValueError("viewer deck sample changed observable deck size")
+    if len(opponent_hand) != base.hand_len[opponent]:
+        raise ValueError("opponent hand sample changed observable hand size")
+    if len(opponent_deck) != base.deck_len[opponent]:
+        raise ValueError("opponent deck sample changed observable deck size")
+
+    fast.copy_from_fast(base)
+
+    for code in range(MAX_CARDS):
+        fast.deck_counts[viewer][code] = 0
+        fast.deck_counts[opponent][code] = 0
+        fast.hand[opponent][code] = 0
+
+    for i in range(MAX_DECK):
+        fast.deck[viewer][i] = -1
+        fast.deck[opponent][i] = -1
+
+    fast.deck_len[viewer] = len(viewer_deck)
+    for i, card_id in enumerate(viewer_deck):
+        code = self.id_to_code[card_id]
+        fast.deck[viewer][i] = code
+        fast.deck_counts[viewer][code] += 1
+
+    fast.hand_len[opponent] = len(opponent_hand)
+    for card_id in opponent_hand:
+        fast.hand[opponent][self.id_to_code[card_id]] += 1
+
+    fast.deck_len[opponent] = len(opponent_deck)
+    for i, card_id in enumerate(opponent_deck):
+        code = self.id_to_code[card_id]
+        fast.deck[opponent][i] = code
+        fast.deck_counts[opponent][code] += 1
+
+    return fast
+
+
 cdef dict _fe_export_state(FastEngine self, FastState state):
     cdef int p, f, r, i, card, viewer, owner, ix
     cdef int lost0 = 0
