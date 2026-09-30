@@ -196,14 +196,20 @@ Architecture tests must enforce these properties:
 Tests should enforce dependency direction and ownership, not incidental file
 layout or a particular search implementation.
 
-## Current cleanup debt
+## Native composition boundary
 
-The following existing structures predate this contract and should be reduced
-carefully rather than duplicated further:
+Native code has one explicit source boundary:
 
-- the host `_fast_search.pyx` still physically bundles the engine and several
-  native search cores into one extension. Browser builds already generate a
-  lean `longwar._fast_search` containing only the engine and production
-  heuristic.
+- `_fast_engine_core.pxi` composes the canonical packed state and game engine;
+- `_fast_search.pyx` includes that engine core, then layers heuristic/search
+  implementations on top;
+- browser builds include the same engine core plus only the production
+  heuristic, and derive the Cython include closure automatically;
+- Python code reaches native rule execution through `native_engine.py` and
+  research/search capabilities through `native_search.py`.
 
-The remaining host split is a migration item, not a pattern to copy.
+The host may compile engine and search code into one extension for shared packed
+types and low call overhead. That binary packaging is an implementation detail,
+not an architectural dependency and not cleanup debt. A rule change should
+normally affect `GameRules`, card mechanics, and/or engine implementation
+without requiring search or browser packaging edits.
