@@ -223,10 +223,6 @@ def markdown_to_typst(source: str, version: str) -> str:
                 out.append("#columns(2, gutter: 9mm)[")
                 columns_started = True
             title = re.sub(r"\s+\{#[A-Za-z0-9_-]+\}\s*$", "", line[3:].strip())
-            if title == "Card movement and removal":
-                # Keep the reference heading with the table instead of leaving
-                # the heading alone at the foot of the previous column.
-                out.append("#colbreak(weak: true)")
             out.append(f"== {title}")
             continue
 
