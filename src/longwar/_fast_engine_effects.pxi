@@ -247,7 +247,7 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     state.maneuver_direction[b] = maneuver_direction
 
 cdef void _fe_resolve_plot(FastEngine self, FastState state, int actor, int card, int pos, int dest):
-    cdef int effect = self.plot_effect[card]
+    cdef int effect = self.narrative_effect[card]
     cdef int owner
     if effect == PLOT_DISCREDIT:
         owner = owner_from_slot(pos)

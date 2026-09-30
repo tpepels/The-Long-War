@@ -968,7 +968,7 @@ cdef int _fe_legal_actions_into(
                     # change the semantic action identity.
                     break
             else:
-                effect = self.plot_effect[card]
+                effect = self.narrative_effect[card]
                 if effect == PLOT_DISCREDIT or effect == PLOT_RETURN_NAME:
                     for local in range(8):
                         slot = opponent * 8 + local

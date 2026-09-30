@@ -116,7 +116,7 @@ cdef class FastEngine:
     cdef int8_t name_rank_bonus_amount[MAX_CARDS]
     cdef int8_t name_effect[MAX_CARDS]
 
-    cdef int8_t plot_effect[MAX_CARDS]
+    cdef int8_t narrative_effect[MAX_CARDS]
     cdef uint8_t ongoing_narrative[MAX_CARDS]
     cdef uint8_t story_choice_kind[MAX_CARDS]
     cdef int8_t scheme_trigger[MAX_CARDS]
