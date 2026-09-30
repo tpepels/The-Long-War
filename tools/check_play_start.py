@@ -133,7 +133,7 @@ def main() -> None:
 </script>
 """
     else:
-    smoke = r"""
+        smoke = r"""
 <script>
 (() => {
   const root = document.documentElement;
