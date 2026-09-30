@@ -2261,10 +2261,15 @@ def _mccfr_evaluation_current(
     game_fingerprint: str,
     *,
     games: int,
+    seed: int,
     policy_fingerprint: str,
 ) -> bool:
     payload = _load_json_if_current(path, game_fingerprint)
-    if payload is None or int(payload.get("games", -1)) != int(games):
+    if (
+        payload is None
+        or int(payload.get("games", -1)) != int(games)
+        or int(payload.get("seed", -1)) != int(seed)
+    ):
         return False
     return policy_fingerprint in payload.get("policy_fingerprints", [])
 
@@ -2318,10 +2323,12 @@ def run_offline_mccfr_suite(args: argparse.Namespace) -> Path:
             ),
         )
         for eval_index, (output, agent_a, agent_b, policy_flag) in enumerate(evaluations):
+            eval_seed = evaluation_seed + eval_index * 1000
             if not force and _mccfr_evaluation_current(
                 output,
                 game_fingerprint,
                 games=args.mccfr_eval_games,
+                seed=eval_seed,
                 policy_fingerprint=policy_fp,
             ):
                 print(
@@ -2338,7 +2345,7 @@ def run_offline_mccfr_suite(args: argparse.Namespace) -> Path:
                 str(ROOT / "tools" / "simulate.py"),
                 "--games", str(args.mccfr_eval_games),
                 "--jobs", str(args.jobs),
-                "--seed", str(evaluation_seed + eval_index * 1000),
+                "--seed", str(eval_seed),
                 "--deck-a", deck_path,
                 "--deck-b", deck_path,
                 "--agent-a", agent_a,
@@ -2354,7 +2361,10 @@ def run_offline_mccfr_suite(args: argparse.Namespace) -> Path:
     return suite
 
 
-def _canonical_deep_balance_current(game_fingerprint: str) -> bool:
+def _canonical_deep_balance_current(
+    game_fingerprint: str,
+    args: argparse.Namespace,
+) -> bool:
     required = (
         "balance-health.json",
         "balance-report.json",
@@ -2374,9 +2384,27 @@ def _canonical_deep_balance_current(game_fingerprint: str) -> bool:
         return False
     summary = payloads["balance-run-summary.json"] or {}
     config = summary.get("config") or {}
+    targeted = config.get("targeted_online_mccfr") or {}
+    expected_games = (
+        int(args.balance_games)
+        if args.balance_games is not None
+        else 8
+    )
     return (
         config.get("preset") == "deep"
+        and int(config.get("games_per_cell", -1)) == expected_games
+        and int(config.get("seed", -1)) == int(args.seed)
         and config.get("agents") == ["ismcts", "ismcts"]
+        and int(config.get("contexts", -1)) == int(args.contexts)
+        and int(config.get("games_per_context", -1))
+        == int(args.games_per_context)
+        and int(targeted.get("iterations", -1))
+        == int(args.online_iterations)
+        and int(targeted.get("depth", -1)) == int(args.online_depth)
+        and int(targeted.get("max_cards", -1))
+        == int(args.target_max_cards)
+        and float(targeted.get("minimum_abs_effect", -1))
+        == float(args.target_min_effect)
         and (summary.get("evidence_pipeline") or {}).get(
             "broad_card_screen"
         ) is not None
@@ -2391,13 +2419,16 @@ def _solver_strength_current(
     game_fingerprint: str,
     *,
     games: int,
+    seed: int,
     time_budget_seconds: float,
 ) -> bool:
     payload = _load_json_if_current(path, game_fingerprint)
     if payload is None:
         return False
+    config = payload.get("config") or {}
     return (
         int(payload.get("games_per_orientation", -1)) == int(games)
+        and int(config.get("seed", -1)) == int(seed)
         and float(
             (payload.get("ismcts") or {}).get("time_budget_seconds", -1)
         ) == float(time_budget_seconds)
@@ -2433,14 +2464,19 @@ def run_full_lab(args: argparse.Namespace) -> Path:
     validate()
     verification = ROOT / "artifacts" / "mccfr-verification.json"
     verify_payload = _load_json_if_current(verification, game_fingerprint)
-    if force or verify_payload is None or int(
-        verify_payload.get("iterations", -1)
-    ) != int(args.mccfr_verify_iterations):
+    verification_seed = int(args.seed) + 700_000
+    if (
+        force
+        or verify_payload is None
+        or int(verify_payload.get("iterations", -1))
+        != int(args.mccfr_verify_iterations)
+        or int(verify_payload.get("seed", -1)) != verification_seed
+    ):
         run_command([
             sys.executable,
             str(ROOT / "tools" / "verify_mccfr.py"),
             "--iterations", str(args.mccfr_verify_iterations),
-            "--seed", str(args.seed + 700_000),
+            "--seed", str(verification_seed),
         ])
     stage("validation", "complete")
 
@@ -2454,7 +2490,7 @@ def run_full_lab(args: argparse.Namespace) -> Path:
     run_narrative_ablation(ablation_args)
     stage("narrative_ablation", "complete")
 
-    if force or not _canonical_deep_balance_current(game_fingerprint):
+    if force or not _canonical_deep_balance_current(game_fingerprint, args):
         stage("canonical_balance", "running")
         balance_args = argparse.Namespace(
             preset="deep",
@@ -2483,10 +2519,12 @@ def run_full_lab(args: argparse.Namespace) -> Path:
         stage("canonical_balance", "reused")
 
     solver = ROOT / "artifacts" / "solver-strength.json"
+    strength_seed = int(args.seed) + 800_000
     if force or not _solver_strength_current(
         solver,
         game_fingerprint,
         games=args.strength_games,
+        seed=strength_seed,
         time_budget_seconds=args.strength_time_budget_seconds,
     ):
         stage("solver_strength", "running")
@@ -2494,7 +2532,7 @@ def run_full_lab(args: argparse.Namespace) -> Path:
             games_per_orientation=args.strength_games,
             jobs=args.jobs,
             time_budget_seconds=args.strength_time_budget_seconds,
-            seed=args.seed + 800_000,
+            seed=strength_seed,
         )
         stage("solver_strength", "complete")
     else:
