@@ -20,6 +20,8 @@ _GAMEPLAY_PYTHON = {
     "heuristics.py",
     "mccfr.py",
     "mccfr_core.py",
+    "native_engine.py",
+    "native_search.py",
     "online_mccfr.py",
     "parallel_mccfr.py",
     "rules.py",
