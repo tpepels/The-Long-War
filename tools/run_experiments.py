@@ -26,9 +26,9 @@ except ImportError:  # pragma: no cover - interactive skip is POSIX-only
     tty = None
 
 if __package__:
-    from .deck_catalog import CANONICAL_DECK_PATHS
+    from .deck_catalog import CANONICAL_DECK_PATHS, DEFAULT_DECK_PATH
 else:
-    from deck_catalog import CANONICAL_DECK_PATHS
+    from deck_catalog import CANONICAL_DECK_PATHS, DEFAULT_DECK_PATH
 
 from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_BELIEF_SAMPLES,
@@ -1247,9 +1247,9 @@ def standard_backend_parity(*, seed: int) -> None:
         "--card-file",
         "cards/cards.json",
         "--deck-a",
-        "decks/mobility-open-bonds.json",
+        DEFAULT_DECK_PATH,
         "--deck-b",
-        "decks/mobility-open-bonds.json",
+        DEFAULT_DECK_PATH,
         "--agent-a",
         "strategic_heuristic",
         "--agent-b",
