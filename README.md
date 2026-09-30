@@ -90,7 +90,7 @@ Static strength diagnostics read machine rules, not the optional historical `bal
 
 Algorithms consume engine/evaluator contracts without rule-profile branches. Beliefs stay outside traversal. MCCFR uses external sampling with depth-limited heuristic leaves and an imperfect-recall observation abstraction; a policy is not a full-game equilibrium proof. Generic Python/Cython traversal and the Kuhn-poker reference remain independent correctness checks. Replica multiprocessing is experimental because table serialization/merging can dominate runtime.
 
-ISMCTS uses a fixed canonical baseline for current engine work: 100,000 iterations, UCT exploration `c=0.3`, 12 root-belief samples, greedy rollouts of depth 5, rollout epsilon 0.12, tree reuse enabled, a 400,000-node tree cap, and progressive widening disabled. This baseline was promoted after the 2026-09-25 knockout and is no longer part of an ongoing optimizer.
+ISMCTS uses one shared canonical baseline for current engine work. Its values live in the `DEFAULT_ISMCTS_*` constants in `agents/ismcts_agent.py`; simulation, balance, and experiment entry points consume those constants rather than restating them. The baseline is intentionally not an ongoing optimizer target while cards and rules are still moving.
 
 The repository intentionally no longer carries the knockout/A-B configuration optimizer. During the current card and rules migration, AI configuration is held fixed so search changes do not become another moving variable. The only supported AI experiment is an occasional **equal-time ISMCTS vs alpha-beta sanity check**:
 
