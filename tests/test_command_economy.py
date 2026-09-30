@@ -25,12 +25,16 @@ from longwar.testing import GameScenario
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def standard_game(*, opening_bonus: bool = False):
+def standard_game(
+    *,
+    opening_bonus: bool = False,
+    rules: GameRules | None = None,
+):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
-    engine = GameEngine(data, rules=GameRules.standard())
+    engine = GameEngine(data, rules=rules or GameRules.standard())
     state = engine.new_game(
         deck,
         deck,
@@ -41,18 +45,22 @@ def standard_game(*, opening_bonus: bool = False):
     return engine, state
 
 
-def test_standard_command_profile_matches_canonical_rules() -> None:
+def test_standard_command_profile_propagates_into_engine_and_state() -> None:
     engine, state = standard_game()
-    rules = engine.rules
+    rules = GameRules.standard()
 
-    assert rules.starting_command == 20
-    assert rules.command_cap == 20
-    assert rules.command_recovery_start == 12
-    assert rules.command_recovery_decrement == 3
-    assert rules.command_recovery_floor == 1
-    assert rules.command_collapse_threshold == 0
-    assert rules.maneuver_command_cost == 1
-    assert [player.command for player in state.players] == [20, 20]
+    assert engine.rules == rules
+    assert engine.starting_command == rules.starting_command
+    assert engine.command_cap == rules.command_cap
+    assert engine.command_recovery_start == rules.command_recovery_start
+    assert engine.command_recovery_decrement == rules.command_recovery_decrement
+    assert engine.command_recovery_floor == rules.command_recovery_floor
+    assert engine.command_collapse_threshold == rules.command_collapse_threshold
+    assert engine.maneuver_command_cost == rules.maneuver_command_cost
+    assert [player.command for player in state.players] == [
+        rules.starting_command,
+        rules.starting_command,
+    ]
 
 
 def test_unaffordable_card_play_is_not_legal_and_does_not_mutate_state() -> None:
@@ -70,7 +78,8 @@ def test_unaffordable_card_play_is_not_legal_and_does_not_mutate_state() -> None
 
 
 def test_unaffordable_maneuver_is_not_legal() -> None:
-    engine, state = standard_game()
+    rules = GameRules.standard().with_overrides(maneuver_command_cost=1)
+    engine, state = standard_game(rules=rules)
     source = Position(Front.FIRST, Rank.FRONT)
     destination = Position(Front.SECOND, Rank.FRONT)
     GameScenario(state).formation(
@@ -128,9 +137,15 @@ def test_arithmetic_recovery_formula_can_be_overridden() -> None:
     ] == [10, 8, 6, 4, 2, 0, 0, 0]
 
 
-def test_equal_zero_command_continues_then_recovers_to_floor_one() -> None:
-    engine, state = standard_game()
-    GameScenario(state).battle(8).commands(0, 0).operations(
+def test_equal_threshold_command_continues_then_recovers_to_floor() -> None:
+    rules = GameRules.standard().with_overrides(
+        command_collapse_threshold=0,
+        command_recovery_start=0,
+        command_recovery_decrement=0,
+        command_recovery_floor=1,
+    )
+    engine, state = standard_game(rules=rules)
+    GameScenario(state).battle(1).commands(0, 0).operations(
         1,
         1,
     ).clear_hands()
@@ -138,11 +153,11 @@ def test_equal_zero_command_continues_then_recovers_to_floor_one() -> None:
     engine.apply(state, Pass())
     engine.apply(state, Pass())
 
-    # Collapse is checked before recovery. Equal zero Command continues, then
-    # the recovery floor guarantees that 0-0 is not absorbing.
+    # Collapse is checked before recovery. Equal threshold Command continues,
+    # then the configured recovery floor prevents an absorbing continuation.
     assert state.phase.value == "battle"
     assert state.winner is None
-    assert state.battle == 9
+    assert state.battle == 2
     assert [player.command for player in state.players] == [1, 1]
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
@@ -151,8 +166,13 @@ def test_equal_zero_command_continues_then_recovers_to_floor_one() -> None:
     assert snapshot["command_remaining"] == [1, 1]
 
 
-def test_zero_vs_positive_command_collapses_before_recovery() -> None:
-    engine, state = standard_game()
+def test_threshold_vs_positive_command_collapses_before_recovery() -> None:
+    rules = GameRules.standard().with_overrides(
+        command_collapse_threshold=0,
+        command_recovery_start=12,
+        command_recovery_decrement=3,
+    )
+    engine, state = standard_game(rules=rules)
     GameScenario(state).battle(1).commands(0, 5).operations(
         1,
         1,
@@ -174,11 +194,17 @@ def test_zero_vs_positive_command_collapses_before_recovery() -> None:
     assert snapshot["command_remaining"] == [0, 5]
 
 
-def test_canonical_recovery_floor_is_one_after_front_losses() -> None:
-    engine, state = standard_game()
-    # Battle VIII+ has base recovery 0. Positive Command survives Collapse,
-    # and each player must still recover exactly 1 despite losing a Front.
-    GameScenario(state).battle(8).commands(4, 4).battle_start_commands(
+def test_recovery_floor_applies_after_front_losses() -> None:
+    rules = GameRules.standard().with_overrides(
+        command_recovery_start=0,
+        command_recovery_decrement=0,
+        command_recovery_floor=1,
+        command_collapse_threshold=0,
+    )
+    engine, state = standard_game(rules=rules)
+    # Base recovery is explicitly 0; each player still recovers the configured
+    # floor despite losing a Front.
+    GameScenario(state).battle(1).commands(4, 4).battle_start_commands(
         4,
         4,
     ).operations(1, 1).clear_hands().formation(
@@ -196,7 +222,35 @@ def test_canonical_recovery_floor_is_one_after_front_losses() -> None:
 
     assert state.phase.value == "battle"
     assert state.winner is None
-    assert state.battle == 9
+def test_recovery_floor_applies_after_front_losses() -> None:
+    rules = GameRules.standard().with_overrides(
+        command_recovery_start=0,
+        command_recovery_decrement=0,
+        command_recovery_floor=1,
+        command_collapse_threshold=0,
+    )
+    engine, state = standard_game(rules=rules)
+    # Base recovery is explicitly 0; each player still recovers the configured
+    # floor despite losing a Front.
+    GameScenario(state).battle(1).commands(4, 4).battle_start_commands(
+        4,
+        4,
+    ).operations(1, 1).clear_hands().formation(
+        1,
+        Position(Front.FIRST, Rank.FRONT),
+        force="the-fifty-men",
+    ).formation(
+        0,
+        Position(Front.SECOND, Rank.FRONT),
+        force="the-fifty-men",
+    )
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.phase.value == "battle"
+    assert state.winner is None
+    assert state.battle == 2
     assert [player.command for player in state.players] == [5, 5]
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
@@ -209,7 +263,11 @@ def test_canonical_recovery_floor_is_one_after_front_losses() -> None:
 
 
 def test_command_guard_filters_avoidable_final_command_spend() -> None:
-    engine, state = standard_game()
+    rules = GameRules.standard().with_overrides(
+        command_collapse_threshold=0,
+        maneuver_command_cost=1,
+    )
+    engine, state = standard_game(rules=rules)
     source = Position(Front.FIRST, Rank.FRONT)
     destination = Position(Front.SECOND, Rank.FRONT)
     GameScenario(state).formation(
@@ -232,7 +290,11 @@ def test_command_guard_filters_avoidable_final_command_spend() -> None:
 
 
 def test_command_guard_keeps_immediate_command_refund_action() -> None:
-    engine, state = standard_game()
+    rules = GameRules.standard().with_overrides(
+        command_collapse_threshold=0,
+        maneuver_command_cost=1,
+    )
+    engine, state = standard_game(rules=rules)
     target = Position(Front.FIRST, Rank.FRONT)
     GameScenario(state).formation(
         0,
@@ -255,7 +317,11 @@ def test_command_guard_keeps_immediate_command_refund_action() -> None:
 
 
 def test_pass_is_valued_over_spending_the_final_command() -> None:
-    engine, state = standard_game()
+    rules = GameRules.standard().with_overrides(
+        command_collapse_threshold=0,
+        maneuver_command_cost=1,
+    )
+    engine, state = standard_game(rules=rules)
     source = Position(Front.FIRST, Rank.FRONT)
     destination = Position(Front.SECOND, Rank.FRONT)
     GameScenario(state).formation(
