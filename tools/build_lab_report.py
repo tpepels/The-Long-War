@@ -326,6 +326,15 @@ def main() -> None:
         if raw_telemetry is not None
         else None
     )
+    dashboard_telemetry = (
+        {
+            key: compact_dashboard_payload(raw_telemetry[key])
+            for key in ("passes", "battles", "actions", "decisions")
+            if key in raw_telemetry
+        }
+        if raw_telemetry is not None
+        else None
+    )
     progression_profiles = {}
     if progression_profiles_artifact is not None:
         for key, profile in progression_profiles_artifact.get("profiles", {}).items():
@@ -400,7 +409,7 @@ def main() -> None:
         "targeted_counterfactual": targeted,
         "run_summary": run_summary,
         "balance_comparisons": balance_comparisons,
-        "raw_telemetry": raw_telemetry,
+        "dashboard_telemetry": dashboard_telemetry,
         "progression": progression,
         "progression_trajectory": trajectory,
         "progression_source": progression_source,
