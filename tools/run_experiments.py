@@ -187,6 +187,7 @@ def balance_run(args: argparse.Namespace) -> Path:
     ))
     skip_card_screen = bool(getattr(args, "skip_card_screen", False))
     run_card_screen = deep_pipeline and not skip_card_screen
+    resume = bool(getattr(args, "resume", False))
 
     if recovery_start < 0 or recovery_decrement < 0:
         raise SystemExit("Recovery start and decrement must be non-negative")
@@ -373,11 +374,32 @@ def balance_run(args: argparse.Namespace) -> Path:
         tuple[str, str, int, tuple[dict[str, Any] | None, dict[str, Any] | None]],
     ] = {}
     batch_cells: list[SimulationBatchCell] = []
+    existing_cells: dict[str, dict[str, Any]] = {}
     for index, (left, right) in enumerate(cells):
         seed = args.seed + index * games
         policies = (policy_for(left), policy_for(right))
         name = f"{left}--{right}"
         cell_metadata[name] = (left, right, seed, policies)
+        existing_path = output / f"{name}.json"
+        existing = None
+        if resume and existing_path.exists():
+            try:
+                candidate = json.loads(existing_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                candidate = None
+            if (
+                candidate is not None
+                and candidate.get("game_fingerprint")
+                == identity["game_fingerprint"]
+                and candidate.get("experiment_fingerprint")
+                == identity["experiment_fingerprint"]
+                and int(candidate.get("games", -1)) == games
+                and int(candidate.get("seed", -1)) == seed
+            ):
+                existing = candidate
+        if existing is not None:
+            existing_cells[name] = existing
+            continue
         batch_cells.append(
             SimulationBatchCell(
                 key=name,
@@ -416,60 +438,70 @@ def balance_run(args: argparse.Namespace) -> Path:
         if completed == total:
             print(f"  completed {key}: {completed}/{total} games", flush=True)
 
-    reports = simulate_games_batch(
-        engine,
-        batch_cells,
-        jobs=args.jobs,
-        common_options=common_simulation_options,
-        progress_callback=structural_progress,
+    reports = (
+        simulate_games_batch(
+            engine,
+            batch_cells,
+            jobs=args.jobs,
+            common_options=common_simulation_options,
+            progress_callback=structural_progress,
+        )
+        if batch_cells
+        else {}
     )
+    if existing_cells:
+        print(
+            f"  reused {len(existing_cells)}/{len(cells)} completed structural cells",
+            flush=True,
+        )
 
     for left, right in cells:
         name = f"{left}--{right}"
         _meta_left, _meta_right, seed, policies = cell_metadata[name]
-        report = reports[name]
-        total_censored += report.censored_games
-        total_failed += report.failed_games
-        payload = {
-            **asdict(report),
-            "game_fingerprint": identity["game_fingerprint"],
-            "experiment_fingerprint": identity["experiment_fingerprint"],
-            "seed": seed,
-            "rules": asdict(engine.rules),
-            "agent_profile": config["agent_profile"],
-            "recovery_start": recovery_start,
-            "recovery_decrement": recovery_decrement,
-            "policy_fingerprints": [
-                policy.get("_policy_fingerprint") if policy else None
-                for policy in policies
-            ],
-            "deck_a": decks[left],
-            "deck_b": decks[right],
-            "decisive_games": report.decisive_games,
-            "censor_rate": report.censor_rate,
-            "failure_rate": report.failure_rate,
-            "win_rates": report.win_rates,
-            "first_player_win_rate": report.first_player_win_rate,
-            "first_player_wilson_95": wilson_interval(
-                report.first_player_wins,
-                report.decisive_games,
-            ),
-            "simulation_variant": {
-                **engine.rules.simulation_metadata(),
-                "deck_sizes": [len(decks[left]), len(decks[right])],
-                "card_file": "cards/cards.json",
-            },
-        }
-        save(name, payload)
+        payload = existing_cells.get(name)
+        if payload is None:
+            report = reports[name]
+            payload = {
+                **asdict(report),
+                "game_fingerprint": identity["game_fingerprint"],
+                "experiment_fingerprint": identity["experiment_fingerprint"],
+                "seed": seed,
+                "rules": asdict(engine.rules),
+                "agent_profile": config["agent_profile"],
+                "recovery_start": recovery_start,
+                "recovery_decrement": recovery_decrement,
+                "policy_fingerprints": [
+                    policy.get("_policy_fingerprint") if policy else None
+                    for policy in policies
+                ],
+                "deck_a": decks[left],
+                "deck_b": decks[right],
+                "decisive_games": report.decisive_games,
+                "censor_rate": report.censor_rate,
+                "failure_rate": report.failure_rate,
+                "win_rates": report.win_rates,
+                "first_player_win_rate": report.first_player_win_rate,
+                "first_player_wilson_95": wilson_interval(
+                    report.first_player_wins,
+                    report.decisive_games,
+                ),
+                "simulation_variant": {
+                    **engine.rules.simulation_metadata(),
+                    "deck_sizes": [len(decks[left]), len(decks[right])],
+                    "card_file": "cards/cards.json",
+                },
+            }
+            save(name, payload)
+        total_censored += int(payload.get("censored_games", 0) or 0)
+        total_failed += int(payload.get("failed_games", 0) or 0)
         save(f"{name}-health", analyze_simulation(payload, data))
         simulations.append(payload)
         if left == right:
             selfplay_simulations[left] = payload
         print(
-            f"{name}: {games} games, {report.decisive_games} decisive, "
-            f"{report.censored_games} censored, {report.failed_games} failed, "
-            f"first-player wins "
-            f"{report.first_player_wins}; 95% interval "
+            f"{name}: {payload['games']} games, {payload['decisive_games']} decisive, "
+            f"{payload['censored_games']} censored, {payload.get('failed_games', 0)} failed, "
+            f"first-player wins {payload['first_player_wins']}; 95% interval "
             f"{payload['first_player_wilson_95']}"
         )
 
@@ -505,20 +537,37 @@ def balance_run(args: argparse.Namespace) -> Path:
                 flush=True,
             )
 
-        causal = run_counterfactual_card_sweep(
-            data,
-            contexts=args.contexts,
-            games_per_context=args.games_per_context,
-            seed=args.seed,
-            bootstrap_resamples=2000,
-            jobs=args.jobs,
-            progress_callback=broad_progress,
-        )
-        causal_payload = {
-            **causal,
-            "game_fingerprint": identity["game_fingerprint"],
-        }
-        save("counterfactual", causal_payload)
+        causal_path = output / "counterfactual.json"
+        if resume and causal_path.exists():
+            try:
+                candidate = json.loads(causal_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                candidate = None
+            if (
+                candidate is not None
+                and candidate.get("game_fingerprint")
+                == identity["game_fingerprint"]
+                and candidate.get("experiment_fingerprint")
+                == identity["experiment_fingerprint"]
+            ):
+                causal_payload = candidate
+                print("  reused completed broad paired card screen", flush=True)
+        if causal_payload is None:
+            causal = run_counterfactual_card_sweep(
+                data,
+                contexts=args.contexts,
+                games_per_context=args.games_per_context,
+                seed=args.seed,
+                bootstrap_resamples=2000,
+                jobs=args.jobs,
+                progress_callback=broad_progress,
+            )
+            causal_payload = {
+                **causal,
+                "game_fingerprint": identity["game_fingerprint"],
+                "experiment_fingerprint": identity["experiment_fingerprint"],
+            }
+            save("counterfactual", causal_payload)
         print(
             "Broad screen complete: "
             f"{causal_payload['decisive_paired_samples']} decisive paired "
@@ -551,27 +600,49 @@ def balance_run(args: argparse.Namespace) -> Path:
                     flush=True,
                 )
 
-            targeted = run_targeted_online_validation(
-                data,
-                causal_payload,
-                contexts=target_contexts,
-                games_per_context=target_games_per_context,
-                online_iterations=online_iterations,
-                online_depth=online_depth,
-                max_cards=target_max_cards,
-                max_pairs=0,
-                max_triples=0,
-                minimum_abs_effect=target_min_effect,
-                bootstrap_resamples=1000,
-                force_top=False,
-                jobs=args.jobs,
-                progress_callback=targeted_progress,
-            )
-            targeted_payload = {
-                **targeted,
-                "game_fingerprint": identity["game_fingerprint"],
-            }
-            save("targeted-online-counterfactual", targeted_payload)
+            targeted_path = output / "targeted-online-counterfactual.json"
+            if resume and targeted_path.exists():
+                try:
+                    candidate = json.loads(
+                        targeted_path.read_text(encoding="utf-8")
+                    )
+                except (OSError, json.JSONDecodeError):
+                    candidate = None
+                if (
+                    candidate is not None
+                    and candidate.get("game_fingerprint")
+                    == identity["game_fingerprint"]
+                    and candidate.get("experiment_fingerprint")
+                    == identity["experiment_fingerprint"]
+                ):
+                    targeted_payload = candidate
+                    print(
+                        "  reused completed targeted online-MCCFR stage",
+                        flush=True,
+                    )
+            if targeted_payload is None:
+                targeted = run_targeted_online_validation(
+                    data,
+                    causal_payload,
+                    contexts=target_contexts,
+                    games_per_context=target_games_per_context,
+                    online_iterations=online_iterations,
+                    online_depth=online_depth,
+                    max_cards=target_max_cards,
+                    max_pairs=0,
+                    max_triples=0,
+                    minimum_abs_effect=target_min_effect,
+                    bootstrap_resamples=1000,
+                    force_top=False,
+                    jobs=args.jobs,
+                    progress_callback=targeted_progress,
+                )
+                targeted_payload = {
+                    **targeted,
+                    "game_fingerprint": identity["game_fingerprint"],
+                    "experiment_fingerprint": identity["experiment_fingerprint"],
+                }
+                save("targeted-online-counterfactual", targeted_payload)
             selected = int(
                 targeted_payload.get("selection", {}).get(
                     "targets_selected",
