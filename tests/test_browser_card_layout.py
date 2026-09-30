@@ -197,8 +197,26 @@ def test_print_kit_publishes_and_renders_reference_decks() -> None:
     assert 'decks.map(' in script
     assert 'window.PrintCards.markup(index[id], label)' in script
     assert "Print all reference decks" in page
+    assert "chunk(deck.cards, 9)" in script
+    assert 'class="deck-card-grid card-sheet"' in script
     assert 'data/reference-deck.json' not in builder
     assert 'data/reference-deck.json' not in script
+
+
+def test_print_card_sheets_fit_inside_a4_with_tolerance() -> None:
+    css = text("web/print-cards.css")
+    assert "@page cards { size: A4 portrait; margin: 8mm; }" in css
+    assert "grid-template-columns: repeat(3, 63mm);" in css
+    assert "grid-auto-rows: 88mm;" in css
+    assert "gap: 4mm 2mm;" in css
+    assert ".card-sheet { page: cards; break-after: page; break-inside: avoid; }" in css
+
+    # 3 x 63 mm + 2 x 2 mm = 193 mm, leaving 1 mm spare inside
+    # the 194 mm-wide content box produced by 8 mm A4 side margins.
+    assert 3 * 63 + 2 * 2 < 210 - 2 * 8
+    # 3 x 88 mm + 2 x 4 mm = 272 mm, comfortably inside the
+    # 281 mm-high A4 content box.
+    assert 3 * 88 + 2 * 4 < 297 - 2 * 8
 
 
 def test_semantic_rule_renderer_is_shared_by_all_card_surfaces() -> None:
