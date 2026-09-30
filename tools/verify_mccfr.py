@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from longwar.fingerprint import current_game_fingerprint
 from longwar.mccfr_verification import verify_kuhn
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +22,8 @@ def main() -> None:
     args = parser.parse_args()
 
     report = verify_kuhn(iterations=args.iterations, seed=args.seed)
+    report["game_fingerprint"] = current_game_fingerprint()
+    report["seed"] = args.seed
     output = args.output if args.output.is_absolute() else ROOT / args.output
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
