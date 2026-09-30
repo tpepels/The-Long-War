@@ -154,7 +154,8 @@ def main() -> None:
     )
     policy = current("mccfr-policy.json")
     mccfr_suite = current("mccfr-suite.json")
-    verification = load("mccfr-verification.json")
+    verification = current("mccfr-verification.json")
+    solver_strength = current("solver-strength.json")
     counterfactual = current("counterfactual-balance.json")
     targeted = current("targeted-online-counterfactual.json")
     run_summary = current("balance-run-summary.json")
@@ -400,6 +401,7 @@ def main() -> None:
         "mccfr": mccfr,
         "mccfr_suite": mccfr_suite,
         "verification": verification,
+        "solver_strength": solver_strength,
         "counterfactual": counterfactual,
         "targeted_counterfactual": targeted,
         "run_summary": run_summary,

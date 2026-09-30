@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,24 @@ ARTIFACTS = ROOT / "artifacts"
 
 def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def policy_coverage(simulation: dict[str, Any]) -> dict[str, Any]:
+    sources = simulation.get("telemetry", {}).get("policy_sources", {})
+    mccfr = int(sources.get("mccfr", 0) or 0)
+    fallback = sum(
+        int(count or 0)
+        for source, count in sources.items()
+        if str(source).startswith(("fallback:", "guard-fallback:"))
+    )
+    total = mccfr + fallback
+    return {
+        "sources": dict(sorted(sources.items())),
+        "mccfr_decisions": mccfr,
+        "heuristic_fallback_decisions": fallback,
+        "mccfr_coverage_rate": mccfr / total if total else None,
+        "heuristic_fallback_rate": fallback / total if total else None,
+    }
 
 
 def seat_swapped_evaluation(
@@ -57,7 +76,10 @@ def main() -> None:
         deck_unique = set(deck)
         covered.update(deck_unique)
 
-        policy = load(ARTIFACTS / f"mccfr-policy-{profile_id}.json")
+        policy_path = ARTIFACTS / f"mccfr-policy-{profile_id}.json"
+        policy_bytes = policy_path.read_bytes()
+        policy = json.loads(policy_bytes)
+        policy_fingerprint = hashlib.sha256(policy_bytes).hexdigest()[:16]
         if policy.get("game_fingerprint") != game_fingerprint:
             raise SystemExit(f"Stale MCCFR policy for {profile_id}: rerun training for the current ruleset")
         forward = load(ARTIFACTS / f"mccfr-{profile_id}-vs-heuristic.json")
@@ -92,10 +114,13 @@ def main() -> None:
                     "information_abstraction": policy.get("information_abstraction"),
                     "average_policy": policy.get("average_policy"),
                     "training_seed": policy.get("training_seed"),
+                    "policy_fingerprint": policy_fingerprint,
                 },
                 "evaluation": {
                     "mccfr_vs_heuristic": simulation_summary(forward),
                     "heuristic_vs_mccfr": simulation_summary(reverse),
+                    "mccfr_vs_heuristic_policy_coverage": policy_coverage(forward),
+                    "heuristic_vs_mccfr_policy_coverage": policy_coverage(reverse),
                     **combined_evaluation,
                 },
             }

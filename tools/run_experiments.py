@@ -1470,6 +1470,7 @@ def benchmark_strength(
     alpha_nodes: int = 20_000,
     time_budget_seconds: float = 5.0,
     seed: int = 26092400,
+    publish_lab: bool = False,
 ) -> Path:
     """Mirrored ISMCTS-vs-alpha-beta matches on all canonical reference decks."""
     belief_samples = DEFAULT_ISMCTS_BELIEF_SAMPLES
@@ -1887,6 +1888,11 @@ def benchmark_strength(
         },
         "resources": resource_summary,
         "sum_cell_wall_seconds": wall_sum,
+        "methodology": (
+            "Mirrored same-deck seats across every canonical reference deck. "
+            "ISMCTS and alpha-beta receive the same wall-clock budget per searched "
+            "decision; paired uncertainty resamples mirrored deal pairs."
+        ),
     }
     summary_path = output_dir / "summary.json"
     summary_path.write_text(
@@ -1894,6 +1900,13 @@ def benchmark_strength(
         encoding="utf-8",
     )
     print(f"Summary: {summary_path}")
+    if publish_lab:
+        lab_path = ROOT / "artifacts" / "solver-strength.json"
+        lab_path.write_text(
+            json.dumps(summary, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(f"Published: {lab_path.relative_to(ROOT)}")
     return summary_path
 
 
@@ -2405,6 +2418,11 @@ def parse_args() -> argparse.Namespace:
         help="Equal wall-clock search budget per non-forced decision.",
     )
     strength.add_argument("--seed", type=int, default=26092400)
+    strength.add_argument(
+        "--publish-lab",
+        action="store_true",
+        help="Publish the current benchmark as artifacts/solver-strength.json.",
+    )
 
     return parser.parse_args()
 
@@ -2429,6 +2447,7 @@ def main() -> None:
             alpha_nodes=args.alpha_nodes,
             time_budget_seconds=args.time_budget_seconds,
             seed=args.seed,
+            publish_lab=args.publish_lab,
         )
     else:
         raise AssertionError(args.command)
