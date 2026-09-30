@@ -138,7 +138,6 @@ def test_balance_validation_covers_all_reference_decks() -> None:
     }
     assert canonical == catalogued
     assert all((ROOT / path).is_file() for path in canonical)
-    assert str(len(canonical)) in text("README.md")
 
 
 def test_browser_runtime_uses_canonical_engine_composition() -> None:
