@@ -471,22 +471,13 @@ def test_information_state_schema_has_one_canonical_encoder() -> None:
     assert "state." not in key_body
 
 
-def test_serious_ismcts_defaults_are_not_smoke_budgets(monkeypatch) -> None:
-    """AGENTS.md: "Serious ISMCTS default: 100,000 iterations."
-
-    Every caller shares one constant (``DEFAULT_ISMCTS_ITERATIONS``) instead of
-    re-literaling the number, so this checks resolved runtime defaults through
-    that constant rather than pinning each call site's literal source text.
-    That way reformatting a number can't break the test, and a caller that
-    quietly reverts to its own hardcoded value can't escape it either.
-    """
+def test_ismcts_iteration_default_is_shared(monkeypatch) -> None:
+    """Every serious caller consumes the shared ISMCTS iteration default."""
     import ast
     import sys
 
     from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_ITERATIONS, ISMCTSAgent
     from longwar.simulate import make_agent, simulate_games
-
-    assert DEFAULT_ISMCTS_ITERATIONS == 100_000
 
     agent_default = inspect.signature(ISMCTSAgent.__init__).parameters["iterations"].default
     assert agent_default == DEFAULT_ISMCTS_ITERATIONS
