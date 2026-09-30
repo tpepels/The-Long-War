@@ -212,10 +212,186 @@ def build_rulebook_print_pages(rendered: str) -> str:
         '</figure>'
     )
     # Markdown nests the indented ASCII battlefield inside the final list item.
-    # Remove that legacy block first, then insert the generated image as a
-    # direct child of the section so print-grid placement is deterministic.
+    # Remove that legacy block and rebuild this one print section explicitly:
+    # copy on the left, standalone battlefield image on the right.
     goal = re.sub(r'<pre>.*?</pre>', '', goal, count=1, flags=re.DOTALL)
-    goal = goal.replace('</ul>', '</ul>' + battlefield_figure, 1)
+    goal_inner = re.sub(
+        r'^<section class="rule-section">|</section>
+    def stack(*titles: str) -> str:
+        return "".join(sections[title] for title in titles)
+
+    def page(number: int, label: str, body: str, classes: str = "") -> str:
+        return (
+            f'<section class="rulebook-print-page {classes}" data-page="{number}">'
+            f'<div class="rulebook-print-page-label">{label}</div>'
+            f'{body}'
+            f'<span class="rulebook-print-page-number">Page {number} of 4</span>'
+            f'<span class="rulebook-page-version">TLW print v{{{{PRINT_VERSION}}}}</span>'
+            '</section>'
+        )
+
+    first = (
+        '<div class="rulebook-print-opening">' + opening + '</div>'
+        '<div class="rulebook-print-goal">' + goal + '</div>'
+    )
+    second = (
+        '<div class="rulebook-print-columns">'
+        '<div class="rulebook-print-column">'
+        '<div class="rulebook-print-kicker">PLAYING A BATTLE</div>'
+        + stack("Setup", "Your turn")
+        + '</div><div class="rulebook-print-column">'
+        + stack("Force - Bond - Name", "Roles and classifications", "Unique cards", "Heroes")
+        + '</div></div>'
+    )
+    third = (
+        '<div class="rulebook-print-columns">'
+        '<div class="rulebook-print-column">'
+        + stack("Maneuver", "Narratives and Stratagems", "Passing")
+        + '</div><div class="rulebook-print-column">'
+        '<div class="rulebook-print-kicker">ENDING A BATTLE</div>'
+        + stack("Compare the Fronts", "Retreat", "After the Battle")
+        + '</div></div>'
+    )
+    fourth = (
+        '<div class="rulebook-print-columns">'
+        '<div class="rulebook-print-column">'
+        '<div class="rulebook-print-kicker">THE LONG WAR / REFERENCE</div>'
+        + stack("Command", "Card movement and removal")
+        + '</div><div class="rulebook-print-column">'
+        + stack("Timing", "Deck construction")
+        + '</div></div>'
+    )
+    return "".join(
+        (
+            page(1, "THE LONG WAR", first, "rulebook-print-page-first"),
+            page(2, "PLAYING THE WAR", second),
+            page(3, "RESOLVING BATTLES", third),
+            page(4, "REFERENCE", fourth),
+        )
+    )
+
+
+def render_rule_tokens(source: str, rules: GameRules) -> str:
+    recovery = [
+        rules.command_recovery_for_battle(battle)
+        for battle in range(1, 6)
+    ]
+    values = {
+        key.upper(): value
+        for key, value in rules.as_dict().items()
+    }
+    # Short aliases keep authored reference copy readable while canonical
+    # GameRules field names remain the actual source of truth.
+    values.update(
+        {
+            "COLLAPSE_THRESHOLD": rules.command_collapse_threshold,
+            "RECOVERY_START": rules.command_recovery_start,
+            "RECOVERY_DECREMENT": rules.command_recovery_decrement,
+            "RECOVERY_FLOOR": rules.command_recovery_floor,
+            "RECOVERY_SERIES": ", ".join(
+                f"+{value}" for value in recovery
+            ) + "…",
+            "RECOVERY_SERIES_PLAIN": ", ".join(
+                str(value) for value in recovery
+            ) + "...",
+        }
+    )
+    rendered = source
+    for key, value in values.items():
+        rendered = rendered.replace("{{" + key + "}}", str(value))
+    unresolved = sorted(set(re.findall(r"{{([A-Z0-9_]+)}}", rendered)))
+    if unresolved:
+        raise ValueError(
+            "Unknown rule-reference tokens: " + ", ".join(unresolved)
+        )
+    return rendered
+
+
+def main() -> None:
+    card_data = load_card_file(CARDS)
+    runtime = ensure_browser_runtime()
+    if DIST.exists():
+        shutil.rmtree(DIST)
+    shutil.copytree(WEB, DIST)
+    shutil.copytree(runtime, DIST / "runtime")
+
+    playmat = DIST / "playmat.html"
+    playmat.write_text(
+        render_rule_tokens(
+            playmat.read_text(encoding="utf-8"),
+            GameRules.standard(),
+        ),
+        encoding="utf-8",
+    )
+
+    data_dir = DIST / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(CARDS, data_dir / "cards.json")
+
+    known_cards = {card["id"] for card in card_data["cards"]}
+    reference_decks = []
+    for deck_path in REFERENCE_DECKS:
+        deck = json.loads(deck_path.read_text(encoding="utf-8"))
+        missing = sorted(set(deck["cards"]) - known_cards)
+        if missing:
+            raise ValueError(
+                f"{deck_path.name} references unknown cards: {', '.join(missing)}"
+            )
+        reference_decks.append({"file": deck_path.name, **deck})
+    (data_dir / "reference-decks.json").write_text(
+        json.dumps({"decks": reference_decks}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    artifacts_dir = ROOT / "artifacts"
+    for filename in PUBLISHED_ARTIFACTS:
+        artifact = artifacts_dir / filename
+        if artifact.exists():
+            shutil.copy2(artifact, data_dir / filename)
+
+    rulebook_md = render_rule_tokens(
+        RULEBOOK.read_text(encoding="utf-8"),
+        GameRules.standard(),
+    )
+    rulebook_html = markdown.markdown(
+        rulebook_md,
+        extensions=["extra", "sane_lists", "attr_list", "md_in_html"],
+    )
+    rulebook_html = group_rulebook_sections(rulebook_html)
+    rulebook_print_html = build_rulebook_print_pages(rulebook_html)
+
+    template = (WEB / "rulebook.template.html").read_text(encoding="utf-8")
+    rendered = template.replace("{{RULEBOOK}}", rulebook_html)
+    rendered = rendered.replace("{{RULEBOOK_PRINT}}", rulebook_print_html)
+    (DIST / "rulebook.html").write_text(rendered, encoding="utf-8")
+    (DIST / "rulebook.template.html").unlink(missing_ok=True)
+
+    print_version = print_build_version()
+    stamp_print_version(print_version)
+    version = version_static_assets()
+    balance = "with balance data" if BALANCE_HEALTH.exists() else "without balance data"
+    print(
+        f"Built Pages site with {len(card_data['cards'])} cards "
+        f"({balance}), print version {print_version}, "
+        f"asset version {version} at {DIST}"
+    )
+
+
+if __name__ == "__main__":
+    main()
+,
+        '',
+        goal,
+        flags=re.DOTALL,
+    )
+    goal = (
+        '<section class="rule-section rulebook-print-goal-section">'
+        '<div class="rulebook-print-goal-copy">'
+        + goal_inner
+        + '</div>'
+        + battlefield_figure
+        + '</section>'
+    )
 
     def stack(*titles: str) -> str:
         return "".join(sections[title] for title in titles)
