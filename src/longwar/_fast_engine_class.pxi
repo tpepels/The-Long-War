@@ -15,6 +15,8 @@ cdef class FastEngine:
     cdef int maneuver_command_cost
     cdef int hand_limit
     cdef int ongoing_story_limit
+    cdef bint command_event_capture
+    cdef public object command_events
 
     cdef int8_t card_type[MAX_CARDS]
     cdef int8_t card_command_cost[MAX_CARDS]
@@ -191,6 +193,16 @@ cdef class FastEngine:
 
     cpdef int command_recovery_for_battle(self, int battle):
         return _fe_command_recovery_for_battle(self, battle)
+
+    cpdef begin_command_event_capture(self):
+        self.command_event_capture = True
+        self.command_events = []
+
+    cpdef list end_command_event_capture(self):
+        cdef list events = list(self.command_events)
+        self.command_event_capture = False
+        self.command_events = []
+        return events
 
     cpdef list legal_actions(self, FastState state):
         return _fe_legal_actions(self, state)
