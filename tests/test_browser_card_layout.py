@@ -112,6 +112,7 @@ def test_print_renderer_preserves_catalogue_content_and_hero_modes() -> None:
         assert output.one("game-card")["attrs"]["data-card-id"] == card["id"]
         assert output.one("card-title")["text"] == card["title"]
         assert output.one("card-id")["text"] == card["id"]
+        assert output.one("card-version")["text"] == "vdev"
         assert bool(output.all("unique")) == bool(card.get("unique"))
         properties = output.one("card-properties")["text"].lower()
         for value in card.get("classes", []):
@@ -207,19 +208,24 @@ def test_print_kit_publishes_and_renders_reference_decks() -> None:
 
 def test_print_card_sheets_fit_inside_a4_with_tolerance() -> None:
     css = text("web/print-cards.css")
-    assert "@page cards { size: A4 portrait; margin: 0; }" in css
-    assert "width: 210mm;" in css
-    assert "height: 297mm;" in css
-    assert "padding: 10mm 8.5mm 0;" in css
+    assert "@page cards { size: A4 portrait; margin: 12mm 8mm 10mm; }" in css
+    assert "width: 193mm;" in css
+    assert "height: 272mm;" in css
     assert "grid-template-columns: repeat(3, 63mm);" in css
     assert "grid-auto-rows: 88mm;" in css
     assert "gap: 4mm 2mm;" in css
     assert "break-after: page;" in css
+    assert "page-break-after: always;" in css
+    assert "break-inside: avoid-page;" in css
+    assert "overflow: hidden;" in css
+    assert "width: 210mm;" not in css[css.index("@media print"):]
+    assert "height: 297mm;" not in css[css.index("@media print"):]
 
-    # The physical sheet itself supplies printer-safe clearance rather than
-    # relying on browser print margins.
-    assert 8.5 + (3 * 63 + 2 * 2) + 8.5 == 210
-    assert 10 + (3 * 88 + 2 * 4) < 297
+    # The 3x3 grid is smaller than the printable content box in both axes.
+    assert 3 * 63 + 2 * 2 == 193
+    assert 3 * 88 + 2 * 4 == 272
+    assert 193 < 210 - 2 * 8
+    assert 272 < 297 - 12 - 10
 
 
 def test_semantic_rule_renderer_is_shared_by_all_card_surfaces() -> None:
@@ -250,6 +256,26 @@ def test_card_pages_load_runtime_overflow_guard() -> None:
     assert "-outside" in guard
 
 
+
+
+def test_print_build_version_is_stamped_everywhere() -> None:
+    builder = text("tools/build_pages.py")
+    renderer = text("web/print-cards.js")
+    card_css = text("web/print-cards.css")
+    site_css = text("web/style.css")
+
+    assert "GITHUB_SHA" in builder
+    assert "PRINTABLE_PAGES" in builder
+    assert 'name="lw-build-version"' in builder
+    assert 'class="print-version"' in builder
+    for page in ("cards.html", "playtest-kit.html", "rulebook.html", "playmat.html", "tokens.html"):
+        assert f'"{page}"' in builder
+
+    assert 'meta[name="lw-build-version"]' in renderer
+    assert "card-version" in renderer
+    assert "v' + esc(BUILD_VERSION)" in renderer
+    assert ".print-version" in card_css
+    assert ".print-version" in site_css
 
 
 def test_rulebook_print_keeps_two_columns_without_section_holes() -> None:
