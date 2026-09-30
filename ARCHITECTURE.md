@@ -98,10 +98,11 @@ The engine accepts two deck compositions when creating a game. Reference decks
 are examples/playtest content, not engine constants. Future decks may contain
 different cards and may be larger than today's playtest decks.
 
-`decks.py` owns optional construction policy. The current shipped playtest
-format is 34 cards with the current copy limits, but those constraints are not
-fields of `GameRules` and are not required by `GameEngine`. The engine only
-checks that supplied card ids exist and that the deck fits native storage.
+`decks.py` owns construction policy. The current shipped playtest format is
+at least 34 cards with the current copy limits and Force/Name minimums. Those
+constraints are not fields of `GameRules`. `GameEngine.new_game()` delegates
+deck validation to `decks.py` so every match starts from a legal deck without
+duplicating construction rules inside the match-rules configuration.
 
 AI beliefs must likewise take deck size from the supplied game/deck context,
 not from match rules. A future deck format may change size or copy limits

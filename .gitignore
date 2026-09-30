@@ -28,11 +28,12 @@ src/longwar/_mccfr_accel.c
 src/longwar/_fast_search.c
 src/longwar/_alphabeta_accel.c
 
-# Local experiment and analysis output
-# Keep versioned/raw experiment runs local, but allow root JSON snapshots that
-# are published by GitHub Pages to be committed.
+# Local experiment and analysis output.
+# Raw runs stay local. Only the two curated dashboard snapshots are versioned
+# for GitHub Pages.
 artifacts/**
-!artifacts/*.json
+!artifacts/lab-report.json
+!artifacts/balance-health.json
 
 # Editor / OS noise
 .vscode/

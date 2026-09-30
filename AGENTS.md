@@ -20,10 +20,11 @@ by `tests/test_architecture_boundaries.py`.
 - Never special-case a card id/title in engine, heuristic, or search code. If a
   card needs new behavior, add a reusable capability/effect primitive to the
   card schema and canonical engine so all consumers see it.
-- Decks are match input, separate from rules. Reference/archetype decks are not
-  engine constants and must not leak into core code. Construction constraints
-  belong in `decks.py`, never in `GameRules`; engine validation is runtime
-  safety only.
+- Decks are match input, separate from match rules. Reference/archetype decks
+  are not engine constants and must not leak into core code. Construction
+  constraints belong in `decks.py`, never in `GameRules`; `GameEngine`
+  delegates match-creation validation to that module rather than duplicating
+  the construction policy.
 - AI/search consumes the engine. It never reimplements rules or branches on
   individual `GameRules` fields. Belief models take deck size/format from
   supplied deck or state context, not from the rules engine.
@@ -81,7 +82,10 @@ awake with `systemd-inhibit`. The runner, not Make, owns experiment defaults.
 - Never add a new runner when an existing runner can accept another argument.
 - Generated reports, policies, build products, logs and toolchains live under
   `artifacts/`; Pages output lives under `dist/`.
-- Do not commit native/wasm binaries or generated artifacts.
+- Raw generated artifacts are local-only. The only versioned generated
+  exceptions are `artifacts/lab-report.json` and
+  `artifacts/balance-health.json`, the curated Pages snapshots.
+- Do not commit native/wasm binaries.
 - Rebuild native extensions after changing `.pyx` or `.pxi`.
 - Use small deterministic tests to validate plumbing; large simulations are
   evidence, not correctness tests.
