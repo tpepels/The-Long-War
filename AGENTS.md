@@ -35,10 +35,11 @@ by `tests/test_architecture_boundaries.py`.
 - Dependency direction is one-way: content -> core -> consumers -> analysis.
   Nothing points back toward analysis or a particular experiment.
 
-The host native extension still physically bundles engine and search cores.
-The browser build is lean and includes only the engine plus production
-heuristic. Treat the host bundling as cleanup debt, not as permission to couple
-their semantics.
+Native rule composition lives in `_fast_engine_core.pxi`. Host search layers
+on top of that core; the browser compiles the same engine core plus the
+production heuristic. The physical extension layout is an implementation detail.
+Game/core code imports `native_engine.py`; research agents import
+`native_search.py`. Do not make rule changes depend on search-module layout.
 
 ## Command surface
 
