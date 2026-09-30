@@ -148,6 +148,8 @@ def test_balance_lab_is_human_first_and_collapsible() -> None:
     assert "In hand at match end" in script
     assert "all_legends" not in script
     assert "health.legends" not in script
+    assert 'cache: "no-store"' not in script
+    assert "dashboard_telemetry" in script
 
 
 def test_mccfr_profiles_use_only_current_cards() -> None:
