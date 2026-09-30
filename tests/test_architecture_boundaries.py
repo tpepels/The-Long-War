@@ -156,21 +156,7 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     from tools import build_browser_runtime
 
     packaged = set(build_browser_runtime.BROWSER_PYTHON_FILES)
-    required = {
-        "__init__.py",
-        "cards.py",
-        "decks.py",
-        "rules.py",
-        "heuristics.py",
-        "web_api.py",
-        "game/__init__.py",
-        "game/actions.py",
-        "game/engine.py",
-        "game/model.py",
-        "agents/__init__.py",
-        "agents/heuristic_agent.py",
-    }
-    assert required <= packaged
+    assert set(build_browser_runtime.BROWSER_PYTHON_ENTRYPOINTS) <= packaged
 
     forbidden = {
         "simulate.py",
@@ -184,6 +170,7 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
         "mccfr.py",
         "online_mccfr.py",
         "parallel_mccfr.py",
+        "native_search.py",
         "agents/ismcts_agent.py",
         "agents/mccfr_agent.py",
         "agents/online_mccfr_agent.py",
@@ -193,7 +180,9 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     assert not forbidden & packaged
 
     native = set(build_browser_runtime.BROWSER_NATIVE_FILES)
-    assert "_fast_search.pyx" not in native
+    assert set(build_browser_runtime.BROWSER_NATIVE_ROOTS) <= native
+    assert "_fast_engine_core.pxi" in native
+    assert "_heuristic_core.pxi" in native
     assert "_alpha_beta_core.pxi" not in native
     assert "_ismcts_core.pxi" not in native
     assert "_mccfr_core.pxi" not in native
@@ -206,24 +195,36 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
         path.relative_to(package).as_posix()
         for path in package.rglob("*.py")
     }
+    copied_native = {
+        path.relative_to(package).as_posix()
+        for path in package.rglob("*.pxi")
+    }
     assert copied_python == packaged
+    assert copied_native == native
     assert not forbidden & copied_python
     assert "_mccfr_accel.pyx" not in {
         path.name for path in package.rglob("*.pyx")
     }
     assert "_mccfr_accel" not in (source / "setup.py").read_text(encoding="utf-8")
     browser_fast = (package / "_fast_search.pyx").read_text(encoding="utf-8")
+    assert 'include "_fast_engine_core.pxi"' in browser_fast
     assert 'include "_heuristic_core.pxi"' in browser_fast
     assert 'include "_ismcts_core.pxi"' not in browser_fast
-    assert 'include "_mccfr_core.pxi"' not in browser_fast
-    assert 'include "_alpha_beta_core.pxi"' not in browser_fast
 
 
-def test_browser_runtime_dependency_closure_includes_engine_imports() -> None:
+def test_browser_runtime_dependency_closures_are_complete() -> None:
     from tools import build_browser_runtime
 
     packaged = set(build_browser_runtime.BROWSER_PYTHON_FILES)
-    assert {"cards.py", "decks.py", "rules.py"} <= packaged
+    for relative in packaged:
+        assert build_browser_runtime._browser_python_imports(relative) <= packaged
+
+    native = set(build_browser_runtime.BROWSER_NATIVE_FILES)
+    assert set(
+        build_browser_runtime.cython_include_closure(
+            *build_browser_runtime.BROWSER_NATIVE_ROOTS
+        )
+    ) == native
 
 def test_browser_parity_replay_helper_needs_only_browser_runtime() -> None:
     source = (ROOT / "tools" / "build_browser_contract.py").read_text(
@@ -312,12 +313,16 @@ def test_makefile_is_a_small_lifecycle_surface() -> None:
     }
 
 
-def test_public_game_engine_is_a_cython_facade() -> None:
+def test_public_game_engine_uses_native_engine_facade() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     engine = GameEngine(data)
 
     native = engine._native_core()
-    assert type(native).__module__ == "longwar._fast_search"
+    assert type(native).__name__ == "FastEngine"
+
+    engine_source = (SRC / "game" / "engine.py").read_text(encoding="utf-8")
+    assert "from ..native_engine import" in engine_source
+    assert "_fast_search" not in engine_source
 
     source = inspect.getsource(GameEngine.legal_actions)
     assert "_native_core" in source
@@ -370,22 +375,18 @@ def test_canonical_native_engine_is_required_build_output() -> None:
     assert "optional=True" not in fast_block
 
 
-def test_native_engine_section_contains_no_search_implementation() -> None:
-    """Bundling is temporary; engine semantics must still point only outward."""
-    source = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
-    marker = "# Keep one compiled extension/shared packed state"
-    assert marker in source
-    engine_body = source.split(marker, 1)[0]
+def test_native_engine_composition_contains_no_search_implementation() -> None:
+    engine_core = (SRC / "_fast_engine_core.pxi").read_text(encoding="utf-8")
+    host = (SRC / "_fast_search.pyx").read_text(encoding="utf-8")
 
-    for search_symbol in (
-        "ISMCTSTree",
-        "ismcts_search",
-        "NativeTranspositionTable",
-        "native_search_value",
-        "FastCFRNode",
-        "packed_external_sampling_traverse",
+    assert 'include "_fast_engine_core.pxi"' in host
+    for search_include in (
+        "_alpha_beta_core.pxi",
+        "_ismcts_core.pxi",
+        "_mccfr_core.pxi",
     ):
-        assert search_symbol not in engine_body
+        assert search_include not in engine_core
+        assert f'include "{search_include}"' in host
 
 
 def test_alpha_beta_algorithm_contains_no_rule_switches() -> None:
