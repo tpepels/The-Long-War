@@ -10,17 +10,18 @@ from ..game.actions import Action, Pass, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState
 from ..heuristics import StrategicEvaluator, command_preserving_actions
+from ..native_search import strategic_backend
 from .heuristic_agent import HeuristicAgent, ScoredAction
 
 try:
-    from .._fast_search import (
-        FastEngine as _NativeFastEngine,
-        NativeHeuristicEvaluator as _NativeHeuristicEvaluator,
-        NativeSearchBudget as _NativeSearchBudget,
-        NativeSearchLimit as _NativeSearchLimit,
-        NativeTranspositionTable as _NativeTranspositionTable,
-        native_search_value as _native_search_value,
-    )
+    (
+        _NativeFastEngine,
+        _NativeHeuristicEvaluator,
+        _NativeSearchBudget,
+        _NativeSearchLimit,
+        _NativeTranspositionTable,
+        _native_search_value,
+    ) = strategic_backend()
 except ImportError:  # canonical extension is built by normal package install
     _NativeFastEngine = None
     _NativeHeuristicEvaluator = None
