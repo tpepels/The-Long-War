@@ -1280,13 +1280,6 @@
     break-after: avoid;
   }
 
-  /* Let authored sections flow through the columns/pages. Keeping a complete
-     H2 section together creates large blank areas in paged multicolumn print. */
-  .rule-section {
-    break-inside: auto;
-    margin-bottom: 4mm;
-  }
-
   .rulebook h2,
   .rulebook h3 {
     break-inside: avoid;
@@ -1731,6 +1724,15 @@
 
 .rule-section > h2:first-child {
   margin-top: 4mm;
+}
+
+@media print {
+  /* This must come after the base .rule-section rule above. Otherwise the
+     later avoid-column declaration wins the cascade and creates large holes. */
+  .rule-section {
+    break-inside: auto;
+    margin-bottom: 4mm;
+  }
 }
 
 .rulebook-opening[markdown="1"] > p:first-child {
