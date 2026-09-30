@@ -280,11 +280,22 @@ def test_print_build_version_is_stamped_everywhere() -> None:
 
 def test_rulebook_print_keeps_two_columns_without_section_holes() -> None:
     css = text("web/rules.css")
+    builder = text("tools/build_pages.py")
     assert "@page rulebook" in css
     assert "size: A4 portrait;" in css
     assert "page: rulebook;" in css
     assert "column-count: 2;" in css
     assert "column-fill: auto;" in css
+    assert "structure_rulebook_pages" in builder
+    assert 'rulebook-first-page' in builder
+    assert 'rulebook-columns' in builder
+    assert 'id="setup"' in builder
+    assert "v0.7 deterministic rulebook pagination" in css
+    assert ".rulebook-first-page {" in css
+    assert "break-after: page;" in css
+    assert ".rulebook-columns {" in css
+    assert "grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr);" in css
+    assert "overflow: hidden;" in css
 
     print_section = css[css.index("@page rulebook"):]
     assert ".rule-section {" in print_section
