@@ -12,6 +12,7 @@ if __package__:
 else:
     from build_browser_runtime import ensure_browser_runtime
 from longwar.cards import load_card_file
+from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -88,6 +89,29 @@ def group_rulebook_sections(rendered: str) -> str:
     )
 
 
+def render_rule_tokens(source: str, rules: GameRules) -> str:
+    recovery = [
+        rules.command_recovery_for_battle(battle)
+        for battle in range(1, 6)
+    ]
+    replacements = {
+        "{{STARTING_COMMAND}}": str(rules.starting_command),
+        "{{COMMAND_CAP}}": str(rules.command_cap),
+        "{{COLLAPSE_THRESHOLD}}": str(rules.command_collapse_threshold),
+        "{{RECOVERY_FLOOR}}": str(rules.command_recovery_floor),
+        "{{MANEUVER_COMMAND_COST}}": str(rules.maneuver_command_cost),
+        "{{HAND_LIMIT}}": str(rules.hand_limit),
+        "{{ONGOING_NARRATIVE_LIMIT}}": str(rules.ongoing_narrative_limit),
+        "{{RECOVERY_SERIES}}": ", ".join(
+            f"+{value}" for value in recovery
+        ) + "…",
+    }
+    rendered = source
+    for token, value in replacements.items():
+        rendered = rendered.replace(token, value)
+    return rendered
+
+
 def main() -> None:
     card_data = load_card_file(CARDS)
     runtime = ensure_browser_runtime()
@@ -95,6 +119,15 @@ def main() -> None:
         shutil.rmtree(DIST)
     shutil.copytree(WEB, DIST)
     shutil.copytree(runtime, DIST / "runtime")
+
+    playmat = DIST / "playmat.html"
+    playmat.write_text(
+        render_rule_tokens(
+            playmat.read_text(encoding="utf-8"),
+            GameRules.standard(),
+        ),
+        encoding="utf-8",
+    )
 
     data_dir = DIST / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
