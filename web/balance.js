@@ -409,7 +409,7 @@ function renderEvidencePipeline(lab) {
       structural.attempted_games != null
         ? Number(structural.attempted_games).toLocaleString()
         : Number(lab.health.source.games || 0).toLocaleString(),
-      "heuristic games · pacing, exposure, progression"
+      "ISMCTS self-play - strategic pacing, exposure and progression"
     ),
     metric(
       "2 · Broad A/B screen",
@@ -425,18 +425,28 @@ function renderEvidencePipeline(lab) {
         ? `online MCCFR · ${targeted.online_iterations} iterations · depth ${targeted.online_depth}`
         : "not generated"
     ),
+    metric(
+      "4 · Offline MCCFR",
+      lab.mccfr_suite ? lab.mccfr_suite.profiles.length + " policies" : "—",
+      lab.mccfr_suite ? "learned-policy evidence with explicit heuristic fallback coverage" : "not generated"
+    ),
+    metric(
+      "5 · Solver strength",
+      lab.solver_strength ? pct(lab.solver_strength.overall?.mcts_win_rate) : "—",
+      lab.solver_strength ? "mirrored ISMCTS vs alpha-beta sanity check" : "not generated"
+    ),
   ].join("");
 
   const notes = [];
   notes.push(attentionItem(
     "good",
     "Structural evidence is descriptive",
-    "Use heuristic self-play for how often mechanics, cards and game states occur. Do not read its deck win rates as strong-play equilibrium estimates."
+    "Canonical progression uses production ISMCTS self-play. It is strategic pacing and state-distribution evidence, not a solved-game equilibrium claim."
   ));
   notes.push(attentionItem(
     "watch",
     "Broad ΔWP is a screen",
-    "The heuristic paired replacement controls seed, seat and deck context, but its effect is still policy-specific. Red/orange strategic card claims require the online-MCCFR stage."
+    "The heuristic paired replacement controls seed, seat and deck context, but its effect is still policy-specific. It is broad screening only; strategic card claims require the online-MCCFR stage."
   ));
   if (targeted?.targets?.length) {
     notes.push(attentionItem(
@@ -1567,6 +1577,9 @@ function renderMethod(lab) {
     <p><strong>Board swing:</strong> standardized within card type.</p>
     <p><strong>Screen ΔWP:</strong> heuristic paired win-probability difference between the canonical card and a neutral same-type baseline under identical random seeds. It nominates candidates; it is not strong-play confirmation.</p>
     <p><strong>Online MCCFR validation:</strong> suspicious screen effects are rerun in the same paired contexts with online MCCFR. “Confirmed” means the online interval excludes zero in the same direction; “reversed” means it excludes zero in the opposite direction.</p>
+    <p><strong>Offline MCCFR:</strong> one fresh learned policy is trained per canonical reference deck for the current fingerprint. Coverage and heuristic fallback are shown explicitly; this is learned-policy evidence, not a card-balance score.</p>
+    <p><strong>Solver strength:</strong> ISMCTS vs alpha-beta uses mirrored same-seed seats and equal wall-clock search budgets as a search-strength sanity check. It is separate from card-value evidence.</p>
+    <p><strong>Narrative ablations:</strong> noncanonical same-seed ISMCTS mirrors disable only named Command mechanics in memory to diagnose the long tail. They do not alter canonical cards or the global Collapse rule.</p>
     <p><strong>Censoring:</strong> if either side of a paired A/B comparison reaches the action horizon, that pair is reported as censored and excluded from the effect estimate.</p>
     <p><strong>Card deadness:</strong> current telemetry separates structural illegality while a card is affordable from simple Command shortfall, and excludes pending effect-resolution choices from operation playability.</p>
     <ul>${report.methodology.notes.map((note) => `<li>${esc(note)}</li>`).join("")}</ul>
