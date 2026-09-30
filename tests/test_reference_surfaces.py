@@ -16,9 +16,18 @@ def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
+def rendered_rulebook() -> str:
+    from tools.build_pages import render_rule_tokens
+
+    return render_rule_tokens(
+        text("rules/rulebook.md"),
+        GameRules.standard(),
+    )
+
+
 def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     css = text("web/rules.css")
-    rules = text("rules/rulebook.md")
+    rules = rendered_rulebook()
     from tools.build_pages import render_rule_tokens
 
     standard = GameRules.standard()
@@ -49,7 +58,7 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
 
 
 def test_rulebook_core_values_match_standard_engine() -> None:
-    rules_text = text("rules/rulebook.md")
+    rules_text = rendered_rulebook()
     standard = GameRules.standard()
 
     assert FRONT_COUNT == 4
