@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from longwar.agents.ismcts_agent import DEFAULT_ISMCTS_ITERATIONS
 from longwar.fingerprint import (
     current_experiment_fingerprint,
     current_game_fingerprint,
@@ -169,6 +170,13 @@ def main() -> None:
     parser.add_argument("--balance-games", type=int, default=8)
     parser.add_argument("--ablation-games", type=int, default=24)
     parser.add_argument("--strength-games", type=int, default=24)
+    parser.add_argument(
+        "--strength-ismcts-iterations",
+        type=int,
+        default=DEFAULT_ISMCTS_ITERATIONS,
+    )
+    parser.add_argument("--strength-alpha-nodes", type=int, default=20_000)
+    parser.add_argument("--strength-time-budget-seconds", type=float, default=5.0)
     parser.add_argument("--mccfr-iterations", type=int, default=5000)
     parser.add_argument("--mccfr-depth", type=int, default=3)
     parser.add_argument("--mccfr-workers", type=int, default=8)
@@ -180,6 +188,8 @@ def main() -> None:
         args.jobs,
         args.ablation_games,
         args.strength_games,
+        args.strength_ismcts_iterations,
+        args.strength_alpha_nodes,
         args.mccfr_iterations,
         args.mccfr_depth,
         args.mccfr_workers,
@@ -189,6 +199,8 @@ def main() -> None:
         raise SystemExit("Full-Lab counts and worker settings must be positive")
     if args.balance_games <= 0:
         raise SystemExit("--balance-games must be positive")
+    if args.strength_time_budget_seconds <= 0:
+        raise SystemExit("--strength-time-budget-seconds must be positive")
 
     STATE_ROOT.mkdir(parents=True, exist_ok=True)
     print(
@@ -293,7 +305,9 @@ def main() -> None:
         "games_per_orientation": args.strength_games,
         "jobs": args.jobs,
         "seed": args.seed + 26090000,
-        "time_budget_seconds": 5.0,
+        "ismcts_iterations": args.strength_ismcts_iterations,
+        "alpha_nodes": args.strength_alpha_nodes,
+        "time_budget_seconds": args.strength_time_budget_seconds,
     }
     _stage(
         "solver-strength",
@@ -309,6 +323,12 @@ def main() -> None:
                 str(args.jobs),
                 "--seed",
                 str(args.seed + 26090000),
+                "--iterations",
+                str(args.strength_ismcts_iterations),
+                "--alpha-nodes",
+                str(args.strength_alpha_nodes),
+                "--time-budget-seconds",
+                str(args.strength_time_budget_seconds),
                 "--publish-lab",
             )
         ],

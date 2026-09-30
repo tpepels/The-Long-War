@@ -793,3 +793,12 @@ def test_full_lab_pins_deep_ismcts_game_count_instead_of_using_runner_default():
     source = (ROOT / "tools" / "full_lab.py").read_text(encoding="utf-8")
     assert 'parser.add_argument("--balance-games", type=int, default=8)' in source
     assert 'balance_cmd.extend(["--games", str(args.balance_games)])' in source
+
+
+def test_full_lab_pins_solver_strength_budgets():
+    source = (ROOT / "tools" / "full_lab.py").read_text(encoding="utf-8")
+    assert "--strength-ismcts-iterations" in source
+    assert "--strength-alpha-nodes" in source
+    assert "--strength-time-budget-seconds" in source
+    assert '"ismcts_iterations": args.strength_ismcts_iterations' in source
+    assert '"alpha_nodes": args.strength_alpha_nodes' in source
