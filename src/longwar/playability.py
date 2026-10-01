@@ -41,12 +41,12 @@ def build_playability_report(
             "Simulation reports belong to different game fingerprints"
         )
 
-    games = battles = draws = censored_games = pass_events = decisions = 0
+    games = battles = draws = censored_games = pass_events = signal_events = decisions = 0
     final_battle_weight = final_battle_count = 0.0
     battle_reach: Counter[str] = Counter()
     match_actions = pass_hand_total = pass_dead_total = 0.0
     candidate_total = 0.0
-    first_pass_events = 0.0
+    first_signal_events = 0.0
     actions: Counter[str] = Counter()
     card_totals: Counter[str] = Counter()
     combo_completions = 0
@@ -74,6 +74,7 @@ def build_playability_report(
         battle_actions = sum(run_actions.values())
         passes = telemetry["passes"]
         run_pass_events = int(passes["events"])
+        run_signal_events = int(passes.get("signal_events", 0) or 0)
 
         run_censored = int(simulation.get("censored_games", 0) or 0)
         run_draws = int(simulation.get("draws", 0) or 0)
@@ -95,6 +96,7 @@ def build_playability_report(
             battle_reach[key] += int(row.get("matches", 0) or 0)
         actions.update(run_actions)
         pass_events += run_pass_events
+        signal_events += run_signal_events
         pass_hand_total += (
             float(passes.get("mean_hand_size") or 0.0)
             * run_pass_events
@@ -103,9 +105,9 @@ def build_playability_report(
             float(passes.get("mean_dead_cards") or 0.0)
             * run_pass_events
         )
-        first_pass_events += (
-            float(passes.get("first_pass_rate") or 0.0)
-            * run_pass_events
+        first_signal_events += (
+            float(passes.get("first_signal_rate") or 0.0)
+            * run_signal_events
         )
 
         for stats in telemetry.get("cards", {}).values():
@@ -121,10 +123,7 @@ def build_playability_report(
 
         combo_completions += sum(
             int(stats.get("completions", 0))
-            for stats in telemetry.get(
-                "legend_combinations",
-                telemetry.get("formation_combinations", {}),
-            ).values()
+            for stats in telemetry.get("formation_combinations", {}).values()
         )
 
         heuristic = telemetry.get("decisions", {}).get("heuristic")
@@ -285,12 +284,12 @@ def build_playability_report(
                 card_totals["draws"],
             ),
         },
-        "passing": {
-            "events": pass_events,
-            "mean_passes_per_battle": _ratio(pass_events, battles),
-            "first_pass_share": _ratio(
-                first_pass_events,
-                pass_events,
+        "battle_end_signals": {
+            "events": signal_events,
+            "mean_signals_per_battle": _ratio(signal_events, battles),
+            "first_signal_share": _ratio(
+                first_signal_events,
+                signal_events,
             ),
         },
         "decision_load": {
@@ -377,8 +376,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"{_pct(hand['card_play_rate_per_draw'])} |"
         ),
         (
-            f"| First Pass share | "
-            f"{_pct(report['passing']['first_pass_share'])} |"
+            f"| First signal share | "
+            f"{_pct(report['battle_end_signals']['first_signal_share'])} |"
         ),
         (
             f"| Mean legal candidates per heuristic decision | "
