@@ -669,7 +669,7 @@ function renderSlot(owner, front, rank) {
           termMarkup("Prepared") +
           '<small>Force open</small></span>') +
       (slot.bond
-        ? '<div class="board-attachment link">' +
+        ? '<div class="board-attachment bond">' +
           boardCardMarkup(slot.bond, "bond", owner) + '</div>'
         : "") +
       (slot.name
