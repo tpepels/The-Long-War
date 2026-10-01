@@ -233,7 +233,7 @@ cdef inline bint _fe_action_affects_front(
         card = action_card(action)
         return (
             card >= 0
-            and self.story_choice_kind[card] == STORY_CHOICE_FRONT
+            and self.narrative_choice_kind[card] == NARRATIVE_CHOICE_FRONT
             and bool(extra & (<uint32_t>1 << front))
         )
     if kind == TYPE_STRATAGEM:
@@ -270,7 +270,7 @@ cdef bint _fe_basic_maneuver_locks_allow(
     int source,
     int dest,
 ) noexcept:
-    cdef int controller, story_slot, ix, card, front
+    cdef int controller, narrative_slot, ix, card, front
     front = front_from_slot(source)
     if front_from_slot(dest) == front:
         return True
@@ -278,8 +278,8 @@ cdef bint _fe_basic_maneuver_locks_allow(
     # Ongoing Sagas can pin Named Formations in their chosen Front.
     if _fe_slot_complete(self, state, source):
         for controller in range(2):
-            for story_slot in range(self.ongoing_story_limit):
-                ix = controller * 4 + story_slot
+            for narrative_slot in range(self.ongoing_narrative_limit):
+                ix = controller * 4 + narrative_slot
                 card = state.narrative[ix]
                 if (
                     card >= 0
@@ -755,7 +755,7 @@ cdef int _fe_legal_actions_into(
 ) except -1:
     cdef int n = 0
     cdef int player, card, slot, local, front, rank, source, dest, req, opponent, effect
-    cdef int i, kept, can_pass, available, story_slot, choice, direction
+    cdef int i, kept, can_pass, available, narrative_slot, choice, direction
     cdef uint32_t eligible_mask, subset
     cdef uint64_t action
     cdef bint constraint_enforced = False
@@ -891,11 +891,11 @@ cdef int _fe_legal_actions_into(
             if self.ongoing_narrative[card]:
                 # Ongoing Narratives may carry a public Front or formation
                 # association selected when the card is played.
-                choice = self.story_choice_kind[card]
-                for story_slot in range(self.ongoing_story_limit):
-                    if state.narrative[player * 4 + story_slot] >= 0:
+                choice = self.narrative_choice_kind[card]
+                for narrative_slot in range(self.ongoing_narrative_limit):
+                    if state.narrative[player * 4 + narrative_slot] >= 0:
                         continue
-                    if choice == STORY_CHOICE_FRONT:
+                    if choice == NARRATIVE_CHOICE_FRONT:
                         for front in range(4):
                             if (
                                 self.narrative_front_requires_named[card]
@@ -915,14 +915,14 @@ cdef int _fe_legal_actions_into(
                                 encode_action(
                                     TYPE_ONGOING_NARRATIVE,
                                     card,
-                                    story_slot,
+                                    narrative_slot,
                                     -1,
                                     player,
                                     <uint32_t>(1 << front),
                                 ),
                             )
                     elif (
-                        choice == STORY_CHOICE_NAMED_FORMATION
+                        choice == NARRATIVE_CHOICE_NAMED_FORMATION
                         or choice == STORY_CHOICE_NAMED_DIRECTION
                     ):
                         for local in range(8):
@@ -936,7 +936,7 @@ cdef int _fe_legal_actions_into(
                                             encode_action(
                                                 TYPE_ONGOING_NARRATIVE,
                                                 card,
-                                                story_slot,
+                                                narrative_slot,
                                                 slot,
                                                 player,
                                                 <uint32_t>(direction + 1),
@@ -949,7 +949,7 @@ cdef int _fe_legal_actions_into(
                                         encode_action(
                                             TYPE_ONGOING_NARRATIVE,
                                             card,
-                                            story_slot,
+                                            narrative_slot,
                                             slot,
                                             player,
                                         ),
@@ -961,7 +961,7 @@ cdef int _fe_legal_actions_into(
                             encode_action(
                                 TYPE_ONGOING_NARRATIVE,
                                 card,
-                                story_slot,
+                                narrative_slot,
                                 -1,
                                 player,
                             ),
@@ -1019,7 +1019,7 @@ cdef int _fe_legal_actions_into(
                         n,
                         encode_action(TYPE_NARRATIVE, card, -1, -1, player),
                     )
-                    if self.story_discard_count[card] == 1:
+                    if self.narrative_discard_count[card] == 1:
                         for i in range(self.n_cards):
                             if state.hand[player][i] <= 0:
                                 continue
