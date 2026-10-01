@@ -763,15 +763,17 @@ cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     # still consumes that player's "next operation" requirements.
     _fe_consume_operation_constraints(self, state, player, pass_action)
 
-    state.passed[player] = 1
-    state.pass_order[state.pass_len] = player
-    state.pass_len += 1
+    if not state.passed[player]:
+        state.passed[player] = 1
+        state.pass_order[state.pass_len] = player
+        state.pass_len += 1
     _fe_resolve_strat_event(self, state, EVENT_PASS, player)
 
-    if state.pass_len >= 2:
+    if state.passed[0] and state.passed[1]:
         _fe_score_battle(self, state)
     else:
-        # A first Pass hands the opponent a completely normal turn.
+        # A Pass persists through the opponent's actions. The opponent still
+        # receives a completely normal turn.
         _fe_start_turn_fast(self, state, opponent)
 
     state.turn_number += 1

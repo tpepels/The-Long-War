@@ -307,7 +307,7 @@ def test_first_pass_gives_opponent_a_normal_turn_with_normal_draw() -> None:
     assert state.cards_drawn_this_battle[1] == before_drawn + 1
 
 
-def test_non_pass_operation_clears_earlier_pass_and_play_continues() -> None:
+def test_opponent_operation_does_not_clear_persistent_pass() -> None:
     engine, state = setup_state()
     state.operations_this_battle[:] = [1, 1]
     state.active_player = 0
@@ -315,8 +315,8 @@ def test_non_pass_operation_clears_earlier_pass_and_play_continues() -> None:
     state.players[1].hand = ["the-fifty-men"]
     state.players[1].deck = ["followed"]
     state.players[1].command = 20
-    state.players[0].hand = []
-    state.players[0].deck = ["namar"]
+    state.players[0].hand = ["namar"]
+    state.players[0].deck = []
 
     engine.apply(state, Pass())
     assert state.pass_order == [0]
@@ -325,11 +325,43 @@ def test_non_pass_operation_clears_earlier_pass_and_play_continues() -> None:
     engine.apply(state, PlayForce("the-fifty-men", pos(0)))
 
     assert state.battle == 1
+    assert state.pass_order == [0]
+    assert state.players[0].passed is True
+    assert state.players[1].passed is False
+    assert state.active_player == 0
+
+
+def test_player_operation_withdraws_only_their_own_pass() -> None:
+    engine, state = setup_state()
+    state.operations_this_battle[:] = [1, 1]
+    state.active_player = 0
+    state.players[0].hand = ["the-fifty-men"]
+    state.players[0].deck = []
+    state.players[0].command = 20
+    state.players[1].hand = ["followed"]
+    state.players[1].deck = []
+
+    engine.apply(state, Pass())
+    assert state.pass_order == [0]
+    engine.apply(state, Pass())
+    assert state.battle == 2
+
+    # Recreate the one-player-passed situation directly: a player who acts
+    # again withdraws their own Pass, without a global pass-sequence reset.
+    state.battle = 1
+    state.phase = Phase.BATTLE
+    state.active_player = 0
+    state.players[0].passed = True
+    state.players[1].passed = False
+    state.pass_order[:] = [0]
+    state.players[0].hand = ["the-fifty-men"]
+    state.players[0].command = 20
+
+    engine.apply(state, PlayForce("the-fifty-men", pos(0)))
+
     assert state.pass_order == []
     assert state.players[0].passed is False
     assert state.players[1].passed is False
-    assert state.active_player == 0
-    assert "namar" in state.players[0].hand
 
 
 def test_emergency_first_pass_does_not_unlock_pass_for_opponent_with_legal_operation() -> None:
@@ -351,12 +383,12 @@ def test_emergency_first_pass_does_not_unlock_pass_for_opponent_with_legal_opera
     assert Pass() not in engine.legal_actions(state)
 
 
-def test_two_consecutive_passes_end_the_battle() -> None:
+def test_battle_ends_when_both_players_are_passed() -> None:
     engine, state = setup_state()
     resolve_battle_by_passing(engine, state)
 
     assert state.battle == 2
-    assert state.active_player == 0  # first of the two consecutive passers
+    assert state.active_player == 0  # first player whose Pass remained active
     assert state.pass_order == []
     assert state.players[0].passed is False
     assert state.players[1].passed is False

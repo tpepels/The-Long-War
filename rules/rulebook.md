@@ -32,7 +32,7 @@ A Battle has a simple arc:
 
 A war may last several Battles. The board you preserve and the Command you save matter later.
 
-![A Battle moves from alternating turns through two consecutive Passes, four separate Front resolutions, Retreat, the collapse check, and recovery.](assets/rulebook-battle-flow.svg)
+![A Battle moves from alternating turns until both players have Passed, then through four separate Front resolutions, Retreat, the collapse check, and recovery.](assets/rulebook-battle-flow.svg)
 
 > **REMEMBER** Winning more Fronts is useful, but there is no single Battle victory. The war ends through Command Collapse.
 
@@ -84,7 +84,7 @@ The first player's first turn is normal. If their opening hand is already at the
 
 Players alternate turns. A turn always starts with a draw, then gives that player exactly one chosen action.
 
-You are not required to keep spending until you run out of useful plays. Choosing to stop can be part of the strategy: if both players choose to stop on consecutive turns, the Battle ends and the four Fronts are resolved.
+You are not required to keep spending until you run out of useful plays. Choosing to stop can be part of the strategy: once both players have an active Pass, the Battle ends and the four Fronts are resolved.
 
 After that resolution, the board is not wiped clean. Complete established groups can remain in place for the next Battle. That is why building something that lasts can be more valuable than winning one Front cheaply for a moment.
 
@@ -185,18 +185,19 @@ To **Pass** is to spend 0 Command and take no other operation.
 
 Normally, you cannot Pass until both players have completed at least one operation in the Battle. If you have no other legal operation, you may Pass.
 
-Passing does not remove you from the Battle. The opponent takes a normal turn.
+Your Pass now remains active. The opponent takes a normal turn.
 
 - If the opponent also Passes, the Battle ends.
-- If the opponent does anything else, your Pass is cleared.
+- If the opponent takes another operation, your Pass **stays active**.
+- On one of your later turns, taking a non-Pass operation withdraws **your own** Pass.
 
-A Battle therefore ends after **two consecutive Passes**.
+A Battle therefore ends when **both players have an active Pass**.
 
-![A first Pass is only provisional: a non-Pass clears it, while a second consecutive Pass ends the Battle.](assets/rulebook-pass-flow.svg)
+![A Pass remains yours while the opponent continues; the Battle ends once both players have Passed.](assets/rulebook-pass-flow.svg)
 
-> **REMEMBER** Passing does not take you out of the Battle. If your opponent acts, play simply continues.
+> **REMEMBER** Your opponent cannot clear your Pass. Only you can withdraw it by taking another operation.
 
-The player who made the **first** of those two Passes starts the next Battle.
+The player whose still-active Pass was made **first** starts the next Battle.
 
 ## Resolving the four Fronts {#scoring}
 
@@ -244,7 +245,7 @@ After Retreats are complete:
 4. If the war continues, recover Command.
 5. Draw until you have {{HAND_LIMIT}} cards.
 6. Reset allowances that apply once per Battle.
-7. Start the next Battle with the player who made the first of the two consecutive Passes.
+7. Start the next Battle with the player whose still-active Pass was made first.
 
 Keep your hand, draw pile, and discard pile between Battles.
 
@@ -353,7 +354,7 @@ Unless a card says otherwise:
 These are the rules most worth checking during a first game:
 
 - **Draw first**, then take exactly one operation.
-- A **Pass is provisional**. If the other player takes a non-Pass operation, the Pass is cleared.
+- A **Pass persists** through the opponent's actions. It is withdrawn only if you later take a non-Pass operation.
 - Only **Force + Bond + Name** persists normally from one Battle to the next.
 - A Maneuver goes **one Front sideways in the same rank**.
 - On a lost Front, **drive off the Rear first**, then Retreat the Frontline formation.

@@ -1225,8 +1225,11 @@ cdef int _fe_legal_actions_into(
     )
 
     can_pass = (
-        state.operations_this_battle[0] > 0
-        and state.operations_this_battle[1] > 0
+        state.passed[player]
+        or (
+            state.operations_this_battle[0] > 0
+            and state.operations_this_battle[1] > 0
+        )
     )
     if (can_pass and not constraint_enforced) or n == 0:
         for i in range(n, 0, -1):

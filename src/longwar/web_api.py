@@ -684,8 +684,9 @@ class PlaySession:
             return (
                 "Normally both players must have completed at least one "
                 "operation before Pass is available, unless you have no other "
-                "legal operation. Two consecutive Passes end the Battle; any "
-                "intervening operation clears the earlier Pass."
+                "legal operation. Your Pass persists through the opponent's "
+                "actions and is withdrawn only if you later take a non-Pass "
+                "operation. The Battle ends when both players are Passed."
             )
         if isinstance(action, Discard):
             return (
