@@ -45,6 +45,7 @@ def test_game_state_clone_is_fully_isolated() -> None:
     clone.stories[0][0].card_id = "the-long-march"
     clone.stratagems[0].card_id = "the-center-must-hold"
     clone.pass_order.append(0)
+    clone.pass_closing_turns_remaining = 4
     clone.pending_draw_discard_for = None
 
     assert state.players[0].hand

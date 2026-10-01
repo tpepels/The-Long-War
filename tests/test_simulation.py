@@ -382,8 +382,12 @@ def test_simulation_reclaims_memory_between_moves_and_games(monkeypatch) -> None
 
 
 def test_free_battle_flag_is_not_counted_as_turn_consuming_action() -> None:
-    data = load_card_file(CARD_FILE)
-    deck = load_deck(DECK_FILE)
+    from longwar.rules import GameRules
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
     rules = GameRules.standard().with_overrides(
         pass_signal_costs_operation=False,
     )
