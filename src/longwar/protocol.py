@@ -4,6 +4,8 @@ from enum import StrEnum
 
 
 PLAYER_COUNT = 2
+NARRATIVE_STORAGE_CAPACITY_PER_PLAYER = 4
+STRATAGEM_ACTIVE_CAPACITY_PER_PLAYER = 1
 
 
 class CardType(StrEnum):
