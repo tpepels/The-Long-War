@@ -227,14 +227,14 @@ function renderAttention(lab) {
   }
 
   const progression = lab.progression || lab.raw_telemetry?.progression;
-  const zeroCommandLoops = Number(
-    progression?.match_length?.censored_zero_command_matches || 0
+  const censoredCollapsePointMatches = Number(
+    progression?.match_length?.censored_at_collapse_point_matches || 0
   );
-  if (zeroCommandLoops > 0) {
+  if (censoredCollapsePointMatches > 0) {
     items.push(attentionItem(
       "high",
-      "0-0 Command state reached the simulation horizon",
-      `${zeroCommandLoops} censored match${zeroCommandLoops === 1 ? "" : "es"} ended at equal 0-0 Command. Simultaneous Command at or below the configured Collapse threshold is a draw before recovery, so this indicates stale evidence or an engine/search transition bug.`
+      "Collapse-point state reached the simulation horizon",
+      `${censoredCollapsePointMatches} censored match${censoredCollapsePointMatches === 1 ? "" : "es"} ended with at least one side at or below the configured Collapse threshold. That state should terminate before recovery, so this indicates stale evidence or an engine/search transition bug.`
     ));
   }
 
@@ -698,7 +698,6 @@ function renderCommandExperiment(lab) {
     const passZero = sum(deckProfiles, (deck) => deck.progression?.resources?.first_signal_command_buckets?.["0"]);
     const passFourPlus = sum(deckProfiles, (deck) => deck.progression?.resources?.first_signal_command_buckets?.["4+"]);
     const collapseCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_before_collapse?.count);
-    const collapseZero = sum(deckProfiles, (deck) => deck.progression?.resources?.command_before_collapse_buckets?.["0"]);
     const matches = sum(deckProfiles, (deck) => deck.progression?.match_length?.matches);
     const reach3 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["3"]?.matches);
     const reach8 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["8"]?.matches);
@@ -713,21 +712,16 @@ function renderCommandExperiment(lab) {
         Number(deck.progression?.match_length?.final_battle_number?.max || 0)
       )
     );
-    const longestEqualLowStreak = Math.max(
-      0,
-      ...deckProfiles.map((deck) =>
-        Number(deck.progression?.low_command_stalls?.equal_low_streak_length?.max || 0)
-      )
-    );
     const resolvedBattles = sum(deckProfiles, (deck) => deck.progression?.battlefield_development?.battles);
-    const equalLowContinuations = sum(deckProfiles, (deck) =>
-      deck.progression?.low_command_stalls?.equal_low_continuations
+    const collapsePointStarts = sum(deckProfiles, (deck) =>
+      deck.progression?.low_command_stalls?.collapse_point_battle_starts
     );
-    const zeroStarts = sum(deckProfiles, (deck) =>
-      deck.progression?.low_command_stalls?.zero_command_battle_starts
+    const bothCollapsePointStarts = sum(deckProfiles, (deck) =>
+      deck.progression?.low_command_stalls?.both_at_collapse_point_battle_starts
     );
-    const bothZeroStarts = sum(deckProfiles, (deck) =>
-      deck.progression?.low_command_stalls?.both_zero_command_battle_starts
+    const collapseTerminations = sum(deckProfiles, (deck) =>
+      Number(deck.progression?.low_command_stalls?.simultaneous_collapse_draws || 0)
+      + Number(deck.progression?.low_command_stalls?.unequal_collapse_terminations || 0)
     );
     const noPaidOperations = sum(deckProfiles, (deck) =>
       deck.progression?.low_command_stalls?.battles_with_no_paid_operation
@@ -764,9 +758,8 @@ function renderCommandExperiment(lab) {
       recoveryFloor: Number(profile.recovery_floor ?? profile.rules?.command_recovery_floor ?? 1),
       games,
       censorRate: games ? censored / games : null,
-      equalLowContinuationRate: resolvedBattles ? equalLowContinuations / resolvedBattles : null,
-      zeroStartRate: resolvedBattles ? zeroStarts / resolvedBattles : null,
-      bothZeroStartRate: resolvedBattles ? bothZeroStarts / resolvedBattles : null,
+      collapsePointStartRate: resolvedBattles ? collapsePointStarts / resolvedBattles : null,
+      bothCollapsePointStartRate: resolvedBattles ? bothCollapsePointStarts / resolvedBattles : null,
       noPaidOperationRate: stallDiagnosticBattles ? noPaidOperations / stallDiagnosticBattles : null,
       firstSignalCommand,
       passZeroRate: firstSignalCount ? passZero / firstSignalCount : null,
@@ -776,13 +769,12 @@ function renderCommandExperiment(lab) {
       guardOverrideRate: guardDecisions ? guardOverrides / guardDecisions : null,
       guardOverrides,
       commandBeforeCollapse,
-      collapseZeroRate: collapseCount ? collapseZero / collapseCount : null,
+      collapseTriggerRate: resolvedBattles ? collapseTerminations / resolvedBattles : null,
       reach3: matches ? reach3 / matches : null,
       reach8: matches ? reach8 / matches : null,
       reach12: matches ? reach12 / matches : null,
       meanBattles,
       maxBattle,
-      longestEqualLowStreak,
       battle47Command: lateCommand("4-7"),
       battle8Command: lateCommand("8+"),
       search: profile.agent_profile || {},
@@ -812,7 +804,6 @@ function renderCommandExperiment(lab) {
   ).sort((left, right) =>
     Number(right.censored || 0) - Number(left.censored || 0)
     || Number(right.final_battle || 0) - Number(left.final_battle || 0)
-    || Number(right.longest_equal_low_streak || 0) - Number(left.longest_equal_low_streak || 0)
     || String(left.profileKey).localeCompare(String(right.profileKey))
     || String(left.deckName).localeCompare(String(right.deckName))
     || Number(left.simulation_game_index ?? left.game ?? 0) - Number(right.simulation_game_index ?? right.game ?? 0)
@@ -846,11 +837,11 @@ function renderCommandExperiment(lab) {
     <table class="mini-table">
       <thead><tr>
         <th>Agent</th><th>Recovery</th><th>Floor</th><th>Games</th><th>Censored</th>
-        <th>Equal-low cont.</th><th>Any 0-Command start</th><th>0/0 Battle starts</th><th>No paid op.</th>
+        <th>Collapse-point start</th><th>Both at Collapse point</th><th>No paid op.</th>
         <th>First-signal Command</th><th>Signal at 0</th><th>Signal at 4+</th><th>Signal w/ alternatives</th>
         <th>Guard opportunity</th><th>Guard override</th>
-        <th>Command before Collapse</th><th>Collapse check at 0</th><th>Mean Battles</th><th>Max Battle</th>
-        <th>Reach III</th><th>Reach VIII+</th><th>Reach XII+</th><th>Longest equal-low</th>
+        <th>Command before Collapse</th><th>Collapse trigger rate</th><th>Mean Battles</th><th>Max Battle</th>
+        <th>Reach III</th><th>Reach VIII+</th><th>Reach XII+</th>
         <th>Pre-collapse Command IV-VII</th><th>Pre-collapse Command VIII+</th><th>Policy coverage</th><th>Search settings</th>
       </tr></thead>
       <tbody>${summaries.map((row) => `
@@ -860,9 +851,8 @@ function renderCommandExperiment(lab) {
           <td>${row.recoveryFloor}</td>
           <td>${row.games}</td>
           <td>${pct(row.censorRate)}</td>
-          <td>${pct(row.equalLowContinuationRate)}</td>
-          <td>${pct(row.zeroStartRate)}</td>
-          <td>${pct(row.bothZeroStartRate)}</td>
+          <td>${pct(row.collapsePointStartRate)}</td>
+          <td>${pct(row.bothCollapsePointStartRate)}</td>
           <td>${pct(row.noPaidOperationRate)}</td>
           <td>${num(row.firstSignalCommand, 1)}</td>
           <td>${pct(row.passZeroRate)}</td>
@@ -871,13 +861,12 @@ function renderCommandExperiment(lab) {
           <td>${pct(row.guardOpportunityRate)}</td>
           <td>${pct(row.guardOverrideRate)}${row.guardOverrides ? ` <span class="muted">(${row.guardOverrides})</span>` : ""}</td>
           <td>${num(row.commandBeforeCollapse, 1)}</td>
-          <td>${pct(row.collapseZeroRate)}</td>
+          <td>${pct(row.collapseTriggerRate)}</td>
           <td>${num(row.meanBattles, 1)}</td>
           <td>${row.maxBattle || "—"}</td>
           <td>${pct(row.reach3)}</td>
           <td>${pct(row.reach8)}</td>
           <td>${pct(row.reach12)}</td>
-          <td>${row.longestEqualLowStreak || 0}</td>
           <td>${num(row.battle47Command, 1)}</td>
           <td>${num(row.battle8Command, 1)}</td>
           <td>${row.agent === "mccfr"
@@ -889,12 +878,12 @@ function renderCommandExperiment(lab) {
     </table>
     ${diagnosticMatches.length ? `
       <h3>Longest low-Command matches</h3>
-      <p class="dashboard-note">Top 24 diagnostic matches across the retained comparison profiles, ordered by censoring, final Battle, then equal-low streak. Game index and seed identify the exact simulation.</p>
+      <p class="dashboard-note">Top 24 diagnostic matches across the retained comparison profiles, ordered by censoring and final Battle. Game index and seed identify the exact simulation.</p>
       <table class="mini-table">
         <thead><tr>
           <th>Agent</th><th>Recovery</th><th>Floor</th><th>Deck</th><th>Game</th><th>Seed</th><th>First</th>
-          <th>Final Battle</th><th>Censored</th><th>First low</th><th>First equal-low</th>
-          <th>Equal-low</th><th>Longest streak</th><th>0/0 starts</th><th>No paid op.</th><th>No board change</th>
+          <th>Final Battle</th><th>Censored</th><th>First low</th>
+          <th>Both at Collapse point starts</th><th>No paid op.</th><th>No board change</th>
         </tr></thead>
         <tbody>${diagnosticMatches.map((row) => `
           <tr>
@@ -908,10 +897,7 @@ function renderCommandExperiment(lab) {
             <td>${row.final_battle ?? "—"}</td>
             <td>${row.censored ? "yes" : "no"}</td>
             <td>${row.first_low_command_battle ?? "—"}</td>
-            <td>${row.first_equal_low_continuation_battle ?? "—"}</td>
-            <td>${row.equal_low_continuations ?? 0}</td>
-            <td>${row.longest_equal_low_streak ?? 0}</td>
-            <td>${row.both_zero_command_battle_starts ?? 0}</td>
+            <td>${row.both_at_collapse_point_battle_starts ?? 0}</td>
             <td>${row.battles_with_no_paid_operation ?? 0}</td>
             <td>${row.battles_with_no_board_change ?? 0}</td>
           </tr>
@@ -1125,8 +1111,8 @@ function renderProgression(lab) {
     metric("Reach Battle III", pct(reach["3"]?.rate), `${reach["3"]?.matches ?? 0} matches`),
     metric("Reach Battle IV+", pct(reach["4"]?.rate), `${reach["4"]?.matches ?? 0} matches`),
     metric("Reach Battle VIII+", pct(reach["8"]?.rate), `${reach["8"]?.matches ?? 0} matches`),
-    metric("0-Command Battle starts", matchLength.zero_command_start_battles ?? 0, "both players start the Battle at 0 Command"),
-    metric("Censored at 0-0 Command", matchLength.censored_zero_command_matches ?? 0, "simulation-horizon matches ending with both players at 0 Command"),
+    metric("Collapse-point Battle starts", matchLength.collapse_point_start_battles ?? 0, "Battle starts with at least one side at or below the configured Collapse threshold"),
+    metric("Censored at Collapse point", matchLength.censored_at_collapse_point_matches ?? 0, "simulation-horizon matches ending with at least one side at or below the Collapse threshold"),
     progressionMetric("Front-control changes", contest.front_control_changes_per_battle, "median per Battle"),
     progressionMetric("Final |margin|", contest.final_abs_margin, "median total-Strength margin"),
     progressionMetric("Max |margin|", contest.maximum_abs_margin, "median Battle maximum"),
@@ -1185,8 +1171,8 @@ function renderProgression(lab) {
       "actual Command paid by category"
     ),
     metric("Free operations", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
-    metric("0-0 continuations", lowCommand.zero_zero_continuations ?? lowCommand.equal_low_continuations ?? 0, "pre-recovery Collapse check is 0-0; both survive and recover"),
-    metric("0/0 Battle starts", lowCommand.both_zero_command_battle_starts ?? 0, "both players begin a Battle at zero Command"),
+    metric("Collapse-point Battle starts", lowCommand.collapse_point_battle_starts ?? 0, "at least one side begins at or below the configured Collapse threshold"),
+    metric("Both at Collapse point", lowCommand.both_at_collapse_point_battle_starts ?? 0, "both sides begin at or below the configured Collapse threshold"),
     metric("Pass preserves Command", resources.first_signales_avoiding_command_exhaustion ?? 0, "first Passes with a legal alternative that would spend all remaining Command"),
     metric("No paid operation", lowCommand.battles_with_no_paid_operation ?? 0, "Battles with no Command-paying card play or Maneuver"),
     metric("No in-Battle board change", lowCommand.battles_with_no_board_change ?? 0, "board unchanged between first and final decision state"),
@@ -1297,7 +1283,6 @@ function renderProgression(lab) {
   const lowCommandGames = [...(lowCommand.games || [])].sort((left, right) =>
     Number(right.censored || 0) - Number(left.censored || 0)
     || Number(right.final_battle || 0) - Number(left.final_battle || 0)
-    || Number(right.longest_equal_low_streak || 0) - Number(left.longest_equal_low_streak || 0)
     || Number(left.simulation_game_index ?? left.game ?? 0) - Number(right.simulation_game_index ?? right.game ?? 0)
   );
 
@@ -1352,10 +1337,7 @@ function renderProgression(lab) {
               <td>${row.final_battle ?? "—"}</td>
               <td>${row.censored ? "yes" : "no"}</td>
               <td>${row.first_low_command_battle ?? "—"}</td>
-              <td>${row.first_equal_low_continuation_battle ?? "—"}</td>
-              <td>${row.equal_low_continuations ?? 0}</td>
-              <td>${row.longest_equal_low_streak ?? 0}</td>
-              <td>${row.both_zero_command_battle_starts ?? 0}</td>
+                    <td>${row.both_at_collapse_point_battle_starts ?? 0}</td>
               <td>${row.battles_with_no_paid_operation ?? 0}</td>
               <td>${row.battles_with_no_board_change ?? 0}</td>
             </tr>
