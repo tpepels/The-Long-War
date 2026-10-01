@@ -25,5 +25,14 @@ def create_fast_engine(engine: Any):
     return _native_module().FastEngine(engine)
 
 
-def create_heuristic_evaluator(fast_engine: Any, weights: Any = None):
-    return _native_module().NativeHeuristicEvaluator(fast_engine, weights)
+def create_heuristic_evaluator(
+    fast_engine: Any,
+    weights: Any = None,
+    *,
+    sampled_opponent_resources: bool = False,
+):
+    return _native_module().NativeHeuristicEvaluator(
+        fast_engine,
+        weights,
+        sampled_opponent_resources=sampled_opponent_resources,
+    )
