@@ -128,7 +128,7 @@ def test_python_state_key_tracks_every_game_state_field() -> None:
         ),
         "players": "nested PlayerState fields verified individually above and by construction",
         "board": "nested Slot fields (force/bond/name/temporary_strength) all represented above",
-        "stories": "nested StoryState card ids are represented above",
+        "narratives": "nested NarrativeState card ids are represented above",
         "stratagems": "nested StratagemState card ids are represented above",
     }
 
