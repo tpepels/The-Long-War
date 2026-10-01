@@ -57,6 +57,7 @@ def test_standard_command_profile_propagates_into_engine_and_state() -> None:
     assert engine.command_recovery_decrement == rules.command_recovery_decrement
     assert engine.command_recovery_floor == rules.command_recovery_floor
     assert engine.command_collapse_threshold == rules.command_collapse_threshold
+    assert engine.lost_front_command_penalty == rules.lost_front_command_penalty
     assert engine.maneuver_command_cost == rules.maneuver_command_cost
     assert [player.command for player in state.players] == [
         rules.starting_command,
@@ -257,6 +258,40 @@ def test_front_losses_reduce_command_before_recovery_floor_applies() -> None:
     assert snapshot["recovery_actual"] == [1, 1]
     assert snapshot["command_remaining"] == [4, 4]
 
+
+
+def test_lost_front_command_penalty_is_configurable() -> None:
+    rules = GameRules.standard().with_overrides(
+        lost_front_command_penalty=2,
+        command_recovery_start=0,
+        command_recovery_decrement=0,
+        command_recovery_floor=1,
+        command_collapse_threshold=0,
+    )
+    engine, state = standard_game(rules=rules)
+    GameScenario(state).battle(1).commands(5, 5).battle_start_commands(
+        5,
+        5,
+    ).operations(1, 1).clear_hands().formation(
+        1,
+        Position(Front.FIRST, Rank.FRONT),
+        force="the-fifty-men",
+    ).formation(
+        0,
+        Position(Front.SECOND, Rank.FRONT),
+        force="the-fifty-men",
+    )
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    snapshot = state.last_battle_snapshot
+    assert snapshot is not None
+    assert snapshot["fronts_lost"] == [1, 1]
+    assert snapshot["front_loss_command_penalty"] == [2, 2]
+    assert snapshot["command_before_collapse"] == [3, 3]
+    assert snapshot["recovery_actual"] == [1, 1]
+    assert [player.command for player in state.players] == [4, 4]
 
 
 def test_command_guard_filters_avoidable_final_command_spend() -> None:
