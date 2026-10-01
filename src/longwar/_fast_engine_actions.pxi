@@ -6,7 +6,7 @@ cdef inline bint _fe_opponent_blocks_card_move_into_front(
 ) noexcept:
     cdef int opponent = 1 - player
     cdef int rank, slot, bond
-    for rank in range(2):
+    for rank in range(RANK_COUNT):
         slot = slot_index(opponent, front, rank)
         bond = state.bond[slot]
         if bond >= 0 and self.bond_blocks_opponent_card_move[bond]:
@@ -54,7 +54,7 @@ cdef inline bint _fe_player_has_empty_front(
     int player,
 ) noexcept:
     cdef int front
-    for front in range(4):
+    for front in range(FRONT_COUNT):
         if (
             state.force[slot_index(player, front, 0)] < 0
             and state.force[slot_index(player, front, 1)] < 0
@@ -277,9 +277,9 @@ cdef bint _fe_basic_maneuver_locks_allow(
 
     # Ongoing Sagas can pin Named Formations in their chosen Front.
     if _fe_slot_complete(self, state, source):
-        for controller in range(2):
+        for controller in range(PLAYER_COUNT):
             for narrative_slot in range(self.ongoing_narrative_limit):
-                ix = controller * 4 + narrative_slot
+                ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
                 card = state.narrative[ix]
                 if (
                     card >= 0
@@ -289,7 +289,7 @@ cdef bint _fe_basic_maneuver_locks_allow(
                     return False
 
     # There Was No Road Back pins every formation in the chosen Front.
-    for controller in range(2):
+    for controller in range(PLAYER_COUNT):
         card = state.stratagem[controller]
         if (
             card >= 0
@@ -353,7 +353,7 @@ cdef bint _fe_any_maneuver_in_direction(
 ) noexcept:
     cdef int local, source, front, rank, dest
     for local in range(8):
-        source = player * 8 + local
+        source = player * POSITIONS_PER_PLAYER + local
         if not _fe_maneuver_source_legal(self, state, player, source):
             continue
         front = local >> 1
@@ -402,7 +402,7 @@ cdef bint _fe_maneuver_allowed_by_continuous(
     if state.player_maneuver_count[player] > 0:
         return True
 
-    for controller in range(2):
+    for controller in range(PLAYER_COUNT):
         card = state.stratagem[controller]
         if card < 0 or not self.strat_first_maneuver_direction[card]:
             continue
@@ -598,7 +598,7 @@ cdef int _fe_legal_pending_effect_actions(
         )
 
     if kind == EFFECT_FREE_MANEUVER:
-        for source in range(player * 8, player * 8 + 8):
+        for source in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if not (source_mask & (1 << source)):
                 continue
             if state.maneuvered_in_operation[source]:
@@ -656,10 +656,10 @@ cdef int _fe_legal_pending_effect_actions(
                         ),
                     )
     elif kind == EFFECT_SWAP:
-        for source in range(player * 8, player * 8 + 8):
+        for source in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if not (source_mask & (1 << source)) or state.force[source] < 0:
                 continue
-            for dest in range(player * 8, player * 8 + 8):
+            for dest in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
                 if dest == source:
                     continue
                 if source_mask == dest_mask and dest < source:
@@ -702,7 +702,7 @@ cdef int _fe_legal_pending_effect_actions(
                 if dest_mask & (1 << dest) and state.force[dest] >= 0:
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_INTERCEPT:
-        for source in range(player * 8, player * 8 + 8):
+        for source in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if source_mask & (1 << source) and _fe_slot_complete(self, state, source):
                 n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, -1, player, kind))
     elif kind == EFFECT_RETREAT:
@@ -715,10 +715,10 @@ cdef int _fe_legal_pending_effect_actions(
         if source >= 0 and state.force[source] >= 0:
             n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, state.pending_aux[0], player, kind))
     elif kind == EFFECT_TRANSFER_COMPONENT:
-        for source in range(player * 8, player * 8 + 8):
+        for source in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if not (source_mask & (1 << source)):
                 continue
-            for dest in range(player * 8, player * 8 + 8):
+            for dest in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
                 if state.pending_aux[0] >= 0:
                     if dest != state.pending_aux[0]:
                         continue
@@ -730,7 +730,7 @@ cdef int _fe_legal_pending_effect_actions(
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, state.name[source], source, dest, player, kind))
     elif kind == EFFECT_SUCCESSION:
         source = state.pending_source[0]
-        for dest in range(player * 8, player * 8 + 8):
+        for dest in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if dest_mask & (1 << dest) and state.force[dest] >= 0 and state.bond[dest] >= 0 and state.name[dest] < 0:
                 n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
 
@@ -789,7 +789,7 @@ cdef int _fe_legal_actions_into(
             if not self.hero[card] or not state.hero_used[player]:
                 req = self.placement_rank[card]
                 for local in range(8):
-                    slot = player * 8 + local
+                    slot = player * POSITIONS_PER_PLAYER + local
                     if state.force[slot] >= 0:
                         continue
                     rank = local & 1
@@ -805,7 +805,7 @@ cdef int _fe_legal_actions_into(
                 # consumes the one-Hero-from-hand allowance for the Battle.
                 if self.hero[card]:
                     for local in range(8):
-                        slot = player * 8 + local
+                        slot = player * POSITIONS_PER_PLAYER + local
                         if state.name[slot] < 0:
                             n = _append_action(
                                 actions,
@@ -815,7 +815,7 @@ cdef int _fe_legal_actions_into(
 
         elif self.card_type[card] == CARD_BOND:
             for local in range(8):
-                slot = player * 8 + local
+                slot = player * POSITIONS_PER_PLAYER + local
                 if state.bond[slot] >= 0:
                     continue
                 n = _append_action(
@@ -878,7 +878,7 @@ cdef int _fe_legal_actions_into(
 
         elif self.card_type[card] == CARD_NAME:
             for local in range(8):
-                slot = player * 8 + local
+                slot = player * POSITIONS_PER_PLAYER + local
                 if state.name[slot] >= 0:
                     continue
                 n = _append_action(
@@ -893,10 +893,10 @@ cdef int _fe_legal_actions_into(
                 # association selected when the card is played.
                 choice = self.narrative_choice_kind[card]
                 for narrative_slot in range(self.ongoing_narrative_limit):
-                    if state.narrative[player * 4 + narrative_slot] >= 0:
+                    if state.narrative[player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot] >= 0:
                         continue
                     if choice == NARRATIVE_CHOICE_FRONT:
-                        for front in range(4):
+                        for front in range(FRONT_COUNT):
                             if (
                                 self.narrative_front_requires_named[card]
                                 and not (
@@ -926,10 +926,10 @@ cdef int _fe_legal_actions_into(
                         or choice == NARRATIVE_CHOICE_NAMED_DIRECTION
                     ):
                         for local in range(8):
-                            slot = player * 8 + local
+                            slot = player * POSITIONS_PER_PLAYER + local
                             if _fe_slot_complete(self, state, slot):
                                 if choice == NARRATIVE_CHOICE_NAMED_DIRECTION:
-                                    for direction in range(2):
+                                    for direction in range(DIRECTION_COUNT):
                                         n = _append_action(
                                             actions,
                                             n,
@@ -974,7 +974,7 @@ cdef int _fe_legal_actions_into(
                 effect = self.narrative_play_effect[card]
                 if effect == NARRATIVE_DISCREDIT or effect == NARRATIVE_RETURN_NAME:
                     for local in range(8):
-                        slot = opponent * 8 + local
+                        slot = opponent * POSITIONS_PER_PLAYER + local
                         if (
                             state.force[slot] >= 0
                             and not _fe_formation_protected(self, state, slot)
@@ -991,10 +991,10 @@ cdef int _fe_legal_actions_into(
                                 ),
                             )
                 elif effect == NARRATIVE_MOVE_FORCE:
-                    for source in range(player * 8, player * 8 + 8):
+                    for source in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
                         if state.force[source] < 0:
                             continue
-                        for dest in range(player * 8, player * 8 + 8):
+                        for dest in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
                             if (
                                 dest == source
                                 or state.force[dest] >= 0
@@ -1045,7 +1045,7 @@ cdef int _fe_legal_actions_into(
             ):
                 choice = self.strat_choice_kind[card]
                 if choice == STRAT_CHOICE_FRONT:
-                    for front in range(4):
+                    for front in range(FRONT_COUNT):
                         n = _append_action(
                             actions,
                             n,
@@ -1084,7 +1084,7 @@ cdef int _fe_legal_actions_into(
                             ),
                         )
                 elif choice == STRAT_CHOICE_DIRECTION:
-                    for direction in range(2):
+                    for direction in range(DIRECTION_COUNT):
                         n = _append_action(
                             actions,
                             n,
@@ -1097,10 +1097,10 @@ cdef int _fe_legal_actions_into(
                             ),
                         )
                 elif choice == STRAT_CHOICE_WHEEL:
-                    for direction in range(2):
+                    for direction in range(DIRECTION_COUNT):
                         eligible_mask = 0
                         for local in range(8):
-                            source = player * 8 + local
+                            source = player * POSITIONS_PER_PLAYER + local
                             if state.force[source] < 0:
                                 continue
                             front = local >> 1
@@ -1136,7 +1136,7 @@ cdef int _fe_legal_actions_into(
                             subset = (subset - 1) & eligible_mask
                 elif choice == STRAT_CHOICE_RESERVES:
                     eligible_mask = 0
-                    for front in range(4):
+                    for front in range(FRONT_COUNT):
                         source = slot_index(player, front, 1)
                         dest = slot_index(player, front, 0)
                         if (
@@ -1180,7 +1180,7 @@ cdef int _fe_legal_actions_into(
     # Maneuver moves to an empty position or swaps with any own occupied
     # position, including a prepared-only Bond/Name position.
     for local in range(8):
-        source = player * 8 + local
+        source = player * POSITIONS_PER_PLAYER + local
         if not _fe_maneuver_source_legal(self, state, player, source):
             continue
         front = local >> 1
