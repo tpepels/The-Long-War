@@ -20,7 +20,7 @@ from .model import (
     Rank,
     FRONT_COUNT,
     Slot,
-    StoryState,
+    NarrativeState,
     StratagemState,
 )
 
@@ -299,9 +299,9 @@ class GameEngine:
                         "maneuver_direction"
                     )
 
-            synced_stories: list[StoryState] = []
-            for story in data["stories"][player]:
-                target_slot = story.get("target_slot")
+            synced_stories: list[NarrativeState] = []
+            for narrative in data["narratives"][player]:
+                target_slot = narrative.get("target_slot")
                 target_player = None
                 target_position = None
                 if target_slot is not None:
@@ -312,26 +312,26 @@ class GameEngine:
                         Rank.FRONT if local % 2 == 0 else Rank.REAR,
                     )
                 synced_stories.append(
-                    StoryState(
-                        card_id=story["card_id"],
+                    NarrativeState(
+                        card_id=narrative["card_id"],
                         ongoing=True,
                         fronts=tuple(
                             Front(front)
                             for front in range(FRONT_COUNT)
-                            if int(story.get("front_mask", 0)) & (1 << front)
+                            if int(narrative.get("front_mask", 0)) & (1 << front)
                         ),
                         target_player=target_player,
                         target_position=target_position,
-                        direction=story.get("direction"),
+                        direction=narrative.get("direction"),
                         triggered_this_battle=bool(
-                            story.get("triggered_this_battle", False)
+                            narrative.get("triggered_this_battle", False)
                         ),
                         triggered_players_mask=int(
-                            story.get("triggered_players_mask", 0)
+                            narrative.get("triggered_players_mask", 0)
                         ),
                     )
                 )
-            state.stories[player][:] = synced_stories
+            state.narratives[player][:] = synced_stories
 
             stratagem = data["stratagems"][player]
             if stratagem is None:
@@ -442,8 +442,8 @@ class GameEngine:
                     draw_after_satisfied=int(
                         item.get("draw_after_satisfied", 0)
                     ),
-                    discard_source_story=bool(
-                        item.get("discard_source_story", False)
+                    discard_source_narrative=bool(
+                        item.get("discard_source_narrative", False)
                     ),
                 )
             )
