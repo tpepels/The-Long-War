@@ -862,7 +862,10 @@ cdef class NativeHeuristicEvaluator:
 
     cpdef tuple weight_values(self):
         cdef int i
-        return tuple(self.weights[i] for i in range(HEUR_WEIGHT_COUNT))
+        cdef list values = []
+        for i in range(HEUR_WEIGHT_COUNT):
+            values.append(self.weights[i])
+        return tuple(values)
 
     cpdef double battle_end_urgency(self, FastState state):
         return self.battle_end_urgency_fast(state)
