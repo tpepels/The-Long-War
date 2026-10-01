@@ -88,6 +88,42 @@ def test_replica_merge_pools_reach_weighted_strategy_sums() -> None:
     assert summary["traversals"] == 8
 
 
+def test_replica_merge_rejects_policy_without_strategy_sum() -> None:
+    policy = {
+        "schema_version": 1,
+        "algorithm": "depth_limited_external_sampling_mccfr",
+        "execution_backend": "test",
+        "iterations": 1,
+        "traversals": 2,
+        "max_depth": 1,
+        "infosets": {
+            "root": {
+                "visits": 1,
+                "average_visits": 1,
+                "regret_sum": {"a": 1.0},
+                "average_strategy": {"a": 1.0},
+                "current_strategy": {"a": 1.0},
+            }
+        },
+    }
+    summary = {
+        "iterations": 1,
+        "traversals": 2,
+        "information_sets": 1,
+        "max_depth": 1,
+        "mean_sampled_utility_p0": 0.0,
+        "mean_sampled_utility_p1": 0.0,
+    }
+
+    with pytest.raises(ValueError, match="missing strategy_sum"):
+        merge_replica_policies(
+            [policy],
+            [summary],
+            seeds=[11],
+            iterations_per_worker=1,
+        )
+
+
 def test_parallel_training_can_preserve_a_fixed_total_iteration_budget() -> None:
     card_data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
