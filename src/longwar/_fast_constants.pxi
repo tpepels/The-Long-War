@@ -35,6 +35,34 @@ DEF MAX_PENDING_EFFECTS = 32
 DEF MAX_CONSTRAINTS = 16
 DEF NONE = -1
 
+# Packed action wire format. Keep shifts/masks here so layout changes are atomic.
+DEF ACTION_KIND_SHIFT = 0
+DEF ACTION_KIND_BITS = 4
+DEF ACTION_CARD_SHIFT = ACTION_KIND_SHIFT + ACTION_KIND_BITS
+DEF ACTION_CARD_BITS = 7
+DEF ACTION_POSITION_SHIFT = ACTION_CARD_SHIFT + ACTION_CARD_BITS
+DEF ACTION_POSITION_BITS = 5
+DEF ACTION_DESTINATION_SHIFT = ACTION_POSITION_SHIFT + ACTION_POSITION_BITS
+DEF ACTION_DESTINATION_BITS = 5
+DEF ACTION_PLAYER_SHIFT = ACTION_DESTINATION_SHIFT + ACTION_DESTINATION_BITS
+DEF ACTION_PLAYER_BITS = 1
+DEF ACTION_EXTRA_SHIFT = ACTION_PLAYER_SHIFT + ACTION_PLAYER_BITS
+DEF ACTION_SENTINEL_OFFSET = 1
+
+DEF ACTION_KIND_MASK = (1 << ACTION_KIND_BITS) - 1
+DEF ACTION_CARD_MASK = (1 << ACTION_CARD_BITS) - 1
+DEF ACTION_POSITION_MASK = (1 << ACTION_POSITION_BITS) - 1
+DEF ACTION_DESTINATION_MASK = (1 << ACTION_DESTINATION_BITS) - 1
+DEF ACTION_PLAYER_MASK = (1 << ACTION_PLAYER_BITS) - 1
+
+DEF BYTE_MASK = 0xFF
+DEF U16_MASK = 0xFFFF
+DEF FNV64_OFFSET_BASIS = 0xCBF29CE484222325
+DEF ALT_HASH_OFFSET_BASIS = 0x84222325CBF29CE4
+DEF FNV64_PRIME = 0x100000001B3
+DEF ALT_HASH_PRIME = 0xC2B2AE3D27D4EB4F
+DEF ALT_HASH_MIX_SHIFT = 29
+
 cdef int PHASE_BATTLE = 0
 cdef int PHASE_COMPLETE = 2
 
@@ -240,32 +268,44 @@ cdef inline uint64_t encode_action(
     uint32_t extra=0,
 ) noexcept:
     return (
-        <uint64_t>(kind & 15)
-        | (<uint64_t>(card + 1) << 4)
-        | (<uint64_t>(pos + 1) << 11)
-        | (<uint64_t>(dest + 1) << 16)
-        | (<uint64_t>(player & 1) << 21)
-        | (<uint64_t>extra << 22)
+        <uint64_t>(kind & ACTION_KIND_MASK)
+        | (
+            <uint64_t>(card + ACTION_SENTINEL_OFFSET)
+            << ACTION_CARD_SHIFT
+        )
+        | (
+            <uint64_t>(pos + ACTION_SENTINEL_OFFSET)
+            << ACTION_POSITION_SHIFT
+        )
+        | (
+            <uint64_t>(dest + ACTION_SENTINEL_OFFSET)
+            << ACTION_DESTINATION_SHIFT
+        )
+        | (
+            <uint64_t>(player & ACTION_PLAYER_MASK)
+            << ACTION_PLAYER_SHIFT
+        )
+        | (<uint64_t>extra << ACTION_EXTRA_SHIFT)
     )
 
 cdef inline int action_kind(uint64_t action) noexcept:
-    return <int>(action & 15)
+    return <int>((action >> ACTION_KIND_SHIFT) & ACTION_KIND_MASK)
 
 cdef inline int action_card(uint64_t action) noexcept:
-    return <int>((action >> 4) & 127) - 1
+    return <int>((action >> ACTION_CARD_SHIFT) & ACTION_CARD_MASK) - ACTION_SENTINEL_OFFSET
 
 cdef inline int action_pos(uint64_t action) noexcept:
-    return <int>((action >> 11) & 31) - 1
+    return <int>((action >> ACTION_POSITION_SHIFT) & ACTION_POSITION_MASK) - ACTION_SENTINEL_OFFSET
 
 cdef inline int action_dest(uint64_t action) noexcept:
-    return <int>((action >> 16) & 31) - 1
+    return <int>((action >> ACTION_DESTINATION_SHIFT) & ACTION_DESTINATION_MASK) - ACTION_SENTINEL_OFFSET
 
 cdef inline int action_player(uint64_t action) noexcept:
-    return <int>((action >> 21) & 1)
+    return <int>((action >> ACTION_PLAYER_SHIFT) & ACTION_PLAYER_MASK)
 
 
 cdef inline uint32_t action_extra(uint64_t action) noexcept:
-    return <uint32_t>(action >> 22)
+    return <uint32_t>(action >> ACTION_EXTRA_SHIFT)
 
 
 cdef struct InfoHash128:
@@ -274,23 +314,23 @@ cdef struct InfoHash128:
 
 
 cdef inline void _info_hash_init(InfoHash128* h) noexcept:
-    h.a = 0xCBF29CE484222325ULL
-    h.b = 0x84222325CBF29CE4ULL
+    h.a = <uint64_t>FNV64_OFFSET_BASIS
+    h.b = <uint64_t>ALT_HASH_OFFSET_BASIS
 
 
 cdef inline void _info_hash_feed(InfoHash128* h, uint8_t value) noexcept:
     h.a ^= <uint64_t>value
-    h.a *= 0x100000001B3ULL
+    h.a *= <uint64_t>FNV64_PRIME
     h.b ^= <uint64_t>value
-    h.b *= 0xC2B2AE3D27D4EB4FULL
-    h.b ^= h.b >> 29
+    h.b *= <uint64_t>ALT_HASH_PRIME
+    h.b ^= h.b >> ALT_HASH_MIX_SHIFT
 
 
 cdef inline void _info_hash_feed_u16(
     InfoHash128* h,
     uint16_t value,
 ) noexcept:
-    _info_hash_feed(h, <uint8_t>(value & 255))
+    _info_hash_feed(h, <uint8_t>(value & BYTE_MASK))
     _info_hash_feed(h, <uint8_t>((value >> 8) & 255))
 
 
@@ -298,8 +338,8 @@ cdef inline void _info_hash_feed_u32(
     InfoHash128* h,
     uint32_t value,
 ) noexcept:
-    _info_hash_feed_u16(h, <uint16_t>(value & 65535))
-    _info_hash_feed_u16(h, <uint16_t>((value >> 16) & 65535))
+    _info_hash_feed_u16(h, <uint16_t>(value & U16_MASK))
+    _info_hash_feed_u16(h, <uint16_t>((value >> 16) & U16_MASK))
 
 
 cdef inline void _info_emit(
@@ -319,7 +359,7 @@ cdef inline void _info_emit(
 cdef inline void _info_emit_u16(
     unsigned char* buf, int* n, InfoHash128* h, uint16_t value,
 ) noexcept:
-    _info_emit(buf, n, h, <uint8_t>(value & 255))
+    _info_emit(buf, n, h, <uint8_t>(value & BYTE_MASK))
     _info_emit(buf, n, h, <uint8_t>(value >> 8))
 
 # Telemetry-only Command attribution. These values never enter game state or hashing.
