@@ -7,7 +7,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         "complete": PHASE_COMPLETE,
     }
 
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         if max(
             len(state.players[p].deck),
             len(state.players[p].hand),
@@ -68,8 +68,8 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     )
                 )
 
-        for f in range(4):
-            for r in range(2):
+        for f in range(FRONT_COUNT):
+            for r in range(RANK_COUNT):
                 slot = slot_index(p, f, r)
                 py_slot = state.board[p][f][r]
                 if py_slot.force is not None:
@@ -89,18 +89,18 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     fast.maneuver_direction[slot] = 2
 
         for i, narrative in enumerate(state.narratives[p][:self.ongoing_narrative_limit]):
-            fast.narrative[p * 4 + i] = self.id_to_code[narrative.card_id]
-            fast.narrative_revealed[p * 4 + i] = 1
-            fast.narrative_used[p * 4 + i] = bool(narrative.triggered_this_battle)
-            fast.narrative_trigger_mask[p * 4 + i] = int(narrative.triggered_players_mask)
+            fast.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + i] = self.id_to_code[narrative.card_id]
+            fast.narrative_revealed[p * NARRATIVE_SLOTS_PER_PLAYER + i] = 1
+            fast.narrative_used[p * NARRATIVE_SLOTS_PER_PLAYER + i] = bool(narrative.triggered_this_battle)
+            fast.narrative_trigger_mask[p * NARRATIVE_SLOTS_PER_PLAYER + i] = int(narrative.triggered_players_mask)
             if narrative.direction == "left":
-                fast.narrative_direction[p * 4 + i] = 1
+                fast.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] = 1
             elif narrative.direction == "right":
-                fast.narrative_direction[p * 4 + i] = 2
+                fast.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] = 2
             for front_choice in narrative.fronts:
-                fast.narrative_front_mask[p * 4 + i] |= 1 << int(front_choice)
+                fast.narrative_front_mask[p * NARRATIVE_SLOTS_PER_PLAYER + i] |= 1 << int(front_choice)
             if narrative.target_position is not None and narrative.target_player is not None:
-                fast.narrative_target_slot[p * 4 + i] = slot_index(
+                fast.narrative_target_slot[p * NARRATIVE_SLOTS_PER_PLAYER + i] = slot_index(
                     int(narrative.target_player),
                     int(narrative.target_position.front),
                     0 if narrative.target_position.rank.value == "front" else 1,
@@ -133,7 +133,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
     )
     fast.free_maneuver_available[0] = bool(state.free_maneuver_available[0])
     fast.free_maneuver_available[1] = bool(state.free_maneuver_available[1])
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         card_id = state.free_maneuver_source[p]
         fast.free_maneuver_source[p] = (
             -1 if card_id is None else self.id_to_code[card_id]
@@ -193,7 +193,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         drive_masks = resolution_state.get("drive_masks", (0, 0))
         protected_masks = resolution_state.get("protected_masks", (0, 0))
         front_loss_command_penalty = resolution_state.get("front_loss_command_penalty", (0, 0))
-        for p in range(2):
+        for p in range(PLAYER_COUNT):
             fast.resolution_lost_mask[p] = int(lost_masks[p])
             fast.resolution_drive_mask[p] = int(drive_masks[p])
             fast.resolution_protected_mask[p] = int(protected_masks[p])
@@ -209,8 +209,8 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
     for i, p in enumerate(state.pass_order):
         fast.pass_order[i] = p
 
-    for viewer in range(2):
-        for owner in range(2):
+    for viewer in range(PLAYER_COUNT):
+        for owner in range(PLAYER_COUNT):
             counter = state.known_hidden_counter(viewer, owner, "hand")
             for card_id, count in counter.items():
                 fast.known_hidden[viewer][owner][self.id_to_code[card_id]] = count
@@ -229,7 +229,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 fast.last_lost_mask[1] |= <uint8_t>(1 << f)
             elif front_results[f] == 1:
                 fast.last_lost_mask[0] |= <uint8_t>(1 << f)
-        for p in range(2):
+        for p in range(PLAYER_COUNT):
             fast.last_command_start[p] = int(
                 snapshot.get("command_start", (0, 0))[p]
             )
@@ -499,25 +499,25 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
         "narratives": [
             [
                 {
-                    "card_id": self.card_ids[state.narrative[p * 4 + i]],
-                    "front_mask": state.narrative_front_mask[p * 4 + i],
-                    "triggered_this_battle": bool(state.narrative_used[p * 4 + i]),
-                    "triggered_players_mask": state.narrative_trigger_mask[p * 4 + i],
+                    "card_id": self.card_ids[state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + i]],
+                    "front_mask": state.narrative_front_mask[p * NARRATIVE_SLOTS_PER_PLAYER + i],
+                    "triggered_this_battle": bool(state.narrative_used[p * NARRATIVE_SLOTS_PER_PLAYER + i]),
+                    "triggered_players_mask": state.narrative_trigger_mask[p * NARRATIVE_SLOTS_PER_PLAYER + i],
                     "direction": (
                         "left"
-                        if state.narrative_direction[p * 4 + i] == 1
+                        if state.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] == 1
                         else "right"
-                        if state.narrative_direction[p * 4 + i] == 2
+                        if state.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] == 2
                         else None
                     ),
                     "target_slot": (
                         None
-                        if state.narrative_target_slot[p * 4 + i] < 0
-                        else state.narrative_target_slot[p * 4 + i]
+                        if state.narrative_target_slot[p * NARRATIVE_SLOTS_PER_PLAYER + i] < 0
+                        else state.narrative_target_slot[p * NARRATIVE_SLOTS_PER_PLAYER + i]
                     ),
                 }
                 for i in range(self.ongoing_narrative_limit)
-                if state.narrative[p * 4 + i] >= 0
+                if state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + i] >= 0
             ]
             for p in range(2)
         ],
@@ -773,7 +773,7 @@ cdef dict _fe_debug_snapshot(FastEngine self, FastState state):
         ],
         "narratives": [
             [
-                None if state.narrative[p * 4 + f] < 0 else (self.card_ids[state.narrative[p * 4 + f]], bool(state.narrative_revealed[p * 4 + f]))
+                None if state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + f] < 0 else (self.card_ids[state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + f]], bool(state.narrative_revealed[p * NARRATIVE_SLOTS_PER_PLAYER + f]))
                 for f in range(4)
             ]
             for p in range(2)
