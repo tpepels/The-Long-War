@@ -7,8 +7,16 @@ from ..game.engine import GameEngine
 from ..game.model import GameState, Phase
 
 
+DEFAULT_RANDOM_PASS_PROBABILITY = 0.10
+
+
 class RandomAgent:
-    def __init__(self, seed: int, *, pass_probability: float = 0.10):
+    def __init__(
+        self,
+        seed: int,
+        *,
+        pass_probability: float = DEFAULT_RANDOM_PASS_PROBABILITY,
+    ):
         self.rng = random.Random(seed)
         self.pass_probability = pass_probability
 
@@ -17,8 +25,7 @@ class RandomAgent:
         engine: GameEngine,
         hand: list[str],
     ) -> tuple[int, ...]:
-        del engine
-        count = min(2, len(hand))
+        count = min(engine.rules.mulligan_max_cards, len(hand))
         return tuple(sorted(self.rng.sample(range(len(hand)), count)))
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
