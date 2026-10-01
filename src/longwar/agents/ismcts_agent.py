@@ -3,7 +3,7 @@ from __future__ import annotations
 from math import isfinite
 from time import perf_counter
 
-from ..protocol import PolicySource
+from ..protocol import PolicySource, RolloutPolicy, RolloutPolicyCode
 from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, action_key
 from ..game.engine import GameEngine
@@ -16,7 +16,7 @@ DEFAULT_ISMCTS_EXPLORATION = 0.3
 # defaults tied to these constants rather than re-literalizing a retired sweep.
 DEFAULT_ISMCTS_ITERATIONS = 100_000
 DEFAULT_ISMCTS_BELIEF_SAMPLES = 12
-DEFAULT_ISMCTS_ROLLOUT_POLICY = "decisive"
+DEFAULT_ISMCTS_ROLLOUT_POLICY = RolloutPolicy.DECISIVE.value
 DEFAULT_ISMCTS_ROLLOUT_DEPTH = 5
 DEFAULT_ISMCTS_ROLLOUT_EPSILON = 0.12
 DEFAULT_ISMCTS_PROGRESSIVE_WIDENING = 0.0
@@ -81,10 +81,13 @@ class ISMCTSAgent:
             raise ValueError("progressive_widening must be non-negative")
         if not 0.0 <= rollout_epsilon <= 1.0:
             raise ValueError("rollout_epsilon must be between 0 and 1")
-        if rollout_policy not in {"greedy", "cheap", "random", "decisive"}:
+        try:
+            parsed_rollout_policy = RolloutPolicy(rollout_policy)
+        except ValueError as exc:
+            allowed = ", ".join(policy.value for policy in RolloutPolicy)
             raise ValueError(
-                "rollout_policy must be greedy, cheap, random, or decisive"
-            )
+                f"rollout_policy must be one of: {allowed}"
+            ) from exc
         if not isfinite(leaf_scale) or leaf_scale <= 0:
             raise ValueError("leaf_scale must be positive")
 
@@ -103,13 +106,10 @@ class ISMCTSAgent:
         self.reuse_tree = reuse_tree
         self.max_tree_nodes = max_tree_nodes
         self.rollout_epsilon = rollout_epsilon
-        self.rollout_policy = rollout_policy
-        self._rollout_policy_code = {
-            "greedy": 0,
-            "cheap": 1,
-            "random": 2,
-            "decisive": 3,
-        }[rollout_policy]
+        self.rollout_policy = parsed_rollout_policy.value
+        self._rollout_policy_code = RolloutPolicyCode[
+            parsed_rollout_policy.name
+        ].value
         self.leaf_scale = leaf_scale
         self.fast_engine = FastEngine(engine)
         self.evaluator = NativeHeuristicEvaluator(self.fast_engine)
