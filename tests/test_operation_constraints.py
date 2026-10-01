@@ -13,12 +13,12 @@ from longwar.game import (
     OperationConstraint,
     Pass,
     PlayForce,
-    PlayStory,
+    PlayNarrative,
     PlayStratagem,
     Position,
     Rank,
 )
-from longwar.game.model import StoryState, StratagemState
+from longwar.game.model import NarrativeState, StratagemState
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -134,8 +134,8 @@ def test_impossible_requirement_does_not_block_normal_operation_or_pass():
 
 def test_battle_had_chosen_them_creates_front_obligation_after_first_card():
     engine, state = fresh()
-    state.stories[0] = [
-        StoryState(
+    state.narratives[0] = [
+        NarrativeState(
             "the-battle-had-chosen-them",
             fronts=(Front.SECOND,),
         )
@@ -150,7 +150,7 @@ def test_battle_had_chosen_them_creates_front_obligation_after_first_card():
         ),
     )
 
-    assert state.stories[0][0].triggered_players_mask == 1
+    assert state.narratives[0][0].triggered_players_mask == 1
     assert any(
         item.kind is ConstraintKind.AFFECT_FRONT
         and item.player == 0
@@ -161,8 +161,8 @@ def test_battle_had_chosen_them_creates_front_obligation_after_first_card():
 
 def test_no_one_would_be_first_to_leave_pins_named_formations():
     engine, state = fresh()
-    state.stories[0] = [
-        StoryState(
+    state.narratives[0] = [
+        NarrativeState(
             "no-one-would-be-first-to-leave",
             fronts=(Front.SECOND,),
         )
@@ -186,7 +186,7 @@ def test_king_had_given_order_forces_exact_free_next_turn_maneuver():
     state.players[1].hand = []
     state.operations_this_battle[1] = 1
 
-    play = PlayStory(
+    play = PlayNarrative(
         "the-king-had-given-the-order",
         targets=(BoardTarget(0, source),),
         ongoing_slot=0,
@@ -205,7 +205,7 @@ def test_king_had_given_order_forces_exact_free_next_turn_maneuver():
 
 def test_they_had_gone_too_far_creates_next_battle_maneuver_obligation():
     engine, state = fresh()
-    state.stories[0] = [StoryState("they-had-gone-too-far")]
+    state.narratives[0] = [NarrativeState("they-had-gone-too-far")]
     for front in (Front.FIRST, Front.SECOND, Front.THIRD):
         state.slot(0, Position(front, Rank.FRONT)).force = "the-fifty-men"
     state.operations_this_battle[:] = [1, 1]
@@ -217,8 +217,8 @@ def test_they_had_gone_too_far_creates_next_battle_maneuver_obligation():
 
     assert state.battle == 2
     assert not any(
-        story.card_id == "they-had-gone-too-far"
-        for story in state.stories[0]
+        narrative.card_id == "they-had-gone-too-far"
+        for narrative in state.narratives[0]
     )
     assert any(
         item.kind is ConstraintKind.MANEUVER and item.player == 0
