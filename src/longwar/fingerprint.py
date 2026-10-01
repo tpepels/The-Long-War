@@ -38,9 +38,8 @@ def _unique_sorted(paths: Iterable[Path]) -> list[Path]:
 def fingerprint_paths() -> list[Path]:
     """Return trajectory-affecting source/content paths.
 
-    Keep this function as the compatibility surface used by existing tooling,
-    but make its meaning precise: it fingerprints game/search semantics rather
-    than every Python file in the repository.
+    This fingerprints game/search semantics rather than every Python file in
+    the repository.
     """
     package = ROOT / "src" / "longwar"
     paths: list[Path] = []
