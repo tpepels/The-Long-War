@@ -53,8 +53,9 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "<b>start turn:</b> draw 1." in playmat
     assert "reshuffle discard only if deck empties" in playmat_source
     assert "collapse before recovery" in playmat
-    assert "lose 1 command per unprotected front lost" in playmat
-    assert "0-0 is a draw" in playmat
+    assert f"lose {standard.lost_front_command_penalty} command per unprotected front lost" in playmat
+    assert f"at or below {standard.command_collapse_threshold}" in playmat
+    assert "equal command is a draw" in playmat
     assert "front losses have already reduced command before collapse" in playmat
     assert recovery_label in playmat_source
     assert f"minimum {standard.command_recovery_floor}" in playmat
@@ -78,7 +79,11 @@ def test_rulebook_core_values_match_standard_engine() -> None:
     )
     assert "**both players have Passed at least once**" in rules_text
     assert (
-        f"exactly one player is at **{standard.command_collapse_threshold} Command**"
+        f"at or below **{standard.command_collapse_threshold} Command**"
+        in rules_text
+    )
+    assert (
+        f"**{standard.lost_front_command_penalty} Command for each Front you lost**"
         in rules_text
     )
     assert f"X = {standard.command_recovery_start}" in rules_text
@@ -90,7 +95,7 @@ def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
     script = text("web/play.js")
     api = text("src/longwar/web_api.py")
 
-    assert "lose 1 Command for each Front lost" in play
+    assert "configured Command penalty for each unprotected Front lost" in play
     assert "ongoing Stories" not in play
 
     assert '"rules": self.engine.rules.as_dict()' in api
@@ -99,6 +104,7 @@ def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
         "starting_command",
         "command_cap",
         "command_collapse_threshold",
+        "lost_front_command_penalty",
         "command_recovery_floor",
         "ongoing_narrative_limit",
     ):
