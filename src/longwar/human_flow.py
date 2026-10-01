@@ -36,10 +36,10 @@ class HumanFlowDiagnostics:
         self._current_deck_sizes = [1, 1]
 
         self.pass_events = 0
-        self.first_pass_events = 0
-        self.early_first_pass_events = 0
-        self.pass_hand_total = 0
-        self.pass_operations_total = 0
+        self.first_signal_events = 0
+        self.early_first_signal_events = 0
+        self.signal_hand_total = 0
+        self.signal_operations_total = 0
 
         self.pre_draw_discards = 0
 
@@ -62,9 +62,9 @@ class HumanFlowDiagnostics:
             "force_hand_total", "hand_size_total", "no_playable_force_decisions",
             "battles", "player_battles", "cards_drawn_total",
             "deck_seen_fraction_total", "completion_events_total",
-            "command_spent_total", "pass_events", "first_pass_events",
-            "early_first_pass_events", "pass_hand_total",
-            "pass_operations_total", "pre_draw_discards", "reshuffles",
+            "command_spent_total", "pass_events", "first_signal_events",
+            "early_first_signal_events", "signal_hand_total",
+            "signal_operations_total", "pre_draw_discards", "reshuffles",
             "reshuffled_cards_total", "reshuffle_hand_cards_total",
         ):
             setattr(self, name, getattr(self, name) + getattr(other, name))
@@ -115,24 +115,32 @@ class HumanFlowDiagnostics:
             return
 
         legal = engine.legal_actions(state)
-        force_count = sum(
-            engine.cards[card_id]["type"] == "force"
-            for card_id in state.players[actor].hand
+        consumes_operation = engine.action_consumes_operation(
+            state,
+            actor,
+            action,
         )
-        playable_force = any(isinstance(candidate, PlayForce) for candidate in legal)
 
-        self.decisions += 1
-        self.force_hand_total += force_count
-        self.hand_size_total += len(state.players[actor].hand)
-        if playable_force:
-            self._no_force_streak[actor] = 0
-        else:
-            self.no_playable_force_decisions += 1
-            self._no_force_streak[actor] += 1
-            self.longest_no_force_streak = max(
-                self.longest_no_force_streak,
-                self._no_force_streak[actor],
+        if consumes_operation:
+            force_count = sum(
+                engine.cards[card_id]["type"] == "force"
+                for card_id in state.players[actor].hand
             )
+            playable_force = any(
+                isinstance(candidate, PlayForce) for candidate in legal
+            )
+            self.decisions += 1
+            self.force_hand_total += force_count
+            self.hand_size_total += len(state.players[actor].hand)
+            if playable_force:
+                self._no_force_streak[actor] = 0
+            else:
+                self.no_playable_force_decisions += 1
+                self._no_force_streak[actor] += 1
+                self.longest_no_force_streak = max(
+                    self.longest_no_force_streak,
+                    self._no_force_streak[actor],
+                )
 
         if isinstance(action, PlayForce) and not self._first_force_seen[actor]:
             self._first_force_seen[actor] = True
@@ -141,15 +149,15 @@ class HumanFlowDiagnostics:
             )
 
         if isinstance(action, Pass):
-            first_pass = not state.pass_order
+            first_signal = not state.pass_order
             operations_before = state.operations_this_battle[actor]
             self.pass_events += 1
-            self.pass_hand_total += len(state.players[actor].hand)
-            self.pass_operations_total += operations_before
-            if first_pass:
-                self.first_pass_events += 1
+            self.signal_hand_total += len(state.players[actor].hand)
+            self.signal_operations_total += operations_before
+            if first_signal:
+                self.first_signal_events += 1
                 if operations_before <= 1:
-                    self.early_first_pass_events += 1
+                    self.early_first_signal_events += 1
 
     def after_action(
         self,
@@ -263,19 +271,19 @@ class HumanFlowDiagnostics:
                 self.command_spent_total,
                 self.player_battles,
             ),
-            "pass_events": self.pass_events,
-            "first_pass_events": self.first_pass_events,
-            "early_first_pass_events": self.early_first_pass_events,
-            "early_first_pass_rate": self._ratio(
-                self.early_first_pass_events,
-                self.first_pass_events,
+            "signal_events": self.pass_events,
+            "first_signal_events": self.first_signal_events,
+            "early_first_signal_events": self.early_first_signal_events,
+            "early_first_signal_rate": self._ratio(
+                self.early_first_signal_events,
+                self.first_signal_events,
             ),
-            "mean_hand_size_at_pass": self._ratio(
-                self.pass_hand_total,
+            "mean_hand_size_at_signal": self._ratio(
+                self.signal_hand_total,
                 self.pass_events,
             ),
-            "mean_operations_before_pass": self._ratio(
-                self.pass_operations_total,
+            "mean_operations_before_signal": self._ratio(
+                self.signal_operations_total,
                 self.pass_events,
             ),
             "pre_draw_discards": self.pre_draw_discards,
