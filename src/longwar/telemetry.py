@@ -796,23 +796,19 @@ class Telemetry:
                 ),
                 len(self.pass_events),
             ),
-            "pass_avoids_command_exhaustion_rate": self._ratio(
+            "signal_avoids_command_exhaustion_rate": self._ratio(
                 sum(
-                    bool(event.get("pass_avoids_command_exhaustion"))
-                    for event in self.pass_events
+                    bool(event.get("signal_avoids_command_exhaustion"))
+                    for event in signal_events
                 ),
-                len(self.pass_events),
+                len(signal_events),
             ),
-            "mean_actions_before_pass": self._mean_field(
-                self.pass_events,
-                "actions_taken_this_battle",
-            ),
-            "first_pass_rate": self._ratio(
-                sum(event["first_pass"] for event in self.pass_events),
-                len(self.pass_events),
+            "mean_operations_before_signal": self._mean_field(
+                signal_events,
+                "operations_before_signal",
             ),
             "first_signal_rate": self._ratio(
-                sum(event["first_pass"] for event in signal_events),
+                sum(event["first_signal"] for event in signal_events),
                 len(signal_events),
             ),
         }
