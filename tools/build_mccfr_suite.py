@@ -7,6 +7,7 @@ from typing import Any
 
 from longwar.fingerprint import current_game_fingerprint
 from longwar.health import simulation_summary
+from longwar.protocol import PolicySource
 
 from longwar.reference_decks import MCCFR_PROFILES as PROFILES
 
@@ -20,11 +21,13 @@ def load(path: Path) -> dict[str, Any]:
 
 def policy_coverage(simulation: dict[str, Any]) -> dict[str, Any]:
     sources = simulation.get("telemetry", {}).get("policy_sources", {})
-    mccfr = int(sources.get("mccfr", 0) or 0)
+    mccfr = int(sources.get(PolicySource.MCCFR.value, 0) or 0)
     fallback = sum(
-        int(count or 0)
-        for source, count in sources.items()
-        if str(source).startswith(("fallback:", "guard-fallback:"))
+        int(sources.get(source.value, 0) or 0)
+        for source in (
+            PolicySource.FALLBACK,
+            PolicySource.GUARD_FALLBACK,
+        )
     )
     total = mccfr + fallback
     return {
