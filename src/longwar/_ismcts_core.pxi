@@ -540,28 +540,12 @@ cdef bint _ismcts_action_allows_immediate_loss(
                 return True
             break
 
-    # With one closing turn left, any legal operation may expire the window.
-    if score_scratch.pass_closing_turns_remaining == 1:
-        if reply_n < 0:
-            reply_n = _fe_legal_actions_into(
-                engine,
-                score_scratch,
-                &reply_actions[0],
-            )
-        for j in range(reply_n):
-            anti_decisive_probes[0] += 1
-            reply_scratch.copy_from_fast(score_scratch)
-            _fe_apply_fast(
-                engine,
-                reply_scratch,
-                reply_actions[j],
-            )
-            if (
-                reply_scratch.phase == PHASE_COMPLETE
-                and reply_scratch.winner == opponent
-            ):
-                return True
-
+    # Do not enumerate every possible reply merely because the closing
+    # countdown can expire on the next operation. That turns a rollout-policy
+    # safeguard into a nested search and can cost hundreds of exact transitions
+    # per ISMCTS iteration. The tree and leaf evaluation already model those
+    # ordinary opponent operations. Anti-decisive is intentionally limited to
+    # the cheap, concrete immediate Pass reply above.
     return False
 
 
