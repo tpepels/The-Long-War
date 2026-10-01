@@ -21,7 +21,7 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, Phase, Position, Rank
-from .protocol import GameMode
+from .protocol import EffectKind, GameMode, PLAYER_COUNT
 
 
 FRONT_NAMES = {
@@ -34,6 +34,10 @@ RANK_NAMES = {
     Rank.FRONT: "Frontline",
     Rank.REAR: "Rear",
 }
+
+AI_SEED_OFFSET = 20_001
+MAX_AUTOMATED_ACTIONS_PER_STEP = 200
+SNAPSHOT_LOG_TAIL = 40
 
 
 class PlaySession:
@@ -87,7 +91,7 @@ class PlaySession:
         self.agents: dict[int, Any] = {}
         if parsed_mode == GameMode.COMPUTER:
             self.agents[1] = HeuristicAgent(
-                self.seed + 20_001,
+                self.seed + AI_SEED_OFFSET,
                 exploration=0.0,
             )
 
@@ -244,7 +248,7 @@ class PlaySession:
         ]
 
         board: list[list[dict[str, Any]]] = [[], []]
-        for owner in range(2):
+        for owner in range(PLAYER_COUNT):
             for position in all_positions():
                 slot = state.slot(owner, position)
                 board[owner].append(
@@ -340,7 +344,7 @@ class PlaySession:
             and viewer in self.human_players
             and state.phase is not Phase.COMPLETE
             and (
-                self.mode != "hotseat"
+                self.mode != GameMode.HOTSEAT
                 or viewer == state.active_player
             )
         ):
@@ -394,7 +398,7 @@ class PlaySession:
             "front_control": front_control,
             "hand": hand,
             "legal_actions": legal_actions,
-            "log": self.log[-40:],
+            "log": self.log[-SNAPSHOT_LOG_TAIL:],
         }
 
     def _run_ai_until_human(self) -> None:
@@ -406,8 +410,8 @@ class PlaySession:
             and self.state.active_player not in self.human_players
         ):
             safety += 1
-            if safety > 200:
-                raise RuntimeError("AI loop exceeded 200 actions")
+            if safety > MAX_AUTOMATED_ACTIONS_PER_STEP:
+                raise RuntimeError(f"AI loop exceeded {MAX_AUTOMATED_ACTIONS_PER_STEP} actions")
             actor = self.state.active_player
             action = self.agents[actor].choose(
                 self.engine,
@@ -577,24 +581,31 @@ class PlaySession:
             effect_name = action.effect.replace("-", " ")
             if action.skip:
                 return f"{prefix} declines {effect_name}."
-            if action.effect == "recover" and action.card_id is not None:
+            if action.effect == EffectKind.RECOVER and action.card_id is not None:
                 return (
                     f"{prefix} returns "
                     f"{self.cards[action.card_id]['title']} to hand."
                 )
-            if action.effect == "front-contribution" and action.front is not None:
+            if action.effect == EffectKind.FRONT_CONTRIBUTION and action.front is not None:
                 return (
                     f"{prefix} counts that formation's Strength in "
                     f"{FRONT_NAMES[action.front]}."
                 )
-            if action.effect in {"move", "free-maneuver", "retreat", "swap", "succession", "transfer-component"}:
+            if action.effect in {
+                EffectKind.MOVE,
+                EffectKind.FREE_MANEUVER,
+                EffectKind.RETREAT,
+                EffectKind.SWAP,
+                EffectKind.SUCCESSION,
+                EffectKind.TRANSFER_COMPONENT,
+            }:
                 verb = {
-                    "move": "moves",
-                    "free-maneuver": "Maneuvers",
-                    "retreat": "Retreats",
-                    "swap": "swaps",
-                    "succession": "moves the Name",
-                    "transfer-component": "transfers the component",
+                    EffectKind.MOVE: "moves",
+                    EffectKind.FREE_MANEUVER: "Maneuvers",
+                    EffectKind.RETREAT: "Retreats",
+                    EffectKind.SWAP: "swaps",
+                    EffectKind.SUCCESSION: "moves the Name",
+                    EffectKind.TRANSFER_COMPONENT: "transfers the component",
                 }[action.effect]
                 if action.source is not None and action.destination is not None:
                     return (
@@ -602,7 +613,12 @@ class PlaySession:
                         f"{self._target_label(action.source)} to "
                         f"{self._target_label(action.destination)}."
                     )
-            if action.effect in {"suppress", "sacrifice", "intercept", "protect-retreat"}:
+            if action.effect in {
+                EffectKind.SUPPRESS,
+                EffectKind.SACRIFICE,
+                EffectKind.INTERCEPT,
+                EffectKind.PROTECT_RETREAT,
+            }:
                 target = action.destination or action.source
                 if target is not None:
                     return (
