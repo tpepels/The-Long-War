@@ -6,6 +6,7 @@ from statistics import mean, pstdev
 from typing import Any
 
 from .cards import cards_by_type
+from .protocol import CardField, CardType, DesignField
 
 
 @dataclass(frozen=True)
@@ -23,14 +24,14 @@ def score_static_formation(
     name: dict[str, Any],
 ) -> FormationScore:
     """Score only unconditional printed Force/Bond/Name Strength."""
-    strength = int(force["strength"])
-    bond_design = bond.get("design_rules", {})
-    strength += int(bond_design.get("strength_bonus", 0))
-    strength += int(bond_design.get("named_additional_strength_bonus", 0))
+    strength = int(force[CardField.STRENGTH])
+    bond_design = bond.get(CardField.DESIGN_RULES, {})
+    strength += int(bond_design.get(DesignField.STRENGTH_BONUS, 0))
+    strength += int(bond_design.get(DesignField.NAMED_ADDITIONAL_STRENGTH_BONUS, 0))
     strength += int(
-        name["hero_name_strength"]
-        if name.get("hero")
-        else name["strength"]
+        name[CardField.HERO_NAME_STRENGTH]
+        if name.get(CardField.HERO)
+        else name[CardField.STRENGTH]
     )
 
     dynamic = any(
@@ -39,24 +40,24 @@ def score_static_formation(
     )
 
     return FormationScore(
-        force=force["id"],
-        bond=bond["id"],
-        name=name["id"],
+        force=force[CardField.ID],
+        bond=bond[CardField.ID],
+        name=name[CardField.ID],
         static_strength=strength,
         has_dynamic_effects=dynamic,
     )
 
 
 def build_report(data: dict[str, Any]) -> dict[str, Any]:
-    forces = cards_by_type(data, "force")
-    bonds = cards_by_type(data, "bond")
+    forces = cards_by_type(data, CardType.FORCE)
+    bonds = cards_by_type(data, CardType.BOND)
     heroes = [card for card in forces if card.get("hero")]
-    names = [*cards_by_type(data, "name"), *heroes]
+    names = [*cards_by_type(data, CardType.NAME), *heroes]
 
     formations = [
         score_static_formation(force, bond, name)
         for force, bond, name in product(forces, bonds, names)
-        if force["id"] != name["id"]
+        if force[CardField.ID] != name[CardField.ID]
     ]
 
     values = [formation.static_strength for formation in formations]
