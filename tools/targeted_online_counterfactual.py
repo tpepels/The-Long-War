@@ -6,6 +6,7 @@ from pathlib import Path
 
 from longwar.cards import load_card_file
 from longwar.fingerprint import current_game_fingerprint
+from longwar.parallelism import DEFAULT_WORKERS
 from longwar.targeted_counterfactual import run_targeted_online_validation
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +32,7 @@ def main() -> None:
     parser.add_argument("--max-triples", type=int, default=2)
     parser.add_argument("--minimum-abs-effect", type=float, default=0.05)
     parser.add_argument("--bootstrap-resamples", type=int, default=1000)
-    parser.add_argument("--jobs", type=int, default=8, help="Parallel worker processes for target validation (default: 8).")
+    parser.add_argument("--jobs", type=int, default=DEFAULT_WORKERS, help=f"Parallel worker processes for target validation (default: {DEFAULT_WORKERS}).")
     parser.add_argument("--force-top", action="store_true")
     parser.add_argument(
         "--output",
