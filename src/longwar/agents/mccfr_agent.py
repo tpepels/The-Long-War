@@ -7,7 +7,7 @@ from ..game.actions import Action
 from ..game.engine import GameEngine
 from ..game.model import GameState
 from ..mccfr import action_key, information_set_id
-from ..protocol import AgentKind, PolicySource
+from ..protocol import AgentKind, MCCFR_POLICY_SCHEMA_VERSION, PolicySource
 from .heuristic_agent import HeuristicAgent
 from ..heuristics import command_preserving_actions
 
@@ -23,7 +23,7 @@ class MCCFRAgent:
         deterministic: bool = False,
         fallback: str = AgentKind.HEURISTIC,
     ):
-        if policy.get("schema_version") != 1:
+        if policy.get("schema_version") != MCCFR_POLICY_SCHEMA_VERSION:
             raise ValueError("Unsupported MCCFR policy schema")
         self.rng = random.Random(seed)
         self.policy = policy
