@@ -31,6 +31,7 @@ from .game.actions import Pass, action_key
 from .game.engine import GameEngine, all_positions
 from .game.model import Phase
 from .human_flow import HumanFlowDiagnostics
+from .parallelism import DEFAULT_WORKERS
 from .telemetry import Telemetry
 
 
@@ -715,7 +716,7 @@ def simulate_games(
     *,
     games: int,
     seed: int = 0,
-    jobs: int = 1,
+    jobs: int = DEFAULT_WORKERS,
     max_actions: int = 500,
     agent_names: tuple[str, str] = ("heuristic", "heuristic"),
     agent_policies: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
