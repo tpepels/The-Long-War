@@ -7,14 +7,14 @@ CARD_ACTIONS = (
     "PlayForce",
     "PlayBond",
     "PlayName",
-    "PlayStory",
+    "PlayNarrative",
     "PlayStratagem",
 )
 CARD_LABELS = {
     "PlayForce": "Forces",
     "PlayBond": "Bonds",
     "PlayName": "Names",
-    "PlayStory": "Stories",
+    "PlayNarrative": "Narratives",
     "PlayStratagem": "Stratagems",
 }
 
