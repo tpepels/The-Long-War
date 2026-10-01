@@ -7,24 +7,23 @@ from __future__ import annotations
 
 from typing import Any
 
+from .native_fingerprint import assert_native_module_current
 
-def create_fast_engine(engine: Any):
+
+def _native_module():
     try:
-        from ._fast_search import FastEngine
+        from . import _fast_search
     except ImportError as exc:
         raise RuntimeError(
             "The canonical native game engine is not built. "
-            "Run: python -m pip install -e '.[dev]'"
+            "Run: make native-build"
         ) from exc
-    return FastEngine(engine)
+    return assert_native_module_current(_fast_search)
+
+
+def create_fast_engine(engine: Any):
+    return _native_module().FastEngine(engine)
 
 
 def create_heuristic_evaluator(fast_engine: Any, weights: Any = None):
-    try:
-        from ._fast_search import NativeHeuristicEvaluator
-    except ImportError as exc:
-        raise RuntimeError(
-            "The canonical native heuristic evaluator is not built. "
-            "Run: python -m pip install -e '.[dev]'"
-        ) from exc
-    return NativeHeuristicEvaluator(fast_engine, weights)
+    return _native_module().NativeHeuristicEvaluator(fast_engine, weights)
