@@ -33,7 +33,7 @@ from longwar.mccfr_verification import (
 )
 
 
-def legacy_information_set_id(state, player: int) -> str:
+def serialized_information_set_id(state, player: int) -> str:
     payload = json.dumps(
         information_set_key(state, player),
         sort_keys=True,
@@ -67,8 +67,8 @@ def test_fast_information_key_preserves_exported_id() -> None:
     state.stratagems[0] = StratagemState("the-ground-was-held")
     state.stratagem_used[0] = True
 
-    assert information_set_id(state, 0) == legacy_information_set_id(state, 0)
-    assert information_set_id(state, 1) == legacy_information_set_id(state, 1)
+    assert information_set_id(state, 0) == serialized_information_set_id(state, 0)
+    assert information_set_id(state, 1) == serialized_information_set_id(state, 1)
 
     assert _search_information_set_key(state, 0) == information_set_id(state, 0)
     assert _search_information_set_key(state, 1) == information_set_id(state, 1)
