@@ -53,6 +53,7 @@ from longwar.fingerprint import artifact_directory, experiment_identity
 from longwar.health import wilson_interval
 from longwar.parallelism import DEFAULT_WORKERS
 from longwar.rules import GameRules
+from longwar.protocol import PolicySource
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "tools" / "run_experiments.py"
@@ -727,11 +728,13 @@ def balance_run(args: argparse.Namespace) -> Path:
             payload.get("telemetry", {}).get("policy_sources", {})
         )
     fallback_decisions = sum(
-        count
-        for source, count in policy_sources.items()
-        if str(source).startswith("fallback:")
+        int(policy_sources.get(source.value, 0))
+        for source in (
+            PolicySource.FALLBACK,
+            PolicySource.GUARD_FALLBACK,
+        )
     )
-    mccfr_decisions = int(policy_sources.get("mccfr", 0))
+    mccfr_decisions = int(policy_sources.get(PolicySource.MCCFR.value, 0))
     covered_policy_decisions = mccfr_decisions + fallback_decisions
     policy_coverage = {
         "sources": dict(sorted(policy_sources.items())),
