@@ -112,6 +112,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int exposed=0, reachable=0, slot, name_card, before, after
         cdef double best
         cdef int card, own_forces=0, own_board_forces=0, hero_force=0
+        cdef int remaining_hero_uses=0
         cdef int own_losses=0, opponent_losses=0
         cdef uint16_t own_lost_mask=0, opponent_lost_mask=0
         cdef int own_front_slot, own_rear_slot, opp_front_slot, opp_rear_slot
@@ -208,16 +209,20 @@ cdef class NativeHeuristicEvaluator:
         hand_delta = state.hand_len[player] - state.hand_len[opponent]
         score += self.weights[HW_HAND_CARD_WEIGHT] * hand_delta
 
+        remaining_hero_uses = (
+            self.engine.hero_play_limit_per_battle
+            - state.hero_used[player]
+        )
+        if remaining_hero_uses < 0:
+            remaining_hero_uses = 0
         for slot in range(self.engine.force_count):
             card = self.engine.force_codes[slot]
             if self.engine.hero[card]:
-                if (
-                    state.hero_used[player] < self.engine.hero_play_limit_per_battle
-                    and state.hand[player][card] > 0
-                ):
-                    hero_force = 1
+                hero_force += state.hand[player][card]
             else:
                 own_forces += state.hand[player][card]
+        if hero_force > remaining_hero_uses:
+            hero_force = remaining_hero_uses
         own_forces += hero_force
         if own_forces > self.weights[HW_FORCE_HAND_CAP]:
             own_forces = <int>self.weights[HW_FORCE_HAND_CAP]
@@ -409,8 +414,14 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ) noexcept:
         cdef bint needs_force=False, needs_bond=False, needs_name=False
-        cdef int local, slot, card, count, typ
+        cdef int local, slot, card, count, typ, usable_count
+        cdef int remaining_hero_uses = (
+            self.engine.hero_play_limit_per_battle
+            - state.hero_used[player]
+        )
         cdef double value=0.0, force_value=0.0, name_value=0.0
+        if remaining_hero_uses < 0:
+            remaining_hero_uses = 0
         for local in range(POSITIONS_PER_PLAYER):
             slot = player * POSITIONS_PER_PLAYER + local
             if state.force[slot] < 0 and (
@@ -434,10 +445,14 @@ cdef class NativeHeuristicEvaluator:
             if typ == CARD_FORCE:
                 force_value = self.weights[HW_HAND_FORCE_BASE] + (self.weights[HW_HAND_FORCE_NEED] if needs_force else 0.0)
                 if self.engine.hero[card]:
-                    if state.hero_used[player] >= self.engine.hero_play_limit_per_battle:
+                    if remaining_hero_uses <= 0:
                         continue
+                    usable_count = count
+                    if usable_count > remaining_hero_uses:
+                        usable_count = remaining_hero_uses
+                    remaining_hero_uses -= usable_count
                     name_value = self.weights[HW_HAND_COMPONENT_BASE] + (self.weights[HW_HAND_NAME_NEED] if needs_name else 0.0)
-                    value += count * (
+                    value += usable_count * (
                         force_value
                         if force_value >= name_value
                         else name_value
@@ -454,99 +469,139 @@ cdef class NativeHeuristicEvaluator:
                 value += count * self.weights[HW_HAND_STRATAGEM]
         return value
 
+    cdef void strategic_resource_features_fast(
+        self,
+        FastState state,
+        int player,
+        int* future_sets,
+        double* force_availability,
+        int* affordable,
+    ) noexcept:
+        """Compute long-horizon card-resource features in one identity scan."""
+        cdef int card, typ, hand_count, count, i
+        cdef int forces=0, bonds=0, names=0, heroes=0
+        cdef int discarded_forces=0, discarded_heroes=0
+        cdef int remaining_hero_uses, usable_heroes, force_heroes, name_heroes
+        cdef int candidate, value, immediate_heroes, discarded_usable
+
+        future_sets[0] = 0
+        force_availability[0] = 0.0
+        affordable[0] = 0
+        remaining_hero_uses = (
+            self.engine.hero_play_limit_per_battle
+            - state.hero_used[player]
+        )
+        if remaining_hero_uses < 0:
+            remaining_hero_uses = 0
+
+        for card in range(self.engine.n_cards):
+            hand_count = state.hand[player][card]
+            count = hand_count + state.deck_counts[player][card]
+            if (
+                hand_count > 0
+                and self.engine.card_command_cost[card] <= state.command[player]
+            ):
+                affordable[0] += hand_count
+
+            typ = self.engine.card_type[card]
+            if typ == CARD_FORCE:
+                if self.engine.hero[card]:
+                    heroes += count
+                else:
+                    forces += count
+            elif typ == CARD_BOND:
+                bonds += count
+            elif typ == CARD_NAME:
+                names += count
+
+        usable_heroes = heroes
+        if usable_heroes > remaining_hero_uses:
+            usable_heroes = remaining_hero_uses
+
+        # A Hero may fill either the Force or Name side of one formation.
+        # Try every split of the small remaining Hero allowance and keep the
+        # maximum number of complete future formation sets.
+        value = 0
+        for force_heroes in range(usable_heroes + 1):
+            name_heroes = usable_heroes - force_heroes
+            candidate = forces + force_heroes
+            if bonds < candidate:
+                candidate = bonds
+            if names + name_heroes < candidate:
+                candidate = names + name_heroes
+            if candidate > value:
+                value = candidate
+        future_sets[0] = value
+
+        immediate_heroes = usable_heroes
+        force_availability[0] = forces + immediate_heroes
+
+        for i in range(state.discard_len[player]):
+            card = state.discard[player][i]
+            if self.engine.card_type[card] != CARD_FORCE:
+                continue
+            if self.engine.hero[card]:
+                discarded_heroes += 1
+            else:
+                discarded_forces += 1
+
+        discarded_usable = remaining_hero_uses - immediate_heroes
+        if discarded_usable < 0:
+            discarded_usable = 0
+        if discarded_heroes < discarded_usable:
+            discarded_usable = discarded_heroes
+        force_availability[0] += (
+            self.weights[HW_DISCARDED_FORCE_AVAILABILITY]
+            * (discarded_forces + discarded_usable)
+        )
+
     cdef int future_formation_sets_fast(
         self,
         FastState state,
         int player,
     ) noexcept:
-        cdef int card, count, forces=0, bonds=0, names=0, heroes=0
-        cdef int value, candidate
-        for card in range(self.engine.n_cards):
-            count = state.hand[player][card] + state.deck_counts[player][card]
-            if self.engine.card_type[card] == CARD_FORCE:
-                if self.engine.hero[card]:
-                    heroes += count
-                else:
-                    forces += count
-            elif self.engine.card_type[card] == CARD_BOND:
-                bonds += count
-            elif self.engine.card_type[card] == CARD_NAME:
-                names += count
-        value = forces
-        if bonds < value:
-            value = bonds
-        if names < value:
-            value = names
-        if heroes > 0 and state.hero_used[player] < self.engine.hero_play_limit_per_battle:
-            candidate = forces + 1
-            if bonds < candidate:
-                candidate = bonds
-            if names < candidate:
-                candidate = names
-            if candidate > value:
-                value = candidate
-
-            candidate = forces
-            if bonds < candidate:
-                candidate = bonds
-            if names + 1 < candidate:
-                candidate = names + 1
-            if candidate > value:
-                value = candidate
-        return value
+        cdef int future_sets=0, affordable=0
+        cdef double force_availability=0.0
+        self.strategic_resource_features_fast(
+            state,
+            player,
+            &future_sets,
+            &force_availability,
+            &affordable,
+        )
+        return future_sets
 
     cdef double future_force_availability_fast(
         self,
         FastState state,
         int player,
     ) noexcept:
-        cdef int card, i, immediate=0, discarded=0
-        cdef bint hero_available=False, discarded_hero=False
-        for i in range(self.engine.force_count):
-            card = self.engine.force_codes[i]
-            if self.engine.hero[card]:
-                if (
-                    state.hero_used[player] < self.engine.hero_play_limit_per_battle
-                    and (
-                        state.hand[player][card]
-                        + state.deck_counts[player][card]
-                    ) > 0
-                ):
-                    hero_available = True
-            else:
-                immediate += (
-                    state.hand[player][card]
-                    + state.deck_counts[player][card]
-                )
-        for i in range(state.discard_len[player]):
-            card = state.discard[player][i]
-            if self.engine.card_type[card] == CARD_FORCE:
-                if self.engine.hero[card]:
-                    if state.hero_used[player] < self.engine.hero_play_limit_per_battle:
-                        discarded_hero = True
-                else:
-                    discarded += 1
-        return (
-            immediate
-            + (1.0 if hero_available else 0.0)
-            + self.weights[HW_DISCARDED_FORCE_AVAILABILITY] * (
-                discarded + (1 if discarded_hero else 0)
-            )
+        cdef int future_sets=0, affordable=0
+        cdef double force_availability=0.0
+        self.strategic_resource_features_fast(
+            state,
+            player,
+            &future_sets,
+            &force_availability,
+            &affordable,
         )
+        return force_availability
 
     cdef int affordable_hand_count_fast(
         self,
         FastState state,
         int player,
     ) noexcept:
-        cdef int card, total=0
-        for card in range(self.engine.n_cards):
-            if (
-                state.hand[player][card]
-                and self.engine.card_command_cost[card] <= state.command[player]
-            ):
-                total += state.hand[player][card]
-        return total
+        cdef int future_sets=0, affordable=0
+        cdef double force_availability=0.0
+        self.strategic_resource_features_fast(
+            state,
+            player,
+            &future_sets,
+            &force_availability,
+            &affordable,
+        )
+        return affordable
 
     cdef double strategic_evaluate_fast(
         self,
@@ -554,6 +609,9 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ) noexcept:
         cdef int opponent = other_player(player)
+        cdef int own_sets=0, opponent_sets=0
+        cdef int own_affordable=0, opponent_affordable=0
+        cdef double own_force_availability=0.0, opponent_force_availability=0.0
         cdef double value = self.evaluate_fast(state, player)
         if state.phase == PHASE_COMPLETE:
             return value
@@ -570,17 +628,28 @@ cdef class NativeHeuristicEvaluator:
         value += self.weights[HW_STRATEGIC_DECK_SIZE] * (
             state.deck_len[player] - state.deck_len[opponent]
         )
+        self.strategic_resource_features_fast(
+            state,
+            player,
+            &own_sets,
+            &own_force_availability,
+            &own_affordable,
+        )
+        self.strategic_resource_features_fast(
+            state,
+            opponent,
+            &opponent_sets,
+            &opponent_force_availability,
+            &opponent_affordable,
+        )
         value += self.weights[HW_STRATEGIC_FUTURE_SETS] * (
-            self.future_formation_sets_fast(state, player)
-            - self.future_formation_sets_fast(state, opponent)
+            own_sets - opponent_sets
         )
         value += self.weights[HW_STRATEGIC_FORCE_AVAILABILITY] * (
-            self.future_force_availability_fast(state, player)
-            - self.future_force_availability_fast(state, opponent)
+            own_force_availability - opponent_force_availability
         )
         value += self.weights[HW_STRATEGIC_AFFORDABLE_HAND] * (
-            self.affordable_hand_count_fast(state, player)
-            - self.affordable_hand_count_fast(state, opponent)
+            own_affordable - opponent_affordable
         )
 
         return value
