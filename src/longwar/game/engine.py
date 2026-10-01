@@ -6,7 +6,7 @@ from typing import Any
 from ..cards import card_index, compile_card_mechanics, load_card_file, validate_card_data
 from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
-from ..protocol import CardField, PLAYER_COUNT
+from ..protocol import CardField, Direction, DirectionCode, PLAYER_COUNT
 from ..native_engine import create_fast_engine, create_heuristic_evaluator
 from .actions import Action, Discard, EffectChoice, Pass, action_from_key, action_key
 from .model import (
@@ -20,9 +20,12 @@ from .model import (
     Position,
     Rank,
     FRONT_COUNT,
+    POSITIONS_PER_PLAYER,
     RANK_COUNT,
+    TOTAL_POSITION_COUNT,
     Slot,
     NarrativeState,
+    decode_slot_index,
     other_player,
     StratagemState,
 )
@@ -315,11 +318,8 @@ class GameEngine:
                 target_player = None
                 target_position = None
                 if target_slot is not None:
-                    target_player = 0 if target_slot < 8 else 1
-                    local = target_slot if target_slot < 8 else target_slot - 8
-                    target_position = Position(
-                        Front(local // RANK_COUNT),
-                        Rank.FRONT if local % RANK_COUNT == 0 else Rank.REAR,
+                    target_player, target_position = decode_slot_index(
+                        int(target_slot)
                     )
                 synced_narratives.append(
                     NarrativeState(
@@ -349,20 +349,10 @@ class GameEngine:
             else:
                 targets: list[tuple[int, Position]] = []
                 target_mask = int(stratagem.get("target_mask", 0))
-                for target_slot in range(16):
+                for target_slot in range(TOTAL_POSITION_COUNT):
                     if not target_mask & (1 << target_slot):
                         continue
-                    target_player = 0 if target_slot < 8 else 1
-                    local = target_slot if target_slot < 8 else target_slot - 8
-                    targets.append(
-                        (
-                            target_player,
-                            Position(
-                                Front(local // RANK_COUNT),
-                                Rank.FRONT if local % RANK_COUNT == 0 else Rank.REAR,
-                            ),
-                        )
-                    )
+                    targets.append(decode_slot_index(target_slot))
                 direction_code = int(stratagem.get("direction", 0))
                 state.stratagems[player] = StratagemState(
                     card_id=stratagem["card_id"],
@@ -372,10 +362,10 @@ class GameEngine:
                         if int(stratagem.get("front_mask", 0)) & (1 << front)
                     ),
                     direction=(
-                        "left"
-                        if direction_code == 1
-                        else "right"
-                        if direction_code == 2
+                        Direction.LEFT.value
+                        if direction_code == DirectionCode.LEFT
+                        else Direction.RIGHT.value
+                        if direction_code == DirectionCode.RIGHT
                         else None
                     ),
                     targets=tuple(targets),
@@ -395,7 +385,7 @@ class GameEngine:
         state.completion_count_this_battle[:] = data["completion_count_this_battle"]
         state.operations_this_battle[:] = data["operations_this_battle"]
         state.maneuvers_this_battle[:] = data.get(
-            "maneuvers_this_battle", [0, 0]
+            "maneuvers_this_battle", [0] * PLAYER_COUNT
         )
         state.cards_played_this_turn_front_mask[:] = (
             data["cards_played_this_turn_front_mask"]
@@ -416,17 +406,17 @@ class GameEngine:
         state.pending_resume = data.get("pending_resume")
         state.pending_resume_player = data.get("pending_resume_player")
         state.free_maneuver_available[:] = data.get(
-            "free_maneuver_available", [False, False]
+            "free_maneuver_available", [False] * PLAYER_COUNT
         )
         state.free_maneuver_source[:] = data.get(
-            "free_maneuver_source", [None, None]
+            "free_maneuver_source", [None] * PLAYER_COUNT
         )
         constraints: list[OperationConstraint] = []
         for item in data.get("constraints", []):
             source_slot = item.get("source_slot")
             source_position = None
             if source_slot is not None:
-                local = int(source_slot) % 8
+                local = int(source_slot) % POSITIONS_PER_PLAYER
                 source_position = Position(
                     Front(local // RANK_COUNT),
                     Rank.FRONT if local % RANK_COUNT == 0 else Rank.REAR,
