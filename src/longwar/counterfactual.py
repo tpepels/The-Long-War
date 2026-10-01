@@ -17,6 +17,7 @@ from .decks import (
     validate_deck_definition,
 )
 from .game.engine import GameEngine
+from .parallelism import DEFAULT_WORKERS
 from .game.model import Phase
 from .simulate import make_agent
 
@@ -484,7 +485,7 @@ def run_counterfactual_card_sweep(
     agent_name: str = "heuristic",
     bootstrap_resamples: int = 2000,
     card_ids: list[str] | None = None,
-    jobs: int = 1,
+    jobs: int = DEFAULT_WORKERS,
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Evaluate card main effects across a pool larger than one legal deck.
