@@ -387,7 +387,7 @@ cdef inline int _fe_complete_mask(FastEngine self, FastState state, int player) 
             mask |= 1 << local
     return mask
 
-cdef void _fe_recover_recent_link_fast(FastEngine self, FastState state, int player) noexcept:
+cdef void _fe_recover_recent_bond_fast(FastEngine self, FastState state, int player) noexcept:
     cdef int i, j, card
     for i in range(state.discard_len[player] - 1, -1, -1):
         card = state.discard[player][i]
@@ -422,7 +422,7 @@ cdef void _fe_resolve_completion_effect_fast(
         if state.narrative[enemy_ix] >= 0:
             state.narrative_revealed[enemy_ix] = 1
     elif effect == COMPLETE_RECOVER_BOND:
-        _fe_recover_recent_link_fast(self, state, player)
+        _fe_recover_recent_bond_fast(self, state, player)
 
 cdef void _fe_resolve_new_completions_fast(
     FastEngine self,
