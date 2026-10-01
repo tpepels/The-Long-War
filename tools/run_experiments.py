@@ -41,14 +41,18 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    ISMCTSAgent,
 )
 from longwar.balance import validate_command_costs
+from longwar.belief import DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
 from longwar.decks import (
     MINIMUM_DECK_SIZE,
     validate_deck_definition,
 )
 from longwar.game import GameEngine
+from longwar.game.actions import Pass
+from longwar.game.model import Phase
 from longwar.fingerprint import artifact_directory, experiment_identity
 from longwar.health import wilson_interval
 from longwar.heuristics import DEFAULT_HEURISTIC_WEIGHTS
@@ -2681,6 +2685,181 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
     print(f"Wrote {path}", flush=True)
     return path
 
+def _prepare_ismcts_speed_position(
+    engine: GameEngine,
+    state,
+    *,
+    position: str,
+) -> None:
+    if position == "opening":
+        return
+    if position != "pass-active":
+        raise ValueError(f"unknown benchmark position: {position}")
+
+    for _ in range(128):
+        if state.phase is Phase.COMPLETE:
+            raise RuntimeError("benchmark setup reached a terminal game")
+
+        legal = engine.legal_actions(state)
+        pass_action = next(
+            (action for action in legal if isinstance(action, Pass)),
+            None,
+        )
+        if pass_action is not None and (
+            min(state.operations_this_battle) >= 1
+            or all(isinstance(action, Pass) for action in legal)
+        ):
+            engine.apply(state, pass_action)
+            if state.pass_len != 1:
+                raise RuntimeError("failed to create one-signal benchmark state")
+            return
+
+        action = next(
+            (action for action in legal if not isinstance(action, Pass)),
+            legal[0],
+        )
+        engine.apply(state, action)
+
+    raise RuntimeError("could not construct pass-active benchmark state")
+
+
+def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
+    """Benchmark one fixed ISMCTS decision with the exact simulation deck prior."""
+    require_cython()
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    rules = GameRules.standard().with_overrides(
+        pass_closing_rounds=args.closing_rounds,
+    )
+    engine = GameEngine(data, rules=rules)
+    deck = list(
+        json.loads(
+            (ROOT / args.deck).read_text(encoding="utf-8")
+        )["cards"]
+    )
+    engine.validate_deck(deck)
+
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=args.seed,
+        first_player=0,
+        opening_bonus=False,
+    )
+    _prepare_ismcts_speed_position(
+        engine,
+        state,
+        position=args.position,
+    )
+
+    priors = (
+        HypothesisDeckPrior(
+            engine,
+            [DeckHypothesis(tuple(deck), label="benchmark-p0")],
+        ),
+        HypothesisDeckPrior(
+            engine,
+            [DeckHypothesis(tuple(deck), label="benchmark-p1")],
+        ),
+    )
+
+    rows: list[dict[str, Any]] = []
+    for belief_samples in args.belief_samples:
+        for rollout_depth in args.depths:
+            for iterations in args.iterations:
+                samples: list[dict[str, Any]] = []
+                for repeat in range(args.repeats):
+                    agent = ISMCTSAgent(
+                        engine,
+                        args.seed + repeat,
+                        priors=priors,
+                        belief_samples=belief_samples,
+                        iterations=iterations,
+                        rollout_depth=rollout_depth,
+                        rollout_policy=args.rollout_policy,
+                        reuse_tree=False,
+                    )
+                    started = time.perf_counter()
+                    agent.choose(engine, state)
+                    elapsed = time.perf_counter() - started
+                    decision = dict(agent.last_decision)
+                    completed = int(decision.get("ismcts_iterations", 0))
+                    search_seconds = float(
+                        decision.get("ismcts_search_seconds", 0.0) or 0.0
+                    )
+                    samples.append({
+                        "repeat": repeat,
+                        "decision_seconds": elapsed,
+                        "setup_seconds": float(
+                            decision.get("ismcts_setup_seconds", 0.0) or 0.0
+                        ),
+                        "search_seconds": search_seconds,
+                        "completed_iterations": completed,
+                        "iterations_per_second": (
+                            completed / search_seconds
+                            if search_seconds > 0.0
+                            else None
+                        ),
+                        "rollout_actions": int(
+                            decision.get("ismcts_rollout_actions", 0) or 0
+                        ),
+                        "decisive_probes": int(
+                            decision.get(
+                                "ismcts_decisive_rollout_probes", 0
+                            )
+                            or 0
+                        ),
+                        "anti_decisive_probes": int(
+                            decision.get(
+                                "ismcts_anti_decisive_rollout_probes", 0
+                            )
+                            or 0
+                        ),
+                    })
+                    agent.release_search_memory()
+
+                mean_search = sum(
+                    sample["search_seconds"] for sample in samples
+                ) / len(samples)
+                mean_rate = sum(
+                    float(sample["iterations_per_second"] or 0.0)
+                    for sample in samples
+                ) / len(samples)
+                row = {
+                    "iterations": iterations,
+                    "belief_samples": belief_samples,
+                    "rollout_depth": rollout_depth,
+                    "rollout_policy": args.rollout_policy,
+                    "mean_search_seconds": mean_search,
+                    "mean_iterations_per_second": mean_rate,
+                    "samples": samples,
+                }
+                rows.append(row)
+                print(
+                    f"{iterations:>7,} iters | beliefs={belief_samples:>2} | "
+                    f"depth={rollout_depth:>2} | "
+                    f"{mean_search:>7.3f}s | {mean_rate:>9,.0f} iter/s",
+                    flush=True,
+                )
+
+    payload = {
+        **experiment_identity(),
+        "benchmark": "ismcts-fixed-position",
+        "position": args.position,
+        "closing_rounds": args.closing_rounds,
+        "deck": args.deck,
+        "seed": args.seed,
+        "rows": rows,
+    }
+    BENCH_ROOT.mkdir(parents=True, exist_ok=True)
+    path = BENCH_ROOT / "ismcts-speed.json"
+    path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"Wrote {path}", flush=True)
+    return path
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Local validation, canonical AI sanity checks, and gameplay analysis."
@@ -2998,6 +3177,51 @@ def parse_args() -> argparse.Namespace:
         help="Run focused tests plus exact Python/Cython simulation parity.",
     )
 
+    speed = sub.add_parser(
+        "ismcts-speed",
+        help="Benchmark fixed-position native ISMCTS throughput.",
+    )
+    speed.add_argument(
+        "--iterations",
+        type=int,
+        nargs="+",
+        default=[20_000, 50_000],
+    )
+    speed.add_argument(
+        "--belief-samples",
+        type=int,
+        nargs="+",
+        default=[6, 12],
+    )
+    speed.add_argument(
+        "--depths",
+        type=int,
+        nargs="+",
+        default=[8, 12],
+    )
+    speed.add_argument(
+        "--rollout-policy",
+        choices=("greedy", "cheap", "random", "decisive"),
+        default="decisive",
+    )
+    speed.add_argument(
+        "--position",
+        choices=("opening", "pass-active"),
+        default="pass-active",
+    )
+    speed.add_argument(
+        "--closing-rounds",
+        type=int,
+        default=3,
+    )
+    speed.add_argument(
+        "--deck",
+        type=Path,
+        default=Path(DEFAULT_DECK_PATH),
+    )
+    speed.add_argument("--seed", type=int, default=26100100)
+    speed.add_argument("--repeats", type=int, default=1)
+
     strength = sub.add_parser(
         "strength-bench",
         help="Sanity-check canonical ISMCTS against alpha-beta.",
@@ -3049,6 +3273,8 @@ def main() -> None:
         narrative_ablation_run(args)
     elif args.command == "validate":
         validate()
+    elif args.command == "ismcts-speed":
+        benchmark_ismcts_speed(args)
     elif args.command == "strength-bench":
         benchmark_strength(
             games_per_orientation=args.games,
