@@ -681,7 +681,7 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         for front in range(self.ongoing_narrative_limit):
             state.narrative_used[p * NARRATIVE_SLOTS_PER_PLAYER + front] = 0
             state.narrative_trigger_mask[p * NARRATIVE_SLOTS_PER_PLAYER + front] = 0
-        for front in range(8):
+        for front in range(POSITIONS_PER_PLAYER):
             state.maneuver_count[p * POSITIONS_PER_PLAYER + front] = 0
             state.maneuver_direction[p * POSITIONS_PER_PLAYER + front] = DIRECTION_NONE
 
@@ -797,7 +797,7 @@ cdef void _fe_pass_action(FastEngine self, FastState state, int player):
         state.pass_order[state.pass_len] = player
         state.pass_len += 1
         if state.pass_len == 1 and self.pass_closing_rounds > 0:
-            state.pass_closing_turns_remaining = 2 * self.pass_closing_rounds
+            state.pass_closing_turns_remaining = PLAYER_COUNT * self.pass_closing_rounds
         if self.pass_signal_costs_operation:
             _fe_resolve_strat_event(self, state, EVENT_PASS, player)
 
