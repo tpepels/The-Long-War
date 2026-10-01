@@ -5,40 +5,16 @@ import json
 from pathlib import Path
 from typing import Any
 
-CARD_TYPES = {"force", "bond", "name", "narrative", "stratagem"}
+from .game.model import Rank
+from .protocol import (
+    CARD_TYPES,
+    FORCE_ROLES,
+    NARRATIVE_FORMS,
+    RULE_BLOCK_KINDS,
+    CardType,
+)
 
-FORCE_ROLES = {
-    "swordsman",
-    "spearman",
-    "archer",
-    "healer",
-    "ship",
-    "stronghold",
-    "skirmisher",
-}
-
-NARRATIVE_FORMS = {
-    "legend",
-    "myth",
-    "saga",
-    "omen",
-    "prophecy",
-    "warning",
-    "conspiracy",
-}
-
-RULE_BLOCK_KINDS = {
-    "property",
-    "timing",
-    "trigger",
-    "effect",
-    "continuous",
-    "constraint",
-    "cost",
-    "replacement",
-}
-
-RANKS = {"front", "rear"}
+RANKS = frozenset(rank.value for rank in Rank)
 _NONNEGATIVE = range(128)
 _SIGNED = range(-128, 128)
 
@@ -641,7 +617,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
         if not isinstance(hero, bool):
             raise ValueError(f"{card_id}: hero must be boolean when present")
         if hero:
-            if card_type != "force":
+            if card_type != CardType.FORCE:
                 raise ValueError(f"{card_id}: only Forces may be Heroes")
             if card["unique"] is not True:
                 raise ValueError(f"{card_id}: every Hero must be Unique")
@@ -676,7 +652,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
                     f"{card_id}: rule block text must be non-empty"
                 )
 
-        if card_type == "force":
+        if card_type == CardType.FORCE:
             role = card.get("role")
             if role is not None and (
                 not isinstance(role, str)
@@ -687,7 +663,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
                     f"{card_id}: Force role must be a non-empty string when present"
                 )
 
-        if card_type == "narrative":
+        if card_type == CardType.NARRATIVE:
             form = card.get("narrative_form")
             if not isinstance(form, str) or form not in NARRATIVE_FORMS:
                 raise ValueError(
@@ -698,14 +674,14 @@ def validate_card_data(data: dict[str, Any]) -> None:
                     f"{card_id}: Narrative ongoing must be boolean"
                 )
 
-        if card_type in {"force", "name"}:
+        if card_type in {CardType.FORCE, CardType.NAME}:
             _validate_rule_value(
                 card.get("strength"),
                 _NONNEGATIVE,
                 f"{card_id}.strength",
             )
 
-        if card_type == "name" and card["unique"] is not True:
+        if card_type == CardType.NAME and card["unique"] is not True:
             raise ValueError(f"{card_id}: every Name must be Unique")
 
         if "rules" in card:
