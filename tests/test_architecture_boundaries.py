@@ -745,31 +745,14 @@ def test_decisive_rollout_limits_exact_reply_probes_to_terminal_horizon() -> Non
     assert "score_scratch.constraint_len == 0" in source
 
 
-def test_decisive_rollout_random_path_uses_lazy_safety_scan() -> None:
+
+
+def test_decisive_rollout_keeps_only_exact_second_signal_probe() -> None:
     source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
-    assert "_ismcts_action_allows_immediate_loss" in source
-    assert "if not use_greedy:" in source
-    assert "for offset in range(safe_n):" in source
-    assert "The five-percent greedy branch can afford" in source
-
-
-def test_decisive_rollout_random_safety_scan_is_bounded() -> None:
-    source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
-    assert "DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES = 4" in source
-    assert "safe_n if safe_n < DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES" in source
-
-
-def test_anti_decisive_rollout_does_not_nest_full_reply_search() -> None:
-    source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
-    helper = source.split("cdef bint _ismcts_action_allows_immediate_loss(", 1)[1]
-    helper = helper.split("cdef uint64_t _ismcts_rollout_action(", 1)[0]
-    assert "merely because the closing" in helper
-    assert "score_scratch.pass_closing_turns_remaining == 1" not in helper
-
-
-def test_decisive_random_win_scan_is_bounded_and_greedy_is_not_double_probed() -> None:
-    source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
-    assert "DECISIVE_ROLLOUT_RANDOM_WIN_PROBES = 4" in source
-    assert "Reserve explicit tactical" in source
-    assert "if not use_greedy:" in source
-    assert "if state.pass_closing_turns_remaining == 1:" in source
+    rollout = source.split("cdef uint64_t _ismcts_rollout_action(", 1)[1]
+    rollout = rollout.split("def ismcts_search(", 1)[0]
+    assert "Closing-window lookahead belongs in the MCTS tree" in rollout
+    assert "action_kind(actions[i]) != TYPE_PASS" in rollout
+    assert "_ismcts_action_allows_immediate_loss" not in source
+    assert "DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES" not in source
+    assert "DECISIVE_ROLLOUT_RANDOM_WIN_PROBES" not in source
