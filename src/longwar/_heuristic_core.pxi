@@ -238,7 +238,7 @@ cdef class NativeHeuristicEvaluator:
                 named_delta -= 1
         score += 1.5 * named_delta
 
-        for front in range(self.engine.ongoing_story_limit):
+        for front in range(self.engine.ongoing_narrative_limit):
             if state.narrative[player * 4 + front] >= 0:
                 narrative_delta += 1
             if state.narrative[opponent * 4 + front] >= 0:
