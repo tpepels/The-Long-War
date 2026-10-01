@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from math import isfinite
 
@@ -161,6 +162,23 @@ class HeuristicWeights:
 
 
 DEFAULT_HEURISTIC_WEIGHTS = HeuristicWeights.standard()
+
+
+def coerce_heuristic_weights(
+    value: HeuristicWeights | Mapping[str, float] | None,
+) -> HeuristicWeights:
+    """Normalize experiment/user overrides once, outside search hot paths."""
+    if value is None:
+        return DEFAULT_HEURISTIC_WEIGHTS
+    if isinstance(value, HeuristicWeights):
+        return value
+    if isinstance(value, Mapping):
+        return DEFAULT_HEURISTIC_WEIGHTS.with_overrides(
+            **{str(key): float(weight) for key, weight in value.items()}
+        )
+    raise TypeError(
+        "heuristic_weights must be HeuristicWeights, a mapping, or None"
+    )
 
 
 def command_preserving_actions(
