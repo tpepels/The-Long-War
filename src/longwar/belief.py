@@ -15,6 +15,7 @@ from .decks import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState
+from .protocol import CardField, CardType
 
 
 class BeliefStateError(ValueError):
@@ -165,12 +166,12 @@ class CardPoolDeckPrior:
         required_forces = sum(
             count
             for card_id, count in required.items()
-            if self.engine.cards[card_id]["type"] == "force"
+            if self.engine.cards[card_id][CardField.TYPE] == CardType.FORCE
         )
         required_names = sum(
             count
             for card_id, count in required.items()
-            if self.engine.cards[card_id]["type"] == "name"
+            if self.engine.cards[card_id][CardField.TYPE] == CardType.NAME
         )
         force_needed = max(0, MINIMUM_FORCE_COUNT - required_forces)
         name_needed = max(
