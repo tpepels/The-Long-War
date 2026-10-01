@@ -7,7 +7,7 @@ from ..cards import card_index, compile_card_mechanics, load_card_file, validate
 from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
 from ..native_engine import create_fast_engine, create_heuristic_evaluator
-from .actions import Action, action_from_key, action_key
+from .actions import Action, Discard, EffectChoice, Pass, action_from_key, action_key
 from .model import (
     ConstraintKind,
     Front,
@@ -138,8 +138,29 @@ class GameEngine:
         return evaluator
 
     def command_recovery_for_battle(self, battle: int) -> int:
-        """Return the canonical base Command recovery for one Battle."""
+        """Return the configured base Command recovery for one Battle."""
         return int(self._native_core_instance.command_recovery_for_battle(battle))
+
+    def action_consumes_operation(
+        self,
+        state: GameState,
+        actor: int,
+        action: Action,
+    ) -> bool:
+        """Return whether this action spends the actor's one Battle operation."""
+        if state.phase is not Phase.BATTLE:
+            return False
+        if state.pending_draw_discard_for is not None:
+            return False
+        if isinstance(action, (Discard, EffectChoice)):
+            return False
+        if (
+            isinstance(action, Pass)
+            and not state.players[actor].passed
+            and not self.rules.pass_signal_costs_operation
+        ):
+            return False
+        return True
 
     def validate_deck(self, deck: list[str]) -> None:
         """Validate the canonical deck-construction rules."""
