@@ -1500,8 +1500,6 @@ def validate() -> None:
             "-m",
             "pytest",
             "-q",
-            "-m",
-            "not legacy_rule_experiment",
             "tests/test_engine.py",
             "tests/test_strategic_heuristic.py",
             "tests/test_fast_search_state.py",
