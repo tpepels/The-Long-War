@@ -43,6 +43,17 @@ POSITIONS_PER_PLAYER = FRONT_COUNT * RANK_COUNT
 TOTAL_POSITION_COUNT = PLAYER_COUNT * POSITIONS_PER_PLAYER
 
 
+RANK_BY_INDEX = tuple(Rank)
+
+
+def decode_slot_index(slot: int) -> tuple[int, "Position"]:
+    if not 0 <= slot < TOTAL_POSITION_COUNT:
+        raise ValueError(f"invalid slot index: {slot}")
+    player, local = divmod(slot, POSITIONS_PER_PLAYER)
+    front_index, rank_index = divmod(local, RANK_COUNT)
+    return player, Position(Front(front_index), RANK_BY_INDEX[rank_index])
+
+
 @dataclass(frozen=True, order=True)
 class Position:
     front: Front
