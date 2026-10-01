@@ -318,8 +318,8 @@ class GameEngine:
                     target_player = 0 if target_slot < 8 else 1
                     local = target_slot if target_slot < 8 else target_slot - 8
                     target_position = Position(
-                        Front(local // 2),
-                        Rank.FRONT if local % 2 == 0 else Rank.REAR,
+                        Front(local // RANK_COUNT),
+                        Rank.FRONT if local % RANK_COUNT == 0 else Rank.REAR,
                     )
                 synced_narratives.append(
                     NarrativeState(
@@ -358,8 +358,8 @@ class GameEngine:
                         (
                             target_player,
                             Position(
-                                Front(local // 2),
-                                Rank.FRONT if local % 2 == 0 else Rank.REAR,
+                                Front(local // RANK_COUNT),
+                                Rank.FRONT if local % RANK_COUNT == 0 else Rank.REAR,
                             ),
                         )
                     )
@@ -428,8 +428,8 @@ class GameEngine:
             if source_slot is not None:
                 local = int(source_slot) % 8
                 source_position = Position(
-                    Front(local // 2),
-                    Rank.FRONT if local % 2 == 0 else Rank.REAR,
+                    Front(local // RANK_COUNT),
+                    Rank.FRONT if local % RANK_COUNT == 0 else Rank.REAR,
                 )
             front = item.get("front")
             constraints.append(
