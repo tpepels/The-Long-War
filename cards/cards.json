@@ -794,7 +794,7 @@
     {
       "id": "the-long-march",
       "title": "The Long March",
-      "type": "story",
+      "type": "narrative",
       "unique": false,
       "classes": [
         "journey"
@@ -1484,7 +1484,7 @@
     {
       "id": "the-baggage-was-abandoned",
       "title": "The Baggage Was Abandoned",
-      "type": "story",
+      "type": "narrative",
       "unique": false,
       "classes": [
         "loss",
@@ -1979,10 +1979,10 @@
       "design_rules": {
         "force": {
           "deploy_rank": "rear",
-          "story": "first_story_each_battle_discount_1_min_1"
+          "narrative": "first_narrative_each_battle_discount_1_min_1"
         },
         "name": {
-          "on_completion": "return_one_story_from_discard_to_hand"
+          "on_completion": "return_one_narrative_from_discard_to_hand"
         }
       },
       "engine_sync": "pending-first-80-migration",
@@ -1992,7 +1992,7 @@
     {
       "id": "the-wall-did-not-break",
       "title": "The Wall Did Not Break",
-      "type": "story",
+      "type": "narrative",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2034,7 +2034,7 @@
     {
       "id": "they-returned-with-names",
       "title": "They Returned With Names",
-      "type": "story",
+      "type": "narrative",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2073,7 +2073,7 @@
     {
       "id": "the-crows-came-down",
       "title": "The Crows Came Down",
-      "type": "story",
+      "type": "narrative",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2112,7 +2112,7 @@
     {
       "id": "they-were-gathering-there",
       "title": "They Were Gathering There",
-      "type": "story",
+      "type": "narrative",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2151,7 +2151,7 @@
     {
       "id": "before-sunset-the-ford-would-be-ours",
       "title": "Before Sunset, the Ford Would Be Ours",
-      "type": "story",
+      "type": "narrative",
       "ongoing": true,
       "unique": true,
       "classes": [
@@ -2193,7 +2193,7 @@
     {
       "id": "they-lived-to-tell-it",
       "title": "They Lived to Tell It",
-      "type": "story",
+      "type": "narrative",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -2235,7 +2235,7 @@
     {
       "id": "no-road-was-too-long",
       "title": "No Road Was Too Long",
-      "type": "story",
+      "type": "narrative",
       "ongoing": true,
       "unique": true,
       "classes": [
@@ -2273,7 +2273,7 @@
     {
       "id": "the-muster-was-false",
       "title": "The Muster Was False",
-      "type": "story",
+      "type": "narrative",
       "ongoing": true,
       "unique": false,
       "classes": [
@@ -3013,7 +3013,7 @@
     {
       "id": "the-battle-had-chosen-them",
       "title": "The Battle Had Chosen Them",
-      "type": "story",
+      "type": "narrative",
       "unique": false,
       "classes": [
         "omen",
@@ -3057,7 +3057,7 @@
     {
       "id": "no-one-would-be-first-to-leave",
       "title": "No One Would Be First to Leave",
-      "type": "story",
+      "type": "narrative",
       "unique": false,
       "classes": [
         "saga",
@@ -3101,7 +3101,7 @@
     {
       "id": "the-king-had-given-the-order",
       "title": "The King Had Given the Order",
-      "type": "story",
+      "type": "narrative",
       "unique": false,
       "classes": [
         "warning",
@@ -3147,7 +3147,7 @@
     {
       "id": "they-had-gone-too-far",
       "title": "They Had Gone Too Far",
-      "type": "story",
+      "type": "narrative",
       "unique": false,
       "classes": [
         "omen",
