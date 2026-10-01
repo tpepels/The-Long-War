@@ -274,13 +274,13 @@ def test_context_decks_do_not_depend_on_required_card_iteration_order() -> None:
     assert generate_context_decks(data(), count=2, seed=7, required_cards=cards) == generate_context_decks(data(), count=2, seed=7, required_cards=reversed(cards))
 
 
-def test_story_baseline_preserves_narrative_chassis() -> None:
+def test_narrative_baseline_preserves_narrative_chassis() -> None:
     card_data = data()
     index = {card["id"]: card for card in card_data["cards"]}
     original = index["the-long-march"]
     baseline = baseline_card(original)
 
-    assert baseline["type"] == "story"
+    assert baseline["type"] == "narrative"
     assert baseline["narrative_form"] == original["narrative_form"]
     assert baseline["ongoing"] == original["ongoing"]
     assert baseline["design_rules"] == {}
