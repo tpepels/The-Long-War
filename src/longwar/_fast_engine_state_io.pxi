@@ -1,7 +1,7 @@
 cdef FastState _fe_from_game_state(FastEngine self, state):
     cdef FastState fast = FastState()
     cdef int p, i, f, r, slot, code, viewer, owner
-    cdef object card_id, py_slot, story, strat, counter, constraint, before_collapse
+    cdef object card_id, py_slot, narrative, strat, counter, constraint, before_collapse
     phase_map = {
         "battle": PHASE_BATTLE,
         "complete": PHASE_COMPLETE,
@@ -88,22 +88,22 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 elif py_slot.maneuver_direction == "right":
                     fast.maneuver_direction[slot] = 2
 
-        for i, story in enumerate(state.stories[p][:self.ongoing_narrative_limit]):
-            fast.narrative[p * 4 + i] = self.id_to_code[story.card_id]
+        for i, narrative in enumerate(state.narratives[p][:self.ongoing_narrative_limit]):
+            fast.narrative[p * 4 + i] = self.id_to_code[narrative.card_id]
             fast.narrative_revealed[p * 4 + i] = 1
-            fast.narrative_used[p * 4 + i] = bool(story.triggered_this_battle)
-            fast.narrative_trigger_mask[p * 4 + i] = int(story.triggered_players_mask)
-            if story.direction == "left":
+            fast.narrative_used[p * 4 + i] = bool(narrative.triggered_this_battle)
+            fast.narrative_trigger_mask[p * 4 + i] = int(narrative.triggered_players_mask)
+            if narrative.direction == "left":
                 fast.narrative_direction[p * 4 + i] = 1
-            elif story.direction == "right":
+            elif narrative.direction == "right":
                 fast.narrative_direction[p * 4 + i] = 2
-            for front_choice in story.fronts:
+            for front_choice in narrative.fronts:
                 fast.narrative_front_mask[p * 4 + i] |= 1 << int(front_choice)
-            if story.target_position is not None and story.target_player is not None:
+            if narrative.target_position is not None and narrative.target_player is not None:
                 fast.narrative_target_slot[p * 4 + i] = slot_index(
-                    int(story.target_player),
-                    int(story.target_position.front),
-                    0 if story.target_position.rank.value == "front" else 1,
+                    int(narrative.target_player),
+                    int(narrative.target_position.front),
+                    0 if narrative.target_position.rank.value == "front" else 1,
                 )
 
     fast.active_player = state.active_player
@@ -183,7 +183,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             | (CONSTRAINT_PERSISTS_BATTLE if constraint.persists_between_battles else 0)
             | (CONSTRAINT_ZERO_COST if constraint.zero_cost else 0)
             | (CONSTRAINT_DRAW_ON_SATISFY if constraint.draw_after_satisfied else 0)
-            | (CONSTRAINT_DISCARD_SOURCE_NARRATIVE if constraint.discard_source_story else 0)
+            | (CONSTRAINT_DISCARD_SOURCE_NARRATIVE if constraint.discard_source_narrative else 0)
         )
         fast.constraint_len += 1
     resolution_state = state.battle_resolution
@@ -496,7 +496,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             ]
             for p in range(2)
         ],
-        "stories": [
+        "narratives": [
             [
                 {
                     "card_id": self.card_ids[state.narrative[p * 4 + i]],
@@ -689,7 +689,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     if state.constraint_flags[i] & CONSTRAINT_DRAW_ON_SATISFY
                     else 0
                 ),
-                "discard_source_story": bool(
+                "discard_source_narrative": bool(
                     state.constraint_flags[i] & CONSTRAINT_DISCARD_SOURCE_NARRATIVE
                 ),
             }
