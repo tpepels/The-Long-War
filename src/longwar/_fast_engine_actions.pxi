@@ -81,7 +81,7 @@ cdef inline bint _fe_adjacent_hero_formation(
             or (name >= 0 and self.hero[name])
         ):
             return True
-    if front < 3:
+    if front < FRONT_COUNT - 1:
         adjacent = slot_index(player, front + 1, rank)
         force = state.force[adjacent]
         name = state.name[adjacent]
@@ -352,7 +352,7 @@ cdef bint _fe_any_maneuver_in_direction(
     int direction,
 ) noexcept:
     cdef int local, source, front, rank, dest
-    for local in range(8):
+    for local in range(POSITIONS_PER_PLAYER):
         source = player * POSITIONS_PER_PLAYER + local
         if not _fe_maneuver_source_legal(self, state, player, source):
             continue
@@ -624,7 +624,7 @@ cdef int _fe_legal_pending_effect_actions(
                     )
                 ):
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
-            if front < 3:
+            if front < FRONT_COUNT - 1:
                 dest = slot_index(player, front + 1, rank)
                 if (
                     _fe_maneuver_destination_legal(self, state, dest)
@@ -786,9 +786,9 @@ cdef int _fe_legal_actions_into(
             continue
 
         if self.card_type[card] == CARD_FORCE:
-            if not self.hero[card] or not state.hero_used[player]:
+            if not self.hero[card] or state.hero_used[player] < self.hero_play_limit_per_battle:
                 req = self.placement_rank[card]
-                for local in range(8):
+                for local in range(POSITIONS_PER_PLAYER):
                     slot = player * POSITIONS_PER_PLAYER + local
                     if state.force[slot] >= 0:
                         continue
@@ -804,7 +804,7 @@ cdef int _fe_legal_actions_into(
                 # Heroes are dual-use Force/Name cards. Playing either mode
                 # consumes the one-Hero-from-hand allowance for the Battle.
                 if self.hero[card]:
-                    for local in range(8):
+                    for local in range(POSITIONS_PER_PLAYER):
                         slot = player * POSITIONS_PER_PLAYER + local
                         if state.name[slot] < 0:
                             n = _append_action(
@@ -814,7 +814,7 @@ cdef int _fe_legal_actions_into(
                             )
 
         elif self.card_type[card] == CARD_BOND:
-            for local in range(8):
+            for local in range(POSITIONS_PER_PLAYER):
                 slot = player * POSITIONS_PER_PLAYER + local
                 if state.bond[slot] >= 0:
                     continue
@@ -859,7 +859,7 @@ cdef int _fe_legal_actions_into(
                                     player,
                                 ),
                             )
-                    if front < 3:
+                    if front < FRONT_COUNT - 1:
                         dest = slot_index(player, front + 1, rank)
                         if _fe_card_move_destination_legal(self, 
                             state, player, slot, dest
@@ -877,7 +877,7 @@ cdef int _fe_legal_actions_into(
                             )
 
         elif self.card_type[card] == CARD_NAME:
-            for local in range(8):
+            for local in range(POSITIONS_PER_PLAYER):
                 slot = player * POSITIONS_PER_PLAYER + local
                 if state.name[slot] >= 0:
                     continue
@@ -925,7 +925,7 @@ cdef int _fe_legal_actions_into(
                         choice == NARRATIVE_CHOICE_NAMED_FORMATION
                         or choice == NARRATIVE_CHOICE_NAMED_DIRECTION
                     ):
-                        for local in range(8):
+                        for local in range(POSITIONS_PER_PLAYER):
                             slot = player * POSITIONS_PER_PLAYER + local
                             if _fe_slot_complete(self, state, slot):
                                 if choice == NARRATIVE_CHOICE_NAMED_DIRECTION:
@@ -973,7 +973,7 @@ cdef int _fe_legal_actions_into(
             else:
                 effect = self.narrative_play_effect[card]
                 if effect == NARRATIVE_DISCREDIT or effect == NARRATIVE_RETURN_NAME:
-                    for local in range(8):
+                    for local in range(POSITIONS_PER_PLAYER):
                         slot = opponent * POSITIONS_PER_PLAYER + local
                         if (
                             state.force[slot] >= 0
@@ -1040,7 +1040,7 @@ cdef int _fe_legal_actions_into(
 
         elif self.card_type[card] == CARD_STRATAGEM:
             if (
-                not state.stratagem_used[player]
+                state.stratagem_used[player] < self.stratagem_play_limit_per_battle
                 and state.stratagem[player] < 0
             ):
                 choice = self.strat_choice_kind[card]
@@ -1099,7 +1099,7 @@ cdef int _fe_legal_actions_into(
                 elif choice == STRAT_CHOICE_WHEEL:
                     for direction in range(DIRECTION_COUNT):
                         eligible_mask = 0
-                        for local in range(8):
+                        for local in range(POSITIONS_PER_PLAYER):
                             source = player * POSITIONS_PER_PLAYER + local
                             if state.force[source] < 0:
                                 continue
@@ -1179,7 +1179,7 @@ cdef int _fe_legal_actions_into(
 
     # Maneuver moves to an empty position or swaps with any own occupied
     # position, including a prepared-only Bond/Name position.
-    for local in range(8):
+    for local in range(POSITIONS_PER_PLAYER):
         source = player * POSITIONS_PER_PLAYER + local
         if not _fe_maneuver_source_legal(self, state, player, source):
             continue
@@ -1198,7 +1198,7 @@ cdef int _fe_legal_actions_into(
                     n,
                     encode_action(TYPE_MANEUVER, -1, source, dest, player),
                 )
-        if front < 3:
+        if front < FRONT_COUNT - 1:
             dest = slot_index(player, front + 1, rank)
             if (
                 _fe_maneuver_destination_legal(self, state, dest)
@@ -1228,9 +1228,10 @@ cdef int _fe_legal_actions_into(
         not state.passed[player]
         and (
             state.pass_len > 0
-            or (
-                state.operations_this_battle[0] > 0
-                and state.operations_this_battle[1] > 0
+            or all(
+                state.operations_this_battle[p]
+                >= self.pass_min_operations_before_signal
+                for p in range(PLAYER_COUNT)
             )
         )
     )
