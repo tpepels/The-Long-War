@@ -363,7 +363,7 @@ def _run_targeted_candidate(
     online_iterations: int,
     online_depth: int,
     bootstrap_resamples: int,
-) -> tuple[int, dict[str, Any], int, int, int, int]:
+) -> tuple[int, dict[str, Any], int, int, int, int, int, int]:
     # Only the focal intervention identities belong in this solver. A target
     # adds at most 1/2/3 synthetic identities to the canonical card pool.
     engine = GameEngine(build_experiment_card_data(card_data, candidate.cards))
@@ -395,6 +395,19 @@ def _run_targeted_candidate(
             total_matches += 1
             if outcome is None:
                 censored_matches += 1
+
+    draw_matches = sum(
+        value == 0.5
+        for condition_outcomes in outcomes.values()
+        for value in condition_outcomes
+        if value is not None
+    )
+    decisive_matches = sum(
+        value in (0.0, 1.0)
+        for condition_outcomes in outcomes.values()
+        for value in condition_outcomes
+        if value is not None
+    )
 
     complete_indices = [
         index
@@ -477,6 +490,8 @@ def _run_targeted_candidate(
         result,
         total_matches,
         censored_matches,
+        draw_matches,
+        decisive_matches,
         len(complete_indices),
         pair_censored,
     )
@@ -502,8 +517,9 @@ def run_targeted_online_validation(
     """Re-test suspicious broad A/B signals with online MCCFR.
 
     The exact broad deck contexts, seats, seeds and intervention definitions
-    are reused. A targeted paired sample is decisive only when every condition
-    required for that contrast finishes before the action horizon.
+    are reused. A targeted paired sample is resolved only when every condition
+    required for that contrast finishes before the action horizon. Completed
+    draws remain valid 0.5 outcomes.
     """
     if bootstrap_resamples <= 0:
         raise ValueError("bootstrap_resamples must be positive")
@@ -529,10 +545,14 @@ def run_targeted_online_validation(
     results: list[dict[str, Any]] = []
     total_matches = 0
     censored_matches = 0
-    decisive_paired_samples = 0
+    draw_matches = 0
+    decisive_matches = 0
+    resolved_paired_samples = 0
     censored_paired_samples = 0
 
-    completed_rows: list[tuple[int, dict[str, Any], int, int, int, int]] = []
+    completed_rows: list[
+        tuple[int, dict[str, Any], int, int, int, int, int, int]
+    ] = []
     worker_count = min(jobs, len(selected)) if selected else 0
     if worker_count <= 1:
         for target_index, candidate in enumerate(selected):
@@ -581,20 +601,24 @@ def run_targeted_online_validation(
         result,
         row_total_matches,
         row_censored_matches,
-        row_decisive_pairs,
+        row_draw_matches,
+        row_decisive_matches,
+        row_resolved_pairs,
         row_censored_pairs,
     ) in completed_rows:
         results.append(result)
         total_matches += row_total_matches
         censored_matches += row_censored_matches
-        decisive_paired_samples += row_decisive_pairs
+        draw_matches += row_draw_matches
+        decisive_matches += row_decisive_matches
+        resolved_paired_samples += row_resolved_pairs
         censored_paired_samples += row_censored_pairs
 
     by_kind = {
         kind: [row for row in results if row["kind"] == kind]
         for kind in ("card", "pair", "triple")
     }
-    attempted_pairs = decisive_paired_samples + censored_paired_samples
+    attempted_pairs = resolved_paired_samples + censored_paired_samples
 
     return {
         "schema_version": 1,
@@ -617,12 +641,14 @@ def run_targeted_online_validation(
         "online_iterations": online_iterations,
         "online_depth": online_depth,
         "total_matches": total_matches,
-        "decisive_matches": total_matches - censored_matches,
+        "resolved_matches": total_matches - censored_matches,
+        "draw_matches": draw_matches,
+        "decisive_matches": decisive_matches,
         "censored_matches": censored_matches,
         "match_censor_rate": (
             censored_matches / total_matches if total_matches else 0.0
         ),
-        "decisive_paired_samples": decisive_paired_samples,
+        "resolved_paired_samples": resolved_paired_samples,
         "censored_paired_samples": censored_paired_samples,
         "pair_censor_rate": (
             censored_paired_samples / attempted_pairs
