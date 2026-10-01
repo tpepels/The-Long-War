@@ -409,7 +409,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             _fe_queue_take_adjacent_prepared_component_on_force_play(self, state, actor, pos)
         _fe_resolve_force_pair_narratives(self, state, actor)
         front = front_from_slot(pos)
-        _fe_resolve_scheme_event(self, state, actor, EVENT_FORCE, front, pos)
+        _fe_resolve_ongoing_narrative_event(self, state, actor, EVENT_FORCE, front, pos)
         _fe_resolve_strat_event(self, state, EVENT_FORCE, actor, card, pos)
 
     elif kind == TYPE_BOND:
@@ -430,7 +430,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 self.bond_optional_draw_count[card],
             )
         front = front_from_slot(pos)
-        _fe_resolve_scheme_event(self, state, actor, EVENT_BOND, front, pos)
+        _fe_resolve_ongoing_narrative_event(self, state, actor, EVENT_BOND, front, pos)
 
     elif kind == TYPE_NAME:
         take_adjacent_open_bond_ready = (
@@ -470,8 +470,8 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 )
         cancelled = _fe_pre_story_cancel(self, state, actor)
         if not cancelled:
-            _fe_resolve_plot(self, state, actor, card, pos, dest)
-            _fe_resolve_plot_target_scheme(self, state, actor, pos)
+            _fe_resolve_narrative(self, state, actor, card, pos, dest)
+            _fe_resolve_narrative_target_ongoing_narrative(self, state, actor, pos)
         _fe_append_discard(self, state, actor, card, True)
 
     elif kind == TYPE_ONGOING_NARRATIVE:
