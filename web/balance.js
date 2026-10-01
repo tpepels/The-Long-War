@@ -32,7 +32,7 @@ function titleCase(value) {
 
 function displayCardType(row) {
   const type = canonicalType(row);
-  if (type === "story") {
+  if (type === "narrative") {
     const form = titleCase(row.narrative_form);
     const ongoing = row.ongoing ?? false;
     return form ? form + (ongoing ? " · Ongoing Narrative" : " · Narrative") : (ongoing ? "Ongoing Narrative" : "Narrative");
@@ -435,7 +435,7 @@ function renderCards(lab) {
   const filter = document.getElementById("card-filter").value;
   let rows = [...lab.health.cards];
 
-  if (["force", "bond", "name", "story", "stratagem"].includes(filter)) {
+  if (["force", "bond", "name", "narrative", "stratagem"].includes(filter)) {
     rows = rows.filter((row) => canonicalType(row) === filter);
   } else if (["red", "orange", "yellow", "unobserved", "green", "dark_green"].includes(filter)) {
     rows = rows.filter((row) => row.balance_level === filter);
