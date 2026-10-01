@@ -239,26 +239,28 @@ cdef class FastEngine:
             detail = self.command_diag_detail[i]
             card = self.command_diag_card[i]
             kind_name = (
-                "gain" if kind == COMMAND_DIAG_GAIN else
-                "discount" if kind == COMMAND_DIAG_DISCOUNT else
-                "front_loss_protection"
+                CommandDiagnosticKind.GAIN.value
+                if kind == COMMAND_DIAG_GAIN
+                else CommandDiagnosticKind.DISCOUNT.value
+                if kind == COMMAND_DIAG_DISCOUNT
+                else CommandDiagnosticKind.FRONT_LOSS_PROTECTION.value
             )
             detail_name = {
-                COMMAND_DETAIL_COMPLETION_GAIN: "completion_gain",
-                COMMAND_DETAIL_NARRATIVE_GAIN: "narrative_gain",
-                COMMAND_DETAIL_RETREAT_GAIN: "retreat_gain",
-                COMMAND_DETAIL_DISCARD_GAIN: "discard_for_command",
-                COMMAND_DETAIL_CATCHUP_DISCOUNT: "catchup_discount",
-                COMMAND_DETAIL_COMPLETION_DISCOUNT: "completion_discount",
-                COMMAND_DETAIL_NARRATIVE_DISCOUNT: "narrative_discount",
-                COMMAND_DETAIL_LOCAL_FRONT_DISCOUNT: "local_front_discount",
-                COMMAND_DETAIL_ADJACENT_DISCOUNT: "adjacent_discount",
-                COMMAND_DETAIL_FRONTLINE_DISCOUNT: "frontline_discount",
-                COMMAND_DETAIL_FREE_MANEUVER: "free_maneuver",
-                COMMAND_DETAIL_STRATAGEM_MANEUVER: "stratagem_maneuver_discount",
-                COMMAND_DETAIL_FRONT_LOSS_PROTECTED_FRONT: "front_loss_protected_front",
-                COMMAND_DETAIL_FRONT_LOSS_STRATAGEM: "front_loss_stratagem",
-            }.get(detail, "other")
+                COMMAND_DETAIL_COMPLETION_GAIN: CommandDiagnosticDetail.COMPLETION_GAIN.value,
+                COMMAND_DETAIL_NARRATIVE_GAIN: CommandDiagnosticDetail.NARRATIVE_GAIN.value,
+                COMMAND_DETAIL_RETREAT_GAIN: CommandDiagnosticDetail.RETREAT_GAIN.value,
+                COMMAND_DETAIL_DISCARD_GAIN: CommandDiagnosticDetail.DISCARD_FOR_COMMAND.value,
+                COMMAND_DETAIL_CATCHUP_DISCOUNT: CommandDiagnosticDetail.CATCHUP_DISCOUNT.value,
+                COMMAND_DETAIL_COMPLETION_DISCOUNT: CommandDiagnosticDetail.COMPLETION_DISCOUNT.value,
+                COMMAND_DETAIL_NARRATIVE_DISCOUNT: CommandDiagnosticDetail.NARRATIVE_DISCOUNT.value,
+                COMMAND_DETAIL_LOCAL_FRONT_DISCOUNT: CommandDiagnosticDetail.LOCAL_FRONT_DISCOUNT.value,
+                COMMAND_DETAIL_ADJACENT_DISCOUNT: CommandDiagnosticDetail.ADJACENT_DISCOUNT.value,
+                COMMAND_DETAIL_FRONTLINE_DISCOUNT: CommandDiagnosticDetail.FRONTLINE_DISCOUNT.value,
+                COMMAND_DETAIL_FREE_MANEUVER: CommandDiagnosticDetail.FREE_MANEUVER.value,
+                COMMAND_DETAIL_STRATAGEM_MANEUVER: CommandDiagnosticDetail.STRATAGEM_MANEUVER_DISCOUNT.value,
+                COMMAND_DETAIL_FRONT_LOSS_PROTECTED_FRONT: CommandDiagnosticDetail.FRONT_LOSS_PROTECTED_FRONT.value,
+                COMMAND_DETAIL_FRONT_LOSS_STRATAGEM: CommandDiagnosticDetail.FRONT_LOSS_STRATAGEM.value,
+            }.get(detail, CommandDiagnosticDetail.OTHER.value)
             source = None if card < 0 else self.card_ids[card]
             events.append({
                 "kind": kind_name,
