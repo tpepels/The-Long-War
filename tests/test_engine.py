@@ -959,10 +959,10 @@ def test_endured_with_regains_command_when_formation_retreats() -> None:
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
     assert snapshot["command_refunded"][0] >= 1
-    assert snapshot["command_before_recovery"][0] == 11
+    assert snapshot["command_before_collapse"][0] == 11
     assert state.players[0].command == min(
         engine.rules.command_cap,
-        snapshot["command_before_recovery"][0]
+        snapshot["command_before_collapse"][0]
         + snapshot["recovery_actual"][0],
     )
 
@@ -1763,10 +1763,10 @@ def test_wall_did_not_break_resolves_battle_end_reward_and_recovery() -> None:
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
     assert snapshot["command_refunded"][0] >= 1
-    assert snapshot["command_before_recovery"][0] == 11
+    assert snapshot["command_before_collapse"][0] == 11
     assert state.players[0].command == min(
         engine.rules.command_cap,
-        snapshot["command_before_recovery"][0]
+        snapshot["command_before_collapse"][0]
         + snapshot["recovery_actual"][0],
     )
     assert "followed" in state.players[0].hand
@@ -2131,10 +2131,10 @@ def test_they_lived_to_tell_it_rewards_a_surviving_target() -> None:
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
     assert snapshot["command_refunded"][0] >= 1
-    assert snapshot["command_before_recovery"][0] == 11
+    assert snapshot["command_before_collapse"][0] == 11
     assert state.players[0].command == min(
         engine.rules.command_cap,
-        snapshot["command_before_recovery"][0]
+        snapshot["command_before_collapse"][0]
         + snapshot["recovery_actual"][0],
     )
     assert snapshot["cards_drawn"][0] >= 1
