@@ -8,7 +8,7 @@ from .actions import (
     PlayBond,
     PlayForce,
     PlayName,
-    PlayStory,
+    PlayNarrative,
     PlayStratagem,
 )
 from .engine import GameEngine, IllegalAction
@@ -39,7 +39,7 @@ __all__ = [
     "PlayBond",
     "PlayForce",
     "PlayName",
-    "PlayStory",
+    "PlayNarrative",
     "PlayStratagem",
     "Position",
     "Rank",
