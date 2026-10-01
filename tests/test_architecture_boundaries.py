@@ -243,10 +243,11 @@ def test_browser_parity_replay_helper_needs_only_browser_runtime() -> None:
 
 
 def test_browser_modes_are_product_terms_not_solver_names() -> None:
-    source = (SRC / "web_api.py").read_text(encoding="utf-8")
+    from longwar.protocol import GameMode
+
     page = (ROOT / "web" / "play.html").read_text(encoding="utf-8")
 
-    assert '{"hotseat", "remote", "computer"}' in source
+    assert {mode.value for mode in GameMode} == {"hotseat", "remote", "computer"}
     assert 'value="computer"' in page
 
     browser_surfaces = (
