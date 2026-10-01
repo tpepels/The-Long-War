@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import TypeAlias
 
+from ..protocol import ActionKeyToken, ActionKind, DIRECTIONS
 from .model import Front, Position, Rank
 
 
@@ -90,91 +91,112 @@ Action: TypeAlias = (
 )
 
 
+_ACTION_KIND_BY_TYPE = {
+    Pass: ActionKind.PASS,
+    Discard: ActionKind.DISCARD,
+    EffectChoice: ActionKind.EFFECT_CHOICE,
+    Maneuver: ActionKind.MANEUVER,
+    PlayForce: ActionKind.PLAY_FORCE,
+    PlayBond: ActionKind.PLAY_BOND,
+    PlayName: ActionKind.PLAY_NAME,
+    PlayNarrative: ActionKind.PLAY_NARRATIVE,
+    PlayStratagem: ActionKind.PLAY_STRATAGEM,
+}
+
+
+def action_kind(action: object) -> ActionKind:
+    """Stable protocol kind independent of Python class-name introspection."""
+    try:
+        return _ACTION_KIND_BY_TYPE[type(action)]
+    except KeyError as exc:
+        raise TypeError(f"Unsupported action type: {type(action)!r}") from exc
+
+
 @lru_cache(maxsize=8192)
 def action_key(action: object) -> str:
     """Stable canonical action serialization shared by engine, UI and AI."""
     if isinstance(action, Pass):
-        return "pass"
+        return ActionKeyToken.PASS.value
     if isinstance(action, Discard):
-        return f"discard:{action.card_id}"
+        return f"{ActionKeyToken.DISCARD.value}:{action.card_id}"
     if isinstance(action, EffectChoice):
-        key = f"effect:{action.effect}"
+        key = f"{ActionKeyToken.EFFECT.value}:{action.effect}"
         if action.skip:
-            return key + ":skip"
+            return key + f":{ActionKeyToken.SKIP.value}"
         if action.card_id is not None:
-            key += f":card:{action.card_id}"
+            key += f":{ActionKeyToken.CARD.value}:{action.card_id}"
         if action.source is not None:
             key += (
-                f":source:{action.source.player},"
+                f":{ActionKeyToken.SOURCE.value}:{action.source.player},"
                 f"{int(action.source.position.front)},"
                 f"{action.source.position.rank.value}"
             )
         if action.destination is not None:
             key += (
-                f":destination:{action.destination.player},"
+                f":{ActionKeyToken.DESTINATION.value}:{action.destination.player},"
                 f"{int(action.destination.position.front)},"
                 f"{action.destination.position.rank.value}"
             )
         if action.front is not None:
-            key += f":front:{int(action.front)}"
+            key += f":{ActionKeyToken.FRONT.value}:{int(action.front)}"
         return key
     if isinstance(action, Maneuver):
         return (
-            f"maneuver:{int(action.source.front)}:{action.source.rank.value}:"
+            f"{ActionKeyToken.MANEUVER.value}:{int(action.source.front)}:{action.source.rank.value}:"
             f"{int(action.destination.front)}:{action.destination.rank.value}"
         )
     if isinstance(action, PlayForce):
         return (
-            f"force:{action.card_id}:{int(action.position.front)}:"
+            f"{ActionKeyToken.FORCE.value}:{action.card_id}:{int(action.position.front)}:"
             f"{action.position.rank.value}"
         )
     if isinstance(action, PlayBond):
         key = (
-            f"bond:{action.card_id}:{int(action.position.front)}:"
+            f"{ActionKeyToken.BOND.value}:{action.card_id}:{int(action.position.front)}:"
             f"{action.position.rank.value}"
         )
         if action.move_destination is not None:
             key += (
-                f":move:{int(action.move_destination.front)}:"
+                f":{ActionKeyToken.MOVE.value}:{int(action.move_destination.front)}:"
                 f"{action.move_destination.rank.value}"
             )
         if action.extra_payment:
-            key += f":extra:{action.extra_payment}"
+            key += f":{ActionKeyToken.EXTRA.value}:{action.extra_payment}"
         return key
     if isinstance(action, PlayName):
         return (
-            f"name:{action.card_id}:{int(action.position.front)}:"
+            f"{ActionKeyToken.NAME.value}:{action.card_id}:{int(action.position.front)}:"
             f"{action.position.rank.value}"
         )
     if isinstance(action, PlayNarrative):
         if action.ongoing_slot is not None:
-            key = f"narrative:{action.card_id}:ongoing:{action.ongoing_slot}"
+            key = f"{ActionKeyToken.NARRATIVE.value}:{action.card_id}:{ActionKeyToken.ONGOING.value}:{action.ongoing_slot}"
             if action.fronts:
-                key += ":fronts:" + ",".join(str(int(front)) for front in action.fronts)
+                key += f":{ActionKeyToken.FRONTS.value}:" + ",".join(str(int(front)) for front in action.fronts)
             if action.targets:
-                key += ":targets:" + ";".join(
+                key += f":{ActionKeyToken.TARGETS.value}:" + ";".join(
                     f"{target.player},{int(target.position.front)},{target.position.rank.value}"
                     for target in action.targets
                 )
             if action.direction is not None:
-                key += f":direction:{action.direction}"
+                key += f":{ActionKeyToken.DIRECTION.value}:{action.direction}"
             return key
         if action.discard_card_id is not None:
-            return f"narrative:{action.card_id}:discard:{action.discard_card_id}"
+            return f"{ActionKeyToken.NARRATIVE.value}:{action.card_id}:{ActionKeyToken.DISCARD_FIELD.value}:{action.discard_card_id}"
         targets = ";".join(
             f"{target.player}:{int(target.position.front)}:"
             f"{target.position.rank.value}"
             for target in action.targets
         )
-        return f"narrative:{action.card_id}:{targets}"
+        return f"{ActionKeyToken.NARRATIVE.value}:{action.card_id}:{targets}"
     if isinstance(action, PlayStratagem):
-        key = f"stratagem:{action.card_id}"
+        key = f"{ActionKeyToken.STRATAGEM.value}:{action.card_id}"
         if action.fronts:
-            key += ":fronts:" + ",".join(str(int(front)) for front in action.fronts)
+            key += f":{ActionKeyToken.FRONTS.value}:" + ",".join(str(int(front)) for front in action.fronts)
         if action.direction is not None:
-            key += f":direction:{action.direction}"
+            key += f":{ActionKeyToken.DIRECTION.value}:{action.direction}"
         if action.targets:
-            key += ":targets:" + ";".join(
+            key += f":{ActionKeyToken.TARGETS.value}:" + ";".join(
                 f"{target.player},{int(target.position.front)},{target.position.rank.value}"
                 for target in action.targets
             )
@@ -189,15 +211,15 @@ def _position(front: str, rank: str) -> Position:
 
 def action_from_key(key: str) -> object:
     """Inverse of the canonical action-key format."""
-    if key == "pass":
+    if key == ActionKeyToken.PASS:
         return Pass()
-    if key.startswith("discard:"):
+    if key.startswith(f"{ActionKeyToken.DISCARD.value}:"):
         return Discard(key.split(":", 1)[1])
 
     parts = key.split(":")
-    if parts[0] == "effect":
+    if parts[0] == ActionKeyToken.EFFECT:
         effect = parts[1]
-        if len(parts) == 3 and parts[2] == "skip":
+        if len(parts) == 3 and parts[2] == ActionKeyToken.SKIP:
             return EffectChoice(effect, skip=True)
         source: BoardTarget | None = None
         destination: BoardTarget | None = None
@@ -207,19 +229,19 @@ def action_from_key(key: str) -> object:
         while index < len(parts):
             label = parts[index]
             value = parts[index + 1]
-            if label == "card":
+            if label == ActionKeyToken.CARD:
                 card_id = value
-            elif label in {"source", "destination"}:
+            elif label in {ActionKeyToken.SOURCE, ActionKeyToken.DESTINATION}:
                 player, encoded_front, rank = value.split(",")
                 target = BoardTarget(
                     int(player),
                     _position(encoded_front, rank),
                 )
-                if label == "source":
+                if label == ActionKeyToken.SOURCE:
                     source = target
                 else:
                     destination = target
-            elif label == "front":
+            elif label == ActionKeyToken.FRONT:
                 front = Front(int(value))
             else:
                 raise ValueError(f"Unknown EffectChoice field: {label}")
@@ -231,33 +253,33 @@ def action_from_key(key: str) -> object:
             card_id=card_id,
             front=front,
         )
-    if parts[0] == "force":
+    if parts[0] == ActionKeyToken.FORCE:
         return PlayForce(parts[1], _position(parts[2], parts[3]))
-    if parts[0] == "bond":
+    if parts[0] == ActionKeyToken.BOND:
         position = _position(parts[2], parts[3])
         move_destination: Position | None = None
         extra_payment = 0
         index = 4
         while index < len(parts):
             label = parts[index]
-            if label == "move":
+            if label == ActionKeyToken.MOVE:
                 move_destination = _position(parts[index + 1], parts[index + 2])
                 index += 3
                 continue
-            if label == "extra":
+            if label == ActionKeyToken.EXTRA:
                 extra_payment = int(parts[index + 1])
                 index += 2
                 continue
             raise ValueError(f"Unknown Bond action field: {label}")
         return PlayBond(parts[1], position, move_destination, extra_payment)
-    if parts[0] == "name":
+    if parts[0] == ActionKeyToken.NAME:
         return PlayName(parts[1], _position(parts[2], parts[3]))
-    if parts[0] == "maneuver":
+    if parts[0] == ActionKeyToken.MANEUVER:
         return Maneuver(
             _position(parts[1], parts[2]),
             _position(parts[3], parts[4]),
         )
-    if parts[0] == "stratagem":
+    if parts[0] == ActionKeyToken.STRATAGEM:
         card_id = parts[1]
         fronts: tuple[Front, ...] = ()
         direction: str | None = None
@@ -266,13 +288,13 @@ def action_from_key(key: str) -> object:
         while index < len(parts):
             label = parts[index]
             value = parts[index + 1]
-            if label == "fronts":
+            if label == ActionKeyToken.FRONTS:
                 fronts = tuple(Front(int(front)) for front in value.split(",") if front)
-            elif label == "direction":
-                if value not in {"left", "right"}:
+            elif label == ActionKeyToken.DIRECTION:
+                if value not in DIRECTIONS:
                     raise ValueError(f"Invalid direction in action key: {value}")
                 direction = value
-            elif label == "targets":
+            elif label == ActionKeyToken.TARGETS:
                 parsed: list[BoardTarget] = []
                 for encoded in value.split(";"):
                     if not encoded:
@@ -284,11 +306,11 @@ def action_from_key(key: str) -> object:
                 raise ValueError(f"Unknown Stratagem action field: {label}")
             index += 2
         return PlayStratagem(card_id, fronts, direction, targets)
-    if parts[0] == "narrative":
+    if parts[0] == ActionKeyToken.NARRATIVE:
         card_id = parts[1]
-        if len(parts) >= 4 and parts[2] == "discard":
+        if len(parts) >= 4 and parts[2] == ActionKeyToken.DISCARD_FIELD:
             return PlayNarrative(card_id, discard_card_id=parts[3])
-        if len(parts) >= 4 and parts[2] == "ongoing":
+        if len(parts) >= 4 and parts[2] == ActionKeyToken.ONGOING:
             slot = int(parts[3])
             fronts: tuple[Front, ...] = ()
             targets: tuple[BoardTarget, ...] = ()
@@ -297,13 +319,13 @@ def action_from_key(key: str) -> object:
             while index < len(parts):
                 label = parts[index]
                 value = parts[index + 1]
-                if label == "fronts":
+                if label == ActionKeyToken.FRONTS:
                     fronts = tuple(Front(int(front)) for front in value.split(",") if front)
-                elif label == "direction":
-                    if value not in {"left", "right"}:
+                elif label == ActionKeyToken.DIRECTION:
+                    if value not in DIRECTIONS:
                         raise ValueError(f"Invalid Narrative direction: {value}")
                     direction = value
-                elif label == "targets":
+                elif label == ActionKeyToken.TARGETS:
                     parsed: list[BoardTarget] = []
                     for encoded in value.split(";"):
                         if not encoded:
