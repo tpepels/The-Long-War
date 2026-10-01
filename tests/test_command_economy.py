@@ -18,6 +18,7 @@ from longwar.game import (
     Rank,
 )
 from longwar.game.engine import IllegalAction
+from longwar.game.model import StratagemState
 from longwar.rules import GameRules
 from longwar.heuristics import command_preserving_actions
 from longwar.testing import GameScenario
@@ -348,6 +349,68 @@ def test_post_signal_evaluation_does_not_discount_immediate_closing_option() -> 
     # The unsignalled opponent may end the Battle immediately by signalling
     # in either state. The automatic deadline must not discount that leverage.
     assert early == pytest.approx(late)
+
+
+def test_projected_lost_masks_use_tie_control_resolution_rule() -> None:
+    engine, state = standard_game()
+    first = Position(Front.FIRST, Rank.FRONT)
+    rear = Position(Front.FIRST, Rank.REAR)
+    GameScenario(state).formation(
+        0, first, force="the-fifty-men", bond="followed", name="namar"
+    ).formation(
+        1, rear, force="the-fifty-men", bond="followed", name="namar"
+    )
+    state.stratagems[0] = StratagemState("the-ground-was-held")
+
+    packed = engine._native_core().from_game_state(state)
+    lost0, lost1 = engine._native_heuristic().projected_lost_masks(packed)
+
+    assert not (lost0 & (1 << int(Front.FIRST)))
+    assert lost1 & (1 << int(Front.FIRST))
+
+
+def test_projected_lost_masks_use_combined_front_resolution_rule() -> None:
+    engine, state = standard_game()
+    first = Position(Front.FIRST, Rank.FRONT)
+    second = Position(Front.SECOND, Rank.FRONT)
+    GameScenario(state).formation(
+        0, first, force="the-fifty-men"
+    ).formation(
+        1, second, force="the-fifty-men"
+    )
+    state.slot(0, first).temporary_strength = 2
+    state.stratagems[0] = StratagemState(
+        "the-center-must-hold",
+        fronts=(Front.FIRST, Front.SECOND),
+    )
+
+    packed = engine._native_core().from_game_state(state)
+    lost0, lost1 = engine._native_heuristic().projected_lost_masks(packed)
+    pair = (1 << int(Front.FIRST)) | (1 << int(Front.SECOND))
+
+    assert lost0 & pair == 0
+    assert lost1 & pair == pair
+
+
+def test_projected_lost_masks_use_frontline_only_resolution_strength() -> None:
+    engine, state = standard_game()
+    front = Position(Front.FIRST, Rank.FRONT)
+    rear = Position(Front.FIRST, Rank.REAR)
+    GameScenario(state).formation(
+        0, front, force="the-red-duelists"
+    ).formation(
+        0, rear, force="seven-black-ships"
+    ).formation(
+        1, front, force="the-fifty-men"
+    ).formation(
+        1, rear, force="seven-black-ships"
+    )
+
+    packed = engine._native_core().from_game_state(state)
+    lost0, lost1 = engine._native_heuristic().projected_lost_masks(packed)
+
+    assert lost0 & (1 << int(Front.FIRST))
+    assert not (lost1 & (1 << int(Front.FIRST)))
 
 
 def test_projected_front_loss_penalty_uses_configured_rule() -> None:
