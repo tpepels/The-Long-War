@@ -683,7 +683,7 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
             state.narrative_trigger_mask[p * NARRATIVE_SLOTS_PER_PLAYER + front] = 0
         for front in range(8):
             state.maneuver_count[p * POSITIONS_PER_PLAYER + front] = 0
-            state.maneuver_direction[p * POSITIONS_PER_PLAYER + front] = 0
+            state.maneuver_direction[p * POSITIONS_PER_PLAYER + front] = DIRECTION_NONE
 
         target = self.hand_limit - state.hand_len[p]
         if target > 0:
