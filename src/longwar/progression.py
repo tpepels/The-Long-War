@@ -1813,17 +1813,7 @@ class ProgressionTelemetry:
             source = discount_sources[0] if discount_sources else "<engine>"
             self._command_by_source[source]["free_operations"] += 1
 
-        if diagnostics:
-            gained = gained_from_diagnostics
-        else:
-            # Compatibility fallback for old native builds and focused test doubles.
-            # Between-Battle recovery is deliberately excluded.
-            expected_after = before.players[actor].command - actual_cost
-            gained = (
-                0
-                if battle_transition
-                else max(0, state.players[actor].command - expected_after)
-            )
+        gained = gained_from_diagnostics
         if gained:
             self._command_gained += gained
             self._battle_events["command_gained"] += gained
