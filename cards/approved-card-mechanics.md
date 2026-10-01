@@ -60,7 +60,7 @@ This file is a compact reference for the currently approved card designs.
 | 21 | **Teren** | Name | 2 | +1 | After this formation **Maneuvers**, you may swap two adjacent formations you control other than this one. |
 | 22 | **Mara** | Name | 1 | +1 | When an opposing formation **Maneuvers** into this Front, you may **Maneuver** this formation for 0 Command. |
 | 23 | **Blocked the Road for** | Bond | 1 | - | Cards your opponent plays cannot move a formation from an adjacent Front into this Front. |
-| 24 | **The Long March** | Story | 2 | - | **Saga - Ongoing.** The first time each Battle one of your formations **Maneuvers** into an empty position, regain 1 Command. |
+| 24 | **The Long March** | Narrative | 2 | - | **Saga - Ongoing.** The first time each Battle one of your formations **Maneuvers** into an empty position, regain 1 Command. |
 
 ## Batch 4 - Combat
 
@@ -96,7 +96,7 @@ This file is a compact reference for the currently approved card designs.
 - **Combat:** Rear suppression, Frontline-only comparisons, breakthrough, sacrifice, interception, tie control.
 - **Persistence & Retreat:** inherited Bonds, salvage, Name survival, Retreat repositioning, rebuilding, voluntary Retreat.
 - **Command:** catch-up discounts, completion discounts, optional investment, refunds, hand-to-Command conversion, recovery, and Battle-wide spending.
-- **Heroes:** dual-use Force/Name choices across movement, combat, Retreat, Command, rebuilding, card recovery, and Story support.
+- **Heroes:** dual-use Force/Name choices across movement, combat, Retreat, Command, rebuilding, card recovery, and Narrative support.
 - **Narratives:** Legends, Omens, Warnings, Prophecies, Sagas, Myths, and Conspiracies turn battlefield events into Command plus a secondary effect.
 - **Stratagems:** one-Battle plans that can reshape Front geometry, Retreat, deployment, and movement.
 - **Build-around:** unusual visible board states such as open Bonds, prepared cards, wide or concentrated lines, narratives, Heroes, and succession.
@@ -110,7 +110,7 @@ This file is a compact reference for the currently approved card designs.
 | 42 | **Sorin** | Name | 2 | +1 | If you play Sorin on a Force that already has a Bond, Sorin costs 1 Command. |
 | 43 | **Bought Time For** | Bond | 1 | - | When you play this Bond, you may pay 1 extra Command to draw 2 cards. |
 | 44 | **Trusted** | Bond | 1 | - | When this formation becomes **Named**, regain 1 Command. |
-| 45 | **The Baggage Was Abandoned** | Story | 1 | - | **Warning.** When you play this, you may discard 1 other card to regain 2 Command. |
+| 45 | **The Baggage Was Abandoned** | Narrative | 1 | - | **Warning.** When you play this, you may discard 1 other card to regain 2 Command. |
 | 46 | **The Lines Held** | Stratagem | 2 | - | At Battle end, one Front you lost does not reduce your Command. |
 | 47 | **Iven** | Name | 2 | +1 | While you have less Command than your opponent, the first card you play in this Front each turn costs 1 less Command (minimum 1). |
 | 48 | **All Banners Forward** | Stratagem | 5 | - | **During this Battle**, your **Maneuvers** cost 0 Command, and your formations may **Maneuver** even if they are not Named. |
