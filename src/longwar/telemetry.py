@@ -303,7 +303,8 @@ class Telemetry:
                         stats.structurally_unplayable_turns += copies
 
             if isinstance(action, Pass):
-                first_pass = len(state.pass_order) == 0
+                new_signal = not state.players[actor].passed
+                first_pass = new_signal and len(state.pass_order) == 0
                 margins = self._front_margins(engine, state, actor)
                 preserving, exhausting_alternatives = command_preserving_actions(
                     engine,
@@ -320,6 +321,12 @@ class Telemetry:
                     "battle": state.battle,
                     "player": actor,
                     "first_pass": first_pass,
+                    "new_signal": new_signal,
+                    "forced_yield": not new_signal,
+                    "free_signal": (
+                        new_signal
+                        and not engine.rules.pass_signal_costs_operation
+                    ),
                     "hand_size": len(state.players[actor].hand),
                     "deck_remaining": len(state.players[actor].deck),
                     "command_remaining": command,
@@ -694,11 +701,34 @@ class Telemetry:
             )
             combos[combo] = payload
 
+        signal_events = [
+            event
+            for event in self.pass_events
+            if bool(event.get("new_signal", True))
+        ]
+        forced_yields = [
+            event
+            for event in self.pass_events
+            if bool(event.get("forced_yield", False))
+        ]
+        free_signals = [
+            event
+            for event in signal_events
+            if bool(event.get("free_signal", False))
+        ]
+
         pass_summary = {
             "events": len(self.pass_events),
+            "signal_events": len(signal_events),
+            "forced_yield_events": len(forced_yields),
+            "free_signal_events": len(free_signals),
             "mean_hand_size": self._mean_field(self.pass_events, "hand_size"),
             "mean_command_remaining": self._mean_field(
                 self.pass_events,
+                "command_remaining",
+            ),
+            "mean_command_at_signal": self._mean_field(
+                signal_events,
                 "command_remaining",
             ),
             "mean_deck_remaining": self._mean_field(
@@ -746,6 +776,10 @@ class Telemetry:
                 sum(event["playable_card_actions"] > 0 for event in self.pass_events),
                 len(self.pass_events),
             ),
+            "signal_with_playable_alternative_rate": self._ratio(
+                sum(event["playable_card_actions"] > 0 for event in signal_events),
+                len(signal_events),
+            ),
             "paid_alternative_rate": self._ratio(
                 sum(event.get("paid_alternatives", 0) > 0 for event in self.pass_events),
                 len(self.pass_events),
@@ -771,6 +805,10 @@ class Telemetry:
             "first_pass_rate": self._ratio(
                 sum(event["first_pass"] for event in self.pass_events),
                 len(self.pass_events),
+            ),
+            "first_signal_rate": self._ratio(
+                sum(event["first_pass"] for event in signal_events),
+                len(signal_events),
             ),
         }
 

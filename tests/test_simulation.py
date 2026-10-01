@@ -379,3 +379,24 @@ def test_simulation_reclaims_memory_between_moves_and_games(monkeypatch) -> None
     assert report.games == 1
     # Once per move, once after the game, and once before returning the report.
     assert len(releases) >= report.max_turns + 2
+
+
+def test_free_battle_flag_is_not_counted_as_turn_consuming_action() -> None:
+    data = load_card_file(CARD_FILE)
+    deck = load_deck(DECK_FILE)
+    rules = GameRules.standard().with_overrides(
+        pass_signal_costs_operation=False,
+    )
+    engine = GameEngine(data, rules=rules)
+    report = simulate_games(
+        engine,
+        deck,
+        deck,
+        games=1,
+        seed=9911,
+        max_actions=40,
+        agent_names=("random", "random"),
+        jobs=1,
+    )
+    outcome = report.game_outcomes[0]
+    assert outcome["turn_consuming_actions_completed"] <= outcome["actions_completed"]

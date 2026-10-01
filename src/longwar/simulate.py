@@ -25,7 +25,7 @@ from .agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from .agents.online_mccfr_agent import OnlineMCCFRAgent
 from .belief import DeckHypothesis, DeckPrior, HypothesisDeckPrior
 from .agents.mccfr_agent import MCCFRAgent
-from .game.actions import action_key
+from .game.actions import Pass, action_key
 from .game.engine import GameEngine, all_positions
 from .game.model import Phase
 from .human_flow import HumanFlowDiagnostics
@@ -338,6 +338,7 @@ def _simulate_games_serial(
         game_telemetry = Telemetry()
         game_human_flow = HumanFlowDiagnostics()
         action_count = 0
+        turn_consuming_action_count = 0
         censored = False
         recent_actions: deque[str] = deque(maxlen=24)
         expected_cards = (Counter(deck_a), Counter(deck_b))
@@ -417,6 +418,16 @@ def _simulate_games_serial(
                     decision_info,
                 )
                 recent_actions.append(action_key(action))
+                is_free_signal = (
+                    isinstance(action, Pass)
+                    and not state.players[actor].passed
+                    and not engine.rules.pass_signal_costs_operation
+                )
+                is_turn_consuming_action = (
+                    state.pending_draw_discard_for is None
+                    and not state.pending_effects
+                    and not is_free_signal
+                )
                 engine.apply(state, action)
                 _assert_card_conservation(
                     state,
@@ -426,6 +437,8 @@ def _simulate_games_serial(
                 game_telemetry.after_action(engine, before, state, actor, action)
                 game_human_flow.after_action(engine, before, state, actor, action)
                 action_count += 1
+                if is_turn_consuming_action:
+                    turn_consuming_action_count += 1
 
                 del decision_info, before, action, agent
 
@@ -464,6 +477,7 @@ def _simulate_games_serial(
                 "censored": censored,
                 "censor_reason": censor_reason,
                 "actions_completed": action_count,
+                "turn_consuming_actions_completed": turn_consuming_action_count,
                 "final_battle": int(state.battle),
                 "final_command": [
                     int(state.players[0].command),
@@ -496,6 +510,7 @@ def _simulate_games_serial(
                 "error": str(exc),
                 "traceback": traceback.format_exc(),
                 "actions_completed": action_count,
+                "turn_consuming_actions_completed": turn_consuming_action_count,
                 "final_battle": (
                     None if state is None else int(state.battle)
                 ),

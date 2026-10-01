@@ -941,3 +941,20 @@ def test_progression_attributes_command_economy_by_source_card() -> None:
     sources = telemetry.summary()["progression"]["resources"]["command_by_source"]
     assert sources["namar"]["command_gained"] == 1
     assert sources["namar"]["triggers"] >= 1
+
+
+def test_pass_telemetry_separates_new_signal_from_forced_yield() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=9191, first_player=0)
+    state.operations_this_battle[:] = [1, 1]
+    telemetry = Telemetry()
+    telemetry.start_game(state, engine)
+
+    actor = state.active_player
+    action = Pass()
+    telemetry.before_action(engine, state, actor, action, None)
+    summary = telemetry.summary()["passes"]
+
+    assert summary["events"] == 1
+    assert summary["signal_events"] == 1
+    assert summary["forced_yield_events"] == 0
