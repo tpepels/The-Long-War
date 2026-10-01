@@ -20,7 +20,7 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_ROLLOUT_POLICY,
     ISMCTSAgent,
 )
-from longwar.simulate import make_agent, simulate_games
+from longwar.simulate import DEFAULT_WORKERS, make_agent, simulate_games
 from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
