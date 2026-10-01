@@ -1,6 +1,10 @@
 # cython: language_level=3, boundscheck=False, wraparound=False, initializedcheck=False
 from __future__ import annotations
 
+from longwar.game.model import Phase
+
+cdef object _PHASE_COMPLETE = Phase.COMPLETE
+
 
 cdef class CFRNode:
     cdef public object regret_sum
@@ -258,7 +262,7 @@ def longwar_external_sampling_traverse(
     if scratch_by_depth is None:
         scratch_by_depth = {}
 
-    if state.phase.value == "complete":
+    if state.phase is _PHASE_COMPLETE:
         if state.winner is None:
             return 0.0
         return 1.0 if state.winner == traverser else -1.0
