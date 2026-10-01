@@ -1439,7 +1439,7 @@
 }
 
 .ref-slot,
-.ref-veiled {
+.ref-narrative {
   min-width: 0;
   padding: 2.2mm;
   display: grid;
@@ -1456,13 +1456,13 @@
 }
 
 .ref-slot b,
-.ref-veiled b {
+.ref-narrative b {
   font: 800 2.3mm/1 system-ui,sans-serif;
   letter-spacing: .04em;
 }
 
 .ref-slot small,
-.ref-veiled small {
+.ref-narrative small {
   max-width: 47mm;
   font-size: 1.95mm;
   line-height: 1.22;
@@ -1477,7 +1477,7 @@
   box-shadow: inset 0 0 0 .7mm rgba(185,146,74,.35);
 }
 
-.ref-veiled {
+.ref-narrative {
   min-height: 8mm;
   padding: 1mm 1.5mm;
   grid-template-columns: auto 1fr;
@@ -1486,13 +1486,13 @@
   text-align: left;
 }
 
-.ref-veiled.hidden {
+.ref-narrative.hidden {
   background: #181714;
   color: #f7f2e8;
   border-style: solid;
 }
 
-.ref-veiled.hidden b {
+.ref-narrative.hidden b {
   font-size: 3.2mm;
 }
 
