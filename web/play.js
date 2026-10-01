@@ -1869,7 +1869,7 @@ document.addEventListener("keydown", (event) => {
 function focusIdentity() {
   const el = document.activeElement;
   if (!el || el === document.body) return null;
-  const names = ["hand-index", "mulligan-index", "inspect-card", "inspect-owner", "inspect-zone", "board-owner", "board-front", "board-rank", "scheme-owner", "scheme-front", "stratagem-owner"];
+  const names = ["hand-index", "mulligan-index", "inspect-card", "inspect-owner", "inspect-zone", "board-owner", "board-front", "board-rank", "story-owner", "story-slot", "stratagem-owner"];
   if (el.id) return { id: el.id };
   const attrs = names.filter((name) => el.hasAttribute("data-" + name)).map((name) => ["data-" + name, el.getAttribute("data-" + name)]);
   return { el, attrs };
