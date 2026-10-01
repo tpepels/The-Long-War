@@ -959,7 +959,16 @@ def test_endured_with_regains_command_when_formation_retreats() -> None:
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
     assert snapshot["command_refunded"][0] >= 1
-    assert snapshot["command_before_collapse"][0] == 11
+    assert snapshot["front_loss_command_penalty"][0] == (
+        engine.rules.lost_front_command_penalty
+    )
+    assert snapshot["command_before_collapse"][0] == max(
+        0,
+        snapshot["command_start"][0]
+        - snapshot["command_spent"][0]
+        + snapshot["command_refunded"][0]
+        - snapshot["front_loss_command_penalty"][0],
+    )
     assert state.players[0].command == min(
         engine.rules.command_cap,
         snapshot["command_before_collapse"][0]
