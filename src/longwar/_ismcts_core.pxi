@@ -626,10 +626,12 @@ def ismcts_search(
     cdef uint64_t rng = <uint64_t>seed
     cdef int path_nodes[MAX_ISMCTS_DEPTH]
     cdef uint16_t path_indices[MAX_ISMCTS_DEPTH]
-    cdef int n, actor, ix, depth, rollout_steps, sample_ix, node_index
+    cdef int n, actor, ix, path_length, tree_turn_depth
+    cdef int rollout_steps, rollout_raw_steps, sample_ix, node_index
     cdef int root_index, prior_root_index, max_tree_depth_seen = 0
+    cdef int max_tree_path_depth_seen = 0
     cdef int i, best_ix=-1, second_ix=-1
-    cdef int rollout_battle, action_battle
+    cdef int rollout_battle, action_battle, action_turn
     cdef long iteration, completed_iterations=0
     cdef uint64_t best_visits=0, second_visits=0
     cdef uint64_t root_total_visits_before=0
@@ -738,10 +740,19 @@ def ismcts_search(
         sample_ix = _ismcts_rand_index(&rng, len(root_states))
         sampled = <FastState>root_states[sample_ix]
         state.copy_from_fast(sampled)
-        depth = 0
+        path_length = 0
+        tree_turn_depth = 0
         rollout_boundary = False
 
-        while state.phase != PHASE_COMPLETE and depth < tree_depth_limit:
+        # Keep every decision node for backpropagation, but measure the search
+        # horizon in completed turns rather than raw engine actions. Free
+        # Battle Flags and pending effect choices therefore do not shorten the
+        # strategic horizon.
+        while (
+            state.phase != PHASE_COMPLETE
+            and tree_turn_depth < tree_depth_limit
+            and path_length < MAX_ISMCTS_DEPTH
+        ):
             actor = state.active_player
             n = _fe_legal_actions_into(engine, state, &actions[0])
             if n <= 0:
@@ -773,11 +784,14 @@ def ismcts_search(
                 &expanded,
             )
             action = tree.nodes[node_index].edges[ix].action
-            path_nodes[depth] = node_index
-            path_indices[depth] = <uint16_t>ix
+            path_nodes[path_length] = node_index
+            path_indices[path_length] = <uint16_t>ix
             action_battle = state.battle
+            action_turn = state.turn_number
             _fe_apply_fast(engine, state, action)
-            depth += 1
+            path_length += 1
+            if state.turn_number != action_turn:
+                tree_turn_depth += 1
             if (
                 state.phase != PHASE_COMPLETE
                 and state.battle != action_battle
@@ -787,15 +801,19 @@ def ismcts_search(
             if expanded:
                 break
 
-        if depth > max_tree_depth_seen:
-            max_tree_depth_seen = depth
+        if tree_turn_depth > max_tree_depth_seen:
+            max_tree_depth_seen = tree_turn_depth
+        if path_length > max_tree_path_depth_seen:
+            max_tree_path_depth_seen = path_length
 
         rollout_steps = 0
+        rollout_raw_steps = 0
         rollout_battle = state.battle
         while (
             not rollout_boundary
             and state.phase != PHASE_COMPLETE
             and rollout_steps < rollout_depth
+            and rollout_raw_steps < MAX_ISMCTS_DEPTH
         ):
             action = _ismcts_rollout_action(
                 engine,
@@ -808,9 +826,12 @@ def ismcts_search(
                 &decisive_rollout_probes,
                 &decisive_rollout_actions,
             )
+            action_turn = state.turn_number
             _fe_apply_fast(engine, state, action)
-            rollout_steps += 1
+            rollout_raw_steps += 1
             rollout_actions += 1
+            if state.turn_number != action_turn:
+                rollout_steps += 1
             if (
                 state.phase != PHASE_COMPLETE
                 and state.battle != rollout_battle
@@ -840,7 +861,7 @@ def ismcts_search(
                 / leaf_scale
             )
 
-        for i in range(depth):
+        for i in range(path_length):
             node_index = path_nodes[i]
             node_utility = (
                 utility
@@ -933,6 +954,7 @@ def ismcts_search(
         "tree_capacity_cutoffs": tree_capacity_cutoffs,
         "tree_nodes_added": tree.node_count - tree_nodes_before,
         "max_tree_depth": max_tree_depth_seen,
+        "max_tree_path_depth": max_tree_path_depth_seen,
         "belief_states": len(root_states),
         "root_stats": root_stats,
         "rollouts_stopped_terminal": rollouts_stopped_terminal,
