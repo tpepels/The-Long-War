@@ -277,7 +277,7 @@ cdef int _fe__information_state_encode(
                 state.maneuvered_in_operation[slot],
             )
 
-    # Ongoing Stories and Stratagems are public in the canonical rules.
+    # Ongoing Narratives and Stratagems are public in the canonical rules.
     for owner in range(2):
         narrative_count = 0
         for narrative_slot in range(self.ongoing_narrative_limit):
@@ -498,7 +498,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
         )
     if kind == TYPE_ONGOING_NARRATIVE:
-        key = f"story:{self.card_ids[card]}:ongoing:{pos}"
+        key = f"narrative:{self.card_ids[card]}:ongoing:{pos}"
         choice = self.narrative_choice_kind[card]
         if choice == NARRATIVE_CHOICE_FRONT:
             fronts = ""
@@ -559,12 +559,12 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
     if kind == TYPE_NARRATIVE:
         if extra and self.narrative_discard_count[card] == 1:
             return (
-                f"story:{self.card_ids[card]}:discard:"
+                f"narrative:{self.card_ids[card]}:discard:"
                 f"{self.card_ids[<int>extra - 1]}"
             )
         if dest >= 0:
             return (
-                f"story:{self.card_ids[card]}:"
+                f"narrative:{self.card_ids[card]}:"
                 f"{player}:{front_from_slot(pos)}:"
                 f"{'front' if rank_from_slot(pos) == 0 else 'rear'};"
                 f"{player}:{front_from_slot(dest)}:"
@@ -572,9 +572,9 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             )
         if pos >= 0:
             return (
-                f"story:{self.card_ids[card]}:"
+                f"narrative:{self.card_ids[card]}:"
                 f"{player}:{front_from_slot(pos)}:"
                 f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
             )
-        return f"story:{self.card_ids[card]}:"
+        return f"narrative:{self.card_ids[card]}:"
     raise ValueError("Unknown fast action")
