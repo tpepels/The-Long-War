@@ -388,6 +388,38 @@ def test_heuristic_honors_multiple_hero_allowance() -> None:
     assert available > exhausted
 
 
+def test_heuristic_counts_multiple_remaining_hero_uses() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    heroes = [
+        card["id"]
+        for card in data["cards"]
+        if card.get("hero")
+    ][:2]
+    assert len(heroes) == 2
+
+    rules_one = GameRules.standard().with_overrides(
+        hero_play_limit_per_battle=1
+    )
+    rules_two = GameRules.standard().with_overrides(
+        hero_play_limit_per_battle=2
+    )
+    engine_one, state_one = standard_game(rules=rules_one)
+    engine_two, state_two = standard_game(rules=rules_two)
+    state_one.players[0].hand[:] = heroes
+    state_two.players[0].hand[:] = heroes
+
+    value_one = engine_one._native_heuristic().hand_construction_value(
+        engine_one._native_core().from_game_state(state_one),
+        0,
+    )
+    value_two = engine_two._native_heuristic().hand_construction_value(
+        engine_two._native_core().from_game_state(state_two),
+        0,
+    )
+
+    assert value_two > value_one
+
+
 def test_command_guard_keeps_immediate_command_refund_action() -> None:
     rules = GameRules.standard().with_overrides(
         command_collapse_threshold=0,
