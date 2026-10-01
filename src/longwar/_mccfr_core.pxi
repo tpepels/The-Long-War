@@ -438,12 +438,12 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
                 temporary,
             ])
 
-    stories = [[], []]
+    narratives = [[], []]
     for owner in range(2):
-        story_count = data[i]
+        narrative_count = data[i]
         i += 1
-        for _ in range(story_count):
-            stories[owner].append(card_ids[data[i] - 1])
+        for _ in range(narrative_count):
+            narratives[owner].append(card_ids[data[i] - 1])
             i += 1
             if version >= 6:
                 i += 5  # Front mask, used, direction, trigger mask, target slot
@@ -521,7 +521,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "operations_this_battle": operations_this_battle,
         "pending_draw_discard_for": pending_draw_discard_for,
         "board": board,
-        "stories": stories,
+        "narratives": narratives,
         "stratagems": stratagems,
         "stratagem_used": stratagem_used,
         "hero_used": hero_used,
