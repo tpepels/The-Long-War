@@ -32,7 +32,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int front, margin, raw_margin, controls=0, enemy_controls=0
         cdef int hand_delta, named_delta=0, narrative_delta=0, strat_delta=0
         cdef int exposed=0, reachable=0, slot, name_card, before, after, best
-        cdef int card, own_forces=0, own_board_subjects=0, hero_force=0
+        cdef int card, own_forces=0, own_board_forces=0, hero_force=0
         cdef int own_losses=0, opponent_losses=0
         cdef int own_front_slot, own_rear_slot, opp_front_slot, opp_rear_slot
         cdef int recovery=0, own_recovery=0, opponent_recovery=0
@@ -137,8 +137,8 @@ cdef class NativeHeuristicEvaluator:
 
         for slot in range(player * 8, player * 8 + 8):
             if state.force[slot] >= 0:
-                own_board_subjects += 1
-        if own_forces == 0 and own_board_subjects == 0:
+                own_board_forces += 1
+        if own_forces == 0 and own_board_forces == 0:
             score -= 2.0
 
         current_delta = state.command[player] - state.command[opponent]
