@@ -341,13 +341,13 @@ class GameState:
             shuffle_seed=self.shuffle_seed,
             observations=list(self.observations),
             known_hidden_hand=[
-                [dict(self.known_hidden_hand[v][o]) for o in range(2)]
-                for v in range(2)
+                [dict(self.known_hidden_hand[v][o]) for o in range(PLAYER_COUNT)]
+                for v in range(PLAYER_COUNT)
             ],
         )
 
     def copy_from(self, source: "GameState") -> "GameState":
-        for index in range(2):
+        for index in range(PLAYER_COUNT):
             target_player = self.players[index]
             source_player = source.players[index]
             target_player.deck[:] = source_player.deck
@@ -356,7 +356,7 @@ class GameState:
             target_player.passed = source_player.passed
             target_player.command = source_player.command
 
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             for front in range(FRONT_COUNT):
                 for rank in range(RANK_COUNT):
                     target_slot = self.board[player][front][rank]
@@ -423,7 +423,7 @@ class GameState:
         self.deck_reshuffles[:] = source.deck_reshuffles
         self.reshuffle_card_totals[:] = source.reshuffle_card_totals
         self.reshuffle_hand_card_totals[:] = source.reshuffle_hand_card_totals
-        for index in range(2):
+        for index in range(PLAYER_COUNT):
             self.opening_hands[index][:] = source.opening_hands[index]
         self.pending_draw_discard_for = source.pending_draw_discard_for
         self.pending_draw_count = source.pending_draw_count
@@ -470,8 +470,8 @@ class GameState:
         self.turn_number = source.turn_number
         self.shuffle_seed = source.shuffle_seed
         self.observations[:] = source.observations
-        for viewer in range(2):
-            for owner in range(2):
+        for viewer in range(PLAYER_COUNT):
+            for owner in range(PLAYER_COUNT):
                 self.known_hidden_hand[viewer][owner].clear()
                 self.known_hidden_hand[viewer][owner].update(
                     source.known_hidden_hand[viewer][owner]
