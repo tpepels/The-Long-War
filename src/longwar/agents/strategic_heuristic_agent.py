@@ -10,7 +10,12 @@ from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, Pass, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState
-from ..heuristics import StrategicEvaluator, command_preserving_actions
+from ..heuristics import (
+    DEFAULT_HEURISTIC_WEIGHTS,
+    HeuristicWeights,
+    StrategicEvaluator,
+    command_preserving_actions,
+)
 from ..native_search import strategic_backend
 from .heuristic_agent import HeuristicAgent, ScoredAction
 
@@ -64,8 +69,10 @@ class StrategicHeuristicAgent(HeuristicAgent):
         time_budget_seconds: float | None = None,
         search_backend: str = DEFAULT_STRATEGIC_BACKEND,
         exploration: float = 0.0,
+        heuristic_weights: HeuristicWeights | None = None,
     ):
-        evaluator = StrategicEvaluator()
+        self.heuristic_weights = heuristic_weights or DEFAULT_HEURISTIC_WEIGHTS
+        evaluator = StrategicEvaluator(self.heuristic_weights)
         super().__init__(
             seed=seed,
             exploration=exploration,
@@ -132,7 +139,10 @@ class StrategicHeuristicAgent(HeuristicAgent):
             else None
         )
         self._native_evaluator = (
-            _NativeHeuristicEvaluator(self._fast_engine)
+            _NativeHeuristicEvaluator(
+                self._fast_engine,
+                self.heuristic_weights,
+            )
             if self._use_native
             else None
         )
