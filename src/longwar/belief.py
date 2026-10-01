@@ -72,8 +72,6 @@ class HypothesisDeckPrior:
         self,
         required: Counter[str],
         rng: random.Random,
-        *,
-        hidden_requirements: HiddenRequirements = (),
     ) -> list[str]:
         posterior = self.posterior(required)
         threshold = rng.random()
@@ -127,10 +125,7 @@ class CardPoolDeckPrior:
         self,
         required: Counter[str],
         rng: random.Random,
-        *,
-        hidden_requirements: HiddenRequirements = (),
     ) -> list[str]:
-        del hidden_requirements
         if any(
             card not in self.engine.cards or count < 0
             for card, count in required.items()
