@@ -315,7 +315,7 @@ cdef uint16_t _fe_adjacent_formation_mask(
         other = slot_index(player, front - 1, rank)
         if state.force[other] >= 0 and (not named_only or _fe_slot_complete(self, state, other)):
             mask |= <uint16_t>(1 << other)
-    if front < 3:
+    if front < FRONT_COUNT - 1:
         other = slot_index(player, front + 1, rank)
         if state.force[other] >= 0 and (not named_only or _fe_slot_complete(self, state, other)):
             mask |= <uint16_t>(1 << other)
@@ -335,7 +335,7 @@ cdef uint16_t _fe_adjacent_empty_mask(
         other = slot_index(player, front - 1, rank)
         if _fe_slot_is_empty(self, state, other):
             mask |= <uint16_t>(1 << other)
-    if front < 3:
+    if front < FRONT_COUNT - 1:
         other = slot_index(player, front + 1, rank)
         if _fe_slot_is_empty(self, state, other):
             mask |= <uint16_t>(1 << other)
@@ -630,7 +630,7 @@ cdef void _fe_resolve_force_move_triggers(
         other = slot_index(player, front - 1, rank)
         if state.force[other] >= 0 and state.bond[other] < 0:
             destinations |= <uint16_t>(1 << other)
-    if front < 3:
+    if front < FRONT_COUNT - 1:
         other = slot_index(player, front + 1, rank)
         if state.force[other] >= 0 and state.bond[other] < 0:
             destinations |= <uint16_t>(1 << other)
@@ -900,11 +900,10 @@ cdef inline void _fe_clear_pass_sequence_fast(
     FastEngine self,
     FastState state,
 ) noexcept:
-    state.passed[0] = 0
-    state.passed[1] = 0
+    for player in range(PLAYER_COUNT):
+        state.passed[player] = 0
+        state.pass_order[player] = -1
     state.pass_len = 0
-    state.pass_order[0] = -1
-    state.pass_order[1] = -1
 
 
 cdef void _fe_resume_pending_flow(FastEngine self, FastState state):
