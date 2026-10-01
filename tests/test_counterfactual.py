@@ -412,7 +412,7 @@ def test_per_card_sweep_parallel_branch_collects_reports(monkeypatch) -> None:
 
     assert {row["id"] for row in report["cards"]} == {"namar", "followed"}
     assert report["total_matches"] == 4
-    assert report["decisive_paired_samples"] == 2
+    assert report["resolved_paired_samples"] == 2
 
 
 def test_counterfactual_reports_draws_separately_from_decisive_matches(monkeypatch) -> None:
