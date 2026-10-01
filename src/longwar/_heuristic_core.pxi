@@ -211,14 +211,34 @@ cdef class NativeHeuristicEvaluator:
         ):
             score += self.weights[HW_FRESH_BATTLE_INITIATIVE] if state.active_player == player else -self.weights[HW_FRESH_BATTLE_INITIATIVE]
 
+        self.projected_lost_masks_fast(
+            state,
+            &projected_lost0,
+            &projected_lost1,
+        )
+        if player == 0:
+            own_lost_mask = projected_lost0
+            opponent_lost_mask = projected_lost1
+        else:
+            own_lost_mask = projected_lost1
+            opponent_lost_mask = projected_lost0
+
         for front in range(FRONT_COUNT):
+            # Tactical board value should describe the same comparison the
+            # Battle resolver will use, not a separate displayed-Strength
+            # approximation. Projected lost masks also include tie-control and
+            # combined-Front replacement rules.
             raw_margin = (
-                _fe_front_strength_fast(self.engine, state, player, front)
-                - _fe_front_strength_fast(self.engine, state, opponent, front)
+                _fe_resolution_front_strength_fast(
+                    self.engine, state, player, front
+                )
+                - _fe_resolution_front_strength_fast(
+                    self.engine, state, opponent, front
+                )
             )
             margin = raw_margin
 
-            if raw_margin > 0:
+            if opponent_lost_mask & (1 << front):
                 controls += 1
                 if raw_margin <= self.weights[HW_CLOSE_FRONT_MARGIN]:
                     score += self.weights[HW_CLOSE_FRONT_BONUS]
@@ -241,7 +261,7 @@ cdef class NativeHeuristicEvaluator:
                 if raw_margin > self.weights[HW_COMFORTABLE_FRONT_MARGIN]:
                     score -= self.weights[HW_OVERKILL_MARGIN_WEIGHT] * (raw_margin - self.weights[HW_COMFORTABLE_FRONT_MARGIN])
 
-            elif raw_margin < 0:
+            elif own_lost_mask & (1 << front):
                 enemy_controls += 1
                 if raw_margin >= -self.weights[HW_CLOSE_FRONT_MARGIN]:
                     score -= self.weights[HW_CLOSE_FRONT_BONUS]
@@ -265,18 +285,6 @@ cdef class NativeHeuristicEvaluator:
             elif margin < -self.weights[HW_FRONT_MARGIN_CLAMP]:
                 margin = -<int>self.weights[HW_FRONT_MARGIN_CLAMP]
             score += self.weights[HW_MARGIN_WEIGHT] * margin
-
-        self.projected_lost_masks_fast(
-            state,
-            &projected_lost0,
-            &projected_lost1,
-        )
-        if player == 0:
-            own_lost_mask = projected_lost0
-            opponent_lost_mask = projected_lost1
-        else:
-            own_lost_mask = projected_lost1
-            opponent_lost_mask = projected_lost0
 
         own_losses = self.projected_front_loss_command_penalty_fast(
             state, player, own_lost_mask
