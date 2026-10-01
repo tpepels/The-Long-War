@@ -1,15 +1,16 @@
 (function () {
   "use strict";
 
-  const KINDS = new Set(["property", "timing", "trigger", "effect", "continuous", "constraint", "replacement"]);
+  const { cardType: CARD_TYPE, ruleBlockKind: RULE_BLOCK_KIND } = globalThis.LW_PROTOCOL;
+  const KINDS = new Set(Object.values(RULE_BLOCK_KIND));
   function fallbackLabel(card, block) {
     if (block?.label) return String(block.label);
-    if (block?.kind === "property") return "PLAY";
-    if (block?.kind === "trigger") {
-      return card?.type === "stratagem" ? "REVEAL" : "WHEN";
+    if (block?.kind === RULE_BLOCK_KIND.PROPERTY) return "PLAY";
+    if (block?.kind === RULE_BLOCK_KIND.TRIGGER) {
+      return card?.type === CARD_TYPE.STRATAGEM ? "REVEAL" : "WHEN";
     }
-    if (block?.kind === "continuous") return "WHILE";
-    if (block?.kind === "timing") return "TIMING";
+    if (block?.kind === RULE_BLOCK_KIND.CONTINUOUS) return "WHILE";
+    if (block?.kind === RULE_BLOCK_KIND.TIMING) return "TIMING";
     return "EFFECT";
   }
 
@@ -24,7 +25,7 @@
         (emptyMarkup || "<em>No special rules.</em>") + '</span></div>';
     }
     return blocks.map((block) => {
-      const kind = KINDS.has(block.kind) ? block.kind : "effect";
+      const kind = KINDS.has(block.kind) ? block.kind : RULE_BLOCK_KIND.EFFECT;
       const label = fallbackLabel(card, block);
       return '<div class="rule-block rule-' + kind + '">' +
         '<span class="rule-label">' + formatter(label) + '</span>' +
