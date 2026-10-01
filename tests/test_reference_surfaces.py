@@ -48,8 +48,8 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "no generic Draw operation" in rules
     assert "Base recovery = max(0, X - Y × (Battle - 1))" in rules
     assert "start of every turn" in rules
-    assert "two consecutive Passes" in rules
-    assert "first of the two consecutive Passes" in rules
+    assert "both players have Passed at least once" in rules
+    assert "player who **Passed first** starts the next Battle" in rules
     assert "<b>start turn:</b> draw 1." in playmat
     assert "reshuffle discard only if deck empties" in playmat_source
     assert "collapse before recovery" in playmat
@@ -73,7 +73,7 @@ def test_rulebook_core_values_match_standard_engine() -> None:
         f"**{standard.maneuver_command_cost} Command**"
         in rules_text
     )
-    assert "**two consecutive Passes**" in rules_text
+    assert "**both players have Passed at least once**" in rules_text
     assert (
         f"exactly one player is at **{standard.command_collapse_threshold} Command**"
         in rules_text
@@ -118,7 +118,7 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     assert "Battlefield & turn order" in page
     assert "WHERE CARDS GO" in page
     assert "CARD TEXT" in page
-    assert "AFTER TWO CONSECUTIVE PASSES" in page
+    assert "WHEN BOTH PLAYERS HAVE PASSED" in page
     assert "BETWEEN BATTLES" in page
     assert "Hero" in page
     assert "max 1 Hero card from hand per Battle" in page
@@ -259,7 +259,7 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
 
     assert "ACTIVE" in page
     assert "FIRST" in page and "TO PASS" in page
-    assert "PASS PENDING" in page
+    assert "PASS ACTIVE" in page
     assert "BATTLE WIN" not in page
     assert "STRATAGEM USED" in page
     assert page.count("HERO USED") == 2

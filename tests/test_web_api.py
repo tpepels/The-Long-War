@@ -240,7 +240,7 @@ def test_first_pass_hands_opponent_a_normal_turn_and_stays_open() -> None:
     assert session.state.players[second].passed is False
 
 
-def test_intervening_operation_clears_pass_in_browser_state() -> None:
+def test_intervening_operation_keeps_persistent_pass_in_browser_state() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
@@ -269,12 +269,12 @@ def test_intervening_operation_clears_pass_in_browser_state() -> None:
     session.act(force["key"], second)
 
     assert session.state.battle == 1
-    assert session.state.pass_order == []
-    assert not session.state.players[0].passed
-    assert not session.state.players[1].passed
+    assert session.state.pass_order == [first]
+    assert session.state.players[first].passed is True
+    assert session.state.players[second].passed is False
 
 
-def test_two_consecutive_passes_end_battle_and_first_passer_starts_next() -> None:
+def test_both_players_passing_ends_battle_and_first_passer_starts_next() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)

@@ -499,14 +499,15 @@ cdef class NativeHeuristicEvaluator:
         child.copy_from_fast(state)
         _fe_pass_action(self.engine, child, player)
 
-        # A second consecutive Pass has already resolved cleanup and Retreat,
-        # checked Collapse, applied surviving recovery, and set next initiative.
+        # If this signal ends the Battle, the exact transition has already
+        # resolved cleanup and Retreat, checked Collapse, applied surviving
+        # recovery, and set next initiative.
         if child.phase != PHASE_BATTLE or child.battle != state.battle:
             return self.battle_boundary_evaluate_fast(child, player)
 
-        # A first Pass gives the opponent a completely normal turn. Evaluate
-        # that actual resulting state - including their start-of-turn draw -
-        # rather than the pre-Pass board plus hand-written proxies.
+        # Otherwise evaluate the actual post-signal state. This also handles
+        # the experimental free flag, which deliberately leaves the same
+        # player on turn until they take their normal operation.
         return self.evaluate_fast(child, player)
 
     cdef bint action_needs_command_guard_probe_fast(
@@ -521,16 +522,6 @@ cdef class NativeHeuristicEvaluator:
             state.command[player] - self.engine.command_collapse_threshold
         )
         return margin <= 0 or cost >= margin
-
-    cdef bint battle_end_collapse_probe_needed_fast(
-        self,
-        FastState state,
-    ) noexcept:
-        """Whether current Command makes an exact second-Pass probe useful."""
-        return (
-            state.command[0] <= self.engine.command_collapse_threshold
-            or state.command[1] <= self.engine.command_collapse_threshold
-        )
 
     cdef bint action_exhausts_command_fast(
         self,

@@ -530,7 +530,7 @@ def test_terminal_game_completion_keeps_exact_terminal_utility() -> None:
     assert result["mean_value"] == pytest.approx(1.0)
 
 
-def test_second_consecutive_pass_stops_at_battle_boundary() -> None:
+def test_second_players_pass_stops_at_battle_boundary() -> None:
     engine, state = _pass_only_standard_state()
     engine.apply(state, Pass())
     assert state.battle == 1

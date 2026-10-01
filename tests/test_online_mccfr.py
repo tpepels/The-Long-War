@@ -89,7 +89,7 @@ def test_online_mccfr_agent_preserves_last_command() -> None:
     assert agent.last_decision["command_guard_applied"] is True
 
 
-def test_online_resolver_handles_second_consecutive_pass_with_unknown_deck() -> None:
+def test_online_resolver_handles_battle_ending_second_signal_with_unknown_deck() -> None:
     engine, deck = setup()
 
     p0_hidden = list(deck)

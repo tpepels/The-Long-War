@@ -228,7 +228,7 @@ def trace_scenario(
     }
 
 
-def consecutive_pass_scenario(
+def both_players_pass_scenario(
     engine: GameEngine,
     deck: list[str],
 ) -> dict[str, object]:
@@ -246,7 +246,7 @@ def consecutive_pass_scenario(
         state.players[1].deck.append(card)
 
     scenario = {
-        "name": "two-consecutive-passes",
+        "name": "both-players-pass",
         "initial": project_state(state),
         "steps": [],
     }
@@ -470,7 +470,7 @@ def main() -> None:
         "game_fingerprint": current_game_fingerprint(),
         "scenarios": [
             trace_scenario(engine, deck),
-            consecutive_pass_scenario(engine, deck),
+            both_players_pass_scenario(engine, deck),
             *narrative_limit_scenarios(engine, deck),
         ],
         "sessions": [
