@@ -21,6 +21,7 @@ from .model import (
     FRONT_COUNT,
     Slot,
     NarrativeState,
+    other_player,
     StratagemState,
 )
 
@@ -590,7 +591,7 @@ class GameEngine:
         player: int,
     ) -> tuple[int, ...]:
         totals = self.front_strength_matrix(state)
-        opponent = 1 - player
+        opponent = other_player(player)
         return tuple(
             totals[player][front] - totals[opponent][front]
             for front in range(FRONT_COUNT)
