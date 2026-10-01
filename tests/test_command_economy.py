@@ -328,6 +328,41 @@ def test_command_guard_keeps_zero_command_midbattle_actions() -> None:
     assert native_filtered == 0
 
 
+def test_rollout_guard_preserves_last_command_without_restricting_root() -> None:
+    rules = GameRules.standard().with_overrides(
+        command_collapse_threshold=0,
+        maneuver_command_cost=1,
+    )
+    engine, state = standard_game(rules=rules)
+    source = Position(Front.FIRST, Rank.FRONT)
+    destination = Position(Front.SECOND, Rank.FRONT)
+    GameScenario(state).formation(
+        0,
+        source,
+        force="the-fifty-men",
+        bond="followed",
+        name="namar",
+    ).commands(1, 5).operations(1, 1).clear_hands()
+
+    packed = engine._native_core().from_game_state(state)
+    maneuver = engine._native_action(
+        packed,
+        Maneuver(source, destination),
+    )
+
+    root_safe, root_filtered = (
+        engine._native_heuristic().command_preserving_action_codes(packed)
+    )
+    rollout_safe, rollout_filtered = (
+        engine._native_heuristic().rollout_preserving_action_codes(packed)
+    )
+
+    assert maneuver in root_safe
+    assert root_filtered == 0
+    assert maneuver not in rollout_safe
+    assert rollout_filtered >= 1
+
+
 def test_post_signal_evaluation_does_not_discount_immediate_closing_option() -> None:
     rules = GameRules.standard().with_overrides(pass_closing_rounds=3)
     engine, state = standard_game(rules=rules)
