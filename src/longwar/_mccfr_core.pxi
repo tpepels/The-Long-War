@@ -341,7 +341,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i = 0
     version = data[i]
     i += 1
-    if version not in (5, 6, 7):
+    if version not in (5, 6, 7, 8):
         raise ValueError(f"Unsupported fast information-key version: {version}")
 
     card_ids = engine.card_ids
@@ -376,6 +376,11 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     for _ in range(pass_len):
         pass_order.append(data[i] - 1)
         i += 1
+
+    pass_closing_turns_remaining = 0
+    if version >= 8:
+        pass_closing_turns_remaining = data[i] | (data[i + 1] << 8)
+        i += 2
 
     discarded_this_battle = []
     command = []
@@ -533,6 +538,11 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "opponent_deck_count": opponent_deck_count,
         "opponent_discard": opponent_discard,
     }
+    if version >= 8:
+        observation["pass_closing_turns_remaining"] = (
+            pass_closing_turns_remaining
+        )
+
     payload = json.dumps(
         observation,
         sort_keys=True,
