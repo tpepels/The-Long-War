@@ -163,7 +163,7 @@ cdef void _fe_queue_take_adjacent_prepared_component_on_force_play(
             or (state.name[source] >= 0 and state.name[destination] < 0)
         ):
             sources |= <uint16_t>(1 << source)
-    if front < 3:
+    if front < FRONT_COUNT - 1:
         source = slot_index(player, front + 1, rank)
         if state.force[source] < 0 and (
             (state.bond[source] >= 0 and state.bond[destination] < 0)
@@ -203,7 +203,7 @@ cdef void _fe_queue_take_adjacent_open_bond_on_name_play(
             and state.name[source] < 0
         ):
             sources |= <uint16_t>(1 << source)
-    if front < 3:
+    if front < FRONT_COUNT - 1:
         source = slot_index(player, front + 1, rank)
         if (
             state.force[source] >= 0
@@ -394,7 +394,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.cards_played_this_turn_front_mask[actor] |= 1 << front
         state.cards_played_this_battle_front_mask[actor] |= 1 << front
     if (kind == TYPE_FORCE or kind == TYPE_NAME) and card >= 0 and self.hero[card]:
-        state.hero_used[actor] = 1
+        state.hero_used[actor] += 1
 
     if kind == TYPE_FORCE:
         prepared_before = state.bond[pos] >= 0 or state.name[pos] >= 0
@@ -518,13 +518,13 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             <uint8_t>(dest + 1) if dest >= 0 else 0
         )
         state.stratagem_target_mask[actor] = <uint16_t>(extra & 0xFFFF)
-        state.stratagem_used[actor] = 1
+        state.stratagem_used[actor] += 1
 
         if self.strat_next_operation_front[card] and pos >= 0:
             front = 0
-            while front < 4 and not (pos & (1 << front)):
+            while front < FRONT_COUNT and not (pos & (1 << front)):
                 front += 1
-            if front < 4:
+            if front < FRONT_COUNT:
                 _fe_add_constraint(
                     state,
                     CONSTRAINT_AFFECT_FRONT,
