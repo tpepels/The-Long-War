@@ -14,7 +14,7 @@ from longwar.belief import (
 from longwar.cards import load_card_file
 from longwar.decks import validate_deck_definition
 from longwar.game import Front, GameEngine, Position, Rank
-from longwar.game.model import StoryState, StratagemState
+from longwar.game.model import NarrativeState, StratagemState
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -92,7 +92,7 @@ def test_belief_sample_preserves_all_public_zones() -> None:
     slot.force = "the-fifty-men"
     slot.bond = "followed"
     slot.name = "namar"
-    state.stories[opponent] = [StoryState("the-long-march")]
+    state.narratives[opponent] = [NarrativeState("the-long-march")]
     state.stratagems[opponent] = StratagemState("the-ground-was-held")
 
     sampler = BeliefSampler(engine)
@@ -104,7 +104,7 @@ def test_belief_sample_preserves_all_public_zones() -> None:
         "followed",
         "namar",
     )
-    assert [story.card_id for story in sampled.stories[opponent]] == [
+    assert [narrative.card_id for narrative in sampled.narratives[opponent]] == [
         "the-long-march"
     ]
     assert sampled.stratagems[opponent] is not None
@@ -112,9 +112,9 @@ def test_belief_sample_preserves_all_public_zones() -> None:
     assert sampled.players[opponent].discard == state.players[opponent].discard
 
 
-def test_belief_sampler_reports_no_hidden_story_or_stratagem_zones() -> None:
+def test_belief_sampler_reports_no_hidden_narrative_or_stratagem_zones() -> None:
     engine, _reference, state = setup()
-    state.stories[1] = [StoryState("the-long-march")]
+    state.narratives[1] = [NarrativeState("the-long-march")]
     state.stratagems[1] = StratagemState("the-ground-was-held")
 
     diagnostics = BeliefSampler(engine).diagnostics(state, 0)
@@ -158,12 +158,12 @@ def test_known_hidden_hand_card_is_preserved() -> None:
     assert known in sampled.players[opponent].hand
 
 
-def test_belief_reuse_context_changes_when_public_story_changes() -> None:
+def test_belief_reuse_context_changes_when_public_narrative_changes() -> None:
     engine, _reference, state = setup()
     sampler = BeliefSampler(engine)
 
     before = sampler.reuse_context(state, 0)
-    state.stories[1].append(StoryState("the-long-march"))
+    state.narratives[1].append(NarrativeState("the-long-march"))
     after = sampler.reuse_context(state, 0)
 
     assert before != after
