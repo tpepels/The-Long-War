@@ -139,10 +139,10 @@ cdef void _fe_discard_retreat_sagas(
     int front,
 ) noexcept:
     cdef int controller, narrative_slot, ix, card
-    for controller in range(2):
+    for controller in range(PLAYER_COUNT):
         narrative_slot = self.ongoing_narrative_limit - 1
         while narrative_slot >= 0:
-            ix = controller * 4 + narrative_slot
+            ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
             card = state.narrative[ix]
             if (
                 card >= 0
@@ -253,7 +253,7 @@ cdef inline bint _fe_front_has_capture_bond(
     int front,
 ) noexcept:
     cdef int rank, slot, bond
-    for rank in range(2):
+    for rank in range(RANK_COUNT):
         slot = slot_index(player, front, rank)
         if not _fe_slot_complete(self, state, slot):
             continue
@@ -264,8 +264,8 @@ cdef inline bint _fe_front_has_capture_bond(
 
 cdef void _fe_discard_incomplete_formations(FastEngine self, FastState state) noexcept:
     cdef int player, slot
-    for player in range(2):
-        for slot in range(player * 8, player * 8 + 8):
+    for player in range(PLAYER_COUNT):
+        for slot in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if (
                 state.force[slot] >= 0
                 or state.bond[slot] >= 0
@@ -275,7 +275,7 @@ cdef void _fe_discard_incomplete_formations(FastEngine self, FastState state) no
 
 cdef void _fe_discard_battle_stratagems(FastEngine self, FastState state) noexcept:
     cdef int player, card
-    for player in range(2):
+    for player in range(PLAYER_COUNT):
         card = state.stratagem[player]
         if card >= 0:
             _fe_append_discard(self, state, player, card, False)
@@ -322,7 +322,7 @@ cdef void _fe_finish_start_battle(
     state.pending_resume_player = -1
     state.cleanup_pending = 0
     state.phase = PHASE_BATTLE
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         state.battle_start_hand_size[p] = state.hand_len[p]
     _fe_start_turn_fast(self, state, starter)
 
@@ -339,9 +339,9 @@ cdef void _fe_begin_next_battle_fast(
     state.pending_resume_player = starter
 
     # Resolve start-of-Battle repositioning before the first normal turn.
-    for offset in range(2):
+    for offset in range(PLAYER_COUNT):
         player = starter if offset == 0 else 1 - starter
-        for slot in range(player * 8, player * 8 + 8):
+        for slot in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if not _fe_slot_complete(self, state, slot):
                 continue
             name = state.name[slot]
