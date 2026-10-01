@@ -1,7 +1,6 @@
 cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.card_type, 0, sizeof(self.card_type))
     memset(self.card_command_cost, 0, sizeof(self.card_command_cost))
-    memset(self.adjacent_command_discount, 0, sizeof(self.adjacent_command_discount))
     memset(self.completion_effect, 0, sizeof(self.completion_effect))
     memset(self.completion_amount, 0, sizeof(self.completion_amount))
     memset(self.complete_narrative_protection, 0, sizeof(self.complete_narrative_protection))
@@ -24,8 +23,11 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.first_maneuver_free, 0, sizeof(self.first_maneuver_free))
     memset(self.first_maneuver_free_empty_front, 0, sizeof(self.first_maneuver_free_empty_front))
     memset(self.local_catchup_discount_name, 0, sizeof(self.local_catchup_discount_name))
+    memset(self.local_catchup_minimum_cost_name, 0, sizeof(self.local_catchup_minimum_cost_name))
     memset(self.first_front_card_battle_discount_name, 0, sizeof(self.first_front_card_battle_discount_name))
+    memset(self.first_front_card_battle_minimum_cost_name, 0, sizeof(self.first_front_card_battle_minimum_cost_name))
     memset(self.first_narrative_battle_discount_force, 0, sizeof(self.first_narrative_battle_discount_force))
+    memset(self.first_narrative_battle_minimum_cost_force, 0, sizeof(self.first_narrative_battle_minimum_cost_force))
     memset(self.narrative_maneuver_empty_gain, 0, sizeof(self.narrative_maneuver_empty_gain))
     memset(self.narrative_trigger, 0, sizeof(self.narrative_trigger))
     memset(self.narrative_trigger_gain, 0, sizeof(self.narrative_trigger_gain))
@@ -35,6 +37,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.catchup_zero_cost, 0, sizeof(self.catchup_zero_cost))
     memset(self.completion_discount_cost, 0xff, sizeof(self.completion_discount_cost))
     memset(self.frontline_force_discount, 0, sizeof(self.frontline_force_discount))
+    memset(self.frontline_force_minimum_cost, 0, sizeof(self.frontline_force_minimum_cost))
     memset(self.frontline_force_discount_requires_named, 0, sizeof(self.frontline_force_discount_requires_named))
     memset(self.front_loss_protected_front, 0, sizeof(self.front_loss_protected_front))
     memset(self.driven_bond_stays, 0, sizeof(self.driven_bond_stays))
@@ -272,13 +275,26 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.first_maneuver_free_empty_front[code] = 1
         if design.get(DesignField.COMMAND) == DesignToken.LOCAL_CATCH_UP_DISCOUNT:
             self.local_catchup_discount_name[code] = int(
-                design.get(DesignField.FIRST_CARD_EACH_TURN_DISCOUNT, 1)
+                design.get(DesignField.DISCOUNT_AMOUNT, 0)
+            )
+            self.local_catchup_minimum_cost_name[code] = int(
+                design.get(DesignField.MINIMUM_COST, 0)
             )
         name_design = design.get(DesignField.NAME) or {}
-        if name_design.get(DesignField.COMMAND) == DesignToken.FIRST_CARD_IN_FRONT_EACH_BATTLE_DISCOUNT_1_MIN_1:
-            self.first_front_card_battle_discount_name[code] = 1
-        if force_design.get(DesignField.NARRATIVE) == DesignToken.FIRST_NARRATIVE_EACH_BATTLE_DISCOUNT_1_MIN_1:
-            self.first_narrative_battle_discount_force[code] = 1
+        if name_design.get(DesignField.COMMAND) == DesignToken.FIRST_CARD_IN_FRONT_EACH_BATTLE_DISCOUNT:
+            self.first_front_card_battle_discount_name[code] = int(
+                name_design.get(DesignField.DISCOUNT_AMOUNT, 0)
+            )
+            self.first_front_card_battle_minimum_cost_name[code] = int(
+                name_design.get(DesignField.MINIMUM_COST, 0)
+            )
+        if force_design.get(DesignField.NARRATIVE) == DesignToken.FIRST_NARRATIVE_EACH_BATTLE_DISCOUNT:
+            self.first_narrative_battle_discount_force[code] = int(
+                force_design.get(DesignField.DISCOUNT_AMOUNT, 0)
+            )
+            self.first_narrative_battle_minimum_cost_force[code] = int(
+                force_design.get(DesignField.MINIMUM_COST, 0)
+            )
         if force_design.get(DesignField.COMBAT) == DesignToken.BREAKTHROUGH:
             self.force_breakthrough[code] = 1
         name_design = design.get(DesignField.NAME) or {}
@@ -298,10 +314,20 @@ cdef void _fe___init__(FastEngine self, engine) except *:
                 design.get(DesignField.DISCOUNTED_COST, card.get(CardField.COMMAND_COST, 0))
             )
         if design.get(DesignField.PERSISTENCE) == DesignToken.REAR_REBUILD_COST_REDUCTION:
-            self.frontline_force_discount[code] = 1
+            self.frontline_force_discount[code] = int(
+                design.get(DesignField.DISCOUNT_AMOUNT, 0)
+            )
+            self.frontline_force_minimum_cost[code] = int(
+                design.get(DesignField.MINIMUM_COST, 0)
+            )
             self.frontline_force_discount_requires_named[code] = 1
-        if force_design.get(DesignField.COMMAND) == DesignToken.FRONTLINE_FORCE_DISCOUNT_1_MIN_1:
-            self.frontline_force_discount[code] = 1
+        if force_design.get(DesignField.COMMAND) == DesignToken.FRONTLINE_FORCE_DISCOUNT:
+            self.frontline_force_discount[code] = int(
+                force_design.get(DesignField.DISCOUNT_AMOUNT, 0)
+            )
+            self.frontline_force_minimum_cost[code] = int(
+                force_design.get(DesignField.MINIMUM_COST, 0)
+            )
         if force_design.get(DesignField.COMMAND) == DesignToken.PROTECT_LOST_FRONT_HERE:
             self.front_loss_protected_front[code] = 1
         if design.get(DesignField.PERSISTENCE) == DesignToken.INHERITED_BOND:
@@ -403,8 +429,10 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.bond_optional_extra_cost[code] = int(
                 design.get(DesignField.EXTRA_COST, 0)
             )
-            if design.get(DesignField.EFFECT) == DesignToken.DRAW_2:
-                self.bond_optional_draw_count[code] = 2
+            if design.get(DesignField.EFFECT) == DesignToken.DRAW_CARDS:
+                self.bond_optional_draw_count[code] = int(
+                    design.get(DesignField.DRAW_CARDS, 0)
+                )
         if design.get(DesignField.COMMAND) == DesignToken.CARD_FOR_COMMAND:
             self.narrative_discard_count[code] = int(
                 design.get(DesignField.DISCARD_CARDS, 0)
@@ -462,7 +490,9 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         elif battle_end.get(DesignField.CONDITION) == DesignToken.CHOSEN_FORMATION_STILL_ON_BATTLEFIELD:
             self.narrative_end_kind[code] = NARR_END_TARGET_SURVIVES
         self.narrative_end_gain[code] = int(battle_end.get(DesignField.GAIN_COMMAND, 0))
-        self.narrative_end_draw[code] = 1 if battle_end.get(DesignField.SECONDARY) == DesignToken.DRAW_1 else 0
+        self.narrative_end_draw[code] = int(
+            battle_end.get(DesignField.DRAW_CARDS, 0)
+        )
         self.narrative_end_recover_bond[code] = 1 if battle_end.get(DesignField.BONUS_IF_WON) == DesignToken.RETURN_ONE_BOND_FROM_DISCARD_TO_HAND else 0
         self.narrative_end_discard[code] = bool(battle_end.get(DesignField.DISCARD_SELF, False))
         if design.get(DesignField.STRATAGEM) == DesignToken.ALL_RESERVES_FORWARD:
