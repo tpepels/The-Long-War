@@ -8,7 +8,7 @@ You play across four contested areas. During a round, both players build up posi
 
 When both players are ready to stop, the four areas are settled separately. Some groups survive into the next round, some are pushed back, and some disappear entirely. The resource you spent does not simply come back.
 
-That makes every round part of a longer argument. You may give up ground now to preserve strength for later, or spend heavily to hold a position that matters. Eventually one side can no longer sustain the war.
+That makes every round part of a longer argument. You may give up ground now to preserve resources for later, or spend heavily to hold a position that matters. Eventually one side can no longer sustain the war.
 
 > If you remember one idea before learning the vocabulary, remember this: what you spend and what you leave standing now will shape the next round.
 
@@ -281,7 +281,7 @@ The check that can end the war is called **Command Collapse**. It happens after 
 
 - If either player is at or below **{{COLLAPSE_THRESHOLD}} Command**, compare their current Command.
 - The player with lower Command loses the war.
-- If their Command is equal, the war ends in a **draw**.
+- If both players are at or below **{{COLLAPSE_THRESHOLD}} Command** with equal Command, the war ends in a **draw**.
 - Only a continuing war receives Command recovery.
 
 ## Special card types {#stories}
