@@ -18,6 +18,7 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase
+from .game.model import other_player
 from .protocol import PolicySource
 from .progression import ProgressionTelemetry
 from .heuristics import command_preserving_actions
@@ -1334,7 +1335,7 @@ class Telemetry:
         state: GameState,
         player: int,
     ) -> list[int]:
-        opponent = 1 - player
+        opponent = other_player(player)
         return [
             engine.front_strength(state, player, front)
             - engine.front_strength(state, opponent, front)
