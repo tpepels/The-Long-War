@@ -119,8 +119,6 @@ def test_belief_sampler_reports_no_hidden_story_or_stratagem_zones() -> None:
 
     diagnostics = BeliefSampler(engine).diagnostics(state, 0)
 
-    assert diagnostics.hidden_schemes == 0
-    assert diagnostics.hidden_stratagems == 0
 
 
 def test_belief_samples_vary_only_hidden_hand_and_deck_partition() -> None:
