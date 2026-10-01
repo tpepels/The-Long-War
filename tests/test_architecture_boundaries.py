@@ -4,6 +4,8 @@ import inspect
 import re
 from pathlib import Path
 
+import pytest
+
 from longwar.cards import CARD_CAPABILITY_BITS, load_card_file
 from longwar.game import GameEngine
 from longwar.heuristics import StrategicEvaluator
@@ -600,3 +602,40 @@ def test_native_heuristic_weights_are_runtime_configuration() -> None:
     custom = create_heuristic_evaluator(engine._native_core(), custom_weights)
     index = tuple(DEFAULT_HEURISTIC_WEIGHTS.as_dict()).index("terminal_win_score")
     assert custom.weight_values()[index] == 12345.0
+
+
+def test_native_source_fingerprint_is_generated_and_current() -> None:
+    from tools import build_native_fingerprint
+
+    generated = SRC / "_native_source_fingerprint.generated.pxi"
+    assert generated.read_text(encoding="utf-8") == build_native_fingerprint.render()
+
+
+def test_native_source_guard_rejects_stale_host_binary() -> None:
+    from types import SimpleNamespace
+    from longwar.native_fingerprint import assert_native_module_current
+
+    stale = SimpleNamespace(
+        NATIVE_SOURCE_CHECKABLE=True,
+        NATIVE_SOURCE_FINGERPRINT="definitely-stale",
+    )
+    with pytest.raises(RuntimeError, match="make native-build"):
+        assert_native_module_current(stale)
+
+
+def test_browser_native_artifact_skips_host_source_check() -> None:
+    from types import SimpleNamespace
+    from longwar.native_fingerprint import assert_native_module_current
+
+    browser = SimpleNamespace(
+        NATIVE_SOURCE_CHECKABLE=False,
+        NATIVE_SOURCE_FINGERPRINT="browser-build",
+    )
+    assert assert_native_module_current(browser) is browser
+
+
+def test_verify_rebuilds_native_extension_before_tests() -> None:
+    source = (ROOT / "Makefile").read_text(encoding="utf-8")
+    verify = source.split("verify:", 1)[1].split("\n\n", 1)[0]
+    assert "$(MAKE) native-build" in verify
+    assert "build_native_fingerprint.py" in source
