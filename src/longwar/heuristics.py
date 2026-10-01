@@ -82,7 +82,7 @@ def opening_mulligan_indices(
             score = 3.2
         elif card_type == "name":
             score = 3.0
-        elif card_type == "story":
+        elif card_type == "narrative":
             score = 3.7 if card.get("ongoing", False) else 2.6
         elif card_type == "stratagem":
             seen_stratagems += 1
