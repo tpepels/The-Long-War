@@ -145,7 +145,7 @@ def test_short_strategic_candidate_simulation_finishes() -> None:
         strategic_node_budget=2_000,
     )
 
-    assert sum(report.wins) + report.censored_games == 2
+    assert sum(report.wins) + report.draws + report.censored_games == 2
     assert report.telemetry["depletion"]["player_game_deck_exhaustion_rate"] is not None
     decisions = report.telemetry["decisions"]["strategic_heuristic"]
     assert decisions["mean_search_nodes"] is not None
