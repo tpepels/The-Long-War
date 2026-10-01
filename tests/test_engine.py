@@ -17,12 +17,12 @@ from longwar.game import (
     PlayBond,
     PlayForce,
     PlayName,
-    PlayStory,
+    PlayNarrative,
     PlayStratagem,
     Position,
     Rank,
 )
-from longwar.game.model import FRONT_COUNT, Phase, StoryState, StratagemState
+from longwar.game.model import FRONT_COUNT, Phase, NarrativeState, StratagemState
 from longwar.rules import GameRules
 
 
@@ -529,7 +529,7 @@ def test_yara_discounts_only_first_narrative_each_battle() -> None:
         "no-road-was-too-long",
     ]
 
-    first = PlayStory(
+    first = PlayNarrative(
         "before-sunset-the-ford-would-be-ours",
         ongoing_slot=0,
         fronts=(Front.FIRST,),
@@ -542,7 +542,7 @@ def test_yara_discounts_only_first_narrative_each_battle() -> None:
     state.pending_draw_discard_for = None
     state.pending_draw_count = 0
     state.pending_draw_finish_operation = False
-    second = PlayStory("no-road-was-too-long", ongoing_slot=1)
+    second = PlayNarrative("no-road-was-too-long", ongoing_slot=1)
     assert second in engine.legal_actions(state)
     assert engine.command_cost_for_action(state, second) == 2
 
@@ -550,7 +550,7 @@ def test_yara_discounts_only_first_narrative_each_battle() -> None:
 def test_long_march_regains_command_only_on_first_maneuver_into_empty_each_battle() -> None:
     engine, state = setup_state()
     state.players[0].command = 5
-    state.stories[0] = [StoryState("the-long-march")]
+    state.narratives[0] = [NarrativeState("the-long-march")]
     first = pos(1, Rank.FRONT)
     second = pos(2, Rank.FRONT)
     third = pos(3, Rank.FRONT)
@@ -559,7 +559,7 @@ def test_long_march_regains_command_only_on_first_maneuver_into_empty_each_battl
     engine.apply(state, Maneuver(first, second))
 
     assert state.players[0].command == 5
-    assert state.stories[0][0].triggered_this_battle is True
+    assert state.narratives[0][0].triggered_this_battle is True
 
     state.active_player = 0
     state.pending_draw_discard_for = None
@@ -573,7 +573,7 @@ def test_long_march_regains_command_only_on_first_maneuver_into_empty_each_battl
 def test_named_narrative_trigger_regains_command_and_discards_itself() -> None:
     engine, state = setup_state()
     state.players[0].command = 5
-    state.stories[0] = [StoryState("they-returned-with-names")]
+    state.narratives[0] = [NarrativeState("they-returned-with-names")]
     target = pos(0, Rank.FRONT)
     state.slot(0, target).force = "the-fifty-men"
     state.slot(0, target).bond = "followed"
@@ -582,14 +582,14 @@ def test_named_narrative_trigger_regains_command_and_discards_itself() -> None:
     engine.apply(state, PlayName("asha-the-shield-bearer", target))
 
     assert state.players[0].command == 5
-    assert state.stories[0] == []
+    assert state.narratives[0] == []
     assert "they-returned-with-names" in state.players[0].discard
 
 
 def test_opposing_named_narrative_trigger_belongs_to_other_player() -> None:
     engine, state = setup_state()
     state.players[1].command = 5
-    state.stories[1] = [StoryState("they-were-gathering-there")]
+    state.narratives[1] = [NarrativeState("they-were-gathering-there")]
     target = pos(0, Rank.FRONT)
     state.slot(0, target).force = "the-fifty-men"
     state.slot(0, target).bond = "followed"
@@ -598,21 +598,21 @@ def test_opposing_named_narrative_trigger_belongs_to_other_player() -> None:
     engine.apply(state, PlayName("asha-the-shield-bearer", target))
 
     assert state.players[1].command == 6
-    assert state.stories[1] == []
+    assert state.narratives[1] == []
     assert "they-were-gathering-there" in state.players[1].discard
 
 
 def test_muster_false_triggers_when_opponent_fills_both_ranks_of_front() -> None:
     engine, state = setup_state()
     state.players[1].command = 5
-    state.stories[1] = [StoryState("the-muster-was-false")]
+    state.narratives[1] = [NarrativeState("the-muster-was-false")]
     state.slot(0, pos(0, Rank.REAR)).force = "the-fifty-men"
     state.players[0].hand = ["the-fifty-men"]
 
     engine.apply(state, PlayForce("the-fifty-men", pos(0, Rank.FRONT)))
 
     assert state.players[1].command == 6
-    assert state.stories[1] == []
+    assert state.narratives[1] == []
     assert "the-muster-was-false" in state.players[1].discard
 
 
@@ -659,8 +659,8 @@ def test_baggage_warning_can_discard_another_card_to_regain_command() -> None:
         "the-fifty-men",
     ]
 
-    decline = PlayStory("the-baggage-was-abandoned")
-    trade = PlayStory(
+    decline = PlayNarrative("the-baggage-was-abandoned")
+    trade = PlayNarrative(
         "the-baggage-was-abandoned",
         discard_card_id="the-fifty-men",
     )
@@ -1319,7 +1319,7 @@ def test_empty_draw_pile_reshuffles_discard_only_when_draw_is_required() -> None
     assert state.deck_reshuffles[1] == 1
 
 
-def test_ongoing_story_slot_does_not_receive_adjacent_front_discount() -> None:
+def test_ongoing_narrative_slot_does_not_receive_adjacent_front_discount() -> None:
     engine, state = setup_state()
     target = pos(0, Rank.FRONT)
     slot = state.slot(0, target)
@@ -1329,38 +1329,38 @@ def test_ongoing_story_slot_does_not_receive_adjacent_front_discount() -> None:
     state.players[0].hand = ["the-long-march"]
     state.players[0].command = 20
 
-    story = PlayStory("the-long-march", ongoing_slot=0)
-    assert story in engine.legal_actions(state)
-    assert engine.command_cost_for_action(state, story) == 2
+    narrative = PlayNarrative("the-long-march", ongoing_slot=0)
+    assert narrative in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, narrative) == 2
 
 
 def test_ongoing_stories_are_public_and_respect_configured_limit() -> None:
     rules = GameRules.standard().with_overrides(ongoing_narrative_limit=2)
     engine, state = setup_state(rules=rules)
     assert engine.ongoing_narrative_limit == rules.ongoing_narrative_limit
-    stories = [
+    narratives = [
         "the-long-march",
         "they-returned-with-names",
         "the-crows-came-down",
     ]
-    state.players[0].hand = list(stories)
+    state.players[0].hand = list(narratives)
     state.players[0].command = 20
     state.players[1].hand = []
 
-    first = PlayStory(stories[0], ongoing_slot=0)
+    first = PlayNarrative(narratives[0], ongoing_slot=0)
     assert first in engine.legal_actions(state)
     engine.apply(state, first)
 
     state.active_player = 0
-    second = PlayStory(stories[1], ongoing_slot=1)
+    second = PlayNarrative(narratives[1], ongoing_slot=1)
     assert second in engine.legal_actions(state)
     engine.apply(state, second)
 
-    assert [story.card_id for story in state.stories[0]] == stories[:2]
+    assert [narrative.card_id for narrative in state.narratives[0]] == narratives[:2]
     state.active_player = 0
     legal = engine.legal_actions(state)
     assert not any(
-        isinstance(action, PlayStory) and action.card_id == stories[2]
+        isinstance(action, PlayNarrative) and action.card_id == narratives[2]
         for action in legal
     )
 
@@ -1753,8 +1753,8 @@ def test_wall_did_not_break_resolves_battle_end_reward_and_recovery() -> None:
     state.players[0].hand = []
     state.players[0].discard = ["followed"]
     make_named(state, 0, pos(0, Rank.FRONT))
-    state.stories[0] = [
-        StoryState(
+    state.narratives[0] = [
+        NarrativeState(
             "the-wall-did-not-break",
             fronts=(Front.FIRST,),
         )
@@ -1790,8 +1790,8 @@ def test_before_sunset_draws_at_battle_end_and_records_refund() -> None:
     state.battle_start_command[:] = [10, 10]
     state.players[0].hand = []
     make_named(state, 0, pos(0, Rank.FRONT))
-    state.stories[0] = [
-        StoryState(
+    state.narratives[0] = [
+        NarrativeState(
             "before-sunset-the-ford-would-be-ours",
             fronts=(Front.FIRST,),
         )
@@ -2127,8 +2127,8 @@ def test_they_lived_to_tell_it_rewards_a_surviving_target() -> None:
     state.players[0].hand = []
     target = pos(0, Rank.FRONT)
     make_named(state, 0, target)
-    state.stories[0] = [
-        StoryState(
+    state.narratives[0] = [
+        NarrativeState(
             "they-lived-to-tell-it",
             target_player=0,
             target_position=target,
@@ -2315,7 +2315,7 @@ def test_banner_singers_trigger_after_narrative_command_gain() -> None:
     make_named(state, 0, source)
     make_named(state, 0, other_named)
     state.slot(0, pos(3, Rank.REAR)).force = "the-banner-singers"
-    state.stories[0] = [StoryState("the-long-march")]
+    state.narratives[0] = [NarrativeState("the-long-march")]
     state.players[0].command = 5
 
     engine.apply(state, Maneuver(source, destination))
