@@ -450,7 +450,7 @@ function cardTitle(cardId) {
 
 function cardType(card) {
   const type = canonicalType(card);
-  if (type === "story") {
+  if (type === "narrative") {
     const form = titleCase(card.narrative_form);
     const ongoing = card.ongoing ?? false;
     return form ? form + (ongoing ? " · Ongoing Narrative" : " · Narrative") : (ongoing ? "Ongoing Narrative" : "Narrative");
@@ -564,7 +564,7 @@ function targetActionsForSlot(owner, front, rank) {
       if (owner === currentViewer() && posEquals(action.position, front, rank)) matches.push(action);
       continue;
     }
-    if (action.kind !== "PlayStory") continue;
+    if (action.kind !== "PlayNarrative") continue;
     if (action.targets.length === 1) {
       if (locEquals(action.targets[0], owner, front, rank)) matches.push(action);
       continue;
@@ -688,29 +688,29 @@ function renderSlot(owner, front, rank) {
 }
 
 function renderStorySlot(owner, slot) {
-  const story = state.stories?.[owner]?.[slot] || null;
-  const classes = ["story-marker"];
-  if (!story) classes.push("empty");
+  const narrative = state.narratives?.[owner]?.[slot] || null;
+  const classes = ["narrative-marker"];
+  if (!narrative) classes.push("empty");
   const attrs =
-    'data-story-owner="' + owner +
-    '" data-story-slot="' + slot + '"';
+    'data-narrative-owner="' + owner +
+    '" data-narrative-slot="' + slot + '"';
 
-  if (!story) {
+  if (!narrative) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
       '<span>Ongoing Narrative ' + (slot + 1) + '</span><b>empty</b></div>';
   }
-  const association = story.fronts?.length
-    ? " · " + story.fronts.map((front) => frontNames[front]).join(" + ")
-    : story.target
-      ? " · " + story.target.front_name + " " + story.target.rank_name
+  const association = narrative.fronts?.length
+    ? " · " + narrative.fronts.map((front) => frontNames[front]).join(" + ")
+    : narrative.target
+      ? " · " + narrative.target.front_name + " " + narrative.target.rank_name
       : "";
   return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
     '<span>Ongoing Narrative ' + (slot + 1) + '</span>' +
     '<button type="button" class="public-card-link" ' +
-      'data-inspect-card="' + esc(story.card_id) + '" ' +
+      'data-inspect-card="' + esc(narrative.card_id) + '" ' +
       'data-inspect-owner="' + owner + '" ' +
       'data-inspect-zone="ongoing narrative">' +
-      esc(cardTitle(story.card_id)) + esc(association) +
+      esc(cardTitle(narrative.card_id)) + esc(association) +
     '</button></div>';
 }
 
@@ -784,11 +784,11 @@ function renderRankRow(owner, rank, label) {
 }
 
 function renderStoryRow(owner) {
-  return '<div class="story-row"><span class="rank-label">Narratives</span>' +
+  return '<div class="narrative-row"><span class="rank-label">Narratives</span>' +
     renderStorySlot(owner, 0) +
     renderStorySlot(owner, 1) +
-    '<div class="story-spacer" aria-hidden="true"></div>' +
-    '<div class="story-spacer" aria-hidden="true"></div>' +
+    '<div class="narrative-spacer" aria-hidden="true"></div>' +
+    '<div class="narrative-spacer" aria-hidden="true"></div>' +
   '</div>';
 }
 
@@ -982,7 +982,7 @@ function interactionHintFor(card) {
     }
     return "Play this as your public Stratagem.";
   }
-  if (actions.some((a) => a.kind === "PlayStory")) {
+  if (actions.some((a) => a.kind === "PlayNarrative")) {
     if (actions.some((a) => a.ongoing_slot != null)) {
       return "Play this Ongoing Narrative. The first open Narrative slot is assigned automatically.";
     }
@@ -1124,7 +1124,7 @@ function renderChoiceTray() {
     const selected = selectedActions();
     const direct = selected.filter((a) =>
       a.kind === "Discard" ||
-      (a.kind === "PlayStory" && a.targets.length === 0)
+      (a.kind === "PlayNarrative" && a.targets.length === 0)
     );
     if (
       direct.length > 0 &&
@@ -1446,7 +1446,7 @@ function handleBoardTarget(owner, front, rank) {
 
   const all = selectedActions();
   const isTwoTargetStory = all.some(
-    (a) => a.kind === "PlayStory" && a.targets.length === 2
+    (a) => a.kind === "PlayNarrative" && a.targets.length === 2
   );
   if (isTwoTargetStory && !stagedNarrativeSource) {
     const sourceMatches = all.filter(
@@ -1567,7 +1567,7 @@ function renderActionFeedback() {
     kicker = own ? "YOU PLAY A BOND" : "OPPONENT PLAYS A BOND";
   } else if (action.kind === "PlayName") {
     kicker = own ? "YOU PLAY A NAME" : "OPPONENT PLAYS A NAME";
-  } else if (action.kind === "PlayStory") {
+  } else if (action.kind === "PlayNarrative") {
     kicker = own ? "YOU PLAY A NARRATIVE" : "OPPONENT PLAYS A NARRATIVE";
   } else if (action.kind === "PlayStratagem") {
     kicker = own ? "YOU PLAY A STRATAGEM" : "OPPONENT PLAYS A STRATAGEM";
@@ -1869,7 +1869,7 @@ document.addEventListener("keydown", (event) => {
 function focusIdentity() {
   const el = document.activeElement;
   if (!el || el === document.body) return null;
-  const names = ["hand-index", "mulligan-index", "inspect-card", "inspect-owner", "inspect-zone", "board-owner", "board-front", "board-rank", "story-owner", "story-slot", "stratagem-owner"];
+  const names = ["hand-index", "mulligan-index", "inspect-card", "inspect-owner", "inspect-zone", "board-owner", "board-front", "board-rank", "narrative-owner", "narrative-slot", "stratagem-owner"];
   if (el.id) return { id: el.id };
   const attrs = names.filter((name) => el.hasAttribute("data-" + name)).map((name) => ["data-" + name, el.getAttribute("data-" + name)]);
   return { el, attrs };
@@ -1962,13 +1962,13 @@ function captureCardAnchors(snapshot) {
   const anchors = [];
   document.querySelectorAll("#hand [data-card-id], #battlefield [data-inspect-card]").forEach((node) => {
     const slot = node.closest("[data-board-owner]");
-    const story = node.closest("[data-story-slot]");
+    const narrative = node.closest("[data-narrative-slot]");
     const stratagem = node.closest("[data-stratagem-owner]");
     const owner = node.closest("#hand") ? snapshot.viewer : Number(node.dataset.inspectOwner);
     const zone = slot
       ? `slot:${slot.dataset.boardFront}:${slot.dataset.boardRank}:${node.dataset.inspectZone}`
-      : story
-        ? "story:" + story.dataset.storySlot
+      : narrative
+        ? "narrative:" + narrative.dataset.storySlot
         : stratagem
           ? "stratagem"
           : "hand";
@@ -2033,7 +2033,7 @@ function animateSnapshot(previous, before) {
 window.render_game_to_text = () => JSON.stringify({
   coordinate_system: "Fronts 0-3=Front 1-4; ranks front=Frontline, rear=Rear; viewer at bottom",
   ready: cardsReady,
-  ...(state ? Object.fromEntries(["phase", "battle", "viewer", "active_player", "needs_ai", "needs_reveal", "winner", "players", "hand", "board", "stories", "story_limit", "stratagems", "pass_order", "pending_draw_discard_for", "front_strengths", "front_control", "legal_actions", "last_action"].map((key) => [key, state[key]])) : { phase: "setup" }),
+  ...(state ? Object.fromEntries(["phase", "battle", "viewer", "active_player", "needs_ai", "needs_reveal", "winner", "players", "hand", "board", "narratives", "narrative_limit", "stratagems", "pass_order", "pending_draw_discard_for", "front_strengths", "front_control", "legal_actions", "last_action"].map((key) => [key, state[key]])) : { phase: "setup" }),
   selected_card: selectedCardId,
   selected_hand_index: selectedHandIndex,
   selected_source: stagedNarrativeSource,
