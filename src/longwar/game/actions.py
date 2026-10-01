@@ -34,7 +34,7 @@ class PlayName:
 
 
 @dataclass(frozen=True)
-class PlayStory:
+class PlayNarrative:
     card_id: str
     targets: tuple[BoardTarget, ...] = ()
     ongoing_slot: int | None = None
@@ -81,7 +81,7 @@ Action: TypeAlias = (
     PlayForce
     | PlayBond
     | PlayName
-    | PlayStory
+    | PlayNarrative
     | PlayStratagem
     | Maneuver
     | Discard
@@ -146,9 +146,9 @@ def action_key(action: object) -> str:
             f"name:{action.card_id}:{int(action.position.front)}:"
             f"{action.position.rank.value}"
         )
-    if isinstance(action, PlayStory):
+    if isinstance(action, PlayNarrative):
         if action.ongoing_slot is not None:
-            key = f"story:{action.card_id}:ongoing:{action.ongoing_slot}"
+            key = f"narrative:{action.card_id}:ongoing:{action.ongoing_slot}"
             if action.fronts:
                 key += ":fronts:" + ",".join(str(int(front)) for front in action.fronts)
             if action.targets:
@@ -160,13 +160,13 @@ def action_key(action: object) -> str:
                 key += f":direction:{action.direction}"
             return key
         if action.discard_card_id is not None:
-            return f"story:{action.card_id}:discard:{action.discard_card_id}"
+            return f"narrative:{action.card_id}:discard:{action.discard_card_id}"
         targets = ";".join(
             f"{target.player}:{int(target.position.front)}:"
             f"{target.position.rank.value}"
             for target in action.targets
         )
-        return f"story:{action.card_id}:{targets}"
+        return f"narrative:{action.card_id}:{targets}"
     if isinstance(action, PlayStratagem):
         key = f"stratagem:{action.card_id}"
         if action.fronts:
@@ -284,10 +284,10 @@ def action_from_key(key: str) -> object:
                 raise ValueError(f"Unknown Stratagem action field: {label}")
             index += 2
         return PlayStratagem(card_id, fronts, direction, targets)
-    if parts[0] == "story":
+    if parts[0] == "narrative":
         card_id = parts[1]
         if len(parts) >= 4 and parts[2] == "discard":
-            return PlayStory(card_id, discard_card_id=parts[3])
+            return PlayNarrative(card_id, discard_card_id=parts[3])
         if len(parts) >= 4 and parts[2] == "ongoing":
             slot = int(parts[3])
             fronts: tuple[Front, ...] = ()
@@ -314,7 +314,7 @@ def action_from_key(key: str) -> object:
                 else:
                     raise ValueError(f"Unknown Narrative action field: {label}")
                 index += 2
-            return PlayStory(
+            return PlayNarrative(
                 card_id,
                 targets=targets,
                 ongoing_slot=slot,
@@ -329,5 +329,5 @@ def action_from_key(key: str) -> object:
                 targets.append(
                     BoardTarget(int(player), _position(front, rank))
                 )
-        return PlayStory(card_id, tuple(targets))
+        return PlayNarrative(card_id, tuple(targets))
     raise ValueError(f"Unknown action key: {key}")
