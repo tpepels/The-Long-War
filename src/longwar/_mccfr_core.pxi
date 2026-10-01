@@ -335,6 +335,7 @@ def make_scratch(int max_depth):
 
 
 
+@cython.boundscheck(True)
 def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     """Translate the current binary key to the public stable policy id."""
     data = key
