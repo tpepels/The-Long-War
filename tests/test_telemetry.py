@@ -15,7 +15,7 @@ from longwar.game.model import (
     OperationConstraint,
     Position,
     Rank,
-    StoryState,
+    NarrativeState,
 )
 from longwar.progression import ProgressionTelemetry
 from longwar.rules import GameRules
@@ -328,8 +328,8 @@ def test_mechanical_choice_and_pass_context_use_actual_legal_set() -> None:
 def test_constraint_rule_source_is_not_misreported_as_active_constraint() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=606, first_player=0, opening_bonus=False)
-    state.stories[0].append(
-        StoryState(card_id="the-king-had-given-the-order", ongoing=True)
+    state.narratives[0].append(
+        NarrativeState(card_id="the-king-had-given-the-order", ongoing=True)
     )
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
