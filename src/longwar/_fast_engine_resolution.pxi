@@ -15,7 +15,7 @@ cdef void _fe_queue_pre_resolution_choice(
         force = state.stratagem[controller]
         if force >= 0 and self.feigned_retreat_strat[force]:
             mask = 0
-            for front in range(4):
+            for front in range(FRONT_COUNT):
                 slot = slot_index(controller, front, 0)
                 rear = slot_index(controller, front, 1)
                 if (
@@ -172,7 +172,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     state.resolution_drive_mask[0] = 0
     state.resolution_drive_mask[1] = 0
 
-    for front in range(4):
+    for front in range(FRONT_COUNT):
         a = _fe_resolution_front_strength_fast(self, state, 0, front)
         b = _fe_resolution_front_strength_fast(self, state, 1, front)
         state.last_front_scores[front][0] = a
@@ -198,7 +198,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
                     )
 
     # The Center Must Hold replaces the two individual results.
-    for controller in range(2):
+    for controller in range(PLAYER_COUNT):
         strat = state.stratagem[controller]
         if strat < 0 or not self.strat_combine_fronts[strat]:
             continue
@@ -207,7 +207,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
             continue
         combined0 = 0
         combined1 = 0
-        for front in range(4):
+        for front in range(FRONT_COUNT):
             if mask & (1 << front):
                 combined0 += _fe_resolution_front_strength_fast(self, 
                     state, 0, front
@@ -223,7 +223,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
             state.resolution_lost_mask[1] |= <uint8_t>mask
 
     # Breakthrough replacements.
-    for front in range(4):
+    for front in range(FRONT_COUNT):
         if (
             state.resolution_lost_mask[0] & (1 << front)
             and state.force[slot_index(0, front, 1)] < 0
@@ -237,7 +237,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         ):
             state.resolution_drive_mask[1] |= <uint8_t>(1 << front)
 
-    for controller in range(2):
+    for controller in range(PLAYER_COUNT):
         strat = state.stratagem[controller]
         if strat >= 0 and self.strat_no_retreat[strat]:
             mask = state.stratagem_front_mask[controller] & 15
@@ -277,11 +277,11 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         losses1 * self.lost_front_command_penalty
     )
 
-    for front in range(4):
+    for front in range(FRONT_COUNT):
         if state.resolution_lost_mask[0] & (1 << front):
             protected = 0
             protected_card = -1
-            for p in range(2):
+            for p in range(PLAYER_COUNT):
                 card = state.force[slot_index(0, front, p)]
                 if card >= 0 and self.front_loss_protected_front[card]:
                     protected = self.lost_front_command_penalty
@@ -300,7 +300,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         if state.resolution_lost_mask[1] & (1 << front):
             protected = 0
             protected_card = -1
-            for p in range(2):
+            for p in range(PLAYER_COUNT):
                 card = state.force[slot_index(1, front, p)]
                 if card >= 0 and self.front_loss_protected_front[card]:
                     protected = self.lost_front_command_penalty
@@ -354,9 +354,9 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
     cdef int player, front, front_slot, rear_slot, force
     cdef uint16_t destinations
 
-    while state.resolution_cursor < 8:
-        player = state.resolution_cursor // 4
-        front = state.resolution_cursor % 4
+    while state.resolution_cursor < PLAYER_COUNT * FRONT_COUNT:
+        player = state.resolution_cursor // FRONT_COUNT
+        front = state.resolution_cursor % FRONT_COUNT
         if not (
             state.resolution_lost_mask[player] & (1 << front)
         ):
@@ -371,7 +371,7 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
         force = state.force[rear_slot]
         if force >= 0 and (self.card_capabilities[force] & CAP_AFTER_FRONTLINE_RETREAT_SIDEWAYS_FORCE):
             state.resolution_drive_mask[player] |= <uint8_t>(
-                1 << (front + 4)
+                1 << (front + FRONT_COUNT)
             )
 
         if _fe_slot_complete(self, state, front_slot) and force >= 0:
@@ -383,12 +383,12 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
                 (self.card_capabilities[force] & CAP_OPTIONAL_SELF_DRIVE_PREVENT_FRONTLINE_RETREAT_FORCE)
                 and not (
                     state.resolution_protected_mask[player]
-                    & (1 << (front + 4))
+                    & (1 << (front + FRONT_COUNT))
                 )
             ):
                 # Mark offered before pausing so declining cannot requeue it.
                 state.resolution_protected_mask[player] |= <uint8_t>(
-                    1 << (front + 4)
+                    1 << (front + FRONT_COUNT)
                 )
                 _fe_enqueue_effect(self, 
                     state,
@@ -432,7 +432,7 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
                 state, player, rear_slot
             )
 
-        if state.resolution_drive_mask[player] & (1 << (front + 4)):
+        if state.resolution_drive_mask[player] & (1 << (front + FRONT_COUNT)):
             destinations = _fe_adjacent_empty_mask(self, 
                 state, player, rear_slot
             )
@@ -458,9 +458,9 @@ cdef bint _fe_resolve_one_battle_end_narrative(
     cdef int target_slot, gain
     cdef uint8_t front_mask
     cdef bint condition, won
-    for player in range(2):
+    for player in range(PLAYER_COUNT):
         for narrative_slot in range(self.ongoing_narrative_limit):
-            ix = player * 4 + narrative_slot
+            ix = player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
             card = state.narrative[ix]
             if card < 0:
                 continue
@@ -551,10 +551,10 @@ cdef void _fe_resolve_battle_end_operation_constraints(
     elif popcount16(state.resolution_lost_mask[0]) >= 3:
         winner = 1
 
-    for controller in range(2):
+    for controller in range(PLAYER_COUNT):
         narrative_slot = self.ongoing_narrative_limit - 1
         while narrative_slot >= 0:
-            ix = controller * 4 + narrative_slot
+            ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
             card = state.narrative[ix]
             if card >= 0 and self.narrative_three_front_next_maneuver[card]:
                 if winner >= 0:
@@ -598,7 +598,7 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
     _fe_drop_nonpersistent_constraints(state)
 
     base_recovery = _fe_command_recovery_for_battle(self, state.battle)
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         # Lost Fronts reduce current Command after Battle-end effects and
         # before Collapse. The per-Front amount is a rule parameter; card
         # protections have already reduced the resulting penalty.
@@ -644,7 +644,7 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
     # Only a continuing war receives recovery.
     # Front losses have already reduced current Command; they do not reduce
     # recovery a second time.
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         actual = base_recovery
         if actual < self.command_recovery_floor:
             actual = self.command_recovery_floor
@@ -662,7 +662,7 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
     state.pass_order[0] = -1
     state.pass_order[1] = -1
 
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         state.passed[p] = 0
         state.discarded_this_battle[p] = 0
         state.operations_this_battle[p] = 0
@@ -679,11 +679,11 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.free_maneuver_source[p] = -1
         state.player_maneuver_count[p] = 0
         for front in range(self.ongoing_narrative_limit):
-            state.narrative_used[p * 4 + front] = 0
-            state.narrative_trigger_mask[p * 4 + front] = 0
+            state.narrative_used[p * NARRATIVE_SLOTS_PER_PLAYER + front] = 0
+            state.narrative_trigger_mask[p * NARRATIVE_SLOTS_PER_PLAYER + front] = 0
         for front in range(8):
-            state.maneuver_count[p * 8 + front] = 0
-            state.maneuver_direction[p * 8 + front] = 0
+            state.maneuver_count[p * POSITIONS_PER_PLAYER + front] = 0
+            state.maneuver_direction[p * POSITIONS_PER_PLAYER + front] = 0
 
         target = self.hand_limit - state.hand_len[p]
         if target > 0:
@@ -748,7 +748,7 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
     state.last_battle_valid = 1
     state.last_battle = state.battle
     state.last_pass_len = state.pass_len
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         state.last_pass_order[p] = (
             state.pass_order[p] if p < state.pass_len else -1
         )
