@@ -786,7 +786,7 @@ cdef void _fe_resolve_maneuver_triggers(
 
 cdef void _fe_resolve_narrative_target_ongoing_narrative(FastEngine self, FastState state, int actor, int pos):
     cdef int opponent = other_player(actor)
-    cdef int front, ix, card
+    cdef int front, ix, card, narrative_slot
     if pos < 0 or owner_from_slot(pos) != opponent:
         return
     front = front_from_slot(pos)
@@ -805,7 +805,9 @@ cdef void _fe_resolve_narrative_target_ongoing_narrative(FastEngine self, FastSt
         return
     if self.ongoing_reveal_requires_force[card] and not _fe_front_has_force(self, state, opponent, front):
         return
-    _fe_reveal_ongoing_narrative(self, state, opponent, front, actor, -1)
+    _fe_reveal_ongoing_narrative(
+        self, state, opponent, narrative_slot, front, actor, -1
+    )
 
 cdef void _fe_reshuffle_discard_into_deck(
     FastEngine self,
