@@ -926,6 +926,13 @@ class ProgressionTelemetry:
                 and all(value >= 1 for value in row.get("command_after_recovery", []))
                 for row in equal_low_rows
             ),
+            "simultaneous_collapse_draws": sum(
+                bool((row.get("collapse_comparison") or {}).get("triggered"))
+                and bool((row.get("collapse_comparison") or {}).get("equal"))
+                and not bool((row.get("collapse_comparison") or {}).get("continued"))
+                and (row.get("collapse_comparison") or {}).get("winner") is None
+                for row in battle_records
+            ),
             "zero_vs_positive_collapses": sum(
                 bool((row.get("collapse_comparison") or {}).get("triggered"))
                 and not bool((row.get("collapse_comparison") or {}).get("equal"))
@@ -2006,13 +2013,17 @@ class ProgressionTelemetry:
             int(value)
             for value in snapshot.get(
                 "recovery_actual",
-                [
-                    max(
-                        int(engine.rules.command_recovery_floor),
-                        recovery_base - recovery_loss[player],
-                    )
-                    for player in range(2)
-                ],
+                (
+                    [0, 0]
+                    if state.phase is Phase.COMPLETE
+                    else [
+                        max(
+                            int(engine.rules.command_recovery_floor),
+                            recovery_base,
+                        )
+                        for _player in range(2)
+                    ]
+                ),
             )
         ]
         command_before_recovery = [

@@ -845,7 +845,7 @@ def test_battle_buckets_isolate_battle_eight_plus() -> None:
     assert ProgressionTelemetry._battle_key(7) == "4-7"
     assert ProgressionTelemetry._battle_key(8) == "8+"
 
-def test_low_command_telemetry_records_pre_recovery_collapse_and_floor() -> None:
+def test_low_command_telemetry_records_simultaneous_collapse_draw() -> None:
     engine, deck = setup()
     state = engine.new_game(
         deck,
@@ -889,9 +889,10 @@ def test_low_command_telemetry_records_pre_recovery_collapse_and_floor() -> None
     stall = progression["low_command_stalls"]
     assert stall["diagnostic_battles"] == 1
     assert stall["both_at_collapse_point"] == 1
-    assert stall["equal_low_continuations"] == 1
-    assert stall["zero_zero_continuations"] == 1
-    assert stall["zero_zero_recovered"] == 1
+    assert stall["equal_low_continuations"] == 0
+    assert stall["zero_zero_continuations"] == 0
+    assert stall["zero_zero_recovered"] == 0
+    assert stall["simultaneous_collapse_draws"] == 1
     assert stall["zero_vs_positive_collapses"] == 0
     assert stall["both_zero_command_battle_starts"] == 1
     assert stall["battles_with_no_paid_operation"] == 1
@@ -899,7 +900,7 @@ def test_low_command_telemetry_records_pre_recovery_collapse_and_floor() -> None
     assert stall["battles_with_no_strength_change"] == 1
     assert stall["forced_passes"] == 2
     assert stall["passes_with_no_playable_alternative"] == 2
-    assert stall["equal_low_streak_length"]["histogram"] == {"1": 1}
+    assert stall["equal_low_streak_length"]["histogram"] == {}
 
     record = stall["battle_records"][0]
     assert record["battle"] == 8
@@ -908,12 +909,12 @@ def test_low_command_telemetry_records_pre_recovery_collapse_and_floor() -> None
     assert record["fronts_lost"] == [1, 1]
     assert record["recovery_loss"] == [1, 1]
     assert record["command_before_collapse"] == [0, 0]
-    assert record["recovery_actual"] == [1, 1]
-    assert record["command_after_recovery"] == [1, 1]
+    assert record["recovery_actual"] == [0, 0]
+    assert record["command_after_recovery"] == [0, 0]
     assert record["collapse_comparison"]["commands"] == [0, 0]
     assert record["collapse_comparison"]["triggered"] is True
     assert record["collapse_comparison"]["equal"] is True
-    assert record["collapse_comparison"]["continued"] is True
+    assert record["collapse_comparison"]["continued"] is False
     assert [row["action"] for row in record["operation_trace"]] == ["pass", "pass"]
     assert all(row["forced"] for row in record["operation_trace"])
     assert record["board_changed_during_battle"] is False
