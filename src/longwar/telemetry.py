@@ -244,12 +244,37 @@ class Telemetry:
                 and all(isinstance(candidate, EffectChoice) for candidate in legal)
             )
         )
-        operation_decision = (
+        battle_decision = (
             state.phase is Phase.BATTLE
             and state.pending_draw_discard_for is None
             and not effect_resolution
         )
-        if operation_decision:
+        consumes_operation = (
+            battle_decision
+            and engine.action_consumes_operation(state, actor, action)
+        )
+
+        playable_ids: set[str] = set()
+        command = int(state.players[actor].command)
+        hand = Counter(state.players[actor].hand)
+        hero_block_reasons: dict[str, str] = {}
+        if battle_decision:
+            playable_ids = {
+                card_id
+                for legal_action in legal
+                for card_id in [self._action_card_id(legal_action)]
+                if card_id is not None
+            }
+            for card_id in hand:
+                if (
+                    card_id not in playable_ids
+                    and engine.cards.get(card_id, {}).get("hero")
+                ):
+                    hero_block_reasons[card_id] = self._hero_block_reason(
+                        engine, state, actor, card_id
+                    )
+
+        if consumes_operation:
             self._battle_actions[actor] += 1
             self._battle_decisions += 1
             if not state.players[actor].deck:
@@ -257,37 +282,20 @@ class Telemetry:
                 if not engine.can_draw(state, actor):
                     self._deck_exhausted_this_game[actor] = True
 
-            playable_ids = {
-                card_id
-                for legal_action in legal
-                for card_id in [self._action_card_id(legal_action)]
-                if card_id is not None
-            }
-            command = int(state.players[actor].command)
-            hand = Counter(state.players[actor].hand)
-            hero_block_reasons: dict[str, str] = {}
             for card_id, copies in hand.items():
                 stats = self.cards[card_id]
                 stats.turns_in_hand += copies
                 cost = int(engine.cards.get(card_id, {}).get("command_cost", 0) or 0)
                 affordable = command >= cost
-                block_reason = None
-                if (
-                    card_id not in playable_ids
-                    and engine.cards.get(card_id, {}).get("hero")
-                ):
-                    block_reason = self._hero_block_reason(
-                        engine, state, actor, card_id
-                    )
-                    hero_block_reasons[card_id] = block_reason
-                    if block_reason == "hero_allowance":
-                        stats.hero_allowance_blocked_turns += copies
-                        affordable = True
-                    elif block_reason == "command":
-                        stats.hero_command_blocked_turns += copies
-                        affordable = False
-                    else:
-                        stats.hero_structural_blocked_turns += copies
+                block_reason = hero_block_reasons.get(card_id)
+                if block_reason == "hero_allowance":
+                    stats.hero_allowance_blocked_turns += copies
+                    affordable = True
+                elif block_reason == "command":
+                    stats.hero_command_blocked_turns += copies
+                    affordable = False
+                elif block_reason == "structural":
+                    stats.hero_structural_blocked_turns += copies
 
                 if affordable:
                     stats.affordable_turns += copies
@@ -297,97 +305,94 @@ class Telemetry:
                     stats.playable_turns += copies
                 else:
                     stats.unplayable_turns += copies
-                    # The one-Hero-from-hand allowance is not structural card
-                    # illegality and must not create false dead-draw warnings.
                     if affordable and block_reason != "hero_allowance":
                         stats.structurally_unplayable_turns += copies
 
-            if isinstance(action, Pass):
-                new_signal = not state.players[actor].passed
-                first_pass = new_signal and len(state.pass_order) == 0
-                margins = self._front_margins(engine, state, actor)
-                preserving, exhausting_alternatives = command_preserving_actions(
-                    engine,
-                    state,
-                    legal,
-                )
-                exhausting_alternatives = int(exhausting_alternatives)
-                paid_alternatives = sum(
-                    not isinstance(candidate, Pass)
-                    and engine.command_cost_for_action(state, candidate) > 0
+        if battle_decision and isinstance(action, Pass):
+            new_signal = not state.players[actor].passed
+            first_signal = new_signal and len(state.pass_order) == 0
+            margins = self._front_margins(engine, state, actor)
+            preserving, exhausting_alternatives = command_preserving_actions(
+                engine,
+                state,
+                legal,
+            )
+            exhausting_alternatives = int(exhausting_alternatives)
+            paid_alternatives = sum(
+                not isinstance(candidate, Pass)
+                and engine.command_cost_for_action(state, candidate) > 0
+                for candidate in legal
+            )
+            pass_record = {
+                "battle": state.battle,
+                "player": actor,
+                "first_signal": first_signal,
+                "new_signal": new_signal,
+                "forced_yield": not new_signal,
+                "free_signal": new_signal and not consumes_operation,
+                "hand_size": len(state.players[actor].hand),
+                "deck_remaining": len(state.players[actor].deck),
+                "command_remaining": command,
+                "controlled_fronts": sum(margin > 0 for margin in margins),
+                "tied_fronts": sum(margin == 0 for margin in margins),
+                "lost_fronts": sum(margin < 0 for margin in margins),
+                "total_margin": sum(margins),
+                "operations_before_signal": int(
+                    state.operations_this_battle[actor]
+                ),
+                "playable_cards_remaining": len(playable_ids),
+                "legal_alternatives": sum(
+                    not isinstance(candidate, Pass) for candidate in legal
+                ),
+                "paid_alternatives": paid_alternatives,
+                "command_exhausting_alternatives": exhausting_alternatives,
+                "signal_avoids_command_exhaustion": (
+                    exhausting_alternatives > 0 and action in preserving
+                ),
+                "playable_card_actions": sum(
+                    self._action_card_id(candidate) is not None
                     for candidate in legal
-                )
-                pass_record = {
-                    "battle": state.battle,
-                    "player": actor,
-                    "first_pass": first_pass,
-                    "new_signal": new_signal,
-                    "forced_yield": not new_signal,
-                    "free_signal": (
-                        new_signal
-                        and not engine.rules.pass_signal_costs_operation
-                    ),
-                    "hand_size": len(state.players[actor].hand),
-                    "deck_remaining": len(state.players[actor].deck),
-                    "command_remaining": command,
-                    "controlled_fronts": sum(margin > 0 for margin in margins),
-                    "tied_fronts": sum(margin == 0 for margin in margins),
-                    "lost_fronts": sum(margin < 0 for margin in margins),
-                    "total_margin": sum(margins),
-                    "actions_taken_this_battle": self._battle_actions[actor],
-                    "playable_cards_remaining": len(playable_ids),
-                    "legal_alternatives": sum(
-                        not isinstance(candidate, Pass) for candidate in legal
-                    ),
-                    "paid_alternatives": paid_alternatives,
-                    "command_exhausting_alternatives": exhausting_alternatives,
-                    "pass_avoids_command_exhaustion": (
-                        exhausting_alternatives > 0 and action in preserving
-                    ),
-                    "playable_card_actions": sum(
-                        self._action_card_id(candidate) is not None
-                        for candidate in legal
-                    ),
-                    "maneuver_actions": sum(
-                        isinstance(candidate, Maneuver) for candidate in legal
-                    ),
-                    "dead_cards": 0,
-                    "structurally_dead_cards": 0,
-                    "unaffordable_cards": 0,
-                    "affordable_cards": 0,
-                }
+                ),
+                "maneuver_actions": sum(
+                    isinstance(candidate, Maneuver) for candidate in legal
+                ),
+                "dead_cards": 0,
+                "structurally_dead_cards": 0,
+                "unaffordable_cards": 0,
+                "affordable_cards": 0,
+            }
 
-                for card_id, copies in hand.items():
-                    stats = self.cards[card_id]
-                    stats.held_on_pass += copies
-                    cost = int(engine.cards.get(card_id, {}).get("command_cost", 0) or 0)
-                    affordable = command >= cost
-                    block_reason = hero_block_reasons.get(card_id)
+            for card_id, copies in hand.items():
+                stats = self.cards[card_id]
+                stats.held_on_pass += copies
+                cost = int(engine.cards.get(card_id, {}).get("command_cost", 0) or 0)
+                affordable = command >= cost
+                block_reason = hero_block_reasons.get(card_id)
+                if block_reason == "hero_allowance":
+                    affordable = True
+                elif block_reason == "command":
+                    affordable = False
+                if affordable:
+                    stats.affordable_on_pass += copies
+                    pass_record["affordable_cards"] += copies
+                else:
+                    stats.unaffordable_on_pass += copies
+                    pass_record["unaffordable_cards"] += copies
+                if card_id not in playable_ids:
+                    stats.dead_on_pass += copies
+                    pass_record["dead_cards"] += copies
                     if block_reason == "hero_allowance":
-                        affordable = True
+                        stats.hero_allowance_blocked_on_pass += copies
                     elif block_reason == "command":
-                        affordable = False
-                    if affordable:
-                        stats.affordable_on_pass += copies
-                        pass_record["affordable_cards"] += copies
-                    else:
-                        stats.unaffordable_on_pass += copies
-                        pass_record["unaffordable_cards"] += copies
-                    if card_id not in playable_ids:
-                        stats.dead_on_pass += copies
-                        pass_record["dead_cards"] += copies
-                        if block_reason == "hero_allowance":
-                            stats.hero_allowance_blocked_on_pass += copies
-                        elif block_reason == "command":
-                            stats.hero_command_blocked_on_pass += copies
-                        elif block_reason == "structural":
-                            stats.hero_structural_blocked_on_pass += copies
-                        if affordable and block_reason != "hero_allowance":
-                            stats.structurally_dead_on_pass += copies
-                            pass_record["structurally_dead_cards"] += copies
+                        stats.hero_command_blocked_on_pass += copies
+                    elif block_reason == "structural":
+                        stats.hero_structural_blocked_on_pass += copies
+                    if affordable and block_reason != "hero_allowance":
+                        stats.structurally_dead_on_pass += copies
+                        pass_record["structurally_dead_cards"] += copies
 
-                pass_record["unplayable_cards_remaining"] = pass_record["dead_cards"]
-                self.pass_events.append(pass_record)
+            pass_record["unplayable_cards_remaining"] = pass_record["dead_cards"]
+            self.pass_events.append(pass_record)
 
         card_id = self._action_card_id(action)
         if card_id is not None:
