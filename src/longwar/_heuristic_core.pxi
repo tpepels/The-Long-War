@@ -180,8 +180,8 @@ cdef class NativeHeuristicEvaluator:
         cdef int hand_delta, named_delta=0, narrative_delta=0, strat_delta=0
         cdef int narrative_slot
         cdef int exposed=0, reachable=0, slot
-        cdef int card, own_forces=0, own_board_forces=0, hero_force=0
-        cdef int remaining_hero_uses=0
+        cdef int own_forces=0, opponent_forces=0
+        cdef int own_board_forces=0, opponent_board_forces=0
         cdef int own_losses=0, opponent_losses=0
         cdef uint16_t own_lost_mask=0, opponent_lost_mask=0
         cdef uint16_t projected_lost0=0, projected_lost1=0
@@ -309,30 +309,22 @@ cdef class NativeHeuristicEvaluator:
         hand_delta = state.hand_len[player] - state.hand_len[opponent]
         score += self.weights[HW_HAND_CARD_WEIGHT] * hand_delta
 
-        remaining_hero_uses = (
-            self.engine.hero_play_limit_per_battle
-            - state.hero_used[player]
-        )
-        if remaining_hero_uses < 0:
-            remaining_hero_uses = 0
-        for slot in range(self.engine.force_count):
-            card = self.engine.force_codes[slot]
-            if self.engine.hero[card]:
-                hero_force += state.hand[player][card]
-            else:
-                own_forces += state.hand[player][card]
-        if hero_force > remaining_hero_uses:
-            hero_force = remaining_hero_uses
-        own_forces += hero_force
+        own_forces = self.usable_force_hand_count_fast(state, player)
+        opponent_forces = self.usable_force_hand_count_fast(state, opponent)
         if own_forces > self.weights[HW_FORCE_HAND_CAP]:
             own_forces = <int>self.weights[HW_FORCE_HAND_CAP]
-        score += self.weights[HW_FORCE_HAND_WEIGHT] * own_forces
+        if opponent_forces > self.weights[HW_FORCE_HAND_CAP]:
+            opponent_forces = <int>self.weights[HW_FORCE_HAND_CAP]
+        score += self.weights[HW_FORCE_HAND_WEIGHT] * (
+            own_forces - opponent_forces
+        )
 
-        for slot in range(player * POSITIONS_PER_PLAYER, (player + 1) * POSITIONS_PER_PLAYER):
-            if state.force[slot] >= 0:
-                own_board_forces += 1
+        own_board_forces = self.board_force_count_fast(state, player)
+        opponent_board_forces = self.board_force_count_fast(state, opponent)
         if own_forces == 0 and own_board_forces == 0:
             score -= self.weights[HW_NO_FORCE_PENALTY]
+        if opponent_forces == 0 and opponent_board_forces == 0:
+            score += self.weights[HW_NO_FORCE_PENALTY]
 
         current_delta = state.command[player] - state.command[opponent]
         score += self.weights[HW_COMMAND_DELTA_WEIGHT] * current_delta
@@ -477,9 +469,50 @@ cdef class NativeHeuristicEvaluator:
         )
         score += self.weights[HW_STRATAGEM_WEIGHT] * strat_delta
 
-        score += self.immediate_completion_value_fast(state, player)
+        score += (
+            self.immediate_completion_value_fast(state, player)
+            - self.immediate_completion_value_fast(state, opponent)
+        )
 
         return score
+
+    cdef int usable_force_hand_count_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        """Count immediately allowance-usable Force cards in hand."""
+        cdef int i, card, forces=0, heroes=0
+        cdef int remaining_hero_uses = (
+            self.engine.hero_play_limit_per_battle
+            - state.hero_used[player]
+        )
+        if remaining_hero_uses < 0:
+            remaining_hero_uses = 0
+
+        for i in range(self.engine.force_count):
+            card = self.engine.force_codes[i]
+            if self.engine.hero[card]:
+                heroes += state.hand[player][card]
+            else:
+                forces += state.hand[player][card]
+        if heroes > remaining_hero_uses:
+            heroes = remaining_hero_uses
+        return forces + heroes
+
+    cdef int board_force_count_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        cdef int slot, count=0
+        for slot in range(
+            player * POSITIONS_PER_PLAYER,
+            (player + 1) * POSITIONS_PER_PLAYER,
+        ):
+            if state.force[slot] >= 0:
+                count += 1
+        return count
 
     cdef double immediate_completion_value_fast(
         self,
