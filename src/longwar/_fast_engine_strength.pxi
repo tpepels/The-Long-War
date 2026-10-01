@@ -266,9 +266,9 @@ cdef inline bint _fe_story_locked(FastEngine self, FastState state, int player) 
         strat = state.stratagem[controller]
         if strat < 0 or not state.stratagem_revealed[controller]:
             continue
-        if self.strat_global_story_lock[strat]:
+        if self.strat_global_narrative_lock[strat]:
             return True
-        if controller == player and self.strat_story_lock[strat]:
+        if controller == player and self.strat_narrative_lock[strat]:
             return True
     return False
 
