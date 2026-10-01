@@ -4,7 +4,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
 
-from ..protocol import ObservationKind, ObservationZone, PLAYER_COUNT
+from ..protocol import ObservationKind, ObservationZone, PendingResume, PLAYER_COUNT
 
 
 class Front(IntEnum):
@@ -225,7 +225,7 @@ class GameState:
     pending_draw_count: int = 0
     pending_draw_finish_operation: bool = False
     pending_effects: list[dict[str, object]] = field(default_factory=list)
-    pending_resume: str | None = None
+    pending_resume: PendingResume | None = None
     pending_resume_player: int | None = None
     free_maneuver_available: list[bool] = field(default_factory=false_per_player)
     free_maneuver_source: list[str | None] = field(default_factory=none_per_player)
@@ -533,6 +533,7 @@ class GameState:
     ) -> None:
         if delta == 0:
             return
+        zone = ObservationZone(zone)
         if zone is ObservationZone.HAND:
             counter = self.known_hidden_hand[viewer][owner]
             updated = counter.get(card_id, 0) + delta
@@ -562,6 +563,7 @@ class GameState:
         zone: str,
         reason: str,
     ) -> None:
+        zone = ObservationZone(zone)
         self.observations.append(
             ObservationEvent(
                 turn_number=self.turn_number,
@@ -580,6 +582,7 @@ class GameState:
         owner: int,
         zone: ObservationZone = ObservationZone.HAND,
     ) -> Counter[str]:
+        zone = ObservationZone(zone)
         if zone is ObservationZone.HAND:
             return Counter(self.known_hidden_hand[viewer][owner])
 
