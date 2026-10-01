@@ -904,6 +904,49 @@ cdef class NativeHeuristicEvaluator:
             and child.winner != player
         )
 
+    cdef bint rollout_action_exhausts_command_fast(
+        self,
+        FastState state,
+        int player,
+        uint64_t action,
+        FastState child,
+    ):
+        """Conservative low-Command guard used only by stochastic rollouts."""
+        cdef int opponent = other_player(player)
+        cdef int cost = _fe_command_cost_fast(self.engine, state, action)
+        cdef int margin = (
+            state.command[player] - self.engine.command_collapse_threshold
+        )
+
+        # Only actions capable of consuming the remaining Command margin need
+        # an exact transition. Zero-cost play and safely affordable operations
+        # remain available without copying the state.
+        if cost <= 0 or cost < margin:
+            return False
+
+        child.copy_from_fast(state)
+        _fe_apply_fast(self.engine, child, action)
+
+        # Exact Battle-ending losses are always unsafe.
+        if (
+            child.phase == PHASE_COMPLETE
+            and child.winner >= 0
+            and child.winner != player
+        ):
+            return True
+
+        # During an unfinished Battle, reaching the Collapse threshold is legal
+        # and remains searchable in the tree. Random rollouts, however, should
+        # not treat unilateral exhaustion as ordinary play when a preserving
+        # alternative exists. Exact application above respects immediate
+        # refunds/gains from the operation itself.
+        return (
+            child.phase == PHASE_BATTLE
+            and child.battle == state.battle
+            and child.command[player] <= self.engine.command_collapse_threshold
+            and child.command[opponent] > self.engine.command_collapse_threshold
+        )
+
     cpdef tuple command_preserving_action_codes(self, FastState state):
         """Return legal native actions after the final Command blunder shield."""
         cdef uint64_t actions[MAX_ACTIONS]
