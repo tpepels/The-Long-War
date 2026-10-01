@@ -20,7 +20,7 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
     elif mod == FORCE_TEXT_REAR_BONUS and rank == RANK_REAR:
         value += self.force_text_amount[card]
     elif mod == FORCE_TEXT_FRONT_IF_REAR and rank == RANK_FRONT:
-        rear = slot_index(player, front, 1)
+        rear = slot_index(player, front, RANK_REAR)
         if state.force[rear] >= 0:
             value += self.force_text_amount[card]
     elif mod == FORCE_TEXT_REAR_IF_FRONT and rank == RANK_REAR:
@@ -30,7 +30,7 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
 
     # Rear support effects add Strength to the Force directly ahead.
     if rank == RANK_FRONT:
-        rear = slot_index(player, front, 1)
+        rear = slot_index(player, front, RANK_REAR)
         other = state.force[rear]
         if (
             other >= 0
@@ -119,12 +119,26 @@ cdef int _fe_position_strength(FastEngine self, FastState state, int player, int
 cdef int _fe_front_strength_fast(FastEngine self, FastState state, int player, int front) noexcept:
     cdef int value, narrative, enemy, slot, bond
     value = _fe_position_strength_fast(self, state, slot_index(player, front, RANK_FRONT))
-    value += _fe_position_strength_fast(self, state, slot_index(player, front, 1))
-    narrative = state.narrative[player * NARRATIVE_SLOTS_PER_PLAYER + front]
-    if narrative >= 0 and not state.narrative_revealed[player * NARRATIVE_SLOTS_PER_PLAYER + front]:
-        value += self.ongoing_reveal_face_bonus[narrative]
+    value += _fe_position_strength_fast(self, state, slot_index(player, front, RANK_REAR))
+    for slot in range(self.ongoing_narrative_limit):
+        narrative = state.narrative[
+            player * NARRATIVE_SLOTS_PER_PLAYER + slot
+        ]
+        if (
+            narrative >= 0
+            and (
+                state.narrative_front_mask[
+                    player * NARRATIVE_SLOTS_PER_PLAYER + slot
+                ]
+                & (1 << front)
+            )
+            and not state.narrative_revealed[
+                player * NARRATIVE_SLOTS_PER_PLAYER + slot
+            ]
+        ):
+            value += self.ongoing_reveal_face_bonus[narrative]
     enemy = other_player(player)
-    for slot in (slot_index(enemy, front, 0), slot_index(enemy, front, 1)):
+    for slot in (slot_index(enemy, front, RANK_FRONT), slot_index(enemy, front, RANK_REAR)):
         if state.force[slot] >= 0 and state.bond[slot] >= 0 and state.name[slot] >= 0:
             bond = state.bond[slot]
             value += self.bond_opposing[bond]

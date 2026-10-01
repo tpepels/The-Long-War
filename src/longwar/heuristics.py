@@ -24,51 +24,48 @@ def command_preserving_actions(
     state: GameState,
     actions: list[Action] | None = None,
 ) -> tuple[list[Action], int]:
-    """Remove avoidable unilateral Command-exhaustion blunders.
+    """Filter only actions that immediately resolve the war as a loss.
 
-    This is deliberately a final-action safety guard, not a rules restriction.
-    If every legal action leaves the acting side exhausted, nothing is removed.
-    Exact child states are inspected so an action that immediately restores
-    Command or produces a terminal win is not falsely rejected.
+    Reaching the Collapse threshold during an unfinished Battle is legal and
+    may be strategically correct because later refunds, gains, or Front play
+    can still change the Battle-end Command result.
     """
     legal = list(engine.legal_actions(state) if actions is None else actions)
     if len(legal) <= 1:
         return legal, 0
 
     actor = state.active_player
-    opponent = other_player(actor)
-    threshold = int(engine.rules.command_collapse_threshold)
-    actor_command = state.players[actor].command
     preserving: list[Action] = []
-    exhausting: list[Action] = []
+    losing: list[Action] = []
 
     for action in legal:
-        # Most legal actions cannot possibly reach the Collapse boundary.
-        # Match the native guard's cheap path and reserve exact child-state
-        # simulation for actions that can spend the remaining Command margin.
-        cost = engine.command_cost_for_action(state, action)
-        if actor_command - cost > threshold:
+        can_end_now = (
+            state.pass_closing_turns_remaining == 1
+            or (
+                isinstance(action, Pass)
+                and len(state.pass_order) == 1
+                and not state.players[actor].passed
+            )
+        )
+        if not can_end_now:
             preserving.append(action)
             continue
 
         child = state.clone()
         engine.apply(child, action, validate=False)
-        unilateral_exhaustion = (
-            child.players[actor].command <= threshold
-            and child.players[opponent].command > threshold
-            and not (
-                child.phase is Phase.COMPLETE
-                and child.winner == actor
-            )
+        immediate_loss = (
+            child.phase is Phase.COMPLETE
+            and child.winner is not None
+            and child.winner != actor
         )
-        if unilateral_exhaustion:
-            exhausting.append(action)
+        if immediate_loss:
+            losing.append(action)
         else:
             preserving.append(action)
 
     if not preserving:
         return legal, 0
-    return preserving, len(exhausting)
+    return preserving, len(losing)
 
 
 def opening_mulligan_indices(
