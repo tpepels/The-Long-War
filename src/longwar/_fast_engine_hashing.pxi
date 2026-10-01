@@ -147,7 +147,7 @@ cdef int _fe__information_state_encode(
 
     # Binary information-key format. Bump this whenever the byte layout changes.
     # v8 adds pass_closing_turns_remaining after pass_order.
-    _info_emit(buf, &n, h, 8)
+    _info_emit(buf, &n, h, INFORMATION_KEY_VERSION)
     _info_emit(buf, &n, h, <uint8_t>player)
     _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
     _info_emit_u16(buf, &n, h, <uint16_t>state.battle)
@@ -159,7 +159,7 @@ cdef int _fe__information_state_encode(
         buf, &n, h, <uint16_t>((state.turn_number >> 16) & 0xFFFF)
     )
 
-    for i in range(2):
+    for i in range(PLAYER_COUNT):
         _info_emit(buf, &n, h, state.passed[i])
 
     _info_emit(buf, &n, h, state.pass_len)
@@ -172,7 +172,7 @@ cdef int _fe__information_state_encode(
         )
     _info_emit_u16(buf, &n, h, state.pass_closing_turns_remaining)
 
-    for i in range(2):
+    for i in range(PLAYER_COUNT):
         _info_emit(buf, &n, h, state.discarded_this_battle[i])
         _info_emit_u16(
             buf,
