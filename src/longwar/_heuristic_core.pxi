@@ -179,8 +179,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int front, margin, raw_margin, controls=0, enemy_controls=0
         cdef int hand_delta, named_delta=0, narrative_delta=0, strat_delta=0
         cdef int narrative_slot
-        cdef int exposed=0, reachable=0, slot, name_card, before, after
-        cdef double best
+        cdef int exposed=0, reachable=0, slot
         cdef int card, own_forces=0, own_board_forces=0, hero_force=0
         cdef int remaining_hero_uses=0
         cdef int own_losses=0, opponent_losses=0
@@ -194,7 +193,7 @@ cdef class NativeHeuristicEvaluator:
         cdef double own_vulnerability=0.0, opponent_vulnerability=0.0
         cdef double own_liability=0.0, opponent_liability=0.0
         cdef double passed_hand_value=0.0, responding_hand_value=0.0
-        cdef double score = 0.0, option = 0.0
+        cdef double score = 0.0
 
         if state.phase == PHASE_COMPLETE:
             if state.winner < 0:
@@ -478,7 +477,24 @@ cdef class NativeHeuristicEvaluator:
         )
         score += self.weights[HW_STRATAGEM_WEIGHT] * strat_delta
 
-        for slot in range(player * POSITIONS_PER_PLAYER, (player + 1) * POSITIONS_PER_PLAYER):
+        score += self.immediate_completion_value_fast(state, player)
+
+        return score
+
+    cdef double immediate_completion_value_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        """Value affordable Names that can immediately complete a formation."""
+        cdef int slot, card, name_card, before, after
+        cdef double best, value = 0.0
+        cdef uint64_t action
+
+        for slot in range(
+            player * POSITIONS_PER_PLAYER,
+            (player + 1) * POSITIONS_PER_PLAYER,
+        ):
             if state.force[slot] < 0 or state.name[slot] >= 0:
                 continue
             before = _fe_position_strength_fast(self.engine, state, slot)
@@ -493,16 +509,26 @@ cdef class NativeHeuristicEvaluator:
                     >= self.engine.hero_play_limit_per_battle
                 ):
                     continue
+                action = encode_action(
+                    TYPE_NAME,
+                    name_card,
+                    slot,
+                    -1,
+                    player,
+                )
+                if (
+                    _fe_command_cost_fast(self.engine, state, action)
+                    > state.command[player]
+                ):
+                    continue
                 state.name[slot] = name_card
                 after = _fe_position_strength_fast(self.engine, state, slot)
                 if after - before > best:
                     best = after - before
                 state.name[slot] = -1
             if best > 0:
-                option += self.weights[HW_COMPLETION_OPTION_WEIGHT] * best
-        score += option
-
-        return score
+                value += self.weights[HW_COMPLETION_OPTION_WEIGHT] * best
+        return value
 
     cdef double formation_progress_fast(
         self,
@@ -1003,6 +1029,13 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ):
         return self.battle_boundary_evaluate_fast(state, player)
+
+    cpdef double immediate_completion_value(
+        self,
+        FastState state,
+        int player,
+    ):
+        return self.immediate_completion_value_fast(state, player)
 
     cpdef double hand_construction_value(
         self,
