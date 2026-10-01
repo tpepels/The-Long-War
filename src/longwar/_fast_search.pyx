@@ -9,6 +9,7 @@ from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
 import json
 from time import perf_counter
+from longwar.game.model import ConstraintKind, Phase, Rank
 from longwar.protocol import (
     CardField,
     CardType,
@@ -17,6 +18,8 @@ from longwar.protocol import (
     DesignField,
     DesignToken,
     Direction,
+    ObservationZone,
+    PendingResume,
 )
 
 # One canonical engine composition shared by host search and browser play.
