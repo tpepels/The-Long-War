@@ -1,4 +1,5 @@
 # cython: language_level=3, boundscheck=False, wraparound=False, initializedcheck=False, cdivision=True
+cimport cython
 from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, uint32_t, int32_t, uint64_t
 from libc.stddef cimport size_t
 from libc.string cimport memcpy, memset
