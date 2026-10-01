@@ -1306,16 +1306,12 @@ def _run_cells_with_live_progress(
 
 def require_cython() -> None:
     try:
-        from longwar._fast_search import (  # noqa: F401
-            FastEngine,
-            NativeSearchBudget,
-            native_search_value,
-            ismcts_search,
-        )
-    except ImportError as exc:
+        from longwar.native_search import ismcts_backend
+        ismcts_backend()
+    except (ImportError, RuntimeError) as exc:
         raise SystemExit(
-            "Packed Cython search extension is not available.\n"
-            "Run: make install && make native-build"
+            "Canonical Cython search is unavailable or stale.\n"
+            "Run: make native-build"
         ) from exc
     print("Canonical Cython engine/search extension: OK")
 
