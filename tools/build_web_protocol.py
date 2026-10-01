@@ -8,15 +8,24 @@ from enum import Enum
 from longwar.game.model import Phase, Rank
 from longwar.protocol import (
     ActionKind,
+    CardClass,
     CardType,
     Direction,
+    EffectKind,
     ForceRole,
     GameMode,
     NarrativeForm,
+    ObservationKind,
+    ObservationZone,
     PlaySetupMode,
     PolicySource,
+    RemoteMessageType,
+    RemoteRole,
+    RemoteSetupPhase,
+    RequestType,
     RuleBlockField,
     RuleBlockKind,
+    SessionPhase,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,17 +39,26 @@ def enum_payload(enum_type: type[Enum]) -> dict[str, object]:
 def payload() -> dict[str, dict[str, object]]:
     return {
         "actionKind": enum_payload(ActionKind),
+        "cardClass": enum_payload(CardClass),
         "cardType": enum_payload(CardType),
         "direction": enum_payload(Direction),
+        "effectKind": enum_payload(EffectKind),
         "forceRole": enum_payload(ForceRole),
         "gameMode": enum_payload(GameMode),
         "narrativeForm": enum_payload(NarrativeForm),
+        "observationKind": enum_payload(ObservationKind),
+        "observationZone": enum_payload(ObservationZone),
         "phase": enum_payload(Phase),
         "playSetupMode": enum_payload(PlaySetupMode),
         "policySource": enum_payload(PolicySource),
         "rank": enum_payload(Rank),
+        "remoteMessageType": enum_payload(RemoteMessageType),
+        "remoteRole": enum_payload(RemoteRole),
+        "remoteSetupPhase": enum_payload(RemoteSetupPhase),
+        "requestType": enum_payload(RequestType),
         "ruleBlockField": enum_payload(RuleBlockField),
         "ruleBlockKind": enum_payload(RuleBlockKind),
+        "sessionPhase": enum_payload(SessionPhase),
     }
 
 
