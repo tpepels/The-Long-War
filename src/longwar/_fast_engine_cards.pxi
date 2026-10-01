@@ -1,4 +1,11 @@
 cdef void _fe___cinit__(FastEngine self) except *:
+    self.force_count = 0
+    self.bond_count = 0
+    self.name_count = 0
+    self.narrative_count = 0
+    self.stratagem_count = 0
+    self.hero_count = 0
+    self.name_mode_count = 0
     memset(self.card_type, 0, sizeof(self.card_type))
     memset(self.card_command_cost, 0, sizeof(self.card_command_cost))
     memset(self.completion_effect, 0, sizeof(self.completion_effect))
@@ -190,6 +197,21 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     for code, card_id in enumerate(self.card_ids):
         card = engine.cards[card_id]
         self.card_type[code] = type_map[card[CardField.TYPE]]
+        if self.card_type[code] == CARD_FORCE:
+            self.force_codes[self.force_count] = code
+            self.force_count += 1
+        elif self.card_type[code] == CARD_BOND:
+            self.bond_codes[self.bond_count] = code
+            self.bond_count += 1
+        elif self.card_type[code] == CARD_NAME:
+            self.name_codes[self.name_count] = code
+            self.name_count += 1
+        elif self.card_type[code] == CARD_NARRATIVE:
+            self.narrative_codes[self.narrative_count] = code
+            self.narrative_count += 1
+        elif self.card_type[code] == CARD_STRATAGEM:
+            self.stratagem_codes[self.stratagem_count] = code
+            self.stratagem_count += 1
         self.role[code] = role_map.get(card.get(CardField.ROLE), ROLE_NONE)
         self.strength[code] = int(card.get(CardField.STRENGTH, 0))
         self.name_strength[code] = int(
@@ -199,6 +221,12 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             )
         )
         self.hero[code] = bool(card.get(CardField.HERO, False))
+        if self.hero[code]:
+            self.hero_codes[self.hero_count] = code
+            self.hero_count += 1
+        if self.card_type[code] == CARD_NAME or self.hero[code]:
+            self.name_mode_codes[self.name_mode_count] = code
+            self.name_mode_count += 1
         design = engine.card_mechanics[card_id]
         self.card_capabilities[code] = <uint64_t>design.get(
             "_capability_bits",
