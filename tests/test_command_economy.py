@@ -413,6 +413,29 @@ def test_projected_lost_masks_use_frontline_only_resolution_strength() -> None:
     assert not (lost1 & (1 << int(Front.FIRST)))
 
 
+def test_immediate_completion_value_requires_affordable_name() -> None:
+    engine, state = standard_game()
+    target = Position(Front.FIRST, Rank.FRONT)
+    GameScenario(state).clear_hands().hand(0, "oren").formation(
+        0,
+        target,
+        force="the-fifty-men",
+    ).command(0, 1)
+
+    packed = engine._native_core().from_game_state(state)
+    assert engine._native_heuristic().immediate_completion_value(
+        packed,
+        0,
+    ) == pytest.approx(0.0)
+
+    state.players[0].command = 2
+    packed = engine._native_core().from_game_state(state)
+    assert engine._native_heuristic().immediate_completion_value(
+        packed,
+        0,
+    ) > 0.0
+
+
 def test_projected_front_loss_penalty_uses_configured_rule() -> None:
     rules = GameRules.standard().with_overrides(lost_front_command_penalty=2)
     engine, state = standard_game(rules=rules)
