@@ -143,9 +143,19 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     self.lost_front_command_penalty = int(rules.lost_front_command_penalty)
     self.pass_signal_costs_operation = bool(rules.pass_signal_costs_operation)
     self.pass_closing_rounds = int(rules.pass_closing_rounds)
+    self.pass_min_operations_before_signal = int(
+        rules.pass_min_operations_before_signal
+    )
+    self.turn_draw_count = int(rules.turn_draw_count)
     self.maneuver_command_cost = int(rules.maneuver_command_cost)
     self.hand_limit = int(rules.hand_limit)
     self.ongoing_narrative_limit = int(rules.ongoing_narrative_limit)
+    self.hero_play_limit_per_battle = int(
+        rules.hero_play_limit_per_battle
+    )
+    self.stratagem_play_limit_per_battle = int(
+        rules.stratagem_play_limit_per_battle
+    )
     self.command_diag_capture = False
     self.command_diag_len = 0
     if self.n_cards > MAX_CARDS:
