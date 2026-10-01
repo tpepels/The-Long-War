@@ -98,7 +98,7 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
         if self.name_rank_bonus_rank[name] == rank:
             value += self.name_rank_bonus_amount[name]
 
-    for controller in range(2):
+    for controller in range(PLAYER_COUNT):
         strat = state.stratagem[controller]
         if strat < 0 or not state.stratagem_revealed[controller]:
             continue
@@ -120,8 +120,8 @@ cdef int _fe_front_strength_fast(FastEngine self, FastState state, int player, i
     cdef int value, narrative, enemy, slot, bond
     value = _fe_position_strength_fast(self, state, slot_index(player, front, 0))
     value += _fe_position_strength_fast(self, state, slot_index(player, front, 1))
-    narrative = state.narrative[player * 4 + front]
-    if narrative >= 0 and not state.narrative_revealed[player * 4 + front]:
+    narrative = state.narrative[player * NARRATIVE_SLOTS_PER_PLAYER + front]
+    if narrative >= 0 and not state.narrative_revealed[player * NARRATIVE_SLOTS_PER_PLAYER + front]:
         value += self.ongoing_reveal_face_bonus[narrative]
     enemy = 1 - player
     for slot in (slot_index(enemy, front, 0), slot_index(enemy, front, 1)):
@@ -136,8 +136,8 @@ cdef inline bint _fe_frontline_only_resolution(
     int front,
 ) noexcept:
     cdef int player, rank, force
-    for player in range(2):
-        for rank in range(2):
+    for player in range(PLAYER_COUNT):
+        for rank in range(RANK_COUNT):
             force = state.force[slot_index(player, front, rank)]
             if force >= 0 and self.combat_frontline_only[force]:
                 return True
@@ -167,7 +167,7 @@ cdef inline int _fe_resolution_front_strength_fast(
     # Resolution choices can redirect a skirmisher's contribution and
     # suppress a specific formation without mutating its printed Strength.
     for local in range(8):
-        slot = player * 8 + local
+        slot = player * POSITIONS_PER_PLAYER + local
         if state.force[slot] < 0:
             continue
         if state.resolution_suppressed_mask & (<uint16_t>1 << slot):
@@ -187,7 +187,7 @@ cdef inline int _fe_resolution_front_strength_fast(
     # Preserve any explicit opposing-Bond modifier from the canonical
     # strength calculation.
     enemy = 1 - player
-    for rank in range(2):
+    for rank in range(RANK_COUNT):
         slot = slot_index(enemy, front, rank)
         if _fe_slot_complete(self, state, slot):
             bond = state.bond[slot]
@@ -216,7 +216,7 @@ cdef inline bint _fe_breakthrough_active(
     int front,
 ) noexcept:
     cdef int rank, slot, force, name
-    for rank in range(2):
+    for rank in range(RANK_COUNT):
         slot = slot_index(player, front, rank)
         force = state.force[slot]
         if force < 0:
@@ -233,7 +233,7 @@ cdef inline bint _fe_tie_control_active(
     FastState state,
 ) noexcept:
     cdef int p, strat
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         strat = state.stratagem[p]
         if strat >= 0 and self.strat_tie_control[strat]:
             return True
@@ -262,7 +262,7 @@ cdef inline bint _fe_formation_protected(FastEngine self, FastState state, int s
 
 cdef inline bint _fe_narrative_locked(FastEngine self, FastState state, int player) noexcept:
     cdef int controller, strat
-    for controller in range(2):
+    for controller in range(PLAYER_COUNT):
         strat = state.stratagem[controller]
         if strat < 0 or not state.stratagem_revealed[controller]:
             continue
