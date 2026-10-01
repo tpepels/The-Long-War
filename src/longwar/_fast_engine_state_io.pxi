@@ -535,7 +535,75 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             )
             for p in range(PLAYER_COUNT)
         ],
-        "stratagem_used": [\n            bool(state.stratagem_used[p])\n            for p in range(PLAYER_COUNT)\n        ],\n        "hero_used": [\n            bool(state.hero_used[p])\n            for p in range(PLAYER_COUNT)\n        ],\n        "discarded_this_battle": [\n            state.discarded_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "command_spent_this_battle": [\n            state.command_spent_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "command_refunded_this_battle": [\n            state.command_refunded_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "battle_start_command": [\n            state.battle_start_command[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "battle_start_hand_size": [\n            state.battle_start_hand_size[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "cards_drawn_this_battle": [\n            state.cards_drawn_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "completion_count_this_battle": [\n            state.completion_count_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "operations_this_battle": [\n            state.operations_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "maneuvers_this_battle": [\n            state.player_maneuver_count[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "cards_played_this_turn_front_mask": [\n            state.cards_played_this_turn_front_mask[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "cards_played_this_battle_front_mask": [\n            state.cards_played_this_battle_front_mask[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "narratives_played_this_battle": [\n            state.narratives_played_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "deck_reshuffles": [\n            state.deck_reshuffles[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "reshuffle_card_totals": [\n            state.reshuffle_card_totals[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "reshuffle_hand_card_totals": [\n            state.reshuffle_hand_card_totals[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "pending_draw_discard_for": (
+        "stratagem_used": [
+            bool(state.stratagem_used[p])
+            for p in range(PLAYER_COUNT)
+        ],
+        "hero_used": [
+            bool(state.hero_used[p])
+            for p in range(PLAYER_COUNT)
+        ],
+        "discarded_this_battle": [
+            state.discarded_this_battle[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "command_spent_this_battle": [
+            state.command_spent_this_battle[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "command_refunded_this_battle": [
+            state.command_refunded_this_battle[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "battle_start_command": [
+            state.battle_start_command[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "battle_start_hand_size": [
+            state.battle_start_hand_size[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "cards_drawn_this_battle": [
+            state.cards_drawn_this_battle[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "completion_count_this_battle": [
+            state.completion_count_this_battle[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "operations_this_battle": [
+            state.operations_this_battle[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "maneuvers_this_battle": [
+            state.player_maneuver_count[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "cards_played_this_turn_front_mask": [
+            state.cards_played_this_turn_front_mask[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "cards_played_this_battle_front_mask": [
+            state.cards_played_this_battle_front_mask[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "narratives_played_this_battle": [
+            state.narratives_played_this_battle[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "deck_reshuffles": [
+            state.deck_reshuffles[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "reshuffle_card_totals": [
+            state.reshuffle_card_totals[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "reshuffle_hand_card_totals": [
+            state.reshuffle_hand_card_totals[p]
+            for p in range(PLAYER_COUNT)
+        ],
+        "pending_draw_discard_for": (
             state.active_player if state.cleanup_pending else None
         ),
         "pending_draw_count": state.pending_draw_count,
@@ -568,7 +636,11 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
         "pending_resume_player": (
             None if state.pending_resume_player < 0 else state.pending_resume_player
         ),
-        "free_maneuver_available": [\n            bool(state.free_maneuver_available[p])\n            for p in range(PLAYER_COUNT)\n        ],\n        "free_maneuver_source": [
+        "free_maneuver_available": [
+            bool(state.free_maneuver_available[p])
+            for p in range(PLAYER_COUNT)
+        ],
+        "free_maneuver_source": [
             None
             if state.free_maneuver_source[p] < 0
             else self.card_ids[state.free_maneuver_source[p]]
