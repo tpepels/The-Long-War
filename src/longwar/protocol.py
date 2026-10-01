@@ -72,6 +72,64 @@ class DirectionCode(IntEnum):
     RIGHT = 2
 
 
+class SessionPhase(StrEnum):
+    MULLIGAN = "mulligan"
+
+
+class RequestType(StrEnum):
+    NEW_GAME = "new_game"
+    VIEW = "view"
+    ACT = "act"
+    AI_STEP = "ai_step"
+    MULLIGAN = "mulligan"
+
+
+class RemoteRole(StrEnum):
+    HOST = "host"
+    GUEST = "guest"
+
+
+class RemoteSetupPhase(StrEnum):
+    IDLE = "idle"
+    CREATING = "creating"
+    WAITING = "waiting"
+    AWAIT_ANSWER = "await-answer"
+
+
+class RemoteMessageType(StrEnum):
+    COMMAND = "command"
+    SNAPSHOT = "snapshot"
+    ERROR = "error"
+
+
+class ObservationKind(StrEnum):
+    HIDDEN_KNOWLEDGE = "hidden_knowledge"
+    REVEAL = "reveal"
+
+
+class ObservationZone(StrEnum):
+    HAND = "hand"
+
+
+class EffectKind(StrEnum):
+    FREE_MANEUVER = "free-maneuver"
+    MOVE = "move"
+    SWAP = "swap"
+    RECOVER = "recover"
+    FRONT_CONTRIBUTION = "front-contribution"
+    SUPPRESS = "suppress"
+    SACRIFICE = "sacrifice"
+    INTERCEPT = "intercept"
+    RETREAT = "retreat"
+    PROTECT_RETREAT = "protect-retreat"
+    TRANSFER_COMPONENT = "transfer-component"
+    SUCCESSION = "succession"
+
+
+class CardClass(StrEnum):
+    HERO = "hero"
+
+
 class PolicySource(StrEnum):
     FORCED = "forced"
     HEURISTIC = "heuristic"
