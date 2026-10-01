@@ -69,6 +69,10 @@ def test_strategic_heuristic_returns_legal_action_without_true_hand_access() -> 
         node_budget=2_000,
     )
 
+    assert agent.evaluator.sampled_opponent_resources is True
+    if agent._native_evaluator is not None:
+        assert agent._native_evaluator.sampled_opponent_resources is True
+
     legal = engine.legal_actions(state)
     action = agent.choose(engine, state)
 
