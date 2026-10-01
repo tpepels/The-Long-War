@@ -19,6 +19,7 @@ from .counterfactual import (
     triple_contrast,
 )
 from .game.engine import GameEngine
+from .parallelism import DEFAULT_WORKERS
 from .game.model import Phase
 
 
@@ -511,7 +512,7 @@ def run_targeted_online_validation(
     minimum_abs_effect: float = 0.05,
     bootstrap_resamples: int = 1000,
     force_top: bool = False,
-    jobs: int = 1,
+    jobs: int = DEFAULT_WORKERS,
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Re-test suspicious broad A/B signals with online MCCFR.
