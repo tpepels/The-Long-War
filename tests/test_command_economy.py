@@ -528,7 +528,7 @@ def test_command_guard_keeps_immediate_command_refund_action() -> None:
     assert child.players[0].command == 1
 
 
-def test_pass_is_valued_over_spending_the_final_command() -> None:
+def test_spending_final_command_is_penalized_but_not_treated_as_terminal() -> None:
     rules = GameRules.standard().with_overrides(
         command_collapse_threshold=0,
         maneuver_command_cost=1,
@@ -544,25 +544,21 @@ def test_pass_is_valued_over_spending_the_final_command() -> None:
         name="namar",
     ).commands(1, 5).operations(1, 1)
 
-    pass_score = engine._native_heuristic().score_action(
-        engine._native_core().from_game_state(state),
-        0,
-        engine._native_action(
-            engine._native_core().from_game_state(state),
-            Pass(),
-        ),
-    )
     maneuver = Maneuver(source, destination)
     packed = engine._native_core().from_game_state(state)
-    maneuver_score = engine._native_heuristic().score_action(
+    before = engine._native_heuristic().evaluate(packed, 0)
+    child = engine._native_core().next_state(
         packed,
-        0,
         engine._native_action(packed, maneuver),
     )
+    after = engine._native_heuristic().evaluate(child, 0)
 
     assert Pass() in engine.legal_actions(state)
     assert maneuver in engine.legal_actions(state)
-    assert pass_score > maneuver_score
+    # Reaching 0 Command during an unfinished Battle is legal and not terminal,
+    # but the evaluator must still register the increased Collapse risk.
+    assert child.phase == packed.phase
+    assert after < before + 20.0
 
 
 @pytest.mark.parametrize(
