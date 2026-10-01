@@ -233,11 +233,70 @@ def test_targeted_online_censoring_is_reported_not_fatal(monkeypatch) -> None:
     )
 
     row = report["cards"][0]
+    assert report["resolved_matches"] == 1
+    assert report["decisive_matches"] == 1
+    assert report["draw_matches"] == 0
     assert report["censored_matches"] == 1
+    assert report["resolved_paired_samples"] == 0
     assert report["censored_paired_samples"] == 1
     assert row["online"]["samples"] == 0
     assert row["online"]["censored_pairs"] == 1
     assert row["confirmation"] == "inconclusive"
+
+
+def test_targeted_report_counts_draws_as_resolved_not_decisive(monkeypatch) -> None:
+    import longwar.targeted_counterfactual as targeted
+
+    card_data = load_card_file(ROOT / "cards" / "cards.json")
+    generation = {"seed": 37, "required_cards": ["namar"]}
+    broad = {
+        "contexts": 1,
+        "games_per_context": 1,
+        "seed": 37,
+        "policy": "heuristic",
+        "method": "test",
+        "sample_generation": generation,
+        "cards": [{
+            "id": "namar",
+            "title": "Namar",
+            "delta_win_probability": 0.2,
+            "ci95": [0.1, 0.3],
+            "level": "red",
+            "confidence_excludes_zero": True,
+            "samples": 1,
+            "attempted_samples": 1,
+            "censored_pairs": 0,
+            "sample_generation": generation,
+        }],
+        "pairs": [],
+        "triples": [],
+    }
+    outcomes = iter([0.5, 1.0])
+    monkeypatch.setattr(
+        targeted,
+        "_play_online_outcome",
+        lambda *args, **kwargs: next(outcomes),
+    )
+
+    report = run_targeted_online_validation(
+        card_data,
+        broad,
+        contexts=1,
+        games_per_context=1,
+        online_iterations=1,
+        online_depth=1,
+        max_cards=1,
+        max_pairs=0,
+        max_triples=0,
+    )
+
+    assert report["total_matches"] == 2
+    assert report["resolved_matches"] == 2
+    assert report["draw_matches"] == 1
+    assert report["decisive_matches"] == 1
+    assert report["censored_matches"] == 0
+    assert report["resolved_paired_samples"] == 1
+    assert report["censored_paired_samples"] == 0
 
 
 def test_real_online_mccfr_counterfactual_can_enter_search() -> None:
