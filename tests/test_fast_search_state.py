@@ -61,9 +61,9 @@ def public_snapshot(state):
             ]
             for side in state.board
         ],
-        "stories": [
-            [{"card_id": story.card_id} for story in side]
-            for side in state.stories
+        "narratives": [
+            [{"card_id": narrative.card_id} for narrative in side]
+            for side in state.narratives
         ],
         "stratagems": [
             None if stratagem is None else {"card_id": stratagem.card_id}
@@ -92,9 +92,9 @@ def native_public_snapshot(native, fast_state):
             for player in exported["players"]
         ],
         "board": exported["board"],
-        "stories": [
-            [{"card_id": story["card_id"]} for story in side]
-            for side in exported["stories"]
+        "narratives": [
+            [{"card_id": narrative["card_id"]} for narrative in side]
+            for side in exported["narratives"]
         ],
         "stratagems": [
             None if stratagem is None else {"card_id": stratagem["card_id"]}
@@ -195,11 +195,11 @@ def test_ongoing_narrative_uses_only_first_empty_native_slot() -> None:
         native.action_key(action)
         for action in native.legal_actions(packed)
         if native.action_key(action).startswith(
-            "story:the-long-march:ongoing:"
+            "narrative:the-long-march:ongoing:"
         )
     }
 
-    assert keys == {"story:the-long-march:ongoing:0"}
+    assert keys == {"narrative:the-long-march:ongoing:0"}
 
 
 def test_native_state_hash_distinguishes_turn_number() -> None:
