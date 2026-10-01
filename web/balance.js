@@ -370,7 +370,7 @@ function renderEvidencePipeline(lab) {
       "2 · Heuristic paired screen",
       cf ? `${cf.cards.length} cards` : "—",
       cf
-        ? `${cf.decisive_paired_samples ?? 0} decisive pairs · ${cf.censored_paired_samples ?? 0} censored`
+        ? `${cf.resolved_paired_samples ?? 0} resolved pairs · ${cf.censored_paired_samples ?? 0} censored`
         : "not generated"
     ),
     metric(
@@ -479,8 +479,8 @@ function renderCards(lab) {
               <div><dt>Observed</dt><dd>${row.observed === false ? "No self-play exposure" : "Yes"}</dd></div>
               <div><dt>Final status source</dt><dd>${esc((row.balance_evidence_source || "observational").replaceAll("_", " "))}</dd></div>
               <div><dt>Engine sync</dt><dd>${esc(row.engine_sync || "implemented / no known pending marker")}</dd></div>
-              <div><dt>Heuristic screen</dt><dd>${causal ? `${signedPct(causal.delta_win_probability)} · ${interval(causal.ci95)} · ${causal.samples ?? 0} decisive pairs` : "—"}</dd></div>
-              <div><dt>Strategic validation</dt><dd>${online ? `${esc(online.confirmation.replaceAll("_", " "))} · ${signedPct(online.online.effect)} · ${online.online.samples ?? 0} decisive pairs` : "not targeted"}</dd></div>
+              <div><dt>Heuristic screen</dt><dd>${causal ? `${signedPct(causal.delta_win_probability)} · ${interval(causal.ci95)} · ${causal.samples ?? 0} resolved pairs` : "—"}</dd></div>
+              <div><dt>Strategic validation</dt><dd>${online ? `${esc(online.confirmation.replaceAll("_", " "))} · ${signedPct(online.online.effect)} · ${online.online.samples ?? 0} resolved pairs` : "not targeted"}</dd></div>
               <div><dt>Structural dead turns</dt><dd>${pct(row.structural_unplayable_turn_rate)}</dd></div>
               <div><dt>Resource-blocked turns</dt><dd>${pct(row.resource_blocked_turn_rate)}</dd></div>
               ${row.hero ? `<div><dt>Hero allowance blocked</dt><dd>${pct(row.hero_allowance_blocked_turn_rate)}</dd></div><div><dt>Hero Command blocked</dt><dd>${pct(row.hero_command_blocked_turn_rate)}</dd></div><div><dt>Hero structurally blocked</dt><dd>${pct(row.hero_structural_blocked_turn_rate)}</dd></div>` : ""}
@@ -531,7 +531,7 @@ function renderCounterfactual(lab) {
   const significantCards = cf.cards.filter((row) => row.confidence_excludes_zero).length;
   document.getElementById("counterfactual-overview").innerHTML = [
     metric("Attempted pairs/card", cf.samples, `${cf.contexts} contexts × ${cf.games_per_context} games`),
-    metric("Decisive paired samples", Number(cf.decisive_paired_samples ?? 0).toLocaleString(), `${Number(cf.censored_paired_samples ?? 0).toLocaleString()} censored · ${pct(cf.pair_censor_rate ?? 0)} censor rate`),
+    metric("Resolved paired samples", Number(cf.resolved_paired_samples ?? 0).toLocaleString(), `${Number(cf.censored_paired_samples ?? 0).toLocaleString()} censored · ${pct(cf.pair_censor_rate ?? 0)} censor rate`),
     metric("Screening signals", significantCards, `of ${cf.cards.length} cards exclude zero under heuristic play`),
     metric("Screen policy", esc(cf.policy), "common-random-number pairing"),
   ].join("");
@@ -558,7 +558,7 @@ function renderTargetedCounterfactual(lab) {
     <h3>Targeted online-MCCFR validation</h3>
     <div class="metric-grid compact-grid">
       ${metric("Targets", report.targets.length, `${report.total_matches} online matches`)}
-      ${metric("Decisive paired samples", report.decisive_paired_samples ?? 0, `${report.censored_paired_samples ?? 0} censored · ${pct(report.pair_censor_rate ?? 0)} censor rate`)}
+      ${metric("Resolved paired samples", report.resolved_paired_samples ?? 0, `${report.censored_paired_samples ?? 0} censored · ${pct(report.pair_censor_rate ?? 0)} censor rate`)}
       ${metric("Resolver", `${report.online_iterations} iterations`, `depth ${report.online_depth}`)}
       ${metric("Resolved", report.targets.filter((r) => ["confirmed", "reversed"].includes(r.confirmation)).length, "confirmed or strategically reversed")}
     </div>
