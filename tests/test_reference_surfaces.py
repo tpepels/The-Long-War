@@ -238,6 +238,7 @@ def test_web_card_renderers_use_only_canonical_card_types() -> None:
         source = text(surface)
         assert 'subject: "force"' not in source
         assert 'link: "bond"' not in source
+        assert 'plot: "story"' not in source
         assert 'plot: "narrative"' not in source
         assert ".veiled" not in source
 
@@ -273,21 +274,21 @@ def test_active_runtime_uses_canonical_card_vocabulary() -> None:
     assert ".play-card.card-bond" in play_style
 
     for legacy in (
-        "ongoing_narrative_limit",
-        "narrative_slot",
+        "ongoing_story_limit",
+        "story_slot",
         "STORY_CHOICE_",
-        "narrative_choice_kind",
-        "strat_cancel_narrative",
-        "_fe_pre_narrative_cancel",
+        "story_choice_kind",
+        "strat_cancel_story",
+        "_fe_pre_story_cancel",
         "_fe_compact_ongoing_stories",
-        "_fe_discard_narrative_by_card",
-        "recover_narrative_on_completion_name",
-        "narrative_discard_count",
-        "narrative_discard_gain_command",
-        "strat_narrative_lock",
-        "strat_global_narrative_lock",
-        "_fe_clear_narrative_targets_at_slot",
-        "_fe_narrative_locked",
+        "_fe_discard_story_by_card",
+        "recover_story_on_completion_name",
+        "story_discard_count",
+        "story_discard_gain_command",
+        "strat_story_lock",
+        "strat_global_story_lock",
+        "_fe_clear_story_targets_at_slot",
+        "_fe_story_locked",
         "CONSTRAINT_DISCARD_SOURCE_STORY",
     ):
         assert legacy not in compiled_runtime
@@ -295,6 +296,52 @@ def test_active_runtime_uses_canonical_card_vocabulary() -> None:
     assert "ongoing_narrative_limit" in compiled_runtime
     assert "_fe_pre_narrative_cancel" in compiled_runtime
     assert "NARRATIVE_CHOICE_FRONT" in compiled_runtime
+
+
+def test_story_schema_is_fully_removed_from_active_surfaces() -> None:
+    active_paths = (
+        "cards/cards.json",
+        "src/longwar/cards.py",
+        "src/longwar/game/model.py",
+        "src/longwar/game/actions.py",
+        "src/longwar/game/engine.py",
+        "src/longwar/web_api.py",
+        "src/longwar/_fast_engine_cards.pxi",
+        "src/longwar/_fast_engine_state_io.pxi",
+        "web/play.js",
+        "web/play.css",
+        "web/style.css",
+        "web/print-cards.js",
+        "web/print-cards.css",
+        "web/balance.js",
+        "web/balance.html",
+    )
+    active = "\n".join(text(path) for path in active_paths)
+
+    for legacy in (
+        '"story"',
+        "'story'",
+        "StoryState",
+        "PlayStory",
+        ".stories",
+        '"stories"',
+        "'stories'",
+        "story:",
+        "story_form",
+        "story_limit",
+        "discard_source_story",
+        "card-story",
+        "first_story_each_battle_discount_1_min_1",
+        "return_one_story_from_discard_to_hand",
+    ):
+        assert legacy not in active
+
+    assert '"narrative"' in text("cards/cards.json")
+    assert "NarrativeState" in active
+    assert "PlayNarrative" in active
+    assert ".narratives" in active
+    assert "narrative:" in active
+    assert "card-narrative" in active
 
 
 def test_progression_surfaces_do_not_restore_terminal_collapse_compatibility() -> None:
