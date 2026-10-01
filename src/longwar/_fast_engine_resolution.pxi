@@ -454,13 +454,13 @@ cdef bint _fe_resolve_one_battle_end_narrative(
     FastEngine self,
     FastState state,
 ) except *:
-    cdef int player, story_slot, ix, card, kind, front
+    cdef int player, narrative_slot, ix, card, kind, front
     cdef int target_slot, gain
     cdef uint8_t front_mask
     cdef bint condition, won
     for player in range(2):
-        for story_slot in range(self.ongoing_story_limit):
-            ix = player * 4 + story_slot
+        for narrative_slot in range(self.ongoing_narrative_limit):
+            ix = player * 4 + narrative_slot
             card = state.narrative[ix]
             if card < 0:
                 continue
@@ -519,7 +519,7 @@ cdef bint _fe_resolve_one_battle_end_narrative(
             # condition succeeded.
             if self.narrative_end_discard[card]:
                 _fe_discard_ongoing_narrative(self, 
-                    state, player, story_slot
+                    state, player, narrative_slot
                 )
             return True
     return False
@@ -545,16 +545,16 @@ cdef void _fe_resolve_battle_end_operation_constraints(
     FastEngine self,
     FastState state,
 ) except *:
-    cdef int controller, story_slot, ix, card, winner = -1
+    cdef int controller, narrative_slot, ix, card, winner = -1
     if popcount16(state.resolution_lost_mask[1]) >= 3:
         winner = 0
     elif popcount16(state.resolution_lost_mask[0]) >= 3:
         winner = 1
 
     for controller in range(2):
-        story_slot = self.ongoing_story_limit - 1
-        while story_slot >= 0:
-            ix = controller * 4 + story_slot
+        narrative_slot = self.ongoing_narrative_limit - 1
+        while narrative_slot >= 0:
+            ix = controller * 4 + narrative_slot
             card = state.narrative[ix]
             if card >= 0 and self.narrative_three_front_next_maneuver[card]:
                 if winner >= 0:
@@ -576,9 +576,9 @@ cdef void _fe_resolve_battle_end_operation_constraints(
                 # Printed "Then discard this Omen" is unconditional at
                 # Battle end; only the obligation is conditional.
                 _fe_discard_ongoing_narrative(
-                    self, state, controller, story_slot
+                    self, state, controller, narrative_slot
                 )
-            story_slot -= 1
+            narrative_slot -= 1
 
 
 cdef void _fe_drop_nonpersistent_constraints(
@@ -678,7 +678,7 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.free_maneuver_available[p] = 0
         state.free_maneuver_source[p] = -1
         state.player_maneuver_count[p] = 0
-        for front in range(self.ongoing_story_limit):
+        for front in range(self.ongoing_narrative_limit):
             state.narrative_used[p * 4 + front] = 0
             state.narrative_trigger_mask[p * 4 + front] = 0
         for front in range(8):
