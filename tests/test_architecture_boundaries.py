@@ -639,3 +639,29 @@ def test_verify_rebuilds_native_extension_before_tests() -> None:
     verify = source.split("verify:", 1)[1].split("\n\n", 1)[0]
     assert "$(MAKE) native-build" in verify
     assert "build_native_fingerprint.py" in source
+
+
+def test_native_topology_dimensions_are_not_cross_wired() -> None:
+    resolution = (SRC / "_fast_engine_resolution.pxi").read_text(
+        encoding="utf-8"
+    )
+    strength = (SRC / "_fast_engine_strength.pxi").read_text(
+        encoding="utf-8"
+    )
+
+    assert "slot_index(0, front, p)" not in resolution
+    assert "slot_index(1, front, p)" not in resolution
+    assert "for rank in range(RANK_COUNT):" in resolution
+    assert "slot_index(player, front, 1)" not in strength
+    assert "slot_index(enemy, front, 0)" not in strength
+    assert "slot_index(enemy, front, 1)" not in strength
+
+
+def test_ongoing_narrative_storage_is_not_treated_as_front_index() -> None:
+    effects = (SRC / "_fast_engine_effects.pxi").read_text(encoding="utf-8")
+    strength = (SRC / "_fast_engine_strength.pxi").read_text(encoding="utf-8")
+
+    assert "controller * NARRATIVE_SLOTS_PER_PLAYER + front" not in effects
+    assert "player * NARRATIVE_SLOTS_PER_PLAYER + front" not in strength
+    assert "state.narrative_front_mask[ix] & (1 << front)" in effects
+    assert "narrative_front_mask" in strength
