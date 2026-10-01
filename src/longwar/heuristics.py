@@ -7,7 +7,7 @@ from math import isfinite
 
 from .game.actions import Action
 from .game.engine import GameEngine
-from .game.model import GameState, Phase, other_player
+from .game.model import GameState, Phase
 from .protocol import CardField, CardType
 
 
