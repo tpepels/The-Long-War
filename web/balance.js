@@ -847,7 +847,7 @@ function renderCommandExperiment(lab) {
       <thead><tr>
         <th>Agent</th><th>Recovery</th><th>Floor</th><th>Games</th><th>Censored</th>
         <th>Equal-low cont.</th><th>Any 0-Command start</th><th>0/0 Battle starts</th><th>No paid op.</th>
-        <th>First-signal Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Pass w/ alternatives</th>
+        <th>First-signal Command</th><th>Signal at 0</th><th>Signal at 4+</th><th>Signal w/ alternatives</th>
         <th>Guard opportunity</th><th>Guard override</th>
         <th>Command before Collapse</th><th>Collapse check at 0</th><th>Mean Battles</th><th>Max Battle</th>
         <th>Reach III</th><th>Reach VIII+</th><th>Reach XII+</th><th>Longest equal-low</th>
@@ -1136,14 +1136,14 @@ function renderProgression(lab) {
     metric("No later control change", pct(contest.no_control_change_after_midpoint_rate), "after Battle midpoint"),
   ].join("");
 
-  const passCategories = choice.pass_mechanical_categories || {};
+  const signalCategories = choice.signal_mechanical_categories || {};
   document.getElementById("progression-choice").innerHTML = [
     progressionMetric("Legal actions", choice.legal_action_count, "median per operation decision"),
     progressionMetric("Card-play options", choice.card_play_option_count, "median legal card actions"),
     progressionMetric("Maneuver options", choice.maneuver_option_count, "median legal Maneuvers"),
     metric("Exactly one legal action", pct(choice.exactly_one_legal_action_rate), `${choice.exactly_one_legal_action ?? 0} decisions`),
     metric("Forced Maneuver", pct(choice.forced_maneuver_rate), `${choice.forced_maneuvers ?? 0} decisions`),
-    metric("Pass with no alternative", passCategories.no_alternative ?? 0, "mechanically no non-Pass action"),
+    metric("Signal with no alternative", signalCategories.no_alternative ?? 0, "mechanically no non-Pass action"),
     metric(
       "Constraint source / active",
       `${pct(choice.constraint_rule_source_rate)} / ${choice.constraint_active_supported ? pct(choice.constraint_active_rate) : "not instrumented"}`,
@@ -1445,7 +1445,6 @@ function renderSolverStrength(lab) {
 
 function renderMccfr(lab) {
   const suite = lab.mccfr_suite;
-  const fallback = lab.mccfr;
   const verification = lab.verification;
   const profiles = document.getElementById("mccfr-profiles");
 
@@ -1478,14 +1477,6 @@ function renderMccfr(lab) {
         </tbody>
       </table>
     `;
-  } else if (fallback) {
-    document.getElementById("mccfr-overview").innerHTML = [
-      metric("Iterations", fallback.iterations ?? "—", `${fallback.traversals ?? "—"} traversals`),
-      metric("Information sets", Number(fallback.information_sets || 0).toLocaleString(), `depth ${fallback.max_depth}`),
-      metric("Algorithm", "External sampling", fallback.algorithm || ""),
-      metric("Coverage", "Reference only", "legacy single-policy artifact"),
-    ].join("");
-    profiles.innerHTML = '<p class="muted">This build contains the older single reference-deck MCCFR artifact.</p>';
   } else {
     document.getElementById("mccfr-overview").innerHTML = metric("MCCFR", "—", "policy suite not generated");
     profiles.innerHTML = "";
@@ -1547,6 +1538,9 @@ async function main() {
   ]);
   if (!response.ok) throw new Error("Full Balance Lab report is not available yet.");
   const lab = await response.json();
+  if (lab.schema_version !== 2) {
+    throw new Error("Balance Lab data uses an unsupported schema. Regenerate the Lab artifacts.");
+  }
   const cardData = cardsResponse.ok ? await cardsResponse.json() : { cards: [] };
   annotateMechanicsCoverage(lab, cardData);
 
