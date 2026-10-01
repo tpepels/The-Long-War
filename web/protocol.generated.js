@@ -11,6 +11,9 @@ const LW_PROTOCOL_DATA = {
     "PLAY_NARRATIVE": "PlayNarrative",
     "PLAY_STRATAGEM": "PlayStratagem"
   },
+  "cardClass": {
+    "HERO": "hero"
+  },
   "cardType": {
     "BOND": "bond",
     "FORCE": "force",
@@ -21,6 +24,20 @@ const LW_PROTOCOL_DATA = {
   "direction": {
     "LEFT": "left",
     "RIGHT": "right"
+  },
+  "effectKind": {
+    "FREE_MANEUVER": "free-maneuver",
+    "FRONT_CONTRIBUTION": "front-contribution",
+    "INTERCEPT": "intercept",
+    "MOVE": "move",
+    "PROTECT_RETREAT": "protect-retreat",
+    "RECOVER": "recover",
+    "RETREAT": "retreat",
+    "SACRIFICE": "sacrifice",
+    "SUCCESSION": "succession",
+    "SUPPRESS": "suppress",
+    "SWAP": "swap",
+    "TRANSFER_COMPONENT": "transfer-component"
   },
   "forceRole": {
     "ARCHER": "archer",
@@ -44,6 +61,13 @@ const LW_PROTOCOL_DATA = {
     "PROPHECY": "prophecy",
     "SAGA": "saga",
     "WARNING": "warning"
+  },
+  "observationKind": {
+    "HIDDEN_KNOWLEDGE": "hidden_knowledge",
+    "REVEAL": "reveal"
+  },
+  "observationZone": {
+    "HAND": "hand"
   },
   "phase": {
     "BATTLE": "battle",
@@ -69,6 +93,28 @@ const LW_PROTOCOL_DATA = {
     "FRONT": "front",
     "REAR": "rear"
   },
+  "remoteMessageType": {
+    "COMMAND": "command",
+    "ERROR": "error",
+    "SNAPSHOT": "snapshot"
+  },
+  "remoteRole": {
+    "GUEST": "guest",
+    "HOST": "host"
+  },
+  "remoteSetupPhase": {
+    "AWAIT_ANSWER": "await-answer",
+    "CREATING": "creating",
+    "IDLE": "idle",
+    "WAITING": "waiting"
+  },
+  "requestType": {
+    "ACT": "act",
+    "AI_STEP": "ai_step",
+    "MULLIGAN": "mulligan",
+    "NEW_GAME": "new_game",
+    "VIEW": "view"
+  },
   "ruleBlockField": {
     "KIND": "kind",
     "LABEL": "label",
@@ -84,6 +130,9 @@ const LW_PROTOCOL_DATA = {
     "REPLACEMENT": "replacement",
     "TIMING": "timing",
     "TRIGGER": "trigger"
+  },
+  "sessionPhase": {
+    "MULLIGAN": "mulligan"
   }
 };
 for (const value of Object.values(LW_PROTOCOL_DATA)) Object.freeze(value);
