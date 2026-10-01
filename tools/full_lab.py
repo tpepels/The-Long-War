@@ -13,6 +13,7 @@ from longwar.fingerprint import (
     current_game_fingerprint,
 )
 from longwar.reference_decks import MCCFR_PROFILES
+from longwar.parallelism import DEFAULT_WORKERS
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
@@ -164,7 +165,7 @@ def main() -> None:
         description="Resumable one-command build of the complete Balance Lab."
     )
     parser.add_argument("--force", action="store_true")
-    parser.add_argument("--jobs", type=int, default=8)
+    parser.add_argument("--jobs", type=int, default=DEFAULT_WORKERS)
     parser.add_argument("--seed", type=int, default=1701)
     parser.add_argument("--balance-games", type=int, default=8)
     parser.add_argument("--ablation-games", type=int, default=24)
@@ -180,7 +181,7 @@ def main() -> None:
     parser.add_argument("--strength-time-budget-seconds", type=float, default=5.0)
     parser.add_argument("--mccfr-iterations", type=int, default=5000)
     parser.add_argument("--mccfr-depth", type=int, default=3)
-    parser.add_argument("--mccfr-workers", type=int, default=8)
+    parser.add_argument("--mccfr-workers", type=int, default=DEFAULT_WORKERS)
     parser.add_argument("--mccfr-eval-games", type=int, default=24)
     parser.add_argument("--mccfr-verification-iterations", type=int, default=50000)
     args = parser.parse_args()
