@@ -322,7 +322,7 @@ def test_mechanical_choice_and_pass_context_use_actual_legal_set() -> None:
 
     assert choice["exactly_one_legal_action"] == 1
     assert choice["exactly_one_legal_action_rate"] == pytest.approx(1.0)
-    assert choice["pass_mechanical_categories"] == {"no_alternative": 1}
+    assert choice["signal_mechanical_categories"] == {"no_alternative": 1}
 
 
 def test_constraint_rule_source_is_not_misreported_as_active_constraint() -> None:
@@ -495,11 +495,11 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
         "constraint_active_decisions": 1,
         "cards_played": 5,
         "pass_events": 2,
-        "first_pass_command": 6,
-        "first_pass_unplayable_cards": 2,
-        "first_pass_legal_alternatives": 3,
-        "first_pass_playable_card_actions": 2,
-        "first_pass_maneuver_actions": 1,
+        "first_signal_command": 6,
+        "first_signal_unplayable_cards": 2,
+        "first_signal_legal_alternatives": 3,
+        "first_signal_playable_card_actions": 2,
+        "first_signal_maneuver_actions": 1,
         "free_maneuvers": 1,
         "command_gained": 1,
     }
@@ -513,7 +513,7 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
     assert by_battle["4-7"]["battles"] == 2
     assert by_battle["8+"]["battles"] == 0
     assert by_battle["1"]["eventual_completion_rate_for_forces_deployed"] is None
-    assert by_battle["1"]["first_pass_unplayable_cards"] == pytest.approx(2.0)
+    assert by_battle["1"]["first_signal_unplayable_cards"] == pytest.approx(2.0)
     assert by_battle["1"]["command_start"] == pytest.approx(20.0)
     assert by_battle["1"]["constraint_rule_source_rate"] == pytest.approx(0.5)
     assert by_battle["1"]["constraint_active_rate"] == pytest.approx(0.25)
@@ -756,11 +756,11 @@ def test_progression_exposes_per_player_battlefield_distributions() -> None:
         "constraint_active_decisions": 0,
         "cards_played": 5,
         "pass_events": 2,
-        "first_pass_command": 8,
-        "first_pass_unplayable_cards": 1,
-        "first_pass_legal_alternatives": 2,
-        "first_pass_playable_card_actions": 1,
-        "first_pass_maneuver_actions": 1,
+        "first_signal_command": 8,
+        "first_signal_unplayable_cards": 1,
+        "first_signal_legal_alternatives": 2,
+        "first_signal_playable_card_actions": 1,
+        "first_signal_maneuver_actions": 1,
         "free_maneuvers": 0,
         "command_gained": 0,
     })
@@ -772,7 +772,7 @@ def test_progression_exposes_per_player_battlefield_distributions() -> None:
 
 
 
-def test_first_pass_outcomes_use_front_balance_not_invented_battle_winner() -> None:
+def test_first_signal_outcomes_use_front_balance_not_invented_battle_winner() -> None:
     progression = ProgressionTelemetry()
     rows = [
         {
@@ -790,7 +790,7 @@ def test_first_pass_outcomes_use_front_balance_not_invented_battle_winner() -> N
             "final_front_balance": -1,
         },
     ]
-    group = progression._pass_outcome_group(
+    group = progression._signal_outcome_group(
         rows,
         lambda row: row["total_margin"] > 0,
     )
