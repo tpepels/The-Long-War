@@ -48,6 +48,90 @@ cdef class NativeHeuristicEvaluator:
                 value += self.weights[HW_INCOMPLETE_TWO_CARD_LIABILITY]
         return value
 
+    cdef void projected_lost_masks_fast(
+        self,
+        FastState state,
+        uint16_t* lost0,
+        uint16_t* lost1,
+    ) noexcept:
+        """Project effective Front losses using resolution comparison rules."""
+        cdef int front, a, b, controller, strat, mask
+        cdef int combined0, combined1
+        cdef bint tie_control
+
+        # Once comparison has completed, preserve the authoritative masks.
+        if state.resolution_stage in (
+            RESOLUTION_RETREATS,
+            RESOLUTION_NARRATIVES,
+            RESOLUTION_RECOVERY,
+        ):
+            lost0[0] = state.resolution_lost_mask[0] & FRONT_MASK
+            lost1[0] = state.resolution_lost_mask[1] & FRONT_MASK
+            return
+
+        lost0[0] = 0
+        lost1[0] = 0
+        tie_control = _fe_tie_control_active(self.engine, state)
+
+        for front in range(FRONT_COUNT):
+            a = _fe_resolution_front_strength_fast(
+                self.engine, state, 0, front
+            )
+            b = _fe_resolution_front_strength_fast(
+                self.engine, state, 1, front
+            )
+            if a < b:
+                lost0[0] |= <uint16_t>(1 << front)
+            elif b < a:
+                lost1[0] |= <uint16_t>(1 << front)
+            elif tie_control:
+                if (
+                    _fe_slot_complete(
+                        self.engine,
+                        state,
+                        slot_index(0, front, RANK_FRONT),
+                    )
+                    != _fe_slot_complete(
+                        self.engine,
+                        state,
+                        slot_index(1, front, RANK_FRONT),
+                    )
+                ):
+                    if _fe_slot_complete(
+                        self.engine,
+                        state,
+                        slot_index(0, front, RANK_FRONT),
+                    ):
+                        lost1[0] |= <uint16_t>(1 << front)
+                    else:
+                        lost0[0] |= <uint16_t>(1 << front)
+
+        # Combined-Front Stratagems replace the individual results exactly as
+        # Battle resolution does.
+        for controller in range(PLAYER_COUNT):
+            strat = state.stratagem[controller]
+            if strat < 0 or not self.engine.strat_combine_fronts[strat]:
+                continue
+            mask = state.stratagem_front_mask[controller] & FRONT_MASK
+            if popcount16(mask) != COMBINED_FRONT_SELECTION_COUNT:
+                continue
+            combined0 = 0
+            combined1 = 0
+            for front in range(FRONT_COUNT):
+                if mask & (1 << front):
+                    combined0 += _fe_resolution_front_strength_fast(
+                        self.engine, state, 0, front
+                    )
+                    combined1 += _fe_resolution_front_strength_fast(
+                        self.engine, state, 1, front
+                    )
+            lost0[0] &= <uint16_t>(~mask)
+            lost1[0] &= <uint16_t>(~mask)
+            if combined0 < combined1:
+                lost0[0] |= <uint16_t>mask
+            elif combined1 < combined0:
+                lost1[0] |= <uint16_t>mask
+
     cdef int projected_front_loss_command_penalty_fast(
         self,
         FastState state,
@@ -101,6 +185,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int remaining_hero_uses=0
         cdef int own_losses=0, opponent_losses=0
         cdef uint16_t own_lost_mask=0, opponent_lost_mask=0
+        cdef uint16_t projected_lost0=0, projected_lost1=0
         cdef int own_front_slot, own_rear_slot, opp_front_slot, opp_rear_slot
         cdef int recovery=0, own_recovery=0, opponent_recovery=0
         cdef int own_after_loss=0, opponent_after_loss=0
@@ -135,7 +220,6 @@ cdef class NativeHeuristicEvaluator:
 
             if raw_margin > 0:
                 controls += 1
-                opponent_lost_mask |= <uint16_t>(1 << front)
                 if raw_margin <= self.weights[HW_CLOSE_FRONT_MARGIN]:
                     score += self.weights[HW_CLOSE_FRONT_BONUS]
                 if raw_margin <= self.weights[HW_EXPOSED_FRONT_MARGIN]:
@@ -159,7 +243,6 @@ cdef class NativeHeuristicEvaluator:
 
             elif raw_margin < 0:
                 enemy_controls += 1
-                own_lost_mask |= <uint16_t>(1 << front)
                 if raw_margin >= -self.weights[HW_CLOSE_FRONT_MARGIN]:
                     score -= self.weights[HW_CLOSE_FRONT_BONUS]
                 if raw_margin >= -self.weights[HW_EXPOSED_FRONT_MARGIN]:
@@ -182,6 +265,18 @@ cdef class NativeHeuristicEvaluator:
             elif margin < -self.weights[HW_FRONT_MARGIN_CLAMP]:
                 margin = -<int>self.weights[HW_FRONT_MARGIN_CLAMP]
             score += self.weights[HW_MARGIN_WEIGHT] * margin
+
+        self.projected_lost_masks_fast(
+            state,
+            &projected_lost0,
+            &projected_lost1,
+        )
+        if player == 0:
+            own_lost_mask = projected_lost0
+            opponent_lost_mask = projected_lost1
+        else:
+            own_lost_mask = projected_lost1
+            opponent_lost_mask = projected_lost0
 
         own_losses = self.projected_front_loss_command_penalty_fast(
             state, player, own_lost_mask
@@ -249,6 +344,10 @@ cdef class NativeHeuristicEvaluator:
         if opponent_after_loss < 0:
             opponent_after_loss = 0
 
+        # A mid-Battle board is not a terminal Collapse result. Battle-end
+        # choices, Retreat effects and Narratives can still change Command.
+        # Keep the projection soft; exact terminal utility comes only from the
+        # authoritative Battle-resolution transition.
         if (
             (
                 own_after_loss <= self.engine.command_collapse_threshold
@@ -256,13 +355,11 @@ cdef class NativeHeuristicEvaluator:
             )
             and own_after_loss != opponent_after_loss
         ):
-            if own_after_loss < opponent_after_loss:
-                score -= self.weights[HW_COLLAPSE_OUTCOME_SCORE]
-            else:
-                score += self.weights[HW_COLLAPSE_OUTCOME_SCORE]
+            own_projected = own_after_loss
+            opponent_projected = opponent_after_loss
         else:
             # Front losses have already been applied to projected Command.
-            # Recovery is relevant only after surviving the Collapse check.
+            # Recovery is relevant only after surviving the projected check.
             recovery = _fe_command_recovery_fast(self.engine, state.battle)
             own_recovery = recovery
             if own_recovery < self.engine.command_recovery_floor:
@@ -279,8 +376,10 @@ cdef class NativeHeuristicEvaluator:
             if opponent_projected > self.engine.command_cap:
                 opponent_projected = self.engine.command_cap
 
-            projected_delta = own_projected - opponent_projected
-            score += self.weights[HW_PROJECTED_COMMAND_WEIGHT] * (projected_delta - current_delta)
+        projected_delta = own_projected - opponent_projected
+        score += self.weights[HW_PROJECTED_COMMAND_WEIGHT] * (
+            projected_delta - current_delta
+        )
 
         if (
             state.phase == PHASE_BATTLE
@@ -854,6 +953,11 @@ cdef class NativeHeuristicEvaluator:
         for i in range(HEUR_WEIGHT_COUNT):
             values.append(self.weights[i])
         return tuple(values)
+
+    cpdef tuple projected_lost_masks(self, FastState state):
+        cdef uint16_t lost0=0, lost1=0
+        self.projected_lost_masks_fast(state, &lost0, &lost1)
+        return (lost0, lost1)
 
     cpdef int projected_front_loss_command_penalty(
         self,
