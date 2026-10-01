@@ -31,7 +31,7 @@
   <g transform="rotate(-7 55 62)"><rect x="0" y="8" width="82" height="108" rx="8" class="paper" stroke="#1d1a16" stroke-width="3"/><rect x="9" y="18" width="64" height="18" rx="3" class="gold"/><text x="41" y="32" text-anchor="middle" class="tiny">FORCE</text><path class="thin" d="M21 56 L61 91 M61 56 L21 91"/></g>
   <g transform="translate(42 0) rotate(7 55 62)"><rect x="0" y="8" width="82" height="108" rx="8" class="paper" stroke="#1d1a16" stroke-width="3"/><rect x="9" y="18" width="64" height="18" rx="3" class="wash"/><text x="41" y="32" text-anchor="middle" class="tiny">BOND</text><circle cx="34" cy="71" r="13" class="thin"/><circle cx="50" cy="71" r="13" class="thin"/></g>
 </g>
-<text x="264" y="214" text-anchor="middle" class="small">build & move</text>
+<text x="264" y="214" text-anchor="middle" class="small">build &amp; move</text>
 <!-- pass tokens -->
 <g transform="translate(390 92)">
   <circle cx="30" cy="48" r="31" class="paper" stroke="#1d1a16" stroke-width="3"/>
