@@ -285,20 +285,33 @@ def opening_mulligan_indices(
 class HeuristicEvaluator:
     """Thin adapter to the single compiled heuristic implementation."""
 
-    def __init__(self, weights: HeuristicWeights | None = None) -> None:
+    def __init__(
+        self,
+        weights: HeuristicWeights | None = None,
+        *,
+        sampled_opponent_resources: bool = False,
+    ) -> None:
         self.weights = weights or DEFAULT_HEURISTIC_WEIGHTS
+        self.sampled_opponent_resources = bool(sampled_opponent_resources)
         self._cached_engine: GameEngine | None = None
         self._cached_evaluator = None
 
     def _packed(self, engine: GameEngine, state: GameState):
         native = engine._native_core()
-        if self.weights == DEFAULT_HEURISTIC_WEIGHTS:
+        if (
+            not self.sampled_opponent_resources
+            and self.weights == DEFAULT_HEURISTIC_WEIGHTS
+        ):
             evaluator = engine._native_heuristic()
         elif self._cached_engine is engine and self._cached_evaluator is not None:
             evaluator = self._cached_evaluator
         else:
             from .native_engine import create_heuristic_evaluator
-            evaluator = create_heuristic_evaluator(native, self.weights)
+            evaluator = create_heuristic_evaluator(
+                native,
+                self.weights,
+                sampled_opponent_resources=self.sampled_opponent_resources,
+            )
             self._cached_engine = engine
             self._cached_evaluator = evaluator
         return native, evaluator, native.from_game_state(state)
