@@ -31,9 +31,9 @@ def engine_and_state():
     # - an empty own position for Forces,
     # - a bare own Force for Bonds,
     # - an own Force with an open Bond for Names,
-    # - an own bonded Force plus another bare Force for movement Stories,
-    # - enemy bonded / Named Formations for disruption Stories,
-    # - empty ongoing Story slots.
+    # - an own bonded Force plus another bare Force for movement Narratives,
+    # - enemy bonded / Named Formations for disruption Narratives,
+    # - empty ongoing Narrative slots.
     own_first = state.slot(0, Position(Front.FIRST, Rank.FRONT))
     own_first.force = "the-fifty-men"
     own_first.bond = "followed"
