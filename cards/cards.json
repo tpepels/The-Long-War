@@ -1534,8 +1534,8 @@
         }
       ],
       "design_rules": {
-        "command": "improve_recovery",
-        "lost_front_adjustment": -1
+        "command": "protect_lost_fronts",
+        "lost_fronts_protected": 1
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -1788,7 +1788,7 @@
       "design_rules": {
         "force": {
           "deploy_rank": "rear",
-          "command": "lost_front_here_does_not_reduce_recovery"
+          "command": "protect_lost_front_here"
         },
         "name": {
           "command": "first_card_in_front_each_battle_discount_1_min_1"
