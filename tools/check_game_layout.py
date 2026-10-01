@@ -158,7 +158,7 @@ CHECK_SCRIPT = r"""
     await new Promise((resolve) => setTimeout(resolve, 120));
     const stableZones = [...document.querySelectorAll(".opponent-rack, .hand-dock, .campaign-hud, #battlefield")].map((element) => [element, rect(element)]);
     if (scenario === "targeting") {
-      const card = document.querySelector("#hand .play-card.playable.card-subject");
+      const card = document.querySelector("#hand .play-card.playable.card-force");
       if (!card) fail("targeting-card-unavailable");
       else card.click();
       if (!document.querySelector(".digital-slot.targetable")) fail("targeting-highlight-missing");
