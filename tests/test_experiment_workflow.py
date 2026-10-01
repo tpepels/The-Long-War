@@ -804,10 +804,14 @@ def test_full_lab_does_not_import_native_search_before_native_build():
 def test_balance_reuses_only_complete_matching_structural_cells() -> None:
     source = inspect.getsource(runner.balance_run)
     assert "reusing {len(cells)} complete structural matchup cells" in source
-    assert 'payload.get("game_fingerprint") != identity["game_fingerprint"]' in source
-    assert 'payload.get("experiment_fingerprint")' in source
+    assert "candidate_identity.get(\"game_fingerprint\")" in source
+    assert 'candidate_identity.get("config") != config' in source
+    assert 'payload.get("game_fingerprint")' in source
     assert 'int(payload.get("games", -1)) != games' in source
     assert 'int(payload.get("seed", -1)) != seed' in source
     assert 'payload.get("deck_a") != decks[left]' in source
     assert 'payload.get("deck_b") != decks[right]' in source
     assert "if len(reusable) == len(cells):" in source
+    assert "output.parent.iterdir()" in source
+    assert 'payload.get("agent_profile") != config["agent_profile"]' in source
+    assert 'payload.get("rules") != asdict(engine.rules)' in source

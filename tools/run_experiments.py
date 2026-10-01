@@ -433,36 +433,81 @@ def balance_run(args: argparse.Namespace) -> Path:
             f"{payload['first_player_wilson_95']}"
         )
 
-    reusable: dict[str, dict[str, Any]] = {}
-    for left, right in cells:
-        name = f"{left}--{right}"
-        _meta_left, _meta_right, seed, _policies = cell_metadata[name]
-        existing_path = output / f"{name}.json"
-        if not existing_path.exists():
-            reusable = {}
-            break
+    def load_reusable_structural(
+        candidate: Path,
+    ) -> dict[str, dict[str, Any]]:
+        config_path = candidate / "config.json"
+        if not config_path.exists():
+            return {}
         try:
-            payload = json.loads(existing_path.read_text(encoding="utf-8"))
+            candidate_identity = json.loads(
+                config_path.read_text(encoding="utf-8")
+            )
         except (OSError, json.JSONDecodeError):
-            reusable = {}
-            break
+            return {}
         if (
-            payload.get("game_fingerprint") != identity["game_fingerprint"]
-            or payload.get("experiment_fingerprint")
-            != identity["experiment_fingerprint"]
-            or int(payload.get("games", -1)) != games
-            or int(payload.get("seed", -1)) != seed
-            or payload.get("deck_a") != decks[left]
-            or payload.get("deck_b") != decks[right]
+            candidate_identity.get("game_fingerprint")
+            != identity["game_fingerprint"]
+            or candidate_identity.get("config") != config
         ):
-            reusable = {}
+            return {}
+
+        found: dict[str, dict[str, Any]] = {}
+        for left, right in cells:
+            name = f"{left}--{right}"
+            _meta_left, _meta_right, seed, _policies = cell_metadata[name]
+            existing_path = candidate / f"{name}.json"
+            if not existing_path.exists():
+                return {}
+            try:
+                payload = json.loads(
+                    existing_path.read_text(encoding="utf-8")
+                )
+            except (OSError, json.JSONDecodeError):
+                return {}
+            if (
+                payload.get("game_fingerprint")
+                != identity["game_fingerprint"]
+                or int(payload.get("games", -1)) != games
+                or int(payload.get("seed", -1)) != seed
+                or payload.get("deck_a") != decks[left]
+                or payload.get("deck_b") != decks[right]
+                or payload.get("agent_profile") != config["agent_profile"]
+                or payload.get("rules") != asdict(engine.rules)
+            ):
+                return {}
+            found[name] = payload
+        return found
+
+    reusable: dict[str, dict[str, Any]] = {}
+    reusable_source: Path | None = None
+    candidate_dirs = [output]
+    candidate_dirs.extend(
+        sorted(
+            (
+                candidate
+                for candidate in output.parent.iterdir()
+                if candidate.is_dir() and candidate != output
+            ),
+            key=lambda candidate: candidate.stat().st_mtime,
+            reverse=True,
+        )
+    )
+    for candidate in candidate_dirs:
+        reusable = load_reusable_structural(candidate)
+        if len(reusable) == len(cells):
+            reusable_source = candidate
             break
-        reusable[name] = payload
 
     if len(reusable) == len(cells):
+        source_label = (
+            reusable_source.relative_to(ROOT)
+            if reusable_source is not None
+            else output.relative_to(ROOT)
+        )
         print(
             f"  reusing {len(cells)} complete structural matchup cells "
-            "from the current artifact directory",
+            f"from {source_label}",
             flush=True,
         )
         for left, right in cells:
