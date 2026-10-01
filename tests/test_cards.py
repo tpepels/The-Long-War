@@ -25,7 +25,7 @@ def test_canonical_card_pool_has_unique_ids_and_supported_types() -> None:
     assert ids
     assert len(ids) == len(set(ids))
     assert {card["type"] for card in data["cards"]} <= {
-        "force", "bond", "name", "story", "stratagem"
+        "force", "bond", "name", "narrative", "stratagem"
     }
 
 
@@ -46,7 +46,7 @@ def test_names_and_heroes_are_unique() -> None:
 
 def test_narratives_have_specific_forms_and_public_ongoing_metadata() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    narratives = cards_by_type(data, "story")
+    narratives = cards_by_type(data, "narrative")
     assert all(card["narrative_form"] in NARRATIVE_FORMS for card in narratives)
     assert all(isinstance(card["ongoing"], bool) for card in narratives)
 
@@ -70,7 +70,7 @@ def test_all_cards_define_valid_rule_blocks() -> None:
 
 def test_player_facing_card_text_uses_canonical_vocabulary() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    obsolete = re.compile(r"\b(?:Subject|Link|Plot|Scheme|Veiled Story|Story)\b", re.IGNORECASE)
+    obsolete = re.compile(r"\b(?:Subject|Link|Plot|Scheme|Veiled Narrative|Narrative)\b", re.IGNORECASE)
     for card in data["cards"]:
         assert not obsolete.search(card.get("text", "")), card["title"]
 
