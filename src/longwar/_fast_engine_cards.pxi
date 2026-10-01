@@ -59,7 +59,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.after_empty_extra_move_force, 0, sizeof(self.after_empty_extra_move_force))
     memset(self.reactive_maneuver_name, 0, sizeof(self.reactive_maneuver_name))
     memset(self.recover_bond_on_completion_name, 0, sizeof(self.recover_bond_on_completion_name))
-    memset(self.recover_story_on_completion_name, 0, sizeof(self.recover_story_on_completion_name))
+    memset(self.recover_narrative_on_completion_name, 0, sizeof(self.recover_narrative_on_completion_name))
     memset(self.narrative_secondary, 0, sizeof(self.narrative_secondary))
     memset(self.narrative_end_kind, 0, sizeof(self.narrative_end_kind))
     memset(self.narrative_end_gain, 0, sizeof(self.narrative_end_gain))
@@ -91,14 +91,14 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.bond_move_on_play, 0, sizeof(self.bond_move_on_play))
     memset(self.bond_optional_extra_cost, 0, sizeof(self.bond_optional_extra_cost))
     memset(self.bond_optional_draw_count, 0, sizeof(self.bond_optional_draw_count))
-    memset(self.story_discard_count, 0, sizeof(self.story_discard_count))
-    memset(self.story_discard_gain_command, 0, sizeof(self.story_discard_gain_command))
+    memset(self.narrative_discard_count, 0, sizeof(self.narrative_discard_count))
+    memset(self.narrative_discard_gain_command, 0, sizeof(self.narrative_discard_gain_command))
     memset(self.name_rank_bonus_rank, 0xff, sizeof(self.name_rank_bonus_rank))
     memset(self.name_rank_bonus_amount, 0, sizeof(self.name_rank_bonus_amount))
     memset(self.name_effect, 0, sizeof(self.name_effect))
     memset(self.narrative_play_effect, 0, sizeof(self.narrative_play_effect))
     memset(self.ongoing_narrative, 0, sizeof(self.ongoing_narrative))
-    memset(self.story_choice_kind, 0, sizeof(self.story_choice_kind))
+    memset(self.narrative_choice_kind, 0, sizeof(self.narrative_choice_kind))
     memset(self.ongoing_reveal_trigger, 0, sizeof(self.ongoing_reveal_trigger))
     memset(self.ongoing_reveal_effect, 0, sizeof(self.ongoing_reveal_effect))
     memset(self.ongoing_reveal_amount, 0, sizeof(self.ongoing_reveal_amount))
@@ -111,14 +111,14 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.strat_rank_mask, 0, sizeof(self.strat_rank_mask))
     memset(self.strat_reveal_effect, 0, sizeof(self.strat_reveal_effect))
     memset(self.strat_reveal_amount, 0, sizeof(self.strat_reveal_amount))
-    memset(self.strat_cancel_story, 0, sizeof(self.strat_cancel_story))
+    memset(self.strat_cancel_narrative, 0, sizeof(self.strat_cancel_narrative))
     memset(self.strat_role_mod, 0, sizeof(self.strat_role_mod))
     memset(self.strat_rank_mod, 0, sizeof(self.strat_rank_mod))
     memset(self.strat_controller_rank_mod, 0, sizeof(self.strat_controller_rank_mod))
     memset(self.strat_named_mod, 0, sizeof(self.strat_named_mod))
     memset(self.strat_unnamed_mod, 0, sizeof(self.strat_unnamed_mod))
-    memset(self.strat_story_lock, 0, sizeof(self.strat_story_lock))
-    memset(self.strat_global_story_lock, 0, sizeof(self.strat_global_story_lock))
+    memset(self.strat_narrative_lock, 0, sizeof(self.strat_narrative_lock))
+    memset(self.strat_global_narrative_lock, 0, sizeof(self.strat_global_narrative_lock))
     memset(self.narrative_first_card_front_constraint, 0, sizeof(self.narrative_first_card_front_constraint))
     memset(self.narrative_no_maneuver_away, 0, sizeof(self.narrative_no_maneuver_away))
     memset(self.narrative_forced_named_direction, 0, sizeof(self.narrative_forced_named_direction))
@@ -145,7 +145,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     self.pass_closing_rounds = int(rules.pass_closing_rounds)
     self.maneuver_command_cost = int(rules.maneuver_command_cost)
     self.hand_limit = int(rules.hand_limit)
-    self.ongoing_story_limit = int(rules.ongoing_narrative_limit)
+    self.ongoing_narrative_limit = int(rules.ongoing_narrative_limit)
     self.command_diag_capture = False
     self.command_diag_len = 0
     if self.n_cards > MAX_CARDS:
@@ -330,7 +330,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         if name_design.get("on_completion") == "return_one_bond_from_discard_to_hand":
             self.recover_bond_on_completion_name[code] = 1
         if name_design.get("on_completion") == "return_one_story_from_discard_to_hand":
-            self.recover_story_on_completion_name[code] = 1
+            self.recover_narrative_on_completion_name[code] = 1
         front_resolution = design.get("front_resolution") or {}
         if front_resolution.get("contribution") == "chosen_front_instead_of_own":
             self.skirmisher_contribution[code] = 1
@@ -396,10 +396,10 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             if design.get("effect") == "draw_2":
                 self.bond_optional_draw_count[code] = 2
         if design.get("command") == "card_for_command":
-            self.story_discard_count[code] = int(
+            self.narrative_discard_count[code] = int(
                 design.get("discard_cards", 0)
             )
-            self.story_discard_gain_command[code] = int(
+            self.narrative_discard_gain_command[code] = int(
                 design.get("gain_command", 0)
             )
 
@@ -409,14 +409,14 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             or design.get("chosen_front")
             or design.get("chosen_front_requires_friendly_named_formation")
         ):
-            self.story_choice_kind[code] = STORY_CHOICE_FRONT
+            self.narrative_choice_kind[code] = NARRATIVE_CHOICE_FRONT
         elif self.narrative_forced_named_direction[code]:
-            self.story_choice_kind[code] = STORY_CHOICE_NAMED_DIRECTION
+            self.narrative_choice_kind[code] = STORY_CHOICE_NAMED_DIRECTION
         elif (
             design.get("placement") == "chosen_named_formation"
             or design.get("choose_friendly_named_formation")
         ):
-            self.story_choice_kind[code] = STORY_CHOICE_NAMED_FORMATION
+            self.narrative_choice_kind[code] = NARRATIVE_CHOICE_NAMED_FORMATION
         if design.get("trigger") == "first_friendly_maneuver_into_empty_each_battle":
             self.narrative_maneuver_empty_gain[code] = int(
                 design.get("gain_command", 0)
