@@ -890,18 +890,15 @@ def test_low_command_telemetry_records_simultaneous_collapse_draw() -> None:
     stall = progression["low_command_stalls"]
     assert stall["diagnostic_battles"] == 1
     assert stall["both_at_collapse_point"] == 1
-    assert stall["equal_low_continuations"] == 0
-    assert stall["zero_zero_continuations"] == 0
-    assert stall["zero_zero_recovered"] == 0
     assert stall["simultaneous_collapse_draws"] == 1
-    assert stall["zero_vs_positive_collapses"] == 0
-    assert stall["both_zero_command_battle_starts"] == 1
+    assert stall["unequal_collapse_terminations"] == 0
+    assert stall["both_at_collapse_point_battle_starts"] == 1
     assert stall["battles_with_no_paid_operation"] == 1
     assert stall["battles_with_no_board_change"] == 1
     assert stall["battles_with_no_strength_change"] == 1
     assert stall["forced_passes"] == 2
     assert stall["passes_with_no_playable_alternative"] == 2
-    assert stall["equal_low_streak_length"]["histogram"] == {}
+    assert stall["low_positive_streak_length"]["histogram"] == {}
 
     record = stall["battle_records"][0]
     assert record["battle"] == 8
