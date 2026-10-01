@@ -6,50 +6,43 @@ the game core.
 """
 from __future__ import annotations
 
+from .native_fingerprint import assert_native_module_current
+
+
+def _native_module():
+    from . import _fast_search
+    return assert_native_module_current(_fast_search)
+
 
 def strategic_backend():
-    from ._fast_search import (
-        FastEngine,
-        NativeHeuristicEvaluator,
-        NativeSearchBudget,
-        NativeSearchLimit,
-        NativeTranspositionTable,
-        native_search_value,
-    )
+    module = _native_module()
     return (
-        FastEngine,
-        NativeHeuristicEvaluator,
-        NativeSearchBudget,
-        NativeSearchLimit,
-        NativeTranspositionTable,
-        native_search_value,
+        module.FastEngine,
+        module.NativeHeuristicEvaluator,
+        module.NativeSearchBudget,
+        module.NativeSearchLimit,
+        module.NativeTranspositionTable,
+        module.native_search_value,
     )
 
 
 def ismcts_backend():
-    from ._fast_search import (
-        FastEngine,
-        ISMCTSTree,
-        NativeHeuristicEvaluator,
-        ismcts_search,
+    module = _native_module()
+    return (
+        module.FastEngine,
+        module.ISMCTSTree,
+        module.NativeHeuristicEvaluator,
+        module.ismcts_search,
     )
-    return FastEngine, ISMCTSTree, NativeHeuristicEvaluator, ismcts_search
 
 
 def mccfr_backend():
-    from ._fast_search import (
-        FastCFRNode,
-        FastEngine,
-        NativeHeuristicEvaluator,
-        make_scratch,
-        packed_external_sampling_traverse,
-        stable_information_id_from_fast_key,
-    )
+    module = _native_module()
     return (
-        FastCFRNode,
-        FastEngine,
-        NativeHeuristicEvaluator,
-        make_scratch,
-        packed_external_sampling_traverse,
-        stable_information_id_from_fast_key,
+        module.FastCFRNode,
+        module.FastEngine,
+        module.NativeHeuristicEvaluator,
+        module.make_scratch,
+        module.packed_external_sampling_traverse,
+        module.stable_information_id_from_fast_key,
     )
