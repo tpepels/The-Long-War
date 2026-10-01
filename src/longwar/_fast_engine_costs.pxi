@@ -25,10 +25,12 @@ cdef inline int _fe_local_front_discount_source_fast(
     int player,
     int front,
     int* source_card,
+    int* minimum_cost,
 ) noexcept:
     cdef int rank, slot, name, discount = 0
     cdef uint8_t bit = <uint8_t>(1 << front)
     source_card[0] = -1
+    minimum_cost[0] = 0
     for rank in range(RANK_COUNT):
         slot = slot_index(player, front, rank)
         if state.force[slot] < 0:
@@ -44,6 +46,7 @@ cdef inline int _fe_local_front_discount_source_fast(
         ):
             discount = self.local_catchup_discount_name[name]
             source_card[0] = name
+            minimum_cost[0] = self.local_catchup_minimum_cost_name[name]
         if (
             self.first_front_card_battle_discount_name[name]
             and _fe_slot_complete(self, state, slot)
@@ -52,16 +55,8 @@ cdef inline int _fe_local_front_discount_source_fast(
         ):
             discount = self.first_front_card_battle_discount_name[name]
             source_card[0] = name
+            minimum_cost[0] = self.first_front_card_battle_minimum_cost_name[name]
     return discount
-
-cdef inline int _fe_local_front_discount_fast(
-    FastEngine self,
-    FastState state,
-    int player,
-    int front,
-) noexcept:
-    cdef int source_card
-    return _fe_local_front_discount_source_fast(self, state, player, front, &source_card)
 
 cdef inline int _fe_first_narrative_discount_source_fast(
     FastEngine self,
@@ -81,44 +76,6 @@ cdef inline int _fe_first_narrative_discount_source_fast(
             return force
     return -1
 
-cdef inline int _fe_first_narrative_discount_fast(
-    FastEngine self,
-    FastState state,
-    int player,
-) noexcept:
-    return 1 if _fe_first_narrative_discount_source_fast(self, state, player) >= 0 else 0
-
-cdef inline int _fe_adjacent_discount_source_fast(
-    FastEngine self,
-    FastState state,
-    int player,
-    int target_front,
-    int* source_card,
-) noexcept:
-    cdef int local, slot, front, name, discount = 0
-    source_card[0] = -1
-    for local in range(POSITIONS_PER_PLAYER):
-        slot = player * POSITIONS_PER_PLAYER + local
-        if not _fe_slot_complete(self, state, slot):
-            continue
-        front = local // RANK_COUNT
-        if abs(front - target_front) != 1:
-            continue
-        name = state.name[slot]
-        if name >= 0 and self.adjacent_command_discount[name] > discount:
-            discount = self.adjacent_command_discount[name]
-            source_card[0] = name
-    return discount
-
-cdef inline int _fe_adjacent_discount_fast(
-    FastEngine self,
-    FastState state,
-    int player,
-    int target_front,
-) noexcept:
-    cdef int source_card
-    return _fe_adjacent_discount_source_fast(self, state, player, target_front, &source_card)
-
 cdef inline int _fe_command_cost_fast(
     FastEngine self,
     FastState state,
@@ -127,6 +84,7 @@ cdef inline int _fe_command_cost_fast(
     cdef int kind, card, pos, target_front=-1, cost, discount, rear, support, strat
     cdef int selected, i, controller, dest, direction, before_cost, saved
     cdef int source_card=-1, local_source=-1, local_discount=0, discount_detail=0
+    cdef int discount_minimum_cost=0, local_minimum_cost=0
     cdef uint32_t extra
     cdef int player = state.active_player
     kind = action_kind(action)
@@ -290,9 +248,12 @@ cdef inline int _fe_command_cost_fast(
         source_card = _fe_first_narrative_discount_source_fast(self, state, player)
         if source_card >= 0:
             before_cost = cost
-            cost -= 1
-            if cost < 1:
-                cost = 1
+            cost -= self.first_narrative_battle_discount_force[source_card]
+            discount_minimum_cost = (
+                self.first_narrative_battle_minimum_cost_force[source_card]
+            )
+            if cost < discount_minimum_cost:
+                cost = discount_minimum_cost
             saved = before_cost - cost
             if saved > 0:
                 _fe_record_command_diag(
@@ -302,17 +263,21 @@ cdef inline int _fe_command_cost_fast(
     if target_front >= 0 and cost > 0:
         source_card = -1
         discount_detail = 0
-        discount = _fe_adjacent_discount_source_fast(
-            self, state, player, target_front, &source_card
-        )
-        if discount > 0:
-            discount_detail = COMMAND_DETAIL_ADJACENT_DISCOUNT
+        discount = 0
+        discount_minimum_cost = 0
         local_source = -1
+        local_minimum_cost = 0
         local_discount = _fe_local_front_discount_source_fast(
-            self, state, player, target_front, &local_source
+            self,
+            state,
+            player,
+            target_front,
+            &local_source,
+            &local_minimum_cost,
         )
         if local_discount > discount:
             discount = local_discount
+            discount_minimum_cost = local_minimum_cost
             source_card = local_source
             discount_detail = COMMAND_DETAIL_LOCAL_FRONT_DISCOUNT
         if kind == TYPE_FORCE and rank_from_slot(pos) == RANK_FRONT:
@@ -327,13 +292,14 @@ cdef inline int _fe_command_cost_fast(
                 )
             ):
                 discount = self.frontline_force_discount[support]
+                discount_minimum_cost = self.frontline_force_minimum_cost[support]
                 source_card = support
                 discount_detail = COMMAND_DETAIL_FRONTLINE_DISCOUNT
         if discount:
             before_cost = cost
             cost -= discount
-            if cost < 1 and not self.catchup_zero_cost[card]:
-                cost = 1
+            if cost < discount_minimum_cost:
+                cost = discount_minimum_cost
             if cost < 0:
                 cost = 0
             saved = before_cost - cost
