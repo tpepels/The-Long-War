@@ -14,6 +14,7 @@ from longwar.fingerprint import current_game_fingerprint
 from longwar.mccfr import MCCFRTrainer
 from longwar.mccfr_core import BACKEND
 from longwar.parallel_mccfr import train_parallel_mccfr
+from longwar.parallelism import DEFAULT_WORKERS
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -41,8 +42,8 @@ def main() -> None:
     parser.add_argument(
         "--workers",
         type=int,
-        default=8,
-        help="Parallel training replicas (default: 8); 1 = sequential; 0 = all detected CPUs.",
+        default=DEFAULT_WORKERS,
+        help=f"Parallel training replicas (default: {DEFAULT_WORKERS}); 1 = sequential; 0 = all detected CPUs.",
     )
     parser.add_argument("--deck-a", type=Path, default=Path(DEFAULT_DECK_PATH))
     parser.add_argument("--deck-b", type=Path, default=Path(DEFAULT_DECK_PATH))
