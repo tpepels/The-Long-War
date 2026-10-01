@@ -284,7 +284,7 @@ The check that can end the war is called **Command Collapse**. It happens after 
 - If both players are at or below **{{COLLAPSE_THRESHOLD}} Command** with equal Command, the war ends in a **draw**.
 - Only a continuing war receives Command recovery.
 
-## Special card types {#stories}
+## Special card types {#narratives}
 
 Some cards sit outside the Force-Bond-Name structure or bend it in a defined way.
 
