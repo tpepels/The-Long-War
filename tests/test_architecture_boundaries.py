@@ -765,3 +765,11 @@ def test_anti_decisive_rollout_does_not_nest_full_reply_search() -> None:
     helper = helper.split("cdef uint64_t _ismcts_rollout_action(", 1)[0]
     assert "merely because the closing" in helper
     assert "score_scratch.pass_closing_turns_remaining == 1" not in helper
+
+
+def test_decisive_random_win_scan_is_bounded_and_greedy_is_not_double_probed() -> None:
+    source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
+    assert "DECISIVE_ROLLOUT_RANDOM_WIN_PROBES = 4" in source
+    assert "Reserve explicit tactical" in source
+    assert "if not use_greedy:" in source
+    assert "if state.pass_closing_turns_remaining == 1:" in source
