@@ -838,3 +838,14 @@ def test_strength_benchmark_avoids_nested_process_pools() -> None:
     assert '"1",' in command_block
     assert "_run_cells_with_live_progress" in source
     assert "jobs=jobs" in source
+
+
+def test_pass_variant_experiment_has_serious_evidence_guards() -> None:
+    source = inspect.getsource(runner.pass_variant_run)
+    assert "50_000" in source
+    assert "allow_smoke" in source
+    assert "turn_consuming_actions_completed" in source
+    assert "signal_events" in source
+    assert "anti_decisive_rollout_filtered" in source
+    assert "reuse checkpoint" in source
+    assert "cell_config" in source

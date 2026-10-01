@@ -48,7 +48,7 @@ The default is deliberately small: 6 games per canonical deck per variant, four 
 Do not use this screen for card balance. Its question is Battle-ending behavior: match length, Battles per game, Pass/flag frequency, draw/censor rate, first-player rate, and Command at the first signal.
 
 
-## First current-rules paired screen - 2026-10-01
+## First current-rules plumbing smoke - 2026-10-01
 
 Command:
 
@@ -56,7 +56,7 @@ Command:
 python tools/run_experiments.py pass-variants
 ```
 
-Configuration: 6 games per canonical same-deck profile, 6 profiles, 36 games per variant; paired seeds; ISMCTS 5,000 iterations, 2 belief samples; 4 workers. Current Command rules include direct -1 Command per unprotected lost Front before Collapse and simultaneous 0-0 as a draw.
+Configuration: 6 games per canonical same-deck profile, 6 profiles, 36 games per variant; paired seeds; ISMCTS **5,000 iterations**, 2 belief samples; 4 workers. Current Command rules include direct -1 Command per unprotected lost Front before Collapse and simultaneous 0-0 as a draw. This run is retained as a plumbing smoke only; the search budget is below the 50,000-iteration evidence floor.
 
 | Variant | Games | Decisive | Draws | Draw rate | Censored | Mean actions | Mean Battles | Approx actions/Battle |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -65,7 +65,7 @@ Configuration: 6 games per canonical same-deck profile, 6 profiles, 36 games per
 | closing-3 | 36 | 33 | 3 | 8.3% | 0 | 96.4 | 4.97 | 19.4 |
 | battle-flag | 36 | 21 | 15 | 41.7% | 0 | 48.4 | 1.42 | 34.1 |
 
-### Immediate reading
+### Smoke-test observations - not rule conclusions
 
 - All 144 games completed below the 500-action censor horizon.
 - Permanent Pass produced substantially shorter wars than either fixed closing window.
@@ -75,3 +75,22 @@ Configuration: 6 games per canonical same-deck profile, 6 profiles, 36 games per
 - These are screening samples (n=36 per variant, 6 per deck), not final balance evidence. Inspect the saved per-deck reports before choosing a rule.
 
 Artifact from this run: `artifacts/pass-variants/052e9c28939d/summary.json` (local/generated artifact; not versioned by default).
+
+
+## Serious Pass-rule protocol
+
+The next comparative screen uses:
+
+- minimum 50,000 ISMCTS iterations per decision;
+- 12 belief samples;
+- decisive rollout with exact rule-aware decisive and anti-decisive checks;
+- rollout depth 8, long enough to cover the full 3-round/6-turn closing window;
+- 8 games per canonical mirror deck by default (48 games/variant);
+- 2 worker processes by default to control laptop memory;
+- identical seat alternation, initial game seeds and agent seed schedule across variants;
+- per-deck checkpoint files, automatically reused after interruption;
+- separate counts for new signals, forced turn-yields, free flags, raw engine actions and turn-consuming actions;
+- draw, censor and first-player Wilson intervals;
+- per-deck breakdowns and tactical rollout probe/filter counts.
+
+A sub-50k ISMCTS run requires `--allow-smoke` and is explicitly marked as smoke evidence.

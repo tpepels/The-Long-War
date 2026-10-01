@@ -2287,13 +2287,26 @@ PASS_RULE_VARIANTS: dict[str, dict[str, object]] = {
 
 
 def pass_variant_run(args: argparse.Namespace) -> Path:
-    """Small paired screen of Battle-ending rules under otherwise identical play."""
-    from longwar.simulate import SimulationBatchCell, simulate_games_batch
+    """Paired Battle-ending experiment with resumable per-deck checkpoints."""
+    from statistics import median
+
+    from longwar.simulate import simulate_games
 
     if args.games <= 0 or args.jobs <= 0:
         raise SystemExit("--games and --jobs must be positive")
-    if args.ismcts_iterations <= 0:
-        raise SystemExit("--ismcts-iterations must be positive")
+    if args.ismcts_iterations <= 0 or args.ismcts_belief_samples <= 0:
+        raise SystemExit("ISMCTS budget values must be positive")
+    if args.ismcts_rollout_depth < 0:
+        raise SystemExit("--ismcts-rollout-depth must be non-negative")
+    if (
+        args.agent == "ismcts"
+        and args.ismcts_iterations < 50_000
+        and not args.allow_smoke
+    ):
+        raise SystemExit(
+            "Pass-rule evidence requires at least 50,000 ISMCTS iterations. "
+            "Use --allow-smoke only for plumbing/debug runs."
+        )
 
     data = load_card_file(ROOT / "cards" / "cards.json")
     decks = {
@@ -2305,6 +2318,8 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
     if unknown:
         raise SystemExit(f"Unknown Pass variants: {unknown}")
 
+    # Worker count is deliberately execution-only. Changing it after an
+    # interrupted run must not change the evidence identity or prevent resume.
     config = {
         "experiment": "pass-variants",
         "variants": {
@@ -2313,10 +2328,11 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
         },
         "games_per_deck": args.games,
         "seed": args.seed,
-        "jobs": args.jobs,
         "agent": args.agent,
         "ismcts_iterations": args.ismcts_iterations,
         "ismcts_belief_samples": args.ismcts_belief_samples,
+        "ismcts_rollout_depth": args.ismcts_rollout_depth,
+        "ismcts_rollout_policy": args.ismcts_rollout_policy,
         "canonical_decks": list(decks),
         "base_rules": GameRules.standard().as_dict(),
     }
@@ -2326,93 +2342,240 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
         identity,
     )
 
+    def cell_summary(payload: dict[str, Any]) -> dict[str, Any]:
+        games = int(payload["games"])
+        draws = int(payload.get("draws", 0))
+        censored = int(payload.get("censored_games", 0))
+        failed = int(payload.get("failed_games", 0))
+        decisive = int(
+            payload.get(
+                "decisive_games",
+                games - draws - censored - failed,
+            )
+        )
+        outcomes = list(payload.get("game_outcomes", []))
+        completed = max(0, games - failed)
+        actions = [
+            int(row.get("actions_completed", 0))
+            for row in outcomes
+        ]
+        turn_actions = [
+            int(
+                row.get(
+                    "turn_consuming_actions_completed",
+                    row.get("actions_completed", 0),
+                )
+            )
+            for row in outcomes
+        ]
+        battles = int(
+            payload.get("telemetry", {})
+            .get("battles", {})
+            .get("count", 0)
+            or 0
+        )
+        passes = payload.get("telemetry", {}).get("passes", {})
+        signals = int(
+            passes.get("signal_events", passes.get("events", 0))
+            or 0
+        )
+        forced_yields = int(passes.get("forced_yield_events", 0) or 0)
+        free_signals = int(passes.get("free_signal_events", 0) or 0)
+        decisions = payload.get("telemetry", {}).get("decisions", {})
+        agent_decisions = decisions.get(args.agent, {})
+        tactics = agent_decisions.get("ismcts_rollout_cutoffs", {})
+
+        return {
+            "games": games,
+            "completed_games": completed,
+            "decisive_games": decisive,
+            "draws": draws,
+            "censored_games": censored,
+            "failed_games": failed,
+            "first_player_wins": int(payload.get("first_player_wins", 0)),
+            "actions_total": sum(actions),
+            "turn_consuming_actions_total": sum(turn_actions),
+            "median_actions": median(actions) if actions else None,
+            "median_turn_consuming_actions": (
+                median(turn_actions) if turn_actions else None
+            ),
+            "resolved_battles": battles,
+            "signal_events": signals,
+            "forced_yield_events": forced_yields,
+            "free_signal_events": free_signals,
+            "mean_command_at_signal": passes.get("mean_command_at_signal"),
+            "signal_with_playable_alternative_rate": passes.get(
+                "signal_with_playable_alternative_rate"
+            ),
+            "decisive_rollout_probes": int(
+                tactics.get("decisive_probes", 0) or 0
+            ),
+            "decisive_rollout_actions": int(
+                tactics.get("decisive_actions", 0) or 0
+            ),
+            "anti_decisive_rollout_probes": int(
+                tactics.get("anti_decisive_probes", 0) or 0
+            ),
+            "anti_decisive_rollout_filtered": int(
+                tactics.get("anti_decisive_filtered", 0) or 0
+            ),
+        }
+
     rows: list[dict[str, Any]] = []
+    variant_payloads: dict[str, dict[str, dict[str, Any]]] = {}
+
     for variant_index, name in enumerate(selected):
         overrides = PASS_RULE_VARIANTS[name]
         rules = GameRules.standard().with_overrides(**overrides)
         engine = GameEngine(data, rules=rules)
-        cells = [
-            SimulationBatchCell(
-                key=deck_name,
-                deck_a=deck,
-                deck_b=deck,
-                games=args.games,
-                # Deliberately identical across variants.
-                seed=args.seed + deck_index * args.games,
-            )
-            for deck_index, (deck_name, deck) in enumerate(decks.items())
-        ]
+        variant_dir = output / name
+        variant_dir.mkdir(parents=True, exist_ok=True)
+        cell_payloads: dict[str, dict[str, Any]] = {}
+
         print(
             f"[{variant_index + 1}/{len(selected)}] {name}: "
-            f"{len(cells) * args.games} games",
+            f"{len(decks) * args.games} games "
+            f"({args.ismcts_iterations:,} iterations, "
+            f"{args.ismcts_belief_samples} beliefs, "
+            f"depth {args.ismcts_rollout_depth}, "
+            f"{args.ismcts_rollout_policy})",
             flush=True,
         )
 
-        def progress(key: str, completed: int, total: int) -> None:
-            if completed == total:
-                print(f"  {key}: {completed}/{total}", flush=True)
-
-        reports = simulate_games_batch(
-            engine,
-            cells,
-            jobs=args.jobs,
-            common_options={
-                "agent_names": (args.agent, args.agent),
+        for deck_index, (deck_name, deck) in enumerate(decks.items()):
+            cell_path = variant_dir / f"{deck_name}.json"
+            cell_seed = args.seed + deck_index * args.games
+            cell_config = {
+                "variant": name,
+                "deck": deck_name,
+                "games": args.games,
+                "seed": cell_seed,
+                "agent": args.agent,
                 "ismcts_iterations": args.ismcts_iterations,
                 "ismcts_belief_samples": args.ismcts_belief_samples,
-            },
-            progress_callback=progress,
-        )
+                "ismcts_rollout_depth": args.ismcts_rollout_depth,
+                "ismcts_rollout_policy": args.ismcts_rollout_policy,
+                "rules": rules.as_dict(),
+            }
 
-        total_games = sum(report.games for report in reports.values())
-        completed_games = sum(report.completed_games for report in reports.values())
-        decisive = sum(report.decisive_games for report in reports.values())
-        draws = sum(report.draws for report in reports.values())
-        censored = sum(report.censored_games for report in reports.values())
-        failed = sum(report.failed_games for report in reports.values())
-        first_wins = sum(report.first_player_wins for report in reports.values())
-        total_actions = sum(
-            report.mean_turns * report.completed_games
-            for report in reports.values()
-        )
-        battles = sum(
-            int(report.telemetry.get("battles", {}).get("count", 0) or 0)
-            for report in reports.values()
-        )
-        pass_events = sum(
-            int(report.telemetry.get("passes", {}).get("events", 0) or 0)
-            for report in reports.values()
-        )
-        first_passes = sum(
-            (
-                float(report.telemetry.get("passes", {}).get("first_pass_rate") or 0.0)
-                * int(report.telemetry.get("passes", {}).get("events", 0) or 0)
-            )
-            for report in reports.values()
-        )
-        command_at_pass_total = sum(
-            (
-                float(
-                    report.telemetry.get("passes", {}).get(
-                        "mean_command_remaining"
-                    ) or 0.0
-                )
-                * int(report.telemetry.get("passes", {}).get("events", 0) or 0)
-            )
-            for report in reports.values()
-        )
-        playable_pass_total = sum(
-            (
-                float(
-                    report.telemetry.get("passes", {}).get(
-                        "playable_alternative_rate"
-                    ) or 0.0
-                )
-                * int(report.telemetry.get("passes", {}).get("events", 0) or 0)
-            )
-            for report in reports.values()
-        )
+            payload: dict[str, Any] | None = None
+            if cell_path.exists() and not args.force:
+                try:
+                    candidate = json.loads(cell_path.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    candidate = None
+                if (
+                    isinstance(candidate, dict)
+                    and candidate.get("game_fingerprint")
+                    == identity["game_fingerprint"]
+                    and candidate.get("experiment_fingerprint")
+                    == identity["experiment_fingerprint"]
+                    and candidate.get("cell_config") == cell_config
+                ):
+                    payload = candidate
+                    print(f"  {deck_name}: reuse checkpoint", flush=True)
 
+            if payload is None:
+                def progress(
+                    completed: int,
+                    total: int,
+                    _wins: tuple[int, int],
+                ) -> None:
+                    if completed == total or completed % 2 == 0:
+                        print(
+                            f"  {deck_name}: {completed}/{total}",
+                            flush=True,
+                        )
+
+                report = simulate_games(
+                    engine,
+                    deck,
+                    deck,
+                    games=args.games,
+                    seed=cell_seed,
+                    jobs=args.jobs,
+                    agent_names=(args.agent, args.agent),
+                    ismcts_iterations=args.ismcts_iterations,
+                    ismcts_belief_samples=args.ismcts_belief_samples,
+                    ismcts_rollout_depth=args.ismcts_rollout_depth,
+                    ismcts_rollout_policy=args.ismcts_rollout_policy,
+                    progress_callback=progress,
+                )
+                payload = asdict(report)
+                payload.update({
+                    "decisive_games": report.decisive_games,
+                    "completed_games": report.completed_games,
+                    "draw_rate": report.draw_rate,
+                    "censor_rate": report.censor_rate,
+                    "rules": rules.as_dict(),
+                    "variant": name,
+                    "deck": deck_name,
+                    "game_fingerprint": identity["game_fingerprint"],
+                    "experiment_fingerprint": identity["experiment_fingerprint"],
+                    "cell_config": cell_config,
+                })
+                cell_path.write_text(
+                    json.dumps(payload, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+                print(f"  {deck_name}: checkpoint saved", flush=True)
+
+            cell_payloads[deck_name] = payload
+
+        variant_payloads[name] = cell_payloads
+        per_deck = {
+            deck_name: cell_summary(payload)
+            for deck_name, payload in cell_payloads.items()
+        }
+        aggregate = list(per_deck.values())
+
+        total_games = sum(row["games"] for row in aggregate)
+        completed_games = sum(row["completed_games"] for row in aggregate)
+        decisive = sum(row["decisive_games"] for row in aggregate)
+        draws = sum(row["draws"] for row in aggregate)
+        censored = sum(row["censored_games"] for row in aggregate)
+        failed = sum(row["failed_games"] for row in aggregate)
+        first_wins = sum(row["first_player_wins"] for row in aggregate)
+        actions_total = sum(row["actions_total"] for row in aggregate)
+        turn_actions_total = sum(
+            row["turn_consuming_actions_total"] for row in aggregate
+        )
+        battles = sum(row["resolved_battles"] for row in aggregate)
+        signals = sum(row["signal_events"] for row in aggregate)
+        forced_yields = sum(row["forced_yield_events"] for row in aggregate)
+        free_signals = sum(row["free_signal_events"] for row in aggregate)
+        all_actions = [
+            int(outcome.get("actions_completed", 0))
+            for payload in cell_payloads.values()
+            for outcome in payload.get("game_outcomes", [])
+        ]
+        all_turn_actions = [
+            int(
+                outcome.get(
+                    "turn_consuming_actions_completed",
+                    outcome.get("actions_completed", 0),
+                )
+            )
+            for payload in cell_payloads.values()
+            for outcome in payload.get("game_outcomes", [])
+        ]
+        command_signal_weight = sum(
+            (
+                float(row["mean_command_at_signal"])
+                * row["signal_events"]
+            )
+            for row in aggregate
+            if row["mean_command_at_signal"] is not None
+        )
+        playable_signal_weight = sum(
+            (
+                float(row["signal_with_playable_alternative_rate"])
+                * row["signal_events"]
+            )
+            for row in aggregate
+            if row["signal_with_playable_alternative_rate"] is not None
+        )
+        resolved = decisive + draws
         row = {
             "variant": name,
             "rules": rules.as_dict(),
@@ -2425,54 +2588,94 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
             "first_player_win_rate_decisive": (
                 first_wins / decisive if decisive else None
             ),
-            "draw_rate_resolved": (
-                draws / (decisive + draws) if decisive + draws else None
+            "first_player_win_rate_95ci": (
+                wilson_interval(first_wins, decisive)
+                if decisive else None
             ),
-            "censor_rate": censored / total_games if total_games else None,
-            "mean_actions_per_completed_game": (
-                total_actions / completed_games if completed_games else None
+            "draw_rate_resolved": (
+                draws / resolved if resolved else None
+            ),
+            "draw_rate_95ci": (
+                wilson_interval(draws, resolved)
+                if resolved else None
+            ),
+            "censor_rate": (
+                censored / total_games if total_games else None
+            ),
+            "censor_rate_95ci": (
+                wilson_interval(censored, total_games)
+                if total_games else None
+            ),
+            "mean_engine_actions_per_completed_game": (
+                actions_total / completed_games if completed_games else None
+            ),
+            "median_engine_actions_per_completed_game": (
+                median(all_actions) if all_actions else None
+            ),
+            "mean_turn_consuming_actions_per_completed_game": (
+                turn_actions_total / completed_games
+                if completed_games else None
+            ),
+            "median_turn_consuming_actions_per_completed_game": (
+                median(all_turn_actions) if all_turn_actions else None
             ),
             "resolved_battles": battles,
             "mean_battles_per_game": (
                 battles / total_games if total_games else None
             ),
-            "pass_or_flag_events": pass_events,
-            "first_signal_events": first_passes,
-            "mean_signal_events_per_battle": (
-                pass_events / battles if battles else None
+            "signal_events": signals,
+            "forced_yield_events": forced_yields,
+            "free_signal_events": free_signals,
+            "mean_signals_per_battle": (
+                signals / battles if battles else None
+            ),
+            "mean_forced_yields_per_battle": (
+                forced_yields / battles if battles else None
             ),
             "mean_command_at_signal": (
-                command_at_pass_total / pass_events if pass_events else None
+                command_signal_weight / signals if signals else None
             ),
             "signal_with_playable_alternative_rate": (
-                playable_pass_total / pass_events if pass_events else None
+                playable_signal_weight / signals if signals else None
             ),
+            "decisive_rollout_probes": sum(
+                row["decisive_rollout_probes"] for row in aggregate
+            ),
+            "decisive_rollout_actions": sum(
+                row["decisive_rollout_actions"] for row in aggregate
+            ),
+            "anti_decisive_rollout_probes": sum(
+                row["anti_decisive_rollout_probes"] for row in aggregate
+            ),
+            "anti_decisive_rollout_filtered": sum(
+                row["anti_decisive_rollout_filtered"] for row in aggregate
+            ),
+            "decks": per_deck,
         }
         rows.append(row)
-
-        variant_dir = output / name
-        variant_dir.mkdir(parents=True, exist_ok=True)
-        for deck_name, report in reports.items():
-            payload = asdict(report)
-            payload["rules"] = rules.as_dict()
-            payload["variant"] = name
-            (variant_dir / f"{deck_name}.json").write_text(
-                json.dumps(payload, indent=2, sort_keys=True) + "\n",
-                encoding="utf-8",
-            )
 
         print(
             "  "
             f"decisive={decisive}, draws={draws}, censored={censored}, "
-            f"mean actions={row['mean_actions_per_completed_game']:.1f}, "
-            f"mean Battles={row['mean_battles_per_game']:.2f}",
+            f"turn-actions={row['mean_turn_consuming_actions_per_completed_game']:.1f}, "
+            f"Battles={row['mean_battles_per_game']:.2f}",
             flush=True,
         )
 
+    evidence_grade = (
+        "smoke"
+        if args.agent == "ismcts" and args.ismcts_iterations < 50_000
+        else "comparative-screen"
+    )
     payload = {
         **identity,
-        "schema_version": 1,
-        "paired_by": "same canonical deck, game index, and seed across variants",
+        "schema_version": 2,
+        "evidence_grade": evidence_grade,
+        "execution": {"jobs": args.jobs},
+        "paired_by": (
+            "same canonical mirror deck, seat alternation, initial game seed, "
+            "and agent seed schedule across variants"
+        ),
         "historical_consecutive_pass": {
             "comparable_to_current_rules": False,
             "reason": (
@@ -2730,8 +2933,18 @@ def parse_args() -> argparse.Namespace:
         "pass-variants",
         help="Compare current Battle-ending Pass/flag variants on paired seeds.",
     )
-    pass_variants.add_argument("--games", type=int, default=6)
-    pass_variants.add_argument("--jobs", type=int, default=4)
+    pass_variants.add_argument(
+        "--games",
+        type=int,
+        default=8,
+        help="Games per canonical mirror deck and variant (default: 8).",
+    )
+    pass_variants.add_argument(
+        "--jobs",
+        type=int,
+        default=2,
+        help="Parallel game workers. Kept conservative for laptop memory.",
+    )
     pass_variants.add_argument("--seed", type=int, default=26100100)
     pass_variants.add_argument(
         "--agent",
@@ -2741,13 +2954,34 @@ def parse_args() -> argparse.Namespace:
     pass_variants.add_argument(
         "--ismcts-iterations",
         type=int,
-        default=5000,
-        help="Small screening budget; increase only after the first comparison.",
+        default=50_000,
+        help="ISMCTS iterations per decision; 50,000 is the evidence floor.",
     )
     pass_variants.add_argument(
         "--ismcts-belief-samples",
         type=int,
-        default=2,
+        default=12,
+    )
+    pass_variants.add_argument(
+        "--ismcts-rollout-depth",
+        type=int,
+        default=8,
+        help="Eight plies cover the full 3-round closing window.",
+    )
+    pass_variants.add_argument(
+        "--ismcts-rollout-policy",
+        choices=("greedy", "cheap", "random", "decisive"),
+        default="decisive",
+    )
+    pass_variants.add_argument(
+        "--allow-smoke",
+        action="store_true",
+        help="Permit sub-50k ISMCTS budgets for plumbing only.",
+    )
+    pass_variants.add_argument(
+        "--force",
+        action="store_true",
+        help="Ignore compatible per-deck checkpoints and rerun every cell.",
     )
     pass_variants.add_argument(
         "--variants",
