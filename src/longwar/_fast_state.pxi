@@ -105,7 +105,7 @@ cdef class FastState:
     cdef uint8_t resolution_lost_mask[2]
     cdef uint8_t resolution_drive_mask[2]
     cdef uint8_t resolution_protected_mask[2]
-    cdef uint8_t resolution_front_loss_command_penalty[2]
+    cdef int16_t resolution_front_loss_command_penalty[2]
     cdef uint16_t resolution_suppressed_mask
     cdef int8_t resolution_contribution_front[SLOT_COUNT]
     cdef uint8_t resolution_cursor
