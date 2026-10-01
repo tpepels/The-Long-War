@@ -7,6 +7,7 @@ from ..game.actions import Action
 from ..game.engine import GameEngine
 from ..game.model import GameState
 from ..mccfr import action_key, information_set_id
+from ..protocol import AgentKind, PolicySource
 from .heuristic_agent import HeuristicAgent
 from ..heuristics import command_preserving_actions
 
@@ -20,7 +21,7 @@ class MCCFRAgent:
         policy: dict[str, Any],
         *,
         deterministic: bool = False,
-        fallback: str = "heuristic",
+        fallback: str = AgentKind.HEURISTIC,
     ):
         if policy.get("schema_version") != 1:
             raise ValueError("Unsupported MCCFR policy schema")
@@ -47,7 +48,7 @@ class MCCFRAgent:
                 "selected_score": 1.0,
                 "score_gap": 1.0,
                 "selected_action": type(actions[0]).__name__,
-                "policy_source": "forced",
+                "policy_source": PolicySource.FORCED.value,
                 "command_guard_applied": guarded > 0,
                 "command_guard_filtered_actions": guarded,
             }
@@ -59,7 +60,8 @@ class MCCFRAgent:
         if entry is None:
             action = self.fallback_agent.choose(engine, state)
             self.last_decision = dict(self.fallback_agent.last_decision)
-            self.last_decision["policy_source"] = f"fallback:{self.fallback_name}"
+            self.last_decision["policy_source"] = PolicySource.FALLBACK.value
+            self.last_decision["policy_source_detail"] = str(self.fallback_name)
             self.last_decision["command_guard_applied"] = guarded > 0
             self.last_decision["command_guard_filtered_actions"] = guarded
             return action
@@ -75,7 +77,8 @@ class MCCFRAgent:
         if total <= 0:
             action = self.fallback_agent.choose(engine, state)
             self.last_decision = dict(self.fallback_agent.last_decision)
-            self.last_decision["policy_source"] = f"fallback:{self.fallback_name}"
+            self.last_decision["policy_source"] = PolicySource.FALLBACK.value
+            self.last_decision["policy_source_detail"] = str(self.fallback_name)
             self.last_decision["command_guard_applied"] = guarded > 0
             self.last_decision["command_guard_filtered_actions"] = guarded
             return action
@@ -122,9 +125,8 @@ class MCCFRAgent:
             else:
                 action = self.fallback_agent.choose(engine, state)
                 self.last_decision = dict(self.fallback_agent.last_decision)
-                self.last_decision["policy_source"] = (
-                    f"guard-fallback:{self.fallback_name}"
-                )
+                self.last_decision["policy_source"] = PolicySource.GUARD_FALLBACK.value
+                self.last_decision["policy_source_detail"] = str(self.fallback_name)
                 self.last_decision["command_guard_applied"] = guarded > 0
                 self.last_decision["command_guard_filtered_actions"] = guarded
                 self.last_decision["command_guard_overrode_selection"] = True
@@ -137,7 +139,7 @@ class MCCFRAgent:
             "selected_score": normalized[selected_key],
             "score_gap": best - second,
             "selected_action": type(action_map[selected_key]).__name__,
-            "policy_source": "mccfr",
+            "policy_source": PolicySource.MCCFR.value,
             "command_guard_applied": guarded > 0,
             "command_guard_filtered_actions": guarded,
             "command_guard_overrode_selection": guard_overrode_selection,
