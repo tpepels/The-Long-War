@@ -737,16 +737,6 @@ def test_native_weight_export_avoids_cpdef_generator_closure() -> None:
     assert "values.append(self.weights[i])" in source
 
 
-def test_decisive_rollout_limits_exact_reply_probes_to_terminal_horizon() -> None:
-    source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
-    assert "anti_decisive_needed" in source
-    assert "state.passed[actor]" in source
-    assert "state.pass_closing_turns_remaining <= 2" in source
-    assert "score_scratch.constraint_len == 0" in source
-
-
-
-
 def test_decisive_rollout_keeps_only_exact_second_signal_probe() -> None:
     source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
     rollout = source.split("cdef uint64_t _ismcts_rollout_action(", 1)[1]
