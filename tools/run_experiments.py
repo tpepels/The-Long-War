@@ -613,7 +613,7 @@ def balance_run(args: argparse.Namespace) -> Path:
             effect_text = "—" if effect is None else f"{float(effect):+.1%}"
             print(
                 f"  [{completed:>2}/{total}] {row['title']}: "
-                f"ΔWP {effect_text}, {row.get('samples', 0)} decisive pairs, "
+                f"ΔWP {effect_text}, {row.get('samples', 0)} resolved pairs, "
                 f"{row.get('censored_pairs', 0)} censored",
                 flush=True,
             )
@@ -634,7 +634,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         save("counterfactual", causal_payload)
         print(
             "Broad screen complete: "
-            f"{causal_payload['decisive_paired_samples']} decisive paired "
+            f"{causal_payload['resolved_paired_samples']} resolved paired "
             f"samples, {causal_payload['censored_paired_samples']} censored "
             f"pairs ({causal_payload['pair_censor_rate']:.1%}).",
             flush=True,
@@ -659,7 +659,7 @@ def balance_run(args: argparse.Namespace) -> Path:
                 print(
                     f"  [{completed:>2}/{total}] {row['title']}: "
                     f"online ΔWP {effect_text}, {row['confirmation']}, "
-                    f"{online.get('samples', 0)} decisive pairs, "
+                    f"{online.get('samples', 0)} resolved pairs, "
                     f"{online.get('censored_pairs', 0)} censored",
                     flush=True,
                 )
@@ -789,8 +789,8 @@ def balance_run(args: argparse.Namespace) -> Path:
                         "under a fixed cheap policy."
                     ),
                     "cards": len(causal_payload.get("cards", [])),
-                    "decisive_paired_samples": causal_payload.get(
-                        "decisive_paired_samples",
+                    "resolved_paired_samples": causal_payload.get(
+                        "resolved_paired_samples",
                         0,
                     ),
                     "censored_paired_samples": causal_payload.get(
