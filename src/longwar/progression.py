@@ -18,6 +18,12 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import ConstraintKind, Front, GameState, Phase, Position
+from .protocol import (
+    CardField,
+    CommandDiagnosticDetail,
+    CommandDiagnosticKind,
+    PLAYER_COUNT,
+)
 
 
 CARD_ACTIONS = (PlayForce, PlayBond, PlayName, PlayNarrative, PlayStratagem)
@@ -114,11 +120,12 @@ class ProgressionTelemetry:
         self._discount_actions = 0
         self._discount_command = 0
         self._command_by_source: dict[str, Counter[str]] = defaultdict(Counter)
+        self._command_effects_by_source: dict[str, Counter[str]] = defaultdict(Counter)
 
         self._hero_modes: dict[str, dict[str, Any]] = defaultdict(_new_hero_mode)
 
         self._draw_queues: dict[tuple[int, str], list[tuple[int, int, int]]] = defaultdict(list)
-        self._reshuffled_pending: list[Counter[str]] = [Counter(), Counter()]
+        self._reshuffled_pending: list[Counter[str]] = [Counter() for _ in range(PLAYER_COUNT)]
         self._card_actions_to_play: dict[str, list[int]] = defaultdict(list)
         self._card_turns_to_play: dict[str, list[int]] = defaultdict(list)
         self._card_held_boundaries: Counter[str] = Counter()
@@ -203,6 +210,8 @@ class ProgressionTelemetry:
             getattr(self, name).update(getattr(other, name))
         for source, counts in other._command_by_source.items():
             self._command_by_source[source].update(counts)
+        for source, counts in other._command_effects_by_source.items():
+            self._command_effects_by_source[source].update(counts)
 
         for battle, counts in other._command_spend_by_battle.items():
             self._command_spend_by_battle[battle].update(counts)
@@ -269,9 +278,9 @@ class ProgressionTelemetry:
         self._battle_control_balance_changes = 0
         self._battle_lead_changes = 0
         self._draw_queues = defaultdict(list)
-        self._reshuffled_pending = [Counter(), Counter()]
+        self._reshuffled_pending = [Counter() for _ in range(PLAYER_COUNT)]
 
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             for card_id in state.players[player].hand:
                 self.record_draw(player, card_id, state)
         self._initialize_formations(engine, state)
@@ -600,7 +609,7 @@ class ProgressionTelemetry:
         censored: bool = False,
     ) -> None:
         if state is not None:
-            for player in range(2):
+            for player in range(PLAYER_COUNT):
                 for card_id, count in Counter(state.players[player].hand).items():
                     self._card_unplayed_match_end[card_id] += count
             self._match_records.append({
@@ -1104,11 +1113,9 @@ class ProgressionTelemetry:
                     "front_loss_command_avoided": int(
                         counts.get("front_loss_command_avoided", 0)
                     ),
-                    "effects": {
-                        key.removeprefix("trigger:"): int(value)
-                        for key, value in sorted(counts.items())
-                        if key.startswith("trigger:")
-                    },
+                    "effects": dict(
+                        sorted(self._command_effects_by_source[source].items())
+                    ),
                 }
                 for source, counts in sorted(self._command_by_source.items())
             },
@@ -1117,10 +1124,10 @@ class ProgressionTelemetry:
             "command_at_first_signal": self._distribution(
                 row["command_remaining"] for row in first_signal_rows
             ),
-            "first_signales_with_paid_alternatives": sum(
+            "first_signals_with_paid_alternatives": sum(
                 row.get("paid_alternatives", 0) > 0 for row in first_signal_rows
             ),
-            "first_signales_avoiding_command_exhaustion": sum(
+            "first_signals_avoiding_command_exhaustion": sum(
                 bool(row.get("signal_avoids_command_exhaustion"))
                 for row in first_signal_rows
             ),
@@ -1462,7 +1469,7 @@ class ProgressionTelemetry:
         }
 
     def _initialize_formations(self, engine: GameEngine, state: GameState) -> None:
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             for position in all_positions():
                 slot = state.slot(player, position)
                 if slot.force is not None:
@@ -1772,7 +1779,7 @@ class ProgressionTelemetry:
         printed = actual_cost
         card_id = action.card_id if isinstance(action, CARD_ACTIONS) else None
         if card_id is not None:
-            printed = int(engine.cards.get(card_id, {}).get("command_cost", actual_cost))
+            printed = int(engine.cards.get(card_id, {}).get(CardField.COMMAND_COST, actual_cost))
         elif isinstance(action, Maneuver):
             printed = int(engine.maneuver_command_cost)
         saved = max(0, printed - actual_cost)
@@ -1788,25 +1795,27 @@ class ProgressionTelemetry:
             source = event.get("source_card") or "<engine>"
             stats = self._command_by_source[source]
             stats["triggers"] += 1
-            detail = str(event.get("detail") or "other")
-            stats[f"trigger:{detail}"] += 1
+            detail = str(
+                event.get("detail") or CommandDiagnosticDetail.OTHER.value
+            )
+            self._command_effects_by_source[source][detail] += 1
             amount = int(event.get("amount", 0) or 0)
             nominal = int(event.get("nominal_amount", amount) or 0)
-            if event.get("kind") == "gain":
+            if event.get("kind") == CommandDiagnosticKind.GAIN:
                 stats["command_gained"] += amount
                 stats["nominal_command_gain"] += nominal
                 gained_from_diagnostics += amount
-            elif event.get("kind") == "discount":
+            elif event.get("kind") == CommandDiagnosticKind.DISCOUNT:
                 stats["discount_saved"] += amount
                 if (
-                    detail == "free_maneuver"
+                    detail == CommandDiagnosticDetail.FREE_MANEUVER
                     and isinstance(action, EffectChoice)
                     and amount > 0
                 ):
                     stats["free_operations"] += 1
                 if amount > 0:
                     discount_sources.append(source)
-            elif event.get("kind") == "front_loss_protection":
+            elif event.get("kind") == CommandDiagnosticKind.FRONT_LOSS_PROTECTION:
                 stats["front_loss_command_avoided"] += amount
 
         if isinstance(action, OPERATION_ACTIONS) and actual_cost == 0:
@@ -1849,7 +1858,7 @@ class ProgressionTelemetry:
         action: Action,
     ) -> None:
         played_id = action.card_id if isinstance(action, CARD_ACTIONS) else None
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             added_to_discard = (
                 Counter(state.players[player].discard)
                 - Counter(before.players[player].discard)
@@ -1876,7 +1885,7 @@ class ProgressionTelemetry:
     def _record_held_across_boundary(self, before: GameState, state: GameState) -> None:
         if state.phase is Phase.COMPLETE:
             return
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             survived = Counter(before.players[player].hand) & Counter(state.players[player].hand)
             for card_id, count in survived.items():
                 self._card_held_boundaries[card_id] += count
@@ -2245,7 +2254,7 @@ class ProgressionTelemetry:
             ):
                 pass_row["final_front_balance"] = front_balances[pass_row["player"]]
 
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             for position in all_positions():
                 slot = before.slot(player, position)
                 if slot.force is None:
@@ -2367,7 +2376,7 @@ class ProgressionTelemetry:
         state: GameState,
     ) -> list[str]:
         card_ids: set[str] = set()
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             for narrative in state.narratives[player]:
                 if narrative.ongoing:
                     card_ids.add(narrative.card_id)
