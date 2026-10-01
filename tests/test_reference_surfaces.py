@@ -42,7 +42,8 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     )
 
     assert "column-count: 2;" in css
-    assert "rulebook-at-a-glance" in rules
+    assert "## How the war unfolds {#learn}" in rules
+    assert "A Battle has a simple arc:" in rules
     assert "Strength cannot fall below 0" in rules
     assert "player who Passed second counts as active" not in rules
     assert "no generic Draw operation" in rules
@@ -73,10 +74,10 @@ def test_rulebook_core_values_match_standard_engine() -> None:
         in rules_text
     )
     assert (
-        f"A Maneuver is one operation and costs "
-        f"**{standard.maneuver_command_cost} Command**"
+        "A **Maneuver** is an operation that moves one of your Named Formations."
         in rules_text
     )
+    assert f"It costs **{standard.maneuver_command_cost} Command**." in rules_text
     assert "**both players have Passed at least once**" in rules_text
     assert (
         f"at or below **{standard.command_collapse_threshold} Command**"
@@ -298,7 +299,7 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
 
 
 
-def test_rulebook_opening_renders_markdown_and_sections_have_column_wrappers() -> None:
+def test_rulebook_markdown_and_sections_have_generated_wrappers() -> None:
     from tools.build_pages import group_rulebook_sections
 
     rules = text("rules/rulebook.md")
@@ -306,17 +307,19 @@ def test_rulebook_opening_renders_markdown_and_sections_have_column_wrappers() -
     css = text("web/rules.css")
     rendered = markdown.markdown(
         rules,
-        extensions=["extra", "sane_lists", "attr_list", "md_in_html"],
+        extensions=["extra", "sane_lists", "attr_list"],
     )
     rendered = group_rulebook_sections(rendered)
 
-    assert '<div class="rulebook-opening" markdown="1">' in rules
-    assert '"md_in_html"' in builder
+    assert "rulebook-opening" not in rules
+    assert '"md_in_html"' not in builder
     assert "<strong>The Long War</strong>" in rendered
     assert "**The Long War**" not in rendered
     assert '<section class="rule-section">' in rendered
     assert ".rule-section" in css
     assert "break-inside: avoid-column;" in css
+    assert "break-inside: auto;" in css
+    assert "rulebook-opening" not in css
 
 
 def test_balance_lab_hides_dynamic_evidence_from_other_rulesets() -> None:
