@@ -306,7 +306,7 @@ def test_mechanical_choice_and_pass_context_use_actual_legal_set() -> None:
         "game": 0,
         "battle": state.battle,
         "player": 0,
-        "first_pass": True,
+        "first_signal": True,
         "total_margin": 0,
         "legal_alternatives": 0,
     }
@@ -908,7 +908,7 @@ def test_low_command_telemetry_records_simultaneous_collapse_draw() -> None:
     assert record["command_start"] == [0, 0]
     assert record["recovery_base"] == 0
     assert record["fronts_lost"] == [1, 1]
-    assert record["recovery_loss"] == [1, 1]
+    assert record["front_loss_command_penalty"] == [1, 1]
     assert record["command_before_collapse"] == [0, 0]
     assert record["recovery_actual"] == [0, 0]
     assert record["command_after_recovery"] == [0, 0]
