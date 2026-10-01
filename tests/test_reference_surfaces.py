@@ -53,6 +53,9 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "<b>start turn:</b> draw 1." in playmat
     assert "reshuffle discard only if deck empties" in playmat_source
     assert "collapse before recovery" in playmat
+    assert "lose 1 command per unprotected front lost" in playmat
+    assert "0-0 is a draw" in playmat
+    assert "front losses have already reduced command before collapse" in playmat
     assert recovery_label in playmat_source
     assert f"minimum {standard.command_recovery_floor}" in playmat
 

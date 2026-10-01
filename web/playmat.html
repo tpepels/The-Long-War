@@ -59,7 +59,7 @@
             <li><b>Start turn:</b> draw 1. At {{HAND_LIMIT}} cards, discard 1 first. reshuffle discard only if deck empties.</li>
             <li><b>One operation:</b> play 1 card, Maneuver, or Pass. Pass normally requires both players to have acted.</li>
             <li><b>Maneuver:</b> pay {{MANEUVER_COMMAND_COST}} Command; move a Named Formation one Front sideways in the same rank, or swap with a friendly formation.</li>
-            <li><b>Pass:</b> opponent takes a normal turn. If they also Pass, the Battle ends; if they act, your Pass is cleared.</li>
+            <li><b>Pass:</b> costs your operation and stays active for the rest of the Battle, even if you later act. When both players have Passed, the Battle ends.</li>
           </ol>
         </section>
 
@@ -86,16 +86,16 @@
             <li>Resolve all 4 Fronts separately. Higher Strength wins; ties do nothing. There is no overall Battle winner.</li>
             <li>Discard incomplete formations before Retreat; Named Formations persist.</li>
             <li>In each lost Front: Rear Named Formation is driven off; Frontline Named Formation Retreats to Rear.</li>
-            <li>Check Command Collapse before recovery: if exactly one player is at {{COLLAPSE_THRESHOLD}}, that player loses; {{COLLAPSE_THRESHOLD}}-{{COLLAPSE_THRESHOLD}} continues. If the war continues, recover base − Fronts lost, minimum {{RECOVERY_FLOOR}}; max total {{COMMAND_CAP}}.</li>
+            <li>Lose 1 Command per unprotected Front lost. Then check Command Collapse: if exactly one player is at {{COLLAPSE_THRESHOLD}}, that player loses; {{COLLAPSE_THRESHOLD}}-{{COLLAPSE_THRESHOLD}} is a draw. If the war continues, recover the base amount, minimum {{RECOVERY_FLOOR}}; max total {{COMMAND_CAP}}.</li>
           </ol>
         </section>
       </aside>
     </div>
 
     <footer class="reference-v3-footer">
-      <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}; track down to {{COLLAPSE_THRESHOLD}} · Maneuver costs {{MANEUVER_COMMAND_COST}}. After Battle-end effects and before recovery: exactly one player at {{COLLAPSE_THRESHOLD}} loses; {{COLLAPSE_THRESHOLD}}-{{COLLAPSE_THRESHOLD}} continues.</span></div>
-      <div><b>RECOVERY</b><span>Current playtest base: <b>{{RECOVERY_SERIES}}</b> then −1 per Front lost, minimum {{RECOVERY_FLOOR}} if the war continues; max total {{COMMAND_CAP}}.</span></div>
-      <div><b>BETWEEN BATTLES</b><span>Named Formations persist · no Maneuver · clear Battle-only effects and temporary Strength · Ongoing Narratives persist by text · refill to {{HAND_LIMIT}} · first of the two consecutive passers starts.</span></div>
+      <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}; track down to {{COLLAPSE_THRESHOLD}} · Maneuver costs {{MANEUVER_COMMAND_COST}}. After Battle-end effects, lose 1 per unprotected Front lost; then exactly one player at {{COLLAPSE_THRESHOLD}} loses, while {{COLLAPSE_THRESHOLD}}-{{COLLAPSE_THRESHOLD}} is a draw.</span></div>
+      <div><b>RECOVERY</b><span>If the war continues, recover the current base: <b>{{RECOVERY_SERIES}}</b>, minimum {{RECOVERY_FLOOR}}; Front losses have already reduced Command before Collapse; max total {{COMMAND_CAP}}.</span></div>
+      <div><b>BETWEEN BATTLES</b><span>Named Formations persist · no Maneuver · clear Battle-only effects and temporary Strength · Ongoing Narratives persist by text · refill to {{HAND_LIMIT}} · the player who Passed first starts.</span></div>
     </footer>
   </main>
 </body>

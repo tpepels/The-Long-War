@@ -2427,8 +2427,6 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
         }
 
     rows: list[dict[str, Any]] = []
-    variant_payloads: dict[str, dict[str, dict[str, Any]]] = {}
-
     for variant_index, name in enumerate(selected):
         overrides = PASS_RULE_VARIANTS[name]
         rules = GameRules.standard().with_overrides(**overrides)
@@ -2527,7 +2525,6 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
 
             cell_payloads[deck_name] = payload
 
-        variant_payloads[name] = cell_payloads
         per_deck = {
             deck_name: cell_summary(payload)
             for deck_name, payload in cell_payloads.items()
@@ -2976,8 +2973,11 @@ def parse_args() -> argparse.Namespace:
     pass_variants.add_argument(
         "--ismcts-rollout-depth",
         type=int,
-        default=8,
-        help="Eight plies cover the full 3-round closing window.",
+        default=12,
+        help=(
+            "Rollout plies after tree expansion. Twelve leaves room for the "
+            "full 3-round closing window plus intermediate effect choices."
+        ),
     )
     pass_variants.add_argument(
         "--ismcts-rollout-policy",

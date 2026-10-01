@@ -84,7 +84,7 @@ The next comparative screen uses:
 - minimum 50,000 ISMCTS iterations per decision;
 - 12 belief samples;
 - decisive rollout with exact rule-aware decisive and anti-decisive checks;
-- rollout depth 8, long enough to cover the full 3-round/6-turn closing window;
+- rollout depth 12, giving the full 3-round/6-turn closing window room for intermediate effect choices;
 - 8 games per canonical mirror deck by default (48 games/variant);
 - 2 worker processes by default to control laptop memory;
 - identical seat alternation, initial game seeds and agent seed schedule across variants;
