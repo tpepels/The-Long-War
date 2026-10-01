@@ -2710,8 +2710,18 @@ def _prepare_ismcts_speed_position(
             or all(isinstance(action, Pass) for action in legal)
         ):
             engine.apply(state, pass_action)
-            if state.pass_len != 1:
+            if (
+                len(state.pass_order) != 1
+                or sum(player.passed for player in state.players) != 1
+            ):
                 raise RuntimeError("failed to create one-signal benchmark state")
+            if (
+                engine.rules.pass_closing_rounds > 0
+                and state.pass_closing_turns_remaining <= 0
+            ):
+                raise RuntimeError(
+                    "closing-window benchmark did not start its countdown"
+                )
             return
 
         action = next(
