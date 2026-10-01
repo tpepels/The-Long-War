@@ -130,8 +130,14 @@ class PlaySession:
             raise ValueError("It is not that player's mulligan")
 
         normalized = tuple(sorted(int(index) for index in indices))
-        if len(normalized) > 2 or len(set(normalized)) != len(normalized):
-            raise ValueError("Choose at most two distinct cards")
+        mulligan_limit = self.engine.rules.mulligan_max_cards
+        if (
+            len(normalized) > mulligan_limit
+            or len(set(normalized)) != len(normalized)
+        ):
+            raise ValueError(
+                f"Choose at most {mulligan_limit} distinct cards"
+            )
         hand = self.state.players[viewer].hand
         if any(index < 0 or index >= len(hand) for index in normalized):
             raise ValueError("Mulligan selection is outside the opening hand")
@@ -367,7 +373,7 @@ class PlaySession:
                 and viewer is not None
                 and viewer == self.mulligan_player
             ),
-            "mulligan_limit": 2,
+            "mulligan_limit": self.engine.rules.mulligan_max_cards,
             "players": players,
             "board": board,
             "narratives": narratives,
