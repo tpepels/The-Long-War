@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const TYPE_LABELS = { force: "Force", bond: "Bond", name: "Name", story: "Narrative", stratagem: "Stratagem" };
+  const TYPE_LABELS = { force: "Force", bond: "Bond", name: "Name", narrative: "Narrative", stratagem: "Stratagem" };
   const BUILD_VERSION = typeof document === "undefined"
     ? "dev"
     : document.querySelector('meta[name="lw-build-version"]')?.getAttribute("content") || "dev";
@@ -16,7 +16,7 @@
 
   function typeMarkup(card) {
     const type = card.hero ? "Hero" : TYPE_LABELS[card.type] || card.type;
-    const detail = card.type === "story"
+    const detail = card.type === "narrative"
       ? [titleCase(card.narrative_form), card.ongoing ? "Ongoing" : ""].filter(Boolean).join(" · ")
       : card.hero ? "Force / Name" : "";
     return '<span class="card-type">' + esc(type) +
