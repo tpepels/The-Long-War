@@ -5,7 +5,7 @@ from pathlib import Path
 
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Position, Rank
-from longwar.game.model import StoryState, StratagemState
+from longwar.game.model import NarrativeState, StratagemState
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,7 +33,7 @@ def test_game_state_clone_is_fully_isolated() -> None:
     slot.force = "seven-black-ships"
     slot.bond = "followed"
     slot.name = "namar"
-    state.stories[0].append(StoryState("the-wall-did-not-break", fronts=(Front.SECOND,)))
+    state.narratives[0].append(NarrativeState("the-wall-did-not-break", fronts=(Front.SECOND,)))
     state.stratagems[0] = StratagemState("no-step-back", fronts=(Front.THIRD,))
     state.stratagem_used[0] = True
     state.pending_draw_discard_for = 1
@@ -42,7 +42,7 @@ def test_game_state_clone_is_fully_isolated() -> None:
 
     clone.players[0].hand.clear()
     clone.slot(0, position).force = "the-fifty-men"
-    clone.stories[0][0].card_id = "the-long-march"
+    clone.narratives[0][0].card_id = "the-long-march"
     clone.stratagems[0].card_id = "the-center-must-hold"
     clone.pass_order.append(0)
     clone.pass_closing_turns_remaining = 4
@@ -50,9 +50,9 @@ def test_game_state_clone_is_fully_isolated() -> None:
 
     assert state.players[0].hand
     assert state.slot(0, position).force == "seven-black-ships"
-    assert state.stories[0][0].card_id == "the-wall-did-not-break"
+    assert state.narratives[0][0].card_id == "the-wall-did-not-break"
     assert state.stratagems[0].card_id == "no-step-back"
-    assert state.stories[0][0].fronts == (Front.SECOND,)
+    assert state.narratives[0][0].fronts == (Front.SECOND,)
     assert state.stratagems[0].fronts == (Front.THIRD,)
     assert state.pass_order == []
     assert state.pending_draw_discard_for == 1
@@ -68,7 +68,7 @@ def test_game_state_copy_from_reuses_containers_without_aliasing_source() -> Non
     source.pass_order.append(1)
     source.pass_closing_turns_remaining = 3
     source.stratagem_used[0] = True
-    source.stories[0].append(StoryState("the-long-march"))
+    source.narratives[0].append(NarrativeState("the-long-march"))
     source.stratagems[0] = StratagemState("the-ground-was-held")
     slot = source.slot(0, position)
     slot.force = "seven-black-ships"
@@ -93,15 +93,15 @@ def test_game_state_copy_from_reuses_containers_without_aliasing_source() -> Non
     assert target.pass_order == [1]
     assert target.pass_closing_turns_remaining == 3
     assert target.stratagem_used[0] is True
-    assert target.stories[0][0].card_id == "the-long-march"
+    assert target.narratives[0][0].card_id == "the-long-march"
     assert target.stratagems[0].card_id == "the-ground-was-held"
     assert target.slot(0, position).force == "seven-black-ships"
     assert target.slot(0, position).temporary_strength == 2
 
     target.players[0].hand.clear()
     target.slot(0, position).force = "the-fifty-men"
-    target.stories[0][0].card_id = "the-wall-did-not-break"
+    target.narratives[0][0].card_id = "the-wall-did-not-break"
 
     assert source.players[0].hand
     assert source.slot(0, position).force == "seven-black-ships"
-    assert source.stories[0][0].card_id == "the-long-march"
+    assert source.narratives[0][0].card_id == "the-long-march"
