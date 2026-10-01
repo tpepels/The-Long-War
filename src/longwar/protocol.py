@@ -146,6 +146,7 @@ class DesignToken(StrEnum):
     CONTROLLER_HAS_FRONT_WITH_NO_FORCE = "controller_has_front_with_no_force"
     DRAW_1 = "draw_1"
     DRAW_2 = "draw_2"
+    DISCARD_OWN_FORCE_AND_ALL_ATTACHED_CARDS = "discard_own_force_and_all_attached_cards"
     DRIVE_OFF_OPPOSING_FRONTLINE_NAMED_INSTEAD_OF_RETREAT = "drive_off_opposing_frontline_named_instead_of_retreat"
     DRIVE_OFF_SELF_PREVENT_FRONTLINE_RETREAT = "drive_off_self_prevent_frontline_retreat"
     EMPTY_FRONT = "empty_front"
