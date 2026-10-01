@@ -42,7 +42,7 @@ def title_case(value: str) -> str:
 def type_label(card: dict) -> str:
     if card["type"] == "bond":
         return "Bond"
-    if card["type"] == "story":
+    if card["type"] == "narrative":
         form = title_case(card.get("narrative_form", ""))
         label = "Ongoing Narrative" if card.get("ongoing") else "Narrative"
         return f"{form} · {label}" if form else label
