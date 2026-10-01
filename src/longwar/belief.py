@@ -409,7 +409,7 @@ class BeliefSampler:
                 total += int(slot.force is not None)
                 total += int(slot.bond is not None)
                 total += int(slot.name is not None)
-        total += len(state.stories[player])
+        total += len(state.narratives[player])
         total += int(state.stratagems[player] is not None)
         return total
 
@@ -428,7 +428,7 @@ class BeliefSampler:
                 if card_id is not None
             )
 
-        cards.extend(story.card_id for story in state.stories[opponent])
+        cards.extend(narrative.card_id for narrative in state.narratives[opponent])
 
         stratagem = state.stratagems[opponent]
         if stratagem is not None:
