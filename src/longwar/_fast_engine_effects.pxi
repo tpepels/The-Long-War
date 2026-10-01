@@ -82,7 +82,7 @@ cdef void _fe_compact_ongoing_narratives(
     FastState state,
     int player,
 ) noexcept:
-    """Keep packed Story storage aligned with GameState's compact list."""
+    """Keep packed Narrative storage aligned with GameState's compact list."""
     cdef int read_slot, write_slot, src, dst
     write_slot = 0
     for read_slot in range(self.ongoing_narrative_limit):
