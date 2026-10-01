@@ -169,7 +169,7 @@ cdef int CONSTRAINT_EXPIRES_AFTER_OPERATION = 1
 cdef int CONSTRAINT_PERSISTS_BATTLE = 2
 cdef int CONSTRAINT_ZERO_COST = 4
 cdef int CONSTRAINT_DRAW_ON_SATISFY = 8
-cdef int CONSTRAINT_DISCARD_SOURCE_STORY = 16
+cdef int CONSTRAINT_DISCARD_SOURCE_NARRATIVE = 16
 
 cdef inline int slot_index(int player, int front, int rank) noexcept:
     return player * 8 + front * 2 + rank
