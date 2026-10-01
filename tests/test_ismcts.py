@@ -319,8 +319,15 @@ def test_decisive_rollout_finds_immediate_second_signal_win() -> None:
     state.players[0].command = 1
     state.players[1].command = 5
 
-    # Player 1 leads one Front. Ending the Battle now removes player 0's
-    # final Command through Front attrition and wins immediately.
+    # Player 1 leads one Front. Move an owned Force onto the board so the
+    # determinization remains a valid card-conserving state.
+    owner = state.players[1]
+    for zone in (owner.hand, owner.deck):
+        if "the-fifty-men" in zone:
+            zone.remove("the-fifty-men")
+            break
+    else:
+        raise AssertionError("expected The Fifty Men in player 1 zones")
     state.slot(1, Position(Front.FIRST, Rank.FRONT)).force = "the-fifty-men"
 
     legal = engine.legal_actions(state)

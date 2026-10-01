@@ -2355,9 +2355,13 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
         )
         outcomes = list(payload.get("game_outcomes", []))
         completed = max(0, games - failed)
+        resolved_outcomes = [
+            row for row in outcomes if not bool(row.get("censored", False))
+        ]
+        resolved = len(resolved_outcomes)
         actions = [
             int(row.get("actions_completed", 0))
-            for row in outcomes
+            for row in resolved_outcomes
         ]
         turn_actions = [
             int(
@@ -2366,7 +2370,7 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
                     row.get("actions_completed", 0),
                 )
             )
-            for row in outcomes
+            for row in resolved_outcomes
         ]
         battles = int(
             payload.get("telemetry", {})
@@ -2388,6 +2392,7 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
         return {
             "games": games,
             "completed_games": completed,
+            "resolved_games": resolved,
             "decisive_games": decisive,
             "draws": draws,
             "censored_games": censored,
@@ -2531,6 +2536,7 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
 
         total_games = sum(row["games"] for row in aggregate)
         completed_games = sum(row["completed_games"] for row in aggregate)
+        resolved_games = sum(row["resolved_games"] for row in aggregate)
         decisive = sum(row["decisive_games"] for row in aggregate)
         draws = sum(row["draws"] for row in aggregate)
         censored = sum(row["censored_games"] for row in aggregate)
@@ -2544,10 +2550,15 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
         signals = sum(row["signal_events"] for row in aggregate)
         forced_yields = sum(row["forced_yield_events"] for row in aggregate)
         free_signals = sum(row["free_signal_events"] for row in aggregate)
-        all_actions = [
-            int(outcome.get("actions_completed", 0))
+        all_resolved_outcomes = [
+            outcome
             for payload in cell_payloads.values()
             for outcome in payload.get("game_outcomes", [])
+            if not bool(outcome.get("censored", False))
+        ]
+        all_actions = [
+            int(outcome.get("actions_completed", 0))
+            for outcome in all_resolved_outcomes
         ]
         all_turn_actions = [
             int(
@@ -2556,8 +2567,7 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
                     outcome.get("actions_completed", 0),
                 )
             )
-            for payload in cell_payloads.values()
-            for outcome in payload.get("game_outcomes", [])
+            for outcome in all_resolved_outcomes
         ]
         command_signal_weight = sum(
             (
@@ -2606,17 +2616,18 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
                 wilson_interval(censored, total_games)
                 if total_games else None
             ),
-            "mean_engine_actions_per_completed_game": (
-                actions_total / completed_games if completed_games else None
+            "resolved_games": resolved_games,
+            "mean_engine_actions_per_resolved_game": (
+                actions_total / resolved_games if resolved_games else None
             ),
-            "median_engine_actions_per_completed_game": (
+            "median_engine_actions_per_resolved_game": (
                 median(all_actions) if all_actions else None
             ),
-            "mean_turn_consuming_actions_per_completed_game": (
-                turn_actions_total / completed_games
-                if completed_games else None
+            "mean_turn_consuming_actions_per_resolved_game": (
+                turn_actions_total / resolved_games
+                if resolved_games else None
             ),
-            "median_turn_consuming_actions_per_completed_game": (
+            "median_turn_consuming_actions_per_resolved_game": (
                 median(all_turn_actions) if all_turn_actions else None
             ),
             "resolved_battles": battles,
@@ -2657,7 +2668,7 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
         print(
             "  "
             f"decisive={decisive}, draws={draws}, censored={censored}, "
-            f"turn-actions={row['mean_turn_consuming_actions_per_completed_game']:.1f}, "
+            f"turn-actions={row['mean_turn_consuming_actions_per_resolved_game']:.1f}, "
             f"Battles={row['mean_battles_per_game']:.2f}",
             flush=True,
         )
