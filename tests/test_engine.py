@@ -1252,7 +1252,7 @@ def test_command_recovery_loses_one_per_lost_front_and_caps_at_configured_limit(
     assert state.players[1].command == expected_p1
 
 
-def test_command_collapse_lower_command_loses_and_equal_threshold_continues() -> None:
+def test_command_collapse_lower_command_loses_and_equal_threshold_draws() -> None:
     rules = GameRules.standard().with_overrides(
         command_collapse_threshold=0,
         command_recovery_start=0,
@@ -1272,9 +1272,9 @@ def test_command_collapse_lower_command_loses_and_equal_threshold_continues() ->
     state.players[1].command = 0
     state.battle_start_command[:] = [0, 0]
     resolve_battle_by_passing(engine, state)
-    assert state.phase is Phase.BATTLE
+    assert state.phase is Phase.COMPLETE
     assert state.winner is None
-    assert state.battle == 2
+    assert state.battle == 1
 
 
 def test_hand_deck_discard_and_named_formations_persist_between_battles() -> None:

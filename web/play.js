@@ -106,7 +106,7 @@ function termHint(key) {
     return "Your operation budget. Start at " + rules.starting_command +
       ". After Battle-end effects, lose 1 Command per unprotected Front lost, then check Collapse: exactly one player at " +
       threshold + " loses; " + threshold + "-" + threshold +
-      " continues. A continuing war recovers max(" +
+      " is a draw. A continuing war recovers max(" +
       rules.command_recovery_floor +
       ", base recovery), to a maximum of " +
       rules.command_cap + ".";
@@ -840,9 +840,11 @@ function renderStrip() {
   const viewer = currentViewer();
   const opponent = opponentOf(viewer);
   const winnerText =
-    state.winner == null
-      ? ""
-      : " · Player " + (state.winner + 1) + " wins";
+    state.phase === "complete" && state.winner == null
+      ? " · Draw"
+      : state.winner == null
+        ? ""
+        : " · Player " + (state.winner + 1) + " wins";
 
   $("match-strip").innerHTML =
     '<div class="score-player ' +
@@ -1019,7 +1021,9 @@ function renderInteraction() {
 
   if (state.phase === "complete") {
     title.textContent = "Match complete";
-    hint.textContent = "Player " + (state.winner + 1) + " wins the match.";
+    hint.textContent = state.winner == null
+      ? "The match ends in a draw."
+      : "Player " + (state.winner + 1) + " wins the match.";
     cancel.hidden = true;
     tray.hidden = true;
     return;
@@ -1937,7 +1941,11 @@ function renderMatchResult() {
   if (!complete) return;
   cancelAiStep();
   $("privacy-gate").hidden = true;
-  $("result-title").textContent = state.mode === "hotseat" ? "Player " + (state.winner + 1) + " wins" : state.winner === currentViewer() ? "Victory" : "Defeat";
+  $("result-title").textContent = state.winner == null
+    ? "Draw"
+    : state.mode === "hotseat"
+      ? "Player " + (state.winner + 1) + " wins"
+      : state.winner === currentViewer() ? "Victory" : "Defeat";
   $("result-detail").textContent =
     "Final Command " +
     state.players.map((player) => player.command).join(" — ") +

@@ -82,3 +82,8 @@ def test_print_rulebook_uses_typst_not_browser_pagination() -> None:
     assert "window.print()" not in template
     assert "WeasyPrint" not in pyproject
     assert "pypdf" in pyproject
+
+
+def test_simultaneous_command_collapse_is_documented_as_draw() -> None:
+    source = text("rules/rulebook.md")
+    assert "If both players are at **{{COLLAPSE_THRESHOLD}} Command**, the war ends in a **draw**." in source

@@ -424,9 +424,12 @@ class PlaySession:
         }
 
         if self.state.phase is Phase.COMPLETE:
-            self.log.append(
-                f"Player {self.state.winner + 1} wins the war."
-            )
+            if self.state.winner is None:
+                self.log.append("The war ends in a draw.")
+            else:
+                self.log.append(
+                    f"Player {self.state.winner + 1} wins the war."
+                )
         elif self.state.battle != battle_before:
             self.log.append(
                 f"Battle {self._roman(self.state.battle)} begins. "

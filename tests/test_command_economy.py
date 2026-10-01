@@ -164,7 +164,7 @@ def test_arithmetic_recovery_formula_can_be_overridden() -> None:
     ] == [10, 8, 6, 4, 2, 0, 0, 0]
 
 
-def test_equal_threshold_command_continues_then_recovers_to_floor() -> None:
+def test_equal_threshold_command_is_a_draw_without_recovery() -> None:
     rules = GameRules.standard().with_overrides(
         command_collapse_threshold=0,
         command_recovery_start=0,
@@ -180,17 +180,15 @@ def test_equal_threshold_command_continues_then_recovers_to_floor() -> None:
     engine.apply(state, Pass())
     engine.apply(state, Pass())
 
-    # Collapse is checked before recovery. Equal threshold Command continues,
-    # then the configured recovery floor prevents an absorbing continuation.
-    assert state.phase.value == "battle"
+    assert state.phase.value == "complete"
     assert state.winner is None
-    assert state.battle == 2
-    assert [player.command for player in state.players] == [1, 1]
+    assert state.battle == 1
+    assert [player.command for player in state.players] == [0, 0]
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
     assert snapshot["command_before_recovery"] == [0, 0]
-    assert snapshot["recovery_actual"] == [1, 1]
-    assert snapshot["command_remaining"] == [1, 1]
+    assert snapshot["recovery_actual"] == [0, 0]
+    assert snapshot["command_remaining"] == [0, 0]
 
 
 def test_threshold_vs_positive_command_collapses_before_recovery() -> None:

@@ -280,10 +280,8 @@ The recovery numbers above are generated from the same rules configuration used 
 The check that can end the war is called **Command Collapse**. It happens after Front resolution, cleanup, Retreats, relevant Battle-end effects, and Front-loss Command attrition, but **before Command recovery**.
 
 - If exactly one player is at **{{COLLAPSE_THRESHOLD}} Command**, that player loses the war.
-- If both players are at **{{COLLAPSE_THRESHOLD}} Command**, the war continues.
+- If both players are at **{{COLLAPSE_THRESHOLD}} Command**, the war ends in a **draw**.
 - Only a continuing war receives Command recovery.
-
-Because surviving recovery is at least {{RECOVERY_FLOOR}}, a {{COLLAPSE_THRESHOLD}}-{{COLLAPSE_THRESHOLD}} continuation begins the next Battle with both players back above the collapse point.
 
 ## Special card types {#stories}
 
@@ -357,7 +355,7 @@ These are the rules most worth checking during a first game:
 - A Maneuver goes **one Front sideways in the same rank**.
 - On a lost Front, **drive off the Rear first**, then Retreat the Frontline formation.
 - Check **Command Collapse before recovery**.
-- If both players reach 0 Command together, the war continues and surviving recovery is still at least {{RECOVERY_FLOOR}}.
+- If both players reach 0 Command together, the war ends in a **draw**.
 
 ## Timing
 
