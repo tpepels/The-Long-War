@@ -327,32 +327,27 @@ def test_command_guard_keeps_zero_command_midbattle_actions() -> None:
     assert native_filtered == 0
 
 
-@pytest.mark.parametrize(
-    ("closing_rounds", "remaining", "expected"),
-    [
-        (0, 0, 1.0),
-        (2, 4, 0.25),
-        (3, 6, 1.0 / 6.0),
-        (3, 1, 1.0),
-    ],
-)
-def test_battle_end_urgency_follows_pass_rule(
-    closing_rounds: int,
-    remaining: int,
-    expected: float,
-) -> None:
-    rules = GameRules.standard().with_overrides(
-        pass_closing_rounds=closing_rounds,
-    )
+def test_post_signal_evaluation_does_not_discount_immediate_closing_option() -> None:
+    rules = GameRules.standard().with_overrides(pass_closing_rounds=3)
     engine, state = standard_game(rules=rules)
     state.players[0].passed = True
     state.pass_order[:] = [0]
-    state.pass_closing_turns_remaining = remaining
-    packed = engine._native_core().from_game_state(state)
 
-    assert engine._native_heuristic().battle_end_urgency(packed) == pytest.approx(
-        expected
+    state.pass_closing_turns_remaining = 6
+    early = engine._native_heuristic().evaluate(
+        engine._native_core().from_game_state(state),
+        0,
     )
+
+    state.pass_closing_turns_remaining = 1
+    late = engine._native_heuristic().evaluate(
+        engine._native_core().from_game_state(state),
+        0,
+    )
+
+    # The unsignalled opponent may end the Battle immediately by signalling
+    # in either state. The automatic deadline must not discount that leverage.
+    assert early == pytest.approx(late)
 
 
 def test_projected_front_loss_penalty_uses_configured_rule() -> None:
