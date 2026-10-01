@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 
+from ..protocol import PolicySource
 from ..belief import DeckPrior
 from ..game.actions import Action
 from ..game.engine import GameEngine
@@ -52,7 +53,7 @@ class OnlineMCCFRAgent:
                 "selected_score": 1.0,
                 "score_gap": 1.0,
                 "selected_action": type(actions[0]).__name__,
-                "policy_source": "forced",
+                "policy_source": PolicySource.FORCED.value,
                 "root_coverage": 1.0,
                 "resolver_iterations": 0,
                 "belief_samples": 0,
@@ -122,7 +123,7 @@ class OnlineMCCFRAgent:
             "selected_score": probabilities[selected_key],
             "score_gap": best - second,
             "selected_action": type(action_map[selected_key]).__name__,
-            "policy_source": "online_mccfr",
+            "policy_source": PolicySource.ONLINE_MCCFR.value,
             "root_coverage": result.root_coverage,
             "resolver_iterations": result.iterations,
             "belief_samples": result.belief_samples,
