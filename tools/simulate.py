@@ -20,6 +20,7 @@ from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.rules import GameRules
 from longwar.reference_decks import DEFAULT_DECK_PATH
+from longwar.parallelism import DEFAULT_WORKERS
 from longwar.fingerprint import (
     current_experiment_fingerprint,
     current_game_fingerprint,
@@ -68,7 +69,7 @@ def main() -> None:
     defaults = GameRules.standard()
     parser.add_argument("--games", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=1701)
-    parser.add_argument("--jobs", type=int, default=8, help="Parallel worker processes (default: 8).")
+    parser.add_argument("--jobs", type=int, default=DEFAULT_WORKERS, help=f"Parallel worker processes (default: {DEFAULT_WORKERS}).")
     choices = ["heuristic", "strategic_heuristic", "ismcts", "random", "mccfr", "online_mccfr"]
     parser.add_argument("--agent-a", choices=choices, default="heuristic")
     parser.add_argument("--agent-b", choices=choices, default="heuristic")
