@@ -9,7 +9,7 @@ import sys
 import traceback
 from typing import Any, Callable
 
-from .agents import HeuristicAgent, ISMCTSAgent, RandomAgent
+from .agents.heuristic_agent import HeuristicAgent
 from .agents.ismcts_agent import (
     DEFAULT_ISMCTS_BELIEF_SAMPLES,
     DEFAULT_ISMCTS_EXPLORATION,
@@ -20,7 +20,9 @@ from .agents.ismcts_agent import (
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    ISMCTSAgent,
 )
+from .agents.random_agent import RandomAgent
 from .agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from .agents.online_mccfr_agent import OnlineMCCFRAgent
 from .belief import DeckHypothesis, DeckPrior, HypothesisDeckPrior
