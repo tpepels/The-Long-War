@@ -2847,6 +2847,9 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                 mean_anti_probes = sum(
                     sample["anti_decisive_probes"] for sample in samples
                 ) / len(samples)
+                mean_rollout_actions = sum(
+                    sample["rollout_actions"] for sample in samples
+                ) / len(samples)
                 mean_completed = sum(
                     sample["completed_iterations"] for sample in samples
                 ) / len(samples)
@@ -2855,10 +2858,16 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                     if mean_completed > 0
                     else 0.0
                 )
+                rollout_actions_per_iteration = (
+                    mean_rollout_actions / mean_completed
+                    if mean_completed > 0
+                    else 0.0
+                )
                 print(
                     f"{iterations:>7,} iters | beliefs={belief_samples:>2} | "
                     f"depth={rollout_depth:>2} | "
                     f"{mean_search:>7.3f}s | {mean_rate:>9,.0f} iter/s | "
+                    f"rollout-actions/iter={rollout_actions_per_iteration:.2f} | "
                     f"anti-probes/iter={probes_per_iteration:.2f}",
                     flush=True,
                 )
