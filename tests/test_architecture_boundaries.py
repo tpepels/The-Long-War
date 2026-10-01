@@ -666,3 +666,16 @@ def test_ongoing_narrative_storage_is_not_treated_as_front_index() -> None:
     assert "player * NARRATIVE_SLOTS_PER_PLAYER + front" not in strength
     assert "state.narrative_front_mask[ix] & (1 << front)" in effects
     assert "narrative_front_mask" in strength
+
+
+def test_native_slot_access_never_uses_literal_rank_codes() -> None:
+    pattern = re.compile(r"slot_index\([^()\n]*,\s*[01]\s*\)")
+    offenders: list[str] = []
+    for path in sorted(SRC.glob("_fast_engine*.pxi")):
+        for lineno, line in enumerate(
+            path.read_text(encoding="utf-8").splitlines(),
+            start=1,
+        ):
+            if pattern.search(line):
+                offenders.append(f"{path.name}:{lineno}: {line.strip()}")
+    assert not offenders, "\n".join(offenders)
