@@ -2453,3 +2453,53 @@ def test_eira_succession_resolver_moves_name_then_drives_off_source() -> None:
     assert state.slot(0, source).occupied is False
     assert "the-fifty-men" in state.players[0].discard
     assert "followed" in state.players[0].discard
+
+
+def test_pass_closing_two_rounds_forces_battle_end_after_four_turns() -> None:
+    rules = GameRules.standard().with_overrides(pass_closing_rounds=2)
+    engine, state = setup_state(rules=rules)
+    state.operations_this_battle[:] = [1, 1]
+    state.active_player = 0
+    state.players[0].hand = ["the-fifty-men", "the-fifty-men"]
+    state.players[1].hand = ["the-fifty-men", "the-fifty-men"]
+    state.players[0].deck = []
+    state.players[1].deck = []
+    state.players[0].command = 20
+    state.players[1].command = 20
+
+    engine.apply(state, Pass())
+    assert state.pass_closing_turns_remaining == 4
+
+    engine.apply(state, PlayForce("the-fifty-men", pos(0)))
+    assert state.pass_closing_turns_remaining == 3
+    engine.apply(state, PlayForce("the-fifty-men", pos(0)))
+    assert state.pass_closing_turns_remaining == 2
+    engine.apply(state, PlayForce("the-fifty-men", pos(1)))
+    assert state.pass_closing_turns_remaining == 1
+    engine.apply(state, PlayForce("the-fifty-men", pos(1)))
+
+    assert state.battle == 2 or state.phase is Phase.COMPLETE
+
+
+def test_free_battle_flag_does_not_consume_the_turn() -> None:
+    rules = GameRules.standard().with_overrides(
+        pass_signal_costs_operation=False,
+    )
+    engine, state = setup_state(rules=rules)
+    state.operations_this_battle[:] = [1, 1]
+    state.active_player = 0
+    state.players[0].hand = ["the-fifty-men"]
+    state.players[0].deck = []
+    state.players[0].command = 20
+    before_turn = state.turn_number
+
+    engine.apply(state, Pass())
+
+    assert state.pass_order == [0]
+    assert state.players[0].passed is True
+    assert state.active_player == 0
+    assert state.turn_number == before_turn
+
+    engine.apply(state, PlayForce("the-fifty-men", pos(0)))
+    assert state.players[0].passed is True
+    assert state.active_player == 1

@@ -2265,6 +2265,231 @@ def narrative_ablation_run(args: argparse.Namespace) -> Path:
     return output
 
 
+
+PASS_RULE_VARIANTS: dict[str, dict[str, object]] = {
+    "permanent": {
+        "pass_signal_costs_operation": True,
+        "pass_closing_rounds": 0,
+    },
+    "closing-2": {
+        "pass_signal_costs_operation": True,
+        "pass_closing_rounds": 2,
+    },
+    "closing-3": {
+        "pass_signal_costs_operation": True,
+        "pass_closing_rounds": 3,
+    },
+    "battle-flag": {
+        "pass_signal_costs_operation": False,
+        "pass_closing_rounds": 0,
+    },
+}
+
+
+def pass_variant_run(args: argparse.Namespace) -> Path:
+    """Small paired screen of Battle-ending rules under otherwise identical play."""
+    from longwar.simulate import SimulationBatchCell, simulate_games_batch
+
+    if args.games <= 0 or args.jobs <= 0:
+        raise SystemExit("--games and --jobs must be positive")
+    if args.ismcts_iterations <= 0:
+        raise SystemExit("--ismcts-iterations must be positive")
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    decks = {
+        name: json.loads((ROOT / path).read_text(encoding="utf-8"))["cards"]
+        for name, path in CANONICAL_DECK_PATHS.items()
+    }
+    selected = tuple(args.variants)
+    unknown = [name for name in selected if name not in PASS_RULE_VARIANTS]
+    if unknown:
+        raise SystemExit(f"Unknown Pass variants: {unknown}")
+
+    config = {
+        "experiment": "pass-variants",
+        "variants": {
+            name: PASS_RULE_VARIANTS[name]
+            for name in selected
+        },
+        "games_per_deck": args.games,
+        "seed": args.seed,
+        "jobs": args.jobs,
+        "agent": args.agent,
+        "ismcts_iterations": args.ismcts_iterations,
+        "ismcts_belief_samples": args.ismcts_belief_samples,
+        "canonical_decks": list(decks),
+        "base_rules": GameRules.standard().as_dict(),
+    }
+    identity = experiment_identity(config)
+    output = artifact_directory(
+        ROOT / "artifacts" / "pass-variants",
+        identity,
+    )
+
+    rows: list[dict[str, Any]] = []
+    for variant_index, name in enumerate(selected):
+        overrides = PASS_RULE_VARIANTS[name]
+        rules = GameRules.standard().with_overrides(**overrides)
+        engine = GameEngine(data, rules=rules)
+        cells = [
+            SimulationBatchCell(
+                key=deck_name,
+                deck_a=deck,
+                deck_b=deck,
+                games=args.games,
+                # Deliberately identical across variants.
+                seed=args.seed + deck_index * args.games,
+            )
+            for deck_index, (deck_name, deck) in enumerate(decks.items())
+        ]
+        print(
+            f"[{variant_index + 1}/{len(selected)}] {name}: "
+            f"{len(cells) * args.games} games",
+            flush=True,
+        )
+
+        def progress(key: str, completed: int, total: int) -> None:
+            if completed == total:
+                print(f"  {key}: {completed}/{total}", flush=True)
+
+        reports = simulate_games_batch(
+            engine,
+            cells,
+            jobs=args.jobs,
+            common_options={
+                "agent_names": (args.agent, args.agent),
+                "ismcts_iterations": args.ismcts_iterations,
+                "ismcts_belief_samples": args.ismcts_belief_samples,
+            },
+            progress_callback=progress,
+        )
+
+        total_games = sum(report.games for report in reports.values())
+        completed_games = sum(report.completed_games for report in reports.values())
+        decisive = sum(report.decisive_games for report in reports.values())
+        draws = sum(report.draws for report in reports.values())
+        censored = sum(report.censored_games for report in reports.values())
+        failed = sum(report.failed_games for report in reports.values())
+        first_wins = sum(report.first_player_wins for report in reports.values())
+        total_actions = sum(
+            report.mean_turns * report.completed_games
+            for report in reports.values()
+        )
+        battles = sum(
+            int(report.telemetry.get("battles", {}).get("count", 0) or 0)
+            for report in reports.values()
+        )
+        pass_events = sum(
+            int(report.telemetry.get("passes", {}).get("events", 0) or 0)
+            for report in reports.values()
+        )
+        first_passes = sum(
+            (
+                float(report.telemetry.get("passes", {}).get("first_pass_rate") or 0.0)
+                * int(report.telemetry.get("passes", {}).get("events", 0) or 0)
+            )
+            for report in reports.values()
+        )
+        command_at_pass_total = sum(
+            (
+                float(
+                    report.telemetry.get("passes", {}).get(
+                        "mean_command_remaining"
+                    ) or 0.0
+                )
+                * int(report.telemetry.get("passes", {}).get("events", 0) or 0)
+            )
+            for report in reports.values()
+        )
+        playable_pass_total = sum(
+            (
+                float(
+                    report.telemetry.get("passes", {}).get(
+                        "playable_alternative_rate"
+                    ) or 0.0
+                )
+                * int(report.telemetry.get("passes", {}).get("events", 0) or 0)
+            )
+            for report in reports.values()
+        )
+
+        row = {
+            "variant": name,
+            "rules": rules.as_dict(),
+            "games": total_games,
+            "decisive_games": decisive,
+            "draws": draws,
+            "censored_games": censored,
+            "failed_games": failed,
+            "first_player_wins": first_wins,
+            "first_player_win_rate_decisive": (
+                first_wins / decisive if decisive else None
+            ),
+            "draw_rate_resolved": (
+                draws / (decisive + draws) if decisive + draws else None
+            ),
+            "censor_rate": censored / total_games if total_games else None,
+            "mean_actions_per_completed_game": (
+                total_actions / completed_games if completed_games else None
+            ),
+            "resolved_battles": battles,
+            "mean_battles_per_game": (
+                battles / total_games if total_games else None
+            ),
+            "pass_or_flag_events": pass_events,
+            "first_signal_events": first_passes,
+            "mean_signal_events_per_battle": (
+                pass_events / battles if battles else None
+            ),
+            "mean_command_at_signal": (
+                command_at_pass_total / pass_events if pass_events else None
+            ),
+            "signal_with_playable_alternative_rate": (
+                playable_pass_total / pass_events if pass_events else None
+            ),
+        }
+        rows.append(row)
+
+        variant_dir = output / name
+        variant_dir.mkdir(parents=True, exist_ok=True)
+        for deck_name, report in reports.items():
+            payload = asdict(report)
+            payload["rules"] = rules.as_dict()
+            payload["variant"] = name
+            (variant_dir / f"{deck_name}.json").write_text(
+                json.dumps(payload, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+
+        print(
+            "  "
+            f"decisive={decisive}, draws={draws}, censored={censored}, "
+            f"mean actions={row['mean_actions_per_completed_game']:.1f}, "
+            f"mean Battles={row['mean_battles_per_game']:.2f}",
+            flush=True,
+        )
+
+    payload = {
+        **identity,
+        "schema_version": 1,
+        "paired_by": "same canonical deck, game index, and seed across variants",
+        "historical_consecutive_pass": {
+            "comparable_to_current_rules": False,
+            "reason": (
+                "Collected before direct Front-loss Command attrition and "
+                "simultaneous 0-0 draw became canonical."
+            ),
+        },
+        "variants": rows,
+    }
+    path = output / "summary.json"
+    path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"Wrote {path}", flush=True)
+    return path
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Local validation, canonical AI sanity checks, and gameplay analysis."
@@ -2501,6 +2726,36 @@ def parse_args() -> argparse.Namespace:
         ),
     )
 
+    pass_variants = sub.add_parser(
+        "pass-variants",
+        help="Compare current Battle-ending Pass/flag variants on paired seeds.",
+    )
+    pass_variants.add_argument("--games", type=int, default=6)
+    pass_variants.add_argument("--jobs", type=int, default=4)
+    pass_variants.add_argument("--seed", type=int, default=26100100)
+    pass_variants.add_argument(
+        "--agent",
+        choices=("heuristic", "ismcts"),
+        default="ismcts",
+    )
+    pass_variants.add_argument(
+        "--ismcts-iterations",
+        type=int,
+        default=5000,
+        help="Small screening budget; increase only after the first comparison.",
+    )
+    pass_variants.add_argument(
+        "--ismcts-belief-samples",
+        type=int,
+        default=2,
+    )
+    pass_variants.add_argument(
+        "--variants",
+        nargs="+",
+        default=list(PASS_RULE_VARIANTS),
+        choices=tuple(PASS_RULE_VARIANTS),
+    )
+
     ablation = sub.add_parser(
         "narrative-ablation",
         help="Diagnose Narrative/Command Command-economy tails with five ISMCTS ablations.",
@@ -2563,6 +2818,8 @@ def main() -> None:
             run_command_matrix(args)
         else:
             balance_run(args)
+    elif args.command == "pass-variants":
+        pass_variant_run(args)
     elif args.command == "narrative-ablation":
         narrative_ablation_run(args)
     elif args.command == "validate":
