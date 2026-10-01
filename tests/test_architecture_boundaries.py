@@ -246,7 +246,7 @@ def test_browser_modes_are_product_terms_not_solver_names() -> None:
     source = (SRC / "web_api.py").read_text(encoding="utf-8")
     page = (ROOT / "web" / "play.html").read_text(encoding="utf-8")
 
-    assert '{"hotseat", "computer"}' in source
+    assert '{"hotseat", "remote", "computer"}' in source
     assert 'value="computer"' in page
 
     browser_surfaces = (
