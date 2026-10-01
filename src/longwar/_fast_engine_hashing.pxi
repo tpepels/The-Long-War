@@ -10,7 +10,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed_u32(&h, <uint32_t>state.turn_number)
     _info_hash_feed_u32(&h, <uint32_t>state.shuffle_seed)
 
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         _info_hash_feed(&h, state.deck_len[p])
         for i in range(state.deck_len[p]):
             _info_hash_feed(&h, <uint8_t>(state.deck[p][i] + 1))
@@ -47,7 +47,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     for i in range(state.pass_len):
         _info_hash_feed(&h, <uint8_t>(state.pass_order[i] + 1))
     _info_hash_feed_u16(&h, state.pass_closing_turns_remaining)
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         _info_hash_feed(&h, state.discarded_this_battle[p])
 
     for slot in range(SLOT_COUNT):
@@ -69,7 +69,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, state.narrative_direction[ix])
         _info_hash_feed(&h, state.narrative_trigger_mask[ix])
         _info_hash_feed(&h, <uint8_t>(state.narrative_target_slot[ix] + 1))
-    for p in range(2):
+    for p in range(PLAYER_COUNT):
         _info_hash_feed(&h, <uint8_t>(state.stratagem[p] + 1))
         _info_hash_feed(&h, state.stratagem_revealed[p])
         _info_hash_feed(&h, state.stratagem_front_mask[p])
@@ -245,8 +245,8 @@ cdef int _fe__information_state_encode(
     for i in range(SLOT_COUNT):
         _info_emit(buf, &n, h, <uint8_t>(state.resolution_contribution_front[i] + 1))
 
-    for owner in range(2):
-        for slot in range(owner * 8, owner * 8 + 8):
+    for owner in range(PLAYER_COUNT):
+        for slot in range(owner * POSITIONS_PER_PLAYER, owner * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             _info_emit(
                 buf,
                 &n,
@@ -280,50 +280,50 @@ cdef int _fe__information_state_encode(
             )
 
     # Ongoing Narratives and Stratagems are public in the canonical rules.
-    for owner in range(2):
+    for owner in range(PLAYER_COUNT):
         narrative_count = 0
         for narrative_slot in range(self.ongoing_narrative_limit):
-            if state.narrative[owner * 4 + narrative_slot] >= 0:
+            if state.narrative[owner * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot] >= 0:
                 narrative_count += 1
         _info_emit(buf, &n, h, <uint8_t>narrative_count)
         for narrative_slot in range(self.ongoing_narrative_limit):
-            card = state.narrative[owner * 4 + narrative_slot]
+            card = state.narrative[owner * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot]
             if card >= 0:
                 _info_emit(buf, &n, h, <uint8_t>(card + 1))
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.narrative_front_mask[owner * 4 + narrative_slot],
+                    state.narrative_front_mask[owner * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.narrative_used[owner * 4 + narrative_slot],
+                    state.narrative_used[owner * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.narrative_direction[owner * 4 + narrative_slot],
+                    state.narrative_direction[owner * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.narrative_trigger_mask[owner * 4 + narrative_slot],
+                    state.narrative_trigger_mask[owner * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
                     <uint8_t>(
-                        state.narrative_target_slot[owner * 4 + narrative_slot] + 1
+                        state.narrative_target_slot[owner * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot] + 1
                     ),
                 )
 
-    for owner in range(2):
+    for owner in range(PLAYER_COUNT):
         card = state.stratagem[owner]
         if card < 0:
             _info_emit(buf, &n, h, 0)
@@ -333,7 +333,7 @@ cdef int _fe__information_state_encode(
             _info_emit(buf, &n, h, state.stratagem_direction[owner])
             _info_emit_u16(buf, &n, h, state.stratagem_target_mask[owner])
 
-    for owner in range(2):
+    for owner in range(PLAYER_COUNT):
         _info_emit(buf, &n, h, state.stratagem_used[owner])
 
     # Own hidden resources are visible to the acting player.
@@ -504,7 +504,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
         choice = self.narrative_choice_kind[card]
         if choice == NARRATIVE_CHOICE_FRONT:
             fronts = ""
-            for front in range(4):
+            for front in range(FRONT_COUNT):
                 if extra & (1 << front):
                     if fronts:
                         fronts += ","
@@ -533,7 +533,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             or choice == STRAT_CHOICE_EDGE_FRONT
         ) and pos >= 0:
             fronts = ""
-            for front in range(4):
+            for front in range(FRONT_COUNT):
                 if pos & (1 << front):
                     if fronts:
                         fronts += ","
