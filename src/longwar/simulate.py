@@ -418,15 +418,10 @@ def _simulate_games_serial(
                     decision_info,
                 )
                 recent_actions.append(action_key(action))
-                is_free_signal = (
-                    isinstance(action, Pass)
-                    and not state.players[actor].passed
-                    and not engine.rules.pass_signal_costs_operation
-                )
-                is_turn_consuming_action = (
-                    state.pending_draw_discard_for is None
-                    and not state.pending_effects
-                    and not is_free_signal
+                is_turn_consuming_action = engine.action_consumes_operation(
+                    state,
+                    actor,
+                    action,
                 )
                 engine.apply(state, action)
                 _assert_card_conservation(
