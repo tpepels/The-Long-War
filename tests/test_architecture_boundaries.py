@@ -679,3 +679,23 @@ def test_native_slot_access_never_uses_literal_rank_codes() -> None:
             if pattern.search(line):
                 offenders.append(f"{path.name}:{lineno}: {line.strip()}")
     assert not offenders, "\n".join(offenders)
+
+
+def test_native_algorithm_hot_paths_do_not_compare_game_state_to_strings() -> None:
+    pattern = re.compile(
+        r"""(?:==|!=)\s*['"]|['"][^'"]*['"]\s*(?:==|!=)"""
+    )
+    offenders: list[str] = []
+    for path in sorted(
+        [
+            *SRC.glob("_*.pxi"),
+            *SRC.glob("_*.pyx"),
+        ]
+    ):
+        for lineno, line in enumerate(
+            path.read_text(encoding="utf-8").splitlines(),
+            start=1,
+        ):
+            if pattern.search(line):
+                offenders.append(f"{path.name}:{lineno}: {line.strip()}")
+    assert not offenders, "\n".join(offenders)
