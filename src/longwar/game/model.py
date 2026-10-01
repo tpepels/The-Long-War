@@ -30,6 +30,12 @@ class ConstraintKind(str, Enum):
     SPECIFIC_MANEUVER = "specific_maneuver"
 
 
+def other_player(player: int) -> int:
+    if not 0 <= player < PLAYER_COUNT:
+        raise ValueError(f"invalid player index: {player}")
+    return (player + 1) % PLAYER_COUNT
+
+
 RANK_INDEX = {Rank.FRONT: 0, Rank.REAR: 1}
 FRONT_COUNT = len(Front)
 RANK_COUNT = len(Rank)
