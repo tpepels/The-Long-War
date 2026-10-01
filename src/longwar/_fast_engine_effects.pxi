@@ -77,7 +77,7 @@ cdef inline void _fe_return_bond_to_hand_from_slot(
     state.bond[slot] = -1
     _fe_return_to_hand(self, state, player, bond)
 
-cdef void _fe_compact_ongoing_stories(
+cdef void _fe_compact_ongoing_narratives(
     FastEngine self,
     FastState state,
     int player,
@@ -85,7 +85,7 @@ cdef void _fe_compact_ongoing_stories(
     """Keep packed Story storage aligned with GameState's compact list."""
     cdef int read_slot, write_slot, src, dst
     write_slot = 0
-    for read_slot in range(self.ongoing_story_limit):
+    for read_slot in range(self.ongoing_narrative_limit):
         src = player * 4 + read_slot
         if state.narrative[src] < 0:
             continue
@@ -128,7 +128,7 @@ cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int con
     state.narrative_revealed[ix] = 0
     state.narrative_front_mask[ix] = 0
     state.narrative_target_slot[ix] = -1
-    _fe_compact_ongoing_stories(self, state, controller)
+    _fe_compact_ongoing_narratives(self, state, controller)
     _fe_append_discard(self, state, controller, card, True)
 
 cdef void _fe_resolve_ongoing_narrative_event(FastEngine self, FastState state, int actor, int event, int front, int trigger_slot=-1):
@@ -179,7 +179,7 @@ cdef void _fe_resolve_strat_event(FastEngine self, FastState state, int event, i
         if self.strat_reveal_effect[card] == STRAT_REVEAL_PENALIZE and pos >= 0 and state.force[pos] >= 0:
             state.temporary[pos] -= self.strat_reveal_amount[card]
 
-cdef bint _fe_pre_story_cancel(FastEngine self, FastState state, int actor):
+cdef bint _fe_pre_narrative_cancel(FastEngine self, FastState state, int actor):
     cdef int controller = 1 - actor
     cdef int card = state.stratagem[controller]
     if card < 0 or state.stratagem_revealed[controller]:
@@ -187,7 +187,7 @@ cdef bint _fe_pre_story_cancel(FastEngine self, FastState state, int actor):
     if not _fe_strat_trigger_matches(self, state, controller, card, EVENT_IMMEDIATE_NARRATIVE, actor):
         return False
     state.stratagem_revealed[controller] = 1
-    return self.strat_cancel_story[card]
+    return self.strat_cancel_narrative[card]
 
 cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) noexcept:
     cdef int ix
@@ -271,9 +271,9 @@ cdef void _fe_discard_ongoing_narrative(
     FastEngine self,
     FastState state,
     int controller,
-    int story_slot,
+    int narrative_slot,
 ) noexcept:
-    cdef int ix = controller * 4 + story_slot
+    cdef int ix = controller * 4 + narrative_slot
     cdef int card = state.narrative[ix]
     if card < 0:
         return
@@ -284,7 +284,7 @@ cdef void _fe_discard_ongoing_narrative(
     state.narrative_used[ix] = 0
     state.narrative_direction[ix] = 0
     state.narrative_trigger_mask[ix] = 0
-    _fe_compact_ongoing_stories(self, state, controller)
+    _fe_compact_ongoing_narratives(self, state, controller)
     _fe_append_discard(self, state, controller, card, True)
 
 cdef uint16_t _fe_named_formation_mask(
@@ -465,12 +465,12 @@ cdef void _fe_resolve_named_narratives(
     int named_player,
     int named_slot,
 ) except *:
-    cdef int controller, story_slot, ix, card, trigger, amount, secondary
+    cdef int controller, narrative_slot, ix, card, trigger, amount, secondary
     cdef uint16_t sources
     for controller in range(2):
-        story_slot = self.ongoing_story_limit - 1
-        while story_slot >= 0:
-            ix = controller * 4 + story_slot
+        narrative_slot = self.ongoing_narrative_limit - 1
+        while narrative_slot >= 0:
+            ix = controller * 4 + narrative_slot
             card = state.narrative[ix]
             if card >= 0:
                 trigger = self.narrative_trigger[card]
@@ -497,9 +497,9 @@ cdef void _fe_resolve_named_narratives(
                         )
                     if self.narrative_trigger_discard[card]:
                         _fe_discard_ongoing_narrative(self, 
-                            state, controller, story_slot
+                            state, controller, narrative_slot
                         )
-            story_slot -= 1
+            narrative_slot -= 1
 
 cdef void _fe_resolve_retreat_narratives(
     FastEngine self,
@@ -507,11 +507,11 @@ cdef void _fe_resolve_retreat_narratives(
     int player,
     int retreated_slot,
 ) except *:
-    cdef int story_slot, ix, card, amount
+    cdef int narrative_slot, ix, card, amount
     cdef uint16_t destinations
-    story_slot = self.ongoing_story_limit - 1
-    while story_slot >= 0:
-        ix = player * 4 + story_slot
+    narrative_slot = self.ongoing_narrative_limit - 1
+    while narrative_slot >= 0:
+        ix = player * 4 + narrative_slot
         card = state.narrative[ix]
         if (
             card >= 0
@@ -531,9 +531,9 @@ cdef void _fe_resolve_retreat_narratives(
                 )
             if self.narrative_trigger_discard[card]:
                 _fe_discard_ongoing_narrative(self, 
-                    state, player, story_slot
+                    state, player, narrative_slot
                 )
-        story_slot -= 1
+        narrative_slot -= 1
 
 cdef void _fe_resolve_force_pair_narratives(
     FastEngine self,
@@ -541,7 +541,7 @@ cdef void _fe_resolve_force_pair_narratives(
     int force_player,
 ) noexcept:
     cdef int controller = 1 - force_player
-    cdef int front, story_slot, ix, card, amount
+    cdef int front, narrative_slot, ix, card, amount
     cdef bint pair_exists = False
     for front in range(4):
         if (
@@ -552,9 +552,9 @@ cdef void _fe_resolve_force_pair_narratives(
             break
     if not pair_exists:
         return
-    story_slot = self.ongoing_story_limit - 1
-    while story_slot >= 0:
-        ix = controller * 4 + story_slot
+    narrative_slot = self.ongoing_narrative_limit - 1
+    while narrative_slot >= 0:
+        ix = controller * 4 + narrative_slot
         card = state.narrative[ix]
         if (
             card >= 0
@@ -576,9 +576,9 @@ cdef void _fe_resolve_force_pair_narratives(
                 )
             if self.narrative_trigger_discard[card]:
                 _fe_discard_ongoing_narrative(self, 
-                    state, controller, story_slot
+                    state, controller, narrative_slot
                 )
-        story_slot -= 1
+        narrative_slot -= 1
 
 cdef void _fe_resolve_maneuver_into_empty_narratives(
     FastEngine self,
@@ -586,10 +586,10 @@ cdef void _fe_resolve_maneuver_into_empty_narratives(
     int player,
     int vacated_slot,
 ) except *:
-    cdef int story_slot, ix, card, amount
+    cdef int narrative_slot, ix, card, amount
     cdef uint16_t sources
-    for story_slot in range(self.ongoing_story_limit):
-        ix = player * 4 + story_slot
+    for narrative_slot in range(self.ongoing_narrative_limit):
+        ix = player * 4 + narrative_slot
         card = state.narrative[ix]
         if card < 0 or state.narrative_used[ix]:
             continue
