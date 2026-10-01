@@ -20,6 +20,7 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, Phase, Position, Rank
+from .protocol import GameMode
 
 
 FRONT_NAMES = {
@@ -41,12 +42,14 @@ class PlaySession:
         self,
         card_data_json: str,
         deck_json: str,
-        mode: str = "hotseat",
+        mode: str = GameMode.HOTSEAT,
         seed: int = 1,
         paced_ai: bool = False,
     ):
-        if mode not in {"hotseat", "remote", "computer"}:
-            raise ValueError(f"Unsupported play mode: {mode}")
+        try:
+            parsed_mode = GameMode(mode)
+        except ValueError as exc:
+            raise ValueError(f"Unsupported play mode: {mode}") from exc
 
         card_data = json.loads(card_data_json)
         deck_payload = json.loads(deck_json)
@@ -59,10 +62,10 @@ class PlaySession:
         self.engine = GameEngine(card_data)
         self.cards = self.engine.cards
         self.deck = deck
-        self.mode = mode
+        self.mode = parsed_mode
         self.seed = int(seed)
         self.paced_ai = paced_ai
-        self.human_players = {0, 1} if mode in {"hotseat", "remote"} else {0}
+        self.human_players = {0, 1} if parsed_mode in {GameMode.HOTSEAT, GameMode.REMOTE} else {0}
         self.log: list[str] = []
         self.opening_player: int | None = None
         self.last_action: dict[str, Any] | None = None
@@ -81,7 +84,7 @@ class PlaySession:
         self.mulligan_choices: dict[int, tuple[int, ...]] = {}
 
         self.agents: dict[int, Any] = {}
-        if mode == "computer":
+        if parsed_mode == GameMode.COMPUTER:
             self.agents[1] = HeuristicAgent(
                 self.seed + 20_001,
                 exploration=0.0,
@@ -105,7 +108,7 @@ class PlaySession:
     def ai_step(self) -> dict[str, Any]:
         if not self.setup_complete:
             raise ValueError("Complete the opening mulligan first")
-        if self.mode != "computer":
+        if self.mode != GameMode.COMPUTER:
             raise ValueError("AI stepping requires an AI opponent")
         if (
             self.state.phase is not Phase.COMPLETE
@@ -134,11 +137,11 @@ class PlaySession:
 
         self.mulligan_choices[viewer] = normalized
 
-        if self.mode in {"hotseat", "remote"} and viewer == 0:
+        if self.mode in {GameMode.HOTSEAT, GameMode.REMOTE} and viewer == 0:
             self.mulligan_player = 1
             return self.snapshot(None)
 
-        if self.mode == "computer":
+        if self.parsed_mode == GameMode.COMPUTER:
             agent = self.agents[1]
             self.mulligan_choices[1] = (
                 agent.choose_mulligan(
@@ -150,7 +153,7 @@ class PlaySession:
             )
 
         self._finish_mulligans()
-        return self.snapshot(None if self.mode == "hotseat" else viewer)
+        return self.snapshot(None if self.mode == GameMode.HOTSEAT else viewer)
 
     def _finish_mulligans(self) -> None:
         choices = (
@@ -194,14 +197,14 @@ class PlaySession:
         actor = viewer
         self._apply_with_log(action)
         self._run_ai_until_human()
-        if self.mode == "hotseat":
+        if self.mode == GameMode.HOTSEAT:
             if (
                 self.state.phase is not Phase.COMPLETE
                 and self.state.active_player == actor
             ):
                 return self.snapshot(actor)
             return self.snapshot(None)
-        if self.mode == "remote":
+        if self.mode == GameMode.REMOTE:
             return self.snapshot(viewer)
         return self.snapshot(0)
 
@@ -342,7 +345,7 @@ class PlaySession:
                 ]
 
         return {
-            "mode": self.mode,
+            "mode": self.mode.value,
             "seed": self.seed,
             "opening_player": self.opening_player,
             "battle": state.battle,
@@ -351,7 +354,7 @@ class PlaySession:
             "winner": state.winner,
             "viewer": viewer,
             "needs_reveal": (
-                self.mode == "hotseat"
+                self.mode == GameMode.HOTSEAT
                 and viewer is None
                 and (
                     not self.setup_complete
