@@ -485,7 +485,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             else 0
         )
         state.narrative_target_slot[actor * 4 + pos] = dest
-        if self.narrative_choice_kind[card] == STORY_CHOICE_NAMED_DIRECTION:
+        if self.narrative_choice_kind[card] == NARRATIVE_CHOICE_NAMED_DIRECTION:
             state.narrative_direction[actor * 4 + pos] = <uint8_t>extra
         if self.narrative_forced_named_direction[card]:
             _fe_add_constraint(
