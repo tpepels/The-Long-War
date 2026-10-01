@@ -2925,8 +2925,8 @@ def parse_args() -> argparse.Namespace:
     pass_variants.add_argument(
         "--jobs",
         type=int,
-        default=2,
-        help="Parallel game workers. Kept conservative for laptop memory.",
+        default=8,
+        help="Parallel game workers (default: 8).",
     )
     pass_variants.add_argument("--seed", type=int, default=26100100)
     pass_variants.add_argument(
