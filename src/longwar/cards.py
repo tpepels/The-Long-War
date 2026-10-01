@@ -710,7 +710,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
 
         if "rules" in card:
             raise ValueError(
-                f"{card_id}: legacy rules field is unsupported; use design_rules"
+                f"{card_id}: rules field is unsupported; use design_rules"
             )
         _validate_design_rules(card)
 
