@@ -479,91 +479,6 @@
 }
 
 
-/* Human-first explanatory rulebook additions */
-.rulebook-opening {
-  margin: 8mm 0 10mm;
-  padding: 7mm 8mm;
-  border: .35mm solid #181714;
-  background:
-    linear-gradient(135deg, rgba(24,23,20,.025), transparent 60%),
-    #f1ecdf;
-}
-.rulebook-opening p,
-.rulebook-opening li {
-  font-size: 3.7mm;
-  line-height: 1.55;
-}
-.rulebook-opening ol {
-  margin-bottom: 0;
-}
-
-.decision-grid {
-  margin: 6mm 0 8mm;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap: 3mm;
-}
-.decision-grid > div {
-  min-height: 24mm;
-  padding: 4mm;
-  border: .3mm solid #181714;
-  background: #f6f0e3;
-}
-.decision-grid b {
-  display: block;
-  margin-bottom: 1.2mm;
-  font: 800 2.8mm/1 system-ui, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-.decision-grid span {
-  display: block;
-  font-size: 3.1mm;
-  line-height: 1.38;
-}
-
-.legend-sentence {
-  margin: 7mm 0;
-  padding: 6mm;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 2mm;
-  border-top: .6mm solid #181714;
-  border-bottom: .6mm solid #181714;
-}
-.legend-sentence span {
-  padding: 3mm 4mm;
-  border: .35mm solid #181714;
-  font: 600 4mm/1 Georgia, serif;
-}
-.legend-sentence .link { border-style: dashed; }
-.legend-sentence .name { border-radius: 12mm; }
-.legend-sentence i {
-  font-size: 5mm;
-  opacity: .45;
-}
-
-.start-playing-box {
-  margin: 10mm 0 4mm;
-  padding: 6mm 7mm;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4mm;
-  align-items: center;
-  border: .7mm solid #181714;
-  background: #181714;
-  color: #f7f2e8;
-}
-.start-playing-box b {
-  font: 600 7mm/.9 Georgia, serif;
-}
-.start-playing-box span {
-  font-size: 3.2mm;
-  line-height: 1.4;
-}
-
 /* Two-page battlefield guide */
 .battlefield-guide {
   max-width: 297mm;
@@ -1735,9 +1650,6 @@
   }
 }
 
-.rulebook-opening[markdown="1"] > p:first-child {
-  margin-top: 0;
-}
 
 .reference-v3 {
   width: 297mm;
