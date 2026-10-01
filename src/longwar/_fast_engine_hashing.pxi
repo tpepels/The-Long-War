@@ -510,14 +510,14 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key += f":fronts:{fronts}"
         elif (
             choice == NARRATIVE_CHOICE_NAMED_FORMATION
-            or choice == STORY_CHOICE_NAMED_DIRECTION
+            or choice == NARRATIVE_CHOICE_NAMED_DIRECTION
         ) and dest >= 0:
             key += (
                 f":targets:{owner_from_slot(dest)},"
                 f"{front_from_slot(dest)},"
                 f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
             )
-            if choice == STORY_CHOICE_NAMED_DIRECTION:
+            if choice == NARRATIVE_CHOICE_NAMED_DIRECTION:
                 key += (
                     f":direction:{'left' if extra == 1 else 'right'}"
                 )
