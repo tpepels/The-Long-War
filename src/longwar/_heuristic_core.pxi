@@ -207,16 +207,16 @@ cdef class NativeHeuristicEvaluator:
         hand_delta = state.hand_len[player] - state.hand_len[opponent]
         score += self.weights[HW_CLOSE_FRONT_BONUS] * hand_delta
 
-        for card in range(self.engine.n_cards):
-            if self.engine.card_type[card] == CARD_FORCE:
-                if self.engine.hero[card]:
-                    if (
-                        state.hero_used[player] < self.engine.hero_play_limit_per_battle
-                        and state.hand[player][card] > 0
-                    ):
-                        hero_force = 1
-                else:
-                    own_forces += state.hand[player][card]
+        for slot in range(self.engine.force_count):
+            card = self.engine.force_codes[slot]
+            if self.engine.hero[card]:
+                if (
+                    state.hero_used[player] < self.engine.hero_play_limit_per_battle
+                    and state.hand[player][card] > 0
+                ):
+                    hero_force = 1
+            else:
+                own_forces += state.hand[player][card]
         own_forces += hero_force
         if own_forces > self.weights[HW_FORCE_HAND_CAP]:
             own_forces = <int>self.weights[HW_FORCE_HAND_CAP]
@@ -347,15 +347,16 @@ cdef class NativeHeuristicEvaluator:
                 continue
             before = _fe_position_strength_fast(self.engine, state, slot)
             best = self.weights[HW_NO_OPTION_SCORE]
-            for name_card in range(self.engine.n_cards):
+            for card in range(self.engine.name_mode_count):
+                name_card = self.engine.name_mode_codes[card]
                 if state.hand[player][name_card] == 0:
                     continue
-                if self.engine.card_type[name_card] != CARD_NAME:
-                    if (
-                        not self.engine.hero[name_card]
-                        or state.hero_used[player] >= self.engine.hero_play_limit_per_battle
-                    ):
-                        continue
+                if (
+                    self.engine.hero[name_card]
+                    and state.hero_used[player]
+                    >= self.engine.hero_play_limit_per_battle
+                ):
+                    continue
                 state.name[slot] = name_card
                 after = _fe_position_strength_fast(self.engine, state, slot)
                 if after - before > best:
@@ -488,22 +489,22 @@ cdef class NativeHeuristicEvaluator:
     ) noexcept:
         cdef int card, i, immediate=0, discarded=0
         cdef bint hero_available=False, discarded_hero=False
-        for card in range(self.engine.n_cards):
-            if self.engine.card_type[card] == CARD_FORCE:
-                if self.engine.hero[card]:
-                    if (
-                        state.hero_used[player] < self.engine.hero_play_limit_per_battle
-                        and (
-                            state.hand[player][card]
-                            + state.deck_counts[player][card]
-                        ) > 0
-                    ):
-                        hero_available = True
-                else:
-                    immediate += (
+        for i in range(self.engine.force_count):
+            card = self.engine.force_codes[i]
+            if self.engine.hero[card]:
+                if (
+                    state.hero_used[player] < self.engine.hero_play_limit_per_battle
+                    and (
                         state.hand[player][card]
                         + state.deck_counts[player][card]
-                    )
+                    ) > 0
+                ):
+                    hero_available = True
+            else:
+                immediate += (
+                    state.hand[player][card]
+                    + state.deck_counts[player][card]
+                )
         for i in range(state.discard_len[player]):
             card = state.discard[player][i]
             if self.engine.card_type[card] == CARD_FORCE:
