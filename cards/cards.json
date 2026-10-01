@@ -1269,7 +1269,9 @@
       ],
       "design_rules": {
         "persistence": "rear_rebuild_cost_reduction",
-        "deploy_rank": "rear"
+        "deploy_rank": "rear",
+        "discount_amount": 1,
+        "minimum_cost": 1
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
