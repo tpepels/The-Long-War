@@ -16,6 +16,13 @@ else:
     from build_browser_runtime import ensure_browser_runtime
     from longwar.reference_decks import REFERENCE_DECK_PATHS
 from longwar.cards import load_card_file
+from longwar.decks import (
+    MINIMUM_DECK_SIZE,
+    MINIMUM_FORCE_COUNT,
+    MINIMUM_PRINTED_NAME_COUNT,
+    NON_UNIQUE_COPY_LIMIT,
+    UNIQUE_COPY_LIMIT,
+)
 from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -188,6 +195,11 @@ def render_rule_tokens(source: str, rules: GameRules) -> str:
     # GameRules field names remain the actual source of truth.
     values.update(
         {
+            "MINIMUM_DECK_SIZE": MINIMUM_DECK_SIZE,
+            "MINIMUM_FORCE_COUNT": MINIMUM_FORCE_COUNT,
+            "MINIMUM_PRINTED_NAME_COUNT": MINIMUM_PRINTED_NAME_COUNT,
+            "NON_UNIQUE_COPY_LIMIT": NON_UNIQUE_COPY_LIMIT,
+            "UNIQUE_COPY_LIMIT": UNIQUE_COPY_LIMIT,
             "COLLAPSE_THRESHOLD": rules.command_collapse_threshold,
             "RECOVERY_START": rules.command_recovery_start,
             "RECOVERY_DECREMENT": rules.command_recovery_decrement,
