@@ -312,11 +312,12 @@ def test_opponent_operation_does_not_clear_persistent_pass() -> None:
     state.operations_this_battle[:] = [1, 1]
     state.active_player = 0
 
-    state.players[1].hand = ["the-fifty-men"]
-    state.players[1].deck = ["followed"]
-    state.players[1].command = 20
-    state.players[0].hand = ["namar"]
+    state.players[0].hand = ["the-fifty-men"]
     state.players[0].deck = []
+    state.players[0].command = 20
+    state.players[1].hand = ["the-fifty-men"]
+    state.players[1].deck = []
+    state.players[1].command = 20
 
     engine.apply(state, Pass())
     assert state.pass_order == [0]
@@ -330,35 +331,9 @@ def test_opponent_operation_does_not_clear_persistent_pass() -> None:
     assert state.players[1].passed is False
     assert state.active_player == 0
 
-
-def test_player_operation_withdraws_only_their_own_pass() -> None:
-    engine, state = setup_state()
-    state.operations_this_battle[:] = [1, 1]
-    state.active_player = 0
-    state.players[0].hand = ["the-fifty-men"]
-    state.players[0].deck = []
-    state.players[0].command = 20
-    state.players[1].hand = ["followed"]
-    state.players[1].deck = []
-
-    engine.apply(state, Pass())
-    assert state.pass_order == [0]
-    engine.apply(state, Pass())
-    assert state.battle == 2
-
-    # Recreate the one-player-passed situation directly: a player who acts
-    # again withdraws their own Pass, without a global pass-sequence reset.
-    state.battle = 1
-    state.phase = Phase.BATTLE
-    state.active_player = 0
-    state.players[0].passed = True
-    state.players[1].passed = False
-    state.pass_order[:] = [0]
-    state.players[0].hand = ["the-fifty-men"]
-    state.players[0].command = 20
-
     engine.apply(state, PlayForce("the-fifty-men", pos(0)))
 
+    assert state.battle == 1
     assert state.pass_order == []
     assert state.players[0].passed is False
     assert state.players[1].passed is False
