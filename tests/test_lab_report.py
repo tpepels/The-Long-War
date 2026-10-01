@@ -202,7 +202,7 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
             "card_static_marginals": [],
             "all_static_formations": [],
         },
-        "heuristic-selfplay.json": {
+        "progression-selfplay.json": {
             "game_fingerprint": fingerprint,
             "simulation_variant": standard_variant(),
             "games": 1,
@@ -630,7 +630,7 @@ def test_lab_builder_does_not_grade_stale_optional_legacy_fallbacks_as_current_e
     source = (build_lab_report.ROOT / "tools" / "build_lab_report.py").read_text(
         encoding="utf-8"
     )
-    assert 'current("mccfr-policy.json", track_stale=False)' in source
+    assert 'current("mccfr-policy.json"' not in source
     assert 'track_stale=(key == "canonical_selfplay")' in source
     assert 'solver_strength = current("solver-strength.json")' in source
     assert '"narrative_ablation": narrative_ablation' in source
