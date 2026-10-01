@@ -12,7 +12,7 @@ from .game.actions import (
     PlayBond,
     PlayForce,
     PlayName,
-    PlayStory,
+    PlayNarrative,
     PlayStratagem,
     action_key,
 )
@@ -20,7 +20,7 @@ from .game.engine import GameEngine, all_positions
 from .game.model import ConstraintKind, Front, GameState, Phase, Position
 
 
-CARD_ACTIONS = (PlayForce, PlayBond, PlayName, PlayStory, PlayStratagem)
+CARD_ACTIONS = (PlayForce, PlayBond, PlayName, PlayNarrative, PlayStratagem)
 OPERATION_ACTIONS = CARD_ACTIONS + (Maneuver,)
 CONSTRAINT_CLASSES = {"necessity"}
 
@@ -2378,9 +2378,9 @@ class ProgressionTelemetry:
     ) -> list[str]:
         card_ids: set[str] = set()
         for player in range(2):
-            for story in state.stories[player]:
-                if story.ongoing:
-                    card_ids.add(story.card_id)
+            for narrative in state.narratives[player]:
+                if narrative.ongoing:
+                    card_ids.add(narrative.card_id)
             stratagem = state.stratagems[player]
             if stratagem is not None:
                 card_ids.add(stratagem.card_id)
@@ -2446,7 +2446,7 @@ class ProgressionTelemetry:
             return action.position.front == front
         if isinstance(action, Maneuver):
             return action.source.front == front or action.destination.front == front
-        if isinstance(action, (PlayStory, PlayStratagem)):
+        if isinstance(action, (PlayNarrative, PlayStratagem)):
             if front in action.fronts:
                 return True
             return any(
