@@ -154,7 +154,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         raise ValueError("Command settings exceed the native signed 16-bit capacity")
     self.id_to_code = {card_id: i for i, card_id in enumerate(self.card_ids)}
 
-    type_map = {"force": CARD_FORCE, "bond": CARD_BOND, "name": CARD_NAME, "story": CARD_NARRATIVE, "stratagem": CARD_STRATAGEM}
+    type_map = {"force": CARD_FORCE, "bond": CARD_BOND, "name": CARD_NAME, "narrative": CARD_NARRATIVE, "stratagem": CARD_STRATAGEM}
     role_map = {"swordsman": ROLE_SWORDSMAN, "spearman": ROLE_SPEARMAN, "archer": ROLE_ARCHER, "healer": ROLE_HEALER, "ship": ROLE_SHIP, "stronghold": ROLE_STRONGHOLD}
     rank_map = {"front": 0, "rear": 1}
     force_text_map = {
@@ -267,7 +267,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         name_design = design.get("name") or {}
         if name_design.get("command") == "first_card_in_front_each_battle_discount_1_min_1":
             self.first_front_card_battle_discount_name[code] = 1
-        if force_design.get("story") == "first_story_each_battle_discount_1_min_1":
+        if force_design.get("narrative") == "first_narrative_each_battle_discount_1_min_1":
             self.first_narrative_battle_discount_force[code] = 1
         if force_design.get("combat") == "breakthrough":
             self.force_breakthrough[code] = 1
@@ -329,7 +329,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.after_maneuver_free_adjacent[code] = 1
         if name_design.get("on_completion") == "return_one_bond_from_discard_to_hand":
             self.recover_bond_on_completion_name[code] = 1
-        if name_design.get("on_completion") == "return_one_story_from_discard_to_hand":
+        if name_design.get("on_completion") == "return_one_narrative_from_discard_to_hand":
             self.recover_narrative_on_completion_name[code] = 1
         front_resolution = design.get("front_resolution") or {}
         if front_resolution.get("contribution") == "chosen_front_instead_of_own":
