@@ -13,6 +13,7 @@ install:
 native-build:
 	python tools/build_native_protocol.py
 	python tools/build_heuristic_weights.py
+	python tools/build_native_fingerprint.py
 	python setup.py build_ext --inplace
 
 browser-build:
@@ -53,6 +54,7 @@ browser-parity:
 	@echo "Browser/native parity: OK (log: artifacts/logs/browser-parity.log)"
 
 verify:
+	$(MAKE) native-build
 	python tools/build_native_protocol.py --check
 	python tools/build_heuristic_weights.py --check
 	python tools/build_web_protocol.py --check
