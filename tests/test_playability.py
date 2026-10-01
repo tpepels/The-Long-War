@@ -74,6 +74,7 @@ def test_build_playability_report_derives_human_pacing_metrics() -> None:
         "simulation_reports": 1,
         "games": 10,
         "decisive_games": 8,
+        "draws": 0,
         "censored_games": 2,
         "battles": 25,
     }
@@ -175,6 +176,7 @@ def test_playability_allows_all_games_censored_before_first_resolution() -> None
         "simulation_reports": 1,
         "games": 1,
         "decisive_games": 0,
+        "draws": 0,
         "censored_games": 1,
         "battles": 0,
     }
