@@ -2347,7 +2347,7 @@ def test_chained_mandatory_recoveries_do_not_dead_end_after_first_consumes_targe
         "player": 0,
         "card": -1,
         "source": -1,
-        "aux": 2,  # CARD_LINK
+        "aux": 2,  # CARD_BOND
         "source_mask": 0,
         "dest_mask": 0,
         "flags": 0,
@@ -2380,7 +2380,7 @@ def test_stale_mandatory_pending_effect_resolves_as_forced_noop() -> None:
             "player": 0,
             "card": -1,
             "source": -1,
-            "aux": 2,  # CARD_LINK
+            "aux": 2,  # CARD_BOND
             "source_mask": 0,
             "dest_mask": 0,
             "flags": 0,
