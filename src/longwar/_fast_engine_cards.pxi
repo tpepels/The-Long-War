@@ -411,7 +411,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         ):
             self.narrative_choice_kind[code] = NARRATIVE_CHOICE_FRONT
         elif self.narrative_forced_named_direction[code]:
-            self.narrative_choice_kind[code] = STORY_CHOICE_NAMED_DIRECTION
+            self.narrative_choice_kind[code] = NARRATIVE_CHOICE_NAMED_DIRECTION
         elif (
             design.get("placement") == "chosen_named_formation"
             or design.get("choose_friendly_named_formation")
