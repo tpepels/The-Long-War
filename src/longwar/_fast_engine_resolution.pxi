@@ -642,6 +642,7 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
     state.battle += 1
     state.cleanup_pending = 0
     state.pass_len = 0
+    state.pass_closing_turns_remaining = 0
     state.pass_order[0] = -1
     state.pass_order[1] = -1
 
@@ -766,24 +767,47 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
 
 cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     cdef int opponent = 1 - player
+    cdef bint already_signalled = bool(state.passed[player])
     cdef uint64_t pass_action = encode_action(TYPE_PASS, -1, -1, -1, player)
 
-    # Pass is one of the three canonical operations. It can only remain
-    # legal while an active requirement is impossible, but once chosen it
-    # still consumes that player's "next operation" requirements.
-    _fe_consume_operation_constraints(self, state, player, pass_action)
+    # In standard play the signal is the Pass operation. The experimental
+    # free-flag variant records the same public state without consuming the
+    # operation or its constraints.
+    if self.pass_signal_costs_operation:
+        _fe_consume_operation_constraints(self, state, player, pass_action)
 
-    if not state.passed[player]:
+    if not already_signalled:
         state.passed[player] = 1
         state.pass_order[state.pass_len] = player
         state.pass_len += 1
-    _fe_resolve_strat_event(self, state, EVENT_PASS, player)
+        if state.pass_len == 1 and self.pass_closing_rounds > 0:
+            state.pass_closing_turns_remaining = 2 * self.pass_closing_rounds
+        if self.pass_signal_costs_operation:
+            _fe_resolve_strat_event(self, state, EVENT_PASS, player)
 
     if state.passed[0] and state.passed[1]:
         _fe_score_battle(self, state)
-    else:
-        # A Pass persists through the opponent's actions. The opponent still
-        # receives a completely normal turn.
-        _fe_start_turn_fast(self, state, opponent)
+        if self.pass_signal_costs_operation:
+            state.turn_number += 1
+        return
 
+    if not self.pass_signal_costs_operation and not already_signalled:
+        # Raising a Battle Flag is free and leaves the player in the same turn.
+        return
+
+    # A repeated signal is only legal when this already-signalled player has
+    # no normal operation. It yields the turn and counts toward a closing
+    # window just like any other completed turn.
+    if (
+        already_signalled
+        and self.pass_closing_rounds > 0
+        and state.pass_closing_turns_remaining > 0
+    ):
+        state.pass_closing_turns_remaining -= 1
+        if state.pass_closing_turns_remaining == 0:
+            state.turn_number += 1
+            _fe_score_battle(self, state)
+            return
+
+    _fe_start_turn_fast(self, state, opponent)
     state.turn_number += 1

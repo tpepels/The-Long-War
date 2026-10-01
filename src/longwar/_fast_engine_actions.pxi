@@ -1225,12 +1225,17 @@ cdef int _fe_legal_actions_into(
     )
 
     can_pass = (
-        state.pass_len > 0
-        or (
-            state.operations_this_battle[0] > 0
-            and state.operations_this_battle[1] > 0
+        not state.passed[player]
+        and (
+            state.pass_len > 0
+            or (
+                state.operations_this_battle[0] > 0
+                and state.operations_this_battle[1] > 0
+            )
         )
     )
+    # Once already signalled, Pass is available only as a forced turn-yield
+    # when no normal operation is legal.
     if (can_pass and not constraint_enforced) or n == 0:
         for i in range(n, 0, -1):
             actions[i] = actions[i - 1]

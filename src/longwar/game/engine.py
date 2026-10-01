@@ -430,6 +430,9 @@ class GameEngine:
         state.battle_resolution = data.get("battle_resolution")
         state.last_battle_snapshot = data["last_battle_snapshot"]
         state.pass_order[:] = data["pass_order"]
+        state.pass_closing_turns_remaining = int(
+            data.get("pass_closing_turns_remaining", 0)
+        )
         state.winner = data["winner"]
         state.turn_number = int(data["turn_number"])
         state.shuffle_seed = int(data["shuffle_seed"])

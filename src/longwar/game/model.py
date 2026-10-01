@@ -187,6 +187,7 @@ class GameState:
     battle_resolution: dict[str, object] | None = None
     last_battle_snapshot: dict[str, object] | None = None
     pass_order: list[int] = field(default_factory=list)
+    pass_closing_turns_remaining: int = 0
     winner: int | None = None
     turn_number: int = 1
     shuffle_seed: int = 0
@@ -325,6 +326,7 @@ class GameState:
                 else dict(self.last_battle_snapshot)
             ),
             pass_order=list(self.pass_order),
+            pass_closing_turns_remaining=self.pass_closing_turns_remaining,
             winner=self.winner,
             turn_number=self.turn_number,
             shuffle_seed=self.shuffle_seed,
@@ -454,6 +456,7 @@ class GameState:
             else dict(source.last_battle_snapshot)
         )
         self.pass_order[:] = source.pass_order
+        self.pass_closing_turns_remaining = source.pass_closing_turns_remaining
         self.winner = source.winner
         self.turn_number = source.turn_number
         self.shuffle_seed = source.shuffle_seed

@@ -79,6 +79,7 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
             state.players[1].passed,
         ],
         "pass_order": list(state.pass_order),
+        "pass_closing_turns_remaining": state.pass_closing_turns_remaining,
         "discarded_this_battle": list(state.discarded_this_battle),
         "command": [
             state.players[0].command,
