@@ -472,7 +472,7 @@ cdef bint _fe_resolve_one_battle_end_narrative(
             won = False
             front_mask = state.narrative_front_mask[ix]
             front = -1
-            for target_slot in range(4):
+            for target_slot in range(FRONT_COUNT):
                 if front_mask & (1 << target_slot):
                     front = target_slot
                     break
