@@ -225,18 +225,18 @@ cdef void _fe_queue_take_adjacent_open_bond_on_name_play(
         )
 
 
-cdef void _fe_discard_story_by_card(
+cdef void _fe_discard_narrative_by_card(
     FastEngine self,
     FastState state,
     int controller,
     int card,
 ) noexcept:
-    cdef int story_slot, ix
-    for story_slot in range(self.ongoing_story_limit):
-        ix = controller * 4 + story_slot
+    cdef int narrative_slot, ix
+    for narrative_slot in range(self.ongoing_narrative_limit):
+        ix = controller * 4 + narrative_slot
         if state.narrative[ix] == card:
             _fe_discard_ongoing_narrative(
-                self, state, controller, story_slot
+                self, state, controller, narrative_slot
             )
             return
 
@@ -247,21 +247,21 @@ cdef void _fe_first_card_front_constraint_triggers(
     int actor,
     int front,
 ) except *:
-    cdef int controller, story_slot, ix, card, mask
+    cdef int controller, narrative_slot, ix, card, mask
     for controller in range(2):
-        story_slot = 0
-        while story_slot < self.ongoing_story_limit:
-            ix = controller * 4 + story_slot
+        narrative_slot = 0
+        while narrative_slot < self.ongoing_narrative_limit:
+            ix = controller * 4 + narrative_slot
             card = state.narrative[ix]
             if card < 0:
-                story_slot += 1
+                narrative_slot += 1
                 continue
             if (
                 not self.narrative_first_card_front_constraint[card]
                 or not (state.narrative_front_mask[ix] & (1 << front))
                 or state.narrative_trigger_mask[ix] & (1 << actor)
             ):
-                story_slot += 1
+                narrative_slot += 1
                 continue
 
             state.narrative_trigger_mask[ix] |= <uint8_t>(1 << actor)
@@ -280,10 +280,10 @@ cdef void _fe_first_card_front_constraint_triggers(
             mask = state.narrative_trigger_mask[ix]
             if mask == 3:
                 _fe_discard_ongoing_narrative(
-                    self, state, controller, story_slot
+                    self, state, controller, narrative_slot
                 )
                 continue
-            story_slot += 1
+            narrative_slot += 1
 
 
 cdef void _fe_consume_operation_constraints(
@@ -314,7 +314,7 @@ cdef void _fe_consume_operation_constraints(
         if satisfied and flags & CONSTRAINT_DRAW_ON_SATISFY:
             _fe_queue_battle_draws(self, state, actor, 1)
         if flags & CONSTRAINT_DISCARD_SOURCE_STORY:
-            _fe_discard_story_by_card(self, state, owner, card)
+            _fe_discard_narrative_by_card(self, state, owner, card)
         i -= 1
 
 
@@ -456,7 +456,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     elif kind == TYPE_NARRATIVE:
         _fe_take_from_hand(self, state, actor, card, 0)
         state.narratives_played_this_battle[actor] += 1
-        if extra and self.story_discard_count[card] == 1:
+        if extra and self.narrative_discard_count[card] == 1:
             target = <int>extra - 1
             if target >= 0 and state.hand[actor][target] > 0:
                 _fe_take_from_hand(self, state, actor, target, 0)
@@ -464,11 +464,11 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 _fe_gain_command_fast(self,
                     state,
                     actor,
-                    self.story_discard_gain_command[card],
+                    self.narrative_discard_gain_command[card],
                     card,
                     COMMAND_DETAIL_DISCARD_GAIN,
                 )
-        cancelled = _fe_pre_story_cancel(self, state, actor)
+        cancelled = _fe_pre_narrative_cancel(self, state, actor)
         if not cancelled:
             _fe_resolve_narrative(self, state, actor, card, pos, dest)
             _fe_resolve_narrative_target_ongoing_narrative(self, state, actor, pos)
@@ -481,11 +481,11 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.narrative_revealed[actor * 4 + pos] = 1
         state.narrative_front_mask[actor * 4 + pos] = (
             <uint8_t>(extra & 15)
-            if self.story_choice_kind[card] == STORY_CHOICE_FRONT
+            if self.narrative_choice_kind[card] == NARRATIVE_CHOICE_FRONT
             else 0
         )
         state.narrative_target_slot[actor * 4 + pos] = dest
-        if self.story_choice_kind[card] == STORY_CHOICE_NAMED_DIRECTION:
+        if self.narrative_choice_kind[card] == STORY_CHOICE_NAMED_DIRECTION:
             state.narrative_direction[actor * 4 + pos] = <uint8_t>extra
         if self.narrative_forced_named_direction[card]:
             _fe_add_constraint(
