@@ -3,6 +3,7 @@ from __future__ import annotations
 from math import isfinite
 from time import perf_counter
 
+from ..protocol import PolicySource
 from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, action_key
 from ..game.engine import GameEngine
@@ -156,7 +157,7 @@ class ISMCTSAgent:
                 "selected_score": 0.0,
                 "score_gap": 0.0,
                 "selected_action": type(legal[0]).__name__,
-                "policy_source": "ismcts",
+                "policy_source": PolicySource.ISMCTS.value,
                 "belief_samples": 0,
                 "search_nodes": 0,
                 "search_budget": self.iterations,
@@ -323,7 +324,7 @@ class ISMCTSAgent:
             "selected_score": score,
             "score_gap": score - second,
             "selected_action": type(selected).__name__,
-            "policy_source": "ismcts",
+            "policy_source": PolicySource.ISMCTS.value,
             "belief_samples": self.belief_samples,
             "rollout_plies": self.rollout_depth,
             "completed_depth": int(result["max_tree_depth"]),
