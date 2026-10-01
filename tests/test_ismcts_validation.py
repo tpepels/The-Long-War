@@ -422,13 +422,21 @@ def test_progressive_widening_limits_initial_root_breadth() -> None:
     assert result["progressive_widening_alpha"] == pytest.approx(0.5)
 
 
-def test_one_ply_ismcts_matches_strategic_leaf_oracle() -> None:
-    engine, deck, _priors = _standard_fixture()
-    state = engine.new_game(deck, deck, seed=9250, first_player=0)
+def test_one_turn_ismcts_matches_strategic_leaf_oracle_without_substeps() -> None:
+    engine, state = _pass_only_standard_state(command=(10, 10))
+    # Give the acting player one simple Named Formation so the root has
+    # Maneuver choices plus Pass, none of which queues a pending effect choice.
+    position = Position(Front.SECOND, Rank.FRONT)
+    state.slot(0, position).force = "the-fifty-men"
+    state.slot(0, position).bond = "followed"
+    state.slot(0, position).name = "namar"
+    state.operations_this_battle[:] = [1, 1]
+
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
     packed = fast.from_game_state(state)
     legal = fast.legal_actions(packed)
+    assert len(legal) > 1
 
     scores: dict[int, float] = {}
     for action in legal:
