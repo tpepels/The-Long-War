@@ -10,6 +10,8 @@ import hashlib
 import json
 from time import perf_counter
 from longwar.game.model import ConstraintKind, Phase, Rank
+include "_native_source_fingerprint.generated.pxi"
+
 from longwar.protocol import (
     CardField,
     CardType,
