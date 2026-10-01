@@ -31,6 +31,7 @@ from .game.actions import Pass, action_key
 from .game.engine import GameEngine, all_positions
 from .game.model import Phase
 from .human_flow import HumanFlowDiagnostics
+from .heuristics import HeuristicWeights, coerce_heuristic_weights
 from .parallelism import DEFAULT_WORKERS
 from .protocol import AgentKind
 from .telemetry import Telemetry
@@ -194,11 +195,17 @@ def make_agent(
     ismcts_max_tree_nodes: int | None = DEFAULT_ISMCTS_MAX_TREE_NODES,
     ismcts_rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     ismcts_rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    heuristic_weights: HeuristicWeights | dict[str, float] | None = None,
 ):
+    weights = coerce_heuristic_weights(heuristic_weights)
     if name == AgentKind.RANDOM:
         return RandomAgent(seed)
     if name == AgentKind.HEURISTIC:
-        return HeuristicAgent(seed, exploration=heuristic_exploration)
+        return HeuristicAgent(
+            seed,
+            exploration=heuristic_exploration,
+            heuristic_weights=weights,
+        )
     if name == AgentKind.STRATEGIC_HEURISTIC:
         return StrategicHeuristicAgent(
             engine,
@@ -210,6 +217,7 @@ def make_agent(
             node_budget=strategic_node_budget,
             time_budget_seconds=strategic_time_budget_seconds,
             search_backend=strategic_search_backend,
+            heuristic_weights=weights,
         )
     if name == AgentKind.ISMCTS:
         return ISMCTSAgent(
@@ -227,6 +235,7 @@ def make_agent(
             max_tree_nodes=ismcts_max_tree_nodes,
             rollout_epsilon=ismcts_rollout_epsilon,
             rollout_policy=ismcts_rollout_policy,
+            heuristic_weights=weights,
         )
     if name == AgentKind.MCCFR:
         if policy is None:

@@ -56,8 +56,8 @@ cdef inline bint _fe_player_has_empty_front(
     cdef int front
     for front in range(FRONT_COUNT):
         if (
-            state.force[slot_index(player, front, 0)] < 0
-            and state.force[slot_index(player, front, 1)] < 0
+            state.force[slot_index(player, front, RANK_FRONT)] < 0
+            and state.force[slot_index(player, front, RANK_REAR)] < 0
         ):
             return True
     return False
@@ -902,10 +902,10 @@ cdef int _fe_legal_actions_into(
                                 self.narrative_front_requires_named[card]
                                 and not (
                                     _fe_slot_complete(
-                                        self, state, slot_index(player, front, 0)
+                                        self, state, slot_index(player, front, RANK_FRONT)
                                     )
                                     or _fe_slot_complete(
-                                        self, state, slot_index(player, front, 1)
+                                        self, state, slot_index(player, front, RANK_REAR)
                                     )
                                 )
                             ):
@@ -1138,8 +1138,8 @@ cdef int _fe_legal_actions_into(
                 elif choice == STRAT_CHOICE_RESERVES:
                     eligible_mask = 0
                     for front in range(FRONT_COUNT):
-                        source = slot_index(player, front, 1)
-                        dest = slot_index(player, front, 0)
+                        source = slot_index(player, front, RANK_REAR)
+                        dest = slot_index(player, front, RANK_FRONT)
                         if (
                             state.force[source] >= 0
                             and not self.immobile_force[state.force[source]]

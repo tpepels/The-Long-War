@@ -294,7 +294,7 @@ def test_lost_front_command_penalty_is_configurable() -> None:
     assert [player.command for player in state.players] == [4, 4]
 
 
-def test_command_guard_filters_avoidable_final_command_spend() -> None:
+def test_command_guard_keeps_zero_command_midbattle_actions() -> None:
     rules = GameRules.standard().with_overrides(
         command_collapse_threshold=0,
         maneuver_command_cost=1,
@@ -314,11 +314,110 @@ def test_command_guard_filters_avoidable_final_command_spend() -> None:
     legal = engine.legal_actions(state)
     preserving, filtered = command_preserving_actions(engine, state, legal)
 
-    assert Pass() in legal
     assert maneuver in legal
-    assert Pass() in preserving
-    assert maneuver not in preserving
-    assert filtered >= 1
+    assert maneuver in preserving
+    assert filtered == 0
+
+    packed = engine._native_core().from_game_state(state)
+    native_maneuver = engine._native_action(packed, maneuver)
+    native_preserving, native_filtered = (
+        engine._native_heuristic().command_preserving_action_codes(packed)
+    )
+    assert native_maneuver in native_preserving
+    assert native_filtered == 0
+
+
+@pytest.mark.parametrize(
+    ("closing_rounds", "remaining", "expected"),
+    [
+        (0, 0, 1.0),
+        (2, 4, 0.25),
+        (3, 6, 1.0 / 6.0),
+        (3, 1, 1.0),
+    ],
+)
+def test_battle_end_urgency_follows_pass_rule(
+    closing_rounds: int,
+    remaining: int,
+    expected: float,
+) -> None:
+    rules = GameRules.standard().with_overrides(
+        pass_closing_rounds=closing_rounds,
+    )
+    engine, state = standard_game(rules=rules)
+    state.players[0].passed = True
+    state.pass_order[:] = [0]
+    state.pass_closing_turns_remaining = remaining
+    packed = engine._native_core().from_game_state(state)
+
+    assert engine._native_heuristic().battle_end_urgency(packed) == pytest.approx(
+        expected
+    )
+
+
+def test_projected_front_loss_penalty_uses_configured_rule() -> None:
+    rules = GameRules.standard().with_overrides(lost_front_command_penalty=2)
+    engine, state = standard_game(rules=rules)
+    packed = engine._native_core().from_game_state(state)
+    mask = (1 << int(Front.FIRST)) | (1 << int(Front.SECOND))
+
+    assert engine._native_heuristic().projected_front_loss_command_penalty(
+        packed,
+        0,
+        mask,
+    ) == 4
+
+
+def test_heuristic_honors_multiple_hero_allowance() -> None:
+    rules = GameRules.standard().with_overrides(hero_play_limit_per_battle=2)
+    engine, state = standard_game(rules=rules)
+    hero = next(
+        card_id
+        for card_id, card in engine.cards.items()
+        if card.get("hero")
+    )
+    state.players[0].hand[:] = [hero]
+    state.hero_used[0] = 1
+    packed = engine._native_core().from_game_state(state)
+    available = engine._native_heuristic().hand_construction_value(packed, 0)
+
+    state.hero_used[0] = 2
+    packed = engine._native_core().from_game_state(state)
+    exhausted = engine._native_heuristic().hand_construction_value(packed, 0)
+
+    assert available > exhausted
+
+
+def test_heuristic_counts_multiple_remaining_hero_uses() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    heroes = [
+        card["id"]
+        for card in data["cards"]
+        if card.get("hero")
+    ][:2]
+    assert len(heroes) == 2
+
+    rules_one = GameRules.standard().with_overrides(
+        hero_play_limit_per_battle=1
+    )
+    rules_two = GameRules.standard().with_overrides(
+        hero_play_limit_per_battle=2
+    )
+    engine_one, state_one = standard_game(rules=rules_one)
+    engine_two, state_two = standard_game(rules=rules_two)
+    state_one.players[0].hand[:] = heroes
+    state_two.players[0].hand[:] = heroes
+
+    value_one = engine_one._native_heuristic().hand_construction_value(
+        engine_one._native_core().from_game_state(state_one),
+        0,
+    )
+    value_two = engine_two._native_heuristic().hand_construction_value(
+        engine_two._native_core().from_game_state(state_two),
+        0,
+    )
+
+    assert value_two > value_one
 
 
 def test_command_guard_keeps_immediate_command_refund_action() -> None:

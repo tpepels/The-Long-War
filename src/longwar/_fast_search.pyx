@@ -4,12 +4,14 @@ from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, uint32_t, int32_t, 
 from libc.stddef cimport size_t
 from libc.string cimport memcpy, memset
 from libc.stdlib cimport malloc, free, realloc
-from libc.math cimport tanh, log, sqrt
+from libc.math cimport tanh, log, sqrt, isfinite
 from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
 import json
 from time import perf_counter
 from longwar.game.model import ConstraintKind, Phase, Rank
+include "_native_source_fingerprint.generated.pxi"
+
 from longwar.protocol import (
     CardField,
     CardType,

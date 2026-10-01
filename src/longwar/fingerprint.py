@@ -50,7 +50,13 @@ def fingerprint_paths() -> list[Path]:
         relative = path.relative_to(package)
         if len(relative.parts) == 1:
             name = relative.name
-            if name in _GAMEPLAY_PYTHON or path.suffix in _NATIVE_GAME_SUFFIXES:
+            if (
+                name in _GAMEPLAY_PYTHON
+                or (
+                    path.suffix in _NATIVE_GAME_SUFFIXES
+                    and path.name != "_native_source_fingerprint.generated.pxi"
+                )
+            ):
                 paths.append(path)
         elif relative.parts[0] in _GAMEPLAY_DIRS and path.suffix == ".py":
             paths.append(path)

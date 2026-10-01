@@ -45,13 +45,13 @@ cdef inline void _fe_take_from_hand(FastEngine self, FastState state, int player
     state.hand_len[player] -= 1
 
 cdef inline bint _fe_front_has_force(FastEngine self, FastState state, int player, int front) noexcept:
-    return state.force[slot_index(player, front, 0)] >= 0 or state.force[slot_index(player, front, 1)] >= 0
+    return state.force[slot_index(player, front, RANK_FRONT)] >= 0 or state.force[slot_index(player, front, RANK_REAR)] >= 0
 
 cdef inline int _fe_preferred_slot(FastEngine self, FastState state, int player, int front) noexcept:
-    cdef int slot = slot_index(player, front, 0)
+    cdef int slot = slot_index(player, front, RANK_FRONT)
     if state.force[slot] >= 0:
         return slot
-    slot = slot_index(player, front, 1)
+    slot = slot_index(player, front, RANK_REAR)
     return slot if state.force[slot] >= 0 else -1
 
 cdef void _fe_remove_bond(FastEngine self, FastState state, int player, int slot):
@@ -107,8 +107,8 @@ cdef void _fe_compact_ongoing_narratives(
             state.narrative_trigger_mask[src] = 0
         write_slot += 1
 
-cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int controller, int front, int actor, int trigger_slot=-1):
-    cdef int ix = controller * NARRATIVE_SLOTS_PER_PLAYER + front
+cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int controller, int narrative_slot, int front, int actor, int trigger_slot=-1):
+    cdef int ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
     cdef int card = state.narrative[ix]
     cdef int effect, amount, target
     if card < 0:
@@ -132,17 +132,25 @@ cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int con
     _fe_append_discard(self, state, controller, card, True)
 
 cdef void _fe_resolve_ongoing_narrative_event(FastEngine self, FastState state, int actor, int event, int front, int trigger_slot=-1):
-    cdef int controller, ix, card
+    cdef int controller, narrative_slot, ix, card
     for controller in (actor, other_player(actor)):
-        ix = controller * NARRATIVE_SLOTS_PER_PLAYER + front
-        card = state.narrative[ix]
-        if card < 0:
-            continue
-        if self.ongoing_reveal_trigger[card] != event or actor == controller:
-            continue
-        if self.ongoing_reveal_requires_force[card] and not _fe_front_has_force(self, state, controller, front):
-            continue
-        _fe_reveal_ongoing_narrative(self, state, controller, front, actor, trigger_slot)
+        # Revealing removes and compacts the Narrative array. Descending
+        # storage order prevents a shifted matching Narrative from being
+        # skipped.
+        for narrative_slot in range(self.ongoing_narrative_limit - 1, -1, -1):
+            ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+            card = state.narrative[ix]
+            if card < 0:
+                continue
+            if not (state.narrative_front_mask[ix] & (1 << front)):
+                continue
+            if self.ongoing_reveal_trigger[card] != event or actor == controller:
+                continue
+            if self.ongoing_reveal_requires_force[card] and not _fe_front_has_force(self, state, controller, front):
+                continue
+            _fe_reveal_ongoing_narrative(
+                self, state, controller, narrative_slot, front, actor, trigger_slot
+            )
 
 cdef bint _fe_strat_trigger_matches(FastEngine self, FastState state, int controller, int card, int event, int actor, int played_card=-1, int pos=-1) noexcept:
     cdef int role, rank, scope
@@ -345,8 +353,8 @@ cdef bint _fe_force_in_all_fronts(FastEngine self, FastState state, int player) 
     cdef int front
     for front in range(FRONT_COUNT):
         if (
-            state.force[slot_index(player, front, 0)] < 0
-            and state.force[slot_index(player, front, 1)] < 0
+            state.force[slot_index(player, front, RANK_FRONT)] < 0
+            and state.force[slot_index(player, front, RANK_REAR)] < 0
         ):
             return False
     return True
@@ -452,7 +460,7 @@ cdef void _fe_gain_command_from_narrative(
     if named == 0:
         return
     for front in range(FRONT_COUNT):
-        slot = slot_index(player, front, 1)
+        slot = slot_index(player, front, RANK_REAR)
         force = state.force[slot]
         if force >= 0 and (self.card_capabilities[force] & CAP_NARRATIVE_COMMAND_GAIN_FREE_MANEUVER_FORCE):
             _fe_queue_free_maneuver(
@@ -545,8 +553,8 @@ cdef void _fe_resolve_force_pair_narratives(
     cdef bint pair_exists = False
     for front in range(FRONT_COUNT):
         if (
-            state.force[slot_index(force_player, front, 0)] >= 0
-            and state.force[slot_index(force_player, front, 1)] >= 0
+            state.force[slot_index(force_player, front, RANK_FRONT)] >= 0
+            and state.force[slot_index(force_player, front, RANK_REAR)] >= 0
         ):
             pair_exists = True
             break
@@ -781,17 +789,27 @@ cdef void _fe_resolve_maneuver_triggers(
 
 cdef void _fe_resolve_narrative_target_ongoing_narrative(FastEngine self, FastState state, int actor, int pos):
     cdef int opponent = other_player(actor)
-    cdef int front, ix, card
+    cdef int front, ix, card, narrative_slot
     if pos < 0 or owner_from_slot(pos) != opponent:
         return
     front = front_from_slot(pos)
-    ix = opponent * NARRATIVE_SLOTS_PER_PLAYER + front
-    card = state.narrative[ix]
-    if card < 0 or self.ongoing_reveal_trigger[card] != EVENT_NARRATIVE_TARGET:
-        return
-    if self.ongoing_reveal_requires_force[card] and not _fe_front_has_force(self, state, opponent, front):
-        return
-    _fe_reveal_ongoing_narrative(self, state, opponent, front, actor, -1)
+    for narrative_slot in range(self.ongoing_narrative_limit - 1, -1, -1):
+        ix = opponent * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+        card = state.narrative[ix]
+        if card < 0:
+            continue
+        if not (state.narrative_front_mask[ix] & (1 << front)):
+            continue
+        if self.ongoing_reveal_trigger[card] != EVENT_NARRATIVE_TARGET:
+            continue
+        if (
+            self.ongoing_reveal_requires_force[card]
+            and not _fe_front_has_force(self, state, opponent, front)
+        ):
+            continue
+        _fe_reveal_ongoing_narrative(
+            self, state, opponent, narrative_slot, front, actor, -1
+        )
 
 cdef void _fe_reshuffle_discard_into_deck(
     FastEngine self,

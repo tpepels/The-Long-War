@@ -1,104 +1,31 @@
-# Heuristic/search tuning. These are policy preferences, not game rules.
-DEF HEUR_TERMINAL_WIN_SCORE = 10000.0
-DEF HEUR_FRESH_BATTLE_INITIATIVE = 0.70
-
-DEF HEUR_INCOMPLETE_ONE_CARD_LIABILITY = 0.55
-DEF HEUR_INCOMPLETE_TWO_CARD_LIABILITY = 1.60
-
-DEF HEUR_CLOSE_FRONT_MARGIN = 3
-DEF HEUR_EXPOSED_FRONT_MARGIN = 4
-DEF HEUR_COMFORTABLE_FRONT_MARGIN = 5
-DEF HEUR_FRONT_MARGIN_CLAMP = 10
-DEF HEUR_CLOSE_FRONT_BONUS = 1.25
-DEF HEUR_REAR_PERSISTENCE_VALUE = 4.0
-DEF HEUR_FRONTLINE_PERSISTENCE_VALUE = 0.75
-DEF HEUR_OVERKILL_MARGIN_WEIGHT = 0.45
-DEF HEUR_MARGIN_WEIGHT = 0.75
-DEF HEUR_FRONT_CONTROL_WEIGHT = 7.0
-
-DEF HEUR_HAND_CARD_WEIGHT = 1.25
-DEF HEUR_FORCE_HAND_CAP = 3
-DEF HEUR_FORCE_HAND_WEIGHT = 0.35
-DEF HEUR_NO_FORCE_PENALTY = 2.0
-
-DEF HEUR_COMMAND_DELTA_WEIGHT = 0.45
-DEF HEUR_COLLAPSE_VULNERABILITY_BUFFER = 3
-DEF HEUR_COLLAPSE_VULNERABILITY_WEIGHT = 1.20
-DEF HEUR_COLLAPSE_OUTCOME_SCORE = 250.0
-DEF HEUR_PROJECTED_COMMAND_WEIGHT = 0.35
-
-DEF HEUR_PASSED_BASE_PENALTY = 1.5
-DEF HEUR_PASSED_HAND_CAP = 7.0
-DEF HEUR_PASSED_HAND_WEIGHT = 0.55
-DEF HEUR_PASSED_EXPOSURE_WEIGHT = 1.1
-DEF HEUR_RESPONDING_BASE_BONUS = 1.0
-DEF HEUR_RESPONDING_HAND_CAP = 5.0
-DEF HEUR_RESPONDING_HAND_WEIGHT = 0.4
-DEF HEUR_RESPONDING_REACH_WEIGHT = 0.9
-DEF HEUR_INCOMPLETE_LIABILITY_WEIGHT = 1.10
-
-DEF HEUR_NAMED_FORMATION_WEIGHT = 1.5
-DEF HEUR_NARRATIVE_WEIGHT = 0.75
-DEF HEUR_STRATAGEM_WEIGHT = 0.45
-DEF HEUR_COMPLETION_OPTION_WEIGHT = 0.45
-DEF HEUR_NO_OPTION_SCORE = -32768
-
-DEF HEUR_PROGRESS_ONE_COMPONENT = 0.35
-DEF HEUR_PROGRESS_TWO_COMPONENTS = 1.35
-DEF HEUR_PROGRESS_COMPLETE = 2.25
-
-DEF HEUR_HAND_FORCE_BASE = 0.45
-DEF HEUR_HAND_FORCE_NEED = 0.95
-DEF HEUR_HAND_COMPONENT_BASE = 0.35
-DEF HEUR_HAND_NAME_NEED = 1.05
-DEF HEUR_HAND_BOND_NEED = 0.95
-DEF HEUR_HAND_NARRATIVE = 0.40
-DEF HEUR_HAND_STRATAGEM = 0.30
-DEF HEUR_DISCARDED_FORCE_AVAILABILITY = 0.35
-
-DEF HEUR_STRATEGIC_FORMATION_PROGRESS = 0.85
-DEF HEUR_STRATEGIC_HAND_CONSTRUCTION = 0.30
-DEF HEUR_STRATEGIC_DECK_SIZE = 0.18
-DEF HEUR_STRATEGIC_FUTURE_SETS = 0.55
-DEF HEUR_STRATEGIC_FORCE_AVAILABILITY = 0.40
-DEF HEUR_STRATEGIC_AFFORDABLE_HAND = 0.12
-
-DEF HEUR_ROLLOUT_COLLAPSE_IMMEDIATE_BUFFER = 1
-DEF HEUR_ROLLOUT_COLLAPSE_NEAR_BUFFER = 3
-DEF HEUR_ROLLOUT_PASS_IMMEDIATE = 1.50
-DEF HEUR_ROLLOUT_PASS_NEAR = 0.55
-DEF HEUR_ROLLOUT_PASS_NORMAL = 0.20
-DEF HEUR_ROLLOUT_DISCARD = 1.0
-DEF HEUR_ROLLOUT_MANEUVER = 0.90
-DEF HEUR_ROLLOUT_FORCE = 1.35
-DEF HEUR_ROLLOUT_FORCE_PREPARED_BONUS = 0.90
-DEF HEUR_ROLLOUT_BOND = 1.0
-DEF HEUR_ROLLOUT_BOND_ON_FORCE = 0.80
-DEF HEUR_ROLLOUT_BOND_WITH_NAME = 0.35
-DEF HEUR_ROLLOUT_NAME = 1.05
-DEF HEUR_ROLLOUT_NAME_ON_FORCE = 0.85
-DEF HEUR_ROLLOUT_NAME_WITH_BOND = 0.65
-DEF HEUR_ROLLOUT_NARRATIVE = 0.75
-DEF HEUR_ROLLOUT_ONGOING_NARRATIVE = 0.70
-DEF HEUR_ROLLOUT_STRATAGEM = 0.65
-
-DEF HEUR_ORDER_DISCARD_CONSTRUCTION = 0.55
-DEF HEUR_ORDER_BOND_ON_FORCE = 0.85
-DEF HEUR_ORDER_BOND_PREPARED = 0.25
-DEF HEUR_ORDER_NAME_ON_FORCE = 0.90
-DEF HEUR_ORDER_NAME_PREPARED = 0.30
-DEF HEUR_ORDER_ONGOING_NARRATIVE = 0.20
-DEF HEUR_ORDER_STRATAGEM = 0.20
-DEF HEUR_ORDER_MANEUVER = 0.15
+# Heuristic/search tuning is runtime policy configuration copied into C storage.
+include "_heuristic_weights.generated.pxi"
 
 
 cdef class NativeHeuristicEvaluator:
     """Compiled heuristic policy, independent of game transitions/search."""
 
     cdef FastEngine engine
+    cdef double weights[HEUR_WEIGHT_COUNT]
 
-    def __init__(self, FastEngine engine):
+    def __init__(self, FastEngine engine, weights=None):
+        cdef int i
+        cdef double value
+        cdef object raw
         self.engine = engine
+        _heuristic_load_defaults(&self.weights[0])
+        if weights is None:
+            return
+        raw = getattr(weights, "values", weights)
+        if len(raw) != HEUR_WEIGHT_COUNT:
+            raise ValueError(
+                f"expected {HEUR_WEIGHT_COUNT} heuristic values, got {len(raw)}"
+            )
+        for i in range(HEUR_WEIGHT_COUNT):
+            value = float(raw[i])
+            if not isfinite(value):
+                raise ValueError("heuristic values must be finite")
+            self.weights[i] = value
 
     cdef double incomplete_liability_fast(
         self,
@@ -116,31 +43,93 @@ cdef class NativeHeuristicEvaluator:
                 + (1 if state.name[slot] >= 0 else 0)
             )
             if components == 1:
-                value += HEUR_INCOMPLETE_ONE_CARD_LIABILITY
+                value += self.weights[HW_INCOMPLETE_ONE_CARD_LIABILITY]
             elif components == 2:
-                value += HEUR_INCOMPLETE_TWO_CARD_LIABILITY
+                value += self.weights[HW_INCOMPLETE_TWO_CARD_LIABILITY]
         return value
+
+    cdef double battle_end_urgency_fast(
+        self,
+        FastState state,
+    ) noexcept:
+        """Return 0..1 pressure from the configured Battle-ending rule."""
+        cdef int remaining
+        if state.phase != PHASE_BATTLE or state.pass_len <= 0:
+            return 0.0
+        if self.engine.pass_closing_rounds <= 0:
+            return 1.0
+        remaining = state.pass_closing_turns_remaining
+        if remaining <= 1:
+            return 1.0
+        return 1.0 / remaining
+
+    cdef int projected_front_loss_command_penalty_fast(
+        self,
+        FastState state,
+        int player,
+        uint16_t lost_mask,
+    ) noexcept:
+        """Project configured lost-Front Command loss using active protection."""
+        cdef int front, rank, card, strat, protected
+        cdef int penalty = (
+            popcount16(lost_mask & FRONT_MASK)
+            * self.engine.lost_front_command_penalty
+        )
+        if penalty <= 0:
+            return 0
+
+        for front in range(FRONT_COUNT):
+            if not (lost_mask & (1 << front)):
+                continue
+            for rank in range(RANK_COUNT):
+                card = state.force[slot_index(player, front, rank)]
+                if card >= 0 and self.engine.front_loss_protected_front[card]:
+                    protected = self.engine.lost_front_command_penalty
+                    if protected > penalty:
+                        protected = penalty
+                    penalty -= protected
+                    break
+
+        strat = state.stratagem[player]
+        if (
+            penalty > 0
+            and strat >= 0
+            and self.engine.strat_front_loss_protection[strat]
+        ):
+            protected = (
+                self.engine.strat_front_loss_protection[strat]
+                * self.engine.lost_front_command_penalty
+            )
+            if protected > penalty:
+                protected = penalty
+            penalty -= protected
+        return penalty
 
     cdef double evaluate_fast(self, FastState state, int player) noexcept:
         cdef int opponent = other_player(player)
         cdef int front, margin, raw_margin, controls=0, enemy_controls=0
         cdef int hand_delta, named_delta=0, narrative_delta=0, strat_delta=0
-        cdef int exposed=0, reachable=0, slot, name_card, before, after, best
+        cdef int narrative_slot
+        cdef int exposed=0, reachable=0, slot, name_card, before, after
+        cdef double best
         cdef int card, own_forces=0, own_board_forces=0, hero_force=0
+        cdef int remaining_hero_uses=0
         cdef int own_losses=0, opponent_losses=0
+        cdef uint16_t own_lost_mask=0, opponent_lost_mask=0
         cdef int own_front_slot, own_rear_slot, opp_front_slot, opp_rear_slot
         cdef int recovery=0, own_recovery=0, opponent_recovery=0
         cdef int own_after_loss=0, opponent_after_loss=0
         cdef int own_projected=0, opponent_projected=0
         cdef int current_delta=0, projected_delta=0
-        cdef int own_vulnerability=0, opponent_vulnerability=0
+        cdef double own_vulnerability=0.0, opponent_vulnerability=0.0
         cdef double own_liability=0.0, opponent_liability=0.0
-        cdef double score = 0.0, option = 0.0
+        cdef double passed_hand_value=0.0, responding_hand_value=0.0
+        cdef double score = 0.0, option = 0.0, battle_end_urgency = 0.0
 
         if state.phase == PHASE_COMPLETE:
             if state.winner < 0:
                 return 0.0
-            return HEUR_TERMINAL_WIN_SCORE if state.winner == player else -HEUR_TERMINAL_WIN_SCORE
+            return self.weights[HW_TERMINAL_WIN_SCORE] if state.winner == player else -self.weights[HW_TERMINAL_WIN_SCORE]
 
         # The first player of a fresh Battle gets the first operation after
         # the normal start-of-turn draw. This is the concrete value of being
@@ -150,7 +139,7 @@ cdef class NativeHeuristicEvaluator:
             and state.operations_this_battle[1] == 0
             and state.pass_len == 0
         ):
-            score += HEUR_FRESH_BATTLE_INITIATIVE if state.active_player == player else -HEUR_FRESH_BATTLE_INITIATIVE
+            score += self.weights[HW_FRESH_BATTLE_INITIATIVE] if state.active_player == player else -self.weights[HW_FRESH_BATTLE_INITIATIVE]
 
         for front in range(FRONT_COUNT):
             raw_margin = (
@@ -161,10 +150,10 @@ cdef class NativeHeuristicEvaluator:
 
             if raw_margin > 0:
                 controls += 1
-                opponent_losses += 1
-                if raw_margin <= HEUR_CLOSE_FRONT_MARGIN:
-                    score += HEUR_CLOSE_FRONT_BONUS
-                if raw_margin <= HEUR_EXPOSED_FRONT_MARGIN:
+                opponent_lost_mask |= <uint16_t>(1 << front)
+                if raw_margin <= self.weights[HW_CLOSE_FRONT_MARGIN]:
+                    score += self.weights[HW_CLOSE_FRONT_BONUS]
+                if raw_margin <= self.weights[HW_EXPOSED_FRONT_MARGIN]:
                     exposed += 1
 
                 # A lost Front drives off a Rear Named Formation and only
@@ -173,87 +162,98 @@ cdef class NativeHeuristicEvaluator:
                 opp_front_slot = slot_index(opponent, front, RANK_FRONT)
                 opp_rear_slot = slot_index(opponent, front, RANK_REAR)
                 if _fe_slot_complete(self.engine, state, opp_rear_slot):
-                    score += HEUR_REAR_PERSISTENCE_VALUE
+                    score += self.weights[HW_REAR_PERSISTENCE_VALUE]
                 if _fe_slot_complete(self.engine, state, opp_front_slot):
-                    score += HEUR_FRONTLINE_PERSISTENCE_VALUE
+                    score += self.weights[HW_FRONTLINE_PERSISTENCE_VALUE]
 
                 # Margin beyond a comfortable buffer has no core scoring
                 # value. Keep a little value for resilience, but strongly
                 # prefer Strength that can change another Front result.
-                if raw_margin > HEUR_COMFORTABLE_FRONT_MARGIN:
-                    score -= HEUR_OVERKILL_MARGIN_WEIGHT * (raw_margin - HEUR_COMFORTABLE_FRONT_MARGIN)
+                if raw_margin > self.weights[HW_COMFORTABLE_FRONT_MARGIN]:
+                    score -= self.weights[HW_OVERKILL_MARGIN_WEIGHT] * (raw_margin - self.weights[HW_COMFORTABLE_FRONT_MARGIN])
 
             elif raw_margin < 0:
                 enemy_controls += 1
-                own_losses += 1
-                if raw_margin >= -HEUR_CLOSE_FRONT_MARGIN:
-                    score -= HEUR_CLOSE_FRONT_BONUS
-                if raw_margin >= -HEUR_EXPOSED_FRONT_MARGIN:
+                own_lost_mask |= <uint16_t>(1 << front)
+                if raw_margin >= -self.weights[HW_CLOSE_FRONT_MARGIN]:
+                    score -= self.weights[HW_CLOSE_FRONT_BONUS]
+                if raw_margin >= -self.weights[HW_EXPOSED_FRONT_MARGIN]:
                     reachable += 1
 
                 own_front_slot = slot_index(player, front, RANK_FRONT)
                 own_rear_slot = slot_index(player, front, RANK_REAR)
                 if _fe_slot_complete(self.engine, state, own_rear_slot):
-                    score -= HEUR_REAR_PERSISTENCE_VALUE
+                    score -= self.weights[HW_REAR_PERSISTENCE_VALUE]
                 if _fe_slot_complete(self.engine, state, own_front_slot):
-                    score -= HEUR_FRONTLINE_PERSISTENCE_VALUE
+                    score -= self.weights[HW_FRONTLINE_PERSISTENCE_VALUE]
 
-                if raw_margin < -HEUR_COMFORTABLE_FRONT_MARGIN:
-                    score += HEUR_OVERKILL_MARGIN_WEIGHT * ((-raw_margin) - HEUR_COMFORTABLE_FRONT_MARGIN)
+                if raw_margin < -self.weights[HW_COMFORTABLE_FRONT_MARGIN]:
+                    score += self.weights[HW_OVERKILL_MARGIN_WEIGHT] * ((-raw_margin) - self.weights[HW_COMFORTABLE_FRONT_MARGIN])
             else:
                 reachable += 1
 
-            if margin > HEUR_FRONT_MARGIN_CLAMP:
-                margin = HEUR_FRONT_MARGIN_CLAMP
-            elif margin < -HEUR_FRONT_MARGIN_CLAMP:
-                margin = -HEUR_FRONT_MARGIN_CLAMP
-            score += HEUR_FRONTLINE_PERSISTENCE_VALUE * margin
+            if margin > self.weights[HW_FRONT_MARGIN_CLAMP]:
+                margin = <int>self.weights[HW_FRONT_MARGIN_CLAMP]
+            elif margin < -self.weights[HW_FRONT_MARGIN_CLAMP]:
+                margin = -<int>self.weights[HW_FRONT_MARGIN_CLAMP]
+            score += self.weights[HW_MARGIN_WEIGHT] * margin
 
-        score += HEUR_FRONT_CONTROL_WEIGHT * (controls - enemy_controls)
+        own_losses = self.projected_front_loss_command_penalty_fast(
+            state, player, own_lost_mask
+        )
+        opponent_losses = self.projected_front_loss_command_penalty_fast(
+            state, opponent, opponent_lost_mask
+        )
+
+        score += self.weights[HW_FRONT_CONTROL_WEIGHT] * (controls - enemy_controls)
 
         hand_delta = state.hand_len[player] - state.hand_len[opponent]
-        score += HEUR_CLOSE_FRONT_BONUS * hand_delta
+        score += self.weights[HW_HAND_CARD_WEIGHT] * hand_delta
 
-        for card in range(self.engine.n_cards):
-            if self.engine.card_type[card] == CARD_FORCE:
-                if self.engine.hero[card]:
-                    if (
-                        not state.hero_used[player]
-                        and state.hand[player][card] > 0
-                    ):
-                        hero_force = 1
-                else:
-                    own_forces += state.hand[player][card]
+        remaining_hero_uses = (
+            self.engine.hero_play_limit_per_battle
+            - state.hero_used[player]
+        )
+        if remaining_hero_uses < 0:
+            remaining_hero_uses = 0
+        for slot in range(self.engine.force_count):
+            card = self.engine.force_codes[slot]
+            if self.engine.hero[card]:
+                hero_force += state.hand[player][card]
+            else:
+                own_forces += state.hand[player][card]
+        if hero_force > remaining_hero_uses:
+            hero_force = remaining_hero_uses
         own_forces += hero_force
-        if own_forces > HEUR_FORCE_HAND_CAP:
-            own_forces = HEUR_FORCE_HAND_CAP
-        score += HEUR_FORCE_HAND_WEIGHT * own_forces
+        if own_forces > self.weights[HW_FORCE_HAND_CAP]:
+            own_forces = <int>self.weights[HW_FORCE_HAND_CAP]
+        score += self.weights[HW_FORCE_HAND_WEIGHT] * own_forces
 
         for slot in range(player * POSITIONS_PER_PLAYER, (player + 1) * POSITIONS_PER_PLAYER):
             if state.force[slot] >= 0:
                 own_board_forces += 1
         if own_forces == 0 and own_board_forces == 0:
-            score -= HEUR_NO_FORCE_PENALTY
+            score -= self.weights[HW_NO_FORCE_PENALTY]
 
         current_delta = state.command[player] - state.command[opponent]
-        score += HEUR_COMMAND_DELTA_WEIGHT * current_delta
+        score += self.weights[HW_COMMAND_DELTA_WEIGHT] * current_delta
 
         # Collapse is checked on current Command before recovery. With the
         # zero-Command rule, preserving even 1 Command can decide whether a
         # side survives long enough to receive the next recovery.
         own_vulnerability = (
-            self.engine.command_collapse_threshold + HEUR_COLLAPSE_VULNERABILITY_BUFFER
+            self.engine.command_collapse_threshold + self.weights[HW_COLLAPSE_VULNERABILITY_BUFFER]
             - state.command[player]
         )
         if own_vulnerability < 0:
             own_vulnerability = 0
         opponent_vulnerability = (
-            self.engine.command_collapse_threshold + HEUR_COLLAPSE_VULNERABILITY_BUFFER
+            self.engine.command_collapse_threshold + self.weights[HW_COLLAPSE_VULNERABILITY_BUFFER]
             - state.command[opponent]
         )
         if opponent_vulnerability < 0:
             opponent_vulnerability = 0
-        score += HEUR_COLLAPSE_VULNERABILITY_WEIGHT * (
+        score += self.weights[HW_COLLAPSE_VULNERABILITY_WEIGHT] * (
             opponent_vulnerability - own_vulnerability
         )
 
@@ -272,9 +272,9 @@ cdef class NativeHeuristicEvaluator:
             and own_after_loss != opponent_after_loss
         ):
             if own_after_loss < opponent_after_loss:
-                score -= HEUR_COLLAPSE_OUTCOME_SCORE
+                score -= self.weights[HW_COLLAPSE_OUTCOME_SCORE]
             else:
-                score += HEUR_COLLAPSE_OUTCOME_SCORE
+                score += self.weights[HW_COLLAPSE_OUTCOME_SCORE]
         else:
             # Front losses have already been applied to projected Command.
             # Recovery is relevant only after surviving the Collapse check.
@@ -295,34 +295,50 @@ cdef class NativeHeuristicEvaluator:
                 opponent_projected = self.engine.command_cap
 
             projected_delta = own_projected - opponent_projected
-            score += HEUR_PROJECTED_COMMAND_WEIGHT * (projected_delta - current_delta)
+            score += self.weights[HW_PROJECTED_COMMAND_WEIGHT] * (projected_delta - current_delta)
 
         if (
             state.phase == PHASE_BATTLE
             and state.passed[player] != state.passed[opponent]
         ):
+            battle_end_urgency = self.battle_end_urgency_fast(state)
             if state.passed[player]:
-                score -= (
-                    HEUR_PASSED_BASE_PENALTY
-                    + min(HEUR_PASSED_HAND_CAP, HEUR_PASSED_HAND_WEIGHT * state.hand_len[opponent])
-                    + HEUR_PASSED_EXPOSURE_WEIGHT * exposed
+                passed_hand_value = (
+                    self.weights[HW_PASSED_HAND_WEIGHT]
+                    * state.hand_len[opponent]
+                )
+                if passed_hand_value > self.weights[HW_PASSED_HAND_CAP]:
+                    passed_hand_value = self.weights[HW_PASSED_HAND_CAP]
+                score -= battle_end_urgency * (
+                    self.weights[HW_PASSED_BASE_PENALTY]
+                    + passed_hand_value
+                    + self.weights[HW_PASSED_EXPOSURE_WEIGHT] * exposed
                 )
             else:
-                score += (
-                    HEUR_RESPONDING_BASE_BONUS
-                    + min(HEUR_RESPONDING_HAND_CAP, HEUR_RESPONDING_HAND_WEIGHT * state.hand_len[player])
-                    + HEUR_RESPONDING_REACH_WEIGHT * reachable
+                responding_hand_value = (
+                    self.weights[HW_RESPONDING_HAND_WEIGHT]
+                    * state.hand_len[player]
+                )
+                if responding_hand_value > self.weights[HW_RESPONDING_HAND_CAP]:
+                    responding_hand_value = self.weights[HW_RESPONDING_HAND_CAP]
+                score += battle_end_urgency * (
+                    self.weights[HW_RESPONDING_BASE_BONUS]
+                    + responding_hand_value
+                    + self.weights[HW_RESPONDING_REACH_WEIGHT] * reachable
                 )
 
-            # Once one Pass is pending, the Battle can end on the current
-            # turn. Incomplete formations are then discarded before Retreat,
-            # so two-card preparations become genuine short-term liabilities.
+            # Permanent Pass can close immediately; closing-window variants
+            # scale this liability by the remaining forced-end distance.
             own_liability = self.incomplete_liability_fast(state, player)
             opponent_liability = self.incomplete_liability_fast(
                 state,
                 opponent,
             )
-            score += HEUR_INCOMPLETE_LIABILITY_WEIGHT * (opponent_liability - own_liability)
+            score += (
+                battle_end_urgency
+                * self.weights[HW_INCOMPLETE_LIABILITY_WEIGHT]
+                * (opponent_liability - own_liability)
+            )
 
         for slot in range(player * POSITIONS_PER_PLAYER, (player + 1) * POSITIONS_PER_PLAYER):
             if _fe_slot_complete(self.engine, state, slot):
@@ -330,42 +346,53 @@ cdef class NativeHeuristicEvaluator:
         for slot in range(opponent * POSITIONS_PER_PLAYER, (opponent + 1) * POSITIONS_PER_PLAYER):
             if _fe_slot_complete(self.engine, state, slot):
                 named_delta -= 1
-        score += HEUR_NAMED_FORMATION_WEIGHT * named_delta
+        score += self.weights[HW_NAMED_FORMATION_WEIGHT] * named_delta
 
-        for front in range(self.engine.ongoing_narrative_limit):
-            if state.narrative[player * NARRATIVE_SLOTS_PER_PLAYER + front] >= 0:
+        for narrative_slot in range(self.engine.ongoing_narrative_limit):
+            if (
+                state.narrative[
+                    player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+                ]
+                >= 0
+            ):
                 narrative_delta += 1
-            if state.narrative[opponent * NARRATIVE_SLOTS_PER_PLAYER + front] >= 0:
+            if (
+                state.narrative[
+                    opponent * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+                ]
+                >= 0
+            ):
                 narrative_delta -= 1
-        score += HEUR_FRONTLINE_PERSISTENCE_VALUE * narrative_delta
+        score += self.weights[HW_NARRATIVE_WEIGHT] * narrative_delta
 
         strat_delta = (
             (1 if state.stratagem[player] >= 0 else 0)
             - (1 if state.stratagem[opponent] >= 0 else 0)
         )
-        score += HEUR_STRATAGEM_WEIGHT * strat_delta
+        score += self.weights[HW_STRATAGEM_WEIGHT] * strat_delta
 
         for slot in range(player * POSITIONS_PER_PLAYER, (player + 1) * POSITIONS_PER_PLAYER):
             if state.force[slot] < 0 or state.name[slot] >= 0:
                 continue
             before = _fe_position_strength_fast(self.engine, state, slot)
-            best = HEUR_NO_OPTION_SCORE
-            for name_card in range(self.engine.n_cards):
+            best = self.weights[HW_NO_OPTION_SCORE]
+            for card in range(self.engine.name_mode_count):
+                name_card = self.engine.name_mode_codes[card]
                 if state.hand[player][name_card] == 0:
                     continue
-                if self.engine.card_type[name_card] != CARD_NAME:
-                    if (
-                        not self.engine.hero[name_card]
-                        or state.hero_used[player]
-                    ):
-                        continue
+                if (
+                    self.engine.hero[name_card]
+                    and state.hero_used[player]
+                    >= self.engine.hero_play_limit_per_battle
+                ):
+                    continue
                 state.name[slot] = name_card
                 after = _fe_position_strength_fast(self.engine, state, slot)
                 if after - before > best:
                     best = after - before
                 state.name[slot] = -1
             if best > 0:
-                option += HEUR_COMPLETION_OPTION_WEIGHT * best
+                option += self.weights[HW_COMPLETION_OPTION_WEIGHT] * best
         score += option
 
         return score
@@ -385,11 +412,11 @@ cdef class NativeHeuristicEvaluator:
                 + (1 if state.name[slot] >= 0 else 0)
             )
             if components == 1:
-                value += HEUR_PROGRESS_ONE_COMPONENT
+                value += self.weights[HW_PROGRESS_ONE_COMPONENT]
             elif components == 2:
-                value += HEUR_PROGRESS_TWO_COMPONENTS
+                value += self.weights[HW_PROGRESS_TWO_COMPONENTS]
             elif components == 3:
-                value += HEUR_PROGRESS_COMPLETE
+                value += self.weights[HW_PROGRESS_COMPLETE]
         return value
 
     cdef double hand_construction_value_fast(
@@ -398,8 +425,14 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ) noexcept:
         cdef bint needs_force=False, needs_bond=False, needs_name=False
-        cdef int local, slot, card, count, typ
+        cdef int local, slot, card, count, typ, usable_count
+        cdef int remaining_hero_uses = (
+            self.engine.hero_play_limit_per_battle
+            - state.hero_used[player]
+        )
         cdef double value=0.0, force_value=0.0, name_value=0.0
+        if remaining_hero_uses < 0:
+            remaining_hero_uses = 0
         for local in range(POSITIONS_PER_PLAYER):
             slot = player * POSITIONS_PER_PLAYER + local
             if state.force[slot] < 0 and (
@@ -421,12 +454,16 @@ cdef class NativeHeuristicEvaluator:
                 continue
             typ = self.engine.card_type[card]
             if typ == CARD_FORCE:
-                force_value = HEUR_HAND_FORCE_BASE + (HEUR_HAND_FORCE_NEED if needs_force else 0.0)
+                force_value = self.weights[HW_HAND_FORCE_BASE] + (self.weights[HW_HAND_FORCE_NEED] if needs_force else 0.0)
                 if self.engine.hero[card]:
-                    if state.hero_used[player]:
+                    if remaining_hero_uses <= 0:
                         continue
-                    name_value = HEUR_HAND_COMPONENT_BASE + (HEUR_HAND_NAME_NEED if needs_name else 0.0)
-                    value += count * (
+                    usable_count = count
+                    if usable_count > remaining_hero_uses:
+                        usable_count = remaining_hero_uses
+                    remaining_hero_uses -= usable_count
+                    name_value = self.weights[HW_HAND_COMPONENT_BASE] + (self.weights[HW_HAND_NAME_NEED] if needs_name else 0.0)
+                    value += usable_count * (
                         force_value
                         if force_value >= name_value
                         else name_value
@@ -434,108 +471,148 @@ cdef class NativeHeuristicEvaluator:
                 else:
                     value += count * force_value
             elif typ == CARD_BOND:
-                value += count * (HEUR_HAND_COMPONENT_BASE + (HEUR_HAND_BOND_NEED if needs_bond else 0.0))
+                value += count * (self.weights[HW_HAND_COMPONENT_BASE] + (self.weights[HW_HAND_BOND_NEED] if needs_bond else 0.0))
             elif typ == CARD_NAME:
-                value += count * (HEUR_HAND_COMPONENT_BASE + (HEUR_HAND_NAME_NEED if needs_name else 0.0))
+                value += count * (self.weights[HW_HAND_COMPONENT_BASE] + (self.weights[HW_HAND_NAME_NEED] if needs_name else 0.0))
             elif typ == CARD_NARRATIVE:
-                value += count * HEUR_HAND_NARRATIVE
+                value += count * self.weights[HW_HAND_NARRATIVE]
             elif typ == CARD_STRATAGEM:
-                value += count * HEUR_HAND_STRATAGEM
+                value += count * self.weights[HW_HAND_STRATAGEM]
         return value
+
+    cdef void strategic_resource_features_fast(
+        self,
+        FastState state,
+        int player,
+        int* future_sets,
+        double* force_availability,
+        int* affordable,
+    ) noexcept:
+        """Compute long-horizon card-resource features in one identity scan."""
+        cdef int card, typ, hand_count, count, i
+        cdef int forces=0, bonds=0, names=0, heroes=0
+        cdef int discarded_forces=0, discarded_heroes=0
+        cdef int remaining_hero_uses, usable_heroes, force_heroes, name_heroes
+        cdef int candidate, value, immediate_heroes, discarded_usable
+
+        future_sets[0] = 0
+        force_availability[0] = 0.0
+        affordable[0] = 0
+        remaining_hero_uses = (
+            self.engine.hero_play_limit_per_battle
+            - state.hero_used[player]
+        )
+        if remaining_hero_uses < 0:
+            remaining_hero_uses = 0
+
+        for card in range(self.engine.n_cards):
+            hand_count = state.hand[player][card]
+            count = hand_count + state.deck_counts[player][card]
+            if (
+                hand_count > 0
+                and self.engine.card_command_cost[card] <= state.command[player]
+            ):
+                affordable[0] += hand_count
+
+            typ = self.engine.card_type[card]
+            if typ == CARD_FORCE:
+                if self.engine.hero[card]:
+                    heroes += count
+                else:
+                    forces += count
+            elif typ == CARD_BOND:
+                bonds += count
+            elif typ == CARD_NAME:
+                names += count
+
+        usable_heroes = heroes
+        if usable_heroes > remaining_hero_uses:
+            usable_heroes = remaining_hero_uses
+
+        # A Hero may fill either the Force or Name side of one formation.
+        # Try every split of the small remaining Hero allowance and keep the
+        # maximum number of complete future formation sets.
+        value = 0
+        for force_heroes in range(usable_heroes + 1):
+            name_heroes = usable_heroes - force_heroes
+            candidate = forces + force_heroes
+            if bonds < candidate:
+                candidate = bonds
+            if names + name_heroes < candidate:
+                candidate = names + name_heroes
+            if candidate > value:
+                value = candidate
+        future_sets[0] = value
+
+        immediate_heroes = usable_heroes
+        force_availability[0] = forces + immediate_heroes
+
+        for i in range(state.discard_len[player]):
+            card = state.discard[player][i]
+            if self.engine.card_type[card] != CARD_FORCE:
+                continue
+            if self.engine.hero[card]:
+                discarded_heroes += 1
+            else:
+                discarded_forces += 1
+
+        discarded_usable = remaining_hero_uses - immediate_heroes
+        if discarded_usable < 0:
+            discarded_usable = 0
+        if discarded_heroes < discarded_usable:
+            discarded_usable = discarded_heroes
+        force_availability[0] += (
+            self.weights[HW_DISCARDED_FORCE_AVAILABILITY]
+            * (discarded_forces + discarded_usable)
+        )
 
     cdef int future_formation_sets_fast(
         self,
         FastState state,
         int player,
     ) noexcept:
-        cdef int card, count, forces=0, bonds=0, names=0, heroes=0
-        cdef int value, candidate
-        for card in range(self.engine.n_cards):
-            count = state.hand[player][card] + state.deck_counts[player][card]
-            if self.engine.card_type[card] == CARD_FORCE:
-                if self.engine.hero[card]:
-                    heroes += count
-                else:
-                    forces += count
-            elif self.engine.card_type[card] == CARD_BOND:
-                bonds += count
-            elif self.engine.card_type[card] == CARD_NAME:
-                names += count
-        value = forces
-        if bonds < value:
-            value = bonds
-        if names < value:
-            value = names
-        if heroes > 0 and not state.hero_used[player]:
-            candidate = forces + 1
-            if bonds < candidate:
-                candidate = bonds
-            if names < candidate:
-                candidate = names
-            if candidate > value:
-                value = candidate
-
-            candidate = forces
-            if bonds < candidate:
-                candidate = bonds
-            if names + 1 < candidate:
-                candidate = names + 1
-            if candidate > value:
-                value = candidate
-        return value
+        cdef int future_sets=0, affordable=0
+        cdef double force_availability=0.0
+        self.strategic_resource_features_fast(
+            state,
+            player,
+            &future_sets,
+            &force_availability,
+            &affordable,
+        )
+        return future_sets
 
     cdef double future_force_availability_fast(
         self,
         FastState state,
         int player,
     ) noexcept:
-        cdef int card, i, immediate=0, discarded=0
-        cdef bint hero_available=False, discarded_hero=False
-        for card in range(self.engine.n_cards):
-            if self.engine.card_type[card] == CARD_FORCE:
-                if self.engine.hero[card]:
-                    if (
-                        not state.hero_used[player]
-                        and (
-                            state.hand[player][card]
-                            + state.deck_counts[player][card]
-                        ) > 0
-                    ):
-                        hero_available = True
-                else:
-                    immediate += (
-                        state.hand[player][card]
-                        + state.deck_counts[player][card]
-                    )
-        for i in range(state.discard_len[player]):
-            card = state.discard[player][i]
-            if self.engine.card_type[card] == CARD_FORCE:
-                if self.engine.hero[card]:
-                    if not state.hero_used[player]:
-                        discarded_hero = True
-                else:
-                    discarded += 1
-        return (
-            immediate
-            + (1.0 if hero_available else 0.0)
-            + HEUR_DISCARDED_FORCE_AVAILABILITY * (
-                discarded + (1 if discarded_hero else 0)
-            )
+        cdef int future_sets=0, affordable=0
+        cdef double force_availability=0.0
+        self.strategic_resource_features_fast(
+            state,
+            player,
+            &future_sets,
+            &force_availability,
+            &affordable,
         )
+        return force_availability
 
     cdef int affordable_hand_count_fast(
         self,
         FastState state,
         int player,
     ) noexcept:
-        cdef int card, total=0
-        for card in range(self.engine.n_cards):
-            if (
-                state.hand[player][card]
-                and self.engine.card_command_cost[card] <= state.command[player]
-            ):
-                total += state.hand[player][card]
-        return total
+        cdef int future_sets=0, affordable=0
+        cdef double force_availability=0.0
+        self.strategic_resource_features_fast(
+            state,
+            player,
+            &future_sets,
+            &force_availability,
+            &affordable,
+        )
+        return affordable
 
     cdef double strategic_evaluate_fast(
         self,
@@ -543,33 +620,47 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ) noexcept:
         cdef int opponent = other_player(player)
+        cdef int own_sets=0, opponent_sets=0
+        cdef int own_affordable=0, opponent_affordable=0
+        cdef double own_force_availability=0.0, opponent_force_availability=0.0
         cdef double value = self.evaluate_fast(state, player)
         if state.phase == PHASE_COMPLETE:
             return value
 
-        value += HEUR_STRATEGIC_FORMATION_PROGRESS * (
+        value += self.weights[HW_STRATEGIC_FORMATION_PROGRESS] * (
             self.formation_progress_fast(state, player)
             - self.formation_progress_fast(state, opponent)
         )
-        value += HEUR_STRATEGIC_HAND_CONSTRUCTION * (
+        value += self.weights[HW_STRATEGIC_HAND_CONSTRUCTION] * (
             self.hand_construction_value_fast(state, player)
             - self.hand_construction_value_fast(state, opponent)
         )
 
-        value += HEUR_STRATEGIC_DECK_SIZE * (
+        value += self.weights[HW_STRATEGIC_DECK_SIZE] * (
             state.deck_len[player] - state.deck_len[opponent]
         )
-        value += HEUR_INCOMPLETE_ONE_CARD_LIABILITY * (
-            self.future_formation_sets_fast(state, player)
-            - self.future_formation_sets_fast(state, opponent)
+        self.strategic_resource_features_fast(
+            state,
+            player,
+            &own_sets,
+            &own_force_availability,
+            &own_affordable,
         )
-        value += HEUR_STRATEGIC_FORCE_AVAILABILITY * (
-            self.future_force_availability_fast(state, player)
-            - self.future_force_availability_fast(state, opponent)
+        self.strategic_resource_features_fast(
+            state,
+            opponent,
+            &opponent_sets,
+            &opponent_force_availability,
+            &opponent_affordable,
         )
-        value += HEUR_STRATEGIC_AFFORDABLE_HAND * (
-            self.affordable_hand_count_fast(state, player)
-            - self.affordable_hand_count_fast(state, opponent)
+        value += self.weights[HW_STRATEGIC_FUTURE_SETS] * (
+            own_sets - opponent_sets
+        )
+        value += self.weights[HW_STRATEGIC_FORCE_AVAILABILITY] * (
+            own_force_availability - opponent_force_availability
+        )
+        value += self.weights[HW_STRATEGIC_AFFORDABLE_HAND] * (
+            own_affordable - opponent_affordable
         )
 
         return value
@@ -610,12 +701,15 @@ cdef class NativeHeuristicEvaluator:
         int player,
         uint64_t action,
     ) noexcept:
-        """Whether an action can reach the configured Collapse boundary."""
-        cdef int cost = _fe_command_cost_fast(self.engine, state, action)
-        cdef int margin = (
-            state.command[player] - self.engine.command_collapse_threshold
+        """Whether this operation can actually reach a Battle-end Collapse."""
+        cdef int kind = action_kind(action)
+        if state.pass_closing_turns_remaining == 1:
+            return True
+        return (
+            state.pass_len == 1
+            and kind == TYPE_PASS
+            and not state.passed[player]
         )
-        return margin <= 0 or cost >= margin
 
     cdef bint action_exhausts_command_fast(
         self,
@@ -624,15 +718,13 @@ cdef class NativeHeuristicEvaluator:
         uint64_t action,
         FastState child,
     ):
-        """True when this action avoidably leaves one side at Collapse Command."""
-        cdef int opponent = other_player(player)
+        """True only when this exact action resolves the war as a loss."""
         child.copy_from_fast(state)
         _fe_apply_fast(self.engine, child, action)
-        if child.phase == PHASE_COMPLETE and child.winner == player:
-            return False
         return (
-            child.command[player] <= self.engine.command_collapse_threshold
-            and child.command[opponent] > self.engine.command_collapse_threshold
+            child.phase == PHASE_COMPLETE
+            and child.winner >= 0
+            and child.winner != player
         )
 
     cpdef tuple command_preserving_action_codes(self, FastState state):
@@ -672,51 +764,51 @@ cdef class NativeHeuristicEvaluator:
         """Cheap stochastic-rollout prior; never copies or advances state."""
         cdef int kind = action_kind(action)
         cdef int pos = action_pos(action)
-        cdef double weight = HEUR_ROLLOUT_BOND
+        cdef double weight = self.weights[HW_ROLLOUT_BOND]
 
         if kind == TYPE_PASS:
             if (
                 state.command[player]
-                <= self.engine.command_collapse_threshold + HEUR_ROLLOUT_COLLAPSE_IMMEDIATE_BUFFER
+                <= self.engine.command_collapse_threshold + self.weights[HW_ROLLOUT_COLLAPSE_IMMEDIATE_BUFFER]
             ):
-                return HEUR_ROLLOUT_PASS_IMMEDIATE
+                return self.weights[HW_ROLLOUT_PASS_IMMEDIATE]
             if (
                 state.command[player]
-                <= self.engine.command_collapse_threshold + HEUR_COLLAPSE_VULNERABILITY_BUFFER
+                <= self.engine.command_collapse_threshold + self.weights[HW_ROLLOUT_COLLAPSE_NEAR_BUFFER]
             ):
-                return HEUR_ROLLOUT_PASS_NEAR
-            return HEUR_ROLLOUT_PASS_NORMAL
+                return self.weights[HW_ROLLOUT_PASS_NEAR]
+            return self.weights[HW_ROLLOUT_PASS_NORMAL]
         if kind == TYPE_DISCARD:
-            return HEUR_ROLLOUT_DISCARD
+            return self.weights[HW_ROLLOUT_DISCARD]
         if kind == TYPE_MANEUVER:
-            return HEUR_ROLLOUT_MANEUVER
+            return self.weights[HW_ROLLOUT_MANEUVER]
         if kind == TYPE_FORCE:
-            weight = HEUR_ROLLOUT_FORCE
+            weight = self.weights[HW_ROLLOUT_FORCE]
             if pos >= 0 and (
                 state.bond[pos] >= 0 or state.name[pos] >= 0
             ):
-                weight += HEUR_ROLLOUT_FORCE_PREPARED_BONUS
+                weight += self.weights[HW_ROLLOUT_FORCE_PREPARED_BONUS]
             return weight
         if kind == TYPE_BOND:
-            weight = HEUR_ROLLOUT_BOND
+            weight = self.weights[HW_ROLLOUT_BOND]
             if pos >= 0 and state.force[pos] >= 0:
-                weight += HEUR_ROLLOUT_BOND_ON_FORCE
+                weight += self.weights[HW_ROLLOUT_BOND_ON_FORCE]
             if pos >= 0 and state.name[pos] >= 0:
-                weight += HEUR_ROLLOUT_BOND_WITH_NAME
+                weight += self.weights[HW_ROLLOUT_BOND_WITH_NAME]
             return weight
         if kind == TYPE_NAME:
-            weight = HEUR_ROLLOUT_BOND5
+            weight = self.weights[HW_ROLLOUT_NAME]
             if pos >= 0 and state.force[pos] >= 0:
-                weight += HEUR_ROLLOUT_NAME_ON_FORCE
+                weight += self.weights[HW_ROLLOUT_NAME_ON_FORCE]
             if pos >= 0 and state.bond[pos] >= 0:
-                weight += HEUR_ROLLOUT_NAME_WITH_BOND
+                weight += self.weights[HW_ROLLOUT_NAME_WITH_BOND]
             return weight
         if kind == TYPE_NARRATIVE:
-            return HEUR_ROLLOUT_NARRATIVE
+            return self.weights[HW_ROLLOUT_NARRATIVE]
         if kind == TYPE_ONGOING_NARRATIVE:
-            return HEUR_ROLLOUT_ONGOING_NARRATIVE
+            return self.weights[HW_ROLLOUT_ONGOING_NARRATIVE]
         if kind == TYPE_STRATAGEM:
-            return HEUR_ROLLOUT_STRATAGEM
+            return self.weights[HW_ROLLOUT_STRATAGEM]
         return 1.0
 
     cdef double action_order_score_fast(
@@ -739,7 +831,7 @@ cdef class NativeHeuristicEvaluator:
             card = action_card(action)
             _fe_take_from_hand(self.engine, child, player, card, 0)
             score = self.evaluate_fast(child, player)
-            score += HEUR_ORDER_DISCARD_CONSTRUCTION * self.hand_construction_value_fast(
+            score += self.weights[HW_ORDER_DISCARD_CONSTRUCTION] * self.hand_construction_value_fast(
                 child,
                 player,
             )
@@ -751,22 +843,41 @@ cdef class NativeHeuristicEvaluator:
 
         if kind == TYPE_BOND:
             if state.force[pos] >= 0:
-                score += HEUR_ORDER_BOND_ON_FORCE
+                score += self.weights[HW_ORDER_BOND_ON_FORCE]
             else:
-                score += HEUR_ORDER_BOND_PREPARED
+                score += self.weights[HW_ORDER_BOND_PREPARED]
         elif kind == TYPE_NAME:
             if state.force[pos] >= 0:
-                score += HEUR_ORDER_NAME_ON_FORCE
+                score += self.weights[HW_ORDER_NAME_ON_FORCE]
             else:
-                score += HEUR_ORDER_NAME_PREPARED
+                score += self.weights[HW_ORDER_NAME_PREPARED]
         elif kind == TYPE_ONGOING_NARRATIVE:
-            score += HEUR_ORDER_ONGOING_NARRATIVE
+            score += self.weights[HW_ORDER_ONGOING_NARRATIVE]
         elif kind == TYPE_STRATAGEM:
-            score += HEUR_ORDER_STRATAGEM
+            score += self.weights[HW_ORDER_STRATAGEM]
         elif kind == TYPE_MANEUVER:
-            score += HEUR_ORDER_MANEUVER
+            score += self.weights[HW_ORDER_MANEUVER]
 
         return score
+
+    cpdef tuple weight_values(self):
+        cdef int i
+        return tuple(self.weights[i] for i in range(HEUR_WEIGHT_COUNT))
+
+    cpdef double battle_end_urgency(self, FastState state):
+        return self.battle_end_urgency_fast(state)
+
+    cpdef int projected_front_loss_command_penalty(
+        self,
+        FastState state,
+        int player,
+        int lost_mask,
+    ):
+        return self.projected_front_loss_command_penalty_fast(
+            state,
+            player,
+            <uint16_t>lost_mask,
+        )
 
     cpdef double evaluate(self, FastState state, int player):
         return self.evaluate_fast(state, player)

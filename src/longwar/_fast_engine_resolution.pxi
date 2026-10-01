@@ -281,8 +281,8 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         if state.resolution_lost_mask[0] & (1 << front):
             protected = 0
             protected_card = -1
-            for p in range(PLAYER_COUNT):
-                card = state.force[slot_index(0, front, p)]
+            for rank in range(RANK_COUNT):
+                card = state.force[slot_index(0, front, rank)]
                 if card >= 0 and self.front_loss_protected_front[card]:
                     protected = self.lost_front_command_penalty
                     protected_card = card
@@ -300,8 +300,8 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         if state.resolution_lost_mask[1] & (1 << front):
             protected = 0
             protected_card = -1
-            for p in range(PLAYER_COUNT):
-                card = state.force[slot_index(1, front, p)]
+            for rank in range(RANK_COUNT):
+                card = state.force[slot_index(1, front, rank)]
                 if card >= 0 and self.front_loss_protected_front[card]:
                     protected = self.lost_front_command_penalty
                     protected_card = card

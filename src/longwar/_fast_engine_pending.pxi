@@ -568,9 +568,9 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             _fe_resolve_force_pair_narratives(self, state, actor)
         elif choice == STRAT_CHOICE_RESERVES:
             for front in range(FRONT_COUNT):
-                source = slot_index(actor, front, 1)
+                source = slot_index(actor, front, RANK_REAR)
                 if extra & (<uint32_t>1 << source):
-                    target = slot_index(actor, front, 0)
+                    target = slot_index(actor, front, RANK_FRONT)
                     _fe_move_slot(self, state, source, target)
                     _fe_resolve_force_move_triggers(self, 
                         state, actor, source, target

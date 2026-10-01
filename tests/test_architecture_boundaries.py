@@ -4,6 +4,8 @@ import inspect
 import re
 from pathlib import Path
 
+import pytest
+
 from longwar.cards import CARD_CAPABILITY_BITS, load_card_file
 from longwar.game import GameEngine
 from longwar.heuristics import StrategicEvaluator
@@ -202,6 +204,7 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     assert set(build_browser_runtime.BROWSER_NATIVE_ROOTS) <= native
     assert "_fast_engine_core.pxi" in native
     assert "_heuristic_core.pxi" in native
+    assert "_heuristic_weights.generated.pxi" in native
     assert "_alpha_beta_core.pxi" not in native
     assert "_ismcts_core.pxi" not in native
     assert "_mccfr_core.pxi" not in native
@@ -358,6 +361,29 @@ def test_native_compile_time_protocol_is_generated() -> None:
     ):
         assert f"DEF {name} =" not in constants
         assert f"cdef int {name} =" not in constants
+
+
+def test_heuristic_weight_protocol_is_generated_and_fully_consumed() -> None:
+    from longwar.heuristics import HEURISTIC_KEYS
+    from tools import build_heuristic_weights
+
+    generated = SRC / "_heuristic_weights.generated.pxi"
+    assert generated.read_text(encoding="utf-8") == build_heuristic_weights.render()
+    source = (SRC / "_heuristic_core.pxi").read_text(encoding="utf-8")
+    for key in HEURISTIC_KEYS:
+        assert f"self.weights[HW_{key.upper()}]" in source, key
+    assert "DEF HEUR_" not in source
+
+
+def test_native_heuristic_has_preindexed_card_categories() -> None:
+    native_class = (SRC / "_fast_engine_class.pxi").read_text(encoding="utf-8")
+    native_cards = (SRC / "_fast_engine_cards.pxi").read_text(encoding="utf-8")
+    for category in (
+        "force", "bond", "name", "narrative", "stratagem", "hero", "name_mode"
+    ):
+        assert f"{category}_codes[MAX_CARDS]" in native_class
+        assert f"{category}_count" in native_class
+    assert "self.name_mode_codes[self.name_mode_count]" in native_cards
 
 
 def test_game_engine_delegates_rule_fields_without_mirroring() -> None:
@@ -563,3 +589,143 @@ def test_ismcts_iteration_default_is_shared(monkeypatch) -> None:
 def test_verify_runs_python_undefined_name_lint() -> None:
     source = (ROOT / "Makefile").read_text(encoding="utf-8")
     assert "python -m ruff check src tools tests --select F821,F822,F823" in source
+
+
+def test_native_heuristic_weights_are_runtime_configuration() -> None:
+    from longwar.heuristics import DEFAULT_HEURISTIC_WEIGHTS
+    from longwar.native_engine import create_heuristic_evaluator
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    engine = GameEngine(data)
+    custom_weights = DEFAULT_HEURISTIC_WEIGHTS.with_overrides(
+        terminal_win_score=12345.0,
+    )
+    custom = create_heuristic_evaluator(engine._native_core(), custom_weights)
+    index = tuple(DEFAULT_HEURISTIC_WEIGHTS.as_dict()).index("terminal_win_score")
+    assert custom.weight_values()[index] == 12345.0
+
+
+def test_native_source_fingerprint_is_generated_and_current() -> None:
+    from tools import build_native_fingerprint
+
+    generated = SRC / "_native_source_fingerprint.generated.pxi"
+    assert generated.read_text(encoding="utf-8") == build_native_fingerprint.render()
+
+
+def test_native_source_guard_rejects_stale_host_binary() -> None:
+    from types import SimpleNamespace
+    from longwar.native_fingerprint import assert_native_module_current
+
+    stale = SimpleNamespace(
+        NATIVE_SOURCE_CHECKABLE=True,
+        NATIVE_SOURCE_FINGERPRINT="definitely-stale",
+    )
+    with pytest.raises(RuntimeError, match="make native-build"):
+        assert_native_module_current(stale)
+
+
+def test_browser_native_artifact_skips_host_source_check() -> None:
+    from types import SimpleNamespace
+    from longwar.native_fingerprint import assert_native_module_current
+
+    browser = SimpleNamespace(
+        NATIVE_SOURCE_CHECKABLE=False,
+        NATIVE_SOURCE_FINGERPRINT="browser-build",
+    )
+    assert assert_native_module_current(browser) is browser
+
+
+def test_verify_rebuilds_native_extension_before_tests() -> None:
+    source = (ROOT / "Makefile").read_text(encoding="utf-8")
+    verify = source.split("verify:", 1)[1].split("\n\n", 1)[0]
+    assert "$(MAKE) native-build" in verify
+    assert "build_native_fingerprint.py" in source
+
+
+def test_native_topology_dimensions_are_not_cross_wired() -> None:
+    resolution = (SRC / "_fast_engine_resolution.pxi").read_text(
+        encoding="utf-8"
+    )
+    strength = (SRC / "_fast_engine_strength.pxi").read_text(
+        encoding="utf-8"
+    )
+
+    assert "slot_index(0, front, p)" not in resolution
+    assert "slot_index(1, front, p)" not in resolution
+    assert "for rank in range(RANK_COUNT):" in resolution
+    assert "slot_index(player, front, 1)" not in strength
+    assert "slot_index(enemy, front, 0)" not in strength
+    assert "slot_index(enemy, front, 1)" not in strength
+
+
+def test_ongoing_narrative_storage_is_not_treated_as_front_index() -> None:
+    effects = (SRC / "_fast_engine_effects.pxi").read_text(encoding="utf-8")
+    strength = (SRC / "_fast_engine_strength.pxi").read_text(encoding="utf-8")
+
+    assert "controller * NARRATIVE_SLOTS_PER_PLAYER + front" not in effects
+    assert "player * NARRATIVE_SLOTS_PER_PLAYER + front" not in strength
+    assert "state.narrative_front_mask[ix] & (1 << front)" in effects
+    assert "narrative_front_mask" in strength
+
+
+def test_native_slot_access_never_uses_literal_rank_codes() -> None:
+    pattern = re.compile(r"slot_index\([^()\n]*,\s*[01]\s*\)")
+    offenders: list[str] = []
+    for path in sorted(SRC.glob("_fast_engine*.pxi")):
+        for lineno, line in enumerate(
+            path.read_text(encoding="utf-8").splitlines(),
+            start=1,
+        ):
+            if pattern.search(line):
+                offenders.append(f"{path.name}:{lineno}: {line.strip()}")
+    assert not offenders, "\n".join(offenders)
+
+
+def test_native_algorithm_hot_paths_do_not_compare_game_state_to_strings() -> None:
+    pattern = re.compile(
+        r"""(?:==|!=)\s*['"]|['"][^'"]*['"]\s*(?:==|!=)"""
+    )
+    offenders: list[str] = []
+    for path in sorted(
+        [
+            *SRC.glob("_*.pxi"),
+            *SRC.glob("_*.pyx"),
+        ]
+    ):
+        for lineno, line in enumerate(
+            path.read_text(encoding="utf-8").splitlines(),
+            start=1,
+        ):
+            if pattern.search(line):
+                offenders.append(f"{path.name}:{lineno}: {line.strip()}")
+    assert not offenders, "\n".join(offenders)
+
+
+def test_native_search_options_are_integer_coded_before_hot_loops() -> None:
+    agent = (SRC / "agents" / "ismcts_agent.py").read_text(encoding="utf-8")
+    native = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
+    mccfr_accel = (SRC / "_mccfr_accel.pyx").read_text(encoding="utf-8")
+
+    assert "RolloutPolicyCode" in agent
+    assert "self._rollout_policy_code" in agent
+    assert "int rollout_policy" in native
+    assert 'rollout_policy == "' not in native
+    assert "state.phase.value" not in mccfr_accel
+    assert "state.phase is _PHASE_COMPLETE" in mccfr_accel
+
+
+def test_simulation_agent_overrides_accept_heuristic_weight_mapping() -> None:
+    from longwar.heuristics import DEFAULT_HEURISTIC_WEIGHTS
+    from longwar.simulate import make_agent
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    engine = GameEngine(data)
+    agent = make_agent(
+        "heuristic",
+        engine,
+        7,
+        heuristic_weights={"margin_weight": 1.125},
+    )
+
+    assert agent.heuristic_weights != DEFAULT_HEURISTIC_WEIGHTS
+    assert agent.heuristic_weights.as_dict()["margin_weight"] == 1.125

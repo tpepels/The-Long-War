@@ -12,10 +12,14 @@ install:
 # Required after changing .pyx/.pxi files.
 native-build:
 	python tools/build_native_protocol.py
+	python tools/build_heuristic_weights.py
+	python tools/build_native_fingerprint.py
 	python setup.py build_ext --inplace
+	python -c 'from longwar.native_search import ismcts_backend; ismcts_backend(); print("Native source/binary fingerprint: OK")'
 
 browser-build:
 	python tools/build_native_protocol.py --check
+	python tools/build_heuristic_weights.py --check
 	python tools/build_browser_runtime.py
 
 web-protocol:
@@ -32,6 +36,7 @@ test-integration:
 
 browser-parity:
 	@python tools/build_native_protocol.py --check
+	@python tools/build_heuristic_weights.py --check
 	@python tools/build_web_protocol.py --check
 	@mkdir -p artifacts/logs
 	@echo "Browser/native parity..."
@@ -50,7 +55,9 @@ browser-parity:
 	@echo "Browser/native parity: OK (log: artifacts/logs/browser-parity.log)"
 
 verify:
+	$(MAKE) native-build
 	python tools/build_native_protocol.py --check
+	python tools/build_heuristic_weights.py --check
 	python tools/build_web_protocol.py --check
 	python -m ruff check src tools tests --select F821,F822,F823
 	python tools/run_experiments.py validate-data

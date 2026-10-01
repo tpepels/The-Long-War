@@ -143,11 +143,16 @@ def cython_include_closure(*roots: str) -> tuple[str, ...]:
 BROWSER_NATIVE_FILES = cython_include_closure(*BROWSER_NATIVE_ROOTS)
 
 _BROWSER_FAST_SEARCH_SOURCE = """# cython: language_level=3, boundscheck=False, wraparound=False, initializedcheck=False, cdivision=True
+# Browser wheels are rebuilt from source as one artifact; host stale-binary
+# checking relies on repository source files that are intentionally not
+# packaged into this minimal runtime.
+NATIVE_SOURCE_CHECKABLE = False
+NATIVE_SOURCE_FINGERPRINT = "browser-build"
 from libc.stdint cimport int8_t, int16_t, uint8_t, uint16_t, uint32_t, int32_t, uint64_t
 from libc.stddef cimport size_t
 from libc.string cimport memcpy, memset
 from libc.stdlib cimport malloc, free, realloc
-from libc.math cimport tanh, log, sqrt
+from libc.math cimport tanh, log, sqrt, isfinite
 from cpython.bytes cimport PyBytes_FromStringAndSize
 from longwar.game.model import Rank
 import hashlib

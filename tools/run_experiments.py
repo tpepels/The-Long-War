@@ -51,6 +51,7 @@ from longwar.decks import (
 from longwar.game import GameEngine
 from longwar.fingerprint import artifact_directory, experiment_identity
 from longwar.health import wilson_interval
+from longwar.heuristics import DEFAULT_HEURISTIC_WEIGHTS
 from longwar.parallelism import DEFAULT_WORKERS
 from longwar.rules import GameRules
 from longwar.protocol import PolicySource
@@ -244,6 +245,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         "agents": [agent_name, agent_name],
         "agent_profile": {
             "name": agent_name,
+            "heuristic_weights": DEFAULT_HEURISTIC_WEIGHTS.as_dict(),
             "ismcts": {
                 "belief_samples": args.ismcts_belief_samples,
                 "iterations": args.ismcts_iterations,
@@ -1304,16 +1306,12 @@ def _run_cells_with_live_progress(
 
 def require_cython() -> None:
     try:
-        from longwar._fast_search import (  # noqa: F401
-            FastEngine,
-            NativeSearchBudget,
-            native_search_value,
-            ismcts_search,
-        )
-    except ImportError as exc:
+        from longwar.native_search import ismcts_backend
+        ismcts_backend()
+    except (ImportError, RuntimeError) as exc:
         raise SystemExit(
-            "Packed Cython search extension is not available.\n"
-            "Run: make install && make native-build"
+            "Canonical Cython search is unavailable or stale.\n"
+            "Run: make native-build"
         ) from exc
     print("Canonical Cython engine/search extension: OK")
 
@@ -2323,6 +2321,7 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
         "ismcts_rollout_policy": args.ismcts_rollout_policy,
         "canonical_decks": list(decks),
         "base_rules": GameRules.standard().as_dict(),
+        "heuristic_weights": DEFAULT_HEURISTIC_WEIGHTS.as_dict(),
     }
     identity = experiment_identity(config)
     output = artifact_directory(
