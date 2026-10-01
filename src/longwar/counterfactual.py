@@ -18,11 +18,19 @@ from .decks import (
 )
 from .game.engine import GameEngine
 from .parallelism import DEFAULT_WORKERS
+from .protocol import AgentKind, CardField, CardType, DesignField, PLAYER_COUNT
 from .game.model import Phase
 from .simulate import make_agent
 
 
 BASELINE_PREFIX = "__cf_baseline__"
+BASELINE_FORCE_STRENGTH = 4
+BASELINE_BOND_STRENGTH_BONUS = 1
+BASELINE_BOND_NAMED_STRENGTH_BONUS = 2
+BASELINE_NAME_STRENGTH = 2
+COUNTERFACTUAL_SEED_STRIDE = 10_000
+COUNTERFACTUAL_AGENT_SEED_OFFSET = 2
+
 
 
 @dataclass(frozen=True)
@@ -49,53 +57,53 @@ def baseline_id(card_id: str) -> str:
 
 
 def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
-    card_type = card["type"]
+    card_type = card[CardField.TYPE]
     result: dict[str, Any] = {
-        "id": baseline_id(card["id"]),
+        CardField.ID: baseline_id(card[CardField.ID]),
         "title": f"Counterfactual baseline — {card['title']}",
-        "type": card_type,
-        "unique": bool(card["unique"]),
-        "classes": list(card.get("classes", ["experimental"])),
-        "text": "Experimental matched baseline.",
-        "design_rules": {},
-        "rule_blocks": [],
-        "experimental": True,
-        "baseline_for": card["id"],
+        CardField.TYPE: card_type,
+        CardField.UNIQUE: bool(card[CardField.UNIQUE]),
+        CardField.CLASSES: list(card.get(CardField.CLASSES, ["experimental"])),
+        CardField.TEXT: "Experimental matched baseline.",
+        CardField.DESIGN_RULES: {},
+        CardField.RULE_BLOCKS: [],
+        CardField.EXPERIMENTAL: True,
+        CardField.BASELINE_FOR: card[CardField.ID],
     }
-    if "command_cost" in card:
-        result["command_cost"] = card["command_cost"]
+    if CardField.COMMAND_COST in card:
+        result[CardField.COMMAND_COST] = card[CardField.COMMAND_COST]
 
-    if card_type == "force":
-        result["hero"] = bool(card.get("hero", False))
-        result["strength"] = (
-            int(card["strength"]) if result["hero"] else 4
+    if card_type == CardType.FORCE:
+        result[CardField.HERO] = bool(card.get(CardField.HERO, False))
+        result[CardField.STRENGTH] = (
+            int(card[CardField.STRENGTH]) if result[CardField.HERO] else BASELINE_FORCE_STRENGTH
         )
-        if "role" in card:
-            result["role"] = card["role"]
-        if result["hero"]:
-            result["hero_name_strength"] = int(card["hero_name_strength"])
-    elif card_type == "bond":
-        result["text"] = (
+        if CardField.ROLE in card:
+            result[CardField.ROLE] = card[CardField.ROLE]
+        if result[CardField.HERO]:
+            result[CardField.HERO_NAME_STRENGTH] = int(card[CardField.HERO_NAME_STRENGTH])
+    elif card_type == CardType.BOND:
+        result[CardField.TEXT] = (
             "Experimental matched baseline. Its **Force** gets +1 **Strength**. "
             "While this **Bond** has a **Name**, its **Force** gets +2 additional **Strength**."
         )
-        result["design_rules"] = {
-            "strength_bonus": 1,
-            "named_additional_strength_bonus": 2,
+        result[CardField.DESIGN_RULES] = {
+            DesignField.STRENGTH_BONUS: BASELINE_BOND_STRENGTH_BONUS,
+            DesignField.NAMED_ADDITIONAL_STRENGTH_BONUS: BASELINE_BOND_NAMED_STRENGTH_BONUS,
         }
-    elif card_type == "name":
-        result["strength"] = 2
-    elif card_type == "narrative":
-        result["narrative_form"] = card["narrative_form"]
-        result["ongoing"] = bool(card.get("ongoing", False))
+    elif card_type == CardType.NAME:
+        result[CardField.STRENGTH] = BASELINE_NAME_STRENGTH
+    elif card_type == CardType.NARRATIVE:
+        result[CardField.NARRATIVE_FORM] = card[CardField.NARRATIVE_FORM]
+        result[CardField.ONGOING] = bool(card.get(CardField.ONGOING, False))
         # A no-op Narrative preserves the paid public Narrative play while
         # removing the card-specific trigger or continuous effect.
-        result["design_rules"] = {}
-    elif card_type == "stratagem":
+        result[CardField.DESIGN_RULES] = {}
+    elif card_type == CardType.STRATAGEM:
         # Preserve the paid public one-per-Battle slot while removing all
         # card-specific payoff. design_rules is already the canonical empty
         # mechanics schema for this baseline.
-        result["text"] = (
+        result[CardField.TEXT] = (
             "Experimental matched baseline. Play this face-up in your "
             "**Stratagem** area. It has no continuing effect."
         )
@@ -120,7 +128,7 @@ def build_experiment_card_data(
     if baseline_card_ids is None:
         selected = original_cards
     else:
-        by_id = {card["id"]: card for card in original_cards}
+        by_id = {card[CardField.ID]: card for card in original_cards}
         requested = list(dict.fromkeys(baseline_card_ids))
         unknown = [card_id for card_id in requested if card_id not in by_id]
         if unknown:
@@ -140,7 +148,7 @@ def validate_counterfactual_baselines(card_data: dict[str, Any]) -> None:
     while any real counterfactual experiment only adds a small subset.
     """
     for card in card_data["cards"]:
-        experiment = build_experiment_card_data(card_data, [card["id"]])
+        experiment = build_experiment_card_data(card_data, [card[CardField.ID]])
         GameEngine(experiment)
 
 
@@ -175,7 +183,7 @@ def generate_context_decks(
 
     cards = card_data["cards"]
     meta = card_index(card_data)
-    all_ids = [card["id"] for card in cards]
+    all_ids = [card[CardField.ID] for card in cards]
     required = sorted(set(required_cards))
     unknown = [card_id for card_id in required if card_id not in meta]
     if unknown:
@@ -187,8 +195,8 @@ def generate_context_decks(
             f"At most {deck_size} distinct cards can be required in a deck context"
         )
 
-    required_forces = sum(meta[card_id]["type"] == "force" for card_id in required)
-    required_names = sum(meta[card_id]["type"] == "name" for card_id in required)
+    required_forces = sum(meta[card_id][CardField.TYPE] == CardType.FORCE for card_id in required)
+    required_names = sum(meta[card_id][CardField.TYPE] == CardType.NAME for card_id in required)
     force_needed = max(0, MINIMUM_FORCE_COUNT - required_forces)
     name_needed = max(0, MINIMUM_PRINTED_NAME_COUNT - required_names)
     if len(required) + force_needed + name_needed > deck_size:
@@ -213,7 +221,7 @@ def generate_context_decks(
         force_candidates = [
             card_id
             for card_id in all_ids
-            if meta[card_id]["type"] == "force" and card_id not in deck
+            if meta[card_id][CardField.TYPE] == CardType.FORCE and card_id not in deck
         ]
         for card_id in ordered_candidates(force_candidates)[:force_needed]:
             deck.append(card_id)
@@ -221,7 +229,7 @@ def generate_context_decks(
         name_candidates = [
             card_id
             for card_id in all_ids
-            if meta[card_id]["type"] == "name" and card_id not in deck
+            if meta[card_id][CardField.TYPE] == CardType.NAME and card_id not in deck
         ]
         for card_id in ordered_candidates(name_candidates)[:name_needed]:
             deck.append(card_id)
@@ -276,7 +284,7 @@ def build_samples(
                 ExperimentSample(
                     sample_id=sample_id,
                     context_id=context_id,
-                    focal_player=sample_id % 2,
+                    focal_player=sample_id % PLAYER_COUNT,
                     game_seed=seed + 100_003 + sample_id * 97,
                     focal_deck=tuple(focal_contexts[context_id]),
                     opponent_deck=tuple(
@@ -296,7 +304,7 @@ def _play_focal_outcome(
     agent_name: str,
     max_actions: int = 500,
 ) -> float | None:
-    if agent_name not in {"heuristic", "random"}:
+    if agent_name not in {AgentKind.HEURISTIC, AgentKind.RANDOM}:
         raise ValueError(
             "Counterfactual experiments currently support heuristic or random "
             "policies; use heuristic for balance estimates."
@@ -323,7 +331,7 @@ def _play_focal_outcome(
         make_agent(
             agent_name,
             engine,
-            sample.game_seed * 10_000 + 2,
+            sample.game_seed * COUNTERFACTUAL_SEED_STRIDE + COUNTERFACTUAL_AGENT_SEED_OFFSET,
         ),
     ]
     mulligan_indices = tuple(
@@ -504,7 +512,7 @@ def run_counterfactual_card_sweep(
     selected = (
         list(dict.fromkeys(card_ids))
         if card_ids is not None
-        else [card["id"] for card in card_data["cards"]]
+        else [card[CardField.ID] for card in card_data["cards"]]
     )
     unknown = [card_id for card_id in selected if card_id not in canonical]
     if unknown:
@@ -677,7 +685,7 @@ def run_counterfactual_experiment(
     selected_cards = (
         list(dict.fromkeys(card_ids))
         if card_ids is not None
-        else [card["id"] for card in card_data["cards"]]
+        else [card[CardField.ID] for card in card_data["cards"]]
     )
     unknown = [card_id for card_id in selected_cards if card_id not in canonical_cards]
     if unknown:
@@ -712,15 +720,15 @@ def run_counterfactual_experiment(
 
     forces = [
         card_id for card_id in selected_cards
-        if canonical_cards[card_id]["type"] == "force"
+        if canonical_cards[card_id][CardField.TYPE] == CardType.FORCE
     ]
     bonds = [
         card_id for card_id in selected_cards
-        if canonical_cards[card_id]["type"] == "bond"
+        if canonical_cards[card_id][CardField.TYPE] == CardType.BOND
     ]
     names = [
         card_id for card_id in selected_cards
-        if canonical_cards[card_id]["type"] == "name"
+        if canonical_cards[card_id][CardField.TYPE] == CardType.NAME
     ]
     triple_ids = (
         list(itertools.product(forces, bonds, names))
