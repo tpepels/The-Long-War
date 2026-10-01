@@ -15,9 +15,13 @@ cdef class FastEngine:
     cdef int16_t lost_front_command_penalty
     cdef bint pass_signal_costs_operation
     cdef int pass_closing_rounds
+    cdef int pass_min_operations_before_signal
+    cdef int turn_draw_count
     cdef int maneuver_command_cost
     cdef int hand_limit
     cdef int ongoing_narrative_limit
+    cdef int hero_play_limit_per_battle
+    cdef int stratagem_play_limit_per_battle
     cdef bint command_diag_capture
     cdef int command_diag_len
     cdef int16_t command_diag_kind[MAX_COMMAND_DIAG_EVENTS]
