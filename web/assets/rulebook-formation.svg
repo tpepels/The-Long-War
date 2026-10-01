@@ -69,6 +69,6 @@
   <rect x="92" y="55" width="60" height="91" rx="7" class="paper" stroke="#1d1a16" stroke-width="3"/>
   <rect x="99" y="63" width="46" height="15" rx="2" class="ink"/><path class="thin" d="M108 105 Q122 90 136 105 Q122 122 108 105 Z"/>
   <path class="line" d="M35 222 Q82 248 133 220" marker-end="url(#arrow)"/>
-  <text x="82" y="274" text-anchor="middle" class="small">survives & moves</text>
+  <text x="82" y="274" text-anchor="middle" class="small">survives &amp; moves</text>
 </g>
 </svg>
