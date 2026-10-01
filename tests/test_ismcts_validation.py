@@ -10,7 +10,7 @@ import pytest
 from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
-from longwar.game import GameEngine, Pass, Phase
+from longwar.game import GameEngine, Pass, Phase, Position, Rank
 from longwar.game.actions import action_key
 from longwar.rules import GameRules
 
