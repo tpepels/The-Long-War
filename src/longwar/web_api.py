@@ -17,6 +17,7 @@ from .game.actions import (
     PlayNarrative,
     PlayStratagem,
     action_key,
+    action_kind,
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, Phase, Position, Rank
@@ -462,7 +463,7 @@ class PlaySession:
         card_id = getattr(action, "card_id", None)
         payload: dict[str, Any] = {
             "key": action_key(action),
-            "kind": type(action).__name__,
+            "kind": action_kind(action).value,
             "card_id": card_id,
             "command_cost": self.engine.command_cost_for_action(
                 self.state,
