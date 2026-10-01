@@ -60,8 +60,8 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
                 ]
             )
 
-    stories = [
-        [story.card_id for story in state.stories[owner]]
+    narratives = [
+        [narrative.card_id for narrative in state.narratives[owner]]
         for owner in range(2)
     ]
     stratagems = [
@@ -88,7 +88,7 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
         "operations_this_battle": list(state.operations_this_battle),
         "pending_draw_discard_for": state.pending_draw_discard_for,
         "board": board,
-        "stories": stories,
+        "narratives": narratives,
         "stratagems": stratagems,
         "stratagem_used": list(state.stratagem_used),
         "hero_used": list(state.hero_used),
@@ -485,7 +485,7 @@ class MCCFRTrainer:
                     "own hand identities",
                     "own remaining deck multiset",
                     "public hand/deck counts",
-                    "public ongoing Story identities",
+                    "public ongoing Narrative identities",
                 ],
                 "excludes": [
                     "opponent hand identities",
