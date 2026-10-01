@@ -318,6 +318,14 @@ def test_command_guard_keeps_zero_command_midbattle_actions() -> None:
     assert maneuver in preserving
     assert filtered == 0
 
+    packed = engine._native_core().from_game_state(state)
+    native_maneuver = engine._native_action(packed, maneuver)
+    native_preserving, native_filtered = (
+        engine._native_heuristic().command_preserving_action_codes(packed)
+    )
+    assert native_maneuver in native_preserving
+    assert native_filtered == 0
+
 
 @pytest.mark.parametrize(
     ("closing_rounds", "remaining", "expected"),
