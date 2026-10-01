@@ -542,7 +542,7 @@ def test_canonical_validation_uses_only_current_standard_rules():
 
     assert "standard_backend_parity" in validate_source
     assert "test_rule_variants.py" not in validate_source
-    assert "not legacy_rule_experiment" in validate_source
+    assert "legacy_rule_experiment" not in validate_source
     assert "parity_case" not in validate_source
 
 
