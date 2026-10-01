@@ -11,7 +11,8 @@ from typing import Any, Callable
 from .agents.heuristic_agent import HeuristicAgent
 from .game.actions import Action, action_key
 from .game.engine import GameEngine, all_positions
-from .game.model import Front, GameState, Phase
+from .game.model import Front, GameState, Phase, other_player
+from .protocol import ObservationZone, PLAYER_COUNT
 from .mccfr_core import (
     BACKEND,
     CFRNode,
@@ -43,10 +44,10 @@ def _counter_view(cards: list[str]) -> list[list[Any]]:
 
 def information_set_key(state: GameState, player: int) -> dict[str, Any]:
     """Canonical public/private observation used by imperfect-information AI."""
-    opponent = 1 - player
+    opponent = other_player(player)
 
-    board: list[list[Any]] = [[], []]
-    for owner in range(2):
+    board: list[list[Any]] = [[] for _ in range(PLAYER_COUNT)]
+    for owner in range(PLAYER_COUNT):
         for position in all_positions():
             slot = state.slot(owner, position)
             board[owner].append(
@@ -62,11 +63,11 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
 
     narratives = [
         [narrative.card_id for narrative in state.narratives[owner]]
-        for owner in range(2)
+        for owner in range(PLAYER_COUNT)
     ]
     stratagems = [
         None if state.stratagems[owner] is None else state.stratagems[owner].card_id
-        for owner in range(2)
+        for owner in range(PLAYER_COUNT)
     ]
 
     return {
@@ -75,15 +76,15 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
         "battle": state.battle,
         "active_player": state.active_player,
         "passed": [
-            state.players[0].passed,
-            state.players[1].passed,
+            state.players[owner].passed
+            for owner in range(PLAYER_COUNT)
         ],
         "pass_order": list(state.pass_order),
         "pass_closing_turns_remaining": state.pass_closing_turns_remaining,
         "discarded_this_battle": list(state.discarded_this_battle),
         "command": [
-            state.players[0].command,
-            state.players[1].command,
+            state.players[owner].command
+            for owner in range(PLAYER_COUNT)
         ],
         "operations_this_battle": list(state.operations_this_battle),
         "pending_draw_discard_for": state.pending_draw_discard_for,
@@ -97,7 +98,7 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
         "own_discard": list(state.players[player].discard),
         "opponent_hand_count": len(state.players[opponent].hand),
         "known_opponent_hand": _counter_view(
-            state.known_hidden_cards(player, opponent, "hand")
+            state.known_hidden_cards(player, opponent, ObservationZone.HAND)
         ),
         "opponent_deck_count": len(state.players[opponent].deck),
         "opponent_discard": list(state.players[opponent].discard),
@@ -208,17 +209,17 @@ class MCCFRTrainer:
         if self.deck_a is None or self.deck_b is None:
             raise ValueError("Root-deal training requires both concrete decklists")
 
-        utility_sum = [0.0, 0.0]
+        utility_sum = [0.0 for _ in range(PLAYER_COUNT)]
         for _ in range(iterations):
             root = self.engine._new_game_with_rng(
                 self.deck_a,
                 self.deck_b,
                 rng=self.chance_rng,
-                first_player=self.chance_rng.randrange(2),
+                first_player=self.chance_rng.randrange(PLAYER_COUNT),
             )
             if self._primitive_engine is not None:
                 fast_root = self._primitive_engine.from_game_state(root)
-                for traverser in (0, 1):
+                for traverser in range(PLAYER_COUNT):
                     utility_sum[traverser] += packed_external_sampling_traverse(
                         self._primitive_engine,
                         fast_root,
@@ -243,7 +244,7 @@ class MCCFRTrainer:
 
         return TrainingSummary(
             iterations=self.iterations,
-            traversals=self.iterations * 2,
+            traversals=self.iterations * PLAYER_COUNT,
             information_sets=(
                 len(self._primitive_nodes)
                 if self._used_primitive_training
