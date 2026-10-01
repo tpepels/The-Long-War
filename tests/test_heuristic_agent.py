@@ -95,11 +95,11 @@ def test_discard_scoring_does_not_peek_at_own_unknown_deck_order() -> None:
     state.active_player = 0
 
     action = Discard(state.players[0].hand[0])
-    first = agent._score_action(engine, state, 0, action)
+    first = agent.evaluator._score_action(engine, state, 0, action)
 
     reordered = state.clone()
     reordered.players[0].deck.reverse()
-    second = agent._score_action(engine, reordered, 0, action)
+    second = agent.evaluator._score_action(engine, reordered, 0, action)
 
     assert first == pytest.approx(second)
 
@@ -421,11 +421,11 @@ def test_first_pass_score_includes_opponent_normal_draw() -> None:
     state.players[0].command = 10
     state.players[1].command = 10
 
-    with_draw = agent._score_action(engine, state, 0, Pass())
+    with_draw = agent.evaluator._score_action(engine, state, 0, Pass())
 
     no_draw = state.clone()
     no_draw.players[1].deck = []
-    without_draw = agent._score_action(engine, no_draw, 0, Pass())
+    without_draw = agent.evaluator._score_action(engine, no_draw, 0, Pass())
 
     assert with_draw < without_draw
 
@@ -446,7 +446,7 @@ def test_action_order_prefers_bond_on_active_force_over_empty_preparation() -> N
     assert on_force in legal
     assert prepared in legal
 
-    assert agent._score_action(engine, state, 0, on_force) > agent._score_action(
+    assert agent.evaluator._score_action(engine, state, 0, on_force) > agent.evaluator._score_action(
         engine,
         state,
         0,
