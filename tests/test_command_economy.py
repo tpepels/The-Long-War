@@ -186,7 +186,7 @@ def test_equal_threshold_command_is_a_draw_without_recovery() -> None:
     assert [player.command for player in state.players] == [0, 0]
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
-    assert snapshot["command_before_recovery"] == [0, 0]
+    assert snapshot["command_before_collapse"] == [0, 0]
     assert snapshot["recovery_actual"] == [0, 0]
     assert snapshot["command_remaining"] == [0, 0]
 
@@ -214,7 +214,7 @@ def test_threshold_vs_positive_command_collapses_before_recovery() -> None:
     assert [player.command for player in state.players] == [0, 5]
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
-    assert snapshot["command_before_recovery"] == [0, 5]
+    assert snapshot["command_before_collapse"] == [0, 5]
     assert snapshot["recovery_actual"] == [0, 0]
     assert snapshot["command_remaining"] == [0, 5]
 
@@ -252,8 +252,8 @@ def test_front_losses_reduce_command_before_recovery_floor_applies() -> None:
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
     assert snapshot["fronts_lost"] == [1, 1]
-    assert snapshot["recovery_loss"] == [1, 1]
-    assert snapshot["command_before_recovery"] == [3, 3]
+    assert snapshot["front_loss_command_penalty"] == [1, 1]
+    assert snapshot["command_before_collapse"] == [3, 3]
     assert snapshot["recovery_actual"] == [1, 1]
     assert snapshot["command_remaining"] == [4, 4]
 
@@ -432,5 +432,5 @@ def test_front_loss_can_cause_collapse_before_recovery() -> None:
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
     assert snapshot["fronts_lost"][0] == 1
-    assert snapshot["command_before_recovery"] == [0, 5]
+    assert snapshot["command_before_collapse"] == [0, 5]
     assert snapshot["recovery_actual"] == [0, 0]
