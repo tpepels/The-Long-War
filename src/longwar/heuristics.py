@@ -6,9 +6,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from math import isfinite
 
-from .game.actions import Action, Pass
+from .game.actions import Action, action_key
 from .game.engine import GameEngine
-from .game.model import GameState, Phase
+from .game.model import GameState
 from .protocol import CardField, CardType
 
 
@@ -185,48 +185,31 @@ def command_preserving_actions(
     state: GameState,
     actions: list[Action] | None = None,
 ) -> tuple[list[Action], int]:
-    """Filter only actions that immediately resolve the war as a loss.
-
-    Reaching the Collapse threshold during an unfinished Battle is legal and
-    may be strategically correct because later refunds, gains, or Front play
-    can still change the Battle-end Command result.
-    """
+    """Filter actions through the canonical native Command guard."""
     legal = list(engine.legal_actions(state) if actions is None else actions)
     if len(legal) <= 1:
         return legal, 0
 
-    actor = state.active_player
-    preserving: list[Action] = []
-    losing: list[Action] = []
+    native = engine._native_core()
+    packed = native.from_game_state(state)
+    safe_codes, _ = engine._native_heuristic().command_preserving_action_codes(
+        packed
+    )
+    safe_keys = {
+        native.action_key(code)
+        for code in safe_codes
+    }
+    preserving = [
+        action
+        for action in legal
+        if action_key(action) in safe_keys
+    ]
 
-    for action in legal:
-        can_end_now = (
-            state.pass_closing_turns_remaining == 1
-            or (
-                isinstance(action, Pass)
-                and len(state.pass_order) == 1
-                and not state.players[actor].passed
-            )
-        )
-        if not can_end_now:
-            preserving.append(action)
-            continue
-
-        child = state.clone()
-        engine.apply(child, action, validate=False)
-        immediate_loss = (
-            child.phase is Phase.COMPLETE
-            and child.winner is not None
-            and child.winner != actor
-        )
-        if immediate_loss:
-            losing.append(action)
-        else:
-            preserving.append(action)
-
+    # The native helper evaluates the complete legal-action set. Keep the
+    # public helper's diagnostic count scoped to the caller's action subset.
     if not preserving:
         return legal, 0
-    return preserving, len(losing)
+    return preserving, len(legal) - len(preserving)
 
 
 def opening_mulligan_indices(
