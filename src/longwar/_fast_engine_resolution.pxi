@@ -270,8 +270,12 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
 
     losses0 = popcount16(state.resolution_lost_mask[0] & 15)
     losses1 = popcount16(state.resolution_lost_mask[1] & 15)
-    state.resolution_recovery_losses[0] = losses0
-    state.resolution_recovery_losses[1] = losses1
+    state.resolution_front_loss_command_penalty[0] = (
+        losses0 * self.lost_front_command_penalty
+    )
+    state.resolution_front_loss_command_penalty[1] = (
+        losses1 * self.lost_front_command_penalty
+    )
 
     for front in range(4):
         if state.resolution_lost_mask[0] & (1 << front):
@@ -279,56 +283,66 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
             protected_card = -1
             for p in range(2):
                 card = state.force[slot_index(0, front, p)]
-                if card >= 0 and self.recovery_protected_front[card]:
-                    protected = 1
+                if card >= 0 and self.front_loss_protected_front[card]:
+                    protected = self.lost_front_command_penalty
                     protected_card = card
-            if protected and state.resolution_recovery_losses[0] > 0:
-                state.resolution_recovery_losses[0] -= 1
+            if protected and state.resolution_front_loss_command_penalty[0] > 0:
+                protected = min(
+                    protected,
+                    state.resolution_front_loss_command_penalty[0],
+                )
+                state.resolution_front_loss_command_penalty[0] -= protected
                 _fe_record_command_diag(
-                    self, COMMAND_DIAG_RECOVERY_PROTECTION,
-                    COMMAND_DETAIL_RECOVERY_PROTECTED_FRONT,
-                    0, protected_card, 1, 1,
+                    self, COMMAND_DIAG_FRONT_LOSS_PROTECTION,
+                    COMMAND_DETAIL_FRONT_LOSS_PROTECTED_FRONT,
+                    0, protected_card, protected, protected,
                 )
         if state.resolution_lost_mask[1] & (1 << front):
             protected = 0
             protected_card = -1
             for p in range(2):
                 card = state.force[slot_index(1, front, p)]
-                if card >= 0 and self.recovery_protected_front[card]:
-                    protected = 1
+                if card >= 0 and self.front_loss_protected_front[card]:
+                    protected = self.lost_front_command_penalty
                     protected_card = card
-            if protected and state.resolution_recovery_losses[1] > 0:
-                state.resolution_recovery_losses[1] -= 1
+            if protected and state.resolution_front_loss_command_penalty[1] > 0:
+                protected = min(
+                    protected,
+                    state.resolution_front_loss_command_penalty[1],
+                )
+                state.resolution_front_loss_command_penalty[1] -= protected
                 _fe_record_command_diag(
-                    self, COMMAND_DIAG_RECOVERY_PROTECTION,
-                    COMMAND_DETAIL_RECOVERY_PROTECTED_FRONT,
-                    1, protected_card, 1, 1,
+                    self, COMMAND_DIAG_FRONT_LOSS_PROTECTION,
+                    COMMAND_DETAIL_FRONT_LOSS_PROTECTED_FRONT,
+                    1, protected_card, protected, protected,
                 )
 
     strat = state.stratagem[0]
-    if strat >= 0 and self.strat_recovery_loss_reduction[strat]:
+    if strat >= 0 and self.strat_front_loss_protection[strat]:
         protected = min(
-            state.resolution_recovery_losses[0],
-            self.strat_recovery_loss_reduction[strat],
+            state.resolution_front_loss_command_penalty[0],
+            self.strat_front_loss_protection[strat]
+            * self.lost_front_command_penalty,
         )
-        state.resolution_recovery_losses[0] -= protected
+        state.resolution_front_loss_command_penalty[0] -= protected
         if protected:
             _fe_record_command_diag(
-                self, COMMAND_DIAG_RECOVERY_PROTECTION,
-                COMMAND_DETAIL_RECOVERY_STRATAGEM,
+                self, COMMAND_DIAG_FRONT_LOSS_PROTECTION,
+                COMMAND_DETAIL_FRONT_LOSS_STRATAGEM,
                 0, strat, protected, protected,
             )
     strat = state.stratagem[1]
-    if strat >= 0 and self.strat_recovery_loss_reduction[strat]:
+    if strat >= 0 and self.strat_front_loss_protection[strat]:
         protected = min(
-            state.resolution_recovery_losses[1],
-            self.strat_recovery_loss_reduction[strat],
+            state.resolution_front_loss_command_penalty[1],
+            self.strat_front_loss_protection[strat]
+            * self.lost_front_command_penalty,
         )
-        state.resolution_recovery_losses[1] -= protected
+        state.resolution_front_loss_command_penalty[1] -= protected
         if protected:
             _fe_record_command_diag(
-                self, COMMAND_DIAG_RECOVERY_PROTECTION,
-                COMMAND_DETAIL_RECOVERY_STRATAGEM,
+                self, COMMAND_DIAG_FRONT_LOSS_PROTECTION,
+                COMMAND_DETAIL_FRONT_LOSS_STRATAGEM,
                 1, strat, protected, protected,
             )
 
@@ -520,8 +534,8 @@ cdef void _fe_clear_resolution_state(FastEngine self, FastState state) noexcept:
     state.resolution_drive_mask[1] = 0
     state.resolution_protected_mask[0] = 0
     state.resolution_protected_mask[1] = 0
-    state.resolution_recovery_losses[0] = 0
-    state.resolution_recovery_losses[1] = 0
+    state.resolution_front_loss_command_penalty[0] = 0
+    state.resolution_front_loss_command_penalty[1] = 0
     state.resolution_suppressed_mask = 0
     state.resolution_starter = -1
     for slot in range(SLOT_COUNT):
@@ -585,10 +599,10 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
 
     base_recovery = _fe_command_recovery_for_battle(self, state.battle)
     for p in range(2):
-        # Losing Fronts causes immediate Command attrition after Battle-end
-        # effects and before Collapse. Existing protection effects reduce this
-        # penalty before it is applied.
-        state.command[p] -= state.resolution_recovery_losses[p]
+        # Lost Fronts reduce current Command after Battle-end effects and
+        # before Collapse. The per-Front amount is a rule parameter; card
+        # protections have already reduced the resulting penalty.
+        state.command[p] -= state.resolution_front_loss_command_penalty[p]
         if state.command[p] < 0:
             state.command[p] = 0
 
@@ -600,8 +614,10 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.last_completion_count[p] = state.completion_count_this_battle[p]
         # Collapse is checked after Front-loss Command attrition and before
         # any recovery.
-        state.last_command_before_recovery[p] = state.command[p]
-        state.last_recovery_loss[p] = state.resolution_recovery_losses[p]
+        state.last_command_before_collapse[p] = state.command[p]
+        state.last_front_loss_command_penalty[p] = (
+            state.resolution_front_loss_command_penalty[p]
+        )
         state.last_recovery_actual[p] = 0
         state.last_command_remaining[p] = state.command[p]
         state.last_deck_remaining[p] = state.deck_len[p]
@@ -758,8 +774,8 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
     state.resolution_drive_mask[1] = 0
     state.resolution_protected_mask[0] = 0
     state.resolution_protected_mask[1] = 0
-    state.resolution_recovery_losses[0] = 0
-    state.resolution_recovery_losses[1] = 0
+    state.resolution_front_loss_command_penalty[0] = 0
+    state.resolution_front_loss_command_penalty[1] = 0
     for slot in range(SLOT_COUNT):
         state.resolution_contribution_front[slot] = -1
 
