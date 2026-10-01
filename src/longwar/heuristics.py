@@ -46,7 +46,6 @@ HEURISTIC_DEFAULTS: dict[str, float] = {
     "command_delta_weight": 0.45,
     "collapse_vulnerability_buffer": 3,
     "collapse_vulnerability_weight": 1.20,
-    "collapse_outcome_score": 250.0,
     "projected_command_weight": 0.35,
     "passed_base_penalty": 1.5,
     "passed_hand_cap": 7.0,
