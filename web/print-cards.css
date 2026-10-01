@@ -47,7 +47,7 @@ button, .button { padding: 8px 12px; border: 1px solid #a9aa9f; color: inherit; 
 .game-card.card-force { --accent: #5d6553; }
 .game-card.card-bond { --accent: #775341; --paper: #fcf7ee; }
 .game-card.card-name { --accent: #3c6558; --paper: #f5f8f1; }
-.game-card.card-story { --accent: #735568; --paper: #fbf7f5; }
+.game-card.card-narrative { --accent: #735568; --paper: #fbf7f5; }
 .game-card.card-stratagem { --accent: #405d70; --paper: #f6f8f8; }
 .game-card.card-hero { --accent: #8a6027; --paper: #fbf6e9; border-color: #765525; border-width: .4mm; }
 .card-hero::before { border-width: .26mm; opacity: .82; }
