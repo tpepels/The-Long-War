@@ -1445,7 +1445,8 @@
       "design_rules": {
         "command": "optional_extra_payment",
         "extra_cost": 1,
-        "effect": "draw_2"
+        "effect": "draw_cards",
+        "draw_cards": 2
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -1567,8 +1568,8 @@
         "command": "local_catch_up_discount",
         "condition": "controller_command_lower_than_opponent",
         "scope": "this_front",
-        "first_card_each_turn_discount": 1,
-        "minimum_cost": 1
+        "minimum_cost": 1,
+        "discount_amount": 1
       },
       "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
@@ -1791,7 +1792,9 @@
           "command": "protect_lost_front_here"
         },
         "name": {
-          "command": "first_card_in_front_each_battle_discount_1_min_1"
+          "command": "first_card_in_front_each_battle_discount",
+          "discount_amount": 1,
+          "minimum_cost": 1
         }
       },
       "engine_sync": "pending-first-80-migration",
@@ -1836,7 +1839,9 @@
       "design_rules": {
         "force": {
           "deploy_rank": "rear",
-          "command": "frontline_force_discount_1_min_1"
+          "command": "frontline_force_discount",
+          "discount_amount": 1,
+          "minimum_cost": 1
         },
         "name": {
           "on_completion": "return_one_bond_from_discard_to_hand"
@@ -1979,7 +1984,9 @@
       "design_rules": {
         "force": {
           "deploy_rank": "rear",
-          "narrative": "first_narrative_each_battle_discount_1_min_1"
+          "narrative": "first_narrative_each_battle_discount",
+          "discount_amount": 1,
+          "minimum_cost": 1
         },
         "name": {
           "on_completion": "return_one_narrative_from_discard_to_hand"
@@ -2181,8 +2188,8 @@
         "at_battle_end": {
           "condition": "chosen_front_won",
           "gain_command": 2,
-          "secondary": "draw_1",
-          "discard_self": true
+          "discard_self": true,
+          "draw_cards": 1
         }
       },
       "engine_sync": "pending-first-80-migration",
@@ -2223,8 +2230,8 @@
         "at_battle_end": {
           "condition": "chosen_formation_still_on_battlefield",
           "gain_command": 1,
-          "secondary": "draw_1",
-          "discard_self": true
+          "discard_self": true,
+          "draw_cards": 1
         }
       },
       "engine_sync": "pending-first-80-migration",
