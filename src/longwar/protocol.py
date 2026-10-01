@@ -25,6 +25,29 @@ class AgentKind(StrEnum):
     ONLINE_MCCFR = "online_mccfr"
 
 
+class RolloutPolicy(StrEnum):
+    GREEDY = "greedy"
+    CHEAP = "cheap"
+    RANDOM = "random"
+    DECISIVE = "decisive"
+
+
+class RolloutPolicyCode(IntEnum):
+    GREEDY = 0
+    CHEAP = 1
+    RANDOM = 2
+    DECISIVE = 3
+
+
+class SearchBackend(StrEnum):
+    AUTO = "auto"
+    CYTHON = "cython"
+    PYTHON = "python"
+
+
+MCCFR_POLICY_SCHEMA_VERSION = 1
+
+
 class GameMode(StrEnum):
     HOTSEAT = "hotseat"
     REMOTE = "remote"
