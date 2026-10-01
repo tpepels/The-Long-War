@@ -746,3 +746,19 @@ def test_decisive_rollout_keeps_only_exact_second_signal_probe() -> None:
     assert "_ismcts_action_allows_immediate_loss" not in source
     assert "DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES" not in source
     assert "DECISIVE_ROLLOUT_RANDOM_WIN_PROBES" not in source
+
+
+def test_heuristic_reuses_canonical_front_loss_projection() -> None:
+    resolution = (SRC / "_fast_engine_resolution.pxi").read_text(encoding="utf-8")
+    heuristic = (SRC / "_heuristic_core.pxi").read_text(encoding="utf-8")
+
+    assert "cdef void _fe_project_front_losses_fast(" in resolution
+    assert "_fe_project_front_losses_fast(" in heuristic
+
+    projection = heuristic.split(
+        "cdef void projected_lost_masks_fast(", 1
+    )[1].split(
+        "cdef int projected_front_loss_command_penalty_fast(", 1
+    )[0]
+    assert "_fe_tie_control_active" not in projection
+    assert "strat_combine_fronts" not in projection
