@@ -1,7 +1,7 @@
 cdef inline uint32_t _fe_next_shuffle_seed(FastEngine self, uint32_t seed) noexcept:
     return seed * <uint32_t>1664525 + <uint32_t>1013904223
 
-cdef void _fe_clear_story_targets_at_slot(
+cdef void _fe_clear_narrative_targets_at_slot(
     FastEngine self,
     FastState state,
     int slot,
@@ -19,7 +19,7 @@ cdef void _fe_discard_slot_components(
 ) noexcept:
     cdef int card
     if state.force[slot] >= 0:
-        _fe_clear_story_targets_at_slot(self, state, slot)
+        _fe_clear_narrative_targets_at_slot(self, state, slot)
     card = state.force[slot]
     if card >= 0:
         _fe_append_discard(self, state, player, card, False)
@@ -76,7 +76,7 @@ cdef void _fe_finish_pending_drive_off(
     cdef int name = state.name[slot]
 
     if force >= 0:
-        _fe_clear_story_targets_at_slot(self, state, slot)
+        _fe_clear_narrative_targets_at_slot(self, state, slot)
         _fe_append_discard(self, state, player, force, False)
 
     if bond >= 0:
