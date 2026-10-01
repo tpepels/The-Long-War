@@ -117,7 +117,7 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
             source = trigger_source
         if source >= 0:
             state.resolution_protected_mask[player] |= <uint8_t>(
-                1 << (front_from_slot(source) + 4)
+                1 << (front_from_slot(source) + FRONT_COUNT)
             )
         if not skip and source >= 0:
             state.resolution_protected_mask[player] |= <uint8_t>(
@@ -274,11 +274,11 @@ cdef void _fe_first_card_front_constraint_triggers(
                 front,
                 0,
                 -1,
-                state.turn_number + 2,
+                state.turn_number + NEXT_OWN_TURN_OFFSET,
                 CONSTRAINT_EXPIRES_AFTER_OPERATION,
             )
             mask = state.narrative_trigger_mask[ix]
-            if mask == 3:
+            if mask == ALL_PLAYERS_MASK:
                 _fe_discard_ongoing_narrative(
                     self, state, controller, narrative_slot
                 )
@@ -497,7 +497,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 -1,
                 <int>extra,
                 dest,
-                state.turn_number + 2,
+                state.turn_number + NEXT_OWN_TURN_OFFSET,
                 (
                     CONSTRAINT_EXPIRES_AFTER_OPERATION
                     | CONSTRAINT_PERSISTS_BATTLE
@@ -534,7 +534,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                     front,
                     0,
                     -1,
-                    state.turn_number + 2,
+                    state.turn_number + NEXT_OWN_TURN_OFFSET,
                     CONSTRAINT_EXPIRES_AFTER_OPERATION,
                 )
                 _fe_add_constraint(
@@ -546,7 +546,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                     front,
                     0,
                     -1,
-                    state.turn_number + 1,
+                    state.turn_number + NEXT_OPERATION_TURN_OFFSET,
                     CONSTRAINT_EXPIRES_AFTER_OPERATION,
                 )
 
