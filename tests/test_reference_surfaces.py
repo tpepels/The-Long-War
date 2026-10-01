@@ -229,6 +229,19 @@ def test_web_card_renderers_use_only_canonical_card_types() -> None:
         assert ".veiled" not in source
 
 
+def test_active_runtime_uses_canonical_card_vocabulary() -> None:
+    effects = text("src/longwar/_fast_engine_effects.pxi")
+    costs = text("src/longwar/_fast_engine_costs.pxi")
+    heuristic = text("src/longwar/_heuristic_core.pxi")
+    play_style = text("web/play.css")
+
+    assert "_fe_remove_link" not in effects
+    assert "_fe_recover_recent_link_fast" not in costs
+    assert "needs_link" not in heuristic
+    assert ".play-card.card-link" not in play_style
+    assert ".play-card.card-bond" in play_style
+
+
 def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
     data = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     cards = data["cards"]
