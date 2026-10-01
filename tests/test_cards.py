@@ -70,7 +70,7 @@ def test_all_cards_define_valid_rule_blocks() -> None:
 
 def test_player_facing_card_text_uses_canonical_vocabulary() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    obsolete = re.compile(r"\b(?:Subject|Link|Plot|Scheme|Veiled Narrative|Narrative)\b", re.IGNORECASE)
+    obsolete = re.compile(r"\b(?:Subject|Link|Plot|Scheme|Veiled|Story)\b", re.IGNORECASE)
     for card in data["cards"]:
         assert not obsolete.search(card.get("text", "")), card["title"]
 
