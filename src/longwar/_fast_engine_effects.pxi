@@ -103,7 +103,7 @@ cdef void _fe_compact_ongoing_narratives(
             state.narrative_front_mask[src] = 0
             state.narrative_target_slot[src] = -1
             state.narrative_used[src] = 0
-            state.narrative_direction[src] = 0
+            state.narrative_direction[src] = DIRECTION_NONE
             state.narrative_trigger_mask[src] = 0
         write_slot += 1
 
@@ -210,7 +210,7 @@ cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) 
     state.temporary[source] = 0
     state.maneuver_count[source] = 0
     state.maneuvered_in_operation[source] = 0
-    state.maneuver_direction[source] = 0
+    state.maneuver_direction[source] = DIRECTION_NONE
 
 cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcept:
     cdef int ix
@@ -282,7 +282,7 @@ cdef void _fe_discard_ongoing_narrative(
     state.narrative_front_mask[ix] = 0
     state.narrative_target_slot[ix] = -1
     state.narrative_used[ix] = 0
-    state.narrative_direction[ix] = 0
+    state.narrative_direction[ix] = DIRECTION_NONE
     state.narrative_trigger_mask[ix] = 0
     _fe_compact_ongoing_narratives(self, state, controller)
     _fe_append_discard(self, state, controller, card, True)
