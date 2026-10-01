@@ -9,6 +9,7 @@ from longwar.agents.heuristic_agent import HeuristicAgent
 from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
 from longwar.game import Discard, Front, GameEngine, Pass, PlayBond, Position, Rank
+from longwar.native_engine import create_heuristic_evaluator
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -132,6 +133,42 @@ def test_heuristic_does_not_use_opponent_hidden_hand_identities() -> None:
     assert first == second
 
 
+def test_public_and_sampled_heuristic_contexts_are_explicit() -> None:
+    engine, _state = engine_and_state()
+    public = engine._native_heuristic()
+    sampled = create_heuristic_evaluator(
+        engine._native_core(),
+        sampled_opponent_resources=True,
+    )
+
+    assert public.sampled_opponent_resources is False
+    assert sampled.sampled_opponent_resources is True
+
+
+def test_public_heuristic_value_does_not_use_opponent_hidden_hand_identities() -> None:
+    engine, state = engine_and_state()
+    state.players[0].hand = ["the-fifty-men", "followed", "namar"]
+    state.players[1].hand = ["oren", "iria", "mara"]
+
+    evaluator = engine._native_heuristic()
+    first = evaluator.evaluate(
+        engine._native_core().from_game_state(state),
+        0,
+    )
+
+    state.players[1].hand = [
+        "the-fifty-men",
+        "seven-black-ships",
+        "followed",
+    ]
+    second = evaluator.evaluate(
+        engine._native_core().from_game_state(state),
+        0,
+    )
+
+    assert first == pytest.approx(second)
+
+
 def test_heuristic_values_all_four_fronts_independently() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=3, exploration=0.0)
@@ -165,7 +202,10 @@ def test_native_heuristic_value_is_zero_sum_between_player_perspectives() -> Non
         Position(Front.SECOND, Rank.REAR),
     ).force = "seven-black-ships"
 
-    evaluator = engine._native_heuristic()
+    evaluator = create_heuristic_evaluator(
+        engine._native_core(),
+        sampled_opponent_resources=True,
+    )
     packed = engine._native_core().from_game_state(state)
     value0 = evaluator.evaluate(packed, 0)
     value1 = evaluator.evaluate(packed, 1)
@@ -197,7 +237,10 @@ def test_post_signal_heuristic_value_is_zero_sum() -> None:
     state.players[0].hand = ["oren", "the-fifty-men"]
     state.players[1].hand = ["namar", "iria", "followed"]
 
-    evaluator = engine._native_heuristic()
+    evaluator = create_heuristic_evaluator(
+        engine._native_core(),
+        sampled_opponent_resources=True,
+    )
     packed = engine._native_core().from_game_state(state)
 
     assert evaluator.evaluate(packed, 0) == pytest.approx(
