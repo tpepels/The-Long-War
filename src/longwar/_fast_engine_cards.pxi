@@ -166,276 +166,276 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     }
     for code, card_id in enumerate(self.card_ids):
         card = engine.cards[card_id]
-        self.card_type[code] = type_map[card["type"]]
-        self.role[code] = role_map.get(card.get("role"), ROLE_NONE)
-        self.strength[code] = int(card.get("strength", 0))
+        self.card_type[code] = type_map[card[CardField.TYPE]]
+        self.role[code] = role_map.get(card.get(CardField.ROLE), ROLE_NONE)
+        self.strength[code] = int(card.get(CardField.STRENGTH, 0))
         self.name_strength[code] = int(
             card.get(
                 "hero_name_strength",
-                card.get("strength", 0) if card["type"] == CardType.NAME else 0,
+                card.get(CardField.STRENGTH, 0) if card[CardField.TYPE] == CardType.NAME else 0,
             )
         )
-        self.hero[code] = bool(card.get("hero", False))
+        self.hero[code] = bool(card.get(CardField.HERO, False))
         design = engine.card_mechanics[card_id]
         self.card_capabilities[code] = <uint64_t>design.get(
             "_capability_bits",
             0,
         )
-        force_design = design.get("force") or design
+        force_design = design.get(DesignField.FORCE) or design
 
         self.narrative_first_card_front_constraint[code] = bool(
-            design.get("per_player_first_card_in_front_each_battle")
-            and design.get("next_operation_must_affect_chosen_front_if_possible")
+            design.get(DesignField.PER_PLAYER_FIRST_CARD_IN_FRONT_EACH_BATTLE)
+            and design.get(DesignField.NEXT_OPERATION_MUST_AFFECT_CHOSEN_FRONT_IF_POSSIBLE)
         )
         self.narrative_no_maneuver_away[code] = bool(
-            design.get("named_formations_cannot_maneuver_away")
+            design.get(DesignField.NAMED_FORMATIONS_CANNOT_MANEUVER_AWAY)
         )
         self.narrative_forced_named_direction[code] = bool(
-            design.get("choose_friendly_named_formation")
-            and design.get("choose_direction")
-            and design.get("next_turn_forced_maneuver_if_legal")
+            design.get(DesignField.CHOOSE_FRIENDLY_NAMED_FORMATION)
+            and design.get(DesignField.CHOOSE_DIRECTION)
+            and design.get(DesignField.NEXT_TURN_FORCED_MANEUVER_IF_LEGAL)
         )
         self.narrative_three_front_next_maneuver[code] = bool(
-            design.get("next_battle_first_operation_must_be_maneuver_if_possible")
+            design.get(DesignField.NEXT_BATTLE_FIRST_OPERATION_MUST_BE_MANEUVER_IF_POSSIBLE)
         )
         self.narrative_front_requires_named[code] = bool(
-            design.get("chosen_front_requires_friendly_named_formation")
+            design.get(DesignField.CHOSEN_FRONT_REQUIRES_FRIENDLY_NAMED_FORMATION)
         )
         self.strat_no_maneuver_away[code] = bool(
-            design.get("formations_cannot_maneuver_away_from_chosen_front")
+            design.get(DesignField.FORMATIONS_CANNOT_MANEUVER_AWAY_FROM_CHOSEN_FRONT)
         )
         self.strat_first_maneuver_direction[code] = bool(
-            design.get("first_maneuver_each_player_must_use_direction_if_possible")
+            design.get(DesignField.FIRST_MANEUVER_EACH_PLAYER_MUST_USE_DIRECTION_IF_POSSIBLE)
         )
         self.strat_next_operation_front[code] = bool(
-            design.get("next_operation_each_player_must_affect_chosen_front_if_possible")
+            design.get(DesignField.NEXT_OPERATION_EACH_PLAYER_MUST_AFFECT_CHOSEN_FRONT_IF_POSSIBLE)
         )
         self.bond_momentum_direction[code] = bool(
-            design.get("later_maneuvers_same_direction_if_possible")
+            design.get(DesignField.LATER_MANEUVERS_SAME_DIRECTION_IF_POSSIBLE)
         )
-        self.card_command_cost[code] = int(card.get("command_cost", 0))
+        self.card_command_cost[code] = int(card.get(CardField.COMMAND_COST, 0))
 
         if (
-            design.get("trigger") == DesignToken.FRIENDLY_FORMATION_BECOMES_NAMED
-            and design.get("scope") == DesignToken.THIS_FORMATION
+            design.get(DesignField.TRIGGER) == DesignToken.FRIENDLY_FORMATION_BECOMES_NAMED
+            and design.get(DesignField.SCOPE) == DesignToken.THIS_FORMATION
         ):
-            if design.get("gain_command"):
+            if design.get(DesignField.GAIN_COMMAND):
                 self.completion_effect[code] = COMPLETE_GAIN_COMMAND
                 self.completion_amount[code] = int(design["gain_command"])
-            elif design.get("draw_cards"):
+            elif design.get(DesignField.DRAW_CARDS):
                 self.completion_effect[code] = COMPLETE_DRAW
                 self.completion_amount[code] = int(design["draw_cards"])
-        if design.get("command") == DesignToken.COMPLETION_REFUND:
-            completion_design = design.get("on_completion") or {}
-            if completion_design.get("gain_command"):
+        if design.get(DesignField.COMMAND) == DesignToken.COMPLETION_REFUND:
+            completion_design = design.get(DesignField.ON_COMPLETION) or {}
+            if completion_design.get(DesignField.GAIN_COMMAND):
                 self.completion_effect[code] = COMPLETE_GAIN_COMMAND
                 self.completion_amount[code] = int(completion_design["gain_command"])
 
         placement = (
-            force_design.get("deploy_rank")
-            or design.get("deploy_rank")
+            force_design.get(DesignField.DEPLOY_RANK)
+            or design.get(DesignField.DEPLOY_RANK)
         )
         self.placement_rank[code] = rank_map.get(placement, -1)
-        printed_effect = force_design.get("printed_role_effect") or design.get("printed_role_effect")
+        printed_effect = force_design.get(DesignField.PRINTED_ROLE_EFFECT) or design.get(DesignField.PRINTED_ROLE_EFFECT)
         self.force_text_effect[code] = force_text_map.get(printed_effect, FORCE_TEXT_NONE)
         self.force_text_amount[code] = int(
-            force_design.get("amount", design.get("amount", 0))
+            force_design.get(DesignField.AMOUNT, design.get(DesignField.AMOUNT, 0))
         )
         self.can_maneuver_unnamed[code] = bool(
-            force_design.get("can_maneuver_while_unnamed")
-            or design.get("can_maneuver_while_unnamed")
+            force_design.get(DesignField.CAN_MANEUVER_WHILE_UNNAMED)
+            or design.get(DesignField.CAN_MANEUVER_WHILE_UNNAMED)
         )
-        if design.get("build_around") == DesignToken.OPEN_BOND:
+        if design.get(DesignField.BUILD_AROUND) == DesignToken.OPEN_BOND:
             self.maneuver_requires_open_bond[code] = 1
-        if design.get("build_around") == DesignToken.HERO_RETINUE:
+        if design.get(DesignField.BUILD_AROUND) == DesignToken.HERO_RETINUE:
             self.bond_maneuver_adjacent_hero[code] = 1
-        if design.get("prevent_opponent_card_effect_move_into_front_from_adjacent"):
+        if design.get(DesignField.PREVENT_OPPONENT_CARD_EFFECT_MOVE_INTO_FRONT_FROM_ADJACENT):
             self.bond_blocks_opponent_card_move[code] = 1
-        if design.get("prevent_opponent_card_effect_movement"):
+        if design.get(DesignField.PREVENT_OPPONENT_CARD_EFFECT_MOVEMENT):
             self.bond_guarded_from_opponent_card_move[code] = 1
-        lost_front = design.get("lost_front") or {}
-        if lost_front.get("effect") == DesignToken.DRIVE_OFF_SELF_PREVENT_FRONTLINE_RETREAT:
+        lost_front = design.get(DesignField.LOST_FRONT) or {}
+        if lost_front.get(DesignField.EFFECT) == DesignToken.DRIVE_OFF_SELF_PREVENT_FRONTLINE_RETREAT:
             self.rear_force_prevents_frontline_retreat[code] = 1
-        if design.get("first_maneuver_each_battle_cost") == 0:
+        if design.get(DesignField.FIRST_MANEUVER_EACH_BATTLE_COST) == 0:
             self.first_maneuver_free[code] = 1
-        if design.get("first_self_maneuver_each_battle_cost") == 0:
+        if design.get(DesignField.FIRST_SELF_MANEUVER_EACH_BATTLE_COST) == 0:
             self.first_maneuver_free_empty_front[code] = 1
-        if design.get("command") == DesignToken.LOCAL_CATCH_UP_DISCOUNT:
+        if design.get(DesignField.COMMAND) == DesignToken.LOCAL_CATCH_UP_DISCOUNT:
             self.local_catchup_discount_name[code] = int(
-                design.get("first_card_each_turn_discount", 1)
+                design.get(DesignField.FIRST_CARD_EACH_TURN_DISCOUNT, 1)
             )
-        name_design = design.get("name") or {}
-        if name_design.get("command") == DesignToken.FIRST_CARD_IN_FRONT_EACH_BATTLE_DISCOUNT_1_MIN_1:
+        name_design = design.get(DesignField.NAME) or {}
+        if name_design.get(DesignField.COMMAND) == DesignToken.FIRST_CARD_IN_FRONT_EACH_BATTLE_DISCOUNT_1_MIN_1:
             self.first_front_card_battle_discount_name[code] = 1
-        if force_design.get("narrative") == DesignToken.FIRST_NARRATIVE_EACH_BATTLE_DISCOUNT_1_MIN_1:
+        if force_design.get(DesignField.NARRATIVE) == DesignToken.FIRST_NARRATIVE_EACH_BATTLE_DISCOUNT_1_MIN_1:
             self.first_narrative_battle_discount_force[code] = 1
-        if force_design.get("combat") == DesignToken.BREAKTHROUGH:
+        if force_design.get(DesignField.COMBAT) == DesignToken.BREAKTHROUGH:
             self.force_breakthrough[code] = 1
-        name_design = design.get("name") or {}
-        if name_design.get("combat") == DesignToken.BREAKTHROUGH_IF_OPPONENT_NO_REAR_FORCE:
+        name_design = design.get(DesignField.NAME) or {}
+        if name_design.get(DesignField.COMBAT) == DesignToken.BREAKTHROUGH_IF_OPPONENT_NO_REAR_FORCE:
             self.name_breakthrough[code] = 1
         self.immobile_force[code] = bool(
-            force_design.get("immobile") or design.get("immobile")
+            force_design.get(DesignField.IMMOBILE) or design.get(DesignField.IMMOBILE)
         )
         self.cannot_swap_target[code] = bool(
-            force_design.get("cannot_be_swap_target")
-            or design.get("cannot_be_swap_target")
+            force_design.get(DesignField.CANNOT_BE_SWAP_TARGET)
+            or design.get(DesignField.CANNOT_BE_SWAP_TARGET)
         )
-        if design.get("command") == DesignToken.CATCH_UP_DISCOUNT:
+        if design.get(DesignField.COMMAND) == DesignToken.CATCH_UP_DISCOUNT:
             self.catchup_zero_cost[code] = 1
-        if design.get("command") == DesignToken.COMPLETION_DISCOUNT:
+        if design.get(DesignField.COMMAND) == DesignToken.COMPLETION_DISCOUNT:
             self.completion_discount_cost[code] = int(
-                design.get("discounted_cost", card.get("command_cost", 0))
+                design.get(DesignField.DISCOUNTED_COST, card.get(CardField.COMMAND_COST, 0))
             )
-        if design.get("persistence") == DesignToken.REAR_REBUILD_COST_REDUCTION:
+        if design.get(DesignField.PERSISTENCE) == DesignToken.REAR_REBUILD_COST_REDUCTION:
             self.frontline_force_discount[code] = 1
             self.frontline_force_discount_requires_named[code] = 1
-        if force_design.get("command") == DesignToken.FRONTLINE_FORCE_DISCOUNT_1_MIN_1:
+        if force_design.get(DesignField.COMMAND) == DesignToken.FRONTLINE_FORCE_DISCOUNT_1_MIN_1:
             self.frontline_force_discount[code] = 1
-        if force_design.get("command") == DesignToken.PROTECT_LOST_FRONT_HERE:
+        if force_design.get(DesignField.COMMAND) == DesignToken.PROTECT_LOST_FRONT_HERE:
             self.front_loss_protected_front[code] = 1
-        if design.get("persistence") == DesignToken.INHERITED_BOND:
+        if design.get(DesignField.PERSISTENCE) == DesignToken.INHERITED_BOND:
             self.driven_bond_stays[code] = 1
-        if design.get("persistence") == DesignToken.BOND_RETURNS_TO_HAND_WHEN_FORCE_DRIVEN_OFF:
+        if design.get(DesignField.PERSISTENCE) == DesignToken.BOND_RETURNS_TO_HAND_WHEN_FORCE_DRIVEN_OFF:
             self.driven_bond_returns[code] = 1
         if (
-            design.get("persistence") == DesignToken.NAME_RETURNS_TO_HAND_WHEN_FORMATION_DRIVEN_OFF
-            or (design.get("name") or {}).get("effect") == DesignToken.RETURN_HERO_TO_HAND_IF_DRIVEN_OFF
+            design.get(DesignField.PERSISTENCE) == DesignToken.NAME_RETURNS_TO_HAND_WHEN_FORMATION_DRIVEN_OFF
+            or (design.get(DesignField.NAME) or {}).get(DesignField.EFFECT) == DesignToken.RETURN_HERO_TO_HAND_IF_DRIVEN_OFF
         ):
             self.driven_name_returns[code] = 1
-        if design.get("persistence") == DesignToken.RETREAT_COMMAND_COMPENSATION:
-            self.retreat_command_gain[code] = int(design.get("amount", 1))
+        if design.get(DesignField.PERSISTENCE) == DesignToken.RETREAT_COMMAND_COMPENSATION:
+            self.retreat_command_gain[code] = int(design.get(DesignField.AMOUNT, 1))
         if (
-            design.get("combat") == DesignToken.CAPTURE
-            and design.get("trigger")
+            design.get(DesignField.COMBAT) == DesignToken.CAPTURE
+            and design.get(DesignField.TRIGGER)
             == DesignToken.OWN_FRONT_WINS_AND_OPPOSING_FRONTLINE_NAMED_RETREATS
-            and design.get("timing") == DesignToken.AFTER_RETREAT
-            and design.get("effect")
+            and design.get(DesignField.TIMING) == DesignToken.AFTER_RETREAT
+            and design.get(DesignField.EFFECT)
             == DesignToken.RETURN_RETREATING_FORMATION_BOND_TO_OWNER_HAND
         ):
             self.capture_retreating_bond[code] = 1
-        if design.get("combat") == DesignToken.FRONTLINE_ONLY_COMPARISON:
+        if design.get(DesignField.COMBAT) == DesignToken.FRONTLINE_ONLY_COMPARISON:
             self.combat_frontline_only[code] = 1
-        completion_design = design.get("on_completion") or {}
-        if completion_design.get("effect") == DesignToken.OPTIONAL_SWAP_ADJACENT_FRIENDLY_FORMATION:
+        completion_design = design.get(DesignField.ON_COMPLETION) or {}
+        if completion_design.get(DesignField.EFFECT) == DesignToken.OPTIONAL_SWAP_ADJACENT_FRIENDLY_FORMATION:
             self.completion_swap_adjacent[code] = 1
-        name_completion = name_design.get("on_completion")
+        name_completion = name_design.get(DesignField.ON_COMPLETION)
         if (
             isinstance(name_completion, dict)
-            and name_completion.get("effect") == DesignToken.FREE_MANEUVER_SELF
+            and name_completion.get(DesignField.EFFECT) == DesignToken.FREE_MANEUVER_SELF
         ):
             self.completion_free_maneuver_self[code] = 1
-        if (force_design.get("after_maneuver") or {}).get("effect") == DesignToken.FREE_MANEUVER_ADJACENT_FRIENDLY_NAMED_FORMATION:
+        if (force_design.get(DesignField.AFTER_MANEUVER) or {}).get(DesignField.EFFECT) == DesignToken.FREE_MANEUVER_ADJACENT_FRIENDLY_NAMED_FORMATION:
             self.after_maneuver_free_adjacent[code] = 1
-        if name_design.get("on_completion") == DesignToken.RETURN_ONE_BOND_FROM_DISCARD_TO_HAND:
+        if name_design.get(DesignField.ON_COMPLETION) == DesignToken.RETURN_ONE_BOND_FROM_DISCARD_TO_HAND:
             self.recover_bond_on_completion_name[code] = 1
-        if name_design.get("on_completion") == DesignToken.RETURN_ONE_NARRATIVE_FROM_DISCARD_TO_HAND:
+        if name_design.get(DesignField.ON_COMPLETION) == DesignToken.RETURN_ONE_NARRATIVE_FROM_DISCARD_TO_HAND:
             self.recover_narrative_on_completion_name[code] = 1
-        front_resolution = design.get("front_resolution") or {}
-        if front_resolution.get("contribution") == DesignToken.CHOSEN_FRONT_INSTEAD_OF_OWN:
+        front_resolution = design.get(DesignField.FRONT_RESOLUTION) or {}
+        if front_resolution.get(DesignField.CONTRIBUTION) == DesignToken.CHOSEN_FRONT_INSTEAD_OF_OWN:
             self.skirmisher_contribution[code] = 1
-        if (design.get("after_maneuver_into_empty") or {}).get("effect") == DesignToken.OPTIONAL_MOVE_ADJACENT_FRIENDLY_TO_VACATED_POSITION:
+        if (design.get(DesignField.AFTER_MANEUVER_INTO_EMPTY) or {}).get(DesignField.EFFECT) == DesignToken.OPTIONAL_MOVE_ADJACENT_FRIENDLY_TO_VACATED_POSITION:
             self.after_empty_follow_move[code] = 1
-        if (design.get("after_maneuver_swap") or {}).get("effect") == DesignToken.OPTIONAL_ZERO_COST_MANEUVER_SWAPPED_FORMATION:
+        if (design.get(DesignField.AFTER_MANEUVER_SWAP) or {}).get(DesignField.EFFECT) == DesignToken.OPTIONAL_ZERO_COST_MANEUVER_SWAPPED_FORMATION:
             self.after_swap_free_other[code] = 1
-        if design.get("combat") == DesignToken.SKIRMISH:
+        if design.get(DesignField.COMBAT) == DesignToken.SKIRMISH:
             self.suppress_rear_force[code] = 1
-        if design.get("combat") == DesignToken.FIRST_STRIKE:
+        if design.get(DesignField.COMBAT) == DesignToken.FIRST_STRIKE:
             self.first_strike_force[code] = 1
-        if design.get("combat") == DesignToken.SACRIFICE:
+        if design.get(DesignField.COMBAT) == DesignToken.SACRIFICE:
             self.sacrifice_bond[code] = 1
-        if design.get("combat") == DesignToken.INTERCEPTION:
+        if design.get(DesignField.COMBAT) == DesignToken.INTERCEPTION:
             self.intercept_name[code] = 1
-        if design.get("persistence") == DesignToken.RETREAT_SIDEWAYS:
+        if design.get(DesignField.PERSISTENCE) == DesignToken.RETREAT_SIDEWAYS:
             self.retreat_sideways_name[code] = 1
-        if design.get("persistence") == DesignToken.START_BATTLE_REPOSITION:
+        if design.get(DesignField.PERSISTENCE) == DesignToken.START_BATTLE_REPOSITION:
             self.battle_start_move_name[code] = 1
-        if design.get("persistence") == DesignToken.VOLUNTARY_RETREAT_IF_REAR_EMPTY:
+        if design.get(DesignField.PERSISTENCE) == DesignToken.VOLUNTARY_RETREAT_IF_REAR_EMPTY:
             self.voluntary_retreat_name[code] = 1
-        if force_design.get("after_maneuver_into_empty") == DesignToken.OPTIONAL_MOVE_ONE_MORE_FRONT_IF_EMPTY:
+        if force_design.get(DesignField.AFTER_MANEUVER_INTO_EMPTY) == DesignToken.OPTIONAL_MOVE_ONE_MORE_FRONT_IF_EMPTY:
             self.after_empty_extra_move_force[code] = 1
-        if name_design.get("trigger") == DesignToken.OPPONENT_MANEUVERS_INTO_ADJACENT_FRONT:
+        if name_design.get(DesignField.TRIGGER) == DesignToken.OPPONENT_MANEUVERS_INTO_ADJACENT_FRONT:
             self.reactive_maneuver_name[code] = 1
-        if force_design.get("combat") == DesignToken.OPTIONAL_IGNORE_OPPOSING_REAR_STRENGTH:
+        if force_design.get(DesignField.COMBAT) == DesignToken.OPTIONAL_IGNORE_OPPOSING_REAR_STRENGTH:
             self.suppress_rear_force[code] = 1
-        if design.get("combat") == DesignToken.TIE_CONTROL:
+        if design.get(DesignField.COMBAT) == DesignToken.TIE_CONTROL:
             self.strat_tie_control[code] = 1
-        if design.get("command") == DesignToken.HIGH_COST_BATTLE_INVESTMENT:
-            self.strat_maneuver_cost[code] = int(design.get("maneuver_cost", -1))
+        if design.get(DesignField.COMMAND) == DesignToken.HIGH_COST_BATTLE_INVESTMENT:
+            self.strat_maneuver_cost[code] = int(design.get(DesignField.MANEUVER_COST, -1))
             self.strat_unnamed_maneuver[code] = bool(
-                design.get("unnamed_formations_can_maneuver")
+                design.get(DesignField.UNNAMED_FORMATIONS_CAN_MANEUVER)
             )
-        if design.get("command") == DesignToken.PROTECT_LOST_FRONTS:
+        if design.get(DesignField.COMMAND) == DesignToken.PROTECT_LOST_FRONTS:
             self.strat_front_loss_protection[code] = max(
-                0, int(design.get("lost_fronts_protected", 0))
+                0, int(design.get(DesignField.LOST_FRONTS_PROTECTED, 0))
             )
-        if design.get("stratagem") == DesignToken.NO_RETREAT_FRONT:
+        if design.get(DesignField.STRATAGEM) == DesignToken.NO_RETREAT_FRONT:
             self.strat_no_retreat[code] = 1
-        if design.get("stratagem") == DesignToken.COMBINE_TWO_ADJACENT_FRONTS:
+        if design.get(DesignField.STRATAGEM) == DesignToken.COMBINE_TWO_ADJACENT_FRONTS:
             self.strat_combine_fronts[code] = 1
-        if design.get("stratagem") == DesignToken.REFUSE_FLANK:
+        if design.get(DesignField.STRATAGEM) == DesignToken.REFUSE_FLANK:
             self.strat_refuse_flank[code] = 1
-        if design.get("stratagem") == DesignToken.ENCIRCLEMENT:
+        if design.get(DesignField.STRATAGEM) == DesignToken.ENCIRCLEMENT:
             self.strat_encirclement[code] = 1
-        if design.get("stratagem") == DesignToken.FEIGNED_RETREAT:
+        if design.get(DesignField.STRATAGEM) == DesignToken.FEIGNED_RETREAT:
             self.feigned_retreat_strat[code] = 1
-        if design.get("stratagem") == DesignToken.BATTLE_TURNS_DIRECTION:
+        if design.get(DesignField.STRATAGEM) == DesignToken.BATTLE_TURNS_DIRECTION:
             self.strat_directional_maneuver[code] = 1
 
-        self.bond_bonus[code] = int(design.get("strength_bonus", 0))
+        self.bond_bonus[code] = int(design.get(DesignField.STRENGTH_BONUS, 0))
         self.bond_named_bonus[code] = int(
-            design.get("named_additional_strength_bonus", 0)
+            design.get(DesignField.NAMED_ADDITIONAL_STRENGTH_BONUS, 0)
         )
-        on_play_bond = design.get("on_play_onto_force") or {}
-        if on_play_bond.get("effect") == DesignToken.OPTIONAL_MOVE_FORMATION_ADJACENT_EMPTY_POSITION:
+        on_play_bond = design.get(DesignField.ON_PLAY_ONTO_FORCE) or {}
+        if on_play_bond.get(DesignField.EFFECT) == DesignToken.OPTIONAL_MOVE_FORMATION_ADJACENT_EMPTY_POSITION:
             self.bond_move_on_play[code] = 1
-        if design.get("command") == DesignToken.OPTIONAL_EXTRA_PAYMENT:
+        if design.get(DesignField.COMMAND) == DesignToken.OPTIONAL_EXTRA_PAYMENT:
             self.bond_optional_extra_cost[code] = int(
-                design.get("extra_cost", 0)
+                design.get(DesignField.EXTRA_COST, 0)
             )
-            if design.get("effect") == DesignToken.DRAW_2:
+            if design.get(DesignField.EFFECT) == DesignToken.DRAW_2:
                 self.bond_optional_draw_count[code] = 2
-        if design.get("command") == DesignToken.CARD_FOR_COMMAND:
+        if design.get(DesignField.COMMAND) == DesignToken.CARD_FOR_COMMAND:
             self.narrative_discard_count[code] = int(
-                design.get("discard_cards", 0)
+                design.get(DesignField.DISCARD_CARDS, 0)
             )
             self.narrative_discard_gain_command[code] = int(
-                design.get("gain_command", 0)
+                design.get(DesignField.GAIN_COMMAND, 0)
             )
 
-        self.ongoing_narrative[code] = bool(card.get("ongoing", False))
+        self.ongoing_narrative[code] = bool(card.get(CardField.ONGOING, False))
         if (
-            design.get("placement") == DesignToken.CHOSEN_FRONT
-            or design.get("chosen_front")
-            or design.get("chosen_front_requires_friendly_named_formation")
+            design.get(DesignField.PLACEMENT) == DesignToken.CHOSEN_FRONT
+            or design.get(DesignField.CHOSEN_FRONT)
+            or design.get(DesignField.CHOSEN_FRONT_REQUIRES_FRIENDLY_NAMED_FORMATION)
         ):
             self.narrative_choice_kind[code] = NARRATIVE_CHOICE_FRONT
         elif self.narrative_forced_named_direction[code]:
             self.narrative_choice_kind[code] = NARRATIVE_CHOICE_NAMED_DIRECTION
         elif (
-            design.get("placement") == DesignToken.CHOSEN_NAMED_FORMATION
-            or design.get("choose_friendly_named_formation")
+            design.get(DesignField.PLACEMENT) == DesignToken.CHOSEN_NAMED_FORMATION
+            or design.get(DesignField.CHOOSE_FRIENDLY_NAMED_FORMATION)
         ):
             self.narrative_choice_kind[code] = NARRATIVE_CHOICE_NAMED_FORMATION
-        if design.get("trigger") == DesignToken.FIRST_FRIENDLY_MANEUVER_INTO_EMPTY_EACH_BATTLE:
+        if design.get(DesignField.TRIGGER) == DesignToken.FIRST_FRIENDLY_MANEUVER_INTO_EMPTY_EACH_BATTLE:
             self.narrative_maneuver_empty_gain[code] = int(
-                design.get("gain_command", 0)
+                design.get(DesignField.GAIN_COMMAND, 0)
             )
-        if design.get("trigger") == DesignToken.FRIENDLY_FORMATION_BECOMES_NAMED:
+        if design.get(DesignField.TRIGGER) == DesignToken.FRIENDLY_FORMATION_BECOMES_NAMED:
             self.narrative_trigger[code] = NARR_TRIGGER_FRIENDLY_NAMED
-        elif design.get("trigger") == DesignToken.FRIENDLY_NAMED_FORMATION_RETREATS:
+        elif design.get(DesignField.TRIGGER) == DesignToken.FRIENDLY_NAMED_FORMATION_RETREATS:
             self.narrative_trigger[code] = NARR_TRIGGER_FRIENDLY_RETREAT
-        elif design.get("trigger") == DesignToken.OPPOSING_FORMATION_BECOMES_NAMED:
+        elif design.get(DesignField.TRIGGER) == DesignToken.OPPOSING_FORMATION_BECOMES_NAMED:
             self.narrative_trigger[code] = NARR_TRIGGER_OPPONENT_NAMED
-        elif design.get("trigger") == DesignToken.OPPONENT_HAS_FORCE_IN_BOTH_RANKS_SAME_FRONT:
+        elif design.get(DesignField.TRIGGER) == DesignToken.OPPONENT_HAS_FORCE_IN_BOTH_RANKS_SAME_FRONT:
             self.narrative_trigger[code] = NARR_TRIGGER_OPPONENT_BOTH_RANKS
         self.narrative_trigger_gain[code] = int(
-            design.get("gain_command", 0)
+            design.get(DesignField.GAIN_COMMAND, 0)
         )
         self.narrative_trigger_discard[code] = bool(
-            design.get("discard_self", False)
+            design.get(DesignField.DISCARD_SELF, False)
         )
-        secondary = design.get("secondary")
+        secondary = design.get(DesignField.SECONDARY)
         if secondary == DesignToken.OPTIONAL_ZERO_COST_MANEUVER_THAT_FORMATION:
             self.narrative_secondary[code] = NARR_SECONDARY_FREE_TRIGGERED
         elif secondary == DesignToken.OPTIONAL_SIDEWAYS_REAR_MOVE:
@@ -444,27 +444,27 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.narrative_secondary[code] = NARR_SECONDARY_FREE_ANY_NAMED
         elif secondary == DesignToken.OPTIONAL_MOVE_ADJACENT_FRIENDLY_INTO_VACATED_POSITION:
             self.narrative_secondary[code] = NARR_SECONDARY_MOVE_VACATED
-        battle_end = design.get("at_battle_end") or {}
-        if battle_end.get("condition") == DesignToken.CHOSEN_FRONT_NOT_LOST:
+        battle_end = design.get(DesignField.AT_BATTLE_END) or {}
+        if battle_end.get(DesignField.CONDITION) == DesignToken.CHOSEN_FRONT_NOT_LOST:
             self.narrative_end_kind[code] = NARR_END_NOT_LOST
-        elif battle_end.get("condition") == DesignToken.CHOSEN_FRONT_WON:
+        elif battle_end.get(DesignField.CONDITION) == DesignToken.CHOSEN_FRONT_WON:
             self.narrative_end_kind[code] = NARR_END_WON
-        elif battle_end.get("condition") == DesignToken.CHOSEN_FORMATION_STILL_ON_BATTLEFIELD:
+        elif battle_end.get(DesignField.CONDITION) == DesignToken.CHOSEN_FORMATION_STILL_ON_BATTLEFIELD:
             self.narrative_end_kind[code] = NARR_END_TARGET_SURVIVES
-        self.narrative_end_gain[code] = int(battle_end.get("gain_command", 0))
-        self.narrative_end_draw[code] = 1 if battle_end.get("secondary") == DesignToken.DRAW_1 else 0
-        self.narrative_end_recover_bond[code] = 1 if battle_end.get("bonus_if_won") == DesignToken.RETURN_ONE_BOND_FROM_DISCARD_TO_HAND else 0
-        self.narrative_end_discard[code] = bool(battle_end.get("discard_self", False))
-        if design.get("stratagem") == DesignToken.ALL_RESERVES_FORWARD:
+        self.narrative_end_gain[code] = int(battle_end.get(DesignField.GAIN_COMMAND, 0))
+        self.narrative_end_draw[code] = 1 if battle_end.get(DesignField.SECONDARY) == DesignToken.DRAW_1 else 0
+        self.narrative_end_recover_bond[code] = 1 if battle_end.get(DesignField.BONUS_IF_WON) == DesignToken.RETURN_ONE_BOND_FROM_DISCARD_TO_HAND else 0
+        self.narrative_end_discard[code] = bool(battle_end.get(DesignField.DISCARD_SELF, False))
+        if design.get(DesignField.STRATAGEM) == DesignToken.ALL_RESERVES_FORWARD:
             self.strat_choice_kind[code] = STRAT_CHOICE_RESERVES
-        elif design.get("stratagem") == DesignToken.WHEEL_LINE:
+        elif design.get(DesignField.STRATAGEM) == DesignToken.WHEEL_LINE:
             self.strat_choice_kind[code] = STRAT_CHOICE_WHEEL
-        elif design.get("chosen_fronts") == 2:
+        elif design.get(DesignField.CHOSEN_FRONTS) == 2:
             self.strat_choice_kind[code] = STRAT_CHOICE_ADJACENT_FRONTS
-        elif design.get("chosen_edge_front"):
+        elif design.get(DesignField.CHOSEN_EDGE_FRONT):
             self.strat_choice_kind[code] = STRAT_CHOICE_EDGE_FRONT
-        elif design.get("chosen_front"):
+        elif design.get(DesignField.CHOSEN_FRONT):
             self.strat_choice_kind[code] = STRAT_CHOICE_FRONT
-        elif design.get("direction_choice") or design.get("choose_direction"):
+        elif design.get(DesignField.DIRECTION_CHOICE) or design.get(DesignField.CHOOSE_DIRECTION):
             self.strat_choice_kind[code] = STRAT_CHOICE_DIRECTION
 
