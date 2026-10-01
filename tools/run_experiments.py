@@ -1655,6 +1655,8 @@ def benchmark_strength(
                 str(ROOT / "tools" / "simulate.py"),
                 "--games",
                 str(games_per_orientation),
+                "--jobs",
+                "1",
                 "--seed",
                 str(cell_seed),
                 "--card-file",

@@ -829,3 +829,12 @@ def test_structural_reuse_excludes_card_screen_only_configuration() -> None:
     assert '"contexts"' not in structural_block
     assert '"games_per_context"' not in structural_block
     assert '"targeted_online_mccfr"' not in structural_block
+
+
+def test_strength_benchmark_avoids_nested_process_pools() -> None:
+    source = inspect.getsource(runner.benchmark_strength)
+    command_block = source[source.index('command = ['):source.index('cells.append')]
+    assert '"--jobs",' in command_block
+    assert '"1",' in command_block
+    assert "_run_cells_with_live_progress" in source
+    assert "jobs=jobs" in source
