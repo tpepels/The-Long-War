@@ -208,7 +208,7 @@ class ISMCTSAgent:
                 "ismcts_rollout_policy": self.rollout_policy,
                 "ismcts_progressive_widening": self.progressive_widening,
                 "ismcts_tree_reuse_enabled": self.reuse_tree,
-                "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
+            "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
                 "command_guard_applied": guarded > 0,
                 "command_guard_filtered_actions": guarded,
             }
@@ -401,7 +401,7 @@ class ISMCTSAgent:
             "ismcts_rollout_policy": self.rollout_policy,
             "ismcts_progressive_widening": self.progressive_widening,
             "ismcts_tree_reuse_enabled": self.reuse_tree,
-                "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
+            "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
             "command_guard_applied": guarded > 0,
             "command_guard_filtered_actions": guarded,
             "command_guard_overrode_search": guard_overrode_search,
