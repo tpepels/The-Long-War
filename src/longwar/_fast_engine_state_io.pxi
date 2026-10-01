@@ -192,12 +192,12 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         lost_masks = resolution_state.get("lost_masks", (0, 0))
         drive_masks = resolution_state.get("drive_masks", (0, 0))
         protected_masks = resolution_state.get("protected_masks", (0, 0))
-        recovery_losses = resolution_state.get("recovery_losses", (0, 0))
+        front_loss_command_penalty = resolution_state.get("front_loss_command_penalty", (0, 0))
         for p in range(2):
             fast.resolution_lost_mask[p] = int(lost_masks[p])
             fast.resolution_drive_mask[p] = int(drive_masks[p])
             fast.resolution_protected_mask[p] = int(protected_masks[p])
-            fast.resolution_recovery_losses[p] = int(recovery_losses[p])
+            fast.resolution_front_loss_command_penalty[p] = int(front_loss_command_penalty[p])
         fast.resolution_suppressed_mask = int(
             resolution_state.get("suppressed_mask", 0)
         )
@@ -239,13 +239,11 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             fast.last_command_refunded[p] = int(
                 snapshot.get("command_refunded", (0, 0))[p]
             )
-            before_collapse = snapshot.get(
-                "command_before_collapse",
-                snapshot.get("command_before_recovery", (0, 0)),
+            fast.last_command_before_collapse[p] = int(
+                snapshot.get("command_before_collapse", (0, 0))[p]
             )
-            fast.last_command_before_recovery[p] = int(before_collapse[p])
-            fast.last_recovery_loss[p] = int(
-                snapshot.get("recovery_loss", (0, 0))[p]
+            fast.last_front_loss_command_penalty[p] = int(
+                snapshot.get("front_loss_command_penalty", (0, 0))[p]
             )
             fast.last_recovery_actual[p] = int(
                 snapshot.get("recovery_actual", (0, 0))[p]
@@ -373,17 +371,13 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                 state.last_command_refunded[0],
                 state.last_command_refunded[1],
             ],
-            "command_before_recovery": [
-                state.last_command_before_recovery[0],
-                state.last_command_before_recovery[1],
-            ],
             "command_before_collapse": [
-                state.last_command_before_recovery[0],
-                state.last_command_before_recovery[1],
+                state.last_command_before_collapse[0],
+                state.last_command_before_collapse[1],
             ],
-            "recovery_loss": [
-                state.last_recovery_loss[0],
-                state.last_recovery_loss[1],
+            "front_loss_command_penalty": [
+                state.last_front_loss_command_penalty[0],
+                state.last_front_loss_command_penalty[1],
             ],
             "recovery_actual": [
                 state.last_recovery_actual[0],
@@ -709,7 +703,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                 "lost_masks": [state.resolution_lost_mask[0], state.resolution_lost_mask[1]],
                 "drive_masks": [state.resolution_drive_mask[0], state.resolution_drive_mask[1]],
                 "protected_masks": [state.resolution_protected_mask[0], state.resolution_protected_mask[1]],
-                "recovery_losses": [state.resolution_recovery_losses[0], state.resolution_recovery_losses[1]],
+                "front_loss_command_penalty": [state.resolution_front_loss_command_penalty[0], state.resolution_front_loss_command_penalty[1]],
                 "suppressed_mask": state.resolution_suppressed_mask,
                 "contribution_front": [state.resolution_contribution_front[i] for i in range(SLOT_COUNT)],
                 "cursor": state.resolution_cursor,
@@ -777,7 +771,7 @@ cdef dict _fe_debug_snapshot(FastEngine self, FastState state):
             ]
             for p in range(2)
         ],
-        "schemes": [
+        "narratives": [
             [
                 None if state.narrative[p * 4 + f] < 0 else (self.card_ids[state.narrative[p * 4 + f]], bool(state.narrative_revealed[p * 4 + f]))
                 for f in range(4)
