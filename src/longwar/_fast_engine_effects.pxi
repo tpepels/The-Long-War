@@ -883,7 +883,7 @@ cdef void _fe_start_turn_fast(FastEngine self, FastState state, int player) noex
     state.pending_draw_count = 0
     state.pending_draw_finish_operation = 0
     if state.phase == PHASE_BATTLE:
-        _fe_queue_battle_draws(self, state, player, 1)
+        _fe_queue_battle_draws(self, state, player, self.turn_draw_count)
 
 cdef _fe_initialize_opening_turn(
     FastEngine self,
