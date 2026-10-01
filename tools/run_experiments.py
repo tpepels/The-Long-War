@@ -2844,20 +2844,40 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                     "samples": samples,
                 }
                 rows.append(row)
+                mean_anti_probes = sum(
+                    sample["anti_decisive_probes"] for sample in samples
+                ) / len(samples)
+                mean_completed = sum(
+                    sample["completed_iterations"] for sample in samples
+                ) / len(samples)
+                probes_per_iteration = (
+                    mean_anti_probes / mean_completed
+                    if mean_completed > 0
+                    else 0.0
+                )
                 print(
                     f"{iterations:>7,} iters | beliefs={belief_samples:>2} | "
                     f"depth={rollout_depth:>2} | "
-                    f"{mean_search:>7.3f}s | {mean_rate:>9,.0f} iter/s",
+                    f"{mean_search:>7.3f}s | {mean_rate:>9,.0f} iter/s | "
+                    f"anti-probes/iter={probes_per_iteration:.2f}",
                     flush=True,
                 )
 
-    payload = {
-        **experiment_identity(),
+    benchmark_config = {
         "benchmark": "ismcts-fixed-position",
         "position": args.position,
         "closing_rounds": args.closing_rounds,
-        "deck": args.deck,
+        "deck": str(args.deck),
         "seed": args.seed,
+        "iterations": list(args.iterations),
+        "belief_samples": list(args.belief_samples),
+        "depths": list(args.depths),
+        "rollout_policy": args.rollout_policy,
+        "repeats": args.repeats,
+    }
+    payload = {
+        **experiment_identity(benchmark_config),
+        **benchmark_config,
         "rows": rows,
     }
     BENCH_ROOT.mkdir(parents=True, exist_ok=True)
