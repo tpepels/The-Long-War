@@ -46,7 +46,7 @@ Status: approved for the first-80 design pool.
 - **Maneuver** means the core named movement action; **move** is reserved for card-effect movement that does not automatically inherit Maneuver rules.
 - Direct opponent Command destruction should be rare or absent from the first set.
 - Temporary effects must state their duration.
-- Stories are public; each player may have at most **2 ongoing Stories**.
+- Narratives are public; each player may have at most **2 ongoing Narratives**.
 
 
 ## Batch 2 - Positioning
@@ -89,7 +89,7 @@ Status: approved for the first-80 design pool.
 | 21 | **Teren** | Name - Human, Captain - Unique | After this formation **Maneuvers**, you may swap two adjacent formations you control other than this one. |
 | 22 | **Mara** | Name - Human, Scout - Unique | When an opposing formation **Maneuvers** into this Front, you may **Maneuver** this formation for 0 Command. |
 | 23 | **Blocked the Road for** | Bond | Cards your opponent plays cannot move a formation from an adjacent Front into this Front. |
-| 24 | **The Long March** | Story - Saga - Ongoing | **Saga - Ongoing.** The first time each Battle one of your formations **Maneuvers** into an empty position, regain 1 Command. |
+| 24 | **The Long March** | Narrative - Saga - Ongoing | **Saga - Ongoing.** The first time each Battle one of your formations **Maneuvers** into an empty position, regain 1 Command. |
 
 ### Batch 3 notes
 
@@ -184,7 +184,7 @@ This batch tests Command as a decision resource without directly damaging the op
 | 42 | **Sorin** | Name - Human, Captain - Unique | 2 | +1 | If you play Sorin on a Force that already has a Bond, Sorin costs 1 Command. |
 | 43 | **Bought Time For** | Bond | 1 | - | When you play this Bond, you may pay 1 extra Command to draw 2 cards. |
 | 44 | **Trusted** | Bond | 1 | - | When this formation becomes **Named**, regain 1 Command. |
-| 45 | **The Baggage Was Abandoned** | Story - Warning | 1 | - | **Warning.** When you play this, you may discard 1 other card to regain 2 Command. |
+| 45 | **The Baggage Was Abandoned** | Narrative - Warning | 1 | - | **Warning.** When you play this, you may discard 1 other card to regain 2 Command. |
 | 46 | **The Lines Held** | Stratagem | 2 | - | At Battle end, one Front you lost does not reduce your Command. |
 | 47 | **Iven** | Name - Human, Steward - Unique | 2 | +1 | While you have less Command than your opponent, the first card you play in this Front each turn costs 1 less Command (minimum 1). |
 | 48 | **All Banners Forward** | Stratagem - Unique | 5 | - | **During this Battle**, your **Maneuvers** cost 0 Command, and your formations may **Maneuver** even if they are not Named. |
@@ -216,7 +216,7 @@ Each Hero can be played as a Force or as a Name. Both modes are printed in full.
 | 53 | **Nara, Builder of Walls** | 3 | 3 | +1 | **Force - Deploy - Rear only.** A Force you play in the Frontline of this Front costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return one Bond from your discard pile to your hand. |
 | 54 | **Neris, the Ferryman** | 3 | 4 | +1 | **Force - Deploy - Rear only.** After your Frontline formation here Retreats, you may move it one Front left or right if that Rear position is empty. **Name -** After this formation Retreats, you may move it one Front left or right if that Rear position is empty. |
 | 55 | **Veyra, Keeper of Oaths** | 3 | 4 | +1 | **Force -** When you play Veyra, you may move a Bond or Name from an adjacent position with no Force into Veyra's position, if that slot is empty. **Name -** When you play Veyra on a Force with no Bond, you may move a Bond from an adjacent formation with no Name onto this formation. |
-| 56 | **Yara, the Chronicler** | 3 | 3 | +1 | **Force - Deploy - Rear only.** The first Story you play each Battle costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return one Story from your discard pile to your hand. |
+| 56 | **Yara, the Chronicler** | 3 | 3 | +1 | **Force - Deploy - Rear only.** The first Narrative you play each Battle costs 1 less Command (minimum 1). **Name -** When this formation becomes Named, return one Narrative from your discard pile to your hand. |
 
 ### Hero mechanics under test
 
@@ -227,20 +227,20 @@ Each Hero can be played as a Force or as a Name. Both modes are printed in full.
 - rebuilding a Front vs recovering a Bond;
 - moving retreating allies vs moving the Hero's own formation;
 - taking prepared cards vs transferring an open Bond;
-- making Stories cheaper vs recovering a Story.
+- making Narratives cheaper vs recovering a Narrative.
 
 
 ## Narrative-card identity
 
-The engine may keep `story` as the umbrella family, but player-facing cards use their specific narrative form: **Legend, Omen, Myth, Prophecy, Warning, Saga, Conspiracy**, and future forms where useful.
+The engine may keep `narrative` as the umbrella family, but player-facing cards use their specific narrative form: **Legend, Omen, Myth, Prophecy, Warning, Saga, Conspiracy**, and future forms where useful.
 
-- Command is the shared mechanical identity of narrative cards: stories about the war increase a player's Command over the army.
+- Command is the shared mechanical identity of narrative cards: narratives about the war increase a player's Command over the army.
 - Most successful narrative conditions regain **1 Command**.
 - **2 Command** is reserved for more demanding or uncertain conditions.
 - Each narrative card also has a smaller secondary effect that expresses what kind of narrative it is.
 - Narrative cards are public. There is no face-down or Veiled narrative system.
 - A narrative card that refers to a chosen Front or formation is physically placed beside it so the remembered state is visible.
-- Do not use generic **Story** as the player-facing card type when a more specific form applies.
+- Do not use generic **Narrative** as the player-facing card type when a more specific form applies.
 
 
 ## Batch 8 - Narratives
