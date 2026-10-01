@@ -17,7 +17,7 @@ cdef class FastEngine:
     cdef int pass_closing_rounds
     cdef int maneuver_command_cost
     cdef int hand_limit
-    cdef int ongoing_story_limit
+    cdef int ongoing_narrative_limit
     cdef bint command_diag_capture
     cdef int command_diag_len
     cdef int16_t command_diag_kind[MAX_COMMAND_DIAG_EVENTS]
@@ -87,7 +87,7 @@ cdef class FastEngine:
     cdef uint8_t after_empty_extra_move_force[MAX_CARDS]
     cdef uint8_t reactive_maneuver_name[MAX_CARDS]
     cdef uint8_t recover_bond_on_completion_name[MAX_CARDS]
-    cdef uint8_t recover_story_on_completion_name[MAX_CARDS]
+    cdef uint8_t recover_narrative_on_completion_name[MAX_CARDS]
     cdef uint8_t narrative_secondary[MAX_CARDS]
     cdef uint8_t narrative_end_kind[MAX_CARDS]
     cdef int8_t narrative_end_gain[MAX_CARDS]
@@ -120,8 +120,8 @@ cdef class FastEngine:
     cdef uint8_t bond_move_on_play[MAX_CARDS]
     cdef int8_t bond_optional_extra_cost[MAX_CARDS]
     cdef int8_t bond_optional_draw_count[MAX_CARDS]
-    cdef int8_t story_discard_count[MAX_CARDS]
-    cdef int8_t story_discard_gain_command[MAX_CARDS]
+    cdef int8_t narrative_discard_count[MAX_CARDS]
+    cdef int8_t narrative_discard_gain_command[MAX_CARDS]
 
     cdef int8_t name_rank_bonus_rank[MAX_CARDS]
     cdef int8_t name_rank_bonus_amount[MAX_CARDS]
@@ -129,7 +129,7 @@ cdef class FastEngine:
 
     cdef int8_t narrative_play_effect[MAX_CARDS]
     cdef uint8_t ongoing_narrative[MAX_CARDS]
-    cdef uint8_t story_choice_kind[MAX_CARDS]
+    cdef uint8_t narrative_choice_kind[MAX_CARDS]
     cdef int8_t ongoing_reveal_trigger[MAX_CARDS]
     cdef int8_t ongoing_reveal_effect[MAX_CARDS]
     cdef int8_t ongoing_reveal_amount[MAX_CARDS]
@@ -143,14 +143,14 @@ cdef class FastEngine:
     cdef uint8_t strat_rank_mask[MAX_CARDS]
     cdef int8_t strat_reveal_effect[MAX_CARDS]
     cdef int8_t strat_reveal_amount[MAX_CARDS]
-    cdef uint8_t strat_cancel_story[MAX_CARDS]
+    cdef uint8_t strat_cancel_narrative[MAX_CARDS]
     cdef int8_t strat_role_mod[MAX_CARDS][8]
     cdef int8_t strat_rank_mod[MAX_CARDS][2]
     cdef int8_t strat_controller_rank_mod[MAX_CARDS][2]
     cdef int8_t strat_named_mod[MAX_CARDS]
     cdef int8_t strat_unnamed_mod[MAX_CARDS]
-    cdef uint8_t strat_story_lock[MAX_CARDS]
-    cdef uint8_t strat_global_story_lock[MAX_CARDS]
+    cdef uint8_t strat_narrative_lock[MAX_CARDS]
+    cdef uint8_t strat_global_narrative_lock[MAX_CARDS]
 
     cdef uint8_t narrative_first_card_front_constraint[MAX_CARDS]
     cdef uint8_t narrative_no_maneuver_away[MAX_CARDS]
