@@ -138,7 +138,7 @@ cdef int _fe__information_state_encode(
 ) noexcept:
     """Single canonical observable-state encoding for imperfect-info AI."""
     cdef int n=0, i, owner, slot, card, narrative_slot, narrative_count
-    cdef int opponent = 1 - player
+    cdef int opponent = other_player(player)
     cdef int pending_draw = (
         state.active_player + 1
         if state.cleanup_pending
