@@ -6,6 +6,19 @@ from .game.model import GameState, Phase, other_player
 from .protocol import CardField, CardType
 
 
+MULLIGAN_FORCE_BASE_SCORE = 5.0
+MULLIGAN_FORCE_STRENGTH_WEIGHT = 0.08
+MULLIGAN_BOND_SCORE = 3.2
+MULLIGAN_NAME_SCORE = 3.0
+MULLIGAN_ONGOING_NARRATIVE_SCORE = 3.7
+MULLIGAN_IMMEDIATE_NARRATIVE_SCORE = 2.6
+MULLIGAN_FIRST_STRATAGEM_SCORE = 3.2
+MULLIGAN_EXTRA_STRATAGEM_SCORE = 2.0
+MULLIGAN_STRATAGEM_CONGESTION_THRESHOLD = 3
+MULLIGAN_STRATAGEM_CONGESTION_PENALTY = 0.35
+MULLIGAN_UNKNOWN_CARD_SCORE = 2.5
+
+
 def command_preserving_actions(
     engine: GameEngine,
     state: GameState,
@@ -83,20 +96,28 @@ def opening_mulligan_indices(
         card_type = card[CardField.TYPE]
 
         if card_type == CardType.FORCE:
-            score = 5.0 + 0.08 * float(card.get(CardField.STRENGTH, 0))
+            score = MULLIGAN_FORCE_BASE_SCORE + MULLIGAN_FORCE_STRENGTH_WEIGHT * float(card.get(CardField.STRENGTH, 0))
         elif card_type == CardType.BOND:
-            score = 3.2
+            score = MULLIGAN_BOND_SCORE
         elif card_type == CardType.NAME:
-            score = 3.0
+            score = MULLIGAN_NAME_SCORE
         elif card_type == CardType.NARRATIVE:
-            score = 3.7 if card.get(CardField.ONGOING, False) else 2.6
+            score = (
+                MULLIGAN_ONGOING_NARRATIVE_SCORE
+                if card.get(CardField.ONGOING, False)
+                else MULLIGAN_IMMEDIATE_NARRATIVE_SCORE
+            )
         elif card_type == CardType.STRATAGEM:
             seen_stratagems += 1
-            score = 3.2 if seen_stratagems == 1 else 2.0
-            if stratagem_count >= 3:
-                score -= 0.35
+            score = (
+                MULLIGAN_FIRST_STRATAGEM_SCORE
+                if seen_stratagems == 1
+                else MULLIGAN_EXTRA_STRATAGEM_SCORE
+            )
+            if stratagem_count >= MULLIGAN_STRATAGEM_CONGESTION_THRESHOLD:
+                score -= MULLIGAN_STRATAGEM_CONGESTION_PENALTY
         else:
-            score = 2.5
+            score = MULLIGAN_UNKNOWN_CARD_SCORE
         scored.append((score, index))
 
     scored.sort(key=lambda item: (item[0], item[1]))
