@@ -179,7 +179,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int front, margin, raw_margin, controls=0, enemy_controls=0
         cdef int hand_delta, named_delta=0, narrative_delta=0, strat_delta=0
         cdef int narrative_slot
-        cdef int exposed=0, reachable=0, slot
+        cdef int exposed=0, reachable=0, opponent_exposed=0, opponent_reachable=0, slot
         cdef int own_forces=0, opponent_forces=0
         cdef int own_board_forces=0, opponent_board_forces=0
         cdef int own_losses=0, opponent_losses=0
@@ -193,6 +193,8 @@ cdef class NativeHeuristicEvaluator:
         cdef double own_vulnerability=0.0, opponent_vulnerability=0.0
         cdef double own_liability=0.0, opponent_liability=0.0
         cdef double passed_hand_value=0.0, responding_hand_value=0.0
+        cdef double passed_pressure=0.0, responding_pressure=0.0
+        cdef double signal_pressure=0.0
         cdef double score = 0.0
 
         if state.phase == PHASE_COMPLETE:
@@ -249,6 +251,7 @@ cdef class NativeHeuristicEvaluator:
                     and raw_margin <= self.weights[HW_EXPOSED_FRONT_MARGIN]
                 ):
                     exposed += 1
+                    opponent_reachable += 1
 
                 # A lost Front drives off a Rear Named Formation and only
                 # Retreats a Frontline Named Formation. Value persistence,
@@ -278,6 +281,7 @@ cdef class NativeHeuristicEvaluator:
                     and raw_margin >= -self.weights[HW_EXPOSED_FRONT_MARGIN]
                 ):
                     reachable += 1
+                    opponent_exposed += 1
 
                 own_front_slot = slot_index(player, front, RANK_FRONT)
                 own_rear_slot = slot_index(player, front, RANK_REAR)
@@ -290,6 +294,7 @@ cdef class NativeHeuristicEvaluator:
                     score += self.weights[HW_OVERKILL_MARGIN_WEIGHT] * ((-raw_margin) - self.weights[HW_COMFORTABLE_FRONT_MARGIN])
             else:
                 reachable += 1
+                opponent_reachable += 1
 
             if margin > self.weights[HW_FRONT_MARGIN_CLAMP]:
                 margin = <int>self.weights[HW_FRONT_MARGIN_CLAMP]
@@ -404,29 +409,65 @@ cdef class NativeHeuristicEvaluator:
             # formation liability at full strength and let search model the
             # countdown itself through exact transitions.
             if state.passed[player]:
+                # The opponent is the responder. Build one shared public-state
+                # value from the old passer-risk and responder-option terms,
+                # then apply opposite signs to the two player perspectives.
                 passed_hand_value = (
                     self.weights[HW_PASSED_HAND_WEIGHT]
                     * state.hand_len[opponent]
                 )
                 if passed_hand_value > self.weights[HW_PASSED_HAND_CAP]:
                     passed_hand_value = self.weights[HW_PASSED_HAND_CAP]
-                score -= (
+                responding_hand_value = (
+                    self.weights[HW_RESPONDING_HAND_WEIGHT]
+                    * state.hand_len[opponent]
+                )
+                if responding_hand_value > self.weights[HW_RESPONDING_HAND_CAP]:
+                    responding_hand_value = self.weights[HW_RESPONDING_HAND_CAP]
+                passed_pressure = (
                     self.weights[HW_PASSED_BASE_PENALTY]
                     + passed_hand_value
                     + self.weights[HW_PASSED_EXPOSURE_WEIGHT] * exposed
                 )
+                responding_pressure = (
+                    self.weights[HW_RESPONDING_BASE_BONUS]
+                    + responding_hand_value
+                    + self.weights[HW_RESPONDING_REACH_WEIGHT]
+                    * opponent_reachable
+                )
+                signal_pressure = 0.5 * (
+                    passed_pressure + responding_pressure
+                )
+                score -= signal_pressure
             else:
+                # The opponent is the passer and this player is the responder.
+                passed_hand_value = (
+                    self.weights[HW_PASSED_HAND_WEIGHT]
+                    * state.hand_len[player]
+                )
+                if passed_hand_value > self.weights[HW_PASSED_HAND_CAP]:
+                    passed_hand_value = self.weights[HW_PASSED_HAND_CAP]
                 responding_hand_value = (
                     self.weights[HW_RESPONDING_HAND_WEIGHT]
                     * state.hand_len[player]
                 )
                 if responding_hand_value > self.weights[HW_RESPONDING_HAND_CAP]:
                     responding_hand_value = self.weights[HW_RESPONDING_HAND_CAP]
-                score += (
+                passed_pressure = (
+                    self.weights[HW_PASSED_BASE_PENALTY]
+                    + passed_hand_value
+                    + self.weights[HW_PASSED_EXPOSURE_WEIGHT]
+                    * opponent_exposed
+                )
+                responding_pressure = (
                     self.weights[HW_RESPONDING_BASE_BONUS]
                     + responding_hand_value
                     + self.weights[HW_RESPONDING_REACH_WEIGHT] * reachable
                 )
+                signal_pressure = 0.5 * (
+                    passed_pressure + responding_pressure
+                )
+                score += signal_pressure
 
             own_liability = self.incomplete_liability_fast(state, player)
             opponent_liability = self.incomplete_liability_fast(
