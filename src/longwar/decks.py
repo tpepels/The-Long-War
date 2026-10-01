@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any
 
+from .protocol import CardType
+
 MINIMUM_DECK_SIZE = 34
 MINIMUM_FORCE_COUNT = 14
 MINIMUM_PRINTED_NAME_COUNT = 6
@@ -56,14 +58,14 @@ def validate_deck_definition(
                 f"{card['title']} appears {count} times; maximum is {maximum}"
             )
 
-    forces = sum(1 for card_id in deck if cards[card_id]["type"] == "force")
+    forces = sum(1 for card_id in deck if cards[card_id]["type"] == CardType.FORCE)
     if forces < minimum_force_count:
         raise InvalidDeckDefinition(
             f"A legal deck must contain at least {minimum_force_count} Force-type cards, "
             f"got {forces}"
         )
 
-    names = sum(1 for card_id in deck if cards[card_id]["type"] == "name")
+    names = sum(1 for card_id in deck if cards[card_id]["type"] == CardType.NAME)
     if names < minimum_printed_name_count:
         raise InvalidDeckDefinition(
             f"A legal deck must contain at least {minimum_printed_name_count} printed Names, "
