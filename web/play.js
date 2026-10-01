@@ -8,7 +8,7 @@ let cards = {};
 let state = null;
 let selectedCardId = null;
 let selectedHandIndex = null;
-let stagedPlotSource = null;
+let stagedNarrativeSource = null;
 let stagedManeuverSource = null;
 let choiceActions = [];
 let mulliganSelection = new Set();
@@ -570,10 +570,10 @@ function targetActionsForSlot(owner, front, rank) {
       continue;
     }
     if (action.targets.length === 2) {
-      if (!stagedPlotSource) {
+      if (!stagedNarrativeSource) {
         if (locEquals(action.targets[0], owner, front, rank)) matches.push(action);
       } else if (
-        locEquals(action.targets[0], stagedPlotSource.player, stagedPlotSource.front, stagedPlotSource.rank) &&
+        locEquals(action.targets[0], stagedNarrativeSource.player, stagedNarrativeSource.front, stagedNarrativeSource.rank) &&
         locEquals(action.targets[1], owner, front, rank)
       ) {
         matches.push(action);
@@ -618,8 +618,8 @@ function renderSlot(owner, front, rank) {
   if (hasFormation && !slot?.force) classes.push("prepared");
   if (targetable) classes.push("targetable");
   if (
-    stagedPlotSource &&
-    locEquals(stagedPlotSource, owner, front, rank)
+    stagedNarrativeSource &&
+    locEquals(stagedNarrativeSource, owner, front, rank)
   ) classes.push("staged-source");
   if (
     stagedManeuverSource &&
@@ -689,7 +689,7 @@ function renderSlot(owner, front, rank) {
 
 function renderStorySlot(owner, slot) {
   const story = state.stories?.[owner]?.[slot] || null;
-  const classes = ["scheme-marker", "story-marker"];
+  const classes = ["story-marker"];
   if (!story) classes.push("empty");
   const attrs =
     'data-story-owner="' + owner +
@@ -784,7 +784,7 @@ function renderRankRow(owner, rank, label) {
 }
 
 function renderStoryRow(owner) {
-  return '<div class="scheme-row story-row"><span class="rank-label">Narratives</span>' +
+  return '<div class="story-row"><span class="rank-label">Narratives</span>' +
     renderStorySlot(owner, 0) +
     renderStorySlot(owner, 1) +
     '<div class="story-spacer" aria-hidden="true"></div>' +
@@ -936,7 +936,7 @@ function renderPrivacy() {
 function clearSelection() {
   selectedCardId = null;
   selectedHandIndex = null;
-  stagedPlotSource = null;
+  stagedNarrativeSource = null;
   stagedManeuverSource = null;
   choiceActions = [];
   mulliganSelection = new Set();
@@ -948,7 +948,7 @@ function selectCard(cardId, index) {
   } else {
     selectedCardId = cardId;
     selectedHandIndex = index;
-    stagedPlotSource = null;
+    stagedNarrativeSource = null;
     stagedManeuverSource = null;
     choiceActions = [];
   }
@@ -986,7 +986,7 @@ function interactionHintFor(card) {
     if (actions.some((a) => a.ongoing_slot != null)) {
       return "Play this Ongoing Narrative. The first open Narrative slot is assigned automatically.";
     }
-    if (stagedPlotSource) {
+    if (stagedNarrativeSource) {
       return "Now choose the destination for " + card.title + ".";
     }
     if (actions.some((a) => a.targets.length === 2)) {
@@ -1448,14 +1448,14 @@ function handleBoardTarget(owner, front, rank) {
   const isTwoTargetStory = all.some(
     (a) => a.kind === "PlayStory" && a.targets.length === 2
   );
-  if (isTwoTargetStory && !stagedPlotSource) {
+  if (isTwoTargetStory && !stagedNarrativeSource) {
     const sourceMatches = all.filter(
       (a) =>
         a.targets.length === 2 &&
         locEquals(a.targets[0], owner, front, rank)
     );
     if (!sourceMatches.length) return;
-    stagedPlotSource = { player: owner, front, rank };
+    stagedNarrativeSource = { player: owner, front, rank };
     choiceActions = [];
     renderInteractiveState();
     return;
@@ -2036,7 +2036,7 @@ window.render_game_to_text = () => JSON.stringify({
   ...(state ? Object.fromEntries(["phase", "battle", "viewer", "active_player", "needs_ai", "needs_reveal", "winner", "players", "hand", "board", "stories", "story_limit", "stratagems", "pass_order", "pending_draw_discard_for", "front_strengths", "front_control", "legal_actions", "last_action"].map((key) => [key, state[key]])) : { phase: "setup" }),
   selected_card: selectedCardId,
   selected_hand_index: selectedHandIndex,
-  selected_source: stagedPlotSource,
+  selected_source: stagedNarrativeSource,
   mulligan_selection: [...mulliganSelection],
   drawer: activeDrawer,
   inspector: !$("card-inspector").hidden ? $("card-inspector-title").textContent : null,
