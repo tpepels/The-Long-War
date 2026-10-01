@@ -32,6 +32,7 @@ from .game.engine import GameEngine, all_positions
 from .game.model import Phase
 from .human_flow import HumanFlowDiagnostics
 from .parallelism import DEFAULT_WORKERS
+from .protocol import AgentKind
 from .telemetry import Telemetry
 
 
@@ -194,11 +195,11 @@ def make_agent(
     ismcts_rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     ismcts_rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
 ):
-    if name == "random":
+    if name == AgentKind.RANDOM:
         return RandomAgent(seed)
-    if name == "heuristic":
+    if name == AgentKind.HEURISTIC:
         return HeuristicAgent(seed, exploration=heuristic_exploration)
-    if name == "strategic_heuristic":
+    if name == AgentKind.STRATEGIC_HEURISTIC:
         return StrategicHeuristicAgent(
             engine,
             seed,
@@ -210,7 +211,7 @@ def make_agent(
             time_budget_seconds=strategic_time_budget_seconds,
             search_backend=strategic_search_backend,
         )
-    if name == "ismcts":
+    if name == AgentKind.ISMCTS:
         return ISMCTSAgent(
             engine,
             seed,
@@ -227,11 +228,11 @@ def make_agent(
             rollout_epsilon=ismcts_rollout_epsilon,
             rollout_policy=ismcts_rollout_policy,
         )
-    if name == "mccfr":
+    if name == AgentKind.MCCFR:
         if policy is None:
             raise ValueError("MCCFR agent requires an exported policy")
         return MCCFRAgent(seed, policy)
-    if name == "online_mccfr":
+    if name == AgentKind.ONLINE_MCCFR:
         return OnlineMCCFRAgent(
             engine,
             seed,
@@ -249,7 +250,7 @@ def _simulate_games_serial(
     games: int,
     seed: int = 0,
     max_actions: int = 500,
-    agent_names: tuple[str, str] = ("heuristic", "heuristic"),
+    agent_names: tuple[str, str] = (AgentKind.HEURISTIC, AgentKind.HEURISTIC),
     agent_policies: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
     heuristic_exploration: float = 0.0,
     online_iterations: int = 8,
@@ -718,7 +719,7 @@ def simulate_games(
     seed: int = 0,
     jobs: int = DEFAULT_WORKERS,
     max_actions: int = 500,
-    agent_names: tuple[str, str] = ("heuristic", "heuristic"),
+    agent_names: tuple[str, str] = (AgentKind.HEURISTIC, AgentKind.HEURISTIC),
     agent_policies: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
     heuristic_exploration: float = 0.0,
     online_iterations: int = 8,
