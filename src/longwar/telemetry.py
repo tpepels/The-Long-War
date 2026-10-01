@@ -83,6 +83,8 @@ class DecisionStats:
     ismcts_rollout_actions: int = 0
     ismcts_decisive_rollout_probes: int = 0
     ismcts_decisive_rollout_actions: int = 0
+    ismcts_anti_decisive_rollout_probes: int = 0
+    ismcts_anti_decisive_rollout_filtered: int = 0
     ismcts_iterations_total: int = 0
     ismcts_setup_seconds_total: float = 0.0
     ismcts_search_seconds_total: float = 0.0
@@ -456,6 +458,12 @@ class Telemetry:
             )
             stats.ismcts_decisive_rollout_actions += int(
                 decision_info.get("ismcts_decisive_rollout_actions", 0)
+            )
+            stats.ismcts_anti_decisive_rollout_probes += int(
+                decision_info.get("ismcts_anti_decisive_rollout_probes", 0)
+            )
+            stats.ismcts_anti_decisive_rollout_filtered += int(
+                decision_info.get("ismcts_anti_decisive_rollout_filtered", 0)
             )
             ismcts_iterations = int(
                 decision_info.get("ismcts_iterations", 0)
@@ -932,6 +940,12 @@ class Telemetry:
                     "decisive_action_rate": self._ratio(
                         stats.ismcts_decisive_rollout_actions,
                         stats.ismcts_rollout_actions,
+                    ),
+                    "anti_decisive_probes": (
+                        stats.ismcts_anti_decisive_rollout_probes
+                    ),
+                    "anti_decisive_filtered": (
+                        stats.ismcts_anti_decisive_rollout_filtered
                     ),
                     "terminal": stats.ismcts_terminal_cutoffs,
                     "battle_boundary": stats.ismcts_battle_boundary_cutoffs,

@@ -73,6 +73,8 @@ def test_cython_ismcts_returns_legal_action() -> None:
         == 200
     )
     assert agent.last_decision["ismcts_rollout_actions"] >= 0
+    assert agent.last_decision["ismcts_anti_decisive_rollout_probes"] >= 0
+    assert agent.last_decision["ismcts_anti_decisive_rollout_filtered"] >= 0
 
 
 def test_root_belief_samples_share_information_set() -> None:
@@ -287,3 +289,42 @@ def test_ismcts_release_search_memory_drops_native_tree() -> None:
 
     assert agent._tree is None
     assert agent.last_decision == {}
+
+
+def test_decisive_rollout_finds_immediate_second_signal_win() -> None:
+    data = load_card_file(CARD_FILE)
+    deck = json.loads(DECK_FILE.read_text(encoding="utf-8"))["cards"]
+    engine = GameEngine(data, rules=GameRules.standard())
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=8170,
+        first_player=1,
+        opening_bonus=False,
+    )
+    state.operations_this_battle[:] = [1, 1]
+    state.players[0].passed = True
+    state.pass_order[:] = [0]
+    state.active_player = 1
+    state.players[0].command = 1
+    state.players[1].command = 5
+
+    # Player 1 leads one Front. Ending the Battle now removes player 0's
+    # final Command through Front attrition and wins immediately.
+    state.slot(1, Position(Front.FIRST, Rank.FRONT)).force = "the-fifty-men"
+
+    legal = engine.legal_actions(state)
+    assert Pass() in legal
+
+    agent = ISMCTSAgent(
+        engine,
+        8171,
+        belief_samples=2,
+        iterations=200,
+        rollout_depth=8,
+        rollout_policy="decisive",
+        reuse_tree=False,
+    )
+    action = agent.choose(engine, state)
+
+    assert action == Pass()

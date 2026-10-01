@@ -438,18 +438,25 @@ cdef uint64_t _ismcts_rollout_action(
     NativeHeuristicEvaluator evaluator,
     FastState state,
     FastState score_scratch,
+    FastState reply_scratch,
     uint64_t* rng,
     double epsilon,
     int policy,
     long* decisive_probes,
     long* decisive_actions,
+    long* anti_decisive_probes,
+    long* anti_decisive_filtered,
 ) except *:
     cdef uint64_t actions[MAX_ACTIONS]
+    cdef uint64_t reply_actions[MAX_ACTIONS]
     cdef double weights[MAX_ACTIONS]
     cdef int safe_indices[MAX_ACTIONS]
+    cdef int anti_safe_indices[MAX_ACTIONS]
     cdef int n = _fe_legal_actions_into(engine, state, &actions[0])
     cdef int actor = state.active_player
-    cdef int i, best_ix=0, safe_n=0, pick
+    cdef int opponent, reply_n, j
+    cdef int i, best_ix=0, safe_n=0, anti_safe_n=0, pick
+    cdef bint vulnerable
     cdef double value, best=-1.0e300
     cdef double total=0.0, target, cumulative=0.0
 
@@ -485,29 +492,111 @@ cdef uint64_t _ismcts_rollout_action(
         safe_n = n
 
     if policy == 3:
-        # Historical rollout style: exact decisive move when cheaply provable,
-        # otherwise 5% full greedy and 95% random. The war winner is assigned
-        # at the pre-recovery Command Collapse check, so the only exact action
-        # worth probing here is a second Pass.
+        # Rule-aware tactical layer. "Decisive" means an exact transition
+        # that wins the war immediately, regardless of whether the ending is
+        # caused by the second signal or by an expiring closing window.
+        if state.pass_len == 1 or state.pass_closing_turns_remaining == 1:
+            for pick in range(safe_n):
+                i = safe_indices[pick]
+                if (
+                    state.pass_closing_turns_remaining != 1
+                    and (
+                        action_kind(actions[i]) != TYPE_PASS
+                        or state.passed[actor]
+                    )
+                ):
+                    continue
+                decisive_probes[0] += 1
+                score_scratch.copy_from_fast(state)
+                _fe_apply_fast(engine, score_scratch, actions[i])
+                if (
+                    score_scratch.phase == PHASE_COMPLETE
+                    and score_scratch.winner == actor
+                ):
+                    decisive_actions[0] += 1
+                    return actions[i]
+
+        # Anti-decisive: when the first signal is already active, do not
+        # randomly choose a move that hands the opponent a provable immediate
+        # win if another Command-safe move avoids that one-ply loss. This is
+        # evaluated on the sampled determinization, so no hidden information
+        # leaks into the real root decision.
         if state.pass_len == 1:
-            # Battle resolution can add Command but does not spend it. If both
-            # players are above the Collapse point, the second Pass cannot end
-            # the war. If either is exhausted, resolve the Pass exactly because
-            # Battle-end effects may still change Command before Collapse.
-            if evaluator.battle_end_collapse_probe_needed_fast(state):
-                for i in range(n):
-                    if action_kind(actions[i]) != TYPE_PASS:
-                        continue
-                    decisive_probes[0] += 1
-                    score_scratch.copy_from_fast(state)
-                    _fe_apply_fast(engine, score_scratch, actions[i])
+            anti_safe_n = 0
+            for pick in range(safe_n):
+                i = safe_indices[pick]
+                vulnerable = False
+                score_scratch.copy_from_fast(state)
+                _fe_apply_fast(engine, score_scratch, actions[i])
+
+                if score_scratch.phase == PHASE_COMPLETE:
+                    vulnerable = (
+                        score_scratch.winner >= 0
+                        and score_scratch.winner != actor
+                    )
+                elif score_scratch.active_player != actor:
+                    opponent = score_scratch.active_player
+                    reply_n = _fe_legal_actions_into(
+                        engine,
+                        score_scratch,
+                        &reply_actions[0],
+                    )
+
+                    # If the next player has not signalled yet, their Pass/flag
+                    # is an exact immediate Battle-ending reply when legal.
                     if (
-                        score_scratch.phase == PHASE_COMPLETE
-                        and score_scratch.winner == actor
+                        score_scratch.pass_len == 1
+                        and not score_scratch.passed[opponent]
                     ):
-                        decisive_actions[0] += 1
-                        return actions[i]
-                    break
+                        for j in range(reply_n):
+                            if action_kind(reply_actions[j]) != TYPE_PASS:
+                                continue
+                            anti_decisive_probes[0] += 1
+                            reply_scratch.copy_from_fast(score_scratch)
+                            _fe_apply_fast(
+                                engine,
+                                reply_scratch,
+                                reply_actions[j],
+                            )
+                            if (
+                                reply_scratch.phase == PHASE_COMPLETE
+                                and reply_scratch.winner == opponent
+                            ):
+                                vulnerable = True
+                            break
+
+                    # With one closing turn left, any operation may be the
+                    # terminal operation. Probe exact legal replies because
+                    # the opponent can choose the one that wins.
+                    if (
+                        not vulnerable
+                        and score_scratch.pass_closing_turns_remaining == 1
+                    ):
+                        for j in range(reply_n):
+                            anti_decisive_probes[0] += 1
+                            reply_scratch.copy_from_fast(score_scratch)
+                            _fe_apply_fast(
+                                engine,
+                                reply_scratch,
+                                reply_actions[j],
+                            )
+                            if (
+                                reply_scratch.phase == PHASE_COMPLETE
+                                and reply_scratch.winner == opponent
+                            ):
+                                vulnerable = True
+                                break
+
+                if not vulnerable:
+                    anti_safe_indices[anti_safe_n] = i
+                    anti_safe_n += 1
+
+            if anti_safe_n > 0 and anti_safe_n < safe_n:
+                anti_decisive_filtered[0] += safe_n - anti_safe_n
+                safe_n = anti_safe_n
+                for i in range(safe_n):
+                    safe_indices[i] = anti_safe_indices[i]
+
         if _ismcts_rand_unit(rng) >= DECISIVE_ROLLOUT_GREEDY_PROBABILITY:
             pick = safe_indices[_ismcts_rand_index(rng, safe_n)]
             return actions[pick]
@@ -572,6 +661,7 @@ def ismcts_search(
 ):
     cdef FastState state = FastState()
     cdef FastState score_scratch = FastState()
+    cdef FastState reply_scratch = FastState()
     cdef FastState sampled
     cdef InfoHash128 key, root_key
     cdef ISMCTSNodeRecord* root_node
@@ -596,6 +686,8 @@ def ismcts_search(
     cdef long rollout_actions=0
     cdef long decisive_rollout_probes=0
     cdef long decisive_rollout_actions=0
+    cdef long anti_decisive_rollout_probes=0
+    cdef long anti_decisive_rollout_filtered=0
     cdef long tree_capacity_cutoffs=0
     cdef size_t tree_nodes_discarded=0
     cdef object search_context
@@ -754,11 +846,14 @@ def ismcts_search(
                 evaluator,
                 state,
                 score_scratch,
+                reply_scratch,
                 &rng,
                 rollout_epsilon,
                 rollout_policy,
                 &decisive_rollout_probes,
                 &decisive_rollout_actions,
+                &anti_decisive_rollout_probes,
+                &anti_decisive_rollout_filtered,
             )
             _fe_apply_fast(engine, state, action)
             rollout_steps += 1
@@ -893,6 +988,8 @@ def ismcts_search(
         "rollout_actions": rollout_actions,
         "decisive_rollout_probes": decisive_rollout_probes,
         "decisive_rollout_actions": decisive_rollout_actions,
+        "anti_decisive_rollout_probes": anti_decisive_rollout_probes,
+        "anti_decisive_rollout_filtered": anti_decisive_rollout_filtered,
         "tree_storage": "native-hash-node-edge-slab",
         "tree_edge_slabs": tree.edge_slab_count,
         "progressive_widening": progressive_widening,
