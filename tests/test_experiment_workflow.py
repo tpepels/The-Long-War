@@ -721,8 +721,8 @@ def test_narrative_ablation_summary_keeps_command_sources_and_tail_metrics():
                 "command_by_source": {"rallied-behind": {"discount_saved": 4}},
                 "command_before_collapse": {"mean": 2.0},
                 "command_before_collapse_buckets": {"1-3": 4},
-                "command_at_first_pass": {"mean": 2.0},
-                "first_pass_command_buckets": {"1-3": 2},
+                "command_at_first_signal": {"mean": 2.0},
+                "first_signal_command_buckets": {"1-3": 2},
             },
             "match_length": {
                 "resolved_battles_per_match": {"mean": 20.0},
