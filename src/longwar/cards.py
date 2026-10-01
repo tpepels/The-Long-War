@@ -11,7 +11,9 @@ from .protocol import (
     FORCE_ROLES,
     NARRATIVE_FORMS,
     RULE_BLOCK_KINDS,
+    CardField,
     CardType,
+    DesignField,
     DesignToken,
 )
 
@@ -374,7 +376,7 @@ def _validate_design_rule_value(value: Any, path: str, card_id: str) -> None:
 
 
 def _validate_design_rules(card: dict[str, Any]) -> None:
-    design = card.get("design_rules")
+    design = card.get(CardField.DESIGN_RULES)
     if design is None:
         return
     if not isinstance(design, dict):
@@ -458,54 +460,54 @@ _validate_card_capability_registry()
 
 def _compile_card_capabilities(design: dict[str, Any]) -> tuple[str, ...]:
     """Translate reusable design vocabulary into engine capability names."""
-    force_design = design.get("force") or design
-    name_design = design.get("name") or {}
+    force_design = design.get(DesignField.FORCE) or design
+    name_design = design.get(DesignField.NAME) or {}
     capabilities: set[str] = set()
 
-    if design.get("trigger") == DesignToken.OPPOSING_FORMATION_IN_SAME_FRONT_BECOMES_NAMED:
+    if design.get(DesignField.TRIGGER) == DesignToken.OPPOSING_FORMATION_IN_SAME_FRONT_BECOMES_NAMED:
         capabilities.add("opposing_named_same_front_free_maneuver")
-    if design.get("trigger") == DesignToken.ADJACENT_FRIENDLY_NAMED_FORMATION_MANEUVERS_AWAY:
+    if design.get(DesignField.TRIGGER) == DesignToken.ADJACENT_FRIENDLY_NAMED_FORMATION_MANEUVERS_AWAY:
         capabilities.add("follow_into_vacated_after_adjacent_maneuver")
-    if design.get("trigger") == DesignToken.ADJACENT_FRIENDLY_FORMATION_RETREATS:
+    if design.get(DesignField.TRIGGER) == DesignToken.ADJACENT_FRIENDLY_FORMATION_RETREATS:
         capabilities.add("adjacent_retreat_free_maneuver")
     if (
-        (design.get("after_maneuver") or {}).get("effect")
+        (design.get(DesignField.AFTER_MANEUVER) or {}).get(DesignField.EFFECT)
         == DesignToken.OPTIONAL_SWAP_TWO_ADJACENT_FRIENDLY_FORMATIONS_EXCLUDING_SELF
     ):
         capabilities.add("after_maneuver_swap_other_friendlies")
-    if design.get("trigger") == DesignToken.OPPOSING_FORMATION_MANEUVERS_INTO_SAME_FRONT:
+    if design.get(DesignField.TRIGGER) == DesignToken.OPPOSING_FORMATION_MANEUVERS_INTO_SAME_FRONT:
         capabilities.add("opposing_maneuver_same_front_free_maneuver")
     if (
-        force_design.get("after_frontline_retreat")
+        force_design.get(DesignField.AFTER_FRONTLINE_RETREAT)
         == DesignToken.OPTIONAL_SIDEWAYS_REAR_MOVE
     ):
         capabilities.add("after_frontline_retreat_sideways_force")
-    if name_design.get("after_self_retreat") == DesignToken.OPTIONAL_SIDEWAYS_REAR_MOVE:
+    if name_design.get(DesignField.AFTER_SELF_RETREAT) == DesignToken.OPTIONAL_SIDEWAYS_REAR_MOVE:
         capabilities.add("after_self_retreat_sideways_name")
     if (
-        force_design.get("on_play")
+        force_design.get(DesignField.ON_PLAY)
         == DesignToken.OPTIONAL_TAKE_ADJACENT_PREPARED_BOND_OR_NAME
     ):
         capabilities.add("on_play_take_adjacent_prepared_component_force")
-    if name_design.get("on_play") == DesignToken.OPTIONAL_TAKE_ADJACENT_OPEN_BOND:
+    if name_design.get(DesignField.ON_PLAY) == DesignToken.OPTIONAL_TAKE_ADJACENT_OPEN_BOND:
         capabilities.add("on_play_take_adjacent_open_bond_name")
     if (
-        force_design.get("effect")
+        force_design.get(DesignField.EFFECT)
         == DesignToken.OPTIONAL_DRIVE_OFF_SELF_PREVENT_FRONTLINE_NAMED_RETREAT
     ):
         capabilities.add("optional_self_drive_prevent_frontline_retreat_force")
-    if design.get("build_around") == DesignToken.PREPARED_POSITION:
+    if design.get(DesignField.BUILD_AROUND) == DesignToken.PREPARED_POSITION:
         capabilities.add("prepared_on_play_free_maneuver_force")
     if (
-        design.get("after_self_maneuver")
+        design.get(DesignField.AFTER_SELF_MANEUVER)
         == DesignToken.OPTIONAL_ZERO_COST_OTHER_FRIENDLY_NAMED_MANEUVER
     ):
         capabilities.add("after_self_maneuver_free_other_named_if_wide_name")
-    if design.get("trigger") == DesignToken.REGAIN_COMMAND_FROM_NARRATIVE:
+    if design.get(DesignField.TRIGGER) == DesignToken.REGAIN_COMMAND_FROM_NARRATIVE:
         capabilities.add("narrative_command_gain_free_maneuver_force")
-    if design.get("build_around") == DesignToken.OPEN_BOND_TRANSFER:
+    if design.get(DesignField.BUILD_AROUND) == DesignToken.OPEN_BOND_TRANSFER:
         capabilities.add("transfer_open_bond_after_move_bond")
-    if design.get("build_around") == DesignToken.SUCCESSION:
+    if design.get(DesignField.BUILD_AROUND) == DesignToken.SUCCESSION:
         capabilities.add("succession_on_drive_off_name")
 
     unknown = capabilities - CARD_CAPABILITY_NAMES
@@ -525,7 +527,7 @@ def compile_card_mechanics(card: dict[str, Any]) -> dict[str, Any]:
     available during the migration to reusable capability primitives.
     """
     _validate_design_rules(card)
-    design = copy.deepcopy(card.get("design_rules") or {})
+    design = copy.deepcopy(card.get(CardField.DESIGN_RULES) or {})
     capabilities = _compile_card_capabilities(design)
     design["_capabilities"] = capabilities
     design["_capability_bits"] = sum(
@@ -614,7 +616,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
         if len(classes) != len(set(classes)):
             raise ValueError(f"{card_id}: classes must not contain duplicates")
 
-        hero = card.get("hero", False)
+        hero = card.get(CardField.HERO, False)
         if not isinstance(hero, bool):
             raise ValueError(f"{card_id}: hero must be boolean when present")
         if hero:
@@ -625,7 +627,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
             if "hero" not in classes:
                 raise ValueError(f"{card_id}: Hero classification is required")
             _validate_rule_value(
-                card.get("hero_name_strength"),
+                card.get(CardField.HERO_NAME_STRENGTH),
                 _NONNEGATIVE,
                 f"{card_id}.hero_name_strength",
             )
@@ -654,7 +656,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
                 )
 
         if card_type == CardType.FORCE:
-            role = card.get("role")
+            role = card.get(CardField.ROLE)
             if role is not None and (
                 not isinstance(role, str)
                 or not role.strip()
@@ -665,19 +667,19 @@ def validate_card_data(data: dict[str, Any]) -> None:
                 )
 
         if card_type == CardType.NARRATIVE:
-            form = card.get("narrative_form")
+            form = card.get(CardField.NARRATIVE_FORM)
             if not isinstance(form, str) or form not in NARRATIVE_FORMS:
                 raise ValueError(
                     f"{card_id}: invalid Narrative form {form!r}"
                 )
-            if not isinstance(card.get("ongoing"), bool):
+            if not isinstance(card.get(CardField.ONGOING), bool):
                 raise ValueError(
                     f"{card_id}: Narrative ongoing must be boolean"
                 )
 
         if card_type in {CardType.FORCE, CardType.NAME}:
             _validate_rule_value(
-                card.get("strength"),
+                card.get(CardField.STRENGTH),
                 _NONNEGATIVE,
                 f"{card_id}.strength",
             )
