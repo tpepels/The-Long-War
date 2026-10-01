@@ -45,13 +45,13 @@ cdef inline void _fe_take_from_hand(FastEngine self, FastState state, int player
     state.hand_len[player] -= 1
 
 cdef inline bint _fe_front_has_force(FastEngine self, FastState state, int player, int front) noexcept:
-    return state.force[slot_index(player, front, 0)] >= 0 or state.force[slot_index(player, front, 1)] >= 0
+    return state.force[slot_index(player, front, RANK_FRONT)] >= 0 or state.force[slot_index(player, front, RANK_REAR)] >= 0
 
 cdef inline int _fe_preferred_slot(FastEngine self, FastState state, int player, int front) noexcept:
-    cdef int slot = slot_index(player, front, 0)
+    cdef int slot = slot_index(player, front, RANK_FRONT)
     if state.force[slot] >= 0:
         return slot
-    slot = slot_index(player, front, 1)
+    slot = slot_index(player, front, RANK_REAR)
     return slot if state.force[slot] >= 0 else -1
 
 cdef void _fe_remove_bond(FastEngine self, FastState state, int player, int slot):
@@ -353,8 +353,8 @@ cdef bint _fe_force_in_all_fronts(FastEngine self, FastState state, int player) 
     cdef int front
     for front in range(FRONT_COUNT):
         if (
-            state.force[slot_index(player, front, 0)] < 0
-            and state.force[slot_index(player, front, 1)] < 0
+            state.force[slot_index(player, front, RANK_FRONT)] < 0
+            and state.force[slot_index(player, front, RANK_REAR)] < 0
         ):
             return False
     return True
@@ -460,7 +460,7 @@ cdef void _fe_gain_command_from_narrative(
     if named == 0:
         return
     for front in range(FRONT_COUNT):
-        slot = slot_index(player, front, 1)
+        slot = slot_index(player, front, RANK_REAR)
         force = state.force[slot]
         if force >= 0 and (self.card_capabilities[force] & CAP_NARRATIVE_COMMAND_GAIN_FREE_MANEUVER_FORCE):
             _fe_queue_free_maneuver(
@@ -553,8 +553,8 @@ cdef void _fe_resolve_force_pair_narratives(
     cdef bint pair_exists = False
     for front in range(FRONT_COUNT):
         if (
-            state.force[slot_index(force_player, front, 0)] >= 0
-            and state.force[slot_index(force_player, front, 1)] >= 0
+            state.force[slot_index(force_player, front, RANK_FRONT)] >= 0
+            and state.force[slot_index(force_player, front, RANK_REAR)] >= 0
         ):
             pair_exists = True
             break
