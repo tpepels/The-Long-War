@@ -737,41 +737,9 @@ class ProgressionTelemetry:
             if self._collapse_threshold is not None
             else 0
         )
-        def is_equal_low_continuation(row: dict[str, Any]) -> bool:
-            comparison = row.get("collapse_comparison") or {}
-            return (
-                bool(comparison.get("triggered"))
-                and bool(comparison.get("equal"))
-                and bool(comparison.get("continued"))
-            )
-
-        equal_low_rows = [
-            row for row in battle_records
-            if is_equal_low_continuation(row)
-        ]
-        streak_lengths: list[int] = []
-        first_equal_low_battles: list[int] = []
-        consecutive_equal_low_battles = 0
         rows_by_game: dict[int, list[dict[str, Any]]] = defaultdict(list)
         for row in battle_records:
             rows_by_game[int(row.get("game", 0))].append(row)
-        for game_rows in rows_by_game.values():
-            current_streak = 0
-            first_equal_low_recorded = False
-            for row in game_rows:
-                is_equal_low = is_equal_low_continuation(row)
-                if is_equal_low:
-                    if current_streak == 0 and not first_equal_low_recorded:
-                        first_equal_low_battles.append(int(row["battle"]))
-                        first_equal_low_recorded = True
-                    elif current_streak > 0:
-                        consecutive_equal_low_battles += 1
-                    current_streak += 1
-                elif current_streak:
-                    streak_lengths.append(current_streak)
-                    current_streak = 0
-            if current_streak:
-                streak_lengths.append(current_streak)
 
         low_positive_streaks: list[int] = []
         longest_low_positive_by_game: dict[int, int] = {}
@@ -820,21 +788,6 @@ class ProgressionTelemetry:
             if not diagnostic_rows:
                 continue
 
-            streak = 0
-            longest_streak = 0
-            equal_low_count = 0
-            first_equal_low = None
-            for row in game_rows:
-                is_equal_low = is_equal_low_continuation(row)
-                if is_equal_low:
-                    equal_low_count += 1
-                    streak += 1
-                    longest_streak = max(longest_streak, streak)
-                    if first_equal_low is None:
-                        first_equal_low = int(row["battle"])
-                else:
-                    streak = 0
-
             match = match_by_game.get(game, {})
             identity_row = diagnostic_rows[0]
             low_command_games.append({
@@ -855,11 +808,8 @@ class ProgressionTelemetry:
                 "first_low_command_battle": min(
                     int(row["battle"]) for row in diagnostic_rows
                 ),
-                "first_equal_low_continuation_battle": first_equal_low,
-                "equal_low_continuations": equal_low_count,
-                "longest_equal_low_streak": longest_streak,
-                "both_zero_command_battle_starts": sum(
-                    row["command_start"] == [0, 0]
+                "both_at_collapse_point_battle_starts": sum(
+                    all(value <= threshold for value in row["command_start"])
                     for row in diagnostic_rows
                 ),
                 "battles_with_no_paid_operation": sum(
@@ -898,8 +848,8 @@ class ProgressionTelemetry:
                     any(value <= threshold for value in row["command_start"])
                     for row in game_rows
                 ),
-                "both_zero_command_battle_starts": sum(
-                    row["command_start"] == [0, 0]
+                "both_at_collapse_point_battle_starts": sum(
+                    all(value <= threshold for value in row["command_start"])
                     for row in game_rows
                 ),
                 "battles_with_no_paid_operation": sum(
@@ -942,16 +892,6 @@ class ProgressionTelemetry:
                 all(value <= threshold for value in row["command_before_collapse"])
                 for row in battle_records
             ),
-            "equal_low_continuations": len(equal_low_rows),
-            "zero_zero_continuations": sum(
-                (row.get("collapse_comparison") or {}).get("commands") == [0, 0]
-                for row in equal_low_rows
-            ),
-            "zero_zero_recovered": sum(
-                (row.get("collapse_comparison") or {}).get("commands") == [0, 0]
-                and all(value >= 1 for value in row.get("command_after_recovery", []))
-                for row in equal_low_rows
-            ),
             "simultaneous_collapse_draws": sum(
                 bool((row.get("collapse_comparison") or {}).get("triggered"))
                 and bool((row.get("collapse_comparison") or {}).get("equal"))
@@ -959,25 +899,18 @@ class ProgressionTelemetry:
                 and (row.get("collapse_comparison") or {}).get("winner") is None
                 for row in battle_records
             ),
-            "zero_vs_positive_collapses": sum(
+            "unequal_collapse_terminations": sum(
                 bool((row.get("collapse_comparison") or {}).get("triggered"))
                 and not bool((row.get("collapse_comparison") or {}).get("equal"))
-                and 0 in (row.get("collapse_comparison") or {}).get("commands", [])
-                and max((row.get("collapse_comparison") or {}).get("commands", [0, 0])) > 0
                 and (row.get("collapse_comparison") or {}).get("winner") is not None
-                for row in battle_records
-            ),
-            "consecutive_equal_low_battles": consecutive_equal_low_battles,
-            "zero_command_battle_starts": sum(
-                any(value == 0 for value in row["command_start"])
-                for row in battle_records
-            ),
-            "both_zero_command_battle_starts": sum(
-                row["command_start"] == [0, 0]
                 for row in battle_records
             ),
             "collapse_point_battle_starts": sum(
                 any(value <= threshold for value in row["command_start"])
+                for row in battle_records
+            ),
+            "both_at_collapse_point_battle_starts": sum(
+                all(value <= threshold for value in row["command_start"])
                 for row in battle_records
             ),
             "battles_with_no_paid_operation": sum(
@@ -1004,20 +937,12 @@ class ProgressionTelemetry:
                 int(row.get("passes_with_no_playable_alternative", 0))
                 for row in stall_rows
             ),
-            "equal_low_streak_length": self._distribution(
-                streak_lengths,
-                histogram=True,
-            ),
             "low_positive_streak_length": self._distribution(
                 low_positive_streaks,
                 histogram=True,
             ),
             "longest_low_positive_streak": max(
                 longest_low_positive_by_game.values(), default=0
-            ),
-            "first_equal_low_continuation_battle": self._distribution(
-                first_equal_low_battles,
-                histogram=True,
             ),
             "games": low_command_games,
             "battle_records": [
@@ -1094,12 +1019,14 @@ class ProgressionTelemetry:
             "battle_12_plus_count": sum(
                 row["battle"] >= 12 for row in battle_records
             ),
-            "zero_command_start_battles": sum(
-                row["command_start"][0] == 0 and row["command_start"][1] == 0
+            "collapse_point_start_battles": sum(
+                any(value <= threshold for value in row["command_start"])
                 for row in battle_records
             ),
-            "censored_zero_command_matches": sum(
-                row["censored"] and row.get("final_command") == [0, 0]
+            "censored_at_collapse_point_matches": sum(
+                row["censored"]
+                and len(row.get("final_command") or []) == 2
+                and any(value <= threshold for value in row["final_command"])
                 for row in match_records
             ),
             "decisive_battle_one_endings": sum(
