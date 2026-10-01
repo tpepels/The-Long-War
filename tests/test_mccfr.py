@@ -158,6 +158,9 @@ def test_current_fast_information_key_round_trips_closing_countdown() -> None:
         == information_set_id(state, 0)
     )
 
+    with pytest.raises((IndexError, ValueError)):
+        fast_search.stable_information_id_from_fast_key(fast, key[:-8])
+
 
 def test_mccfr_training_produces_policy_and_legal_agent_action() -> None:
     engine, deck, state = setup()
