@@ -489,7 +489,8 @@ cdef uint64_t _ismcts_rollout_action(
     cdef int actor = state.active_player
     cdef int opponent, reply_n, j
     cdef int i, best_ix=0, safe_n=0, anti_safe_n=0, pick
-    cdef bint vulnerable
+    cdef uint64_t pass_action
+    cdef bint vulnerable, anti_decisive_needed
     cdef double value, best=ISMCTS_NEGATIVE_INFINITY
     cdef double total=0.0, target, cumulative=0.0
 
@@ -549,16 +550,31 @@ cdef uint64_t _ismcts_rollout_action(
                     decisive_actions[0] += 1
                     return actions[i]
 
-        # Anti-decisive: when the first signal is already active, do not
-        # randomly choose a move that hands the opponent a provable immediate
-        # win if another Command-safe move avoids that one-ply loss. This is
-        # evaluated on the sampled determinization, so no hidden information
-        # leaks into the real root decision.
-        if state.pass_len == 1:
+        # Anti-decisive only needs exact child/reply inspection when the
+        # opponent can actually end the Battle on the next operation:
+        # - this actor has already signalled, so the unsignalled opponent can
+        #   answer with Pass; or
+        # - a configured closing window has at most two turns left, so after
+        #   this operation the reply can expire it.
+        #
+        # Earlier closing-window turns cannot possibly end on the next reply,
+        # so probing every candidate there was pure rollout overhead.
+        anti_decisive_needed = (
+            state.pass_len == 1
+            and (
+                state.passed[actor]
+                or (
+                    engine.pass_closing_rounds > 0
+                    and state.pass_closing_turns_remaining <= 2
+                )
+            )
+        )
+        if anti_decisive_needed:
             anti_safe_n = 0
             for pick in range(safe_n):
                 i = safe_indices[pick]
                 vulnerable = False
+                reply_n = -1
                 score_scratch.copy_from_fast(state)
                 _fe_apply_fast(engine, score_scratch, actions[i])
 
@@ -569,18 +585,46 @@ cdef uint64_t _ismcts_rollout_action(
                     )
                 elif score_scratch.active_player != actor:
                     opponent = score_scratch.active_player
-                    reply_n = _fe_legal_actions_into(
-                        engine,
-                        score_scratch,
-                        &reply_actions[0],
-                    )
 
-                    # If the next player has not signalled yet, their Pass/flag
-                    # is an exact immediate Battle-ending reply when legal.
+                    # In the common case there are no pending substeps and no
+                    # operation constraints. With one signal already active,
+                    # Pass is then unconditionally legal for the unsignalled
+                    # player, so probe that exact transition without building
+                    # their entire legal-action list.
                     if (
                         score_scratch.pass_len == 1
                         and not score_scratch.passed[opponent]
+                        and not score_scratch.cleanup_pending
+                        and score_scratch.pending_len == 0
+                        and score_scratch.constraint_len == 0
                     ):
+                        anti_decisive_probes[0] += 1
+                        pass_action = encode_action(
+                            TYPE_PASS, -1, -1, -1, 0
+                        )
+                        reply_scratch.copy_from_fast(score_scratch)
+                        _fe_apply_fast(
+                            engine,
+                            reply_scratch,
+                            pass_action,
+                        )
+                        if (
+                            reply_scratch.phase == PHASE_COMPLETE
+                            and reply_scratch.winner == opponent
+                        ):
+                            vulnerable = True
+
+                    # Constraints/pending substeps can make Pass unavailable.
+                    # Fall back to exact legal-action generation only there.
+                    elif (
+                        score_scratch.pass_len == 1
+                        and not score_scratch.passed[opponent]
+                    ):
+                        reply_n = _fe_legal_actions_into(
+                            engine,
+                            score_scratch,
+                            &reply_actions[0],
+                        )
                         for j in range(reply_n):
                             if action_kind(reply_actions[j]) != TYPE_PASS:
                                 continue
@@ -598,13 +642,19 @@ cdef uint64_t _ismcts_rollout_action(
                                 vulnerable = True
                             break
 
-                    # With one closing turn left, any operation may be the
-                    # terminal operation. Probe exact legal replies because
-                    # the opponent can choose the one that wins.
+                    # With one closing turn left, any legal operation may be
+                    # terminal. Generate replies lazily only if the Pass probe
+                    # above did not already prove the position vulnerable.
                     if (
                         not vulnerable
                         and score_scratch.pass_closing_turns_remaining == 1
                     ):
+                        if reply_n < 0:
+                            reply_n = _fe_legal_actions_into(
+                                engine,
+                                score_scratch,
+                                &reply_actions[0],
+                            )
                         for j in range(reply_n):
                             anti_decisive_probes[0] += 1
                             reply_scratch.copy_from_fast(score_scratch)
