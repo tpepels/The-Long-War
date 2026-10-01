@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import IntEnum, StrEnum
 
 
 PLAYER_COUNT = 2
@@ -34,6 +34,12 @@ class GameMode(StrEnum):
 class Direction(StrEnum):
     LEFT = "left"
     RIGHT = "right"
+
+
+class DirectionCode(IntEnum):
+    NONE = 0
+    LEFT = 1
+    RIGHT = 2
 
 
 class PolicySource(StrEnum):
