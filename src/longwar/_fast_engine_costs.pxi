@@ -474,7 +474,7 @@ cdef void _fe_resolve_new_completions_fast(
                 _fe_queue_recover_from_discard(self, 
                     state, player, CARD_BOND, False
                 )
-            if self.recover_story_on_completion_name[state.name[slot]]:
+            if self.recover_narrative_on_completion_name[state.name[slot]]:
                 _fe_queue_recover_from_discard(self, 
                     state, player, CARD_NARRATIVE, False
                 )
