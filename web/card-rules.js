@@ -6,7 +6,7 @@
     if (block?.label) return String(block.label);
     if (block?.kind === "property") return "PLAY";
     if (block?.kind === "trigger") {
-      return card?.veiled || card?.type === "stratagem" ? "REVEAL" : "WHEN";
+      return card?.type === "stratagem" ? "REVEAL" : "WHEN";
     }
     if (block?.kind === "continuous") return "WHILE";
     if (block?.kind === "timing") return "TIMING";
