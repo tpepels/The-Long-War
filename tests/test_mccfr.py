@@ -8,7 +8,7 @@ import pytest
 from longwar.agents.mccfr_agent import MCCFRAgent
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Pass, Position, Rank
-from longwar.game.model import StoryState
+from longwar.game.model import NarrativeState
 from longwar.mccfr import CFRNode, MCCFRTrainer, action_key, information_set_id
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -71,12 +71,12 @@ def test_information_set_hides_deck_order_but_not_own_composition() -> None:
     assert information_set_id(state, 0) != first
 
 
-def test_information_set_includes_public_story_identities() -> None:
+def test_information_set_includes_public_narrative_identities() -> None:
     _, _, state = setup()
-    state.stories[1] = [StoryState("public-story-a")]
+    state.narratives[1] = [NarrativeState("public-narrative-a")]
     first = information_set_id(state, 0)
 
-    state.stories[1] = [StoryState("public-story-b")]
+    state.narratives[1] = [NarrativeState("public-narrative-b")]
     assert information_set_id(state, 0) != first
 
 
