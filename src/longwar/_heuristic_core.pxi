@@ -36,6 +36,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int own_losses=0, opponent_losses=0
         cdef int own_front_slot, own_rear_slot, opp_front_slot, opp_rear_slot
         cdef int recovery=0, own_recovery=0, opponent_recovery=0
+        cdef int own_after_loss=0, opponent_after_loss=0
         cdef int own_projected=0, opponent_projected=0
         cdef int current_delta=0, projected_delta=0
         cdef int own_vulnerability=0, opponent_vulnerability=0
@@ -47,7 +48,7 @@ cdef class NativeHeuristicEvaluator:
 
         # The first player of a fresh Battle gets the first operation after
         # the normal start-of-turn draw. This is the concrete value of being
-        # the first of two consecutive passers in the previous Battle.
+        # the first player to Pass in the previous Battle.
         if (
             state.operations_this_battle[0] == 0
             and state.operations_this_battle[1] == 0
@@ -160,30 +161,37 @@ cdef class NativeHeuristicEvaluator:
             opponent_vulnerability - own_vulnerability
         )
 
+        own_after_loss = state.command[player] - own_losses
+        if own_after_loss < 0:
+            own_after_loss = 0
+        opponent_after_loss = state.command[opponent] - opponent_losses
+        if opponent_after_loss < 0:
+            opponent_after_loss = 0
+
         if (
             (
-                state.command[player] <= self.engine.command_collapse_threshold
-                or state.command[opponent] <= self.engine.command_collapse_threshold
+                own_after_loss <= self.engine.command_collapse_threshold
+                or opponent_after_loss <= self.engine.command_collapse_threshold
             )
-            and state.command[player] != state.command[opponent]
+            and own_after_loss != opponent_after_loss
         ):
-            if state.command[player] < state.command[opponent]:
+            if own_after_loss < opponent_after_loss:
                 score -= 250.0
             else:
                 score += 250.0
         else:
+            # Front losses have already been applied to projected Command.
             # Recovery is relevant only after surviving the Collapse check.
-            # Equal 0-0 survives, so both sides still receive the floor.
             recovery = _fe_command_recovery_fast(self.engine, state.battle)
-            own_recovery = recovery - own_losses
+            own_recovery = recovery
             if own_recovery < self.engine.command_recovery_floor:
                 own_recovery = self.engine.command_recovery_floor
-            opponent_recovery = recovery - opponent_losses
+            opponent_recovery = recovery
             if opponent_recovery < self.engine.command_recovery_floor:
                 opponent_recovery = self.engine.command_recovery_floor
-            own_projected = state.command[player] + own_recovery
+            own_projected = own_after_loss + own_recovery
             opponent_projected = (
-                state.command[opponent] + opponent_recovery
+                opponent_after_loss + opponent_recovery
             )
             if own_projected > self.engine.command_cap:
                 own_projected = self.engine.command_cap

@@ -1225,7 +1225,7 @@ cdef int _fe_legal_actions_into(
     )
 
     can_pass = (
-        state.passed[player]
+        state.pass_len > 0
         or (
             state.operations_this_battle[0] > 0
             and state.operations_this_battle[1] > 0

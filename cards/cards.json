@@ -1522,7 +1522,7 @@
         "defence"
       ],
       "command_cost": 2,
-      "text": "At Battle end, one Front you lost does not reduce your Command recovery.",
+      "text": "At Battle end, one Front you lost does not reduce your Command.",
       "balance": {
         "dynamic": true
       },
@@ -1530,7 +1530,7 @@
         {
           "kind": "effect",
           "label": "BATTLE END",
-          "text": "When you recover Command, count one fewer Front lost."
+          "text": "At Battle end, count one fewer Front when reducing your Command before Collapse."
         }
       ],
       "design_rules": {
@@ -1764,7 +1764,7 @@
         "hero"
       ],
       "command_cost": 3,
-      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command recovery. **Name -** While this formation is Named, the first card you play in this Front each Battle costs 1 less Command (minimum 1).",
+      "text": "**Hero.** Play as a **Force** or **Name**. **Force - Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command. **Name -** While this formation is Named, the first card you play in this Front each Battle costs 1 less Command (minimum 1).",
       "balance": {
         "dynamic": true
       },
@@ -1777,7 +1777,7 @@
         {
           "kind": "property",
           "label": "FORCE",
-          "text": "**Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command recovery."
+          "text": "**Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command."
         },
         {
           "kind": "continuous",

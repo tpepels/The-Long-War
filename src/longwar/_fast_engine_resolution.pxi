@@ -585,14 +585,21 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
 
     base_recovery = _fe_command_recovery_for_battle(self, state.battle)
     for p in range(2):
+        # Losing Fronts causes immediate Command attrition after Battle-end
+        # effects and before Collapse. Existing protection effects reduce this
+        # penalty before it is applied.
+        state.command[p] -= state.resolution_recovery_losses[p]
+        if state.command[p] < 0:
+            state.command[p] = 0
+
         # Battle-end card effects can draw/refund after resolution began;
         # snapshot those counters only once every such effect is done.
         state.last_command_spent[p] = state.command_spent_this_battle[p]
         state.last_command_refunded[p] = state.command_refunded_this_battle[p]
         state.last_cards_drawn[p] = state.cards_drawn_this_battle[p]
         state.last_completion_count[p] = state.completion_count_this_battle[p]
-        # Collapse is checked on current Command after Battle resolution,
-        # cleanup, Retreats, and Battle-end effects, before any recovery.
+        # Collapse is checked after Front-loss Command attrition and before
+        # any recovery.
         state.last_command_before_recovery[p] = state.command[p]
         state.last_recovery_loss[p] = state.resolution_recovery_losses[p]
         state.last_recovery_actual[p] = 0
@@ -618,8 +625,10 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
             return
 
     # Equal exhausted Command continues. Only a continuing war receives recovery.
+    # Front losses have already reduced current Command; they do not reduce
+    # recovery a second time.
     for p in range(2):
-        actual = base_recovery - state.resolution_recovery_losses[p]
+        actual = base_recovery
         if actual < self.command_recovery_floor:
             actual = self.command_recovery_floor
         state.last_recovery_actual[p] = actual

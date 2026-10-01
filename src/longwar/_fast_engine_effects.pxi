@@ -907,24 +907,6 @@ cdef inline void _fe_clear_pass_sequence_fast(
     state.pass_order[1] = -1
 
 
-cdef inline void _fe_withdraw_player_pass_fast(
-    FastEngine self,
-    FastState state,
-    int player,
-) noexcept:
-    cdef int i, write = 0
-    if not state.passed[player]:
-        return
-    state.passed[player] = 0
-    for i in range(state.pass_len):
-        if state.pass_order[i] == player:
-            continue
-        state.pass_order[write] = state.pass_order[i]
-        write += 1
-    state.pass_len = write
-    for i in range(write, 2):
-        state.pass_order[i] = -1
-
 cdef void _fe_resume_pending_flow(FastEngine self, FastState state):
     cdef int resume, player
     if state.cleanup_pending:
@@ -950,9 +932,7 @@ cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor)
     cdef int opponent = 1 - actor
     state.operations_this_battle[actor] += 1
 
-    # A Pass belongs to the player who made it. The opponent acting does not
-    # clear it; only that player re-entering with a non-Pass operation does.
-    _fe_withdraw_player_pass_fast(self, state, actor)
-
+    # Once a player has Passed, that Pass remains active for the rest of the
+    # Battle even if that player later takes other operations.
     _fe_start_turn_fast(self, state, opponent)
     state.turn_number += 1

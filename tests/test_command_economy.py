@@ -221,7 +221,7 @@ def test_threshold_vs_positive_command_collapses_before_recovery() -> None:
     assert snapshot["command_remaining"] == [0, 5]
 
 
-def test_recovery_floor_applies_after_front_losses() -> None:
+def test_front_losses_reduce_command_before_recovery_floor_applies() -> None:
     rules = GameRules.standard().with_overrides(
         command_recovery_start=0,
         command_recovery_decrement=0,
@@ -229,8 +229,8 @@ def test_recovery_floor_applies_after_front_losses() -> None:
         command_collapse_threshold=0,
     )
     engine, state = standard_game(rules=rules)
-    # Base recovery is explicitly 0; each player still recovers the configured
-    # floor despite losing a Front.
+    # Each lost Front removes 1 current Command before Collapse. Base recovery
+    # is 0, so surviving players then recover only the configured floor.
     GameScenario(state).battle(1).commands(4, 4).battle_start_commands(
         4,
         4,
@@ -250,14 +250,14 @@ def test_recovery_floor_applies_after_front_losses() -> None:
     assert state.phase.value == "battle"
     assert state.winner is None
     assert state.battle == 2
-    assert [player.command for player in state.players] == [5, 5]
+    assert [player.command for player in state.players] == [4, 4]
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
     assert snapshot["fronts_lost"] == [1, 1]
     assert snapshot["recovery_loss"] == [1, 1]
-    assert snapshot["command_before_recovery"] == [4, 4]
+    assert snapshot["command_before_recovery"] == [3, 3]
     assert snapshot["recovery_actual"] == [1, 1]
-    assert snapshot["command_remaining"] == [5, 5]
+    assert snapshot["command_remaining"] == [4, 4]
 
 
 
@@ -407,3 +407,32 @@ def test_command_diagnostics_attribute_catchup_discount_to_source_card() -> None
         and event["amount"] >= 1
         for event in events
     )
+
+
+def test_front_loss_can_cause_collapse_before_recovery() -> None:
+    rules = GameRules.standard().with_overrides(
+        command_recovery_start=12,
+        command_recovery_decrement=3,
+        command_recovery_floor=1,
+        command_collapse_threshold=0,
+    )
+    engine, state = standard_game(rules=rules)
+    GameScenario(state).battle(1).commands(1, 5).battle_start_commands(
+        1,
+        5,
+    ).operations(1, 1).clear_hands().formation(
+        1,
+        Position(Front.FIRST, Rank.FRONT),
+        force="the-fifty-men",
+    )
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.phase.value == "complete"
+    assert state.winner == 1
+    snapshot = state.last_battle_snapshot
+    assert snapshot is not None
+    assert snapshot["fronts_lost"][0] == 1
+    assert snapshot["command_before_recovery"] == [0, 5]
+    assert snapshot["recovery_actual"] == [0, 0]

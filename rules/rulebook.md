@@ -185,19 +185,19 @@ To **Pass** is to spend 0 Command and take no other operation.
 
 Normally, you cannot Pass until both players have completed at least one operation in the Battle. If you have no other legal operation, you may Pass.
 
-Your Pass now remains active. The opponent takes a normal turn.
+Once you Pass, that Pass remains active for the rest of the Battle. The opponent takes a normal turn, and you continue taking normal turns too.
 
-- If the opponent also Passes, the Battle ends.
-- If the opponent takes another operation, your Pass **stays active**.
-- On one of your later turns, taking a non-Pass operation withdraws **your own** Pass.
+You may still take non-Pass operations later. They do **not** remove your Pass.
 
-A Battle therefore ends when **both players have an active Pass**.
+As soon as the other player also Passes, the Battle ends. After the first Pass has been made, the other player may Pass on any later turn.
 
-![A Pass remains yours while the opponent continues; the Battle ends once both players have Passed.](assets/rulebook-pass-flow.jpg)
+A Battle therefore ends when **both players have Passed at least once**.
 
-> **REMEMBER** Your opponent cannot clear your Pass. Only you can withdraw it by taking another operation.
+![A Pass remains yours while play continues; the Battle ends once both players have Passed.](assets/rulebook-pass-flow.jpg)
 
-The player whose still-active Pass was made **first** starts the next Battle.
+> **REMEMBER** Passing costs one operation once. After that, your Pass cannot be cleared during that Battle.
+
+The player who **Passed first** starts the next Battle.
 
 ## Resolving the four Fronts {#scoring}
 
@@ -245,7 +245,7 @@ After Retreats are complete:
 4. If the war continues, recover Command.
 5. Draw until you have {{HAND_LIMIT}} cards.
 6. Reset allowances that apply once per Battle.
-7. Start the next Battle with the player whose still-active Pass was made first.
+7. Start the next Battle with the player who Passed first.
 
 Keep your hand, draw pile, and discard pile between Battles.
 
@@ -267,19 +267,17 @@ Base recovery starts at **{{RECOVERY_START}}** in Battle I and falls by **{{RECO
 
 **{{RECOVERY_SERIES_PLAIN}}**
 
-Subtract **1 for each Front you lost** in that Battle.
+Before the Collapse check, lose **1 Command for each Front you lost** in that Battle, to a minimum of 0. Card effects can protect you from this loss.
 
-Your actual recovery is never less than **{{RECOVERY_FLOOR}}** while the war continues.
+If the war continues, recover the base amount above. Your recovery is never less than **{{RECOVERY_FLOOR}}**, and Command never rises above {{COMMAND_CAP}}.
 
-Add the result to your current Command, to a maximum of {{COMMAND_CAP}}.
-
-> **EXAMPLE** In Battle III the current base recovery is **{{RECOVERY_BATTLE_3}}**. If you lost two Fronts, you recover **{{RECOVERY_BATTLE_3_LOSE_2}} Command**. The minimum recovery still applies if the subtraction would take you below {{RECOVERY_FLOOR}}.
+> **EXAMPLE** If you end a Battle on 3 Command and lost two Fronts, you fall to 1 Command before the Collapse check. If you survive, you then receive that Battle's normal recovery.
 
 The recovery numbers above are generated from the same rules configuration used by the game engine.
 
 ### The collapse check
 
-The check that can end the war is called **Command Collapse**. It happens after Front resolution, cleanup, Retreats, and relevant Battle-end effects, but **before Command recovery**.
+The check that can end the war is called **Command Collapse**. It happens after Front resolution, cleanup, Retreats, relevant Battle-end effects, and Front-loss Command attrition, but **before Command recovery**.
 
 - If exactly one player is at **{{COLLAPSE_THRESHOLD}} Command**, that player loses the war.
 - If both players are at **{{COLLAPSE_THRESHOLD}} Command**, the war continues.
@@ -354,7 +352,7 @@ Unless a card says otherwise:
 These are the rules most worth checking during a first game:
 
 - **Draw first**, then take exactly one operation.
-- A **Pass persists** through the opponent's actions. It is withdrawn only if you later take a non-Pass operation.
+- Once you **Pass**, it remains active for the rest of that Battle, even if you later act.
 - Only **Force + Bond + Name** persists normally from one Battle to the next.
 - A Maneuver goes **one Front sideways in the same rank**.
 - On a lost Front, **drive off the Rear first**, then Retreat the Frontline formation.

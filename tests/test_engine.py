@@ -307,7 +307,7 @@ def test_first_pass_gives_opponent_a_normal_turn_with_normal_draw() -> None:
     assert state.cards_drawn_this_battle[1] == before_drawn + 1
 
 
-def test_opponent_operation_does_not_clear_persistent_pass() -> None:
+def test_pass_remains_persistent_even_if_passer_acts_again() -> None:
     engine, state = setup_state()
     state.operations_this_battle[:] = [1, 1]
     state.active_player = 0
@@ -321,25 +321,22 @@ def test_opponent_operation_does_not_clear_persistent_pass() -> None:
 
     engine.apply(state, Pass())
     assert state.pass_order == [0]
-    assert state.active_player == 1
+    assert state.players[0].passed is True
 
     engine.apply(state, PlayForce("the-fifty-men", pos(0)))
-
-    assert state.battle == 1
     assert state.pass_order == [0]
     assert state.players[0].passed is True
-    assert state.players[1].passed is False
-    assert state.active_player == 0
 
     engine.apply(state, PlayForce("the-fifty-men", pos(0)))
+    assert state.pass_order == [0]
+    assert state.players[0].passed is True
 
-    assert state.battle == 1
-    assert state.pass_order == []
-    assert state.players[0].passed is False
-    assert state.players[1].passed is False
+    engine.apply(state, Pass())
+    assert state.battle == 2
+    assert state.active_player == 0
 
 
-def test_emergency_first_pass_does_not_unlock_pass_for_opponent_with_legal_operation() -> None:
+def test_emergency_first_pass_allows_opponent_to_end_battle_later() -> None:
     engine, state = setup_state()
     state.operations_this_battle[:] = [0, 0]
     state.active_player = 0
@@ -355,7 +352,7 @@ def test_emergency_first_pass_does_not_unlock_pass_for_opponent_with_legal_opera
 
     assert state.active_player == 1
     assert state.pass_order == [0]
-    assert Pass() not in engine.legal_actions(state)
+    assert Pass() in engine.legal_actions(state)
 
 
 def test_battle_ends_when_both_players_are_passed() -> None:
@@ -1053,7 +1050,7 @@ def test_ground_was_held_breaks_tie_only_for_single_frontline_named_side() -> No
     assert state.last_battle_snapshot["fronts_lost"][0] == 0
 
 
-def test_lines_held_and_tovan_reduce_recovery_front_loss_penalty() -> None:
+def test_lines_held_and_tovan_reduce_front_command_loss_penalty() -> None:
     engine, state = setup_state()
     state.players[0].command = 5
     state.players[1].command = 20
@@ -1245,7 +1242,7 @@ def test_command_recovery_loses_one_per_lost_front_and_caps_at_configured_limit(
     base = engine.command_recovery_for_battle(state.last_battle_snapshot["battle"])
     expected_p0 = min(
         engine.rules.command_cap,
-        5 + max(engine.rules.command_recovery_floor, base - 2),
+        max(0, 5 - 2) + max(engine.rules.command_recovery_floor, base),
     )
     expected_p1 = min(
         engine.rules.command_cap,

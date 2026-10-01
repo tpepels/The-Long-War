@@ -82,8 +82,8 @@ const TERM_HINTS = {
   "frontline forces": "Forces occupying Frontline positions.",
   "move": "Relocate a Named Formation or other cards as the rule or card text allows.",
   "name": "A Unique formation component. It may be prepared before the Force or Bond; Force-dependent text stays inactive until a Force is present.",
-  "pass": "Normally available after both players have completed an operation. Your Pass persists through the opponent's actions and is withdrawn only if you later take a non-Pass operation. The Battle ends when both players are Passed.",
-  "passes": "A Pass belongs to the player who made it. Opponent actions do not clear it; your own later operation does. The Battle ends when both players are Passed.",
+  "pass": "Normally available after both players have completed an operation. Once you Pass, it stays active for the rest of the Battle even if you later act. The Battle ends when both players have Passed.",
+  "passes": "A Pass is permanent for the current Battle. After the first Pass, play may continue for any number of turns; the Battle ends when the other player also Passes.",
   "rear": "The position behind the Frontline in the same Front.",
   "rear force": "The Force occupying the Rear position of that Front.",
   "rear forces": "Forces occupying Rear positions.",
@@ -104,11 +104,11 @@ function termHint(key) {
   if (key === "command" && rules) {
     const threshold = rules.command_collapse_threshold;
     return "Your operation budget. Start at " + rules.starting_command +
-      ". After Battle-end effects, check Collapse before recovery: exactly one player at " +
+      ". After Battle-end effects, lose 1 Command per unprotected Front lost, then check Collapse: exactly one player at " +
       threshold + " loses; " + threshold + "-" + threshold +
       " continues. A continuing war recovers max(" +
       rules.command_recovery_floor +
-      ", base recovery minus Fronts lost), to a maximum of " +
+      ", base recovery), to a maximum of " +
       rules.command_cap + ".";
   }
   if ((key === "narrative" || key === "narratives") && rules) {
