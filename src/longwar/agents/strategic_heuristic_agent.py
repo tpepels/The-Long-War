@@ -192,6 +192,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
                     "packed-native" if self._use_native else "python"
                 ),
                 "evaluated_candidates": 1,
+                "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
                 "command_guard_applied": guarded > 0,
                 "command_guard_filtered_actions": guarded,
             }
@@ -372,6 +373,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
             "transposition_stores": (
                 int(self._native_tt.stores) if self._use_native else 0
             ),
+            "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
             "command_guard_applied": guarded > 0,
             "command_guard_filtered_actions": guarded,
             "command_guard_overrode_selection": guard_overrode_selection,
