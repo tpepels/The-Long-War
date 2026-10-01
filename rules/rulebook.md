@@ -24,7 +24,7 @@ A Battle has a simple arc:
 
 1. Players alternate turns, drawing a card and then doing one thing.
 2. They build positions, move established groups, or choose to do nothing.
-3. When both players choose to stop one after the other, the Battle ends.
+3. Once both players have chosen to stop at least once, the Battle ends.
 4. Resolve the four Fronts separately.
 5. Some groups survive, while incomplete positions are cleared and losing positions may be pushed back.
 6. Check whether either side has exhausted its Command.
@@ -267,11 +267,11 @@ Base recovery starts at **{{RECOVERY_START}}** in Battle I and falls by **{{RECO
 
 **{{RECOVERY_SERIES_PLAIN}}**
 
-Before the Collapse check, lose **1 Command for each Front you lost** in that Battle, to a minimum of 0. Card effects can protect you from this loss.
+Before the Collapse check, lose **{{LOST_FRONT_COMMAND_PENALTY}} Command for each Front you lost** in that Battle, to a minimum of 0. Card effects can protect you from this loss.
 
 If the war continues, recover the base amount above. Your recovery is never less than **{{RECOVERY_FLOOR}}**, and Command never rises above {{COMMAND_CAP}}.
 
-> **EXAMPLE** If you end a Battle on 3 Command and lost two Fronts, you fall to 1 Command before the Collapse check. If you survive, you then receive that Battle's normal recovery.
+> **EXAMPLE** If the lost-Front penalty is {{LOST_FRONT_COMMAND_PENALTY}} Command, ending a Battle on 3 Command after losing two Fronts leaves you on {{EXAMPLE_TWO_FRONT_COMMAND_REMAINING}} Command before the Collapse check. If you survive, you then receive that Battle's normal recovery.
 
 The recovery numbers above are generated from the same rules configuration used by the game engine.
 
@@ -279,8 +279,9 @@ The recovery numbers above are generated from the same rules configuration used 
 
 The check that can end the war is called **Command Collapse**. It happens after Front resolution, cleanup, Retreats, relevant Battle-end effects, and Front-loss Command attrition, but **before Command recovery**.
 
-- If exactly one player is at **{{COLLAPSE_THRESHOLD}} Command**, that player loses the war.
-- If both players are at **{{COLLAPSE_THRESHOLD}} Command**, the war ends in a **draw**.
+- If either player is at or below **{{COLLAPSE_THRESHOLD}} Command**, compare their current Command.
+- The player with lower Command loses the war.
+- If their Command is equal, the war ends in a **draw**.
 - Only a continuing war receives Command recovery.
 
 ## Special card types {#stories}
@@ -355,7 +356,7 @@ These are the rules most worth checking during a first game:
 - A Maneuver goes **one Front sideways in the same rank**.
 - On a lost Front, **drive off the Rear first**, then Retreat the Frontline formation.
 - Check **Command Collapse before recovery**.
-- If both players reach 0 Command together, the war ends in a **draw**.
+- If Command Collapse is triggered while both players have equal Command, the war ends in a **draw**.
 
 ## Timing
 
