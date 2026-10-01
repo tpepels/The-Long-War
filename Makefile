@@ -3,6 +3,9 @@
 # Make is a small human-facing lifecycle surface.
 # Variations belong in *_ARGS or the underlying runner, not new targets.
 
+WORKERS ?= 8
+PYTEST ?= python -m pytest -n $(WORKERS)
+
 install:
 	python -m pip install -e '.[dev]'
 
@@ -14,13 +17,13 @@ browser-build:
 	python tools/build_browser_runtime.py
 
 test:
-	python -m pytest -q --durations=10
+	$(PYTEST) -q --durations=10
 
 test-fast:
-	python -m pytest -q --tb=short -m "not algorithm and not integration"
+	$(PYTEST) -q --tb=short -m "not algorithm and not integration"
 
 test-integration:
-	python -m pytest -q -m integration --durations=10
+	$(PYTEST) -q -m integration --durations=10
 
 browser-parity:
 	@mkdir -p artifacts/logs
@@ -46,17 +49,17 @@ verify:
 	$(MAKE) browser-parity
 
 verify-algorithms:
-	python -m pytest -q --tb=short -m "algorithm"
+	$(PYTEST) -q --tb=short -m "algorithm"
 	python tools/run_experiments.py validate
 
-SIMULATE_ARGS ?= --games 25 --seed 99 --agent-a heuristic --agent-b heuristic
+SIMULATE_ARGS ?= --games 25 --seed 99 --jobs $(WORKERS) --agent-a heuristic --agent-b heuristic
 simulate:
 	python tools/simulate.py $(SIMULATE_ARGS)
 
 # Canonical Balance Lab: planning-capable ISMCTS evidence, generated locally
 # and committed for GitHub Pages. Override BALANCE_ARGS for larger/special runs.
 BALANCE_PRESET ?= quick
-BALANCE_ARGS ?= --agent ismcts --games 24 --jobs 8 --publish-lab --skip-card-screen
+BALANCE_ARGS ?= --agent ismcts --games 24 --jobs $(WORKERS) --publish-lab --skip-card-screen
 balance:
 	python tools/run_experiments.py balance --preset $(BALANCE_PRESET) $(BALANCE_ARGS)
 
