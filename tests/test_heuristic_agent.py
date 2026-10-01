@@ -150,6 +150,61 @@ def test_heuristic_values_all_four_fronts_independently() -> None:
     assert agent.evaluate(engine, ahead, 0) > agent.evaluate(engine, behind, 0)
 
 
+def test_native_heuristic_value_is_zero_sum_between_player_perspectives() -> None:
+    engine, state = engine_and_state()
+    state.players[0].command = 7
+    state.players[1].command = 4
+    state.players[0].hand = ["oren", "the-fifty-men", "followed"]
+    state.players[1].hand = ["namar", "iria"]
+    state.slot(
+        0,
+        Position(Front.FIRST, Rank.FRONT),
+    ).force = "the-fifty-men"
+    state.slot(
+        1,
+        Position(Front.SECOND, Rank.REAR),
+    ).force = "seven-black-ships"
+
+    evaluator = engine._native_heuristic()
+    packed = engine._native_core().from_game_state(state)
+    value0 = evaluator.evaluate(packed, 0)
+    value1 = evaluator.evaluate(packed, 1)
+    strategic0 = evaluator.strategic_evaluate(packed, 0)
+    strategic1 = evaluator.strategic_evaluate(packed, 1)
+
+    assert value0 == pytest.approx(-value1)
+    assert strategic0 == pytest.approx(-strategic1)
+
+
+def test_post_signal_heuristic_value_is_zero_sum() -> None:
+    rules = engine_and_state()[0].rules.with_overrides(pass_closing_rounds=3)
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    engine = GameEngine(data, rules=rules)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=92,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.operations_this_battle[:] = [1, 1]
+    state.players[0].passed = True
+    state.pass_order[:] = [0]
+    state.pass_closing_turns_remaining = 6
+    state.players[0].hand = ["oren", "the-fifty-men"]
+    state.players[1].hand = ["namar", "iria", "followed"]
+
+    evaluator = engine._native_heuristic()
+    packed = engine._native_core().from_game_state(state)
+
+    assert evaluator.evaluate(packed, 0) == pytest.approx(
+        -evaluator.evaluate(packed, 1)
+    )
+
+
 def test_first_pass_is_penalized_while_opponent_has_normal_reply_turn() -> None:
     engine, state = engine_and_state()
     state.players[0].hand = ["oren", "iria"]
