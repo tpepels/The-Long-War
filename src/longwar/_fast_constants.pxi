@@ -230,6 +230,10 @@ cdef int CONSTRAINT_ZERO_COST = 4
 cdef int CONSTRAINT_DRAW_ON_SATISFY = 8
 cdef int CONSTRAINT_DISCARD_SOURCE_NARRATIVE = 16
 
+cdef inline int other_player(int player) noexcept:
+    return (player + 1) % PLAYER_COUNT
+
+
 cdef inline int slot_index(int player, int front, int rank) noexcept:
     return player * POSITIONS_PER_PLAYER + front * RANK_COUNT + rank
 
