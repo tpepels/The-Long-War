@@ -53,6 +53,7 @@ def test_cython_ismcts_returns_legal_action() -> None:
         rollout_depth=6,
         tree_depth_limit=24,
     )
+    assert agent.evaluator.sampled_opponent_resources is True
     action = agent.choose(engine, state)
 
     assert action in legal
