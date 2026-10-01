@@ -626,7 +626,7 @@ def test_progression_trajectory_uses_battle_eight_plus_when_observed() -> None:
     }
 
 
-def test_lab_builder_does_not_grade_stale_optional_legacy_fallbacks_as_current_evidence():
+def test_lab_builder_does_not_grade_stale_optional_sources_as_current_evidence():
     source = (build_lab_report.ROOT / "tools" / "build_lab_report.py").read_text(
         encoding="utf-8"
     )
