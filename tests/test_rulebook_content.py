@@ -44,20 +44,21 @@ def test_core_terms_are_explicitly_introduced_before_rules_depend_on_them() -> N
     source = text("rules/rulebook.md")
 
     expected_introductions = (
-        "A round of the game is called a **Battle**.",
-        "Each of the four contested areas is called a **Front**.",
-        "The resource you spend to play cards and move established groups is called **Command**.",
-        "A **Force** gives a position its body.",
-        "A **Bond** is attached to a Force",
-        "A **Name** gives that group an identity.",
-        "A **formation** is a Force together with any Bond and/or Name",
-        "A **Named Formation** is a complete formation",
+        "A round in The Long War is called a **Battle**.",
+        "The battlefield is divided into four contested areas called **Fronts**.",
+        "**Command** is the resource used to play cards and move established groups.",
+        "Cards can contribute a number called **Strength**.",
+        "A **Force** supplies the group's printed Strength.",
+        "A **Bond** can connect to that Force.",
+        "A **Name** gives the group its identity.",
+        "Any stack containing a Force is a **formation**.",
+        "A formation containing **Force + Bond + Name** is a **Named Formation**.",
         "A **Maneuver** is an operation that moves one of your Named Formations.",
         "To **Pass** is to spend 0 Command and take no other operation.",
-        "A **Narrative** is a card that represents something the war has made true",
+        "A **Narrative** represents something the war has made true beyond a single formation.",
         "A **Stratagem** is a public plan for the current Battle.",
-        "That movement is called a **Retreat**.",
-        "**Command Collapse** is the check that can end the war.",
+        "that forced movement is called a **Retreat**.",
+        "The check that can end the war is called **Command Collapse**.",
     )
     for sentence in expected_introductions:
         assert sentence in source
@@ -78,7 +79,7 @@ def test_print_rulebook_uses_typst_not_browser_pagination() -> None:
 
     assert "typst-community/setup-typst@v5" in workflow
     assert "typst-version: 0.15.1" in workflow
-    assert 'href="rulebook.pdf"' in template
+    assert 'href="rulebook.pdf?v={{PRINT_VERSION}}"' in template
     assert "window.print()" not in template
     assert "WeasyPrint" not in pyproject
     assert "pypdf" in pyproject
@@ -86,4 +87,8 @@ def test_print_rulebook_uses_typst_not_browser_pagination() -> None:
 
 def test_simultaneous_command_collapse_is_documented_as_draw() -> None:
     source = text("rules/rulebook.md")
-    assert "If both players are at **{{COLLAPSE_THRESHOLD}} Command**, the war ends in a **draw**." in source
+    assert (
+        "If both players are at or below **{{COLLAPSE_THRESHOLD}} Command** "
+        "with equal Command, the war ends in a **draw**."
+        in source
+    )
