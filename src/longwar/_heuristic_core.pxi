@@ -855,7 +855,11 @@ cdef class NativeHeuristicEvaluator:
         FastState child,
     ):
         child.copy_from_fast(state)
-        _fe_pass_action(self.engine, child, player)
+        _fe_apply_fast(
+            self.engine,
+            child,
+            encode_action(TYPE_PASS, -1, -1, -1, player),
+        )
 
         # If this signal ends the Battle, the exact transition has already
         # resolved cleanup and Retreat, checked Collapse, applied surviving
