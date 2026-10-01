@@ -84,10 +84,10 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         }
     elif card_type == "name":
         result["strength"] = 2
-    elif card_type == "story":
+    elif card_type == "narrative":
         result["narrative_form"] = card["narrative_form"]
         result["ongoing"] = bool(card.get("ongoing", False))
-        # A no-op Story preserves the paid public Narrative play while
+        # A no-op Narrative preserves the paid public Narrative play while
         # removing the card-specific trigger or continuous effect.
         result["design_rules"] = {}
     elif card_type == "stratagem":
@@ -958,7 +958,7 @@ def run_counterfactual_experiment(
             "hero": "Matched Hero chassis: printed Force/Name Strength, Command cost, uniqueness and dual-mode status preserved; special rules removed",
             "bond": "Vanilla Bond, +1 Strength immediately and +2 more while it has a Name",
             "name": "Vanilla Name, 2 Strength",
-            "story": "Public no-op Narrative preserving form and Ongoing status",
+            "narrative": "Public no-op Narrative preserving form and Ongoing status",
             "stratagem": "Public inert Stratagem with no continuing effect",
         },
         "pairing": {
