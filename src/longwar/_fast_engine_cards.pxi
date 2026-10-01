@@ -4,7 +4,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.adjacent_command_discount, 0, sizeof(self.adjacent_command_discount))
     memset(self.completion_effect, 0, sizeof(self.completion_effect))
     memset(self.completion_amount, 0, sizeof(self.completion_amount))
-    memset(self.complete_plot_protection, 0, sizeof(self.complete_plot_protection))
+    memset(self.complete_narrative_protection, 0, sizeof(self.complete_narrative_protection))
     memset(self.role, 0, sizeof(self.role))
     memset(self.strength, 0, sizeof(self.strength))
     memset(self.name_strength, 0, sizeof(self.name_strength))
@@ -36,7 +36,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.completion_discount_cost, 0xff, sizeof(self.completion_discount_cost))
     memset(self.frontline_force_discount, 0, sizeof(self.frontline_force_discount))
     memset(self.frontline_force_discount_requires_named, 0, sizeof(self.frontline_force_discount_requires_named))
-    memset(self.recovery_protected_front, 0, sizeof(self.recovery_protected_front))
+    memset(self.front_loss_protected_front, 0, sizeof(self.front_loss_protected_front))
     memset(self.driven_bond_stays, 0, sizeof(self.driven_bond_stays))
     memset(self.driven_bond_returns, 0, sizeof(self.driven_bond_returns))
     memset(self.driven_name_returns, 0, sizeof(self.driven_name_returns))
@@ -70,7 +70,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.strat_maneuver_cost, 0xff, sizeof(self.strat_maneuver_cost))
     memset(self.strat_unnamed_maneuver, 0, sizeof(self.strat_unnamed_maneuver))
     memset(self.strat_tie_control, 0, sizeof(self.strat_tie_control))
-    memset(self.strat_recovery_loss_reduction, 0, sizeof(self.strat_recovery_loss_reduction))
+    memset(self.strat_front_loss_protection, 0, sizeof(self.strat_front_loss_protection))
     memset(self.strat_no_retreat, 0, sizeof(self.strat_no_retreat))
     memset(self.strat_combine_fronts, 0, sizeof(self.strat_combine_fronts))
     memset(self.strat_refuse_flank, 0, sizeof(self.strat_refuse_flank))
@@ -140,6 +140,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     self.command_recovery_decrement = int(rules.command_recovery_decrement)
     self.command_recovery_floor = int(rules.command_recovery_floor)
     self.command_collapse_threshold = int(rules.command_collapse_threshold)
+    self.lost_front_command_penalty = int(rules.lost_front_command_penalty)
     self.pass_signal_costs_operation = bool(rules.pass_signal_costs_operation)
     self.pass_closing_rounds = int(rules.pass_closing_rounds)
     self.maneuver_command_cost = int(rules.maneuver_command_cost)
@@ -291,8 +292,8 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.frontline_force_discount_requires_named[code] = 1
         if force_design.get("command") == "frontline_force_discount_1_min_1":
             self.frontline_force_discount[code] = 1
-        if force_design.get("command") == "lost_front_here_does_not_reduce_recovery":
-            self.recovery_protected_front[code] = 1
+        if force_design.get("command") == "protect_lost_front_here":
+            self.front_loss_protected_front[code] = 1
         if design.get("persistence") == "inherited_bond":
             self.driven_bond_stays[code] = 1
         if design.get("persistence") == "bond_returns_to_hand_when_force_driven_off":
@@ -364,9 +365,9 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.strat_unnamed_maneuver[code] = bool(
                 design.get("unnamed_formations_can_maneuver")
             )
-        if design.get("command") == "improve_recovery":
-            self.strat_recovery_loss_reduction[code] = max(
-                0, -int(design.get("lost_front_adjustment", 0))
+        if design.get("command") == "protect_lost_fronts":
+            self.strat_front_loss_protection[code] = max(
+                0, int(design.get("lost_fronts_protected", 0))
             )
         if design.get("stratagem") == "no_retreat_front":
             self.strat_no_retreat[code] = 1
