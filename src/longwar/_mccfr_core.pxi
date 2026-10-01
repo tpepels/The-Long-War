@@ -342,7 +342,11 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i = 0
     version = data[i]
     i += 1
-    if version not in (5, 6, 7, 8):
+    if not (
+        INFORMATION_KEY_MIN_SUPPORTED_VERSION
+        <= version
+        <= INFORMATION_KEY_VERSION
+    ):
         raise ValueError(f"Unsupported fast information-key version: {version}")
 
     card_ids = engine.card_ids
@@ -362,14 +366,14 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i += 2
     active_player = data[i] - 1
     i += 1
-    if version >= 6:
+    if version >= INFORMATION_KEY_TURN_STATE_VERSION:
         # v6 adds the full observable turn number. The stable public policy id
         # intentionally keeps the public policy observation schema, so consume it
         # without adding it to the JSON payload below.
-        i += 4
+        i += U32_BYTES
 
-    passed = [bool(data[i]), bool(data[i + 1])]
-    i += 2
+    passed = [bool(data[i + offset]) for offset in range(PLAYER_COUNT)]
+    i += PLAYER_COUNT
 
     pass_len = data[i]
     i += 1
@@ -379,7 +383,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         i += 1
 
     pass_closing_turns_remaining = 0
-    if version >= 8:
+    if version >= INFORMATION_KEY_PASS_CLOSING_VERSION:
         pass_closing_turns_remaining = data[i] | (data[i + 1] << 8)
         i += 2
 
@@ -387,16 +391,16 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     command = []
     hero_used = []
     operations_this_battle = []
-    for _ in range(2):
+    for _ in range(PLAYER_COUNT):
         discarded_this_battle.append(data[i])
         command.append(data[i + 1] | (data[i + 2] << 8))
         hero_used.append(bool(data[i + 3]))
         operations_this_battle.append(data[i + 4] | (data[i + 5] << 8))
-        i += 6
-        if version >= 6:
+        i += INFO_PLAYER_BASE_BYTES
+        if version >= INFORMATION_KEY_TURN_STATE_VERSION:
             # Front/card-play masks and Narrative count are search identity
             # fields added in v6, not part of the stable exported policy id.
-            i += 3
+            i += INFO_PLAYER_SEARCH_EXTRA_BYTES
 
     pending_draw_raw = data[i] - 1
     i += 1
@@ -404,68 +408,71 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         None if pending_draw_raw < 0 else pending_draw_raw
     )
 
-    if version >= 6:
+    if version >= INFORMATION_KEY_TURN_STATE_VERSION:
         # Consume the additional resumable-flow/search identity state.
-        i += 2  # pending draw count, finish-operation flag
+        i += U16_BYTES  # pending draw count, finish-operation flag
         pending_len = data[i]
         i += 1
-        i += pending_len * 10
-        i += 2  # pending resume kind/player
-        i += 2  # free Maneuver flags
-        i += 4  # per-player Maneuver counts (u16 each)
-        i += 16  # per-slot Maneuver directions
+        i += pending_len * INFO_PENDING_EFFECT_BYTES
+        i += INFO_PENDING_RESUME_BYTES  # pending resume kind/player
+        i += PLAYER_COUNT  # free Maneuver flags
+        i += INFO_MANEUVER_COUNT_BYTES  # per-player Maneuver counts
+        i += SLOT_COUNT  # per-slot Maneuver directions
         constraint_len = data[i]
         i += 1
-        i += constraint_len * 12
+        i += constraint_len * INFO_CONSTRAINT_BYTES
         # resolution stage + masks/counters + suppressed mask + cursor/starter
         # + per-slot contribution Fronts
-        i += 29
+        i += INFO_RESOLUTION_FIXED_BYTES + SLOT_COUNT
 
-    board = [[], []]
-    for owner in range(2):
-        for local in range(8):
+    board = [[] for _ in range(PLAYER_COUNT)]
+    for owner in range(PLAYER_COUNT):
+        for local in range(POSITIONS_PER_PLAYER):
             force_code = data[i] - 1
             bond_code = data[i + 1] - 1
             name_code = data[i + 2] - 1
             temporary = data[i + 3] | (data[i + 4] << 8)
             if temporary >= 32768:
                 temporary -= 65536
-            i += 5
-            if version >= 6:
+            i += INFO_BOARD_SLOT_BASE_BYTES
+            if version >= INFORMATION_KEY_TURN_STATE_VERSION:
                 i += 1  # per-slot Maneuver count
-            if version >= 7:
+            if version >= INFORMATION_KEY_MANEUVER_CHAIN_VERSION:
                 i += 1  # per-operation Maneuver-chain flag
             board[owner].append([
-                local // 2,
-                "front" if (local & 1) == 0 else "rear",
+                local // RANK_COUNT,
+                "front" if (local % RANK_COUNT) == 0 else "rear",
                 None if force_code < 0 else card_ids[force_code],
                 None if bond_code < 0 else card_ids[bond_code],
                 None if name_code < 0 else card_ids[name_code],
                 temporary,
             ])
 
-    narratives = [[], []]
-    for owner in range(2):
+    narratives = [[] for _ in range(PLAYER_COUNT)]
+    for owner in range(PLAYER_COUNT):
         narrative_count = data[i]
         i += 1
         for _ in range(narrative_count):
             narratives[owner].append(card_ids[data[i] - 1])
             i += 1
-            if version >= 6:
-                i += 5  # Front mask, used, direction, trigger mask, target slot
+            if version >= INFORMATION_KEY_TURN_STATE_VERSION:
+                i += INFO_NARRATIVE_SEARCH_BYTES  # Narrative search state
 
     stratagems = []
-    for owner in range(2):
+    for owner in range(PLAYER_COUNT):
         card_code = data[i]
         i += 1
         stratagems.append(
             None if card_code == 0 else card_ids[card_code - 1]
         )
         if version >= 6 and card_code != 0:
-            i += 4  # Front mask, direction, target mask (u16)
+            i += INFO_STRATAGEM_SEARCH_BYTES  # Stratagem search state
 
-    stratagem_used = [bool(data[i]), bool(data[i + 1])]
-    i += 2
+    stratagem_used = [
+        bool(data[i + offset])
+        for offset in range(PLAYER_COUNT)
+    ]
+    i += PLAYER_COUNT
 
     own_hand_counts = []
     for card_code in range(n_cards):
@@ -539,7 +546,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "opponent_deck_count": opponent_deck_count,
         "opponent_discard": opponent_discard,
     }
-    if version >= 8:
+    if version >= INFORMATION_KEY_PASS_CLOSING_VERSION:
         observation["pass_closing_turns_remaining"] = (
             pass_closing_turns_remaining
         )
