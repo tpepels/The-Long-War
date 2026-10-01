@@ -54,7 +54,7 @@ def browser_window_size(browser: str, width: int, height: int) -> str:
 def presentation_snapshots() -> dict[str, dict]:
     """Use canonical visibility/strength/action encoding for crowded QA states."""
     from longwar.game.engine import all_positions
-    from longwar.game.model import Phase, StoryState, StratagemState
+    from longwar.game.model import Phase, NarrativeState, StratagemState
     from longwar.web_api import PlaySession
 
     card_json = (ROOT / "cards/cards.json").read_text(encoding="utf-8")
@@ -71,10 +71,10 @@ def presentation_snapshots() -> dict[str, dict]:
     by_type["force"] = [
         card for card in by_type["force"] if not card.get("hero", False)
     ]
-    ongoing_story = next(
+    ongoing_narrative = next(
         card["id"]
         for card in cards
-        if card["type"] == "story" and card.get("ongoing", False)
+        if card["type"] == "narrative" and card.get("ongoing", False)
     )
     session = PlaySession(card_json, deck_json, "computer", 1701, paced_ai=True)
     opening = session.snapshot(0)
@@ -88,7 +88,7 @@ def presentation_snapshots() -> dict[str, dict]:
             slot.force = by_type["force"][index % len(by_type["force"])]["id"]
             slot.bond = by_type["bond"][index % len(by_type["bond"])]["id"]
             slot.name = by_type["name"][index % len(by_type["name"])]["id"]
-        session.state.stories[owner] = [StoryState(ongoing_story) for _ in range(2)]
+        session.state.narratives[owner] = [NarrativeState(ongoing_narrative) for _ in range(2)]
         session.state.stratagems[owner] = StratagemState(
             by_type["stratagem"][owner]["id"],
         )
@@ -204,9 +204,9 @@ CHECK_SCRIPT = r"""
       essential($("battlefield"), "battlefield");
       if (rect($("battlefield")).height < innerHeight * .38) fail("battlefield-too-small");
       if (document.querySelectorAll(".digital-slot").length !== 16) fail("formation-positions-missing");
-      if (document.querySelectorAll(".story-marker").length !== 4) fail("story-slots-missing");
+      if (document.querySelectorAll(".narrative-marker").length !== 4) fail("narrative-slots-missing");
       if (!document.querySelector(".stratagem-marker:not(.hidden)")) fail("public-stratagem-zone-missing");
-      document.querySelectorAll(".story-marker [data-inspect-card]").forEach((card) => { if (!card.dataset.inspectCard) fail("story-card-not-public"); });
+      document.querySelectorAll(".narrative-marker [data-inspect-card]").forEach((card) => { if (!card.dataset.inspectCard) fail("narrative-card-not-public"); });
     }
     document.querySelectorAll("#hand > .play-card").forEach((card, index) => {
       withinViewport(card, "hand-card-" + index + "-clipped");
