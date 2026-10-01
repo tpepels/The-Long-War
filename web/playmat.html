@@ -86,14 +86,14 @@
             <li>Resolve all 4 Fronts separately. Higher Strength wins; ties do nothing. There is no overall Battle winner.</li>
             <li>Discard incomplete formations before Retreat; Named Formations persist.</li>
             <li>In each lost Front: Rear Named Formation is driven off; Frontline Named Formation Retreats to Rear.</li>
-            <li>Lose 1 Command per unprotected Front lost. Then check Command Collapse: if exactly one player is at {{COLLAPSE_THRESHOLD}}, that player loses; {{COLLAPSE_THRESHOLD}}-{{COLLAPSE_THRESHOLD}} is a draw. If the war continues, recover the base amount, minimum {{RECOVERY_FLOOR}}; max total {{COMMAND_CAP}}.</li>
+            <li>Lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost. Then check Command Collapse: if either player is at or below {{COLLAPSE_THRESHOLD}}, lower Command loses; equal Command is a draw. If the war continues, recover the base amount, minimum {{RECOVERY_FLOOR}}; max total {{COMMAND_CAP}}.</li>
           </ol>
         </section>
       </aside>
     </div>
 
     <footer class="reference-v3-footer">
-      <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}; track down to {{COLLAPSE_THRESHOLD}} · Maneuver costs {{MANEUVER_COMMAND_COST}}. After Battle-end effects, lose 1 per unprotected Front lost; then exactly one player at {{COLLAPSE_THRESHOLD}} loses, while {{COLLAPSE_THRESHOLD}}-{{COLLAPSE_THRESHOLD}} is a draw.</span></div>
+      <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}; Maneuver costs {{MANEUVER_COMMAND_COST}}. After Battle-end effects, lose {{LOST_FRONT_COMMAND_PENALTY}} per unprotected Front lost. If either player is at or below {{COLLAPSE_THRESHOLD}}, lower Command loses; equal Command draws.</span></div>
       <div><b>RECOVERY</b><span>If the war continues, recover the current base: <b>{{RECOVERY_SERIES}}</b>, minimum {{RECOVERY_FLOOR}}; Front losses have already reduced Command before Collapse; max total {{COMMAND_CAP}}.</span></div>
       <div><b>BETWEEN BATTLES</b><span>Named Formations persist · no Maneuver · clear Battle-only effects and temporary Strength · Ongoing Narratives persist by text · refill to {{HAND_LIMIT}} · the player who Passed first starts.</span></div>
     </footer>
