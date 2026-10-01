@@ -25,6 +25,7 @@ def simulation(*, fingerprint: str = "rules-a") -> dict:
             "battles": {"count": 25},
             "passes": {
                 "events": 50,
+                "signal_events": 50,
                 "mean_hand_size": 4.0,
                 "mean_dead_cards": 1.0,
                 "first_signal_rate": 0.5,
@@ -121,6 +122,7 @@ def test_playability_accepts_fully_censored_zero_battle_cell() -> None:
     }
     censored["telemetry"]["passes"] = {
         "events": 0,
+        "signal_events": 0,
         "mean_hand_size": None,
         "mean_dead_cards": None,
         "first_signal_rate": None,
@@ -156,6 +158,7 @@ def test_playability_allows_all_games_censored_before_first_resolution() -> None
     }
     censored["telemetry"]["passes"] = {
         "events": 0,
+        "signal_events": 0,
         "mean_hand_size": None,
         "mean_dead_cards": None,
         "first_signal_rate": None,
@@ -181,7 +184,7 @@ def test_playability_allows_all_games_censored_before_first_resolution() -> None
         "battles": 0,
     }
     assert report["battle_pacing"]["mean_cards_played_per_battle"] is None
-    assert report["passing"]["mean_passes_per_battle"] is None
+    assert report["battle_end_signals"]["mean_signals_per_battle"] is None
     assert report["stratagem"]["opportunity_use_rate"] is None
 
 
