@@ -3,6 +3,7 @@ from __future__ import annotations
 from .game.actions import Action
 from .game.engine import GameEngine
 from .game.model import GameState, Phase
+from .protocol import CardField, CardType
 
 
 def command_preserving_actions(
@@ -61,30 +62,35 @@ def opening_mulligan_indices(
     engine: GameEngine,
     hand: list[str],
     *,
-    maximum: int = 2,
+    maximum: int | None = None,
 ) -> tuple[int, ...]:
     """Opening-hand policy, separate from game rules and search algorithms."""
+    if maximum is None:
+        maximum = engine.rules.mulligan_max_cards
     if maximum <= 0 or not hand:
         return ()
 
-    types = [engine.cards[card_id]["type"] for card_id in hand]
-    stratagem_count = types.count("stratagem")
+    types = [
+        engine.cards[card_id][CardField.TYPE]
+        for card_id in hand
+    ]
+    stratagem_count = types.count(CardType.STRATAGEM)
 
     scored: list[tuple[float, int]] = []
     seen_stratagems = 0
     for index, card_id in enumerate(hand):
         card = engine.cards[card_id]
-        card_type = card["type"]
+        card_type = card[CardField.TYPE]
 
-        if card_type == "force":
-            score = 5.0 + 0.08 * float(card.get("strength", 0))
-        elif card_type == "bond":
+        if card_type == CardType.FORCE:
+            score = 5.0 + 0.08 * float(card.get(CardField.STRENGTH, 0))
+        elif card_type == CardType.BOND:
             score = 3.2
-        elif card_type == "name":
+        elif card_type == CardType.NAME:
             score = 3.0
-        elif card_type == "narrative":
-            score = 3.7 if card.get("ongoing", False) else 2.6
-        elif card_type == "stratagem":
+        elif card_type == CardType.NARRATIVE:
+            score = 3.7 if card.get(CardField.ONGOING, False) else 2.6
+        elif card_type == CardType.STRATAGEM:
             seen_stratagems += 1
             score = 3.2 if seen_stratagems == 1 else 2.0
             if stratagem_count >= 3:
