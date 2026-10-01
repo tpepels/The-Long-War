@@ -10,6 +10,7 @@ from libc.math cimport isfinite
 DEF MAX_ISMCTS_DEPTH = 256
 DEF DECISIVE_ROLLOUT_GREEDY_PROBABILITY = 0.05
 DEF DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES = 4
+DEF DECISIVE_ROLLOUT_RANDOM_WIN_PROBES = 4
 
 # Native ISMCTS implementation tuning. These are search/runtime values, not rules.
 DEF ISMCTS_RNG_SHIFT_A = 12
@@ -605,29 +606,10 @@ cdef uint64_t _ismcts_rollout_action(
         safe_n = n
 
     if policy == 3:
-        # Rule-aware tactical layer. "Decisive" means an exact transition
-        # that wins the war immediately, regardless of whether the ending is
-        # caused by the second signal or by an expiring closing window.
-        if state.pass_len == 1 or state.pass_closing_turns_remaining == 1:
-            for pick in range(safe_n):
-                i = safe_indices[pick]
-                if (
-                    state.pass_closing_turns_remaining != 1
-                    and (
-                        action_kind(actions[i]) != TYPE_PASS
-                        or state.passed[actor]
-                    )
-                ):
-                    continue
-                decisive_probes[0] += 1
-                score_scratch.copy_from_fast(state)
-                _fe_apply_fast(engine, score_scratch, actions[i])
-                if (
-                    score_scratch.phase == PHASE_COMPLETE
-                    and score_scratch.winner == actor
-                ):
-                    decisive_actions[0] += 1
-                    return actions[i]
+        use_greedy = (
+            _ismcts_rand_unit(rng)
+            < DECISIVE_ROLLOUT_GREEDY_PROBABILITY
+        )
 
         anti_decisive_needed = (
             state.pass_len == 1
@@ -640,10 +622,51 @@ cdef uint64_t _ismcts_rollout_action(
             )
         )
 
-        use_greedy = (
-            _ismcts_rand_unit(rng)
-            < DECISIVE_ROLLOUT_GREEDY_PROBABILITY
-        )
+        # The five-percent greedy branch already applies and scores every
+        # candidate exactly below. A separate decisive-win scan or anti-loss
+        # scan would duplicate the same transitions. Reserve explicit tactical
+        # probes for the ninety-five-percent random branch.
+        if not use_greedy:
+            # If only a second signal can end the Battle, probing Pass is cheap
+            # and exact. With one closing turn left every operation can end the
+            # Battle, so probe only a bounded random subset for an immediate
+            # win rather than multiplying the rollout by the branching factor.
+            if state.pass_len == 1:
+                if state.pass_closing_turns_remaining == 1:
+                    start_pick = _ismcts_rand_index(rng, safe_n)
+                    for offset in range(
+                        safe_n
+                        if safe_n < DECISIVE_ROLLOUT_RANDOM_WIN_PROBES
+                        else DECISIVE_ROLLOUT_RANDOM_WIN_PROBES
+                    ):
+                        pick = start_pick + offset
+                        if pick >= safe_n:
+                            pick -= safe_n
+                        i = safe_indices[pick]
+                        decisive_probes[0] += 1
+                        score_scratch.copy_from_fast(state)
+                        _fe_apply_fast(engine, score_scratch, actions[i])
+                        if (
+                            score_scratch.phase == PHASE_COMPLETE
+                            and score_scratch.winner == actor
+                        ):
+                            decisive_actions[0] += 1
+                            return actions[i]
+                elif not state.passed[actor]:
+                    for pick in range(safe_n):
+                        i = safe_indices[pick]
+                        if action_kind(actions[i]) != TYPE_PASS:
+                            continue
+                        decisive_probes[0] += 1
+                        score_scratch.copy_from_fast(state)
+                        _fe_apply_fast(engine, score_scratch, actions[i])
+                        if (
+                            score_scratch.phase == PHASE_COMPLETE
+                            and score_scratch.winner == actor
+                        ):
+                            decisive_actions[0] += 1
+                            return actions[i]
+                        break
 
         # Ninety-five percent of decisive rollouts are random. Keep the
         # anti-blunder check strictly bounded: exact Battle-end resolution is
@@ -676,31 +699,6 @@ cdef uint64_t _ismcts_rollout_action(
                     anti_decisive_filtered[0] += 1
             return actions[safe_indices[start_pick]]
 
-        # The five-percent greedy branch can afford the exact all-candidate
-        # safety filter because it is intentionally evaluating all candidates
-        # for action ordering anyway.
-        if anti_decisive_needed:
-            anti_safe_n = 0
-            for pick in range(safe_n):
-                i = safe_indices[pick]
-                if not _ismcts_action_allows_immediate_loss(
-                    engine,
-                    state,
-                    actor,
-                    actions[i],
-                    score_scratch,
-                    reply_scratch,
-                    anti_decisive_probes,
-                ):
-                    anti_safe_indices[anti_safe_n] = i
-                    anti_safe_n += 1
-                else:
-                    anti_decisive_filtered[0] += 1
-
-            if anti_safe_n > 0:
-                safe_n = anti_safe_n
-                for i in range(safe_n):
-                    safe_indices[i] = anti_safe_indices[i]
 
     elif policy == 2 or _ismcts_rand_unit(rng) < epsilon:
         pick = safe_indices[_ismcts_rand_index(rng, safe_n)]
