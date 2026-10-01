@@ -10,15 +10,48 @@ from libc.math cimport isfinite
 DEF MAX_ISMCTS_DEPTH = 256
 DEF DECISIVE_ROLLOUT_GREEDY_PROBABILITY = 0.05
 
+# Native ISMCTS implementation tuning. These are search/runtime values, not rules.
+DEF ISMCTS_RNG_SHIFT_A = 12
+DEF ISMCTS_RNG_SHIFT_B = 25
+DEF ISMCTS_RNG_SHIFT_C = 27
+DEF ISMCTS_RNG_UNIT_SHIFT = 11
+DEF ISMCTS_RNG_UNIT_DENOMINATOR = 9007199254740992.0
+DEF ISMCTS_HASH_ROTATE_LEFT = 23
+DEF ISMCTS_HASH_ROTATE_RIGHT = 41
+DEF ISMCTS_HASH_MIX_SHIFT_A = 30
+DEF ISMCTS_HASH_MIX_SHIFT_B = 27
+DEF ISMCTS_HASH_MIX_SHIFT_C = 31
+DEF ISMCTS_INITIAL_NODE_CAPACITY = 1024
+DEF ISMCTS_INITIAL_BUCKET_CAPACITY = 2048
+DEF ISMCTS_AUTO_MAX_NODE_MULTIPLIER = 4
+DEF ISMCTS_INT32_MAX = 2147483647
+DEF ISMCTS_NODE_GROWTH_LIMIT = 16384
+DEF ISMCTS_BUCKETS_PER_EXPECTED_NODE = 2
+DEF ISMCTS_LOAD_FACTOR_NUMERATOR = 7
+DEF ISMCTS_LOAD_FACTOR_DENOMINATOR = 10
+DEF ISMCTS_NEGATIVE_INFINITY = -1.0e300
+DEF ISMCTS_MIN_ROLLOUT_WEIGHT = 0.001
+DEF ISMCTS_DEADLINE_POLL_MASK = 255
+DEF ISMCTS_PROGRESSIVE_WIDENING_ALPHA = 0.5
+
+DEF NATIVE_DEFAULT_ISMCTS_ITERATIONS = 100000
+DEF NATIVE_DEFAULT_ISMCTS_TREE_DEPTH = 96
+DEF NATIVE_DEFAULT_ISMCTS_EXPLORATION = 1.4142135623730951
+DEF NATIVE_DEFAULT_ISMCTS_PROGRESSIVE_WIDENING = 0.0
+DEF NATIVE_DEFAULT_ISMCTS_ROLLOUT_EPSILON = 0.12
+DEF NATIVE_DEFAULT_ISMCTS_LEAF_SCALE = 100.0
+DEF NATIVE_DEFAULT_ISMCTS_TIME_LIMIT_SECONDS = 0.0
+DEF NATIVE_DEFAULT_ISMCTS_SEED = 1701
+
 cdef inline uint64_t _ismcts_next(uint64_t* state) noexcept:
     cdef uint64_t x = state[0]
     cdef uint64_t fallback = 0x9E3779B97F4A7C15ULL
     cdef uint64_t multiplier = 0x2545F4914F6CDD1DULL
     if x == 0:
         x = fallback
-    x ^= x >> 12
-    x ^= x << 25
-    x ^= x >> 27
+    x ^= x >> ISMCTS_RNG_SHIFT_A
+    x ^= x << ISMCTS_RNG_SHIFT_B
+    x ^= x >> ISMCTS_RNG_SHIFT_C
     state[0] = x
     return x * multiplier
 
@@ -28,19 +61,19 @@ cdef inline int _ismcts_rand_index(uint64_t* state, int n) noexcept:
     return <int>(_ismcts_next(state) % <uint64_t>n)
 
 cdef inline double _ismcts_rand_unit(uint64_t* state) noexcept:
-    return <double>(_ismcts_next(state) >> 11) * (
-        1.0 / 9007199254740992.0
+    return <double>(_ismcts_next(state) >> ISMCTS_RNG_UNIT_SHIFT) * (
+        1.0 / ISMCTS_RNG_UNIT_DENOMINATOR
     )
 
 cdef inline uint64_t _ismcts_bucket_hash(InfoHash128 key) noexcept:
     cdef uint64_t x = key.a ^ (
-        (key.b << 23) | (key.b >> 41)
+        (key.b << ISMCTS_HASH_ROTATE_LEFT) | (key.b >> ISMCTS_HASH_ROTATE_RIGHT)
     )
-    x ^= x >> 30
+    x ^= x >> ISMCTS_HASH_MIX_SHIFT_A
     x *= 0xBF58476D1CE4E5B9ULL
-    x ^= x >> 27
+    x ^= x >> ISMCTS_RNG_SHIFT_C
     x *= 0x94D049BB133111EBULL
-    x ^= x >> 31
+    x ^= x >> ISMCTS_HASH_MIX_SHIFT_C
     return x
 
 
@@ -94,22 +127,22 @@ cdef class ISMCTSTree:
         self.search_context = None
 
     def __init__(self, long expected_nodes, max_nodes=None):
-        cdef size_t node_capacity = 1024
-        cdef size_t bucket_capacity = 2048
+        cdef size_t node_capacity = ISMCTS_INITIAL_NODE_CAPACITY
+        cdef size_t bucket_capacity = ISMCTS_INITIAL_BUCKET_CAPACITY
         if expected_nodes < 1:
             expected_nodes = 1
         if max_nodes is None:
-            max_nodes = min(2147483647, expected_nodes * 4)
-        if not isinstance(max_nodes, int) or not 1 <= max_nodes <= 2147483647:
-            raise ValueError("max_nodes must be an integer between 1 and 2147483647")
+            max_nodes = min(ISMCTS_INT32_MAX, expected_nodes * ISMCTS_AUTO_MAX_NODE_MULTIPLIER)
+        if not isinstance(max_nodes, int) or not 1 <= max_nodes <= ISMCTS_INT32_MAX:
+            raise ValueError(f"max_nodes must be an integer between 1 and {ISMCTS_INT32_MAX}")
         self.max_nodes = max_nodes
         expected_nodes = min(expected_nodes, max_nodes)
         while (
             node_capacity < <size_t>expected_nodes
-            and node_capacity < 16384
+            and node_capacity < ISMCTS_NODE_GROWTH_LIMIT
         ):
             node_capacity <<= 1
-        while bucket_capacity < <size_t>expected_nodes * 2:
+        while bucket_capacity < <size_t>expected_nodes * ISMCTS_BUCKETS_PER_EXPECTED_NODE:
             bucket_capacity <<= 1
         self._allocate(node_capacity, bucket_capacity)
 
@@ -307,7 +340,7 @@ cdef class ISMCTSTree:
             created[0] = False
             return found
 
-        if (self.node_count + 1) * 10 >= self.bucket_capacity * 7:
+        if (self.node_count + 1) * ISMCTS_LOAD_FACTOR_DENOMINATOR >= self.bucket_capacity * ISMCTS_LOAD_FACTOR_NUMERATOR:
             self._rehash()
         if self.node_count >= self.node_capacity:
             self._grow_nodes()
@@ -351,7 +384,7 @@ cdef class ISMCTSTree:
         cdef ISMCTSNodeRecord* node = &self.nodes[node_index]
         cdef int i, chosen=-1, unvisited=0, visited_legal=0
         cdef int allowed=n
-        cdef double mean, bonus, score, allowance, best=-1.0e300
+        cdef double mean, bonus, score, allowance, best=ISMCTS_NEGATIVE_INFINITY
 
         # Information-set identity includes every observable fact relevant to
         # legality, so all determinizations of one node must expose the same
@@ -457,7 +490,7 @@ cdef uint64_t _ismcts_rollout_action(
     cdef int opponent, reply_n, j
     cdef int i, best_ix=0, safe_n=0, anti_safe_n=0, pick
     cdef bint vulnerable
-    cdef double value, best=-1.0e300
+    cdef double value, best=ISMCTS_NEGATIVE_INFINITY
     cdef double total=0.0, target, cumulative=0.0
 
     if n <= 0:
@@ -614,8 +647,8 @@ cdef uint64_t _ismcts_rollout_action(
                 actor,
                 actions[i],
             )
-            if weights[i] < 0.001:
-                weights[i] = 0.001
+            if weights[i] < ISMCTS_MIN_ROLLOUT_WEIGHT:
+                weights[i] = ISMCTS_MIN_ROLLOUT_WEIGHT
             total += weights[i]
         target = _ismcts_rand_unit(rng) * total
         for pick in range(safe_n):
@@ -648,16 +681,16 @@ def ismcts_search(
     *,
     ISMCTSTree tree=None,
     reuse_context=None,
-    long iterations=100000,
+    long iterations=NATIVE_DEFAULT_ISMCTS_ITERATIONS,
     int rollout_depth=5,
-    int tree_depth_limit=96,
-    double exploration=1.4142135623730951,
-    double progressive_widening=0.0,
-    double rollout_epsilon=0.12,
+    int tree_depth_limit=NATIVE_DEFAULT_ISMCTS_TREE_DEPTH,
+    double exploration=NATIVE_DEFAULT_ISMCTS_EXPLORATION,
+    double progressive_widening=NATIVE_DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    double rollout_epsilon=NATIVE_DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     int rollout_policy=3,
-    double leaf_scale=100.0,
-    double time_limit_seconds=0.0,
-    unsigned long long seed=1701,
+    double leaf_scale=NATIVE_DEFAULT_ISMCTS_LEAF_SCALE,
+    double time_limit_seconds=NATIVE_DEFAULT_ISMCTS_TIME_LIMIT_SECONDS,
+    unsigned long long seed=NATIVE_DEFAULT_ISMCTS_SEED,
 ):
     cdef FastState state = FastState()
     cdef FastState score_scratch = FastState()
@@ -694,7 +727,7 @@ def ismcts_search(
     cdef str tree_reset_reason="none"
     cdef double utility, node_utility, mean_value
     cdef double deadline = 0.0
-    cdef double best_mean=-1.0e300, second_mean=-1.0e300
+    cdef double best_mean=ISMCTS_NEGATIVE_INFINITY, second_mean=ISMCTS_NEGATIVE_INFINITY
     cdef bint expanded, created, rollout_boundary, root_reused=False, timed_out=False
     cdef list root_stats
 
@@ -774,7 +807,7 @@ def ismcts_search(
         if (
             iteration > 0
             and deadline > 0.0
-            and (iteration & 255) == 0
+            and (iteration & ISMCTS_DEADLINE_POLL_MASK) == 0
             and perf_counter() >= deadline
         ):
             timed_out = True
@@ -911,7 +944,7 @@ def ismcts_search(
         mean_value = (
             root_node.edges[i].value_sum / root_node.edges[i].visits
             if root_node.edges[i].visits
-            else -1.0e300
+            else ISMCTS_NEGATIVE_INFINITY
         )
         root_stats.append(
             {
@@ -993,7 +1026,7 @@ def ismcts_search(
         "tree_storage": "native-hash-node-edge-slab",
         "tree_edge_slabs": tree.edge_slab_count,
         "progressive_widening": progressive_widening,
-        "progressive_widening_alpha": 0.5 if progressive_widening > 0.0 else 0.0,
+        "progressive_widening_alpha": ISMCTS_PROGRESSIVE_WIDENING_ALPHA if progressive_widening > 0.0 else 0.0,
         "rollout_policy": (
             "cheap" if rollout_policy == 1
             else "random" if rollout_policy == 2
