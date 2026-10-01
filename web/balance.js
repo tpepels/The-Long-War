@@ -1173,7 +1173,7 @@ function renderProgression(lab) {
     metric("Free operations", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
     metric("Collapse-point Battle starts", lowCommand.collapse_point_battle_starts ?? 0, "at least one side begins at or below the configured Collapse threshold"),
     metric("Both at Collapse point", lowCommand.both_at_collapse_point_battle_starts ?? 0, "both sides begin at or below the configured Collapse threshold"),
-    metric("Pass preserves Command", resources.first_signales_avoiding_command_exhaustion ?? 0, "first Passes with a legal alternative that would spend all remaining Command"),
+    metric("Pass preserves Command", resources.first_signals_avoiding_command_exhaustion ?? 0, "first Passes with a legal alternative that would spend all remaining Command"),
     metric("No paid operation", lowCommand.battles_with_no_paid_operation ?? 0, "Battles with no Command-paying card play or Maneuver"),
     metric("No in-Battle board change", lowCommand.battles_with_no_board_change ?? 0, "board unchanged between first and final decision state"),
   ].join("");
