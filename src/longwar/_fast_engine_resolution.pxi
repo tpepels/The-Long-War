@@ -95,7 +95,7 @@ cdef void _fe_queue_pre_resolution_choice(
         if force < 0:
             return
         controller = owner_from_slot(slot)
-        opponent = 1 - controller
+        opponent = other_player(controller)
         front = front_from_slot(slot)
         target = -1
         if self.suppress_rear_force[force]:
@@ -135,7 +135,7 @@ cdef void _fe_queue_pre_resolution_choice(
         if bond < 0 or not self.sacrifice_bond[bond]:
             return
         controller = owner_from_slot(slot)
-        opponent = 1 - controller
+        opponent = other_player(controller)
         front = front_from_slot(slot)
         target_mask = 0
         target = slot_index(opponent, front, 0)
@@ -427,7 +427,7 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
         state.resolution_cursor += 1
         _fe_retreat_slot(self, state, player, front_slot, rear_slot)
 
-        if _fe_front_has_capture_bond(self, state, 1 - player, front):
+        if _fe_front_has_capture_bond(self, state, other_player(player), front):
             _fe_return_bond_to_hand_from_slot(self, 
                 state, player, rear_slot
             )
@@ -483,12 +483,12 @@ cdef bint _fe_resolve_one_battle_end_narrative(
                     & (1 << front)
                 )
                 won = bool(
-                    state.resolution_lost_mask[1 - player]
+                    state.resolution_lost_mask[other_player(player)]
                     & (1 << front)
                 )
             elif kind == NARR_END_WON and front >= 0:
                 won = bool(
-                    state.resolution_lost_mask[1 - player]
+                    state.resolution_lost_mask[other_player(player)]
                     & (1 << front)
                 )
                 condition = won
@@ -782,7 +782,7 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
     _fe_advance_battle_resolution(self, state)
 
 cdef void _fe_pass_action(FastEngine self, FastState state, int player):
-    cdef int opponent = 1 - player
+    cdef int opponent = other_player(player)
     cdef bint already_signalled = bool(state.passed[player])
     cdef uint64_t pass_action = encode_action(TYPE_PASS, -1, -1, -1, player)
 
