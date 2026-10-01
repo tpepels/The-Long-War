@@ -68,10 +68,10 @@ What survives at a Front matters more than the margin by which it was won.
 
 ## Setup {#setup}
 
-1. Each player takes a deck of **at least 34 cards**.
+1. Each player takes a deck of **at least {{MINIMUM_DECK_SIZE}} cards**.
 2. Set each player's Command to **{{STARTING_COMMAND}}**.
 3. Shuffle and draw **{{OPENING_HAND_SIZE}} cards**.
-4. You may shuffle up to 2 cards from your hand back into your deck, then draw the same number.
+4. You may shuffle up to **{{MULLIGAN_MAX_CARDS}} cards** from your hand back into your deck, then draw the same number.
 5. Randomly choose the first player.
 
 Hands and decks are hidden.
@@ -386,11 +386,11 @@ If none can be satisfied, take your turn normally.
 
 A legal playtest deck has:
 
-- at least **34 cards**;
-- at least **14 Force-type cards**;
-- at least **6 printed Names**;
-- at most 2 copies of any non-Unique title;
-- at most 1 copy of any Unique title.
+- at least **{{MINIMUM_DECK_SIZE}} cards**;
+- at least **{{MINIMUM_FORCE_COUNT}} Force-type cards**;
+- at least **{{MINIMUM_PRINTED_NAME_COUNT}} printed Names**;
+- at most **{{NON_UNIQUE_COPY_LIMIT}}** copies of any non-Unique title;
+- at most **{{UNIQUE_COPY_LIMIT}}** copy of any Unique title.
 
 Heroes count toward the Force minimum even though they may be played as Names.
 
