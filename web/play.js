@@ -1,6 +1,21 @@
 import { BrowserSession, initializeBrowserEngine } from "./browser-engine.mjs";
 import { createRemoteGuest, createRemoteHost } from "./remote-peer.mjs";
 
+const {
+  actionKind: ACTION_KIND,
+  cardClass: CARD_CLASS,
+  cardType: CARD_TYPE,
+  gameMode: GAME_MODE,
+  phase: PHASE,
+  playSetupMode: PLAY_SETUP_MODE,
+  rank: RANK,
+  remoteMessageType: REMOTE_MESSAGE_TYPE,
+  remoteRole: REMOTE_ROLE,
+  remoteSetupPhase: REMOTE_SETUP_PHASE,
+  requestType: REQUEST_TYPE,
+  sessionPhase: SESSION_PHASE,
+} = globalThis.LW_PROTOCOL;
+
 let session = null;
 let cardData = null;
 let referenceDeck = null;
@@ -28,7 +43,7 @@ let busy = false;
 let handLayoutFrame = null;
 let remotePeer = null;
 let remoteRole = null;
-let remoteSetupPhase = "idle";
+let remoteSetupPhase = REMOTE_SETUP_PHASE.IDLE;
 let remoteGameStarted = false;
 let remoteRequestSerial = 0;
 const remotePending = new Map();
@@ -143,9 +158,9 @@ function titleCase(value) {
 
 function cardPropertyMarkup(card) {
   const classes = (card.classes || [])
-    .filter((value) => value !== "hero" && value !== card.role)
+    .filter((value) => value !== CARD_CLASS.HERO && value !== card.role)
     .map((value) => titleCase(value));
-  const role = canonicalType(card) === "force" && card.role
+  const role = canonicalType(card) === CARD_TYPE.FORCE && card.role
     ? '<span class="play-card-role"><strong>' + esc(titleCase(card.role)) + '</strong></span>'
     : "";
   const classMarkup = classes.length
@@ -159,19 +174,19 @@ async function request(payload) {
   // Yield once so busy/loading UI paints before the small synchronous rules step.
   await new Promise((resolve) => setTimeout(resolve, 0));
 
-  if (payload.type === "new_game") {
+  if (payload.type === REQUEST_TYPE.NEW_GAME) {
     if (!cardData || !referenceDeck) throw new Error("Game data is not loaded yet.");
     sessionGeneration += 1;
     session?.destroy();
     session = new BrowserSession(cardData, referenceDeck, payload.mode, payload.seed);
-    return session.snapshot(payload.mode === "hotseat" ? null : 0);
+    return session.snapshot(payload.mode === GAME_MODE.HOTSEAT ? null : 0);
   }
   if (!session) throw new Error("Start a match first.");
   if (session !== requestedSession) throw new Error("This match has ended.");
-  if (payload.type === "view") return session.view(payload.viewer);
-  if (payload.type === "act") return session.act(payload.key, payload.viewer);
-  if (payload.type === "ai_step") return session.aiStep();
-  if (payload.type === "mulligan") return session.mulligan(payload.indices || [], payload.viewer);
+  if (payload.type === REQUEST_TYPE.VIEW) return session.view(payload.viewer);
+  if (payload.type === REQUEST_TYPE.ACT) return session.act(payload.key, payload.viewer);
+  if (payload.type === REQUEST_TYPE.AI_STEP) return session.aiStep();
+  if (payload.type === REQUEST_TYPE.MULLIGAN) return session.mulligan(payload.indices || [], payload.viewer);
   throw new Error("Unknown game request: " + payload.type);
 }
 
@@ -184,7 +199,7 @@ function closeRemotePeer() {
   try { remotePeer?.close(); } catch {}
   remotePeer = null;
   remoteRole = null;
-  remoteSetupPhase = "idle";
+  remoteSetupPhase = REMOTE_SETUP_PHASE.IDLE;
   remoteGameStarted = false;
 }
 
@@ -197,7 +212,7 @@ function remoteStatus(message, error = false) {
 
 function resetRemoteSetup(closePeer = true) {
   if (closePeer) closeRemotePeer();
-  if (!remoteGameStarted && session?.snapshot?.(0)?.mode === "remote") {
+  if (!remoteGameStarted && session?.snapshot?.(0)?.mode === GAME_MODE.REMOTE) {
     session.destroy();
     session = null;
     state = null;
@@ -212,35 +227,35 @@ function resetRemoteSetup(closePeer = true) {
 
 function configureRemoteSetup() {
   const mode = $("mode").value;
-  const remote = mode === "remote-host" || mode === "remote-join";
+  const remote = mode === PLAY_SETUP_MODE.REMOTE_HOST || mode === PLAY_SETUP_MODE.REMOTE_JOIN;
   $("remote-connect").hidden = !remote;
   if (!remote) {
     $("start-game").textContent = "Take your seat ↗";
     return;
   }
 
-  if (mode === "remote-host") {
-    $("remote-help").textContent = remoteSetupPhase === "await-answer"
+  if (mode === PLAY_SETUP_MODE.REMOTE_HOST) {
+    $("remote-help").textContent = remoteSetupPhase === REMOTE_SETUP_PHASE.AWAIT_ANSWER
       ? "Send the invite token to Player 2. Paste their response token below."
       : "Create an invite token and send it to Player 2. No account or server is required.";
-    $("remote-input-wrap").hidden = remoteSetupPhase !== "await-answer";
+    $("remote-input-wrap").hidden = remoteSetupPhase !== REMOTE_SETUP_PHASE.AWAIT_ANSWER;
     $("remote-input-label").textContent = "Response token from Player 2";
-    $("start-game").textContent = remoteSetupPhase === "creating"
+    $("start-game").textContent = remoteSetupPhase === REMOTE_SETUP_PHASE.CREATING
       ? "Creating invite…"
-      : remoteSetupPhase === "await-answer"
+      : remoteSetupPhase === REMOTE_SETUP_PHASE.AWAIT_ANSWER
         ? "Connect Player 2 ↗"
         : "Create invite ↗";
   } else {
     $("remote-help").textContent = "Paste the invite token from Player 1. You will get a response token to send back.";
     $("remote-input-wrap").hidden = false;
     $("remote-input-label").textContent = "Invite token from Player 1";
-    $("start-game").textContent = remoteSetupPhase === "waiting"
+    $("start-game").textContent = remoteSetupPhase === REMOTE_SETUP_PHASE.WAITING
       ? "Waiting for host…"
       : "Create response ↗";
   }
   $("start-game").disabled = !cardsReady ||
-    remoteSetupPhase === "waiting" ||
-    remoteSetupPhase === "creating";
+    remoteSetupPhase === REMOTE_SETUP_PHASE.WAITING ||
+    remoteSetupPhase === REMOTE_SETUP_PHASE.CREATING;
 }
 
 async function copyRemoteToken() {
@@ -266,17 +281,17 @@ function beginRemoteGame(snapshot) {
 }
 
 function syncRemoteHost(requestId = null) {
-  if (remoteRole !== "host" || !session || !remotePeer) {
+  if (remoteRole !== REMOTE_ROLE.HOST || !session || !remotePeer) {
     throw new Error("Remote host session is unavailable.");
   }
   const hostState = session.view(0);
   const guestState = session.view(1);
-  remotePeer.send({ type: "snapshot", requestId, state: guestState });
+  remotePeer.send({ type: REMOTE_MESSAGE_TYPE.SNAPSHOT, requestId, state: guestState });
   return hostState;
 }
 
 function sendRemoteCommand(command) {
-  if (remoteRole !== "guest" || !remotePeer) {
+  if (remoteRole !== REMOTE_ROLE.GUEST || !remotePeer) {
     return Promise.reject(new Error("Remote host is unavailable."));
   }
   const requestId = ++remoteRequestSerial;
@@ -287,7 +302,7 @@ function sendRemoteCommand(command) {
     }, 20000);
     remotePending.set(requestId, { resolve, reject, timer });
     try {
-      remotePeer.send({ type: "command", requestId, command });
+      remotePeer.send({ type: REMOTE_MESSAGE_TYPE.COMMAND, requestId, command });
     } catch (error) {
       clearTimeout(timer);
       remotePending.delete(requestId);
@@ -297,13 +312,13 @@ function sendRemoteCommand(command) {
 }
 
 async function processRemoteHostCommand(message) {
-  if (remoteRole !== "host" || !session || message?.type !== "command") return;
+  if (remoteRole !== REMOTE_ROLE.HOST || !session || message?.type !== REMOTE_MESSAGE_TYPE.COMMAND) return;
   const requestId = message.requestId;
   try {
     const command = message.command || {};
-    if (command.type === "act") {
+    if (command.type === REQUEST_TYPE.ACT) {
       session.act(command.key, 1);
-    } else if (command.type === "mulligan") {
+    } else if (command.type === REQUEST_TYPE.MULLIGAN) {
       session.mulligan(command.indices || [], 1);
     } else {
       throw new Error("Unknown remote game command.");
@@ -313,7 +328,7 @@ async function processRemoteHostCommand(message) {
     render();
   } catch (error) {
     remotePeer?.send({
-      type: "error",
+      type: REMOTE_MESSAGE_TYPE.ERROR,
       requestId,
       message: error?.message || "Remote action failed.",
     });
@@ -321,15 +336,15 @@ async function processRemoteHostCommand(message) {
 }
 
 function handleRemoteMessage(message) {
-  if (remoteRole === "host") {
+  if (remoteRole === REMOTE_ROLE.HOST) {
     remoteHostQueue = remoteHostQueue
       .then(() => processRemoteHostCommand(message))
       .catch((error) => console.error("[remote] host command failed", error));
     return;
   }
-  if (remoteRole !== "guest") return;
+  if (remoteRole !== REMOTE_ROLE.GUEST) return;
 
-  if (message?.type === "snapshot") {
+  if (message?.type === REMOTE_MESSAGE_TYPE.SNAPSHOT) {
     const pending = remotePending.get(message.requestId);
     if (pending) {
       clearTimeout(pending.timer);
@@ -342,7 +357,7 @@ function handleRemoteMessage(message) {
       clearSelection();
       render();
     }
-  } else if (message?.type === "error") {
+  } else if (message?.type === REMOTE_MESSAGE_TYPE.ERROR) {
     const pending = remotePending.get(message.requestId);
     if (pending) {
       clearTimeout(pending.timer);
@@ -356,7 +371,7 @@ function handleRemoteConnectionState(info) {
   if (!info) return;
   if (info.connected) {
     remoteStatus("Connected.");
-    if (remoteRole === "host" && !remoteGameStarted) {
+    if (remoteRole === REMOTE_ROLE.HOST && !remoteGameStarted) {
       try {
         beginRemoteGame(syncRemoteHost());
       } catch (error) {
@@ -374,12 +389,12 @@ function handleRemoteConnectionState(info) {
 }
 
 async function startRemoteHost(seed) {
-  if (remoteSetupPhase === "idle") {
+  if (remoteSetupPhase === REMOTE_SETUP_PHASE.IDLE) {
     if (typeof RTCPeerConnection === "undefined") {
       throw new Error("This browser does not support direct remote play.");
     }
-    remoteRole = "host";
-    remoteSetupPhase = "creating";
+    remoteRole = REMOTE_ROLE.HOST;
+    remoteSetupPhase = REMOTE_SETUP_PHASE.CREATING;
     remoteStatus("Creating invite…");
     configureRemoteSetup();
     try {
@@ -387,7 +402,7 @@ async function startRemoteHost(seed) {
         onMessage: handleRemoteMessage,
         onState: handleRemoteConnectionState,
       });
-      state = await request({ type: "new_game", mode: "remote", seed });
+      state = await request({ type: REQUEST_TYPE.NEW_GAME, mode: GAME_MODE.REMOTE, seed });
     } catch (error) {
       closeRemotePeer();
       configureRemoteSetup();
@@ -396,13 +411,13 @@ async function startRemoteHost(seed) {
     $("remote-output").value = remotePeer.inviteToken;
     $("remote-output-label").textContent = "Invite token for Player 2";
     $("remote-output-wrap").hidden = false;
-    remoteSetupPhase = "await-answer";
+    remoteSetupPhase = REMOTE_SETUP_PHASE.AWAIT_ANSWER;
     remoteStatus("Invite ready. Waiting for Player 2's response.");
     configureRemoteSetup();
     $("remote-input").focus();
     return;
   }
-  if (remoteSetupPhase === "await-answer") {
+  if (remoteSetupPhase === REMOTE_SETUP_PHASE.AWAIT_ANSWER) {
     const answer = $("remote-input").value.trim();
     if (!answer) throw new Error("Paste Player 2's response token.");
     await remotePeer.acceptAnswer(answer);
@@ -412,10 +427,10 @@ async function startRemoteHost(seed) {
 }
 
 async function startRemoteGuest() {
-  if (remoteSetupPhase !== "idle") return;
+  if (remoteSetupPhase !== REMOTE_SETUP_PHASE.IDLE) return;
   const invite = $("remote-input").value.trim();
   if (!invite) throw new Error("Paste Player 1's invite token.");
-  remoteRole = "guest";
+  remoteRole = REMOTE_ROLE.GUEST;
   remotePeer = await createRemoteGuest(invite, {
     onMessage: handleRemoteMessage,
     onState: handleRemoteConnectionState,
@@ -423,17 +438,17 @@ async function startRemoteGuest() {
   $("remote-output").value = remotePeer.answerToken;
   $("remote-output-label").textContent = "Response token for Player 1";
   $("remote-output-wrap").hidden = false;
-  remoteSetupPhase = "waiting";
+  remoteSetupPhase = REMOTE_SETUP_PHASE.WAITING;
   remoteStatus("Send this response token to Player 1. Waiting for connection…");
   configureRemoteSetup();
 }
 
 async function playerRequest(payload) {
-  if (remoteRole === "guest") return sendRemoteCommand(payload);
-  if (remoteRole === "host") {
-    if (payload.type === "act") {
+  if (remoteRole === REMOTE_ROLE.GUEST) return sendRemoteCommand(payload);
+  if (remoteRole === REMOTE_ROLE.HOST) {
+    if (payload.type === REQUEST_TYPE.ACT) {
       session.act(payload.key, 0);
-    } else if (payload.type === "mulligan") {
+    } else if (payload.type === REQUEST_TYPE.MULLIGAN) {
       session.mulligan(payload.indices || [], 0);
     } else {
       throw new Error("Unsupported remote host request.");
@@ -450,15 +465,15 @@ function cardTitle(cardId) {
 
 function cardType(card) {
   const type = canonicalType(card);
-  if (type === "narrative") {
+  if (type === CARD_TYPE.NARRATIVE) {
     const form = titleCase(card.narrative_form);
     const ongoing = card.ongoing ?? false;
     return form ? form + (ongoing ? " · Ongoing Narrative" : " · Narrative") : (ongoing ? "Ongoing Narrative" : "Narrative");
   }
-  if (type === "bond") return "Bond";
-  if (type === "stratagem") return "Stratagem";
-  if (type === "force" && card.hero) return "Hero · Force / Name";
-  if (type === "force") return "Force";
+  if (type === CARD_TYPE.BOND) return "Bond";
+  if (type === CARD_TYPE.STRATAGEM) return "Stratagem";
+  if (type === CARD_TYPE.FORCE && card.hero) return "Hero · Force / Name";
+  if (type === CARD_TYPE.FORCE) return "Force";
   return type[0].toUpperCase() + type.slice(1);
 }
 
@@ -503,7 +518,7 @@ function playCardMarkup(cardId, options = {}) {
 function boardCardMarkup(cardId, role, owner) {
   if (!cardId) return "";
   const card = cards[cardId];
-  const visibleStrength = card.hero && role === "name"
+  const visibleStrength = card.hero && role === CARD_TYPE.NAME
     ? card.hero_name_strength
     : card.strength;
   return '<button type="button" class="board-card board-card-' + role + ' card-' + cssCardType(card) + (card.hero ? " card-hero" : "") +
@@ -546,8 +561,8 @@ function selectedActions() {
 }
 
 function actionForPass() {
-  if (!state || state.phase === "mulligan") return null;
-  return state.legal_actions.find((action) => action.kind === "Pass") || null;
+  if (!state || state.phase === SESSION_PHASE.MULLIGAN) return null;
+  return state.legal_actions.find((action) => action.kind === ACTION_KIND.PASS) || null;
 }
 
 function commandCostLabel(actions) {
@@ -560,11 +575,11 @@ function targetActionsForSlot(owner, front, rank) {
   const actions = selectedActions();
   const matches = [];
   for (const action of actions) {
-    if (["PlayForce", "PlayBond", "PlayName"].includes(action.kind)) {
+    if ([ACTION_KIND.PLAY_FORCE, ACTION_KIND.PLAY_BOND, ACTION_KIND.PLAY_NAME].includes(action.kind)) {
       if (owner === currentViewer() && posEquals(action.position, front, rank)) matches.push(action);
       continue;
     }
-    if (action.kind !== "PlayNarrative") continue;
+    if (action.kind !== ACTION_KIND.PLAY_NARRATIVE) continue;
     if (action.targets.length === 1) {
       if (locEquals(action.targets[0], owner, front, rank)) matches.push(action);
       continue;
@@ -586,7 +601,7 @@ function targetActionsForSlot(owner, front, rank) {
 function maneuverActionsFrom(front, rank) {
   if (!state || selectedCardId || currentViewer() !== state.active_player) return [];
   return state.legal_actions.filter(
-    (action) => action.kind === "Maneuver" && posEquals(action.source, front, rank)
+    (action) => action.kind === ACTION_KIND.MANEUVER && posEquals(action.source, front, rank)
   );
 }
 
@@ -594,7 +609,7 @@ function maneuverActionsTo(front, rank) {
   if (!state || !stagedManeuverSource) return [];
   return state.legal_actions.filter(
     (action) =>
-      action.kind === "Maneuver" &&
+      action.kind === ACTION_KIND.MANEUVER &&
       posEquals(action.source, stagedManeuverSource.front, stagedManeuverSource.rank) &&
       posEquals(action.destination, front, rank)
   );
@@ -652,7 +667,7 @@ function renderSlot(owner, front, rank) {
   if (!hasFormation) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
       '<span class="empty-slot-mark">＋</span><span>' +
-      (rank === "front" ? "Frontline" : "Rear") + '</span>' +
+      (rank === RANK.FRONT ? "Frontline" : "Rear") + '</span>' +
       (targetable
         ? '<b class="legal-target-cue">' + cue + ' · ' +
           commandCostLabel(targets) + '</b>'
@@ -717,7 +732,7 @@ function renderNarrativeSlot(owner, slot) {
 function renderStratagem(owner) {
   const stratagem = state.stratagems?.[owner] || null;
   const actions = selectedActions().filter(
-    (action) => action.kind === "PlayStratagem"
+    (action) => action.kind === ACTION_KIND.PLAY_STRATAGEM
   );
   const targetable =
     owner === currentViewer() && actions.length > 0;
@@ -793,7 +808,7 @@ function renderNarrativeRow(owner) {
 }
 
 function renderBattlefield() {
-  if (state.phase === "mulligan") {
+  if (state.phase === SESSION_PHASE.MULLIGAN) {
     $("battlefield").innerHTML =
       '<div class="mulligan-placeholder"><strong>Opening mulligan</strong><span>Your cards are below. Settle the opening hand before the battlefield is revealed.</span></div>';
     return;
@@ -810,13 +825,13 @@ function renderBattlefield() {
       '</div>' +
       '<div class="army-side opponent-army">' +
         renderNarrativeRow(top) +
-        renderRankRow(top, "rear", "Rear") +
-        renderRankRow(top, "front", "Frontline") +
+        renderRankRow(top, RANK.REAR, "Rear") +
+        renderRankRow(top, RANK.FRONT, "Frontline") +
       '</div>' +
       '<div class="battle-line-wide"><span>THE BATTLE LINE</span></div>' +
       '<div class="army-side player-army">' +
-        renderRankRow(bottom, "front", "Frontline") +
-        renderRankRow(bottom, "rear", "Rear") +
+        renderRankRow(bottom, RANK.FRONT, "Frontline") +
+        renderRankRow(bottom, RANK.REAR, "Rear") +
         renderNarrativeRow(bottom) +
       '</div>' +
       '<div class="battle-stratagem-zone player"><span>Your Stratagem</span>' + renderStratagem(bottom) + '</div>' +
@@ -827,7 +842,7 @@ function renderBattlefield() {
 }
 
 function renderStrip() {
-  if (state.phase === "mulligan") {
+  if (state.phase === SESSION_PHASE.MULLIGAN) {
     $("match-strip").innerHTML =
       '<div class="battle-medallion"><small>Opening</small><strong>Mulligan</strong></div>' +
       '<div class="turn-marker">Player ' +
@@ -840,7 +855,7 @@ function renderStrip() {
   const viewer = currentViewer();
   const opponent = opponentOf(viewer);
   const winnerText =
-    state.phase === "complete" && state.winner == null
+    state.phase === PHASE.COMPLETE && state.winner == null
       ? " · Draw"
       : state.winner == null
         ? ""
@@ -886,7 +901,7 @@ function renderOpponentRack() {
   const ps = state.players[opponent];
   const handCount = ps.hand_count || 0;
 
-  $("opponent-label").textContent = (state.mode === "hotseat" ? "Player " + (opponent + 1) : "Opponent") + " · " + handCount + " cards" + (ps.passed ? " · PASS PENDING" : "");
+  $("opponent-label").textContent = (state.mode === GAME_MODE.HOTSEAT ? "Player " + (opponent + 1) : "Opponent") + " · " + handCount + " cards" + (ps.passed ? " · PASS PENDING" : "");
 
   const visibleBacks = Math.min(handCount, 12);
   $("opponent-hand").innerHTML = Array.from({ length: visibleBacks }, (_, index) => {
@@ -918,7 +933,7 @@ function renderPrivacy() {
   }
   gate.hidden = false;
   clearSelection();
-  const opening = state.phase === "mulligan";
+  const opening = state.phase === SESSION_PHASE.MULLIGAN;
   gate.innerHTML =
     "<p>Pass the device to <strong>Player " + (state.active_player + 1) + "</strong>" +
     (opening ? " for the opening mulligan." : ".") + "</p>" +
@@ -927,7 +942,7 @@ function renderPrivacy() {
   $("reveal-hand").focus();
   $("reveal-hand").addEventListener("click", async () => {
     await runBusy(async () => {
-      state = await request({ type: "view", viewer: state.active_player });
+      state = await request({ type: REQUEST_TYPE.VIEW, viewer: state.active_player });
       render();
     });
   });
@@ -958,19 +973,19 @@ function selectCard(cardId, index) {
 function interactionHintFor(card) {
   const actions = selectedActions();
   if (!actions.length) return "No legal play for this card right now.";
-  if (actions.some((a) => a.kind === "Discard")) {
+  if (actions.some((a) => a.kind === ACTION_KIND.DISCARD)) {
     return "Discard this card, then make the normal start-of-turn draw.";
   }
-  if (actions.some((a) => a.kind === "PlayForce")) {
+  if (actions.some((a) => a.kind === ACTION_KIND.PLAY_FORCE)) {
     return "Choose a highlighted formation position for this Force.";
   }
-  if (actions.some((a) => a.kind === "PlayBond")) {
+  if (actions.some((a) => a.kind === ACTION_KIND.PLAY_BOND)) {
     return "Choose a formation position for this Bond.";
   }
-  if (actions.some((a) => a.kind === "PlayName")) {
+  if (actions.some((a) => a.kind === ACTION_KIND.PLAY_NAME)) {
     return "Choose a formation position for this Name.";
   }
-  if (actions.some((a) => a.kind === "PlayStratagem")) {
+  if (actions.some((a) => a.kind === ACTION_KIND.PLAY_STRATAGEM)) {
     if (actions.some((a) => a.fronts?.length)) {
       return "Choose the Front or Fronts for this public Stratagem.";
     }
@@ -982,7 +997,7 @@ function interactionHintFor(card) {
     }
     return "Play this as your public Stratagem.";
   }
-  if (actions.some((a) => a.kind === "PlayNarrative")) {
+  if (actions.some((a) => a.kind === ACTION_KIND.PLAY_NARRATIVE)) {
     if (actions.some((a) => a.ongoing_slot != null)) {
       return "Play this Ongoing Narrative. The first open Narrative slot is assigned automatically.";
     }
@@ -1006,7 +1021,7 @@ function renderInteraction() {
   const cancel = $("cancel-selection");
   const tray = $("choice-tray");
 
-  if (state.phase === "mulligan") {
+  if (state.phase === SESSION_PHASE.MULLIGAN) {
     if (state.viewer == null) {
       title.textContent = "Hidden opening hand";
       hint.textContent = "Pass the device, then reveal the next player's opening hand.";
@@ -1019,7 +1034,7 @@ function renderInteraction() {
     return;
   }
 
-  if (state.phase === "complete") {
+  if (state.phase === PHASE.COMPLETE) {
     title.textContent = "Match complete";
     hint.textContent = state.winner == null
       ? "The match ends in a draw."
@@ -1037,7 +1052,7 @@ function renderInteraction() {
     return;
   }
 
-  if (state.mode === "remote" && state.phase === "mulligan" && state.active_player !== state.viewer) {
+  if (state.mode === GAME_MODE.REMOTE && state.phase === SESSION_PHASE.MULLIGAN && state.active_player !== state.viewer) {
     title.textContent = "Opponent’s mulligan";
     hint.textContent = "Waiting for the remote player.";
     cancel.hidden = true;
@@ -1045,7 +1060,7 @@ function renderInteraction() {
     return;
   }
 
-  if (state.mode === "remote" && state.active_player !== state.viewer) {
+  if (state.mode === GAME_MODE.REMOTE && state.active_player !== state.viewer) {
     title.textContent = "Opponent’s turn";
     hint.textContent = "Waiting for the remote player.";
     cancel.hidden = true;
@@ -1062,7 +1077,7 @@ function renderInteraction() {
   }
 
   const effectChoices = state.legal_actions.filter(
-    (action) => action.kind === "EffectChoice"
+    (action) => action.kind === ACTION_KIND.EFFECT_CHOICE
   );
   if (effectChoices.length) {
     choiceActions = effectChoices;
@@ -1073,7 +1088,7 @@ function renderInteraction() {
     renderChoiceTray();
     return;
   }
-  if (choiceActions.some((action) => action.kind === "EffectChoice")) {
+  if (choiceActions.some((action) => action.kind === ACTION_KIND.EFFECT_CHOICE)) {
     choiceActions = [];
   }
 
@@ -1106,12 +1121,12 @@ function renderInteraction() {
 
 function choiceLabel(action) {
   const card = cards[action.card_id];
-  if (action.kind === "EffectChoice") return action.label;
-  if (action.kind === "Discard") return "Discard, then draw";
-  if (card?.hero && action.kind === "PlayForce") {
+  if (action.kind === ACTION_KIND.EFFECT_CHOICE) return action.label;
+  if (action.kind === ACTION_KIND.DISCARD) return "Discard, then draw";
+  if (card?.hero && action.kind === ACTION_KIND.PLAY_FORCE) {
     return "Deploy as Force";
   }
-  if (card?.hero && action.kind === "PlayName") {
+  if (card?.hero && action.kind === ACTION_KIND.PLAY_NAME) {
     return "Use as Name";
   }
   return action.label;
@@ -1123,8 +1138,8 @@ function renderChoiceTray() {
   if (!actions.length && selectedCardId) {
     const selected = selectedActions();
     const direct = selected.filter((a) =>
-      a.kind === "Discard" ||
-      (a.kind === "PlayNarrative" && a.targets.length === 0)
+      a.kind === ACTION_KIND.DISCARD ||
+      (a.kind === ACTION_KIND.PLAY_NARRATIVE && a.targets.length === 0)
     );
     if (
       direct.length > 0 &&
@@ -1135,7 +1150,7 @@ function renderChoiceTray() {
     }
 
     const simpleStratagems = selected.filter(
-      (a) => a.kind === "PlayStratagem" && a.targets.length === 0
+      (a) => a.kind === ACTION_KIND.PLAY_STRATAGEM && a.targets.length === 0
     );
     if (
       selected.length === simpleStratagems.length &&
@@ -1166,14 +1181,14 @@ function renderChoiceTray() {
 function renderHand() {
   const hand = $("hand");
   const actions = $("turn-actions");
-  hand.classList.toggle("mulligan-hand", state.phase === "mulligan");
-  if (state.viewer == null || state.phase === "complete") {
+  hand.classList.toggle("mulligan-hand", state.phase === SESSION_PHASE.MULLIGAN);
+  if (state.viewer == null || state.phase === PHASE.COMPLETE) {
     hand.innerHTML = "";
     actions.innerHTML = "";
     return;
   }
 
-  if (state.phase === "mulligan") {
+  if (state.phase === SESSION_PHASE.MULLIGAN) {
     $("hand-title").textContent =
       "Opening hand · " + state.hand.length + " cards";
 
@@ -1226,10 +1241,10 @@ function renderHand() {
     return;
   }
 
-  $("hand-title").textContent = (state.mode === "hotseat" ? "Player " + (state.viewer + 1) : "Your hand") + " · " + state.hand.length;
+  $("hand-title").textContent = (state.mode === GAME_MODE.HOTSEAT ? "Player " + (state.viewer + 1) : "Your hand") + " · " + state.hand.length;
 
   const resolvingEffect = state.legal_actions.some(
-    (action) => action.kind === "EffectChoice"
+    (action) => action.kind === ACTION_KIND.EFFECT_CHOICE
   );
   hand.innerHTML = state.hand.map((cardId, index) => {
     const playable = !resolvingEffect && state.legal_actions.some(
@@ -1247,7 +1262,7 @@ function renderHand() {
     const cardId = cardEl.dataset.handCard;
     cardEl.addEventListener("click", () => {
       const playable =
-        !state.legal_actions.some((a) => a.kind === "EffectChoice") &&
+        !state.legal_actions.some((a) => a.kind === ACTION_KIND.EFFECT_CHOICE) &&
         state.legal_actions.some((a) => a.card_id === cardId);
       if (!playable || (selectedCardId === cardId && selectedHandIndex === Number(cardEl.dataset.handIndex))) {
         openCardInspector(cardId, currentViewer(), "hand");
@@ -1309,7 +1324,7 @@ function layoutHand() {
 }
 
 function renderPublicZones() {
-  if (state.phase === "mulligan") {
+  if (state.phase === SESSION_PHASE.MULLIGAN) {
     $("public-zones").innerHTML = "";
     return;
   }
@@ -1406,7 +1421,7 @@ function bindBoardTargets() {
     bindTarget(el, () => {
       if (Number(el.dataset.stratagemOwner) !== currentViewer()) return;
       const matches = selectedActions().filter(
-        (candidate) => candidate.kind === "PlayStratagem"
+        (candidate) => candidate.kind === ACTION_KIND.PLAY_STRATAGEM
       );
       if (matches.length === 1) {
         executeAction(matches[0]);
@@ -1446,7 +1461,7 @@ function handleBoardTarget(owner, front, rank) {
 
   const all = selectedActions();
   const isTwoTargetNarrative = all.some(
-    (a) => a.kind === "PlayNarrative" && a.targets.length === 2
+    (a) => a.kind === ACTION_KIND.PLAY_NARRATIVE && a.targets.length === 2
   );
   if (isTwoTargetNarrative && !stagedNarrativeSource) {
     const sourceMatches = all.filter(
@@ -1485,20 +1500,20 @@ function updateGameStatus() {
     status.textContent = cardsReady ? "Ready" : "Loading cards…";
     return;
   }
-  if (state.phase === "mulligan") {
+  if (state.phase === SESSION_PHASE.MULLIGAN) {
     status.textContent = "Opening mulligan";
     return;
   }
-  if (state.phase === "complete") {
+  if (state.phase === PHASE.COMPLETE) {
     status.textContent = "Match complete";
     return;
   }
-  if (state.needs_ai || (state.mode === "remote" && state.active_player !== state.viewer)) {
+  if (state.needs_ai || (state.mode === GAME_MODE.REMOTE && state.active_player !== state.viewer)) {
     status.textContent = "Opponent’s turn";
     return;
   }
   status.textContent = "Battle " + state.battle + " · " +
-    (state.mode === "hotseat" ? "Player " + (state.active_player + 1) : "Your turn");
+    (state.mode === GAME_MODE.HOTSEAT ? "Player " + (state.active_player + 1) : "Your turn");
 }
 
 function showActionBanner(kicker, title, detail = "") {
@@ -1516,7 +1531,7 @@ function renderActionFeedback() {
   if (
     renderedState &&
     renderedState.battle !== state.battle &&
-    state.phase !== "complete"
+    state.phase !== PHASE.COMPLETE
   ) {
     lastShownActionId = state.last_action?.id || lastShownActionId;
     showActionBanner(
@@ -1529,7 +1544,7 @@ function renderActionFeedback() {
 
   if (
     !openingAnnouncementShown &&
-    state?.phase === "battle" &&
+    state?.phase === PHASE.BATTLE &&
     state.opening_player != null
   ) {
     openingAnnouncementShown = true;
@@ -1549,27 +1564,27 @@ function renderActionFeedback() {
   let kicker = own ? "YOUR ACTION" : "OPPONENT ACTION";
   let title = card?.title || action.label;
 
-  if (action.kind === "Pass") {
+  if (action.kind === ACTION_KIND.PASS) {
     kicker = own ? "YOU PASS" : "OPPONENT PASSES";
     title = state.pass_order?.length
       ? "Opponent takes a normal turn"
       : "Battle ends";
-  } else if (action.kind === "Discard") {
+  } else if (action.kind === ACTION_KIND.DISCARD) {
     kicker = own ? "YOU DISCARD" : "OPPONENT DISCARDS";
     title = "Then draw 1";
-  } else if (action.kind === "EffectChoice") {
+  } else if (action.kind === ACTION_KIND.EFFECT_CHOICE) {
     kicker = own ? "YOU RESOLVE AN EFFECT" : "OPPONENT RESOLVES AN EFFECT";
-  } else if (action.kind === "Maneuver") {
+  } else if (action.kind === ACTION_KIND.MANEUVER) {
     kicker = own ? "YOU MANEUVER" : "OPPONENT MANEUVERS";
-  } else if (action.kind === "PlayForce") {
+  } else if (action.kind === ACTION_KIND.PLAY_FORCE) {
     kicker = own ? "YOU DEPLOY" : "OPPONENT DEPLOYS";
-  } else if (action.kind === "PlayBond") {
+  } else if (action.kind === ACTION_KIND.PLAY_BOND) {
     kicker = own ? "YOU PLAY A BOND" : "OPPONENT PLAYS A BOND";
-  } else if (action.kind === "PlayName") {
+  } else if (action.kind === ACTION_KIND.PLAY_NAME) {
     kicker = own ? "YOU PLAY A NAME" : "OPPONENT PLAYS A NAME";
-  } else if (action.kind === "PlayNarrative") {
+  } else if (action.kind === ACTION_KIND.PLAY_NARRATIVE) {
     kicker = own ? "YOU PLAY A NARRATIVE" : "OPPONENT PLAYS A NARRATIVE";
-  } else if (action.kind === "PlayStratagem") {
+  } else if (action.kind === ACTION_KIND.PLAY_STRATAGEM) {
     kicker = own ? "YOU PLAY A STRATAGEM" : "OPPONENT PLAYS A STRATAGEM";
   }
 
@@ -1587,13 +1602,13 @@ async function resolveAiStep() {
   clearTimeout(aiStepTimer);
   aiStepTimer = null;
   aiDueAt = 0;
-  if (!state?.needs_ai || state.phase === "complete" || aiStepRunning) return;
+  if (!state?.needs_ai || state.phase === PHASE.COMPLETE || aiStepRunning) return;
   aiStepRunning = true;
   const generation = sessionGeneration;
   document.body.classList.remove("ai-waiting");
   document.body.classList.add("ai-resolving");
   try {
-    const next = await request({ type: "ai_step" });
+    const next = await request({ type: REQUEST_TYPE.AI_STEP });
     if (generation !== sessionGeneration || !state) return;
     state = next;
     clearSelection();
@@ -1613,7 +1628,7 @@ async function resolveAiStep() {
 
 function scheduleAiStep(delay = 650) {
   cancelAiStep();
-  if (!state?.needs_ai || state.phase === "complete") return;
+  if (!state?.needs_ai || state.phase === PHASE.COMPLETE) return;
   document.body.classList.add("ai-waiting");
   updateGameStatus();
   aiDueAt = performance.now() + delay;
@@ -1621,11 +1636,11 @@ function scheduleAiStep(delay = 650) {
 }
 
 async function submitMulligan() {
-  if (!state || state.phase !== "mulligan" || state.viewer == null) return;
+  if (!state || state.phase !== SESSION_PHASE.MULLIGAN || state.viewer == null) return;
   const indices = [...mulliganSelection].sort((a, b) => a - b);
   await runBusy(async () => {
     state = await playerRequest({
-      type: "mulligan",
+      type: REQUEST_TYPE.MULLIGAN,
       indices,
       viewer: state.viewer,
     });
@@ -1638,7 +1653,7 @@ async function submitMulligan() {
 async function executeAction(action) {
   if (!action || busy || state.viewer == null || state.needs_ai) return;
   await runBusy(async () => {
-    state = await playerRequest({ type: "act", key: action.key, viewer: state.viewer });
+    state = await playerRequest({ type: REQUEST_TYPE.ACT, key: action.key, viewer: state.viewer });
     clearSelection();
     render();
   });
@@ -1736,15 +1751,15 @@ $("new-game-form").addEventListener("submit", async (event) => {
   const mode = $("mode").value;
   const seed = Math.max(0, Math.min(2147483647, Number($("seed").value) || 0));
   await runBusy(async () => {
-    if (mode === "remote-host") {
+    if (mode === PLAY_SETUP_MODE.REMOTE_HOST) {
       await startRemoteHost(seed);
       return;
     }
-    if (mode === "remote-join") {
+    if (mode === PLAY_SETUP_MODE.REMOTE_JOIN) {
       await startRemoteGuest();
       return;
     }
-    state = await request({ type: "new_game", mode, seed });
+    state = await request({ type: REQUEST_TYPE.NEW_GAME, mode, seed });
     clearSelection();
     $("play-setup").hidden = true;
     render();
@@ -1858,7 +1873,7 @@ document.addEventListener("keydown", (event) => {
     toggleFullscreen();
     return;
   }
-  if (!state || state.viewer == null || state.phase !== "battle") return;
+  if (!state || state.viewer == null || state.phase !== PHASE.BATTLE) return;
   if (event.key.toLowerCase() === "p") {
     const pass = actionForPass();
     if (pass) executeAction(pass);
@@ -1935,7 +1950,7 @@ window.addEventListener("resize", layoutHand);
 function renderMatchResult() {
   const result = $("match-result");
   if (!result) return;
-  const complete = state.phase === "complete";
+  const complete = state.phase === PHASE.COMPLETE;
   const wasHidden = result.hidden;
   result.hidden = !complete;
   if (!complete) return;
@@ -1943,7 +1958,7 @@ function renderMatchResult() {
   $("privacy-gate").hidden = true;
   $("result-title").textContent = state.winner == null
     ? "Draw"
-    : state.mode === "hotseat"
+    : state.mode === GAME_MODE.HOTSEAT
       ? "Player " + (state.winner + 1) + " wins"
       : state.winner === currentViewer() ? "Victory" : "Defeat";
   $("result-detail").textContent =
@@ -1997,7 +2012,7 @@ function flyCard(from, destination, face = null) {
 
 // Motion compares visible authoritative snapshots. It never predicts rule results.
 function animateSnapshot(previous, before) {
-  if (!previous || reducedMotion.matches || previous.viewer !== state.viewer || previous.phase === "mulligan") return;
+  if (!previous || reducedMotion.matches || previous.viewer !== state.viewer || previous.phase === SESSION_PHASE.MULLIGAN) return;
   if (previous.last_action?.id === state.last_action?.id && previous.battle === state.battle) return;
   const after = captureCardAnchors(state);
   const unused = new Set(after);
