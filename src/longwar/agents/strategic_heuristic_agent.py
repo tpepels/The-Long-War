@@ -72,7 +72,10 @@ class StrategicHeuristicAgent(HeuristicAgent):
         heuristic_weights: HeuristicWeights | None = None,
     ):
         self.heuristic_weights = heuristic_weights or DEFAULT_HEURISTIC_WEIGHTS
-        evaluator = StrategicEvaluator(self.heuristic_weights)
+        evaluator = StrategicEvaluator(
+            self.heuristic_weights,
+            sampled_opponent_resources=True,
+        )
         super().__init__(
             seed=seed,
             exploration=exploration,
@@ -142,6 +145,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
             _NativeHeuristicEvaluator(
                 self._fast_engine,
                 self.heuristic_weights,
+                sampled_opponent_resources=True,
             )
             if self._use_native
             else None
