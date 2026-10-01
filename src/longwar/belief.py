@@ -237,8 +237,6 @@ class BeliefDiagnostics:
     known_hidden_hand_cards: int
     hidden_hand_cards: int
     hidden_deck_cards: int
-    hidden_schemes: int
-    hidden_stratagems: int
     prior_type: str
 
 
@@ -281,8 +279,6 @@ class BeliefSampler:
             known_hidden_hand_cards=len(known),
             hidden_hand_cards=len(state.players[opponent].hand),
             hidden_deck_cards=len(state.players[opponent].deck),
-            hidden_schemes=0,
-            hidden_stratagems=0,
             prior_type=(
                 type(self.priors[opponent]).__name__
                 if self.priors is not None
