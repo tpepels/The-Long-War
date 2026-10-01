@@ -46,15 +46,15 @@ class PolicySource(StrEnum):
 
 
 class ActionKind(StrEnum):
-    PASS = "pass"
-    DISCARD = "discard"
-    EFFECT_CHOICE = "effect_choice"
-    MANEUVER = "maneuver"
-    PLAY_FORCE = "play_force"
-    PLAY_BOND = "play_bond"
-    PLAY_NAME = "play_name"
-    PLAY_NARRATIVE = "play_narrative"
-    PLAY_STRATAGEM = "play_stratagem"
+    PASS = "Pass"
+    DISCARD = "Discard"
+    EFFECT_CHOICE = "EffectChoice"
+    MANEUVER = "Maneuver"
+    PLAY_FORCE = "PlayForce"
+    PLAY_BOND = "PlayBond"
+    PLAY_NAME = "PlayName"
+    PLAY_NARRATIVE = "PlayNarrative"
+    PLAY_STRATAGEM = "PlayStratagem"
 
 
 class ActionKeyToken(StrEnum):
