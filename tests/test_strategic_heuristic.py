@@ -83,7 +83,7 @@ def test_strategic_heuristic_returns_legal_action_without_true_hand_access() -> 
     assert agent.last_decision["search_nodes"] <= 2_000
 
 
-def test_strategic_root_guard_preserves_last_command() -> None:
+def test_strategic_root_guard_allows_legal_midbattle_zero_command_play() -> None:
     deck = load_deck()
     engine = standard_engine()
     state = engine.new_game(
@@ -122,14 +122,9 @@ def test_strategic_root_guard_preserves_last_command() -> None:
     )
     action = agent.choose(engine, state)
 
-    child = state.clone()
-    engine.apply(child, action)
-    assert not (
-        child.players[0].command == 0
-        and child.players[1].command > 0
-    )
-    assert agent.last_decision["command_guard_applied"] is True
-    assert agent.last_decision["command_guard_filtered_actions"] >= 1
+    assert action in engine.legal_actions(state)
+    assert agent.last_decision["command_guard_applied"] is False
+    assert agent.last_decision["command_guard_filtered_actions"] == 0
 
 
 def test_short_strategic_candidate_simulation_finishes() -> None:
