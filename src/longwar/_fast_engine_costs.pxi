@@ -29,7 +29,7 @@ cdef inline int _fe_local_front_discount_source_fast(
     cdef int rank, slot, name, discount = 0
     cdef uint8_t bit = <uint8_t>(1 << front)
     source_card[0] = -1
-    for rank in range(2):
+    for rank in range(RANK_COUNT):
         slot = slot_index(player, front, rank)
         if state.force[slot] < 0:
             continue
@@ -38,7 +38,7 @@ cdef inline int _fe_local_front_discount_source_fast(
             continue
         if (
             self.local_catchup_discount_name[name]
-            and state.command[player] < state.command[1 - player]
+            and state.command[player] < state.command[other_player(player)]
             and not (state.cards_played_this_turn_front_mask[player] & bit)
             and self.local_catchup_discount_name[name] > discount
         ):
@@ -71,8 +71,8 @@ cdef inline int _fe_first_narrative_discount_source_fast(
     cdef int front, slot, force
     if state.narratives_played_this_battle[player]:
         return -1
-    for front in range(4):
-        slot = slot_index(player, front, 1)
+    for front in range(FRONT_COUNT):
+        slot = slot_index(player, front, RANK_REAR)
         force = state.force[slot]
         if (
             force >= 0
@@ -97,11 +97,11 @@ cdef inline int _fe_adjacent_discount_source_fast(
 ) noexcept:
     cdef int local, slot, front, name, discount = 0
     source_card[0] = -1
-    for local in range(8):
-        slot = player * 8 + local
+    for local in range(POSITIONS_PER_PLAYER):
+        slot = player * POSITIONS_PER_PLAYER + local
         if not _fe_slot_complete(self, state, slot):
             continue
-        front = local >> 1
+        front = local // RANK_COUNT
         if abs(front - target_front) != 1:
             continue
         name = state.name[slot]
@@ -136,7 +136,7 @@ cdef inline int _fe_command_cost_fast(
         pos = action_pos(action)
         dest = action_dest(action)
         direction = (
-            1 if front_from_slot(dest) < front_from_slot(pos) else 2
+            DIRECTION_LEFT if front_from_slot(dest) < front_from_slot(pos) else DIRECTION_RIGHT
         )
         for i in range(state.constraint_len):
             if (
@@ -154,7 +154,7 @@ cdef inline int _fe_command_cost_fast(
                 )
                 return 0
         if state.player_maneuver_count[player] == 0:
-            for controller in range(2):
+            for controller in range(PLAYER_COUNT):
                 strat = state.stratagem[controller]
                 if (
                     strat >= 0
@@ -228,10 +228,10 @@ cdef inline int _fe_command_cost_fast(
             and _fe_slot_complete(self, state, action_pos(action))
         ):
             if (
-                state.stratagem_direction[player] == 1
+                state.stratagem_direction[player] == DIRECTION_LEFT
                 and front_from_slot(action_dest(action)) < front_from_slot(action_pos(action))
             ) or (
-                state.stratagem_direction[player] == 2
+                state.stratagem_direction[player] == DIRECTION_RIGHT
                 and front_from_slot(action_dest(action)) > front_from_slot(action_pos(action))
             ):
                 _fe_record_command_diag(
@@ -260,7 +260,7 @@ cdef inline int _fe_command_cost_fast(
         if selected > 1:
             cost += selected - 1
 
-    if self.catchup_zero_cost[card] and state.command[player] < state.command[1 - player]:
+    if self.catchup_zero_cost[card] and state.command[player] < state.command[other_player(player)]:
         before_cost = cost
         cost = 0
         if before_cost > 0:
@@ -315,8 +315,8 @@ cdef inline int _fe_command_cost_fast(
             discount = local_discount
             source_card = local_source
             discount_detail = COMMAND_DETAIL_LOCAL_FRONT_DISCOUNT
-        if kind == TYPE_FORCE and rank_from_slot(pos) == 0:
-            rear = slot_index(player, target_front, 1)
+        if kind == TYPE_FORCE and rank_from_slot(pos) == RANK_FRONT:
+            rear = slot_index(player, target_front, RANK_REAR)
             support = state.force[rear]
             if (
                 support >= 0
@@ -381,8 +381,8 @@ cdef inline void _fe_gain_command_fast(
 
 cdef inline int _fe_complete_mask(FastEngine self, FastState state, int player) noexcept:
     cdef int local, slot, mask=0
-    for local in range(8):
-        slot = player * 8 + local
+    for local in range(POSITIONS_PER_PLAYER):
+        slot = player * POSITIONS_PER_PLAYER + local
         if _fe_slot_complete(self, state, slot):
             mask |= 1 << local
     return mask
@@ -418,7 +418,7 @@ cdef void _fe_resolve_completion_effect_fast(
     elif effect == COMPLETE_DRAW:
         _fe_queue_battle_draws(self, state, player, amount)
     elif effect == COMPLETE_REVEAL_NARRATIVE:
-        enemy_ix = (1 - player) * 4 + front
+        enemy_ix = other_player(player) * NARRATIVE_SLOTS_PER_PLAYER + front
         if state.narrative[enemy_ix] >= 0:
             state.narrative_revealed[enemy_ix] = 1
     elif effect == COMPLETE_RECOVER_BOND:
@@ -435,11 +435,11 @@ cdef void _fe_resolve_new_completions_fast(
     cdef int new_mask = after_mask & ~before_mask
     if new_mask == 0:
         return
-    for local in range(8):
+    for local in range(POSITIONS_PER_PLAYER):
         if not (new_mask & (1 << local)):
             continue
-        slot = player * 8 + local
-        front = local >> 1
+        slot = player * POSITIONS_PER_PLAYER + local
+        front = local // RANK_COUNT
         state.completion_count_this_battle[player] += 1
         _fe_resolve_completion_effect_fast(self, 
             state, player, state.force[slot], front
@@ -478,13 +478,13 @@ cdef void _fe_resolve_new_completions_fast(
                 _fe_queue_recover_from_discard(self, 
                     state, player, CARD_NARRATIVE, False
                 )
-        for other in range((1 - player) * 8, (1 - player) * 8 + 8):
+        for other in range(other_player(player) * POSITIONS_PER_PLAYER, (other_player(player) + 1) * POSITIONS_PER_PLAYER):
             if (
                 front_from_slot(other) == front
                 and state.name[other] >= 0
                 and state.force[other] >= 0
                 and (self.card_capabilities[state.name[other]] & CAP_OPPOSING_NAMED_SAME_FRONT_FREE_MANEUVER)
             ):
-                state.free_maneuver_available[1 - player] = 1
-                state.free_maneuver_source[1 - player] = state.name[other]
+                state.free_maneuver_available[other_player(player)] = 1
+                state.free_maneuver_source[other_player(player)] = state.name[other]
         _fe_resolve_named_narratives(self, state, player, slot)
