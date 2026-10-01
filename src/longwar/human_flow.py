@@ -6,6 +6,7 @@ from typing import Any
 from .game.actions import Action, Discard, Pass, PlayForce
 from .game.engine import GameEngine
 from .game.model import Front, GameState, Phase
+from .protocol import CardField, CardType, DesignField, PLAYER_COUNT
 
 
 class HumanFlowDiagnostics:
@@ -22,10 +23,10 @@ class HumanFlowDiagnostics:
         self.force_hand_total = 0
         self.hand_size_total = 0
         self.no_playable_force_decisions = 0
-        self._no_force_streak = [0, 0]
+        self._no_force_streak = [0] * PLAYER_COUNT
         self.longest_no_force_streak = 0
         self.first_force_operations: list[int] = []
-        self._first_force_seen = [False, False]
+        self._first_force_seen = [False] * PLAYER_COUNT
 
         self.battles = 0
         self.player_battles = 0
@@ -70,8 +71,8 @@ class HumanFlowDiagnostics:
             setattr(self, name, getattr(self, name) + getattr(other, name))
 
     def start_game(self, engine: GameEngine, state: GameState) -> None:
-        self._no_force_streak = [0, 0]
-        self._first_force_seen = [False, False]
+        self._no_force_streak = [0] * PLAYER_COUNT
+        self._first_force_seen = [False] * PLAYER_COUNT
         self._current_deck_sizes = [
             len(player.hand) + len(player.deck) + len(player.discard)
             for player in state.players
@@ -87,17 +88,17 @@ class HumanFlowDiagnostics:
             forces = [
                 engine.cards[card_id]
                 for card_id in hand
-                if engine.cards[card_id]["type"] == "force"
+                if engine.cards[card_id][CardField.TYPE] == CardType.FORCE
             ]
             count = len(forces)
             self.opening_players += 1
             self.opening_force_total += count
             self.opening_force_distribution[count] += 1
             for card in forces:
-                self.opening_role_counts[str(card.get("role", "unknown"))] += 1
+                self.opening_role_counts[str(card.get(CardField.ROLE, "unknown"))] += 1
                 design = engine.card_mechanics[card["id"]]
-                force_design = design.get("force") or design
-                rank = force_design.get("deploy_rank") or design.get("deploy_rank")
+                force_design = design.get(DesignField.FORCE) or design
+                rank = force_design.get(DesignField.DEPLOY_RANK) or design.get(DesignField.DEPLOY_RANK)
                 self.opening_rank_counts[str(rank or "unrestricted")] += 1
 
     def before_action(
@@ -123,7 +124,7 @@ class HumanFlowDiagnostics:
 
         if consumes_operation:
             force_count = sum(
-                engine.cards[card_id]["type"] == "force"
+                engine.cards[card_id][CardField.TYPE] == CardType.FORCE
                 for card_id in state.players[actor].hand
             )
             playable_force = any(
@@ -167,7 +168,7 @@ class HumanFlowDiagnostics:
         actor: int,
         action: Action,
     ) -> None:
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             reshuffles = state.deck_reshuffles[player] - before.deck_reshuffles[player]
             if reshuffles <= 0:
                 continue
@@ -204,15 +205,15 @@ class HumanFlowDiagnostics:
         self.cards_drawn_total += sum(cards_drawn)
         self.completion_events_total += sum(completion_counts)
         self.command_spent_total += sum(command_spent)
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             self.deck_seen_fraction_total += min(
                 1.0,
                 (start_hands[player] + cards_drawn[player])
                 / self._current_deck_sizes[player],
             )
 
-        self._no_force_streak = [0, 0]
-        self._first_force_seen = [False, False]
+        self._no_force_streak = [0] * PLAYER_COUNT
+        self._first_force_seen = [False] * PLAYER_COUNT
 
     def summary(self) -> dict[str, Any]:
         opening_zero = self.opening_force_distribution.get(0, 0)
