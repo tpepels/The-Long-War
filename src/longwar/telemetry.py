@@ -18,6 +18,7 @@ from .game.actions import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase
+from .protocol import PolicySource
 from .progression import ProgressionTelemetry
 from .heuristics import command_preserving_actions
 
@@ -516,7 +517,7 @@ class Telemetry:
             policy_source = decision_info.get("policy_source")
             if policy_source is not None:
                 self.policy_sources[str(policy_source)] += 1
-            if policy_source == "online_mccfr":
+            if policy_source == PolicySource.ONLINE_MCCFR:
                 self.online_resolution["decisions"] += 1
                 self.online_resolution["iterations_total"] += float(
                     decision_info.get("resolver_iterations", 0)
