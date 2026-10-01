@@ -1484,6 +1484,8 @@ def validate() -> None:
             sys.executable,
             "-m",
             "pytest",
+            "-n",
+            str(DEFAULT_WORKERS),
             "-q",
             "tests/test_engine.py",
             "tests/test_strategic_heuristic.py",
