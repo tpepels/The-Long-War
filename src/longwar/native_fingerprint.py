@@ -20,6 +20,11 @@ def native_source_paths() -> tuple[Path, ...]:
         for path in PACKAGE.glob(pattern)
         if path.name != GENERATED_NAME
     ]
+    # Build configuration changes can alter the compiled module just as surely
+    # as a .pyx/.pxi edit, so stale-binary detection covers them too.
+    for build_input in (ROOT / "setup.py", ROOT / "pyproject.toml"):
+        if build_input.is_file():
+            paths.append(build_input)
     return tuple(sorted(set(paths)))
 
 
