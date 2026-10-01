@@ -119,7 +119,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int own_after_loss=0, opponent_after_loss=0
         cdef int own_projected=0, opponent_projected=0
         cdef int current_delta=0, projected_delta=0
-        cdef int own_vulnerability=0, opponent_vulnerability=0
+        cdef double own_vulnerability=0.0, opponent_vulnerability=0.0
         cdef double own_liability=0.0, opponent_liability=0.0
         cdef double score = 0.0, option = 0.0, battle_end_urgency = 0.0
 
