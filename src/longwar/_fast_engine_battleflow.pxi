@@ -54,7 +54,7 @@ cdef uint16_t _fe_succession_destinations(
             and state.name[dest] < 0
         ):
             mask |= <uint16_t>(1 << dest)
-    if front < 3:
+    if front < FRONT_COUNT - 1:
         dest = slot_index(player, front + 1, rank)
         if (
             state.force[dest] >= 0
@@ -233,7 +233,7 @@ cdef void _fe_retreat_slot(
                 self, state, player, <uint16_t>(1 << other),
                 True, False, other_bond
             )
-    if front < 3:
+    if front < FRONT_COUNT - 1:
         other = slot_index(player, front + 1, rank)
         other_bond = state.bond[other]
         if (
