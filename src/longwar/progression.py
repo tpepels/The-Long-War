@@ -306,11 +306,16 @@ class ProgressionTelemetry:
 
         self._current_action = self._action_index + 1
         legal = list(legal_actions)
+        consumes_operation = engine.action_consumes_operation(
+            state,
+            actor,
+            action,
+        )
         constraint_sources = self._constraint_rule_sources(engine, state)
         active_constraints = self._active_operation_constraints(state, actor)
         constraint_active = bool(active_constraints)
         unconstrained_legal = legal
-        if active_constraints:
+        if active_constraints and consumes_operation:
             unconstrained = state.clone()
             unconstrained.constraints.clear()
             unconstrained_legal = engine.legal_actions(unconstrained)
@@ -374,7 +379,7 @@ class ProgressionTelemetry:
                 if isinstance(action, CARD_ACTIONS)
                 else type(action).__name__
             ),
-            "operation": not effect_resolution,
+            "operation": consumes_operation,
             "forced": len(legal) == 1,
             "legal_actions": len(legal),
             "playable_card_actions": sum(
@@ -407,28 +412,49 @@ class ProgressionTelemetry:
                 self._constraint_active_streak = 0
             return
 
-        self._battle_action += 1
-        card_actions = [candidate for candidate in legal if isinstance(candidate, CARD_ACTIONS)]
-        maneuver_actions = [candidate for candidate in legal if isinstance(candidate, Maneuver)]
-        pass_actions = [candidate for candidate in legal if isinstance(candidate, Pass)]
-        alternatives = [candidate for candidate in legal if not isinstance(candidate, Pass)]
+        if consumes_operation:
+            self._battle_action += 1
+            card_actions = [
+                candidate
+                for candidate in legal
+                if isinstance(candidate, CARD_ACTIONS)
+            ]
+            maneuver_actions = [
+                candidate
+                for candidate in legal
+                if isinstance(candidate, Maneuver)
+            ]
+            pass_actions = [
+                candidate
+                for candidate in legal
+                if isinstance(candidate, Pass)
+            ]
+            alternatives = [
+                candidate
+                for candidate in legal
+                if not isinstance(candidate, Pass)
+            ]
 
-        self._choice_legal.append(len(legal))
-        self._choice_card.append(len(card_actions))
-        self._choice_maneuver.append(len(maneuver_actions))
-        self._forced_decisions += int(len(legal) == 1)
-        self._forced_maneuvers += int(
-            len(legal) == 1 and isinstance(legal[0], Maneuver)
-        )
-        self._pass_plus_one += int(bool(pass_actions) and len(alternatives) == 1)
-        self._constraint_source_decisions += int(bool(constraint_sources))
-        if self._constraint_active_supported:
-            self._constraint_active_decisions += int(constraint_active)
-        if self._constraint_active_supported and constraint_active:
-            self._constraint_active_streak += 1
-        elif self._constraint_active_streak:
-            self._constraint_active_streaks.append(self._constraint_active_streak)
-            self._constraint_active_streak = 0
+            self._choice_legal.append(len(legal))
+            self._choice_card.append(len(card_actions))
+            self._choice_maneuver.append(len(maneuver_actions))
+            self._forced_decisions += int(len(legal) == 1)
+            self._forced_maneuvers += int(
+                len(legal) == 1 and isinstance(legal[0], Maneuver)
+            )
+            self._pass_plus_one += int(
+                bool(pass_actions) and len(alternatives) == 1
+            )
+            self._constraint_source_decisions += int(bool(constraint_sources))
+            if self._constraint_active_supported:
+                self._constraint_active_decisions += int(constraint_active)
+            if self._constraint_active_supported and constraint_active:
+                self._constraint_active_streak += 1
+            elif self._constraint_active_streak:
+                self._constraint_active_streaks.append(
+                    self._constraint_active_streak
+                )
+                self._constraint_active_streak = 0
 
         if isinstance(action, CARD_ACTIONS):
             card_id = action.card_id
