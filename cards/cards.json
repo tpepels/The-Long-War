@@ -121,17 +121,20 @@
         {
           "kind": "property",
           "label": "FORCE",
-          "text": "**Deploy - Frontline only.**"
+          "text": "**Deploy - Frontline only.**",
+          "mode": "force"
         },
         {
           "kind": "trigger",
           "label": "AFTER MANEUVER",
-          "text": "After Avaros **Maneuvers**, you may **Maneuver** one adjacent friendly **Named Formation** without paying Command."
+          "text": "After Avaros **Maneuvers**, you may **Maneuver** one adjacent friendly **Named Formation** without paying Command.",
+          "mode": "force"
         },
         {
           "kind": "trigger",
           "label": "NAME - WHEN NAMED",
-          "text": "When this formation becomes **Named**, you may **Maneuver** it once without paying Command."
+          "text": "When this formation becomes **Named**, you may **Maneuver** it once without paying Command.",
+          "mode": "name"
         }
       ],
       "command_cost": 3,
@@ -1635,12 +1638,14 @@
         {
           "kind": "property",
           "label": "FORCE",
-          "text": "This formation may **Maneuver** even if it is not Named. After it Maneuvers into an empty position, you may move it one more Front left or right if that position is empty."
+          "text": "This formation may **Maneuver** even if it is not Named. After it Maneuvers into an empty position, you may move it one more Front left or right if that position is empty.",
+          "mode": "force"
         },
         {
           "kind": "trigger",
           "label": "NAME",
-          "text": "When an opposing formation Maneuvers into an adjacent Front, you may Maneuver this formation for 0 Command."
+          "text": "When an opposing formation Maneuvers into an adjacent Front, you may Maneuver this formation for 0 Command.",
+          "mode": "name"
         }
       ],
       "design_rules": {
@@ -1684,12 +1689,14 @@
         {
           "kind": "property",
           "label": "FORCE",
-          "text": "**Deploy - Frontline only.** When comparing Strength in this Front, you may ignore the opposing Rear Force's Strength."
+          "text": "**Deploy - Frontline only.** When comparing Strength in this Front, you may ignore the opposing Rear Force's Strength.",
+          "mode": "force"
         },
         {
           "kind": "effect",
           "label": "NAME",
-          "text": "If this formation wins its Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it."
+          "text": "If this formation wins its Front and your opponent has no Rear Force here, drive off their Frontline Named Formation instead of Retreating it.",
+          "mode": "name"
         }
       ],
       "design_rules": {
@@ -1732,12 +1739,14 @@
         {
           "kind": "property",
           "label": "FORCE",
-          "text": "**Deploy - Rear only.** If your Frontline Named Formation here would Retreat, you may drive off Alda instead. The Frontline formation stays."
+          "text": "**Deploy - Rear only.** If your Frontline Named Formation here would Retreat, you may drive off Alda instead. The Frontline formation stays.",
+          "mode": "force"
         },
         {
           "kind": "effect",
           "label": "NAME",
-          "text": "If this formation is driven off, return Alda to your hand instead of discarding her."
+          "text": "If this formation is driven off, return Alda to your hand instead of discarding her.",
+          "mode": "name"
         }
       ],
       "design_rules": {
@@ -1780,12 +1789,14 @@
         {
           "kind": "property",
           "label": "FORCE",
-          "text": "**Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command."
+          "text": "**Deploy - Rear only.** At Battle end, if you lose this Front, it does not reduce your Command.",
+          "mode": "force"
         },
         {
           "kind": "continuous",
           "label": "NAME",
-          "text": "While this formation is Named, the first card you play in this Front each Battle costs 1 less Command (minimum 1)."
+          "text": "While this formation is Named, the first card you play in this Front each Battle costs 1 less Command (minimum 1).",
+          "mode": "name"
         }
       ],
       "design_rules": {
@@ -1830,12 +1841,14 @@
         {
           "kind": "property",
           "label": "FORCE",
-          "text": "**Deploy - Rear only.** A Force you play in the Frontline of this Front costs 1 less Command (minimum 1)."
+          "text": "**Deploy - Rear only.** A Force you play in the Frontline of this Front costs 1 less Command (minimum 1).",
+          "mode": "force"
         },
         {
           "kind": "trigger",
           "label": "NAME",
-          "text": "When this formation becomes Named, return one Bond from your discard pile to your hand."
+          "text": "When this formation becomes Named, return one Bond from your discard pile to your hand.",
+          "mode": "name"
         }
       ],
       "design_rules": {
@@ -1880,12 +1893,14 @@
         {
           "kind": "property",
           "label": "FORCE",
-          "text": "**Deploy - Rear only.** After your Frontline formation here Retreats, you may move it one Front left or right if that Rear position is empty."
+          "text": "**Deploy - Rear only.** After your Frontline formation here Retreats, you may move it one Front left or right if that Rear position is empty.",
+          "mode": "force"
         },
         {
           "kind": "trigger",
           "label": "NAME",
-          "text": "After this formation Retreats, you may move it one Front left or right if that Rear position is empty."
+          "text": "After this formation Retreats, you may move it one Front left or right if that Rear position is empty.",
+          "mode": "name"
         }
       ],
       "design_rules": {
@@ -1928,12 +1943,14 @@
         {
           "kind": "trigger",
           "label": "FORCE",
-          "text": "When you play Veyra, you may move a Bond or Name from an adjacent position with no Force into Veyra's position, if that slot is empty."
+          "text": "When you play Veyra, you may move a Bond or Name from an adjacent position with no Force into Veyra's position, if that slot is empty.",
+          "mode": "force"
         },
         {
           "kind": "trigger",
           "label": "NAME",
-          "text": "When you play Veyra on a Force with no Bond, you may move a Bond from an adjacent formation with no Name onto this formation."
+          "text": "When you play Veyra on a Force with no Bond, you may move a Bond from an adjacent formation with no Name onto this formation.",
+          "mode": "name"
         }
       ],
       "design_rules": {
@@ -1975,12 +1992,14 @@
         {
           "kind": "property",
           "label": "FORCE",
-          "text": "**Deploy - Rear only.** The first **Narrative** you play each Battle costs 1 less Command (minimum 1)."
+          "text": "**Deploy - Rear only.** The first **Narrative** you play each Battle costs 1 less Command (minimum 1).",
+          "mode": "force"
         },
         {
           "kind": "trigger",
           "label": "NAME",
-          "text": "When this formation becomes Named, return a Narrative from your discard pile to your hand."
+          "text": "When this formation becomes Named, return a Narrative from your discard pile to your hand.",
+          "mode": "name"
         }
       ],
       "design_rules": {
