@@ -679,7 +679,7 @@
 }
 .ov-rear,
 .ov-front,
-.ov-scheme {
+.ov-narrative {
   min-height: 18mm;
   padding: 2mm;
   border: .3mm solid rgba(24,23,20,.55);
@@ -691,12 +691,12 @@
 .ov-front {
   border-width: .55mm;
 }
-.ov-scheme {
+.ov-narrative {
   min-height: 6mm;
   border-style: dashed;
   font-size: 2mm;
 }
-.ov-scheme.hidden {
+.ov-narrative.hidden {
   background: #181714;
   color: #f7f2e8;
   border-style: solid;
@@ -1875,16 +1875,6 @@
 .rv-slot small {
   margin-top: 1mm;
   font: 2.9mm/1.15 Georgia,serif;
-}
-
-.rv-veiled {
-  min-height: 7mm;
-  padding: 1.7mm 2mm;
-  display: grid;
-  place-items: center;
-  border: .35mm dashed #181714;
-  background: rgba(255,255,255,.28);
-  font: 800 2.8mm/1 system-ui,sans-serif;
 }
 
 .rv-battle-line {
