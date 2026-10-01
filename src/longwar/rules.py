@@ -47,6 +47,10 @@ class GameRules:
             raise ValueError("opening_hand_size must be positive")
         if self.starting_command > self.command_cap:
             raise ValueError("starting_command cannot exceed command_cap")
+        if self.command_collapse_threshold > self.command_cap:
+            raise ValueError(
+                "command_collapse_threshold cannot exceed command_cap"
+            )
 
     @classmethod
     def standard(cls) -> "GameRules":
