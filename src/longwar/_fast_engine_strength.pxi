@@ -260,7 +260,7 @@ cdef inline bint _fe_formation_protected(FastEngine self, FastState state, int s
         and self.complete_narrative_protection[name]
     )
 
-cdef inline bint _fe_story_locked(FastEngine self, FastState state, int player) noexcept:
+cdef inline bint _fe_narrative_locked(FastEngine self, FastState state, int player) noexcept:
     cdef int controller, strat
     for controller in range(2):
         strat = state.stratagem[controller]
