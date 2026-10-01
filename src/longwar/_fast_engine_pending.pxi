@@ -7,7 +7,7 @@ cdef uint16_t _fe_asha_mask_for_suppression(
 ) noexcept:
     cdef int rank, slot, name
     cdef uint16_t mask = 0
-    for rank in range(2):
+    for rank in range(RANK_COUNT):
         slot = slot_index(defender, front, rank)
         if slot == original_target or not _fe_slot_complete(self, state, slot):
             continue
@@ -233,7 +233,7 @@ cdef void _fe_discard_narrative_by_card(
 ) noexcept:
     cdef int narrative_slot, ix
     for narrative_slot in range(self.ongoing_narrative_limit):
-        ix = controller * 4 + narrative_slot
+        ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
         if state.narrative[ix] == card:
             _fe_discard_ongoing_narrative(
                 self, state, controller, narrative_slot
@@ -248,10 +248,10 @@ cdef void _fe_first_card_front_constraint_triggers(
     int front,
 ) except *:
     cdef int controller, narrative_slot, ix, card, mask
-    for controller in range(2):
+    for controller in range(PLAYER_COUNT):
         narrative_slot = 0
         while narrative_slot < self.ongoing_narrative_limit:
-            ix = controller * 4 + narrative_slot
+            ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
             card = state.narrative[ix]
             if card < 0:
                 narrative_slot += 1
@@ -444,8 +444,8 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             _fe_queue_take_adjacent_open_bond_on_name_play(self, state, actor, pos)
         if self.name_effect[card] == NAME_REVEAL_NARRATIVE:
             front = front_from_slot(pos)
-            if state.narrative[(1 - actor) * 4 + front] >= 0:
-                state.narrative_revealed[(1 - actor) * 4 + front] = 1
+            if state.narrative[(1 - actor) * NARRATIVE_SLOTS_PER_PLAYER + front] >= 0:
+                state.narrative_revealed[(1 - actor) * NARRATIVE_SLOTS_PER_PLAYER + front] = 1
         elif self.name_effect[card] == NAME_MOVE_ADJACENT and dest >= 0:
             source = pos
             _fe_move_slot(self, state, source, dest)
@@ -477,16 +477,16 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     elif kind == TYPE_ONGOING_NARRATIVE:
         _fe_take_from_hand(self, state, actor, card, 0)
         state.narratives_played_this_battle[actor] += 1
-        state.narrative[actor * 4 + pos] = card
-        state.narrative_revealed[actor * 4 + pos] = 1
-        state.narrative_front_mask[actor * 4 + pos] = (
+        state.narrative[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = card
+        state.narrative_revealed[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = 1
+        state.narrative_front_mask[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = (
             <uint8_t>(extra & 15)
             if self.narrative_choice_kind[card] == NARRATIVE_CHOICE_FRONT
             else 0
         )
-        state.narrative_target_slot[actor * 4 + pos] = dest
+        state.narrative_target_slot[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = dest
         if self.narrative_choice_kind[card] == NARRATIVE_CHOICE_NAMED_DIRECTION:
-            state.narrative_direction[actor * 4 + pos] = <uint8_t>extra
+            state.narrative_direction[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = <uint8_t>extra
         if self.narrative_forced_named_direction[card]:
             _fe_add_constraint(
                 state,
@@ -552,7 +552,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
 
         choice = self.strat_choice_kind[card]
         if choice == STRAT_CHOICE_WHEEL and dest >= 0:
-            for source in range(actor * 8, actor * 8 + 8):
+            for source in range(actor * POSITIONS_PER_PLAYER, actor * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
                 if not (extra & (<uint32_t>1 << source)):
                     continue
                 local = local_slot(source)
@@ -567,7 +567,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 )
             _fe_resolve_force_pair_narratives(self, state, actor)
         elif choice == STRAT_CHOICE_RESERVES:
-            for front in range(4):
+            for front in range(FRONT_COUNT):
                 source = slot_index(actor, front, 1)
                 if extra & (<uint32_t>1 << source):
                     target = slot_index(actor, front, 0)
