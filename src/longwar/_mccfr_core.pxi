@@ -364,7 +364,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i += 1
     if version >= 6:
         # v6 adds the full observable turn number. The stable public policy id
-        # intentionally keeps the legacy observation schema, so consume it
+        # intentionally keeps the public policy observation schema, so consume it
         # without adding it to the JSON payload below.
         i += 4
 
