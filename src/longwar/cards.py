@@ -121,7 +121,7 @@ _DESIGN_INT_PATHS = {
     "forced_maneuver_cost",
     "friendly_named_maneuver_cost",
     "gain_command",
-    "lost_front_adjustment",
+    "lost_fronts_protected",
     "maneuver_cost",
     "minimum_cost",
     "named_additional_strength_bonus",
@@ -181,7 +181,7 @@ _DESIGN_STRING_VALUES: dict[str, set[str]] = {
         "completion_discount",
         "completion_refund",
         "high_cost_battle_investment",
-        "improve_recovery",
+        "protect_lost_fronts",
         "local_catch_up_discount",
         "optional_extra_payment",
     },
@@ -229,7 +229,7 @@ _DESIGN_STRING_VALUES: dict[str, set[str]] = {
     "force.combat": {"optional_ignore_opposing_rear_strength"},
     "force.command": {
         "frontline_force_discount_1_min_1",
-        "lost_front_here_does_not_reduce_recovery",
+        "protect_lost_front_here",
     },
     "force.deploy_rank": RANKS,
     "force.effect": {
