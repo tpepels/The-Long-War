@@ -247,12 +247,80 @@ def test_active_runtime_uses_canonical_card_vocabulary() -> None:
     costs = text("src/longwar/_fast_engine_costs.pxi")
     heuristic = text("src/longwar/_heuristic_core.pxi")
     play_style = text("web/play.css")
+    compiled_runtime = "\n".join(
+        text(path)
+        for path in (
+            "src/longwar/_fast_constants.pxi",
+            "src/longwar/_fast_engine_class.pxi",
+            "src/longwar/_fast_engine_cards.pxi",
+            "src/longwar/_fast_engine_effects.pxi",
+            "src/longwar/_fast_engine_pending.pxi",
+            "src/longwar/_fast_engine_hashing.pxi",
+            "src/longwar/_fast_engine_actions.pxi",
+            "src/longwar/_fast_engine_battleflow.pxi",
+            "src/longwar/_fast_engine_resolution.pxi",
+            "src/longwar/_fast_engine_state_io.pxi",
+            "src/longwar/_fast_engine_strength.pxi",
+            "src/longwar/_fast_engine_costs.pxi",
+            "src/longwar/_heuristic_core.pxi",
+        )
+    )
 
     assert "_fe_remove_link" not in effects
     assert "_fe_recover_recent_link_fast" not in costs
     assert "needs_link" not in heuristic
     assert ".play-card.card-link" not in play_style
     assert ".play-card.card-bond" in play_style
+
+    for legacy in (
+        "ongoing_story_limit",
+        "story_slot",
+        "STORY_CHOICE_",
+        "story_choice_kind",
+        "strat_cancel_story",
+        "_fe_pre_story_cancel",
+        "_fe_compact_ongoing_stories",
+        "_fe_discard_story_by_card",
+        "recover_story_on_completion_name",
+        "story_discard_count",
+        "story_discard_gain_command",
+        "strat_story_lock",
+        "strat_global_story_lock",
+        "_fe_clear_story_targets_at_slot",
+        "_fe_story_locked",
+        "CONSTRAINT_DISCARD_SOURCE_STORY",
+    ):
+        assert legacy not in compiled_runtime
+
+    assert "ongoing_narrative_limit" in compiled_runtime
+    assert "_fe_pre_narrative_cancel" in compiled_runtime
+    assert "NARRATIVE_CHOICE_FRONT" in compiled_runtime
+
+
+def test_progression_surfaces_do_not_restore_terminal_collapse_compatibility() -> None:
+    progression = text("src/longwar/progression.py")
+    dashboard = text("web/balance.js")
+    active = progression + "\n" + dashboard
+
+    for legacy in (
+        "equal_low_continuations",
+        "zero_zero_continuations",
+        "zero_zero_recovered",
+        "equal_low_streak_length",
+        "first_equal_low_continuation_battle",
+        "longest_equal_low_streak",
+        "zero_vs_positive_collapses",
+        "zero_command_start_battles",
+        "censored_zero_command_matches",
+        "both_zero_command_battle_starts",
+        "zero_command_battle_starts",
+    ):
+        assert legacy not in active
+
+    assert "simultaneous_collapse_draws" in progression
+    assert "unequal_collapse_terminations" in progression
+    assert "collapse_point_battle_starts" in progression
+    assert "censored_at_collapse_point_matches" in progression
 
 
 def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
