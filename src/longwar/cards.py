@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-CARD_TYPES = {"force", "bond", "name", "story", "stratagem"}
+CARD_TYPES = {"force", "bond", "name", "narrative", "stratagem"}
 
 FORCE_ROLES = {
     "swordsman",
@@ -237,7 +237,7 @@ _DESIGN_STRING_VALUES: dict[str, set[str]] = {
     },
     "force.on_play": {"optional_take_adjacent_prepared_bond_or_name"},
     "force.printed_role_effect": {"frontline_strength_bonus"},
-    "force.story": {"first_story_each_battle_discount_1_min_1"},
+    "force.narrative": {"first_narrative_each_battle_discount_1_min_1"},
     "front_resolution.choose": {"own_or_adjacent_front"},
     "front_resolution.contribution": {"chosen_front_instead_of_own"},
     "identity": {
@@ -257,7 +257,7 @@ _DESIGN_STRING_VALUES: dict[str, set[str]] = {
     },
     "name.on_completion": {
         "return_one_bond_from_discard_to_hand",
-        "return_one_story_from_discard_to_hand",
+        "return_one_narrative_from_discard_to_hand",
     },
     "name.on_completion.effect": {"free_maneuver_self"},
     "name.on_play": {"optional_take_adjacent_open_bond"},
@@ -687,7 +687,7 @@ def validate_card_data(data: dict[str, Any]) -> None:
                     f"{card_id}: Force role must be a non-empty string when present"
                 )
 
-        if card_type == "story":
+        if card_type == "narrative":
             form = card.get("narrative_form")
             if not isinstance(form, str) or form not in NARRATIVE_FORMS:
                 raise ValueError(
