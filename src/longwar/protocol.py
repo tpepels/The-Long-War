@@ -54,6 +54,13 @@ class GameMode(StrEnum):
     COMPUTER = "computer"
 
 
+class PlaySetupMode(StrEnum):
+    COMPUTER = "computer"
+    HOTSEAT = "hotseat"
+    REMOTE_HOST = "remote-host"
+    REMOTE_JOIN = "remote-join"
+
+
 class Direction(StrEnum):
     LEFT = "left"
     RIGHT = "right"
