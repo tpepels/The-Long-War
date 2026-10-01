@@ -6,6 +6,7 @@ from pathlib import Path
 
 from longwar.cards import load_card_file
 from longwar.fingerprint import current_game_fingerprint
+from longwar.parallelism import DEFAULT_WORKERS
 from longwar.counterfactual import (
     run_counterfactual_card_sweep,
     run_counterfactual_experiment,
@@ -25,7 +26,7 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=20260921)
     parser.add_argument("--agent", choices=["heuristic", "random"], default="heuristic")
     parser.add_argument("--bootstrap-resamples", type=int, default=2000)
-    parser.add_argument("--jobs", type=int, default=8, help="Parallel worker processes for the full-pool sweep (default: 8).")
+    parser.add_argument("--jobs", type=int, default=DEFAULT_WORKERS, help=f"Parallel worker processes for the full-pool sweep (default: {DEFAULT_WORKERS}).")
     parser.add_argument("--no-pairs", action="store_true")
     parser.add_argument("--no-triples", action="store_true")
     parser.add_argument(
