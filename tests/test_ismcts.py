@@ -205,7 +205,7 @@ def test_ismcts_rollout_policies_return_legal_action(policy: str) -> None:
     assert agent.last_decision["ismcts_rollout_policy"] == policy
 
 
-def test_ismcts_root_guard_preserves_last_command() -> None:
+def test_ismcts_root_guard_allows_legal_midbattle_zero_command_play() -> None:
     engine, deck, priors = setup()
     state = engine.new_game(
         deck,
@@ -232,6 +232,16 @@ def test_ismcts_root_guard_preserves_last_command() -> None:
     slot = state.slot(0, Position(Front.FIRST, Rank.FRONT))
     slot.force = "the-grey-riders"
 
+    packed = engine._native_core().from_game_state(state)
+    preserving, filtered = engine._native_heuristic().command_preserving_action_codes(
+        packed
+    )
+    assert preserving
+    # Collapse is checked at Battle end, not immediately on reaching zero.
+    # The root guard only removes actions that actually resolve the war as a
+    # loss on this transition.
+    assert filtered == 0
+
     agent = ISMCTSAgent(
         engine,
         8156,
@@ -241,15 +251,8 @@ def test_ismcts_root_guard_preserves_last_command() -> None:
         rollout_depth=2,
     )
     action = agent.choose(engine, state)
-
-    child = state.clone()
-    engine.apply(child, action)
-    assert not (
-        child.players[0].command == 0
-        and child.players[1].command > 0
-    )
-    assert agent.last_decision["command_guard_applied"] is True
-    assert agent.last_decision["command_guard_filtered_actions"] >= 1
+    assert action in engine.legal_actions(state)
+    assert agent.last_decision["command_guard_applied"] is False
 
 
 def test_ismcts_wall_clock_budget_reports_actual_work() -> None:
