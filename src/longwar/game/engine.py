@@ -6,7 +6,7 @@ from typing import Any
 from ..cards import card_index, compile_card_mechanics, load_card_file, validate_card_data
 from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
-from ..protocol import CardField, Direction, DirectionCode, ObservationZone, PLAYER_COUNT
+from ..protocol import CardField, Direction, DirectionCode, ObservationZone, PendingResume, PLAYER_COUNT
 from ..native_engine import create_fast_engine, create_heuristic_evaluator
 from .actions import Action, Discard, EffectChoice, Pass, action_from_key, action_key
 from .model import (
@@ -403,7 +403,10 @@ class GameEngine:
         state.pending_draw_count = int(data["pending_draw_count"])
         state.pending_draw_finish_operation = bool(data["pending_draw_finish_operation"])
         state.pending_effects[:] = data.get("pending_effects", [])
-        state.pending_resume = data.get("pending_resume")
+        pending_resume = data.get("pending_resume")
+        state.pending_resume = (
+            None if pending_resume is None else PendingResume(pending_resume)
+        )
         state.pending_resume_player = data.get("pending_resume_player")
         state.free_maneuver_available[:] = data.get(
             "free_maneuver_available", [False] * PLAYER_COUNT
