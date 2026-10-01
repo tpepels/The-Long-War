@@ -687,7 +687,7 @@ function renderSlot(owner, front, rank) {
   '</div>';
 }
 
-function renderStorySlot(owner, slot) {
+function renderNarrativeSlot(owner, slot) {
   const narrative = state.narratives?.[owner]?.[slot] || null;
   const classes = ["narrative-marker"];
   if (!narrative) classes.push("empty");
@@ -783,10 +783,10 @@ function renderRankRow(owner, rank, label) {
   '</div>';
 }
 
-function renderStoryRow(owner) {
+function renderNarrativeRow(owner) {
   return '<div class="narrative-row"><span class="rank-label">Narratives</span>' +
-    renderStorySlot(owner, 0) +
-    renderStorySlot(owner, 1) +
+    renderNarrativeSlot(owner, 0) +
+    renderNarrativeSlot(owner, 1) +
     '<div class="narrative-spacer" aria-hidden="true"></div>' +
     '<div class="narrative-spacer" aria-hidden="true"></div>' +
   '</div>';
@@ -809,7 +809,7 @@ function renderBattlefield() {
         frontNames.map((name, front) => frontBanner(name, front, bottom, top)).join("") +
       '</div>' +
       '<div class="army-side opponent-army">' +
-        renderStoryRow(top) +
+        renderNarrativeRow(top) +
         renderRankRow(top, "rear", "Rear") +
         renderRankRow(top, "front", "Frontline") +
       '</div>' +
@@ -817,7 +817,7 @@ function renderBattlefield() {
       '<div class="army-side player-army">' +
         renderRankRow(bottom, "front", "Frontline") +
         renderRankRow(bottom, "rear", "Rear") +
-        renderStoryRow(bottom) +
+        renderNarrativeRow(bottom) +
       '</div>' +
       '<div class="battle-stratagem-zone player"><span>Your Stratagem</span>' + renderStratagem(bottom) + '</div>' +
     '</div>';
@@ -1445,10 +1445,10 @@ function handleBoardTarget(owner, front, rank) {
   }
 
   const all = selectedActions();
-  const isTwoTargetStory = all.some(
+  const isTwoTargetNarrative = all.some(
     (a) => a.kind === "PlayNarrative" && a.targets.length === 2
   );
-  if (isTwoTargetStory && !stagedNarrativeSource) {
+  if (isTwoTargetNarrative && !stagedNarrativeSource) {
     const sourceMatches = all.filter(
       (a) =>
         a.targets.length === 2 &&
@@ -1968,7 +1968,7 @@ function captureCardAnchors(snapshot) {
     const zone = slot
       ? `slot:${slot.dataset.boardFront}:${slot.dataset.boardRank}:${node.dataset.inspectZone}`
       : narrative
-        ? "narrative:" + narrative.dataset.storySlot
+        ? "narrative:" + narrative.dataset.narrativeSlot
         : stratagem
           ? "stratagem"
           : "hand";
