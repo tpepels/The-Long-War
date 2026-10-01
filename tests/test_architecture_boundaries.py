@@ -712,3 +712,20 @@ def test_native_search_options_are_integer_coded_before_hot_loops() -> None:
     assert 'rollout_policy == "' not in native
     assert "state.phase.value" not in mccfr_accel
     assert "state.phase is _PHASE_COMPLETE" in mccfr_accel
+
+
+def test_simulation_agent_overrides_accept_heuristic_weight_mapping() -> None:
+    from longwar.heuristics import DEFAULT_HEURISTIC_WEIGHTS
+    from longwar.simulate import make_agent
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    engine = GameEngine(data)
+    agent = make_agent(
+        "heuristic",
+        engine,
+        7,
+        heuristic_weights={"margin_weight": 1.125},
+    )
+
+    assert agent.heuristic_weights != DEFAULT_HEURISTIC_WEIGHTS
+    assert agent.heuristic_weights.as_dict()["margin_weight"] == 1.125
