@@ -4,7 +4,7 @@ cdef inline bint _fe_opponent_blocks_card_move_into_front(
     int player,
     int front,
 ) noexcept:
-    cdef int opponent = 1 - player
+    cdef int opponent = other_player(player)
     cdef int rank, slot, bond
     for rank in range(RANK_COUNT):
         slot = slot_index(opponent, front, rank)
@@ -780,7 +780,7 @@ cdef int _fe_legal_actions_into(
     if state.pending_len > 0:
         return _fe_legal_pending_effect_actions(self, state, actions)
 
-    opponent = 1 - player
+    opponent = other_player(player)
 
     for card in range(self.n_cards):
         if state.hand[player][card] == 0:
