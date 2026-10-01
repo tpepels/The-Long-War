@@ -145,7 +145,9 @@ cdef int _fe__information_state_encode(
         else 0
     )
 
-    _info_emit(buf, &n, h, 7)
+    # Binary information-key format. Bump this whenever the byte layout changes.
+    # v8 adds pass_closing_turns_remaining after pass_order.
+    _info_emit(buf, &n, h, 8)
     _info_emit(buf, &n, h, <uint8_t>player)
     _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
     _info_emit_u16(buf, &n, h, <uint16_t>state.battle)
