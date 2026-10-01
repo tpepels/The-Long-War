@@ -264,7 +264,7 @@ def main() -> None:
     )
     rulebook_html = markdown.markdown(
         rulebook_md,
-        extensions=["extra", "sane_lists", "attr_list", "md_in_html"],
+        extensions=["extra", "sane_lists", "attr_list"],
     )
     rulebook_html = group_rulebook_sections(rulebook_html)
     template = (WEB / "rulebook.template.html").read_text(encoding="utf-8")
