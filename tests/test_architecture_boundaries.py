@@ -757,3 +757,11 @@ def test_decisive_rollout_random_safety_scan_is_bounded() -> None:
     source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
     assert "DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES = 4" in source
     assert "safe_n if safe_n < DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES" in source
+
+
+def test_anti_decisive_rollout_does_not_nest_full_reply_search() -> None:
+    source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
+    helper = source.split("cdef bint _ismcts_action_allows_immediate_loss(", 1)[1]
+    helper = helper.split("cdef uint64_t _ismcts_rollout_action(", 1)[0]
+    assert "merely because the closing" in helper
+    assert "score_scratch.pass_closing_turns_remaining == 1" not in helper
