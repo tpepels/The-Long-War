@@ -109,6 +109,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int opponent = other_player(player)
         cdef int front, margin, raw_margin, controls=0, enemy_controls=0
         cdef int hand_delta, named_delta=0, narrative_delta=0, strat_delta=0
+        cdef int narrative_slot
         cdef int exposed=0, reachable=0, slot, name_card, before, after
         cdef double best
         cdef int card, own_forces=0, own_board_forces=0, hero_force=0
@@ -347,10 +348,20 @@ cdef class NativeHeuristicEvaluator:
                 named_delta -= 1
         score += self.weights[HW_NAMED_FORMATION_WEIGHT] * named_delta
 
-        for front in range(self.engine.ongoing_narrative_limit):
-            if state.narrative[player * NARRATIVE_SLOTS_PER_PLAYER + front] >= 0:
+        for narrative_slot in range(self.engine.ongoing_narrative_limit):
+            if (
+                state.narrative[
+                    player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+                ]
+                >= 0
+            ):
                 narrative_delta += 1
-            if state.narrative[opponent * NARRATIVE_SLOTS_PER_PLAYER + front] >= 0:
+            if (
+                state.narrative[
+                    opponent * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+                ]
+                >= 0
+            ):
                 narrative_delta -= 1
         score += self.weights[HW_NARRATIVE_WEIGHT] * narrative_delta
 
