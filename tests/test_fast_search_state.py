@@ -73,6 +73,7 @@ def public_snapshot(state):
         "hero_used": list(state.hero_used),
         "pending_draw_discard_for": state.pending_draw_discard_for,
         "pass_order": list(state.pass_order),
+        "pass_closing_turns_remaining": state.pass_closing_turns_remaining,
     }
 
 
@@ -103,6 +104,9 @@ def native_public_snapshot(native, fast_state):
         "hero_used": exported["hero_used"],
         "pending_draw_discard_for": exported["pending_draw_discard_for"],
         "pass_order": exported["pass_order"],
+        "pass_closing_turns_remaining": exported[
+            "pass_closing_turns_remaining"
+        ],
     }
 
 

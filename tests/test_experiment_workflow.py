@@ -849,3 +849,14 @@ def test_pass_variant_experiment_has_serious_evidence_guards() -> None:
     assert "anti_decisive_rollout_filtered" in source
     assert "reuse checkpoint" in source
     assert "cell_config" in source
+
+
+def test_experiment_fingerprint_tracks_measurement_semantics(tmp_path, monkeypatch):
+    monkeypatch.setattr(fingerprint, "ROOT", tmp_path)
+
+    telemetry = tmp_path / "src/longwar/telemetry.py"
+    telemetry.parent.mkdir(parents=True, exist_ok=True)
+    telemetry.write_text("one", encoding="utf-8")
+    first = fingerprint.current_experiment_fingerprint()
+    telemetry.write_text("two", encoding="utf-8")
+    assert fingerprint.current_experiment_fingerprint() != first

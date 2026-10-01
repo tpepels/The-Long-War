@@ -66,6 +66,7 @@ def test_game_state_copy_from_reuses_containers_without_aliasing_source() -> Non
     source.players[0].discard.append("followed")
     source.players[1].passed = True
     source.pass_order.append(1)
+    source.pass_closing_turns_remaining = 3
     source.stratagem_used[0] = True
     source.stories[0].append(StoryState("the-long-march"))
     source.stratagems[0] = StratagemState("the-ground-was-held")
@@ -90,6 +91,7 @@ def test_game_state_copy_from_reuses_containers_without_aliasing_source() -> Non
     assert target.players[0].discard == ["followed"]
     assert target.players[1].passed is True
     assert target.pass_order == [1]
+    assert target.pass_closing_turns_remaining == 3
     assert target.stratagem_used[0] is True
     assert target.stories[0][0].card_id == "the-long-march"
     assert target.stratagems[0].card_id == "the-ground-was-held"

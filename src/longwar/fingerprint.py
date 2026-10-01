@@ -76,6 +76,22 @@ def experiment_fingerprint_paths() -> list[Path]:
     matches claim to have been played under different game semantics.
     """
     paths = list(fingerprint_paths())
+    package = ROOT / "src" / "longwar"
+    # These modules do not alter legal play, but they do alter the measured
+    # evidence stored inside experiment checkpoints and summaries.
+    for name in (
+        "telemetry.py",
+        "progression.py",
+        "human_flow.py",
+        "health.py",
+        "playability.py",
+        "counterfactual.py",
+        "targeted_counterfactual.py",
+    ):
+        path = package / name
+        if path.exists():
+            paths.append(path)
+
     tools = ROOT / "tools"
     for name in (
         "run_experiments.py",
