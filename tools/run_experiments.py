@@ -2876,6 +2876,14 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                     if mean_completed > 0
                     else 0.0
                 )
+                mean_decisive_probes = sum(
+                    sample["decisive_probes"] for sample in samples
+                ) / len(samples)
+                decisive_probes_per_iteration = (
+                    mean_decisive_probes / mean_completed
+                    if mean_completed > 0
+                    else 0.0
+                )
                 rollout_actions_per_iteration = (
                     mean_rollout_actions / mean_completed
                     if mean_completed > 0
@@ -2895,6 +2903,7 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                     f"{mean_search:>7.3f}s | {mean_rate:>9,.0f} iter/s | "
                     f"rollout-actions/iter={rollout_actions_per_iteration:.2f} | "
                     f"boundary={boundary_stop_rate:.1%} | "
+                    f"win-probes/iter={decisive_probes_per_iteration:.2f} | "
                     f"anti-probes/iter={probes_per_iteration:.2f}",
                     flush=True,
                 )
