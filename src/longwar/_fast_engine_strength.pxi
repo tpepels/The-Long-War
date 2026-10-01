@@ -8,8 +8,8 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
         return 0
     player = owner_from_slot(slot)
     local = local_slot(slot)
-    front = local >> 1
-    rank = local & 1
+    front = local // RANK_COUNT
+    rank = local % RANK_COUNT
     role = self.role[card]
     value = self.strength[card] + state.temporary[slot]
 
@@ -48,7 +48,7 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
         other = state.force[adj]
         if other >= 0 and self.aura[other] and (self.aura_rank[other] < 0 or self.aura_rank[other] == rank):
             value += self.aura[other]
-    if front < 3:
+    if front < FRONT_COUNT - 1:
         adj = slot_index(player, front + 1, rank)
         other = state.force[adj]
         if other >= 0 and self.aura[other] and (self.aura_rank[other] < 0 or self.aura_rank[other] == rank):
@@ -67,7 +67,7 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
             ):
                 other = 1
             if (
-                front < 3
+                front < FRONT_COUNT - 1
                 and state.force[slot_index(player, front + 1, rank)] >= 0
                 and state.name[slot_index(player, front + 1, rank)] >= 0
             ):
@@ -166,14 +166,14 @@ cdef inline int _fe_resolution_front_strength_fast(
 
     # Resolution choices can redirect a skirmisher's contribution and
     # suppress a specific formation without mutating its printed Strength.
-    for local in range(8):
+    for local in range(POSITIONS_PER_PLAYER):
         slot = player * POSITIONS_PER_PLAYER + local
         if state.force[slot] < 0:
             continue
         if state.resolution_suppressed_mask & (<uint16_t>1 << slot):
             continue
-        physical_front = local >> 1
-        rank = local & 1
+        physical_front = local // RANK_COUNT
+        rank = local % RANK_COUNT
         chosen_front = state.resolution_contribution_front[slot]
         if chosen_front >= 0:
             if chosen_front != front:
