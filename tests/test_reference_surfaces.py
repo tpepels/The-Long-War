@@ -47,7 +47,11 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "Strength cannot fall below 0" in rules
     assert "player who Passed second counts as active" not in rules
     assert "no generic Draw operation" in rules
-    assert "Base recovery = max(0, X - Y × (Battle - 1))" in rules
+    assert (
+        f"Base recovery starts at **{standard.command_recovery_start}** in Battle I "
+        f"and falls by **{standard.command_recovery_decrement}** each Battle:"
+        in rules
+    )
     assert "start of every turn" in rules
     assert "both players have Passed at least once" in rules
     assert "player who **Passed first** starts the next Battle" in rules
@@ -87,8 +91,16 @@ def test_rulebook_core_values_match_standard_engine() -> None:
         f"**{standard.lost_front_command_penalty} Command for each Front you lost**"
         in rules_text
     )
-    assert f"X = {standard.command_recovery_start}" in rules_text
-    assert f"Y = {standard.command_recovery_decrement}" in rules_text
+    assert (
+        f"Base recovery starts at **{standard.command_recovery_start}** in Battle I "
+        f"and falls by **{standard.command_recovery_decrement}** each Battle:"
+        in rules_text
+    )
+    recovery_series = ", ".join(
+        str(standard.command_recovery_for_battle(battle))
+        for battle in range(1, 6)
+    ) + "..."
+    assert f"**{recovery_series}**" in rules_text
 
 
 def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
@@ -319,7 +331,6 @@ def test_rulebook_markdown_and_sections_have_generated_wrappers() -> None:
     assert ".rule-section" in css
     assert "break-inside: avoid-column;" in css
     assert "break-inside: auto;" in css
-    assert "rulebook-opening" not in css
 
 
 def test_balance_lab_hides_dynamic_evidence_from_other_rulesets() -> None:
