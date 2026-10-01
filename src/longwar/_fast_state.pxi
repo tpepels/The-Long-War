@@ -70,8 +70,8 @@ cdef class FastState:
     cdef int16_t last_command_start[2]
     cdef int16_t last_command_spent[2]
     cdef int16_t last_command_refunded[2]
-    cdef int16_t last_command_before_recovery[2]
-    cdef int16_t last_recovery_loss[2]
+    cdef int16_t last_command_before_collapse[2]
+    cdef int16_t last_front_loss_command_penalty[2]
     cdef int16_t last_recovery_actual[2]
     cdef int16_t last_command_remaining[2]
     cdef int16_t last_deck_remaining[2]
@@ -105,7 +105,7 @@ cdef class FastState:
     cdef uint8_t resolution_lost_mask[2]
     cdef uint8_t resolution_drive_mask[2]
     cdef uint8_t resolution_protected_mask[2]
-    cdef uint8_t resolution_recovery_losses[2]
+    cdef uint8_t resolution_front_loss_command_penalty[2]
     cdef uint16_t resolution_suppressed_mask
     cdef int8_t resolution_contribution_front[SLOT_COUNT]
     cdef uint8_t resolution_cursor
@@ -183,8 +183,8 @@ cdef class FastState:
         memset(self.last_command_start, 0, sizeof(self.last_command_start))
         memset(self.last_command_spent, 0, sizeof(self.last_command_spent))
         memset(self.last_command_refunded, 0, sizeof(self.last_command_refunded))
-        memset(self.last_command_before_recovery, 0, sizeof(self.last_command_before_recovery))
-        memset(self.last_recovery_loss, 0, sizeof(self.last_recovery_loss))
+        memset(self.last_command_before_collapse, 0, sizeof(self.last_command_before_collapse))
+        memset(self.last_front_loss_command_penalty, 0, sizeof(self.last_front_loss_command_penalty))
         memset(self.last_recovery_actual, 0, sizeof(self.last_recovery_actual))
         memset(self.last_command_remaining, 0, sizeof(self.last_command_remaining))
         memset(self.last_deck_remaining, 0, sizeof(self.last_deck_remaining))
@@ -216,7 +216,7 @@ cdef class FastState:
         memset(self.resolution_lost_mask, 0, sizeof(self.resolution_lost_mask))
         memset(self.resolution_drive_mask, 0, sizeof(self.resolution_drive_mask))
         memset(self.resolution_protected_mask, 0, sizeof(self.resolution_protected_mask))
-        memset(self.resolution_recovery_losses, 0, sizeof(self.resolution_recovery_losses))
+        memset(self.resolution_front_loss_command_penalty, 0, sizeof(self.resolution_front_loss_command_penalty))
         self.resolution_suppressed_mask = 0
         memset(self.resolution_contribution_front, 0xff, sizeof(self.resolution_contribution_front))
         self.resolution_cursor = 0
@@ -296,8 +296,8 @@ cdef class FastState:
         memcpy(self.last_command_start, other.last_command_start, sizeof(self.last_command_start))
         memcpy(self.last_command_spent, other.last_command_spent, sizeof(self.last_command_spent))
         memcpy(self.last_command_refunded, other.last_command_refunded, sizeof(self.last_command_refunded))
-        memcpy(self.last_command_before_recovery, other.last_command_before_recovery, sizeof(self.last_command_before_recovery))
-        memcpy(self.last_recovery_loss, other.last_recovery_loss, sizeof(self.last_recovery_loss))
+        memcpy(self.last_command_before_collapse, other.last_command_before_collapse, sizeof(self.last_command_before_collapse))
+        memcpy(self.last_front_loss_command_penalty, other.last_front_loss_command_penalty, sizeof(self.last_front_loss_command_penalty))
         memcpy(self.last_recovery_actual, other.last_recovery_actual, sizeof(self.last_recovery_actual))
         memcpy(self.last_command_remaining, other.last_command_remaining, sizeof(self.last_command_remaining))
         memcpy(self.last_deck_remaining, other.last_deck_remaining, sizeof(self.last_deck_remaining))
@@ -329,7 +329,7 @@ cdef class FastState:
         memcpy(self.resolution_lost_mask, other.resolution_lost_mask, sizeof(self.resolution_lost_mask))
         memcpy(self.resolution_drive_mask, other.resolution_drive_mask, sizeof(self.resolution_drive_mask))
         memcpy(self.resolution_protected_mask, other.resolution_protected_mask, sizeof(self.resolution_protected_mask))
-        memcpy(self.resolution_recovery_losses, other.resolution_recovery_losses, sizeof(self.resolution_recovery_losses))
+        memcpy(self.resolution_front_loss_command_penalty, other.resolution_front_loss_command_penalty, sizeof(self.resolution_front_loss_command_penalty))
         self.resolution_suppressed_mask = other.resolution_suppressed_mask
         memcpy(self.resolution_contribution_front, other.resolution_contribution_front, sizeof(self.resolution_contribution_front))
         self.resolution_cursor = other.resolution_cursor
