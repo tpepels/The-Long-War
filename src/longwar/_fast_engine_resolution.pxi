@@ -203,7 +203,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         if strat < 0 or not self.strat_combine_fronts[strat]:
             continue
         mask = state.stratagem_front_mask[controller] & FRONT_MASK
-        if popcount16(mask) != 2:
+        if popcount16(mask) != COMBINED_FRONT_SELECTION_COUNT:
             continue
         combined0 = 0
         combined1 = 0
@@ -250,16 +250,16 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
 
     strat = state.stratagem[0]
     if strat >= 0 and self.strat_encirclement[strat]:
-        if (state.resolution_lost_mask[1] & 7) == 7:
-            state.resolution_drive_mask[1] |= <uint8_t>(1 << 1)
-        if (state.resolution_lost_mask[1] & 14) == 14:
-            state.resolution_drive_mask[1] |= <uint8_t>(1 << 2)
+        if (state.resolution_lost_mask[1] & ENCIRCLEMENT_LEFT_MASK) == ENCIRCLEMENT_LEFT_MASK:
+            state.resolution_drive_mask[1] |= <uint8_t>(1 << ENCIRCLEMENT_LEFT_TARGET_FRONT)
+        if (state.resolution_lost_mask[1] & ENCIRCLEMENT_RIGHT_MASK) == ENCIRCLEMENT_RIGHT_MASK:
+            state.resolution_drive_mask[1] |= <uint8_t>(1 << ENCIRCLEMENT_RIGHT_TARGET_FRONT)
     strat = state.stratagem[1]
     if strat >= 0 and self.strat_encirclement[strat]:
-        if (state.resolution_lost_mask[0] & 7) == 7:
-            state.resolution_drive_mask[0] |= <uint8_t>(1 << 1)
-        if (state.resolution_lost_mask[0] & 14) == 14:
-            state.resolution_drive_mask[0] |= <uint8_t>(1 << 2)
+        if (state.resolution_lost_mask[0] & ENCIRCLEMENT_LEFT_MASK) == ENCIRCLEMENT_LEFT_MASK:
+            state.resolution_drive_mask[0] |= <uint8_t>(1 << ENCIRCLEMENT_LEFT_TARGET_FRONT)
+        if (state.resolution_lost_mask[0] & ENCIRCLEMENT_RIGHT_MASK) == ENCIRCLEMENT_RIGHT_MASK:
+            state.resolution_drive_mask[0] |= <uint8_t>(1 << ENCIRCLEMENT_RIGHT_TARGET_FRONT)
 
     # Preserve the effective Front outcomes before retreat/cleanup clears the
     # live resolution masks. These can differ from the raw Strength comparison
