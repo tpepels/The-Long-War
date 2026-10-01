@@ -7,12 +7,19 @@ cdef class NativeHeuristicEvaluator:
 
     cdef FastEngine engine
     cdef double weights[HEUR_WEIGHT_COUNT]
+    cdef readonly bint sampled_opponent_resources
 
-    def __init__(self, FastEngine engine, weights=None):
+    def __init__(
+        self,
+        FastEngine engine,
+        weights=None,
+        bint sampled_opponent_resources=False,
+    ):
         cdef int i
         cdef double value
         cdef object raw
         self.engine = engine
+        self.sampled_opponent_resources = sampled_opponent_resources
         _heuristic_load_defaults(&self.weights[0])
         if weights is None:
             return
@@ -254,21 +261,31 @@ cdef class NativeHeuristicEvaluator:
         score += self.weights[HW_HAND_CARD_WEIGHT] * hand_delta
 
         own_forces = self.usable_force_hand_count_fast(state, player)
-        opponent_forces = self.usable_force_hand_count_fast(state, opponent)
         if own_forces > self.weights[HW_FORCE_HAND_CAP]:
             own_forces = <int>self.weights[HW_FORCE_HAND_CAP]
-        if opponent_forces > self.weights[HW_FORCE_HAND_CAP]:
-            opponent_forces = <int>self.weights[HW_FORCE_HAND_CAP]
-        score += self.weights[HW_FORCE_HAND_WEIGHT] * (
-            own_forces - opponent_forces
-        )
+        score += self.weights[HW_FORCE_HAND_WEIGHT] * own_forces
 
         own_board_forces = self.board_force_count_fast(state, player)
-        opponent_board_forces = self.board_force_count_fast(state, opponent)
         if own_forces == 0 and own_board_forces == 0:
             score -= self.weights[HW_NO_FORCE_PENALTY]
-        if opponent_forces == 0 and opponent_board_forces == 0:
-            score += self.weights[HW_NO_FORCE_PENALTY]
+
+        # Public heuristic evaluation must not inspect hidden opponent card
+        # identities. Belief/determinization search explicitly opts into
+        # sampled opponent resources because those cards belong to the sampled
+        # latent state being evaluated.
+        if self.sampled_opponent_resources:
+            opponent_forces = self.usable_force_hand_count_fast(
+                state, opponent
+            )
+            if opponent_forces > self.weights[HW_FORCE_HAND_CAP]:
+                opponent_forces = <int>self.weights[HW_FORCE_HAND_CAP]
+            score -= self.weights[HW_FORCE_HAND_WEIGHT] * opponent_forces
+
+            opponent_board_forces = self.board_force_count_fast(
+                state, opponent
+            )
+            if opponent_forces == 0 and opponent_board_forces == 0:
+                score += self.weights[HW_NO_FORCE_PENALTY]
 
         current_delta = state.command[player] - state.command[opponent]
         score += self.weights[HW_COMMAND_DELTA_WEIGHT] * current_delta
@@ -449,10 +466,9 @@ cdef class NativeHeuristicEvaluator:
         )
         score += self.weights[HW_STRATAGEM_WEIGHT] * strat_delta
 
-        score += (
-            self.immediate_completion_value_fast(state, player)
-            - self.immediate_completion_value_fast(state, opponent)
-        )
+        score += self.immediate_completion_value_fast(state, player)
+        if self.sampled_opponent_resources:
+            score -= self.immediate_completion_value_fast(state, opponent)
 
         return score
 
@@ -779,8 +795,11 @@ cdef class NativeHeuristicEvaluator:
         )
         value += self.weights[HW_STRATEGIC_HAND_CONSTRUCTION] * (
             self.hand_construction_value_fast(state, player)
-            - self.hand_construction_value_fast(state, opponent)
         )
+        if self.sampled_opponent_resources:
+            value -= self.weights[HW_STRATEGIC_HAND_CONSTRUCTION] * (
+                self.hand_construction_value_fast(state, opponent)
+            )
 
         value += self.weights[HW_STRATEGIC_DECK_SIZE] * (
             state.deck_len[player] - state.deck_len[opponent]
@@ -792,22 +811,30 @@ cdef class NativeHeuristicEvaluator:
             &own_force_availability,
             &own_affordable,
         )
-        self.strategic_resource_features_fast(
-            state,
-            opponent,
-            &opponent_sets,
-            &opponent_force_availability,
-            &opponent_affordable,
+        value += self.weights[HW_STRATEGIC_FUTURE_SETS] * own_sets
+        value += (
+            self.weights[HW_STRATEGIC_FORCE_AVAILABILITY]
+            * own_force_availability
         )
-        value += self.weights[HW_STRATEGIC_FUTURE_SETS] * (
-            own_sets - opponent_sets
-        )
-        value += self.weights[HW_STRATEGIC_FORCE_AVAILABILITY] * (
-            own_force_availability - opponent_force_availability
-        )
-        value += self.weights[HW_STRATEGIC_AFFORDABLE_HAND] * (
-            own_affordable - opponent_affordable
-        )
+        value += self.weights[HW_STRATEGIC_AFFORDABLE_HAND] * own_affordable
+
+        if self.sampled_opponent_resources:
+            self.strategic_resource_features_fast(
+                state,
+                opponent,
+                &opponent_sets,
+                &opponent_force_availability,
+                &opponent_affordable,
+            )
+            value -= self.weights[HW_STRATEGIC_FUTURE_SETS] * opponent_sets
+            value -= (
+                self.weights[HW_STRATEGIC_FORCE_AVAILABILITY]
+                * opponent_force_availability
+            )
+            value -= (
+                self.weights[HW_STRATEGIC_AFFORDABLE_HAND]
+                * opponent_affordable
+            )
 
         return value
 
