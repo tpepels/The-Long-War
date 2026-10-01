@@ -1,4 +1,4 @@
-.PHONY: install native-build browser-build verify verify-algorithms test test-fast test-integration simulate balance experiments full-lab pages browser-parity
+.PHONY: install native-build browser-build web-protocol verify verify-algorithms test test-fast test-integration simulate balance experiments full-lab pages browser-parity
 
 # Make is a small human-facing lifecycle surface.
 # Variations belong in *_ARGS or the underlying runner, not new targets.
@@ -16,6 +16,9 @@ native-build:
 browser-build:
 	python tools/build_browser_runtime.py
 
+web-protocol:
+	python tools/build_web_protocol.py
+
 test:
 	$(PYTEST) -q --durations=10
 
@@ -26,6 +29,7 @@ test-integration:
 	$(PYTEST) -q -m integration --durations=10
 
 browser-parity:
+	@python tools/build_web_protocol.py --check
 	@mkdir -p artifacts/logs
 	@echo "Browser/native parity..."
 	@rm -f artifacts/logs/browser-parity.log
@@ -43,6 +47,7 @@ browser-parity:
 	@echo "Browser/native parity: OK (log: artifacts/logs/browser-parity.log)"
 
 verify:
+	python tools/build_web_protocol.py --check
 	python -m ruff check src tools tests --select F821,F822,F823
 	python tools/run_experiments.py validate-data
 	$(MAKE) test-fast
@@ -75,5 +80,6 @@ full-lab:
 		python tools/full_lab.py $(FULL_LAB_ARGS)
 
 pages:
+	python tools/build_web_protocol.py --check
 	python tools/build_pages.py
 	python tools/build_rulebook_pdf.py
