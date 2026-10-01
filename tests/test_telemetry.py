@@ -46,8 +46,9 @@ def test_telemetry_contains_card_pass_battle_and_combo_metrics() -> None:
     )
 
     telemetry = report.telemetry
-    assert telemetry["battles"]["count"] >= 40
-    assert telemetry["passes"]["events"] >= 40
+    resolved_games = report.decisive_games + report.draws
+    assert telemetry["battles"]["count"] >= resolved_games
+    assert telemetry["passes"]["events"] >= 2 * telemetry["battles"]["count"]
     assert telemetry["cards"]
     assert "heuristic" in telemetry["decisions"]
 
@@ -946,7 +947,13 @@ def test_progression_attributes_command_economy_by_source_card() -> None:
 
 def test_pass_telemetry_separates_new_signal_from_forced_yield() -> None:
     engine, deck = setup()
-    state = engine.new_game(deck, deck, seed=9191, first_player=0)
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=9191,
+        first_player=0,
+        opening_bonus=False,
+    )
     state.operations_this_battle[:] = [1, 1]
     telemetry = Telemetry()
     telemetry.start_game(state, engine)
