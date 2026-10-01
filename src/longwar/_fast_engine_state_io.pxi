@@ -3,8 +3,8 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
     cdef int p, i, f, r, slot, code, viewer, owner
     cdef object card_id, py_slot, narrative, strat, counter, constraint, before_collapse
     phase_map = {
-        "battle": PHASE_BATTLE,
-        "complete": PHASE_COMPLETE,
+        Phase.BATTLE: PHASE_BATTLE,
+        Phase.COMPLETE: PHASE_COMPLETE,
     }
 
     for p in range(PLAYER_COUNT):
@@ -54,9 +54,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             fast.stratagem_revealed[p] = 1
             for front_choice in strat.fronts:
                 fast.stratagem_front_mask[p] |= 1 << int(front_choice)
-            if strat.direction == "left":
+            if strat.direction == Direction.LEFT:
                 fast.stratagem_direction[p] = DIRECTION_LEFT
-            elif strat.direction == "right":
+            elif strat.direction == Direction.RIGHT:
                 fast.stratagem_direction[p] = DIRECTION_RIGHT
             for target_choice in strat.targets:
                 fast.stratagem_target_mask[p] |= (
@@ -64,7 +64,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     << slot_index(
                         int(target_choice[0]),
                         int(target_choice[1].front),
-                        0 if target_choice[1].rank.value == "front" else 1,
+                        RANK_FRONT if target_choice[1].rank is Rank.FRONT else RANK_REAR,
                     )
                 )
 
@@ -83,9 +83,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 fast.maneuvered_in_operation[slot] = bool(
                     py_slot.maneuvered_in_operation
                 )
-                if py_slot.maneuver_direction == "left":
+                if py_slot.maneuver_direction == Direction.LEFT:
                     fast.maneuver_direction[slot] = DIRECTION_LEFT
-                elif py_slot.maneuver_direction == "right":
+                elif py_slot.maneuver_direction == Direction.RIGHT:
                     fast.maneuver_direction[slot] = DIRECTION_RIGHT
 
         for i, narrative in enumerate(state.narratives[p][:self.ongoing_narrative_limit]):
@@ -93,9 +93,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             fast.narrative_revealed[p * NARRATIVE_SLOTS_PER_PLAYER + i] = 1
             fast.narrative_used[p * NARRATIVE_SLOTS_PER_PLAYER + i] = bool(narrative.triggered_this_battle)
             fast.narrative_trigger_mask[p * NARRATIVE_SLOTS_PER_PLAYER + i] = int(narrative.triggered_players_mask)
-            if narrative.direction == "left":
+            if narrative.direction == Direction.LEFT:
                 fast.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] = DIRECTION_LEFT
-            elif narrative.direction == "right":
+            elif narrative.direction == Direction.RIGHT:
                 fast.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] = DIRECTION_RIGHT
             for front_choice in narrative.fronts:
                 fast.narrative_front_mask[p * NARRATIVE_SLOTS_PER_PLAYER + i] |= 1 << int(front_choice)
@@ -103,12 +103,12 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 fast.narrative_target_slot[p * NARRATIVE_SLOTS_PER_PLAYER + i] = slot_index(
                     int(narrative.target_player),
                     int(narrative.target_position.front),
-                    0 if narrative.target_position.rank.value == "front" else 1,
+                    RANK_FRONT if narrative.target_position.rank is Rank.FRONT else RANK_REAR,
                 )
 
     fast.active_player = state.active_player
     fast.battle = state.battle
-    fast.phase = phase_map[state.phase.value]
+    fast.phase = phase_map[state.phase]
     fast.winner = -1 if state.winner is None else state.winner
     fast.turn_number = state.turn_number
     fast.shuffle_seed = state.shuffle_seed
@@ -123,17 +123,18 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
     )
     resume_map = {
         None: RESUME_NONE,
-        "finish_operation": RESUME_FINISH_OPERATION,
-        "battle_resolution": RESUME_BATTLE_RESOLUTION,
-        "start_battle": RESUME_START_BATTLE,
+        PendingResume.FINISH_OPERATION: RESUME_FINISH_OPERATION,
+        PendingResume.BATTLE_RESOLUTION: RESUME_BATTLE_RESOLUTION,
+        PendingResume.START_BATTLE: RESUME_START_BATTLE,
     }
     fast.pending_resume = resume_map.get(state.pending_resume, RESUME_NONE)
     fast.pending_resume_player = (
         -1 if state.pending_resume_player is None else int(state.pending_resume_player)
     )
-    fast.free_maneuver_available[0] = bool(state.free_maneuver_available[0])
-    fast.free_maneuver_available[1] = bool(state.free_maneuver_available[1])
     for p in range(PLAYER_COUNT):
+        fast.free_maneuver_available[p] = bool(
+            state.free_maneuver_available[p]
+        )
         card_id = state.free_maneuver_source[p]
         fast.free_maneuver_source[p] = (
             -1 if card_id is None else self.id_to_code[card_id]
@@ -153,10 +154,10 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         fast.pending_len += 1
     for i, constraint in enumerate(state.constraints[:MAX_CONSTRAINTS]):
         fast.constraint_kind[i] = {
-            "affect_front": CONSTRAINT_AFFECT_FRONT,
-            "maneuver": CONSTRAINT_MANEUVER,
-            "specific_maneuver": CONSTRAINT_SPECIFIC_MANEUVER,
-        }.get(constraint.kind.value, CONSTRAINT_NONE)
+            ConstraintKind.AFFECT_FRONT: CONSTRAINT_AFFECT_FRONT,
+            ConstraintKind.MANEUVER: CONSTRAINT_MANEUVER,
+            ConstraintKind.SPECIFIC_MANEUVER: CONSTRAINT_SPECIFIC_MANEUVER,
+        }.get(constraint.kind, CONSTRAINT_NONE)
         fast.constraint_player[i] = int(constraint.player)
         fast.constraint_source_card[i] = self.id_to_code[constraint.source_card]
         fast.constraint_source_owner[i] = int(constraint.source_owner)
@@ -164,9 +165,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             -1 if constraint.front is None else int(constraint.front)
         )
         fast.constraint_direction[i] = (
-            1 if constraint.direction == "left"
-            else 2 if constraint.direction == "right"
-            else 0
+            DIRECTION_LEFT if constraint.direction == Direction.LEFT
+            else DIRECTION_RIGHT if constraint.direction == Direction.RIGHT
+            else DIRECTION_NONE
         )
         fast.constraint_source_slot[i] = (
             -1
@@ -174,7 +175,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             else slot_index(
                 int(constraint.player),
                 int(constraint.source_position.front),
-                0 if constraint.source_position.rank.value == "front" else 1,
+                RANK_FRONT if constraint.source_position.rank is Rank.FRONT else RANK_REAR,
             )
         )
         fast.constraint_activate_turn[i] = int(constraint.activate_turn)
@@ -211,7 +212,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
 
     for viewer in range(PLAYER_COUNT):
         for owner in range(PLAYER_COUNT):
-            counter = state.known_hidden_counter(viewer, owner, "hand")
+            counter = state.known_hidden_counter(viewer, owner, ObservationZone.HAND)
             for card_id, count in counter.items():
                 fast.known_hidden[viewer][owner][self.id_to_code[card_id]] = count
 
@@ -220,11 +221,11 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         fast.last_battle_valid = 1
         fast.last_battle = int(snapshot.get("battle", 0))
         front_scores = snapshot.get("front_scores", ())
-        for f in range(min(4, len(front_scores))):
+        for f in range(min(FRONT_COUNT, len(front_scores))):
             fast.last_front_scores[f][0] = int(front_scores[f][0])
             fast.last_front_scores[f][1] = int(front_scores[f][1])
         front_results = snapshot.get("front_results", ())
-        for f in range(min(4, len(front_results))):
+        for f in range(min(FRONT_COUNT, len(front_results))):
             if front_results[f] == 0:
                 fast.last_lost_mask[1] |= <uint8_t>(1 << f)
             elif front_results[f] == 1:
@@ -270,7 +271,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 snapshot.get("operations", (0, 0))[p]
             )
         pass_snapshot = snapshot.get("pass_order", ())
-        fast.last_pass_len = min(2, len(pass_snapshot))
+        fast.last_pass_len = min(PLAYER_COUNT, len(pass_snapshot))
         for i in range(fast.last_pass_len):
             fast.last_pass_order[i] = int(pass_snapshot[i])
 
@@ -290,8 +291,8 @@ cdef FastState _fe_determinize_hidden_zones(
     cdef int opponent, i, code
     cdef object card_id
 
-    if viewer < 0 or viewer > 1:
-        raise ValueError("viewer must be 0 or 1")
+    if viewer < 0 or viewer >= PLAYER_COUNT:
+        raise ValueError(f"viewer must be in range(0, {PLAYER_COUNT})")
     opponent = other_player(viewer)
     if len(viewer_deck) != base.deck_len[viewer]:
         raise ValueError("viewer deck sample changed observable deck size")
@@ -337,8 +338,8 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
     cdef object last_snapshot = None
 
     if state.last_battle_valid:
-        lost0 = popcount16(state.last_lost_mask[0] & 15)
-        lost1 = popcount16(state.last_lost_mask[1] & 15)
+        lost0 = popcount16(state.last_lost_mask[0] & FRONT_MASK)
+        lost1 = popcount16(state.last_lost_mask[1] & FRONT_MASK)
         last_snapshot = {
             "battle": state.last_battle,
             "front_scores": [
@@ -419,9 +420,9 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
 
     return {
         "phase": (
-            "battle"
+            Phase.BATTLE.value
             if state.phase == PHASE_BATTLE
-            else "complete"
+            else Phase.COMPLETE.value
         ),
         "battle": state.battle,
         "active_player": state.active_player,
@@ -534,75 +535,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             )
             for p in range(PLAYER_COUNT)
         ],
-        "stratagem_used": [
-            bool(state.stratagem_used[0]),
-            bool(state.stratagem_used[1]),
-        ],
-        "hero_used": [
-            bool(state.hero_used[0]),
-            bool(state.hero_used[1]),
-        ],
-        "discarded_this_battle": [
-            state.discarded_this_battle[0],
-            state.discarded_this_battle[1],
-        ],
-        "command_spent_this_battle": [
-            state.command_spent_this_battle[0],
-            state.command_spent_this_battle[1],
-        ],
-        "command_refunded_this_battle": [
-            state.command_refunded_this_battle[0],
-            state.command_refunded_this_battle[1],
-        ],
-        "battle_start_command": [
-            state.battle_start_command[0],
-            state.battle_start_command[1],
-        ],
-        "battle_start_hand_size": [
-            state.battle_start_hand_size[0],
-            state.battle_start_hand_size[1],
-        ],
-        "cards_drawn_this_battle": [
-            state.cards_drawn_this_battle[0],
-            state.cards_drawn_this_battle[1],
-        ],
-        "completion_count_this_battle": [
-            state.completion_count_this_battle[0],
-            state.completion_count_this_battle[1],
-        ],
-        "operations_this_battle": [
-            state.operations_this_battle[0],
-            state.operations_this_battle[1],
-        ],
-        "maneuvers_this_battle": [
-            state.player_maneuver_count[0],
-            state.player_maneuver_count[1],
-        ],
-        "cards_played_this_turn_front_mask": [
-            state.cards_played_this_turn_front_mask[0],
-            state.cards_played_this_turn_front_mask[1],
-        ],
-        "cards_played_this_battle_front_mask": [
-            state.cards_played_this_battle_front_mask[0],
-            state.cards_played_this_battle_front_mask[1],
-        ],
-        "narratives_played_this_battle": [
-            state.narratives_played_this_battle[0],
-            state.narratives_played_this_battle[1],
-        ],
-        "deck_reshuffles": [
-            state.deck_reshuffles[0],
-            state.deck_reshuffles[1],
-        ],
-        "reshuffle_card_totals": [
-            state.reshuffle_card_totals[0],
-            state.reshuffle_card_totals[1],
-        ],
-        "reshuffle_hand_card_totals": [
-            state.reshuffle_hand_card_totals[0],
-            state.reshuffle_hand_card_totals[1],
-        ],
-        "pending_draw_discard_for": (
+        "stratagem_used": [\n            bool(state.stratagem_used[p])\n            for p in range(PLAYER_COUNT)\n        ],\n        "hero_used": [\n            bool(state.hero_used[p])\n            for p in range(PLAYER_COUNT)\n        ],\n        "discarded_this_battle": [\n            state.discarded_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "command_spent_this_battle": [\n            state.command_spent_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "command_refunded_this_battle": [\n            state.command_refunded_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "battle_start_command": [\n            state.battle_start_command[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "battle_start_hand_size": [\n            state.battle_start_hand_size[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "cards_drawn_this_battle": [\n            state.cards_drawn_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "completion_count_this_battle": [\n            state.completion_count_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "operations_this_battle": [\n            state.operations_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "maneuvers_this_battle": [\n            state.player_maneuver_count[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "cards_played_this_turn_front_mask": [\n            state.cards_played_this_turn_front_mask[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "cards_played_this_battle_front_mask": [\n            state.cards_played_this_battle_front_mask[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "narratives_played_this_battle": [\n            state.narratives_played_this_battle[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "deck_reshuffles": [\n            state.deck_reshuffles[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "reshuffle_card_totals": [\n            state.reshuffle_card_totals[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "reshuffle_hand_card_totals": [\n            state.reshuffle_hand_card_totals[p]\n            for p in range(PLAYER_COUNT)\n        ],\n        "pending_draw_discard_for": (
             state.active_player if state.cleanup_pending else None
         ),
         "pending_draw_count": state.pending_draw_count,
@@ -624,22 +557,18 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             for i in range(state.pending_len)
         ],
         "pending_resume": (
-            "finish_operation"
+            PendingResume.FINISH_OPERATION.value
             if state.pending_resume == RESUME_FINISH_OPERATION
-            else "battle_resolution"
+            else PendingResume.BATTLE_RESOLUTION.value
             if state.pending_resume == RESUME_BATTLE_RESOLUTION
-            else "start_battle"
+            else PendingResume.START_BATTLE.value
             if state.pending_resume == RESUME_START_BATTLE
             else None
         ),
         "pending_resume_player": (
             None if state.pending_resume_player < 0 else state.pending_resume_player
         ),
-        "free_maneuver_available": [
-            bool(state.free_maneuver_available[0]),
-            bool(state.free_maneuver_available[1]),
-        ],
-        "free_maneuver_source": [
+        "free_maneuver_available": [\n            bool(state.free_maneuver_available[p])\n            for p in range(PLAYER_COUNT)\n        ],\n        "free_maneuver_source": [
             None
             if state.free_maneuver_source[p] < 0
             else self.card_ids[state.free_maneuver_source[p]]
@@ -650,11 +579,11 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                 "source_card": self.card_ids[state.constraint_source_card[i]],
                 "player": state.constraint_player[i],
                 "kind": (
-                    "affect_front"
+                    ConstraintKind.AFFECT_FRONT.value
                     if state.constraint_kind[i] == CONSTRAINT_AFFECT_FRONT
-                    else "maneuver"
+                    else ConstraintKind.MANEUVER.value
                     if state.constraint_kind[i] == CONSTRAINT_MANEUVER
-                    else "specific_maneuver"
+                    else ConstraintKind.SPECIFIC_MANEUVER.value
                 ),
                 "source_owner": state.constraint_source_owner[i],
                 "front": (
