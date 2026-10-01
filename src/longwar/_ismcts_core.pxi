@@ -9,6 +9,7 @@ from libc.math cimport isfinite
 
 DEF MAX_ISMCTS_DEPTH = 256
 DEF DECISIVE_ROLLOUT_GREEDY_PROBABILITY = 0.05
+DEF DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES = 4
 
 # Native ISMCTS implementation tuning. These are search/runtime values, not rules.
 DEF ISMCTS_RNG_SHIFT_A = 12
@@ -660,16 +661,20 @@ cdef uint64_t _ismcts_rollout_action(
             < DECISIVE_ROLLOUT_GREEDY_PROBABILITY
         )
 
-        # Ninety-five percent of decisive rollouts are random. Historically
-        # this path first exhaustively checked every candidate for a one-ply
-        # opponent win, multiplying the rollout cost by the branching factor.
-        # Start at a random candidate and scan only until a safe action is
-        # found. If any safe action exists this still finds one; the worst case
-        # remains exhaustive only when every candidate loses immediately.
+        # Ninety-five percent of decisive rollouts are random. Keep the
+        # anti-blunder check strictly bounded: exact Battle-end resolution is
+        # much more expensive than an ordinary rollout transition, and an
+        # unbounded scan can multiply one simulation by the branching factor.
+        # Four random-order probes remove most obvious one-ply gifts while
+        # preserving the high-throughput character of the rollout policy.
         if not use_greedy:
             start_pick = _ismcts_rand_index(rng, safe_n)
             if anti_decisive_needed:
-                for offset in range(safe_n):
+                for offset in range(
+                    safe_n
+                    if safe_n < DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES
+                    else DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES
+                ):
                     pick = start_pick + offset
                     if pick >= safe_n:
                         pick -= safe_n
