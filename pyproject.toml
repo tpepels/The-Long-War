@@ -17,6 +17,7 @@ dev = [
   "Cython>=3.0",
   "setuptools>=75",
   "pypdf>=5.0",
+  "ruff>=0.11",
 ]
 
 [tool.setuptools]

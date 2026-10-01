@@ -344,3 +344,69 @@ def test_counterfactual_mulligan_preview_excludes_opening_bonus(
     )
 
     assert opening_bonus_calls[:2] == [False, True]
+
+
+def test_per_card_sweep_parallel_branch_collects_reports(monkeypatch) -> None:
+    import concurrent.futures
+    import longwar.counterfactual as counterfactual
+
+    index = {card["id"]: card for card in data()["cards"]}
+
+    class InlineExecutor:
+        def __init__(self, max_workers):
+            assert max_workers == 2
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def submit(self, fn, card_data, **kwargs):
+            future = concurrent.futures.Future()
+            try:
+                future.set_result(fn(card_data, **kwargs))
+            except BaseException as error:
+                future.set_exception(error)
+            return future
+
+    def fake_experiment(card_data, **kwargs):
+        card_id = kwargs["card_ids"][0]
+        return {
+            "cards": [{
+                "id": card_id,
+                "title": index[card_id]["title"],
+                "delta_win_probability": 0.0,
+                "samples": 1,
+                "censored_pairs": 0,
+            }],
+            "total_matches": 2,
+            "censored_matches": 0,
+            "sample_generation": {
+                "seed": kwargs["seed"],
+                "required_cards": [card_id],
+            },
+            "baseline_definition": {"kind": "test"},
+            "pairing": {"kind": "test"},
+        }
+
+    monkeypatch.setattr(counterfactual, "ProcessPoolExecutor", InlineExecutor)
+    monkeypatch.setattr(
+        counterfactual,
+        "run_counterfactual_experiment",
+        fake_experiment,
+    )
+
+    report = run_counterfactual_card_sweep(
+        data(),
+        contexts=1,
+        games_per_context=1,
+        seed=41,
+        card_ids=["namar", "followed"],
+        bootstrap_resamples=99,
+        jobs=2,
+    )
+
+    assert {row["id"] for row in report["cards"]} == {"namar", "followed"}
+    assert report["total_matches"] == 4
+    assert report["decisive_paired_samples"] == 2

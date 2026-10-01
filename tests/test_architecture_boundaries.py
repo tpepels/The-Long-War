@@ -509,3 +509,8 @@ def test_ismcts_iteration_default_is_shared(monkeypatch) -> None:
     assert (
         isinstance(default_kwarg, ast.Name) and default_kwarg.id == "DEFAULT_ISMCTS_ITERATIONS"
     ), "tools/simulate.py must default --ismcts-iterations from the shared constant, not a literal"
+
+
+def test_verify_runs_python_undefined_name_lint() -> None:
+    source = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert "python -m ruff check src tools tests --select F821,F822,F823" in source

@@ -40,6 +40,7 @@ browser-parity:
 	@echo "Browser/native parity: OK (log: artifacts/logs/browser-parity.log)"
 
 verify:
+	python -m ruff check src tools tests --select F821,F822,F823
 	python tools/run_experiments.py validate-data
 	$(MAKE) test-fast
 	$(MAKE) browser-parity
