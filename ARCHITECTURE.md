@@ -130,7 +130,7 @@ Analysis sits outside the runtime boundary and may evolve without changing game 
 
 It includes telemetry, progression, playability, health, balance, counterfactual analysis, solver verification/training, experiment orchestration, and Lab assembly.
 
-Historical/non-standard variants may remain as explicit `GameRules.with_overrides(...)` tests marked `legacy_rule_experiment`. They are not another supported rules profile.
+Non-standard rule variants belong in explicit `GameRules.with_overrides(...)` tests. They are configuration cases, not additional supported rules profiles.
 
 A new experiment is not a reason to add another engine, simulation loop, browser rules implementation, permanent rules profile, or Make target for a parameter combination.
 
