@@ -121,6 +121,7 @@ class ISMCTSAgent:
         self.evaluator = NativeHeuristicEvaluator(
             self.fast_engine,
             self.heuristic_weights,
+            sampled_opponent_resources=True,
         )
         self._tree = ISMCTSTree(iterations, max_nodes=max_tree_nodes) if reuse_tree else None
         self.last_decision: dict[str, float | int | str | bool] = {}
