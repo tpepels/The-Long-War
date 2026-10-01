@@ -15,6 +15,7 @@ from .protocol import (
     CardType,
     DesignField,
     DesignToken,
+    RuleBlockField,
 )
 
 RANKS = frozenset(rank.value for rank in Rank)
@@ -644,20 +645,22 @@ def validate_card_data(data: dict[str, Any]) -> None:
                 raise ValueError(
                     f"{card_id}: rule_blocks entries must be objects"
                 )
-            if (
-                not isinstance(block.get("kind"), str)
-                or block["kind"] not in RULE_BLOCK_KINDS
-            ):
+            kind = block.get(RuleBlockField.KIND)
+            if not isinstance(kind, str) or kind not in RULE_BLOCK_KINDS:
                 raise ValueError(
-                    f"{card_id}: invalid rule block kind {block.get('kind')!r}"
+                    f"{card_id}: invalid rule block kind {kind!r}"
                 )
-            if (
-                not isinstance(block.get("text"), str)
-                or not block["text"].strip()
-            ):
+            block_text = block.get(RuleBlockField.TEXT)
+            if not isinstance(block_text, str) or not block_text.strip():
                 raise ValueError(
                     f"{card_id}: rule block text must be non-empty"
                 )
+            mode = block.get(RuleBlockField.MODE)
+            if mode is not None:
+                if not hero or mode not in {CardType.FORCE, CardType.NAME}:
+                    raise ValueError(
+                        f"{card_id}: invalid rule block mode {mode!r}"
+                    )
 
         if card_type == CardType.FORCE:
             role = card.get(CardField.ROLE)
