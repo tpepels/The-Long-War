@@ -41,6 +41,7 @@ DEF HEUR_NAMED_FORMATION_WEIGHT = 1.5
 DEF HEUR_NARRATIVE_WEIGHT = 0.75
 DEF HEUR_STRATAGEM_WEIGHT = 0.45
 DEF HEUR_COMPLETION_OPTION_WEIGHT = 0.45
+DEF HEUR_NO_OPTION_SCORE = -32768
 
 DEF HEUR_PROGRESS_ONE_COMPONENT = 0.35
 DEF HEUR_PROGRESS_TWO_COMPONENTS = 1.35
@@ -348,7 +349,7 @@ cdef class NativeHeuristicEvaluator:
             if state.force[slot] < 0 or state.name[slot] >= 0:
                 continue
             before = _fe_position_strength_fast(self.engine, state, slot)
-            best = -32768
+            best = HEUR_NO_OPTION_SCORE
             for name_card in range(self.engine.n_cards):
                 if state.hand[player][name_card] == 0:
                     continue
@@ -686,7 +687,7 @@ cdef class NativeHeuristicEvaluator:
                 return HEUR_ROLLOUT_PASS_NEAR
             return HEUR_ROLLOUT_PASS_NORMAL
         if kind == TYPE_DISCARD:
-            return 1.0
+            return HEUR_ROLLOUT_DISCARD
         if kind == TYPE_MANEUVER:
             return HEUR_ROLLOUT_MANEUVER
         if kind == TYPE_FORCE:
