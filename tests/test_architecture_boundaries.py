@@ -729,3 +729,17 @@ def test_simulation_agent_overrides_accept_heuristic_weight_mapping() -> None:
 
     assert agent.heuristic_weights != DEFAULT_HEURISTIC_WEIGHTS
     assert agent.heuristic_weights.as_dict()["margin_weight"] == 1.125
+
+
+def test_native_weight_export_avoids_cpdef_generator_closure() -> None:
+    source = (SRC / "_heuristic_core.pxi").read_text(encoding="utf-8")
+    assert "tuple(self.weights[i] for i in range(" not in source
+    assert "values.append(self.weights[i])" in source
+
+
+def test_decisive_rollout_limits_exact_reply_probes_to_terminal_horizon() -> None:
+    source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
+    assert "anti_decisive_needed" in source
+    assert "state.passed[actor]" in source
+    assert "state.pass_closing_turns_remaining <= 2" in source
+    assert "score_scratch.constraint_len == 0" in source
