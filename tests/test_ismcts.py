@@ -319,16 +319,25 @@ def test_decisive_rollout_finds_immediate_second_signal_win() -> None:
     state.players[0].command = 1
     state.players[1].command = 5
 
-    # Player 1 leads one Front. Move an owned Force onto the board so the
-    # determinization remains a valid card-conserving state.
+    # Player 1 leads one Front. Move a current-deck Force onto the board so
+    # the determinization remains a valid card-conserving state. Avoid Forces
+    # with Battle-end contribution choices: this test is about the Pass probe.
+    force_id = next(
+        card_id
+        for card_id in deck
+        if engine.cards[card_id].get("type") == "force"
+        and int(engine.cards[card_id].get("strength", 0) or 0) > 0
+        and "front_resolution"
+        not in (engine.cards[card_id].get("design_rules") or {})
+    )
     owner = state.players[1]
     for zone in (owner.hand, owner.deck):
-        if "the-fifty-men" in zone:
-            zone.remove("the-fifty-men")
+        if force_id in zone:
+            zone.remove(force_id)
             break
     else:
-        raise AssertionError("expected The Fifty Men in player 1 zones")
-    state.slot(1, Position(Front.FIRST, Rank.FRONT)).force = "the-fifty-men"
+        raise AssertionError(f"expected {force_id} in player 1 zones")
+    state.slot(1, Position(Front.FIRST, Rank.FRONT)).force = force_id
 
     legal = engine.legal_actions(state)
     assert Pass() in legal
