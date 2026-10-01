@@ -12,6 +12,7 @@ from .protocol import (
     NARRATIVE_FORMS,
     RULE_BLOCK_KINDS,
     CardType,
+    DesignToken,
 )
 
 RANKS = frozenset(rank.value for rank in Rank)
@@ -109,208 +110,208 @@ _DESIGN_INT_PATHS = {
 }
 
 _DESIGN_STRING_VALUES: dict[str, set[str]] = {
-    "affected_player": {"player_who_won_at_least_three_fronts"},
-    "affects": {"both_players"},
+    "affected_player": {DesignToken.PLAYER_WHO_WON_AT_LEAST_THREE_FRONTS.value},
+    "affects": {DesignToken.BOTH_PLAYERS.value},
     "after_maneuver.effect": {
-        "optional_swap_two_adjacent_friendly_formations_excluding_self",
+        DesignToken.OPTIONAL_SWAP_TWO_ADJACENT_FRIENDLY_FORMATIONS_EXCLUDING_SELF.value,
     },
     "after_maneuver_into_empty.effect": {
-        "optional_move_adjacent_friendly_to_vacated_position",
+        DesignToken.OPTIONAL_MOVE_ADJACENT_FRIENDLY_TO_VACATED_POSITION.value,
     },
     "after_maneuver_swap.effect": {
-        "optional_zero_cost_maneuver_swapped_formation",
+        DesignToken.OPTIONAL_ZERO_COST_MANEUVER_SWAPPED_FORMATION.value,
     },
     "after_self_maneuver": {
-        "optional_zero_cost_other_friendly_named_maneuver",
+        DesignToken.OPTIONAL_ZERO_COST_OTHER_FRIENDLY_NAMED_MANEUVER.value,
     },
-    "at_battle_end.bonus_if_won": {"return_one_bond_from_discard_to_hand"},
+    "at_battle_end.bonus_if_won": {DesignToken.RETURN_ONE_BOND_FROM_DISCARD_TO_HAND.value},
     "at_battle_end.condition": {
-        "chosen_front_not_lost",
-        "chosen_front_won",
-        "chosen_formation_still_on_battlefield",
+        DesignToken.CHOSEN_FRONT_NOT_LOST.value,
+        DesignToken.CHOSEN_FRONT_WON.value,
+        DesignToken.CHOSEN_FORMATION_STILL_ON_BATTLEFIELD.value,
     },
-    "at_battle_end.secondary": {"draw_1"},
-    "baseline_force": {"vanilla"},
+    "at_battle_end.secondary": {DesignToken.DRAW_1.value},
+    "baseline_force": {DesignToken.VANILLA.value},
     "build_around": {
-        "empty_front",
-        "hero_retinue",
-        "narrative",
-        "open_bond",
-        "open_bond_transfer",
-        "prepared_position",
-        "succession",
-        "wide_line",
+        DesignToken.EMPTY_FRONT.value,
+        DesignToken.HERO_RETINUE.value,
+        DesignToken.NARRATIVE.value,
+        DesignToken.OPEN_BOND.value,
+        DesignToken.OPEN_BOND_TRANSFER.value,
+        DesignToken.PREPARED_POSITION.value,
+        DesignToken.SUCCESSION.value,
+        DesignToken.WIDE_LINE.value,
     },
     "combat": {
-        "breakthrough",
-        "capture",
-        "first_strike",
-        "frontline_only_comparison",
-        "interception",
-        "sacrifice",
-        "skirmish",
-        "tie_control",
+        DesignToken.BREAKTHROUGH.value,
+        DesignToken.CAPTURE.value,
+        DesignToken.FIRST_STRIKE.value,
+        DesignToken.FRONTLINE_ONLY_COMPARISON.value,
+        DesignToken.INTERCEPTION.value,
+        DesignToken.SACRIFICE.value,
+        DesignToken.SKIRMISH.value,
+        DesignToken.TIE_CONTROL.value,
     },
     "command": {
-        "card_for_command",
-        "catch_up_discount",
-        "completion_discount",
-        "completion_refund",
-        "high_cost_battle_investment",
-        "protect_lost_fronts",
-        "local_catch_up_discount",
-        "optional_extra_payment",
+        DesignToken.CARD_FOR_COMMAND.value,
+        DesignToken.CATCH_UP_DISCOUNT.value,
+        DesignToken.COMPLETION_DISCOUNT.value,
+        DesignToken.COMPLETION_REFUND.value,
+        DesignToken.HIGH_COST_BATTLE_INVESTMENT.value,
+        DesignToken.PROTECT_LOST_FRONTS.value,
+        DesignToken.LOCAL_CATCH_UP_DISCOUNT.value,
+        DesignToken.OPTIONAL_EXTRA_PAYMENT.value,
     },
     "condition": {
-        "adjacent_friendly_formation_contains_hero",
-        "bond_is_open",
-        "controller_command_lower_than_opponent",
-        "controller_has_front_with_no_force",
-        "friendly_force_in_all_four_fronts",
-        "front_tied_and_exactly_one_side_has_frontline_named",
-        "has_bond_and_no_name",
-        "played_on_force_with_bond",
-        "win_front_and_opponent_rear_has_no_force",
-        "win_middle_and_both_adjacent_fronts",
+        DesignToken.ADJACENT_FRIENDLY_FORMATION_CONTAINS_HERO.value,
+        DesignToken.BOND_IS_OPEN.value,
+        DesignToken.CONTROLLER_COMMAND_LOWER_THAN_OPPONENT.value,
+        DesignToken.CONTROLLER_HAS_FRONT_WITH_NO_FORCE.value,
+        DesignToken.FRIENDLY_FORCE_IN_ALL_FOUR_FRONTS.value,
+        DesignToken.FRONT_TIED_AND_EXACTLY_ONE_SIDE_HAS_FRONTLINE_NAMED.value,
+        DesignToken.HAS_BOND_AND_NO_NAME.value,
+        DesignToken.PLAYED_ON_FORCE_WITH_BOND.value,
+        DesignToken.WIN_FRONT_AND_OPPONENT_REAR_HAS_NO_FORCE.value,
+        DesignToken.WIN_MIDDLE_AND_BOTH_ADJACENT_FRONTS.value,
     },
     "deploy_rank": RANKS,
-    "destination": {"empty_frontline_same_front"},
-    "duration": {"battle", "until_each_player_completes_next_operation_or_battle_ends"},
+    "destination": {DesignToken.EMPTY_FRONTLINE_SAME_FRONT.value},
+    "duration": {DesignToken.BATTLE.value, DesignToken.UNTIL_EACH_PLAYER_COMPLETES_NEXT_OPERATION_OR_BATTLE_ENDS.value},
     "effect": {
-        "chosen_opposing_formation_does_not_contribute_this_resolution",
-        "drive_off_opposing_frontline_named_instead_of_retreat",
-        "draw_2",
-        "ignore_rear_formations_when_comparing_strength",
-        "losing_frontline_named_driven_off_instead_of_retreating",
-        "middle_opposing_frontline_named_driven_off_instead_of_retreating",
-        "next_maneuver_cost_zero_this_battle",
-        "optional_move_into_vacated_position",
-        "optional_move_this_bond_to_adjacent_friendly_force_without_bond",
-        "optional_swap_friendly_frontline_and_rear_formations_one_front",
-        "optional_zero_cost_friendly_named_maneuver",
-        "optional_zero_cost_maneuver_even_if_unnamed",
-        "optional_zero_cost_maneuver_this_formation",
-        "return_retreating_formation_bond_to_owner_hand",
-        "suppress_opposing_rear_force_for_resolution",
-        "target_does_not_contribute_this_resolution",
-        "that_side_wins_front",
+        DesignToken.CHOSEN_OPPOSING_FORMATION_DOES_NOT_CONTRIBUTE_THIS_RESOLUTION.value,
+        DesignToken.DRIVE_OFF_OPPOSING_FRONTLINE_NAMED_INSTEAD_OF_RETREAT.value,
+        DesignToken.DRAW_2.value,
+        DesignToken.IGNORE_REAR_FORMATIONS_WHEN_COMPARING_STRENGTH.value,
+        DesignToken.LOSING_FRONTLINE_NAMED_DRIVEN_OFF_INSTEAD_OF_RETREATING.value,
+        DesignToken.MIDDLE_OPPOSING_FRONTLINE_NAMED_DRIVEN_OFF_INSTEAD_OF_RETREATING.value,
+        DesignToken.NEXT_MANEUVER_COST_ZERO_THIS_BATTLE.value,
+        DesignToken.OPTIONAL_MOVE_INTO_VACATED_POSITION.value,
+        DesignToken.OPTIONAL_MOVE_THIS_BOND_TO_ADJACENT_FRIENDLY_FORCE_WITHOUT_BOND.value,
+        DesignToken.OPTIONAL_SWAP_FRIENDLY_FRONTLINE_AND_REAR_FORMATIONS_ONE_FRONT.value,
+        DesignToken.OPTIONAL_ZERO_COST_FRIENDLY_NAMED_MANEUVER.value,
+        DesignToken.OPTIONAL_ZERO_COST_MANEUVER_EVEN_IF_UNNAMED.value,
+        DesignToken.OPTIONAL_ZERO_COST_MANEUVER_THIS_FORMATION.value,
+        DesignToken.RETURN_RETREATING_FORMATION_BOND_TO_OWNER_HAND.value,
+        DesignToken.SUPPRESS_OPPOSING_REAR_FORCE_FOR_RESOLUTION.value,
+        DesignToken.TARGET_DOES_NOT_CONTRIBUTE_THIS_RESOLUTION.value,
+        DesignToken.THAT_SIDE_WINS_FRONT.value,
     },
-    "force.after_frontline_retreat": {"optional_sideways_rear_move"},
+    "force.after_frontline_retreat": {DesignToken.OPTIONAL_SIDEWAYS_REAR_MOVE.value},
     "force.after_maneuver.effect": {
-        "free_maneuver_adjacent_friendly_named_formation",
+        DesignToken.FREE_MANEUVER_ADJACENT_FRIENDLY_NAMED_FORMATION.value,
     },
     "force.after_maneuver_into_empty": {
-        "optional_move_one_more_front_if_empty",
+        DesignToken.OPTIONAL_MOVE_ONE_MORE_FRONT_IF_EMPTY.value,
     },
-    "force.combat": {"optional_ignore_opposing_rear_strength"},
+    "force.combat": {DesignToken.OPTIONAL_IGNORE_OPPOSING_REAR_STRENGTH.value},
     "force.command": {
-        "frontline_force_discount_1_min_1",
-        "protect_lost_front_here",
+        DesignToken.FRONTLINE_FORCE_DISCOUNT_1_MIN_1.value,
+        DesignToken.PROTECT_LOST_FRONT_HERE.value,
     },
     "force.deploy_rank": RANKS,
     "force.effect": {
-        "optional_drive_off_self_prevent_frontline_named_retreat",
+        DesignToken.OPTIONAL_DRIVE_OFF_SELF_PREVENT_FRONTLINE_NAMED_RETREAT.value,
     },
-    "force.on_play": {"optional_take_adjacent_prepared_bond_or_name"},
-    "force.printed_role_effect": {"frontline_strength_bonus"},
-    "force.narrative": {"first_narrative_each_battle_discount_1_min_1"},
-    "front_resolution.choose": {"own_or_adjacent_front"},
-    "front_resolution.contribution": {"chosen_front_instead_of_own"},
+    "force.on_play": {DesignToken.OPTIONAL_TAKE_ADJACENT_PREPARED_BOND_OR_NAME.value},
+    "force.printed_role_effect": {DesignToken.FRONTLINE_STRENGTH_BONUS.value},
+    "force.narrative": {DesignToken.FIRST_NARRATIVE_EACH_BATTLE_DISCOUNT_1_MIN_1.value},
+    "front_resolution.choose": {DesignToken.OWN_OR_ADJACENT_FRONT.value},
+    "front_resolution.contribution": {DesignToken.CHOSEN_FRONT_INSTEAD_OF_OWN.value},
     "identity": {
-        "frontline_people",
-        "mobile_people",
-        "named_people",
-        "open_bond_people",
-        "steadfast_people",
+        DesignToken.FRONTLINE_PEOPLE.value,
+        DesignToken.MOBILE_PEOPLE.value,
+        DesignToken.NAMED_PEOPLE.value,
+        DesignToken.OPEN_BOND_PEOPLE.value,
+        DesignToken.STEADFAST_PEOPLE.value,
     },
-    "lost_front.effect": {"drive_off_self_prevent_frontline_retreat"},
-    "name.after_self_retreat": {"optional_sideways_rear_move"},
-    "name.combat": {"breakthrough_if_opponent_no_rear_force"},
-    "name.command": {"first_card_in_front_each_battle_discount_1_min_1"},
+    "lost_front.effect": {DesignToken.DRIVE_OFF_SELF_PREVENT_FRONTLINE_RETREAT.value},
+    "name.after_self_retreat": {DesignToken.OPTIONAL_SIDEWAYS_REAR_MOVE.value},
+    "name.combat": {DesignToken.BREAKTHROUGH_IF_OPPONENT_NO_REAR_FORCE.value},
+    "name.command": {DesignToken.FIRST_CARD_IN_FRONT_EACH_BATTLE_DISCOUNT_1_MIN_1.value},
     "name.effect": {
-        "optional_zero_cost_maneuver",
-        "return_hero_to_hand_if_driven_off",
+        DesignToken.OPTIONAL_ZERO_COST_MANEUVER.value,
+        DesignToken.RETURN_HERO_TO_HAND_IF_DRIVEN_OFF.value,
     },
     "name.on_completion": {
-        "return_one_bond_from_discard_to_hand",
-        "return_one_narrative_from_discard_to_hand",
+        DesignToken.RETURN_ONE_BOND_FROM_DISCARD_TO_HAND.value,
+        DesignToken.RETURN_ONE_NARRATIVE_FROM_DISCARD_TO_HAND.value,
     },
-    "name.on_completion.effect": {"free_maneuver_self"},
-    "name.on_play": {"optional_take_adjacent_open_bond"},
-    "name.trigger": {"opponent_maneuvers_into_adjacent_front"},
+    "name.on_completion.effect": {DesignToken.FREE_MANEUVER_SELF.value},
+    "name.on_play": {DesignToken.OPTIONAL_TAKE_ADJACENT_OPEN_BOND.value},
+    "name.trigger": {DesignToken.OPPONENT_MANEUVERS_INTO_ADJACENT_FRONT.value},
     "narrative_form": NARRATIVE_FORMS,
-    "on_completion.effect": {"optional_swap_adjacent_friendly_formation"},
-    "on_play_condition": {"position_has_prepared_bond_or_name"},
+    "on_completion.effect": {DesignToken.OPTIONAL_SWAP_ADJACENT_FRIENDLY_FORMATION.value},
+    "on_play_condition": {DesignToken.POSITION_HAS_PREPARED_BOND_OR_NAME.value},
     "on_play_onto_force.effect": {
-        "optional_move_formation_adjacent_empty_position",
+        DesignToken.OPTIONAL_MOVE_FORMATION_ADJACENT_EMPTY_POSITION.value,
     },
-    "outcome": {"higher_combined_strength_wins_both"},
+    "outcome": {DesignToken.HIGHER_COMBINED_STRENGTH_WINS_BOTH.value},
     "persistence": {
-        "bond_returns_to_hand_when_force_driven_off",
-        "inherited_bond",
-        "name_returns_to_hand_when_formation_driven_off",
-        "rear_rebuild_cost_reduction",
-        "retreat_command_compensation",
-        "retreat_sideways",
-        "start_battle_reposition",
-        "voluntary_retreat_if_rear_empty",
+        DesignToken.BOND_RETURNS_TO_HAND_WHEN_FORCE_DRIVEN_OFF.value,
+        DesignToken.INHERITED_BOND.value,
+        DesignToken.NAME_RETURNS_TO_HAND_WHEN_FORMATION_DRIVEN_OFF.value,
+        DesignToken.REAR_REBUILD_COST_REDUCTION.value,
+        DesignToken.RETREAT_COMMAND_COMPENSATION.value,
+        DesignToken.RETREAT_SIDEWAYS.value,
+        DesignToken.START_BATTLE_REPOSITION.value,
+        DesignToken.VOLUNTARY_RETREAT_IF_REAR_EMPTY.value,
     },
-    "placement": {"chosen_front", "chosen_named_formation"},
+    "placement": {DesignToken.CHOSEN_FRONT.value, DesignToken.CHOSEN_NAMED_FORMATION.value},
     "printed_role_effect": {
-        "frontline_strength_bonus",
-        "frontline_strength_bonus_if_force_behind",
-        "rear_strength_bonus",
-        "rear_strength_bonus_if_force_ahead",
-        "support_force_ahead_strength_bonus",
+        DesignToken.FRONTLINE_STRENGTH_BONUS.value,
+        DesignToken.FRONTLINE_STRENGTH_BONUS_IF_FORCE_BEHIND.value,
+        DesignToken.REAR_STRENGTH_BONUS.value,
+        DesignToken.REAR_STRENGTH_BONUS_IF_FORCE_AHEAD.value,
+        DesignToken.SUPPORT_FORCE_AHEAD_STRENGTH_BONUS.value,
     },
     "replacement": {
-        "optional_move_name_to_adjacent_friendly_force_with_bond_no_name",
-        "this_formation_does_not_contribute_instead",
+        DesignToken.OPTIONAL_MOVE_NAME_TO_ADJACENT_FRIENDLY_FORCE_WITH_BOND_NO_NAME.value,
+        DesignToken.THIS_FORMATION_DOES_NOT_CONTRIBUTE_INSTEAD.value,
     },
-    "restriction": {"chosen_direction"},
+    "restriction": {DesignToken.CHOSEN_DIRECTION.value},
     "role": FORCE_ROLES,
-    "scope": {"this_formation", "this_front"},
+    "scope": {DesignToken.THIS_FORMATION.value, DesignToken.THIS_FRONT.value},
     "secondary": {
-        "optional_move_adjacent_friendly_into_vacated_position",
-        "optional_sideways_rear_move",
-        "optional_zero_cost_friendly_named_maneuver",
-        "optional_zero_cost_maneuver_that_formation",
+        DesignToken.OPTIONAL_MOVE_ADJACENT_FRIENDLY_INTO_VACATED_POSITION.value,
+        DesignToken.OPTIONAL_SIDEWAYS_REAR_MOVE.value,
+        DesignToken.OPTIONAL_ZERO_COST_FRIENDLY_NAMED_MANEUVER.value,
+        DesignToken.OPTIONAL_ZERO_COST_MANEUVER_THAT_FORMATION.value,
     },
     "stratagem": {
-        "all_reserves_forward",
-        "battle_turns_direction",
-        "combine_two_adjacent_fronts",
-        "encirclement",
-        "every_banner_turned",
-        "feigned_retreat",
-        "line_begun_to_move",
-        "no_retreat_front",
-        "no_road_back",
-        "refuse_flank",
-        "wheel_line",
+        DesignToken.ALL_RESERVES_FORWARD.value,
+        DesignToken.BATTLE_TURNS_DIRECTION.value,
+        DesignToken.COMBINE_TWO_ADJACENT_FRONTS.value,
+        DesignToken.ENCIRCLEMENT.value,
+        DesignToken.EVERY_BANNER_TURNED.value,
+        DesignToken.FEIGNED_RETREAT.value,
+        DesignToken.LINE_BEGUN_TO_MOVE.value,
+        DesignToken.NO_RETREAT_FRONT.value,
+        DesignToken.NO_ROAD_BACK.value,
+        DesignToken.REFUSE_FLANK.value,
+        DesignToken.WHEEL_LINE.value,
     },
-    "target": {"opposing_frontline_force_with_lower_printed_strength"},
+    "target": {DesignToken.OPPOSING_FRONTLINE_FORCE_WITH_LOWER_PRINTED_STRENGTH.value},
     "timing": {
-        "after_retreat",
-        "after_retreat_resolves",
-        "battle_end_before_strength_comparison",
+        DesignToken.AFTER_RETREAT.value,
+        DesignToken.AFTER_RETREAT_RESOLVES.value,
+        DesignToken.BATTLE_END_BEFORE_STRENGTH_COMPARISON.value,
     },
     "trigger": {
-        "adjacent_friendly_formation_retreats",
-        "adjacent_friendly_named_formation_maneuvers_away",
-        "battle_end_player_won_at_least_three_fronts",
-        "first_friendly_maneuver_into_empty_each_battle",
-        "force_moves_or_maneuvers",
-        "formation_driven_off",
-        "friendly_formation_becomes_named",
-        "friendly_named_formation_retreats",
-        "opponent_effect_would_prevent_other_friendly_formation_contribution",
-        "opponent_has_force_in_both_ranks_same_front",
-        "opposing_formation_becomes_named",
-        "opposing_formation_in_same_front_becomes_named",
-        "opposing_formation_maneuvers_into_same_front",
-        "own_front_wins_and_opposing_frontline_named_retreats",
-        "regain_command_from_narrative",
+        DesignToken.ADJACENT_FRIENDLY_FORMATION_RETREATS.value,
+        DesignToken.ADJACENT_FRIENDLY_NAMED_FORMATION_MANEUVERS_AWAY.value,
+        DesignToken.BATTLE_END_PLAYER_WON_AT_LEAST_THREE_FRONTS.value,
+        DesignToken.FIRST_FRIENDLY_MANEUVER_INTO_EMPTY_EACH_BATTLE.value,
+        DesignToken.FORCE_MOVES_OR_MANEUVERS.value,
+        DesignToken.FORMATION_DRIVEN_OFF.value,
+        DesignToken.FRIENDLY_FORMATION_BECOMES_NAMED.value,
+        DesignToken.FRIENDLY_NAMED_FORMATION_RETREATS.value,
+        DesignToken.OPPONENT_EFFECT_WOULD_PREVENT_OTHER_FRIENDLY_FORMATION_CONTRIBUTION.value,
+        DesignToken.OPPONENT_HAS_FORCE_IN_BOTH_RANKS_SAME_FRONT.value,
+        DesignToken.OPPOSING_FORMATION_BECOMES_NAMED.value,
+        DesignToken.OPPOSING_FORMATION_IN_SAME_FRONT_BECOMES_NAMED.value,
+        DesignToken.OPPOSING_FORMATION_MANEUVERS_INTO_SAME_FRONT.value,
+        DesignToken.OWN_FRONT_WINS_AND_OPPOSING_FRONTLINE_NAMED_RETREATS.value,
+        DesignToken.REGAIN_COMMAND_FROM_NARRATIVE.value,
     },
 }
 
@@ -328,7 +329,7 @@ def _validate_design_rule_value(value: Any, path: str, card_id: str) -> None:
     if path == "cost":
         if (
             (type(value) is int and value in _SIGNED)
-            or value == "discard_own_force_and_all_attached_cards"
+            or value == DesignToken.DISCARD_OWN_FORCE_AND_ALL_ATTACHED_CARDS
         ):
             return
         raise ValueError(f"{location}: unsupported value {value!r}")
@@ -461,50 +462,50 @@ def _compile_card_capabilities(design: dict[str, Any]) -> tuple[str, ...]:
     name_design = design.get("name") or {}
     capabilities: set[str] = set()
 
-    if design.get("trigger") == "opposing_formation_in_same_front_becomes_named":
+    if design.get("trigger") == DesignToken.OPPOSING_FORMATION_IN_SAME_FRONT_BECOMES_NAMED:
         capabilities.add("opposing_named_same_front_free_maneuver")
-    if design.get("trigger") == "adjacent_friendly_named_formation_maneuvers_away":
+    if design.get("trigger") == DesignToken.ADJACENT_FRIENDLY_NAMED_FORMATION_MANEUVERS_AWAY:
         capabilities.add("follow_into_vacated_after_adjacent_maneuver")
-    if design.get("trigger") == "adjacent_friendly_formation_retreats":
+    if design.get("trigger") == DesignToken.ADJACENT_FRIENDLY_FORMATION_RETREATS:
         capabilities.add("adjacent_retreat_free_maneuver")
     if (
         (design.get("after_maneuver") or {}).get("effect")
-        == "optional_swap_two_adjacent_friendly_formations_excluding_self"
+        == DesignToken.OPTIONAL_SWAP_TWO_ADJACENT_FRIENDLY_FORMATIONS_EXCLUDING_SELF
     ):
         capabilities.add("after_maneuver_swap_other_friendlies")
-    if design.get("trigger") == "opposing_formation_maneuvers_into_same_front":
+    if design.get("trigger") == DesignToken.OPPOSING_FORMATION_MANEUVERS_INTO_SAME_FRONT:
         capabilities.add("opposing_maneuver_same_front_free_maneuver")
     if (
         force_design.get("after_frontline_retreat")
-        == "optional_sideways_rear_move"
+        == DesignToken.OPTIONAL_SIDEWAYS_REAR_MOVE
     ):
         capabilities.add("after_frontline_retreat_sideways_force")
-    if name_design.get("after_self_retreat") == "optional_sideways_rear_move":
+    if name_design.get("after_self_retreat") == DesignToken.OPTIONAL_SIDEWAYS_REAR_MOVE:
         capabilities.add("after_self_retreat_sideways_name")
     if (
         force_design.get("on_play")
-        == "optional_take_adjacent_prepared_bond_or_name"
+        == DesignToken.OPTIONAL_TAKE_ADJACENT_PREPARED_BOND_OR_NAME
     ):
         capabilities.add("on_play_take_adjacent_prepared_component_force")
-    if name_design.get("on_play") == "optional_take_adjacent_open_bond":
+    if name_design.get("on_play") == DesignToken.OPTIONAL_TAKE_ADJACENT_OPEN_BOND:
         capabilities.add("on_play_take_adjacent_open_bond_name")
     if (
         force_design.get("effect")
-        == "optional_drive_off_self_prevent_frontline_named_retreat"
+        == DesignToken.OPTIONAL_DRIVE_OFF_SELF_PREVENT_FRONTLINE_NAMED_RETREAT
     ):
         capabilities.add("optional_self_drive_prevent_frontline_retreat_force")
-    if design.get("build_around") == "prepared_position":
+    if design.get("build_around") == DesignToken.PREPARED_POSITION:
         capabilities.add("prepared_on_play_free_maneuver_force")
     if (
         design.get("after_self_maneuver")
-        == "optional_zero_cost_other_friendly_named_maneuver"
+        == DesignToken.OPTIONAL_ZERO_COST_OTHER_FRIENDLY_NAMED_MANEUVER
     ):
         capabilities.add("after_self_maneuver_free_other_named_if_wide_name")
-    if design.get("trigger") == "regain_command_from_narrative":
+    if design.get("trigger") == DesignToken.REGAIN_COMMAND_FROM_NARRATIVE:
         capabilities.add("narrative_command_gain_free_maneuver_force")
-    if design.get("build_around") == "open_bond_transfer":
+    if design.get("build_around") == DesignToken.OPEN_BOND_TRANSFER:
         capabilities.add("transfer_open_bond_after_move_bond")
-    if design.get("build_around") == "succession":
+    if design.get("build_around") == DesignToken.SUCCESSION:
         capabilities.add("succession_on_drive_off_name")
 
     unknown = capabilities - CARD_CAPABILITY_NAMES
