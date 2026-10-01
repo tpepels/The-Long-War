@@ -120,6 +120,7 @@ class CardField(StrEnum):
     COMMAND_COST = "command_cost"
     UNIQUE = "unique"
     HERO = "hero"
+    HERO_NAME_STRENGTH = "hero_name_strength"
     ROLE = "role"
     CLASSES = "classes"
     TEXT = "text"
@@ -129,9 +130,12 @@ class CardField(StrEnum):
 
 
 class DesignField(StrEnum):
+    AFTER_FRONTLINE_RETREAT = "after_frontline_retreat"
     AFTER_MANEUVER = "after_maneuver"
     AFTER_MANEUVER_INTO_EMPTY = "after_maneuver_into_empty"
     AFTER_MANEUVER_SWAP = "after_maneuver_swap"
+    AFTER_SELF_MANEUVER = "after_self_maneuver"
+    AFTER_SELF_RETREAT = "after_self_retreat"
     AMOUNT = "amount"
     AT_BATTLE_END = "at_battle_end"
     BONUS_IF_WON = "bonus_if_won"
@@ -180,6 +184,7 @@ class DesignField(StrEnum):
     NEXT_OPERATION_MUST_AFFECT_CHOSEN_FRONT_IF_POSSIBLE = "next_operation_must_affect_chosen_front_if_possible"
     NEXT_TURN_FORCED_MANEUVER_IF_LEGAL = "next_turn_forced_maneuver_if_legal"
     ON_COMPLETION = "on_completion"
+    ON_PLAY = "on_play"
     ON_PLAY_ONTO_FORCE = "on_play_onto_force"
     ONGOING = "ongoing"
     PER_PLAYER_FIRST_CARD_IN_FRONT_EACH_BATTLE = "per_player_first_card_in_front_each_battle"
