@@ -135,6 +135,9 @@ cdef int CARD_NAME = 3
 cdef int CARD_NARRATIVE = 4
 cdef int CARD_STRATAGEM = 5
 
+cdef int RANK_FRONT = 0
+cdef int RANK_REAR = 1
+
 cdef int DIRECTION_NONE = 0
 cdef int DIRECTION_LEFT = 1
 cdef int DIRECTION_RIGHT = 2
