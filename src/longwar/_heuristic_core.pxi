@@ -48,21 +48,6 @@ cdef class NativeHeuristicEvaluator:
                 value += self.weights[HW_INCOMPLETE_TWO_CARD_LIABILITY]
         return value
 
-    cdef double battle_end_urgency_fast(
-        self,
-        FastState state,
-    ) noexcept:
-        """Return 0..1 pressure from the configured Battle-ending rule."""
-        cdef int remaining
-        if state.phase != PHASE_BATTLE or state.pass_len <= 0:
-            return 0.0
-        if self.engine.pass_closing_rounds <= 0:
-            return 1.0
-        remaining = state.pass_closing_turns_remaining
-        if remaining <= 1:
-            return 1.0
-        return 1.0 / remaining
-
     cdef int projected_front_loss_command_penalty_fast(
         self,
         FastState state,
@@ -124,7 +109,7 @@ cdef class NativeHeuristicEvaluator:
         cdef double own_vulnerability=0.0, opponent_vulnerability=0.0
         cdef double own_liability=0.0, opponent_liability=0.0
         cdef double passed_hand_value=0.0, responding_hand_value=0.0
-        cdef double score = 0.0, option = 0.0, battle_end_urgency = 0.0
+        cdef double score = 0.0, option = 0.0
 
         if state.phase == PHASE_COMPLETE:
             if state.winner < 0:
@@ -301,7 +286,13 @@ cdef class NativeHeuristicEvaluator:
             state.phase == PHASE_BATTLE
             and state.passed[player] != state.passed[opponent]
         ):
-            battle_end_urgency = self.battle_end_urgency_fast(state)
+            # A first signal gives the unsignalled opponent an immediate option
+            # to end the Battle by signalling too. That option is equally real
+            # in permanent-Pass and fixed closing-window variants; the automatic
+            # deadline being farther away does not make the opponent's immediate
+            # closing leverage weaker. Keep post-signal exposure and incomplete
+            # formation liability at full strength and let search model the
+            # countdown itself through exact transitions.
             if state.passed[player]:
                 passed_hand_value = (
                     self.weights[HW_PASSED_HAND_WEIGHT]
@@ -309,7 +300,7 @@ cdef class NativeHeuristicEvaluator:
                 )
                 if passed_hand_value > self.weights[HW_PASSED_HAND_CAP]:
                     passed_hand_value = self.weights[HW_PASSED_HAND_CAP]
-                score -= battle_end_urgency * (
+                score -= (
                     self.weights[HW_PASSED_BASE_PENALTY]
                     + passed_hand_value
                     + self.weights[HW_PASSED_EXPOSURE_WEIGHT] * exposed
@@ -321,22 +312,19 @@ cdef class NativeHeuristicEvaluator:
                 )
                 if responding_hand_value > self.weights[HW_RESPONDING_HAND_CAP]:
                     responding_hand_value = self.weights[HW_RESPONDING_HAND_CAP]
-                score += battle_end_urgency * (
+                score += (
                     self.weights[HW_RESPONDING_BASE_BONUS]
                     + responding_hand_value
                     + self.weights[HW_RESPONDING_REACH_WEIGHT] * reachable
                 )
 
-            # Permanent Pass can close immediately; closing-window variants
-            # scale this liability by the remaining forced-end distance.
             own_liability = self.incomplete_liability_fast(state, player)
             opponent_liability = self.incomplete_liability_fast(
                 state,
                 opponent,
             )
             score += (
-                battle_end_urgency
-                * self.weights[HW_INCOMPLETE_LIABILITY_WEIGHT]
+                self.weights[HW_INCOMPLETE_LIABILITY_WEIGHT]
                 * (opponent_liability - own_liability)
             )
 
@@ -866,9 +854,6 @@ cdef class NativeHeuristicEvaluator:
         for i in range(HEUR_WEIGHT_COUNT):
             values.append(self.weights[i])
         return tuple(values)
-
-    cpdef double battle_end_urgency(self, FastState state):
-        return self.battle_end_urgency_fast(state)
 
     cpdef int projected_front_loss_command_penalty(
         self,
