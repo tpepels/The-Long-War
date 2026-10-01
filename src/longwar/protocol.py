@@ -76,6 +76,30 @@ class PolicySource(StrEnum):
     GUARD_FALLBACK = "guard_fallback"
 
 
+class CommandDiagnosticKind(StrEnum):
+    GAIN = "gain"
+    DISCOUNT = "discount"
+    FRONT_LOSS_PROTECTION = "front_loss_protection"
+
+
+class CommandDiagnosticDetail(StrEnum):
+    COMPLETION_GAIN = "completion_gain"
+    NARRATIVE_GAIN = "narrative_gain"
+    RETREAT_GAIN = "retreat_gain"
+    DISCARD_FOR_COMMAND = "discard_for_command"
+    CATCHUP_DISCOUNT = "catchup_discount"
+    COMPLETION_DISCOUNT = "completion_discount"
+    NARRATIVE_DISCOUNT = "narrative_discount"
+    LOCAL_FRONT_DISCOUNT = "local_front_discount"
+    ADJACENT_DISCOUNT = "adjacent_discount"
+    FRONTLINE_DISCOUNT = "frontline_discount"
+    FREE_MANEUVER = "free_maneuver"
+    STRATAGEM_MANEUVER_DISCOUNT = "stratagem_maneuver_discount"
+    FRONT_LOSS_PROTECTED_FRONT = "front_loss_protected_front"
+    FRONT_LOSS_STRATAGEM = "front_loss_stratagem"
+    OTHER = "other"
+
+
 class ActionKind(StrEnum):
     PASS = "Pass"
     DISCARD = "Discard"
