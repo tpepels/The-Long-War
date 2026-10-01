@@ -142,24 +142,13 @@ def aggregate_simulations_for_health(
         telemetry = simulation.get("telemetry", {})
         for card_id, stats in telemetry.get("cards", {}).items():
             for field in CARD_AGGREGATE_FIELDS:
-                if field.startswith("decisive_") and field not in stats:
-                    legacy_field = field.removeprefix("decisive_")
-                    cards[card_id][field] += float(
-                        stats.get(legacy_field, 0) or 0
-                    )
-                else:
-                    cards[card_id][field] += float(stats.get(field, 0) or 0)
+                cards[card_id][field] += float(stats.get(field, 0) or 0)
 
         for combo_id, stats in telemetry.get(
             "formation_combinations", {}
         ).items():
             for field in COMBO_AGGREGATE_FIELDS:
-                if field == "decisive_games_seen" and field not in stats:
-                    combos[combo_id][field] += float(
-                        stats.get("games_seen", 0) or 0
-                    )
-                else:
-                    combos[combo_id][field] += float(stats.get(field, 0) or 0)
+                combos[combo_id][field] += float(stats.get(field, 0) or 0)
 
     card_rows: dict[str, dict[str, Any]] = {}
     for card_id, raw in cards.items():
@@ -644,8 +633,7 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
             "hero_name_strength": card.get("hero_name_strength"),
             "classes": list(card.get("classes", [])),
             "role": card.get("role"),
-            "story_form": card.get("story_form"),
-            "veiled": bool(card.get("veiled", False)),
+            "narrative_form": card.get("narrative_form"),
             "balance_level": balance_level,
             "balance_label": balance_label,
             "balance_direction": balance_direction,
@@ -742,10 +730,10 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
         for flag in flags:
             counts[flag["severity"]] += 1
 
-        subject, link, name = key.split(" | ")
+        force, bond, name = key.split(" | ")
         formations.append({
             "id": key,
-            "title": " — ".join(meta[x]["title"] for x in (subject, link, name)),
+            "title": " — ".join(meta[x]["title"] for x in (force, bond, name)),
             "completions": int(stats.get("completions", 0)),
             "games_seen": games_seen,
             "decisive_games_seen": seen,
