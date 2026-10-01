@@ -6,6 +6,20 @@ cdef class FastEngine:
     cdef public object card_ids
     cdef public object id_to_code
     cdef int n_cards
+    cdef int force_count
+    cdef int bond_count
+    cdef int name_count
+    cdef int narrative_count
+    cdef int stratagem_count
+    cdef int hero_count
+    cdef int name_mode_count
+    cdef int16_t force_codes[MAX_CARDS]
+    cdef int16_t bond_codes[MAX_CARDS]
+    cdef int16_t name_codes[MAX_CARDS]
+    cdef int16_t narrative_codes[MAX_CARDS]
+    cdef int16_t stratagem_codes[MAX_CARDS]
+    cdef int16_t hero_codes[MAX_CARDS]
+    cdef int16_t name_mode_codes[MAX_CARDS]
     cdef int opening_hand_size
     cdef int command_cap
     cdef int16_t command_recovery_start
