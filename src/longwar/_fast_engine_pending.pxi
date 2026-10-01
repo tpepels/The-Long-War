@@ -480,7 +480,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.narrative[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = card
         state.narrative_revealed[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = 1
         state.narrative_front_mask[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = (
-            <uint8_t>(extra & 15)
+            <uint8_t>(extra & FRONT_MASK)
             if self.narrative_choice_kind[card] == NARRATIVE_CHOICE_FRONT
             else 0
         )
@@ -556,11 +556,11 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 if not (extra & (<uint32_t>1 << source)):
                     continue
                 local = local_slot(source)
-                front = local >> 1
+                front = local // RANK_COUNT
                 if dest == 0:
-                    target = slot_index(actor, front - 1, local & 1)
+                    target = slot_index(actor, front - 1, local % RANK_COUNT)
                 else:
-                    target = slot_index(actor, front + 1, local & 1)
+                    target = slot_index(actor, front + 1, local % RANK_COUNT)
                 _fe_move_slot(self, state, source, target)
                 _fe_resolve_force_move_triggers(self, 
                     state, actor, source, target
