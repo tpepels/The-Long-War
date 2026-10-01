@@ -7,7 +7,7 @@ cdef inline void _fe_append_discard(FastEngine self, FastState state, int player
 cdef inline void _fe_return_to_hand(FastEngine self, FastState state, int player, int card) noexcept:
     state.hand[player][card] += 1
     state.hand_len[player] += 1
-    state.known_hidden[1 - player][player][card] += 1
+    state.known_hidden[other_player(player)][player][card] += 1
 
 cdef bint _fe_remove_from_discard(
     FastEngine self,
@@ -26,7 +26,7 @@ cdef bint _fe_remove_from_discard(
     return False
 
 cdef inline void _fe_take_from_hand(FastEngine self, FastState state, int player, int card, int hidden_kind) noexcept:
-    cdef int viewer = 1 - player
+    cdef int viewer = other_player(player)
     cdef int known
     if hidden_kind == 0:
         if state.known_hidden[viewer][player][card] > 0:
@@ -133,7 +133,7 @@ cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int con
 
 cdef void _fe_resolve_ongoing_narrative_event(FastEngine self, FastState state, int actor, int event, int front, int trigger_slot=-1):
     cdef int controller, ix, card
-    for controller in (actor, 1 - actor):
+    for controller in (actor, other_player(actor)):
         ix = controller * NARRATIVE_SLOTS_PER_PLAYER + front
         card = state.narrative[ix]
         if card < 0:
@@ -169,7 +169,7 @@ cdef bint _fe_strat_trigger_matches(FastEngine self, FastState state, int contro
 
 cdef void _fe_resolve_strat_event(FastEngine self, FastState state, int event, int actor, int played_card=-1, int pos=-1):
     cdef int controller, card
-    for controller in (actor, 1 - actor):
+    for controller in (actor, other_player(actor)):
         card = state.stratagem[controller]
         if card < 0 or state.stratagem_revealed[controller]:
             continue
@@ -180,7 +180,7 @@ cdef void _fe_resolve_strat_event(FastEngine self, FastState state, int event, i
             state.temporary[pos] -= self.strat_reveal_amount[card]
 
 cdef bint _fe_pre_narrative_cancel(FastEngine self, FastState state, int actor):
-    cdef int controller = 1 - actor
+    cdef int controller = other_player(actor)
     cdef int card = state.stratagem[controller]
     if card < 0 or state.stratagem_revealed[controller]:
         return False
@@ -659,7 +659,7 @@ cdef void _fe_resolve_maneuver_triggers(
     cdef int name = state.name[arrived_slot]
     cdef int front = front_from_slot(arrived_slot)
     cdef int rank = rank_from_slot(arrived_slot)
-    cdef int opponent = 1 - player
+    cdef int opponent = other_player(player)
     cdef int other, other_name, bond
     cdef uint16_t sources, destinations, swap_mask
 
@@ -780,7 +780,7 @@ cdef void _fe_resolve_maneuver_triggers(
             )
 
 cdef void _fe_resolve_narrative_target_ongoing_narrative(FastEngine self, FastState state, int actor, int pos):
-    cdef int opponent = 1 - actor
+    cdef int opponent = other_player(actor)
     cdef int front, ix, card
     if pos < 0 or owner_from_slot(pos) != opponent:
         return
@@ -929,7 +929,7 @@ cdef void _fe_resume_pending_flow(FastEngine self, FastState state):
         _fe_finish_start_battle(self, state, player)
 
 cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor):
-    cdef int opponent = 1 - actor
+    cdef int opponent = other_player(actor)
     state.operations_this_battle[actor] += 1
 
     # A fixed closing window counts turns completed after the first signal.
