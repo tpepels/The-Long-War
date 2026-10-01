@@ -9,7 +9,7 @@ import pytest
 
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Position, Rank
-from longwar.game.model import StoryState, StratagemState
+from longwar.game.model import NarrativeState, StratagemState
 from longwar.mccfr import (
     _search_information_set_key,
     action_key,
@@ -63,7 +63,7 @@ def test_fast_information_key_preserves_exported_id() -> None:
     own.bond = "followed"
     own.name = "namar"
 
-    state.stories[0].append(StoryState("the-long-march"))
+    state.narratives[0].append(NarrativeState("the-long-march"))
     state.stratagems[0] = StratagemState("the-ground-was-held")
     state.stratagem_used[0] = True
 
