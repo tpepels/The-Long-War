@@ -40,7 +40,7 @@ cdef inline bint _fe_card_move_destination_legal(
     ):
         return False
     if (
-        abs(front_from_slot(source) - front_from_slot(dest)) == 1
+        abs(front_from_slot(source) - front_from_slot(dest)) == ADJACENT_FRONT_DISTANCE
         and _fe_opponent_blocks_card_move_into_front(self, 
             state, owner, front_from_slot(dest)
         )
@@ -327,7 +327,7 @@ cdef bint _fe_had_been_ordered_allows(
             return True
         preferred = slot_index(player, front - 1, rank)
     else:
-        if front == 3:
+        if front == LAST_FRONT_INDEX:
             return True
         preferred = slot_index(player, front + 1, rank)
     if (
@@ -363,7 +363,7 @@ cdef bint _fe_any_maneuver_in_direction(
                 continue
             dest = slot_index(player, front - 1, rank)
         else:
-            if front == 3:
+            if front == LAST_FRONT_INDEX:
                 continue
             dest = slot_index(player, front + 1, rank)
         if (
@@ -407,9 +407,9 @@ cdef bint _fe_maneuver_allowed_by_continuous(
         if card < 0 or not self.strat_first_maneuver_direction[card]:
             continue
         requested = state.stratagem_direction[controller]
-        if requested == 1:
+        if requested == DIRECTION_LEFT:
             need_left = True
-        elif requested == 2:
+        elif requested == DIRECTION_RIGHT:
             need_right = True
 
     if need_left:
@@ -1020,11 +1020,11 @@ cdef int _fe_legal_actions_into(
                         n,
                         encode_action(TYPE_NARRATIVE, card, -1, -1, player),
                     )
-                    if self.narrative_discard_count[card] == 1:
+                    if self.narrative_discard_count[card] == SINGLE_CARD_DISCARD_COUNT:
                         for i in range(self.n_cards):
                             if state.hand[player][i] <= 0:
                                 continue
-                            if i == card and state.hand[player][i] < 2:
+                            if i == card and state.hand[player][i] < COPIES_REQUIRED_TO_PLAY_AND_DISCARD_SAME_CARD:
                                 continue
                             n = _append_action(
                                 actions,
@@ -1059,14 +1059,14 @@ cdef int _fe_legal_actions_into(
                             ),
                         )
                 elif choice == STRAT_CHOICE_ADJACENT_FRONTS:
-                    for front in range(3):
+                    for front in range(ADJACENT_FRONT_PAIR_COUNT):
                         n = _append_action(
                             actions,
                             n,
                             encode_action(
                                 TYPE_STRATAGEM,
                                 card,
-                                3 << front,
+                                ADJACENT_FRONT_PAIR_MASK << front,
                                 -1,
                                 player,
                             ),
@@ -1111,7 +1111,7 @@ cdef int _fe_legal_actions_into(
                                     continue
                                 dest = slot_index(player, front - 1, rank)
                             else:
-                                if front == 3:
+                                if front == LAST_FRONT_INDEX:
                                     continue
                                 dest = slot_index(player, front + 1, rank)
                             if _fe_card_move_destination_legal(self, 
