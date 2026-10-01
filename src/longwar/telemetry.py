@@ -13,7 +13,7 @@ from .game.actions import (
     PlayBond,
     PlayForce,
     PlayName,
-    PlayStory,
+    PlayNarrative,
     PlayStratagem,
 )
 from .game.engine import GameEngine, all_positions
@@ -1322,7 +1322,7 @@ class Telemetry:
     def _action_card_id(action: Action) -> str | None:
         if isinstance(
             action,
-            (PlayForce, PlayBond, PlayName, PlayStory, PlayStratagem),
+            (PlayForce, PlayBond, PlayName, PlayNarrative, PlayStratagem),
         ):
             return action.card_id
         return None
