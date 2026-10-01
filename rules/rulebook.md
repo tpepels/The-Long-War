@@ -271,7 +271,7 @@ Before the Collapse check, lose **{{LOST_FRONT_COMMAND_PENALTY}} Command for eac
 
 If the war continues, recover the base amount above. Your recovery is never less than **{{RECOVERY_FLOOR}}**, and Command never rises above {{COMMAND_CAP}}.
 
-> **EXAMPLE** If the lost-Front penalty is {{LOST_FRONT_COMMAND_PENALTY}} Command, ending a Battle on 3 Command after losing two Fronts leaves you on {{EXAMPLE_TWO_FRONT_COMMAND_REMAINING}} Command before the Collapse check. If you survive, you then receive that Battle's normal recovery.
+> **EXAMPLE** If you end a Battle on 3 Command after losing two Fronts, subtract the configured lost-Front penalty twice before the Collapse check. If you survive, you then receive that Battle's normal recovery.
 
 The recovery numbers above are generated from the same rules configuration used by the game engine.
 
