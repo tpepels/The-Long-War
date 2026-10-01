@@ -303,7 +303,7 @@ cdef class NativeHeuristicEvaluator:
         FastState state,
         int player,
     ) noexcept:
-        cdef bint needs_force=False, needs_link=False, needs_name=False
+        cdef bint needs_force=False, needs_bond=False, needs_name=False
         cdef int local, slot, card, count, typ
         cdef double value=0.0, force_value=0.0, name_value=0.0
         for local in range(8):
@@ -315,7 +315,7 @@ cdef class NativeHeuristicEvaluator:
             if state.bond[slot] < 0 and (
                 state.force[slot] >= 0 or state.name[slot] >= 0
             ):
-                needs_link = True
+                needs_bond = True
             if state.name[slot] < 0 and (
                 state.force[slot] >= 0 or state.bond[slot] >= 0
             ):
@@ -340,7 +340,7 @@ cdef class NativeHeuristicEvaluator:
                 else:
                     value += count * force_value
             elif typ == CARD_BOND:
-                value += count * (0.35 + (0.95 if needs_link else 0.0))
+                value += count * (0.35 + (0.95 if needs_bond else 0.0))
             elif typ == CARD_NAME:
                 value += count * (0.35 + (1.05 if needs_name else 0.0))
             elif typ == CARD_NARRATIVE:
