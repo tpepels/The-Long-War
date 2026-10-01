@@ -86,11 +86,11 @@ cdef void _fe_compact_ongoing_narratives(
     cdef int read_slot, write_slot, src, dst
     write_slot = 0
     for read_slot in range(self.ongoing_narrative_limit):
-        src = player * 4 + read_slot
+        src = player * NARRATIVE_SLOTS_PER_PLAYER + read_slot
         if state.narrative[src] < 0:
             continue
         if read_slot != write_slot:
-            dst = player * 4 + write_slot
+            dst = player * NARRATIVE_SLOTS_PER_PLAYER + write_slot
             state.narrative[dst] = state.narrative[src]
             state.narrative_revealed[dst] = state.narrative_revealed[src]
             state.narrative_front_mask[dst] = state.narrative_front_mask[src]
@@ -108,7 +108,7 @@ cdef void _fe_compact_ongoing_narratives(
         write_slot += 1
 
 cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int controller, int front, int actor, int trigger_slot=-1):
-    cdef int ix = controller * 4 + front
+    cdef int ix = controller * NARRATIVE_SLOTS_PER_PLAYER + front
     cdef int card = state.narrative[ix]
     cdef int effect, amount, target
     if card < 0:
@@ -134,7 +134,7 @@ cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int con
 cdef void _fe_resolve_ongoing_narrative_event(FastEngine self, FastState state, int actor, int event, int front, int trigger_slot=-1):
     cdef int controller, ix, card
     for controller in (actor, 1 - actor):
-        ix = controller * 4 + front
+        ix = controller * NARRATIVE_SLOTS_PER_PLAYER + front
         card = state.narrative[ix]
         if card < 0:
             continue
@@ -273,7 +273,7 @@ cdef void _fe_discard_ongoing_narrative(
     int controller,
     int narrative_slot,
 ) noexcept:
-    cdef int ix = controller * 4 + narrative_slot
+    cdef int ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
     cdef int card = state.narrative[ix]
     if card < 0:
         return
@@ -295,7 +295,7 @@ cdef uint16_t _fe_named_formation_mask(
 ) noexcept:
     cdef int slot
     cdef uint16_t mask = 0
-    for slot in range(player * 8, player * 8 + 8):
+    for slot in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
         if slot != exclude and _fe_slot_complete(self, state, slot):
             mask |= <uint16_t>(1 << slot)
     return mask
@@ -343,7 +343,7 @@ cdef uint16_t _fe_adjacent_empty_mask(
 
 cdef bint _fe_force_in_all_fronts(FastEngine self, FastState state, int player) noexcept:
     cdef int front
-    for front in range(4):
+    for front in range(FRONT_COUNT):
         if (
             state.force[slot_index(player, front, 0)] < 0
             and state.force[slot_index(player, front, 1)] < 0
@@ -451,7 +451,7 @@ cdef void _fe_gain_command_from_narrative(
     named = _fe_named_formation_mask(self, state, player)
     if named == 0:
         return
-    for front in range(4):
+    for front in range(FRONT_COUNT):
         slot = slot_index(player, front, 1)
         force = state.force[slot]
         if force >= 0 and (self.card_capabilities[force] & CAP_NARRATIVE_COMMAND_GAIN_FREE_MANEUVER_FORCE):
@@ -467,10 +467,10 @@ cdef void _fe_resolve_named_narratives(
 ) except *:
     cdef int controller, narrative_slot, ix, card, trigger, amount, secondary
     cdef uint16_t sources
-    for controller in range(2):
+    for controller in range(PLAYER_COUNT):
         narrative_slot = self.ongoing_narrative_limit - 1
         while narrative_slot >= 0:
-            ix = controller * 4 + narrative_slot
+            ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
             card = state.narrative[ix]
             if card >= 0:
                 trigger = self.narrative_trigger[card]
@@ -511,7 +511,7 @@ cdef void _fe_resolve_retreat_narratives(
     cdef uint16_t destinations
     narrative_slot = self.ongoing_narrative_limit - 1
     while narrative_slot >= 0:
-        ix = player * 4 + narrative_slot
+        ix = player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
         card = state.narrative[ix]
         if (
             card >= 0
@@ -543,7 +543,7 @@ cdef void _fe_resolve_force_pair_narratives(
     cdef int controller = 1 - force_player
     cdef int front, narrative_slot, ix, card, amount
     cdef bint pair_exists = False
-    for front in range(4):
+    for front in range(FRONT_COUNT):
         if (
             state.force[slot_index(force_player, front, 0)] >= 0
             and state.force[slot_index(force_player, front, 1)] >= 0
@@ -554,7 +554,7 @@ cdef void _fe_resolve_force_pair_narratives(
         return
     narrative_slot = self.ongoing_narrative_limit - 1
     while narrative_slot >= 0:
-        ix = controller * 4 + narrative_slot
+        ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
         card = state.narrative[ix]
         if (
             card >= 0
@@ -589,7 +589,7 @@ cdef void _fe_resolve_maneuver_into_empty_narratives(
     cdef int narrative_slot, ix, card, amount
     cdef uint16_t sources
     for narrative_slot in range(self.ongoing_narrative_limit):
-        ix = player * 4 + narrative_slot
+        ix = player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
         card = state.narrative[ix]
         if card < 0 or state.narrative_used[ix]:
             continue
@@ -699,7 +699,7 @@ cdef void _fe_resolve_maneuver_triggers(
             sources = _fe_adjacent_formation_mask(self, 
                 state, player, vacated_slot, False
             )
-            for other in range(player * 8, player * 8 + 8):
+            for other in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
                 if not (sources & (1 << other)):
                     continue
                 bond = state.bond[other]
@@ -734,7 +734,7 @@ cdef void _fe_resolve_maneuver_triggers(
 
     if name >= 0 and (self.card_capabilities[name] & CAP_AFTER_MANEUVER_SWAP_OTHER_FRIENDLIES):
         swap_mask = 0
-        for other in range(player * 8, player * 8 + 8):
+        for other in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if other != arrived_slot and state.force[other] >= 0:
                 swap_mask |= <uint16_t>(1 << other)
         if swap_mask:
@@ -761,7 +761,7 @@ cdef void _fe_resolve_maneuver_triggers(
             name,
         )
 
-    for other in range(opponent * 8, opponent * 8 + 8):
+    for other in range(opponent * POSITIONS_PER_PLAYER, opponent * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
         other_name = state.name[other]
         if other_name < 0 or state.force[other] < 0:
             continue
@@ -785,7 +785,7 @@ cdef void _fe_resolve_narrative_target_ongoing_narrative(FastEngine self, FastSt
     if pos < 0 or owner_from_slot(pos) != opponent:
         return
     front = front_from_slot(pos)
-    ix = opponent * 4 + front
+    ix = opponent * NARRATIVE_SLOTS_PER_PLAYER + front
     card = state.narrative[ix]
     if card < 0 or self.ongoing_reveal_trigger[card] != EVENT_NARRATIVE_TARGET:
         return
