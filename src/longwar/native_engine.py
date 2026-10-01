@@ -19,7 +19,7 @@ def create_fast_engine(engine: Any):
     return FastEngine(engine)
 
 
-def create_heuristic_evaluator(fast_engine: Any):
+def create_heuristic_evaluator(fast_engine: Any, weights: Any = None):
     try:
         from ._fast_search import NativeHeuristicEvaluator
     except ImportError as exc:
@@ -27,4 +27,4 @@ def create_heuristic_evaluator(fast_engine: Any):
             "The canonical native heuristic evaluator is not built. "
             "Run: python -m pip install -e '.[dev]'"
         ) from exc
-    return NativeHeuristicEvaluator(fast_engine)
+    return NativeHeuristicEvaluator(fast_engine, weights)
