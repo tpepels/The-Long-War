@@ -65,7 +65,7 @@ def _owned_card_counter(state, player: int) -> Counter[str]:
             for card_id in (slot.force, slot.bond, slot.name)
             if card_id is not None
         )
-    cards.update(story.card_id for story in state.stories[player])
+    cards.update(narrative.card_id for narrative in state.narratives[player])
     stratagem = state.stratagems[player]
     if stratagem is not None:
         cards[stratagem.card_id] += 1
