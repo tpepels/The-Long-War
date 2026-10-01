@@ -6,6 +6,7 @@ from typing import Any
 from ..cards import card_index, compile_card_mechanics, load_card_file, validate_card_data
 from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
+from ..protocol import CardField, PLAYER_COUNT
 from ..native_engine import create_fast_engine, create_heuristic_evaluator
 from .actions import Action, Discard, EffectChoice, Pass, action_from_key, action_key
 from .model import (
@@ -19,6 +20,7 @@ from .model import (
     Position,
     Rank,
     FRONT_COUNT,
+    RANK_COUNT,
     Slot,
     NarrativeState,
     other_player,
@@ -62,6 +64,7 @@ ADJACENT_POSITIONS = {
     for position in ALL_POSITIONS
 }
 SHUFFLE_MASK = 0xFFFF_FFFF
+SHUFFLE_SEED_MIX = 0x9E37_79B9
 
 
 def all_positions() -> tuple[Position, ...]:
@@ -102,7 +105,7 @@ class GameEngine:
         missing_costs = [
             card_id
             for card_id, card in self.cards.items()
-            if not isinstance(card.get("command_cost"), int)
+            if not isinstance(card.get(CardField.COMMAND_COST), int)
         ]
         if missing_costs:
             raise ValueError(
@@ -186,7 +189,7 @@ class GameEngine:
             deck_a,
             deck_b,
             rng=random.Random(seed),
-            shuffle_seed=(seed ^ 0x9E37_79B9) & SHUFFLE_MASK,
+            shuffle_seed=(seed ^ SHUFFLE_SEED_MIX) & SHUFFLE_MASK,
             first_player=first_player,
             mulligan_indices=mulligan_indices,
             opening_bonus=opening_bonus,
@@ -209,15 +212,21 @@ class GameEngine:
         rng.shuffle(decks[1])
 
         players: list[PlayerState] = []
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             hand = [
                 decks[player].pop()
                 for _ in range(min(self.opening_hand_size, len(decks[player])))
             ]
 
             indices = mulligan_indices[player]
-            if len(indices) > 2 or len(set(indices)) != len(indices):
-                raise ValueError("A mulligan may contain at most two distinct hand indices")
+            if (
+                len(indices) > self.rules.mulligan_max_cards
+                or len(set(indices)) != len(indices)
+            ):
+                raise ValueError(
+                    "A mulligan may contain at most "
+                    f"{self.rules.mulligan_max_cards} distinct hand indices"
+                )
             if any(index < 0 or index >= len(hand) for index in indices):
                 raise ValueError("Mulligan index outside opening hand")
 
@@ -261,7 +270,7 @@ class GameEngine:
             len(state.players[1].hand),
         ]
 
-        active_player = rng.randrange(2) if first_player is None else first_player
+        active_player = rng.randrange(PLAYER_COUNT) if first_player is None else first_player
         native = self._native_core_instance
         fast_state = native.from_game_state(state)
         native.initialize_opening_turn(fast_state, active_player, opening_bonus)
@@ -271,7 +280,7 @@ class GameEngine:
     def _sync_from_native(self, state: GameState, fast_state) -> None:
         data = self._native_core_instance.export_state(fast_state)
 
-        for player in range(2):
+        for player in range(PLAYER_COUNT):
             source = data["players"][player]
             target = state.players[player]
             target.deck[:] = source["deck"]
@@ -281,7 +290,7 @@ class GameEngine:
             target.command = int(source["command"])
 
             for front in range(FRONT_COUNT):
-                for rank in range(2):
+                for rank in range(RANK_COUNT):
                     source_slot = data["board"][player][front][rank]
                     target_slot = state.board[player][front][rank]
                     target_slot.force = source_slot["force"]
@@ -460,8 +469,8 @@ class GameEngine:
         state.shuffle_seed = int(data["shuffle_seed"])
 
         hidden = data["known_hidden_hand"]
-        for viewer in range(2):
-            for owner in range(2):
+        for viewer in range(PLAYER_COUNT):
+            for owner in range(PLAYER_COUNT):
                 target = state.known_hidden_hand[viewer][owner]
                 updated = hidden[viewer][owner]
                 for card_id in sorted(target.keys() | updated.keys()):
