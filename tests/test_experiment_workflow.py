@@ -130,7 +130,7 @@ def test_game_rules_have_no_named_experiment_profile_api():
 
 
 def test_ismcts_exploration_default_is_shared():
-    assert inspect.signature(simulate_games).parameters["jobs"].default == 1
+    assert inspect.signature(simulate_games).parameters["jobs"].default == DEFAULT_WORKERS
     assert inspect.signature(ISMCTSAgent).parameters["exploration"].default == DEFAULT_ISMCTS_EXPLORATION
     assert inspect.signature(make_agent).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
     assert inspect.signature(simulate_games).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
@@ -633,7 +633,9 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
     assert summary["simulation_games"] == len(runner.CANONICAL_DECK_PATHS)
     assert (
         summary["decisive_simulation_games"]
+        + summary["draw_simulation_games"]
         + summary["censored_simulation_games"]
+        + summary["failed_simulation_games"]
         == summary["simulation_games"]
     )
     assert summary["config"]["seed"] == 71
@@ -644,7 +646,12 @@ def test_quick_balance_pipeline_keeps_replay_metadata(tmp_path, monkeypatch):
         json.loads((ROOT / "decks/mobility-open-bonds.json").read_text())["cards"]
     )
     assert "deck_size" not in match["rules"]
-    assert match["decisive_games"] + match["censored_games"] == match["games"]
+    assert (
+        match["decisive_games"]
+        + match["draws"]
+        + match["censored_games"]
+        == match["games"]
+    )
     assert match["censor_rate"] == pytest.approx(
         match["censored_games"] / match["games"]
     )
