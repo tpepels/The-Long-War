@@ -751,3 +751,9 @@ def test_decisive_rollout_random_path_uses_lazy_safety_scan() -> None:
     assert "if not use_greedy:" in source
     assert "for offset in range(safe_n):" in source
     assert "The five-percent greedy branch can afford" in source
+
+
+def test_decisive_rollout_random_safety_scan_is_bounded() -> None:
+    source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
+    assert "DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES = 4" in source
+    assert "safe_n if safe_n < DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES" in source
