@@ -4,7 +4,7 @@ from math import inf, isfinite
 from time import perf_counter
 from statistics import mean
 
-from ..protocol import PolicySource
+from ..protocol import PolicySource, SearchBackend
 from ..algorithms.alpha_beta import AlphaBetaSearch, SearchBudget, SearchLimit
 from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, Pass, action_key
@@ -13,6 +13,16 @@ from ..game.model import GameState
 from ..heuristics import StrategicEvaluator, command_preserving_actions
 from ..native_search import strategic_backend
 from .heuristic_agent import HeuristicAgent, ScoredAction
+
+DEFAULT_STRATEGIC_BELIEF_SAMPLES = 3
+DEFAULT_STRATEGIC_ROLLOUT_PLIES = 5
+DEFAULT_STRATEGIC_CANDIDATE_WIDTH = 6
+DEFAULT_STRATEGIC_NODE_BUDGET = 20_000
+DEFAULT_STRATEGIC_BACKEND = SearchBackend.AUTO.value
+NATIVE_TT_TIMED_FLOOR = 1_048_576
+NATIVE_TT_NODE_FLOOR = 131_072
+NATIVE_TT_BUDGET_MULTIPLIER = 4
+
 
 try:
     (
@@ -47,12 +57,12 @@ class StrategicHeuristicAgent(HeuristicAgent):
         seed: int,
         *,
         priors: tuple[DeckPrior, DeckPrior] | None = None,
-        belief_samples: int = 3,
-        rollout_plies: int = 5,
-        candidate_width: int = 6,
-        node_budget: int = 20_000,
+        belief_samples: int = DEFAULT_STRATEGIC_BELIEF_SAMPLES,
+        rollout_plies: int = DEFAULT_STRATEGIC_ROLLOUT_PLIES,
+        candidate_width: int = DEFAULT_STRATEGIC_CANDIDATE_WIDTH,
+        node_budget: int = DEFAULT_STRATEGIC_NODE_BUDGET,
         time_budget_seconds: float | None = None,
-        search_backend: str = "auto",
+        search_backend: str = DEFAULT_STRATEGIC_BACKEND,
         exploration: float = 0.0,
     ):
         evaluator = StrategicEvaluator()
@@ -74,8 +84,13 @@ class StrategicHeuristicAgent(HeuristicAgent):
             and (not isfinite(time_budget_seconds) or time_budget_seconds <= 0.0)
         ):
             raise ValueError("time_budget_seconds must be finite and positive")
-        if search_backend not in {"auto", "cython", "python"}:
-            raise ValueError("search_backend must be auto, cython, or python")
+        try:
+            parsed_backend = SearchBackend(search_backend)
+        except ValueError as exc:
+            allowed = ", ".join(backend.value for backend in SearchBackend)
+            raise ValueError(
+                f"search_backend must be one of: {allowed}"
+            ) from exc
 
         native_supported = bool(
             _native_search_value is not None
@@ -84,19 +99,19 @@ class StrategicHeuristicAgent(HeuristicAgent):
             and _NativeSearchBudget is not None
             and _NativeTranspositionTable is not None
         )
-        if time_budget_seconds is not None and search_backend == "python":
+        if time_budget_seconds is not None and parsed_backend is SearchBackend.PYTHON:
             raise ValueError("wall-clock alpha-beta budgets require the Cython backend")
-        if search_backend == "cython" and not native_supported:
+        if parsed_backend is SearchBackend.CYTHON and not native_supported:
             raise RuntimeError(
                 "Packed Cython alpha-beta requested but the canonical "
                 "extension is unavailable; run "
                 "python -m pip install -e '.[dev]'"
             )
 
-        self.search_backend = search_backend
+        self.search_backend = parsed_backend.value
         self._use_native = (
             native_supported
-            and search_backend in {"auto", "cython"}
+            and parsed_backend in {SearchBackend.AUTO, SearchBackend.CYTHON}
         )
 
         self.belief = BeliefSampler(engine, priors=priors)
@@ -121,9 +136,13 @@ class StrategicHeuristicAgent(HeuristicAgent):
             if self._use_native
             else None
         )
-        tt_floor = 1_048_576 if time_budget_seconds is not None else 131_072
+        tt_floor = (
+            NATIVE_TT_TIMED_FLOOR
+            if time_budget_seconds is not None
+            else NATIVE_TT_NODE_FLOOR
+        )
         self._native_tt = (
-            _NativeTranspositionTable(max(tt_floor, node_budget * 4))
+            _NativeTranspositionTable(max(tt_floor, node_budget * NATIVE_TT_BUDGET_MULTIPLIER))
             if self._use_native
             else None
         )
