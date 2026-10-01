@@ -977,7 +977,7 @@ cdef int _fe_legal_actions_into(
                         slot = opponent * 8 + local
                         if (
                             state.force[slot] >= 0
-                            and not _fe_subject_protected(self, state, slot)
+                            and not _fe_formation_protected(self, state, slot)
                         ):
                             n = _append_action(
                                 actions,
