@@ -161,41 +161,37 @@ cdef void _fe_queue_pre_resolution_choice(
     state.resolution_stage = RESOLUTION_COMPARE
     state.resolution_cursor = 0
 
-cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
-    cdef int front, a, b, p, strat, protected, protected_card, card
-    cdef int controller, mask, combined0, combined1
-    cdef int losses0, losses1
+cdef void _fe_project_front_losses_fast(
+    FastEngine self,
+    FastState state,
+    uint16_t* lost0,
+    uint16_t* lost1,
+) noexcept:
+    """Project Front losses under the canonical comparison rules."""
+    cdef int front, a, b, controller, strat, mask
+    cdef int combined0, combined1
     cdef bint tie_control = _fe_tie_control_active(self, state)
 
-    state.resolution_lost_mask[0] = 0
-    state.resolution_lost_mask[1] = 0
-    state.resolution_drive_mask[0] = 0
-    state.resolution_drive_mask[1] = 0
-
+    lost0[0] = 0
+    lost1[0] = 0
     for front in range(FRONT_COUNT):
         a = _fe_resolution_front_strength_fast(self, state, 0, front)
         b = _fe_resolution_front_strength_fast(self, state, 1, front)
-        state.last_front_scores[front][0] = a
-        state.last_front_scores[front][1] = b
         if a < b:
-            state.resolution_lost_mask[0] |= <uint8_t>(1 << front)
+            lost0[0] |= <uint16_t>(1 << front)
         elif b < a:
-            state.resolution_lost_mask[1] |= <uint8_t>(1 << front)
+            lost1[0] |= <uint16_t>(1 << front)
         elif tie_control:
             if (
                 _fe_slot_complete(self, state, slot_index(0, front, RANK_FRONT))
                 != _fe_slot_complete(self, state, slot_index(1, front, RANK_FRONT))
             ):
-                if _fe_slot_complete(self, 
-                    state, slot_index(0, front, RANK_FRONT)
+                if _fe_slot_complete(
+                    self, state, slot_index(0, front, RANK_FRONT)
                 ):
-                    state.resolution_lost_mask[1] |= <uint8_t>(
-                        1 << front
-                    )
+                    lost1[0] |= <uint16_t>(1 << front)
                 else:
-                    state.resolution_lost_mask[0] |= <uint8_t>(
-                        1 << front
-                    )
+                    lost0[0] |= <uint16_t>(1 << front)
 
     # The Center Must Hold replaces the two individual results.
     for controller in range(PLAYER_COUNT):
@@ -209,18 +205,44 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         combined1 = 0
         for front in range(FRONT_COUNT):
             if mask & (1 << front):
-                combined0 += _fe_resolution_front_strength_fast(self, 
-                    state, 0, front
+                combined0 += _fe_resolution_front_strength_fast(
+                    self, state, 0, front
                 )
-                combined1 += _fe_resolution_front_strength_fast(self, 
-                    state, 1, front
+                combined1 += _fe_resolution_front_strength_fast(
+                    self, state, 1, front
                 )
-        state.resolution_lost_mask[0] &= <uint8_t>(~mask)
-        state.resolution_lost_mask[1] &= <uint8_t>(~mask)
+        lost0[0] &= <uint16_t>(~mask)
+        lost1[0] &= <uint16_t>(~mask)
         if combined0 < combined1:
-            state.resolution_lost_mask[0] |= <uint8_t>mask
+            lost0[0] |= <uint16_t>mask
         elif combined1 < combined0:
-            state.resolution_lost_mask[1] |= <uint8_t>mask
+            lost1[0] |= <uint16_t>mask
+
+
+cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
+    cdef int front, a, b, p, strat, protected, protected_card, card
+    cdef int controller, mask
+    cdef int losses0, losses1
+    cdef uint16_t projected_lost0=0, projected_lost1=0
+
+    # Record the effective comparison Strength displayed in the Battle
+    # snapshot, then use the shared rule primitive for the actual outcomes.
+    for front in range(FRONT_COUNT):
+        a = _fe_resolution_front_strength_fast(self, state, 0, front)
+        b = _fe_resolution_front_strength_fast(self, state, 1, front)
+        state.last_front_scores[front][0] = a
+        state.last_front_scores[front][1] = b
+
+    _fe_project_front_losses_fast(
+        self,
+        state,
+        &projected_lost0,
+        &projected_lost1,
+    )
+    state.resolution_lost_mask[0] = <uint8_t>projected_lost0
+    state.resolution_lost_mask[1] = <uint8_t>projected_lost1
+    state.resolution_drive_mask[0] = 0
+    state.resolution_drive_mask[1] = 0
 
     # Breakthrough replacements.
     for front in range(FRONT_COUNT):
