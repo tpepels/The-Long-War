@@ -9,15 +9,15 @@ cdef void _fe_queue_pre_resolution_choice(
 
     # They Let Them Through - each controller may swap the two formations
     # in one Front before Strength is compared.
-    if cursor < 2:
+    if cursor < PRE_RESOLUTION_CONTROLLER_END:
         controller = cursor
         state.resolution_cursor += 1
         force = state.stratagem[controller]
         if force >= 0 and self.feigned_retreat_strat[force]:
             mask = 0
             for front in range(FRONT_COUNT):
-                slot = slot_index(controller, front, 0)
-                rear = slot_index(controller, front, 1)
+                slot = slot_index(controller, front, RANK_FRONT)
+                rear = slot_index(controller, front, RANK_REAR)
                 if (
                     state.force[slot] >= 0
                     and state.force[rear] >= 0
@@ -39,13 +39,13 @@ cdef void _fe_queue_pre_resolution_choice(
         return
 
     # Tala - optional voluntary Retreat before comparison.
-    if cursor < 18:
-        slot = cursor - 2
+    if cursor < PRE_RESOLUTION_RETREAT_END:
+        slot = cursor - PRE_RESOLUTION_CONTROLLER_END
         state.resolution_cursor += 1
         if (
             state.force[slot] >= 0
             and _fe_slot_complete(self, state, slot)
-            and rank_from_slot(slot) == 0
+            and rank_from_slot(slot) == RANK_FRONT
             and state.name[slot] >= 0
             and self.voluntary_retreat_name[state.name[slot]]
         ):
@@ -69,8 +69,8 @@ cdef void _fe_queue_pre_resolution_choice(
         return
 
     # Grey/Dust Riders choose the Front where their Strength contributes.
-    if cursor < 34:
-        slot = cursor - 18
+    if cursor < PRE_RESOLUTION_CONTRIBUTION_END:
+        slot = cursor - PRE_RESOLUTION_RETREAT_END
         state.resolution_cursor += 1
         force = state.force[slot]
         if force >= 0 and self.skirmisher_contribution[force]:
@@ -88,8 +88,8 @@ cdef void _fe_queue_pre_resolution_choice(
         return
 
     # Thornbow/Rovan suppression and First Spear first strike.
-    if cursor < 50:
-        slot = cursor - 34
+    if cursor < PRE_RESOLUTION_SUPPRESSION_END:
+        slot = cursor - PRE_RESOLUTION_CONTRIBUTION_END
         state.resolution_cursor += 1
         force = state.force[slot]
         if force < 0:
@@ -99,11 +99,11 @@ cdef void _fe_queue_pre_resolution_choice(
         front = front_from_slot(slot)
         target = -1
         if self.suppress_rear_force[force]:
-            rear = slot_index(opponent, front, 1)
+            rear = slot_index(opponent, front, RANK_REAR)
             if state.force[rear] >= 0:
                 target = rear
         elif self.first_strike_force[force]:
-            target = slot_index(opponent, front, 0)
+            target = slot_index(opponent, front, RANK_FRONT)
             if (
                 state.force[target] < 0
                 or self.strength[state.force[target]]
@@ -126,8 +126,8 @@ cdef void _fe_queue_pre_resolution_choice(
 
     # Held the Line for - sacrifice this formation to suppress one opposing
     # formation in the same Front.
-    if cursor < 66:
-        slot = cursor - 50
+    if cursor < PRE_RESOLUTION_SACRIFICE_END:
+        slot = cursor - PRE_RESOLUTION_SUPPRESSION_END
         state.resolution_cursor += 1
         if state.force[slot] < 0:
             return
@@ -138,10 +138,10 @@ cdef void _fe_queue_pre_resolution_choice(
         opponent = other_player(controller)
         front = front_from_slot(slot)
         target_mask = 0
-        target = slot_index(opponent, front, 0)
+        target = slot_index(opponent, front, RANK_FRONT)
         if state.force[target] >= 0:
             target_mask |= <uint16_t>(1 << target)
-        target = slot_index(opponent, front, 1)
+        target = slot_index(opponent, front, RANK_REAR)
         if state.force[target] >= 0:
             target_mask |= <uint16_t>(1 << target)
         if target_mask:
@@ -183,11 +183,11 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
             state.resolution_lost_mask[1] |= <uint8_t>(1 << front)
         elif tie_control:
             if (
-                _fe_slot_complete(self, state, slot_index(0, front, 0))
-                != _fe_slot_complete(self, state, slot_index(1, front, 0))
+                _fe_slot_complete(self, state, slot_index(0, front, RANK_FRONT))
+                != _fe_slot_complete(self, state, slot_index(1, front, RANK_FRONT))
             ):
                 if _fe_slot_complete(self, 
-                    state, slot_index(0, front, 0)
+                    state, slot_index(0, front, RANK_FRONT)
                 ):
                     state.resolution_lost_mask[1] |= <uint8_t>(
                         1 << front
@@ -226,13 +226,13 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     for front in range(FRONT_COUNT):
         if (
             state.resolution_lost_mask[0] & (1 << front)
-            and state.force[slot_index(0, front, 1)] < 0
+            and state.force[slot_index(0, front, RANK_REAR)] < 0
             and _fe_breakthrough_active(self, state, 1, front)
         ):
             state.resolution_drive_mask[0] |= <uint8_t>(1 << front)
         if (
             state.resolution_lost_mask[1] & (1 << front)
-            and state.force[slot_index(1, front, 1)] < 0
+            and state.force[slot_index(1, front, RANK_REAR)] < 0
             and _fe_breakthrough_active(self, state, 0, front)
         ):
             state.resolution_drive_mask[1] |= <uint8_t>(1 << front)
@@ -363,8 +363,8 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
             state.resolution_cursor += 1
             continue
 
-        front_slot = slot_index(player, front, 0)
-        rear_slot = slot_index(player, front, 1)
+        front_slot = slot_index(player, front, RANK_FRONT)
+        rear_slot = slot_index(player, front, RANK_REAR)
 
         # Snapshot persistent Rear effects before that formation is driven
         # off. Upper drive-mask bits are temporary sideways-retreat markers.
