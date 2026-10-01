@@ -152,6 +152,15 @@ from cpython.bytes cimport PyBytes_FromStringAndSize
 import hashlib
 import json
 from time import perf_counter
+from longwar.protocol import (
+    CardField,
+    CardType,
+    CommandDiagnosticDetail,
+    CommandDiagnosticKind,
+    DesignField,
+    DesignToken,
+    Direction,
+)
 
 include "_fast_engine_core.pxi"
 include "_heuristic_core.pxi"
