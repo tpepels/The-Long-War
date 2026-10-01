@@ -27,7 +27,7 @@ def test_random_games_finish() -> None:
 
     report = simulate_games(engine, deck, deck, games=25, seed=99)
 
-    assert sum(report.wins) + report.censored_games == 25
+    assert sum(report.wins) + report.draws + report.censored_games == 25
     assert 0 <= report.first_player_wins <= sum(report.wins)
     assert report.max_turns <= 500
     assert [outcome["game"] for outcome in report.game_outcomes] == list(range(25))
@@ -71,6 +71,7 @@ def test_parallel_random_simulation_preserves_seeded_results_and_telemetry() -> 
 
     assert parallel.game_outcomes == serial.game_outcomes
     assert parallel.wins == serial.wins
+    assert parallel.draws == serial.draws
     assert parallel.censored_games == serial.censored_games
     assert parallel.first_player_wins == serial.first_player_wins
     assert parallel.mean_turns == pytest.approx(serial.mean_turns)
@@ -182,7 +183,13 @@ def test_simulation_can_skip_one_failed_game_without_polluting_aggregates(monkey
     assert report.games == 3
     assert report.completed_games == 2
     assert report.failed_games == 1
-    assert report.decisive_games + report.censored_games + report.failed_games == 3
+    assert (
+        report.decisive_games
+        + report.draws
+        + report.censored_games
+        + report.failed_games
+        == 3
+    )
     assert [outcome["game"] for outcome in report.game_outcomes] == [0, 2]
     assert len(report.failed_game_outcomes) == 1
     failure = report.failed_game_outcomes[0]

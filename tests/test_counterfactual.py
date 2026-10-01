@@ -410,3 +410,9 @@ def test_per_card_sweep_parallel_branch_collects_reports(monkeypatch) -> None:
     assert {row["id"] for row in report["cards"]} == {"namar", "followed"}
     assert report["total_matches"] == 4
     assert report["decisive_paired_samples"] == 2
+
+
+def test_counterfactual_contrasts_accept_half_point_draw_scores() -> None:
+    assert pair_contrast(0.5, 0.0, 0.0, 0.5) == pytest.approx(1.0)
+    effect = estimate([0.5, -0.5, 0.0], seed=7, bootstrap_resamples=100)
+    assert effect.mean == pytest.approx(0.0)

@@ -294,7 +294,7 @@ def _play_focal_outcome(
     *,
     agent_name: str,
     max_actions: int = 500,
-) -> int | None:
+) -> float | None:
     if agent_name not in {"heuristic", "random"}:
         raise ValueError(
             "Counterfactual experiments currently support heuristic or random "
@@ -349,8 +349,8 @@ def _play_focal_outcome(
         actions += 1
 
     if state.winner is None:
-        raise RuntimeError("Completed counterfactual game has no winner")
-    return int(state.winner == sample.focal_player)
+        return 0.5
+    return 1.0 if state.winner == sample.focal_player else 0.0
 
 
 def _bootstrap_ci(
@@ -605,7 +605,19 @@ def run_counterfactual_card_sweep(
         "conditions_evaluated_per_sample": 2,
         "total_matches": total_matches,
         "censored_matches": censored_matches,
-        "decisive_matches": total_matches - censored_matches,
+        "resolved_matches": total_matches - censored_matches,
+        "draw_matches": sum(
+            value == 0.5
+            for outcomes in per_condition.values()
+            for value in outcomes
+            if value is not None
+        ),
+        "decisive_matches": sum(
+            value in (0.0, 1.0)
+            for outcomes in per_condition.values()
+            for value in outcomes
+            if value is not None
+        ),
         "match_censor_rate": (
             censored_matches / total_matches if total_matches else 0.0
         ),
@@ -628,8 +640,9 @@ def run_counterfactual_card_sweep(
             ),
             "censoring": (
                 "A paired card sample is excluded from the effect estimate if "
-                "either matched condition reaches the action horizon. Censored "
-                "matches and pairs remain reported explicitly."
+                "either matched condition reaches the action horizon. A completed "
+                "draw is retained as a 0.5 outcome. Censored matches and pairs "
+                "remain reported explicitly."
             ),
             "pair_interaction": (
                 "Not evaluated in full-pool sweep; select a compatible card "
@@ -731,7 +744,7 @@ def run_counterfactual_experiment(
             for pair in itertools.combinations(triple, 2)
         )
 
-    per_condition: dict[frozenset[str], list[int | None]] = {
+    per_condition: dict[frozenset[str], list[float | None]] = {
         condition: [] for condition in required_conditions
     }
 
@@ -757,9 +770,9 @@ def run_counterfactual_experiment(
     )
     base = per_condition[frozenset()]
 
-    def complete_rows(*series: list[int | None]) -> list[tuple[int, ...]]:
+    def complete_rows(*series: list[float | None]) -> list[tuple[float, ...]]:
         return [
-            tuple(int(value) for value in values)
+            tuple(float(value) for value in values)
             for values in zip(*series)
             if all(value is not None for value in values)
         ]

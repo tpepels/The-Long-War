@@ -67,9 +67,12 @@ def seat_swapped_evaluation(
     reverse_games = int(reverse.get("games", 0))
     forward_censored = int(forward.get("censored_games", 0))
     reverse_censored = int(reverse.get("censored_games", 0))
+    forward_draws = int(forward.get("draws", 0))
+    reverse_draws = int(reverse.get("draws", 0))
     attempted_games = forward_games + reverse_games
     censored_games = forward_censored + reverse_censored
-    decisive_games = max(0, attempted_games - censored_games)
+    draws = forward_draws + reverse_draws
+    decisive_games = max(0, attempted_games - censored_games - draws)
     mccfr_wins = int(forward.get("wins", [0, 0])[0]) + int(
         reverse.get("wins", [0, 0])[1]
     )
@@ -79,6 +82,7 @@ def seat_swapped_evaluation(
         ),
         "games": attempted_games,
         "decisive_games": decisive_games,
+        "draws": draws,
         "censored_games": censored_games,
         "censor_rate": (
             censored_games / attempted_games if attempted_games else 0.0

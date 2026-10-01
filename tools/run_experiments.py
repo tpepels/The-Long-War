@@ -359,6 +359,7 @@ def balance_run(args: argparse.Namespace) -> Path:
     save("static", static_payload)
     simulations = []
     selfplay_simulations: dict[str, dict[str, Any]] = {}
+    total_draws = 0
     total_censored = 0
     total_failed = 0
 
@@ -417,7 +418,8 @@ def balance_run(args: argparse.Namespace) -> Path:
         *,
         reused: bool = False,
     ) -> None:
-        nonlocal total_censored, total_failed
+        nonlocal total_draws, total_censored, total_failed
+        total_draws += int(payload.get("draws", 0))
         total_censored += int(payload["censored_games"])
         total_failed += int(payload["failed_games"])
         simulations.append(payload)
@@ -427,6 +429,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         print(
             f"{prefix}{left}--{right}: {payload['games']} games, "
             f"{payload['decisive_games']} decisive, "
+            f"{payload.get('draws', 0)} draws, "
             f"{payload['censored_games']} censored, "
             f"{payload['failed_games']} failed, first-player wins "
             f"{payload['first_player_wins']}; 95% interval "
@@ -756,7 +759,10 @@ def balance_run(args: argparse.Namespace) -> Path:
         "cells": len(cells),
         "simulation_games": total_games,
         "completed_simulation_games": total_games - total_failed,
-        "decisive_simulation_games": total_games - total_censored - total_failed,
+        "decisive_simulation_games": (
+            total_games - total_draws - total_censored - total_failed
+        ),
+        "draw_simulation_games": total_draws,
         "censored_simulation_games": total_censored,
         "failed_simulation_games": total_failed,
         "aggregate_health_games": aggregate_selfplay["games"],

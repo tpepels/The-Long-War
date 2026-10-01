@@ -14,8 +14,8 @@ def simulation_summary(data: dict[str, Any] | None) -> dict[str, Any] | None:
     result = {
         key: data.get(key)
         for key in (
-            "games", "agents", "wins", "decisive_games",
-            "censored_games", "failed_games", "censor_rate", "failure_rate",
+            "games", "agents", "wins", "draws", "decisive_games",
+            "censored_games", "failed_games", "draw_rate", "censor_rate", "failure_rate",
             "win_rates", "first_player_win_rate",
             "mean_turns", "max_turns", "game_fingerprint",
             "experiment_fingerprint", "experiment_fingerprints", "seed", "config",

@@ -836,6 +836,7 @@ def simulate_games(
         human_flow.merge(result.human_flow)
         wins[0] += report.wins[0]
         wins[1] += report.wins[1]
+        draws += report.draws
         censored_games += report.censored_games
         failed_games += report.failed_games
         first_player_wins += report.first_player_wins

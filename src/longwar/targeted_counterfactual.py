@@ -210,7 +210,7 @@ def _play_online_outcome(
     online_iterations: int,
     online_depth: int,
     max_actions: int = 500,
-) -> int | None:
+) -> float | None:
     if sample.focal_player == 0:
         deck_a, deck_b = focal_deck, list(sample.opponent_deck)
     else:
@@ -277,8 +277,8 @@ def _play_online_outcome(
         action_count += 1
 
     if state.winner is None:
-        raise RuntimeError("Completed targeted game has no winner")
-    return int(state.winner == sample.focal_player)
+        return 0.5
+    return 1.0 if state.winner == sample.focal_player else 0.0
 
 
 def _contrast(
@@ -375,7 +375,7 @@ def _run_targeted_candidate(
         sample_generation=candidate.sample_generation,
     )
     conditions = _powerset(candidate.cards)
-    outcomes: dict[frozenset[str], list[int | None]] = {
+    outcomes: dict[frozenset[str], list[float | None]] = {
         condition: [] for condition in conditions
     }
     total_matches = 0
@@ -401,9 +401,9 @@ def _run_targeted_candidate(
         for index in range(len(samples))
         if all(outcomes[condition][index] is not None for condition in conditions)
     ]
-    filtered: dict[frozenset[str], list[int]] = {
+    filtered: dict[frozenset[str], list[float]] = {
         condition: [
-            int(outcomes[condition][index])
+            float(outcomes[condition][index])
             for index in complete_indices
             if outcomes[condition][index] is not None
         ]

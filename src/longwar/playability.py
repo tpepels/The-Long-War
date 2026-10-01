@@ -41,7 +41,7 @@ def build_playability_report(
             "Simulation reports belong to different game fingerprints"
         )
 
-    games = battles = censored_games = pass_events = decisions = 0
+    games = battles = draws = censored_games = pass_events = decisions = 0
     final_battle_weight = final_battle_count = 0.0
     battle_reach: Counter[str] = Counter()
     match_actions = pass_hand_total = pass_dead_total = 0.0
@@ -76,7 +76,9 @@ def build_playability_report(
         run_pass_events = int(passes["events"])
 
         run_censored = int(simulation.get("censored_games", 0) or 0)
+        run_draws = int(simulation.get("draws", 0) or 0)
         games += game_count
+        draws += run_draws
         censored_games += run_censored
         battles += battle_count
         match_actions += float(simulation["mean_turns"]) * game_count
@@ -143,7 +145,13 @@ def build_playability_report(
                     or f"simulation-{index + 1}"
                 ),
                 "games": game_count,
-                "decisive_games": game_count - run_censored,
+                "decisive_games": int(
+                    simulation.get(
+                        "decisive_games",
+                        game_count - run_censored - run_draws,
+                    )
+                ),
+                "draws": run_draws,
                 "censored_games": run_censored,
                 "mean_battles_per_match": (
                     battle_count / game_count
@@ -178,7 +186,8 @@ def build_playability_report(
         "scope": {
             "simulation_reports": len(simulations),
             "games": games,
-            "decisive_games": games - censored_games,
+            "decisive_games": games - censored_games - draws,
+            "draws": draws,
             "censored_games": censored_games,
             "battles": battles,
         },
