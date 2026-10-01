@@ -4,7 +4,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
 
-from ..protocol import PLAYER_COUNT
+from ..protocol import ObservationKind, ObservationZone, PLAYER_COUNT
 
 
 class Front(IntEnum):
@@ -138,11 +138,11 @@ class PlayerState:
 @dataclass(frozen=True)
 class ObservationEvent:
     turn_number: int
-    kind: str
+    kind: ObservationKind
     viewer: int
     owner: int
     card_id: str
-    zone: str
+    zone: ObservationZone
     delta: int = 0
     reason: str = ""
 
@@ -527,13 +527,13 @@ class GameState:
         viewer: int,
         owner: int,
         card_id: str,
-        zone: str,
+        zone: ObservationZone,
         delta: int,
         reason: str,
     ) -> None:
         if delta == 0:
             return
-        if zone == "hand":
+        if zone is ObservationZone.HAND:
             counter = self.known_hidden_hand[viewer][owner]
             updated = counter.get(card_id, 0) + delta
             if updated > 0:
@@ -543,7 +543,7 @@ class GameState:
         self.observations.append(
             ObservationEvent(
                 turn_number=self.turn_number,
-                kind="hidden_knowledge",
+                kind=ObservationKind.HIDDEN_KNOWLEDGE,
                 viewer=viewer,
                 owner=owner,
                 card_id=card_id,
@@ -565,7 +565,7 @@ class GameState:
         self.observations.append(
             ObservationEvent(
                 turn_number=self.turn_number,
-                kind="reveal",
+                kind=ObservationKind.REVEAL,
                 viewer=viewer,
                 owner=owner,
                 card_id=card_id,
@@ -578,15 +578,15 @@ class GameState:
         self,
         viewer: int,
         owner: int,
-        zone: str = "hand",
+        zone: ObservationZone = ObservationZone.HAND,
     ) -> Counter[str]:
-        if zone == "hand":
+        if zone is ObservationZone.HAND:
             return Counter(self.known_hidden_hand[viewer][owner])
 
         counts: Counter[str] = Counter()
         for event in self.observations:
             if (
-                event.kind == "hidden_knowledge"
+                event.kind is ObservationKind.HIDDEN_KNOWLEDGE
                 and event.viewer == viewer
                 and event.owner == owner
                 and event.zone == zone
