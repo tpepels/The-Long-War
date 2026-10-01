@@ -147,12 +147,9 @@ def test_live_progress_helpers_are_robust(tmp_path):
     assert runner._read_progress_count(progress, 24) == 0
 
     progress.write_text("7\n", encoding="utf-8")
-    assert runner._read_progress_count(progress, 24) == 7
+    assert runner._read_progress_count(progress, 24) == 0
 
-    progress.write_text("999\n", encoding="utf-8")
-    assert runner._read_progress_count(progress, 24) == 24
-
-    progress.write_text("not-a-number\n", encoding="utf-8")
+    progress.write_text("not-json\n", encoding="utf-8")
     assert runner._read_progress_count(progress, 24) == 0
 
     progress.write_text(
