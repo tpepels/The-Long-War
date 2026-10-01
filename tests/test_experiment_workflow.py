@@ -805,7 +805,10 @@ def test_balance_reuses_only_complete_matching_structural_cells() -> None:
     source = inspect.getsource(runner.balance_run)
     assert "reusing {len(cells)} complete structural matchup cells" in source
     assert "candidate_identity.get(\"game_fingerprint\")" in source
-    assert 'candidate_identity.get("config") != config' in source
+    assert '"games_per_cell",' in source
+    assert '"agent_profile",' in source
+    assert '"skip_failed_games",' in source
+    assert "candidate_structural_config != structural_config" in source
     assert 'payload.get("game_fingerprint")' in source
     assert 'int(payload.get("games", -1)) != games' in source
     assert 'int(payload.get("seed", -1)) != seed' in source
@@ -815,3 +818,14 @@ def test_balance_reuses_only_complete_matching_structural_cells() -> None:
     assert "output.parent.iterdir()" in source
     assert 'payload.get("agent_profile") != config["agent_profile"]' in source
     assert 'payload.get("rules") != asdict(engine.rules)' in source
+
+
+def test_structural_reuse_excludes_card_screen_only_configuration() -> None:
+    source = inspect.getsource(runner.balance_run)
+    structural_block = source[
+        source.index("structural_config = {"):
+        source.index("def load_reusable_structural")
+    ]
+    assert '"contexts"' not in structural_block
+    assert '"games_per_context"' not in structural_block
+    assert '"targeted_online_mccfr"' not in structural_block

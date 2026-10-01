@@ -433,6 +433,20 @@ def balance_run(args: argparse.Namespace) -> Path:
             f"{payload['first_player_wilson_95']}"
         )
 
+    structural_config = {
+        key: config[key]
+        for key in (
+            "games_per_cell",
+            "seed",
+            "agents",
+            "agent_profile",
+            "recovery_start",
+            "recovery_decrement",
+            "skip_failed_games",
+            "rules",
+        )
+    }
+
     def load_reusable_structural(
         candidate: Path,
     ) -> dict[str, dict[str, Any]]:
@@ -445,10 +459,15 @@ def balance_run(args: argparse.Namespace) -> Path:
             )
         except (OSError, json.JSONDecodeError):
             return {}
+        candidate_config = candidate_identity.get("config") or {}
+        candidate_structural_config = {
+            key: candidate_config.get(key)
+            for key in structural_config
+        }
         if (
             candidate_identity.get("game_fingerprint")
             != identity["game_fingerprint"]
-            or candidate_identity.get("config") != config
+            or candidate_structural_config != structural_config
         ):
             return {}
 
