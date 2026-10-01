@@ -2965,6 +2965,63 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
     return path
 
 
+def benchmark_ismcts_workers(args: argparse.Namespace) -> None:
+    """Measure end-to-end process scaling on one fixed ISMCTS game batch."""
+    from longwar.simulate import simulate_games
+
+    if args.games <= 0:
+        raise SystemExit("--games must be positive")
+    if any(jobs <= 0 for jobs in args.jobs):
+        raise SystemExit("--jobs values must be positive")
+    if args.ismcts_iterations <= 0 or args.ismcts_belief_samples <= 0:
+        raise SystemExit("ISMCTS budget values must be positive")
+    if args.ismcts_rollout_depth < 0:
+        raise SystemExit("--ismcts-rollout-depth must be non-negative")
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck_path = ROOT / args.deck
+    deck = json.loads(deck_path.read_text(encoding="utf-8"))["cards"]
+    rules = GameRules.standard().with_overrides(
+        pass_signal_costs_operation=True,
+        pass_closing_rounds=args.closing_rounds,
+    )
+    engine = GameEngine(data, rules=rules)
+
+    print(
+        "ISMCTS worker scaling: "
+        f"{args.games} fixed games, {args.ismcts_iterations:,} iterations, "
+        f"{args.ismcts_belief_samples} beliefs, depth "
+        f"{args.ismcts_rollout_depth}, {args.ismcts_rollout_policy}, "
+        f"closing-{args.closing_rounds}",
+        flush=True,
+    )
+
+    for jobs in args.jobs:
+        started = time.perf_counter()
+        report = simulate_games(
+            engine,
+            deck,
+            deck,
+            games=args.games,
+            seed=args.seed,
+            jobs=jobs,
+            agent_names=("ismcts", "ismcts"),
+            ismcts_iterations=args.ismcts_iterations,
+            ismcts_belief_samples=args.ismcts_belief_samples,
+            ismcts_rollout_depth=args.ismcts_rollout_depth,
+            ismcts_rollout_policy=args.ismcts_rollout_policy,
+        )
+        elapsed = time.perf_counter() - started
+        games_per_second = args.games / elapsed if elapsed > 0.0 else float("inf")
+        print(
+            f"jobs={jobs:>2} | {elapsed:>8.3f}s | "
+            f"{games_per_second:.3f} games/s | "
+            f"decisive={report.decisive_games} draws={report.draws} "
+            f"censored={report.censored_games} failed={report.failed_games}",
+            flush=True,
+        )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Local validation, canonical AI sanity checks, and gameplay analysis."
@@ -3327,6 +3384,34 @@ def parse_args() -> argparse.Namespace:
     speed.add_argument("--seed", type=int, default=26100100)
     speed.add_argument("--repeats", type=int, default=1)
 
+    workers = sub.add_parser(
+        "ismcts-workers",
+        help="Benchmark end-to-end ISMCTS game throughput across worker counts.",
+    )
+    workers.add_argument(
+        "--jobs",
+        type=int,
+        nargs="+",
+        default=[4, 8],
+        help="Worker counts to compare on the same fixed game batch.",
+    )
+    workers.add_argument("--games", type=int, default=8)
+    workers.add_argument("--seed", type=int, default=26100100)
+    workers.add_argument(
+        "--deck",
+        type=Path,
+        default=Path(DEFAULT_DECK_PATH),
+    )
+    workers.add_argument("--closing-rounds", type=int, default=3)
+    workers.add_argument("--ismcts-iterations", type=int, default=20_000)
+    workers.add_argument("--ismcts-belief-samples", type=int, default=12)
+    workers.add_argument("--ismcts-rollout-depth", type=int, default=8)
+    workers.add_argument(
+        "--ismcts-rollout-policy",
+        choices=("greedy", "cheap", "random", "decisive"),
+        default="decisive",
+    )
+
     strength = sub.add_parser(
         "strength-bench",
         help="Sanity-check canonical ISMCTS against alpha-beta.",
@@ -3376,6 +3461,8 @@ def main() -> None:
         pass_variant_run(args)
     elif args.command == "narrative-ablation":
         narrative_ablation_run(args)
+    elif args.command == "ismcts-workers":
+        benchmark_ismcts_workers(args)
     elif args.command == "validate":
         validate()
     elif args.command == "ismcts-speed":
