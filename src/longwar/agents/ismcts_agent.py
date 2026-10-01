@@ -8,7 +8,11 @@ from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState
-from ..heuristics import opening_mulligan_indices
+from ..heuristics import (
+    DEFAULT_HEURISTIC_WEIGHTS,
+    HeuristicWeights,
+    opening_mulligan_indices,
+)
 from ..native_search import ismcts_backend
 
 DEFAULT_ISMCTS_EXPLORATION = 0.3
@@ -61,6 +65,7 @@ class ISMCTSAgent:
         rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
         rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
         leaf_scale: float = 100.0,
+        heuristic_weights: HeuristicWeights | None = None,
     ):
         if belief_samples <= 0:
             raise ValueError("belief_samples must be positive")
@@ -111,8 +116,12 @@ class ISMCTSAgent:
             parsed_rollout_policy.name
         ].value
         self.leaf_scale = leaf_scale
+        self.heuristic_weights = heuristic_weights or DEFAULT_HEURISTIC_WEIGHTS
         self.fast_engine = FastEngine(engine)
-        self.evaluator = NativeHeuristicEvaluator(self.fast_engine)
+        self.evaluator = NativeHeuristicEvaluator(
+            self.fast_engine,
+            self.heuristic_weights,
+        )
         self._tree = ISMCTSTree(iterations, max_nodes=max_tree_nodes) if reuse_tree else None
         self.last_decision: dict[str, float | int | str | bool] = {}
 
@@ -199,6 +208,7 @@ class ISMCTSAgent:
                 "ismcts_rollout_policy": self.rollout_policy,
                 "ismcts_progressive_widening": self.progressive_widening,
                 "ismcts_tree_reuse_enabled": self.reuse_tree,
+                "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
                 "command_guard_applied": guarded > 0,
                 "command_guard_filtered_actions": guarded,
             }
@@ -391,6 +401,7 @@ class ISMCTSAgent:
             "ismcts_rollout_policy": self.rollout_policy,
             "ismcts_progressive_widening": self.progressive_widening,
             "ismcts_tree_reuse_enabled": self.reuse_tree,
+                "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
             "command_guard_applied": guarded > 0,
             "command_guard_filtered_actions": guarded,
             "command_guard_overrode_search": guard_overrode_search,
