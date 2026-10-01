@@ -699,3 +699,16 @@ def test_native_algorithm_hot_paths_do_not_compare_game_state_to_strings() -> No
             if pattern.search(line):
                 offenders.append(f"{path.name}:{lineno}: {line.strip()}")
     assert not offenders, "\n".join(offenders)
+
+
+def test_native_search_options_are_integer_coded_before_hot_loops() -> None:
+    agent = (SRC / "agents" / "ismcts_agent.py").read_text(encoding="utf-8")
+    native = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
+    mccfr_accel = (SRC / "_mccfr_accel.pyx").read_text(encoding="utf-8")
+
+    assert "RolloutPolicyCode" in agent
+    assert "self._rollout_policy_code" in agent
+    assert "int rollout_policy" in native
+    assert 'rollout_policy == "' not in native
+    assert "state.phase.value" not in mccfr_accel
+    assert "state.phase is _PHASE_COMPLETE" in mccfr_accel
