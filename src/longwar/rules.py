@@ -14,6 +14,7 @@ class GameRules:
     """
 
     opening_hand_size: int = 10
+    mulligan_max_cards: int = 2
     starting_command: int = 20
     command_cap: int = 20
     # Current balance candidate. The model is intentionally arithmetic:
