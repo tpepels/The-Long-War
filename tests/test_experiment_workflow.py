@@ -893,3 +893,35 @@ def test_experiment_fingerprint_tracks_measurement_semantics(tmp_path, monkeypat
     first = fingerprint.current_experiment_fingerprint()
     telemetry.write_text("two", encoding="utf-8")
     assert fingerprint.current_experiment_fingerprint() != first
+
+
+def test_ismcts_speed_helper_builds_python_pass_state() -> None:
+    from longwar.cards import load_card_file
+    from longwar.game import GameEngine
+    from longwar.game.model import Phase
+    from longwar.reference_decks import DEFAULT_DECK_PATH
+    from longwar.rules import GameRules
+    from tools.run_experiments import _prepare_ismcts_speed_position
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    rules = GameRules.standard().with_overrides(pass_closing_rounds=3)
+    engine = GameEngine(data, rules=rules)
+    deck = json.loads((ROOT / DEFAULT_DECK_PATH).read_text(encoding="utf-8"))["cards"]
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=26100100,
+        first_player=0,
+        opening_bonus=False,
+    )
+
+    _prepare_ismcts_speed_position(
+        engine,
+        state,
+        position="pass-active",
+    )
+
+    assert state.phase is Phase.BATTLE
+    assert len(state.pass_order) == 1
+    assert sum(player.passed for player in state.players) == 1
+    assert state.pass_closing_turns_remaining > 0
