@@ -113,30 +113,3 @@ class HeuristicAgent:
         player: int,
     ) -> float:
         return self.evaluator._state_value(engine, state, player)
-
-    def _score_action(
-        self,
-        engine: GameEngine,
-        state: GameState,
-        player: int,
-        action: Action,
-    ) -> float:
-        """Compatibility hook for search code; valuation lives in evaluator."""
-        return self.evaluator._score_action(engine, state, player, action)
-
-    def _state_value(
-        self,
-        engine: GameEngine,
-        state: GameState,
-        player: int,
-    ) -> float:
-        return self.evaluator._state_value(engine, state, player)
-
-    def _hand_construction_value(
-        self,
-        engine: GameEngine,
-        state: GameState,
-        player: int,
-    ) -> float:
-        return self.evaluator._hand_construction_value(engine, state, player)
-
