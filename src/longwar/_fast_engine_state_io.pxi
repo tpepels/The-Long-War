@@ -292,7 +292,7 @@ cdef FastState _fe_determinize_hidden_zones(
 
     if viewer < 0 or viewer > 1:
         raise ValueError("viewer must be 0 or 1")
-    opponent = 1 - viewer
+    opponent = other_player(viewer)
     if len(viewer_deck) != base.deck_len[viewer]:
         raise ValueError("viewer deck sample changed observable deck size")
     if len(opponent_hand) != base.hand_len[opponent]:
