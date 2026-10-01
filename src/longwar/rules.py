@@ -28,9 +28,13 @@ class GameRules:
     # consumes the turn and has no automatic closing countdown.
     pass_signal_costs_operation: bool = True
     pass_closing_rounds: int = 0
+    pass_min_operations_before_signal: int = 1
+    turn_draw_count: int = 1
     maneuver_command_cost: int = 1
     hand_limit: int = 10
     ongoing_narrative_limit: int = 2
+    hero_play_limit_per_battle: int = 1
+    stratagem_play_limit_per_battle: int = 1
 
     def __post_init__(self) -> None:
         for name, rule_field in self.__dataclass_fields__.items():
