@@ -134,7 +134,10 @@ cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int con
 cdef void _fe_resolve_ongoing_narrative_event(FastEngine self, FastState state, int actor, int event, int front, int trigger_slot=-1):
     cdef int controller, narrative_slot, ix, card
     for controller in (actor, other_player(actor)):
-        for narrative_slot in range(self.ongoing_narrative_limit):
+        # Revealing removes and compacts the Narrative array. Descending
+        # storage order prevents a shifted matching Narrative from being
+        # skipped.
+        for narrative_slot in range(self.ongoing_narrative_limit - 1, -1, -1):
             ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
             card = state.narrative[ix]
             if card < 0:
@@ -790,24 +793,23 @@ cdef void _fe_resolve_narrative_target_ongoing_narrative(FastEngine self, FastSt
     if pos < 0 or owner_from_slot(pos) != opponent:
         return
     front = front_from_slot(pos)
-    card = -1
-    for narrative_slot in range(self.ongoing_narrative_limit):
+    for narrative_slot in range(self.ongoing_narrative_limit - 1, -1, -1):
         ix = opponent * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+        card = state.narrative[ix]
+        if card < 0:
+            continue
+        if not (state.narrative_front_mask[ix] & (1 << front)):
+            continue
+        if self.ongoing_reveal_trigger[card] != EVENT_NARRATIVE_TARGET:
+            continue
         if (
-            state.narrative[ix] >= 0
-            and (state.narrative_front_mask[ix] & (1 << front))
-            and self.ongoing_reveal_trigger[state.narrative[ix]]
-            == EVENT_NARRATIVE_TARGET
+            self.ongoing_reveal_requires_force[card]
+            and not _fe_front_has_force(self, state, opponent, front)
         ):
-            card = state.narrative[ix]
-            break
-    if card < 0:
-        return
-    if self.ongoing_reveal_requires_force[card] and not _fe_front_has_force(self, state, opponent, front):
-        return
-    _fe_reveal_ongoing_narrative(
-        self, state, opponent, narrative_slot, front, actor, -1
-    )
+            continue
+        _fe_reveal_ongoing_narrative(
+            self, state, opponent, narrative_slot, front, actor, -1
+        )
 
 cdef void _fe_reshuffle_discard_into_deck(
     FastEngine self,
