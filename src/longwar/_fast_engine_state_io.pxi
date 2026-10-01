@@ -55,9 +55,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             for front_choice in strat.fronts:
                 fast.stratagem_front_mask[p] |= 1 << int(front_choice)
             if strat.direction == "left":
-                fast.stratagem_direction[p] = 1
+                fast.stratagem_direction[p] = DIRECTION_LEFT
             elif strat.direction == "right":
-                fast.stratagem_direction[p] = 2
+                fast.stratagem_direction[p] = DIRECTION_RIGHT
             for target_choice in strat.targets:
                 fast.stratagem_target_mask[p] |= (
                     1
@@ -84,9 +84,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     py_slot.maneuvered_in_operation
                 )
                 if py_slot.maneuver_direction == "left":
-                    fast.maneuver_direction[slot] = 1
+                    fast.maneuver_direction[slot] = DIRECTION_LEFT
                 elif py_slot.maneuver_direction == "right":
-                    fast.maneuver_direction[slot] = 2
+                    fast.maneuver_direction[slot] = DIRECTION_RIGHT
 
         for i, narrative in enumerate(state.narratives[p][:self.ongoing_narrative_limit]):
             fast.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + i] = self.id_to_code[narrative.card_id]
@@ -94,9 +94,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             fast.narrative_used[p * NARRATIVE_SLOTS_PER_PLAYER + i] = bool(narrative.triggered_this_battle)
             fast.narrative_trigger_mask[p * NARRATIVE_SLOTS_PER_PLAYER + i] = int(narrative.triggered_players_mask)
             if narrative.direction == "left":
-                fast.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] = 1
+                fast.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] = DIRECTION_LEFT
             elif narrative.direction == "right":
-                fast.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] = 2
+                fast.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] = DIRECTION_RIGHT
             for front_choice in narrative.fronts:
                 fast.narrative_front_mask[p * NARRATIVE_SLOTS_PER_PLAYER + i] |= 1 << int(front_choice)
             if narrative.target_position is not None and narrative.target_player is not None:
@@ -483,10 +483,10 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                             state.maneuvered_in_operation[slot_index(p, f, r)]
                         ),
                         "maneuver_direction": (
-                            "left"
-                            if state.maneuver_direction[slot_index(p, f, r)] == 1
-                            else "right"
-                            if state.maneuver_direction[slot_index(p, f, r)] == 2
+                            Direction.LEFT.value
+                            if state.maneuver_direction[slot_index(p, f, r)] == DIRECTION_LEFT
+                            else Direction.RIGHT.value
+                            if state.maneuver_direction[slot_index(p, f, r)] == DIRECTION_RIGHT
                             else None
                         ),
                     }
@@ -504,10 +504,10 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     "triggered_this_battle": bool(state.narrative_used[p * NARRATIVE_SLOTS_PER_PLAYER + i]),
                     "triggered_players_mask": state.narrative_trigger_mask[p * NARRATIVE_SLOTS_PER_PLAYER + i],
                     "direction": (
-                        "left"
-                        if state.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] == 1
-                        else "right"
-                        if state.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] == 2
+                        Direction.LEFT.value
+                        if state.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] == DIRECTION_LEFT
+                        else Direction.RIGHT.value
+                        if state.narrative_direction[p * NARRATIVE_SLOTS_PER_PLAYER + i] == DIRECTION_RIGHT
                         else None
                     ),
                     "target_slot": (
@@ -663,10 +663,10 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     else state.constraint_front[i]
                 ),
                 "direction": (
-                    "left"
-                    if state.constraint_direction[i] == 1
-                    else "right"
-                    if state.constraint_direction[i] == 2
+                    Direction.LEFT.value
+                    if state.constraint_direction[i] == DIRECTION_LEFT
+                    else Direction.RIGHT.value
+                    if state.constraint_direction[i] == DIRECTION_RIGHT
                     else None
                 ),
                 "source_slot": (
