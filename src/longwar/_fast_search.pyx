@@ -18,6 +18,7 @@ from longwar.protocol import (
     DesignField,
     DesignToken,
     Direction,
+    ForceRole,
     ObservationZone,
     PendingResume,
 )

@@ -70,6 +70,28 @@ def test_native_engine_consumes_compiled_card_mechanics() -> None:
         assert f"cdef uint8_t {capability}[MAX_CARDS]" not in native_class
 
 
+def test_native_card_loader_uses_typed_protocol_vocabulary() -> None:
+    """Native card compilation must consume shared vocabulary, not re-spell it."""
+    from longwar.game.model import Rank
+    from longwar.protocol import CardField, DesignField, DesignToken, ForceRole
+
+    source = (SRC / "_fast_engine_cards.pxi").read_text(encoding="utf-8")
+    typed_values = {
+        item.value
+        for enum_type in (CardField, DesignField, DesignToken, ForceRole, Rank)
+        for item in enum_type
+    }
+    leaked = sorted(
+        value
+        for value in typed_values
+        if re.search(
+            rf"""(?P<quote>['"]){re.escape(str(value))}(?P=quote)""",
+            source,
+        )
+    )
+    assert not leaked, f"native card loader duplicates typed values: {leaked}"
+
+
 def test_runtime_and_search_do_not_special_case_card_ids() -> None:
     """Cards express capabilities as data; implementations never branch on ids.
 

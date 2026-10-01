@@ -168,14 +168,24 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     self.id_to_code = {card_id: i for i, card_id in enumerate(self.card_ids)}
 
     type_map = {CardType.FORCE: CARD_FORCE, CardType.BOND: CARD_BOND, CardType.NAME: CARD_NAME, CardType.NARRATIVE: CARD_NARRATIVE, CardType.STRATAGEM: CARD_STRATAGEM}
-    role_map = {"swordsman": ROLE_SWORDSMAN, "spearman": ROLE_SPEARMAN, "archer": ROLE_ARCHER, "healer": ROLE_HEALER, "ship": ROLE_SHIP, "stronghold": ROLE_STRONGHOLD}
-    rank_map = {"front": 0, "rear": 1}
+    role_map = {
+        ForceRole.SWORDSMAN.value: ROLE_SWORDSMAN,
+        ForceRole.SPEARMAN.value: ROLE_SPEARMAN,
+        ForceRole.ARCHER.value: ROLE_ARCHER,
+        ForceRole.HEALER.value: ROLE_HEALER,
+        ForceRole.SHIP.value: ROLE_SHIP,
+        ForceRole.STRONGHOLD.value: ROLE_STRONGHOLD,
+    }
+    rank_map = {
+        Rank.FRONT.value: RANK_FRONT,
+        Rank.REAR.value: RANK_REAR,
+    }
     force_text_map = {
-        "frontline_strength_bonus": FORCE_TEXT_FRONT_BONUS,
-        "rear_strength_bonus": FORCE_TEXT_REAR_BONUS,
-        "support_force_ahead_strength_bonus": FORCE_TEXT_SUPPORT_AHEAD,
-        "frontline_strength_bonus_if_force_behind": FORCE_TEXT_FRONT_IF_REAR,
-        "rear_strength_bonus_if_force_ahead": FORCE_TEXT_REAR_IF_FRONT,
+        DesignToken.FRONTLINE_STRENGTH_BONUS.value: FORCE_TEXT_FRONT_BONUS,
+        DesignToken.REAR_STRENGTH_BONUS.value: FORCE_TEXT_REAR_BONUS,
+        DesignToken.SUPPORT_FORCE_AHEAD_STRENGTH_BONUS.value: FORCE_TEXT_SUPPORT_AHEAD,
+        DesignToken.FRONTLINE_STRENGTH_BONUS_IF_FORCE_BEHIND.value: FORCE_TEXT_FRONT_IF_REAR,
+        DesignToken.REAR_STRENGTH_BONUS_IF_FORCE_AHEAD.value: FORCE_TEXT_REAR_IF_FRONT,
     }
     for code, card_id in enumerate(self.card_ids):
         card = engine.cards[card_id]
@@ -184,7 +194,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         self.strength[code] = int(card.get(CardField.STRENGTH, 0))
         self.name_strength[code] = int(
             card.get(
-                "hero_name_strength",
+                CardField.HERO_NAME_STRENGTH,
                 card.get(CardField.STRENGTH, 0) if card[CardField.TYPE] == CardType.NAME else 0,
             )
         )
@@ -234,15 +244,15 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         ):
             if design.get(DesignField.GAIN_COMMAND):
                 self.completion_effect[code] = COMPLETE_GAIN_COMMAND
-                self.completion_amount[code] = int(design["gain_command"])
+                self.completion_amount[code] = int(design[DesignField.GAIN_COMMAND])
             elif design.get(DesignField.DRAW_CARDS):
                 self.completion_effect[code] = COMPLETE_DRAW
-                self.completion_amount[code] = int(design["draw_cards"])
+                self.completion_amount[code] = int(design[DesignField.DRAW_CARDS])
         if design.get(DesignField.COMMAND) == DesignToken.COMPLETION_REFUND:
             completion_design = design.get(DesignField.ON_COMPLETION) or {}
             if completion_design.get(DesignField.GAIN_COMMAND):
                 self.completion_effect[code] = COMPLETE_GAIN_COMMAND
-                self.completion_amount[code] = int(completion_design["gain_command"])
+                self.completion_amount[code] = int(completion_design[DesignField.GAIN_COMMAND])
 
         placement = (
             force_design.get(DesignField.DEPLOY_RANK)
