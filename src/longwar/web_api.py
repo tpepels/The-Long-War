@@ -152,7 +152,7 @@ class PlaySession:
             self.mulligan_player = 1
             return self.snapshot(None)
 
-        if self.parsed_mode == GameMode.COMPUTER:
+        if self.mode == GameMode.COMPUTER:
             agent = self.agents[1]
             self.mulligan_choices[1] = (
                 agent.choose_mulligan(
