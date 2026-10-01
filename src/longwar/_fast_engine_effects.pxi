@@ -28,17 +28,17 @@ cdef bint _fe_remove_from_discard(
 cdef inline void _fe_take_from_hand(FastEngine self, FastState state, int player, int card, int hidden_kind) noexcept:
     cdef int viewer = other_player(player)
     cdef int known
-    if hidden_kind == 0:
+    if hidden_kind == HIDDEN_KNOWN_SINGLE_CARD:
         if state.known_hidden[viewer][player][card] > 0:
             state.known_hidden[viewer][player][card] -= 1
     else:
         for known in range(self.n_cards):
             if state.known_hidden[viewer][player][known] == 0:
                 continue
-            if hidden_kind == 1:
+            if hidden_kind == HIDDEN_KNOWN_ONGOING_NARRATIVE:
                 if self.card_type[known] == CARD_NARRATIVE and self.ongoing_narrative[known]:
                     state.known_hidden[viewer][player][known] -= 1
-            elif hidden_kind == 2:
+            elif hidden_kind == HIDDEN_KNOWN_STRATAGEM:
                 if self.card_type[known] == CARD_STRATAGEM:
                     state.known_hidden[viewer][player][known] -= 1
     state.hand[player][card] -= 1
@@ -771,7 +771,7 @@ cdef void _fe_resolve_maneuver_triggers(
                 True, False, other_name
             )
         if (
-            abs(front_from_slot(other) - front) == 1
+            abs(front_from_slot(other) - front) == ADJACENT_FRONT_DISTANCE
             and self.reactive_maneuver_name[other_name]
         ):
             _fe_queue_free_maneuver(
