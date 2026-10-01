@@ -278,45 +278,20 @@ def test_print_build_version_is_stamped_everywhere() -> None:
     assert ".print-version" in site_css
 
 
-def test_rulebook_print_uses_three_composed_pages() -> None:
-    css = text("web/rules.css")
-    builder = text("tools/build_pages.py")
+def test_rulebook_print_is_typst_and_separate_from_web_layout() -> None:
+    page_builder = text("tools/build_pages.py")
+    pdf_builder = text("tools/build_rulebook_pdf.py")
     template = text("web/rulebook.template.html")
 
-    assert "@page rulebook" in css
-    assert "size: A4 portrait;" in css
-    assert "build_rulebook_print_pages" in builder
-    assert "Expected 17 rulebook sections" in builder
-    assert 'data-page="{number}"' in builder
-    assert "Page {number} of 3" in builder
-    assert "TLW print v{{{{PRINT_VERSION}}}}" in builder
-    assert 'assets/rulebook-battlefield.svg' in builder
-    assert "rulebook-print-shell" in template
-    assert "{{RULEBOOK_PRINT}}" in template
-
-    explicit_css = css[css.index("v0.8 explicit print pages"):]
-    assert ".rulebook-print-page {" in explicit_css
-    assert "height: 270mm;" in explicit_css
-    assert "break-after: page;" in explicit_css
-    assert ".rulebook-print-page:last-child" in explicit_css
-    assert "page-break-after: auto;" in explicit_css
-    assert ".rulebook-print-columns {" in explicit_css
-    assert "display: table;" in explicit_css
-    assert "display: table-cell;" in explicit_css
-    assert "column-count" not in explicit_css
-    assert ".rulebook-print-page1-lower" in explicit_css
-    assert ".rulebook-print-reference-row" in explicit_css
-    assert ".rulebook-print-goal-copy {" in explicit_css
-    assert "flex: 0 0 42%;" in explicit_css
-    assert ".rulebook-battlefield-figure img" in explicit_css
-    assert "overflow: hidden;" in explicit_css
-
-    # Rulebook version markers live inside every explicit page; the generic
-    # fixed stamp is deliberately skipped because it created a blank page.
-    assert 'page.name != "rulebook.html"' in builder
-    assert 'source.replace("{{PRINT_VERSION}}", version)' in builder
-
-
+    assert 'TYPST_SOURCE = DIST / "rulebook.typ"' in pdf_builder
+    assert 'OUTPUT = DIST / "rulebook.pdf"' in pdf_builder
+    assert "#columns(2, gutter: 9mm)[" in pdf_builder
+    assert "PdfReader" in pdf_builder
+    assert "TLW print v" in pdf_builder
+    assert "build_rulebook_print_pages" not in page_builder
+    assert "{{RULEBOOK_PRINT}}" not in template
+    assert "rulebook-print-shell" not in template
+    assert 'href="rulebook.pdf?v={{PRINT_VERSION}}"' in template
 
 
 def test_rulebook_uses_generated_pdf_for_printing() -> None:
@@ -325,13 +300,18 @@ def test_rulebook_uses_generated_pdf_for_printing() -> None:
     template = text("web/rulebook.template.html")
     generator = text("tools/build_rulebook_pdf.py")
 
-    assert "WeasyPrint>=66.0" in pyproject
+    assert "WeasyPrint" not in pyproject
+    assert "pypdf" in pyproject
+    assert "typst-community/setup-typst@v5" in workflow
+    assert "typst-version: 0.15.1" in workflow
     assert "python tools/build_rulebook_pdf.py" in workflow
     assert 'href="rulebook.pdf?v={{PRINT_VERSION}}"' in template
     assert "window.print()" not in template
-    assert "EXPECTED_PAGES = 3" in generator
-    assert "len(document.pages) != EXPECTED_PAGES" in generator
-    assert "document.write_pdf" in generator
+    assert 'OUTPUT = DIST / "rulebook.pdf"' in generator
+    assert '"compile"' in generator
+    assert "MAX_PAGES = 6" in generator
+    assert "2 <= len(reader.pages) <= MAX_PAGES" in generator
+    assert "blank or nearly blank" in generator
 
 def test_stale_build_legends_copy_is_gone() -> None:
     for path in (
