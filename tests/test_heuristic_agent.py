@@ -270,7 +270,7 @@ def test_heuristic_penalizes_rear_named_formation_that_would_be_driven_off() -> 
     )
 
 
-def test_heuristic_accounts_for_pre_recovery_command_collapse() -> None:
+def test_heuristic_treats_midbattle_zero_command_as_risk_not_terminal() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=13, exploration=0.0)
 
@@ -290,9 +290,12 @@ def test_heuristic_accounts_for_pre_recovery_command_collapse() -> None:
     safe_value = agent.evaluate(engine, safe, 0)
     collapse_value = agent.evaluate(engine, collapse_risk, 0)
 
-    # Collapse is checked before recovery. Equal positive Command continues,
-    # while unilateral 0 vs positive Command is a near-terminal losing state.
-    assert safe_value - collapse_value > 20.0
+    # Collapse is checked only at Battle end. Zero Command mid-Battle is bad
+    # but card/Retreat effects and the remaining Battle can still change the
+    # eventual pre-Collapse Command state.
+    difference = safe_value - collapse_value
+    assert difference > 0.0
+    assert difference < 20.0
 
 
 def test_heuristic_prefers_strength_that_changes_a_front_over_overcommitment() -> None:
