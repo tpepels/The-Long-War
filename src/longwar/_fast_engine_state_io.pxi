@@ -346,7 +346,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     state.last_front_scores[f][0],
                     state.last_front_scores[f][1],
                 ]
-                for f in range(4)
+                for f in range(FRONT_COUNT)
             ],
             "front_results": [
                 (
@@ -356,7 +356,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     if state.last_lost_mask[1] & (1 << f)
                     else None
                 )
-                for f in range(4)
+                for f in range(FRONT_COUNT)
             ],
             "fronts_lost": [lost0, lost1],
             "command_start": [
@@ -446,7 +446,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                 "passed": bool(state.passed[p]),
                 "command": state.command[p],
             }
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "board": [
             [
@@ -490,11 +490,11 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                             else None
                         ),
                     }
-                    for r in range(2)
+                    for r in range(RANK_COUNT)
                 ]
-                for f in range(4)
+                for f in range(FRONT_COUNT)
             ]
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "narratives": [
             [
@@ -519,7 +519,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                 for i in range(self.ongoing_narrative_limit)
                 if state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + i] >= 0
             ]
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "stratagems": [
             (
@@ -532,7 +532,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     "target_mask": state.stratagem_target_mask[p],
                 }
             )
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "stratagem_used": [
             bool(state.stratagem_used[0]),
@@ -643,7 +643,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             None
             if state.free_maneuver_source[p] < 0
             else self.card_ids[state.free_maneuver_source[p]]
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "constraints": [
             {
@@ -723,9 +723,9 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     for card in range(self.n_cards)
                     if state.known_hidden[viewer][owner][card]
                 }
-                for owner in range(2)
+                for owner in range(PLAYER_COUNT)
             ]
-            for viewer in range(2)
+            for viewer in range(PLAYER_COUNT)
         ],
         "last_battle_snapshot": last_snapshot,
     }
@@ -749,15 +749,15 @@ cdef dict _fe_debug_snapshot(FastEngine self, FastState state):
         "pending_draw_finish_operation": bool(state.pending_draw_finish_operation),
         "hands": [
             {self.card_ids[card]: state.hand[p][card] for card in range(self.n_cards) if state.hand[p][card]}
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "decks": [
             [self.card_ids[state.deck[p][i]] for i in range(state.deck_len[p])]
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "discards": [
             [self.card_ids[state.discard[p][i]] for i in range(state.discard_len[p])]
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "board": [
             [
@@ -767,20 +767,20 @@ cdef dict _fe_debug_snapshot(FastEngine self, FastState state):
                     None if state.name[slot_index(p, f, r)] < 0 else self.card_ids[state.name[slot_index(p, f, r)]],
                     state.temporary[slot_index(p, f, r)],
                 )
-                for f in range(4) for r in range(2)
+                for f in range(FRONT_COUNT) for r in range(RANK_COUNT)
             ]
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "narratives": [
             [
                 None if state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + f] < 0 else (self.card_ids[state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + f]], bool(state.narrative_revealed[p * NARRATIVE_SLOTS_PER_PLAYER + f]))
-                for f in range(4)
+                for f in range(FRONT_COUNT)
             ]
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "stratagems": [
             None if state.stratagem[p] < 0 else (self.card_ids[state.stratagem[p]], bool(state.stratagem_revealed[p]))
-            for p in range(2)
+            for p in range(PLAYER_COUNT)
         ],
         "stratagem_used": [bool(state.stratagem_used[0]), bool(state.stratagem_used[1])],
         "hero_used": [bool(state.hero_used[0]), bool(state.hero_used[1])],
