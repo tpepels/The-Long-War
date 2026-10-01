@@ -611,20 +611,21 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.command[0] <= self.command_collapse_threshold
         or state.command[1] <= self.command_collapse_threshold
     ):
+        state.phase = PHASE_COMPLETE
         if state.command[0] < state.command[1]:
-            state.phase = PHASE_COMPLETE
             state.winner = 1
         elif state.command[1] < state.command[0]:
-            state.phase = PHASE_COMPLETE
             state.winner = 0
-        if state.phase == PHASE_COMPLETE:
-            state.cleanup_pending = 0
-            state.pending_resume = RESUME_NONE
-            state.pending_resume_player = -1
-            _fe_clear_resolution_state(self, state)
-            return
+        else:
+            # Simultaneous Command Collapse is a draw.
+            state.winner = -1
+        state.cleanup_pending = 0
+        state.pending_resume = RESUME_NONE
+        state.pending_resume_player = -1
+        _fe_clear_resolution_state(self, state)
+        return
 
-    # Equal exhausted Command continues. Only a continuing war receives recovery.
+    # Only a continuing war receives recovery.
     # Front losses have already reduced current Command; they do not reduce
     # recovery a second time.
     for p in range(2):

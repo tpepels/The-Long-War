@@ -219,6 +219,8 @@ cdef double _packed_traverse(
     cdef double cumulative = 0.0
 
     if state.phase == PHASE_COMPLETE:
+        if state.winner < 0:
+            return 0.0
         return 1.0 if state.winner == traverser else -1.0
 
     if depth >= max_depth:

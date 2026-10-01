@@ -99,6 +99,7 @@ class SimulationReport:
     games: int
     agents: tuple[str, str]
     wins: tuple[int, int]
+    draws: int
     censored_games: int
     failed_games: int
     first_player_wins: int
@@ -110,7 +111,7 @@ class SimulationReport:
 
     @property
     def decisive_games(self) -> int:
-        return self.games - self.censored_games - self.failed_games
+        return self.games - self.censored_games - self.failed_games - self.draws
 
     @property
     def win_rates(self) -> tuple[float, float]:
@@ -118,6 +119,11 @@ class SimulationReport:
         if denominator <= 0:
             return (0.0, 0.0)
         return tuple(win / denominator for win in self.wins)  # type: ignore[return-value]
+
+    @property
+    def draw_rate(self) -> float:
+        resolved = self.decisive_games + self.draws
+        return self.draws / resolved if resolved > 0 else 0.0
 
     @property
     def censor_rate(self) -> float:
@@ -274,6 +280,7 @@ def _simulate_games_serial(
         raise ValueError("games must be positive")
 
     wins = [0, 0]
+    draws = 0
     censored_games = 0
     failed_games = 0
     first_player_wins = 0
@@ -423,10 +430,17 @@ def _simulate_games_serial(
                 del decision_info, before, action, agent
 
             winner = None if censored else state.winner
-            if not censored and winner is None:
-                raise RuntimeError("Completed game has no winner")
+            draw = (
+                not censored
+                and state.phase is Phase.COMPLETE
+                and winner is None
+            )
 
-            game_telemetry.finish_game(winner, state)
+            game_telemetry.finish_game(
+                winner,
+                state,
+                censored=censored,
+            )
             telemetry.merge(game_telemetry)
             human_flow.merge(game_human_flow)
             censor_reason = None
@@ -446,6 +460,7 @@ def _simulate_games_serial(
                 "seed": game_seed,
                 "first_player": first_player,
                 "winner": winner,
+                "draw": draw,
                 "censored": censored,
                 "censor_reason": censor_reason,
                 "actions_completed": action_count,
@@ -459,7 +474,10 @@ def _simulate_games_serial(
             })
             if censored:
                 censored_games += 1
+            elif draw:
+                draws += 1
             else:
+                assert winner in (0, 1)
                 wins[winner] += 1
                 if winner == first_player:
                     first_player_wins += 1
@@ -508,6 +526,7 @@ def _simulate_games_serial(
         games=games,
         agents=labels,
         wins=(wins[0], wins[1]),
+        draws=draws,
         censored_games=censored_games,
         failed_games=failed_games,
         first_player_wins=first_player_wins,
@@ -565,6 +584,7 @@ def _aggregate_raw_simulation_results(
     telemetry = Telemetry()
     human_flow = HumanFlowDiagnostics()
     wins = [0, 0]
+    draws = 0
     censored_games = 0
     failed_games = 0
     first_player_wins = 0
@@ -581,6 +601,7 @@ def _aggregate_raw_simulation_results(
         human_flow.merge(result.human_flow)
         wins[0] += report.wins[0]
         wins[1] += report.wins[1]
+        draws += report.draws
         censored_games += report.censored_games
         failed_games += report.failed_games
         first_player_wins += report.first_player_wins
@@ -596,6 +617,7 @@ def _aggregate_raw_simulation_results(
         games=games,
         agents=agents,
         wins=(wins[0], wins[1]),
+        draws=draws,
         censored_games=censored_games,
         failed_games=failed_games,
         first_player_wins=first_player_wins,
@@ -797,6 +819,7 @@ def simulate_games(
     telemetry = Telemetry()
     human_flow = HumanFlowDiagnostics()
     wins = [0, 0]
+    draws = 0
     censored_games = 0
     failed_games = 0
     first_player_wins = 0
@@ -828,6 +851,7 @@ def simulate_games(
         games=games,
         agents=agents,
         wins=(wins[0], wins[1]),
+        draws=draws,
         censored_games=censored_games,
         failed_games=failed_games,
         first_player_wins=first_player_wins,

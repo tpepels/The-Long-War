@@ -44,6 +44,8 @@ cdef class NativeHeuristicEvaluator:
         cdef double score = 0.0, option = 0.0
 
         if state.phase == PHASE_COMPLETE:
+            if state.winner < 0:
+                return 0.0
             return 10000.0 if state.winner == player else -10000.0
 
         # The first player of a fresh Battle gets the first operation after

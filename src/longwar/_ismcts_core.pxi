@@ -772,7 +772,10 @@ def ismcts_search(
 
         if state.phase == PHASE_COMPLETE:
             rollouts_stopped_terminal += 1
-            utility = 1.0 if state.winner == root_player else -1.0
+            if state.winner < 0:
+                utility = 0.0
+            else:
+                utility = 1.0 if state.winner == root_player else -1.0
         elif rollout_boundary:
             rollouts_stopped_battle_boundary += 1
             utility = tanh(

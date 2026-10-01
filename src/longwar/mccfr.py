@@ -388,7 +388,9 @@ class MCCFRTrainer:
             rng=self.rng,
             is_terminal=lambda current: current.phase is Phase.COMPLETE,
             terminal_utility=lambda current, player: (
-                1.0 if current.winner == player else -1.0
+                0.0
+                if current.winner is None
+                else 1.0 if current.winner == player else -1.0
             ),
             current_player=lambda current: current.active_player,
             legal_actions=self.engine.legal_actions,

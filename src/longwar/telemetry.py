@@ -562,9 +562,15 @@ class Telemetry:
             self._record_battle(engine, before, state)
             self._battle_actions = [0, 0]
 
-    def finish_game(self, winner: int | None, state: GameState | None = None) -> None:
+    def finish_game(
+        self,
+        winner: int | None,
+        state: GameState | None = None,
+        *,
+        censored: bool = False,
+    ) -> None:
         self._match_count += 1
-        self.progression.finish_game(state, censored=winner is None)
+        self.progression.finish_game(state, censored=censored)
         self._deck_exhausted_player_games += sum(self._deck_exhausted_this_game)
         self._reshuffle_player_games += sum(self._reshuffled_this_game)
         for player in range(2):

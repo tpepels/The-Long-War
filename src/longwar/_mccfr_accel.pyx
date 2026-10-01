@@ -259,6 +259,8 @@ def longwar_external_sampling_traverse(
         scratch_by_depth = {}
 
     if state.phase.value == "complete":
+        if state.winner is None:
+            return 0.0
         return 1.0 if state.winner == traverser else -1.0
 
     if depth >= trainer.max_depth:
