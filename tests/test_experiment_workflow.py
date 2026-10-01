@@ -417,17 +417,44 @@ def test_strength_sanity_check_defaults(monkeypatch):
     assert args.time_budget_seconds == pytest.approx(5.0)
 
 
-def test_long_running_cli_entrypoints_default_to_eight_workers() -> None:
-    simulate_source = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
-    counterfactual_source = (ROOT / "tools" / "counterfactual_balance.py").read_text(encoding="utf-8")
-    targeted_source = (ROOT / "tools" / "targeted_online_counterfactual.py").read_text(encoding="utf-8")
-    mccfr_source = (ROOT / "tools" / "train_mccfr.py").read_text(encoding="utf-8")
+def test_long_running_entrypoints_share_eight_worker_default() -> None:
+    from longwar.parallelism import DEFAULT_WORKERS
 
-    assert 'parser.add_argument("--jobs", type=int, default=8' in simulate_source
-    assert 'parser.add_argument("--jobs", type=int, default=8' in counterfactual_source
-    assert 'parser.add_argument("--jobs", type=int, default=8' in targeted_source
-    assert 'default=8' in mccfr_source
-    assert 'total_iterations=args.iterations' in mccfr_source
+    assert DEFAULT_WORKERS == 8
+
+    sources = {
+        path: (ROOT / path).read_text(encoding="utf-8")
+        for path in (
+            "tools/simulate.py",
+            "tools/counterfactual_balance.py",
+            "tools/targeted_online_counterfactual.py",
+            "tools/train_mccfr.py",
+            "tools/benchmark_parallel_mccfr.py",
+            "tools/run_experiments.py",
+            "tools/full_lab.py",
+        )
+    }
+    for source in sources.values():
+        assert "DEFAULT_WORKERS" in source
+
+    simulate_api = (ROOT / "src" / "longwar" / "simulate.py").read_text(
+        encoding="utf-8"
+    )
+    counterfactual_api = (
+        ROOT / "src" / "longwar" / "counterfactual.py"
+    ).read_text(encoding="utf-8")
+    targeted_api = (
+        ROOT / "src" / "longwar" / "targeted_counterfactual.py"
+    ).read_text(encoding="utf-8")
+    parallel_mccfr_api = (
+        ROOT / "src" / "longwar" / "parallel_mccfr.py"
+    ).read_text(encoding="utf-8")
+
+    assert "jobs: int = DEFAULT_WORKERS" in simulate_api
+    assert "jobs: int = DEFAULT_WORKERS" in counterfactual_api
+    assert "jobs: int = DEFAULT_WORKERS" in targeted_api
+    assert "workers: int = DEFAULT_WORKERS" in parallel_mccfr_api
+    assert "total_iterations=args.iterations" in sources["tools/train_mccfr.py"]
 
 
 def test_makefile_has_one_configurable_experiment_entrypoint():
@@ -459,7 +486,7 @@ def test_make_balance_uses_shared_ismcts_default() -> None:
     )
     assert "--agent ismcts" in balance_line
     assert "--games 24" in balance_line
-    assert "--jobs 8" in balance_line
+    assert "--jobs $(WORKERS)" in balance_line
     assert "--ismcts-iterations" not in balance_line
     assert "--ismcts-time-budget-seconds" not in balance_line
 
