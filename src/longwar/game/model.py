@@ -4,6 +4,8 @@ from collections import Counter
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
 
+from ..protocol import PLAYER_COUNT
+
 
 class Front(IntEnum):
     FIRST = 0
@@ -29,9 +31,10 @@ class ConstraintKind(str, Enum):
 
 
 RANK_INDEX = {Rank.FRONT: 0, Rank.REAR: 1}
-FRONT_COUNT = 4
-RANK_COUNT = 2
+FRONT_COUNT = len(Front)
+RANK_COUNT = len(Rank)
 POSITIONS_PER_PLAYER = FRONT_COUNT * RANK_COUNT
+TOTAL_POSITION_COUNT = PLAYER_COUNT * POSITIONS_PER_PLAYER
 
 
 @dataclass(frozen=True, order=True)
