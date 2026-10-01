@@ -560,7 +560,7 @@ class GameState:
         viewer: int,
         owner: int,
         card_id: str,
-        zone: str,
+        zone: ObservationZone,
         reason: str,
     ) -> None:
         zone = ObservationZone(zone)
@@ -603,7 +603,7 @@ class GameState:
         self,
         viewer: int,
         owner: int,
-        zone: str = "hand",
+        zone: ObservationZone = ObservationZone.HAND,
     ) -> list[str]:
         counts = self.known_hidden_counter(viewer, owner, zone)
         return [
@@ -617,6 +617,6 @@ class GameState:
         viewer: int,
         owner: int,
         card_id: str,
-        zone: str = "hand",
+        zone: ObservationZone = ObservationZone.HAND,
     ) -> int:
         return self.known_hidden_counter(viewer, owner, zone).get(card_id, 0)
