@@ -177,6 +177,13 @@ class RuleBlockKind(StrEnum):
     REPLACEMENT = "replacement"
 
 
+class RuleBlockField(StrEnum):
+    KIND = "kind"
+    LABEL = "label"
+    TEXT = "text"
+    MODE = "mode"
+
+
 class CardField(StrEnum):
     ID = "id"
     TITLE = "title"
