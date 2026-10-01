@@ -15,6 +15,7 @@ from longwar.protocol import (
     NarrativeForm,
     PlaySetupMode,
     PolicySource,
+    RuleBlockField,
     RuleBlockKind,
 )
 
@@ -38,6 +39,7 @@ def payload() -> dict[str, dict[str, object]]:
         "playSetupMode": enum_payload(PlaySetupMode),
         "policySource": enum_payload(PolicySource),
         "rank": enum_payload(Rank),
+        "ruleBlockField": enum_payload(RuleBlockField),
         "ruleBlockKind": enum_payload(RuleBlockKind),
     }
 
