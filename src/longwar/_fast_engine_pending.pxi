@@ -313,7 +313,7 @@ cdef void _fe_consume_operation_constraints(
         _fe_remove_constraint_at(state, i)
         if satisfied and flags & CONSTRAINT_DRAW_ON_SATISFY:
             _fe_queue_battle_draws(self, state, actor, 1)
-        if flags & CONSTRAINT_DISCARD_SOURCE_STORY:
+        if flags & CONSTRAINT_DISCARD_SOURCE_NARRATIVE:
             _fe_discard_narrative_by_card(self, state, owner, card)
         i -= 1
 
@@ -503,7 +503,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                     | CONSTRAINT_PERSISTS_BATTLE
                     | CONSTRAINT_ZERO_COST
                     | CONSTRAINT_DRAW_ON_SATISFY
-                    | CONSTRAINT_DISCARD_SOURCE_STORY
+                    | CONSTRAINT_DISCARD_SOURCE_NARRATIVE
                 ),
             )
 
