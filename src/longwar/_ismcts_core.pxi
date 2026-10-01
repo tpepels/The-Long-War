@@ -471,19 +471,15 @@ cdef uint64_t _ismcts_rollout_action(
     NativeHeuristicEvaluator evaluator,
     FastState state,
     FastState score_scratch,
-    FastState reply_scratch,
     uint64_t* rng,
     double epsilon,
     int policy,
     long* decisive_probes,
     long* decisive_actions,
-    long* anti_decisive_probes,
-    long* anti_decisive_filtered,
 ) except *:
     cdef uint64_t actions[MAX_ACTIONS]
     cdef double weights[MAX_ACTIONS]
     cdef int safe_indices[MAX_ACTIONS]
-    cdef int anti_safe_indices[MAX_ACTIONS]
     cdef int n = _fe_legal_actions_into(engine, state, &actions[0])
     cdef int actor = state.active_player
     cdef int i, best_ix=0, safe_n=0, pick
@@ -622,7 +618,6 @@ def ismcts_search(
 ):
     cdef FastState state = FastState()
     cdef FastState score_scratch = FastState()
-    cdef FastState reply_scratch = FastState()
     cdef FastState sampled
     cdef InfoHash128 key, root_key
     cdef ISMCTSNodeRecord* root_node
@@ -807,14 +802,11 @@ def ismcts_search(
                 evaluator,
                 state,
                 score_scratch,
-                reply_scratch,
                 &rng,
                 rollout_epsilon,
                 rollout_policy,
                 &decisive_rollout_probes,
                 &decisive_rollout_actions,
-                &anti_decisive_rollout_probes,
-                &anti_decisive_rollout_filtered,
             )
             _fe_apply_fast(engine, state, action)
             rollout_steps += 1
