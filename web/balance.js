@@ -109,58 +109,6 @@ function annotateMechanicsCoverage(lab, cardData) {
   }
 }
 
-function normalizeLegacyTelemetry(lab) {
-  const cards = lab.health?.cards || [];
-  const hasCurrentDeadness = cards.some((row) =>
-    Object.prototype.hasOwnProperty.call(row, "structural_unplayable_turn_rate")
-  );
-  if (!cards.length || hasCurrentDeadness) return false;
-
-  const invalidDeadnessCodes = new Set(["dead_draw", "dead_on_pass"]);
-  const labels = {
-    red: "Critical",
-    orange: "Needs balancing",
-    yellow: "Watch",
-    green: "Looks healthy",
-    dark_green: "Well-supported healthy",
-    unobserved: "Unobserved",
-  };
-
-  for (const row of cards) {
-    row.flags = (row.flags || []).filter((flag) => !invalidDeadnessCodes.has(flag.code));
-    row.structural_unplayable_turn_rate = null;
-    row.resource_blocked_turn_rate = null;
-    row.structural_dead_on_pass_rate = null;
-    row.resource_blocked_on_pass_rate = null;
-
-    if ((row.balance_evidence_source || "observational") !== "observational") {
-      continue;
-    }
-    if (row.observed === false) {
-      row.balance_level = "unobserved";
-    } else {
-      const high = row.flags.filter((flag) => flag.severity === "high").length;
-      const watch = row.flags.filter((flag) => flag.severity === "watch").length;
-      if (high >= 2) row.balance_level = "red";
-      else if (high >= 1 || watch >= 2) row.balance_level = "orange";
-      else if (watch === 1) row.balance_level = "yellow";
-      else row.balance_level = row.evidence_strong ? "dark_green" : "green";
-    }
-    row.balance_label = labels[row.balance_level] || row.balance_label;
-  }
-
-  const summary = lab.health.summary || {};
-  summary.flags_high = cards.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "high").length;
-  summary.flags_watch = cards.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "watch").length;
-  summary.flags_diagnostic = cards.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "diagnostic").length;
-  summary.card_levels = cards.reduce((counts, row) => {
-    counts[row.balance_level] = (counts[row.balance_level] || 0) + 1;
-    return counts;
-  }, {});
-  lab.legacy_telemetry_filtered = true;
-  return true;
-}
-
 function signedPct(value) {
   if (value == null) return "—";
   return (Number(value) >= 0 ? "+" : "") + pct(value);
@@ -184,7 +132,16 @@ function renderOverview(lab) {
   const choice = progression?.mechanical_choice || {};
   const totalGames = Number(h.source.games || 0);
   const censoredGames = Number(h.source.censored_games || 0);
-  const decisiveGames = Number(h.source.decisive_games ?? (totalGames - censoredGames));
+  const decisiveGames = Number(
+    h.source.decisive_games ??
+    Math.max(
+      0,
+      totalGames
+        - censoredGames
+        - Number(h.source.draws || 0)
+        - Number(h.source.failed_games || 0)
+    )
+  );
   document.getElementById("overview").innerHTML = [
     metric(
       "Games",
@@ -209,7 +166,7 @@ function renderOverview(lab) {
     metric(
       "Progression coverage",
       progressionProfileCount ? `${progressionProfileCount}/6` : (progression ? "1/6" : "—"),
-      progressionProfileCount ? "canonical reference-deck profiles" : (progression ? "legacy single-deck progression artifact" : "progression not generated")
+      progressionProfileCount ? "canonical reference-deck profiles" : (progression ? "single current progression profile" : "progression not generated")
     ),
     metric("Forced choice", pct(choice.exactly_one_legal_action_rate), progression ? "decisions with exactly one legal action" : "progression not generated"),
     metric("Broad card screen", lab.counterfactual ? lab.counterfactual.cards.length : "—", lab.counterfactual ? "heuristic paired A/B estimates" : "not generated"),
@@ -250,14 +207,6 @@ function renderAttention(lab) {
     ));
   }
 
-  if (lab.legacy_telemetry_filtered) {
-    items.push(attentionItem(
-      "pending",
-      "Card deadness telemetry needs a fresh balance run",
-      "This published artifact predates the corrected measurement semantics. Legacy dead-draw/dead-on-pass flags are hidden here rather than being treated as balance defects. A fresh run will separate structural illegality from Command exhaustion."
-    ));
-  }
-
   if ((lab.stale_evidence || []).length) {
     items.push(attentionItem(
       "pending",
@@ -284,8 +233,8 @@ function renderAttention(lab) {
   if (zeroCommandLoops > 0) {
     items.push(attentionItem(
       "high",
-      "0-0 continuation reached the simulation horizon",
-      `${zeroCommandLoops} censored match${zeroCommandLoops === 1 ? "" : "es"} ended at equal 0-0 Command. Under the current rule 0-0 continues and then recovers at least 1 each, so persistent 0-0 censoring points to an engine/search loop or a later return to zero rather than a missing terminal rule.`
+      "0-0 Command state reached the simulation horizon",
+      `${zeroCommandLoops} censored match${zeroCommandLoops === 1 ? "" : "es"} ended at equal 0-0 Command. Simultaneous Command at or below the configured Collapse threshold is a draw before recovery, so this indicates stale evidence or an engine/search transition bug.`
     ));
   }
 
@@ -367,7 +316,13 @@ function renderAttention(lab) {
 
   const decisiveGames = Number(
     lab.health.source.decisive_games ??
-    (Number(lab.health.source.games || 0) - Number(lab.health.source.censored_games || 0))
+    Math.max(
+      0,
+      Number(lab.health.source.games || 0)
+        - Number(lab.health.source.censored_games || 0)
+        - Number(lab.health.source.draws || 0)
+        - Number(lab.health.source.failed_games || 0)
+    )
   );
   if (decisiveGames > 0) {
     const seatDelta = Math.abs(firstPlayer - 0.5);
@@ -658,15 +613,15 @@ function renderMatchups(lab) {
             <td>${esc((row.agents || []).join(" vs "))}</td>
             <td>
               ${row.games ?? "—"}
-              <span class="muted">${row.decisive_games ?? ((row.games ?? 0) - (row.censored_games ?? 0))} decisive · ${row.censored_games ?? 0} censored</span>
+              <span class="muted">${row.decisive_games ?? Math.max(0, (row.games ?? 0) - (row.censored_games ?? 0) - (row.draws ?? 0) - (row.failed_games ?? 0))} decisive · ${row.censored_games ?? 0} censored</span>
             </td>
             <td>${
-              (row.decisive_games ?? ((row.games ?? 0) - (row.censored_games ?? 0))) > 0
+              (row.decisive_games ?? Math.max(0, (row.games ?? 0) - (row.censored_games ?? 0) - (row.draws ?? 0) - (row.failed_games ?? 0))) > 0
                 ? (row.win_rates || []).map((v) => pct(v)).join(" / ")
                 : "—"
             }</td>
             <td>${
-              (row.decisive_games ?? ((row.games ?? 0) - (row.censored_games ?? 0))) > 0
+              (row.decisive_games ?? Math.max(0, (row.games ?? 0) - (row.censored_games ?? 0) - (row.draws ?? 0) - (row.failed_games ?? 0))) > 0
                 ? pct(row.first_player_win_rate)
                 : "—"
             }</td>
@@ -731,17 +686,17 @@ function renderCommandExperiment(lab) {
     const deckProfiles = Object.values(profile.progression_profiles?.profiles || {});
     const games = sum(deckProfiles, (deck) => deck.games);
     const censored = sum(deckProfiles, (deck) => deck.censored_games);
-    const firstPassCommand = weighted(deckProfiles, (deck) => {
-      const d = deck.progression?.resources?.command_at_first_pass;
+    const firstSignalCommand = weighted(deckProfiles, (deck) => {
+      const d = deck.progression?.resources?.command_at_first_signal;
       return { value: d?.mean, weight: d?.count };
     });
     const commandBeforeCollapse = weighted(deckProfiles, (deck) => {
       const d = deck.progression?.resources?.command_before_collapse;
       return { value: d?.mean, weight: d?.count };
     });
-    const firstPassCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_at_first_pass?.count);
-    const passZero = sum(deckProfiles, (deck) => deck.progression?.resources?.first_pass_command_buckets?.["0"]);
-    const passFourPlus = sum(deckProfiles, (deck) => deck.progression?.resources?.first_pass_command_buckets?.["4+"]);
+    const firstSignalCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_at_first_signal?.count);
+    const passZero = sum(deckProfiles, (deck) => deck.progression?.resources?.first_signal_command_buckets?.["0"]);
+    const passFourPlus = sum(deckProfiles, (deck) => deck.progression?.resources?.first_signal_command_buckets?.["4+"]);
     const collapseCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_before_collapse?.count);
     const collapseZero = sum(deckProfiles, (deck) => deck.progression?.resources?.command_before_collapse_buckets?.["0"]);
     const matches = sum(deckProfiles, (deck) => deck.progression?.match_length?.matches);
@@ -785,11 +740,11 @@ function renderCommandExperiment(lab) {
       return { value: d?.command_before_collapse, weight: d?.battles };
     });
     const alternativePasses = sum(deckProfiles, (deck) =>
-      deck.progression?.contestability?.first_pass_outcomes?.with_playable_alternatives?.events
+      deck.progression?.contestability?.first_signal_outcomes?.with_playable_alternatives?.events
     );
-    const firstPassEvents = sum(deckProfiles, (deck) =>
+    const firstSignalEvents = sum(deckProfiles, (deck) =>
       ["ahead", "tied", "behind"].reduce(
-        (n, state) => n + Number(deck.progression?.contestability?.first_pass_outcomes?.[state]?.events || 0),
+        (n, state) => n + Number(deck.progression?.contestability?.first_signal_outcomes?.[state]?.events || 0),
         0
       )
     );
@@ -813,10 +768,10 @@ function renderCommandExperiment(lab) {
       zeroStartRate: resolvedBattles ? zeroStarts / resolvedBattles : null,
       bothZeroStartRate: resolvedBattles ? bothZeroStarts / resolvedBattles : null,
       noPaidOperationRate: stallDiagnosticBattles ? noPaidOperations / stallDiagnosticBattles : null,
-      firstPassCommand,
-      passZeroRate: firstPassCount ? passZero / firstPassCount : null,
-      passFourPlusRate: firstPassCount ? passFourPlus / firstPassCount : null,
-      passWithAlternativesRate: firstPassEvents ? alternativePasses / firstPassEvents : null,
+      firstSignalCommand,
+      passZeroRate: firstSignalCount ? passZero / firstSignalCount : null,
+      passFourPlusRate: firstSignalCount ? passFourPlus / firstSignalCount : null,
+      passWithAlternativesRate: firstSignalEvents ? alternativePasses / firstSignalEvents : null,
       guardOpportunityRate: agentDecisions ? guardDecisions / agentDecisions : null,
       guardOverrideRate: guardDecisions ? guardOverrides / guardDecisions : null,
       guardOverrides,
@@ -892,7 +847,7 @@ function renderCommandExperiment(lab) {
       <thead><tr>
         <th>Agent</th><th>Recovery</th><th>Floor</th><th>Games</th><th>Censored</th>
         <th>Equal-low cont.</th><th>Any 0-Command start</th><th>0/0 Battle starts</th><th>No paid op.</th>
-        <th>First-pass Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Pass w/ alternatives</th>
+        <th>First-signal Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Pass w/ alternatives</th>
         <th>Guard opportunity</th><th>Guard override</th>
         <th>Command before Collapse</th><th>Collapse check at 0</th><th>Mean Battles</th><th>Max Battle</th>
         <th>Reach III</th><th>Reach VIII+</th><th>Reach XII+</th><th>Longest equal-low</th>
@@ -909,7 +864,7 @@ function renderCommandExperiment(lab) {
           <td>${pct(row.zeroStartRate)}</td>
           <td>${pct(row.bothZeroStartRate)}</td>
           <td>${pct(row.noPaidOperationRate)}</td>
-          <td>${num(row.firstPassCommand, 1)}</td>
+          <td>${num(row.firstSignalCommand, 1)}</td>
           <td>${pct(row.passZeroRate)}</td>
           <td>${pct(row.passFourPlusRate)}</td>
           <td>${pct(row.passWithAlternativesRate)}</td>
@@ -971,18 +926,18 @@ function renderCommandExperiment(lab) {
         </p>
         <table class="mini-table">
           <thead><tr>
-            <th>Battle</th><th>Command start</th><th>Before recovery</th><th>Base</th><th>Fronts lost</th>
-            <th>Recovery loss</th><th>Actual</th><th>After recovery</th><th>Collapse</th>
+            <th>Battle</th><th>Command start</th><th>Before Collapse</th><th>Base</th><th>Fronts lost</th>
+            <th>Front-loss Command</th><th>Actual</th><th>After recovery</th><th>Collapse</th>
             <th>Operations and alternatives</th><th>Battlefield change</th><th>State</th>
           </tr></thead>
           <tbody>${focusBattles.map((record) => `
             <tr>
               <td>${record.battle ?? "—"}</td>
               <td>${esc(pair(record.command_start))}</td>
-              <td>${esc(pair(record.command_before_recovery))}</td>
+              <td>${esc(pair(record.command_before_collapse))}</td>
               <td>${record.recovery_base ?? "—"}</td>
               <td>${esc(pair(record.fronts_lost))}</td>
-              <td>${esc(pair(record.recovery_loss))}</td>
+              <td>${esc(pair(record.front_loss_command_penalty))}</td>
               <td>${esc(pair(record.recovery_actual))}</td>
               <td>${esc(pair(record.command_after_recovery))}</td>
               <td>${record.collapse_comparison?.equal ? "equal" : "unequal"} · ${record.collapse_comparison?.continued ? "continue" : "end"}</td>
@@ -1037,7 +992,7 @@ function renderNarrativeAblation(lab) {
       + "<td>" + dmean(s.resolved_battles_per_match) + "</td>"
       + "<td>" + dmax(s.final_battle_number) + "</td>"
       + "<td>" + dmean(s.command_before_collapse) + "</td>"
-      + "<td>" + dmean(s.command_at_first_pass) + "</td>"
+      + "<td>" + dmean(s.command_at_first_signal) + "</td>"
       + "<td>" + esc(commandSources(s)) + "</td>"
       + "<td>" + (s.longest_low_positive_streak ?? "—") + "</td>"
       + "</tr>";
@@ -1048,7 +1003,7 @@ function renderNarrativeAblation(lab) {
     + "<table class=\"mini-table\"><thead><tr>"
     + "<th>Variant</th><th>Decisive / games</th><th>Censored</th>"
     + "<th>Mean Battles</th><th>Max Battle</th><th>Pre-collapse Command</th>"
-    + "<th>First-pass Command</th><th>Suspect Command sources</th><th>Longest 1-3 streak</th>"
+    + "<th>First-signal Command</th><th>Suspect Command sources</th><th>Longest 1-3 streak</th>"
     + "</tr></thead><tbody>" + body + "</tbody></table>";
 }
 
@@ -1141,7 +1096,7 @@ function renderProgression(lab) {
     };
     trajectoryElement.innerHTML = [
       trajectoryCard("Command at Battle end", "command_remaining"),
-      trajectoryCard("First-pass Command", "first_pass_command"),
+      trajectoryCard("First-signal Command", "first_signal_command"),
       trajectoryCard("Occupied positions", "occupied_positions"),
       trajectoryCard("Contested Fronts", "contested_fronts"),
       trajectoryCard("Completed formations", "completed_formations"),
@@ -1219,7 +1174,7 @@ function renderProgression(lab) {
   const zeroRate = commandDist.count ? (commandBuckets["0"] || 0) / commandDist.count : null;
   document.getElementById("progression-resources").innerHTML = [
     progressionMetric("Command at Battle end", commandDist, "median per player-Battle"),
-    progressionMetric("Command at first pass", resources.command_at_first_pass, "median first passer"),
+    progressionMetric("Command at first pass", resources.command_at_first_signal, "median first passer"),
     metric("Ends at 0 Command", pct(zeroRate), `${commandBuckets["0"] || 0} player-Battles`),
     metric("Free Maneuvers", resources.free_maneuvers ?? 0, "actual zero-Command Maneuvers"),
     metric("Discounted actions", resources.discount_actions ?? 0, `${resources.discount_command_saved ?? 0} Command saved`),
@@ -1232,7 +1187,7 @@ function renderProgression(lab) {
     metric("Free operations", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
     metric("0-0 continuations", lowCommand.zero_zero_continuations ?? lowCommand.equal_low_continuations ?? 0, "pre-recovery Collapse check is 0-0; both survive and recover"),
     metric("0/0 Battle starts", lowCommand.both_zero_command_battle_starts ?? 0, "both players begin a Battle at zero Command"),
-    metric("Pass preserves Command", resources.first_passes_avoiding_command_exhaustion ?? 0, "first Passes with a legal alternative that would spend all remaining Command"),
+    metric("Pass preserves Command", resources.first_signales_avoiding_command_exhaustion ?? 0, "first Passes with a legal alternative that would spend all remaining Command"),
     metric("No paid operation", lowCommand.battles_with_no_paid_operation ?? 0, "Battles with no Command-paying card play or Maneuver"),
     metric("No in-Battle board change", lowCommand.battles_with_no_board_change ?? 0, "board unchanged between first and final decision state"),
   ].join("");
@@ -1243,8 +1198,8 @@ function renderProgression(lab) {
     const sourceRows = Object.entries(resources.command_by_source || {})
       .map(([id, stats]) => ({ id, ...stats }))
       .sort((a, b) =>
-        Number(b.command_gained || 0) + Number(b.discount_saved || 0) + Number(b.recovery_loss_avoided || 0)
-        - Number(a.command_gained || 0) - Number(a.discount_saved || 0) - Number(a.recovery_loss_avoided || 0)
+        Number(b.command_gained || 0) + Number(b.discount_saved || 0) + Number(b.front_loss_command_avoided || 0)
+        - Number(a.command_gained || 0) - Number(a.discount_saved || 0) - Number(a.front_loss_command_avoided || 0)
       );
     let sourceBody = "";
     for (const row of sourceRows) {
@@ -1255,14 +1210,14 @@ function renderProgression(lab) {
         + "<td>" + (row.nominal_command_gain ?? row.command_gained ?? 0) + "</td>"
         + "<td>" + (row.discount_saved ?? 0) + "</td>"
         + "<td>" + (row.free_operations ?? 0) + "</td>"
-        + "<td>" + (row.recovery_loss_avoided ?? 0) + "</td>"
+        + "<td>" + (row.front_loss_command_avoided ?? 0) + "</td>"
         + "</tr>";
     }
     commandSourceElement.innerHTML = sourceRows.length
       ? "<h3>Command economy by source</h3>"
         + "<table class=\"mini-table\"><thead><tr>"
         + "<th>Source</th><th>Triggers</th><th>Gained</th><th>Nominal gain</th>"
-        + "<th>Discount saved</th><th>Free operations</th><th>Recovery loss avoided</th>"
+        + "<th>Discount saved</th><th>Free operations</th><th>Front-loss Command avoided</th>"
         + "</tr></thead><tbody>" + sourceBody + "</tbody></table>"
       : '<p class="muted">No source-attributed Command events in this profile.</p>';
   }
@@ -1291,8 +1246,8 @@ function renderProgression(lab) {
         </td>
         <td>${num(row.hand_size, 1)} / ${num(row.deck_size, 1)}</td>
         <td>
-          cmd ${num(row.first_pass_command, 1)}
-          <span class="muted">structural ${num(row.first_pass_structurally_dead_cards, 1)} · unaffordable ${num(row.first_pass_unaffordable_cards, 1)} · card ${num(row.first_pass_playable_card_actions, 1)} · Maneuver ${num(row.first_pass_maneuver_actions, 1)}</span>
+          cmd ${num(row.first_signal_command, 1)}
+          <span class="muted">structural ${num(row.first_signal_structurally_dead_cards, 1)} · unaffordable ${num(row.first_signal_unaffordable_cards, 1)} · card ${num(row.first_signal_playable_card_actions, 1)} · Maneuver ${num(row.first_signal_maneuver_actions, 1)}</span>
         </td>
         <td>
           ${num(row.command_start, 1)} / ${num(row.command_spent, 1)} / ${num(row.command_remaining, 1)}
@@ -1324,13 +1279,13 @@ function renderProgression(lab) {
     `).join("")
     : '<tr><td colspan="8" class="muted">No Hero plays observed.</td></tr>';
 
-  const firstPass = contest.first_pass_outcomes || {};
+  const firstSignal = contest.first_signal_outcomes || {};
   const passRows = [
-    ["Already ahead", firstPass.ahead],
-    ["Tied", firstPass.tied],
-    ["Behind", firstPass.behind],
-    ["Playable alternatives", firstPass.with_playable_alternatives],
-    ["No alternative", firstPass.no_alternative],
+    ["Already ahead", firstSignal.ahead],
+    ["Tied", firstSignal.tied],
+    ["Behind", firstSignal.behind],
+    ["Playable alternatives", firstSignal.with_playable_alternatives],
+    ["No alternative", firstSignal.no_alternative],
   ];
   const cardLifecycle = Object.entries(p.cards || {})
     .sort((a, b) =>
@@ -1349,7 +1304,7 @@ function renderProgression(lab) {
   document.getElementById("progression-diagnostics").innerHTML = `
     <div class="two-column-tables">
       <div>
-        <h3>First-pass state and final Front balance</h3>
+        <h3>First-signal state and final Front balance</h3>
         <table class="mini-table">
           <thead><tr><th>State</th><th>Events</th><th>Resolved</th><th>Mean final Front balance</th><th>Positive balance</th></tr></thead>
           <tbody>${passRows.map(([label, row]) => `
@@ -1424,7 +1379,7 @@ function renderTelemetry(lab) {
     metric("Battles", b.count ?? "—", `mean actions ${num(b.mean_actions, 1)}`),
     metric("Battle Strength", num(b.mean_total_strength, 1), `mean |margin| ${num(b.mean_abs_total_margin, 1)}`),
     metric("Pass events", p.events ?? "—", `mean hand ${num(p.mean_hand_size, 1)}`),
-    metric("First Pass share", pct(p.first_pass_rate), "share of Pass events that opened a pass sequence"),
+    metric("First Pass share", pct(p.first_signal_rate), "share of Pass events that opened a pass sequence"),
   ].join("");
 
   const actions = Object.entries(t.actions || {});
@@ -1593,7 +1548,6 @@ async function main() {
   if (!response.ok) throw new Error("Full Balance Lab report is not available yet.");
   const lab = await response.json();
   const cardData = cardsResponse.ok ? await cardsResponse.json() : { cards: [] };
-  normalizeLegacyTelemetry(lab);
   annotateMechanicsCoverage(lab, cardData);
 
   renderAttention(lab);
