@@ -202,7 +202,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         strat = state.stratagem[controller]
         if strat < 0 or not self.strat_combine_fronts[strat]:
             continue
-        mask = state.stratagem_front_mask[controller] & 15
+        mask = state.stratagem_front_mask[controller] & FRONT_MASK
         if popcount16(mask) != 2:
             continue
         combined0 = 0
@@ -240,7 +240,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     for controller in range(PLAYER_COUNT):
         strat = state.stratagem[controller]
         if strat >= 0 and self.strat_no_retreat[strat]:
-            mask = state.stratagem_front_mask[controller] & 15
+            mask = state.stratagem_front_mask[controller] & FRONT_MASK
             state.resolution_drive_mask[0] |= (
                 state.resolution_lost_mask[0] & mask
             )
@@ -265,11 +265,11 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     # live resolution masks. These can differ from the raw Strength comparison
     # because Stratagems such as The Ground Was Held and The Center Must Hold
     # replace tied or per-Front results.
-    state.last_lost_mask[0] = state.resolution_lost_mask[0] & 15
-    state.last_lost_mask[1] = state.resolution_lost_mask[1] & 15
+    state.last_lost_mask[0] = state.resolution_lost_mask[0] & FRONT_MASK
+    state.last_lost_mask[1] = state.resolution_lost_mask[1] & FRONT_MASK
 
-    losses0 = popcount16(state.resolution_lost_mask[0] & 15)
-    losses1 = popcount16(state.resolution_lost_mask[1] & 15)
+    losses0 = popcount16(state.resolution_lost_mask[0] & FRONT_MASK)
+    losses1 = popcount16(state.resolution_lost_mask[1] & FRONT_MASK)
     state.resolution_front_loss_command_penalty[0] = (
         losses0 * self.lost_front_command_penalty
     )
