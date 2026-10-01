@@ -69,8 +69,8 @@ cdef inline bint _fe_adjacent_hero_formation(
     int slot,
 ) noexcept:
     cdef int local = local_slot(slot)
-    cdef int front = local >> 1
-    cdef int rank = local & 1
+    cdef int front = local // RANK_COUNT
+    cdef int rank = local % RANK_COUNT
     cdef int adjacent, force, name
     if front > 0:
         adjacent = slot_index(player, front - 1, rank)
@@ -356,8 +356,8 @@ cdef bint _fe_any_maneuver_in_direction(
         source = player * POSITIONS_PER_PLAYER + local
         if not _fe_maneuver_source_legal(self, state, player, source):
             continue
-        front = local >> 1
-        rank = local & 1
+        front = local // RANK_COUNT
+        rank = local % RANK_COUNT
         if direction == DIRECTION_LEFT:
             if front == 0:
                 continue
@@ -755,10 +755,11 @@ cdef int _fe_legal_actions_into(
 ) except -1:
     cdef int n = 0
     cdef int player, card, slot, local, front, rank, source, dest, req, opponent, effect
-    cdef int i, kept, can_pass, available, narrative_slot, choice, direction
+    cdef int i, p, kept, can_pass, available, narrative_slot, choice, direction
     cdef uint32_t eligible_mask, subset
     cdef uint64_t action
     cdef bint constraint_enforced = False
+    cdef bint pass_gate_ready
 
     if state.phase == PHASE_COMPLETE:
         return 0
@@ -792,7 +793,7 @@ cdef int _fe_legal_actions_into(
                     slot = player * POSITIONS_PER_PLAYER + local
                     if state.force[slot] >= 0:
                         continue
-                    rank = local & 1
+                    rank = local % RANK_COUNT
                     if req >= 0 and req != rank:
                         continue
                     n = _append_action(
@@ -841,8 +842,8 @@ cdef int _fe_legal_actions_into(
                     and state.force[slot] >= 0
                     and not self.immobile_force[state.force[slot]]
                 ):
-                    front = local >> 1
-                    rank = local & 1
+                    front = local // RANK_COUNT
+                    rank = local % RANK_COUNT
                     if front > 0:
                         dest = slot_index(player, front - 1, rank)
                         if _fe_card_move_destination_legal(self, 
@@ -1103,8 +1104,8 @@ cdef int _fe_legal_actions_into(
                             source = player * POSITIONS_PER_PLAYER + local
                             if state.force[source] < 0:
                                 continue
-                            front = local >> 1
-                            rank = local & 1
+                            front = local // RANK_COUNT
+                            rank = local % RANK_COUNT
                             if direction == DIRECTION_NONE:
                                 if front == 0:
                                     continue
@@ -1183,8 +1184,8 @@ cdef int _fe_legal_actions_into(
         source = player * POSITIONS_PER_PLAYER + local
         if not _fe_maneuver_source_legal(self, state, player, source):
             continue
-        front = local >> 1
-        rank = local & 1
+        front = local // RANK_COUNT
+        rank = local % RANK_COUNT
         if front > 0:
             dest = slot_index(player, front - 1, rank)
             if (
@@ -1224,17 +1225,17 @@ cdef int _fe_legal_actions_into(
         self, state, player, actions, n, &constraint_enforced
     )
 
-    can_pass = (
-        not state.passed[player]
-        and (
-            state.pass_len > 0
-            or all(
+    pass_gate_ready = state.pass_len > 0
+    if not pass_gate_ready:
+        pass_gate_ready = True
+        for p in range(PLAYER_COUNT):
+            if (
                 state.operations_this_battle[p]
-                >= self.pass_min_operations_before_signal
-                for p in range(PLAYER_COUNT)
-            )
-        )
-    )
+                < self.pass_min_operations_before_signal
+            ):
+                pass_gate_ready = False
+                break
+    can_pass = not state.passed[player] and pass_gate_ready
     # Once already signalled, Pass is available only as a forced turn-yield
     # when no normal operation is legal.
     if (can_pass and not constraint_enforced) or n == 0:
