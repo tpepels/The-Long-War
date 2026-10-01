@@ -102,6 +102,12 @@ class RemoteMessageType(StrEnum):
     ERROR = "error"
 
 
+class PendingResume(StrEnum):
+    FINISH_OPERATION = "finish_operation"
+    BATTLE_RESOLUTION = "battle_resolution"
+    START_BATTLE = "start_battle"
+
+
 class ObservationKind(StrEnum):
     HIDDEN_KNOWLEDGE = "hidden_knowledge"
     REVEAL = "reveal"
