@@ -49,6 +49,16 @@ def _is_external(value: str) -> bool:
     )
 
 
+def _display_path(path: Path, root: Path) -> Path:
+    """Return a stable human-readable path for repository or temporary roots."""
+    for base in (ROOT, root.parent):
+        try:
+            return path.relative_to(base)
+        except ValueError:
+            continue
+    return path
+
+
 def _node_syntax_errors(root: Path) -> list[str]:
     node = shutil.which("node")
     if node is None:
@@ -68,7 +78,7 @@ def _node_syntax_errors(root: Path) -> list[str]:
         )
         if result.returncode:
             detail = (result.stderr or result.stdout).strip()
-            errors.append(f"{path.relative_to(ROOT)}: JavaScript syntax error\n{detail}")
+            errors.append(f"{_display_path(path, root)}: JavaScript syntax error\n{detail}")
     return errors
 
 
@@ -90,7 +100,7 @@ def _play_dom_errors(root: Path) -> list[str]:
     referenced.update(GET_ELEMENT_ID_RE.findall(js))
     missing = sorted(referenced - declared)
     return [
-        f"{script.relative_to(ROOT)} references missing DOM id #{value}"
+        f"{_display_path(script, root)} references missing DOM id #{value}"
         for value in missing
     ]
 
@@ -109,7 +119,7 @@ def _source_reference_errors(root: Path) -> list[str]:
             target = (page.parent / clean).resolve()
             if not target.exists():
                 errors.append(
-                    f"{page.relative_to(ROOT)} references missing local asset {value}"
+                    f"{_display_path(page, root)} references missing local asset {value}"
                 )
 
     for script in sorted([*root.glob("*.js"), *root.glob("*.mjs")]):
@@ -125,7 +135,7 @@ def _source_reference_errors(root: Path) -> list[str]:
             target = (script.parent / clean).resolve()
             if not target.exists():
                 errors.append(
-                    f"{script.relative_to(ROOT)} imports missing module {value}"
+                    f"{_display_path(script, root)} imports missing module {value}"
                 )
     errors.extend(_play_dom_errors(root))
     return errors
@@ -141,7 +151,7 @@ def _dist_reference_errors(root: Path) -> list[str]:
             target = root / _clean_ref(value)
             if not target.exists():
                 errors.append(
-                    f"{script.relative_to(ROOT)} requests missing built data asset {value}"
+                    f"{_display_path(script, root)} requests missing built data asset {value}"
                 )
 
         for value in IMPORT_META_RE.findall(source):
@@ -149,7 +159,7 @@ def _dist_reference_errors(root: Path) -> list[str]:
             target = (script.parent / clean).resolve()
             if not target.exists():
                 errors.append(
-                    f"{script.relative_to(ROOT)} references missing import.meta asset {value}"
+                    f"{_display_path(script, root)} references missing import.meta asset {value}"
                 )
 
         for value in META_RUNTIME_RE.findall(source):
@@ -157,7 +167,7 @@ def _dist_reference_errors(root: Path) -> list[str]:
             target = root / "runtime" / clean
             if not target.exists():
                 errors.append(
-                    f"{script.relative_to(ROOT)} references missing runtime asset {value}"
+                    f"{_display_path(script, root)} references missing runtime asset {value}"
                 )
 
     manifest = root / "runtime" / "longwar-runtime.json"
