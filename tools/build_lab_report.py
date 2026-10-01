@@ -372,7 +372,7 @@ def main() -> None:
         all_formations.append(merged)
 
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "game_fingerprint": game_fingerprint,
         "stale_evidence": sorted(stale_files),
         "health": health,
