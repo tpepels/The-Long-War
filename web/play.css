@@ -545,7 +545,7 @@ body.game-body {
   display: contents;
 }
 .rank-row,
-.scheme-row,
+.story-row,
 .front-banner-row {
   display: grid;
   grid-template-columns: 68px repeat(4, minmax(0, 1fr));
@@ -566,7 +566,7 @@ body.game-body {
 .battle-stratagem-zone.opponent {
   grid-row: 1;
 }
-.opponent-army .scheme-row {
+.opponent-army .story-row {
   grid-row: 2;
 }
 .opponent-army .rank-rear {
@@ -584,7 +584,7 @@ body.game-body {
 .player-army .rank-rear {
   grid-row: 7;
 }
-.player-army .scheme-row {
+.player-army .story-row {
   grid-row: 8;
 }
 .battle-stratagem-zone.player {
@@ -710,7 +710,7 @@ body.game-body {
   box-shadow: 1px 3px 5px #0004;
   text-align: left;
 }
-.board-card-subject {
+.board-card-force {
   width: 56%;
   height: 100%;
 }
@@ -770,7 +770,7 @@ body.game-body {
 .board-attachment .board-card strong {
   font-size: clamp(10px, 1.1vh, 12px);
 }
-.board-card.card-link {
+.board-card.card-bond {
   --board-accent: #597883;
 }
 .board-card.card-name {
@@ -825,7 +825,7 @@ body.game-body {
   opacity: 0.45;
   border-style: dashed;
 }
-.scheme-marker,
+.story-marker,
 .stratagem-marker {
   min-width: 0;
   min-height: 0;
@@ -840,15 +840,15 @@ body.game-body {
     8px/1.1 system-ui,
     sans-serif;
 }
-.scheme-marker {
+.story-marker {
   width: 100%;
   padding: 2px 9px;
 }
-.scheme-marker > span {
+.story-marker > span {
   text-transform: uppercase;
   letter-spacing: 0.065em;
 }
-.scheme-marker.empty b {
+.story-marker.empty b {
   display: none;
 }
 .stratagem-marker {
@@ -862,11 +862,11 @@ body.game-body {
   white-space: nowrap;
 }
 .stratagem-marker b,
-.scheme-marker b {
+.story-marker b {
   font-size: 8px;
   font-weight: 500;
 }
-.scheme-marker.hidden,
+.story-marker.hidden,
 .stratagem-marker.hidden {
   border-style: solid;
   border-color: #969272;
@@ -1144,7 +1144,7 @@ body.game-body {
   border: 1px solid #7b705044;
   border-radius: 3px;
 }
-.play-card.card-subject {
+.play-card.card-force {
   --card-accent: #826039;
   --card-wash: #e3d2af;
 }
@@ -1156,7 +1156,7 @@ body.game-body {
   --card-accent: #5b704b;
   --card-wash: #d5d9bf;
 }
-.play-card.card-plot {
+.play-card.card-story {
   --card-accent: #885c50;
   --card-wash: #ddc9bc;
 }
