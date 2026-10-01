@@ -14,7 +14,7 @@ from .game.actions import (
     PlayBond,
     PlayForce,
     PlayName,
-    PlayStory,
+    PlayNarrative,
     PlayStratagem,
     action_key,
 )
@@ -255,22 +255,22 @@ class PlaySession:
                     }
                 )
 
-        stories = [
+        narratives = [
             [
                 {
-                    "card_id": story.card_id,
-                    "ongoing": story.ongoing,
-                    "fronts": [int(front) for front in story.fronts],
+                    "card_id": narrative.card_id,
+                    "ongoing": narrative.ongoing,
+                    "fronts": [int(front) for front in narrative.fronts],
                     "target": (
                         None
-                        if story.target_position is None
+                        if narrative.target_position is None
                         else {
-                            "player": story.target_player,
-                            **self._position_payload(story.target_position),
+                            "player": narrative.target_player,
+                            **self._position_payload(narrative.target_position),
                         }
                     ),
                 }
-                for story in state.stories[owner][
+                for narrative in state.narratives[owner][
                     : self.engine.ongoing_narrative_limit
                 ]
             ]
@@ -366,8 +366,8 @@ class PlaySession:
             "mulligan_limit": 2,
             "players": players,
             "board": board,
-            "stories": stories,
-            "story_limit": self.engine.ongoing_narrative_limit,
+            "narratives": narratives,
+            "narrative_limit": self.engine.ongoing_narrative_limit,
             "rules": self.engine.rules.as_dict(),
             "stratagems": stratagems,
             "stratagem_used": list(state.stratagem_used),
@@ -513,7 +513,7 @@ class PlaySession:
                 }
             if action.front is not None:
                 payload["fronts"] = [int(action.front)]
-        elif isinstance(action, PlayStory):
+        elif isinstance(action, PlayNarrative):
             payload["ongoing_slot"] = action.ongoing_slot
             payload["discard_card_id"] = action.discard_card_id
             payload["fronts"] = [int(front) for front in action.fronts]
@@ -639,11 +639,11 @@ class PlaySession:
                 f"as the Name in {FRONT_NAMES[action.position.front]} "
                 f"{RANK_NAMES[action.position.rank]}."
             )
-        if isinstance(action, PlayStory):
+        if isinstance(action, PlayNarrative):
             card = self.cards[action.card_id]
             title = card["title"]
             form = str(
-                card.get("narrative_form", card.get("story_form", "Narrative"))
+                card.get("narrative_form", card.get("narrative_form", "Narrative"))
             ).title()
             detail = ""
             if action.discard_card_id is not None:
@@ -717,7 +717,7 @@ class PlaySession:
                 "This position has no Name. A Name may be prepared before "
                 "its Force or Bond."
             )
-        if isinstance(action, PlayStory):
+        if isinstance(action, PlayNarrative):
             if action.ongoing_slot is not None:
                 return (
                     "You have an open ongoing Narrative slot. Each player may "
