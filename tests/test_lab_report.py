@@ -158,7 +158,7 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
             "1": {
                 "battles": 1,
                 "command_remaining": 14.0,
-                "first_pass_command": 12.0,
+                "first_signal_command": 12.0,
                 "occupied_positions": 3.0,
                 "active_fronts": 2.0,
                 "contested_fronts": 1.0,
@@ -175,7 +175,7 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
             "3": {
                 "battles": 1,
                 "command_remaining": 7.0,
-                "first_pass_command": 6.0,
+                "first_signal_command": 6.0,
                 "occupied_positions": 5.0,
                 "active_fronts": 3.0,
                 "contested_fronts": 2.0,
