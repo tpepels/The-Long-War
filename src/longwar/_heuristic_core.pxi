@@ -54,11 +54,7 @@ cdef class NativeHeuristicEvaluator:
         uint16_t* lost0,
         uint16_t* lost1,
     ) noexcept:
-        """Project effective Front losses using resolution comparison rules."""
-        cdef int front, a, b, controller, strat, mask
-        cdef int combined0, combined1
-        cdef bint tie_control
-
+        """Project effective Front losses through the canonical engine rule."""
         # Once comparison has completed, preserve the authoritative masks.
         if (
             state.resolution_stage == RESOLUTION_RETREATS
@@ -68,69 +64,12 @@ cdef class NativeHeuristicEvaluator:
             lost0[0] = state.resolution_lost_mask[0] & FRONT_MASK
             lost1[0] = state.resolution_lost_mask[1] & FRONT_MASK
             return
-
-        lost0[0] = 0
-        lost1[0] = 0
-        tie_control = _fe_tie_control_active(self.engine, state)
-
-        for front in range(FRONT_COUNT):
-            a = _fe_resolution_front_strength_fast(
-                self.engine, state, 0, front
-            )
-            b = _fe_resolution_front_strength_fast(
-                self.engine, state, 1, front
-            )
-            if a < b:
-                lost0[0] |= <uint16_t>(1 << front)
-            elif b < a:
-                lost1[0] |= <uint16_t>(1 << front)
-            elif tie_control:
-                if (
-                    _fe_slot_complete(
-                        self.engine,
-                        state,
-                        slot_index(0, front, RANK_FRONT),
-                    )
-                    != _fe_slot_complete(
-                        self.engine,
-                        state,
-                        slot_index(1, front, RANK_FRONT),
-                    )
-                ):
-                    if _fe_slot_complete(
-                        self.engine,
-                        state,
-                        slot_index(0, front, RANK_FRONT),
-                    ):
-                        lost1[0] |= <uint16_t>(1 << front)
-                    else:
-                        lost0[0] |= <uint16_t>(1 << front)
-
-        # Combined-Front Stratagems replace the individual results exactly as
-        # Battle resolution does.
-        for controller in range(PLAYER_COUNT):
-            strat = state.stratagem[controller]
-            if strat < 0 or not self.engine.strat_combine_fronts[strat]:
-                continue
-            mask = state.stratagem_front_mask[controller] & FRONT_MASK
-            if popcount16(mask) != COMBINED_FRONT_SELECTION_COUNT:
-                continue
-            combined0 = 0
-            combined1 = 0
-            for front in range(FRONT_COUNT):
-                if mask & (1 << front):
-                    combined0 += _fe_resolution_front_strength_fast(
-                        self.engine, state, 0, front
-                    )
-                    combined1 += _fe_resolution_front_strength_fast(
-                        self.engine, state, 1, front
-                    )
-            lost0[0] &= <uint16_t>(~mask)
-            lost1[0] &= <uint16_t>(~mask)
-            if combined0 < combined1:
-                lost0[0] |= <uint16_t>mask
-            elif combined1 < combined0:
-                lost1[0] |= <uint16_t>mask
+        _fe_project_front_losses_fast(
+            self.engine,
+            state,
+            lost0,
+            lost1,
+        )
 
     cdef int projected_front_loss_command_penalty_fast(
         self,
