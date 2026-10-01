@@ -496,14 +496,7 @@ cdef uint64_t _ismcts_rollout_action(
     # Command while the opponent remains positive is ordinary play. Inspect
     # exact child states only for operations that can actually reach Collapse.
     for i in range(n):
-        if not evaluator.action_needs_command_guard_probe_fast(
-            state,
-            actor,
-            actions[i],
-        ):
-            safe_indices[safe_n] = i
-            safe_n += 1
-        elif not evaluator.action_exhausts_command_fast(
+        if not evaluator.rollout_action_exhausts_command_fast(
             state,
             actor,
             actions[i],
