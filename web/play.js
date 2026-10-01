@@ -104,9 +104,9 @@ function termHint(key) {
   if (key === "command" && rules) {
     const threshold = rules.command_collapse_threshold;
     return "Your operation budget. Start at " + rules.starting_command +
-      ". After Battle-end effects, lose 1 Command per unprotected Front lost, then check Collapse: exactly one player at " +
-      threshold + " loses; " + threshold + "-" + threshold +
-      " is a draw. A continuing war recovers max(" +
+      ". After Battle-end effects, lose " + rules.lost_front_command_penalty +
+      " Command per unprotected Front lost. If either player is at or below " +
+      threshold + ", lower Command loses; equal Command is a draw. A continuing war recovers max(" +
       rules.command_recovery_floor +
       ", base recovery), to a maximum of " +
       rules.command_cap + ".";
