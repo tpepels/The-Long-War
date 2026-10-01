@@ -748,7 +748,7 @@ body.game-body {
   height: calc(50% - 2px);
   z-index: 2;
 }
-.board-attachment.link {
+.board-attachment.bond {
   top: 0;
   transform: rotate(1deg);
 }
