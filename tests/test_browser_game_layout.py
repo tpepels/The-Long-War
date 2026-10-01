@@ -161,8 +161,8 @@ def test_desktop_fixtures_cover_crowded_and_interrupting_states() -> None:
     crowded = snapshots["battle"]
     assert len(crowded["hand"]) >= 18
     assert all(slot["force"] and slot["bond"] and slot["name"] for side in crowded["board"] for slot in side)
-    assert len(crowded["stories"][1]) == 2
-    assert all(story["card_id"] for story in crowded["stories"][1])
+    assert len(crowded["narratives"][1]) == 2
+    assert all(narrative["card_id"] for narrative in crowded["narratives"][1])
     assert crowded["stratagems"][1]["card_id"] is not None
     assert snapshots["ai"]["needs_ai"]
     assert snapshots["complete"]["winner"] == 0
