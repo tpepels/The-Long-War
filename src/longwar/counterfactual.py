@@ -519,7 +519,7 @@ def run_counterfactual_card_sweep(
     censored_matches = 0
     draw_matches = 0
     decisive_matches = 0
-    decisive_paired_samples = 0
+    resolved_paired_samples = 0
     censored_paired_samples = 0
     indexed_reports: list[tuple[int, dict[str, Any]]] = []
     worker_count = min(jobs, len(selected))
@@ -576,7 +576,7 @@ def run_counterfactual_card_sweep(
         censored_matches += int(report["censored_matches"])
         draw_matches += int(report["draw_matches"])
         decisive_matches += int(report["decisive_matches"])
-        decisive_paired_samples += sum(
+        resolved_paired_samples += sum(
             int(row.get("samples", 0))
             for row in report["cards"]
         )
@@ -595,7 +595,7 @@ def run_counterfactual_card_sweep(
         )
     )
     first = reports[0] if reports else None
-    attempted_paired_samples = decisive_paired_samples + censored_paired_samples
+    attempted_paired_samples = resolved_paired_samples + censored_paired_samples
     return {
         "schema_version": 1,
         "method": "paired_common_random_numbers_per_card_context_sweep",
@@ -615,7 +615,7 @@ def run_counterfactual_card_sweep(
         "match_censor_rate": (
             censored_matches / total_matches if total_matches else 0.0
         ),
-        "decisive_paired_samples": decisive_paired_samples,
+        "resolved_paired_samples": resolved_paired_samples,
         "censored_paired_samples": censored_paired_samples,
         "pair_censor_rate": (
             censored_paired_samples / attempted_paired_samples
@@ -647,7 +647,7 @@ def run_counterfactual_card_sweep(
                 "subset to evaluate interactions."
             ),
             "ci95": (
-                "paired percentile bootstrap over decisive per-card matched "
+                "paired percentile bootstrap over resolved per-card matched "
                 "samples; bounded Hoeffding interval when observed contrasts "
                 "are constant"
             ),
