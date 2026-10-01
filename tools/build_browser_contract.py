@@ -25,6 +25,7 @@ from longwar.game.model import (
     NarrativeState,
     StratagemState,
 )
+from longwar.protocol import PLAYER_COUNT
 from longwar.web_api import PlaySession
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -142,7 +143,7 @@ def front_strengths(
 ) -> list[list[int]]:
     return [
         list(engine.front_strength_matrix(state)[player])
-        for player in range(2)
+        for player in range(PLAYER_COUNT)
     ]
 
 

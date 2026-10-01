@@ -70,7 +70,7 @@ class PlaySession:
         self.mode = parsed_mode
         self.seed = int(seed)
         self.paced_ai = paced_ai
-        self.human_players = {0, 1} if parsed_mode in {GameMode.HOTSEAT, GameMode.REMOTE} else {0}
+        self.human_players = set(range(PLAYER_COUNT)) if parsed_mode in {GameMode.HOTSEAT, GameMode.REMOTE} else {0}
         self.log: list[str] = []
         self.opening_player: int | None = None
         self.last_action: dict[str, Any] | None = None
@@ -221,7 +221,7 @@ class PlaySession:
 
     def snapshot(self, viewer: int | None = None) -> dict[str, Any]:
         state = self.state
-        if viewer is not None and viewer not in (0, 1):
+        if viewer is not None and not 0 <= viewer < PLAYER_COUNT:
             raise ValueError("viewer must be 0, 1, or null")
 
         display_active = (
@@ -247,7 +247,7 @@ class PlaySession:
             for player, ps in enumerate(state.players)
         ]
 
-        board: list[list[dict[str, Any]]] = [[], []]
+        board: list[list[dict[str, Any]]] = [[] for _ in range(PLAYER_COUNT)]
         for owner in range(PLAYER_COUNT):
             for position in all_positions():
                 slot = state.slot(owner, position)
@@ -288,7 +288,7 @@ class PlaySession:
                     : self.engine.ongoing_narrative_limit
                 ]
             ]
-            for owner in range(2)
+            for owner in range(PLAYER_COUNT)
         ]
 
         stratagems = [
@@ -312,7 +312,7 @@ class PlaySession:
                     ],
                 }
             )
-            for owner in range(2)
+            for owner in range(PLAYER_COUNT)
         ]
 
         front_strengths = [
@@ -320,7 +320,7 @@ class PlaySession:
                 self.engine.front_strength(state, player, front)
                 for front in Front
             ]
-            for player in range(2)
+            for player in range(PLAYER_COUNT)
         ]
         front_control = []
         for front in Front:

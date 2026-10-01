@@ -197,7 +197,7 @@ class HumanFlowDiagnostics:
             return
 
         self.battles += 1
-        self.player_battles += 2
+        self.player_battles += PLAYER_COUNT
         cards_drawn = [int(value) for value in snapshot["cards_drawn"]]
         start_hands = [int(value) for value in snapshot["battle_start_hand_size"]]
         completion_counts = [int(value) for value in snapshot["completion_count"]]
