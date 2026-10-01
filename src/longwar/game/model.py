@@ -70,7 +70,7 @@ class Slot:
         return self.complete
 
 @dataclass
-class StoryState:
+class NarrativeState:
     card_id: str
     ongoing: bool = True
     fronts: tuple[Front, ...] = ()
@@ -95,7 +95,7 @@ class OperationConstraint:
     persists_between_battles: bool = False
     zero_cost: bool = False
     draw_after_satisfied: int = 0
-    discard_source_story: bool = False
+    discard_source_narrative: bool = False
 
 
 @dataclass
@@ -134,7 +134,7 @@ def empty_board() -> list[list[list[Slot]]]:
     ]
 
 
-def empty_stories() -> list[list[StoryState]]:
+def empty_narratives() -> list[list[NarrativeState]]:
     return [[], []]
 
 
@@ -146,7 +146,7 @@ def empty_stratagems() -> list[StratagemState | None]:
 class GameState:
     players: list[PlayerState]
     board: list[list[list[Slot]]] = field(default_factory=empty_board)
-    stories: list[list[StoryState]] = field(default_factory=empty_stories)
+    narratives: list[list[NarrativeState]] = field(default_factory=empty_narratives)
     stratagems: list[StratagemState | None] = field(default_factory=empty_stratagems)
     stratagem_used: list[bool] = field(default_factory=lambda: [False, False])
     hero_used: list[bool] = field(default_factory=lambda: [False, False])
@@ -225,21 +225,21 @@ class GameState:
             ]
             for side in self.board
         ]
-        stories = [
+        narratives = [
             [
-                StoryState(
-                    card_id=story.card_id,
-                    ongoing=story.ongoing,
-                    fronts=tuple(story.fronts),
-                    target_player=story.target_player,
-                    target_position=story.target_position,
-                    direction=story.direction,
-                    triggered_this_battle=story.triggered_this_battle,
-                    triggered_players_mask=story.triggered_players_mask,
+                NarrativeState(
+                    card_id=narrative.card_id,
+                    ongoing=narrative.ongoing,
+                    fronts=tuple(narrative.fronts),
+                    target_player=narrative.target_player,
+                    target_position=narrative.target_position,
+                    direction=narrative.direction,
+                    triggered_this_battle=narrative.triggered_this_battle,
+                    triggered_players_mask=narrative.triggered_players_mask,
                 )
-                for story in side
+                for narrative in side
             ]
-            for side in self.stories
+            for side in self.narratives
         ]
         stratagems = [
             (
@@ -257,7 +257,7 @@ class GameState:
         return GameState(
             players=players,
             board=board,
-            stories=stories,
+            narratives=narratives,
             stratagems=stratagems,
             stratagem_used=list(self.stratagem_used),
             hero_used=list(self.hero_used),
@@ -308,7 +308,7 @@ class GameState:
                     persists_between_battles=item.persists_between_battles,
                     zero_cost=item.zero_cost,
                     draw_after_satisfied=item.draw_after_satisfied,
-                    discard_source_story=item.discard_source_story,
+                    discard_source_narrative=item.discard_source_narrative,
                 )
                 for item in self.constraints
             ],
@@ -362,18 +362,18 @@ class GameState:
                         source_slot.maneuvered_in_operation
                     )
 
-            self.stories[player][:] = [
-                StoryState(
-                    card_id=story.card_id,
-                    ongoing=story.ongoing,
-                    fronts=tuple(story.fronts),
-                    target_player=story.target_player,
-                    target_position=story.target_position,
-                    direction=story.direction,
-                    triggered_this_battle=story.triggered_this_battle,
-                    triggered_players_mask=story.triggered_players_mask,
+            self.narratives[player][:] = [
+                NarrativeState(
+                    card_id=narrative.card_id,
+                    ongoing=narrative.ongoing,
+                    fronts=tuple(narrative.fronts),
+                    target_player=narrative.target_player,
+                    target_position=narrative.target_position,
+                    direction=narrative.direction,
+                    triggered_this_battle=narrative.triggered_this_battle,
+                    triggered_players_mask=narrative.triggered_players_mask,
                 )
-                for story in source.stories[player]
+                for narrative in source.narratives[player]
             ]
 
             source_stratagem = source.stratagems[player]
@@ -438,7 +438,7 @@ class GameState:
                 persists_between_battles=item.persists_between_battles,
                 zero_cost=item.zero_cost,
                 draw_after_satisfied=item.draw_after_satisfied,
-                discard_source_story=item.discard_source_story,
+                discard_source_narrative=item.discard_source_narrative,
             )
             for item in source.constraints
         ]
@@ -472,8 +472,8 @@ class GameState:
     def slot(self, player: int, position: Position) -> Slot:
         return self.board[player][int(position.front)][RANK_INDEX[position.rank]]
 
-    def ongoing_stories(self, player: int) -> list[StoryState]:
-        return self.stories[player]
+    def ongoing_stories(self, player: int) -> list[NarrativeState]:
+        return self.narratives[player]
 
     def observe_hidden_delta(
         self,
