@@ -1334,7 +1334,7 @@ def test_ongoing_narrative_slot_does_not_receive_adjacent_front_discount() -> No
     assert engine.command_cost_for_action(state, narrative) == 2
 
 
-def test_ongoing_stories_are_public_and_respect_configured_limit() -> None:
+def test_ongoing_narratives_are_public_and_respect_configured_limit() -> None:
     rules = GameRules.standard().with_overrides(ongoing_narrative_limit=2)
     engine, state = setup_state(rules=rules)
     assert engine.ongoing_narrative_limit == rules.ongoing_narrative_limit
