@@ -23,8 +23,8 @@ cdef class NativeHeuristicEvaluator:
             )
         for i in range(HEUR_WEIGHT_COUNT):
             value = float(raw[i])
-            if value != value:
-                raise ValueError("heuristic values must not be NaN")
+            if not isfinite(value):
+                raise ValueError("heuristic values must be finite")
             self.weights[i] = value
 
     cdef double incomplete_liability_fast(
@@ -121,6 +121,7 @@ cdef class NativeHeuristicEvaluator:
         cdef int current_delta=0, projected_delta=0
         cdef double own_vulnerability=0.0, opponent_vulnerability=0.0
         cdef double own_liability=0.0, opponent_liability=0.0
+        cdef double passed_hand_value=0.0, responding_hand_value=0.0
         cdef double score = 0.0, option = 0.0, battle_end_urgency = 0.0
 
         if state.phase == PHASE_COMPLETE:
@@ -296,15 +297,27 @@ cdef class NativeHeuristicEvaluator:
         ):
             battle_end_urgency = self.battle_end_urgency_fast(state)
             if state.passed[player]:
+                passed_hand_value = (
+                    self.weights[HW_PASSED_HAND_WEIGHT]
+                    * state.hand_len[opponent]
+                )
+                if passed_hand_value > self.weights[HW_PASSED_HAND_CAP]:
+                    passed_hand_value = self.weights[HW_PASSED_HAND_CAP]
                 score -= battle_end_urgency * (
                     self.weights[HW_PASSED_BASE_PENALTY]
-                    + min(self.weights[HW_PASSED_HAND_CAP], self.weights[HW_PASSED_HAND_WEIGHT] * state.hand_len[opponent])
+                    + passed_hand_value
                     + self.weights[HW_PASSED_EXPOSURE_WEIGHT] * exposed
                 )
             else:
+                responding_hand_value = (
+                    self.weights[HW_RESPONDING_HAND_WEIGHT]
+                    * state.hand_len[player]
+                )
+                if responding_hand_value > self.weights[HW_RESPONDING_HAND_CAP]:
+                    responding_hand_value = self.weights[HW_RESPONDING_HAND_CAP]
                 score += battle_end_urgency * (
                     self.weights[HW_RESPONDING_BASE_BONUS]
-                    + min(self.weights[HW_RESPONDING_HAND_CAP], self.weights[HW_RESPONDING_HAND_WEIGHT] * state.hand_len[player])
+                    + responding_hand_value
                     + self.weights[HW_RESPONDING_REACH_WEIGHT] * reachable
                 )
 
