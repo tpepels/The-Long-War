@@ -54,7 +54,7 @@ cdef inline int _fe_preferred_slot(FastEngine self, FastState state, int player,
     slot = slot_index(player, front, 1)
     return slot if state.force[slot] >= 0 else -1
 
-cdef void _fe_remove_link(FastEngine self, FastState state, int player, int slot):
+cdef void _fe_remove_bond(FastEngine self, FastState state, int player, int slot):
     cdef int bond = state.bond[slot]
     cdef int name = state.name[slot]
     state.bond[slot] = -1
@@ -119,7 +119,7 @@ cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int con
     if effect == ONGOING_EFFECT_PENALIZE_FORCE and trigger_slot >= 0 and state.force[trigger_slot] >= 0:
         state.temporary[trigger_slot] -= amount
     elif effect == ONGOING_EFFECT_DISCARD_BOND and trigger_slot >= 0 and state.bond[trigger_slot] >= 0:
-        _fe_remove_link(self, state, actor, trigger_slot)
+        _fe_remove_bond(self, state, actor, trigger_slot)
     elif effect == ONGOING_EFFECT_REINFORCE:
         target = _fe_preferred_slot(self, state, controller, front)
         if target >= 0:
@@ -252,7 +252,7 @@ cdef void _fe_resolve_narrative(FastEngine self, FastState state, int actor, int
     if effect == NARRATIVE_DISCREDIT:
         owner = owner_from_slot(pos)
         if state.bond[pos] >= 0:
-            _fe_remove_link(self, state, owner, pos)
+            _fe_remove_bond(self, state, owner, pos)
         elif state.force[pos] >= 0:
             state.temporary[pos] -= 2
     elif effect == NARRATIVE_RETURN_NAME:
