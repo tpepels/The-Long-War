@@ -517,6 +517,8 @@ def run_counterfactual_card_sweep(
     rows: list[dict[str, Any]] = []
     total_matches = 0
     censored_matches = 0
+    draw_matches = 0
+    decisive_matches = 0
     decisive_paired_samples = 0
     censored_paired_samples = 0
     indexed_reports: list[tuple[int, dict[str, Any]]] = []
@@ -571,7 +573,9 @@ def run_counterfactual_card_sweep(
             for row in report["cards"]
         )
         total_matches += int(report["total_matches"])
-        censored_matches += int(report.get("censored_matches", 0))
+        censored_matches += int(report["censored_matches"])
+        draw_matches += int(report["draw_matches"])
+        decisive_matches += int(report["decisive_matches"])
         decisive_paired_samples += sum(
             int(row.get("samples", 0))
             for row in report["cards"]
@@ -606,18 +610,8 @@ def run_counterfactual_card_sweep(
         "total_matches": total_matches,
         "censored_matches": censored_matches,
         "resolved_matches": total_matches - censored_matches,
-        "draw_matches": sum(
-            value == 0.5
-            for outcomes in per_condition.values()
-            for value in outcomes
-            if value is not None
-        ),
-        "decisive_matches": sum(
-            value in (0.0, 1.0)
-            for outcomes in per_condition.values()
-            for value in outcomes
-            if value is not None
-        ),
+        "draw_matches": draw_matches,
+        "decisive_matches": decisive_matches,
         "match_censor_rate": (
             censored_matches / total_matches if total_matches else 0.0
         ),
@@ -767,6 +761,18 @@ def run_counterfactual_experiment(
         value is None
         for outcomes in per_condition.values()
         for value in outcomes
+    )
+    draw_matches = sum(
+        value == 0.5
+        for outcomes in per_condition.values()
+        for value in outcomes
+        if value is not None
+    )
+    decisive_matches = sum(
+        value in (0.0, 1.0)
+        for outcomes in per_condition.values()
+        for value in outcomes
+        if value is not None
     )
     base = per_condition[frozenset()]
 
@@ -940,7 +946,9 @@ def run_counterfactual_experiment(
         "samples": len(samples),
         "conditions_evaluated_per_sample": len(required_conditions),
         "total_matches": total_matches,
-        "decisive_matches": total_matches - censored_matches,
+        "resolved_matches": total_matches - censored_matches,
+        "draw_matches": draw_matches,
+        "decisive_matches": decisive_matches,
         "censored_matches": censored_matches,
         "match_censor_rate": (
             censored_matches / total_matches if total_matches else 0.0
