@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from math import isfinite
 
-from .game.actions import Action
+from .game.actions import Action, Pass
 from .game.engine import GameEngine
 from .game.model import GameState, Phase
 from .protocol import CardField, CardType
