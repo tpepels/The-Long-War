@@ -90,7 +90,7 @@ After that resolution, the board is not wiped clean. Complete established groups
 
 ## Your turn {#turn}
 
-At the start of every turn, **draw 1 card**.
+At the start of every turn, **draw {{TURN_DRAW_COUNT}} card(s)**.
 
 Your hand limit is **{{HAND_LIMIT}}**. If you would draw while holding {{HAND_LIMIT}} cards, discard 1 card first, then draw.
 
@@ -183,7 +183,7 @@ You cannot normally Maneuver between Battles or change rank with a Maneuver.
 
 To **Pass** is to spend 0 Command and take no other operation.
 
-Normally, you cannot Pass until both players have completed at least one operation in the Battle. If you have no other legal operation, you may Pass.
+Normally, you cannot Pass until both players have completed at least **{{PASS_MIN_OPERATIONS_BEFORE_SIGNAL}} operation(s)** in the Battle. If you have no other legal operation, you may Pass.
 
 Once you Pass, that Pass remains active for the rest of the Battle. The opponent takes a normal turn, and you continue taking normal turns too.
 
@@ -306,7 +306,7 @@ The individual Narrative forms have no hidden rules of their own.
 
 A **Stratagem** is a public plan for the current Battle. Play it face-up in your Stratagem area. Playing it is your operation and you pay its Command cost.
 
-You may play at most **one Stratagem from hand per Battle**.
+You may play at most **{{STRATAGEM_PLAY_LIMIT_PER_BATTLE}} Stratagem card(s) from hand per Battle**.
 
 Discard Stratagems at Battle end unless a card says otherwise. The allowance resets for the next Battle.
 
@@ -314,7 +314,7 @@ Discard Stratagems at Battle end unless a card says otherwise. The allowance res
 
 A **Hero** is a Unique card that can be played as either a Force or a Name. Use the matching text on the card.
 
-You may play at most **one Hero from hand per Battle**.
+You may play at most **{{HERO_PLAY_LIMIT_PER_BATTLE}} Hero card(s) from hand per Battle**.
 
 A Hero already on the battlefield does not use the next Battle's Hero allowance. The allowance resets for each Battle, and there is no separate cap on Heroes already in play.
 
