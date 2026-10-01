@@ -115,7 +115,7 @@ def test_computer_mode_mulligan_then_returns_control_to_human() -> None:
         assert result["legal_actions"]
 
 
-def test_action_payload_uses_canonical_force_and_story_targets() -> None:
+def test_action_payload_uses_canonical_force_and_narrative_targets() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
@@ -137,18 +137,18 @@ def test_action_payload_uses_canonical_force_and_story_targets() -> None:
     assert force["targets"] == []
     assert force["command_cost"] == 2
 
-    stories = [
+    narratives = [
         action
         for action in snapshot["legal_actions"]
-        if action["kind"] == "PlayStory"
+        if action["kind"] == "PlayNarrative"
         and action["card_id"] == "the-long-march"
     ]
-    assert stories
-    assert {action["ongoing_slot"] for action in stories} <= {0, 1}
-    assert 2 not in {action["ongoing_slot"] for action in stories}
+    assert narratives
+    assert {action["ongoing_slot"] for action in narratives} <= {0, 1}
+    assert 2 not in {action["ongoing_slot"] for action in narratives}
 
 
-def test_snapshot_exposes_four_fronts_command_and_two_story_limit() -> None:
+def test_snapshot_exposes_four_fronts_command_and_two_narrative_limit() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
@@ -157,8 +157,8 @@ def test_snapshot_exposes_four_fronts_command_and_two_story_limit() -> None:
     assert snapshot["front_control"] == [None, None, None, None]
     assert snapshot["players"][0]["command"] == 20
     assert snapshot["players"][1]["command"] == 20
-    assert snapshot["story_limit"] == 2
-    assert snapshot["stories"] == [[], []]
+    assert snapshot["narrative_limit"] == 2
+    assert snapshot["narratives"] == [[], []]
 
 
 def test_stratagem_action_is_paid_and_public_to_opponent() -> None:
