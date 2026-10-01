@@ -381,6 +381,9 @@ def test_per_card_sweep_parallel_branch_collects_reports(monkeypatch) -> None:
                 "censored_pairs": 0,
             }],
             "total_matches": 2,
+            "resolved_matches": 2,
+            "draw_matches": 0,
+            "decisive_matches": 2,
             "censored_matches": 0,
             "sample_generation": {
                 "seed": kwargs["seed"],
@@ -410,6 +413,32 @@ def test_per_card_sweep_parallel_branch_collects_reports(monkeypatch) -> None:
     assert {row["id"] for row in report["cards"]} == {"namar", "followed"}
     assert report["total_matches"] == 4
     assert report["decisive_paired_samples"] == 2
+
+
+def test_counterfactual_reports_draws_separately_from_decisive_matches(monkeypatch) -> None:
+    import longwar.counterfactual as counterfactual
+
+    outcomes = iter([0.5, 1.0])
+    monkeypatch.setattr(
+        counterfactual,
+        "_play_focal_outcome",
+        lambda *args, **kwargs: next(outcomes),
+    )
+    report = run_counterfactual_experiment(
+        data(),
+        contexts=1,
+        games_per_context=1,
+        seed=43,
+        card_ids=["namar"],
+        include_pairs=False,
+        include_legend_triples=False,
+    )
+
+    assert report["total_matches"] == 2
+    assert report["resolved_matches"] == 2
+    assert report["draw_matches"] == 1
+    assert report["decisive_matches"] == 1
+    assert report["censored_matches"] == 0
 
 
 def test_counterfactual_contrasts_accept_half_point_draw_scores() -> None:
