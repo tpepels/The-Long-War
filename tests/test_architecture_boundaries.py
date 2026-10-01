@@ -743,3 +743,11 @@ def test_decisive_rollout_limits_exact_reply_probes_to_terminal_horizon() -> Non
     assert "state.passed[actor]" in source
     assert "state.pass_closing_turns_remaining <= 2" in source
     assert "score_scratch.constraint_len == 0" in source
+
+
+def test_decisive_rollout_random_path_uses_lazy_safety_scan() -> None:
+    source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
+    assert "_ismcts_action_allows_immediate_loss" in source
+    assert "if not use_greedy:" in source
+    assert "for offset in range(safe_n):" in source
+    assert "The five-percent greedy branch can afford" in source
