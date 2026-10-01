@@ -2115,9 +2115,9 @@ def _narrative_ablation_summary(payload: dict[str, Any]) -> dict[str, Any]:
         "command_before_collapse_buckets": resources.get(
             "command_before_collapse_buckets"
         ),
-        "command_at_first_pass": resources.get("command_at_first_pass"),
-        "first_pass_command_buckets": resources.get(
-            "first_pass_command_buckets"
+        "command_at_first_signal": resources.get("command_at_first_signal"),
+        "first_signal_command_buckets": resources.get(
+            "first_signal_command_buckets"
         ),
         "command_by_source": resources.get("command_by_source", {}),
         "low_positive_streak_length": stalls.get(
@@ -2684,13 +2684,6 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
             "same canonical mirror deck, seat alternation, initial game seed, "
             "and agent seed schedule across variants"
         ),
-        "historical_consecutive_pass": {
-            "comparable_to_current_rules": False,
-            "reason": (
-                "Collected before direct Front-loss Command attrition and "
-                "simultaneous 0-0 draw became canonical."
-            ),
-        },
         "variants": rows,
     }
     path = output / "summary.json"
