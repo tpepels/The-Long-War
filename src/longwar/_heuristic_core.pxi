@@ -240,9 +240,15 @@ cdef class NativeHeuristicEvaluator:
 
             if opponent_lost_mask & (1 << front):
                 controls += 1
-                if raw_margin <= self.weights[HW_CLOSE_FRONT_MARGIN]:
+                if (
+                    raw_margin > 0
+                    and raw_margin <= self.weights[HW_CLOSE_FRONT_MARGIN]
+                ):
                     score += self.weights[HW_CLOSE_FRONT_BONUS]
-                if raw_margin <= self.weights[HW_EXPOSED_FRONT_MARGIN]:
+                if (
+                    raw_margin > 0
+                    and raw_margin <= self.weights[HW_EXPOSED_FRONT_MARGIN]
+                ):
                     exposed += 1
 
                 # A lost Front drives off a Rear Named Formation and only
@@ -263,9 +269,15 @@ cdef class NativeHeuristicEvaluator:
 
             elif own_lost_mask & (1 << front):
                 enemy_controls += 1
-                if raw_margin >= -self.weights[HW_CLOSE_FRONT_MARGIN]:
+                if (
+                    raw_margin < 0
+                    and raw_margin >= -self.weights[HW_CLOSE_FRONT_MARGIN]
+                ):
                     score -= self.weights[HW_CLOSE_FRONT_BONUS]
-                if raw_margin >= -self.weights[HW_EXPOSED_FRONT_MARGIN]:
+                if (
+                    raw_margin < 0
+                    and raw_margin >= -self.weights[HW_EXPOSED_FRONT_MARGIN]
+                ):
                     reachable += 1
 
                 own_front_slot = slot_index(player, front, RANK_FRONT)
