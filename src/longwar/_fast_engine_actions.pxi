@@ -162,7 +162,7 @@ cdef void _fe_remove_constraint_at(
         state.constraint_source_card[i] = -1
         state.constraint_source_owner[i] = -1
         state.constraint_front[i] = -1
-        state.constraint_direction[i] = 0
+        state.constraint_direction[i] = DIRECTION_NONE
         state.constraint_source_slot[i] = -1
         state.constraint_activate_turn[i] = 0
         state.constraint_flags[i] = 0
@@ -175,7 +175,7 @@ cdef void _fe_add_constraint(
     int source_card,
     int source_owner,
     int front=-1,
-    int direction=0,
+    int direction=DIRECTION_NONE,
     int source_slot=-1,
     int activate_turn=0,
     int flags=CONSTRAINT_EXPIRES_AFTER_OPERATION,
@@ -322,7 +322,7 @@ cdef bint _fe_had_been_ordered_allows(
         return True
     front = front_from_slot(source)
     rank = rank_from_slot(source)
-    if direction == 1:
+    if direction == DIRECTION_LEFT:
         if front == 0:
             return True
         preferred = slot_index(player, front - 1, rank)
@@ -358,7 +358,7 @@ cdef bint _fe_any_maneuver_in_direction(
             continue
         front = local >> 1
         rank = local & 1
-        if direction == 1:
+        if direction == DIRECTION_LEFT:
             if front == 0:
                 continue
             dest = slot_index(player, front - 1, rank)
@@ -427,9 +427,9 @@ cdef bint _fe_maneuver_allowed_by_continuous(
         else 2
     )
     if left_possible and not right_possible:
-        return direction == 1
+        return direction == DIRECTION_LEFT
     if right_possible and not left_possible:
-        return direction == 2
+        return direction == DIRECTION_RIGHT
     # If both requirements are satisfiable but conflict, the rulebook permits
     # choosing one satisfiable requirement. If neither can be satisfied,
     # ordinary Maneuvers remain legal.
@@ -1105,7 +1105,7 @@ cdef int _fe_legal_actions_into(
                                 continue
                             front = local >> 1
                             rank = local & 1
-                            if direction == 0:
+                            if direction == DIRECTION_NONE:
                                 if front == 0:
                                     continue
                                 dest = slot_index(player, front - 1, rank)
