@@ -360,6 +360,29 @@ def test_native_compile_time_protocol_is_generated() -> None:
         assert f"cdef int {name} =" not in constants
 
 
+def test_heuristic_weight_protocol_is_generated_and_fully_consumed() -> None:
+    from longwar.heuristics import HEURISTIC_KEYS
+    from tools import build_heuristic_weights
+
+    generated = SRC / "_heuristic_weights.generated.pxi"
+    assert generated.read_text(encoding="utf-8") == build_heuristic_weights.render()
+    source = (SRC / "_heuristic_core.pxi").read_text(encoding="utf-8")
+    for key in HEURISTIC_KEYS:
+        assert f"self.weights[HW_{key.upper()}]" in source, key
+    assert "DEF HEUR_" not in source
+
+
+def test_native_heuristic_has_preindexed_card_categories() -> None:
+    native_class = (SRC / "_fast_engine_class.pxi").read_text(encoding="utf-8")
+    native_cards = (SRC / "_fast_engine_cards.pxi").read_text(encoding="utf-8")
+    for category in (
+        "force", "bond", "name", "narrative", "stratagem", "hero", "name_mode"
+    ):
+        assert f"{category}_codes[MAX_CARDS]" in native_class
+        assert f"{category}_count" in native_class
+    assert "self.name_mode_codes[self.name_mode_count]" in native_cards
+
+
 def test_game_engine_delegates_rule_fields_without_mirroring() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     rules = GameRules.standard()
@@ -563,3 +586,17 @@ def test_ismcts_iteration_default_is_shared(monkeypatch) -> None:
 def test_verify_runs_python_undefined_name_lint() -> None:
     source = (ROOT / "Makefile").read_text(encoding="utf-8")
     assert "python -m ruff check src tools tests --select F821,F822,F823" in source
+
+
+def test_native_heuristic_weights_are_runtime_configuration() -> None:
+    from longwar.heuristics import DEFAULT_HEURISTIC_WEIGHTS
+    from longwar.native_engine import create_heuristic_evaluator
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    engine = GameEngine(data)
+    custom_weights = DEFAULT_HEURISTIC_WEIGHTS.with_overrides(
+        terminal_win_score=12345.0,
+    )
+    custom = create_heuristic_evaluator(engine._native_core(), custom_weights)
+    index = tuple(DEFAULT_HEURISTIC_WEIGHTS.as_dict()).index("terminal_win_score")
+    assert custom.weight_values()[index] == 12345.0
