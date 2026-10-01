@@ -275,8 +275,12 @@ def aggregate_simulations_for_health(
         int(simulation.get("failed_games", 0) or 0)
         for simulation in simulations
     )
+    draws = sum(
+        int(simulation.get("draws", 0) or 0)
+        for simulation in simulations
+    )
     completed_games = games - failed_games
-    decisive_games = completed_games - censored_games
+    decisive_games = max(0, completed_games - censored_games - draws)
     wins = [
         sum(int(simulation.get("wins", [0, 0])[player]) for simulation in simulations)
         for player in range(2)
@@ -316,8 +320,9 @@ def aggregate_simulations_for_health(
             "mean_maneuver_actions",
             "no_alternative_rate",
             "playable_alternative_rate",
-            "mean_actions_before_pass",
-            "first_pass_rate",
+            "mean_operations_before_signal",
+            "first_signal_rate",
+            "signal_avoids_command_exhaustion_rate",
         ),
     )
     battles = _weighted_section(
@@ -345,6 +350,8 @@ def aggregate_simulations_for_health(
         "games": games,
         "completed_games": completed_games,
         "decisive_games": decisive_games,
+        "draws": draws,
+        "draw_rate": _safe_ratio(draws, decisive_games + draws) or 0.0,
         "censored_games": censored_games,
         "failed_games": failed_games,
         "censor_rate": _safe_ratio(censored_games, games) or 0.0,
@@ -396,10 +403,6 @@ def _z(value: float | None, values: list[float]) -> float | None:
 
 
 def _playability_family(card: dict[str, Any]) -> str:
-    if card["type"] == "plot":
-        return "veiled_story" if card.get("veiled", False) else "story"
-    if card["type"] == "link":
-        return "bond"
     return str(card["type"])
 
 
@@ -416,7 +419,8 @@ def analyze_simulation(simulation: dict[str, Any], card_data: dict[str, Any]) ->
     games = int(simulation["games"])
     censored_games = int(simulation.get("censored_games", 0))
     failed_games = int(simulation.get("failed_games", 0))
-    decisive_games = max(0, games - censored_games - failed_games)
+    draws = int(simulation.get("draws", 0))
+    decisive_games = max(0, games - censored_games - failed_games - draws)
 
     fp = int(simulation["first_player_wins"])
     fp_rate = fp / decisive_games if decisive_games else 0.0
