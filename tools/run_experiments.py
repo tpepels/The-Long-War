@@ -410,62 +410,114 @@ def balance_run(args: argparse.Namespace) -> Path:
         if completed == total:
             print(f"  completed {key}: {completed}/{total} games", flush=True)
 
-    reports = simulate_games_batch(
-        engine,
-        batch_cells,
-        jobs=args.jobs,
-        common_options=common_simulation_options,
-        progress_callback=structural_progress,
-    )
-
-    for left, right in cells:
-        name = f"{left}--{right}"
-        _meta_left, _meta_right, seed, policies = cell_metadata[name]
-        report = reports[name]
-        total_censored += report.censored_games
-        total_failed += report.failed_games
-        payload = {
-            **asdict(report),
-            "game_fingerprint": identity["game_fingerprint"],
-            "experiment_fingerprint": identity["experiment_fingerprint"],
-            "seed": seed,
-            "rules": asdict(engine.rules),
-            "agent_profile": config["agent_profile"],
-            "recovery_start": recovery_start,
-            "recovery_decrement": recovery_decrement,
-            "policy_fingerprints": [
-                policy.get("_policy_fingerprint") if policy else None
-                for policy in policies
-            ],
-            "deck_a": decks[left],
-            "deck_b": decks[right],
-            "decisive_games": report.decisive_games,
-            "censor_rate": report.censor_rate,
-            "failure_rate": report.failure_rate,
-            "win_rates": report.win_rates,
-            "first_player_win_rate": report.first_player_win_rate,
-            "first_player_wilson_95": wilson_interval(
-                report.first_player_wins,
-                report.decisive_games,
-            ),
-            "simulation_variant": {
-                **engine.rules.simulation_metadata(),
-                "deck_sizes": [len(decks[left]), len(decks[right])],
-                "card_file": "cards/cards.json",
-            },
-        }
-        save(name, payload)
-        save(f"{name}-health", analyze_simulation(payload, data))
+    def consume_structural_payload(
+        left: str,
+        right: str,
+        payload: dict[str, Any],
+        *,
+        reused: bool = False,
+    ) -> None:
+        nonlocal total_censored, total_failed
+        total_censored += int(payload["censored_games"])
+        total_failed += int(payload["failed_games"])
         simulations.append(payload)
         if left == right:
             selfplay_simulations[left] = payload
+        prefix = "reused " if reused else ""
         print(
-            f"{name}: {games} games, {report.decisive_games} decisive, "
-            f"{report.censored_games} censored, {report.failed_games} failed, "
-            f"first-player wins "
-            f"{report.first_player_wins}; 95% interval "
+            f"{prefix}{left}--{right}: {payload['games']} games, "
+            f"{payload['decisive_games']} decisive, "
+            f"{payload['censored_games']} censored, "
+            f"{payload['failed_games']} failed, first-player wins "
+            f"{payload['first_player_wins']}; 95% interval "
             f"{payload['first_player_wilson_95']}"
         )
+
+    reusable: dict[str, dict[str, Any]] = {}
+    for left, right in cells:
+        name = f"{left}--{right}"
+        _meta_left, _meta_right, seed, _policies = cell_metadata[name]
+        existing_path = output / f"{name}.json"
+        if not existing_path.exists():
+            reusable = {}
+            break
+        try:
+            payload = json.loads(existing_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            reusable = {}
+            break
+        if (
+            payload.get("game_fingerprint") != identity["game_fingerprint"]
+            or payload.get("experiment_fingerprint")
+            != identity["experiment_fingerprint"]
+            or int(payload.get("games", -1)) != games
+            or int(payload.get("seed", -1)) != seed
+            or payload.get("deck_a") != decks[left]
+            or payload.get("deck_b") != decks[right]
+        ):
+            reusable = {}
+            break
+        reusable[name] = payload
+
+    if len(reusable) == len(cells):
+        print(
+            f"  reusing {len(cells)} complete structural matchup cells "
+            "from the current artifact directory",
+            flush=True,
+        )
+        for left, right in cells:
+            consume_structural_payload(
+                left,
+                right,
+                reusable[f"{left}--{right}"],
+                reused=True,
+            )
+    else:
+        reports = simulate_games_batch(
+            engine,
+            batch_cells,
+            jobs=args.jobs,
+            common_options=common_simulation_options,
+            progress_callback=structural_progress,
+        )
+
+        for left, right in cells:
+            name = f"{left}--{right}"
+            _meta_left, _meta_right, seed, policies = cell_metadata[name]
+            report = reports[name]
+            payload = {
+                **asdict(report),
+                "game_fingerprint": identity["game_fingerprint"],
+                "experiment_fingerprint": identity["experiment_fingerprint"],
+                "seed": seed,
+                "rules": asdict(engine.rules),
+                "agent_profile": config["agent_profile"],
+                "recovery_start": recovery_start,
+                "recovery_decrement": recovery_decrement,
+                "policy_fingerprints": [
+                    policy.get("_policy_fingerprint") if policy else None
+                    for policy in policies
+                ],
+                "deck_a": decks[left],
+                "deck_b": decks[right],
+                "decisive_games": report.decisive_games,
+                "censor_rate": report.censor_rate,
+                "failure_rate": report.failure_rate,
+                "win_rates": report.win_rates,
+                "first_player_win_rate": report.first_player_win_rate,
+                "first_player_wilson_95": wilson_interval(
+                    report.first_player_wins,
+                    report.decisive_games,
+                ),
+                "simulation_variant": {
+                    **engine.rules.simulation_metadata(),
+                    "deck_sizes": [len(decks[left]), len(decks[right])],
+                    "card_file": "cards/cards.json",
+                },
+            }
+            save(name, payload)
+            save(f"{name}-health", analyze_simulation(payload, data))
+            consume_structural_payload(left, right, payload)
 
     playability = build_playability_report(simulations)
     save("playability", playability)
