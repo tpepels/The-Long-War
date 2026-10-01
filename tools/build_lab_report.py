@@ -49,12 +49,6 @@ def canonical_variant(data: dict[str, Any]) -> bool:
     if not variant:
         return True  # Static/causal/policy artifacts have no simulation variant.
 
-    # Named rules profiles are obsolete. Simulation provenance records the
-    # actual rule values so reports cannot hide experimental differences behind
-    # a label.
-    if "rules_profile" in variant:
-        return False
-
     card_file = variant.get("card_file")
     if card_file and (ROOT / card_file).resolve() != (ROOT / "cards/cards.json").resolve():
         return False
@@ -149,21 +143,12 @@ def main() -> None:
     # need the same freshness check as their underlying match telemetry.
     health = current("balance-health.json")
     static = current("balance-report.json")
-    selfplay = (
-        current("balance-selfplay.json")
-        or current("heuristic-selfplay.json", track_stale=False)
-        or current("pages-selfplay.json", track_stale=False)
-    )
-    progression_selfplay = current("progression-selfplay.json") or selfplay
+    selfplay = current("balance-selfplay.json")
+    progression_selfplay = current("progression-selfplay.json")
     progression_profiles_artifact = compact_dashboard_payload(
         current("progression-profiles.json")
     )
     mccfr_suite = current("mccfr-suite.json")
-    policy = (
-        None
-        if mccfr_suite is not None
-        else current("mccfr-policy.json", track_stale=False)
-    )
     verification = current("mccfr-verification.json")
     solver_strength = current("solver-strength.json")
     counterfactual = current("counterfactual-balance.json")
@@ -307,26 +292,6 @@ def main() -> None:
         )
         for key, filename in matchup_files.items()
     }
-    if matchups["canonical_selfplay"] is None:
-        matchups["canonical_selfplay"] = simulation_summary(selfplay)
-
-    mccfr: dict[str, Any] | None = None
-    if policy is None and mccfr_suite and mccfr_suite.get("profiles"):
-        policy = mccfr_suite["profiles"][0].get("policy")
-    if policy is not None:
-        mccfr = {
-            "algorithm": policy.get("algorithm"),
-            "iterations": policy.get("iterations"),
-            "traversals": policy.get("traversals"),
-            "max_depth": policy.get("max_depth"),
-            "information_sets": len(policy.get("infosets", {})),
-            "training_summary": policy.get("training_summary"),
-            "leaf_evaluator": policy.get("leaf_evaluator"),
-            "chance_sampling": policy.get("chance_sampling"),
-            "information_abstraction": policy.get("information_abstraction"),
-            "average_policy": policy.get("average_policy"),
-        }
-
     raw_telemetry = (
         progression_selfplay.get("telemetry")
         if progression_selfplay is not None
@@ -413,7 +378,6 @@ def main() -> None:
         "health": health,
         "static": static,
         "matchups": matchups,
-        "mccfr": mccfr,
         "mccfr_suite": mccfr_suite,
         "verification": verification,
         "solver_strength": solver_strength,
