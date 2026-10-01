@@ -109,7 +109,7 @@ def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
     api = text("src/longwar/web_api.py")
 
     assert "configured Command penalty for each unprotected Front lost" in play
-    assert "ongoing Stories" not in play
+    assert "ongoing Narratives" not in play
 
     assert '"rules": self.engine.rules.as_dict()' in api
     assert "state?.rules" in script
@@ -238,7 +238,7 @@ def test_web_card_renderers_use_only_canonical_card_types() -> None:
         source = text(surface)
         assert 'subject: "force"' not in source
         assert 'link: "bond"' not in source
-        assert 'plot: "story"' not in source
+        assert 'plot: "narrative"' not in source
         assert ".veiled" not in source
 
 
@@ -273,21 +273,21 @@ def test_active_runtime_uses_canonical_card_vocabulary() -> None:
     assert ".play-card.card-bond" in play_style
 
     for legacy in (
-        "ongoing_story_limit",
-        "story_slot",
+        "ongoing_narrative_limit",
+        "narrative_slot",
         "STORY_CHOICE_",
-        "story_choice_kind",
-        "strat_cancel_story",
-        "_fe_pre_story_cancel",
+        "narrative_choice_kind",
+        "strat_cancel_narrative",
+        "_fe_pre_narrative_cancel",
         "_fe_compact_ongoing_stories",
-        "_fe_discard_story_by_card",
-        "recover_story_on_completion_name",
-        "story_discard_count",
-        "story_discard_gain_command",
-        "strat_story_lock",
-        "strat_global_story_lock",
-        "_fe_clear_story_targets_at_slot",
-        "_fe_story_locked",
+        "_fe_discard_narrative_by_card",
+        "recover_narrative_on_completion_name",
+        "narrative_discard_count",
+        "narrative_discard_gain_command",
+        "strat_narrative_lock",
+        "strat_global_narrative_lock",
+        "_fe_clear_narrative_targets_at_slot",
+        "_fe_narrative_locked",
         "CONSTRAINT_DISCARD_SOURCE_STORY",
     ):
         assert legacy not in compiled_runtime
