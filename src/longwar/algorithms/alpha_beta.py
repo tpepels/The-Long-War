@@ -191,21 +191,21 @@ class AlphaBetaSearch:
             for front in side
             for slot in front
         )
-        stories = tuple(
+        narratives = tuple(
             tuple(
                 (
-                    story.card_id,
-                    story.ongoing,
-                    tuple(story.fronts),
-                    story.target_player,
-                    story.target_position,
-                    story.triggered_this_battle,
-                    story.direction,
-                    story.triggered_players_mask,
+                    narrative.card_id,
+                    narrative.ongoing,
+                    tuple(narrative.fronts),
+                    narrative.target_player,
+                    narrative.target_position,
+                    narrative.triggered_this_battle,
+                    narrative.direction,
+                    narrative.triggered_players_mask,
                 )
-                for story in side
+                for narrative in side
             )
-            for side in state.stories
+            for side in state.narratives
         )
         stratagems = tuple(
             (
@@ -228,7 +228,7 @@ class AlphaBetaSearch:
             state.shuffle_seed,
             players,
             board,
-            stories,
+            narratives,
             stratagems,
             tuple(state.stratagem_used),
             tuple(state.hero_used),
@@ -261,7 +261,7 @@ class AlphaBetaSearch:
                     constraint.persists_between_battles,
                     constraint.zero_cost,
                     constraint.draw_after_satisfied,
-                    constraint.discard_source_story,
+                    constraint.discard_source_narrative,
                 )
                 for constraint in state.constraints
             ),
