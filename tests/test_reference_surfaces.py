@@ -272,6 +272,8 @@ def test_active_runtime_uses_canonical_card_vocabulary() -> None:
     assert "needs_link" not in heuristic
     assert ".play-card.card-link" not in play_style
     assert ".play-card.card-bond" in play_style
+    assert ".board-attachment.link" not in play_style
+    assert ".board-attachment.bond" in play_style
 
     for legacy in (
         "ongoing_story_limit",
