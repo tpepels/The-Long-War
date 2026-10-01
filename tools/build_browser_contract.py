@@ -14,7 +14,7 @@ from longwar.game import (
     PlayBond,
     PlayForce,
     PlayName,
-    PlayStory,
+    PlayNarrative,
     PlayStratagem,
 )
 from longwar.game.actions import action_key
@@ -22,7 +22,7 @@ from longwar.game.model import (
     GameState,
     PlayerState,
     Slot,
-    StoryState,
+    NarrativeState,
     StratagemState,
 )
 from longwar.web_api import PlaySession
@@ -57,25 +57,25 @@ def project_state(state: GameState) -> dict[str, object]:
             ]
             for side in state.board
         ],
-        "stories": [
+        "narratives": [
             [
                 {
-                    "card_id": story.card_id,
-                    "ongoing": story.ongoing,
-                    "fronts": [int(front) for front in story.fronts],
-                    "target_player": story.target_player,
+                    "card_id": narrative.card_id,
+                    "ongoing": narrative.ongoing,
+                    "fronts": [int(front) for front in narrative.fronts],
+                    "target_player": narrative.target_player,
                     "target_position": (
                         None
-                        if story.target_position is None
+                        if narrative.target_position is None
                         else {
-                            "front": int(story.target_position.front),
-                            "rank": story.target_position.rank.value,
+                            "front": int(narrative.target_position.front),
+                            "rank": narrative.target_position.rank.value,
                         }
                     ),
                 }
-                for story in side
+                for narrative in side
             ]
-            for side in state.stories
+            for side in state.narratives
         ],
         "stratagems": [
             (
@@ -170,7 +170,7 @@ def choose_contract_action(engine: GameEngine, state: GameState):
         PlayForce,
         PlayBond,
         PlayName,
-        PlayStory,
+        PlayNarrative,
         PlayStratagem,
         Maneuver,
     )
@@ -308,7 +308,7 @@ def narrative_limit_scenarios(
     )
 
     occupied_state = state.clone()
-    occupied_state.stories[0] = [StoryState("they-returned-with-names")]
+    occupied_state.narratives[0] = [NarrativeState("they-returned-with-names")]
     occupied = scenario(
         occupied_state,
         "ongoing-narrative-occupied-storage",
@@ -330,9 +330,9 @@ def _restore_state(values: dict[str, object]) -> GameState:
         ]
         for side in values["board"]
     ]
-    values["stories"] = [
-        [StoryState(**story) for story in side]
-        for side in values["stories"]
+    values["narratives"] = [
+        [NarrativeState(**narrative) for narrative in side]
+        for side in values["narratives"]
     ]
     values["stratagems"] = [
         None if item is None else StratagemState(**item)
