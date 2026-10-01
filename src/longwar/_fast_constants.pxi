@@ -1,8 +1,17 @@
+DEF PLAYER_COUNT = 2
+DEF FRONT_COUNT = 4
+DEF RANK_COUNT = 2
+DEF DIRECTION_COUNT = 2
+DEF POSITIONS_PER_PLAYER = FRONT_COUNT * RANK_COUNT
+DEF SLOT_COUNT = PLAYER_COUNT * POSITIONS_PER_PLAYER
+# Storage capacity is intentionally independent of the current rules limit.
+DEF NARRATIVE_SLOTS_PER_PLAYER = 4
+DEF NARRATIVE_COUNT = PLAYER_COUNT * NARRATIVE_SLOTS_PER_PLAYER
+
 DEF MAX_CARDS = 127
 DEF MAX_DECK = 254
-DEF SLOT_COUNT = 16
-DEF NARRATIVE_COUNT = 8
 DEF MAX_ACTIONS = 1024
+DEF INFORMATION_KEY_VERSION = 8
 DEF MAX_RECOVERY_SCHEDULE = 32
 DEF MAX_PENDING_EFFECTS = 32
 DEF MAX_CONSTRAINTS = 16
@@ -172,19 +181,19 @@ cdef int CONSTRAINT_DRAW_ON_SATISFY = 8
 cdef int CONSTRAINT_DISCARD_SOURCE_NARRATIVE = 16
 
 cdef inline int slot_index(int player, int front, int rank) noexcept:
-    return player * 8 + front * 2 + rank
+    return player * POSITIONS_PER_PLAYER + front * RANK_COUNT + rank
 
 cdef inline int owner_from_slot(int slot) noexcept:
-    return 0 if slot < 8 else 1
+    return slot // POSITIONS_PER_PLAYER
 
 cdef inline int local_slot(int slot) noexcept:
-    return slot if slot < 8 else slot - 8
+    return slot % POSITIONS_PER_PLAYER
 
 cdef inline int front_from_slot(int slot) noexcept:
-    return local_slot(slot) >> 1
+    return local_slot(slot) // RANK_COUNT
 
 cdef inline int rank_from_slot(int slot) noexcept:
-    return local_slot(slot) & 1
+    return local_slot(slot) % RANK_COUNT
 
 cdef inline int _append_action(uint64_t* actions, int n, uint64_t action) except -1:
     # Reserve one entry for Pass; guard before every write, including cards
