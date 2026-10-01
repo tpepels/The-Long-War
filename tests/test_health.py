@@ -193,7 +193,7 @@ def test_combo_outcome_association_is_diagnostic_not_balance_failure() -> None:
             "telemetry": {
                 "passes": {},
                 "battles": {},
-                "cards": {key: dict(neutral) for key in ("subject", "bond", "name")},
+                "cards": {key: dict(neutral) for key in ("force", "bond", "name")},
                 "formation_combinations": {
                     "force | bond | name": {
                         "games_seen": 100,
