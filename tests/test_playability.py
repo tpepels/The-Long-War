@@ -19,7 +19,7 @@ def simulation(*, fingerprint: str = "rules-a") -> dict:
                 "PlayBond": 25,
                 "PlayForce": 50,
                 "PlayName": 10,
-                "PlayStory": 15,
+                "PlayNarrative": 15,
                 "PlayStratagem": 15,
             },
             "battles": {"count": 25},
