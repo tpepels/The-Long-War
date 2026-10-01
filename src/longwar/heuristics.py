@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from .game.actions import Action
 from .game.engine import GameEngine
-from .game.model import GameState, Phase
+from .game.model import GameState, Phase, other_player
 from .protocol import CardField, CardType
 
 
@@ -23,7 +23,7 @@ def command_preserving_actions(
         return legal, 0
 
     actor = state.active_player
-    opponent = 1 - actor
+    opponent = other_player(actor)
     threshold = int(engine.rules.command_collapse_threshold)
     actor_command = state.players[actor].command
     preserving: list[Action] = []
