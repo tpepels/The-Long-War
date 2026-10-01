@@ -15,6 +15,7 @@ native-build:
 	python tools/build_heuristic_weights.py
 	python tools/build_native_fingerprint.py
 	python setup.py build_ext --inplace
+	python -c 'from longwar.native_search import ismcts_backend; ismcts_backend(); print("Native source/binary fingerprint: OK")'
 
 browser-build:
 	python tools/build_native_protocol.py --check
