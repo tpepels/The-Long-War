@@ -237,7 +237,7 @@ cdef class FastEngine:
             kind_name = (
                 "gain" if kind == COMMAND_DIAG_GAIN else
                 "discount" if kind == COMMAND_DIAG_DISCOUNT else
-                "recovery_protection"
+                "front_loss_protection"
             )
             detail_name = {
                 COMMAND_DETAIL_COMPLETION_GAIN: "completion_gain",
@@ -252,8 +252,8 @@ cdef class FastEngine:
                 COMMAND_DETAIL_FRONTLINE_DISCOUNT: "frontline_discount",
                 COMMAND_DETAIL_FREE_MANEUVER: "free_maneuver",
                 COMMAND_DETAIL_STRATAGEM_MANEUVER: "stratagem_maneuver_discount",
-                COMMAND_DETAIL_RECOVERY_PROTECTED_FRONT: "front_loss_protected_front",
-                COMMAND_DETAIL_RECOVERY_STRATAGEM: "recovery_stratagem",
+                COMMAND_DETAIL_FRONT_LOSS_PROTECTED_FRONT: "front_loss_protected_front",
+                COMMAND_DETAIL_FRONT_LOSS_STRATAGEM: "front_loss_stratagem",
             }.get(detail, "other")
             source = None if card < 0 else self.card_ids[card]
             events.append({
