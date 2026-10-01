@@ -1,31 +1,74 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
-<rect width="900" height="360" fill="#f5efe3"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="330" viewBox="0 0 900 330">
+
 <style>
-text{fill:#181714;font-family:Arial,sans-serif} .h{font-size:22px;font-weight:700;letter-spacing:1px}.t{font-size:18px}.s{font-size:15px}.box{fill:#fffaf0;stroke:#181714;stroke-width:2}.soft{fill:#eee5d5;stroke:#181714;stroke-width:2}.dark{fill:#181714}.light{fill:#f7f2e8}.arrow{stroke:#181714;stroke-width:3;fill:none;marker-end:url(#a)} .dash{stroke-dasharray:8 7}
+  .ink{fill:#1d1a16}.paper{fill:#fbf6eb}.wash{fill:#eee3cf}.gold{fill:#dbc58f}
+  .line{stroke:#1d1a16;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .thin{stroke:#1d1a16;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .dash{stroke-dasharray:9 7}
+  .label{font:700 18px Arial,sans-serif;letter-spacing:1.5px;fill:#1d1a16}
+  .small{font:15px Arial,sans-serif;fill:#4d473f}
+  .tiny{font:12px Arial,sans-serif;fill:#4d473f}
+  .title{font:700 18px Georgia,serif;fill:#1d1a16}
+  .light{fill:#fbf6eb}
 </style>
-<defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#181714"/></marker></defs>
-<text x="35" y="42" class="h">BUILDING A POSITION</text>
-<g transform="translate(35 75)">
- <text x="110" y="0" class="h" text-anchor="middle">PREPARED</text>
- <rect class="soft dash" x="25" y="25" width="170" height="58" rx="6"/><text x="110" y="60" class="t" text-anchor="middle">BOND</text>
- <rect class="soft dash" x="25" y="96" width="170" height="58" rx="6"/><text x="110" y="131" class="t" text-anchor="middle">NAME</text>
- <text x="110" y="184" class="s" text-anchor="middle">face-up • no Strength</text>
+<defs>
+  <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto">
+    <path d="M0 0 L0 8 L10 4 Z" fill="#1d1a16"/>
+  </marker>
+</defs>
+<text x="26" y="28" class="label">BUILDING A NAMED FORMATION</text>
+<!-- panel 1 -->
+<g transform="translate(42 60)">
+  <path class="thin dash" d="M0 220 Q105 236 210 220"/>
+  <g transform="translate(23 12) rotate(-5 48 68)">
+    <rect width="96" height="136" rx="9" class="paper" stroke="#1d1a16" stroke-width="3"/>
+    <rect x="10" y="11" width="76" height="21" rx="3" class="wash"/><text x="48" y="27" text-anchor="middle" class="tiny">BOND</text>
+    <circle cx="39" cy="78" r="18" class="thin"/><circle cx="58" cy="78" r="18" class="thin"/>
+    <path class="thin" d="M19 113 H77"/>
+  </g>
+  <g transform="translate(101 32) rotate(5 48 68)">
+    <rect width="96" height="136" rx="9" class="paper" stroke="#1d1a16" stroke-width="3"/>
+    <rect x="10" y="11" width="76" height="21" rx="3" class="ink"/><text x="48" y="27" text-anchor="middle" class="tiny light">NAME</text>
+    <path class="thin" d="M24 63 Q48 42 72 63 Q48 93 24 63 Z"/><path class="thin" d="M28 105 H68"/>
+  </g>
+  <text x="105" y="202" text-anchor="middle" class="label">PREPARED</text>
+  <text x="105" y="225" text-anchor="middle" class="small">waiting for a Force</text>
 </g>
-<path class="arrow" d="M265 178 H350"/>
-<text x="307" y="155" class="s" text-anchor="middle">Force arrives</text>
-<g transform="translate(370 75)">
- <text x="110" y="0" class="h" text-anchor="middle">FORMATION</text>
- <rect class="box" x="25" y="25" width="170" height="58" rx="6"/><text x="110" y="60" class="t" text-anchor="middle">FORCE</text>
- <rect class="soft" x="25" y="96" width="170" height="58" rx="6"/><text x="110" y="131" class="t" text-anchor="middle">BOND</text>
- <text x="110" y="184" class="s" text-anchor="middle">Force supplies Strength</text>
+<!-- hand-drawn arrow -->
+<path class="line" d="M270 155 Q315 125 354 155" marker-end="url(#arrow)"/>
+<text x="313" y="118" text-anchor="middle" class="small">play a Force</text>
+<!-- panel 2 complete stack -->
+<g transform="translate(365 52)">
+  <rect x="0" y="0" width="210" height="244" rx="14" fill="#f4ead6" stroke="#1d1a16" stroke-width="2" stroke-dasharray="8 7"/>
+  <g transform="translate(23 72) rotate(-7 48 68)">
+    <rect width="96" height="136" rx="9" class="paper" stroke="#1d1a16" stroke-width="3"/>
+    <rect x="10" y="11" width="76" height="21" rx="3" class="gold"/><text x="48" y="27" text-anchor="middle" class="tiny">FORCE</text>
+    <path class="thin" d="M27 57 L68 98 M68 57 L27 98"/><circle cx="48" cy="77" r="10" class="paper" stroke="#1d1a16" stroke-width="2"/>
+    <text x="77" y="122" class="title">4</text>
+  </g>
+  <g transform="translate(61 56) rotate(1 48 68)">
+    <rect width="96" height="136" rx="9" class="paper" stroke="#1d1a16" stroke-width="3"/>
+    <rect x="10" y="11" width="76" height="21" rx="3" class="wash"/><text x="48" y="27" text-anchor="middle" class="tiny">BOND</text>
+    <circle cx="39" cy="78" r="18" class="thin"/><circle cx="58" cy="78" r="18" class="thin"/>
+  </g>
+  <g transform="translate(99 42) rotate(7 48 68)">
+    <rect width="96" height="136" rx="9" class="paper" stroke="#1d1a16" stroke-width="3"/>
+    <rect x="10" y="11" width="76" height="21" rx="3" class="ink"/><text x="48" y="27" text-anchor="middle" class="tiny light">NAME</text>
+    <path class="thin" d="M24 63 Q48 42 72 63 Q48 93 24 63 Z"/>
+  </g>
+  <text x="105" y="224" text-anchor="middle" class="label">NAMED</text>
 </g>
-<path class="arrow" d="M600 178 H685"/>
-<text x="642" y="155" class="s" text-anchor="middle">Name completes it</text>
-<g transform="translate(700 75)">
- <text x="82" y="0" class="h" text-anchor="middle">NAMED</text>
- <rect class="box" x="0" y="25" width="165" height="48" rx="6"/><text x="82" y="55" class="t" text-anchor="middle">FORCE</text>
- <rect class="soft" x="0" y="83" width="165" height="48" rx="6"/><text x="82" y="113" class="t" text-anchor="middle">BOND</text>
- <rect class="dark" x="0" y="141" width="165" height="48" rx="6"/><text x="82" y="171" class="t light" text-anchor="middle">NAME</text>
- <text x="82" y="215" class="s" text-anchor="middle">persists • can Maneuver</text>
+<path class="line" d="M596 155 Q640 128 681 155" marker-end="url(#arrow)"/>
+<!-- panel 3 persists/maneuvers -->
+<g transform="translate(694 60)">
+  <path class="thin" d="M0 205 H165"/>
+  <rect x="12" y="82" width="60" height="91" rx="7" class="paper" stroke="#1d1a16" stroke-width="3"/>
+  <rect x="19" y="90" width="46" height="15" rx="2" class="gold"/><path class="thin" d="M27 120 L57 151 M57 120 L27 151"/>
+  <rect x="52" y="68" width="60" height="91" rx="7" class="paper" stroke="#1d1a16" stroke-width="3"/>
+  <rect x="59" y="76" width="46" height="15" rx="2" class="wash"/><circle cx="78" cy="123" r="12" class="thin"/><circle cx="90" cy="123" r="12" class="thin"/>
+  <rect x="92" y="55" width="60" height="91" rx="7" class="paper" stroke="#1d1a16" stroke-width="3"/>
+  <rect x="99" y="63" width="46" height="15" rx="2" class="ink"/><path class="thin" d="M108 105 Q122 90 136 105 Q122 122 108 105 Z"/>
+  <path class="line" d="M35 222 Q82 248 133 220" marker-end="url(#arrow)"/>
+  <text x="82" y="274" text-anchor="middle" class="small">survives & moves</text>
 </g>
 </svg>

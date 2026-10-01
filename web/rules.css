@@ -2563,8 +2563,8 @@
   width: 100%;
   max-width: 100%;
   margin: 4mm auto 5mm;
-  border: .28mm solid rgba(24,23,20,.45);
-  background: #f5efe3;
+  border: 0;
+  background: transparent;
 }
 
 .rulebook blockquote strong:first-child {

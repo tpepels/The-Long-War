@@ -1,25 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
-<rect width="900" height="360" fill="#f5efe3"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="275" viewBox="0 0 900 275">
+
 <style>
-text{fill:#181714;font-family:Arial,sans-serif} .h{font-size:22px;font-weight:700;letter-spacing:1px}.t{font-size:18px}.s{font-size:15px}.box{fill:#fffaf0;stroke:#181714;stroke-width:2}.soft{fill:#eee5d5;stroke:#181714;stroke-width:2}.dark{fill:#181714}.light{fill:#f7f2e8}.arrow{stroke:#181714;stroke-width:3;fill:none;marker-end:url(#a)} .dash{stroke-dasharray:8 7}
+  .ink{fill:#1d1a16}.paper{fill:#fbf6eb}.wash{fill:#eee3cf}.gold{fill:#dbc58f}
+  .line{stroke:#1d1a16;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .thin{stroke:#1d1a16;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .dash{stroke-dasharray:9 7}
+  .label{font:700 18px Arial,sans-serif;letter-spacing:1.5px;fill:#1d1a16}
+  .small{font:15px Arial,sans-serif;fill:#4d473f}
+  .tiny{font:12px Arial,sans-serif;fill:#4d473f}
+  .title{font:700 18px Georgia,serif;fill:#1d1a16}
+  .light{fill:#fbf6eb}
 </style>
-<defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#181714"/></marker></defs>
-<text x="35" y="42" class="h">ONE BATTLE</text>
-<g transform="translate(35 82)">
-  <rect class="box" x="0" y="0" width="145" height="70" rx="8"/><text x="72" y="31" text-anchor="middle" class="h">TURNS</text><text x="72" y="54" text-anchor="middle" class="s">draw + 1 operation</text>
-  <path class="arrow" d="M150 35 H195"/>
-  <rect class="soft" x="205" y="0" width="145" height="70" rx="8"/><text x="277" y="29" text-anchor="middle" class="h">PASS</text><text x="277" y="53" text-anchor="middle" class="s">then Pass again</text>
-  <path class="arrow" d="M355 35 H400"/>
-  <rect class="box" x="410" y="0" width="145" height="70" rx="8"/><text x="482" y="29" text-anchor="middle" class="h">RESOLVE</text><text x="482" y="53" text-anchor="middle" class="s">4 Fronts separately</text>
-  <path class="arrow" d="M560 35 H605"/>
-  <rect class="soft" x="615" y="0" width="145" height="70" rx="8"/><text x="687" y="29" text-anchor="middle" class="h">RETREAT</text><text x="687" y="53" text-anchor="middle" class="s">lost ground changes board</text>
+<defs>
+  <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto">
+    <path d="M0 0 L0 8 L10 4 Z" fill="#1d1a16"/>
+  </marker>
+</defs>
+<text x="26" y="28" class="label">A BATTLE, AT A GLANCE</text>
+<!-- winding game-path -->
+<path class="line" d="M76 145 C145 76 245 76 310 145 S475 214 545 145 S710 76 824 145" marker-end="url(#arrow)"/>
+<!-- draw -->
+<g transform="translate(45 78) rotate(-4 42 56)">
+  <rect x="0" y="0" width="84" height="112" rx="8" class="paper" stroke="#1d1a16" stroke-width="3"/>
+  <rect x="9" y="10" width="66" height="19" rx="3" class="ink"/><text x="42" y="24" text-anchor="middle" class="tiny light">DRAW</text>
+  <path class="thin" d="M18 48 Q42 33 66 48 M18 72 Q42 57 66 72 M18 94 H66"/>
 </g>
-<path class="arrow" d="M722 178 C722 225 670 230 620 230 H300"/>
-<g transform="translate(35 230)">
-  <rect class="box" x="0" y="0" width="190" height="70" rx="8"/><text x="95" y="29" text-anchor="middle" class="h">COLLAPSE CHECK</text><text x="95" y="53" text-anchor="middle" class="s">before recovery</text>
-  <path class="arrow" d="M195 35 H255"/>
-  <rect class="soft" x="265" y="0" width="190" height="70" rx="8"/><text x="360" y="29" text-anchor="middle" class="h">RECOVER</text><text x="360" y="53" text-anchor="middle" class="s">if the war continues</text>
-  <path class="arrow" d="M460 35 H520"/>
-  <rect class="box" x="530" y="0" width="195" height="70" rx="8"/><text x="627" y="29" text-anchor="middle" class="h">NEXT BATTLE</text><text x="627" y="53" text-anchor="middle" class="s">survivors stay in place</text>
+<text x="87" y="214" text-anchor="middle" class="small">draw + 1 operation</text>
+<!-- build -->
+<g transform="translate(202 73)">
+  <g transform="rotate(-7 55 62)"><rect x="0" y="8" width="82" height="108" rx="8" class="paper" stroke="#1d1a16" stroke-width="3"/><rect x="9" y="18" width="64" height="18" rx="3" class="gold"/><text x="41" y="32" text-anchor="middle" class="tiny">FORCE</text><path class="thin" d="M21 56 L61 91 M61 56 L21 91"/></g>
+  <g transform="translate(42 0) rotate(7 55 62)"><rect x="0" y="8" width="82" height="108" rx="8" class="paper" stroke="#1d1a16" stroke-width="3"/><rect x="9" y="18" width="64" height="18" rx="3" class="wash"/><text x="41" y="32" text-anchor="middle" class="tiny">BOND</text><circle cx="34" cy="71" r="13" class="thin"/><circle cx="50" cy="71" r="13" class="thin"/></g>
 </g>
+<text x="264" y="214" text-anchor="middle" class="small">build & move</text>
+<!-- pass tokens -->
+<g transform="translate(390 92)">
+  <circle cx="30" cy="48" r="31" class="paper" stroke="#1d1a16" stroke-width="3"/>
+  <circle cx="78" cy="48" r="31" class="ink"/>
+  <text x="30" y="54" text-anchor="middle" class="label">P</text><text x="78" y="54" text-anchor="middle" class="label light">P</text>
+  <path class="thin" d="M16 90 Q54 108 93 90"/>
+</g>
+<text x="440" y="214" text-anchor="middle" class="small">two Passes</text>
+<!-- resolve fronts -->
+<g transform="translate(565 77)">
+  <path class="thin" d="M0 62 H145"/>
+  <g transform="translate(0 0)"><rect x="0" y="0" width="30" height="49" rx="3" class="wash" stroke="#1d1a16" stroke-width="2"/><rect x="0" y="75" width="30" height="49" rx="3" class="paper" stroke="#1d1a16" stroke-width="2"/></g>
+  <g transform="translate(39 0)"><rect x="0" y="0" width="30" height="49" rx="3" class="paper" stroke="#1d1a16" stroke-width="2"/><rect x="0" y="75" width="30" height="49" rx="3" class="gold" stroke="#1d1a16" stroke-width="2"/></g>
+  <g transform="translate(78 0)"><rect x="0" y="0" width="30" height="49" rx="3" class="wash" stroke="#1d1a16" stroke-width="2"/><rect x="0" y="75" width="30" height="49" rx="3" class="paper" stroke="#1d1a16" stroke-width="2"/></g>
+  <g transform="translate(117 0)"><rect x="0" y="0" width="30" height="49" rx="3" class="paper" stroke="#1d1a16" stroke-width="2"/><rect x="0" y="75" width="30" height="49" rx="3" class="paper" stroke="#1d1a16" stroke-width="2"/></g>
+</g>
+<text x="637" y="214" text-anchor="middle" class="small">resolve 4 Fronts</text>
+<!-- command dial -->
+<g transform="translate(765 91)">
+  <circle cx="48" cy="48" r="43" class="paper" stroke="#1d1a16" stroke-width="3"/>
+  <path class="line" d="M48 48 L72 22"/>
+  <circle cx="48" cy="48" r="5" class="ink"/>
+  <path class="thin" d="M22 30 L16 24 M75 30 L81 24 M48 13 V5 M20 68 L12 72 M76 68 L84 72"/>
+  <text x="48" y="89" text-anchor="middle" class="tiny">COMMAND</text>
+</g>
+<text x="814" y="232" text-anchor="middle" class="small">collapse → recover</text>
 </svg>

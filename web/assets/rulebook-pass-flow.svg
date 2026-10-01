@@ -1,19 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
-<rect width="900" height="360" fill="#f5efe3"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="310" viewBox="0 0 900 310">
+
 <style>
-text{fill:#181714;font-family:Arial,sans-serif} .h{font-size:22px;font-weight:700;letter-spacing:1px}.t{font-size:18px}.s{font-size:15px}.box{fill:#fffaf0;stroke:#181714;stroke-width:2}.soft{fill:#eee5d5;stroke:#181714;stroke-width:2}.dark{fill:#181714}.light{fill:#f7f2e8}.arrow{stroke:#181714;stroke-width:3;fill:none;marker-end:url(#a)} .dash{stroke-dasharray:8 7}
+  .ink{fill:#1d1a16}.paper{fill:#fbf6eb}.wash{fill:#eee3cf}.gold{fill:#dbc58f}
+  .line{stroke:#1d1a16;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .thin{stroke:#1d1a16;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .dash{stroke-dasharray:9 7}
+  .label{font:700 18px Arial,sans-serif;letter-spacing:1.5px;fill:#1d1a16}
+  .small{font:15px Arial,sans-serif;fill:#4d473f}
+  .tiny{font:12px Arial,sans-serif;fill:#4d473f}
+  .title{font:700 18px Georgia,serif;fill:#1d1a16}
+  .light{fill:#fbf6eb}
 </style>
-<defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#181714"/></marker></defs>
-<text x="35" y="42" class="h">PASS DOES NOT END YOUR PARTICIPATION</text>
-<g transform="translate(45 92)">
- <rect class="soft" x="0" y="0" width="170" height="70" rx="8"/><text x="85" y="29" class="h" text-anchor="middle">YOU PASS</text><text x="85" y="53" class="s" text-anchor="middle">first Pass</text>
- <path class="arrow" d="M175 35 H255"/>
- <rect class="box" x="265" y="0" width="200" height="70" rx="8"/><text x="365" y="29" class="h" text-anchor="middle">OPPONENT TURN</text><text x="365" y="53" class="s" text-anchor="middle">normal turn</text>
+<defs>
+  <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto">
+    <path d="M0 0 L0 8 L10 4 Z" fill="#1d1a16"/>
+  </marker>
+</defs>
+<text x="26" y="28" class="label">A PASS IS ONLY PROVISIONAL</text>
+<!-- players -->
+<g transform="translate(55 70)">
+  <circle cx="52" cy="48" r="35" class="wash" stroke="#1d1a16" stroke-width="3"/>
+  <path class="thin" d="M36 45 Q52 60 68 45"/><circle cx="42" cy="38" r="2.5" class="ink"/><circle cx="62" cy="38" r="2.5" class="ink"/>
+  <path class="thin" d="M24 92 Q52 74 80 92"/>
+  <text x="52" y="128" text-anchor="middle" class="small">YOU</text>
 </g>
-<path class="arrow" d="M410 185 C410 225 260 225 260 270"/>
-<text x="280" y="218" class="s">opponent acts</text>
-<rect class="box" x="130" y="270" width="260" height="60" rx="8"/><text x="260" y="296" class="h" text-anchor="middle">PASS CLEARED</text><text x="260" y="318" class="s" text-anchor="middle">Battle continues</text>
-<path class="arrow" d="M555 160 C555 205 700 205 700 250"/>
-<text x="675" y="205" class="s" text-anchor="middle">opponent Passes</text>
-<rect class="dark" x="585" y="250" width="250" height="80" rx="8"/><text x="710" y="283" class="h light" text-anchor="middle">BATTLE ENDS</text><text x="710" y="310" class="s light" text-anchor="middle">two consecutive Passes</text>
+<g transform="translate(345 70)">
+  <circle cx="52" cy="48" r="35" class="paper" stroke="#1d1a16" stroke-width="3"/>
+  <path class="thin" d="M36 45 Q52 60 68 45"/><circle cx="42" cy="38" r="2.5" class="ink"/><circle cx="62" cy="38" r="2.5" class="ink"/>
+  <path class="thin" d="M24 92 Q52 74 80 92"/>
+  <text x="52" y="128" text-anchor="middle" class="small">OPPONENT</text>
+</g>
+<!-- pass token -->
+<g transform="translate(185 84) rotate(-7 44 44)">
+  <circle cx="44" cy="44" r="40" class="ink"/><text x="44" y="51" text-anchor="middle" class="label light">PASS</text>
+</g>
+<path class="line" d="M286 129 H340" marker-end="url(#arrow)"/>
+<!-- branch -->
+<path class="line" d="M430 132 Q535 65 635 95" marker-end="url(#arrow)"/>
+<path class="line" d="M430 145 Q535 224 635 215" marker-end="url(#arrow)"/>
+<!-- top: opponent plays card -->
+<g transform="translate(650 48) rotate(5 45 60)">
+  <rect width="90" height="120" rx="9" class="paper" stroke="#1d1a16" stroke-width="3"/>
+  <rect x="10" y="10" width="70" height="20" rx="3" class="gold"/><text x="45" y="25" text-anchor="middle" class="tiny">CARD</text>
+  <path class="thin" d="M22 57 Q45 39 68 57 M22 82 Q45 64 68 82"/>
+</g>
+<text x="790" y="92" class="small">they act</text>
+<text x="790" y="116" class="label">PASS CLEARS</text>
+<!-- bottom: opponent pass -->
+<g transform="translate(655 177)">
+  <circle cx="42" cy="42" r="37" class="paper" stroke="#1d1a16" stroke-width="3"/><text x="42" y="48" text-anchor="middle" class="label">PASS</text>
+</g>
+<text x="790" y="207" class="small">they Pass</text>
+<text x="790" y="232" class="label">BATTLE ENDS</text>
+<path class="thin" d="M637 260 Q735 282 845 258"/>
 </svg>
