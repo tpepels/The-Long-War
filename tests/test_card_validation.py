@@ -56,9 +56,9 @@ def test_unsupported_canonical_mechanics_are_rejected(data, card_id, mechanics):
         validate_card_data(data)
 
 
-def test_legacy_rules_channel_is_rejected(data):
+def test_unsupported_rules_channel_is_rejected(data):
     data["cards"][0]["rules"] = {}
-    with pytest.raises(ValueError, match="legacy rules field"):
+    with pytest.raises(ValueError, match="rules field is unsupported"):
         validate_card_data(data)
 
 
