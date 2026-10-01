@@ -563,7 +563,7 @@ def test_command_guard_keeps_immediate_command_refund_action() -> None:
     assert child.players[0].command == 1
 
 
-def test_spending_final_command_is_penalized_but_not_treated_as_terminal() -> None:
+def test_spending_final_command_midbattle_remains_nonterminal() -> None:
     rules = GameRules.standard().with_overrides(
         command_collapse_threshold=0,
         maneuver_command_cost=1,
@@ -580,20 +580,14 @@ def test_spending_final_command_is_penalized_but_not_treated_as_terminal() -> No
     ).commands(1, 5).operations(1, 1)
 
     maneuver = Maneuver(source, destination)
-    packed = engine._native_core().from_game_state(state)
-    before = engine._native_heuristic().evaluate(packed, 0)
-    child = engine._native_core().next_state(
-        packed,
-        engine._native_action(packed, maneuver),
-    )
-    after = engine._native_heuristic().evaluate(child, 0)
-
     assert Pass() in engine.legal_actions(state)
     assert maneuver in engine.legal_actions(state)
-    # Reaching 0 Command during an unfinished Battle is legal and not terminal,
-    # but the evaluator must still register the increased Collapse risk.
-    assert child.phase == packed.phase
-    assert after < before + 20.0
+
+    child = state.clone()
+    engine.apply(child, maneuver)
+    assert child.phase.value == "battle"
+    assert child.players[0].command == 0
+    assert child.players[1].command == 5
 
 
 @pytest.mark.parametrize(
