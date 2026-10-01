@@ -137,7 +137,7 @@ cdef int _fe__information_state_encode(
     InfoHash128* h,
 ) noexcept:
     """Single canonical observable-state encoding for imperfect-info AI."""
-    cdef int n=0, i, owner, slot, card, story_slot, story_count
+    cdef int n=0, i, owner, slot, card, narrative_slot, narrative_count
     cdef int opponent = 1 - player
     cdef int pending_draw = (
         state.active_player + 1
@@ -279,45 +279,45 @@ cdef int _fe__information_state_encode(
 
     # Ongoing Stories and Stratagems are public in the canonical rules.
     for owner in range(2):
-        story_count = 0
-        for story_slot in range(self.ongoing_story_limit):
-            if state.narrative[owner * 4 + story_slot] >= 0:
-                story_count += 1
-        _info_emit(buf, &n, h, <uint8_t>story_count)
-        for story_slot in range(self.ongoing_story_limit):
-            card = state.narrative[owner * 4 + story_slot]
+        narrative_count = 0
+        for narrative_slot in range(self.ongoing_narrative_limit):
+            if state.narrative[owner * 4 + narrative_slot] >= 0:
+                narrative_count += 1
+        _info_emit(buf, &n, h, <uint8_t>narrative_count)
+        for narrative_slot in range(self.ongoing_narrative_limit):
+            card = state.narrative[owner * 4 + narrative_slot]
             if card >= 0:
                 _info_emit(buf, &n, h, <uint8_t>(card + 1))
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.narrative_front_mask[owner * 4 + story_slot],
+                    state.narrative_front_mask[owner * 4 + narrative_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.narrative_used[owner * 4 + story_slot],
+                    state.narrative_used[owner * 4 + narrative_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.narrative_direction[owner * 4 + story_slot],
+                    state.narrative_direction[owner * 4 + narrative_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
-                    state.narrative_trigger_mask[owner * 4 + story_slot],
+                    state.narrative_trigger_mask[owner * 4 + narrative_slot],
                 )
                 _info_emit(
                     buf,
                     &n,
                     h,
                     <uint8_t>(
-                        state.narrative_target_slot[owner * 4 + story_slot] + 1
+                        state.narrative_target_slot[owner * 4 + narrative_slot] + 1
                     ),
                 )
 
@@ -499,8 +499,8 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
         )
     if kind == TYPE_ONGOING_NARRATIVE:
         key = f"story:{self.card_ids[card]}:ongoing:{pos}"
-        choice = self.story_choice_kind[card]
-        if choice == STORY_CHOICE_FRONT:
+        choice = self.narrative_choice_kind[card]
+        if choice == NARRATIVE_CHOICE_FRONT:
             fronts = ""
             for front in range(4):
                 if extra & (1 << front):
@@ -509,7 +509,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
                     fronts += str(front)
             key += f":fronts:{fronts}"
         elif (
-            choice == STORY_CHOICE_NAMED_FORMATION
+            choice == NARRATIVE_CHOICE_NAMED_FORMATION
             or choice == STORY_CHOICE_NAMED_DIRECTION
         ) and dest >= 0:
             key += (
@@ -557,7 +557,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key += ":targets:" + ";".join(targets)
         return key
     if kind == TYPE_NARRATIVE:
-        if extra and self.story_discard_count[card] == 1:
+        if extra and self.narrative_discard_count[card] == 1:
             return (
                 f"story:{self.card_ids[card]}:discard:"
                 f"{self.card_ids[<int>extra - 1]}"
