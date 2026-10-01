@@ -762,3 +762,21 @@ def test_heuristic_reuses_canonical_front_loss_projection() -> None:
     )[0]
     assert "_fe_tie_control_active" not in projection
     assert "strat_combine_fronts" not in projection
+
+
+def test_command_guard_has_one_native_implementation() -> None:
+    from longwar.heuristics import command_preserving_actions
+
+    source = inspect.getsource(command_preserving_actions)
+    assert "command_preserving_action_codes" in source
+    assert "pass_closing_turns_remaining" not in source
+    assert "isinstance(action, Pass)" not in source
+
+
+def test_pass_heuristic_uses_canonical_action_transition() -> None:
+    source = (SRC / "_heuristic_core.pxi").read_text(encoding="utf-8")
+    start = source.index("cdef double pass_score_fast(")
+    end = source.index("cdef bint action_needs_command_guard_probe_fast(", start)
+    body = source[start:end]
+    assert "_fe_apply_fast(" in body
+    assert "_fe_pass_action(" not in body
