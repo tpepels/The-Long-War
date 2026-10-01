@@ -299,7 +299,7 @@ class GameEngine:
                         "maneuver_direction"
                     )
 
-            synced_stories: list[NarrativeState] = []
+            synced_narratives: list[NarrativeState] = []
             for narrative in data["narratives"][player]:
                 target_slot = narrative.get("target_slot")
                 target_player = None
@@ -311,7 +311,7 @@ class GameEngine:
                         Front(local // 2),
                         Rank.FRONT if local % 2 == 0 else Rank.REAR,
                     )
-                synced_stories.append(
+                synced_narratives.append(
                     NarrativeState(
                         card_id=narrative["card_id"],
                         ongoing=True,
@@ -331,7 +331,7 @@ class GameEngine:
                         ),
                     )
                 )
-            state.narratives[player][:] = synced_stories
+            state.narratives[player][:] = synced_narratives
 
             stratagem = data["stratagems"][player]
             if stratagem is None:
