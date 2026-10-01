@@ -85,16 +85,10 @@ def merge_replica_policies(
                 )
 
             strategy_sum = entry.get("strategy_sum")
-            if strategy_sum is None:
-                # Backward-compatible fallback for older policy payloads.
-                weight = float(entry.get("average_visits", 0))
-                strategy_sum = {
-                    key: float(probability) * weight
-                    for key, probability in entry.get(
-                        "average_strategy",
-                        {},
-                    ).items()
-                }
+            if not isinstance(strategy_sum, dict):
+                raise ValueError(
+                    f"MCCFR infoset {info_id!r} is missing strategy_sum"
+                )
             for key, value in strategy_sum.items():
                 merged["strategy_sum"][key] = (
                     merged["strategy_sum"].get(key, 0.0) + float(value)
