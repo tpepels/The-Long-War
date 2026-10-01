@@ -107,7 +107,7 @@ cdef void _fe_compact_ongoing_stories(
             state.narrative_trigger_mask[src] = 0
         write_slot += 1
 
-cdef void _fe_reveal_scheme(FastEngine self, FastState state, int controller, int front, int actor, int trigger_slot=-1):
+cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int controller, int front, int actor, int trigger_slot=-1):
     cdef int ix = controller * 4 + front
     cdef int card = state.narrative[ix]
     cdef int effect, amount, target
@@ -131,7 +131,7 @@ cdef void _fe_reveal_scheme(FastEngine self, FastState state, int controller, in
     _fe_compact_ongoing_stories(self, state, controller)
     _fe_append_discard(self, state, controller, card, True)
 
-cdef void _fe_resolve_scheme_event(FastEngine self, FastState state, int actor, int event, int front, int trigger_slot=-1):
+cdef void _fe_resolve_ongoing_narrative_event(FastEngine self, FastState state, int actor, int event, int front, int trigger_slot=-1):
     cdef int controller, ix, card
     for controller in (actor, 1 - actor):
         ix = controller * 4 + front
@@ -142,7 +142,7 @@ cdef void _fe_resolve_scheme_event(FastEngine self, FastState state, int actor, 
             continue
         if self.ongoing_reveal_requires_force[card] and not _fe_front_has_force(self, state, controller, front):
             continue
-        _fe_reveal_scheme(self, state, controller, front, actor, trigger_slot)
+        _fe_reveal_ongoing_narrative(self, state, controller, front, actor, trigger_slot)
 
 cdef bint _fe_strat_trigger_matches(FastEngine self, FastState state, int controller, int card, int event, int actor, int played_card=-1, int pos=-1) noexcept:
     cdef int role, rank, scope
@@ -246,7 +246,7 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     state.maneuvered_in_operation[b] = maneuvered_in_operation
     state.maneuver_direction[b] = maneuver_direction
 
-cdef void _fe_resolve_plot(FastEngine self, FastState state, int actor, int card, int pos, int dest):
+cdef void _fe_resolve_narrative(FastEngine self, FastState state, int actor, int card, int pos, int dest):
     cdef int effect = self.narrative_play_effect[card]
     cdef int owner
     if effect == NARRATIVE_DISCREDIT:
@@ -779,7 +779,7 @@ cdef void _fe_resolve_maneuver_triggers(
                 True, False, other_name
             )
 
-cdef void _fe_resolve_plot_target_scheme(FastEngine self, FastState state, int actor, int pos):
+cdef void _fe_resolve_narrative_target_ongoing_narrative(FastEngine self, FastState state, int actor, int pos):
     cdef int opponent = 1 - actor
     cdef int front, ix, card
     if pos < 0 or owner_from_slot(pos) != opponent:
@@ -791,7 +791,7 @@ cdef void _fe_resolve_plot_target_scheme(FastEngine self, FastState state, int a
         return
     if self.ongoing_reveal_requires_force[card] and not _fe_front_has_force(self, state, opponent, front):
         return
-    _fe_reveal_scheme(self, state, opponent, front, actor, -1)
+    _fe_reveal_ongoing_narrative(self, state, opponent, front, actor, -1)
 
 cdef void _fe_reshuffle_discard_into_deck(
     FastEngine self,
