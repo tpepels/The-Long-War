@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .game.model import Rank
 from .protocol import (
     CARD_TYPES,
     FORCE_ROLES,
@@ -18,7 +17,7 @@ from .protocol import (
     RuleBlockField,
 )
 
-RANKS = frozenset(rank.value for rank in Rank)
+RANKS = frozenset({"front", "rear"})
 _NONNEGATIVE = range(128)
 _SIGNED = range(-128, 128)
 
