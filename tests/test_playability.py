@@ -27,7 +27,7 @@ def simulation(*, fingerprint: str = "rules-a") -> dict:
                 "events": 50,
                 "mean_hand_size": 4.0,
                 "mean_dead_cards": 1.0,
-                "first_pass_rate": 0.5,
+                "first_signal_rate": 0.5,
             },
             "cards": {
                 "example": {
@@ -40,7 +40,7 @@ def simulation(*, fingerprint: str = "rules-a") -> dict:
                     "dead_on_pass": 50,
                 }
             },
-            "legend_combinations": {
+            "formation_combinations": {
                 "a | b | c": {"completions": 10}
             },
             "decisions": {
@@ -98,7 +98,7 @@ def test_build_playability_report_derives_human_pacing_metrics() -> None:
     assert report["stratagem"]["opportunity_use_rate"] == 0.3
     assert report["hand_pressure"]["dead_card_share_at_pass"] == 0.25
     assert report["hand_pressure"]["unplayable_card_turn_share"] == 0.25
-    assert report["passing"]["first_pass_share"] == 0.5
+    assert report["battle_end_signals"]["first_signal_share"] == 0.5
     assert report["decision_load"]["mean_legal_candidates_per_heuristic_decision"] == 12.0
 
     markdown = render_markdown(report)
@@ -122,10 +122,10 @@ def test_playability_accepts_fully_censored_zero_battle_cell() -> None:
         "events": 0,
         "mean_hand_size": None,
         "mean_dead_cards": None,
-        "first_pass_rate": None,
+        "first_signal_rate": None,
     }
     censored["telemetry"]["cards"] = {}
-    censored["telemetry"]["legend_combinations"] = {}
+    censored["telemetry"]["formation_combinations"] = {}
     censored["telemetry"]["decisions"] = {}
     censored["telemetry"]["progression"] = {
         "match_length": {
@@ -157,10 +157,10 @@ def test_playability_allows_all_games_censored_before_first_resolution() -> None
         "events": 0,
         "mean_hand_size": None,
         "mean_dead_cards": None,
-        "first_pass_rate": None,
+        "first_signal_rate": None,
     }
     censored["telemetry"]["cards"] = {}
-    censored["telemetry"]["legend_combinations"] = {}
+    censored["telemetry"]["formation_combinations"] = {}
     censored["telemetry"]["decisions"] = {}
     censored["telemetry"]["progression"] = {
         "match_length": {
