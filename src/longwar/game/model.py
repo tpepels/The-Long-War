@@ -138,17 +138,43 @@ class ObservationEvent:
 
 def empty_board() -> list[list[list[Slot]]]:
     return [
-        [[Slot(), Slot()] for _ in range(FRONT_COUNT)],
-        [[Slot(), Slot()] for _ in range(FRONT_COUNT)],
+        [
+            [Slot() for _ in range(RANK_COUNT)]
+            for _ in range(FRONT_COUNT)
+        ]
+        for _ in range(PLAYER_COUNT)
     ]
 
 
 def empty_narratives() -> list[list[NarrativeState]]:
-    return [[], []]
+    return [[] for _ in range(PLAYER_COUNT)]
 
 
 def empty_stratagems() -> list[StratagemState | None]:
-    return [None, None]
+    return [None for _ in range(PLAYER_COUNT)]
+
+
+def zero_per_player() -> list[int]:
+    return [0 for _ in range(PLAYER_COUNT)]
+
+
+def false_per_player() -> list[bool]:
+    return [False for _ in range(PLAYER_COUNT)]
+
+
+def none_per_player() -> list[None]:
+    return [None for _ in range(PLAYER_COUNT)]
+
+
+def empty_hands_per_player() -> list[list[str]]:
+    return [[] for _ in range(PLAYER_COUNT)]
+
+
+def empty_known_hidden() -> list[list[dict[str, int]]]:
+    return [
+        [{} for _ in range(PLAYER_COUNT)]
+        for _ in range(PLAYER_COUNT)
+    ]
 
 
 @dataclass
@@ -157,41 +183,41 @@ class GameState:
     board: list[list[list[Slot]]] = field(default_factory=empty_board)
     narratives: list[list[NarrativeState]] = field(default_factory=empty_narratives)
     stratagems: list[StratagemState | None] = field(default_factory=empty_stratagems)
-    stratagem_used: list[bool] = field(default_factory=lambda: [False, False])
-    hero_used: list[bool] = field(default_factory=lambda: [False, False])
+    stratagem_used: list[int] = field(default_factory=zero_per_player)
+    hero_used: list[int] = field(default_factory=zero_per_player)
     active_player: int = 0
     battle: int = 1
     phase: Phase = Phase.BATTLE
-    discarded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
-    command_spent_this_battle: list[int] = field(default_factory=lambda: [0, 0])
-    command_refunded_this_battle: list[int] = field(default_factory=lambda: [0, 0])
-    battle_start_command: list[int] = field(default_factory=lambda: [0, 0])
-    battle_start_hand_size: list[int] = field(default_factory=lambda: [0, 0])
-    cards_drawn_this_battle: list[int] = field(default_factory=lambda: [0, 0])
-    completion_count_this_battle: list[int] = field(default_factory=lambda: [0, 0])
-    operations_this_battle: list[int] = field(default_factory=lambda: [0, 0])
-    maneuvers_this_battle: list[int] = field(default_factory=lambda: [0, 0])
+    discarded_this_battle: list[int] = field(default_factory=zero_per_player)
+    command_spent_this_battle: list[int] = field(default_factory=zero_per_player)
+    command_refunded_this_battle: list[int] = field(default_factory=zero_per_player)
+    battle_start_command: list[int] = field(default_factory=zero_per_player)
+    battle_start_hand_size: list[int] = field(default_factory=zero_per_player)
+    cards_drawn_this_battle: list[int] = field(default_factory=zero_per_player)
+    completion_count_this_battle: list[int] = field(default_factory=zero_per_player)
+    operations_this_battle: list[int] = field(default_factory=zero_per_player)
+    maneuvers_this_battle: list[int] = field(default_factory=zero_per_player)
     cards_played_this_turn_front_mask: list[int] = field(
-        default_factory=lambda: [0, 0]
+        default_factory=zero_per_player
     )
     cards_played_this_battle_front_mask: list[int] = field(
-        default_factory=lambda: [0, 0]
+        default_factory=zero_per_player
     )
     narratives_played_this_battle: list[int] = field(
-        default_factory=lambda: [0, 0]
+        default_factory=zero_per_player
     )
-    deck_reshuffles: list[int] = field(default_factory=lambda: [0, 0])
-    reshuffle_card_totals: list[int] = field(default_factory=lambda: [0, 0])
-    reshuffle_hand_card_totals: list[int] = field(default_factory=lambda: [0, 0])
-    opening_hands: list[list[str]] = field(default_factory=lambda: [[], []])
+    deck_reshuffles: list[int] = field(default_factory=zero_per_player)
+    reshuffle_card_totals: list[int] = field(default_factory=zero_per_player)
+    reshuffle_hand_card_totals: list[int] = field(default_factory=zero_per_player)
+    opening_hands: list[list[str]] = field(default_factory=empty_hands_per_player)
     pending_draw_discard_for: int | None = None
     pending_draw_count: int = 0
     pending_draw_finish_operation: bool = False
     pending_effects: list[dict[str, object]] = field(default_factory=list)
     pending_resume: str | None = None
     pending_resume_player: int | None = None
-    free_maneuver_available: list[bool] = field(default_factory=lambda: [False, False])
-    free_maneuver_source: list[str | None] = field(default_factory=lambda: [None, None])
+    free_maneuver_available: list[bool] = field(default_factory=false_per_player)
+    free_maneuver_source: list[str | None] = field(default_factory=none_per_player)
     constraints: list[OperationConstraint] = field(default_factory=list)
     battle_resolution: dict[str, object] | None = None
     last_battle_snapshot: dict[str, object] | None = None
@@ -202,7 +228,7 @@ class GameState:
     shuffle_seed: int = 0
     observations: list[ObservationEvent] = field(default_factory=list)
     known_hidden_hand: list[list[dict[str, int]]] = field(
-        default_factory=lambda: [[{}, {}], [{}, {}]]
+        default_factory=empty_known_hidden
     )
 
     def clone(self) -> "GameState":
