@@ -193,7 +193,7 @@ cdef class NativeHeuristicEvaluator:
                 margin = <int>self.weights[HW_FRONT_MARGIN_CLAMP]
             elif margin < -self.weights[HW_FRONT_MARGIN_CLAMP]:
                 margin = -<int>self.weights[HW_FRONT_MARGIN_CLAMP]
-            score += self.weights[HW_FRONTLINE_PERSISTENCE_VALUE] * margin
+            score += self.weights[HW_MARGIN_WEIGHT] * margin
 
         own_losses = self.projected_front_loss_command_penalty_fast(
             state, player, own_lost_mask
@@ -205,7 +205,7 @@ cdef class NativeHeuristicEvaluator:
         score += self.weights[HW_FRONT_CONTROL_WEIGHT] * (controls - enemy_controls)
 
         hand_delta = state.hand_len[player] - state.hand_len[opponent]
-        score += self.weights[HW_CLOSE_FRONT_BONUS] * hand_delta
+        score += self.weights[HW_HAND_CARD_WEIGHT] * hand_delta
 
         for slot in range(self.engine.force_count):
             card = self.engine.force_codes[slot]
