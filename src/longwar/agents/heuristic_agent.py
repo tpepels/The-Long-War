@@ -7,7 +7,9 @@ from ..game.actions import Action
 from ..game.engine import GameEngine
 from ..game.model import GameState
 from ..heuristics import (
+    DEFAULT_HEURISTIC_WEIGHTS,
     HeuristicEvaluator,
+    HeuristicWeights,
     command_preserving_actions,
     opening_mulligan_indices,
 )
@@ -34,12 +36,22 @@ class HeuristicAgent:
         *,
         exploration: float = 0.0,
         evaluator: HeuristicEvaluator | None = None,
+        heuristic_weights: HeuristicWeights | None = None,
     ):
+        if evaluator is not None and heuristic_weights is not None:
+            raise ValueError(
+                "pass either evaluator or heuristic_weights, not both"
+            )
         if not 0.0 <= exploration <= 1.0:
             raise ValueError("exploration must be between 0 and 1")
         self.rng = random.Random(seed)
         self.exploration = exploration
-        self.evaluator = evaluator or HeuristicEvaluator()
+        self.heuristic_weights = (
+            heuristic_weights
+            or getattr(evaluator, "weights", None)
+            or DEFAULT_HEURISTIC_WEIGHTS
+        )
+        self.evaluator = evaluator or HeuristicEvaluator(self.heuristic_weights)
         self.last_decision: dict[str, float | int | str] = {}
 
     def choose_mulligan(
@@ -60,6 +72,7 @@ class HeuristicAgent:
                 "selected_score": 0.0,
                 "score_gap": 0.0,
                 "selected_action": type(actions[0]).__name__,
+                "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
                 "command_guard_applied": guarded > 0,
                 "command_guard_filtered_actions": guarded,
             }
@@ -100,6 +113,7 @@ class HeuristicAgent:
             "selected_score": selected.score,
             "score_gap": selected.score - second,
             "selected_action": type(selected.action).__name__,
+            "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
             "command_guard_applied": guarded > 0,
             "command_guard_filtered_actions": guarded,
             "command_guard_overrode_selection": guard_overrode_selection,
