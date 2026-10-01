@@ -60,10 +60,10 @@ cdef class NativeHeuristicEvaluator:
         cdef bint tie_control
 
         # Once comparison has completed, preserve the authoritative masks.
-        if state.resolution_stage in (
-            RESOLUTION_RETREATS,
-            RESOLUTION_NARRATIVES,
-            RESOLUTION_RECOVERY,
+        if (
+            state.resolution_stage == RESOLUTION_RETREATS
+            or state.resolution_stage == RESOLUTION_NARRATIVES
+            or state.resolution_stage == RESOLUTION_RECOVERY
         ):
             lost0[0] = state.resolution_lost_mask[0] & FRONT_MASK
             lost1[0] = state.resolution_lost_mask[1] & FRONT_MASK
