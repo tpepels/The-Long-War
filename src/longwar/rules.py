@@ -22,6 +22,7 @@ class GameRules:
     command_recovery_decrement: int = 3
     command_recovery_floor: int = 1
     command_collapse_threshold: int = 0
+    lost_front_command_penalty: int = 1
     # Experimental Battle-ending primitives. Standard play uses a Pass that
     # consumes the turn and has no automatic closing countdown.
     pass_signal_costs_operation: bool = True
