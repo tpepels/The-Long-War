@@ -923,12 +923,12 @@ cdef int _fe_legal_actions_into(
                             )
                     elif (
                         choice == NARRATIVE_CHOICE_NAMED_FORMATION
-                        or choice == STORY_CHOICE_NAMED_DIRECTION
+                        or choice == NARRATIVE_CHOICE_NAMED_DIRECTION
                     ):
                         for local in range(8):
                             slot = player * 8 + local
                             if _fe_slot_complete(self, state, slot):
-                                if choice == STORY_CHOICE_NAMED_DIRECTION:
+                                if choice == NARRATIVE_CHOICE_NAMED_DIRECTION:
                                     for direction in range(2):
                                         n = _append_action(
                                             actions,
