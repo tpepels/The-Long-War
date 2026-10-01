@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
+from .protocol import (
+    NARRATIVE_STORAGE_CAPACITY_PER_PLAYER,
+    STRATAGEM_ACTIVE_CAPACITY_PER_PLAYER,
+)
+
 
 @dataclass(frozen=True, slots=True)
 class GameRules:
@@ -55,6 +60,22 @@ class GameRules:
         if self.command_collapse_threshold > self.command_cap:
             raise ValueError(
                 "command_collapse_threshold cannot exceed command_cap"
+            )
+        if (
+            self.ongoing_narrative_limit
+            > NARRATIVE_STORAGE_CAPACITY_PER_PLAYER
+        ):
+            raise ValueError(
+                "ongoing_narrative_limit exceeds native Narrative capacity "
+                f"({NARRATIVE_STORAGE_CAPACITY_PER_PLAYER})"
+            )
+        if (
+            self.stratagem_play_limit_per_battle
+            > STRATAGEM_ACTIVE_CAPACITY_PER_PLAYER
+        ):
+            raise ValueError(
+                "stratagem_play_limit_per_battle exceeds active Stratagem "
+                f"capacity ({STRATAGEM_ACTIVE_CAPACITY_PER_PLAYER})"
             )
 
     @classmethod
