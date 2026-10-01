@@ -4,6 +4,7 @@ from math import inf, isfinite
 from time import perf_counter
 from statistics import mean
 
+from ..protocol import PolicySource
 from ..algorithms.alpha_beta import AlphaBetaSearch, SearchBudget, SearchLimit
 from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, Pass, action_key
@@ -147,7 +148,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
                 "selected_score": 0.0,
                 "score_gap": 0.0,
                 "selected_action": type(actions[0]).__name__,
-                "policy_source": "strategic_heuristic",
+                "policy_source": PolicySource.STRATEGIC_HEURISTIC.value,
                 "belief_samples": 0,
                 "rollout_plies": self.rollout_plies,
                 "completed_depth": 0,
@@ -317,7 +318,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
             "selected_score": selected.score,
             "score_gap": selected.score - second,
             "selected_action": type(selected.action).__name__,
-            "policy_source": "strategic_heuristic",
+            "policy_source": PolicySource.STRATEGIC_HEURISTIC.value,
             "belief_samples": self.belief_samples,
             "rollout_plies": self.rollout_plies,
             "completed_depth": completed_depth,
