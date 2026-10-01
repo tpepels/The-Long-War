@@ -106,11 +106,11 @@ def test_delayed_utility_is_not_judged_by_immediate_swing() -> None:
     card_rows = []
     telemetry_cards = {}
     for index, swing in enumerate([0.0, 3.0, 3.0, 3.0, 3.0]):
-        card_id = f"link-{index}"
+        card_id = f"bond-{index}"
         card_rows.append({
             "id": card_id,
-            "title": f"Link {index}",
-            "type": "link",
+            "title": f"Bond {index}",
+            "type": "bond",
             "unique": False,
             "text": "",
             "rules": {},
@@ -155,7 +155,7 @@ def test_delayed_utility_is_not_judged_by_immediate_swing() -> None:
         {"schema_version": 1, "cards": card_rows},
     )
 
-    delayed = next(row for row in report["cards"] if row["id"] == "link-0")
+    delayed = next(row for row in report["cards"] if row["id"] == "bond-0")
     assert delayed["delayed_utility"] is True
     assert "board_swing_outlier" not in {
         flag["code"] for flag in delayed["flags"]
@@ -165,8 +165,8 @@ def test_combo_outcome_association_is_diagnostic_not_balance_failure() -> None:
     cards = {
         "schema_version": 1,
         "cards": [
-            {"id": "subject", "title": "Subject", "type": "subject", "strength": 4, "unique": False, "classes": ["human"], "role": "swordsman", "text": "", "rules": {}, "balance": {}},
-            {"id": "bond", "title": "Bond", "type": "link", "unique": False, "classes": ["oath"], "text": "", "rules": {"strength_bonus": 1}, "balance": {}},
+            {"id": "force", "title": "Force", "type": "force", "strength": 4, "unique": False, "classes": ["human"], "role": "swordsman", "text": "", "rules": {}, "balance": {}},
+            {"id": "bond", "title": "Bond", "type": "bond", "unique": False, "classes": ["oath"], "text": "", "rules": {"strength_bonus": 1}, "balance": {}},
             {"id": "name", "title": "Name", "type": "name", "strength": 2, "unique": True, "classes": ["human"], "text": "", "rules": {}, "balance": {}},
         ],
     }
@@ -195,7 +195,7 @@ def test_combo_outcome_association_is_diagnostic_not_balance_failure() -> None:
                 "battles": {},
                 "cards": {key: dict(neutral) for key in ("subject", "bond", "name")},
                 "formation_combinations": {
-                    "subject | bond | name": {
+                    "force | bond | name": {
                         "games_seen": 100,
                         "wins_when_seen": 80,
                         "win_rate_when_seen": 0.8,
