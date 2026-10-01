@@ -249,7 +249,7 @@ cdef inline bint _fe_slot_complete(FastEngine self, FastState state, int slot) n
         and state.name[slot] >= 0
     )
 
-cdef inline bint _fe_subject_protected(FastEngine self, FastState state, int slot) noexcept:
+cdef inline bint _fe_formation_protected(FastEngine self, FastState state, int slot) noexcept:
     cdef int bond = state.bond[slot]
     cdef int name = state.name[slot]
     if bond >= 0 and name >= 0 and self.bond_protect[bond]:
@@ -257,7 +257,7 @@ cdef inline bint _fe_subject_protected(FastEngine self, FastState state, int slo
     return (
         _fe_slot_complete(self, state, slot)
         and name >= 0
-        and self.complete_plot_protection[name]
+        and self.complete_narrative_protection[name]
     )
 
 cdef inline bint _fe_story_locked(FastEngine self, FastState state, int player) noexcept:
