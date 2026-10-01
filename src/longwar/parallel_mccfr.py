@@ -6,6 +6,7 @@ from typing import Any
 
 from .game.engine import GameEngine
 from .mccfr import MCCFRTrainer
+from .parallelism import DEFAULT_WORKERS
 
 
 def replica_seeds(seed: int, workers: int) -> list[int]:
@@ -190,7 +191,7 @@ def train_parallel_mccfr(
     seed: int,
     iterations_per_worker: int | None = None,
     total_iterations: int | None = None,
-    workers: int,
+    workers: int = DEFAULT_WORKERS,
     max_depth: int,
     leaf_scale: float,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
