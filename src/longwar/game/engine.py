@@ -6,7 +6,7 @@ from typing import Any
 from ..cards import card_index, compile_card_mechanics, load_card_file, validate_card_data
 from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
-from ..protocol import CardField, Direction, DirectionCode, PLAYER_COUNT
+from ..protocol import CardField, Direction, DirectionCode, ObservationZone, PLAYER_COUNT
 from ..native_engine import create_fast_engine, create_heuristic_evaluator
 from .actions import Action, Discard, EffectChoice, Pass, action_from_key, action_key
 from .model import (
@@ -470,7 +470,7 @@ class GameEngine:
                             viewer=viewer,
                             owner=owner,
                             card_id=card_id,
-                            zone="hand",
+                            zone=ObservationZone.HAND,
                             delta=delta,
                             reason="engine_transition",
                         )
