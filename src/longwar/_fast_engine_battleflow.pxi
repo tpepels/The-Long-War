@@ -138,11 +138,11 @@ cdef void _fe_discard_retreat_sagas(
     FastState state,
     int front,
 ) noexcept:
-    cdef int controller, story_slot, ix, card
+    cdef int controller, narrative_slot, ix, card
     for controller in range(2):
-        story_slot = self.ongoing_story_limit - 1
-        while story_slot >= 0:
-            ix = controller * 4 + story_slot
+        narrative_slot = self.ongoing_narrative_limit - 1
+        while narrative_slot >= 0:
+            ix = controller * 4 + narrative_slot
             card = state.narrative[ix]
             if (
                 card >= 0
@@ -150,9 +150,9 @@ cdef void _fe_discard_retreat_sagas(
                 and state.narrative_front_mask[ix] & (1 << front)
             ):
                 _fe_discard_ongoing_narrative(
-                    self, state, controller, story_slot
+                    self, state, controller, narrative_slot
                 )
-            story_slot -= 1
+            narrative_slot -= 1
 
 
 cdef void _fe_retreat_slot(
