@@ -925,3 +925,14 @@ def test_ismcts_speed_helper_builds_python_pass_state() -> None:
     assert len(state.pass_order) == 1
     assert sum(player.passed for player in state.players) == 1
     assert state.pass_closing_turns_remaining > 0
+
+
+def test_worker_scaling_benchmark_is_separate_from_pass_evidence() -> None:
+    source = (ROOT / "tools" / "run_experiments.py").read_text(encoding="utf-8")
+    assert '"ismcts-workers"' in source
+    assert "def benchmark_ismcts_workers" in source
+    worker_body = source.split("def benchmark_ismcts_workers", 1)[1]
+    worker_body = worker_body.split("def parse_args", 1)[0]
+    assert "simulate_games(" in worker_body
+    assert "artifact_directory(" not in worker_body
+    assert "pass_variant_run(" not in worker_body
