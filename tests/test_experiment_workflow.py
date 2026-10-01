@@ -463,6 +463,8 @@ def test_makefile_has_one_configurable_experiment_entrypoint():
     assert "EXPERIMENT ?= strength-bench" in source
     assert "EXPERIMENT_ARGS ?=" in source
     assert "systemd-inhibit" in source
+    assert "WORKERS ?= 8" in source
+    assert "PYTEST ?= python -m pytest -n $(WORKERS)" in source
 
     for obsolete_target in (
         "ismcts-match:",
