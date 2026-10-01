@@ -88,7 +88,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 elif py_slot.maneuver_direction == "right":
                     fast.maneuver_direction[slot] = 2
 
-        for i, story in enumerate(state.stories[p][:self.ongoing_story_limit]):
+        for i, story in enumerate(state.stories[p][:self.ongoing_narrative_limit]):
             fast.narrative[p * 4 + i] = self.id_to_code[story.card_id]
             fast.narrative_revealed[p * 4 + i] = 1
             fast.narrative_used[p * 4 + i] = bool(story.triggered_this_battle)
@@ -516,7 +516,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                         else state.narrative_target_slot[p * 4 + i]
                     ),
                 }
-                for i in range(self.ongoing_story_limit)
+                for i in range(self.ongoing_narrative_limit)
                 if state.narrative[p * 4 + i] >= 0
             ]
             for p in range(2)
