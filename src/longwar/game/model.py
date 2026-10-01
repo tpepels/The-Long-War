@@ -472,7 +472,7 @@ class GameState:
     def slot(self, player: int, position: Position) -> Slot:
         return self.board[player][int(position.front)][RANK_INDEX[position.rank]]
 
-    def ongoing_stories(self, player: int) -> list[NarrativeState]:
+    def ongoing_narratives(self, player: int) -> list[NarrativeState]:
         return self.narratives[player]
 
     def observe_hidden_delta(
