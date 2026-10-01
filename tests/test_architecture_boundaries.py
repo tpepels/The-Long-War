@@ -204,6 +204,7 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     assert set(build_browser_runtime.BROWSER_NATIVE_ROOTS) <= native
     assert "_fast_engine_core.pxi" in native
     assert "_heuristic_core.pxi" in native
+    assert "_heuristic_weights.generated.pxi" in native
     assert "_alpha_beta_core.pxi" not in native
     assert "_ismcts_core.pxi" not in native
     assert "_mccfr_core.pxi" not in native
