@@ -1160,10 +1160,6 @@ body.game-body {
   --card-accent: #885c50;
   --card-wash: #ddc9bc;
 }
-.play-card.card-scheme {
-  --card-accent: #716080;
-  --card-wash: #d1c9d8;
-}
 .play-card.card-stratagem {
   --card-accent: #857046;
   --card-wash: #dfd0aa;
