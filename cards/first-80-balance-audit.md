@@ -144,7 +144,7 @@ Watch whether players simply attach this to the safest Rear formation for low-ri
 
 ### No Road Was Too Long
 
-A persistent Unique Myth can generate 1 Command and a movement benefit in every Battle. The ongoing Story-slot cost may balance it, but its value grows with war length.
+A persistent Unique Myth can generate 1 Command and a movement benefit in every Battle. The ongoing Narrative-slot cost may balance it, but its value grows with war length.
 
 ### The Center Must Hold
 
