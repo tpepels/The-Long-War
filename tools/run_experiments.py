@@ -2824,6 +2824,24 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                             )
                             or 0
                         ),
+                        "stopped_terminal": int(
+                            decision.get(
+                                "ismcts_rollouts_stopped_terminal", 0
+                            )
+                            or 0
+                        ),
+                        "stopped_battle_boundary": int(
+                            decision.get(
+                                "ismcts_rollouts_stopped_battle_boundary", 0
+                            )
+                            or 0
+                        ),
+                        "stopped_depth": int(
+                            decision.get(
+                                "ismcts_rollouts_stopped_depth", 0
+                            )
+                            or 0
+                        ),
                     })
                     agent.release_search_memory()
 
@@ -2863,11 +2881,20 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                     if mean_completed > 0
                     else 0.0
                 )
+                mean_boundary_stops = sum(
+                    sample["stopped_battle_boundary"] for sample in samples
+                ) / len(samples)
+                boundary_stop_rate = (
+                    mean_boundary_stops / mean_completed
+                    if mean_completed > 0
+                    else 0.0
+                )
                 print(
                     f"{iterations:>7,} iters | beliefs={belief_samples:>2} | "
                     f"depth={rollout_depth:>2} | "
                     f"{mean_search:>7.3f}s | {mean_rate:>9,.0f} iter/s | "
                     f"rollout-actions/iter={rollout_actions_per_iteration:.2f} | "
+                    f"boundary={boundary_stop_rate:.1%} | "
                     f"anti-probes/iter={probes_per_iteration:.2f}",
                     flush=True,
                 )
