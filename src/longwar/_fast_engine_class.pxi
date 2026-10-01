@@ -12,6 +12,7 @@ cdef class FastEngine:
     cdef int16_t command_recovery_decrement
     cdef int16_t command_recovery_floor
     cdef int command_collapse_threshold
+    cdef int16_t lost_front_command_penalty
     cdef bint pass_signal_costs_operation
     cdef int pass_closing_rounds
     cdef int maneuver_command_cost
@@ -31,7 +32,7 @@ cdef class FastEngine:
     cdef int8_t adjacent_command_discount[MAX_CARDS]
     cdef int8_t completion_effect[MAX_CARDS]
     cdef int8_t completion_amount[MAX_CARDS]
-    cdef uint8_t complete_plot_protection[MAX_CARDS]
+    cdef uint8_t complete_narrative_protection[MAX_CARDS]
     cdef int8_t role[MAX_CARDS]
     cdef int8_t strength[MAX_CARDS]
     cdef int8_t name_strength[MAX_CARDS]
@@ -63,7 +64,7 @@ cdef class FastEngine:
     cdef int8_t completion_discount_cost[MAX_CARDS]
     cdef int8_t frontline_force_discount[MAX_CARDS]
     cdef uint8_t frontline_force_discount_requires_named[MAX_CARDS]
-    cdef uint8_t recovery_protected_front[MAX_CARDS]
+    cdef uint8_t front_loss_protected_front[MAX_CARDS]
     cdef uint8_t driven_bond_stays[MAX_CARDS]
     cdef uint8_t driven_bond_returns[MAX_CARDS]
     cdef uint8_t driven_name_returns[MAX_CARDS]
@@ -97,7 +98,7 @@ cdef class FastEngine:
     cdef int8_t strat_maneuver_cost[MAX_CARDS]
     cdef uint8_t strat_unnamed_maneuver[MAX_CARDS]
     cdef uint8_t strat_tie_control[MAX_CARDS]
-    cdef uint8_t strat_recovery_loss_reduction[MAX_CARDS]
+    cdef uint8_t strat_front_loss_protection[MAX_CARDS]
     cdef uint8_t strat_no_retreat[MAX_CARDS]
     cdef uint8_t strat_combine_fronts[MAX_CARDS]
     cdef uint8_t strat_refuse_flank[MAX_CARDS]
@@ -251,7 +252,7 @@ cdef class FastEngine:
                 COMMAND_DETAIL_FRONTLINE_DISCOUNT: "frontline_discount",
                 COMMAND_DETAIL_FREE_MANEUVER: "free_maneuver",
                 COMMAND_DETAIL_STRATAGEM_MANEUVER: "stratagem_maneuver_discount",
-                COMMAND_DETAIL_RECOVERY_PROTECTED_FRONT: "recovery_protected_front",
+                COMMAND_DETAIL_RECOVERY_PROTECTED_FRONT: "front_loss_protected_front",
                 COMMAND_DETAIL_RECOVERY_STRATAGEM: "recovery_stratagem",
             }.get(detail, "other")
             source = None if card < 0 else self.card_ids[card]
