@@ -79,7 +79,11 @@ def print_build_version() -> str:
         WEB / "cards.js",
         WEB / "playmat.html",
         WEB / "tokens.html",
-        *sorted((WEB / "assets").glob("rulebook-*.svg")),
+        *sorted(
+            path
+            for path in (WEB / "assets").glob("rulebook-*")
+            if path.suffix.lower() in {".svg", ".jpg", ".jpeg", ".png"}
+        ),
         *REFERENCE_DECKS,
     ]
     digest = hashlib.sha256()

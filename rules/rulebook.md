@@ -124,7 +124,7 @@ Named Formations matter because they can survive from one Battle to the next and
 
 Force, Bond, and Name may be played in **any order**.
 
-![A position can begin with prepared cards, become a formation when a Force arrives, and becomes a Named Formation only when Force, Bond, and Name are all present.](assets/rulebook-formation.svg)
+![A position can begin with prepared cards, become a formation when a Force arrives, and becomes a Named Formation only when Force, Bond, and Name are all present.](assets/rulebook-formation.jpg)
 
 > **EXAMPLE** You may play a Bond and a Name first. They wait face-up without Strength. When a Force later enters that position, the three cards immediately form a Named Formation.
 
@@ -173,7 +173,7 @@ When formations swap, only the formation chosen to Maneuver is considered to hav
 
 Move every Bond and Name with its Force.
 
-![A Maneuver moves one Named Formation one Front left or right without changing rank; an occupied friendly destination causes a swap.](assets/rulebook-maneuver.svg)
+![A Maneuver moves one Named Formation one Front left or right without changing rank; an occupied friendly destination causes a swap.](assets/rulebook-maneuver.jpg)
 
 > **REMEMBER** A Maneuver moves the whole formation. Bond and Name never stay behind when their Force moves.
 
@@ -193,7 +193,7 @@ Your Pass now remains active. The opponent takes a normal turn.
 
 A Battle therefore ends when **both players have an active Pass**.
 
-![A Pass remains yours while the opponent continues; the Battle ends once both players have Passed.](assets/rulebook-pass-flow.svg)
+![A Pass remains yours while the opponent continues; the Battle ends once both players have Passed.](assets/rulebook-pass-flow.jpg)
 
 > **REMEMBER** Your opponent cannot clear your Pass. Only you can withdraw it by taking another operation.
 
@@ -225,7 +225,7 @@ For each lost Front:
 1. Drive off the Rear Named Formation, if there is one.
 2. Then Retreat the Frontline Named Formation into the Rear, if there is one.
 
-![When a Front is lost, its Rear Named Formation is driven off first; only then does its Frontline Named Formation Retreat into the Rear.](assets/rulebook-retreat.svg)
+![When a Front is lost, its Rear Named Formation is driven off first; only then does its Frontline Named Formation Retreat into the Rear.](assets/rulebook-retreat.jpg)
 
 > **REMEMBER** The order matters. Clear the Rear first, then move the Frontline group backward.
 
