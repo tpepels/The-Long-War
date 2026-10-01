@@ -143,6 +143,22 @@ def test_mccfr_policy_cannot_spend_last_command_when_pass_is_safe() -> None:
     assert agent.last_decision["command_guard_applied"] is True
 
 
+def test_current_fast_information_key_round_trips_closing_countdown() -> None:
+    import longwar._fast_search as fast_search
+
+    engine, _deck, state = setup()
+    state.pass_closing_turns_remaining = 3
+    fast = fast_search.FastEngine(engine)
+    packed = fast.from_game_state(state)
+    key = fast.information_key(packed, 0)
+
+    assert key[0] == 8
+    assert (
+        fast_search.stable_information_id_from_fast_key(fast, key)
+        == information_set_id(state, 0)
+    )
+
+
 def test_mccfr_training_produces_policy_and_legal_agent_action() -> None:
     engine, deck, state = setup()
     trainer = MCCFRTrainer(engine, deck, deck, seed=9, max_depth=2)
