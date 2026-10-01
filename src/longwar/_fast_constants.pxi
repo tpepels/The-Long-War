@@ -1,11 +1,8 @@
-DEF PLAYER_COUNT = 2
-DEF FRONT_COUNT = 4
-DEF RANK_COUNT = 2
-DEF DIRECTION_COUNT = 2
+include "_fast_protocol.generated.pxi"
+
 DEF POSITIONS_PER_PLAYER = FRONT_COUNT * RANK_COUNT
 DEF SLOT_COUNT = PLAYER_COUNT * POSITIONS_PER_PLAYER
 # Storage capacity is intentionally independent of the current rules limit.
-DEF NARRATIVE_SLOTS_PER_PLAYER = 4
 DEF NARRATIVE_COUNT = PLAYER_COUNT * NARRATIVE_SLOTS_PER_PLAYER
 DEF FRONT_MASK = (1 << FRONT_COUNT) - 1
 DEF ALL_PLAYERS_MASK = (1 << PLAYER_COUNT) - 1
@@ -164,13 +161,6 @@ cdef int CARD_BOND = 2
 cdef int CARD_NAME = 3
 cdef int CARD_NARRATIVE = 4
 cdef int CARD_STRATAGEM = 5
-
-cdef int RANK_FRONT = 0
-cdef int RANK_REAR = 1
-
-cdef int DIRECTION_NONE = 0
-cdef int DIRECTION_LEFT = 1
-cdef int DIRECTION_RIGHT = 2
 
 cdef int ROLE_NONE = 0
 cdef int ROLE_SWORDSMAN = 1

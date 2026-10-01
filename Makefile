@@ -11,9 +11,11 @@ install:
 
 # Required after changing .pyx/.pxi files.
 native-build:
+	python tools/build_native_protocol.py
 	python setup.py build_ext --inplace
 
 browser-build:
+	python tools/build_native_protocol.py --check
 	python tools/build_browser_runtime.py
 
 web-protocol:
@@ -29,6 +31,7 @@ test-integration:
 	$(PYTEST) -q -m integration --durations=10
 
 browser-parity:
+	@python tools/build_native_protocol.py --check
 	@python tools/build_web_protocol.py --check
 	@mkdir -p artifacts/logs
 	@echo "Browser/native parity..."
@@ -47,6 +50,7 @@ browser-parity:
 	@echo "Browser/native parity: OK (log: artifacts/logs/browser-parity.log)"
 
 verify:
+	python tools/build_native_protocol.py --check
 	python tools/build_web_protocol.py --check
 	python -m ruff check src tools tests --select F821,F822,F823
 	python tools/run_experiments.py validate-data

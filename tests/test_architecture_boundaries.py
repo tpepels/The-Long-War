@@ -311,6 +311,31 @@ def test_makefile_is_a_small_lifecycle_surface() -> None:
     }
 
 
+def test_native_compile_time_protocol_is_generated() -> None:
+    """Native topology/capacity constants derive from canonical Python values."""
+    from tools import build_native_protocol
+
+    generated = SRC / "_fast_protocol.generated.pxi"
+    assert generated.read_text(encoding="utf-8") == build_native_protocol.render()
+
+    constants = (SRC / "_fast_constants.pxi").read_text(encoding="utf-8")
+    assert 'include "_fast_protocol.generated.pxi"' in constants
+    for name in (
+        "PLAYER_COUNT",
+        "FRONT_COUNT",
+        "RANK_COUNT",
+        "DIRECTION_COUNT",
+        "NARRATIVE_SLOTS_PER_PLAYER",
+        "RANK_FRONT",
+        "RANK_REAR",
+        "DIRECTION_NONE",
+        "DIRECTION_LEFT",
+        "DIRECTION_RIGHT",
+    ):
+        assert f"DEF {name} =" not in constants
+        assert f"cdef int {name} =" not in constants
+
+
 def test_game_engine_delegates_rule_fields_without_mirroring() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     rules = GameRules.standard()
