@@ -51,6 +51,7 @@ from longwar.decks import (
 from longwar.game import GameEngine
 from longwar.fingerprint import artifact_directory, experiment_identity
 from longwar.health import wilson_interval
+from longwar.parallelism import DEFAULT_WORKERS
 from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -2749,8 +2750,8 @@ def parse_args() -> argparse.Namespace:
     balance.add_argument(
         "--jobs",
         type=int,
-        default=8,
-        help="Parallel worker processes for long-running simulation work (default: 8).",
+        default=DEFAULT_WORKERS,
+        help=f"Parallel worker processes for long-running simulation work (default: {DEFAULT_WORKERS}).",
     )
     balance.add_argument(
         "--skip-failed-games",
@@ -2925,8 +2926,8 @@ def parse_args() -> argparse.Namespace:
     pass_variants.add_argument(
         "--jobs",
         type=int,
-        default=8,
-        help="Parallel game workers (default: 8).",
+        default=DEFAULT_WORKERS,
+        help=f"Parallel game workers (default: {DEFAULT_WORKERS}).",
     )
     pass_variants.add_argument("--seed", type=int, default=26100100)
     pass_variants.add_argument(
@@ -2981,7 +2982,7 @@ def parse_args() -> argparse.Namespace:
         help="Diagnose Narrative/Command Command-economy tails with five ISMCTS ablations.",
     )
     ablation.add_argument("--games", type=int, default=24)
-    ablation.add_argument("--jobs", type=int, default=8)
+    ablation.add_argument("--jobs", type=int, default=DEFAULT_WORKERS)
     ablation.add_argument("--seed", type=int, default=1773)
     ablation.add_argument(
         "--force", action="store_true",
@@ -3006,7 +3007,7 @@ def parse_args() -> argparse.Namespace:
             "and 96 mirrored deal pairs."
         ),
     )
-    strength.add_argument("--jobs", type=int, default=8)
+    strength.add_argument("--jobs", type=int, default=DEFAULT_WORKERS)
     strength.add_argument(
         "--iterations",
         type=int,
