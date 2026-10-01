@@ -42,7 +42,13 @@ jobs:
           python tools/build_web_protocol.py --check
       - name: Check undefined Python names
         run: python -m ruff check src tools tests --select F821,F822,F823
+      - name: Run heuristic/search regressions
+        run: |
+          python -m pytest -q -n 2 --tb=short \
+            tests/test_command_economy.py \
+            tests/test_heuristic_agent.py \
+            tests/test_strategic_heuristic.py \
+            tests/test_ismcts.py \
+            tests/test_ismcts_validation.py
       - name: Run fast regression suite
         run: make test-fast WORKERS=2
-      - name: Run ISMCTS heuristic/search regressions
-        run: python -m pytest -q -n 2 --tb=short tests/test_ismcts.py tests/test_ismcts_validation.py
