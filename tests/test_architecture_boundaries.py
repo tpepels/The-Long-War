@@ -227,6 +227,9 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     }
     assert "_mccfr_accel" not in (source / "setup.py").read_text(encoding="utf-8")
     browser_fast = (package / "_fast_search.pyx").read_text(encoding="utf-8")
+    assert "ConstraintKind, Phase, Rank" in browser_fast
+    assert "ObservationZone" in browser_fast
+    assert "PendingResume" in browser_fast
     assert 'include "_fast_engine_core.pxi"' in browser_fast
     assert 'include "_heuristic_core.pxi"' in browser_fast
     assert 'include "_ismcts_core.pxi"' in browser_fast
