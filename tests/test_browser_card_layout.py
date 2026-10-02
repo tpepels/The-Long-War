@@ -361,7 +361,7 @@ def test_remote_play_routes_actions_through_host_authoritative_session() -> None
     assert "session.mulligan(command.indices || [], 1)" in script
     assert "session.view(0)" in script
     assert "session.view(1)" in script
-    assert 'type: "snapshot"' in script
+    assert "type: REMOTE_MESSAGE_TYPE.SNAPSHOT" in script
     assert "createRemoteHost" in script
     assert "createRemoteGuest" in script
 
