@@ -37,11 +37,14 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_MAX_TREE_NODES,
     DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
     DEFAULT_ISMCTS_REUSE_TREE,
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
+    DEFAULT_ISMCTS_LEAF_SCALE,
     ISMCTSAgent,
 )
 from longwar.balance import validate_command_costs
@@ -73,6 +76,151 @@ COMMAND_RECOVERY_CANDIDATES = (
     (15, 3),
     (15, 2),
 )
+
+
+def _ismcts_tournament_profile(**changes: object) -> dict[str, object]:
+    profile: dict[str, object] = {
+        "ismcts_belief_samples": DEFAULT_ISMCTS_BELIEF_SAMPLES,
+        "ismcts_rollout_depth": DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+        "ismcts_post_battle_rollout_depth": DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
+        "ismcts_tree_depth_limit": 96,
+        "ismcts_exploration": DEFAULT_ISMCTS_EXPLORATION,
+        "ismcts_progressive_widening": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+        "ismcts_progressive_widening_alpha": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
+        "ismcts_reuse_tree": DEFAULT_ISMCTS_REUSE_TREE,
+        "ismcts_max_tree_nodes": DEFAULT_ISMCTS_MAX_TREE_NODES,
+        "ismcts_rollout_epsilon": DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+        "ismcts_rollout_policy": DEFAULT_ISMCTS_ROLLOUT_POLICY,
+        "ismcts_decisive_greedy_probability": DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
+        "ismcts_leaf_scale": DEFAULT_ISMCTS_LEAF_SCALE,
+    }
+    profile.update(changes)
+    return profile
+
+
+# Serious equal-time parameter screen. Each non-baseline profile changes one
+# effective search dimension unless the parameter only has meaning jointly
+# with another knob (epsilon/policy and progressive-widening c/alpha).
+ISMCTS_TOURNAMENT_PROFILES: dict[str, dict[str, object]] = {
+    "baseline": _ismcts_tournament_profile(),
+
+    # UCT exploration constant c.
+    "uct-c-0": _ismcts_tournament_profile(ismcts_exploration=0.0),
+    "uct-c-0p1": _ismcts_tournament_profile(ismcts_exploration=0.1),
+    "uct-c-0p2": _ismcts_tournament_profile(ismcts_exploration=0.2),
+    "uct-c-0p45": _ismcts_tournament_profile(ismcts_exploration=0.45),
+    "uct-c-0p6": _ismcts_tournament_profile(ismcts_exploration=0.6),
+    "uct-c-1": _ismcts_tournament_profile(ismcts_exploration=1.0),
+    "uct-c-sqrt2": _ismcts_tournament_profile(ismcts_exploration=2 ** 0.5),
+
+    # Belief-sample count.
+    "beliefs-4": _ismcts_tournament_profile(ismcts_belief_samples=4),
+    "beliefs-6": _ismcts_tournament_profile(ismcts_belief_samples=6),
+    "beliefs-24": _ismcts_tournament_profile(ismcts_belief_samples=24),
+    "beliefs-48": _ismcts_tournament_profile(ismcts_belief_samples=48),
+
+    # Rollout horizon before and after a Battle boundary.
+    "rollout-0": _ismcts_tournament_profile(ismcts_rollout_depth=0),
+    "rollout-2": _ismcts_tournament_profile(ismcts_rollout_depth=2),
+    "rollout-8": _ismcts_tournament_profile(ismcts_rollout_depth=8),
+    "rollout-12": _ismcts_tournament_profile(ismcts_rollout_depth=12),
+    "post-battle-0": _ismcts_tournament_profile(ismcts_post_battle_rollout_depth=0),
+    "post-battle-2": _ismcts_tournament_profile(ismcts_post_battle_rollout_depth=2),
+    "post-battle-8": _ismcts_tournament_profile(ismcts_post_battle_rollout_depth=8),
+    "post-battle-12": _ismcts_tournament_profile(ismcts_post_battle_rollout_depth=12),
+
+    # Tree horizon/capacity and reuse.
+    "tree-depth-32": _ismcts_tournament_profile(ismcts_tree_depth_limit=32),
+    "tree-depth-64": _ismcts_tournament_profile(ismcts_tree_depth_limit=64),
+    "tree-depth-160": _ismcts_tournament_profile(ismcts_tree_depth_limit=160),
+    "tree-depth-256": _ismcts_tournament_profile(ismcts_tree_depth_limit=256),
+    "nodes-100k": _ismcts_tournament_profile(ismcts_max_tree_nodes=100_000),
+    "nodes-200k": _ismcts_tournament_profile(ismcts_max_tree_nodes=200_000),
+    "nodes-800k": _ismcts_tournament_profile(ismcts_max_tree_nodes=800_000),
+    "nodes-1600k": _ismcts_tournament_profile(ismcts_max_tree_nodes=1_600_000),
+    "no-reuse": _ismcts_tournament_profile(ismcts_reuse_tree=False),
+
+    # Leaf utility scaling before tanh().
+    "leaf-scale-25": _ismcts_tournament_profile(ismcts_leaf_scale=25.0),
+    "leaf-scale-50": _ismcts_tournament_profile(ismcts_leaf_scale=50.0),
+    "leaf-scale-200": _ismcts_tournament_profile(ismcts_leaf_scale=200.0),
+    "leaf-scale-400": _ismcts_tournament_profile(ismcts_leaf_scale=400.0),
+
+    # Decisive rollout random/greedy mixture. Exact safe Battle closes still
+    # happen before this probability is consulted.
+    "decisive-greedy-0": _ismcts_tournament_profile(
+        ismcts_decisive_greedy_probability=0.0,
+    ),
+    "decisive-greedy-0p15": _ismcts_tournament_profile(
+        ismcts_decisive_greedy_probability=0.15,
+    ),
+    "decisive-greedy-0p3": _ismcts_tournament_profile(
+        ismcts_decisive_greedy_probability=0.3,
+    ),
+    "decisive-greedy-0p5": _ismcts_tournament_profile(
+        ismcts_decisive_greedy_probability=0.5,
+    ),
+
+    # Progressive widening: c and alpha are tested together because alpha is
+    # irrelevant when c=0.
+    "pw-c0p5-a0p5": _ismcts_tournament_profile(
+        ismcts_progressive_widening=0.5,
+        ismcts_progressive_widening_alpha=0.5,
+    ),
+    "pw-c1-a0p25": _ismcts_tournament_profile(
+        ismcts_progressive_widening=1.0,
+        ismcts_progressive_widening_alpha=0.25,
+    ),
+    "pw-c1-a0p5": _ismcts_tournament_profile(
+        ismcts_progressive_widening=1.0,
+        ismcts_progressive_widening_alpha=0.5,
+    ),
+    "pw-c1-a0p75": _ismcts_tournament_profile(
+        ismcts_progressive_widening=1.0,
+        ismcts_progressive_widening_alpha=0.75,
+    ),
+    "pw-c2-a0p5": _ismcts_tournament_profile(
+        ismcts_progressive_widening=2.0,
+        ismcts_progressive_widening_alpha=0.5,
+    ),
+    "pw-c4-a0p5": _ismcts_tournament_profile(
+        ismcts_progressive_widening=4.0,
+        ismcts_progressive_widening_alpha=0.5,
+    ),
+
+    # Epsilon is effective for greedy/cheap policies, but not for decisive
+    # or fully-random rollouts. Sweep only combinations that change behavior.
+    "greedy-eps-0": _ismcts_tournament_profile(
+        ismcts_rollout_policy="greedy", ismcts_rollout_epsilon=0.0,
+    ),
+    "greedy-eps-0p05": _ismcts_tournament_profile(
+        ismcts_rollout_policy="greedy", ismcts_rollout_epsilon=0.05,
+    ),
+    "greedy-eps-0p12": _ismcts_tournament_profile(
+        ismcts_rollout_policy="greedy", ismcts_rollout_epsilon=0.12,
+    ),
+    "greedy-eps-0p25": _ismcts_tournament_profile(
+        ismcts_rollout_policy="greedy", ismcts_rollout_epsilon=0.25,
+    ),
+    "greedy-eps-0p5": _ismcts_tournament_profile(
+        ismcts_rollout_policy="greedy", ismcts_rollout_epsilon=0.5,
+    ),
+    "cheap-eps-0": _ismcts_tournament_profile(
+        ismcts_rollout_policy="cheap", ismcts_rollout_epsilon=0.0,
+    ),
+    "cheap-eps-0p12": _ismcts_tournament_profile(
+        ismcts_rollout_policy="cheap", ismcts_rollout_epsilon=0.12,
+    ),
+    "cheap-eps-0p25": _ismcts_tournament_profile(
+        ismcts_rollout_policy="cheap", ismcts_rollout_epsilon=0.25,
+    ),
+    "cheap-eps-0p5": _ismcts_tournament_profile(
+        ismcts_rollout_policy="cheap", ismcts_rollout_epsilon=0.5,
+    ),
+    "random-rollout": _ismcts_tournament_profile(
+        ismcts_rollout_policy="random",
+    ),
+}
 
 
 class ExperimentSkipped(RuntimeError):
