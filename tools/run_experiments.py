@@ -84,6 +84,7 @@ def canonical_ismcts_tournament_config() -> dict[str, Any]:
     """Production ISMCTS settings, excluding the shared wall-clock budget."""
     return {
         "ismcts_belief_samples": DEFAULT_ISMCTS_BELIEF_SAMPLES,
+        "ismcts_hard_iteration_ceiling": True,
         "ismcts_rollout_depth": DEFAULT_ISMCTS_ROLLOUT_DEPTH,
         "ismcts_post_battle_rollout_depth": DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
         "ismcts_tree_depth_limit": 96,
