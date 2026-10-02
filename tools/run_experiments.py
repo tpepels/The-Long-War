@@ -110,7 +110,7 @@ def ismcts_tournament_candidates() -> dict[str, dict[str, Any]]:
     ):
         add(f"uct-c-{label}", "uct", ismcts_exploration=value)
 
-    for value in (2, 8, 12):
+    for value in (0, 2, 8, 12):
         add(f"rollout-{value}", "horizon", ismcts_rollout_depth=value)
     for value in (0, 2, 8, 12):
         add(f"post-battle-{value}", "horizon", ismcts_post_battle_rollout_depth=value)
@@ -1943,16 +1943,22 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     }
     config = {
         "experiment": "ismcts-tournament",
-        "method": "one-factor screen -> independent finalist round-robin -> independent confirmation",
+        "method": (
+            "one-factor screen -> independent interaction screen -> "
+            "independent finalist round-robin -> independent confirmation"
+        ),
         "screen_games_per_orientation": args.screen_games,
+        "interaction_games_per_orientation": args.interaction_games,
         "final_games_per_orientation": args.final_games,
         "confirm_games_per_orientation": args.confirm_games,
         "time_budget_seconds": args.time_budget_seconds,
         "iterations_ceiling": args.iterations_ceiling,
         "seed": args.seed,
-        "final_seed": args.seed + 1_000_000,
-        "confirm_seed": args.seed + 2_000_000,
+        "interaction_seed": args.seed + 1_000_000,
+        "final_seed": args.seed + 2_000_000,
+        "confirm_seed": args.seed + 3_000_000,
         "max_family_finalists": args.max_family_finalists,
+        "max_interaction_finalists": args.max_interaction_finalists,
         "finalist_floor": args.finalist_floor,
         "baseline": baseline,
         "candidate_catalog": catalog,
@@ -1971,6 +1977,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     )
     print(
         f"screen={args.screen_games}/orientation, "
+        f"interactions={args.interaction_games}/orientation, "
         f"finals={args.final_games}/orientation, "
         f"confirmation={args.confirm_games}/orientation"
     )
@@ -2019,6 +2026,47 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     all_configs = {"baseline": baseline, **candidate_configs}
     all_configs["synthesized"] = synthesized
 
+    # Screen pairwise interactions among families that individually beat the
+    # baseline point estimate. This uses fresh deals, so interaction selection
+    # does not reuse the one-factor evidence that nominated the ingredients.
+    positive_family_winners = [
+        winner
+        for winner in family_winners.values()
+        if float(screen_results[winner]["paired"]["score_rate"] or 0.0) > 0.5
+    ]
+    interaction_configs: dict[str, dict[str, Any]] = {}
+    for left, right in combinations(sorted(positive_family_winners), 2):
+        combined = dict(baseline)
+        combined.update(catalog[left]["overrides"])
+        combined.update(catalog[right]["overrides"])
+        interaction_configs[f"combo-{left}--{right}"] = combined
+    if synthesized != baseline:
+        interaction_configs["synthesized"] = synthesized
+
+    interaction_results: dict[str, dict[str, Any]] = {}
+    for index, (name, interaction_config) in enumerate(
+        interaction_configs.items(), start=1
+    ):
+        print(
+            f"\n[interaction {index}/{len(interaction_configs)}] "
+            f"{name} vs baseline"
+        )
+        result = _run_ismcts_tournament_pair(
+            output_dir=output / "interactions" / name,
+            label_a=name,
+            config_a=interaction_config,
+            label_b="baseline",
+            config_b=baseline,
+            games_per_orientation=args.interaction_games,
+            jobs=args.jobs,
+            seed=args.seed + 1_000_000,
+            iterations_ceiling=args.iterations_ceiling,
+            time_budget_seconds=args.time_budget_seconds,
+            force=args.force,
+        )
+        interaction_results[name] = result
+        all_configs[name] = interaction_config
+
     promising_family_winners = sorted(
         (
             name for name in family_winners.values()
@@ -2031,9 +2079,23 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
         reverse=True,
     )[:args.max_family_finalists]
 
-    finalist_names = ["baseline", *promising_family_winners]
-    if synthesized != baseline:
-        finalist_names.append("synthesized")
+    promising_interactions = sorted(
+        (
+            name for name, result in interaction_results.items()
+            if float(result["paired"]["score_rate"] or 0.0)
+            >= args.finalist_floor
+        ),
+        key=lambda name: float(
+            interaction_results[name]["paired"]["score_rate"] or 0.0
+        ),
+        reverse=True,
+    )[:args.max_interaction_finalists]
+
+    finalist_names = [
+        "baseline",
+        *promising_family_winners,
+        *promising_interactions,
+    ]
     finalist_names = _unique_tournament_configs(finalist_names, all_configs)
 
     print("\nFinalists:")
@@ -2053,7 +2115,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
                 config_b=all_configs[b],
                 games_per_orientation=args.final_games,
                 jobs=args.jobs,
-                seed=args.seed + 1_000_000,
+                seed=args.seed + 2_000_000,
                 iterations_ceiling=args.iterations_ceiling,
                 time_budget_seconds=args.time_budget_seconds,
                 force=args.force,
@@ -2099,7 +2161,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
             config_b=baseline,
             games_per_orientation=args.confirm_games,
             jobs=args.jobs,
-            seed=args.seed + 2_000_000,
+            seed=args.seed + 3_000_000,
             iterations_ceiling=args.iterations_ceiling,
             time_budget_seconds=args.time_budget_seconds,
             force=args.force,
@@ -2121,7 +2183,11 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
                 "challenger did not clear the independent 95% paired confirmation threshold"
             )
 
-    all_pair_results = list(screen_results.values()) + final_pairs
+    all_pair_results = (
+        list(screen_results.values())
+        + list(interaction_results.values())
+        + final_pairs
+    )
     if confirmation is not None:
         all_pair_results.append(confirmation)
     ceiling_warnings = []
@@ -2144,6 +2210,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
         "config": config,
         "screen": screen_results,
         "family_winners": family_winners,
+        "interaction_results": interaction_results,
         "synthesis_sources": synthesis_sources,
         "synthesized_config": synthesized,
         "finalists": finalist_names,
