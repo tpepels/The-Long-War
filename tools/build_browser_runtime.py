@@ -158,7 +158,7 @@ from libc.string cimport memcpy, memset
 from libc.stdlib cimport malloc, free, realloc
 from libc.math cimport tanh, log, sqrt, isfinite
 from cpython.bytes cimport PyBytes_FromStringAndSize
-from longwar.game.model import Rank
+from longwar.game.model import ConstraintKind, Phase, Rank
 import hashlib
 import json
 from time import perf_counter
@@ -171,6 +171,8 @@ from longwar.protocol import (
     DesignToken,
     Direction,
     ForceRole,
+    ObservationZone,
+    PendingResume,
 )
 
 include "_fast_engine_core.pxi"
