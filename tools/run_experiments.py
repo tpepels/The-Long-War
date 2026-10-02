@@ -1724,6 +1724,812 @@ def paired_strength_interval(
     }
 
 
+
+def paired_tournament_interval(
+    outcomes: dict[str, dict[str, list[dict[str, Any]]]],
+) -> dict[str, Any]:
+    """Paired score interval for profile A across mirrored seat orientations."""
+    from longwar.counterfactual import estimate
+
+    pair_scores: list[float] = []
+    censored_pairs = 0
+    for key, orientations in outcomes.items():
+        first = {row["seed"]: row for row in orientations["a-first"]}
+        second = {row["seed"]: row for row in orientations["b-first"]}
+        if first.keys() != second.keys():
+            raise ValueError(
+                f"Mirrored tournament cells have different deal seeds: {key}"
+            )
+        for seed, left in first.items():
+            right = second[seed]
+            if (
+                bool(left.get("censored", False))
+                or bool(right.get("censored", False))
+            ):
+                censored_pairs += 1
+                continue
+
+            def score(row: dict[str, Any], seat_a: int) -> float:
+                winner = row.get("winner")
+                if winner is None:
+                    return 0.5
+                return 1.0 if int(winner) == seat_a else 0.0
+
+            pair_scores.append(
+                0.5 * (score(left, 0) + score(right, 1))
+            )
+
+    if not pair_scores:
+        return {
+            "score_rate": None,
+            "ci95": [None, None],
+            "independent_deals": 0,
+            "censored_pairs": censored_pairs,
+            "ci_method": None,
+            "resampling_unit": "same-seed mirrored seat pair",
+        }
+
+    effect = estimate(pair_scores, seed=1701, bootstrap_resamples=4000)
+    return {
+        "score_rate": effect.mean,
+        "ci95": [
+            max(0.0, effect.ci95[0]),
+            min(1.0, effect.ci95[1]),
+        ],
+        "independent_deals": len(pair_scores),
+        "censored_pairs": censored_pairs,
+        "ci_method": effect.ci_method,
+        "resampling_unit": "same-seed mirrored seat pair",
+    }
+
+
+def _tournament_profile_seed_offset(name: str) -> int:
+    names = tuple(ISMCTS_TOURNAMENT_PROFILES)
+    return 1000 + 100 * names.index(name)
+
+
+def _tournament_resource_totals() -> dict[str, Any]:
+    return {
+        "decisions": 0,
+        "searched_decisions": 0,
+        "timed_out_decisions": 0,
+        "searched_seconds": 0.0,
+        "search_work": 0.0,
+        "iterations": 0,
+        "setup_seconds": 0.0,
+        "search_seconds": 0.0,
+        "root_reused_decisions": 0,
+        "tree_capacity_cutoffs": 0,
+        "tree_nodes_before_total": 0,
+        "tree_nodes_added_total": 0,
+        "tree_nodes_discarded_total": 0,
+        "rollout_actions": 0,
+        "rollout_iterations": 0,
+        "terminal_cutoffs": 0,
+        "battle_boundary_cutoffs": 0,
+        "depth_cutoffs": 0,
+    }
+
+
+def _add_tournament_resources(
+    totals: dict[str, Any],
+    stats: dict[str, Any],
+) -> None:
+    decisions = int(stats.get("decisions", 0) or 0)
+    searched = int(stats.get("searched_decisions", 0) or 0)
+    totals["decisions"] += decisions
+    totals["searched_decisions"] += searched
+    totals["timed_out_decisions"] += int(
+        stats.get("timed_out_decisions", 0) or 0
+    )
+    totals["searched_seconds"] += searched * float(
+        stats.get("mean_searched_decision_seconds", 0.0) or 0.0
+    )
+    totals["search_work"] += decisions * float(
+        stats.get("mean_search_nodes", 0.0) or 0.0
+    )
+
+    reuse = stats.get("ismcts_tree_reuse", {})
+    totals["iterations"] += int(reuse.get("iterations_total", 0) or 0)
+    totals["setup_seconds"] += float(
+        reuse.get("setup_seconds_total", 0.0) or 0.0
+    )
+    totals["search_seconds"] += float(
+        reuse.get("search_seconds_total", 0.0) or 0.0
+    )
+    totals["root_reused_decisions"] += int(
+        reuse.get("root_reused_decisions", 0) or 0
+    )
+    totals["tree_capacity_cutoffs"] += int(
+        reuse.get("tree_capacity_cutoffs", 0) or 0
+    )
+    totals["tree_nodes_before_total"] += int(
+        reuse.get("tree_nodes_before_total", 0) or 0
+    )
+    totals["tree_nodes_added_total"] += int(
+        reuse.get("tree_nodes_added_total", 0) or 0
+    )
+    totals["tree_nodes_discarded_total"] += int(
+        reuse.get("tree_nodes_discarded_total", 0) or 0
+    )
+
+    cutoffs = stats.get("ismcts_rollout_cutoffs", {})
+    totals["rollout_iterations"] += int(cutoffs.get("iterations", 0) or 0)
+    totals["rollout_actions"] += int(cutoffs.get("rollout_actions", 0) or 0)
+    totals["terminal_cutoffs"] += int(cutoffs.get("terminal", 0) or 0)
+    totals["battle_boundary_cutoffs"] += int(
+        cutoffs.get("battle_boundary", 0) or 0
+    )
+    totals["depth_cutoffs"] += int(cutoffs.get("depth", 0) or 0)
+
+
+def _finalize_tournament_resources(
+    totals: dict[str, Any],
+) -> dict[str, Any]:
+    searched = int(totals["searched_decisions"])
+    search_seconds = float(totals["search_seconds"])
+    rollout_iterations = int(totals["rollout_iterations"])
+    return {
+        **totals,
+        "searched_timeout_rate": (
+            totals["timed_out_decisions"] / searched if searched else None
+        ),
+        "mean_searched_decision_seconds": (
+            totals["searched_seconds"] / searched if searched else None
+        ),
+        "mean_search_work": (
+            totals["search_work"] / totals["decisions"]
+            if totals["decisions"]
+            else None
+        ),
+        "simulations_per_second": (
+            totals["iterations"] / search_seconds
+            if search_seconds > 0.0
+            else None
+        ),
+        "root_reuse_rate": (
+            totals["root_reused_decisions"] / searched
+            if searched
+            else None
+        ),
+        "capacity_cutoffs_per_searched_decision": (
+            totals["tree_capacity_cutoffs"] / searched
+            if searched
+            else None
+        ),
+        "mean_rollout_actions_per_iteration": (
+            totals["rollout_actions"] / rollout_iterations
+            if rollout_iterations
+            else None
+        ),
+        "terminal_cutoff_rate": (
+            totals["terminal_cutoffs"] / rollout_iterations
+            if rollout_iterations
+            else None
+        ),
+        "battle_boundary_cutoff_rate": (
+            totals["battle_boundary_cutoffs"] / rollout_iterations
+            if rollout_iterations
+            else None
+        ),
+        "depth_cutoff_rate": (
+            totals["depth_cutoffs"] / rollout_iterations
+            if rollout_iterations
+            else None
+        ),
+    }
+
+
+def _tournament_cell_is_complete(
+    path: Path,
+    *,
+    games: int,
+    labels: tuple[str, str],
+) -> bool:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return (
+        payload.get("game_fingerprint")
+        == experiment_identity({})["game_fingerprint"]
+        and payload.get("experiment_fingerprint")
+        == experiment_identity({})["experiment_fingerprint"]
+        and int(payload.get("games", -1)) == games
+        and tuple(payload.get("agent_labels", ())) == labels
+    )
+
+
+def _write_tournament_progress_from_payload(
+    progress: Path,
+    payload: dict[str, Any],
+) -> None:
+    progress.parent.mkdir(parents=True, exist_ok=True)
+    progress.write_text(
+        json.dumps({
+            "completed": int(payload["games"]),
+            "total": int(payload["games"]),
+            "wins": [
+                int(payload["wins"][0]),
+                int(payload["wins"][1]),
+            ],
+        }) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _summarize_tournament_pair(
+    cells: list[tuple[Any, ...]],
+    profile_a: str,
+    profile_b: str,
+) -> dict[str, Any]:
+    wins = {profile_a: 0, profile_b: 0}
+    draws = 0
+    censored = 0
+    failed = 0
+    games = 0
+    resolved_games = 0
+    first_battle_finishes = 0
+    final_battle_total = 0
+    final_battle_count = 0
+    signal_events = 0
+    forced_yields = 0
+    command_at_signal_weighted = 0.0
+    command_at_signal_weight = 0
+    alternative_signal_weighted = 0.0
+    alternative_signal_weight = 0
+    by_deck: dict[str, dict[str, int]] = {}
+    paired_outcomes: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    resources = {
+        profile_a: _tournament_resource_totals(),
+        profile_b: _tournament_resource_totals(),
+    }
+
+    for cell in cells:
+        (
+            _display_a,
+            _display_b,
+            output,
+            _progress,
+            _command,
+            repeat_index,
+            deck,
+            orientation,
+        ) = cell
+        payload = json.loads(output.read_text(encoding="utf-8"))
+        labels = tuple(payload["agent_labels"])
+        cell_wins = payload["wins"]
+        wins[profile_a] += int(cell_wins[labels.index(profile_a)])
+        wins[profile_b] += int(cell_wins[labels.index(profile_b)])
+        draws += int(payload.get("draws", 0) or 0)
+        censored += int(payload.get("censored_games", 0) or 0)
+        failed += int(payload.get("failed_games", 0) or 0)
+        games += int(payload["games"])
+
+        deck_row = by_deck.setdefault(
+            deck,
+            {
+                profile_a: 0,
+                profile_b: 0,
+                "draws": 0,
+                "censored": 0,
+                "failed": 0,
+                "games": 0,
+            },
+        )
+        deck_row[profile_a] += int(cell_wins[labels.index(profile_a)])
+        deck_row[profile_b] += int(cell_wins[labels.index(profile_b)])
+        deck_row["draws"] += int(payload.get("draws", 0) or 0)
+        deck_row["censored"] += int(payload.get("censored_games", 0) or 0)
+        deck_row["failed"] += int(payload.get("failed_games", 0) or 0)
+        deck_row["games"] += int(payload["games"])
+
+        key = f"repeat-{repeat_index + 1}:{deck}"
+        paired_outcomes.setdefault(key, {})[orientation] = list(
+            payload.get("game_outcomes", [])
+        )
+
+        for outcome in payload.get("game_outcomes", []):
+            if bool(outcome.get("censored", False)):
+                continue
+            resolved_games += 1
+            final_battle = outcome.get("final_battle")
+            if final_battle is not None:
+                final_battle = int(final_battle)
+                final_battle_total += final_battle
+                final_battle_count += 1
+                if final_battle == 1:
+                    first_battle_finishes += 1
+
+        telemetry = payload.get("telemetry", {})
+        passes = telemetry.get("passes", {})
+        cell_signals = int(
+            passes.get("signal_events", passes.get("events", 0)) or 0
+        )
+        signal_events += cell_signals
+        forced_yields += int(passes.get("forced_yield_events", 0) or 0)
+        mean_command = passes.get("mean_command_at_signal")
+        if mean_command is not None and cell_signals:
+            command_at_signal_weighted += float(mean_command) * cell_signals
+            command_at_signal_weight += cell_signals
+        alt_rate = passes.get("signal_with_playable_alternative_rate")
+        if alt_rate is not None and cell_signals:
+            alternative_signal_weighted += float(alt_rate) * cell_signals
+            alternative_signal_weight += cell_signals
+
+        decision_stats = telemetry.get("decisions", {})
+        for profile in (profile_a, profile_b):
+            _add_tournament_resources(
+                resources[profile],
+                decision_stats.get(profile, {}),
+            )
+
+    paired = paired_tournament_interval(paired_outcomes)
+    a_score = paired["score_rate"]
+    b_score = None if a_score is None else 1.0 - float(a_score)
+    b_ci = (
+        [None, None]
+        if paired["ci95"][0] is None
+        else [
+            1.0 - float(paired["ci95"][1]),
+            1.0 - float(paired["ci95"][0]),
+        ]
+    )
+    return {
+        "profiles": [profile_a, profile_b],
+        "games": games,
+        "wins": wins,
+        "draws": draws,
+        "censored": censored,
+        "failed": failed,
+        "score": {
+            profile_a: {
+                "score_rate": a_score,
+                "ci95": paired["ci95"],
+            },
+            profile_b: {
+                "score_rate": b_score,
+                "ci95": b_ci,
+            },
+            "independent_deals": paired["independent_deals"],
+            "censored_pairs": paired["censored_pairs"],
+            "ci_method": paired["ci_method"],
+            "resampling_unit": paired["resampling_unit"],
+        },
+        "pacing": {
+            "resolved_games": resolved_games,
+            "mean_final_battle": (
+                final_battle_total / final_battle_count
+                if final_battle_count
+                else None
+            ),
+            "battle_one_finish_rate": (
+                first_battle_finishes / final_battle_count
+                if final_battle_count
+                else None
+            ),
+            "signal_events": signal_events,
+            "forced_yield_events": forced_yields,
+            "mean_command_at_signal": (
+                command_at_signal_weighted / command_at_signal_weight
+                if command_at_signal_weight
+                else None
+            ),
+            "signal_with_playable_alternative_rate": (
+                alternative_signal_weighted / alternative_signal_weight
+                if alternative_signal_weight
+                else None
+            ),
+        },
+        "resources": {
+            profile: _finalize_tournament_resources(resources[profile])
+            for profile in (profile_a, profile_b)
+        },
+        "decks": by_deck,
+    }
+
+
+def ismcts_tournament_run(args: argparse.Namespace) -> Path:
+    """Equal-time mirrored ISMCTS parameter tournament on all reference decks."""
+    require_cython()
+    if args.games <= 0 or args.repeats <= 0 or args.jobs <= 0:
+        raise SystemExit("--games, --repeats and --jobs must be positive")
+    if args.time_budget_seconds <= 0.0:
+        raise SystemExit("--time-budget-seconds must be positive")
+    if args.iterations <= 0:
+        raise SystemExit("--iterations must be positive")
+
+    if args.list_profiles:
+        for name, profile in ISMCTS_TOURNAMENT_PROFILES.items():
+            print(f"{name}: {json.dumps(profile, sort_keys=True)}")
+        return Path(".")
+
+    selected = list(dict.fromkeys(args.profiles))
+    unknown = [
+        name for name in selected
+        if name not in ISMCTS_TOURNAMENT_PROFILES
+    ]
+    if unknown:
+        raise SystemExit(f"Unknown ISMCTS tournament profiles: {unknown}")
+    if args.baseline not in ISMCTS_TOURNAMENT_PROFILES:
+        raise SystemExit(f"Unknown baseline profile: {args.baseline}")
+
+    if args.stage == "screen":
+        challengers = [
+            name for name in selected
+            if name != args.baseline
+        ]
+        if not challengers:
+            raise SystemExit("Screen requires at least one non-baseline profile")
+        pairings = [(args.baseline, name) for name in challengers]
+        active_profiles = [args.baseline, *challengers]
+    else:
+        if len(selected) < 2:
+            raise SystemExit("Round-robin requires at least two profiles")
+        pairings = list(combinations(selected, 2))
+        active_profiles = selected
+
+    config = {
+        "experiment": "ismcts-tournament",
+        "stage": args.stage,
+        "profiles": {
+            name: ISMCTS_TOURNAMENT_PROFILES[name]
+            for name in active_profiles
+        },
+        "pairings": [list(pair) for pair in pairings],
+        "baseline": args.baseline if args.stage == "screen" else None,
+        "games_per_orientation": args.games,
+        "repeats": args.repeats,
+        "seed": args.seed,
+        "jobs": args.jobs,
+        "time_budget_seconds": args.time_budget_seconds,
+        "iterations": args.iterations,
+        "rules": GameRules.standard().as_dict(),
+        "decks": list(CANONICAL_DECK_PATHS),
+        "pairing": (
+            "same game seed across every profile matchup; mirrored seats; "
+            "profile-stable agent RNG offsets; independent repeat seed blocks"
+        ),
+    }
+    identity = experiment_identity(config)
+    output = artifact_directory(
+        BENCH_ROOT / "ismcts-tournament" / args.stage,
+        identity,
+    )
+
+    profile_totals = {
+        name: {
+            "wins": 0,
+            "losses": 0,
+            "draws": 0,
+            "censored": 0,
+            "failed": 0,
+            "resolved_games": 0,
+            "opponents": 0,
+        }
+        for name in active_profiles
+    }
+    pair_summaries: list[dict[str, Any]] = []
+    skipped_pairs: list[dict[str, Any]] = []
+
+    total_pair_games = (
+        args.repeats
+        * len(CANONICAL_DECK_PATHS)
+        * 2
+        * args.games
+    )
+    print(
+        f"ISMCTS {args.stage} | {len(pairings)} matchups | "
+        f"{total_pair_games} games/matchup | "
+        f"{args.time_budget_seconds:g}s/search decision | "
+        f"{args.repeats} independent seed block(s)"
+    )
+
+    for pair_index, (profile_a, profile_b) in enumerate(pairings):
+        print(
+            f"\n[{pair_index + 1}/{len(pairings)}] "
+            f"{profile_a} vs {profile_b}",
+            flush=True,
+        )
+        pair_dir = output / f"{profile_a}__vs__{profile_b}"
+        pair_dir.mkdir(parents=True, exist_ok=True)
+        cells: list[tuple[Any, ...]] = []
+        a_offset = _tournament_profile_seed_offset(profile_a)
+        b_offset = _tournament_profile_seed_offset(profile_b)
+
+        for repeat_index in range(args.repeats):
+            repeat_seed = args.seed + repeat_index * 1_000_000
+            for deck_index, (deck, deck_path) in enumerate(
+                CANONICAL_DECK_PATHS.items()
+            ):
+                cell_seed = repeat_seed + deck_index * args.games
+                for orientation in ("a-first", "b-first"):
+                    if orientation == "a-first":
+                        labels = (profile_a, profile_b)
+                        options = (
+                            ISMCTS_TOURNAMENT_PROFILES[profile_a],
+                            ISMCTS_TOURNAMENT_PROFILES[profile_b],
+                        )
+                        seed_offsets = (a_offset, b_offset)
+                    else:
+                        labels = (profile_b, profile_a)
+                        options = (
+                            ISMCTS_TOURNAMENT_PROFILES[profile_b],
+                            ISMCTS_TOURNAMENT_PROFILES[profile_a],
+                        )
+                        seed_offsets = (b_offset, a_offset)
+
+                    stem = (
+                        f"r{repeat_index + 1}-{deck}-{orientation}"
+                    )
+                    cell_output = pair_dir / f"{stem}.json"
+                    progress = pair_dir / f"{stem}.progress"
+                    if args.force:
+                        cell_output.unlink(missing_ok=True)
+                        progress.unlink(missing_ok=True)
+
+                    command = [
+                        sys.executable,
+                        str(ROOT / "tools" / "simulate.py"),
+                        "--games",
+                        str(args.games),
+                        "--jobs",
+                        "1",
+                        "--seed",
+                        str(cell_seed),
+                        "--card-file",
+                        "cards/cards.json",
+                        "--deck-a",
+                        deck_path,
+                        "--deck-b",
+                        deck_path,
+                        "--agent-a",
+                        "ismcts",
+                        "--agent-b",
+                        "ismcts",
+                        "--agent-a-label",
+                        labels[0],
+                        "--agent-b-label",
+                        labels[1],
+                        "--agent-a-seed-offset",
+                        str(seed_offsets[0]),
+                        "--agent-b-seed-offset",
+                        str(seed_offsets[1]),
+                        "--agent-a-options-json",
+                        json.dumps(options[0], separators=(",", ":")),
+                        "--agent-b-options-json",
+                        json.dumps(options[1], separators=(",", ":")),
+                        "--ismcts-iterations",
+                        str(args.iterations),
+                        "--ismcts-time-budget-seconds",
+                        str(args.time_budget_seconds),
+                        "--output",
+                        str(cell_output),
+                        "--progress-file",
+                        str(progress),
+                    ]
+                    cells.append((
+                        profile_a,
+                        profile_b,
+                        cell_output,
+                        progress,
+                        command,
+                        repeat_index,
+                        deck,
+                        orientation,
+                    ))
+
+        def run_cell(cell, stop_event):
+            (
+                _profile_a,
+                _profile_b,
+                cell_output,
+                progress,
+                command,
+                repeat_index,
+                deck,
+                orientation,
+            ) = cell
+            expected_labels = (
+                (profile_a, profile_b)
+                if orientation == "a-first"
+                else (profile_b, profile_a)
+            )
+            if (
+                not args.force
+                and _tournament_cell_is_complete(
+                    cell_output,
+                    games=args.games,
+                    labels=expected_labels,
+                )
+            ):
+                payload = json.loads(cell_output.read_text(encoding="utf-8"))
+                _write_tournament_progress_from_payload(progress, payload)
+                return (
+                    repeat_index,
+                    deck,
+                    orientation,
+                    cell_output,
+                    0.0,
+                )
+
+            started = time.perf_counter()
+            if not _run_command_until_stop(command, stop_event):
+                return None
+            return (
+                repeat_index,
+                deck,
+                orientation,
+                cell_output,
+                time.perf_counter() - started,
+            )
+
+        def format_result(result) -> str:
+            repeat_index, deck, orientation, cell_output, elapsed = result
+            payload = json.loads(cell_output.read_text(encoding="utf-8"))
+            labels = tuple(payload["agent_labels"])
+            wins = payload["wins"]
+            a_wins = int(wins[labels.index(profile_a)])
+            b_wins = int(wins[labels.index(profile_b)])
+            return (
+                f"r{repeat_index + 1} {deck:10} {orientation:7} "
+                f"{a_wins}-{b_wins} {elapsed:7.1f}s"
+            )
+
+        def format_progress(cell, state):
+            (
+                _profile_a,
+                _profile_b,
+                _cell_output,
+                _progress,
+                _command,
+                repeat_index,
+                deck,
+                orientation,
+            ) = cell
+            if orientation == "a-first":
+                a_wins = int(state["wins"][0])
+                b_wins = int(state["wins"][1])
+            else:
+                a_wins = int(state["wins"][1])
+                b_wins = int(state["wins"][0])
+            return (
+                f"r{repeat_index + 1} {deck:10} {orientation:7} "
+                f"{int(state['completed']):>2}/{args.games:<2} "
+                f"{a_wins:>2}-{b_wins:<2}",
+                a_wins,
+                b_wins,
+            )
+
+        try:
+            _run_cells_with_live_progress(
+                cells,
+                jobs=args.jobs,
+                games_per_cell=args.games,
+                run_cell=run_cell,
+                format_result=format_result,
+                table_header=(
+                    f"repeat deck       seat    played "
+                    f"{profile_a}-{profile_b}"
+                ),
+                score_labels=(profile_a, profile_b),
+                format_progress=format_progress,
+            )
+        except ExperimentSkipped as exc:
+            skipped_pairs.append({
+                "profiles": [profile_a, profile_b],
+                "partial": exc.partial,
+            })
+            print(f"Skipped {profile_a} vs {profile_b}", flush=True)
+            continue
+
+        summary = _summarize_tournament_pair(
+            cells,
+            profile_a,
+            profile_b,
+        )
+        pair_summaries.append(summary)
+        pair_path = pair_dir / "summary.json"
+        pair_path.write_text(
+            json.dumps(summary, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
+        for profile, opponent in (
+            (profile_a, profile_b),
+            (profile_b, profile_a),
+        ):
+            row = profile_totals[profile]
+            row["opponents"] += 1
+            row["wins"] += int(summary["wins"][profile])
+            row["losses"] += int(summary["wins"][opponent])
+            row["draws"] += int(summary["draws"])
+            row["censored"] += int(summary["censored"])
+            row["failed"] += int(summary["failed"])
+            row["resolved_games"] += (
+                int(summary["wins"][profile])
+                + int(summary["wins"][opponent])
+                + int(summary["draws"])
+            )
+
+        a_result = summary["score"][profile_a]
+        print(
+            f"  paired {profile_a} score="
+            f"{float(a_result['score_rate']):.3f} "
+            f"CI95=[{float(a_result['ci95'][0]):.3f}, "
+            f"{float(a_result['ci95'][1]):.3f}] "
+            f"| Battle-I="
+            f"{float(summary['pacing']['battle_one_finish_rate']):.1%} "
+            f"| forced-yields={summary['pacing']['forced_yield_events']}",
+            flush=True,
+        )
+
+    ranking = []
+    for profile, totals in profile_totals.items():
+        resolved = int(totals["resolved_games"])
+        score = int(totals["wins"]) + 0.5 * int(totals["draws"])
+        ranking.append({
+            "profile": profile,
+            **totals,
+            "score_rate": score / resolved if resolved else None,
+            "parameters": ISMCTS_TOURNAMENT_PROFILES[profile],
+        })
+    ranking.sort(
+        key=lambda row: (
+            row["score_rate"] is not None,
+            row["score_rate"] if row["score_rate"] is not None else -1.0,
+        ),
+        reverse=True,
+    )
+
+    payload = {
+        "config": config,
+        "profile_count": len(active_profiles),
+        "matchup_count": len(pairings),
+        "completed_matchups": len(pair_summaries),
+        "skipped_matchups": skipped_pairs,
+        "profiles": {
+            name: ISMCTS_TOURNAMENT_PROFILES[name]
+            for name in active_profiles
+        },
+        "pairings": pair_summaries,
+        "ranking": ranking,
+        "interpretation": {
+            "primary": (
+                "paired same-seed mirrored score rate; screen challengers "
+                "should be read against baseline, not against baseline's "
+                "aggregate score across many opponents"
+            ),
+            "budget_fairness": (
+                "compare searched_timeout_rate and mean searched decision "
+                "seconds; profiles that do not consume the equal wall-clock "
+                "budget are not directly resource-equivalent"
+            ),
+            "epsilon_note": (
+                "epsilon profiles are only defined for rollout policies where "
+                "epsilon changes behavior; decisive rollout uses its separate "
+                "decisive_greedy_probability"
+            ),
+        },
+    }
+    path = output / "summary.json"
+    path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    print("\nTournament ranking")
+    for row in ranking:
+        rate = row["score_rate"]
+        print(
+            f"  {row['profile']:24} "
+            f"{rate:.3f}" if rate is not None
+            else f"  {row['profile']:24} n/a"
+        )
+    print(f"Wrote {path}", flush=True)
+    return path
+
+
 def benchmark_strength(
     *,
     games_per_orientation: int,
