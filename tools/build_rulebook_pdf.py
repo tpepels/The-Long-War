@@ -12,6 +12,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from PIL import Image
 from pypdf import PdfReader
 
 from build_pages import print_build_version, render_rule_tokens
@@ -64,6 +65,25 @@ def _flush_paragraph(lines: list[str], out: list[str]) -> None:
         out.append(_inline(text))
         out.append("")
     lines.clear()
+
+
+def _pdf_safe_image_path(path: str) -> str:
+    """Convert JPEG rulebook art to RGB PNG for reliable PDF rendering."""
+    source = DIST / path
+    if source.suffix.lower() not in {".jpg", ".jpeg"}:
+        return path
+    if not source.exists():
+        raise FileNotFoundError(f"Rulebook image not found: {source}")
+
+    target = source.with_name(source.stem + "-print.png")
+    with Image.open(source) as image:
+        image.convert("RGB").save(
+            target,
+            format="PNG",
+            optimize=True,
+            compress_level=9,
+        )
+    return target.relative_to(DIST).as_posix()
 
 
 def markdown_to_typst(source: str, version: str) -> str:
@@ -182,6 +202,7 @@ def markdown_to_typst(source: str, version: str) -> str:
             finish_quote()
             finish_table()
             alt, path = image_match.groups()
+            path = _pdf_safe_image_path(path)
             out.append(
                 '#block(breakable: false, above: 4pt, below: 5pt)['
                 f'#image("{_string(path)}", width: 100%)'

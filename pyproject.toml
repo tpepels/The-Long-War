@@ -18,6 +18,7 @@ dev = [
   "Cython>=3.0",
   "setuptools>=75",
   "pypdf>=5.0",
+  "Pillow>=11.0",
   "ruff>=0.11",
 ]
 

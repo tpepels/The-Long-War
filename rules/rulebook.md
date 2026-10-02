@@ -23,16 +23,16 @@ Each player begins the war with **{{STARTING_COMMAND}} Command**. **Command** is
 A Battle has a simple arc:
 
 1. Players alternate turns, drawing a card and then doing one thing.
-2. They build positions, move established groups, or choose to do nothing.
-3. Once both players have chosen to stop at least once, the Battle ends.
-4. Resolve the four Fronts separately.
-5. Some groups survive, while incomplete positions are cleared and losing positions may be pushed back.
-6. Check whether either side has exhausted its Command.
-7. If the war continues, recover some Command, refill hands, and begin another Battle.
+2. They build positions, Maneuver established groups, or Pass.
+3. Once both players have an active Pass, the Battle ends.
+4. Resolve any card effects that happen before Strength is compared, then determine the result of each Front.
+5. Clear incomplete positions and resolve what happens on every lost Front.
+6. Resolve Battle-end effects, then lose Command for unprotected Fronts lost.
+7. Check Command Collapse before recovery.
+8. If the war continues, recover Command, refill hands, and begin another Battle.
 
 A war may last several Battles. The board you preserve and the Command you save matter later.
 
-![A Battle moves from alternating turns until both players have Passed, then through four separate Front resolutions, Retreat, the collapse check, and recovery.](assets/rulebook-battle-flow.svg)
 
 > **REMEMBER** Winning more Fronts is useful, but there is no single Battle victory. The war ends through Command Collapse.
 
@@ -100,7 +100,7 @@ After drawing, take exactly **one operation** - one chosen action for the turn:
 2. **Maneuver** - pay {{MANEUVER_COMMAND_COST}} Command to move one eligible established group sideways. The exact kind of group that can do this is defined below.
 3. **Pass** - spend 0 Command and take no other operation.
 
-You cannot spend more Command than you have. Command never goes below 0.
+You cannot spend more Command than you have. Spending cannot take Command below 0. Battle-end Command loss is different: it may take Command below 0 for the Collapse comparison.
 
 A cost reduction cannot reduce a card below 1 Command unless the card explicitly says it costs 0.
 
@@ -185,11 +185,13 @@ To **Pass** is to spend 0 Command and take no other operation.
 
 Normally, you cannot Pass until both players have completed at least **{{PASS_MIN_OPERATIONS_BEFORE_SIGNAL}} operation(s)** in the Battle. If you have no other legal operation, you may Pass.
 
-Once you Pass, that Pass remains active for the rest of the Battle. The opponent takes a normal turn, and you continue taking normal turns too.
+Your first Pass becomes your **active Pass** for that Battle. It remains active even if you later play a card or Maneuver.
 
-You may still take non-Pass operations later. They do **not** remove your Pass.
+The opponent takes a normal turn, and both players continue taking normal turns until the other player also Passes.
 
-As soon as the other player also Passes, the Battle ends. After the first Pass has been made, the other player may Pass on any later turn.
+If you Pass again while your Pass is already active, it simply uses that operation; it does not create another Pass or replace the first one.
+
+As soon as both players have an active Pass, the Battle ends immediately.
 
 A Battle therefore ends when **both players have Passed at least once**.
 
@@ -201,7 +203,16 @@ The player who **Passed first** starts the next Battle.
 
 ## Resolving the four Fronts {#scoring}
 
-When a Battle ends, resolve all four Fronts separately.
+When a Battle ends, finish the Battle in this order:
+
+1. Resolve choices and card effects that explicitly happen **before Strength is compared**.
+2. Compare the effective Strength on the four Fronts and determine which Fronts each player lost. Card text can replace or combine results.
+3. Discard incomplete positions. Named Formations normally remain.
+4. Resolve each lost Front: deal with its Rear first, then its Frontline.
+5. Resolve Battle-end card effects while the relevant Battle state still exists.
+6. Discard Battle-only effects.
+7. Apply Command loss for unprotected Fronts lost, then check Command Collapse.
+8. Only if the war continues, recover Command and prepare the next Battle.
 
 For each Front, apply card text that matters to its result and total the Strength that counts there.
 
@@ -220,6 +231,8 @@ Discard every Force, Bond, or Name that is not part of a Named Formation.
 
 Then deal with each Front you lost. A surviving Named Formation may be forced backward; that forced movement is called a **Retreat**.
 
+Each lost Front also normally costs **{{LOST_FRONT_COMMAND_PENALTY}} Command** later in this Battle-end sequence. Card effects can protect a Front from that Command loss.
+
 For each lost Front:
 
 1. Drive off the Rear Named Formation, if there is one.
@@ -231,6 +244,8 @@ For each lost Front:
 
 A driven-off formation is discarded as Force + Bond + Name.
 
+Only after Retreats and Battle-end card effects are complete is the final lost-Front Command penalty subtracted. That happens immediately before Command Collapse.
+
 A tie does nothing. Named Formations in a won Front stay where they are.
 
 This is the main way the battlefield carries history forward: complete groups can survive, but losing ground can force them back or remove them.
@@ -241,11 +256,12 @@ After Retreats are complete:
 
 1. Resolve Battle-end card effects.
 2. Discard effects that last only for this Battle.
-3. Check whether either player has exhausted their Command.
-4. If the war continues, recover Command.
-5. Draw until you have {{HAND_LIMIT}} cards.
-6. Reset allowances that apply once per Battle.
-7. Start the next Battle with the player who Passed first.
+3. Lose **{{LOST_FRONT_COMMAND_PENALTY}} Command for each unprotected Front lost**. Apply this loss in full, even below 0.
+4. Check Command Collapse.
+5. If the war continues, recover Command.
+6. Draw until you have {{HAND_LIMIT}} cards.
+7. Reset allowances that apply once per Battle.
+8. Start the next Battle with the player who Passed first.
 
 Keep your hand, draw pile, and discard pile between Battles.
 
@@ -267,7 +283,7 @@ Base recovery starts at **{{RECOVERY_START}}** in Battle I and falls by **{{RECO
 
 **{{RECOVERY_SERIES_PLAIN}}**
 
-Before the Collapse check, lose **{{LOST_FRONT_COMMAND_PENALTY}} Command for each Front you lost** in that Battle. Apply this loss in full, even if it takes Command below 0. Card effects can protect you from this loss.
+After Battle-end effects, lose **{{LOST_FRONT_COMMAND_PENALTY}} Command for each unprotected Front you lost** in that Battle. Apply this loss in full, even if it takes Command below 0. This reduces current Command; it does **not** reduce recovery a second time.
 
 If the war continues, recover the base amount above. Your recovery is never less than **{{RECOVERY_FLOOR}}**, and Command never rises above {{COMMAND_CAP}}.
 
@@ -355,6 +371,7 @@ These are the rules most worth checking during a first game:
 - Only **Force + Bond + Name** persists normally from one Battle to the next.
 - A Maneuver goes **one Front sideways in the same rank**.
 - On a lost Front, **drive off the Rear first**, then Retreat the Frontline formation.
+- After Retreats and Battle-end effects, lose Command for **unprotected Fronts lost**.
 - Check **Command Collapse before recovery**.
 - If Command Collapse is triggered while both players are equally exhausted, the player who **Passed first loses the war**.
 

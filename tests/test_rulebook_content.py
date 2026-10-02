@@ -92,3 +92,28 @@ def test_simultaneous_command_collapse_uses_first_passer() -> None:
         "with equal Command, the player who **Passed first** loses the war."
         in source
     )
+
+
+def test_rulebook_uses_card_art_not_old_flow_diagrams() -> None:
+    source = text("rules/rulebook.md")
+    assert "rulebook-battle-flow.svg" not in source
+    assert "rulebook-formation.jpg" in source
+    assert "rulebook-maneuver.jpg" in source
+    assert "rulebook-pass-flow.jpg" in source
+    assert "rulebook-retreat.jpg" in source
+
+
+def test_pass_and_battle_end_order_match_canonical_rules() -> None:
+    source = text("rules/rulebook.md")
+    assert "It remains active even if you later play a card or Maneuver." in source
+    assert "As soon as both players have an active Pass, the Battle ends immediately." in source
+    assert "Apply Command loss for unprotected Fronts lost, then check Command Collapse." in source
+    assert "This reduces current Command; it does **not** reduce recovery a second time." in source
+
+
+def test_print_builder_rasterizes_jpeg_art_for_pdf() -> None:
+    builder = text("tools/build_rulebook_pdf.py")
+    assert "from PIL import Image" in builder
+    assert "def _pdf_safe_image_path" in builder
+    assert 'source.suffix.lower() not in {".jpg", ".jpeg"}' in builder
+    assert 'source.stem + "-print.png"' in builder
