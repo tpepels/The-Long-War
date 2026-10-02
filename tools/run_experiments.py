@@ -2396,7 +2396,7 @@ def _selected_tournament_decks(
 
 
 def _ismcts_coarse_tournament_run(args: argparse.Namespace) -> Path:
-    """Tournament 1: cheap directional screen on representative decks."""
+    """Tournament 1: coarse-parameter directional screen with paired evidence."""
     require_cython()
     _validate_ismcts_tournament_config_surface()
     if args.jobs <= 0:
@@ -2420,6 +2420,9 @@ def _ismcts_coarse_tournament_run(args: argparse.Namespace) -> Path:
         "design": "coarse",
         "method": "one-factor coarse directional screen",
         "games_per_orientation": args.coarse_games,
+        "independent_mirrored_deals_per_challenger": (
+            len(deck_names) * args.coarse_games
+        ),
         "time_budget_seconds": args.time_budget_seconds,
         "iterations_ceiling": args.iterations_ceiling,
         "seed": args.seed,
@@ -2436,10 +2439,14 @@ def _ismcts_coarse_tournament_run(args: argparse.Namespace) -> Path:
         identity,
     )
 
-    game_count = len(catalog) * len(deck_names) * 2 * args.coarse_games
+    paired_deals_per_challenger = len(deck_names) * args.coarse_games
+    games_per_challenger = paired_deals_per_challenger * 2
+    game_count = len(catalog) * games_per_challenger
     print(
         f"ISMCTS coarse tournament | {len(catalog)} challengers | "
-        f"{len(deck_names)} decks | {game_count} games | "
+        f"{len(deck_names)} decks | "
+        f"{paired_deals_per_challenger} mirrored deals/challenger | "
+        f"{games_per_challenger} games/challenger | {game_count} games total | "
         f"{args.time_budget_seconds:g}s/searched decision"
     )
 
@@ -4860,8 +4867,12 @@ def parse_args() -> argparse.Namespace:
     tournament.add_argument(
         "--coarse-games",
         type=int,
-        default=1,
-        help="Paired deal count per deck for each coarse challenger (default: 1).",
+        default=8,
+        help=(
+            "Mirrored deal count per deck for each coarse challenger "
+            "(default: 8; 24 independent paired deals / 48 games per "
+            "challenger across the default three decks)."
+        ),
     )
     tournament.add_argument(
         "--refine-games",
