@@ -28,6 +28,13 @@ MIN_PAGE_TEXT = 80
 MAX_PAGES = 6
 
 
+TEACHING_PLATE_IMAGES = {
+    "rulebook-passing.png",
+    "rulebook-battle-resolution.png",
+    "rulebook-command-collapse.png",
+}
+
+
 def _string(value: str) -> str:
     return (
         value.replace("\\", "\\\\")
@@ -230,9 +237,22 @@ def markdown_to_typst(source: str, version: str) -> str:
             finish_table()
             alt, path = image_match.groups()
             path = _pdf_safe_image_path(path)
+            name = Path(path).name.replace("-print.png", ".jpg")
+            teaching_plate = name in TEACHING_PLATE_IMAGES
+            label = "BATTLE PLATE" if teaching_plate else "FIELD EXAMPLE"
+            image_width = "100%" if teaching_plate else "94%"
             out.append(
-                '#block(breakable: false, above: 4pt, below: 5pt)['
-                f'#image("{_string(path)}", width: 100%)'
+                '#block('
+                'breakable: false, above: 4pt, below: 5pt, '
+                'fill: rgb("#f7f2e8"), '
+                'stroke: 0.45pt + rgb("#9b8e77"), '
+                'inset: 4pt, radius: 2pt'
+                ')['
+                f'#align(center)[#image("{_string(path)}", width: {image_width})]'
+                '#v(2.5pt)'
+                f'#text(size: 6.5pt, weight: "bold", fill: rgb("#5e5446"), "{label}")'
+                '#h(3pt)'
+                f'#text(size: 6.5pt, fill: rgb("#6f6558"), "{_string(alt)}")'
                 ']'
             )
             continue

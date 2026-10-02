@@ -1976,3 +1976,57 @@
     break-inside: avoid;
   }
 }
+
+
+/* Illustrated field-manual figures */
+.rulebook-figure {
+  position: relative;
+  margin: 5mm 0 6mm;
+  padding: 2.6mm;
+  break-inside: avoid;
+  border: .28mm solid #9b8e77;
+  background:
+    linear-gradient(rgba(255,255,255,.2), rgba(255,255,255,0)),
+    #f4eddf;
+  box-shadow: 0 1.2mm 3mm rgba(24,23,20,.08);
+}
+.rulebook-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+.rulebook-figure.tabletop-example img {
+  width: 94%;
+  margin-inline: auto;
+}
+.rulebook-figure.teaching-plate {
+  border-width: .42mm;
+}
+.rulebook-figure figcaption {
+  margin-top: 2.2mm;
+  padding-top: 2mm;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2.5mm;
+  align-items: baseline;
+  border-top: .22mm solid rgba(24,23,20,.24);
+}
+.rulebook-figure figcaption b {
+  white-space: nowrap;
+  font: 800 1.95mm/1 system-ui, sans-serif;
+  letter-spacing: .11em;
+  color: #5e5446;
+}
+.rulebook-figure figcaption span {
+  font: italic 2.25mm/1.3 Georgia, serif;
+  color: #6f6558;
+}
+
+@media print {
+  .rulebook-figure {
+    box-shadow: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
