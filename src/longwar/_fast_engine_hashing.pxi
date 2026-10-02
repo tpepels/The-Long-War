@@ -46,7 +46,6 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed(&h, state.pass_len)
     for i in range(state.pass_len):
         _info_hash_feed(&h, <uint8_t>(state.pass_order[i] + 1))
-    _info_hash_feed_u16(&h, state.pass_closing_turns_remaining)
     for p in range(PLAYER_COUNT):
         _info_hash_feed(&h, state.discarded_this_battle[p])
 
@@ -146,7 +145,7 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
-    # v8 adds pass_closing_turns_remaining after pass_order.
+    # v9 removes the retired Pass-closing countdown from canonical state.
     _info_emit(buf, &n, h, INFORMATION_KEY_VERSION)
     _info_emit(buf, &n, h, <uint8_t>player)
     _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
@@ -170,7 +169,6 @@ cdef int _fe__information_state_encode(
             h,
             <uint8_t>(state.pass_order[i] + 1),
         )
-    _info_emit_u16(buf, &n, h, state.pass_closing_turns_remaining)
 
     for i in range(PLAYER_COUNT):
         _info_emit(buf, &n, h, state.discarded_this_battle[i])
