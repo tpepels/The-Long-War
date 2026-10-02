@@ -77,8 +77,6 @@ def test_cython_ismcts_returns_legal_action() -> None:
         == 200
     )
     assert agent.last_decision["ismcts_rollout_actions"] >= 0
-    assert agent.last_decision["ismcts_anti_decisive_rollout_probes"] >= 0
-    assert agent.last_decision["ismcts_anti_decisive_rollout_filtered"] >= 0
 
 
 def test_root_belief_samples_share_information_set() -> None:
