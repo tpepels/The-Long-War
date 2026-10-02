@@ -1403,10 +1403,10 @@ class ProgressionTelemetry:
                 ),
                 "low_command_stall": (
                     "Collapse-point Command means at least one player starts at the configured "
-                    "collapse point. Equal-low continuation means a resolved Battle reaches "
-                    "the pre-recovery Collapse check with equal exhausted Command; under the "
-                    "current zero-Command rule this is 0-0, which continues into recovery. "
-                    "A consecutive equal-low Battle extends an already-active continuation streak."
+                    "collapse point. At the pre-recovery Collapse check, signed Command is "
+                    "compared without clamping. Lower Command collapses; exact equal exhaustion "
+                    "is terminal and the player who Passed first loses. Low-positive streaks "
+                    "track surviving Battles that remain close to Collapse."
                 ),
                 "first_signal_result": (
                     "There is no overall Battle winner. First-signal outcome groups therefore use "
