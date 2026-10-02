@@ -4753,8 +4753,9 @@ def parse_args() -> argparse.Namespace:
         nargs="+",
         choices=tuple(CANONICAL_DECK_PATHS),
         help=(
-            "Optional canonical deck subset. Coarse defaults to mobility, elite "
-            "and narrative; refine/full default to all canonical decks."
+            "Optional canonical deck subset for coarse/refine. Coarse defaults "
+            "to mobility, elite and narrative; refine defaults to all canonical "
+            "decks. Full always uses all canonical decks."
         ),
     )
     tournament.add_argument(
