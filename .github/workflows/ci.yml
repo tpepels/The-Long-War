@@ -50,5 +50,7 @@ jobs:
             tests/test_strategic_heuristic.py \
             tests/test_ismcts.py \
             tests/test_ismcts_validation.py
+      - name: Run algorithm verification gate
+        run: python -m pytest -q -n 2 --tb=short -m "algorithm"
       - name: Run fast regression suite
         run: make test-fast WORKERS=2
