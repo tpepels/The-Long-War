@@ -282,7 +282,7 @@ Base recovery starts at **{{RECOVERY_START}}** in Battle I and falls by **{{RECO
 
 **{{RECOVERY_SERIES_PLAIN}}**
 
-After Battle-end effects, lose **{{LOST_FRONT_COMMAND_PENALTY}} Command for each unprotected Front you lost** in that Battle. Apply this loss in full, even if it takes Command below 0. This reduces current Command; it does **not** reduce recovery a second time.
+After Battle-end effects, lose **{{LOST_FRONT_COMMAND_PENALTY}} Command for each Front you lost** in that Battle. If a card protects a Front from this loss, do not pay that Front's penalty. Apply the remaining loss in full, even if it takes Command below 0. This reduces current Command; it does **not** reduce recovery a second time.
 
 If the war continues, recover the base amount above. Your recovery is never less than **{{RECOVERY_FLOOR}}**, and Command never rises above {{COMMAND_CAP}}.
 
