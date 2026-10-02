@@ -4371,10 +4371,10 @@ def parse_args() -> argparse.Namespace:
     strength.add_argument(
         "--iterations",
         type=int,
-        default=20_000_000,
+        default=DEFAULT_ISMCTS_ITERATIONS,
         help=(
-            "Safety iteration ceiling; wall-clock time should remain the "
-            "binding comparison budget."
+            "Nominal ISMCTS budget; with a wall-clock budget normal agent "
+            "semantics keep time as the primary stopping condition."
         ),
     )
     strength.add_argument(
