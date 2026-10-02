@@ -2973,7 +2973,7 @@ def benchmark_strength(
     *,
     games_per_orientation: int,
     jobs: int,
-    ismcts_iterations: int = 20_000_000,
+    ismcts_iterations: int = DEFAULT_ISMCTS_ITERATIONS,
     post_battle_rollout_depth: int = DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
     alpha_nodes: int = 20_000,
     time_budget_seconds: float = 5.0,

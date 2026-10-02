@@ -44,7 +44,7 @@ def test_online_resolver_has_root_coverage_without_true_opponent_deck() -> None:
     assert result.belief_prior == "CardPoolDeckPrior"
 
 
-def test_online_mccfr_agent_preserves_last_command() -> None:
+def test_online_mccfr_agent_allows_legal_midbattle_zero_command_play() -> None:
     engine, deck = setup()
     state = engine.new_game(
         deck,
@@ -80,13 +80,14 @@ def test_online_mccfr_agent_preserves_last_command() -> None:
     )
     action = agent.choose(engine, state)
 
+    assert action in engine.legal_actions(state)
     child = state.clone()
     engine.apply(child, action)
-    assert not (
-        child.players[0].command == 0
-        and child.players[1].command > 0
-    )
-    assert agent.last_decision["command_guard_applied"] is True
+    assert child.phase.value == "battle"
+    assert child.players[0].command == 0
+    assert child.players[1].command == 5
+    assert agent.last_decision["command_guard_applied"] is False
+    assert agent.last_decision["command_guard_filtered_actions"] == 0
 
 
 def test_online_resolver_handles_battle_ending_second_signal_with_unknown_deck() -> None:
