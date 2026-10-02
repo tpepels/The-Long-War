@@ -138,7 +138,7 @@ def test_standard_ui_exposes_command_automatic_draw_paced_actions_and_term_help(
     assert "Hero ready" in play and "Hero used" in play
     assert "hero-dual-strength" in css
     assert "scheduleAiStep" in play
-    assert 'type: "ai_step"' in play
+    assert "type: REQUEST_TYPE.AI_STEP" in play
     assert "TERM_HINTS" in play
     assert 'class="game-term"' in play
     assert "mulligan-confirm" in play
