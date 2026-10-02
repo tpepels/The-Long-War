@@ -12,6 +12,8 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_MAX_TREE_NODES,
     DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
+    DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
     DEFAULT_ISMCTS_LEAF_SCALE,
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
@@ -152,6 +154,12 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--ismcts-progressive-widening-alpha",
+        type=float,
+        default=DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
+        help="Exponent alpha in c * (N + 1)^alpha when widening is enabled.",
+    )
+    parser.add_argument(
         "--ismcts-no-tree-reuse",
         action="store_true",
         help="Rebuild the ISMCTS tree from scratch for every decision.",
@@ -165,6 +173,15 @@ def main() -> None:
         ),
     )
     parser.add_argument("--ismcts-rollout-epsilon", type=float, default=DEFAULT_ISMCTS_ROLLOUT_EPSILON)
+    parser.add_argument(
+        "--ismcts-decisive-greedy-probability",
+        type=float,
+        default=DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
+        help=(
+            "Greedy-action probability in decisive rollouts after exact "
+            "safe Battle-closing logic."
+        ),
+    )
     parser.add_argument(
         "--ismcts-leaf-scale",
         type=float,
@@ -309,10 +326,12 @@ def main() -> None:
         ismcts_tree_depth_limit=args.ismcts_tree_depth_limit,
         ismcts_exploration=args.ismcts_exploration,
         ismcts_progressive_widening=args.ismcts_progressive_widening,
+        ismcts_progressive_widening_alpha=args.ismcts_progressive_widening_alpha,
         ismcts_reuse_tree=not args.ismcts_no_tree_reuse,
         ismcts_max_tree_nodes=args.ismcts_max_tree_nodes,
         ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
         ismcts_rollout_policy=args.ismcts_rollout_policy,
+        ismcts_decisive_greedy_probability=args.ismcts_decisive_greedy_probability,
         ismcts_leaf_scale=args.ismcts_leaf_scale,
         agent_overrides=agent_overrides,
         agent_labels=agent_labels,
@@ -352,13 +371,16 @@ def main() -> None:
         "tree_depth_limit": args.ismcts_tree_depth_limit,
         "exploration": args.ismcts_exploration,
         "progressive_widening": args.ismcts_progressive_widening,
+        "progressive_widening_alpha": (
+            args.ismcts_progressive_widening_alpha
+            if args.ismcts_progressive_widening > 0
+            else 0.0
+        ),
         "tree_reuse": not args.ismcts_no_tree_reuse,
         "max_tree_nodes": args.ismcts_max_tree_nodes,
-        "progressive_widening_alpha": (
-            0.5 if args.ismcts_progressive_widening > 0 else 0.0
-        ),
         "rollout_epsilon": args.ismcts_rollout_epsilon,
         "rollout_policy": args.ismcts_rollout_policy,
+        "decisive_greedy_probability": args.ismcts_decisive_greedy_probability,
         "leaf_scale": args.ismcts_leaf_scale,
         "search": "root-belief-sampled Cython ISMCTS",
     }
