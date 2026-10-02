@@ -291,11 +291,10 @@ class ISMCTSAgent:
             if self.time_budget_seconds is not None
             else 0.0
         )
-        effective_iteration_limit = (
-            max(self.iterations, 100_000_000)
-            if self.time_budget_seconds is not None
-            else self.iterations
-        )
+        # Iterations is always a real safety ceiling. Equal-time experiments
+        # deliberately pass a high ceiling and verify that the wall-clock
+        # deadline, rather than this limit, stopped almost every search.
+        effective_iteration_limit = self.iterations
         search_tree = self._tree
         if search_tree is None:
             search_tree = ISMCTSTree(
