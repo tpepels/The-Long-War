@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import copy
 import hashlib
+import inspect
 import json
 import select
 import subprocess
@@ -59,6 +60,7 @@ from longwar.fingerprint import artifact_directory, experiment_identity
 from longwar.health import wilson_interval
 from longwar.heuristics import DEFAULT_HEURISTIC_WEIGHTS
 from longwar.parallelism import DEFAULT_WORKERS
+from longwar.simulate import make_agent
 from longwar.rules import GameRules
 from longwar.protocol import PolicySource
 
@@ -1699,6 +1701,18 @@ def paired_seat_swap_interval(
     }
 
 
+def _validate_ismcts_tournament_config_surface() -> None:
+    """Fail before expensive games if a tournament knob is not wired to make_agent."""
+    accepted = set(inspect.signature(make_agent).parameters)
+    required = set(canonical_ismcts_tournament_config())
+    missing = sorted(required - accepted)
+    if missing:
+        raise RuntimeError(
+            "ISMCTS tournament parameters are not wired through make_agent: "
+            + ", ".join(missing)
+        )
+
+
 def _tournament_effective_config(overrides: dict[str, Any]) -> dict[str, Any]:
     config = canonical_ismcts_tournament_config()
     config.update(overrides)
@@ -1928,6 +1942,7 @@ def _unique_tournament_configs(
 def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     """Four-stage, independent-seed search-parameter tournament."""
     require_cython()
+    _validate_ismcts_tournament_config_surface()
     if args.jobs <= 0:
         raise SystemExit("--jobs must be positive")
     if min(
@@ -2216,6 +2231,14 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
                     "candidate": label,
                     "timeout_rate": timeout_rate,
                 })
+
+    if ceiling_warnings:
+        recommendation = "baseline"
+        recommendation_reason = (
+            "baseline retained because at least one tournament configuration "
+            "hit the iteration ceiling often enough to invalidate strict "
+            "equal-wall-clock comparison; rerun with a higher ceiling"
+        )
 
     summary = {
         "methodology": config["method"],
@@ -4148,7 +4171,7 @@ def parse_args() -> argparse.Namespace:
     tournament.add_argument(
         "--confirm-games",
         type=int,
-        default=12,
+        default=24,
         help="Games per deck/orientation for the independent baseline confirmation.",
     )
     tournament.add_argument(
