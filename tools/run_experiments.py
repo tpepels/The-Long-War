@@ -1924,6 +1924,34 @@ def _run_ismcts_tournament_pair(
     return result
 
 
+def _require_clean_tournament_pair(
+    result: dict[str, Any],
+    *,
+    stage: str,
+) -> None:
+    if result["failed_games"] or result["censored_games"]:
+        raise SystemExit(
+            f"{stage} produced {result['failed_games']} failed and "
+            f"{result['censored_games']} censored games in "
+            f"{result['a']} vs {result['b']}; fix the game/search pathology "
+            "before continuing the tournament."
+        )
+    for label, resources in result["resources"].items():
+        searched = int(resources.get("searched_decisions", 0) or 0)
+        timeout_rate = resources.get("timeout_rate")
+        if (
+            searched
+            and timeout_rate is not None
+            and float(timeout_rate) < 0.95
+        ):
+            raise SystemExit(
+                f"{stage}: {label} hit the iteration ceiling before the "
+                f"wall-clock budget too often (timeout rate "
+                f"{float(timeout_rate):.1%}); increase --iterations-ceiling "
+                "and rerun so the comparison is genuinely equal-time."
+            )
+
+
 def _unique_tournament_configs(
     names: list[str],
     configs: dict[str, dict[str, Any]],
@@ -1960,6 +1988,8 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
         raise SystemExit("--max-family-finalists must be positive")
     if args.max_interaction_finalists <= 0:
         raise SystemExit("--max-interaction-finalists must be positive")
+    if not 0.0 <= args.finalist_floor <= 1.0:
+        raise SystemExit("--finalist-floor must be between 0 and 1")
 
     baseline = canonical_ismcts_tournament_config()
     catalog = ismcts_tournament_candidates()
@@ -2024,6 +2054,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
             time_budget_seconds=args.time_budget_seconds,
             force=args.force,
         )
+        _require_clean_tournament_pair(result, stage="screen")
         result["family"] = catalog[name]["family"]
         screen_results[name] = result
 
@@ -2091,6 +2122,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
             time_budget_seconds=args.time_budget_seconds,
             force=args.force,
         )
+        _require_clean_tournament_pair(result, stage="interaction screen")
         interaction_results[name] = result
         all_configs[name] = interaction_config
 
@@ -2133,8 +2165,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     for pair_index, (a, b) in enumerate(combinations(finalist_names, 2), start=1):
         total_pairs = len(finalist_names) * (len(finalist_names) - 1) // 2
         print(f"\n[final {pair_index}/{total_pairs}] {a} vs {b}")
-        final_pairs.append(
-            _run_ismcts_tournament_pair(
+        final_result = _run_ismcts_tournament_pair(
                 output_dir=output / "finals" / f"{a}--vs--{b}",
                 label_a=a,
                 config_a=all_configs[a],
@@ -2147,7 +2178,8 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
                 time_budget_seconds=args.time_budget_seconds,
                 force=args.force,
             )
-        )
+        _require_clean_tournament_pair(final_result, stage="final round-robin")
+        final_pairs.append(final_result)
 
     standings = {
         name: {"pair_scores": [], "opponents": 0}
@@ -2193,6 +2225,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
             time_budget_seconds=args.time_budget_seconds,
             force=args.force,
         )
+        _require_clean_tournament_pair(confirmation, stage="confirmation")
         interval = confirmation["paired"]
         lower = interval["ci95"][0]
         if (
