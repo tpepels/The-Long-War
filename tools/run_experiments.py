@@ -57,7 +57,12 @@ from longwar.decks import (
 from longwar.game import GameEngine
 from longwar.game.actions import Pass
 from longwar.game.model import Phase
-from longwar.fingerprint import artifact_directory, experiment_identity
+from longwar.fingerprint import (
+    artifact_directory,
+    current_experiment_fingerprint,
+    current_game_fingerprint,
+    experiment_identity,
+)
 from longwar.health import wilson_interval
 from longwar.heuristics import DEFAULT_HEURISTIC_WEIGHTS
 from longwar.parallelism import DEFAULT_WORKERS
@@ -112,28 +117,36 @@ ISMCTS_TOURNAMENT_PROFILES: dict[str, dict[str, object]] = {
     "uct-c-0p6": _ismcts_tournament_profile(ismcts_exploration=0.6),
     "uct-c-1": _ismcts_tournament_profile(ismcts_exploration=1.0),
     "uct-c-sqrt2": _ismcts_tournament_profile(ismcts_exploration=2 ** 0.5),
+    "uct-c-2": _ismcts_tournament_profile(ismcts_exploration=2.0),
 
     # Belief-sample count.
+    "beliefs-1": _ismcts_tournament_profile(ismcts_belief_samples=1),
+    "beliefs-2": _ismcts_tournament_profile(ismcts_belief_samples=2),
     "beliefs-4": _ismcts_tournament_profile(ismcts_belief_samples=4),
     "beliefs-6": _ismcts_tournament_profile(ismcts_belief_samples=6),
     "beliefs-24": _ismcts_tournament_profile(ismcts_belief_samples=24),
     "beliefs-48": _ismcts_tournament_profile(ismcts_belief_samples=48),
+    "beliefs-96": _ismcts_tournament_profile(ismcts_belief_samples=96),
 
     # Rollout horizon before and after a Battle boundary.
     "rollout-0": _ismcts_tournament_profile(ismcts_rollout_depth=0),
     "rollout-2": _ismcts_tournament_profile(ismcts_rollout_depth=2),
     "rollout-8": _ismcts_tournament_profile(ismcts_rollout_depth=8),
     "rollout-12": _ismcts_tournament_profile(ismcts_rollout_depth=12),
+    "rollout-16": _ismcts_tournament_profile(ismcts_rollout_depth=16),
     "post-battle-0": _ismcts_tournament_profile(ismcts_post_battle_rollout_depth=0),
     "post-battle-2": _ismcts_tournament_profile(ismcts_post_battle_rollout_depth=2),
     "post-battle-8": _ismcts_tournament_profile(ismcts_post_battle_rollout_depth=8),
     "post-battle-12": _ismcts_tournament_profile(ismcts_post_battle_rollout_depth=12),
+    "post-battle-16": _ismcts_tournament_profile(ismcts_post_battle_rollout_depth=16),
 
     # Tree horizon/capacity and reuse.
+    "tree-depth-16": _ismcts_tournament_profile(ismcts_tree_depth_limit=16),
     "tree-depth-32": _ismcts_tournament_profile(ismcts_tree_depth_limit=32),
     "tree-depth-64": _ismcts_tournament_profile(ismcts_tree_depth_limit=64),
     "tree-depth-160": _ismcts_tournament_profile(ismcts_tree_depth_limit=160),
     "tree-depth-256": _ismcts_tournament_profile(ismcts_tree_depth_limit=256),
+    "nodes-50k": _ismcts_tournament_profile(ismcts_max_tree_nodes=50_000),
     "nodes-100k": _ismcts_tournament_profile(ismcts_max_tree_nodes=100_000),
     "nodes-200k": _ismcts_tournament_profile(ismcts_max_tree_nodes=200_000),
     "nodes-800k": _ismcts_tournament_profile(ismcts_max_tree_nodes=800_000),
@@ -141,10 +154,12 @@ ISMCTS_TOURNAMENT_PROFILES: dict[str, dict[str, object]] = {
     "no-reuse": _ismcts_tournament_profile(ismcts_reuse_tree=False),
 
     # Leaf utility scaling before tanh().
+    "leaf-scale-10": _ismcts_tournament_profile(ismcts_leaf_scale=10.0),
     "leaf-scale-25": _ismcts_tournament_profile(ismcts_leaf_scale=25.0),
     "leaf-scale-50": _ismcts_tournament_profile(ismcts_leaf_scale=50.0),
     "leaf-scale-200": _ismcts_tournament_profile(ismcts_leaf_scale=200.0),
     "leaf-scale-400": _ismcts_tournament_profile(ismcts_leaf_scale=400.0),
+    "leaf-scale-1000": _ismcts_tournament_profile(ismcts_leaf_scale=1000.0),
 
     # Decisive rollout random/greedy mixture. Exact safe Battle closes still
     # happen before this probability is consulted.
@@ -160,9 +175,16 @@ ISMCTS_TOURNAMENT_PROFILES: dict[str, dict[str, object]] = {
     "decisive-greedy-0p5": _ismcts_tournament_profile(
         ismcts_decisive_greedy_probability=0.5,
     ),
+    "decisive-greedy-1": _ismcts_tournament_profile(
+        ismcts_decisive_greedy_probability=1.0,
+    ),
 
     # Progressive widening: c and alpha are tested together because alpha is
     # irrelevant when c=0.
+    "pw-c0p25-a0p5": _ismcts_tournament_profile(
+        ismcts_progressive_widening=0.25,
+        ismcts_progressive_widening_alpha=0.5,
+    ),
     "pw-c0p5-a0p5": _ismcts_tournament_profile(
         ismcts_progressive_widening=0.5,
         ismcts_progressive_widening_alpha=0.5,
@@ -178,6 +200,10 @@ ISMCTS_TOURNAMENT_PROFILES: dict[str, dict[str, object]] = {
     "pw-c1-a0p75": _ismcts_tournament_profile(
         ismcts_progressive_widening=1.0,
         ismcts_progressive_widening_alpha=0.75,
+    ),
+    "pw-c1-a1": _ismcts_tournament_profile(
+        ismcts_progressive_widening=1.0,
+        ismcts_progressive_widening_alpha=1.0,
     ),
     "pw-c2-a0p5": _ismcts_tournament_profile(
         ismcts_progressive_widening=2.0,
@@ -205,6 +231,9 @@ ISMCTS_TOURNAMENT_PROFILES: dict[str, dict[str, object]] = {
     "greedy-eps-0p5": _ismcts_tournament_profile(
         ismcts_rollout_policy="greedy", ismcts_rollout_epsilon=0.5,
     ),
+    "greedy-eps-1": _ismcts_tournament_profile(
+        ismcts_rollout_policy="greedy", ismcts_rollout_epsilon=1.0,
+    ),
     "cheap-eps-0": _ismcts_tournament_profile(
         ismcts_rollout_policy="cheap", ismcts_rollout_epsilon=0.0,
     ),
@@ -216,6 +245,9 @@ ISMCTS_TOURNAMENT_PROFILES: dict[str, dict[str, object]] = {
     ),
     "cheap-eps-0p5": _ismcts_tournament_profile(
         ismcts_rollout_policy="cheap", ismcts_rollout_epsilon=0.5,
+    ),
+    "cheap-eps-1": _ismcts_tournament_profile(
+        ismcts_rollout_policy="cheap", ismcts_rollout_epsilon=1.0,
     ),
     "random-rollout": _ismcts_tournament_profile(
         ismcts_rollout_policy="random",
@@ -443,6 +475,8 @@ def balance_run(args: argparse.Namespace) -> Path:
         },
     }
     identity = experiment_identity(config)
+    game_fingerprint = current_game_fingerprint()
+    experiment_fingerprint = current_experiment_fingerprint()
     output = artifact_directory(
         ROOT / "artifacts" / "balance" / args.preset,
         identity,
@@ -1925,16 +1959,16 @@ def _tournament_cell_is_complete(
     *,
     games: int,
     labels: tuple[str, str],
+    game_fingerprint: str,
+    experiment_fingerprint: str,
 ) -> bool:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return False
     return (
-        payload.get("game_fingerprint")
-        == experiment_identity({})["game_fingerprint"]
-        and payload.get("experiment_fingerprint")
-        == experiment_identity({})["experiment_fingerprint"]
+        payload.get("game_fingerprint") == game_fingerprint
+        and payload.get("experiment_fingerprint") == experiment_fingerprint
         and int(payload.get("games", -1)) == games
         and tuple(payload.get("agent_labels", ())) == labels
     )
@@ -2348,6 +2382,8 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
                     cell_output,
                     games=args.games,
                     labels=expected_labels,
+                    game_fingerprint=game_fingerprint,
+                    experiment_fingerprint=experiment_fingerprint,
                 )
             ):
                 payload = json.loads(cell_output.read_text(encoding="utf-8"))
@@ -2460,13 +2496,27 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
             )
 
         a_result = summary["score"][profile_a]
+        score_rate = a_result["score_rate"]
+        ci95 = a_result["ci95"]
+        battle_one_rate = summary["pacing"]["battle_one_finish_rate"]
+        score_text = (
+            "n/a"
+            if score_rate is None
+            else f"{float(score_rate):.3f}"
+        )
+        ci_text = (
+            "[n/a, n/a]"
+            if ci95[0] is None
+            else f"[{float(ci95[0]):.3f}, {float(ci95[1]):.3f}]"
+        )
+        battle_text = (
+            "n/a"
+            if battle_one_rate is None
+            else f"{float(battle_one_rate):.1%}"
+        )
         print(
-            f"  paired {profile_a} score="
-            f"{float(a_result['score_rate']):.3f} "
-            f"CI95=[{float(a_result['ci95'][0]):.3f}, "
-            f"{float(a_result['ci95'][1]):.3f}] "
-            f"| Battle-I="
-            f"{float(summary['pacing']['battle_one_finish_rate']):.1%} "
+            f"  paired {profile_a} score={score_text} "
+            f"CI95={ci_text} | Battle-I={battle_text} "
             f"| forced-yields={summary['pacing']['forced_yield_events']}",
             flush=True,
         )
@@ -2528,11 +2578,8 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     print("\nTournament ranking")
     for row in ranking:
         rate = row["score_rate"]
-        print(
-            f"  {row['profile']:24} "
-            f"{rate:.3f}" if rate is not None
-            else f"  {row['profile']:24} n/a"
-        )
+        value = "n/a" if rate is None else f"{float(rate):.3f}"
+        print(f"  {row['profile']:24} {value}")
     print(f"Wrote {path}", flush=True)
     return path
 
