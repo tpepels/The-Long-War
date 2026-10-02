@@ -714,7 +714,6 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             state.pass_order[i]
             for i in range(state.pass_len)
         ],
-        "pass_closing_turns_remaining": state.pass_closing_turns_remaining,
         "known_hidden_hand": [
             [
                 {
