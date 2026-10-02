@@ -12,6 +12,7 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_MAX_TREE_NODES,
     DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    DEFAULT_ISMCTS_LEAF_SCALE,
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_ROLLOUT_EPSILON,
@@ -165,6 +166,12 @@ def main() -> None:
     )
     parser.add_argument("--ismcts-rollout-epsilon", type=float, default=DEFAULT_ISMCTS_ROLLOUT_EPSILON)
     parser.add_argument(
+        "--ismcts-leaf-scale",
+        type=float,
+        default=DEFAULT_ISMCTS_LEAF_SCALE,
+        help="Scale applied before tanh-normalizing non-terminal ISMCTS leaf values.",
+    )
+    parser.add_argument(
         "--ismcts-rollout-policy",
         choices=("greedy", "cheap", "random", "decisive"),
         default=DEFAULT_ISMCTS_ROLLOUT_POLICY,
@@ -306,6 +313,7 @@ def main() -> None:
         ismcts_max_tree_nodes=args.ismcts_max_tree_nodes,
         ismcts_rollout_epsilon=args.ismcts_rollout_epsilon,
         ismcts_rollout_policy=args.ismcts_rollout_policy,
+        ismcts_leaf_scale=args.ismcts_leaf_scale,
         agent_overrides=agent_overrides,
         agent_labels=agent_labels,
         agent_seed_offsets=agent_seed_offsets,
@@ -351,6 +359,7 @@ def main() -> None:
         ),
         "rollout_epsilon": args.ismcts_rollout_epsilon,
         "rollout_policy": args.ismcts_rollout_policy,
+        "leaf_scale": args.ismcts_leaf_scale,
         "search": "root-belief-sampled Cython ISMCTS",
     }
     payload["agent_overrides"] = [agent_overrides[0], agent_overrides[1]]
