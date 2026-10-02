@@ -16,6 +16,7 @@ from .agents.ismcts_agent import (
     DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_MAX_TREE_NODES,
     DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    DEFAULT_ISMCTS_LEAF_SCALE,
     DEFAULT_ISMCTS_REUSE_TREE,
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
@@ -197,6 +198,7 @@ def make_agent(
     ismcts_max_tree_nodes: int | None = DEFAULT_ISMCTS_MAX_TREE_NODES,
     ismcts_rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     ismcts_rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    ismcts_leaf_scale: float = DEFAULT_ISMCTS_LEAF_SCALE,
     heuristic_weights: HeuristicWeights | dict[str, float] | None = None,
 ):
     weights = coerce_heuristic_weights(heuristic_weights)
@@ -238,6 +240,7 @@ def make_agent(
             max_tree_nodes=ismcts_max_tree_nodes,
             rollout_epsilon=ismcts_rollout_epsilon,
             rollout_policy=ismcts_rollout_policy,
+            leaf_scale=ismcts_leaf_scale,
             heuristic_weights=weights,
         )
     if name == AgentKind.MCCFR:
@@ -285,6 +288,7 @@ def _simulate_games_serial(
     ismcts_max_tree_nodes: int | None = DEFAULT_ISMCTS_MAX_TREE_NODES,
     ismcts_rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     ismcts_rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    ismcts_leaf_scale: float = DEFAULT_ISMCTS_LEAF_SCALE,
     agent_overrides: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
     agent_labels: tuple[str, str] | None = None,
     agent_seed_offsets: tuple[int, int] | None = None,
@@ -344,6 +348,7 @@ def _simulate_games_serial(
         "ismcts_max_tree_nodes": ismcts_max_tree_nodes,
         "ismcts_rollout_epsilon": ismcts_rollout_epsilon,
         "ismcts_rollout_policy": ismcts_rollout_policy,
+        "ismcts_leaf_scale": ismcts_leaf_scale,
     }
 
     for game_index in range(games):
@@ -756,6 +761,7 @@ def simulate_games(
     ismcts_max_tree_nodes: int | None = DEFAULT_ISMCTS_MAX_TREE_NODES,
     ismcts_rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     ismcts_rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    ismcts_leaf_scale: float = DEFAULT_ISMCTS_LEAF_SCALE,
     agent_overrides: tuple[dict[str, Any] | None, dict[str, Any] | None] = (None, None),
     agent_labels: tuple[str, str] | None = None,
     agent_seed_offsets: tuple[int, int] | None = None,
@@ -791,6 +797,7 @@ def simulate_games(
         "ismcts_max_tree_nodes": ismcts_max_tree_nodes,
         "ismcts_rollout_epsilon": ismcts_rollout_epsilon,
         "ismcts_rollout_policy": ismcts_rollout_policy,
+        "ismcts_leaf_scale": ismcts_leaf_scale,
         "agent_overrides": agent_overrides,
         "agent_labels": agent_labels,
         "agent_seed_offsets": agent_seed_offsets,
