@@ -17,6 +17,9 @@ from longwar import fingerprint
 from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_EXPLORATION,
     DEFAULT_ISMCTS_ITERATIONS,
+    DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
+    DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
+    DEFAULT_ISMCTS_LEAF_SCALE,
     DEFAULT_ISMCTS_ROLLOUT_POLICY,
     ISMCTSAgent,
 )
@@ -134,6 +137,114 @@ def test_ismcts_exploration_default_is_shared():
     assert inspect.signature(ISMCTSAgent).parameters["exploration"].default == DEFAULT_ISMCTS_EXPLORATION
     assert inspect.signature(make_agent).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
     assert inspect.signature(simulate_games).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
+
+
+def test_complete_ismcts_tuning_defaults_are_shared():
+    signature = inspect.signature(ISMCTSAgent)
+    make_signature = inspect.signature(make_agent)
+    simulate_signature = inspect.signature(simulate_games)
+
+    for parameter, expected in (
+        ("progressive_widening_alpha", DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA),
+        ("decisive_greedy_probability", DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY),
+        ("leaf_scale", DEFAULT_ISMCTS_LEAF_SCALE),
+    ):
+        assert signature.parameters[parameter].default == expected
+
+    for parameter, expected in (
+        ("ismcts_progressive_widening_alpha", DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA),
+        ("ismcts_decisive_greedy_probability", DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY),
+        ("ismcts_leaf_scale", DEFAULT_ISMCTS_LEAF_SCALE),
+    ):
+        assert make_signature.parameters[parameter].default == expected
+        assert simulate_signature.parameters[parameter].default == expected
+
+
+def test_ismcts_tournament_catalog_covers_effective_search_dimensions():
+    profiles = runner.ISMCTS_TOURNAMENT_PROFILES
+    baseline = profiles["baseline"]
+    expected_keys = {
+        "ismcts_belief_samples",
+        "ismcts_rollout_depth",
+        "ismcts_post_battle_rollout_depth",
+        "ismcts_tree_depth_limit",
+        "ismcts_exploration",
+        "ismcts_progressive_widening",
+        "ismcts_progressive_widening_alpha",
+        "ismcts_reuse_tree",
+        "ismcts_max_tree_nodes",
+        "ismcts_rollout_epsilon",
+        "ismcts_rollout_policy",
+        "ismcts_decisive_greedy_probability",
+        "ismcts_leaf_scale",
+    }
+    assert set(baseline) == expected_keys
+    assert len(profiles) >= 40
+    assert any(name.startswith("uct-c-") for name in profiles)
+    assert any(name.startswith("beliefs-") for name in profiles)
+    assert any(name.startswith("post-battle-") for name in profiles)
+    assert any(name.startswith("tree-depth-") for name in profiles)
+    assert any(name.startswith("nodes-") for name in profiles)
+    assert any(name.startswith("leaf-scale-") for name in profiles)
+    assert any(name.startswith("decisive-greedy-") for name in profiles)
+    assert any(name.startswith("pw-") for name in profiles)
+    assert any(name.startswith("greedy-eps-") for name in profiles)
+    assert any(name.startswith("cheap-eps-") for name in profiles)
+    assert profiles["random-rollout"]["ismcts_rollout_policy"] == "random"
+
+    # Epsilon is deliberately not swept as a no-op under decisive rollout.
+    decisive_profiles = [
+        profile
+        for name, profile in profiles.items()
+        if name == "baseline" or name.startswith("decisive-")
+    ]
+    assert {
+        profile["ismcts_rollout_epsilon"]
+        for profile in decisive_profiles
+    } == {baseline["ismcts_rollout_epsilon"]}
+
+
+def test_ismcts_tournament_cli_defaults_to_two_independent_screen_blocks(monkeypatch):
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "ismcts-tournament"],
+    )
+    args = runner.parse_args()
+    assert args.stage == "screen"
+    assert args.profiles is None
+    assert args.baseline == "baseline"
+    assert args.games == 1
+    assert args.repeats == 2
+    assert args.time_budget_seconds == 5.0
+    assert args.iterations == DEFAULT_ISMCTS_ITERATIONS
+
+
+def test_ismcts_tournament_seed_offsets_are_profile_stable():
+    profiles = list(runner.ISMCTS_TOURNAMENT_PROFILES)
+    offsets = [runner._tournament_profile_seed_offset(name) for name in profiles]
+    assert len(offsets) == len(set(offsets))
+    assert offsets[0] == runner._tournament_profile_seed_offset("baseline")
+
+
+def test_paired_tournament_interval_keeps_mirrored_deals_together():
+    outcomes = {
+        "r1:mobility": {
+            "a-first": [
+                {"seed": 1, "winner": 0, "censored": False},
+                {"seed": 2, "winner": None, "censored": False},
+            ],
+            "b-first": [
+                {"seed": 1, "winner": 1, "censored": False},
+                {"seed": 2, "winner": None, "censored": False},
+            ],
+        }
+    }
+    result = runner.paired_tournament_interval(outcomes)
+    assert result["independent_deals"] == 2
+    assert result["censored_pairs"] == 0
+    assert result["score_rate"] == pytest.approx(0.75)
+    assert result["resampling_unit"] == "same-seed mirrored seat pair"
 
 
 def test_ismcts_rollout_policy_default_is_shared():
