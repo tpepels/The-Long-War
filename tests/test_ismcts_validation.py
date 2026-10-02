@@ -614,7 +614,9 @@ def test_decisive_rollout_closes_safe_battle_instead_of_free_maneuver_stall() ->
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
     packed = fast.from_game_state(state)
-    assert fast.legal_actions(packed) == [fast.action_from_key("pass")]
+    root_actions = fast.legal_actions(packed)
+    assert len(root_actions) == 1
+    assert fast.action_key(root_actions[0]) == "pass"
 
     result = ismcts_search(
         fast,
