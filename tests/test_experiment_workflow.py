@@ -448,7 +448,7 @@ def test_ismcts_tournament_catalog_covers_material_search_dimensions() -> None:
     )
     assert any(
         entry["overrides"].get("ismcts_progressive_widening") == 1.0
-        and entry["overrides"].get("ismcts_progressive_widening_alpha") == 1.0
+        and entry["overrides"].get("ismcts_progressive_widening_alpha") == 0.75
         for entry in catalog.values()
     )
     assert any(
@@ -470,6 +470,7 @@ def test_ismcts_tournament_catalog_covers_material_search_dimensions() -> None:
         overrides = entry["overrides"]
         if "ismcts_rollout_epsilon" in overrides:
             assert overrides.get("ismcts_rollout_policy") in {"greedy", "cheap"}
+            assert overrides["ismcts_rollout_epsilon"] < 1.0
 
     # Catalog construction itself rejects duplicates/no-op lanes. Double-check
     # the resulting effective configurations here as a regression.
