@@ -11,6 +11,7 @@ from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Pass, Phase, Position, Rank
+from longwar.game.model import StratagemState
 from longwar.game.actions import action_key
 from longwar.rules import GameRules
 
@@ -593,6 +594,49 @@ def test_rollout_continues_into_next_battle_before_leaf_evaluation() -> None:
     assert result["rollouts_stopped_terminal"] == 0
     assert result["rollouts_stopped_battle_boundary"] == 0
     assert result["rollouts_stopped_depth"] == iterations
+
+
+def test_decisive_rollout_closes_safe_battle_instead_of_free_maneuver_stall() -> None:
+    engine, state = _pass_only_standard_state(command=(20, 20))
+    # Player 0 has no normal operation, so the root action is the first Pass.
+    # Player 1 has a Named Formation and a Battle-long zero-cost Maneuver
+    # Stratagem. This is the canonical stall shape seen in Mobility: after the
+    # first signal, the responder can keep moving forever unless the rollout
+    # policy treats a safe second Pass as the normal Battle boundary.
+    target = Position(Front.SECOND, Rank.FRONT)
+    state.slot(1, target).force = "the-fifty-men"
+    state.slot(1, target).bond = "followed"
+    state.slot(1, target).name = "namar"
+    state.stratagems[1] = StratagemState("all-banners-forward")
+    state.operations_this_battle[:] = [1, 1]
+    state.active_player = 0
+
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+    assert fast.legal_actions(packed) == [fast.action_from_key("pass")]
+
+    result = ismcts_search(
+        fast,
+        evaluator,
+        [packed],
+        0,
+        iterations=8,
+        rollout_depth=4,
+        post_battle_rollout_depth=0,
+        tree_depth_limit=1,
+        exploration=0.0,
+        rollout_epsilon=0.0,
+        rollout_policy=3,
+        seed=92803,
+    )
+
+    # The first expanded root Pass leaves player 1 with Pass plus free
+    # Maneuvers. The decisive default policy must take the safe second Pass,
+    # rather than random-walking through the repeatable Maneuvers.
+    assert result["decisive_rollout_probes"] > 0
+    assert result["decisive_rollout_actions"] > 0
+    assert result["rollouts_stopped_battle_boundary"] > 0
 
 
 def test_terminal_game_completion_keeps_exact_terminal_utility() -> None:
