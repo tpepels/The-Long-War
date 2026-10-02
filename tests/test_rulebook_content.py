@@ -54,7 +54,7 @@ def test_core_terms_are_explicitly_introduced_before_rules_depend_on_them() -> N
         "Any stack containing a Force is a **formation**.",
         "A formation containing **Force + Bond + Name** is a **Named Formation**.",
         "A **Maneuver** is an operation that moves one of your Named Formations.",
-        "To **Pass** is to spend 0 Command and take no other operation.",
+        "To **Pass** is to spend 0 Command and use your operation without playing a card or Maneuvering.",
         "A **Narrative** represents something the war has made true beyond a single formation.",
         "A **Stratagem** is a public plan for the current Battle.",
         "that forced movement is called a **Retreat**.",
