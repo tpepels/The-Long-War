@@ -126,7 +126,6 @@ def project_state(state: GameState) -> dict[str, object]:
             for side in state.known_hidden_hand
         ],
         "pass_order": list(state.pass_order),
-        "pass_closing_turns_remaining": state.pass_closing_turns_remaining,
         "pending_draw_discard_for": state.pending_draw_discard_for,
         "battle": state.battle,
         "phase": state.phase.value,
