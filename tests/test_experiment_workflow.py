@@ -481,6 +481,12 @@ def test_ismcts_tournament_catalog_covers_material_search_dimensions() -> None:
     assert len(encoded) == len(set(encoded))
 
 
+def test_time_budgeted_ismcts_keeps_explicit_iteration_ceiling() -> None:
+    source = inspect.getsource(ISMCTSAgent.choose)
+    assert "effective_iteration_limit = self.iterations" in source
+    assert "100_000_000" not in source
+
+
 def test_ismcts_tournament_defaults_are_serious_and_independent(monkeypatch) -> None:
     monkeypatch.setattr(
         runner.sys,
@@ -494,7 +500,7 @@ def test_ismcts_tournament_defaults_are_serious_and_independent(monkeypatch) -> 
     assert args.final_games == 8
     assert args.confirm_games == 24
     assert args.time_budget_seconds == pytest.approx(5.0)
-    assert args.iterations_ceiling == 2_000_000
+    assert args.iterations_ceiling == 20_000_000
     assert args.max_family_finalists == 5
     assert args.max_interaction_finalists == 2
     assert args.finalist_floor == pytest.approx(0.45)
@@ -699,7 +705,7 @@ def test_strength_sanity_check_defaults(monkeypatch):
     args = runner.parse_args()
     assert args.games == 24
     assert args.jobs == 8
-    assert args.iterations == DEFAULT_ISMCTS_ITERATIONS
+    assert args.iterations == 20_000_000
     assert (
         args.post_battle_rollout_depth
         == runner.DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH
