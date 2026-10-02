@@ -2105,7 +2105,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     config = {
         "experiment": "ismcts-tournament",
         "method": (
-            "one-factor screen -> independent interaction screen -> "
+            "effective-parameter screen -> independent interaction screen -> "
             "independent finalist round-robin -> independent confirmation"
         ),
         "screen_games_per_orientation": args.screen_games,
@@ -4280,8 +4280,9 @@ def parse_args() -> argparse.Namespace:
     tournament = sub.add_parser(
         "ismcts-tournament",
         help=(
-            "Serious staged ISMCTS parameter tournament: one-factor screen, "
-            "independent finalist round-robin, then independent confirmation."
+            "Serious staged ISMCTS parameter tournament: effective-parameter "
+            "screen, independent interaction screen, finalist round-robin, "
+            "then independent confirmation."
         ),
     )
     tournament.add_argument("--jobs", type=int, default=DEFAULT_WORKERS)
@@ -4331,7 +4332,7 @@ def parse_args() -> argparse.Namespace:
     tournament.add_argument(
         "--max-family-finalists",
         type=int,
-        default=5,
+        default=7,
         help="Maximum number of one-factor family winners admitted to finals.",
     )
     tournament.add_argument(
