@@ -255,7 +255,7 @@ There is **no between-Battle Maneuver**.
 
 ## Command and ending the war {#command}
 
-Command carries from one Battle to the next and stays between **0 and {{COMMAND_CAP}}**.
+Command carries from one Battle to the next and cannot be spent below 0. Battle-end Command losses are applied in full for the Collapse check, even if they take Command below 0. Command cannot rise above **{{COMMAND_CAP}}**.
 
 Winning every Front is not automatically worth the cost. Command spent to secure one Battle may leave you unable to survive the check that follows it.
 
@@ -267,7 +267,7 @@ Base recovery starts at **{{RECOVERY_START}}** in Battle I and falls by **{{RECO
 
 **{{RECOVERY_SERIES_PLAIN}}**
 
-Before the Collapse check, lose **{{LOST_FRONT_COMMAND_PENALTY}} Command for each Front you lost** in that Battle, to a minimum of 0. Card effects can protect you from this loss.
+Before the Collapse check, lose **{{LOST_FRONT_COMMAND_PENALTY}} Command for each Front you lost** in that Battle. Apply this loss in full, even if it takes Command below 0. Card effects can protect you from this loss.
 
 If the war continues, recover the base amount above. Your recovery is never less than **{{RECOVERY_FLOOR}}**, and Command never rises above {{COMMAND_CAP}}.
 
@@ -279,9 +279,9 @@ The recovery numbers above are generated from the same rules configuration used 
 
 The check that can end the war is called **Command Collapse**. It happens after Front resolution, cleanup, Retreats, relevant Battle-end effects, and Front-loss Command attrition, but **before Command recovery**.
 
-- If either player is at or below **{{COLLAPSE_THRESHOLD}} Command**, compare their current Command.
+- If either player is at or below **{{COLLAPSE_THRESHOLD}} Command**, compare their current Command, including any amount below 0.
 - The player with lower Command loses the war.
-- If both players are at or below **{{COLLAPSE_THRESHOLD}} Command** with equal Command, the war ends in a **draw**.
+- If both players are at or below **{{COLLAPSE_THRESHOLD}} Command** with equal Command, the player who **Passed first** loses the war.
 - Only a continuing war receives Command recovery.
 
 ## Special card types {#narratives}
