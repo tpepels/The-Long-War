@@ -266,11 +266,12 @@ def test_browser_parity_replay_helper_needs_only_browser_runtime() -> None:
 
 
 def test_browser_modes_are_product_terms_not_solver_names() -> None:
-    from longwar.protocol import GameMode
+    from longwar.protocol import GameMode, PlaySetupMode
 
     page = (ROOT / "web" / "play.html").read_text(encoding="utf-8")
 
     assert {mode.value for mode in GameMode} == {"hotseat", "remote", "computer"}
+    assert PlaySetupMode.COMPUTER_CANONICAL.value == "computer-canonical"
     assert 'value="computer"' in page
     assert 'value="computer-canonical"' in page
     assert "Canonical AI" in page
