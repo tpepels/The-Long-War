@@ -423,7 +423,7 @@ def test_ismcts_tournament_defaults_are_serious_and_independent(monkeypatch) -> 
     assert args.screen_games == 4
     assert args.interaction_games == 4
     assert args.final_games == 8
-    assert args.confirm_games == 12
+    assert args.confirm_games == 24
     assert args.time_budget_seconds == pytest.approx(5.0)
     assert args.iterations_ceiling == 2_000_000
     assert args.max_family_finalists == 5
