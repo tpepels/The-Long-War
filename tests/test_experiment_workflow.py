@@ -192,6 +192,13 @@ def test_ismcts_tournament_catalog_covers_effective_search_dimensions():
     assert any(name.startswith("cheap-eps-") for name in profiles)
     assert profiles["random-rollout"]["ismcts_rollout_policy"] == "random"
 
+    # Every named lane must be behaviorally/configurationally distinct.
+    encoded = [
+        json.dumps(profile, sort_keys=True)
+        for profile in profiles.values()
+    ]
+    assert len(encoded) == len(set(encoded))
+
     # Epsilon is deliberately not swept as a no-op under decisive rollout.
     decisive_profiles = [
         profile
@@ -202,6 +209,26 @@ def test_ismcts_tournament_catalog_covers_effective_search_dimensions():
         profile["ismcts_rollout_epsilon"]
         for profile in decisive_profiles
     } == {baseline["ismcts_rollout_epsilon"]}
+
+
+def test_simulation_cli_exposes_complete_tournament_control_surface() -> None:
+    source = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
+    for option in (
+        "--ismcts-belief-samples",
+        "--ismcts-rollout-depth",
+        "--ismcts-post-battle-rollout-depth",
+        "--ismcts-tree-depth-limit",
+        "--ismcts-exploration",
+        "--ismcts-progressive-widening",
+        "--ismcts-progressive-widening-alpha",
+        "--ismcts-no-tree-reuse",
+        "--ismcts-max-tree-nodes",
+        "--ismcts-rollout-epsilon",
+        "--ismcts-rollout-policy",
+        "--ismcts-decisive-greedy-probability",
+        "--ismcts-leaf-scale",
+    ):
+        assert option in source
 
 
 def test_ismcts_tournament_cli_defaults_to_two_independent_screen_blocks(monkeypatch):
