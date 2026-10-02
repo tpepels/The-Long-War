@@ -949,17 +949,5 @@ cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor)
     cdef int opponent = other_player(actor)
     state.operations_this_battle[actor] += 1
 
-    # A fixed closing window counts turns completed after the first signal.
-    if (
-        state.pass_len > 0
-        and self.pass_closing_rounds > 0
-        and state.pass_closing_turns_remaining > 0
-    ):
-        state.pass_closing_turns_remaining -= 1
-        if state.pass_closing_turns_remaining == 0:
-            state.turn_number += 1
-            _fe_score_battle(self, state)
-            return
-
     _fe_start_turn_fast(self, state, opponent)
     state.turn_number += 1
