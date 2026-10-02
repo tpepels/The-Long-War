@@ -18,6 +18,7 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_EXPLORATION,
     DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_ROLLOUT_POLICY,
+    DEFAULT_ISMCTS_LEAF_SCALE,
     ISMCTSAgent,
 )
 from longwar.simulate import DEFAULT_WORKERS, make_agent, simulate_games
@@ -134,6 +135,9 @@ def test_ismcts_exploration_default_is_shared():
     assert inspect.signature(ISMCTSAgent).parameters["exploration"].default == DEFAULT_ISMCTS_EXPLORATION
     assert inspect.signature(make_agent).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
     assert inspect.signature(simulate_games).parameters["ismcts_exploration"].default == DEFAULT_ISMCTS_EXPLORATION
+    assert inspect.signature(ISMCTSAgent).parameters["leaf_scale"].default == DEFAULT_ISMCTS_LEAF_SCALE
+    assert inspect.signature(make_agent).parameters["ismcts_leaf_scale"].default == DEFAULT_ISMCTS_LEAF_SCALE
+    assert inspect.signature(simulate_games).parameters["ismcts_leaf_scale"].default == DEFAULT_ISMCTS_LEAF_SCALE
 
 
 def test_ismcts_rollout_policy_default_is_shared():
@@ -359,6 +363,108 @@ def test_live_skip_raises_partial_score_from_progress(
     assert skipped.value.partial["score_b"] == 1
     assert skipped.value.partial["completed"] == 7
     assert skipped.value.partial["total"] == 24
+
+
+def test_ismcts_tournament_catalog_covers_material_search_dimensions() -> None:
+    baseline = runner.canonical_ismcts_tournament_config()
+    catalog = runner.ismcts_tournament_candidates()
+
+    assert baseline["ismcts_exploration"] == pytest.approx(0.3)
+    assert baseline["ismcts_leaf_scale"] == pytest.approx(100.0)
+    assert len(catalog) >= 30
+
+    families = {entry["family"] for entry in catalog.values()}
+    assert families == {
+        "uct",
+        "horizon",
+        "rollout",
+        "belief",
+        "tree",
+        "widening",
+        "value-scale",
+    }
+
+    uct_values = {
+        entry["overrides"]["ismcts_exploration"]
+        for entry in catalog.values()
+        if "ismcts_exploration" in entry["overrides"]
+    }
+    assert {0.0, 0.1, 0.2, 0.45, 0.7, 1.0, 1.4} <= uct_values
+    assert any(
+        entry["overrides"].get("ismcts_post_battle_rollout_depth") == 0
+        for entry in catalog.values()
+    )
+    assert any(
+        entry["overrides"].get("ismcts_post_battle_rollout_depth") == 12
+        for entry in catalog.values()
+    )
+    assert any(
+        entry["overrides"].get("ismcts_progressive_widening") == 4.0
+        for entry in catalog.values()
+    )
+    assert any(
+        entry["overrides"].get("ismcts_leaf_scale") == 50.0
+        for entry in catalog.values()
+    )
+    assert any(
+        entry["overrides"].get("ismcts_leaf_scale") == 200.0
+        for entry in catalog.values()
+    )
+
+
+def test_ismcts_tournament_defaults_are_serious_and_independent(monkeypatch) -> None:
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "ismcts-tournament"],
+    )
+    args = runner.parse_args()
+    assert args.jobs == 8
+    assert args.screen_games == 4
+    assert args.final_games == 8
+    assert args.confirm_games == 12
+    assert args.time_budget_seconds == pytest.approx(5.0)
+    assert args.iterations_ceiling == 2_000_000
+    assert args.max_family_finalists == 5
+    assert args.finalist_floor == pytest.approx(0.45)
+
+    source = inspect.getsource(runner.ismcts_tournament_run)
+    assert "args.seed + 1_000_000" in source
+    assert "args.seed + 2_000_000" in source
+    assert "float(lower) > 0.5" in source
+    assert "iteration_ceiling_warnings" in source
+
+
+def test_paired_seat_swap_interval_keeps_mirrored_deals_together() -> None:
+    outcomes = {
+        "mobility": {
+            "a-first": [
+                {"seed": 10, "winner": 0},
+                {"seed": 11, "winner": 1},
+            ],
+            "b-first": [
+                {"seed": 10, "winner": 1},
+                {"seed": 11, "winner": 0},
+            ],
+        }
+    }
+    result = runner.paired_seat_swap_interval(
+        outcomes,
+        bootstrap_resamples=200,
+    )
+    assert result["independent_deals"] == 2
+    assert result["censored_pairs"] == 0
+    assert result["score_rate"] == pytest.approx(0.5)
+
+
+def test_tournament_pair_uses_per_seat_overrides_and_stable_rng_roles() -> None:
+    source = inspect.getsource(runner._run_ismcts_tournament_pair)
+    assert '"--agent-a-options-json"' in source
+    assert '"--agent-b-options-json"' in source
+    assert "(11, 22)" in source
+    assert "(22, 11)" in source
+    assert '"--ismcts-time-budget-seconds"' in source
+    assert "_tournament_cell_is_complete" in source
 
 
 def test_strength_benchmark_reports_live_progress():
