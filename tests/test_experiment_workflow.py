@@ -415,18 +415,52 @@ def test_live_skip_raises_partial_score_from_progress(
     assert skipped.value.partial["total"] == 24
 
 
-def test_ismcts_tournament_catalog_covers_material_search_dimensions() -> None:
+def test_ismcts_tournament_catalogs_split_coarse_from_full() -> None:
     baseline = runner.canonical_ismcts_tournament_config()
-    catalog = runner.ismcts_tournament_candidates()
+    coarse = runner.ismcts_coarse_tournament_candidates()
+    full = runner.ismcts_full_tournament_candidates()
 
     assert baseline["ismcts_exploration"] == pytest.approx(0.3)
     assert baseline["ismcts_hard_iteration_ceiling"] is True
     assert baseline["ismcts_leaf_scale"] == pytest.approx(100.0)
     assert baseline["ismcts_progressive_widening_alpha"] == pytest.approx(0.5)
     assert baseline["ismcts_decisive_greedy_probability"] == pytest.approx(0.05)
-    assert len(catalog) >= 65
 
-    families = {entry["family"] for entry in catalog.values()}
+    assert tuple(runner.COARSE_ISMCTS_DECKS) == (
+        "mobility",
+        "elite",
+        "narrative",
+    )
+    assert set(runner.COARSE_ISMCTS_DECKS) <= set(runner.CANONICAL_DECK_PATHS)
+    assert len(coarse) == 9
+    assert set(coarse) == {
+        "uct-c-0p1",
+        "uct-c-1",
+        "beliefs-4",
+        "beliefs-24",
+        "rollout-12",
+        "post-battle-8",
+        "leaf-scale-200",
+        "decisive-greedy-0p3",
+        "pw-c-1-a-0p5",
+    }
+    assert set(coarse) <= set(full)
+    assert len(full) >= 65
+    assert runner.ismcts_tournament_candidates() == coarse
+    assert runner.ismcts_tournament_candidates("full") == full
+
+    # The rough screen deliberately excludes resource/implementation controls
+    # unless telemetry first shows that they bind.
+    for entry in coarse.values():
+        overrides = entry["overrides"]
+        assert "ismcts_tree_depth_limit" not in overrides
+        assert "ismcts_max_tree_nodes" not in overrides
+        assert "ismcts_reuse_tree" not in overrides
+        assert "ismcts_rollout_epsilon" not in overrides
+        assert "ismcts_rollout_policy" not in overrides
+
+    # The exhaustive catalog still spans the entire effective tuning surface.
+    families = {entry["family"] for entry in full.values()}
     assert families == {
         "uct",
         "horizon",
@@ -436,70 +470,40 @@ def test_ismcts_tournament_catalog_covers_material_search_dimensions() -> None:
         "widening",
         "value-scale",
     }
-
-    uct_values = {
-        entry["overrides"]["ismcts_exploration"]
-        for entry in catalog.values()
-        if "ismcts_exploration" in entry["overrides"]
-    }
-    assert {0.0, 0.1, 0.2, 0.45, 0.7, 1.0, 2 ** 0.5, 2.0} <= uct_values
-
-    assert any(
-        entry["overrides"].get("ismcts_post_battle_rollout_depth") == 0
-        for entry in catalog.values()
-    )
-    assert any(
-        entry["overrides"].get("ismcts_post_battle_rollout_depth") == 16
-        for entry in catalog.values()
-    )
-    assert any(
-        entry["overrides"].get("ismcts_belief_samples") == 1
-        for entry in catalog.values()
-    )
-    assert any(
-        entry["overrides"].get("ismcts_belief_samples") == 96
-        for entry in catalog.values()
-    )
-    assert any(
-        entry["overrides"].get("ismcts_progressive_widening") == 4.0
-        and entry["overrides"].get("ismcts_progressive_widening_alpha") == 0.5
-        for entry in catalog.values()
-    )
-    assert any(
-        entry["overrides"].get("ismcts_progressive_widening") == 1.0
-        and entry["overrides"].get("ismcts_progressive_widening_alpha") == 0.75
-        for entry in catalog.values()
-    )
-    assert any(
-        entry["overrides"].get("ismcts_leaf_scale") == 10.0
-        for entry in catalog.values()
-    )
-    assert any(
-        entry["overrides"].get("ismcts_leaf_scale") == 1000.0
-        for entry in catalog.values()
-    )
-    assert any(
-        entry["overrides"].get("ismcts_decisive_greedy_probability") == 1.0
-        for entry in catalog.values()
-    )
-
-    # Epsilon-only candidates under decisive are a no-op and must never
-    # consume tournament compute.
-    for entry in catalog.values():
+    for entry in full.values():
         overrides = entry["overrides"]
         if "ismcts_rollout_epsilon" in overrides:
             assert overrides.get("ismcts_rollout_policy") in {"greedy", "cheap"}
             assert overrides["ismcts_rollout_epsilon"] < 1.0
 
-    # Catalog construction itself rejects duplicates/no-op lanes. Double-check
-    # the resulting effective configurations here as a regression.
     encoded = []
-    for entry in catalog.values():
+    for entry in coarse.values():
         effective = dict(baseline)
         effective.update(entry["overrides"])
         encoded.append(json.dumps(effective, sort_keys=True))
     assert len(encoded) == len(set(encoded))
 
+
+def test_ismcts_refinement_catalog_combines_only_selected_directions() -> None:
+    catalog = runner.ismcts_refinement_candidates(
+        ["uct-c-1", "beliefs-4", "rollout-12"]
+    )
+    assert (
+        catalog["refine-uct-c-1"]["overrides"]["ismcts_exploration"]
+        == pytest.approx(0.7)
+    )
+    assert catalog["refine-beliefs-4"]["overrides"]["ismcts_belief_samples"] == 6
+    assert catalog["refine-rollout-12"]["overrides"]["ismcts_rollout_depth"] == 8
+    assert "combo-uct-c-1--beliefs-4" in catalog
+    assert "combo-uct-c-1--rollout-12" in catalog
+    assert "combo-beliefs-4--rollout-12" in catalog
+    assert "combo-all-selected" in catalog
+
+    conflicting = runner.ismcts_refinement_candidates(
+        ["uct-c-0p1", "uct-c-1", "beliefs-4"]
+    )
+    assert "combo-uct-c-0p1--uct-c-1" not in conflicting
+    assert "combo-all-selected" not in conflicting
 
 def test_time_budgeted_ismcts_keeps_explicit_iteration_ceiling() -> None:
     source = inspect.getsource(ISMCTSAgent.choose)
@@ -507,7 +511,7 @@ def test_time_budgeted_ismcts_keeps_explicit_iteration_ceiling() -> None:
     assert "100_000_000" not in source
 
 
-def test_ismcts_tournament_defaults_are_serious_and_independent(monkeypatch) -> None:
+def test_ismcts_tournament_defaults_to_small_coarse_screen(monkeypatch) -> None:
     monkeypatch.setattr(
         runner.sys,
         "argv",
@@ -515,24 +519,36 @@ def test_ismcts_tournament_defaults_are_serious_and_independent(monkeypatch) -> 
     )
     args = runner.parse_args()
     assert args.jobs == 8
+    assert args.design == "coarse"
+    assert args.decks is None
+    assert args.coarse_games == 1
+    assert args.refine_games == 2
+    assert args.refine_profiles is None
+    # Explicit full mode retains the old serious-stage defaults.
     assert args.screen_games == 4
     assert args.interaction_games == 4
     assert args.final_games == 8
     assert args.confirm_games == 24
     assert args.time_budget_seconds == pytest.approx(5.0)
     assert args.iterations_ceiling == 20_000_000
-    assert args.max_family_finalists == 7
-    assert args.max_interaction_finalists == 2
-    assert args.finalist_floor == pytest.approx(0.45)
 
-    source = inspect.getsource(runner.ismcts_tournament_run)
-    assert "args.seed + 1_000_000" in source
-    assert "args.seed + 2_000_000" in source
-    assert "args.seed + 3_000_000" in source
-    assert "interaction_results" in source
-    assert "float(lower) > 0.5" in source
-    assert "iteration_ceiling_warnings" in source
+    coarse_source = inspect.getsource(runner._ismcts_coarse_tournament_run)
+    assert "COARSE_ISMCTS_DECKS" in coarse_source
+    assert "deck_names=deck_names" in coarse_source
+    assert "len(catalog) * len(deck_names) * 2 * args.coarse_games" in coarse_source
 
+    refine_source = inspect.getsource(runner._ismcts_refinement_tournament_run)
+    assert "--refine-profiles is required" in refine_source
+    assert "ismcts_refinement_candidates" in refine_source
+    assert "tuple(CANONICAL_DECK_PATHS)" in refine_source
+
+    full_source = inspect.getsource(runner._ismcts_full_tournament_run)
+    assert "args.seed + 1_000_000" in full_source
+    assert "args.seed + 2_000_000" in full_source
+    assert "args.seed + 3_000_000" in full_source
+    assert "interaction_results" in full_source
+    assert "float(lower) > 0.5" in full_source
+    assert "iteration_ceiling_warnings" in full_source
 
 def test_paired_seat_swap_interval_keeps_mirrored_deals_together() -> None:
     outcomes = {
@@ -584,12 +600,105 @@ def test_tournament_pair_uses_per_seat_overrides_and_stable_rng_roles() -> None:
     assert "_tournament_profile_seed_offset(label_b)" in source
     assert '"--ismcts-time-budget-seconds"' in source
     assert "_tournament_cell_is_complete" in source
+    assert "deck_names" in source
+    assert "selected_decks" in source
 
     baseline = runner._tournament_profile_seed_offset("baseline")
     candidate = runner._tournament_profile_seed_offset("beliefs-24")
     assert baseline == runner._tournament_profile_seed_offset("baseline")
     assert candidate == runner._tournament_profile_seed_offset("beliefs-24")
     assert baseline != candidate
+
+
+def test_tournament_summary_aggregates_required_search_and_flow_metrics() -> None:
+    payloads = [
+        {
+            "game_outcomes": [
+                {"final_battle": 1, "censored": False},
+                {"final_battle": 3, "censored": False},
+            ],
+            "telemetry": {
+                "passes": {
+                    "events": 4,
+                    "signal_events": 3,
+                    "forced_yield_events": 1,
+                    "mean_command_remaining": 5.0,
+                    "mean_command_at_signal": 6.0,
+                },
+                "decisions": {
+                    "candidate": {
+                        "decisions": 2,
+                        "searched_decisions": 2,
+                        "mean_searched_decision_seconds": 5.0,
+                        "mean_search_nodes": 1000.0,
+                        "timed_out_decisions": 2,
+                        "ismcts_tree_reuse": {
+                            "iterations_total": 1000,
+                            "search_seconds_total": 2.0,
+                            "tree_capacity_cutoffs": 2,
+                            "root_reused_decisions": 1,
+                        },
+                        "ismcts_rollout_cutoffs": {
+                            "iterations": 1000,
+                            "rollout_actions": 5000,
+                        },
+                    }
+                },
+            },
+        },
+        {
+            "game_outcomes": [
+                {"final_battle": 2, "censored": False},
+            ],
+            "telemetry": {
+                "passes": {
+                    "events": 2,
+                    "signal_events": 1,
+                    "forced_yield_events": 1,
+                    "mean_command_remaining": 2.0,
+                    "mean_command_at_signal": 3.0,
+                },
+                "decisions": {
+                    "candidate": {
+                        "decisions": 1,
+                        "searched_decisions": 1,
+                        "mean_searched_decision_seconds": 4.0,
+                        "mean_search_nodes": 500.0,
+                        "timed_out_decisions": 1,
+                        "ismcts_tree_reuse": {
+                            "iterations_total": 500,
+                            "search_seconds_total": 0.5,
+                            "tree_capacity_cutoffs": 1,
+                            "root_reused_decisions": 1,
+                        },
+                        "ismcts_rollout_cutoffs": {
+                            "iterations": 500,
+                            "rollout_actions": 1000,
+                        },
+                    }
+                },
+            },
+        },
+    ]
+
+    resources = runner._aggregate_tournament_resources(payloads, "candidate")
+    assert resources["searched_decisions"] == 3
+    assert resources["timeout_rate"] == pytest.approx(1.0)
+    assert resources["mean_searched_decision_seconds"] == pytest.approx(14 / 3)
+    assert resources["iterations_per_second"] == pytest.approx(600.0)
+    assert resources["rollout_actions_per_iteration"] == pytest.approx(4.0)
+    assert resources["tree_capacity_cutoffs"] == 3
+    assert resources["root_reuse_rate"] == pytest.approx(2 / 3)
+
+    flow = runner._aggregate_tournament_flow(payloads)
+    assert flow["completed_games"] == 3
+    assert flow["mean_final_battle"] == pytest.approx(2.0)
+    assert flow["final_battle_histogram"] == {"1": 1, "2": 1, "3": 1}
+    assert flow["battle_one_ending_rate"] == pytest.approx(1 / 3)
+    assert flow["mean_command_at_pass"] == pytest.approx(4.0)
+    assert flow["mean_command_at_signal"] == pytest.approx(21 / 4)
+    assert flow["forced_yield_events"] == 2
+    assert flow["forced_yield_rate"] == pytest.approx(1 / 3)
 
 
 def test_simulation_cli_exposes_complete_ismcts_tuning_surface() -> None:
