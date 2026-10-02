@@ -60,6 +60,7 @@ class ISMCTSAgent:
         belief_samples: int = DEFAULT_ISMCTS_BELIEF_SAMPLES,
         iterations: int = DEFAULT_ISMCTS_ITERATIONS,
         time_budget_seconds: float | None = None,
+        hard_iteration_ceiling: bool = False,
         rollout_depth: int = DEFAULT_ISMCTS_ROLLOUT_DEPTH,
         post_battle_rollout_depth: int = DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
         tree_depth_limit: int = 96,
@@ -125,6 +126,7 @@ class ISMCTSAgent:
         self.belief_samples = belief_samples
         self.iterations = iterations
         self.time_budget_seconds = time_budget_seconds
+        self.hard_iteration_ceiling = hard_iteration_ceiling
         self.rollout_depth = rollout_depth
         self.post_battle_rollout_depth = post_battle_rollout_depth
         self.tree_depth_limit = tree_depth_limit
@@ -196,6 +198,7 @@ class ISMCTSAgent:
                 "search_nodes": 0,
                 "search_budget": self.iterations,
                 "search_time_budget_seconds": self.time_budget_seconds,
+                "search_hard_iteration_ceiling": self.hard_iteration_ceiling,
                 "decision_seconds": perf_counter() - decision_started,
                 "completed_depth": 0,
                 "search_backend": "cython",
@@ -291,10 +294,15 @@ class ISMCTSAgent:
             if self.time_budget_seconds is not None
             else 0.0
         )
-        # Iterations is always a real safety ceiling. Equal-time experiments
-        # deliberately pass a high ceiling and verify that the wall-clock
-        # deadline, rather than this limit, stopped almost every search.
-        effective_iteration_limit = self.iterations
+        # Normal time-budgeted play keeps time as the primary budget and
+        # treats a small iteration setting as a sizing/default hint. Serious
+        # equal-time experiments can opt into a real iteration safety ceiling
+        # and verify that it remains non-binding.
+        effective_iteration_limit = (
+            self.iterations
+            if self.time_budget_seconds is None or self.hard_iteration_ceiling
+            else max(self.iterations, 100_000_000)
+        )
         search_tree = self._tree
         if search_tree is None:
             search_tree = ISMCTSTree(
@@ -380,6 +388,7 @@ class ISMCTSAgent:
             "search_budget": self.iterations,
             "search_iteration_limit_effective": effective_iteration_limit,
             "search_time_budget_seconds": self.time_budget_seconds,
+            "search_hard_iteration_ceiling": self.hard_iteration_ceiling,
             "search_timed_out": bool(result["timed_out"]),
             "decision_seconds": perf_counter() - decision_started,
             "search_backend": "cython",
