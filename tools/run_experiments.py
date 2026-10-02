@@ -2423,7 +2423,7 @@ def benchmark_strength(
     *,
     games_per_orientation: int,
     jobs: int,
-    ismcts_iterations: int = DEFAULT_ISMCTS_ITERATIONS,
+    ismcts_iterations: int = 20_000_000,
     post_battle_rollout_depth: int = DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
     alpha_nodes: int = 20_000,
     time_budget_seconds: float = 5.0,
@@ -4323,7 +4323,7 @@ def parse_args() -> argparse.Namespace:
     tournament.add_argument(
         "--iterations-ceiling",
         type=int,
-        default=2_000_000,
+        default=20_000_000,
         help=(
             "Safety ceiling per search; should remain non-binding under the "
             "wall-clock budget. The summary flags configurations below 95%% timeout rate."
@@ -4371,8 +4371,11 @@ def parse_args() -> argparse.Namespace:
     strength.add_argument(
         "--iterations",
         type=int,
-        default=DEFAULT_ISMCTS_ITERATIONS,
-        help="Fallback work ceiling; wall-clock time is the comparison budget.",
+        default=20_000_000,
+        help=(
+            "Safety iteration ceiling; wall-clock time should remain the "
+            "binding comparison budget."
+        ),
     )
     strength.add_argument(
         "--post-battle-rollout-depth",
