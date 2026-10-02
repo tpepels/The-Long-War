@@ -191,8 +191,6 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
         "mccfr.py",
         "online_mccfr.py",
         "parallel_mccfr.py",
-        "native_search.py",
-        "agents/ismcts_agent.py",
         "agents/mccfr_agent.py",
         "agents/online_mccfr_agent.py",
         "agents/strategic_heuristic_agent.py",
@@ -206,7 +204,7 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     assert "_heuristic_core.pxi" in native
     assert "_heuristic_weights.generated.pxi" in native
     assert "_alpha_beta_core.pxi" not in native
-    assert "_ismcts_core.pxi" not in native
+    assert "_ismcts_core.pxi" in native
     assert "_mccfr_core.pxi" not in native
     assert "_mccfr_accel.pyx" not in native
 
@@ -231,7 +229,7 @@ def test_browser_build_packages_only_game_runtime_python(tmp_path) -> None:
     browser_fast = (package / "_fast_search.pyx").read_text(encoding="utf-8")
     assert 'include "_fast_engine_core.pxi"' in browser_fast
     assert 'include "_heuristic_core.pxi"' in browser_fast
-    assert 'include "_ismcts_core.pxi"' not in browser_fast
+    assert 'include "_ismcts_core.pxi"' in browser_fast
 
 
 def test_browser_runtime_dependency_closures_are_complete() -> None:
@@ -274,6 +272,8 @@ def test_browser_modes_are_product_terms_not_solver_names() -> None:
 
     assert {mode.value for mode in GameMode} == {"hotseat", "remote", "computer"}
     assert 'value="computer"' in page
+    assert 'value="computer-canonical"' in page
+    assert "Canonical AI" in page
 
     browser_surfaces = (
         ROOT / "web" / "play.html",
@@ -307,7 +307,6 @@ def test_browser_adapter_has_no_research_dependencies() -> None:
         "playability",
         "cardflow",
         "strategic_heuristic",
-        "ismcts",
         "simulate",
     ):
         assert forbidden not in source
