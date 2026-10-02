@@ -1848,12 +1848,16 @@ def _run_ismcts_tournament_pair(
         deck_name, orientation, *_ = cell
         wins = state["wins"]
         completed = int(state["completed"])
+        if orientation == "a-first":
+            a_wins, b_wins = int(wins[0]), int(wins[1])
+        else:
+            a_wins, b_wins = int(wins[1]), int(wins[0])
         return (
             f"{deck_name:10} {orientation:8} "
             f"{completed:>2}/{games_per_orientation:<2} "
-            f"{wins[0]:>2}-{wins[1]:<2}",
-            int(wins[0]),
-            int(wins[1]),
+            f"{a_wins:>2}-{b_wins:<2}",
+            a_wins,
+            b_wins,
         )
 
     completed = _run_cells_with_live_progress(
