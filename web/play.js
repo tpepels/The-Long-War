@@ -121,7 +121,7 @@ function termHint(key) {
     return "Your operation budget. Start at " + rules.starting_command +
       ". After Battle-end effects, lose " + rules.lost_front_command_penalty +
       " Command per unprotected Front lost. If either player is at or below " +
-      threshold + ", lower Command loses; equal Command is a draw. A continuing war recovers max(" +
+      threshold + ", lower Command loses; if equal, the player who Passed first loses. A continuing war recovers max(" +
       rules.command_recovery_floor +
       ", base recovery), to a maximum of " +
       rules.command_cap + ".";
