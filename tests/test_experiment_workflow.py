@@ -610,6 +610,97 @@ def test_tournament_pair_uses_per_seat_overrides_and_stable_rng_roles() -> None:
     assert baseline != candidate
 
 
+def test_tournament_summary_aggregates_required_search_and_flow_metrics() -> None:
+    payloads = [
+        {
+            "game_outcomes": [
+                {"final_battle": 1, "censored": False},
+                {"final_battle": 3, "censored": False},
+            ],
+            "telemetry": {
+                "passes": {
+                    "events": 4,
+                    "signal_events": 3,
+                    "forced_yield_events": 1,
+                    "mean_command_remaining": 5.0,
+                    "mean_command_at_signal": 6.0,
+                },
+                "decisions": {
+                    "candidate": {
+                        "decisions": 2,
+                        "searched_decisions": 2,
+                        "mean_searched_decision_seconds": 5.0,
+                        "mean_search_nodes": 1000.0,
+                        "timed_out_decisions": 2,
+                        "ismcts_tree_reuse": {
+                            "iterations_total": 1000,
+                            "search_seconds_total": 2.0,
+                            "tree_capacity_cutoffs": 2,
+                            "root_reused_decisions": 1,
+                        },
+                        "ismcts_rollout_cutoffs": {
+                            "iterations": 1000,
+                            "rollout_actions": 5000,
+                        },
+                    }
+                },
+            },
+        },
+        {
+            "game_outcomes": [
+                {"final_battle": 2, "censored": False},
+            ],
+            "telemetry": {
+                "passes": {
+                    "events": 2,
+                    "signal_events": 1,
+                    "forced_yield_events": 1,
+                    "mean_command_remaining": 2.0,
+                    "mean_command_at_signal": 3.0,
+                },
+                "decisions": {
+                    "candidate": {
+                        "decisions": 1,
+                        "searched_decisions": 1,
+                        "mean_searched_decision_seconds": 4.0,
+                        "mean_search_nodes": 500.0,
+                        "timed_out_decisions": 1,
+                        "ismcts_tree_reuse": {
+                            "iterations_total": 500,
+                            "search_seconds_total": 0.5,
+                            "tree_capacity_cutoffs": 1,
+                            "root_reused_decisions": 1,
+                        },
+                        "ismcts_rollout_cutoffs": {
+                            "iterations": 500,
+                            "rollout_actions": 1000,
+                        },
+                    }
+                },
+            },
+        },
+    ]
+
+    resources = runner._aggregate_tournament_resources(payloads, "candidate")
+    assert resources["searched_decisions"] == 3
+    assert resources["timeout_rate"] == pytest.approx(1.0)
+    assert resources["mean_searched_decision_seconds"] == pytest.approx(14 / 3)
+    assert resources["iterations_per_second"] == pytest.approx(600.0)
+    assert resources["rollout_actions_per_iteration"] == pytest.approx(4.0)
+    assert resources["tree_capacity_cutoffs"] == 3
+    assert resources["root_reuse_rate"] == pytest.approx(2 / 3)
+
+    flow = runner._aggregate_tournament_flow(payloads)
+    assert flow["completed_games"] == 3
+    assert flow["mean_final_battle"] == pytest.approx(2.0)
+    assert flow["final_battle_histogram"] == {"1": 1, "2": 1, "3": 1}
+    assert flow["battle_one_ending_rate"] == pytest.approx(1 / 3)
+    assert flow["mean_command_at_pass"] == pytest.approx(4.0)
+    assert flow["mean_command_at_signal"] == pytest.approx(21 / 4)
+    assert flow["forced_yield_events"] == 2
+    assert flow["forced_yield_rate"] == pytest.approx(1 / 3)
+
+
 def test_simulation_cli_exposes_complete_ismcts_tuning_surface() -> None:
     source = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
     for option in (
