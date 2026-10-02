@@ -363,6 +363,8 @@ def test_live_skip_raises_partial_score_from_progress(
 
 def test_strength_benchmark_reports_live_progress():
     source = inspect.getsource(runner.benchmark_strength)
+    assert '"--ismcts-post-battle-rollout-depth"' in source
+    assert '"post_battle_rollout_depth": post_battle_rollout_depth' in source
     assert '"--progress-file", str(progress)' in source
     assert "_run_cells_with_live_progress" in source
     assert "tuple(CANONICAL_DECK_PATHS)" in source
@@ -478,6 +480,10 @@ def test_strength_sanity_check_defaults(monkeypatch):
     assert args.games == 24
     assert args.jobs == 8
     assert args.iterations == DEFAULT_ISMCTS_ITERATIONS
+    assert (
+        args.post_battle_rollout_depth
+        == runner.DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH
+    )
     assert args.alpha_nodes == 20_000
     assert args.time_budget_seconds == pytest.approx(5.0)
 
