@@ -145,7 +145,6 @@ def ismcts_tournament_candidates() -> dict[str, dict[str, Any]]:
             ("0p12", 0.12),
             ("0p25", 0.25),
             ("0p5", 0.5),
-            ("1", 1.0),
         ):
             add(
                 f"{policy}-eps-{label}",
@@ -202,7 +201,6 @@ def ismcts_tournament_candidates() -> dict[str, dict[str, Any]]:
     for label, alpha in (
         ("0p25", 0.25),
         ("0p75", 0.75),
-        ("1", 1.0),
     ):
         add(
             f"pw-c-1-a-{label}",
