@@ -206,9 +206,6 @@ class ActionKeyToken(StrEnum):
     EXTRA = "extra"
     DISCARD_FIELD = "discard"
     ONGOING = "ongoing"
-    RULE_BLOCKS = "rule_blocks"
-    EXPERIMENTAL = "experimental"
-    BASELINE_FOR = "baseline_for"
 
 
 class ForceRole(StrEnum):
@@ -262,6 +259,9 @@ class CardField(StrEnum):
     CLASSES = "classes"
     TEXT = "text"
     DESIGN_RULES = "design_rules"
+    RULE_BLOCKS = "rule_blocks"
+    EXPERIMENTAL = "experimental"
+    BASELINE_FOR = "baseline_for"
     NARRATIVE_FORM = "narrative_form"
     ONGOING = "ongoing"
 

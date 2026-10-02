@@ -87,6 +87,7 @@ def render_print_cards(cards: list[dict], deck_label: str | None = None) -> list
     script = """
 const fs = require("node:fs");
 global.window = {};
+eval(fs.readFileSync("web/protocol.generated.js", "utf8"));
 eval(fs.readFileSync("web/card-rules.js", "utf8"));
 eval(fs.readFileSync("web/print-cards.js", "utf8"));
 const input = JSON.parse(fs.readFileSync(0, "utf8"));
@@ -355,12 +356,12 @@ def test_play_setup_exposes_remote_host_and_join_token_controls() -> None:
 
 def test_remote_play_routes_actions_through_host_authoritative_session() -> None:
     script = text("web/play.js")
-    assert 'mode: "remote"' in script
+    assert "mode: GAME_MODE.REMOTE" in script
     assert "session.act(command.key, 1)" in script
     assert "session.mulligan(command.indices || [], 1)" in script
     assert "session.view(0)" in script
     assert "session.view(1)" in script
-    assert 'type: "snapshot"' in script
+    assert "type: REMOTE_MESSAGE_TYPE.SNAPSHOT" in script
     assert "createRemoteHost" in script
     assert "createRemoteGuest" in script
 
@@ -450,9 +451,10 @@ def test_remote_invite_creation_has_visible_progress_and_errors() -> None:
     style = text("web/play.css")
 
     assert 'remoteStatus("Creating invite…")' in script
-    assert 'remoteSetupPhase = "creating"' in script
-    assert 'remoteSetupPhase === "creating"' in script
-    assert 'setupMode.startsWith("remote-")' in script
+    assert "remoteSetupPhase = REMOTE_SETUP_PHASE.CREATING" in script
+    assert "remoteSetupPhase === REMOTE_SETUP_PHASE.CREATING" in script
+    assert "setupMode === PLAY_SETUP_MODE.REMOTE_HOST" in script
+    assert "setupMode === PLAY_SETUP_MODE.REMOTE_JOIN" in script
     assert 'remoteStatus(error?.message || "Remote connection failed.", true)' in script
     assert "timeoutMs = 6000" in peer
     assert 'typeof RTCPeerConnection === "undefined"' in peer
