@@ -105,9 +105,23 @@ def test_rulebook_uses_card_art_not_old_flow_diagrams() -> None:
 
 def test_pass_and_battle_end_order_match_canonical_rules() -> None:
     source = text("rules/rulebook.md")
-    assert "It remains active even if you later play a card or Maneuver." in source
-    assert "As soon as both players have an active Pass, the Battle ends immediately." in source
+    assert "It is permanent for the rest of the Battle" in source
+    assert "Once the first active Pass exists, the Pass gate is open." in source
+    assert "The first Pass does not start a countdown." in source
+    assert (
+        "Pass is no longer a normal voluntary choice while another legal "
+        "operation is available."
+        in source
+    )
+    assert (
+        "If the war survives Battle resolution and Command Collapse, the "
+        "player who **Passed first** starts the next Battle."
+        in source
+    )
+    assert "both players have Passed at least once" in source
+    assert "If you Pass again while your Pass is already active" not in source
     assert "Apply Command loss for unprotected Fronts lost, then check Command Collapse." in source
+    assert "Do **not** clamp negative Command back to 0." in source
     assert "This reduces current Command; it does **not** reduce recovery a second time." in source
 
 
