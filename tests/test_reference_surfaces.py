@@ -56,7 +56,7 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "both players have Passed at least once" in rules
     assert "player who **Passed first** starts the next Battle" in rules
     assert "<b>start turn:</b> draw 1." in playmat
-    assert "reshuffle discard only if deck empties" in playmat_source
+    assert "reshuffle discard only if deck empties" in playmat
     assert "collapse before recovery" in playmat
     assert f"lose {standard.lost_front_command_penalty} command per unprotected front lost" in playmat
     assert f"at or below {standard.command_collapse_threshold}" in playmat
@@ -139,7 +139,10 @@ def test_rulebook_roles_are_labels_not_hidden_rules() -> None:
 
 
 def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
-    page = text("web/playmat.html")
+    from tools.build_pages import render_rule_tokens
+
+    standard = GameRules.standard()
+    page = render_rule_tokens(text("web/playmat.html"), standard)
     css = text("web/rules.css")
 
     assert "reference-v3" in page
@@ -149,7 +152,7 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     assert "WHEN BOTH PLAYERS HAVE PASSED" in page
     assert "BETWEEN BATTLES" in page
     assert "Hero" in page
-    assert "max 1 Hero card from hand per Battle" in page
+    assert f"Hero limit: {standard.hero_play_limit_per_battle} from hand per Battle" in page
     assert "font-size: 3.1mm;" in css
     assert "page: battlefield-reference" in css
 
