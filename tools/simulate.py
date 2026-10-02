@@ -368,12 +368,13 @@ def main() -> None:
         "tree_depth_limit": args.ismcts_tree_depth_limit,
         "exploration": args.ismcts_exploration,
         "progressive_widening": args.ismcts_progressive_widening,
-        "progressive_widening_alpha": args.ismcts_progressive_widening_alpha,
+        "progressive_widening_alpha": (
+            args.ismcts_progressive_widening_alpha
+            if args.ismcts_progressive_widening > 0
+            else 0.0
+        ),
         "tree_reuse": not args.ismcts_no_tree_reuse,
         "max_tree_nodes": args.ismcts_max_tree_nodes,
-        "progressive_widening_alpha": (
-            0.5 if args.ismcts_progressive_widening > 0 else 0.0
-        ),
         "rollout_epsilon": args.ismcts_rollout_epsilon,
         "rollout_policy": args.ismcts_rollout_policy,
         "decisive_greedy_probability": args.ismcts_decisive_greedy_probability,
