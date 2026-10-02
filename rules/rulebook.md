@@ -356,7 +356,7 @@ These are the rules most worth checking during a first game:
 - A Maneuver goes **one Front sideways in the same rank**.
 - On a lost Front, **drive off the Rear first**, then Retreat the Frontline formation.
 - Check **Command Collapse before recovery**.
-- If Command Collapse is triggered while both players have equal Command, the war ends in a **draw**.
+- If Command Collapse is triggered while both players are equally exhausted, the player who **Passed first loses the war**.
 
 ## Timing
 

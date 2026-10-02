@@ -29,8 +29,9 @@ class GameRules:
     command_recovery_floor: int = 1
     command_collapse_threshold: int = 0
     lost_front_command_penalty: int = 1
-    # Experimental Battle-ending primitives. Standard play uses a Pass that
-    # consumes the turn and has no automatic closing countdown.
+    # Canonical Battle ending: Pass consumes the operation, remains active for
+    # the Battle, and has no automatic closing countdown. Research tools may
+    # override these fields, but GameRules.standard() always selects this rule.
     pass_signal_costs_operation: bool = True
     pass_closing_rounds: int = 0
     pass_min_operations_before_signal: int = 1
@@ -80,7 +81,11 @@ class GameRules:
 
     @classmethod
     def standard(cls) -> "GameRules":
-        return cls()
+        """Return the canonical ruleset used by normal play and AI."""
+        return cls(
+            pass_signal_costs_operation=True,
+            pass_closing_rounds=0,
+        )
 
     def command_recovery_for_battle(self, battle: int) -> int:
         if battle < 1:

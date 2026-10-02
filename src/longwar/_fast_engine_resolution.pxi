@@ -811,9 +811,10 @@ cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     cdef bint already_signalled = bool(state.passed[player])
     cdef uint64_t pass_action = encode_action(TYPE_PASS, -1, -1, -1, player)
 
-    # In standard play the signal is the Pass operation. The experimental
-    # free-flag variant records the same public state without consuming the
-    # operation or its constraints.
+    # Canonical play uses a permanent Pass: the first Pass consumes the
+    # operation, remains active for the Battle, and the second player's first
+    # Pass ends the Battle. Research overrides may make the signal free or add
+    # a closing countdown; those branches are not part of standard play.
     if self.pass_signal_costs_operation:
         _fe_consume_operation_constraints(self, state, player, pass_action)
 
@@ -836,9 +837,9 @@ cdef void _fe_pass_action(FastEngine self, FastState state, int player):
         # Raising a Battle Flag is free and leaves the player in the same turn.
         return
 
-    # A repeated signal is only legal when this already-signalled player has
-    # no normal operation. It yields the turn and counts toward a closing
-    # window just like any other completed turn.
+    # Repeated Passes are irrelevant to canonical permanent Pass. This branch
+    # exists only for research closing-window overrides where an already-
+    # signalled player may be forced to yield the turn.
     if (
         already_signalled
         and self.pass_closing_rounds > 0

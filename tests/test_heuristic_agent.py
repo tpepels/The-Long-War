@@ -248,6 +248,29 @@ def test_post_signal_heuristic_value_is_zero_sum() -> None:
     )
 
 
+def test_second_pass_uses_exact_first_passer_collapse_tiebreak() -> None:
+    engine, state = engine_and_state()
+    state.operations_this_battle[:] = [1, 1]
+    state.players[0].passed = True
+    state.players[1].passed = False
+    state.pass_order[:] = [0]
+    state.active_player = 1
+    state.players[0].command = 0
+    state.players[1].command = 0
+    state.players[0].hand = []
+    state.players[1].hand = []
+
+    assert Pass() in engine.legal_actions(state)
+
+    evaluator = HeuristicAgent(seed=2, exploration=0.0).evaluator
+    score = evaluator._score_action(engine, state, 1, Pass())
+
+    # Player 0 Passed first, so the exact second-Pass transition makes player 1
+    # the winner at equal exhausted Command. The heuristic must see terminal
+    # utility from the engine transition, not a projected draw.
+    assert score == pytest.approx(10000.0)
+
+
 def test_first_pass_is_penalized_while_opponent_has_normal_reply_turn() -> None:
     engine, state = engine_and_state()
     state.players[0].hand = ["oren", "iria"]

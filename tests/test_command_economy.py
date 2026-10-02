@@ -59,6 +59,10 @@ def test_standard_command_profile_propagates_into_engine_and_state() -> None:
     assert engine.command_recovery_floor == rules.command_recovery_floor
     assert engine.command_collapse_threshold == rules.command_collapse_threshold
     assert engine.lost_front_command_penalty == rules.lost_front_command_penalty
+    assert rules.pass_signal_costs_operation is True
+    assert rules.pass_closing_rounds == 0
+    assert engine.rules.pass_signal_costs_operation is True
+    assert engine.rules.pass_closing_rounds == 0
     assert engine.maneuver_command_cost == rules.maneuver_command_cost
     assert [player.command for player in state.players] == [
         rules.starting_command,

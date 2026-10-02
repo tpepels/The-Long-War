@@ -94,6 +94,7 @@ def test_rulebook_core_values_match_standard_engine() -> None:
     )
     assert "even if it takes Command below 0" in rules_text
     assert "the player who **Passed first** loses the war" in rules_text
+    assert "the war ends in a **draw**" not in rules_text
     assert (
         f"Base recovery starts at **{standard.command_recovery_start}** in Battle I "
         f"and falls by **{standard.command_recovery_decrement}** each Battle:"
