@@ -740,12 +740,14 @@ def test_native_weight_export_avoids_cpdef_generator_closure() -> None:
     assert "values.append(self.weights[i])" in source
 
 
-def test_decisive_rollout_keeps_only_exact_second_signal_probe() -> None:
+def test_decisive_rollout_uses_exact_safe_second_pass_boundary() -> None:
     source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
     rollout = source.split("cdef uint64_t _ismcts_rollout_action(", 1)[1]
     rollout = rollout.split("def ismcts_search(", 1)[0]
-    assert "Closing-window lookahead belongs in the MCTS tree" in rollout
+    assert "state.pass_len == 1 and not state.passed[actor]" in rollout
     assert "action_kind(actions[i]) != TYPE_PASS" in rollout
+    assert "score_scratch.battle != state.battle" in rollout
+    assert "score_scratch.winner == actor" in rollout
     assert "_ismcts_action_allows_immediate_loss" not in source
     assert "DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES" not in source
     assert "DECISIVE_ROLLOUT_RANDOM_WIN_PROBES" not in source
