@@ -37,6 +37,7 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_MAX_TREE_NODES,
     DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    DEFAULT_ISMCTS_LEAF_SCALE,
     DEFAULT_ISMCTS_REUSE_TREE,
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
@@ -73,6 +74,68 @@ COMMAND_RECOVERY_CANDIDATES = (
     (15, 3),
     (15, 2),
 )
+
+
+def canonical_ismcts_tournament_config() -> dict[str, Any]:
+    """Production ISMCTS settings, excluding the shared wall-clock budget."""
+    return {
+        "ismcts_belief_samples": DEFAULT_ISMCTS_BELIEF_SAMPLES,
+        "ismcts_rollout_depth": DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+        "ismcts_post_battle_rollout_depth": DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
+        "ismcts_tree_depth_limit": 96,
+        "ismcts_exploration": DEFAULT_ISMCTS_EXPLORATION,
+        "ismcts_progressive_widening": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+        "ismcts_reuse_tree": DEFAULT_ISMCTS_REUSE_TREE,
+        "ismcts_max_tree_nodes": DEFAULT_ISMCTS_MAX_TREE_NODES,
+        "ismcts_rollout_epsilon": DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+        "ismcts_rollout_policy": DEFAULT_ISMCTS_ROLLOUT_POLICY,
+        "ismcts_leaf_scale": DEFAULT_ISMCTS_LEAF_SCALE,
+    }
+
+
+def ismcts_tournament_candidates() -> dict[str, dict[str, Any]]:
+    """One-factor challengers spanning every material production search knob.
+
+    UCT backs up utilities in [-1, 1], so the c grid deliberately spans pure
+    exploitation through exploration constants well above the current 0.3.
+    """
+    candidates: dict[str, dict[str, Any]] = {}
+
+    def add(name: str, family: str, **overrides: Any) -> None:
+        candidates[name] = {"family": family, "overrides": overrides}
+
+    for label, value in (
+        ("0", 0.0), ("0p1", 0.1), ("0p2", 0.2), ("0p45", 0.45),
+        ("0p7", 0.7), ("1", 1.0), ("1p4", 1.4),
+    ):
+        add(f"uct-c-{label}", "uct", ismcts_exploration=value)
+
+    for value in (2, 8, 12):
+        add(f"rollout-{value}", "horizon", ismcts_rollout_depth=value)
+    for value in (0, 2, 8, 12):
+        add(f"post-battle-{value}", "horizon", ismcts_post_battle_rollout_depth=value)
+
+    for label, value in (("0", 0.0), ("0p05", 0.05), ("0p25", 0.25), ("0p5", 0.5)):
+        add(f"epsilon-{label}", "rollout", ismcts_rollout_epsilon=value)
+    for policy in ("greedy", "cheap", "random"):
+        add(f"policy-{policy}", "rollout", ismcts_rollout_policy=policy)
+
+    for value in (4, 6, 24, 48):
+        add(f"beliefs-{value}", "belief", ismcts_belief_samples=value)
+
+    for value in (48, 192):
+        add(f"tree-depth-{value}", "tree", ismcts_tree_depth_limit=value)
+    for label, value in (("200k", 200_000), ("800k", 800_000)):
+        add(f"tree-nodes-{label}", "tree", ismcts_max_tree_nodes=value)
+    add("tree-cold", "tree", ismcts_reuse_tree=False)
+
+    for label, value in (("0p5", 0.5), ("1", 1.0), ("2", 2.0), ("4", 4.0)):
+        add(f"pw-c-{label}", "widening", ismcts_progressive_widening=value)
+
+    for value in (50.0, 75.0, 150.0, 200.0):
+        add(f"leaf-scale-{int(value)}", "value-scale", ismcts_leaf_scale=value)
+
+    return candidates
 
 
 class ExperimentSkipped(RuntimeError):
