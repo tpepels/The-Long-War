@@ -383,6 +383,67 @@ def test_balance_defaults_to_eight_worker_processes(monkeypatch):
     assert "jobs=args.jobs" in source
 
 
+def test_standard_rules_use_canonical_permanent_pass():
+    rules = GameRules.standard()
+    assert rules.pass_signal_costs_operation is True
+    assert rules.pass_closing_rounds == 0
+
+
+def test_recovery_variant_candidates_keep_permanent_pass_canonical(monkeypatch):
+    assert runner.RECOVERY_RULE_VARIANTS == {
+        "current-12-3": {
+            "command_recovery_start": 12,
+            "command_recovery_decrement": 3,
+        },
+        "gentle-12-2": {
+            "command_recovery_start": 12,
+            "command_recovery_decrement": 2,
+        },
+        "high-15-3": {
+            "command_recovery_start": 15,
+            "command_recovery_decrement": 3,
+        },
+        "high-gentle-15-2": {
+            "command_recovery_start": 15,
+            "command_recovery_decrement": 2,
+        },
+    }
+    for overrides in runner.RECOVERY_RULE_VARIANTS.values():
+        rules = GameRules.standard().with_overrides(**overrides)
+        assert rules.pass_signal_costs_operation is True
+        assert rules.pass_closing_rounds == 0
+
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "recovery-variants"],
+    )
+    args = runner.parse_args()
+    assert args.games == 8
+    assert args.jobs == 8
+    assert args.ismcts_iterations == 50_000
+    assert args.ismcts_belief_samples == 12
+    assert args.ismcts_rollout_depth == 8
+    assert args.ismcts_rollout_policy == "decisive"
+    assert args.variants == list(runner.RECOVERY_RULE_VARIANTS)
+
+
+def test_canonical_ismcts_benchmarks_default_to_permanent_pass(monkeypatch):
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "ismcts-speed"],
+    )
+    assert runner.parse_args().closing_rounds == 0
+
+    monkeypatch.setattr(
+        runner.sys,
+        "argv",
+        ["run_experiments.py", "ismcts-workers"],
+    )
+    assert runner.parse_args().closing_rounds == 0
+
+
 def test_balance_accepts_experimental_arithmetic_recovery_without_new_entrypoint(monkeypatch):
     monkeypatch.setattr(
         runner.sys,
