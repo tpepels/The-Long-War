@@ -1758,15 +1758,18 @@ def paired_seat_swap_interval(
             raise ValueError("Mirrored tournament cells must contain identical deal seeds")
         for deal_seed, left in first.items():
             right = second[deal_seed]
-            if left.get("winner") is None or right.get("winner") is None:
+            if (
+                bool(left.get("censored", False))
+                or bool(right.get("censored", False))
+            ):
                 censored_pairs += 1
                 continue
 
             def score(row: dict[str, Any], a_seat: int) -> float:
-                winner = int(row["winner"])
-                if winner < 0:
+                winner = row.get("winner")
+                if winner is None or int(winner) < 0:
                     return 0.5
-                return 1.0 if winner == a_seat else 0.0
+                return 1.0 if int(winner) == a_seat else 0.0
 
             pair_scores.append(
                 (score(left, 0) + score(right, 1)) / 2.0
@@ -1870,6 +1873,12 @@ def _aggregate_tournament_resources(
     }
 
 
+def _tournament_profile_seed_offset(label: str) -> int:
+    """Stable candidate-specific RNG stream independent of seat/opponent."""
+    digest = hashlib.sha256(label.encode("utf-8")).digest()
+    return 1_000 + int.from_bytes(digest[:4], "big") % 900_000
+
+
 def _run_ismcts_tournament_pair(
     *,
     output_dir: Path,
@@ -1886,6 +1895,8 @@ def _run_ismcts_tournament_pair(
 ) -> dict[str, Any]:
     """Run one mirrored all-deck ISMCTS-vs-ISMCTS comparison."""
     cells = []
+    offset_a = _tournament_profile_seed_offset(label_a)
+    offset_b = _tournament_profile_seed_offset(label_b)
     for deck_index, (deck_name, deck_path) in enumerate(CANONICAL_DECK_PATHS.items()):
         cell_seed = seed + deck_index * 10_000
         for orientation, labels, configs, offsets in (
@@ -1893,13 +1904,13 @@ def _run_ismcts_tournament_pair(
                 "a-first",
                 (label_a, label_b),
                 (config_a, config_b),
-                (11, 22),
+                (offset_a, offset_b),
             ),
             (
                 "b-first",
                 (label_b, label_a),
                 (config_b, config_a),
-                (22, 11),
+                (offset_b, offset_a),
             ),
         ):
             output = output_dir / f"{deck_name}--{orientation}.json"
