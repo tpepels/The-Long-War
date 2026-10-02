@@ -223,6 +223,13 @@ def render_rule_tokens(source: str, rules: GameRules) -> str:
         rules.command_recovery_for_battle(battle)
         for battle in range(1, 6)
     ]
+    effective_recovery = [
+        max(
+            rules.command_recovery_floor,
+            rules.command_recovery_for_battle(battle),
+        )
+        for battle in range(1, 7)
+    ]
     values = {
         key.upper(): value
         for key, value in rules.as_dict().items()
@@ -245,6 +252,9 @@ def render_rule_tokens(source: str, rules: GameRules) -> str:
             ) + "…",
             "RECOVERY_SERIES_PLAIN": ", ".join(
                 str(value) for value in recovery
+            ) + "...",
+            "EFFECTIVE_RECOVERY_SERIES_PLAIN": ", ".join(
+                str(value) for value in effective_recovery
             ) + "...",
             "RECOVERY_BATTLE_3": rules.command_recovery_for_battle(3),
             "RECOVERY_BATTLE_3_LOSE_2": max(
