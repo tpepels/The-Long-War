@@ -720,7 +720,7 @@ function renderCommandExperiment(lab) {
       deck.progression?.low_command_stalls?.both_at_collapse_point_battle_starts
     );
     const collapseTerminations = sum(deckProfiles, (deck) =>
-      Number(deck.progression?.low_command_stalls?.simultaneous_collapse_draws || 0)
+      Number(deck.progression?.low_command_stalls?.simultaneous_collapse_terminations || 0)
       + Number(deck.progression?.low_command_stalls?.unequal_collapse_terminations || 0)
     );
     const noPaidOperations = sum(deckProfiles, (deck) =>
