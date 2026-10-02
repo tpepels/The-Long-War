@@ -136,6 +136,7 @@ def markdown_to_typst(source: str, version: str) -> str:
     preamble = f"""#set page(
   paper: "a4",
   margin: (top: 12mm, bottom: 14mm, x: 13mm),
+  fill: rgb("#f8f3e9"),
   footer: context [
     #align(right)[
       #text(size: 7pt, fill: rgb("#666666"))[
@@ -155,16 +156,21 @@ def markdown_to_typst(source: str, version: str) -> str:
   above: 8pt,
   below: 4pt,
   breakable: false,
-  stroke: (top: 0.7pt + rgb("#222222")),
-  inset: (top: 5pt),
-)[#text(size: 15pt, weight: "semibold")[#it.body]]
+  fill: rgb("#efe6d4"),
+  stroke: 0.55pt + rgb("#b6a487"),
+  inset: (x: 7pt, y: 5pt),
+  radius: 2pt,
+)[#text(size: 15pt, weight: "semibold", fill: rgb("#2d261f"))[#it.body]]
 
 #show heading.where(level: 3): it => block(
   sticky: true,
   above: 6pt,
   below: 2.5pt,
   breakable: false,
-)[#text(size: 9pt, weight: "bold")[#it.body]]
+  fill: rgb("#f2ecdf"),
+  inset: (x: 5pt, y: 3pt),
+  radius: 1.5pt,
+)[#text(size: 9pt, weight: "bold", fill: rgb("#3a3229"))[#it.body]]
 
 #align(left)[
   #text(size: 31pt, weight: "semibold")[The Long War]
