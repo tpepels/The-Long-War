@@ -7,7 +7,7 @@ import pytest
 
 from longwar.agents.mccfr_agent import MCCFRAgent
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine, Pass, Position, Rank
+from longwar.game import Front, GameEngine, Position, Rank
 from longwar.game.model import NarrativeState
 from longwar.mccfr import CFRNode, MCCFRTrainer, action_key, information_set_id
 
@@ -90,7 +90,7 @@ def test_regret_matching_prefers_positive_regret() -> None:
     assert strategy["b"] == 0.0
 
 
-def test_mccfr_policy_cannot_spend_last_command_when_pass_is_safe() -> None:
+def test_mccfr_policy_allows_legal_midbattle_zero_command_play() -> None:
     engine, deck, _state = setup()
     state = engine.new_game(
         deck,
@@ -118,7 +118,7 @@ def test_mccfr_policy_cannot_spend_last_command_when_pass_is_safe() -> None:
     slot.force = "the-grey-riders"
 
     legal = engine.legal_actions(state)
-    unsafe = next(
+    spend_to_zero = next(
         action
         for action in legal
         if getattr(action, "card_id", None) == "marched-with"
@@ -129,7 +129,7 @@ def test_mccfr_policy_cannot_spend_last_command_when_pass_is_safe() -> None:
         "infosets": {
             info_id: {
                 "average_strategy": {
-                    action_key(unsafe): 1.0,
+                    action_key(spend_to_zero): 1.0,
                     "pass": 0.0,
                 },
             },
@@ -139,8 +139,14 @@ def test_mccfr_policy_cannot_spend_last_command_when_pass_is_safe() -> None:
     agent = MCCFRAgent(seed=10, policy=policy, deterministic=True)
     action = agent.choose(engine, state)
 
-    assert isinstance(action, Pass)
-    assert agent.last_decision["command_guard_applied"] is True
+    assert action == spend_to_zero
+    child = state.clone()
+    engine.apply(child, action)
+    assert child.phase.value == "battle"
+    assert child.players[0].command == 0
+    assert child.players[1].command == 5
+    assert agent.last_decision["command_guard_applied"] is False
+    assert agent.last_decision["command_guard_filtered_actions"] == 0
 
 
 def test_current_fast_information_key_round_trips_canonical_state() -> None:
