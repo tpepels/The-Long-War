@@ -421,16 +421,20 @@ def test_ismcts_tournament_defaults_are_serious_and_independent(monkeypatch) -> 
     args = runner.parse_args()
     assert args.jobs == 8
     assert args.screen_games == 4
+    assert args.interaction_games == 4
     assert args.final_games == 8
     assert args.confirm_games == 12
     assert args.time_budget_seconds == pytest.approx(5.0)
     assert args.iterations_ceiling == 2_000_000
     assert args.max_family_finalists == 5
+    assert args.max_interaction_finalists == 2
     assert args.finalist_floor == pytest.approx(0.45)
 
     source = inspect.getsource(runner.ismcts_tournament_run)
     assert "args.seed + 1_000_000" in source
     assert "args.seed + 2_000_000" in source
+    assert "args.seed + 3_000_000" in source
+    assert "interaction_results" in source
     assert "float(lower) > 0.5" in source
     assert "iteration_ceiling_warnings" in source
 
