@@ -2973,7 +2973,7 @@ def benchmark_strength(
     *,
     games_per_orientation: int,
     jobs: int,
-    ismcts_iterations: int = 20_000_000,
+    ismcts_iterations: int = DEFAULT_ISMCTS_ITERATIONS,
     post_battle_rollout_depth: int = DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
     alpha_nodes: int = 20_000,
     time_budget_seconds: float = 5.0,
@@ -4962,7 +4962,7 @@ def parse_args() -> argparse.Namespace:
     strength.add_argument(
         "--iterations",
         type=int,
-        default=20_000_000,
+        default=DEFAULT_ISMCTS_ITERATIONS,
         help=(
             "Nominal ISMCTS budget; with a wall-clock budget normal agent "
             "semantics keep time as the primary stopping condition."
