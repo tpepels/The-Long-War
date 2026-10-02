@@ -6,7 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from longwar.agents.ismcts_agent import ISMCTSAgent
+from longwar.agents.ismcts_agent import (
+    DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
+    ISMCTSAgent,
+)
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Pass, Position, Rank
@@ -203,6 +206,13 @@ def test_ismcts_rollout_policies_return_legal_action(policy: str) -> None:
     )
     assert agent.choose(engine, state) in legal
     assert agent.last_decision["ismcts_rollout_policy"] == policy
+
+
+def test_canonical_ismcts_has_next_battle_rollout_horizon() -> None:
+    engine, _deck, _priors = setup()
+    agent = ISMCTSAgent(engine, 8154, iterations=10, belief_samples=1)
+    assert agent.post_battle_rollout_depth == DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH
+    assert agent.post_battle_rollout_depth > 0
 
 
 def test_ismcts_root_guard_allows_legal_midbattle_zero_command_play() -> None:
