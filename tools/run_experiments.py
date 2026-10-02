@@ -2131,6 +2131,11 @@ def _summarize_tournament_pair(
 
 def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     """Equal-time mirrored ISMCTS parameter tournament on all reference decks."""
+    if args.list_profiles:
+        for name, profile in ISMCTS_TOURNAMENT_PROFILES.items():
+            print(f"{name}: {json.dumps(profile, sort_keys=True)}")
+        return Path(".")
+
     require_cython()
     if args.games <= 0 or args.repeats <= 0 or args.jobs <= 0:
         raise SystemExit("--games, --repeats and --jobs must be positive")
@@ -2139,12 +2144,14 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     if args.iterations <= 0:
         raise SystemExit("--iterations must be positive")
 
-    if args.list_profiles:
-        for name, profile in ISMCTS_TOURNAMENT_PROFILES.items():
-            print(f"{name}: {json.dumps(profile, sort_keys=True)}")
-        return Path(".")
-
-    selected = list(dict.fromkeys(args.profiles))
+    if args.profiles is None:
+        if args.stage == "round-robin":
+            raise SystemExit(
+                "Round-robin requires an explicit --profiles finalist list"
+            )
+        selected = list(ISMCTS_TOURNAMENT_PROFILES)
+    else:
+        selected = list(dict.fromkeys(args.profiles))
     unknown = [
         name for name in selected
         if name not in ISMCTS_TOURNAMENT_PROFILES
@@ -4451,6 +4458,8 @@ def main() -> None:
         validate()
     elif args.command == "ismcts-speed":
         benchmark_ismcts_speed(args)
+    elif args.command == "ismcts-tournament":
+        ismcts_tournament_run(args)
     elif args.command == "strength-bench":
         benchmark_strength(
             games_per_orientation=args.games,
