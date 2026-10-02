@@ -515,17 +515,16 @@ cdef uint64_t _ismcts_rollout_action(
             < DECISIVE_ROLLOUT_GREEDY_PROBABILITY
         )
 
-        # Keep only the cheap exact tactical case: an unsignalled player can
-        # sometimes end the Battle immediately by supplying the second signal.
-        # Closing-window lookahead belongs in the MCTS tree. Running candidate
-        # or reply searches inside a rollout duplicated tree search, produced
-        # no tactical hits in the fixed Pass-active benchmark, and reduced
-        # throughput substantially.
-        if (
-            not use_greedy
-            and state.pass_len == 1
-            and not state.passed[actor]
-        ):
+        # Canonical permanent Pass gives the unsignalled player an exact
+        # Battle-closing action. A rollout must actually use that strategic
+        # boundary when it is safe; otherwise the default random policy can
+        # wander through repeatable zero-cost operations forever and never
+        # teach the tree what recovery and the next Battle look like.
+        #
+        # The MCTS tree still explores non-Pass responses before closing. This
+        # is only the default policy beyond the expanded tree. If closing the
+        # Battle loses the war immediately, keep searching for a saving move.
+        if state.pass_len == 1 and not state.passed[actor]:
             for pick in range(safe_n):
                 i = safe_indices[pick]
                 if action_kind(actions[i]) != TYPE_PASS:
@@ -534,16 +533,22 @@ cdef uint64_t _ismcts_rollout_action(
                 score_scratch.copy_from_fast(state)
                 _fe_apply_fast(engine, score_scratch, actions[i])
                 if (
-                    score_scratch.phase == PHASE_COMPLETE
-                    and score_scratch.winner == actor
+                    (
+                        score_scratch.phase == PHASE_COMPLETE
+                        and score_scratch.winner == actor
+                    )
+                    or (
+                        score_scratch.phase != PHASE_COMPLETE
+                        and score_scratch.battle != state.battle
+                    )
                 ):
                     decisive_actions[0] += 1
                     return actions[i]
                 break
 
-        # Ninety-five percent of decisive rollouts remain random after the
-        # exact second-signal check. The five-percent greedy branch falls
-        # through to the normal exact candidate scoring below.
+        # Outside a safe Battle close, ninety-five percent of decisive
+        # rollouts remain random. The five-percent greedy branch falls through
+        # to normal exact candidate scoring below.
         if not use_greedy:
             pick = safe_indices[_ismcts_rand_index(rng, safe_n)]
             return actions[pick]
