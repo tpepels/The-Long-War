@@ -19,6 +19,8 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_ROLLOUT_POLICY,
     DEFAULT_ISMCTS_LEAF_SCALE,
+    DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
+    DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
     ISMCTSAgent,
 )
 from longwar.simulate import DEFAULT_WORKERS, make_agent, simulate_games
