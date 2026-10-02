@@ -130,6 +130,14 @@ def test_runtime_and_search_do_not_special_case_card_ids() -> None:
         assert not leaked, f"{path} special-cases cards: {leaked}"
 
 
+def test_retired_pass_variants_are_absent_from_live_rules_and_state() -> None:
+    from longwar.game.model import GameState
+
+    assert "pass_signal_costs_operation" not in GameRules.__dataclass_fields__
+    assert "pass_closing_rounds" not in GameRules.__dataclass_fields__
+    assert "pass_closing_turns_remaining" not in GameState.__dataclass_fields__
+
+
 def test_rules_are_values_not_named_experiment_profiles() -> None:
     for name in (
         "profile_names",
@@ -782,7 +790,6 @@ def test_command_guard_has_one_native_implementation() -> None:
 
     source = inspect.getsource(command_preserving_actions)
     assert "command_preserving_action_codes" in source
-    assert "pass_closing_turns_remaining" not in source
     assert "isinstance(action, Pass)" not in source
 
 
