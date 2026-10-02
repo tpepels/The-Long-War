@@ -6,9 +6,15 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
 
 
-def test_github_actions_use_one_pages_workflow() -> None:
+def test_github_actions_separate_code_checks_from_pages_deploy() -> None:
     workflows = sorted(path.name for path in WORKFLOWS.glob("*.yml"))
-    assert workflows == ["pages.yml"]
+    assert workflows == ["ci.yml", "pages.yml"]
+
+    ci = (WORKFLOWS / "ci.yml").read_text(encoding="utf-8")
+    assert "name: Code checks" in ci
+    assert "pull_request:" in ci
+    assert "make test-fast" in ci
+    assert "actions/deploy-pages" not in ci
 
     content = (WORKFLOWS / "pages.yml").read_text(encoding="utf-8")
     assert "workflow_dispatch:" in content
