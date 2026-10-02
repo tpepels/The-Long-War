@@ -4962,7 +4962,7 @@ def parse_args() -> argparse.Namespace:
     strength.add_argument(
         "--iterations",
         type=int,
-        default=DEFAULT_ISMCTS_ITERATIONS,
+        default=20_000_000,
         help=(
             "Nominal ISMCTS budget; with a wall-clock budget normal agent "
             "semantics keep time as the primary stopping condition."
