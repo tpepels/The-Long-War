@@ -2479,6 +2479,7 @@ def pass_variant_run(
                 "ismcts_iterations": args.ismcts_iterations,
                 "ismcts_belief_samples": args.ismcts_belief_samples,
                 "ismcts_rollout_depth": args.ismcts_rollout_depth,
+                "ismcts_post_battle_rollout_depth": args.ismcts_post_battle_rollout_depth,
                 "ismcts_rollout_policy": args.ismcts_rollout_policy,
                 "rules": rules.as_dict(),
             }
@@ -3410,6 +3411,12 @@ def parse_args() -> argparse.Namespace:
             "Rollout plies after tree expansion. Twelve leaves room for the "
             "full 3-round closing window plus intermediate effect choices."
         ),
+    )
+    pass_variants.add_argument(
+        "--ismcts-post-battle-rollout-depth",
+        type=int,
+        default=DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
+        help="Completed turns to continue after entering the next Battle.",
     )
     pass_variants.add_argument(
         "--ismcts-rollout-policy",
