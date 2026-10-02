@@ -2332,7 +2332,7 @@ def pass_variant_run(
     selected = tuple(args.variants)
     unknown = [name for name in selected if name not in variant_catalog]
     if unknown:
-        raise SystemExit(f"Unknown Pass variants: {unknown}")
+        raise SystemExit(f"Unknown {experiment_name} variants: {unknown}")
 
     # Worker count is deliberately execution-only. Changing it after an
     # interrupted run must not change the evidence identity or prevent resume.
@@ -2616,6 +2616,25 @@ def pass_variant_run(
             )
             for progression in progression_rows
         )
+        collapse_bucket_keys = sorted({
+            key
+            for progression in progression_rows
+            for key in progression.get("resources", {}).get(
+                "command_before_collapse_buckets", {}
+            )
+        })
+        command_before_collapse_buckets = {
+            key: sum(
+                int(
+                    progression.get("resources", {}).get(
+                        "command_before_collapse_buckets", {}
+                    ).get(key, 0)
+                    or 0
+                )
+                for progression in progression_rows
+            )
+            for key in collapse_bucket_keys
+        }
         command_signal_weight = sum(
             (
                 float(row["mean_command_at_signal"])
@@ -2636,6 +2655,10 @@ def pass_variant_run(
         row = {
             "variant": name,
             "rules": rules.as_dict(),
+            "recovery_series": [
+                rules.command_recovery_for_battle(battle)
+                for battle in range(1, 9)
+            ],
             "games": total_games,
             "decisive_games": decisive,
             "draws": draws,
@@ -2685,6 +2708,7 @@ def pass_variant_run(
             "battle_reach": battle_reach,
             "simultaneous_collapse_terminations": simultaneous_collapse_terminations,
             "unequal_collapse_terminations": unequal_collapse_terminations,
+            "command_before_collapse_buckets": command_before_collapse_buckets,
             "signal_events": signals,
             "forced_yield_events": forced_yields,
             "free_signal_events": free_signals,
@@ -3333,7 +3357,10 @@ def parse_args() -> argparse.Namespace:
 
     pass_variants = sub.add_parser(
         "pass-variants",
-        help="Compare current Battle-ending Pass/flag variants on paired seeds.",
+        help=(
+            "Research-only comparison of legacy Battle-ending alternatives; "
+            "permanent Pass is canonical."
+        ),
     )
     pass_variants.add_argument(
         "--games",
