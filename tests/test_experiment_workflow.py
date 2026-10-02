@@ -138,6 +138,36 @@ def test_ismcts_exploration_default_is_shared():
     assert inspect.signature(ISMCTSAgent).parameters["leaf_scale"].default == DEFAULT_ISMCTS_LEAF_SCALE
     assert inspect.signature(make_agent).parameters["ismcts_leaf_scale"].default == DEFAULT_ISMCTS_LEAF_SCALE
     assert inspect.signature(simulate_games).parameters["ismcts_leaf_scale"].default == DEFAULT_ISMCTS_LEAF_SCALE
+    assert (
+        inspect.signature(ISMCTSAgent)
+        .parameters["progressive_widening_alpha"].default
+        == DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA
+    )
+    assert (
+        inspect.signature(make_agent)
+        .parameters["ismcts_progressive_widening_alpha"].default
+        == DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA
+    )
+    assert (
+        inspect.signature(simulate_games)
+        .parameters["ismcts_progressive_widening_alpha"].default
+        == DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA
+    )
+    assert (
+        inspect.signature(ISMCTSAgent)
+        .parameters["decisive_greedy_probability"].default
+        == DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY
+    )
+    assert (
+        inspect.signature(make_agent)
+        .parameters["ismcts_decisive_greedy_probability"].default
+        == DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY
+    )
+    assert (
+        inspect.signature(simulate_games)
+        .parameters["ismcts_decisive_greedy_probability"].default
+        == DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY
+    )
 
 
 def test_ismcts_rollout_policy_default_is_shared():
@@ -371,7 +401,9 @@ def test_ismcts_tournament_catalog_covers_material_search_dimensions() -> None:
 
     assert baseline["ismcts_exploration"] == pytest.approx(0.3)
     assert baseline["ismcts_leaf_scale"] == pytest.approx(100.0)
-    assert len(catalog) >= 30
+    assert baseline["ismcts_progressive_widening_alpha"] == pytest.approx(0.5)
+    assert baseline["ismcts_decisive_greedy_probability"] == pytest.approx(0.05)
+    assert len(catalog) >= 65
 
     families = {entry["family"] for entry in catalog.values()}
     assert families == {
@@ -389,27 +421,62 @@ def test_ismcts_tournament_catalog_covers_material_search_dimensions() -> None:
         for entry in catalog.values()
         if "ismcts_exploration" in entry["overrides"]
     }
-    assert {0.0, 0.1, 0.2, 0.45, 0.7, 1.0, 1.4} <= uct_values
+    assert {0.0, 0.1, 0.2, 0.45, 0.7, 1.0, 2 ** 0.5, 2.0} <= uct_values
+
     assert any(
         entry["overrides"].get("ismcts_post_battle_rollout_depth") == 0
         for entry in catalog.values()
     )
     assert any(
-        entry["overrides"].get("ismcts_post_battle_rollout_depth") == 12
+        entry["overrides"].get("ismcts_post_battle_rollout_depth") == 16
+        for entry in catalog.values()
+    )
+    assert any(
+        entry["overrides"].get("ismcts_belief_samples") == 1
+        for entry in catalog.values()
+    )
+    assert any(
+        entry["overrides"].get("ismcts_belief_samples") == 96
         for entry in catalog.values()
     )
     assert any(
         entry["overrides"].get("ismcts_progressive_widening") == 4.0
+        and entry["overrides"].get("ismcts_progressive_widening_alpha") == 0.5
         for entry in catalog.values()
     )
     assert any(
-        entry["overrides"].get("ismcts_leaf_scale") == 50.0
+        entry["overrides"].get("ismcts_progressive_widening") == 1.0
+        and entry["overrides"].get("ismcts_progressive_widening_alpha") == 1.0
         for entry in catalog.values()
     )
     assert any(
-        entry["overrides"].get("ismcts_leaf_scale") == 200.0
+        entry["overrides"].get("ismcts_leaf_scale") == 10.0
         for entry in catalog.values()
     )
+    assert any(
+        entry["overrides"].get("ismcts_leaf_scale") == 1000.0
+        for entry in catalog.values()
+    )
+    assert any(
+        entry["overrides"].get("ismcts_decisive_greedy_probability") == 1.0
+        for entry in catalog.values()
+    )
+
+    # Epsilon-only candidates under decisive are a no-op and must never
+    # consume tournament compute.
+    for entry in catalog.values():
+        overrides = entry["overrides"]
+        if "ismcts_rollout_epsilon" in overrides:
+            assert overrides.get("ismcts_rollout_policy") in {"greedy", "cheap"}
+
+    # Catalog construction itself rejects duplicates/no-op lanes. Double-check
+    # the resulting effective configurations here as a regression.
+    encoded = []
+    for entry in catalog.values():
+        effective = dict(baseline)
+        effective.update(entry["overrides"])
+        encoded.append(json.dumps(effective, sort_keys=True))
+    assert len(encoded) == len(set(encoded))
 
 
 def test_ismcts_tournament_defaults_are_serious_and_independent(monkeypatch) -> None:
@@ -461,14 +528,60 @@ def test_paired_seat_swap_interval_keeps_mirrored_deals_together() -> None:
     assert result["score_rate"] == pytest.approx(0.5)
 
 
+def test_paired_seat_swap_interval_counts_real_draws_as_half_points() -> None:
+    outcomes = {
+        "mobility": {
+            "a-first": [
+                {"seed": 10, "winner": None, "censored": False},
+            ],
+            "b-first": [
+                {"seed": 10, "winner": None, "censored": False},
+            ],
+        }
+    }
+    result = runner.paired_seat_swap_interval(
+        outcomes,
+        bootstrap_resamples=50,
+    )
+    assert result["independent_deals"] == 1
+    assert result["censored_pairs"] == 0
+    assert result["score_rate"] == pytest.approx(0.5)
+
+
 def test_tournament_pair_uses_per_seat_overrides_and_stable_rng_roles() -> None:
     source = inspect.getsource(runner._run_ismcts_tournament_pair)
     assert '"--agent-a-options-json"' in source
     assert '"--agent-b-options-json"' in source
-    assert "(11, 22)" in source
-    assert "(22, 11)" in source
+    assert "_tournament_profile_seed_offset(label_a)" in source
+    assert "_tournament_profile_seed_offset(label_b)" in source
     assert '"--ismcts-time-budget-seconds"' in source
     assert "_tournament_cell_is_complete" in source
+
+    baseline = runner._tournament_profile_seed_offset("baseline")
+    candidate = runner._tournament_profile_seed_offset("beliefs-24")
+    assert baseline == runner._tournament_profile_seed_offset("baseline")
+    assert candidate == runner._tournament_profile_seed_offset("beliefs-24")
+    assert baseline != candidate
+
+
+def test_simulation_cli_exposes_complete_ismcts_tuning_surface() -> None:
+    source = (ROOT / "tools" / "simulate.py").read_text(encoding="utf-8")
+    for option in (
+        "--ismcts-belief-samples",
+        "--ismcts-rollout-depth",
+        "--ismcts-post-battle-rollout-depth",
+        "--ismcts-tree-depth-limit",
+        "--ismcts-exploration",
+        "--ismcts-progressive-widening",
+        "--ismcts-progressive-widening-alpha",
+        "--ismcts-no-tree-reuse",
+        "--ismcts-max-tree-nodes",
+        "--ismcts-rollout-epsilon",
+        "--ismcts-rollout-policy",
+        "--ismcts-decisive-greedy-probability",
+        "--ismcts-leaf-scale",
+    ):
+        assert option in source
 
 
 def test_strength_benchmark_reports_live_progress():
