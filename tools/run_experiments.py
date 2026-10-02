@@ -2266,25 +2266,6 @@ def narrative_ablation_run(args: argparse.Namespace) -> Path:
 
 
 
-PASS_RULE_VARIANTS: dict[str, dict[str, object]] = {
-    "permanent": {
-        "pass_signal_costs_operation": True,
-        "pass_closing_rounds": 0,
-    },
-    "closing-2": {
-        "pass_signal_costs_operation": True,
-        "pass_closing_rounds": 2,
-    },
-    "closing-3": {
-        "pass_signal_costs_operation": True,
-        "pass_closing_rounds": 3,
-    },
-    "battle-flag": {
-        "pass_signal_costs_operation": False,
-        "pass_closing_rounds": 0,
-    },
-}
-
 # Permanent Pass is canonical. This sweep changes only the arithmetic recovery
 # curve so Battle-ending semantics, Collapse, decks, seeds and search remain fixed.
 RECOVERY_RULE_VARIANTS: dict[str, dict[str, object]] = {
@@ -2307,13 +2288,10 @@ RECOVERY_RULE_VARIANTS: dict[str, dict[str, object]] = {
 }
 
 
-def pass_variant_run(
-    args: argparse.Namespace,
-    *,
-    variant_catalog: dict[str, dict[str, object]] = PASS_RULE_VARIANTS,
-    experiment_name: str = "pass-variants",
-) -> Path:
-    """Paired rule experiment with resumable per-deck checkpoints."""
+def recovery_variant_run(args: argparse.Namespace) -> Path:
+    """Compare recovery curves with canonical rules held fixed."""
+    variant_catalog = RECOVERY_RULE_VARIANTS
+    experiment_name = "recovery-variants"
     from statistics import median
 
     from longwar.simulate import simulate_games
@@ -2447,12 +2425,6 @@ def pass_variant_run(
             ),
             "decisive_rollout_actions": int(
                 tactics.get("decisive_actions", 0) or 0
-            ),
-            "anti_decisive_rollout_probes": int(
-                tactics.get("anti_decisive_probes", 0) or 0
-            ),
-            "anti_decisive_rollout_filtered": int(
-                tactics.get("anti_decisive_filtered", 0) or 0
             ),
         }
 
@@ -2745,12 +2717,6 @@ def pass_variant_run(
             "decisive_rollout_actions": sum(
                 row["decisive_rollout_actions"] for row in aggregate
             ),
-            "anti_decisive_rollout_probes": sum(
-                row["anti_decisive_rollout_probes"] for row in aggregate
-            ),
-            "anti_decisive_rollout_filtered": sum(
-                row["anti_decisive_rollout_filtered"] for row in aggregate
-            ),
             "decks": per_deck,
         }
         rows.append(row)
@@ -2788,15 +2754,6 @@ def pass_variant_run(
     return path
 
 
-def recovery_variant_run(args: argparse.Namespace) -> Path:
-    """Compare recovery curves with canonical permanent Pass held fixed."""
-    return pass_variant_run(
-        args,
-        variant_catalog=RECOVERY_RULE_VARIANTS,
-        experiment_name="recovery-variants",
-    )
-
-
 def _prepare_ismcts_speed_position(
     engine: GameEngine,
     state,
@@ -2827,13 +2784,6 @@ def _prepare_ismcts_speed_position(
                 or sum(player.passed for player in state.players) != 1
             ):
                 raise RuntimeError("failed to create one-signal benchmark state")
-            if (
-                engine.rules.pass_closing_rounds > 0
-                and state.pass_closing_turns_remaining <= 0
-            ):
-                raise RuntimeError(
-                    "closing-window benchmark did not start its countdown"
-                )
             return
 
         action = next(
@@ -2849,10 +2799,7 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
     """Benchmark one fixed ISMCTS decision with the exact simulation deck prior."""
     require_cython()
     data = load_card_file(ROOT / "cards" / "cards.json")
-    rules = GameRules.standard().with_overrides(
-        pass_closing_rounds=args.closing_rounds,
-    )
-    engine = GameEngine(data, rules=rules)
+    engine = GameEngine(data, rules=GameRules.standard())
     deck = list(
         json.loads(
             (ROOT / args.deck).read_text(encoding="utf-8")
@@ -2936,18 +2883,6 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                             )
                             or 0
                         ),
-                        "anti_decisive_probes": int(
-                            decision.get(
-                                "ismcts_anti_decisive_rollout_probes", 0
-                            )
-                            or 0
-                        ),
-                        "anti_decisive_filtered": int(
-                            decision.get(
-                                "ismcts_anti_decisive_rollout_filtered", 0
-                            )
-                            or 0
-                        ),
                         "stopped_terminal": int(
                             decision.get(
                                 "ismcts_rollouts_stopped_terminal", 0
@@ -2986,28 +2921,17 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                     "samples": samples,
                 }
                 rows.append(row)
-                mean_anti_probes = sum(
-                    sample["anti_decisive_probes"] for sample in samples
-                ) / len(samples)
                 mean_rollout_actions = sum(
                     sample["rollout_actions"] for sample in samples
                 ) / len(samples)
                 mean_completed = sum(
                     sample["completed_iterations"] for sample in samples
                 ) / len(samples)
-                probes_per_iteration = (
-                    mean_anti_probes / mean_completed
-                    if mean_completed > 0
-                    else 0.0
-                )
                 mean_decisive_probes = sum(
                     sample["decisive_probes"] for sample in samples
                 ) / len(samples)
                 mean_decisive_actions = sum(
                     sample["decisive_actions"] for sample in samples
-                ) / len(samples)
-                mean_anti_filtered = sum(
-                    sample["anti_decisive_filtered"] for sample in samples
                 ) / len(samples)
                 decisive_probes_per_iteration = (
                     mean_decisive_probes / mean_completed
@@ -3017,11 +2941,6 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                 decisive_hit_rate = (
                     mean_decisive_actions / mean_decisive_probes
                     if mean_decisive_probes > 0
-                    else 0.0
-                )
-                anti_filter_rate = (
-                    mean_anti_filtered / mean_anti_probes
-                    if mean_anti_probes > 0
                     else 0.0
                 )
                 rollout_actions_per_iteration = (
@@ -3044,16 +2963,13 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
                     f"rollout-actions/iter={rollout_actions_per_iteration:.2f} | "
                     f"boundary={boundary_stop_rate:.1%} | "
                     f"win-probes/iter={decisive_probes_per_iteration:.2f} "
-                    f"(hit {decisive_hit_rate:.1%}) | "
-                    f"anti-probes/iter={probes_per_iteration:.2f} "
-                    f"(filter {anti_filter_rate:.1%})",
+                    f"(hit {decisive_hit_rate:.1%})",
                     flush=True,
                 )
 
     benchmark_config = {
         "benchmark": "ismcts-fixed-position",
         "position": args.position,
-        "closing_rounds": args.closing_rounds,
         "deck": str(args.deck),
         "seed": args.seed,
         "iterations": list(args.iterations),
@@ -3093,18 +3009,13 @@ def benchmark_ismcts_workers(args: argparse.Namespace) -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck_path = ROOT / args.deck
     deck = json.loads(deck_path.read_text(encoding="utf-8"))["cards"]
-    rules = GameRules.standard().with_overrides(
-        pass_signal_costs_operation=True,
-        pass_closing_rounds=args.closing_rounds,
-    )
-    engine = GameEngine(data, rules=rules)
+    engine = GameEngine(data, rules=GameRules.standard())
 
     print(
         "ISMCTS worker scaling: "
         f"{args.games} fixed games, {args.ismcts_iterations:,} iterations, "
         f"{args.ismcts_belief_samples} beliefs, depth "
-        f"{args.ismcts_rollout_depth}, {args.ismcts_rollout_policy}, "
-        f"closing-{args.closing_rounds}",
+        f"{args.ismcts_rollout_depth}, {args.ismcts_rollout_policy}",
         flush=True,
     )
 
@@ -3375,79 +3286,6 @@ def parse_args() -> argparse.Namespace:
         ),
     )
 
-    pass_variants = sub.add_parser(
-        "pass-variants",
-        help=(
-            "Research-only comparison of legacy Battle-ending alternatives; "
-            "permanent Pass is canonical."
-        ),
-    )
-    pass_variants.add_argument(
-        "--games",
-        type=int,
-        default=8,
-        help="Games per canonical mirror deck and variant (default: 8).",
-    )
-    pass_variants.add_argument(
-        "--jobs",
-        type=int,
-        default=DEFAULT_WORKERS,
-        help=f"Parallel game workers (default: {DEFAULT_WORKERS}).",
-    )
-    pass_variants.add_argument("--seed", type=int, default=26100100)
-    pass_variants.add_argument(
-        "--agent",
-        choices=("heuristic", "ismcts"),
-        default="ismcts",
-    )
-    pass_variants.add_argument(
-        "--ismcts-iterations",
-        type=int,
-        default=50_000,
-        help="ISMCTS iterations per decision; 50,000 is the evidence floor.",
-    )
-    pass_variants.add_argument(
-        "--ismcts-belief-samples",
-        type=int,
-        default=12,
-    )
-    pass_variants.add_argument(
-        "--ismcts-rollout-depth",
-        type=int,
-        default=12,
-        help=(
-            "Rollout plies after tree expansion. Twelve leaves room for the "
-            "full 3-round closing window plus intermediate effect choices."
-        ),
-    )
-    pass_variants.add_argument(
-        "--ismcts-post-battle-rollout-depth",
-        type=int,
-        default=DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
-        help="Completed turns to continue after entering the next Battle.",
-    )
-    pass_variants.add_argument(
-        "--ismcts-rollout-policy",
-        choices=("greedy", "cheap", "random", "decisive"),
-        default="decisive",
-    )
-    pass_variants.add_argument(
-        "--allow-smoke",
-        action="store_true",
-        help="Permit sub-50k ISMCTS budgets for plumbing only.",
-    )
-    pass_variants.add_argument(
-        "--force",
-        action="store_true",
-        help="Ignore compatible per-deck checkpoints and rerun every cell.",
-    )
-    pass_variants.add_argument(
-        "--variants",
-        nargs="+",
-        default=list(PASS_RULE_VARIANTS),
-        choices=tuple(PASS_RULE_VARIANTS),
-    )
-
     recovery_variants = sub.add_parser(
         "recovery-variants",
         help=(
@@ -3568,12 +3406,6 @@ def parse_args() -> argparse.Namespace:
         default="pass-active",
     )
     speed.add_argument(
-        "--closing-rounds",
-        type=int,
-        default=0,
-        help="Research override; canonical permanent Pass has no closing window.",
-    )
-    speed.add_argument(
         "--deck",
         type=Path,
         default=Path(DEFAULT_DECK_PATH),
@@ -3598,12 +3430,6 @@ def parse_args() -> argparse.Namespace:
         "--deck",
         type=Path,
         default=Path(DEFAULT_DECK_PATH),
-    )
-    workers.add_argument(
-        "--closing-rounds",
-        type=int,
-        default=0,
-        help="Research override; canonical permanent Pass has no closing window.",
     )
     workers.add_argument("--ismcts-iterations", type=int, default=20_000)
     workers.add_argument("--ismcts-belief-samples", type=int, default=12)
@@ -3665,8 +3491,6 @@ def main() -> None:
             run_command_matrix(args)
         else:
             balance_run(args)
-    elif args.command == "pass-variants":
-        pass_variant_run(args)
     elif args.command == "recovery-variants":
         recovery_variant_run(args)
     elif args.command == "narrative-ablation":
