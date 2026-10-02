@@ -882,11 +882,7 @@ cdef class NativeHeuristicEvaluator:
         ):
             return True
 
-        # Research-only closing-window override.
-        return (
-            self.engine.pass_closing_rounds > 0
-            and state.pass_closing_turns_remaining == 1
-        )
+        return False
 
     cdef bint action_exhausts_command_fast(
         self,
