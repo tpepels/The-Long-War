@@ -181,26 +181,25 @@ You cannot normally Maneuver between Battles or change rank with a Maneuver.
 
 ## Passing {#passing}
 
-To **Pass** is to spend 0 Command and take no other operation.
+To **Pass** is to spend 0 Command and use your operation without playing a card or Maneuvering.
 
-Normally, you cannot Pass until both players have completed at least **{{PASS_MIN_OPERATIONS_BEFORE_SIGNAL}} operation(s)** in the Battle. If you have no other legal operation, you may Pass.
+Before anyone has Passed, you normally cannot Pass until both players have completed at least **{{PASS_MIN_OPERATIONS_BEFORE_SIGNAL}} operation(s)** in the Battle. If you have no other legal operation, you may Pass even if that minimum has not yet been reached.
 
-Your first Pass becomes your **active Pass** for that Battle. It remains active even if you later play a card or Maneuver.
+Your first Pass becomes your **active Pass** for that Battle. It is permanent for the rest of the Battle: playing a card or Maneuvering later does **not** withdraw, replace, or clear it.
 
-The opponent takes a normal turn, and both players continue taking normal turns until the other player also Passes.
+Once the first active Pass exists, the Pass gate is open. The other player may Pass on any later turn, even if the normal opening minimum would not otherwise have been reached.
 
-If you Pass again while your Pass is already active, it simply uses that operation; it does not create another Pass or replace the first one.
+The first Pass does not start a countdown. The opponent takes a normal turn, and play can continue for any number of turns. As soon as the other player also Passes for the first time, both players have an active Pass and the Battle ends immediately.
 
-As soon as both players have an active Pass, the Battle ends immediately.
+After you already have an active Pass, Pass is no longer a normal voluntary choice while another legal operation is available. If you later have no legal normal operation, you simply yield that operation; your original active Pass remains unchanged.
 
 A Battle therefore ends when **both players have Passed at least once**.
 
 ![Passing remains active: after your first Pass, both players keep taking turns, and the Battle ends as soon as both players have an active Pass.](assets/rulebook-passing.png)
 
+> **REMEMBER** Your first Pass uses your operation and stays active. Later actions do not cancel it, and there is no automatic countdown after it.
 
-> **REMEMBER** Your first Pass uses your operation and stays active. Playing cards or Maneuvering later does not clear it.
-
-The player who **Passed first** starts the next Battle.
+If the war survives Battle resolution and Command Collapse, the player who **Passed first** starts the next Battle.
 
 ## Resolving the four Fronts {#scoring}
 
@@ -286,9 +285,13 @@ Base recovery starts at **{{RECOVERY_START}}** in Battle I and falls by **{{RECO
 
 **{{RECOVERY_SERIES_PLAIN}}**
 
+That is the base curve. Because a continuing war has a recovery floor of **{{RECOVERY_FLOOR}}**, the effective recovery before applying the Command cap is:
+
+**{{EFFECTIVE_RECOVERY_SERIES_PLAIN}}**
+
 After Battle-end effects, lose **{{LOST_FRONT_COMMAND_PENALTY}} Command for each Front you lost** in that Battle. If a card protects a Front from this loss, do not pay that Front's penalty. Apply the remaining loss in full, even if it takes Command below 0. This reduces current Command; it does **not** reduce recovery a second time.
 
-If the war continues, recover the base amount above. Your recovery is never less than **{{RECOVERY_FLOOR}}**, and Command never rises above {{COMMAND_CAP}}.
+Only if neither player has collapsed does recovery happen. Each surviving player recovers the effective amount above, and Command never rises above {{COMMAND_CAP}}.
 
 > **EXAMPLE** If you end a Battle on 3 Command after losing two Fronts, subtract the configured lost-Front penalty twice before the Collapse check. If you survive, you then receive that Battle's normal recovery.
 
@@ -298,10 +301,11 @@ The recovery numbers above are generated from the same rules configuration used 
 
 The check that can end the war is called **Command Collapse**. It happens after Front resolution, cleanup, Retreats, relevant Battle-end effects, and Front-loss Command attrition, but **before Command recovery**.
 
-- If either player is at or below **{{COLLAPSE_THRESHOLD}} Command**, compare their current Command, including any amount below 0.
+- First apply every unprotected lost-Front Command penalty in full. Do **not** clamp negative Command back to 0.
+- If either player is at or below **{{COLLAPSE_THRESHOLD}} Command**, compare both players' current signed Command.
 - The player with lower Command loses the war.
 - If both players are at or below **{{COLLAPSE_THRESHOLD}} Command** with equal Command, the player who **Passed first** loses the war.
-- Only a continuing war receives Command recovery.
+- If neither player collapses, and only then, both players recover Command.
 
 ![Command Collapse using the d20 Command tracker: Command is spent across the war, lost Fronts reduce it before Collapse, and recovery happens only if the war continues.](assets/rulebook-command-collapse.png)
 
@@ -373,6 +377,8 @@ These are the rules most worth checking during a first game:
 
 - **Draw first**, then take exactly one operation.
 - Once you **Pass**, it remains active for the rest of that Battle, even if you later act.
+- The first Pass opens Pass for the opponent; it starts **no countdown**.
+- If you already Passed, you cannot voluntarily Pass again while another normal operation is legal.
 - Only **Force + Bond + Name** persists normally from one Battle to the next.
 - A Maneuver goes **one Front sideways in the same rank**.
 - On a lost Front, **drive off the Rear first**, then Retreat the Frontline formation.

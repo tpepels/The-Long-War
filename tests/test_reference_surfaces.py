@@ -84,6 +84,13 @@ def test_rulebook_core_values_match_standard_engine() -> None:
     )
     assert f"It costs **{standard.maneuver_command_cost} Command**." in rules_text
     assert "**both players have Passed at least once**" in rules_text
+    assert "Once the first active Pass exists, the Pass gate is open." in rules_text
+    assert "The first Pass does not start a countdown." in rules_text
+    assert (
+        "Pass is no longer a normal voluntary choice while another legal "
+        "operation is available."
+        in rules_text
+    )
     assert (
         f"at or below **{standard.command_collapse_threshold} Command**"
         in rules_text
@@ -105,6 +112,18 @@ def test_rulebook_core_values_match_standard_engine() -> None:
         for battle in range(1, 6)
     ) + "..."
     assert f"**{recovery_series}**" in rules_text
+
+    effective_recovery_series = ", ".join(
+        str(
+            max(
+                standard.command_recovery_floor,
+                standard.command_recovery_for_battle(battle),
+            )
+        )
+        for battle in range(1, 7)
+    ) + "..."
+    assert f"**{effective_recovery_series}**" in rules_text
+    assert "Do **not** clamp negative Command back to 0." in rules_text
 
 
 def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
