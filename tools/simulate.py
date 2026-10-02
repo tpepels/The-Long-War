@@ -13,6 +13,7 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_MAX_TREE_NODES,
     DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+    DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     DEFAULT_ISMCTS_ROLLOUT_POLICY,
 )
@@ -132,6 +133,12 @@ def main() -> None:
         help="Optional wall-clock budget per non-forced ISMCTS decision.",
     )
     parser.add_argument("--ismcts-rollout-depth", type=int, default=DEFAULT_ISMCTS_ROLLOUT_DEPTH)
+    parser.add_argument(
+        "--ismcts-post-battle-rollout-depth",
+        type=int,
+        default=DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
+        help="Completed turns to simulate after reaching the next Battle.",
+    )
     parser.add_argument("--ismcts-tree-depth-limit", type=int, default=96)
     parser.add_argument("--ismcts-exploration", type=float, default=DEFAULT_ISMCTS_EXPLORATION)
     parser.add_argument(
@@ -291,6 +298,7 @@ def main() -> None:
         ismcts_iterations=args.ismcts_iterations,
         ismcts_time_budget_seconds=args.ismcts_time_budget_seconds,
         ismcts_rollout_depth=args.ismcts_rollout_depth,
+        ismcts_post_battle_rollout_depth=args.ismcts_post_battle_rollout_depth,
         ismcts_tree_depth_limit=args.ismcts_tree_depth_limit,
         ismcts_exploration=args.ismcts_exploration,
         ismcts_progressive_widening=args.ismcts_progressive_widening,
