@@ -351,13 +351,12 @@ cdef class NativeHeuristicEvaluator:
             state.phase == PHASE_BATTLE
             and state.passed[player] != state.passed[opponent]
         ):
-            # A first signal gives the unsignalled opponent an immediate option
-            # to end the Battle by signalling too. That option is equally real
-            # in permanent-Pass and fixed closing-window variants; the automatic
-            # deadline being farther away does not make the opponent's immediate
-            # closing leverage weaker. Keep post-signal exposure and incomplete
-            # formation liability at full strength and let search model the
-            # countdown itself through exact transitions.
+            # Under canonical permanent Pass, the first Pass gives the
+            # unsignalled opponent a standing option to end the Battle with
+            # their own Pass. Keep that exposure and incomplete-formation
+            # liability at full strength. Research closing-window overrides
+            # use the same immediate closing leverage; exact search handles
+            # their countdown rather than weakening this pressure heuristically.
             if state.passed[player]:
                 # The opponent is the responder. Build one shared public-state
                 # value from the old passer-risk and responder-option terms,
@@ -861,9 +860,8 @@ cdef class NativeHeuristicEvaluator:
         if child.phase != PHASE_BATTLE or child.battle != state.battle:
             return self.battle_boundary_evaluate_fast(child, player)
 
-        # Otherwise evaluate the actual post-signal state. This also handles
-        # the experimental free flag, which deliberately leaves the same
-        # player on turn until they take their normal operation.
+        # Otherwise evaluate the actual canonical post-Pass state. Research
+        # free-signal overrides are still handled by the same exact transition.
         return self.evaluate_fast(child, player)
 
     cdef bint action_needs_command_guard_probe_fast(
@@ -874,12 +872,20 @@ cdef class NativeHeuristicEvaluator:
     ) noexcept:
         """Whether this operation can actually reach a Battle-end Collapse."""
         cdef int kind = action_kind(action)
-        if state.pass_closing_turns_remaining == 1:
-            return True
-        return (
+
+        # Canonical permanent Pass: only the unsignalled player's Pass can
+        # resolve the Battle immediately.
+        if (
             state.pass_len == 1
             and kind == TYPE_PASS
             and not state.passed[player]
+        ):
+            return True
+
+        # Research-only closing-window override.
+        return (
+            self.engine.pass_closing_rounds > 0
+            and state.pass_closing_turns_remaining == 1
         )
 
     cdef bint action_exhausts_command_fast(
