@@ -1922,11 +1922,16 @@ def _unique_tournament_configs(
 
 
 def ismcts_tournament_run(args: argparse.Namespace) -> Path:
-    """Three-stage, independent-seed search-parameter tournament."""
+    """Four-stage, independent-seed search-parameter tournament."""
     require_cython()
     if args.jobs <= 0:
         raise SystemExit("--jobs must be positive")
-    if min(args.screen_games, args.final_games, args.confirm_games) <= 0:
+    if min(
+        args.screen_games,
+        args.interaction_games,
+        args.final_games,
+        args.confirm_games,
+    ) <= 0:
         raise SystemExit("Tournament game counts must be positive")
     if args.time_budget_seconds <= 0.0:
         raise SystemExit("--time-budget-seconds must be positive")
@@ -1934,6 +1939,8 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
         raise SystemExit("--iterations-ceiling must be positive")
     if args.max_family_finalists <= 0:
         raise SystemExit("--max-family-finalists must be positive")
+    if args.max_interaction_finalists <= 0:
+        raise SystemExit("--max-interaction-finalists must be positive")
 
     baseline = canonical_ismcts_tournament_config()
     catalog = ismcts_tournament_candidates()
@@ -2032,7 +2039,8 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     positive_family_winners = [
         winner
         for winner in family_winners.values()
-        if float(screen_results[winner]["paired"]["score_rate"] or 0.0) > 0.5
+        if float(screen_results[winner]["paired"]["score_rate"] or 0.0)
+        >= args.finalist_floor
     ]
     interaction_configs: dict[str, dict[str, Any]] = {}
     for left, right in combinations(sorted(positive_family_winners), 2):
@@ -4119,6 +4127,15 @@ def parse_args() -> argparse.Namespace:
         help="Games per deck/orientation for each one-factor screen.",
     )
     tournament.add_argument(
+        "--interaction-games",
+        type=int,
+        default=4,
+        help=(
+            "Games per deck/orientation for independently screening pairwise "
+            "interactions among promising family winners."
+        ),
+    )
+    tournament.add_argument(
         "--final-games",
         type=int,
         default=8,
@@ -4151,6 +4168,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=5,
         help="Maximum number of one-factor family winners admitted to finals.",
+    )
+    tournament.add_argument(
+        "--max-interaction-finalists",
+        type=int,
+        default=2,
+        help="Maximum independently screened interaction configs admitted to finals.",
     )
     tournament.add_argument(
         "--finalist-floor",
