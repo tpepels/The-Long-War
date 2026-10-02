@@ -658,12 +658,8 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         else:
             # Exact simultaneous exhaustion is broken by the commitment that
             # opened the Battle-ending sequence: the first passer collapses.
-            # Standard and experimental Pass endings always record that player
-            # in pass_order[0].
-            if state.pass_len > 0:
-                state.winner = other_player(state.pass_order[0])
-            else:
-                state.winner = -1
+            # Every Battle-ending path records at least one Pass before scoring.
+            state.winner = other_player(state.pass_order[0])
         state.cleanup_pending = 0
         state.pending_resume = RESUME_NONE
         state.pending_resume_player = -1
