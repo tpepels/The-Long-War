@@ -385,10 +385,10 @@ def test_balance_defaults_to_eight_worker_processes(monkeypatch):
     assert "jobs=args.jobs" in source
 
 
-def test_standard_rules_use_canonical_permanent_pass():
+def test_standard_rules_do_not_expose_retired_pass_variants():
     rules = GameRules.standard()
-    assert rules.pass_signal_costs_operation is True
-    assert rules.pass_closing_rounds == 0
+    assert not hasattr(rules, "pass_signal_costs_operation")
+    assert not hasattr(rules, "pass_closing_rounds")
 
 
 def test_recovery_variant_candidates_keep_permanent_pass_canonical(monkeypatch):
@@ -410,11 +410,6 @@ def test_recovery_variant_candidates_keep_permanent_pass_canonical(monkeypatch):
             "command_recovery_decrement": 2,
         },
     }
-    for overrides in runner.RECOVERY_RULE_VARIANTS.values():
-        rules = GameRules.standard().with_overrides(**overrides)
-        assert rules.pass_signal_costs_operation is True
-        assert rules.pass_closing_rounds == 0
-
     monkeypatch.setattr(
         runner.sys,
         "argv",
@@ -944,13 +939,12 @@ def test_strength_benchmark_avoids_nested_process_pools() -> None:
     assert "jobs=jobs" in source
 
 
-def test_pass_variant_experiment_has_serious_evidence_guards() -> None:
-    source = inspect.getsource(runner.pass_variant_run)
+def test_recovery_variant_experiment_has_serious_evidence_guards() -> None:
+    source = inspect.getsource(runner.recovery_variant_run)
     assert "50_000" in source
     assert "allow_smoke" in source
     assert "turn_consuming_actions_completed" in source
     assert "signal_events" in source
-    assert "anti_decisive_rollout_filtered" in source
     assert "reuse checkpoint" in source
     assert "cell_config" in source
 
@@ -975,8 +969,7 @@ def test_ismcts_speed_helper_builds_python_pass_state() -> None:
     from tools.run_experiments import _prepare_ismcts_speed_position
 
     data = load_card_file(ROOT / "cards" / "cards.json")
-    rules = GameRules.standard().with_overrides(pass_closing_rounds=3)
-    engine = GameEngine(data, rules=rules)
+    engine = GameEngine(data, rules=GameRules.standard())
     deck = json.loads((ROOT / DEFAULT_DECK_PATH).read_text(encoding="utf-8"))["cards"]
     state = engine.new_game(
         deck,
@@ -995,7 +988,6 @@ def test_ismcts_speed_helper_builds_python_pass_state() -> None:
     assert state.phase is Phase.BATTLE
     assert len(state.pass_order) == 1
     assert sum(player.passed for player in state.players) == 1
-    assert state.pass_closing_turns_remaining > 0
 
 
 def test_worker_scaling_benchmark_is_separate_from_pass_evidence() -> None:
