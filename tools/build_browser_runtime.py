@@ -109,11 +109,15 @@ def browser_python_files() -> tuple[str, ...]:
 
 BROWSER_PYTHON_FILES = browser_python_files()
 
-# Browser play compiles the same canonical engine composition as the host, plus
-# the production heuristic. Resolve Cython includes recursively so adding or
-# moving an engine implementation file never requires another browser allowlist
-# edit.
-BROWSER_NATIVE_ROOTS = ("_fast_engine_core.pxi", "_heuristic_core.pxi")
+# Browser play compiles the same canonical engine composition as the host,
+# plus the production heuristic and canonical ISMCTS opponent. Resolve Cython
+# includes recursively so adding or moving an implementation file never
+# requires another browser allowlist edit.
+BROWSER_NATIVE_ROOTS = (
+    "_fast_engine_core.pxi",
+    "_heuristic_core.pxi",
+    "_ismcts_core.pxi",
+)
 _CYTHON_INCLUDE_RE = re.compile(
     r"^\s*include\s+['\"]([^'\"]+)['\"]",
     re.MULTILINE,
@@ -171,6 +175,7 @@ from longwar.protocol import (
 
 include "_fast_engine_core.pxi"
 include "_heuristic_core.pxi"
+include "_ismcts_core.pxi"
 """
 
 
