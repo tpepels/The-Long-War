@@ -739,7 +739,6 @@ cdef dict _fe_debug_snapshot(FastEngine self, FastState state):
         "turn_number": state.turn_number,
         "passed": [bool(state.passed[0]), bool(state.passed[1])],
         "pass_order": [state.pass_order[i] for i in range(state.pass_len)],
-        "pass_closing_turns_remaining": state.pass_closing_turns_remaining,
         "discarded_this_battle": [state.discarded_this_battle[0], state.discarded_this_battle[1]],
         "command": [state.command[0], state.command[1]],
         "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
