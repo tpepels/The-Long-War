@@ -432,32 +432,44 @@ def test_ismcts_tournament_catalogs_split_coarse_from_full() -> None:
         "narrative",
     )
     assert set(runner.COARSE_ISMCTS_DECKS) <= set(runner.CANONICAL_DECK_PATHS)
-    assert len(coarse) == 9
+    assert len(coarse) == 19
     assert set(coarse) == {
         "uct-c-0p1",
         "uct-c-1",
+        "uct-c-2",
+        "beliefs-2",
         "beliefs-4",
         "beliefs-24",
+        "beliefs-48",
+        "rollout-0",
         "rollout-12",
+        "post-battle-0",
         "post-battle-8",
+        "leaf-scale-25",
         "leaf-scale-200",
         "decisive-greedy-0p3",
+        "decisive-greedy-1",
         "pw-c-1-a-0p5",
+        "greedy-eps-0p12",
+        "cheap-eps-0p12",
+        "policy-random",
     }
     assert set(coarse) <= set(full)
     assert len(full) >= 65
     assert runner.ismcts_tournament_candidates() == coarse
     assert runner.ismcts_tournament_candidates("full") == full
 
-    # The rough screen deliberately excludes resource/implementation controls
-    # unless telemetry first shows that they bind.
+    # The coarse screen deliberately excludes resource/implementation controls
+    # unless telemetry first shows that they bind. Behavioral rollout-policy
+    # families are included because they can dominate fine epsilon tuning.
     for entry in coarse.values():
         overrides = entry["overrides"]
         assert "ismcts_tree_depth_limit" not in overrides
         assert "ismcts_max_tree_nodes" not in overrides
         assert "ismcts_reuse_tree" not in overrides
-        assert "ismcts_rollout_epsilon" not in overrides
-        assert "ismcts_rollout_policy" not in overrides
+    assert coarse["greedy-eps-0p12"]["overrides"]["ismcts_rollout_policy"] == "greedy"
+    assert coarse["cheap-eps-0p12"]["overrides"]["ismcts_rollout_policy"] == "cheap"
+    assert coarse["policy-random"]["overrides"]["ismcts_rollout_policy"] == "random"
 
     # The exhaustive catalog still spans the entire effective tuning surface.
     families = {entry["family"] for entry in full.values()}
@@ -492,7 +504,7 @@ def test_ismcts_refinement_catalog_combines_only_selected_directions() -> None:
         catalog["refine-uct-c-1"]["overrides"]["ismcts_exploration"]
         == pytest.approx(0.7)
     )
-    assert catalog["refine-beliefs-4"]["overrides"]["ismcts_belief_samples"] == 6
+    assert catalog["refine-beliefs-4"]["overrides"]["ismcts_belief_samples"] == 8
     assert catalog["refine-rollout-12"]["overrides"]["ismcts_rollout_depth"] == 8
     assert "combo-uct-c-1--beliefs-4" in catalog
     assert "combo-uct-c-1--rollout-12" in catalog
