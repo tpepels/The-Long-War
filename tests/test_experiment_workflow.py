@@ -524,7 +524,7 @@ def test_ismcts_tournament_defaults_to_small_coarse_screen(monkeypatch) -> None:
     assert args.jobs == 8
     assert args.design == "coarse"
     assert args.decks is None
-    assert args.coarse_games == 1
+    assert args.coarse_games == 8
     assert args.refine_games == 2
     assert args.refine_profiles is None
     # Explicit full mode retains the old serious-stage defaults.
@@ -538,7 +538,8 @@ def test_ismcts_tournament_defaults_to_small_coarse_screen(monkeypatch) -> None:
     coarse_source = inspect.getsource(runner._ismcts_coarse_tournament_run)
     assert "COARSE_ISMCTS_DECKS" in coarse_source
     assert "deck_names=deck_names" in coarse_source
-    assert "len(catalog) * len(deck_names) * 2 * args.coarse_games" in coarse_source
+    assert "paired_deals_per_challenger = len(deck_names) * args.coarse_games" in coarse_source
+    assert "games_per_challenger = paired_deals_per_challenger * 2" in coarse_source
 
     refine_source = inspect.getsource(runner._ismcts_refinement_tournament_run)
     assert "--refine-profiles is required" in refine_source
