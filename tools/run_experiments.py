@@ -2275,9 +2275,35 @@ PASS_RULE_VARIANTS: dict[str, dict[str, object]] = {
     },
 }
 
+# Permanent Pass is canonical. This sweep changes only the arithmetic recovery
+# curve so Battle-ending semantics, Collapse, decks, seeds and search remain fixed.
+RECOVERY_RULE_VARIANTS: dict[str, dict[str, object]] = {
+    "current-12-3": {
+        "command_recovery_start": 12,
+        "command_recovery_decrement": 3,
+    },
+    "gentle-12-2": {
+        "command_recovery_start": 12,
+        "command_recovery_decrement": 2,
+    },
+    "high-15-3": {
+        "command_recovery_start": 15,
+        "command_recovery_decrement": 3,
+    },
+    "high-gentle-15-2": {
+        "command_recovery_start": 15,
+        "command_recovery_decrement": 2,
+    },
+}
 
-def pass_variant_run(args: argparse.Namespace) -> Path:
-    """Paired Battle-ending experiment with resumable per-deck checkpoints."""
+
+def pass_variant_run(
+    args: argparse.Namespace,
+    *,
+    variant_catalog: dict[str, dict[str, object]] = PASS_RULE_VARIANTS,
+    experiment_name: str = "pass-variants",
+) -> Path:
+    """Paired rule experiment with resumable per-deck checkpoints."""
     from statistics import median
 
     from longwar.simulate import simulate_games
@@ -2294,7 +2320,7 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
         and not args.allow_smoke
     ):
         raise SystemExit(
-            "Pass-rule evidence requires at least 50,000 ISMCTS iterations. "
+            "Paired rule evidence requires at least 50,000 ISMCTS iterations. "
             "Use --allow-smoke only for plumbing/debug runs."
         )
 
@@ -2304,16 +2330,16 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
         for name, path in CANONICAL_DECK_PATHS.items()
     }
     selected = tuple(args.variants)
-    unknown = [name for name in selected if name not in PASS_RULE_VARIANTS]
+    unknown = [name for name in selected if name not in variant_catalog]
     if unknown:
         raise SystemExit(f"Unknown Pass variants: {unknown}")
 
     # Worker count is deliberately execution-only. Changing it after an
     # interrupted run must not change the evidence identity or prevent resume.
     config = {
-        "experiment": "pass-variants",
+        "experiment": experiment_name,
         "variants": {
-            name: PASS_RULE_VARIANTS[name]
+            name: variant_catalog[name]
             for name in selected
         },
         "games_per_deck": args.games,
@@ -2329,7 +2355,7 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
     }
     identity = experiment_identity(config)
     output = artifact_directory(
-        ROOT / "artifacts" / "pass-variants",
+        ROOT / "artifacts" / experiment_name,
         identity,
     )
 
@@ -2419,7 +2445,7 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
 
     rows: list[dict[str, Any]] = []
     for variant_index, name in enumerate(selected):
-        overrides = PASS_RULE_VARIANTS[name]
+        overrides = variant_catalog[name]
         rules = GameRules.standard().with_overrides(**overrides)
         engine = GameEngine(data, rules=rules)
         variant_dir = output / name
@@ -2557,6 +2583,39 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
             )
             for outcome in all_resolved_outcomes
         ]
+        final_battles = [
+            int(outcome["final_battle"])
+            for outcome in all_resolved_outcomes
+            if outcome.get("final_battle") is not None
+        ]
+        final_battle_distribution = {
+            str(battle): sum(value == battle for value in final_battles)
+            for battle in sorted(set(final_battles))
+        }
+        battle_reach = {
+            str(battle): sum(value >= battle for value in final_battles)
+            for battle in range(1, (max(final_battles) if final_battles else 0) + 1)
+        }
+        progression_rows = [
+            payload.get("telemetry", {}).get("progression", {})
+            for payload in cell_payloads.values()
+        ]
+        simultaneous_collapse_terminations = sum(
+            int(
+                progression.get("low_command_stalls", {}).get(
+                    "simultaneous_collapse_terminations", 0
+                ) or 0
+            )
+            for progression in progression_rows
+        )
+        unequal_collapse_terminations = sum(
+            int(
+                progression.get("low_command_stalls", {}).get(
+                    "unequal_collapse_terminations", 0
+                ) or 0
+            )
+            for progression in progression_rows
+        )
         command_signal_weight = sum(
             (
                 float(row["mean_command_at_signal"])
@@ -2622,6 +2681,10 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
             "mean_battles_per_game": (
                 battles / total_games if total_games else None
             ),
+            "final_battle_distribution": final_battle_distribution,
+            "battle_reach": battle_reach,
+            "simultaneous_collapse_terminations": simultaneous_collapse_terminations,
+            "unequal_collapse_terminations": unequal_collapse_terminations,
             "signal_events": signals,
             "forced_yield_events": forced_yields,
             "free_signal_events": free_signals,
@@ -2684,6 +2747,16 @@ def pass_variant_run(args: argparse.Namespace) -> Path:
     )
     print(f"Wrote {path}", flush=True)
     return path
+
+
+def recovery_variant_run(args: argparse.Namespace) -> Path:
+    """Compare recovery curves with canonical permanent Pass held fixed."""
+    return pass_variant_run(
+        args,
+        variant_catalog=RECOVERY_RULE_VARIANTS,
+        experiment_name="recovery-variants",
+    )
+
 
 def _prepare_ismcts_speed_position(
     engine: GameEngine,
@@ -3322,6 +3395,70 @@ def parse_args() -> argparse.Namespace:
         choices=tuple(PASS_RULE_VARIANTS),
     )
 
+    recovery_variants = sub.add_parser(
+        "recovery-variants",
+        help=(
+            "Compare Command-recovery curves with canonical permanent Pass "
+            "and all other rules/search settings fixed."
+        ),
+    )
+    recovery_variants.add_argument(
+        "--games",
+        type=int,
+        default=8,
+        help="Games per canonical mirror deck and recovery candidate (default: 8).",
+    )
+    recovery_variants.add_argument(
+        "--jobs",
+        type=int,
+        default=DEFAULT_WORKERS,
+        help=f"Parallel game workers (default: {DEFAULT_WORKERS}).",
+    )
+    recovery_variants.add_argument("--seed", type=int, default=26100100)
+    recovery_variants.add_argument(
+        "--agent",
+        choices=("heuristic", "ismcts"),
+        default="ismcts",
+    )
+    recovery_variants.add_argument(
+        "--ismcts-iterations",
+        type=int,
+        default=50_000,
+        help="ISMCTS iterations per decision; 50,000 is the evidence floor.",
+    )
+    recovery_variants.add_argument(
+        "--ismcts-belief-samples",
+        type=int,
+        default=12,
+    )
+    recovery_variants.add_argument(
+        "--ismcts-rollout-depth",
+        type=int,
+        default=8,
+        help="Strategic rollout depth; default matches the validated Pass experiment.",
+    )
+    recovery_variants.add_argument(
+        "--ismcts-rollout-policy",
+        choices=("greedy", "cheap", "random", "decisive"),
+        default="decisive",
+    )
+    recovery_variants.add_argument(
+        "--allow-smoke",
+        action="store_true",
+        help="Permit sub-50k ISMCTS budgets for plumbing only.",
+    )
+    recovery_variants.add_argument(
+        "--force",
+        action="store_true",
+        help="Ignore compatible per-deck checkpoints and rerun every cell.",
+    )
+    recovery_variants.add_argument(
+        "--variants",
+        nargs="+",
+        default=list(RECOVERY_RULE_VARIANTS),
+        choices=tuple(RECOVERY_RULE_VARIANTS),
+    )
+
     ablation = sub.add_parser(
         "narrative-ablation",
         help="Diagnose Narrative/Command Command-economy tails with five ISMCTS ablations.",
@@ -3374,7 +3511,8 @@ def parse_args() -> argparse.Namespace:
     speed.add_argument(
         "--closing-rounds",
         type=int,
-        default=3,
+        default=0,
+        help="Research override; canonical permanent Pass has no closing window.",
     )
     speed.add_argument(
         "--deck",
@@ -3402,7 +3540,12 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path(DEFAULT_DECK_PATH),
     )
-    workers.add_argument("--closing-rounds", type=int, default=3)
+    workers.add_argument(
+        "--closing-rounds",
+        type=int,
+        default=0,
+        help="Research override; canonical permanent Pass has no closing window.",
+    )
     workers.add_argument("--ismcts-iterations", type=int, default=20_000)
     workers.add_argument("--ismcts-belief-samples", type=int, default=12)
     workers.add_argument("--ismcts-rollout-depth", type=int, default=8)
@@ -3459,6 +3602,8 @@ def main() -> None:
             balance_run(args)
     elif args.command == "pass-variants":
         pass_variant_run(args)
+    elif args.command == "recovery-variants":
+        recovery_variant_run(args)
     elif args.command == "narrative-ablation":
         narrative_ablation_run(args)
     elif args.command == "ismcts-workers":
