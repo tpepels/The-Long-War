@@ -4,6 +4,8 @@ import json
 from typing import Any
 
 from .agents.heuristic_agent import HeuristicAgent
+from .agents.ismcts_agent import ISMCTSAgent
+from .belief import DeckHypothesis, HypothesisDeckPrior
 from .game.actions import (
     Action,
     BoardTarget,
@@ -36,6 +38,8 @@ RANK_NAMES = {
 }
 
 AI_SEED_OFFSET = 20_001
+AI_KIND_TACTICAL = "tactical"
+AI_KIND_CANONICAL = "canonical"
 MAX_AUTOMATED_ACTIONS_PER_STEP = 200
 SNAPSHOT_LOG_TAIL = 40
 
@@ -50,6 +54,7 @@ class PlaySession:
         mode: str = GameMode.HOTSEAT,
         seed: int = 1,
         paced_ai: bool = False,
+        ai_kind: str = AI_KIND_TACTICAL,
     ):
         try:
             parsed_mode = GameMode(mode)
@@ -70,6 +75,9 @@ class PlaySession:
         self.mode = parsed_mode
         self.seed = int(seed)
         self.paced_ai = paced_ai
+        if ai_kind not in {AI_KIND_TACTICAL, AI_KIND_CANONICAL}:
+            raise ValueError(f"Unsupported AI kind: {ai_kind}")
+        self.ai_kind = ai_kind
         self.human_players = set(range(PLAYER_COUNT)) if parsed_mode in {GameMode.HOTSEAT, GameMode.REMOTE} else {0}
         self.log: list[str] = []
         self.opening_player: int | None = None
@@ -90,9 +98,27 @@ class PlaySession:
 
         self.agents: dict[int, Any] = {}
         if parsed_mode == GameMode.COMPUTER:
-            self.agents[1] = HeuristicAgent(
-                self.seed + AI_SEED_OFFSET,
-                exploration=0.0,
+            agent_seed = self.seed + AI_SEED_OFFSET
+            self.agents[1] = (
+                ISMCTSAgent(
+                    self.engine,
+                    agent_seed,
+                    priors=(
+                        HypothesisDeckPrior(
+                            self.engine,
+                            [DeckHypothesis(tuple(deck), label="browser-reference")],
+                        ),
+                        HypothesisDeckPrior(
+                            self.engine,
+                            [DeckHypothesis(tuple(deck), label="browser-reference")],
+                        ),
+                    ),
+                )
+                if self.ai_kind == AI_KIND_CANONICAL
+                else HeuristicAgent(
+                    agent_seed,
+                    exploration=0.0,
+                )
             )
 
     def snapshot_json(self, viewer: int | None = None) -> str:
@@ -357,6 +383,11 @@ class PlaySession:
 
         return {
             "mode": self.mode.value,
+            "ai_kind": (
+                self.ai_kind
+                if self.mode == GameMode.COMPUTER
+                else None
+            ),
             "seed": self.seed,
             "opening_player": self.opening_player,
             "battle": state.battle,

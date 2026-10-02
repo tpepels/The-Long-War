@@ -65,6 +65,8 @@ def test_live_player_loads_canonical_engine_without_a_javascript_rules_copy() ->
     assert 'loadPyodide' in engine
     assert 'class BrowserEngine' not in engine
     assert 'class LightweightAgent' not in engine
+    assert 'mode === "computer-canonical"' in engine
+    assert 'Canonical AI · ISMCTS' in text("web/play.html")
     assert not (ROOT / "web" / "play-worker.js").exists()
     assert "python-bundle.json" not in build
     assert "version_static_assets" in build

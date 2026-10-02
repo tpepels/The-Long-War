@@ -40,9 +40,19 @@ export function initializeBrowserEngine(options = {}) {
 }
 
 export class BrowserSession {
-  constructor(cardData, deckPayload, mode = "heuristic", seed = 1) {
+  constructor(cardData, deckPayload, mode = "computer", seed = 1) {
     if (!sessionType) throw new Error("The game engine is still loading.");
-    this.session = sessionType(JSON.stringify(cardData), JSON.stringify(deckPayload), mode, Number(seed), true);
+    const canonicalAI = mode === "computer-canonical";
+    const sessionMode = canonicalAI ? "computer" : mode;
+    const aiKind = canonicalAI ? "canonical" : "tactical";
+    this.session = sessionType(
+      JSON.stringify(cardData),
+      JSON.stringify(deckPayload),
+      sessionMode,
+      Number(seed),
+      true,
+      aiKind,
+    );
   }
 
   snapshot(viewer = null) {

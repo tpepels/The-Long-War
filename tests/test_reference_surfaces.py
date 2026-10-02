@@ -178,7 +178,7 @@ def test_browser_runtime_uses_canonical_engine_composition() -> None:
     assert set(BROWSER_NATIVE_FILES) == set(
         cython_include_closure(*BROWSER_NATIVE_ROOTS)
     )
-    assert "_ismcts_core.pxi" not in BROWSER_NATIVE_FILES
+    assert "_ismcts_core.pxi" in BROWSER_NATIVE_FILES
     assert "_mccfr_core.pxi" not in BROWSER_NATIVE_FILES
 
 

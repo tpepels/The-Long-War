@@ -94,7 +94,7 @@ See `ARCHITECTURE.md` for the enforced dependency map.
 
 The static web game uses the same canonical Cython engine through Pyodide.
 
-The browser runtime intentionally contains only the game core, heuristic evaluation/current Tactical AI, and `web_api.PlaySession`. Analysis, telemetry, counterfactual, solver training, MCCFR research, and Balance Lab code are excluded.
+The browser runtime intentionally contains only the game core, heuristic evaluation, Tactical AI, canonical ISMCTS, and `web_api.PlaySession`. Analysis, telemetry, counterfactual, solver training, MCCFR research, and Balance Lab code are excluded.
 
 `web/browser-engine.mjs` is the JSON/Pyodide bridge. `web/play.js` renders snapshots and submits canonical action keys; it does not predict engine results.
 
@@ -102,7 +102,8 @@ The browser runtime intentionally contains only the game core, heuristic evaluat
 
 The browser exposes:
 
-- **Tactical AI** - local `computer` session;
+- **Tactical AI** - fast local one-ply heuristic opponent;
+- **Canonical AI** - the production ISMCTS opponent with canonical search defaults, including next-Battle rollout planning;
 - **hot-seat** - two players sharing one browser;
 - **remote host / remote join** - two browsers on different machines.
 

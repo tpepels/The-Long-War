@@ -75,6 +75,7 @@ const LW_PROTOCOL_DATA = {
   },
   "playSetupMode": {
     "COMPUTER": "computer",
+    "COMPUTER_CANONICAL": "computer-canonical",
     "HOTSEAT": "hotseat",
     "REMOTE_HOST": "remote-host",
     "REMOTE_JOIN": "remote-join"
