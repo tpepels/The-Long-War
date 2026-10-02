@@ -133,6 +133,7 @@ def test_browser_computer_ai_profiles_use_real_production_agents() -> None:
     assert isinstance(agent, ISMCTSAgent)
     assert agent.iterations == DEFAULT_ISMCTS_ITERATIONS
     assert agent.belief_samples == DEFAULT_ISMCTS_BELIEF_SAMPLES
+    assert agent.belief.diagnostics(canonical.state, 1).prior_type == "HypothesisDeckPrior"
     assert (
         agent.post_battle_rollout_depth
         == DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH
