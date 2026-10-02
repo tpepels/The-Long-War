@@ -67,10 +67,10 @@ BENCH_ROOT = ROOT / "artifacts" / "search-benchmark"
 # Deliberately small, human-readable arithmetic recovery grid. The rule
 # structure is fixed; only start/decrement are tuned.
 COMMAND_RECOVERY_CANDIDATES = (
-    (10, 2),
-    (12, 2),
     (12, 3),
+    (12, 2),
     (15, 3),
+    (15, 2),
 )
 
 
