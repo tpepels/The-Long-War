@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import copy
 import hashlib
+import inspect
 import json
 import select
 import subprocess
@@ -37,6 +38,7 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_MAX_TREE_NODES,
     DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    DEFAULT_ISMCTS_LEAF_SCALE,
     DEFAULT_ISMCTS_REUSE_TREE,
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
@@ -58,6 +60,7 @@ from longwar.fingerprint import artifact_directory, experiment_identity
 from longwar.health import wilson_interval
 from longwar.heuristics import DEFAULT_HEURISTIC_WEIGHTS
 from longwar.parallelism import DEFAULT_WORKERS
+from longwar.simulate import make_agent
 from longwar.rules import GameRules
 from longwar.protocol import PolicySource
 
@@ -73,6 +76,68 @@ COMMAND_RECOVERY_CANDIDATES = (
     (15, 3),
     (15, 2),
 )
+
+
+def canonical_ismcts_tournament_config() -> dict[str, Any]:
+    """Production ISMCTS settings, excluding the shared wall-clock budget."""
+    return {
+        "ismcts_belief_samples": DEFAULT_ISMCTS_BELIEF_SAMPLES,
+        "ismcts_rollout_depth": DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+        "ismcts_post_battle_rollout_depth": DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
+        "ismcts_tree_depth_limit": 96,
+        "ismcts_exploration": DEFAULT_ISMCTS_EXPLORATION,
+        "ismcts_progressive_widening": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+        "ismcts_reuse_tree": DEFAULT_ISMCTS_REUSE_TREE,
+        "ismcts_max_tree_nodes": DEFAULT_ISMCTS_MAX_TREE_NODES,
+        "ismcts_rollout_epsilon": DEFAULT_ISMCTS_ROLLOUT_EPSILON,
+        "ismcts_rollout_policy": DEFAULT_ISMCTS_ROLLOUT_POLICY,
+        "ismcts_leaf_scale": DEFAULT_ISMCTS_LEAF_SCALE,
+    }
+
+
+def ismcts_tournament_candidates() -> dict[str, dict[str, Any]]:
+    """One-factor challengers spanning every material production search knob.
+
+    UCT backs up utilities in [-1, 1], so the c grid deliberately spans pure
+    exploitation through exploration constants well above the current 0.3.
+    """
+    candidates: dict[str, dict[str, Any]] = {}
+
+    def add(name: str, family: str, **overrides: Any) -> None:
+        candidates[name] = {"family": family, "overrides": overrides}
+
+    for label, value in (
+        ("0", 0.0), ("0p1", 0.1), ("0p2", 0.2), ("0p45", 0.45),
+        ("0p7", 0.7), ("1", 1.0), ("1p4", 1.4),
+    ):
+        add(f"uct-c-{label}", "uct", ismcts_exploration=value)
+
+    for value in (0, 2, 8, 12):
+        add(f"rollout-{value}", "horizon", ismcts_rollout_depth=value)
+    for value in (0, 2, 8, 12):
+        add(f"post-battle-{value}", "horizon", ismcts_post_battle_rollout_depth=value)
+
+    for label, value in (("0", 0.0), ("0p05", 0.05), ("0p25", 0.25), ("0p5", 0.5)):
+        add(f"epsilon-{label}", "rollout", ismcts_rollout_epsilon=value)
+    for policy in ("greedy", "cheap", "random"):
+        add(f"policy-{policy}", "rollout", ismcts_rollout_policy=policy)
+
+    for value in (4, 6, 24, 48):
+        add(f"beliefs-{value}", "belief", ismcts_belief_samples=value)
+
+    for value in (48, 192):
+        add(f"tree-depth-{value}", "tree", ismcts_tree_depth_limit=value)
+    for label, value in (("200k", 200_000), ("800k", 800_000)):
+        add(f"tree-nodes-{label}", "tree", ismcts_max_tree_nodes=value)
+    add("tree-cold", "tree", ismcts_reuse_tree=False)
+
+    for label, value in (("0p5", 0.5), ("1", 1.0), ("2", 2.0), ("4", 4.0)):
+        add(f"pw-c-{label}", "widening", ismcts_progressive_widening=value)
+
+    for value in (50.0, 75.0, 150.0, 200.0):
+        add(f"leaf-scale-{int(value)}", "value-scale", ismcts_leaf_scale=value)
+
+    return candidates
 
 
 class ExperimentSkipped(RuntimeError):
@@ -1574,6 +1639,677 @@ def paired_strength_interval(
         "ci_method": effect.ci_method,
         "resampling_unit": "same-seed mirrored seat pair",
     }
+
+
+
+def paired_seat_swap_interval(
+    outcomes: dict[str, dict[str, list[dict[str, Any]]]],
+    *,
+    first_key: str = "a-first",
+    second_key: str = "b-first",
+    bootstrap_seed: int = 1701,
+    bootstrap_resamples: int = 5000,
+) -> dict[str, Any]:
+    """Paired score interval for candidate A over mirrored seat/deal pairs."""
+    from longwar.counterfactual import estimate
+
+    pair_scores: list[float] = []
+    censored_pairs = 0
+    for orientations in outcomes.values():
+        first = {row["seed"]: row for row in orientations[first_key]}
+        second = {row["seed"]: row for row in orientations[second_key]}
+        if first.keys() != second.keys():
+            raise ValueError("Mirrored tournament cells must contain identical deal seeds")
+        for deal_seed, left in first.items():
+            right = second[deal_seed]
+            if left.get("winner") is None or right.get("winner") is None:
+                censored_pairs += 1
+                continue
+
+            def score(row: dict[str, Any], a_seat: int) -> float:
+                winner = int(row["winner"])
+                if winner < 0:
+                    return 0.5
+                return 1.0 if winner == a_seat else 0.0
+
+            pair_scores.append(
+                (score(left, 0) + score(right, 1)) / 2.0
+            )
+
+    if not pair_scores:
+        return {
+            "score_rate": None,
+            "ci95": [None, None],
+            "independent_deals": 0,
+            "censored_pairs": censored_pairs,
+            "ci_method": None,
+            "resampling_unit": "same-seed mirrored seat pair",
+        }
+
+    effect = estimate(
+        pair_scores,
+        seed=bootstrap_seed,
+        bootstrap_resamples=bootstrap_resamples,
+    )
+    return {
+        "score_rate": effect.mean,
+        "ci95": [max(0.0, effect.ci95[0]), min(1.0, effect.ci95[1])],
+        "independent_deals": len(pair_scores),
+        "censored_pairs": censored_pairs,
+        "ci_method": effect.ci_method,
+        "resampling_unit": "same-seed mirrored seat pair",
+    }
+
+
+def _validate_ismcts_tournament_config_surface() -> None:
+    """Fail before expensive games if a tournament knob is not wired to make_agent."""
+    accepted = set(inspect.signature(make_agent).parameters)
+    required = set(canonical_ismcts_tournament_config())
+    missing = sorted(required - accepted)
+    if missing:
+        raise RuntimeError(
+            "ISMCTS tournament parameters are not wired through make_agent: "
+            + ", ".join(missing)
+        )
+
+
+def _tournament_effective_config(overrides: dict[str, Any]) -> dict[str, Any]:
+    config = canonical_ismcts_tournament_config()
+    config.update(overrides)
+    return config
+
+
+def _tournament_cell_is_complete(path: Path, games: int) -> bool:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return (
+        int(payload.get("games", -1)) == games
+        and len(payload.get("game_outcomes", []))
+        + len(payload.get("failed_game_outcomes", []))
+        == games
+    )
+
+
+def _aggregate_tournament_resources(
+    payloads: list[dict[str, Any]],
+    label: str,
+) -> dict[str, Any]:
+    searched = 0
+    decision_seconds = 0.0
+    search_work = 0.0
+    timeouts = 0
+    decisions = 0
+    capacity_cutoffs = 0
+    root_reused = 0
+    for payload in payloads:
+        stats = (
+            payload.get("telemetry", {})
+            .get("decisions", {})
+            .get(label, {})
+        )
+        count = int(stats.get("decisions", 0) or 0)
+        searched_count = int(stats.get("searched_decisions", 0) or 0)
+        decisions += count
+        searched += searched_count
+        decision_seconds += searched_count * float(
+            stats.get("mean_searched_decision_seconds", 0.0) or 0.0
+        )
+        search_work += count * float(stats.get("mean_search_nodes", 0.0) or 0.0)
+        timeouts += int(stats.get("timed_out_decisions", 0) or 0)
+        reuse = stats.get("ismcts_tree_reuse", {})
+        capacity_cutoffs += int(reuse.get("tree_capacity_cutoffs", 0) or 0)
+        root_reused += int(reuse.get("root_reused_decisions", 0) or 0)
+    return {
+        "decisions": decisions,
+        "searched_decisions": searched,
+        "mean_searched_decision_seconds": (
+            decision_seconds / searched if searched else None
+        ),
+        "mean_search_work": search_work / decisions if decisions else None,
+        "timeout_rate": timeouts / searched if searched else None,
+        "tree_capacity_cutoffs": capacity_cutoffs,
+        "root_reuse_rate": root_reused / searched if searched else None,
+    }
+
+
+def _run_ismcts_tournament_pair(
+    *,
+    output_dir: Path,
+    label_a: str,
+    config_a: dict[str, Any],
+    label_b: str,
+    config_b: dict[str, Any],
+    games_per_orientation: int,
+    jobs: int,
+    seed: int,
+    iterations_ceiling: int,
+    time_budget_seconds: float,
+    force: bool,
+) -> dict[str, Any]:
+    """Run one mirrored all-deck ISMCTS-vs-ISMCTS comparison."""
+    cells = []
+    for deck_index, (deck_name, deck_path) in enumerate(CANONICAL_DECK_PATHS.items()):
+        cell_seed = seed + deck_index * 10_000
+        for orientation, labels, configs, offsets in (
+            (
+                "a-first",
+                (label_a, label_b),
+                (config_a, config_b),
+                (11, 22),
+            ),
+            (
+                "b-first",
+                (label_b, label_a),
+                (config_b, config_a),
+                (22, 11),
+            ),
+        ):
+            output = output_dir / f"{deck_name}--{orientation}.json"
+            progress = output.with_suffix(".progress")
+            command = [
+                sys.executable,
+                str(ROOT / "tools" / "simulate.py"),
+                "--games", str(games_per_orientation),
+                "--jobs", "1",
+                "--seed", str(cell_seed),
+                "--card-file", "cards/cards.json",
+                "--deck-a", deck_path,
+                "--deck-b", deck_path,
+                "--agent-a", "ismcts",
+                "--agent-b", "ismcts",
+                "--agent-a-label", labels[0],
+                "--agent-b-label", labels[1],
+                "--agent-a-seed-offset", str(offsets[0]),
+                "--agent-b-seed-offset", str(offsets[1]),
+                "--agent-a-options-json", json.dumps(configs[0], sort_keys=True),
+                "--agent-b-options-json", json.dumps(configs[1], sort_keys=True),
+                "--ismcts-iterations", str(iterations_ceiling),
+                "--ismcts-time-budget-seconds", str(time_budget_seconds),
+                "--output", str(output),
+                "--progress-file", str(progress),
+            ]
+            cells.append(
+                (deck_name, orientation, output, progress, command)
+            )
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    def run_cell(cell, stop_event):
+        deck_name, orientation, output, progress, command = cell
+        if not force and _tournament_cell_is_complete(
+            output, games_per_orientation
+        ):
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            return deck_name, orientation, output, 0.0, tuple(payload["wins"])
+        progress.unlink(missing_ok=True)
+        started = time.perf_counter()
+        if not _run_command_until_stop(command, stop_event):
+            return None
+        elapsed = time.perf_counter() - started
+        payload = json.loads(output.read_text(encoding="utf-8"))
+        return deck_name, orientation, output, elapsed, tuple(payload["wins"])
+
+    def format_result(result):
+        deck_name, orientation, _output, elapsed, wins = result
+        return (
+            f"{deck_name:10} {orientation:8} "
+            f"{wins[0]:>2}-{wins[1]:<2} {elapsed:7.1f}s"
+        )
+
+    def format_progress(cell, state):
+        deck_name, orientation, *_ = cell
+        wins = state["wins"]
+        completed = int(state["completed"])
+        if orientation == "a-first":
+            a_wins, b_wins = int(wins[0]), int(wins[1])
+        else:
+            a_wins, b_wins = int(wins[1]), int(wins[0])
+        return (
+            f"{deck_name:10} {orientation:8} "
+            f"{completed:>2}/{games_per_orientation:<2} "
+            f"{a_wins:>2}-{b_wins:<2}",
+            a_wins,
+            b_wins,
+        )
+
+    completed = _run_cells_with_live_progress(
+        cells,
+        jobs=jobs,
+        games_per_cell=games_per_orientation,
+        run_cell=run_cell,
+        format_result=format_result,
+        table_header="deck       seat      played score",
+        score_labels=(label_a, label_b),
+        format_progress=format_progress,
+    )
+
+    outcomes: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    payloads: list[dict[str, Any]] = []
+    wins_a = wins_b = draws = censored = failed = 0
+    for deck_name, orientation, output, _elapsed, _wins in completed:
+        payload = json.loads(output.read_text(encoding="utf-8"))
+        payloads.append(payload)
+        outcomes.setdefault(deck_name, {})[orientation] = payload["game_outcomes"]
+        agents = list(payload["agents"])
+        a_index = agents.index(label_a)
+        b_index = agents.index(label_b)
+        wins_a += int(payload["wins"][a_index])
+        wins_b += int(payload["wins"][b_index])
+        draws += int(payload.get("draws", 0) or 0)
+        censored += int(payload.get("censored_games", 0) or 0)
+        failed += int(payload.get("failed_games", 0) or 0)
+
+    paired = paired_seat_swap_interval(outcomes)
+    result = {
+        "a": label_a,
+        "b": label_b,
+        "games": wins_a + wins_b + draws + censored,
+        "wins_a": wins_a,
+        "wins_b": wins_b,
+        "draws": draws,
+        "censored_games": censored,
+        "failed_games": failed,
+        "paired": paired,
+        "resources": {
+            label_a: _aggregate_tournament_resources(payloads, label_a),
+            label_b: _aggregate_tournament_resources(payloads, label_b),
+        },
+    }
+    (output_dir / "pair-summary.json").write_text(
+        json.dumps(result, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return result
+
+
+def _require_clean_tournament_pair(
+    result: dict[str, Any],
+    *,
+    stage: str,
+) -> None:
+    if result["failed_games"] or result["censored_games"]:
+        raise SystemExit(
+            f"{stage} produced {result['failed_games']} failed and "
+            f"{result['censored_games']} censored games in "
+            f"{result['a']} vs {result['b']}; fix the game/search pathology "
+            "before continuing the tournament."
+        )
+    for label, resources in result["resources"].items():
+        searched = int(resources.get("searched_decisions", 0) or 0)
+        timeout_rate = resources.get("timeout_rate")
+        if (
+            searched
+            and timeout_rate is not None
+            and float(timeout_rate) < 0.95
+        ):
+            raise SystemExit(
+                f"{stage}: {label} hit the iteration ceiling before the "
+                f"wall-clock budget too often (timeout rate "
+                f"{float(timeout_rate):.1%}); increase --iterations-ceiling "
+                "and rerun so the comparison is genuinely equal-time."
+            )
+
+
+def _unique_tournament_configs(
+    names: list[str],
+    configs: dict[str, dict[str, Any]],
+) -> list[str]:
+    seen: set[str] = set()
+    unique = []
+    for name in names:
+        key = json.dumps(configs[name], sort_keys=True, separators=(",", ":"))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(name)
+    return unique
+
+
+def ismcts_tournament_run(args: argparse.Namespace) -> Path:
+    """Four-stage, independent-seed search-parameter tournament."""
+    require_cython()
+    _validate_ismcts_tournament_config_surface()
+    if args.jobs <= 0:
+        raise SystemExit("--jobs must be positive")
+    if min(
+        args.screen_games,
+        args.interaction_games,
+        args.final_games,
+        args.confirm_games,
+    ) <= 0:
+        raise SystemExit("Tournament game counts must be positive")
+    if args.time_budget_seconds <= 0.0:
+        raise SystemExit("--time-budget-seconds must be positive")
+    if args.iterations_ceiling <= 0:
+        raise SystemExit("--iterations-ceiling must be positive")
+    if args.max_family_finalists <= 0:
+        raise SystemExit("--max-family-finalists must be positive")
+    if args.max_interaction_finalists <= 0:
+        raise SystemExit("--max-interaction-finalists must be positive")
+    if not 0.0 <= args.finalist_floor <= 1.0:
+        raise SystemExit("--finalist-floor must be between 0 and 1")
+
+    baseline = canonical_ismcts_tournament_config()
+    catalog = ismcts_tournament_candidates()
+    candidate_configs = {
+        name: _tournament_effective_config(entry["overrides"])
+        for name, entry in catalog.items()
+    }
+    config = {
+        "experiment": "ismcts-tournament",
+        "method": (
+            "one-factor screen -> independent interaction screen -> "
+            "independent finalist round-robin -> independent confirmation"
+        ),
+        "screen_games_per_orientation": args.screen_games,
+        "interaction_games_per_orientation": args.interaction_games,
+        "final_games_per_orientation": args.final_games,
+        "confirm_games_per_orientation": args.confirm_games,
+        "time_budget_seconds": args.time_budget_seconds,
+        "iterations_ceiling": args.iterations_ceiling,
+        "seed": args.seed,
+        "interaction_seed": args.seed + 1_000_000,
+        "final_seed": args.seed + 2_000_000,
+        "confirm_seed": args.seed + 3_000_000,
+        "max_family_finalists": args.max_family_finalists,
+        "max_interaction_finalists": args.max_interaction_finalists,
+        "finalist_floor": args.finalist_floor,
+        "baseline": baseline,
+        "candidate_catalog": catalog,
+        "rules": GameRules.standard().as_dict(),
+        "decks": list(CANONICAL_DECK_PATHS),
+        "utility_scale": "terminal +/-1; non-terminal tanh(evaluation / leaf_scale)",
+        "budget_policy": "equal native search wall-clock budget; high iteration ceiling",
+    }
+    identity = experiment_identity(config)
+    output = artifact_directory(BENCH_ROOT / "ismcts-tournament", identity)
+
+    print(
+        f"ISMCTS parameter tournament | {len(catalog)} challengers | "
+        f"{args.time_budget_seconds:g}s/searched decision | "
+        f"{len(CANONICAL_DECK_PATHS)} decks"
+    )
+    print(
+        f"screen={args.screen_games}/orientation, "
+        f"interactions={args.interaction_games}/orientation, "
+        f"finals={args.final_games}/orientation, "
+        f"confirmation={args.confirm_games}/orientation"
+    )
+
+    screen_results: dict[str, dict[str, Any]] = {}
+    for index, name in enumerate(catalog, start=1):
+        print(f"\n[screen {index}/{len(catalog)}] {name} vs baseline")
+        result = _run_ismcts_tournament_pair(
+            output_dir=output / "screen" / name,
+            label_a=name,
+            config_a=candidate_configs[name],
+            label_b="baseline",
+            config_b=baseline,
+            games_per_orientation=args.screen_games,
+            jobs=args.jobs,
+            seed=args.seed,
+            iterations_ceiling=args.iterations_ceiling,
+            time_budget_seconds=args.time_budget_seconds,
+            force=args.force,
+        )
+        _require_clean_tournament_pair(result, stage="screen")
+        result["family"] = catalog[name]["family"]
+        screen_results[name] = result
+
+    family_winners: dict[str, str] = {}
+    for family in sorted({entry["family"] for entry in catalog.values()}):
+        family_names = [
+            name for name, entry in catalog.items()
+            if entry["family"] == family
+        ]
+        winner = max(
+            family_names,
+            key=lambda name: float(
+                screen_results[name]["paired"]["score_rate"] or 0.0
+            ),
+        )
+        family_winners[family] = winner
+
+    synthesized = dict(baseline)
+    synthesis_sources = []
+    for family, winner in family_winners.items():
+        score = float(screen_results[winner]["paired"]["score_rate"] or 0.0)
+        if score > 0.5:
+            synthesized.update(catalog[winner]["overrides"])
+            synthesis_sources.append(winner)
+
+    all_configs = {"baseline": baseline, **candidate_configs}
+    all_configs["synthesized"] = synthesized
+
+    # Screen pairwise interactions among families that individually beat the
+    # baseline point estimate. This uses fresh deals, so interaction selection
+    # does not reuse the one-factor evidence that nominated the ingredients.
+    positive_family_winners = [
+        winner
+        for winner in family_winners.values()
+        if float(screen_results[winner]["paired"]["score_rate"] or 0.0)
+        >= args.finalist_floor
+    ]
+    interaction_configs: dict[str, dict[str, Any]] = {}
+    for left, right in combinations(sorted(positive_family_winners), 2):
+        combined = dict(baseline)
+        combined.update(catalog[left]["overrides"])
+        combined.update(catalog[right]["overrides"])
+        interaction_configs[f"combo-{left}--{right}"] = combined
+    if synthesized != baseline:
+        interaction_configs["synthesized"] = synthesized
+
+    interaction_results: dict[str, dict[str, Any]] = {}
+    for index, (name, interaction_config) in enumerate(
+        interaction_configs.items(), start=1
+    ):
+        print(
+            f"\n[interaction {index}/{len(interaction_configs)}] "
+            f"{name} vs baseline"
+        )
+        result = _run_ismcts_tournament_pair(
+            output_dir=output / "interactions" / name,
+            label_a=name,
+            config_a=interaction_config,
+            label_b="baseline",
+            config_b=baseline,
+            games_per_orientation=args.interaction_games,
+            jobs=args.jobs,
+            seed=args.seed + 1_000_000,
+            iterations_ceiling=args.iterations_ceiling,
+            time_budget_seconds=args.time_budget_seconds,
+            force=args.force,
+        )
+        _require_clean_tournament_pair(result, stage="interaction screen")
+        interaction_results[name] = result
+        all_configs[name] = interaction_config
+
+    promising_family_winners = sorted(
+        (
+            name for name in family_winners.values()
+            if float(screen_results[name]["paired"]["score_rate"] or 0.0)
+            >= args.finalist_floor
+        ),
+        key=lambda name: float(
+            screen_results[name]["paired"]["score_rate"] or 0.0
+        ),
+        reverse=True,
+    )[:args.max_family_finalists]
+
+    promising_interactions = sorted(
+        (
+            name for name, result in interaction_results.items()
+            if float(result["paired"]["score_rate"] or 0.0)
+            >= args.finalist_floor
+        ),
+        key=lambda name: float(
+            interaction_results[name]["paired"]["score_rate"] or 0.0
+        ),
+        reverse=True,
+    )[:args.max_interaction_finalists]
+
+    finalist_names = [
+        "baseline",
+        *promising_family_winners,
+        *promising_interactions,
+    ]
+    finalist_names = _unique_tournament_configs(finalist_names, all_configs)
+
+    print("\nFinalists:")
+    for name in finalist_names:
+        print(f"  {name}")
+
+    final_pairs: list[dict[str, Any]] = []
+    for pair_index, (a, b) in enumerate(combinations(finalist_names, 2), start=1):
+        total_pairs = len(finalist_names) * (len(finalist_names) - 1) // 2
+        print(f"\n[final {pair_index}/{total_pairs}] {a} vs {b}")
+        final_result = _run_ismcts_tournament_pair(
+                output_dir=output / "finals" / f"{a}--vs--{b}",
+                label_a=a,
+                config_a=all_configs[a],
+                label_b=b,
+                config_b=all_configs[b],
+                games_per_orientation=args.final_games,
+                jobs=args.jobs,
+                seed=args.seed + 2_000_000,
+                iterations_ceiling=args.iterations_ceiling,
+                time_budget_seconds=args.time_budget_seconds,
+                force=args.force,
+            )
+        _require_clean_tournament_pair(final_result, stage="final round-robin")
+        final_pairs.append(final_result)
+
+    standings = {
+        name: {"pair_scores": [], "opponents": 0}
+        for name in finalist_names
+    }
+    for pair in final_pairs:
+        score_a = float(pair["paired"]["score_rate"])
+        standings[pair["a"]]["pair_scores"].append(score_a)
+        standings[pair["a"]]["opponents"] += 1
+        standings[pair["b"]]["pair_scores"].append(1.0 - score_a)
+        standings[pair["b"]]["opponents"] += 1
+    for name, row in standings.items():
+        scores = row["pair_scores"]
+        row["round_robin_score"] = (
+            sum(scores) / len(scores) if scores else 0.5
+        )
+
+    final_order = sorted(
+        finalist_names,
+        key=lambda name: standings[name]["round_robin_score"],
+        reverse=True,
+    )
+    top = final_order[0]
+    challenger = top if top != "baseline" else (
+        final_order[1] if len(final_order) > 1 else "baseline"
+    )
+
+    confirmation = None
+    recommendation = "baseline"
+    recommendation_reason = "baseline retained"
+    if challenger != "baseline":
+        print(f"\n[confirmation] {challenger} vs baseline")
+        confirmation = _run_ismcts_tournament_pair(
+            output_dir=output / "confirmation" / f"{challenger}--vs--baseline",
+            label_a=challenger,
+            config_a=all_configs[challenger],
+            label_b="baseline",
+            config_b=baseline,
+            games_per_orientation=args.confirm_games,
+            jobs=args.jobs,
+            seed=args.seed + 3_000_000,
+            iterations_ceiling=args.iterations_ceiling,
+            time_budget_seconds=args.time_budget_seconds,
+            force=args.force,
+        )
+        _require_clean_tournament_pair(confirmation, stage="confirmation")
+        interval = confirmation["paired"]
+        lower = interval["ci95"][0]
+        if (
+            confirmation["censored_games"] == 0
+            and confirmation["failed_games"] == 0
+            and lower is not None
+            and float(lower) > 0.5
+        ):
+            recommendation = challenger
+            recommendation_reason = (
+                "independent confirmation 95% paired interval is entirely above 50%"
+            )
+        else:
+            recommendation_reason = (
+                "challenger did not clear the independent 95% paired confirmation threshold"
+            )
+
+    all_pair_results = (
+        list(screen_results.values())
+        + list(interaction_results.values())
+        + final_pairs
+    )
+    if confirmation is not None:
+        all_pair_results.append(confirmation)
+    ceiling_warnings = []
+    for pair in all_pair_results:
+        for label, resources in pair["resources"].items():
+            timeout_rate = resources.get("timeout_rate")
+            if (
+                resources.get("searched_decisions", 0)
+                and timeout_rate is not None
+                and float(timeout_rate) < 0.95
+            ):
+                ceiling_warnings.append({
+                    "pair": f"{pair['a']}--vs--{pair['b']}",
+                    "candidate": label,
+                    "timeout_rate": timeout_rate,
+                })
+
+    if ceiling_warnings:
+        recommendation = "baseline"
+        recommendation_reason = (
+            "baseline retained because at least one tournament configuration "
+            "hit the iteration ceiling often enough to invalidate strict "
+            "equal-wall-clock comparison; rerun with a higher ceiling"
+        )
+
+    summary = {
+        "methodology": config["method"],
+        "config": config,
+        "screen": screen_results,
+        "family_winners": family_winners,
+        "interaction_results": interaction_results,
+        "synthesis_sources": synthesis_sources,
+        "synthesized_config": synthesized,
+        "finalists": finalist_names,
+        "final_pairs": final_pairs,
+        "standings": standings,
+        "final_order": final_order,
+        "confirmation": confirmation,
+        "recommended_candidate": recommendation,
+        "recommended_config": all_configs[recommendation],
+        "recommendation_reason": recommendation_reason,
+        "iteration_ceiling_warnings": ceiling_warnings,
+        "promotion_policy": (
+            "Promote only if the independent confirmation has no censored/failed "
+            "games and its paired 95% interval is entirely above 50%; otherwise "
+            "retain the canonical baseline."
+        ),
+    }
+    path = output / "summary.json"
+    path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"\nWrote {path}")
+    print(f"Recommendation: {recommendation} - {recommendation_reason}")
+    if ceiling_warnings:
+        print(
+            "WARNING: at least one configuration did not remain time-budget "
+            "limited; increase --iterations-ceiling before treating the result "
+            "as equal-wall-clock evidence."
+        )
+    return path
 
 
 def benchmark_strength(
@@ -3436,6 +4172,81 @@ def parse_args() -> argparse.Namespace:
         default="decisive",
     )
 
+    tournament = sub.add_parser(
+        "ismcts-tournament",
+        help=(
+            "Serious staged ISMCTS parameter tournament: one-factor screen, "
+            "independent finalist round-robin, then independent confirmation."
+        ),
+    )
+    tournament.add_argument("--jobs", type=int, default=DEFAULT_WORKERS)
+    tournament.add_argument(
+        "--screen-games",
+        type=int,
+        default=4,
+        help="Games per deck/orientation for each one-factor screen.",
+    )
+    tournament.add_argument(
+        "--interaction-games",
+        type=int,
+        default=4,
+        help=(
+            "Games per deck/orientation for independently screening pairwise "
+            "interactions among promising family winners."
+        ),
+    )
+    tournament.add_argument(
+        "--final-games",
+        type=int,
+        default=8,
+        help="Games per deck/orientation for each independent finalist pairing.",
+    )
+    tournament.add_argument(
+        "--confirm-games",
+        type=int,
+        default=24,
+        help="Games per deck/orientation for the independent baseline confirmation.",
+    )
+    tournament.add_argument(
+        "--time-budget-seconds",
+        type=float,
+        default=5.0,
+        help="Equal native ISMCTS search budget per non-forced decision.",
+    )
+    tournament.add_argument(
+        "--iterations-ceiling",
+        type=int,
+        default=2_000_000,
+        help=(
+            "Safety ceiling per search; should remain non-binding under the "
+            "wall-clock budget. The summary flags configurations below 95%% timeout rate."
+        ),
+    )
+    tournament.add_argument("--seed", type=int, default=26100200)
+    tournament.add_argument(
+        "--max-family-finalists",
+        type=int,
+        default=5,
+        help="Maximum number of one-factor family winners admitted to finals.",
+    )
+    tournament.add_argument(
+        "--max-interaction-finalists",
+        type=int,
+        default=2,
+        help="Maximum independently screened interaction configs admitted to finals.",
+    )
+    tournament.add_argument(
+        "--finalist-floor",
+        type=float,
+        default=0.45,
+        help="Minimum screening score rate for a family winner to enter finals.",
+    )
+    tournament.add_argument(
+        "--force",
+        action="store_true",
+        help="Rerun completed cells instead of resuming the current fingerprint.",
+    )
+
     strength = sub.add_parser(
         "strength-bench",
         help="Sanity-check canonical ISMCTS against alpha-beta.",
@@ -3497,6 +4308,8 @@ def main() -> None:
         validate()
     elif args.command == "ismcts-speed":
         benchmark_ismcts_speed(args)
+    elif args.command == "ismcts-tournament":
+        ismcts_tournament_run(args)
     elif args.command == "strength-bench":
         benchmark_strength(
             games_per_orientation=args.games,

@@ -120,7 +120,8 @@ GitHub Actions remain deployment-only. The Pages workflow may run compile/static
 - Canonical ISMCTS defaults live in `DEFAULT_ISMCTS_*` constants in `agents/ismcts_agent.py`.
 - Runners consume shared search defaults unless a publication workflow deliberately pins and records an explicit budget.
 - Do not reintroduce optimizer sweeps/tournament configuration machinery without a concrete design need.
-- Alpha-beta is an occasional equal-wall-clock sanity check.
+- The supported search-parameter evidence workflow is `make experiments EXPERIMENT_ARGS="ismcts-tournament ..."`: one-factor screening, independent-seed finalist round-robin, then independent baseline confirmation under equal wall-clock budgets.
+- Alpha-beta is an occasional equal-wall-clock sanity check after parameter selection, not the optimizer opponent.
 - Progressive widening remains experimental unless the shared baseline enables it.
 - Tree reuse is valid only while belief/search context remains valid.
 - Mirrored comparisons preserve candidate-specific RNG seeds across seat swaps.

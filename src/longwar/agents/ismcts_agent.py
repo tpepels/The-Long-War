@@ -24,6 +24,7 @@ DEFAULT_ISMCTS_ROLLOUT_POLICY = RolloutPolicy.DECISIVE.value
 DEFAULT_ISMCTS_ROLLOUT_DEPTH = 5
 DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH = 4
 DEFAULT_ISMCTS_ROLLOUT_EPSILON = 0.12
+DEFAULT_ISMCTS_LEAF_SCALE = 100.0
 DEFAULT_ISMCTS_PROGRESSIVE_WIDENING = 0.0
 DEFAULT_ISMCTS_REUSE_TREE = True
 DEFAULT_ISMCTS_MAX_TREE_NODES = 400_000
@@ -66,7 +67,7 @@ class ISMCTSAgent:
         max_tree_nodes: int | None = DEFAULT_ISMCTS_MAX_TREE_NODES,
         rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
         rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
-        leaf_scale: float = 100.0,
+        leaf_scale: float = DEFAULT_ISMCTS_LEAF_SCALE,
         heuristic_weights: HeuristicWeights | None = None,
     ):
         if belief_samples <= 0:
