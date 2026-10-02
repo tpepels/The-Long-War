@@ -112,6 +112,8 @@ def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
     api = text("src/longwar/web_api.py")
 
     assert "configured Command penalty for each unprotected Front lost" in play
+    assert "if equal, the player who Passed first loses" in play
+    assert "equal Command is a draw" not in play
     assert "ongoing Narratives" not in play
 
     assert '"rules": self.engine.rules.as_dict()' in api
