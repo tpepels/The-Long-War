@@ -108,7 +108,7 @@ COARSE_ISMCTS_DECKS = (
 
 
 def ismcts_coarse_tournament_candidates() -> dict[str, dict[str, Any]]:
-    """Small one-factor screen for directional evidence, not exact tuning."""
+    """Broad one-factor screen with coarse parameter spacing."""
     candidates: dict[str, dict[str, Any]] = {}
 
     def add(
@@ -123,8 +123,9 @@ def ismcts_coarse_tournament_candidates() -> dict[str, dict[str, Any]]:
             "refinement_overrides": refinement_overrides,
         }
 
-    # Rough values are deliberately separated from the production baseline.
-    # Resource-only controls stay out unless telemetry shows that they bind.
+    # Coarse means widely separated, interpretable parameter values - not a
+    # tiny search surface. Resource-only controls stay out unless telemetry
+    # shows that tree depth/capacity/reuse is actually binding.
     add(
         "uct-c-0p1",
         "uct",
@@ -138,9 +139,22 @@ def ismcts_coarse_tournament_candidates() -> dict[str, dict[str, Any]]:
         ismcts_exploration=1.0,
     )
     add(
-        "beliefs-4",
+        "uct-c-2",
+        "uct",
+        {"ismcts_exploration": 1.4},
+        ismcts_exploration=2.0,
+    )
+
+    add(
+        "beliefs-2",
         "belief",
         {"ismcts_belief_samples": 6},
+        ismcts_belief_samples=2,
+    )
+    add(
+        "beliefs-4",
+        "belief",
+        {"ismcts_belief_samples": 8},
         ismcts_belief_samples=4,
     )
     add(
@@ -150,10 +164,29 @@ def ismcts_coarse_tournament_candidates() -> dict[str, dict[str, Any]]:
         ismcts_belief_samples=24,
     )
     add(
+        "beliefs-48",
+        "belief",
+        {"ismcts_belief_samples": 36},
+        ismcts_belief_samples=48,
+    )
+
+    add(
+        "rollout-0",
+        "horizon",
+        {"ismcts_rollout_depth": 2},
+        ismcts_rollout_depth=0,
+    )
+    add(
         "rollout-12",
         "horizon",
         {"ismcts_rollout_depth": 8},
         ismcts_rollout_depth=12,
+    )
+    add(
+        "post-battle-0",
+        "post-battle-horizon",
+        {"ismcts_post_battle_rollout_depth": 2},
+        ismcts_post_battle_rollout_depth=0,
     )
     add(
         "post-battle-8",
@@ -161,18 +194,33 @@ def ismcts_coarse_tournament_candidates() -> dict[str, dict[str, Any]]:
         {"ismcts_post_battle_rollout_depth": 6},
         ismcts_post_battle_rollout_depth=8,
     )
+
+    add(
+        "leaf-scale-25",
+        "value-scale",
+        {"ismcts_leaf_scale": 50.0},
+        ismcts_leaf_scale=25.0,
+    )
     add(
         "leaf-scale-200",
         "value-scale",
         {"ismcts_leaf_scale": 150.0},
         ismcts_leaf_scale=200.0,
     )
+
     add(
         "decisive-greedy-0p3",
         "rollout-mixture",
         {"ismcts_decisive_greedy_probability": 0.15},
         ismcts_decisive_greedy_probability=0.3,
     )
+    add(
+        "decisive-greedy-1",
+        "rollout-mixture",
+        {"ismcts_decisive_greedy_probability": 0.5},
+        ismcts_decisive_greedy_probability=1.0,
+    )
+
     add(
         "pw-c-1-a-0p5",
         "widening",
@@ -182,6 +230,36 @@ def ismcts_coarse_tournament_candidates() -> dict[str, dict[str, Any]]:
         },
         ismcts_progressive_widening=1.0,
         ismcts_progressive_widening_alpha=0.5,
+    )
+
+    # Categorical rollout-policy changes are worth screening coarsely because
+    # they can dominate the effect of fine epsilon tuning. If one is promising,
+    # Tournament 2 can tune epsilon within that policy.
+    add(
+        "greedy-eps-0p12",
+        "rollout-policy",
+        {
+            "ismcts_rollout_policy": "greedy",
+            "ismcts_rollout_epsilon": 0.25,
+        },
+        ismcts_rollout_policy="greedy",
+        ismcts_rollout_epsilon=0.12,
+    )
+    add(
+        "cheap-eps-0p12",
+        "rollout-policy",
+        {
+            "ismcts_rollout_policy": "cheap",
+            "ismcts_rollout_epsilon": 0.25,
+        },
+        ismcts_rollout_policy="cheap",
+        ismcts_rollout_epsilon=0.12,
+    )
+    add(
+        "policy-random",
+        "rollout-policy",
+        {"ismcts_rollout_policy": "random"},
+        ismcts_rollout_policy="random",
     )
 
     baseline = canonical_ismcts_tournament_config()
