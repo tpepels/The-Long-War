@@ -310,22 +310,16 @@ cdef class NativeHeuristicEvaluator:
         )
 
         own_after_loss = state.command[player] - own_losses
-        if own_after_loss < 0:
-            own_after_loss = 0
         opponent_after_loss = state.command[opponent] - opponent_losses
-        if opponent_after_loss < 0:
-            opponent_after_loss = 0
 
         # A mid-Battle board is not a terminal Collapse result. Battle-end
         # choices, Retreat effects and Narratives can still change Command.
         # Keep the projection soft; exact terminal utility comes only from the
-        # authoritative Battle-resolution transition.
+        # authoritative Battle-resolution transition. Preserve negative
+        # projected Command, because overrun depth matters to Collapse.
         if (
-            (
-                own_after_loss <= self.engine.command_collapse_threshold
-                or opponent_after_loss <= self.engine.command_collapse_threshold
-            )
-            and own_after_loss != opponent_after_loss
+            own_after_loss <= self.engine.command_collapse_threshold
+            or opponent_after_loss <= self.engine.command_collapse_threshold
         ):
             own_projected = own_after_loss
             opponent_projected = opponent_after_loss
