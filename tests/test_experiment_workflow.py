@@ -834,7 +834,7 @@ def test_strength_sanity_check_defaults(monkeypatch):
     args = runner.parse_args()
     assert args.games == 24
     assert args.jobs == 8
-    assert args.iterations == 20_000_000
+    assert args.iterations == DEFAULT_ISMCTS_ITERATIONS
     assert (
         args.post_battle_rollout_depth
         == runner.DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH
