@@ -2029,6 +2029,7 @@ def _aggregate_tournament_resources(
     payloads: list[dict[str, Any]],
     label: str,
 ) -> dict[str, Any]:
+    """Aggregate equal-time search diagnostics for one tournament profile."""
     searched = 0
     decision_seconds = 0.0
     search_work = 0.0
@@ -2036,6 +2037,10 @@ def _aggregate_tournament_resources(
     decisions = 0
     capacity_cutoffs = 0
     root_reused = 0
+    iterations_total = 0
+    search_seconds_total = 0.0
+    rollout_iterations = 0
+    rollout_actions = 0
     for payload in payloads:
         stats = (
             payload.get("telemetry", {})
@@ -2051,9 +2056,19 @@ def _aggregate_tournament_resources(
         )
         search_work += count * float(stats.get("mean_search_nodes", 0.0) or 0.0)
         timeouts += int(stats.get("timed_out_decisions", 0) or 0)
+
         reuse = stats.get("ismcts_tree_reuse", {})
         capacity_cutoffs += int(reuse.get("tree_capacity_cutoffs", 0) or 0)
         root_reused += int(reuse.get("root_reused_decisions", 0) or 0)
+        iterations_total += int(reuse.get("iterations_total", 0) or 0)
+        search_seconds_total += float(
+            reuse.get("search_seconds_total", 0.0) or 0.0
+        )
+
+        cutoffs = stats.get("ismcts_rollout_cutoffs", {})
+        rollout_iterations += int(cutoffs.get("iterations", 0) or 0)
+        rollout_actions += int(cutoffs.get("rollout_actions", 0) or 0)
+
     return {
         "decisions": decisions,
         "searched_decisions": searched,
@@ -2062,8 +2077,91 @@ def _aggregate_tournament_resources(
         ),
         "mean_search_work": search_work / decisions if decisions else None,
         "timeout_rate": timeouts / searched if searched else None,
+        "iterations_total": iterations_total,
+        "iterations_per_second": (
+            iterations_total / search_seconds_total
+            if search_seconds_total > 0.0
+            else None
+        ),
+        "rollout_actions_per_iteration": (
+            rollout_actions / rollout_iterations
+            if rollout_iterations
+            else None
+        ),
         "tree_capacity_cutoffs": capacity_cutoffs,
         "root_reuse_rate": root_reused / searched if searched else None,
+    }
+
+
+def _aggregate_tournament_flow(
+    payloads: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Aggregate game-flow diagnostics shared by both profiles in a pair."""
+    final_battles: list[int] = []
+    pass_events = 0
+    signal_events = 0
+    forced_yield_events = 0
+    command_at_pass_total = 0.0
+    command_at_signal_total = 0.0
+
+    for payload in payloads:
+        for outcome in payload.get("game_outcomes", []):
+            if bool(outcome.get("censored", False)):
+                continue
+            final_battle = outcome.get("final_battle")
+            if final_battle is not None:
+                final_battles.append(int(final_battle))
+
+        passes = payload.get("telemetry", {}).get("passes", {})
+        events = int(passes.get("events", 0) or 0)
+        signals = int(passes.get("signal_events", 0) or 0)
+        pass_events += events
+        signal_events += signals
+        forced_yield_events += int(
+            passes.get("forced_yield_events", 0) or 0
+        )
+        mean_command = passes.get("mean_command_remaining")
+        if mean_command is not None:
+            command_at_pass_total += events * float(mean_command)
+        mean_signal_command = passes.get("mean_command_at_signal")
+        if mean_signal_command is not None:
+            command_at_signal_total += signals * float(mean_signal_command)
+
+    histogram = Counter(final_battles)
+    return {
+        "completed_games": len(final_battles),
+        "mean_final_battle": (
+            sum(final_battles) / len(final_battles)
+            if final_battles
+            else None
+        ),
+        "final_battle_histogram": {
+            str(battle): count
+            for battle, count in sorted(histogram.items())
+        },
+        "battle_one_ending_rate": (
+            sum(battle == 1 for battle in final_battles) / len(final_battles)
+            if final_battles
+            else None
+        ),
+        "pass_events": pass_events,
+        "signal_events": signal_events,
+        "mean_command_at_pass": (
+            command_at_pass_total / pass_events
+            if pass_events
+            else None
+        ),
+        "mean_command_at_signal": (
+            command_at_signal_total / signal_events
+            if signal_events
+            else None
+        ),
+        "forced_yield_events": forced_yield_events,
+        "forced_yield_rate": (
+            forced_yield_events / pass_events
+            if pass_events
+            else None
+        ),
     }
 
 
@@ -2228,6 +2326,7 @@ def _run_ismcts_tournament_pair(
         "failed_games": failed,
         "decks": list(selected_decks),
         "paired": paired,
+        "flow": _aggregate_tournament_flow(payloads),
         "resources": {
             label_a: _aggregate_tournament_resources(payloads, label_a),
             label_b: _aggregate_tournament_resources(payloads, label_b),
