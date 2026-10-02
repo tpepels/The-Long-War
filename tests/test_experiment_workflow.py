@@ -502,7 +502,7 @@ def test_ismcts_tournament_defaults_are_serious_and_independent(monkeypatch) -> 
     assert args.confirm_games == 24
     assert args.time_budget_seconds == pytest.approx(5.0)
     assert args.iterations_ceiling == 20_000_000
-    assert args.max_family_finalists == 5
+    assert args.max_family_finalists == 7
     assert args.max_interaction_finalists == 2
     assert args.finalist_floor == pytest.approx(0.45)
 
