@@ -99,7 +99,7 @@ def test_rulebook_uses_card_art_not_old_flow_diagrams() -> None:
     assert "rulebook-battle-flow.svg" not in source
     assert "rulebook-formation.jpg" in source
     assert "rulebook-maneuver.jpg" in source
-    assert "rulebook-pass-flow.jpg" in source
+    assert "rulebook-pass-flow.jpg" not in source
     assert "rulebook-retreat.jpg" in source
 
 
@@ -113,7 +113,9 @@ def test_pass_and_battle_end_order_match_canonical_rules() -> None:
 
 def test_print_builder_rasterizes_jpeg_art_for_pdf() -> None:
     builder = text("tools/build_rulebook_pdf.py")
-    assert "from PIL import Image" in builder
+    assert "from PIL import Image" not in builder
     assert "def _pdf_safe_image_path" in builder
     assert 'source.suffix.lower() not in {".jpg", ".jpeg"}' in builder
+    assert 'shutil.which("ffmpeg")' in builder
+    assert '"-frames:v"' in builder
     assert 'source.stem + "-print.png"' in builder

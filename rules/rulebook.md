@@ -195,9 +195,8 @@ As soon as both players have an active Pass, the Battle ends immediately.
 
 A Battle therefore ends when **both players have Passed at least once**.
 
-![A Pass remains yours while play continues; the Battle ends once both players have Passed.](assets/rulebook-pass-flow.jpg)
 
-> **REMEMBER** Passing costs one operation once. After that, your Pass cannot be cleared during that Battle.
+> **REMEMBER** Your first Pass uses your operation and stays active. Playing cards or Maneuvering later does not clear it.
 
 The player who **Passed first** starts the next Battle.
 
