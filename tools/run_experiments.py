@@ -1581,6 +1581,7 @@ def benchmark_strength(
     games_per_orientation: int,
     jobs: int,
     ismcts_iterations: int = DEFAULT_ISMCTS_ITERATIONS,
+    post_battle_rollout_depth: int = DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
     alpha_nodes: int = 20_000,
     time_budget_seconds: float = 5.0,
     seed: int = 26092400,
@@ -1611,6 +1612,8 @@ def benchmark_strength(
         raise SystemExit("ISMCTS max tree nodes must be positive")
     if rollout_depth < 0:
         raise SystemExit("--rollout-depth must be non-negative")
+    if post_battle_rollout_depth < 0:
+        raise SystemExit("--post-battle-rollout-depth must be non-negative")
     if time_budget_seconds <= 0.0:
         raise SystemExit("--time-budget-seconds must be positive")
 
@@ -1628,6 +1631,7 @@ def benchmark_strength(
         "ismcts_iterations": ismcts_iterations, "alpha_nodes": alpha_nodes,
         "belief_samples": belief_samples,
         "rollout_policy": rollout_policy, "rollout_depth": rollout_depth,
+        "post_battle_rollout_depth": post_battle_rollout_depth,
         "rollout_epsilon": rollout_epsilon,
         "max_tree_nodes": max_tree_nodes,
         "exploration": exploration,
@@ -1677,6 +1681,8 @@ def benchmark_strength(
                 str(ismcts_iterations),
                 "--ismcts-rollout-depth",
                 str(rollout_depth),
+                "--ismcts-post-battle-rollout-depth",
+                str(post_battle_rollout_depth),
                 "--ismcts-exploration",
                 str(exploration),
                 "--ismcts-progressive-widening",
@@ -1727,7 +1733,8 @@ def benchmark_strength(
     print(
         f"ISMCTS c={exploration:g} pw={progressive_widening:g} "
         f"{'reuse' if reuse_tree else 'cold'} "
-        f"rollout={rollout_policy}/{rollout_depth}"
+        f"rollout={rollout_policy}/{rollout_depth} "
+        f"post-battle={post_battle_rollout_depth}"
     )
     def run_cell(cell, stop_event):
         deck, orientation, output, progress, command = cell
@@ -1974,6 +1981,7 @@ def benchmark_strength(
             "belief_samples": belief_samples,
             "iterations": ismcts_iterations,
             "rollout_depth": rollout_depth,
+            "post_battle_rollout_depth": post_battle_rollout_depth,
             "rollout_policy": rollout_policy,
             "exploration": exploration,
             "time_budget_seconds": time_budget_seconds,
@@ -3615,8 +3623,8 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=24,
         help=(
-            "Games per deck/orientation. Default 24 gives 192 games total "
-            "and 96 mirrored deal pairs."
+            "Games per deck/orientation. Default 24 gives 288 games total "
+            "and 144 mirrored deal pairs."
         ),
     )
     strength.add_argument("--jobs", type=int, default=DEFAULT_WORKERS)
@@ -3625,6 +3633,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=DEFAULT_ISMCTS_ITERATIONS,
         help="Fallback work ceiling; wall-clock time is the comparison budget.",
+    )
+    strength.add_argument(
+        "--post-battle-rollout-depth",
+        type=int,
+        default=DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
+        help="Completed turns ISMCTS continues after entering the next Battle.",
     )
     strength.add_argument("--alpha-nodes", type=int, default=20_000)
     strength.add_argument(
@@ -3668,6 +3682,7 @@ def main() -> None:
             games_per_orientation=args.games,
             jobs=args.jobs,
             ismcts_iterations=args.iterations,
+            post_battle_rollout_depth=args.post_battle_rollout_depth,
             alpha_nodes=args.alpha_nodes,
             time_budget_seconds=args.time_budget_seconds,
             seed=args.seed,
