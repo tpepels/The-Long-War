@@ -10,6 +10,7 @@ from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
 from longwar.game import Discard, Front, GameEngine, Pass, PlayBond, Position, Rank
 from longwar.native_engine import create_heuristic_evaluator
+from longwar.rules import GameRules
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -217,7 +218,7 @@ def test_native_heuristic_value_is_zero_sum_between_player_perspectives() -> Non
 
 
 def test_post_signal_heuristic_value_is_zero_sum() -> None:
-    rules = engine_and_state()[0].rules.with_overrides(pass_closing_rounds=3)
+    rules = GameRules.standard()
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
@@ -233,7 +234,6 @@ def test_post_signal_heuristic_value_is_zero_sum() -> None:
     state.operations_this_battle[:] = [1, 1]
     state.players[0].passed = True
     state.pass_order[:] = [0]
-    state.pass_closing_turns_remaining = 6
     state.players[0].hand = ["oren", "the-fifty-men"]
     state.players[1].hand = ["namar", "iria", "followed"]
 

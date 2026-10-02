@@ -683,7 +683,6 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
     state.battle += 1
     state.cleanup_pending = 0
     state.pass_len = 0
-    state.pass_closing_turns_remaining = 0
     state.pass_order[0] = -1
     state.pass_order[1] = -1
 
@@ -811,46 +810,22 @@ cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     cdef bint already_signalled = bool(state.passed[player])
     cdef uint64_t pass_action = encode_action(TYPE_PASS, -1, -1, -1, player)
 
-    # Canonical play uses a permanent Pass: the first Pass consumes the
-    # operation, remains active for the Battle, and the second player's first
-    # Pass ends the Battle. Research overrides may make the signal free or add
-    # a closing countdown; those branches are not part of standard play.
-    if self.pass_signal_costs_operation:
-        _fe_consume_operation_constraints(self, state, player, pass_action)
+    # Pass always consumes the operation. The first Pass remains active for
+    # the Battle; the second player's first Pass ends it. If a player who has
+    # already Passed has no normal operation, Pass is a forced turn-yield and
+    # changes no Pass state.
+    _fe_consume_operation_constraints(self, state, player, pass_action)
 
     if not already_signalled:
         state.passed[player] = 1
         state.pass_order[state.pass_len] = player
         state.pass_len += 1
-        if state.pass_len == 1 and self.pass_closing_rounds > 0:
-            state.pass_closing_turns_remaining = PLAYER_COUNT * self.pass_closing_rounds
-        if self.pass_signal_costs_operation:
-            _fe_resolve_strat_event(self, state, EVENT_PASS, player)
+        _fe_resolve_strat_event(self, state, EVENT_PASS, player)
 
     if state.passed[0] and state.passed[1]:
         _fe_score_battle(self, state)
-        if self.pass_signal_costs_operation:
-            state.turn_number += 1
+        state.turn_number += 1
         return
-
-    if not self.pass_signal_costs_operation and not already_signalled:
-        # Raising a Battle Flag is free and leaves the player in the same turn.
-        return
-
-    # Under canonical permanent Pass, an already-signalled player can be
-    # forced to yield with Pass when no normal operation is legal. That yield
-    # changes no Pass state and simply hands the turn back. Research closing
-    # windows additionally consume their countdown here.
-    if (
-        already_signalled
-        and self.pass_closing_rounds > 0
-        and state.pass_closing_turns_remaining > 0
-    ):
-        state.pass_closing_turns_remaining -= 1
-        if state.pass_closing_turns_remaining == 0:
-            state.turn_number += 1
-            _fe_score_battle(self, state)
-            return
 
     _fe_start_turn_fast(self, state, opponent)
     state.turn_number += 1

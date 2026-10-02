@@ -27,8 +27,6 @@ cdef class FastEngine:
     cdef int16_t command_recovery_floor
     cdef int command_collapse_threshold
     cdef int16_t lost_front_command_penalty
-    cdef bint pass_signal_costs_operation
-    cdef int pass_closing_rounds
     cdef int pass_min_operations_before_signal
     cdef int turn_draw_count
     cdef int maneuver_command_cost

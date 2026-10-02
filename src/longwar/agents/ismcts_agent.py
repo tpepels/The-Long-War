@@ -212,8 +212,6 @@ class ISMCTSAgent:
                 "ismcts_rollout_post_battle_actions": 0,
                 "ismcts_decisive_rollout_probes": 0,
                 "ismcts_decisive_rollout_actions": 0,
-                "ismcts_anti_decisive_rollout_probes": 0,
-                "ismcts_anti_decisive_rollout_filtered": 0,
                 "ismcts_rollout_policy": self.rollout_policy,
                 "ismcts_progressive_widening": self.progressive_widening,
                 "ismcts_tree_reuse_enabled": self.reuse_tree,
@@ -410,12 +408,6 @@ class ISMCTSAgent:
             ),
             "ismcts_decisive_rollout_actions": int(
                 result["decisive_rollout_actions"]
-            ),
-            "ismcts_anti_decisive_rollout_probes": int(
-                result["anti_decisive_rollout_probes"]
-            ),
-            "ismcts_anti_decisive_rollout_filtered": int(
-                result["anti_decisive_rollout_filtered"]
             ),
             "ismcts_root_value": score,
             "ismcts_rollout_policy": self.rollout_policy,

@@ -151,8 +151,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     self.command_recovery_floor = int(rules.command_recovery_floor)
     self.command_collapse_threshold = int(rules.command_collapse_threshold)
     self.lost_front_command_penalty = int(rules.lost_front_command_penalty)
-    self.pass_signal_costs_operation = bool(rules.pass_signal_costs_operation)
-    self.pass_closing_rounds = int(rules.pass_closing_rounds)
     self.pass_min_operations_before_signal = int(
         rules.pass_min_operations_before_signal
     )

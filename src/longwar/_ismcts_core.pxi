@@ -645,8 +645,6 @@ def ismcts_search(
     cdef long rollout_post_battle_actions=0
     cdef long decisive_rollout_probes=0
     cdef long decisive_rollout_actions=0
-    cdef long anti_decisive_rollout_probes=0
-    cdef long anti_decisive_rollout_filtered=0
     cdef long tree_capacity_cutoffs=0
     cdef size_t tree_nodes_discarded=0
     cdef object search_context
@@ -1002,8 +1000,6 @@ def ismcts_search(
         "rollout_post_battle_actions": rollout_post_battle_actions,
         "decisive_rollout_probes": decisive_rollout_probes,
         "decisive_rollout_actions": decisive_rollout_actions,
-        "anti_decisive_rollout_probes": anti_decisive_rollout_probes,
-        "anti_decisive_rollout_filtered": anti_decisive_rollout_filtered,
         "tree_storage": "native-hash-node-edge-slab",
         "tree_edge_slabs": tree.edge_slab_count,
         "progressive_widening": progressive_widening,

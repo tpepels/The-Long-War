@@ -59,10 +59,6 @@ def test_standard_command_profile_propagates_into_engine_and_state() -> None:
     assert engine.command_recovery_floor == rules.command_recovery_floor
     assert engine.command_collapse_threshold == rules.command_collapse_threshold
     assert engine.lost_front_command_penalty == rules.lost_front_command_penalty
-    assert rules.pass_signal_costs_operation is True
-    assert rules.pass_closing_rounds == 0
-    assert engine.rules.pass_signal_costs_operation is True
-    assert engine.rules.pass_closing_rounds == 0
     assert engine.maneuver_command_cost == rules.maneuver_command_cost
     assert [player.command for player in state.players] == [
         rules.starting_command,
@@ -397,29 +393,6 @@ def test_rollout_guard_preserves_last_command_without_restricting_root() -> None
     assert root_filtered == 0
     assert maneuver not in rollout_safe
     assert rollout_filtered >= 1
-
-
-def test_post_signal_evaluation_does_not_discount_immediate_closing_option() -> None:
-    rules = GameRules.standard().with_overrides(pass_closing_rounds=3)
-    engine, state = standard_game(rules=rules)
-    state.players[0].passed = True
-    state.pass_order[:] = [0]
-
-    state.pass_closing_turns_remaining = 6
-    early = engine._native_heuristic().evaluate(
-        engine._native_core().from_game_state(state),
-        0,
-    )
-
-    state.pass_closing_turns_remaining = 1
-    late = engine._native_heuristic().evaluate(
-        engine._native_core().from_game_state(state),
-        0,
-    )
-
-    # The unsignalled opponent may end the Battle immediately by signalling
-    # in either state. The automatic deadline must not discount that leverage.
-    assert early == pytest.approx(late)
 
 
 def test_projected_lost_masks_use_tie_control_resolution_rule() -> None:

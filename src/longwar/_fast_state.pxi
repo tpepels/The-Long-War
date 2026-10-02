@@ -47,7 +47,6 @@ cdef class FastState:
     cdef uint8_t passed[PLAYER_COUNT]
     cdef int8_t pass_order[PLAYER_COUNT]
     cdef uint8_t pass_len
-    cdef uint16_t pass_closing_turns_remaining
     cdef uint8_t discarded_this_battle[PLAYER_COUNT]
     cdef int16_t command[PLAYER_COUNT]
     cdef uint16_t operations_this_battle[PLAYER_COUNT]
@@ -222,7 +221,6 @@ cdef class FastState:
         self.resolution_cursor = 0
         self.resolution_starter = -1
         self.pass_len = 0
-        self.pass_closing_turns_remaining = 0
         self.active_player = 0
         self.battle = 1
         self.phase = PHASE_BATTLE
@@ -273,7 +271,6 @@ cdef class FastState:
         memcpy(self.known_hidden, other.known_hidden, sizeof(self.known_hidden))
         memcpy(self.passed, other.passed, sizeof(self.passed))
         memcpy(self.pass_order, other.pass_order, sizeof(self.pass_order))
-        self.pass_closing_turns_remaining = other.pass_closing_turns_remaining
         memcpy(self.discarded_this_battle, other.discarded_this_battle, sizeof(self.discarded_this_battle))
         memcpy(self.command, other.command, sizeof(self.command))
         memcpy(self.operations_this_battle, other.operations_this_battle, sizeof(self.operations_this_battle))

@@ -234,7 +234,6 @@ class AlphaBetaSearch:
             tuple(state.hero_used),
             tuple(state.discarded_this_battle),
             tuple(state.pass_order),
-            state.pass_closing_turns_remaining,
             tuple(state.operations_this_battle),
             tuple(state.maneuvers_this_battle),
             tuple(state.cards_played_this_turn_front_mask),

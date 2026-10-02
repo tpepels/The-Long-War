@@ -87,8 +87,6 @@ class DecisionStats:
     ismcts_rollout_post_battle_actions: int = 0
     ismcts_decisive_rollout_probes: int = 0
     ismcts_decisive_rollout_actions: int = 0
-    ismcts_anti_decisive_rollout_probes: int = 0
-    ismcts_anti_decisive_rollout_filtered: int = 0
     ismcts_iterations_total: int = 0
     ismcts_setup_seconds_total: float = 0.0
     ismcts_search_seconds_total: float = 0.0
@@ -333,7 +331,6 @@ class Telemetry:
                 "first_signal": first_signal,
                 "new_signal": new_signal,
                 "forced_yield": not new_signal,
-                "free_signal": new_signal and not consumes_operation,
                 "hand_size": len(state.players[actor].hand),
                 "deck_remaining": len(state.players[actor].deck),
                 "command_remaining": command,
@@ -480,12 +477,6 @@ class Telemetry:
             )
             stats.ismcts_decisive_rollout_actions += int(
                 decision_info.get("ismcts_decisive_rollout_actions", 0)
-            )
-            stats.ismcts_anti_decisive_rollout_probes += int(
-                decision_info.get("ismcts_anti_decisive_rollout_probes", 0)
-            )
-            stats.ismcts_anti_decisive_rollout_filtered += int(
-                decision_info.get("ismcts_anti_decisive_rollout_filtered", 0)
             )
             ismcts_iterations = int(
                 decision_info.get("ismcts_iterations", 0)
@@ -726,17 +717,10 @@ class Telemetry:
             for event in self.pass_events
             if bool(event.get("forced_yield", False))
         ]
-        free_signals = [
-            event
-            for event in signal_events
-            if bool(event.get("free_signal", False))
-        ]
-
         pass_summary = {
             "events": len(self.pass_events),
             "signal_events": len(signal_events),
             "forced_yield_events": len(forced_yields),
-            "free_signal_events": len(free_signals),
             "mean_hand_size": self._mean_field(self.pass_events, "hand_size"),
             "mean_command_remaining": self._mean_field(
                 self.pass_events,
@@ -999,12 +983,6 @@ class Telemetry:
                     "decisive_action_rate": self._ratio(
                         stats.ismcts_decisive_rollout_actions,
                         stats.ismcts_rollout_actions,
-                    ),
-                    "anti_decisive_probes": (
-                        stats.ismcts_anti_decisive_rollout_probes
-                    ),
-                    "anti_decisive_filtered": (
-                        stats.ismcts_anti_decisive_rollout_filtered
                     ),
                     "terminal": stats.ismcts_terminal_cutoffs,
                     "battle_boundary": stats.ismcts_battle_boundary_cutoffs,

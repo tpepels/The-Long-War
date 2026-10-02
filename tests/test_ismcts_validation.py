@@ -469,57 +469,6 @@ def test_one_turn_ismcts_matches_strategic_leaf_oracle_without_substeps() -> Non
     assert result["action"] in best_actions
 
 
-def test_free_battle_flag_does_not_consume_ismcts_turn_depth() -> None:
-    data = load_card_file(ROOT / "cards" / "cards.json")
-    deck = json.loads(
-        (ROOT / "decks" / "mobility-open-bonds.json").read_text(
-            encoding="utf-8"
-        )
-    )["cards"]
-    rules = GameRules.standard().with_overrides(
-        pass_signal_costs_operation=False,
-    )
-    engine = GameEngine(data, rules=rules)
-    state = engine.new_game(
-        deck,
-        deck,
-        seed=9279,
-        first_player=0,
-        opening_bonus=False,
-    )
-    for player in state.players:
-        player.hand.clear()
-        player.deck.clear()
-        player.discard.clear()
-    state.operations_this_battle[:] = [1, 1]
-    state.pending_draw_discard_for = None
-    assert engine.legal_actions(state) == [Pass()]
-
-    fast = FastEngine(engine)
-    packed = fast.from_game_state(state)
-    result = ismcts_search(
-        fast,
-        NativeHeuristicEvaluator(
-            fast,
-            sampled_opponent_resources=True,
-        ),
-        [packed],
-        0,
-        iterations=2,
-        rollout_depth=0,
-        tree_depth_limit=1,
-        exploration=0.0,
-        rollout_epsilon=0.0,
-        rollout_policy=2,
-        seed=9289,
-    )
-
-    # First path action raises the free flag without completing a turn.
-    # A later forced yield is therefore reachable within turn-depth 1.
-    assert result["max_tree_depth"] == 1
-    assert result["max_tree_path_depth"] == 2
-
-
 def test_zero_post_battle_depth_preserves_boundary_leaf_behavior() -> None:
     engine, state = _pass_only_standard_state()
     fast = FastEngine(engine)

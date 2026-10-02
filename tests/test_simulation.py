@@ -381,26 +381,3 @@ def test_simulation_reclaims_memory_between_moves_and_games(monkeypatch) -> None
     assert len(releases) >= report.max_turns + 2
 
 
-def test_free_battle_flag_is_not_counted_as_turn_consuming_action() -> None:
-    from longwar.rules import GameRules
-
-    data = load_card_file(ROOT / "cards" / "cards.json")
-    deck = json.loads(
-        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
-    )["cards"]
-    rules = GameRules.standard().with_overrides(
-        pass_signal_costs_operation=False,
-    )
-    engine = GameEngine(data, rules=rules)
-    report = simulate_games(
-        engine,
-        deck,
-        deck,
-        games=1,
-        seed=9911,
-        max_actions=40,
-        agent_names=("random", "random"),
-        jobs=1,
-    )
-    outcome = report.game_outcomes[0]
-    assert outcome["turn_consuming_actions_completed"] <= outcome["actions_completed"]

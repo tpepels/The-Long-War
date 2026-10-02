@@ -77,8 +77,6 @@ def test_cython_ismcts_returns_legal_action() -> None:
         == 200
     )
     assert agent.last_decision["ismcts_rollout_actions"] >= 0
-    assert agent.last_decision["ismcts_anti_decisive_rollout_probes"] >= 0
-    assert agent.last_decision["ismcts_anti_decisive_rollout_filtered"] >= 0
 
 
 def test_root_belief_samples_share_information_set() -> None:
@@ -133,12 +131,7 @@ def test_information_key_distinguishes_public_resource_state() -> None:
     changed = base.clone()
     changed.pass_order = [0]
     changed.players[0].passed = True
-    changed.pass_closing_turns_remaining = 3
     assert key(changed) != baseline
-
-    countdown_other = changed.clone()
-    countdown_other.pass_closing_turns_remaining = 2
-    assert key(countdown_other) != key(changed)
 
 
 def test_ismcts_rng_accepts_full_uint64_seed_range() -> None:

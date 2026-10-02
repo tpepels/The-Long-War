@@ -2,7 +2,7 @@
 
 Permanent Pass is canonical as of 2026-10-02: Pass consumes the operation, remains active for the rest of the Battle, and the Battle ends when both players have Passed at least once. Equal exhausted Command at Collapse is terminal; the player who Passed first loses.
 
-Everything below is retained as historical experiment provenance. References to 0-0 draws or competing Pass variants describe the rules used by those old runs and are not current rules.
+Everything below is retained as historical experiment provenance only. The legacy Pass variants and their runner have been removed from the live engine and tooling. References to 0-0 draws or competing Pass variants describe old runs and are not current rules.
 
 ## Historical consecutive-Pass evidence
 
@@ -39,24 +39,14 @@ These historical variants used the then-current Command rules. They are no longe
 
 For closing variants, the Battle still ends immediately if the other player Passes before the window expires.
 
-Run the paired screen with:
-
-```bash
-python tools/run_experiments.py pass-variants
-```
-
-The default is deliberately small: 6 games per canonical deck per variant, four workers, ISMCTS at 5,000 iterations and 2 belief samples. Every variant uses the same deck/game seeds. Results are written under `artifacts/pass-variants/<fingerprint>/summary.json`.
+The legacy paired-screen command has been retired; these variants can no longer be selected by current tooling.
 
 Do not use this screen for card balance. Its question is Battle-ending behavior: match length, Battles per game, Pass/flag frequency, draw/censor rate, first-player rate, and Command at the first signal.
 
 
 ## First current-rules plumbing smoke - 2026-10-01
 
-Command:
-
-```bash
-python tools/run_experiments.py pass-variants
-```
+Historical command: the retired `pass-variants` runner was used for this snapshot.
 
 Configuration: 6 games per canonical same-deck profile, 6 profiles, 36 games per variant; paired seeds; ISMCTS **5,000 iterations**, 2 belief samples; 4 workers. Current Command rules include direct -1 Command per unprotected lost Front before Collapse and simultaneous 0-0 as a draw. This run is retained as a plumbing smoke only; the search budget is below the 50,000-iteration evidence floor.
 
@@ -79,13 +69,13 @@ Configuration: 6 games per canonical same-deck profile, 6 profiles, 36 games per
 Artifact from this run: `artifacts/pass-variants/052e9c28939d/summary.json` (local/generated artifact; not versioned by default).
 
 
-## Serious Pass-rule protocol
+## Historical serious Pass-rule protocol
 
-The next comparative screen uses:
+The later comparative screen used:
 
 - minimum 50,000 ISMCTS iterations per decision;
 - 12 belief samples;
-- decisive rollout with exact rule-aware decisive and anti-decisive checks;
+- the then-current decisive rollout implementation;
 - rollout depth 12, giving the full 3-round/6-turn closing window room for intermediate effect choices;
 - 8 games per canonical mirror deck by default (48 games/variant);
 - 2 worker processes by default to control laptop memory;
@@ -93,6 +83,6 @@ The next comparative screen uses:
 - per-deck checkpoint files, automatically reused after interruption;
 - separate counts for new signals, forced turn-yields, free flags, raw engine actions and turn-consuming actions;
 - draw, censor and first-player Wilson intervals;
-- per-deck breakdowns and tactical rollout probe/filter counts.
+- per-deck breakdowns and tactical rollout counts.
 
-A sub-50k ISMCTS run requires `--allow-smoke` and is explicitly marked as smoke evidence.
+This protocol is archived and is no longer runnable from current tooling.
