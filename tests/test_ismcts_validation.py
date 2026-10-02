@@ -423,6 +423,54 @@ def test_progressive_widening_limits_initial_root_breadth() -> None:
     assert result["progressive_widening_alpha"] == pytest.approx(0.5)
 
 
+def test_progressive_widening_alpha_changes_breadth_schedule() -> None:
+    engine, deck, _priors = _standard_fixture()
+    state = engine.new_game(deck, deck, seed=9247, first_player=0)
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+
+    result = ismcts_search(
+        fast,
+        evaluator,
+        [packed],
+        0,
+        iterations=16,
+        rollout_depth=0,
+        tree_depth_limit=1,
+        exploration=0.0,
+        progressive_widening=1.0,
+        progressive_widening_alpha=0.25,
+        rollout_policy=2,
+        seed=9248,
+    )
+    visited = [
+        row for row in result["root_stats"] if int(row["visits"]) > 0
+    ]
+    assert len(visited) == 2
+    assert result["progressive_widening_alpha"] == pytest.approx(0.25)
+
+
+def test_native_reports_decisive_mix_and_leaf_scale() -> None:
+    engine, state = _pass_only_standard_state()
+    fast = FastEngine(engine)
+    result = ismcts_search(
+        fast,
+        NativeHeuristicEvaluator(fast),
+        [fast.from_game_state(state)],
+        0,
+        iterations=4,
+        rollout_depth=1,
+        tree_depth_limit=1,
+        rollout_policy=3,
+        decisive_greedy_probability=0.3,
+        leaf_scale=250.0,
+        seed=9249,
+    )
+    assert result["decisive_greedy_probability"] == pytest.approx(0.3)
+    assert result["leaf_scale"] == pytest.approx(250.0)
+
+
 def test_one_turn_ismcts_matches_strategic_leaf_oracle_without_substeps() -> None:
     engine, state = _pass_only_standard_state(command=(10, 10))
     # Give the acting player one simple Named Formation so the root has
@@ -709,9 +757,13 @@ def test_same_ismcts_agent_runs_under_standard_rules() -> None:
         ("exploration", float("nan")),
         ("exploration", -1.0),
         ("progressive_widening", float("inf")),
+        ("progressive_widening_alpha", 0.0),
+        ("progressive_widening_alpha", 1.1),
         ("rollout_epsilon", 1.1),
         ("rollout_policy", 4),
         ("post_battle_rollout_depth", -1),
+        ("decisive_greedy_probability", -0.1),
+        ("decisive_greedy_probability", 1.1),
         ("leaf_scale", float("nan")),
     ],
 )
