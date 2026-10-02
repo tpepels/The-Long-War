@@ -837,9 +837,10 @@ cdef void _fe_pass_action(FastEngine self, FastState state, int player):
         # Raising a Battle Flag is free and leaves the player in the same turn.
         return
 
-    # Repeated Passes are irrelevant to canonical permanent Pass. This branch
-    # exists only for research closing-window overrides where an already-
-    # signalled player may be forced to yield the turn.
+    # Under canonical permanent Pass, an already-signalled player can be
+    # forced to yield with Pass when no normal operation is legal. That yield
+    # changes no Pass state and simply hands the turn back. Research closing
+    # windows additionally consume their countdown here.
     if (
         already_signalled
         and self.pass_closing_rounds > 0
