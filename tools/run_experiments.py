@@ -4037,6 +4037,66 @@ def parse_args() -> argparse.Namespace:
         default="decisive",
     )
 
+    tournament = sub.add_parser(
+        "ismcts-tournament",
+        help=(
+            "Serious staged ISMCTS parameter tournament: one-factor screen, "
+            "independent finalist round-robin, then independent confirmation."
+        ),
+    )
+    tournament.add_argument("--jobs", type=int, default=DEFAULT_WORKERS)
+    tournament.add_argument(
+        "--screen-games",
+        type=int,
+        default=4,
+        help="Games per deck/orientation for each one-factor screen.",
+    )
+    tournament.add_argument(
+        "--final-games",
+        type=int,
+        default=8,
+        help="Games per deck/orientation for each independent finalist pairing.",
+    )
+    tournament.add_argument(
+        "--confirm-games",
+        type=int,
+        default=12,
+        help="Games per deck/orientation for the independent baseline confirmation.",
+    )
+    tournament.add_argument(
+        "--time-budget-seconds",
+        type=float,
+        default=5.0,
+        help="Equal native ISMCTS search budget per non-forced decision.",
+    )
+    tournament.add_argument(
+        "--iterations-ceiling",
+        type=int,
+        default=2_000_000,
+        help=(
+            "Safety ceiling per search; should remain non-binding under the "
+            "wall-clock budget. The summary flags configurations below 95%% timeout rate."
+        ),
+    )
+    tournament.add_argument("--seed", type=int, default=26100200)
+    tournament.add_argument(
+        "--max-family-finalists",
+        type=int,
+        default=5,
+        help="Maximum number of one-factor family winners admitted to finals.",
+    )
+    tournament.add_argument(
+        "--finalist-floor",
+        type=float,
+        default=0.45,
+        help="Minimum screening score rate for a family winner to enter finals.",
+    )
+    tournament.add_argument(
+        "--force",
+        action="store_true",
+        help="Rerun completed cells instead of resuming the current fingerprint.",
+    )
+
     strength = sub.add_parser(
         "strength-bench",
         help="Sanity-check canonical ISMCTS against alpha-beta.",
@@ -4098,6 +4158,8 @@ def main() -> None:
         validate()
     elif args.command == "ismcts-speed":
         benchmark_ismcts_speed(args)
+    elif args.command == "ismcts-tournament":
+        ismcts_tournament_run(args)
     elif args.command == "strength-bench":
         benchmark_strength(
             games_per_orientation=args.games,
