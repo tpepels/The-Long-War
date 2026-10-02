@@ -38,6 +38,8 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_MAX_TREE_NODES,
     DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
+    DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
     DEFAULT_ISMCTS_LEAF_SCALE,
     DEFAULT_ISMCTS_REUSE_TREE,
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
@@ -87,55 +89,149 @@ def canonical_ismcts_tournament_config() -> dict[str, Any]:
         "ismcts_tree_depth_limit": 96,
         "ismcts_exploration": DEFAULT_ISMCTS_EXPLORATION,
         "ismcts_progressive_widening": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+        "ismcts_progressive_widening_alpha": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
         "ismcts_reuse_tree": DEFAULT_ISMCTS_REUSE_TREE,
         "ismcts_max_tree_nodes": DEFAULT_ISMCTS_MAX_TREE_NODES,
         "ismcts_rollout_epsilon": DEFAULT_ISMCTS_ROLLOUT_EPSILON,
         "ismcts_rollout_policy": DEFAULT_ISMCTS_ROLLOUT_POLICY,
+        "ismcts_decisive_greedy_probability": DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
         "ismcts_leaf_scale": DEFAULT_ISMCTS_LEAF_SCALE,
     }
 
 
 def ismcts_tournament_candidates() -> dict[str, dict[str, Any]]:
-    """One-factor challengers spanning every material production search knob.
+    """Behaviorally distinct challengers spanning the effective search surface.
 
-    UCT backs up utilities in [-1, 1], so the c grid deliberately spans pure
-    exploitation through exploration constants well above the current 0.3.
+    Conditional knobs are varied only where they matter. In particular,
+    rollout epsilon is ignored by decisive and fully-random rollouts, so
+    epsilon is screened only together with greedy/cheap policies.
     """
     candidates: dict[str, dict[str, Any]] = {}
 
     def add(name: str, family: str, **overrides: Any) -> None:
         candidates[name] = {"family": family, "overrides": overrides}
 
+    # UCT exploration constant c. Include the historical sqrt(2) default of
+    # the native primitive as a challenger to the production c=0.3.
     for label, value in (
-        ("0", 0.0), ("0p1", 0.1), ("0p2", 0.2), ("0p45", 0.45),
-        ("0p7", 0.7), ("1", 1.0), ("1p4", 1.4),
+        ("0", 0.0),
+        ("0p1", 0.1),
+        ("0p2", 0.2),
+        ("0p45", 0.45),
+        ("0p7", 0.7),
+        ("1", 1.0),
+        ("sqrt2", 2 ** 0.5),
+        ("2", 2.0),
     ):
         add(f"uct-c-{label}", "uct", ismcts_exploration=value)
 
-    for value in (0, 2, 8, 12):
+    # Strategic rollout horizons.
+    for value in (0, 2, 8, 12, 16):
         add(f"rollout-{value}", "horizon", ismcts_rollout_depth=value)
-    for value in (0, 2, 8, 12):
-        add(f"post-battle-{value}", "horizon", ismcts_post_battle_rollout_depth=value)
+    for value in (0, 2, 8, 12, 16):
+        add(
+            f"post-battle-{value}",
+            "horizon",
+            ismcts_post_battle_rollout_depth=value,
+        )
 
-    for label, value in (("0", 0.0), ("0p05", 0.05), ("0p25", 0.25), ("0p5", 0.5)):
-        add(f"epsilon-{label}", "rollout", ismcts_rollout_epsilon=value)
-    for policy in ("greedy", "cheap", "random"):
-        add(f"policy-{policy}", "rollout", ismcts_rollout_policy=policy)
+    # Rollout family. Epsilon is meaningful for greedy/cheap only. Decisive
+    # has a separate greedy-mixture probability after its exact safe
+    # Battle-closing probe.
+    for policy in ("greedy", "cheap"):
+        for label, epsilon in (
+            ("0", 0.0),
+            ("0p05", 0.05),
+            ("0p12", 0.12),
+            ("0p25", 0.25),
+            ("0p5", 0.5),
+            ("1", 1.0),
+        ):
+            add(
+                f"{policy}-eps-{label}",
+                "rollout",
+                ismcts_rollout_policy=policy,
+                ismcts_rollout_epsilon=epsilon,
+            )
+    add("policy-random", "rollout", ismcts_rollout_policy="random")
+    for label, probability in (
+        ("0", 0.0),
+        ("0p15", 0.15),
+        ("0p3", 0.3),
+        ("0p5", 0.5),
+        ("1", 1.0),
+    ):
+        add(
+            f"decisive-greedy-{label}",
+            "rollout",
+            ismcts_decisive_greedy_probability=probability,
+        )
 
-    for value in (4, 6, 24, 48):
+    # Belief determinizations per searched decision.
+    for value in (1, 2, 4, 6, 24, 48, 96):
         add(f"beliefs-{value}", "belief", ismcts_belief_samples=value)
 
-    for value in (48, 192):
+    # Tree horizon, capacity and reuse.
+    for value in (16, 32, 64, 160, 256):
         add(f"tree-depth-{value}", "tree", ismcts_tree_depth_limit=value)
-    for label, value in (("200k", 200_000), ("800k", 800_000)):
+    for label, value in (
+        ("50k", 50_000),
+        ("100k", 100_000),
+        ("200k", 200_000),
+        ("800k", 800_000),
+        ("1600k", 1_600_000),
+    ):
         add(f"tree-nodes-{label}", "tree", ismcts_max_tree_nodes=value)
     add("tree-cold", "tree", ismcts_reuse_tree=False)
 
-    for label, value in (("0p5", 0.5), ("1", 1.0), ("2", 2.0), ("4", 4.0)):
-        add(f"pw-c-{label}", "widening", ismcts_progressive_widening=value)
+    # Progressive widening k = c * (N + 1)^alpha. Alpha has no effect when
+    # widening c is zero, so only behaviorally effective combinations exist.
+    for label, value in (
+        ("0p25", 0.25),
+        ("0p5", 0.5),
+        ("1", 1.0),
+        ("2", 2.0),
+        ("4", 4.0),
+    ):
+        add(
+            f"pw-c-{label}-a-0p5",
+            "widening",
+            ismcts_progressive_widening=value,
+            ismcts_progressive_widening_alpha=0.5,
+        )
+    for label, alpha in (
+        ("0p25", 0.25),
+        ("0p75", 0.75),
+        ("1", 1.0),
+    ):
+        add(
+            f"pw-c-1-a-{label}",
+            "widening",
+            ismcts_progressive_widening=1.0,
+            ismcts_progressive_widening_alpha=alpha,
+        )
 
-    for value in (50.0, 75.0, 150.0, 200.0):
-        add(f"leaf-scale-{int(value)}", "value-scale", ismcts_leaf_scale=value)
+    # Scale before tanh converts non-terminal heuristic values to [-1, 1].
+    for value in (10.0, 25.0, 50.0, 75.0, 150.0, 200.0, 400.0, 1000.0):
+        add(
+            f"leaf-scale-{int(value)}",
+            "value-scale",
+            ismcts_leaf_scale=value,
+        )
+
+    # Fail fast if a future edit accidentally creates two expensive lanes with
+    # identical effective settings, or re-adds the baseline under another name.
+    baseline = canonical_ismcts_tournament_config()
+    seen = {json.dumps(baseline, sort_keys=True, separators=(",", ":"))}
+    for name, entry in candidates.items():
+        effective = dict(baseline)
+        effective.update(entry["overrides"])
+        key = json.dumps(effective, sort_keys=True, separators=(",", ":"))
+        if key in seen:
+            raise RuntimeError(
+                f"Duplicate/no-op ISMCTS tournament configuration: {name}"
+            )
+        seen.add(key)
 
     return candidates
 
