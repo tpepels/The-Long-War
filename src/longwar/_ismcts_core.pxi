@@ -8,7 +8,6 @@
 from libc.math cimport isfinite
 
 DEF MAX_ISMCTS_DEPTH = 256
-DEF DECISIVE_ROLLOUT_GREEDY_PROBABILITY = 0.05
 
 # Native ISMCTS implementation tuning. These are search/runtime values, not rules.
 DEF ISMCTS_RNG_SHIFT_A = 12
@@ -32,13 +31,14 @@ DEF ISMCTS_LOAD_FACTOR_DENOMINATOR = 10
 DEF ISMCTS_NEGATIVE_INFINITY = -1.0e300
 DEF ISMCTS_MIN_ROLLOUT_WEIGHT = 0.001
 DEF ISMCTS_DEADLINE_POLL_MASK = 255
-DEF ISMCTS_PROGRESSIVE_WIDENING_ALPHA = 0.5
 
 DEF NATIVE_DEFAULT_ISMCTS_ITERATIONS = 100000
 DEF NATIVE_DEFAULT_ISMCTS_TREE_DEPTH = 96
 DEF NATIVE_DEFAULT_ISMCTS_EXPLORATION = 1.4142135623730951
 DEF NATIVE_DEFAULT_ISMCTS_PROGRESSIVE_WIDENING = 0.0
+DEF NATIVE_DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA = 0.5
 DEF NATIVE_DEFAULT_ISMCTS_ROLLOUT_EPSILON = 0.12
+DEF NATIVE_DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY = 0.05
 DEF NATIVE_DEFAULT_ISMCTS_LEAF_SCALE = 100.0
 DEF NATIVE_DEFAULT_ISMCTS_TIME_LIMIT_SECONDS = 0.0
 DEF NATIVE_DEFAULT_ISMCTS_SEED = 1701
@@ -378,6 +378,7 @@ cdef class ISMCTSTree:
         int n,
         double exploration,
         double progressive_widening,
+        double progressive_widening_alpha,
         uint64_t* rng,
         bint* expanded,
     ) except -1:
@@ -407,14 +408,17 @@ cdef class ISMCTSTree:
             else:
                 visited_legal += 1
 
-        # Optional square-root progressive widening. A value <= 0 preserves
-        # the original ISMCTS behavior: visit every legal action once before
-        # UCT selection. With widening enabled, a node may expand at most
-        # floor(c * sqrt(N + 1)) currently-legal actions, but always at least
-        # one. Actions unavailable in this determinization do not consume the
-        # node's legal-action allowance.
+        # Optional progressive widening. A value <= 0 preserves the original
+        # ISMCTS behavior: visit every legal action once before UCT selection.
+        # With widening enabled, a node may expand at most
+        # floor(c * (N + 1)^alpha) currently-legal actions, but always at
+        # least one. Actions unavailable in this determinization do not
+        # consume the node's legal-action allowance.
         if progressive_widening > 0.0:
-            allowance = progressive_widening * sqrt(<double>(node.total_visits + 1))
+            allowance = progressive_widening * pow(
+                <double>(node.total_visits + 1),
+                progressive_widening_alpha
+            )
             allowed = n if allowance >= n else <int>allowance
             if allowed < 1:
                 allowed = 1
@@ -474,6 +478,7 @@ cdef uint64_t _ismcts_rollout_action(
     uint64_t* rng,
     double epsilon,
     int policy,
+    double decisive_greedy_probability,
     long* decisive_probes,
     long* decisive_actions,
 ) except *:
@@ -512,7 +517,7 @@ cdef uint64_t _ismcts_rollout_action(
     if policy == 3:
         use_greedy = (
             _ismcts_rand_unit(rng)
-            < DECISIVE_ROLLOUT_GREEDY_PROBABILITY
+            < decisive_greedy_probability
         )
 
         # Canonical permanent Pass gives the unsignalled player an exact
@@ -609,8 +614,10 @@ def ismcts_search(
     int tree_depth_limit=NATIVE_DEFAULT_ISMCTS_TREE_DEPTH,
     double exploration=NATIVE_DEFAULT_ISMCTS_EXPLORATION,
     double progressive_widening=NATIVE_DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    double progressive_widening_alpha=NATIVE_DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
     double rollout_epsilon=NATIVE_DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     int rollout_policy=3,
+    double decisive_greedy_probability=NATIVE_DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
     double leaf_scale=NATIVE_DEFAULT_ISMCTS_LEAF_SCALE,
     double time_limit_seconds=NATIVE_DEFAULT_ISMCTS_TIME_LIMIT_SECONDS,
     unsigned long long seed=NATIVE_DEFAULT_ISMCTS_SEED,
@@ -671,10 +678,20 @@ def ismcts_search(
         raise ValueError("exploration must be finite and non-negative")
     if not isfinite(progressive_widening) or progressive_widening < 0.0:
         raise ValueError("progressive_widening must be non-negative")
+    if (
+        not isfinite(progressive_widening_alpha)
+        or not 0.0 < progressive_widening_alpha <= 1.0
+    ):
+        raise ValueError("progressive_widening_alpha must be in (0, 1]")
     if not isfinite(rollout_epsilon) or not 0.0 <= rollout_epsilon <= 1.0:
         raise ValueError("rollout_epsilon must be between 0 and 1")
     if rollout_policy not in (0, 1, 2, 3):
         raise ValueError("rollout_policy must be 0, 1, 2, or 3")
+    if (
+        not isfinite(decisive_greedy_probability)
+        or not 0.0 <= decisive_greedy_probability <= 1.0
+    ):
+        raise ValueError("decisive_greedy_probability must be between 0 and 1")
     if not isfinite(leaf_scale) or leaf_scale <= 0.0:
         raise ValueError("leaf_scale must be positive")
     if not isfinite(time_limit_seconds) or time_limit_seconds < 0.0:
@@ -709,8 +726,10 @@ def ismcts_search(
     search_context = (
                       engine, evaluator, root_player, rollout_depth,
                       post_battle_rollout_depth, tree_depth_limit,
-                      rollout_epsilon, rollout_policy, leaf_scale,
-                      exploration, progressive_widening, reuse_context)
+                      rollout_epsilon, rollout_policy,
+                      decisive_greedy_probability, leaf_scale,
+                      exploration, progressive_widening,
+                      progressive_widening_alpha, reuse_context)
     if tree.search_context is not None and tree.search_context != search_context:
         tree_nodes_discarded = tree.node_count
         tree.clear()
@@ -781,6 +800,7 @@ def ismcts_search(
                 n,
                 exploration,
                 progressive_widening,
+                progressive_widening_alpha,
                 &rng,
                 &expanded,
             )
@@ -844,6 +864,7 @@ def ismcts_search(
                 &rng,
                 rollout_epsilon,
                 rollout_policy,
+                decisive_greedy_probability,
                 &decisive_rollout_probes,
                 &decisive_rollout_actions,
             )
@@ -1003,7 +1024,11 @@ def ismcts_search(
         "tree_storage": "native-hash-node-edge-slab",
         "tree_edge_slabs": tree.edge_slab_count,
         "progressive_widening": progressive_widening,
-        "progressive_widening_alpha": ISMCTS_PROGRESSIVE_WIDENING_ALPHA if progressive_widening > 0.0 else 0.0,
+        "progressive_widening_alpha": (
+            progressive_widening_alpha if progressive_widening > 0.0 else 0.0
+        ),
+        "decisive_greedy_probability": decisive_greedy_probability,
+        "leaf_scale": leaf_scale,
         "rollout_policy": (
             "cheap" if rollout_policy == 1
             else "random" if rollout_policy == 2

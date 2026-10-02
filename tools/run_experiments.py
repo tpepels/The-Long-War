@@ -38,6 +38,8 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_ITERATIONS,
     DEFAULT_ISMCTS_MAX_TREE_NODES,
     DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+    DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
+    DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
     DEFAULT_ISMCTS_LEAF_SCALE,
     DEFAULT_ISMCTS_REUSE_TREE,
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
@@ -82,60 +84,153 @@ def canonical_ismcts_tournament_config() -> dict[str, Any]:
     """Production ISMCTS settings, excluding the shared wall-clock budget."""
     return {
         "ismcts_belief_samples": DEFAULT_ISMCTS_BELIEF_SAMPLES,
+        "ismcts_hard_iteration_ceiling": True,
         "ismcts_rollout_depth": DEFAULT_ISMCTS_ROLLOUT_DEPTH,
         "ismcts_post_battle_rollout_depth": DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
         "ismcts_tree_depth_limit": 96,
         "ismcts_exploration": DEFAULT_ISMCTS_EXPLORATION,
         "ismcts_progressive_widening": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+        "ismcts_progressive_widening_alpha": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
         "ismcts_reuse_tree": DEFAULT_ISMCTS_REUSE_TREE,
         "ismcts_max_tree_nodes": DEFAULT_ISMCTS_MAX_TREE_NODES,
         "ismcts_rollout_epsilon": DEFAULT_ISMCTS_ROLLOUT_EPSILON,
         "ismcts_rollout_policy": DEFAULT_ISMCTS_ROLLOUT_POLICY,
+        "ismcts_decisive_greedy_probability": DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
         "ismcts_leaf_scale": DEFAULT_ISMCTS_LEAF_SCALE,
     }
 
 
 def ismcts_tournament_candidates() -> dict[str, dict[str, Any]]:
-    """One-factor challengers spanning every material production search knob.
+    """Behaviorally distinct challengers spanning the effective search surface.
 
-    UCT backs up utilities in [-1, 1], so the c grid deliberately spans pure
-    exploitation through exploration constants well above the current 0.3.
+    Conditional knobs are varied only where they matter. In particular,
+    rollout epsilon is ignored by decisive and fully-random rollouts, so
+    epsilon is screened only together with greedy/cheap policies.
     """
     candidates: dict[str, dict[str, Any]] = {}
 
     def add(name: str, family: str, **overrides: Any) -> None:
         candidates[name] = {"family": family, "overrides": overrides}
 
+    # UCT exploration constant c. Include the historical sqrt(2) default of
+    # the native primitive as a challenger to the production c=0.3.
     for label, value in (
-        ("0", 0.0), ("0p1", 0.1), ("0p2", 0.2), ("0p45", 0.45),
-        ("0p7", 0.7), ("1", 1.0), ("1p4", 1.4),
+        ("0", 0.0),
+        ("0p1", 0.1),
+        ("0p2", 0.2),
+        ("0p45", 0.45),
+        ("0p7", 0.7),
+        ("1", 1.0),
+        ("sqrt2", 2 ** 0.5),
+        ("2", 2.0),
     ):
         add(f"uct-c-{label}", "uct", ismcts_exploration=value)
 
-    for value in (0, 2, 8, 12):
+    # Strategic rollout horizons.
+    for value in (0, 2, 8, 12, 16):
         add(f"rollout-{value}", "horizon", ismcts_rollout_depth=value)
-    for value in (0, 2, 8, 12):
-        add(f"post-battle-{value}", "horizon", ismcts_post_battle_rollout_depth=value)
+    for value in (0, 2, 8, 12, 16):
+        add(
+            f"post-battle-{value}",
+            "horizon",
+            ismcts_post_battle_rollout_depth=value,
+        )
 
-    for label, value in (("0", 0.0), ("0p05", 0.05), ("0p25", 0.25), ("0p5", 0.5)):
-        add(f"epsilon-{label}", "rollout", ismcts_rollout_epsilon=value)
-    for policy in ("greedy", "cheap", "random"):
-        add(f"policy-{policy}", "rollout", ismcts_rollout_policy=policy)
+    # Rollout family. Epsilon is meaningful for greedy/cheap only. Decisive
+    # has a separate greedy-mixture probability after its exact safe
+    # Battle-closing probe.
+    for policy in ("greedy", "cheap"):
+        for label, epsilon in (
+            ("0", 0.0),
+            ("0p05", 0.05),
+            ("0p12", 0.12),
+            ("0p25", 0.25),
+            ("0p5", 0.5),
+        ):
+            add(
+                f"{policy}-eps-{label}",
+                "rollout",
+                ismcts_rollout_policy=policy,
+                ismcts_rollout_epsilon=epsilon,
+            )
+    add("policy-random", "rollout", ismcts_rollout_policy="random")
+    for label, probability in (
+        ("0", 0.0),
+        ("0p15", 0.15),
+        ("0p3", 0.3),
+        ("0p5", 0.5),
+        ("1", 1.0),
+    ):
+        add(
+            f"decisive-greedy-{label}",
+            "rollout",
+            ismcts_decisive_greedy_probability=probability,
+        )
 
-    for value in (4, 6, 24, 48):
+    # Belief determinizations per searched decision.
+    for value in (1, 2, 4, 6, 24, 48, 96):
         add(f"beliefs-{value}", "belief", ismcts_belief_samples=value)
 
-    for value in (48, 192):
+    # Tree horizon, capacity and reuse.
+    for value in (16, 32, 64, 160, 256):
         add(f"tree-depth-{value}", "tree", ismcts_tree_depth_limit=value)
-    for label, value in (("200k", 200_000), ("800k", 800_000)):
+    for label, value in (
+        ("50k", 50_000),
+        ("100k", 100_000),
+        ("200k", 200_000),
+        ("800k", 800_000),
+        ("1600k", 1_600_000),
+    ):
         add(f"tree-nodes-{label}", "tree", ismcts_max_tree_nodes=value)
     add("tree-cold", "tree", ismcts_reuse_tree=False)
 
-    for label, value in (("0p5", 0.5), ("1", 1.0), ("2", 2.0), ("4", 4.0)):
-        add(f"pw-c-{label}", "widening", ismcts_progressive_widening=value)
+    # Progressive widening k = c * (N + 1)^alpha. Alpha has no effect when
+    # widening c is zero, so only behaviorally effective combinations exist.
+    for label, value in (
+        ("0p25", 0.25),
+        ("0p5", 0.5),
+        ("1", 1.0),
+        ("2", 2.0),
+        ("4", 4.0),
+    ):
+        add(
+            f"pw-c-{label}-a-0p5",
+            "widening",
+            ismcts_progressive_widening=value,
+            ismcts_progressive_widening_alpha=0.5,
+        )
+    for label, alpha in (
+        ("0p25", 0.25),
+        ("0p75", 0.75),
+    ):
+        add(
+            f"pw-c-1-a-{label}",
+            "widening",
+            ismcts_progressive_widening=1.0,
+            ismcts_progressive_widening_alpha=alpha,
+        )
 
-    for value in (50.0, 75.0, 150.0, 200.0):
-        add(f"leaf-scale-{int(value)}", "value-scale", ismcts_leaf_scale=value)
+    # Scale before tanh converts non-terminal heuristic values to [-1, 1].
+    for value in (10.0, 25.0, 50.0, 75.0, 150.0, 200.0, 400.0, 1000.0):
+        add(
+            f"leaf-scale-{int(value)}",
+            "value-scale",
+            ismcts_leaf_scale=value,
+        )
+
+    # Fail fast if a future edit accidentally creates two expensive lanes with
+    # identical effective settings, or re-adds the baseline under another name.
+    baseline = canonical_ismcts_tournament_config()
+    seen = {json.dumps(baseline, sort_keys=True, separators=(",", ":"))}
+    for name, entry in candidates.items():
+        effective = dict(baseline)
+        effective.update(entry["overrides"])
+        key = json.dumps(effective, sort_keys=True, separators=(",", ":"))
+        if key in seen:
+            raise RuntimeError(
+                f"Duplicate/no-op ISMCTS tournament configuration: {name}"
+            )
+        seen.add(key)
 
     return candidates
 
@@ -1662,15 +1757,18 @@ def paired_seat_swap_interval(
             raise ValueError("Mirrored tournament cells must contain identical deal seeds")
         for deal_seed, left in first.items():
             right = second[deal_seed]
-            if left.get("winner") is None or right.get("winner") is None:
+            if (
+                bool(left.get("censored", False))
+                or bool(right.get("censored", False))
+            ):
                 censored_pairs += 1
                 continue
 
             def score(row: dict[str, Any], a_seat: int) -> float:
-                winner = int(row["winner"])
-                if winner < 0:
+                winner = row.get("winner")
+                if winner is None or int(winner) < 0:
                     return 0.5
-                return 1.0 if winner == a_seat else 0.0
+                return 1.0 if int(winner) == a_seat else 0.0
 
             pair_scores.append(
                 (score(left, 0) + score(right, 1)) / 2.0
@@ -1774,6 +1872,12 @@ def _aggregate_tournament_resources(
     }
 
 
+def _tournament_profile_seed_offset(label: str) -> int:
+    """Stable candidate-specific RNG stream independent of seat/opponent."""
+    digest = hashlib.sha256(label.encode("utf-8")).digest()
+    return 1_000 + int.from_bytes(digest[:4], "big") % 900_000
+
+
 def _run_ismcts_tournament_pair(
     *,
     output_dir: Path,
@@ -1790,6 +1894,8 @@ def _run_ismcts_tournament_pair(
 ) -> dict[str, Any]:
     """Run one mirrored all-deck ISMCTS-vs-ISMCTS comparison."""
     cells = []
+    offset_a = _tournament_profile_seed_offset(label_a)
+    offset_b = _tournament_profile_seed_offset(label_b)
     for deck_index, (deck_name, deck_path) in enumerate(CANONICAL_DECK_PATHS.items()):
         cell_seed = seed + deck_index * 10_000
         for orientation, labels, configs, offsets in (
@@ -1797,13 +1903,13 @@ def _run_ismcts_tournament_pair(
                 "a-first",
                 (label_a, label_b),
                 (config_a, config_b),
-                (11, 22),
+                (offset_a, offset_b),
             ),
             (
                 "b-first",
                 (label_b, label_a),
                 (config_b, config_a),
-                (22, 11),
+                (offset_b, offset_a),
             ),
         ):
             output = output_dir / f"{deck_name}--{orientation}.json"
@@ -2000,7 +2106,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     config = {
         "experiment": "ismcts-tournament",
         "method": (
-            "one-factor screen -> independent interaction screen -> "
+            "effective-parameter screen -> independent interaction screen -> "
             "independent finalist round-robin -> independent confirmation"
         ),
         "screen_games_per_orientation": args.screen_games,
@@ -2316,7 +2422,7 @@ def benchmark_strength(
     *,
     games_per_orientation: int,
     jobs: int,
-    ismcts_iterations: int = DEFAULT_ISMCTS_ITERATIONS,
+    ismcts_iterations: int = 20_000_000,
     post_battle_rollout_depth: int = DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
     alpha_nodes: int = 20_000,
     time_budget_seconds: float = 5.0,
@@ -4175,8 +4281,9 @@ def parse_args() -> argparse.Namespace:
     tournament = sub.add_parser(
         "ismcts-tournament",
         help=(
-            "Serious staged ISMCTS parameter tournament: one-factor screen, "
-            "independent finalist round-robin, then independent confirmation."
+            "Serious staged ISMCTS parameter tournament: effective-parameter "
+            "screen, independent interaction screen, finalist round-robin, "
+            "then independent confirmation."
         ),
     )
     tournament.add_argument("--jobs", type=int, default=DEFAULT_WORKERS)
@@ -4216,7 +4323,7 @@ def parse_args() -> argparse.Namespace:
     tournament.add_argument(
         "--iterations-ceiling",
         type=int,
-        default=2_000_000,
+        default=20_000_000,
         help=(
             "Safety ceiling per search; should remain non-binding under the "
             "wall-clock budget. The summary flags configurations below 95%% timeout rate."
@@ -4226,7 +4333,7 @@ def parse_args() -> argparse.Namespace:
     tournament.add_argument(
         "--max-family-finalists",
         type=int,
-        default=5,
+        default=7,
         help="Maximum number of one-factor family winners admitted to finals.",
     )
     tournament.add_argument(
@@ -4265,7 +4372,10 @@ def parse_args() -> argparse.Namespace:
         "--iterations",
         type=int,
         default=DEFAULT_ISMCTS_ITERATIONS,
-        help="Fallback work ceiling; wall-clock time is the comparison budget.",
+        help=(
+            "Nominal ISMCTS budget; with a wall-clock budget normal agent "
+            "semantics keep time as the primary stopping condition."
+        ),
     )
     strength.add_argument(
         "--post-battle-rollout-depth",

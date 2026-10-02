@@ -26,6 +26,8 @@ DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH = 4
 DEFAULT_ISMCTS_ROLLOUT_EPSILON = 0.12
 DEFAULT_ISMCTS_LEAF_SCALE = 100.0
 DEFAULT_ISMCTS_PROGRESSIVE_WIDENING = 0.0
+DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA = 0.5
+DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY = 0.05
 DEFAULT_ISMCTS_REUSE_TREE = True
 DEFAULT_ISMCTS_MAX_TREE_NODES = 400_000
 
@@ -58,15 +60,18 @@ class ISMCTSAgent:
         belief_samples: int = DEFAULT_ISMCTS_BELIEF_SAMPLES,
         iterations: int = DEFAULT_ISMCTS_ITERATIONS,
         time_budget_seconds: float | None = None,
+        hard_iteration_ceiling: bool = False,
         rollout_depth: int = DEFAULT_ISMCTS_ROLLOUT_DEPTH,
         post_battle_rollout_depth: int = DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
         tree_depth_limit: int = 96,
         exploration: float = DEFAULT_ISMCTS_EXPLORATION,
         progressive_widening: float = DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
+        progressive_widening_alpha: float = DEFAULT_ISMCTS_PROGRESSIVE_WIDENING_ALPHA,
         reuse_tree: bool = DEFAULT_ISMCTS_REUSE_TREE,
         max_tree_nodes: int | None = DEFAULT_ISMCTS_MAX_TREE_NODES,
         rollout_epsilon: float = DEFAULT_ISMCTS_ROLLOUT_EPSILON,
         rollout_policy: str = DEFAULT_ISMCTS_ROLLOUT_POLICY,
+        decisive_greedy_probability: float = DEFAULT_ISMCTS_DECISIVE_GREEDY_PROBABILITY,
         leaf_scale: float = DEFAULT_ISMCTS_LEAF_SCALE,
         heuristic_weights: HeuristicWeights | None = None,
     ):
@@ -89,6 +94,11 @@ class ISMCTSAgent:
             raise ValueError("exploration must be non-negative")
         if not isfinite(progressive_widening) or progressive_widening < 0:
             raise ValueError("progressive_widening must be non-negative")
+        if (
+            not isfinite(progressive_widening_alpha)
+            or not 0.0 < progressive_widening_alpha <= 1.0
+        ):
+            raise ValueError("progressive_widening_alpha must be in (0, 1]")
         if not 0.0 <= rollout_epsilon <= 1.0:
             raise ValueError("rollout_epsilon must be between 0 and 1")
         try:
@@ -98,6 +108,13 @@ class ISMCTSAgent:
             raise ValueError(
                 f"rollout_policy must be one of: {allowed}"
             ) from exc
+        if (
+            not isfinite(decisive_greedy_probability)
+            or not 0.0 <= decisive_greedy_probability <= 1.0
+        ):
+            raise ValueError(
+                "decisive_greedy_probability must be between 0 and 1"
+            )
         if not isfinite(leaf_scale) or leaf_scale <= 0:
             raise ValueError("leaf_scale must be positive")
 
@@ -109,15 +126,18 @@ class ISMCTSAgent:
         self.belief_samples = belief_samples
         self.iterations = iterations
         self.time_budget_seconds = time_budget_seconds
+        self.hard_iteration_ceiling = hard_iteration_ceiling
         self.rollout_depth = rollout_depth
         self.post_battle_rollout_depth = post_battle_rollout_depth
         self.tree_depth_limit = tree_depth_limit
         self.exploration = exploration
         self.progressive_widening = progressive_widening
+        self.progressive_widening_alpha = progressive_widening_alpha
         self.reuse_tree = reuse_tree
         self.max_tree_nodes = max_tree_nodes
         self.rollout_epsilon = rollout_epsilon
         self.rollout_policy = parsed_rollout_policy.value
+        self.decisive_greedy_probability = decisive_greedy_probability
         self._rollout_policy_code = RolloutPolicyCode[
             parsed_rollout_policy.name
         ].value
@@ -178,6 +198,7 @@ class ISMCTSAgent:
                 "search_nodes": 0,
                 "search_budget": self.iterations,
                 "search_time_budget_seconds": self.time_budget_seconds,
+                "search_hard_iteration_ceiling": self.hard_iteration_ceiling,
                 "decision_seconds": perf_counter() - decision_started,
                 "completed_depth": 0,
                 "search_backend": "cython",
@@ -215,6 +236,15 @@ class ISMCTSAgent:
                 "ismcts_decisive_rollout_actions": 0,
                 "ismcts_rollout_policy": self.rollout_policy,
                 "ismcts_progressive_widening": self.progressive_widening,
+                "ismcts_progressive_widening_alpha": (
+                    self.progressive_widening_alpha
+                    if self.progressive_widening > 0.0
+                    else 0.0
+                ),
+                "ismcts_decisive_greedy_probability": (
+                    self.decisive_greedy_probability
+                ),
+                "ismcts_leaf_scale": self.leaf_scale,
                 "ismcts_tree_reuse_enabled": self.reuse_tree,
             "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
                 "command_guard_applied": guarded > 0,
@@ -264,10 +294,14 @@ class ISMCTSAgent:
             if self.time_budget_seconds is not None
             else 0.0
         )
+        # Normal time-budgeted play keeps time as the primary budget and
+        # treats a small iteration setting as a sizing/default hint. Serious
+        # equal-time experiments can opt into a real iteration safety ceiling
+        # and verify that it remains non-binding.
         effective_iteration_limit = (
-            max(self.iterations, 100_000_000)
-            if self.time_budget_seconds is not None
-            else self.iterations
+            self.iterations
+            if self.time_budget_seconds is None or self.hard_iteration_ceiling
+            else max(self.iterations, 100_000_000)
         )
         search_tree = self._tree
         if search_tree is None:
@@ -290,8 +324,10 @@ class ISMCTSAgent:
             tree_depth_limit=self.tree_depth_limit,
             exploration=self.exploration,
             progressive_widening=self.progressive_widening,
+            progressive_widening_alpha=self.progressive_widening_alpha,
             rollout_epsilon=self.rollout_epsilon,
             rollout_policy=self._rollout_policy_code,
+            decisive_greedy_probability=self.decisive_greedy_probability,
             leaf_scale=self.leaf_scale,
             time_limit_seconds=remaining_time,
             seed=self.rng.getrandbits(64),
@@ -352,6 +388,7 @@ class ISMCTSAgent:
             "search_budget": self.iterations,
             "search_iteration_limit_effective": effective_iteration_limit,
             "search_time_budget_seconds": self.time_budget_seconds,
+            "search_hard_iteration_ceiling": self.hard_iteration_ceiling,
             "search_timed_out": bool(result["timed_out"]),
             "decision_seconds": perf_counter() - decision_started,
             "search_backend": "cython",
@@ -413,14 +450,18 @@ class ISMCTSAgent:
             "ismcts_root_value": score,
             "ismcts_rollout_policy": self.rollout_policy,
             "ismcts_progressive_widening": self.progressive_widening,
+            "ismcts_progressive_widening_alpha": float(
+                result["progressive_widening_alpha"]
+            ),
+            "ismcts_decisive_greedy_probability": float(
+                result["decisive_greedy_probability"]
+            ),
+            "ismcts_leaf_scale": float(result["leaf_scale"]),
             "ismcts_tree_reuse_enabled": self.reuse_tree,
             "heuristic_weights_fingerprint": self.heuristic_weights.fingerprint(),
             "command_guard_applied": guarded > 0,
             "command_guard_filtered_actions": guarded,
             "command_guard_overrode_search": guard_overrode_search,
-            "ismcts_progressive_widening_alpha": float(
-                result["progressive_widening_alpha"]
-            ),
             "ismcts_tree_storage": str(result["tree_storage"]),
         }
         return selected
