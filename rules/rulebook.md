@@ -195,6 +195,8 @@ As soon as both players have an active Pass, the Battle ends immediately.
 
 A Battle therefore ends when **both players have Passed at least once**.
 
+![Passing remains active: after your first Pass, both players keep taking turns, and the Battle ends as soon as both players have an active Pass.](assets/rulebook-passing.png)
+
 
 > **REMEMBER** Your first Pass uses your operation and stays active. Playing cards or Maneuvering later does not clear it.
 
@@ -221,6 +223,8 @@ For each Front, apply card text that matters to its result and total the Strengt
 - Strength cannot fall below 0 unless a card says otherwise.
 
 The margin of victory has no effect unless a card says otherwise.
+
+![Battle resolution: compare Strength on all four Fronts, determine losses, resolve lost positions and Battle-end effects, then apply lost-Front Command loss before Collapse.](assets/rulebook-battle-resolution.png)
 
 ## Losing ground {#retreat}
 
@@ -298,6 +302,8 @@ The check that can end the war is called **Command Collapse**. It happens after 
 - The player with lower Command loses the war.
 - If both players are at or below **{{COLLAPSE_THRESHOLD}} Command** with equal Command, the player who **Passed first** loses the war.
 - Only a continuing war receives Command recovery.
+
+![Command Collapse using the d20 Command tracker: Command is spent across the war, lost Fronts reduce it before Collapse, and recovery happens only if the war continues.](assets/rulebook-command-collapse.png)
 
 ## Special card types {#narratives}
 
