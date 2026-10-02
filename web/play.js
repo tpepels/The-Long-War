@@ -901,7 +901,14 @@ function renderOpponentRack() {
   const ps = state.players[opponent];
   const handCount = ps.hand_count || 0;
 
-  $("opponent-label").textContent = (state.mode === GAME_MODE.HOTSEAT ? "Player " + (opponent + 1) : "Opponent") + " · " + handCount + " cards" + (ps.passed ? " · PASS PENDING" : "");
+  const opponentName = state.mode === GAME_MODE.HOTSEAT
+    ? "Player " + (opponent + 1)
+    : state.mode === GAME_MODE.COMPUTER && state.ai_kind === "canonical"
+      ? "Canonical AI"
+      : state.mode === GAME_MODE.COMPUTER && state.ai_kind === "tactical"
+        ? "Tactical AI"
+        : "Opponent";
+  $("opponent-label").textContent = opponentName + " · " + handCount + " cards" + (ps.passed ? " · PASS PENDING" : "");
 
   const visibleBacks = Math.min(handCount, 12);
   $("opponent-hand").innerHTML = Array.from({ length: visibleBacks }, (_, index) => {
@@ -1509,7 +1516,9 @@ function updateGameStatus() {
     return;
   }
   if (state.needs_ai || (state.mode === GAME_MODE.REMOTE && state.active_player !== state.viewer)) {
-    status.textContent = "Opponent’s turn";
+    status.textContent = state.ai_kind === "canonical"
+      ? "Canonical AI is thinking…"
+      : "Opponent’s turn";
     return;
   }
   status.textContent = "Battle " + state.battle + " · " +
