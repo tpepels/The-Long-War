@@ -100,7 +100,105 @@ def canonical_ismcts_tournament_config() -> dict[str, Any]:
     }
 
 
-def ismcts_tournament_candidates() -> dict[str, dict[str, Any]]:
+COARSE_ISMCTS_DECKS = (
+    "mobility",
+    "elite",
+    "narrative",
+)
+
+
+def ismcts_coarse_tournament_candidates() -> dict[str, dict[str, Any]]:
+    """Small one-factor screen for directional evidence, not exact tuning."""
+    candidates: dict[str, dict[str, Any]] = {}
+
+    def add(
+        name: str,
+        family: str,
+        refinement_overrides: dict[str, Any],
+        **overrides: Any,
+    ) -> None:
+        candidates[name] = {
+            "family": family,
+            "overrides": overrides,
+            "refinement_overrides": refinement_overrides,
+        }
+
+    # Rough values are deliberately separated from the production baseline.
+    # Resource-only controls stay out unless telemetry shows that they bind.
+    add(
+        "uct-c-0p1",
+        "uct",
+        {"ismcts_exploration": 0.2},
+        ismcts_exploration=0.1,
+    )
+    add(
+        "uct-c-1",
+        "uct",
+        {"ismcts_exploration": 0.7},
+        ismcts_exploration=1.0,
+    )
+    add(
+        "beliefs-4",
+        "belief",
+        {"ismcts_belief_samples": 6},
+        ismcts_belief_samples=4,
+    )
+    add(
+        "beliefs-24",
+        "belief",
+        {"ismcts_belief_samples": 18},
+        ismcts_belief_samples=24,
+    )
+    add(
+        "rollout-12",
+        "horizon",
+        {"ismcts_rollout_depth": 8},
+        ismcts_rollout_depth=12,
+    )
+    add(
+        "post-battle-8",
+        "post-battle-horizon",
+        {"ismcts_post_battle_rollout_depth": 6},
+        ismcts_post_battle_rollout_depth=8,
+    )
+    add(
+        "leaf-scale-200",
+        "value-scale",
+        {"ismcts_leaf_scale": 150.0},
+        ismcts_leaf_scale=200.0,
+    )
+    add(
+        "decisive-greedy-0p3",
+        "rollout-mixture",
+        {"ismcts_decisive_greedy_probability": 0.15},
+        ismcts_decisive_greedy_probability=0.3,
+    )
+    add(
+        "pw-c-1-a-0p5",
+        "widening",
+        {
+            "ismcts_progressive_widening": 0.5,
+            "ismcts_progressive_widening_alpha": 0.5,
+        },
+        ismcts_progressive_widening=1.0,
+        ismcts_progressive_widening_alpha=0.5,
+    )
+
+    baseline = canonical_ismcts_tournament_config()
+    seen = {json.dumps(baseline, sort_keys=True, separators=(",", ":"))}
+    for name, entry in candidates.items():
+        effective = dict(baseline)
+        effective.update(entry["overrides"])
+        key = json.dumps(effective, sort_keys=True, separators=(",", ":"))
+        if key in seen:
+            raise RuntimeError(
+                f"Duplicate/no-op coarse ISMCTS tournament configuration: {name}"
+            )
+        seen.add(key)
+    return candidates
+
+
+def ismcts_full_tournament_candidates() -> dict[str, dict[str, Any]]:
     """Behaviorally distinct challengers spanning the effective search surface.
 
     Conditional knobs are varied only where they matter. In particular,
@@ -233,6 +331,103 @@ def ismcts_tournament_candidates() -> dict[str, dict[str, Any]]:
         seen.add(key)
 
     return candidates
+
+
+def ismcts_tournament_candidates(
+    design: str = "coarse",
+) -> dict[str, dict[str, Any]]:
+    """Return the requested tournament catalog.
+
+    The practical default is the small directional screen. The former broad
+    catalog remains available only through the explicit full design.
+    """
+    if design == "coarse":
+        return ismcts_coarse_tournament_candidates()
+    if design == "full":
+        return ismcts_full_tournament_candidates()
+    raise ValueError(f"Unknown ISMCTS tournament design: {design}")
+
+
+def ismcts_refinement_candidates(
+    selected_names: list[str] | tuple[str, ...],
+) -> dict[str, dict[str, Any]]:
+    """Build Tournament-2 profiles from manually selected coarse directions."""
+    coarse = ismcts_coarse_tournament_candidates()
+    selected = list(dict.fromkeys(selected_names))
+    if not selected:
+        raise ValueError("At least one coarse profile is required for refinement")
+    unknown = sorted(set(selected) - set(coarse))
+    if unknown:
+        raise ValueError(
+            "Unknown coarse refinement profile(s): " + ", ".join(unknown)
+        )
+
+    candidates: dict[str, dict[str, Any]] = {}
+
+    def add(
+        name: str,
+        family: str,
+        overrides: dict[str, Any],
+        sources: list[str],
+    ) -> None:
+        candidates[name] = {
+            "family": family,
+            "overrides": dict(overrides),
+            "sources": list(sources),
+        }
+
+    for name in selected:
+        entry = coarse[name]
+        add(name, entry["family"], entry["overrides"], [name])
+        add(
+            f"refine-{name}",
+            f"{entry['family']}-refinement",
+            entry["refinement_overrides"],
+            [name],
+        )
+
+    # Combine only profiles that touch disjoint knobs. Selecting both
+    # directions of the same parameter remains useful for individual
+    # validation, but combining them would be arbitrary.
+    for left, right in combinations(selected, 2):
+        left_overrides = coarse[left]["overrides"]
+        right_overrides = coarse[right]["overrides"]
+        if set(left_overrides) & set(right_overrides):
+            continue
+        combined = dict(left_overrides)
+        combined.update(right_overrides)
+        add(
+            f"combo-{left}--{right}",
+            "interaction",
+            combined,
+            [left, right],
+        )
+
+    all_overrides: dict[str, Any] = {}
+    all_sources: list[str] = []
+    compatible = True
+    for name in selected:
+        overrides = coarse[name]["overrides"]
+        if set(all_overrides) & set(overrides):
+            compatible = False
+            break
+        all_overrides.update(overrides)
+        all_sources.append(name)
+    if compatible and len(all_sources) >= 3:
+        add("combo-all-selected", "interaction", all_overrides, all_sources)
+
+    baseline = canonical_ismcts_tournament_config()
+    seen = {json.dumps(baseline, sort_keys=True, separators=(",", ":"))}
+    unique: dict[str, dict[str, Any]] = {}
+    for name, entry in candidates.items():
+        effective = dict(baseline)
+        effective.update(entry["overrides"])
+        key = json.dumps(effective, sort_keys=True, separators=(",", ":"))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique[name] = entry
+    return unique
 
 
 class ExperimentSkipped(RuntimeError):
@@ -1891,12 +2086,26 @@ def _run_ismcts_tournament_pair(
     iterations_ceiling: int,
     time_budget_seconds: float,
     force: bool,
+    deck_names: tuple[str, ...] | list[str] | None = None,
 ) -> dict[str, Any]:
-    """Run one mirrored all-deck ISMCTS-vs-ISMCTS comparison."""
+    """Run one mirrored ISMCTS-vs-ISMCTS comparison on selected decks."""
+    selected_decks = (
+        tuple(CANONICAL_DECK_PATHS)
+        if deck_names is None
+        else tuple(deck_names)
+    )
+    if not selected_decks:
+        raise ValueError("Tournament deck selection cannot be empty")
+    unknown_decks = sorted(set(selected_decks) - set(CANONICAL_DECK_PATHS))
+    if unknown_decks:
+        raise ValueError(
+            "Unknown canonical tournament deck(s): " + ", ".join(unknown_decks)
+        )
     cells = []
     offset_a = _tournament_profile_seed_offset(label_a)
     offset_b = _tournament_profile_seed_offset(label_b)
-    for deck_index, (deck_name, deck_path) in enumerate(CANONICAL_DECK_PATHS.items()):
+    for deck_index, deck_name in enumerate(selected_decks):
+        deck_path = CANONICAL_DECK_PATHS[deck_name]
         cell_seed = seed + deck_index * 10_000
         for orientation, labels, configs, offsets in (
             (
@@ -2017,6 +2226,7 @@ def _run_ismcts_tournament_pair(
         "draws": draws,
         "censored_games": censored,
         "failed_games": failed,
+        "decks": list(selected_decks),
         "paired": paired,
         "resources": {
             label_a: _aggregate_tournament_resources(payloads, label_a),
@@ -2073,8 +2283,250 @@ def _unique_tournament_configs(
     return unique
 
 
+def _selected_tournament_decks(
+    args: argparse.Namespace,
+    default: tuple[str, ...],
+) -> tuple[str, ...]:
+    selected = tuple(args.decks) if getattr(args, "decks", None) else default
+    unknown = sorted(set(selected) - set(CANONICAL_DECK_PATHS))
+    if unknown:
+        raise SystemExit(
+            "Unknown canonical tournament deck(s): " + ", ".join(unknown)
+        )
+    return selected
+
+
+def _ismcts_coarse_tournament_run(args: argparse.Namespace) -> Path:
+    """Tournament 1: cheap directional screen on representative decks."""
+    require_cython()
+    _validate_ismcts_tournament_config_surface()
+    if args.jobs <= 0:
+        raise SystemExit("--jobs must be positive")
+    if args.coarse_games <= 0:
+        raise SystemExit("--coarse-games must be positive")
+    if args.time_budget_seconds <= 0.0:
+        raise SystemExit("--time-budget-seconds must be positive")
+    if args.iterations_ceiling <= 0:
+        raise SystemExit("--iterations-ceiling must be positive")
+
+    baseline = canonical_ismcts_tournament_config()
+    catalog = ismcts_coarse_tournament_candidates()
+    candidate_configs = {
+        name: _tournament_effective_config(entry["overrides"])
+        for name, entry in catalog.items()
+    }
+    deck_names = _selected_tournament_decks(args, COARSE_ISMCTS_DECKS)
+    config = {
+        "experiment": "ismcts-tournament",
+        "design": "coarse",
+        "method": "one-factor coarse directional screen",
+        "games_per_orientation": args.coarse_games,
+        "time_budget_seconds": args.time_budget_seconds,
+        "iterations_ceiling": args.iterations_ceiling,
+        "seed": args.seed,
+        "baseline": baseline,
+        "candidate_catalog": catalog,
+        "rules": GameRules.standard().as_dict(),
+        "decks": list(deck_names),
+        "utility_scale": "terminal +/-1; non-terminal tanh(evaluation / leaf_scale)",
+        "budget_policy": "equal native search wall-clock budget; high iteration ceiling",
+    }
+    identity = experiment_identity(config)
+    output = artifact_directory(
+        BENCH_ROOT / "ismcts-tournament" / "coarse",
+        identity,
+    )
+
+    game_count = len(catalog) * len(deck_names) * 2 * args.coarse_games
+    print(
+        f"ISMCTS coarse tournament | {len(catalog)} challengers | "
+        f"{len(deck_names)} decks | {game_count} games | "
+        f"{args.time_budget_seconds:g}s/searched decision"
+    )
+
+    screen_results: dict[str, dict[str, Any]] = {}
+    for index, name in enumerate(catalog, start=1):
+        print(f"\n[coarse {index}/{len(catalog)}] {name} vs baseline")
+        result = _run_ismcts_tournament_pair(
+            output_dir=output / "screen" / name,
+            label_a=name,
+            config_a=candidate_configs[name],
+            label_b="baseline",
+            config_b=baseline,
+            games_per_orientation=args.coarse_games,
+            jobs=args.jobs,
+            seed=args.seed,
+            iterations_ceiling=args.iterations_ceiling,
+            time_budget_seconds=args.time_budget_seconds,
+            force=args.force,
+            deck_names=deck_names,
+        )
+        _require_clean_tournament_pair(result, stage="coarse screen")
+        result["family"] = catalog[name]["family"]
+        screen_results[name] = result
+
+    ranking = sorted(
+        screen_results,
+        key=lambda name: float(
+            screen_results[name]["paired"]["score_rate"]
+            if screen_results[name]["paired"]["score_rate"] is not None
+            else -1.0
+        ),
+        reverse=True,
+    )
+    summary = {
+        "methodology": config["method"],
+        "config": config,
+        "screen": screen_results,
+        "ranking_by_paired_point_estimate": ranking,
+        "next_step": (
+            "Inspect effect sizes, paired intervals and resource telemetry; "
+            "then run design=refine with only the promising coarse profiles."
+        ),
+        "promotion_policy": (
+            "The coarse screen cannot promote a canonical configuration. "
+            "It only nominates directions for Tournament 2."
+        ),
+    }
+    path = output / "summary.json"
+    path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"\nWrote {path}")
+    return path
+
+
+def _ismcts_refinement_tournament_run(args: argparse.Namespace) -> Path:
+    """Tournament 2: selected directions, intermediates and interactions."""
+    require_cython()
+    _validate_ismcts_tournament_config_surface()
+    if args.jobs <= 0:
+        raise SystemExit("--jobs must be positive")
+    if args.refine_games <= 0:
+        raise SystemExit("--refine-games must be positive")
+    if args.time_budget_seconds <= 0.0:
+        raise SystemExit("--time-budget-seconds must be positive")
+    if args.iterations_ceiling <= 0:
+        raise SystemExit("--iterations-ceiling must be positive")
+    if not args.refine_profiles:
+        raise SystemExit(
+            "--refine-profiles is required for --design refine; choose "
+            "promising names from the coarse summary"
+        )
+
+    baseline = canonical_ismcts_tournament_config()
+    try:
+        catalog = ismcts_refinement_candidates(args.refine_profiles)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+    candidate_configs = {
+        name: _tournament_effective_config(entry["overrides"])
+        for name, entry in catalog.items()
+    }
+    deck_names = _selected_tournament_decks(
+        args,
+        tuple(CANONICAL_DECK_PATHS),
+    )
+    seed = args.seed + 1_000_000
+    config = {
+        "experiment": "ismcts-tournament",
+        "design": "refine",
+        "method": "selected coarse directions + intermediate values + interactions",
+        "selected_coarse_profiles": list(dict.fromkeys(args.refine_profiles)),
+        "games_per_orientation": args.refine_games,
+        "time_budget_seconds": args.time_budget_seconds,
+        "iterations_ceiling": args.iterations_ceiling,
+        "seed": seed,
+        "baseline": baseline,
+        "candidate_catalog": catalog,
+        "rules": GameRules.standard().as_dict(),
+        "decks": list(deck_names),
+        "utility_scale": "terminal +/-1; non-terminal tanh(evaluation / leaf_scale)",
+        "budget_policy": "equal native search wall-clock budget; high iteration ceiling",
+    }
+    identity = experiment_identity(config)
+    output = artifact_directory(
+        BENCH_ROOT / "ismcts-tournament" / "refine",
+        identity,
+    )
+
+    game_count = len(catalog) * len(deck_names) * 2 * args.refine_games
+    print(
+        f"ISMCTS refinement tournament | {len(catalog)} profiles | "
+        f"{len(deck_names)} decks | {game_count} games | "
+        f"{args.time_budget_seconds:g}s/searched decision"
+    )
+
+    results: dict[str, dict[str, Any]] = {}
+    for index, name in enumerate(catalog, start=1):
+        print(f"\n[refine {index}/{len(catalog)}] {name} vs baseline")
+        result = _run_ismcts_tournament_pair(
+            output_dir=output / "profiles" / name,
+            label_a=name,
+            config_a=candidate_configs[name],
+            label_b="baseline",
+            config_b=baseline,
+            games_per_orientation=args.refine_games,
+            jobs=args.jobs,
+            seed=seed,
+            iterations_ceiling=args.iterations_ceiling,
+            time_budget_seconds=args.time_budget_seconds,
+            force=args.force,
+            deck_names=deck_names,
+        )
+        _require_clean_tournament_pair(result, stage="refinement screen")
+        result["family"] = catalog[name]["family"]
+        result["sources"] = catalog[name].get("sources", [])
+        results[name] = result
+
+    ranking = sorted(
+        results,
+        key=lambda name: float(
+            results[name]["paired"]["score_rate"]
+            if results[name]["paired"]["score_rate"] is not None
+            else -1.0
+        ),
+        reverse=True,
+    )
+    leader = ranking[0] if ranking else "baseline"
+    summary = {
+        "methodology": config["method"],
+        "config": config,
+        "results": results,
+        "ranking_by_paired_point_estimate": ranking,
+        "leading_profile": leader,
+        "leading_config": (
+            candidate_configs[leader] if leader in candidate_configs else baseline
+        ),
+        "next_step": (
+            "Use the strongest stable profiles as finalists in a serious "
+            "independent confirmation tournament. Do not promote from this "
+            "refinement screen alone."
+        ),
+    }
+    path = output / "summary.json"
+    path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"\nWrote {path}")
+    return path
+
+
 def ismcts_tournament_run(args: argparse.Namespace) -> Path:
-    """Four-stage, independent-seed search-parameter tournament."""
+    """Dispatch the practical staged ISMCTS tuning workflow."""
+    if args.design == "coarse":
+        return _ismcts_coarse_tournament_run(args)
+    if args.design == "refine":
+        return _ismcts_refinement_tournament_run(args)
+    if args.design == "full":
+        return _ismcts_full_tournament_run(args)
+    raise AssertionError(args.design)
+
+
+def _ismcts_full_tournament_run(args: argparse.Namespace) -> Path:
+    """Legacy exhaustive four-stage, independent-seed tournament."""
     require_cython()
     _validate_ismcts_tournament_config_surface()
     if args.jobs <= 0:
@@ -2098,7 +2550,7 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
         raise SystemExit("--finalist-floor must be between 0 and 1")
 
     baseline = canonical_ismcts_tournament_config()
-    catalog = ismcts_tournament_candidates()
+    catalog = ismcts_full_tournament_candidates()
     candidate_configs = {
         name: _tournament_effective_config(entry["overrides"])
         for name, entry in catalog.items()
@@ -4281,12 +4733,51 @@ def parse_args() -> argparse.Namespace:
     tournament = sub.add_parser(
         "ismcts-tournament",
         help=(
-            "Serious staged ISMCTS parameter tournament: effective-parameter "
-            "screen, independent interaction screen, finalist round-robin, "
-            "then independent confirmation."
+            "ISMCTS parameter tournament. Default: small coarse directional "
+            "screen. Use --design refine for selected combinations/intermediate "
+            "values or --design full for the legacy exhaustive four-stage run."
         ),
     )
     tournament.add_argument("--jobs", type=int, default=DEFAULT_WORKERS)
+    tournament.add_argument(
+        "--design",
+        choices=("coarse", "refine", "full"),
+        default="coarse",
+        help=(
+            "coarse = practical first pass; refine = Tournament 2 over selected "
+            "coarse directions; full = legacy exhaustive staged tournament."
+        ),
+    )
+    tournament.add_argument(
+        "--decks",
+        nargs="+",
+        choices=tuple(CANONICAL_DECK_PATHS),
+        help=(
+            "Optional canonical deck subset. Coarse defaults to mobility, elite "
+            "and narrative; refine/full default to all canonical decks."
+        ),
+    )
+    tournament.add_argument(
+        "--coarse-games",
+        type=int,
+        default=1,
+        help="Paired deal count per deck for each coarse challenger (default: 1).",
+    )
+    tournament.add_argument(
+        "--refine-games",
+        type=int,
+        default=2,
+        help="Paired deal count per deck for each Tournament-2 profile (default: 2).",
+    )
+    tournament.add_argument(
+        "--refine-profiles",
+        nargs="+",
+        choices=tuple(ismcts_coarse_tournament_candidates()),
+        help=(
+            "Promising coarse profile names to combine/refine under "
+            "--design refine."
+        ),
+    )
     tournament.add_argument(
         "--screen-games",
         type=int,
