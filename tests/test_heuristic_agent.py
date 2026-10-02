@@ -10,6 +10,7 @@ from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
 from longwar.game import Discard, Front, GameEngine, Pass, PlayBond, Position, Rank
 from longwar.native_engine import create_heuristic_evaluator
+from longwar.rules import GameRules
 
 
 ROOT = Path(__file__).resolve().parents[1]
