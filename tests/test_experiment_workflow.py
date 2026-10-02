@@ -424,6 +424,10 @@ def test_recovery_variant_candidates_keep_permanent_pass_canonical(monkeypatch):
     assert args.ismcts_iterations == 50_000
     assert args.ismcts_belief_samples == 12
     assert args.ismcts_rollout_depth == 8
+    assert (
+        args.ismcts_post_battle_rollout_depth
+        == runner.DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH
+    )
     assert args.ismcts_rollout_policy == "decisive"
     assert args.variants == list(runner.RECOVERY_RULE_VARIANTS)
 
