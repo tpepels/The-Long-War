@@ -1703,7 +1703,10 @@ async function runBusy(fn) {
     if ($("interaction-hint")) $("interaction-hint").textContent = error.message;
     if ($("interaction-strip")) $("interaction-strip").classList.add("interaction-error");
     const setupMode = $("mode")?.value || "";
-    if (setupMode.startsWith("remote-")) {
+    const remoteSetup =
+      setupMode === PLAY_SETUP_MODE.REMOTE_HOST ||
+      setupMode === PLAY_SETUP_MODE.REMOTE_JOIN;
+    if (remoteSetup) {
       remoteStatus(error?.message || "Remote connection failed.", true);
     }
     if (!state) $("setup-note").textContent = error.message;
