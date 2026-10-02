@@ -505,10 +505,13 @@ def test_ismcts_refinement_catalog_combines_only_selected_directions() -> None:
     assert "combo-uct-c-0p1--uct-c-1" not in conflicting
     assert "combo-all-selected" not in conflicting
 
-def test_time_budgeted_ismcts_keeps_explicit_iteration_ceiling() -> None:
+def test_time_budgeted_ismcts_hard_ceiling_is_explicit_opt_in() -> None:
     source = inspect.getsource(ISMCTSAgent.choose)
-    assert "effective_iteration_limit = self.iterations" in source
-    assert "100_000_000" not in source
+    assert "self.time_budget_seconds is None or self.hard_iteration_ceiling" in source
+    assert "else max(self.iterations, 100_000_000)" in source
+
+    baseline = runner.canonical_ismcts_tournament_config()
+    assert baseline["ismcts_hard_iteration_ceiling"] is True
 
 
 def test_ismcts_tournament_defaults_to_small_coarse_screen(monkeypatch) -> None:
@@ -789,20 +792,17 @@ def test_recovery_variant_candidates_keep_permanent_pass_canonical(monkeypatch):
     assert args.variants == list(runner.RECOVERY_RULE_VARIANTS)
 
 
-def test_canonical_ismcts_benchmarks_default_to_permanent_pass(monkeypatch):
-    monkeypatch.setattr(
-        runner.sys,
-        "argv",
-        ["run_experiments.py", "ismcts-speed"],
-    )
-    assert runner.parse_args().closing_rounds == 0
-
-    monkeypatch.setattr(
-        runner.sys,
-        "argv",
-        ["run_experiments.py", "ismcts-workers"],
-    )
-    assert runner.parse_args().closing_rounds == 0
+def test_canonical_ismcts_benchmarks_have_no_retired_pass_variant_controls(
+    monkeypatch,
+):
+    for command in ("ismcts-speed", "ismcts-workers"):
+        monkeypatch.setattr(
+            runner.sys,
+            "argv",
+            ["run_experiments.py", command],
+        )
+        args = runner.parse_args()
+        assert not hasattr(args, "closing_rounds")
 
 
 def test_balance_accepts_experimental_arithmetic_recovery_without_new_entrypoint(monkeypatch):
@@ -1133,10 +1133,10 @@ def test_command_matrix_cli_uses_four_planning_recovery_cells(monkeypatch) -> No
     assert args.command_matrix is True
 
     assert runner.COMMAND_RECOVERY_CANDIDATES == (
-        (10, 2),
-        (12, 2),
         (12, 3),
+        (12, 2),
         (15, 3),
+        (15, 2),
     )
     source = inspect.getsource(runner.run_command_matrix)
     assert "for recovery_start, recovery_decrement in COMMAND_RECOVERY_CANDIDATES" in source
