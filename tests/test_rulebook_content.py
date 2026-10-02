@@ -85,10 +85,10 @@ def test_print_rulebook_uses_typst_not_browser_pagination() -> None:
     assert "pypdf" in pyproject
 
 
-def test_simultaneous_command_collapse_is_documented_as_draw() -> None:
+def test_simultaneous_command_collapse_uses_first_passer() -> None:
     source = text("rules/rulebook.md")
     assert (
         "If both players are at or below **{{COLLAPSE_THRESHOLD}} Command** "
-        "with equal Command, the war ends in a **draw**."
+        "with equal Command, the player who **Passed first** loses the war."
         in source
     )
