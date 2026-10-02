@@ -72,6 +72,14 @@ def test_native_engine_consumes_compiled_card_mechanics() -> None:
         assert f"cdef uint8_t {capability}[MAX_CARDS]" not in native_class
 
 
+def test_experiment_metadata_is_card_schema_not_action_syntax() -> None:
+    from longwar.protocol import ActionKeyToken, CardField
+
+    for name in ("RULE_BLOCKS", "EXPERIMENTAL", "BASELINE_FOR"):
+        assert hasattr(CardField, name)
+        assert not hasattr(ActionKeyToken, name)
+
+
 def test_native_card_loader_uses_typed_protocol_vocabulary() -> None:
     """Native card compilation must consume shared vocabulary, not re-spell it."""
     from longwar.game.model import Rank
