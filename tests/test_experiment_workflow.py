@@ -172,6 +172,24 @@ def test_ismcts_exploration_default_is_shared():
     )
 
 
+def test_normal_time_budget_keeps_iteration_ceiling_soft_by_default():
+    assert (
+        inspect.signature(ISMCTSAgent)
+        .parameters["hard_iteration_ceiling"].default
+        is False
+    )
+    assert (
+        inspect.signature(make_agent)
+        .parameters["ismcts_hard_iteration_ceiling"].default
+        is False
+    )
+    assert (
+        inspect.signature(simulate_games)
+        .parameters["ismcts_hard_iteration_ceiling"].default
+        is False
+    )
+
+
 def test_ismcts_rollout_policy_default_is_shared():
     assert inspect.signature(ISMCTSAgent).parameters["rollout_policy"].default == DEFAULT_ISMCTS_ROLLOUT_POLICY
     assert inspect.signature(make_agent).parameters["ismcts_rollout_policy"].default == DEFAULT_ISMCTS_ROLLOUT_POLICY
@@ -402,6 +420,7 @@ def test_ismcts_tournament_catalog_covers_material_search_dimensions() -> None:
     catalog = runner.ismcts_tournament_candidates()
 
     assert baseline["ismcts_exploration"] == pytest.approx(0.3)
+    assert baseline["ismcts_hard_iteration_ceiling"] is True
     assert baseline["ismcts_leaf_scale"] == pytest.approx(100.0)
     assert baseline["ismcts_progressive_widening_alpha"] == pytest.approx(0.5)
     assert baseline["ismcts_decisive_greedy_probability"] == pytest.approx(0.05)
