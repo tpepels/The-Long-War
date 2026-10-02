@@ -2392,7 +2392,6 @@ def recovery_variant_run(args: argparse.Namespace) -> Path:
             or 0
         )
         forced_yields = int(passes.get("forced_yield_events", 0) or 0)
-        free_signals = int(passes.get("free_signal_events", 0) or 0)
         decisions = payload.get("telemetry", {}).get("decisions", {})
         agent_decisions = decisions.get(args.agent, {})
         tactics = agent_decisions.get("ismcts_rollout_cutoffs", {})
@@ -2415,7 +2414,6 @@ def recovery_variant_run(args: argparse.Namespace) -> Path:
             "resolved_battles": battles,
             "signal_events": signals,
             "forced_yield_events": forced_yields,
-            "free_signal_events": free_signals,
             "mean_command_at_signal": passes.get("mean_command_at_signal"),
             "signal_with_playable_alternative_rate": passes.get(
                 "signal_with_playable_alternative_rate"
@@ -2550,7 +2548,6 @@ def recovery_variant_run(args: argparse.Namespace) -> Path:
         battles = sum(row["resolved_battles"] for row in aggregate)
         signals = sum(row["signal_events"] for row in aggregate)
         forced_yields = sum(row["forced_yield_events"] for row in aggregate)
-        free_signals = sum(row["free_signal_events"] for row in aggregate)
         all_resolved_outcomes = [
             outcome
             for payload in cell_payloads.values()
@@ -2698,7 +2695,6 @@ def recovery_variant_run(args: argparse.Namespace) -> Path:
             "command_before_collapse_buckets": command_before_collapse_buckets,
             "signal_events": signals,
             "forced_yield_events": forced_yields,
-            "free_signal_events": free_signals,
             "mean_signals_per_battle": (
                 signals / battles if battles else None
             ),
@@ -3326,7 +3322,7 @@ def parse_args() -> argparse.Namespace:
         "--ismcts-rollout-depth",
         type=int,
         default=8,
-        help="Strategic rollout depth; default matches the validated Pass experiment.",
+        help="Strategic rollout depth for the recovery comparison.",
     )
     recovery_variants.add_argument(
         "--ismcts-post-battle-rollout-depth",
