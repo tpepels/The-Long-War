@@ -475,8 +475,6 @@ def balance_run(args: argparse.Namespace) -> Path:
         },
     }
     identity = experiment_identity(config)
-    game_fingerprint = current_game_fingerprint()
-    experiment_fingerprint = current_experiment_fingerprint()
     output = artifact_directory(
         ROOT / "artifacts" / "balance" / args.preset,
         identity,
@@ -2233,6 +2231,8 @@ def ismcts_tournament_run(args: argparse.Namespace) -> Path:
         ),
     }
     identity = experiment_identity(config)
+    game_fingerprint = current_game_fingerprint()
+    experiment_fingerprint = current_experiment_fingerprint()
     output = artifact_directory(
         BENCH_ROOT / "ismcts-tournament" / args.stage,
         identity,
