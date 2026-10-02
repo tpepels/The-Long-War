@@ -6,6 +6,13 @@ import pytest
 from pathlib import Path
 
 from longwar.cards import load_card_file
+from longwar.agents.heuristic_agent import HeuristicAgent
+from longwar.agents.ismcts_agent import (
+    DEFAULT_ISMCTS_BELIEF_SAMPLES,
+    DEFAULT_ISMCTS_ITERATIONS,
+    DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
+    ISMCTSAgent,
+)
 from longwar.web_api import PlaySession
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -100,6 +107,49 @@ def test_hotseat_card_operation_returns_to_privacy_gate() -> None:
     assert result["viewer"] is None
     assert result["needs_reveal"] is True
     assert result["hand"] == []
+
+
+def test_browser_computer_ai_profiles_use_real_production_agents() -> None:
+    card_json, deck_json = payloads()
+
+    tactical = PlaySession(
+        card_json,
+        deck_json,
+        mode="computer",
+        seed=1701,
+        ai_kind="tactical",
+    )
+    assert isinstance(tactical.agents[1], HeuristicAgent)
+    assert tactical.snapshot(0)["ai_kind"] == "tactical"
+
+    canonical = PlaySession(
+        card_json,
+        deck_json,
+        mode="computer",
+        seed=1701,
+        ai_kind="canonical",
+    )
+    agent = canonical.agents[1]
+    assert isinstance(agent, ISMCTSAgent)
+    assert agent.iterations == DEFAULT_ISMCTS_ITERATIONS
+    assert agent.belief_samples == DEFAULT_ISMCTS_BELIEF_SAMPLES
+    assert (
+        agent.post_battle_rollout_depth
+        == DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH
+    )
+    assert canonical.snapshot(0)["ai_kind"] == "canonical"
+
+
+def test_computer_mode_rejects_unknown_ai_profile() -> None:
+    card_json, deck_json = payloads()
+    with pytest.raises(ValueError, match="Unsupported AI kind"):
+        PlaySession(
+            card_json,
+            deck_json,
+            mode="computer",
+            seed=1701,
+            ai_kind="not-an-agent",
+        )
 
 
 def test_computer_mode_mulligan_then_returns_control_to_human() -> None:
