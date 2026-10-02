@@ -5,6 +5,7 @@ from typing import Any
 
 from .agents.heuristic_agent import HeuristicAgent
 from .agents.ismcts_agent import ISMCTSAgent
+from .belief import DeckHypothesis, HypothesisDeckPrior
 from .game.actions import (
     Action,
     BoardTarget,
@@ -99,7 +100,20 @@ class PlaySession:
         if parsed_mode == GameMode.COMPUTER:
             agent_seed = self.seed + AI_SEED_OFFSET
             self.agents[1] = (
-                ISMCTSAgent(self.engine, agent_seed)
+                ISMCTSAgent(
+                    self.engine,
+                    agent_seed,
+                    priors=(
+                        HypothesisDeckPrior(
+                            self.engine,
+                            [DeckHypothesis(tuple(deck), label="browser-reference")],
+                        ),
+                        HypothesisDeckPrior(
+                            self.engine,
+                            [DeckHypothesis(tuple(deck), label="browser-reference")],
+                        ),
+                    ),
+                )
                 if self.ai_kind == AI_KIND_CANONICAL
                 else HeuristicAgent(
                     agent_seed,
