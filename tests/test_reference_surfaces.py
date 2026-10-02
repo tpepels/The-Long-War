@@ -60,7 +60,8 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
     assert "collapse before recovery" in playmat
     assert f"lose {standard.lost_front_command_penalty} command per unprotected front lost" in playmat
     assert f"at or below {standard.command_collapse_threshold}" in playmat
-    assert "equal command is a draw" in playmat
+    assert "applying the loss in full even below 0" in playmat
+    assert "if equal, the player who passed first loses" in playmat
     assert "front losses have already reduced command before collapse" in playmat
     assert recovery_label in playmat_source
     assert f"minimum {standard.command_recovery_floor}" in playmat
@@ -91,6 +92,8 @@ def test_rulebook_core_values_match_standard_engine() -> None:
         f"**{standard.lost_front_command_penalty} Command for each Front you lost**"
         in rules_text
     )
+    assert "even if it takes Command below 0" in rules_text
+    assert "the player who **Passed first** loses the war" in rules_text
     assert (
         f"Base recovery starts at **{standard.command_recovery_start}** in Battle I "
         f"and falls by **{standard.command_recovery_decrement}** each Battle:"
@@ -366,7 +369,7 @@ def test_progression_surfaces_do_not_restore_terminal_collapse_compatibility() -
     ):
         assert legacy not in active
 
-    assert "simultaneous_collapse_draws" in progression
+    assert "simultaneous_collapse_terminations" in progression
     assert "unequal_collapse_terminations" in progression
     assert "collapse_point_battle_starts" in progression
     assert "censored_at_collapse_point_matches" in progression

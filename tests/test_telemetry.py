@@ -846,7 +846,7 @@ def test_battle_buckets_isolate_battle_eight_plus() -> None:
     assert ProgressionTelemetry._battle_key(7) == "4-7"
     assert ProgressionTelemetry._battle_key(8) == "8+"
 
-def test_low_command_telemetry_records_simultaneous_collapse_draw() -> None:
+def test_low_command_telemetry_records_simultaneous_collapse_termination() -> None:
     engine, deck = setup()
     state = engine.new_game(
         deck,
@@ -884,13 +884,14 @@ def test_low_command_telemetry_records_simultaneous_collapse_draw() -> None:
     progression = telemetry.summary()["progression"]
     resources = progression["resources"]
     assert resources["command_before_collapse"]["count"] == 2
-    assert resources["command_before_collapse"]["mean"] == pytest.approx(0.0)
-    assert resources["command_before_collapse_buckets"]["0"] == 2
+    assert resources["command_before_collapse"]["mean"] == pytest.approx(-1.0)
+    assert resources["command_before_collapse_buckets"]["<0"] == 2
+    assert resources["command_before_collapse_buckets"]["0"] == 0
 
     stall = progression["low_command_stalls"]
     assert stall["diagnostic_battles"] == 1
     assert stall["both_at_collapse_point"] == 1
-    assert stall["simultaneous_collapse_draws"] == 1
+    assert stall["simultaneous_collapse_terminations"] == 1
     assert stall["unequal_collapse_terminations"] == 0
     assert stall["both_at_collapse_point_battle_starts"] == 1
     assert stall["battles_with_no_paid_operation"] == 1
@@ -906,19 +907,18 @@ def test_low_command_telemetry_records_simultaneous_collapse_draw() -> None:
     assert record["recovery_base"] == 0
     assert record["fronts_lost"] == [1, 1]
     assert record["front_loss_command_penalty"] == [1, 1]
-    assert record["command_before_collapse"] == [0, 0]
+    assert record["command_before_collapse"] == [-1, -1]
     assert record["recovery_actual"] == [0, 0]
-    assert record["command_after_recovery"] == [0, 0]
-    assert record["collapse_comparison"]["commands"] == [0, 0]
+    assert record["command_after_recovery"] == [-1, -1]
+    assert record["collapse_comparison"]["commands"] == [-1, -1]
     assert record["collapse_comparison"]["triggered"] is True
     assert record["collapse_comparison"]["equal"] is True
+    assert record["collapse_comparison"]["winner"] == 1
     assert record["collapse_comparison"]["continued"] is False
     assert [row["action"] for row in record["operation_trace"]] == ["pass", "pass"]
     assert all(row["forced"] for row in record["operation_trace"])
     assert record["board_changed_during_battle"] is False
     assert record["board_changed_during_resolution"] is True
-
-
 
 def test_progression_attributes_command_economy_by_source_card() -> None:
     engine, deck = setup()

@@ -86,7 +86,7 @@
             <li>Resolve all 4 Fronts separately. Higher Strength wins; ties do nothing. There is no overall Battle winner.</li>
             <li>Discard incomplete formations before Retreat; Named Formations persist.</li>
             <li>In each lost Front: Rear Named Formation is driven off; Frontline Named Formation Retreats to Rear.</li>
-            <li>Lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost. Then check Command Collapse: if either player is at or below {{COLLAPSE_THRESHOLD}}, lower Command loses; equal Command is a draw. If the war continues, recover the base amount, minimum {{RECOVERY_FLOOR}}; max total {{COMMAND_CAP}}.</li>
+            <li>Lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost, applying the loss in full even below 0. Then check Command Collapse: if either player is at or below {{COLLAPSE_THRESHOLD}}, lower Command loses; if equal, the player who Passed first loses. If the war continues, recover the base amount, minimum {{RECOVERY_FLOOR}}; max total {{COMMAND_CAP}}.</li>
           </ol>
         </section>
       </aside>

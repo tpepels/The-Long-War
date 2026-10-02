@@ -901,11 +901,11 @@ class ProgressionTelemetry:
                 all(value <= threshold for value in row["command_before_collapse"])
                 for row in battle_records
             ),
-            "simultaneous_collapse_draws": sum(
+            "simultaneous_collapse_terminations": sum(
                 bool((row.get("collapse_comparison") or {}).get("triggered"))
                 and bool((row.get("collapse_comparison") or {}).get("equal"))
                 and not bool((row.get("collapse_comparison") or {}).get("continued"))
-                and (row.get("collapse_comparison") or {}).get("winner") is None
+                and (row.get("collapse_comparison") or {}).get("winner") is not None
                 for row in battle_records
             ),
             "unequal_collapse_terminations": sum(
@@ -1144,12 +1144,14 @@ class ProgressionTelemetry:
                 "4+": sum(row["command_remaining"] >= 4 for row in first_signal_rows),
             },
             "command_end_buckets": {
+                "<0": sum(value < 0 for value in command_end),
                 "0": sum(value == 0 for value in command_end),
                 "1-3": sum(1 <= value <= 3 for value in command_end),
                 "4-6": sum(4 <= value <= 6 for value in command_end),
                 "7+": sum(value >= 7 for value in command_end),
             },
             "command_before_collapse_buckets": {
+                "<0": sum(value < 0 for value in command_before_collapse),
                 "0": sum(value == 0 for value in command_before_collapse),
                 "1-3": sum(1 <= value <= 3 for value in command_before_collapse),
                 "4-6": sum(4 <= value <= 6 for value in command_before_collapse),
@@ -2627,12 +2629,14 @@ class ProgressionTelemetry:
                     ),
                 ),
                 "command_end_buckets": {
+                    "<0": sum(value < 0 for row in rows for value in row["command_remaining"]),
                     "0": sum(value == 0 for row in rows for value in row["command_remaining"]),
                     "1-3": sum(1 <= value <= 3 for row in rows for value in row["command_remaining"]),
                     "4-6": sum(4 <= value <= 6 for row in rows for value in row["command_remaining"]),
                     "7+": sum(value >= 7 for row in rows for value in row["command_remaining"]),
                 },
                 "command_before_collapse_buckets": {
+                    "<0": sum(value < 0 for row in rows for value in row["command_before_collapse"]),
                     "0": sum(value == 0 for row in rows for value in row["command_before_collapse"]),
                     "1-3": sum(1 <= value <= 3 for row in rows for value in row["command_before_collapse"]),
                     "4-6": sum(4 <= value <= 6 for row in rows for value in row["command_before_collapse"]),

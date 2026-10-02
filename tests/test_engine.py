@@ -1261,7 +1261,7 @@ def test_command_recovery_loses_one_per_lost_front_and_caps_at_configured_limit(
     assert state.players[1].command == expected_p1
 
 
-def test_command_collapse_lower_command_loses_and_equal_threshold_draws() -> None:
+def test_command_collapse_lower_command_loses_and_equal_threshold_uses_first_passer() -> None:
     rules = GameRules.standard().with_overrides(
         command_collapse_threshold=0,
         command_recovery_start=0,
@@ -1282,7 +1282,7 @@ def test_command_collapse_lower_command_loses_and_equal_threshold_draws() -> Non
     state.battle_start_command[:] = [0, 0]
     resolve_battle_by_passing(engine, state)
     assert state.phase is Phase.COMPLETE
-    assert state.winner is None
+    assert state.winner == 1
     assert state.battle == 1
 
 

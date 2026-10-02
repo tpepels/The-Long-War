@@ -166,7 +166,7 @@ def test_arithmetic_recovery_formula_can_be_overridden() -> None:
     ] == [10, 8, 6, 4, 2, 0, 0, 0]
 
 
-def test_equal_threshold_command_is_a_draw_without_recovery() -> None:
+def test_equal_threshold_command_first_passer_loses_without_recovery() -> None:
     rules = GameRules.standard().with_overrides(
         command_collapse_threshold=0,
         command_recovery_start=0,
@@ -183,7 +183,7 @@ def test_equal_threshold_command_is_a_draw_without_recovery() -> None:
     engine.apply(state, Pass())
 
     assert state.phase.value == "complete"
-    assert state.winner is None
+    assert state.winner == 1
     assert state.battle == 1
     assert [player.command for player in state.players] == [0, 0]
     snapshot = state.last_battle_snapshot
@@ -191,6 +191,38 @@ def test_equal_threshold_command_is_a_draw_without_recovery() -> None:
     assert snapshot["command_before_collapse"] == [0, 0]
     assert snapshot["recovery_actual"] == [0, 0]
     assert snapshot["command_remaining"] == [0, 0]
+
+
+def test_front_loss_command_overrun_is_not_clamped_before_collapse() -> None:
+    rules = GameRules.standard().with_overrides(
+        lost_front_command_penalty=2,
+        command_collapse_threshold=0,
+        command_recovery_start=12,
+        command_recovery_decrement=3,
+    )
+    engine, state = standard_game(rules=rules)
+    GameScenario(state).battle(1).commands(1, 0).battle_start_commands(
+        1,
+        0,
+    ).operations(1, 1).clear_hands().formation(
+        1,
+        Position(Front.FIRST, Rank.FRONT),
+        force="the-fifty-men",
+    )
+
+    engine.apply(state, Pass())
+    engine.apply(state, Pass())
+
+    assert state.phase.value == "complete"
+    assert state.winner == 1
+    assert [player.command for player in state.players] == [-1, 0]
+    snapshot = state.last_battle_snapshot
+    assert snapshot is not None
+    assert snapshot["fronts_lost"] == [1, 0]
+    assert snapshot["front_loss_command_penalty"] == [2, 0]
+    assert snapshot["command_before_collapse"] == [-1, 0]
+    assert snapshot["recovery_actual"] == [0, 0]
+    assert snapshot["command_remaining"] == [-1, 0]
 
 
 def test_threshold_vs_positive_command_collapses_before_recovery() -> None:

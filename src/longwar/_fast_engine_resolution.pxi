@@ -624,9 +624,10 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         # Lost Fronts reduce current Command after Battle-end effects and
         # before Collapse. The per-Front amount is a rule parameter; card
         # protections have already reduced the resulting penalty.
+        # Apply Battle-end losses in full. Command may fall below the
+        # Collapse threshold here; that overrun is part of the Collapse
+        # comparison and must not be discarded by clamping.
         state.command[p] -= state.resolution_front_loss_command_penalty[p]
-        if state.command[p] < 0:
-            state.command[p] = 0
 
         # Battle-end card effects can draw/refund after resolution began;
         # snapshot those counters only once every such effect is done.
@@ -655,8 +656,10 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         elif state.command[1] < state.command[0]:
             state.winner = 0
         else:
-            # Simultaneous Command Collapse is a draw.
-            state.winner = -1
+            # Exact simultaneous exhaustion is broken by the commitment that
+            # opened the Battle-ending sequence: the first passer collapses.
+            # Every Battle-ending path records at least one Pass before scoring.
+            state.winner = other_player(state.pass_order[0])
         state.cleanup_pending = 0
         state.pending_resume = RESUME_NONE
         state.pending_resume_player = -1
