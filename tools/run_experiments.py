@@ -4444,6 +4444,88 @@ def parse_args() -> argparse.Namespace:
         default="decisive",
     )
 
+    tournament = sub.add_parser(
+        "ismcts-tournament",
+        help=(
+            "Equal-time mirrored ISMCTS parameter screen or finalist "
+            "round-robin across all canonical reference decks."
+        ),
+    )
+    tournament.add_argument(
+        "--stage",
+        choices=("screen", "round-robin"),
+        default="screen",
+        help=(
+            "screen compares every selected challenger with the baseline; "
+            "round-robin compares every explicitly selected finalist pair."
+        ),
+    )
+    tournament.add_argument(
+        "--profiles",
+        nargs="+",
+        choices=tuple(ISMCTS_TOURNAMENT_PROFILES),
+        help=(
+            "Profiles to include. Screen defaults to the full catalog; "
+            "round-robin requires an explicit finalist list."
+        ),
+    )
+    tournament.add_argument(
+        "--baseline",
+        choices=tuple(ISMCTS_TOURNAMENT_PROFILES),
+        default="baseline",
+    )
+    tournament.add_argument(
+        "--games",
+        type=int,
+        default=1,
+        help=(
+            "Games per deck/orientation/repeat. With the default two repeats, "
+            "1 gives 12 independent mirrored deal pairs per matchup."
+        ),
+    )
+    tournament.add_argument(
+        "--repeats",
+        type=int,
+        default=2,
+        help=(
+            "Independent seed blocks. Default 2 intentionally runs the full "
+            "paired screen twice with different deals."
+        ),
+    )
+    tournament.add_argument(
+        "--jobs",
+        type=int,
+        default=DEFAULT_WORKERS,
+        help=f"Parallel simulation cells (default: {DEFAULT_WORKERS}).",
+    )
+    tournament.add_argument("--seed", type=int, default=26100200)
+    tournament.add_argument(
+        "--time-budget-seconds",
+        type=float,
+        default=5.0,
+        help="Equal total wall-clock budget per non-forced ISMCTS decision.",
+    )
+    tournament.add_argument(
+        "--iterations",
+        type=int,
+        default=DEFAULT_ISMCTS_ITERATIONS,
+        help=(
+            "Nominal ISMCTS budget/tree sizing input. With a time budget the "
+            "agent raises the effective iteration ceiling internally so time "
+            "rather than this value normally stops search."
+        ),
+    )
+    tournament.add_argument(
+        "--force",
+        action="store_true",
+        help="Rerun complete cells instead of reusing matching checkpoints.",
+    )
+    tournament.add_argument(
+        "--list-profiles",
+        action="store_true",
+        help="Print the complete effective parameter catalog and exit.",
+    )
+
     strength = sub.add_parser(
         "strength-bench",
         help="Sanity-check canonical ISMCTS against alpha-beta.",
