@@ -369,7 +369,7 @@ def test_progression_surfaces_do_not_restore_terminal_collapse_compatibility() -
     ):
         assert legacy not in active
 
-    assert "simultaneous_collapse_draws" in progression
+    assert "simultaneous_collapse_terminations" in progression
     assert "unequal_collapse_terminations" in progression
     assert "collapse_point_battle_starts" in progression
     assert "censored_at_collapse_point_matches" in progression
