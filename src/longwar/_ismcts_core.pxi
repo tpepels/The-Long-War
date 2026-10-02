@@ -600,6 +600,7 @@ def ismcts_search(
     reuse_context=None,
     long iterations=NATIVE_DEFAULT_ISMCTS_ITERATIONS,
     int rollout_depth=5,
+    int post_battle_rollout_depth=4,
     int tree_depth_limit=NATIVE_DEFAULT_ISMCTS_TREE_DEPTH,
     double exploration=NATIVE_DEFAULT_ISMCTS_EXPLORATION,
     double progressive_widening=NATIVE_DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
@@ -620,7 +621,7 @@ def ismcts_search(
     cdef int path_nodes[MAX_ISMCTS_DEPTH]
     cdef uint16_t path_indices[MAX_ISMCTS_DEPTH]
     cdef int n, actor, ix, path_length, tree_turn_depth
-    cdef int rollout_steps, rollout_raw_steps, sample_ix, node_index
+    cdef int rollout_steps, rollout_post_battle_steps, rollout_raw_steps, sample_ix, node_index
     cdef int root_index, prior_root_index, max_tree_depth_seen = 0
     cdef int max_tree_path_depth_seen = 0
     cdef int i, best_ix=-1, second_ix=-1
@@ -635,6 +636,8 @@ def ismcts_search(
     cdef long rollouts_stopped_battle_boundary=0
     cdef long rollouts_stopped_depth=0
     cdef long rollout_actions=0
+    cdef long rollout_battle_continuations=0
+    cdef long rollout_post_battle_actions=0
     cdef long decisive_rollout_probes=0
     cdef long decisive_rollout_actions=0
     cdef long anti_decisive_rollout_probes=0
@@ -646,14 +649,14 @@ def ismcts_search(
     cdef double utility, node_utility, mean_value
     cdef double deadline = 0.0
     cdef double best_mean=ISMCTS_NEGATIVE_INFINITY, second_mean=ISMCTS_NEGATIVE_INFINITY
-    cdef bint expanded, created, rollout_boundary, root_reused=False, timed_out=False
+    cdef bint expanded, created, rollout_boundary, rollout_in_post_battle, root_reused=False, timed_out=False
     cdef list root_stats
 
     if not root_states:
         raise ValueError("ISMCTS requires at least one belief sample")
     if iterations <= 0:
         raise ValueError("ISMCTS iterations must be positive")
-    if rollout_depth < 0 or tree_depth_limit <= 0:
+    if rollout_depth < 0 or post_battle_rollout_depth < 0 or tree_depth_limit <= 0:
         raise ValueError("ISMCTS depth settings are invalid")
     if tree_depth_limit > MAX_ISMCTS_DEPTH:
         raise ValueError(
@@ -700,7 +703,9 @@ def ismcts_search(
     # Values depend on the evaluator/search horizon and the observer's belief
     # evidence, not just the node's information hash. The belief layer owns
     # reuse_context; native callers omitting it must manage belief changes.
-    search_context = (engine, evaluator, root_player, rollout_depth, tree_depth_limit,
+    search_context = (
+                      engine, evaluator, root_player, rollout_depth,
+                      post_battle_rollout_depth, tree_depth_limit,
                       rollout_epsilon, rollout_policy, leaf_scale,
                       exploration, progressive_widening, reuse_context)
     if tree.search_context is not None and tree.search_context != search_context:
@@ -800,13 +805,33 @@ def ismcts_search(
             max_tree_path_depth_seen = path_length
 
         rollout_steps = 0
+        rollout_post_battle_steps = 0
         rollout_raw_steps = 0
         rollout_battle = state.battle
+        rollout_in_post_battle = False
+
+        # If tree expansion itself just crossed a Battle boundary, use the
+        # continuation budget immediately rather than treating the fresh
+        # Battle as a static leaf.
+        if rollout_boundary and post_battle_rollout_depth > 0:
+            rollout_boundary = False
+            rollout_in_post_battle = True
+            rollout_battle_continuations += 1
+
         while (
             not rollout_boundary
             and state.phase != PHASE_COMPLETE
-            and rollout_steps < rollout_depth
             and rollout_raw_steps < MAX_ISMCTS_DEPTH
+            and (
+                (
+                    not rollout_in_post_battle
+                    and rollout_steps < rollout_depth
+                )
+                or (
+                    rollout_in_post_battle
+                    and rollout_post_battle_steps < post_battle_rollout_depth
+                )
+            )
         ):
             action = _ismcts_rollout_action(
                 engine,
@@ -823,14 +848,27 @@ def ismcts_search(
             _fe_apply_fast(engine, state, action)
             rollout_raw_steps += 1
             rollout_actions += 1
+            if rollout_in_post_battle:
+                rollout_post_battle_actions += 1
             if state.turn_number != action_turn:
-                rollout_steps += 1
+                if rollout_in_post_battle:
+                    rollout_post_battle_steps += 1
+                else:
+                    rollout_steps += 1
             if (
                 state.phase != PHASE_COMPLETE
                 and state.battle != rollout_battle
             ):
-                rollout_boundary = True
-                break
+                if rollout_in_post_battle or post_battle_rollout_depth <= 0:
+                    rollout_boundary = True
+                    break
+                # Continue into the next Battle for a bounded number of
+                # completed turns. This lets search value recovery, preserved
+                # formations, fresh draws and actual next-Battle options.
+                rollout_in_post_battle = True
+                rollout_battle_continuations += 1
+                rollout_battle = state.battle
+                rollout_post_battle_steps = 0
 
         if state.phase == PHASE_COMPLETE:
             rollouts_stopped_terminal += 1
@@ -954,6 +992,9 @@ def ismcts_search(
         "rollouts_stopped_battle_boundary": rollouts_stopped_battle_boundary,
         "rollouts_stopped_depth": rollouts_stopped_depth,
         "rollout_actions": rollout_actions,
+        "post_battle_rollout_depth": post_battle_rollout_depth,
+        "rollout_battle_continuations": rollout_battle_continuations,
+        "rollout_post_battle_actions": rollout_post_battle_actions,
         "decisive_rollout_probes": decisive_rollout_probes,
         "decisive_rollout_actions": decisive_rollout_actions,
         "anti_decisive_rollout_probes": anti_decisive_rollout_probes,
