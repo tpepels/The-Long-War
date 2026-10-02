@@ -113,7 +113,6 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
     fast.turn_number = state.turn_number
     fast.shuffle_seed = state.shuffle_seed
     fast.pass_len = len(state.pass_order)
-    fast.pass_closing_turns_remaining = int(state.pass_closing_turns_remaining)
     fast.cleanup_pending = (
         state.pending_draw_discard_for is not None
     )
