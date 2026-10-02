@@ -22,6 +22,7 @@ DEFAULT_ISMCTS_ITERATIONS = 100_000
 DEFAULT_ISMCTS_BELIEF_SAMPLES = 12
 DEFAULT_ISMCTS_ROLLOUT_POLICY = RolloutPolicy.DECISIVE.value
 DEFAULT_ISMCTS_ROLLOUT_DEPTH = 5
+DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH = 4
 DEFAULT_ISMCTS_ROLLOUT_EPSILON = 0.12
 DEFAULT_ISMCTS_PROGRESSIVE_WIDENING = 0.0
 DEFAULT_ISMCTS_REUSE_TREE = True
@@ -57,6 +58,7 @@ class ISMCTSAgent:
         iterations: int = DEFAULT_ISMCTS_ITERATIONS,
         time_budget_seconds: float | None = None,
         rollout_depth: int = DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+        post_battle_rollout_depth: int = DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
         tree_depth_limit: int = 96,
         exploration: float = DEFAULT_ISMCTS_EXPLORATION,
         progressive_widening: float = DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
@@ -78,6 +80,8 @@ class ISMCTSAgent:
             raise ValueError("time_budget_seconds must be finite and positive")
         if rollout_depth < 0:
             raise ValueError("rollout_depth must be non-negative")
+        if post_battle_rollout_depth < 0:
+            raise ValueError("post_battle_rollout_depth must be non-negative")
         if not 1 <= tree_depth_limit <= 256:
             raise ValueError("tree_depth_limit must be between 1 and 256")
         if not isfinite(exploration) or exploration < 0:
@@ -105,6 +109,7 @@ class ISMCTSAgent:
         self.iterations = iterations
         self.time_budget_seconds = time_budget_seconds
         self.rollout_depth = rollout_depth
+        self.post_battle_rollout_depth = post_battle_rollout_depth
         self.tree_depth_limit = tree_depth_limit
         self.exploration = exploration
         self.progressive_widening = progressive_widening
@@ -202,6 +207,9 @@ class ISMCTSAgent:
                 "ismcts_rollouts_stopped_battle_boundary": 0,
                 "ismcts_rollouts_stopped_depth": 0,
                 "ismcts_rollout_actions": 0,
+                "ismcts_post_battle_rollout_depth": self.post_battle_rollout_depth,
+                "ismcts_rollout_battle_continuations": 0,
+                "ismcts_rollout_post_battle_actions": 0,
                 "ismcts_decisive_rollout_probes": 0,
                 "ismcts_decisive_rollout_actions": 0,
                 "ismcts_anti_decisive_rollout_probes": 0,
@@ -279,6 +287,7 @@ class ISMCTSAgent:
             reuse_context=self.belief.reuse_context(state, root_player),
             iterations=effective_iteration_limit,
             rollout_depth=self.rollout_depth,
+            post_battle_rollout_depth=self.post_battle_rollout_depth,
             tree_depth_limit=self.tree_depth_limit,
             exploration=self.exploration,
             progressive_widening=self.progressive_widening,
@@ -338,6 +347,7 @@ class ISMCTSAgent:
             "policy_source": PolicySource.ISMCTS.value,
             "belief_samples": self.belief_samples,
             "rollout_plies": self.rollout_depth,
+            "post_battle_rollout_plies": self.post_battle_rollout_depth,
             "completed_depth": int(result["max_tree_depth"]),
             "search_nodes": int(result["iterations"]),
             "search_budget": self.iterations,
@@ -386,6 +396,15 @@ class ISMCTSAgent:
                 result["rollouts_stopped_depth"]
             ),
             "ismcts_rollout_actions": int(result["rollout_actions"]),
+            "ismcts_post_battle_rollout_depth": int(
+                result["post_battle_rollout_depth"]
+            ),
+            "ismcts_rollout_battle_continuations": int(
+                result["rollout_battle_continuations"]
+            ),
+            "ismcts_rollout_post_battle_actions": int(
+                result["rollout_post_battle_actions"]
+            ),
             "ismcts_decisive_rollout_probes": int(
                 result["decisive_rollout_probes"]
             ),

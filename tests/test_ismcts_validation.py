@@ -519,7 +519,7 @@ def test_free_battle_flag_does_not_consume_ismcts_turn_depth() -> None:
     assert result["max_tree_path_depth"] == 2
 
 
-def test_rollout_stops_at_battle_boundary_and_uses_boundary_value() -> None:
+def test_zero_post_battle_depth_preserves_boundary_leaf_behavior() -> None:
     engine, state = _pass_only_standard_state()
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
@@ -546,6 +546,7 @@ def test_rollout_stops_at_battle_boundary_and_uses_boundary_value() -> None:
         0,
         iterations=iterations,
         rollout_depth=5,
+        post_battle_rollout_depth=0,
         tree_depth_limit=1,
         exploration=0.0,
         rollout_epsilon=0.0,
@@ -559,6 +560,39 @@ def test_rollout_stops_at_battle_boundary_and_uses_boundary_value() -> None:
     assert result["rollouts_stopped_depth"] == 0
     assert result["rollout_actions"] == iterations
     assert result["mean_value"] == pytest.approx(expected)
+
+
+def test_rollout_continues_into_next_battle_before_leaf_evaluation() -> None:
+    engine, state = _pass_only_standard_state()
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+    iterations = 10
+
+    result = ismcts_search(
+        fast,
+        evaluator,
+        [packed],
+        0,
+        iterations=iterations,
+        rollout_depth=5,
+        post_battle_rollout_depth=1,
+        tree_depth_limit=1,
+        exploration=0.0,
+        rollout_epsilon=0.0,
+        rollout_policy=2,
+        seed=92801,
+    )
+
+    # Root Pass consumes the tree turn. The rollout then supplies the second
+    # Pass, enters Battle II, and executes one real Battle-II turn before the
+    # strategic leaf is evaluated.
+    assert result["rollout_battle_continuations"] == iterations
+    assert result["rollout_post_battle_actions"] == iterations
+    assert result["rollout_actions"] == 2 * iterations
+    assert result["rollouts_stopped_terminal"] == 0
+    assert result["rollouts_stopped_battle_boundary"] == 0
+    assert result["rollouts_stopped_depth"] == iterations
 
 
 def test_terminal_game_completion_keeps_exact_terminal_utility() -> None:
@@ -589,7 +623,7 @@ def test_terminal_game_completion_keeps_exact_terminal_utility() -> None:
     assert result["mean_value"] == pytest.approx(1.0)
 
 
-def test_second_players_pass_stops_at_battle_boundary() -> None:
+def test_second_players_pass_can_keep_old_boundary_leaf_with_zero_continuation() -> None:
     engine, state = _pass_only_standard_state()
     engine.apply(state, Pass())
     assert state.battle == 1
@@ -608,6 +642,7 @@ def test_second_players_pass_stops_at_battle_boundary() -> None:
         1,
         iterations=iterations,
         rollout_depth=5,
+        post_battle_rollout_depth=0,
         tree_depth_limit=1,
         exploration=0.0,
         rollout_epsilon=0.0,
@@ -681,6 +716,7 @@ def test_same_ismcts_agent_runs_under_standard_rules() -> None:
         ("progressive_widening", float("inf")),
         ("rollout_epsilon", 1.1),
         ("rollout_policy", 4),
+        ("post_battle_rollout_depth", -1),
         ("leaf_scale", float("nan")),
     ],
 )

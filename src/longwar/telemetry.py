@@ -83,6 +83,8 @@ class DecisionStats:
     ismcts_battle_boundary_cutoffs: int = 0
     ismcts_depth_cutoffs: int = 0
     ismcts_rollout_actions: int = 0
+    ismcts_rollout_battle_continuations: int = 0
+    ismcts_rollout_post_battle_actions: int = 0
     ismcts_decisive_rollout_probes: int = 0
     ismcts_decisive_rollout_actions: int = 0
     ismcts_anti_decisive_rollout_probes: int = 0
@@ -466,6 +468,12 @@ class Telemetry:
             )
             stats.ismcts_rollout_actions += int(
                 decision_info.get("ismcts_rollout_actions", 0)
+            )
+            stats.ismcts_rollout_battle_continuations += int(
+                decision_info.get("ismcts_rollout_battle_continuations", 0)
+            )
+            stats.ismcts_rollout_post_battle_actions += int(
+                decision_info.get("ismcts_rollout_post_battle_actions", 0)
             )
             stats.ismcts_decisive_rollout_probes += int(
                 decision_info.get("ismcts_decisive_rollout_probes", 0)
@@ -972,6 +980,16 @@ class Telemetry:
                 decisions[agent]["ismcts_rollout_cutoffs"] = {
                     "iterations": cutoff_total,
                     "rollout_actions": stats.ismcts_rollout_actions,
+                    "battle_continuations": (
+                        stats.ismcts_rollout_battle_continuations
+                    ),
+                    "post_battle_actions": (
+                        stats.ismcts_rollout_post_battle_actions
+                    ),
+                    "post_battle_action_rate": self._ratio(
+                        stats.ismcts_rollout_post_battle_actions,
+                        stats.ismcts_rollout_actions,
+                    ),
                     "decisive_probes": stats.ismcts_decisive_rollout_probes,
                     "decisive_actions": stats.ismcts_decisive_rollout_actions,
                     "decisive_probe_hit_rate": self._ratio(
