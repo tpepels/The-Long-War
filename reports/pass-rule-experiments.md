@@ -1,6 +1,8 @@
 # Pass-rule experiment log
 
-This file preserves the Pass/Battle-ending evidence so rule iterations do not erase the baseline.
+Permanent Pass is canonical as of 2026-10-02: Pass consumes the operation, remains active for the rest of the Battle, and the Battle ends when both players have Passed at least once. Equal exhausted Command at Collapse is terminal; the player who Passed first loses.
+
+Everything below is retained as historical experiment provenance. References to 0-0 draws or competing Pass variants describe the rules used by those old runs and are not current rules.
 
 ## Historical consecutive-Pass evidence
 
@@ -24,9 +26,9 @@ Source: the 2026-10-01 balance snapshot produced before direct Front-loss Comman
 
 Interpretation retained from that run: consecutive Pass created substantial administrative re-Passing, while low-Command non-termination was also present. Later engine review showed that run used the wrong Front-loss implementation and 0-0 continuation, so matchup/card-balance conclusions from it are historical only.
 
-## Current controlled candidates
+## Historical controlled candidates
 
-All new variants use the current Command rules: each unprotected lost Front removes 1 Command before Collapse; 0-0 is a draw.
+These historical variants used the then-current Command rules. They are no longer co-equal candidates; permanent Pass is canonical.
 
 | Variant | Signal costs turn? | Automatic closing window |
 | --- | ---: | --- |
