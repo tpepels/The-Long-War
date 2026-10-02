@@ -39,6 +39,7 @@ from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
     DEFAULT_ISMCTS_REUSE_TREE,
     DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+    DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
     DEFAULT_ISMCTS_ROLLOUT_EPSILON,
     DEFAULT_ISMCTS_ROLLOUT_POLICY,
     ISMCTSAgent,
@@ -151,6 +152,7 @@ def balance_run(args: argparse.Namespace) -> Path:
         "ismcts_iterations": DEFAULT_ISMCTS_ITERATIONS,
         "ismcts_time_budget_seconds": None,
         "ismcts_rollout_depth": DEFAULT_ISMCTS_ROLLOUT_DEPTH,
+        "ismcts_post_battle_rollout_depth": DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
         "ismcts_tree_depth_limit": 96,
         "ismcts_exploration": DEFAULT_ISMCTS_EXPLORATION,
         "ismcts_progressive_widening": DEFAULT_ISMCTS_PROGRESSIVE_WIDENING,
@@ -2314,6 +2316,8 @@ def pass_variant_run(
         raise SystemExit("ISMCTS budget values must be positive")
     if args.ismcts_rollout_depth < 0:
         raise SystemExit("--ismcts-rollout-depth must be non-negative")
+    if args.ismcts_post_battle_rollout_depth < 0:
+        raise SystemExit("--ismcts-post-battle-rollout-depth must be non-negative")
     if (
         args.agent == "ismcts"
         and args.ismcts_iterations < 50_000
@@ -2348,6 +2352,7 @@ def pass_variant_run(
         "ismcts_iterations": args.ismcts_iterations,
         "ismcts_belief_samples": args.ismcts_belief_samples,
         "ismcts_rollout_depth": args.ismcts_rollout_depth,
+        "ismcts_post_battle_rollout_depth": args.ismcts_post_battle_rollout_depth,
         "ismcts_rollout_policy": args.ismcts_rollout_policy,
         "canonical_decks": list(decks),
         "base_rules": GameRules.standard().as_dict(),
@@ -2518,6 +2523,7 @@ def pass_variant_run(
                     ismcts_iterations=args.ismcts_iterations,
                     ismcts_belief_samples=args.ismcts_belief_samples,
                     ismcts_rollout_depth=args.ismcts_rollout_depth,
+                    ismcts_post_battle_rollout_depth=args.ismcts_post_battle_rollout_depth,
                     ismcts_rollout_policy=args.ismcts_rollout_policy,
                     progress_callback=progress,
                 )
@@ -3237,6 +3243,11 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_ISMCTS_ROLLOUT_DEPTH,
     )
     balance.add_argument(
+        "--ismcts-post-battle-rollout-depth",
+        type=int,
+        default=DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
+    )
+    balance.add_argument(
         "--ismcts-tree-depth-limit",
         type=int,
         default=96,
@@ -3463,6 +3474,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=8,
         help="Strategic rollout depth; default matches the validated Pass experiment.",
+    )
+    recovery_variants.add_argument(
+        "--ismcts-post-battle-rollout-depth",
+        type=int,
+        default=DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
+        help="Completed turns to continue after entering the next Battle.",
     )
     recovery_variants.add_argument(
         "--ismcts-rollout-policy",
