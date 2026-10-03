@@ -429,6 +429,18 @@ class PlaySession:
             "actions_per_turn": self.engine.rules.actions_per_turn,
             "closing_stage": state.closing_stage,
             "closing_passer": state.closing_passer,
+            "active_fronts": [
+                int(front)
+                for front in Front
+                if (
+                    (state.battle <= 1 and front in (Front.SECOND, Front.THIRD))
+                    or (
+                        state.battle == 2
+                        and front in (Front.FIRST, Front.SECOND, Front.THIRD)
+                    )
+                    or state.battle >= 3
+                )
+            ],
             "pass_order": list(state.pass_order),
             "pending_draw_discard_for": state.pending_draw_discard_for,
             "needs_ai": (
@@ -465,17 +477,17 @@ class PlaySession:
     def _apply_with_log(self, action: Action) -> None:
         actor = self.state.active_player
         battle_before = self.state.battle
-        label = self._describe_action(action, actor)
+        public_label = self._describe_action(action, actor, private=False)
         payload = self._action_view(action)
 
         self.engine.apply(self.state, action)
-        self.log.append(label)
+        self.log.append(public_label)
         self.action_serial += 1
         self.last_action = {
             **payload,
             "id": self.action_serial,
             "actor": actor,
-            "public_label": label,
+            "public_label": public_label,
             "private_label": payload["label"],
             "events": [],
         }
@@ -497,10 +509,9 @@ class PlaySession:
         self,
         viewer: int | None,
     ) -> dict[str, Any] | None:
-        del viewer
         if self.last_action is None:
             return None
-        return {
+        result = {
             key: value
             for key, value in self.last_action.items()
             if key
@@ -511,6 +522,16 @@ class PlaySession:
                 "private_label",
             }
         }
+        actor = int(self.last_action["actor"])
+        if self.last_action.get("kind") == "PlayStratagem" and viewer != actor:
+            stratagem = self.state.stratagems[actor]
+            if stratagem is not None and not stratagem.revealed:
+                result["card_id"] = None
+                result["fronts"] = []
+                result["direction"] = None
+                result["targets"] = []
+                result["label"] = self.last_action["public_label"]
+        return result
 
     def _action_view(self, action: Action) -> dict[str, Any]:
         card_id = getattr(action, "card_id", None)
@@ -610,7 +631,6 @@ class PlaySession:
         *,
         private: bool = False,
     ) -> str:
-        del private
         prefix = f"Player {actor + 1}"
 
         if isinstance(action, Pass):
@@ -739,6 +759,8 @@ class PlaySession:
                 )
             return f"{prefix} plays the {form} {title}{detail}."
         if isinstance(action, PlayStratagem):
+            if not private:
+                return f"{prefix} places a Stratagem face-down."
             detail = ""
             if action.fronts:
                 detail = " choosing " + ", ".join(
