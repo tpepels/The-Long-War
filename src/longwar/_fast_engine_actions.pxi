@@ -921,6 +921,9 @@ cdef int _fe_legal_actions_into(
                                         self, state, slot_index(player, front, RANK_FRONT)
                                     )
                                     or _fe_slot_complete(
+                                        self, state, slot_index(player, front, RANK_MIDDLE)
+                                    )
+                                    or _fe_slot_complete(
                                         self, state, slot_index(player, front, RANK_REAR)
                                     )
                                 )
@@ -1082,6 +1085,11 @@ cdef int _fe_legal_actions_into(
                         )
                 elif choice == STRAT_CHOICE_ADJACENT_FRONTS:
                     for front in range(ADJACENT_FRONT_PAIR_COUNT):
+                        if (
+                            not front_is_active(state.battle, front)
+                            or not front_is_active(state.battle, front + 1)
+                        ):
+                            continue
                         n = _append_action(
                             actions,
                             n,
@@ -1095,6 +1103,8 @@ cdef int _fe_legal_actions_into(
                         )
                 elif choice == STRAT_CHOICE_EDGE_FRONT:
                     for front in (0, 3):
+                        if not front_is_active(state.battle, front):
+                            continue
                         n = _append_action(
                             actions,
                             n,
@@ -1160,6 +1170,8 @@ cdef int _fe_legal_actions_into(
                 elif choice == STRAT_CHOICE_RESERVES:
                     eligible_mask = 0
                     for front in range(FRONT_COUNT):
+                        if not front_is_active(state.battle, front):
+                            continue
                         source = slot_index(player, front, RANK_REAR)
                         dest = slot_index(player, front, RANK_FRONT)
                         if (
@@ -1204,6 +1216,8 @@ cdef int _fe_legal_actions_into(
     # position, including a prepared-only Bond/Name position.
     for local in range(POSITIONS_PER_PLAYER):
         source = player * POSITIONS_PER_PLAYER + local
+        if not slot_is_active(state.battle, source):
+            continue
         if not _fe_maneuver_source_legal(self, state, player, source):
             continue
         front = local // RANK_COUNT
@@ -1308,7 +1322,7 @@ cdef int _fe_legal_actions_into(
             actions[i] = actions[i - 1]
         actions[0] = encode_action(TYPE_END_TURN, -1, -1, -1, player)
         n += 1
-    elif n == 0 and not constraint_enforced:
+    elif n == 0:
         actions[0] = encode_action(TYPE_PASS, -1, -1, -1, player)
         n = 1
 
