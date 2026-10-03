@@ -861,137 +861,54 @@ def test_battle_resolution_leaves_all_battlefield_positions_in_place() -> None:
     assert state.slot(0, pos(2, Rank.REAR)).force == "seven-black-ships"
     assert state.slot(0, pos(3, Rank.FRONT)).named is True
 
-def test_drive_off_persistence_bonds_and_names_apply() -> None:
-    engine, state = setup_state(seed=4690)
 
-    stayed = pos(0, Rank.REAR)
+def test_lost_front_does_not_drive_off_persistent_bonds_or_names() -> None:
+    engine, state = setup_state(seed=4690)
+    target = pos(0, Rank.REAR)
     make_named(
         state,
         0,
-        stayed,
+        target,
         force="seven-black-ships",
         bond="stayed-behind-for",
         name="namar",
     )
     make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
 
-    returned = pos(1, Rank.REAR)
-    make_named(
-        state,
-        0,
-        returned,
-        force="seven-black-ships",
-        bond="swore-again-to",
-        name="edrin",
-    )
-    make_named(state, 1, pos(1, Rank.FRONT), temporary=100)
-
     resolve_battle_by_passing(engine, state)
 
-    stayed_slot = state.slot(0, stayed)
-    assert stayed_slot.force is None
-    assert stayed_slot.bond == "stayed-behind-for"
-    assert stayed_slot.name is None
-    assert "namar" in state.players[0].hand
-
-    returned_slot = state.slot(0, returned)
-    assert returned_slot.occupied is False
-    assert "swore-again-to" in state.players[0].hand
-    assert "edrin" in state.players[0].hand
+    slot = state.slot(0, target)
+    assert slot.force == "seven-black-ships"
+    assert slot.bond == "stayed-behind-for"
+    assert slot.name == "namar"
 
 
-def test_seized_standard_returns_bond_only_after_an_actual_retreat() -> None:
+def test_lost_front_does_not_trigger_retreat_bond_side_effects() -> None:
     engine, state = setup_state(seed=4692)
-    state.battle = 8
     state.players[0].command = 10
-    state.players[1].command = 10
-    state.battle_start_command[:] = [10, 10]
-    state.players[1].hand = ["the-fifty-men"] * (engine.hand_limit - 1)
-    state.players[1].deck = ["the-fifty-men"] * 20
-    state.players[1].discard = []
-
-    make_named(
-        state,
-        0,
-        pos(0, Rank.FRONT),
-        bond="seized-the-standard-of",
-        temporary=20,
-    )
-    make_named(
-        state,
-        1,
-        pos(0, Rank.FRONT),
-        bond="followed",
-        name="namar",
-    )
-
-    make_named(
-        state,
-        0,
-        pos(1, Rank.FRONT),
-        force="the-iron-boars",
-        bond="seized-the-standard-of",
-        temporary=20,
-    )
-    make_named(
-        state,
-        1,
-        pos(1, Rank.FRONT),
-        bond="endured-with",
-        name="edrin",
-    )
+    state.battle_start_command[0] = 10
+    target = pos(0, Rank.FRONT)
+    make_named(state, 0, target, bond="endured-with")
+    make_named(state, 1, target, temporary=100)
 
     resolve_battle_by_passing(engine, state)
 
-    retreated = state.slot(1, pos(0, Rank.REAR))
-    assert retreated.force == "the-fifty-men"
-    assert retreated.bond is None
-    assert retreated.name == "namar"
-    assert "followed" in state.players[1].hand
-
-    assert state.slot(1, pos(1, Rank.FRONT)).occupied is False
-    assert state.slot(1, pos(1, Rank.REAR)).occupied is False
-    assert "endured-with" in state.players[1].discard
-    assert "endured-with" not in state.players[1].hand
-
-
-def test_endured_with_regains_command_when_formation_retreats() -> None:
-    engine, state = setup_state(seed=4691)
-    state.battle = 8
-    state.players[0].command = 10
-    state.players[1].command = 10
-    state.battle_start_command[:] = [10, 10]
-
-    make_named(
-        state,
-        0,
-        pos(0, Rank.FRONT),
-        bond="endured-with",
-    )
-    make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
-
-    resolve_battle_by_passing(engine, state)
-
-    assert state.slot(0, pos(0, Rank.REAR)).bond == "endured-with"
+    assert state.slot(0, target).bond == "endured-with"
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
-    assert snapshot["command_refunded"][0] >= 1
-    assert snapshot["front_loss_command_penalty"][0] == (
-        engine.rules.lost_front_command_penalty
-    )
-    assert snapshot["command_before_collapse"][0] == max(
-        0,
-        snapshot["command_start"][0]
-        - snapshot["command_spent"][0]
-        + snapshot["command_refunded"][0]
-        - snapshot["front_loss_command_penalty"][0],
-    )
-    assert state.players[0].command == min(
-        engine.rules.command_cap,
-        snapshot["command_before_collapse"][0]
-        + snapshot["recovery_actual"][0],
-    )
+    assert snapshot["command_refunded"][0] == 0
 
+
+def test_core_resolution_never_invokes_explicit_retreat_side_effects() -> None:
+    engine, state = setup_state(seed=4691)
+    target = pos(0, Rank.FRONT)
+    make_named(state, 0, target, bond="endured-with")
+    make_named(state, 1, target, temporary=100)
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.slot(0, target).bond == "endured-with"
+    assert state.slot(0, pos(0, Rank.REAR)).occupied is False
 
 def test_maneuver_accepts_prepared_destination_but_rejects_immobile_force() -> None:
     engine, state = setup_state()
@@ -1159,7 +1076,8 @@ def test_battle_turned_east_makes_only_chosen_direction_free() -> None:
     ) == 1
 
 
-def test_no_step_back_drives_off_instead_of_retreating() -> None:
+
+def test_no_step_back_does_not_create_core_lost_front_removal() -> None:
     engine, state = setup_state(seed=4712)
     state.stratagems[0] = StratagemState(
         "no-step-back",
@@ -1170,10 +1088,8 @@ def test_no_step_back_drives_off_instead_of_retreating() -> None:
 
     resolve_battle_by_passing(engine, state)
 
-    assert state.slot(0, pos(0, Rank.FRONT)).occupied is False
-    assert state.slot(0, pos(0, Rank.REAR)).occupied is False
-    assert "the-fifty-men" in state.players[0].discard
-
+    assert state.slot(0, pos(0, Rank.FRONT)).named is True
+    assert "the-fifty-men" not in state.players[0].discard
 
 def test_center_must_hold_resolves_chosen_pair_by_combined_strength() -> None:
     engine, state = setup_state(seed=4713)
