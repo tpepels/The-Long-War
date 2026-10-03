@@ -210,7 +210,7 @@ def test_bond_and_name_can_be_prepared_before_force_and_contribute_zero() -> Non
     assert engine.position_strength(state, 0, target) > 0
 
 
-def test_force_deploy_rank_restriction_does_not_block_retreat() -> None:
+def test_losing_front_does_not_move_deploy_restricted_force() -> None:
     engine, state = setup_state()
     front = pos(0, Rank.FRONT)
     rear = pos(0, Rank.REAR)
@@ -221,18 +221,12 @@ def test_force_deploy_rank_restriction_does_not_block_retreat() -> None:
     assert PlayForce("the-red-shields", front) in legal
     assert PlayForce("the-red-shields", rear) not in legal
 
-    make_named(
-        state,
-        0,
-        front,
-        force="the-red-shields",
-    )
+    make_named(state, 0, front, force="the-red-shields")
     make_named(state, 1, front, temporary=100)
     resolve_battle_by_passing(engine, state)
 
-    assert state.slot(0, front).force is None
-    assert state.slot(0, rear).force == "the-red-shields"
-
+    assert state.slot(0, front).force == "the-red-shields"
+    assert state.slot(0, rear).occupied is False
 
 def test_maneuver_moves_named_formation_to_adjacent_empty_same_rank() -> None:
     engine, state = setup_state()
@@ -284,97 +278,130 @@ def test_maneuver_has_no_vertical_or_non_adjacent_core_move() -> None:
     assert Maneuver(source, pos(2, Rank.FRONT)) not in legal
 
 
-def test_first_pass_is_gated_but_emergency_pass_remains_available() -> None:
-    engine, state = setup_state()
+def test_pass_is_forced_only_when_no_action_is_legal() -> None:
+    engine, state = setup_state(battle=1)
     state.players[0].hand = ["the-fifty-men"]
     state.players[0].command = 20
-    state.operations_this_battle[:] = [0, 0]
-    assert Pass() not in engine.legal_actions(state)
+
+    legal = engine.legal_actions(state)
+    assert Pass() not in legal
+    assert EndTurn() in legal
 
     state.players[0].hand.clear()
-    state.players[0].command = 0
+    state.actions_this_turn = 0
     assert engine.legal_actions(state) == [Pass()]
 
-
-def test_first_pass_gives_opponent_a_normal_turn_with_normal_draw() -> None:
-    engine, state = setup_state()
-    state.operations_this_battle[:] = [1, 1]
+def test_pass_gives_opponent_first_closing_turn_with_normal_draw() -> None:
+    engine, state = setup_state(battle=1)
     state.active_player = 0
+    state.players[0].hand.clear()
 
     moved = state.players[1].hand.pop()
     state.players[1].deck.append(moved)
     assert len(state.players[1].hand) == engine.opening_hand_size - 1
     before_drawn = state.cards_drawn_this_battle[1]
 
+    assert engine.legal_actions(state) == [Pass()]
     engine.apply(state, Pass())
 
     assert state.battle == 1
     assert state.active_player == 1
     assert state.pass_order == [0]
     assert state.players[0].passed is True
-    assert state.players[1].passed is False
+    assert state.closing_turns_remaining == 2
     assert len(state.players[1].hand) == engine.opening_hand_size
     assert state.cards_drawn_this_battle[1] == before_drawn + 1
 
-
-def test_pass_remains_persistent_even_if_passer_acts_again() -> None:
-    engine, state = setup_state()
-    state.operations_this_battle[:] = [1, 1]
+def test_pass_starts_exactly_two_closing_turns() -> None:
+    engine, state = setup_state(battle=1)
     state.active_player = 0
-
-    state.players[0].hand = ["the-fifty-men"]
-    state.players[0].deck = []
-    state.players[0].command = 20
-    state.players[1].hand = ["the-fifty-men"]
-    state.players[1].deck = []
-    state.players[1].command = 20
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
+    state.players[1].deck.clear()
+    state.players[1].discard.clear()
 
     engine.apply(state, Pass())
-    assert state.pass_order == [0]
-    assert state.players[0].passed is True
+    assert state.closing_turns_remaining == 2
+    assert state.active_player == 1
 
-    engine.apply(state, PlayForce("the-fifty-men", pos(0)))
-    assert state.pass_order == [0]
-    assert state.players[0].passed is True
-
-    engine.apply(state, PlayForce("the-fifty-men", pos(0)))
-    assert state.pass_order == [0]
-    assert state.players[0].passed is True
-
-    engine.apply(state, Pass())
-    assert state.battle == 2
+    assert engine.legal_actions(state) == [EndTurn()]
+    engine.apply(state, EndTurn())
+    assert state.closing_turns_remaining == 1
     assert state.active_player == 0
 
+    # The passer gets the second closing turn and may end it voluntarily even
+    # if their start-of-turn draw creates a legal Action.
+    assert EndTurn() in engine.legal_actions(state)
+    engine.apply(state, EndTurn())
 
-def test_emergency_first_pass_allows_opponent_to_end_battle_later() -> None:
-    engine, state = setup_state()
-    state.operations_this_battle[:] = [0, 0]
+    assert state.battle == 2
+    assert state.pass_order == []
+    assert state.players[0].passed is False
+    assert state.active_player == 1
+
+def test_closing_turn_with_no_action_ends_without_a_second_pass() -> None:
+    engine, state = setup_state(battle=1)
     state.active_player = 0
-    state.players[0].hand = []
-    state.players[0].deck = []
-    state.players[0].command = 0
-    state.players[1].hand = ["the-fifty-men"]
-    state.players[1].deck = ["followed"]
-    state.players[1].command = 20
+    state.players[0].hand.clear()
+    state.players[1].hand.clear()
+    state.players[1].deck.clear()
+    state.players[1].discard.clear()
 
-    assert engine.legal_actions(state) == [Pass()]
     engine.apply(state, Pass())
 
     assert state.active_player == 1
     assert state.pass_order == [0]
-    assert Pass() in engine.legal_actions(state)
+    assert Pass() not in engine.legal_actions(state)
+    assert engine.legal_actions(state) == [EndTurn()]
 
-
-def test_battle_ends_when_both_players_are_passed() -> None:
-    engine, state = setup_state()
+def test_battle_ends_after_closing_turns_and_non_passer_starts_next() -> None:
+    engine, state = setup_state(battle=1)
     resolve_battle_by_passing(engine, state)
 
     assert state.battle == 2
-    assert state.active_player == 0  # first player whose Pass remained active
+    assert state.active_player == 1
     assert state.pass_order == []
     assert state.players[0].passed is False
     assert state.players[1].passed is False
 
+
+def test_turn_allows_up_to_two_actions_and_voluntary_end_turn() -> None:
+    engine, state = setup_state()
+    state.active_player = 0
+    state.players[0].hand = ["the-fifty-men", "the-red-shields"]
+    state.players[0].command = 20
+
+    first = PlayForce("the-fifty-men", pos(1, Rank.FRONT))
+    second = PlayForce("the-red-shields", pos(2, Rank.FRONT))
+    assert first in engine.legal_actions(state)
+    assert EndTurn() in engine.legal_actions(state)
+
+    engine.apply(state, first)
+    assert state.active_player == 0
+    assert state.actions_this_turn == 1
+    assert second in engine.legal_actions(state)
+    assert EndTurn() in engine.legal_actions(state)
+
+    engine.apply(state, second)
+    assert state.active_player == 1
+    assert state.actions_this_turn == 0
+
+
+def test_cycle_discards_two_and_draws_one_as_one_action() -> None:
+    engine, state = setup_state()
+    state.active_player = 0
+    state.players[0].hand = ["followed", "namar"]
+    state.players[0].deck = ["the-fifty-men"]
+    state.players[0].discard.clear()
+
+    cycle = Cycle("followed", "namar")
+    assert cycle in engine.legal_actions(state)
+    engine.apply(state, cycle)
+
+    assert state.players[0].hand == ["the-fifty-men"]
+    assert Counter(state.players[0].discard) == Counter(["followed", "namar"])
+    assert state.actions_this_turn == 1
+    assert state.active_player == 0
 
 def test_turn_at_hand_limit_requires_discard_then_draw_before_operation() -> None:
     rules = GameRules.standard()
