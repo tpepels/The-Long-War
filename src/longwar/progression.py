@@ -687,14 +687,10 @@ class ProgressionTelemetry:
             row for row in lifecycles
             if row["removed_action"] is not None and row["completion_action"] is None
         ]
-        removed_incomplete_during_battle = [
-            row for row in removed_incomplete
-            if row.get("removed_reason") != "battle_resolution"
-        ]
-        cleared_incomplete_at_battle_end = [
-            row for row in removed_incomplete
-            if row.get("removed_reason") == "battle_resolution"
-        ]
+        removed_incomplete_during_battle = list(removed_incomplete)
+        # Compatibility field for older dashboards. Canonical playtest rules
+        # never clear an incomplete formation merely because a Battle ends.
+        cleared_incomplete_at_battle_end: list[dict[str, Any]] = []
 
         force_to_bond = [
             row["bond_action"] - row["created_action"]
@@ -1613,9 +1609,7 @@ class ProgressionTelemetry:
             row = self._formations[formation_id]
             if row["removed_action"] is None:
                 row["removed_action"] = self._current_action
-                row["removed_reason"] = (
-                    "battle_resolution" if battle_resolved else "effect_or_retreat"
-                )
+                row["removed_reason"] = "effect_or_card"
 
         self._formation_at = dict(assigned)
         new_completions = 0
@@ -2300,28 +2294,56 @@ class ProgressionTelemetry:
         ]
         complete = [self._count_complete(state, player) for player in range(2)]
         partial = [self._count_partial(state, player) for player in range(2)]
+        rule_active_mask = engine.rules.active_front_mask_for_battle(
+            state.battle
+        )
         forces_by_front = [
             [
-                sum(
-                    state.board[player][int(front)][rank].force is not None
-                    for rank in range(2)
+                (
+                    sum(
+                        state.board[player][int(front)][rank].force is not None
+                        for rank in range(2)
+                    )
+                    if rule_active_mask & (1 << int(front))
+                    else 0
                 )
                 for front in Front
             ]
             for player in range(2)
         ]
-        active_fronts = sum(
+        occupied_active_fronts = sum(
             forces_by_front[0][int(front)] + forces_by_front[1][int(front)] > 0
             for front in Front
+            if rule_active_mask & (1 << int(front))
         )
         contested_fronts = sum(
-            forces_by_front[0][int(front)] > 0 and forces_by_front[1][int(front)] > 0
+            forces_by_front[0][int(front)] > 0
+            and forces_by_front[1][int(front)] > 0
             for front in Front
+            if rule_active_mask & (1 << int(front))
         )
-        margins = list(engine.front_margins(state, 0))
-        controllers = [self._sign(value) for value in margins]
+        raw_margins = list(engine.front_margins(state, 0))
+        margins = [
+            raw_margins[int(front)]
+            if rule_active_mask & (1 << int(front))
+            else 0
+            for front in Front
+        ]
+        controllers = [
+            self._sign(value)
+            if rule_active_mask & (1 << index)
+            else 0
+            for index, value in enumerate(margins)
+        ]
         strengths = [
-            [engine.front_strength(state, player, front) for front in Front]
+            [
+                (
+                    engine.front_strength(state, player, front)
+                    if rule_active_mask & (1 << int(front))
+                    else 0
+                )
+                for front in Front
+            ]
             for player in range(2)
         ]
         totals = [sum(values) for values in strengths]
@@ -2344,10 +2366,20 @@ class ProgressionTelemetry:
             "occupied": occupied,
             "complete_formations": complete,
             "partial_formations": partial,
-            "active_fronts": active_fronts,
+            "available_fronts": sum(
+                bool(rule_active_mask & (1 << int(front)))
+                for front in Front
+            ),
+            "active_fronts": occupied_active_fronts,
             "contested_fronts": contested_fronts,
-            "uncontested_fronts": active_fronts - contested_fronts,
-            "empty_fronts": len(tuple(Front)) - active_fronts,
+            "uncontested_fronts": occupied_active_fronts - contested_fronts,
+            "empty_fronts": (
+                sum(
+                    bool(rule_active_mask & (1 << int(front)))
+                    for front in Front
+                )
+                - occupied_active_fronts
+            ),
             "front_margins": margins,
             "front_controllers": controllers,
             "controlled_fronts": [
