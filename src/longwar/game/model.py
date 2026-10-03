@@ -441,6 +441,7 @@ class GameState:
                 if source_stratagem is None
                 else StratagemState(
                     card_id=source_stratagem.card_id,
+                    revealed=source_stratagem.revealed,
                     fronts=tuple(source_stratagem.fronts),
                     direction=source_stratagem.direction,
                     targets=tuple(source_stratagem.targets),
@@ -448,6 +449,8 @@ class GameState:
             )
 
         self.stratagem_used[:] = source.stratagem_used
+        self.hero_force_used[:] = source.hero_force_used
+        self.hero_name_used[:] = source.hero_name_used
         self.hero_used[:] = source.hero_used
         self.active_player = source.active_player
         self.battle = source.battle
@@ -460,6 +463,9 @@ class GameState:
         self.cards_drawn_this_battle[:] = source.cards_drawn_this_battle
         self.completion_count_this_battle[:] = source.completion_count_this_battle
         self.operations_this_battle[:] = source.operations_this_battle
+        self.actions_this_turn = source.actions_this_turn
+        self.closing_stage = source.closing_stage
+        self.closing_passer = source.closing_passer
         self.maneuvers_this_battle[:] = source.maneuvers_this_battle
         self.cards_played_this_turn_front_mask[:] = (
             source.cards_played_this_turn_front_mask
