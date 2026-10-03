@@ -768,14 +768,9 @@ cdef class NativeHeuristicEvaluator:
             encode_action(TYPE_PASS, -1, -1, -1, player),
         )
 
-        # If this signal ends the Battle, the exact transition has already
-        # resolved cleanup and Retreat, checked Collapse, applied surviving
-        # recovery, and set next initiative.
-        if child.phase != PHASE_BATTLE or child.battle != state.battle:
-            return self.battle_boundary_evaluate_fast(child, player)
-
-        # Otherwise evaluate the actual canonical post-Pass state. Research
-        # free-signal overrides are still handled by the same exact transition.
+        # Pass starts the fixed closing sequence rather than resolving the
+        # Battle immediately. Keep the boundary check defensive for synthetic
+        # states, then evaluate the actual post-Pass closing state.
         return self.evaluate_fast(child, player)
 
     cdef bint action_needs_command_guard_probe_fast(
@@ -787,12 +782,12 @@ cdef class NativeHeuristicEvaluator:
         """Whether this operation can actually reach a Battle-end Collapse."""
         cdef int kind = action_kind(action)
 
-        # Only a transition that finishes the second closing turn can reach
-        # Battle-end Collapse immediately. That is either its second Action or
-        # a forced yield because no Action remains.
+        # Only a transition that finishes the passer's final closing turn can
+        # reach Battle-end Collapse immediately. EndTurn always finishes that
+        # turn; otherwise the second Action does.
         if state.closing_turns_remaining != 1:
             return False
-        if kind == TYPE_PASS:
+        if kind == TYPE_END_TURN:
             return True
         return state.actions_this_turn + 1 >= self.engine.actions_per_turn
 
@@ -826,9 +821,21 @@ cdef class NativeHeuristicEvaluator:
             state.command[player] - self.engine.command_collapse_threshold
         )
 
-        # Only actions capable of consuming the remaining Command margin need
-        # an exact transition. Zero-cost play and safely affordable operations
-        # remain available without copying the state.
+        # A zero-cost EndTurn (or the second Action) can still finish the
+        # final closing turn and expose Battle-end Front losses / Collapse.
+        # Probe that boundary before applying the ordinary Command-spend fast
+        # path.
+        if self.action_needs_command_guard_probe_fast(state, player, action):
+            child.copy_from_fast(state)
+            _fe_apply_fast(self.engine, child, action)
+            return (
+                child.phase == PHASE_COMPLETE
+                and child.winner >= 0
+                and child.winner != player
+            )
+
+        # Away from the Battle boundary, only actions capable of consuming the
+        # remaining Command margin need an exact transition.
         if cost <= 0 or cost < margin:
             return False
 
