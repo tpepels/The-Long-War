@@ -174,6 +174,7 @@ class CommandDiagnosticDetail(StrEnum):
 
 class ActionKind(StrEnum):
     PASS = "Pass"
+    END_TURN = "EndTurn"
     CYCLE = "Cycle"
     DISCARD = "Discard"
     EFFECT_CHOICE = "EffectChoice"
@@ -187,6 +188,7 @@ class ActionKind(StrEnum):
 
 class ActionKeyToken(StrEnum):
     PASS = "pass"
+    END_TURN = "end-turn"
     CYCLE = "cycle"
     DISCARD = "discard"
     EFFECT = "effect"
