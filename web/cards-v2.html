@@ -5,92 +5,254 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>V2 Card Lab — The Long War</title>
   <style>
-@font-face { font-family: "LW Display"; src: url("fonts/EBGaramond-SemiBold.otf") format("opentype"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "LW Text"; src: url("fonts/GentiumBook-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "LW Text"; src: url("fonts/GentiumBook-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+@font-face { font-family:"LW Display"; src:url("fonts/EBGaramond-SemiBold.otf") format("opentype"); font-weight:600; font-display:swap; }
+@font-face { font-family:"LW Text"; src:url("fonts/GentiumBook-Regular.ttf") format("truetype"); font-weight:400; font-display:swap; }
+@font-face { font-family:"LW Text"; src:url("fonts/GentiumBook-Bold.ttf") format("truetype"); font-weight:700; font-display:swap; }
+@font-face { font-family:"LW Text"; src:url("fonts/GentiumBook-Italic.ttf") format("truetype"); font-style:italic; font-display:swap; }
 
-:root { color-scheme: light; --bg:#e8e3d8; --ink:#29271f; --muted:#706a5d; --panel:#f8f3e8; }
-* { box-sizing: border-box; }
-body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 "LW Text", Georgia, serif; }
+:root { color-scheme:light; --page:#ded9cf; --ink:#25271f; --muted:#69685f; }
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 16% 4%, rgba(255,255,255,.42), transparent 31rem),
+    linear-gradient(120deg, rgba(96,77,43,.035), transparent 42%, rgba(63,68,52,.025)),
+    var(--page);
+  font:16px/1.45 "LW Text", Georgia, serif;
+}
 a { color:inherit; }
-.toolbar { position:sticky; top:0; z-index:20; display:flex; gap:18px; align-items:center; justify-content:space-between; padding:12px 20px; background:#282c27; color:#faf7ef; box-shadow:0 2px 10px #0003; }
+.toolbar {
+  position:sticky; top:0; z-index:20;
+  display:flex; align-items:center; justify-content:space-between; gap:18px;
+  padding:12px 20px;
+  color:#faf8f2; background:#292d27;
+  border-bottom:1px solid #171916;
+  box-shadow:0 2px 10px #0002;
+}
 .toolbar > div:first-child { display:flex; align-items:baseline; gap:12px; }
 .brand { font:600 24px/1 "LW Display", Georgia, serif; text-decoration:none; }
-.subtitle { opacity:.7; font:12px/1.2 Arial,sans-serif; text-transform:uppercase; letter-spacing:.12em; }
+.subtitle { opacity:.72; font:11px/1.2 Arial,sans-serif; text-transform:uppercase; letter-spacing:.14em; }
 .toolbar-controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; font:12px/1.2 Arial,sans-serif; }
 .toolbar label { display:flex; gap:6px; align-items:center; }
-.toolbar select,.toolbar input,.toolbar button { border:1px solid #85887d; background:#f5f2e9; color:#25271f; padding:6px 8px; font:inherit; }
+.toolbar select,.toolbar input,.toolbar button {
+  border:1px solid #8d8d82; border-radius:0;
+  background:#f5f2e9; color:#25271f; padding:6px 8px; font:inherit;
+}
 .toolbar input { width:210px; }
 .toolbar button { cursor:pointer; }
+
 main { max-width:1320px; margin:0 auto; padding:34px 24px 80px; }
-.intro { max-width:900px; margin-bottom:28px; }
-.eyebrow { margin:0 0 5px; color:#6f6759; font:700 11px/1 Arial,sans-serif; letter-spacing:.13em; text-transform:uppercase; }
-h1,h2 { font-family:"LW Display", Georgia, serif; font-weight:600; }
+.intro { max-width:850px; margin-bottom:26px; }
+.eyebrow { margin:0 0 5px; color:#6b6457; font:700 10px/1 Arial,sans-serif; letter-spacing:.16em; text-transform:uppercase; }
+h1,h2 { font-family:"LW Display",Georgia,serif; font-weight:600; }
 h1 { margin:0 0 12px; font-size:42px; line-height:1; }
-h2 { margin:0 0 10px; font-size:26px; }
-.intro p { margin:8px 0; }
-.design-board { display:grid; grid-template-columns:minmax(280px,1fr) minmax(360px,1fr); gap:28px; align-items:center; padding:20px; margin:24px 0 22px; border:1px solid #b7ab94; background:#f5efe2; }
+h2 { margin:0 0 10px; font-size:25px; }
+.intro p { margin:7px 0; }
+
+.design-board,.icon-key {
+  border-top:1px solid #a99d88;
+  border-bottom:1px solid #bdb2a0;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.32), transparent 50%),
+    #ece4d5;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+.design-board {
+  display:grid; grid-template-columns:minmax(280px,1fr) minmax(360px,1fr);
+  gap:28px; align-items:center; padding:20px 22px; margin:24px 0 22px;
+}
 .design-copy ul { margin:10px 0 0; padding-left:20px; }
-.design-copy li+li { margin-top:5px; }
+.design-copy li+li { margin-top:4px; }
 .stack-demo { position:relative; height:126mm; width:72mm; margin:0 auto; }
-.stack-demo .v2-card { position:absolute; left:4.5mm; box-shadow:0 2mm 6mm #342c2140; }
+.stack-demo .v2-card { position:absolute; left:4.5mm; box-shadow:0 2mm 6mm #342c2135; }
 .stack-demo .stack-force { top:0; z-index:1; }
 .stack-demo .stack-bond { top:10mm; z-index:2; }
 .stack-demo .stack-name { top:20mm; z-index:3; }
 .stack-demo .stack-force .card-body,.stack-demo .stack-force .card-footer,
 .stack-demo .stack-bond .card-body,.stack-demo .stack-bond .card-footer { visibility:hidden; }
-.icon-key { padding:16px 18px; margin-bottom:28px; border:1px solid #c2b7a4; background:#f4ede0; }
-#icon-key { display:flex; gap:10px 18px; flex-wrap:wrap; }
+
+.icon-key { padding:15px 18px; margin-bottom:28px; }
+#icon-key { display:flex; gap:9px 18px; flex-wrap:wrap; }
 .key-item { display:flex; align-items:center; gap:7px; font:12px/1.25 Arial,sans-serif; }
-.cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px,1fr)); gap:22px; align-items:start; }
+
+.cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:22px; align-items:start; }
 .card-wrap { display:flex; justify-content:center; break-inside:avoid; }
 
+/* V2 keeps the original Long War card frame. The only structural addition is
+   the exposed stack edge at the top. It should read as a card, not a UI panel. */
 .v2-card {
-  --accent:#5e6254; --paper:#faf7ef; --strip:#e8eadf;
-  width:63mm; height:88mm; position:relative; display:flex; flex-direction:column; overflow:hidden;
-  border:.28mm solid #45483e; border-radius:2.4mm; color:#24261f;
-  background:linear-gradient(145deg,#fff8 0 12%,transparent 32%),var(--paper);
-  box-shadow:0 1.2mm 3mm #2d291d24;
-  font:3.15mm/1.16 "LW Text", Georgia, serif;
+  --accent:#5c6256;
+  --paper:#faf8f1;
+  --ink:#25271f;
+  width:63mm; height:88mm;
+  padding:2.55mm 3.15mm 1.75mm;
+  display:flex; flex-direction:column;
+  position:relative; isolation:isolate; overflow:hidden;
+  break-inside:avoid;
+  border:.28mm solid #484a40; border-radius:2.5mm;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255,255,255,.65), transparent 18mm),
+    linear-gradient(145deg, rgba(93,79,48,.035), transparent 36%, rgba(49,55,42,.025) 72%, transparent),
+    var(--paper);
+  color:var(--ink);
+  box-shadow:0 1mm 2mm #29271922;
+  font:3.42mm/1.115 "LW Text",Georgia,serif;
 }
-.v2-card::after { content:""; position:absolute; inset:1.05mm; pointer-events:none; border:.15mm solid color-mix(in srgb,var(--accent) 58%,transparent); border-radius:1.55mm; }
-.card-force { --accent:#59624d; --strip:#e4e8d9; }
-.card-bond { --accent:#7b523f; --strip:#eee0d4; --paper:#fbf4e9; }
-.card-name { --accent:#356657; --strip:#dceae3; --paper:#f4f8f3; }
-.card-hero { --accent:#9a6726; --strip:#f0dfbd; --paper:#fbf4e3; border-width:.4mm; }
-.card-tactic { --accent:#984b39; --strip:#efd9d3; --paper:#fbf2ed; }
-.card-stratagem { --accent:#3e5f74; --strip:#d9e4ea; --paper:#f3f7f9; }
-.card-narrative { --accent:#72536d; --strip:#e7dce5; --paper:#faf4f8; }
+.v2-card::before {
+  content:""; position:absolute; inset:1.1mm; z-index:-1;
+  border:.18mm solid var(--accent); border-radius:1.55mm;
+  opacity:.48; pointer-events:none;
+}
+.v2-card::after {
+  content:""; position:absolute; top:0; left:8mm; right:8mm; height:.68mm;
+  background:var(--accent);
+}
+.v2-card.card-force { --accent:#5d6553; }
+.v2-card.card-bond { --accent:#775341; --paper:#fcf7ee; }
+.v2-card.card-name { --accent:#3c6558; --paper:#f5f8f1; }
+.v2-card.card-hero { --accent:#8a6027; --paper:#fbf6e9; border-color:#765525; border-width:.4mm; }
+.v2-card.card-tactic { --accent:#7d483c; --paper:#fbf6ef; }
+.v2-card.card-stratagem { --accent:#405d70; --paper:#f6f8f8; }
+.v2-card.card-narrative { --accent:#735568; --paper:#fbf7f5; }
+.v2-card.card-hero::before { border-width:.26mm; opacity:.82; }
+.v2-card.card-hero::after { height:.95mm; left:6mm; right:6mm; }
 
-.exposed-strip { flex:0 0 10mm; min-height:10mm; display:grid; grid-template-columns:12mm 1fr auto; align-items:center; gap:1.4mm; padding:1.2mm 2.3mm 1mm; color:#29291f; background:linear-gradient(#ffffff55,#ffffff08),var(--strip); border-bottom:.3mm solid var(--accent); }
-.stack-stat { display:grid; place-items:center; width:9.2mm; height:7.1mm; border:.35mm solid var(--accent); border-radius:1.4mm; color:var(--accent); background:#fff8; font:600 5mm/1 "LW Display",Georgia,serif; white-space:nowrap; }
-.stack-stat.compact { font-size:3.1mm; }
-.strip-mid { min-width:0; }
-.strip-type { color:var(--accent); font:700 1.75mm/1 Arial,sans-serif; letter-spacing:.13em; text-transform:uppercase; }
-.strip-classes { margin-top:.5mm; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#514f46; font:1.65mm/1.1 Arial,sans-serif; }
-.strip-right { max-width:22mm; display:flex; flex-direction:column; align-items:flex-end; gap:.65mm; min-width:0; }
-.icon-row { display:flex; justify-content:flex-end; gap:.7mm; flex-wrap:wrap; }
-.timing-icon { width:4.6mm; height:4.6mm; display:inline-grid; place-items:center; border:.22mm solid var(--accent); border-radius:50%; color:var(--accent); background:#fff9; font:700 2.4mm/1 Arial,sans-serif; }
-.timing-icon.icon-continuous { font-family:Georgia,serif; font-size:3.3mm; }
-.timing-icon.icon-once { border-radius:1mm; font-size:1.7mm; }
-.strip-reminder { width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#5d584e; text-align:right; font:700 1.55mm/1 Arial,sans-serif; letter-spacing:.03em; }
+/* The visible edge of a stack: parchment, a rule, and small seals. No coloured banner. */
+.exposed-strip {
+  flex:0 0 9.6mm; min-height:9.6mm;
+  display:grid; grid-template-columns:8.2mm minmax(0,1fr) auto;
+  align-items:center; gap:1.25mm;
+  padding:.15mm 0 .8mm;
+  border-bottom:.18mm solid #b9b9a8;
+  background:transparent;
+}
+.stack-stat {
+  display:grid; place-items:center;
+  width:6.4mm; height:6.4mm;
+  border:.24mm solid var(--accent); border-radius:50%;
+  color:var(--accent); background:rgba(255,255,255,.18);
+  font:600 4.5mm/1 "LW Display",Georgia,serif;
+  white-space:nowrap;
+}
+.stack-stat.compact { width:7.3mm; font-size:2.45mm; }
+.strip-mid { min-width:0; align-self:center; }
+.strip-type {
+  color:var(--accent);
+  font:700 1.65mm/1 Arial,sans-serif;
+  letter-spacing:.14em; text-transform:uppercase;
+}
+.strip-classes {
+  margin-top:.55mm; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:#56584e; font:italic 1.65mm/1.05 "LW Text",Georgia,serif;
+}
+.strip-right { max-width:21mm; min-width:0; display:flex; flex-direction:column; align-items:flex-end; gap:.45mm; }
+.icon-row { display:flex; justify-content:flex-end; gap:.5mm; flex-wrap:wrap; }
+.timing-icon {
+  width:3.9mm; height:3.9mm; display:inline-grid; place-items:center;
+  border:.16mm solid var(--accent); border-radius:50%;
+  color:var(--accent); background:transparent;
+  font:700 2mm/1 Arial,sans-serif;
+}
+.timing-icon.icon-continuous { font-family:Georgia,serif; font-size:2.9mm; }
+.timing-icon.icon-once { border-radius:.7mm; font-size:1.4mm; }
+.strip-reminder {
+  width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:#5d6356; text-align:right;
+  font:700 1.35mm/1 Arial,sans-serif; letter-spacing:.035em;
+}
 
-.card-body { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; padding:2.2mm 3mm 1.2mm; }
-.card-kicker { color:var(--accent); font:700 1.65mm/1 Arial,sans-serif; letter-spacing:.12em; text-transform:uppercase; }
-.card-title { margin:.7mm 0 .8mm; font:600 4.9mm/1.03 "LW Display",Georgia,serif; text-wrap:balance; }
-.long-title .card-title { font-size:4.3mm; }
-.card-classes-full { margin-bottom:1.2mm; color:#5c594f; font:italic 2mm/1.15 "LW Text",Georgia,serif; }
-.rule-panel { flex:1 1 auto; min-height:0; padding-top:1.4mm; border-top:.18mm solid #b8af9e; }
-.rule-text { margin:0; font-size:3.05mm; line-height:1.18; }
-.rule-text .keyword { color:var(--accent); font:700 2mm/1 Arial,sans-serif; letter-spacing:.06em; }
+/* The face returns to the old typographic hierarchy. */
+.card-body { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; padding:.8mm 0 .7mm; }
+.card-kicker { display:none; }
+.card-title {
+  flex:0 0 auto; margin:.35mm 0 .9mm;
+  color:#27281f;
+  font:600 5.3mm/1.06 "LW Display",Georgia,serif;
+  letter-spacing:-.025em; text-wrap:balance;
+}
+.long-title .card-title { font-size:4.7mm; line-height:1.05; }
+.card-classes-full { display:none; }
+.rule-panel {
+  position:relative; flex:1 1 auto; min-height:0;
+  padding:1.2mm 0 .75mm;
+  border-top:.18mm solid #b9b9a8;
+}
+.rule-text { margin:0; font:3.25mm/1.13 "LW Text",Georgia,serif; }
+.rule-text .keyword {
+  color:var(--accent);
+  font:700 1.82mm/1.1 Arial,sans-serif;
+  letter-spacing:.085em; text-transform:uppercase;
+  margin-right:.3mm;
+}
 .rule-text .mode { color:var(--accent); font-weight:700; }
-.memory-line { display:flex; gap:1.2mm; align-items:center; margin-top:1.4mm; color:#625e53; font:700 1.65mm/1.12 Arial,sans-serif; text-transform:uppercase; letter-spacing:.045em; }
-.memory-token { display:inline-grid; place-items:center; min-width:4.2mm; height:4.2mm; padding:0 .8mm; border:.2mm solid var(--accent); border-radius:50%; color:var(--accent); background:#fff9; font-size:1.6mm; }
-.card-footer { flex:0 0 7mm; display:grid; grid-template-columns:1fr auto; align-items:end; gap:2mm; padding:1mm 2.8mm 2mm; border-top:.16mm solid #c2b9a8; }
-.card-id { color:#777064; font:1.35mm/1 Arial,sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.cost { display:flex; align-items:center; gap:1mm; color:var(--accent); font:700 1.5mm/1 Arial,sans-serif; text-transform:uppercase; letter-spacing:.07em; }
-.cost-seal { display:grid; place-items:center; width:6.5mm; height:6.5mm; border-radius:50%; background:var(--accent); color:white; font:600 4mm/1 "LW Display",Georgia,serif; }
-.hidden-band { margin:-.2mm 0 1.2mm; padding:.8mm 1.2mm; border:.2mm dashed var(--accent); color:var(--accent); background:#fff7; text-align:center; font:700 1.7mm/1 Arial,sans-serif; letter-spacing:.12em; text-transform:uppercase; }
+.hidden-band {
+  margin:.05mm 0 .85mm; padding:.3mm 0 .5mm;
+  border:0; border-bottom:.16mm solid #c4c4b7;
+  color:var(--accent); background:transparent;
+  text-align:left;
+  font:700 1.55mm/1 Arial,sans-serif;
+  letter-spacing:.11em; text-transform:uppercase;
+}
+.memory-line {
+  display:flex; gap:1mm; align-items:center; margin-top:1.15mm;
+  color:#66675d;
+  font:italic 1.55mm/1.1 "LW Text",Georgia,serif;
+  text-transform:none; letter-spacing:0;
+}
+.memory-token {
+  display:inline-grid; place-items:center;
+  min-width:3.8mm; height:3.8mm; padding:0 .6mm;
+  border:.16mm solid var(--accent); border-radius:50%;
+  color:var(--accent); background:transparent;
+  font:700 1.45mm/1 Arial,sans-serif;
+}
+
+/* Cost is deliberately at the bottom, but rendered as the old wax/seal device. */
+.card-footer {
+  flex:0 0 7.2mm; min-height:7.2mm;
+  display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:1.2mm;
+  padding:.7mm 0 0;
+  border-top:.16mm solid #b9b9a8;
+  color:#5d6356;
+}
+.card-id {
+  max-width:38mm; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font:1.35mm/1.1 Arial,sans-serif; opacity:.68;
+}
+.cost {
+  display:flex; align-items:center; gap:.9mm;
+  color:#515449;
+  font:700 1.4mm/1 Arial,sans-serif;
+  text-transform:uppercase; letter-spacing:.09em;
+}
+.cost-seal {
+  position:relative; display:grid; place-items:center;
+  width:6.8mm; height:6.8mm; border-radius:50%;
+  background:var(--accent); color:#fffdf6;
+  outline:.16mm solid var(--accent); outline-offset:.25mm;
+  box-shadow:inset 0 0 0 .55mm rgba(255,253,246,.16);
+  font:600 4.45mm/1 "LW Display",Georgia,serif;
+}
+.cost-seal::before {
+  content:""; position:absolute; inset:.72mm;
+  border:.14mm solid rgba(255,253,246,.72); border-radius:50%;
+}
+.cost-seal::after {
+  content:"◆"; position:absolute; top:.12mm; left:50%; transform:translateX(-50%);
+  color:#fffdf6; font:1mm/1 Arial,sans-serif;
+}
+
+/* Spare space gets the same restrained heraldic ornament as the old cards. */
+.rule-panel::after {
+  content:"◆";
+  position:absolute; left:50%; bottom:1.1mm; transform:translateX(-50%);
+  color:var(--accent); opacity:.14;
+  font:5mm/1 Georgia,serif;
+  pointer-events:none;
+}
+.rule-panel:has(.memory-line)::after { display:none; }
+
 .empty { grid-column:1/-1; padding:30px; text-align:center; color:var(--muted); }
 
 @media (max-width:760px) {
@@ -107,11 +269,16 @@ h2 { margin:0 0 10px; font-size:26px; }
   body { background:white; }
   .toolbar,.intro,.design-board,.icon-key { display:none !important; }
   main { max-width:none; padding:0; }
-  .cards { page:v2cards; display:grid; grid-template-columns:repeat(3,63mm); gap:4mm 2mm; justify-content:center; }
+  .cards {
+    page:v2cards; display:grid;
+    grid-template-columns:repeat(3,63mm); gap:4mm 2mm; justify-content:center;
+  }
   .card-wrap { break-inside:avoid; }
-  .v2-card { box-shadow:none; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .v2-card {
+    box-shadow:none;
+    print-color-adjust:exact; -webkit-print-color-adjust:exact;
+  }
 }
-
 </style>
 </head>
 <body>
@@ -142,8 +309,8 @@ h2 { margin:0 0 10px; font-size:26px; }
   <main>
     <section class="intro">
       <p class="eyebrow">Mechanical redesign preview</p>
-      <h1>Cards designed to stay readable while they stay in play.</h1>
-      <p>Force + Bond + Name still creates a Named Formation. The top 10 mm of every formation card is reserved for information that remains visible in a stack: Strength, classifications, timing/state icons, and any recurring reminder. Command cost moves to the bottom.</p>
+      <h1>The old card face, rebuilt for persistent stacks.</h1>
+      <p>The V2 mechanics keep the original Long War parchment, typography, frame, seals, and restrained heraldic treatment. The only structural change is the exposed top edge: Strength, classifications, timing/state icons, and any recurring reminder remain readable when cards are stacked. Command cost moves to the bottom.</p>
       <p>This page renders the proposed 95-card V2 set only. It is not the engine card pool and it does not use the current decks.</p>
     </section>
 
