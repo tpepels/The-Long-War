@@ -87,7 +87,25 @@ def test_python_state_key_includes_search_relevant_flags():
     passed = state.clone()
     passed.players[0].passed = True
     passed.pass_order = [0]
+    passed.closing_turns_remaining = 2
     assert AlphaBetaSearch.state_key(passed) != key
+
+    acted = state.clone()
+    acted.actions_this_turn = 1
+    assert AlphaBetaSearch.state_key(acted) != key
+
+    revealed = state.clone()
+    from longwar.game.model import StratagemState
+    revealed.stratagems[0] = StratagemState(
+        "the-ground-was-held",
+        revealed=True,
+    )
+    hidden = state.clone()
+    hidden.stratagems[0] = StratagemState(
+        "the-ground-was-held",
+        revealed=False,
+    )
+    assert AlphaBetaSearch.state_key(revealed) != AlphaBetaSearch.state_key(hidden)
 
 
 def test_python_state_key_tracks_every_game_state_field() -> None:
