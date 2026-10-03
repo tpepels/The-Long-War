@@ -147,7 +147,8 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
-    # v10 adds two-Action turn state and the forced closing-turn countdown.
+    # v11 adds public/owner-visible Stratagem reveal state.
+    # v10 added two-Action turn state and the forced closing-turn countdown.
     _info_emit(buf, &n, h, INFORMATION_KEY_VERSION)
     _info_emit(buf, &n, h, <uint8_t>player)
     _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
@@ -341,6 +342,7 @@ cdef int _fe__information_state_encode(
                 # 255 is outside the valid card-code range (MAX_CARDS <= 127)
                 # and means "a face-down Stratagem exists".
                 _info_emit(buf, &n, h, 255)
+            _info_emit(buf, &n, h, state.stratagem_revealed[owner])
             _info_emit(buf, &n, h, state.stratagem_front_mask[owner])
             _info_emit(buf, &n, h, state.stratagem_direction[owner])
             _info_emit_u16(buf, &n, h, state.stratagem_target_mask[owner])
