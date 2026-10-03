@@ -340,3 +340,20 @@ def test_continuous_rules_do_not_track_first_each_battle_or_turn() -> None:
         for effect in effects(card):
             if effect["timing"] in {"continuous", "bonded", "while_named"}:
                 assert not tracked_first.search(effect["text"]), (card["title"], effect["text"])
+
+
+def test_v2_recovered_family_art_is_integrated() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    for asset in (
+        "force-march.png", "bond-bound-spears.png", "name-tattered-banner.png",
+        "hero-helmet-laurel.png", "tactic-archer-volley.png",
+        "stratagem-war-map.png", "narrative-roadside-memorial.png",
+    ):
+        assert asset in css
+        assert (ROOT / "web" / "art" / "v2" / asset).is_file()
+
+
+def test_v2_stack_lab_includes_force_alone_and_all_compositions() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    for case in ("force-alone", "force-bond", "force-name", "named", "hero-force", "hero-name"):
+        assert f'"{case}"' in js

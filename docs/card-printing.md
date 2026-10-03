@@ -63,7 +63,7 @@ canonical engine pool described above. V2 cards are **68 × 96 mm**, eight per
 A4 landscape sheet with 6 mm page margins. The complete 120-card proposal uses
 15 sheets. Print at actual size with background graphics and no browser headers.
 
-The shared `V2Cards.cardArticle` also renders the five physical stack proofs.
+The shared `V2Cards.cardArticle` also renders the six physical stack proofs.
 Cards really overlap at 10.5 mm offsets: underlying bodies remain intact and
 are covered by the next card. A Hero's face is identical in both roles, including
 two separate exposed values and its Force-only live reminder. The mode attribute
@@ -98,3 +98,6 @@ representative exported pages as well. The 7.5 pt reminders and fine engraving
 still need an actual-size paper proof on the intended printer; these home-print
 sheets do not provide commercial bleed. `make pages` also builds the unrelated
 canonical rulebook and requires Typst 0.15.1.
+
+
+The V2 family vignettes are production assets under `web/art/v2/`. They came from the recovered generated-image cache and are intentionally reused by card family rather than pretending the pool has 120 unique illustrations. Their source mapping is documented in `web/art/v2/README.md`.

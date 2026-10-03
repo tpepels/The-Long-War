@@ -66,6 +66,7 @@
       '<span class="cost-gem" aria-label="Command cost ' + esc(card.command_cost) + '"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 2H28L38 12V28L28 38H12L2 28V12Z"/><path class="seal-inner" d="M14 6H26L34 14V26L26 34H14L6 26V14Z"/></svg><b>' + esc(card.command_cost) + '</b></span></footer></article>';
   }
   const STACK_CASES = {
+    "force-alone": { title: "Force alone", state: "Formation · Unbonded", ids: ["the-crow-archers"] },
     "force-bond": { title: "Force + Bond", state: "Bonded", ids: ["the-crow-archers", "watched-the-skies-for"] },
     "force-name": { title: "Force + Name", state: "Formation · not Named", ids: ["the-red-shields", "corin-of-the-high-wall"] },
     named: { title: "Force + Bond + Name", state: "Named · also Bonded", ids: ["the-ash-bowmen", "watched-the-skies-for", "corin-of-the-high-wall"] },

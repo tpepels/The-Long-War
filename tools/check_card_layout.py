@@ -222,7 +222,7 @@ def v2_layout_document(cards: list[dict], stacks: bool = False) -> str:
     )
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     render = (
-        'root.innerHTML = ["force-bond", "force-name", "named", "hero-force", "hero-name"]'
+        'root.innerHTML = ["force-alone", "force-bond", "force-name", "named", "hero-force", "hero-name"]'
         '.map(name => window.V2Cards.stackMarkup(cards, name)).join("");'
         if stacks else
         'root.innerHTML = cards.map(card => \'<div class="card-wrap">\' + window.V2Cards.cardArticle(card) + "</div>").join("");'
@@ -437,7 +437,7 @@ def check_v2_layout(browser: str, pdf_path: Path | None = None) -> None:
         else:
             raise SystemExit("pdftotext is required to verify V2 PDF pagination and card coverage")
         print(f"PDF: {pdf_path}")
-    print(f"PASS: {len(cards)} V2 physical cards, five formation stacks, and oversized-reminder detection")
+    print(f"PASS: {len(cards)} V2 physical cards, six formation stacks, and oversized-reminder detection")
 
 
 def main() -> None:

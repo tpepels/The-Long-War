@@ -29,3 +29,18 @@ body is hidden or shortened to make the examples appear to fit.
 Class references are secondary “Involves” bylines, never intrinsic classes or
 an assumed target declaration. Battle-limited Narrative duration is explicit.
 See `docs/card-printing.md` for reproduction and verification commands.
+
+
+## Recovered family artwork
+
+The interrupted Astra/Codex pass produced seven coherent engraved landscape images. They are integrated as **card-family vignettes**, not as arbitrary per-card illustrations:
+
+- Force - `web/art/v2/force-march.png`
+- Bond - `web/art/v2/bond-bound-spears.png`
+- Name - `web/art/v2/name-tattered-banner.png`
+- Hero - `web/art/v2/hero-helmet-laurel.png`
+- Tactic - `web/art/v2/tactic-archer-volley.png`
+- Stratagem - `web/art/v2/stratagem-war-map.png`
+- Narrative - `web/art/v2/narrative-roadside-memorial.png`
+
+The renderer desaturates and blends these into the parchment, then keeps the vector heraldry as a restrained overprint. The art may add character but must never carry rules information or alter fixed stack geometry.

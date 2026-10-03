@@ -38,13 +38,13 @@ h1, h2, h3 { font-family: var(--display); font-weight: 600; }
 }
 .v2-card::before { content: ""; position: absolute; z-index: -1; inset: 1.15mm; border: .2mm solid var(--accent); border-radius: 2mm; pointer-events: none; opacity: .75; }
 .v2-card::after { content: ""; position: absolute; z-index: -1; inset: 11.5mm 2mm 10mm; background: repeating-linear-gradient(0deg, transparent 0 1.9mm, #57472804 2mm 2.1mm); pointer-events: none; }
-.card-force { --accent: #666d4b; --deep: #374438; --paper: #f5f1e3; }
-.card-bond { --accent: #876743; --deep: #664932; --paper: #faf0df; }
-.card-name { --accent: #587c6a; --deep: #305848; --paper: #f1f4e8; }
-.card-hero { --accent: #9a752e; --deep: #775321; --paper: #fbf2da; }
-.card-tactic { --accent: #9d5442; --deep: #733c32; --paper: #f8eee4; }
-.card-stratagem { --accent: #657687; --deep: #35495b; --paper: #eef1ed; }
-.card-narrative { --accent: #856078; --deep: #634858; --paper: #f7efeb; }
+.card-force { --accent: #666d4b; --deep: #374438; --paper: #f5f1e3; --family-art: url("art/v2/force-march.png"); --art-position: 50% 46%; }
+.card-bond { --accent: #876743; --deep: #664932; --paper: #faf0df; --family-art: url("art/v2/bond-bound-spears.png"); --art-position: 50% 46%; }
+.card-name { --accent: #587c6a; --deep: #305848; --paper: #f1f4e8; --family-art: url("art/v2/name-tattered-banner.png"); --art-position: 50% 48%; }
+.card-hero { --accent: #9a752e; --deep: #775321; --paper: #fbf2da; --family-art: url("art/v2/hero-helmet-laurel.png"); --art-position: 50% 42%; }
+.card-tactic { --accent: #9d5442; --deep: #733c32; --paper: #f8eee4; --family-art: url("art/v2/tactic-archer-volley.png"); --art-position: 50% 44%; }
+.card-stratagem { --accent: #657687; --deep: #35495b; --paper: #eef1ed; --family-art: url("art/v2/stratagem-war-map.png"); --art-position: 50% 48%; }
+.card-narrative { --accent: #856078; --deep: #634858; --paper: #f7efeb; --family-art: url("art/v2/narrative-roadside-memorial.png"); --art-position: 50% 46%; }
 .stack-edge {
   flex: 0 0 calc(var(--exposed-edge) - var(--frame)); height: calc(var(--exposed-edge) - var(--frame));
   padding: .25mm 2.5mm .4mm; position: relative; display: flex; flex-direction: column;
@@ -76,8 +76,28 @@ h1, h2, h3 { font-family: var(--display); font-weight: 600; }
 .hero-values i { font: italic 2.7mm/1 var(--text); color: #877651; }
 .hero-values > span:last-child { color: #305848; }
 .hero-values .stat-name { color: #305848; }
-.motif-field { min-height: 0; position: relative; flex: 0 0 17mm; margin: 1.5mm 0 2mm; color: var(--accent); display: grid; place-items: center; }
-.motif-field > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.motif-field {
+  min-height: 0; position: relative; isolation: isolate; overflow: hidden;
+  flex: 0 0 17mm; margin: 1.5mm 0 2mm; color: var(--accent);
+  display: grid; place-items: center;
+  border-top: .18mm solid color-mix(in srgb, var(--accent) 38%, transparent);
+  border-bottom: .18mm solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--paper) 86%, white);
+}
+.motif-field::before {
+  content: ""; position: absolute; inset: -1px; z-index: 0;
+  background-image: var(--family-art); background-size: cover; background-position: var(--art-position, 50% 50%);
+  filter: grayscale(.48) sepia(.24) saturate(.72) contrast(.94);
+  opacity: .66; mix-blend-mode: multiply;
+}
+.motif-field::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--paper) 80%, transparent), transparent 18%, transparent 82%, color-mix(in srgb, var(--paper) 80%, transparent)),
+    linear-gradient(180deg, color-mix(in srgb, var(--paper) 45%, transparent), transparent 28%, transparent 72%, color-mix(in srgb, var(--paper) 54%, transparent));
+  box-shadow: inset 0 0 0 .14mm color-mix(in srgb, var(--deep) 16%, transparent);
+}
+.motif-field > svg { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; overflow: visible; opacity: .42; mix-blend-mode: multiply; }
 .heraldry-main { stroke-width: 1.5; }
 .heraldry-fine { stroke-width: .6; opacity: .65; }
 .sparse .motif-field { flex-basis: 26mm; margin-top: 2mm; margin-bottom: 3mm; }
