@@ -1312,10 +1312,12 @@ class Telemetry:
         player: int,
     ) -> list[int]:
         opponent = other_player(player)
+        active_mask = engine.rules.active_front_mask_for_battle(state.battle)
         return [
             engine.front_strength(state, player, front)
             - engine.front_strength(state, opponent, front)
             for front in Front
+            if active_mask & (1 << int(front))
         ]
 
     def _control_balance(
