@@ -25,6 +25,8 @@ cdef inline bint _fe_card_move_destination_legal(
     cdef int bond = state.bond[source]
     if force < 0 or self.immobile_force[force]:
         return False
+    if not slot_is_active(state.battle, dest):
+        return False
     if owner_from_slot(dest) != owner:
         return False
     if (
@@ -53,12 +55,17 @@ cdef inline bint _fe_player_has_empty_front(
     FastState state,
     int player,
 ) noexcept:
-    cdef int front
+    cdef int front, rank
+    cdef bint occupied
     for front in range(FRONT_COUNT):
-        if (
-            state.force[slot_index(player, front, RANK_FRONT)] < 0
-            and state.force[slot_index(player, front, RANK_REAR)] < 0
-        ):
+        if not front_is_active(state.battle, front):
+            continue
+        occupied = False
+        for rank in range(RANK_COUNT):
+            if state.force[slot_index(player, front, rank)] >= 0:
+                occupied = True
+                break
+        if not occupied:
             return True
     return False
 
