@@ -2393,10 +2393,22 @@ class ProgressionTelemetry:
             "front_margins": margins,
             "front_controllers": controllers,
             "controlled_fronts": [
-                sum(value > 0 for value in margins),
-                sum(value < 0 for value in margins),
+                sum(
+                    value > 0
+                    for front, value in zip(Front, margins)
+                    if rule_active_mask & (1 << int(front))
+                ),
+                sum(
+                    value < 0
+                    for front, value in zip(Front, margins)
+                    if rule_active_mask & (1 << int(front))
+                ),
             ],
-            "tied_fronts": sum(value == 0 for value in margins),
+            "tied_fronts": sum(
+                value == 0
+                for front, value in zip(Front, margins)
+                if rule_active_mask & (1 << int(front))
+            ),
             "total_strength": totals,
             "strength_by_front": strengths,
             "strength_concentration": concentration,
