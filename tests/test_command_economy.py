@@ -501,27 +501,27 @@ def test_projected_front_loss_penalty_uses_configured_rule() -> None:
     ) == 4
 
 
-def test_heuristic_honors_multiple_hero_allowance() -> None:
-    rules = GameRules.standard().with_overrides(hero_play_limit_per_battle=2)
-    engine, state = standard_game(rules=rules)
+def test_heuristic_honors_separate_hero_mode_allowances() -> None:
+    engine, state = standard_game()
     hero = next(
         card_id
         for card_id, card in engine.cards.items()
         if card.get("hero")
     )
     state.players[0].hand[:] = [hero]
-    state.hero_used[0] = 1
-    packed = engine._native_core().from_game_state(state)
-    available = engine._native_heuristic().hand_construction_value(packed, 0)
 
-    state.hero_used[0] = 2
+    state.hero_used[0] = 1  # Force used, Name still available.
+    packed = engine._native_core().from_game_state(state)
+    one_mode_left = engine._native_heuristic().hand_construction_value(packed, 0)
+
+    state.hero_used[0] = 3  # Force and Name both used.
     packed = engine._native_core().from_game_state(state)
     exhausted = engine._native_heuristic().hand_construction_value(packed, 0)
 
-    assert available > exhausted
+    assert one_mode_left > exhausted
 
 
-def test_heuristic_counts_multiple_remaining_hero_uses() -> None:
+def test_heuristic_counts_force_and_name_hero_uses_separately() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     heroes = [
         card["id"]
@@ -530,14 +530,12 @@ def test_heuristic_counts_multiple_remaining_hero_uses() -> None:
     ][:2]
     assert len(heroes) == 2
 
-    rules_one = GameRules.standard().with_overrides(
-        hero_play_limit_per_battle=1
+    force_only = GameRules.standard().with_overrides(
+        hero_name_play_limit_per_battle=0,
     )
-    rules_two = GameRules.standard().with_overrides(
-        hero_play_limit_per_battle=2
-    )
-    engine_one, state_one = standard_game(rules=rules_one)
-    engine_two, state_two = standard_game(rules=rules_two)
+    both_modes = GameRules.standard()
+    engine_one, state_one = standard_game(rules=force_only)
+    engine_two, state_two = standard_game(rules=both_modes)
     state_one.players[0].hand[:] = heroes
     state_two.players[0].hand[:] = heroes
 
@@ -551,7 +549,6 @@ def test_heuristic_counts_multiple_remaining_hero_uses() -> None:
     )
 
     assert value_two > value_one
-
 
 def test_command_guard_keeps_immediate_command_refund_action() -> None:
     rules = GameRules.standard().with_overrides(
