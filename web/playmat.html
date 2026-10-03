@@ -28,7 +28,7 @@
 
     <div class="reference-v3-main">
       <section class="reference-v3-board" aria-label="Battlefield diagram">
-        <div class="rv-player"><strong>OPPONENT</strong><span>STRATAGEM AREA · face-up · one from hand per Battle</span></div>
+        <div class="rv-player"><strong>OPPONENT</strong><span>STRATAGEM AREA · face-down · one from hand per Battle</span></div>
         <div class="rv-front-labels"><span>FRONT 1</span><span>FRONT 2</span><span>FRONT 3</span><span>FRONT 4</span></div>
         <div class="rv-side opponent">
           <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot front"><b>Frontline</b></span></div>
@@ -44,11 +44,11 @@
           <div><span class="rv-slot front"><b>Frontline</b></span><span class="rv-slot rear"><b>Rear</b></span></div>
         </div>
         <div class="rv-front-labels bottom"><span>FRONT 1</span><span>FRONT 2</span><span>FRONT 3</span><span>FRONT 4</span></div>
-        <div class="rv-player you"><strong>YOU</strong><span>STRATAGEM AREA · face-up · one from hand per Battle</span></div>
+        <div class="rv-player you"><strong>YOU</strong><span>STRATAGEM AREA · face-down · one from hand per Battle</span></div>
         <div class="rv-language">
-          <b>Adjacent</b> = one Front left/right, same rank
-          <b>Retreat</b> = Frontline → Rear
-          <b>Driven off</b> = Rear → discard
+          <b>Active Fronts</b> = Battle I: middle 2 · Battle II: add left outer · Battle III+: all 4
+          <b>Adjacent</b> = one active Front left/right, same rank
+          <b>Battlefield</b> = cards stay where they are unless a card or rule explicitly moves/removes them
         </div>
       </section>
 
@@ -57,9 +57,9 @@
           <span>YOUR TURN</span>
           <ol>
             <li><b>Start turn:</b> draw {{TURN_DRAW_COUNT}}. At {{HAND_LIMIT}} cards, discard before each required draw. Reshuffle discard only if deck empties.</li>
-            <li><b>One operation:</b> play 1 card, Maneuver, or Pass. Pass normally requires each player to have completed {{PASS_MIN_OPERATIONS_BEFORE_SIGNAL}} operation(s).</li>
-            <li><b>Maneuver:</b> pay {{MANEUVER_COMMAND_COST}} Command; move a Named Formation one Front sideways in the same rank, or swap with a friendly formation.</li>
-            <li><b>Pass:</b> costs your operation and stays active for the rest of the Battle, even if you later act. When both players have Passed, the Battle ends.</li>
+            <li><b>Act:</b> take up to {{ACTIONS_PER_TURN}} Actions - play a card, Maneuver, or Cycle (discard 2, draw 1). You may repeat an Action type.</li>
+            <li><b>Maneuver:</b> pay {{MANEUVER_COMMAND_COST}} Command; move a Named Formation one active Front sideways in the same rank, or swap with a friendly formation.</li>
+            <li><b>Pass:</b> only when no legal Action remains after your draw. Opponent takes one full closing turn, then you take one full closing turn, then the Battle ends.</li>
           </ol>
         </section>
 
@@ -69,9 +69,9 @@
             <div><dt>Force</dt><dd>Any position without a Force; enables prepared Force-dependent text.</dd></div>
             <div><dt>Bond</dt><dd>Any position without a Bond; may be prepared, but contributes 0 Strength without a Force.</dd></div>
             <div><dt>Name</dt><dd>Any position without a Name; may be prepared, but contributes 0 Strength without a Force.</dd></div>
-            <div><dt>Hero</dt><dd>Play as Force or Name; Hero limit: {{HERO_PLAY_LIMIT_PER_BATTLE}} from hand per Battle.</dd></div>
+            <div><dt>Hero</dt><dd>Play at most {{HERO_FORCE_PLAY_LIMIT_PER_BATTLE}} Hero as Force and {{HERO_NAME_PLAY_LIMIT_PER_BATTLE}} Hero as Name from hand per Battle.</dd></div>
             <div><dt>Narrative</dt><dd>Legend, Saga, Myth, Omen, Warning, Prophecy, or Conspiracy; face-up; max {{ONGOING_NARRATIVE_LIMIT}} Ongoing per player.</dd></div>
-            <div><dt>Stratagem</dt><dd>Place face-up in your separate Stratagem area; max 1 from hand per Battle; discard at Battle end.</dd></div>
+            <div><dt>Stratagem</dt><dd>Set face-down in your separate Stratagem area; its existence is public, identity hidden until revealed; max {{STRATAGEM_PLAY_LIMIT_PER_BATTLE}} from hand per Battle.</dd></div>
           </dl>
         </section>
 
@@ -81,12 +81,12 @@
         </section>
 
         <section class="rv-score">
-          <span>WHEN BOTH PLAYERS HAVE PASSED</span>
+          <span>AFTER THE TWO CLOSING TURNS</span>
           <ol>
-            <li>Resolve all 4 Fronts separately. Higher Strength wins; ties do nothing. There is no overall Battle winner.</li>
-            <li>Discard incomplete formations before Retreat; Named Formations persist.</li>
-            <li>In each lost Front: Rear Named Formation is driven off; Frontline Named Formation Retreats to Rear.</li>
-            <li>Lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost, applying the loss in full even below 0. Then check Command Collapse: if either player is at or below {{COLLAPSE_THRESHOLD}}, lower Command loses; if equal, the player who Passed first loses. If the war continues, recover the base amount, minimum {{RECOVERY_FLOOR}}; max total {{COMMAND_CAP}}.</li>
+            <li>Resolve each active Front separately. Higher Strength wins; ties cost neither player Command.</li>
+            <li>Resolve Battle-end effects, then clear effects that last only for this Battle.</li>
+            <li>Lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost, applying the loss in full even below 0. The battlefield itself does not move or clear.</li>
+            <li>Check Command Collapse before recovery: lower Command loses; if both are equally at/below {{COLLAPSE_THRESHOLD}}, the player who Passed loses. If the war continues, recover and the player who did not Pass starts the next Battle.</li>
           </ol>
         </section>
       </aside>
@@ -95,7 +95,7 @@
     <footer class="reference-v3-footer">
       <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}; Maneuver costs {{MANEUVER_COMMAND_COST}}. After Battle-end effects, lose {{LOST_FRONT_COMMAND_PENALTY}} per unprotected Front lost. If either player is at or below {{COLLAPSE_THRESHOLD}}, lower Command loses; if equal, the player who Passed first loses.</span></div>
       <div><b>RECOVERY</b><span>If the war continues, recover the current base: <b>{{RECOVERY_SERIES}}</b>, minimum {{RECOVERY_FLOOR}}; Front losses have already reduced Command before Collapse; max total {{COMMAND_CAP}}.</span></div>
-      <div><b>BETWEEN BATTLES</b><span>Named Formations persist · no Maneuver · clear Battle-only effects and temporary Strength · Ongoing Narratives persist by text · refill to {{HAND_LIMIT}} · the player who Passed first starts.</span></div>
+      <div><b>BETWEEN BATTLES</b><span>The whole battlefield persists, including prepared and incomplete stacks · clear Battle-only effects and temporary Strength · refill to {{HAND_LIMIT}} · activate the next Front when appropriate · the player who did not Pass starts.</span></div>
     </footer>
   </main>
 </body>
