@@ -838,7 +838,7 @@ function renderCommandExperiment(lab) {
       <thead><tr>
         <th>Agent</th><th>Recovery</th><th>Floor</th><th>Games</th><th>Censored</th>
         <th>Collapse-point start</th><th>Both at Collapse point</th><th>No paid op.</th>
-        <th>First-signal Command</th><th>Signal at 0</th><th>Signal at 4+</th><th>Signal w/ alternatives</th>
+        <th>Pass Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Signal w/ alternatives</th>
         <th>Guard opportunity</th><th>Guard override</th>
         <th>Command before Collapse</th><th>Collapse trigger rate</th><th>Mean Battles</th><th>Max Battle</th>
         <th>Reach III</th><th>Reach VIII+</th><th>Reach XII+</th>
@@ -989,7 +989,7 @@ function renderNarrativeAblation(lab) {
     + "<table class=\"mini-table\"><thead><tr>"
     + "<th>Variant</th><th>Decisive / games</th><th>Censored</th>"
     + "<th>Mean Battles</th><th>Max Battle</th><th>Pre-collapse Command</th>"
-    + "<th>First-signal Command</th><th>Suspect Command sources</th><th>Longest 1-3 streak</th>"
+    + "<th>Pass Command</th><th>Suspect Command sources</th><th>Longest 1-3 streak</th>"
     + "</tr></thead><tbody>" + body + "</tbody></table>";
 }
 
@@ -1082,7 +1082,7 @@ function renderProgression(lab) {
     };
     trajectoryElement.innerHTML = [
       trajectoryCard("Command at Battle end", "command_remaining"),
-      trajectoryCard("First-signal Command", "first_signal_command"),
+      trajectoryCard("Pass Command", "first_signal_command"),
       trajectoryCard("Occupied positions", "occupied_positions"),
       trajectoryCard("Contested Fronts", "contested_fronts"),
       trajectoryCard("Completed formations", "completed_formations"),
@@ -1095,11 +1095,11 @@ function renderProgression(lab) {
   document.getElementById("progression-battlefield").innerHTML = [
     metric("Force → Bond", pct(life.force_to_bond_rate), `${life.forces_ever_bonded ?? 0} of ${life.forces ?? 0} Force lifecycles`),
     metric("Force → Name", pct(life.force_to_name_rate), `${life.forces_ever_named ?? 0} eventually Named`),
-    progressionMetric("Active Fronts", field.active_fronts, "median per Battle decision"),
-    progressionMetric("Contested Fronts", field.contested_fronts, "median per Battle decision"),
-    progressionMetric("Partial at Battle end", life.partial_at_battle_end_per_player, "median per player-Battle"),
-    metric("Incomplete cleared at Battle end", life.incomplete_cleared_at_battle_end ?? 0, "normal cleanup, not in-Battle removal"),
-    metric("Incomplete removed during Battle", life.incomplete_removed_during_battle ?? 0, "effect / Retreat removal before completion"),
+    progressionMetric("Active Fronts", field.active_fronts, "rules-active Fronts for that Battle"),
+    progressionMetric("Developed Fronts", field.developed_fronts, "active Fronts containing at least one Force"),
+    progressionMetric("Contested Fronts", field.contested_fronts, "active Fronts with Forces on both sides"),
+    progressionMetric("Partial at Battle end", life.partial_at_battle_end_per_player, "persistent partial formations per player-Battle"),
+    metric("Incomplete removed during Battle", life.incomplete_removed_during_battle ?? 0, "card effect or explicit Retreat before completion"),
     progressionMetric("Empty Fronts", field.empty_fronts, "median per Battle decision"),
     progressionMetric("Strength concentration", field.strength_concentration, "median strongest-Front share per player"),
     progressionMetric("Force → Name time", life.force_to_name_actions, "median actions"),
@@ -1116,25 +1116,25 @@ function renderProgression(lab) {
     progressionMetric("Front-control changes", contest.front_control_changes_per_battle, "median per Battle"),
     progressionMetric("Final |margin|", contest.final_abs_margin, "median total-Strength margin"),
     progressionMetric("Max |margin|", contest.maximum_abs_margin, "median Battle maximum"),
-    progressionMetric("Battle length", contest.actions_per_battle, "median operation decisions"),
+    progressionMetric("Battle length", contest.actions_per_battle, "median Action / turn-control decisions"),
     progressionMetric("Durable lead", contest.durable_lead_action, "median action when measurable"),
     progressionMetric("Actions after durable lead", contest.actions_remaining_after_durable_lead, "median when measurable"),
     metric("No later control change", pct(contest.no_control_change_after_midpoint_rate), "after Battle midpoint"),
   ].join("");
 
-  const signalCategories = choice.signal_mechanical_categories || {};
+  const passCategories = choice.signal_mechanical_categories || {};
   document.getElementById("progression-choice").innerHTML = [
-    progressionMetric("Legal actions", choice.legal_action_count, "median per operation decision"),
-    progressionMetric("Card-play options", choice.card_play_option_count, "median legal card actions"),
+    progressionMetric("Legal actions", choice.legal_action_count, "median per decision"),
+    progressionMetric("Card-play options", choice.card_play_option_count, "median legal card Actions"),
     progressionMetric("Maneuver options", choice.maneuver_option_count, "median legal Maneuvers"),
     metric("Exactly one legal action", pct(choice.exactly_one_legal_action_rate), `${choice.exactly_one_legal_action ?? 0} decisions`),
     metric("Forced Maneuver", pct(choice.forced_maneuver_rate), `${choice.forced_maneuvers ?? 0} decisions`),
-    metric("Signal with no alternative", signalCategories.no_alternative ?? 0, "mechanically no non-Pass action"),
+    metric("Forced Passes", passCategories.no_alternative ?? 0, "Pass is legal only when no Action is available"),
     metric(
       "Constraint source / active",
       `${pct(choice.constraint_rule_source_rate)} / ${choice.constraint_active_supported ? pct(choice.constraint_active_rate) : "not instrumented"}`,
       choice.constraint_active_supported
-        ? "public source present / native next-operation obligation active"
+        ? "public source present / native next-Action obligation active"
         : "active restriction needs native constraint state"
     ),
     metric(
@@ -1150,9 +1150,9 @@ function renderProgression(lab) {
     metric(
       "Constraint forcing",
       `${choice.constraint_forced_maneuver_decisions ?? 0} Maneuver / ${choice.constraint_forced_front_decisions ?? 0} Front`,
-      `${choice.constraint_future_operations_affected ?? 0} future-operation decisions affected`
+      `${choice.constraint_future_operations_affected ?? 0} future-Action decisions affected`
     ),
-    metric("Effect-resolution decisions", choice.effect_resolution_decisions ?? 0, "excluded from ordinary operation-choice metrics"),
+    metric("Effect-resolution decisions", choice.effect_resolution_decisions ?? 0, "excluded from ordinary Action-choice metrics"),
   ].join("");
 
   const commandDist = resources.command_remaining_at_battle_end || {};
@@ -1160,21 +1160,21 @@ function renderProgression(lab) {
   const zeroRate = commandDist.count ? (commandBuckets["0"] || 0) / commandDist.count : null;
   document.getElementById("progression-resources").innerHTML = [
     progressionMetric("Command at Battle end", commandDist, "median per player-Battle"),
-    progressionMetric("Command at first pass", resources.command_at_first_signal, "median first passer"),
+    progressionMetric("Command at Pass", resources.command_at_first_signal, "median passer"),
     metric("Ends at 0 Command", pct(zeroRate), `${commandBuckets["0"] || 0} player-Battles`),
     metric("Free Maneuvers", resources.free_maneuvers ?? 0, "actual zero-Command Maneuvers"),
     metric("Discounted actions", resources.discount_actions ?? 0, `${resources.discount_command_saved ?? 0} Command saved`),
-    metric("Command regained", resources.command_gained_or_refunded ?? 0, "operation gains/refunds; Battle recovery excluded"),
+    metric("Command regained", resources.command_gained_or_refunded ?? 0, "Action gains/refunds; Battle recovery excluded"),
     metric(
       "Card / Maneuver spend",
       `${resources.command_spend?.card_play ?? 0} / ${resources.command_spend?.maneuver ?? 0}`,
       "actual Command paid by category"
     ),
-    metric("Free operations", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
+    metric("Free Actions", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
     metric("Collapse-point Battle starts", lowCommand.collapse_point_battle_starts ?? 0, "at least one side begins at or below the configured Collapse threshold"),
     metric("Both at Collapse point", lowCommand.both_at_collapse_point_battle_starts ?? 0, "both sides begin at or below the configured Collapse threshold"),
-    metric("Pass preserves Command", resources.first_signals_avoiding_command_exhaustion ?? 0, "first Passes with a legal alternative that would spend all remaining Command"),
-    metric("No paid operation", lowCommand.battles_with_no_paid_operation ?? 0, "Battles with no Command-paying card play or Maneuver"),
+    metric("Passes at 0 Command", resources.first_signal_command_buckets?.["0"] ?? 0, "forced Pass events at the Collapse threshold"),
+    metric("No paid Action", lowCommand.battles_with_no_paid_operation ?? 0, "Battles with no Command-paying card play or Maneuver"),
     metric("No in-Battle board change", lowCommand.battles_with_no_board_change ?? 0, "board unchanged between first and final decision state"),
   ].join("");
 
@@ -1203,7 +1203,7 @@ function renderProgression(lab) {
       ? "<h3>Command economy by source</h3>"
         + "<table class=\"mini-table\"><thead><tr>"
         + "<th>Source</th><th>Triggers</th><th>Gained</th><th>Nominal gain</th>"
-        + "<th>Discount saved</th><th>Free operations</th><th>Front-loss Command avoided</th>"
+        + "<th>Discount saved</th><th>Free Actions</th><th>Front-loss Command avoided</th>"
         + "</tr></thead><tbody>" + sourceBody + "</tbody></table>"
       : '<p class="muted">No source-attributed Command events in this profile.</p>';
   }
@@ -1289,7 +1289,7 @@ function renderProgression(lab) {
   document.getElementById("progression-diagnostics").innerHTML = `
     <div class="two-column-tables">
       <div>
-        <h3>First-signal state and final Front balance</h3>
+        <h3>Pass state and final Front balance</h3>
         <table class="mini-table">
           <thead><tr><th>State</th><th>Events</th><th>Resolved</th><th>Mean final Front balance</th><th>Positive balance</th></tr></thead>
           <tbody>${passRows.map(([label, row]) => `
@@ -1361,7 +1361,7 @@ function renderTelemetry(lab) {
     metric("Battles", b.count ?? "—", `mean actions ${num(b.mean_actions, 1)}`),
     metric("Battle Strength", num(b.mean_total_strength, 1), `mean |margin| ${num(b.mean_abs_total_margin, 1)}`),
     metric("Pass events", p.events ?? "—", `mean hand ${num(p.mean_hand_size, 1)}`),
-    metric("First Pass share", pct(p.first_signal_rate), "share of Pass events that opened a pass sequence"),
+    metric("Mean Pass Command", num(p.mean_command_at_pass, 1), "Pass is forced once per resolved Battle"),
   ].join("");
 
   const actions = Object.entries(t.actions || {});
