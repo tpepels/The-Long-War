@@ -150,7 +150,7 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
-    # v9 removes the retired Pass-closing countdown from canonical state.
+    # v10 encodes three rows, two-Action turns, closing turns, and hidden Stratagems.
     _info_emit(buf, &n, h, INFORMATION_KEY_VERSION)
     _info_emit(buf, &n, h, <uint8_t>player)
     _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
