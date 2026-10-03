@@ -1927,8 +1927,8 @@ document.addEventListener("keydown", (event) => {
   }
   if (!state || state.viewer == null || state.phase !== PHASE.BATTLE) return;
   if (event.key.toLowerCase() === "p") {
-    const pass = actionForPass();
-    if (pass) executeAction(pass);
+    const action = actionForTurnEnd() || actionForPass();
+    if (action) executeAction(action);
   }
 });
 
