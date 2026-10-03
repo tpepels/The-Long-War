@@ -2030,3 +2030,66 @@
     -webkit-print-color-adjust: exact;
   }
 }
+
+
+/* TLW rulebook readability refresh */
+
+.rulebook {
+  line-height: 1.58;
+}
+
+.rulebook h1,
+.rulebook h2,
+.rulebook h3 {
+  line-height: 1.18;
+}
+
+.rulebook h2 {
+  margin-top: 2.3rem;
+  margin-bottom: 0.9rem;
+}
+
+.rulebook h3 {
+  margin-top: 1.45rem;
+  margin-bottom: 0.55rem;
+}
+
+.rulebook p,
+.rulebook ul,
+.rulebook ol,
+.rulebook blockquote,
+.rulebook pre,
+.rulebook table,
+.rulebook figure {
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.rulebook li + li {
+  margin-top: 0.32rem;
+}
+
+.rulebook pre,
+.rulebook code {
+  line-height: 1.35;
+}
+
+.rulebook img {
+  display: block;
+  width: 100%;
+  max-width: 860px;
+  height: auto;
+  margin: 1rem auto 1.35rem;
+  border-radius: 12px;
+  border: 1px solid rgba(73, 52, 34, 0.18);
+  background: #f8f2e6;
+  box-shadow: 0 4px 18px rgba(60, 40, 22, 0.10);
+}
+
+.rulebook blockquote {
+  padding: 0.7rem 0.9rem;
+}
+
+.rulebook table {
+  line-height: 1.42;
+}
