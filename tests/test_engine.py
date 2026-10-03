@@ -437,6 +437,7 @@ def test_turn_allows_up_to_two_actions_and_voluntary_end_turn() -> None:
     second = PlayForce("the-red-shields", pos(2, Rank.FRONT))
     assert first in engine.legal_actions(state)
     assert EndTurn() in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, EndTurn()) == 0
 
     engine.apply(state, first)
     assert state.active_player == 0
