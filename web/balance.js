@@ -733,15 +733,6 @@ function renderCommandExperiment(lab) {
       const d = deck.progression?.by_battle?.[bucket];
       return { value: d?.command_before_collapse, weight: d?.battles };
     });
-    const alternativePasses = sum(deckProfiles, (deck) =>
-      deck.progression?.contestability?.first_signal_outcomes?.with_playable_alternatives?.events
-    );
-    const firstSignalEvents = sum(deckProfiles, (deck) =>
-      ["ahead", "tied", "behind"].reduce(
-        (n, state) => n + Number(deck.progression?.contestability?.first_signal_outcomes?.[state]?.events || 0),
-        0
-      )
-    );
     const guardDecisions = sum(deckProfiles, (deck) =>
       deck.decisions?.[profile.agent]?.command_guard_decisions
     );
@@ -764,7 +755,6 @@ function renderCommandExperiment(lab) {
       firstSignalCommand,
       passZeroRate: firstSignalCount ? passZero / firstSignalCount : null,
       passFourPlusRate: firstSignalCount ? passFourPlus / firstSignalCount : null,
-      passWithAlternativesRate: firstSignalEvents ? alternativePasses / firstSignalEvents : null,
       guardOpportunityRate: agentDecisions ? guardDecisions / agentDecisions : null,
       guardOverrideRate: guardDecisions ? guardOverrides / guardDecisions : null,
       guardOverrides,
@@ -837,8 +827,8 @@ function renderCommandExperiment(lab) {
     <table class="mini-table">
       <thead><tr>
         <th>Agent</th><th>Recovery</th><th>Floor</th><th>Games</th><th>Censored</th>
-        <th>Collapse-point start</th><th>Both at Collapse point</th><th>No paid op.</th>
-        <th>Pass Command</th><th>Pass at 0</th><th>Pass at 4+</th><th>Signal w/ alternatives</th>
+        <th>Collapse-point start</th><th>Both at Collapse point</th><th>No paid Action</th>
+        <th>Pass Command</th><th>Pass at 0</th><th>Pass at 4+</th>
         <th>Guard opportunity</th><th>Guard override</th>
         <th>Command before Collapse</th><th>Collapse trigger rate</th><th>Mean Battles</th><th>Max Battle</th>
         <th>Reach III</th><th>Reach VIII+</th><th>Reach XII+</th>
@@ -857,7 +847,6 @@ function renderCommandExperiment(lab) {
           <td>${num(row.firstSignalCommand, 1)}</td>
           <td>${pct(row.passZeroRate)}</td>
           <td>${pct(row.passFourPlusRate)}</td>
-          <td>${pct(row.passWithAlternativesRate)}</td>
           <td>${pct(row.guardOpportunityRate)}</td>
           <td>${pct(row.guardOverrideRate)}${row.guardOverrides ? ` <span class="muted">(${row.guardOverrides})</span>` : ""}</td>
           <td>${num(row.commandBeforeCollapse, 1)}</td>
