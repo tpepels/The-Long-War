@@ -1365,13 +1365,27 @@ cdef int _fe_legal_actions_into(
         self, state, player, actions, n, &constraint_enforced
     )
 
-    # Pass is never voluntary. At the start of an ordinary turn it starts
-    # the two-turn closing sequence only when no Action is legal. After one
-    # Action, or during closing turns, the same wire action is an internal
-    # forced yield when no second Action is available.
+    # Pass is never voluntary. It exists only at the start of an ordinary
+    # turn when no Action is legal and starts the fixed two-turn closing
+    # sequence. EndTurn is separate: a player may always stop before using
+    # both Actions, and a closing/no-second-Action turn ends without Passing.
     if n == 0:
-        actions[0] = encode_action(TYPE_PASS, -1, -1, -1, player)
+        actions[0] = encode_action(
+            TYPE_END_TURN
+            if state.closing_turns_remaining > 0 or state.actions_this_turn > 0
+            else TYPE_PASS,
+            -1,
+            -1,
+            -1,
+            player,
+        )
         n = 1
+    else:
+        n = _append_action(
+            actions,
+            n,
+            encode_action(TYPE_END_TURN, -1, -1, -1, player),
+        )
 
     return n
 
