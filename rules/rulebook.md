@@ -33,7 +33,6 @@ A Battle has a simple arc:
 
 A war may last several Battles. The board you preserve and the Command you save matter later.
 
-
 > **REMEMBER** Winning more Fronts is useful, but there is no single Battle victory. The war ends through Command Collapse.
 
 ## The battlefield
@@ -41,6 +40,8 @@ A war may last several Battles. The board you preserve and the Command you save 
 Each Front has two positions on each player's side.
 
 The position nearest the centre is the **Frontline**. The position behind it is the **Rear**. The four Frontline positions form one rank; the four Rear positions form the other.
+
+![The battlefield has four Fronts and two positions per Front on each player's side. Each position can contain at most one Force, one Bond, and one Name.](assets/rulebook-battlefield.png)
 
 ```
                          OPPONENT
@@ -118,13 +119,13 @@ A **Name** gives the group its identity.
 
 A position can hold at most one Force, one Bond, and one Name.
 
+![A Force creates a formation. Force + Bond + Name creates a Named Formation. Incomplete positions normally clear at Battle end, while Named Formations can remain.](assets/rulebook-formation-cleanup.png)
+
 Any stack containing a Force is a **formation**. A formation containing **Force + Bond + Name** is a **Named Formation**.
 
 Named Formations matter because they can survive from one Battle to the next and can Maneuver. Unless they are removed or driven off, Named Formations remain on the battlefield when a Battle ends.
 
 Force, Bond, and Name may be played in **any order**.
-
-![A position can begin with prepared cards, become a formation when a Force arrives, and becomes a Named Formation only when Force, Bond, and Name are all present.](assets/rulebook-formation.jpg)
 
 > **EXAMPLE** You may play a Bond and a Name first. They wait face-up without Strength. When a Force later enters that position, the three cards immediately form a Named Formation.
 
@@ -173,11 +174,11 @@ When formations swap, only the formation chosen to Maneuver is considered to hav
 
 Move every Bond and Name with its Force.
 
-![A Maneuver moves one Named Formation one Front left or right without changing rank; an occupied friendly destination causes a swap.](assets/rulebook-maneuver.jpg)
-
 > **REMEMBER** A Maneuver moves the whole formation. Bond and Name never stay behind when their Force moves.
 
 You cannot normally Maneuver between Battles or change rank with a Maneuver.
+
+![Maneuver examples: move one Front left or right in the same rank, swap with your own formation, and never move between Frontline and Rear.](assets/rulebook-maneuver-detail.png)
 
 ## Passing {#passing}
 
@@ -195,7 +196,7 @@ After you already have an active Pass, Pass is no longer a normal voluntary choi
 
 A Battle therefore ends when **both players have Passed at least once**.
 
-![Passing remains active: after your first Pass, both players keep taking turns, and the Battle ends as soon as both players have an active Pass.](assets/rulebook-passing.png)
+![Passing: the first Pass remains active while play continues. As soon as the other player also Passes, the Battle ends immediately.](assets/rulebook-pass-flow.png)
 
 > **REMEMBER** Your first Pass uses your operation and stays active. Later actions do not cancel it, and there is no automatic countdown after it.
 
@@ -240,7 +241,7 @@ For each lost Front:
 1. Drive off the Rear Named Formation, if there is one.
 2. Then Retreat the Frontline Named Formation into the Rear, if there is one.
 
-![When a Front is lost, its Rear Named Formation is driven off first; only then does its Frontline Named Formation Retreat into the Rear.](assets/rulebook-retreat.jpg)
+![Resolving a lost Front: drive off its Rear Named Formation first, then Retreat its surviving Frontline Named Formation into the Rear.](assets/rulebook-lost-front.png)
 
 > **REMEMBER** The order matters. Clear the Rear first, then move the Frontline group backward.
 
@@ -306,8 +307,6 @@ The check that can end the war is called **Command Collapse**. It happens after 
 - The player with lower Command loses the war.
 - If both players are at or below **{{COLLAPSE_THRESHOLD}} Command** with equal Command, the player who **Passed first** loses the war.
 - If neither player collapses, and only then, both players recover Command.
-
-![Command Collapse using the d20 Command tracker: Command is spent across the war, lost Fronts reduce it before Collapse, and recovery happens only if the war continues.](assets/rulebook-command-collapse.png)
 
 ## Special card types {#narratives}
 
