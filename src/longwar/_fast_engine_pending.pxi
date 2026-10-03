@@ -341,6 +341,12 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_pass_action(self, state, actor)
         return
 
+    if kind == TYPE_END_TURN:
+        # Ending a turn is not an Action and never starts Battle closing.
+        state.turn_number += 1
+        _fe_finish_turn_fast(self, state, actor)
+        return
+
     if kind == TYPE_EFFECT:
         _fe_apply_pending_effect(self, state, action)
         return
