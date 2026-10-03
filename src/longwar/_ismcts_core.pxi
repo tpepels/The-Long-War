@@ -520,39 +520,13 @@ cdef uint64_t _ismcts_rollout_action(
             < decisive_greedy_probability
         )
 
-        # Canonical permanent Pass gives the unsignalled player an exact
-        # Battle-closing action. A rollout must actually use that strategic
-        # boundary when it is safe; otherwise the default random policy can
-        # wander through repeatable zero-cost operations forever and never
-        # teach the tree what recovery and the next Battle look like.
-        #
-        # The MCTS tree still explores non-Pass responses before closing. This
-        # is only the default policy beyond the expanded tree. If closing the
-        # Battle loses the war immediately, keep searching for a saving move.
-        if state.pass_len == 1 and not state.passed[actor]:
-            for pick in range(safe_n):
-                i = safe_indices[pick]
-                if action_kind(actions[i]) != TYPE_PASS:
-                    continue
-                decisive_probes[0] += 1
-                score_scratch.copy_from_fast(state)
-                _fe_apply_fast(engine, score_scratch, actions[i])
-                if (
-                    (
-                        score_scratch.phase == PHASE_COMPLETE
-                        and score_scratch.winner == actor
-                    )
-                    or (
-                        score_scratch.phase != PHASE_COMPLETE
-                        and score_scratch.battle != state.battle
-                    )
-                ):
-                    decisive_actions[0] += 1
-                    return actions[i]
-                break
+        # Pass is forced under the playtest rules, so it is present only when
+        # no normal Action remains. No rollout policy should manufacture an
+        # early Battle close; ordinary legal-action selection reaches the
+        # fixed closing sequence naturally.
 
-        # Outside a safe Battle close, ninety-five percent of decisive
-        # rollouts remain random. The five-percent greedy branch falls through
+        # Most decisive rollouts remain random. The configured greedy branch
+        # falls through
         # to normal exact candidate scoring below.
         if not use_greedy:
             pick = safe_indices[_ismcts_rand_index(rng, safe_n)]
