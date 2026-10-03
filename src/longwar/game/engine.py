@@ -8,7 +8,7 @@ from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
 from ..protocol import CardField, Direction, DirectionCode, ObservationZone, PendingResume, PLAYER_COUNT
 from ..native_engine import create_fast_engine, create_heuristic_evaluator
-from .actions import Action, Cycle, Discard, EffectChoice, Pass, action_from_key, action_key
+from .actions import Action, Cycle, Discard, EffectChoice, EndTurn, Pass, action_from_key, action_key
 from .model import (
     ConstraintKind,
     Front,
@@ -162,7 +162,7 @@ class GameEngine:
             return False
         if state.pending_draw_discard_for is not None:
             return False
-        if isinstance(action, (Pass, Discard, EffectChoice)):
+        if isinstance(action, (Pass, EndTurn, Discard, EffectChoice)):
             return False
         return isinstance(action, (Cycle,)) or not isinstance(action, (Discard, EffectChoice))
 
