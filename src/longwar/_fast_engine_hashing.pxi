@@ -432,6 +432,8 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
 
     if kind == TYPE_PASS:
         return "pass"
+    if kind == TYPE_END_TURN:
+        return "end-turn"
     if kind == TYPE_DISCARD:
         return f"discard:{self.card_ids[card]}"
     if kind == TYPE_CYCLE:
