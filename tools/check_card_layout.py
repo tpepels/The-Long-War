@@ -209,6 +209,237 @@ def run_browser(browser: str, path: Path, pdf: Path | None = None) -> subprocess
     return result
 
 
+def v2_layout_document(cards: list[dict], stacks: bool = False) -> str:
+    """Measure the same V2 physical renderer used by the catalogue and stacks."""
+    card_data = json.dumps(cards).replace("<", "\\u003c")
+    page_source = (ROOT / "web" / "cards-v2.html").read_text(encoding="utf-8")
+    source_names = [source.split("?", 1)[0] for source in re.findall(
+        r'<script\b[^>]*\bsrc=["\']([^"\']+)["\']', page_source,
+    )]
+    scripts = "\n".join(
+        "<script>" + (ROOT / "web" / name).read_text(encoding="utf-8") + "</script>"
+        for name in source_names
+    )
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    render = (
+        'root.innerHTML = ["force-bond", "force-name", "named", "hero-force", "hero-name"]'
+        '.map(name => window.V2Cards.stackMarkup(cards, name)).join("");'
+        if stacks else
+        'root.innerHTML = cards.map(card => \'<div class="card-wrap">\' + window.V2Cards.cardArticle(card) + "</div>").join("");'
+    )
+    checks = r"""
+const mm = 96 / 25.4;
+const issues = [];
+const fail = (card, reason) => issues.push((card?.dataset.cardId || "stacks") + ":" + reason);
+const rect = element => element.getBoundingClientRect();
+function inside(outer, inner, tolerance = 1.5) {
+  return inner.left >= outer.left - tolerance && inner.top >= outer.top - tolerance &&
+    inner.right <= outer.right + tolerance && inner.bottom <= outer.bottom + tolerance;
+}
+function visible(element) {
+  const style = getComputedStyle(element);
+  return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) > 0;
+}
+const anchors = new Map();
+function sameAnchor(card, label, values) {
+  if (!anchors.has(label)) anchors.set(label, values);
+  else if (values.some((value, index) => Math.abs(value - anchors.get(label)[index]) > 1))
+    fail(card, "unaligned-" + label);
+}
+const textContext = document.createElement("canvas").getContext("2d");
+function textInk(element) {
+  // A Range includes the font's unused ascender/descender space. Canvas ink
+  // metrics distinguish actual clipping from harmless tight line boxes.
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  const box = range.getBoundingClientRect(), style = getComputedStyle(element);
+  // Computed font shorthand is empty for lining-nums in Chromium.
+  textContext.font = [style.fontStyle, style.fontWeight, style.fontSize, style.fontFamily].join(" ");
+  textContext.letterSpacing = style.letterSpacing;
+  const metrics = textContext.measureText(element.textContent);
+  const ascent = style.fontVariantNumeric.includes("lining-nums")
+    ? Math.max(metrics.actualBoundingBoxAscent, textContext.measureText("H").actualBoundingBoxAscent)
+    : metrics.actualBoundingBoxAscent;
+  const baseline = box.top + metrics.fontBoundingBoxAscent;
+  return {
+    left: box.left - metrics.actualBoundingBoxLeft,
+    right: Math.max(box.right, box.left + metrics.actualBoundingBoxRight),
+    top: baseline - ascent,
+    bottom: baseline + metrics.actualBoundingBoxDescent,
+    baseline,
+  };
+}
+const articles = [...document.querySelectorAll(".v2-card")];
+if (!articles.length) issues.push("No V2 physical cards rendered");
+if (!STACKS && articles.length !== cards.length) issues.push("Wrong catalogue card count");
+for (const card of articles) {
+  const bounds = rect(card);
+  if (Math.abs(bounds.width - 68 * mm) > 1 || Math.abs(bounds.height - 96 * mm) > 1) fail(card, "physical-size");
+  const edge = card.querySelector(".stack-edge");
+  if (!edge) { fail(card, "missing-stack-edge"); continue; }
+  if (Math.abs(rect(edge).bottom - bounds.top - 10.5 * mm) > 1) fail(card, "edge-height");
+  const formationCard = card.matches(".card-force, .card-bond, .card-name, .card-hero");
+  const headerStats = [...edge.querySelectorAll(".stat-force, .stat-bond, .stat-name")];
+  if (formationCard) {
+    const first = headerStats[0];
+    if (!first) fail(card, "missing-header-strength");
+    else sameAnchor(card, "first-strength", [rect(first).left - bounds.left, rect(first).top - bounds.top]);
+    const classes = edge.querySelector(".edge-classes");
+    if (classes) {
+      sameAnchor(card, "classifications-left", [rect(classes).left - bounds.left]);
+      if (classes.textContent.trim()) sameAnchor(card, "classifications-top", [rect(classes).top - bounds.top, textInk(classes).baseline - bounds.top]);
+    }
+    const firstLive = edge.querySelector(".edge-live");
+    if (firstLive) sameAnchor(card, "live-reminder-top", [rect(firstLive).top - bounds.top]);
+  }
+  for (const stat of headerStats) {
+    const numeral = stat.querySelector("b");
+    if (!numeral) { fail(card, "missing-header-stat-numeral"); continue; }
+    if (!visible(stat) || !visible(numeral)) fail(card, "header-stat-hidden");
+    const ink = textInk(numeral);
+    if (!inside(rect(edge), ink, 1)) fail(card, "header-stat-text-outside");
+    if (ink.left < rect(stat).left - 1 || ink.right > rect(stat).right + 1) fail(card, "header-stat-too-wide");
+    if (parseFloat(getComputedStyle(numeral).fontSize) < 4.3 * mm - .1) fail(card, "header-stat-font-shrunk");
+    sameAnchor(card, "header-stat-baseline", [ink.baseline - bounds.top]);
+  }
+  const placement = edge.querySelector(".edge-placement");
+  if (placement && (!visible(placement) || !inside(rect(edge), textInk(placement), 1))) fail(card, "row-restriction-text-outside");
+  for (const selector of [".stack-edge", ".card-title", ".rules", ".card-footer", ".cost-gem"]) {
+    const element = card.querySelector(selector);
+    if (!element) { fail(card, "missing-" + selector.slice(1)); continue; }
+    if (!visible(element)) fail(card, selector.slice(1) + "-hidden");
+    if (!inside(bounds, rect(element))) fail(card, selector.slice(1) + "-outside");
+    if (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
+      fail(card, selector.slice(1) + "-overflow");
+  }
+  for (const element of edge.querySelectorAll(".edge-classes, .edge-live")) {
+    if (!element.textContent.trim()) continue;
+    const label = element.classList.contains("edge-live") ? "edge-live" : "edge-classes";
+    if (!visible(element) || !inside(rect(edge), rect(element))) fail(card, label + "-outside");
+    if (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
+      fail(card, label + "-overflow");
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    if (!inside(rect(edge), range.getBoundingClientRect())) fail(card, label + "-text-outside");
+  }
+  const rules = card.querySelector(".rules"), footer = card.querySelector(".card-footer");
+  if (rules && footer && rect(rules).bottom > rect(footer).top + 1.5) fail(card, "rules-footer-overlap");
+  const cost = card.querySelector(".cost-gem");
+  if (cost) sameAnchor(card, "command-anchor", [bounds.right - rect(cost).right, bounds.bottom - rect(cost).bottom]);
+  if (footer && cost && (!footer.contains(cost) || rect(cost).bottom > rect(footer).bottom + 1 || rect(cost).bottom < rect(footer).top))
+    fail(card, "cost-not-anchored-to-footer");
+  if (cost) for (const text of card.querySelectorAll(".effect-text")) {
+    const a = rect(cost), b = rect(text);
+    if (a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top) fail(card, "rules-cost-overlap");
+  }
+}
+if (STACKS) {
+  const expected = {
+    "force-bond": ["force", "bond"], "force-name": ["force", "name"],
+    "named": ["force", "bond", "name"], "hero-force": ["hero", "bond", "name"],
+    "hero-name": ["force", "bond", "hero"],
+  };
+  const byId = new Map(cards.map(card => [card.id, card]));
+  for (const [name, types] of Object.entries(expected)) {
+    const stack = document.querySelector('.stack-demo[data-stack-case="' + name + '"]');
+    if (!stack) { issues.push(name + ":missing-stack"); continue; }
+    const wrappers = [...stack.querySelectorAll(".stack-card")];
+    const layers = wrappers.map(layer => layer.matches(".v2-card") ? layer : layer.querySelector(".v2-card"));
+    if (layers.some(layer => !layer)) { issues.push(name + ":missing-physical-card"); continue; }
+    const actual = layers.map(card => byId.get(card.dataset.cardId)?.type);
+    if (JSON.stringify(actual) !== JSON.stringify(types)) issues.push(name + ":wrong-stack-composition");
+    for (let index = 0; index < layers.length; index++) {
+      const card = layers[index], body = card.querySelector(".card-body");
+      if (Number(wrappers[index].dataset.stackLayer) !== index) fail(card, "wrong-stack-layer");
+      if (!body || !visible(body) || rect(body).height < 20 * mm) fail(card, "stack-body-hidden");
+      if (Math.abs(rect(card).top - rect(layers[0]).top - index * 10.5 * mm) > 1) fail(card, "wrong-stack-offset");
+      if (index + 1 < layers.length && rect(card.querySelector(".stack-edge")).bottom > rect(layers[index + 1]).top + 1)
+        fail(card, "buried-edge-covered");
+      if (byId.get(card.dataset.cardId)?.type === "hero" && card.dataset.heroMode !== (name === "hero-name" ? "name" : "force"))
+        fail(card, "wrong-hero-mode");
+    }
+  }
+}
+for (const font of document.fonts) if (font.status === "error") issues.push("Font failed to load: " + font.family);
+document.documentElement.dataset.layoutCheck = issues.length ? "fail" : "pass";
+document.getElementById("layout-result").textContent = issues.join(";");
+""".replace("STACKS", "true" if stacks else "false")
+    return f"""<!doctype html><html><head><meta charset="utf-8">
+<base href="{(ROOT / 'web').as_uri()}/"><title>The Long War — V2 physical cards</title>
+<meta name="lw-build-version" content="layout-check">
+<style>{css}</style><style>#layout-result {{ position:fixed; left:-9999px; }} @media print {{ #layout-result {{ display:none; }} }}</style>
+</head><body><div id="layout-result"></div><main id="v2-layout" class="{'stack-examples' if stacks else 'cards'}"></main>
+<script id="card-data" type="application/json">{card_data}</script>
+{scripts}<script>
+const cards = JSON.parse(document.getElementById("card-data").textContent);
+const root = document.getElementById("v2-layout");
+{render}
+window.addEventListener("load", async () => {{ await document.fonts.ready; {checks} }});
+</script><div class="print-version" aria-hidden="true">TLW print vlayout-check</div></body></html>"""
+
+
+def check_v2_layout(browser: str, pdf_path: Path | None = None) -> None:
+    cards = json.loads((ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf-8"))["cards"]
+    probe = {
+        "id": "oversized-reminder-probe", "title": "Oversized reminder probe", "type": "force",
+        "strength": 0, "command_cost": 0, "classes": ["human"],
+        "effects": [{"timing": "once_per_battle", "text": "Choose another friendly formation in this Front. " * 30,
+                     "exposed": "1/B · incomplete hint"}],
+    }
+    if pdf_path is not None:
+        pdf_path.parent.mkdir(parents=True, exist_ok=True)
+    for label, document, expect_overflow in (
+        ("v2-catalogue", v2_layout_document(cards), False),
+        ("v2-stacks", v2_layout_document(cards, stacks=True), False),
+        ("v2-overflow-probe", v2_layout_document([probe]), True),
+    ):
+        with tempfile.TemporaryDirectory(prefix="longwar-layout-" + label + "-") as temp_dir:
+            path = Path(temp_dir) / (label + ".html")
+            path.write_text(document, encoding="utf-8")
+            result = run_browser(browser, path, pdf_path if label == "v2-catalogue" else None)
+        if result.returncode != 0:
+            raise SystemExit(f"Headless browser failed during {label}:\n" + result.stderr[-4000:])
+        match = re.search(r'<div id="layout-result">([^<]*)</div>', result.stdout)
+        details = html.unescape(match.group(1)) if match else "validation did not complete"
+        if expect_overflow:
+            if 'data-layout-check="fail"' not in result.stdout or "oversized-reminder-probe:edge-live" not in details:
+                raise SystemExit("V2 oversized reminder was not flagged: " + details)
+        elif 'data-layout-check="pass"' not in result.stdout:
+            raise SystemExit(f"{label} card layout failure detected: {details}")
+    if pdf_path is not None:
+        if not pdf_path.is_file() or not pdf_path.stat().st_size:
+            raise SystemExit(f"Browser did not create the requested PDF: {pdf_path}")
+        if extractor := shutil.which("pdftotext"):
+            extracted = subprocess.run(
+                [extractor, "-layout", str(pdf_path), "-"], capture_output=True,
+                text=True, timeout=30, check=False,
+            )
+            if extracted.returncode:
+                raise SystemExit("Could not inspect exported V2 PDF: " + extracted.stderr)
+            pages = extracted.stdout.split("\f")
+            if not pages[-1].strip():
+                pages.pop()
+            expected_pages = (len(cards) + 7) // 8
+            if len(pages) != expected_pages:
+                raise SystemExit(f"V2 PDF must have {expected_pages} eight-card sheets; found {len(pages)} pages")
+            blank_pages = [str(index) for index, page in enumerate(pages, 1) if not page.strip()]
+            if blank_pages:
+                raise SystemExit("V2 PDF contains blank pages: " + ", ".join(blank_pages))
+            unstamped_pages = [str(index) for index, page in enumerate(pages, 1)
+                               if "TLW print vlayout-check" not in re.sub(r"\s+", " ", page)]
+            if unstamped_pages:
+                raise SystemExit("V2 PDF is missing the print version on pages: " + ", ".join(unstamped_pages))
+            missing = [card["id"] for card in cards if not re.search(
+                r"(?<![a-z0-9-])" + re.escape(card["id"]) + r"(?![a-z0-9-])", extracted.stdout,
+            )]
+            if missing:
+                raise SystemExit("V2 PDF is missing card IDs: " + ", ".join(missing))
+        else:
+            raise SystemExit("pdftotext is required to verify V2 PDF pagination and card coverage")
+        print(f"PDF: {pdf_path}")
+    print(f"PASS: {len(cards)} V2 physical cards, five formation stacks, and oversized-reminder detection")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -219,12 +450,12 @@ def main() -> None:
     parser.add_argument("--browser", type=Path, help="Path to a Chrome/Chromium executable.")
     parser.add_argument("--pdf", type=Path, help="Also export the full print catalogue to this PDF path.")
     parser.add_argument(
-        "--surface", choices=("all", "print", "browser"), default="all",
-        help="Card surface to validate (default: all).",
+        "--surface", choices=("all", "print", "browser", "v2"), default="all",
+        help="Card surface to validate (default: all legacy surfaces; v2 is separate).",
     )
     args = parser.parse_args()
     if args.pdf and args.surface == "browser":
-        parser.error("--pdf requires --surface print or all")
+        parser.error("--pdf requires --surface print, all, or v2")
 
     browser = str(args.browser.expanduser().resolve()) if args.browser else browser_path()
     if browser is None:
@@ -234,6 +465,9 @@ def main() -> None:
         return
     if args.browser and not Path(browser).is_file():
         raise SystemExit(f"Browser executable does not exist: {browser}")
+    if args.surface == "v2":
+        check_v2_layout(browser, args.pdf.expanduser().resolve() if args.pdf else None)
+        return
 
     cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))["cards"]
     batch_size = 8

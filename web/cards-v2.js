@@ -1,67 +1,155 @@
 (() => {
-"use strict";
-const scriptURL=document.currentScript?.src||"";
-const VERSION=(()=>{try{return new URL(scriptURL,window.location.href).searchParams.get("v")||"dev"}catch(_){return"dev"}})();
-const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
-const titleCase=v=>String(v??"").split(/[-_ ]+/).filter(Boolean).map(p=>p[0].toUpperCase()+p.slice(1)).join(" ");
-const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",stratagem:"Stratagem",narrative:"Narrative"};
-const LABEL={play:"PLAY",once_per_battle:"1/BATTLE",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",action:"ACTION",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"HIDDEN"};
-function modeEffects(card,mode){const v=card?.modes?.[mode];return Array.isArray(v?.effects)?v.effects:[]}
-function effects(card){return card?.type==="hero"?[...modeEffects(card,"force"),...modeEffects(card,"name")]:Array.isArray(card?.effects)?card.effects:[]}
-function symbol(type){const s={
-force:'<svg viewBox="0 0 24 24"><path d="M5 3h14v7c0 5-3 8.6-7 11-4-2.4-7-6-7-11z"/><path d="M8 7h8M12 5v10"/></svg>',
-bond:'<svg viewBox="0 0 24 24"><path d="M8.4 8.3l-2.1 2.1a4 4 0 005.7 5.7l2.1-2.1"/><path d="M15.6 15.7l2.1-2.1a4 4 0 00-5.7-5.7L9.9 10"/><path d="M9 15l6-6"/></svg>',
-name:'<svg viewBox="0 0 24 24"><path d="M6 21V3"/><path d="M7 4h11l-3 4 3 4H7"/></svg>',
-hero:'<svg viewBox="0 0 24 24"><path d="M12 2l2.7 6.4 6.8.6-5.2 4.5 1.6 6.7-5.9-3.5-5.9 3.5 1.6-6.7L2.5 9l6.8-.6z"/></svg>',
-tactic:'<svg viewBox="0 0 24 24"><path d="M13 2L5 14h6l-1 8 9-13h-6z"/></svg>',
-stratagem:'<svg viewBox="0 0 24 24"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg>',
-narrative:'<svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M8 4v16M11 8h5M11 12h5"/></svg>'};return s[type]||s.force}
-function statMarkup(c){
- if(c.type==="hero")return '<span class="stat-cluster"><span class="stat-crest stat-force"><small>F</small><b>'+esc(c.force_strength)+'</b></span><span class="stat-crest stat-name"><small>N</small><b>+'+esc(c.name_strength_modifier)+'</b></span></span>';
- if(c.type==="force")return '<span class="stat-cluster"><span class="stat-crest stat-force"><b>'+esc(c.strength)+'</b></span></span>';
- if(c.type==="bond"||c.type==="name"){const n=Number(c.strength_modifier||0);return '<span class="stat-cluster"><span class="stat-crest stat-mod"><b>'+(n>=0?"+":"")+esc(n)+'</b></span></span>'}
- return '<span class="stat-cluster"></span>';
-}
-function liveReminder(c){const es=c.type==="hero"?modeEffects(c,"force"):(c.effects||[]);return es.filter(e=>["once_per_battle","bonded","while_named"].includes(e.timing)&&e.exposed).map(e=>'<em>'+esc(LABEL[e.timing]||e.timing)+'</em>'+esc(e.exposed.replace(/^(1\/B|BONDED|NAMED)\s*·?\s*/i,""))).join("<br>")}
-function classes(c){return(c.classes?.length?c.classes:(c.references||[])).map(titleCase).join(" · ")}
-function memoryNote(e){const m=new Set(e.memory||[]),out=[];if(m.has("used_marker"))out.push("mark used");if(m.has("effect_marker"))out.push("effect marker");if(m.has("suppression_marker"))out.push("suppression marker");if(m.has("front_marker"))out.push("Front marker");return out.join(" · ")}
-function block(e){const note=memoryNote(e),limit=e.limit==="once_per_battle"?'<span class="effect-limit">once per Battle</span>':"";return '<div class="effect-block"><div class="effect-head"><span class="effect-label">'+esc(LABEL[e.timing]||e.timing)+'</span>'+limit+'</div><div class="effect-text">'+esc(e.text)+'</div>'+(note?'<div class="effect-note">'+esc(note)+'</div>':"")+'</div>'}
-function rules(c){
- if(c.type==="hero")return '<div class="mode-heading">As Force</div>'+modeEffects(c,"force").map(block).join("")+'<div class="mode-heading name-mode">As Name</div>'+modeEffects(c,"name").map(block).join("");
- const es=effects(c);return(c.type==="stratagem"?'<span class="hidden-ribbon">Played face-down</span>':"")+(es.length?es.map(block).join(""):'<div class="empty-rules">No special rules.</div>');
-}
-function motif(c){let h=0;for(const ch of c.id)h=((h*33)^ch.charCodeAt(0))>>>0;return h%6}
-function density(c){const n=(c.title||"").length+effects(c).reduce((s,e)=>s+(e.text||"").length,0);return n>370?" card-very-dense":n>245?" card-dense":""}
-function titleDensity(c){const n=(c.title||"").length;return n>33?" title-very-long":n>25?" title-long":""}
-function cardArticle(c,extra=""){
- const live=liveReminder(c),cls=classes(c),m=motif(c);
- return '<article class="v2-card card-'+esc(c.type)+density(c)+titleDensity(c)+(extra?" "+extra:"")+'" data-card-id="'+esc(c.id)+'">'+
- '<div class="stack-edge"><span class="type-sigil">'+symbol(c.type)+'</span>'+statMarkup(c)+'<div class="edge-meta"><div class="edge-type">'+esc(TYPE[c.type]||c.type)+(c.unique?" · Unique":"")+'</div><div class="edge-classes">'+esc(cls)+'</div></div><div class="edge-live">'+(c.placement?'<em>'+esc(c.placement.toUpperCase())+' ONLY</em>':"")+live+'</div></div>'+
- '<div class="card-body"><h3 class="card-title">'+esc(c.title)+'</h3><div class="card-byline">'+esc(cls)+'</div><div class="motif-field motif-'+m+'"><span class="motif-sigil">'+symbol(c.type)+'</span><span class="motif-word">'+esc(TYPE[c.type]||c.type)+'</span></div><div class="rules">'+rules(c)+'</div></div>'+
- '<footer class="card-footer"><span class="footer-id">'+esc(c.id)+'</span><span class="cost-gem" aria-label="Command cost '+esc(c.command_cost)+'">'+esc(c.command_cost)+'</span></footer></article>';
-}
-function cardMarkup(c,extra="",copies=0){return '<div class="card-wrap">'+(copies>1?'<span class="copy-chip">×'+copies+'</span>':"")+cardArticle(c,extra)+'</div>'}
-function norm(c){return[c.title,c.type,...(c.classes||[]),...(c.references||[]),...(c.design_tags||[]),c.text].join(" ").toLowerCase()}
-function deckMap(deck){return new Map((deck?.cards||[]).map(x=>[x.id,x.copies]))}
-function render(cards,decks){
- const type=document.getElementById("type-filter").value,cl=document.getElementById("class-filter").value,mech=document.getElementById("mechanic-filter").value,deckId=document.getElementById("deck-filter").value,q=document.getElementById("search").value.trim().toLowerCase(),deck=decks.find(d=>d.id===deckId),copies=deckMap(deck);
- const filtered=cards.filter(c=>(type==="all"||c.type===type)&&(cl==="all"||(c.classes||[]).includes(cl)||(c.references||[]).includes(cl))&&(mech==="all"||(c.design_tags||[]).includes(mech))&&(deckId==="all"||copies.has(c.id))&&(!q||norm(c).includes(q)));
- document.getElementById("count").textContent=filtered.length+" / "+cards.length;
- document.getElementById("cards").innerHTML=filtered.map(c=>cardMarkup(c,"",copies.get(c.id)||0)).join("");
-}
-function fillFilters(cards,decks){
- const classes=[...new Set(cards.flatMap(c=>[...(c.classes||[]),...(c.references||[])]))].sort(),tags=[...new Set(cards.flatMap(c=>c.design_tags||[]))].sort();
- document.getElementById("class-filter").innerHTML='<option value="all">All classes</option>'+classes.map(x=>'<option value="'+esc(x)+'">'+esc(titleCase(x))+'</option>').join("");
- document.getElementById("mechanic-filter").innerHTML='<option value="all">All mechanics</option>'+tags.map(x=>'<option value="'+esc(x)+'">'+esc(titleCase(x))+'</option>').join("");
- document.getElementById("deck-filter").innerHTML='<option value="all">All cards</option>'+decks.map(d=>'<option value="'+esc(d.id)+'">'+esc(d.title)+'</option>').join("");
-}
-function renderStack(cards){const ids=["the-ash-bowmen","watched-the-skies-for","corin-of-the-high-wall"],extra=["stack-force","stack-bond","stack-name"];document.getElementById("stack-demo").innerHTML=ids.map((id,i)=>{const c=cards.find(x=>x.id===id);return c?cardArticle(c,extra[i]):""}).join("")}
-async function main(){
- const [cr,dr]=await Promise.all([fetch("data/cards-v2-redesign.json?v="+encodeURIComponent(VERSION),{cache:"no-cache"}),fetch("data/v2-playtest-decks.json?v="+encodeURIComponent(VERSION),{cache:"no-cache"})]);
- if(!cr.ok)throw new Error("Could not load V2 card data");if(!dr.ok)throw new Error("Could not load V2 playtest decks");
- const cards=(await cr.json()).cards||[],decks=(await dr.json()).decks||[];fillFilters(cards,decks);renderStack(cards);render(cards,decks);
- for(const id of["type-filter","class-filter","mechanic-filter","deck-filter"])document.getElementById(id).addEventListener("change",()=>render(cards,decks));
- document.getElementById("search").addEventListener("input",()=>render(cards,decks));
-}
-main().catch(err=>{document.getElementById("cards").textContent=err.message});
+  "use strict";
+  const scriptURL = typeof document === "undefined" ? "" : document.currentScript?.src || "";
+  const VERSION = (() => { try { return new URL(scriptURL, window.location.href).searchParams.get("v") || "dev"; } catch (_) { return "dev"; } })();
+  const esc = value => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+  const titleCase = value => String(value ?? "").split(/[-_ ]+/).filter(Boolean).map(part => part[0].toUpperCase() + part.slice(1)).join(" ");
+  const TYPE = { force: "Force", bond: "Bond", name: "Name", hero: "Hero", tactic: "Tactic", stratagem: "Stratagem", narrative: "Narrative" };
+  const LABEL = { play: "PLAY", once_per_battle: "1/BATTLE", bonded: "BONDED", while_named: "WHILE NAMED", becomes_named: "BECOMES NAMED", action: "ACTION", trigger: "TRIGGER", continuous: "CONTINUOUS", hidden: "REVEAL" };
+  const LIVE = new Set(["once_per_battle", "bonded", "while_named"]);
+  const signed = value => (Number(value) >= 0 ? "+" : "") + String(value ?? 0);
+  const modeEffects = (card, mode) => card.modes?.[mode]?.effects || [];
+  const effects = card => card.type === "hero" ? [...modeEffects(card, "force"), ...modeEffects(card, "name")] : card.effects || [];
+  const symbol = type => window.V2Heraldry?.symbol(type) || "";
+
+  function stat(value, type) {
+    return '<span class="stat-' + type + '" aria-label="' + esc(TYPE[type] || type) + ' Strength ' + esc(value) + '"><span class="stat-symbol" aria-hidden="true">' + symbol(type) + '</span><b>' + esc(value) + '</b></span>';
+  }
+  function liveEffects(card, heroMode) {
+    if (card.type === "hero") return modeEffects(card, "force").filter(e => LIVE.has(e.timing));
+    return ["force", "bond"].includes(card.type) ? (card.effects || []).filter(e => LIVE.has(e.timing)) : [];
+  }
+  function reminder(effect) {
+    // Presentation copy is keyed by the exact source sentence. A changed or new
+    // rule falls back to its full text and is flagged if it no longer fits.
+    return window.V2Reminders?.[effect.text] || effect.text;
+  }
+  function edge(card, heroMode) {
+    const type = card.type === "hero" ? "force" : card.type;
+    const value = card.type === "hero" ? card.force_strength
+      : card.type === "force" ? card.strength : ["bond", "name"].includes(card.type) ? signed(card.strength_modifier) : null;
+    const mark = value === null ? '<span class="edge-emblem" aria-hidden="true">' + symbol(type) + '</span>' : stat(value, type);
+    const live = liveEffects(card, heroMode).map(effect => '<div class="edge-live" data-timing="' + esc(effect.timing) + '"><strong>' + (card.type === 'hero' ? 'FORCE · ' : '') + (effect.timing === "once_per_battle" ? "1/B" : LABEL[effect.timing]) + '</strong> <span>' + esc(reminder(effect)) + '</span></div>').join("");
+    return '<header class="stack-edge"><div class="edge-heading">' + mark +
+      (card.type === 'hero' ? stat(signed(card.name_strength_modifier), 'name') : '<span class="edge-type">' + esc(TYPE[type]) + '</span>') +
+      '<span class="edge-classes">' + (card.classes || []).map(titleCase).map(esc).join(" · ") + '</span>' +
+      (card.placement ? '<span class="edge-placement">' + esc(titleCase(card.placement)) + ' only</span>' : '') +
+      '</div><div class="edge-reminders">' + live + '</div></header>';
+  }
+  function block(effect) {
+    const kind = ["bonded", "while_named", "continuous"].includes(effect.timing) ? "state" : ["becomes_named", "trigger", "hidden"].includes(effect.timing) ? "event" : "operation";
+    return '<section class="effect-block timing-' + kind + '"><div class="effect-head"><span class="effect-label" data-timing="' + esc(effect.timing) + '">' + esc(LABEL[effect.timing] || effect.timing) + '</span>' +
+      (effect.limit === "once_per_battle" ? '<em class="effect-limit">once per Battle</em>' : '') +
+      '</div><div class="effect-text">' + esc(effect.text) + '</div></section>';
+  }
+  function rules(card) {
+    if (card.type === "hero") {
+      return '<section class="hero-rule-mode" data-mode="force"><h4 class="mode-heading">As Force</h4>' + modeEffects(card, "force").map(block).join("") +
+        '</section><section class="hero-rule-mode" data-mode="name"><h4 class="mode-heading">As Name</h4>' + modeEffects(card, "name").map(block).join("") + '</section>';
+    }
+    return effects(card).length ? effects(card).map(block).join("") : '<p class="empty-rules">No special rules.</p>';
+  }
+  function cardArticle(card, extra = "", options = {}) {
+    const heroMode = options.heroMode === "name" ? "name" : "force";
+    const count = effects(card).reduce((n, e) => n + e.text.length, 0);
+    const density = card.type === "hero" || count > 190 ? " dense" : count < 105 ? " sparse" : "";
+    const references = card.references?.length ? "Involves " + card.references.map(titleCase).join(" · ") : "";
+    const status = [card.type === "stratagem" ? "Play face down" : "", card.duration === "this_battle" ? "This Battle" : "", references].filter(Boolean).join(" · ");
+    const modes = card.type === "hero" ? '<div class="hero-values"><span>' + stat(card.force_strength, "force") + '<small>Force</small></span><i>or</i><span>' + stat(signed(card.name_strength_modifier), "name") + '<small>Name</small></span></div>' : '';
+    return '<article class="v2-card card-' + esc(card.type) + density + (extra ? ' ' + esc(extra) : '') + '" data-card-id="' + esc(card.id) + '"' +
+      (card.type === "hero" ? ' data-hero-mode="' + heroMode + '"' : '') + '>' + edge(card, heroMode) +
+      '<div class="card-body"><h3 class="card-title">' + esc(card.title) + '</h3>' +
+      (status ? '<p class="card-byline">' + esc(status) + '</p>' : '') + modes +
+      '<div class="motif-field" aria-hidden="true">' + (window.V2Heraldry?.motif(card) || '') + '</div>' +
+      '<div class="rules">' + rules(card) + '</div></div>' +
+      '<footer class="card-footer"><span class="footer-mark">' + (card.type === 'hero' ? 'V2 · Hero · Unique' : card.unique ? 'V2 · Unique' : 'The Long War · V2') + '</span><span class="footer-id">' + esc(card.id) + '</span>' +
+      '<span class="cost-gem" aria-label="Command cost ' + esc(card.command_cost) + '"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 2H28L38 12V28L28 38H12L2 28V12Z"/><path class="seal-inner" d="M14 6H26L34 14V26L26 34H14L6 26V14Z"/></svg><b>' + esc(card.command_cost) + '</b></span></footer></article>';
+  }
+  const STACK_CASES = {
+    "force-bond": { title: "Force + Bond", state: "Bonded", ids: ["the-crow-archers", "watched-the-skies-for"] },
+    "force-name": { title: "Force + Name", state: "Formation · not Named", ids: ["the-red-shields", "corin-of-the-high-wall"] },
+    named: { title: "Force + Bond + Name", state: "Named · also Bonded", ids: ["the-ash-bowmen", "watched-the-skies-for", "corin-of-the-high-wall"] },
+    "hero-force": { title: "Hero as Force", state: "Named · also Bonded", ids: ["serai-queen-of-crows", "followed", "namar"], heroMode: "force" },
+    "hero-name": { title: "Hero as Name", state: "Named · also Bonded", ids: ["the-house-of-reed", "carried-messages-for", "alda-keeper-of-the-ford"], heroMode: "name" },
+  };
+  function stackMarkup(cards, caseName) {
+    const entry = STACK_CASES[caseName];
+    if (!entry) return "";
+    return '<div class="stack-demo" data-stack-case="' + esc(caseName) + '" data-layers="' + entry.ids.length + '">' + entry.ids.map((id, index) => {
+      const card = cards.find(c => c.id === id);
+      return card ? '<div class="stack-card" data-stack-layer="' + index + '">' + cardArticle(card, '', { heroMode: entry.heroMode }) + '</div>' : '';
+    }).join('') + '</div>';
+  }
+  function renderStacks(cards) {
+    document.getElementById("stack-tests").innerHTML = Object.entries(STACK_CASES).map(([key, entry]) => '<figure class="stack-case"><figcaption><h3>' + entry.title + '</h3><p>' + entry.state + '</p></figcaption>' + stackMarkup(cards, key) + '</figure>').join('');
+  }
+  function norm(card) { return [card.title, card.type, ...(card.classes || []), ...(card.references || []), ...(card.design_tags || []), card.text].join(" ").toLowerCase(); }
+  function render(cards, decks) {
+    const value = id => document.getElementById(id).value;
+    const deck = decks.find(d => d.id === value("deck-filter"));
+    const copies = new Map((deck?.cards || []).map(c => [c.id, c.copies]));
+    const query = value("search").trim().toLowerCase();
+    const filtered = cards.filter(card => (value("type-filter") === "all" || card.type === value("type-filter")) &&
+      (value("class-filter") === "all" || [...(card.classes || []), ...(card.references || [])].includes(value("class-filter"))) &&
+      (value("mechanic-filter") === "all" || (card.design_tags || []).includes(value("mechanic-filter"))) &&
+      (!deck || copies.has(card.id)) && (!query || norm(card).includes(query)));
+    document.getElementById("count").textContent = filtered.length + " / " + cards.length + " designs";
+    document.getElementById("cards").innerHTML = filtered.map(card => '<div class="card-wrap">' + cardArticle(card) +
+      (copies.has(card.id) ? '<span class="copy-chip">' + copies.get(card.id) + ' in deck</span>' : '') + '</div>').join('');
+    scheduleCheck();
+  }
+  function inspect(root = document) {
+    const failures = [];
+    const mm = 96 / 25.4;
+    root.querySelectorAll('.v2-card').forEach(card => {
+      const box = card.getBoundingClientRect();
+      if (!box.width || !box.height) return;
+      const problems = [];
+      for (const node of card.querySelectorAll('.stack-edge, .edge-classes, .edge-placement, .edge-live, .card-title, .rules, .card-footer')) {
+        if (node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1) problems.push(node.classList[0] + '-overflow');
+      }
+      for (const node of card.querySelectorAll('.edge-heading, .edge-live')) {
+        if (node.getBoundingClientRect().bottom > box.top + 10.5 * mm + .5) problems.push('covered-edge');
+      }
+      const footer = card.querySelector('.card-footer').getBoundingClientRect();
+      for (const node of card.querySelectorAll('.effect-text, .empty-rules')) {
+        if (node.getBoundingClientRect().bottom > footer.top + .5) problems.push('rules-footer-overlap');
+      }
+      card.classList.toggle('layout-overflow', problems.length > 0);
+      if (problems.length) failures.push({ id: card.dataset.cardId, problems: [...new Set(problems)] });
+    });
+    return failures;
+  }
+  function scheduleCheck() {
+    const run = () => {
+      const failures = inspect();
+      window.V2Cards.layoutFailures = failures;
+      const status = document.getElementById('layout-status');
+      if (status) { status.hidden = !failures.length; status.textContent = failures.length ? 'Print review needed: ' + [...new Set(failures.map(f => f.id))].join(', ') : ''; }
+    };
+    requestAnimationFrame(run);
+    document.fonts?.ready.then(run);
+  }
+  async function main() {
+    const [cr, dr] = await Promise.all([
+      fetch('data/cards-v2-redesign.json?v=' + encodeURIComponent(VERSION), { cache: "no-cache" }),
+      fetch('data/v2-playtest-decks.json?v=' + encodeURIComponent(VERSION), { cache: "no-cache" }),
+    ]);
+    if (!cr.ok || !dr.ok) throw new Error('Could not load V2 cards and diagnostic decks');
+    const cards = (await cr.json()).cards, decks = (await dr.json()).decks;
+    const options = (items, text) => '<option value="all">' + text + '</option>' + items.map(([id, title]) => '<option value="' + esc(id) + '">' + esc(title) + '</option>').join('');
+    document.getElementById('class-filter').innerHTML = options([...new Set(cards.flatMap(c => [...(c.classes || []), ...(c.references || [])]))].sort().map(v => [v, titleCase(v)]), 'All classes');
+    document.getElementById('mechanic-filter').innerHTML = options([...new Set(cards.flatMap(c => c.design_tags || []))].sort().map(v => [v, titleCase(v)]), 'All mechanics');
+    document.getElementById('deck-filter').innerHTML = options(decks.map(d => [d.id, d.title]), 'All cards');
+    renderStacks(cards); render(cards, decks);
+    for (const id of ['type-filter', 'class-filter', 'mechanic-filter', 'deck-filter']) document.getElementById(id).addEventListener('change', () => render(cards, decks));
+    document.getElementById('search').addEventListener('input', () => render(cards, decks));
+    document.getElementById('stack-toggle').addEventListener('click', () => {
+      const panel = document.getElementById('stack-lab'); panel.hidden = !panel.hidden;
+      document.getElementById('stack-toggle').setAttribute('aria-expanded', String(!panel.hidden)); scheduleCheck();
+    });
+    document.getElementById('print-cards').addEventListener('click', async () => { await document.fonts.ready; window.print(); });
+  }
+  window.V2Cards = { cardArticle, stackMarkup, inspect, liveEffects, reminder };
+  if (typeof document !== "undefined" && document.getElementById('cards')) main().catch(error => { document.getElementById('cards').textContent = error.message; });
 })();

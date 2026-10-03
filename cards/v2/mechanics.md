@@ -58,4 +58,4 @@ Exactly three font families:
 2. Gentium Book - rules and italics.
 3. Arial - timings, classifications and utility labels.
 
-Each effect starts on a new line. Timing is a compact reversed-color tab. Prose sits directly on parchment rather than inside a textbox.
+Each effect starts on a new line. Timing is a compact bold sans label; an arrowhead marks events, an underline marks states, and italic text marks limits. Prose sits directly on parchment rather than inside a textbox.

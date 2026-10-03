@@ -54,3 +54,47 @@ The renderer preserves canonical text and values. The geometry guard detects
 region overflow and overlap; still inspect the PDF and test-print a sheet after
 typographic changes. Browser PDF output and printer scaling are separate from
 browser layout, and tiny metadata should be checked on the intended printer.
+
+## V2 physical cards and Card Lab
+
+The separate V2 proposal uses `web/cards-v2.js` and `web/cards-v2.css` for both
+Card Lab and print. It reads `cards/v2/cards.json`; it does not replace the
+canonical engine pool described above. V2 cards are **68 × 96 mm**, eight per
+A4 landscape sheet with 6 mm page margins. The complete 120-card proposal uses
+15 sheets. Print at actual size with background graphics and no browser headers.
+
+The shared `V2Cards.cardArticle` also renders the five physical stack proofs.
+Cards really overlap at 10.5 mm offsets: underlying bodies remain intact and
+are covered by the next card. A Hero's face is identical in both roles, including
+two separate exposed values and its Force-only live reminder. The mode attribute
+records the example's role; it cannot change the printed face.
+
+`web/v2-heraldry.js` supplies vector symbols and family artwork.
+`web/v2-reminders.js` contains display-only compact reminders keyed by the exact
+source effect text. These retain target, range, condition, amount, cost, duration
+and consequence. A new or changed source sentence falls back to its full text,
+so stale summaries cannot silently survive rule changes. An oversized fallback
+is flagged in Card Lab and fails the layout check; review the presentation copy
+rather than shrinking type or rewriting a mechanic.
+
+Exactly three families are used: EB Garamond SemiBold for titles/numerals,
+Gentium Book for rules/italics, and Arial for utility information. Rules are
+9.35 pt (10.2 pt on sparse cards); exposed reminder prose is 7.51 pt. Event labels
+have a small vector-like arrowhead, states use underlining, and limits are italic.
+References are labelled "Involves" because they can be enablers or targets,
+whereas intrinsic classifications stay on the exposed edge.
+
+```sh
+python -m pytest -q tests/test_v2_card_design.py tests/test_browser_card_layout.py
+python tools/check_card_layout.py --surface v2 --require-browser \
+  --pdf artifacts/print/cards-v2.pdf
+make pages
+```
+
+The V2 check covers all 120 cards, five stack compositions, live-edge visibility,
+footer collisions, dimensions and oversized-reminder detection. With `pdftotext`
+installed it also rejects blank PDF pages and missing card IDs. Visually inspect
+representative exported pages as well. The 7.5 pt reminders and fine engraving
+still need an actual-size paper proof on the intended printer; these home-print
+sheets do not provide commercial bleed. `make pages` also builds the unrelated
+canonical rulebook and requires Typst 0.15.1.

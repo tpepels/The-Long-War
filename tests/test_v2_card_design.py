@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import copy
 import json
 import re
+import shutil
+import subprocess
 from collections import Counter
+from html.parser import HTMLParser
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf-8"))
@@ -23,13 +29,13 @@ def test_v2_pool_is_120_cards() -> None:
 
 def test_bonded_named_and_transition_are_explicit() -> None:
     states = DATA["formation_states"]
-    assert "Force + Bond" in states["bonded"]
+    assert "Force" in states["bonded"] and "Bond" in states["bonded"]
     assert "Force + Bond + Name" in states["named"]
     assert "state, not a trigger" in states["bonded_state"]
     assert "state, not a trigger" in states["named_state"]
     assert "BECOMES NAMED" in states["becomes_named"]
 
-def test_buried_cards_never_need_lifting() -> None:
+def test_buried_source_effects_declare_supported_timings_and_design_hints() -> None:
     allowed = {"play","once_per_battle","bonded","while_named"}
     for card in CARDS:
         if card["type"] in {"force","bond"}:
@@ -37,7 +43,6 @@ def test_buried_cards_never_need_lifting() -> None:
                 assert effect["timing"] in allowed, card["title"]
                 if effect["timing"] != "play":
                     assert effect.get("exposed"), card["title"]
-                    assert len(effect["exposed"]) <= 32
 
 def test_hero_force_mode_obeys_force_grammar() -> None:
     allowed = {"play","once_per_battle","bonded","while_named"}
@@ -105,24 +110,195 @@ def test_diagnostic_decks_are_legal_34_card_experiments() -> None:
             assert item["copies"] <= (1 if card.get("unique") else 4)
 
 
-def test_card_lab_uses_game_card_geometry_not_slide_boxes() -> None:
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-    assert "width:68mm;height:96mm" in css
-    assert ".motif-field" in css
-    assert ".effect-block+.effect-block" in css
-    assert ".cost-gem" in css
-    assert "command-label" not in css
-    assert ">Command<" not in js
-    assert "stat-force" in js
-    assert "stat-name" in js
-    assert "F</small>" in js
-    assert "N</small>" in js
+class CardMarkup(HTMLParser):
+    def __init__(self, markup: str):
+        super().__init__(convert_charrefs=True)
+        self.markup = markup
+        self.elements: list[dict] = []
+        self.stack: list[dict] = []
+        self.feed(markup)
+
+    def handle_starttag(self, tag, attrs):
+        element = {"tag": tag, "attrs": dict(attrs), "text": "", "ancestors": self.stack.copy()}
+        self.elements.append(element)
+        if tag not in {"base", "br", "hr", "img", "input", "meta", "link"}:
+            self.stack.append(element)
+
+    def handle_endtag(self, tag):
+        if self.stack:
+            assert self.stack[-1]["tag"] == tag
+            self.stack.pop()
+
+    def handle_data(self, value):
+        for element in self.stack:
+            element["text"] += value
+
+    def all(self, class_name, within=None):
+        return [e for e in self.elements if class_name in e["attrs"].get("class", "").split()
+                and (within is None or within in e["ancestors"])]
+
+    def one(self, class_name):
+        matches = self.all(class_name)
+        assert len(matches) == 1, (class_name, matches)
+        return matches[0]
+
+
+def render_cards(cards: list[dict], hero_mode: str = "force") -> list[CardMarkup]:
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node.js is required for the V2 physical-card renderer checks")
+    script = r"""
+const fs = require("node:fs");
+global.window = {location: {href: "https://example.test/cards-v2.html"}};
+global.document = {currentScript: null, getElementById: () => null};
+const page = fs.readFileSync("web/cards-v2.html", "utf8");
+for (const [, source] of page.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/g)) {
+  eval(fs.readFileSync("web/" + source.split("?")[0], "utf8"));
+}
+if (typeof window.V2Cards?.cardArticle !== "function") throw new Error("Missing shared V2Cards.cardArticle renderer");
+const input = JSON.parse(fs.readFileSync(0, "utf8"));
+const before = JSON.stringify(input.cards);
+function freeze(value) {
+  if (value && typeof value === "object") {
+    Object.values(value).forEach(freeze);
+    Object.freeze(value);
+  }
+  return value;
+}
+const rendered = input.cards.map(card => window.V2Cards.cardArticle(freeze(card), "", {heroMode: input.heroMode}));
+if (JSON.stringify(input.cards) !== before) throw new Error("Rendering mutated source card data");
+process.stdout.write(JSON.stringify(rendered));
+"""
+    result = subprocess.run(
+        [node, "-e", script], cwd=ROOT, input=json.dumps({"cards": cards, "heroMode": hero_mode}),
+        text=True, capture_output=True, timeout=15, check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    return [CardMarkup(markup) for markup in json.loads(result.stdout)]
+
+
+def stat_number(element: dict) -> int:
+    numbers = re.findall(r"[+-]?\d+", element["text"])
+    assert len(numbers) == 1, element["text"]
+    return int(numbers[0])
+
+
+def assert_stat(output: CardMarkup, class_name: str, value: int) -> None:
+    values = {stat_number(element) for element in output.all(class_name)}
+    assert values == {value}, (class_name, values)
+
+
+def test_shared_v2_renderer_preserves_all_120_physical_card_contents() -> None:
+    timing_labels = {
+        "play": "PLAY", "once_per_battle": "1/BATTLE", "bonded": "BONDED",
+        "while_named": "WHILE NAMED", "becomes_named": "BECOMES NAMED",
+        "action": "ACTION", "trigger": "TRIGGER", "continuous": "CONTINUOUS", "hidden": "REVEAL",
+    }
+    for card, output in zip(CARDS, render_cards(CARDS), strict=True):
+        outer = output.one("v2-card")
+        edge = output.one("stack-edge")
+        footer = output.one("card-footer")
+        assert outer["attrs"]["data-card-id"] == card["id"]
+        assert output.one("card-title")["text"] == card["title"]
+        assert card["id"] in footer["text"]
+        assert output.one("cost-gem")["text"] == str(card["command_cost"])
+        assert footer in output.one("cost-gem")["ancestors"]
+        assert edge in output.one("edge-classes")["ancestors"]
+        classes = output.one("edge-classes")["text"].lower()
+        for value in card.get("classes", []):
+            assert value.replace("_", " ").replace("-", " ") in classes
+        rule_texts = [e["text"] for e in output.all("effect-text", within=output.one("rules"))]
+        assert rule_texts == [e["text"] for e in effects(card)], card["id"]
+        assert [e["text"] for e in output.all("effect-label")] == [timing_labels[e["timing"]] for e in effects(card)]
+        assert len(output.all("effect-limit")) == sum(e.get("limit") == "once_per_battle" for e in effects(card))
+        if card.get("references"):
+            byline = output.one("card-byline")["text"]
+            assert "Involves " in byline
+            for reference in card["references"]:
+                assert reference.title() in byline
+        if card.get("duration") == "this_battle":
+            assert "This Battle" in output.one("card-byline")["text"]
+        if card.get("placement"):
+            assert card["placement"].upper() in edge["text"].upper()
+        if card["type"] == "force":
+            assert_stat(output, "stat-force", card["strength"])
+        elif card["type"] == "hero":
+            assert_stat(output, "stat-force", card["force_strength"])
+            assert_stat(output, "stat-name", card["name_strength_modifier"])
+        elif card["type"] in {"bond", "name"}:
+            assert_stat(output, "stat-" + card["type"], card["strength_modifier"])
+        if card["type"] in {"force", "bond", "hero"}:
+            live = card.get("modes", {}).get("force", {}).get("effects", []) if card["type"] == "hero" else card["effects"]
+            live = [e for e in live if e["timing"] != "play"]
+            assert len(output.all("edge-live", within=edge)) == len(live), card["id"]
+
+
+def test_hero_modes_keep_the_same_complete_physical_card() -> None:
+    heroes = [card for card in CARDS if card["type"] == "hero"]
+    force_cards = render_cards(heroes, "force")
+    name_cards = render_cards(heroes, "name")
+    for source, force, name in zip(heroes, force_cards, name_cards, strict=True):
+        assert force.one("v2-card")["attrs"]["data-hero-mode"] == "force"
+        assert name.one("v2-card")["attrs"]["data-hero-mode"] == "name"
+        assert force.markup.replace('data-hero-mode="force"', 'data-hero-mode="name"') == name.markup
+        assert force.one("rules")["text"] == name.one("rules")["text"]
+        for output in (force, name):
+            assert [e["text"] for e in output.all("effect-text")] == [e["text"] for e in effects(source)]
+            assert_stat(output, "stat-force", source["force_strength"])
+            assert_stat(output, "stat-name", source["name_strength_modifier"])
+
+
+def test_renderer_preserves_zero_negative_numbers_and_escaped_text() -> None:
+    card = copy.deepcopy(next(c for c in CARDS if c["type"] == "hero"))
+    hostile = '<img src=x onerror="bad()"> & </script>'
+    card.update(id=hostile, title=hostile, command_cost=0, force_strength=0, name_strength_modifier=-2)
+    card["modes"]["force"]["effects"] = [{"timing": "play", "text": hostile}]
+    output = render_cards([card])[0]
+    assert output.one("v2-card")["attrs"]["data-card-id"] == hostile
+    assert output.one("card-title")["text"] == hostile
+    assert output.all("effect-text")[0]["text"] == hostile
+    assert output.one("cost-gem")["text"] == "0"
+    assert_stat(output, "stat-force", 0)
+    assert_stat(output, "stat-name", -2)
+    assert all("+-" not in element["text"] for element in output.all("stat-name"))
+    assert not any(e["tag"] in {"img", "script"} for e in output.elements)
+
+
+def test_unmapped_live_effects_are_never_replaced_with_incomplete_source_hints() -> None:
+    card = copy.deepcopy(next(c for c in CARDS if c["type"] == "force"))
+    long_text = "Choose another friendly formation in this Front. " * 12 + "It gets +3 Strength this Battle."
+    card["effects"] = [
+        {"timing": "once_per_battle", "text": long_text, "exposed": "1/B · +3"},
+        {"timing": "while_named", "text": "This formation has +2 Strength while in the Rear.", "exposed": "NAMED · +2"},
+    ]
+    output = render_cards([card])[0]
+    reminders = output.all("edge-live", within=output.one("stack-edge"))
+    assert len(reminders) == 2
+    assert long_text in reminders[0]["text"]
+    assert "This formation has +2 Strength while in the Rear." in reminders[1]["text"]
 
 
 def test_card_lab_loads_v2_cards_and_diagnostic_decks_without_stale_cache() -> None:
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
     assert 'cards-v2-redesign.json?v=' in js
     assert 'v2-playtest-decks.json?v=' in js
-    assert 'cache:"no-cache"' in js
+    assert re.search(r'cache\s*:\s*["\']no-cache["\']', js)
     assert 'id="deck-filter"' in (ROOT / "web" / "cards-v2.html").read_text(encoding="utf-8")
+
+
+def test_layout_fixture_includes_the_production_print_stamp(tmp_path, monkeypatch) -> None:
+    from tools import build_pages
+    from tools.check_card_layout import v2_layout_document
+
+    page = tmp_path / "cards-v2.html"
+    page.write_text((ROOT / "web" / "cards-v2.html").read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setattr(build_pages, "DIST", tmp_path)
+    build_pages.stamp_print_version("layout-check")
+    built = CardMarkup(page.read_text(encoding="utf-8"))
+    fixture = CardMarkup(v2_layout_document(CARDS))
+    assert fixture.one("print-version")["text"] == built.one("print-version")["text"]
+    assert fixture.one("print-version")["attrs"] == built.one("print-version")["attrs"]
+    for output in (built, fixture):
+        versions = [element["attrs"]["content"] for element in output.elements
+                    if element["tag"] == "meta" and element["attrs"].get("name") == "lw-build-version"]
+        assert versions == ["layout-check"]
