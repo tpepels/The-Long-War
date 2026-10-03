@@ -1,0 +1,29 @@
+name: V2 preview render
+on:
+  push:
+    branches:
+      - design/v2-physical-cards
+    paths:
+      - .github/workflows/v2-preview-render.yml
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: design/v2-physical-cards
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Render V2 representative previews
+        run: python tools/render_v2_previews.py --output-dir web/art/v2/previews --require-browser
+      - name: Commit rendered previews
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/art/v2/previews
+          git diff --cached --quiet && exit 0
+          git commit -m "Render V2 physical card previews"
+          git push origin HEAD:design/v2-physical-cards
