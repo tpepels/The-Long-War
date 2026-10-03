@@ -383,14 +383,22 @@ def check_v2_layout(browser: str, pdf_path: Path | None = None) -> None:
     probe = {
         "id": "oversized-reminder-probe", "title": "Oversized reminder probe", "type": "force",
         "strength": 0, "command_cost": 0, "classes": ["human"],
-        "effects": [{"timing": "once_per_battle", "text": "Choose another friendly formation in this Front. " * 30,
-                     "exposed": "1/B · incomplete hint"}],
+        "effects": [{"timing": "action", "limit": "once_per_battle",
+                     "text": "Choose another friendly formation in this Front. " * 30,
+                     "exposed": "ACTION 1/B · incomplete hint"}],
+    }
+    numeric_probe = {
+        "id": "numeric-range-probe", "title": "Ariadne of the Twenty Standards", "type": "hero",
+        "force_strength": 12, "name_strength_modifier": -2, "command_cost": 20,
+        "classes": ["human", "king", "veteran"], "unique": True,
+        "modes": {"force": {"effects": []}, "name": {"effects": []}},
     }
     if pdf_path is not None:
         pdf_path.parent.mkdir(parents=True, exist_ok=True)
     for label, document, expect_overflow in (
         ("v2-catalogue", v2_layout_document(cards), False),
         ("v2-stacks", v2_layout_document(cards, stacks=True), False),
+        ("v2-numeric-range", v2_layout_document([numeric_probe]), False),
         ("v2-overflow-probe", v2_layout_document([probe]), True),
     ):
         with tempfile.TemporaryDirectory(prefix="longwar-layout-" + label + "-") as temp_dir:
@@ -437,7 +445,7 @@ def check_v2_layout(browser: str, pdf_path: Path | None = None) -> None:
         else:
             raise SystemExit("pdftotext is required to verify V2 PDF pagination and card coverage")
         print(f"PDF: {pdf_path}")
-    print(f"PASS: {len(cards)} V2 physical cards, six formation stacks, and oversized-reminder detection")
+    print(f"PASS: {len(cards)} V2 physical cards, six formation stacks, numeric-range stress, and oversized-reminder detection")
 
 
 def main() -> None:
