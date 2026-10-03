@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from longwar.cards import load_card_file
+from longwar.decks import InvalidDeckDefinition, validate_deck_definition
 from longwar.game import (
     Cycle,
     EndTurn,
@@ -13,9 +14,11 @@ from longwar.game import (
     Pass,
     PlayForce,
     PlayName,
+    PlayStratagem,
     Position,
     Rank,
 )
+from longwar.protocol import CardType
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -124,8 +127,11 @@ def test_cycle_is_an_action_and_prevents_pass_when_two_cards_are_in_hand() -> No
 
 def test_pass_starts_two_closing_turns_then_non_passer_starts_next_battle() -> None:
     engine, state = game()
+    for player in state.players:
+        player.hand.clear()
+        player.deck.clear()
+        player.discard.clear()
     state.players[0].command = 0
-    state.players[0].hand.clear()
 
     legal = engine.legal_actions(state)
     assert legal == [Pass()]
@@ -135,13 +141,13 @@ def test_pass_starts_two_closing_turns_then_non_passer_starts_next_battle() -> N
     assert state.closing_passer == 0
     assert state.active_player == 1
     assert state.pass_order == [0]
+    assert engine.legal_actions(state) == [EndTurn()]
 
-    assert EndTurn() in engine.legal_actions(state)
     engine.apply(state, EndTurn())
     assert state.closing_stage == 2
     assert state.active_player == 0
+    assert engine.legal_actions(state) == [EndTurn()]
 
-    assert EndTurn() in engine.legal_actions(state)
     engine.apply(state, EndTurn())
     assert state.battle == 2
     assert state.active_player == 1
@@ -224,3 +230,151 @@ def test_hero_force_and_name_allowances_are_independent() -> None:
         isinstance(action, PlayName) and action.card_id == hero
         for action in legal
     )
+
+
+def test_both_closing_turns_include_the_normal_draw() -> None:
+    engine, state = game()
+    for player in state.players:
+        player.hand.clear()
+        player.discard.clear()
+    state.players[0].deck[:] = ["the-fifty-men"]
+    state.players[1].deck[:] = ["the-fifty-men"]
+    state.players[0].command = 0
+
+    engine.apply(state, Pass())
+    assert state.active_player == 1
+    assert state.players[1].hand == ["the-fifty-men"]
+
+    first_action = next(
+        action
+        for action in engine.legal_actions(state)
+        if not isinstance(action, EndTurn)
+    )
+    engine.apply(state, first_action)
+    assert EndTurn() in engine.legal_actions(state)
+    engine.apply(state, EndTurn())
+
+    assert state.active_player == 0
+    assert state.players[0].hand == ["the-fifty-men"]
+
+
+def test_lost_front_only_costs_command_and_does_not_remove_cards() -> None:
+    engine, state = game()
+    for player in state.players:
+        player.hand.clear()
+        player.deck.clear()
+        player.discard.clear()
+        player.command = 20
+
+    own = position(Front.SECOND, Rank.MIDDLE)
+    enemy = position(Front.SECOND, Rank.FRONT)
+    state.slot(0, own).force = "the-fifty-men"
+    state.slot(0, own).bond = "followed"
+    state.slot(0, own).name = "namar"
+    state.slot(1, enemy).force = "the-fifty-men"
+    state.slot(1, enemy).temporary_strength = 10
+
+    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    engine.apply(state, EndTurn())
+
+    assert state.last_battle_snapshot is not None
+    assert state.last_battle_snapshot["front_loss_command_penalty"][0] == 1
+    assert state.slot(0, own).force == "the-fifty-men"
+    assert state.slot(0, own).bond == "followed"
+    assert state.slot(0, own).name == "namar"
+
+
+def test_equal_collapse_means_the_passer_loses() -> None:
+    engine, state = game()
+    for player in state.players:
+        player.hand.clear()
+        player.deck.clear()
+        player.discard.clear()
+        player.command = 1
+
+    p0_win = position(Front.SECOND, Rank.FRONT)
+    p1_win = position(Front.THIRD, Rank.FRONT)
+    state.slot(0, p0_win).force = "the-fifty-men"
+    state.slot(0, p0_win).temporary_strength = 10
+    state.slot(1, p0_win).force = "the-fifty-men"
+    state.slot(1, p1_win).force = "the-fifty-men"
+    state.slot(1, p1_win).temporary_strength = 10
+    state.slot(0, p1_win).force = "the-fifty-men"
+
+    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    engine.apply(state, EndTurn())
+
+    assert state.phase.value == "complete"
+    assert state.winner == 1
+
+
+def test_stratagem_is_face_down_when_played() -> None:
+    engine, state = game()
+    stratagem = next(
+        card_id
+        for card_id, card in engine.cards.items()
+        if card["type"] == CardType.STRATAGEM
+    )
+    state.players[0].hand[:] = [stratagem]
+    state.players[0].command = 20
+
+    action = next(
+        action
+        for action in engine.legal_actions(state)
+        if isinstance(action, PlayStratagem) and action.card_id == stratagem
+    )
+    engine.apply(state, action)
+
+    assert state.stratagems[0] is not None
+    assert state.stratagems[0].card_id == stratagem
+    assert state.stratagems[0].revealed is False
+
+
+def test_current_deck_rules_are_34_cards_four_nonunique_one_unique() -> None:
+    data = load_card_file(CARD_FILE)
+    cards = {card["id"]: card for card in data["cards"]}
+
+    non_force_name = [
+        card_id
+        for card_id, card in cards.items()
+        if not card.get("unique", False)
+        and card["type"] not in {CardType.FORCE, CardType.NAME}
+    ]
+    assert len(non_force_name) >= 9
+
+    deck: list[str] = []
+    for card_id in non_force_name:
+        deck.extend([card_id] * min(4, 34 - len(deck)))
+        if len(deck) == 34:
+            break
+    validate_deck_definition(deck, cards)
+
+    too_many = list(deck)
+    fifth = too_many[0]
+    replace_at = next(
+        i for i, card_id in enumerate(too_many)
+        if card_id != fifth
+    )
+    too_many[replace_at] = fifth
+    try:
+        validate_deck_definition(too_many, cards)
+    except InvalidDeckDefinition:
+        pass
+    else:
+        raise AssertionError("five copies of a non-Unique card must be illegal")
+
+    unique = next(
+        card_id for card_id, card in cards.items()
+        if card.get("unique")
+    )
+    unique_twice = list(deck)
+    unique_twice[0] = unique
+    unique_twice[1] = unique
+    try:
+        validate_deck_definition(unique_twice, cards)
+    except InvalidDeckDefinition:
+        pass
+    else:
+        raise AssertionError("two copies of a Unique card must be illegal")
