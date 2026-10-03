@@ -286,8 +286,9 @@ cdef FastState _fe_determinize_hidden_zones(
     object viewer_deck,
     object opponent_hand,
     object opponent_deck,
+    object opponent_stratagem,
 ):
-    """Clone one packed root and replace only zones hidden from the viewer."""
+    """Clone one packed root and replace every zone hidden from the viewer."""
     cdef FastState fast = FastState()
     cdef int opponent, i, code
     cdef object card_id
@@ -328,6 +329,13 @@ cdef FastState _fe_determinize_hidden_zones(
         code = self.id_to_code[card_id]
         fast.deck[opponent][i] = code
         fast.deck_counts[opponent][code] += 1
+
+    if fast.stratagem[opponent] >= 0 and not fast.stratagem_revealed[opponent]:
+        if opponent_stratagem is None:
+            raise ValueError("hidden opponent Stratagem requires a sampled identity")
+        fast.stratagem[opponent] = self.id_to_code[opponent_stratagem]
+    elif opponent_stratagem is not None:
+        raise ValueError("sampled opponent Stratagem supplied for a public/empty slot")
 
     return fast
 
