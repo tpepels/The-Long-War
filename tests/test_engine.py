@@ -150,6 +150,47 @@ def test_active_fronts_expand_by_battle() -> None:
     assert PlayForce("the-fifty-men", pos(3)) in legal
 
 
+def test_front_selecting_cards_cannot_target_inactive_fronts() -> None:
+    engine, state = setup_state(battle=1)
+    state.players[0].hand = [
+        "before-sunset-the-ford-would-be-ours",
+        "no-step-back",
+    ]
+    state.players[0].command = 20
+
+    legal = engine.legal_actions(state)
+    assert PlayNarrative(
+        "before-sunset-the-ford-would-be-ours",
+        ongoing_slot=0,
+        fronts=(Front.SECOND,),
+    ) in legal
+    assert PlayNarrative(
+        "before-sunset-the-ford-would-be-ours",
+        ongoing_slot=0,
+        fronts=(Front.FIRST,),
+    ) not in legal
+    assert PlayStratagem(
+        "no-step-back",
+        fronts=(Front.SECOND,),
+    ) in legal
+    assert PlayStratagem(
+        "no-step-back",
+        fronts=(Front.FIRST,),
+    ) not in legal
+
+    state.battle = 2
+    legal = engine.legal_actions(state)
+    assert PlayNarrative(
+        "before-sunset-the-ford-would-be-ours",
+        ongoing_slot=0,
+        fronts=(Front.FIRST,),
+    ) in legal
+    assert PlayStratagem(
+        "no-step-back",
+        fronts=(Front.FIRST,),
+    ) in legal
+
+
 def test_printed_strength_effects_apply_without_hidden_role_rules() -> None:
     engine, state = setup_state()
 
