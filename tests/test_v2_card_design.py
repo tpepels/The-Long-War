@@ -108,6 +108,20 @@ def test_v2_preview_locks_three_fonts_and_shows_type_symbols() -> None:
     assert "EBGaramond-SemiBold.otf" in css
     assert "GentiumBook-Regular.ttf" in css
     assert "Arial,sans-serif" in css
-    assert 'force:'<svg' in js
+    assert "force:'<svg" in js
     assert "command-badge" in css
     assert "effect-block" in css
+
+
+def test_v2_lab_cache_busts_data_across_schema_changes() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert 'cards-v2-redesign.json?v=' in js
+    assert 'cache:"no-cache"' in js
+    assert "modeEffects" in js
+    assert "Array.isArray(card?.effects)" in js
+
+
+def test_every_v2_card_has_playtest_design_tags() -> None:
+    for card in CARDS:
+        assert isinstance(card.get("design_tags"), list)
+        assert card["design_tags"], card["title"]

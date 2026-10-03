@@ -15,9 +15,20 @@ function symbol(type){
     narrative:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M8 4v16M11 8h5M11 12h5"/></svg>'
   }; return s[type]||s.force;
 }
+function modeEffects(card, mode){
+  const value=card?.modes?.[mode];
+  if(Array.isArray(value?.effects)) return value.effects;
+  if(value && typeof value==="object" && value.timing){
+    return [{...value,text:value.text||card.text||""}];
+  }
+  return [];
+}
 function allEffects(card){
-  if(card.type==="hero") return [...card.modes.force.effects,...card.modes.name.effects];
-  return card.effects||[];
+  if(card?.type==="hero") return [...modeEffects(card,"force"),...modeEffects(card,"name")];
+  if(Array.isArray(card?.effects)) return card.effects;
+  if(Array.isArray(card?.abilities)) return card.abilities.map(e=>({...e,text:e.text||card.text||""}));
+  if(card?.ability) return [{...card.ability,text:card.ability.text||card.text||""}];
+  return [];
 }
 function strength(card){
   if(card.type==="hero") return '<span class="stack-stat compact">F '+esc(card.force_strength)+'<br>N +'+esc(card.name_strength_modifier)+'</span>';
@@ -27,7 +38,7 @@ function strength(card){
 }
 function topReminder(card){
   if(card.type==="hero"){
-    return (card.modes.force.effects||[]).filter(e=>e.exposed).map(e=>e.exposed).join(" · ");
+    return modeEffects(card,"force").filter(e=>e.exposed).map(e=>e.exposed).join(" · ");
   }
   return (card.effects||[]).filter(e=>e.exposed).map(e=>e.exposed).join(" · ");
 }
@@ -50,14 +61,17 @@ function block(e){
 }
 function rules(card){
   if(card.type==="hero"){
-    return '<div class="mode-heading">As Force</div>'+card.modes.force.effects.map(block).join("")+
-      '<div class="mode-heading name-mode">As Name</div>'+card.modes.name.effects.map(block).join("");
+    const force=modeEffects(card,"force"), name=modeEffects(card,"name");
+    if(!force.length && !name.length) return '<div class="empty-rules">'+esc(card.text||"No special rules.")+'</div>';
+    return '<div class="mode-heading">As Force</div>'+force.map(block).join("")+
+      '<div class="mode-heading name-mode">As Name</div>'+name.map(block).join("");
   }
   if(card.type==="stratagem"){
     return '<div class="hidden-band">Played face-down</div>'+(card.effects||[]).map(block).join("");
   }
-  if(!(card.effects||[]).length) return '<div class="empty-rules">No special rules.</div>';
-  return card.effects.map(block).join("");
+  const effects=allEffects(card);
+  if(!effects.length) return '<div class="empty-rules">'+esc(card.text||"No special rules.")+'</div>';
+  return effects.map(block).join("");
 }
 function watermark(type){return {force:"F",bond:"B",name:"N",hero:"H",tactic:"T",stratagem:"S",narrative:"N"}[type]||""}
 function cardMarkup(card,extra=""){
@@ -75,8 +89,10 @@ function cardMarkup(card,extra=""){
 }
 function normalize(card){return [card.title,card.type,...(card.classes||[]),...(card.references||[]),card.text].join(" ").toLowerCase()}
 function render(cards){
-  const type=document.getElementById("type-filter").value,q=document.getElementById("search").value.trim().toLowerCase();
-  const filtered=cards.filter(c=>(type==="all"||c.type===type)&&(!q||normalize(c).includes(q)));
+  const type=document.getElementById("type-filter").value;
+  const mechanic=document.getElementById("mechanic-filter").value;
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const filtered=cards.filter(c=>(type==="all"||c.type===type)&&(mechanic==="all"||(c.design_tags||[]).includes(mechanic))&&(!q||normalize(c).includes(q)));
   document.getElementById("count").textContent=filtered.length+" / "+cards.length;
   document.getElementById("cards").innerHTML=filtered.map(c=>'<div class="card-wrap">'+cardMarkup(c)+'</div>').join("");
 }
@@ -85,11 +101,23 @@ function renderStack(cards){
   const sel=ids.map(id=>cards.find(c=>c.id===id)).filter(Boolean);
   document.getElementById("stack-demo").innerHTML=sel.map((c,i)=>cardMarkup(c,["stack-force","stack-bond","stack-name"][i])).join("");
 }
+function dataVersion(){
+  try{
+    const src=document.currentScript?.src||"";
+    return new URL(src,window.location.href).searchParams.get("v")||"dev";
+  }catch(_error){ return "dev"; }
+}
 async function main(){
-  const response=await fetch("data/cards-v2-redesign.json"); if(!response.ok) throw new Error("Could not load V2 card data");
-  const data=await response.json(),cards=data.cards||[];
+  const version=dataVersion();
+  const response=await fetch("data/cards-v2-redesign.json?v="+encodeURIComponent(version),{cache:"no-cache"});
+  if(!response.ok) throw new Error("Could not load V2 card data");
+  const data=await response.json(),cards=Array.isArray(data.cards)?data.cards:[];
+  const mechanic=document.getElementById("mechanic-filter");
+  const tags=[...new Set(cards.flatMap(c=>c.design_tags||[]))].sort();
+  mechanic.innerHTML='<option value="all">All mechanics</option>'+tags.map(t=>'<option value="'+esc(t)+'">'+esc(titleCase(t))+'</option>').join("");
   renderStack(cards); render(cards);
   document.getElementById("type-filter").addEventListener("change",()=>render(cards));
+  mechanic.addEventListener("change",()=>render(cards));
   document.getElementById("search").addEventListener("input",()=>render(cards));
 }
 main().catch(err=>{document.getElementById("cards").textContent=err.message});
