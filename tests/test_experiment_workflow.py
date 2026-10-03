@@ -767,7 +767,7 @@ def test_standard_rules_do_not_expose_retired_pass_variants():
     assert not hasattr(rules, "pass_closing_rounds")
 
 
-def test_recovery_variant_candidates_keep_permanent_pass_canonical(monkeypatch):
+def test_recovery_variant_candidates_keep_forced_pass_closing_canonical(monkeypatch):
     assert runner.RECOVERY_RULE_VARIANTS == {
         "current-12-3": {
             "command_recovery_start": 12,
@@ -1361,6 +1361,10 @@ def test_ismcts_speed_helper_builds_python_pass_state() -> None:
     assert state.phase is Phase.BATTLE
     assert len(state.pass_order) == 1
     assert sum(player.passed for player in state.players) == 1
+    assert (
+        state.closing_turns_remaining
+        == engine.rules.closing_turns_after_pass
+    )
 
 
 def test_worker_scaling_benchmark_is_separate_from_pass_evidence() -> None:
