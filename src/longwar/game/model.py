@@ -16,6 +16,7 @@ class Front(IntEnum):
 
 class Rank(str, Enum):
     FRONT = "front"
+    MIDDLE = "middle"
     REAR = "rear"
 
 
@@ -36,7 +37,7 @@ def other_player(player: int) -> int:
     return (player + 1) % PLAYER_COUNT
 
 
-RANK_INDEX = {Rank.FRONT: 0, Rank.REAR: 1}
+RANK_INDEX = {Rank.FRONT: 0, Rank.MIDDLE: 1, Rank.REAR: 2}
 FRONT_COUNT = len(Front)
 RANK_COUNT = len(Rank)
 POSITIONS_PER_PLAYER = FRONT_COUNT * RANK_COUNT
@@ -195,6 +196,10 @@ class GameState:
     narratives: list[list[NarrativeState]] = field(default_factory=empty_narratives)
     stratagems: list[StratagemState | None] = field(default_factory=empty_stratagems)
     stratagem_used: list[int] = field(default_factory=zero_per_player)
+    hero_force_used: list[int] = field(default_factory=zero_per_player)
+    hero_name_used: list[int] = field(default_factory=zero_per_player)
+    # Compatibility/telemetry total. Canonical legality uses the mode-specific
+    # counters above.
     hero_used: list[int] = field(default_factory=zero_per_player)
     active_player: int = 0
     battle: int = 1
@@ -207,6 +212,9 @@ class GameState:
     cards_drawn_this_battle: list[int] = field(default_factory=zero_per_player)
     completion_count_this_battle: list[int] = field(default_factory=zero_per_player)
     operations_this_battle: list[int] = field(default_factory=zero_per_player)
+    actions_this_turn: int = 0
+    closing_stage: int = 0
+    closing_passer: int | None = None
     maneuvers_this_battle: list[int] = field(default_factory=zero_per_player)
     cards_played_this_turn_front_mask: list[int] = field(
         default_factory=zero_per_player
@@ -305,6 +313,8 @@ class GameState:
             narratives=narratives,
             stratagems=stratagems,
             stratagem_used=list(self.stratagem_used),
+            hero_force_used=list(self.hero_force_used),
+            hero_name_used=list(self.hero_name_used),
             hero_used=list(self.hero_used),
             active_player=self.active_player,
             battle=self.battle,
@@ -317,6 +327,9 @@ class GameState:
             cards_drawn_this_battle=list(self.cards_drawn_this_battle),
             completion_count_this_battle=list(self.completion_count_this_battle),
             operations_this_battle=list(self.operations_this_battle),
+            actions_this_turn=self.actions_this_turn,
+            closing_stage=self.closing_stage,
+            closing_passer=self.closing_passer,
             maneuvers_this_battle=list(self.maneuvers_this_battle),
             cards_played_this_turn_front_mask=list(
                 self.cards_played_this_turn_front_mask
