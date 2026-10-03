@@ -67,12 +67,12 @@ ADJACENT_POSITIONS = {
                 else None
             ),
             (
-                Position(position.front, Rank(tuple(Rank)[tuple(Rank).index(position.rank) - 1]))
+                Position(position.front, tuple(Rank)[tuple(Rank).index(position.rank) - 1])
                 if tuple(Rank).index(position.rank) > 0
                 else None
             ),
             (
-                Position(position.front, Rank(tuple(Rank)[tuple(Rank).index(position.rank) + 1]))
+                Position(position.front, tuple(Rank)[tuple(Rank).index(position.rank) + 1])
                 if tuple(Rank).index(position.rank) < len(Rank) - 1
                 else None
             ),
