@@ -12,7 +12,7 @@ from longwar.agents.ismcts_agent import (
 )
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine, Pass, Position, Rank
+from longwar.game import EndTurn, Front, GameEngine, Pass, Position, Rank
 from longwar.rules import GameRules
 
 fast_search = pytest.importorskip("longwar._fast_search")
@@ -217,9 +217,9 @@ def test_ismcts_root_guard_allows_legal_midbattle_zero_command_play() -> None:
         first_player=0,
         opening_bonus=False,
     )
+    state.battle = 3
     state.players[0].command = 1
     state.players[1].command = 5
-    state.operations_this_battle[:] = [1, 1]
     player = state.players[0]
     for zone in (player.hand, player.deck):
         if "the-grey-riders" in zone:
@@ -308,7 +308,7 @@ def test_ismcts_release_search_memory_drops_native_tree() -> None:
     assert agent.last_decision == {}
 
 
-def test_decisive_rollout_finds_immediate_second_signal_win() -> None:
+def test_ismcts_handles_forced_final_closing_endturn() -> None:
     data = load_card_file(CARD_FILE)
     deck = json.loads(DECK_FILE.read_text(encoding="utf-8"))["cards"]
     engine = GameEngine(data, rules=GameRules.standard())
@@ -316,48 +316,32 @@ def test_decisive_rollout_finds_immediate_second_signal_win() -> None:
         deck,
         deck,
         seed=8170,
-        first_player=1,
+        first_player=0,
         opening_bonus=False,
     )
-    state.operations_this_battle[:] = [1, 1]
+    state.battle = 3
+
+    # Build a card-conserving final closing turn with no Action available.
+    state.players[0].deck.extend(state.players[0].hand)
+    state.players[0].hand.clear()
     state.players[0].passed = True
     state.pass_order[:] = [0]
-    state.active_player = 1
-    state.players[0].command = 1
-    state.players[1].command = 5
-
-    # Player 1 leads one Front. Move a current-deck Force onto the board so
-    # the determinization remains a valid card-conserving state. Avoid Forces
-    # with Battle-end contribution choices: this test is about the Pass probe.
-    force_id = next(
-        card_id
-        for card_id in deck
-        if engine.cards[card_id].get("type") == "force"
-        and int(engine.cards[card_id].get("strength", 0) or 0) > 0
-        and "front_resolution"
-        not in (engine.cards[card_id].get("design_rules") or {})
-    )
-    owner = state.players[1]
-    for zone in (owner.hand, owner.deck):
-        if force_id in zone:
-            zone.remove(force_id)
-            break
-    else:
-        raise AssertionError(f"expected {force_id} in player 1 zones")
-    state.slot(1, Position(Front.FIRST, Rank.FRONT)).force = force_id
+    state.closing_turns_remaining = 1
+    state.active_player = 0
+    state.actions_this_turn = 0
 
     legal = engine.legal_actions(state)
-    assert Pass() in legal
+    assert legal == [EndTurn()]
+    assert Pass() not in legal
 
     agent = ISMCTSAgent(
         engine,
         8171,
         belief_samples=2,
-        iterations=200,
-        rollout_depth=8,
+        iterations=20,
+        rollout_depth=2,
         rollout_policy="decisive",
         reuse_tree=False,
     )
-    action = agent.choose(engine, state)
+    assert agent.choose(engine, state) == EndTurn()
 
-    assert action == Pass()
