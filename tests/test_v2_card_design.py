@@ -190,9 +190,9 @@ def assert_stat(output: CardMarkup, class_name: str, value: int) -> None:
 
 def test_shared_v2_renderer_preserves_all_120_physical_card_contents() -> None:
     timing_labels = {
-        "play": "PLAY", "once_per_battle": "1/BATTLE", "bonded": "BONDED",
+        "play": "PLAY", "action": "ACTION", "reaction": "REACTION", "bonded": "BONDED",
         "while_named": "WHILE NAMED", "becomes_named": "BECOMES NAMED",
-        "action": "ACTION", "trigger": "TRIGGER", "continuous": "CONTINUOUS", "hidden": "REVEAL",
+        "trigger": "TRIGGER", "continuous": "CONTINUOUS", "hidden": "REVEAL",
     }
     for card, output in zip(CARDS, render_cards(CARDS), strict=True):
         outer = output.one("v2-card")
@@ -268,7 +268,7 @@ def test_unmapped_live_effects_are_never_replaced_with_incomplete_source_hints()
     card = copy.deepcopy(next(c for c in CARDS if c["type"] == "force"))
     long_text = "Choose another friendly formation in this Front. " * 12 + "It gets +3 Strength this Battle."
     card["effects"] = [
-        {"timing": "once_per_battle", "text": long_text, "exposed": "1/B · +3"},
+        {"timing": "action", "limit": "once_per_battle", "text": long_text, "exposed": "ACTION 1/B · +3"},
         {"timing": "while_named", "text": "This formation has +2 Strength while in the Rear.", "exposed": "NAMED · +2"},
     ]
     output = render_cards([card])[0]
