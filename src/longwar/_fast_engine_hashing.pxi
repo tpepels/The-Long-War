@@ -9,6 +9,9 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed(&h, <uint8_t>(state.winner + 1))
     _info_hash_feed_u32(&h, <uint32_t>state.turn_number)
     _info_hash_feed_u32(&h, <uint32_t>state.shuffle_seed)
+    _info_hash_feed(&h, state.actions_this_turn)
+    _info_hash_feed(&h, state.closing_stage)
+    _info_hash_feed(&h, <uint8_t>(state.closing_passer + 1))
 
     for p in range(PLAYER_COUNT):
         _info_hash_feed(&h, state.deck_len[p])
@@ -25,6 +28,8 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
             )
         _info_hash_feed(&h, state.passed[p])
         _info_hash_feed_u16(&h, <uint16_t>state.command[p])
+        _info_hash_feed(&h, state.hero_force_used[p])
+        _info_hash_feed(&h, state.hero_name_used[p])
         _info_hash_feed(&h, state.hero_used[p])
         _info_hash_feed_u16(
             &h,
@@ -73,7 +78,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, state.stratagem_revealed[p])
         _info_hash_feed(&h, state.stratagem_front_mask[p])
         _info_hash_feed(&h, state.stratagem_direction[p])
-        _info_hash_feed_u16(&h, state.stratagem_target_mask[p])
+        _info_hash_feed_u32(&h, state.stratagem_target_mask[p])
         _info_hash_feed(&h, state.stratagem_used[p])
 
     _info_hash_feed(&h, state.cleanup_pending)
@@ -86,8 +91,8 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, <uint8_t>(state.pending_card[i] + 1))
         _info_hash_feed(&h, <uint8_t>(state.pending_source[i] + 1))
         _info_hash_feed(&h, <uint8_t>(state.pending_aux[i] + 1))
-        _info_hash_feed_u16(&h, state.pending_source_mask[i])
-        _info_hash_feed_u16(&h, state.pending_dest_mask[i])
+        _info_hash_feed_u32(&h, state.pending_source_mask[i])
+        _info_hash_feed_u32(&h, state.pending_dest_mask[i])
         _info_hash_feed(&h, state.pending_flags[i])
     _info_hash_feed(&h, state.pending_resume)
     _info_hash_feed(&h, <uint8_t>(state.pending_resume_player + 1))
@@ -117,7 +122,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed(&h, state.resolution_protected_mask[1])
     _info_hash_feed(&h, state.resolution_front_loss_command_penalty[0])
     _info_hash_feed(&h, state.resolution_front_loss_command_penalty[1])
-    _info_hash_feed_u16(&h, state.resolution_suppressed_mask)
+    _info_hash_feed_u32(&h, state.resolution_suppressed_mask)
     _info_hash_feed(&h, state.resolution_cursor)
     _info_hash_feed(&h, <uint8_t>(state.resolution_starter + 1))
     for slot in range(SLOT_COUNT):
@@ -145,7 +150,7 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
-    # v9 removes the retired Pass-closing countdown from canonical state.
+    # v10 encodes three rows, two-Action turns, closing turns, and hidden Stratagems.
     _info_emit(buf, &n, h, INFORMATION_KEY_VERSION)
     _info_emit(buf, &n, h, <uint8_t>player)
     _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
@@ -157,6 +162,9 @@ cdef int _fe__information_state_encode(
     _info_emit_u16(
         buf, &n, h, <uint16_t>((state.turn_number >> 16) & 0xFFFF)
     )
+    _info_emit(buf, &n, h, state.actions_this_turn)
+    _info_emit(buf, &n, h, state.closing_stage)
+    _info_emit(buf, &n, h, <uint8_t>(state.closing_passer + 1))
 
     for i in range(PLAYER_COUNT):
         _info_emit(buf, &n, h, state.passed[i])
@@ -199,8 +207,8 @@ cdef int _fe__information_state_encode(
         _info_emit(buf, &n, h, <uint8_t>(state.pending_card[i] + 1))
         _info_emit(buf, &n, h, <uint8_t>(state.pending_source[i] + 1))
         _info_emit(buf, &n, h, <uint8_t>(state.pending_aux[i] + 1))
-        _info_emit_u16(buf, &n, h, state.pending_source_mask[i])
-        _info_emit_u16(buf, &n, h, state.pending_dest_mask[i])
+        _info_emit_u32(buf, &n, h, state.pending_source_mask[i])
+        _info_emit_u32(buf, &n, h, state.pending_dest_mask[i])
         _info_emit(buf, &n, h, state.pending_flags[i])
     _info_emit(buf, &n, h, state.pending_resume)
     _info_emit(buf, &n, h, <uint8_t>(state.pending_resume_player + 1))
@@ -237,7 +245,7 @@ cdef int _fe__information_state_encode(
     _info_emit(buf, &n, h, state.resolution_protected_mask[1])
     _info_emit(buf, &n, h, state.resolution_front_loss_command_penalty[0])
     _info_emit(buf, &n, h, state.resolution_front_loss_command_penalty[1])
-    _info_emit_u16(buf, &n, h, state.resolution_suppressed_mask)
+    _info_emit_u32(buf, &n, h, state.resolution_suppressed_mask)
     _info_emit(buf, &n, h, state.resolution_cursor)
     _info_emit(buf, &n, h, <uint8_t>(state.resolution_starter + 1))
     for i in range(SLOT_COUNT):
@@ -325,11 +333,16 @@ cdef int _fe__information_state_encode(
         card = state.stratagem[owner]
         if card < 0:
             _info_emit(buf, &n, h, 0)
+        elif owner != player and not state.stratagem_revealed[owner]:
+            _info_emit(buf, &n, h, 255)
+            _info_emit(buf, &n, h, 0)
+            _info_emit(buf, &n, h, 0)
+            _info_emit_u32(buf, &n, h, 0)
         else:
             _info_emit(buf, &n, h, <uint8_t>(card + 1))
             _info_emit(buf, &n, h, state.stratagem_front_mask[owner])
             _info_emit(buf, &n, h, state.stratagem_direction[owner])
-            _info_emit_u16(buf, &n, h, state.stratagem_target_mask[owner])
+            _info_emit_u32(buf, &n, h, state.stratagem_target_mask[owner])
 
     for owner in range(PLAYER_COUNT):
         _info_emit(buf, &n, h, state.stratagem_used[owner])
@@ -418,6 +431,13 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
 
     if kind == TYPE_PASS:
         return "pass"
+    if kind == TYPE_END_TURN:
+        return "end-turn"
+    if kind == TYPE_CYCLE:
+        return (
+            f"cycle:{self.card_ids[card]}:"
+            f"{self.card_ids[<int>extra - 1]}"
+        )
     if kind == TYPE_DISCARD:
         return f"discard:{self.card_ids[card]}"
     if kind == TYPE_EFFECT:
@@ -456,7 +476,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key += (
                 f":source:{owner_from_slot(pos)},"
                 f"{front_from_slot(pos)},"
-                f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+                f"{'front' if rank_from_slot(pos) == RANK_FRONT else 'middle' if rank_from_slot(pos) == RANK_MIDDLE else 'rear'}"
             )
         if choice == EFFECT_FRONT_CONTRIBUTION and dest >= 0:
             key += f":front:{dest}"
@@ -464,7 +484,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key += (
                 f":destination:{owner_from_slot(dest)},"
                 f"{front_from_slot(dest)},"
-                f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                f"{'front' if rank_from_slot(dest) == RANK_FRONT else 'middle' if rank_from_slot(dest) == RANK_MIDDLE else 'rear'}"
             )
         return key
     if kind == TYPE_MANEUVER:
@@ -472,22 +492,22 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             f"maneuver:{front_from_slot(pos)}:"
             f"{'front' if rank_from_slot(pos) == 0 else 'rear'}:"
             f"{front_from_slot(dest)}:"
-            f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+            f"{'front' if rank_from_slot(dest) == RANK_FRONT else 'middle' if rank_from_slot(dest) == RANK_MIDDLE else 'rear'}"
         )
     if kind == TYPE_FORCE:
         return (
             f"force:{self.card_ids[card]}:{front_from_slot(pos)}:"
-            f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            f"{'front' if rank_from_slot(pos) == RANK_FRONT else 'middle' if rank_from_slot(pos) == RANK_MIDDLE else 'rear'}"
         )
     if kind == TYPE_BOND:
         key = (
             f"bond:{self.card_ids[card]}:{front_from_slot(pos)}:"
-            f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            f"{'front' if rank_from_slot(pos) == RANK_FRONT else 'middle' if rank_from_slot(pos) == RANK_MIDDLE else 'rear'}"
         )
         if dest >= 0:
             key += (
                 f":move:{front_from_slot(dest)}:"
-                f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                f"{'front' if rank_from_slot(dest) == RANK_FRONT else 'middle' if rank_from_slot(dest) == RANK_MIDDLE else 'rear'}"
             )
         if extra:
             key += f":extra:{self.bond_optional_extra_cost[card]}"
@@ -495,7 +515,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
     if kind == TYPE_NAME:
         return (
             f"name:{self.card_ids[card]}:{front_from_slot(pos)}:"
-            f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            f"{'front' if rank_from_slot(pos) == RANK_FRONT else 'middle' if rank_from_slot(pos) == RANK_MIDDLE else 'rear'}"
         )
     if kind == TYPE_ONGOING_NARRATIVE:
         key = f"narrative:{self.card_ids[card]}:ongoing:{pos}"
@@ -515,7 +535,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key += (
                 f":targets:{owner_from_slot(dest)},"
                 f"{front_from_slot(dest)},"
-                f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                f"{'front' if rank_from_slot(dest) == RANK_FRONT else 'middle' if rank_from_slot(dest) == RANK_MIDDLE else 'rear'}"
             )
             if choice == NARRATIVE_CHOICE_NAMED_DIRECTION:
                 key += (
@@ -552,7 +572,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
                     targets.append(
                         f"{owner_from_slot(slot)},"
                         f"{front_from_slot(slot)},"
-                        f"{'front' if rank_from_slot(slot) == 0 else 'rear'}"
+                        f"{'front' if rank_from_slot(slot) == RANK_FRONT else 'middle' if rank_from_slot(slot) == RANK_MIDDLE else 'rear'}"
                     )
             key += ":targets:" + ";".join(targets)
         return key
@@ -568,13 +588,13 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
                 f"{player}:{front_from_slot(pos)}:"
                 f"{'front' if rank_from_slot(pos) == 0 else 'rear'};"
                 f"{player}:{front_from_slot(dest)}:"
-                f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                f"{'front' if rank_from_slot(dest) == RANK_FRONT else 'middle' if rank_from_slot(dest) == RANK_MIDDLE else 'rear'}"
             )
         if pos >= 0:
             return (
                 f"narrative:{self.card_ids[card]}:"
                 f"{player}:{front_from_slot(pos)}:"
-                f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+                f"{'front' if rank_from_slot(pos) == RANK_FRONT else 'middle' if rank_from_slot(pos) == RANK_MIDDLE else 'rear'}"
             )
         return f"narrative:{self.card_ids[card]}:"
     raise ValueError("Unknown fast action")

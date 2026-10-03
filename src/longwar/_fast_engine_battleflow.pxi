@@ -36,7 +36,7 @@ cdef void _fe_discard_slot_components(
     state.maneuver_count[slot] = 0
     state.maneuvered_in_operation[slot] = 0
 
-cdef uint16_t _fe_succession_destinations(
+cdef uint32_t _fe_succession_destinations(
     FastEngine self,
     FastState state,
     int player,
@@ -45,23 +45,23 @@ cdef uint16_t _fe_succession_destinations(
     cdef int front = front_from_slot(slot)
     cdef int rank = rank_from_slot(slot)
     cdef int dest
-    cdef uint16_t mask = 0
-    if front > 0:
+    cdef uint32_t mask = 0
+    if front > 0 and front_is_active(state.battle, front - 1):
         dest = slot_index(player, front - 1, rank)
         if (
             state.force[dest] >= 0
             and state.bond[dest] >= 0
             and state.name[dest] < 0
         ):
-            mask |= <uint16_t>(1 << dest)
-    if front < FRONT_COUNT - 1:
+            mask |= <uint32_t>(1 << dest)
+    if front < FRONT_COUNT - 1 and front_is_active(state.battle, front + 1):
         dest = slot_index(player, front + 1, rank)
         if (
             state.force[dest] >= 0
             and state.bond[dest] >= 0
             and state.name[dest] < 0
         ):
-            mask |= <uint16_t>(1 << dest)
+            mask |= <uint32_t>(1 << dest)
     return mask
 
 cdef void _fe_finish_pending_drive_off(
@@ -115,7 +115,7 @@ cdef void _fe_drive_off_slot(
 ) except *:
     """Drive off one formation, pausing for an optional succession effect if legal."""
     cdef int name = state.name[slot]
-    cdef uint16_t destinations
+    cdef uint32_t destinations
     if name >= 0 and (self.card_capabilities[name] & CAP_SUCCESSION_ON_DRIVE_OFF_NAME):
         destinations = _fe_succession_destinations(self, state, player, slot)
         if destinations:
@@ -170,7 +170,7 @@ cdef void _fe_retreat_slot(
     cdef int rank = rank_from_slot(destination)
     cdef bint was_named = _fe_slot_complete(self, state, source)
     cdef int other, other_bond
-    cdef uint16_t destinations
+    cdef uint32_t destinations
 
     # Battle-resolution drive-off effects can leave a prepared/open component
     # in the Rear immediately before the Frontline Named Formation must
@@ -214,7 +214,7 @@ cdef void _fe_retreat_slot(
         _fe_queue_move_to_mask(self, 
             state,
             player,
-            <uint16_t>(1 << destination),
+            <uint32_t>(1 << destination),
             destinations,
             True,
         )
@@ -230,7 +230,7 @@ cdef void _fe_retreat_slot(
             and (self.card_capabilities[other_bond] & CAP_ADJACENT_RETREAT_FREE_MANEUVER)
         ):
             _fe_queue_free_maneuver(
-                self, state, player, <uint16_t>(1 << other),
+                self, state, player, <uint32_t>(1 << other),
                 True, False, other_bond
             )
     if front < FRONT_COUNT - 1:
@@ -242,7 +242,7 @@ cdef void _fe_retreat_slot(
             and (self.card_capabilities[other_bond] & CAP_ADJACENT_RETREAT_FREE_MANEUVER)
         ):
             _fe_queue_free_maneuver(
-                self, state, player, <uint16_t>(1 << other),
+                self, state, player, <uint32_t>(1 << other),
                 True, False, other_bond
             )
 
@@ -332,7 +332,7 @@ cdef void _fe_begin_next_battle_fast(
     int starter,
 ) except *:
     cdef int offset, player, slot, name
-    cdef uint16_t destinations
+    cdef uint32_t destinations
     state.cleanup_pending = 0
     state.phase = PHASE_BATTLE
     state.pending_resume = RESUME_START_BATTLE
@@ -351,7 +351,7 @@ cdef void _fe_begin_next_battle_fast(
             _fe_queue_move_to_mask(self, 
                 state,
                 player,
-                <uint16_t>(1 << slot),
+                <uint32_t>(1 << slot),
                 destinations,
                 True,
             )

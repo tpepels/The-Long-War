@@ -29,14 +29,20 @@ class GameRules:
     command_recovery_floor: int = 1
     command_collapse_threshold: int = 0
     lost_front_command_penalty: int = 1
-    # Canonical Battle ending: Pass consumes the operation and remains active
-    # for the Battle. The Battle ends when both players have Passed.
-    pass_min_operations_before_signal: int = 1
+    # A normal turn draws once, then takes up to two Actions. Pass is a
+    # separate forced turn available only when no legal Action exists.
+    actions_per_turn: int = 2
+    # Deprecated compatibility surface. Pass no longer depends on a minimum
+    # number of earlier operations; legality is determined by available Actions.
+    pass_min_operations_before_signal: int = 0
     turn_draw_count: int = 1
     maneuver_command_cost: int = 1
     hand_limit: int = 10
     ongoing_narrative_limit: int = 2
-    hero_play_limit_per_battle: int = 1
+    hero_force_play_limit_per_battle: int = 1
+    hero_name_play_limit_per_battle: int = 1
+    # Aggregate compatibility surface used by telemetry/reference rendering.
+    hero_play_limit_per_battle: int = 2
     stratagem_play_limit_per_battle: int = 1
 
     def __post_init__(self) -> None:

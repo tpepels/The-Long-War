@@ -362,9 +362,13 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     i += 2
     active_player = data[i] - 1
     i += 1
-    # The full observable turn number is search identity only; consume it
-    # without adding it to the stable public policy observation below.
+    # The full observable turn number is search identity only.
     i += U32_BYTES
+    actions_this_turn = data[i]
+    closing_stage = data[i + 1]
+    closing_passer_raw = data[i + 2] - 1
+    closing_passer = None if closing_passer_raw < 0 else closing_passer_raw
+    i += 3
 
     passed = [bool(data[i + offset]) for offset in range(PLAYER_COUNT)]
     i += PLAYER_COUNT
@@ -379,6 +383,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     discarded_this_battle = []
     command = []
     hero_used = []
+    hero_force_used = []
+    hero_name_used = []
     operations_this_battle = []
     for _ in range(PLAYER_COUNT):
         discarded_this_battle.append(data[i])
@@ -386,7 +392,10 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         hero_used.append(bool(data[i + 3]))
         operations_this_battle.append(data[i + 4] | (data[i + 5] << 8))
         i += INFO_PLAYER_BASE_BYTES
-        # Front/card-play masks and Narrative count are search identity only.
+        hero_force_used.append(data[i])
+        hero_name_used.append(data[i + 1])
+        # Hero mode counters plus Front/card-play masks and Narrative count
+        # are search identity.
         i += INFO_PLAYER_SEARCH_EXTRA_BYTES
 
     pending_draw_raw = data[i] - 1
@@ -425,7 +434,13 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             i += 1  # per-operation Maneuver-chain flag
             board[owner].append([
                 local // RANK_COUNT,
-                "front" if (local % RANK_COUNT) == 0 else "rear",
+                (
+                    "front"
+                    if (local % RANK_COUNT) == RANK_FRONT
+                    else "middle"
+                    if (local % RANK_COUNT) == RANK_MIDDLE
+                    else "rear"
+                ),
                 None if force_code < 0 else card_ids[force_code],
                 None if bond_code < 0 else card_ids[bond_code],
                 None if name_code < 0 else card_ids[name_code],
@@ -446,7 +461,11 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         card_code = data[i]
         i += 1
         stratagems.append(
-            None if card_code == 0 else card_ids[card_code - 1]
+            None
+            if card_code == 0
+            else "hidden"
+            if card_code == 255
+            else card_ids[card_code - 1]
         )
         if card_code != 0:
             i += INFO_STRATAGEM_SEARCH_BYTES  # Stratagem search state
@@ -510,6 +529,9 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "phase": phase,
         "battle": battle,
         "active_player": active_player,
+        "actions_this_turn": actions_this_turn,
+        "closing_stage": closing_stage,
+        "closing_passer": closing_passer,
         "passed": passed,
         "pass_order": pass_order,
         "discarded_this_battle": discarded_this_battle,
@@ -521,6 +543,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "stratagems": stratagems,
         "stratagem_used": stratagem_used,
         "hero_used": hero_used,
+        "hero_force_used": hero_force_used,
+        "hero_name_used": hero_name_used,
         "own_hand": own_hand_counts,
         "own_deck": own_deck_counts,
         "own_discard": own_discard,

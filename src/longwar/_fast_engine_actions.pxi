@@ -25,6 +25,8 @@ cdef inline bint _fe_card_move_destination_legal(
     cdef int bond = state.bond[source]
     if force < 0 or self.immobile_force[force]:
         return False
+    if not slot_is_active(state.battle, dest):
+        return False
     if owner_from_slot(dest) != owner:
         return False
     if (
@@ -53,12 +55,17 @@ cdef inline bint _fe_player_has_empty_front(
     FastState state,
     int player,
 ) noexcept:
-    cdef int front
+    cdef int front, rank
+    cdef bint occupied
     for front in range(FRONT_COUNT):
-        if (
-            state.force[slot_index(player, front, RANK_FRONT)] < 0
-            and state.force[slot_index(player, front, RANK_REAR)] < 0
-        ):
+        if not front_is_active(state.battle, front):
+            continue
+        occupied = False
+        for rank in range(RANK_COUNT):
+            if state.force[slot_index(player, front, rank)] >= 0:
+                occupied = True
+                break
+        if not occupied:
             return True
     return False
 
@@ -354,6 +361,8 @@ cdef bint _fe_any_maneuver_in_direction(
     cdef int local, source, front, rank, dest
     for local in range(POSITIONS_PER_PLAYER):
         source = player * POSITIONS_PER_PLAYER + local
+        if not slot_is_active(state.battle, source):
+            continue
         if not _fe_maneuver_source_legal(self, state, player, source):
             continue
         front = local // RANK_COUNT
@@ -518,8 +527,8 @@ cdef void _fe_enqueue_effect(
     int card=-1,
     int source=-1,
     int aux=-1,
-    uint16_t source_mask=0,
-    uint16_t dest_mask=0,
+    uint32_t source_mask=0,
+    uint32_t dest_mask=0,
     int flags=0,
     int command_source=-1,
 ) except *:
@@ -581,7 +590,7 @@ cdef int _fe_legal_pending_effect_actions(
 ) except -1:
     cdef int n = 0
     cdef int kind, player, source, dest, front, rank, card, i, j
-    cdef uint16_t source_mask, dest_mask
+    cdef uint32_t source_mask, dest_mask
     cdef uint8_t flags
     if state.pending_len == 0:
         return 0
@@ -755,11 +764,10 @@ cdef int _fe_legal_actions_into(
 ) except -1:
     cdef int n = 0
     cdef int player, card, slot, local, front, rank, source, dest, req, opponent, effect
-    cdef int i, p, kept, can_pass, available, narrative_slot, choice, direction
+    cdef int i, p, kept, available, narrative_slot, choice, direction
     cdef uint32_t eligible_mask, subset
     cdef uint64_t action
     cdef bint constraint_enforced = False
-    cdef bint pass_gate_ready
 
     if state.phase == PHASE_COMPLETE:
         return 0
@@ -787,10 +795,15 @@ cdef int _fe_legal_actions_into(
             continue
 
         if self.card_type[card] == CARD_FORCE:
-            if not self.hero[card] or state.hero_used[player] < self.hero_play_limit_per_battle:
-                req = self.placement_rank[card]
+            req = self.placement_rank[card]
+            if (
+                not self.hero[card]
+                or state.hero_force_used[player] < self.hero_force_play_limit_per_battle
+            ):
                 for local in range(POSITIONS_PER_PLAYER):
                     slot = player * POSITIONS_PER_PLAYER + local
+                    if not slot_is_active(state.battle, slot):
+                        continue
                     if state.force[slot] >= 0:
                         continue
                     rank = local % RANK_COUNT
@@ -802,21 +815,27 @@ cdef int _fe_legal_actions_into(
                         encode_action(TYPE_FORCE, card, slot, -1, player),
                     )
 
-                # Heroes are dual-use Force/Name cards. Playing either mode
-                # consumes the one-Hero-from-hand allowance for the Battle.
-                if self.hero[card]:
-                    for local in range(POSITIONS_PER_PLAYER):
-                        slot = player * POSITIONS_PER_PLAYER + local
-                        if state.name[slot] < 0:
-                            n = _append_action(
-                                actions,
-                                n,
-                                encode_action(TYPE_NAME, card, slot, -1, player),
-                            )
+            # Heroes have independent per-Battle Force and Name allowances.
+            if (
+                self.hero[card]
+                and state.hero_name_used[player] < self.hero_name_play_limit_per_battle
+            ):
+                for local in range(POSITIONS_PER_PLAYER):
+                    slot = player * POSITIONS_PER_PLAYER + local
+                    if not slot_is_active(state.battle, slot):
+                        continue
+                    if state.name[slot] < 0:
+                        n = _append_action(
+                            actions,
+                            n,
+                            encode_action(TYPE_NAME, card, slot, -1, player),
+                        )
 
         elif self.card_type[card] == CARD_BOND:
             for local in range(POSITIONS_PER_PLAYER):
                 slot = player * POSITIONS_PER_PLAYER + local
+                if not slot_is_active(state.battle, slot):
+                    continue
                 if state.bond[slot] >= 0:
                     continue
                 n = _append_action(
@@ -880,6 +899,8 @@ cdef int _fe_legal_actions_into(
         elif self.card_type[card] == CARD_NAME:
             for local in range(POSITIONS_PER_PLAYER):
                 slot = player * POSITIONS_PER_PLAYER + local
+                if not slot_is_active(state.battle, slot):
+                    continue
                 if state.name[slot] >= 0:
                     continue
                 n = _append_action(
@@ -898,11 +919,16 @@ cdef int _fe_legal_actions_into(
                         continue
                     if choice == NARRATIVE_CHOICE_FRONT:
                         for front in range(FRONT_COUNT):
+                            if not front_is_active(state.battle, front):
+                                continue
                             if (
                                 self.narrative_front_requires_named[card]
                                 and not (
                                     _fe_slot_complete(
                                         self, state, slot_index(player, front, RANK_FRONT)
+                                    )
+                                    or _fe_slot_complete(
+                                        self, state, slot_index(player, front, RANK_MIDDLE)
                                     )
                                     or _fe_slot_complete(
                                         self, state, slot_index(player, front, RANK_REAR)
@@ -928,6 +954,8 @@ cdef int _fe_legal_actions_into(
                     ):
                         for local in range(POSITIONS_PER_PLAYER):
                             slot = player * POSITIONS_PER_PLAYER + local
+                            if not slot_is_active(state.battle, slot):
+                                continue
                             if _fe_slot_complete(self, state, slot):
                                 if choice == NARRATIVE_CHOICE_NAMED_DIRECTION:
                                     for direction in range(DIRECTION_COUNT):
@@ -976,6 +1004,8 @@ cdef int _fe_legal_actions_into(
                 if effect == NARRATIVE_DISCREDIT or effect == NARRATIVE_RETURN_NAME:
                     for local in range(POSITIONS_PER_PLAYER):
                         slot = opponent * POSITIONS_PER_PLAYER + local
+                        if not slot_is_active(state.battle, slot):
+                            continue
                         if (
                             state.force[slot] >= 0
                             and not _fe_formation_protected(self, state, slot)
@@ -1047,6 +1077,8 @@ cdef int _fe_legal_actions_into(
                 choice = self.strat_choice_kind[card]
                 if choice == STRAT_CHOICE_FRONT:
                     for front in range(FRONT_COUNT):
+                        if not front_is_active(state.battle, front):
+                            continue
                         n = _append_action(
                             actions,
                             n,
@@ -1060,6 +1092,11 @@ cdef int _fe_legal_actions_into(
                         )
                 elif choice == STRAT_CHOICE_ADJACENT_FRONTS:
                     for front in range(ADJACENT_FRONT_PAIR_COUNT):
+                        if (
+                            not front_is_active(state.battle, front)
+                            or not front_is_active(state.battle, front + 1)
+                        ):
+                            continue
                         n = _append_action(
                             actions,
                             n,
@@ -1073,6 +1110,8 @@ cdef int _fe_legal_actions_into(
                         )
                 elif choice == STRAT_CHOICE_EDGE_FRONT:
                     for front in (0, 3):
+                        if not front_is_active(state.battle, front):
+                            continue
                         n = _append_action(
                             actions,
                             n,
@@ -1138,6 +1177,8 @@ cdef int _fe_legal_actions_into(
                 elif choice == STRAT_CHOICE_RESERVES:
                     eligible_mask = 0
                     for front in range(FRONT_COUNT):
+                        if not front_is_active(state.battle, front):
+                            continue
                         source = slot_index(player, front, RANK_REAR)
                         dest = slot_index(player, front, RANK_FRONT)
                         if (
@@ -1182,6 +1223,8 @@ cdef int _fe_legal_actions_into(
     # position, including a prepared-only Bond/Name position.
     for local in range(POSITIONS_PER_PLAYER):
         source = player * POSITIONS_PER_PLAYER + local
+        if not slot_is_active(state.battle, source):
+            continue
         if not _fe_maneuver_source_legal(self, state, player, source):
             continue
         front = local // RANK_COUNT
@@ -1189,7 +1232,8 @@ cdef int _fe_legal_actions_into(
         if front > 0:
             dest = slot_index(player, front - 1, rank)
             if (
-                _fe_maneuver_destination_legal(self, state, dest)
+                front_is_active(state.battle, front - 1)
+                and _fe_maneuver_destination_legal(self, state, dest)
                 and _fe_maneuver_allowed_by_continuous(
                     self, state, player, source, dest
                 )
@@ -1202,6 +1246,20 @@ cdef int _fe_legal_actions_into(
         if front < FRONT_COUNT - 1:
             dest = slot_index(player, front + 1, rank)
             if (
+                front_is_active(state.battle, front + 1)
+                and _fe_maneuver_destination_legal(self, state, dest)
+                and _fe_maneuver_allowed_by_continuous(
+                    self, state, player, source, dest
+                )
+            ):
+                n = _append_action(
+                    actions,
+                    n,
+                    encode_action(TYPE_MANEUVER, -1, source, dest, player),
+                )
+        if rank > RANK_FRONT:
+            dest = slot_index(player, front, rank - 1)
+            if (
                 _fe_maneuver_destination_legal(self, state, dest)
                 and _fe_maneuver_allowed_by_continuous(
                     self, state, player, source, dest
@@ -1211,6 +1269,37 @@ cdef int _fe_legal_actions_into(
                     actions,
                     n,
                     encode_action(TYPE_MANEUVER, -1, source, dest, player),
+                )
+        if rank < RANK_REAR:
+            dest = slot_index(player, front, rank + 1)
+            if (
+                _fe_maneuver_destination_legal(self, state, dest)
+                and _fe_maneuver_allowed_by_continuous(
+                    self, state, player, source, dest
+                )
+            ):
+                n = _append_action(
+                    actions,
+                    n,
+                    encode_action(TYPE_MANEUVER, -1, source, dest, player),
+                )
+
+    # Cycling is an Action: discard two cards, then draw one.
+    if state.hand_len[player] >= 2:
+        for card in range(self.n_cards):
+            if state.hand[player][card] <= 0:
+                continue
+            for i in range(card, self.n_cards):
+                if state.hand[player][i] <= 0:
+                    continue
+                if i == card and state.hand[player][card] < 2:
+                    continue
+                n = _append_action(
+                    actions,
+                    n,
+                    encode_action(
+                        TYPE_CYCLE, card, -1, -1, player, <uint32_t>(i + 1)
+                    ),
                 )
 
     available = state.command[player]
@@ -1225,24 +1314,28 @@ cdef int _fe_legal_actions_into(
         self, state, player, actions, n, &constraint_enforced
     )
 
-    pass_gate_ready = state.pass_len > 0
-    if not pass_gate_ready:
-        pass_gate_ready = True
-        for p in range(PLAYER_COUNT):
-            if (
-                state.operations_this_battle[p]
-                < self.pass_min_operations_before_signal
-            ):
-                pass_gate_ready = False
-                break
-    can_pass = not state.passed[player] and pass_gate_ready
-    # Once already signalled, Pass is available only as a forced turn-yield
-    # when no normal operation is legal.
-    if (can_pass and not constraint_enforced) or n == 0:
+    # Pass is a forced turn, not an Action. It is available only at the
+    # start of a normal turn when no legal Action exists. Once a Battle is
+    # closing, each side receives its one full closing turn; EndTurn represents
+    # declining any unused Action in that turn. On an ordinary turn EndTurn is
+    # available only after at least one Action, preventing zero-action stalling.
+    if state.actions_this_turn > 0:
+        # "Up to 2 Actions": after taking at least one Action, a player may
+        # voluntarily stop instead of spending the second.
         for i in range(n, 0, -1):
             actions[i] = actions[i - 1]
-        actions[0] = encode_action(TYPE_PASS, -1, -1, -1, 0)
+        actions[0] = encode_action(TYPE_END_TURN, -1, -1, -1, player)
         n += 1
+    elif n == 0 and state.closing_stage > 0:
+        # A closing turn with no Action available simply ends. Represent the
+        # forced transition explicitly for the packed engine/UI.
+        actions[0] = encode_action(TYPE_END_TURN, -1, -1, -1, player)
+        n = 1
+    elif n == 0:
+        # Outside the closing sequence, no legal Action at the start of a turn
+        # means Pass replaces the whole turn.
+        actions[0] = encode_action(TYPE_PASS, -1, -1, -1, player)
+        n = 1
 
     return n
 

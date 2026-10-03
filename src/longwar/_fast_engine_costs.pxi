@@ -88,13 +88,17 @@ cdef inline int _fe_command_cost_fast(
     cdef uint32_t extra
     cdef int player = state.active_player
     kind = action_kind(action)
-    if kind == TYPE_PASS or kind == TYPE_EFFECT:
+    if kind == TYPE_PASS or kind == TYPE_END_TURN or kind == TYPE_CYCLE or kind == TYPE_EFFECT:
         return 0
     if kind == TYPE_MANEUVER:
         pos = action_pos(action)
         dest = action_dest(action)
         direction = (
-            DIRECTION_LEFT if front_from_slot(dest) < front_from_slot(pos) else DIRECTION_RIGHT
+            DIRECTION_LEFT
+            if front_from_slot(dest) < front_from_slot(pos)
+            else DIRECTION_RIGHT
+            if front_from_slot(dest) > front_from_slot(pos)
+            else DIRECTION_NONE
         )
         for i in range(state.constraint_len):
             if (
@@ -419,7 +423,7 @@ cdef void _fe_resolve_new_completions_fast(
         if state.name[slot] >= 0:
             if self.completion_free_maneuver_self[state.name[slot]]:
                 _fe_queue_free_maneuver(
-                    self, state, player, <uint16_t>(1 << slot),
+                    self, state, player, <uint32_t>(1 << slot),
                     True, False, state.name[slot]
                 )
             if self.completion_swap_adjacent[state.name[slot]]:
@@ -430,7 +434,7 @@ cdef void _fe_resolve_new_completions_fast(
                     -1,
                     -1,
                     -1,
-                    <uint16_t>(1 << slot),
+                    <uint32_t>(1 << slot),
                     _fe_adjacent_formation_mask(self, 
                         state, player, slot, False
                     ),

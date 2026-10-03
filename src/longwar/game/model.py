@@ -16,6 +16,7 @@ class Front(IntEnum):
 
 class Rank(str, Enum):
     FRONT = "front"
+    MIDDLE = "middle"
     REAR = "rear"
 
 
@@ -36,7 +37,7 @@ def other_player(player: int) -> int:
     return (player + 1) % PLAYER_COUNT
 
 
-RANK_INDEX = {Rank.FRONT: 0, Rank.REAR: 1}
+RANK_INDEX = {Rank.FRONT: 0, Rank.MIDDLE: 1, Rank.REAR: 2}
 FRONT_COUNT = len(Front)
 RANK_COUNT = len(Rank)
 POSITIONS_PER_PLAYER = FRONT_COUNT * RANK_COUNT
@@ -121,6 +122,7 @@ class OperationConstraint:
 @dataclass
 class StratagemState:
     card_id: str
+    revealed: bool = False
     fronts: tuple[Front, ...] = ()
     direction: str | None = None
     targets: tuple[tuple[int, Position], ...] = ()
@@ -195,6 +197,10 @@ class GameState:
     narratives: list[list[NarrativeState]] = field(default_factory=empty_narratives)
     stratagems: list[StratagemState | None] = field(default_factory=empty_stratagems)
     stratagem_used: list[int] = field(default_factory=zero_per_player)
+    hero_force_used: list[int] = field(default_factory=zero_per_player)
+    hero_name_used: list[int] = field(default_factory=zero_per_player)
+    # Compatibility/telemetry total. Canonical legality uses the mode-specific
+    # counters above.
     hero_used: list[int] = field(default_factory=zero_per_player)
     active_player: int = 0
     battle: int = 1
@@ -207,6 +213,9 @@ class GameState:
     cards_drawn_this_battle: list[int] = field(default_factory=zero_per_player)
     completion_count_this_battle: list[int] = field(default_factory=zero_per_player)
     operations_this_battle: list[int] = field(default_factory=zero_per_player)
+    actions_this_turn: int = 0
+    closing_stage: int = 0
+    closing_passer: int | None = None
     maneuvers_this_battle: list[int] = field(default_factory=zero_per_player)
     cards_played_this_turn_front_mask: list[int] = field(
         default_factory=zero_per_player
@@ -292,6 +301,7 @@ class GameState:
                 if stratagem is None
                 else StratagemState(
                     card_id=stratagem.card_id,
+                    revealed=stratagem.revealed,
                     fronts=tuple(stratagem.fronts),
                     direction=stratagem.direction,
                     targets=tuple(stratagem.targets),
@@ -305,6 +315,8 @@ class GameState:
             narratives=narratives,
             stratagems=stratagems,
             stratagem_used=list(self.stratagem_used),
+            hero_force_used=list(self.hero_force_used),
+            hero_name_used=list(self.hero_name_used),
             hero_used=list(self.hero_used),
             active_player=self.active_player,
             battle=self.battle,
@@ -317,6 +329,9 @@ class GameState:
             cards_drawn_this_battle=list(self.cards_drawn_this_battle),
             completion_count_this_battle=list(self.completion_count_this_battle),
             operations_this_battle=list(self.operations_this_battle),
+            actions_this_turn=self.actions_this_turn,
+            closing_stage=self.closing_stage,
+            closing_passer=self.closing_passer,
             maneuvers_this_battle=list(self.maneuvers_this_battle),
             cards_played_this_turn_front_mask=list(
                 self.cards_played_this_turn_front_mask
@@ -426,6 +441,7 @@ class GameState:
                 if source_stratagem is None
                 else StratagemState(
                     card_id=source_stratagem.card_id,
+                    revealed=source_stratagem.revealed,
                     fronts=tuple(source_stratagem.fronts),
                     direction=source_stratagem.direction,
                     targets=tuple(source_stratagem.targets),
@@ -433,6 +449,8 @@ class GameState:
             )
 
         self.stratagem_used[:] = source.stratagem_used
+        self.hero_force_used[:] = source.hero_force_used
+        self.hero_name_used[:] = source.hero_name_used
         self.hero_used[:] = source.hero_used
         self.active_player = source.active_player
         self.battle = source.battle
@@ -445,6 +463,9 @@ class GameState:
         self.cards_drawn_this_battle[:] = source.cards_drawn_this_battle
         self.completion_count_this_battle[:] = source.completion_count_this_battle
         self.operations_this_battle[:] = source.operations_this_battle
+        self.actions_this_turn = source.actions_this_turn
+        self.closing_stage = source.closing_stage
+        self.closing_passer = source.closing_passer
         self.maneuvers_this_battle[:] = source.maneuvers_this_battle
         self.cards_played_this_turn_front_mask[:] = (
             source.cards_played_this_turn_front_mask
