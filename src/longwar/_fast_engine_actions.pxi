@@ -55,6 +55,8 @@ cdef inline bint _fe_player_has_empty_front(
 ) noexcept:
     cdef int front
     for front in range(FRONT_COUNT):
+        if not front_is_active(state.battle, front):
+            continue
         if (
             state.force[slot_index(player, front, RANK_FRONT)] < 0
             and state.force[slot_index(player, front, RANK_REAR)] < 0
