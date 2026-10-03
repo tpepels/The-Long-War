@@ -103,3 +103,26 @@ def test_diagnostic_decks_are_legal_34_card_experiments() -> None:
         for item in deck["cards"]:
             card=known[item["id"]]
             assert item["copies"] <= (1 if card.get("unique") else 4)
+
+
+def test_card_lab_uses_game_card_geometry_not_slide_boxes() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert "width:68mm;height:96mm" in css
+    assert ".motif-field" in css
+    assert ".effect-block+.effect-block" in css
+    assert ".cost-gem" in css
+    assert "command-label" not in css
+    assert ">Command<" not in js
+    assert "stat-force" in js
+    assert "stat-name" in js
+    assert "F</small>" in js
+    assert "N</small>" in js
+
+
+def test_card_lab_loads_v2_cards_and_diagnostic_decks_without_stale_cache() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert 'cards-v2-redesign.json?v=' in js
+    assert 'v2-playtest-decks.json?v=' in js
+    assert 'cache:"no-cache"' in js
+    assert 'id="deck-filter"' in (ROOT / "web" / "cards-v2.html").read_text(encoding="utf-8")

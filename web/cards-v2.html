@@ -7,56 +7,43 @@
   <link rel="stylesheet" href="cards-v2.css">
 </head>
 <body>
-  <header class="toolbar">
-    <div class="brandline"><a href="index.html" class="brand">The Long War</a><span>V2 card lab</span></div>
-    <div class="toolbar-controls">
-      <label>Type <select id="type-filter">
-        <option value="all">All</option><option value="force">Forces</option><option value="bond">Bonds</option>
-        <option value="name">Names</option><option value="hero">Heroes</option><option value="tactic">Tactics</option>
-        <option value="stratagem">Stratagems</option><option value="narrative">Narratives</option>
-      </select></label>
-      <label>Mechanic <select id="mechanic-filter"><option value="all">All mechanics</option></select></label>
-      <label>Search <input id="search" type="search" placeholder="title, class, rules"></label>
-      <span id="count"></span><button type="button" onclick="window.print()">Print</button>
+<header class="toolbar">
+  <div class="brandline"><a class="brand" href="index.html">The Long War</a><span>V2 card lab</span></div>
+  <div class="toolbar-controls">
+    <label>Type <select id="type-filter"><option value="all">All</option><option value="force">Forces</option><option value="bond">Bonds</option><option value="name">Names</option><option value="hero">Heroes</option><option value="tactic">Tactics</option><option value="stratagem">Stratagems</option><option value="narrative">Narratives</option></select></label>
+    <label>Class <select id="class-filter"><option value="all">All classes</option></select></label>
+    <label>Mechanic <select id="mechanic-filter"><option value="all">All mechanics</option></select></label>
+    <label>Test deck <select id="deck-filter"><option value="all">All cards</option></select></label>
+    <label>Search <input id="search" type="search" placeholder="title, class, rules"></label>
+    <span id="count"></span>
+    <button type="button" onclick="window.print()">Print</button>
+  </div>
+</header>
+<main>
+  <section class="intro">
+    <p class="eyebrow">120-card mechanical test pool</p>
+    <h1>Cards, not slides.</h1>
+    <p>The V2 face restores the earlier Long War/Astra visual language: a strong frame, decorative motif field, open rules typography, aligned stack information, and an unlabeled cost gem. Force and Bond keep every live rule visible when covered.</p>
+  </section>
+  <section class="state-panel">
+    <div>
+      <p class="eyebrow">Formation vocabulary</p>
+      <h2>State and event are different.</h2>
+      <dl class="state-list">
+        <div><dt>Formation</dt><dd>Force present.</dd></div>
+        <div><dt>Bonded</dt><dd>Force + Bond. BONDED effects are active while this remains true.</dd></div>
+        <div><dt>Named</dt><dd>Force + Bond + Name. Every Named Formation is also Bonded.</dd></div>
+        <div><dt>Becomes Named</dt><dd>The transition into Force + Bond + Name. Resolve BECOMES NAMED once at that transition.</dd></div>
+      </dl>
     </div>
-  </header>
-  <main>
-    <section class="intro">
-      <p class="eyebrow">Persistent formation redesign</p>
-      <h1>The original card face, with a readable stack.</h1>
-      <p>Force, Bond, and Name now have different mechanical jobs. A completed formation can be played without lifting a card: every live Force/Bond reminder stays on the exposed edge, while richer recurring rules live on the visible Name.</p>
-    </section>
-
-    <section class="state-panel">
-      <div>
-        <p class="eyebrow">Formation states</p>
-        <h2>What is Bonded? What is Named?</h2>
-        <dl class="state-list">
-          <div><dt>Formation</dt><dd>Force present.</dd></div>
-          <div><dt>Bonded</dt><dd>Force + Bond. It may also have a Name.</dd></div>
-          <div><dt>Named</dt><dd>Force + Bond + Name. A Named Formation is also Bonded.</dd></div>
-          <div><dt>Force + Name</dt><dd>Formation with a Name, but not Named.</dd></div>
-          <div><dt>Prepared</dt><dd>Bond and/or Name in a position with no Force.</dd></div>
-        </dl>
-      </div>
-      <div>
-        <p class="eyebrow">No lifting</p>
-        <h2>A full Named Formation</h2>
-        <div id="stack-demo" class="stack-demo" aria-label="Example stack"></div>
-      </div>
-    </section>
-
-    <section class="grammar">
-      <div><b>Force</b><span>PLAY / 1-BATTLE only</span></div>
-      <div><b>Bond</b><span>PLAY / 1-BATTLE only</span></div>
-      <div><b>Name</b><span>NAMED / ACTION / TRIGGER / CONTINUOUS</span></div>
-      <div><b>Tactic</b><span>Immediate - opponent</span></div>
-      <div><b>Stratagem</b><span>Hidden - your side</span></div>
-      <div><b>Narrative</b><span>Visible - your side</span></div>
-    </section>
-
-    <section id="cards" class="cards" aria-live="polite"></section>
-  </main>
-  <script src="cards-v2.js"></script>
+    <div>
+      <p class="eyebrow">No lifting</p>
+      <h2>Everything live stays visible.</h2>
+      <div id="stack-demo" class="stack-demo"></div>
+    </div>
+  </section>
+  <section id="cards" class="cards" aria-live="polite"></section>
+</main>
+<script src="cards-v2.js"></script>
 </body>
 </html>
