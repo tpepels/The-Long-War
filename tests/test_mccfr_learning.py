@@ -7,6 +7,7 @@ import pytest
 
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Position, Rank
+from longwar.game.model import StratagemState
 from longwar.mccfr import MCCFRTrainer, action_key, information_set_id
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,6 +45,27 @@ def test_fixed_state_training_is_reproducible() -> None:
         trainer.train_from_state(state, iterations=30)
 
     assert trainers[0].policy_payload() == trainers[1].policy_payload()
+
+
+def test_face_down_opponent_stratagem_identity_is_not_in_information_set() -> None:
+    engine, _deck, state = setup()
+    state.stratagems[1] = StratagemState(
+        "the-ground-was-held",
+        revealed=False,
+    )
+    first = information_set_id(state, 0)
+
+    changed_hidden = state.clone()
+    changed_hidden.stratagems[1].card_id = "the-lines-held"
+    assert information_set_id(changed_hidden, 0) == first
+
+    # The owner knows which card they set.
+    assert information_set_id(changed_hidden, 1) != information_set_id(state, 1)
+
+    # Once revealed, the opponent can distinguish the identity too.
+    revealed = changed_hidden.clone()
+    revealed.stratagems[1].revealed = True
+    assert information_set_id(revealed, 0) != first
 
 
 def test_direct_longwar_traversal_matches_generic_core() -> None:
