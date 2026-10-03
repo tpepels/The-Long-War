@@ -12,6 +12,7 @@ from .game.actions import (
     Cycle,
     Discard,
     EffectChoice,
+    EndTurn,
     Maneuver,
     Pass,
     PlayBond,
@@ -532,7 +533,7 @@ class PlaySession:
             }
         }
         if (
-            result.get("kind") == "Stratagem"
+            result.get("kind") == "PlayStratagem"
             and viewer != result.get("actor")
         ):
             result["card_id"] = None
@@ -655,12 +656,9 @@ class PlaySession:
         prefix = f"Player {actor + 1}"
 
         if isinstance(action, Pass):
-            if (
-                self.state.actions_this_turn > 0
-                or self.state.closing_turns_remaining > 0
-            ):
-                return f"{prefix} ends the turn."
             return f"{prefix} Passes and begins the closing sequence."
+        if isinstance(action, EndTurn):
+            return f"{prefix} ends the turn."
         if isinstance(action, Cycle):
             return (
                 f"{prefix} cycles "
@@ -807,17 +805,16 @@ class PlaySession:
 
     def _legal_reason(self, action: Action) -> str:
         if isinstance(action, Pass):
-            if (
-                self.state.actions_this_turn > 0
-                or self.state.closing_turns_remaining > 0
-            ):
-                return (
-                    "No further Action is legal this turn, so the turn ends."
-                )
             return (
                 "Pass is available only because no legal Action remains after "
                 "the turn's draw. The opponent gets one full closing turn, "
                 "then you get one full closing turn, then the Battle ends."
+            )
+        if isinstance(action, EndTurn):
+            return (
+                "A normal or closing turn may end before both Action slots are "
+                "used. Ending the turn is not Pass and does not start or extend "
+                "the Battle closing sequence."
             )
         if isinstance(action, Cycle):
             return "Spend one Action to discard two cards, then draw one card."
@@ -856,8 +853,8 @@ class PlaySession:
             return "The Narrative has all choices required by its rules text."
         if isinstance(action, PlayStratagem):
             return (
-                "You have not played a Stratagem this Battle. Pay its printed "
-                "Command cost; it is public and uses your operation."
+                "You have not played a Stratagem this Battle. Spend one Action "
+                "and pay its printed Command cost to set it face-down."
             )
         return "Legal according to the canonical game engine."
 
