@@ -2,23 +2,14 @@ from __future__ import annotations
 
 import random
 
-from ..game.actions import Action, Pass
+from ..game.actions import Action
 from ..game.engine import GameEngine
-from ..game.model import GameState, Phase
-
-
-DEFAULT_RANDOM_PASS_PROBABILITY = 0.10
+from ..game.model import GameState
 
 
 class RandomAgent:
-    def __init__(
-        self,
-        seed: int,
-        *,
-        pass_probability: float = DEFAULT_RANDOM_PASS_PROBABILITY,
-    ):
+    def __init__(self, seed: int):
         self.rng = random.Random(seed)
-        self.pass_probability = pass_probability
 
     def choose_mulligan(
         self,
@@ -29,15 +20,7 @@ class RandomAgent:
         return tuple(sorted(self.rng.sample(range(len(hand)), count)))
 
     def choose(self, engine: GameEngine, state: GameState) -> Action:
-        actions = engine.legal_actions(state)
-
-        if state.phase is not Phase.BATTLE:
-            return self.rng.choice(actions)
-
-        pass_actions = [action for action in actions if isinstance(action, Pass)]
-        non_pass = [action for action in actions if not isinstance(action, Pass)]
-        if not non_pass:
-            return pass_actions[0]
-        if self.rng.random() < self.pass_probability and pass_actions:
-            return pass_actions[0]
-        return self.rng.choice(non_pass)
+        # Pass is forced by the engine and therefore never competes with a
+        # normal Action. EndTurn is an ordinary strategic choice and remains
+        # part of the uniform legal-action sample.
+        return self.rng.choice(engine.legal_actions(state))
