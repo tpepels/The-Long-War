@@ -62,19 +62,57 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
             )
 
     narratives = [
-        [narrative.card_id for narrative in state.narratives[owner]]
+        [
+            {
+                "card_id": narrative.card_id,
+                "fronts": [int(front) for front in narrative.fronts],
+                "target_player": narrative.target_player,
+                "target_position": (
+                    None
+                    if narrative.target_position is None
+                    else [
+                        int(narrative.target_position.front),
+                        narrative.target_position.rank.value,
+                    ]
+                ),
+                "triggered_this_battle": narrative.triggered_this_battle,
+                "direction": narrative.direction,
+                "triggered_players_mask": narrative.triggered_players_mask,
+            }
+            for narrative in state.narratives[owner]
+        ]
         for owner in range(PLAYER_COUNT)
     ]
-    stratagems = [
-        None if state.stratagems[owner] is None else state.stratagems[owner].card_id
-        for owner in range(PLAYER_COUNT)
-    ]
+    stratagems = []
+    for owner in range(PLAYER_COUNT):
+        stratagem = state.stratagems[owner]
+        if stratagem is None:
+            stratagems.append(None)
+            continue
+        visible_identity = owner == player or stratagem.revealed
+        stratagems.append({
+            "card_id": stratagem.card_id if visible_identity else None,
+            "hidden": not stratagem.revealed,
+            "revealed": stratagem.revealed,
+            "fronts": [int(front) for front in stratagem.fronts],
+            "direction": stratagem.direction,
+            "targets": [
+                [
+                    target_player,
+                    int(target_position.front),
+                    target_position.rank.value,
+                ]
+                for target_player, target_position in stratagem.targets
+            ],
+        })
 
     return {
         "viewer": player,
         "phase": state.phase.value,
         "battle": state.battle,
         "active_player": state.active_player,
+        "actions_this_turn": state.actions_this_turn,
+        "closing_turns_remaining": state.closing_turns_remaining,
         "passed": [
             state.players[owner].passed
             for owner in range(PLAYER_COUNT)
