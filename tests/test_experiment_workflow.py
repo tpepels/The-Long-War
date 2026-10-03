@@ -552,6 +552,7 @@ def test_ismcts_tournament_defaults_to_small_coarse_screen(monkeypatch) -> None:
     assert "deck_names=deck_names" in coarse_source
     assert "paired_deals_per_challenger = len(deck_names) * args.coarse_games" in coarse_source
     assert "games_per_challenger = paired_deals_per_challenger * 2" in coarse_source
+    assert "max_censored_pairs=1" in coarse_source
 
     refine_source = inspect.getsource(runner._ismcts_refinement_tournament_run)
     assert "--refine-profiles is required" in refine_source
@@ -606,6 +607,63 @@ def test_paired_seat_swap_interval_counts_real_draws_as_half_points() -> None:
     assert result["independent_deals"] == 1
     assert result["censored_pairs"] == 0
     assert result["score_rate"] == pytest.approx(0.5)
+
+
+def test_coarse_tournament_tolerates_one_censored_mirrored_pair(capsys) -> None:
+    result = {
+        "a": "candidate",
+        "b": "baseline",
+        "failed_games": 0,
+        "censored_games": 1,
+        "paired": {"censored_pairs": 1},
+        "resources": {},
+    }
+
+    runner._require_clean_tournament_pair(
+        result,
+        stage="coarse screen",
+        max_censored_pairs=1,
+    )
+
+    output = capsys.readouterr().out
+    assert "continuing despite 1 censored game(s)" in output
+    assert "excluded from the paired estimate" in output
+
+
+def test_coarse_tournament_rejects_repeated_censoring() -> None:
+    result = {
+        "a": "candidate",
+        "b": "baseline",
+        "failed_games": 0,
+        "censored_games": 2,
+        "paired": {"censored_pairs": 2},
+        "resources": {},
+    }
+
+    with pytest.raises(SystemExit, match="allowed maximum is 1 censored pair"):
+        runner._require_clean_tournament_pair(
+            result,
+            stage="coarse screen",
+            max_censored_pairs=1,
+        )
+
+
+def test_tournament_still_rejects_simulation_failures() -> None:
+    result = {
+        "a": "candidate",
+        "b": "baseline",
+        "failed_games": 1,
+        "censored_games": 0,
+        "paired": {"censored_pairs": 0},
+        "resources": {},
+    }
+
+    with pytest.raises(SystemExit, match="produced 1 failed games"):
+        runner._require_clean_tournament_pair(
+            result,
+            stage="coarse screen",
+            max_censored_pairs=1,
+        )
 
 
 def test_tournament_pair_uses_per_seat_overrides_and_stable_rng_roles() -> None:
