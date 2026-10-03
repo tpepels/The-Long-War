@@ -1319,17 +1319,21 @@ cdef int _fe_legal_actions_into(
     # closing, each side receives its one full closing turn; EndTurn represents
     # declining any unused Action in that turn. On an ordinary turn EndTurn is
     # available only after at least one Action, preventing zero-action stalling.
-    if state.closing_stage > 0:
+    if state.actions_this_turn > 0:
+        # "Up to 2 Actions": after taking at least one Action, a player may
+        # voluntarily stop instead of spending the second.
         for i in range(n, 0, -1):
             actions[i] = actions[i - 1]
         actions[0] = encode_action(TYPE_END_TURN, -1, -1, -1, player)
         n += 1
-    elif state.actions_this_turn > 0:
-        for i in range(n, 0, -1):
-            actions[i] = actions[i - 1]
+    elif n == 0 and state.closing_stage > 0:
+        # A closing turn with no Action available simply ends. Represent the
+        # forced transition explicitly for the packed engine/UI.
         actions[0] = encode_action(TYPE_END_TURN, -1, -1, -1, player)
-        n += 1
+        n = 1
     elif n == 0:
+        # Outside the closing sequence, no legal Action at the start of a turn
+        # means Pass replaces the whole turn.
         actions[0] = encode_action(TYPE_PASS, -1, -1, -1, player)
         n = 1
 
