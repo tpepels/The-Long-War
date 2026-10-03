@@ -46,7 +46,7 @@ cdef uint32_t _fe_succession_destinations(
     cdef int rank = rank_from_slot(slot)
     cdef int dest
     cdef uint32_t mask = 0
-    if front > 0:
+    if front > 0 and front_is_active(state.battle, front - 1):
         dest = slot_index(player, front - 1, rank)
         if (
             state.force[dest] >= 0
@@ -54,7 +54,7 @@ cdef uint32_t _fe_succession_destinations(
             and state.name[dest] < 0
         ):
             mask |= <uint32_t>(1 << dest)
-    if front < FRONT_COUNT - 1:
+    if front < FRONT_COUNT - 1 and front_is_active(state.battle, front + 1):
         dest = slot_index(player, front + 1, rank)
         if (
             state.force[dest] >= 0
