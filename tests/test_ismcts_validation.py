@@ -10,7 +10,7 @@ import pytest
 from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine, Pass, Phase, Position, Rank
+from longwar.game import EndTurn, Front, GameEngine, Pass, Phase, PlayForce, Position, Rank
 from longwar.game.model import StratagemState
 from longwar.game.actions import action_key
 from longwar.rules import GameRules
@@ -69,6 +69,35 @@ def _pass_only_standard_state(
     state.pending_draw_discard_for = None
     assert engine.legal_actions(state) == [Pass()]
     return engine, state
+
+def _two_action_reroot_state():
+    engine, deck, _priors = _standard_fixture()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=9276,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.battle = 3
+    target = Position(Front.FOURTH, Rank.REAR)
+    for front in Front:
+        for rank in Rank:
+            position = Position(front, rank)
+            if position == target:
+                continue
+            state.slot(0, position).force = "the-fifty-men"
+    state.players[0].hand = ["the-fifty-men"]
+    state.players[0].deck = []
+    state.players[0].discard = []
+    state.pending_draw_discard_for = None
+    play = PlayForce("the-fifty-men", target)
+    legal = engine.legal_actions(state)
+    assert play in legal
+    assert EndTurn() in legal
+    assert len(legal) == 2
+    return engine, state, play
+
 
 def _hash_information_key(key: bytes) -> tuple[int, int]:
     """Pure-Python oracle for the native canonical information hash."""
@@ -363,8 +392,8 @@ def test_first_expansion_visits_every_root_action_once() -> None:
     assert all(int(row["visits"]) == 1 for row in result["root_stats"])
 
 
-def test_persistent_tree_reroots_to_previously_explored_information_set() -> None:
-    engine, state = _pass_only_standard_state()
+def test_persistent_tree_reroots_from_action_one_to_action_two() -> None:
+    engine, state, play = _two_action_reroot_state()
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
     tree = ISMCTSTree(128)
@@ -388,10 +417,10 @@ def test_persistent_tree_reroots_to_previously_explored_information_set() -> Non
     assert first["tree_nodes_before"] == 0
     assert tree.size() == first["tree_nodes"]
 
-    engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    engine.apply(state, play)
     assert state.phase is Phase.BATTLE
     assert state.active_player == 0
+    assert state.actions_this_turn == 1
     next_packed = fast.from_game_state(state)
 
     second = ismcts_search(
@@ -416,7 +445,6 @@ def test_persistent_tree_reroots_to_previously_explored_information_set() -> Non
     assert second["tree_nodes_before"] == first["tree_nodes"]
     assert second["tree_nodes"] >= second["tree_nodes_before"]
     assert sum(int(row["new_visits"]) for row in second["root_stats"]) == 12
-
 
 def test_progressive_widening_limits_initial_root_breadth() -> None:
     engine, deck, _priors = _standard_fixture()
@@ -550,10 +578,11 @@ def test_zero_post_battle_depth_preserves_boundary_leaf_behavior() -> None:
 
     boundary = state.clone()
     engine.apply(boundary, Pass())
-    engine.apply(boundary, Pass())
+    engine.apply(boundary, EndTurn())
+    engine.apply(boundary, EndTurn())
     assert boundary.battle == 2
     assert boundary.phase is Phase.BATTLE
-    assert boundary.active_player == 0
+    assert boundary.active_player == 1
 
     boundary_packed = fast.from_game_state(boundary)
     leaf_scale = 100.0
@@ -674,17 +703,17 @@ def test_terminal_game_completion_keeps_exact_terminal_utility() -> None:
     assert result["rollouts_stopped_terminal"] == iterations
     assert result["rollouts_stopped_battle_boundary"] == 0
     assert result["rollouts_stopped_depth"] == 0
-    assert result["rollout_actions"] == iterations
+    assert result["rollout_actions"] == 2 * iterations
     assert result["mean_value"] == pytest.approx(1.0)
 
 
-def test_second_players_pass_can_keep_old_boundary_leaf_with_zero_continuation() -> None:
+def test_first_closing_endturn_reaches_boundary_with_one_rollout_step() -> None:
     engine, state = _pass_only_standard_state()
     engine.apply(state, Pass())
     assert state.battle == 1
     assert state.phase is Phase.BATTLE
     assert state.active_player == 1
-    assert engine.legal_actions(state) == [Pass()]
+    assert engine.legal_actions(state) == [EndTurn()]
 
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
@@ -708,13 +737,13 @@ def test_second_players_pass_can_keep_old_boundary_leaf_with_zero_continuation()
     assert result["rollouts_stopped_battle_boundary"] == iterations
     assert result["rollouts_stopped_terminal"] == 0
     assert result["rollouts_stopped_depth"] == 0
-    assert result["rollout_actions"] == 0
-
+    assert result["rollout_actions"] == iterations
 
 def test_boundary_evaluator_rewards_next_battle_readiness() -> None:
     engine, state = _pass_only_standard_state()
     engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    engine.apply(state, EndTurn())
     assert state.battle == 2
 
     ready = state.clone()
@@ -827,8 +856,8 @@ def test_persistent_tree_invalidates_values_when_belief_context_changes() -> Non
     assert changed["tree_reset_reason"] == "context_changed"
 
 
-def test_persistent_tree_capacity_uses_rollouts_and_resets_for_unseen_root() -> None:
-    engine, state = _pass_only_standard_state()
+def test_persistent_tree_capacity_resets_for_unseen_second_action_root() -> None:
+    engine, state, play = _two_action_reroot_state()
     fast = FastEngine(engine)
     evaluator = NativeHeuristicEvaluator(fast)
     tree = ISMCTSTree(32, max_nodes=1)
@@ -838,17 +867,16 @@ def test_persistent_tree_capacity_uses_rollouts_and_resets_for_unseen_root() -> 
     assert first["tree_capacity_cutoffs"] > 0
     assert first["root_new_visits"] == 8
 
-    engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    engine.apply(state, play)
     assert state.phase is Phase.BATTLE
     assert state.active_player == 0
+    assert state.actions_this_turn == 1
     second = ismcts_search(fast, evaluator, [fast.from_game_state(state)], 0, **options)
     assert tree.size() == second["tree_nodes"] == 1
     assert second["root_new_visits"] == 8
     assert second["tree_reset_reason"] == "capacity_reroot"
     assert second["tree_nodes_discarded"] == 1
     assert second["root_reused"] is False
-
 
 def test_persistent_tree_invalidates_values_when_root_player_changes() -> None:
     engine, state = _pass_only_standard_state()
