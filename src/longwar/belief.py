@@ -287,8 +287,8 @@ class BeliefSampler:
         state: GameState,
         viewer: int,
         rng: random.Random,
-    ) -> tuple[list[str], list[str], list[str]]:
-        """Sample only hidden card zones for one information-set determinization."""
+    ) -> tuple[list[str], list[str], list[str], str | None]:
+        """Sample hidden deck/hand zones and any face-down opponent Stratagem."""
         self._validate_viewer(viewer)
         opponent = 1 - viewer
 
@@ -300,6 +300,8 @@ class BeliefSampler:
         known_hand = state.known_hidden_cards(viewer, opponent, "hand")
         hand_count = len(state.players[opponent].hand)
         deck_count = len(state.players[opponent].deck)
+        stratagem = state.stratagems[opponent]
+        hidden_stratagem = stratagem is not None and not stratagem.revealed
 
         if len(known_hand) > hand_count:
             raise BeliefStateError("Known opponent hand cards exceed hand size")
@@ -307,21 +309,55 @@ class BeliefSampler:
         required = Counter(public_cards)
         required.update(known_hand)
         prior = self._prior_for_state(state, opponent)
-        sampled_full_deck = prior.sample_deck(required, rng)
-        remaining = Counter(sampled_full_deck)
 
-        for card_id in public_cards:
-            remaining[card_id] -= 1
-            if remaining[card_id] < 0:
-                raise BeliefStateError(
-                    f"Sampled deck lacks observed public card {card_id!r}"
-                )
-        for card_id in known_hand:
-            remaining[card_id] -= 1
-            if remaining[card_id] < 0:
-                raise BeliefStateError(
-                    f"Sampled deck lacks known hidden hand card {card_id!r}"
-                )
+        # A face-down Stratagem gives away its type, but not its identity.
+        # Sample until the conditioned deck contains at least one still-hidden
+        # Stratagem candidate rather than leaking the perfect-state identity.
+        sampled_full_deck: list[str] | None = None
+        remaining: Counter[str] | None = None
+        stratagem_candidates: list[str] = []
+        for _attempt in range(64):
+            candidate_deck = prior.sample_deck(required, rng)
+            candidate_remaining = Counter(candidate_deck)
+            valid = True
+            for card_id in public_cards:
+                candidate_remaining[card_id] -= 1
+                if candidate_remaining[card_id] < 0:
+                    valid = False
+                    break
+            if not valid:
+                continue
+            for card_id in known_hand:
+                candidate_remaining[card_id] -= 1
+                if candidate_remaining[card_id] < 0:
+                    valid = False
+                    break
+            if not valid:
+                continue
+
+            candidate_stratagems = [
+                card_id
+                for card_id, count in candidate_remaining.items()
+                if count > 0
+                and self.engine.cards[card_id][CardField.TYPE]
+                == CardType.STRATAGEM
+            ]
+            if hidden_stratagem and not candidate_stratagems:
+                continue
+            sampled_full_deck = candidate_deck
+            remaining = candidate_remaining
+            stratagem_candidates = candidate_stratagems
+            break
+
+        if sampled_full_deck is None or remaining is None:
+            raise BeliefStateError(
+                "Deck prior could not satisfy observed hidden Stratagem type"
+            )
+
+        opponent_stratagem: str | None = None
+        if hidden_stratagem:
+            opponent_stratagem = rng.choice(stratagem_candidates)
+            remaining[opponent_stratagem] -= 1
 
         unknown_pool = [
             card_id
@@ -336,6 +372,8 @@ class BeliefSampler:
             visible_zone_counts = Counter(public_cards)
             visible_zone_counts.update(state.players[opponent].hand)
             visible_zone_counts.update(state.players[opponent].deck)
+            if opponent_stratagem is not None:
+                visible_zone_counts[opponent_stratagem] += 1
             missing = sampled_counts - visible_zone_counts
             extra = visible_zone_counts - sampled_counts
             raise BeliefStateError(
@@ -344,6 +382,7 @@ class BeliefSampler:
                 f"battle={state.battle} turn={state.turn_number} "
                 f"viewer={viewer} opponent={opponent}; "
                 f"public={len(public_cards)} hand={hand_count} deck={deck_count}; "
+                f"hidden_stratagem={hidden_stratagem}; "
                 f"missing={dict(sorted(missing.items()))} "
                 f"extra={dict(sorted(extra.items()))}"
             )
@@ -354,7 +393,12 @@ class BeliefSampler:
         )
         rng.shuffle(opponent_hand)
         opponent_deck = list(unknown_pool[unknown_hand_slots:])
-        return viewer_deck, opponent_hand, opponent_deck
+        return (
+            viewer_deck,
+            opponent_hand,
+            opponent_deck,
+            opponent_stratagem,
+        )
 
     def sample(
         self,
@@ -362,7 +406,12 @@ class BeliefSampler:
         viewer: int,
         rng: random.Random,
     ) -> GameState:
-        viewer_deck, opponent_hand, opponent_deck = self.sample_hidden_zones(
+        (
+            viewer_deck,
+            opponent_hand,
+            opponent_deck,
+            opponent_stratagem,
+        ) = self.sample_hidden_zones(
             state,
             viewer,
             rng,
@@ -372,6 +421,13 @@ class BeliefSampler:
         sampled.players[viewer].deck = viewer_deck
         sampled.players[opponent].hand = opponent_hand
         sampled.players[opponent].deck = opponent_deck
+        stratagem = sampled.stratagems[opponent]
+        if (
+            stratagem is not None
+            and not stratagem.revealed
+            and opponent_stratagem is not None
+        ):
+            stratagem.card_id = opponent_stratagem
         return sampled
 
     def _prior_for_state(
@@ -432,7 +488,7 @@ class BeliefSampler:
         cards.extend(narrative.card_id for narrative in state.narratives[opponent])
 
         stratagem = state.stratagems[opponent]
-        if stratagem is not None:
+        if stratagem is not None and stratagem.revealed:
             cards.append(stratagem.card_id)
 
         return cards
