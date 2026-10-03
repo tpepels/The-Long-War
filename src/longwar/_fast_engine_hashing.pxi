@@ -8,6 +8,8 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed(&h, <uint8_t>(state.active_player + 1))
     _info_hash_feed(&h, <uint8_t>(state.winner + 1))
     _info_hash_feed_u32(&h, <uint32_t>state.turn_number)
+    _info_hash_feed(&h, state.actions_this_turn)
+    _info_hash_feed(&h, state.closing_turns_remaining)
     _info_hash_feed_u32(&h, <uint32_t>state.shuffle_seed)
 
     for p in range(PLAYER_COUNT):
@@ -145,7 +147,7 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
-    # v9 removes the retired Pass-closing countdown from canonical state.
+    # v10 adds two-Action turn state and the forced closing-turn countdown.
     _info_emit(buf, &n, h, INFORMATION_KEY_VERSION)
     _info_emit(buf, &n, h, <uint8_t>player)
     _info_emit(buf, &n, h, <uint8_t>(state.phase + 1))
@@ -157,6 +159,8 @@ cdef int _fe__information_state_encode(
     _info_emit_u16(
         buf, &n, h, <uint16_t>((state.turn_number >> 16) & 0xFFFF)
     )
+    _info_emit(buf, &n, h, state.actions_this_turn)
+    _info_emit(buf, &n, h, state.closing_turns_remaining)
 
     for i in range(PLAYER_COUNT):
         _info_emit(buf, &n, h, state.passed[i])
@@ -277,7 +281,9 @@ cdef int _fe__information_state_encode(
                 state.maneuvered_in_operation[slot],
             )
 
-    # Ongoing Narratives and Stratagems are public in the canonical rules.
+    # Ongoing Narratives are public. A face-down Stratagem's existence and
+    # selections are public, but its identity is hidden from the opponent
+    # until it is revealed.
     for owner in range(PLAYER_COUNT):
         narrative_count = 0
         for narrative_slot in range(self.ongoing_narrative_limit):
@@ -326,7 +332,15 @@ cdef int _fe__information_state_encode(
         if card < 0:
             _info_emit(buf, &n, h, 0)
         else:
-            _info_emit(buf, &n, h, <uint8_t>(card + 1))
+            if (
+                owner == player
+                or state.stratagem_revealed[owner]
+            ):
+                _info_emit(buf, &n, h, <uint8_t>(card + 1))
+            else:
+                # 255 is outside the valid card-code range (MAX_CARDS <= 127)
+                # and means "a face-down Stratagem exists".
+                _info_emit(buf, &n, h, 255)
             _info_emit(buf, &n, h, state.stratagem_front_mask[owner])
             _info_emit(buf, &n, h, state.stratagem_direction[owner])
             _info_emit_u16(buf, &n, h, state.stratagem_target_mask[owner])
@@ -420,6 +434,13 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
         return "pass"
     if kind == TYPE_DISCARD:
         return f"discard:{self.card_ids[card]}"
+    if kind == TYPE_CYCLE:
+        choice = <int>extra - 1
+        if choice < 0 or choice >= self.n_cards:
+            raise ValueError("Invalid Cycle second card")
+        if self.card_ids[card] <= self.card_ids[choice]:
+            return f"cycle:{self.card_ids[card]}:{self.card_ids[choice]}"
+        return f"cycle:{self.card_ids[choice]}:{self.card_ids[card]}"
     if kind == TYPE_EFFECT:
         choice = <int>extra
         if choice == EFFECT_FREE_MANEUVER:
