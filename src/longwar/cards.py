@@ -17,7 +17,7 @@ from .protocol import (
     RuleBlockField,
 )
 
-RANKS = frozenset({"front", "rear"})
+RANKS = frozenset({"front", "middle", "rear"})
 _NONNEGATIVE = range(128)
 _SIGNED = range(-128, 128)
 
