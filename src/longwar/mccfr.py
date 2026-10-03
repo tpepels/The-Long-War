@@ -61,26 +61,12 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
                 ]
             )
 
+    # Stable policy IDs intentionally use a smaller imperfect-recall public
+    # observation than the native search key. Keep this shape exactly aligned
+    # with stable_information_id_from_fast_key(); search-only transition state
+    # remains in the richer native binary key.
     narratives = [
-        [
-            {
-                "card_id": narrative.card_id,
-                "fronts": [int(front) for front in narrative.fronts],
-                "target_player": narrative.target_player,
-                "target_position": (
-                    None
-                    if narrative.target_position is None
-                    else [
-                        int(narrative.target_position.front),
-                        narrative.target_position.rank.value,
-                    ]
-                ),
-                "triggered_this_battle": narrative.triggered_this_battle,
-                "direction": narrative.direction,
-                "triggered_players_mask": narrative.triggered_players_mask,
-            }
-            for narrative in state.narratives[owner]
-        ]
+        [narrative.card_id for narrative in state.narratives[owner]]
         for owner in range(PLAYER_COUNT)
     ]
     stratagems = []
@@ -88,23 +74,10 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
         stratagem = state.stratagems[owner]
         if stratagem is None:
             stratagems.append(None)
-            continue
-        visible_identity = owner == player or stratagem.revealed
-        stratagems.append({
-            "card_id": stratagem.card_id if visible_identity else None,
-            "hidden": not stratagem.revealed,
-            "revealed": stratagem.revealed,
-            "fronts": [int(front) for front in stratagem.fronts],
-            "direction": stratagem.direction,
-            "targets": [
-                [
-                    target_player,
-                    int(target_position.front),
-                    target_position.rank.value,
-                ]
-                for target_player, target_position in stratagem.targets
-            ],
-        })
+        elif owner == player or stratagem.revealed:
+            stratagems.append(stratagem.card_id)
+        else:
+            stratagems.append("hidden")
 
     return {
         "viewer": player,
@@ -128,7 +101,7 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
         "board": board,
         "narratives": narratives,
         "stratagems": stratagems,
-        "stratagem_used": list(state.stratagem_used),
+        "stratagem_used": [bool(value) for value in state.stratagem_used],
         "hero_used": list(state.hero_used),
         "own_hand": _counter_view(state.players[player].hand),
         "own_deck": _counter_view(state.players[player].deck),
@@ -524,13 +497,20 @@ class MCCFRTrainer:
                     "own remaining deck multiset",
                     "public hand/deck counts",
                     "public ongoing Narrative identities",
+                    "face-down opponent Stratagem existence but not identity",
+                    "current Action slot and forced-closing countdown",
                 ],
                 "excludes": [
                     "opponent hand identities",
+                    "face-down opponent Stratagem identity",
                     "both deck orders",
                     "full action history",
+                    "search-only pending/constraint state from the exported stable policy id",
                 ],
-                "note": "This is an imperfect-recall state abstraction, not an exact perfect-recall game tree.",
+                "note": (
+                    "This is an imperfect-recall stable policy abstraction. "
+                    "Native MCCFR search nodes use the richer binary information key."
+                ),
             },
             "average_policy": "sampling-corrected external-sampling average strategy",
             "infosets": infosets,
