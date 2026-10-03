@@ -32,6 +32,8 @@ def public_snapshot(state):
         "phase": state.phase.value,
         "battle": state.battle,
         "active_player": state.active_player,
+        "actions_this_turn": state.actions_this_turn,
+        "closing_turns_remaining": state.closing_turns_remaining,
         "winner": state.winner,
         "players": [
             {
@@ -66,7 +68,14 @@ def public_snapshot(state):
             for side in state.narratives
         ],
         "stratagems": [
-            None if stratagem is None else {"card_id": stratagem.card_id}
+            (
+                None
+                if stratagem is None
+                else {
+                    "card_id": stratagem.card_id,
+                    "revealed": stratagem.revealed,
+                }
+            )
             for stratagem in state.stratagems
         ],
         "stratagem_used": list(state.stratagem_used),
@@ -82,6 +91,8 @@ def native_public_snapshot(native, fast_state):
         "phase": exported["phase"],
         "battle": exported["battle"],
         "active_player": exported["active_player"],
+        "actions_this_turn": exported["actions_this_turn"],
+        "closing_turns_remaining": exported["closing_turns_remaining"],
         "winner": exported["winner"],
         "players": [
             {
@@ -96,7 +107,14 @@ def native_public_snapshot(native, fast_state):
             for side in exported["narratives"]
         ],
         "stratagems": [
-            None if stratagem is None else {"card_id": stratagem["card_id"]}
+            (
+                None
+                if stratagem is None
+                else {
+                    "card_id": stratagem["card_id"],
+                    "revealed": stratagem["revealed"],
+                }
+            )
             for stratagem in exported["stratagems"]
         ],
         "stratagem_used": exported["stratagem_used"],
