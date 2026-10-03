@@ -39,7 +39,7 @@ DEF PRE_RESOLUTION_SACRIFICE_END = PRE_RESOLUTION_SUPPRESSION_END + SLOT_COUNT
 DEF MAX_CARDS = 127
 DEF MAX_DECK = 254
 DEF MAX_ACTIONS = 1024
-DEF INFORMATION_KEY_VERSION = 9
+DEF INFORMATION_KEY_VERSION = 10
 
 DEF U16_BYTES = 2
 DEF U32_BYTES = 4
@@ -91,12 +91,14 @@ cdef int PHASE_BATTLE = 0
 cdef int PHASE_COMPLETE = 2
 
 cdef int TYPE_PASS = 0
+cdef int TYPE_END_TURN = 1
 cdef int TYPE_FORCE = 2
 cdef int TYPE_BOND = 3
 cdef int TYPE_NAME = 4
 cdef int TYPE_NARRATIVE = 5
 cdef int TYPE_ONGOING_NARRATIVE = 6
 cdef int TYPE_STRATAGEM = 7
+cdef int TYPE_CYCLE = 8
 cdef int TYPE_DISCARD = 10
 cdef int TYPE_MANEUVER = 11
 cdef int TYPE_EFFECT = 12
@@ -269,6 +271,24 @@ cdef inline int front_from_slot(int slot) noexcept:
 cdef inline int rank_from_slot(int slot) noexcept:
     return local_slot(slot) % RANK_COUNT
 
+cdef inline uint8_t active_front_mask(int battle) noexcept:
+    # Battle I: the two middle Fronts. Battle II adds the left outer
+    # Front. Battle III and later use all four.
+    if battle <= 1:
+        return <uint8_t>((1 << 1) | (1 << 2))
+    if battle == 2:
+        return <uint8_t>((1 << 0) | (1 << 1) | (1 << 2))
+    return <uint8_t>FRONT_MASK
+
+
+cdef inline bint front_is_active(int battle, int front) noexcept:
+    return bool(active_front_mask(battle) & (1 << front))
+
+
+cdef inline bint slot_is_active(int battle, int slot) noexcept:
+    return front_is_active(battle, front_from_slot(slot))
+
+
 cdef inline int _append_action(uint64_t* actions, int n, uint64_t action) except -1:
     # Reserve one entry for Pass; guard before every write, including cards
     # producing multiple target combinations.
@@ -279,8 +299,8 @@ cdef inline int _append_action(uint64_t* actions, int n, uint64_t action) except
 
 
 cdef inline int popcount16(uint32_t value) noexcept:
+    # Historical name; masks may now contain any of the 24 board slots.
     cdef int count = 0
-    value &= 0xFFFF
     while value:
         count += value & 1
         value >>= 1
