@@ -151,15 +151,16 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     self.command_recovery_floor = int(rules.command_recovery_floor)
     self.command_collapse_threshold = int(rules.command_collapse_threshold)
     self.lost_front_command_penalty = int(rules.lost_front_command_penalty)
-    self.pass_min_operations_before_signal = int(
-        rules.pass_min_operations_before_signal
-    )
+    self.actions_per_turn = int(rules.actions_per_turn)
     self.turn_draw_count = int(rules.turn_draw_count)
     self.maneuver_command_cost = int(rules.maneuver_command_cost)
     self.hand_limit = int(rules.hand_limit)
     self.ongoing_narrative_limit = int(rules.ongoing_narrative_limit)
-    self.hero_play_limit_per_battle = int(
-        rules.hero_play_limit_per_battle
+    self.hero_force_play_limit_per_battle = int(
+        rules.hero_force_play_limit_per_battle
+    )
+    self.hero_name_play_limit_per_battle = int(
+        rules.hero_name_play_limit_per_battle
     )
     self.stratagem_play_limit_per_battle = int(
         rules.stratagem_play_limit_per_battle
