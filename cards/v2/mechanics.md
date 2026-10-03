@@ -1,260 +1,190 @@
-# The Long War - Card Mechanics V2
+# V2 card mechanics and physical grammar
 
-Status: mechanical redesign proposal. This deliberately ignores the current engine and deck files.
+This is the design contract for the new 95-card proposal. It is intentionally separate from the engine and current decks.
 
-## Design premise
+## Formation states
 
-The battlefield is persistent. A card can remain in play for many Battles, so persistent state must be readable directly from the table.
+- **Formation** - a battlefield position containing a **Force**. A Bond and/or Name may also be present.
+- **Unbonded Formation** - a Formation with no Bond.
+- **Bonded Formation** - a Formation containing **Force + Bond**. It may also contain a Name.
+- **Named Formation** - a Formation containing **Force + Bond + Name**.
+- Every **Named Formation is also Bonded**.
+- **Force + Name** without a Bond is a Formation with a Name, but it is **not Named**.
+- **Prepared Bond** - a Bond in a position with no Force.
+- **Prepared Name** - a Name in a position with no Force.
+- A Formation **becomes Named** whenever it changes from not having all three cards to having Force + Bond + Name.
 
-**Hard rule:** if a player must remember an effect after its source is hidden, either expose it on the stack or represent it with a marker.
+These are states, not classifications.
 
-The old 95-card mechanics are not being migrated. Titles and flavour are reused where useful, but every mechanic is designed for the new game.
+## The no-lifting rule
 
-## Battlefield assumptions used by this card set
+A completed formation must be fully playable without lifting, sliding, or fanning any card.
 
-- Each active Front has three rows on each player's side: **Front, Middle, Rear**.
-- An inactive Front cannot be entered, targeted, or chosen.
-- A **Formation** is any position containing a Force.
-- A **Named Formation** is exactly **Force + Bond + Name**.
-- Bonds remain mandatory for becoming Named.
-- Formation cards stay in play between Battles unless card text moves or removes them.
-- A standard one-position move is one orthogonal step:
-  - one active Front left or right in the same row; or
-  - one row forward or backward in the same Front.
-- Hard row-placement restrictions are intentionally rare. Most Forces can enter any row.
+Cards stack **Force -> Bond -> Name**. Force and Bond each leave a 9.6 mm top edge exposed.
 
-## Classifications
+The Force edge always shows:
+- Force symbol;
+- base Strength;
+- classifications;
+- any Front/Middle/Rear restriction;
+- the complete reminder for any 1/BATTLE effect.
 
-Classifications have **no inherent rules**.
+The Bond edge always shows:
+- Bond symbol;
+- Strength modifier;
+- the complete reminder for any 1/BATTLE effect.
 
-Archer, Rider, Guard, Scout, Human, King, Ship, and every other classification are labels only. They matter when another card explicitly refers to them.
+The Name is on top, so all of its live rules remain readable.
 
-Examples:
+**PLAY text on Forces and Bonds may disappear after resolving. No other information that still matters may be hidden.**
 
-- “Every formation containing an Archer gets +1 Strength.”
-- “Choose a Scout you control.”
-- “Move one Rider one position.”
-
-A player never needs to know a hidden rule for “Archer” or “Guard”.
-
-## Card types
+## Card-type grammar
 
 ### Force
 
-Persistent battlefield body. Supplies base Strength.
+Forces establish base Strength and battlefield identity.
 
-A Force may have:
-- a **PLAY** effect that happens once and can then be buried;
-- one very simple persistent property that remains legible in the exposed Force strip;
-- rarely, a hard row restriction.
+Allowed:
+- **PLAY**
+- **1/BATTLE**
+
+Not allowed:
+- TRIGGER
+- CONTINUOUS prose
+- recurring text that is not completely readable in the exposed strip
+
+A Force may have no special rule. Hard row restrictions are exceptional.
 
 ### Bond
 
-Persistent middle layer of a formation and mandatory for becoming Named.
+Bonds are compact support cards in the middle of the stack.
 
-A Bond should usually be compact enough to communicate through its exposed strip:
-- a Strength modifier;
-- a protection symbol;
-- a NAMED payoff;
-- a simple PLAY effect.
+Allowed:
+- **PLAY**
+- **1/BATTLE**
 
-A buried Bond must never require a player to remember a paragraph of recurring text.
+Not allowed:
+- TRIGGER
+- CONTINUOUS prose
+- hidden recurring rules
+
+A Bond's persistent numeric Strength modifier is always printed in its exposed edge.
 
 ### Name
 
-Persistent top card of a Named Formation and therefore the main home for richer recurring abilities.
+Names are the visible top card and therefore the main home for rules a player must repeatedly check.
 
-Names may use ACTION, TRIGGER, RESOLUTION, CONTINUOUS, and NAMED effects because their rules remain visible.
+Allowed:
+- **NAMED**
+- **ACTION**
+- **TRIGGER**
+- **RESOLUTION**
+- **CONTINUOUS**
 
-Completing Force + Bond + Name is meant to be a major power jump.
+A Name may have more than one effect. Each effect is printed as its own block.
 
 ### Hero
 
-A Unique dual-mode card played as either a Force or a Name.
-
-The existing Battle allowance remains the design assumption:
-- at most one Hero from hand as a Force per Battle;
-- at most one Hero from hand as a Name per Battle.
+A Hero played as a Force follows Force grammar. A Hero played as a Name follows Name grammar.
 
 ### Tactic
 
-Immediate card.
+A Tactic always:
+1. uses **PLAY**;
+2. resolves immediately;
+3. affects the **opponent** or the opponent's battlefield/hidden information;
+4. is discarded afterward.
 
-- Play as an Action during the normal building/formation play of a Battle.
-- Pay its Command cost.
-- Resolve it immediately.
-- Discard it.
-
-Tactics are the main home for immediate interference: volleys, scouts, feints, sudden movement, suppression, hand filtering, and prepared-card disruption.
+Pure self-buffs do not belong on Tactics.
 
 ### Stratagem
 
-Hidden delayed interaction.
+A Stratagem is face-down and helps **your own side** when its reveal condition occurs.
 
-- Play face-down.
-- Pay its cost when set.
-- Its existence is public; its identity is hidden.
-- Reveal only when its printed condition occurs.
-- Resolve honestly by trust.
-- Discard at Battle end unless text says otherwise.
-
-The face-down card itself is the memory aid.
+The face-down card is the reminder that something is waiting.
 
 ### Narrative
 
-Visible broad rule.
+A Narrative is face-up and supports **your own troops**, classifications, or formation states.
 
-Narratives are the natural home for:
-- class-wide effects;
-- symmetric battlefield rules;
-- Front-wide conditions.
+Narratives are the natural home for broad effects such as:
+- your Archers have +1 Strength;
+- your Guards and Strongholds have +1 Strength;
+- your Bonded Human Formations have +1 Strength.
 
-In this proposal, Narratives are intentionally Battle-scoped unless stated otherwise. Their source remains face-up, so players do not need to memorize their effect.
+## Classification system
 
-### Front Story
+Classifications have **no inherent rules**. A player never needs a glossary to learn what Archer or Scout mechanically means.
 
-Front Stories remain a separate prototype system, not part of these 95 player cards. They can later give individual Fronts public terrain/story rules.
+Instead, the card pool gives each classification a recognizable personality:
 
-## Timing vocabulary
+- **Human** - Broadest people classification. Human support is common but deliberately modest.
+- **Ship** - Long-range support and unusual Front interaction.
+- **Stronghold** - Static support, protection, and staying power.
+- **Archer** - Ranged pressure, Strength reduction, and support from a distance.
+- **Guard** - Protection, interception, and resistance to hostile Tactics.
+- **Scout** - Information: hands, hidden Stratagems, and advance knowledge.
+- **Rider** - The main home for the game's deliberately scarce movement effects.
+- **Skirmisher** - Harassment, temporary suppression, and small Strength penalties.
+- **Raider** - Pressure on prepared cards, Command costs, and the opponent's build-up.
+- **Healer** - Removal of temporary negative state.
+- **Spearman** - Simple, dependable battlefield Strength, especially in the Front.
+- **King** - Command, broad coordination, and high-impact Named payoffs.
+- **Captain** - Local formation-building, Bonds, Names, and action efficiency.
+- **Veteran** - Reliability, marker removal, and once-per-Battle resilience.
+- **Seer** - Deep information and deck/hidden-plan manipulation.
+- **Steward** - Command efficiency, card filtering, and resource management.
+- **Builder** - Bonds, prepared cards, and Stronghold-style development.
+- **Hero** - A special dual-use card that may be played as Force or Name.
+- **Heir** - Succession and access to King synergies once fully established.
 
-### PLAY
+Abstract tags such as movement, pressure, focus, identity, necessity, or defence are not classifications.
 
-Resolve once when the card is played.
+## Timing and memory
 
-No marker is needed unless PLAY creates a temporary effect that outlives the card.
+- **PLAY** - resolve when played.
+- **NAMED** - resolve when the Formation becomes Named.
+- **ACTION** - spend one of the turn's Actions.
+- **TRIGGER** - a visible Name reacts to the stated event.
+- **RESOLUTION** - checked while a Front is being settled.
+- **CONTINUOUS** - visible rule that remains true while its source is active.
+- **1/BATTLE** - mark the source after use and clear the marker when the next Battle begins.
 
-### NAMED
+If an effect survives after its source is gone or buried, use a physical marker. If a player could reasonably ask "is that still active?", the table must answer without memory.
 
-Resolve once when Force + Bond + Name is completed.
+## Typography
 
-### ACTION
+Exactly three font families are used:
 
-Spend one of the player's Actions to use the ability.
+1. **EB Garamond SemiBold** - card titles, large Strength numerals, large Command numerals.
+2. **Gentium Book** - rules text and italics.
+3. **Arial** - timing labels, classifications, metadata, compact reminders.
 
-### TRIGGER
+## Rule-block layout
 
-Resolve when the stated event occurs.
+Every separate effect starts on a new line.
 
-Recurring triggers are allowed only when their source remains visible.
+- timing label: bold uppercase sans serif;
+- rules prose: serif;
+- reminder/usage text: italic serif where needed;
+- each effect has a subtle tinted field and accent rule;
+- no multi-effect paragraph soup.
 
-### RESOLUTION
+## Command cost
 
-Resolve when the relevant Front is being compared/settled.
+Command cost is not part of the exposed stack edge.
 
-Use sparingly. Resolution should not become an arithmetic audit.
+It lives in a faceted Command badge integrated into the bottom-right card frame, so:
+- it is easy to find while the card is in hand;
+- it disappears naturally when cards are stacked;
+- it cannot be confused with Strength.
 
-### CONTINUOUS
+## Design limits
 
-Always true while the source remains in the required state.
-
-If the card can be buried, the complete continuing state must fit in its exposed strip.
-
-### Once per Battle
-
-A modifier for ACTION or TRIGGER.
-
-Use a standard **used marker**. Remove all used markers when the next Battle begins.
-
-## Temporary state and markers
-
-Use a marker whenever the source no longer makes the state obvious.
-
-Examples:
-- `+1 Strength this Battle` -> +1 marker
-- `-2 Strength this Battle` -> -2 marker
-- `Bond suppressed this Battle` -> suppression marker
-- `cannot move this Battle` -> no-move marker
-
-Do not create bespoke memory rules when a token can show the state.
-
-## Physical stack grammar
-
-The intended stack is:
-
-1. **Force** on the bottom
-2. **Bond**
-3. **Name** on top
-
-Each buried card leaves an exposed strip.
-
-### Force strip
-
-Must show:
-- base Strength;
-- classifications relevant to interaction;
-- any continuing icon/property that remains active while buried.
-
-### Bond strip
-
-Must show:
-- `+Strength`, if any;
-- compact continuing property;
-- NAMED icon if the Bond has a completion effect.
-
-### Name
-
-The Name is the readable top card.
-
-Show:
-- `+Strength` rather than a standalone Strength number;
-- classifications;
-- full ongoing/activated rules text;
-- timing and once-per-Battle icons.
-
-### Cost
-
-Command cost can live toward the bottom because it matters primarily in hand, not while buried in a stack.
-
-
-## Exact physical card anatomy
-
-The V2 physical card is still **63 x 88 mm**, but its information hierarchy changes to match stacking.
-
-The upper **10 mm** is the **exposed strip**. When Force + Bond + Name are stacked, the cards are offset so the Force strip and Bond strip remain visible above the Name.
-
-The exposed strip contains only battlefield information:
-
-- **Force:** large base Strength, classifications, and any continuing/recurring reminder that must survive burial.
-- **Bond:** signed Strength modifier such as `+1`, classifications, and any compact continuing/recurring reminder.
-- **Name:** signed Strength modifier such as `+1`, classifications, and timing icons. The Name remains the readable top card, so its full ability text stays visible.
-- **Hero:** both Force base Strength and Name modifier are visible in the strip because either mode may matter while the card is in hand.
-
-The **Command cost moves to the bottom-right corner**. Cost matters when choosing a card from hand; it should not consume exposed stack space after the card is committed.
-
-Strength effects that remain relevant while stacked are shown in the strip. Do not make players reopen a stack merely to calculate Strength.
-
-### Timing icons
-
-Every ability uses one of the standard timing icons. The icon is printed next to the ability and, when the ability can matter while buried, repeated in the exposed strip.
-
-| Icon concept | Timing | Meaning |
-|---|---|---|
-| Bolt | **PLAY** | Resolve when played. |
-| Banner | **NAMED** | Resolve when Force + Bond + Name is completed. |
-| Arrow | **ACTION** | Spend one Action to use the ability. |
-| Spark | **TRIGGER** | Resolve when the printed event occurs. |
-| Scales | **RESOLUTION** | Resolve while the Front is settled. |
-| Infinity | **CONTINUOUS** | Active while its condition is true. |
-| One-token | **1/BATTLE** | Mark the card after use; clear the marker next Battle. |
-| Marker | **TEMPORARY** | Put the stated marker on the affected card or Front. |
-| Card back | **HIDDEN** | The face-down Stratagem is the reminder. |
-
-An icon does not replace necessary rules text. It makes timing/state scannable. The full rule remains printed where needed.
-
-**Memory rule:** if a player could reasonably ask “was this already used?” or “is this effect still active?”, the table must answer without relying on memory.
-
-## Complexity guardrails
-
-- Classifications never carry rules.
-- Ordinary cards should normally have one mechanical idea.
-- A Name or Hero may have two abilities when its top-card visibility justifies it.
-- No routine Retreat or driven-off mechanics.
-- Permanent destruction should be rare.
-- No “first card in this Front” sequencing mechanics.
-- Avoid chained Maneuver triggers.
-- Avoid hidden recurring effects on buried cards.
-- Avoid more than one simple continuous Strength condition on a card.
-- Class-wide Strength bonuses must be simple and sourced by a visible Narrative.
-- Most Forces may be played in any row.
-- Tactics provide immediate interaction so permanent pieces do not need to carry every tactical effect.
-- Named Formations are allowed to be very strong because completing all three layers is a major investment.
+- Maximum movement-related cards in this proposal: **12**.
+- Current movement-related cards: **10**.
+- Maximum hard row-restricted Forces: **4**.
+- Current hard row-restricted Forces: **3**.
+- Force/Bond TRIGGER effects: **forbidden**.
+- Tactics that do not target the opponent: **forbidden**.
+- Stratagems/Narratives whose primary scope is not your own side: **forbidden**.
