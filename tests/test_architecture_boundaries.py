@@ -130,12 +130,17 @@ def test_runtime_and_search_do_not_special_case_card_ids() -> None:
         assert not leaked, f"{path} special-cases cards: {leaked}"
 
 
-def test_retired_pass_variants_are_absent_from_live_rules_and_state() -> None:
+def test_playtest_turn_fields_replace_retired_pass_variants() -> None:
     from longwar.game.model import GameState
 
     assert "pass_signal_costs_operation" not in GameRules.__dataclass_fields__
     assert "pass_closing_rounds" not in GameRules.__dataclass_fields__
     assert "pass_closing_turns_remaining" not in GameState.__dataclass_fields__
+
+    assert GameRules.standard().actions_per_turn == 2
+    assert GameRules.standard().closing_turns_after_pass == 2
+    assert "actions_this_turn" in GameState.__dataclass_fields__
+    assert "closing_turns_remaining" in GameState.__dataclass_fields__
 
 
 def test_rules_are_values_not_named_experiment_profiles() -> None:
@@ -756,14 +761,14 @@ def test_native_weight_export_avoids_cpdef_generator_closure() -> None:
     assert "values.append(self.weights[i])" in source
 
 
-def test_decisive_rollout_uses_exact_safe_second_pass_boundary() -> None:
+def test_decisive_rollout_does_not_manufacture_early_pass() -> None:
     source = (SRC / "_ismcts_core.pxi").read_text(encoding="utf-8")
     rollout = source.split("cdef uint64_t _ismcts_rollout_action(", 1)[1]
     rollout = rollout.split("def ismcts_search(", 1)[0]
-    assert "state.pass_len == 1 and not state.passed[actor]" in rollout
-    assert "action_kind(actions[i]) != TYPE_PASS" in rollout
-    assert "score_scratch.battle != state.battle" in rollout
-    assert "score_scratch.winner == actor" in rollout
+
+    assert "Pass is forced under the playtest rules" in rollout
+    assert "No rollout policy should manufacture an early Battle close" in rollout
+    assert "state.pass_len == 1 and not state.passed[actor]" not in rollout
     assert "_ismcts_action_allows_immediate_loss" not in source
     assert "DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES" not in source
     assert "DECISIVE_ROLLOUT_RANDOM_WIN_PROBES" not in source
