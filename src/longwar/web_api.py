@@ -9,8 +9,10 @@ from .belief import DeckHypothesis, HypothesisDeckPrior
 from .game.actions import (
     Action,
     BoardTarget,
+    Cycle,
     Discard,
     EffectChoice,
+    EndTurn,
     Maneuver,
     Pass,
     PlayBond,
@@ -318,29 +320,32 @@ class PlaySession:
             for owner in range(PLAYER_COUNT)
         ]
 
-        stratagems = [
-            (
-                None
-                if state.stratagems[owner] is None
-                else {
-                    "card_id": state.stratagems[owner].card_id,
-                    "fronts": [
-                        int(front)
-                        for front in state.stratagems[owner].fronts
-                    ],
-                    "direction": state.stratagems[owner].direction,
+        stratagems = []
+        for owner in range(PLAYER_COUNT):
+            stratagem = state.stratagems[owner]
+            if stratagem is None:
+                stratagems.append(None)
+                continue
+            visible = bool(stratagem.revealed or viewer == owner)
+            if not visible:
+                stratagems.append({"hidden": True, "revealed": False})
+                continue
+            stratagems.append(
+                {
+                    "card_id": stratagem.card_id,
+                    "hidden": False,
+                    "revealed": bool(stratagem.revealed),
+                    "fronts": [int(front) for front in stratagem.fronts],
+                    "direction": stratagem.direction,
                     "targets": [
                         {
                             "player": target_player,
                             **self._position_payload(target_position),
                         }
-                        for target_player, target_position
-                        in state.stratagems[owner].targets
+                        for target_player, target_position in stratagem.targets
                     ],
                 }
             )
-            for owner in range(PLAYER_COUNT)
-        ]
 
         front_strengths = [
             [
@@ -418,6 +423,12 @@ class PlaySession:
             "stratagems": stratagems,
             "stratagem_used": list(state.stratagem_used),
             "hero_used": list(state.hero_used),
+            "hero_force_used": list(state.hero_force_used),
+            "hero_name_used": list(state.hero_name_used),
+            "actions_this_turn": state.actions_this_turn,
+            "actions_per_turn": self.engine.rules.actions_per_turn,
+            "closing_stage": state.closing_stage,
+            "closing_passer": state.closing_passer,
             "pass_order": list(state.pass_order),
             "pending_draw_discard_for": state.pending_draw_discard_for,
             "needs_ai": (
@@ -604,6 +615,13 @@ class PlaySession:
 
         if isinstance(action, Pass):
             return f"{prefix} Passes."
+        if isinstance(action, EndTurn):
+            return f"{prefix} ends the turn."
+        if isinstance(action, Cycle):
+            return (
+                f"{prefix} cycles {self.cards[action.first_card_id]['title']} "
+                f"and {self.cards[action.second_card_id]['title']}."
+            )
         if isinstance(action, Discard):
             return (
                 f"{prefix} discards "
@@ -743,12 +761,14 @@ class PlaySession:
     def _legal_reason(self, action: Action) -> str:
         if isinstance(action, Pass):
             return (
-                "Normally both players must have completed at least one "
-                "operation before Pass is available, unless you have no other "
-                "legal operation. Once you Pass, it remains active for the "
-                "rest of the Battle even if you later act. The Battle ends "
-                "when both players have Passed."
+                "No legal Action is available after the start-of-turn draw. "
+                "Pass starts the closing sequence: your opponent takes one full "
+                "turn, then you take one full turn, then the Battle ends."
             )
+        if isinstance(action, EndTurn):
+            return "End your turn without spending the remaining Action."
+        if isinstance(action, Cycle):
+            return "Discard these two cards and draw one card. Cycling is one Action."
         if isinstance(action, Discard):
             return (
                 "Your hand is already at the 10-card limit. Discard one card, "
@@ -760,8 +780,9 @@ class PlaySession:
             return "Resolve the pending printed card effect."
         if isinstance(action, Maneuver):
             return (
-                "Move this Named Formation one adjacent Front in the same rank "
-                "for 1 Command."
+                "Move this Named Formation one orthogonal position - one active "
+                "Front left/right in the same row, or one row forward/back in "
+                "the same Front - for 1 Command."
             )
         if isinstance(action, PlayForce):
             return "This position can receive this Force."
@@ -785,7 +806,7 @@ class PlaySession:
         if isinstance(action, PlayStratagem):
             return (
                 "You have not played a Stratagem this Battle. Pay its printed "
-                "Command cost; it is public and uses your operation."
+                "Command cost and place it face-down; it is hidden until revealed."
             )
         return "Legal according to the canonical game engine."
 
