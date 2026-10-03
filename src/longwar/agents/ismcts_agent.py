@@ -267,16 +267,19 @@ class ISMCTSAgent:
         }
 
         # The public/observable root is already packed for the Command guard.
-        # Reuse it and replace only hidden deck/hand zones for each belief
-        # sample instead of cloning and repacking the full Python GameState.
+        # Reuse it and replace hidden deck/hand/Stratagem zones for each
+        # belief sample instead of cloning and repacking the full GameState.
         packed_states = []
         for _ in range(self.belief_samples):
-            viewer_deck, opponent_hand, opponent_deck = (
-                self.belief.sample_hidden_zones(
-                    state,
-                    root_player,
-                    self.rng,
-                )
+            (
+                viewer_deck,
+                opponent_hand,
+                opponent_deck,
+                opponent_stratagem,
+            ) = self.belief.sample_hidden_zones(
+                state,
+                root_player,
+                self.rng,
             )
             packed_states.append(
                 self.fast_engine.determinize_hidden_zones(
@@ -285,6 +288,7 @@ class ISMCTSAgent:
                     viewer_deck,
                     opponent_hand,
                     opponent_deck,
+                    opponent_stratagem,
                 )
             )
 
