@@ -30,11 +30,13 @@ WEB = ROOT / "web"
 DIST = ROOT / "dist"
 RULEBOOK = ROOT / "rules" / "rulebook.md"
 CARDS = ROOT / "cards" / "cards.json"
+V2_CARDS = ROOT / "cards" / "v2" / "cards.json"
 REFERENCE_DECKS = REFERENCE_DECK_PATHS
 BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
 PUBLISHED_ARTIFACTS = ("lab-report.json", "balance-health.json")
 PRINTABLE_PAGES = {
     "cards.html",
+    "cards-v2.html",
     "playtest-kit.html",
     "rulebook.html",
     "playmat.html",
@@ -76,6 +78,7 @@ def print_build_version() -> str:
     inputs = [
         RULEBOOK,
         CARDS,
+        V2_CARDS,
         ROOT / "src" / "longwar" / "rules.py",
         WEB / "print-cards.css",
         WEB / "print-cards.js",
@@ -134,7 +137,7 @@ def version_static_assets() -> str:
         and (
             path.suffix in {".js", ".mjs", ".css", ".whl"}
             or path.relative_to(DIST).as_posix()
-            in {"data/cards.json", "data/reference-decks.json"}
+            in {"data/cards.json", "data/cards-v2-redesign.json", "data/reference-decks.json"}
         )
     ]
     digest = hashlib.sha256()
@@ -294,6 +297,8 @@ def main() -> None:
     data_dir = DIST / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(CARDS, data_dir / "cards.json")
+    if V2_CARDS.exists():
+        shutil.copy2(V2_CARDS, data_dir / "cards-v2-redesign.json")
 
     known_cards = {card["id"] for card in card_data["cards"]}
     reference_decks = []
