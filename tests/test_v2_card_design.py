@@ -358,5 +358,6 @@ def test_v2_recovered_family_art_is_integrated() -> None:
 
 def test_v2_stack_lab_includes_force_alone_and_all_compositions() -> None:
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-    for case in ("force-alone", "force-bond", "force-name", "named", "hero-force", "hero-name"):
+    for case in ("force-alone", "force-bond", "force-name", "hero-force", "hero-name"):
         assert f'"{case}"' in js
+    assert re.search(r"\bnamed\s*:", js)
