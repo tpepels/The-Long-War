@@ -51,7 +51,7 @@ def test_deck_minimums_are_not_exact_caps() -> None:
     base = _deck("mobility-open-bonds.json")
     extra = next(
         card_id for card_id, card in cards.items()
-        if not card["unique"] and base.count(card_id) < 2
+        if not card["unique"] and base.count(card_id) < 4
     )
     larger = [*base, extra]
     validate_deck_definition(larger, cards)
@@ -64,29 +64,21 @@ def test_33_cards_are_rejected() -> None:
         validate_deck_definition(_deck("mobility-open-bonds.json")[:33], cards)
 
 
-def test_force_and_name_minimums_are_enforced() -> None:
+def test_force_and_name_minimums_are_not_required() -> None:
     cards = _cards()
-    deck = _deck("mobility-open-bonds.json")
-
-    too_few_forces = [card_id for card_id in deck if cards[card_id]["type"] != "force"]
-    while len(too_few_forces) < 34:
-        candidate = next(
-            card_id for card_id, card in cards.items()
-            if card["type"] == "bond" and too_few_forces.count(card_id) < 2
-        )
-        too_few_forces.append(candidate)
-    with pytest.raises(InvalidDeckDefinition, match="at least 14 Force"):
-        validate_deck_definition(too_few_forces, cards)
-
-    too_few_names = [card_id for card_id in deck if cards[card_id]["type"] != "name"]
-    while len(too_few_names) < 34:
-        candidate = next(
-            card_id for card_id, card in cards.items()
-            if card["type"] == "bond" and too_few_names.count(card_id) < 2
-        )
-        too_few_names.append(candidate)
-    with pytest.raises(InvalidDeckDefinition, match="at least 6 printed Names"):
-        validate_deck_definition(too_few_names, cards)
+    pool = [
+        card_id
+        for card_id, card in cards.items()
+        if card["type"] not in {"force", "name"} and not card["unique"]
+    ]
+    deck = [
+        card_id
+        for card_id in pool
+        for _ in range(4)
+    ][:MINIMUM_DECK_SIZE]
+    assert len(deck) == MINIMUM_DECK_SIZE
+    assert all(cards[card_id]["type"] not in {"force", "name"} for card_id in deck)
+    validate_deck_definition(deck, cards)
 
 
 def test_unique_and_non_unique_copy_limits() -> None:
@@ -99,10 +91,15 @@ def test_unique_and_non_unique_copy_limits() -> None:
 
     non_unique = next(
         card_id for card_id in deck
-        if not cards[card_id]["unique"] and deck.count(card_id) == 2
+        if not cards[card_id]["unique"] and deck.count(card_id) <= 2
     )
-    with pytest.raises(InvalidDeckDefinition, match="maximum is 2"):
-        validate_deck_definition([*deck, non_unique], cards)
+    four_copies = [
+        *deck,
+        *([non_unique] * (4 - deck.count(non_unique))),
+    ]
+    validate_deck_definition(four_copies, cards)
+    with pytest.raises(InvalidDeckDefinition, match="maximum is 4"):
+        validate_deck_definition([*four_copies, non_unique], cards)
 
 
 def test_heroes_have_no_deck_cap_beyond_unique_titles() -> None:
