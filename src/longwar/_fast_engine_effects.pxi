@@ -45,14 +45,19 @@ cdef inline void _fe_take_from_hand(FastEngine self, FastState state, int player
     state.hand_len[player] -= 1
 
 cdef inline bint _fe_front_has_force(FastEngine self, FastState state, int player, int front) noexcept:
-    return state.force[slot_index(player, front, RANK_FRONT)] >= 0 or state.force[slot_index(player, front, RANK_REAR)] >= 0
+    cdef int rank
+    for rank in range(RANK_COUNT):
+        if state.force[slot_index(player, front, rank)] >= 0:
+            return True
+    return False
 
 cdef inline int _fe_preferred_slot(FastEngine self, FastState state, int player, int front) noexcept:
-    cdef int slot = slot_index(player, front, RANK_FRONT)
-    if state.force[slot] >= 0:
-        return slot
-    slot = slot_index(player, front, RANK_REAR)
-    return slot if state.force[slot] >= 0 else -1
+    cdef int rank, slot
+    for rank in range(RANK_COUNT):
+        slot = slot_index(player, front, rank)
+        if state.force[slot] >= 0:
+            return slot
+    return -1
 
 cdef void _fe_remove_bond(FastEngine self, FastState state, int player, int slot):
     cdef int bond = state.bond[slot]
@@ -302,10 +307,10 @@ cdef uint16_t _fe_named_formation_mask(
     int exclude=-1,
 ) noexcept:
     cdef int slot
-    cdef uint16_t mask = 0
+    cdef uint32_t mask = 0
     for slot in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
         if slot != exclude and _fe_slot_complete(self, state, slot):
-            mask |= <uint16_t>(1 << slot)
+            mask |= <uint32_t>(1 << slot)
     return mask
 
 cdef uint16_t _fe_adjacent_formation_mask(
@@ -318,15 +323,15 @@ cdef uint16_t _fe_adjacent_formation_mask(
     cdef int front = front_from_slot(slot)
     cdef int rank = rank_from_slot(slot)
     cdef int other
-    cdef uint16_t mask = 0
+    cdef uint32_t mask = 0
     if front > 0:
         other = slot_index(player, front - 1, rank)
         if state.force[other] >= 0 and (not named_only or _fe_slot_complete(self, state, other)):
-            mask |= <uint16_t>(1 << other)
+            mask |= <uint32_t>(1 << other)
     if front < FRONT_COUNT - 1:
         other = slot_index(player, front + 1, rank)
         if state.force[other] >= 0 and (not named_only or _fe_slot_complete(self, state, other)):
-            mask |= <uint16_t>(1 << other)
+            mask |= <uint32_t>(1 << other)
     return mask
 
 cdef uint16_t _fe_adjacent_empty_mask(
@@ -338,24 +343,29 @@ cdef uint16_t _fe_adjacent_empty_mask(
     cdef int front = front_from_slot(slot)
     cdef int rank = rank_from_slot(slot)
     cdef int other
-    cdef uint16_t mask = 0
+    cdef uint32_t mask = 0
     if front > 0:
         other = slot_index(player, front - 1, rank)
         if _fe_slot_is_empty(self, state, other):
-            mask |= <uint16_t>(1 << other)
+            mask |= <uint32_t>(1 << other)
     if front < FRONT_COUNT - 1:
         other = slot_index(player, front + 1, rank)
         if _fe_slot_is_empty(self, state, other):
-            mask |= <uint16_t>(1 << other)
+            mask |= <uint32_t>(1 << other)
     return mask
 
 cdef bint _fe_force_in_all_fronts(FastEngine self, FastState state, int player) noexcept:
-    cdef int front
+    cdef int front, rank
+    cdef bint occupied
     for front in range(FRONT_COUNT):
-        if (
-            state.force[slot_index(player, front, RANK_FRONT)] < 0
-            and state.force[slot_index(player, front, RANK_REAR)] < 0
-        ):
+        if not front_is_active(state.battle, front):
+            continue
+        occupied = False
+        for rank in range(RANK_COUNT):
+            if state.force[slot_index(player, front, rank)] >= 0:
+                occupied = True
+                break
+        if not occupied:
             return False
     return True
 
@@ -397,7 +407,7 @@ cdef void _fe_queue_free_maneuver(
     FastEngine self,
     FastState state,
     int player,
-    uint16_t source_mask,
+    uint32_t source_mask,
     bint optional=True,
     bint allow_unnamed=False,
     int source_card=-1,
@@ -424,8 +434,8 @@ cdef void _fe_queue_move_to_mask(
     FastEngine self,
     FastState state,
     int player,
-    uint16_t source_mask,
-    uint16_t dest_mask,
+    uint32_t source_mask,
+    uint32_t dest_mask,
     bint optional=True,
 ) except *:
     if source_mask == 0 or dest_mask == 0:
@@ -474,7 +484,7 @@ cdef void _fe_resolve_named_narratives(
     int named_slot,
 ) except *:
     cdef int controller, narrative_slot, ix, card, trigger, amount, secondary
-    cdef uint16_t sources
+    cdef uint32_t sources
     for controller in range(PLAYER_COUNT):
         narrative_slot = self.ongoing_narrative_limit - 1
         while narrative_slot >= 0:
@@ -496,7 +506,7 @@ cdef void _fe_resolve_named_narratives(
                     if secondary == NARR_SECONDARY_FREE_TRIGGERED and controller == named_player:
                         _fe_queue_free_maneuver(
                             self, state, controller,
-                            <uint16_t>(1 << named_slot), True, False, card
+                            <uint32_t>(1 << named_slot), True, False, card
                         )
                     elif secondary == NARR_SECONDARY_FREE_ANY_NAMED:
                         sources = _fe_named_formation_mask(self, state, controller)
@@ -516,7 +526,7 @@ cdef void _fe_resolve_retreat_narratives(
     int retreated_slot,
 ) except *:
     cdef int narrative_slot, ix, card, amount
-    cdef uint16_t destinations
+    cdef uint32_t destinations
     narrative_slot = self.ongoing_narrative_limit - 1
     while narrative_slot >= 0:
         ix = player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
@@ -533,7 +543,7 @@ cdef void _fe_resolve_retreat_narratives(
                 _fe_queue_move_to_mask(self, 
                     state,
                     player,
-                    <uint16_t>(1 << retreated_slot),
+                    <uint32_t>(1 << retreated_slot),
                     destinations,
                     True,
                 )
@@ -595,7 +605,7 @@ cdef void _fe_resolve_maneuver_into_empty_narratives(
     int vacated_slot,
 ) except *:
     cdef int narrative_slot, ix, card, amount
-    cdef uint16_t sources
+    cdef uint32_t sources
     for narrative_slot in range(self.ongoing_narrative_limit):
         ix = player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
         card = state.narrative[ix]
@@ -614,7 +624,7 @@ cdef void _fe_resolve_maneuver_into_empty_narratives(
                 state,
                 player,
                 sources,
-                <uint16_t>(1 << vacated_slot),
+                <uint32_t>(1 << vacated_slot),
                 True,
             )
 
@@ -626,7 +636,7 @@ cdef void _fe_resolve_force_move_triggers(
     int new_slot,
 ) except *:
     cdef int bond, front, rank, other
-    cdef uint16_t destinations = 0
+    cdef uint32_t destinations = 0
     if new_slot < 0 or state.force[new_slot] < 0:
         return
     bond = state.bond[new_slot]
@@ -637,11 +647,11 @@ cdef void _fe_resolve_force_move_triggers(
     if front > 0:
         other = slot_index(player, front - 1, rank)
         if state.force[other] >= 0 and state.bond[other] < 0:
-            destinations |= <uint16_t>(1 << other)
+            destinations |= <uint32_t>(1 << other)
     if front < FRONT_COUNT - 1:
         other = slot_index(player, front + 1, rank)
         if state.force[other] >= 0 and state.bond[other] < 0:
-            destinations |= <uint16_t>(1 << other)
+            destinations |= <uint32_t>(1 << other)
     if destinations:
         _fe_enqueue_effect(self, 
             state,
@@ -650,7 +660,7 @@ cdef void _fe_resolve_force_move_triggers(
             -1,
             -1,
             -1,
-            <uint16_t>(1 << new_slot),
+            <uint32_t>(1 << new_slot),
             destinations,
             EFFECT_OPTIONAL,
         )
@@ -669,7 +679,7 @@ cdef void _fe_resolve_maneuver_triggers(
     cdef int rank = rank_from_slot(arrived_slot)
     cdef int opponent = other_player(player)
     cdef int other, other_name, bond
-    cdef uint16_t sources, destinations, swap_mask
+    cdef uint32_t sources, destinations, swap_mask
 
     _fe_resolve_force_move_triggers(self, 
         state, player, vacated_slot, arrived_slot
@@ -690,7 +700,7 @@ cdef void _fe_resolve_maneuver_triggers(
                 state, player, vacated_slot, False
             )
             _fe_queue_move_to_mask(self, 
-                state, player, sources, <uint16_t>(1 << vacated_slot), True
+                state, player, sources, <uint32_t>(1 << vacated_slot), True
             )
         if force >= 0 and self.after_empty_extra_move_force[force]:
             destinations = _fe_adjacent_empty_mask(self, 
@@ -699,7 +709,7 @@ cdef void _fe_resolve_maneuver_triggers(
             _fe_queue_move_to_mask(self, 
                 state,
                 player,
-                <uint16_t>(1 << arrived_slot),
+                <uint32_t>(1 << arrived_slot),
                 destinations,
                 True,
             )
@@ -715,15 +725,15 @@ cdef void _fe_resolve_maneuver_triggers(
                     _fe_queue_move_to_mask(self, 
                         state,
                         player,
-                        <uint16_t>(1 << other),
-                        <uint16_t>(1 << vacated_slot),
+                        <uint32_t>(1 << other),
+                        <uint32_t>(1 << vacated_slot),
                         True,
                     )
     else:
         if force >= 0 and self.after_swap_free_other[force]:
             if state.force[vacated_slot] >= 0:
                 _fe_queue_free_maneuver(
-                    self, state, player, <uint16_t>(1 << vacated_slot),
+                    self, state, player, <uint32_t>(1 << vacated_slot),
                     True, False, force
                 )
 
@@ -744,7 +754,7 @@ cdef void _fe_resolve_maneuver_triggers(
         swap_mask = 0
         for other in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if other != arrived_slot and state.force[other] >= 0:
-                swap_mask |= <uint16_t>(1 << other)
+                swap_mask |= <uint32_t>(1 << other)
         if swap_mask:
             _fe_enqueue_effect(self, 
                 state,
@@ -775,7 +785,7 @@ cdef void _fe_resolve_maneuver_triggers(
             continue
         if front_from_slot(other) == front and (self.card_capabilities[other_name] & CAP_OPPOSING_MANEUVER_SAME_FRONT_FREE_MANEUVER):
             _fe_queue_free_maneuver(
-                self, state, opponent, <uint16_t>(1 << other),
+                self, state, opponent, <uint32_t>(1 << other),
                 True, False, other_name
             )
         if (
@@ -783,7 +793,7 @@ cdef void _fe_resolve_maneuver_triggers(
             and self.reactive_maneuver_name[other_name]
         ):
             _fe_queue_free_maneuver(
-                self, state, opponent, <uint16_t>(1 << other),
+                self, state, opponent, <uint32_t>(1 << other),
                 True, False, other_name
             )
 
