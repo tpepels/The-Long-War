@@ -1170,6 +1170,9 @@ class ProgressionTelemetry:
             "active_fronts": self._distribution(
                 [row["mean_active_fronts"] for row in battle_records]
             ),
+            "developed_fronts": self._distribution(
+                [row["mean_developed_fronts"] for row in battle_records]
+            ),
             "contested_fronts": self._distribution(
                 [row["mean_contested_fronts"] for row in battle_records]
             ),
@@ -1330,7 +1333,10 @@ class ProgressionTelemetry:
                 "completed_formations": len(completed),
                 "incomplete_removed_before_completion": len(removed_incomplete_during_battle),
                 "incomplete_removed_during_battle": len(removed_incomplete_during_battle),
-                "incomplete_cleared_at_battle_end": len(cleared_incomplete_at_battle_end),
+                # Compatibility field retained for older artifact readers.
+                # Under the persistent-board rules normal Battle resolution
+                # never clears incomplete formations.
+                "incomplete_cleared_at_battle_end": 0,
                 "incomplete_at_battle_end": sum(
                     sum(record["incomplete_at_end"]) for record in battle_records
                 ),
@@ -1383,14 +1389,15 @@ class ProgressionTelemetry:
                     "in stable board order while aggregate creation/removal counts are preserved."
                 ),
                 "battle_end_formation_state": (
-                    "Complete and partial formation counts at Battle end use the final "
-                    "pre-resolution Battle state, before cleanup removes the board. Normal "
-                    "Battle cleanup is reported separately from in-Battle formation removal."
+                    "Complete and partial formation counts at Battle end describe the "
+                    "persistent battlefield. Normal Battle resolution does not clear "
+                    "complete, incomplete, or prepared battlefield stacks."
                 ),
                 "partial_formation": "A board position with a Force that is not yet both Bonded and Named.",
-                "active_front": "A Front containing at least one Force for either player.",
-                "contested_front": "A Front containing at least one Force for both players.",
-                "front_control_change": "One Front's controller changes between consecutive operation decisions.",
+                "active_front": "A rules-active Front for that Battle, whether occupied or empty.",
+                "developed_front": "An active Front containing at least one Force for either player.",
+                "contested_front": "An active Front containing at least one Force for both players.",
+                "front_control_change": "One active Front's controller changes between consecutive Action decisions.",
                 "durable_lead": (
                     "Earliest recorded decision state after which the same player's non-zero "
                     "total-Strength lead keeps the same sign through every later recorded state. "
@@ -1401,12 +1408,13 @@ class ProgressionTelemetry:
                     "Collapse-point Command means at least one player starts at the configured "
                     "collapse point. At the pre-recovery Collapse check, signed Command is "
                     "compared without clamping. Lower Command collapses; exact equal exhaustion "
-                    "is terminal and the player who Passed first loses. Low-positive streaks "
+                    "is terminal and the player who Passed in that Battle loses. Low-positive streaks "
                     "track surviving Battles that remain close to Collapse."
                 ),
                 "first_signal_result": (
-                    "There is no overall Battle winner. First-signal outcome groups therefore use "
-                    "final Front balance: Fronts won minus Fronts lost by the first passer."
+                    "Compatibility name for the sole forced Pass event. There is no overall "
+                    "Battle winner, so Pass outcome groups use final active-Front balance: "
+                    "Fronts won minus Fronts lost by the passer."
                 ),
                 "constraint_rule_source": (
                     "A necessity-classed card or card with an explicit constraint rule block "
@@ -1451,8 +1459,9 @@ class ProgressionTelemetry:
                 "command_by_source": (
                     "Source-attributed real-transition events. command_gained is the realized "
                     "increase after the Command cap; nominal_command_gain is the authored amount; "
-                    "discount_saved is Command not paid; free_operations attributes zero-cost "
-                    "operations; front_loss_command_avoided is the Front-loss penalty prevented. "
+                    "discount_saved is Command not paid; free_operations is a compatibility "
+                    "key for zero-Command Actions; front_loss_command_avoided is the Front-loss "
+                    "penalty prevented. "
                     "The current card schema has no distinct refund primitive, so command_refunded "
                     "is explicitly 0 and authored regain effects are included in command_gained."
                 ),
@@ -2085,6 +2094,7 @@ class ProgressionTelemetry:
                 for player in range(2)
             ],
             "mean_active_fronts": mean(row["active_fronts"] for row in rows),
+            "mean_developed_fronts": mean(row["developed_fronts"] for row in rows),
             "mean_contested_fronts": mean(row["contested_fronts"] for row in rows),
             "mean_uncontested_fronts": mean(row["uncontested_fronts"] for row in rows),
             "mean_empty_fronts": mean(row["empty_fronts"] for row in rows),
@@ -2311,7 +2321,11 @@ class ProgressionTelemetry:
             ]
             for player in range(2)
         ]
-        occupied_active_fronts = sum(
+        rules_active_fronts = sum(
+            bool(rule_active_mask & (1 << int(front)))
+            for front in Front
+        )
+        developed_fronts = sum(
             forces_by_front[0][int(front)] + forces_by_front[1][int(front)] > 0
             for front in Front
             if rule_active_mask & (1 << int(front))
@@ -2366,20 +2380,16 @@ class ProgressionTelemetry:
             "occupied": occupied,
             "complete_formations": complete,
             "partial_formations": partial,
-            "available_fronts": sum(
-                bool(rule_active_mask & (1 << int(front)))
-                for front in Front
-            ),
-            "active_fronts": occupied_active_fronts,
+            # "active" is a rules term: active Fronts are determined by the
+            # Battle number, regardless of whether either player has deployed
+            # there. "developed" means an active Front containing at least one
+            # Force.
+            "available_fronts": rules_active_fronts,  # compatibility alias
+            "active_fronts": rules_active_fronts,
+            "developed_fronts": developed_fronts,
             "contested_fronts": contested_fronts,
-            "uncontested_fronts": occupied_active_fronts - contested_fronts,
-            "empty_fronts": (
-                sum(
-                    bool(rule_active_mask & (1 << int(front)))
-                    for front in Front
-                )
-                - occupied_active_fronts
-            ),
+            "uncontested_fronts": developed_fronts - contested_fronts,
+            "empty_fronts": rules_active_fronts - developed_fronts,
             "front_margins": margins,
             "front_controllers": controllers,
             "controlled_fronts": [
@@ -2581,6 +2591,7 @@ class ProgressionTelemetry:
                 ),
                 "occupied_positions": self._mean_field(rows, "mean_total_occupied"),
                 "active_fronts": self._mean_field(rows, "mean_active_fronts"),
+                "developed_fronts": self._mean_field(rows, "mean_developed_fronts"),
                 "contested_fronts": self._mean_field(rows, "mean_contested_fronts"),
                 "front_control_changes": self._mean_field(rows, "front_control_changes"),
                 "cards_played": self._mean_field(rows, "cards_played"),
