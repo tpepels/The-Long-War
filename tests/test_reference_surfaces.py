@@ -25,7 +25,7 @@ def rendered_rulebook() -> str:
     )
 
 
-def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
+def test_rulebook_uses_manual_columns_and_playtest_summary() -> None:
     css = text("web/rules.css")
     rules = rendered_rulebook()
     from tools.build_pages import render_rule_tokens
@@ -36,36 +36,22 @@ def test_rulebook_uses_manual_columns_and_scan_summary() -> None:
         standard,
     )
     playmat = playmat_source.lower()
-    recovery_label = ", ".join(
-        f"+{standard.command_recovery_for_battle(battle)}"
-        for battle in range(1, 6)
-    )
 
     assert "column-count: 2;" in css
-    assert "## How the war unfolds {#learn}" in rules
-    assert "A Battle has a simple arc:" in rules
-    assert "Strength cannot fall below 0" in rules
-    assert "player who Passed second counts as active" not in rules
-    assert "no generic Draw operation" in rules
-    assert (
-        f"Base recovery starts at **{standard.command_recovery_start}** in Battle I "
-        f"and falls by **{standard.command_recovery_decrement}** each Battle:"
-        in rules
-    )
-    assert "start of every turn" in rules
-    assert "both players have Passed at least once" in rules
-    assert "player who **Passed first** starts the next Battle" in rules
-    assert "<b>start turn:</b> draw 1." in playmat
-    assert "reshuffle discard only if deck empties" in playmat
-    assert "collapse before recovery" in playmat
+    assert "## The shape of the war {#learn}" in rules
+    assert "Battle I: middle 2" in playmat_source
+    assert "Battle II: add left outer" in playmat_source
+    assert "Battle III+: all 4" in playmat_source
+    assert f"take up to {standard.actions_per_turn} actions" in playmat
+    assert "cycle (discard 2, draw 1)" in playmat
+    assert "only when no legal action remains after your draw" in playmat
+    assert "opponent takes one full closing turn" in playmat
+    assert "the battlefield itself does not move or clear" in playmat
+    assert "player who did not pass starts the next battle" in playmat
+    assert "face-down" in playmat
+    assert "identity hidden until revealed" in playmat
     assert f"lose {standard.lost_front_command_penalty} command per unprotected front lost" in playmat
-    assert f"at or below {standard.command_collapse_threshold}" in playmat
-    assert "applying the loss in full even below 0" in playmat
-    assert "if equal, the player who passed first loses" in playmat
-    assert "front losses have already reduced command before collapse" in playmat
-    assert recovery_label in playmat_source
-    assert f"minimum {standard.command_recovery_floor}" in playmat
-
+    assert "collapse before recovery" in playmat
 
 def test_rulebook_core_values_match_standard_engine() -> None:
     rules_text = rendered_rulebook()
@@ -73,89 +59,57 @@ def test_rulebook_core_values_match_standard_engine() -> None:
 
     assert FRONT_COUNT == 4
     assert f"draw **{standard.opening_hand_size} cards**" in rules_text
-    assert f"Command to **{standard.starting_command}**" in rules_text
-    assert (
-        f"at most **{standard.ongoing_narrative_limit} Ongoing Narratives**"
-        in rules_text
-    )
-    assert (
-        "A **Maneuver** is an operation that moves one of your Named Formations."
-        in rules_text
-    )
-    assert f"It costs **{standard.maneuver_command_cost} Command**." in rules_text
-    assert "**both players have Passed at least once**" in rules_text
-    assert "Once the first active Pass exists, the Pass gate is open." in rules_text
-    assert "The first Pass does not start a countdown." in rules_text
-    assert (
-        "Pass is no longer a normal voluntary choice while another legal "
-        "operation is available."
-        in rules_text
-    )
-    assert (
-        f"at or below **{standard.command_collapse_threshold} Command**"
-        in rules_text
-    )
-    assert (
-        f"**{standard.lost_front_command_penalty} Command for each Front you lost**"
-        in rules_text
-    )
-    assert "even if it takes Command below 0" in rules_text
-    assert "the player who **Passed first** loses the war" in rules_text
-    assert "the war ends in a **draw**" not in rules_text
-    assert (
-        f"Base recovery starts at **{standard.command_recovery_start}** in Battle I "
-        f"and falls by **{standard.command_recovery_decrement}** each Battle:"
-        in rules_text
-    )
-    recovery_series = ", ".join(
-        str(standard.command_recovery_for_battle(battle))
-        for battle in range(1, 6)
-    ) + "..."
-    assert f"**{recovery_series}**" in rules_text
+    assert f"Each player begins with **{standard.starting_command} Command**" in rules_text
+    assert f"at most **{standard.ongoing_narrative_limit} Ongoing Narratives**" in rules_text
+    assert "take **up to 2 Actions**" in rules_text
+    assert "A **Maneuver** is an Action" in rules_text
+    assert f"A Maneuver costs **{standard.maneuver_command_cost} Command**." in rules_text
+    assert "**Pass is a turn, not an Action.**" in rules_text
+    assert "You may end your turn after zero, one, or two Actions." in rules_text
+    assert "player who **did not Pass** starts the next Battle" in rules_text
+    assert "Winning or losing a Front does **not** move, Retreat, or discard any battlefield cards." in rules_text
+    assert f"Lose **{standard.lost_front_command_penalty} Command for each Front you lost**" in rules_text
+    assert "Check for Command Collapse before anyone recovers Command." in rules_text
+    assert "at most **4 copies** of any non-Unique title" in rules_text
+    assert "There is no required minimum number of Forces or printed Names." in rules_text
 
-    effective_recovery_series = ", ".join(
-        str(
-            max(
-                standard.command_recovery_floor,
-                standard.command_recovery_for_battle(battle),
-            )
+    effective_recovery = [
+        max(
+            standard.command_recovery_floor,
+            standard.command_recovery_for_battle(battle),
         )
         for battle in range(1, 7)
-    ) + "..."
-    assert f"**{effective_recovery_series}**" in rules_text
-    assert "Do **not** clamp negative Command back to 0." in rules_text
-
+    ]
+    assert effective_recovery == [12, 9, 6, 3, 1, 1]
 
 def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
     play = text("web/play.html")
     script = text("web/play.js")
     api = text("src/longwar/web_api.py")
 
-    assert "configured Command penalty for each unprotected Front lost" in play
-    assert "if equal, the player who Passed first loses" in play
-    assert "equal Command is a draw" not in play
-    assert "ongoing Narratives" not in play
+    assert "take up to 2 Actions" in play
+    assert "Cycle by discarding 2 cards and drawing 1" in play
+    assert "Pass is not an Action" in play
+    assert "Stratagems are set face-down" in play
+    assert "The battlefield persists" in play
+    assert "player who did not Pass start" in play
 
     assert '"rules": self.engine.rules.as_dict()' in api
-    assert "state?.rules" in script
-    for field in (
-        "starting_command",
-        "command_cap",
-        "command_collapse_threshold",
-        "lost_front_command_penalty",
-        "command_recovery_floor",
-        "ongoing_narrative_limit",
-    ):
-        assert f"rules.{field}" in script
+    assert '"active_front_mask": active_front_mask' in api
+    assert '"actions_this_turn": state.actions_this_turn' in api
+    assert '"closing_turns_remaining": state.closing_turns_remaining' in api
+    assert 'result.get("kind") == "PlayStratagem"' in api
+    assert "EndTurn" in api
 
-    assert "Choose one of your two Ongoing Narrative slots" not in script
-    assert "first open Narrative slot is assigned automatically" in script
-
+    assert "ACTION_KIND.END_TURN" in script
+    assert "actionForTurnEnd" in script
+    assert "Face-down Stratagem" in script
+    assert "Battle I uses the two middle Fronts" in script
+    assert "Pass appears only when no legal Action remains" in script
 
 def test_rulebook_roles_are_labels_not_hidden_rules() -> None:
     rules = text("rules/rulebook.md")
-    assert "They have no hidden rules." in rules
-
+    assert "They have no rule of their own unless a card refers to them." in rules
 
 def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     from tools.build_pages import render_rule_tokens
@@ -166,15 +120,22 @@ def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
 
     assert "reference-v3" in page
     assert "Battlefield & turn order" in page
-    assert "WHERE CARDS GO" in page
-    assert "CARD TEXT" in page
-    assert "WHEN BOTH PLAYERS HAVE PASSED" in page
-    assert "BETWEEN BATTLES" in page
-    assert "Hero" in page
-    assert f"Hero limit: {standard.hero_play_limit_per_battle} from hand per Battle" in page
+    assert "Active Fronts" in page
+    assert "YOUR TURN" in page
+    assert f"take up to {standard.actions_per_turn} Actions" in page
+    assert "end your turn early" in page
+    assert "AFTER THE TWO CLOSING TURNS" in page
+    assert "The battlefield itself does not move or clear." in page
+    assert "face-down" in page
+    assert "identity hidden until revealed" in page
+    assert (
+        f"Play at most {standard.hero_force_play_limit_per_battle} Hero as Force "
+        f"and {standard.hero_name_play_limit_per_battle} Hero as Name"
+        in page
+    )
+    assert "the player who did not Pass starts" in page
     assert "font-size: 3.1mm;" in css
     assert "page: battlefield-reference" in css
-
 
 def test_balance_validation_covers_all_reference_decks() -> None:
     from longwar.reference_decks import DECK_CATALOG
@@ -438,23 +399,21 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     kit = text("web/playtest-kit.html")
 
     assert "ACTIVE" in page
-    assert "FIRST" in page and "TO PASS" in page
-    assert "PASS ACTIVE" in page
-    assert "BATTLE WIN" not in page
+    assert "ACTION" in page and "1 / 2" in page
+    assert "PASSER" in page and "CLOSING" in page
+    assert "PASS ACTIVE" not in page
     assert "STRATAGEM USED" in page
-    assert page.count("HERO USED") == 2
-    assert "DRAW USED" not in page
-    assert "FINAL</strong><span>OPERATION" not in page
-    assert "COMMAND · NEXT BATTLE" not in page
-    assert "There is no overall Battle winner." in page
+    assert page.count("FORCE USED") == 2
+    assert page.count("NAME USED") == 2
+    assert "Stratagem identities are hidden" in page
+    assert "face-down until its own trigger reveals it" in page
+    assert "Battle I: middle two" in page
+    assert "Battle II: add left outer" in page
+    assert "Battle III+: all four" in page
     for modifier in ("+1", "+2", "+3", "-1", "-2", "-3"):
         assert modifier in page
-    assert "Ongoing Narratives and Stratagems are public." in page
-    assert "stay face-up and visible to both players" in page
     assert "@page tracker" in css
     assert 'href="tokens.html"' in kit
-
-
 
 def test_rulebook_markdown_and_sections_have_generated_wrappers() -> None:
     from tools.build_pages import group_rulebook_sections
