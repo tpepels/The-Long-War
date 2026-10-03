@@ -341,6 +341,24 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_pass_action(self, state, actor)
         return
 
+    if kind == TYPE_END_TURN:
+        _fe_end_turn_fast(self, state, actor)
+        return
+
+    if kind == TYPE_CYCLE:
+        target = <int>extra - 1
+        if target < 0 or state.hand[actor][card] <= 0 or state.hand[actor][target] <= 0:
+            raise ValueError("Cycle requires two cards in hand")
+        if card == target and state.hand[actor][card] < 2:
+            raise ValueError("Cycle requires two copies when cycling the same card")
+        _fe_take_from_hand(self, state, actor, card, 0)
+        _fe_append_discard(self, state, actor, card, True)
+        _fe_take_from_hand(self, state, actor, target, 0)
+        _fe_append_discard(self, state, actor, target, True)
+        _fe_draw_for_battle(self, state, actor, 1)
+        _fe_finish_operation_fast(self, state, actor)
+        return
+
     if kind == TYPE_EFFECT:
         _fe_apply_pending_effect(self, state, action)
         return
@@ -393,7 +411,11 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         front = front_from_slot(pos)
         state.cards_played_this_turn_front_mask[actor] |= 1 << front
         state.cards_played_this_battle_front_mask[actor] |= 1 << front
-    if (kind == TYPE_FORCE or kind == TYPE_NAME) and card >= 0 and self.hero[card]:
+    if kind == TYPE_FORCE and card >= 0 and self.hero[card]:
+        state.hero_force_used[actor] += 1
+        state.hero_used[actor] += 1
+    elif kind == TYPE_NAME and card >= 0 and self.hero[card]:
+        state.hero_name_used[actor] += 1
         state.hero_used[actor] += 1
 
     if kind == TYPE_FORCE:
@@ -510,14 +532,14 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     elif kind == TYPE_STRATAGEM:
         _fe_take_from_hand(self, state, actor, card, 0)
         state.stratagem[actor] = card
-        state.stratagem_revealed[actor] = 1
+        state.stratagem_revealed[actor] = 0
         state.stratagem_front_mask[actor] = (
             <uint8_t>pos if pos >= 0 else 0
         )
         state.stratagem_direction[actor] = (
             <uint8_t>(dest + 1) if dest >= 0 else 0
         )
-        state.stratagem_target_mask[actor] = <uint16_t>(extra & 0xFFFF)
+        state.stratagem_target_mask[actor] = <uint32_t>extra
         state.stratagem_used[actor] += 1
 
         if self.strat_next_operation_front[card] and pos >= 0:
