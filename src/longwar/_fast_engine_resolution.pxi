@@ -843,7 +843,3 @@ cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     # the two ordinary closing turns.
     state.turn_number += 1
     _fe_start_turn_fast(self, state, opponent)
-        return
-
-    _fe_start_turn_fast(self, state, opponent)
-    state.turn_number += 1
