@@ -7,7 +7,7 @@ import pytest
 
 from longwar.agents.online_mccfr_agent import OnlineMCCFRAgent
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine, GameState, Pass, Position, Rank
+from longwar.game import EndTurn, Front, GameEngine, GameState, Position, Rank
 from longwar.game.model import PlayerState
 from longwar.mccfr import action_key
 from longwar.online_mccfr import OnlineMCCFRResolver
@@ -53,9 +53,9 @@ def test_online_mccfr_agent_allows_legal_midbattle_zero_command_play() -> None:
         first_player=0,
         opening_bonus=False,
     )
+    state.battle = 3
     state.players[0].command = 1
     state.players[1].command = 5
-    state.operations_this_battle[:] = [1, 1]
     player = state.players[0]
     for zone in (player.hand, player.deck):
         if "the-grey-riders" in zone:
@@ -90,7 +90,7 @@ def test_online_mccfr_agent_allows_legal_midbattle_zero_command_play() -> None:
     assert agent.last_decision["command_guard_filtered_actions"] == 0
 
 
-def test_online_resolver_handles_battle_ending_second_signal_with_unknown_deck() -> None:
+def test_online_resolver_handles_final_closing_turn_with_unknown_deck() -> None:
     engine, deck = setup()
 
     p0_hidden = list(deck)
@@ -102,33 +102,33 @@ def test_online_resolver_handles_battle_ending_second_signal_with_unknown_deck()
             PlayerState(
                 deck=p0_hidden,
                 hand=["the-black-company"],
+                passed=True,
                 command=engine.starting_command,
             ),
             PlayerState(
                 deck=list(deck),
                 hand=[],
-                passed=True,
                 command=engine.starting_command,
             ),
         ],
         active_player=0,
         battle=3,
-        pass_order=[1],
-        operations_this_battle=[1, 1],
+        pass_order=[0],
+        closing_turns_remaining=1,
     )
     state.slot(0, Position(Front.FIRST, Rank.FRONT)).force = "the-unnamed-host"
     state.slot(0, Position(Front.SECOND, Rank.FRONT)).force = "the-late-banner"
 
     legal = engine.legal_actions(state)
     legal_keys = {action_key(action) for action in legal}
-    assert "pass" in legal_keys
+    assert "end-turn" in legal_keys
+    assert "pass" not in legal_keys
     assert len(legal_keys) > 1
 
-    pass_state = state.clone()
-    pass_action = next(action for action in legal if action_key(action) == "pass")
-    engine.apply(pass_state, pass_action)
-    assert pass_state.battle == 4
-    assert pass_state.winner is None
+    end_state = state.clone()
+    engine.apply(end_state, EndTurn())
+    assert end_state.battle == 4
+    assert end_state.winner is None
 
     resolver = OnlineMCCFRResolver(
         engine,
@@ -141,3 +141,4 @@ def test_online_resolver_handles_battle_ending_second_signal_with_unknown_deck()
     assert result.root_coverage == 1.0
     assert set(result.strategy) == legal_keys
     assert sum(result.strategy.values()) == pytest.approx(1.0)
+
