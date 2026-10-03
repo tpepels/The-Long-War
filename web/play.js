@@ -565,6 +565,11 @@ function actionForPass() {
   return state.legal_actions.find((action) => action.kind === ACTION_KIND.PASS) || null;
 }
 
+function actionForTurnEnd() {
+  if (!state || state.phase === SESSION_PHASE.MULLIGAN) return null;
+  return state.legal_actions.find((action) => action.kind === ACTION_KIND.END_TURN) || null;
+}
+
 function cycleActions() {
   if (!state || state.phase === SESSION_PHASE.MULLIGAN) return [];
   return state.legal_actions.filter((action) => action.kind === ACTION_KIND.CYCLE);
@@ -888,15 +893,13 @@ function renderStrip() {
       '"><span>P' + (viewer + 1) + '</span></div>';
 
   const pass = actionForPass();
+  const endTurn = actionForTurnEnd();
+  const turnControl = endTurn || pass;
   const passButton = $("pass-button");
-  passButton.hidden = !pass || state.viewer == null;
-  passButton.disabled = !pass || state.viewer == null;
-  const forcedYield = !!pass && (
-    state.actions_this_turn > 0 ||
-    state.closing_turns_remaining > 0
-  );
-  passButton.classList.toggle("danger-pass", false);
-  passButton.textContent = forcedYield ? "End turn" : "Pass";
+  passButton.hidden = !turnControl || state.viewer == null;
+  passButton.disabled = !turnControl || state.viewer == null;
+  passButton.classList.toggle("danger-pass", !!pass);
+  passButton.textContent = endTurn ? "End turn" : "Pass";
 
   const cycles = cycleActions();
   const cycleButton = $("cycle-button");
@@ -1132,7 +1135,7 @@ function renderInteraction() {
     } else {
       title.textContent = "Your turn · Action " +
         (state.actions_this_turn + 1) + "/" + state.actions_per_turn;
-      hint.textContent = "Play a card, Maneuver, or Cycle. Pass appears only when no legal Action remains.";
+      hint.textContent = "Play a card, Maneuver, Cycle, or end your turn early. Pass appears only when no legal Action remains.";
       cancel.hidden = true;
     }
   } else {
@@ -1600,11 +1603,11 @@ function renderActionFeedback() {
   let title = card?.title || action.label;
 
   if (action.kind === ACTION_KIND.PASS) {
-    const truePass = action.pass_type === "pass";
-    kicker = truePass
-      ? (own ? "YOU PASS" : "OPPONENT PASSES")
-      : (own ? "YOUR TURN ENDS" : "OPPONENT TURN ENDS");
-    title = truePass ? "Closing sequence begins" : "Next closing turn";
+    kicker = own ? "YOU PASS" : "OPPONENT PASSES";
+    title = "Closing sequence begins";
+  } else if (action.kind === ACTION_KIND.END_TURN) {
+    kicker = own ? "YOUR TURN ENDS" : "OPPONENT TURN ENDS";
+    title = state.closing_turns_remaining > 0 ? "Closing sequence continues" : "Turn complete";
   } else if (action.kind === ACTION_KIND.CYCLE) {
     kicker = own ? "YOU CYCLE" : "OPPONENT CYCLES";
   } else if (action.kind === ACTION_KIND.DISCARD) {
@@ -1855,8 +1858,8 @@ $("cycle-button").addEventListener("click", () => {
 });
 
 $("pass-button").addEventListener("click", () => {
-  const pass = actionForPass();
-  if (pass) executeAction(pass);
+  const action = actionForTurnEnd() || actionForPass();
+  if (action) executeAction(action);
 });
 
 function showTermHint(term) {
