@@ -5,6 +5,11 @@ on:
       - design/v2-physical-cards
     paths:
       - .github/workflows/v2-final-verify.yml
+      - tools/check_card_layout.py
+      - tests/test_v2_card_design.py
+      - cards/v2/**
+      - web/cards-v2.*
+      - web/v2-*.js
 permissions:
   contents: read
 jobs:
