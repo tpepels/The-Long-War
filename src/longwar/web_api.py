@@ -9,6 +9,7 @@ from .belief import DeckHypothesis, HypothesisDeckPrior
 from .game.actions import (
     Action,
     BoardTarget,
+    Cycle,
     Discard,
     EffectChoice,
     Maneuver,
@@ -267,10 +268,20 @@ class PlaySession:
                 "hand_count": len(ps.hand),
                 "deck_count": len(ps.deck),
                 "command": ps.command,
-                "hero_used": bool(state.hero_used[player]),
+                "hero_force_used": bool(state.hero_used[player] & 1),
+                "hero_name_used": bool(state.hero_used[player] & 2),
                 "discard": list(ps.discard),
             }
             for player, ps in enumerate(state.players)
+        ]
+
+        active_front_mask = self.engine.rules.active_front_mask_for_battle(
+            state.battle
+        )
+        active_fronts = [
+            front
+            for front in range(len(FRONT_NAMES))
+            if active_front_mask & (1 << front)
         ]
 
         board: list[list[dict[str, Any]]] = [[] for _ in range(PLAYER_COUNT)]
@@ -281,6 +292,9 @@ class PlaySession:
                     {
                         "front": int(position.front),
                         "front_name": FRONT_NAMES[position.front],
+                        "active": bool(
+                            active_front_mask & (1 << int(position.front))
+                        ),
                         "rank": position.rank.value,
                         "rank_name": RANK_NAMES[position.rank],
                         "force": slot.force,
@@ -317,39 +331,50 @@ class PlaySession:
             for owner in range(PLAYER_COUNT)
         ]
 
-        stratagems = [
-            (
-                None
-                if state.stratagems[owner] is None
-                else {
-                    "card_id": state.stratagems[owner].card_id,
-                    "fronts": [
-                        int(front)
-                        for front in state.stratagems[owner].fronts
-                    ],
-                    "direction": state.stratagems[owner].direction,
-                    "targets": [
-                        {
-                            "player": target_player,
-                            **self._position_payload(target_position),
-                        }
-                        for target_player, target_position
-                        in state.stratagems[owner].targets
-                    ],
-                }
+        stratagems = []
+        for owner in range(PLAYER_COUNT):
+            stratagem = state.stratagems[owner]
+            if stratagem is None:
+                stratagems.append(None)
+                continue
+            visible_identity = (
+                stratagem.revealed
+                or viewer == owner
             )
-            for owner in range(PLAYER_COUNT)
-        ]
+            stratagems.append({
+                "card_id": (
+                    stratagem.card_id if visible_identity else None
+                ),
+                "hidden": not stratagem.revealed,
+                "revealed": stratagem.revealed,
+                "fronts": [int(front) for front in stratagem.fronts],
+                "direction": stratagem.direction,
+                "targets": [
+                    {
+                        "player": target_player,
+                        **self._position_payload(target_position),
+                    }
+                    for target_player, target_position
+                    in stratagem.targets
+                ],
+            })
 
         front_strengths = [
             [
-                self.engine.front_strength(state, player, front)
+                (
+                    self.engine.front_strength(state, player, front)
+                    if active_front_mask & (1 << int(front))
+                    else 0
+                )
                 for front in Front
             ]
             for player in range(PLAYER_COUNT)
         ]
         front_control = []
         for front in Front:
+            if not active_front_mask & (1 << int(front)):
+                front_control.append(None)
+                continue
             p0 = front_strengths[0][int(front)]
             p1 = front_strengths[1][int(front)]
             front_control.append(
@@ -393,6 +418,14 @@ class PlaySession:
             "battle": state.battle,
             "phase": display_phase,
             "active_player": display_active,
+            "active_front_mask": active_front_mask,
+            "active_fronts": active_fronts,
+            "actions_this_turn": state.actions_this_turn,
+            "actions_per_turn": self.engine.rules.actions_per_turn,
+            "closing_turns_remaining": state.closing_turns_remaining,
+            "first_passer": (
+                state.pass_order[0] if state.pass_order else None
+            ),
             "winner": state.winner,
             "viewer": viewer,
             "needs_reveal": (
@@ -485,10 +518,9 @@ class PlaySession:
         self,
         viewer: int | None,
     ) -> dict[str, Any] | None:
-        del viewer
         if self.last_action is None:
             return None
-        return {
+        result = {
             key: value
             for key, value in self.last_action.items()
             if key
@@ -499,6 +531,13 @@ class PlaySession:
                 "private_label",
             }
         }
+        if (
+            result.get("kind") == "Stratagem"
+            and viewer != result.get("actor")
+        ):
+            result["card_id"] = None
+            result["hidden"] = True
+        return result
 
     def _action_view(self, action: Action) -> dict[str, Any]:
         card_id = getattr(action, "card_id", None)
@@ -522,6 +561,7 @@ class PlaySession:
             "move_destination": None,
             "extra_payment": 0,
             "discard_card_id": None,
+            "cycle_card_ids": [],
             "ongoing_slot": None,
             "fronts": [],
             "direction": None,
@@ -538,6 +578,11 @@ class PlaySession:
                     payload["move_destination"] = self._position_payload(
                         action.move_destination
                     )
+        elif isinstance(action, Cycle):
+            payload["cycle_card_ids"] = [
+                action.first_card_id,
+                action.second_card_id,
+            ]
         elif isinstance(action, Maneuver):
             payload["source"] = self._position_payload(action.source)
             payload["destination"] = self._position_payload(
@@ -598,11 +643,21 @@ class PlaySession:
         *,
         private: bool = False,
     ) -> str:
-        del private
         prefix = f"Player {actor + 1}"
 
         if isinstance(action, Pass):
-            return f"{prefix} Passes."
+            if (
+                self.state.actions_this_turn > 0
+                or self.state.closing_turns_remaining > 0
+            ):
+                return f"{prefix} ends the turn."
+            return f"{prefix} Passes and begins the closing sequence."
+        if isinstance(action, Cycle):
+            return (
+                f"{prefix} cycles "
+                f"{self.cards[action.first_card_id]['title']} and "
+                f"{self.cards[action.second_card_id]['title']}."
+            )
         if isinstance(action, Discard):
             return (
                 f"{prefix} discards "
@@ -720,6 +775,8 @@ class PlaySession:
                 )
             return f"{prefix} plays the {form} {title}{detail}."
         if isinstance(action, PlayStratagem):
+            if not private:
+                return f"{prefix} sets a face-down Stratagem."
             detail = ""
             if action.fronts:
                 detail = " choosing " + ", ".join(
@@ -733,7 +790,7 @@ class PlaySession:
                     for target in action.targets
                 )
             return (
-                f"{prefix} plays "
+                f"{prefix} sets "
                 f"{self.cards[action.card_id]['title']} as their Stratagem"
                 f"{detail}."
             )
@@ -741,13 +798,20 @@ class PlaySession:
 
     def _legal_reason(self, action: Action) -> str:
         if isinstance(action, Pass):
+            if (
+                self.state.actions_this_turn > 0
+                or self.state.closing_turns_remaining > 0
+            ):
+                return (
+                    "No further Action is legal this turn, so the turn ends."
+                )
             return (
-                "Normally both players must have completed at least one "
-                "operation before Pass is available, unless you have no other "
-                "legal operation. Once you Pass, it remains active for the "
-                "rest of the Battle even if you later act. The Battle ends "
-                "when both players have Passed."
+                "Pass is available only because no legal Action remains after "
+                "the turn's draw. The opponent gets one full closing turn, "
+                "then you get one full closing turn, then the Battle ends."
             )
+        if isinstance(action, Cycle):
+            return "Spend one Action to discard two cards, then draw one card."
         if isinstance(action, Discard):
             return (
                 "Your hand is already at the 10-card limit. Discard one card, "
