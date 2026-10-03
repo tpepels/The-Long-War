@@ -400,106 +400,6 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     state.resolution_stage = RESOLUTION_NARRATIVES
     state.resolution_cursor = 0
 
-cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) except *:
-    cdef int player, front, front_slot, rear_slot, force
-    cdef uint16_t destinations
-
-    while state.resolution_cursor < PLAYER_COUNT * FRONT_COUNT:
-        player = state.resolution_cursor // FRONT_COUNT
-        front = state.resolution_cursor % FRONT_COUNT
-        if not (
-            state.resolution_lost_mask[player] & (1 << front)
-        ):
-            state.resolution_cursor += 1
-            continue
-
-        front_slot = slot_index(player, front, RANK_FRONT)
-        rear_slot = slot_index(player, front, RANK_REAR)
-
-        # Snapshot persistent Rear effects before that formation is driven
-        # off. Upper drive-mask bits are temporary sideways-retreat markers.
-        force = state.force[rear_slot]
-        if force >= 0 and (self.card_capabilities[force] & CAP_AFTER_FRONTLINE_RETREAT_SIDEWAYS_FORCE):
-            state.resolution_drive_mask[player] |= <uint8_t>(
-                1 << (front + FRONT_COUNT)
-            )
-
-        if _fe_slot_complete(self, state, front_slot) and force >= 0:
-            if self.rear_force_prevents_frontline_retreat[force]:
-                state.resolution_protected_mask[player] |= <uint8_t>(
-                    1 << front
-                )
-            elif (
-                (self.card_capabilities[force] & CAP_OPTIONAL_SELF_DRIVE_PREVENT_FRONTLINE_RETREAT_FORCE)
-                and not (
-                    state.resolution_protected_mask[player]
-                    & (1 << (front + FRONT_COUNT))
-                )
-            ):
-                # Mark offered before pausing so declining cannot requeue it.
-                state.resolution_protected_mask[player] |= <uint8_t>(
-                    1 << (front + FRONT_COUNT)
-                )
-                _fe_enqueue_effect(self, 
-                    state,
-                    EFFECT_PROTECT_RETREAT,
-                    player,
-                    -1,
-                    rear_slot,
-                    front_slot,
-                    0,
-                    0,
-                    EFFECT_OPTIONAL,
-                )
-                return
-
-        if _fe_slot_complete(self, state, rear_slot):
-            _fe_drive_off_slot(self, state, player, rear_slot)
-            if state.pending_len > 0:
-                return
-
-        if not _fe_slot_complete(self, state, front_slot):
-            state.resolution_cursor += 1
-            continue
-
-        if state.resolution_protected_mask[player] & (1 << front):
-            state.resolution_cursor += 1
-            continue
-
-        if state.resolution_drive_mask[player] & (1 << front):
-            _fe_drive_off_slot(self, state, player, front_slot)
-            if state.pending_len > 0:
-                return
-            state.resolution_cursor += 1
-            continue
-
-        # Mark this Front complete before after-Retreat effects pause play.
-        state.resolution_cursor += 1
-        _fe_retreat_slot(self, state, player, front_slot, rear_slot)
-
-        if _fe_front_has_capture_bond(self, state, other_player(player), front):
-            _fe_return_bond_to_hand_from_slot(self, 
-                state, player, rear_slot
-            )
-
-        if state.resolution_drive_mask[player] & (1 << (front + FRONT_COUNT)):
-            destinations = _fe_adjacent_empty_mask(self, 
-                state, player, rear_slot
-            )
-            _fe_queue_move_to_mask(self, 
-                state,
-                player,
-                <uint16_t>(1 << rear_slot),
-                destinations,
-                True,
-            )
-
-        if state.pending_len > 0 or state.cleanup_pending:
-            return
-
-    state.resolution_stage = RESOLUTION_NARRATIVES
-    state.resolution_cursor = 0
-
 cdef bint _fe_resolve_one_battle_end_narrative(
     FastEngine self,
     FastState state,
@@ -766,12 +666,6 @@ cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except
 
         if state.resolution_stage == RESOLUTION_COMPARE:
             _fe_compare_battle_fronts(self, state)
-            continue
-
-        if state.resolution_stage == RESOLUTION_RETREATS:
-            _fe_advance_retreat_resolution(self, state)
-            if state.pending_len > 0 or state.cleanup_pending:
-                return
             continue
 
         if state.resolution_stage == RESOLUTION_NARRATIVES:
