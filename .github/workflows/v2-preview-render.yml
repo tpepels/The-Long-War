@@ -5,6 +5,12 @@ on:
       - design/v2-physical-cards
     paths:
       - .github/workflows/v2-preview-render.yml
+      - tools/render_v2_previews.py
+      - web/cards-v2.css
+      - web/cards-v2.js
+      - web/v2-heraldry.js
+      - web/v2-reminders.js
+      - web/art/v2/*.png
 permissions:
   contents: write
 jobs:

@@ -5,8 +5,12 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
+import shutil
 
-from tools.check_card_layout import ROOT, browser_path
+ROOT = Path(__file__).resolve().parents[1]
+
+def browser_path() -> str | None:
+    return next((path for name in ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser") if (path := shutil.which(name))), None)
 
 CARDS = ROOT / "cards" / "v2" / "cards.json"
 WEB = ROOT / "web"
