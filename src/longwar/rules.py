@@ -29,14 +29,17 @@ class GameRules:
     command_recovery_floor: int = 1
     command_collapse_threshold: int = 0
     lost_front_command_penalty: int = 1
-    # Canonical Battle ending: Pass consumes the operation and remains active
-    # for the Battle. The Battle ends when both players have Passed.
-    pass_min_operations_before_signal: int = 1
+    # A normal turn draws once, then takes up to two Actions. Pass is available
+    # only at the start of a turn when no Action is legal; it starts exactly
+    # two closing turns before Battle resolution.
+    actions_per_turn: int = 2
+    closing_turns_after_pass: int = 2
     turn_draw_count: int = 1
     maneuver_command_cost: int = 1
     hand_limit: int = 10
     ongoing_narrative_limit: int = 2
-    hero_play_limit_per_battle: int = 1
+    hero_force_play_limit_per_battle: int = 1
+    hero_name_play_limit_per_battle: int = 1
     stratagem_play_limit_per_battle: int = 1
 
     def __post_init__(self) -> None:
@@ -88,6 +91,24 @@ class GameRules:
             0,
             self.command_recovery_start
             - self.command_recovery_decrement * (battle - 1),
+        )
+
+    def active_front_mask_for_battle(self, battle: int) -> int:
+        """Return the canonical active-Front mask for one Battle."""
+        if battle < 1:
+            raise ValueError("battle must be at least 1")
+        if battle == 1:
+            return 0b0110
+        if battle == 2:
+            return 0b0111
+        return 0b1111
+
+    @property
+    def hero_play_limit_per_battle(self) -> int:
+        """Compatibility/readability total; mode limits remain authoritative."""
+        return (
+            self.hero_force_play_limit_per_battle
+            + self.hero_name_play_limit_per_battle
         )
 
     def with_overrides(self, **changes: object) -> "GameRules":
