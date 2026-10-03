@@ -816,8 +816,8 @@ def test_immobile_force_cannot_be_moved_by_line_wheeled() -> None:
 
 
 def test_battle_only_temporary_strength_resets_after_battle() -> None:
-    engine, state = setup_state()
-    target = pos(0, Rank.FRONT)
+    engine, state = setup_state(battle=1)
+    target = pos(1, Rank.FRONT)
     make_named(state, 0, target, temporary=4)
 
     resolve_battle_by_passing(engine, state)
@@ -828,7 +828,7 @@ def test_battle_only_temporary_strength_resets_after_battle() -> None:
 
 
 def test_battle_resolves_four_fronts_independently_without_battle_winner() -> None:
-    engine, state = setup_state()
+    engine, state = setup_state(battle=3)
 
     make_named(state, 0, pos(0))
     make_named(state, 1, pos(1))
@@ -1260,6 +1260,7 @@ def test_hand_deck_discard_and_named_formations_persist_between_battles() -> Non
 
 def test_empty_draw_pile_reshuffles_discard_only_when_draw_is_required() -> None:
     engine, state = setup_state()
+    state.players[0].hand.clear()
     state.players[1].hand = ["the-fifty-men"] * (engine.hand_limit - 1)
     state.players[1].deck.clear()
     state.players[1].discard = ["the-fifty-men"]
@@ -1773,7 +1774,7 @@ def test_before_sunset_draws_at_battle_end_and_records_refund() -> None:
 
 
 def test_meren_repositions_before_first_turn_of_next_battle() -> None:
-    engine, state = setup_state(seed=4816)
+    engine, state = setup_state(seed=4816, battle=1)
     make_named(state, 0, pos(1, Rank.FRONT), name="meren")
 
     resolve_battle_by_passing(engine, state)
