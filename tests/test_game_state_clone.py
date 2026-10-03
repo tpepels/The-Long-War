@@ -34,8 +34,14 @@ def test_game_state_clone_is_fully_isolated() -> None:
     slot.bond = "followed"
     slot.name = "namar"
     state.narratives[0].append(NarrativeState("the-wall-did-not-break", fronts=(Front.SECOND,)))
-    state.stratagems[0] = StratagemState("no-step-back", fronts=(Front.THIRD,))
-    state.stratagem_used[0] = True
+    state.stratagems[0] = StratagemState(
+        "no-step-back",
+        fronts=(Front.THIRD,),
+        revealed=True,
+    )
+    state.stratagem_used[0] = 1
+    state.actions_this_turn = 1
+    state.closing_turns_remaining = 2
     state.pending_draw_discard_for = 1
 
     clone = state.clone()
@@ -53,6 +59,9 @@ def test_game_state_clone_is_fully_isolated() -> None:
     assert state.stratagems[0].card_id == "no-step-back"
     assert state.narratives[0][0].fronts == (Front.SECOND,)
     assert state.stratagems[0].fronts == (Front.THIRD,)
+    assert state.stratagems[0].revealed is True
+    assert state.actions_this_turn == 1
+    assert state.closing_turns_remaining == 2
     assert state.pass_order == []
     assert state.pending_draw_discard_for == 1
 
@@ -65,9 +74,14 @@ def test_game_state_copy_from_reuses_containers_without_aliasing_source() -> Non
     source.players[0].discard.append("followed")
     source.players[1].passed = True
     source.pass_order.append(1)
-    source.stratagem_used[0] = True
+    source.stratagem_used[0] = 1
+    source.actions_this_turn = 1
+    source.closing_turns_remaining = 1
     source.narratives[0].append(NarrativeState("the-long-march"))
-    source.stratagems[0] = StratagemState("the-ground-was-held")
+    source.stratagems[0] = StratagemState(
+        "the-ground-was-held",
+        revealed=True,
+    )
     slot = source.slot(0, position)
     slot.force = "seven-black-ships"
     slot.bond = "followed"
@@ -89,9 +103,12 @@ def test_game_state_copy_from_reuses_containers_without_aliasing_source() -> Non
     assert target.players[0].discard == ["followed"]
     assert target.players[1].passed is True
     assert target.pass_order == [1]
-    assert target.stratagem_used[0] is True
+    assert target.stratagem_used[0] == 1
+    assert target.actions_this_turn == 1
+    assert target.closing_turns_remaining == 1
     assert target.narratives[0][0].card_id == "the-long-march"
     assert target.stratagems[0].card_id == "the-ground-was-held"
+    assert target.stratagems[0].revealed is True
     assert target.slot(0, position).force == "seven-black-ships"
     assert target.slot(0, position).temporary_strength == 2
 
