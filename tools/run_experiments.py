@@ -56,7 +56,7 @@ from longwar.decks import (
     validate_deck_definition,
 )
 from longwar.game import GameEngine
-from longwar.game.actions import Pass
+from longwar.game.actions import EndTurn, Pass
 from longwar.game.model import Phase
 from longwar.fingerprint import artifact_directory, experiment_identity
 from longwar.health import wilson_interval
@@ -3744,8 +3744,9 @@ def narrative_ablation_run(args: argparse.Namespace) -> Path:
 
 
 
-# Permanent Pass is canonical. This sweep changes only the arithmetic recovery
-# curve so Battle-ending semantics, Collapse, decks, seeds and search remain fixed.
+# The fixed forced-Pass closing sequence is canonical. This sweep changes only
+# the arithmetic recovery curve so Battle-ending semantics, Collapse, decks,
+# seeds and search remain fixed.
 RECOVERY_RULE_VARIANTS: dict[str, dict[str, object]] = {
     "current-12-3": {
         "command_recovery_start": 12,
@@ -4248,25 +4249,37 @@ def _prepare_ismcts_speed_position(
             (action for action in legal if isinstance(action, Pass)),
             None,
         )
-        if pass_action is not None and (
-            min(state.operations_this_battle) >= 1
-            or all(isinstance(action, Pass) for action in legal)
-        ):
+        if pass_action is not None:
             engine.apply(state, pass_action)
             if (
                 len(state.pass_order) != 1
                 or sum(player.passed for player in state.players) != 1
+                or state.closing_turns_remaining
+                != engine.rules.closing_turns_after_pass
             ):
-                raise RuntimeError("failed to create one-signal benchmark state")
+                raise RuntimeError("failed to create canonical closing benchmark state")
             return
 
+        # Keep taking real Actions while constructing the benchmark. EndTurn is
+        # a legal strategic choice, but choosing it here would preserve hand
+        # resources and can prevent the synthetic setup from ever reaching a
+        # genuinely forced Pass.
         action = next(
-            (action for action in legal if not isinstance(action, Pass)),
-            legal[0],
+            (
+                action
+                for action in legal
+                if not isinstance(action, (Pass, EndTurn))
+            ),
+            None,
         )
+        if action is None:
+            action = next(
+                (action for action in legal if isinstance(action, EndTurn)),
+                legal[0],
+            )
         engine.apply(state, action)
 
-    raise RuntimeError("could not construct pass-active benchmark state")
+    raise RuntimeError("could not construct forced-Pass closing benchmark state")
 
 
 def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
@@ -4763,8 +4776,8 @@ def parse_args() -> argparse.Namespace:
     recovery_variants = sub.add_parser(
         "recovery-variants",
         help=(
-            "Compare Command-recovery curves with canonical permanent Pass "
-            "and all other rules/search settings fixed."
+            "Compare Command-recovery curves with the canonical forced-Pass "
+            "closing sequence and all other rules/search settings fixed."
         ),
     )
     recovery_variants.add_argument(
