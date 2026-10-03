@@ -80,6 +80,21 @@ def test_information_set_includes_public_narrative_identities() -> None:
     assert information_set_id(state, 0) != first
 
 
+def test_stable_information_set_tracks_playtest_turn_flow() -> None:
+    _, _, state = setup()
+    baseline = information_set_id(state, 0)
+
+    acted = state.clone()
+    acted.actions_this_turn = 1
+    assert information_set_id(acted, 0) != baseline
+
+    closing = state.clone()
+    closing.players[1].passed = True
+    closing.pass_order = [1]
+    closing.closing_turns_remaining = 2
+    assert information_set_id(closing, 0) != baseline
+
+
 def test_regret_matching_prefers_positive_regret() -> None:
     node = CFRNode(
         regret_sum={"a": 3.0, "b": -2.0},
@@ -157,7 +172,7 @@ def test_current_fast_information_key_round_trips_canonical_state() -> None:
     packed = fast.from_game_state(state)
     key = fast.information_key(packed, 0)
 
-    assert key[0] == 9
+    assert key[0] == 11
     assert (
         fast_search.stable_information_id_from_fast_key(fast, key)
         == information_set_id(state, 0)
