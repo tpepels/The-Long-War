@@ -117,9 +117,11 @@ cdef int _fe_position_strength(FastEngine self, FastState state, int player, int
     return _fe_position_strength_fast(self, state, slot_index(player, front, rank))
 
 cdef int _fe_front_strength_fast(FastEngine self, FastState state, int player, int front) noexcept:
-    cdef int value, narrative, enemy, slot, bond
-    value = _fe_position_strength_fast(self, state, slot_index(player, front, RANK_FRONT))
-    value += _fe_position_strength_fast(self, state, slot_index(player, front, RANK_REAR))
+    cdef int value=0, narrative, enemy, slot, bond, rank
+    for rank in range(RANK_COUNT):
+        value += _fe_position_strength_fast(
+            self, state, slot_index(player, front, rank)
+        )
     for slot in range(self.ongoing_narrative_limit):
         narrative = state.narrative[
             player * NARRATIVE_SLOTS_PER_PLAYER + slot
@@ -138,7 +140,8 @@ cdef int _fe_front_strength_fast(FastEngine self, FastState state, int player, i
         ):
             value += self.ongoing_reveal_face_bonus[narrative]
     enemy = other_player(player)
-    for slot in (slot_index(enemy, front, RANK_FRONT), slot_index(enemy, front, RANK_REAR)):
+    for rank in range(RANK_COUNT):
+        slot = slot_index(enemy, front, rank)
         if state.force[slot] >= 0 and state.bond[slot] >= 0 and state.name[slot] >= 0:
             bond = state.bond[slot]
             value += self.bond_opposing[bond]
