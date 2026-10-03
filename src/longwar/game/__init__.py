@@ -1,6 +1,7 @@
 from .actions import (
     Action,
     BoardTarget,
+    Cycle,
     Discard,
     EffectChoice,
     Maneuver,
@@ -25,6 +26,7 @@ from .model import (
 __all__ = [
     "Action",
     "BoardTarget",
+    "Cycle",
     "Discard",
     "EffectChoice",
     "ConstraintKind",
