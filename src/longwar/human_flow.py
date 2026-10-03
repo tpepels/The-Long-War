@@ -149,16 +149,20 @@ class HumanFlowDiagnostics:
                 state.operations_this_battle[actor] + 1
             )
 
-        if isinstance(action, Pass):
-            first_signal = not state.pass_order
-            operations_before = state.operations_this_battle[actor]
+        if (
+            isinstance(action, Pass)
+            and state.actions_this_turn == 0
+            and state.closing_turns_remaining == 0
+        ):
+            actions_before = state.operations_this_battle[actor]
             self.pass_events += 1
             self.signal_hand_total += len(state.players[actor].hand)
-            self.signal_operations_total += operations_before
-            if first_signal:
-                self.first_signal_events += 1
-                if operations_before <= 1:
-                    self.early_first_signal_events += 1
+            self.signal_operations_total += actions_before
+            # Compatibility counters: every recorded Pass is the sole Battle
+            # Pass under the playtest rules.
+            self.first_signal_events += 1
+            if actions_before <= 1:
+                self.early_first_signal_events += 1
 
     def after_action(
         self,
@@ -272,6 +276,7 @@ class HumanFlowDiagnostics:
                 self.command_spent_total,
                 self.player_battles,
             ),
+            "pass_events": self.pass_events,
             "signal_events": self.pass_events,
             "first_signal_events": self.first_signal_events,
             "early_first_signal_events": self.early_first_signal_events,
@@ -279,8 +284,16 @@ class HumanFlowDiagnostics:
                 self.early_first_signal_events,
                 self.first_signal_events,
             ),
+            "mean_hand_size_at_pass": self._ratio(
+                self.signal_hand_total,
+                self.pass_events,
+            ),
             "mean_hand_size_at_signal": self._ratio(
                 self.signal_hand_total,
+                self.pass_events,
+            ),
+            "mean_actions_before_pass": self._ratio(
+                self.signal_operations_total,
                 self.pass_events,
             ),
             "mean_operations_before_signal": self._ratio(
