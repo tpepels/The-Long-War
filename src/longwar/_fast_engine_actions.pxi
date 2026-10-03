@@ -748,18 +748,111 @@ cdef int _fe_legal_pending_effect_actions(
         )
     return n
 
+cdef inline bint _fe_action_uses_only_active_fronts(
+    FastEngine self,
+    FastState state,
+    uint64_t action,
+) noexcept:
+    """Reject any action/effect that selects or moves through an inactive Front."""
+    cdef int kind = action_kind(action)
+    cdef int card = action_card(action)
+    cdef int pos = action_pos(action)
+    cdef int dest = action_dest(action)
+    cdef int choice, slot, front, target_front
+    cdef uint32_t extra = action_extra(action)
+    cdef uint8_t active = active_front_mask_for_battle(state.battle)
+
+    if kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME:
+        if pos >= 0 and not (active & (1 << front_from_slot(pos))):
+            return False
+        if dest >= 0 and not (active & (1 << front_from_slot(dest))):
+            return False
+        return True
+
+    if kind == TYPE_MANEUVER:
+        return (
+            pos >= 0
+            and dest >= 0
+            and bool(active & (1 << front_from_slot(pos)))
+            and bool(active & (1 << front_from_slot(dest)))
+        )
+
+    if kind == TYPE_NARRATIVE:
+        if pos >= 0 and not (active & (1 << front_from_slot(pos))):
+            return False
+        if dest >= 0 and not (active & (1 << front_from_slot(dest))):
+            return False
+        return True
+
+    if kind == TYPE_ONGOING_NARRATIVE:
+        if card < 0:
+            return True
+        choice = self.narrative_choice_kind[card]
+        if choice == NARRATIVE_CHOICE_FRONT:
+            return (extra & <uint32_t>(~active & FRONT_MASK)) == 0
+        if dest >= 0:
+            return bool(active & (1 << front_from_slot(dest)))
+        return True
+
+    if kind == TYPE_STRATAGEM:
+        if card < 0:
+            return True
+        choice = self.strat_choice_kind[card]
+        if (
+            choice == STRAT_CHOICE_FRONT
+            or choice == STRAT_CHOICE_ADJACENT_FRONTS
+            or choice == STRAT_CHOICE_EDGE_FRONT
+        ):
+            return pos < 0 or (pos & (~active & FRONT_MASK)) == 0
+        if choice == STRAT_CHOICE_WHEEL:
+            for slot in range(SLOT_COUNT):
+                if not (extra & (<uint32_t>1 << slot)):
+                    continue
+                front = front_from_slot(slot)
+                if not (active & (1 << front)):
+                    return False
+                target_front = front - 1 if dest == 0 else front + 1
+                if (
+                    target_front < 0
+                    or target_front >= FRONT_COUNT
+                    or not (active & (1 << target_front))
+                ):
+                    return False
+        elif choice == STRAT_CHOICE_RESERVES:
+            for slot in range(SLOT_COUNT):
+                if (
+                    extra & (<uint32_t>1 << slot)
+                    and not (active & (1 << front_from_slot(slot)))
+                ):
+                    return False
+        return True
+
+    if kind == TYPE_EFFECT:
+        choice = <int>extra
+        if pos >= 0 and not (active & (1 << front_from_slot(pos))):
+            return False
+        if dest >= 0:
+            if choice == EFFECT_FRONT_CONTRIBUTION:
+                if dest >= FRONT_COUNT or not (active & (1 << dest)):
+                    return False
+            elif not (active & (1 << front_from_slot(dest))):
+                return False
+        return True
+
+    return True
+
+
 cdef int _fe_legal_actions_into(
     FastEngine self,
     FastState state,
     uint64_t* actions,
 ) except -1:
     cdef int n = 0
-    cdef int player, card, slot, local, front, rank, source, dest, req, opponent, effect
-    cdef int i, p, kept, can_pass, available, narrative_slot, choice, direction
+    cdef int player, card, second_card, slot, local, front, rank, source, dest, req, opponent, effect
+    cdef int i, kept, available, narrative_slot, choice, direction
     cdef uint32_t eligible_mask, subset
     cdef uint64_t action
     cdef bint constraint_enforced = False
-    cdef bint pass_gate_ready
 
     if state.phase == PHASE_COMPLETE:
         return 0
@@ -787,7 +880,13 @@ cdef int _fe_legal_actions_into(
             continue
 
         if self.card_type[card] == CARD_FORCE:
-            if not self.hero[card] or state.hero_used[player] < self.hero_play_limit_per_battle:
+            if (
+                not self.hero[card]
+                or (
+                    self.hero_force_play_limit_per_battle > 0
+                    and not (state.hero_used[player] & 1)
+                )
+            ):
                 req = self.placement_rank[card]
                 for local in range(POSITIONS_PER_PLAYER):
                     slot = player * POSITIONS_PER_PLAYER + local
@@ -802,9 +901,12 @@ cdef int _fe_legal_actions_into(
                         encode_action(TYPE_FORCE, card, slot, -1, player),
                     )
 
-                # Heroes are dual-use Force/Name cards. Playing either mode
-                # consumes the one-Hero-from-hand allowance for the Battle.
-                if self.hero[card]:
+                # Heroes have separate once-per-Battle Force and Name modes.
+                if (
+                    self.hero[card]
+                    and self.hero_name_play_limit_per_battle > 0
+                    and not (state.hero_used[player] & 2)
+                ):
                     for local in range(POSITIONS_PER_PLAYER):
                         slot = player * POSITIONS_PER_PLAYER + local
                         if state.name[slot] < 0:
@@ -1213,11 +1315,40 @@ cdef int _fe_legal_actions_into(
                     encode_action(TYPE_MANEUVER, -1, source, dest, player),
                 )
 
+    # Cycling is one Action: discard any two cards, then draw one.
+    if state.hand_len[player] >= 2:
+        for card in range(self.n_cards):
+            if state.hand[player][card] <= 0:
+                continue
+            for second_card in range(card, self.n_cards):
+                if state.hand[player][second_card] <= 0:
+                    continue
+                if (
+                    second_card == card
+                    and state.hand[player][card] < 2
+                ):
+                    continue
+                n = _append_action(
+                    actions,
+                    n,
+                    encode_action(
+                        TYPE_CYCLE,
+                        card,
+                        -1,
+                        -1,
+                        player,
+                        <uint32_t>(second_card + 1),
+                    ),
+                )
+
     available = state.command[player]
     kept = 0
     for i in range(n):
         action = actions[i]
-        if _fe_command_cost_fast(self, state, action) <= available:
+        if (
+            _fe_action_uses_only_active_fronts(self, state, action)
+            and _fe_command_cost_fast(self, state, action) <= available
+        ):
             actions[kept] = action
             kept += 1
     n = kept
@@ -1225,24 +1356,13 @@ cdef int _fe_legal_actions_into(
         self, state, player, actions, n, &constraint_enforced
     )
 
-    pass_gate_ready = state.pass_len > 0
-    if not pass_gate_ready:
-        pass_gate_ready = True
-        for p in range(PLAYER_COUNT):
-            if (
-                state.operations_this_battle[p]
-                < self.pass_min_operations_before_signal
-            ):
-                pass_gate_ready = False
-                break
-    can_pass = not state.passed[player] and pass_gate_ready
-    # Once already signalled, Pass is available only as a forced turn-yield
-    # when no normal operation is legal.
-    if (can_pass and not constraint_enforced) or n == 0:
-        for i in range(n, 0, -1):
-            actions[i] = actions[i - 1]
-        actions[0] = encode_action(TYPE_PASS, -1, -1, -1, 0)
-        n += 1
+    # Pass is never voluntary. At the start of an ordinary turn it starts
+    # the two-turn closing sequence only when no Action is legal. After one
+    # Action, or during closing turns, the same wire action is an internal
+    # forced yield when no second Action is available.
+    if n == 0:
+        actions[0] = encode_action(TYPE_PASS, -1, -1, -1, player)
+        n = 1
 
     return n
 
