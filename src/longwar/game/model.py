@@ -124,6 +124,7 @@ class StratagemState:
     fronts: tuple[Front, ...] = ()
     direction: str | None = None
     targets: tuple[tuple[int, Position], ...] = ()
+    revealed: bool = False
 
 
 @dataclass
@@ -206,7 +207,11 @@ class GameState:
     battle_start_hand_size: list[int] = field(default_factory=zero_per_player)
     cards_drawn_this_battle: list[int] = field(default_factory=zero_per_player)
     completion_count_this_battle: list[int] = field(default_factory=zero_per_player)
+    # Kept under the historical field name for artifact compatibility; these
+    # are now Actions rather than one-operation turns.
     operations_this_battle: list[int] = field(default_factory=zero_per_player)
+    actions_this_turn: int = 0
+    closing_turns_remaining: int = 0
     maneuvers_this_battle: list[int] = field(default_factory=zero_per_player)
     cards_played_this_turn_front_mask: list[int] = field(
         default_factory=zero_per_player
@@ -295,6 +300,7 @@ class GameState:
                     fronts=tuple(stratagem.fronts),
                     direction=stratagem.direction,
                     targets=tuple(stratagem.targets),
+                    revealed=stratagem.revealed,
                 )
             )
             for stratagem in self.stratagems
@@ -317,6 +323,8 @@ class GameState:
             cards_drawn_this_battle=list(self.cards_drawn_this_battle),
             completion_count_this_battle=list(self.completion_count_this_battle),
             operations_this_battle=list(self.operations_this_battle),
+            actions_this_turn=self.actions_this_turn,
+            closing_turns_remaining=self.closing_turns_remaining,
             maneuvers_this_battle=list(self.maneuvers_this_battle),
             cards_played_this_turn_front_mask=list(
                 self.cards_played_this_turn_front_mask
@@ -429,6 +437,7 @@ class GameState:
                     fronts=tuple(source_stratagem.fronts),
                     direction=source_stratagem.direction,
                     targets=tuple(source_stratagem.targets),
+                    revealed=source_stratagem.revealed,
                 )
             )
 
@@ -445,6 +454,8 @@ class GameState:
         self.cards_drawn_this_battle[:] = source.cards_drawn_this_battle
         self.completion_count_this_battle[:] = source.completion_count_this_battle
         self.operations_this_battle[:] = source.operations_this_battle
+        self.actions_this_turn = source.actions_this_turn
+        self.closing_turns_remaining = source.closing_turns_remaining
         self.maneuvers_this_battle[:] = source.maneuvers_this_battle
         self.cards_played_this_turn_front_mask[:] = (
             source.cards_played_this_turn_front_mask
