@@ -643,6 +643,11 @@ body.game-body {
   opacity: 0.45;
   font-size: 11px;
 }
+.front-banner.front-inactive {
+  opacity: 0.42;
+  border-color: #66706455;
+  background: #0d1512a6;
+}
 .front-banner small {
   width: 86px;
   text-align: right;
@@ -670,6 +675,17 @@ body.game-body {
 }
 .player-army .digital-slot {
   background: #a5af7d09;
+}
+.digital-slot.inactive-front {
+  opacity: 0.32;
+  background: repeating-linear-gradient(
+    -45deg,
+    #0b1512,
+    #0b1512 7px,
+    #111d18 7px,
+    #111d18 14px
+  );
+  pointer-events: none;
 }
 .digital-slot.empty {
   color: #a3b19868;
