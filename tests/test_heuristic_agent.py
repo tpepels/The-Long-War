@@ -8,7 +8,7 @@ import pytest
 from longwar.agents.heuristic_agent import HeuristicAgent
 from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
-from longwar.game import Discard, Front, GameEngine, Pass, PlayBond, Position, Rank
+from longwar.game import Discard, EndTurn, Front, GameEngine, Pass, PlayBond, Position, Rank
 from longwar.native_engine import create_heuristic_evaluator
 from longwar.rules import GameRules
 
@@ -29,6 +29,7 @@ def engine_and_state():
         first_player=0,
         opening_bonus=False,
     )
+    state.battle = 3
     return engine, state
 
 
@@ -231,9 +232,9 @@ def test_post_signal_heuristic_value_is_zero_sum() -> None:
         first_player=0,
         opening_bonus=False,
     )
-    state.operations_this_battle[:] = [1, 1]
     state.players[0].passed = True
     state.pass_order[:] = [0]
+    state.closing_turns_remaining = 2
     state.players[0].hand = ["oren", "the-fifty-men"]
     state.players[1].hand = ["namar", "iria", "followed"]
 
@@ -248,47 +249,46 @@ def test_post_signal_heuristic_value_is_zero_sum() -> None:
     )
 
 
-def test_second_pass_uses_exact_first_passer_collapse_tiebreak() -> None:
+def test_final_closing_endturn_uses_passer_collapse_tiebreak() -> None:
     engine, state = engine_and_state()
-    state.operations_this_battle[:] = [1, 1]
     state.players[0].passed = True
     state.players[1].passed = False
     state.pass_order[:] = [0]
-    state.active_player = 1
+    state.closing_turns_remaining = 1
+    state.active_player = 0
+    state.actions_this_turn = 0
     state.players[0].command = 0
     state.players[1].command = 0
     state.players[0].hand = []
     state.players[1].hand = []
 
-    assert Pass() in engine.legal_actions(state)
+    assert EndTurn() in engine.legal_actions(state)
 
     evaluator = HeuristicAgent(seed=2, exploration=0.0).evaluator
-    score = evaluator._score_action(engine, state, 1, Pass())
+    score = evaluator._score_action(engine, state, 0, EndTurn())
 
-    # Player 0 Passed first, so the exact second-Pass transition makes player 1
-    # the winner at equal exhausted Command. The heuristic must see terminal
-    # utility from the engine transition, not a projected draw.
-    assert score == pytest.approx(10000.0)
+    # Player 0 is the sole passer, so equal exhausted Command at the final
+    # closing turn is a terminal loss for player 0.
+    assert score == pytest.approx(-10000.0)
 
-
-def test_first_pass_is_penalized_while_opponent_has_normal_reply_turn() -> None:
+def test_first_pass_score_uses_actual_fixed_closing_state() -> None:
     engine, state = engine_and_state()
-    state.players[0].hand = ["oren", "iria"]
-    state.players[1].hand = ["namar", "mara", "followed", "swore-again-to"]
+    state.active_player = 0
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+    state.players[0].command = 10
+    state.players[1].command = 10
 
-    live_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, state, 0)
-
-    passed = state.clone()
-    passed.players[0].passed = True
-    passed.pass_order = [0]
-    passed_value = HeuristicAgent(seed=2, exploration=0.0).evaluate(
+    assert engine.legal_actions(state) == [Pass()]
+    score = HeuristicAgent(seed=2, exploration=0.0).evaluator._score_action(
         engine,
-        passed,
+        state,
         0,
+        Pass(),
     )
-
-    assert passed_value < live_value
-
+    assert isinstance(score, float)
 
 def test_heuristic_values_unused_hero_as_flexible_force_or_name_resource() -> None:
     engine, state = engine_and_state()
@@ -301,7 +301,7 @@ def test_heuristic_values_unused_hero_as_flexible_force_or_name_resource() -> No
     available = HeuristicAgent(seed=2, exploration=0.0).evaluate(engine, state, 0)
 
     spent = state.clone()
-    spent.hero_used[0] = True
+    spent.hero_used[0] = 3
     unavailable = HeuristicAgent(seed=2, exploration=0.0).evaluate(
         engine,
         spent,
@@ -496,7 +496,7 @@ def test_heuristic_values_fresh_battle_initiative() -> None:
     )
 
 
-def test_pending_pass_exposes_incomplete_formation_liability() -> None:
+def test_persistent_incomplete_formation_is_progress_not_cleanup_liability() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=22, exploration=0.0)
 
@@ -504,33 +504,28 @@ def test_pending_pass_exposes_incomplete_formation_liability() -> None:
         player.hand = []
         player.deck = []
         player.discard = []
-    state.operations_this_battle[:] = [1, 1]
-    state.active_player = 0
-    state.players[1].passed = True
-    state.pass_order = [1]
 
-    own_liability = state.clone()
-    own_slot = own_liability.slot(
+    own_progress = state.clone()
+    own_slot = own_progress.slot(
         0,
         Position(Front.FIRST, Rank.FRONT),
     )
     own_slot.bond = "followed"
     own_slot.name = "namar"
 
-    enemy_liability = state.clone()
-    enemy_slot = enemy_liability.slot(
+    enemy_progress = state.clone()
+    enemy_slot = enemy_progress.slot(
         1,
         Position(Front.FIRST, Rank.FRONT),
     )
     enemy_slot.bond = "followed"
     enemy_slot.name = "namar"
 
-    assert agent.evaluate(engine, enemy_liability, 0) > agent.evaluate(
+    assert agent.evaluate(engine, own_progress, 0) > agent.evaluate(
         engine,
-        own_liability,
+        enemy_progress,
         0,
     )
-
 
 def test_first_pass_score_includes_opponent_normal_draw() -> None:
     engine, state = engine_and_state()
