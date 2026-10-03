@@ -423,7 +423,7 @@ cdef void _fe_resolve_new_completions_fast(
         if state.name[slot] >= 0:
             if self.completion_free_maneuver_self[state.name[slot]]:
                 _fe_queue_free_maneuver(
-                    self, state, player, <uint16_t>(1 << slot),
+                    self, state, player, <uint32_t>(1 << slot),
                     True, False, state.name[slot]
                 )
             if self.completion_swap_adjacent[state.name[slot]]:
@@ -434,7 +434,7 @@ cdef void _fe_resolve_new_completions_fast(
                     -1,
                     -1,
                     -1,
-                    <uint16_t>(1 << slot),
+                    <uint32_t>(1 << slot),
                     _fe_adjacent_formation_mask(self, 
                         state, player, slot, False
                     ),
