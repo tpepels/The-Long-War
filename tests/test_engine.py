@@ -129,6 +129,27 @@ def test_battlefield_is_four_fronts_by_two_ranks() -> None:
     ]
 
 
+def test_active_fronts_expand_by_battle() -> None:
+    engine, state = setup_state(battle=1)
+    state.players[0].hand = ["the-fifty-men"]
+    state.players[0].command = 20
+
+    legal = engine.legal_actions(state)
+    assert PlayForce("the-fifty-men", pos(1)) in legal
+    assert PlayForce("the-fifty-men", pos(2)) in legal
+    assert PlayForce("the-fifty-men", pos(0)) not in legal
+    assert PlayForce("the-fifty-men", pos(3)) not in legal
+
+    state.battle = 2
+    legal = engine.legal_actions(state)
+    assert PlayForce("the-fifty-men", pos(0)) in legal
+    assert PlayForce("the-fifty-men", pos(3)) not in legal
+
+    state.battle = 3
+    legal = engine.legal_actions(state)
+    assert PlayForce("the-fifty-men", pos(3)) in legal
+
+
 def test_printed_strength_effects_apply_without_hidden_role_rules() -> None:
     engine, state = setup_state()
 
@@ -1298,39 +1319,52 @@ def test_ongoing_narratives_are_public_and_respect_configured_limit() -> None:
     )
 
 
-def test_hero_and_stratagem_allowances_are_once_per_battle() -> None:
+
+def test_hero_force_and_name_allowances_are_separate_once_per_battle() -> None:
     engine, state = setup_state()
-    hero_a = "avaros-the-bronze-king"
-    hero_b = "kael-the-roadless"
-    state.players[0].hand = [hero_a, hero_b, "the-ground-was-held", "the-lines-held"]
+    hero_force = "avaros-the-bronze-king"
+    hero_name = "kael-the-roadless"
+    state.players[0].hand = [
+        hero_force,
+        hero_name,
+        "the-ground-was-held",
+        "the-lines-held",
+    ]
     state.players[0].command = 20
-    state.players[1].hand = []
 
-    engine.apply(state, PlayForce(hero_a, pos(0)))
-    assert state.hero_used[0] is True
+    force_action = PlayForce(hero_force, pos(1, Rank.FRONT))
+    assert force_action in engine.legal_actions(state)
+    engine.apply(state, force_action)
+    assert state.hero_used[0] & 1
+    assert not state.hero_used[0] & 2
 
-    state.active_player = 0
     legal = engine.legal_actions(state)
     assert not any(
-        isinstance(action, (PlayForce, PlayName))
-        and action.card_id == hero_b
+        isinstance(action, PlayForce) and action.card_id == hero_name
         for action in legal
     )
-
-    engine.apply(state, PlayStratagem("the-ground-was-held"))
-    assert state.stratagem_used[0] is True
+    name_action = PlayName(hero_name, pos(2, Rank.FRONT))
+    assert name_action in legal
+    engine.apply(state, name_action)
+    assert state.hero_used[0] == 3
 
     state.active_player = 0
-    legal = engine.legal_actions(state)
-    assert PlayStratagem("the-lines-held") not in legal
+    state.actions_this_turn = 0
+    first_stratagem = PlayStratagem("the-ground-was-held")
+    assert first_stratagem in engine.legal_actions(state)
+    engine.apply(state, first_stratagem)
+    assert state.stratagem_used[0] == 1
+
+    state.active_player = 0
+    state.actions_this_turn = 0
+    assert PlayStratagem("the-lines-held") not in engine.legal_actions(state)
 
 
-def test_first_passer_starts_next_battle() -> None:
-    engine, state = setup_state()
+def test_non_passer_starts_next_battle() -> None:
+    engine, state = setup_state(battle=1)
     resolve_battle_by_passing(engine, state)
     assert state.battle == 2
-    assert state.active_player == 0
-
+    assert state.active_player == 1
 
 def test_iria_makes_only_the_next_maneuver_free() -> None:
     engine, state = setup_state(seed=4801)
@@ -1978,39 +2012,23 @@ def test_rovan_force_can_ignore_opposing_rear_strength() -> None:
     )
 
 
-def test_alda_can_be_driven_off_to_prevent_frontline_retreat() -> None:
+
+def test_lost_front_does_not_offer_alda_retreat_replacement() -> None:
     engine, state = setup_state(seed=4829)
     frontline = pos(0, Rank.FRONT)
     rear = pos(0, Rank.REAR)
     make_named(state, 0, frontline)
-    make_named(
-        state,
-        0,
-        rear,
-        force="alda-keeper-of-the-ford",
-    )
-    make_named(
-        state,
-        1,
-        pos(0, Rank.FRONT),
-        temporary=100,
-    )
+    make_named(state, 0, rear, force="alda-keeper-of-the-ford")
+    make_named(state, 1, frontline, temporary=100)
 
     resolve_battle_by_passing(engine, state)
 
-    protect = next(
-        action
-        for action in effect_choices(engine, state, "protect-retreat")
-        if not action.skip
-    )
-    engine.apply(state, protect)
-
+    assert not effect_choices(engine, state, "protect-retreat")
     assert state.slot(0, frontline).named is True
-    assert state.slot(0, rear).occupied is False
-    assert "alda-keeper-of-the-ford" in state.players[0].discard
+    assert state.slot(0, rear).force == "alda-keeper-of-the-ford"
 
 
-def test_stayed_behind_for_is_discarded_if_mandatory_retreat_displaces_it() -> None:
+def test_battle_resolution_does_not_displace_stayed_behind_bond() -> None:
     engine, state = setup_state(seed=48291)
     frontline = pos(0, Rank.FRONT)
     rear = pos(0, Rank.REAR)
@@ -2024,32 +2042,13 @@ def test_stayed_behind_for_is_discarded_if_mandatory_retreat_displaces_it() -> N
         bond="stayed-behind-for",
         name="namar",
     )
-    make_named(
-        state,
-        1,
-        pos(0, Rank.FRONT),
-        temporary=100,
-    )
+    make_named(state, 1, frontline, temporary=100)
 
     resolve_battle_by_passing(engine, state)
 
-    decline = next(
-        action
-        for action in effect_choices(engine, state, "protect-retreat")
-        if action.skip
-    )
-    engine.apply(state, decline)
-
-    # Alda is driven off normally. Stayed Behind For persists through that
-    # drive-off, but the mandatory Frontline Retreat then needs the same Rear
-    # position. The prepared Bond is displaced to discard rather than silently
-    # overwritten.
-    assert state.slot(0, frontline).occupied is False
-    assert state.slot(0, rear).named is True
-    assert state.slot(0, rear).bond != "stayed-behind-for"
-    assert "stayed-behind-for" in state.players[0].discard
-    assert "namar" in state.players[0].hand
-
+    assert state.slot(0, frontline).named is True
+    assert state.slot(0, rear).force == "alda-keeper-of-the-ford"
+    assert state.slot(0, rear).bond == "stayed-behind-for"
 
 def test_they_lived_to_tell_it_rewards_a_surviving_target() -> None:
     engine, state = setup_state(seed=4830)
