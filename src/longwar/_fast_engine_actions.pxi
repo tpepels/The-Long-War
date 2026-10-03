@@ -871,7 +871,13 @@ cdef int _fe_legal_actions_into(
                 )
         return n
     if state.pending_len > 0:
-        return _fe_legal_pending_effect_actions(self, state, actions)
+        n = _fe_legal_pending_effect_actions(self, state, actions)
+        kept = 0
+        for i in range(n):
+            if _fe_action_uses_only_active_fronts(self, state, actions[i]):
+                actions[kept] = actions[i]
+                kept += 1
+        return kept
 
     opponent = other_player(player)
 
