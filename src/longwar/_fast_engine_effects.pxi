@@ -300,7 +300,7 @@ cdef void _fe_discard_ongoing_narrative(
     _fe_compact_ongoing_narratives(self, state, controller)
     _fe_append_discard(self, state, controller, card, True)
 
-cdef uint16_t _fe_named_formation_mask(
+cdef uint32_t _fe_named_formation_mask(
     FastEngine self,
     FastState state,
     int player,
@@ -313,7 +313,7 @@ cdef uint16_t _fe_named_formation_mask(
             mask |= <uint32_t>(1 << slot)
     return mask
 
-cdef uint16_t _fe_adjacent_formation_mask(
+cdef uint32_t _fe_adjacent_formation_mask(
     FastEngine self,
     FastState state,
     int player,
@@ -334,7 +334,7 @@ cdef uint16_t _fe_adjacent_formation_mask(
             mask |= <uint32_t>(1 << other)
     return mask
 
-cdef uint16_t _fe_adjacent_empty_mask(
+cdef uint32_t _fe_adjacent_empty_mask(
     FastEngine self,
     FastState state,
     int player,
@@ -460,7 +460,7 @@ cdef void _fe_gain_command_from_narrative(
     int amount,
 ) except *:
     cdef int front, slot, force
-    cdef uint16_t named
+    cdef uint32_t named
     if amount <= 0:
         return
     _fe_gain_command_fast(
