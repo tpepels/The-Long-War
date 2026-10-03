@@ -199,6 +199,7 @@ cdef class FastEngine:
         object viewer_deck,
         object opponent_hand,
         object opponent_deck,
+        object opponent_stratagem=None,
     ):
         return _fe_determinize_hidden_zones(
             self,
@@ -207,6 +208,7 @@ cdef class FastEngine:
             viewer_deck,
             opponent_hand,
             opponent_deck,
+            opponent_stratagem,
         )
 
     cpdef int position_strength(self, FastState state, int player, int front, int rank):
