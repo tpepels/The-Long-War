@@ -6,9 +6,9 @@ from typing import Any
 from .protocol import CardType
 
 MINIMUM_DECK_SIZE = 34
-MINIMUM_FORCE_COUNT = 14
-MINIMUM_PRINTED_NAME_COUNT = 6
-NON_UNIQUE_COPY_LIMIT = 2
+MINIMUM_FORCE_COUNT = 0
+MINIMUM_PRINTED_NAME_COUNT = 0
+NON_UNIQUE_COPY_LIMIT = 4
 UNIQUE_COPY_LIMIT = 1
 
 
@@ -28,9 +28,9 @@ def validate_deck_definition(
 ) -> None:
     """Validate the canonical deck-construction rules.
 
-    Decks may be larger than the minimum. Heroes count as Force-type cards
-    because their printed type is Force; their dual Name mode does not count
-    toward the printed-Name minimum.
+    Decks may be larger than the 34-card minimum. There is no minimum number
+    of Forces or printed Names. Non-Unique titles may appear up to four times;
+    Unique titles remain limited to one copy.
     """
     if not isinstance(deck, (list, tuple)) or any(
         not isinstance(card_id, str) for card_id in deck
