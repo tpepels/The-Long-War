@@ -570,14 +570,7 @@ class PlaySession:
         }
 
         if isinstance(action, Pass):
-            payload["pass_type"] = (
-                "yield"
-                if (
-                    self.state.actions_this_turn > 0
-                    or self.state.closing_turns_remaining > 0
-                )
-                else "pass"
-            )
+            payload["pass_type"] = "pass"
         elif isinstance(action, (PlayForce, PlayBond, PlayName)):
             payload["position"] = self._position_payload(
                 action.position
