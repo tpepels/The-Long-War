@@ -159,8 +159,11 @@ def test_prepared_and_incomplete_formations_persist_between_battles() -> None:
     engine, state = game()
     prepared = position(Front.SECOND, Rank.MIDDLE)
     state.slot(0, prepared).bond = "followed"
+    for player in state.players:
+        player.hand.clear()
+        player.deck.clear()
+        player.discard.clear()
     state.players[0].command = 0
-    state.players[0].hand.clear()
 
     engine.apply(state, Pass())
     engine.apply(state, EndTurn())
@@ -273,6 +276,7 @@ def test_lost_front_only_costs_command_and_does_not_remove_cards() -> None:
     state.slot(0, own).name = "namar"
     state.slot(1, enemy).force = "the-fifty-men"
     state.slot(1, enemy).temporary_strength = 10
+    state.players[0].command = 0
 
     engine.apply(state, Pass())
     engine.apply(state, EndTurn())
