@@ -94,13 +94,15 @@ def test_simultaneous_command_collapse_uses_first_passer() -> None:
     )
 
 
-def test_rulebook_uses_card_art_not_old_flow_diagrams() -> None:
+def test_rulebook_uses_focused_rule_images() -> None:
     source = text("rules/rulebook.md")
     assert "rulebook-battle-flow.svg" not in source
-    assert "rulebook-formation.jpg" in source
-    assert "rulebook-maneuver.jpg" in source
-    assert "rulebook-pass-flow.jpg" not in source
-    assert "rulebook-retreat.jpg" in source
+    assert "rulebook-battlefield.png" in source
+    assert "rulebook-formation-cleanup.png" in source
+    assert "rulebook-maneuver-detail.png" in source
+    assert "rulebook-pass-flow.png" in source
+    assert "rulebook-lost-front.png" in source
+    assert "rulebook-battle-resolution.png" not in source
 
 
 def test_pass_and_battle_end_order_match_canonical_rules() -> None:
@@ -136,21 +138,22 @@ def test_print_builder_rasterizes_jpeg_art_for_pdf() -> None:
 
 
 
-def test_rulebook_images_use_field_manual_visual_language() -> None:
+def test_rulebook_images_span_columns_without_duplicate_captions() -> None:
     pages = text("tools/build_pages.py")
     pdf = text("tools/build_rulebook_pdf.py")
     css = text("web/rules.css")
 
-    assert "def decorate_rulebook_images" in pages
-    assert '"teaching-plate"' in pages
-    assert '"tabletop-example"' in pages
-    assert '"BATTLE PLATE"' in pages
-    assert '"FIELD EXAMPLE"' in pages
+    assert "wide_plates" in pages
+    assert '"wide-plate" if name in wide_plates else "column-plate"' in pages
+    assert "<figcaption>" not in pages
 
-    assert "TEACHING_PLATE_IMAGES" in pdf
-    assert '"BATTLE PLATE" if teaching_plate else "FIELD EXAMPLE"' in pdf
-    assert 'image_width = "100%" if teaching_plate else "94%"' in pdf
+    assert "WIDE_RULEBOOK_IMAGES" in pdf
+    assert "close_columns()" in pdf
+    assert "open_columns()" in pdf
+    assert 'width: 82%' in pdf
+    assert "BATTLE PLATE" not in pdf
+    assert "FIELD EXAMPLE" not in pdf
 
-    assert "/* Illustrated field-manual figures */" in css
-    assert ".rulebook-figure.teaching-plate" in css
-    assert ".rulebook-figure.tabletop-example img" in css
+    assert ".rulebook-figure.wide-plate" in css
+    assert "column-span: all" in css
+    assert "line-height: 1.48" in css

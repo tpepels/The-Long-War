@@ -24,14 +24,16 @@ DIST = ROOT / "dist"
 TYPST_SOURCE = DIST / "rulebook.typ"
 OUTPUT = DIST / "rulebook.pdf"
 
-MIN_PAGE_TEXT = 80
-MAX_PAGES = 6
+MIN_PAGE_TEXT = 50
+MAX_PAGES = 8
 
 
-TEACHING_PLATE_IMAGES = {
-    "rulebook-passing.png",
-    "rulebook-battle-resolution.png",
-    "rulebook-command-collapse.png",
+WIDE_RULEBOOK_IMAGES = {
+    "rulebook-battlefield.png",
+    "rulebook-formation-cleanup.png",
+    "rulebook-maneuver-detail.png",
+    "rulebook-pass-flow.png",
+    "rulebook-lost-front.png",
 }
 
 
@@ -132,6 +134,21 @@ def markdown_to_typst(source: str, version: str) -> str:
     in_table = False
     table_rows: list[list[str]] = []
     columns_started = False
+    columns_open = False
+
+    def open_columns() -> None:
+        nonlocal columns_started, columns_open
+        if columns_open:
+            return
+        out.append("#columns(2, gutter: 9mm)[")
+        columns_started = True
+        columns_open = True
+
+    def close_columns() -> None:
+        nonlocal columns_open
+        if columns_open:
+            out.append("]")
+            columns_open = False
 
     preamble = f"""#set page(
   paper: "a4",
@@ -145,32 +162,29 @@ def markdown_to_typst(source: str, version: str) -> str:
     ]
   ],
 )
-#set text(size: 9.2pt, fill: rgb("#222222"))
-#set par(justify: true, leading: 0.5em)
-#set list(indent: 12pt, body-indent: 6pt, spacing: 2pt)
-#set enum(indent: 12pt, body-indent: 6pt, spacing: 2pt)
+#set text(size: 9.4pt, fill: rgb("#2b2722"))
+#set par(justify: true, leading: 0.36em, spacing: 0.5em)
+#set list(indent: 12pt, body-indent: 6pt, spacing: 1.5pt)
+#set enum(indent: 12pt, body-indent: 6pt, spacing: 1.5pt)
 #set heading(numbering: none)
 
 #show heading.where(level: 2): it => block(
   sticky: true,
-  above: 8pt,
-  below: 4pt,
+  above: 6pt,
+  below: 3pt,
   breakable: false,
-  fill: rgb("#efe6d4"),
-  stroke: 0.55pt + rgb("#b6a487"),
-  inset: (x: 7pt, y: 5pt),
+  fill: rgb("#eee2cf"),
+  stroke: 0.55pt + rgb("#aa9270"),
+  inset: (x: 7pt, y: 3.5pt),
   radius: 2pt,
-)[#text(size: 15pt, weight: "semibold", fill: rgb("#2d261f"))[#it.body]]
+)[#text(size: 14.5pt, weight: "semibold", fill: rgb("#30271f"))[#it.body]]
 
 #show heading.where(level: 3): it => block(
   sticky: true,
-  above: 6pt,
-  below: 2.5pt,
+  above: 5pt,
+  below: 2pt,
   breakable: false,
-  fill: rgb("#f2ecdf"),
-  inset: (x: 5pt, y: 3pt),
-  radius: 1.5pt,
-)[#text(size: 9pt, weight: "bold", fill: rgb("#3a3229"))[#it.body]]
+)[#text(size: 9.2pt, weight: "bold", fill: rgb("#6f332d"))[#it.body]]
 
 #align(left)[
   #text(size: 31pt, weight: "semibold")[The Long War]
@@ -241,26 +255,35 @@ def markdown_to_typst(source: str, version: str) -> str:
             _flush_paragraph(paragraph, out)
             finish_quote()
             finish_table()
-            alt, path = image_match.groups()
+            _alt, path = image_match.groups()
             path = _pdf_safe_image_path(path)
             name = Path(path).name.replace("-print.png", ".jpg")
-            teaching_plate = name in TEACHING_PLATE_IMAGES
-            label = "BATTLE PLATE" if teaching_plate else "FIELD EXAMPLE"
-            image_width = "100%" if teaching_plate else "94%"
-            out.append(
-                '#block('
-                'breakable: false, above: 4pt, below: 5pt, '
-                'fill: rgb("#f7f2e8"), '
-                'stroke: 0.45pt + rgb("#9b8e77"), '
-                'inset: 4pt, radius: 2pt'
-                ')['
-                f'#align(center)[#image("{_string(path)}", width: {image_width})]'
-                '#v(2.5pt)'
-                f'#text(size: 6.5pt, weight: "bold", fill: rgb("#5e5446"), "{label}")'
-                '#h(3pt)'
-                f'#text(size: 6.5pt, fill: rgb("#6f6558"), "{_string(alt)}")'
-                ']'
-            )
+            wide = name in WIDE_RULEBOOK_IMAGES
+
+            if wide:
+                close_columns()
+                out.append(
+                    '#block('
+                    'breakable: false, above: 7pt, below: 8pt, '
+                    'fill: rgb("#f3eadb"), '
+                    'stroke: 0.5pt + rgb("#a99372"), '
+                    'inset: 5pt, radius: 2pt'
+                    ')['
+                    f'#align(center)[#image("{_string(path)}", width: 82%)]'
+                    ']'
+                )
+                open_columns()
+            else:
+                out.append(
+                    '#block('
+                    'breakable: false, above: 5pt, below: 6pt, '
+                    'fill: rgb("#f3eadb"), '
+                    'stroke: 0.45pt + rgb("#a99372"), '
+                    'inset: 4pt, radius: 2pt'
+                    ')['
+                    f'#align(center)[#image("{_string(path)}", width: 100%)]'
+                    ']'
+                )
             continue
 
         if line.strip().startswith("```"):
@@ -307,8 +330,7 @@ def markdown_to_typst(source: str, version: str) -> str:
         if line.startswith("## "):
             _flush_paragraph(paragraph, out)
             if not columns_started:
-                out.append("#columns(2, gutter: 9mm)[")
-                columns_started = True
+                open_columns()
             title = re.sub(r"\s+\{#[A-Za-z0-9_-]+\}\s*$", "", line[3:].strip())
             out.append(f"== {title}")
             continue
@@ -343,8 +365,7 @@ def markdown_to_typst(source: str, version: str) -> str:
     _flush_paragraph(paragraph, out)
     finish_quote()
     finish_table()
-    if columns_started:
-        out.append("]")
+    close_columns()
 
     return "\n".join(out).rstrip() + "\n"
 
