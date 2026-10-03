@@ -85,7 +85,7 @@ def test_random_agent_does_not_pass_before_pass_is_legal() -> None:
     legal = engine.legal_actions(state)
     assert not any(isinstance(action, Pass) for action in legal)
 
-    action = RandomAgent(seed=5, pass_probability=1.0).choose(engine, state)
+    action = RandomAgent(seed=5).choose(engine, state)
 
     assert action in legal
     assert not isinstance(action, Pass)
