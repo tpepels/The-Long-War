@@ -182,7 +182,7 @@ cdef int ordered_actions_into(
     cdef uint64_t tmp_action
     cdef double tmp_score
     cdef object tmp_key=None
-    cdef bint have_pass=False
+    cdef bint have_turn_control=False
 
     n = _fe_legal_actions_into(engine, state, &actions[0])
     if n <= 0:
@@ -224,16 +224,19 @@ cdef int ordered_actions_into(
     for i in range(selected_n):
         selected[i] = actions[i]
         kind = action_kind(actions[i])
-        if kind == TYPE_PASS:
-            have_pass = True
+        if kind == TYPE_PASS or kind == TYPE_END_TURN:
+            have_turn_control = True
 
     if selected_n < n:
         for i in range(selected_n, n):
             kind = action_kind(actions[i])
-            if kind == TYPE_PASS and not have_pass:
+            if (
+                (kind == TYPE_PASS or kind == TYPE_END_TURN)
+                and not have_turn_control
+            ):
                 selected[selected_n] = actions[i]
                 selected_n += 1
-                have_pass = True
+                have_turn_control = True
 
     if preferred_action != 0:
         for i in range(selected_n):
