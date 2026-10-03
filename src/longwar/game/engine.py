@@ -8,7 +8,7 @@ from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
 from ..protocol import CardField, Direction, DirectionCode, ObservationZone, PendingResume, PLAYER_COUNT
 from ..native_engine import create_fast_engine, create_heuristic_evaluator
-from .actions import Action, Discard, EffectChoice, Pass, action_from_key, action_key
+from .actions import Action, Discard, EffectChoice, EndTurn, Pass, action_from_key, action_key
 from .model import (
     ConstraintKind,
     Front,
@@ -41,12 +41,17 @@ class InvalidDeck(ValueError):
 
 FRONTS = tuple(Front)
 FRONTLINE_POSITIONS = tuple(Position(front, Rank.FRONT) for front in FRONTS)
+MIDDLE_POSITIONS = tuple(Position(front, Rank.MIDDLE) for front in FRONTS)
 REAR_POSITIONS = tuple(Position(front, Rank.REAR) for front in FRONTS)
 POSITIONS_BY_FRONT = tuple(
-    (FRONTLINE_POSITIONS[int(front)], REAR_POSITIONS[int(front)])
+    (
+        FRONTLINE_POSITIONS[int(front)],
+        MIDDLE_POSITIONS[int(front)],
+        REAR_POSITIONS[int(front)],
+    )
     for front in FRONTS
 )
-ALL_POSITIONS = tuple(position for pair in POSITIONS_BY_FRONT for position in pair)
+ALL_POSITIONS = tuple(position for group in POSITIONS_BY_FRONT for position in group)
 ADJACENT_POSITIONS = {
     position: tuple(
         candidate
@@ -59,6 +64,16 @@ ADJACENT_POSITIONS = {
             (
                 Position(Front(int(position.front) + 1), position.rank)
                 if int(position.front) < len(FRONTS) - 1
+                else None
+            ),
+            (
+                Position(position.front, Rank(tuple(Rank)[tuple(Rank).index(position.rank) - 1]))
+                if tuple(Rank).index(position.rank) > 0
+                else None
+            ),
+            (
+                Position(position.front, Rank(tuple(Rank)[tuple(Rank).index(position.rank) + 1]))
+                if tuple(Rank).index(position.rank) < len(Rank) - 1
                 else None
             ),
         )
@@ -154,12 +169,12 @@ class GameEngine:
         actor: int,
         action: Action,
     ) -> bool:
-        """Return whether this action spends the actor's one Battle operation."""
+        """Return whether this action spends one of the actor's turn Actions."""
         if state.phase is not Phase.BATTLE:
             return False
         if state.pending_draw_discard_for is not None:
             return False
-        if isinstance(action, (Discard, EffectChoice)):
+        if isinstance(action, (Discard, EffectChoice, EndTurn, Pass)):
             return False
         return True
 
