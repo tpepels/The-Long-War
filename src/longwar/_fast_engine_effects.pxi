@@ -891,6 +891,7 @@ cdef void _fe_queue_battle_draws(
 
 cdef void _fe_start_turn_fast(FastEngine self, FastState state, int player) noexcept:
     state.active_player = player
+    state.actions_this_turn = 0
     memset(
         state.maneuvered_in_operation,
         0,
@@ -918,10 +919,12 @@ cdef inline void _fe_clear_pass_sequence_fast(
     FastEngine self,
     FastState state,
 ) noexcept:
+    cdef int player
     for player in range(PLAYER_COUNT):
         state.passed[player] = 0
         state.pass_order[player] = -1
     state.pass_len = 0
+    state.closing_turns_remaining = 0
 
 
 cdef void _fe_resume_pending_flow(FastEngine self, FastState state):
@@ -945,9 +948,38 @@ cdef void _fe_resume_pending_flow(FastEngine self, FastState state):
     elif resume == RESUME_START_BATTLE:
         _fe_finish_start_battle(self, state, player)
 
-cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor):
+cdef void _fe_finish_turn_fast(
+    FastEngine self,
+    FastState state,
+    int actor,
+) except *:
     cdef int opponent = other_player(actor)
-    state.operations_this_battle[actor] += 1
+
+    if state.closing_turns_remaining > 0:
+        state.closing_turns_remaining -= 1
+        if state.closing_turns_remaining == 0:
+            _fe_score_battle(self, state)
+            return
 
     _fe_start_turn_fast(self, state, opponent)
+
+
+cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor):
+    state.operations_this_battle[actor] += 1
+    state.actions_this_turn += 1
+    # turn_number is the stable decision/action serial used by delayed
+    # constraints and observation events; a two-Action turn can advance it
+    # twice without drawing twice.
     state.turn_number += 1
+
+    if state.actions_this_turn >= self.actions_per_turn:
+        _fe_finish_turn_fast(self, state, actor)
+        return
+
+    # The actor may take a second Action without another draw.
+    state.active_player = actor
+    memset(
+        state.maneuvered_in_operation,
+        0,
+        sizeof(state.maneuvered_in_operation),
+    )
