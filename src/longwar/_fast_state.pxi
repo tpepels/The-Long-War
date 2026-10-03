@@ -25,8 +25,10 @@ cdef class FastState:
     cdef uint8_t stratagem_revealed[PLAYER_COUNT]
     cdef uint8_t stratagem_front_mask[PLAYER_COUNT]
     cdef uint8_t stratagem_direction[PLAYER_COUNT]
-    cdef uint16_t stratagem_target_mask[PLAYER_COUNT]
+    cdef uint32_t stratagem_target_mask[PLAYER_COUNT]
     cdef uint8_t stratagem_used[PLAYER_COUNT]
+    cdef uint8_t hero_force_used[PLAYER_COUNT]
+    cdef uint8_t hero_name_used[PLAYER_COUNT]
     cdef uint8_t hero_used[PLAYER_COUNT]
     cdef uint16_t player_maneuver_count[PLAYER_COUNT]
     cdef int8_t maneuver_direction[SLOT_COUNT]
@@ -50,6 +52,9 @@ cdef class FastState:
     cdef uint8_t discarded_this_battle[PLAYER_COUNT]
     cdef int16_t command[PLAYER_COUNT]
     cdef uint16_t operations_this_battle[PLAYER_COUNT]
+    cdef uint8_t actions_this_turn
+    cdef uint8_t closing_stage
+    cdef int8_t closing_passer
     cdef uint8_t cards_played_this_turn_front_mask[PLAYER_COUNT]
     cdef uint8_t cards_played_this_battle_front_mask[PLAYER_COUNT]
     cdef uint8_t narratives_played_this_battle[PLAYER_COUNT]
@@ -91,8 +96,8 @@ cdef class FastState:
     cdef int8_t pending_command_source[MAX_PENDING_EFFECTS]
     cdef int8_t pending_source[MAX_PENDING_EFFECTS]
     cdef int8_t pending_aux[MAX_PENDING_EFFECTS]
-    cdef uint16_t pending_source_mask[MAX_PENDING_EFFECTS]
-    cdef uint16_t pending_dest_mask[MAX_PENDING_EFFECTS]
+    cdef uint32_t pending_source_mask[MAX_PENDING_EFFECTS]
+    cdef uint32_t pending_dest_mask[MAX_PENDING_EFFECTS]
     cdef uint8_t pending_flags[MAX_PENDING_EFFECTS]
     cdef uint8_t pending_len
     cdef uint8_t pending_resume
@@ -105,7 +110,7 @@ cdef class FastState:
     cdef uint8_t resolution_drive_mask[PLAYER_COUNT]
     cdef uint8_t resolution_protected_mask[PLAYER_COUNT]
     cdef int16_t resolution_front_loss_command_penalty[PLAYER_COUNT]
-    cdef uint16_t resolution_suppressed_mask
+    cdef uint32_t resolution_suppressed_mask
     cdef int8_t resolution_contribution_front[SLOT_COUNT]
     cdef uint8_t resolution_cursor
     cdef int8_t resolution_starter
@@ -144,6 +149,8 @@ cdef class FastState:
         memset(self.stratagem_direction, 0, sizeof(self.stratagem_direction))
         memset(self.stratagem_target_mask, 0, sizeof(self.stratagem_target_mask))
         memset(self.stratagem_used, 0, sizeof(self.stratagem_used))
+        memset(self.hero_force_used, 0, sizeof(self.hero_force_used))
+        memset(self.hero_name_used, 0, sizeof(self.hero_name_used))
         memset(self.hero_used, 0, sizeof(self.hero_used))
         memset(self.player_maneuver_count, 0, sizeof(self.player_maneuver_count))
         memset(self.maneuver_direction, 0, sizeof(self.maneuver_direction))
@@ -163,6 +170,9 @@ cdef class FastState:
         memset(self.discarded_this_battle, 0, sizeof(self.discarded_this_battle))
         memset(self.command, 0, sizeof(self.command))
         memset(self.operations_this_battle, 0, sizeof(self.operations_this_battle))
+        self.actions_this_turn = 0
+        self.closing_stage = 0
+        self.closing_passer = -1
         memset(self.cards_played_this_turn_front_mask, 0, sizeof(self.cards_played_this_turn_front_mask))
         memset(self.cards_played_this_battle_front_mask, 0, sizeof(self.cards_played_this_battle_front_mask))
         memset(self.narratives_played_this_battle, 0, sizeof(self.narratives_played_this_battle))
@@ -255,6 +265,8 @@ cdef class FastState:
         memcpy(self.stratagem_direction, other.stratagem_direction, sizeof(self.stratagem_direction))
         memcpy(self.stratagem_target_mask, other.stratagem_target_mask, sizeof(self.stratagem_target_mask))
         memcpy(self.stratagem_used, other.stratagem_used, sizeof(self.stratagem_used))
+        memcpy(self.hero_force_used, other.hero_force_used, sizeof(self.hero_force_used))
+        memcpy(self.hero_name_used, other.hero_name_used, sizeof(self.hero_name_used))
         memcpy(self.hero_used, other.hero_used, sizeof(self.hero_used))
         memcpy(self.player_maneuver_count, other.player_maneuver_count, sizeof(self.player_maneuver_count))
         memcpy(self.maneuver_direction, other.maneuver_direction, sizeof(self.maneuver_direction))
@@ -274,6 +286,9 @@ cdef class FastState:
         memcpy(self.discarded_this_battle, other.discarded_this_battle, sizeof(self.discarded_this_battle))
         memcpy(self.command, other.command, sizeof(self.command))
         memcpy(self.operations_this_battle, other.operations_this_battle, sizeof(self.operations_this_battle))
+        self.actions_this_turn = other.actions_this_turn
+        self.closing_stage = other.closing_stage
+        self.closing_passer = other.closing_passer
         memcpy(self.cards_played_this_turn_front_mask, other.cards_played_this_turn_front_mask, sizeof(self.cards_played_this_turn_front_mask))
         memcpy(self.cards_played_this_battle_front_mask, other.cards_played_this_battle_front_mask, sizeof(self.cards_played_this_battle_front_mask))
         memcpy(self.narratives_played_this_battle, other.narratives_played_this_battle, sizeof(self.narratives_played_this_battle))
