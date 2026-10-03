@@ -324,12 +324,12 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     cdef int pos = action_pos(action)
     cdef int dest = action_dest(action)
     cdef int actor = state.active_player
-    cdef int front, before_mask = 0, cost = 0, source, target, local, choice
+    cdef int front, before_mask = 0, cost = 0, source, target, local, choice, second_card
     cdef uint32_t extra = action_extra(action)
     cdef bint cancelled, prepared_before, take_adjacent_open_bond_ready
 
-    # A new operation starts a fresh Maneuver-resolution chain. Effect choices
-    # and mandatory discard-before-draw steps continue the current operation.
+    # A new Action starts a fresh Maneuver-resolution chain. Effect choices
+    # and mandatory discard-before-draw steps continue the current Action.
     if kind != TYPE_EFFECT and kind != TYPE_DISCARD:
         memset(
             state.maneuvered_in_operation,
@@ -371,6 +371,28 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     cost = _fe_command_cost_fast(self, state, action)
     _fe_spend_command_fast(self, state, actor, cost)
 
+    if kind == TYPE_CYCLE:
+        second_card = <int>extra - 1
+        if (
+            card < 0
+            or second_card < 0
+            or second_card >= self.n_cards
+            or state.hand[actor][card] <= 0
+            or state.hand[actor][second_card] <= 0
+            or (card == second_card and state.hand[actor][card] < 2)
+        ):
+            raise ValueError("Cycle requires two cards currently in hand")
+        _fe_take_from_hand(self, state, actor, card, HIDDEN_KNOWN_SINGLE_CARD)
+        _fe_append_discard(self, state, actor, card, True)
+        _fe_take_from_hand(
+            self, state, actor, second_card, HIDDEN_KNOWN_SINGLE_CARD
+        )
+        _fe_append_discard(self, state, actor, second_card, True)
+        _fe_queue_battle_draws(self, state, actor, 1)
+        _fe_consume_operation_constraints(self, state, actor, action)
+        _fe_resume_pending_flow(self, state)
+        return
+
     if kind == TYPE_MANEUVER:
         target = 1 if state.force[dest] < 0 else 0
         choice = 1 if front_from_slot(dest) < front_from_slot(pos) else 2
@@ -393,8 +415,10 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         front = front_from_slot(pos)
         state.cards_played_this_turn_front_mask[actor] |= 1 << front
         state.cards_played_this_battle_front_mask[actor] |= 1 << front
-    if (kind == TYPE_FORCE or kind == TYPE_NAME) and card >= 0 and self.hero[card]:
-        state.hero_used[actor] += 1
+    if kind == TYPE_FORCE and card >= 0 and self.hero[card]:
+        state.hero_used[actor] |= 1
+    elif kind == TYPE_NAME and card >= 0 and self.hero[card]:
+        state.hero_used[actor] |= 2
 
     if kind == TYPE_FORCE:
         prepared_before = state.bond[pos] >= 0 or state.name[pos] >= 0
@@ -510,7 +534,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     elif kind == TYPE_STRATAGEM:
         _fe_take_from_hand(self, state, actor, card, 0)
         state.stratagem[actor] = card
-        state.stratagem_revealed[actor] = 1
+        state.stratagem_revealed[actor] = 0
         state.stratagem_front_mask[actor] = (
             <uint8_t>pos if pos >= 0 else 0
         )
