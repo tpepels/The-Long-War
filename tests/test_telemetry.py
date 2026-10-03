@@ -297,6 +297,22 @@ def test_battlefield_snapshot_counts_occupied_active_and_contested_fronts() -> N
     json.dumps(snapshot)
 
 
+def test_pass_telemetry_counts_only_rules_active_fronts() -> None:
+    engine, deck = setup()
+    state = engine.new_game(deck, deck, seed=6041, first_player=0, opening_bonus=False)
+    state.players[0].hand.clear()
+
+    telemetry = Telemetry()
+    telemetry.before_action(engine, state, 0, Pass(), decision_info=None)
+
+    summary = telemetry.summary()["passes"]
+    assert summary["events"] == 1
+    record = telemetry.pass_events[0]
+    assert record["controlled_fronts"] == 0
+    assert record["lost_fronts"] == 0
+    assert record["tied_fronts"] == 2
+
+
 def test_mechanical_choice_and_pass_context_use_actual_legal_set() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=605, first_player=0, opening_bonus=False)
