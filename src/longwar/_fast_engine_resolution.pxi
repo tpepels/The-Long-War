@@ -232,6 +232,20 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     cdef int losses0, losses1
     cdef uint16_t projected_lost0=0, projected_lost1=0
 
+    # Resolution-based hidden Stratagems reveal as their Battle-end mechanic
+    # becomes relevant. Trigger-based Stratagems reveal in _fe_resolve_strat_event.
+    for controller in range(PLAYER_COUNT):
+        strat = state.stratagem[controller]
+        if (
+            strat >= 0
+            and (
+                self.strat_tie_control[strat]
+                or self.strat_combine_fronts[strat]
+                or self.strat_front_loss_protection[strat]
+            )
+        ):
+            state.stratagem_revealed[controller] = 1
+
     # Record the effective comparison Strength displayed in the Battle
     # snapshot, then use the shared rule primitive for the actual outcomes.
     for front in range(FRONT_COUNT):
