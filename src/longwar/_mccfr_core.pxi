@@ -365,6 +365,9 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     # The full observable turn number is search identity only; consume it
     # without adding it to the stable public policy observation below.
     i += U32_BYTES
+    actions_this_turn = data[i]
+    closing_turns_remaining = data[i + 1]
+    i += INFO_TURN_FLOW_BYTES
 
     passed = [bool(data[i + offset]) for offset in range(PLAYER_COUNT)]
     i += PLAYER_COUNT
@@ -383,7 +386,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     for _ in range(PLAYER_COUNT):
         discarded_this_battle.append(data[i])
         command.append(data[i + 1] | (data[i + 2] << 8))
-        hero_used.append(bool(data[i + 3]))
+        hero_used.append(data[i + 3])
         operations_this_battle.append(data[i + 4] | (data[i + 5] << 8))
         i += INFO_PLAYER_BASE_BYTES
         # Front/card-play masks and Narrative count are search identity only.
@@ -446,7 +449,11 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         card_code = data[i]
         i += 1
         stratagems.append(
-            None if card_code == 0 else card_ids[card_code - 1]
+            None
+            if card_code == 0
+            else "hidden"
+            if card_code == 255
+            else card_ids[card_code - 1]
         )
         if card_code != 0:
             i += INFO_STRATAGEM_SEARCH_BYTES  # Stratagem search state
@@ -510,6 +517,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "phase": phase,
         "battle": battle,
         "active_player": active_player,
+        "actions_this_turn": actions_this_turn,
+        "closing_turns_remaining": closing_turns_remaining,
         "passed": passed,
         "pass_order": pass_order,
         "discarded_this_battle": discarded_this_battle,
