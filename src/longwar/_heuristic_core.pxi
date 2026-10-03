@@ -473,8 +473,8 @@ cdef class NativeHeuristicEvaluator:
         """Count immediately allowance-usable Force cards in hand."""
         cdef int i, card, forces=0, heroes=0
         cdef int remaining_hero_uses = (
-            self.engine.hero_play_limit_per_battle
-            - state.hero_used[player]
+            self.engine.hero_force_play_limit_per_battle
+            - state.hero_force_used[player]
         )
         if remaining_hero_uses < 0:
             remaining_hero_uses = 0
@@ -527,8 +527,8 @@ cdef class NativeHeuristicEvaluator:
                     continue
                 if (
                     self.engine.hero[name_card]
-                    and state.hero_used[player]
-                    >= self.engine.hero_play_limit_per_battle
+                    and state.hero_name_used[player]
+                    >= self.engine.hero_name_play_limit_per_battle
                 ):
                     continue
                 action = encode_action(
@@ -582,8 +582,10 @@ cdef class NativeHeuristicEvaluator:
         cdef bint needs_force=False, needs_bond=False, needs_name=False
         cdef int local, slot, card, count, typ, usable_count
         cdef int remaining_hero_uses = (
-            self.engine.hero_play_limit_per_battle
-            - state.hero_used[player]
+            self.engine.hero_force_play_limit_per_battle
+            - state.hero_force_used[player]
+            + self.engine.hero_name_play_limit_per_battle
+            - state.hero_name_used[player]
         )
         cdef double value=0.0, force_value=0.0, name_value=0.0
         if remaining_hero_uses < 0:
@@ -654,8 +656,10 @@ cdef class NativeHeuristicEvaluator:
         force_availability[0] = 0.0
         affordable[0] = 0
         remaining_hero_uses = (
-            self.engine.hero_play_limit_per_battle
-            - state.hero_used[player]
+            self.engine.hero_force_play_limit_per_battle
+            - state.hero_force_used[player]
+            + self.engine.hero_name_play_limit_per_battle
+            - state.hero_name_used[player]
         )
         if remaining_hero_uses < 0:
             remaining_hero_uses = 0
