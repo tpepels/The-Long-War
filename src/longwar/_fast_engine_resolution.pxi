@@ -382,7 +382,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
 
 cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) except *:
     cdef int player, front, front_slot, rear_slot, force
-    cdef uint16_t destinations
+    cdef uint32_t destinations
 
     while state.resolution_cursor < PLAYER_COUNT * FRONT_COUNT:
         player = state.resolution_cursor // FRONT_COUNT
@@ -469,7 +469,7 @@ cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) excep
             _fe_queue_move_to_mask(self, 
                 state,
                 player,
-                <uint16_t>(1 << rear_slot),
+                <uint32_t>(1 << rear_slot),
                 destinations,
                 True,
             )
