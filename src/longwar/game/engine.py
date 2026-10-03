@@ -8,7 +8,7 @@ from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
 from ..protocol import CardField, Direction, DirectionCode, ObservationZone, PendingResume, PLAYER_COUNT
 from ..native_engine import create_fast_engine, create_heuristic_evaluator
-from .actions import Action, Discard, EffectChoice, Pass, action_from_key, action_key
+from .actions import Action, Cycle, Discard, EffectChoice, Pass, action_from_key, action_key
 from .model import (
     ConstraintKind,
     Front,
@@ -123,7 +123,10 @@ class GameEngine:
     def __getattr__(self, name: str):
         """Expose GameRules fields without mirroring configuration values."""
         rules = self.__dict__.get("rules")
-        if rules is not None and name in GameRules.__dataclass_fields__:
+        if rules is not None and (
+            name in GameRules.__dataclass_fields__
+            or isinstance(getattr(type(rules), name, None), property)
+        ):
             return getattr(rules, name)
         raise AttributeError(name)
 
@@ -154,14 +157,14 @@ class GameEngine:
         actor: int,
         action: Action,
     ) -> bool:
-        """Return whether this action spends the actor's one Battle operation."""
+        """Return whether this transition consumes one of the turn's Actions."""
         if state.phase is not Phase.BATTLE:
             return False
         if state.pending_draw_discard_for is not None:
             return False
-        if isinstance(action, (Discard, EffectChoice)):
+        if isinstance(action, (Pass, Discard, EffectChoice)):
             return False
-        return True
+        return isinstance(action, (Cycle,)) or not isinstance(action, (Discard, EffectChoice))
 
     def validate_deck(self, deck: list[str]) -> None:
         """Validate the canonical deck-construction rules."""
@@ -363,6 +366,7 @@ class GameEngine:
                         else None
                     ),
                     targets=tuple(targets),
+                    revealed=bool(stratagem.get("revealed", False)),
                 )
 
         state.stratagem_used[:] = data["stratagem_used"]
@@ -378,6 +382,10 @@ class GameEngine:
         state.cards_drawn_this_battle[:] = data["cards_drawn_this_battle"]
         state.completion_count_this_battle[:] = data["completion_count_this_battle"]
         state.operations_this_battle[:] = data["operations_this_battle"]
+        state.actions_this_turn = int(data.get("actions_this_turn", 0))
+        state.closing_turns_remaining = int(
+            data.get("closing_turns_remaining", 0)
+        )
         state.maneuvers_this_battle[:] = data.get(
             "maneuvers_this_battle", [0] * PLAYER_COUNT
         )
