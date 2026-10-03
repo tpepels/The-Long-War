@@ -410,6 +410,13 @@ cdef inline void _info_emit_u16(
     _info_emit(buf, n, h, <uint8_t>(value & BYTE_MASK))
     _info_emit(buf, n, h, <uint8_t>(value >> 8))
 
+
+cdef inline void _info_emit_u32(
+    unsigned char* buf, int* n, InfoHash128* h, uint32_t value,
+) noexcept:
+    _info_emit_u16(buf, n, h, <uint16_t>(value & U16_MASK))
+    _info_emit_u16(buf, n, h, <uint16_t>((value >> 16) & U16_MASK))
+
 # Telemetry-only Command attribution. These values never enter game state or hashing.
 DEF MAX_COMMAND_DIAG_EVENTS = 128
 cdef int COMMAND_DIAG_GAIN = 1
