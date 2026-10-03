@@ -732,13 +732,12 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
 cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     cdef int opponent = other_player(player)
 
-    # The wire-level Pass is also used for a forced end-of-turn yield when a
-    # player has already taken an Action or is inside the closing sequence.
-    # Only a Pass at the start of an ordinary turn records the Battle's passer.
+    # Pass has exactly one meaning under the playtest rules: at the start of
+    # an ordinary turn, with no legal Action, it records the Battle's passer
+    # and starts the fixed two-turn closing sequence. EndTurn handles every
+    # voluntary or closing turn end.
     if state.closing_turns_remaining > 0 or state.actions_this_turn > 0:
-        state.turn_number += 1
-        _fe_finish_turn_fast(self, state, player)
-        return
+        raise ValueError("Pass is not legal after an Action or during closing")
 
     state.passed[player] = 1
     state.pass_order[0] = player
