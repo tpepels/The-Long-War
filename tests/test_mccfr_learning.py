@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine, Pass, Position, Rank
+from longwar.game import Front, GameEngine, Position, Rank
 from longwar.mccfr import MCCFRTrainer, action_key, information_set_id
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,8 +26,10 @@ def setup():
 
 def test_fixed_state_training_is_reproducible() -> None:
     engine, deck, state = setup()
+    state.battle = 3
     state.players[1].passed = True
     state.pass_order = [1]
+    state.closing_turns_remaining = 2
     state.active_player = 0
     state.players[0].hand = ["the-fifty-men"]
     state.players[1].hand = []
