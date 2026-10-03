@@ -475,22 +475,16 @@ def test_hero_retinue_bond_allows_unnamed_maneuver_only_when_adjacent_to_hero() 
     assert Maneuver(source, destination) in engine.legal_actions(state)
 
 
-def test_breakthrough_drives_off_frontline_named_instead_of_retreating() -> None:
+
+def test_lost_front_does_not_trigger_legacy_breakthrough_replacement() -> None:
     engine, state = setup_state()
-    make_named(
-        state,
-        0,
-        pos(0, Rank.FRONT),
-        force="the-iron-boars",
-        temporary=10,
-    )
+    make_named(state, 0, pos(0, Rank.FRONT), force="the-iron-boars", temporary=10)
     make_named(state, 1, pos(0, Rank.FRONT))
 
     resolve_battle_by_passing(engine, state)
 
-    assert state.slot(1, pos(0, Rank.FRONT)).force is None
-    assert state.slot(1, pos(0, Rank.REAR)).force is None
-
+    assert state.slot(1, pos(0, Rank.FRONT)).named is True
+    assert state.slot(1, pos(0, Rank.REAR)).occupied is False
 
 def test_open_bond_first_maneuver_is_free_only_once_per_battle() -> None:
     engine, state = setup_state()
@@ -751,22 +745,17 @@ def test_trusted_bond_refunds_command_when_formation_becomes_named() -> None:
     assert state.players[0].command == 5
 
 
-def test_house_of_reed_is_driven_off_instead_of_frontline_retreat() -> None:
+
+def test_lost_front_does_not_trigger_legacy_stronghold_retreat_replacement() -> None:
     engine, state = setup_state()
     make_named(state, 0, pos(0, Rank.FRONT))
-    make_named(
-        state,
-        0,
-        pos(0, Rank.REAR),
-        force="the-house-of-reed",
-    )
+    make_named(state, 0, pos(0, Rank.REAR), force="the-house-of-reed")
     make_named(state, 1, pos(0, Rank.FRONT), temporary=20)
 
     resolve_battle_by_passing(engine, state)
 
-    assert state.slot(0, pos(0, Rank.REAR)).force is None
+    assert state.slot(0, pos(0, Rank.REAR)).force == "the-house-of-reed"
     assert state.slot(0, pos(0, Rank.FRONT)).named is True
-
 
 def test_blocked_road_prevents_opponent_card_move_into_its_front() -> None:
     engine, state = setup_state()
@@ -834,7 +823,8 @@ def test_battle_resolves_four_fronts_independently_without_battle_winner() -> No
     assert state.battle == 2
 
 
-def test_incomplete_formations_are_discarded_before_retreat() -> None:
+
+def test_incomplete_formations_persist_between_battles() -> None:
     engine, state = setup_state()
     incomplete = state.slot(0, pos(3))
     incomplete.force = "the-fifty-men"
@@ -842,44 +832,34 @@ def test_incomplete_formations_are_discarded_before_retreat() -> None:
 
     resolve_battle_by_passing(engine, state)
 
-    assert state.slot(0, pos(3)).occupied is False
-    assert "the-fifty-men" in state.players[0].discard
-    assert "followed" in state.players[0].discard
+    persisted = state.slot(0, pos(3))
+    assert persisted.force == "the-fifty-men"
+    assert persisted.bond == "followed"
+    assert persisted.name is None
+    assert "the-fifty-men" not in state.players[0].discard
+    assert "followed" not in state.players[0].discard
 
 
-def test_retreat_frontline_only_rear_only_both_and_tie() -> None:
+def test_battle_resolution_leaves_all_battlefield_positions_in_place() -> None:
     engine, state = setup_state()
-
-    # Front 0: player 0 loses with Frontline only -> retreats to Rear.
     make_named(state, 0, pos(0, Rank.FRONT))
     make_named(state, 1, pos(0, Rank.FRONT), temporary=100)
-
-    # Front 1: player 0 loses with Rear only -> driven off.
     make_named(state, 0, pos(1, Rank.REAR), force="seven-black-ships")
     make_named(state, 1, pos(1, Rank.FRONT), temporary=100)
-
-    # Front 2: player 0 loses with both -> Rear off, Frontline retreats.
     make_named(state, 0, pos(2, Rank.FRONT))
     make_named(state, 0, pos(2, Rank.REAR), force="seven-black-ships")
     make_named(state, 1, pos(2, Rank.FRONT), temporary=100)
-
-    # Front 3: tied Named Formations -> neither moves.
     make_named(state, 0, pos(3, Rank.FRONT))
     make_named(state, 1, pos(3, Rank.FRONT))
 
     resolve_battle_by_passing(engine, state)
 
-    assert state.slot(0, pos(0, Rank.FRONT)).occupied is False
-    assert state.slot(0, pos(0, Rank.REAR)).complete is True
-
-    assert state.slot(0, pos(1, Rank.REAR)).occupied is False
-
-    assert state.slot(0, pos(2, Rank.FRONT)).occupied is False
-    assert state.slot(0, pos(2, Rank.REAR)).force == "the-fifty-men"
-
-    assert state.slot(0, pos(3, Rank.FRONT)).complete is True
-    assert state.slot(1, pos(3, Rank.FRONT)).complete is True
-
+    assert state.slot(0, pos(0, Rank.FRONT)).named is True
+    assert state.slot(0, pos(0, Rank.REAR)).occupied is False
+    assert state.slot(0, pos(1, Rank.REAR)).force == "seven-black-ships"
+    assert state.slot(0, pos(2, Rank.FRONT)).named is True
+    assert state.slot(0, pos(2, Rank.REAR)).force == "seven-black-ships"
+    assert state.slot(0, pos(3, Rank.FRONT)).named is True
 
 def test_drive_off_persistence_bonds_and_names_apply() -> None:
     engine, state = setup_state(seed=4690)
