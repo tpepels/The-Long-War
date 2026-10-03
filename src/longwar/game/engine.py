@@ -365,6 +365,7 @@ class GameEngine:
                 direction_code = int(stratagem.get("direction", 0))
                 state.stratagems[player] = StratagemState(
                     card_id=stratagem["card_id"],
+                    revealed=bool(stratagem.get("revealed", False)),
                     fronts=tuple(
                         Front(front)
                         for front in range(FRONT_COUNT)
@@ -381,8 +382,13 @@ class GameEngine:
                 )
 
         state.stratagem_used[:] = data["stratagem_used"]
+        state.hero_force_used[:] = data.get("hero_force_used", [0] * PLAYER_COUNT)
+        state.hero_name_used[:] = data.get("hero_name_used", [0] * PLAYER_COUNT)
         state.hero_used[:] = data["hero_used"]
         state.active_player = int(data["active_player"])
+        state.actions_this_turn = int(data.get("actions_this_turn", 0))
+        state.closing_stage = int(data.get("closing_stage", 0))
+        state.closing_passer = data.get("closing_passer")
         state.battle = int(data["battle"])
         state.phase = Phase(data["phase"])
         state.discarded_this_battle[:] = data["discarded_this_battle"]
@@ -431,7 +437,7 @@ class GameEngine:
                 local = int(source_slot) % POSITIONS_PER_PLAYER
                 source_position = Position(
                     Front(local // RANK_COUNT),
-                    Rank.FRONT if local % RANK_COUNT == 0 else Rank.REAR,
+                    tuple(Rank)[local % RANK_COUNT],
                 )
             front = item.get("front")
             constraints.append(
