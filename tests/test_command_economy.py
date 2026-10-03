@@ -7,6 +7,7 @@ import pytest
 
 from longwar.cards import load_card_file
 from longwar.game import (
+    EndTurn,
     Front,
     GameEngine,
     Maneuver,
@@ -31,6 +32,7 @@ def standard_game(
     *,
     opening_bonus: bool = False,
     rules: GameRules | None = None,
+    battle: int = 3,
 ):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
@@ -44,6 +46,7 @@ def standard_game(
         first_player=0,
         opening_bonus=opening_bonus,
     )
+    state.battle = battle
     return engine, state
 
 
@@ -180,7 +183,8 @@ def test_equal_threshold_command_first_passer_loses_without_recovery() -> None:
     ).clear_hands()
 
     engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    engine.apply(state, EndTurn())
 
     assert state.phase.value == "complete"
     assert state.winner == 1
@@ -211,7 +215,8 @@ def test_front_loss_command_overrun_is_not_clamped_before_collapse() -> None:
     )
 
     engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    engine.apply(state, EndTurn())
 
     assert state.phase.value == "complete"
     assert state.winner == 1
@@ -238,7 +243,8 @@ def test_threshold_vs_positive_command_collapses_before_recovery() -> None:
     ).clear_hands()
 
     engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    engine.apply(state, EndTurn())
 
     # Battle-I recovery would otherwise rescue the exhausted player. It must
     # not be applied because 0-vs-positive already decides Command Collapse.
@@ -277,7 +283,8 @@ def test_front_losses_reduce_command_before_recovery_floor_applies() -> None:
     )
 
     engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    engine.apply(state, EndTurn())
 
     assert state.phase.value == "battle"
     assert state.winner is None
@@ -316,7 +323,8 @@ def test_lost_front_command_penalty_is_configurable() -> None:
     )
 
     engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    engine.apply(state, EndTurn())
 
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
@@ -589,8 +597,10 @@ def test_spending_final_command_midbattle_remains_nonterminal() -> None:
     ).commands(1, 5).operations(1, 1)
 
     maneuver = Maneuver(source, destination)
-    assert Pass() in engine.legal_actions(state)
-    assert maneuver in engine.legal_actions(state)
+    legal = engine.legal_actions(state)
+    assert Pass() not in legal
+    assert EndTurn() in legal
+    assert maneuver in legal
 
     child = state.clone()
     engine.apply(child, maneuver)
@@ -674,7 +684,8 @@ def test_front_loss_can_cause_collapse_before_recovery() -> None:
     )
 
     engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    engine.apply(state, EndTurn())
 
     assert state.phase.value == "complete"
     assert state.winner == 1
