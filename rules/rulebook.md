@@ -95,6 +95,8 @@ Each of these costs one Action:
 
 You may take the same kind of Action twice if it is legal to do so.
 
+You may end your turn after zero, one, or two Actions. Ending your turn voluntarily is **not Pass** and does not start or extend the Battle's closing sequence.
+
 If no legal Action remains, your turn ends.
 
 Playing a card or Maneuvering may also cost Command. You cannot voluntarily spend more Command than you have, and voluntary spending cannot take you below 0 Command.
