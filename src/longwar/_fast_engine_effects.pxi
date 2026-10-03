@@ -981,7 +981,6 @@ cdef void _fe_end_turn_fast(FastEngine self, FastState state, int actor):
 cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor):
     state.operations_this_battle[actor] += 1
     state.actions_this_turn += 1
-    state.turn_number += 1
 
     if state.actions_this_turn >= self.actions_per_turn:
         _fe_end_turn_fast(self, state, actor)
