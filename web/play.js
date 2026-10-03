@@ -826,11 +826,13 @@ function renderBattlefield() {
       '<div class="army-side opponent-army">' +
         renderNarrativeRow(top) +
         renderRankRow(top, RANK.REAR, "Rear") +
-        renderRankRow(top, RANK.FRONT, "Frontline") +
+        renderRankRow(top, RANK.MIDDLE, "Middle") +
+        renderRankRow(top, RANK.FRONT, "Front") +
       '</div>' +
       '<div class="battle-line-wide"><span>THE BATTLE LINE</span></div>' +
       '<div class="army-side player-army">' +
-        renderRankRow(bottom, RANK.FRONT, "Frontline") +
+        renderRankRow(bottom, RANK.FRONT, "Front") +
+        renderRankRow(bottom, RANK.MIDDLE, "Middle") +
         renderRankRow(bottom, RANK.REAR, "Rear") +
         renderNarrativeRow(bottom) +
       '</div>' +
