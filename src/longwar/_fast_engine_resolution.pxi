@@ -170,11 +170,14 @@ cdef void _fe_project_front_losses_fast(
     """Project Front losses under the canonical comparison rules."""
     cdef int front, a, b, controller, strat, mask
     cdef int combined0, combined1
+    cdef uint8_t active = active_front_mask_for_battle(state.battle)
     cdef bint tie_control = _fe_tie_control_active(self, state)
 
     lost0[0] = 0
     lost1[0] = 0
     for front in range(FRONT_COUNT):
+        if not (active & (1 << front)):
+            continue
         a = _fe_resolution_front_strength_fast(self, state, 0, front)
         b = _fe_resolution_front_strength_fast(self, state, 1, front)
         if a < b:
@@ -198,7 +201,11 @@ cdef void _fe_project_front_losses_fast(
         strat = state.stratagem[controller]
         if strat < 0 or not self.strat_combine_fronts[strat]:
             continue
-        mask = state.stratagem_front_mask[controller] & FRONT_MASK
+        mask = (
+            state.stratagem_front_mask[controller]
+            & active
+            & FRONT_MASK
+        )
         if popcount16(mask) != COMBINED_FRONT_SELECTION_COUNT:
             continue
         combined0 = 0
@@ -228,8 +235,12 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     # Record the effective comparison Strength displayed in the Battle
     # snapshot, then use the shared rule primitive for the actual outcomes.
     for front in range(FRONT_COUNT):
-        a = _fe_resolution_front_strength_fast(self, state, 0, front)
-        b = _fe_resolution_front_strength_fast(self, state, 1, front)
+        if front_is_active(state.battle, front):
+            a = _fe_resolution_front_strength_fast(self, state, 0, front)
+            b = _fe_resolution_front_strength_fast(self, state, 1, front)
+        else:
+            a = 0
+            b = 0
         state.last_front_scores[front][0] = a
         state.last_front_scores[front][1] = b
 
@@ -368,8 +379,11 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
                 1, strat, protected, protected,
             )
 
-    _fe_discard_incomplete_formations(self, state)
-    state.resolution_stage = RESOLUTION_RETREATS
+    # The battlefield persists. Ordinary Battle resolution never clears an
+    # incomplete position and never Retreats or drives off a formation merely
+    # because its Front was lost. Explicit card effects may still use the
+    # Retreat/drive-off primitives.
+    state.resolution_stage = RESOLUTION_NARRATIVES
     state.resolution_cursor = 0
 
 cdef void _fe_advance_retreat_resolution(FastEngine self, FastState state) except *:
@@ -682,6 +696,8 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
     starter = state.resolution_starter
     state.battle += 1
     state.cleanup_pending = 0
+    state.actions_this_turn = 0
+    state.closing_turns_remaining = 0
     state.pass_len = 0
     state.pass_order[0] = -1
     state.pass_order[1] = -1
@@ -785,9 +801,9 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
         state.last_operations[p] = state.operations_this_battle[p]
 
     state.resolution_starter = (
-        state.pass_order[0]
+        other_player(state.pass_order[0])
         if state.pass_len > 0
-        else state.active_player
+        else other_player(state.active_player)
     )
     state.resolution_stage = RESOLUTION_PREPARE
     state.resolution_cursor = 0
@@ -807,24 +823,26 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
 
 cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     cdef int opponent = other_player(player)
-    cdef bint already_signalled = bool(state.passed[player])
-    cdef uint64_t pass_action = encode_action(TYPE_PASS, -1, -1, -1, player)
 
-    # Pass always consumes the operation. The first Pass remains active for
-    # the Battle; the second player's first Pass ends it. If a player who has
-    # already Passed has no normal operation, Pass is a forced turn-yield and
-    # changes no Pass state.
-    _fe_consume_operation_constraints(self, state, player, pass_action)
-
-    if not already_signalled:
-        state.passed[player] = 1
-        state.pass_order[state.pass_len] = player
-        state.pass_len += 1
-        _fe_resolve_strat_event(self, state, EVENT_PASS, player)
-
-    if state.passed[0] and state.passed[1]:
-        _fe_score_battle(self, state)
+    # The wire-level Pass is also used for a forced end-of-turn yield when a
+    # player has already taken an Action or is inside the closing sequence.
+    # Only a Pass at the start of an ordinary turn records the Battle's passer.
+    if state.closing_turns_remaining > 0 or state.actions_this_turn > 0:
         state.turn_number += 1
+        _fe_finish_turn_fast(self, state, player)
+        return
+
+    state.passed[player] = 1
+    state.pass_order[0] = player
+    state.pass_order[1] = -1
+    state.pass_len = 1
+    state.closing_turns_remaining = self.closing_turns_after_pass
+    _fe_resolve_strat_event(self, state, EVENT_PASS, player)
+
+    # Passing is a turn, not an Action. The opponent now receives the first of
+    # the two ordinary closing turns.
+    state.turn_number += 1
+    _fe_start_turn_fast(self, state, opponent)
         return
 
     _fe_start_turn_fast(self, state, opponent)
