@@ -46,12 +46,14 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         fast.reshuffle_hand_card_totals[p] = state.reshuffle_hand_card_totals[p]
         fast.discarded_this_battle[p] = state.discarded_this_battle[p]
         fast.stratagem_used[p] = state.stratagem_used[p]
-        fast.hero_used[p] = state.hero_used[p]
+        fast.hero_force_used[p] = state.hero_force_used[p]
+        fast.hero_name_used[p] = state.hero_name_used[p]
+        fast.hero_used[p] = state.hero_force_used[p] + state.hero_name_used[p]
 
         strat = state.stratagems[p]
         if strat is not None:
             fast.stratagem[p] = self.id_to_code[strat.card_id]
-            fast.stratagem_revealed[p] = 1
+            fast.stratagem_revealed[p] = bool(strat.revealed)
             for front_choice in strat.fronts:
                 fast.stratagem_front_mask[p] |= 1 << int(front_choice)
             if strat.direction == Direction.LEFT:
@@ -64,7 +66,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     << slot_index(
                         int(target_choice[0]),
                         int(target_choice[1].front),
-                        RANK_FRONT if target_choice[1].rank is Rank.FRONT else RANK_REAR,
+                        RANK_FRONT if target_choice[1].rank is Rank.FRONT else RANK_MIDDLE if target_choice[1].rank is Rank.MIDDLE else RANK_REAR,
                     )
                 )
 
@@ -103,10 +105,13 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 fast.narrative_target_slot[p * NARRATIVE_SLOTS_PER_PLAYER + i] = slot_index(
                     int(narrative.target_player),
                     int(narrative.target_position.front),
-                    RANK_FRONT if narrative.target_position.rank is Rank.FRONT else RANK_REAR,
+                    RANK_FRONT if narrative.target_position.rank is Rank.FRONT else RANK_MIDDLE if narrative.target_position.rank is Rank.MIDDLE else RANK_REAR,
                 )
 
     fast.active_player = state.active_player
+    fast.actions_this_turn = int(state.actions_this_turn)
+    fast.closing_stage = int(state.closing_stage)
+    fast.closing_passer = -1 if state.closing_passer is None else int(state.closing_passer)
     fast.battle = state.battle
     fast.phase = phase_map[state.phase]
     fast.winner = -1 if state.winner is None else state.winner
@@ -174,7 +179,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             else slot_index(
                 int(constraint.player),
                 int(constraint.source_position.front),
-                RANK_FRONT if constraint.source_position.rank is Rank.FRONT else RANK_REAR,
+                RANK_FRONT if constraint.source_position.rank is Rank.FRONT else RANK_MIDDLE if constraint.source_position.rank is Rank.MIDDLE else RANK_REAR,
             )
         )
         fast.constraint_activate_turn[i] = int(constraint.activate_turn)
@@ -527,6 +532,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                 if state.stratagem[p] < 0
                 else {
                     "card_id": self.card_ids[state.stratagem[p]],
+                    "revealed": bool(state.stratagem_revealed[p]),
                     "front_mask": state.stratagem_front_mask[p],
                     "direction": state.stratagem_direction[p],
                     "target_mask": state.stratagem_target_mask[p],
@@ -538,8 +544,16 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             bool(state.stratagem_used[p])
             for p in range(PLAYER_COUNT)
         ],
+        "hero_force_used": [
+            int(state.hero_force_used[p])
+            for p in range(PLAYER_COUNT)
+        ],
+        "hero_name_used": [
+            int(state.hero_name_used[p])
+            for p in range(PLAYER_COUNT)
+        ],
         "hero_used": [
-            bool(state.hero_used[p])
+            int(state.hero_used[p])
             for p in range(PLAYER_COUNT)
         ],
         "discarded_this_battle": [
@@ -574,6 +588,9 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             state.operations_this_battle[p]
             for p in range(PLAYER_COUNT)
         ],
+        "actions_this_turn": state.actions_this_turn,
+        "closing_stage": state.closing_stage,
+        "closing_passer": None if state.closing_passer < 0 else state.closing_passer,
         "maneuvers_this_battle": [
             state.player_maneuver_count[p]
             for p in range(PLAYER_COUNT)
