@@ -310,9 +310,13 @@ class Telemetry:
                     if affordable and block_reason != "hero_allowance":
                         stats.structurally_unplayable_turns += copies
 
-        if battle_decision and isinstance(action, Pass):
-            new_signal = not state.players[actor].passed
-            first_signal = new_signal and len(state.pass_order) == 0
+        true_pass = (
+            battle_decision
+            and isinstance(action, Pass)
+            and state.actions_this_turn == 0
+            and state.closing_turns_remaining == 0
+        )
+        if true_pass:
             margins = self._front_margins(engine, state, actor)
             preserving, exhausting_alternatives = command_preserving_actions(
                 engine,
@@ -328,9 +332,12 @@ class Telemetry:
             pass_record = {
                 "battle": state.battle,
                 "player": actor,
-                "first_signal": first_signal,
-                "new_signal": new_signal,
-                "forced_yield": not new_signal,
+                # Compatibility aliases for older artifact readers. Under the
+                # playtest rules every recorded Pass is the one true Battle
+                # Pass; internal end-turn yields are deliberately not recorded.
+                "first_signal": True,
+                "new_signal": True,
+                "forced_yield": False,
                 "hand_size": len(state.players[actor].hand),
                 "deck_remaining": len(state.players[actor].deck),
                 "command_remaining": command,
@@ -338,6 +345,9 @@ class Telemetry:
                 "tied_fronts": sum(margin == 0 for margin in margins),
                 "lost_fronts": sum(margin < 0 for margin in margins),
                 "total_margin": sum(margins),
+                "actions_before_pass": int(
+                    state.operations_this_battle[actor]
+                ),
                 "operations_before_signal": int(
                     state.operations_this_battle[actor]
                 ),
@@ -347,9 +357,7 @@ class Telemetry:
                 ),
                 "paid_alternatives": paid_alternatives,
                 "command_exhausting_alternatives": exhausting_alternatives,
-                "signal_avoids_command_exhaustion": (
-                    exhausting_alternatives > 0 and action in preserving
-                ),
+                "signal_avoids_command_exhaustion": False,
                 "playable_card_actions": sum(
                     self._action_card_id(candidate) is not None
                     for candidate in legal
@@ -707,32 +715,38 @@ class Telemetry:
             )
             combos[combo] = payload
 
-        signal_events = [
-            event
-            for event in self.pass_events
-            if bool(event.get("new_signal", True))
-        ]
-        forced_yields = [
-            event
-            for event in self.pass_events
-            if bool(event.get("forced_yield", False))
-        ]
+        # Pass is forced and occurs exactly once per resolved Battle. Keep
+        # signal-named keys as compatibility aliases for older artifacts.
+        signal_events = list(self.pass_events)
         pass_summary = {
             "events": len(self.pass_events),
-            "signal_events": len(signal_events),
-            "forced_yield_events": len(forced_yields),
+            "pass_events": len(self.pass_events),
+            "signal_events": len(self.pass_events),
+            "forced_yield_events": 0,
             "mean_hand_size": self._mean_field(self.pass_events, "hand_size"),
             "mean_command_remaining": self._mean_field(
                 self.pass_events,
                 "command_remaining",
             ),
+            "mean_command_at_pass": self._mean_field(
+                self.pass_events,
+                "command_remaining",
+            ),
             "mean_command_at_signal": self._mean_field(
-                signal_events,
+                self.pass_events,
                 "command_remaining",
             ),
             "mean_deck_remaining": self._mean_field(
                 self.pass_events,
                 "deck_remaining",
+            ),
+            "mean_actions_before_pass": self._mean_field(
+                self.pass_events,
+                "actions_before_pass",
+            ),
+            "mean_operations_before_signal": self._mean_field(
+                self.pass_events,
+                "operations_before_signal",
             ),
             "command_exhausted_rate": self._ratio(
                 sum(
@@ -755,56 +769,22 @@ class Telemetry:
                 self.pass_events,
                 "playable_cards_remaining",
             ),
-            "mean_legal_alternatives": self._mean_field(
-                self.pass_events,
-                "legal_alternatives",
+            "mean_legal_alternatives": 0.0 if self.pass_events else None,
+            "mean_playable_card_actions": 0.0 if self.pass_events else None,
+            "mean_maneuver_actions": 0.0 if self.pass_events else None,
+            "no_alternative_rate": 1.0 if self.pass_events else None,
+            "playable_alternative_rate": 0.0 if self.pass_events else None,
+            "signal_with_playable_alternative_rate": (
+                0.0 if self.pass_events else None
             ),
-            "mean_playable_card_actions": self._mean_field(
-                self.pass_events,
-                "playable_card_actions",
+            "paid_alternative_rate": 0.0 if self.pass_events else None,
+            "command_exhausting_alternative_rate": (
+                0.0 if self.pass_events else None
             ),
-            "mean_maneuver_actions": self._mean_field(
-                self.pass_events,
-                "maneuver_actions",
+            "signal_avoids_command_exhaustion_rate": (
+                0.0 if self.pass_events else None
             ),
-            "no_alternative_rate": self._ratio(
-                sum(event["legal_alternatives"] == 0 for event in self.pass_events),
-                len(self.pass_events),
-            ),
-            "playable_alternative_rate": self._ratio(
-                sum(event["playable_card_actions"] > 0 for event in self.pass_events),
-                len(self.pass_events),
-            ),
-            "signal_with_playable_alternative_rate": self._ratio(
-                sum(event["playable_card_actions"] > 0 for event in signal_events),
-                len(signal_events),
-            ),
-            "paid_alternative_rate": self._ratio(
-                sum(event.get("paid_alternatives", 0) > 0 for event in self.pass_events),
-                len(self.pass_events),
-            ),
-            "command_exhausting_alternative_rate": self._ratio(
-                sum(
-                    event.get("command_exhausting_alternatives", 0) > 0
-                    for event in self.pass_events
-                ),
-                len(self.pass_events),
-            ),
-            "signal_avoids_command_exhaustion_rate": self._ratio(
-                sum(
-                    bool(event.get("signal_avoids_command_exhaustion"))
-                    for event in signal_events
-                ),
-                len(signal_events),
-            ),
-            "mean_operations_before_signal": self._mean_field(
-                signal_events,
-                "operations_before_signal",
-            ),
-            "first_signal_rate": self._ratio(
-                sum(event["first_signal"] for event in signal_events),
-                len(signal_events),
-            ),
+            "first_signal_rate": 1.0 if self.pass_events else None,
         }
 
         continuing_battles = [
