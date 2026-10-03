@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from math import inf
 
-from ..game.actions import Action, Pass, action_key
+from ..game.actions import Action, EndTurn, Pass, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState, Phase
 from ..heuristics import StrategicEvaluator
@@ -159,9 +159,9 @@ class AlphaBetaSearch:
             return ranked
 
         selected = list(ranked[:width])
-        # The tempo decision must survive beam pruning.
+        # Turn-control decisions must survive beam pruning.
         for action in ranked[width:]:
-            if isinstance(action, Pass) and action not in selected:
+            if isinstance(action, (Pass, EndTurn)) and action not in selected:
                 selected.append(action)
         return selected
 
@@ -186,6 +186,7 @@ class AlphaBetaSearch:
                 slot.temporary_strength,
                 slot.maneuvers_this_battle,
                 slot.maneuver_direction,
+                slot.maneuvered_in_operation,
             )
             for side in state.board
             for front in side
@@ -216,6 +217,7 @@ class AlphaBetaSearch:
                     tuple(stratagem.fronts),
                     stratagem.direction,
                     tuple(stratagem.targets),
+                    stratagem.revealed,
                 )
             )
             for stratagem in state.stratagems
@@ -234,6 +236,8 @@ class AlphaBetaSearch:
             tuple(state.hero_used),
             tuple(state.discarded_this_battle),
             tuple(state.pass_order),
+            state.actions_this_turn,
+            state.closing_turns_remaining,
             tuple(state.operations_this_battle),
             tuple(state.maneuvers_this_battle),
             tuple(state.cards_played_this_turn_front_mask),
