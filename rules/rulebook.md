@@ -43,6 +43,22 @@ The position nearest the centre is the **Frontline**. The position behind it is 
 
 ![The battlefield has four Fronts and two positions per Front on each player's side. Each position can contain at most one Force, one Bond, and one Name.](assets/rulebook-battlefield.png)
 
+```
+                         OPPONENT
+
+              FRONT 1   FRONT 2   FRONT 3   FRONT 4
+                Rear      Rear      Rear      Rear
+             Frontline Frontline Frontline Frontline
+        =================================================
+                       BATTLE LINE
+        =================================================
+             Frontline Frontline Frontline Frontline
+                Rear      Rear      Rear      Rear
+              FRONT 1   FRONT 2   FRONT 3   FRONT 4
+
+                           YOU
+```
+
 Cards can contribute a number called **Strength**. At the end of a Battle, compare the Strength on the two sides of each Front.
 
 - Higher total Strength wins that Front.
@@ -208,6 +224,7 @@ For each Front, apply card text that matters to its result and total the Strengt
 
 The margin of victory has no effect unless a card says otherwise.
 
+![Battle resolution: compare Strength on all four Fronts, determine losses, resolve lost positions and Battle-end effects, then apply lost-Front Command loss before Collapse.](assets/rulebook-battle-resolution.png)
 
 ## Losing ground {#retreat}
 

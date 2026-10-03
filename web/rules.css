@@ -1978,15 +1978,17 @@
 }
 
 
-/* Illustrated rulebook figures */
+/* Illustrated field-manual figures */
 .rulebook-figure {
-  margin: 1rem 0 1.2rem;
-  padding: .55rem;
+  position: relative;
+  margin: 5mm 0 6mm;
+  padding: 2.6mm;
   break-inside: avoid;
-  border: 1px solid rgba(96, 73, 49, .34);
-  border-radius: 8px;
-  background: #f3eadb;
-  box-shadow: 0 3px 14px rgba(60, 40, 22, .08);
+  border: .28mm solid #9b8e77;
+  background:
+    linear-gradient(rgba(255,255,255,.2), rgba(255,255,255,0)),
+    #f4eddf;
+  box-shadow: 0 1.2mm 3mm rgba(24,23,20,.08);
 }
 .rulebook-figure img {
   display: block;
@@ -1994,56 +1996,31 @@
   height: auto;
   margin: 0;
 }
-.rulebook-figure.wide-plate {
-  column-span: all;
-  max-width: 900px;
-  margin: 1.2rem auto 1.45rem;
-}
-.rulebook-figure.wide-plate img {
-  max-width: 760px;
+.rulebook-figure.tabletop-example img {
+  width: 94%;
   margin-inline: auto;
 }
-
-/* TLW rulebook readability refresh */
-.rulebook {
-  line-height: 1.48;
+.rulebook-figure.teaching-plate {
+  border-width: .42mm;
 }
-.rulebook h1,
-.rulebook h2,
-.rulebook h3 {
-  line-height: 1.16;
+.rulebook-figure figcaption {
+  margin-top: 2.2mm;
+  padding-top: 2mm;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2.5mm;
+  align-items: baseline;
+  border-top: .22mm solid rgba(24,23,20,.24);
 }
-.rulebook h2 {
-  margin: 1.55rem 0 .55rem;
+.rulebook-figure figcaption b {
+  white-space: nowrap;
+  font: 800 1.95mm/1 system-ui, sans-serif;
+  letter-spacing: .11em;
+  color: #5e5446;
 }
-.rulebook h3 {
-  margin: 1.05rem 0 .35rem;
-}
-.rulebook p {
-  margin: .42rem 0;
-}
-.rulebook ul,
-.rulebook ol {
-  margin-top: .45rem;
-  margin-bottom: .55rem;
-}
-.rulebook li + li {
-  margin-top: .2rem;
-}
-.rulebook blockquote {
-  margin: .7rem 0;
-  padding: .65rem .85rem;
-}
-.rulebook table,
-.rulebook pre {
-  margin: .7rem 0 .9rem;
-}
-.rulebook pre,
-.rulebook code {
-  line-height: 1.32;
-}
-.rulebook table {
-  line-height: 1.38;
+.rulebook-figure figcaption span {
+  font: italic 2.25mm/1.3 Georgia, serif;
+  color: #6f6558;
 }
 
 @media print {
@@ -2052,4 +2029,67 @@
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+}
+
+
+/* TLW rulebook readability refresh */
+
+.rulebook {
+  line-height: 1.58;
+}
+
+.rulebook h1,
+.rulebook h2,
+.rulebook h3 {
+  line-height: 1.18;
+}
+
+.rulebook h2 {
+  margin-top: 2.3rem;
+  margin-bottom: 0.9rem;
+}
+
+.rulebook h3 {
+  margin-top: 1.45rem;
+  margin-bottom: 0.55rem;
+}
+
+.rulebook p,
+.rulebook ul,
+.rulebook ol,
+.rulebook blockquote,
+.rulebook pre,
+.rulebook table,
+.rulebook figure {
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.rulebook li + li {
+  margin-top: 0.32rem;
+}
+
+.rulebook pre,
+.rulebook code {
+  line-height: 1.35;
+}
+
+.rulebook img {
+  display: block;
+  width: 100%;
+  max-width: 860px;
+  height: auto;
+  margin: 1rem auto 1.35rem;
+  border-radius: 12px;
+  border: 1px solid rgba(73, 52, 34, 0.18);
+  background: #f8f2e6;
+  box-shadow: 0 4px 18px rgba(60, 40, 22, 0.10);
+}
+
+.rulebook blockquote {
+  padding: 0.7rem 0.9rem;
+}
+
+.rulebook table {
+  line-height: 1.42;
 }

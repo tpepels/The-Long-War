@@ -183,22 +183,31 @@ def group_rulebook_sections(rendered: str) -> str:
 
 
 def decorate_rulebook_images(rendered: str) -> str:
-    """Turn authored rulebook images into accessible, readable figures."""
-    wide_plates = {
-        "rulebook-battlefield.png",
-        "rulebook-formation-cleanup.png",
-        "rulebook-maneuver-detail.png",
-        "rulebook-pass-flow.png",
-        "rulebook-lost-front.png",
+    """Give rules illustrations a consistent field-manual treatment.
+
+    The card-centric examples stay compact and tactile. Larger explanatory
+    plates get a slightly stronger frame. The authored alt text doubles as the
+    visible caption, so the same explanation serves screen readers and print.
+    """
+    teaching_plates = {
+        "rulebook-passing.png",
+        "rulebook-battle-resolution.png",
+        "rulebook-command-collapse.png",
     }
 
     def replace(match: re.Match[str]) -> str:
         alt, path = match.groups()
         name = Path(path).name
-        kind = "wide-plate" if name in wide_plates else "column-plate"
+        if name in teaching_plates:
+            kind = "teaching-plate"
+            label = "BATTLE PLATE"
+        else:
+            kind = "tabletop-example"
+            label = "FIELD EXAMPLE"
         return (
             f'<figure class="rulebook-figure {kind}">'
             f'<img alt="{alt}" src="{path}" />'
+            f'<figcaption><b>{label}</b><span>{alt}</span></figcaption>'
             f'</figure>'
         )
 
