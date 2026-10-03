@@ -36,7 +36,7 @@ def test_bonded_named_and_transition_are_explicit() -> None:
     assert "BECOMES NAMED" in states["becomes_named"]
 
 def test_buried_source_effects_declare_supported_timings_and_design_hints() -> None:
-    allowed = {"play","once_per_battle","bonded","while_named"}
+    allowed = {"play","action","reaction","bonded","while_named"}
     for card in CARDS:
         if card["type"] in {"force","bond"}:
             for effect in card["effects"]:
@@ -45,7 +45,7 @@ def test_buried_source_effects_declare_supported_timings_and_design_hints() -> N
                     assert effect.get("exposed"), card["title"]
 
 def test_hero_force_mode_obeys_force_grammar() -> None:
-    allowed = {"play","once_per_battle","bonded","while_named"}
+    allowed = {"play","action","reaction","bonded","while_named"}
     for card in CARDS:
         if card["type"] == "hero":
             for effect in card["modes"]["force"]["effects"]:
@@ -54,7 +54,7 @@ def test_hero_force_mode_obeys_force_grammar() -> None:
                     assert effect.get("exposed"), card["title"]
 
 def test_names_are_visible_and_resolution_stays_clean() -> None:
-    allowed = {"becomes_named","action","trigger","continuous","while_named"}
+    allowed = {"becomes_named","action","reaction","trigger","continuous","while_named"}
     for card in CARDS:
         if card["type"] == "name":
             assert all(e["timing"] in allowed for e in card["effects"])
@@ -67,7 +67,7 @@ def test_tactics_are_hostile_stratagems_and_narratives_are_self_support() -> Non
         if card["type"] == "stratagem":
             assert all(e["timing"] == "hidden" and e["scope"] == "self" for e in card["effects"])
         if card["type"] == "narrative":
-            assert all(e["timing"] in {"continuous","once_per_battle"} and e["scope"] == "self" for e in card["effects"])
+            assert all(e["timing"] in {"continuous","action"} and e["scope"] == "self" for e in card["effects"])
 
 def test_classifications_are_layered_and_top_line_stays_small() -> None:
     allowed = set(DATA["classification_vocabulary"])
@@ -302,3 +302,41 @@ def test_layout_fixture_includes_the_production_print_stamp(tmp_path, monkeypatc
         versions = [element["attrs"]["content"] for element in output.elements
                     if element["tag"] == "meta" and element["attrs"].get("name") == "lw-build-version"]
         assert versions == ["layout-check"]
+
+
+def test_once_per_battle_is_a_limit_not_a_timing_word() -> None:
+    for card in CARDS:
+        for effect in effects(card):
+            assert effect["timing"] != "once_per_battle", card["title"]
+            if effect.get("limit") == "once_per_battle":
+                assert effect["timing"] in {"action", "reaction", "trigger"}, card["title"]
+
+
+def test_buried_activated_abilities_create_an_action_or_reaction_choice() -> None:
+    for card in CARDS:
+        if card["type"] == "hero":
+            source = card["modes"]["force"]["effects"]
+        elif card["type"] in {"force", "bond"}:
+            source = card["effects"]
+        else:
+            continue
+        for effect in source:
+            if effect["timing"] in {"action", "reaction"}:
+                assert effect.get("limit") == "once_per_battle", card["title"]
+                assert effect.get("exposed"), card["title"]
+
+
+def test_no_limited_use_is_just_an_automatic_strength_pump() -> None:
+    automatic_pump = re.compile(r"^(?:This formation|This Bond|[A-Z][^.]*) (?:gets|has|contributes) [+-]\d+ (?:additional )?Strength this Battle\.?$", re.I)
+    for card in CARDS:
+        for effect in effects(card):
+            if effect.get("limit") == "once_per_battle":
+                assert not automatic_pump.match(effect["text"]), (card["title"], effect["text"])
+
+
+def test_continuous_rules_do_not_track_first_each_battle_or_turn() -> None:
+    tracked_first = re.compile(r"\bfirst\b.*\b(?:Battle|turn)\b", re.I)
+    for card in CARDS:
+        for effect in effects(card):
+            if effect["timing"] in {"continuous", "bonded", "while_named"}:
+                assert not tracked_first.search(effect["text"]), (card["title"], effect["text"])

@@ -1,55 +1,56 @@
 # V2 playtest and archetype matrix
 
-The pool is evaluated on two independent axes: **classification depth** and **mechanical test coverage**. No classification is required to form an entire deck by itself.
+The pool is evaluated on two independent axes: classification depth and mechanical test coverage.
 
 ## Mechanical coverage
 
 | Mechanical family | Designs |
 |---|---:|
-| Marker State | 72 |
-| Strength | 40 |
+| Marker State | 64 |
+| Strength | 38 |
+| Action Engine | 36 |
 | Command | 36 |
 | Classification Synergy | 35 |
-| Formation Building | 31 |
 | Named Payoff | 31 |
-| Action Engine | 16 |
-| Persistent State | 15 |
-| Command Recovery | 15 |
-| Protection | 14 |
+| Formation Building | 30 |
+| Persistent State | 18 |
+| Command Recovery | 17 |
+| Protection | 16 |
+| Suppression | 14 |
 | Information | 14 |
 | Card Flow | 14 |
 | Hostile Interaction | 14 |
 | Army Support | 12 |
 | Hidden Plan | 11 |
+| Reaction | 9 |
 | Movement | 9 |
-| Suppression | 9 |
 | Prepared Cards | 8 |
 | Tax | 8 |
-| Baseline | 5 |
+| Baseline | 7 |
 
 ## Timing coverage
 
 | Timing | Effects |
 |---|---:|
-| Once Per Battle | 36 |
+| Action | 38 |
 | Becomes Named | 31 |
 | Play | 25 |
-| Action | 16 |
 | Continuous | 15 |
+| Bonded | 13 |
 | Hidden | 11 |
-| Bonded | 10 |
+| Reaction | 9 |
 | Trigger | 8 |
 | While Named | 5 |
 
-There are **0 RESOLUTION effects** by design.
+There are **0 RESOLUTION effects** and **0 bare 1/BATTLE timings** by design.
 
 ## Physical-state pressure
 
 | Representation | Effects |
 |---|---:|
-| Used Marker | 55 |
-| Effect Marker | 23 |
-| Face Up Source | 19 |
+| Used Marker | 47 |
+| Effect Marker | 20 |
+| Face Up Source | 16 |
 | Face Down Source | 11 |
 | Front Marker | 9 |
 | Suppression Marker | 7 |
@@ -77,28 +78,14 @@ There are **0 RESOLUTION effects** by design.
 | **Builder** | Role | 2 | 0 |
 | **Heir** | Rank | 1 | 1 |
 
-## Diagnostic pairs
+## Playtest focus after the fake-choice audit
 
-| Pair | Deck | Question |
-|---|---|---|
-| A | **Leadership / Build** | Can Captains, Kings, Bonds and Names create satisfying construction tempo without snowballing? |
-| A | **Raid / Suppress** | Does temporary denial create counterplay to persistent formations without making building miserable? |
-| B | **Guard / Archer** | Can protection and ranged pressure form a coherent package without turning Fronts into static arithmetic? |
-| B | **Scout / Hidden Plans** | Are information and bluffing worth cards, Actions and Command in physical play? |
-| C | **Rider / Mobility** | When movement is concentrated into one package, is it genuinely useful rather than decorative? |
-| C | **Baseline Control** | Can simple efficient cards remain competitive enough to expose mechanics that are not earning their complexity? |
+Record whether ACTION/REACTION limits create actual decisions rather than bookkeeping. In particular:
 
-## Record per card
+- did a player decline or delay a REACTION because a better target might appear?
+- was spending an Action on a Force/Bond ability worth giving up another Action?
+- did any continuous discount become oppressive now that "first each Battle/turn" tracking is gone?
+- did any former automatic +Strength or free filtering effect lose necessary tactical texture after simplification?
+- were any exposed ACTION/REACTION reminders too dense to scan without lifting the stack?
 
-- drawn;
-- played;
-- dead in hand / no worthwhile target;
-- Command spent;
-- Action spent;
-- whether it changed a decision or Front result;
-- whether the opponent had meaningful counterplay;
-- forgotten marker/state;
-- rules question;
-- whether the player would voluntarily include it again.
-
-The first tests are for **fun, dead mechanics, oppressive interactions, bookkeeping cost, and target availability**, not merely win rate.
+Per card, still record drawn, played, dead in hand, Command spent, Action spent, whether it changed a decision or Front result, counterplay, forgotten state, rules questions, and voluntary re-inclusion.

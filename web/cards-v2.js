@@ -5,8 +5,8 @@
   const esc = value => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
   const titleCase = value => String(value ?? "").split(/[-_ ]+/).filter(Boolean).map(part => part[0].toUpperCase() + part.slice(1)).join(" ");
   const TYPE = { force: "Force", bond: "Bond", name: "Name", hero: "Hero", tactic: "Tactic", stratagem: "Stratagem", narrative: "Narrative" };
-  const LABEL = { play: "PLAY", once_per_battle: "1/BATTLE", bonded: "BONDED", while_named: "WHILE NAMED", becomes_named: "BECOMES NAMED", action: "ACTION", trigger: "TRIGGER", continuous: "CONTINUOUS", hidden: "REVEAL" };
-  const LIVE = new Set(["once_per_battle", "bonded", "while_named"]);
+  const LABEL = { play: "PLAY", action: "ACTION", reaction: "REACTION", bonded: "BONDED", while_named: "WHILE NAMED", becomes_named: "BECOMES NAMED", trigger: "TRIGGER", continuous: "CONTINUOUS", hidden: "REVEAL" };
+  const LIVE = new Set(["action", "reaction", "bonded", "while_named"]);
   const signed = value => (Number(value) >= 0 ? "+" : "") + String(value ?? 0);
   const modeEffects = (card, mode) => card.modes?.[mode]?.effects || [];
   const effects = card => card.type === "hero" ? [...modeEffects(card, "force"), ...modeEffects(card, "name")] : card.effects || [];
@@ -29,7 +29,7 @@
     const value = card.type === "hero" ? card.force_strength
       : card.type === "force" ? card.strength : ["bond", "name"].includes(card.type) ? signed(card.strength_modifier) : null;
     const mark = value === null ? '<span class="edge-emblem" aria-hidden="true">' + symbol(type) + '</span>' : stat(value, type);
-    const live = liveEffects(card, heroMode).map(effect => '<div class="edge-live" data-timing="' + esc(effect.timing) + '"><strong>' + (card.type === 'hero' ? 'FORCE · ' : '') + (effect.timing === "once_per_battle" ? "1/B" : LABEL[effect.timing]) + '</strong> <span>' + esc(reminder(effect)) + '</span></div>').join("");
+    const live = liveEffects(card, heroMode).map(effect => '<div class="edge-live" data-timing="' + esc(effect.timing) + '"><strong>' + (card.type === 'hero' ? 'FORCE · ' : '') + (effect.limit === "once_per_battle" ? (LABEL[effect.timing] + " 1/B") : LABEL[effect.timing]) + '</strong> <span>' + esc(reminder(effect)) + '</span></div>').join("");
     return '<header class="stack-edge"><div class="edge-heading">' + mark +
       (card.type === 'hero' ? stat(signed(card.name_strength_modifier), 'name') : '<span class="edge-type">' + esc(TYPE[type]) + '</span>') +
       '<span class="edge-classes">' + (card.classes || []).map(titleCase).map(esc).join(" · ") + '</span>' +
@@ -37,7 +37,7 @@
       '</div><div class="edge-reminders">' + live + '</div></header>';
   }
   function block(effect) {
-    const kind = ["bonded", "while_named", "continuous"].includes(effect.timing) ? "state" : ["becomes_named", "trigger", "hidden"].includes(effect.timing) ? "event" : "operation";
+    const kind = ["bonded", "while_named", "continuous"].includes(effect.timing) ? "state" : ["becomes_named", "trigger", "reaction", "hidden"].includes(effect.timing) ? "event" : "operation";
     return '<section class="effect-block timing-' + kind + '"><div class="effect-head"><span class="effect-label" data-timing="' + esc(effect.timing) + '">' + esc(LABEL[effect.timing] || effect.timing) + '</span>' +
       (effect.limit === "once_per_battle" ? '<em class="effect-limit">once per Battle</em>' : '') +
       '</div><div class="effect-text">' + esc(effect.text) + '</div></section>';

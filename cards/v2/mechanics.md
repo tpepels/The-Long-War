@@ -23,13 +23,27 @@ Force is bottom, Bond middle, Name top. Force and Bond each leave a 10.5 mm top 
 
 A buried rule may exist only if it was a PLAY effect that has finished, or its complete live meaning is printed in the exposed edge.
 
+## Timing and real decisions
+
+**Once per Battle is a limit, not a timing window.**
+
+A card never says merely `1/BATTLE - do something`. A limited ability still says what kind of decision it is:
+
+- **ACTION · 1/BATTLE** - spend one of the turn's Actions; the limit prevents repetition.
+- **REACTION · 1/BATTLE** - when the stated event occurs, decide whether to spend the limited response.
+- **TRIGGER · once per Battle** - only on a visible Name/Hero, and only where choosing which trigger to spend or limiting repetition matters.
+
+A limited-use wrapper must change a real decision. An automatic `1/BATTLE - +1 Strength`, automatic free Command gain, or automatic free card filtering is not an ability; write it as a stat/state or give it an Action, reaction window, or cost.
+
+Avoid invisible "the first X each Battle/turn" bookkeeping when the same identity can be expressed as a visible continuous rule.
+
 ## Card-type grammar
 
-**Force** - base Strength and battlefield identity. No rule, PLAY, 1/BATTLE, BONDED or WHILE NAMED. Never TRIGGER.
+**Force** - base Strength and battlefield identity. No rule, PLAY, ACTION · 1/BATTLE, REACTION · 1/BATTLE, BONDED or WHILE NAMED. Never a buried TRIGGER.
 
-**Bond** - compact middle-layer support. PLAY, 1/BATTLE, BONDED or WHILE NAMED. Never TRIGGER.
+**Bond** - compact middle-layer support. PLAY, ACTION · 1/BATTLE, REACTION · 1/BATTLE, BONDED or WHILE NAMED. Never a buried TRIGGER.
 
-**Name** - visible top card. BECOMES NAMED, ACTION, TRIGGER, CONTINUOUS or WHILE NAMED.
+**Name** - visible top card. BECOMES NAMED, ACTION, REACTION, TRIGGER, CONTINUOUS or WHILE NAMED.
 
 **Hero** - Force mode follows Force grammar; Name mode follows Name grammar.
 
@@ -37,7 +51,7 @@ A buried rule may exist only if it was a PLAY effect that has finished, or its c
 
 **Stratagem** - hidden support for your own side.
 
-**Narrative** - face-up support for your own troops, classifications or formation states.
+**Narrative** - face-up support for your own troops, classifications or formation states. A Narrative may have a visible ACTION ability when spending an Action is the point of the choice.
 
 There are deliberately no RESOLUTION effects in the V2 pool.
 
@@ -58,4 +72,4 @@ Exactly three font families:
 2. Gentium Book - rules and italics.
 3. Arial - timings, classifications and utility labels.
 
-Each effect starts on a new line. Timing is a compact bold sans label; an arrowhead marks events, an underline marks states, and italic text marks limits. Prose sits directly on parchment rather than inside a textbox.
+Each effect starts on a new line. Timing is visually distinct. Prose sits directly on parchment rather than inside a textbox.
