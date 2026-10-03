@@ -122,6 +122,7 @@ class OperationConstraint:
 @dataclass
 class StratagemState:
     card_id: str
+    revealed: bool = False
     fronts: tuple[Front, ...] = ()
     direction: str | None = None
     targets: tuple[tuple[int, Position], ...] = ()
@@ -300,6 +301,7 @@ class GameState:
                 if stratagem is None
                 else StratagemState(
                     card_id=stratagem.card_id,
+                    revealed=stratagem.revealed,
                     fronts=tuple(stratagem.fronts),
                     direction=stratagem.direction,
                     targets=tuple(stratagem.targets),
