@@ -258,9 +258,11 @@ def test_native_information_key_hides_face_down_opponent_stratagem_identity() ->
     assert fast.information_hash(first, 0) == fast.information_hash(second, 0)
     assert fast.information_key(first, 1) != fast.information_key(second, 1)
 
+    owner_hidden_key = fast.information_key(second, 1)
     changed.stratagems[1].revealed = True
     revealed = fast.from_game_state(changed)
     assert fast.information_key(first, 0) != fast.information_key(revealed, 0)
+    assert owner_hidden_key != fast.information_key(revealed, 1)
 
 
 def test_ismcts_is_bit_reproducible_for_fixed_beliefs_and_seed() -> None:
