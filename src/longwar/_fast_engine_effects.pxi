@@ -891,6 +891,7 @@ cdef void _fe_queue_battle_draws(
 
 cdef void _fe_start_turn_fast(FastEngine self, FastState state, int player) noexcept:
     state.active_player = player
+    state.actions_this_turn = 0
     memset(
         state.maneuvered_in_operation,
         0,
@@ -945,9 +946,32 @@ cdef void _fe_resume_pending_flow(FastEngine self, FastState state):
     elif resume == RESUME_START_BATTLE:
         _fe_finish_start_battle(self, state, player)
 
-cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor):
-    cdef int opponent = other_player(actor)
-    state.operations_this_battle[actor] += 1
+cdef void _fe_end_turn_fast(FastEngine self, FastState state, int actor):
+    cdef int next_player
+    state.actions_this_turn = 0
 
-    _fe_start_turn_fast(self, state, opponent)
+    if state.closing_stage == 1:
+        # The non-passer has completed the first closing turn.
+        state.closing_stage = 2
+        _fe_start_turn_fast(self, state, state.closing_passer)
+        state.turn_number += 1
+        return
+    if state.closing_stage == 2:
+        # The passer has completed the second and final closing turn.
+        state.closing_stage = 3
+        _fe_score_battle(self, state)
+        state.turn_number += 1
+        return
+
+    next_player = other_player(actor)
+    _fe_start_turn_fast(self, state, next_player)
     state.turn_number += 1
+
+
+cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor):
+    state.operations_this_battle[actor] += 1
+    state.actions_this_turn += 1
+    state.turn_number += 1
+
+    if state.actions_this_turn >= self.actions_per_turn:
+        _fe_end_turn_fast(self, state, actor)
