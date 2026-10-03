@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "status": "mechanical-redesign-proposal",
   "rules_model": "persistent-three-row-v2",
   "formation_states": {
@@ -10,33 +10,39 @@
     "formation_with_name": "A Formation containing a Force and a Name but no Bond. It is not Named.",
     "prepared_bond": "A Bond in a battlefield position with no Force.",
     "prepared_name": "A Name in a battlefield position with no Force.",
-    "becomes_named": "A Formation becomes Named whenever it changes from not having all three cards to having Force + Bond + Name."
+    "becomes_named": "A Formation becomes Named whenever it changes from not having Force + Bond + Name to having all three. BECOMES NAMED resolves at that transition.",
+    "bonded_state": "BONDED is a state, not a trigger: it is true while a Formation contains Force + Bond.",
+    "named_state": "WHILE NAMED is a state, not a trigger: it is true while a Formation contains Force + Bond + Name."
   },
   "card_type_grammar": {
     "force": {
       "role": "Base Strength and one simple battlefield identity.",
       "allowed_timings": [
         "play",
-        "once_per_battle"
+        "once_per_battle",
+        "bonded",
+        "while_named"
       ],
-      "buried_rule": "PLAY text may be covered after it resolves. Every 1/BATTLE effect must be fully summarized in the exposed strip."
+      "buried_rule": "PLAY text may be covered after it resolves. BONDED, WHILE NAMED, and 1/BATTLE effects must be completely readable in the exposed strip."
     },
     "bond": {
       "role": "Compact modifier/support in the middle of the stack.",
       "allowed_timings": [
         "play",
-        "once_per_battle"
+        "once_per_battle",
+        "bonded",
+        "while_named"
       ],
-      "buried_rule": "PLAY text may be covered after it resolves. Every 1/BATTLE effect must be fully summarized in the exposed strip."
+      "buried_rule": "PLAY text may be covered after it resolves. BONDED, WHILE NAMED, and 1/BATTLE effects must be completely readable in the exposed strip."
     },
     "name": {
-      "role": "The readable top card and main home for persistent, recurring, and Named-formation mechanics.",
+      "role": "The readable top card and main home for persistent, recurring, and formation-completion mechanics.",
       "allowed_timings": [
-        "named",
+        "becomes_named",
         "action",
         "trigger",
-        "resolution",
-        "continuous"
+        "continuous",
+        "while_named"
       ]
     },
     "hero": {
@@ -83,7 +89,6 @@
     "seer": "Deep information and deck/hidden-plan manipulation.",
     "steward": "Command efficiency, card filtering, and resource management.",
     "builder": "Bonds, prepared cards, and Stronghold-style development.",
-    "hero": "A special dual-use card that may be played as Force or Name.",
     "heir": "Succession and access to King synergies once fully established."
   },
   "classification_rule": "Classifications have no inherent rules. Their identity emerges only because other cards consistently refer to them.",
@@ -102,42 +107,43 @@
   },
   "layout_spec": {
     "card_size_mm": [
-      63,
-      88
+      68,
+      96
     ],
     "stack_order": [
       "force",
       "bond",
       "name"
     ],
-    "exposed_strip_height_mm": 9.6,
+    "exposed_strip_height_mm": 10.5,
     "no_lifting_rule": "A Named Formation must be fully playable without lifting, sliding, or fanning any card.",
     "force_strip": [
-      "Force symbol",
+      "Force shield symbol",
       "base Strength",
       "classifications",
       "placement restriction if any",
-      "full reminder for any 1/BATTLE effect"
+      "complete BONDED / WHILE NAMED / 1-BATTLE reminder"
     ],
     "bond_strip": [
       "Bond symbol",
       "Strength modifier",
-      "full reminder for any 1/BATTLE effect"
+      "complete BONDED / WHILE NAMED / 1-BATTLE reminder"
     ],
     "name_face": [
-      "Name symbol",
+      "Name banner symbol",
       "Strength modifier",
       "classifications",
       "all live rules text"
     ],
-    "command_cost": "Integrated faceted Command badge in the bottom-right footer; never in the exposed stack edge."
+    "command_cost": "One unlabeled faceted Command-cost gem in the bottom-right corner. The number is the complete visible cost treatment."
   },
   "design_limits": {
-    "max_hard_row_restricted_forces": 4,
-    "max_movement_cards": 12,
+    "max_hard_row_restricted_forces": 5,
+    "max_movement_cards": 14,
     "force_and_bond_no_triggers": true,
     "tactic_opponent_only": true,
-    "stratagem_and_narrative_self_support": true
+    "stratagem_and_narrative_self_support": true,
+    "no_resolution_effects": true
   },
   "cards": [
     {
@@ -168,17 +174,17 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "play",
-          "text": "Choose another active Front. One friendly formation there gets +1 Strength this Battle.",
+          "timing": "bonded",
+          "text": "While this formation is in the Rear, it has +1 Strength.",
           "scope": "self",
-          "memory": [
-            "effect_marker"
-          ]
+          "memory": [],
+          "exposed": "BONDED · REAR +1"
         }
       ],
-      "text": "PLAY - Choose another active Front. One friendly formation there gets +1 Strength this Battle.",
+      "text": "BONDED - While this formation is in the Rear, it has +1 Strength.",
       "design_tags": [
-        "marker-state",
+        "formation-building",
+        "persistent-state",
         "strength"
       ]
     },
@@ -245,15 +251,17 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "play",
+          "timing": "once_per_battle",
           "text": "Choose an opposing formation in this Front. It gets -1 Strength this Battle.",
           "scope": "opponent",
           "memory": [
+            "used_marker",
             "effect_marker"
-          ]
+          ],
+          "exposed": "1/B · ENEMY -1"
         }
       ],
-      "text": "PLAY - Choose an opposing formation in this Front. It gets -1 Strength this Battle.",
+      "text": "1/BATTLE - Choose an opposing formation in this Front. It gets -1 Strength this Battle.",
       "design_tags": [
         "marker-state",
         "strength"
@@ -284,7 +292,6 @@
       "text": "1/BATTLE - Reduce the Command cost of a Bond you play in this Front by 1, to a minimum of 1.",
       "design_tags": [
         "command",
-        "command-recovery",
         "formation-building",
         "marker-state"
       ]
@@ -329,17 +336,17 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "play",
-          "text": "Choose an opposing formation in this Front. It gets -1 Strength this Battle.",
-          "scope": "opponent",
-          "memory": [
-            "effect_marker"
-          ]
+          "timing": "bonded",
+          "text": "While this formation is in the Front or Middle row, it has +1 Strength.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "BONDED · FRONT/MIDDLE +1"
         }
       ],
-      "text": "PLAY - Choose an opposing formation in this Front. It gets -1 Strength this Battle.",
+      "text": "BONDED - While this formation is in the Front or Middle row, it has +1 Strength.",
       "design_tags": [
-        "marker-state",
+        "formation-building",
+        "persistent-state",
         "strength"
       ]
     },
@@ -383,15 +390,17 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "play",
-          "text": "Choose an opposing Named Formation in this Front. Its Name cannot use ACTION abilities this turn.",
+          "timing": "once_per_battle",
+          "text": "Choose an opposing Named Formation in this Front. Its ACTION abilities cannot be used this turn.",
           "scope": "opponent",
           "memory": [
+            "used_marker",
             "effect_marker"
-          ]
+          ],
+          "exposed": "1/B · LOCK NAME ACTION"
         }
       ],
-      "text": "PLAY - Choose an opposing Named Formation in this Front. Its Name cannot use ACTION abilities this turn.",
+      "text": "1/BATTLE - Choose an opposing Named Formation in this Front. Its ACTION abilities cannot be used this turn.",
       "design_tags": [
         "marker-state",
         "suppression"
@@ -410,15 +419,19 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "play",
-          "text": "Look at one opposing face-down Stratagem in this Front.",
+          "timing": "once_per_battle",
+          "text": "Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
           "scope": "opponent",
-          "memory": []
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · LOOK AT STRATAGEM"
         }
       ],
-      "text": "PLAY - Look at one opposing face-down Stratagem in this Front.",
+      "text": "1/BATTLE - Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
       "design_tags": [
-        "information"
+        "information",
+        "marker-state"
       ]
     },
     {
@@ -433,16 +446,20 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "play",
+          "timing": "once_per_battle",
           "text": "Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
           "scope": "opponent",
-          "memory": []
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · PRESS PREPARED"
         }
       ],
-      "text": "PLAY - Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+      "text": "1/BATTLE - Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
       "design_tags": [
         "command",
         "formation-building",
+        "marker-state",
         "prepared-cards"
       ]
     },
@@ -531,17 +548,19 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "play",
-          "text": "If this position already contains a prepared Bond or prepared Name, draw 1 card.",
+          "timing": "bonded",
+          "text": "Names played onto this formation cost 1 less Command, to a minimum of 1.",
           "scope": "self",
-          "memory": []
+          "memory": [],
+          "exposed": "BONDED · NAME -1"
         }
       ],
-      "text": "PLAY - If this position already contains a prepared Bond or prepared Name, draw 1 card.",
+      "text": "BONDED - Names played onto this formation cost 1 less Command, to a minimum of 1.",
       "design_tags": [
-        "card-flow",
+        "command",
+        "command-recovery",
         "formation-building",
-        "prepared-cards"
+        "persistent-state"
       ]
     },
     {
@@ -556,20 +575,17 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "play",
-          "text": "Your next Name this turn costs 1 less Command, to a minimum of 1.",
+          "timing": "while_named",
+          "text": "This formation has +1 Strength.",
           "scope": "self",
-          "memory": [
-            "effect_marker"
-          ]
+          "memory": [],
+          "exposed": "NAMED · +1"
         }
       ],
-      "text": "PLAY - Your next Name this turn costs 1 less Command, to a minimum of 1.",
+      "text": "WHILE NAMED - This formation has +1 Strength.",
       "design_tags": [
-        "command",
-        "command-recovery",
-        "formation-building",
-        "marker-state"
+        "persistent-state",
+        "strength"
       ]
     },
     {
@@ -645,15 +661,17 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "play",
+          "timing": "once_per_battle",
           "text": "Place a Tax marker on this Front. The next Bond your opponent plays here this turn costs 1 additional Command.",
           "scope": "opponent",
           "memory": [
+            "used_marker",
             "front_marker"
-          ]
+          ],
+          "exposed": "1/B · TAX BOND +1"
         }
       ],
-      "text": "PLAY - Place a Tax marker on this Front. The next Bond your opponent plays here this turn costs 1 additional Command.",
+      "text": "1/BATTLE - Place a Tax marker on this Front. The next Bond your opponent plays here this turn costs 1 additional Command.",
       "design_tags": [
         "command",
         "formation-building",
@@ -673,16 +691,19 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "play",
+          "timing": "once_per_battle",
           "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
           "scope": "opponent",
           "memory": [
+            "used_marker",
             "suppression_marker"
-          ]
+          ],
+          "exposed": "1/B · SUPPRESS BOND STR"
         }
       ],
-      "text": "PLAY - Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
+      "text": "1/BATTLE - Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
       "design_tags": [
+        "formation-building",
         "marker-state",
         "strength",
         "suppression"
@@ -728,15 +749,16 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "play",
-          "text": "Choose another friendly formation in this Front. Opposing Tactics cannot target it until the end of this turn.",
+          "timing": "once_per_battle",
+          "text": "Ignore one opposing Tactic that targets another friendly formation in this Front.",
           "scope": "self",
           "memory": [
-            "effect_marker"
-          ]
+            "used_marker"
+          ],
+          "exposed": "1/B · GUARD ALLY"
         }
       ],
-      "text": "PLAY - Choose another friendly formation in this Front. Opposing Tactics cannot target it until the end of this turn.",
+      "text": "1/BATTLE - Ignore one opposing Tactic that targets another friendly formation in this Front.",
       "design_tags": [
         "marker-state",
         "protection"
@@ -752,15 +774,17 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "play",
-          "text": "If this formation is Named after Followed is played, draw 1 card.",
+          "timing": "while_named",
+          "text": "This Bond contributes +1 additional Strength.",
           "scope": "self",
-          "memory": []
+          "memory": [],
+          "exposed": "NAMED · +1"
         }
       ],
-      "text": "PLAY - If this formation is Named after Followed is played, draw 1 card.",
+      "text": "WHILE NAMED - This Bond contributes +1 additional Strength.",
       "design_tags": [
-        "card-flow"
+        "persistent-state",
+        "strength"
       ]
     },
     {
@@ -833,20 +857,24 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "play",
+          "timing": "once_per_battle",
           "text": "If this formation contains a Rider or Scout, draw 1 card, then discard 1 card.",
           "scope": "self",
-          "memory": []
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · RIDER/SCOUT CYCLE"
         }
       ],
       "references": [
         "rider",
         "scout"
       ],
-      "text": "PLAY - If this formation contains a Rider or Scout, draw 1 card, then discard 1 card.",
+      "text": "1/BATTLE - If this formation contains a Rider or Scout, draw 1 card, then discard 1 card.",
       "design_tags": [
         "card-flow",
-        "classification-synergy"
+        "classification-synergy",
+        "marker-state"
       ]
     },
     {
@@ -859,14 +887,18 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "play",
+          "timing": "once_per_battle",
           "text": "Remove one temporary negative marker from another friendly formation in this Front.",
           "scope": "self",
-          "memory": []
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · CLEAR ALLY"
         }
       ],
-      "text": "PLAY - Remove one temporary negative marker from another friendly formation in this Front.",
+      "text": "1/BATTLE - Remove one temporary negative marker from another friendly formation in this Front.",
       "design_tags": [
+        "marker-state",
         "protection"
       ]
     },
@@ -933,20 +965,24 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "play",
+          "timing": "once_per_battle",
           "text": "If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand.",
           "scope": "opponent",
-          "memory": []
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · RAID LOOK 2"
         }
       ],
       "references": [
         "raider",
         "skirmisher"
       ],
-      "text": "PLAY - If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand.",
+      "text": "1/BATTLE - If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand.",
       "design_tags": [
         "classification-synergy",
-        "information"
+        "information",
+        "marker-state"
       ]
     },
     {
@@ -993,7 +1029,7 @@
       "text": "1/BATTLE - Reduce the Command cost of a Name played onto this formation by 1, to a minimum of 1.",
       "design_tags": [
         "command",
-        "command-recovery",
+        "formation-building",
         "marker-state"
       ]
     },
@@ -1078,16 +1114,17 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "play",
-          "text": "If this formation is Named after Trusted is played, regain 1 Command.",
+          "timing": "while_named",
+          "text": "This Bond contributes +1 additional Strength.",
           "scope": "self",
-          "memory": []
+          "memory": [],
+          "exposed": "NAMED · +1"
         }
       ],
-      "text": "PLAY - If this formation is Named after Trusted is played, regain 1 Command.",
+      "text": "WHILE NAMED - This Bond contributes +1 additional Strength.",
       "design_tags": [
-        "command",
-        "command-recovery"
+        "persistent-state",
+        "strength"
       ]
     },
     {
@@ -1100,20 +1137,23 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "play",
-          "text": "If this formation contains a Captain or King, draw 1 card.",
+          "timing": "bonded",
+          "text": "If this formation contains a Captain or King, this Bond contributes +1 additional Strength.",
           "scope": "self",
-          "memory": []
+          "memory": [],
+          "exposed": "CAPTAIN/KING · +1"
         }
       ],
       "references": [
         "captain",
         "king"
       ],
-      "text": "PLAY - If this formation contains a Captain or King, draw 1 card.",
+      "text": "BONDED - If this formation contains a Captain or King, this Bond contributes +1 additional Strength.",
       "design_tags": [
-        "card-flow",
-        "classification-synergy"
+        "classification-synergy",
+        "formation-building",
+        "persistent-state",
+        "strength"
       ]
     },
     {
@@ -1151,22 +1191,22 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "play",
-          "text": "If this formation contains a Guard or Spearman, it gets +1 Strength this Battle.",
+          "timing": "bonded",
+          "text": "If this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength.",
           "scope": "self",
-          "memory": [
-            "effect_marker"
-          ]
+          "memory": [],
+          "exposed": "GUARD/SPEAR · +1"
         }
       ],
       "references": [
         "guard",
         "spearman"
       ],
-      "text": "PLAY - If this formation contains a Guard or Spearman, it gets +1 Strength this Battle.",
+      "text": "BONDED - If this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength.",
       "design_tags": [
         "classification-synergy",
-        "marker-state",
+        "formation-building",
+        "persistent-state",
         "strength"
       ]
     },
@@ -1183,23 +1223,21 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Regain 2 Command.",
           "scope": "self",
           "memory": []
         },
         {
           "timing": "action",
-          "text": "Choose another friendly Human formation in this Front. The next card played onto it this turn costs 1 less Command, to a minimum of 1.",
+          "text": "Pay 1 Command. Choose another friendly Human formation in this Front. The next card played onto it this turn costs 1 less Command, to a minimum of 1.",
           "scope": "self",
           "memory": [
-            "used_marker",
             "effect_marker"
-          ],
-          "limit": "once_per_battle"
+          ]
         }
       ],
-      "text": "NAMED - Regain 2 Command.\nACTION · 1/BATTLE - Choose another friendly Human formation in this Front. The next card played onto it this turn costs 1 less Command, to a minimum of 1.",
+      "text": "BECOMES NAMED - Regain 2 Command.\nACTION - Pay 1 Command. Choose another friendly Human formation in this Front. The next card played onto it this turn costs 1 less Command, to a minimum of 1.",
       "design_tags": [
         "action-engine",
         "command",
@@ -1221,7 +1259,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Look at the top 3 cards of your deck. Return them in any order.",
           "scope": "self",
           "memory": []
@@ -1236,7 +1274,7 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Look at the top 3 cards of your deck. Return them in any order.\nTRIGGER · 1/BATTLE - When your opponent sets a Stratagem in this Front, look at it.",
+      "text": "BECOMES NAMED - Look at the top 3 cards of your deck. Return them in any order.\nTRIGGER · ONCE PER BATTLE - When your opponent sets a Stratagem in this Front, look at it.",
       "design_tags": [
         "card-flow",
         "information",
@@ -1257,7 +1295,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Draw 2 cards, then discard 1 card.",
           "scope": "self",
           "memory": []
@@ -1272,7 +1310,7 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Draw 2 cards, then discard 1 card.\nACTION · 1/BATTLE - Play up to two Bonds from your hand into this Front, paying their Command costs.",
+      "text": "BECOMES NAMED - Draw 2 cards, then discard 1 card.\nACTION · ONCE PER BATTLE - Play up to two Bonds from your hand into this Front, paying their Command costs.",
       "design_tags": [
         "action-engine",
         "card-flow",
@@ -1294,7 +1332,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Move this formation one position.",
           "scope": "self",
           "memory": []
@@ -1309,7 +1347,7 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Move this formation one position.\nACTION · 1/BATTLE - Move this formation one position.",
+      "text": "BECOMES NAMED - Move this formation one position.\nACTION · ONCE PER BATTLE - Move this formation one position.",
       "design_tags": [
         "action-engine",
         "marker-state",
@@ -1330,7 +1368,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Set a Stratagem from your hand in this Front without spending another Action. Pay its Command cost.",
           "scope": "self",
           "memory": []
@@ -1345,7 +1383,7 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Set a Stratagem from your hand in this Front without spending another Action. Pay its Command cost.\nTRIGGER · 1/BATTLE - When another friendly formation in this Front becomes Named, draw 1 card.",
+      "text": "BECOMES NAMED - Set a Stratagem from your hand in this Front without spending another Action. Pay its Command cost.\nTRIGGER · ONCE PER BATTLE - When another friendly formation in this Front becomes Named, draw 1 card.",
       "design_tags": [
         "card-flow",
         "command",
@@ -1366,7 +1404,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Look at your opponent's hand.",
           "scope": "self",
           "memory": []
@@ -1381,7 +1419,7 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Look at your opponent's hand.\nTRIGGER · 1/BATTLE - When your opponent plays a Tactic in this Front, look at one opposing face-down Stratagem in this or an adjacent Front.",
+      "text": "BECOMES NAMED - Look at your opponent's hand.\nTRIGGER · ONCE PER BATTLE - When your opponent plays a Tactic in this Front, look at one opposing face-down Stratagem in this or an adjacent Front.",
       "design_tags": [
         "information",
         "marker-state",
@@ -1401,7 +1439,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Remove all temporary negative markers from this formation.",
           "scope": "self",
           "memory": []
@@ -1416,7 +1454,7 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Remove all temporary negative markers from this formation.\nTRIGGER · 1/BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
+      "text": "BECOMES NAMED - Remove all temporary negative markers from this formation.\nTRIGGER · ONCE PER BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
       "design_tags": [
         "marker-state",
         "named-payoff",
@@ -1436,7 +1474,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Regain 1 Command.",
           "scope": "self",
           "memory": []
@@ -1451,7 +1489,7 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Regain 1 Command.\nTRIGGER · 1/BATTLE - When this formation would receive a temporary negative marker, ignore that marker.",
+      "text": "BECOMES NAMED - Regain 1 Command.\nTRIGGER · ONCE PER BATTLE - When this formation would receive a temporary negative marker, ignore that marker.",
       "design_tags": [
         "command",
         "command-recovery",
@@ -1472,7 +1510,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Move this formation one row forward or backward.",
           "scope": "self",
           "memory": []
@@ -1487,7 +1525,7 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Move this formation one row forward or backward.\nACTION · 1/BATTLE - Move this formation one row forward or backward.",
+      "text": "BECOMES NAMED - Move this formation one row forward or backward.\nACTION · ONCE PER BATTLE - Move this formation one row forward or backward.",
       "design_tags": [
         "action-engine",
         "marker-state",
@@ -1508,7 +1546,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Return one Bond from your discard pile to your hand.",
           "scope": "self",
           "memory": []
@@ -1524,7 +1562,7 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Return one Bond from your discard pile to your hand.\nACTION · 1/BATTLE - Choose one Unbonded friendly Formation in this Front. The next Bond you play onto it this turn costs 1 less Command, to a minimum of 0.",
+      "text": "BECOMES NAMED - Return one Bond from your discard pile to your hand.\nACTION · ONCE PER BATTLE - Choose one Unbonded friendly Formation in this Front. The next Bond you play onto it this turn costs 1 less Command, to a minimum of 0.",
       "design_tags": [
         "action-engine",
         "card-flow",
@@ -1548,7 +1586,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Choose an opposing formation in this Front. It gets -2 Strength this Battle.",
           "scope": "opponent",
           "memory": [
@@ -1566,9 +1604,10 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Choose an opposing formation in this Front. It gets -2 Strength this Battle.\nACTION · 1/BATTLE - Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
+      "text": "BECOMES NAMED - Choose an opposing formation in this Front. It gets -2 Strength this Battle.\nACTION · ONCE PER BATTLE - Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
       "design_tags": [
         "action-engine",
+        "formation-building",
         "marker-state",
         "named-payoff",
         "strength",
@@ -1588,26 +1627,23 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Draw 2 cards, then put 1 card from your hand on top of your deck.",
           "scope": "self",
           "memory": []
         },
         {
           "timing": "action",
-          "text": "Discard 1 card, then draw 2 cards.",
+          "text": "Pay 1 Command. Discard 1 card, then draw 2 cards.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle"
+          "memory": []
         }
       ],
-      "text": "NAMED - Draw 2 cards, then put 1 card from your hand on top of your deck.\nACTION · 1/BATTLE - Discard 1 card, then draw 2 cards.",
+      "text": "BECOMES NAMED - Draw 2 cards, then put 1 card from your hand on top of your deck.\nACTION - Pay 1 Command. Discard 1 card, then draw 2 cards.",
       "design_tags": [
         "action-engine",
         "card-flow",
-        "marker-state",
+        "command",
         "named-payoff"
       ]
     },
@@ -1624,7 +1660,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Regain 1 Command.",
           "scope": "self",
           "memory": []
@@ -1638,7 +1674,7 @@
           ]
         }
       ],
-      "text": "NAMED - Regain 1 Command.\nCONTINUOUS - Your first Tactic each Battle costs 1 less Command, to a minimum of 1.",
+      "text": "BECOMES NAMED - Regain 1 Command.\nCONTINUOUS - Your first Tactic each Battle costs 1 less Command, to a minimum of 1.",
       "design_tags": [
         "command",
         "command-recovery",
@@ -1658,7 +1694,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Choose one classification among your friendly formations in this Front. Those formations get +1 Strength this Battle.",
           "scope": "self",
           "memory": [
@@ -1676,10 +1712,11 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Choose one classification among your friendly formations in this Front. Those formations get +1 Strength this Battle.\nACTION · 1/BATTLE - Choose one friendly Bonded Formation in this Front. It gets +1 Strength this Battle.",
+      "text": "BECOMES NAMED - Choose one classification among your friendly formations in this Front. Those formations get +1 Strength this Battle.\nACTION · ONCE PER BATTLE - Choose one friendly Bonded Formation in this Front. It gets +1 Strength this Battle.",
       "design_tags": [
         "action-engine",
         "classification-synergy",
+        "formation-building",
         "marker-state",
         "named-payoff",
         "strength"
@@ -1698,7 +1735,7 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "Choose an Unbonded friendly Formation in this Front. You may immediately play a Bond from your hand onto it, paying its Command cost.",
           "scope": "self",
           "memory": []
@@ -1713,7 +1750,7 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "NAMED - Choose an Unbonded friendly Formation in this Front. You may immediately play a Bond from your hand onto it, paying its Command cost.\nTRIGGER · 1/BATTLE - When another friendly formation in this Front becomes Named, regain 1 Command.",
+      "text": "BECOMES NAMED - Choose an Unbonded friendly Formation in this Front. You may immediately play a Bond from your hand onto it, paying its Command cost.\nTRIGGER · ONCE PER BATTLE - When another friendly formation in this Front becomes Named, regain 1 Command.",
       "design_tags": [
         "command",
         "command-recovery",
@@ -1735,13 +1772,13 @@
       "unique": true,
       "effects": [
         {
-          "timing": "named",
+          "timing": "becomes_named",
           "text": "If you control another Named Human Formation, draw 2 cards.",
           "scope": "self",
           "memory": []
         },
         {
-          "timing": "continuous",
+          "timing": "while_named",
           "text": "While this formation is Named, Eira also has the King classification.",
           "scope": "self",
           "memory": [
@@ -1749,11 +1786,12 @@
           ]
         }
       ],
-      "text": "NAMED - If you control another Named Human Formation, draw 2 cards.\nCONTINUOUS - While this formation is Named, Eira also has the King classification.",
+      "text": "BECOMES NAMED - If you control another Named Human Formation, draw 2 cards.\nWHILE NAMED - While this formation is Named, Eira also has the King classification.",
       "design_tags": [
         "card-flow",
         "classification-synergy",
-        "named-payoff"
+        "named-payoff",
+        "persistent-state"
       ]
     },
     {
@@ -1762,8 +1800,7 @@
       "type": "hero",
       "classes": [
         "human",
-        "king",
-        "hero"
+        "king"
       ],
       "command_cost": 3,
       "unique": true,
@@ -1785,7 +1822,7 @@
         "name": {
           "effects": [
             {
-              "timing": "named",
+              "timing": "becomes_named",
               "text": "Regain 2 Command.",
               "scope": "self",
               "memory": []
@@ -1803,7 +1840,7 @@
           ]
         }
       },
-      "text": "Force\nPLAY - Choose up to two other friendly Human formations in this Front. Each gets +1 Strength this Battle.\n\nName\nNAMED - Regain 2 Command.\nACTION · 1/BATTLE - Choose one classification among your friendly formations in this Front. Each friendly formation here containing it gets +1 Strength this Battle.",
+      "text": "AS FORCE\nPLAY - Choose up to two other friendly Human formations in this Front. Each gets +1 Strength this Battle.\n\nAS NAME\nBECOMES NAMED - Regain 2 Command.\nACTION · ONCE PER BATTLE - Choose one classification among your friendly formations in this Front. Each friendly formation here containing it gets +1 Strength this Battle.",
       "design_tags": [
         "action-engine",
         "classification-synergy",
@@ -1820,8 +1857,7 @@
       "type": "hero",
       "classes": [
         "human",
-        "scout",
-        "hero"
+        "scout"
       ],
       "command_cost": 3,
       "unique": true,
@@ -1844,7 +1880,7 @@
         "name": {
           "effects": [
             {
-              "timing": "named",
+              "timing": "becomes_named",
               "text": "Look at every opposing face-down Stratagem in this Front.",
               "scope": "self",
               "memory": []
@@ -1861,7 +1897,7 @@
           ]
         }
       },
-      "text": "Force\n1/BATTLE - Move Kael up to two positions.\n\nName\nNAMED - Look at every opposing face-down Stratagem in this Front.\nACTION · 1/BATTLE - Look at one opposing face-down Stratagem in this or an adjacent Front.",
+      "text": "AS FORCE\n1/BATTLE - Move Kael up to two positions.\n\nAS NAME\nBECOMES NAMED - Look at every opposing face-down Stratagem in this Front.\nACTION · ONCE PER BATTLE - Look at one opposing face-down Stratagem in this or an adjacent Front.",
       "design_tags": [
         "action-engine",
         "information",
@@ -1876,8 +1912,7 @@
       "type": "hero",
       "classes": [
         "human",
-        "raider",
-        "hero"
+        "raider"
       ],
       "command_cost": 3,
       "unique": true,
@@ -1897,7 +1932,7 @@
         "name": {
           "effects": [
             {
-              "timing": "named",
+              "timing": "becomes_named",
               "text": "Choose an opposing Bond or Name in this Front. Its text is ignored this Battle.",
               "scope": "opponent",
               "memory": [
@@ -1917,7 +1952,7 @@
           ]
         }
       },
-      "text": "Force\nPLAY - Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand.\n\nName\nNAMED - Choose an opposing Bond or Name in this Front. Its text is ignored this Battle.\nACTION · 1/BATTLE - Place a Tax marker on this Front. The next card your opponent plays here costs 1 additional Command.",
+      "text": "AS FORCE\nPLAY - Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand.\n\nAS NAME\nBECOMES NAMED - Choose an opposing Bond or Name in this Front. Its text is ignored this Battle.\nACTION · ONCE PER BATTLE - Place a Tax marker on this Front. The next card your opponent plays here costs 1 additional Command.",
       "design_tags": [
         "action-engine",
         "command",
@@ -1935,8 +1970,7 @@
       "type": "hero",
       "classes": [
         "human",
-        "guard",
-        "hero"
+        "guard"
       ],
       "command_cost": 2,
       "unique": true,
@@ -1959,7 +1993,7 @@
         "name": {
           "effects": [
             {
-              "timing": "named",
+              "timing": "becomes_named",
               "text": "Remove all temporary negative markers from one friendly formation in this Front.",
               "scope": "self",
               "memory": []
@@ -1976,7 +2010,7 @@
           ]
         }
       },
-      "text": "Force\n1/BATTLE - Ignore one opposing Tactic that targets Alda.\n\nName\nNAMED - Remove all temporary negative markers from one friendly formation in this Front.\nTRIGGER · 1/BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
+      "text": "AS FORCE\n1/BATTLE - Ignore one opposing Tactic that targets Alda.\n\nAS NAME\nBECOMES NAMED - Remove all temporary negative markers from one friendly formation in this Front.\nTRIGGER · ONCE PER BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
       "design_tags": [
         "marker-state",
         "named-payoff",
@@ -1989,8 +2023,7 @@
       "type": "hero",
       "classes": [
         "human",
-        "steward",
-        "hero"
+        "steward"
       ],
       "command_cost": 3,
       "unique": true,
@@ -2010,7 +2043,7 @@
         "name": {
           "effects": [
             {
-              "timing": "named",
+              "timing": "becomes_named",
               "text": "Regain 2 Command.",
               "scope": "self",
               "memory": []
@@ -2026,7 +2059,7 @@
           ]
         }
       },
-      "text": "Force\nPLAY - Draw 2 cards, then discard 1 card.\n\nName\nNAMED - Regain 2 Command.\nCONTINUOUS - The first Bond or Name you play each Battle costs 1 less Command, to a minimum of 1.",
+      "text": "AS FORCE\nPLAY - Draw 2 cards, then discard 1 card.\n\nAS NAME\nBECOMES NAMED - Regain 2 Command.\nCONTINUOUS - The first Bond or Name you play each Battle costs 1 less Command, to a minimum of 1.",
       "design_tags": [
         "card-flow",
         "command",
@@ -2041,8 +2074,7 @@
       "type": "hero",
       "classes": [
         "human",
-        "builder",
-        "hero"
+        "builder"
       ],
       "command_cost": 3,
       "unique": true,
@@ -2062,7 +2094,7 @@
         "name": {
           "effects": [
             {
-              "timing": "named",
+              "timing": "becomes_named",
               "text": "Return one Bond from your discard pile to your hand.",
               "scope": "self",
               "memory": []
@@ -2079,7 +2111,7 @@
           ]
         }
       },
-      "text": "Force\nPLAY - Choose one prepared Bond or prepared Name in this Front. Attach it to a legal friendly Formation in this Front.\n\nName\nNAMED - Return one Bond from your discard pile to your hand.\nACTION · 1/BATTLE - Choose one prepared Bond or prepared Name in this Front. Attach it to a legal friendly Formation here.",
+      "text": "AS FORCE\nPLAY - Choose one prepared Bond or prepared Name in this Front. Attach it to a legal friendly Formation in this Front.\n\nAS NAME\nBECOMES NAMED - Return one Bond from your discard pile to your hand.\nACTION · ONCE PER BATTLE - Choose one prepared Bond or prepared Name in this Front. Attach it to a legal friendly Formation here.",
       "design_tags": [
         "action-engine",
         "card-flow",
@@ -2095,8 +2127,7 @@
       "type": "hero",
       "classes": [
         "human",
-        "rider",
-        "hero"
+        "rider"
       ],
       "command_cost": 3,
       "unique": true,
@@ -2119,7 +2150,7 @@
         "name": {
           "effects": [
             {
-              "timing": "named",
+              "timing": "becomes_named",
               "text": "Move another friendly formation in this Front one position.",
               "scope": "self",
               "memory": []
@@ -2136,7 +2167,7 @@
           ]
         }
       },
-      "text": "Force\n1/BATTLE - Move Neris one position.\n\nName\nNAMED - Move another friendly formation in this Front one position.\nACTION · 1/BATTLE - Move this or another friendly formation in this Front one position.",
+      "text": "AS FORCE\n1/BATTLE - Move Neris one position.\n\nAS NAME\nBECOMES NAMED - Move another friendly formation in this Front one position.\nACTION · ONCE PER BATTLE - Move this or another friendly formation in this Front one position.",
       "design_tags": [
         "action-engine",
         "marker-state",
@@ -2150,8 +2181,7 @@
       "type": "hero",
       "classes": [
         "human",
-        "veteran",
-        "hero"
+        "veteran"
       ],
       "command_cost": 3,
       "unique": true,
@@ -2171,7 +2201,7 @@
         "name": {
           "effects": [
             {
-              "timing": "named",
+              "timing": "becomes_named",
               "text": "This formation's Name text cannot be suppressed this Battle.",
               "scope": "self",
               "memory": [
@@ -2189,7 +2219,7 @@
           ]
         }
       },
-      "text": "Force\nPLAY - Remove one temporary negative marker from a friendly formation in this Front.\n\nName\nNAMED - This formation's Name text cannot be suppressed this Battle.\nCONTINUOUS - Opposing Tactics that target this formation cost 1 additional Command.",
+      "text": "AS FORCE\nPLAY - Remove one temporary negative marker from a friendly formation in this Front.\n\nAS NAME\nBECOMES NAMED - This formation's Name text cannot be suppressed this Battle.\nCONTINUOUS - Opposing Tactics that target this formation cost 1 additional Command.",
       "design_tags": [
         "command",
         "marker-state",
@@ -2204,8 +2234,7 @@
       "type": "hero",
       "classes": [
         "human",
-        "seer",
-        "hero"
+        "seer"
       ],
       "command_cost": 3,
       "unique": true,
@@ -2225,7 +2254,7 @@
         "name": {
           "effects": [
             {
-              "timing": "named",
+              "timing": "becomes_named",
               "text": "Return one Narrative from your discard pile to your hand.",
               "scope": "self",
               "memory": []
@@ -2242,7 +2271,7 @@
           ]
         }
       },
-      "text": "Force\nPLAY - Look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order.\n\nName\nNAMED - Return one Narrative from your discard pile to your hand.\nTRIGGER · 1/BATTLE - When you play a Narrative, draw 1 card, then discard 1 card.",
+      "text": "AS FORCE\nPLAY - Look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order.\n\nAS NAME\nBECOMES NAMED - Return one Narrative from your discard pile to your hand.\nTRIGGER · ONCE PER BATTLE - When you play a Narrative, draw 1 card, then discard 1 card.",
       "design_tags": [
         "card-flow",
         "information",
@@ -2412,6 +2441,7 @@
       ],
       "text": "PLAY - Choose an opposing Bonded Formation. Its Bond contributes no Strength and its 1/BATTLE ability cannot be used this Battle.",
       "design_tags": [
+        "formation-building",
         "hostile-interaction",
         "marker-state",
         "strength",
@@ -2678,7 +2708,6 @@
         "classification-synergy",
         "hidden-plan",
         "marker-state",
-        "movement",
         "strength"
       ]
     },
@@ -2915,9 +2944,7 @@
       "title": "The Battle Had Chosen Them",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "hero"
-      ],
+      "references": [],
       "command_cost": 2,
       "effects": [
         {
@@ -2933,7 +2960,6 @@
       "text": "CONTINUOUS - Your Heroes and Named Formations have +1 Strength this Battle.",
       "design_tags": [
         "army-support",
-        "classification-synergy",
         "strength"
       ]
     },
@@ -2961,6 +2987,7 @@
       "design_tags": [
         "army-support",
         "classification-synergy",
+        "formation-building",
         "strength"
       ]
     },
@@ -2993,6 +3020,798 @@
         "command-recovery",
         "formation-building"
       ]
+    },
+    {
+      "id": "the-ash-bowmen",
+      "title": "The Ash Bowmen",
+      "type": "force",
+      "classes": [
+        "human",
+        "archer"
+      ],
+      "command_cost": 2,
+      "strength": 3,
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "This formation has +1 Strength.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "BONDED · +1"
+        }
+      ],
+      "text": "BONDED - This formation has +1 Strength.",
+      "design_tags": [
+        "formation-building",
+        "persistent-state",
+        "strength"
+      ]
+    },
+    {
+      "id": "the-lantern-scouts",
+      "title": "The Lantern Scouts",
+      "type": "force",
+      "classes": [
+        "human",
+        "scout"
+      ],
+      "command_cost": 1,
+      "strength": 2,
+      "effects": [
+        {
+          "timing": "once_per_battle",
+          "text": "Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+          "scope": "opponent",
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · LOOK AT STRATAGEM"
+        }
+      ],
+      "text": "1/BATTLE - Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+      "design_tags": [
+        "information",
+        "marker-state"
+      ]
+    },
+    {
+      "id": "the-river-raiders",
+      "title": "The River Raiders",
+      "type": "force",
+      "classes": [
+        "human",
+        "raider"
+      ],
+      "command_cost": 2,
+      "strength": 3,
+      "effects": [
+        {
+          "timing": "once_per_battle",
+          "text": "Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+          "scope": "opponent",
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · PRESS PREPARED"
+        }
+      ],
+      "text": "1/BATTLE - Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+      "design_tags": [
+        "command",
+        "formation-building",
+        "marker-state",
+        "prepared-cards"
+      ]
+    },
+    {
+      "id": "the-kings-spears",
+      "title": "The King's Spears",
+      "type": "force",
+      "classes": [
+        "human",
+        "guard",
+        "spearman"
+      ],
+      "command_cost": 2,
+      "strength": 4,
+      "effects": [
+        {
+          "timing": "while_named",
+          "text": "This formation has +1 Strength.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "NAMED · +1"
+        }
+      ],
+      "text": "WHILE NAMED - This formation has +1 Strength.",
+      "design_tags": [
+        "persistent-state",
+        "strength"
+      ]
+    },
+    {
+      "id": "the-salt-road-fleet",
+      "title": "The Salt-Road Fleet",
+      "type": "force",
+      "classes": [
+        "ship",
+        "raider"
+      ],
+      "command_cost": 2,
+      "strength": 4,
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "Tactics you play targeting this Front cost 1 less Command, to a minimum of 1.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "BONDED · TACTICS HERE -1"
+        }
+      ],
+      "text": "BONDED - Tactics you play targeting this Front cost 1 less Command, to a minimum of 1.",
+      "design_tags": [
+        "command",
+        "command-recovery",
+        "formation-building",
+        "persistent-state"
+      ]
+    },
+    {
+      "id": "the-watchtowers-of-eren",
+      "title": "The Watchtowers of Eren",
+      "type": "force",
+      "classes": [
+        "stronghold",
+        "scout"
+      ],
+      "command_cost": 2,
+      "strength": 2,
+      "effects": [
+        {
+          "timing": "once_per_battle",
+          "text": "Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+          "scope": "opponent",
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · LOOK AT STRATAGEM"
+        }
+      ],
+      "placement": "rear",
+      "text": "1/BATTLE - Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+      "design_tags": [
+        "information",
+        "marker-state"
+      ]
+    },
+    {
+      "id": "watched-the-skies-for",
+      "title": "Watched the Skies For",
+      "type": "bond",
+      "classes": [],
+      "bond_kind": "vigil",
+      "command_cost": 1,
+      "strength_modifier": 0,
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "If this formation contains an Archer or Scout, this Bond contributes +1 Strength.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "ARCHER/SCOUT · +1"
+        }
+      ],
+      "references": [
+        "archer",
+        "scout"
+      ],
+      "text": "BONDED - If this formation contains an Archer or Scout, this Bond contributes +1 Strength.",
+      "design_tags": [
+        "classification-synergy",
+        "formation-building",
+        "persistent-state",
+        "strength"
+      ]
+    },
+    {
+      "id": "kept-the-gate-for",
+      "title": "Kept the Gate For",
+      "type": "bond",
+      "classes": [],
+      "bond_kind": "protection",
+      "command_cost": 1,
+      "strength_modifier": 1,
+      "effects": [
+        {
+          "timing": "once_per_battle",
+          "text": "Prevent one temporary negative marker from being placed on this formation.",
+          "scope": "self",
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · PREVENT MARKER"
+        }
+      ],
+      "references": [
+        "guard",
+        "stronghold"
+      ],
+      "text": "1/BATTLE - Prevent one temporary negative marker from being placed on this formation.",
+      "design_tags": [
+        "classification-synergy",
+        "marker-state",
+        "protection"
+      ]
+    },
+    {
+      "id": "shared-the-spoils-with",
+      "title": "Shared the Spoils With",
+      "type": "bond",
+      "classes": [],
+      "bond_kind": "spoils",
+      "command_cost": 1,
+      "strength_modifier": 0,
+      "effects": [
+        {
+          "timing": "once_per_battle",
+          "text": "If this formation contains a Raider or Skirmisher, regain 1 Command.",
+          "scope": "self",
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · RAID +1 COMMAND"
+        }
+      ],
+      "references": [
+        "raider",
+        "skirmisher"
+      ],
+      "text": "1/BATTLE - If this formation contains a Raider or Skirmisher, regain 1 Command.",
+      "design_tags": [
+        "classification-synergy",
+        "command",
+        "command-recovery",
+        "marker-state"
+      ]
+    },
+    {
+      "id": "carried-messages-for",
+      "title": "Carried Messages For",
+      "type": "bond",
+      "classes": [],
+      "bond_kind": "messengers",
+      "command_cost": 1,
+      "strength_modifier": 0,
+      "effects": [
+        {
+          "timing": "once_per_battle",
+          "text": "If this formation contains a Captain or Scout, draw 1 card, then discard 1 card.",
+          "scope": "self",
+          "memory": [
+            "used_marker"
+          ],
+          "exposed": "1/B · CAPTAIN/SCOUT CYCLE"
+        }
+      ],
+      "references": [
+        "captain",
+        "scout"
+      ],
+      "text": "1/BATTLE - If this formation contains a Captain or Scout, draw 1 card, then discard 1 card.",
+      "design_tags": [
+        "card-flow",
+        "classification-synergy",
+        "marker-state"
+      ]
+    },
+    {
+      "id": "corin-of-the-high-wall",
+      "title": "Corin of the High Wall",
+      "type": "name",
+      "classes": [
+        "human",
+        "archer",
+        "captain"
+      ],
+      "command_cost": 2,
+      "strength_modifier": 1,
+      "unique": true,
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Choose an opposing formation in this Front. It gets -1 Strength this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "effect_marker"
+          ]
+        },
+        {
+          "timing": "continuous",
+          "text": "Other friendly Archers in this Front have +1 Strength.",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
+        }
+      ],
+      "text": "BECOMES NAMED - Choose an opposing formation in this Front. It gets -1 Strength this Battle.\nCONTINUOUS - Other friendly Archers in this Front have +1 Strength.",
+      "design_tags": [
+        "marker-state",
+        "named-payoff",
+        "strength"
+      ]
+    },
+    {
+      "id": "lysa-the-listener",
+      "title": "Lysa the Listener",
+      "type": "name",
+      "classes": [
+        "human",
+        "scout",
+        "seer"
+      ],
+      "command_cost": 1,
+      "strength_modifier": 1,
+      "unique": true,
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Look at your opponent's hand.",
+          "scope": "self",
+          "memory": []
+        },
+        {
+          "timing": "action",
+          "text": "Pay 1 Command. Look at one opposing face-down Stratagem in any active Front.",
+          "scope": "opponent",
+          "memory": []
+        }
+      ],
+      "text": "BECOMES NAMED - Look at your opponent's hand.\nACTION - Pay 1 Command. Look at one opposing face-down Stratagem in any active Front.",
+      "design_tags": [
+        "action-engine",
+        "command",
+        "information",
+        "named-payoff"
+      ]
+    },
+    {
+      "id": "brannoc",
+      "title": "Brannoc",
+      "type": "name",
+      "classes": [
+        "human",
+        "raider",
+        "captain"
+      ],
+      "command_cost": 2,
+      "strength_modifier": 1,
+      "unique": true,
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Place a Tax marker on this Front. The next card your opponent plays here costs 1 additional Command.",
+          "scope": "opponent",
+          "memory": [
+            "front_marker"
+          ]
+        },
+        {
+          "timing": "action",
+          "text": "Pay 1 Command. Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+          "scope": "opponent",
+          "memory": []
+        }
+      ],
+      "text": "BECOMES NAMED - Place a Tax marker on this Front. The next card your opponent plays here costs 1 additional Command.\nACTION - Pay 1 Command. Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+      "design_tags": [
+        "action-engine",
+        "command",
+        "formation-building",
+        "marker-state",
+        "named-payoff",
+        "prepared-cards",
+        "tax"
+      ]
+    },
+    {
+      "id": "maelin",
+      "title": "Maelin",
+      "type": "name",
+      "classes": [
+        "human",
+        "guard",
+        "healer"
+      ],
+      "command_cost": 1,
+      "strength_modifier": 1,
+      "unique": true,
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Remove all temporary negative markers from one friendly formation in this Front.",
+          "scope": "self",
+          "memory": []
+        },
+        {
+          "timing": "continuous",
+          "text": "Opposing Tactics that target another friendly formation in this Front cost 1 additional Command.",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
+        }
+      ],
+      "text": "BECOMES NAMED - Remove all temporary negative markers from one friendly formation in this Front.\nCONTINUOUS - Opposing Tactics that target another friendly formation in this Front cost 1 additional Command.",
+      "design_tags": [
+        "command",
+        "named-payoff",
+        "tax"
+      ]
+    },
+    {
+      "id": "serai-queen-of-crows",
+      "title": "Serai, Queen of Crows",
+      "type": "hero",
+      "classes": [
+        "human",
+        "king",
+        "archer"
+      ],
+      "command_cost": 3,
+      "unique": true,
+      "force_strength": 4,
+      "name_strength_modifier": 1,
+      "modes": {
+        "force": {
+          "effects": [
+            {
+              "timing": "bonded",
+              "text": "If another friendly Archer is in this Front, Serai has +1 Strength.",
+              "scope": "self",
+              "memory": [],
+              "exposed": "BONDED · WITH ARCHER +1"
+            }
+          ]
+        },
+        "name": {
+          "effects": [
+            {
+              "timing": "becomes_named",
+              "text": "Your Archers in this Front get +1 Strength this Battle.",
+              "scope": "self",
+              "memory": [
+                "front_marker"
+              ]
+            },
+            {
+              "timing": "action",
+              "text": "Pay 1 Command. Choose an opposing formation in this Front with no -Strength marker. It gets -1 Strength this Battle.",
+              "scope": "opponent",
+              "memory": [
+                "effect_marker"
+              ]
+            }
+          ]
+        }
+      },
+      "text": "AS FORCE\nBONDED - If another friendly Archer is in this Front, Serai has +1 Strength.\n\nAS NAME\nBECOMES NAMED - Your Archers in this Front get +1 Strength this Battle.\nACTION - Pay 1 Command. Choose an opposing formation in this Front with no -Strength marker. It gets -1 Strength this Battle.",
+      "design_tags": [
+        "action-engine",
+        "command",
+        "formation-building",
+        "marker-state",
+        "named-payoff",
+        "persistent-state",
+        "strength"
+      ]
+    },
+    {
+      "id": "doros-the-last-spear",
+      "title": "Doros, the Last Spear",
+      "type": "hero",
+      "classes": [
+        "human",
+        "veteran",
+        "spearman"
+      ],
+      "command_cost": 3,
+      "unique": true,
+      "force_strength": 5,
+      "name_strength_modifier": 1,
+      "modes": {
+        "force": {
+          "effects": [
+            {
+              "timing": "bonded",
+              "text": "While Doros is in the Front row, he has +1 Strength.",
+              "scope": "self",
+              "memory": [],
+              "exposed": "BONDED · FRONT +1"
+            }
+          ]
+        },
+        "name": {
+          "effects": [
+            {
+              "timing": "becomes_named",
+              "text": "Regain 1 Command.",
+              "scope": "self",
+              "memory": []
+            },
+            {
+              "timing": "continuous",
+              "text": "Opposing Tactics cannot reduce this formation's Strength.",
+              "scope": "self",
+              "memory": [
+                "face_up_source"
+              ]
+            }
+          ]
+        }
+      },
+      "text": "AS FORCE\nBONDED - While Doros is in the Front row, he has +1 Strength.\n\nAS NAME\nBECOMES NAMED - Regain 1 Command.\nCONTINUOUS - Opposing Tactics cannot reduce this formation's Strength.",
+      "design_tags": [
+        "command",
+        "command-recovery",
+        "formation-building",
+        "named-payoff",
+        "persistent-state",
+        "protection",
+        "strength"
+      ]
+    },
+    {
+      "id": "a-volley-before-dawn",
+      "title": "A Volley Before Dawn",
+      "type": "tactic",
+      "classes": [],
+      "references": [
+        "archer"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing formation in a Front containing one of your Archers. It gets -2 Strength this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "effect_marker"
+          ]
+        }
+      ],
+      "text": "PLAY - Choose an opposing formation in a Front containing one of your Archers. It gets -2 Strength this Battle.",
+      "design_tags": [
+        "classification-synergy",
+        "hostile-interaction",
+        "marker-state",
+        "strength"
+      ]
+    },
+    {
+      "id": "the-scouts-found-the-gap",
+      "title": "The Scouts Found the Gap",
+      "type": "tactic",
+      "classes": [],
+      "references": [
+        "scout"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Scouts. Reveal one opposing face-down Stratagem in its Front or an adjacent Front. Its owner returns it to hand or pays 1 Command to set it face-down again.",
+          "scope": "opponent",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose one of your Scouts. Reveal one opposing face-down Stratagem in its Front or an adjacent Front. Its owner returns it to hand or pays 1 Command to set it face-down again.",
+      "design_tags": [
+        "classification-synergy",
+        "command",
+        "hostile-interaction",
+        "information"
+      ]
+    },
+    {
+      "id": "the-stores-were-taken",
+      "title": "The Stores Were Taken",
+      "type": "tactic",
+      "classes": [],
+      "references": [
+        "raider"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one opposing prepared Bond or prepared Name in a Front containing one of your Raiders. Its owner pays 2 Command or returns it to hand.",
+          "scope": "opponent",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose one opposing prepared Bond or prepared Name in a Front containing one of your Raiders. Its owner pays 2 Command or returns it to hand.",
+      "design_tags": [
+        "classification-synergy",
+        "command",
+        "formation-building",
+        "hostile-interaction",
+        "prepared-cards"
+      ]
+    },
+    {
+      "id": "the-line-was-baited",
+      "title": "The Line Was Baited",
+      "type": "tactic",
+      "classes": [],
+      "references": [
+        "skirmisher",
+        "guard",
+        "spearman"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Its formation gets -2 Strength this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "effect_marker"
+          ]
+        }
+      ],
+      "text": "PLAY - Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Its formation gets -2 Strength this Battle.",
+      "design_tags": [
+        "classification-synergy",
+        "hostile-interaction",
+        "marker-state",
+        "strength"
+      ]
+    },
+    {
+      "id": "the-archers-were-ready",
+      "title": "The Archers Were Ready",
+      "type": "stratagem",
+      "classes": [],
+      "references": [
+        "archer"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal when an opposing Tactic targets one of your formations in a Front containing one of your Archers. One friendly Archer there gets +2 Strength this Battle.",
+          "scope": "self",
+          "memory": [
+            "face_down_source",
+            "effect_marker"
+          ],
+          "reveal": "friendly_targeted_near_archer"
+        }
+      ],
+      "text": "HIDDEN - Reveal when an opposing Tactic targets one of your formations in a Front containing one of your Archers. One friendly Archer there gets +2 Strength this Battle.",
+      "design_tags": [
+        "classification-synergy",
+        "hidden-plan",
+        "marker-state",
+        "strength"
+      ]
+    },
+    {
+      "id": "the-scouts-had-warned-them",
+      "title": "The Scouts Had Warned Them",
+      "type": "stratagem",
+      "classes": [],
+      "references": [
+        "scout",
+        "seer"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal when your opponent sets a Stratagem in a Front containing one of your Scouts or Seers. Look at it. Draw 1 card, then discard 1 card.",
+          "scope": "self",
+          "memory": [
+            "face_down_source"
+          ],
+          "reveal": "enemy_sets_stratagem_near_scout"
+        }
+      ],
+      "text": "HIDDEN - Reveal when your opponent sets a Stratagem in a Front containing one of your Scouts or Seers. Look at it. Draw 1 card, then discard 1 card.",
+      "design_tags": [
+        "card-flow",
+        "classification-synergy",
+        "hidden-plan",
+        "information"
+      ]
+    },
+    {
+      "id": "every-bow-was-strung",
+      "title": "Every Bow Was Strung",
+      "type": "narrative",
+      "classes": [],
+      "references": [
+        "archer"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "continuous",
+          "text": "Your Bonded Archer formations have +1 Strength this Battle.",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
+        }
+      ],
+      "duration": "this_battle",
+      "text": "CONTINUOUS - Your Bonded Archer formations have +1 Strength this Battle.",
+      "design_tags": [
+        "army-support",
+        "classification-synergy",
+        "formation-building",
+        "strength"
+      ]
+    },
+    {
+      "id": "they-knew-the-ground",
+      "title": "They Knew the Ground",
+      "type": "narrative",
+      "classes": [],
+      "references": [
+        "scout",
+        "seer"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "once_per_battle",
+          "text": "Choose one of your Scouts or Seers. Look at one opposing face-down Stratagem in any active Front.",
+          "scope": "self",
+          "memory": [
+            "face_up_source",
+            "used_marker"
+          ]
+        }
+      ],
+      "duration": "this_battle",
+      "text": "1/BATTLE - Choose one of your Scouts or Seers. Look at one opposing face-down Stratagem in any active Front.",
+      "design_tags": [
+        "army-support",
+        "classification-synergy",
+        "information",
+        "marker-state"
+      ]
+    },
+    {
+      "id": "the-raiders-came-home-loaded",
+      "title": "The Raiders Came Home Loaded",
+      "type": "narrative",
+      "classes": [],
+      "references": [
+        "raider",
+        "skirmisher"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "continuous",
+          "text": "The first Tactic you play each turn targeting a Front containing one of your Raiders or Skirmishers costs 1 less Command, to a minimum of 1.",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
+        }
+      ],
+      "duration": "this_battle",
+      "text": "CONTINUOUS - The first Tactic you play each turn targeting a Front containing one of your Raiders or Skirmishers costs 1 less Command, to a minimum of 1.",
+      "design_tags": [
+        "army-support",
+        "classification-synergy",
+        "command",
+        "command-recovery"
+      ]
     }
   ],
   "playtest_axes": {
@@ -3018,5 +3837,42 @@
       "army-support",
       "marker-state"
     ]
+  },
+  "classification_groups": {
+    "kind": [
+      "human",
+      "ship",
+      "stronghold"
+    ],
+    "role": [
+      "archer",
+      "guard",
+      "scout",
+      "rider",
+      "skirmisher",
+      "raider",
+      "healer",
+      "spearman",
+      "steward",
+      "builder",
+      "seer"
+    ],
+    "rank": [
+      "king",
+      "captain",
+      "veteran",
+      "heir"
+    ]
+  },
+  "timing_vocabulary": {
+    "play": "Resolve immediately when the card is played.",
+    "once_per_battle": "A deliberate ability usable once each Battle; mark it used.",
+    "bonded": "A visible state effect active while the Formation contains Force + Bond.",
+    "while_named": "A visible state effect active while the Formation contains Force + Bond + Name.",
+    "becomes_named": "Resolve when the Formation transitions into the Named state.",
+    "action": "Spend an Action to use this visible Name ability.",
+    "trigger": "A visible Name reacts to the stated event.",
+    "continuous": "A visible Name or Narrative rule remains active while its source remains active.",
+    "hidden": "A face-down Stratagem reveals under its stated condition."
   }
 }

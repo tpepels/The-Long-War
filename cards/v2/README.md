@@ -1,13 +1,12 @@
 # Card redesign V2
 
-This directory is a design proposal, not the canonical engine card pool.
+This is a design/playtest proposal, not the canonical engine card pool.
 
-Files:
-- `mechanics.md` - enforced card grammar, classifications, formation states, typography, and physical layout.
-- `catalogue.md` - readable catalogue of all 95 redesigned cards.
-- `playtest-matrix.md` - classification, mechanic, timing, marker, and experimental coverage across the full pool.
-- `cards.json` - machine-readable proposal used by the V2 browser preview.
+- `mechanics.md` - formation vocabulary and card-type grammar.
+- `visual-spec.md` - physical card face and stack-readability rules.
+- `catalogue.md` - all 120 proposed cards.
+- `cards.json` - machine-readable proposal used by the Card Lab.
+- `playtest-matrix.md` - mechanical and classification coverage.
+- `playtest-decks.json` / `playtest-decks.md` - six diagnostic 34-card decks.
 
-Preview: `web/cards-v2.html`.
-
-The design is intentionally deck-agnostic. Current decks and `cards/cards.json` are unchanged.
+The existing engine cards and canonical deck files are unchanged.

@@ -1,0 +1,491 @@
+{
+  "schema_version": 1,
+  "status": "diagnostic-playtest-decks",
+  "deck_size": 34,
+  "decks": [
+    {
+      "id": "leadership-build",
+      "title": "Leadership / Build",
+      "pair": "A",
+      "hypothesis": "Can Captains, Kings, Bonds and Names create satisfying construction tempo without snowballing?",
+      "cards": [
+        {
+          "id": "the-late-banner",
+          "copies": 3
+        },
+        {
+          "id": "the-banner-singers",
+          "copies": 3
+        },
+        {
+          "id": "the-house-of-reed",
+          "copies": 2
+        },
+        {
+          "id": "the-fifty-men",
+          "copies": 2
+        },
+        {
+          "id": "the-kings-spears",
+          "copies": 2
+        },
+        {
+          "id": "swore-again-to",
+          "copies": 3
+        },
+        {
+          "id": "marched-beneath-the-banner-of",
+          "copies": 3
+        },
+        {
+          "id": "followed",
+          "copies": 2
+        },
+        {
+          "id": "carried-messages-for",
+          "copies": 2
+        },
+        {
+          "id": "namar",
+          "copies": 1
+        },
+        {
+          "id": "oren",
+          "copies": 1
+        },
+        {
+          "id": "teren",
+          "copies": 1
+        },
+        {
+          "id": "meren",
+          "copies": 1
+        },
+        {
+          "id": "arel",
+          "copies": 1
+        },
+        {
+          "id": "eira",
+          "copies": 1
+        },
+        {
+          "id": "avaros-the-bronze-king",
+          "copies": 1
+        },
+        {
+          "id": "tovan-the-quartermaster",
+          "copies": 1
+        },
+        {
+          "id": "nara-builder-of-walls",
+          "copies": 1
+        },
+        {
+          "id": "the-king-had-given-the-order",
+          "copies": 2
+        },
+        {
+          "id": "no-one-would-be-first-to-leave",
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "id": "raid-suppress",
+      "title": "Raid / Suppress",
+      "pair": "A",
+      "hypothesis": "Does temporary denial create counterplay to persistent formations without making building miserable?",
+      "cards": [
+        {
+          "id": "the-iron-boars",
+          "copies": 3
+        },
+        {
+          "id": "the-aradai",
+          "copies": 3
+        },
+        {
+          "id": "the-ilyri",
+          "copies": 3
+        },
+        {
+          "id": "the-river-raiders",
+          "copies": 3
+        },
+        {
+          "id": "seized-the-standard-of",
+          "copies": 3
+        },
+        {
+          "id": "shared-the-spoils-with",
+          "copies": 3
+        },
+        {
+          "id": "blocked-the-road-for",
+          "copies": 2
+        },
+        {
+          "id": "tala",
+          "copies": 1
+        },
+        {
+          "id": "brannoc",
+          "copies": 1
+        },
+        {
+          "id": "elian",
+          "copies": 1
+        },
+        {
+          "id": "arel",
+          "copies": 1
+        },
+        {
+          "id": "rovan-the-gatebreaker",
+          "copies": 1
+        },
+        {
+          "id": "the-muster-was-false",
+          "copies": 2
+        },
+        {
+          "id": "the-line-wheeled",
+          "copies": 2
+        },
+        {
+          "id": "the-stores-were-taken",
+          "copies": 2
+        },
+        {
+          "id": "the-line-was-baited",
+          "copies": 2
+        },
+        {
+          "id": "no-road-was-too-long",
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "id": "guard-archer",
+      "title": "Guard / Archer",
+      "pair": "B",
+      "hypothesis": "Can protection and ranged pressure form a coherent package without turning Fronts into static arithmetic?",
+      "cards": [
+        {
+          "id": "the-crow-archers",
+          "copies": 3
+        },
+        {
+          "id": "the-ash-bowmen",
+          "copies": 3
+        },
+        {
+          "id": "the-red-shields",
+          "copies": 2
+        },
+        {
+          "id": "the-first-spear",
+          "copies": 2
+        },
+        {
+          "id": "a-hundred-shields",
+          "copies": 2
+        },
+        {
+          "id": "guarded",
+          "copies": 2
+        },
+        {
+          "id": "stood-fast-with",
+          "copies": 2
+        },
+        {
+          "id": "watched-the-skies-for",
+          "copies": 2
+        },
+        {
+          "id": "kept-the-gate-for",
+          "copies": 2
+        },
+        {
+          "id": "asha-the-shield-bearer",
+          "copies": 1
+        },
+        {
+          "id": "corin-of-the-high-wall",
+          "copies": 1
+        },
+        {
+          "id": "maelin",
+          "copies": 1
+        },
+        {
+          "id": "edrin",
+          "copies": 1
+        },
+        {
+          "id": "serai-queen-of-crows",
+          "copies": 1
+        },
+        {
+          "id": "alda-keeper-of-the-ford",
+          "copies": 1
+        },
+        {
+          "id": "doros-the-last-spear",
+          "copies": 1
+        },
+        {
+          "id": "a-volley-before-dawn",
+          "copies": 3
+        },
+        {
+          "id": "all-reserves-forward",
+          "copies": 1
+        },
+        {
+          "id": "the-crows-came-down",
+          "copies": 1
+        },
+        {
+          "id": "the-wall-did-not-break",
+          "copies": 1
+        },
+        {
+          "id": "every-bow-was-strung",
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "id": "scout-hidden",
+      "title": "Scout / Hidden Plans",
+      "pair": "B",
+      "hypothesis": "Are information and bluffing worth cards, Actions and Command in physical play?",
+      "cards": [
+        {
+          "id": "the-thornbow-hunters",
+          "copies": 3
+        },
+        {
+          "id": "the-lantern-scouts",
+          "copies": 3
+        },
+        {
+          "id": "the-watchtowers-of-eren",
+          "copies": 2
+        },
+        {
+          "id": "the-grey-riders",
+          "copies": 2
+        },
+        {
+          "id": "kept-pace-with",
+          "copies": 3
+        },
+        {
+          "id": "carried-messages-for",
+          "copies": 3
+        },
+        {
+          "id": "watched-the-skies-for",
+          "copies": 2
+        },
+        {
+          "id": "iria",
+          "copies": 1
+        },
+        {
+          "id": "mara",
+          "copies": 1
+        },
+        {
+          "id": "lysa-the-listener",
+          "copies": 1
+        },
+        {
+          "id": "kael-the-roadless",
+          "copies": 1
+        },
+        {
+          "id": "yara-the-chronicler",
+          "copies": 1
+        },
+        {
+          "id": "they-were-gathering-there",
+          "copies": 2
+        },
+        {
+          "id": "the-scouts-found-the-gap",
+          "copies": 2
+        },
+        {
+          "id": "the-scouts-had-warned-them",
+          "copies": 2
+        },
+        {
+          "id": "there-was-no-road-back",
+          "copies": 1
+        },
+        {
+          "id": "the-ground-was-held",
+          "copies": 1
+        },
+        {
+          "id": "before-sunset-the-ford-would-be-ours",
+          "copies": 1
+        },
+        {
+          "id": "they-knew-the-ground",
+          "copies": 2
+        }
+      ]
+    },
+    {
+      "id": "rider-mobility",
+      "title": "Rider / Mobility",
+      "pair": "C",
+      "hypothesis": "When movement is concentrated into one package, is it genuinely useful rather than decorative?",
+      "cards": [
+        {
+          "id": "the-grey-riders",
+          "copies": 3
+        },
+        {
+          "id": "the-dust-riders",
+          "copies": 3
+        },
+        {
+          "id": "the-vardai",
+          "copies": 3
+        },
+        {
+          "id": "the-serekh",
+          "copies": 3
+        },
+        {
+          "id": "marched-with",
+          "copies": 3
+        },
+        {
+          "id": "kept-pace-with",
+          "copies": 3
+        },
+        {
+          "id": "followed",
+          "copies": 2
+        },
+        {
+          "id": "elian",
+          "copies": 1
+        },
+        {
+          "id": "sela",
+          "copies": 1
+        },
+        {
+          "id": "namar",
+          "copies": 1
+        },
+        {
+          "id": "arel",
+          "copies": 1
+        },
+        {
+          "id": "neris-the-ferryman",
+          "copies": 1
+        },
+        {
+          "id": "kael-the-roadless",
+          "copies": 1
+        },
+        {
+          "id": "they-had-gone-too-far",
+          "copies": 2
+        },
+        {
+          "id": "all-banners-forward",
+          "copies": 2
+        },
+        {
+          "id": "the-long-march",
+          "copies": 2
+        },
+        {
+          "id": "no-road-was-too-long",
+          "copies": 2
+        }
+      ]
+    },
+    {
+      "id": "baseline-control",
+      "title": "Baseline Control",
+      "pair": "C",
+      "hypothesis": "Can simple efficient cards remain competitive enough to expose mechanics that are not earning their complexity?",
+      "cards": [
+        {
+          "id": "the-fifty-men",
+          "copies": 4
+        },
+        {
+          "id": "thirty-spears",
+          "copies": 4
+        },
+        {
+          "id": "the-unnamed-host",
+          "copies": 3
+        },
+        {
+          "id": "a-hundred-shields",
+          "copies": 3
+        },
+        {
+          "id": "stood-fast-with",
+          "copies": 4
+        },
+        {
+          "id": "followed",
+          "copies": 3
+        },
+        {
+          "id": "trusted",
+          "copies": 3
+        },
+        {
+          "id": "edrin",
+          "copies": 1
+        },
+        {
+          "id": "iven",
+          "copies": 1
+        },
+        {
+          "id": "sorin",
+          "copies": 1
+        },
+        {
+          "id": "eira",
+          "copies": 1
+        },
+        {
+          "id": "the-baggage-was-abandoned",
+          "copies": 2
+        },
+        {
+          "id": "all-reserves-forward",
+          "copies": 2
+        },
+        {
+          "id": "the-ground-was-held",
+          "copies": 1
+        },
+        {
+          "id": "the-lines-held",
+          "copies": 1
+        }
+      ]
+    }
+  ]
+}
