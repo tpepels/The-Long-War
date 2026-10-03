@@ -3,8 +3,8 @@ const LW_PROTOCOL_DATA = {
   "actionKind": {
     "CYCLE": "Cycle",
     "DISCARD": "Discard",
-    "END_TURN": "EndTurn",
     "EFFECT_CHOICE": "EffectChoice",
+    "END_TURN": "EndTurn",
     "MANEUVER": "Maneuver",
     "PASS": "Pass",
     "PLAY_BOND": "PlayBond",
