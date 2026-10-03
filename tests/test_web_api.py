@@ -212,7 +212,7 @@ def test_snapshot_exposes_four_fronts_command_and_two_narrative_limit() -> None:
     assert snapshot["narratives"] == [[], []]
 
 
-def test_stratagem_action_is_paid_and_public_to_opponent() -> None:
+def test_stratagem_action_is_paid_and_hidden_from_opponent() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
@@ -237,44 +237,47 @@ def test_stratagem_action_is_paid_and_public_to_opponent() -> None:
 
     assert player.command == before_command - action["command_cost"]
     assert result["viewer"] is None
-    assert result["active_player"] == opponent
+    assert result["active_player"] == active
+    assert result["actions_this_turn"] == 1
     assert session.state.stratagems[active].card_id == stratagem_id
 
-    public = session.snapshot(opponent)
-    assert public["stratagems"][active] == {
-        "card_id": stratagem_id,
-        "fronts": [],
-        "direction": None,
-        "targets": [],
-    }
-    assert public["last_action"]["card_id"] == stratagem_id
+    owner_view = session.snapshot(active)
+    assert owner_view["stratagems"][active]["card_id"] == stratagem_id
+    assert owner_view["stratagems"][active]["hidden"] is True
 
+    opponent_view = session.snapshot(opponent)
+    assert opponent_view["stratagems"][active]["card_id"] is None
+    assert opponent_view["stratagems"][active]["hidden"] is True
+    assert opponent_view["stratagems"][active]["revealed"] is False
+    assert opponent_view["last_action"]["card_id"] is None
+    assert opponent_view["last_action"]["hidden"] is True
 
-def test_standard_browser_session_has_no_draw_or_cycle_operation() -> None:
+def test_standard_browser_session_exposes_cycle_and_endturn_but_no_draw_action() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
     active = session.state.active_player
     snapshot = session.snapshot(active)
 
-    assert not any(
-        action["kind"] in {"Draw", "Cycle"}
-        for action in snapshot["legal_actions"]
-    )
+    kinds = {action["kind"] for action in snapshot["legal_actions"]}
+    assert "Draw" not in kinds
+    assert "Cycle" in kinds
+    assert "EndTurn" in kinds
+    assert "Pass" not in kinds
 
-
-def test_first_pass_hands_opponent_a_normal_turn_and_stays_open() -> None:
+def test_forced_pass_hands_opponent_first_closing_turn_and_draws() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
 
-    session.state.operations_this_battle[:] = [1, 1]
     first = session.state.active_player
     second = 1 - first
+    session.state.players[first].hand.clear()
 
     if len(session.state.players[second].hand) >= session.engine.hand_limit:
         card = session.state.players[second].hand.pop()
         session.state.players[second].deck.append(card)
+    before_drawn = session.state.cards_drawn_this_battle[second]
 
     first_snapshot = session.snapshot(first)
     first_pass = next(
@@ -288,19 +291,20 @@ def test_first_pass_hands_opponent_a_normal_turn_and_stays_open() -> None:
     assert session.state.active_player == second
     assert session.state.pass_order == [first]
     assert session.state.players[first].passed is True
-    assert session.state.players[second].passed is False
+    assert session.state.closing_turns_remaining == 2
+    assert session.state.cards_drawn_this_battle[second] == before_drawn + 1
 
-
-def test_intervening_operation_keeps_persistent_pass_in_browser_state() -> None:
+def test_action_during_closing_keeps_single_passer_and_countdown() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
 
     first = session.state.active_player
     second = 1 - first
-    session.state.operations_this_battle[:] = [1, 1]
+    session.state.players[first].hand.clear()
     session.state.players[second].hand = ["the-fifty-men"]
-    session.state.players[second].deck = ["followed"]
+    session.state.players[second].deck = []
+    session.state.players[second].discard = []
     session.state.players[second].command = 20
 
     first_pass = next(
@@ -320,23 +324,21 @@ def test_intervening_operation_keeps_persistent_pass_in_browser_state() -> None:
     session.act(force["key"], second)
 
     assert session.state.battle == 1
+    assert session.state.active_player == second
+    assert session.state.actions_this_turn == 1
+    assert session.state.closing_turns_remaining == 2
     assert session.state.pass_order == [first]
     assert session.state.players[first].passed is True
     assert session.state.players[second].passed is False
 
-
-def test_both_players_passing_ends_battle_and_first_passer_starts_next() -> None:
+def test_two_closing_endturns_end_battle_and_non_passer_starts_next() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
 
-    session.state.operations_this_battle[:] = [1, 1]
     first = session.state.active_player
     second = 1 - first
-
-    if len(session.state.players[second].hand) >= session.engine.hand_limit:
-        card = session.state.players[second].hand.pop()
-        session.state.players[second].deck.append(card)
+    session.state.players[first].hand.clear()
 
     first_pass = next(
         action
@@ -345,20 +347,26 @@ def test_both_players_passing_ends_battle_and_first_passer_starts_next() -> None
     )
     session.act(first_pass["key"], first)
 
-    second_pass = next(
+    second_end = next(
         action
         for action in session.snapshot(second)["legal_actions"]
-        if action["kind"] == "Pass"
+        if action["kind"] == "EndTurn"
     )
-    result = session.act(second_pass["key"], second)
+    session.act(second_end["key"], second)
+
+    first_end = next(
+        action
+        for action in session.snapshot(first)["legal_actions"]
+        if action["kind"] == "EndTurn"
+    )
+    result = session.act(first_end["key"], first)
 
     assert result["battle"] == 2
-    assert session.state.active_player == first
+    assert session.state.active_player == second
     assert session.state.pass_order == []
     assert session.log[-1] == (
-        f"Battle II begins. Player {first + 1} starts."
+        f"Battle II begins. Player {second + 1} starts."
     )
-
 
 def test_remote_mode_keeps_each_players_own_hand_private_but_visible() -> None:
     card_json, deck_json = payloads()
