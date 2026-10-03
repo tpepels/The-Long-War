@@ -83,22 +83,22 @@ function esc(value) {
 }
 
 const TERM_HINTS = {
-  "battle": "A round of play resolved across four independent Fronts. There is no overall Battle winner.",
+  "battle": "A round of play. Battle I uses the two middle Fronts, Battle II adds the left outer Front, and Battle III onward uses all four.",
   "bond": "A formation component. It may be prepared before the Force; Force-dependent text stays inactive until a Force is present.",
   "discard": "Move a card to its owner's discard pile.",
   "discarded": "Moved to the discard pile.",
   "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
-  "command": "Your operation budget. Unspent Command carries between Battles.",
+  "command": "The resource spent to play cards and Maneuver. Unspent Command carries between Battles.",
   "draw": "At the start of each turn, draw 1 card. Your draw pile persists; shuffle the discard only when an empty deck must supply a draw.",
   "front": "One of four lanes: Front 1, Front 2, Front 3, or Front 4.",
-  "hero": "A Unique dual-use card. Play one Hero per side per Battle, either as a Force or as a Name.",
+  "hero": "A Unique dual-use card. Each Battle you may play at most one Hero as a Force and at most one Hero as a Name from hand.",
   "frontline": "The position nearest the Battle Line.",
   "frontline force": "The Force occupying the Frontline position of that Front.",
   "frontline forces": "Forces occupying Frontline positions.",
   "move": "Relocate a Named Formation or other cards as the rule or card text allows.",
   "name": "A Unique formation component. It may be prepared before the Force or Bond; Force-dependent text stays inactive until a Force is present.",
-  "pass": "Normally available after both players have completed an operation. Once you Pass, it stays active for the rest of the Battle even if you later act. The Battle ends when both players have Passed.",
-  "passes": "A Pass is permanent for the current Battle. After the first Pass, play may continue for any number of turns; the Battle ends when the other player also Passes.",
+  "pass": "Available only when no legal Action remains after drawing. The opponent then takes one closing turn, you take one closing turn, and the Battle ends.",
+  "passes": "Pass starts the fixed two-turn closing sequence; it is not an Action.",
   "rear": "The position behind the Frontline in the same Front.",
   "rear force": "The Force occupying the Rear position of that Front.",
   "rear forces": "Forces occupying Rear positions.",
@@ -565,6 +565,11 @@ function actionForPass() {
   return state.legal_actions.find((action) => action.kind === ACTION_KIND.PASS) || null;
 }
 
+function cycleActions() {
+  if (!state || state.phase === SESSION_PHASE.MULLIGAN) return [];
+  return state.legal_actions.filter((action) => action.kind === ACTION_KIND.CYCLE);
+}
+
 function commandCostLabel(actions) {
   const costs = [...new Set(actions.map((action) => action.command_cost).filter(Number.isInteger))];
   if (!costs.length) return "";
@@ -630,6 +635,8 @@ function renderSlot(owner, front, rank) {
   const targetable = targets.length > 0;
   const hasFormation = Boolean(slot?.force || slot?.bond || slot?.name);
   const classes = ["digital-slot", hasFormation ? "occupied" : "empty"];
+  const activeFront = state.active_fronts?.includes(front) ?? true;
+  if (!activeFront) classes.push("inactive-front");
   if (hasFormation && !slot?.force) classes.push("prepared");
   if (targetable) classes.push("targetable");
   if (
@@ -747,14 +754,16 @@ function renderStratagem(owner) {
     : "";
   const title = stratagem?.card_id
     ? cardTitle(stratagem.card_id)
-    : "Stratagem";
+    : stratagem
+      ? "Face-down Stratagem"
+      : "Stratagem";
   const publicChoice = stratagem?.fronts?.length
     ? stratagem.fronts.map((front) => frontNames[front]).join(" + ")
     : stratagem?.direction
       ? stratagem.direction.toUpperCase()
       : "";
-  const label = stratagem?.card_id
-    ? publicChoice || "in play"
+  const label = stratagem
+    ? publicChoice || (stratagem.revealed ? "revealed" : "hidden")
     : targetable
       ? "PLAY · " + commandCostLabel(actions)
       : "empty";
@@ -777,6 +786,10 @@ function controlClass(front, viewer) {
 }
 
 function frontBanner(name, front, bottom, top) {
+  if (!(state.active_fronts?.includes(front) ?? true)) {
+    return '<div class="front-banner front-inactive"><span>' + esc(name) +
+      '</span><b>—</b><small>Inactive</small></div>';
+  }
   const p0 = state.front_strengths[0][front];
   const p1 = state.front_strengths[1][front];
   const topScore = top === 0 ? p0 : p1;
@@ -849,6 +862,7 @@ function renderStrip() {
       (state.active_player + 1) +
       ' · choose up to 2 returns</div>';
     $("pass-button").hidden = true;
+    $("cycle-button").hidden = true;
     return;
   }
 
@@ -877,21 +891,27 @@ function renderStrip() {
   const passButton = $("pass-button");
   passButton.hidden = !pass || state.viewer == null;
   passButton.disabled = !pass || state.viewer == null;
-  const answeringPass = state.pass_order?.length === 1;
-  passButton.classList.toggle("danger-pass", !!pass && answeringPass);
-  passButton.textContent = answeringPass ? "Pass · end Battle" : "Pass";
+  const forcedYield = !!pass && (
+    state.actions_this_turn > 0 ||
+    state.closing_turns_remaining > 0
+  );
+  passButton.classList.toggle("danger-pass", false);
+  passButton.textContent = forcedYield ? "End turn" : "Pass";
+
+  const cycles = cycleActions();
+  const cycleButton = $("cycle-button");
+  cycleButton.hidden = !cycles.length || state.viewer == null;
+  cycleButton.disabled = !cycles.length || state.viewer == null;
 }
 
 function commandCounter(player) {
-  const heroStatus = player.hero_used
-    ? ", Hero used this Battle"
-    : ", Hero available";
-  const label = "Command " + player.command + heroStatus;
+  const force = player.hero_force_used ? "F used" : "F ready";
+  const name = player.hero_name_used ? "N used" : "N ready";
+  const heroStatus = "Hero " + force + " · " + name;
+  const label = "Command " + player.command + ", " + heroStatus;
   return '<div class="command-counter" aria-label="' + esc(label) +
     '"><span>Command</span><b>' + player.command + '</b>' +
-    '<small class="hero-status">' +
-      (player.hero_used ? 'Hero used' : 'Hero ready') +
-    '</small></div>';
+    '<small class="hero-status">' + esc(heroStatus) + '</small></div>';
 }
 
 function renderOpponentRack() {
@@ -908,7 +928,8 @@ function renderOpponentRack() {
       : state.mode === GAME_MODE.COMPUTER && state.ai_kind === "tactical"
         ? "Tactical AI"
         : "Opponent";
-  $("opponent-label").textContent = opponentName + " · " + handCount + " cards" + (ps.passed ? " · PASS PENDING" : "");
+  $("opponent-label").textContent = opponentName + " · " + handCount + " cards" +
+    (state.first_passer === opponent ? " · PASSED" : "");
 
   const visibleBacks = Math.min(handCount, 12);
   $("opponent-hand").innerHTML = Array.from({ length: visibleBacks }, (_, index) => {
@@ -1106,11 +1127,12 @@ function renderInteraction() {
       cancel.hidden = false;
     } else if (state.pending_draw_discard_for === state.viewer) {
       title.textContent = "Hand limit";
-      hint.textContent = "Discard 1 card, then draw 1 before taking your operation.";
+      hint.textContent = "Discard 1 card, then draw 1 before taking your Actions.";
       cancel.hidden = true;
     } else {
-      title.textContent = "Your turn";
-      hint.textContent = "Draw 1 at the start · Play one card, Maneuver, or Pass";
+      title.textContent = "Your turn · Action " +
+        (state.actions_this_turn + 1) + "/" + state.actions_per_turn;
+      hint.textContent = "Play a card, Maneuver, or Cycle. Pass appears only when no legal Action remains.";
       cancel.hidden = true;
     }
   } else {
@@ -1129,6 +1151,10 @@ function renderInteraction() {
 function choiceLabel(action) {
   const card = cards[action.card_id];
   if (action.kind === ACTION_KIND.EFFECT_CHOICE) return action.label;
+  if (action.kind === ACTION_KIND.CYCLE) {
+    const ids = action.cycle_card_ids || [];
+    return "Cycle " + ids.map((id) => cardTitle(id)).join(" + ");
+  }
   if (action.kind === ACTION_KIND.DISCARD) return "Discard, then draw";
   if (card?.hero && action.kind === ACTION_KIND.PLAY_FORCE) {
     return "Deploy as Force";
@@ -1574,10 +1600,13 @@ function renderActionFeedback() {
   let title = card?.title || action.label;
 
   if (action.kind === ACTION_KIND.PASS) {
-    kicker = own ? "YOU PASS" : "OPPONENT PASSES";
-    title = state.pass_order?.length
-      ? "Opponent takes a normal turn"
-      : "Battle ends";
+    const truePass = action.pass_type === "pass";
+    kicker = truePass
+      ? (own ? "YOU PASS" : "OPPONENT PASSES")
+      : (own ? "YOUR TURN ENDS" : "OPPONENT TURN ENDS");
+    title = truePass ? "Closing sequence begins" : "Next closing turn";
+  } else if (action.kind === ACTION_KIND.CYCLE) {
+    kicker = own ? "YOU CYCLE" : "OPPONENT CYCLES";
   } else if (action.kind === ACTION_KIND.DISCARD) {
     kicker = own ? "YOU DISCARD" : "OPPONENT DISCARDS";
     title = "Then draw 1";
@@ -1815,6 +1844,14 @@ $("cancel-selection").addEventListener("click", () => {
 $("card-inspector-close").addEventListener("click", closeCardInspector);
 document.querySelectorAll("[data-inspector-close]").forEach((el) => {
   el.addEventListener("click", closeCardInspector);
+});
+
+$("cycle-button").addEventListener("click", () => {
+  const cycles = cycleActions();
+  if (!cycles.length) return;
+  choiceActions = cycles;
+  renderChoiceTray();
+  $("choice-tray").querySelector("button")?.focus();
 });
 
 $("pass-button").addEventListener("click", () => {
@@ -2060,7 +2097,7 @@ function animateSnapshot(previous, before) {
 window.render_game_to_text = () => JSON.stringify({
   coordinate_system: "Fronts 0-3=Front 1-4; ranks front=Frontline, rear=Rear; viewer at bottom",
   ready: cardsReady,
-  ...(state ? Object.fromEntries(["phase", "battle", "viewer", "active_player", "needs_ai", "needs_reveal", "winner", "players", "hand", "board", "narratives", "narrative_limit", "stratagems", "pass_order", "pending_draw_discard_for", "front_strengths", "front_control", "legal_actions", "last_action"].map((key) => [key, state[key]])) : { phase: "setup" }),
+  ...(state ? Object.fromEntries(["phase", "battle", "viewer", "active_player", "active_fronts", "actions_this_turn", "actions_per_turn", "closing_turns_remaining", "first_passer", "needs_ai", "needs_reveal", "winner", "players", "hand", "board", "narratives", "narrative_limit", "stratagems", "pass_order", "pending_draw_discard_for", "front_strengths", "front_control", "legal_actions", "last_action"].map((key) => [key, state[key]])) : { phase: "setup" }),
   selected_card: selectedCardId,
   selected_hand_index: selectedHandIndex,
   selected_source: stagedNarrativeSource,
