@@ -833,7 +833,3 @@ cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     _fe_resolve_strat_event(self, state, EVENT_PASS, player)
     _fe_start_turn_fast(self, state, opponent)
     state.turn_number += 1
-        return
-
-    _fe_start_turn_fast(self, state, opponent)
-    state.turn_number += 1
