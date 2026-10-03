@@ -51,7 +51,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         strat = state.stratagems[p]
         if strat is not None:
             fast.stratagem[p] = self.id_to_code[strat.card_id]
-            fast.stratagem_revealed[p] = 1
+            fast.stratagem_revealed[p] = bool(strat.revealed)
             for front_choice in strat.fronts:
                 fast.stratagem_front_mask[p] |= 1 << int(front_choice)
             if strat.direction == Direction.LEFT:
@@ -112,6 +112,8 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
     fast.winner = -1 if state.winner is None else state.winner
     fast.turn_number = state.turn_number
     fast.shuffle_seed = state.shuffle_seed
+    fast.actions_this_turn = int(state.actions_this_turn)
+    fast.closing_turns_remaining = int(state.closing_turns_remaining)
     fast.pass_len = len(state.pass_order)
     fast.cleanup_pending = (
         state.pending_draw_discard_for is not None
@@ -530,6 +532,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     "front_mask": state.stratagem_front_mask[p],
                     "direction": state.stratagem_direction[p],
                     "target_mask": state.stratagem_target_mask[p],
+                    "revealed": bool(state.stratagem_revealed[p]),
                 }
             )
             for p in range(PLAYER_COUNT)
@@ -539,7 +542,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             for p in range(PLAYER_COUNT)
         ],
         "hero_used": [
-            bool(state.hero_used[p])
+            int(state.hero_used[p])
             for p in range(PLAYER_COUNT)
         ],
         "discarded_this_battle": [
@@ -574,6 +577,8 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             state.operations_this_battle[p]
             for p in range(PLAYER_COUNT)
         ],
+        "actions_this_turn": state.actions_this_turn,
+        "closing_turns_remaining": state.closing_turns_remaining,
         "maneuvers_this_battle": [
             state.player_maneuver_count[p]
             for p in range(PLAYER_COUNT)
@@ -742,6 +747,8 @@ cdef dict _fe_debug_snapshot(FastEngine self, FastState state):
         "discarded_this_battle": [state.discarded_this_battle[0], state.discarded_this_battle[1]],
         "command": [state.command[0], state.command[1]],
         "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
+        "actions_this_turn": state.actions_this_turn,
+        "closing_turns_remaining": state.closing_turns_remaining,
         "pending_draw_discard_for": state.active_player if state.cleanup_pending else None,
         "pending_draw_count": state.pending_draw_count,
         "pending_draw_finish_operation": bool(state.pending_draw_finish_operation),
