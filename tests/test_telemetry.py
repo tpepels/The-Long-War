@@ -271,9 +271,9 @@ def test_incomplete_formation_removal_is_recorded_once() -> None:
 def test_battlefield_snapshot_counts_occupied_active_and_contested_fronts() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=604, first_player=0, opening_bonus=False)
-    state.slot(0, _position(Front.FIRST)).force = "the-fifty-men"
-    state.slot(0, _position(Front.SECOND)).force = "the-vardai"
-    state.slot(1, _position(Front.FIRST)).force = "the-vardai"
+    state.slot(0, _position(Front.SECOND)).force = "the-fifty-men"
+    state.slot(0, _position(Front.THIRD)).force = "the-vardai"
+    state.slot(1, _position(Front.SECOND)).force = "the-vardai"
 
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
@@ -288,9 +288,11 @@ def test_battlefield_snapshot_counts_occupied_active_and_contested_fronts() -> N
 
     assert snapshot["occupied"] == [2, 1]
     assert snapshot["active_fronts"] == 2
+    assert snapshot["developed_fronts"] == 2
     assert snapshot["contested_fronts"] == 1
     assert snapshot["uncontested_fronts"] == 1
-    assert snapshot["empty_fronts"] == 2
+    assert snapshot["empty_fronts"] == 0
+    assert snapshot["tied_fronts"] == 0
     assert snapshot["legal_actions"] == 6
     json.dumps(snapshot)
 
@@ -461,6 +463,7 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
         "mean_total_occupied": 3.0,
         "mean_occupied_per_player": [1.5, 1.5],
         "mean_active_fronts": 2.0,
+        "mean_developed_fronts": 2.0,
         "mean_contested_fronts": 1.0,
         "mean_uncontested_fronts": 1.0,
         "mean_empty_fronts": 2.0,
@@ -722,6 +725,7 @@ def test_progression_exposes_per_player_battlefield_distributions() -> None:
         "mean_total_occupied": 3.0,
         "mean_occupied_per_player": [2.0, 1.0],
         "mean_active_fronts": 3.0,
+        "mean_developed_fronts": 3.0,
         "mean_contested_fronts": 1.0,
         "mean_uncontested_fronts": 2.0,
         "mean_empty_fronts": 1.0,
@@ -767,6 +771,8 @@ def test_progression_exposes_per_player_battlefield_distributions() -> None:
 
     battlefield = progression.summary()["battlefield_development"]
     assert battlefield["occupied_positions_per_player"]["median"] == pytest.approx(1.5)
+    assert battlefield["active_fronts"]["median"] == pytest.approx(3.0)
+    assert battlefield["developed_fronts"]["median"] == pytest.approx(3.0)
     assert battlefield["empty_fronts"]["median"] == pytest.approx(1.0)
     assert battlefield["total_strength_per_player"]["median"] == pytest.approx(8.0)
 
