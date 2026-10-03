@@ -59,6 +59,17 @@ class Maneuver:
 
 
 @dataclass(frozen=True)
+class Cycle:
+    first_card_id: str
+    second_card_id: str
+
+
+@dataclass(frozen=True)
+class EndTurn:
+    pass
+
+
+@dataclass(frozen=True)
 class Discard:
     card_id: str
 
@@ -85,6 +96,8 @@ Action: TypeAlias = (
     | PlayNarrative
     | PlayStratagem
     | Maneuver
+    | Cycle
+    | EndTurn
     | Discard
     | EffectChoice
     | Pass
@@ -93,6 +106,8 @@ Action: TypeAlias = (
 
 _ACTION_KIND_BY_TYPE = {
     Pass: ActionKind.PASS,
+    EndTurn: ActionKind.END_TURN,
+    Cycle: ActionKind.CYCLE,
     Discard: ActionKind.DISCARD,
     EffectChoice: ActionKind.EFFECT_CHOICE,
     Maneuver: ActionKind.MANEUVER,
@@ -117,6 +132,11 @@ def action_key(action: object) -> str:
     """Stable canonical action serialization shared by engine, UI and AI."""
     if isinstance(action, Pass):
         return ActionKeyToken.PASS.value
+    if isinstance(action, EndTurn):
+        return ActionKeyToken.END_TURN.value
+    if isinstance(action, Cycle):
+        cards = sorted((action.first_card_id, action.second_card_id))
+        return f"{ActionKeyToken.CYCLE.value}:{cards[0]}:{cards[1]}"
     if isinstance(action, Discard):
         return f"{ActionKeyToken.DISCARD.value}:{action.card_id}"
     if isinstance(action, EffectChoice):
@@ -213,6 +233,11 @@ def action_from_key(key: str) -> object:
     """Inverse of the canonical action-key format."""
     if key == ActionKeyToken.PASS:
         return Pass()
+    if key == ActionKeyToken.END_TURN:
+        return EndTurn()
+    if key.startswith(f"{ActionKeyToken.CYCLE.value}:"):
+        _, first_card_id, second_card_id = key.split(":", 2)
+        return Cycle(first_card_id, second_card_id)
     if key.startswith(f"{ActionKeyToken.DISCARD.value}:"):
         return Discard(key.split(":", 1)[1])
 
