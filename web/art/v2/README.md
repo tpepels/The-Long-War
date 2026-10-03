@@ -13,3 +13,17 @@ These seven production images were recovered from the interrupted physical-card 
 | `narrative-roadside-memorial.png` | `exec-a5f6c086-558f-4e38-b289-9df2ba23f90c.png` | Narrative | memorial stone, shield and road |
 
 The renderer uses them as subdued engraved vignettes with vector heraldry overlaid. They are visual family identity only; no game state depends on the image.
+
+
+## Representative QA previews
+
+- `previews/v2-formation-stacks.png` - Force alone, Force + Bond, Force + Bond + Name, and Hero-as-Name physical overlap.
+- `previews/v2-card-families.png` - short through dense rules and the major visual families side by side.
+
+Regenerate both from the production renderer with:
+
+```sh
+python tools/render_v2_previews.py --output-dir web/art/v2/previews --require-browser
+```
+
+The older recovered renderer screenshots were inspected during recovery and replaced by these current-production proofs.

@@ -351,6 +351,9 @@ def test_v2_recovered_family_art_is_integrated() -> None:
     ):
         assert asset in css
         assert (ROOT / "web" / "art" / "v2" / asset).is_file()
+    assert not list((ROOT / "web" / "art" / "v2").rglob("exec-*.png"))
+    for preview in ("v2-formation-stacks.png", "v2-card-families.png"):
+        assert (ROOT / "web" / "art" / "v2" / "previews" / preview).is_file()
 
 
 def test_v2_stack_lab_includes_force_alone_and_all_compositions() -> None:
