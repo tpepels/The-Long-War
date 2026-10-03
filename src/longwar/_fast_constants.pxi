@@ -114,6 +114,7 @@ cdef int TYPE_DISCARD = 10
 cdef int TYPE_MANEUVER = 11
 cdef int TYPE_EFFECT = 12
 cdef int TYPE_CYCLE = 13
+cdef int TYPE_END_TURN = 14
 
 cdef int EFFECT_NONE = 0
 cdef int EFFECT_FREE_MANEUVER = 1
