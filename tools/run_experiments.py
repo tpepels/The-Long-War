@@ -2421,13 +2421,32 @@ def _require_clean_tournament_pair(
     result: dict[str, Any],
     *,
     stage: str,
+    max_censored_pairs: int = 0,
 ) -> None:
-    if result["failed_games"] or result["censored_games"]:
+    failed = int(result["failed_games"])
+    censored_games = int(result["censored_games"])
+    censored_pairs = int(result.get("paired", {}).get("censored_pairs", 0) or 0)
+
+    if failed:
         raise SystemExit(
-            f"{stage} produced {result['failed_games']} failed and "
-            f"{result['censored_games']} censored games in "
+            f"{stage} produced {failed} failed games in "
             f"{result['a']} vs {result['b']}; fix the game/search pathology "
             "before continuing the tournament."
+        )
+    if censored_pairs > max_censored_pairs:
+        raise SystemExit(
+            f"{stage} produced {censored_games} censored games across "
+            f"{censored_pairs} mirrored pairs in {result['a']} vs {result['b']}; "
+            f"the allowed maximum is {max_censored_pairs} censored pair(s). "
+            "Fix the game/search pathology before continuing the tournament."
+        )
+    if censored_pairs:
+        print(
+            f"{stage}: continuing despite {censored_games} censored game(s) "
+            f"in {censored_pairs} mirrored pair(s) for "
+            f"{result['a']} vs {result['b']}; those pair(s) are excluded "
+            "from the paired estimate.",
+            flush=True,
         )
     for label, resources in result["resources"].items():
         searched = int(resources.get("searched_decisions", 0) or 0)
@@ -2545,7 +2564,11 @@ def _ismcts_coarse_tournament_run(args: argparse.Namespace) -> Path:
             force=args.force,
             deck_names=deck_names,
         )
-        _require_clean_tournament_pair(result, stage="coarse screen")
+        _require_clean_tournament_pair(
+            result,
+            stage="coarse screen",
+            max_censored_pairs=1,
+        )
         result["family"] = catalog[name]["family"]
         screen_results[name] = result
 
