@@ -8,8 +8,10 @@ import pytest
 
 from longwar.cards import load_card_file
 from longwar.game import (
+    Cycle,
     Discard,
     EffectChoice,
+    EndTurn,
     Front,
     GameEngine,
     Maneuver,
@@ -37,6 +39,7 @@ def setup_state(
     first_player: int = 0,
     opening_bonus: bool = False,
     rules: GameRules | None = None,
+    battle: int = 3,
 ):
     data = load_card_file(CARD_FILE)
     deck = json.loads(DECK_FILE.read_text(encoding="utf-8"))["cards"]
@@ -48,6 +51,10 @@ def setup_state(
         first_player=first_player,
         opening_bonus=opening_bonus,
     )
+    # Most focused card-mechanics tests predate the expanding battlefield and
+    # intentionally exercise arbitrary Fronts. Start those fixtures at Battle
+    # III, where all four are active. Battle-flow tests override this to I/II.
+    state.battle = battle
     return engine, state
 
 
@@ -89,20 +96,23 @@ def effect_choices(
 
 
 def resolve_battle_by_passing(engine: GameEngine, state) -> None:
-    state.active_player = 0
-    state.operations_this_battle[:] = [1, 1]
+    """Finish a Battle from the fixed post-Pass two-turn closing state.
 
-    # The opponent gets a normal turn after the first Pass, including the
-    # normal start-of-turn draw. Leave one hand slot so that draw can resolve
-    # without entering the discard-before-draw substep.
-    if len(state.players[1].hand) >= engine.hand_limit:
-        card = state.players[1].hand.pop()
-        state.players[1].deck.append(card)
+    Focused Battle-resolution tests do not need to manufacture an artificial
+    no-action hand just to make the initiating Pass legal. Real Pass legality
+    and its first closing-turn draw are covered separately below.
+    """
+    state.pass_order[:] = [0]
+    state.players[0].passed = True
+    state.players[1].passed = False
+    state.closing_turns_remaining = engine.rules.closing_turns_after_pass
+    state.active_player = 1
+    state.actions_this_turn = 0
 
-    engine.apply(state, Pass())
-    assert state.pass_order == [0]
-    assert state.players[0].passed is True
-    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    assert state.closing_turns_remaining == 1
+    assert state.active_player == 0
+    engine.apply(state, EndTurn())
 
 
 def test_battlefield_is_four_fronts_by_two_ranks() -> None:
