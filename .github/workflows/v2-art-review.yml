@@ -1,0 +1,43 @@
+name: V2 art review thumbnails
+on:
+  push:
+    branches:
+      - design/v2-physical-cards
+    paths:
+      - .github/workflows/v2-art-review.yml
+permissions:
+  contents: write
+jobs:
+  thumbnails:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: design/v2-physical-cards
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install pillow
+      - name: Generate review thumbnails
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          src=Path("web/art/v2/generated")
+          out=src/"review"
+          out.mkdir(exist_ok=True)
+          for path in sorted(src.glob("exec-*.png")):
+              im=Image.open(path).convert("RGB")
+              im.thumbnail((520, 520))
+              target=out/(path.stem+".jpg")
+              im.save(target, "JPEG", quality=72, optimize=True)
+              print(path.name, "->", target, im.size)
+          PY
+      - name: Commit thumbnails
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/art/v2/generated/review
+          git diff --cached --quiet && exit 0
+          git commit -m "Add temporary V2 art review thumbnails"
+          git push origin HEAD:design/v2-physical-cards
