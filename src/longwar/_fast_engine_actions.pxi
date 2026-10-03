@@ -886,6 +886,8 @@ cdef int _fe_legal_actions_into(
             continue
 
         if self.card_type[card] == CARD_FORCE:
+            # Printed Heroes are dual-mode cards with independent Force/Name
+            # allowances for the Battle.
             if (
                 not self.hero[card]
                 or (
@@ -907,20 +909,19 @@ cdef int _fe_legal_actions_into(
                         encode_action(TYPE_FORCE, card, slot, -1, player),
                     )
 
-                # Heroes have separate once-per-Battle Force and Name modes.
-                if (
-                    self.hero[card]
-                    and self.hero_name_play_limit_per_battle > 0
-                    and not (state.hero_used[player] & 2)
-                ):
-                    for local in range(POSITIONS_PER_PLAYER):
-                        slot = player * POSITIONS_PER_PLAYER + local
-                        if state.name[slot] < 0:
-                            n = _append_action(
-                                actions,
-                                n,
-                                encode_action(TYPE_NAME, card, slot, -1, player),
-                            )
+            if (
+                self.hero[card]
+                and self.hero_name_play_limit_per_battle > 0
+                and not (state.hero_used[player] & 2)
+            ):
+                for local in range(POSITIONS_PER_PLAYER):
+                    slot = player * POSITIONS_PER_PLAYER + local
+                    if state.name[slot] < 0:
+                        n = _append_action(
+                            actions,
+                            n,
+                            encode_action(TYPE_NAME, card, slot, -1, player),
+                        )
 
         elif self.card_type[card] == CARD_BOND:
             for local in range(POSITIONS_PER_PLAYER):
