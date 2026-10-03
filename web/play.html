@@ -254,22 +254,26 @@
             </button>
             <p class="menu-help">
               Click to select. Click a highlighted position to play. Click a
-              selected card again to inspect it. <kbd>Esc</kbd> cancels. <kbd>P</kbd> passes when legal.
+              selected card again to inspect it. <kbd>Esc</kbd> cancels.
+              <kbd>P</kbd> ends your turn, or Passes when Pass is forced.
             </p>
           </section>
           <section data-drawer-content="rules" hidden class="rules-summary">
-            <p class="drawer-kicker">Four Fronts. No Battle victories.</p>
+            <p class="drawer-kicker">A battlefield that grows. No overall Battle victory.</p>
             <p>
-              Resolve all four Fronts independently. Battles have consequences, not
-              an overall winner. The war ends through Command Collapse.
+              Battle I uses the two middle Fronts, Battle II adds the left outer
+              Front, and Battle III onward uses all four. Resolve active Fronts
+              independently. The war ends through Command Collapse.
             </p>
             <h3>Your turn</h3>
             <p>
               Draw 1 card at the start of your turn. If you already hold 10,
-              discard 1 first. Then play one card, Maneuver, or Pass. A
-              Stratagem is public and uses your operation. Once both players have acted, you may Pass.
-              Once you Pass, it stays active for the rest of that Battle even if you later act.
-              The Battle ends when both players have Passed.
+              discard 1 first. Then take up to 2 Actions: play a card, Maneuver,
+              or Cycle by discarding 2 cards and drawing 1. You may end the turn
+              before using both Actions. Pass is not an Action and is available
+              only when no legal Action exists after your draw. Pass starts the
+              fixed closing sequence: opponent turn, passer turn, then Battle end.
+              Stratagems are set face-down.
             </p>
             <h3>Formations</h3>
             <p>
@@ -279,10 +283,15 @@
             </p>
             <h3>Between Battles</h3>
             <p>
-              Keep your hand, draw pile, discard pile, Named Formations and Ongoing
-              Narratives. After Battle-end effects, lose the configured Command penalty for each unprotected Front lost, then check Command Collapse.
-              If Collapse is triggered, the player with lower Command loses; if equal, the player who Passed first loses.
-              If the war continues, recover the Battle's configured Command amount, then refill your hand. Shuffle the discard only when an empty draw pile
+              The battlefield persists: complete and incomplete formations,
+              prepared Bonds and Names, and Ongoing Narratives remain unless card
+              text removes them. After Battle-end effects, lose the configured
+              Command penalty for each unprotected active Front lost, then check
+              Command Collapse. If Collapse is triggered, the player with lower
+              Command loses; if equal, the player who Passed loses. If the war
+              continues, recover the Battle's configured Command amount, refill
+              your hand, activate the next Front if needed, and let the player who
+              did not Pass start. Shuffle the discard only when an empty draw pile
               needs to supply a card.
             </p>
             <a href="rulebook.html" target="_blank" rel="noopener"
