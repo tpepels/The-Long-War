@@ -87,7 +87,7 @@ const TERM_HINTS = {
   "bond": "A formation component. It may be prepared before the Force; Force-dependent text stays inactive until a Force is present.",
   "discard": "Move a card to its owner's discard pile.",
   "discarded": "Moved to the discard pile.",
-  "discard pile": "Public cards that have been discarded or cleared from the battlefield.",
+  "discard pile": "Public cards that have been discarded by rules or card effects.",
   "command": "The resource spent to play cards and Maneuver. Unspent Command carries between Battles.",
   "draw": "At the start of each turn, draw 1 card. Your draw pile persists; shuffle the discard only when an empty deck must supply a draw.",
   "front": "One of four lanes: Front 1, Front 2, Front 3, or Front 4.",
@@ -118,10 +118,10 @@ function termHint(key) {
   const rules = state?.rules;
   if (key === "command" && rules) {
     const threshold = rules.command_collapse_threshold;
-    return "Your operation budget. Start at " + rules.starting_command +
+    return "Your war resource. Start at " + rules.starting_command +
       ". After Battle-end effects, lose " + rules.lost_front_command_penalty +
       " Command per unprotected Front lost. If either player is at or below " +
-      threshold + ", lower Command loses; if equal, the player who Passed first loses. A continuing war recovers max(" +
+      threshold + ", lower Command loses; if equal, the player who Passed loses. A continuing war recovers max(" +
       rules.command_recovery_floor +
       ", base recovery), to a maximum of " +
       rules.command_cap + ".";
