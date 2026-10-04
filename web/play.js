@@ -48,6 +48,7 @@ let remoteGameStarted = false;
 let remoteRequestSerial = 0;
 const remotePending = new Map();
 let remoteHostQueue = Promise.resolve();
+let remoteConnectTimer = null;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const moduleUrl = new URL(import.meta.url);
@@ -190,7 +191,26 @@ async function request(payload) {
   throw new Error("Unknown game request: " + payload.type);
 }
 
+function clearRemoteConnectTimer() {
+  clearTimeout(remoteConnectTimer);
+  remoteConnectTimer = null;
+}
+
+function armRemoteConnectTimeout() {
+  clearRemoteConnectTimer();
+  remoteConnectTimer = setTimeout(() => {
+    if (remoteGameStarted || remotePeer?.connected) return;
+    remoteStatus(
+      "Could not establish a direct connection. Cancel / retry, or try a less restrictive network.",
+      true,
+    );
+    $("remote-reset").hidden = false;
+    $("start-game").disabled = true;
+  }, 15000);
+}
+
 function closeRemotePeer() {
+  clearRemoteConnectTimer();
   for (const pending of remotePending.values()) {
     pending.reject(new Error("Remote game ended."));
     clearTimeout(pending.timer);
@@ -370,6 +390,8 @@ function handleRemoteMessage(message) {
 function handleRemoteConnectionState(info) {
   if (!info) return;
   if (info.connected) {
+    clearRemoteConnectTimer();
+    $("remote-reset").hidden = true;
     remoteStatus("Connected.");
     if (remoteRole === REMOTE_ROLE.HOST && !remoteGameStarted) {
       try {
@@ -380,7 +402,13 @@ function handleRemoteConnectionState(info) {
     }
     return;
   }
-  if (remoteGameStarted && ["failed", "disconnected", "closed"].includes(info.peer)) {
+  if (["failed", "disconnected", "closed"].includes(info.peer)) {
+    clearRemoteConnectTimer();
+    $("remote-reset").hidden = false;
+    if (!remoteGameStarted) {
+      remoteStatus("Direct connection failed. Cancel / retry, or try a different network.", true);
+      return;
+    }
     if ($("interaction-hint")) {
       $("interaction-hint").textContent = "Remote player disconnected.";
       $("interaction-strip")?.classList.add("interaction-error");
@@ -422,7 +450,9 @@ async function startRemoteHost(seed) {
     if (!answer) throw new Error("Paste Player 2's response token.");
     await remotePeer.acceptAnswer(answer);
     remoteStatus("Connecting to Player 2…");
+    $("remote-reset").hidden = false;
     $("start-game").disabled = true;
+    armRemoteConnectTimeout();
   }
 }
 
@@ -439,6 +469,7 @@ async function startRemoteGuest() {
   $("remote-output-label").textContent = "Response token for Player 1";
   $("remote-output-wrap").hidden = false;
   remoteSetupPhase = REMOTE_SETUP_PHASE.WAITING;
+  $("remote-reset").hidden = false;
   remoteStatus("Send this response token to Player 1. Waiting for connection…");
   configureRemoteSetup();
 }
@@ -1785,6 +1816,10 @@ updateStartAvailability();
 
 $("randomize-seed").addEventListener("click", randomizeSeed);
 $("remote-copy-token").addEventListener("click", copyRemoteToken);
+$("remote-reset").addEventListener("click", () => {
+  resetRemoteSetup(true);
+  remoteStatus("Remote setup reset. You can try again.");
+});
 $("mode").addEventListener("change", () => {
   if (remotePeer || remoteRole) resetRemoteSetup(true);
   else configureRemoteSetup();
