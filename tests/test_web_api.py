@@ -262,6 +262,10 @@ def test_stratagem_action_is_paid_and_hidden_from_opponent() -> None:
     assert opponent_view["stratagems"][active]["revealed"] is False
     assert opponent_view["last_action"]["card_id"] is None
     assert opponent_view["last_action"]["hidden"] is True
+    assert "key" not in opponent_view["last_action"]
+    assert stratagem_id not in opponent_view["last_action"]["label"]
+    assert "Ground Was Held" not in opponent_view["last_action"]["label"]
+    assert "face-down Stratagem" in opponent_view["last_action"]["label"]
 
 def test_hidden_stratagem_exposes_public_front_choice_but_not_identity() -> None:
     card_json, deck_json = payloads()
@@ -294,6 +298,8 @@ def test_hidden_stratagem_exposes_public_front_choice_but_not_identity() -> None
     assert public["hidden"] is True
     assert public["revealed"] is False
     assert public["fronts"] == [int(front) for front in stored.fronts]
+    assert "No Step Back" not in opponent_view["last_action"]["label"]
+    assert "Front 1" in opponent_view["last_action"]["label"]
 
 
 def test_standard_browser_session_exposes_cycle_and_endturn_but_no_draw_action() -> None:
