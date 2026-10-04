@@ -607,6 +607,11 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                     )
             _fe_resolve_force_pair_narratives(self, state, actor)
 
+        # A Stratagem is an Action and can satisfy a pre-existing
+        # "next Action must affect Front X" obligation. Constraints created
+        # by this Stratagem activate on the following Action and therefore
+        # are deliberately not consumed here.
+        _fe_consume_operation_constraints(self, state, actor, action)
         _fe_resume_pending_flow(self, state)
         return
 
