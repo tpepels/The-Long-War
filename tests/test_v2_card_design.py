@@ -276,6 +276,7 @@ def test_all_per_card_art_is_wired_into_renderer() -> None:
         path.stem
         for path in (ROOT / "web" / "art" / "v2" / "cards").glob("*.png")
     )
+    assert len(art_ids) == 67
     known = {card["id"] for card in CARDS}
     assert art_ids
     assert set(art_ids) <= known
@@ -293,23 +294,41 @@ def test_exposed_row_preserves_classification_icons_before_reminder_width() -> N
     assert ".edge-live-text{max-width:20mm;" in css
 
 
-def test_v2_artwork_geometry_is_identical_on_every_card() -> None:
+def test_canonical_force_artwork_geometry_is_identical() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-    assert "--art-height:20mm" in css
-    assert "--identity-height:18.5mm" in css
-    assert "flex:0 0 var(--art-height)" in css
-    assert "height:var(--art-height)" in css
+    assert "--force-art-height:34mm" in css
+    assert ".card-force.chronicle-force-face .motif-field" in css
+    assert "height:var(--force-art-height)" in css
     assert "background-position:50% 50%" in css
+    assert "function forceArticle(" in js
+    assert "chronicle-force-face" in js
+    assert "if(card.type===\"force\") return forceArticle" in js
     assert "--art-position" not in css
-    assert ".sparse .motif-field{" not in css
-    assert ".dense .motif-field{" not in css
-    assert ".very-dense .motif-field{" not in css
-    assert ".card-hero.dense .motif-field{" not in css
-    assert ".card-hero.very-dense .motif-field{" not in css
-    assert '<div class="card-identity">' in js
 
 
 def test_nonformation_header_matches_stack_header_height() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     assert ".event-crown{height:calc(var(--exposed-edge) - var(--frame));flex:0 0 calc(var(--exposed-edge) - var(--frame));" in css
+
+
+def test_canonical_force_face_has_material_assets_and_approved_order() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    for asset in ("chronicle-grain.svg", "chronicle-frame.svg", "chronicle-art-frame.svg"):
+        assert asset in css
+        assert (ROOT / "web" / "art" / "v2" / "ui" / asset).is_file()
+    force_start = js.index("function forceArticle")
+    force_end = js.index("function cardArticle", force_start)
+    renderer = js[force_start:force_end]
+    assert renderer.index("stackEdge(card)") < renderer.index("motif-field chronicle-art")
+    assert renderer.index("motif-field chronicle-art") < renderer.index("card-title")
+    assert renderer.index("card-title") < renderer.index("chronicle-rules")
+    assert renderer.index("chronicle-rules") < renderer.index("chronicle-footer")
+
+
+def test_force_top_strip_includes_readable_timing_word() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert "edge-timing-word" in js
+    assert ".card-force.chronicle-force-face .edge-timing-word" in css
