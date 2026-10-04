@@ -141,3 +141,8 @@ def test_every_compiled_capability_comes_from_the_shared_registry() -> None:
             CARD_CAPABILITY_BITS[name]
             for name in capabilities
         )
+
+
+def test_canonical_cards_have_no_engine_sync_migration_channel() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    assert all("engine_sync" not in card for card in data["cards"])
