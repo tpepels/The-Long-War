@@ -3049,7 +3049,7 @@
       ],
       "ongoing": true,
       "command_cost": 1,
-      "text": "**Omen - Ongoing.** Choose a Front when you play this. The first time each player plays a card in that Front this Battle, that player's next operation must affect that Front, if possible. After this has happened for both players, discard this Omen.",
+      "text": "**Omen - Ongoing.** Choose a Front when you play this. The first time each player plays a card in that Front this Battle, that player's next Action must affect that Front, if possible. After this has happened for both players, discard this Omen.",
       "balance": {
         "dynamic": true
       },
@@ -3062,7 +3062,7 @@
         {
           "kind": "trigger",
           "label": "FIRST CARD EACH PLAYER",
-          "text": "The first time each player plays a card in that Front this Battle, that player's next operation must affect that Front, if possible."
+          "text": "The first time each player plays a card in that Front this Battle, that player's next Action must affect that Front, if possible."
         },
         {
           "kind": "effect",
@@ -3074,8 +3074,8 @@
         "narrative_form": "omen",
         "chosen_front": true,
         "per_player_first_card_in_front_each_battle": true,
-        "next_operation_must_affect_chosen_front_if_possible": true,
-        "discard_after_both_players_trigger": true
+        "discard_after_both_players_trigger": true,
+        "next_action_must_affect_chosen_front_if_possible": true
       },
       "engine_sync": "native",
       "design_status": "approved",
@@ -3137,7 +3137,7 @@
       ],
       "ongoing": true,
       "command_cost": 1,
-      "text": "**Warning - Ongoing.** Choose one of your Named Formations and choose left or right. On your next turn, if that formation can **Maneuver** one Front in that direction, your operation must be that Maneuver. It costs 0 Command. If you make that Maneuver, draw 1 card. Then discard this Warning.",
+      "text": "**Warning - Ongoing.** Choose one of your Named Formations and choose left or right. On your next turn, if that formation can **Maneuver** one Front in that direction, your Action must be that Maneuver. It costs 0 Command. If you make that Maneuver, draw 1 card. Then discard this Warning.",
       "balance": {
         "dynamic": true
       },
@@ -3150,7 +3150,7 @@
         {
           "kind": "constraint",
           "label": "NEXT TURN",
-          "text": "If that formation can **Maneuver** one Front in that direction, your operation must be that Maneuver. It costs 0 Command."
+          "text": "If that formation can **Maneuver** one Front in that direction, your Action must be that Maneuver. It costs 0 Command."
         },
         {
           "kind": "effect",
@@ -3184,7 +3184,7 @@
       ],
       "ongoing": true,
       "command_cost": 1,
-      "text": "**Omen - Ongoing.** At Battle end, if either player won at least three Fronts, that player's first operation next Battle must be a **Maneuver**, if possible. Then discard this Omen.",
+      "text": "**Omen - Ongoing.** At Battle end, if either player won at least three Fronts, that player's first Action next Battle must be a **Maneuver**, if possible. Then discard this Omen.",
       "balance": {
         "dynamic": true
       },
@@ -3197,7 +3197,7 @@
         {
           "kind": "trigger",
           "label": "BATTLE END",
-          "text": "If either player won at least three Fronts, that player's first operation next Battle must be a **Maneuver**, if possible."
+          "text": "If either player won at least three Fronts, that player's first Action next Battle must be a **Maneuver**, if possible."
         },
         {
           "kind": "effect",
@@ -3209,8 +3209,8 @@
         "narrative_form": "omen",
         "trigger": "battle_end_player_won_at_least_three_fronts",
         "affected_player": "player_who_won_at_least_three_fronts",
-        "next_battle_first_operation_must_be_maneuver_if_possible": true,
-        "discard_self": true
+        "discard_self": true,
+        "next_battle_first_action_must_be_maneuver_if_possible": true
       },
       "engine_sync": "native",
       "design_status": "approved",
@@ -3303,7 +3303,7 @@
         "focus"
       ],
       "command_cost": 2,
-      "text": "Choose a Front when you play this. Each player's next operation this Battle must affect that Front, if possible.",
+      "text": "Choose a Front when you play this. Each player's next Action this Battle must affect that Front, if possible.",
       "balance": {
         "dynamic": true
       },
@@ -3315,16 +3315,16 @@
         },
         {
           "kind": "constraint",
-          "label": "NEXT OPERATION",
-          "text": "Each player's next operation this Battle must affect that Front, if possible."
+          "label": "NEXT ACTION",
+          "text": "Each player's next Action this Battle must affect that Front, if possible."
         }
       ],
       "design_rules": {
         "stratagem": "every_banner_turned",
         "chosen_front": true,
-        "next_operation_each_player_must_affect_chosen_front_if_possible": true,
-        "duration": "until_each_player_completes_next_operation_or_battle_ends",
-        "affects": "both_players"
+        "duration": "until_each_player_completes_next_action_or_battle_ends",
+        "affects": "both_players",
+        "next_action_each_player_must_affect_chosen_front_if_possible": true
       },
       "engine_sync": "native",
       "design_status": "approved",

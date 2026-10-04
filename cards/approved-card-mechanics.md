@@ -13,7 +13,7 @@ This file is a compact reference for the currently approved card designs.
 - **Prepared Bond / Prepared Name** = present in a battlefield position with no Force.
 - **Open Bond** = a Bond attached to a Force while that formation has no Name.
 - **Maneuver** is the core movement action. **Move** means movement caused by card text.
-- During the resolution of one operation, each formation may initiate at most one **Maneuver**.
+- During the resolution of one Action, each formation may initiate at most one **Maneuver**.
 - If two formations swap during a **Maneuver**, only the initiating formation is considered to have Maneuvered; the other is displaced.
 
 ## Editorial rules
@@ -198,11 +198,11 @@ Design principle: force can act on the player by narrowing future choices. These
 
 | # | Card | Type | Cost | Strength | Approved mechanic |
 |---:|---|---|---:|---:|---|
-| 88 | **The Battle Had Chosen Them** | Narrative - Omen | 1 | - | **Ongoing.** Choose a Front. The first time each player plays a card there this Battle, that player's next operation must affect that Front, if possible. After both players have done this, discard the Omen. |
+| 88 | **The Battle Had Chosen Them** | Narrative - Omen | 1 | - | **Ongoing.** Choose a Front. The first time each player plays a card there this Battle, that player's next Action must affect that Front, if possible. After both players have done this, discard the Omen. |
 | 89 | **No One Would Be First to Leave** | Narrative - Saga | 1 | - | **Ongoing.** Choose a Front containing one of your Named Formations. Named Formations there cannot **Maneuver** away. When a Named Formation there **Retreats**, discard the Saga. |
-| 90 | **The King Had Given the Order** | Narrative - Warning | 1 | - | **Ongoing.** Choose one of your Named Formations and left or right. On your next turn, if it can **Maneuver** one Front that way, your operation must be that Maneuver. It costs 0 Command. If you make it, draw 1 card. Then discard the Warning. |
-| 91 | **They Had Gone Too Far** | Narrative - Omen | 1 | - | **Ongoing.** At Battle end, if either player won at least three Fronts, that player's first operation next Battle must be a **Maneuver**, if possible. Then discard the Omen. |
+| 90 | **The King Had Given the Order** | Narrative - Warning | 1 | - | **Ongoing.** Choose one of your Named Formations and left or right. On your next turn, if it can **Maneuver** one Front that way, your Action must be that Maneuver. It costs 0 Command. If you make it, draw 1 card. Then discard the Warning. |
+| 91 | **They Had Gone Too Far** | Narrative - Omen | 1 | - | **Ongoing.** At Battle end, if either player won at least three Fronts, that player's first Action next Battle must be a **Maneuver**, if possible. Then discard the Omen. |
 | 92 | **There Was No Road Back** | Stratagem | 2 | - | Choose a Front. **During this Battle**, formations may **Maneuver** into it but cannot Maneuver away. |
 | 93 | **The Line Had Begun to Move** | Stratagem | 2 | - | Choose left or right. **During this Battle**, each player's first **Maneuver** costs 0 Command. If that player can Maneuver in the chosen direction, that Maneuver must be in that direction. |
-| 94 | **Every Banner Turned Toward Them** | Stratagem | 2 | - | Choose a Front. Each player's next operation this Battle must affect that Front, if possible. |
+| 94 | **Every Banner Turned Toward Them** | Stratagem | 2 | - | Choose a Front. Each player's next Action this Battle must affect that Front, if possible. |
 | 95 | **Had Been Ordered Forward** | Bond | 1 | - | This formation gets +1 **Strength**. Once it has **Maneuvered** this Battle, it gets +2 additional Strength during this Battle. Any later Maneuver it makes this Battle must continue in the same direction, if possible. |

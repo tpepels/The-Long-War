@@ -236,7 +236,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
 
         self.narrative_first_card_front_constraint[code] = bool(
             design.get(DesignField.PER_PLAYER_FIRST_CARD_IN_FRONT_EACH_BATTLE)
-            and design.get(DesignField.NEXT_OPERATION_MUST_AFFECT_CHOSEN_FRONT_IF_POSSIBLE)
+            and design.get(DesignField.NEXT_ACTION_MUST_AFFECT_CHOSEN_FRONT_IF_POSSIBLE)
         )
         self.narrative_no_maneuver_away[code] = bool(
             design.get(DesignField.NAMED_FORMATIONS_CANNOT_MANEUVER_AWAY)
@@ -247,7 +247,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             and design.get(DesignField.NEXT_TURN_FORCED_MANEUVER_IF_LEGAL)
         )
         self.narrative_three_front_next_maneuver[code] = bool(
-            design.get(DesignField.NEXT_BATTLE_FIRST_OPERATION_MUST_BE_MANEUVER_IF_POSSIBLE)
+            design.get(DesignField.NEXT_BATTLE_FIRST_ACTION_MUST_BE_MANEUVER_IF_POSSIBLE)
         )
         self.narrative_front_requires_named[code] = bool(
             design.get(DesignField.CHOSEN_FRONT_REQUIRES_FRIENDLY_NAMED_FORMATION)
@@ -259,7 +259,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             design.get(DesignField.FIRST_MANEUVER_EACH_PLAYER_MUST_USE_DIRECTION_IF_POSSIBLE)
         )
         self.strat_next_operation_front[code] = bool(
-            design.get(DesignField.NEXT_OPERATION_EACH_PLAYER_MUST_AFFECT_CHOSEN_FRONT_IF_POSSIBLE)
+            design.get(DesignField.NEXT_ACTION_EACH_PLAYER_MUST_AFFECT_CHOSEN_FRONT_IF_POSSIBLE)
         )
         self.bond_momentum_direction[code] = bool(
             design.get(DesignField.LATER_MANEUVERS_SAME_DIRECTION_IF_POSSIBLE)

@@ -184,7 +184,7 @@ cdef void _fe_add_constraint(
 ) except *:
     cdef int i = state.constraint_len
     if i >= MAX_CONSTRAINTS:
-        raise RuntimeError("Native operation-constraint capacity exceeded")
+        raise RuntimeError("Native Action-constraint capacity exceeded")
     state.constraint_kind[i] = kind
     state.constraint_player[i] = player
     state.constraint_source_card[i] = source_card
@@ -227,6 +227,11 @@ cdef inline bint _fe_action_affects_front(
     if kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME:
         return pos >= 0 and front_from_slot(pos) == front
     if kind == TYPE_MANEUVER:
+        return (
+            (pos >= 0 and front_from_slot(pos) == front)
+            or (dest >= 0 and front_from_slot(dest) == front)
+        )
+    if kind == TYPE_NARRATIVE:
         return (
             (pos >= 0 and front_from_slot(pos) == front)
             or (dest >= 0 and front_from_slot(dest) == front)

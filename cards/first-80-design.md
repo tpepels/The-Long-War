@@ -305,7 +305,7 @@ This batch treats a Stratagem as the plan for the Battle: a temporary commitment
 - **No retreat:** make one Front lethal for both players.
 - **Combined center:** collapse two adjacent Fronts into one high-stakes Strength contest.
 - **Refused flank:** deliberately concede Strength on an edge to reinforce the neighboring Front.
-- **Wheel the line:** shift multiple formations laterally in one operation.
+- **Wheel the line:** shift multiple formations laterally in one Action.
 - **Encirclement:** turn control of three neighboring Fronts into a harsher result in the middle.
 - **Feigned retreat:** reverse Frontline and Rear immediately before Strength is compared.
 - **Commit reserves:** push several Rear formations forward at once, with escalating Command cost.
