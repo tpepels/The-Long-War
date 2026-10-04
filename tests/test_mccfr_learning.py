@@ -62,6 +62,20 @@ def test_face_down_opponent_stratagem_identity_is_not_in_information_set() -> No
     # The owner knows which card they set.
     assert information_set_id(changed_hidden, 1) != information_set_id(state, 1)
 
+    # Public selections remain visible even while identity is hidden.
+    chosen_front = state.clone()
+    chosen_front.stratagems[1] = StratagemState(
+        "no-step-back",
+        fronts=(Front.FIRST,),
+        revealed=False,
+    )
+    chosen_other_front = chosen_front.clone()
+    chosen_other_front.stratagems[1].fronts = (Front.SECOND,)
+    assert (
+        information_set_id(chosen_front, 0)
+        != information_set_id(chosen_other_front, 0)
+    )
+
     # Once revealed, the opponent can distinguish the identity too.
     revealed = changed_hidden.clone()
     revealed.stratagems[1].revealed = True
