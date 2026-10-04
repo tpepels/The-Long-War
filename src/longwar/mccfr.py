@@ -69,7 +69,7 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
         [
             {
                 "card_id": narrative.card_id,
-                "fronts": [int(front) for front in narrative.fronts],
+                "fronts": sorted(int(front) for front in narrative.fronts),
                 "target": (
                     None
                     if narrative.target_position is None
@@ -105,16 +105,16 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
                 else "hidden"
             ),
             "revealed": bool(stratagem.revealed),
-            "fronts": [int(front) for front in stratagem.fronts],
+            "fronts": sorted(int(front) for front in stratagem.fronts),
             "direction": stratagem.direction,
-            "targets": [
+            "targets": sorted(
                 [
                     int(target_player),
                     int(position.front),
                     position.rank.value,
                 ]
                 for target_player, position in stratagem.targets
-            ],
+            ),
         })
 
     return {
