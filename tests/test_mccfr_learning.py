@@ -84,21 +84,31 @@ def test_face_down_opponent_stratagem_identity_is_not_in_information_set() -> No
 
 def test_public_stratagem_choice_order_does_not_change_information_set() -> None:
     _, _, state = setup()
-    first_target = (0, Position(Front.FIRST, Rank.REAR))
-    second_target = (0, Position(Front.SECOND, Rank.REAR))
+
+    state.stratagems[1] = StratagemState(
+        "the-center-must-hold",
+        fronts=(Front.FIRST, Front.SECOND),
+        revealed=False,
+    )
+    first = information_set_id(state, 0)
+    reordered_fronts = state.clone()
+    reordered_fronts.stratagems[1].fronts = (Front.SECOND, Front.FIRST)
+    assert information_set_id(reordered_fronts, 0) == first
+
+    first_target = (1, Position(Front.FIRST, Rank.REAR))
+    second_target = (1, Position(Front.SECOND, Rank.REAR))
     state.stratagems[1] = StratagemState(
         "all-reserves-forward",
-        fronts=(Front.FIRST, Front.SECOND),
         targets=(first_target, second_target),
         revealed=False,
     )
     first = information_set_id(state, 0)
-
-    reordered = state.clone()
-    reordered.stratagems[1].fronts = (Front.SECOND, Front.FIRST)
-    reordered.stratagems[1].targets = (second_target, first_target)
-
-    assert information_set_id(reordered, 0) == first
+    reordered_targets = state.clone()
+    reordered_targets.stratagems[1].targets = (
+        second_target,
+        first_target,
+    )
+    assert information_set_id(reordered_targets, 0) == first
 
 
 def test_direct_longwar_traversal_matches_generic_core() -> None:
