@@ -282,3 +282,9 @@ def test_multi_effect_heroes_receive_dense_layout() -> None:
     for output in rendered:
         classes = output.one("v2-card")["attrs"]["class"].split()
         assert "dense" in classes or "very-dense" in classes
+
+
+def test_exposed_row_preserves_classification_icons_before_reminder_width() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert "grid-template-columns:auto max-content minmax(0,1fr)" in css
+    assert ".edge-live-text{max-width:20mm;" in css

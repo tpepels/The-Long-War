@@ -10,7 +10,7 @@ The cards are physical war-table components. The exposed stack is the battlefiel
 - The exposed 10.5 mm edge is exactly **one horizontal row**.
 - Browser and print use the same renderer.
 
-Nothing may change the top-row baseline: not title length, rules density, card family, or Hero mode.
+Nothing may change the top-row baseline: not title length, rules density, card family, or Hero mode. The stat group and classification pictograms keep their full geometry; the live reminder occupies the flexible remainder of the row.
 
 ## What belongs in the exposed row
 
