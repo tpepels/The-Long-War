@@ -152,10 +152,17 @@ def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
     # canonical pool. Combine those with the canonical Bonds so the legal
     # action set still exceeds the historical 256-action buffer.
     state.players[0].deck = []
-    state.players[0].hand = [
+    bond_ids = [
         card_id
         for card_id, card in engine.cards.items()
         if card["type"] == "bond"
+    ]
+    # Keep enough distinct cards to exceed the historical 256-action buffer
+    # without creating an unrealistic all-pool hand whose Cycle combinations
+    # alone exceed the production MAX_ACTIONS capacity.
+    state.players[0].hand = [
+        *[card_id for card_id in bond_ids if card_id != "test-bond-126"][:19],
+        "test-bond-126",
     ]
     legal = engine.legal_actions(state)
     assert len(legal) > 256
