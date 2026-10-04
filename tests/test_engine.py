@@ -1319,7 +1319,7 @@ def test_command_recovery_loses_one_per_lost_front_and_caps_at_configured_limit(
         starting_command=20,
         command_cap=20,
     )
-    engine, state = setup_state(rules=rules, battle=1)
+    engine, state = setup_state(rules=rules)
     state.players[0].command = 5
     state.players[1].command = rules.command_cap - 1
     state.battle_start_command[:] = [5, rules.command_cap - 1]
@@ -1350,7 +1350,7 @@ def test_command_collapse_lower_command_loses_and_equal_threshold_uses_first_pas
         command_recovery_decrement=0,
         command_recovery_floor=1,
     )
-    engine, state = setup_state(rules=rules)
+    engine, state = setup_state(rules=rules, battle=1)
     state.players[0].command = 0
     state.players[1].command = 6
     state.battle_start_command[:] = [0, 6]
