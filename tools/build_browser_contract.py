@@ -7,6 +7,7 @@ from pathlib import Path
 from longwar.cards import load_card_file
 from longwar.game import (
     Discard,
+    EndTurn,
     GameEngine,
     Maneuver,
     Pass,
@@ -156,16 +157,6 @@ def choose_contract_action(engine: GameEngine, state: GameState):
     if discard is not None:
         return discard
 
-    pass_action = next(
-        (action for action in legal if isinstance(action, Pass)),
-        None,
-    )
-    if (
-        pass_action is not None
-        and state.operations_this_battle[state.active_player] >= 3
-    ):
-        return pass_action
-
     priorities = (
         PlayForce,
         PlayBond,
@@ -173,6 +164,8 @@ def choose_contract_action(engine: GameEngine, state: GameState):
         PlayNarrative,
         PlayStratagem,
         Maneuver,
+        EndTurn,
+        Pass,
     )
     for kind in priorities:
         candidates = [
