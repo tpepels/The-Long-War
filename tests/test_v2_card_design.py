@@ -310,9 +310,12 @@ def test_nonformation_header_matches_stack_header_height() -> None:
 def test_canonical_force_face_has_material_assets_and_approved_order() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-    for asset in ("chronicle-grain.svg", "chronicle-frame.svg", "chronicle-art-frame.svg"):
+    for asset in ("chronicle-border.webp", "chronicle-parchment.webp", "chronicle-divider.webp"):
         assert asset in css
         assert (ROOT / "web" / "art" / "v2" / "ui" / asset).is_file()
+    canonical = css[css.index("CANONICAL FORCE FACE"):]
+    for obsolete in ("chronicle-grain.svg", "chronicle-frame.svg", "chronicle-art-frame.svg"):
+        assert obsolete not in canonical
     force_start = js.index("function forceArticle")
     force_end = js.index("function cardArticle", force_start)
     renderer = js[force_start:force_end]
@@ -327,3 +330,11 @@ def test_force_top_strip_includes_readable_timing_word() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     assert "edge-timing-word" in js
     assert ".card-force.chronicle-force-face .edge-timing-word" in css
+
+
+def test_force_decorative_dividers_are_raster_not_css_lines() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    canonical = css[css.index("CANONICAL FORCE FACE"):]
+    assert 'background:url("art/v2/ui/chronicle-divider.webp")' in canonical
+    assert ".chronicle-divider span{display:none}" in canonical
+    assert ".card-force.chronicle-force-face .card-footer::before{display:none}" in canonical

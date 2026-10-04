@@ -143,12 +143,14 @@ Its fixed composition is:
 All Force cards use identical illustration geometry and a centered 50/50 cover crop. Rules density may change type size slightly, but may never resize or reposition the art.
 
 The material treatment is part of the design, not decoration added later:
-- real reusable parchment-grain SVG texture;
-- ornamental full-card frame;
-- ornamental art-window frame;
+- generated raster parchment texture;
+- generated raster full-card border with restrained navy/gold ornament;
+- the border asset itself supplies the art-window ornament;
+- generated raster ornamental divider;
 - inset highlight/shadow around the art plate;
-- printed/engraved dividers;
 - restrained navy/black heraldic ink;
 - warm worn parchment.
+
+Decorative framing and separators should use these raster assets rather than hand-built SVG or CSS line ornament. Functional game glyphs remain vector icons because they carry rules information rather than decoration.
 
 Other card families remain on the previous renderer until they are converted deliberately, one family at a time.

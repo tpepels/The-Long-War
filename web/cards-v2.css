@@ -50,10 +50,9 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   border:.52mm solid #332f27;
   border-radius:2.8mm;
   background:
-    url("art/v2/ui/chronicle-grain.svg") center/180px 180px repeat,
-    radial-gradient(circle at 20% 8%,rgba(255,251,229,.72),transparent 27mm),
-    radial-gradient(circle at 86% 88%,rgba(112,79,38,.10),transparent 26mm),
-    linear-gradient(145deg,#f6ecd2,#e8d8b7 72%,#ddc9a5);
+    linear-gradient(180deg,rgba(255,250,232,.10),rgba(91,62,30,.035)),
+    url("art/v2/ui/chronicle-parchment.webp") center/auto 28mm repeat,
+    #efe0be;
   box-shadow:
     0 1.9mm 3.8mm rgba(34,29,21,.34),
     0 .45mm .65mm rgba(29,25,19,.26),
@@ -66,19 +65,17 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   inset:0;
   z-index:8;
   pointer-events:none;
-  opacity:.98;
-  background:url("art/v2/ui/chronicle-frame.svg") center/100% 100% no-repeat;
+  opacity:.92;
+  background:url("art/v2/ui/chronicle-border.webp") center/100% 100% no-repeat;
 }
 .card-force.chronicle-force-face::after{
   content:"";
   position:absolute;
-  inset:.75mm;
+  inset:.5mm;
   z-index:7;
   pointer-events:none;
-  border-radius:2.05mm;
-  box-shadow:
-    inset 0 0 2mm rgba(74,50,27,.18),
-    inset 0 0 0 .18mm rgba(86,67,44,.54);
+  border-radius:2.2mm;
+  box-shadow:inset 0 0 2.6mm rgba(61,43,24,.14);
 }
 
 /* Battlefield strip: one row, readable when buried. */
@@ -90,13 +87,11 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   column-gap:1.25mm;
   padding:.95mm 3mm .72mm;
   color:#24261f;
-  border-bottom:.34mm double #6e604b;
+  border-bottom:0;
   background:
-    url("art/v2/ui/chronicle-grain.svg") center/140px 140px repeat,
-    linear-gradient(180deg,rgba(255,249,226,.94),rgba(237,222,190,.94));
-  box-shadow:
-    inset 0 -.8mm 1.1mm rgba(85,63,38,.08),
-    0 .35mm .55mm rgba(45,34,23,.13);
+    linear-gradient(180deg,rgba(255,250,231,.76),rgba(232,213,177,.70)),
+    url("art/v2/ui/chronicle-parchment.webp") center/auto 20mm repeat;
+  box-shadow:inset 0 -.7mm 1mm rgba(85,63,38,.06);
 }
 .card-force.chronicle-force-face .edge-stats{
   gap:.48mm;
@@ -158,16 +153,15 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   height:var(--force-art-height);
   min-height:var(--force-art-height);
   max-height:var(--force-art-height);
-  margin:1.55mm 3mm 0;
+  margin:1.55mm 3.2mm 0;
   overflow:hidden;
-  border:.38mm solid #5a4d3d;
-  border-radius:1.8mm;
+  border:0;
+  border-radius:1.55mm;
   clip-path:none;
   background:#cfc3a9;
   box-shadow:
-    0 .65mm 1.1mm rgba(51,38,25,.28),
-    inset 0 0 0 .34mm rgba(236,218,179,.88),
-    inset 0 0 1.7mm rgba(23,24,19,.26);
+    0 .55mm .9mm rgba(51,38,25,.22),
+    inset 0 0 1.8mm rgba(23,24,19,.25);
 }
 .card-force.chronicle-force-face .motif-field::before{
   inset:.35mm;
@@ -179,12 +173,8 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 }
 .card-force.chronicle-force-face .motif-field::after{
   inset:0;
-  background:
-    url("art/v2/ui/chronicle-art-frame.svg") center/100% 100% no-repeat,
-    linear-gradient(180deg,rgba(255,244,213,.06),transparent 65%,rgba(38,29,20,.15));
-  box-shadow:
-    inset 0 0 2.3mm rgba(25,22,16,.28),
-    inset 0 0 0 .18mm rgba(247,229,190,.66);
+  background:linear-gradient(180deg,rgba(255,244,213,.035),transparent 66%,rgba(38,29,20,.12));
+  box-shadow:inset 0 0 2.1mm rgba(25,22,16,.25);
 }
 
 /* Lower parchment panel */
@@ -196,6 +186,9 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   padding:1.65mm 4.2mm .3mm;
   display:flex;
   flex-direction:column;
+  background:
+    linear-gradient(180deg,rgba(255,250,231,.04),rgba(94,66,33,.025)),
+    url("art/v2/ui/chronicle-parchment.webp") center/auto 28mm repeat;
 }
 .card-force.chronicle-force-face .chronicle-title-block{
   flex:0 0 15mm;
@@ -246,33 +239,17 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   font:600 2.6mm/1 var(--display);
 }
 
-/* Engraved divider with central diamond. */
+/* Generated ornamental divider - raster asset from the approved visual pass. */
 .card-force.chronicle-force-face .chronicle-divider{
-  flex:0 0 2mm;
-  position:relative;
-  margin:0 .8mm .9mm;
+  flex:0 0 2.6mm;
+  height:2.6mm;
+  margin:0 .25mm .75mm;
+  background:url("art/v2/ui/chronicle-divider.webp") center/96% auto no-repeat;
+  opacity:.68;
 }
 .card-force.chronicle-force-face .chronicle-divider::before,
-.card-force.chronicle-force-face .chronicle-divider::after{
-  content:"";
-  position:absolute;
-  top:.82mm;
-  width:calc(50% - 3.2mm);
-  height:.15mm;
-  background:linear-gradient(90deg,transparent,#8a7655);
-}
-.card-force.chronicle-force-face .chronicle-divider::before{left:0}
-.card-force.chronicle-force-face .chronicle-divider::after{right:0;transform:scaleX(-1)}
-.card-force.chronicle-force-face .chronicle-divider span{
-  position:absolute;
-  left:50%;
-  top:.33mm;
-  width:1.4mm;height:1.4mm;
-  transform:translateX(-50%) rotate(45deg);
-  border:.18mm solid #8a7655;
-  background:#d7bf91;
-  box-shadow:0 0 0 .38mm #f0e2c2;
-}
+.card-force.chronicle-force-face .chronicle-divider::after,
+.card-force.chronicle-force-face .chronicle-divider span{display:none}
 
 /* Rules read like ink on paper rather than a UI module. */
 .card-force.chronicle-force-face .chronicle-rules{
@@ -289,8 +266,19 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   padding:0 0 1mm;
 }
 .card-force.chronicle-force-face .effect-block+.effect-block{
-  padding-top:1mm;
-  border-top:.15mm solid #a18a64;
+  position:relative;
+  padding-top:1.35mm;
+  border-top:0;
+}
+.card-force.chronicle-force-face .effect-block+.effect-block::before{
+  content:"";
+  position:absolute;
+  left:8%;
+  right:8%;
+  top:.2mm;
+  height:.75mm;
+  background:url("art/v2/ui/chronicle-divider.webp") center/contain no-repeat;
+  opacity:.30;
 }
 .card-force.chronicle-force-face .effect-head{
   grid-column:1;
@@ -343,13 +331,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   z-index:3;
   padding:.7mm 13mm 1.25mm 4.35mm;
 }
-.card-force.chronicle-force-face .card-footer::before{
-  left:4.2mm;
-  right:12mm;
-  top:0;
-  height:.13mm;
-  background:linear-gradient(90deg,transparent,#9d8762 12%,#9d8762 88%,transparent);
-}
+.card-force.chronicle-force-face .card-footer::before{display:none}
 .card-force.chronicle-force-face .footer-id{
   color:#5c5548;
   font:1.35mm/1 var(--utility);
