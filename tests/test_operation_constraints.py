@@ -141,6 +141,28 @@ def test_impossible_requirement_does_not_block_normal_action_or_endturn():
     assert any(isinstance(action, PlayForce) for action in legal)
 
 
+def test_front_selecting_stratagem_consumes_existing_front_obligation():
+    engine, state = fresh()
+    state.players[0].hand = ["no-step-back"]
+    state.constraints[:] = [
+        OperationConstraint(
+            "the-battle-had-chosen-them",
+            0,
+            ConstraintKind.AFFECT_FRONT,
+            0,
+            front=Front.SECOND,
+        )
+    ]
+    action = PlayStratagem(
+        "no-step-back",
+        fronts=(Front.SECOND,),
+    )
+
+    assert action in engine.legal_actions(state)
+    engine.apply(state, action)
+    assert not state.constraints
+
+
 def test_battle_had_chosen_them_creates_front_obligation_after_first_card():
     engine, state = fresh()
     state.narratives[0] = [
