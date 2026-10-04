@@ -261,21 +261,19 @@ def test_card_lab_loads_versioned_data() -> None:
     assert 'cache:"no-cache"' in js
 
 
-def test_per_card_art_batch_is_wired_into_renderer() -> None:
+def test_all_per_card_art_is_wired_into_renderer() -> None:
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     assert "const CARD_ART=new Set" in js
     assert "--card-art:url(art/v2/cards/" in js
     assert "var(--card-art,var(--family-art))" in css
-    for card_id in (
-        "a-volley-before-dawn", "corin-of-the-high-wall", "doros-the-last-spear",
-        "kept-the-gate-for", "serai-queen-of-crows", "the-ash-bowmen",
-        "the-lantern-scouts", "the-river-raiders", "the-scouts-had-warned-them",
-        "the-stores-were-taken", "they-knew-the-ground", "watched-the-skies-for",
-    ):
-        assert card_id in js
-        assert (ROOT / "web" / "art" / "v2" / "cards" / f"{card_id}.png").is_file()
 
+    art_ids = sorted(path.stem for path in (ROOT / "web" / "art" / "v2" / "cards").glob("*.png"))
+    known = {card["id"] for card in CARDS}
+    assert art_ids
+    assert set(art_ids) <= known
+    for card_id in art_ids:
+        assert f'"{card_id}"' in js
 
 def test_multi_effect_heroes_receive_dense_layout() -> None:
     rendered = render_cards([c for c in CARDS if c["type"] == "hero" and len(effects(c)) >= 3])

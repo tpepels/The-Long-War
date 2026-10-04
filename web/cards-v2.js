@@ -8,9 +8,31 @@ const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",st
 const LABEL={play:"PLAY",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL"};
 const LIVE=new Set(["action","reaction","bonded","while_named"]);
 const CARD_ART=new Set([
- "a-volley-before-dawn","corin-of-the-high-wall","doros-the-last-spear","kept-the-gate-for",
- "serai-queen-of-crows","the-ash-bowmen","the-lantern-scouts","the-river-raiders",
- "the-scouts-had-warned-them","the-stores-were-taken","they-knew-the-ground","watched-the-skies-for"
+ "a-volley-before-dawn",
+ "brannoc",
+ "carried-messages-for",
+ "corin-of-the-high-wall",
+ "doros-the-last-spear",
+ "every-bow-was-strung",
+ "kept-the-gate-for",
+ "lysa-the-listener",
+ "maelin",
+ "serai-queen-of-crows",
+ "shared-the-spoils-with",
+ "the-archers-were-ready",
+ "the-ash-bowmen",
+ "the-kings-spears",
+ "the-lantern-scouts",
+ "the-line-was-baited",
+ "the-raiders-came-home-loaded",
+ "the-river-raiders",
+ "the-salt-road-fleet",
+ "the-scouts-found-the-gap",
+ "the-scouts-had-warned-them",
+ "the-stores-were-taken",
+ "the-watchtowers-of-eren",
+ "they-knew-the-ground",
+ "watched-the-skies-for"
 ]);
 const H=()=>window.V2Heraldry;
 const signed=value=>(Number(value)>=0?"+":"")+String(value??0);
