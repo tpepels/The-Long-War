@@ -12,7 +12,7 @@ from .agents.heuristic_agent import HeuristicAgent
 from .game.actions import Action, action_key
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase, other_player
-from .protocol import ObservationZone, PLAYER_COUNT
+from .protocol import MCCFR_POLICY_SCHEMA_VERSION, ObservationZone, PLAYER_COUNT
 from .mccfr_core import (
     BACKEND,
     CFRNode,
@@ -74,10 +74,25 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
         stratagem = state.stratagems[owner]
         if stratagem is None:
             stratagems.append(None)
-        elif owner == player or stratagem.revealed:
-            stratagems.append(stratagem.card_id)
-        else:
-            stratagems.append("hidden")
+            continue
+        stratagems.append({
+            "card_id": (
+                stratagem.card_id
+                if owner == player or stratagem.revealed
+                else "hidden"
+            ),
+            "revealed": bool(stratagem.revealed),
+            "fronts": [int(front) for front in stratagem.fronts],
+            "direction": stratagem.direction,
+            "targets": [
+                [
+                    int(target_player),
+                    int(position.front),
+                    position.rank.value,
+                ]
+                for target_player, position in stratagem.targets
+            ],
+        })
 
     return {
         "viewer": player,
@@ -472,7 +487,7 @@ class MCCFRTrainer:
                 }
 
         return {
-            "schema_version": 1,
+            "schema_version": MCCFR_POLICY_SCHEMA_VERSION,
             "algorithm": "depth_limited_external_sampling_mccfr",
             "execution_backend": BACKEND,
             "traversal_backend": (
@@ -497,7 +512,7 @@ class MCCFRTrainer:
                     "own remaining deck multiset",
                     "public hand/deck counts",
                     "public ongoing Narrative identities",
-                    "face-down opponent Stratagem existence but not identity",
+                    "face-down opponent Stratagem existence and public selections, but not identity",
                     "current Action slot and forced-closing countdown",
                 ],
                 "excludes": [
