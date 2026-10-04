@@ -262,17 +262,6 @@ cdef inline bint _fe_front_has_capture_bond(
             return True
     return False
 
-cdef void _fe_discard_incomplete_formations(FastEngine self, FastState state) noexcept:
-    cdef int player, slot
-    for player in range(PLAYER_COUNT):
-        for slot in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
-            if (
-                state.force[slot] >= 0
-                or state.bond[slot] >= 0
-                or state.name[slot] >= 0
-            ) and not _fe_slot_complete(self, state, slot):
-                _fe_discard_slot_components(self, state, player, slot)
-
 cdef void _fe_discard_battle_stratagems(FastEngine self, FastState state) noexcept:
     cdef int player, card
     for player in range(PLAYER_COUNT):
