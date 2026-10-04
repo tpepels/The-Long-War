@@ -2470,9 +2470,9 @@ def test_eira_succession_resolver_moves_name_then_drives_off_source() -> None:
     target.force = "the-fifty-men"
     target.bond = "followed"
 
-    # Exercise the resumable replacement resolver directly. Normal Battle-end
-    # cleanup removes incomplete formations before drive-off, so this state is
-    # intentionally synthetic.
+    # Exercise the resumable card-effect replacement resolver directly. This
+    # state is intentionally synthetic; normal Battle resolution does not
+    # remove incomplete formations or create automatic Retreats.
     state.pending_effects = [
         {
             "kind": 12,
