@@ -28,7 +28,7 @@ Interpretation retained from that run: consecutive Pass created substantial admi
 
 ## Historical controlled candidates
 
-These historical variants used the then-current Command rules. They are no longer co-equal candidates; permanent Pass is canonical.
+These historical variants used the then-current Command rules. At that point in the design history, permanent Pass had been selected as the canonical candidate; that decision was later superseded by the 2026-10-04 overhaul.
 
 | Variant | Signal costs turn? | Automatic closing window |
 | --- | ---: | --- |
