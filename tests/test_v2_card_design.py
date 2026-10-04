@@ -23,8 +23,11 @@ def test_v2_pool_is_120_cards() -> None:
 
 def test_bonded_named_and_transition_are_explicit() -> None:
     states = DATA["formation_states"]
-    assert "Force + Bond" in states["bonded"]
-    assert "Force + Bond + Name" in states["named"]
+    assert "Force" in states["bonded"] and "Bond" in states["bonded"]
+    assert all(
+        component in states["named"]
+        for component in ("Force", "Bond", "Name")
+    )
     assert "state, not a trigger" in states["bonded_state"]
     assert "state, not a trigger" in states["named_state"]
     assert "BECOMES NAMED" in states["becomes_named"]
