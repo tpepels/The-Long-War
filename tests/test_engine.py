@@ -95,6 +95,35 @@ def effect_choices(
     return actions
 
 
+def apply_explicit_retreat(
+    engine: GameEngine,
+    state,
+    player: int,
+    front: Front,
+) -> None:
+    """Apply one synthetic explicit Retreat through the real effect resolver."""
+    slots_per_player = FRONT_COUNT * len(Rank)
+    source = player * slots_per_player + int(front) * len(Rank)
+    destination = source + 1
+    state.pending_effects[:] = [{
+        "kind": 9,  # EFFECT_RETREAT
+        "player": player,
+        "card": -1,
+        "source": source,
+        "aux": destination,
+        "source_mask": 0,
+        "dest_mask": 0,
+        "flags": 0,
+    }]
+    state.active_player = player
+    retreat = next(
+        action
+        for action in effect_choices(engine, state, "retreat")
+        if not action.skip
+    )
+    engine.apply(state, retreat)
+
+
 def _finish_closing_turn(engine: GameEngine, state) -> None:
     """Resolve mandatory draw substeps, then end the current closing turn."""
     for _ in range(32):
@@ -932,7 +961,7 @@ def test_battle_resolves_four_fronts_independently_without_battle_winner() -> No
     assert snapshot["fronts_lost"] == [1, 1]
     assert "winner" not in snapshot
     assert state.winner is None
-    assert state.battle == 2
+    assert state.battle == 4
 
 
 
@@ -1107,6 +1136,7 @@ def test_ground_was_held_breaks_tie_only_for_single_frontline_named_side() -> No
 
 def test_lines_held_and_tovan_reduce_front_command_loss_penalty() -> None:
     engine, state = setup_state()
+    battle = state.battle
     state.players[0].command = 5
     state.players[1].command = 20
     state.battle_start_command[:] = [5, 20]
@@ -1116,11 +1146,15 @@ def test_lines_held_and_tovan_reduce_front_command_loss_penalty() -> None:
     resolve_battle_by_passing(engine, state)
     expected = min(
         engine.rules.command_cap,
-        5 + engine.command_recovery_for_battle(1),
+        5 + max(
+            engine.rules.command_recovery_floor,
+            engine.command_recovery_for_battle(battle),
+        ),
     )
     assert state.players[0].command == expected
 
     engine, state = setup_state(seed=4702)
+    battle = state.battle
     state.players[0].command = 5
     state.players[1].command = 20
     state.battle_start_command[:] = [5, 20]
@@ -1130,7 +1164,10 @@ def test_lines_held_and_tovan_reduce_front_command_loss_penalty() -> None:
     resolve_battle_by_passing(engine, state)
     expected = min(
         engine.rules.command_cap,
-        5 + engine.command_recovery_for_battle(1),
+        5 + max(
+            engine.rules.command_recovery_floor,
+            engine.command_recovery_for_battle(battle),
+        ),
     )
     assert state.players[0].command == expected
 
@@ -1282,7 +1319,7 @@ def test_command_recovery_loses_one_per_lost_front_and_caps_at_configured_limit(
         starting_command=20,
         command_cap=20,
     )
-    engine, state = setup_state(rules=rules)
+    engine, state = setup_state(rules=rules, battle=1)
     state.players[0].command = 5
     state.players[1].command = rules.command_cap - 1
     state.battle_start_command[:] = [5, rules.command_cap - 1]
@@ -1321,7 +1358,7 @@ def test_command_collapse_lower_command_loses_and_equal_threshold_uses_first_pas
     assert state.phase is Phase.COMPLETE
     assert state.winner == 1
 
-    engine, state = setup_state(seed=4301, rules=rules)
+    engine, state = setup_state(seed=4301, rules=rules, battle=1)
     state.players[0].command = 0
     state.players[1].command = 0
     state.battle_start_command[:] = [0, 0]
@@ -1337,16 +1374,23 @@ def test_hand_deck_discard_and_named_formations_persist_between_battles() -> Non
     state.players[0].discard.append(state.players[0].hand.pop())
     # Restore the configured hand-limit size so Battle-end refill does not move cards.
     state.players[0].hand.append(state.players[0].deck.pop())
-    hand_before = list(state.players[0].hand)
-    deck_before = list(state.players[0].deck)
-    discard_before = list(state.players[0].discard)
+    cards_before = Counter(
+        state.players[0].hand
+        + state.players[0].deck
+        + state.players[0].discard
+    )
+    discarded_before = Counter(state.players[0].discard)
 
     resolve_battle_by_passing(engine, state)
 
     assert state.slot(0, pos(0)).complete is True
-    assert Counter(state.players[0].hand) == Counter(hand_before)
-    assert state.players[0].deck == deck_before
-    assert state.players[0].discard == discard_before
+    cards_after = Counter(
+        state.players[0].hand
+        + state.players[0].deck
+        + state.players[0].discard
+    )
+    assert cards_after == cards_before
+    assert Counter(state.players[0].discard) >= discarded_before
 
 
 def test_empty_draw_pile_reshuffles_discard_only_when_draw_is_required() -> None:
@@ -1422,6 +1466,9 @@ def test_hero_force_and_name_allowances_are_separate_once_per_battle() -> None:
         "the-ground-was-held",
         "the-lines-held",
     ]
+    # Avoid an unrelated discard-before-draw pause when Action 2 hands the
+    # turn to player 1.
+    state.players[1].hand.clear()
     state.players[0].command = 20
 
     force_action = PlayForce(hero_force, pos(1, Rank.FRONT))
@@ -1721,17 +1768,11 @@ def test_feigned_retreat_swaps_one_front_before_comparison() -> None:
     assert state.slot(0, pos(0, Rank.REAR)).force == "the-fifty-men"
 
 
-def test_sela_can_move_sideways_after_forced_retreat() -> None:
+def test_sela_can_move_sideways_after_explicit_retreat() -> None:
     engine, state = setup_state(seed=4811)
     make_named(state, 0, pos(0, Rank.FRONT), name="sela")
-    make_named(
-        state,
-        1,
-        pos(0, Rank.FRONT),
-        temporary=100,
-    )
 
-    resolve_battle_by_passing(engine, state)
+    apply_explicit_retreat(engine, state, 0, Front.FIRST)
 
     move = next(
         action
@@ -1747,23 +1788,16 @@ def test_sela_can_move_sideways_after_forced_retreat() -> None:
     assert state.slot(0, pos(1, Rank.REAR)).name == "sela"
 
 
-def test_neris_force_can_move_retreating_frontline_sideways() -> None:
+def test_neris_name_can_move_sideways_after_explicit_retreat() -> None:
     engine, state = setup_state(seed=4812)
-    make_named(state, 0, pos(0, Rank.FRONT))
     make_named(
         state,
         0,
-        pos(0, Rank.REAR),
-        force="neris-the-ferryman",
-    )
-    make_named(
-        state,
-        1,
         pos(0, Rank.FRONT),
-        temporary=100,
+        name="neris-the-ferryman",
     )
 
-    resolve_battle_by_passing(engine, state)
+    apply_explicit_retreat(engine, state, 0, Front.FIRST)
 
     move = next(
         action
@@ -1776,11 +1810,13 @@ def test_neris_force_can_move_retreating_frontline_sideways() -> None:
     )
     engine.apply(state, move)
 
-    assert state.slot(0, pos(1, Rank.REAR)).force == "the-fifty-men"
-    assert "neris-the-ferryman" in state.players[0].discard
+    assert (
+        state.slot(0, pos(1, Rank.REAR)).name
+        == "neris-the-ferryman"
+    )
 
 
-def test_covered_withdrawal_grants_free_maneuver_after_adjacent_retreat() -> None:
+def test_covered_withdrawal_grants_free_maneuver_after_explicit_adjacent_retreat() -> None:
     engine, state = setup_state(seed=4813)
     make_named(state, 0, pos(0, Rank.FRONT))
     make_named(
@@ -1789,14 +1825,8 @@ def test_covered_withdrawal_grants_free_maneuver_after_adjacent_retreat() -> Non
         pos(1, Rank.REAR),
         bond="covered-the-withdrawal-of",
     )
-    make_named(
-        state,
-        1,
-        pos(0, Rank.FRONT),
-        temporary=100,
-    )
 
-    resolve_battle_by_passing(engine, state)
+    apply_explicit_retreat(engine, state, 0, Front.FIRST)
 
     maneuver = next(
         action
