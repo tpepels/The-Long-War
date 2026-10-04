@@ -8,8 +8,6 @@ from typing import Protocol
 
 from .decks import (
     MINIMUM_DECK_SIZE,
-    MINIMUM_FORCE_COUNT,
-    MINIMUM_PRINTED_NAME_COUNT,
     NON_UNIQUE_COPY_LIMIT,
     UNIQUE_COPY_LIMIT,
 )
@@ -163,27 +161,6 @@ class CardPoolDeckPrior:
         ]
         slots = self.deck_size - len(deck)
 
-        required_forces = sum(
-            count
-            for card_id, count in required.items()
-            if self.engine.cards[card_id][CardField.TYPE] == CardType.FORCE
-        )
-        required_names = sum(
-            count
-            for card_id, count in required.items()
-            if self.engine.cards[card_id][CardField.TYPE] == CardType.NAME
-        )
-        force_needed = max(0, MINIMUM_FORCE_COUNT - required_forces)
-        name_needed = max(
-            0,
-            MINIMUM_PRINTED_NAME_COUNT - required_names,
-        )
-        if force_needed + name_needed > slots:
-            raise BeliefStateError(
-                "Observed cards leave too few hidden slots to satisfy "
-                "canonical Force/Name deck minimums"
-            )
-
         def draw_one(card_type: str | None = None) -> None:
             candidates = [
                 card_id
@@ -208,10 +185,6 @@ class CardPoolDeckPrior:
             deck.append(selected)
             capacities[selected] -= 1
 
-        for _ in range(force_needed):
-            draw_one("force")
-        for _ in range(name_needed):
-            draw_one("name")
         while len(deck) < self.deck_size:
             draw_one()
 
