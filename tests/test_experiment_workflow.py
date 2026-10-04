@@ -64,6 +64,8 @@ def test_game_fingerprint_tracks_trajectory_inputs_only(tmp_path, monkeypatch):
         "src/longwar/testing.py",
         "src/longwar/web_api.py",
         "tools/build_lab_report.py",
+        "cards/v2/cards.json",
+        "cards/v2/playtest-decks.json",
     ):
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
