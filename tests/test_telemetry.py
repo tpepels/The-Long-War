@@ -262,7 +262,7 @@ def test_incomplete_formation_removal_is_recorded_once() -> None:
 
     row = progression._formations[formation_id]
     assert row["removed_action"] == 4
-    assert row["removed_reason"] == "effect_or_retreat"
+    assert row["removed_reason"] == "effect_or_card"
     assert progression.summary()["formation_lifecycle"][
         "incomplete_removed_before_completion"
     ] == 1
@@ -338,8 +338,10 @@ def test_mechanical_choice_and_pass_context_use_actual_legal_set() -> None:
     )
     choice = progression.summary()["mechanical_choice"]
 
-    assert choice["exactly_one_legal_action"] == 1
-    assert choice["exactly_one_legal_action_rate"] == pytest.approx(1.0)
+    # Pass is not an Action under the playtest rules, so it is represented in
+    # Pass context rather than ordinary Action-choice statistics.
+    assert choice["exactly_one_legal_action"] == 0
+    assert choice["exactly_one_legal_action_rate"] is None
     assert choice["signal_mechanical_categories"] == {"no_alternative": 1}
 
 
@@ -351,8 +353,13 @@ def test_constraint_rule_source_is_not_misreported_as_active_constraint() -> Non
     )
     progression = ProgressionTelemetry()
     progression.start_game(engine, state)
-    pass_action = Pass()
-    progression.before_action(engine, state, 0, pass_action, [pass_action])
+    legal = engine.legal_actions(state)
+    action = next(
+        candidate
+        for candidate in legal
+        if not isinstance(candidate, (Pass, EndTurn))
+    )
+    progression.before_action(engine, state, 0, action, legal)
 
     choice = progression.summary()["mechanical_choice"]
     assert choice["constraint_rule_source_decisions"] == 1
@@ -411,7 +418,7 @@ def test_hero_blocking_telemetry_distinguishes_allowance_command_and_structure()
         return state
 
     allowance_state = hero_state()
-    allowance_state.hero_used[0] = True
+    allowance_state.hero_used[0] = 3
     allowance = Telemetry()
     allowance.before_action(
         engine, allowance_state, 0, Pass(), decision_info=None
@@ -542,7 +549,7 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
 def test_front_control_changes_are_detected_between_decision_states() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=608, first_player=0, opening_bonus=False)
-    position = _position(Front.FIRST)
+    position = _position(Front.SECOND)
     state.slot(0, position).force = "the-fifty-men"
 
     progression = ProgressionTelemetry()
@@ -638,7 +645,7 @@ def test_native_active_constraint_is_counted_and_measures_narrowing() -> None:
     slot.force = "the-fifty-men"
     slot.bond = "had-been-ordered-forward"
     slot.name = "arel"
-    state.players[0].hand.clear()
+    state.players[0].hand[:] = ["the-fifty-men"]
     state.players[1].hand.clear()
     state.operations_this_battle[:] = [1, 1]
     state.constraints.append(
@@ -862,11 +869,12 @@ def test_card_deadness_separates_command_shortfall_from_structural_illegality() 
     telemetry.before_action(engine, state, 0, Pass(), None)
     stats = telemetry.summary()["cards"]["the-fifty-men"]
 
-    assert stats["turns_in_hand"] == 1
-    assert stats["unaffordable_turns"] == 1
-    assert stats["structurally_unplayable_turns"] == 0
-    assert stats["resource_blocked_turn_rate"] == pytest.approx(1.0)
-    assert stats["structural_unplayable_turn_rate"] is None
+    assert stats["turns_in_hand"] == 0
+    assert stats["held_on_pass"] == 1
+    assert stats["unaffordable_on_pass"] == 1
+    assert stats["structurally_dead_on_pass"] == 0
+    assert stats["resource_blocked_on_pass_rate"] == pytest.approx(1.0)
+    assert stats["structural_dead_on_pass_rate"] is None
 
 
 def test_battle_buckets_isolate_battle_eight_plus() -> None:
@@ -926,8 +934,8 @@ def test_low_command_telemetry_records_simultaneous_collapse_termination() -> No
     assert stall["battles_with_no_paid_operation"] == 1
     assert stall["battles_with_no_board_change"] == 1
     assert stall["battles_with_no_strength_change"] == 1
-    assert stall["forced_passes"] == 2
-    assert stall["passes_with_no_playable_alternative"] == 2
+    assert stall["forced_passes"] == 1
+    assert stall["passes_with_no_playable_alternative"] == 1
     assert stall["low_positive_streak_length"]["histogram"] == {}
 
     record = stall["battle_records"][0]
@@ -952,7 +960,7 @@ def test_low_command_telemetry_records_simultaneous_collapse_termination() -> No
 def test_progression_attributes_command_economy_by_source_card() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=709, first_player=0, opening_bonus=False)
-    target = _position(Front.FIRST)
+    target = _position(Front.SECOND)
     state.slot(0, target).force = "the-fifty-men"
     state.slot(0, target).bond = "followed"
     state.players[0].hand[:] = ["namar"]
