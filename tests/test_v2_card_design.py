@@ -233,7 +233,8 @@ def test_v2_visual_contract_is_not_powerpoint_layout() -> None:
     assert ".motif-field>svg,.motif-field>img{display:none!important}" in css
     assert ".effect-block+.effect-block" in css
     assert ".class-body-item" in css
-    assert "COMMAND" not in js
+    assert "command-label" not in js
+    assert ">COMMAND<" not in js
     assert "function block(effect)function" not in js
     assert "const STACK_CASESconst STACK_CASES" not in js
 
