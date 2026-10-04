@@ -242,6 +242,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
                 self.strat_tie_control[strat]
                 or self.strat_combine_fronts[strat]
                 or self.strat_front_loss_protection[strat]
+                or self.strat_encirclement[strat]
             )
         ):
             state.stratagem_revealed[controller] = 1
