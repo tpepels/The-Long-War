@@ -954,8 +954,8 @@ def test_low_command_telemetry_records_simultaneous_collapse_termination() -> No
     assert record["collapse_comparison"]["continued"] is False
     assert [row["action"] for row in record["operation_trace"]] == [
         "pass",
-        "end_turn",
-        "end_turn",
+        "end-turn",
+        "end-turn",
     ]
     assert all(row["forced"] for row in record["operation_trace"])
     assert record["board_changed_during_battle"] is False
