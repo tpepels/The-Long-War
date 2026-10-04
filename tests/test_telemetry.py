@@ -615,7 +615,7 @@ def test_forced_maneuver_is_separate_from_zero_cost_maneuver() -> None:
 
 
 
-def test_discarded_without_play_ignores_battle_cleanup_cards() -> None:
+def test_discarded_without_play_ignores_non_hand_discard_additions() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=612, first_player=0, opening_bonus=False)
     progression = ProgressionTelemetry()
