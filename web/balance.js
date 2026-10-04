@@ -872,7 +872,7 @@ function renderCommandExperiment(lab) {
         <thead><tr>
           <th>Agent</th><th>Recovery</th><th>Floor</th><th>Deck</th><th>Game</th><th>Seed</th><th>First</th>
           <th>Final Battle</th><th>Censored</th><th>First low</th>
-          <th>Both at Collapse point starts</th><th>No paid op.</th><th>No board change</th>
+          <th>Both at Collapse point starts</th><th>No paid Action</th><th>No board change</th>
         </tr></thead>
         <tbody>${diagnosticMatches.map((row) => `
           <tr>
@@ -1315,8 +1315,8 @@ function renderProgression(lab) {
         <table class="mini-table">
           <thead><tr>
             <th>Game</th><th>Seed</th><th>First</th><th>Final Battle</th><th>Censored</th>
-            <th>First low</th><th>First equal-low</th><th>Equal-low</th><th>Longest streak</th>
-            <th>0/0 starts</th><th>No paid op.</th><th>No board change</th>
+            <th>Resolved</th><th>First low</th><th>Diagnostic Battles</th>
+            <th>Both at Collapse point</th><th>No paid Action</th><th>No board change</th><th>No Strength change</th>
           </tr></thead>
           <tbody>${lowCommandGames.length ? lowCommandGames.map((row) => `
             <tr>
@@ -1325,10 +1325,13 @@ function renderProgression(lab) {
               <td>${row.first_player ?? "—"}</td>
               <td>${row.final_battle ?? "—"}</td>
               <td>${row.censored ? "yes" : "no"}</td>
+              <td>${row.resolved_battles ?? "—"}</td>
               <td>${row.first_low_command_battle ?? "—"}</td>
-                    <td>${row.both_at_collapse_point_battle_starts ?? 0}</td>
+              <td>${row.diagnostic_battles ?? 0}</td>
+              <td>${row.both_at_collapse_point_battle_starts ?? 0}</td>
               <td>${row.battles_with_no_paid_operation ?? 0}</td>
               <td>${row.battles_with_no_board_change ?? 0}</td>
+              <td>${row.battles_with_no_strength_change ?? 0}</td>
             </tr>
           `).join("") : '<tr><td colspan="12" class="muted">No low-Command diagnostic matches observed.</td></tr>'}</tbody>
         </table>
