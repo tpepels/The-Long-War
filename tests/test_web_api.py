@@ -299,7 +299,8 @@ def test_hidden_stratagem_exposes_public_front_choice_but_not_identity() -> None
     assert public["revealed"] is False
     assert public["fronts"] == [int(front) for front in stored.fronts]
     assert "No Step Back" not in opponent_view["last_action"]["label"]
-    assert "Front 1" in opponent_view["last_action"]["label"]
+    chosen_front = int(stored.fronts[0]) + 1
+    assert f"Front {chosen_front}" in opponent_view["last_action"]["label"]
 
 
 def test_standard_browser_session_exposes_cycle_and_endturn_but_no_draw_action() -> None:
