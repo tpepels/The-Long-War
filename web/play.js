@@ -241,6 +241,7 @@ function resetRemoteSetup(closePeer = true) {
   $("remote-input").value = "";
   $("remote-output").value = "";
   $("remote-output-wrap").hidden = true;
+  $("remote-reset").hidden = true;
   $("remote-status").textContent = "";
   configureRemoteSetup();
 }
@@ -440,6 +441,7 @@ async function startRemoteHost(seed) {
     $("remote-output-label").textContent = "Invite token for Player 2";
     $("remote-output-wrap").hidden = false;
     remoteSetupPhase = REMOTE_SETUP_PHASE.AWAIT_ANSWER;
+    $("remote-reset").hidden = false;
     remoteStatus("Invite ready. Waiting for Player 2's response.");
     configureRemoteSetup();
     $("remote-input").focus();
