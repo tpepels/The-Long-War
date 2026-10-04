@@ -192,12 +192,20 @@ body.game-body {
   display: grid;
   gap: 7px;
 }
-#remote-copy-token {
+#remote-copy-token,
+#remote-reset {
   justify-self: start;
   padding: 7px 10px;
   color: var(--gold);
   border: 1px solid #8f926761;
   background: transparent;
+}
+.remote-actions {
+  display: flex;
+  gap: 8px;
+}
+.remote-transport-note {
+  opacity: .72;
 }
 #remote-status {
   min-height: 16px;
