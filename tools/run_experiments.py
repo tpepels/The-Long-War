@@ -4240,46 +4240,51 @@ def _prepare_ismcts_speed_position(
     if position != "pass-active":
         raise ValueError(f"unknown benchmark position: {position}")
 
-    for _ in range(128):
-        if state.phase is Phase.COMPLETE:
-            raise RuntimeError("benchmark setup reached a terminal game")
+    # Construct a deterministic, legal forced-Pass position without playing
+    # through dozens of two-Action turns. Preserve the actor's complete hidden
+    # card multiset, but leave exactly one positive-cost card in hand and set
+    # Command to 0. With no formation on the opening board, that removes Play,
+    # Maneuver and Cycle while keeping the deck prior/accounting realistic.
+    actor = state.active_player
+    player = state.players[actor]
+    hidden = list(player.hand) + list(player.deck)
+    forced_card = next(
+        (
+            card_id
+            for card_id in hidden
+            if int(engine.cards[card_id].get("command_cost", 0)) > 0
+        ),
+        None,
+    )
+    if forced_card is None:
+        raise RuntimeError("benchmark deck has no positive-cost card for forced Pass")
+    hidden.remove(forced_card)
+    player.hand[:] = [forced_card]
+    player.deck[:] = hidden
+    player.command = 0
+    state.actions_this_turn = 0
+    state.pass_order.clear()
+    for ps in state.players:
+        ps.passed = False
 
-        legal = engine.legal_actions(state)
-        pass_action = next(
-            (action for action in legal if isinstance(action, Pass)),
-            None,
+    legal = engine.legal_actions(state)
+    pass_action = next(
+        (action for action in legal if isinstance(action, Pass)),
+        None,
+    )
+    if pass_action is None:
+        raise RuntimeError(
+            "could not construct forced-Pass closing benchmark state: "
+            f"{legal!r}"
         )
-        if pass_action is not None:
-            engine.apply(state, pass_action)
-            if (
-                len(state.pass_order) != 1
-                or sum(player.passed for player in state.players) != 1
-                or state.closing_turns_remaining
-                != engine.rules.closing_turns_after_pass
-            ):
-                raise RuntimeError("failed to create canonical closing benchmark state")
-            return
-
-        # Keep taking real Actions while constructing the benchmark. EndTurn is
-        # a legal strategic choice, but choosing it here would preserve hand
-        # resources and can prevent the synthetic setup from ever reaching a
-        # genuinely forced Pass.
-        action = next(
-            (
-                action
-                for action in legal
-                if not isinstance(action, (Pass, EndTurn))
-            ),
-            None,
-        )
-        if action is None:
-            action = next(
-                (action for action in legal if isinstance(action, EndTurn)),
-                legal[0],
-            )
-        engine.apply(state, action)
-
-    raise RuntimeError("could not construct forced-Pass closing benchmark state")
+    engine.apply(state, pass_action)
+    if (
+        len(state.pass_order) != 1
+        or sum(player.passed for player in state.players) != 1
+        or state.closing_turns_remaining
+        != engine.rules.closing_turns_after_pass
+    ):
+        raise RuntimeError("failed to create canonical closing benchmark state")
 
 
 def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
