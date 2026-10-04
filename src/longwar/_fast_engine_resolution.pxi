@@ -269,32 +269,10 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     state.resolution_drive_mask[0] = 0
     state.resolution_drive_mask[1] = 0
 
-    # Breakthrough replacements.
-    for front in range(FRONT_COUNT):
-        if (
-            state.resolution_lost_mask[0] & (1 << front)
-            and state.force[slot_index(0, front, RANK_REAR)] < 0
-            and _fe_breakthrough_active(self, state, 1, front)
-        ):
-            state.resolution_drive_mask[0] |= <uint8_t>(1 << front)
-        if (
-            state.resolution_lost_mask[1] & (1 << front)
-            and state.force[slot_index(1, front, RANK_REAR)] < 0
-            and _fe_breakthrough_active(self, state, 0, front)
-        ):
-            state.resolution_drive_mask[1] |= <uint8_t>(1 << front)
-
-    for controller in range(PLAYER_COUNT):
-        strat = state.stratagem[controller]
-        if strat >= 0 and self.strat_no_retreat[strat]:
-            mask = state.stratagem_front_mask[controller] & FRONT_MASK
-            state.resolution_drive_mask[0] |= (
-                state.resolution_lost_mask[0] & mask
-            )
-            state.resolution_drive_mask[1] |= (
-                state.resolution_lost_mask[1] & mask
-            )
-
+    # Lost Fronts no longer create a core Retreat, so old "instead of
+    # Retreating" single-Front replacements do not manufacture a drive-off.
+    # resolution_drive_mask is reserved here for effects whose own condition
+    # explicitly causes a drive-off, such as The Trap Closed.
     strat = state.stratagem[0]
     if strat >= 0 and self.strat_encirclement[strat]:
         if (state.resolution_lost_mask[1] & ENCIRCLEMENT_LEFT_MASK) == ENCIRCLEMENT_LEFT_MASK:
@@ -399,6 +377,27 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     # Retreat/drive-off primitives.
     state.resolution_stage = RESOLUTION_NARRATIVES
     state.resolution_cursor = 0
+
+cdef bint _fe_resolve_one_explicit_drive_off(
+    FastEngine self,
+    FastState state,
+) except *:
+    """Resolve one card-driven Battle-end drive-off, if any."""
+    cdef int player, front, slot
+    for player in range(PLAYER_COUNT):
+        for front in range(FRONT_COUNT):
+            if not (state.resolution_drive_mask[player] & (1 << front)):
+                continue
+            # Clear before resolving so an optional succession pause resumes
+            # at the next pending drive-off rather than repeating this one.
+            state.resolution_drive_mask[player] &= <uint8_t>(
+                ~(1 << front)
+            )
+            slot = slot_index(player, front, RANK_FRONT)
+            if _fe_slot_complete(self, state, slot):
+                _fe_drive_off_slot(self, state, player, slot)
+            return True
+    return False
 
 cdef bint _fe_resolve_one_battle_end_narrative(
     FastEngine self,
@@ -669,6 +668,10 @@ cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except
             continue
 
         if state.resolution_stage == RESOLUTION_NARRATIVES:
+            if _fe_resolve_one_explicit_drive_off(self, state):
+                if state.pending_len > 0 or state.cleanup_pending:
+                    return
+                continue
             if _fe_resolve_one_battle_end_narrative(self, state):
                 if state.pending_len > 0 or state.cleanup_pending:
                     return
