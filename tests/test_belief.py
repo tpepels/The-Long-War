@@ -14,7 +14,7 @@ from longwar.belief import (
 from longwar.cards import load_card_file
 from longwar.decks import validate_deck_definition
 from longwar.game import Front, GameEngine, Position, Rank
-from longwar.game.model import Front, NarrativeState, StratagemState
+from longwar.game.model import NarrativeState, StratagemState
 
 
 ROOT = Path(__file__).resolve().parents[1]
