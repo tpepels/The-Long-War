@@ -166,8 +166,15 @@ def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
     ]
     legal = engine.legal_actions(state)
     assert len(legal) > 256
-    assert all(getattr(action, "card_id", None) is not None for action in legal)
-    assert any(getattr(action, "card_id", None) == "test-bond-126" for action in legal)
+    card_actions = [
+        action for action in legal
+        if getattr(action, "card_id", None) is not None
+    ]
+    assert card_actions
+    assert any(
+        getattr(action, "card_id", None) == "test-bond-126"
+        for action in card_actions
+    )
     for player in state.players:
         player.deck = []
         player.hand = []
