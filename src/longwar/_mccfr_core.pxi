@@ -448,15 +448,51 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     for owner in range(PLAYER_COUNT):
         card_code = data[i]
         i += 1
-        stratagems.append(
-            None
-            if card_code == 0
-            else "hidden"
-            if card_code == 255
-            else card_ids[card_code - 1]
-        )
-        if card_code != 0:
-            i += INFO_STRATAGEM_SEARCH_BYTES  # Stratagem search state
+        if card_code == 0:
+            stratagems.append(None)
+            continue
+
+        revealed = bool(data[i])
+        front_mask = data[i + 1]
+        direction_code = data[i + 2]
+        target_mask = data[i + 3] | (data[i + 4] << 8)
+        i += INFO_STRATAGEM_SEARCH_BYTES
+
+        fronts = [
+            front
+            for front in range(FRONT_COUNT)
+            if front_mask & (1 << front)
+        ]
+        if direction_code == DIRECTION_LEFT:
+            direction = "left"
+        elif direction_code == DIRECTION_RIGHT:
+            direction = "right"
+        else:
+            direction = None
+
+        targets = []
+        for target_slot in range(SLOT_COUNT):
+            if not (target_mask & (1 << target_slot)):
+                continue
+            target_owner = target_slot // POSITIONS_PER_PLAYER
+            local = target_slot % POSITIONS_PER_PLAYER
+            targets.append([
+                target_owner,
+                local // RANK_COUNT,
+                "front" if (local % RANK_COUNT) == 0 else "rear",
+            ])
+
+        stratagems.append({
+            "card_id": (
+                "hidden"
+                if card_code == 255
+                else card_ids[card_code - 1]
+            ),
+            "revealed": revealed,
+            "fronts": fronts,
+            "direction": direction,
+            "targets": targets,
+        })
 
     stratagem_used = [
         bool(data[i + offset])
