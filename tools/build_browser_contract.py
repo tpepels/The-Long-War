@@ -8,10 +8,13 @@ from longwar.cards import load_card_file
 from longwar.game import (
     Discard,
     EndTurn,
+    Front,
     GameEngine,
     Maneuver,
     Pass,
     Phase,
+    Position,
+    Rank,
     PlayBond,
     PlayForce,
     PlayName,
@@ -74,6 +77,9 @@ def project_state(state: GameState) -> dict[str, object]:
                             "rank": narrative.target_position.rank.value,
                         }
                     ),
+                    "direction": narrative.direction,
+                    "triggered_this_battle": narrative.triggered_this_battle,
+                    "triggered_players_mask": narrative.triggered_players_mask,
                 }
                 for narrative in side
             ]
@@ -95,6 +101,7 @@ def project_state(state: GameState) -> dict[str, object]:
                         }
                         for player, position in stratagem.targets
                     ],
+                    "revealed": stratagem.revealed,
                 }
             )
             for stratagem in state.stratagems
@@ -117,6 +124,18 @@ def project_state(state: GameState) -> dict[str, object]:
             state.completion_count_this_battle
         ),
         "operations_this_battle": list(state.operations_this_battle),
+        "actions_this_turn": state.actions_this_turn,
+        "closing_turns_remaining": state.closing_turns_remaining,
+        "maneuvers_this_battle": list(state.maneuvers_this_battle),
+        "cards_played_this_turn_front_mask": list(
+            state.cards_played_this_turn_front_mask
+        ),
+        "cards_played_this_battle_front_mask": list(
+            state.cards_played_this_battle_front_mask
+        ),
+        "narratives_played_this_battle": list(
+            state.narratives_played_this_battle
+        ),
         "deck_reshuffles": list(state.deck_reshuffles),
         "reshuffle_card_totals": list(state.reshuffle_card_totals),
         "reshuffle_hand_card_totals": list(
@@ -128,6 +147,10 @@ def project_state(state: GameState) -> dict[str, object]:
         ],
         "pass_order": list(state.pass_order),
         "pending_draw_discard_for": state.pending_draw_discard_for,
+        "pending_draw_count": state.pending_draw_count,
+        "pending_draw_finish_operation": state.pending_draw_finish_operation,
+        "free_maneuver_available": list(state.free_maneuver_available),
+        "free_maneuver_source": list(state.free_maneuver_source),
         "battle": state.battle,
         "phase": state.phase.value,
         "active_player": state.active_player,
@@ -329,11 +352,46 @@ def _restore_state(values: dict[str, object]) -> GameState:
         for side in values["board"]
     ]
     values["narratives"] = [
-        [NarrativeState(**narrative) for narrative in side]
+        [
+            NarrativeState(
+                **{
+                    **narrative,
+                    "fronts": tuple(Front(front) for front in narrative["fronts"]),
+                    "target_position": (
+                        None
+                        if narrative["target_position"] is None
+                        else Position(
+                            Front(narrative["target_position"]["front"]),
+                            Rank(narrative["target_position"]["rank"]),
+                        )
+                    ),
+                }
+            )
+            for narrative in side
+        ]
         for side in values["narratives"]
     ]
     values["stratagems"] = [
-        None if item is None else StratagemState(**item)
+        (
+            None
+            if item is None
+            else StratagemState(
+                **{
+                    **item,
+                    "fronts": tuple(Front(front) for front in item["fronts"]),
+                    "targets": tuple(
+                        (
+                            int(target["player"]),
+                            Position(
+                                Front(target["front"]),
+                                Rank(target["rank"]),
+                            ),
+                        )
+                        for target in item["targets"]
+                    ),
+                }
+            )
+        )
         for item in values["stratagems"]
     ]
     values["phase"] = Phase(values["phase"])
