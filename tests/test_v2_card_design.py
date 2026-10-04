@@ -315,9 +315,24 @@ def test_nonformation_header_matches_stack_header_height() -> None:
 def test_canonical_force_face_has_material_assets_and_approved_order() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-    for asset in ("chronicle-grain.svg", "chronicle-frame.svg", "chronicle-art-frame.svg"):
+
+    for asset in (
+        "chronicle-parchment.webp",
+        "chronicle-border.webp",
+        "chronicle-divider.webp",
+    ):
         assert asset in css
         assert (ROOT / "web" / "art" / "v2" / "ui" / asset).is_file()
+
+    # Decorative Chronicle material is raster artwork, not hand-built SVG
+    # ornament. Vector assets remain reserved for functional game glyphs.
+    for retired_asset in (
+        "chronicle-grain.svg",
+        "chronicle-frame.svg",
+        "chronicle-art-frame.svg",
+    ):
+        assert retired_asset not in css
+
     force_start = js.index("function forceArticle")
     force_end = js.index("function cardArticle", force_start)
     renderer = js[force_start:force_end]
