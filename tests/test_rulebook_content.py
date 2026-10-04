@@ -109,6 +109,7 @@ def test_hidden_stratagem_and_split_hero_limits_are_explicit() -> None:
 
     assert "places the card **face-down** in your Stratagem area" in source
     assert "identity of a face-down Stratagem is hidden" in source
+    assert "that choice is public" in source
     assert "at most **1 as a Force**" in source
     assert "at most **1 as a Name**" in source
 
