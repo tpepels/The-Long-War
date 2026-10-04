@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - rules/playtest-overhaul-engine
   pull_request:
     paths:
       - "src/**"
