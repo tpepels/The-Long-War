@@ -66,7 +66,30 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
     # with stable_information_id_from_fast_key(); search-only transition state
     # remains in the richer native binary key.
     narratives = [
-        [narrative.card_id for narrative in state.narratives[owner]]
+        [
+            {
+                "card_id": narrative.card_id,
+                "fronts": [int(front) for front in narrative.fronts],
+                "target": (
+                    None
+                    if narrative.target_position is None
+                    or narrative.target_player is None
+                    else [
+                        int(narrative.target_player),
+                        int(narrative.target_position.front),
+                        narrative.target_position.rank.value,
+                    ]
+                ),
+                "direction": narrative.direction,
+                "triggered_this_battle": bool(
+                    narrative.triggered_this_battle
+                ),
+                "triggered_players_mask": int(
+                    narrative.triggered_players_mask
+                ),
+            }
+            for narrative in state.narratives[owner]
+        ]
         for owner in range(PLAYER_COUNT)
     ]
     stratagems = []
@@ -511,7 +534,7 @@ class MCCFRTrainer:
                     "own hand identities",
                     "own remaining deck multiset",
                     "public hand/deck counts",
-                    "public ongoing Narrative identities",
+                    "public ongoing Narrative identities, selections, and trigger state",
                     "face-down opponent Stratagem existence and public selections, but not identity",
                     "current Action slot and forced-closing countdown",
                 ],
