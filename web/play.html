@@ -61,7 +61,14 @@
                 </label>
                 <button id="remote-copy-token" type="button">Copy token</button>
               </div>
+              <div class="remote-actions">
+                <button id="remote-reset" type="button" hidden>Cancel / retry</button>
+              </div>
               <p id="remote-status" role="status"></p>
+              <p class="remote-transport-note">
+                Direct WebRTC uses STUN. Some restrictive networks require a relay
+                and may not connect.
+              </p>
             </section>
             <details class="setup-options">
               <summary>Replay a deal</summary>
