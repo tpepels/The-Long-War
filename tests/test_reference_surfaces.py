@@ -82,6 +82,20 @@ def test_rulebook_core_values_match_standard_engine() -> None:
     ]
     assert effective_recovery == [12, 9, 6, 3, 1, 1]
 
+def test_canonical_card_copy_and_design_schema_use_actions_not_operations() -> None:
+    payload = json.loads(text("cards/cards.json"))
+    for card in payload["cards"]:
+        visible = [str(card.get("text", ""))]
+        for block in card.get("rule_blocks", []):
+            visible.extend([str(block.get("label", "")), str(block.get("text", ""))])
+        assert "operation" not in " ".join(visible).lower(), card["id"]
+        assert "operation" not in json.dumps(card.get("design_rules", {})).lower(), card["id"]
+
+    protocol = text("src/longwar/protocol.py")
+    assert "NEXT_ACTION_MUST_AFFECT_CHOSEN_FRONT_IF_POSSIBLE" in protocol
+    assert "NEXT_OPERATION_MUST_AFFECT_CHOSEN_FRONT_IF_POSSIBLE" not in protocol
+
+
 def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
     play = text("web/play.html")
     script = text("web/play.js")

@@ -1605,9 +1605,10 @@ function renderActionFeedback() {
     state.phase !== PHASE.COMPLETE
   ) {
     lastShownActionId = state.last_action?.id || lastShownActionId;
+    const resolvedFrontCount = renderedState.active_fronts?.length ?? 4;
     showActionBanner(
       "BATTLE " + renderedState.battle + " RESOLVED",
-      "Four Fronts resolved",
+      resolvedFrontCount + (resolvedFrontCount === 1 ? " Front resolved" : " Fronts resolved"),
       "Battle " + state.battle + " begins"
     );
     return;

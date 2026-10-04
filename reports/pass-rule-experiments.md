@@ -1,8 +1,8 @@
 # Pass-rule experiment log
 
-Permanent Pass is canonical as of 2026-10-02: Pass consumes the operation, remains active for the rest of the Battle, and the Battle ends when both players have Passed at least once. Equal exhausted Command at Collapse is terminal; the player who Passed first loses.
+> **Historical evidence only.** This report predates the 2026-10-04 playtest overhaul and does not describe the current rules. Current Pass is legal only when no Action remains after drawing; it starts a fixed two-closing-turn sequence (opponent turn, passer turn, then Battle end). See `rules/rulebook.md`.
 
-Everything below is retained as historical experiment provenance only. The legacy Pass variants and their runner have been removed from the live engine and tooling. References to 0-0 draws or competing Pass variants describe old runs and are not current rules.
+Everything below is retained as historical experiment provenance only. Permanent/both-active Pass, consecutive-Pass variants, and references to old Collapse handling describe earlier rulesets and must not be used as current engine behavior.
 
 ## Historical consecutive-Pass evidence
 

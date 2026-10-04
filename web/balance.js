@@ -814,7 +814,7 @@ function renderCommandExperiment(lab) {
     ? [...(focusMatch.battleRecords || [])].sort((left, right) => Number(left.battle) - Number(right.battle))
     : [];
   const pair = (value) => Array.isArray(value) ? value.join(" / ") : "—";
-  const operationTrace = (record) => (record.operation_trace || []).map((row) => {
+  const actionTrace = (record) => (record.action_trace || record.operation_trace || []).map((row) => {
     const alternatives = `${row.playable_card_actions ?? 0} card / ${row.maneuver_actions ?? 0} maneuver`;
     const cost = row.command_cost == null ? "" : ` · cost ${row.command_cost}`;
     const forced = row.forced ? " · forced" : "";
@@ -913,7 +913,7 @@ function renderCommandExperiment(lab) {
           <thead><tr>
             <th>Battle</th><th>Command start</th><th>Before Collapse</th><th>Base</th><th>Fronts lost</th>
             <th>Front-loss Command</th><th>Actual</th><th>After recovery</th><th>Collapse</th>
-            <th>Operations and alternatives</th><th>Battlefield change</th><th>State</th>
+            <th>Actions and alternatives</th><th>Battlefield change</th><th>State</th>
           </tr></thead>
           <tbody>${focusBattles.map((record) => `
             <tr>
@@ -926,7 +926,7 @@ function renderCommandExperiment(lab) {
               <td>${esc(pair(record.recovery_actual))}</td>
               <td>${esc(pair(record.command_after_recovery))}</td>
               <td>${record.collapse_comparison?.equal ? "equal" : "unequal"} · ${record.collapse_comparison?.continued ? "continue" : "end"}</td>
-              <td><code>${esc(operationTrace(record) || "—")}</code></td>
+              <td><code>${esc(actionTrace(record) || "—")}</code></td>
               <td>board ${record.board_changed_during_battle ? "changed" : "same"} · Strength ${record.strength_changed_during_battle ? "changed" : "same"} · resolution board ${record.board_changed_during_resolution ? "changed" : "same"}</td>
               <td>
                 <details><summary>signatures</summary>
@@ -1121,7 +1121,7 @@ function renderProgression(lab) {
     metric("No later control change", pct(contest.no_control_change_after_midpoint_rate), "after Battle midpoint"),
   ].join("");
 
-  const passCategories = choice.signal_mechanical_categories || {};
+  const passCategories = choice.pass_mechanical_categories || choice.signal_mechanical_categories || {};
   document.getElementById("progression-choice").innerHTML = [
     progressionMetric("Legal actions", choice.legal_action_count, "median per decision"),
     progressionMetric("Card-play options", choice.card_play_option_count, "median legal card Actions"),
@@ -1149,7 +1149,7 @@ function renderProgression(lab) {
     metric(
       "Constraint forcing",
       `${choice.constraint_forced_maneuver_decisions ?? 0} Maneuver / ${choice.constraint_forced_front_decisions ?? 0} Front`,
-      `${choice.constraint_future_operations_affected ?? 0} future-Action decisions affected`
+      `${choice.constraint_future_actions_affected ?? choice.constraint_future_operations_affected ?? 0} future-Action decisions affected`
     ),
     metric("Effect-resolution decisions", choice.effect_resolution_decisions ?? 0, "excluded from ordinary Action-choice metrics"),
   ].join("");
@@ -1173,7 +1173,7 @@ function renderProgression(lab) {
       `${resources.command_spend?.card_play ?? 0} / ${resources.command_spend?.maneuver ?? 0}`,
       "actual Command paid by category"
     ),
-    metric("Free Actions", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
+    metric("Free Actions", resources.free_actions ?? resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
     metric("Collapse-point Battle starts", lowCommand.collapse_point_battle_starts ?? 0, "at least one side begins at or below the configured Collapse threshold"),
     metric("Both at Collapse point", lowCommand.both_at_collapse_point_battle_starts ?? 0, "both sides begin at or below the configured Collapse threshold"),
     metric(
@@ -1181,7 +1181,7 @@ function renderProgression(lab) {
           (resources.pass_command_buckets || resources.first_signal_command_buckets)?.["0"] ?? 0,
           "forced Pass events at the Collapse threshold"
         ),
-    metric("No paid Action", lowCommand.battles_with_no_paid_operation ?? 0, "Battles with no Command-paying card play or Maneuver"),
+    metric("No paid Action", lowCommand.battles_with_no_paid_action ?? lowCommand.battles_with_no_paid_operation ?? 0, "Battles with no Command-paying card play or Maneuver"),
     metric("No in-Battle board change", lowCommand.battles_with_no_board_change ?? 0, "board unchanged between first and final decision state"),
   ].join("");
 
@@ -1202,7 +1202,7 @@ function renderProgression(lab) {
         + "<td>" + (row.command_gained ?? 0) + "</td>"
         + "<td>" + (row.nominal_command_gain ?? row.command_gained ?? 0) + "</td>"
         + "<td>" + (row.discount_saved ?? 0) + "</td>"
-        + "<td>" + (row.free_operations ?? 0) + "</td>"
+        + "<td>" + (row.free_actions ?? row.free_operations ?? 0) + "</td>"
         + "<td>" + (row.front_loss_command_avoided ?? 0) + "</td>"
         + "</tr>";
     }
@@ -1239,8 +1239,8 @@ function renderProgression(lab) {
         </td>
         <td>${num(row.hand_size, 1)} / ${num(row.deck_size, 1)}</td>
         <td>
-          cmd ${num(row.first_signal_command, 1)}
-          <span class="muted">structural ${num(row.first_signal_structurally_dead_cards, 1)} · unaffordable ${num(row.first_signal_unaffordable_cards, 1)} · card ${num(row.first_signal_playable_card_actions, 1)} · Maneuver ${num(row.first_signal_maneuver_actions, 1)}</span>
+          cmd ${num(row.pass_command ?? row.first_signal_command, 1)}
+          <span class="muted">structural ${num(row.pass_structurally_dead_cards ?? row.first_signal_structurally_dead_cards, 1)} · unaffordable ${num(row.pass_unaffordable_cards ?? row.first_signal_unaffordable_cards, 1)} · card ${num(row.pass_playable_card_actions ?? row.first_signal_playable_card_actions, 1)} · Maneuver ${num(row.pass_maneuver_actions ?? row.first_signal_maneuver_actions, 1)}</span>
         </td>
         <td>
           ${num(row.command_start, 1)} / ${num(row.command_spent, 1)} / ${num(row.command_remaining, 1)}
@@ -1516,7 +1516,7 @@ function renderMethod(lab) {
     <p><strong>Screen ΔWP:</strong> heuristic paired win-probability difference between the canonical card and a neutral same-type baseline under identical random seeds. It nominates candidates; it is not strong-play confirmation.</p>
     <p><strong>Online MCCFR validation:</strong> suspicious screen effects are rerun in the same paired contexts with online MCCFR. “Confirmed” means the online interval excludes zero in the same direction; “reversed” means it excludes zero in the opposite direction.</p>
     <p><strong>Censoring:</strong> if either side of a paired A/B comparison reaches the action horizon, that pair is reported as censored and excluded from the effect estimate.</p>
-    <p><strong>Card deadness:</strong> current telemetry separates structural illegality while a card is affordable from simple Command shortfall, and excludes pending effect-resolution choices from operation playability.</p>
+    <p><strong>Card deadness:</strong> current telemetry separates structural illegality while a card is affordable from simple Command shortfall, and excludes pending effect-resolution choices from ordinary Action playability.</p>
     <ul>${report.methodology.notes.map((note) => `<li>${esc(note)}</li>`).join("")}</ul>
   `;
 }

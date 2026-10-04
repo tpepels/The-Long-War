@@ -1,6 +1,8 @@
 # Force availability / draw redesign candidate
 
-Status: **implemented, not simulated**. Actions credits were unavailable when this candidate was committed.
+> **Historical evidence only.** This candidate predates the 2026-10-04 playtest overhaul. Its one-operation turn, Pass gate, recovery, deck-composition, and Battle-ending rules are superseded. See `rules/rulebook.md` for the current game.
+
+Status at the time: **implemented, not simulated**. Actions credits were unavailable when this candidate was committed.
 
 ## Composition decision
 
