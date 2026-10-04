@@ -351,7 +351,10 @@ def test_play_setup_exposes_remote_host_and_join_token_controls() -> None:
     assert 'id="remote-input"' in page
     assert 'id="remote-output"' in page
     assert 'id="remote-copy-token"' in page
+    assert 'id="remote-reset"' in page
+    assert "Direct WebRTC uses STUN" in page
     assert ".remote-connect" in style
+    assert "#remote-reset" in style
 
 
 def test_remote_play_routes_actions_through_host_authoritative_session() -> None:
@@ -456,6 +459,10 @@ def test_remote_invite_creation_has_visible_progress_and_errors() -> None:
     assert "setupMode === PLAY_SETUP_MODE.REMOTE_HOST" in script
     assert "setupMode === PLAY_SETUP_MODE.REMOTE_JOIN" in script
     assert 'remoteStatus(error?.message || "Remote connection failed.", true)' in script
-    assert "timeoutMs = 6000" in peer
+    assert "timeoutMs = 10000" in peer
+    assert "Could not finish gathering network candidates" in peer
     assert 'typeof RTCPeerConnection === "undefined"' in peer
+    assert "armRemoteConnectTimeout" in script
+    assert '"remote-reset"' in script
+    assert "Direct connection failed" in script
     assert "#remote-status.remote-error" in style
