@@ -286,3 +286,25 @@ def test_exposed_row_preserves_classification_icons_before_reminder_width() -> N
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     assert "grid-template-columns:auto max-content minmax(0,1fr)" in css
     assert ".edge-live-text{max-width:20mm;" in css
+
+
+def test_v2_artwork_geometry_is_identical_on_every_card() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert "--art-height:20mm" in css
+    assert "--identity-height:18.5mm" in css
+    assert "flex:0 0 var(--art-height)" in css
+    assert "height:var(--art-height)" in css
+    assert "background-position:50% 50%" in css
+    assert "--art-position" not in css
+    assert ".sparse .motif-field{" not in css
+    assert ".dense .motif-field{" not in css
+    assert ".very-dense .motif-field{" not in css
+    assert ".card-hero.dense .motif-field{" not in css
+    assert ".card-hero.very-dense .motif-field{" not in css
+    assert '<div class="card-identity">' in js
+
+
+def test_nonformation_header_matches_stack_header_height() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert ".event-crown{height:calc(var(--exposed-edge) - var(--frame));flex:0 0 calc(var(--exposed-edge) - var(--frame));" in css

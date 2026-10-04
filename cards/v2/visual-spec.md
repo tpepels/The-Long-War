@@ -10,7 +10,7 @@ The cards are physical war-table components. The exposed stack is the battlefiel
 - The exposed 10.5 mm edge is exactly **one horizontal row**.
 - Browser and print use the same renderer.
 
-Nothing may change the top-row baseline: not title length, rules density, card family, or Hero mode. The stat group and classification pictograms keep their full geometry; the live reminder occupies the flexible remainder of the row.
+Nothing may change the top-row baseline: not title length, rules density, card family, or Hero mode. The stat group and classification pictograms keep their full geometry; the live reminder occupies the flexible remainder of the row. The title/meta region also has fixed height so the illustration begins at the same vertical coordinate on every card.
 
 ## What belongs in the exposed row
 
@@ -91,7 +91,7 @@ Where a per-card illustration exists under `web/art/v2/cards/`, use it. The seve
 
 No vector heraldry, watermark drawing, or second image may sit over the illustration.
 
-Sparse cards give the image more room. Dense cards may reduce its height, but rules never enter the image. Heroes with several separate effects use a denser composition before text is allowed to approach the footer.
+Every card uses the same **20 mm illustration window**, at the same vertical position, with the same centered `cover` crop (`50% 50%`). Sparse, dense, and Hero layouts may never change illustration height or crop position. Density is handled only by rules typography and rules spacing.
 
 ## Rules
 
