@@ -7,33 +7,6 @@ const titleCase=value=>String(value??"").split(/[-_ ]+/).filter(Boolean).map(par
 const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",stratagem:"Stratagem",narrative:"Narrative"};
 const LABEL={play:"PLAY",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL"};
 const LIVE=new Set(["action","reaction","bonded","while_named"]);
-const CARD_ART=new Set([
- "a-volley-before-dawn",
- "brannoc",
- "carried-messages-for",
- "corin-of-the-high-wall",
- "doros-the-last-spear",
- "every-bow-was-strung",
- "kept-the-gate-for",
- "lysa-the-listener",
- "maelin",
- "serai-queen-of-crows",
- "shared-the-spoils-with",
- "the-archers-were-ready",
- "the-ash-bowmen",
- "the-kings-spears",
- "the-lantern-scouts",
- "the-line-was-baited",
- "the-raiders-came-home-loaded",
- "the-river-raiders",
- "the-salt-road-fleet",
- "the-scouts-found-the-gap",
- "the-scouts-had-warned-them",
- "the-stores-were-taken",
- "the-watchtowers-of-eren",
- "they-knew-the-ground",
- "watched-the-skies-for"
-]);
 const H=()=>window.V2Heraldry;
 const signed=value=>(Number(value)>=0?"+":"")+String(value??0);
 const modeEffects=(card,mode)=>card?.modes?.[mode]?.effects||[];
@@ -128,7 +101,7 @@ function densityClass(card){
   }
   return chars>250?" very-dense":chars>170?" dense":chars<95?" sparse":"";
 }
-function artStyle(card){return CARD_ART.has(card.id)?' style="--card-art:url(art/v2/cards/'+esc(card.id)+'.png)"':"";}
+function artStyle(card){return ' style="--card-art:url(art/v2/cards/'+esc(card.id)+'.png)"';}
 function cardArticle(card,extra="",options={}){
   const density=densityClass(card),heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
   return '<article class="v2-card card-'+esc(card.type)+density+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
