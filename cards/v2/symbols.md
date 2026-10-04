@@ -32,12 +32,19 @@ The full face always spells these names out under the title. Only the exposed ba
 
 ## Live buried reminders
 
-Examples of the exposed icon grammar:
+The exposed strip uses symbols for **structure**, not for whole sentences.
 
-- Action + use socket + eye + Stratagem = inspect a Stratagem once per Battle.
-- Reaction + use socket + shield + Tactic = ignore a Tactic once per Battle.
-- Bonded + Front-row diagram + Strength +1 = +1 Strength while Bonded in the Front.
-- Action + use socket + Command +1 + Bond = tax the next Bond.
-- Action + use socket + suppress + Bond + Strength = suppress Bond Strength.
+Keep:
+- the timing/state pictogram;
+- the once-per-Battle use socket where applicable;
+- classification and row pictograms;
+- a short text reminder for the actual effect.
 
-The complete prose remains on the full card face.
+Examples:
+
+- Action + use socket + `ENEMY -1`.
+- Reaction + use socket + `IGNORE TACTIC`.
+- Bonded + `ARCHER/SCOUT +1`.
+- Action + use socket + `TAX NEXT BOND`.
+
+The complete prose remains on the full card face. This avoids replacing readable rules with strings of tiny rebus symbols.

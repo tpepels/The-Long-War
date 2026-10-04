@@ -43,7 +43,9 @@ The enclosure shape communicates the classification layer:
 - Role = diamond: Archer, Guard, Scout, Rider, Skirmisher, Raider, Healer, Spearman, Steward, Builder, Seer.
 - Rank = pennant: King, Captain, Veteran, Heir.
 
-The exposed edge shows pictograms only. The full face spells classifications out beneath the title with the same symbols.
+The exposed edge shows classification pictograms only. The full face spells classifications out beneath the title with the same symbols.
+
+Do not turn complete ability semantics into rebus strings. Symbols identify repeated concepts; the live buried reminder remains a very short text fragment such as `ENEMY -1`, `IGNORE TACTIC`, or `ARCHER/SCOUT +1`.
 
 ### Rows
 
@@ -83,11 +85,13 @@ Symbols support scanning. They do not replace sentence grammar.
 
 ## Illustration
 
-The recovered generated family image is the sole illustration layer.
+The generated illustration is the sole illustration layer.
 
-No vector heraldry, watermark drawing, or second image may sit over it.
+Where a per-card illustration exists under `web/art/v2/cards/`, use it. The seven family illustrations remain fallbacks for cards that do not yet have individual art.
 
-Sparse cards give the image more room. Dense cards may reduce its height, but rules never enter the image.
+No vector heraldry, watermark drawing, or second image may sit over the illustration.
+
+Sparse cards give the image more room. Dense cards may reduce its height, but rules never enter the image. Heroes with several separate effects use a denser composition before text is allowed to approach the footer.
 
 ## Rules
 

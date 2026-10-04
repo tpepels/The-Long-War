@@ -197,7 +197,7 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
             source = force_mode_effects(card) if card["type"] in {"force", "bond", "hero"} else []
             live = [e for e in source if e["timing"] in live_timings]
             assert len(output.all("edge-mechanic", within=edge)) == len(live)
-            assert not output.all("edge-fallback", within=edge), card["id"]
+            assert len(output.all("edge-live-text", within=edge)) == len(live)
         else:
             assert output.one("event-family")["text"] == card["type"].title()
 
@@ -208,9 +208,13 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
                 assert value.replace("_", " ").replace("-", " ") in class_line
 
 
-def test_every_current_live_buried_effect_has_icon_grammar() -> None:
+def test_every_current_live_buried_effect_has_a_compact_exposed_reminder() -> None:
     rendered = render_cards([c for c in CARDS if c["type"] in {"force", "bond", "hero"}])
-    assert all(not output.all("edge-fallback") for output in rendered)
+    for output in rendered:
+        for mechanic in output.all("edge-mechanic"):
+            reminders = output.all("edge-live-text", within=mechanic)
+            assert len(reminders) == 1
+            assert reminders[0]["text"].strip()
 
 
 def test_v2_symbol_vocabulary_covers_every_classification() -> None:
@@ -255,3 +259,26 @@ def test_card_lab_loads_versioned_data() -> None:
     assert 'cards-v2-redesign.json?v=' in js
     assert 'v2-playtest-decks.json?v=' in js
     assert 'cache:"no-cache"' in js
+
+
+def test_per_card_art_batch_is_wired_into_renderer() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert "const CARD_ART=new Set" in js
+    assert "--card-art:url(art/v2/cards/" in js
+    assert "var(--card-art,var(--family-art))" in css
+    for card_id in (
+        "a-volley-before-dawn", "corin-of-the-high-wall", "doros-the-last-spear",
+        "kept-the-gate-for", "serai-queen-of-crows", "the-ash-bowmen",
+        "the-lantern-scouts", "the-river-raiders", "the-scouts-had-warned-them",
+        "the-stores-were-taken", "they-knew-the-ground", "watched-the-skies-for",
+    ):
+        assert card_id in js
+        assert (ROOT / "web" / "art" / "v2" / "cards" / f"{card_id}.png").is_file()
+
+
+def test_multi_effect_heroes_receive_dense_layout() -> None:
+    rendered = render_cards([c for c in CARDS if c["type"] == "hero" and len(effects(c)) >= 3])
+    for output in rendered:
+        classes = output.one("v2-card")["attrs"]["class"].split()
+        assert "dense" in classes or "very-dense" in classes

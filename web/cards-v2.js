@@ -7,6 +7,11 @@ const titleCase=value=>String(value??"").split(/[-_ ]+/).filter(Boolean).map(par
 const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",stratagem:"Stratagem",narrative:"Narrative"};
 const LABEL={play:"PLAY",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL"};
 const LIVE=new Set(["action","reaction","bonded","while_named"]);
+const CARD_ART=new Set([
+ "a-volley-before-dawn","corin-of-the-high-wall","doros-the-last-spear","kept-the-gate-for",
+ "serai-queen-of-crows","the-ash-bowmen","the-lantern-scouts","the-river-raiders",
+ "the-scouts-had-warned-them","the-stores-were-taken","they-knew-the-ground","watched-the-skies-for"
+]);
 const H=()=>window.V2Heraldry;
 const signed=value=>(Number(value)>=0?"+":"")+String(value??0);
 const modeEffects=(card,mode)=>card?.modes?.[mode]?.effects||[];
@@ -76,7 +81,8 @@ function effectTokens(effect){
 }
 function liveMarkup(effect){
   const limited=effect.limit==="once_per_battle";
-  return '<span class="edge-mechanic" aria-label="'+esc((LABEL[effect.timing]||effect.timing)+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing" title="'+esc(LABEL[effect.timing]||effect.timing)+'">'+timingGlyph(effect.timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-effect-tokens">'+effectTokens(effect)+'</span></span>';
+  const reminder=exposedText(effect);
+  return '<span class="edge-mechanic" aria-label="'+esc((LABEL[effect.timing]||effect.timing)+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing" title="'+esc(LABEL[effect.timing]||effect.timing)+'">'+timingGlyph(effect.timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
 }
 function stackEdge(card){
   return '<header class="stack-edge" data-edge-layout="single-row">'+statGroup(card)+'<div class="edge-identity" aria-label="'+esc((card.classes||[]).map(titleCase).join(", "))+'">'+classificationIcons(card)+'</div><div class="edge-live-group">'+(card.placement?'<span class="edge-placement" title="'+esc(titleCase(card.placement))+' only">'+rowGlyph(card.placement)+'<span class="placement-lock">'+utilityGlyph("lock")+'</span></span>':"")+liveEffects(card).map(liveMarkup).join("")+'</div></header>';
@@ -92,9 +98,18 @@ function rules(card){
 }
 function statusLine(card){const bits=[];if(card.type==="stratagem")bits.push("Played face-down");if(card.duration==="this_battle")bits.push("This Battle");return bits.join(" · ")}
 function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 2H28L38 12V28L28 38H12L2 28V12Z"/><path class="seal-inner" d="M14 6H26L34 14V26L26 34H14L6 26V14Z"/></svg><b>'+esc(card.command_cost)+'</b></span>'}
+function densityClass(card){
+  const es=effects(card),chars=es.reduce((n,e)=>n+(e.text||"").length,0);
+  if(card.type==="hero"){
+    if(chars>210)return " very-dense";
+    if(es.length>=3||chars>125)return " dense";
+  }
+  return chars>250?" very-dense":chars>170?" dense":chars<95?" sparse":"";
+}
+function artStyle(card){return CARD_ART.has(card.id)?' style="--card-art:url(art/v2/cards/'+esc(card.id)+'.png)"':"";}
 function cardArticle(card,extra="",options={}){
-  const count=effects(card).reduce((n,e)=>n+(e.text||"").length,0),density=count>250?" very-dense":count>170?" dense":count<95?" sparse":"",heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
-  return '<article class="v2-card card-'+esc(card.type)+density+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'<div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
+  const density=densityClass(card),heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
+  return '<article class="v2-card card-'+esc(card.type)+density+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'<div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
 }
 const STACK_CASES={
  "force-alone":{title:"Force alone",state:"Formation · Unbonded",ids:["the-crow-archers"]},
