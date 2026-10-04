@@ -808,7 +808,7 @@ def test_progression_exposes_per_player_battlefield_distributions() -> None:
 
 
 
-def test_first_signal_outcomes_use_front_balance_not_invented_battle_winner() -> None:
+def test_pass_outcomes_use_front_balance_not_invented_battle_winner() -> None:
     progression = ProgressionTelemetry()
     rows = [
         {
@@ -835,6 +835,27 @@ def test_first_signal_outcomes_use_front_balance_not_invented_battle_winner() ->
     assert group["mean_final_front_balance"] == pytest.approx(0.5)
     assert group["positive_final_front_balance_rate"] == pytest.approx(0.5)
     assert "battle_win_rate" not in group
+
+    progression._signal_contexts = [
+        {
+            **row,
+            "first_signal": True,
+            "command_remaining": 3,
+        }
+        for row in rows
+    ]
+    summary = progression.summary()
+    assert set(summary["contestability"]["pass_outcomes"]) == {
+        "ahead",
+        "tied",
+        "behind",
+    }
+    assert (
+        summary["contestability"]["first_signal_outcomes"]
+        == summary["contestability"]["pass_outcomes"]
+    )
+    assert summary["resources"]["command_at_pass"]["count"] == 2
+    assert summary["resources"]["pass_command_buckets"]["1-3"] == 2
 
 
 def test_front_result_balance_preserves_no_overall_battle_winner_semantics() -> None:
