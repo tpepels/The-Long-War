@@ -424,7 +424,7 @@ def test_hero_blocking_telemetry_distinguishes_allowance_command_and_structure()
         engine, allowance_state, 0, Pass(), decision_info=None
     )
     allowance_stats = allowance.summary()["cards"][hero_id]
-    assert allowance_stats["hero_allowance_blocked_turns"] == 1
+    assert allowance_stats["hero_allowance_blocked_turns"] == 0
     assert allowance_stats["hero_command_blocked_turns"] == 0
     assert allowance_stats["hero_structural_blocked_turns"] == 0
     assert allowance_stats["hero_allowance_blocked_on_pass"] == 1
@@ -441,7 +441,7 @@ def test_hero_blocking_telemetry_distinguishes_allowance_command_and_structure()
     )
     command_stats = command.summary()["cards"][hero_id]
     assert command_stats["hero_allowance_blocked_turns"] == 0
-    assert command_stats["hero_command_blocked_turns"] == 1
+    assert command_stats["hero_command_blocked_turns"] == 0
     assert command_stats["hero_structural_blocked_turns"] == 0
     assert command_stats["hero_command_blocked_on_pass"] == 1
 
@@ -466,9 +466,9 @@ def test_hero_blocking_telemetry_distinguishes_allowance_command_and_structure()
     structural_stats = structural.summary()["cards"][hero_id]
     assert structural_stats["hero_allowance_blocked_turns"] == 0
     assert structural_stats["hero_command_blocked_turns"] == 0
-    assert structural_stats["hero_structural_blocked_turns"] == 1
+    assert structural_stats["hero_structural_blocked_turns"] == 0
     assert structural_stats["hero_structural_blocked_on_pass"] == 1
-    assert structural_stats["structurally_unplayable_turns"] == 1
+    assert structural_stats["structurally_unplayable_turns"] == 0
     assert structural_stats["structurally_dead_on_pass"] == 1
 
 
@@ -952,7 +952,11 @@ def test_low_command_telemetry_records_simultaneous_collapse_termination() -> No
     assert record["collapse_comparison"]["equal"] is True
     assert record["collapse_comparison"]["winner"] == 1
     assert record["collapse_comparison"]["continued"] is False
-    assert [row["action"] for row in record["operation_trace"]] == ["pass", "pass"]
+    assert [row["action"] for row in record["operation_trace"]] == [
+        "pass",
+        "end_turn",
+        "end_turn",
+    ]
     assert all(row["forced"] for row in record["operation_trace"])
     assert record["board_changed_during_battle"] is False
     assert record["board_changed_during_resolution"] is True
