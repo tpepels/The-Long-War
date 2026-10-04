@@ -23,6 +23,9 @@ def engine_and_state():
         opening_bonus=False,
     )
     state.phase = Phase.BATTLE
+    # Use the fully active battlefield so rank-specific and edge-specific
+    # deployment cards always have a constructible legal destination.
+    state.battle = 3
     state.active_player = 0
     state.players[0].passed = False
     state.players[1].passed = False
