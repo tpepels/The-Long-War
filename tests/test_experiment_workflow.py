@@ -903,7 +903,7 @@ def test_makefile_has_one_configurable_experiment_entrypoint():
     assert "EXPERIMENT_ARGS ?=" in source
     assert "systemd-inhibit" in source
     assert "WORKERS ?= 8" in source
-    assert "PYTEST ?= python -m pytest -n $(WORKERS)" in source
+    assert "PYTEST ?= $(PYTHON) -m pytest -n $(WORKERS)" in source
 
     for obsolete_target in (
         "ismcts-match:",
@@ -1218,7 +1218,7 @@ def test_narrative_ablation_summary_keeps_command_sources_and_tail_metrics():
 def test_full_lab_is_one_make_lifecycle_target():
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
     assert "full-lab:" in makefile
-    assert "python tools/full_lab.py $(FULL_LAB_ARGS)" in makefile
+    assert "$(PYTHON) tools/full_lab.py $(FULL_LAB_ARGS)" in makefile
 
 
 def test_full_lab_runner_contains_resumable_expensive_stages():
