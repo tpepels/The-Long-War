@@ -481,3 +481,14 @@ def test_historical_design_reports_cannot_masquerade_as_current_rules() -> None:
 
     assert "At the time of this experiment" in force_report
     assert "Current runtime vocabulary uses **Force**." in force_report
+
+
+def test_balance_lab_has_no_parallel_engine_sync_status_channel() -> None:
+    page = text("web/balance.html")
+    script = text("web/balance.js")
+    canonical_cards = text("cards/cards.json")
+
+    assert "mechanics_pending" not in page
+    assert "engine_sync" not in script
+    assert "mechanics_pending_cards" not in script
+    assert '"engine_sync"' not in canonical_cards
