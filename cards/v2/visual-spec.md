@@ -21,7 +21,7 @@ The Hero edge always prints shield Strength, “or”, and banner modifier as
 separate values. Its live edge is explicitly labelled FORCE. The printed face
 never changes when a Hero is used as a Name.
 
-The Card Lab includes actual overlapping Force + Bond, Force + Name,
+The Card Lab includes actual Force-alone and overlapping Force + Bond, Force + Name,
 Force + Bond + Name, Hero-as-Force and Hero-as-Name proofs. These use the same
 card component and dimensions as the catalogue and print export. No underlying
 body is hidden or shortened to make the examples appear to fit.

@@ -91,7 +91,7 @@ python tools/check_card_layout.py --surface v2 --require-browser \
 make pages
 ```
 
-The V2 check covers all 120 cards, five stack compositions, live-edge visibility,
+The V2 check covers all 120 cards, six stack compositions, live-edge visibility,
 footer collisions, dimensions and oversized-reminder detection. With `pdftotext`
 installed it also rejects blank PDF pages and missing card IDs. Visually inspect
 representative exported pages as well. The 7.5 pt reminders and fine engraving
