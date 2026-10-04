@@ -376,8 +376,8 @@ def test_browser_verify_checks_all_authored_and_built_static_assets() -> None:
     workflow = text(".github/workflows/pages.yml")
     checker = text("tools/check_web_static.py")
 
-    assert "python tools/check_web_static.py" in makefile
-    assert "python tools/check_web_static.py --dist dist" in makefile
+    assert "$(PYTHON) tools/check_web_static.py" in makefile
+    assert "$(PYTHON) tools/check_web_static.py --dist dist" in makefile
     assert "python tools/check_web_static.py" in workflow
     assert "python tools/check_web_static.py --dist dist" in workflow
     assert '"--check", "--input-type=module"' in checker
