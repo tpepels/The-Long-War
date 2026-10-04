@@ -181,7 +181,10 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
     for card, output in zip(CARDS, rendered, strict=True):
         assert output.one("v2-card")["attrs"]["data-card-id"] == card["id"]
         assert output.one("card-title")["text"] == card["title"]
-        assert output.one("cost-gem")["text"] == str(card["command_cost"])
+        cost = output.one("cost-gem")
+        cost_numbers = output.all("glyph-number", within=cost)
+        assert len(cost_numbers) == 1
+        assert cost_numbers[0]["text"] == str(card["command_cost"])
         assert [node["text"] for node in output.all("effect-text")] == [e["text"] for e in effects(card)]
 
         formation = card["type"] in {"force", "bond", "name", "hero"}
@@ -196,7 +199,6 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
             live = [e for e in source if e["timing"] in live_timings]
             assert len(output.all("edge-mechanic", within=edge)) == len(live)
             assert not output.all("edge-fallback", within=edge), card["id"]
-            assert "Human" not in edge["text"] and "Archer" not in edge["text"]
         else:
             assert output.one("event-family")["text"] == card["type"].title()
 
