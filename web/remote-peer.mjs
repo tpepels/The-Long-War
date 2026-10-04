@@ -41,21 +41,24 @@ function decodeDescription(token, expectedType) {
   return value;
 }
 
-function waitForIceGathering(peer, timeoutMs = 6000) {
+function waitForIceGathering(peer, timeoutMs = 10000) {
   if (peer.iceGatheringState === "complete") return Promise.resolve();
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let done = false;
-    const finish = () => {
+    const finish = (error = null) => {
       if (done) return;
       done = true;
       clearTimeout(timer);
       peer.removeEventListener("icegatheringstatechange", changed);
-      resolve();
+      if (error) reject(error);
+      else resolve();
     };
     const changed = () => {
       if (peer.iceGatheringState === "complete") finish();
     };
-    const timer = setTimeout(finish, timeoutMs);
+    const timer = setTimeout(() => finish(new Error(
+      "Could not finish gathering network candidates. Try again, or use a different network."
+    )), timeoutMs);
     peer.addEventListener("icegatheringstatechange", changed);
   });
 }
