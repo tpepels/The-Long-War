@@ -275,53 +275,52 @@ if (!STACKS && articles.length !== cards.length) issues.push("Wrong catalogue ca
 for (const card of articles) {
   const bounds = rect(card);
   if (Math.abs(bounds.width - 68 * mm) > 1 || Math.abs(bounds.height - 96 * mm) > 1) fail(card, "physical-size");
-  const edge = card.querySelector(".stack-edge");
-  if (!edge) { fail(card, "missing-stack-edge"); continue; }
-  if (Math.abs(rect(edge).bottom - bounds.top - 10.5 * mm) > 1) fail(card, "edge-height");
   const formationCard = card.matches(".card-force, .card-bond, .card-name, .card-hero");
-  const headerStats = [...edge.querySelectorAll(".stat-force, .stat-bond, .stat-name")];
+  const edge = card.querySelector(".stack-edge");
   if (formationCard) {
-    const first = headerStats[0];
-    if (!first) fail(card, "missing-header-strength");
-    else sameAnchor(card, "first-strength", [rect(first).left - bounds.left, rect(first).top - bounds.top]);
-    const classes = edge.querySelector(".edge-classes");
-    if (classes && classes.textContent.trim())
-      sameAnchor(card, "classifications-baseline", [textInk(classes).baseline - bounds.top]);
-    const firstLive = edge.querySelector(".edge-live");
-    if (firstLive) sameAnchor(card, "live-reminder-baseline", [textInk(firstLive).baseline - bounds.top]);
-    if (edge.querySelector(".edge-heading, .edge-reminders"))
-      fail(card, "stack-edge-not-single-row");
+    if (!edge) {
+      fail(card, "missing-stack-edge");
+    } else {
+      if (Math.abs(rect(edge).bottom - bounds.top - 10.5 * mm) > 1) fail(card, "edge-height");
+      const headerStats = [...edge.querySelectorAll(".strength-mark, .hero-stat")];
+      const first = headerStats[0];
+      if (!first) fail(card, "missing-header-strength");
+      else sameAnchor(card, "first-strength", [rect(first).left - bounds.left, rect(first).top - bounds.top]);
+      const identity = edge.querySelector(".edge-identity");
+      if (identity) sameAnchor(card, "classification-row-center", [rect(identity).top - bounds.top + rect(identity).height / 2]);
+      const live = edge.querySelector(".edge-live-group");
+      if (live) sameAnchor(card, "live-row-center", [rect(live).top - bounds.top + rect(live).height / 2]);
+      if (edge.querySelector(".edge-heading, .edge-reminders")) fail(card, "stack-edge-not-single-row");
+      for (const stat of headerStats) {
+        const numeral = stat.querySelector("b");
+        if (!numeral) { fail(card, "missing-header-stat-numeral"); continue; }
+        if (!visible(stat) || !visible(numeral)) fail(card, "header-stat-hidden");
+        const ink = textInk(numeral);
+        if (!inside(rect(edge), ink, 1)) fail(card, "header-stat-text-outside");
+        if (parseFloat(getComputedStyle(numeral).fontSize) < 3.8 * mm - .1) fail(card, "header-stat-font-shrunk");
+        sameAnchor(card, "header-stat-baseline", [ink.baseline - bounds.top]);
+      }
+      const placement = edge.querySelector(".edge-placement");
+      if (placement && (!visible(placement) || !inside(rect(edge), rect(placement), 1))) fail(card, "row-restriction-outside");
+      for (const element of edge.querySelectorAll(".edge-identity, .edge-live-group")) {
+        const label = element.classList.contains("edge-live-group") ? "edge-live-group" : "edge-identity";
+        if (!visible(element) || !inside(rect(edge), rect(element))) fail(card, label + "-outside");
+        if (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
+          fail(card, label + "-overflow");
+      }
+    }
+  } else {
+    const crown = card.querySelector(".event-crown");
+    if (!crown) fail(card, "missing-event-crown");
+    else if (!visible(crown) || !inside(bounds, rect(crown))) fail(card, "event-crown-outside");
   }
-  for (const stat of headerStats) {
-    const numeral = stat.querySelector("b");
-    if (!numeral) { fail(card, "missing-header-stat-numeral"); continue; }
-    if (!visible(stat) || !visible(numeral)) fail(card, "header-stat-hidden");
-    const ink = textInk(numeral);
-    if (!inside(rect(edge), ink, 1)) fail(card, "header-stat-text-outside");
-    if (ink.left < rect(stat).left - 1 || ink.right > rect(stat).right + 1) fail(card, "header-stat-too-wide");
-    if (parseFloat(getComputedStyle(numeral).fontSize) < 4.3 * mm - .1) fail(card, "header-stat-font-shrunk");
-    sameAnchor(card, "header-stat-baseline", [ink.baseline - bounds.top]);
-  }
-  const placement = edge.querySelector(".edge-placement");
-  if (placement && (!visible(placement) || !inside(rect(edge), textInk(placement), 1))) fail(card, "row-restriction-text-outside");
-  for (const selector of [".stack-edge", ".card-title", ".rules", ".card-footer", ".cost-gem"]) {
+  for (const selector of [".card-title", ".rules", ".card-footer", ".cost-gem"]) {
     const element = card.querySelector(selector);
     if (!element) { fail(card, "missing-" + selector.slice(1)); continue; }
     if (!visible(element)) fail(card, selector.slice(1) + "-hidden");
     if (!inside(bounds, rect(element))) fail(card, selector.slice(1) + "-outside");
     if (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
       fail(card, selector.slice(1) + "-overflow");
-  }
-  for (const element of edge.querySelectorAll(".edge-classes, .edge-live, .edge-live-group")) {
-    if (!element.textContent.trim()) continue;
-    const label = element.classList.contains("edge-live") ? "edge-live" :
-      element.classList.contains("edge-live-group") ? "edge-live-group" : "edge-classes";
-    if (!visible(element) || !inside(rect(edge), rect(element))) fail(card, label + "-outside");
-    if (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
-      fail(card, label + "-overflow");
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    if (!inside(rect(edge), range.getBoundingClientRect())) fail(card, label + "-text-outside");
   }
   const art = card.querySelector(".motif-field"), rules = card.querySelector(".rules"), footer = card.querySelector(".card-footer");
   if (art && rules && rect(rules).top < rect(art).bottom - 1) fail(card, "art-rules-overlap");

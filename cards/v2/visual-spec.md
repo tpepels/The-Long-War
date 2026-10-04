@@ -1,86 +1,123 @@
 # V2 physical-card visual specification
 
-The design must work first as a printed tabletop component and second as a browser preview.
+The cards are physical war-table components. The exposed stack is the battlefield interface.
 
-## Stack geometry
+## Fixed geometry
 
-Cards are 68 × 96 mm.
+- Card size: **68 × 96 mm**.
+- Force bottom, Bond middle, Name top.
+- Each additional card is shifted downward **10.5 mm**.
+- The exposed 10.5 mm edge is exactly **one horizontal row**.
+- Browser and print use the same renderer.
 
-Force is the bottom card, Bond the middle card, Name the top card. Each additional card is shifted down by exactly 10.5 mm.
+Nothing may change the top-row baseline: not title length, rules density, card family, or Hero mode.
 
-The exposed 10.5 mm edge is **one horizontal row only**. Do not split it into a heading row plus a reminder row.
+## What belongs in the exposed row
 
-The row contains, from left to right:
+Only information that can still matter while most of the card is covered:
 
-1. Strength/stat crest or type emblem;
-2. classifications / compact identity;
-3. only the live buried reminder or row restriction that must remain readable.
+1. card role + Strength;
+2. classifications;
+3. live buried state/ability;
+4. hard row restriction, where one exists.
 
-The type symbol and family treatment already identify Force/Bond/Name. Do not cram redundant labels into the strip.
+Do not put title, Command cost, Unique, card ID, finished PLAY text, flavor, or full prose in the exposed edge.
 
-Hero Force and Name values remain separate adjacent stat marks. Never combine them into one circle.
+## Symbol grammar
 
-## No-lifting rule
+### Card roles
 
-A player must never lift the Name to inspect the Bond or lift the Bond to inspect the Force.
+Force = shield. Bond = linked chain. Name = standard/banner.
 
-PLAY text may disappear after resolving. Any ACTION, REACTION, BONDED, or WHILE NAMED rule that can still matter while a Force or Bond is buried must be represented completely in the exposed row.
+Hero shows two adjacent role stats: Force shield value and Name banner modifier. Do not compress both into one circle.
+
+### Strength
+
+Strength has its own crossed-weapons symbol. Card role and Strength are separate concepts and separate marks.
+
+### Classifications
+
+The enclosure shape communicates the classification layer:
+
+- Kind = circle: Human, Ship, Stronghold.
+- Role = diamond: Archer, Guard, Scout, Rider, Skirmisher, Raider, Healer, Spearman, Steward, Builder, Seer.
+- Rank = pennant: King, Captain, Veteran, Heir.
+
+The exposed edge shows pictograms only. The full face spells classifications out beneath the title with the same symbols.
+
+### Rows
+
+Front, Middle and Rear use a three-row diagram with the relevant bar filled.
+
+A hard row restriction is the row diagram plus a small lock, never a long FRONT ONLY label.
+
+### Timing
+
+The exposed edge uses timing pictograms:
+- Action = diamond/action mark.
+- Reaction = returning arrow.
+- Bonded = chain.
+- While Named = banner.
+
+If an Action or Reaction is once per Battle, print an empty circular **use socket** beside the timing symbol. Cover the socket after use and clear it for the next Battle.
+
+Once-per-Battle is a limit, never a timing window.
+
+### Command
+
+Command is always a d20/faceted-die symbol.
+
+The bottom-right cost is the die with only the numeral. There is no visible COMMAND label.
+
+## Full face
+
+The full card returns to words where words are better:
+
+- dominant EB Garamond title;
+- classification symbols plus written names below the title;
+- generated illustration;
+- open rules typography;
+- quiet footer.
+
+Symbols support scanning. They do not replace sentence grammar.
 
 ## Illustration
 
-The recovered generated family image is the illustration.
+The recovered generated family image is the sole illustration layer.
 
-There must be **one image layer only** in the art field.
+No vector heraldry, watermark drawing, or second image may sit over it.
 
-Do not place the old vector heraldry motif on top of the generated image. Heraldry remains useful for small type/stat symbols, but not as a second illustration.
+Sparse cards give the image more room. Dense cards may reduce its height, but rules never enter the image.
 
-The image receives only very light paper/edge grading. It should remain visibly detailed and should be the main visual focus of the card.
+## Rules
 
-Rules text is a separate layout region below the image and may never overlap it.
+Rules are printed directly on parchment. There are no beige rule boxes.
 
-Sparse cards may devote more height to art. Dense cards may reduce art height, but not by allowing rules to invade the image.
+Each effect has a timing pictogram, bold sans timing word, optional once-per-Battle use socket and Gentium rules prose.
 
-## Frame
+Separate effects with space and a fine rule.
 
-Use one strong physical outer cut line.
+## Frame and depth
 
-Do not put a second complete rounded rectangle inside it. Interior structure comes from restrained corner marks, the exposed-edge rule, the illustration boundary, and the footer rule.
+Use one strong outer physical cut line. Do not draw another complete rounded rectangle inside it.
 
-The frame should feel like a game component, not a slide, UI panel, or bordered document.
+Depth comes from paper variation, subtle edge light/shadow, restrained corner marks, illustration depth, ink/metal contrast on stats and cost, and family-specific accent color.
 
-## Title and rules
+Never use floating UI panels or card-inside-card boxes.
 
-Title: EB Garamond, dominant and left aligned.
+## Non-stacking card families
 
-Rules: Gentium Book, open on the parchment.
+Tactics, Stratagems and Narratives do not waste space on the rigid battlefield strip. They use an expressive family crown while sharing the same frame, typography, illustration treatment, icon vocabulary and cost treatment.
 
-Utility/timing/classification labels: Arial.
+## Acceptance
 
-Separate multiple effects with spacing and a fine rule. Do not put effects inside beige boxes.
-
-## Command cost
-
-The bottom-right cost is one integrated faceted seal with only the numeral. No visible COMMAND label and no product/version wording competing with it.
-
-## Density
-
-The component may use sparse / normal / dense / very-dense interior layouts.
-
-Those variants may change art height and rules type size. They may **not** change:
-
-- card dimensions;
-- exposed-edge height;
-- stack-row baseline;
-- stat placement;
-- classification baseline;
-- cost anchor.
-
-## Acceptance criteria
-
-- one exposed row;
-- generated image unobstructed by vector art;
-- no rule text over image;
-- no complete inner rounded-rectangle outline;
-- all stack combinations remain readable without lifting;
-- Hero Force and Name stats remain distinct;
-- print and browser use the same renderer.
+- one exposed row only;
+- symbols, not classification prose, in that row;
+- full classification words on the full face;
+- Hero Force/Name values separate;
+- no need to lift a stack;
+- no image overlay;
+- no rules/art overlap;
+- no Command word at the cost;
+- no inner rounded-rectangle document frame;
+- print and browser share the component.
