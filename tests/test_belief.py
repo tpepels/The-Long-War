@@ -37,23 +37,13 @@ def setup():
     return engine, deck, state
 
 
-def test_card_pool_prior_always_satisfies_force_and_name_minimums() -> None:
+def test_card_pool_prior_always_satisfies_current_deck_rules() -> None:
     engine, _reference, _state = setup()
     prior = CardPoolDeckPrior(engine, deck_size=34)
 
     for seed in range(32):
         sampled = prior.sample_deck(Counter(), random.Random(seed))
-        force_count = sum(
-            engine.cards[card_id]["type"] == "force"
-            for card_id in sampled
-        )
-        name_count = sum(
-            engine.cards[card_id]["type"] == "name"
-            for card_id in sampled
-        )
         assert len(sampled) == 34
-        assert force_count >= 14
-        assert name_count >= 6
         validate_deck_definition(sampled, engine.cards)
 
 
@@ -108,7 +98,11 @@ def test_belief_sample_preserves_all_public_zones() -> None:
         "the-long-march"
     ]
     assert sampled.stratagems[opponent] is not None
-    assert sampled.stratagems[opponent].card_id == "the-ground-was-held"
+    assert sampled.stratagems[opponent].revealed is False
+    assert (
+        engine.cards[sampled.stratagems[opponent].card_id]["type"]
+        == "stratagem"
+    )
     assert sampled.players[opponent].discard == state.players[opponent].discard
 
 
