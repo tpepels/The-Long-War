@@ -10,6 +10,7 @@ from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Position, Rank
 from longwar.game.model import NarrativeState
 from longwar.mccfr import CFRNode, MCCFRTrainer, action_key, information_set_id
+from longwar.protocol import MCCFR_POLICY_SCHEMA_VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
 pytestmark = pytest.mark.algorithm
@@ -140,7 +141,7 @@ def test_mccfr_policy_allows_legal_midbattle_zero_command_play() -> None:
     )
     info_id = information_set_id(state, 0)
     policy = {
-        "schema_version": 1,
+        "schema_version": MCCFR_POLICY_SCHEMA_VERSION,
         "infosets": {
             info_id: {
                 "average_strategy": {
