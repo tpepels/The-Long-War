@@ -7,6 +7,7 @@ from longwar.cards import load_card_file
 from longwar.game import (
     BoardTarget,
     ConstraintKind,
+    EndTurn,
     Front,
     GameEngine,
     Maneuver,
@@ -41,6 +42,7 @@ def fresh():
     )
     state.players[0].command = 20
     state.players[1].command = 20
+    state.battle = 3
     # Keep turn-flow tests below out of the mandatory discard-before-draw
     # substep. Individual tests install the exact cards they need.
     state.players[0].hand.clear()
@@ -78,7 +80,13 @@ def test_multiple_next_operation_requirements_prefer_one_action_satisfying_all()
         ),
     ]
 
-    assert engine.legal_actions(state) == [Maneuver(source, destination)]
+    legal = engine.legal_actions(state)
+    assert Maneuver(source, destination) in legal
+    assert EndTurn() in legal
+    assert all(
+        action == Maneuver(source, destination) or isinstance(action, EndTurn)
+        for action in legal
+    )
 
 
 def test_conflicting_front_requirements_allow_union_of_satisfiable_requirements():
@@ -112,7 +120,7 @@ def test_conflicting_front_requirements_allow_union_of_satisfiable_requirements(
     assert Pass() not in legal
 
 
-def test_impossible_requirement_does_not_block_normal_operation_or_pass():
+def test_impossible_requirement_does_not_block_normal_action_or_endturn():
     engine, state = fresh()
     state.players[0].hand = ["the-fifty-men"]
     state.operations_this_battle[:] = [1, 1]
@@ -128,7 +136,8 @@ def test_impossible_requirement_does_not_block_normal_operation_or_pass():
     ]
 
     legal = engine.legal_actions(state)
-    assert Pass() in legal
+    assert Pass() not in legal
+    assert EndTurn() in legal
     assert any(isinstance(action, PlayForce) for action in legal)
 
 
@@ -140,7 +149,7 @@ def test_battle_had_chosen_them_creates_front_obligation_after_first_card():
             fronts=(Front.SECOND,),
         )
     ]
-    state.players[0].hand = ["the-fifty-men"]
+    state.players[0].hand = ["the-fifty-men", "the-fifty-men"]
 
     engine.apply(
         state,
@@ -151,12 +160,21 @@ def test_battle_had_chosen_them_creates_front_obligation_after_first_card():
     )
 
     assert state.narratives[0][0].triggered_players_mask == 1
+    assert state.active_player == 0
+    assert state.actions_this_turn == 1
     assert any(
         item.kind is ConstraintKind.AFFECT_FRONT
         and item.player == 0
         and item.front is Front.SECOND
         for item in state.constraints
     )
+    legal = engine.legal_actions(state)
+    assert EndTurn() in legal
+    assert {
+        action.position.front
+        for action in legal
+        if isinstance(action, PlayForce)
+    } == {Front.SECOND}
 
 
 def test_no_one_would_be_first_to_leave_pins_named_formations():
@@ -177,14 +195,18 @@ def test_no_one_would_be_first_to_leave_pins_named_formations():
     assert Maneuver(source, Position(Front.THIRD, Rank.FRONT)) not in legal
 
 
-def test_king_had_given_order_forces_exact_free_next_turn_maneuver():
+def test_king_had_given_order_waits_until_next_turn_then_forces_free_maneuver():
     engine, state = fresh()
     source = Position(Front.SECOND, Rank.FRONT)
     target = Position(Front.FIRST, Rank.FRONT)
     named(state, 0, source)
-    state.players[0].hand = ["the-king-had-given-the-order"]
+    state.players[0].hand = [
+        "the-king-had-given-the-order",
+        "the-fifty-men",
+    ]
     state.players[1].hand = []
-    state.operations_this_battle[1] = 1
+    state.players[1].deck.clear()
+    state.players[1].discard.clear()
 
     play = PlayNarrative(
         "the-king-had-given-the-order",
@@ -194,13 +216,26 @@ def test_king_had_given_order_forces_exact_free_next_turn_maneuver():
     )
     assert play in engine.legal_actions(state)
     engine.apply(state, play)
+
+    # The Warning says "next turn", so Action 2 of this turn is not constrained.
+    assert state.active_player == 0
+    assert state.actions_this_turn == 1
+    assert any(isinstance(action, PlayForce) for action in engine.legal_actions(state))
+
+    engine.apply(state, EndTurn())
     assert state.active_player == 1
+    assert engine.legal_actions(state) == [Pass()]
     engine.apply(state, Pass())
     assert state.active_player == 0
 
     legal = engine.legal_actions(state)
-    assert legal == [Maneuver(source, target)]
-    assert engine.command_cost_for_action(state, legal[0]) == 0
+    assert Maneuver(source, target) in legal
+    assert EndTurn() in legal
+    assert all(
+        action == Maneuver(source, target) or isinstance(action, EndTurn)
+        for action in legal
+    )
+    assert engine.command_cost_for_action(state, Maneuver(source, target)) == 0
 
 
 def test_they_had_gone_too_far_creates_next_battle_maneuver_obligation():
@@ -213,9 +248,11 @@ def test_they_had_gone_too_far_creates_next_battle_maneuver_obligation():
 
     engine.apply(state, Pass())
     assert state.active_player == 1
-    engine.apply(state, Pass())
+    engine.apply(state, EndTurn())
+    assert state.active_player == 0
+    engine.apply(state, EndTurn())
 
-    assert state.battle == 2
+    assert state.battle == 4
     assert not any(
         narrative.card_id == "they-had-gone-too-far"
         for narrative in state.narratives[0]
@@ -267,10 +304,15 @@ def test_line_had_begun_to_move_forces_direction_and_makes_first_maneuver_free()
     ) == 0
 
 
-def test_every_banner_turned_toward_them_constrains_both_next_operations():
+def test_every_banner_turned_toward_them_constrains_both_next_actions():
     engine, state = fresh()
-    state.players[0].hand = ["every-banner-turned-toward-them"]
-    state.players[1].hand = []
+    state.players[0].hand = [
+        "every-banner-turned-toward-them",
+        "the-fifty-men",
+    ]
+    state.players[1].hand = ["the-fifty-men"]
+    state.players[1].deck.clear()
+    state.players[1].discard.clear()
     play = PlayStratagem(
         "every-banner-turned-toward-them",
         fronts=(Front.SECOND,),
@@ -278,15 +320,28 @@ def test_every_banner_turned_toward_them_constrains_both_next_operations():
     assert play in engine.legal_actions(state)
     engine.apply(state, play)
 
-    state.players[1].hand = ["the-fifty-men"]
+    # The controller's next Action can be Action 2 of the same turn.
+    assert state.active_player == 0
     legal = engine.legal_actions(state)
-    assert Pass() not in legal
+    assert EndTurn() in legal
     assert {
         action.position.front
         for action in legal
         if isinstance(action, PlayForce)
     } == {Front.SECOND}
     assert {item.player for item in state.constraints} == {0, 1}
+
+    # Ending the turn does not consume the obligation. The opponent's first
+    # Action is constrained in the same way.
+    engine.apply(state, EndTurn())
+    assert state.active_player == 1
+    legal = engine.legal_actions(state)
+    assert EndTurn() in legal
+    assert {
+        action.position.front
+        for action in legal
+        if isinstance(action, PlayForce)
+    } == {Front.SECOND}
 
 
 def test_had_been_ordered_forward_gains_strength_and_keeps_direction_if_possible():
@@ -309,15 +364,14 @@ def test_had_been_ordered_forward_gains_strength_and_keeps_direction_if_possible
     after = engine.position_strength(state, 0, middle)
     assert after == before + 2
 
-    assert state.active_player == 1
-    engine.apply(state, Pass())
     assert state.active_player == 0
+    assert state.actions_this_turn == 1
     legal = engine.legal_actions(state)
     assert Maneuver(middle, left) in legal
     assert Maneuver(middle, right) not in legal
 
 
-def test_pass_consumes_an_impossible_next_operation_requirement():
+def test_normal_action_consumes_an_impossible_next_operation_requirement():
     engine, state = fresh()
     state.players[0].hand = ["the-fifty-men"]
     state.operations_this_battle[:] = [1, 1]
@@ -332,6 +386,8 @@ def test_pass_consumes_an_impossible_next_operation_requirement():
         )
     ]
 
-    assert Pass() in engine.legal_actions(state)
-    engine.apply(state, Pass())
+    legal = engine.legal_actions(state)
+    assert Pass() not in legal
+    action = next(action for action in legal if isinstance(action, PlayForce))
+    engine.apply(state, action)
     assert not state.constraints
