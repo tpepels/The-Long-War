@@ -557,7 +557,8 @@ def test_completion_draw_resolves_before_the_next_players_turn_draw() -> None:
     assert state.pending_draw_finish_operation is False
     assert len(state.players[0].hand) == engine.hand_limit
     assert len(state.players[0].deck) == deck_before - 1
-    assert state.active_player == 1
+    assert state.active_player == 0
+    assert state.actions_this_turn == 1
 
 
 def test_unnamed_host_requires_open_bond_to_maneuver_unnamed() -> None:
@@ -789,7 +790,8 @@ def test_bought_time_for_can_pay_extra_to_draw_two_with_sequential_hand_limit() 
     engine.apply(state, engine.legal_actions(state)[0])
     assert len(state.players[0].hand) == engine.hand_limit
     assert state.pending_draw_discard_for is None
-    assert state.active_player == 1
+    assert state.active_player == 0
+    assert state.actions_this_turn == 1
 
 
 def test_baggage_warning_can_discard_another_card_to_regain_command() -> None:
@@ -1440,14 +1442,22 @@ def test_hero_force_and_name_allowances_are_separate_once_per_battle() -> None:
 
     state.active_player = 0
     state.actions_this_turn = 0
-    first_stratagem = PlayStratagem("the-ground-was-held")
-    assert first_stratagem in engine.legal_actions(state)
+    first_stratagem = next(
+        action
+        for action in engine.legal_actions(state)
+        if isinstance(action, PlayStratagem)
+        and action.card_id == "the-ground-was-held"
+    )
     engine.apply(state, first_stratagem)
     assert state.stratagem_used[0] == 1
 
     state.active_player = 0
     state.actions_this_turn = 0
-    assert PlayStratagem("the-lines-held") not in engine.legal_actions(state)
+    assert not any(
+        isinstance(action, PlayStratagem)
+        and action.card_id == "the-lines-held"
+        for action in engine.legal_actions(state)
+    )
 
 
 def test_non_passer_starts_next_battle() -> None:
@@ -1470,6 +1480,10 @@ def test_iria_makes_only_the_next_maneuver_free() -> None:
     engine.apply(state, PlayName("namar", pos(0, Rank.FRONT)))
 
     assert state.free_maneuver_available[0] is True
+    # The opponent has used only Action 1. End their turn so Iria's
+    # controller becomes the actor before checking the stored discount.
+    engine.apply(state, EndTurn())
+    assert state.active_player == 0
     maneuver = Maneuver(pos(0, Rank.FRONT), pos(1, Rank.FRONT))
     assert maneuver in engine.legal_actions(state)
     assert engine.command_cost_for_action(state, maneuver) == 0
