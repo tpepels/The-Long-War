@@ -1056,21 +1056,21 @@ class ProgressionTelemetry:
             ),
         }
         first_signal = [row for row in self._signal_contexts if row["first_signal"]]
-        first_signal_outcomes = {
-            "ahead": self._signal_outcome_group(first_signal, lambda row: row["total_margin"] > 0),
-            "tied": self._signal_outcome_group(first_signal, lambda row: row["total_margin"] == 0),
-            "behind": self._signal_outcome_group(first_signal, lambda row: row["total_margin"] < 0),
-            "with_playable_alternatives": self._signal_outcome_group(
-                first_signal,
-                lambda row: (
-                    row.get("playable_card_actions", 0) > 0
-                    or row.get("maneuver_actions", 0) > 0
-                ),
+        pass_outcomes = {
+            "ahead": self._signal_outcome_group(
+                first_signal, lambda row: row["total_margin"] > 0
             ),
-            "no_alternative": self._signal_outcome_group(
-                first_signal, lambda row: row["legal_alternatives"] == 0
+            "tied": self._signal_outcome_group(
+                first_signal, lambda row: row["total_margin"] == 0
+            ),
+            "behind": self._signal_outcome_group(
+                first_signal, lambda row: row["total_margin"] < 0
             ),
         }
+        # Historical artifact readers used first_signal_outcomes. Keep the
+        # three meaningful Front-balance groups as a compatibility alias; the
+        # old playable-alternative groups are impossible under forced Pass.
+        first_signal_outcomes = dict(pass_outcomes)
 
         command_end = [
             value
@@ -1117,6 +1117,9 @@ class ProgressionTelemetry:
             },
             "command_remaining_at_battle_end": self._distribution(command_end),
             "command_before_collapse": self._distribution(command_before_collapse),
+            "command_at_pass": self._distribution(
+                row["command_remaining"] for row in first_signal_rows
+            ),
             "command_at_first_signal": self._distribution(
                 row["command_remaining"] for row in first_signal_rows
             ),
@@ -1134,6 +1137,11 @@ class ProgressionTelemetry:
                 ),
                 len(first_signal_rows),
             ),
+            "pass_command_buckets": {
+                "0": sum(row["command_remaining"] == 0 for row in first_signal_rows),
+                "1-3": sum(1 <= row["command_remaining"] <= 3 for row in first_signal_rows),
+                "4+": sum(row["command_remaining"] >= 4 for row in first_signal_rows),
+            },
             "first_signal_command_buckets": {
                 "0": sum(row["command_remaining"] == 0 for row in first_signal_rows),
                 "1-3": sum(1 <= row["command_remaining"] <= 3 for row in first_signal_rows),
@@ -1263,6 +1271,7 @@ class ProgressionTelemetry:
                 sum(row["no_control_change_after_midpoint"] for row in battle_records),
                 len(battle_records),
             ),
+            "pass_outcomes": pass_outcomes,
             "first_signal_outcomes": first_signal_outcomes,
         }
 
