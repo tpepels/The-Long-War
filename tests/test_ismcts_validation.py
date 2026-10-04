@@ -275,6 +275,40 @@ def test_hidden_determinizations_share_root_information_identity() -> None:
     assert len(action_lists) == 1
 
 
+def test_stable_fast_information_id_includes_public_hidden_stratagem_choice() -> None:
+    from longwar.mccfr import information_set_id
+
+    engine, deck, _priors = _standard_fixture()
+    state = engine.new_game(deck, deck, seed=9214, first_player=0)
+    state.stratagems[1] = StratagemState(
+        "no-step-back",
+        fronts=(Front.FIRST,),
+        revealed=False,
+    )
+    fast = FastEngine(engine)
+
+    packed = fast.from_game_state(state)
+    assert (
+        fast_search.stable_information_id_from_fast_key(
+            fast,
+            fast.information_key(packed, 0),
+        )
+        == information_set_id(state, 0)
+    )
+
+    changed = state.clone()
+    changed.stratagems[1].fronts = (Front.SECOND,)
+    changed_packed = fast.from_game_state(changed)
+    assert (
+        fast_search.stable_information_id_from_fast_key(
+            fast,
+            fast.information_key(changed_packed, 0),
+        )
+        == information_set_id(changed, 0)
+    )
+    assert information_set_id(state, 0) != information_set_id(changed, 0)
+
+
 def test_native_information_key_hides_face_down_opponent_stratagem_identity() -> None:
     engine, deck, _priors = _standard_fixture()
     state = engine.new_game(deck, deck, seed=9215, first_player=0)
