@@ -222,7 +222,12 @@ def test_packed_hidden_zone_determinization_matches_python_belief_sample() -> No
     base = fast.from_game_state(state)
 
     python_sample = belief.sample(state, 0, random.Random(9210))
-    viewer_deck, opponent_hand, opponent_deck = belief.sample_hidden_zones(
+    (
+        viewer_deck,
+        opponent_hand,
+        opponent_deck,
+        opponent_stratagem,
+    ) = belief.sample_hidden_zones(
         state,
         0,
         random.Random(9210),
@@ -233,6 +238,7 @@ def test_packed_hidden_zone_determinization_matches_python_belief_sample() -> No
         viewer_deck,
         opponent_hand,
         opponent_deck,
+        opponent_stratagem,
     )
     python_packed = fast.from_game_state(python_sample)
 
@@ -610,7 +616,10 @@ def test_zero_post_battle_depth_preserves_boundary_leaf_behavior() -> None:
     assert result["rollouts_stopped_terminal"] == 0
     assert result["rollouts_stopped_battle_boundary"] == iterations
     assert result["rollouts_stopped_depth"] == 0
-    assert result["rollout_actions"] == iterations
+    # Tree depth 1 consumes the initiating Pass. With post-Battle depth 0,
+    # each rollout then executes exactly the two fixed closing EndTurns before
+    # stopping at the next-Battle boundary.
+    assert result["rollout_actions"] == 2 * iterations
     assert result["mean_value"] == pytest.approx(expected)
 
 
