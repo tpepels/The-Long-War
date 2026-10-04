@@ -347,3 +347,26 @@ def test_force_top_strip_includes_readable_timing_word() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     assert "edge-timing-word" in js
     assert ".card-force.chronicle-force-face .edge-timing-word" in css
+
+
+def test_force_style_lab_covers_force_layout_stress_cases() -> None:
+    lab = (ROOT / "web" / "cards-v2-force-style-lab.js").read_text(encoding="utf-8")
+    # Long title + three classifications, no-rules card, long rule, placement,
+    # and cards that deliberately exercise the family-art fallback.
+    for card_id in (
+        "the-white-hands-of-elara",
+        "the-thornbow-hunters",
+        "the-black-company",
+        "the-serekh",
+        "the-red-shields",
+        "the-watchtowers-of-eren",
+    ):
+        assert card_id in lab
+
+
+def test_force_chronicle_material_is_raster_integrated() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert "mix-blend-mode:multiply" in css
+    assert ".chronicle-lower::before" in css
+    assert ".sparse .chronicle-rules::after" in css
+    assert 'background:url("art/v2/ui/chronicle-divider.webp")' in css

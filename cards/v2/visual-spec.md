@@ -91,7 +91,7 @@ Where a per-card illustration exists under `web/art/v2/cards/`, use it. The seve
 
 No vector heraldry, watermark drawing, or second image may sit over the illustration.
 
-Every card uses the same **20 mm illustration window**, at the same vertical position, with the same centered `cover` crop (`50% 50%`). Sparse, dense, and Hero layouts may never change illustration height or crop position. Density is handled only by rules typography and rules spacing.
+Families that have not yet been migrated to their canonical face still use the shared **20 mm illustration window**. **Force is the deliberate exception:** the Chronicle Force face below uses a fixed **34 mm** mounted illustration plate. Within each family, sparse/dense states may never change illustration height or crop position; density is handled only by rules typography and spacing.
 
 ## Rules
 
@@ -149,7 +149,10 @@ The material treatment is part of the design, not decoration added later:
 - generated raster ornamental divider;
 - inset highlight/shadow around the art plate;
 - restrained navy/black heraldic ink;
-- warm worn parchment.
+- warm worn parchment;
+- border raster blended into the paper rather than sitting above it as a glossy overlay;
+- a restrained raster transition between artwork and title;
+- slightly larger rules text, with sparse-card whitespace finished by quiet print ornament rather than extra UI panels.
 
 Decorative framing and separators should use these raster assets rather than hand-built SVG or CSS line ornament. Functional game glyphs remain vector icons because they carry rules information rather than decoration.
 

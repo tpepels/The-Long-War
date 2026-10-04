@@ -1,6 +1,6 @@
 (() => {
 "use strict";
-const ids=["the-kings-spears","the-red-shields","the-house-of-reed","the-grey-riders","the-lantern-scouts","the-salt-road-fleet","the-serekh","the-aradai","the-iron-boars","the-white-hands-of-elara"];
+const ids=["the-kings-spears","the-white-hands-of-elara","the-thornbow-hunters","the-black-company","the-red-shields","the-house-of-reed","the-grey-riders","the-lantern-scouts","the-salt-road-fleet","the-serekh","the-aradai","the-iron-boars","the-watchtowers-of-eren"];
 async function main(){
   const response=await fetch("data/cards-v2-redesign.json",{cache:"no-cache"});
   if(!response.ok) throw new Error("Could not load V2 card data");
