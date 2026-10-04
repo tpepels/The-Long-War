@@ -269,6 +269,7 @@ def test_all_per_card_art_is_wired_into_renderer() -> None:
     assert "var(--card-art,var(--family-art))" in css
 
     art_ids = sorted(path.stem for path in (ROOT / "web" / "art" / "v2" / "cards").glob("*.png"))
+    assert len(art_ids) == 67
     known = {card["id"] for card in CARDS}
     assert art_ids
     assert set(art_ids) <= known
