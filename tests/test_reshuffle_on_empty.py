@@ -5,7 +5,7 @@ from collections import Counter
 from pathlib import Path
 
 from longwar.cards import load_card_file
-from longwar.game import GameEngine, Pass
+from longwar.game import EndTurn, GameEngine, Pass
 from longwar.rules import GameRules
 
 
@@ -29,8 +29,14 @@ def setup_state(seed: int = 7401):
 
 
 def start_final_turn(engine: GameEngine, state) -> None:
+    # Force the one true Battle Pass. Player 1 then begins the first closing
+    # turn and performs the draw under test.
     state.active_player = 0
+    state.players[0].hand.clear()
+    state.players[0].deck.clear()
+    state.players[0].discard.clear()
     state.operations_this_battle[:] = [1, 1]
+    assert engine.legal_actions(state) == [Pass()]
     engine.apply(state, Pass())
     assert state.active_player == 1
 
@@ -95,18 +101,30 @@ def test_empty_pile_reshuffle_is_deterministic_for_same_shuffle_seed() -> None:
 
 def test_battle_end_does_not_recycle_discard_without_a_draw() -> None:
     engine, state = setup_state()
-    state.players[0].hand = state.players[0].hand[:10]
-    state.players[0].deck = []
-    state.players[0].discard = ["followed", "swore-again-to", "namar"]
 
-    # Make the final opponent turn drawable without touching player 0.
-    state.players[1].hand = state.players[1].hand[:9]
+    # Player 1 is unable to act and becomes the passer. Player 0 is the
+    # non-passer: its first closing-turn draw uses the one existing deck card
+    # to reach 10 cards, leaving the public discard untouched.
+    state.active_player = 1
+    state.players[1].hand.clear()
+    state.players[1].deck.clear()
+    state.players[1].discard.clear()
+    state.players[0].hand = state.players[0].hand[:9]
+    state.players[0].deck = ["the-fifty-men"]
+    state.players[0].discard = ["followed", "swore-again-to", "namar"]
     state.operations_this_battle[:] = [1, 1]
-    state.active_player = 0
+
+    assert engine.legal_actions(state) == [Pass()]
     engine.apply(state, Pass())
-    engine.apply(state, Pass())
+    assert state.active_player == 0
+    engine.apply(state, EndTurn())
+    assert state.active_player == 1
+    engine.apply(state, EndTurn())
 
     assert state.battle == 2
+    assert state.active_player == 0
     assert state.players[0].discard == ["followed", "swore-again-to", "namar"]
     assert state.deck_reshuffles[0] == 0
+    # The next Battle starts with player 0 at the hand limit, so its normal
+    # turn draw pauses for discard-before-draw without recycling anything yet.
     assert state.pending_draw_discard_for == 0
